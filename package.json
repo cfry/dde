@@ -8,7 +8,7 @@
   "main": "main.js",
   "scripts": {
     "test": "dependency-check ./package.json",
-    "start": "electron .",
+    "start": "electron main",
     "rebuild": "electron-rebuild",
     "build": "build --dir",
     "dist": "build",
