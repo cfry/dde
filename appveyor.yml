@@ -1,0 +1,23 @@
+build: off
+
+platform:
+  - x64
+
+cache:
+  - node_modules -> package.json
+  - '%APPDATA%\npm-cache -> package.json'
+  - '%USERPROFILE%\.electron'
+
+install:
+  - ps: Install-Product node 7 x64
+  - npm install
+
+test_script:
+  - node --version
+  - npm --version
+  - npm run dist
+
+environment:
+  GH_TOKEN:
+    secure: 1234qwer
+
