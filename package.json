@@ -30,7 +30,7 @@
   },
   "devDependencies": {
     "electron": "^1.4.13",
-    "electron-builder": "^15.1.1",
+    "electron-builder": "^14.4.0",
     "electron-rebuild": "^1.5.7",
     "rimraf": "^2.6.1"
   },
