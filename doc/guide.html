@@ -1,0 +1,450 @@
+<details><summary>About</summary>
+    <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment
+    v <span id="dexter_version_id"></span> is
+    beta test software.<p/>
+    DDE helps you create, debug, and send software to a Dexter robot.
+    You can use any Javascript augmented with DDE-specific functions to help find out about,
+    and manipulate, a robot.
+    <a href="http://hdrobotic.com/videos/">Videos on Dexter</a>
+    <span id="dde_paper_id" style="color:blue; text-decoration:underline;">DDE Overview Paper</span>
+</details>
+<details><summary>Why Use DDE?</summary>
+    Dexter has a limitless variety of capabilities.
+    We couldn't think of them all let alone program them.
+    And if we could, finding the right button for each program would be
+    extremely difficult, besides overfilling screen real estate.
+    <br/><br/>
+    By providing a general purpose language that is broad enough to cover all the bases,
+    yet detailed enough to specify the action details, users can specify the
+    precise behavior they desire.
+    We've extended JavaScript, most common web page programming language,
+    with dexter-specific functions like
+    "move" and ways to gets values from its sensors (like camera").
+    This allows you to specify things like:
+    <i>If part X is in the workspace, then move it 10 millimeters to its left</i>.
+    <br/><br/>
+    You need a general purpose language to customize that "10"
+    with any computable number in a myriad of ways. We may want to
+    create actions that depend on conditions that differ with the environment, time,
+    or materials. Instead of move, we might want to rotate, or grasp, or drill, etc.
+    <details style="margin-left:20px;"><summary>Won't a Text Editor Do?</summary>
+        You could use any old text editor to write code. But you'd need to know:
+        <ol>
+            <li>What capabilities are available?</li>
+            <li>What do they actually do? (semantic details)</li>
+            <li>How do I use them? (syntactic details)</li>
+            <li>How do I run the code?</li>
+            <li>How do I localize bugs?</li>
+            <li>How do I understand and fix them?</li>
+            <li>How do I store and re-run programs I've created?</li>
+            <li>How do I change and extend existing code?</li>
+        </ol>
+        DDE helps you with all of the above.
+    </details>
+</details>
+<details><summary>Prerequisites</summary>
+    You'll need a Dexter robot and a basic knowledge of JavaScript to make full use of DDE.
+    DDE provides a lot of help for learning JavaScript directly and the
+    <b>Learning JavaScript</b> section of this documentation gives you a number of
+    very good on-line sources to smooth your path.
+    Without a robot, you can still use DDE to <i>simulate</i> one.
+</details>
+<details><summary>Installation</summary>
+    <details style="margin-left:20px;"><summary>First Install</summary>
+        needs work
+    </details>
+    <details style="margin-left:20px;"><summary>Updating to the latest DDE</summary>
+        needs work
+    </details>
+    <details style="margin-left:20px;"><summary>Launch DDE</summary>
+        needs work
+    </details>
+</details>
+<details><summary>Robot Configuration</summary>
+    <ul>
+        <li>The Dexter robot supports a wi-fi connection to your computer.</li>
+        <li>Please use the latest Chrome browser for DDE.</li>
+        <li>Enter the URL of the Dexter computer into the "ROS url" type-in at the top of
+            the JavaScript pane. It will normally have a port suffix of ":9090".</li>
+        <li>Verify the connection by choosing the Output pane <button>Ops&#9660;</button> menu/ROS Info/ping menu item.</li>
+    </ul>
+</details>
+<details><summary>User Interface</summary>
+    <a style="margin-left:20px;" href="https://youtu.be/y8Mip5NUDPI">Video tutorial of DDE</a>
+    <details id="javascript_pane_doc_id" style="margin-left:20px;"><summary>JavaScript Pane</summary>
+        The JavaScript pane is a text editor. You can view and edit any text documents in it,
+        but primarily you will be editing JavaScript that defines a job to make something
+        with Dexter. DDE expects you to save such "apps" in your <code>Documents/dde_apps/</code>
+        folder.
+    </details>
+    <details id="output_pane_doc_id" style="margin-left:20px;"><summary>Output Pane</summary>
+        DDE prints information in the Output pane that will be useful in your current context.
+        You can explicitly print in the output pane with a call to the JavaScript function <code>out</code>.
+        Example:<br/>
+        <code>out("hi <i>world</i>", "blue")</code><br/>
+        <code>out</code> accepts any valid HTML as its first argument. It will be rendered in the Output pane.
+    </details>
+    <details id="documentation_pane_doc_id" style="margin-left:20px;"><summary>Documentation Pane</summary>
+        The Documentation pane attempts to describe the core knowledge you'll need to command Dexter to make things.
+        Admittedly we'll always fall short of this goal, but let us know if some crucial information
+        is missing and we'll do our best to fill the void.<p/>
+        You can find out what version of DDE is running and the latest changes under the
+        <b>Release Notes</b> section of the documentation.
+        Details about programming Dexter are in the <b>Reference Manual</b> section.
+    </details>
+    <details id="simulate_pane_doc_id" style="margin-left:20px;"><summary>Simulate Pane</summary>
+        <div style="padding-left:20px">
+            The simulate pane shows a graphical simulation of Dexter with
+            joint angles of the last heartbeat robot status returned.
+            (By default, heartbeats happen every 100ms.)
+            <p/>
+            Use the mouse in the <i>Simulate</i> pane to:
+            <ul style="padding:0px;margin-left:20px;display:inline-block;" >
+                <li><b>Rotate table</b>: mouse-down then drag.</li>
+                <li><b>Zoom</b>: shift-down then mouse-down then drag.</li>
+                <li><b>Pan</b>: alt or option down, then mouse-down, then drag.</li>
+            </ul>
+            <p/>
+            <button>Demo</button> shows Dexter randomly flailing around, not
+            correlated to a connected Dexter.
+            <p/>
+            The menu in the Simulate pane header let's you browse several videos showing
+            off Dexter's capabilities.
+        </div>
+        <details style="margin-left:20px;"><summary>Stepping Instructions</summary>
+            To understand a Job's behavior, its useful to <i>step</i> through each instruction.
+            Checking the <b>pause</b> checkbox will cause running jobs to pause
+            when they have completed their current instruction. Jobs started when
+            the pause button is checked will pause right before the first user instruction
+            on the do_list is run.<p/>
+            When a job is paused, clicking the <button>Go</button> button will cause
+            it to execute the next instruction, print out useful information in the Output
+            pane, and pause. If a job is paused, and you uncheck the pause checkbox,
+            then click the <button>Go</button> button, the job will begin running normally.
+            <p/>
+            <details id="debugger_doc_id" style="margin-left:20px;"><summary>"debugger"</summary>
+                The instruction of <code>"debugger"</code> in a do_list will cause
+                the <b>pause</b> checkbox to be checked and the job to pause.
+                A function that returns the string <code>"debugger"</code> or
+                even an array that has an element of <code>"debugger"</code>
+                will cause a pause.
+                <p/>
+                Note that using the string <code>"debugger"</code>
+                is intentionally similar to using the JavaScript constant <code>debugger</code>.
+                If you have the constant <code>debugger</code>
+                in the body of a function that is a do_list item, or is called by
+                a do_list item, it will cause a JavaScript breakpoint and you
+                can step through that code using the Chrome dev tools.
+                See Documentation top level section <b>Debugging</b>.
+            </details>
+        </details>
+    </details>
+</details> <!-- end User Interface -->
+<details><summary>JavaScript</summary>
+    DDE let's you control a Dexter robot with Javascript. You can execute all of JS.
+    DDE extends JavaScript with a library of functions that control Dexter, allow access to Unix commands
+    on Dexter's computer, Window system extensions, as well as ROS specific function calls allowing you to find out about
+    and control Dexter.<p/>
+    In DDE, <code>console.log</code> sends its output
+    to the (usually hidden) Chrome console.
+    Use <code>out</code> (on the <button>Insert&#9660;</button> menu) to see output in the Output pane.
+</details>
+<details id="learning_js_doc_id"><summary>Learning JavaScript</summary>
+    The quickest way to learn most of the JavaScript you'll need is from the
+    JavaScript Pane's <button>Learn JS&#9660;</button> menu.
+    Read menu item tooltips, choose an item to insert code, then click <button>Eval</button>
+    to eval all the code in the Editor. If there's a selection when you click Eval,
+    just the selected code will be evaluated.
+    Choose menu items under  <button>Learn JS&#9660;</button> in depth-first order for a consistent overview, and later you can choose
+    exactly those items you need to insert a code snippet.<br/>
+    <fieldset><legend><span style="color:red;">Warning</span></legend>
+        <b>Code in the editor that has not been evaled will have no effect.</b></fieldset><br/>
+    A nice interactive tutorial is available at:
+    <a target="_blank" href="https://www.codecademy.com/learn/javascript">
+        https://www.codecademy.com/learn/javascript</a> Beware that <code>console.log</code> prints to the
+    <i>normally hidden</i> chrome console. DDE's <code>out</code> is easier to use.
+    <p/>
+    If you want more prose, there are lots of JavaScript tutorials on the web. You will not need to know
+    HTML, CSS or JQuery that are commonly taught in conjunction with JavaScript.
+    <p/>
+    <a href="http://jsforcats.com" target="_blank">A very gentle intro to JavaScript.</a> Ignore the
+    parts that use the <code>Underscore</code> library.<br/>
+    A more formal (and long) <a href="http://www.w3schools.com/js/" target="_blank">tutorial</a>.
+    <details style="margin-left:20px;"><summary>JS for Programmers</summary>
+        If you're already a competent programmer but don't know JS specifics,
+        here's a few tips:<br/>
+        JavaScript is an <b>untyped</b> language. That means you don't declare types
+        of variables, function parameters, or return values. So for instance,
+        <br/>C's &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<code>int foo = 32;</code> <br/>
+        in Js is <code>var foo = 32;</code><br/>
+        The type system is,
+        um, weak. The <b>object system</b> is also in somewhat of disarray. Because of that
+        there are many packages adding a more rational Object system, but they all
+        differ, confusingly.
+        <p/>
+        There's no <b>compiler</b> in JavaScript. There are no "includes" or
+        "pre processors" or "macros". The code is run in an iterpreter inside
+        a browser (every browser, actually). The major browsers also offer a
+        debugging environment, though typically no Editor. DDE gives you an editor
+        and a lot of other convenieces for developing code.
+        <p/>
+        <b>Whitespace</b> characters are those characers that "take up space" but you can't
+        otherwise see. This includes space, tab, newline and a few others. In Javascript,
+        mostly its the case that 1 whitespace character is equivalent to any number of
+        contiguous whitespace characters. Except that function calls need to be ended
+        with either a semicolon or a newline, not just a space.
+        For example:<br/>
+        <code>Math.min(3, 4); Math.min(5, 6)</code><br/>
+        is legal, as is:<br/>
+        <code>Math.min(3, 4)<br/>
+            Math.min(5, 6)</code><br/>
+        but not:<br/>
+        <code>Math.min(3, 4)  &nbsp;Math.min(5, 6)</code>
+        <p/>
+        There is no <b>Window System</b> per se in JavaScript but it ties into
+        HTML, CSS and the browser's Document Object Model. This is confusing since
+        it requires several different syntaxes and ways-of-thinking. DDE
+        simplifies this by providing
+        the key window system facilites you'll need for commanding Dexter
+        via the function <code>show_window</code>, the <code>Human.enter_*</code> instructions
+        and a few other utilities. See the <button>Insert&#9660;</button> menu.
+        <p/>
+        Javascript's functionality greatly expanded in 2016 with a new version who's name
+        itself is confusing. You'll see <b>EcmaScript 6</b>, JavaScript 2015 and a few variants.
+        Browsers vary as to how much of this they implement, but Chrome, the browser
+        DDE uses, has nearly 100% of this new standard implemented as of June, 2016.
+        DDE depends on these new features.
+        <p/>
+        See in, this documentation, <b>Installation/Keep Chrome up to date</b>.
+        JS 6 can run code from earlier versions of JS, but there's an awful lot
+        of new functionality that isn't in most existing JS documentation.
+        <p/>
+        Like all popular programming languages, JavaScript has its problems.
+        But its unique in its "deployability". JS and DDE runs on Windows, Macs,
+        Linux, and Chromebooks. Its new features are quite powerful, and DDE strives
+        to make learning and using JS as simple as possible. Your new skills will
+        serve you well in Web programming for billions of users.
+        <p/>
+        Recommended JS Tutorials for the experienced programmer (both of which ignore
+        the new JS 6 extensions):<br/>
+        <a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/A_re-introduction_to_JavaScript">
+            JS re-introduction</a><br/>
+        <a target="_blank" href="http://www.2ality.com/2013/06/basic-javascript.html">more comprehensive</a>
+    </details>
+    Eventually you will need to know the concepts of ROS (the Robot Operating System), though
+    not the syntax of BASH, C++ and Python normally required to work with ROS.
+</details>
+<details><summary>Workflow</summary>
+    DDE let's you execute arbitrary JavaScript that is entered into the JavaScript pane.
+    <ol><li>The JavaScript pane's menus allow you to insert useful code snippets into
+        the JavaScript pane.</li>
+        <li>You can edit and extend the inserted code. Use any valid JavaScript.</li>
+        <li>Click the <button>Eval</button> button. The result of the last expression evaluated
+            will appear in the Output pane.</li>
+        <li>If there is a selection when the <button>Eval</button> button is clicked, only the selected
+            code will be executed.</li>
+        <li>Triple click on a line to select it.</li>
+        <li>Alt-click on a JS function call to select it.</li>
+    </ol>
+    Try this: type into the editor<br/>
+    <code>2 + 3</code><br/>
+    Click <button>Eval</button> and see <b>5</b> in the Output pane.
+
+    <details style="margin-left:20px;"><summary>Persistent Data</summary>
+        When you have defined a named function, set a global variable or a property
+        reachable by a global variable, that data will remain in the JS environment until
+        you relaunch DDE. This is even true if you bring a new file into the editor.
+        <p/>
+        Overall this facilitates programming, but it does have some behavior that may be unexpected.
+        Imagine you define
+        <br/><code>function foo(){return bar()}</code> and
+        <br/><code>function bar(){return 'stuff'}</code>
+        <br/>You call <code>foo()</code> and it returns <code>'stuff'</code>.
+        Now you rename <code>bar</code> to <code>baz</code> and test <code>baz()</code>. It returns
+        <code>'stuff'</code> as expected, as does calling <code>foo()</code>. Now
+        <ul><li>Save this code in a file</li>
+            <li>Relaunch DDE</li>
+            <li>Open the file in the editor</li>
+            <li>Eval it</li>
+            <li>Call <code>foo()</code></li>
+        </ul>
+        The call to <code>foo</code> will error because <code>bar</code> is no longer defined.
+        When redefining function and global variables, its a good idea to save your
+        code in file(s), relaunch DDE, and reload your code periodically, to check against such issues.
+    </details>
+    <details style="margin-left:20px;"><summary>Working with Dexter</summary>
+        <ol><li>In the output pane, enter any Unix BASH shell command in the <i>shell</i> type in
+            and hit enter. It is run on Dexter's computer.  Returned text will be printed below.
+            The command you typed in will also be added to the Output pane's <button>Ops&#9660;</button> menu under
+            "User Commands" should you want to execute it again.
+        </li>
+            <li>The Output pane's <button>Ops&#9660;</button> menu allows easy access to finding out about the ROS environment.</li>
+            <li>If you click on underlined text in the Output pane, it will pop up a help
+                window about the clicked on item. Often the help window will have buttons allowing
+                you to insert relevant JS function calls into the JavaScript pane.</li>
+        </ol>
+    </details>
+</details>
+<details id='series_doc_id'><summary>Series</summary>
+    A useful way to organize knowledge is to construct lists of similar-typed concepts.
+    DDE calls such lists <b><i>series</i></b>. There are over 30 series in DDE, including
+    numbers, dates, colors, functions for math, strings, arrays, etc.
+    The most useful functions and data structures in DDE are in a series.
+    <p/>
+    The <button>Series&#9660;</button> menu allows you to insert into the
+    editor, an example item from each series. When you click on a series item in the editor,
+    help is given on that item in the Output pane. Using the Right and Left arrow
+    keys, you can replace a selected series item with the next or previous item
+    in its series. The Up and Down arrow buttons replace a selected series item
+    with an item from <i>another</i> series. Effectively this uses the series of series.
+    <p/>
+    An example of a series is <code>boolean</code>. Choose it from the <button>Series&#9660;</button>
+    menu. It inserts <code>true</code>. Now hit the right arrow key to see additional items
+    in the series (false, null, etc.) The left arrow goes backwards through the series.
+    <p/>
+    With any series item selected, hit the down arrow. If you're on a member of the boolean series,
+    this will replace the selection with an item from the <code>integer</code> series.
+    Press the up and down arrows to go to a new series.
+    <p/>
+    Each time you go to a new item from series or click on one already in the editor,
+    help on it will be displayed in the Output pane.
+</details>
+<details><summary>Jobs</summary>
+    A job feeds the instructions in its do_list to a robot for making things.
+    Most users of DDE will spend most of their time creating and running jobs.
+    <p/>
+    The <button>Series&#9660;</button> menu gives help on Jobs and Robots.
+    <br/>
+    The <button>Jobs&#9660;</button> menu contains numerous examples of defining Jobs and
+    how to run them. Choose <b>Insert example 1</b> and read the comments to understand Job syntax.
+    See the <b>Reference Manual</b> on <b>Job</b> for the details of specifying a job.
+</details>
+<details id='robots_doc_id'><summary>Robots</summary>
+    A robot is a machine capable of performing the instructions in its instruction set.
+    The class hierarchy of DDE Robots is:<br/>
+    <ul><li>Robot
+        <ul><li>Brain</li>
+            <li>Dexter</li>
+            <li>Human</li>
+            <li>Serial</li>
+        </ul>
+    </li>
+    </ul>
+    To get a robot to perform instructions, you create an instance of its class, giving it
+    at least a name (and in the case of Dexter, an ip_address and a port number) then
+    create an instance of Job and give it a robot property of the robot you created.
+    The job should also have a do_list, which is the sequence of instructions to run
+    on the robot. When the <code>start</code> method is called on a Job, it sends the items
+    on its do_list to the associated robot, sequentially, one at a time.
+    <p/>
+    From a software standpoint, a robot <i>is</i> its instruction set.
+    The key difference between different kinds of Robots is the difference
+    between their instruction sets. If a robot is sent
+    an instruction not in its instruction set, it will error, because it doesn't know
+    how to perform that kind of instruction.
+    <p>
+        <b>Robot</b> is the superclass of all robot classes. It contains instructions that
+        can run on all robots. These are <i>control</i> instructions because they help
+        manage the flow of instructions in a job. Examples include: <code>Robot.stop</code>
+        to end a job immediately without processing the insructions after the stop instruction,
+        and <code>Robot.wait_until</code> which pauses execution of the job's instructions until
+        the calling of the given JS function returns true.
+    <p/>
+    See <button>Series&#9660;</button> submenu "robot" for details about robots as
+    well as the <b>Reference Manual</b> section on Robots.
+</details>
+<details id='TestSuite_doc_id'><summary>TestSuite</summary>
+    DDE has the capability to compose, run and report on Test Suites.
+    DDE comes with several Test Suites and you can define more.
+    <p/>
+    Each Test Suite has a name and an array of <i>tests</i>.
+    A <i>test</i> is composed of an array of 1, 2, or 3 literal strings.
+    <ol><li>A literal string of JavaScript code to evaluate that returns a value to be tested.</li>
+        <li>The expected value of the above JavaScript code, also represented by
+            a literal string of JavaScript.</li>
+        <li>A literal string of a comment to aid in understanding the purpose or behavior of this test.
+            If the comment starts with "known", then if the test does not pass, it
+            will be reported on as an "known" failure. Other failures will be
+            reported as "unknown". Often it is convenient to mark a test as "known" when
+            you'd like to defer fixing it and just want to see the "unknown" failures.</li>
+    </ol>
+    Choose <button>Test&#9660;</button> <b>Insert Example</b> to see a demonstation
+    Test Suite. <p/>
+    You run a Test Suite by selecting it and hitting the right arrow key or
+    choosing the JavaScript pane's <b>Test/naviation/Run & sel next item</b> menu item.
+    Use the down arrow key to select the next level down item such as a test or
+    even a part of a test. In each case, the right arrow executes the item and
+    selects the next item at that level.
+    <p/>
+    To create a Test Suite, type in the JavaScript source of the suite's first test,
+    select it, and choose <button>Test&#9660;</button> <b>Selection to test</b>.
+    This will wrap a Test Suite around the item and fill in the test's expected value
+    with the result of evaluating the code you have selected. If you do that again
+    for a second JavaScript selection, it will also create a test, but this time,
+    because the test is <i>already</i> in a Test Suite, it will not create a new
+    Test Suite.
+    <p/>
+    Other operations on the <button>Test&#9660;</button> menu are documented with tooltips.
+</details>
+<details id='debugging_id'><summary>Debugging</summary>
+    Most programmers spend most of their time debugging.
+    We recommend entering just a bit of code at a time; a line or less before testing it.
+    That way, when a bug shows up, you'll know it was in the last bit that you added.
+    If you fail to do this, and have a large amount of code that has a bug, comment out
+    lines incrementally and test to isolate the bug.
+    <p/>DDE uses an automatic syntax checker named <i>ESLint</i>. It
+    indicates syntax errors in the JavaScript pane as soon as you enter them.
+    There are many different styles of JS coding and different versions
+    of JS so its hard to get such errors correct. Even if you have syntax
+    errors indicated, your code may run fine. As a first pass though, try
+    to fix such errors before evaling. If you can't, go ahead and evaluate
+    your code. Perhaps runtime errors will help you fix the bug,
+    or perhaps it will run OK and you'll know to just ignore the JS Pane syntax
+    bug indication.
+    <br/><br/>
+    Evaling just selected portions is another way to isolate bugs. If there is a selection
+    of JavaScript code, only that code will be evaled when you click <button>Eval</button>
+    <br/><br/>
+    Another technique is to comment out code until your bug goes away.<br/>
+    <b><code>// </code></b> comments out to the end of the line.<br/>
+    <b><code>/* comment */</code></b> Wrap JavaScript in <br/>
+    slash-star ... star-slash<br/> to comment
+    out code in the middle of a line or multiple lines.
+    See the JavaScript pane's <button>Learn JS&#9660;</button> <i>debugging</i> menu items.
+    <br/><br/>
+    Entering <code>debugger;</code> into the body of a JS function definition will set a breakpoint there.
+    When <code>debugger;</code> is evaluated (after you call the function) and the <i>Chrome Developer Tools</i>
+    window is open, execution will pause and highlight the <code>debugger;"</code> statement in a copy
+    of your source code.
+    (To open the <i>Chrome Developer Tools</i> window, click right on any DDE pane and choose
+    <b>Inspect</b>. If you don't see "Inspect" on the menu, read the documentation
+    under "Installation" on "Configure Chrome".)
+    Use the arrow buttons <img src="stepper_buttons.png" width="120" alt="stepper buttons"/>
+    in the Developer Tools window upper right to step execution.
+    <br/><br/>
+    Wrapping <code>console.log(...)</code> around a complex data structure will print it
+    out in the Chrome Developer Tools console with arrows to allow you to expand
+    data pieces of your choice to inspect. To see the console,
+    click right anywhere in DDE and choose "Inspect".<p/>
+    You can print strings into the Output pane with a call to <code>out</code>.
+    Because <b>out</b> returns
+    its 1st argument, you can embed it in code to see an intermediate value.<br/>
+    <code> (out(2 + 3)) * 4</code> <br/>will print out 5, but return 20.<br/>
+    <button>Insert&#9660;</button> <i>Print to output</i> has items that print in a few different colors
+    so that you can distinquish some outputs from others in a complex debugging session.
+    <br/><br/>
+    <b>speak</b> behaves similarly to <b>out</b> in that it returns its 1st arg.
+    It can be useful in contexts where you want to know a value but don't
+    want to look at the screen to find it.
+    speak is on the Insert menu, under <i>Learn Javascript/debugging</i>.
+</details>
+
+<details><summary>Contact</summary>
+    Please help us by emailing a bug report or suggestion to
+    <a id="email_bug_report_id" href="#">cfry@media.mit.edu</a> Take a look at the
+    latest <i>Release Notes</i> and the underlying <i>Known Issues</i> to avoid duplication.
+</details>
+<details id="ref_man_doc_id">
+</details>
+<details id="release_notes_id">
+</details>

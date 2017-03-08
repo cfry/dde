@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<!-- good html validtor: https://www.onlinewebcheck.com/check.php?adv=1  -->
+<html lang="en">
+<head>
+    <title>Dexter Development Environment</title>
+    <link rel="stylesheet" href="jqwidgets/styles/jqx.base.css" type="text/css" />
+    <!-- <script type="text/javascript" src="jquery-1.11.3.min.js"></script> -->
+    <script>window.$ = window.jQuery = require('jquery');</script>
+    <script type="text/javascript" src="jqwidgets/jqxcore.js"></script>
+    <script type="text/javascript" src="jqwidgets/jqxbuttons.js"></script>
+    <script type="text/javascript" src="jqwidgets/jqxcheckbox.js"></script> <!--needed for menu item checkbox -->
+
+    <script type="text/javascript" src="jqwidgets/jqxscrollbar.js"></script>
+    <script type="text/javascript" src="jqwidgets/jqxpanel.js"></script>
+    <script type="text/javascript" src="jqwidgets/jqxsplitter.js"></script>
+    <script type="text/javascript" src="jqwidgets/jqxmenu.js"></script>
+    <script type="text/javascript" src="jqwidgets/jqxwindow.js"></script>
+    <script type="text/javascript" src="jqwidgets/jqxlistbox.js"></script>
+    <script type="text/javascript" src="jqwidgets/jqxcombobox.js"></script>
+    <script type="text/javascript" src="jqwidgets/jqxdata.js"></script>      <!--for the scrollarboe table display -->
+    <script type="text/javascript" src="jqwidgets/jqxdatatable.js"></script> <!--for the scrollarboe table display -->
+
+    <script type="text/javascript" src="three.min.js"></script>
+    <!--codemirror text editor -->
+    <!--<link rel=stylesheet href="codemirror/doc/docs.css"> included in eslint xample by not in my codemirror download -->
+    <link  rel="stylesheet" href="codemirror/lib/codemirror.css">
+    <link  rel="stylesheet" href="codemirror/addon/dialog/dialog.css">
+
+
+   <script src="codemirror/lib/codemirror.js"></script>
+   <script src="codemirror/mode/javascript/javascript.js"></script>
+    <!-- see https://github.com/angelozerr/codemirror-lint-eslint/blob/master/index.html -->
+    <script src="eslint.js"></script>
+    <link  href="codemirror/addon/lint/lint.css" rel="stylesheet" >
+    <script src="codemirror/addon/lint/lint.js"></script>
+    <script src="eslint-lint.js"></script> <!-- use the config setting in this file, NOT the ones in eslint.js -->
+
+
+    <script src="codemirror/addon/dialog/dialog.js"></script> <!-- maybe used by find ??? -->
+
+
+    <script src="codemirror/addon/search/searchcursor.js"></script>
+    <script src="codemirror/addon/search/search.js"></script>
+    <script src="codemirror/addon/edit/matchbrackets.js"></script>
+
+
+    <!-- see https://codemirror.net/demo/folding.html -->
+    <link rel="stylesheet" href="codemirror/addon/fold/foldgutter.css" />
+    <script src="codemirror/addon/fold/foldcode.js"></script>
+    <script src="codemirror/addon/fold/foldgutter.js"></script>
+    <script src="codemirror/addon/fold/brace-fold.js"></script>
+    <script src="codemirror/addon/fold/comment-fold.js"></script>
+
+    <!--
+     <link  rel="stylesheet" href="codemirror/addon/tern/tern.css">
+     <script src="codemirror/addon/tern/tern.js"></script>  js syntax checking
+          about 10 other js files required to make this work. Looks hairy and jshint does pretty good
+          at finding syntax errors. But tern looks like it has meta-point capability, and completion
+          which would be really good.
+     <script src="codemirror/addon/tern/worker.js"></script>
+     -->
+    <style> .CodeMirror {width:98%; height:84%; font-size:17px; font-weight:600} <!--500 and 550 are the same and both too light, but 600 is too dark-->
+            .CodeMirror-cursor {
+                border-left: 2px solid black;
+                border-right: none;
+                width: 0;
+            }
+            div.CodeMirror-cursors {
+                visibility: visible;
+            }
+            .cm-animate-fat-cursor {
+                animation: blink 0.56s steps(1) infinite;
+                -webkit-animation: blink 0.56s steps(1) infinite;
+            }
+    </style>
+    <script type="text/javascript" src="stacktrace.min.js"></script>
+    <script type="text/javascript" src="mark.min.js" charset="UTF-8"></script> <!-- https://markjs.io  for marking found search terms in the documentation -->
+
+    <!-- ROS interface -->
+    <!-- From http://cdn.robotwebtools.org/EventEmitter2/current/eventemitter2.min.js on dec 19, 2015 for Chrome app-->
+    <script type="text/javascript" src="eventemitter2.min.js"></script>
+    <!-- from http://cdn.robotwebtools.org/roslibjs/current/roslib.min.js on Dec 18, 2015  for Chrome app -->
+    <script type="text/javascript" src="roslib.min.js"></script>
+   <!-- <script type="text/javascript" src="async.js"></script>--> <!-- https://github.com/caolan/async -->
+   <!-- <script> bizzarely this did not bind dde_apps_dir so this is now done in ready.js
+        const remote = require("electron").remote
+        dde_apps_dir = remote.getGlobal("dde_apps_dir")
+        console.log("in index.html with: " + window.dde_apps_dir)
+    </script> -->
+    <!--<script>
+        require('fs-lock')({
+            'file_accessdir': [__dirname, dde_apps_dir], //for readFile, etc. but must include __dirname since Electron needs it.
+            'open_basedir':   [__dirname ] //__dirname is the folder this app is installed in. //valid folders to get require's from. /usr/local/share/node_modules',
+        })
+    </script>--> <!-- errors inside of fs-lock's index.js -->
+    <!--<script>window.fs = require('fs');</script> -->
+
+    <script type="text/javascript" src="utils.js"></script>
+    <script type="text/javascript" src="storage.js"></script>
+    <script type="text/javascript" src="object_system.js"></script>
+    <script type="text/javascript" src="js_info.js"></script>
+    <script type="text/javascript" src="editor.js"></script>
+    <script type="text/javascript" src="series.js"></script>
+    <script type="text/javascript" src="simutils.js"></script>
+    <script type="text/javascript" src="simulate.js"></script>
+    <script type="text/javascript" src="video.js"></script>
+    <script type="text/javascript" src="ros_interface.js"></script>
+    <script type="text/javascript"> require("./output.js") </script>
+    <script type="text/javascript" src="svg.js"></script> <!--needed in ui only for series help -->
+    <script type="text/javascript" src="eval.js"></script>
+    <script type="text/javascript" src="dex.js"></script>
+    <script type="text/javascript" src="socket.js"></script>
+    <script type="text/javascript" src="instruction.js"></script>
+    <script type="text/javascript" src="robot.js"></script>
+    <script type="text/javascript" src="dextersim.js"></script>
+    <script type="text/javascript" src="job.js"></script>
+    <script type="text/javascript" src="job_examples.js"></script> <!--evals no Job code, just literal strings for insertion-->
+    <script type="text/javascript" src="app_builder.js"></script>
+    <script type="text/javascript" src="test_suite.js"></script>
+    <script type="text/javascript" src="test_suites.js"></script>
+    <script type="text/javascript" src="kin.js"></script>
+    <script type="text/javascript" src="dxf-parser.js"></script>
+
+    <script type="text/javascript" src="serial.js"></script>
+    <script type="text/javascript" src="Dexter Development Environment.js"></script>
+    <script type="text/javascript" src="calibration.js"></script>
+    <script type="text/javascript" src="ViewEyeRealTime.js"></script>
+
+    <script type="text/javascript" src="ready.js"></script>
+    <style>
+        html, body {  width: 100%;  height: 100%; font-family: sans-serif;background-color: #ff8c96; overflow:hidden;}
+        .pane_header_wrapper {padding:5px; background-color: #ffbe3c;height:30px;min-height:30px;max-height:30px;}
+        .pane_header {font-size:16px; vertical-align:top;}
+        summary {font-weight: 600;}
+        input[type=button]         {background-color:#ddd3ff; font-size:14px;}
+        input[type=submit], button {background-color:#ff8c96; font-size:14px;} /*background-color: #ffb6c0; pink */
+        /*so input type submits and buttons are coral colored and input type button will be default white background
+          dde dialogs shouldn't use buttons, they should just use input type submit and  input type button.
+          which will then be the different colors signifying whether they are submits or not, ie whether
+          the dialog is going to close after they click or not.
+        */
+       /* .jqx-menu-item {width:400px !important;} this forces menu items to be just 1 line but truncates it at about 150px regardless of the setting*/
+        table, th, td, th { border: 1px solid black;  }
+        table { border-collapse: collapse; }
+        tr:nth-child(even) {background-color: #f2f2f2}
+        td {padding:5px}
+        th, td { text-align:left; }
+        .jqx-grid-column-header {
+            background: #EEEEFF;
+            padding:0px;
+            margin:0px;
+            font-size:12px;
+        }
+        .jqx-fill-state-hover{ background: #EECCFF;}
+        .robot_status_table TD, .robot_status_table TH {
+            font-family:sans-serif;
+            font-size:9pt;
+        }
+        /*mark{ background: #74FFBC; pastel green  default is yellow } //for mark.js used in Find doc */
+    </style>
+</head>
+<body id="body_id" onload="on_ready()">
+<span style="font-size:30px;">Dexte<img src="dexter_128.png" width="20" alt="r"/> Development Environment</span>
+<i style="font-size:20px;padding-left:20px;">Create software to control the Dexter robot</i><br/>
+<div id="DIV1" style="width: 100%; height: 99%;"> <!--height of 99% allows a tiny pink bottom border which is good.-->
+    <div id="outer_splitter">
+        <div>
+            <div id="left_splitter">
+                <div>
+                    <div class="pane_header_wrapper" style="height:50px;min-height:50px;max-height:50px;">
+                        <span id="javascript_pane_help_id" class="pane_header" title="Click for help.">JavaScript</span>
+                        <div id='js_menubar_id' style="display:inline-block; background-color:#ff8c96;">
+                            <ul style="display:inline-block;padding:0;margin-top:0px;">
+                                <li style="display:inline-block;">File&#9660;
+                                    <ul>
+                                        <li id="new_id"     title="Make a new file.">New</li>
+                                        <li id="open_id"    title="Edit an exiting file.">Open...</li>
+                                        <li id="insert_file_id" title="Insert the content of a file&#013;into the editor at the cursor,&#013;replacing the selection if any.">Insert file...</li>
+                                        <li id="save_id"    title="Save the current file.">Save</li>
+                                        <li id="save_as_id" title="Save the current file under a new name.">Save As...</li>
+                                    </ul>
+                                </li>
+                                <li style="display:inline-block;">Edit&#9660;
+                                    <ul>
+                                        <li id="undo_id"       title="Redo the last text change in the JS Editor.">Undo &#8984;z</li>
+                                        <li id="redo_id"       title="Redo the last Undo text change in the JS Editor.">Redo</li>
+                                        <li id="find_id"       title="Hit Enter to move to next and shift-enter for previous.">Find...</li>
+                                        <li id="replace_id"    title="Helps you change particular or all of certain strings.">Replace...</li>
+                                        <li id="fold_all_id"   title="Compresses each multi-line statement into just its top line.">Fold All</li>
+                                        <li id="unfold_all_id" title="Uncompress all compressed statements.">Unfold All</li>
+                                        <li id="select_call_id" title="Select JS calls, definitions,&#013;arrays, for, if, etc. by&#013;Alt-clicking on their&#013;start, middle or end.&#013;On Mac: Option-click">Select call alt-click</li>
+                                        <li id="select_all_id" title="Select all the text in the Editor.">Select All Ctrl-A/&#8984;A</li>
+                                        <li>Right click menu has more ops.</li>
+                                    </ul>
+                                </li>
+                                <li title="Choose these items to learn JavaScript.&#013;Using menu item order recommended." style="display:inline-block;">Learn JS&#9660;
+                                    <ul>
+                                       <li id="learn_js_help_id">Help</li>
+                                        <li id="js_example_1_id" title="Example of a small JavaScript program.&#013;Good for a refresher course or quick learners.">JavaScript Example</li>
+                                        <li                      title="">Debugging, etc.
+                                            <ul>
+                                                <li id="dev_tools_id"    title="Show instructions for&#013;seeing console.log output and&#013;using debugger; breakpoints.">Help</li>
+                                                <li id="console_log_id"  title="Prints complex data into the Chrome console. Click right anywhere in DDE and &#013;choose 'Inspect' to see it.&#013;out(...) prints to Output pane.">console.log(...)</li>
+                                                <li id="debugger_id"     title="Sets a breakpoint. Choose Chrome menu:&#013;'More Tools/Developer Tools'&#013;to step.">debugger</li>
+                                                <li id="comment_out_id"  title="Place the selected text in a comment&#013;so it won't be evaled.">Comment out selection</li>
+                                                <li id="comment_eol_id"  title="Comment out from cursor to end of line&#013;so it won't be evaled.">Comment to end of line</li>
+                                            </ul>
+                                        </li>
+                                        <li             title="boolean logic">true &amp; false
+                                            <ul>
+                                                <li id="true_id"  title="The literal true value">true</li>
+                                                <li id="false_id" title="The literal false value">false</li>
+                                                <li id="and_id"   title="Insert && between two other expressions.">and</li>
+                                                <li id="or_id"    title="Insert || between two other expressions.">or</li>
+                                                <li id="not_id"   title="Insert ! before the  expression to be negated.">not</li>
+                                            </ul>
+                                        </li>
+                                        <li             title="Arithmetic Operators">Math
+                                            <ul>
+                                                <li id="math_example_id" title="Use parens to disambiguate operations.">Arithmetic Example</li>
+                                                <li id="plus_id"   title="Insert + between two numbers.">plus</li>
+                                                <li id="minus_id"  title="Insert - between two numbers.&#013;Also used in front of a negative number.">minus</li>
+                                                <li id="times_id"  title="Insert * between two numbers.">times</li>
+                                                <li id="divide_id" title="Insert / between two numbers.&#013;Result will often be a float&#013;even if both numbers are integers.">divide</li>
+                                                <li id="pi_id"     title="Insert Pi (3.14...)">Pi</li>
+                                                <li id="parens_id" title="Wrap parens around the selection.">(...)</li>
+                                            </ul>
+                                        </li>
+                                        <li              title="Compare two numbers">Comparisons
+                                            <ul>
+                                                <li id="compare_example_id" title="Math.PI >= 3&#013;Returns true or false.">Compare Example</li>
+                                                <li id="less_id"            title="Insert < between two numbers.&#013;Returns true if&#013;the first is less than the second.">less than</li>
+                                                <li id="less_or_equal_id"   title="Insert <= between two numbers.&#013;Returns true if&#013;the first is less than or equal to the second.">less or equal</li>
+                                                <li id="equal_id"           title="Insert == between two numbers.&#013;Returns true if&#013;they are the same.">equal</li>
+                                                <li id="more_or_equal_id"   title="Insert >= between two numbers.&#013;Returns true if&#013;the first is more than or equal to the second.">more or equal</li>
+                                                <li id="more_id"            title="Insert > between two numbers.&#013;Returns true if&#013;the first is more than the second.">more than</li>
+                                                <li id="not_equal_id"       title="Insert != between two numbers.&#013;Returns true if&#013;the first is not equal to the second.">not equal</li>
+                                            </ul>
+                                        </li>
+                                        <li              title="Operations on text">Strings
+                                            <ul>
+                                                <li id="double_quote_id" title="Make a literal string by&#013;wrapping double-quotes&#013;around the selection">literal string with "</li>
+                                                <li id="single_quote_id" title="Make a literal string by&#013;wrapping single-quotes&#013;around the selection">literal string with '</li>
+                                                <li id="back_quote_id"   title="Make a multi-lined literal string by&#013;wrapping back-quotes&#013;around the selection">multi-lined string</li>
+                                                <li id="add_strings_id"  title="Add two strings together&#013;making one long string.&#013;Place + between the strings.">add strings</li>
+
+                                                <li id="string_length_id" title="Return the number of characters&#013;in the string.&#013;Place after the string.">length</li>
+                                                <li id="get_char_id"     title="Extract the character&#013;at the given index.&#013;Place after the string.">get a character</li>
+                                                <li id="slice_id"        title="Extract characters&#013;between given indexes.&#013;Place after string.">get characters</li>
+                                                <li id="split_id"        title="Split the string into parts&#013;separated by a given substring.&#013;Place after the string.">split string</li>
+                                                <li id="string_equal_id" title="Insert == between two strings.&#013;Returns true if&#013;they are the same.">string equal</li>
+                                                <li id="starts_with_id"  title="Returns true if&#013;the string starts with the given substring.&#013;Place after the string.">startsWith</li>
+                                                <li id="ends_with_id"    title="Returns true if&#013;the string ends with the given substring.&#013;Place after the string.">endsWith</li>
+                                                <li id="replace_string_id" title="Return a copy of the string&#013;with the indicated parts replaced.&#013;Place after the string.">replace</li>
+                                            </ul>
+                                        </li>
+                                        <li              title="An array is a sequence&#013;of any type of data&#013;including multiple types&#013;in one array.">Arrays
+                                            <ul>
+                                                <li id="make_array_id" title="Makes a literal array.&#013;It can be any length.">make literal array</li>
+                                                <li id="array_length_id" title="Return the number of elements&#013;in the array.&#013;Place after the array.">length</li>
+                                                <li id="get_array_element_id" title="Extract the element&#013;at the given index.&#013;Place after the array.">get an element</li>
+                                                <li id="set_array_element_id" title="Set the element&#013;at the given index.&#013;Place after the array.">set an element</li>
+                                                <li id="push_array_element_id" title="Add a new element&#013;to the end of the array.&#013;Place after the array.">push an element</li>
+
+                                            </ul>
+                                        </li>
+                                        <li>Date
+                                            <ul>
+                                                <li id="new_date_day_id"  title="Create an instance of Date&#013;with month, day, year.">new Date day month year</li>
+                                                <li id="new_date_time_id" title="Create an instance of Date&#013;including time.">new Date and time</li>
+                                                <li id="new_date_ms_id"   title="Create an instance of Date&#013;giving milliseconds since Jan 1, 1970.">new Date by ms</li>
+                                                <li id="date_now_id"      title="Milliseconds between now&#013;and Jan 1, 1970.">Date.now()</li>
+                                                <li id="date_valueOf_id"  title="Get the total milliseconds&#013;of a date.&#013;new Date() with no arg&#013;makes a date representing now.">Date valueOf()</li>
+                                                <li id="date_toString_id" title="Get the string representation&#013;of a date.">Date toString()</li>
+                                                <li id="duration_hms_id"  title="Create a duration from hours:minutes:seconds&#013;This is not standard JS.">new Duration("01:14:05")</li>
+                                                <li id="duration_ms_id"   title="Create a duration from milliseconds&#013;This is not standard JS.">new Duration(ms)</li>
+                                                <li id="duration_hmsms_id"  title="Create a duration from&#013;hours, minutes, seconds, milliseconds.&#013;The last 2 are optional.&#013;This is not standard JS.">new Dur(h,m,s,ms)</li>
+                                                <li id="duration_get_ms_id" title="Extract milliseconds from a duration.&#013;This is not standard JS.">Dur.milliseconds</li>
+
+                                            </ul>
+                                        </li>
+                                        <li              title="Store values in variables for later use.">Variables
+                                            <ul>
+                                                <li id="variable_examples_id" title="Show typical use cases for variables.">Example</li>
+                                                <li id="init_variable_id"     title="Make a new variable and set its value.&#013;Place before new value.">Initialize variable</li>
+                                                <li id="set_variable_id"      title="Set the value of an existing variable.&#013;Place = between variable name and new value.">Set variable value</li>
+                                            </ul>
+                                        </li>
+                                        <li              title="JS Objects are name:value pairs.">JavaScript Objects
+                                            <ul>
+                                                <li id="js_object_example_id" title="Shows the most common operations on JS objects">Example</li>
+                                                <li id="js_object_cheat_sheet_id" title="Same content as 'Example'&#013;but in its own window.">Cheat Sheet</li>
+
+                                            </ul>
+                                        </li>
+                                        <li              title="if, for loops, and try-catch of errors.">Control Flow
+                                            <ul>
+                                                <li id="if_single_armed_id"  title="if (1 + 1 == 2) {...}&#013;Wrap around selection.">if (single-armed)</li>
+                                                <li id="if_multi_armed_id"   title="if (1 + 1 == 2) {...}&#013;else if (2 + 2 == 4){ }&#013;else { }&#013;Wrap around selection.">if (multi-armed)</li>
+                                                <li id="for_number_of_times_id" title="Repeat code body&#013;a given number of times.&#013;for(var i = 0; i < 10; i++){...}">for (# of times)</li>
+                                                <li id="for_through_array_elts_id" title="Repeat code body&#013;once for each array element.&#013;for(var i of [7, 4, 6]){...}">for each array elt</li>
+                                                <li id="try_id" title="Catch errors by wrapping code in 'try'.&#013;try {...} catch (err){ }">try {catch errors}</li>
+                                                <li id="dde_error_id"   title="Forces a JavaScript error.&#013;Takes a string to show the user why it errored.">dde_error</li>
+                                                <li id="setTimeout_id"  title="Calls the callback after indicated milliseconds.">setTimeout</li>
+                                            </ul>
+                                        </li>
+                                        <li             title="Name a code segment&#013;to make it easier to reuse and&#013;customize per use with arguments.">Functions
+                                            <ul>
+                                                <li  id="function_example_id"   title="Example of a simple function definition&#013;and a 'call' to run its code.">Example</li>
+                                                <li  id="named_function_id"     title="Wrap a named function definition around the selection.&#013;function foo(x, y){ ... }">named function def</li>
+                                                <li  id="anonymous_function_id" title="Wrap an anonymous function definiton around the selection.&#013;The result can be passed as an argument or set to a variable.&#013;function(x, y){ ... }">anonymous fn def</li>
+                                                <li  id="return_id"             title="Return a value from a function.&#013;Place inside a function defintion&#013;before the value to be returned.">return (from fn)</li>
+
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li style="display:inline-block;">Insert&#9660;
+                                    <ul>
+                                        <li id="show_output_id"  title="Prints its 1st argument to the output pane and returns it.">Print to output
+                                            <ul>
+                                                <li id="out_black_id"  title="Prints its 1st argument to the output pane in black  and returns it."><span style="color:#000000;font-weight: bold;">out(...)</span>
+                                                <li id="out_purple_id" title="Prints its 1st argument to the output pane in blue and returns it."><span style="color:blue;font-weight: bold;">out(...)</span>
+                                                <li id="out_brown_id"  title="Prints its 1st argument to the output pane in orange  and returns it."><span style="color:rgb(255, 100, 0);font-weight: bold;">out(...)</span>
+                                            </ul>
+                                        </li>
+                                        <li id="editor_insert_id"      title="Programmatically inserts text into the Editor.">Editor.insert</li>
+                                        <li                            title="Pops up a dialog box with HTML content.">show_window
+                                            <ul>
+                                                <li id="window_simple_message_id" title="Basic information presentation">Simple Message</li>
+                                                <li id="window_options_id"        title="Window title, size, position">Window Options</li>
+                                                <li id="window_buttons_id"        title="Submit and non-window-closing buttons&#013;Explains callback function.">Buttons</li>
+                                                <li id="window_menu_id"           title="Hierarchical menu">Menu</li>
+                                                <li id="window_many_inputs_id"    title="Examples of numerous input types">Many Inputs</li>
+                                                <li id="window_onchange_id"       title="Examples of using onchange and oninput&#013;to call the callback as soon as&#013;there's a change in an input.">onchange calls</li>
+                                                <li id="window_svg_id"            title="Examples of using svg&#013;to dynamically add and reposition&#013;shapes in a window.">svg</li>
+
+                                                <li id="window_close_all_id"      title="Closes all open 'show_windows'.&#013;Does not insert code into Editor.">Close all</li>
+                                            </ul>
+                                        </li>
+                                        <li id="show_web_page_id"     title="Open a browser window on the given url.">show_web_page(...)</li>
+                                        <li id="get_page_id"          title="Retrieves the content of&#013;a web page or data service.">get_page</li>
+                                        <li>Sound
+                                            <ul>
+                                                <li id="beep_id"          title="Plays a simple beep.">beep()</li>
+                                                <li id="beep_options_id"  title="Play a beep with lots of options">beep with options</li>
+                                                <li id="beeps_id"         title="Plays the number of beeps in the argument,&#013;1 per second. Default=1">beeps(3)</li>
+                                                <li id="speak_id"         title="Say a string.&#013;Wraps call around selection, if any.">speak()</li>
+                                                <li id="speak_options_id" title="Say data with lots of options.&#013;Wraps call around selection, if any.">speak with options</li>
+                                                <li id="recognize_speech_id" title="Pops up a control dialog and &#013;calls a callback with recognized text and confidence score.">recognize_speech</li>
+                                            </ul>
+                                        </li>
+                                        <li id="inspect_rootObject_id"        title="Display an inspector for the DDE object system.">Inspect root object</li>
+                                        <li id="train_id"        title="Program Dexter by example">Train Dexter</li>
+                                        <li id="build_application_id" title="Create an Application via a dialog box.">Build Application</li>
+                                    </ul>
+                                </li>
+                                <li>Series&#9660;
+                                    <ul>
+                                        <li id="series_help_id">Help</li>
+                                        <li>Navigation
+                                            <ul>
+                                                <li id="series_next_item_id" title="Replace the selection with the next item&#013;in the series of the selection.&#013;Numbers, colors, and various JS function names&#013;are in their own series.&#013;For speed, use the right arrow key.">Next item&nbsp; &rarr;</li>
+                                                <li id="series_prev_item_id" title="Replace the selection with the previous item&#013;in the series of the selection.&#013;Numbers, colors, and various JS function names&#013;are in their own series.&#013;For speed, use the left arrow key.">Prev item &nbsp; &larr;</li>
+                                                <li id="series_next_id"      title="Replace the selection with &#013;an item from the next series&#013;Numbers, colors, and various JS function names&#013;are in their own series.&#013;For speed, use the down arrow key.">Next series&nbsp; &darr;</li>
+                                                <li id="series_prev_id"      title="Replace the selection with &#013;an item from the previous series&#013;Numbers, colors, and various JS function names&#013;are in their own series.&#013;For speed, use the up arrow key.">Prev series&nbsp; &uarr;</li>
+                                            </ul>
+                                        </li>
+                                        <li id="series_punctuation_id" title="Insert a punctuation character">Punctuation</li>
+                                        <li id="series_boolean_id" title="Insert true, false, null or undefined.">Boolean</li>
+                                        <li>Number
+                                            <ul>
+                                                <li id="series_integer_id"    title="Insert an integer to increment or decriment.">integer</li>
+                                                <li id="series_float_id"      title="Insert a floating point number to increment or decriment.">float</li>
+                                                <li id="series_arithmetic_id" title="Insert an arithmetic operator.">arithmetic</li>
+                                                <li id="series_comparison_id" title="Insert a comparison operator.">comparison</li>
+                                                <li id="series_math_id"       title="Insert a Math function.">math</li>
+                                                <li id="series_trigonometry_id" title="Insert a trigonometry function.">trigonometry</li>
+                                                <li id="series_number_misc_id" title="Insert a low level number function.">number misc</li>
+                                                <li id="series_number_constant_id" title="Insert a symbolic math constant like 'Math.PI'.">number constant</li>
+                                            </ul>
+                                        </li>
+                                        <li id="series_assignment_id" title="Assign a value to a variable">Assignment</li>
+                                        <li>Strings & Arrays
+                                            <ul>
+                                                <li id="series_literal_string_id" title="Insert a literal string.">literal string</li>
+                                                <li id="series_string_id"  title="Insert a string method.">string</li>
+                                                <li id="series_array_id"   title="Insert an array method.">array</li>
+                                                <li id="series_forEach_id" title="Loop over the elements of an array.">forEach</li>
+                                            </ul>
+                                        </li>
+                                        <li>Date
+                                            <ul>
+                                                <li id="series_hours_minutes_seconds_id" title="Insert a time of hours:minutes:seconds.">hours:mins:secs</li>
+                                                <li id="series_time_id"           title="Insert a time of hours:minutes or minutes:seconds.">time</li>
+                                                <li id="series_3_letter_month_id" title="Insert a 3 letter month name.">3 letter month</li>
+                                                <li id="series_full_month_id"     title="Insert a full month name.">full month</li>
+                                                <li id="series_date_id"           title="Insert a date.">date</li>
+                                            </ul>
+                                        </li>
+                                        <li id="series_object_system_id"          title="Functions for creating and accessing the prototype object system.">Object System</li>
+                                        <li title="Control the flow of execution">Control Flow
+                                            <ul>
+                                                <li id="series_if_id"      title='Insert "if", "else if", or "else".'>if</li>
+                                                <li id="series_for_id"     title='Insert "for" or "while".'>for</li>
+                                                <li id="series_try_id"     title="Insert a try, catch, or finally">try</li>
+                                            </ul>
+                                        </li>
+                                        <li id="series_function_id"   title="Insert a function definition&#013;or one of its friends.">Function</li>
+
+                                        <li>Output
+                                            <ul>
+                                                <li id="series_output_id"     title="Insert a call to an output function.">output functions</li>
+                                                <li id="series_color_name_id" title="Insert a color name&#013;such as 'blue'.">color name</li>
+                                                <li id="series_color_rgb_id"  title="Insert a color rgb designation&#013;such as rgb(0, 100, 255)">color rgb</li>
+                                            </ul>
+                                        </li>
+                                        <li id="series_window_id"     title="Insert a call to a window function.">Window</li>
+                                        <li File id="series_file_id" title="Functions for files and persistent data.">File</li>
+                                        <li>Job
+                                            <ul>
+                                                <li id="series_job_name_id"            title="Insert a job name.">job name</li>
+                                            </ul>
+                                        </li>
+                                        <li>Robot
+                                            <ul>
+                                                <li id="robots_help_id">Help</li>
+                                                <li id="series_robot_instruction_id"   title="Insert a job instruction for Dexter.">instruction</li>
+                                                <li id="series_robot_config_id"        title="Insert a config arg for the Dexter.move_to instruction.">robot config</li>
+                                                <li id="series_robot_status_label_id"  title="Insert a robot status label.">robot status label</li>
+                                                <li id="series_robot_subclass_id"      title="Insert a call to create an instance of a Robot subclass.">robot subclass</li>
+                                                <li id="series_robot_name_id"          title="Insert code to get a robot instance.">robot name</li>
+                                                <li id="series_dexter_constant_id"     title="Insert a Dexter joint angle min, max or link length.">Dexter constant</li>
+                                                <li id="series_serial_id"              title="Insert function names of DDE's serial port interface.&#013;These low level functions are used by Robot.Series">serial port</li>
+                                            </ul>
+                                        </li>
+                                        <li id="series_test_suite_id">Test Suite</li>
+                                    </ul>
+                                </li>
+                                <li style="display:inline-block;">Jobs&#9660;
+                                    <ul>
+                                        <li id="jobs_help_id">Help</li>
+                                        <li id="show_robot_status_id"   title="Pop up a dialog showing the robot status&#013;for a Dexter of your choosing.&#013;Display updates after each instruction.">Show robot status</li>
+                                        <li id="jobs_report_id"         title="Display a report of all Jobs in this session.">Show report</li>
+                                        <li id="stop_all_jobs_id"       title="Stop all of the currently running jobs.">Stop all jobs</li>
+                                        <li id="clear_stopped_jobs_id"  title="Remove stopped jobs so they don't clutter the jobs report.">Clear stopped jobs</li>
+                                        <li id="real_time_sim_id"       title="If unchecked, simulation&#013;will run as fast as it can.&#013;No pauses for sleep or motion.">
+                                            <div style='float: left; margin-right: 5px;' id='real_time_sim_checkbox'></div>
+                                            Real time sim
+                                        </li>
+                                        <li> Insert Example
+                                            <ul>
+                                                <li id="insert_job_example1_id" title="Insert into the editor an example of defining a simple job.">1. Simplest</li>
+                                                <li id="insert_job_example2_id" title="Insert into the editor a job with function call instructions.">2. Dexter & Fns</li>
+                                                <li id="insert_job_example3_id" title="Insert into the editor examples of defining 3 complex jobs using generators.">3. Generators</li>
+                                                <li id="insert_job_example4_id" title="Insert into the editor examples of defining jobs that interact with other jobs.">4. Multiple Jobs</li>
+                                                <li id="insert_job_example5_id" title="Insert into the editor examples of defining a job that gets user input while running.">5. User Input</li>
+                                                <li id="insert_job_example6_id" title="Insert into the editor examples of using a human 'robot'.">6. Human Instrs</li>
+                                                <li id="insert_job_example7_id" title="Insert into the editor a job containing&#013;Human.enter_instruction.">7. Enter Instruction</li>
+                                                <li id="insert_job_example8_id" title="Insert into the editor a tutorial on using Asynchronous Functions.">8. Async Fns</li>
+                                                <li id="insert_job_example9_id" title="Insert into the editor a tutorial on using Serial Port.">9. Serial Port</li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li style="display:inline-block;">Test&#9660;
+                                    <ul>
+                                        <li id="test_suites_help_id">Help</li>
+                                        <li id="insert_test_suite_example_id" title="Insert an example of the JS code for a test suite.">Insert Example</li>
+                                        <li>Navigation
+                                            <ul>
+                                                <li id="ts_run_sel_next_item_id" title="Run the selected test, test suite or test suites&#013;and select the next one.&#013;For speed, use the right arrow key.">Run & sel next&nbsp; &rarr;</li>
+                                                <li id="ts_sel_next_item_id"     title="Select the next without running the selected.&#013;For speed, use Shift right arrow key.">Select next&nbsp; Sh-&rarr;</li>
+                                                <li id="ts_sel_prev_id"          title="Select the previous item.&#013;For speed, use the left arrow key.">Prev item &nbsp; &larr;</li>
+                                                <li id="ts_sel_down_id"          title="Select the first contained item.&#013;For speed, use the down arrow key.">Down item&nbsp; &darr;</li>
+                                                <li id="ts_sel_up_id"            title="Select the containing item.&#013;For speed, use the up arrow key.">Up Item&nbsp; &uarr;</li>
+                                            </ul>
+                                        </li>
+                                        <li id="show_suite_statistics_id"   title="Show number of suites and tests.">Show suite stats</li>
+                                        <li id="find_test_suites_id"        title="Find TestSuites that contain the selected string.&#13;With no selection, show all defined test suites.">Find TestSuites</li>
+                                        <!-- <li id="show_all_test_suites_id"    title="Show all test suites' source code in the Output pane.">Show all</li> functionality obtained with Find and no selection -->
+                                        <li id="insert_all_test_suites_id"  title="Insert all test suites' source code into the Editor.">Insert all</li>
+                                        <li id="run_all_test_suites_id"     title="Run all defined test suites.">Run all TestSuites</li>
+                                        <li id="selection_to_test_id"       title="Wrap a test around the current selection.&#13;If no selection, insert an empty test template.">Selection to test</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                        <div style="vertical-align:top;display:inline-block;line-height: 1.0;">font<br/>size:</div>
+                        <input id="font_size_id"  type="number" style="vertical-align:top; width:30px;" value="17" min="6"/>
+                        <select id="file_name_id" style="width:360px;font-size:18px;"><option>new file</option></select>
+                        ROS url: <input id='dexter_url' value="localhost:9090" style="font-size:14px;"/>
+                    </div>
+                    <textarea id="js_textarea" wrap="off" style="width:98%; height:84%; font-size:17px; font-family:monospace;padding:4px;"
+                              placeholder="Enter JavaScript code here."></textarea>
+                </div>
+                <div style="background-color:#dddddd;">
+                    <div class='pane_header_wrapper'>
+                        <span id="output_pane_help_id" class='pane_header' title="Click for help.">Output</span> shell:
+                        <input id="cmd_input" placeholder="enter a ROS cmd here" title="When you hit ENTER, the cmd will be sent to ROS" style="font-size:14px;width:250px;"/>
+                        <div id='error_ops_menu' style="display:inline-block;margin-left:10px;vertical-align: middle;background-color:#ff8c96;">
+                            <ul style="display:inline-block;padding:0;margin-top:0px;">
+                                <li style="display:inline-block;">Ops&#9660;
+                                    <ul>
+                                        <li title="Get Information about your running ROS">ROS Info
+                                            <ul>
+                                                <li id="ping_id" title="Connected to ROS?"                          >ping</li>
+                                                <li id="cat_etc_hosts_id" title="Show Internet hosts table."        >cat /etc/hosts</li>
+                                                <li id="rosversion_id" title="Show the version of your running ROS.">rosversion -d</li>
+                                                <li id="roswtf_id" title="General ROS diagnostics."                 >roswtf</li>
+                                                <li id="printenv_id" title="ROS Environment Varibles."              >printenv | grep ROS</li>
+                                                <li id="rqt_graph_id" title="Graph nodes and topics.&#013;Shows on ROS computer only.">rqt_graph</li>
+                                            </ul>
+                                        </li>
+                                        <li title="Lists of ROS data.">ROS Lists
+                                            <ul>
+                                                <li id="rosmsg_id"     title="Show ROS message types."              >rosmsg list</li>
+                                                <li id="rosnode_id"    title="Show active ROS nodes."               >rosnode list</li>
+                                                <li id="rospack_id"    title="Show ROS packages."                   >rospack list</li>
+                                                <li id="rosparam_id"   title="Show ROS params."                     >rosparam list</li>
+                                                <li id="rosservice_is" title="Show active ROS services."            >rosservice list</li>
+                                                <li id="rostopic_id"   title="Show ROS topics."                     >rostopic list</li>
+                                             </ul>
+                                        </li>
+                                        <li title="The history of recently typed in commands.">User Commands
+                                            <ul id="user_cmds_ul">
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                        <button id="clear_output_id" title="Remove all previously output text.">Clear</button>
+                        <button id="eval_id" style="vertical-align:middle;" title="Evaluate (run) the selected JS or, if none,&#013;all the JavaScript in the pane.&#013;Can also be invoked by typing &#8984;e">Eval</button>
+                        <div title="Automatically save the edited file&#013;when you click 'Eval',&#013;and when you edit another file." style="vertical-align:middle;display:inline-block;"><input id="save_on_eval_id" type="checkbox" style="vertical-align:middle;padding_bottom:15px;"/> <div style="padding:0px;margin:0px;display:inline-block;font-size:10px; line-height:10px;">Save<br/>on</br/>Eval</div></div>
+                    </div>
+                    <div id="output_div" contentEditable="false" style="width:98%; height:70%; font-size:16px;overflow:auto;white-space:nowrap;padding:5px;"></div> <!-- bugs in css with overlow:auto and height=70% but these are the best settings I can get, othersie last line of output can't be scrollwd into view OR too much wasted whitespace at botton of error pane -->
+                    <!-- contentEditable="false" means the text can't be edited BUT for chrome apps, this makes the content selectable and now I can copy and paste it whereas previoiusly I couldn't select and copy it. -->
+                </div>
+            </div>
+        </div>
+        <div>
+            <div id="right_splitter">
+                <div id="doc_pane_id" style="font-size:16px;background-color:#e1e1e1;padding-left:5px;">
+                    <div class="pane_header_wrapper" style="height:30px;">
+                        <span id="documentation_pane_help_id" class="pane_header">Doc</span>
+                        <input id="find_doc_input_id" placeholder="search string" style="width:100px;"/>
+                        <button id="find_doc_button_id">Find</button>
+                        <button id="eval_doc_button_id" title="Evaluated the selected code&#013;in the Doc pane.&#013;Result goes in the Output pane.ƒ">Eval Doc</button>
+                    </div>
+                    <div id="doc_pane_content_id" contentEditable="false" style="width:97%; height:90%;padding:5px;overflow:scroll;">
+                    </div>
+                </div> <!--doc_pane -->
+                <div id="simulate_pane" style="background-color:black">
+                    <div class="pane_header_wrapper">
+                        <span id="simulate_pane_help_id" class="pane_header" title="Click for help.">Sim</span>
+                        <select id='videos_id'>
+                            <option value='All'>All</option>
+                            <option value='None'>None</option>
+                            <option value='http://hdrobotic.com/videos/'>Dexter Videos</option>
+                            <option value='http://static1.squarespace.com/static/55f1275ee4b0c65e2113baa5/563c04f5e4b0904f35c87cbb/563c0973e4b06c4bb72a5c89/1446775444596/HD+Robotics-8517.jpg?format=750w'>Dexter Photo</option>
+                            <!--<option value=''>Measurements Video</option>-->
+                        </select>
+                        <button id="demo_id" title="Moves graphical depiction of Dexter randomly." style="padding:2px">Demo</button>
+                        <span title="Pause job execution."><input  id="pause_id" type="checkbox"/>Pause</span>
+                        <button id="go_id"   title="Continue paused job execution." style="padding:2px">Go</button>
+                    </div>
+                    <div id='sim_pane_content_wrapper'>
+                       <div id="sim_graphics_pane_id"></div>
+                       <div id="video_player_id" style="display:none;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div id='jqxwindowxx' style="display:none;">
+    <div id="jqxwindow_header" style="background-color: #ff8c96;font-size:20px;">Header</div>
+    <div id="jqxwindow_content">Content</div>
+</div>
+<dialog id='my_dialog_id'>some stuff</dialog>
+
+</body>
+</html>

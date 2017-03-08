@@ -1,0 +1,105 @@
+<details style="padding-left:20px;"><summary>v 1.0.0, Feb 20, 2017</summary>
+Highlights: New Electron Framework, New instruction Robot.grab_robot_status,
+Serial Port extensions, file access improved, dxf improvements.
+<ul>
+    <li>Electron Framework replaces Google Chrome App. Facilitates
+    single JavaScript environment and utilization of node.js packages.</li>
+
+    <li>The persistent db is now stored in a file named dde_apps/persistent.json
+    Unlike the previous DDE, you can now look at this file in  text editor
+    and easily see exactly what's in it. If you edit this file.
+    do so when DDE is not running because dde will over-write it.
+    You can even move this file to another installation of DDE
+    and have it work.</li>
+
+    <li>Switching between files now remembers the old scroll position and
+    selection of a file so that if you switch back to it, it scrolls
+    to (almost) the same place and highlights the selection.</li>
+
+    <li>If the "file" you are editing is "new file", and you quit and
+    relaunch DDE, you will be showed an empty "new file" in the editor
+    instead of one of your previously edited files.</li>
+
+    <li>The get_page function is now syncrhonus. It does not
+    take a callback, and it returns the contents of the url
+    in its argument. A new function get_page_asynchronous
+    <i>does</i> take a callback and does <i>not</i> return
+    the contents of the url in its first argument.
+    </li>
+
+    <li> Robot.get_page has changed slightly incompatibly
+    in a similar way to the get_page function call.
+    Its first argument is a url_or_options,
+    Its second arg is response_variable_name.
+    There are no other arguments.
+    The Get_page instruction cause the job to not advance to the next instruction
+    until the get_page request has completed.
+    If get_page has errored, the response_variable_name will contain
+    a string starting with: "Error: "</li>
+
+    <li>The Dexter and job for calibration is no longer defined upon start up.
+    You have to call:
+    init_calibration()
+    This returns the job, which you can then do:
+    init_calibration().start()  to start the job.
+    We'll be making this easier in the near future.
+    </li>
+
+    <li>job examples 3 & 7 improved.</li>
+
+    <li> file_content now doesn't take a callback and just returns the string
+    of the content of the file indicated in the path of its first argument.</li>
+
+    <li>load_files now doesn't take a callback and just returns the value of the
+    last expression in the last file loaded.
+    The "paths" parameter to load_files has been simplified. See the ref man doc.</li>
+
+    <li> minor improvements to SVG examples. All SVG examples work.</li>
+
+    <li> Documentation: added into the doc pane,
+    the url to the HDRobotic video page (under About) and the DDE video
+    (under "User Interface")</li>
+
+
+    <li> serial port improvements:
+      <ul><li> serial_devices() returns a list of available serial port devices.</li>
+          <li>serial_path_to_info_map holds an object for each connected serial port device.</li>
+          <li>New Job Example 9 for Serial Port & Arduino tutorial </li>
+      </ul>
+    </li>
+    <li>Job Examples now on a submenu under the Jobs menu.</li>
+
+    <li>Removed job instance field: robot_status. It as redundant and error prone.
+         Use Job.j1.robot.rotbut_status to get it if you need it,
+        but you won't because ....</li>
+
+    <li>New instruction Robot.grab_robot_status makes getting at
+        data in robot_status much easier</li>
+
+    <li> newObject now ignores "name" arg if it is null or undefined.
+        But if it is some OTHER non-string, newObject errors.</li>
+
+    <li> Dexter.draw_dxf fixed bug that ignored the 3rd argument and always treated it as 2000</li>
+    <li>Dexter.draw_dxf first argument is usually a string <= 512 long
+      that ends in .dxf or .DXF. If it does not, the first argument
+      will be assumed to be a string of actual dxf code.</li>
+
+    <li> File access is restricted to files under the "dde_apps" folder in your
+    Documents folder. You no longer need to set up a server to access these files,
+    or to have edited them first.</li>
+
+    <li>  You can now use the JavaScript functions: alert, confirm, prompt,
+    quite useful for debugging and rapid prototyping.</li>
+
+    <li> tweaks to the UI to make it "fit" better.</li>
+
+    <li> New "Eval Doc" button in the Doc pane. Let's you evaluated
+    a selected code example in the Doc pane and see the result
+    in the output pane.</li>
+
+    <li> Replaced the individual videos with
+    just one url to the hdrobotic.com video page.
+    </li>
+</ul>
+</details>
+

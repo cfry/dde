@@ -1,0 +1,2120 @@
+
+<details id="i/o_doc_id" style="margin-left:20px;"><summary>I/O</summary>
+<details id="out_doc_id" style="margin-left:20px;"><summary>out</summary>
+<code>out</code> prints its first argument into the Output pane.
+The optional 2nd argument controls the color printed (default "black").<br/>
+Example:<code>out("hi", "blue")</code><p/>
+If you have a lot of out calls, it can be helpful to give them
+different colors so you can easily find a particular one.
+</details>
+
+<details id="get_page_doc_id" style="margin-left:20px;"><summary>get_page</summary>
+<code>get_page</code> retrieves the contents of a web page.
+You pass in a url and get_page returns the contents as a string.
+The argument can either be a string of a url, or a literal JS object.<br/>
+Example: <code>get_page("http://ibm.com")</code><br/>
+If there is an error, the returned string will start with "Error:"
+and be followed by some clues as to why the error happened.
+<p/>
+It will not eval scripts on the page
+so you may see an error when retriving a page containing JavaScript.
+<p/>
+Instead of a url as the argument, you can pass a literal JS object
+with lots of options, described at:
+    <a target="_blank" href="https://www.npmjs.com/package/request">options</a>
+</details>
+
+<details id="get_page_async_doc_id" style="margin-left:20px;"><summary>get_page_async</summary>
+A call to get_page_async is asynchronus. It returns immediately,
+but when the actual page content is finally retrieved from the web,
+a callback is called and passed an error object, a response object, and the body string
+of the page.
+<p/>
+It will not eval scripts on the page
+so you may see an error when retriving a page containing JavaScript.
+<p/>
+Example: <pre>get_page_async("http://ibm.com",
+  function(err, response, body){
+     if(err) { out("get_page_async got error.") }
+     else if (response.statusCode !== 200){
+        out("Got an error with statusCode: " + response.statusCode)
+     }
+     else { out(body) }
+  })</pre><br/>
+<p/>
+Instead of a url as the argument, you can pass a literal JS object
+with lots of options, described at:
+<a target="_blank" href="https://www.npmjs.com/package/request">options</a>
+</details>
+
+<details id="make_url_doc_id" style="margin-left:20px;"><summary>make_url</summary>
+    <i>url</i> is a poorly designed language for transfering data on the web.
+    <a target="_blank" href="https://en.wikipedia.org/wiki/Uniform_Resource_Locator">Documentation.</a>
+    It's normal behavior is as an asyncrhonous function call, where the 
+    call is typically on a web device known as a 'client', and it is sent to
+    a different device on the web known as a 'server'. 
+    <p/>
+    Usually its used to
+    get the content of a web page into a browser. Usually the content of a web page
+    is written in a polyglot of languages (HTML, CSS, JavaScript, etc.) but 
+    we can use urls to retrieve data in other syntaxes such as JSON or just plain strings.
+    <p/>
+    <i>make_url</i> does two things:
+    <ol><li>Prepends "http://" to the url being constructed, if it looks like
+          there is no protocol in the url already. If there is no "://" in the
+          first 16 chars of the url, it prepends "http://". If you want a
+          different protocol, such as https, or you are using "://" in the value
+          of an argument, you should include the protocol in the passed in url.</li>
+        <li>Makes creating arguments easier and appends them to the end of the url.</li>
+     </ol>
+     <i>Parameters</i>:<br/>
+     <b>url</b>: A string containing the base url. If the protocol is to be "http",
+                you can omit it in most cases.<br/>
+                Example: <code>www.ibm.com</code><br/>means the same thing as<br/>
+                <code>http://www.ibm.com</code><br/>
+     <b>arguments</b>: A string of arguments, formally called a <i>query string</i>.<br/>
+        Example: <code>"x=123&y=45&color=blue"</code> <i>OR</i>
+        A literal object with name-value pairs representing the arguments.<br/>
+        Example: <pre><code>{x: 123, 
+        y: 45, 
+        color: "blue"}</code></pre>
+        This later form makes it easy to compute and set indivudal args.<br/>
+      Example:<pre>
+      var args = {x: 12.3 * 10}
+      args.y = 40 + 5
+      make_url("www.ibm.com", args)</pre>   
+</details>
+
+<details style="margin-left:20px;"><summary>Sound</summary>
+
+<details id="recognize_speech_doc_id" style="margin-left:20px;"><summary>recognize_speech</summary>
+    Speech recognition has a long history in AI. After many decades of research, it <i>can</i>
+    be useful, but don't expect it to be as reliable as a human. DDE uses Google's speech
+    recognition, which sends audio over the web to be recognized on Google's servers.
+    If you don't have: 
+    <ul><li>a good microphone in your computer,</li>
+        <li>a quiet room,</li>
+        <li>a reliable net connection or</li>
+        <li>a fast net connection</li>
+    </ul>
+        don't attempt to use recognize_speech.
+    <b><i>Be sure to crank up the volume of your mic.</i></b>
+    <p/>
+    The recognized text is quite good compared to recognizers of the past but, like people,
+    it still makes mistakes. Recognized text comes with a <b>confidence</b> number indicating
+    how good the recognizer <i>thinks</i> the text is at matching what you've said.
+    In theory its nice to have this confidence number but in practice, it might
+    not matter much. The number varies from 1 (very confident) to 0 (very unconfident)
+    though we've seen a bunch of 0 confidence numbers for perfectly fine text.
+    Also in the middle of a session, you may well see network bugs even though
+    it seems like your network is fine to you. 
+    <p/>
+    If you are using speech to dictate
+    a critical process, we recommend displaying or saying (via the <b>speak</b> function)
+    the recognized text and asking the user for a simple <i>yes</i> or <i>no</i> confirmation.
+    <p/>
+    When <b>recognize_speech</b> is called, it pops up a dialog telling you to speak. 
+    The arguments to recognize_speech configure this dialog and the callbacks that receive the
+    recognized text and confidence numbers. All of these are keyword arguments with defaults. See
+    <button>Insert&#9660;</button> menu, <b>sound/recognize_speech</b> for an example call.
+    <ul><li><b>title</b> Default: "Recognize Speech". Shows in the title bar of the dialog.
+        </li>
+        <li><b>prompt</b> Default: "". Displays instructions for the user at the top of the dialog.
+            Can be any HTML.
+        </li>
+        <li><b>only_once</b> Default <code>true</code>. When <code>true</code>, the dialog is automatically closed at the end of the first phrase.
+                                  When <code>false</code>, the dialog re-initializes after you pause and permits another phrase to be recognized.
+                                  Say <i>finish</i> to close the dialog. 
+        </li>
+        <li><b>click_to_talk</b> Default <code>true</code>. When <code>true</code>, the user
+             must click <button>click to talk</button> to start the recognition. 
+             When <code>false</code>, recognition starts as soon as the dialog is shown,
+             or as soon as it has recognized the previous phrase (when <code>only_once=false</code>).
+             </li>
+        <li><b>width</b> Default: <code>400</code>. The distance from the left edge of the dialog to the right edge in pixels.
+        </li>
+        <li><b>height</b> Default: <code>180</code>. The distance from the top edge of the dialog to the bottom in pixels.
+             If you have multiple lines for the prompt, this should be increased. 
+        </li>
+        <li><b>x</b> Default: <code>400</code>. The distance from the left edge of the DDE window to the left edge of the dialog in pixels.
+        </li>
+        <li><b>y</b> Default: <code>200</code>. The distance from the top edge of the DDE window to the top of the dialog in pixels.
+        </li>
+        <li><b>background_color</b> Default: <code>"rgb(238, 238, 238)"</code> i.e. light gray. Can be one of the names (strings) in the color series.
+        </li>
+        <li><b>phrase_callback</b> Default <code>recognize_speech_default_phrase_callback</code>.
+             This function is called when the user pauses after speaking. 
+             It is passed the recognized text, and the confidence number (0 to 1).
+             If only_once=true, only this callback is called.
+             The default prints these two arguments into the Output pane.
+         </li>
+        <li><b>finish_callback</b> Default <code>null</code> meaning no action.
+             This function is called when the user says the finish_phrase.
+             It is passed an array of arrays. Each inner array has elements of the text
+             and the confidence number of each phrase spoken in this use of recognize_speech.
+             This argument is moot if <code>only_once=true</code>.
+         </li>
+         <li><b>finish_phrase</b> Default: <code>"finish"</code>. The phrase that the user should speak to
+             end the dialog. Moot when <code>only_once=true</code>.
+        </li>
+    </ul>
+</details> <!-- end of recognize_speech -->
+
+<details id="speak_doc_id" style="margin-left:20px;"><summary>speak</summary>
+<code>speak</code> uses text to speech technology.<br/>
+Example:<br/>
+<code>speak("hey there")</code>
+By passing a literal object, you can control many aspects of <code>speak</code>.
+The <code>speak_data</code> input can be more than just text. You can feed speak any JavaScript data
+(such as a boolean, a number, a date, an array, etc.) and it will do its best to say it out loud.<br/>
+Example:<pre> speak({speak_data: [true, "It is", new Date()],//default="hello"
+        volume: 1.0,   //default=1.0   0 to 1.0,
+        rate: 1.0,     //default=1.0   0.1 to 10,
+        pitch: 1.0,    //default=1.0   0 to 2,
+        lang: "en-US", //default="en-US"
+        voice: 0,      //default=0     0, 1, 2, or 3
+        callback: function(event) {out('Dur in nsecs: ' + event.elapsedTime)}  //default=null  called when speech is done.
+          })
+</pre>
+</details> <!-- end of speak -->
+
+</details> <!-- end of Sound -->
+
+
+<details style="margin-left:20px;"><summary>File Access</summary>
+Web clients reading an writing files to their local file system has been impossible in the past. 
+DDE gives you programmatic read/write access to all files under the dde_apps folder
+under your Documents folder, typically under the user's home folder.
+<p/>
+The code for your Job definitions should live under that folder (at any depth beneath
+that folder).
+If you do not have a dde_apps folder under your Documents folder, please create one.
+
+<details id="dde_apps_dir_doc_id"><summary>dde_apps_dir</summary>
+The folder beneath which DDE has programmatic access.
+You cannot set this constant. It will have a value something like:
+<code>"/Users/Fry/Documents/dde_apps"</code> on the Mac.
+</details>
+
+<details id="file_content_doc_id" style="margin-left:40px;"><summary>file_content</summary>
+<code>file_content</code> takes an argument of a filepath, similar to <code>load_files</code>,
+and returns a string of the content of the file.<br/>
+<i>Parameters</i><br/>
+<b>path</b> A string of a path to the file. Usually this will not start with a slash,
+            but rather tha first character of a file name inside of your dde_apps folder.
+            if the path starts with a path, it should be a complete path from the root
+            of your file system, on through to dde_apps and the file below it.
+            <br/>
+<b>encoding</b> A string indicating the encoding of the file. Default: "utf8".
+             The default works fine for most plain text files, including .js files.
+<p/>
+<b>Example:</b> <code>file_content("myfold/foo.txt"</code>
+</details> <!-- end file_content -->
+<details id="Editor.edit_file_doc_id" style="margin-left:40px;"><summary>Editor.edit_file</summary>
+<code>Editor.edit_file</code> takes an argument of a filepath, similar to <code>load_files</code>,
+and puts that file in DDE's editor. 
+<p/>
+Its 2nd argument is a callback that takes no arguments. It is called when the file's content
+is in DDE's editor.<br/>
+<b>Example:</b> <code>Editor.edit_file("/myfold/foo.txt")</code>
+</details> <!-- end file_content -->
+
+<details id="file_exists_doc_id"><summary>file_exists</summary>
+Returns true if the file path in the first argument exists.<br/>
+<I>Example></i><br/>
+<code>file_exists("class_play.js")</code>
+</details>
+
+<details id="folder_separator_doc_id" style="margin-left:40px;"><summary>folder_separator</summary>
+A function of no arguments that returns the character used to separate folders in a filepath.
+For Windows OS's this is "\\" (backslash). 
+For others its "/" (forward slash).
+</details>
+
+<details id="load_files_doc_id" style="margin-left:40px;"><summary>load_files</summary>
+<code>load_files</code> gets the content of files from disk and evaluate
+it in the DDE environment programmatically. You can pass any number of file paths to
+load files. It will load the files sequentially, such that later files
+can depend on the contents of earlier files loaded.
+A file path that starts with a slash is expected to have a full path to the file.
+A file path that <i>doesn't</i> start with a slash will have prepended to it 
+the preceeding file path folder (up to but exluding the file name) 
+that <i>did</i> start with a path.
+If the first file doesn't start with a slash (as is normal),
+its "prefix" will be <code>dde_apps_dir</code>
+This scheme makes it easy to load multiple files in a folder since you only
+have to include that folder name once.
+<p/>
+load_files returns the result of evaluating the last expression in the last file loaded.
+</details> <!-- end load_files  -->
+
+<details id="write_file_doc_id" style="margin-left:40px;"><summary>write_file</summary>
+   Arguments:<br/>
+   <b>filepath</b> The location to save to. This string must be the filepath for one of the 500 most recent files
+     that you manually brought into the editor. It will overwrite the current content.
+     Defaults to the file currently in the
+     editor.<br/>
+   <b>content</b> A string of the content you wish to be in the written file.
+     Defaults to the text currently in the editor.<br/>
+   Examples: <br/>
+     <code>write_file()</code> Saves the content now in the editor to the file being edited.<br/>
+     <code>write_file("no_exist.js")</code> This will error because write_file can't be used to create new files.<br/>
+     <code>write_file("exists_but_not_edited.js")</code> This will error because write_file won't work
+        unless the file is among the last 500 that you have edited.<br/>
+     <code>write_file("foo.js")</code> Providing that foo.js has been edited by you,
+        it will now contain the contents of the editor. 
+        This is the <i>save_as</i> functionality.<br/>
+     <code>write_file("/a_folder/foo.js", "new content")</code> Replaces the existing content
+         of the given file with "new content".<br/>
+</details>
+
+<details id="folder_listing_doc_id" style="margin-left:40px;"><summary>folder_listing</summary>
+  <code>folder_listing</code> retrieves an array of filenames and/or folder names that are somewhere
+      beneath the <b>dde_apps</b> folder. This function only works if you have
+      <i>Web Server for Chrome</i> installed. (See the doc for <b>load_files</b>.)<br/>
+  Arguments:<br/>
+  <b>folder</b> Default: <code>"/"</code>. The name of the folder to retreive the listing of.
+            A folder of "/" finds the files and/or folders immediately below the <b>dde_apps</b> folder.
+            Folder should begin and end with a slash, but if it doesn't, it will be added.<br/>
+  <b>include_folders</b> Default: <code>true</code>. Retrieved folder names end in slash.<br/>
+  <b>include_files</b> Default: <code>true</code>.<br/>
+  <b>callback</b> Default: <code>out</code> A function of one argument. It is passed the
+      array of file and/or folder names determined by the other arguments.<br/>
+  Examples:<br/>
+  <code>folder_listing()</code> Retrieves the files and folders immediately under <code>dde_apps</code>.<br/>
+  <code>folder_listing("/test_folder/", true, false)</code> Retrieves only the folder names immediately under <code>test_folder</code>.<br/>
+  <code>folder_listing("/whatever/", false, false)</code> Retrieves nothing. An empty array will be passed to the callback.           
+</details>
+
+<details id="operating_system_doc_id" style="margin-left:40px;"><summary>operating_system</summary>
+A global variable that has a value of the name of the current operating system.
+Windows OS's have the value "win". Macintosh OS's have the value "mac".
+If you find the value of other operating systems, please tell us!
+</details>
+
+
+
+</details> <!-- end File Access -->
+
+<details style="margin-left:20px;"><summary>Persistent Database</summary>
+DDE has a very simple database, whose values remain in tact accross DDE sessions.
+The DB stores a JSON object. The top level is a literal object
+with string keys and values that can be any JSON objects, including null, booleans,
+numbers, strings, arrays and other literal objects nested as deep as you like.
+It is not meant to store a large amount of data, mostly preferences and
+small objects. 
+<p/>
+The DB is stored in the file <code>dde_apps/persistent.json</code> as plain text.
+You can view the entire by opening it in DDE's editor if you like.
+However, we do not recommend editing it from DDE. That's because
+any changes will be overwritten the next time something is written
+to the DB by DDE. If you'd like to edit it as a file,
+close DDE and edit it with another editor. Be careful to
+get the JSON syntax correct.
+
+<details id="persistent_set_doc_id" style="margin-left:40px;"><summary>persistent_set</summary>
+Binds a literal to a string key that can be retreived in a later DDE session.
+Null, booleans, numbers, strings, arrays, and literal objects can all be stored.<br/>
+<b>Example:</b> <code> persistent_set("test4", 44)</code>
+</details>
+
+<details id="persistent_get_doc_id" style="margin-left:40px;"><summary>persistent_get</summary>
+Retreives a literal that was set with <code>persistent_set</code>
+The first argument is the key to retreive. Its default value is <code>"get_all"</code>
+which gets a JavaScript literal object that has key-value pairs for all the 
+calls to <code>persistent_set</code>. If a key is not in the database,
+<code>undefined</code> will be retreived.
+<p/>
+The 2nd arg is a callback that is passed the retreived value.
+Its default value is the DDE function <code>out</code>.<br/>
+<b>Example:</b> <code> persistent_get("test4", function(val){ out("Got: " + val)})</code>
+</details> <!-- end persistent_get -->
+
+<details id="persistent_remove_doc_id" style="margin-left:40px;"><summary>persistent_remove</summary>
+Removes the binding between the first argument (key) and a stored value in the persistent db.<br/>
+<b>Example:</b> <code> persistent_remove("test4")</code><br/>
+After such a call, attempting to retreive the value of that key will get <code>undefined</code>.
+</details>
+
+<details id="persistent_clear_doc_id" style="margin-left:40px;"><summary>persistent_clear</summary>
+Removes all the values in the persistent db.<br/>
+<b>Example:</b> <code> persistent_clear()</code><br/>
+After such a call, attempting to retreive the value of any key will get <code>undefined</code>.
+<b>Warning:</b> DDE uses the persistent db to store the keys of edited files. 
+Clearing the db will mean that you must have the Web Server for Chrome installed until
+you manually edit those files again. See the documentation for <b>Files</b>.
+</details>
+
+</details> <!-- end Persistent -->
+</details> <!-- end i/o -->
+
+<details id='Job_doc_id' style="margin-left:20px;"><summary>Job</summary>
+A job contains a do_list of instructions that it feeds to a robot to make things.
+The syntax of defining a job is:
+<pre><code>new Job({name: "j1", 
+         robot: new Dexter(), 
+         do_list: [ Dexter.move_to([200000, 200000, 50000]),
+                    Robot.wait_until(1000)
+                    ...
+                   ]
+        })</code></pre>
+Defined jobs remain inert until they are started like so:<br/>
+<code>Job.j1.start()</code><br/>
+<code>start</code> initializes the job and feeds the instructions in its do_list to
+the job's robot, which executes the instructions. Jobs either run to completion,
+error, or are stopped by the user via <button>Jobs&#9660;</button> menu <b>Stop all jobs</b>.
+Stopped jobs may be restarted by calling <code>Job.j1.start()</code> again.
+This reinitializes the job with the original arguments passed to <code>new Job</code>
+and runs the do_list instructions again. 
+
+<details style="margin-left:20px;"><summary>new Job parameters</summary>
+The parameters used to define a new Job are:
+    <ol><li><b>name</b> You can use <code>Job.a_job_name</code> to get the instance programmatically.</li>
+        <li><b>robot</b> An instance of one of the subclasses of <code>Robot</code>, such as
+            <code>Dexter</code>, designating where
+            this Job's instructions are sent.</li>
+        <li><b>do_list</b> An array of instructions to be sent to the job's robot when the
+             Job is run. There are a number of different kinds of instructions, including
+             user-defined JavaScript functions that can call arbitrary JS code.
+             Instructions may add additional instructions to the do_list by returning
+             them as a single instruction or an array of instructions.
+             Such instructions are inserted into the do_list just below the instruction that 
+             made them.
+             <p/>Instructions are documented with the kind of robot that they run on.
+        </li>
+        <li><b>keep_history</b> true or false, default true. If true, the robot_status arrays
+            returned from running instructions on the robot
+            are stored in <code>Job.the_job_name.rs_history</code>.
+            This is useful for debugging, but uses memory, which can be
+            saved by setting keep_history to <code>false</code>.</li>
+        <li><b>log_instructions</b> true or false, default false. Prints messages 
+           to the Chrome console indicating the progress of a running job.</li>
+        <li><b>inter_do_item_dur</b> A number indicating the number of milliseconds between
+           when an instruction is completed by its robot, and when the next instruction is
+           computed and sent to the robot of the job. This "taking a breath" gives other
+           jobs a chance to run. Default 100.</li>
+        <li><b>user_data</b> A literal object of name-value pairs where arbitrary data created
+           at the beginning of a job or during the execution of an instruction can be stored
+           and retrieved. Default <code>{}</code> (an empty object).
+           It can be initialized in the call to new job like so:<br/>
+           <code>new Job ({name:"j22" user_data:{color: "blue", weight: 123} })</code><br/>
+           Within an instruction, you can get a user_data value via 
+           <br/><code>this.user_data.color</code></br>
+           or set it via<br/>
+           <code>this.user_data.color = "green"</code></br>
+           You can set existing user_data names or create new ones by setting them.
+           <p/>
+           user_data is persistent only while a job is executing. If you restart the
+           job, its user_data is lost. For data that you want to persist across restarts,
+           or for user_data that doesn't really belong with any one job but is used
+           by mulitple ones, use the <i>class</i> property <code>Job.global_user_data</code>.
+           This can be written to like so: <code>Job.global_user_data.my_count = 123</code>.
+           <p/>
+           The value for user_data is passed in when creating a job is shallow_copied when
+           the job starts. So if this value was stored in some external-to-the-job way
+           and a job is run twice with that very same user_data, the 2nd time the job
+           is started, it will see <i>the same</i> top level keys as the first time,
+           and all the top level values that are immutable (booleans, strings, numbers).
+           However, if there is a mutable value (say an element of an array or a literal object,
+           the first job might have modified that and that modification will be see
+           when the job is run a 2nd time. Mostly all this doesn't matter because
+           most jobs don't use user_data at all. Others look at it but don't
+           write to it, and most of the others would only write top level, immutable
+           values to it. But nested mutable data in user_data can "leak" over to
+           another running of a job, or even other jobs. This might or might not
+           be what you want.
+           <p/>
+           <code>Job.global_user_data</code> is initialized to <code>{}</code> when DDE launches.
+           You can store data here that you wish to persist across running jobs, but realize
+           that if a job modifies <code>Job.global_user_data</code>, the 2nd time that
+           job is run, it will see a different <code>Job.global_user_data</code> than the first.        
+           If you want data to persist across launches, see 
+           <b>Reference Manual/IO/Persistent Database</b>.         
+           </li>
+     </ol>
+</details> <!-- end new Job parameters -->
+
+<details id="start_doc_id" style="margin-left:20px;"><summary>start</summary>
+   <code>start</code> is an instance method on <code>Job</code> that
+   causes the job instance to feed its do_list to the Job's robot instance.
+   After a job instance is done running, you can call <code>start</code>
+   again to run it again.<p/>
+   <i>Example</i> <code>Job.my_job.start()</code><p/>
+   <i>Parameter</i><br/>
+   <code>sent_from_job</code> can be any do_list item, which will be prepended to the do_list
+         of the job before it is started. This new do_list item is <i>not</i> remembered
+         in subsequent calls to start for this same job instance.
+         It is thus a way to customize a job for each <code>start</code> call.
+         <p/>
+         Its name comes from its (interal) usage when the instruction <code>send_to_job</code>
+         sends an instruction to a job that has been defined but not yet started.<p/>
+         This parameter is not commonly used. Most users can ignore it.
+</details>
+
+</details> <!-- end job -->
+
+
+<details style="margin-left:20px;"><summary>Robots</summary>
+  A robot is a machine that can execute the instructions in its instruction set. In general,
+  each kind of robot will have its own instruction set. The primary
+  difference between robots is the difference in their instruction sets.
+  
+<details style="margin-left:20px;"><summary>Robot Instructions</summary>
+These instructions can be used for any robot, as can the instructions for
+the Human robot.
+
+<details id="Robot.error_doc_id" style="margin-left:20px;"><summary>error</summary>
+  Causes the job to error, immediately stopping it.
+  The one argument is a string of a reason for the error which
+  will aid in debugging. Example:<pre>
+  Robot.error("fubar")</pre>
+</details>
+
+<details id="Robot.get_page_doc_id" style="margin-left:20px;"><summary>get_page</summary>
+  Similar to the function <code>get_page</code>, only made into an instruction.
+  This instruction gets the content of a url and places it in a given user_data variable
+  on the job instance before allowing the next instruction in the do_list to run.<br/>
+  Example:<pre> new Job({name: "j1",
+         do_list: [Robot.get_page("http://www.nactem.ac.uk/software/acromine/dictionary.py?sf=BMI"),
+                   function(){out("got response of: " + 
+                                    this.user_data.http_response)}
+         ]}) </pre>
+  <i>Parameters:</i><br/>
+  <b>url_or_options</b>: The url whose contents this instruction gets.<br/>
+    Instead of a url as the argument, you can pass a literal JS object with lots of options, described at:
+    <a target="_blank" href="https://www.npmjs.com/package/request">options</a>
+    <p/>
+  <b>response_variable_name</b>: Default: <code>"http_response"</code>. The name
+     of the property in the job instance's user_data object to set to the
+     content of the url.
+  <p/>
+Using <code>make_url</code> can help make constructing calls to <code>get_page</code> a bit easier.
+Example:<pre> Robot.get_page(make_url("www.nactem.ac.uk/software/acromine/dictionary.py",
+                         {sf: "BMI"}))</pre>
+<code>make_url</code> is documented in the reference manual under "I/O".
+</details> <!-- end get_page -->
+
+<details id="Robot.grab_robot_status_doc_id" style="margin-left:20px;"><summary>grab_robot_status</summary>
+   robot_status is an array that holds data from the robot, along with aspects of the instruction
+   that was sent to the robot to capture that data. This array is the value of the robot
+   instance field <code>robot_status</code>. <p/>
+   <code>grab_robot_status</code> provides an easy way to get values out of that array.
+   <i>Parameters</i><br/>
+   <b>user_data_variable</b> A string (required) of the name of the job's 
+                          <code>user_data</code> variable to shove the grabbed
+                          robot_status data into.<br/>
+   <b>start_index</b> A non-negative integer signifying the
+                 first data item to extract from the robot_status array.
+                 Its default value is the value of <code>Serial.DATA0</code><br/>
+                 <i>Special values:</i> <code>"all"</code> The entire 60 element robot_status
+                 array is used. The value of end_index is ignored.<br/>
+                 <code>"data_array"</code> The part of the robot_status array after 
+                  the header information is used. For Serial robots, this will be just
+                  the data returned by the serial port. For Dexter robots, this
+                  will be the data about Dexter's joint angles, etc. 
+                  The value of end_index is ignored.<br/>
+    <b>end_index</b> A non-negative integer signifying the last element of the
+                  robot_status array to extract. The default value is <code>null</code>.
+                  If this value is null or not passed, only the data at the start_index
+                  is used. The value will NOT be an array, just that one element.<br/>
+                  <i>Special value</i> <code>"end"</code> The portion of the robot_status
+                  from start_index through the end of the robot_status array is extracted.
+                  <p/>
+                  If both the start_index and end_index are not passed,
+                  then the value will be: For a Serial robot, the first "item"
+                  returned from the serial port in response to a send.
+                  For Dexter, it will be DMA_READ_DATA.
+                  <p/>                     
+    You can use some constants for the values of start_index and end_index.<br/>
+    For a Dexter robot these are: <pre>
+Dexter.JOB_ID
+Dexter.INSTRUCTION_ID
+Dexter.START_TIME //ms since jan 1, 1970 from Dexter's clock
+Dexter.STOP_TIME" 
+Dexter.INSTRUCTION_TYPE //a letter signifying the instruction type. 
+
+Dexter.ERROR_CODE" //0 means no error.
+Dexter.DMA_READ_DATA"
+Dexter.READ_BLOCK_COUNT"
+Dexter.RECORD_BLOCK_SIZE"
+Dexter.END_EFFECTOR_IN"
+
+Dexter.J1_ANGLE"            // BASE_POSITION_AT 
+Dexter.J1_DELTA"            // BASE_POSITION_DELTA 
+Dexter.J1_PID_DELTA"        // BASE_POSITION_PID_DELTA 
+Dexter.J1_FORCE_CALC_ANGLE" // BASE_POSITION_FORCE_DELTA 
+Dexter.J1_A2D_SIN",         // BASE_SIN             
+Dexter.J1_A2D_COS",         // BASE_COS                
+Dexter.J1_PLAYBACK",        // PLAYBACK_BASE_POSITION    
+Dexter.J1_SENT",            // SENT_BASE_POSITION       
+Dexter.J1_SLOPE",           // SLOPE_BASE_POSITION  
+</pre>
+and a similar set of names beginning with J2, J3, J4 and J5.
+<p/>
+For a Serial robot these are:<pre/>
+Serial.JOB_ID              
+Serial.INSTRUCTION_ID      
+Serial.START_TIME          // ms since jan 1, 1970 from Dexter's clock
+Serial.STOP_TIME           // ms since jan 1, 1970 from Dexter's clock
+Serial.INSTRUCTION_TYPE    // A letter indicating the instruction type
+
+Serial.ERROR_CODE          // means no error.
+Serial.DATA0               // data coming back from the board
+Serial.DATA1
+Serial.DATA2
+Serial.DATA3
+Serial.DATA4
+Serial.DATA5
+Serial.DATA6
+Serial.DATA7
+Serial.DATA8
+Serial.DATA9
+</pre>
+
+In order to insure that the Dexter robot_status array is up to date,
+you should place <code>Dexter.get_robot_status()</code> in your do_list before
+the grab_robot_status instruction.<br/>
+<i>Example:</i><br/>
+<code>
+Dexter.get_robot_status(),
+Robot.grab_robot_status("no_result", Serial.DATA0), </code><br/>
+See Job Example 9 for an extended example.
+</details> <!-- end grab_robot_status -->
+
+<details id="Robot.out_doc_id" style="margin-left:20px;"><summary>out</summary>
+  Very similar to the function <code>out</code> but made for use as a robot instruction.
+  Prints a message to the Output pane in the color of your choice.<p/>
+  <i>Example:</i><br/>
+  <code>Robot.out("hey " + 345, "green")</code><p/>
+  <i>Parameters:</i><br/>
+  <b>val</b> Any JavaScript data. Most commonly this is a string, but
+             can be a number, an array etc.<br/>
+  <b>color</b> A string representing a color. Default "black". Can
+             be any string in the <b>color</b> series, or have the format:<br/>
+             <code>"rgb(255, 100, 0)"</code>.
+  <p/>
+  This is the most basic debugging tool, often used to let you know that 
+  the job its in has reached this instruction. Unlike an instruction such as:<br/>
+  <code>function(){out("The status is: " + this.status_code)}</code><br/>
+  Robot.out cannot access its job instance, but it does print out
+  its job name and instruction ID right before printing <code>val</code>.
+</details>
+
+<details id="Robot.if_any_errors_doc_id" style="margin-left:20px;"><summary>if_any_error</summary>
+  <code>if_any_error</code> checks to see if any of the supplied jobs have errored.
+  If so, it inserts the supplied instruction into the do_list on the job
+  that this instruction is on. In either case, <code>if_any_error</code> continues
+  the job that its on.
+  <i>Parameters</i><br/>
+  <b>job_names</b> An array of strings of job names. If a named job doesn't exist, error.<br/>
+  <b>instruction_if_error</b> An instruction that will be inserted into the do_list
+  immediately after this instruction IF one of the named jobs has errored.
+  The default for <code>instruction_if_error</code> is a function that
+  inserts an instance of Robot.error into the do_list of this job, causing it to error.
+  The "reason" for that error instruction is explicit about the cause of the error.
+  <p/>
+  Generally a job should be stopped quickly if there is an error. 
+  This instruction makes it easy to stop jobs that are concurrently cooperating
+  with the current job. The instruction_if_error can be a function (called with the
+  current job for "this") so that some arbitrary compensation can be made for the error. 
+</details>
+
+
+<details id="Robot.stop_doc_id" style="margin-left:20px;"><summary>stop</summary>
+  Causes the job to stop. This is an expected stop, as constrasted with
+  <b>Robot.error</b>.
+  The one argument is a string of a reason for stopping which
+  will aid in debugging. Example:<pre>
+  Robot.stop("all done")</pre>
+</details>
+
+<details id="Robot.suspend_doc_id" style="margin-left:20px;"><summary>suspend</summary>
+  Causes the job to pause. It will not execute any more of its instructions 
+  until it is unsuspended. It takes no arguments.
+  Example:<code>Robot.suspend()</code>.
+  <p/>
+  <b>unsuspend</b> is a method on a job.<br/> 
+  Example:<code>Job.my_job.unsuspend()</code>.
+  This causes the job to resume from a suspension. You can call it
+  from any JavaScript code such as in a function that's a do_list item.
+  A job cannot unsuspend itself.
+</details>
+
+<details id="Robot.sync_point_doc_id" style="margin-left:20px;"><summary>sync_point</summary>
+  A sync_point instruction cases all running jobs with the same-named sync_point
+  to pause until they all reach the sync_point. Once that happens, they
+  are all allowed to proceed executing their instructions.<br/>
+  <i>Parameters</i><br/>
+  <b>name</b> The name of the sync point. Must be identical with other sync points
+              that you expect to be in-sync. There should only be one sync_point
+              with a given name in a job.<br/>
+  <b>job_names</b> An array of job names containing same_named sync points that
+    you want to all pause at the same place. A sync_point instruction may
+    contain the name of the job its in. Effectly that doesn't matter,
+    but does allow all the same-named sync points to have the same list of job_names.<br/>
+    Example: <code>Robot.sync_point("midway", ["job_one", "job_two"])</code><br/>
+   <p/>
+   If a sync point instruction has no job names, or only its own job name,
+   it will not wait but rather breeze right through its sync_point.
+   send_to_job can use such "labels" as marking insertion points for its
+   new instructions via the parameter where_to_insert.
+   <p/>
+   By having different job_names, you can configure a sync_point in one job
+   to wait for the other job's sync point to be reached, yet <i>not</i> have
+   the other job wait for the first job. Any combination of such lop-sided
+   waits can be set up amongst jobs with same-named sync_points for
+   a lot of flexibility. This can increase the overall speed of a cooperating
+   robot group over merely "all pause at each same-named sync_points" 
+   because it allows those jobs that <i>can</i> proceed to do so.
+</details>
+
+<details id="Robot.send_to_job_doc_id" style="margin-left:20px;"><summary>send_to_job</summary>
+<code>send_to_job</code> inserts instructions into another job's do_list. It can also
+start, unsuspend and grab data from another job. <code>send_to_job</code> is complex, powerful,
+and rarely used. Example: <pre>
+Robot.send_to_job({to_job_name: "j4",
+                   do_list_item: Dexter.move_to([100000, 100000, 100000]),
+                   where_to_insert: "after_pc",
+                   unsuspend: true,
+                   wait_until_done: true})</pre>
+<i>Parameters:</i><ul>
+<li><b>to_job_name</b> The name of the job receiving the new instructions.</li>
+<li><b>do_list_item</b> An instruction or array of instructions to insert into the to_job.</li> 
+<li><b>where_to_insert</b> The location in the do_list of the to_job to insert the do_list_item.
+  Such locations are always after the current program counter of to_job.
+  This must be one of: 
+  <ul><li><b><code>"next_top_level"</code></b> (the default). Inserts the do_list_item
+  after the program_counter and just before the next original do_list item.
+  If a function do_list item in to_job returns an array of instructions,
+  this ensures that the inserted do_list_item will not go in the middle of such instructions.
+  Thus if the instructions from the function must be executed as a continuous group, 
+  "next_top_level" is a safe place to insert additional do_list items.</li>
+    </li>
+    <li><b><code>"after_pc"</code></b> Immediately after the to_job's program_counter. Not as safe as "next_top_level".</li>
+    <li><b><code>"end"</code></b> At the very end of the do_list.</li>
+    <li><b>sync_point name</b> Immediately after the sync_point that is after the program_counter
+         and has this name. Note that you can have in the to_job do_list a sync_point instructions
+         with no jobs to sync to. In that case, the sync_point is a harmless label for a location
+         that can be used by send_to_job.</li>
+    </ul></li>
+ <li><b>wait_until_done</b> (default false) If true, the from_job will wait until the to_job
+    executes its newly inserted instructions.</li> 
+ <li><b>start</b> (default false) If true, and the to_job has yet to be started,
+    it will be started after the do_list_item is inserted into its do_list.</li> 
+ <li><b>unsuspend</b> (default false) If true, and the to_job is suspended,
+     the to_job will be unsuspended after the do_list_item is inserted into its do_list.</li> 
+ <li><b>status_variable_name</b> The name of a field placed in the user_data of the from_job.
+     It is initialized to <code>"sent"</code>. When the inserted do_list_item has been executed,
+     this field is set to <code>"done"</code>. </li> 
+  <li><b>other variable names</b> If a parameter to send_to_job is not one of the above,
+    it is assumed to be the name of a field to create in the user_data of the to_job.
+    "Other variable names" have a value of a function. After the do_list_item is executed,
+    the function for each of the other varible names is called within the to_job and
+    the returned value is set to its corresponding other variable name in the 
+    user_data of the from_job. This allows the from_job to get data from the to_job
+    immediately after the do_list_item is run. </li>
+ </ul>  
+</details> <!-- end send_to_job -->
+
+<details id="Robot.sent_from_job_doc_id" style="margin-left:20px;"><summary>sent_from_job</summary>
+This instruction is typically not created by users directly. send_to_job creates
+such an instruction and places it on the to_job as a container for the newly inserted
+instructions. However, if you want to extend the do_list of a job when starting it,
+you can pass an instance of <code>sent_from_job</code> as an option
+of start. This will insert the new instruction(s) just before the job is started.
+Example:<pre>Job.j8.start({sent_from_job: Robot.sent_from_job(
+          {do_list_item: function(){out("special insert")},
+           where_to_insert: "sp1"})})
+</pre>
+<b>do_list_item</b> can be a single instruction or an array of instructions.<br/>
+<b>where_to_insert</b> See doc for send_to_job<br/>
+The inserted instructions will not be present if, after running the job,
+you call start with no argument.
+</details> <!-- end sent_from_job -->
+
+<details id="Robot.wait_until_doc_id" style="margin-left:20px;"><summary>wait_until</summary>
+This instruction causes a job to pause until the supplied condition is met.<br/>
+Example:<code>Robot.wait_until(1000)</code><br/>
+The one argument can be:
+<ul><li><b>an integer</b> The number of milliseconds for the wait. </li>
+    <li><b>an instance of Duration</b> The amount of time to wait. Takes numerical arguments
+    of hours, minutes, seconds and milliseconds.<br/>
+    Example:<code>new Duration(1, 59, 30, 500)</code><br/>
+    This causes a pause of 1 hour, 59 minutes, 30 seconds and 500 milliseconds.       
+    </li>
+    <li><b>an instance of Date</b> Causes a wait until the JavaScript date occurs. 
+         Careful, you can easily cause a job to wait for years!</li>
+    <li><b>a function</b> The function is called at each do_loop iteration.
+          The function's return value is used in a JavaScript <code>if</code> statement.
+          false, undefined, null, 0, NaN, or the empty string ("") are considered to be false.
+          Anything else is considered to be true and the wait will be over.
+          The function is called with a <code>this</code> of the current job,
+          so you can access the entire job's state when determining whether
+          or not to return <code>true</code>.
+    </li>
+</details> <!-- end wait_until -->
+
+</details> <!-- end Robot Instructions -->
+
+<details id="Brain_doc_id" style="margin-left:20px;"><summary>Brain</summary>
+<b>Brain</b> is a virtual robot used to manage other robots or do purely software tasks.
+It has no special instructions of its own, but inherits Robot's instructions, just
+like all the other robots.
+<p/>
+</details> <!-- End Brain -->
+
+<details id="Dexter_doc_id" style="margin-left:20px;"><summary>Dexter</summary>
+<b>Dexter</b> Dexter can perform instructions that command it to move. After it does
+an instruction, it sends back information from its sensors confirming where it has moved
+and additional data. This data can be used in subsequent instructions to both verify
+Dexter's position as well as respond to forces on the arm and other sensor data.
+<p/>
+An instance of Dexter is created like so:
+<pre><code>new Dexter({name: "my_dex",
+            simulate: true
+           })</code></pre>
+<p/>
+Multiple jobs may use a given robot instance as their robot. It is up to the programmer
+to make sure such jobs don't screw each other up. You may not have more than one
+active robot with the same name or ip_address.
+<details style="margin-left:20px;"><summary>new Dexter parameters</summary>
+The parameters used to define an instance of Dexter are:
+<ul>
+    <li><b>name</b> Any string, but must be unique across all robots.
+    The instance of the robot is stored in <code>Robot.the_name</code></li>
+    <li><b>simulate</b> true or false, default true.
+    If simulate is <code>true</code>, instructions will not be sent to the robot, but rather
+    simulated in software, fully under DDE's control. If simulate is <code>false</code>,
+    the instructions will be sent to the Dexter at the given ip_address.
+    </li>
+    <li><b>ip_address</b> A string of an ip_address such as: <code>"192.168.1.1"</code>
+        Default null. You can use a Dexter without an ip_address, but only with <code>simulate: true</code></li>
+    <li><b>port</b> An integer. Default 5000. </li>
+    <li><b>base_xyz</b> An array of three numbers.
+           Indicates the position of Dexter on its table in microns. Default: <code>[0, 0, 0]</code></li>
+    <li><b>base_plane</b> Indicates the plane of Dexter. The default: <code>[0, 0, 0]</code> 
+       means that Dexter is standing vertically on a horizontal table surface.</li>
+    <li><b>base_rotation</b> A number of arc-seconds. 
+           The rotation of Dexter's base on the base_plane. Default <code>0</code>.</li>
+    <li><b>enable_heartbeat</b> A Dexter instance sends a "heartbeat" to a Dexter robot to
+      keep the connection alive. If true, the default, that heartbeat will be sent.</li>
+</ul>
+</details> <!-- end new Dexter parameters -->
+
+<details style="margin-left:20px;"><summary>Dexter Instructions</summary>
+
+
+<details id="Dexter.draw_dxf_doc_id" style="margin-left:20px;"><summary>draw_dxf</summary>
+    This instruction accepts the name of a file as input and creates additional instructions
+    to move Dexter to "draw the lines" indicated by the dxf file.
+    <ul><li><b>filepath</b> A string representing the name of the dxf file under the <b>dde_apps</b> folder
+        containing the dxf instructions. The file can be directly under dde_apps or
+        nested in subfolders of any depth.
+        <p/>
+        The filepath is usually a string that ends in <code>.dxf</code> or
+        <code>.DXF</code> If it does not and is more than 512 characters long, it
+        will be assumed to be a string of actual dxf code.
+        </li>
+    <li><b>scale</b></li> dxf files indicate line endpoint positions as dimensionless units.
+       DDE requires the x,y,z positions to be in microns. <code>scale</code> converts
+       the dxf positions to microns. If scale is a number, it multiplies the dxf
+       positions by that number. The default for scale is 1, meaning no transformation.
+       If the dxf positions are intended to be in millimeters, use 1000 for scale.
+       <p/>
+       Scale can also be a string representing a scale factor.
+       <table><tr><th>String</th><th>Factor</th></tr>
+               <tr><td>"microns"     </td><td style='text-align:right'> 1       </td></tr>
+               <tr><td>"millimeters" </td><td style='text-align:right'> 1000    </td></tr>
+               <tr><td>"centimeters" </td><td style='text-align:right'> 10000   </td></tr>
+               <tr><td>"meters"      </td><td style='text-align:right'> 1000000 </td></tr>
+               <tr><td>"inches"      </td><td style='text-align:right'> 25400   </td></tr>
+               <tr><td>"feet"        </td><td style='text-align:right'> 304800  </td></tr>
+       </table>
+    <li><b>up_distance</b> The distance in microns to "lift the pen above the paper" when drawing a line.
+        Default: 2000</li>
+</ul>
+<i>Example:</i><pre>
+ new Job({name: "j1", 
+         robot: new Dexter(), 
+         do_list: [ Dexter.move_to([200000, 200000, 50000]),
+                    Dexter.draw_dxf("UML.DXF")
+         ]})
+ Job.j1.start()</pre>
+</details> <!-- end draw_dxf -->
+
+<details id="Dexter.empty_instruction_queue_doc_id" style="margin-left:20px;"><summary>empty_instruction_queue</summary>
+<i>Parameters:</i> None.<br/>
+A Dexter robot has an <i>instruction queue</i> which contains instructions that have been sent from
+DDE but not yet executed. As soon as Dexter recieves an instruction from DDE, it typically acknowledges receipt
+to DDE,
+which causes DDE to send the next instruction in the Job's do_list.
+An <code>empty_instruction_queue</code> instruction changes that behavior and causes all the instructions in the
+queue to be executed before DDE attempts to run another instruction on the do_list.
+</details> <!-- end empty_instruction_queue -->
+
+<details id="Dexter.empty_instruction_immediately_queue_doc_id" style="margin-left:20px;"><summary>empty_instruction_queue_immediately</summary>
+<i>Parameters:</i> None.<br/>
+A Dexter robot has an <i>instruction queue</i> which contains instructions that have been sent from
+DDE but not yet executed. As soon as Dexter recieves an instruction from DDE, it typically acknowledges receipt
+to DDE,
+which causes DDE to send the next instruction in the Job's do_list.
+An <code>empty_instruction_queue_immediately</code> instruction removes all the 
+instructions from the instruction queue
+without executing them. It then informs DDE to send the next instruction.
+This is an unusual instruction as it implies that the instructions sent to Dexter were in error.
+You might want to do this in an emergency situation or if the environment unexpectedly changes.
+</details>
+
+<details id="Dexter.get_robot_status_queue_doc_id" style="margin-left:20px;"><summary>get_robot_status</summary>
+<i>Paramenters:</i> None<br/>
+Retrieves lots of information from Dexter. This is placed in an array that becomes the value of
+the job's <code>robot_status</code> field, and, if the job's <code>keep_history</code> is true, gets pushed onto the 
+job's <code>rs_history</code> array.
+<p/>
+This instruction blocks further processing of the job's do_list instructions until
+all of the instructions on Dexter's instruction_queue are executed.
+</details>
+
+<details id="Dexter.get_robot_status_immediately_doc_id" style="margin-left:20px;"><summary>get_robot_status_immediately</summary>
+<i>Paramenters:</i> None<br/>
+Retrieves lots of information from Dexter. This is placed in an array that becomes the value of
+the job's <code>robot_status</code> field, but is not placed on the job's <code>rs_history</code> array.
+<p/>
+Unlike <code>get_robot_status</code>, this instruction causes Dexter to return its data immediately,
+before any of the instructions on its <i>instruction queue</i> are executed.
+</details>
+
+<details id="Dexter.move_to_doc_id" style="margin-left:20px;"><summary>move_to</summary>
+This instruction commands Dexter to move from whereever it is, to position its
+end effector at the given x, y, z location. It is complicated by the fact that
+usually there is more than one configuration of Dexter's joints that
+can achieve that position and that Dexter is inherently limited by the
+lengths of its links. 
+<i>Parameters</i><br/>
+<b>xyz</b> tells Dexter to position its end effector to a position.
+An array of 3 numbers, each indicating microns from the position 0, 0, 0
+which is at the center of the base of Dexter, in its surface (think table) plane.
+Imagine yourself as Dexter facing forwards. The x-axis is to your left and right
+with left being negative and right being positive. The valid range is
+-747804 to 747804. The Y axis runs from behind you to in front of you with
+negative behind you and positive in front ranging from -747804 to 747804.
+The z axis is vertical with below the table being negative and above the
+table ranging from -582704 to 912904 with 0 being at the table surface.
+Note that not all of the x,y,z combinations are reachable by Dexter. 
+If Dexter is on a table, then none of the negative y values are reachable,
+since they are below the table.
+The J5_direction parameter also affects reachability.
+<p/>
+<b>J5_direction</b> indicates the direction you want the end effector to be pointing.
+This is an array of 3 numbers (each ranging from -1 to 1)
+that you can think of as indicating a "point" off
+of the end of the end effector. The default is [0, 0, -1] which
+causes the end effector to point straight down. {needs work}
+<p/>
+<b>config</b> For most points within the reachability of Dexter, there are multiple
+ways in which Dexter can get there. config helps you specify your preference
+as to <i>how</i> Dexter configures its joints to get to the indicated x, y, z.
+There are 3 independent boolean values to determining this configuration.
+They are: <ul>
+<li><i>base-rotation</i> <code>LEFT</code> means J1, the base joint has a negative value,
+     ie it is to the right of facing front. Looking down from the top at Dexter this would
+     mean its rotated counter clockwise. The opposite direction is <code>RIGHT</code>
+     or clockwise.</li>
+<li><i>J3-position</i> Joint 3 can be thought of as Dexter's elbow. The elbow can be either
+      <code>UP</code> i.e. away from the table or <code>DOWN</code>, closer to the table./li>
+<li><i>J4 Position</i> Joint 4 can be thought of as Dexter's wrist. It can be pointing either
+    <code>IN</code>, towards the base, or <code>OUT</code>, away from the base.</li>
+</ul>
+Config is most easily specified using one of 26 constants such as:
+<code>Dexter.LEFT_DOWN_IN</code> or <code>Dexter.RIGHT_UP_OUT</code>. You can omit 1 or 2 of these value as in
+<code>Dexter.LEFT_IN</code>  or <code>Dexer.OUT</code>. The complete list is:<pre>
+Dexter.LEFT            = [0, null, null]
+Dexter.LEFT_DOWN       = [0, 0,    null]
+Dexter.LEFT_UP         = [0, 1,    null]
+Dexter.LEFT_IN         = [0, null, 0]
+Dexter.LEFT_OUT        = [0, null, 1]
+Dexter.LEFT_DOWN_IN    = [0, 0,    0]
+Dexter.LEFT_DOWN_OUT   = [0, 0,    1]
+Dexter.LEFT_UP_IN      = [0, 1,    0]
+Dexter.LEFT_UP_OUT     = [0, 1,    1]
+
+Dexter.RIGHT           = [1, null, null]
+Dexter.RIGHT_DOWN      = [1, 0,    null]
+Dexter.RIGHT_UP        = [1, 1,    null]
+Dexter.RIGHT_IN        = [1, null, 0]
+Dexter.RIGHT_OUT       = [1, null, 1]
+Dexter.RIGHT_DOWN_IN   = [1, 0,    0]
+Dexter.RIGHT_DOWN_OUT  = [1, 0,    1]
+Dexter.RIGHT_UP_IN     = [1, 1,    0]
+Dexter.RIGHT_UP_OUT    = [1, 1,    1]
+
+Dexter.DOWN            = [null, 0, null]
+Dexter.DOWN_IN         = [null, 0, 0]
+Dexter.DOWN_OUT        = [null, 0, 1]
+Dexter.UP              = [null, 1, null]
+Dexter.UP_IN           = [null, 1, 0]
+Dexter.UP_OUT          = [null, 1, 1]</pre>
+The above list is in the series <b>Robot/robot config</b>.
+Not mentioning a boolean (null) means "don't care", ie let DDE figure it out. Since config limits
+the possible options, some configurations will be impossible with some xyz settings and/or
+J5_direction settings. Impossible settings cause an error.
+</details> <!--end move_to -->
+
+<details id="Dexter.move_to_relative_doc_id" style="margin-left:20px;"><summary>move_to_relative</summary>
+This function is the same as <code>Dexter.move_to</code> except that the xyz values are ADDED to Dexter's
+existing end effector xyz values, not taken as absolutes.
+</details>
+
+<details id="Dexter.move_all_joints_doc_id" style="margin-left:20px;"><summary>move_all_joints</summary>
+move_all_joints is a lower level instruction than move_to, giving you the ability to dicate
+the angle of each of Dexter's 5 joints, J1 through J5. A joint's angle is specified in arc_seconds. 
+(There are 3600 arc_seconds per degree and 648,000 per 180 degrees.)
+The min and max angles of each joint are in constants: <code>Dexter.J1_ANGLE_MIN</code> 
+through <code>Dexter.J5_ANGLE_MAX</code>, all included in the series <b>Dexter_constant</b>. 
+Examples:<br/>
+<code>Dexter.move_all_joints(10000, null, 30000)</code><br/>
+<code>Dexter.move_all_joints([10000, null, 30000])</code><br/>
+Both of these have the same function, i.e. you can pass in an array of up to 5 arc_seconds,
+or you can pass in individual numbers.
+<code>null</code> or the lack of enough numbers means keep the angle for that joint what it is at now.
+</details>
+
+<details id="Dexter.move_all_joints_relative_doc_id" style="margin-left:20px;"><summary>move_all_joints_relative</summary>
+The same as Dexter.move_all_joints except that the given angles are added to the current
+angles of the robot. <code>null</code> or missing angle increments default to 0.
+</details>
+
+<details id="Dexter.move_home_doc_id" style="margin-left:20px;"><summary>move_home</summary>
+Moves all joints to 0. J1 is facing forwards, J2, J3, J4 are straight up. J5 
+causes Link 5 to be horizontal pointing forwards.
+Example: <code>Dexter.move_home()</code>
+</details>
+
+<details id="make_ins_doc_id" style="margin-left:20px;"><summary>make_ins</summary>
+Normally you should make instructions for Dexter using one of the high level method calls,
+ie <code>Dexter.move_all_joints</code>. However, we provide the function <code>make_ins</code>,
+useful in some low level situations. The first argument is the instruction type,
+a single letter string such as "a". The remaining arguments are whatever that instruction type
+accepts. Example:<br/>
+<code>make_ins("a", 1, 2, 3, 4 ,5)</code> creates an instruction that moves the 5 joints 
+by 1, through 5 respectively.
+If you have the arguments in an array, you can use this syntax:<br/>
+<code>make_ins("a", ...my_array)</code>
+<p/>
+The returned value is an array that has its first several fields empty. DDE uses them
+for storing the job_id, instruction_id and some timing information.
+</details> <!-- end make_ins -->
+
+<details id="Dexter.run_gcode_doc_id" style="margin-left:20px;"><summary>run_gcode</summary>
+This instruction accepts the name of a file as input and creates additional instructions 
+to move Dexter to "draw the lines" indicated by the gcode file.
+<ul><li><b>filepath</b> A string representing the name of the gcode file under the <b>dde_apps</b> folder
+    containing the gcode instructions. The file can be directly under dde_apps or
+    nested in subfolders of any depth. Typically the filepath will have an extension of <code>.gcode</code>
+    but that isn't required by filepath.</li>
+    <li><b>scale</b></li> gcode files indicate line endpoint positions as dimensionless units.
+       DDE requires the x,y,z positions to be in microns. <code>scale</code> converts
+       the gcode positions to microns. If scale is a number, it multiplies the gcode
+       positions by that number. The default for scale is 1, meaning no transformation.
+       If the gcode positions are intended to be in millimeters, use 1000 for scale.
+       <p/>
+       Scale can also be a string representing a scale factor.
+       <table><tr><th>String</th><th>Factor</th></tr>
+               <tr><td>"microns"     </td><td style='text-align:right'> 1       </td></tr>
+               <tr><td>"millimeters" </td><td style='text-align:right'> 1000    </td></tr>
+               <tr><td>"centimeters" </td><td style='text-align:right'> 10000   </td></tr>
+               <tr><td>"meters"      </td><td style='text-align:right'> 1000000 </td></tr>
+               <tr><td>"inches"      </td><td style='text-align:right'> 25400   </td></tr>
+               <tr><td>"feet"        </td><td style='text-align:right'> 304800  </td></tr>
+       </table>
+    <br/>
+    <code>run_gcode</code> is similar to <code>draw_dxf</code>. <code>run_gcode</code> only handles G0 and G1 instructions,
+    and only their X, Y, and Z arguments.
+    It treats G0 and G1 the same.
+    <code>run_gcode</code> needs lots of work.
+</ul>
+</details> <!-- end run_gcode -->
+
+<details id="Dexter.sleep_doc_id" style="margin-left:20px;"><summary>sleep</summary>
+  Causes Dexter to "go to sleep" for the number of milliseconds in the one argument.
+  When Dexter receives the instruction, it waits for that number of milliseconds
+  before returning control to the DDE job.<br/>
+  Example:<code>Dexter.sleep(1000)</code><br/>
+  Sleeps for 1 second.
+</details>
+</details> <!-- end dexter_instructions -->
+
+<details  style="margin-left:20px;"><summary>Dexter Utilities</summary>
+
+<details id="Dexter.prototype.joint_angle_doc_id" style="margin-left:20px;"><summary>joint_angle</summary>
+Returns the present angle of the joint indicated in the argument in arc_seconds.
+Example:<br/><code>a_robot.joint_angle(2)</code> => some_arc_seconds.
+The argument defaults to 1, ie the base joint.
+</details>
+
+<details id="Dexter.prototype.joint_angles_doc_id" style="margin-left:20px;"><summary>joint_angles</summary>
+Takes no arguments. Returns an array of the angles of the 5 joints in arc_seconds.
+Example:<br/><code>a_robot.joint_angles()</code> => <br/>
+[j1_arc_seconds, j2_arc_seconds, j3_arc_seconds, j4_arc_seconds, j5_arc_seconds]
+</details>
+
+<details id="Dexter.prototype.joint_xyz_doc_id" style="margin-left:20px;"><summary>joint_xyz</summary>
+Takes one argument, an integer from 1 to 5 indicating a joint.
+Returns the present angle of the indicated joint in arc_seconds.
+Example:<br/><code>a_robot.joint_xyz(2)</code> => some number in microns.
+The argument defaults to 5, ie the end effector.
+</details>
+
+<details id="Dexter.prototype.joint_xyzs_doc_id" style="margin-left:20px;"><summary>joint_xyzs</summary>
+Takes no arguments. Returns an array of the xyzs of the 5 joints with
+the base position prepended on the beginning of the returned array.
+Positions are in microns.
+Example:<br/><code>a_robot.joint_xyzs()</code> => <pre>
+[
+[0, 0, 0],
+[0, 0, 165100],
+[77002.98143799945, -310537.62354316347, 186765.19879492428],
+[10000.000000000044, -40328.00000000006, 9200],
+[10000.000000000044, -40328.00000000006, 59999.99999999999],
+[10000.00000000006, 42221.99999999993, 60000]
+]</pre>
+</details>
+
+<details id="Dexter.prototype.xyz_invalid_doc_id" style="margin-left:20px;"><summary>xyz_invalid</summary>
+Returns false if the given xyz point does not collide with the table or Dexter.
+Returns joint number and microns below table if xyz is below the table.<br/>
+<i>Parameters</i><br/>
+<b>xyz</b> An array of 3 numbers, x, y, and z in microns, in table coordinates.<br/>
+<b>J5_direction</b> The direction J5 is pointing as a point. Default: [0, 1, 0] <br/>
+<b>config</b> The 'config' of the joints. Default <code>Dexter.RIGHT_UP_IN</code>
+ See Dexter.move_to for explanation of 'config'.<br/>
+ Example: <code>a_robot.xyz_invalid([10000, 20000, 30000])</code> => false
+</details>
+</details> <!-- end Dexter Utilities -->
+
+<details style="margin-left:20px;"><summary>Dexter Constants</summary>
+<pre>
+//values in microns
+Dexter.LINK1 = 165100   //  6.5 inches,    
+Dexter.LINK2 = 320675   // 12 5/8 inches 
+Dexter.LINK3 = 330200   // 13 inches      
+Dexter.LINK4 =  50800   //  2 inches      
+Dexter.LINK5 =  82550   //  3.25 inches 
+
+Dexter.LINK1_AVERAGE_DIAMETER =  90000
+Dexter.LINK2_AVERAGE_DIAMETER = 120000
+Dexter.LINK3_AVERAGE_DIAMETER =  50000
+Dexter.LINK4_AVERAGE_DIAMETER =  35000
+Dexter.LINK5_AVERAGE_DIAMETER =  30000
+
+Dexter.LEG_LENGTH = 152400 // 6 inches   
+
+//values in arcseconds
+Dexter.J1_ANGLE_MIN  = -Infinity  // rotate
+Dexter.J1_ANGLE_MAX  =  Infinity  // rotate
+Dexter.J2_ANGLE_MIN  = -648000    // -180 degrees
+Dexter.J2_ANGLE_MAX  =  648000    //  180 degrees
+Dexter.J3_ANGLE_MIN  = -594000    // -165 dgrees
+Dexter.J3_ANGLE_MAX  =  594000    //  165 degrees
+Dexter.J4_ANGLE_MIN  = -486000    // -135 degrees
+Dexter.J4_ANGLE_MAX  =  486000    //  135 degrees
+Dexter.J5_ANGLE_MIN  = -Infinity  // rotate
+Dexter.J5_ANGLE_MAX  =  Infinity  // rotate
+
+Dexter.RIGHT_ANGLE   = 324000 // 90 degrees
+Dexter.HOME_ANGLES   = [0, 0, 0, 0, 0]  //j2,j3,j4 straight up, link 5 horizontal pointing frontwards.
+Dexter.PARKED_ANGLES = [0, 0, 630000, 162000, 0 ] //all folded up, compact.
+</pre>
+</details> <!--end Dexter Contantants -->
+
+</details> <!-- end Dexter -->
+
+<details id="Human_doc_id" style="margin-left:20px;"><summary>Human</summary>
+<b>Human</b> is a "robot" that is commanded to do things via pop up dialog boxes.
+Examples of its instructions are <code>Human.task</code>, and <code>Human.enter_number</code>.
+When a human instruction is run, a dialog box is shown and the job waits for a user to
+enter some information and click on a button to either cancel the job (and dependent jobs)
+or proceed.
+<p/>
+Human instructions are a way to encode tasks that Dexter can't do or information
+that it can't know. The inclusion of human instructions in DDE permits the design and
+running of jobs that need coodination between humans and machines.
+<p/>
+Although the "home" of human instructions is in the <i>Human</i> robot, you can use
+these instructions in a job with <i>any</i> robot. They do not attempt to
+access robot hardware.
+<details style="margin-left:20px;"><summary>Human Instructions</summary>
+<details id="Human.task_doc_id" style="margin-left:20px;"><summary>task</summary>
+  When run, all human instructions present a dialog box on the screen and waits until the
+  user clicks the <button>Done</button> button before allowing the job to proceed to the
+  next instruction in its do_list. A <button>Stop this & dependent jobs</button> button is
+  also presented. If clicked, this job and its dependent jobs are stopped.<p/>
+  <i>Parameters:</i><br/>
+  <b>task</b> Default: "". A string that will appear in the body of the dialog box. It is intended
+     as an English instruction to the human reading it. When the human has completed
+     the instruction, they should press <button>Done</button>.
+     If the human is unable to complete the task, they should press
+     <button>Stop this & dependent jobs</button><p/>
+   <b>dependent_job_names</b> Default: []. The names of the jobs that will be stopped if the
+       user presses <button>Stop this & dependent jobs</button><br/>
+   <b>title</b> Default: the job name and "Human Task". A string shown in the title bar of the dialog.
+          To have no title, pass in <code>""</code> .<br/>
+   <b>x</b> Default: 200. The number of pixels between the left edge of the dialog and the left edge of the DDE window.<br/>
+   <b>y</b> Default: 200. The number of pixels between the top edge of the dialog and the top edge of the DDE window.<br/> 
+   <b>width</b> Default: 400. The width of the dialog box in pixels.<br/>
+   <b>height</b> Default: 400. The height of the dialog box in pixels.<br/>
+   <b>background_color</b> Default: "rgb(238, 238, 238)" i.e. light gray. The background color of the dialog box.
+    Each of the numbers for red, green, and blue can be between 0 and 255 inclusive. 0,0,0 is black.<br/>
+    <i style="color:rgb(200,0,200);">All of these parameters are common to <b>all</b> human instructions. 
+      All are optional. They affect the appearance of the dialog box, except for</i> <code>dependent_job_names</code>.<br/>
+</details> <!-- end task -->
+
+<details id="Human.enter_choice_doc_id" style="margin-left:20px;"><summary>enter_choice</summary>
+  Presents a dialog allowing the user to choose one of several supplied options.
+  See <b>Human.task</b> for behavior common to all Human instructions.<p/>
+  <i>Uncommon Paramaters:</i><br/>
+  <b>choices</b> Default: []. An array of strings. 
+      The user is allowed to select one of the given choices.<br/>
+  <b>show_choices_as_buttons</b> true or false, default: false. When false, the choices are 
+    shown in a menu with the first choice selected.
+    When true, each choice has a button and there is no <button>Done</button> button.
+  <b>one_button_per_line</b> true or false, default: false. If true, each button
+   appears on its own line in a vertical stack. If true, the buttons are positioned
+   left to right, taking up more than 1 line only when necessary to display the extra buttons.<br/>
+  <b>user_data_variable_name</b> Default: "choice". When the user clicks <button>Done</button>, 
+  the selected choice will be made the value of the variable named in this parameter.
+  That variable will be in the <code>user_data</code> of the current job.
+  Within another instruction in the same job, the selected choice will be accessible using
+  JavaScript. If the user_data_variable_name is 'my_color' and the choice is 'blue'.
+  then <code>this.users_data.my_color</code will return <code>'blue'</code>. 
+  You can access this value from <i>another</i> job via:<br/>
+  <code>job.some-job-name.user_data.my_color</code>.
+  Note that JavaScript from any job can also reset this value. For example:<br/>
+  <code>job.some-job-name.user_data.my_color = 'green'</code>.
+</details>
+
+<details id="Human.enter_instruction_doc_id" style="margin-left:20px;"><summary>enter_instruction</summary>
+  Presents a dialog allowing the user to enter an instruction to be immediately run.
+  This can also record instructions and create a job with the recorded do_list.
+  See <b>Human.task</b> for behavior common to all Human instructions.<p/>
+  This instruction does not use <b>user_data_variable_name</b>.<p/>
+  This instruction can only be used on jobs with a Dexter robot.<p/>
+  <i>Uncommon Paramaters:</i><br/>
+  <b>instruction_type</b> Default: "Dexter.move_all_joints". Set's the dialog's default instruction type.</br/>
+  <b>instruction_args</b> Default "5000, 5000, 5000, 5000, 5000". 
+    Set's the dialog's default instruction args.<p/>
+  This instruction is a work in progress. See the tooltips in the dialog for help.
+</details>
+
+<details id="Human.enter_number_doc_id" style="margin-left:20px;"><summary>enter_number</summary>
+  Presents a dialog allowing the user to enter a number via typing or clicking.
+  See <b>Human.task</b> for behavior common to all Human instructions.<p/>
+  See <b>Human.enter_choice</b> for documentation on the <b>user_data_variable_name</b> parameter.<p/>
+  <i>Uncommon Paramaters:</i><br/>
+  <b>initial_value</b> Default: 0.</br/>
+  <b>min</b> Default 0. The minimun acceptable value.</br/>
+  <b>max</b> Default 100. The maximum acceptable value.</br/>
+  <b>step</b> Default 1. The step size that clicking on the increment and decriment arrows will add or subtract
+              to the current value. 
+</details>
+
+<details id="Human.enter_text_doc_id" style="margin-left:20px;"><summary>enter_text</summary>
+  Presents a dialog allowing the user to enter text via typing.
+  See <b>Human.task</b> for behavior common to all Human instructions.<p/>
+  See <b>Human.enter_choice</b> for documentation on the <b>user_data_variable_name</b> parameter.<p/>
+  <i>Uncommon Paramaters:</i><br/>
+  <b>initial_value</b> Default: "OK".</br/>
+  <b>line_count</b> Default 1. The number of lines that the input control will be configured for.
+     If this is more than 1, a user will be able to drag the lower right corner of the text field
+     to increase the visible lines.
+</details>
+
+<details id="Human.notify_doc_id" style="margin-left:20px;"><summary>notify</summary>
+  Displays information for the user.
+  See <b>Human.task</b> for behavior common to all Human instructions,
+  but unlike other Human instructions, <b>notify</b> does not have a <b>user_data_variable_name</b> parameter,
+  nor do its dialog boxes have buttons.
+  It also does not wait for a user action before allowing its job to continue to the next do_list item.<p/>
+  <i>Uncommon Parameters:</i><br/>
+  <b>window</b> true or false, default: true. Whether or not to present the information in a window.<br/>
+  <b>output_pane</b> true or false, default: true. Whether or not to present the task in the output pane.<br/>
+  <b>beep_count</b> Non-negative integer, default: 0. How many beep 'alerts' to sound when
+                   this instruction is run.<br/>
+  <b>speak</b> true or false, default: false. Whether or not to speak the title and task when this
+         instruction is run.
+</details>
+
+
+</details> <!-- end human instructions -->
+</details> <!-- end Human -->
+
+<details id="Serial_doc_id" style="margin-left:20px;"><summary>Serial</summary>
+<b>Serial</b> is not a specific robot per se, its a connection to another computer via its serial port.
+This connection is very general. It knows nothing about the actual capabilities of what its
+connected to, only that it can send and receive strings on its serial port.
+<p/>
+DDE's Serial robot is quite similar to Dexter from DDE's perspective. It
+can be sent instructions from a Job's do_list and its output is interpreted as
+a "robot_status" similarly to Dexter's robot_status. The Serial robot has been
+used to connect to Arduino boards via its USB connector, and should work with Raspberry Pi and other
+similar devices.
+
+<details style="margin-left:20px;"><summary>Arduino</summary>
+In order for the serial port connection to work with Arduino, you need to have
+the Arduino IDE installed. Its a free and easy download from 
+<a target="_blank" href="https://www.arduino.cc">https://www.arduino.cc</a>
+<p/>If you don't get a connection, sometimes unplugging and replugging the 
+USB cable will help. You can also try relaunching DDE.
+Another debugging techinque is using the Arduino IDE's menubar/Tools/Serial Monitor.
+The upper type in area is for a string that you want to send to the board.
+The lower area displays strings coming back from the board.
+</details>
+
+<details style="margin-left:20px;"><summary>Arduino and Mac</summary>
+Beware: It appears that Arduino plays poorly with Macintosh computers.
+We've been unsuccessful at connecting a Sparkfun RedBoard with Mac and
+have heard of other problems between Arduino's Uno R3 boards. We've had success
+with Arduino Leonardo and believe Arduino Micro will also work due to its
+similar communication architecture. (Feb 2017) The Arduino Micro cannot
+accomodate standard Arduino add-on (shield) boards but the Leonardo can.
+</details> <!-- end Arduino and Mac-->
+
+Create an instance of Serial similar to the other robots. Example: <br/>
+<code>new Serial({name: "S1", ...})</code><p/>
+
+<details style="margin-left:20px;"><summary>Parameters to new</summary>
+<b>name</b> A string. Makes this instance of a Serial Robot accessible from Robot.the_name<br/>
+
+<b>simulate</b> true or false. Default <code>true</code>. If true, no data is sent or recieved over
+the actual serial port.<br/>
+
+<b>sim_fun</b> A function. Default <code>return_first_arg</code>. Used only when <code>simulate: true</code><br/>
+When a Serial.string.instruction is simulated, its argument, <code>instruction_string</code> is
+passed to the sim_fun. The value returned from calling sim_fun is the simulated return value (a string)
+from the serial port for this instruction. The function can use any JavaScript to compute
+the returned string. <p/>
+Consider the item_delimiter when making up this returned string. Often
+the string should end in the item_delimiter, but it doesn't have to. <p/>
+We're not expecting
+the sim_fun to do exactly what the Serial hardware would do. In fact if it could,
+there would be no need for the hardware! Rather sim_fun should perform as a diagnostic
+for at least one case or perhaps a few cases of instruction strings.
+The default value of <code>return_first_arg</code> just returns its input to help you verify that
+the basic communication path is working.<br/>
+
+<b>path</b> A string. Required. The label for the device connected to a serial port on the computer running DDE 
+that you want this software robot to connect to.
+Valid paths can be seen
+by calling <code>serial_show_devices()</code>. On Windows, they look something like 
+ <code>"COM3" </code>.
+On Mac, they look something like <code>"/dev/tty.usbmodem1411"</code>. 
+ In addition to the tty path, Mac's also have a "cu" path such as: <code>"/dev/cu.usbmodem1411"</code>.
+ We've found both <code>tty</code> and <code>cu</code> paths to work with DDE.<br/>
+
+<b>connect_options</b> A literal object. Default <code>{}</code>. <br/>
+Example: <code>{baudRate: 9600}</code> <br/>
+9600 is the default baudRate (which is the same as bitrate, i.e. bits per second). All options documented at
+<a target="_blank" href="https://www.npmjs.com/package/serialport#serialport-path-options-opencallback">https://www.npmjs.com/package/serialport#serialport-path-options-opencallback</a><br/>
+
+<b>capture_n_items</b> A non-negative integer. Default <code>1</code>.<br/>
+DDE waits until it has recieved capture_n_items from the device before calling the next instruction on
+the job's do_list. The string returned by the serial device is cut up by <code>item_delimiter</code>,
+to determine the number of items returned by the serial device.
+<br/>
+
+<b>item_delimiter</b> A string. Default <code>"\\n"</code>. Note that Arduino's 
+<code>Serial.println("foo")</code> will send out a 5 character string of <code>"foo\\r\\n"</code><br/>
+
+<b>trim_whitespace</b> A boolean. Default <code>true</code>.
+If this is true, then an "item" (string) returned by the serial port, will have the
+whitespace at its beginning and end removed. Note that with the defaults in place
+of an item_delimiter of <code>"\\n"</code>, and trim_whitespace of <code>true</code>,
+then when Arduino executes: <code>Serial.println("hi")</code> the actual 4 characters
+transmitted to DDE are: <code>hi\\r\\n</code>. It is recognized as one item because
+it ends in the delimiter, giving us a 3 character item, except that the <code>trim_whitespace</code>
+takes off that final <code>\\r</code> and we're left with <code>hi</code>, usually what you want.
+<p/>
+This arrangement gets around our society's failure to set one standard for the most important formatting
+operation, breaking up of lines, with <code>\\n</code> being used by Unix and Mac, and
+<code>\\r\\n</code> being used by Windows and Arduino. DDE tries to use the more
+sensible <code>\\n</code> where possible. Thus <code>\\n</code> can be our
+default item_delimiter and we still win calling Arduino's <code>Serial.println</code>.
+<br/>
+
+<b>parse_items</b> true or false. Default true. If true, the returned items will be converted from strings to
+primitive JS data types: booleans, numbers, arrays, literal objects, strings, and aggrigates of such.
+Example: In Arduino C, you could have a program that executes: 
+<br/><code>Serial.println("[1, 20, 300]");</code><br/>
+With <code>parse_items: true</code> that would result in DDE's robot_status array as an element of
+an array of three integers.
+
+<b>capture_extras</b> One of "error", "ignore" or "capture". Default "error". 
+<ul><li><code>"error"</code> means that any extra data output by the board will cause an error, halting the current job.</li>
+    <li><code>"capture"</code> means that extra output will be appended onto the end of the robot_status associated
+        with the last instruction sent. Beware that such data won't be available as soon as the expected
+        data of capture_n_items has been received.</li> 
+     <li><code>"ignore"</code> means that any items after capture_n_items and before the next instruction sent will
+        be thrown away, but will not cause an error.</li>
+</ul>
+<b>instruction_callback</b> A function that is called when a valid return value is received
+to control what a job should do next. The default causes the next instruction in the Job's
+do_list to be executed. Usually you won't want to change this.<br/>
+</details> <!-- End Serial parameters to new -->
+
+<details style="margin-left:20px;"><summary>Serial Instructions</summary>
+<details id="Serial.string_instruction_doc_id" style="margin-left:20px;"><summary>string_instruction</summary>
+Has one argument, a string, which is sent the the Serial robot. 
+If the argument is <i>not</i> a string, it is converted to one using <code>JSON.stringify</code> .
+The functionality of that string is entirely dependent on how the device
+you are sending it to, interprets it.<br/>
+Example: <code>Serial.string_instruction(4.5)</code><br/>
+sends the 3 character string: <code>"4.5"</code>  to the serial robot.<br/>
+See Job Example 9 for an extended example.
+</details>
+</details> <!-- end of Serial Instructions -->
+
+<details style="margin-left:20px;"><summary>Debugging Serial</summary>
+Due to the interplay between two different computers (the one running DDE and the Serial device)
+and their entirely different software protocols, debugging Serial robot interfaces is challenging.
+DDE provides a number of low level functions that can be invoked without interacting with a job
+to help you verify connectivity.<p/>
+
+<b id="serial_devices_doc_id"><code>serial_devices()</code></b> Returns an array of objects representing
+the available devices on serial ports. the <code>comName</code> field holds the path to the serial
+port that you can use to connect to that device. 
+<p/>
+
+<b id="serial_path_to_info_map_doc_id"><code>serial_path_to_info_map</code></b> Holds the mapping between the
+<code>path</code> of a serial device and lots of properties about it, most of which come from defining
+the associated Serial robot. The value of this global variable is a JS literal object with
+keys of each path to which there is a serial connection, and values of
+another JS literal object holding useful properties of that connection, i.e. its "info".<p/>
+You can get the info for a path via <br/>
+<code>serial_path_to_info_map[path]</code>
+<p/>
+
+<b id="serial_connect_low_level_doc_id"><code>serial_connect_low_level("/dev/tty.some_device")</code></b> 
+Allows you to create a software connection between a serial device and DDE software NOT in a job.
+<p/>
+
+<b id="serial_send_low_level_doc_id"><code>serial_send_low_level( "some_path", "some_string")</code></b> 
+Allows you to send a string to a serial device from DDE but NOT in a job.
+<p/>
+
+<b id="serial_disconnect_doc_id"><code>serial_disconnect("some_path")</code></b> Disconnects an existing connection. 
+<p/>
+
+<b id="serial_flush_doc_id"><code>serial_flush("some_path")</code></b> Removes all bytes in the given path's input and output buffers.
+<p/>
+See Job Example 9 for examples.
+</details> <!-- End Debugging Serial -->
+</details> <!-- End Serial -->
+
+</details> <!-- end Robots -->
+
+<details style="margin-left:20px;"><summary>Window System</summary>
+Dealing with HTML, CSS and JavaScript of traditional web apps is complex.
+DDE uses those technologies but with a simplied wrapper for them to help
+users create interactive windows with the most needed features.
+
+<details id="show_window_doc_id"style="margin-left:20px;"><summary>show_window</summary>
+A call to <code>show_window</code> creates a dialog box using HTML and JavaScript. 
+<i>Parameters</i><br/>
+ <b>title</b> A string of the HTML displayed in the window's title bar. Default: "DDE Information"<br/>
+ <b>width</b> The number of pixels wide that the window will be. Default: 400<br/>
+ <b>height</b> The number of pixels tall that the window will be. Default: 400<br/>
+ <b>x</b> The number of pixels that the left edge of the window will be from the left edge of the DDE window.
+          Default: 200<br/>
+ <b>y</b> The number of pixels that the top edge of the window will be from the top edge of the DDE window.
+          Default: 200<br/>
+ <b>content</b> HTML to be rendered in the body of the window. input tags with <code>type</code>
+    attributes of <code>button</code> and <code>submit</code> will cause the window's
+    callback function to be called. <code>submit</code> will also cause the window to be closed.<p/>
+    HTML elements with a class of "clickable" will behave as a button. Clicking on them 
+    will cause the window's callback button to be called with a <code>clicked_button_value</code>
+    property of the <code>name</code>, or if none, the <code>id</code> of the clicked on element.
+    Clicking on such HTML elements will <i>not</i> close the window.<br/>
+    <i>Example</i>:<br/>
+    <code>show_window({<br/>
+    &nbsp;&nbsp;&nbsp;content:'&lt;p id="p_id" class="clickable">some para&lt;/p>',<br/>
+    &nbsp;&nbsp;&nbsp;callback: function (vals){ append_in_ui("p_id", "&lt;h1>hey&lt;/h1>")}<br/>
+    })</code><br/>
+ <b>callback</b> A function of one argument. It will be called when a the user clicks a button in
+    a show_window. It's argument will be a literal object. Many of its fields are x and y positions
+    reletive to the top-left of html elements in or containing the clicked position.
+    An example:<br/><pre>
+    {x: 300,           //relative to the parent of the elt clicked on
+    y: 213,
+    clientX: 300,      //relative to the content area (the viewport) of the browser window
+    clientY: 213,      //This point does not move even if the user moves a scrollbar from within the browser.
+    offsetX: 290,      //relative to the html element that the user clicked in
+    offsetY: 68,
+    pageX: 300,        //relative to the top left of the fully rendered content area in the browser.
+    pageY: 213,
+    screenX: 395,      //relative to the physical display
+    screenY: 270,
+    altKey: false,     //true if the alt key (option on Mc) was pressed when the mouse was clicked
+    ctrlKey: false,    //control key
+    metaKey: false,    //Windows key on Windows OS, command key on Mac
+    shiftKey: false,
+    tagName: "input",  //html element tag clicked on. 
+    window_index: "1", //a show_window instance identifier. 
+                       //<code>close_window(window_index)</code> 
+                       //will close the show_window window.
+    clicked_button_value: "my_in_id", //the 'name' or 'id' attribute of the clicked on element. 
+    trim_strings: true}</pre>
+ <i>Example show_window_call:</i><pre>//Called when a button is clicked.
+function show_vals(vals){out(vals)} //this is the default callback
+show_window({
+    content:
+&#39;text: &lt;input type="text" name="my_text" value="Dexter">
+textarea: &lt;textarea name="my_textarea">Hi Rez&lt;/textarea>
+checkbox: &lt;input name="my_checkbox" type="checkbox" checked="checked"/>heated bed?
+    &lt;!-- you can add the checked="checked" attribute to make it initially checked. -->
+radio:
+&lt;input type="radio" name="my_radio_group" value="abs" />ABS
+&lt;input type="radio" name="my_radio_group" value="carbon"/>Carbon Fiber
+&lt;input type="radio" name="my_radio_group" value="pla" checked="checked"/>PLA
+    &lt;!-- At most, only 1 radio button can be checked. If none are checked,
+         the return value for the group will be undefined . -->
+number: &lt;input type="number" name="my_number" value="0.4" min="0" max="1" step="0.2"/>
+range:  &lt;input type="range"  name="my_range"  value="33"  min="0" max="100"/>
+color:  &lt;input type="color"  name="my_color"  value="#00FF88"/>
+date:   &lt;input type="date"   name="my_date"   value="2017-01-20"/>
+select: &lt;select name="size">
+            &lt;option>Gihugeic&lt;/option>
+            &lt;option selected="selected">Ginormace&lt;/option> &lt;!--the inital value-->
+            &lt;option>Gilossal&lt;/option>
+        &lt;/select>
+combo_box: &lt;div name="my_combo_box" class="combo_box" style="display:inline-block;vertical-align:middle;">
+                &lt;option>one&lt;/option>
+                &lt;option selected="selected">two&lt;/option>
+           &lt;/div>
+button: &lt;input type="button" value="Show settings"/>
+submit: &lt;input type="submit" value="OK"/>&#39;,
+
+    width:380, height:450, title:"Printer Config", x:100, y:100,
+    callback: show_vals})</pre>
+For more examples of calling <code>show_window</code> see the menu Insert/show_window.
+</details> <!-- end show_window -->
+
+<details style="margin-left:20px;"><summary>Window Utilities</summary>
+
+<details id="close_window_doc_id"style="margin-left:20px;"><summary>close_window</summary>
+  Closes a window created with show_window.<br/>
+  <i>Parameter:</i><br/>
+  <b>window_index</b>: When a show_window callback function is called, it will be passed a literal object
+  with a property of <code>window_index</code> that can be used as the argument
+  to <code>close_window</code>. This is a non-negative integer.<p/>
+  Example: <code>close_window(window_index)</code> 
+</details>
+
+<details id="append_in_ui_doc_id"style="margin-left:20px;"><summary>append_in_ui</summary>
+Creates an element from HTML and inserts it into a window.<br/>
+<i>Parameters:</i><br/>
+<b>path_string</b>: The path to a shown HTML element. Usually this will be the id of
+an element in a <code>show_window</code> window. The new element will become
+the new last child of the path element.<br/>
+<b>new_htnl</b>: A string of HTML to create the new element.<p/>
+<i>Example</i>: <code>append_in_ui("my_in_id", "&lt;h1>hello&lt;/h1>")</code><br/>
+where "my_ui_id" is the id of a currently displayed html tag, usually in
+the content of a <code>show_window</code> window.
+</details>
+
+<details id="get_in_ui_doc_id"style="margin-left:20px;"><summary>get_in_ui</summary>
+Gets the value of an attribute of an HTML tag (usually from a <code>show_window</code> window). <br/>
+<i>Parameters:</i><br/>
+<b>path_string</b> The path to a shown html element. This is often
+the id of an element followed by a dot, follwed by an attribute name.<br/>
+<b>callback</b> A function that is called by get_in_ui with the value
+of the attribute indicated in the path_string.
+
+<i>Example</i>: <code>get_in_ui("my_in_id.value", function(val){out("got val: " + val)})</code><br/>
+</details>
+
+<details id="remove_in_ui_doc_id"style="margin-left:20px;"><summary>remove_in_ui</summary>
+Remove an HTML element (usually from a <code>show_window</code> window). <br/>
+<i>Parameter:</i><br/>
+<b>path_string</b> The path to a shown html element. This is often just the id of an element.<p/>
+<i>Example</i>: <code>remove_in_ui("my_in_id")</code><br/>
+</details>
+
+<details id="replace_in_ui_doc_id"style="margin-left:20px;"><summary>replace_in_ui</summary>
+Replace an HTML element (usually from a <code>show_window</code> window). <br/>
+<i>Parameters:</i><br/>
+<b>path_string</b> The path to a shown html element. This is often just the id of an element.<br/>
+<b>new_html</b>: A string of HTML to create the new element.<p/><p/>
+<i>Example</i>: <code>replace_in_ui("my_in_id", "&lt;h2>hey&lt;/h2>")</code><br/>
+</details>
+
+<details id="set_in_ui_doc_id" style="margin-left:20px;"><summary>set_in_ui</summary>
+Set the value of an HTML element attribute (usually from a <code>show_window</code> window). <br/>
+<i>Parameters:</i><br/>
+<b>path_string</b> The path to a shown html element's attribute. 
+This is often the id of an element followed by a dot, followed by an attributre name.<br/>
+<b>value</b>: The value of an HTML element's attribute. Usually this is a string.<p/>
+<i>Example</i>: <code>set_in_ui("my_in_id.value", "aluminum")</code><br/>
+</details>
+</details> <!-- end window Utilities -->
+
+<details style="margin-left:20px;"><summary>SVG</summary>
+SVG stands for Scalable Vector Graphics. It is a way
+to draw 2D graphics on a web page. The drawn elements
+(circles, lines, etc.) are surrounded by a svg tag wrapper
+indicating the size of the drawing area. You can use
+svg tags directly in the content for a show_window.<p/>
+The methods documented below create that html from JavaScript calls,
+facilitating dynamic content creation as well as
+making static svg shapes a little easier to create.<p/>
+<i>Parameters for all svg functions</i>:<br/>
+<b>id</b> The html id of the element, useful in calls to window utility functions
+such as <code>append_in_ui</code>.<br/>
+<b>html_class</b>: Used to set the <code>class</code> attrbute of the element.
+Due to a name conflict with <code>class</code> in JavaScript, we had to name this
+<code>html_class</code>.<br/>
+<b>style</b>: A string setting the css style of the element. Note that some
+arguments to svg functions are actually rendered as style attributes, such as
+<code>color</code>, <code>border_color</code>, <code>border_width</code>.
+
+<details id="svg_svg_doc_id" style="margin-left:20px;"><summary>svg_svg</summary>
+svg shapes must be drawn as child elements of an <code>svg</code> element.
+The x and y of those child elements is relative to the upper left corner of
+the containing svg element. So for instance, if you draw a circle with
+x: 0, y: 0, you will see only the lower right corner of the circle
+in the upper left corner of the svg area.
+<i>Parameters</i> <br/>
+<b>width</b>:  Width  in pixels of the rectangle area to put svg shapes in.<br/>
+<b>height</b>: Height in pixels of the rectangle area to put svg shapes in.<br/>
+<b>viewBox</b>: A string of four space_separated numbers that controls the scale and positioning
+                of the contained svg elements.<br/>
+<b>child_elements</b>: Default: <code>[]</code>. An array of strings of the html for
+   svg shapes. Usually these strings should be created with the svg shape creator functions
+      such as <code>svg_circle</code>. <p/>
+ <i>Example</i>:<pre> show_window({
+   content:svg_svg({
+       id:"s_id", width:500, height:200, 
+       html_class:"clickable",
+       child_elements: [
+           svg_rect({x:100, y:100, 
+                     width:200, height: 50, 
+                     color:"yellow"})
+           ]})
+})</pre>
+</details> <!-- end svg_svg -->
+
+<details id="svg_circle_doc_id" style="margin-left:20px;"><summary>svg_circle</summary>
+svg_circle must be drawn as a child element of an <code>svg</code> element.
+<i>Parameters</i> <br/>
+<b>cx</b>: Default: 0.  The x position of the center of the circle.<br/>
+<b>cy</b>: Default: 0.  The y position of the center of the circle.<br/>
+<b>r</b>:  Default: 10. The radius of the circle.<br/>
+<b>color</b>: Default: "black". The color of the interior of the circle.<br/>
+<b>border_color</b>: Default: "black". The color of the perimeter of the circle.<br/>
+<b>border_width</b>: Default: 1. The width of the perimeter of the circle.<p/>
+<i>Example</i>:<br/>
+<code>svg_circle({cx: 100, cy: 50, r: 7, color: "red"})</code>
+</details> 
+
+<details id="svg_ellipse_doc_id" style="margin-left:20px;"><summary>svg_ellipse</summary>
+svg_ellipse must be drawn as a child element of an <code>svg</code> element.
+<i>Parameters</i> <br/>
+<b>cx</b>: Default: 0.  The x position of the center of the ellipse.<br/>
+<b>cy</b>: Default: 0.  The y position of the center of the ellipse.<br/>
+<b>rx</b>: Default: 20. The x radius of the ellipse.<br/>
+<b>ry</b>: Default: 20. The y radius of the ellipse.<br/>
+
+<b>color</b>: Default: "black". The color of the interior of the ellipse.<br/>
+<b>border_color</b>: Default: "black". The color of the perimeter of the ellipse.<br/>
+<b>border_width</b>: Default: 1. The width of the perimeter of the ellipse.<p/>
+<i>Example</i>:<br/>
+<code>svg_ellipse({cx: 100, cy: 50, r: 7, color: "red"})</code>
+</details> 
+
+<details id="svg_html_doc_id" style="margin-left:20px;"><summary>svg_html</summary>
+This renders arbitrary html at the location specified.
+svg_html must be drawn as a child element of an <code>svg</code> element.<br/>
+<i>Parameters</i> <br/>
+<b>x</b>: Default: 0.  The x position of the upper left of the rendered HTML.<br/>
+<b>y</b>: Default: 0.  The y position of the upper left of the rendered HTML.<br/>
+<b>width</b>: Default: 100. The width of the area to render the HTML into.<br/>
+<b>height</b>: Default: 100. The height of the area to render the HTML into.
+<p/>
+Unlike the other svg functions, <code>svg_html</code> does not take <code>id</code>, <code>class</code>
+and <code>style</code> arguments. If you desire these, they must be placed on the individual
+html tags within the value of the <code>html</code> argument. Note that
+here we need to spell the class attribute by its correct HTML name, <code>class</code>,
+not the special spelling used in the other svg functions of <code>html_class</code>.
+<p/>
+<i>Example</i>:<br/>
+<pre>svg_html({html: "&lt;i 
+               id="yikes_id"
+               class="clickable"
+               style='font-size:30px;'>
+               yikes
+               &lt;/i>", 
+          x: 60, 
+          y: 100})</pre>
+</details> 
+
+<details id="svg_line_doc_id" style="margin-left:20px;"><summary>svg_line</summary>
+svg_line must be drawn as a child element of an <code>svg</code> element.
+<i>Parameters</i> <br/>
+<b>x1</b>: Default: 0.   The x position of the start of the line.<br/>
+<b>y1</b>: Default: 0.   The y position of the start of the line.<br/>
+<b>x2</b>: Default: 100. The x position of the end of the line.<br/>
+<b>y2</b>: Default: 100. The x position of the end of the line.<br/>
+
+<b>color</b>: Default: "black". The color of the line.<br/>
+<b>width</b>: Default: 1. The width of the line.<p/>
+<i>Example</i>:<br/>
+<code>svg_line({x1: 10, y1: 50, x2: 75, y2: 100, color: "red", width: 5})</code>
+</details>
+
+<details id="svg_rect_doc_id" style="margin-left:20px;"><summary>svg_rect</summary>
+svg_rect must be drawn as a child element of an <code>svg</code> element.
+<i>Parameters</i> <br/>
+<b>x</b>:      Default: 0.   The x position of the upper left corner of the rectangle.<br/>
+<b>y</b>:      Default: 0.   The y position of the upper left corner of the rectangle.<br/>
+<b>width</b>:  Default: 100. The pixels between the left and right edges of the rectangle.<br/>
+<b>height</b>: Default: 100. The pixels between the top and bottom edges of the rectangle.<br/>
+<b>rx</b>:     Default: 0.   The x-axis radius of the ellipse used to round off the corners of the rectangle. 
+ An rx of 0 and an ry of 0 (the defaults), gives square corners.<br/>
+<b>ry</b>:     Default: 0.   The y-axis radius of the ellipse used to round off the corners of the rectangle.<br/>
+<b>color</b>:        Default: "black". The color of the interior of the rectangle.<br/>
+<b>border_color</b>: Default: "black". The color of the perimeter of the rectangle.<br/>
+<b>border_width</b>: Default: 1.       The width of the perimeter of the rectangle.<p/>
+<i>Example</i>:<br/>
+<code>svg_rect({x: 10, y: 50, width: 75, height: 25, color: "green"})</code>
+</details>
+
+<details id="svg_polygon_doc_id" style="margin-left:20px;"><summary>svg_polygon</summary>
+Draws a closed figure with corners at the indicated x and y positions.
+svg_polygon must be drawn as a child element of an <code>svg</code> element.
+<i>Parameters</i> <br/>
+<b>points</b>:       Default: [].  The positions of the corners of the polygon.<br/>
+<b>color</b>:        Default: "black". The color of the interior of the polygon.<br/>
+<b>border_color</b>: Default: "black". The color of the perimeter of the polygon.<br/>
+<b>border_width</b>: Default: 1.       The width of the perimeter of the polygon.<p/>
+<i>Example of a triangle</i>:<br/>
+<code>svg_polygon([[0, 0], [100, 0], [50, 50]], color: "lime"})</code>
+</details>
+
+<details id="svg_polyline_doc_id" style="margin-left:20px;"><summary>svg_polyline</summary>
+Draws an open figure with corners at the indicated x and y positions.
+svg_polyline must be drawn as a child element of an <code>svg</code> element.
+<i>Parameters</i> <br/>
+<b>points</b>: Default: [].      The positions of the end points of the line segments.<br/>
+<b>color</b>:  Default: "black". The color of the line.<br/>
+<b>width</b>:  Default: 1.       The width of the line.<p/>
+<i>Example of a triangle</i>:<br/>
+<code>svg_polyline({points: [[0, 0], [100, 0], [50, 50]], color: "brown"})</code>
+</details>
+
+<details id="svg_text_doc_id" style="margin-left:20px;"><summary>svg_text</summary>
+Draws text at the indicated x and y position.
+svg_text must be drawn as a child element of an <code>svg</code> element.
+<i>Parameters</i> <br/>
+<b>text</b>:   Default: "hi". The string to be displayed.<br/>
+<b>x</b>:      Default: 20.   The x position of the upper left corner of the text.<br/>
+<b>y</b>:      Default: 20.   The y position of the upper left corner of the text.<br/>
+<b>size</b>:   Default: 16.   The font size of the text.<br/>
+<b>color</b>:  Default: "black". The color of the text.<br/>
+<b>border_color</b>:  Default: "black". The color of the outline of the text.<br/>
+<b>border_width</b>:  Default: 0.       The width of the outline of the text.<br/>
+<b>transform</b>:  Default: "rotate(0, 0, 0)". Modifies the position, orientation and scale of the text.
+ <a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/transform">Details</a>
+<p/>
+<i>Example</i>:<br/>
+<code>svg_text([[0, 0], [100, 0], [50, 50]], color: "brown"})</code>
+</details>
+
+</details> <!-- end SVG -->
+
+</details> <!-- end window_system -->
+
+<details style="margin-left:20px;"><summary>Object System</summary>
+<details style="margin-left:20px;"><summary>Overview</summary>
+An object system helps you organize data that can inherit from
+other objects or classes. Most programming languages have a 
+class-instance based object system. JavaScript's new class-based
+object system is a mediocre class-instance object system.
+But the original JavaScript object system is supposed to
+be a "prototype" object system. Good prototype object systems
+are simpler, more flexible and easier to learn than
+class-instance object systems. However, JS's original object
+system isn't a good prototype object system as demonstrated by
+the numerous object system varients added on to JS, including
+JS 6's class object system. 
+<p/>
+One of the problems with class-instance object systems is that
+they force you to decide whether an object should be a class
+or an instance. But sometimes you want to use a particular object
+as both a class (to inherit from) and an instance (that
+you can set instance variables in). You may also want to
+"inhert" from an "instance". One of the most powerful
+descriptive mechanisms in natural language is to say
+something like "The chair I want is just like this one
+except its blue." This is using an instance of a chair
+to describe another instance of chair that inherits 
+from the first instance. Class-instance object systems
+don't allow you to do this, but good prototype object systems
+and DDE's object system do.
+<p/>
+We've coerced JS's prototype object system into
+a more useful one by adding some methods to JavaScript.
+These new methods, in conjunction with existing JS functions,
+give you a pretty good prototype object system.
+<p/>
+</details> <!-- overview -->
+
+<details style="margin-left:20px;"><summary>New Object System Methods</summary>
+DDE augments JS with some new variables, functions and methods to
+help you get the most value out of a prototype object system.
+
+<details id="rootObject_doc_id" style="margin-left:20px;"><summary>Root</summary> 
+<code>Root</code> is a global constant that contains the root object of DDE's object system.
+</details>
+
+<details id="newObject_doc_id" style="margin-left:20px;"><summary>newObject</summary>
+<code>newObject</code> let's you create a new object. It takes
+literal objects as arguments, usually just one.
+The properties of the arguments become the properties
+of the new object. If two of the input objects have a same named property,
+the property in the resulting object will have the value of the <i>last</i> argument.
+There are three properties that behave 
+specially.
+<p/>
+<b><i>prototype</i></b> This property sets the "parent" object
+of the new object. <i>prototype</i> defaults to code>Root</code>. 
+Once you have the new object, <code>new_obj.prototype</code> gives you
+back that prototype. Unlike most other properties, you cannot set this property and win.
+Class-instance object systems don't allow you to change the class of an object.
+In practice, this usually isn't needed.
+<p/>
+<b><i>name</i></b> This optional property gives the new object a "name"
+property (as is normal), but it also creates a field in the prototype
+object with the new name and a value of the new object. By doing this,
+you have a path from the <code>Root</code> to this new object using the
+object names from the top on down separated by dot.
+The names immediately under the root object are global so
+you can omit <code>Root</code> from such paths.
+<p/>
+You should only supply a name when calling newObject, and never set it.<br/>
+Examples:<br/>
+<code>newObject({<br/>
+ &nbsp;&nbsp;&nbsp;name: "vehicle",<br/> 
+ &nbsp;&nbsp;&nbsp;color: "white",<br/>
+ &nbsp;&nbsp;&nbsp;weight: 3000})<br/>
+Root.vehicle => the new object<br/>
+Root.vehicle.name => "name"<br/>
+Root.vehicle.color => "white"</code><br/>
+newObject({<br/>
+ &nbsp;&nbsp;&nbsp;prototype: Root.vehicle,<br/>
+ &nbsp;&nbsp;&nbsp;name: "boat",<br/>
+ &nbsp;&nbsp;&nbsp;color: "blue"})<br/>
+Root.vehicle.boat => the new object<br/>
+Root.vehicle.boat.name => "boat"<br/>
+Root.vehicle.boat.color => "blue"<br/>
+Root.vehicle.boat.weight => 3000 //inheited from vehicle<br/>
+Root.vehicle.boat.color = "green"<br/>
+Root.vehicle.boat.color => "green"<br/>
+Root.vehicle.color => "white" // hasn't changed.<br/>
+Root.vehicle.weight = 2000<br/>
+Root.vehicle.boat.weight => 2000 //inherits the new value from vehicle
+Root.vehicle.launch = function(){return "set sail"}<br/>
+Root.vehicle.launch() => "set sail"<br/>
+Root.vehicle.boat.launch() => "set sail"
+<p/>
+<b><i>constructor</i></b>
+When creating an object, (or afterwards) you can set a property named 
+<code>constructor</code> in the new object to a method. This method is called
+whenever a new object is created with <code>newObject</code>.
+Unlike its counterpart in JS6 classes, <code>constructor</code>
+is called with no arguments. However, <code>this</code>
+is our new object with all the fields populated from the properties
+passed in the call to <code>newObject</code>, saving a ton of boiler plate code.
+In the body of <code>constructor</code>, you can call any code you like,
+including code that modifies the passed in property values, create
+entirely new properties or remove ones from <code>this</code>.
+<p/>
+Example: <code>newObject({name: "animal", <br/>
+ constructor: function(){ this.fur = "no"}}) <br/>
+newObject({prototype: Root.animal,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; name: "fido"})</code>
+<p/>
+Above, during the first call to newObject, <code>this</code> is bound
+to the <i>animal</i> object. But when the 2nd call to newObect is
+made, the <code>this</code> in animal.constructor is bound to
+the object in Root.animal.fido.<br/>
+Here's the state of the relevant properties:<br/> 
+<code>
+Root.animal.fur => "no"<br/>
+Root.animal.fido.fur => "no" <br/>
+</code>
+Each object has its own copy of the "fur" property.
+Setting one will not set the other.
+<p/>
+JS6 class constructor methods can have a call to <code>super</code>.
+It's counterpart in DDE is a method whose name makes sense:
+<code>callPrototypeConstructor</code>, documented below.
+</details>
+
+<details id="callPrototypeConstructor_doc_id" style="margin-left:20px;"><summary>callPrototypeConstructor</summary>
+When you have a hierarchy of objects, often you want an object low in the
+hierarchy to be initialized similarly to ones higher up, but with
+some modifications. Thus you'd have constructor on a "vehicle" object,
+then another one on a sub-object, "boat". The boat object should
+probably call the constructor for the vehicle object at the top
+of the boat constructor, and then make additional modifications to
+"this" in the bottom part of the boat constructor method.
+<p/>
+Example: <br/>
+<code>newObject({name: "animal", 
+           constructor: function(){ this.fur = "no"}})
+newObject({prototype: Root.animal, name: "mammal",
+  constructor: function(){<br/>
+     this.callPrototypeConstructor()<br/>
+     this.fur = "usually"<br/>
+     this.hair = "sometimes"<br/>
+  	 out("in mammal constructor")}})</code><br/>
+After running the above code,<br/> 
+<code>
+Root.animal.fur => "no".<br/>
+Root.animal.mammal.fur => "usually"<br/>
+Root.animal.mammal.hair => "sometimes"<br/>
+</code>
+You don't <i>have to</i> call callPrototypeConstructor,
+and even if you do, it doesn't have to be before
+the lower level constructor function modifies <code>this</code>
+though <i>usually</i> these are good practices.
+</details>
+
+<details id="Object.isNewObject_doc_id" style="margin-left:20px;"><summary>isNewObject</summary>
+Returns true if the argument was created with newObject.
+Examples:<br/><code>
+Object.isNewObject({a:11}) => false<br/>
+Object.isNewObject(newObject({name: "trash"})) => true<br/>
+</code>
+</details>
+<details style="margin-left:20px;"><summary>subObjects</summary>
+Returns an array of the named subojects of <code>this</code><br/>
+Example:<br/>
+<code>Root.subObjects()</code> => array of the top level named new objects.
+</details>
+
+<details id="isSubObject_doc_id" style="margin-left:20px;"><summary>isSubObject</summary>
+The primary relationship between objects in DDE's object system
+is the prototype relationship. An object inherits properties from
+its prototype. If you want an object to have  a different value
+for a particular property than its prototype object does,
+ust create a property in the object, and that will effectiely
+"shadow" the prototype value and use the "local" value in the object
+for that property. 
+<p/>
+An object always knows which object is its prototype. (All objects
+have a prototype except Root.) But prototypes only know
+what objects have them as their prototype if those other objects
+are named, which is optional. 
+By giving an object a name, you automatically install a property
+in its prototype with a key of that name and a value of the object.
+Now the prototype knows about its "children". We used the term subObject
+to mean such named objects.
+<p/>
+With no argument, 
+returns true if <code>this</code> is a named new object and that name is a
+property in <code>this.prototype</code> with a value of this.<br/>
+In other words: <code>this == this.prototype[this.name]</code>
+Example:<br/><code>
+newObject({prototype: Root, name: "junk"}).isSubObject() => true
+</code><br/>
+With an argument, the argument is the presumed prototype of this.
+If the argument is this's prototype, and the prototype has a field in it named the same as this, 
+and its value is this, then isSubObect returns true.<br/>
+Example:<br/><code>
+newObject({prototype: Root, name: "junk"}).isSubObject(Root) => true
+</code><br/>
+</details>
+
+<details id="isA_doc_id" style="margin-left:20px;"><summary>isA</summary>
+Returns true if <code>this</code> is the same as or is
+an ancestor of the argument.<br/>
+Examples:<br/><code>
+newObject({name: "junk"}).isA(Root) => true<br/>
+newObject({name: "junk"}).isA(123) => false
+</code>
+</details>
+
+<details id="siblings_doc_id" style="margin-left:20px;"><summary>siblings</summary>
+Returns an array of the siblings of <code>this</code>.
+These will be the named objects that have the same prototype as <code>this</code>.<br/>
+<i>Parameter</i><br/>
+<b>include_this</b> Default: false. If true, returns an array of <i>all</i> the
+   named objects that have the same prototype as <code>this</code>.
+   If false, excludes <code>this</code> from the returned array.<br/>
+<i>Example:</i><br/><code>
+Root.siblings() => [] //the root never has siblings.
+</code>
+</details>
+
+<details id="Object.areSiblings_doc_id" style="margin-left:20px;"><summary>areSiblings</summary>
+Returns true if all arguments have the same prototype,
+Otherwise returns false.
+<i>Examples:</i><code>
+Object.areSiblings(newObject({}), newObject({})) => true<br/>
+Object.areSiblings(newObject({}), "hey") => false</br/>
+</code>
+</details>
+
+<details id="inheritsPropertyFrom_doc_id" style="margin-left:20px;"><summary>inheritsPropertyFrom</summary>
+Returns the closest ancestor to <code>this</code> that contains the
+property named by the string in the argument. If <code>this</code>
+happens to have that name as a property, <code>this</code> will be returned.<br/>
+Returns <code>null</code> if no such prop name.
+<i>Examples:</i><code>
+newObject({}).inheritsPropertyFrom("isA") => Root<br/>
+newObject({}).inheritsPropertyFrom("isn't a prop name") => null
+</code>
+</details>
+
+<details id="ancestors_doc_id" style="margin-left:20px;"><summary>ancestors</summary>
+Returns an array of the ancestors of <code>this</code>.<br/>
+Does not include <code>this</code> in the returned array.<br/>
+<i>Examples:</i><br/><code>
+newObject().ancestors() => [Root]
+</code>
+</details>
+
+<details id="Object.allCommonAncestors_doc_id" style="margin-left:20px;"><summary>allCommonAncestors</summary>
+Returns an array of all the ancestors that the arguments have in common.<br/>
+<i>Examples:</i><br/><code>
+Object.allCommonAncestors(newObject(), newObject()) => [Root]
+</code>
+</details>
+
+<details id="Object.lowestCommonAncestor_doc_id" style="margin-left:20px;"><summary>lowestCommonAncestor</summary>
+Returns the lowest common ancestor of the arguments. If none, return null.
+<i>Examples:</i><br/><code>
+Object.lowestCommonAncestor(newObject(), newObject()) => Root
+</code>
+</details>
+
+<details id="normal_keys_doc_id" style="margin-left:20px;"><summary>normal_keys</summary>
+Returns an array of property names in, or inherited by, <code>this</code>.<br/>
+<i>Parameters</i><br/>
+<b>passing no args</b> Allowing all 4 args to default to false.<br/>
+Example: <code>vehicle.normal_keys() => ["color", "weight"] </code><br/>
+<b>include_inherited</b> Property names of all ancestors excluding Root are in the resulting array.<br/>
+The default is <code>false</code>.<br/>
+Example: <code>vehicle.normal_keys(true) => ["color", "weight", "size"]  </code><br/>
+<b>include_functions</b> Those properties whose values are functions are included.<br/>
+The default is <code>false</code>.<br/>
+Example: <code>vehicle.normal_keys(true, true) => ["color", "weight", "size", "constructor"]</code><br/>
+The default is <code>false</code>.<br/>
+<b>include_subobject_names</b> The names of the subObjects will be included.
+These will be siblings, uncles, great uncles, etc. but not cousins.<br/>
+The default is <code>false</code>.<br/>
+Example: <code>Root.vehicle.normal_keys(true, true, true) => ["color", "weight", "size", "constructor", "house"] </code><br/>
+<b>include_name_and_prototype</b> The keys "'name" and "prototype" will be included.<br/>
+The default is <code>false</code>.<br/>
+Example: <code> Root.vehicle.normal_keys(true, true, true, true) => ["color", "weight", "size", "constructor", "house", "name", "prototype"]</code>
+<p/>
+Note that you shouldn't depend on the order of the elements in the result array.
+If you want to force them into a consistent order, you can sort them alphabetically.
+<p/>
+The use of "normal" in this method's name indicates that by passing no args,
+it gets you what you'll most likely want, and passing in more and more <code>true</code> arguments
+gets you more of the less-frequently used properties. (Your milage may vary,
+but thats the general idea behind the name.)
+</details>
+
+<details id="objectPath_doc_id" style="margin-left:20px;"><summary>objectPath</summary>
+Returns a string of the path to <code>this</code> such as
+<code>"Root.animal.lion"</code><br/> Evaluating the returned string
+will result in the object.
+<i>Example:</i><br/><code>
+newObject({name: "junk"}).objectPath() => "junk"
+</code>
+</details>
+
+<details id="sourceCode_doc_id" style="margin-left:20px;"><summary>sourceCode</summary>
+Returns a string of source code for <code>this</code>.
+Evaluating the returned string will return a copy of <code>this</code>.
+<i>Example:</i><br/><code>
+newObject({name: "junk"}).sourceCode() =><br/>
+"{prototype: Root,\n name: \"junk\",\n prototype: Root}\n"
+</code>
+</details>
+</details> <!-- new ob sys methods -->
+
+<details style="margin-left:20px;"><summary>Existing JS methods</summary>
+<details id="hasOwnProperty_doc_id" style="margin-left:20px;"><summary>hasOwnProperty</summary>
+  Returns true if the argument is the name of a property directly in the subject.<br/>
+ <i>Example</i><br/>
+  <code>Root.vehicle.hasOwnProperty("color") => true</code>
+</details>
+
+<details id="Object.getOwnPropertyNames_doc_id"style="margin-left:20px;"><summary>getOwnPropertyNames</summary>
+    Returns an array of strings of the property names directly in the subject.<br/>
+    <i>Example</i><br/>
+  <code>Object.getOwnPropertyNames(Root.vehicle) =><br/>["prototype", "name", "color", "weight"]</code>
+</details>
+
+<details id="Object.keys_doc_id"style="margin-left:20px;"><summary>keys</summary>
+   Returns an array of strings of the property names directly in the subject.<br/>
+    <i>Example</i><br/>
+  <code>Object.keys(Root.vehicle) =><br/> ["prototype", "name", "color", "weight"]</code><br/>
+  Note: This is the same as <code>getOwnPropertyNames</code> for DDE objects but on JS objects,
+   <code>keys</code> returns all the inherited properties too.
+  
+</details>
+
+<!-- not in electron version feb 4, 2017. will probably get added later
+<details id="Object.values_doc_id"style="margin-left:20px;"><summary>values</summary>
+    Returns an array of the values of the properties directly in the subject.<br/>
+    <i>Example</i><br/>
+  <code>Object.values(Root.vehicle) =><br/> [Root, "vehicle", "blue", 3000]</code>
+</details>
+-->
+
+<details id="Object.entries_doc_id"style="margin-left:20px;"><summary>entries</summary>
+    Returns an array of arrays. Each inner array has elemetns of a property
+    name and its value. Only includes properties directly in the subject.<br/>
+    <i>Example</i><br/>
+  <code>Object.entries(Root.vehicle) => <br/>
+  [["prototype", Root],<br/>
+  &nbsp;["name", "vehicle"],<br/>
+  &nbsp;["color", "blue"],<br/>
+  &nbsp;["weight", 3000]]</code>
+</details>
+
+<details id="Object.is_doc_id"style="margin-left:20px;"><summary>is</summary>
+    Returns true if all the arguments are the same object, false otherwise.<br/>
+    <i>Example</i><br/>
+  <code>Object.is(Root.vehicle, Root.vehicle) => true</code>
+</details>
+
+<details id="isPrototypeOf_doc_id"style="margin-left:20px;"><summary>isPrototypeOf</summary>
+    Returns true if the subject is the same as, or an ancestor of, the argument.<br/>
+    <i>Example</i><br/>
+  <code>Root.isPrototypeOf(Root.vehicle) => true</code><br/>
+  Note this is like <code>isA</code> (documented above) but with the 
+  subject and argument swapped.
+</details>
+
+<details id="Object.getPrototypeOf_doc_id"style="margin-left:20px;"><summary>getPrototypeOf</summary>
+    Returns the prototype of the argument.<br/>
+    <i>Example</i><br/>
+  <code>Object.getPrototypeOf(Root.vehicle) => Root</code><br/>
+  Note: this is the same functionality as <code>vehicle.prototype</code>
+</details>
+
+<details id="toString_doc_id"style="margin-left:20px;"><summary>toString</summary>
+    Returns a string representation of the subject.<br/>
+    <i>Example</i><br/>
+  <code>Root.vehicle.toString() =><br/>"[object, Object]"</code><br/>
+  Note: this is just as useless as for normal JS objects.
+  Use instead:<br/>
+  <code>Root.vehicle.objectPath() => "Root.vehicle"</code>
+</details>
+</details> <!-- Existing JS methods-->
+</details> <!-- ob sys -->

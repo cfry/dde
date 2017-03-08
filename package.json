@@ -1,0 +1,37 @@
+{
+  "name": "electron_dde",
+  "version": "1.0.0",
+  "description": "Dexter Development Environment",
+  "author": "Fry",
+  "license": "GPL-3.0",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron .",
+    "rebuild": "electron-rebuild",
+    "dmg": "electron-installer-dmg ./dist/dexter_development_environment-darwin-x64/dexter_development_environment.app dde --out=./dist"
+  },
+  "keywords": [
+    "robot",
+    "Dexter",
+    "Haddington"
+  ],
+  "dependencies": {
+    "electron-context-menu": "^0.8.0",
+    "electron-osx-sign": "^0.4.3",
+    "electron-prebuilt": "^1.4.13",
+    "eslint": "^3.14.1",
+    "fs-lock": "^1.2.0",
+    "jquery": "^3.1.1",
+    "request": "^2.79.0",
+    "serialport": "^4.0.7",
+    "ws": "^1.1.1"
+  },
+  "devDependencies": {
+    "electron-installer-dmg": "^0.2.0",
+    "electron-osx-sign": "^0.4.3",
+    "electron-packager": "^8.5.1",
+    "electron-rebuild": "^1.5.7",
+    "electron-winstaller": "^2.5.2"
+  }
+}

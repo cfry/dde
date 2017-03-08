@@ -1,0 +1,48 @@
+.vsplitbar {
+    width: 10px;
+    background: #aaa;
+}
+
+.hsplitbar {
+    width: 10px;
+    background: #aaa;
+}
+
+#outer_pane {
+    height: 600px;
+    width:  800px;
+    border: 5px solid #aaa;
+}
+#outer_pane div {
+    overflow: auto;
+}
+
+#left_pane {
+    /*height: 300px;
+    width:  400px;*/
+    border: 0px solid #aaa;
+}
+
+#left_pane div {
+    overflow: auto;
+}
+
+#right_pane {
+    /*height: 300px;
+    width:  400px;*/
+    border: 0px solid #aaa;
+}
+#right_pane div {
+    overflow: auto;
+}
+
+.jqx-grid-column-header {
+    background: #FF00FF;
+}
+
+/* for mark.js used for highlighting found search terms in the doc.
+But this fails sep 5, 2016
+*/
+mark{
+    background: #74FFBC !important; /*pastel green */
+}
