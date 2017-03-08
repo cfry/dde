@@ -19,5 +19,6 @@ test_script:
 
 environment:
   GH_TOKEN:
-    secure: 1234qwer
+    secure: gCu6PLWX5YVqnBO0x6C8Aej8DOukgtRg1JwR6lq1I/S7Xtzdv+S4TKSLWwuWSC2i
+
 
