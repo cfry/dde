@@ -1,12 +1,17 @@
 platform:
   - x64
 
+cache:
+  - node_modules -> package.json
+  - '%APPDATA%\npm-cache -> package.json'
+  - '%USERPROFILE%\.electron'
+
 install:
   - ps: Install-Product node 7 x64
   - npm install
 
 build_script:
-  - npm run dist -- --win
+  - npm run appveyor
 
 environment:
   GH_TOKEN:

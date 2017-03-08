@@ -1,5 +1,5 @@
 {
-  "name": "electron_dde",
+  "name": "electron-dde",
   "productName": "DDE",
   "version": "1.0.0",
   "description": "Dexter Development Environment",
@@ -12,6 +12,7 @@
     "rebuild": "electron-rebuild",
     "build": "build --dir",
     "dist": "build",
+    "appveyor": "build.cmd",
     "clean": "rimraf dist"
   },
   "keywords": [
