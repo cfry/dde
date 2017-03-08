@@ -15,10 +15,11 @@ install:
 test_script:
   - node --version
   - npm --version
+
+on_success:
   - npm run dist
 
 environment:
   GH_TOKEN:
     secure: gCu6PLWX5YVqnBO0x6C8Aej8DOukgtRg1JwR6lq1I/S7Xtzdv+S4TKSLWwuWSC2i
-
-
+  
