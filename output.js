@@ -304,7 +304,7 @@ function install_onclick_via_data_fns(){
         elt.onclick = onclick_via_data_fn
     }
 }
-window.install_onclick_via_data_fns
+window.install_onclick_via_data_fns = install_onclick_via_data_fns
 
 function install_submit_window_fns(jqxw_jq){
     var info_win_div = jqxw_jq.find(".show_window_content")

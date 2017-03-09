@@ -1076,16 +1076,20 @@ Job.job_of_instruction_location = function(instruction_location){ //instruction_
    //if there's no job in instruction_location, returns null or undefined.
     var il_item = instruction_location
     if (Array.isArray(instruction_location)){ il_item = instruction_location[0] }
-    const the_job = il_item.job
+    var the_job = il_item.job
     if (the_job){
-        if (typeof(the_job) == "string"){
+        if (the_job instanceof Job) { return the_job }
+        else if (typeof(the_job) == "string"){
             the_job = Job[the_job]
-                dde_error("Attempt to find instruction_location: " + instruction_location +
-                    "<br/>but the specified job: " + instruction_location[0].job +
-                    "<br/>isn't a defined job.")
+            if (the_job instanceof Job) { return the_job }
+            else {
+                dde_error("In job_of_instruction_location, could not find a job in: " + instruction_location)
+            }
         }
     }
-    return the_job //beware might be null or undefined.
+    else {
+        dde_error("In job_of_instruction_location, could not find a job in: " + instruction_location)
+    }
 }
 
 Job.instruction_location_to_job = function (instruction_location, maybe_error=true){

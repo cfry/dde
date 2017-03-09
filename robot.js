@@ -112,9 +112,8 @@ var Robot = class Robot {
      Then send_to_job_receive_done sets the user_data vars in the from job.
      */
 
-    static send_to_job({to_job_name     = "required",
-                        do_list_item    = null,
-                        where_to_insert = "after_pc",
+    static send_to_job({do_list_item    = null,
+                        where_to_insert = null,
                         wait_until_done = false, //if true, a_job.send_to_job_receive_done will be called withthe do_list_item is done by the to_job
                         start           = false,
                         unsuspend       = false,

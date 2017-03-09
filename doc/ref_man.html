@@ -190,8 +190,9 @@ The code for your Job definitions should live under that folder (at any depth be
 that folder).
 If you do not have a dde_apps folder under your Documents folder, please create one.
 
-<details id="dde_apps_dir_doc_id"><summary>dde_apps_dir</summary>
-The folder beneath which DDE has programmatic access.
+<details id="dde_apps_dir_doc_id" style="margin-left:40px;"><summary>dde_apps_dir</summary>
+<code>dde_apps_dir</code> is a global constant whose value is a string
+of the name of the folder beneath which DDE has programmatic access.
 You cannot set this constant. It will have a value something like:
 <code>"/Users/Fry/Documents/dde_apps"</code> on the Mac.
 </details>
@@ -210,6 +211,7 @@ and returns a string of the content of the file.<br/>
 <p/>
 <b>Example:</b> <code>file_content("myfold/foo.txt"</code>
 </details> <!-- end file_content -->
+
 <details id="Editor.edit_file_doc_id" style="margin-left:40px;"><summary>Editor.edit_file</summary>
 <code>Editor.edit_file</code> takes an argument of a filepath, similar to <code>load_files</code>,
 and puts that file in DDE's editor. 
@@ -219,7 +221,7 @@ is in DDE's editor.<br/>
 <b>Example:</b> <code>Editor.edit_file("/myfold/foo.txt")</code>
 </details> <!-- end file_content -->
 
-<details id="file_exists_doc_id"><summary>file_exists</summary>
+<details id="file_exists_doc_id" style="margin-left:40px;"><summary>file_exists</summary>
 Returns true if the file path in the first argument exists.<br/>
 <I>Example></i><br/>
 <code>file_exists("class_play.js")</code>
@@ -285,15 +287,6 @@ load_files returns the result of evaluating the last expression in the last file
   <code>folder_listing("/test_folder/", true, false)</code> Retrieves only the folder names immediately under <code>test_folder</code>.<br/>
   <code>folder_listing("/whatever/", false, false)</code> Retrieves nothing. An empty array will be passed to the callback.           
 </details>
-
-<details id="operating_system_doc_id" style="margin-left:40px;"><summary>operating_system</summary>
-A global variable that has a value of the name of the current operating system.
-Windows OS's have the value "win". Macintosh OS's have the value "mac".
-If you find the value of other operating systems, please tell us!
-</details>
-
-
-
 </details> <!-- end File Access -->
 
 <details style="margin-left:20px;"><summary>Persistent Database</summary>
@@ -1412,326 +1405,6 @@ See Job Example 9 for examples.
 
 </details> <!-- end Robots -->
 
-<details style="margin-left:20px;"><summary>Window System</summary>
-Dealing with HTML, CSS and JavaScript of traditional web apps is complex.
-DDE uses those technologies but with a simplied wrapper for them to help
-users create interactive windows with the most needed features.
-
-<details id="show_window_doc_id"style="margin-left:20px;"><summary>show_window</summary>
-A call to <code>show_window</code> creates a dialog box using HTML and JavaScript. 
-<i>Parameters</i><br/>
- <b>title</b> A string of the HTML displayed in the window's title bar. Default: "DDE Information"<br/>
- <b>width</b> The number of pixels wide that the window will be. Default: 400<br/>
- <b>height</b> The number of pixels tall that the window will be. Default: 400<br/>
- <b>x</b> The number of pixels that the left edge of the window will be from the left edge of the DDE window.
-          Default: 200<br/>
- <b>y</b> The number of pixels that the top edge of the window will be from the top edge of the DDE window.
-          Default: 200<br/>
- <b>content</b> HTML to be rendered in the body of the window. input tags with <code>type</code>
-    attributes of <code>button</code> and <code>submit</code> will cause the window's
-    callback function to be called. <code>submit</code> will also cause the window to be closed.<p/>
-    HTML elements with a class of "clickable" will behave as a button. Clicking on them 
-    will cause the window's callback button to be called with a <code>clicked_button_value</code>
-    property of the <code>name</code>, or if none, the <code>id</code> of the clicked on element.
-    Clicking on such HTML elements will <i>not</i> close the window.<br/>
-    <i>Example</i>:<br/>
-    <code>show_window({<br/>
-    &nbsp;&nbsp;&nbsp;content:'&lt;p id="p_id" class="clickable">some para&lt;/p>',<br/>
-    &nbsp;&nbsp;&nbsp;callback: function (vals){ append_in_ui("p_id", "&lt;h1>hey&lt;/h1>")}<br/>
-    })</code><br/>
- <b>callback</b> A function of one argument. It will be called when a the user clicks a button in
-    a show_window. It's argument will be a literal object. Many of its fields are x and y positions
-    reletive to the top-left of html elements in or containing the clicked position.
-    An example:<br/><pre>
-    {x: 300,           //relative to the parent of the elt clicked on
-    y: 213,
-    clientX: 300,      //relative to the content area (the viewport) of the browser window
-    clientY: 213,      //This point does not move even if the user moves a scrollbar from within the browser.
-    offsetX: 290,      //relative to the html element that the user clicked in
-    offsetY: 68,
-    pageX: 300,        //relative to the top left of the fully rendered content area in the browser.
-    pageY: 213,
-    screenX: 395,      //relative to the physical display
-    screenY: 270,
-    altKey: false,     //true if the alt key (option on Mc) was pressed when the mouse was clicked
-    ctrlKey: false,    //control key
-    metaKey: false,    //Windows key on Windows OS, command key on Mac
-    shiftKey: false,
-    tagName: "input",  //html element tag clicked on. 
-    window_index: "1", //a show_window instance identifier. 
-                       //<code>close_window(window_index)</code> 
-                       //will close the show_window window.
-    clicked_button_value: "my_in_id", //the 'name' or 'id' attribute of the clicked on element. 
-    trim_strings: true}</pre>
- <i>Example show_window_call:</i><pre>//Called when a button is clicked.
-function show_vals(vals){out(vals)} //this is the default callback
-show_window({
-    content:
-&#39;text: &lt;input type="text" name="my_text" value="Dexter">
-textarea: &lt;textarea name="my_textarea">Hi Rez&lt;/textarea>
-checkbox: &lt;input name="my_checkbox" type="checkbox" checked="checked"/>heated bed?
-    &lt;!-- you can add the checked="checked" attribute to make it initially checked. -->
-radio:
-&lt;input type="radio" name="my_radio_group" value="abs" />ABS
-&lt;input type="radio" name="my_radio_group" value="carbon"/>Carbon Fiber
-&lt;input type="radio" name="my_radio_group" value="pla" checked="checked"/>PLA
-    &lt;!-- At most, only 1 radio button can be checked. If none are checked,
-         the return value for the group will be undefined . -->
-number: &lt;input type="number" name="my_number" value="0.4" min="0" max="1" step="0.2"/>
-range:  &lt;input type="range"  name="my_range"  value="33"  min="0" max="100"/>
-color:  &lt;input type="color"  name="my_color"  value="#00FF88"/>
-date:   &lt;input type="date"   name="my_date"   value="2017-01-20"/>
-select: &lt;select name="size">
-            &lt;option>Gihugeic&lt;/option>
-            &lt;option selected="selected">Ginormace&lt;/option> &lt;!--the inital value-->
-            &lt;option>Gilossal&lt;/option>
-        &lt;/select>
-combo_box: &lt;div name="my_combo_box" class="combo_box" style="display:inline-block;vertical-align:middle;">
-                &lt;option>one&lt;/option>
-                &lt;option selected="selected">two&lt;/option>
-           &lt;/div>
-button: &lt;input type="button" value="Show settings"/>
-submit: &lt;input type="submit" value="OK"/>&#39;,
-
-    width:380, height:450, title:"Printer Config", x:100, y:100,
-    callback: show_vals})</pre>
-For more examples of calling <code>show_window</code> see the menu Insert/show_window.
-</details> <!-- end show_window -->
-
-<details style="margin-left:20px;"><summary>Window Utilities</summary>
-
-<details id="close_window_doc_id"style="margin-left:20px;"><summary>close_window</summary>
-  Closes a window created with show_window.<br/>
-  <i>Parameter:</i><br/>
-  <b>window_index</b>: When a show_window callback function is called, it will be passed a literal object
-  with a property of <code>window_index</code> that can be used as the argument
-  to <code>close_window</code>. This is a non-negative integer.<p/>
-  Example: <code>close_window(window_index)</code> 
-</details>
-
-<details id="append_in_ui_doc_id"style="margin-left:20px;"><summary>append_in_ui</summary>
-Creates an element from HTML and inserts it into a window.<br/>
-<i>Parameters:</i><br/>
-<b>path_string</b>: The path to a shown HTML element. Usually this will be the id of
-an element in a <code>show_window</code> window. The new element will become
-the new last child of the path element.<br/>
-<b>new_htnl</b>: A string of HTML to create the new element.<p/>
-<i>Example</i>: <code>append_in_ui("my_in_id", "&lt;h1>hello&lt;/h1>")</code><br/>
-where "my_ui_id" is the id of a currently displayed html tag, usually in
-the content of a <code>show_window</code> window.
-</details>
-
-<details id="get_in_ui_doc_id"style="margin-left:20px;"><summary>get_in_ui</summary>
-Gets the value of an attribute of an HTML tag (usually from a <code>show_window</code> window). <br/>
-<i>Parameters:</i><br/>
-<b>path_string</b> The path to a shown html element. This is often
-the id of an element followed by a dot, follwed by an attribute name.<br/>
-<b>callback</b> A function that is called by get_in_ui with the value
-of the attribute indicated in the path_string.
-
-<i>Example</i>: <code>get_in_ui("my_in_id.value", function(val){out("got val: " + val)})</code><br/>
-</details>
-
-<details id="remove_in_ui_doc_id"style="margin-left:20px;"><summary>remove_in_ui</summary>
-Remove an HTML element (usually from a <code>show_window</code> window). <br/>
-<i>Parameter:</i><br/>
-<b>path_string</b> The path to a shown html element. This is often just the id of an element.<p/>
-<i>Example</i>: <code>remove_in_ui("my_in_id")</code><br/>
-</details>
-
-<details id="replace_in_ui_doc_id"style="margin-left:20px;"><summary>replace_in_ui</summary>
-Replace an HTML element (usually from a <code>show_window</code> window). <br/>
-<i>Parameters:</i><br/>
-<b>path_string</b> The path to a shown html element. This is often just the id of an element.<br/>
-<b>new_html</b>: A string of HTML to create the new element.<p/><p/>
-<i>Example</i>: <code>replace_in_ui("my_in_id", "&lt;h2>hey&lt;/h2>")</code><br/>
-</details>
-
-<details id="set_in_ui_doc_id" style="margin-left:20px;"><summary>set_in_ui</summary>
-Set the value of an HTML element attribute (usually from a <code>show_window</code> window). <br/>
-<i>Parameters:</i><br/>
-<b>path_string</b> The path to a shown html element's attribute. 
-This is often the id of an element followed by a dot, followed by an attributre name.<br/>
-<b>value</b>: The value of an HTML element's attribute. Usually this is a string.<p/>
-<i>Example</i>: <code>set_in_ui("my_in_id.value", "aluminum")</code><br/>
-</details>
-</details> <!-- end window Utilities -->
-
-<details style="margin-left:20px;"><summary>SVG</summary>
-SVG stands for Scalable Vector Graphics. It is a way
-to draw 2D graphics on a web page. The drawn elements
-(circles, lines, etc.) are surrounded by a svg tag wrapper
-indicating the size of the drawing area. You can use
-svg tags directly in the content for a show_window.<p/>
-The methods documented below create that html from JavaScript calls,
-facilitating dynamic content creation as well as
-making static svg shapes a little easier to create.<p/>
-<i>Parameters for all svg functions</i>:<br/>
-<b>id</b> The html id of the element, useful in calls to window utility functions
-such as <code>append_in_ui</code>.<br/>
-<b>html_class</b>: Used to set the <code>class</code> attrbute of the element.
-Due to a name conflict with <code>class</code> in JavaScript, we had to name this
-<code>html_class</code>.<br/>
-<b>style</b>: A string setting the css style of the element. Note that some
-arguments to svg functions are actually rendered as style attributes, such as
-<code>color</code>, <code>border_color</code>, <code>border_width</code>.
-
-<details id="svg_svg_doc_id" style="margin-left:20px;"><summary>svg_svg</summary>
-svg shapes must be drawn as child elements of an <code>svg</code> element.
-The x and y of those child elements is relative to the upper left corner of
-the containing svg element. So for instance, if you draw a circle with
-x: 0, y: 0, you will see only the lower right corner of the circle
-in the upper left corner of the svg area.
-<i>Parameters</i> <br/>
-<b>width</b>:  Width  in pixels of the rectangle area to put svg shapes in.<br/>
-<b>height</b>: Height in pixels of the rectangle area to put svg shapes in.<br/>
-<b>viewBox</b>: A string of four space_separated numbers that controls the scale and positioning
-                of the contained svg elements.<br/>
-<b>child_elements</b>: Default: <code>[]</code>. An array of strings of the html for
-   svg shapes. Usually these strings should be created with the svg shape creator functions
-      such as <code>svg_circle</code>. <p/>
- <i>Example</i>:<pre> show_window({
-   content:svg_svg({
-       id:"s_id", width:500, height:200, 
-       html_class:"clickable",
-       child_elements: [
-           svg_rect({x:100, y:100, 
-                     width:200, height: 50, 
-                     color:"yellow"})
-           ]})
-})</pre>
-</details> <!-- end svg_svg -->
-
-<details id="svg_circle_doc_id" style="margin-left:20px;"><summary>svg_circle</summary>
-svg_circle must be drawn as a child element of an <code>svg</code> element.
-<i>Parameters</i> <br/>
-<b>cx</b>: Default: 0.  The x position of the center of the circle.<br/>
-<b>cy</b>: Default: 0.  The y position of the center of the circle.<br/>
-<b>r</b>:  Default: 10. The radius of the circle.<br/>
-<b>color</b>: Default: "black". The color of the interior of the circle.<br/>
-<b>border_color</b>: Default: "black". The color of the perimeter of the circle.<br/>
-<b>border_width</b>: Default: 1. The width of the perimeter of the circle.<p/>
-<i>Example</i>:<br/>
-<code>svg_circle({cx: 100, cy: 50, r: 7, color: "red"})</code>
-</details> 
-
-<details id="svg_ellipse_doc_id" style="margin-left:20px;"><summary>svg_ellipse</summary>
-svg_ellipse must be drawn as a child element of an <code>svg</code> element.
-<i>Parameters</i> <br/>
-<b>cx</b>: Default: 0.  The x position of the center of the ellipse.<br/>
-<b>cy</b>: Default: 0.  The y position of the center of the ellipse.<br/>
-<b>rx</b>: Default: 20. The x radius of the ellipse.<br/>
-<b>ry</b>: Default: 20. The y radius of the ellipse.<br/>
-
-<b>color</b>: Default: "black". The color of the interior of the ellipse.<br/>
-<b>border_color</b>: Default: "black". The color of the perimeter of the ellipse.<br/>
-<b>border_width</b>: Default: 1. The width of the perimeter of the ellipse.<p/>
-<i>Example</i>:<br/>
-<code>svg_ellipse({cx: 100, cy: 50, r: 7, color: "red"})</code>
-</details> 
-
-<details id="svg_html_doc_id" style="margin-left:20px;"><summary>svg_html</summary>
-This renders arbitrary html at the location specified.
-svg_html must be drawn as a child element of an <code>svg</code> element.<br/>
-<i>Parameters</i> <br/>
-<b>x</b>: Default: 0.  The x position of the upper left of the rendered HTML.<br/>
-<b>y</b>: Default: 0.  The y position of the upper left of the rendered HTML.<br/>
-<b>width</b>: Default: 100. The width of the area to render the HTML into.<br/>
-<b>height</b>: Default: 100. The height of the area to render the HTML into.
-<p/>
-Unlike the other svg functions, <code>svg_html</code> does not take <code>id</code>, <code>class</code>
-and <code>style</code> arguments. If you desire these, they must be placed on the individual
-html tags within the value of the <code>html</code> argument. Note that
-here we need to spell the class attribute by its correct HTML name, <code>class</code>,
-not the special spelling used in the other svg functions of <code>html_class</code>.
-<p/>
-<i>Example</i>:<br/>
-<pre>svg_html({html: "&lt;i 
-               id="yikes_id"
-               class="clickable"
-               style='font-size:30px;'>
-               yikes
-               &lt;/i>", 
-          x: 60, 
-          y: 100})</pre>
-</details> 
-
-<details id="svg_line_doc_id" style="margin-left:20px;"><summary>svg_line</summary>
-svg_line must be drawn as a child element of an <code>svg</code> element.
-<i>Parameters</i> <br/>
-<b>x1</b>: Default: 0.   The x position of the start of the line.<br/>
-<b>y1</b>: Default: 0.   The y position of the start of the line.<br/>
-<b>x2</b>: Default: 100. The x position of the end of the line.<br/>
-<b>y2</b>: Default: 100. The x position of the end of the line.<br/>
-
-<b>color</b>: Default: "black". The color of the line.<br/>
-<b>width</b>: Default: 1. The width of the line.<p/>
-<i>Example</i>:<br/>
-<code>svg_line({x1: 10, y1: 50, x2: 75, y2: 100, color: "red", width: 5})</code>
-</details>
-
-<details id="svg_rect_doc_id" style="margin-left:20px;"><summary>svg_rect</summary>
-svg_rect must be drawn as a child element of an <code>svg</code> element.
-<i>Parameters</i> <br/>
-<b>x</b>:      Default: 0.   The x position of the upper left corner of the rectangle.<br/>
-<b>y</b>:      Default: 0.   The y position of the upper left corner of the rectangle.<br/>
-<b>width</b>:  Default: 100. The pixels between the left and right edges of the rectangle.<br/>
-<b>height</b>: Default: 100. The pixels between the top and bottom edges of the rectangle.<br/>
-<b>rx</b>:     Default: 0.   The x-axis radius of the ellipse used to round off the corners of the rectangle. 
- An rx of 0 and an ry of 0 (the defaults), gives square corners.<br/>
-<b>ry</b>:     Default: 0.   The y-axis radius of the ellipse used to round off the corners of the rectangle.<br/>
-<b>color</b>:        Default: "black". The color of the interior of the rectangle.<br/>
-<b>border_color</b>: Default: "black". The color of the perimeter of the rectangle.<br/>
-<b>border_width</b>: Default: 1.       The width of the perimeter of the rectangle.<p/>
-<i>Example</i>:<br/>
-<code>svg_rect({x: 10, y: 50, width: 75, height: 25, color: "green"})</code>
-</details>
-
-<details id="svg_polygon_doc_id" style="margin-left:20px;"><summary>svg_polygon</summary>
-Draws a closed figure with corners at the indicated x and y positions.
-svg_polygon must be drawn as a child element of an <code>svg</code> element.
-<i>Parameters</i> <br/>
-<b>points</b>:       Default: [].  The positions of the corners of the polygon.<br/>
-<b>color</b>:        Default: "black". The color of the interior of the polygon.<br/>
-<b>border_color</b>: Default: "black". The color of the perimeter of the polygon.<br/>
-<b>border_width</b>: Default: 1.       The width of the perimeter of the polygon.<p/>
-<i>Example of a triangle</i>:<br/>
-<code>svg_polygon([[0, 0], [100, 0], [50, 50]], color: "lime"})</code>
-</details>
-
-<details id="svg_polyline_doc_id" style="margin-left:20px;"><summary>svg_polyline</summary>
-Draws an open figure with corners at the indicated x and y positions.
-svg_polyline must be drawn as a child element of an <code>svg</code> element.
-<i>Parameters</i> <br/>
-<b>points</b>: Default: [].      The positions of the end points of the line segments.<br/>
-<b>color</b>:  Default: "black". The color of the line.<br/>
-<b>width</b>:  Default: 1.       The width of the line.<p/>
-<i>Example of a triangle</i>:<br/>
-<code>svg_polyline({points: [[0, 0], [100, 0], [50, 50]], color: "brown"})</code>
-</details>
-
-<details id="svg_text_doc_id" style="margin-left:20px;"><summary>svg_text</summary>
-Draws text at the indicated x and y position.
-svg_text must be drawn as a child element of an <code>svg</code> element.
-<i>Parameters</i> <br/>
-<b>text</b>:   Default: "hi". The string to be displayed.<br/>
-<b>x</b>:      Default: 20.   The x position of the upper left corner of the text.<br/>
-<b>y</b>:      Default: 20.   The y position of the upper left corner of the text.<br/>
-<b>size</b>:   Default: 16.   The font size of the text.<br/>
-<b>color</b>:  Default: "black". The color of the text.<br/>
-<b>border_color</b>:  Default: "black". The color of the outline of the text.<br/>
-<b>border_width</b>:  Default: 0.       The width of the outline of the text.<br/>
-<b>transform</b>:  Default: "rotate(0, 0, 0)". Modifies the position, orientation and scale of the text.
- <a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/transform">Details</a>
-<p/>
-<i>Example</i>:<br/>
-<code>svg_text([[0, 0], [100, 0], [50, 50]], color: "brown"})</code>
-</details>
-
-</details> <!-- end SVG -->
-
-</details> <!-- end window_system -->
-
 <details style="margin-left:20px;"><summary>Object System</summary>
 <details style="margin-left:20px;"><summary>Overview</summary>
 An object system helps you organize data that can inherit from
@@ -2118,3 +1791,327 @@ newObject({name: "junk"}).sourceCode() =><br/>
 </details>
 </details> <!-- Existing JS methods-->
 </details> <!-- ob sys -->
+<details id="operating_system_doc_id" style="margin-left:20px;"><summary>operating_system</summary>
+    <code>operating_system</code> is a global constant that has a value of the name of the current operating system.
+    Windows OS's have the value "win". Macintosh OS's have the value "mac".
+    If you find the value of other operating systems, please tell us!
+</details>
+<details style="margin-left:20px;"><summary>Window System</summary>
+    Dealing with HTML, CSS and JavaScript of traditional web apps is complex.
+    DDE uses those technologies but with a simplied wrapper for them to help
+    users create interactive windows with the most needed features.
+
+    <details id="show_window_doc_id"style="margin-left:20px;"><summary>show_window</summary>
+        A call to <code>show_window</code> creates a dialog box using HTML and JavaScript.
+        <i>Parameters</i><br/>
+        <b>title</b> A string of the HTML displayed in the window's title bar. Default: "DDE Information"<br/>
+        <b>width</b> The number of pixels wide that the window will be. Default: 400<br/>
+        <b>height</b> The number of pixels tall that the window will be. Default: 400<br/>
+        <b>x</b> The number of pixels that the left edge of the window will be from the left edge of the DDE window.
+        Default: 200<br/>
+        <b>y</b> The number of pixels that the top edge of the window will be from the top edge of the DDE window.
+        Default: 200<br/>
+        <b>content</b> HTML to be rendered in the body of the window. input tags with <code>type</code>
+        attributes of <code>button</code> and <code>submit</code> will cause the window's
+        callback function to be called. <code>submit</code> will also cause the window to be closed.<p/>
+        HTML elements with a class of "clickable" will behave as a button. Clicking on them
+        will cause the window's callback button to be called with a <code>clicked_button_value</code>
+        property of the <code>name</code>, or if none, the <code>id</code> of the clicked on element.
+        Clicking on such HTML elements will <i>not</i> close the window.<br/>
+        <i>Example</i>:<br/>
+        <code>show_window({<br/>
+            &nbsp;&nbsp;&nbsp;content:'&lt;p id="p_id" class="clickable">some para&lt;/p>',<br/>
+            &nbsp;&nbsp;&nbsp;callback: function (vals){ append_in_ui("p_id", "&lt;h1>hey&lt;/h1>")}<br/>
+            })</code><br/>
+        <b>callback</b> A function of one argument. It will be called when a the user clicks a button in
+        a show_window. It's argument will be a literal object. Many of its fields are x and y positions
+        reletive to the top-left of html elements in or containing the clicked position.
+        An example:<br/><pre>
+    {x: 300,           //relative to the parent of the elt clicked on
+    y: 213,
+    clientX: 300,      //relative to the content area (the viewport) of the browser window
+    clientY: 213,      //This point does not move even if the user moves a scrollbar from within the browser.
+    offsetX: 290,      //relative to the html element that the user clicked in
+    offsetY: 68,
+    pageX: 300,        //relative to the top left of the fully rendered content area in the browser.
+    pageY: 213,
+    screenX: 395,      //relative to the physical display
+    screenY: 270,
+    altKey: false,     //true if the alt key (option on Mc) was pressed when the mouse was clicked
+    ctrlKey: false,    //control key
+    metaKey: false,    //Windows key on Windows OS, command key on Mac
+    shiftKey: false,
+    tagName: "input",  //html element tag clicked on.
+    window_index: "1", //a show_window instance identifier.
+                       //<code>close_window(window_index)</code>
+                       //will close the show_window window.
+    clicked_button_value: "my_in_id", //the 'name' or 'id' attribute of the clicked on element.
+    trim_strings: true}</pre>
+        <i>Example show_window_call:</i><pre>//Called when a button is clicked.
+function show_vals(vals){out(vals)} //this is the default callback
+show_window({
+    content:
+&#39;text: &lt;input type="text" name="my_text" value="Dexter">
+textarea: &lt;textarea name="my_textarea">Hi Rez&lt;/textarea>
+checkbox: &lt;input name="my_checkbox" type="checkbox" checked="checked"/>heated bed?
+    &lt;!-- you can add the checked="checked" attribute to make it initially checked. -->
+radio:
+&lt;input type="radio" name="my_radio_group" value="abs" />ABS
+&lt;input type="radio" name="my_radio_group" value="carbon"/>Carbon Fiber
+&lt;input type="radio" name="my_radio_group" value="pla" checked="checked"/>PLA
+    &lt;!-- At most, only 1 radio button can be checked. If none are checked,
+         the return value for the group will be undefined . -->
+number: &lt;input type="number" name="my_number" value="0.4" min="0" max="1" step="0.2"/>
+range:  &lt;input type="range"  name="my_range"  value="33"  min="0" max="100"/>
+color:  &lt;input type="color"  name="my_color"  value="#00FF88"/>
+date:   &lt;input type="date"   name="my_date"   value="2017-01-20"/>
+select: &lt;select name="size">
+            &lt;option>Gihugeic&lt;/option>
+            &lt;option selected="selected">Ginormace&lt;/option> &lt;!--the inital value-->
+            &lt;option>Gilossal&lt;/option>
+        &lt;/select>
+combo_box: &lt;div name="my_combo_box" class="combo_box" style="display:inline-block;vertical-align:middle;">
+                &lt;option>one&lt;/option>
+                &lt;option selected="selected">two&lt;/option>
+           &lt;/div>
+button: &lt;input type="button" value="Show settings"/>
+submit: &lt;input type="submit" value="OK"/>&#39;,
+
+    width:380, height:450, title:"Printer Config", x:100, y:100,
+    callback: show_vals})</pre>
+        For more examples of calling <code>show_window</code> see the menu Insert/show_window.
+    </details> <!-- end show_window -->
+
+    <details style="margin-left:20px;"><summary>Window Utilities</summary>
+
+        <details id="close_window_doc_id"style="margin-left:20px;"><summary>close_window</summary>
+            Closes a window created with show_window.<br/>
+            <i>Parameter:</i><br/>
+            <b>window_index</b>: When a show_window callback function is called, it will be passed a literal object
+            with a property of <code>window_index</code> that can be used as the argument
+            to <code>close_window</code>. This is a non-negative integer.<p/>
+            Example: <code>close_window(window_index)</code>
+        </details>
+
+        <details id="append_in_ui_doc_id"style="margin-left:20px;"><summary>append_in_ui</summary>
+            Creates an element from HTML and inserts it into a window.<br/>
+            <i>Parameters:</i><br/>
+            <b>path_string</b>: The path to a shown HTML element. Usually this will be the id of
+            an element in a <code>show_window</code> window. The new element will become
+            the new last child of the path element.<br/>
+            <b>new_htnl</b>: A string of HTML to create the new element.<p/>
+            <i>Example</i>: <code>append_in_ui("my_in_id", "&lt;h1>hello&lt;/h1>")</code><br/>
+            where "my_ui_id" is the id of a currently displayed html tag, usually in
+            the content of a <code>show_window</code> window.
+        </details>
+
+        <details id="get_in_ui_doc_id"style="margin-left:20px;"><summary>get_in_ui</summary>
+            Gets the value of an attribute of an HTML tag (usually from a <code>show_window</code> window). <br/>
+            <i>Parameters:</i><br/>
+            <b>path_string</b> The path to a shown html element. This is often
+            the id of an element followed by a dot, follwed by an attribute name.<br/>
+            <b>callback</b> A function that is called by get_in_ui with the value
+            of the attribute indicated in the path_string.
+
+            <i>Example</i>: <code>get_in_ui("my_in_id.value", function(val){out("got val: " + val)})</code><br/>
+        </details>
+
+        <details id="remove_in_ui_doc_id"style="margin-left:20px;"><summary>remove_in_ui</summary>
+            Remove an HTML element (usually from a <code>show_window</code> window). <br/>
+            <i>Parameter:</i><br/>
+            <b>path_string</b> The path to a shown html element. This is often just the id of an element.<p/>
+            <i>Example</i>: <code>remove_in_ui("my_in_id")</code><br/>
+        </details>
+
+        <details id="replace_in_ui_doc_id"style="margin-left:20px;"><summary>replace_in_ui</summary>
+            Replace an HTML element (usually from a <code>show_window</code> window). <br/>
+            <i>Parameters:</i><br/>
+            <b>path_string</b> The path to a shown html element. This is often just the id of an element.<br/>
+            <b>new_html</b>: A string of HTML to create the new element.<p/><p/>
+            <i>Example</i>: <code>replace_in_ui("my_in_id", "&lt;h2>hey&lt;/h2>")</code><br/>
+        </details>
+
+        <details id="set_in_ui_doc_id" style="margin-left:20px;"><summary>set_in_ui</summary>
+            Set the value of an HTML element attribute (usually from a <code>show_window</code> window). <br/>
+            <i>Parameters:</i><br/>
+            <b>path_string</b> The path to a shown html element's attribute.
+            This is often the id of an element followed by a dot, followed by an attributre name.<br/>
+            <b>value</b>: The value of an HTML element's attribute. Usually this is a string.<p/>
+            <i>Example</i>: <code>set_in_ui("my_in_id.value", "aluminum")</code><br/>
+        </details>
+    </details> <!-- end window Utilities -->
+
+    <details style="margin-left:20px;"><summary>SVG</summary>
+        SVG stands for Scalable Vector Graphics. It is a way
+        to draw 2D graphics on a web page. The drawn elements
+        (circles, lines, etc.) are surrounded by a svg tag wrapper
+        indicating the size of the drawing area. You can use
+        svg tags directly in the content for a show_window.<p/>
+        The methods documented below create that html from JavaScript calls,
+        facilitating dynamic content creation as well as
+        making static svg shapes a little easier to create.<p/>
+        <i>Parameters for all svg functions</i>:<br/>
+        <b>id</b> The html id of the element, useful in calls to window utility functions
+        such as <code>append_in_ui</code>.<br/>
+        <b>html_class</b>: Used to set the <code>class</code> attrbute of the element.
+        Due to a name conflict with <code>class</code> in JavaScript, we had to name this
+        <code>html_class</code>.<br/>
+        <b>style</b>: A string setting the css style of the element. Note that some
+        arguments to svg functions are actually rendered as style attributes, such as
+        <code>color</code>, <code>border_color</code>, <code>border_width</code>.
+
+        <details id="svg_svg_doc_id" style="margin-left:20px;"><summary>svg_svg</summary>
+            svg shapes must be drawn as child elements of an <code>svg</code> element.
+            The x and y of those child elements is relative to the upper left corner of
+            the containing svg element. So for instance, if you draw a circle with
+            x: 0, y: 0, you will see only the lower right corner of the circle
+            in the upper left corner of the svg area.
+            <i>Parameters</i> <br/>
+            <b>width</b>:  Width  in pixels of the rectangle area to put svg shapes in.<br/>
+            <b>height</b>: Height in pixels of the rectangle area to put svg shapes in.<br/>
+            <b>viewBox</b>: A string of four space_separated numbers that controls the scale and positioning
+            of the contained svg elements.<br/>
+            <b>child_elements</b>: Default: <code>[]</code>. An array of strings of the html for
+            svg shapes. Usually these strings should be created with the svg shape creator functions
+            such as <code>svg_circle</code>. <p/>
+            <i>Example</i>:<pre> show_window({
+   content:svg_svg({
+       id:"s_id", width:500, height:200,
+       html_class:"clickable",
+       child_elements: [
+           svg_rect({x:100, y:100,
+                     width:200, height: 50,
+                     color:"yellow"})
+           ]})
+})</pre>
+        </details> <!-- end svg_svg -->
+
+        <details id="svg_circle_doc_id" style="margin-left:20px;"><summary>svg_circle</summary>
+            svg_circle must be drawn as a child element of an <code>svg</code> element.
+            <i>Parameters</i> <br/>
+            <b>cx</b>: Default: 0.  The x position of the center of the circle.<br/>
+            <b>cy</b>: Default: 0.  The y position of the center of the circle.<br/>
+            <b>r</b>:  Default: 10. The radius of the circle.<br/>
+            <b>color</b>: Default: "black". The color of the interior of the circle.<br/>
+            <b>border_color</b>: Default: "black". The color of the perimeter of the circle.<br/>
+            <b>border_width</b>: Default: 1. The width of the perimeter of the circle.<p/>
+            <i>Example</i>:<br/>
+            <code>svg_circle({cx: 100, cy: 50, r: 7, color: "red"})</code>
+        </details>
+
+        <details id="svg_ellipse_doc_id" style="margin-left:20px;"><summary>svg_ellipse</summary>
+            svg_ellipse must be drawn as a child element of an <code>svg</code> element.
+            <i>Parameters</i> <br/>
+            <b>cx</b>: Default: 0.  The x position of the center of the ellipse.<br/>
+            <b>cy</b>: Default: 0.  The y position of the center of the ellipse.<br/>
+            <b>rx</b>: Default: 20. The x radius of the ellipse.<br/>
+            <b>ry</b>: Default: 20. The y radius of the ellipse.<br/>
+
+            <b>color</b>: Default: "black". The color of the interior of the ellipse.<br/>
+            <b>border_color</b>: Default: "black". The color of the perimeter of the ellipse.<br/>
+            <b>border_width</b>: Default: 1. The width of the perimeter of the ellipse.<p/>
+            <i>Example</i>:<br/>
+            <code>svg_ellipse({cx: 100, cy: 50, r: 7, color: "red"})</code>
+        </details>
+
+        <details id="svg_html_doc_id" style="margin-left:20px;"><summary>svg_html</summary>
+            This renders arbitrary html at the location specified.
+            svg_html must be drawn as a child element of an <code>svg</code> element.<br/>
+            <i>Parameters</i> <br/>
+            <b>x</b>: Default: 0.  The x position of the upper left of the rendered HTML.<br/>
+            <b>y</b>: Default: 0.  The y position of the upper left of the rendered HTML.<br/>
+            <b>width</b>: Default: 100. The width of the area to render the HTML into.<br/>
+            <b>height</b>: Default: 100. The height of the area to render the HTML into.
+            <p/>
+            Unlike the other svg functions, <code>svg_html</code> does not take <code>id</code>, <code>class</code>
+            and <code>style</code> arguments. If you desire these, they must be placed on the individual
+            html tags within the value of the <code>html</code> argument. Note that
+            here we need to spell the class attribute by its correct HTML name, <code>class</code>,
+            not the special spelling used in the other svg functions of <code>html_class</code>.
+            <p/>
+            <i>Example</i>:<br/>
+            <pre>svg_html({html: "&lt;i
+               id="yikes_id"
+               class="clickable"
+               style='font-size:30px;'>
+               yikes
+               &lt;/i>",
+          x: 60,
+          y: 100})</pre>
+        </details>
+
+        <details id="svg_line_doc_id" style="margin-left:20px;"><summary>svg_line</summary>
+            svg_line must be drawn as a child element of an <code>svg</code> element.
+            <i>Parameters</i> <br/>
+            <b>x1</b>: Default: 0.   The x position of the start of the line.<br/>
+            <b>y1</b>: Default: 0.   The y position of the start of the line.<br/>
+            <b>x2</b>: Default: 100. The x position of the end of the line.<br/>
+            <b>y2</b>: Default: 100. The x position of the end of the line.<br/>
+
+            <b>color</b>: Default: "black". The color of the line.<br/>
+            <b>width</b>: Default: 1. The width of the line.<p/>
+            <i>Example</i>:<br/>
+            <code>svg_line({x1: 10, y1: 50, x2: 75, y2: 100, color: "red", width: 5})</code>
+        </details>
+
+        <details id="svg_rect_doc_id" style="margin-left:20px;"><summary>svg_rect</summary>
+            svg_rect must be drawn as a child element of an <code>svg</code> element.
+            <i>Parameters</i> <br/>
+            <b>x</b>:      Default: 0.   The x position of the upper left corner of the rectangle.<br/>
+            <b>y</b>:      Default: 0.   The y position of the upper left corner of the rectangle.<br/>
+            <b>width</b>:  Default: 100. The pixels between the left and right edges of the rectangle.<br/>
+            <b>height</b>: Default: 100. The pixels between the top and bottom edges of the rectangle.<br/>
+            <b>rx</b>:     Default: 0.   The x-axis radius of the ellipse used to round off the corners of the rectangle.
+            An rx of 0 and an ry of 0 (the defaults), gives square corners.<br/>
+            <b>ry</b>:     Default: 0.   The y-axis radius of the ellipse used to round off the corners of the rectangle.<br/>
+            <b>color</b>:        Default: "black". The color of the interior of the rectangle.<br/>
+            <b>border_color</b>: Default: "black". The color of the perimeter of the rectangle.<br/>
+            <b>border_width</b>: Default: 1.       The width of the perimeter of the rectangle.<p/>
+            <i>Example</i>:<br/>
+            <code>svg_rect({x: 10, y: 50, width: 75, height: 25, color: "green"})</code>
+        </details>
+
+        <details id="svg_polygon_doc_id" style="margin-left:20px;"><summary>svg_polygon</summary>
+            Draws a closed figure with corners at the indicated x and y positions.
+            svg_polygon must be drawn as a child element of an <code>svg</code> element.
+            <i>Parameters</i> <br/>
+            <b>points</b>:       Default: [].  The positions of the corners of the polygon.<br/>
+            <b>color</b>:        Default: "black". The color of the interior of the polygon.<br/>
+            <b>border_color</b>: Default: "black". The color of the perimeter of the polygon.<br/>
+            <b>border_width</b>: Default: 1.       The width of the perimeter of the polygon.<p/>
+            <i>Example of a triangle</i>:<br/>
+            <code>svg_polygon([[0, 0], [100, 0], [50, 50]], color: "lime"})</code>
+        </details>
+
+        <details id="svg_polyline_doc_id" style="margin-left:20px;"><summary>svg_polyline</summary>
+            Draws an open figure with corners at the indicated x and y positions.
+            svg_polyline must be drawn as a child element of an <code>svg</code> element.
+            <i>Parameters</i> <br/>
+            <b>points</b>: Default: [].      The positions of the end points of the line segments.<br/>
+            <b>color</b>:  Default: "black". The color of the line.<br/>
+            <b>width</b>:  Default: 1.       The width of the line.<p/>
+            <i>Example of a triangle</i>:<br/>
+            <code>svg_polyline({points: [[0, 0], [100, 0], [50, 50]], color: "brown"})</code>
+        </details>
+
+        <details id="svg_text_doc_id" style="margin-left:20px;"><summary>svg_text</summary>
+            Draws text at the indicated x and y position.
+            svg_text must be drawn as a child element of an <code>svg</code> element.
+            <i>Parameters</i> <br/>
+            <b>text</b>:   Default: "hi". The string to be displayed.<br/>
+            <b>x</b>:      Default: 20.   The x position of the upper left corner of the text.<br/>
+            <b>y</b>:      Default: 20.   The y position of the upper left corner of the text.<br/>
+            <b>size</b>:   Default: 16.   The font size of the text.<br/>
+            <b>color</b>:  Default: "black". The color of the text.<br/>
+            <b>border_color</b>:  Default: "black". The color of the outline of the text.<br/>
+            <b>border_width</b>:  Default: 0.       The width of the outline of the text.<br/>
+            <b>transform</b>:  Default: "rotate(0, 0, 0)". Modifies the position, orientation and scale of the text.
+            <a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/transform">Details</a>
+            <p/>
+            <i>Example</i>:<br/>
+            <code>svg_text([[0, 0], [100, 0], [50, 50]], color: "brown"})</code>
+        </details>
+
+    </details> <!-- end SVG -->
+
+</details> <!-- end window_system -->

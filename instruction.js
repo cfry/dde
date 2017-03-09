@@ -911,15 +911,12 @@ Instruction.Control.send_to_job = class send_to_job extends Instruction.Control{
     }
 
     do_item (job_instance){ //job_instance is the "from" job
-        if (this.to_job_name == job_instance.name) { this.wait_until_done = false } //when a job is insterting code into itself,
-             //we don't want it to hang waiting for itself.
         this.from_job_name       = job_instance.name
         this.from_instruction_id = job_instance.program_counter
-        var to_job_instance      = Job[this.to_job_name]
         if (this.status_variable_name){
             job_instance.user_data[this.status_variable_name] = "sent"
         }
-        this.destination_do_send_to_job(job_instance, to_job_instance) //this COULD be just a json obj of name value pairs. Don't really need the whole instance here.
+        this.destination_do_send_to_job(job_instance) //this COULD be just a json obj of name value pairs. Don't really need the whole instance here.
                                                          //if we need to send to a job on another computer, convert to that json obj.
         if(this.wait_until_done){
             job_instance.wait_until_instruction_id_has_run = job_instance.program_counter
@@ -934,12 +931,14 @@ Instruction.Control.send_to_job = class send_to_job extends Instruction.Control{
     //fns prefixed with destination are run on the to_job.
 //"this" is the send_to_job instruction instance
 //This fn is not a user fn and is not an instruction for a do_list.
-    destination_do_send_to_job(from_job_instance, to_job_instance){
+    destination_do_send_to_job(from_job_instance){
         let params = this
-        var to_job_instance = Job.instruction_location_to_job(params.where_to_insert)
+        var to_job_instance = Job.instruction_location_to_job(params.where_to_insert, false)
         if (!to_job_instance) { to_job_instance = from_job_instance }
+        if (to_job_instance === job_instance) { this.wait_until_done = false } //when a job is inserting code into itself,//we don't want it to hang waiting for itself.
+
         //first, add destination_send_to_job_is_done to do_items if need be.
-        var do_items = params.do_list_item
+        let do_items = params.do_list_item
         var notify_item = null
         if (params.wait_until_done){
             //var send_back_obj = {from_job_name:        params.from_job_name,
@@ -975,19 +974,16 @@ Instruction.Control.send_to_job = class send_to_job extends Instruction.Control{
                                                      where_to_insert: params.where_to_insert, //just for debugging
                                                      wait_until_done: params.wait_until_done //just for debugging
                                                     })
+        Job.insert_instruction_at_location(sfj_ins, params.where_to_insert) //must do before starting or unsuspending
         if (to_job_instance.status_code == "not_started"){
             if(params.start){
                 to_job_instance.start({initial_instruction: sfj_ins})
             }
         }
-        else {
-            //Instruction.Control.send_to_job.insert_sent_from_job(to_job_instance, sfj_ins)
-            Job.insert_instruction_at_location(sfj_ins, where_to_insert)
-            if (to_job_instance.status_code == "suspended"){
-                if(params.unsuspend){
-                    to_job_instance.unsuspend()
-                    //this.set_up_next_do(1) //don't do this because unsuspend does it.
-                }
+        else if (to_job_instance.status_code == "suspended"){
+            if(params.unsuspend){
+                to_job_instance.unsuspend()
+                //this.set_up_next_do(1) //don't do this because unsuspend does it.
             }
         }
         //don't do this as to_job should already be running.
@@ -995,7 +991,7 @@ Instruction.Control.send_to_job = class send_to_job extends Instruction.Control{
         //    to_job_instance.set_up_next_do(1)
         //}
     }
-
+    /* obsolete with instructsion_location arch
     static insert_sent_from_job(to_job_instance, sfj_ins){
         switch(sfj_ins.where_to_insert){
             case "after_pc":
@@ -1029,14 +1025,13 @@ Instruction.Control.send_to_job = class send_to_job extends Instruction.Control{
                 }
                 break;
         }
-    }
+    }*/
 }
 
 Instruction.Control.send_to_job.param_names = ["do_list_item",    "where_to_insert",
                                                "wait_until_done", "start",
                                                "unsuspend",       "status_variable_name",
-                                               "from_job_name",   "from_instruction_id",
-                                               "to_job_name"]
+                                               "from_job_name",   "from_instruction_id"]
 
 //user's never create this directly, but an instance of this is created by destination_do_send_to_job
 //and stuck on the destination do_list.

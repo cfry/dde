@@ -158,7 +158,7 @@ new Job({name: "j6", robot: new Dexter(), do_list: []})
 new Job({name: "j7",
          do_list: [Robot.send_to_job({
                       do_list_item: Dexter.move_all_joints(200000, 100000),
-                      where_to_insert: {job: "j6", offset: "after_program_counter"},
+                      where_to_insert: {job: "j6", offset: "program_counter"},
                       start: true, //starts j6
                       wait_until_done: true,
                       status_variable_name: "that_j6_task",
