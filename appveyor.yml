@@ -1,5 +1,3 @@
-build: off
-
 platform:
   - x64
 
@@ -12,12 +10,11 @@ install:
   - ps: Install-Product node 7 x64
   - npm install
 
-test_script:
-  - node --version
-  - npm --version
-  - npm run dist
+build_script:
+  - npm run appveyor
 
 environment:
   GH_TOKEN:
-    secure: 1234qwer
+    secure: gCu6PLWX5YVqnBO0x6C8Aej8DOukgtRg1JwR6lq1I/S7Xtzdv+S4TKSLWwuWSC2i
 
+test: off

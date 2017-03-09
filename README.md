@@ -2,6 +2,11 @@
 
 Dexter Development Environment
 
+travis (for Mac & linux) [![Build Status](https://travis-ci.org/cfry/dde.svg?branch=master)](https://travis-ci.org/cfry/dde)
+
+appveyor (for Windows) [![Build status](https://ci.appveyor.com/api/projects/status/sv6eh2bu7qsem04y?svg=true)](https://ci.appveyor.com/project/cfry/dde)
+
+
 ## Commands
 
 ```bash

@@ -1,5 +1,5 @@
 {
-  "name": "electron_dde",
+  "name": "electron-dde",
   "productName": "DDE",
   "version": "1.0.0",
   "description": "Dexter Development Environment",
@@ -7,11 +7,12 @@
   "license": "GPL-3.0",
   "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "electron .",
+    "test": "dependency-check ./package.json",
+    "start": "electron main",
     "rebuild": "electron-rebuild",
     "build": "build --dir",
     "dist": "build",
+    "appveyor": "build.cmd",
     "clean": "rimraf dist"
   },
   "keywords": [
@@ -29,8 +30,9 @@
     "ws": "^1.1.1"
   },
   "devDependencies": {
+    "dependency-check": "^2.8.0",
     "electron": "^1.4.13",
-    "electron-builder": "^15.1.1",
+    "electron-builder": "14.4.0",
     "electron-rebuild": "^1.5.7",
     "rimraf": "^2.6.1"
   },
@@ -38,10 +40,7 @@
     "appId": "com.haddington.dde",
     "mac": {
       "category": "public.app-category.utilities",
-      "target": [
-        "zip",
-        "dmg"
-      ]
+      "target": [ "dmg" ]
     },
     "nsis": {
       "perMachine": true
