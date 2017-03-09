@@ -40,10 +40,7 @@
     "appId": "com.haddington.dde",
     "mac": {
       "category": "public.app-category.utilities",
-      "target": [
-        "zip",
-        "dmg"
-      ]
+      "target": [ "dmg" ]
     },
     "nsis": {
       "perMachine": true
