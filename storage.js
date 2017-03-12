@@ -3,7 +3,8 @@
 
 //_______PERSISTENT: store name-value pairs in a file. Keep a copy of hte file in JS env, persistent_values
 //and write it out even time its changed.
-require("url")
+//require("url")
+//const path_pkg = require('path')
 persistent_values = {}
 
 function persistent_load(){
@@ -63,6 +64,7 @@ function add_default_file_prefix_maybe(path){
 
 function file_content(path, encoding="utf8"){
     path = add_default_file_prefix_maybe(path)
+    path = adjust_path_to_os(path)
     return fs.readFileSync(path, encoding);
 }
 
@@ -102,11 +104,13 @@ function write_file(path, content, encoding="utf8"){
     if (content === undefined) {
         content = Editor.get_javascript()
     }
+    path = adjust_path_to_os(path)
     fs.writeFileSync(path, content, {encoding: encoding})
 }
 
 function file_exists(path){
     path = add_default_file_prefix_maybe(path)
+    path = adjust_path_to_os(path)
     return fs.existsSync(path)
 } //don't document this as not that useful for normal users and would help bad actors
 
@@ -128,6 +132,21 @@ function add_folder_separator_prefix_maybe(filepath){
 
 function convert_backslashes_to_slashes(a_string){
     return a_string.replace(/\\/g, "/")
+}
+
+function adjust_path_to_os(path){
+    if (path.includes("://")) { //looks like a url so leave it alone
+       return path
+    }
+    else {//dde standard is to use / between separators and that's what users should use
+          // But for windows compatibility we need backslash,. This fn called by dde utils like
+          //file_content. Note if user passes in a path with backslashes,
+          //this will do nothing. So on a windows machine, that's ok,
+          //but on a mac or linux, that's bad. But this is unlikely to
+          //happen on a mac or linus, esp since dde standard is slash.
+        const result = path.replace(/\//g, folder_separator())
+        return result
+    }
 }
 
 //______new load_files syncchronous______

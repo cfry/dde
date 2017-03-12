@@ -1,104 +1,109 @@
 
-var dde_version = "1.0.0"
-var myCodeMirror //inited inside of ready
+    dde_version = "not inited"
+    dde_release_date = "not inited"
+    var myCodeMirror //inited inside of ready
 
-function eval_button_action(){ //used by both clicking on the eval button and Cmd-e
-    if((Editor.current_file_path != "new file") && (save_on_eval_id.checked)) { Editor.save_current_file() }
-    eval_js_part1();
-}
-
-function open_doc(details_elt){
-    //details_elt.open = true;
-    open_doc_elt_and_ancestors(details_elt)
-    $('#doc_pane_content_id').animate({scrollTop: details_elt.offsetTop - 40}, 800); //WORKS! 800 is milliseconds for the animation to take.
-    myCodeMirror.focus()
-}
-
-function open_doc_elt_and_ancestors(elt){
-    if(elt.tagName == "DETAILS") {elt.open = true}
-    if (elt.id != "doc_pane_content_id") { open_doc_elt_and_ancestors(elt.parentElement) }
-}
-
-function close_all_details(){
-    var details = document.getElementsByTagName("details");
-    for(var i = 0; i < details.length; i++){
-        details[i].removeAttribute("open");
+    function eval_button_action(){ //used by both clicking on the eval button and Cmd-e
+        if((Editor.current_file_path != "new file") && (save_on_eval_id.checked)) { Editor.save_current_file() }
+        eval_js_part1();
     }
-}
 
-function find_doc(){
-    close_all_details()
-    undecorate_doc_details()
-    let search_string = find_doc_input_id.value
-    //out(search_string) //for testing only
-    var mark_inst = new Mark(doc_pane_content_id) //document.querySelector("#doc_pane_content_id"))
-    mark_inst.unmark()
-    mark_inst.mark(search_string, {diacritics: false,  //I don't need diacritics, and it use to not work but is working now. Default is true.
-        done:function(count){out(count + ' occurrences of "' + search_string + '" found.', "black", true)},
-        each:function(text_node){
-            let details_ancestors = $(text_node).parents("details").children("summary")
-            for(let i = 0; i <  details_ancestors.length; i++){
-                let elt = details_ancestors[i]
-                elt.style.backgroundColor = "#ffd699" //"#ffc266" //"orange"
-            }
-            //out("hey" + text_node)
+    function open_doc(details_elt){
+        //details_elt.open = true;
+        open_doc_elt_and_ancestors(details_elt)
+        $('#doc_pane_content_id').animate({scrollTop: details_elt.offsetTop - 40}, 800); //WORKS! 800 is milliseconds for the animation to take.
+        myCodeMirror.focus()
+    }
 
-            return true; //true means we keep this match
+    function open_doc_elt_and_ancestors(elt){
+        if(elt.tagName == "DETAILS") {elt.open = true}
+        if (elt.id != "doc_pane_content_id") { open_doc_elt_and_ancestors(elt.parentElement) }
+    }
+
+    function close_all_details(){
+        var details = document.getElementsByTagName("details");
+        for(var i = 0; i < details.length; i++){
+            details[i].removeAttribute("open");
         }
-    }) //does not work with the non-jquery (vanilla js ) verison of mark.js either ES5 or ES6
-    //error message:  Cannot read property 'caseSensitive' of undefined
-    //but goes away with a 2nd arg of {caseSensitive: false} but then
-    //it will only match all uppercase keywords , another bug.
-    //with {caseSensitive: true}, it doesn't match anything
-    //bug submitted sep 5, 2016 to https://github.com/julmot/mark.js/issues/68
-    //$("#doc_pane_content_id").mark(search_string)
-    //let elts = $( "#doc_pane_content_id > :contains(" + search_string + ")" )
-    //elts.css( "text-decoration", "underline" );
-}
-
-function undecorate_doc_details(){
-    var summaries = $("#doc_pane_content_id").find("summary");
-    for(var i = 0; i < summaries.length; i++){
-        let sum1 = summaries[i]
-        sum1.style.backgroundColor = null //this is hard to do, but here's one syntax that seems to work
-          //note the proper spelling of the property in css is background-color but because JS
-          //broke the minus sign, and css "designers" were too stupid to avoid using it,
-          //we have this convoluted syntax.
     }
-}
 
-function init_guide(){
-    doc_pane_content_id.innerHTML = file_content(__dirname + "/doc/guide.html")
-}
+    function find_doc(){
+        close_all_details()
+        undecorate_doc_details()
+        let search_string = find_doc_input_id.value
+        //out(search_string) //for testing only
+        var mark_inst = new Mark(doc_pane_content_id) //document.querySelector("#doc_pane_content_id"))
+        mark_inst.unmark()
+        mark_inst.mark(search_string, {diacritics: false,  //I don't need diacritics, and it use to not work but is working now. Default is true.
+            done:function(count){out(count + ' occurrences of "' + search_string + '" found.', "black", true)},
+            each:function(text_node){
+                let details_ancestors = $(text_node).parents("details").children("summary")
+                for(let i = 0; i <  details_ancestors.length; i++){
+                    let elt = details_ancestors[i]
+                    elt.style.backgroundColor = "#ffd699" //"#ffc266" //"orange"
+                }
+                //out("hey" + text_node)
 
-function init_ref_man(){
-    ref_man_doc_id.innerHTML =
-        "<summary>Reference Manual</summary>" +
-        file_content(__dirname + "/doc/ref_man.html")
-}
+                return true; //true means we keep this match
+            }
+        }) //does not work with the non-jquery (vanilla js ) verison of mark.js either ES5 or ES6
+        //error message:  Cannot read property 'caseSensitive' of undefined
+        //but goes away with a 2nd arg of {caseSensitive: false} but then
+        //it will only match all uppercase keywords , another bug.
+        //with {caseSensitive: true}, it doesn't match anything
+        //bug submitted sep 5, 2016 to https://github.com/julmot/mark.js/issues/68
+        //$("#doc_pane_content_id").mark(search_string)
+        //let elts = $( "#doc_pane_content_id > :contains(" + search_string + ")" )
+        //elts.css( "text-decoration", "underline" );
+    }
 
-function init_release_notes(){
-    release_notes_id.innerHTML =
-        "<summary>Release Notes</summary>" +
-        file_content(__dirname + "/doc/known_issues.html") +
-        file_content(__dirname + "/doc/release_notes.html")
-}
+    function undecorate_doc_details(){
+        var summaries = $("#doc_pane_content_id").find("summary");
+        for(var i = 0; i < summaries.length; i++){
+            let sum1 = summaries[i]
+            sum1.style.backgroundColor = null //this is hard to do, but here's one syntax that seems to work
+            //note the proper spelling of the property in css is background-color but because JS
+            //broke the minus sign, and css "designers" were too stupid to avoid using it,
+            //we have this convoluted syntax.
+        }
+    }
 
-operating_system = "not inited" //on MAC this is "mac", on windows its "win".  bound in both ui and sandbox by ready
-dde_apps_dir  = null
+    function init_guide(){
+        doc_pane_content_id.innerHTML = file_content(__dirname + "/doc/guide.html")
+    }
 
-function on_ready() {
-    const os = require('os');
-    operating_system = os.platform()
-    if      (operating_system == "darwin")  { operating_system = "mac" }
-    else if (operating_system == "windows") { operating_system = "win" }
-    const remote = require("electron").remote
-    window.dde_apps_dir = remote.getGlobal("dde_apps_dir")
-   // require('fs-lock')({
-   //     'file_accessdir': [__dirname, dde_apps_dir], //for readFile, etc. but must include __dirname since Electron needs it.
-   //     'open_basedir':   [__dirname ] //__direname is the folder this app is installed in. //valid folders to get require's from. /usr/local/share/node_modules',
-   // }) //restrict file access
-    window.fs = require('fs')
+    function init_ref_man(){
+        ref_man_doc_id.innerHTML =
+            "<summary>Reference Manual</summary>" +
+            file_content(__dirname + "/doc/ref_man.html")
+    }
+
+    function init_release_notes(){
+        release_notes_id.innerHTML =
+            "<summary>Release Notes</summary>" +
+            file_content(__dirname + "/doc/known_issues.html") +
+            file_content(__dirname + "/doc/release_notes.html")
+    }
+
+    operating_system = "not inited" //on MAC this is "mac", on windows its "win".  bound in both ui and sandbox by ready
+    dde_apps_dir  = null
+
+    function on_ready() {
+        const os = require('os');
+        operating_system = os.platform()
+        if      (operating_system == "darwin")  { operating_system = "mac" }
+        else if (operating_system == "windows") { operating_system = "win" }
+        const remote = require("electron").remote
+        window.dde_apps_dir = remote.getGlobal("dde_apps_dir")
+        // require('fs-lock')({
+        //     'file_accessdir': [__dirname, dde_apps_dir], //for readFile, etc. but must include __dirname since Electron needs it.
+        //     'open_basedir':   [__dirname ] //__direname is the folder this app is installed in. //valid folders to get require's from. /usr/local/share/node_modules',
+        // }) //restrict file access
+        window.fs = require('fs')
+        //dde_version = remote.getGlobal("get_app_version")
+        var pckg         = require('./package.json');
+        dde_version      = pckg.version
+        dde_release_date = pckg.release_date
    // window.$ = require('jquery'); //Now done in index.html   after doing npm install --save jquery, we still need this
     //onload_fn()
 
@@ -142,7 +147,9 @@ function on_ready() {
     init_ref_man()
     init_release_notes()
 
-    dexter_version_id.innerHTML = dde_version
+    dde_version_id.innerHTML      = dde_version
+    dde_release_date_id.innerHTML = dde_release_date
+
     Series.init_series()
     $('#js_textarea').focus() //same as myCodeMirror.focus()  but  myCodeMerror not inited yet
     rde.ping() //rde.shell("date")
@@ -176,12 +183,13 @@ function on_ready() {
         var path = e.target.value //could be "new file" or an actual file
         Editor.edit_file(path)
     }
-    dde_paper_id.onclick = function() {
+    dde_overview_id.onclick = function() {
                           //window.open("here is text") //dde_paper_text)
                            //show_web_page('Dexter Development Environment.html')
                            //my_dialog_id.innerHTML = "<iframe>" + dde_paper_text + "</iframe>"
                            //my_dialog_id.showModal()
-                           const the_text = file_content(__dirname + "/doc/Dexter_Development_Environment.html")
+                           //window.open("doc/Dexter_Development_Environment.html") //permissions error
+                           const the_text = file_content(__dirname + "/doc/dde_overview/Dexter_Development_Environment.html")
                            show_window({content:the_text, //dde_paper_text,
                                         x:50, y:50, width:700, height:550,
                                         title:"DDE Overview"})
@@ -519,17 +527,10 @@ show_window({
     show_web_page_id.onclick=function(){Editor.wrap_around_selection('show_web_page(', ')\n', '"hdrobotic.com"')}
 
     get_page_id.onclick=function(){Editor.insert(
-`//Retrieve the html text of a url and pass it as
-//the first argument to a callback
-get_page("http://hdrobotic.com", function(str){out(str.length)})
-
-//The default for the 2nd arg is the DDE function 'out'.
-//out redenders its html string argument in the output pane
-//so you will see much of the actual text and markup
-//of a page, but not its images or other media.
+`//Return the content of the given URL.
 //Scripts on the page will not be run, forms and links
 //generally won't work, CSS styles won't be applied.
-get_page("http://hdrobotic.com")
+get_page("http://www.ibm.com")
 
 //get_page is also useful for getting data on the web.
 //Most such date requires passwords or keys.
@@ -539,6 +540,15 @@ get_page("http://www.nactem.ac.uk/software/acromine/dictionary.py?sf=BMI") //Med
 
 //If you're getting a string representing JSON, pass that string
 //as the first argument to the function JSON.parse to get an object.
+
+//Retrieve the html text of a url and pass it as
+//the first argument to a callback
+get_page_async("http://www.ibm.com", function(err, response, body){ out(body.length) })
+
+//The default for the 2nd arg is the DDE function 'out'.
+//out redenders its html string argument in the output pane
+//so you will see much of the actual text and markup
+//of a page, but not its images or other media.
 `)}
 
     beep_id.onclick = function(){Editor.insert("beep()\n")}
