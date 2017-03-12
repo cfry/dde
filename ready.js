@@ -95,6 +95,9 @@
         else if (operating_system == "windows") { operating_system = "win" }
         const remote = require("electron").remote
         window.dde_apps_dir = remote.getGlobal("dde_apps_dir")
+        console.log("In renderer dde_apps_dir: " + window.dde_apps_dir)
+        console.log("In renderer appPath: "      + remote.app.getAppPath())
+        console.log("In renderer __dirname: "    + __dirname)
         // require('fs-lock')({
         //     'file_accessdir': [__dirname, dde_apps_dir], //for readFile, etc. but must include __dirname since Electron needs it.
         //     'open_basedir':   [__dirname ] //__direname is the folder this app is installed in. //valid folders to get require's from. /usr/local/share/node_modules',

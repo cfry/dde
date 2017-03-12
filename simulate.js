@@ -55,9 +55,9 @@ function init_simulation(){
               "To pan, alt or option down, then mouse-down, then drag.")
               his is now in the Documentation under Simulate.
     */
-    console.log("in init_sim before sim.J0")
+    //console.log("in init_sim before sim.J0")
     sim.J0 = new THREE.Object3D(); //0,0,0 //does not move w.r.t table.
-    console.log("in init_sim after sim.J0 with: " + sim.J0)
+    //console.log("in init_sim after sim.J0 with: " + sim.J0)
     sim.J0.position.y  = 0.06
     sim.table.add(sim.J0)
 

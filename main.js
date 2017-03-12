@@ -10,10 +10,14 @@ const user_homedir = os.homedir()
 const ipc = require('electron').ipcMain
 const request = require("request");
 
+global.app_path = app.getAppPath()
+console.log("in main.js with __dirname:    " + __dirname)
+console.log("in main.js with  app_path:    " + global.app_path)
+
 // Module to create native browser window.
 const documents_dir = app.getPath("documents")
 global.dde_apps_dir = documents_dir + "/dde_apps"
-console.log("dde_apps dir: " + global.dde_apps_dir)
+console.log("in main.js with dde_apps_dir: " + global.dde_apps_dir)
 const BrowserWindow = electron.BrowserWindow
 
 // Keep a global reference of the window object, if you don't, the window will
