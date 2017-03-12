@@ -69,7 +69,9 @@
     }
 
     function init_guide(){
-        doc_pane_content_id.innerHTML = file_content(__dirname + "/doc/guide.html")
+        const path = __dirname + "/doc/guide.html"
+        console.log("init_guide using path: " + path)
+        doc_pane_content_id.innerHTML = file_content(path)
     }
 
     function init_ref_man(){

@@ -10,7 +10,9 @@ function init_ros_service(url) { //url must start with ws:// and end with /, but
     }
     else {
         try {
-            ros = new ROSLIB.Ros({
+            ros = new ROSLIB.Ros({ //normally this causes an error printing in the console of:
+                //"websocket connection to {url} failed" BUT the catch clause below doesn't catch it,
+                //so I can't supress that error message in the console.
                 url : url  //'ws://localhost:9090'
             })
         }

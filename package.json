@@ -1,7 +1,7 @@
 {
   "name": "electron-dde",
   "productName": "DDE",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "release_date": "Mar 12, 2017",
   "description": "Dexter Development Environment",
   "author": "Fry",

@@ -58,14 +58,15 @@ function persistent_remove(key, callback=function() { out("Removed " + key + " f
 
 //FILE SYSTEM
 function add_default_file_prefix_maybe(path){
-    if (path.startsWith("/")) { return path }
+    if (is_root_path(path)) { return path }
     else return dde_apps_dir + "/" + path
 }
 
 function file_content(path, encoding="utf8"){
     path = add_default_file_prefix_maybe(path)
     path = adjust_path_to_os(path)
-    return fs.readFileSync(path, encoding);
+    console.log("file_content ultimately using path: " + path)
+    return fs.readFileSync(path, encoding)
 }
 
 function choose_file(show_dialog_options={}) { //todo document
@@ -149,6 +150,10 @@ function adjust_path_to_os(path){
     }
 }
 
+function is_root_path(path){
+    return starts_with_one_of(path, ["/", "C:", "D:", "E:", "F:", "G:"]) //C: etc. is for Windows OS.
+}
+
 //______new load_files syncchronous______
 //verify all paths first before loading any of them because we want to error early.
 function load_files(...paths) {
@@ -156,14 +161,14 @@ function load_files(...paths) {
    let resolved_paths = []
    for (let path of paths){
        path = convert_backslashes_to_slashes(path) //use slashes throughout.
-       if (path.startsWith("/")){
+       if (is_root_path(path)){  //path.startsWith("/")
            let last_slash_pos = path.lastIndexOf("/")
            prefix = path.substring(0, last_slash_pos + 1) // prefix always starts and ends with a slash
        }
        else { path = prefix + path }
        if (path.endsWith(".js")){resolved_paths.push(path)}
        else if (path.endsWith("/")){ //this path is not loadable, its just to setup prefix for the next path
-           if (path.startsWith("/")) { //we've got a new prefix
+           if (is_root_path(path)) { //we've got a new prefix
                prefix = path
            }
            else {
