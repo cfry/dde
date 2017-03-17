@@ -888,9 +888,7 @@ Instruction.Control.out = class Out extends Instruction.Control{
         out(message, this.color)
         job_instance.set_up_next_do(1)
     }
-    toString(){
-        return "" + this.val
-    }
+    toString() { return "Robot.out of: " + this.val }
 }
 
 Instruction.Control.send_to_job = class send_to_job extends Instruction.Control{
@@ -974,7 +972,7 @@ Instruction.Control.send_to_job = class send_to_job extends Instruction.Control{
                                                      where_to_insert: params.where_to_insert, //just for debugging
                                                      wait_until_done: params.wait_until_done //just for debugging
                                                     })
-        Job.insert_instruction_at_location(sfj_ins, params.where_to_insert) //must do before starting or unsuspending
+        Job.insert_instruction(sfj_ins, params.where_to_insert) //must do before starting or unsuspending
         if (to_job_instance.status_code == "not_started"){
             if(params.start){
                 to_job_instance.start({initial_instruction: sfj_ins})
@@ -1346,6 +1344,33 @@ Instruction.Control.wait_until = class wait_until extends Instruction.Control{
                 job_instance.status_code = "waiting"
                 job_instance.set_up_next_do(0)
             }
+        }
+        else if (this.fn_date_dur == "new_instruction"){
+            const pc               = job_instance.program_counter
+            const pc_on_last_instr = (pc == (job_instance.do_list.length - 1))
+            const next_instruction = (pc_on_last_instr ?
+                                       null : job_instance.do_list[pc + 1])
+            if (this.old_instruction === undefined){ //first time through only
+                this.old_instruction = next_instruction
+                job_instance.set_up_next_do(0)
+            }
+            else if (this.old_instruction === null){ //started with this instr as the last one
+                if (pc_on_last_instr) { job_instance.set_up_next_do(0) }
+                else                  { job_instance.set_up_next_do(1) } //got a neew last instr
+            }
+            else if (next_instruction == this.old_instruction){//no change so don't advance the pos
+                job_instance.set_up_next_do(0)
+            }
+            else { //got a new instruction since this instruction started running so execute it
+                job_instance.set_up_next_do(1)
+            }
+        }
+        else {
+            dde_error("In job: " + job_instance.name +
+                      ' in wait_until("new_instruction")<br/>' +
+                      " got fn_date_dur of: " + this.fn_date_dur +
+                      " which is invalid.<br/>" +
+                      ' It should be a function, a date, a number, or "new_instruction".')
         }
     }
 }

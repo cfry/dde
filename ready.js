@@ -28,9 +28,21 @@
     }
 
     function find_doc(){
+        let search_string = find_doc_input_id.value
+        if (search_string.length == 0){
+            let sel = window.getSelection().toString().trim()
+            if (sel.length == 0) { sel = Editor.get_javascript(true) }
+            if (sel.length == 0) { return }
+            else {
+                //find_doc_input_id.value = sel //don't do so that user can do
+                 //other searches for sel with empty type in without having to
+                 //delete the type in. Note output pane shows what's
+                 //being searched for so that's good enough feedback.
+                search_string = sel
+            }
+        }
         close_all_details()
         undecorate_doc_details()
-        let search_string = find_doc_input_id.value
         //out(search_string) //for testing only
         var mark_inst = new Mark(doc_pane_content_id) //document.querySelector("#doc_pane_content_id"))
         mark_inst.unmark()

@@ -1,6 +1,8 @@
-<details style="padding-left:20px;"><summary>v 1.0.0, Feb 20, 2017</summary>
+<details style="padding-left:20px;"><summary>v 1.0.4, Mar 16, 2017</summary>
 Highlights: New Electron Framework, New instruction Robot.grab_robot_status,
-Serial Port extensions, file access improved, dxf improvements.
+Serial Port extensions, file access improved, dxf improvements,
+go_to instruction and friends, better help in finding doc.
+Please read Known Issues.
 <ul>
     <li>Electron Framework replaces Google Chrome App. Facilitates
     single JavaScript environment and utilization of node.js packages.</li>
@@ -78,6 +80,9 @@ Serial Port extensions, file access improved, dxf improvements.
 
     <li> newObject now ignores "name" arg if it is null or undefined.
         But if it is some OTHER non-string, newObject errors.</li>
+    <li> <code>Root</code> is a new global variable that holds the
+       root of the object system. So all object systems paths should
+       now start with Root.</li>
 
     <li> Dexter.draw_dxf fixed bug that ignored the 3rd argument and always treated it as 2000</li>
     <li>Dexter.draw_dxf first argument is usually a string <= 512 long
@@ -100,6 +105,72 @@ Serial Port extensions, file access improved, dxf improvements.
     <li> Replaced the individual videos with
     just one url to the hdrobotic.com video page.
     </li>
+
+    <li> new instruction Robot.label("a string"), its a no-op but provides
+      target for go_to.</li>
+
+    <li> new instruction Robot.go_to(instruction_location)
+      "jumps" the program counter. Lots of functionality in ref man doc.</li>
+
+    <li> Now clicking on TestSuite gives you click help with an underlined
+    "TestSuite" that you can click on to see documentation.</li>
+
+    <li>job.start  now can take "program_counter" and its an instruction_location
+    to init the program_counter to something other than the first instruction.
+    The default is 0, meaning first instruction on do_list is the first one run.
+    Like "go_to" at the beginning of a job.</li>
+
+    <li> job.start now can take initial_instruction as an instruction to run first.
+    This replaces the old param to Job.start of "sent_from_job" which was
+    used when a non-started job was sent an instruction.
+    The new initial_instruction is much more general since it can be used
+    when creating a job, when calling Job.start or by send_to_job.
+    The default is "no instruction". When it exists and
+    a job is started, the initial_instruction is run just BEFORE the
+    instruction at the initialized program_counter (which defaults to 0).</li>
+
+    <li> The documentation "About" section now shows the release date of
+    the DDE version loaded.</li>
+
+    <li> load_files ref man documentation now has examples.</li>
+
+    <li> dde_init.js now documented (under "Installation/Launch DDE").</li>
+
+    <li>  start method now takes a program_counter
+       program_counter: allow a new items: "highest_completed_instruction"
+    and "highest_completed_instruction_or_zero"
+    So that if the job errors, and pc init is "highest_completed_instruction_or_zero"
+    we DON"T reset the do_list to the orig do_list,
+    but keep it the same, and go and grab the id of the
+    instruction that errored and use it.</li>
+
+
+    <li>  Instruction.Control.send_to_job no longer takes a "to_job_name"
+    as an explicit parameter, however,
+    the where_to_start param can be any instruction_location
+    used by Robot.go_to, or program_counter setting.
+    Can include a job property but defaults to "this job".</li>
+
+    <li>  New static method Job: Job.insert_instruction(instruction, location )
+      where location same format as go_to, setting program_counter.</li>
+
+    <li>  sent_from_job was documented but I've undocumented it.
+     Users should use new facilities in
+    new job and start's initial_instruction, Job.insert_instruction.</li>
+
+    <li>  Instruction Robot.wait_until extended to take new value for
+       its argument "new_instruction" meaning
+    when wait_until first gets called, it captures the
+    instruction after it (which could be none, if the wait_until is
+    the last instruction), then waits until
+    the next instruction is different,
+    then it unpauses.
+    Often put on the end of a do_list, or maybe the only thing
+    initially on a do_list, and waits until something gets on it.</li>
+
+    <li> If the search type-in box is empty when you click the doc "Find" button,
+    the selected text in the Doc, JavaScript, or Output pane is used,
+    as noted in the new tooltip for the Find type-in box.</li>
 </ul>
 </details>
 

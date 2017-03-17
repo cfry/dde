@@ -198,12 +198,12 @@ You cannot set this constant. It will have a value something like:
 </details>
 
 <details id="file_content_doc_id" style="margin-left:40px;"><summary>file_content</summary>
-<code>file_content</code> takes an argument of a filepath, similar to <code>load_files</code>,
+<code>file_content</code> takes an argument of a file path,
 and returns a string of the content of the file.<br/>
 <i>Parameters</i><br/>
 <b>path</b> A string of a path to the file. Usually this will not start with a slash,
             but rather tha first character of a file name inside of your dde_apps folder.
-            if the path starts with a path, it should be a complete path from the root
+            if the path starts with a slash, it should be a complete path from the root
             of your file system, on through to dde_apps and the file below it.
             <br/>
 <b>encoding</b> A string indicating the encoding of the file. Default: "utf8".
@@ -218,7 +218,8 @@ and puts that file in DDE's editor.
 <p/>
 Its 2nd argument is a callback that takes no arguments. It is called when the file's content
 is in DDE's editor.<br/>
-<b>Example:</b> <code>Editor.edit_file("/myfold/foo.txt")</code>
+<b>Example:</b> <code>Editor.edit_file("myfold/foo.js")</code> edits the
+file Documents/dde_apps/myfold/foo.js
 </details> <!-- end file_content -->
 
 <details id="file_exists_doc_id" style="margin-left:40px;"><summary>file_exists</summary>
@@ -234,18 +235,25 @@ For others its "/" (forward slash).
 </details>
 
 <details id="load_files_doc_id" style="margin-left:40px;"><summary>load_files</summary>
-<code>load_files</code> gets the content of files from disk and evaluate
+<code>load_files</code> gets the content of files from disk and evaluates
 it in the DDE environment programmatically. You can pass any number of file paths to
 load files. It will load the files sequentially, such that later files
 can depend on the contents of earlier files loaded.
+<p/>
 A file path that starts with a slash is expected to have a full path to the file.
-A file path that <i>doesn't</i> start with a slash will have prepended to it 
+A file path that <i>doesn't</i> start with a slash will have prepended to it,
 the preceeding file path folder (up to but exluding the file name) 
-that <i>did</i> start with a path.
+that <i>did</i> start with a slash.
 If the first file doesn't start with a slash (as is normal),
-its "prefix" will be <code>dde_apps_dir</code>
-This scheme makes it easy to load multiple files in a folder since you only
-have to include that folder name once.
+its "prefix" will be <code>dde_apps_dir</code>. This should be a folder
+named "dde_apps" in your Documents folder.
+This scheme makes it easy to load multiple files in a folder, since you only
+have to include that folder name once, for the first path.
+<p/>
+<i>Examples</i>:<br/>
+<code>load_files("foo.js")</code> Loads the file in your dde_apps folder named foo.js<br/>
+<code>load_files("project1/bar.js", "baz.js")</code> Loads files in the folder dde_apps/project1/
+named bar.js and baz.js.
 <p/>
 load_files returns the result of evaluating the last expression in the last file loaded.
 </details> <!-- end load_files  -->
@@ -270,6 +278,7 @@ load_files returns the result of evaluating the last expression in the last file
          of the given file with "new content".<br/>
 </details>
 
+<!-- removed for security reasons
 <details id="folder_listing_doc_id" style="margin-left:40px;"><summary>folder_listing</summary>
   <code>folder_listing</code> retrieves an array of filenames and/or folder names that are somewhere
       beneath the <b>dde_apps</b> folder. This function only works if you have
@@ -286,7 +295,7 @@ load_files returns the result of evaluating the last expression in the last file
   <code>folder_listing()</code> Retrieves the files and folders immediately under <code>dde_apps</code>.<br/>
   <code>folder_listing("/test_folder/", true, false)</code> Retrieves only the folder names immediately under <code>test_folder</code>.<br/>
   <code>folder_listing("/whatever/", false, false)</code> Retrieves nothing. An empty array will be passed to the callback.           
-</details>
+</details> -->
 </details> <!-- end File Access -->
 
 <details style="margin-left:20px;"><summary>Persistent Database</summary>
@@ -424,7 +433,15 @@ The parameters used to define a new Job are:
            If you want data to persist across launches, see 
            <b>Reference Manual/IO/Persistent Database</b>.         
            </li>
-     </ol>
+        <li><b>program_counter</b> Initialize the program_counter to an instruction id.
+        The default is 0. You can use any instruction_location here. See Robot.go_to
+        for documentation on all the different kinds of instruction_locations.
+        </li>
+        <li><b>initial_instruction</b> Add an initial instruction to the do_list at
+        the location of program_counter. Thus this instruction will be executed
+        first when the job is run. Default null (no instruction added).
+        </li>
+    </ol>
 </details> <!-- end new Job parameters -->
 
 <details id="start_doc_id" style="margin-left:20px;"><summary>start</summary>
@@ -433,16 +450,46 @@ The parameters used to define a new Job are:
    After a job instance is done running, you can call <code>start</code>
    again to run it again.<p/>
    <i>Example</i> <code>Job.my_job.start()</code><p/>
-   <i>Parameter</i><br/>
-   <code>sent_from_job</code> can be any do_list item, which will be prepended to the do_list
-         of the job before it is started. This new do_list item is <i>not</i> remembered
-         in subsequent calls to start for this same job instance.
-         It is thus a way to customize a job for each <code>start</code> call.
-         <p/>
-         Its name comes from its (interal) usage when the instruction <code>send_to_job</code>
-         sends an instruction to a job that has been defined but not yet started.<p/>
-         This parameter is not commonly used. Most users can ignore it.
+   <i>Parameters</i><br/>
+   <code>start</code> takes an object literal as its argument with the
+   same names and values as <code>new Job</code> except that it can't
+   take "name" as a property (i.e. you can't rename the job when you start it).
+   Below are two of the most useful properties you can use:<br/>
+    <li><b>program_counter</b> Initialize the program_counter to an instruction id.
+        The default is 0. You can use any instruction_location here. See Robot.go_to
+        for documentation on all the different kinds of instruction_locations.
+    </li>
+    <li><b>initial_instruction</b> Add an initial instruction to the do_list at
+        the location of program_counter. Thus this instruction will be executed
+        first when the job is run. Default null (no instruction added).
+    </li>
+    Note that these parameters override the same-named properties used in making
+    a new job, but they are only used for this call to start. They
+    do not perminently affect the job definition.<br/>
+    <i>Example</i>:<br/>
+    <code>Job.my_job.start({program_counter: "highest_completed_instruction_or_zero"})</code><br/>
+    If a job errored the last time it ran, you can use this to restart the job
+    with the errored instruction being the first one run.
 </details>
+
+<details id="Job.insert_instruction_doc_id" style="margin-left:20px;"><summary>insert_instruction</summary>
+Insert an instruction into a Job's do_list at a particular location.<br/>
+<i>Parameters</i>:<br/>
+<b>instruction</b> The instruction to insert. This can be an array of instructions
+if you effectively want to insert more than one.<br/>
+<b>location</b> Any instruction_location documented under <code>Robot.go_to</code> can be used
+including integers, names of labels, etc. <br/>
+<i>Example</i>: <pre>
+Job.insert_instruction(Robot.out("the end"),
+                       {job: "my_job",
+                        offset: "end"})</pre><br/>
+Adds an instruction that prints "the end" at the end of <code>Job.my_job.do_list</code>.<br/>
+The instruction <code>Robot.send_to_job</code> performs the core of this functionality
+in an instruction format.<br/>
+See <code>Robot.wait_until</code> documentation for its "new_instruction" argument
+on how to continually add and execute a new instruction in a running job.
+</details>
+
 
 </details> <!-- end job -->
 
@@ -486,6 +533,116 @@ Example:<pre> Robot.get_page(make_url("www.nactem.ac.uk/software/acromine/dictio
                          {sf: "BMI"}))</pre>
 <code>make_url</code> is documented in the reference manual under "I/O".
 </details> <!-- end get_page -->
+
+<details id="Robot.go_to_doc_id" style="margin-left:20px;"><summary>go_to</summary>
+In the 1960's programs were usually characterized by a list of instructions.
+As more flexible control was needed, the "go_to" instruction was added to
+cause the program_counter that was pointing at the executing instruction to jump to
+a new location, instead of just incrementing. Overuse
+of this control structure gave rise to difficult-to-debug code and
+go_to fell out of favor, to the extent that it isn't even <i>in</i> popular modern
+general purpose languages.
+<p/>
+The process of making things often has a long list
+of instructions that are executed sequentially. DDE provides the
+more conventional function calling, including return, if, and for loops.
+But sometimes the most convenient thing to do is "leap over" some instructions
+on a job's do_list and proceed from there.
+Thus DDE provides the taboo <code>go_to</code> instruction.
+Don't use it a lot. Going backwards is particularly dangerous.
+But we give you enough rope to hang yourself or build a masterpiece.
+<p/>
+DDE's go_to is more versatile than go_to's of the past.
+If this complexity is too hard, just don't use it.
+<p/>
+The go_to instruction takes just one argument: <code>instruction_location</code>.
+It has a number of different kinds of arguments.<br/>
+<b>a positive integer</b> Moves the program counter to the indicated instruction id.
+The instruction at that id will be the one executed after the go_to instruction.<br/>
+<b>a negative integer</b> Sets the program counter to the length of the
+do_list, plus this negative integer. Thus an integer of -1 sets the program counter
+to the last instruction, so that it will be executed next. -2 goes to the second to last
+instruction, etc.<br/>
+<b>the name of a label instruction</b> The program counter is set to that label's id.<br/>
+<b>the name of a sync_point instruction</b> The program counter is set to that instruction's id.<br/>
+<b>the type of instruction</b> Examples: <code>"go_to", "label", "sync_point"</code> etc.
+For example, if we have "label", then we're not going to a specific label, just
+the next instruction of type "label" found.<br/>
+<b>Instruction oplet</b> Low level instructions to Dexter have a letter that
+designates their type. For example <code>"a"</code> would refer to
+the <code>move_all_joints</code> instruction. You can see the oplet for
+an instruction by evaling the call to make it, i.e. <code>Dexter.move_all_joints(100)</code><br/>
+<b>"program_counter"</b> Set's the program_counter to the program_counter. Only useful
+when the instruction_location is an array. <br/>
+<b>"before_program_counter"</b> Set's the program_counter to the instruction just
+before the program_counter.<br/>
+<b>"after_program_counter"</b> Set's the program_counter to the instruction just
+    after the program_counter.<br/>
+<b>"end"</b> Sents the program counter to one greater than the last instruction id,
+effectively ending the job.<br/>
+<b>"next_top_level"</b> A top level instruction can cause multiple instructions to
+be inserted right beneath it. This sets the program counter to the next top level
+instruction, even though it may now be executing "sub" instructions. <br/>
+<b>"highest_completed_instruction"</b> When you are re-starting a job, this
+becomes handy to start the job at the last instruction that completed.
+Perhaps the instruction completed, but it inadvertently caused an error.
+You can fix the problem, then rerun that last instruction and continue on.
+Take care to not execute that last instruction twice if you don't want to.
+You can go one beyond it like so:<br/>
+<code>Job.my_job({program_counter: ["highest_completed_instruction", 1]})</code><br/>
+<b>"highest_completed_instruction_or_zero"</b> Like <code>"highest_completed_instruction"</code>
+but if the job hasn't been started yet, or has completed successfully,
+this sets the program_counter to its default, 0 so that the first
+executed instruction will be the first instruction in the do_list.
+Generally <code>"highest_completed_instruction_or_zero"</code> is more useful than
+    <code>"highest_completed_instruction"</code>.
+<br/>
+<b>A literal object</b> The literal object can have up to three properites.
+<ul><li><b>offset</b> Can be any one of the above instruction_locations.<br/>
+    <i>Example</i>: <code>{offset: 12}</code>
+    </li>
+    <li><b>process</b> Describes how the offset is searched for. Note that since
+      you may have more than one label with a given name, the order in which
+      you traverse the do_list looking for such labels can matter. Possible values:
+    <ul><li><b>forward</b> Search forward from the current location (default 0)
+        for the location in the <code>offset</code>
+        <i>Example</i>: <code>{offset: "label3", process: "forward"}</code>
+        searches forward from the current location in the do_list to
+        the first label or sync_point instruction named "label3".
+        If it is not found, error.
+        </li>
+        <li><b>backward</b> Search backwards for the location of the offset. Error
+        if not found.</li>
+        <li><b>forward_then_backward</b> Search forward from the current location
+        to the end of the do_list. If the offset is not found, search backwards from
+        the current location. Error if not found. This is the default process.</li>
+        <li><b>backward_then_forward</b> Search backward from the current location
+            to the beginning of the do_list. If the offset is not found, search forwards from
+            the current location. Error if not found.</li>
+    </ul>
+    <li><b>job</b> An instruction location can indicate a job of the described instruction.
+    By default, that's the job that the go_to instruction is in. But you can
+    tell another job to jump to a new instruction for its next instruction
+    if you like. <br/>
+    <i>Example</i>: <code>{job: "my_other_job", offset: "label3"}</code></li>
+    <li><b>An array</b></li> There may not be a convenient "one shot" way to
+    describe a location, however, by using two or more designators, you may
+    better be able to describe it.<br/>
+    <i>Examples</i>:<br/>
+    <code>["myLabel", 1]</code> indicates the instruction immediately after "myLabel".<br/>
+    <code>["myLabel", -1]</code> indicates the instruction immediately before "myLabel".<br/>
+    <code>["program_counter", {offset: "sync_point", process: "backward"}]</code>
+    Searches backwards from the program_counter to
+    the first instruction of type "sync_point".<br/>
+</ul>
+Instruction_locations are also used in
+initializing a Job's <code>program_counter</code> in defining the job, as well as
+in calling a job's start method. The <code>Robot.send_to_job</code> instruction
+uses an instruction_location for identifying
+where within the job to insert the given instruction as does the method
+<code>Job.insert_instruction</code>.
+</details>
+
 
 <details id="Robot.grab_robot_status_doc_id" style="margin-left:20px;"><summary>grab_robot_status</summary>
    robot_status is an array that holds data from the robot, along with aspects of the instruction
@@ -574,6 +731,13 @@ Robot.grab_robot_status("no_result", Serial.DATA0), </code><br/>
 See Job Example 9 for an extended example.
 </details> <!-- end grab_robot_status -->
 
+<details id="Robot.label_doc_id" style="margin-left:20px;"><summary>label</summary>
+This instruction is a no-op. However, it provides a target location
+for <code>Robot.go_to</code>, initializing the program_counter of a job, and
+a location to insert an instruction using <code>Robot.send_to_job</code>.<br/>
+<i>Example</i>: <code>Robot.label("lab2")</code>
+</details>
+
 <details id="Robot.out_doc_id" style="margin-left:20px;"><summary>out</summary>
   Very similar to the function <code>out</code> but made for use as a robot instruction.
   Prints a message to the Output pane in the color of your choice.<p/>
@@ -649,8 +813,6 @@ See Job Example 9 for an extended example.
    <p/>
    If a sync point instruction has no job names, or only its own job name,
    it will not wait but rather breeze right through its sync_point.
-   send_to_job can use such "labels" as marking insertion points for its
-   new instructions via the parameter where_to_insert.
    <p/>
    By having different job_names, you can configure a sync_point in one job
    to wait for the other job's sync point to be reached, yet <i>not</i> have
@@ -665,30 +827,28 @@ See Job Example 9 for an extended example.
 <code>send_to_job</code> inserts instructions into another job's do_list. It can also
 start, unsuspend and grab data from another job. <code>send_to_job</code> is complex, powerful,
 and rarely used. Example: <pre>
-Robot.send_to_job({to_job_name: "j4",
-                   do_list_item: Dexter.move_to([100000, 100000, 100000]),
-                   where_to_insert: "after_pc",
+Robot.send_to_job({do_list_item: Dexter.move_to([100000, 100000, 100000]),
+                   where_to_insert: "end",
                    unsuspend: true,
                    wait_until_done: true})</pre>
 <i>Parameters:</i><ul>
-<li><b>to_job_name</b> The name of the job receiving the new instructions.</li>
-<li><b>do_list_item</b> An instruction or array of instructions to insert into the to_job.</li> 
+<li><b>do_list_item</b> An instruction or array of instructions to insert into the to_job.</li>
 <li><b>where_to_insert</b> The location in the do_list of the to_job to insert the do_list_item.
-  Such locations are always after the current program counter of to_job.
-  This must be one of: 
-  <ul><li><b><code>"next_top_level"</code></b> (the default). Inserts the do_list_item
-  after the program_counter and just before the next original do_list item.
+  The full list of instruction_locations for <code>where_to_insert</code>
+  can be seen in the documentation for the <code>Robot.go_to</code> instruction.
+  Particularly useful ones for send_to_job are:<br/>
+  <ul><li><code>{job: "other_job", offset: "next_top_level"}</code> Inserts the do_list_item
+  after the program_counter and just before the next original (top level) do_list item
+  in the referenced job.
   If a function do_list item in to_job returns an array of instructions,
   this ensures that the inserted do_list_item will not go in the middle of such instructions.
   Thus if the instructions from the function must be executed as a continuous group, 
   "next_top_level" is a safe place to insert additional do_list items.</li>
     </li>
-    <li><b><code>"after_pc"</code></b> Immediately after the to_job's program_counter. Not as safe as "next_top_level".</li>
-    <li><b><code>"end"</code></b> At the very end of the do_list.</li>
-    <li><b>sync_point name</b> Immediately after the sync_point that is after the program_counter
-         and has this name. Note that you can have in the to_job do_list a sync_point instructions
-         with no jobs to sync to. In that case, the sync_point is a harmless label for a location
-         that can be used by send_to_job.</li>
+    <li><code>"after_program_counter"</code> Immediately after the destination job's program_counter.
+    Not as safe as "next_top_level".</li>
+    <li><code>"end"</code> At the very end of the do_list. With no job designator,
+    this will extend the current job's do_list by one new instruction on the end.</li>
     </ul></li>
  <li><b>wait_until_done</b> (default false) If true, the from_job will wait until the to_job
     executes its newly inserted instructions.</li> 
@@ -706,10 +866,12 @@ Robot.send_to_job({to_job_name: "j4",
     the returned value is set to its corresponding other variable name in the 
     user_data of the from_job. This allows the from_job to get data from the to_job
     immediately after the do_list_item is run. </li>
- </ul>  
+ </ul>
+ To achieve the same effect of send_to_job, see documention on the method
+    <code>Job.insert_instruction</code>.
 </details> <!-- end send_to_job -->
 
-<details id="Robot.sent_from_job_doc_id" style="margin-left:20px;"><summary>sent_from_job</summary>
+<!-- obsoleted by initial_instruction and insert_instruction <details id="Robot.sent_from_job_doc_id" style="margin-left:20px;"><summary>sent_from_job</summary>
 This instruction is typically not created by users directly. send_to_job creates
 such an instruction and places it on the to_job as a container for the newly inserted
 instructions. However, if you want to extend the do_list of a job when starting it,
@@ -723,7 +885,7 @@ Example:<pre>Job.j8.start({sent_from_job: Robot.sent_from_job(
 <b>where_to_insert</b> See doc for send_to_job<br/>
 The inserted instructions will not be present if, after running the job,
 you call start with no argument.
-</details> <!-- end sent_from_job -->
+</details> --> <!-- end sent_from_job -->
 
 <details id="Robot.wait_until_doc_id" style="margin-left:20px;"><summary>wait_until</summary>
 This instruction causes a job to pause until the supplied condition is met.<br/>
@@ -745,6 +907,33 @@ The one argument can be:
           so you can access the entire job's state when determining whether
           or not to return <code>true</code>.
     </li>
+    <li><b>"new_instruction"</b> Causes a wait until an instruction is added
+    just below this instruction on the do_list. If this is the last instruction
+    on the do_list, then this job waits until a new instruction is added on the
+    end of a do list.<br/>
+    <i>Example</i>:<pre>
+new Job({name: "my_job",
+         do_list: [Robot.out("first instruction"),
+                   Robot.wait_until("new_instruction")]})
+Job.my_job.start()</pre>
+        Evaling <code>Job.my_job.start()</code><br/>
+        causes "first instruction" to be printed out, then the
+        job pauses until an instruction is inserted into the do_list right after this "wait_until" instruction.<pre>
+Job.insert_instruction(Robot.out("the end"),
+                       {job: "my_job",
+                        offset: "after_program_counter"})</pre>
+        Causes wait_until to stop waiting, "the end" is printed and the job completes successfully.<br/>
+        If instead of that argument to <code>insert_instruction</code>, we had instead used:<pre>
+Job.insert_instruction([Robot.out("the middle"),
+                        Robot.wait_until("new_instruction")],
+                        {job: "my_job",
+                         offset: "after_program_counter"})</pre>
+        then each time we eval that code, it prints "the middle" and <code>my_job</code> pauses again.
+        We can end the pause by inserting an instruction after the program counter
+        that doesn't contain a wait_until,
+        such as our first call to <code>insert_instruction</code> above.
+    </li>
+</ul>
 </details> <!-- end wait_until -->
 
 </details> <!-- end Robot Instructions -->
@@ -1458,7 +1647,7 @@ There are three properties that behave
 specially.
 <p/>
 <b><i>prototype</i></b> This property sets the "parent" object
-of the new object. <i>prototype</i> defaults to code>Root</code>. 
+of the new object. <i>prototype</i> defaults to <code>Root</code>.
 Once you have the new object, <code>new_obj.prototype</code> gives you
 back that prototype. Unlike most other properties, you cannot set this property and win.
 Class-instance object systems don't allow you to change the class of an object.

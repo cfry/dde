@@ -44,9 +44,7 @@ var Job = class Job{
                                      shallow_copy(this.orig_args.user_data)
             this.program_counter   = this.orig_args.program_counter //see robot_done_with_instruction as to why this isn't 0,
                                      //its because the robot.start effectively calls set_up_next_do(1), incremening the PC
-            this.initial_instruction = this.orig_args.initial_instruction
-            const sent_from_job    = options.sent_from_job
-            delete options.sent_from_job //even if this field is not present, that's ok, this is a oop
+            this.initial_instruction = this.orig_args.initial_instruction //also used by sent_from_job
 
             //first we set all the orig (above), then we over-ride them with the passed in ones
             for (let key in options){
@@ -92,7 +90,7 @@ var Job = class Job{
                                                   //where_to_insert="next_top_level"
             if (this.initial_instruction) {
                 //Instruction.Control.send_to_job.insert_sent_from_job(this, sent_from_job)
-                Job.insert_instruction_at_location(this.initial_instruction, {job: this, offset: "program_counter"})
+                Job.insert_instruction(this.initial_instruction, {job: this, offset: "program_counter"})
             }
             const added_items_initial_length =
             this.added_items_count = new Array(this.program_counter) //This array parallels and should be the same length as the run items on the do_list.
@@ -641,9 +639,6 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
             this.sent_from_job_instruction_queue = []
             this.set_up_next_do(0)
         }
-        else if (Array.isArray(cur_do_item) && (cur_do_item.length == 0)){ //nothing to do, just skip it.
-            this.set_up_next_do(1)
-        }
         else if (Instruction.is_control_instruction(cur_do_item)){
             cur_do_item.do_item(this)
         }
@@ -651,52 +646,11 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
             this.wait_until_instruction_id_has_run = this.program_counter
             this.send(cur_do_item)
         }
-         /*   for (var i = 0; i <= this.max_contiguous_instructions; i++){
-                if(i > 0) {this.program_counter += 1}
-                if (i == this.max_contiguous_instructions){
-                    this.stop_for_reason("error", "Job: " + this.name + " has " + this.max_contiguous_instructions +
-                        " instructions on the do list.<br/>" +
-                        "That's too many. You might have an infinite loop.<br/>" +
-                        "If you legitimately put that many instruction in one fell swoop,<br/>" +
-                        "that prevents this job from getting proper feedback from Dexter.")
-                    break;
-                }
-                else if(this.program_counter >   this.do_list.length){ shouldnt("in do_next_item, instruction_array processing, pc is > doList.length")}
-                else if(this.program_counter === this.do_list.length){ //turn off heartbeat, but don't close socket until we've waited for the final instruction to be done
-                    //this will not hit on the first iteration of this for loop,
-                    //because this case would have been caught above.
-                    this.program_counter -= 1 //LET Dexter.robot_done_with_instruction increment the PC and let the top of do_next_item
-                    //catch that we're done and set the reason.
-                    this.wait_until_instruction_id_has_run = this.program_counter
-                    //even though we've sent out all the items on the do list, don't quit
-                    //until the last sent item is confirmed done and robot_done_with_instruction calls
-                    //set_up_next_do
-                    break;
-                }
-                else {
-                    var cur_do_item = this.do_list[this.program_counter] //for the first of a seq of instruction arrays, we end up retriveing it twice from the to do list but for non first, we need this each loop iteration
-                    if (Instruction.is_instruction_array(cur_do_item)){ //first one will get this check twice (first is above) but that's ok
-                        if ("gz".indexOf(cur_do_item[0]) != -1){
-                            this.wait_until_instruction_id_has_run = this.program_counter
-                            //this.set_up_next_do(1) //don't want to run this instruction again
-                            this.send(cur_do_item)
-                            break;
-                        }
-                        else {
-                            this.send(cur_do_item)
-                        }
-                    }
-                    else {//got non array so we finished the continuous arrays so done with do_next_item
-                        //we just put out a list of instructions so wait until they're run before
-                        //running any more do_list items
-                        //this will not hit the first iteration
-                        this.program_counter -= 1 //LET Dexter.robot_done_with_instruction increment the PC
-                        this.wait_until_instruction_id_has_run = this.program_counter
-                        break;
-                    }
-                }
-            }
-        } */
+        else if (Array.isArray(cur_do_item)){
+            this.handle_function_call_or_gen_next_result(cur_do_item, cur_do_item)
+            //note that a user normally wouldn't directly put an array on the do_list,
+            //but Job.insert_instruction very likely would to put > 1 instruction on
+        }
         else if (is_iterator(cur_do_item)){ //must be before "function" because an iterator is also of type "function".
             var next_obj = cur_do_item.next()
             var do_items = next_obj.value
@@ -1191,7 +1145,21 @@ Job.prototype.instruction_location_to_id = function(instruction_location, starti
         else if (inst_loc == "before_program_counter") { return job_instance.program_counter - 1 }
         else if (inst_loc == "after_program_counter")  { return job_instance.program_counter + 1 }
         else if (inst_loc == "end")                    { return job_instance.do_list.length } //bad for go_to but ok for insert instruction, ie a new last instruction
-        else if (inst_loc == "next_top_level")         { return "next_top_level" } //used only by insert_instruction_at_location
+        else if (inst_loc == "next_top_level")         { return "next_top_level" } //used only by insert_instruction
+        else if (inst_loc == "highest_completed_instruction") {
+            const hci = job_instance.highest_completed_instruction_id
+            if(!hci || (hci <= 0)) { return 0 }
+            else { return hci }
+        }
+        else if (inst_loc == "highest_completed_instruction_or_zero") {
+            const hci = job_instance.highest_completed_instruction_id
+            if(!hci || (hci <= 0) || (hci >= (this.do_list.length - 1)))  { return 0 }
+             //for the last cause above: if we completed the job the last time through, then start over again at zero
+            else { return hci } //else we are resuming at
+              //the highest completed instruction. But beware, you *might* not want
+              //to do that instruction twice, in which case the instruction_location should be
+              // ["zero_or_highest_completed_instruction", 1]
+        }
         else { // a label or a sync_point name search pc, then after, then before pc
            if (starting_id == null) { starting_id = this.program_counter }
            if      (process == "forward_then_backward") { return job_instance.ilti_forward_then_backward(inst_loc, starting_id, orig_instruction_location) }
@@ -1311,7 +1279,7 @@ Job.prototype.ilti_backward = function(inst_loc, starting_id){
         "<br/>in the original_instruction_location: " + orig_instruction_location)
 }
 
-Job.insert_instruction_at_location = function(instruction, location){
+Job.insert_instruction = function(instruction, location){
     const the_job = Job.job_of_instruction_location(location)
     if (the_job){
         const index = the_job.instruction_location_to_id(location)
@@ -1321,7 +1289,7 @@ Job.insert_instruction_at_location = function(instruction, location){
         else { the_job.do_list.splice(index, 0, instruction) }
     }
     else {
-        dde_error("insert_instruction_at_location passed location: " + insert_instruction_at_location +
+        dde_error("insert_instruction passed location: " + insert_instruction +
                   " which doesn't specify a job. Location should be an array with" +
             "a first element of a literal object of {job:'some-job'}")
     }
