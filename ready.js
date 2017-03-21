@@ -46,8 +46,12 @@
         //out(search_string) //for testing only
         var mark_inst = new Mark(doc_pane_content_id) //document.querySelector("#doc_pane_content_id"))
         mark_inst.unmark()
-        mark_inst.mark(search_string, {diacritics: false,  //I don't need diacritics, and it use to not work but is working now. Default is true.
-            done:function(count){out(count + ' occurrences of "' + search_string + '" found.', "black", true)},
+        mark_inst.mark(search_string, {
+            diacritics: false,  //I don't need diacritics, and it use to not work but is working now. Default is true.
+            done:function(count){out(count + ' matches of <span style="background-color:yellow;">' +
+                                     search_string + '</span> now highlighed  in yellow in the Doc pane.<br/>' +
+                                     'To see them, twist down the <details style="background-color:rgb(255, 214, 153);"><summary><b>Orange Rows</b></summary></details>',
+                                    "black", true)},
             each:function(text_node){
                 let details_ancestors = $(text_node).parents("details").children("summary")
                 for(let i = 0; i <  details_ancestors.length; i++){
@@ -237,10 +241,10 @@
             myCodeMirror.focus() 
         }
     }
-
     save_as_id.onclick=Editor.save_as
+    update_id.onclick = function (){open_doc(update_doc_id)}
 
-    //Edit menu
+        //Edit menu
     Editor.init_editor()
 
     //Insert menu

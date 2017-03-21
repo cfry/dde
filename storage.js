@@ -65,7 +65,7 @@ function add_default_file_prefix_maybe(path){
 function file_content(path, encoding="utf8"){
     path = add_default_file_prefix_maybe(path)
     path = adjust_path_to_os(path)
-    console.log("file_content ultimately using path: " + path)
+    //console.log("file_content ultimately using path: " + path)
     return fs.readFileSync(path, encoding)
 }
 
