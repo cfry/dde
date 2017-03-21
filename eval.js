@@ -28,14 +28,15 @@ var char_position = function(src, line_number, col_number){
 
 
 
-var in_ui = function(){ return true } //todo search and remove all calls
-function post_to_sandbox(message_obj){ //todo remove all calls
-    sandbox_iframe_id.contentWindow.postMessage(message_obj, '*');
-}
+//var in_ui = function(){ return true }
 
-function post_to_ui(message_obj){ //todo remove all calls
+/*function post_to_sandbox(message_obj){
+    sandbox_iframe_id.contentWindow.postMessage(message_obj, '*');
+}*/
+
+/*function post_to_ui(message_obj){
     window.parent.postMessage(message_obj, "*")
-}
+}*/
 
 var prefix_to_evaled_src = "try{" //referenced in eval code AND in error handler way below
 

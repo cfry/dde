@@ -187,7 +187,7 @@ Js_info = class Js_info {
                     }
                     return main_help + suffix
                 }
-                else {shouldnt("In Js_info.get_info_string, in sandbox with fn_name: " + fn_name)}
+                else {shouldnt("In Js_info.get_info_string, with fn_name: " + fn_name)}
             }
             else {
                 val = value_of_path(fn_name)
