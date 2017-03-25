@@ -115,13 +115,13 @@ DexterSim = class DexterSim{
                     DexterSim.fill_in_robot_status_joint_angles(robot_status)
                     */
                     break;
-                case "B": //move_to_relative  xyz
+               // case "B": //move_to_relative  xyz
                     /*if (!isNaN(instruction_array[2])) robot_status[Dexter.ds_j5_x_index]     = robot_status[Dexter.ds_j5_x_index] + instruction_array[2]
                     if (!isNaN(instruction_array[3])) robot_status[Dexter.ds_j5_y_index]     = robot_status[Dexter.ds_j5_y_index] + instruction_array[3]
                     if (!isNaN(instruction_array[4])) robot_status[Dexter.ds_j5_z_index]     = robot_status[Dexter.ds_j5_z_index] + instruction_array[4]
                     if (!isNaN(instruction_array[5])) robot_status[Dexter.ds_j4_angle_index] = instruction_array[5] //not relative
                     DexterSim.fill_in_robot_status_joint_angles(robot_status)*/
-                    break;
+                 //   break;
                 case "e": //cause an error. Used for testing only
                     robot_status[Dexter.ERROR_CODE] = instruction_array[2]
                     break;

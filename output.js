@@ -881,9 +881,12 @@ function streamingMicRecognize() {
     const record = require('node-record-lpcm16'); // [START speech_streaming_mic_recognize]
     const Speech = require('@google-cloud/speech'); // Imports the Google Cloud client library
     //const speech = Speech() // Instantiates a client
+    const my_path = adjust_path_to_os(__dirname + '/dexter-dev-env-b05da431ead6.json')
+    console.log("my_path is" +
+        ":" + my_path)
     const speech = Speech({
         projectId: 'dexter-dev-env',
-        keyFilename:  adjust_path_to_os(__dirname + '/dexter-dev-env-b05da431ead6.json')
+        keyFilename: my_path
     })
 
     //from https://github.com/GoogleCloudPlatform/google-cloud-node#cloud-speech-alpha
@@ -1031,6 +1034,10 @@ function get_page_async(url_or_options, callback){
 window.get_page_async = get_page_async
 
 //synchronous.
+//bret's recommended I use npm sync-request BUT that takes different
+//args/options than standard request which I use for get_page_async
+//and I don't want users to have to use different args for the 2 fns,
+//so I stick with my "main.js" trick for async here.
 function get_page(url_or_options){
         console.log("rend get_page sync: " + url_or_options)
         const reply = ipcRenderer.sendSync('get_page', url_or_options) //see main.js "get_page"
@@ -1038,6 +1045,24 @@ function get_page(url_or_options){
         return reply
 }
 window.get_page = get_page
+
+
+//returns null if it can't get the data, else an array
+//of 2 strings a la ["1.0.2, "2017-03-23T13:02:59"]
+window.latest_release_version_and_date = function(){
+    //hitting the below url from a browser works, but not programmatically
+    //unless you have a header of the below usr agent.
+    const browser_user_agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36'
+    var props =
+        get_page({url: "https://api.github.com/repos/cfry/dde/releases/latest",
+            headers: {"user-agent": browser_user_agent}})
+    if(props.startsWith("Error:")){ return null }
+    else {
+        try { props = JSON.parse(props)}
+        catch(err) { return null }
+        return [ props.name, props.published_at]
+    }
+}
 
 function make_url(url, arguments) {
     let index_of_protocol = url.indexOf("://")

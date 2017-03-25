@@ -194,6 +194,14 @@ function is_json_date(a_string){
     }
     else return false
 }
+
+//lots of inputs, returns "Mar 23, 2017" format
+function date_to_mmm_dd_yyyy(date){
+    if(!(date instanceof Date)) { date = new Date(date) }
+    const d_string = date.toString()
+    const mmm = d_string.substring(4, 8)
+    return mmm + " " + date.getDate() + ", " + date.getFullYear()
+}
 //_____end Date_______
 
 //returns a primitiate that can be posted like a string, nuumber, boolean

@@ -87,6 +87,41 @@ with lots of options, described at:
 
 <details style="margin-left:20px;"><summary>Sound</summary>
 
+<details id="beep_doc_id" style="margin-left:20px;"><summary>beep</summary>
+Plays an electronic sound.<br/>
+<i>Parameters</i>:<br/>
+<b>duration</b> A number milliseconds. Default: 500<br/>
+<b>frequency</b> A number in Hertz. Default: 400<br/>
+<b>volume</b> A number between zero and 1. Default: 1<br/>
+<b>waveform</b> The timbre or waverform of the sound. Default: "triangle".
+    Other options are: "sine", "square", "sawtooth".<br/>
+<b>callback</b> A function of no arguments that is called when the beep finishes playing.
+               Default: null, meaning do nothing.<br/>
+<i>Example</i>: <pre>
+beep({duration: 500,
+      frequency: 440,
+      volume: 1,
+      waveform: "triangle",
+      callback: function(){beep({frequency:493.88})}
+     })
+</pre>
+</details>
+
+<details id="beeps_doc_id" style="margin-left:20px;"><summary>beeps</summary>
+Beeps the indicated number of times with the default <code>beep</code> settings.<br/>
+<i>Parameters</i>:<br/>
+    <b>times</b> An integer indicated the number of times to beep. Default: 1.<br/>
+    <b>callback</b> A function of no arguments that is called when beeps finishes playing.
+    Default: null, meaning do nothing.<br/>
+    <i>Example</i>: <pre>
+beeps(3,
+      function(){
+        speak({speak_data: "Third Floor, home robots"})
+      })
+</pre>
+</details>
+
+
 <details id="recognize_speech_doc_id" style="margin-left:20px;"><summary>recognize_speech</summary>
     Speech recognition has a long history in AI. After many decades of research, it <i>can</i>
     be useful, but don't expect it to be as reliable as a human. DDE uses Google's speech
@@ -437,6 +472,14 @@ The parameters used to define a new Job are:
         The default is 0. You can use any instruction_location here. See Robot.go_to
         for documentation on all the different kinds of instruction_locations.
         </li>
+        <li><b>ending_program_counter</b> Declare at the outset of a job that it
+            will not execute the indicated instruction or beyond. This can be any
+            valid instruction_location that does not include a job. It is evaluated
+            at the start of each instruction, so if labels move as a result of
+            dynamically added instructions, that's OK.
+            The default is "end". See <code>Robot.go_to</code>
+            for documentation on all the different kinds of instruction_locations.
+        </li>
         <li><b>initial_instruction</b> Add an initial instruction to the do_list at
         the location of program_counter. Thus this instruction will be executed
         first when the job is run. Default null (no instruction added).
@@ -502,6 +545,72 @@ on how to continually add and execute a new instruction in a running job.
 <details style="margin-left:20px;"><summary>Robot Instructions</summary>
 These instructions can be used for any robot, as can the instructions for
 the Human robot.
+<details style="margin-left:20px;"><summary>Any Function Def</summary>
+Any function definition can be put on the do_list as an instruction.
+When it is run, the function is called with <code>this</code>
+being the instance of Job that the function def is in. Since you can put any
+JavaScript inside a function definition, you can have an instruction
+execute any JS whatsoever.
+<p/>
+Often you'll make functions that have no returned value.
+If so, after the function is called, then the next instruction
+on the do_list will be run. But if the function returns
+another instruction, or an array of instructions, then those
+will be inserted into the do_list immediately below the
+function def, and they will be run next.
+<p/>
+<i>The below functionality is advanced use of DDE.</i><br/>
+The function
+body might have an <code>if</code> in it. Under certain
+conditions the function will return one instruction,
+and it other cases, it will return another (or <code>null</code>, meaning
+just do the next instruction on the do_list, or an array of
+instructions to do them all).
+<p/>
+If a function returns the special string
+<code>"dont_call_set_up_next_do"</code>,
+then that will cause nothing to happen in the job. It won't advance.
+This is not a good thing to do by itself, but you might
+want to conditionally call
+<code>this.set_up_next_do()</code>. This tells DDE to
+continue processing this job's instructions.
+The argument to this function is an integer saying how much
+to increment the program counter. It defaults to 1, meaning
+do the next instruction. Another useful value is 0,
+which will mean that after a short pause, run this instruction
+again. Then in some other running of the instruction, a different
+branch of an <code>if</code> may be taken that will call
+<code>this.set_up_next_do(1)</code> causing the job to proceed.
+<i>Example</i>:<pre>
+function pause_a_bit(){
+   if (new Date().getSeconds() < 30){
+      this.set_up_next_do(0)
+   }
+   else {
+      this.set_up_next_do(1)
+   }
+   return "dont_call_set_up_next_do"
+}
+</pre>
+The above example could better be implemented using
+<code>Robot.wait_until</code>, but there are
+cases where the increased flexibility of the above is convenient.
+<p/>
+You can put both named and anonymous functions on a do_list.
+A named instruction allows you to add a bit of "documentation" to
+the function. You can also use the name of a function like a
+label and "go to"
+that name using a <code>Robot.go_to</code> instruction,
+or use the function's name in
+any uses of an instruction_location.
+<p/>
+If you name your function definition,
+you can define it <i>outside</i> of the do_list, then just
+have its name in the do_list source code. This lets you put
+the same function in multiple locations on the do_list and
+only have to define it once.
+</details>
+
 
 <details id="Robot.error_doc_id" style="margin-left:20px;"><summary>error</summary>
   Causes the job to error, immediately stopping it.
@@ -565,6 +674,7 @@ to the last instruction, so that it will be executed next. -2 goes to the second
 instruction, etc.<br/>
 <b>the name of a label instruction</b> The program counter is set to that label's id.<br/>
 <b>the name of a sync_point instruction</b> The program counter is set to that instruction's id.<br/>
+<b>the name of a function def instruction</b> The program counter is set to that instruction's id.<br/>
 <b>the type of instruction</b> Examples: <code>"go_to", "label", "sync_point"</code> etc.
 For example, if we have "label", then we're not going to a specific label, just
 the next instruction of type "label" found.<br/>
@@ -731,6 +841,25 @@ Robot.grab_robot_status("no_result", Serial.DATA0), </code><br/>
 See Job Example 9 for an extended example.
 </details> <!-- end grab_robot_status -->
 
+<details id="Robot.if_any_errors_doc_id" style="margin-left:20px;"><summary>if_any_error</summary>
+    <code>if_any_error</code> checks to see if any of the supplied jobs have errored.
+    If so, it inserts the supplied instruction into the do_list on the job
+    that this instruction is on. In either case, <code>if_any_error</code> continues
+    the job that its on.
+    <i>Parameters</i><br/>
+    <b>job_names</b> An array of strings of job names. If a named job doesn't exist, error.<br/>
+    <b>instruction_if_error</b> An instruction that will be inserted into the do_list
+    immediately after this instruction IF one of the named jobs has errored.
+    The default for <code>instruction_if_error</code> is a function that
+    inserts an instance of Robot.error into the do_list of this job, causing it to error.
+    The "reason" for that error instruction is explicit about the cause of the error.
+    <p/>
+    Generally a job should be stopped quickly if there is an error.
+    This instruction makes it easy to stop jobs that are concurrently cooperating
+    with the current job. The instruction_if_error can be a function (called with the
+    current job for "this") so that some arbitrary compensation can be made for the error.
+</details>
+
 <details id="Robot.label_doc_id" style="margin-left:20px;"><summary>label</summary>
 This instruction is a no-op. However, it provides a target location
 for <code>Robot.go_to</code>, initializing the program_counter of a job, and
@@ -757,32 +886,48 @@ a location to insert an instruction using <code>Robot.send_to_job</code>.<br/>
   its job name and instruction ID right before printing <code>val</code>.
 </details>
 
-<details id="Robot.if_any_errors_doc_id" style="margin-left:20px;"><summary>if_any_error</summary>
-  <code>if_any_error</code> checks to see if any of the supplied jobs have errored.
-  If so, it inserts the supplied instruction into the do_list on the job
-  that this instruction is on. In either case, <code>if_any_error</code> continues
-  the job that its on.
-  <i>Parameters</i><br/>
-  <b>job_names</b> An array of strings of job names. If a named job doesn't exist, error.<br/>
-  <b>instruction_if_error</b> An instruction that will be inserted into the do_list
-  immediately after this instruction IF one of the named jobs has errored.
-  The default for <code>instruction_if_error</code> is a function that
-  inserts an instance of Robot.error into the do_list of this job, causing it to error.
-  The "reason" for that error instruction is explicit about the cause of the error.
-  <p/>
-  Generally a job should be stopped quickly if there is an error. 
-  This instruction makes it easy to stop jobs that are concurrently cooperating
-  with the current job. The instruction_if_error can be a function (called with the
-  current job for "this") so that some arbitrary compensation can be made for the error. 
+<details id="Robot.start_job_doc_id" style="margin-left:20px;"><summary>start_job</summary>
+Starts another job.<br/>
+If the status of the job to be started is:<br/>
+<b>starting</b> This instruction is ignored.<br/>
+<b>suspended</b> The job is unsuspended.<br/>
+<b>"not_started", "completed", "errored", or "interrupted"</b>
+The job is started.<br/>
+<b>"running" or "waiting"</b> then what happens depends on the
+value of <code>if_started</code><br/>
+
+<i>Parameters:</i><br/>
+<b>job_name</b> A string. The name of the job to start. Required.<br/>
+<b>options</b> A literal object. The options to pass to the <code>start</code>
+function. These are the same as the options passed to creating a job except
+that <code>name</code> is ignored.<br/>
+<i>Example</i>: <code>{program_counter: 2}</code> <br/>
+causes the job to be started, executing its 3rd do_list item first.<br/>
+<b>if_started</b> A string. This is only relevent if the job to be started
+has a status of "running" or "waiting".<br/>
+If if_started == <code>"ignore"</code>, then nothing changes and
+the job to be started is allowed to proceed. This is the default.<br/>
+If if_started == <code>"error"</code>, then the job containing
+this instruction errors.<br/>
+If if_started == <code>"restart"</code>, then the job to be started
+is stopped and restarted.
 </details>
 
-
-<details id="Robot.stop_doc_id" style="margin-left:20px;"><summary>stop</summary>
-  Causes the job to stop. This is an expected stop, as constrasted with
-  <b>Robot.error</b>.
-  The one argument is a string of a reason for stopping which
-  will aid in debugging. Example:<pre>
-  Robot.stop("all done")</pre>
+<details id="Robot.stop_job_doc_id" style="margin-left:20px;"><summary>stop_job</summary>
+  Causes the indicated job to stop just before executing a particular instruction.<br/>
+  <i>Parameters</i>:<br/>
+  <b>instruction_location</b> Determines the job to stop and the instruction within that
+  job that it should stop before executing. If <code>instruction_location</code> does
+  not indicate a job, then the job that this instruction is in will be stopped.
+  If <code>instruction_location</code> is not given, then
+  the offset will be <code>"program_counter"</code>, i.e. the job will
+  stop before executing its next instruction. Thus the default is that
+  the current job will be stopped immediately. See Robot.go_to for details
+  on the <code>instruction_location</code> format.<br/>
+  <b>reason</b> A string. The reason that the job is being told to stop.<br/>
+  Example:<pre>
+  Robot.stop_job({job: "my_job", offset: "label1"})</pre>
+  <code>Job.my_job</code> will stop when it reaches the instruction named "label1".
 </details>
 
 <details id="Robot.suspend_doc_id" style="margin-left:20px;"><summary>suspend</summary>
@@ -933,6 +1078,22 @@ Job.insert_instruction([Robot.out("the middle"),
         that doesn't contain a wait_until,
         such as our first call to <code>insert_instruction</code> above.
     </li>
+    <li><b>instruction_location</b> <i>Only applies to instruction_locations that
+         are arrays or literal objects.</i> Waits for the instruction location
+         to refer to a program_counter that is less than or equal to
+         the program_counter in the job referenced by the instruction_location.
+         This instruction waits until a job gets to a certain instruction.
+         This performs like a one_sided <code>Robot.sync_point</code> instruction
+         where the job this instruction is in will wait for the job
+         specified in the instruction_location, but not the other way around.
+         Its advantage over <code>Robot.sync_point</code> is that you don't have
+         to have a Robot.sync_point instruction in the job you're waiting for.
+         Thus you can wait for a job reaching one of its instructions
+         that never expected it to be waited for.<br/>
+         Warning: If the instruction_location specifies the job
+         that this <code>wait_until</code> instruction is in, or lets the instruction_location
+         default to that, this job could wait for itself and thus forever.</li>
+
 </ul>
 </details> <!-- end wait_until -->
 
@@ -1142,10 +1303,10 @@ the possible options, some configurations will be impossible with some xyz setti
 J5_direction settings. Impossible settings cause an error.
 </details> <!--end move_to -->
 
-<details id="Dexter.move_to_relative_doc_id" style="margin-left:20px;"><summary>move_to_relative</summary>
+<!--<details id="Dexter.move_to_relative_doc_id" style="margin-left:20px;"><summary>move_to_relative</summary>
 This function is the same as <code>Dexter.move_to</code> except that the xyz values are ADDED to Dexter's
 existing end effector xyz values, not taken as absolutes.
-</details>
+</details>-->
 
 <details id="Dexter.move_all_joints_doc_id" style="margin-left:20px;"><summary>move_all_joints</summary>
 move_all_joints is a lower level instruction than move_to, giving you the ability to dicate
@@ -1161,10 +1322,10 @@ or you can pass in individual numbers.
 <code>null</code> or the lack of enough numbers means keep the angle for that joint what it is at now.
 </details>
 
-<details id="Dexter.move_all_joints_relative_doc_id" style="margin-left:20px;"><summary>move_all_joints_relative</summary>
+<!-- <details id="Dexter.move_all_joints_relative_doc_id" style="margin-left:20px;"><summary>move_all_joints_relative</summary>
 The same as Dexter.move_all_joints except that the given angles are added to the current
 angles of the robot. <code>null</code> or missing angle increments default to 0.
-</details>
+</details> -->
 
 <details id="Dexter.move_home_doc_id" style="margin-left:20px;"><summary>move_home</summary>
 Moves all joints to 0. J1 is facing forwards, J2, J3, J4 are straight up. J5 

@@ -37,7 +37,7 @@ function move_once(){
     return Dexter.move_all_joints([1, 2, 3, 4, 5]) //also try: Dexter.move_to([100000, 200000, 300000])
 }
 function sleep_and_move(){
-    return [Dexter.move_all_joints([10000, 20000, 30000, 40000, 50000]), //also try: Dexter.move_to_relative([1000, 3000, 4500])
+    return [Dexter.move_all_joints([10000, 20000, 30000, 40000, 50000]),
             Dexter.sleep(500),
             Dexter.move_to([100000, 200000, 250000], [0, 0, -1], Dexter.RIGHT_UP_IN)
            ]

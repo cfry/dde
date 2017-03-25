@@ -131,18 +131,24 @@ ipc.on('serial_devices', function(event){
 //beware, if the url is non-existent, this might not return an error.
 ipc.on('get_page', function(event, url_or_options){
   console.log("in get_page in main.js with:  " + url_or_options)
-  request(url_or_options,
-          function(err, response, body) {
-            console.log("main get page with err: " + err +
-                        "\n statusCode: " + response.statusCode +
-                        "\nbody: " + body)
+  try{
+      request(url_or_options,
+              function(err, response, body) {
+                //when the computer isn't connected to the web, response
+                //is undefined.
+                var stat = (response ? response.statusCode : null)
+                console.log("main get page with err: " + err +
+                            "\n statusCode: " + stat +
+                            "\nbody: " + body)
 
-            if (err) { event.returnValue = "Error: " + err }
-            else if(response.statusCode !== 200){
-                event.returnValue = "Error: got status code: " + response.statusCode
-            }
-            else     { event.returnValue = body }
-          })
+                if (err) { event.returnValue = "Error: " + err }
+                else if(stat !== 200){
+                    event.returnValue = "Error: got status code: " + stat
+                }
+                else     { event.returnValue = body }
+              })
+  }
+  catch(err) { event.returnValue = "Error: " + err}
 })
 
 // see https://github.com/konsumer/electron-prompt/blob/master/main.js

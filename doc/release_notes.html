@@ -1,3 +1,46 @@
+<details style="padding-left:20px;"><summary>v 1.0.9, Mar 25, 2017</summary>
+    Highlights: Updating DDE much easier. Robot.start_job and Robot.stop_job.
+    Improved Doc. Job init param: ending_program_counter.
+<ul>
+<li> When using Doc pane Find button, better help text printed in
+Output pane.</li>
+
+<li> <code>Robot.wait_until</code> can now take an instruction_location
+    (only arrays and lit objs format accepted) as it argument
+    to wait until that instruction_location is reached in another job.</li>
+
+<li>when DDE launches it prints in the output pane its
+DDE version and date. If its not the latest release,
+it tells you what is and how to get it.</li>
+
+<li> "Update..." is a new File menu item that tells you the same thing.</li>
+
+<li> Removed DDE Dexter instructions: <code>move_all_joints_relative</code>
+     and <code>move_to_relative</code>. Just use the new coord sys.</li>
+
+<li> Documented "Any Function Def" as a kind of instruction in a do_list,
+   under Ref Man Robot. This was an important omission: recommended reading!</li>
+
+<li> User Guide 'Installation" now documents new github process.</li>
+
+<li> New instruction <code>Robot.start_job</code>
+    let's you start other jobs flexibly from within a job.</li>
+
+<li>New init option for a job (and the start function)
+    <code>ending_program_counter</code> allows you to
+    declare at the outset to stop a job early.
+    Can be any instruction_location.</li>
+
+<li> Extended instruction: <code>Robot.stop_job</code>  (renamed from Robot.stop)
+  Now takes an instruction_location so it can stop other jobs
+  AND stop them at any of their instructions.</li>
+
+<li> <code>beep</code> and <code>beeps</code> now documented in the ref man with click help.</li>
+
+<li> Click help on [ and ] now works.</li>
+</ul>
+</details>
+
 <details style="padding-left:20px;"><summary>v 1.0.4, Mar 16, 2017</summary>
 Highlights: New Electron Framework, New instruction Robot.grab_robot_status,
 Serial Port extensions, file access improved, dxf improvements,
@@ -61,7 +104,6 @@ Please read Known Issues.
     <li> Documentation: added into the doc pane,
     the url to the HDRobotic video page (under About) and the DDE video
     (under "User Interface")</li>
-
 
     <li> serial port improvements:
       <ul><li> serial_devices() returns a list of available serial port devices.</li>
@@ -143,7 +185,6 @@ Please read Known Issues.
     we DON"T reset the do_list to the orig do_list,
     but keep it the same, and go and grab the id of the
     instruction that errored and use it.</li>
-
 
     <li>  Instruction.Control.send_to_job no longer takes a "to_job_name"
     as an explicit parameter, however,

@@ -28,8 +28,10 @@
         "dex":        false,
         "Duration":   false,
         "editor":     false,
-        //"funciton*:   false,   doesn't work in getting rid of warning.
-        "get_in_ui":       false,
+        //"function*:   false,   doesn't work in getting rid of warning.
+        "get_in_ui":  false,
+        "get_page":   false,
+        "get_page_async": false,
         "Human":      false,
         "Job":        false,
         "out":        false,

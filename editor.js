@@ -1321,6 +1321,8 @@ Editor.identifier_or_operator = function(){
     else if (cur_char == "}") { return "}"}
     else if (cur_char == "(") { return "("}
     else if (cur_char == ")") { return ")"}
+    else if (cur_char == "[") { return "["}
+    else if (cur_char == "]") { return "]"}
     else if ((cur_char == ".") && (pos > 0) && !is_digit(full_src[pos - 1])){ return "." } //NOT a decimal point
     var bounds   = Editor.bounds_of_identifier(full_src, pos)
     if (bounds){

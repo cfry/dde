@@ -130,12 +130,12 @@ var Robot = class Robot {
         return new Instruction.Control.sent_from_job(arguments[0])
     }
 
-    static start_job(job_name){
-        return new Instruction.Control.start_job(job_name)
+    static start_job(job_name, start_options={}, if_started="ignore"){
+        return new Instruction.Control.start_job(job_name, start_options, if_started)
     }
 
-    static stop(reason){
-        return new Instruction.Control.stop(reason) //["stop", reason]
+    static stop_job(instruction_location, reason){
+        return new Instruction.Control.stop_job(instruction_location, reason) //["stop", reason]
     }
 
     static suspend(){
@@ -1079,6 +1079,8 @@ Dexter.move_all_joints = function(int_array_5=[]){
 
 //beware, this can't do error checking for out of reach.
 //MAYBE this should be implemented like move_to_relative which can do the error checking.
+
+/*use coord sys instead
 Dexter.move_all_joints_relative = function(int_array_5=[]){
     if (Array.isArray(int_array_5)){
         int_array_5 = int_array_5.slice(0) //copy so we don't modify the input array
@@ -1109,6 +1111,7 @@ Dexter.move_all_joints_relative = function(int_array_5=[]){
         return make_ins("a", ...int_array_5) // Dexter.move_all_joints(int_array_5)
     }
 }
+*/
 
 /*
 Dexter.move_all_joints_relative = function(int_array_5=[]){
@@ -1181,6 +1184,7 @@ Dexter.move_to = function(xyz = [], // New defaults are the cur pos, not straigh
     }
 }
 
+/*use new coord sys instead
 Dexter.move_to_relative = function(xyz = [], // New defaults are the cur pos, not straight up.
                           // should be : 0, 82550, 866775 pointing straight up, J1_1 thru J4 = 0
                           J5_direction = [0, 0, -1], //end effector pointing down
@@ -1201,7 +1205,7 @@ Dexter.move_to_relative = function(xyz = [], // New defaults are the cur pos, no
         }
         else { dde_error("move_to_relative called with invalid angles.") }
     }
-}
+}*/
 /*
 Dexter.move_to_relative = function(xyz, joint_4_angle){
     var result = make_ins("B")
@@ -1265,7 +1269,7 @@ Dexter.write_to_robot = function(a_string="", file_name=null){
 Dexter.instruction_type_to_function_name_map = {
     a:"move_all_joints",
     b:"move_to",           //fry
-    B:"move_to_relative",  //fry
+    //B:"move_to_relative",  //fry
     c:"capture_ad", 
     d:"dma_read",
     e:"cause_dexter_error", //fry

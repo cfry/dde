@@ -1089,39 +1089,86 @@ Instruction.Control.sent_from_job = class sent_from_job extends Instruction.Cont
 }
 
 Instruction.Control.start_job = class start_job extends Instruction.Control{
-    constructor (job_name) {
+    constructor (job_name, start_options={}, if_started="ignore") {
+        if(!["ignore", "error", "restart"].includes(if_started)){
+            dde_error("Robot.start_job has invalid value for if_started of: " +
+                       if_started +
+                       '<br/>Valid values are: "ignore", "error", "restart"')
+        }
         super()
-        this.job_name = job_name
+        this.job_name      = job_name
+        this.start_options = start_options
+        this.if_started    = if_started
     }
     do_item (job_instance){
-            const new_job = Job[this.job_name]
-            if (new_job){
-                new_job.start()
+        const new_job = Job[this.job_name]
+        if (new_job){
+            const stat = new_job.status_code
+            if      (stat == "starting")    { job_instance.set_up_next_do(1) } //just let continue starting
+            else if (stat == "suspended")   {
+                new_job.unsuspend()
+                job_instance.set_up_next_do(1)
+            }
+            else if (["running", "waiting"].includes(stat)){
+               if     (this.if_started == "ignore") {job_instance.set_up_next_do(1)}
+               else if(this.if_started == "error") {
+                   job_instance.stop_for_reason("errored",
+                        "Robot_start_job tried to start job: " + this.job_name +
+                        " but it was already started.")
+                   job_instance.set_up_next_do(1)
+               }
+               else if (this.if_started == "restart"){
+                   new_job.stop_for_reason("interrupted",
+                      "interrupted by start_job instruction in " + job_instance.name)
+                   setTimeout(function(){ new_job.start(this.start_options)   },
+                              new_job.inter_do_item_dur * 2)
+                   job_instance.set_up_next_do(1)
+               }
+               else {
+                   dde_error("Job." + job_instance.name +
+                     " has a Robot.start_job instruction with an invalid " +
+                     "<br/> if_started value of: " + this.if_started)
+               }
+            }
+            else if (["not_started", "completed", "errored", "interrupted"].includes(stat)) {
+               new_job.start(this.start_options)
+                job_instance.set_up_next_do(1)
             }
             else {
-                job_instance.stop_for_reason("errored",
-                    "In Job." + job_instance.name + " a start_job instruction attempted to start the undefined Job." + this.job_name)
-
+                shouldnt("Robot.start_job got a status_code from Job." +
+                          new_job.name + " that it doesn't understand.")
             }
-            job_instance.set_up_next_do(1)
+        }
+        else { dde_error("Robot.start_job attempted to start non-existent Job." + this.job_name) }
     }
     toString(){
-        return "stop: " + this.reason
+        return "start_job: " + this.job_name
     }
 }
 
-Instruction.Control.stop = class stop extends Instruction.Control{
-    constructor (reason) {
+Instruction.Control.stop_job = class stop_job extends Instruction.Control{
+    constructor (instruction_location="program_counter", stop_reason=null) {
         super()
-        this.reason = reason
+        this.instruction_location = instruction_location
+        this.stop_reason = stop_reason
     }
     do_item (job_instance){
-        job_instance.stop_for_reason("stopped", "Job: " + job_instance.name + " stopped for: " + this.reason)
-        //job_instance.set_up_next_do(0)
-        job_instance.do_next_item()
+        var job_to_stop = Job.instruction_location_to_job(this.instruction_location, false)
+        //job_to_stop might or might not be the same as job_instance
+        if (!job_to_stop) { job_to_stop = job_instance }
+        job_to_stop.ending_program_counter = this.instruction_location
+        if (!this.stop_reason){
+           this.stop_reason = "Stopped by Job." + job_instance.name + " instruction: Robot.stop_job."
+        }
+        job_to_stop.stop_job_instruction_reason = this.stop_reason
+        //job_instance.stop_for_reason("stopped", "Job: " + job_instance.name + " stopped for: " + this.reason)
+        job_instance.set_up_next_do()
     }
     toString(){
-        return "stop: " + this.reason
+        var job_to_stop = Job.instruction_location_to_job(this.instruction_location, false)
+        if (!job_to_stop) { job_to_stop = " containing this instruction" }
+        else              { job_to_stop = ": Job." + job_to_stop.name }
+        return "stop_job" + job_to_stop + " because: " + this.stop_reason
     }
 }
 
@@ -1293,7 +1340,21 @@ Instruction.Control.wait_until = class wait_until extends Instruction.Control{
     constructor (fn_date_dur) {
         super()
         this.fn_date_dur = fn_date_dur
-        if (typeof(fn_date_dur) == "number") { this.fn_date_dur = new Duration(fn_date_dur) }
+        if (typeof(this.fn_date_dur) == "function"){}
+        else if (this.fn_date_dur instanceof Date){}
+        else if (typeof(fn_date_dur) == "number") { this.fn_date_dur = new Duration(fn_date_dur) }
+        else if (this.fn_date_dur instanceof Duration) {}
+        else if (this.fn_date_dur == "new_instruction"){}
+        else if (Array.isArray(this.fn_date_dur) ||
+                 (typeof(this.fn_date_dur) == "object")){
+                 if(!Job.instruction_location_to_job(this.fn_date_dur, false)){
+                     warning("Robot.wait_until passed an array or literal object<br/>" +
+                             "for an instruction location but<br/>" +
+                             "it does not contain a job.<br/>" +
+                             "That implies this job will wait for itself, and thus forever.<br/>" +
+                             "However, unusual circumstances could make this ok.")
+                 }
+        }
         this.start_time = null
     }
     do_item (job_instance){
@@ -1362,6 +1423,24 @@ Instruction.Control.wait_until = class wait_until extends Instruction.Control{
                 job_instance.set_up_next_do(0)
             }
             else { //got a new instruction since this instruction started running so execute it
+                job_instance.set_up_next_do(1)
+            }
+        }
+        else if (Array.isArray(this.fn_date_dur) ||
+                 (typeof(this.fn_date_dur) == "object")){ //instruction_location, but not integer and string formats
+            var loc_job_instance = Job.instruction_location_to_job(this.fn_date_dur, false)
+            if (!loc_job_instance) {
+                loc_job_instance = job_instance
+            }
+            var loc_pc = loc_job_instance.instruction_location_to_id(this.fn_date_dur)
+            if(loc_pc > loc_job_instance.program_counter){ //wait until loc_job_instance advances
+                if(loc_job_instance.stop_reason){
+                    warning("Robot.wait_until is waiting for job: " + loc_job_instance.name +
+                            "<br/>but that job is stopped, so it will probably wait forever.")
+                }
+                job_instance.set_up_next_do(0)
+            }
+            else { //done waiting, loc_job_instance already at or passe loc_ps
                 job_instance.set_up_next_do(1)
             }
         }

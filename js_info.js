@@ -24,7 +24,6 @@ Js_info = class Js_info {
                         return "" + fn_name
                 }
             }
-
             //else if (is_string_a_color_rgb(fn_name)){
             //    let the_series = Series.id_to_series("series_color_rgb_id")
             //    let info       = Js_info.getInfo_string_given_series(path, fn_name, the_series)

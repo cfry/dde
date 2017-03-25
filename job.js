@@ -1,19 +1,21 @@
 /**Created by Fry on 2/5/16. */
 var Job = class Job{
     constructor({name=null, robot=new Brain(), do_list=[], keep_history=true, log_instructions=false,
-                 inter_do_item_dur = 100, user_data={}, program_counter=0, initial_instruction = null} = {}){
-                 //program_cpunter is the counter of the next instruction that should be executed.
-                 //so since we're currently "executing" 1 instruction, and after its done,
-                 //we'll be incrementing the pc, then internally we decriment the
-                 //passed in program_counter. If its negative, it means
-                 //computer it from the end, ie -1 means when set_next_do is called,
-                 //it will set the pc to the length of the do_list, hence we'll be done
-                 //with the job. -2 means we want to execute the last instruction of the
-                 //job next, etc.
-        //save the args
-        this.orig_args = {do_list: do_list, keep_history: keep_history, log_instructions: log_instructions,
-                          inter_do_item_dur: inter_do_item_dur, user_data: user_data,
-                          program_counter: program_counter, initial_instruction: initial_instruction}
+                 inter_do_item_dur = 100, user_data={}, program_counter=0, ending_program_counter="end",
+                 initial_instruction = null} = {}){
+    //program_cpunter is the counter of the next instruction that should be executed.
+    //so since we're currently "executing" 1 instruction, and after its done,
+    //we'll be incrementing the pc, then internally we decriment the
+    //passed in program_counter. If its negative, it means
+    //computer it from the end, ie -1 means when set_next_do is called,
+    //it will set the pc to the length of the do_list, hence we'll be done
+    //with the job. -2 means we want to execute the last instruction of the
+    //job next, etc.
+    //save the args
+    this.orig_args = {do_list: do_list, keep_history: keep_history, log_instructions: log_instructions,
+        inter_do_item_dur: inter_do_item_dur, user_data: user_data,
+        program_counter: program_counter, ending_program_counter: ending_program_counter,
+        initial_instruction: initial_instruction}
         this.name              = name
         this.robot             = robot
         //setup name
@@ -44,6 +46,7 @@ var Job = class Job{
                                      shallow_copy(this.orig_args.user_data)
             this.program_counter   = this.orig_args.program_counter //see robot_done_with_instruction as to why this isn't 0,
                                      //its because the robot.start effectively calls set_up_next_do(1), incremening the PC
+            this.ending_program_counter = this.orig_args.ending_program_counter
             this.initial_instruction = this.orig_args.initial_instruction //also used by sent_from_job
 
             //first we set all the orig (above), then we over-ride them with the passed in ones
@@ -52,12 +55,18 @@ var Job = class Job{
                     let new_val = options[key]
                     //if (key == "program_counter") { new_val = new_val - 1 } //don't do. You set the pc to the pos just before the first instr to execute.
                     if (key == "do_list")         { new_val = Job.flatten_do_list_array(new_val) }
-                    if (key == "user_data")       { new_val = shallow_copy(new_val) }
+                    else if (key == "user_data")  { new_val = shallow_copy(new_val) }
+                    else if (key == "name")       {} //don't allow renaming of the job
                     this[key] = new_val
                 }
             }
             let maybe_symbolic_pc = this.program_counter
             this.program_counter = 0 //just temporarily so that instruction_location_to_id can start from 0
+            const job_in_pc = Job.instruction_location_to_job(maybe_symbolic_pc, false)
+            if (job_in_pc) {
+                dde_error("Job." + this.name + " has a program_counter initialization<br/>" +
+                          "of an instruction_location that contains a job. It shouldn't.")
+            }
             this.program_counter = this.instruction_location_to_id(maybe_symbolic_pc)
             if (this.program_counter >= this.do_list.length){ //note that maybe_symbolic_pc can be "end" which is length of do_list which is ok, though no instructions would be execute in that case so we error.
                 dde_error("While starting job: " + this.name +
@@ -593,13 +602,13 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
              (this.status_code == "errored")){
         this.finish_job()
     }
-    else if (this.wait_until_instruction_id_has_run || (this.wait_until_instruction_id_has_run === 0)){ //the ordering of this clause is important. Nothing below has go wait for instructions to complete
+    else if (this.wait_until_instruction_id_has_run || (this.wait_until_instruction_id_has_run === 0)){ //the ordering of this clause is important. Nothing below has to wait for instructions to complete
         //wait for the wait instruction id to be done
         //the waited for instruction coming back thru robot_done_with_instruction will call set_up_next_do(1)
         //so don't do it here. BUT still have this clause to block doing anything below if we're waiting.
     }
     else if (this.stop_reason){ this.finish_job() }
-    else if (this.program_counter >= this.do_list.length) { //&& (this.iterator_stack.length == 0)
+    else if (this.program_counter >= this.instruction_location_to_id(this.ending_program_counter)) {  //this.do_list.length
              //the normal stop case
         if ((this.robot instanceof Dexter) &&
             ((this.do_list.length == 0) ||
@@ -609,7 +618,13 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
             this.set_up_next_do(0)
         }
         else if (!this.stop_reason){
-            this.stop_for_reason("completed", "Finished all do_list items.")
+            var stat = "completed"
+            var reas = "Finished all do_list items."
+            if(this.stop_job_instruction_reason){
+                stat = "interrupted"
+                reas = this.stop_job_instruction_reason
+            }
+            this.stop_for_reason(stat, reas)
             this.finish_job()
         }
         else { this.finish_job() }
@@ -842,7 +857,6 @@ Job.prototype.dxf_to_instructions = function (filepath, scale = 1, up_distance =
                          point_equal(a, point_object_to_array(dxf_entities[1].vertices[1])))){
                         let c = a; a = b; b = c //swap
                     }
-                    //ins.push(Dexter.move_to_relative([0, 0, up_distance])) //probably a bad idea. Plus I want to get rid of  the relative calls.
                     ins.push(Dexter.move_to([a[0], a[1], a[2] + up_distance]))
                     ins.push(Dexter.move_to(a))
                     if (!point_equal(a, b)){
@@ -1025,35 +1039,16 @@ Job.gobj_to_move_to = function(gobj, scale){ //ok for say, gobj to not have Z. t
     let result = Dexter.move_to([the_x, the_y, the_z])
     return result
 }
-//for go_to
-Job.job_of_instruction_location = function(instruction_location){ //instruction_location should be an array, as any instruction_location that isn't an array doesn't really make sense.
-   //if there's no job in instruction_location, returns null or undefined.
-    var il_item = instruction_location
-    if (Array.isArray(instruction_location)){ il_item = instruction_location[0] }
-    var the_job = il_item.job
-    if (the_job){
-        if (the_job instanceof Job) { return the_job }
-        else if (typeof(the_job) == "string"){
-            the_job = Job[the_job]
-            if (the_job instanceof Job) { return the_job }
-            else {
-                dde_error("In job_of_instruction_location, could not find a job in: " + instruction_location)
-            }
-        }
-    }
-    else {
-        dde_error("In job_of_instruction_location, could not find a job in: " + instruction_location)
-    }
-}
 
+//used in go_to, wait_until at least.
 Job.instruction_location_to_job = function (instruction_location, maybe_error=true){
     var the_job_elt = instruction_location
     if (Array.isArray(instruction_location)){
         if (instruction_location.length === 0){
             if (maybe_error) {
-                dde_error("Job.instruction_location passed empty array.<br/>" +
+                dde_error("Job.instruction_location_to_job passed empty array.<br/>" +
                           " It must have at least 1 item in it,,br/>" +
-                          'with the first of format: {job:"some_job"}')
+                          'with the first of format: {job: "some_job"}')
             }
             else {return null}
         }
@@ -1063,14 +1058,20 @@ Job.instruction_location_to_job = function (instruction_location, maybe_error=tr
         if (the_job_elt.job) {
             var the_job = the_job_elt.job
             if (typeof(the_job) == "string"){
+                const the_job_name = the_job
                 the_job = Job[the_job]
                 if (!the_job) {
                     if (maybe_error) {
                         dde_error("Attempt to find instruction_location: " + instruction_location +
-                        "<br/>but the specified job: " + instruction_location[0].job +
+                        "<br/>but the specified job: " + the_job_name +
                         "<br/>isn't a defined job.")
                     }
-                    else { return null }
+                    else { //if we get a string, but that's not a defined job, that's kinda suspicious, so I warning
+                      warning("instruction_location_to_job passed: " + instruction_location +
+                              "<br/>which contains a name for a job: " + the_job_name +
+                              "<br/>but a job with that name is not defined.")
+                      return null
+                    }
                 }
             }
             return the_job
@@ -1280,7 +1281,7 @@ Job.prototype.ilti_backward = function(inst_loc, starting_id){
 }
 
 Job.insert_instruction = function(instruction, location){
-    const the_job = Job.job_of_instruction_location(location)
+    const the_job = Job.instruction_location_to_job(location)
     if (the_job){
         const index = the_job.instruction_location_to_id(location)
         if (index === "next_top_level"){
@@ -1294,10 +1295,6 @@ Job.insert_instruction = function(instruction, location){
             "a first element of a literal object of {job:'some-job'}")
     }
 }
-
-//todo  allow an instruction location elt to be a lit obj that has
- // job, offset, AND process all in one. But also aloow it
- //to just oave "job".
 
 
 

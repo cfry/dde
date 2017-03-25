@@ -242,7 +242,7 @@
         }
     }
     save_as_id.onclick=Editor.save_as
-    update_id.onclick = function (){open_doc(update_doc_id)}
+    update_id.onclick = function (){check_for_latest_release()}
 
         //Edit menu
     Editor.init_editor()
@@ -841,6 +841,29 @@ foo      //eval to see the latest values</pre>`,
                 if (file_exists("dde_init.js")){ //we don't want to error if the file doesn't exist.
                     load_files("dde_init.js")
                 }}, 400)
+     setTimeout(check_for_latest_release, 100)
+}
+function check_for_latest_release(){
+    const version_and_date_array = latest_release_version_and_date()
+    if (version_and_date_array){
+        if (version_and_date_array[0] != dde_version){
+            const ver      = version_and_date_array[0]
+            var   ver_date = version_and_date_array[1]
+            ver_date       = date_to_mmm_dd_yyyy(ver_date) //ver_date.substring(0, ver_date.indexOf("T"))
+            warning("The latest version of DDE is: " + ver +
+                    " released: " + ver_date +
+                    "<br/>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp;&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbspbut you're running version: " + dde_version +
+                    " released: " + dde_release_date +
+                    "<br/>See the Doc pane for how to update.")
+            open_doc(update_doc_id)
+        }
+        else { out("DDE is up to date with version: " + dde_version +
+                   " released: " + dde_release_date) }
+    }
+    else { out("You're running DDE version: " + dde_version +
+                " released: " + dde_release_date +
+                "<br/>Can't reach web to check for latest release.")
+    }
 }
 
 //misc fns called in ready.js
