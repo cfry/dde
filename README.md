@@ -4,7 +4,7 @@ DDE is fundamentally a JavaScript development enviroment with lots of extensions
 Most users will simply want to download the appropriate application file for their operating system.\
 Start by clicking on the "releases" button above.\
 The "doc" folder above contains a lot of documenation on DDE.\
-This documentation is part of DDE and is easily reabable within DDE.\
+This documentation is part of DDE and is easily reabable within DDE.
 ________________________________________________
 ## For System Developers only
 Below are instructions for building the DDE executables.
