@@ -1,6 +1,12 @@
 # DDE
 
-Dexter Development Environment
+Dexter Development Environment allows user to develop and run software on the Dexter 5 axis robot arm.
+http://hdrobotic.com
+Most users will simply want to download the appropriate application file for their operation system.
+click on the "releases" button above.
+________________________________________________
+## For System Developers only
+Below are instructions for building the DDE executables.
 
 travis (for Mac & linux) [![Build Status](https://travis-ci.org/cfry/dde.svg?branch=master)](https://travis-ci.org/cfry/dde)
 
