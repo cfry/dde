@@ -1,7 +1,7 @@
 # Dexter Development Environment
 DDE allows user to develop and run software on the Dexter 5 axis robot arm made by: http://hdrobotic.com
-Most users will simply want to download the appropriate application file for their operation system. Start by
-clicking on the "releases" button above. 
+Most users will simply want to download the appropriate application file for their operation system. 
+Start by clicking on the "releases" button above. 
 The "doc" folder above contains a lot of documenation on DDE.
 This documentation is part of DDE and is easily reabable within DDE.
 ________________________________________________
