@@ -1,5 +1,5 @@
 # Dexter Development Environment
-DDE allows user to develop and run software on the Dexter 5 axis robot arm made by: http://hdrobotic.com\
+DDE allows user to develop and run software on the Dexter 5 axis robot arm made by: http://hdrobotic.com \
 DDE is fundamentally a JavaScript development enviroment with lots of extensions.\
 Most users will simply want to download the appropriate application file for their operating system.\
 Start by clicking on the "releases" button above.\
