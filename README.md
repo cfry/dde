@@ -1,10 +1,11 @@
 # Dexter Development Environment
 DDE allows user to develop and run software on the Dexter 5 axis robot arm made by: http://hdrobotic.com \
-DDE is fundamentally a JavaScript development enviroment with lots of extensions.\
+DDE is fundamentally a JavaScript development environment with lots of extensions.\
 Most users will simply want to download the appropriate application file for their operating system.\
-Start by clicking on the **releases** button above.\
+Start by clicking on the **releases** word near the top of this window (github main DDE) page\
+or browse https://github.com/cfry/dde/releases .\
 The "doc" folder above contains a lot of documenation on DDE.\
-This documentation is part of DDE and is easily reabable within DDE.
+This documentation is part of DDE and is easily readable within DDE.
 ________________________________________________
 ## For System Developers Only
 Below are instructions for building the DDE executables.
@@ -21,5 +22,3 @@ $ npm run build           # compile the app but don't package it
 $ npm run dist            # compile the app into an ASAR file to release
 $ npm run clean           # delete the dist folder
 $ npm run rebuild         # rebuild native modules
-```
-
