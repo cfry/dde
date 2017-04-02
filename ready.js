@@ -3,6 +3,9 @@
     dde_release_date = "not inited"
     var myCodeMirror //inited inside of ready
 
+    var js_cmds_array = []
+    var js_cmds_index = -1
+
     function eval_button_action(){ //used by both clicking on the eval button and Cmd-e
         if((Editor.current_file_path != "new file") && (save_on_eval_id.checked)) { Editor.save_current_file() }
         eval_js_part1();
@@ -155,10 +158,44 @@
     $("#error_ops_menu").jqxMenu({ width: '50px', height: '25px' });
     //$("#jqxwindow").jqxWindow({ height:400, width:400, showCloseButton: true});
     //$('#jqxwindow').jqxWindow('hide');
-    $("#cmd_input").keyup(function(event){ //output pane  type in
-        if(event.keyCode == 13){
-            call_cmd_service_custom($("#cmd_input").val());
+    $("#cmd_input_id").keyup(function(event){ //output pane  type in
+        if(event.keyCode == 13){ //ENTER key
+            if(js_radio_button_id.checked){
+                var src = cmd_input_id.value.trim()
+                if (src.length == 0) { warning("no JavaScript to eval.")}
+                else {
+                    js_cmds_array.push(src)
+                    js_cmds_index = js_cmds_array.length - 1
+                  eval_js_part2(src)
+                }
+            }
+            else { call_cmd_service_custom($("#cmd_input_id").val()); } //ROS selected
         }
+        else if(event.keyCode == 38){ //up arrow
+           if      (js_cmds_index == -1 ) { out("No JavaScript commands in history") }
+           else if (js_cmds_index == 0 )  { out("No more JavaScript command history.") }
+           else {
+               js_cmds_index = js_cmds_index - 1
+               var new_src = js_cmds_array[js_cmds_index]
+               cmd_input_id.value = new_src
+           }
+
+        }
+        else if(event.keyCode == 40){ //down arrow
+            if      (js_cmds_index == -1 ) { out("No JavaScript commands in history") }
+            else if (js_cmds_index == js_cmds_array.length - 1) {
+                if(cmd_input_id.value == "") {
+                    out("No more JavaScript command history.")
+                }
+                else { cmd_input_id.value = "" }
+            }
+            else {
+                js_cmds_index = js_cmds_index + 1
+                var new_src = js_cmds_array[js_cmds_index]
+                cmd_input_id.value = new_src
+            }
+        }
+        cmd_input_id.focus()
     })
 
     init_simulation()
@@ -610,7 +647,9 @@ get_page_async("http://www.ibm.com", function(err, response, body){ out(body.len
     train_id.onclick=dex.train
     build_application_id.onclick=ab.launch
 
-    jobs_help_id.onclick      = function(){ open_doc(Job_doc_id) }
+    jobs_help_id.onclick          = function(){ open_doc(Job_doc_id) }
+    start_job_id.onclick          = Job.start_job_menu_item_action
+    start_job_help_id.onclick = function(){ open_doc(start_job_help_doc_id) }
 
     test_suites_help_id.onclick = function(){ open_doc(TestSuite_doc_id) }
                                         

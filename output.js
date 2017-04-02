@@ -746,6 +746,7 @@ function speak({speak_data = "hello", volume = 1.0, rate = 1.0, pitch = 1.0, lan
 window.speak = speak
 //________recognize_speech_____________
 //all these vars meaningful in ui only.
+/*
 window.recognition = null
 window.recognize_speech_window_index    = null
 window.recognize_speech_phrase_callback = null
@@ -825,12 +826,12 @@ function init_recognize_speech(){
         }
     }
 } //end init_recognize_speech
-window.init_recognize_speech = init_recognize_speech
+//window.init_recognize_speech = init_recognize_speech
 //public
 function recognize_speech_default_phrase_callback(text, confidence){
     out("text: " + text + "<br/>confidence: " + confidence.toFixed(2))
 }
-window.recognize_speech_default_phrase_callback
+window.recognize_speech_default_phrase_callback = recognize_speech_default_phrase_callback
 
 function recognize_speech({title="Recognize Speech", prompt="",
                            only_once=true, click_to_talk=true,
@@ -867,12 +868,13 @@ function recognize_speech({title="Recognize Speech", prompt="",
         if (!click_to_talk) { start_recognition() }
 }
 
-window.recognize_speech
+window.recognize_speech = recognize_speech
 
 function start_recognition(){
        recognition.start()
 }
-window.start_recognition
+window.start_recognition = start_recognition
+*/
 
 //_______end Chrome Apps recognize_speech_______
 //Google cloud rocognize speech
@@ -881,7 +883,7 @@ function streamingMicRecognize() {
     const record = require('node-record-lpcm16'); // [START speech_streaming_mic_recognize]
     const Speech = require('@google-cloud/speech'); // Imports the Google Cloud client library
     //const speech = Speech() // Instantiates a client
-    const my_path = adjust_path_to_os(__dirname + '/dexter-dev-env-b05da431ead6.json')
+    const my_path = adjust_path_to_os(__dirname + '/dexter-dev-env-code.json')
     console.log("my_path is" +
         ":" + my_path)
     const speech = Speech({
@@ -892,7 +894,7 @@ function streamingMicRecognize() {
     //from https://github.com/GoogleCloudPlatform/google-cloud-node#cloud-speech-alpha
     //const speechClient = speech({
     //    projectId: 'dexter-dev-env',
-    //   keyFilename:  adjust_path_to_os(__dirname + '/dexter-dev-env-b05da431ead6.json')
+    //   keyFilename:  adjust_path_to_os(__dirname + '/dexter-dev-env-code.json')
     //})
 
     const request = { config: { encoding: 'LINEAR16',  sampleRate: 16000 },

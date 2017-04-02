@@ -1,6 +1,8 @@
 /**Created by Fry on 2/5/16. */
+var esprima = require('esprima')
+
 var Job = class Job{
-    constructor({name=null, robot=new Brain(), do_list=[], keep_history=true, log_instructions=false,
+    constructor({name=null, robot=new Brain(), do_list=[], keep_history=true, show_instructions=false,
                  inter_do_item_dur = 100, user_data={}, program_counter=0, ending_program_counter="end",
                  initial_instruction = null} = {}){
     //program_cpunter is the counter of the next instruction that should be executed.
@@ -12,7 +14,7 @@ var Job = class Job{
     //with the job. -2 means we want to execute the last instruction of the
     //job next, etc.
     //save the args
-    this.orig_args = {do_list: do_list, keep_history: keep_history, log_instructions: log_instructions,
+    this.orig_args = {do_list: do_list, keep_history: keep_history, show_instructions: show_instructions,
         inter_do_item_dur: inter_do_item_dur, user_data: user_data,
         program_counter: program_counter, ending_program_counter: ending_program_counter,
         initial_instruction: initial_instruction}
@@ -40,7 +42,7 @@ var Job = class Job{
         else{//init from orig_args
             this.do_list           = Job.flatten_do_list_array(this.orig_args.do_list) //make a copy in case the user passes in an array that they will use elsewhere, which we wouldn't want to mung
             this.keep_history      = this.orig_args.keep_history
-            this.log_instructions  = this.orig_args.log_instructions
+            this.show_instructions  = this.orig_args.show_instructions
             this.inter_do_item_dur = this.orig_args.inter_do_item_dur
             this.user_data         = // don't do as gets non-enumerables, etc. messes up printing of what should be empty user_data of a job jQuery.extend(true, {}, this.orig_args.user_data) //performs deep copy. This is hard, so use jquery
                                      shallow_copy(this.orig_args.user_data)
@@ -106,10 +108,141 @@ var Job = class Job{
             this.added_items_count.fill(0) //stores the number of items "added" by each do_list item beneath it
                 //if the initial pc is > 0, we need to have a place holder for all the instructions before it
             this.go_state          = true
+            //this.init_show_instructions()
             out("Starting job: " + this.name + " ...")
             this.robot.start(this)
         }
     }
+    //show_instruction in editor
+    static start_job_menu_item_action () {
+        var full_src   = Editor.get_javascript()
+        var start_cursor_pos = Editor.selection_start()
+        var end_cursor_pos   = Editor.selection_end()
+        var text_just_after_cursor = full_src.substring(start_cursor_pos, start_cursor_pos + 7)
+        var start_of_job = -1
+        if (text_just_after_cursor == "new Job") { start_of_job = start_cursor_pos }
+        else { start_of_job = Editor.find_backwards(full_src, start_cursor_pos, "new Job") }
+        if (start_of_job == -1) {
+            warning("There's no Job definition surrounding the cursor.")
+            var selection = Editor.get_javascript(true).trim()
+            if (selection.endsWith(",")) { selection = selection.substring(0, selection.length - 1) }
+            if (selection.length > 0){
+                if (selection.startsWith("[") && selection.endsWith("]")) {}
+                else {
+                    selection = "[" + selection + "]"
+                    start_cursor_pos = start_cursor_pos - 1
+                }
+                var eval2_result = eval_js_part2(selection)
+                if (eval2_result.error_type) {} //got an error but error message should be displayed in output pane automatmically
+                else if (Array.isArray(eval2_result.value)){ //got a do_list!
+                   if (Job.j0 && Job.j0.is_active()) {
+                        Job.j0.stop_for_reason("interrupted", "Start Job menu action stopped job.")
+                        setTimeout(function() {
+                                       Job.init_show_instructions_for_insts_only_and_start(start_cursor_pos, end_cursor_pos, eval2_result.value, selection)}
+                        (Job.j0.inter_do_item_dur * 2) + 10)
+                    }
+                    else {
+                        Job.init_show_instructions_for_insts_only_and_start(start_cursor_pos, end_cursor_pos, eval2_result.value, selection)
+                    }
+                }
+                else {
+                    shouldnt("Selection for Start job menu item action wasn't an array, even after wrapping [].")
+                }
+            }
+            else {
+                warning("When choosing the Start menu item with no surrounding Job definition<br/>" +
+                        "you must select exactly those instructions you want to run.")
+            }
+        }
+        else {
+            Editor.select_javascript(start_of_job)
+            if (Editor.select_call()){ //returns true if it manages to select the call.
+                //eval_button_action()
+                var job_src = Editor.get_javascript(true)
+                const eval2_result = eval_js_part2(job_src)
+                if (eval2_result.error_type) { } //got an error but error message should be displayed in Output pane automatically
+                else {
+                    const job_instance = eval2_result.value
+                    const [pc, ending_pc]  = job_instance.init_show_instructions(start_cursor_pos, end_cursor_pos, start_of_job, job_src)
+                    job_instance.start({show_instructions: true, program_counter: pc, ending_program_counter: ending_pc})
+                }
+            }
+            else { warning("Ill-formed Job definition surrounding the cursor.") }
+        }
+    }
+
+    static init_show_instructions_for_insts_only_and_start(start_cursor_pos, end_cursor_pos, do_list_array, selection){
+        const job_instance = new Job({name: "j0", do_list: do_list_array})
+        const begin_job_src = 'new Job ({name: "j0", do_list: '
+        const job_src = begin_job_src + selection + "})"
+        const start_of_job = start_cursor_pos - begin_job_src.length//beware, could be < 0
+        job_instance.init_show_instructions(start_cursor_pos, end_cursor_pos, start_of_job, job_src)
+        job_instance.start({show_instructions: true})
+    }
+
+    init_show_instructions(start_cursor_pos, end_cursor_pos, start_of_job, job_src){
+        this.job_source_start_pos = start_of_job //necessary offset to range positions that are in the syntax tree
+        const syntax_tree = esprima.parse(job_src, {range: true})
+        const job_props_syntax_array = syntax_tree.body[0].expression.arguments[0].properties
+        for (var prop_syntax of job_props_syntax_array){
+            if (prop_syntax.key.name == "do_list"){
+                this.do_list_syntax_array = prop_syntax.value.elements
+                return this.instruction_ids_at_selection(start_cursor_pos, end_cursor_pos, start_of_job, syntax_tree)
+            }
+        }
+        dde_error("Job." + this.name + " apparently has no do_list property.")
+    }
+
+    //returns pc to set for starting job that cursor is in, or 0, start at begining,
+    instruction_ids_at_selection(start_cursor_pos, end_cursor_pos, start_of_job, syntax_tree) {
+        var start_cursor_pos_in_job_src = start_cursor_pos - start_of_job
+        var end_cursor_pos_in_job_src   = end_cursor_pos   - start_of_job
+        var result_start = null
+        var result_end   = "end"
+        for(let i = 0; i <  this.do_list_syntax_array.length; i++) {
+            var do_list_item_syntax = this.do_list_syntax_array[i]
+            //var inst_start_pos = do_list_item_syntax.range[0]
+            var inst_start_pos = do_list_item_syntax.range[0]
+            var inst_end_pos   = do_list_item_syntax.range[1]
+            if (result_start === null){
+                if (start_cursor_pos_in_job_src <= (inst_end_pos + 1)){ //comma at end still in the instr
+                    result_start = i //first time through, cursor before do_list, just start at 0
+                    if (start_cursor_pos == end_cursor_pos) { //no selection
+                        result_end = "end"
+                        break;
+                    }
+                    else if (end_cursor_pos_in_job_src <= (inst_end_pos + 1)){ //there's a selection, but it starts and ends in just one instruction
+                        result_end = i + 1
+                        break;
+                    }
+                }
+            }
+            else { //looking for result_end
+                if (end_cursor_pos_in_job_src <= (inst_end_pos + 1)){ //comma at end still in the instr
+                    result_end = i + 1
+                    break;
+                }
+            }
+        }
+        return [result_start, result_end]
+    }
+
+    select_instruction_maybe(cur_do_item){
+        if(this.show_instructions && this.do_list_syntax_array){
+            console.log("    now processing instruction: " + stringify_value(cur_do_item))
+            const orig_instruction_index = this.orig_args.do_list.indexOf(cur_do_item)
+            if(orig_instruction_index != -1){
+                const range = this.instruction_text_range(orig_instruction_index)
+                Editor.select_javascript(range[0], range[1])
+            }
+        }
+    }
+    instruction_text_range(orig_instruction_index){
+        const array_elt_syntax_tree = this.do_list_syntax_array[orig_instruction_index]
+        return [array_elt_syntax_tree.range[0] + this.job_source_start_pos,
+                array_elt_syntax_tree.range[1] + this.job_source_start_pos]
+    }
+    //end show_instruction in editor
 
     is_active(){ return ((this.status_code != "not_started") && (this.stop_reason == null)) }
 
@@ -590,7 +723,7 @@ Job.prototype.stop_for_reason = function(status_code, //"errored", "interrupted"
 
 Job.prototype.do_next_item = function(){ //user calls this when they want the job to start, then this fn calls itself until done
     //this.program_counter += 1 now done in set_up_next_do
-    if (this.log_instructions){
+    if (this.show_instructions){
         console.log("Top of do_next_item in job: " + this.name + " with PC: " + this.program_counter)
     }
     //this.pc_at_do_item_start = this.program_counter
@@ -634,7 +767,7 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
         //regardless of whether we're in an iter or not, do the item at pc. (might or might not
         //have been just inserted by the above).
         var cur_do_item = this.current_instruction()
-        if (this.log_instructions) { console.log("    now processing instruction: " + stringify_value(cur_do_item))}
+        this.select_instruction_maybe(cur_do_item)
         if (this.program_counter >= this.added_items_count.length) { this.added_items_count.push(0)} //might be overwritten further down in this method
         else if (this.added_items_count[this.program_counter] > 0) { //will only happen if we go_to backwards,
            //in which case we *might* call an instruction twice that makes some items that it adds to the to_do list.

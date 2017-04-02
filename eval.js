@@ -87,6 +87,7 @@ function eval_js_part2 (command){
         //I can't figure out whether try is supposed to return the val of its last exp or not from the js spec.
         let start_time = Date.now()
         var value = window.eval(try_command) //window.eval evals in "global scope" meaning that, unlike plain eval,
+        result.value = value //used by Job's menu item "Start job"
         //if I click on EVAL button with window.eval for defining a fn,
         //then a  2nd click on EVAL for calling it, it will work.
         //also works with var foo = 2, and foo in separate eval clicks.
@@ -120,6 +121,7 @@ function eval_js_part2 (command){
      },
      event.origin)*/
     eval_js_part3(result)
+    return result
 }
 
 // in UI.

@@ -424,8 +424,8 @@ The parameters used to define a new Job are:
             are stored in <code>Job.the_job_name.rs_history</code>.
             This is useful for debugging, but uses memory, which can be
             saved by setting keep_history to <code>false</code>.</li>
-        <li><b>log_instructions</b> true or false, default false. Prints messages 
-           to the Chrome console indicating the progress of a running job.</li>
+        <li><b>show_instructions</b> true or false, default false. As the instructions for
+           a job are being run, they are shown in DDE.</li>
         <li><b>inter_do_item_dur</b> A number indicating the number of milliseconds between
            when an instruction is completed by its robot, and when the next instruction is
            computed and sent to the robot of the job. This "taking a breath" gives other
@@ -513,6 +513,30 @@ The parameters used to define a new Job are:
     <code>Job.my_job.start({program_counter: "highest_completed_instruction_or_zero"})</code><br/>
     If a job errored the last time it ran, you can use this to restart the job
     with the errored instruction being the first one run.
+</details>
+
+<details id="start_job_help_doc_id" style="margin-left:20px;"><summary>Start Job menu item</summary>
+This Jobs menu item allows you to start a job from its source code.
+<p/>
+If the cursor is in a job's source code but not in the do_list,
+then the job source will be evaled, and the job started.
+<p/>
+If the cursor is on an instruction in the do_list with no selection,
+the job will be evaled and started with the first instruction run being
+the one the cursor is on.
+<p/>
+If there is a selection within the do_list, then the first instruction
+run will be the one that contains the start of the selection,
+and the last instruction run will be the one that contains the
+end of the selection. This works by setting the job's <code>program_counter</code>
+and <code>ending_program_counter</code> properties.
+<p/>
+If you have selected the source code for one or more instructions
+(with comma's between them) and there is no <code>new Job</code> wrapper
+around the instructions, then a Job wrapper will be automatically made
+behind the scenes, the job will be defined, and started.
+<p/>
+Just before an instruction is run, it will be selected in the editor.
 </details>
 
 <details id="Job.insert_instruction_doc_id" style="margin-left:20px;"><summary>insert_instruction</summary>

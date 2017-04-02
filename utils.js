@@ -600,6 +600,10 @@ function trim_string_for_eval(str){
     }
 }
 
+function replace_substrings(orig_string, substring_to_replace, replacement){
+    return orig_string.replace(new RegExp(substring_to_replace, 'g'), replacement);
+}
+
 //fry's get a js string into literal source code. Used in printout out a TestSuite test
 function string_to_literal(a_string){
     if      (!a_string.includes('"')) { return '"' + a_string + '"'}

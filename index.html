@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!-- good html validtor: https://www.onlinewebcheck.com/check.php?adv=1  -->
 <html lang="en">
-<head>
+<head> 
     <title>Dexter Development Environment</title>
     <link rel="stylesheet" href="jqwidgets/styles/jqx.base.css" type="text/css" />
     <!-- <script type="text/javascript" src="jquery-1.11.3.min.js"></script> -->
@@ -106,6 +106,7 @@
     <script type="text/javascript" src="video.js"></script>
     <script type="text/javascript" src="ros_interface.js"></script>
     <script type="text/javascript"> require("./output.js") </script>
+    <script type="text/javascript"> require("./speech_reco.js") </script>
     <script type="text/javascript" src="svg.js"></script> <!--needed in ui only for series help -->
     <script type="text/javascript" src="eval.js"></script>
     <script type="text/javascript" src="dex.js"></script>
@@ -118,8 +119,13 @@
     <script type="text/javascript" src="app_builder.js"></script>
     <script type="text/javascript" src="test_suite.js"></script>
     <script type="text/javascript" src="test_suites.js"></script>
-    <script type="text/javascript" src="math/kin.js"></script>
-    <script type="text/javascript" src="dxf-parser.js"></script>
+
+    <script type="text/javascript" src="math/Convert.js"></script>
+    <script type="text/javascript" src="math/Vector.js"></script>
+    <script type="text/javascript" src="math/Kin.js"></script>
+    <script type="text/javascript" src="math/Coor.js"></script>
+    <script type="text/javascript" src="math/dxf-parser.js"></script>
+    <script type="text/javascript" src="math/DXF.js"></script>
 
     <script type="text/javascript" src="serial.js"></script>
     <script type="text/javascript" src="low_level_dexter/calibration.js"></script>
@@ -127,6 +133,7 @@
 
     <script type="text/javascript" src="ready.js"></script>
     <style>
+        code { background-color:white; }
         html, body {  width: 100%;  height: 100%; font-family: sans-serif;background-color: #ff8c96; overflow:hidden;}
         .pane_header_wrapper {padding:5px; background-color: #ffbe3c;height:30px;min-height:30px;max-height:30px;}
         .pane_header {font-size:16px; vertical-align:top;}
@@ -440,6 +447,9 @@
                                 <li style="display:inline-block;">Jobs&#9660;
                                     <ul>
                                         <li id="jobs_help_id">Help</li>
+                                        <li id="start_job_id" title="Eval job that cursor is in and start it.">Start Job
+                                           <ul><li id="start_job_help_id">Start Job Help</li></ul>
+                                        </li>
                                         <li id="show_robot_status_id"   title="Pop up a dialog showing the robot status&#013;for a Dexter of your choosing.&#013;Display updates after each instruction.">Show robot status</li>
                                         <li id="jobs_report_id"         title="Display a report of all Jobs in this session.">Show report</li>
                                         <li id="stop_all_jobs_id"       title="Stop all of the currently running jobs.">Stop all jobs</li>
@@ -495,9 +505,11 @@
                               placeholder="Enter JavaScript code here."></textarea>
                 </div>
                 <div style="background-color:#dddddd;">
-                    <div class='pane_header_wrapper'>
-                        <span id="output_pane_help_id" class='pane_header' title="Click for help.">Output</span> shell:
-                        <input id="cmd_input" placeholder="enter a ROS cmd here" title="When you hit ENTER, the cmd will be sent to ROS" style="font-size:14px;width:250px;"/>
+                    <div class='pane_header_wrapper' style="white-space:nowrap;">
+                        <span id="output_pane_help_id" class='pane_header' title="Click for help.">Output</span>
+                        <button id="eval_id" style="vertical-align:middle;" title="Evaluate (run) the selected JS or, if none,&#013;all the JavaScript in the pane.&#013;Can also be invoked by typing &#8984;e">Eval</button>
+                        <div title="Automatically save the edited file&#013;when you click 'Eval',&#013;and when you edit another file." style="vertical-align:middle;display:inline-block;"><input id="save_on_eval_id" type="checkbox" style="vertical-align:60%;padding_bottom:15px;"/> <div style="padding:0px;margin:0px;display:inline-block;font-size:10px; line-height:10px;">Save<br/>on</br/>Eval</div></div>
+                        <button id="clear_output_id" title="Remove all previously output text.">Clear</button>
                         <div id='error_ops_menu' style="display:inline-block;margin-left:10px;vertical-align: middle;background-color:#ff8c96;">
                             <ul style="display:inline-block;padding:0;margin-top:0px;">
                                 <li style="display:inline-block;">Ops&#9660;
@@ -520,7 +532,7 @@
                                                 <li id="rosparam_id"   title="Show ROS params."                     >rosparam list</li>
                                                 <li id="rosservice_is" title="Show active ROS services."            >rosservice list</li>
                                                 <li id="rostopic_id"   title="Show ROS topics."                     >rostopic list</li>
-                                             </ul>
+                                            </ul>
                                         </li>
                                         <li title="The history of recently typed in commands.">User Commands
                                             <ul id="user_cmds_ul">
@@ -530,9 +542,14 @@
                                 </li>
                             </ul>
                         </div>
-                        <button id="clear_output_id" title="Remove all previously output text.">Clear</button>
-                        <button id="eval_id" style="vertical-align:middle;" title="Evaluate (run) the selected JS or, if none,&#013;all the JavaScript in the pane.&#013;Can also be invoked by typing &#8984;e">Eval</button>
-                        <div title="Automatically save the edited file&#013;when you click 'Eval',&#013;and when you edit another file." style="vertical-align:middle;display:inline-block;"><input id="save_on_eval_id" type="checkbox" style="vertical-align:middle;padding_bottom:15px;"/> <div style="padding:0px;margin:0px;display:inline-block;font-size:10px; line-height:10px;">Save<br/>on</br/>Eval</div></div>
+                        <div style="display:inline-block;font-size:10px;margin:0px;padding:0px;height:16px;vertical-align:top;">
+                              <input id="js_radio_button_id" type="radio" name="js_or_ros" value="js" checked="checked" style="margin-top:0px;padding-top:0px;""/>JS<br/>
+                              <input type="radio" name="js_or_ros" value="ros"/>ROS
+                        </div>
+                        <input id="cmd_input_id"
+                               placeholder="Type in code & hit Enter key to eval"
+                               title="Type in code & hit Enter key to eval.&#13;Up arrow for previous cmd.&#13;Down arrow for next cmd&#13;or, at end, clear."
+                               style="font-size:14px;width:500px;"/>
                     </div>
                     <div id="output_div" contentEditable="false" style="width:98%; height:70%; font-size:16px;overflow:auto;white-space:nowrap;padding:5px;"></div> <!-- bugs in css with overlow:auto and height=70% but these are the best settings I can get, othersie last line of output can't be scrollwd into view OR too much wasted whitespace at botton of error pane -->
                     <!-- contentEditable="false" means the text can't be edited BUT for chrome apps, this makes the content selectable and now I can copy and paste it whereas previoiusly I couldn't select and copy it. -->
@@ -542,7 +559,7 @@
         <div>
             <div id="right_splitter">
                 <div id="doc_pane_id" style="font-size:16px;background-color:#e1e1e1;padding-left:5px;">
-                    <div class="pane_header_wrapper" style="height:30px;">
+                    <div class="pane_header_wrapper" style="height:30px;white-space:nowrap;">
                         <span id="documentation_pane_help_id" class="pane_header">Doc</span>
                         <input id="find_doc_input_id" placeholder="search string" title="If this field is empty,&#013;the selection in the&#013;Doc, JavaScript, or Output&#013;pane is used." style="width:100px;"/>
                         <button id="find_doc_button_id">Find</button>
@@ -552,7 +569,7 @@
                     </div>
                 </div> <!--doc_pane -->
                 <div id="simulate_pane" style="background-color:black">
-                    <div class="pane_header_wrapper">
+                    <div class="pane_header_wrapper" style="white-space:nowrap;">
                         <span id="simulate_pane_help_id" class="pane_header" title="Click for help.">Sim</span>
                         <select id='videos_id'>
                             <option value='All'>All</option>

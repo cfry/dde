@@ -1,3 +1,31 @@
+<details style="padding-left:20px;"><summary>v 1.0.10, Apr 2, 2017</summary>
+    Highlights: Start Job menu item. New JS type-in, recognize_speech mostly working.
+<ul>
+<li> Doc, Output and Simulation pane headers fixed to not wrap when pane is shrunk.</li>
+
+    <li> Rearranged Output pane header widgets.</li>
+
+    <li> Added JS/ROS radio buttons to Output pane header.
+    When JS is selected (the default), hitting enter evals
+    the typed in JS. up and down arrows navigate js cmd history.</li>
+
+    <li> github README and releases page documentation extended.</li>
+
+    <li> new Jobs Menu "Start Job" item (and "Start Job help" menu item).
+         Choose menu item "Start Job help" for details.</li>
+
+    <li> html code tags now display with a white background helping them
+    stand out better in the documentation.</li>
+
+    <li><code>recognize_speech</code> working pretty well. Still some minor issues
+        depending on the click_to_talk and only_once arguments. Interacts poorly with
+        <code>speak</code>.</li>
+
+    <li> Change in new object system that broke Coord system fixed,
+        but still 4 bugs in Coord system test suite.</li>
+</ul>
+</details>
+
 <details style="padding-left:20px;"><summary>v 1.0.9, Mar 25, 2017</summary>
     Highlights: Updating DDE much easier. Robot.start_job and Robot.stop_job.
     Improved Doc. Job init param: ending_program_counter.
