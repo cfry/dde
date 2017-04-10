@@ -28,7 +28,7 @@ Job.my_job.start() //Start running 'my_job'
 `///////// Job Example 2
 //An instruction can also be a function call that
 //returns a low level array for Dexter to execute.
-///Dexter.sleep and Dexter.move_all_joints_relative
+///Dexter.sleep and Dexter.move_to
 //are two such calls. Select and eval them to see their result.
 //Just as in a normal JavaScript program, we can
 //wrap a call in another function and call that other function

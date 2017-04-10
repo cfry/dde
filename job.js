@@ -2,7 +2,7 @@
 var esprima = require('esprima')
 
 var Job = class Job{
-    constructor({name=null, robot=new Brain(), do_list=[], keep_history=true, show_instructions=false,
+    constructor({name=null, robot=Dexter.dexter0, do_list=[], keep_history=true, show_instructions=false,
                  inter_do_item_dur = 100, user_data={}, program_counter=0, ending_program_counter="end",
                  initial_instruction = null} = {}){
     //program_cpunter is the counter of the next instruction that should be executed.
@@ -125,7 +125,7 @@ var Job = class Job{
         if (start_of_job == -1) {
             warning("There's no Job definition surrounding the cursor.")
             var selection = Editor.get_javascript(true).trim()
-            if (selection.endsWith(",")) { selection = selection.substring(0, selection.length - 1) }
+            //if (selection.endsWith(",")) { selection = selection.substring(0, selection.length - 1) } //ok to have trailing commas in array new JS
             if (selection.length > 0){
                 if (selection.startsWith("[") && selection.endsWith("]")) {}
                 else {
@@ -516,6 +516,7 @@ Job.stop_all_jobs = function(){
        // j.robot.close() //does not delete the name of the robot from Robot, ie Robot.mydex will still exist, but does disconnect serial robots
           //this almost is a good idea, but if there's a job that's stopped but for some reason,
           //its serial port is still alive, better to call serial_disconnect_all()
+        if (j.robot instanceof Dexter) { j.robot.close_robot() } //needed when wanting to start up again, exp with dexter0
     }
     serial_disconnect_all()
     if (stopped_job_names.length == 0){

@@ -103,6 +103,7 @@
         release_notes_id.innerHTML =
             "<summary>Release Notes</summary>" +
             file_content(__dirname + "/doc/known_issues.html") +
+            "<i>Note: some releases have no notes because they contain only internal changes.</i>" +
             file_content(__dirname + "/doc/release_notes.html")
     }
 
@@ -119,10 +120,10 @@
         console.log("In renderer dde_apps_dir: " + window.dde_apps_dir)
         console.log("In renderer appPath: "      + remote.app.getAppPath())
         console.log("In renderer __dirname: "    + __dirname)
-        // require('fs-lock')({
-        //     'file_accessdir': [__dirname, dde_apps_dir], //for readFile, etc. but must include __dirname since Electron needs it.
-        //     'open_basedir':   [__dirname ] //__direname is the folder this app is installed in. //valid folders to get require's from. /usr/local/share/node_modules',
-        // }) //restrict file access
+        require('fs-lock')({
+            'file_accessdir': [__dirname, dde_apps_dir], //for readFile, etc. but must include __dirname since Electron needs it.
+            'open_basedir':   [__dirname ] //__direname is the folder this app is installed in. //valid folders to get require's from. /usr/local/share/node_modules',
+         }) //restrict file access
         window.fs = require('fs')
         //dde_version = remote.getGlobal("get_app_version")
         var pckg         = require('./package.json');
@@ -225,11 +226,6 @@
                         event.stopPropagation()
                         eval_button_action()
                       }
-    save_on_eval_id.onclick = function(event) {
-                                let val = save_on_eval_id.checked
-                                persistent_set("save_on_eval", val)
-                            }
-    //persistent_get("save_on_eval", function(val) { save_on_eval_id.checked = val }) todo busted by electron
 
     email_bug_report_id.onclick=email_bug_report
 
@@ -615,7 +611,7 @@ get_page_async("http://www.ibm.com", function(err, response, body){ out(body.len
       frequency: 440, //the default, in Hertz. This is A above middle C.    
       volume: 1,      //the default, 0 to 1
       waveform: "triangle", //the default, other choices: "sine", "square", "sawtooth"
-      callback: function(){beep({frequency:493.88})} //default=null, run at end of the beep
+      callback: function(){beep({frequency: 493.88})} //default=null, run at end of the beep
      })
 `
     )}
@@ -810,7 +806,28 @@ foo      //eval to see the latest values</pre>`,
     jobs_report_id.onclick         = function(){Job.report() }
     stop_all_jobs_id.onclick       = function(){Job.stop_all_jobs() }
     clear_stopped_jobs_id.onclick  = function(){Job.clear_stopped_jobs() }
-    $("#real_time_sim_checkbox").jqxCheckBox({ checked: true })
+
+    $("#real_time_sim_checkbox_id").jqxCheckBox({ checked: true })
+    real_time_sim_id.onclick = function(){
+        if ($("#real_time_sim_checkbox_id").val()){
+            $("#real_time_sim_checkbox_id").jqxCheckBox({ checked: false })
+        }
+        else {
+            $("#real_time_sim_checkbox_id").jqxCheckBox({ checked: true })
+        }
+    }
+
+    real_time_sim_checkbox_id.onclick = function(event) {
+        if ($("#real_time_sim_checkbox_id").val()){
+            $("#real_time_sim_checkbox_id").jqxCheckBox({ checked: true })
+        }
+        else {
+            $("#real_time_sim_checkbox_id").jqxCheckBox({ checked: false })
+        }
+        event.stopPropagation() //causes menuu to not shrink up, so you can see the effect of your click
+                            //AND causes the onclick for simulate_id to NOT be run.
+    }
+
     insert_job_example1_id.onclick = function(){Editor.insert(job_examples[1])}
     insert_job_example2_id.onclick = function(){Editor.insert(job_examples[2])}
     insert_job_example3_id.onclick = function(){Editor.insert(job_examples[3])}
@@ -866,43 +883,76 @@ foo      //eval to see the latest values</pre>`,
 
 
     font_size_id.onclick = function(){ $(".CodeMirror").css("font-size", this.value + "px")}
+    $("#font_size_id").keyup(function(event){
+            if(event.keyCode == 13){
+                $(".CodeMirror").css("font-size", this.value + "px")
+            }
+    })
+
     //setTimeout(init_view_eye(), 1000) //todo now this file is loaded in sandbox.html. once I get rid of that and solve reuire issues, and on-ready for render process issues, revisit this.
-    setTimeout(persistent_load, 100)
-    setTimeout(function(){
-         const val = persistent_get("save_on_eval")
-         if(val) { //have to do this because, unlike the DOM doc, chrome/electron checks the box if you set it to false.
-            save_on_eval_id.setAttribute("checked", val)
-         }
-         },
-         200)
-    setTimeout(Editor.restore_files_menu_paths_and_last_file, 300)
-    setTimeout(function() { //ready is evaled in ui but load_files expects to start from sandbox.
-                if (file_exists("dde_init.js")){ //we don't want to error if the file doesn't exist.
-                    load_files("dde_init.js")
-                }}, 400)
-     setTimeout(check_for_latest_release, 100)
+    persistent_initialize()
+
+    const val = persistent_get("save_on_eval")
+    if(val) { //have to do this because, unlike the DOM doc, chrome/electron checks the box if you set it to false.
+        save_on_eval_id.setAttribute("checked", val)
+    }
+    save_on_eval_id.onclick = function(event) {
+        let val = save_on_eval_id.checked
+        persistent_set("save_on_eval", val)
+    }
+    dde_init_dot_js_initialize()//must occcur after persistent_initialize
+    Editor.restore_files_menu_paths_and_last_file()
+    $("#simulate_checkbox_id").jqxCheckBox({ checked: persistent_get("default_dexter_simulate")})
+    simulate_id.onclick = function(){ //so that clikcing on the label (but not the checkbox) will count as
+                                      //clicking on the checkbox.
+        if ($("#simulate_checkbox_id").val()){
+            $("#simulate_checkbox_id").jqxCheckBox({ checked: false })
+        }
+        else {
+            $("#simulate_checkbox_id").jqxCheckBox({ checked: true })
+        }
+        persistent_set("default_dexter_simulate", $("#simulate_checkbox_id").val())
+        //event.stopPropagation() //does NOT cause menu to not shrink up, so you can see the effect of your click
+    }
+    simulate_checkbox_id.onclick = function(event) {
+        if ($("#simulate_checkbox_id").val()){
+            $("#simulate_checkbox_id").jqxCheckBox({ checked: true })
+        }
+        else {
+            $("#simulate_checkbox_id").jqxCheckBox({ checked: false })
+        }
+        persistent_set("default_dexter_simulate", $("#simulate_checkbox_id").val())
+        event.stopPropagation() //causes menuu to not shrink up, so you can see the effect of your click
+                                //AND causes the onclick for simulate_id to NOT be run.
+    }
+
+    setTimeout(check_for_latest_release, 100)
 }
 function check_for_latest_release(){
-    const version_and_date_array = latest_release_version_and_date()
-    if (version_and_date_array){
-        if (version_and_date_array[0] != dde_version){
-            const ver      = version_and_date_array[0]
-            var   ver_date = version_and_date_array[1]
-            ver_date       = date_to_mmm_dd_yyyy(ver_date) //ver_date.substring(0, ver_date.indexOf("T"))
-            warning("The latest version of DDE is: " + ver +
-                    " released: " + ver_date +
-                    "<br/>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp;&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbspbut you're running version: " + dde_version +
-                    " released: " + dde_release_date +
-                    "<br/>See the Doc pane for how to update.")
-            open_doc(update_doc_id)
-        }
-        else { out("DDE is up to date with version: " + dde_version +
-                   " released: " + dde_release_date) }
-    }
-    else { out("You're running DDE version: " + dde_version +
+    latest_release_version_and_date(function(err, response, body){
+        if(err){
+            out("You're running DDE version: " + dde_version +
                 " released: " + dde_release_date +
                 "<br/>Can't reach web to check for latest release.")
-    }
+        }
+        else {
+            const the_obj = JSON.parse(body)
+            const ver     = the_obj.name
+            var ver_date  = the_obj.published_at
+            if (ver != dde_version){
+                ver_date       = date_to_mmm_dd_yyyy(ver_date) //ver_date.substring(0, ver_date.indexOf("T"))
+                warning("The latest version of DDE is: " + ver +
+                        " released: " + ver_date +
+                        "<br/>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp;&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbspbut you're running version: " + dde_version +
+                        " released: " + dde_release_date +
+                        "<br/>See the Doc pane for how to update.")
+                open_doc(update_doc_id)
+            }
+            else { out("DDE is up to date with version: " + dde_version +
+                        " released: " + dde_release_date)
+            }
+        }
+    })
 }
 
 //misc fns called in ready.js

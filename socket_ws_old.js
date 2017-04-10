@@ -1,21 +1,21 @@
 /* Created by Fry on 2/4/16. */
-//https://www.hacksparrow.com/tcp-socket-programming-in-node-js.html
-const net = require("net")
+
+const ws = require("ws")
 
 //never create an instance
 var Socket = class Socket{
-    static init(robot_name, simulate, ip_address, port=50000){
+    static init( robot_name, simulate, ip_address, port=50000){
         //console.log("Creating Socket for ip_address: " + ip_address + " port: "   + port + " robot_name: " + robot_name)
         if (simulate){ DexterSim.create(robot_name) }
         else {
             try {
-                let ws_inst = new net.Socket()
+                let ws_inst = new WebSocket(ip_address + ":" + port)
                 Socket.robot_name_to_ws_instance_map[robot_name] = ws_inst
-                ws_inst.on("data", Socket.on_receive)
-                ws_inst.connect(port, ip_address, function(){
-                    Socket.new_socket_callback(robot_name)
-                })
-
+                ws_ins.on("open", function(){
+                        Socket.new_socket_callback(robot_name)
+                    }
+                )
+                ws_ins.on("message", Socket.on_receive)
             }
             catch(e){
                 dde_error("Error attempting to create socket: " + e.message)
@@ -28,6 +28,7 @@ var Socket = class Socket{
         Dexter.set_a_robot_instance_socket_id(robot_name)
     }
 
+    //not called in new web sockets version
     static instruction_array_to_array_buffer(instruction_array){
         let result = ""
         for(var i = 0; i < instruction_array.length; i++){
@@ -36,12 +37,12 @@ var Socket = class Socket{
             //if (i == 1) { elt = instruction_array[i]} //the op letter
             result += elt
         }
-        var arr_buff = new Buffer(128) //dexter code expecting fixed length buf of 128
-        //var view1    = new Uint8Array(arr_buff)
+        var arr_buff = new ArrayBuffer(128) //dexter code expecting fixed length buf of 128
+        var view1    = new Uint8Array(arr_buff)
         for(var i = 0; i < result.length; i++){
             let char = result[i]
             let code = char.charCodeAt(0)
-            arr_buff[i] = code
+            view1[i] = code
         }
         return arr_buff
     }
@@ -51,19 +52,18 @@ var Socket = class Socket{
             DexterSim.send(robot_name, instruction_array)
         }
         else {
-            //const array = new Float32Array(instruction_array.length);
-            //for (var i = 0; i < array.length; ++i) {
-            //    array[i] = instruction_array[i]
-            //}
-            const array = Socket.instruction_array_to_array_buffer(instruction_array)
+            const array = new Float32Array(instruction_array.length);
+            for (var i = 0; i < array.length; ++i) {
+                array[i] = instruction_array[i]
+            }
             let ws_inst = Socket.robot_name_to_ws_instance_map[robot_name]
-            ws_inst.write(array);
+            ws_inst.send(array);
         }
     }
 
-    static on_receive(data){ //only called by ws, not by simulator
+    static on_receive(data, flags){ //only called by ws, not by simulator
         var js_array = []
-        var view1 = new Int32Array(data.buffer) //array_buff1.bytelength / 4); //weird google syntax for getting length of a array_buff1
+        var view1 = new Int32Array(data) //array_buff1.bytelength / 4); //weird google syntax for getting length of a array_buff1
         for(var i = 0; i < view1.length; i++){
             var elt_int32 = view1[i]
             js_array.push(elt_int32)
@@ -81,8 +81,8 @@ var Socket = class Socket{
         }
         else {
             const ws_inst = Socket.robot_name_to_ws_instance_map[robot_name]
-            if(ws_inst){
-                ws_inst.destroy()}
+            ws_inst.terminate() //like disconnect I guess
+            ws_inst.close()
         }
     }
 }

@@ -1051,19 +1051,13 @@ window.get_page = get_page
 
 //returns null if it can't get the data, else an array
 //of 2 strings a la ["1.0.2, "2017-03-23T13:02:59"]
-window.latest_release_version_and_date = function(){
+window.latest_release_version_and_date = function(callback){
     //hitting the below url from a browser works, but not programmatically
     //unless you have a header of the below usr agent.
     const browser_user_agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36'
-    var props =
-        get_page({url: "https://api.github.com/repos/cfry/dde/releases/latest",
-            headers: {"user-agent": browser_user_agent}})
-    if(props.startsWith("Error:")){ return null }
-    else {
-        try { props = JSON.parse(props)}
-        catch(err) { return null }
-        return [ props.name, props.published_at]
-    }
+    get_page_async({url: "https://api.github.com/repos/cfry/dde/releases/latest",
+                        headers: {"user-agent": browser_user_agent}},
+                        callback)
 }
 
 function make_url(url, arguments) {

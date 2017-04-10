@@ -8,7 +8,7 @@ Js_info = class Js_info {
             var param_count
             var param_string = ""
             var path = null
-            if (fn_name == "_the_editor_is_empty") { return "There is <span style='color:blue;'>nothing</span> in the Editor." }
+            if (fn_name == "_the_editor_is_empty") { return "The Editor is empty. Type to insert text." }
             else if (fn_name == "_the_eof_token")  { return "You clicked beyond the last character in the Editor." }
             else if (Array.isArray(fn_name)){
                 switch(fn_name[0]){

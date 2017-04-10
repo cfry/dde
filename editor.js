@@ -42,7 +42,7 @@ Editor.init_editor = function(){
                     "Cmd-E": eval_button_action //the correct Cmd-e doesn't work
                     }
         });
-    undo_id.onclick        = function(){Editor.undo}
+    undo_id.onclick        = Editor.undo
     redo_id.onclick        = function(){myCodeMirror.getDoc().redo()}
     find_id.onclick        = function(){CodeMirror.commands.findPersistent(myCodeMirror)}
     replace_id.onclick     = function(){CodeMirror.commands.replace(myCodeMirror)} //allows user to also replace all.
@@ -114,14 +114,16 @@ Editor.add_path_to_files_menu = function(path){
 }
 
 Editor.restore_files_menu_paths_and_last_file = function(){ //called by on ready
-    const paths =  persistent_get("files_menu_paths")
-    var html = ""
-    for(let path of paths){
-        html += "<option>" + path + "</option>"
-    }
-    if (paths.length > 0) {
-        file_name_id.innerHTML = html
-        Editor.edit_file(paths[0])
+    if(file_exists("") && file_exists("dde_persistent.json")){ //Documents/dde_apps
+        const paths =  persistent_get("files_menu_paths")
+        var html = ""
+        for(let path of paths){
+            html += "<option>" + path + "</option>"
+        }
+        if (paths.length > 0) {
+            file_name_id.innerHTML = html
+            Editor.edit_file(paths[0])
+        }
     }
 }
 

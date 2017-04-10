@@ -170,7 +170,7 @@ DexterSim = class DexterSim{
             //For heartbeats, we want to leave in robot_status whatever the last "real" instruction was in there.
             //    ds_copy[0] = instruction_array[0] //instruction id
                     //}
-            if (!$("#real_time_sim_checkbox").val()){
+            if (!$("#real_time_sim_checkbox_id").val()){
                 dur = 0
             }
             let ds_copy = robot_status.slice(0) //make a copy to return as some subseqent call to this meth will modify the one "model of dexter" that we're saving in the instance
@@ -198,7 +198,7 @@ DexterSim = class DexterSim{
             setTimeout(function(){
                 the_inst.process_next_instruction()
                 }, dur + 10) //no point in calling process_next_instruction until after dur so that we finish
-                             //the prev instruction first. IF there are no instrucdtions in the queue
+                             //the prev instruction first. IF there are no instructions in the queue
                              //when process_next_instruction is called, then dur will be some small number
         }
     }

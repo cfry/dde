@@ -720,7 +720,7 @@ Series.instances = [
         menu_insertion_string: 'show_window({content: "hi"})',
         menu_sel_start:0, menu_sel_end:11, sample: "show_window"}),
 
-    new Series({id:"series_file_id",       array:['dde_apps_dir', 'load_files', 'file_content', 'choose_file_and_get_content', 'Editor.edit_file', 'write_file',
+    new Series({id:"series_file_id",       array:['dde_apps_dir', 'load_files', 'file_content', "file_exists", 'choose_file_and_get_content', 'Editor.edit_file', 'write_file',
                                                   //'folder_listing',
                                                   'operating_system', 'folder_separator',
                                                   'persistent_set', 'persistent_get', 'persistent_remove', 'persistent_clear'],
@@ -794,10 +794,22 @@ Series.instances = [
     new Series({id:"series_serial_id", array: ['serial_devices', 'serial_path_to_info_map',
                                                'serial_connect_low_level', 'serial_send_low_level', 'serial_flush', 'serial_disconnect'],
         menu_insertion_string: 'serial_devices()',
-        menu_sel_start: 0,  menu_sel_end: -2, sample: "serial_devices"})
-    //new Series({id:"series_test_suite_id", in_series_fn: TestSuite.is_string_test_suite,
-    //                                       array: TestSuite.get_ts_source_array,
-    //   menu_insertion_string: function(){return TestSuite.suites[0].to_source_code()}, menu_sel_start: true,  menu_sel_end:null, sample:"Dexter"}),
+        menu_sel_start: 0,  menu_sel_end: -2, sample: "serial_devices"}),
+
+    //the problem with test suites as a series is tha the left and right
+    //arrow keys are used for both executing test suites AND moving to
+    //the next item in the series. Now choosing test suite from
+    //the series menu inserts the first test suite, but
+    //from then on the left nd right arrows execute the test suite, not
+    //get the next in the series, ie another test suite.
+    //maybe shift_right_arrow to get next TS in series?
+    new Series({id:"series_test_suite_id",
+                in_series_fn: TestSuite.is_string_test_suite,
+                array: TestSuite.get_ts_source_array,
+                menu_insertion_string: function(){return TestSuite.suites[0].to_source_code()},
+                menu_sel_start: true,
+                menu_sel_end:null,
+                sample:"Dexter"})
 
 ]
 }

@@ -1,50 +1,74 @@
 /*Created by Fry on 7/4/16.*/
 //const fs = require('fs'); //errors because require is undefined.
 
+function add_default_file_prefix_maybe(path){
+    if (is_root_path(path)) { return path }
+    else return dde_apps_dir + "/" + path
+}
+
 //_______PERSISTENT: store name-value pairs in a file. Keep a copy of hte file in JS env, persistent_values
 //and write it out even time its changed.
 //require("url")
 //const path_pkg = require('path')
 persistent_values = {}
 
-function persistent_load(){
-    const path = add_default_file_prefix_maybe("dde_persistent.json")
-    if(file_exists(path)){
-        const content = file_content(path)
-        persistent_values = JSON.parse(content)
-    }
-    persistent_initialize()
+//used by both persistent_initialize and dde_init_dot_js_initialize
+function get_persistent_values_defaults() {
+    return {"save_on_eval":     false,
+            "files_menu_paths": [add_default_file_prefix_maybe("dde_init.js")],
+            "default_dexter_simulate": true
+            }
 }
+//if keep_existing is true, don't delete any existing values.
+//but if its false, wipe out everything and set to only the initial values.
+function persistent_initialize(keep_existing=true) { //was persistent_clear
+    if(file_exists("")){ //Documents/dde_apps
+        const dp_path = add_default_file_prefix_maybe("dde_persistent.json")
+        if (file_exists(dp_path)){
+            persistent_load() //sets persistent_values
+        }
+        if (keep_existing){
+            for(let key in get_persistent_values_defaults()){
+                if (!persistent_values.hasOwnProperty(key)) {
+                    persistent_values[key] = get_persistent_values_defaults()[key]
+                }
+            }
+        }
+        else { persistent_values = get_persistent_values_defaults() }
+        persistent_save()
+    }
+    else {
+        dde_error("Please create a folder in your <code>Documents</code> folder<br/>" +
+                  "named: <code>dde_apps</code> to hold the code that you will write,<br/>" +
+                  "then relaunch DDE."
+                  )
+    }
+}
+
 function persistent_save(){
     const path = add_default_file_prefix_maybe("dde_persistent.json")
-    const content = JSON.stringify(persistent_values)
+    var content = JSON.stringify(persistent_values)
+    content = replace_substrings(content, ",", ",\n") //easier to read & edit
+    content = "//Upon DDE launch, this file is loaded before dde_init.js\n//Use persistent_get(key) and persistent_set(key, new_value) to access.\n\n" + content
     write_file(path, content)
 }
 
-//if keep_existing is true, don't delete any existing values.
-//but if its false, wipe out everything and set to only the initial values.
-function persistent_initialize(keep_existing=true) { //was persistent_clear todo update doc
-    const defaults = {
-        "save_on_eval":     false,
-        "files_menu_paths": []
+function persistent_load(){
+    const path = add_default_file_prefix_maybe("dde_persistent.json")
+    if(file_exists(path)){
+        var content = file_content(path)
+        const start_of_content = content.indexOf("{")
+        if (start_of_content != -1) { content = content.substring(start_of_content) } //get rid of comment at top of file
+        persistent_values = JSON.parse(content)
     }
-    if (keep_existing){
-        for(let key in defaults){
-            if (!persistent_values.hasOwnProperty(key)) {
-                persistent_values[key] = defaults[key]
-            }
-        }
-    }
-    else { persistent_values = defaults }
-    persistent_save()
 }
-
 
 function persistent_set(key, value){
     persistent_values[key] = value
     persistent_save()
  }
 
+//returns undefined if key doesn't exist
 function persistent_get(key="get_all", callback=out){
     if (key == "get_all") { return persistent_values }
     else { return persistent_values[key] }
@@ -55,12 +79,54 @@ function persistent_remove(key, callback=function() { out("Removed " + key + " f
     peristent_save()
 }
 
+var default_default_dexter_ip_address = "192.168.1.142"
+var default_default_dexter_port       = "50000"
+
+//gaurentees that dde_init.js exists and that it has certain content in it,
+//and that that certain content is evaled and present in the js env.
+function dde_init_dot_js_initialize() {
+    if(!file_exists("")){ //Documents/dde_apps
+       //reported to user in persistent_initialize
+    }
+    else if (file_exists("dde_init.js")){ //we don't want to error if the file doesn't exist.
+        load_files("dde_init.js")
+        var add_to_dde_init_js = ""
+        if (!persistent_get("default_dexter_ip_address")){
+            add_to_dde_init_js += 'persistent_set("default_dexter_ip_address", "' + default_default_dexter_ip_address + '") //required property, but you can edit the value.\n'
+        }
+        if (!persistent_get("default_dexter_port")){
+            add_to_dde_init_js += 'persistent_set("default_dexter_port", "' + default_default_dexter_port + '") //required property, but you can edit the value.\n'
+        }
+        if ((add_to_dde_init_js != "") || !Dexter.dexter0) {
+            var di_content = file_content("dde_init.js")
+            di_content = add_to_dde_init_js + di_content
+            if(!Dexter.dexter0){ //must be after setting up ip_address and port, and in the unusual case
+                                 //that we already have address and port in the dde_init.js file but not dexter0,
+                                 //we want to make sure that dexter0 is defined AFTER them, so
+                                 //stick this at the end of the file
+                di_content = di_content + '\nnew Dexter({name: "dexter0"}) //dexter0 must be defined.\n'
+            }
+            write_file("dde_init.js", di_content)
+            eval(add_to_dde_init_js)
+        }
+    }
+    else {
+        const initial_dde_init_content =
+                  '//This file is loaded when you launch DDE.\n'     +
+                  '//Add whatever JavaScript you like to the end.\n' +
+                  'persistent_set("default_dexter_ip_address", "'    +
+                  default_default_dexter_ip_address + '") //required property but you can edit the value.\n' +
+                  'persistent_set("default_dexter_port", "'          +
+                  default_default_dexter_port + '") //required property, but you can edit the value.\n' +
+                 'new Dexter({name: "dexter0"}) //dexter0 must be defined.\n'
+
+        eval(initial_dde_init_content)
+        write_file("dde_init.js", initial_dde_init_content)
+    }
+}
+
 
 //FILE SYSTEM
-function add_default_file_prefix_maybe(path){
-    if (is_root_path(path)) { return path }
-    else return dde_apps_dir + "/" + path
-}
 
 function file_content(path, encoding="utf8"){
     path = add_default_file_prefix_maybe(path)
@@ -178,7 +244,7 @@ function load_files(...paths) {
                    "so the prefix is incomplete.<br/>" +
                    "None of the files have been loaded.",
                    "red")
-               dde_error("load_files could not resolve path: " + path + " into a proper file patn.")
+               dde_error("load_files could not resolve path: " + path + " into a proper file path.")
            }
        }
        else {

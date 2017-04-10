@@ -102,7 +102,7 @@ beep({duration: 500,
       frequency: 440,
       volume: 1,
       waveform: "triangle",
-      callback: function(){beep({frequency:493.88})}
+      callback: function(){beep({frequency: 493.88})}
      })
 </pre>
 </details>
@@ -295,21 +295,17 @@ load_files returns the result of evaluating the last expression in the last file
 
 <details id="write_file_doc_id" style="margin-left:40px;"><summary>write_file</summary>
    Arguments:<br/>
-   <b>filepath</b> The location to save to. This string must be the filepath for one of the 500 most recent files
-     that you manually brought into the editor. It will overwrite the current content.
+   <b>filepath</b> The location to save to. It will overwrite the current content.
      Defaults to the file currently in the
      editor.<br/>
    <b>content</b> A string of the content you wish to be in the written file.
      Defaults to the text currently in the editor.<br/>
    Examples: <br/>
      <code>write_file()</code> Saves the content now in the editor to the file being edited.<br/>
-     <code>write_file("no_exist.js")</code> This will error because write_file can't be used to create new files.<br/>
-     <code>write_file("exists_but_not_edited.js")</code> This will error because write_file won't work
-        unless the file is among the last 500 that you have edited.<br/>
-     <code>write_file("foo.js")</code> Providing that foo.js has been edited by you,
-        it will now contain the contents of the editor. 
+     <code>write_file("no_exist.js", "stuff")</code> Creates the named file and gives it a content of "stuff".<br/>
+     <code>write_file("foo.js")</code> Gives foo.js the content now in the editor.
         This is the <i>save_as</i> functionality.<br/>
-     <code>write_file("/a_folder/foo.js", "new content")</code> Replaces the existing content
+     <code>write_file("foo.js", "new content")</code> Replaces the existing content
          of the given file with "new content".<br/>
 </details>
 
@@ -373,13 +369,16 @@ Removes the binding between the first argument (key) and a stored value in the p
 After such a call, attempting to retreive the value of that key will get <code>undefined</code>.
 </details>
 
-<details id="persistent_clear_doc_id" style="margin-left:40px;"><summary>persistent_clear</summary>
-Removes all the values in the persistent db.<br/>
-<b>Example:</b> <code> persistent_clear()</code><br/>
-After such a call, attempting to retreive the value of any key will get <code>undefined</code>.
-<b>Warning:</b> DDE uses the persistent db to store the keys of edited files. 
-Clearing the db will mean that you must have the Web Server for Chrome installed until
-you manually edit those files again. See the documentation for <b>Files</b>.
+<details id="persistent_initialize_doc_id" style="margin-left:40px;"><summary>persistent_initialize</summary>
+Initializes the values in the persistent db.<br/>
+If the argument is true, (the default), it will
+ensure that specific required properties exist, and if not,
+set them to their default value.<br/>
+If the argument is false, it will remove all the existing persistent properties
+and set the required properties to their default values.
+<p/>
+<b>Warning:</b> DDE uses the persistent db to store the keys of edited files amongst
+other things, so an argument of false will get rid of your editing history.
 </details>
 
 </details> <!-- end Persistent -->
@@ -1144,6 +1143,12 @@ An instance of Dexter is created like so:
 Multiple jobs may use a given robot instance as their robot. It is up to the programmer
 to make sure such jobs don't screw each other up. You may not have more than one
 active robot with the same name or ip_address.
+<p/>
+The default robot is <code>Robot.dexter0</code>. This is created in your dde_apps/dde_init.js file.
+Set the robots <code>ip_address</code> and <code>port</code> in that file.
+Robot's not explicity given a <code>simulate_from</code> value will get that value
+from the Job's menu item "Simulate?" when a job containing the robot starts.
+
 <details style="margin-left:20px;"><summary>new Dexter parameters</summary>
 The parameters used to define an instance of Dexter are:
 <ul>
@@ -1154,9 +1159,17 @@ The parameters used to define an instance of Dexter are:
     simulated in software, fully under DDE's control. If simulate is <code>false</code>,
     the instructions will be sent to the Dexter at the given ip_address.
     </li>
+    <li><b>simulate_from</b> If the value of this property is
+         <code>"persistent_get"</code> (the default), then
+        every time a job is started, its asociated robot's simulate property
+        is set with the value of  <code>persistent_get("default_dexter_simulate")</code>
+        The value of <code>default_dexter_simulate</code> can be toggled with
+        the Jobs menu item of <i>Simulate?</i>.
+        The initial value of <code>Robot.dexter0.simulate_from</code> is <code>"persistent_get"</code>.
+    </li>
     <li><b>ip_address</b> A string of an ip_address such as: <code>"192.168.1.1"</code>
         Default null. You can use a Dexter without an ip_address, but only with <code>simulate: true</code></li>
-    <li><b>port</b> An integer. Default 5000. </li>
+    <li><b>port</b> An integer. Default 50000. </li>
     <li><b>base_xyz</b> An array of three numbers.
            Indicates the position of Dexter on its table in microns. Default: <code>[0, 0, 0]</code></li>
     <li><b>base_plane</b> Indicates the plane of Dexter. The default: <code>[0, 0, 0]</code> 

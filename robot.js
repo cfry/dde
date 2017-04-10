@@ -601,11 +601,15 @@ Serial.string_instruction = function(instruction_string){
 
 /*anticipate classes for Dexter2, etc. */
 Dexter = class Dexter extends Robot {
-    constructor({name = "d1", simulate = true, ip_address = "192.168.1.142", port = 50000,
+    constructor({name = "d1", simulate = true, simulate_from = "persistent_get",
+                 ip_address = null, port = null,
                  base_xyz = [0, 0, 0], base_plane = [0,0,1], base_rotation = 0,
                  enable_heartbeat=true, instruction_callback=Job.prototype.set_up_next_do }={}){  //"192.168.1.144"
         //because arguments[0] doesn't work like it does for fns, I have to resort to this redundancy
-        let keyword_args = {name: name, simulate: simulate, ip_address: ip_address, port: port,
+        if(!ip_address) { ip_address = persistent_get("default_dexter_ip_address") }
+        if(!port)       { port       = persistent_get("default_dexter_port") }
+
+        let keyword_args = {name: name, simulate: simulate, simulate_from: simulate_from, ip_address: ip_address, port: port,
                             base_xyz: base_xyz, base_plane: base_plane, base_rotation: base_rotation,
                             enable_heartbeat: enable_heartbeat, instruction_callback: instruction_callback }
         let old_same_named_robot = Robot[name]
@@ -668,6 +672,7 @@ Dexter = class Dexter extends Robot {
         this.base_rotation         = keyword_args.base_rotation //integer arcseconds
 
         this.simulate              = keyword_args.simulate
+        this.simulate_from         = keyword_args.simulate_from
         this.instruction_callback  = keyword_args.instruction_callback
         this.robot_status          = null //now contains the heartbeat rs
         this.is_connected          = false
@@ -692,6 +697,7 @@ Dexter = class Dexter extends Robot {
     }
 
     start(job_instance) { //fill in initial robot_status
+        if (this.simulate_from === "persistent_get") { this.simulate = persistent_get("default_dexter_simulate") }
         if (this.is_initialized()) {
             //this.send(Dexter.get_robot_status()) //doesn't go on do_list, I guess that's ok. do_next_item still hasn't been called once yet
         }

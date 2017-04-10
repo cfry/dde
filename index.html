@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!-- good html validtor: https://www.onlinewebcheck.com/check.php?adv=1  -->
 <html lang="en">
-<head> 
+<head>
     <title>Dexter Development Environment</title>
     <link rel="stylesheet" href="jqwidgets/styles/jqx.base.css" type="text/css" />
     <!-- <script type="text/javascript" src="jquery-1.11.3.min.js"></script> -->
@@ -197,7 +197,7 @@
                                         <li id="unfold_all_id" title="Uncompress all compressed statements.">Unfold All</li>
                                         <li id="select_call_id" title="Select JS calls, definitions,&#013;arrays, for, if, etc. by&#013;Alt-clicking on their&#013;start, middle or end.&#013;On Mac: Option-click">Select call alt-click</li>
                                         <li id="select_all_id" title="Select all the text in the Editor.">Select All Ctrl-A/&#8984;A</li>
-                                        <li>Right click menu has more ops.</li>
+                                        <li>Right click menu in JS pane has more operations.</li>
                                     </ul>
                                 </li>
                                 <li title="Choose these items to learn JavaScript.&#013;Using menu item order recommended." style="display:inline-block;">Learn JS&#9660;
@@ -454,8 +454,12 @@
                                         <li id="jobs_report_id"         title="Display a report of all Jobs in this session.">Show report</li>
                                         <li id="stop_all_jobs_id"       title="Stop all of the currently running jobs.">Stop all jobs</li>
                                         <li id="clear_stopped_jobs_id"  title="Remove stopped jobs so they don't clutter the jobs report.">Clear stopped jobs</li>
+                                        <li id="simulate_id"            title='Dexter instances with a simulate_from value of "persistent_get",&#013;such as the default Dexter: "dexter0",&#013;get their simulate value from this checkbox.'>
+                                            <div style='float: left; margin-right: 5px;' id='simulate_checkbox_id'></div>
+                                            Simulate?
+                                        </li>
                                         <li id="real_time_sim_id"       title="If unchecked, simulation&#013;will run as fast as it can.&#013;No pauses for sleep or motion.">
-                                            <div style='float: left; margin-right: 5px;' id='real_time_sim_checkbox'></div>
+                                            <div style='float: left; margin-right: 5px;' id='real_time_sim_checkbox_id'></div>
                                             Real time sim
                                         </li>
                                         <li> Insert Example

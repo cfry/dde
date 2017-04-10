@@ -1,3 +1,66 @@
+<details style="padding-left:20px;"><summary>v 1.0.11, Apr 10, 2017</summary>
+    Highlights: DDE now communicating with Dexter. New default robot is Robot.dexter0.
+                Extensions to dde_init.js and dde_persistent.json mean rarely having
+                to define a robot with your Job definitions. "Start Job" and "Simulate?"
+                menu items reduce now-extranious code in Job definition file and ease
+                switching between simulate and real.
+<ul>
+    <li> Now access to files outside of the user's Documents/dde_apps/ folder is restricted.
+                This is to prevent potentially malicious code running within DDE.</li>
+
+    <li> <code>write_file</code> doc updated.</li>
+
+    <li> <code>persistent_clear</code> renamed to <code>persistent_initialize</code> and
+         the functionality was extended. Doc updated.</li>
+
+    <li> Stop all jobs is now closing (disconnecting) the job's robot if its a Dexter.</li>
+
+    <li> DDE now communicating with Dexter.</li>
+
+    <li> dde_persistent.json now has a comment at top of file.</li>
+
+    <li> A comment above release notes now says some releases have no release notes.</li>
+
+    <li> Now you can edit the font size by typing, and hitting ENTER
+         causes the new font size to take effect.</li>
+
+    <li> Now clicking anywhere in the menu item of
+        the "Real time sim" menu item toggles the checkbox.</li>
+
+    <li> Choosing series menu item "Test Suite" now inserts
+        the first test suite.ISSUE: Series>Test Suite, didn't seem to do anything.</li>
+
+    <li> Replaced: "There is nothing[blue] in the editor" with
+          "The Editor is empty. Type to insert text."</li>
+
+    <li> Choosing Editor menu item Undo now works.</li>
+
+    <li> Replaced editor menu item of:
+        "Right click menu has more ops". with
+        "Right click menu in JS pane has more operations."</li>
+
+    <li> New default robot is <code>Robot.dexter0</code>.</li>
+
+    <li> New items in dde_init.js and dde_persistent.json
+        new initialization of these files to make configuration easier.
+        Once you configure dexter0 in dde_init.js, mostly
+        you won't have to touch it again, or use another robot.
+        Thus defining a robot in a Job definition file becomes unnecessary.</li>
+
+    <li> new Jobs menu item "Simulate?" checkbox.
+        This sets the persistent variable: "default_dexter_simulate"
+        and that's used when a job using dexter0 is starting.</li>
+
+    <li> Dexter robot objects now have a property: <code>simulate_from</code>
+        If this is has the value: <code>"persistent_get"</code> (the default)
+        then every time a job is started with this robot,
+        the robot's simulate flag is set to the value of
+        <code>persistent_get("default_dexter_simulate")</code>
+        Please see new doc in the ref man on Dexter and its parameter: simulate_from.</li>
+</ul>
+</details>
+
+
 <details style="padding-left:20px;"><summary>v 1.0.10, Apr 2, 2017</summary>
     Highlights: Start Job menu item. New JS type-in, recognize_speech mostly working.
 <ul>
