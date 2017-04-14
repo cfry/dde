@@ -1,5 +1,6 @@
 /*Created by Fry on 7/4/16.*/
 //const fs = require('fs'); //errors because require is undefined.
+const app       = require('electron').remote;  //in the electon book, "app" is spelled "remote"
 
 function add_default_file_prefix_maybe(path){
     if (is_root_path(path)) { return path }
@@ -76,7 +77,7 @@ function persistent_get(key="get_all", callback=out){
 
 function persistent_remove(key, callback=function() { out("Removed " + key + " from persistent db.")}) {
     delete persistent_values[key]
-    peristent_save()
+    persistent_save()
 }
 
 var default_default_dexter_ip_address = "192.168.1.142"
@@ -136,7 +137,6 @@ function file_content(path, encoding="utf8"){
 }
 
 function choose_file(show_dialog_options={}) { //todo document
-    const app       = require('electron').remote;  //in the electon book, "app" is spelled "remote"
     const dialog    = app.dialog;
     const paths = dialog.showOpenDialog(show_dialog_options)
     if (paths) {
@@ -155,7 +155,6 @@ function choose_file_and_get_content(show_dialog_options={}, encoding="utf8") { 
 }
 
 function choose_save_file(show_dialog_options={}) { //todo document
-    const app       = require('electron').remote;  //in the electon book, "app" is spelled "remote"
     const dialog    = app.dialog;
     return dialog.showSaveDialog(show_dialog_options)
 }

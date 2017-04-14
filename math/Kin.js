@@ -95,7 +95,7 @@ var Kin = new function(){
         if (D3 > Dexter.LINK2 + Dexter.LINK3){
         	let out_of_reach_dist = Vector.round(Convert.microns_to_mms(D3 - (Dexter.LINK2 + Dexter.LINK3)), 3)
             
-        	dde_error(Vector.round(Convert.microns_to_mms(xyz), 1) + 'Location is ' + out_of_reach_dist + ' mm out of reach')
+        	dde_error("The location: " + Vector.round(Convert.microns_to_mms(xyz), 1) + ' is ' + out_of_reach_dist + ' mm out of reach.')
         }
         
 
@@ -226,7 +226,7 @@ var Kin = new function(){
         if (D3 > Dexter.LINK2 + Dexter.LINK3){
         	let out_of_reach_dist = Vector.round(Convert.microns_to_mms(D3 - (Dexter.LINK2 + Dexter.LINK3)), 3)
             out(V54)
-        	dde_error(Vector.round(Convert.microns_to_mms(xyz), 1) + 'Location is ' + out_of_reach_dist + ' mm out of reach')
+        	dde_error("The location: " + Vector.round(Convert.microns_to_mms(xyz), 1) + ' is ' + out_of_reach_dist + ' mm out of reach.')
         }
         
 
@@ -383,7 +383,7 @@ var Kin = new function(){
         if (D3 > Dexter.LINK2 + Dexter.LINK3){
         	let out_of_reach_dist = Vector.round(Convert.microns_to_mms(D3 - (Dexter.LINK2 + Dexter.LINK3)), 3)
             out(V54)
-        	dde_error(Vector.round(Convert.microns_to_mms(xyz), 1) + 'Location is ' + out_of_reach_dist + ' mm out of reach')
+        	dde_error("The location: " + Vector.round(Convert.microns_to_mms(xyz), 1) + ' is ' + out_of_reach_dist + ' mm out of reach.')
         }
         
 

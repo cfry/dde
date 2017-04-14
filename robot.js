@@ -681,6 +681,7 @@ Dexter = class Dexter extends Robot {
         this.waiting_for_heartbeat = false
         this.heartbeat_timeout_obj = null
 
+        this.xyz = [0, 0, 0] //will get set by the "g" cmd at instruction -1. used in move_to_relative.
         this.processing_flush      = false //primarily used as a check. a_robot.send shouldn't get called while this var is true
         Robot.set_robot_name(this.name, this)
          //ensures the last name on the list is the latest with no redundancy
@@ -837,7 +838,7 @@ Dexter = class Dexter extends Robot {
                 " that is not the proper length of: " + Dexter.robot_status_labels.length +
                 " or: " + Dexter.robot_ack_labels.length))
         }
-        let got_ack = (robot_status.length == Dexter.robot_ack_labels.length) //if we have an "acknolwge,ent, it means we DON"T have in robot_status all we need to render the joint positions
+        let got_ack = (robot_status.length == Dexter.robot_ack_labels.length) //if we have an "acknowledgent, it means we DON"T have in robot_status all we need to render the joint positions
         let stop_time    = Date.now() //the DDE stop time for the instruction, NOT Dexter's stop time for the rs.
         let job_id       = robot_status[Dexter.JOB_ID]
         let job_instance = Job.job_id_to_job_instance(job_id)
@@ -879,6 +880,16 @@ Dexter = class Dexter extends Robot {
                 rob.robot_status          = robot_status //thus rob.robot_status always has the latest rs we got from Dexter.
                 if (job_instance.keep_history && (op_let == "g")){ //don't do it for oplet "G", get_robot_status_immediate
                     job_instance.rs_history.push(robot_status)
+                    if(ins_id === -1){
+                        rob.xyz = rob.joint_xyz() //must happen after rob.robot_status = robot_status
+                    }
+                }
+                else if (op_let == "a"){ //no robot_status so I must get the pos we tried to move_to. This works for orign insturctions of move_to, move_to_relative, and move_all_joints
+                                         //rob.xy used by move_to_relative
+                    const full_inst = job_instance.do_list[ins_id]
+                    const angles = [full_inst[Dexter.J1_ANGLE], full_inst[Dexter.J2_ANGLE], full_inst[Dexter.J3_ANGLE], full_inst[Dexter.J4_ANGLE], full_inst[Dexter.J5_ANGLE]]
+                    const xyzs = Kin.J_angles_to_xyz(angles, this.base_xyz, this.base_plane, this.base_rotation )
+                    rob.xyz = xyzs[5]
                 }
                 if (job_instance.name === Dexter.updating_robot_status_job_name) { //don't update the table if it isn't shown
                     Dexter.update_robot_status_table(robot_status)
@@ -1176,12 +1187,13 @@ Dexter.move_to = function(xyz = [], // New defaults are the cur pos, not straigh
     }
     else {
         return function(){
-            let existing_xyz = this.robot.joint_xyz()
+            let existing_xyz = this.xyz //just to get defaults. this.robot.joint_xyz()
             let xyz_copy = xyz.slice(0)
             for(let i = 0; i < 3; i++){
                 if (xyz_copy.length <= i)     { xyz_copy.push(existing_xyz[i]) }
                 else if (xyz_copy[i] == null) { xyz_copy[i] = existing_xyz[i]  }
             }
+            //this.xyz = xyz_copy //for move_to_relative no, do this in robot_done_with_instruction
             let angles = Kin.xyz_to_J_angles(xyz_copy, J5_direction, config,
                                              this.robot.base_xyz, this.robot.base_plane, this.robot.base_rotation)
             for(let i = 0; i < 5; i++){ angles[i] = Math.round( angles[i]) }
@@ -1190,13 +1202,13 @@ Dexter.move_to = function(xyz = [], // New defaults are the cur pos, not straigh
     }
 }
 
-/*use new coord sys instead
+
 Dexter.move_to_relative = function(xyz = [], // New defaults are the cur pos, not straight up.
                           // should be : 0, 82550, 866775 pointing straight up, J1_1 thru J4 = 0
                           J5_direction = [0, 0, -1], //end effector pointing down
                           config       = Dexter.RIGHT_UP_OUT){
     return function(){
-        let existing_xyz = this.robot.joint_xyz()
+        let existing_xyz = this.robot.xyz //this.robot.joint_xyz()
         let xyz_copy = xyz.slice(0)
         for(let i = 0; i < 3; i++){
             if (xyz_copy.length <= i)     { xyz_copy.push(existing_xyz[i]) }
@@ -1211,7 +1223,7 @@ Dexter.move_to_relative = function(xyz = [], // New defaults are the cur pos, no
         }
         else { dde_error("move_to_relative called with invalid angles.") }
     }
-}*/
+}
 /*
 Dexter.move_to_relative = function(xyz, joint_4_angle){
     var result = make_ins("B")

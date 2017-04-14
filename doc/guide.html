@@ -87,14 +87,17 @@
         written, etc.
     </details>
 </details>
-<details><summary>Robot Configuration</summary>
-    <ul>
-        <li>The Dexter robot supports a wi-fi connection to your computer.</li>
-        <li>Please use the latest Chrome browser for DDE.</li>
-        <li>Enter the URL of the Dexter computer into the "ROS url" type-in at the top of
-            the JavaScript pane. It will normally have a port suffix of ":9090".</li>
-        <li>Verify the connection by choosing the Output pane <button>Ops&#9660;</button> menu/ROS Info/ping menu item.</li>
-    </ul>
+<details><summary>Configuration</summary>
+    DDE requires that you create a folder under your Documents folder named <code>dde_apps</code>.
+    If this does not exist when you launch DDE, you'll see a warning in the output pane.
+    <p/>
+    DDE requires that you define a default robot named "dexter0". Usually the one
+    that is automatically inserted into the file dde_apps/dde_init.js is fine.
+    However, in that file you will need to set the ip_address and port number
+    of Dexter. {todo: document how to find Dexter's ip_address.} The port number
+    is typically <code>"50000"</code>.
+    <p/>
+    When you plug in and power on Dexter, you will see LEDs light up on Dexter's processor board.
 </details>
 <details><summary>User Interface</summary>
     <a style="margin-left:20px;" href="https://youtu.be/y8Mip5NUDPI">Video tutorial of DDE</a>

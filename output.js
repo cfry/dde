@@ -879,7 +879,7 @@ window.start_recognition = start_recognition
 //_______end Chrome Apps recognize_speech_______
 //Google cloud rocognize speech
 // started from https://github.com/GoogleCloudPlatform/nodejs-docs-samples/blob/master/speech/recognize.js
-function streamingMicRecognize() {
+/*function streamingMicRecognize() {
     const record = require('node-record-lpcm16'); // [START speech_streaming_mic_recognize]
     const Speech = require('@google-cloud/speech'); // Imports the Google Cloud client library
     //const speech = Speech() // Instantiates a client
@@ -916,7 +916,7 @@ function streamingMicRecognize() {
 }
 
 window.streamingMicRecognize = streamingMicRecognize
-
+*/
 
 function beeps(times=1, callback){
     if (times == 0){

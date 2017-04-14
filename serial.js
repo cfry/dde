@@ -54,8 +54,9 @@ function serial_connection_id_to_info(id){
     return null
 }
 
+const ipc     = require('electron').ipcRenderer
 function serial_devices(){
-    const ipc     = require('electron').ipcRenderer
+
     const reply = ipc.sendSync('serial_devices')
     return reply
 }

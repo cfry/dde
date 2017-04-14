@@ -345,40 +345,59 @@ to the DB by DDE. If you'd like to edit it as a file,
 close DDE and edit it with another editor. Be careful to
 get the JSON syntax correct.
 
+<details id="persistent_get_doc_id" style="margin-left:40px;"><summary>persistent_get</summary>
+    Retreives a literal that was set with <code>persistent_set</code>
+    The first argument is the key to retreive. Its default value is <code>"get_all"</code>
+    which gets a JavaScript literal object that has key-value pairs for all the
+    calls to <code>persistent_set</code>. If a key is not in the database,
+    <code>undefined</code> will be retreived.
+    <p/>
+    The 2nd arg is a callback that is passed the retreived value.
+    Its default value is the DDE function <code>out</code>.<br/>
+    <b>Example:</b> <code> persistent_get("test4", function(val){ out("Got: " + val)})</code>
+</details> <!-- end persistent_get -->
+
+<details id="persistent_initialize_doc_id" style="margin-left:40px;"><summary>persistent_initialize</summary>
+    Initializes the values in the persistent db.<br/>
+    If the argument is true, (the default), it will
+    ensure that specific required properties exist, and if not,
+    set them to their default value.<br/>
+    If the argument is false, it will remove all the existing persistent properties
+    and set the required properties to their default values.
+    <p/>
+    <b>Warning:</b> DDE uses the persistent db to store the keys of edited files amongst
+    other things, so an argument of false will get rid of your editing history.
+    <i>This function should only rarely, if ever, called by users.</i>
+</details>
+
+<details id="persistent_remove_doc_id" style="margin-left:40px;"><summary>persistent_remove</summary>
+    Removes the binding between the first argument (key) and a stored value in the persistent db.<br/>
+    <b>Example:</b> <code> persistent_remove("test4")</code><br/>
+    After such a call, attempting to retreive the value of that key will get <code>undefined</code>.
+</details>
+
+<details id="persistent_save_doc_id" style="margin-left:40px;"><summary>persistent_save</summary>
+    Saves all persistent values to the file dde_apps/persistent.json.
+    This function is called automatically when you call <code>persistent_set</code>.
+    If you modify (not set) a persistent value that is an array or a literal object,
+    call this function to save it. If you have a bunch of such modifications,
+    do them all, then call <code>persistent_save</code> once at the end.<br/>
+    <i>Example:</i> <pre>
+var a1 = [10, 11, 12]
+persistent_save("my_array", a1)
+a1[1] = 234
+persistent_save()
+//relaunch DDE
+persistent_get("my_array") //=> 234
+persistent_remove("my_array")
+persistent_get("my_array") //=> undefined
+    </pre>
+</details>
+
 <details id="persistent_set_doc_id" style="margin-left:40px;"><summary>persistent_set</summary>
 Binds a literal to a string key that can be retreived in a later DDE session.
 Null, booleans, numbers, strings, arrays, and literal objects can all be stored.<br/>
 <b>Example:</b> <code> persistent_set("test4", 44)</code>
-</details>
-
-<details id="persistent_get_doc_id" style="margin-left:40px;"><summary>persistent_get</summary>
-Retreives a literal that was set with <code>persistent_set</code>
-The first argument is the key to retreive. Its default value is <code>"get_all"</code>
-which gets a JavaScript literal object that has key-value pairs for all the 
-calls to <code>persistent_set</code>. If a key is not in the database,
-<code>undefined</code> will be retreived.
-<p/>
-The 2nd arg is a callback that is passed the retreived value.
-Its default value is the DDE function <code>out</code>.<br/>
-<b>Example:</b> <code> persistent_get("test4", function(val){ out("Got: " + val)})</code>
-</details> <!-- end persistent_get -->
-
-<details id="persistent_remove_doc_id" style="margin-left:40px;"><summary>persistent_remove</summary>
-Removes the binding between the first argument (key) and a stored value in the persistent db.<br/>
-<b>Example:</b> <code> persistent_remove("test4")</code><br/>
-After such a call, attempting to retreive the value of that key will get <code>undefined</code>.
-</details>
-
-<details id="persistent_initialize_doc_id" style="margin-left:40px;"><summary>persistent_initialize</summary>
-Initializes the values in the persistent db.<br/>
-If the argument is true, (the default), it will
-ensure that specific required properties exist, and if not,
-set them to their default value.<br/>
-If the argument is false, it will remove all the existing persistent properties
-and set the required properties to their default values.
-<p/>
-<b>Warning:</b> DDE uses the persistent db to store the keys of edited files amongst
-other things, so an argument of false will get rid of your editing history.
 </details>
 
 </details> <!-- end Persistent -->
