@@ -74,6 +74,9 @@ function start_recognition(){
                         else { //click to talk, so destroy so we won't be listening until next click to talk
                             //window.sourceStream.destroy()
                             recognizeStream.destroy()
+                            mediaStream.getAudioTracks().forEach(function(track) {
+                                track.stop();
+                            });
                         }
                     }
                 }
