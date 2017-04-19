@@ -18,15 +18,17 @@ var Job = class Job{
         inter_do_item_dur: inter_do_item_dur, user_data: user_data,
         program_counter: program_counter, ending_program_counter: ending_program_counter,
         initial_instruction: initial_instruction}
-        this.name              = name
-        this.robot             = robot
-        //setup name
-        Job.job_id_base       += 1
-        this.job_id            = Job.job_id_base
-        if (this.name == null){ this.name = "job_" + this.job_id }
-        Job[this.name]         = this //beware: if we create this job twice, the 2nd version will be bound to the name, not the first.
-        Job.remember_job_name(this.name)
-        this.status_code       = "not_started" //one of "not_started", "starting", "running" "completed", "suspended", "errored" "interrupted" (user stopped manually), "waiting" (wait_until, sync_point)
+    this.name              = name
+    this.robot             = robot
+    //setup name
+    Job.job_id_base       += 1
+    this.job_id            = Job.job_id_base
+    if (this.name == null){ this.name = "job_" + this.job_id }
+    Job[this.name]         = this //beware: if we create this job twice, the 2nd version will be bound to the name, not the first.
+    Job.remember_job_name(this.name)
+    this.status_code       = "not_started" //see Job.status_codes for the legal values
+    this.add_job_button_maybe()
+    this.color_job_button()
     }
 
     //Called by user to start the job and "reinitialize" a stopped job
@@ -110,6 +112,7 @@ var Job = class Job{
             this.go_state          = true
             //this.init_show_instructions()
             out("Starting job: " + this.name + " ...")
+            this.color_job_button()
             this.robot.start(this)
         }
     }
@@ -243,6 +246,98 @@ var Job = class Job{
                 array_elt_syntax_tree.range[1] + this.job_source_start_pos]
     }
     //end show_instruction in editor
+    //Job BUTTONS______
+    get_job_button_id(){ return this.name + "_job_button_id"}
+
+    get_job_button(){
+        const the_id = this.get_job_button_id()
+        var but_elt = window[the_id]
+        return but_elt
+    }
+
+    add_job_button_maybe(){
+        var but_elt = this.get_job_button()
+        if (!but_elt){
+            const job_name = this.name
+            const the_id = this.get_job_button_id()
+            const the_html = '<button style="margin-left:10px; vertical-align:top;" id="' + the_id + '">'+ job_name + '</button>'
+            $("#jobs_button_bar_id").append(the_html)
+            but_elt = window[the_id]
+            but_elt.onclick = function(){
+                const the_job = Job[job_name]
+                if (the_job.status_code == "suspended"){
+                    the_job.unsuspend()
+                }
+                else if(the_job.is_active()){
+                    the_job.stop_for_reason("interrupted", "User stopped job")
+                }
+                else {
+                    the_job.start()
+                }
+            }
+            this.color_job_button()
+        }
+    }
+
+    remove_job_button(){
+        var but_elt = this.get_job_button()
+        if(but_elt){  $(but_elt).remove()  }
+    }
+
+    set_status_code(status_code){
+        if (Job.status_codes.includes(status_code)){
+            this.status_code = status_code
+            this.color_job_button()
+        }
+        else {
+            shouldnt("set_status_code passed illegal status_code of: " + status_code +
+                     "<br/>The legal codes are:</br/>" +
+                     Job.status_codes)
+        }
+    }
+
+    color_job_button(){
+        var but_elt = this.get_job_button()
+        var bg_color = null
+        var tooltip  = ""
+        switch(this.status_code){
+            case "not_started":
+                bg_color = "#CCCCCC";
+                tooltip  = "This job has not been started since it was defined.\nClick to start this job."
+                break; //defined but never started.
+            case "starting":
+                bg_color = "#88FF88";
+                tooltip  = "This job is in the process of starting.\nClick to stop it."
+                break;
+            case "running":
+                bg_color = "#88FF88";
+                tooltip  = "This job is running.\nClick to stop this job."
+                break;
+            case "suspended":
+                bg_color = "#FFFF11"; //bright yellow
+                tooltip  = "This job is suspended.\nClick to unsuspend it.\nAfter it is running, you can click to stop it."
+                break; //yellow
+            case "waiting":
+                bg_color = "#FFFF66"; //pale yellow
+                tooltip  = "This job is waiting for:\n" + this.wait_reason + "\nClick to stop this job."
+                break; //yellow
+            case "completed":
+                bg_color = "#e6b3ff" // purple. blues best:"#66ccff"  "#33bbff" too dark  //"#99d3ff" too light
+                tooltip  = "This job has successfully completed.\nClick to restart it."
+                break;
+            case "errored":
+                bg_color = "#FF4444";
+                tooltip  = "This job errored with:\n" + this.stop_reason + "\nClick to restart this job."
+                break;
+            case "interrupted":
+                bg_color = "#ff7b00"; //orange
+                tooltip  = "This job was interrupted by:\n" + this.stop_reason + "\nClick to restart this job."
+                break;
+        }
+        but_elt.style.backgroundColor = bg_color
+        but_elt.title                 = tooltip
+    }
+    //end of jobs buttons
 
     is_active(){ return ((this.status_code != "not_started") && (this.stop_reason == null)) }
 
@@ -425,7 +520,7 @@ var Job = class Job{
     // which calls robot_done_with_instruction which calls set_up_next_do(1)
     unsuspend(){
         if (this.status_code == "suspended"){
-            this.status_code = "running"
+            this.set_status_code("running")
             this.set_up_next_do(1)
         }
     }
@@ -456,6 +551,11 @@ var Job = class Job{
 
 
 }
+Job.status_codes = ["not_started", "starting", "running", "completed",
+                    "suspended", "waiting",   //(wait_until, sync_point)
+                    "errored", "interrupted", //(user stopped manually),
+                    ]
+
 Job.global_user_data = {}
 Job.job_id_base = 0 //only used for making the job_id.
 Job.disable_all = false //allows all jobs to run
@@ -507,7 +607,7 @@ Job.stop_all_jobs = function(){
     var stopped_job_names = []
     for(var j of Job.all_jobs()){
         if (j.stop_reason == null){
-            j.status_code = "interruped"
+            j.set_status_code("interrupted")
             j.stop_reason = "User stopped all jobs."
             j.stop_time   = new Date()
             if (j.robot.heartbeat_timeout_obj) { clearTimeout(j.robot.heartbeat_timeout_obj) }
@@ -530,10 +630,11 @@ Job.stop_all_jobs = function(){
 Job.clear_stopped_jobs = function(){
     var cleared_job_names = []
     for(var j of Job.all_jobs()){
-        if ((j.stop_reason != null) || (j.status_code = "not_started")){
+        if ((j.stop_reason != null) || (j.status_code == "not_started")){
             delete Job[j.name]
             Job.forget_job_name(j.name)
             cleared_job_names.push(j.name)
+            j.remove_job_button()
             if (j == Job.last_job) { Job.last_job = null }
 
         }
@@ -626,6 +727,7 @@ Job.prototype.is_simulating = function(){
 
 Job.prototype.finish_job = function(){ //regardless of more to_do items or wiating for instruction, its over.
     this.robot.finish_job()
+    this.color_job_button()
     this.print_out()
     out("Done with job: " + this.name)
 }
@@ -716,7 +818,7 @@ Job.prototype.set_up_next_do = function(program_counter_increment = 1, allow_onc
 
 Job.prototype.stop_for_reason = function(status_code, //"errored", "interrupted", "completed"
                                          reason_string){
-    this.status_code = status_code
+    this.set_status_code(status_code)
     this.stop_reason = reason_string
     this.stop_time   = new Date()
 }

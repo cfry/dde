@@ -105,6 +105,7 @@
     <script type="text/javascript" src="simulate.js"></script>
     <script type="text/javascript" src="video.js"></script>
     <script type="text/javascript" src="ros_interface.js"></script>
+    <!--<script type="text/javascript" src="getusermedia.js"></script> -->
     <script type="text/javascript"> require("./output.js") </script>
     <script type="text/javascript"> require("./speech_reco.js") </script>
     <script type="text/javascript" src="svg.js"></script> <!--needed in ui only for series help -->
@@ -132,38 +133,7 @@
     <script type="text/javascript" src="low_level_dexter/ViewEyeRealTime.js"></script>
 
     <script type="text/javascript" src="ready.js"></script>
-    <style>
-        code { background-color:white; }
-        html, body {  width: 100%;  height: 100%; font-family: sans-serif;background-color: #ff8c96; overflow:hidden;}
-        .pane_header_wrapper {padding:5px; background-color: #ffbe3c;height:30px;min-height:30px;max-height:30px;}
-        .pane_header {font-size:16px; vertical-align:top;}
-        summary {font-weight: 600;}
-        input[type=button]         {background-color:#ddd3ff; font-size:14px;}
-        input[type=submit], button {background-color:#ff8c96; font-size:14px;} /*background-color: #ffb6c0; pink */
-        /*so input type submits and buttons are coral colored and input type button will be default white background
-          dde dialogs shouldn't use buttons, they should just use input type submit and  input type button.
-          which will then be the different colors signifying whether they are submits or not, ie whether
-          the dialog is going to close after they click or not.
-        */
-       /* .jqx-menu-item {width:400px !important;} this forces menu items to be just 1 line but truncates it at about 150px regardless of the setting*/
-        table, th, td, th { border: 1px solid black;  }
-        table { border-collapse: collapse; }
-        tr:nth-child(even) {background-color: #f2f2f2}
-        td {padding:5px}
-        th, td { text-align:left; }
-        .jqx-grid-column-header {
-            background: #EEEEFF;
-            padding:0px;
-            margin:0px;
-            font-size:12px;
-        }
-        .jqx-fill-state-hover{ background: #EECCFF;}
-        .robot_status_table TD, .robot_status_table TH {
-            font-family:sans-serif;
-            font-size:9pt;
-        }
-        /*mark{ background: #74FFBC; pastel green  default is yellow } //for mark.js used in Find doc */
-    </style>
+    <link rel="stylesheet" href="styles.css" type="text/css"/>
 </head>
 <body id="body_id" onload="on_ready()">
 <span style="font-size:30px;">Dexte<img src="dexter_128.png" width="20" alt="r"/> Development Environment</span>
@@ -453,13 +423,13 @@
                                 <li style="display:inline-block;">Jobs&#9660;
                                     <ul>
                                         <li id="jobs_help_id">Help</li>
-                                        <li id="start_job_id" title="Eval job that cursor is in and start it.">Start Job
+                                        <!--<li id="start_job_id" title="Eval job that cursor is in and start it.">Start Job
                                            <ul><li id="start_job_help_id">Start Job Help</li></ul>
-                                        </li>
+                                        </li>-->
                                         <li id="show_robot_status_id"   title="Pop up a dialog showing the robot status&#013;for a Dexter of your choosing.&#013;Display updates after each instruction.">Show robot status</li>
                                         <li id="jobs_report_id"         title="Display a report of all Jobs in this session.">Show report</li>
-                                        <li id="stop_all_jobs_id"       title="Stop all of the currently running jobs.">Stop all jobs</li>
-                                        <li id="clear_stopped_jobs_id"  title="Remove stopped jobs so they don't clutter the jobs report.">Clear stopped jobs</li>
+                                        <!--<li id="stop_all_jobs_id"       title="Stop all of the currently running jobs.">Stop all jobs</li> -->
+                                        <!-- <li id="clear_stopped_jobs_id"  title="Remove stopped jobs so they don't clutter the jobs report.">Clear stopped jobs</li> -->
                                         <li id="simulate_id"            title='Dexter instances with a simulate_from value of "persistent_get",&#013;such as the default Dexter: "dexter0",&#013;get their simulate value from this checkbox.'>
                                             <div style='float: left; margin-right: 5px;' id='simulate_checkbox_id'></div>
                                             Simulate?
@@ -515,7 +485,7 @@
                               placeholder="Enter JavaScript code here."></textarea>
                 </div>
                 <div style="background-color:#dddddd;">
-                    <div class='pane_header_wrapper' style="white-space:nowrap;">
+                    <div class='pane_header_wrapper' style="white-space:nowrap;height:57px;min-height:57px;max-height:57px;">
                         <span id="output_pane_help_id" class='pane_header' title="Click for help.">Output</span>
                         <button id="eval_id" style="vertical-align:middle;" title="Evaluate (run) the selected JS or, if none,&#013;all the JavaScript in the pane.&#013;Can also be invoked by typing &#8984;e">Eval</button>
                         <div title="Automatically save the edited file&#013;when you click 'Eval',&#013;and when you edit another file." style="vertical-align:middle;display:inline-block;"><input id="save_on_eval_id" type="checkbox" style="vertical-align:60%;padding_bottom:15px;"/> <div style="padding:0px;margin:0px;display:inline-block;font-size:10px; line-height:10px;">Save<br/>on</br/>Eval</div></div>
@@ -560,6 +530,13 @@
                                placeholder="Type in code & hit Enter key to eval"
                                title="Type in code & hit Enter key to eval.&#13;Up arrow for previous cmd.&#13;Down arrow for next cmd&#13;or, at end, clear."
                                style="font-size:14px;width:500px;"/>
+                        <br/>
+                        <span id="jobs_button_bar_id">
+                            <button id="start_job_id" style="vertical-align:top;" title='Eval job that cursor is in and start it.&#13;Click on "Output" pane title for doc.'>Start Job</button>&nbsp;
+                            <!-- <button id="stop_all_jobs_id" title="Stop all of the currently running jobs."><b>X</b></button></span> -->
+                            <img id="stop_all_jobs_id" src="stop_sign.png" title="Stop all of the currently running jobs."/>
+                            <button id="undefine_jobs_id" style="vertical-align:top;" title="Undefine the jobs that are not running.">Undef</button>
+                        </span>
                     </div>
                     <div id="output_div" contentEditable="false" style="width:98%; height:70%; font-size:16px;overflow:auto;white-space:nowrap;padding:5px;"></div> <!-- bugs in css with overlow:auto and height=70% but these are the best settings I can get, othersie last line of output can't be scrollwd into view OR too much wasted whitespace at botton of error pane -->
                     <!-- contentEditable="false" means the text can't be edited BUT for chrome apps, this makes the content selectable and now I can copy and paste it whereas previoiusly I couldn't select and copy it. -->

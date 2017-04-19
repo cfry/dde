@@ -2,11 +2,9 @@
 
 var path = require('path')
 
-var GetUserMediaToText = require('getusermedia-to-text')
-
 var s2t = new GetUserMediaToText({
     projectId: 'dexter-dev-env',
-    keyFilename: path.join(__dirname, 'dexter-dev-env-code.json')
+    keyFilename: path.join(__dirname, '/dexter-dev-env-code.json')
     // request: { options }
 })
 

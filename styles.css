@@ -1,3 +1,49 @@
+code { background-color:white; }
+
+html, body {  width: 100%;  height: 100%; font-family: sans-serif;background-color: #ff8c96; overflow:hidden;}
+
+.pane_header_wrapper {
+    padding:5px;
+    background-color: #e39f5a; /*orig orange #ffbe3c;*/
+    height:25px;min-height:25px;max-height:25px;}
+
+.pane_header {font-size:16px; vertical-align:top;}
+
+summary {font-weight: 600;}
+
+input[type=button]         {background-color:#ddd3ff; font-size:14px;}
+
+input[type=submit], button {background-color:#ff8c96; font-size:14px;} /*background-color: #ffb6c0; pink */
+/*so input type submits and buttons are coral colored and input type button will be default white background
+  dde dialogs shouldn't use buttons, they should just use input type submit and  input type button.
+  which will then be the different colors signifying whether they are submits or not, ie whether
+  the dialog is going to close after they click or not.
+*/
+/* .jqx-menu-item {width:400px !important;} this forces menu items to be just 1 line but truncates it at about 150px regardless of the setting*/
+table, th, td, th { border: 1px solid black;  }
+table { border-collapse: collapse; }
+tr:nth-child(even) {background-color: #f2f2f2}
+td {padding:5px}
+th, td { text-align:left; }
+.jqx-grid-column-header {
+    background: #EEEEFF;
+    padding:0px;
+    margin:0px;
+    font-size:12px;
+}
+.jqx-fill-state-hover{ background: #EECCFF;}
+.robot_status_table TD, .robot_status_table TH {
+    font-family:sans-serif;
+    font-size:9pt;
+}
+
+.doc_top_level_summary {
+    font-size:18px;
+    font-weight:400;
+    background-color: #dfccff;
+}
+
+/*
 .vsplitbar {
     width: 10px;
     background: #aaa;
@@ -18,8 +64,6 @@
 }
 
 #left_pane {
-    /*height: 300px;
-    width:  400px;*/
     border: 0px solid #aaa;
 }
 
@@ -28,8 +72,6 @@
 }
 
 #right_pane {
-    /*height: 300px;
-    width:  400px;*/
     border: 0px solid #aaa;
 }
 #right_pane div {
@@ -40,9 +82,9 @@
     background: #FF00FF;
 }
 
-/* for mark.js used for highlighting found search terms in the doc.
-But this fails sep 5, 2016
-*/
+//for mark.js used for highlighting found search terms in the doc. But this fails sep 5, 2016
+
 mark{
     background: #74FFBC !important; /*pastel green */
 }
+*/

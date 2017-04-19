@@ -1,5 +1,5 @@
 
-    dde_version = "not inited"
+    dde_version      = "not inited"
     dde_release_date = "not inited"
     var myCodeMirror //inited inside of ready
 
@@ -96,7 +96,7 @@
         }
     }
 
-    function init_guide(){
+    /*function init_guide(){
         const path = __dirname + "/doc/guide.html"
         console.log("init_guide using path: " + path)
         doc_pane_content_id.innerHTML = file_content(path)
@@ -114,8 +114,19 @@
             file_content(__dirname + "/doc/known_issues.html") +
             "<i>Note: some releases have no notes because they contain only internal changes.</i>" +
             file_content(__dirname + "/doc/release_notes.html")
-    }
+    }*/
 
+    function init_doc(){
+        const path = __dirname + "/doc/guide.html"
+        let content = '<details><summary class="doc_top_level_summary">Overview</summary>\n' +
+                      file_content(__dirname + "/doc/dde_overview/Dexter_Development_Environment.html") +
+                      "</details>\n" +
+                      file_content(__dirname + "/doc/guide.html") +
+                      file_content(__dirname + "/doc/ref_man.html") +
+                      file_content(__dirname + "/doc/release_notes.html") +
+                      file_content(__dirname + "/doc/known_issues.html")
+        doc_pane_content_id.innerHTML = content
+    }
     operating_system = "not inited" //on MAC this is "mac", on windows its "win".  bound in both ui and sandbox by ready
     dde_apps_dir  = null
 
@@ -129,10 +140,10 @@
         console.log("In renderer dde_apps_dir: " + window.dde_apps_dir)
         console.log("In renderer appPath: "      + remote.app.getAppPath())
         console.log("In renderer __dirname: "    + __dirname)
-        require('fs-lock')({
-            'file_accessdir': [__dirname, dde_apps_dir], //for readFile, etc. but must include __dirname since Electron needs it.
-            'open_basedir':   [__dirname ] //__direname is the folder this app is installed in. //valid folders to get require's from. /usr/local/share/node_modules',
-         }) //restrict file access
+        //require('fs-lock')({
+         //   'file_accessdir': [__dirname, dde_apps_dir], //for readFile, etc. but must include __dirname since Electron needs it.
+        //    'open_basedir':   [__dirname ] //__direname is the folder this app is installed in. //valid folders to get require's from. /usr/local/share/node_modules',
+         //}) //restrict file access
         window.fs = require('fs')
         //dde_version = remote.getGlobal("get_app_version")
         var pckg         = require('./package.json');
@@ -149,7 +160,7 @@
 
     $('#left_splitter').jqxSplitter({orientation: 'horizontal', width: "100%", height: "100%",
         panels: [{ size: "60%", min: "5%", collapsible: false },
-            { size: '40%', min: "5%"}]
+                 { size: '40%', min: "5%"}]
     })
     // $('#upper_left_splitter').jqxSplitter({orientation: 'horizontal', width: "100%", height: "100%",
     //     panels: [{ size: "70%"}, { size: "30%"}]
@@ -211,9 +222,10 @@
     init_simulation()
     init_ros_service_if_url_changed() //init_ros_service($("#dexter_url").val())
 
-    init_guide()
-    init_ref_man()
-    init_release_notes()
+    //init_guide()
+    //init_ref_man()
+    //init_release_notes()
+    init_doc()
 
     dde_version_id.innerHTML      = dde_version
     dde_release_date_id.innerHTML = dde_release_date
@@ -246,7 +258,7 @@
         var path = e.target.value //could be "new file" or an actual file
         Editor.edit_file(path)
     }
-    dde_overview_id.onclick = function() {
+    /*dde_overview_id.onclick = function() {
                           //window.open("here is text") //dde_paper_text)
                            //show_web_page('Dexter Development Environment.html')
                            //my_dialog_id.innerHTML = "<iframe>" + dde_paper_text + "</iframe>"
@@ -256,7 +268,7 @@
                            show_window({content:the_text, //dde_paper_text,
                                         x:50, y:50, width:700, height:550,
                                         title:"DDE Overview"})
-                           }
+                           }*/
 
     open_id.onclick=function(e) {
         const path = choose_file(show_dialog_options={title: "Choose a file to edit"})
@@ -284,6 +296,7 @@
         }
     }
     save_as_id.onclick=Editor.save_as
+
     update_id.onclick = function (){check_for_latest_release()}
 
         //Edit menu
@@ -662,7 +675,7 @@ get_page_async("http://www.ibm.com", function(err, response, body){ out(body.len
 
     jobs_help_id.onclick          = function(){ open_doc(Job_doc_id) }
     start_job_id.onclick          = Job.start_job_menu_item_action
-    start_job_help_id.onclick = function(){ open_doc(start_job_help_doc_id) }
+    //start_job_help_id.onclick = function(){ open_doc(start_job_help_doc_id) } //nw help is simply under theh Output pane help, and users see it by clicking on the "Output" pane title.
 
     test_suites_help_id.onclick = function(){ open_doc(TestSuite_doc_id) }
                                         
@@ -822,7 +835,7 @@ foo      //eval to see the latest values</pre>`,
     show_robot_status_id.onclick   = Dexter.show_robot_status
     jobs_report_id.onclick         = function(){Job.report() }
     stop_all_jobs_id.onclick       = function(){Job.stop_all_jobs() }
-    clear_stopped_jobs_id.onclick  = function(){Job.clear_stopped_jobs() }
+    undefine_jobs_id.onclick       = function(){Job.clear_stopped_jobs() }
 
     $("#real_time_sim_checkbox_id").jqxCheckBox({ checked: true })
     real_time_sim_id.onclick = function(){

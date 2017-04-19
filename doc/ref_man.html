@@ -1,4 +1,4 @@
-
+<details><summary class="doc_top_level_summary">Reference Manual</summary>
 <details id="i/o_doc_id" style="margin-left:20px;"><summary>I/O</summary>
 <details id="out_doc_id" style="margin-left:20px;"><summary>out</summary>
 <code>out</code> prints its first argument into the Output pane.
@@ -259,7 +259,7 @@ file Documents/dde_apps/myfold/foo.js
 
 <details id="file_exists_doc_id" style="margin-left:40px;"><summary>file_exists</summary>
 Returns true if the file path in the first argument exists.<br/>
-<I>Example></i><br/>
+<I>Example</i>:<br/>
 <code>file_exists("class_play.js")</code>
 </details>
 
@@ -531,30 +531,6 @@ The parameters used to define a new Job are:
     <code>Job.my_job.start({program_counter: "highest_completed_instruction_or_zero"})</code><br/>
     If a job errored the last time it ran, you can use this to restart the job
     with the errored instruction being the first one run.
-</details>
-
-<details id="start_job_help_doc_id" style="margin-left:20px;"><summary>Start Job menu item</summary>
-This Jobs menu item allows you to start a job from its source code.
-<p/>
-If the cursor is in a job's source code but not in the do_list,
-then the job source will be evaled, and the job started.
-<p/>
-If the cursor is on an instruction in the do_list with no selection,
-the job will be evaled and started with the first instruction run being
-the one the cursor is on.
-<p/>
-If there is a selection within the do_list, then the first instruction
-run will be the one that contains the start of the selection,
-and the last instruction run will be the one that contains the
-end of the selection. This works by setting the job's <code>program_counter</code>
-and <code>ending_program_counter</code> properties.
-<p/>
-If you have selected the source code for one or more instructions
-(with comma's between them) and there is no <code>new Job</code> wrapper
-around the instructions, then a Job wrapper will be automatically made
-behind the scenes, the job will be defined, and started.
-<p/>
-Just before an instruction is run, it will be selected in the editor.
 </details>
 
 <details id="Job.insert_instruction_doc_id" style="margin-left:20px;"><summary>insert_instruction</summary>
@@ -2521,3 +2497,4 @@ submit: &lt;input type="submit" value="OK"/>&#39;,
     </details> <!-- end SVG -->
 
 </details> <!-- end window_system -->
+</details> <!-- end ref man -->

@@ -589,6 +589,7 @@ var TestSuite = class TestSuite{
 
     //menu item operation:
     static selection_to_test(sel_text, full_src, cursor_pos){
+            sel_text = sel_text.trim()
             let result
             if (sel_text == "") { result = `["", ""]` }
             else {

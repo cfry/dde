@@ -1,3 +1,42 @@
+<details><summary class="doc_top_level_summary">Release Notes</summary>
+
+<details style="padding-left:20px;"><summary>v 1.1.00, Apr 18, 2017</summary>
+    Highlights: New Jobs bar for controlling Jobs. Bug fixes and UI tweaks.
+    <ul>
+        <li> <code>Robot.move_to_relative</code> fixed. Now storing robot.angles.</li>
+
+        <li> Doc pane: "Overview", "User Guide", "Known Issues"
+             are now top level items. New styling.</li>
+
+        <li> Make Dictionary under the Insert/Examples menu extended.</li>
+
+        <li> Make Dictionary, the help dialog enlarged to accomodate Windows scroll bar.</li>
+
+        <li> When a file can't be loaded due to security restrictions,
+              an error message now displayed in
+             the Output pane, rather than just the Dev Tools console.</li>
+
+        <li> Test menu item "Selection to test":
+             now the selection has whitespaced trimed before using it.</li>
+
+        <li> Fixed bug in <code>Robot.wait_until</code> duration where restarting a job a 2nd time
+             didn't wait as it should.</li>
+
+        <li> Fixed bug in <code>Robot.stop_job</code></li>
+
+        <li>  New "Jobs bar" under Output Pane header.
+              <ul>
+                  <li> Start Job moved from menu item to Jobs Bar button.</li>
+                  <li> Start Job Help now accessible by clicking on "Output" pane title.</li>
+                  <li> Clear Stopped Jobs now accessible by Jobs bar "Undef" button.</li>
+                  <li> Jobs bar contains a button for each defined job.
+                        The button changes color, functionality,
+                        and tooltip, reflecting the status of the job.</li>
+              </ul>
+        <li> pane header background color changed from orange to brown.</li>
+    </ul>
+</details>
+
 <details style="padding-left:20px;"><summary>v 1.0.13, Apr 14, 2017</summary>
     Highlights: fix for file protection, first cut of new move_to_relative.
 <ul>
@@ -328,4 +367,5 @@ Please read Known Issues.
     as noted in the new tooltip for the Find type-in box.</li>
 </ul>
 </details>
+</details> <!-- end rel notes -->
 

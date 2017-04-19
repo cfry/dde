@@ -133,7 +133,17 @@ function file_content(path, encoding="utf8"){
     path = add_default_file_prefix_maybe(path)
     path = adjust_path_to_os(path)
     //console.log("file_content ultimately using path: " + path)
-    return fs.readFileSync(path, encoding)
+    try{ return fs.readFileSync(path, encoding) }
+    catch(err){
+        if(err.message.startsWith("Access denied")){
+            dde_error("You are not permitted to access files<br/>" +
+                      " outside of Documents/dde_apps such as<br/>" +
+                      path)
+        }
+        else {
+            dde_error("Error getting content for: " + path)
+        }
+    }
 }
 
 function choose_file(show_dialog_options={}) { //todo document
@@ -171,14 +181,28 @@ function write_file(path, content, encoding="utf8"){
         content = Editor.get_javascript()
     }
     path = adjust_path_to_os(path)
-    fs.writeFileSync(path, content, {encoding: encoding})
+    try{ fs.writeFileSync(path, content, {encoding: encoding}) }
+    catch(err){
+        if(err.message.startsWith("Access denied")){
+            dde_error("You are not permitted to access files<br/>" +
+                " outside of Documents/dde_apps such as<br/>" +
+                path)
+        }
+        else {
+            dde_error("Error writing file: " + path)
+        }
+    }
 }
 
 function file_exists(path){
     path = add_default_file_prefix_maybe(path)
     path = adjust_path_to_os(path)
     return fs.existsSync(path)
-} //don't document this as not that useful for normal users and would help bad actors
+} //fs-lock does not error on this. file_exists will return true for
+  //files that exist, but would get access denied if you tried to
+  //read or write them. That's bad. should return false if
+  //you can read or write them. I could read it, and if error,
+  //catch it and return false. A bit expensive but maybe worth it.
 
 //but maybe never call this as I use slash throughout.
 //since web server files want slash, and my other files,

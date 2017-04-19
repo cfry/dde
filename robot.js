@@ -181,7 +181,7 @@ var Brain = class Brain extends Robot { /*no associated hardware */
         return "Brain: <i>name</i>: " + this.name
     }
     start(job_instance) {
-        job_instance.status_code = "running"
+        job_instance.set_status_code("running")
         job_instance.set_up_next_do(0)
     }
     finish_job() {}
@@ -211,7 +211,7 @@ var Human = class Human extends Brain { /*no associated hardware */
         return "Human: <i>name</i>: " + this.name
     }
     start(job_instance) {
-        job_instance.status_code = "running"
+        job_instance.set_status_code("running")
         job_instance.set_up_next_do(0)
     }
     finish_job() {}
@@ -420,7 +420,7 @@ Serial = class Serial extends Robot {
         rob.is_connected = true
         let job_instance = Serial.get_job_with_robot_path(path) //beware, this means only 1 job can use this robot!
         if (job_instance.status_code === "starting") {
-            job_instance.status_code = "running"
+            job_instance.set_status_code("running")
         }
         //before setting it should be "starting"
         if (job_instance.status_code === "running") {
@@ -878,18 +878,16 @@ Dexter = class Dexter extends Robot {
             if (!got_ack){
                 //job_instance.robot_status = robot_status
                 rob.robot_status          = robot_status //thus rob.robot_status always has the latest rs we got from Dexter.
+                if((ins_id === -1) && (op_let == "g")){
+                    rob.angles = rob.joint_angles() //must happen after rob.robot_status = robot_status
+                }
                 if (job_instance.keep_history && (op_let == "g")){ //don't do it for oplet "G", get_robot_status_immediate
                     job_instance.rs_history.push(robot_status)
-                    if(ins_id === -1){
-                        rob.xyz = rob.joint_xyz() //must happen after rob.robot_status = robot_status
-                    }
                 }
                 else if (op_let == "a"){ //no robot_status so I must get the pos we tried to move_to. This works for orign insturctions of move_to, move_to_relative, and move_all_joints
                                          //rob.xy used by move_to_relative
                     const full_inst = job_instance.do_list[ins_id]
-                    const angles = [full_inst[Dexter.J1_ANGLE], full_inst[Dexter.J2_ANGLE], full_inst[Dexter.J3_ANGLE], full_inst[Dexter.J4_ANGLE], full_inst[Dexter.J5_ANGLE]]
-                    const xyzs = Kin.J_angles_to_xyz(angles, this.base_xyz, this.base_plane, this.base_rotation )
-                    rob.xyz = xyzs[5]
+                    rob.angles = [full_inst[Dexter.J1_ANGLE], full_inst[Dexter.J2_ANGLE], full_inst[Dexter.J3_ANGLE], full_inst[Dexter.J4_ANGLE], full_inst[Dexter.J5_ANGLE]]
                 }
                 if (job_instance.name === Dexter.updating_robot_status_job_name) { //don't update the table if it isn't shown
                     Dexter.update_robot_status_table(robot_status)
@@ -905,7 +903,7 @@ Dexter = class Dexter extends Robot {
                 rob.perform_instruction_callback(job_instance) //job_instance.set_up_next_do()
             }
             else if (job_instance.status_code === "starting") { //at least usually ins_id is -1
-                job_instance.status_code = "running"
+                job_instance.set_status_code("running")
                 //rob.perform_instruction_callback(job_instance)
                 job_instance.set_up_next_do(0) //we've just done the initial g instr, so now do the first real instr. PC is already pointing at it, so don't increment it.
             }
@@ -1203,21 +1201,33 @@ Dexter.move_to = function(xyz = [], // New defaults are the cur pos, not straigh
 }
 
 
-Dexter.move_to_relative = function(xyz = [], // New defaults are the cur pos, not straight up.
+/*Dexter.move_to_relative = function(delta_xyz = [], // New defaults are the cur pos, not straight up.
                           // should be : 0, 82550, 866775 pointing straight up, J1_1 thru J4 = 0
                           J5_direction = [0, 0, -1], //end effector pointing down
                           config       = Dexter.RIGHT_UP_OUT){
     return function(){
-        let existing_xyz = this.robot.xyz //this.robot.joint_xyz()
-        let xyz_copy = xyz.slice(0)
-        for(let i = 0; i < 3; i++){
-            if (xyz_copy.length <= i)     { xyz_copy.push(existing_xyz[i]) }
-            else if (xyz_copy[i] == null) { xyz_copy[i] = existing_xyz[i]  }
-            else { xyz_copy[i] = existing_xyz[i] + xyz_copy[i]}  //the one line of difference between this fn and move_to
-        }
-        let angles = Kin.xyz_to_J_angles(xyz_copy, J5_direction, config,
-            this.robot.base_xyz, this.robot.base_plane, this.robot.base_rotation)
+        let new_xyz = Vector.add(this.robot.xyz, delta_xyz) //makes a new array
+        let angles = Kin.xyz_to_J_angles(new_xyz, J5_direction, config,
+                        this.robot.base_xyz, this.robot.base_plane, this.robot.base_rotation)
         for(let i = 0; i < 5; i++){ angles[i] = Math.round( angles[i]) }
+        if (Kin.check_J_ranges(angles)){
+            return make_ins("a", ...angles) // Dexter.move_all_joints(angles)
+        }
+        else { dde_error("move_to_relative called with invalid angles.") }
+    }
+}*/
+
+Dexter.move_to_relative = function(delta_xyz = [] // New defaults are the cur pos, not straight up.
+                                   // should be : 0, 82550, 866775 pointing straight up, J1_1 thru J4 = 0
+                                   ){
+    return function(){
+        let old_xyz      = Kin.J_angles_to_xyz(this.robot.angles)[5]
+        let config       = Kin.J_angles_to_config(this.robot.angles)
+        let J5_direction = Kin.J_angles_L5_Direction(this.robot.angles)
+        let new_xyz = Vector.add(old_xyz, delta_xyz) //makes a new array
+        let angles = Kin.xyz_to_J_angles(new_xyz, J5_direction, config,
+            this.robot.base_xyz, this.robot.base_plane, this.robot.base_rotation)
+        for(let i = 0; i < 5; i++){ angles[i] = Math.round(angles[i]) }
         if (Kin.check_J_ranges(angles)){
             return make_ins("a", ...angles) // Dexter.move_all_joints(angles)
         }

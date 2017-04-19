@@ -1,4 +1,5 @@
-<details><summary>About</summary>
+<details><summary class="doc_top_level_summary">User Guide</summary>
+<details style="margin-left:20px;"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
     version:  <span id="dde_version_id"></span><br/>
     released: <span id="dde_release_date_id"></span>
@@ -7,9 +8,9 @@
     You can use any Javascript augmented with DDE-specific functions to help find out about,
     and manipulate, a robot.<br/>
     <a href="http://hdrobotic.com/videos/" target="_blank">Videos on Dexter</a><br/>
-    <span id="dde_overview_id" style="color:blue; text-decoration:underline;">DDE Overview Paper</span>
+    <!-- <span id="dde_overview_id" style="color:blue; text-decoration:underline;">DDE Overview Paper</span> -->
 </details>
-<details><summary>Why Use DDE?</summary>
+<details style="margin-left:20px;"><summary>Why Use DDE?</summary>
     Dexter has a limitless variety of capabilities.
     We couldn't think of them all let alone program them.
     And if we could, finding the right button for each program would be
@@ -43,14 +44,14 @@
         DDE helps you with all of the above.
     </details>
 </details>
-<details><summary>Prerequisites</summary>
+<details style="margin-left:20px;"><summary>Prerequisites</summary>
     You'll need a Dexter robot and a basic knowledge of JavaScript to make full use of DDE.
     DDE provides a lot of help for learning JavaScript directly and the
     <b>Learning JavaScript</b> section of this documentation gives you a number of
     very good on-line sources to smooth your path.
     Without a robot, you can still use DDE to <i>simulate</i> one.
 </details>
-<details><summary>Installation</summary>
+<details style="margin-left:20px;"><summary>Installation</summary>
     <details style="margin-left:20px;"><summary>First Install</summary>
         To get the latest DDE release,
         <ul><li> Browse <a href="https://github.com/cfry/dde/releases/latest" target="_blink">Github</a></li>
@@ -87,7 +88,7 @@
         written, etc.
     </details>
 </details>
-<details><summary>Configuration</summary>
+<details style="margin-left:20px;"><summary>Configuration</summary>
     DDE requires that you create a folder under your Documents folder named <code>dde_apps</code>.
     If this does not exist when you launch DDE, you'll see a warning in the output pane.
     <p/>
@@ -99,7 +100,7 @@
     <p/>
     When you plug in and power on Dexter, you will see LEDs light up on Dexter's processor board.
 </details>
-<details><summary>User Interface</summary>
+<details style="margin-left:20px;"><summary>User Interface</summary>
     <a style="margin-left:20px;" href="https://youtu.be/y8Mip5NUDPI">Video tutorial of DDE</a>
     <details id="javascript_pane_doc_id" style="margin-left:20px;"><summary>JavaScript Pane</summary>
         The JavaScript pane is a text editor. You can view and edit any text documents in it,
@@ -113,6 +114,30 @@
         Example:<br/>
         <code>out("hi <i>world</i>", "blue")</code><br/>
         <code>out</code> accepts any valid HTML as its first argument. It will be rendered in the Output pane.
+        <details id="start_job_help_doc_id" style="margin-left:20px;"><summary>Start Job Button</summary>
+            Clicking this button evals and starts the job that the cursor is in.
+            <p/>
+            If the cursor is in a job's source code but not in the do_list,
+            then the job source will be evaled, and the job started.
+            <p/>
+            If the cursor is on an instruction in the do_list with no selection,
+            the job will be evaled and started with the first instruction run being
+            the one the cursor is on.
+            <p/>
+            If there is a selection within the do_list, then the first instruction
+            run will be the one that contains the start of the selection,
+            and the last instruction run will be the one that contains the
+            end of the selection. This works by setting the job's <code>program_counter</code>
+            and <code>ending_program_counter</code> properties.
+            <p/>
+            If you have selected the source code for one or more instructions
+            (with comma's between them) and there is no <code>new Job</code> wrapper
+            around the instructions, then a Job wrapper will be automatically made
+            behind the scenes, the job will be defined, and started.
+            <p/>
+            Just before an instruction is run, it will be selected in the editor.
+        </details>
+
     </details>
     <details id="documentation_pane_doc_id" style="margin-left:20px;"><summary>Documentation Pane</summary>
         The Documentation pane attempts to describe the core knowledge you'll need to command Dexter to make things.
@@ -170,7 +195,7 @@
         </details>
     </details>
 </details> <!-- end User Interface -->
-<details><summary>JavaScript</summary>
+<details style="margin-left:20px;"><summary>JavaScript</summary>
     DDE let's you control a Dexter robot with Javascript. You can execute all of JS.
     DDE extends JavaScript with a library of functions that control Dexter, allow access to Unix commands
     on Dexter's computer, Window system extensions, as well as ROS specific function calls allowing you to find out about
@@ -179,7 +204,7 @@
     to the (usually hidden) Chrome console.
     Use <code>out</code> (on the <button>Insert&#9660;</button> menu) to see output in the Output pane.
 </details>
-<details id="learning_js_doc_id"><summary>Learning JavaScript</summary>
+<details style="margin-left:20px;" id="learning_js_doc_id"><summary>Learning JavaScript</summary>
     The quickest way to learn most of the JavaScript you'll need is from the
     JavaScript Pane's <button>Learn JS&#9660;</button> menu.
     Read menu item tooltips, choose an item to insert code, then click <button>Eval</button>
@@ -264,7 +289,7 @@
     Eventually you will need to know the concepts of ROS (the Robot Operating System), though
     not the syntax of BASH, C++ and Python normally required to work with ROS.
 </details>
-<details><summary>Workflow</summary>
+<details style="margin-left:20px;"><summary>Workflow</summary>
     DDE let's you execute arbitrary JavaScript that is entered into the JavaScript pane.
     <ol><li>The JavaScript pane's menus allow you to insert useful code snippets into
         the JavaScript pane.</li>
@@ -315,7 +340,7 @@
         </ol>
     </details>
 </details>
-<details id='series_doc_id'><summary>Series</summary>
+<details style="margin-left:20px;" id='series_doc_id'><summary>Series</summary>
     A useful way to organize knowledge is to construct lists of similar-typed concepts.
     DDE calls such lists <b><i>series</i></b>. There are over 30 series in DDE, including
     numbers, dates, colors, functions for math, strings, arrays, etc.
@@ -339,7 +364,7 @@
     Each time you go to a new item from series or click on one already in the editor,
     help on it will be displayed in the Output pane.
 </details>
-<details><summary>Jobs</summary>
+<details style="margin-left:20px;"><summary>Jobs</summary>
     A job feeds the instructions in its do_list to a robot for making things.
     Most users of DDE will spend most of their time creating and running jobs.
     <p/>
@@ -349,7 +374,7 @@
     how to run them. Choose <b>Insert example 1</b> and read the comments to understand Job syntax.
     See the <b>Reference Manual</b> on <b>Job</b> for the details of specifying a job.
 </details>
-<details id='robots_doc_id'><summary>Robots</summary>
+<details style="margin-left:20px;" id='robots_doc_id'><summary>Robots</summary>
     A robot is a machine capable of performing the instructions in its instruction set.
     The class hierarchy of DDE Robots is:<br/>
     <ul><li>Robot
@@ -383,7 +408,7 @@
     See <button>Series&#9660;</button> submenu "robot" for details about robots as
     well as the <b>Reference Manual</b> section on Robots.
 </details>
-<details id='TestSuite_doc_id'><summary>TestSuite</summary>
+<details style="margin-left:20px;" id='TestSuite_doc_id'><summary>TestSuite</summary>
     DDE has the capability to compose, run and report on Test Suites.
     DDE comes with several Test Suites and you can define more.
     <p/>
@@ -416,7 +441,7 @@
     <p/>
     Other operations on the <button>Test&#9660;</button> menu are documented with tooltips.
 </details>
-<details id='debugging_id'><summary>Debugging</summary>
+<details style="margin-left:20px;" id='debugging_id'><summary>Debugging</summary>
     Most programmers spend most of their time debugging.
     We recommend entering just a bit of code at a time; a line or less before testing it.
     That way, when a bug shows up, you'll know it was in the last bit that you added.
@@ -469,12 +494,9 @@
     speak is on the Insert menu, under <i>Learn Javascript/debugging</i>.
 </details>
 
-<details><summary>Contact</summary>
+<details style="margin-left:20px;"><summary>Contact</summary>
     Please help us by emailing a bug report or suggestion to
-    <a id="email_bug_report_id" href="#">cfry@media.mit.edu</a> Take a look at the
+    <a id="email_bug_report_id" href="#">cfry@hdrobotic.com</a> Take a look at the
     latest <i>Release Notes</i> and the underlying <i>Known Issues</i> to avoid duplication.
 </details>
-<details id="ref_man_doc_id">
-</details>
-<details id="release_notes_id">
 </details>

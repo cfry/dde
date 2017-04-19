@@ -1158,10 +1158,9 @@ Instruction.Control.stop_job = class stop_job extends Instruction.Control{
         if (!job_to_stop) { job_to_stop = job_instance }
         job_to_stop.ending_program_counter = this.instruction_location
         if (!this.stop_reason){
-           this.stop_reason = "Stopped by Job." + job_instance.name + " instruction: Robot.stop_job."
+            job_to_stop.stop_for_reason("interrupted", "Stopped by Job." + job_instance.name + " instruction: Robot.stop_job.")
         }
-        job_to_stop.stop_job_instruction_reason = this.stop_reason
-        //job_instance.stop_for_reason("stopped", "Job: " + job_instance.name + " stopped for: " + this.reason)
+        //job_to_stop.stop_job_instruction_reason = this.stop_reason
         job_instance.set_up_next_do()
     }
     toString(){
@@ -1178,7 +1177,7 @@ Instruction.Control.suspend = class suspend extends Instruction.Control{
         this.reason = reason
     }
     do_item (job_instance){
-        job_instance.status_code = "suspended"
+        job_instance.set_status_code("suspended")
         //doesn't call set_up_next_do nor does it change the pc
     }
 }
@@ -1321,7 +1320,7 @@ Instruction.Control.sync_point = class sync_point extends Instruction.Control{
                         //let's hope there's a 3rd job that it will sync with to get it passed that sync point.
                         else { //j_inst didn't get to sync point yet
                             job_instance.wait_reason = "for Job." + j_inst.name + " to get to sync_point named: " + this.name
-                            job_instance.status_code = "waiting"
+                            job_instance.set_status_code("waiting")
                             job_instance.set_up_next_do(0)
                             return; //we have not acheived sync, so just pause job_instance, in hopes
                                     //that another job will be the last job to reach sync and cause job_instance
@@ -1362,24 +1361,24 @@ Instruction.Control.wait_until = class wait_until extends Instruction.Control{
             if (this.fn_date_dur.call(job_instance)) {
                 //console.log("wait_until fn returned true")
                 job_instance.wait_reason = null
-                job_instance.status_code = "running"
+                job_instance.set_status_code("running")
                 job_instance.set_up_next_do(1) //advance the PC
             }
             else {
                 job_instance.wait_reason = "until function returns true"
-                job_instance.status_code = "waiting"
+                job_instance.set_status_code("waiting")
                 job_instance.set_up_next_do(0) //loop until its true
             }
         }
         else if (this.fn_date_dur instanceof Date){
             if(Date.now() >= this.fn_date_dur){
                 job_instance.wait_reason = null
-                job_instance.status_code = "running"
+                job_instance.set_status_code("running")
                 job_instance.set_up_next_do(1)
             }
             else {
                 job_instance.wait_reason = "until Date: " +  this.fn_date_dur
-                job_instance.status_code = "waiting"
+                job_instance.set_status_code("waiting")
                 job_instance.set_up_next_do(0)
             }
         }
@@ -1388,7 +1387,7 @@ Instruction.Control.wait_until = class wait_until extends Instruction.Control{
             var dur_from_start = Date.now() - this.start_time
             if (dur_from_start >= this.fn_date_dur.milliseconds){
                 job_instance.wait_reason = null
-                job_instance.status_code = "running"
+                job_instance.set_status_code("running")
                 this.start_time = null //essential for the 2nd thru nth call to start() for this job.
                 job_instance.set_up_next_do(1)
             }
@@ -1397,12 +1396,13 @@ Instruction.Control.wait_until = class wait_until extends Instruction.Control{
                 let new_instructions = [make_ins("g"), //just a do nothing to get a round trip to Dexter.
                                        Brain.wait_until(this.fn_date_dur.milliseconds - 1000)] //create new wait_until to wait for the remaining time
                 job_instance.insert_instructions(new_instructions)
-                job_instance.status_code = "running"
+                this.start_time = null //essential for the 2nd thru nth call to start() for this job.
+                job_instance.set_status_code("running")
                 job_instance.set_up_next_do(1)
             }
             else {
                 job_instance.wait_reason = "until Duration: " +  this.fn_date_dur.milliseconds + " ms"
-                job_instance.status_code = "waiting"
+                job_instance.set_status_code("waiting")
                 job_instance.set_up_next_do(0)
             }
         }
