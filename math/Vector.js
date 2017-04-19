@@ -2,7 +2,7 @@
 //Vector and Matrix math functions
 //James Wigglesworth
 //Started: 6_18_16
-//Updated: 3_27_17
+//Updated: 4_19_17
 
 
 //Public
@@ -57,6 +57,33 @@ var Vector = new function(){
         }
     }
     
+    this.max = function(array){
+    	let dim = Vector.matrix_dimensions(array)
+        let max = -Infinity
+        for(let i = 0; i < dim[0]; i++){
+        	for(let j = 0; j < dim[0]; j++){
+        		if(array[i][j] > max){
+                	max = array[i][j]
+                }
+        	}
+        }
+        return max
+    }
+    
+    this.min = function(array){
+    	let dim = Vector.matrix_dimensions(array)
+        let min = Infinity
+        for(let i = 0; i < dim[0]; i++){
+        	for(let j = 0; j < dim[0]; j++){
+        		if(array[i][j] < max){
+                	min = array[i][j]
+                }
+        	}
+        }
+        return min
+    }
+    
+    
     //Vector.size([0, 0, 1])
 
     //Public
@@ -77,6 +104,9 @@ var Vector = new function(){
         var point, plane
         var product = 0
         if (A_size === B_size){
+        	if(A_size == 1){
+            	return vector_A*vector_B
+            }
         	for(var i = 0; i < Math.min(A_size, B_size); i++){
         		product += vector_A[i] * vector_B[i]
         	}
@@ -408,10 +438,10 @@ var Vector = new function(){
                     		quotient = temp_arg.slice(0)
                 			for(var j = 0; j < Vector.size(quotient); j++){
                 				if (Vector.size(quotient[j]) === 1){
-                        			quotient[j] /= temp
+                        			quotient[j] = temp / quotient[j]
                         		}else{
                         			for(var k = 0; k < quotient[j].length; k++){
-                            			quotient[j][k] /= temp
+                            			quotient[j][k] = temp / quotient[j][k]
                             		}
                         		}
                     		}
@@ -598,9 +628,7 @@ var Vector = new function(){
     
     //Public
     this.project_vector_onto_plane = function(vector, plane){
-		if (plane.length === 4){
-        	var short_plane = [plane[0], plane[1], plane[2]]
-    	}
+		var short_plane = [plane[0], plane[1], plane[2]]
 		var term1 = Vector.dot(vector, short_plane)
     	var term2 = Math.pow(Vector.distance(short_plane), 2)
 		return Vector.subtract(vector, Vector.multiply(term1 / term2, short_plane))
@@ -942,10 +970,20 @@ var Vector = new function(){
     //Vector.make_matrix([2,3])
     
     function multiply_two_matrices(matrix_A, matrix_B){
+    	let A_height, B_height, A_width, B_width, A_dim, B_dim
+        A_dim = Vector.matrix_dimensions(matrix_A)
+        B_dim = Vector.matrix_dimensions(matrix_B)
+        A_height = A_dim[0]
+        A_width = A_dim[1]
+        B_height = B_dim[0]
+        B_width = B_dim[1]
+        
+        /*
     	let A_height = matrix_A.length
         let B_height = matrix_B.length
         let A_width  = matrix_A[0].length
         let B_width  = matrix_B[0].length
+        */
         if(A_width == undefined){
         	A_width = A_height
         	A_height = 1
@@ -961,8 +999,12 @@ var Vector = new function(){
         for(var i = 0; i < A_height; i++){
         	for(var j = 0; j < B_width; j++){
             	let verticle = Vector.make_matrix(1, B_height)[0]
-                for(var k = 0; k < B_height; k++){
-                	verticle[k] = matrix_B[k][j]
+                if(B_height == 1){
+                	verticle = matrix_B[j]
+                }else{
+                	for(var k = 0; k < B_height; k++){
+                		verticle[k] = matrix_B[k][j]
+                	}
                 }
                 if(A_height == 1){
                 	result[i][j] = Vector.dot(matrix_A, verticle)
@@ -1578,13 +1620,14 @@ new TestSuite("Vector Library - Matrix Math",
 	["Vector.make_matrix(3, 2, 1)", "[[1, 1], [1, 1], [1, 1]]"],
     ["Vector.transpose(Vector.transpose([1, 2, 3]))", "[1, 2, 3]"],
     ["Vector.matrix_multiply([1, 2, 3], [[1], [2], [3]])", "[[14]]"],
-    ["Vector.matrix_multiply([[1], [2], [3]], [1, 2, 3])", "[[NaN, NaN, NaN], [NaN, NaN, NaN], [NaN, NaN, NaN]]"],
-    ["Vector.matrix_multiply([[1, 0, 0, 10], [0, 1, 0, 20], [0, 0, 1, 30], [0, 0, 0,  1]], [[1], [2], [3], [1]])", "[[11], [22], [33], [1]]"],
+	["Vector.matrix_multiply([[1], [2], [3]], [1, 2, 3])", "[[1, 2, 3], [2, 4, 6], [3, 6, 9]]"],
+	["Vector.matrix_multiply([[1, 2, 3], [4, 5, 6]], [[7, 8], [9, 10], [11, 12]])", "[[58, 64], [139, 154]]"],
+	["Vector.matrix_multiply([[1, 0, 0, 10], [0, 1, 0, 20], [0, 0, 1, 30], [0, 0, 0,  1]], [[1], [2], [3], [1]])", "[[11], [22], [33], [1]]"],
     ["Vector.transpose([1, 2, 3])", "[[1], [2], [3]]"],
     ["Vector.transpose([[1, 2, 3], [4, 5, 6]])", "[[1, 4], [2, 5], [3, 6]]"],
     ["Vector.determinant([[1, 0, 0], [0, 1, 0], [0, 0, 1]])", "1"],
 	["Vector.determinant([[0, 0, 0], [0, 1, 0], [0, 0, 1]])", "0"],
-	["Vector.determinant([[ 0.707, 0.707, 0], [-0.707, 0.707, 0], [0, 0, 1]])", "1"],
+    ["Vector.determinant([[Math.sqrt(2)/2, Math.sqrt(2)/2, 0], [-Math.sqrt(2)/2, Math.sqrt(2)/2, 0], [0, 0, 1]])", "1.0000000000000002"],	
     ["Vector.inverse([[1, 0, 0], [0, 1, 0], [0, 0, 1]])", "[[1, 0, 0], [0, 1, 0], [0, 0, 1]]"],
     ["Vector.inverse([[3, 2, 1.7, 1.5], [4.5, 5, 4.1, 1.9], [1.1, 8.5, 9, 8], [3, 9, 9, 10]])", "[ [ 0.7319863743922018, -0.18592193878878188, 0.10453233481551132, -0.1580986556413699], [ -2.6473723899420833, 1.3118547988663025, -1.2270847960059614, 1.1295212835114843], [ 2.4406479964636474, -1.081727643862005, 1.5172790389266348, -1.374392178277074], [ -0.03354395818706807, -0.1513378578672326, -0.29253451907325856, 0.3678134019814442]]"],
     ["Vector.matrix_divide([[1, 0, 0, 10], [0, 1, 0, 20], [0, 0, 1, 30], [0, 0, 0,  1]], [[1, 0, 0, 100], [0, 1, 0, 200], [0, 0, 1, 300], [0, 0, 0,  1]])", "[[1, 0, 0, -90], [0, 1, 0, -180], [0, 0, 1, -270], [0, 0, 0, 1]]"],

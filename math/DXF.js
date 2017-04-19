@@ -181,4 +181,7 @@ var DXF = new function(){
     	}
     	return movCMD
 	}
+    
+    
+    
 }
