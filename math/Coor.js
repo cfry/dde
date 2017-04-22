@@ -1,10 +1,16 @@
 //Coordinate System 
 //James Wigglesworth
 //Started: 1_19_17
-//Updated: 2_10_17
+//Updated: 4_7_17
 
 
-var Coor = newObject({prototype: Root, name: "Coor", pose: Vector.make_pose()})
+try{
+	//Electron version
+	var Coor = newObject({prototype: Root, name: "Coor", pose: Vector.make_pose()})
+}catch(err){
+	//Chrome apps version
+	var Coor = newObject({name: "Coor", pose: Vector.make_pose()})
+}
 
 Coor.create_child = function(pose, name){
 	if(pose === undefined){
@@ -216,7 +222,7 @@ new TestSuite("Coordinate Object System",
     ['table = Coor.create_child(Vector.make_pose(), "table")', "Coor.table"],
 	['J0 = table.create_child(Vector.make_pose(), "J0")', "Coor.table.J0"],
     ['J1 = J0.create_child(Vector.make_pose([10, 0, 0]), "J1")', "Coor.table.J0.J1"],
-    ['J2 = J1.create_child(Vector.make_pose([0, 0, 20]), "J2")', "TestSuite.error"],
+    ['J2 = J1.create_child(Vector.make_pose([0, 0, 20]), "J2")', "Coor.table.J0.J1.J2"],
     ['J3 = J2.create_child(Vector.make_pose([0, 0, 20]), "J3")', "Coor.table.J0.J1.J2.J3"],
     ['cube = table.create_child(Vector.make_pose([15, 10, 5], [0, 0, 0]), "cube")', "Coor.table.cube"],
 	["J3.get_pose()", "[[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 20], [0, 0, 0, 1]]"],
@@ -236,7 +242,7 @@ new TestSuite("Coordinate Object System",
     ["J3.set_position([10, 10, 10])", "[[1, 0, 0, 10], [0, 1, 0, 10], [0, 0, 1, 10], [0, 0, 0, 1]]"],
     ["J3.set_position([10, 10, 10], table)", "[[1, 0, 0, 0], [0, 1, 0, 10], [0, 0, 1, -10], [0, 0, 0, 1]]"],
     ["J3.set_orientation([[-1, 0, 0], [0, 0, 1], [0, 0, 1]])", "[[-1, 0, 0, 0], [0, 0, 1, 10], [0, 0, 1, -10], [0, 0, 0, 1]]"],
-    ["J3.set_orientation([[-1, 0, 0], [0, 0, 1], [0, 0, 1]], cube)", "[[-1, 0, 0, 0], [0, 0, 1, 10], [0, 0, 1, -10], [0, 0, 0, 1]]"]
+    ["J3.set_orientation([[-1, 0, 0], [0, 0, 1], [0, 0, 1]], cube)", "[[-0.7071067811865476, 0, 0.7071067811865475, 0], [0.7071067811865475, 0, 0.7071067811865476, 10], [0, 0, 1, -10], [0, 0, 0, 1]]"]
 )
 
 
