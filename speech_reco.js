@@ -11,7 +11,7 @@ var s2t = new GetUserMediaToText({
 
 function sr_on_data(data){
     //debugger;
-    out(data.speechEventType)
+    out("data: " + data.speechEventType)
     switch (data.speechEventType) {
         case "START_OF_SPEECH":
             out("START_OF_SPEECH")
@@ -28,10 +28,11 @@ function sr_on_data(data){
             break;
         case "SPEECH_EVENT_UNSPECIFIED":
             set_mic_and_instructions() //don't talk
-            if(data.results.length > 0){ //data.results IS the recognized text.
-                out("got non zero text, calling s2t.stop()")
-                s2t.stop()
-                recognize_speech_last_text = data.results.trim() //the 2nd through nth recos start with sapce,
+            if (!data) { console.log(data) }
+            else if(data.results.length > 0){ //data.results IS the recognized text.
+                // out("got non zero text, calling s2t.stop()")
+                // s2t.stop()
+                recognize_speech_last_text = data.results[0].transcript.trim() //the 2nd through nth recos start with sapce,
                   //which would be good for contnuous dictation, but bad for recognizing the ending phrase.
                   //I could get clever and allow, but see how always trimming works out in practice.
                 out(recognize_speech_last_text)
@@ -40,12 +41,13 @@ function sr_on_data(data){
                     sr_end(data) //close window
                 }
                 else if (!recognize_speech_click_to_talk) {
-                    sr_start()
+                    // sr_start()
                 }
                 else { //click to talk, so destroy so we won't be listening until next click to talk
                         //sourceStream.destroy()
                         //sourceStream.suspend()
                         //recognizeStream.destroy()
+                        s2t.stop()
                 }
             }
             break;
@@ -96,8 +98,8 @@ function sr_start() {
 function sr_result(data) {
     //out('recognize_speech top of onresult');
     //recognize_speech_instructions_id.innerHTML = "Stop talking"
-    recognize_speech_last_text       = data.results.trim() //event_to_text(event)
-    recognize_speech_last_confidence = 1 //data.results[0].confidence //no confidence in Bret's new code
+    recognize_speech_last_text       = data.results[0].transcript.trim() //event_to_text(event)
+    recognize_speech_last_confidence = data.results[0].confidence //no confidence in Bret's new code
     recognize_speech_finish_array.push([recognize_speech_last_text, recognize_speech_last_confidence])
     //out("recognized speech: " + recognize_speech_last_text)
     if (!recognize_speech_only_once && (recognize_speech_last_text == recognize_speech_finish_phrase)){
@@ -126,6 +128,7 @@ function sr_end(data) {
          recognize_speech_finish_callback){
             recognize_speech_finish_callback(recognize_speech_finish_array)
     }
+    s2t.stop()
 }
 
 function set_mic_and_instructions(instructions="Don't talk"){
