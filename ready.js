@@ -334,6 +334,7 @@ foo("hello", [7, 10, 20, -3.2]) //call function foo with 2 args
 show_window("hi <i style='font-size:100px;'>wizard</i>")
 `
 )}
+    insert_color_id.onclick = insert_color
 window_options_id.onclick=function(){Editor.insert('show_window({\n' +
                                                               '    content: "hi",      // Any HTML OK here.\n' +
                                                               '    title: "Greetings", // Appears above the content. Any HTML OK.\n' +

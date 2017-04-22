@@ -135,7 +135,7 @@
     <script type="text/javascript" src="ready.js"></script>
     <link rel="stylesheet" href="styles.css" type="text/css"/>
 </head>
-<body id="body_id" onload="on_ready()">
+<body id="body_id" class="window_frame" onload="on_ready()">
 <span style="font-size:30px;">Dexte<img src="dexter_128.png" width="20" alt="r"/> Development Environment</span>
 <i style="font-size:20px;padding-left:20px;">Create software to control the Dexter robot</i><br/>
 <div id="DIV1" style="width: 100%; height: 99%;"> <!--height of 99% allows a tiny pink bottom border which is good.-->
@@ -145,7 +145,7 @@
                 <div>
                     <div class="pane_header_wrapper" style="height:50px;min-height:50px;max-height:50px;">
                         <span id="javascript_pane_help_id" class="pane_header" title="Click for help.">JavaScript</span>
-                        <div id='js_menubar_id' style="display:inline-block; background-color:#ff8c96;">
+                        <div id='js_menubar_id' class='dde_menu' style="display:inline-block;">
                             <ul style="display:inline-block;padding:0;margin-top:0px;">
                                 <li style="display:inline-block;">File&#9660;
                                     <ul>
@@ -302,6 +302,7 @@
                                             </ul>
                                         </li>
                                         <li id="editor_insert_id"      title="Programmatically inserts text into the Editor.">Editor.insert</li>
+                                        <li id="insert_color_id"       title="Choose a color to insert into the Editor.&#013;If you select a color first,&#013;the selection will be replaced.">Color</li>
                                         <li                            title="Pops up a dialog box with HTML content.">show_window
                                             <ul>
                                                 <li id="window_simple_message_id" title="Basic information presentation">Simple Message</li>
@@ -490,7 +491,7 @@
                         <button id="eval_id" style="vertical-align:middle;" title="Evaluate (run) the selected JS or, if none,&#013;all the JavaScript in the pane.&#013;Can also be invoked by typing &#8984;e">Eval</button>
                         <div title="Automatically save the edited file&#013;when you click 'Eval',&#013;and when you edit another file." style="vertical-align:middle;display:inline-block;"><input id="save_on_eval_id" type="checkbox" style="vertical-align:60%;padding_bottom:15px;"/> <div style="padding:0px;margin:0px;display:inline-block;font-size:10px; line-height:10px;">Save<br/>on</br/>Eval</div></div>
                         <button id="clear_output_id" title="Remove all previously output text.">Clear</button>
-                        <div id='error_ops_menu' style="display:inline-block;margin-left:10px;vertical-align: middle;background-color:#ff8c96;">
+                        <div id='error_ops_menu' class="dde_menu" style="display:inline-block;margin-left:10px;vertical-align: middle;">
                             <ul style="display:inline-block;padding:0;margin-top:0px;">
                                 <li style="display:inline-block;">Ops&#9660;
                                     <ul>
@@ -578,11 +579,13 @@
         </div>
     </div>
 </div>
+<!--
 <div id='jqxwindowxx' style="display:none;">
     <div id="jqxwindow_header" style="background-color: #ff8c96;font-size:20px;">Header</div>
     <div id="jqxwindow_content">Content</div>
 </div>
 <dialog id='my_dialog_id'>some stuff</dialog>
+-->
 
 </body>
 </html>

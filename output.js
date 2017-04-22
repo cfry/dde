@@ -265,7 +265,7 @@ window.show_window = function({content = "", title = "DDE Information", width = 
         //kludge but that's dom reality
         var holder_div = document.createElement("div"); // a throw away elt
         holder_div.innerHTML ='<div class="show_window" style="display:none;">' +
-            '<div style="font-size:20px;background-color:#ff8c96">' + title + '</div>' + //coral #ff8c96
+            '<div class="window_frame" style="font-size:20px;">' + title + '</div>' + //coral #ff8c96
             '<div style="overflow:auto; background-color:' + background_color + ';">' + content + '</div>' +
             '</div>'
         var window_elt = holder_div.firstElementChild
@@ -1089,7 +1089,136 @@ function make_url(url, arguments) {
 }
 window.make_url = make_url
 
+//hack! no good way to do this but go after an existing elt that uses
+//a particular "class" that I'm interrested in, and grab its
+//css. Need to use jquery as body_id.style.background-color doesn't get it
+function window_frame_background_color(){
+    return $("#body_id").css("background-color") // ie "rgb(123, 45, 67))
+}
+
+function pane_header_background_color(){
+    return $(".pane_header_wrapper").css("background-color")
+}
+
+function menu_background_color(){
+    return $("#js_menubar_id").css("background-color") // ie "rgb(123, 45, 67))
+}
+
+function button_background_color(){
+    return $("#eval_id").css("background-color") // ie "rgb(123, 45, 67))
+}
+//beware property_name muxt be camel cased (lower case first char, no dashes
+//so background_color mush be represented as backgroundColor.
+function set_css_property(selector, property_name, new_value){
+    let sss = document.styleSheets
+    for (let ss_index = 0; ss_index < sss.length; ss_index++){
+        let ss = sss[ss_index]
+        if (ss.href && ss.href.endsWith("styles.css")) { //dde's style sheet name
+            let the_rules = ss.rules
+            for(let rule_index = 0; rule_index < the_rules.length; rule_index++){
+                let the_rule = the_rules[rule_index]
+                if (the_rule.selectorText == selector){
+                    the_rule.style[property_name] = new_value
+                    return
+                }
+            }
+        }
+    }
+}
+
+function set_window_frame_background_color(new_color){
+    $(".window_frame").css("background-color", new_color)
+    set_css_property(".window_frame",
+                     "backgroundColor", //must use the camel cased version of the name, no dashes
+                      new_color)
+}
+window.set_window_frame_background_color = set_window_frame_background_color
+
+
+function set_pane_header_background_color(new_color){
+    $(".pane_header_wrapper").css("background-color", new_color)
+    set_css_property(".pane_header_wrapper",
+                     "backgroundColor", //must use the camel cased version of the name, no dashes
+        new_color)
+}
+window.set_pane_header_background_color = set_pane_header_background_color
+
+function set_menu_background_color(new_color){
+    $(".dde_menu").css("background-color", new_color)
+    set_css_property(".dde_menu",
+                     "backgroundColor", //must use the camel cased version of the name, no dashes
+                     new_color)
+}
+window.set_menu_background_color = set_menu_background_color
+
+function set_button_background_color(new_color){
+    $("button").css("background-color", new_color)
+    set_css_property("button",
+                     "backgroundColor", //must use the camel cased version of the name, no dashes
+                     new_color)
+
+    $("input[type=button]").css("background-color", new_color)
+    set_css_property('input[type="submit"]', //submit must be double quoted
+        "backgroundColor", //must use the camel cased version of the name, no dashes
+        new_color)
+
+}
+window.set_button_background_color = set_button_background_color
+
+
+function insert_color_cb(vals){
+    if(vals.clicked_button_value == "Insert Color"){
+        let new_color = vals.my_color
+        if(window.insert_color_cb_remove_sharp_sign){
+            new_color = new_color.substring(1)
+        }
+        if (window.insert_color_cb_add_quotes) {
+            new_color = window.insert_color_cb_add_quotes + new_color +
+                        window.insert_color_cb_add_quotes
+        }
+        Editor.insert(new_color)
+    }
+}
+
+window.insert_color_cb = insert_color_cb
+window.insert_color_cb_remove_sharp_sign = false
+window.insert_color_cb_add_quotes         = false
+
+function insert_color(){
+    let orig_color = Editor.get_javascript(true).trim()
+    let hex_color_name_maybe = Series.color_name_to_hex(orig_color) //if orig_color == "green" then this wil return something like "#00FF00"
+    if (hex_color_name_maybe) { orig_color = hex_color_name_maybe}
+    if (orig_color == "") { orig_color = "#FFFFFF" } //white
+    if (starts_with_one_of(orig_color, ["'", '"'])) {
+        window.insert_color_cb_add_quotes =  orig_color[0]
+        orig_color = orig_color.substring(1, orig_color.length - 1) //assume it has ending quote too
+    }
+    else { window.insert_color_cb_add_quotes = false }
+    if (starts_with_one_of(orig_color, ["#", "rgb"])) {
+        window.insert_color_cb_remove_sharp_sign = false
+    }
+    else { orig_color = "#" + orig_color
+        window.insert_color_cb_remove_sharp_sign = true
+    }
+    show_window(
+        {title: "Choose a color to insert",
+            content: '<ol><li>Click <input type="color" name="my_color" value="' +
+            orig_color + '"/> to edit color.</li>' +
+            '<li>Select a color and <br/>close the pop up color dialog.</li>' +
+            '<li>Click <input type="submit" value="Cancel"/> or ' +
+            '<input type="submit" value="Insert Color"/></li></ul>',
+            width:300, height:175, x:100, y:100,
+            callback: insert_color_cb})
+}
+window.insert_color = insert_color
+
+
 //fixes broken Electron prompt See main.js for more code and doc
 window.prompt = function(title, val){
-    return ipcRenderer.sendSync('prompt', {title, val})
+    let window_frame_bg = window_frame_background_color()
+    let button_bg       = button_background_color()
+    return ipcRenderer.sendSync('prompt',
+                                 {title, val,
+                                 window_frame_background_color: window_frame_bg,
+                                 button_background_color: button_bg})
 }

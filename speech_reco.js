@@ -1,5 +1,4 @@
 /* Created by Fry on 3/29/17.*/
-
 var path = require('path')
 
 var GetUserMediaToText = require('getusermedia-to-text')
@@ -11,7 +10,9 @@ var s2t = new GetUserMediaToText({
 })
 
 function sr_on_data(data){
-    switch (data.endpointerType) {
+    //debugger;
+    out(data.speechEventType)
+    switch (data.speechEventType) {
         case "START_OF_SPEECH":
             out("START_OF_SPEECH")
             break;
@@ -25,36 +26,31 @@ function sr_on_data(data){
         case "END_OF_AUDIO":
             out("END_OF_AUDIO")
             break;
-        case "ENDPOINTER_EVENT_UNSPECIFIED":
-            out("ENDPOINTER_EVENT_UNSPECIFIED")
-            set_mic_and_instructions()
-            if(data.results.length > 0){
-                recognize_speech_last_text = data.results[0].transcript.trim() //the 2nd through nth recos start with sapce,
+        case "SPEECH_EVENT_UNSPECIFIED":
+            set_mic_and_instructions() //don't talk
+            if(data.results.length > 0){ //data.results IS the recognized text.
+                out("got non zero text, calling s2t.stop()")
+                s2t.stop()
+                recognize_speech_last_text = data.results.trim() //the 2nd through nth recos start with sapce,
                   //which would be good for contnuous dictation, but bad for recognizing the ending phrase.
                   //I could get clever and allow, but see how always trimming works out in practice.
-                console.log(recognize_speech_last_text)
-                if (request.singleUtterance) {
-                    sr_result(data)
+                out(recognize_speech_last_text)
+                sr_result(data)
+                if (recognize_speech_only_once || recognize_speech_last_text == recognize_speech_finish_phrase) {
                     sr_end(data) //close window
                 }
-                else {
-                    sr_result(data)
-                    if(recognize_speech_last_text == recognize_speech_finish_phrase){
-                        sr_end(data) //close window
-                    }
-                    else if (!recognize_speech_click_to_talk) {
-                        sr_start()
-                    }
-                    else { //click to talk, so destroy so we won't be listening until next click to talk
+                else if (!recognize_speech_click_to_talk) {
+                    sr_start()
+                }
+                else { //click to talk, so destroy so we won't be listening until next click to talk
                         //sourceStream.destroy()
-                        sourceStream.suspend()
+                        //sourceStream.suspend()
                         //recognizeStream.destroy()
-                    }
                 }
             }
             break;
             default:
-                shouldnt("recognize_speech ondata got unhandled endpointerType: " + data.endpointerType)
+                shouldnt("recognize_speech ondata got unhandled endpointerType: " + data.speechEventType)
     }
 }
 
@@ -77,12 +73,14 @@ var recognize_speech_last_text       = null
 var recognize_speech_last_confidence = null
 var recognize_speech_finish_array    = []
 var recognize_speech_finish_phrase   = "finish" //set by recognize_speech ui
+var recognize_speech_only_once       = false
 
 function start_recognition(){ sr_start() }
 
 window.start_recognition = start_recognition
 
 function sr_start() {
+    out("top of sr_start()")
     let instructions
     if ( recognize_speech_only_once ) { instructions = "Speak now.<br/>Be quiet to finish.<br/>" }
     else {
@@ -91,14 +89,15 @@ function sr_start() {
             'Say <b>' + recognize_speech_finish_phrase + '</b> to end recognition.'
     }
     set_mic_and_instructions(instructions)
+    out("calling s2t.start()")
     s2t.start()
 }
 
 function sr_result(data) {
     //out('recognize_speech top of onresult');
     //recognize_speech_instructions_id.innerHTML = "Stop talking"
-    recognize_speech_last_text       = data.results[0].transcript.trim() //event_to_text(event)
-    recognize_speech_last_confidence = data.results[0].confidence
+    recognize_speech_last_text       = data.results.trim() //event_to_text(event)
+    recognize_speech_last_confidence = 1 //data.results[0].confidence //no confidence in Bret's new code
     recognize_speech_finish_array.push([recognize_speech_last_text, recognize_speech_last_confidence])
     //out("recognized speech: " + recognize_speech_last_text)
     if (!recognize_speech_only_once && (recognize_speech_last_text == recognize_speech_finish_phrase)){
@@ -106,12 +105,13 @@ function sr_result(data) {
     else if(recognize_speech_phrase_callback) {
         recognize_speech_phrase_callback(
             recognize_speech_last_text,
-            recognize_speech_last_confidence)
+            recognize_speech_last_confidence
+        )
     }
 }
 
 function sr_error(data) {
-    set_mic_and_instructions()
+    set_mic_and_instructions() //don't talk
     if (is_window_shown(recognize_speech_window_index)){ //don't show this error message if the user closed the window
         out("onerror called with: " + data, "red")
     }
@@ -120,7 +120,6 @@ function sr_error(data) {
 
 //called only when this dialog is all over. no more reco will be done.
 function sr_end(data) {
-    s2t.stop()
     close_window(recognize_speech_window_index)
     if ((recognize_speech_last_text == recognize_speech_finish_phrase) &&
         !recognize_speech_only_once &&
@@ -138,6 +137,7 @@ function set_mic_and_instructions(instructions="Don't talk"){
         if ((instructions == "Don't talk") && recognize_speech_click_to_talk){
             instructions = "" //since the click to talk button is on the screen, it is unncesssary and confusing to have "Don't talk"  also displayed
         }
+        out("set_mic_and_instructions to: " + instructions)
         recognize_speech_instructions_id.innerHTML = instructions
     }
 }
@@ -157,14 +157,12 @@ function recognize_speech({
     finish_callback=null,   //unused if only_once=true
     finish_phrase="finish" //unused if only_once=true
     }) {
-    recognize_speech_phrase_callback = phrase_callback
-    recognize_speech_finish_callback = finish_callback
 
     let click_to_talk_html = ""
     if (click_to_talk) {
         click_to_talk_html =  "<input type='button' value='Click to talk' style='margin:10px;'/><br/>"
     }
-    //note: this show_window is evaled FIRST (and only) in the ui, so the phrase_callback should be a callback_number
+    recognize_speech_phrase_callback = phrase_callback
     recognize_speech_finish_array  = []
     recognize_speech_finish_phrase = finish_phrase
     recognize_speech_only_once     = only_once

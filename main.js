@@ -51,9 +51,7 @@ app.on('ready', function() {
      createWindow();
     //console.log("hi fry")
     mainWindow.webContents.send("main_is_ready")
-
-
- })
+})
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {
@@ -167,11 +165,20 @@ ipc.on('prompt', function(eventRet, arg) {
     })
     //coral #ff8c96, orange #ffbe3c
     arg.val = arg.val || ''
-    const promptHtml = '<div margin:0px;padding:0px; style="background-color:#ff8c96;font-size:21px;">DDE Prompt</div><div style="padding:10px;">' + arg.title + '</div>\
+    const promptHtml = '<div margin:0px;padding:0px; style="background-color:' + arg.window_frame_background_color +
+                       ';font-size:21px;">DDE Prompt</div><div style="padding:10px;">' +
+                       arg.title +
+                       '</div>\
     <input style="backgound-color:white;margin:10px;width:360px;font-size:14px;" id="val" value="' + arg.val + '" autofocus />\
     <button onclick="require(\'electron\').ipcRenderer.send(\'prompt-response\', document.getElementById(\'val\').value);window.close()">Ok</button>\
     <button onclick="window.close()">Cancel</button>\
-    <style>body {font-family: sans-serif; background-color:#DDD; margin:0px; padding:0px; border:8px solid #ff8c96;} button {float:right; margin-left: 10px; margin-right: 10px; background-color:#ff8c96;} label,input {margin-bottom: 10px; width: 100%; display:block;}</style>'
+    <style>body        {font-family: sans-serif; background-color:#DDD; margin:0px; padding:0px; border:8px solid ' +
+                       arg.window_frame_background_color + '} \
+           button      {float:right; margin-left: 10px; margin-right: 10px; background-color:' +
+                       arg.button_background_color +
+                       '} \
+           label,input {margin-bottom: 10px; width: 100%; display:block;}\
+    </style>'
     promptWindow.loadURL('data:text/html,' + promptHtml)
     promptWindow.show()
     promptWindow.on('closed', function() {

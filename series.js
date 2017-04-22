@@ -715,6 +715,8 @@ Series.instances = [
         menu_sel_start:0, menu_sel_end:4, sample: "beep"}),
     new Series({id:"series_window_id",      array: ['close_window', 'show_window',
                                                     'append_in_ui', 'get_in_ui', 'remove_in_ui', 'replace_in_ui', 'set_in_ui',
+                                                    'set_window_frame_background_color', 'set_pane_header_background_color',
+                                                    'set_menu_background_color', 'set_button_background_color',
                                                     'svg_svg', 'svg_circle', 'svg_ellipse', 'svg_html', 'svg_line',
                                                     'svg_polygon', 'svg_polyline', 'svg_rect', 'svg_text'],
         menu_insertion_string: 'show_window({content: "hi"})',

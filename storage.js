@@ -86,7 +86,7 @@ var default_default_dexter_port       = "50000"
 //gaurentees that dde_init.js exists and that it has certain content in it,
 //and that that certain content is evaled and present in the js env.
 function dde_init_dot_js_initialize() {
-    if(!file_exists("")){ //Documents/dde_apps
+    if(!file_exists("")){ //does the folder: Documents/dde_apps not exist?
        //reported to user in persistent_initialize
     }
     else if (file_exists("dde_init.js")){ //we don't want to error if the file doesn't exist.
@@ -111,10 +111,23 @@ function dde_init_dot_js_initialize() {
             eval(add_to_dde_init_js)
         }
     }
-    else {
+    else { //the folder exists, but no dde_init.js file
         const initial_dde_init_content =
                   '//This file is loaded when you launch DDE.\n'     +
-                  '//Add whatever JavaScript you like to the end.\n' +
+                  '//Add whatever JavaScript you like to the end\n' +
+                  '//just before the call to "out" in the last line.\n' +
+                  '\n' +
+                  '//To change DDE colors,\n' +
+                  '// 1. Uncomment the below line(s).\n' +
+                  '// 2. Select the first arg.\n' +
+                  '// 3. Choose Insert menu "Color" item.\n' +
+                  '// 4. After inserting the new color, eval the "set_" call.\n' +
+                  '// 5. To get the default color, just comment out the line and relaunch DDE.\n' +
+                  '// set_window_frame_background_color("#ff8c96")\n' +
+                  '// set_pane_header_background_color("#e39f5a")\n' +
+                  '// set_menu_background_color("#ff8c96")\n' +
+                  '// set_button_background_color("#ff8c96")\n' +
+                  '\n' +
                   'persistent_set("default_dexter_ip_address", "'    +
                   default_default_dexter_ip_address + '") //required property but you can edit the value.\n' +
                   'persistent_set("default_dexter_port", "'          +

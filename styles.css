@@ -1,19 +1,23 @@
 code { background-color:white; }
 
-html, body {  width: 100%;  height: 100%; font-family: sans-serif;background-color: #ff8c96; overflow:hidden;}
+html, body {  width: 100%;  height: 100%; font-family: sans-serif; overflow:hidden;}
+
+.window_frame { background-color: #ff8c96; } /*used for main window AND for show_window header background color */
+.dde_menu     { background-color: #ff8c96; }
 
 .pane_header_wrapper {
     padding:5px;
-    background-color: #e39f5a; /*orig orange #ffbe3c;*/
+    background-color: #e39f5a; /* for orig color, this was orange #ffbe3c;*/
     height:25px;min-height:25px;max-height:25px;}
 
 .pane_header {font-size:16px; vertical-align:top;}
 
 summary {font-weight: 600;}
 
-input[type=button]         {background-color:#ddd3ff; font-size:14px;}
+input[type=button] {background-color:#ddd3ff; font-size:14px;}
 
-input[type=submit], button {background-color:#ff8c96; font-size:14px;} /*background-color: #ffb6c0; pink */
+button             {background-color:#ff8c96; font-size:14px;} /*same color as input-submit. see output.js set_button_background_color*/
+input[type=submit] {background-color:#ff8c96; font-size:14px;} /*background-color: #ffb6c0; pink */
 /*so input type submits and buttons are coral colored and input type button will be default white background
   dde dialogs shouldn't use buttons, they should just use input type submit and  input type button.
   which will then be the different colors signifying whether they are submits or not, ie whether

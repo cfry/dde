@@ -2183,7 +2183,21 @@ newObject({name: "junk"}).sourceCode() =><br/>
     DDE uses those technologies but with a simplied wrapper for them to help
     users create interactive windows with the most needed features.
 
-    <details id="show_window_doc_id"style="margin-left:20px;"><summary>show_window</summary>
+    <details style="margin-left:20px;"><summary>Set DDE Colors</summary>
+        Users can customize the DDE colors by calling the below functions.
+        Calls to these functions appear in the default <code>dde_init.js</code> file
+        commented out. By commenting them in, the DDE colors will be
+        modified when DDE launches. Their default color values are given
+        in the examples below.
+        <ul>
+            <li><code id="set_window_frame_background_color_doc_id">set_window_frame_background_color("#ff8c96")</code></li>
+            <li><code id="set_pane_header_background_color_doc_id">set_pane_header_background_color("#e39f5a")</code></li>
+            <li><code id="set_menu_background_color_doc_id">set_menu_background_color("#ff8c96")</code></li>
+            <li><code id="set_button_background_color_doc_id">set_button_background_color("#ff8c96")</code></li>
+        </ul>
+    </details>
+
+        <details id="show_window_doc_id" style="margin-left:20px;"><summary>show_window</summary>
         A call to <code>show_window</code> creates a dialog box using HTML and JavaScript.
         <i>Parameters</i><br/>
         <b>title</b> A string of the HTML displayed in the window's title bar. Default: "DDE Information"<br/>
