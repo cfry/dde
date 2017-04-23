@@ -12,7 +12,7 @@ html, body {  width: 100%;  height: 100%; font-family: sans-serif; overflow:hidd
 
 .pane_header {font-size:16px; vertical-align:top;}
 
-summary {font-weight: 600;}
+/* summary {font-weight: 600;} now in each page for better loading on Website doc page*/
 
 input[type=button] {background-color:#ddd3ff; font-size:14px;}
 

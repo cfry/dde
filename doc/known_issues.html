@@ -1,16 +1,22 @@
-<details><summary class="doc_top_level_summary">Known Issues</summary>
-This section lists the significant problems we are aware of
+<style>
+    .doc_details summary { font-weight: 600; }
+    .doc_details {
+        margin-left:20px;
+        font-size:16px;
+        background-color:#e1e1e1;
+    }
+</style>
+<div class="doc_details">
+     This section lists the significant problems we are aware of
 with this DDE release. All of them are on our "do list".
 <p/>
 This version is an early release in the new Electron framework.
-It is made available only for testing purposes. It is not
-well tested.
-In general, users should not use it. Stick with the previous Chrome Apps version
-a while longer. Sorry.
-<ul><li>Linux release not well tested.</li>
-    <li><code>recognize_speech</code> mostly works but may interact badly with <code>speak</code>.</li>
+It is not well tested.
+<ul><li>Linux release poorly tested.</li>
     <li>None of the apps for the 3 platforms are "signed", thus you get warnings
-        when installing them about being "untrusted".</li>
+        when installing them about being "untrusted". You might have
+        to turn off virus protection, or click right on the DDE file to launch it.
+    </li>
     <li>Dexter.draw_dxf needs extension to describe the drawing plane.</li>
     <li>Dexter.run_gcode needs many extensions.</li>
     <li>Some instructions lacking sections in the Reference Manual.</li>
@@ -18,4 +24,4 @@ a while longer. Sorry.
     <li>Documentation on ROS functionality</li>
     <li>Support for ROS action clients needed.</li>
 </ul>
-</details>
+</div>

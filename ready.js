@@ -118,13 +118,21 @@
 
     function init_doc(){
         const path = __dirname + "/doc/guide.html"
-        let content = '<details><summary class="doc_top_level_summary">Overview</summary>\n' +
-                      file_content(__dirname + "/doc/dde_overview/Dexter_Development_Environment.html") +
-                      "</details>\n" +
-                      file_content(__dirname + "/doc/guide.html") +
-                      file_content(__dirname + "/doc/ref_man.html") +
-                      file_content(__dirname + "/doc/release_notes.html") +
-                      file_content(__dirname + "/doc/known_issues.html")
+        let content =   '<details><summary class="doc_top_level_summary">Overview</summary>\n' +
+                            file_content(__dirname + "/doc/dde_overview/Dexter_Development_Environment.html") +
+                        "</details>\n" +
+                        '<details><summary class="doc_top_level_summary">User Guide</summary>\n' +
+                            file_content(__dirname + "/doc/guide.html") +
+                        "</details>\n" +
+                        '<details><summary class="doc_top_level_summary">Reference Manual</summary>\n' +
+                            file_content(__dirname + "/doc/ref_man.html") +
+                        "</details>\n" +
+                        '<details><summary class="doc_top_level_summary">Release Notes</summary>\n' +
+                            file_content(__dirname + "/doc/release_notes.html") +
+                        "</details>\n" +
+                        '<details><summary class="doc_top_level_summary">Known Issues</summary>\n' +
+                            file_content(__dirname + "/doc/known_issues.html") +
+                        "</details>\n"
         doc_pane_content_id.innerHTML = content
     }
     operating_system = "not inited" //on MAC this is "mac", on windows its "win".  bound in both ui and sandbox by ready
@@ -659,7 +667,7 @@ get_page_async("http://www.ibm.com", function(err, response, body){ out(body.len
      click_to_talk: false, //If false, speech recognition starts immediately. Default true.
      only_once: false,     //If false, more than one phrase (after pauses) can be recognized. Default true.
      phrase_callback: undefined,     //Passed text and confidence score when user pauses. Default (undefined) prints text and confidence. If only_once=true, only this callback is called.
-     finish_phrase: "finish",         //Say this to end speech reco when only_once=false.
+     finish_phrase: "finish",        //Say this to end speech reco when only_once=false.
      finish_callback: out})          //Passed array of arrays of text and confidence when user says "finish". Default null. Only called if only_once=false
 `)}
     inspect_rootObject_id.onclick=function(){ inspect_new_object("Root") }

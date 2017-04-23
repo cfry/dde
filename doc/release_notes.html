@@ -1,6 +1,39 @@
-<details><summary class="doc_top_level_summary">Release Notes</summary>
+<style>
+    .doc_details summary { font-weight: 600; }
+    .doc_details {
+        margin-left:20px;
+        font-size:16px;
+        background-color:#e1e1e1;
+    }
+</style>
 
-<details style="padding-left:20px;"><summary>v 1.1.00, Apr 18, 2017</summary>
+<details class="doc_details"><summary>v 1.1.2, Apr 22, 2017</summary>
+<ul><li> New Insert menu item "Color".</li>
+
+    <li> New functions to modify DDE colors.
+        <ul><li><code>set_window_frame_background_color</code></li>
+            <li><code>set_pane_header_background_color</code></li>
+            <li><code>set_menu_background_color</code></li>
+            <li><code>set_button_background_color</code></li>
+         </ul>
+These are commented out but inserted into the default
+dde_init.js file. To get the default dde_init.js file,
+rename your existing  dde_init.js  and boot dde.
+Documented under Reference Manual/Window System/Set DDE Colors
+Each function has click help.
+</li>
+
+    <li> <code>load_files</code>, new way to set the default folder.
+        See new doc in Ref Man/IO/File Access/load_files.
+    </li>
+
+    <li> <code>recognize_speech</code> now working.</li>
+
+    <li> DDE documentation prepared for our website.</li>
+</ul>
+</details>
+
+<details class="doc_details"><summary>v 1.1.0, Apr 18, 2017</summary>
     Highlights: New Jobs bar for controlling Jobs. Bug fixes and UI tweaks.
     <ul>
         <li> <code>Robot.move_to_relative</code> fixed. Now storing robot.angles.</li>
@@ -37,7 +70,7 @@
     </ul>
 </details>
 
-<details style="padding-left:20px;"><summary>v 1.0.13, Apr 14, 2017</summary>
+<details class="doc_details"><summary>v 1.0.13, Apr 14, 2017</summary>
     Highlights: fix for file protection, first cut of new move_to_relative.
 <ul>
     <li> New Insert menu item: "Examples" now contains
@@ -60,7 +93,7 @@
 </details>
 
 
-<details style="padding-left:20px;"><summary>v 1.0.11, Apr 10, 2017</summary>
+<details class="doc_details"><summary>v 1.0.11, Apr 10, 2017</summary>
     Highlights: DDE now communicating with Dexter. New default robot is Robot.dexter0.
                 Extensions to dde_init.js and dde_persistent.json mean rarely having
                 to define a robot with your Job definitions. "Start Job" and "Simulate?"
@@ -123,7 +156,7 @@
 </details>
 
 
-<details style="padding-left:20px;"><summary>v 1.0.10, Apr 2, 2017</summary>
+<details class="doc_details"><summary>v 1.0.10, Apr 2, 2017</summary>
     Highlights: Start Job menu item. New JS type-in, recognize_speech mostly working.
 <ul>
 <li> Doc, Output and Simulation pane headers fixed to not wrap when pane is shrunk.</li>
@@ -151,7 +184,7 @@
 </ul>
 </details>
 
-<details style="padding-left:20px;"><summary>v 1.0.9, Mar 25, 2017</summary>
+<details class="doc_details"><summary>v 1.0.9, Mar 25, 2017</summary>
     Highlights: Updating DDE much easier. Robot.start_job and Robot.stop_job.
     Improved Doc. Job init param: ending_program_counter.
 <ul>
@@ -194,7 +227,7 @@ it tells you what is and how to get it.</li>
 </ul>
 </details>
 
-<details style="padding-left:20px;"><summary>v 1.0.4, Mar 16, 2017</summary>
+<details class="doc_details"><summary>v 1.0.4, Mar 16, 2017</summary>
 Highlights: New Electron Framework, New instruction Robot.grab_robot_status,
 Serial Port extensions, file access improved, dxf improvements,
 go_to instruction and friends, better help in finding doc.

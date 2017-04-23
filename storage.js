@@ -258,7 +258,7 @@ function is_root_path(path){
 
 //______new load_files syncchronous______
 //verify all paths first before loading any of them because we want to error early.
-function load_files(...paths) {
+/*function load_files(...paths) {
    let prefix = dde_apps_dir + "/"
    let resolved_paths = []
    for (let path of paths){
@@ -303,6 +303,51 @@ function load_files(...paths) {
     for (let resolved_paths_index = 0;
              resolved_paths_index < resolved_paths.length;
              resolved_paths_index ++){
+        let resolved_path = resolved_paths[resolved_paths_index]
+        let content = contents[resolved_paths_index]
+        out("loading file: " + resolved_path, "green")
+        result = window.eval(content)
+    }
+    return result
+}*/
+//simplied from above. ending in slash resets the default "prefix".
+function load_files(...paths) {
+    let prefix = dde_apps_dir + "/" //prefix always starts with slash and ends with slash
+    let resolved_paths = []
+    for (let path of paths){
+        path = convert_backslashes_to_slashes(path) //use slashes throughout.
+        if (path === "/"){ //just reset prefix to the default
+            prefix = dde_apps_dir + "/"
+        }
+        else if (is_root_path(path)){  //path.startsWith("/")
+            if (path.endsWith(".js")){ resolved_paths.push(path) } //don't modify prefix.
+            //this is undocumentd for our users. It allows loading of a file
+            //that is in the electron_dde folder or maybe a full path to the dde_apps folder
+            else {
+                dde_error("loading_file got path: " + path + ' which does not end in ".js"' +
+                          "<br/>No files were loaded.")
+            }
+        }
+        else if (path.endsWith("/")) { //path does not start with slash.
+            prefix = path //assumes path is intended to be under dde_apps/
+        }
+        else if (!path.endsWith(".js")){
+            dde_error("loading_file got path: " + path + ' which does not end in ".js"'  +
+                        "<br/>No files were loaded.")
+        }
+        else { path = prefix + path }
+    }
+    //now make sure we can get all the contents before actually loading any
+    let contents = []
+    for (let path of resolved_paths){
+        let content = file_content(path) //might error
+        contents.push(content)
+    }
+    //finally if we get to this point, we've got all the contents so time to eval
+    let result
+    for (let resolved_paths_index = 0;
+         resolved_paths_index < resolved_paths.length;
+         resolved_paths_index ++){
         let resolved_path = resolved_paths[resolved_paths_index]
         let content = contents[resolved_paths_index]
         out("loading file: " + resolved_path, "green")
