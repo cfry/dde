@@ -10,7 +10,6 @@ var s2t = new GetUserMediaToText({
 })
 
 function sr_on_data(data){
-    //debugger;
     //out("data: " + data.speechEventType)
     switch (data.speechEventType) { //the only value is "SPEECH_EVENT_UNSPECIFIED"
         case "START_OF_SPEECH":

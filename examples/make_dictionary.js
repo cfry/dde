@@ -15,6 +15,7 @@ function translate(text){
         let sel = Editor.get_javascript(true)
         if (sel == "") {
             out("There is no selection in the editor.")
+            speak("There is no selection in the editor.")
         }
         else {
             result = replace_substrings(result, "selection", sel)
@@ -24,7 +25,6 @@ function translate(text){
 }
 
 function handle_dialog(recognized_text, confidence){
-    debugger
     recognized_text = recognized_text.toLowerCase()
     out("Heard: " + recognized_text)
     if (recognized_text == "insert dictionary"){
@@ -45,13 +45,14 @@ function handle_dialog(recognized_text, confidence){
         speak(term_and_def[0] + ", defined.")
     }
     else if (recognized_text.startsWith("insert ")){
-        var text_to_insert = text.substring(6)
+        var text_to_insert = recognized_text.substring(6)
         text_to_insert     = translate(text_to_insert)
         Editor.insert(text_to_insert)
     }
     else { //not a def so a translation or a "so what"
         var translation = translate(recognized_text)
         if (translation == recognized_text) {
+            out("So what?")
             speak("So what?")
         }
         else {
@@ -94,10 +95,10 @@ recognize_speech(
         'Example: click "Click to talk" and say each of:<br/>' +
         '&bull; "Turquoise means blue green."<br/>' +
         '&bull; "I love turquoise."<br/>'  +
-        '&bull; "show dictionary."<br/>'   +
-        '&bull; "insert dictionary."<br/>' +
-        '&bull; "foo means selection."<br/>' +
-        '&bull; "insert foo."<br/>',
+        '&bull; "Show dictionary."<br/>'   +
+        '&bull; "Insert dictionary."<br/>' +
+        '&bull; "My code means selection."<br/>' +
+        '&bull; "Insert my code."<br/>',
         click_to_talk: true, //If false, speech recognition starts immediately. Default true.
         only_once: false,    //If false, more than one phrase (after pauses) can be recognized. Default true.
         phrase_callback: handle_dialog, //Passed text and confidence score when user pauses. Default (undefined) prints text and confidence. If only_once=true, only this callback is called.

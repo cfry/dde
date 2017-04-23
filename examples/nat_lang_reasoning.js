@@ -10,7 +10,7 @@ var Start = class Start{
     let sent_plused = sentence.replace(/\s+/g, "+")
     let url = "http://start.csail.mit.edu/api.php?server=guest&action=parse&te=formatted-text&kb=no&query=" +
                sent_plused
-    get_page(url, callback)
+    get_page_async(url, callback)
   }
   static say(sentence) { 
   	  Start.parse(sentence, Structure.tell_or_ask)
@@ -60,17 +60,22 @@ var Start = class Start{
      out("Recognized: " + text)
      //debugger
      Start.parse(text, 
-       function(start_string){
-          let answer = Structure.tell_or_ask(start_string)
-          if (answer == "not_understood"){
-             answer = "I can't understand sentences, like that."
+       function(err, response, start_string){
+          if(err) {
+              out("Whoops! Can't access START website.")
           }
-          else if (answer == "Understood.") { //means it was a 'tell'.
-             answer = Start.natural_acknowledgement()
+          else {
+              let answer = Structure.tell_or_ask(start_string)
+              if (answer == "not_understood"){
+                 answer = "I can't understand sentences, like that."
+              }
+              else if (answer == "Understood.") { //means it was a 'tell'.
+                 answer = Start.natural_acknowledgement()
+              }
+              speak(answer)
+              Structure.conversation.push(answer)
+              out("Answer: " + answer)
           }
-          speak(answer)
-          Structure.conversation.push(answer)
-          out("Answer: " + answer)
        }
      )
   }
