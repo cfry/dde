@@ -62,7 +62,7 @@ function show_url_error_message(url){
     "<code style='color:#000000;'>nslookup localhost</code>",
         "red")
 }
-
+/*
 var full_dexter_url //primarily used when on the sandboxed side by get_full_dexter_url
                     // set in window.addEventListener('message' ...) ie the receiver of
                     // a mesage for the eval sandbox
@@ -74,6 +74,14 @@ function get_full_dexter_url(){
         }
     }
     return full_dexter_url
+}*/
+
+function get_full_dexter_url(){
+    var result = "ws://" + persistent_get("ROS_URL")
+    if (!result.endsWith("/")){
+        result += "/"
+    }
+    return result
 }
 
 function init_ros_service_if_url_changed(){

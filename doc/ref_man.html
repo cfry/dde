@@ -359,14 +359,15 @@ get the JSON syntax correct.
 
 <details id="persistent_get_doc_id" style="margin-left:40px;"><summary>persistent_get</summary>
     Retreives a literal that was set with <code>persistent_set</code>
-    The first argument is the key to retreive. Its default value is <code>"get_all"</code>
+    The argument is the key to retreive. Its default value is <code>"get_all"</code>
     which gets a JavaScript literal object that has key-value pairs for all the
     calls to <code>persistent_set</code>. If a key is not in the database,
     <code>undefined</code> will be retreived.
     <p/>
-    The 2nd arg is a callback that is passed the retreived value.
-    Its default value is the DDE function <code>out</code>.<br/>
-    <b>Example:</b> <code> persistent_get("test4", function(val){ out("Got: " + val)})</code>
+    persistent_get returns the value of the variable in the argument.<br/>
+    <b>Example:</b> <br/>
+    <code> persistent_set("test4", 44)</code><br/>
+    <code> persistent_get("test4")</code> => 44<br/>
 </details> <!-- end persistent_get -->
 
 <details id="persistent_initialize_doc_id" style="margin-left:40px;"><summary>persistent_initialize</summary>

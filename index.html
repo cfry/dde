@@ -144,7 +144,7 @@
             <div id="left_splitter">
                 <div>
                     <div class="pane_header_wrapper" style="height:50px;min-height:50px;max-height:50px;">
-                        <span id="javascript_pane_help_id" class="pane_header" title="Click for help.">JavaScript</span>
+                        <span id="javascript_pane_help_id" class="pane_header" title="Click for help." style="vertical-align:super;"><u>JavaScript</u></span>
                         <div id='js_menubar_id' class='dde_menu' style="display:inline-block;">
                             <ul style="display:inline-block;padding:0;margin-top:0px;">
                                 <li style="display:inline-block;">File&#9660;
@@ -477,17 +477,19 @@
                                 </li>
                             </ul>
                         </div>
-                        <div style="vertical-align:top;display:inline-block;line-height: 1.0;">font<br/>size:</div>
-                        <input id="font_size_id"  type="number" style="vertical-align:top; width:30px;" value="17" min="6"/>
-                        <select id="file_name_id" style="width:360px;font-size:14px;"><option>new file</option></select>
-                        ROS url: <input id='dexter_url' value="localhost:9090" style="font-size:14px;"/>
+                        <div style="vertical-align:top;display:inline-block;line-height: 1.0;font-size:10px;margin:0px;padding:0px;">
+                            fontsize<br/>
+                            <input id="font_size_id"  type="number" style="vertical-align:top; width:30px;" value="17" min="6"/>
+                        </div>
+                        <select id="file_name_id" style="width:450px;font-size:14px;"><option>new file</option></select>
+                        <!--ROS url: <input id='dexter_url' value="localhost:9090" style="font-size:14px;"/> -->
                     </div>
                     <textarea id="js_textarea" wrap="off" style="width:98%; height:84%; font-size:17px; font-family:monospace;padding:4px;"
                               placeholder="Enter JavaScript code here."></textarea>
                 </div>
                 <div style="background-color:#dddddd;">
                     <div class='pane_header_wrapper' style="white-space:nowrap;height:57px;min-height:57px;max-height:57px;">
-                        <span id="output_pane_help_id" class='pane_header' title="Click for help.">Output</span>
+                        <span id="output_pane_help_id" class='pane_header' title="Click for help."><u>Output</u></span>
                         <button id="eval_id" style="vertical-align:middle;" title="Evaluate (run) the selected JS or, if none,&#013;all the JavaScript in the pane.&#013;Can also be invoked by typing &#8984;e">Eval</button>
                         <div title="Automatically save the edited file&#013;when you click 'Eval',&#013;and when you edit another file." style="vertical-align:middle;display:inline-block;"><input id="save_on_eval_id" type="checkbox" style="vertical-align:60%;padding_bottom:15px;"/> <div style="padding:0px;margin:0px;display:inline-block;font-size:10px; line-height:10px;">Save<br/>on</br/>Eval</div></div>
                         <button id="clear_output_id" title="Remove all previously output text.">Clear</button>
@@ -548,7 +550,7 @@
             <div id="right_splitter">
                 <div id="doc_pane_id" style="background-color:#e1e1e1; padding-left:5px;">
                     <div class="pane_header_wrapper" style="height:30px;white-space:nowrap;">
-                        <span id="documentation_pane_help_id" class="pane_header">Doc</span>
+                        <span id="documentation_pane_help_id" class="pane_header"><u>Doc</u></span>
                         <input id="find_doc_input_id" placeholder="search string" title="If this field is empty,&#013;the selection in the&#013;Doc, JavaScript, or Output&#013;pane is used." style="width:100px;"/>
                         <button id="find_doc_button_id">Find</button>
                         <button id="eval_doc_button_id" title="Evaluated the selected code&#013;in the Doc pane.&#013;Result goes in the Output pane.ƒ">Eval Doc</button>
@@ -558,7 +560,7 @@
                 </div> <!--doc_pane -->
                 <div id="simulate_pane" style="background-color:black">
                     <div class="pane_header_wrapper" style="white-space:nowrap;">
-                        <span id="simulate_pane_help_id" class="pane_header" title="Click for help.">Sim</span>
+                        <span id="simulate_pane_help_id" class="pane_header" title="Click for help."><u>Sim</u></span>
                         <select id='videos_id'>
                             <option value='All'>All</option>
                             <option value='None'>None</option>

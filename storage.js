@@ -97,6 +97,7 @@ function persistent_remove(key, callback=function() { out("Removed " + key + " f
     persistent_save()
 }
 
+var default_default_ROS_URL           = "localhost:9090"
 var default_default_dexter_ip_address = "192.168.1.142"
 var default_default_dexter_port       = "50000"
 
@@ -109,6 +110,9 @@ function dde_init_dot_js_initialize() {
     else if (file_exists("dde_init.js")){ //we don't want to error if the file doesn't exist.
         load_files("dde_init.js")
         var add_to_dde_init_js = ""
+        if (!persistent_get("ROS_URL")){
+            add_to_dde_init_js += 'persistent_set("ROS_URL", "' + default_default_ROS_URL + '") //required property, but you can edit the value.\n'
+        }
         if (!persistent_get("default_dexter_ip_address")){
             add_to_dde_init_js += 'persistent_set("default_dexter_ip_address", "' + default_default_dexter_ip_address + '") //required property, but you can edit the value.\n'
         }
