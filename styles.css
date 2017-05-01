@@ -89,6 +89,6 @@ th, td { text-align:left; }
 //for mark.js used for highlighting found search terms in the doc. But this fails sep 5, 2016
 
 mark{
-    background: #74FFBC !important; /*pastel green */
+    background: #74FFBC !important;
 }
 */

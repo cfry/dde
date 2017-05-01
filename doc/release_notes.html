@@ -5,6 +5,30 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 1.1.5, Apr 30, 2017</summary>
+ Highlights: Fixed bug in load_files, improved doc and DDE launch print outs.
+ <ul><li>overview paper
+            <ul><li>Minor editing improvements</li>
+                <li>Simplified the embedded HTML</li>
+                <li>Made img urls work for both DDE and website.</li>
+            </ul></li>
+     <li> Dexter.get_robot_status Ref Man entry extended with examples.</li>
+
+     <li> Updated Robot.grab_user_status examples.</li>
+
+     <li> New doc section: Ref Man/Robots/Robot Instructions/Any JS Code/</li>
+
+     <li> When DDE launches, now printed in the output pane:
+        <pre>
+        Now  Loading /Users/Fry/Documents/dde_apps/dde_init.js
+        Done Loading /Users/Fry/Documents/dde_apps/dde_init.js</pre></li>
+
+     <li> Fix to load_files when loading paths not starting with slash.
+          Fixes a problem with loading dde_init.js</li>
+
+     <li> Better printouts and initialization when loading dde_persistent.json</li>
+</ul>
+</details>
 
 <details class="doc_details"><summary>v 1.1.2, Apr 22, 2017</summary>
 <ul><li> New Insert menu item "Color".</li>

@@ -79,10 +79,10 @@ function svg_rect({id="", html_class="", style="", x=0, y=0, width=100, height=1
     return '<rect'   +
          ' id="'     + id  +
         '" class="'  + html_class  +
-        '" style="'  + style   +
-        '" x="'      + x +
-        '" y="'      + y  +
-        '" width="'  + width +
+        '" style="'  + style   + '"' +
+        ((x === null) ? '' : ' x="' + x + '"') + //for svg "inheritance
+        ((y === null) ? '' : ' y="' + y + '"') + //for svg "inheritance
+        ' width="'  + width +
         '" height="' + height +
         '" rx="'     + rx +
         '" ry="'     + ry +
@@ -137,7 +137,7 @@ function svg_text({id="", html_class="", style="", text="hi", x=20, y=20, size=1
         if (last(style) == ";") style += " "
         else style += "; "
     }
-    style += 'fill:' + color + '; font-size:' + size + "px;" + '; stroke:' + border_color + '; stroke-width:' + border_width + ';'
+    style += 'fill:' + color + '; font-size:' + size + "px" + '; stroke:' + border_color + '; stroke-width:' + border_width + ';'
     return '<text'      +
          ' id="'        + id  +
         '" class="'     + html_class  +

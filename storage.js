@@ -25,18 +25,35 @@ function get_persistent_values_defaults() {
 function persistent_initialize(keep_existing=true) { //was persistent_clear
     if(file_exists("")){ //Documents/dde_apps
         const dp_path = add_default_file_prefix_maybe("dde_persistent.json")
-        if (file_exists(dp_path)){
-            persistent_load() //sets persistent_values
+        if(!keep_existing){ //unusual
+            persistent_values = get_persistent_values_defaults()
+            persistent_save()
+            out("persistent values have been initialized to their defaults.", "green")
         }
-        if (keep_existing){
+        else {
+            if (file_exists(dp_path)){ //normal
+                out("Loading persistent values from " + dp_path, "green")
+                persistent_load()
+                out("Done loading persistent values.", "green")
+            }
+            let made_change = false
             for(let key in get_persistent_values_defaults()){
                 if (!persistent_values.hasOwnProperty(key)) {
+                    made_change = true
                     persistent_values[key] = get_persistent_values_defaults()[key]
                 }
             }
+            if (file_exists(dp_path)){
+                if (made_change) { persistent_save() }
+            }
+            else { //first launch of dde by user
+                persistent_save()
+                out("dde_persistent.json doesn't exist so<br/>" +
+                     "persistent values have been initialized to their defaults and<br/>" +
+                     "Documents.dde_apps/dde_persistent.json has been created.",
+                     "green")
+            }
         }
-        else { persistent_values = get_persistent_values_defaults() }
-        persistent_save()
     }
     else {
         dde_error("Please create a folder in your <code>Documents</code> folder<br/>" +
@@ -50,7 +67,7 @@ function persistent_save(){
     const path = add_default_file_prefix_maybe("dde_persistent.json")
     var content = JSON.stringify(persistent_values)
     content = replace_substrings(content, ",", ",\n") //easier to read & edit
-    content = "//Upon DDE launch, this file is loaded before dde_init.js\n//Use persistent_get(key) and persistent_set(key, new_value) to access.\n\n" + content
+    content = "//Upon DDE launch, this file is loaded before dde_apps/dde_init.js\n//Use persistent_get(key) and persistent_set(key, new_value)\n//to access each of the below variables.\n\n" + content
     write_file(path, content)
 }
 
@@ -98,15 +115,17 @@ function dde_init_dot_js_initialize() {
         if (!persistent_get("default_dexter_port")){
             add_to_dde_init_js += 'persistent_set("default_dexter_port", "' + default_default_dexter_port + '") //required property, but you can edit the value.\n'
         }
-        if ((add_to_dde_init_js != "") || !Dexter.dexter0) {
+        if(!Robot.dexter0){
+            add_to_dde_init_js += '\nnew Dexter({name: "dexter0"}) //dexter0 must be defined.\n'
+        } //note, in the weird case that the user has defined the ip_address and/or port
+          //but not dexter0, then dexter0 gets at the front of the init file, not
+          //after the address and that's bad because it needs the ip_address
+          //but a fancier scheme of putting dextero always at the end of the file
+          //is bad too since all the "system" code is not at the beginning, before user code.
+          //So in our "weird case" laoding dde_init will error. Not so terrimbe
+        if (add_to_dde_init_js != ""){
             var di_content = file_content("dde_init.js")
             di_content = add_to_dde_init_js + di_content
-            if(!Dexter.dexter0){ //must be after setting up ip_address and port, and in the unusual case
-                                 //that we already have address and port in the dde_init.js file but not dexter0,
-                                 //we want to make sure that dexter0 is defined AFTER them, so
-                                 //stick this at the end of the file
-                di_content = di_content + '\nnew Dexter({name: "dexter0"}) //dexter0 must be defined.\n'
-            }
             write_file("dde_init.js", di_content)
             eval(add_to_dde_init_js)
         }
@@ -114,8 +133,7 @@ function dde_init_dot_js_initialize() {
     else { //the folder exists, but no dde_init.js file
         const initial_dde_init_content =
                   '//This file is loaded when you launch DDE.\n'     +
-                  '//Add whatever JavaScript you like to the end\n' +
-                  '//just before the call to "out" in the last line.\n' +
+                  '//Add whatever JavaScript you like to the end.\n' +
                   '\n' +
                   '//To change DDE colors,\n' +
                   '// 1. Uncomment the below line(s).\n' +
@@ -136,6 +154,10 @@ function dde_init_dot_js_initialize() {
 
         eval(initial_dde_init_content)
         write_file("dde_init.js", initial_dde_init_content)
+        out("Your dde_init.js file did not exist<br/>" +
+            "so a fresh one was created in Documents/dde_apps/<br/>" +
+            "Extend it with whatever JavaScript you want<br/>" +
+            "to be evaled when DDE is launched.", "green")
     }
 }
 
@@ -335,7 +357,10 @@ function load_files(...paths) {
             dde_error("loading_file got path: " + path + ' which does not end in ".js"'  +
                         "<br/>No files were loaded.")
         }
-        else { path = prefix + path }
+        else {
+            path = prefix + path
+            resolved_paths.push(path)
+        }
     }
     //now make sure we can get all the contents before actually loading any
     let contents = []
@@ -350,8 +375,9 @@ function load_files(...paths) {
          resolved_paths_index ++){
         let resolved_path = resolved_paths[resolved_paths_index]
         let content = contents[resolved_paths_index]
-        out("loading file: " + resolved_path, "green")
+        out("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;loading file: " + resolved_path, "green")
         result = window.eval(content)
+        out("Done loading file: " + resolved_path, "green")
     }
     return result
 }

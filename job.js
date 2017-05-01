@@ -2,7 +2,7 @@
 var esprima = require('esprima')
 
 var Job = class Job{
-    constructor({name=null, robot=Dexter.dexter0, do_list=[], keep_history=true, show_instructions=false,
+    constructor({name=null, robot=Robot.dexter0, do_list=[], keep_history=true, show_instructions=false,
                  inter_do_item_dur = 100, user_data={}, program_counter=0, ending_program_counter="end",
                  initial_instruction = null} = {}){
     //program_cpunter is the counter of the next instruction that should be executed.
@@ -24,6 +24,20 @@ var Job = class Job{
     Job.job_id_base       += 1
     this.job_id            = Job.job_id_base
     if (this.name == null){ this.name = "job_" + this.job_id }
+    if (!(robot instanceof Robot)){
+        if (!Robot.dexter0){
+            dde_error("Attempt to created Job: " + this.name + " with no valid robot instance.<br/>" +
+                      " Note that Robot.dexter0 is not defined<br/> " +
+                      " but should be in your file: Documents/dde_apps/dde_init.js <br/>" +
+                      " after setting the default ip_address and port.<br/> " +
+                      "To generate the default dde_init.js file,<br/>" +
+                      " rename your existing one and relaunch DDE.")
+        }
+        else {
+            dde_error("Attempt to created Job: " + this.name + " with no valid robot instance.<br/>" +
+                      "You can let the robot param to new Job default to get a correct Robot.dexter.0")
+        }
+    }
     Job[this.name]         = this //beware: if we create this job twice, the 2nd version will be bound to the name, not the first.
     Job.remember_job_name(this.name)
     this.status_code       = "not_started" //see Job.status_codes for the legal values

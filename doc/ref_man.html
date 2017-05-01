@@ -641,6 +641,39 @@ the same function in multiple locations on the do_list and
 only have to define it once.
 </details>
 
+<details class="doc_details"><summary>Any JS Code</summary>
+If you have some JavaScript code that you want to go between 2
+other instructions on a Job's do_list, your first inclination
+might be to just stick it on the do_list like so
+<pre>
+do_list: [Robot.out("hi"),
+          my_fn(12, 34),
+          Robot.out("bye")
+          ]
+</pre>
+What happens here is that when the <i>definition</i> of the job is evaled,
+the function my_fn will be called with args 12 and 34.
+Whatever that function returns will be put on the do list
+between the other 2 instuctions.
+So if my_fn  <i>returns</i> an instruction to run, and the making of that instruction
+does not depend on anything that happens while running the instructions of the job,
+then you're all set.
+<br/>
+<b>BUT</b> if what you want is for the eval of <code>my_fn(12, 34)</code>
+to occur after the instruction returned by <code>Robot.out("hi")</code> is run,
+then you'll want to wrap your code in a function, and put the definition
+of that wrapper function on the do_list like so:<br/>
+<code>function(){ my_fn(12, 34) }</code><br/>
+In the body of the above function, <code>this</code> will be bound
+to the instance of the running job.
+Note that if calling my_fn returns an instruction (or an array of instructions)
+that you want to run in the job, then our code for this do_list item should
+look like:
+    <code>function(){ return my_fn(12, 34) }</code>
+<p/>
+If you are confused about what a given instruction on a Job's do_list
+returns, just select it in the editor and EVAL it.
+</details>
 
 <details id="Robot.error_doc_id" class="doc_details"><summary>error</summary>
   Causes the job to error, immediately stopping it.
@@ -788,14 +821,30 @@ where within the job to insert the given instruction as does the method
    robot_status is an array that holds data from the robot, along with aspects of the instruction
    that was sent to the robot to capture that data. This array is the value of the robot
    instance field <code>robot_status</code>. <p/>
-   <code>grab_robot_status</code> provides an easy way to get values out of that array.
+   <code>grab_robot_status</code> provides an easy way to get values out of that array
+   and made available for other instructions to use.<br/>
    <i>Parameters</i><br/>
    <b>user_data_variable</b> A string (required) of the name of the job's 
                           <code>user_data</code> variable to shove the grabbed
-                          robot_status data into.<br/>
+                          robot_status data into. If their is already such a variable,
+                          its value is over-written. If not, it is created and intialized
+                          with the new value.
+                          <p/>
+                          After this instruction is run, the grabbed value
+                          is available globally Job.the_job_name.user_data_var_name.<br/>
+                          For instance, if this job is named "my_job" and the value of
+                          user_data_variable is "my_var" then:
+                          <code>Job.my_job.my_var</code>
+                          But inside another instruction that is defined as a function,
+                          <code>this</code> will be bound to the current job instance so:
+                          <code>this.user_data.my_var</code> will access the grabbed data.
+
    <b>start_index</b> A non-negative integer signifying the
                  first data item to extract from the robot_status array.
-                 Its default value is the value of <code>Serial.DATA0</code><br/>
+                 Its default value is the value of <code>Serial.DATA0</code>
+                 Another normal value would be <code>Dexter.J1_ANGLE</code>
+                 See below for a comprehensive list.
+                 <br/>
                  <i>Special values:</i> <code>"all"</code> The entire 60 element robot_status
                  array is used. The value of end_index is ignored.<br/>
                  <code>"data_array"</code> The part of the robot_status array after 
@@ -806,7 +855,8 @@ where within the job to insert the given instruction as does the method
     <b>end_index</b> A non-negative integer signifying the last element of the
                   robot_status array to extract. The default value is <code>null</code>.
                   If this value is null or not passed, only the data at the start_index
-                  is used. The value will NOT be an array, just that one element.<br/>
+                  is used. The value stored in teh user_data variable will NOT be an array,
+                  just that one element.<br/>
                   <i>Special value</i> <code>"end"</code> The portion of the robot_status
                   from start_index through the end of the robot_status array is extracted.
                   <p/>
@@ -823,21 +873,21 @@ Dexter.START_TIME //ms since jan 1, 1970 from Dexter's clock
 Dexter.STOP_TIME" 
 Dexter.INSTRUCTION_TYPE //a letter signifying the instruction type. 
 
-Dexter.ERROR_CODE" //0 means no error.
-Dexter.DMA_READ_DATA"
-Dexter.READ_BLOCK_COUNT"
-Dexter.RECORD_BLOCK_SIZE"
-Dexter.END_EFFECTOR_IN"
+Dexter.ERROR_CODE //0 means no error.
+Dexter.DMA_READ_DATA
+Dexter.READ_BLOCK_COUNT
+Dexter.RECORD_BLOCK_SIZE
+Dexter.END_EFFECTOR_IN
 
-Dexter.J1_ANGLE"            // BASE_POSITION_AT 
-Dexter.J1_DELTA"            // BASE_POSITION_DELTA 
-Dexter.J1_PID_DELTA"        // BASE_POSITION_PID_DELTA 
-Dexter.J1_FORCE_CALC_ANGLE" // BASE_POSITION_FORCE_DELTA 
-Dexter.J1_A2D_SIN",         // BASE_SIN             
-Dexter.J1_A2D_COS",         // BASE_COS                
-Dexter.J1_PLAYBACK",        // PLAYBACK_BASE_POSITION    
-Dexter.J1_SENT",            // SENT_BASE_POSITION       
-Dexter.J1_SLOPE",           // SLOPE_BASE_POSITION  
+Dexter.J1_ANGLE            // BASE_POSITION_AT
+Dexter.J1_DELTA            // BASE_POSITION_DELTA
+Dexter.J1_PID_DELTA        // BASE_POSITION_PID_DELTA
+Dexter.J1_FORCE_CALC_ANGLE // BASE_POSITION_FORCE_DELTA
+Dexter.J1_A2D_SIN,         // BASE_SIN
+Dexter.J1_A2D_COS,         // BASE_COS
+Dexter.J1_PLAYBACK,        // PLAYBACK_BASE_POSITION
+Dexter.J1_SENT,            // SENT_BASE_POSITION
+Dexter.J1_SLOPE,           // SLOPE_BASE_POSITION
 </pre>
 and a similar set of names beginning with J2, J3, J4 and J5.
 <p/>
@@ -864,10 +914,10 @@ Serial.DATA9
 In order to insure that the Dexter robot_status array is up to date,
 you should place <code>Dexter.get_robot_status()</code> in your do_list before
 the grab_robot_status instruction.<br/>
-<i>Example:</i><br/>
+<i>Examples of 2 adjacent instructions on a job's do_list:</i><br/>
 <code>
 Dexter.get_robot_status(),
-Robot.grab_robot_status("no_result", Serial.DATA0), </code><br/>
+Robot.grab_robot_status("my_zero_data", Serial.DATA0) </code><br/>
 See Job Example 9 for an extended example.
 </details> <!-- end grab_robot_status -->
 
@@ -1258,8 +1308,14 @@ Retrieves lots of information from Dexter. This is placed in an array that becom
 the job's <code>robot_status</code> field, and, if the job's <code>keep_history</code> is true, gets pushed onto the 
 job's <code>rs_history</code> array.
 <p/>
+<i>Examples</i>:
+<code>Dexter.get_robot_status()  //how this should look on  job's do list.</code><br/>
+<code>Jobs.j1.robot_status  //getting the whole status array after the above instruction is run</code><br/>
+<code>Jobs.j1.robot_status[Dexter.J1_ANGLE] //returns the angle of Joint 1, in arcseconds</code><p/>
 This instruction blocks further processing of the job's do_list instructions until
 all of the instructions on Dexter's instruction_queue are executed.
+<p/>
+See also the instruction: <code>Robot.grab_robot_status</code>
 </details>
 
 <details id="Dexter.get_robot_status_immediately_doc_id" class="doc_details"><summary>get_robot_status_immediately</summary>

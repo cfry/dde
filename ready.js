@@ -929,7 +929,7 @@ foo      //eval to see the latest values</pre>`,
     })
 
     //setTimeout(init_view_eye(), 1000) //todo now this file is loaded in sandbox.html. once I get rid of that and solve reuire issues, and on-ready for render process issues, revisit this.
-    persistent_initialize()
+    persistent_initialize() //called before loading dde_init.js by design.
 
     const val = persistent_get("save_on_eval")
     if(val) { //have to do this because, unlike the DOM doc, chrome/electron checks the box if you set it to false.
