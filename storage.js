@@ -32,7 +32,7 @@ function persistent_initialize(keep_existing=true) { //was persistent_clear
         }
         else {
             if (file_exists(dp_path)){ //normal
-                out("Loading persistent values from " + dp_path, "green")
+                out("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;loading persistent values from " + dp_path, "green")
                 persistent_load()
                 out("Done loading persistent values.", "green")
             }

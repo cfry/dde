@@ -76,13 +76,29 @@ Editor.undo = function(){ myCodeMirror.getDoc().undo() }
 //editor_html.foldCode(CodeMirror.Pos(0, 0));
 //editor_html.foldCode(CodeMirror.Pos(21, 0));
 
-//called from ui only
+//returns null if path is not in menu. path expected to be a full path,
+//even the menu has partial paths.
 Editor.index_of_path_in_file_menu = function(path){
+    let inner_path = Editor.path_to_files_menu_path(path)
     for(let i in file_name_id.children){
         let a_path = file_name_id.children[i].innerHTML
-        if (a_path == path) { return parseInt(i) }
+        if (a_path == inner_path) { return parseInt(i) }
     }
     return null
+}
+
+Editor.path_to_files_menu_path = function(path){
+    if (path.startsWith(dde_apps_dir)){
+        return "dde_apps" + path.substring(dde_apps_dir.length)
+    }
+    else { return path }
+}
+
+Editor.files_menu_path_to_path = function(path){
+    if (path.startsWith("dde_apps/")){
+        return dde_apps_dir + path.substring(8)
+    }
+    else { return path }
 }
 
 Editor.add_path_to_files_menu = function(path){
@@ -90,7 +106,8 @@ Editor.add_path_to_files_menu = function(path){
         let new_index = 0
         if (existing_index === null) {
             var opt     = document.createElement("OPTION")
-            var textelt = document.createTextNode(path);       // Create a text node
+            let inner_path = Editor.path_to_files_menu_path(path)
+            var textelt = document.createTextNode(inner_path);       // Create a text node
             opt.appendChild(textelt);
             if (file_name_id.hasChildNodes()){
                 file_name_id.insertBefore(opt, file_name_id.firstChild)
@@ -99,7 +116,6 @@ Editor.add_path_to_files_menu = function(path){
                 file_name_id.add(opt)
             }
             file_name_id.selectedIndex = new_index
-            Editor.current_file_path = path
             let paths = persistent_get("files_menu_paths")
             paths.unshift(path)
             if (paths.length > 20) { paths = paths.slice(0, 20) }
@@ -108,8 +124,8 @@ Editor.add_path_to_files_menu = function(path){
         else {
             new_index = existing_index
             file_name_id.selectedIndex = new_index
-            Editor.current_file_path = path
         }
+         Editor.current_file_path = path
 
 }
 
@@ -118,11 +134,15 @@ Editor.restore_files_menu_paths_and_last_file = function(){ //called by on ready
         const paths =  persistent_get("files_menu_paths")
         var html = ""
         for(let path of paths){
-            html += "<option>" + path + "</option>"
+            let inner_path = Editor.path_to_files_menu_path(path)
+            html += '<option>' + inner_path + "</option>"
         }
+        file_name_id.innerHTML = html
         if (paths.length > 0) {
-            file_name_id.innerHTML = html
-            Editor.edit_file(paths[0])
+            Editor.edit_file(paths[0]) //sometimes paths[0] will be 'new file' and that's fine
+        }
+        else {
+            Editor.edit_file("new file")
         }
     }
 }
@@ -274,6 +294,7 @@ Editor.edit_file = function(path){ //path could be "new file"
     Editor.set_javascript(content)
     Editor.current_file_path = path
     Editor.restore_selection_from_map()
+    file_name_id.title = path
     myCodeMirror.focus()
 }
 
@@ -293,10 +314,11 @@ Editor.save_as = function(){ //also called by onclick save
 }
 
 Editor.select_file_in_file_menu = function(path){
+    let inner_path = Editor.path_to_files_menu_path(path)
     var the_opt_elts = file_name_id.children
     for (var index = 0; index < the_opt_elts.length; index++){
         var elt = the_opt_elts[index]
-        if (elt.innerText == path){
+        if (elt.innerText == inner_path){
             file_name_id.selectedIndex = index
             return true
         }

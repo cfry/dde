@@ -7,8 +7,8 @@
 </style>
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version:  <span id="dde_version_id">1.1.6</span><br/>
-    released: <span id="dde_release_date_id">May 1, 2017</span>
+    version:  <span id="dde_version_id">1.1.7</span><br/>
+    released: <span id="dde_release_date_id">May 2, 2017</span>
     <p/>
     DDE helps you create, debug, and send software to a Dexter robot.
     You can use any Javascript augmented with DDE-specific functions to help find out about,
@@ -108,8 +108,8 @@
 </details>
 <details class="doc_details"><summary>User Interface</summary>
     <a style="margin-left:21px;" href="https://youtu.be/y8Mip5NUDPI">Video tutorial of DDE</a>
-    <details id="javascript_pane_doc_id" class="doc_details"><summary>JavaScript Pane</summary>
-        The JavaScript pane is a text editor. You can view and edit any text documents in it,
+    <details id="javascript_pane_doc_id" class="doc_details"><summary>Editor Pane</summary>
+        The Editor pane is a text editor. You can view and edit any text documents in it,
         but primarily you will be editing JavaScript that defines a job to make something
         with Dexter. DDE expects you to save such "apps" in your <code>Documents/dde_apps/</code>
         folder.
@@ -212,7 +212,7 @@
 </details>
 <details class="doc_details" id="learning_js_doc_id"><summary>Learning JavaScript</summary>
     The quickest way to learn most of the JavaScript you'll need is from the
-    JavaScript Pane's <button>Learn JS&#9660;</button> menu.
+    Editor Pane's <button>Learn JS&#9660;</button> menu.
     Read menu item tooltips, choose an item to insert code, then click <button>Eval</button>
     to eval all the code in the Editor. If there's a selection when you click Eval,
     just the selected code will be evaluated.
@@ -296,9 +296,9 @@
     not the syntax of BASH, C++ and Python normally required to work with ROS.
 </details>
 <details class="doc_details"><summary>Workflow</summary>
-    DDE let's you execute arbitrary JavaScript that is entered into the JavaScript pane.
-    <ol><li>The JavaScript pane's menus allow you to insert useful code snippets into
-        the JavaScript pane.</li>
+    DDE let's you execute arbitrary JavaScript that is entered into the Editor pane.
+    <ol><li>The Editor pane's menus allow you to insert useful code snippets into
+        the Editor pane.</li>
         <li>You can edit and extend the inserted code. Use any valid JavaScript.</li>
         <li>Click the <button>Eval</button> button. The result of the last expression evaluated
             will appear in the Output pane.</li>
@@ -342,7 +342,7 @@
             <li>The Output pane's <button>Ops&#9660;</button> menu allows easy access to finding out about the ROS environment.</li>
             <li>If you click on underlined text in the Output pane, it will pop up a help
                 window about the clicked on item. Often the help window will have buttons allowing
-                you to insert relevant JS function calls into the JavaScript pane.</li>
+                you to insert relevant JS function calls into the Editor pane.</li>
         </ol>
     </details>
 </details>
@@ -432,7 +432,7 @@
     Choose <button>Test&#9660;</button> <b>Insert Example</b> to see a demonstation
     Test Suite. <p/>
     You run a Test Suite by selecting it and hitting the right arrow key or
-    choosing the JavaScript pane's <b>Test/naviation/Run & sel next item</b> menu item.
+    choosing the Editor pane's <b>Test/naviation/Run & sel next item</b> menu item.
     Use the down arrow key to select the next level down item such as a test or
     even a part of a test. In each case, the right arrow executes the item and
     selects the next item at that level.
@@ -454,7 +454,7 @@
     If you fail to do this, and have a large amount of code that has a bug, comment out
     lines incrementally and test to isolate the bug.
     <p/>DDE uses an automatic syntax checker named <i>ESLint</i>. It
-    indicates syntax errors in the JavaScript pane as soon as you enter them.
+    indicates syntax errors in the Editor pane as soon as you enter them.
     There are many different styles of JS coding and different versions
     of JS so its hard to get such errors correct. Even if you have syntax
     errors indicated, your code may run fine. As a first pass though, try
@@ -471,7 +471,7 @@
     <b><code>/* comment */</code></b> Wrap JavaScript in <br/>
     slash-star ... star-slash<br/> to comment
     out code in the middle of a line or multiple lines.
-    See the JavaScript pane's <button>Learn JS&#9660;</button> <i>debugging</i> menu items.
+    See the Editor pane's <button>Learn JS&#9660;</button> <i>debugging</i> menu items.
     <br/><br/>
     Entering <code>debugger;</code> into the body of a JS function definition will set a breakpoint there.
     When <code>debugger;</code> is evaluated (after you call the function) and the <i>Chrome Developer Tools</i>

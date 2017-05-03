@@ -152,7 +152,7 @@
          //   'file_accessdir': [__dirname, dde_apps_dir], //for readFile, etc. but must include __dirname since Electron needs it.
         //    'open_basedir':   [__dirname ] //__direname is the folder this app is installed in. //valid folders to get require's from. /usr/local/share/node_modules',
          //}) //restrict file access
-        window.fs = require('fs')
+        //window.fs = require('fs')
         //dde_version = remote.getGlobal("get_app_version")
         var pckg         = require('./package.json');
         dde_version      = pckg.version
@@ -161,9 +161,10 @@
     //onload_fn()
 
     $('#outer_splitter').jqxSplitter({
-        width: '98%', height: '93%', orientation: 'vertical',
-        panels: [ { size: "63%", min: "0%", collapsible: false },
-                  { size: '37%', min: "0%"}]
+        width: '98%', height: '97%', //was 93%
+        orientation: 'vertical',
+        panels: [ { size: "70%", min: "0%", collapsible: false },
+                  { size: '30%', min: "0%"}]
     })
 
     $('#left_splitter').jqxSplitter({orientation: 'horizontal', width: "100%", height: "100%",
@@ -228,7 +229,6 @@
     })
 
     init_simulation()
-    init_ros_service_if_url_changed() //init_ros_service($("#dexter_url").val())
 
     //init_guide()
     //init_ref_man()
@@ -240,7 +240,6 @@
 
     Series.init_series()
     $('#js_textarea').focus() //same as myCodeMirror.focus()  but  myCodeMerror not inited yet
-    rde.ping() //rde.shell("date")
 
     find_doc_button_id.onclick = find_doc
     find_doc_input_id.onchange = find_doc
@@ -263,7 +262,8 @@
     new_id.onclick = function(){ Editor.edit_file("new file") }
 
     file_name_id.onchange = function(e){ //similar to open
-        var path = e.target.value //could be "new file" or an actual file
+        const inner_path = e.target.value //could be "new file" or an actual file
+        const path = Editor.files_menu_path_to_path(inner_path)
         Editor.edit_file(path)
     }
     /*dde_overview_id.onclick = function() {
@@ -281,10 +281,10 @@
     open_id.onclick=function(e) {
         const path = choose_file(show_dialog_options={title: "Choose a file to edit"})
         if (path){
-            console.log(path)
-            const content = file_content(path)
-            Editor.set_javascript(content)
-            Editor.add_path_to_files_menu(path)
+            //const content = file_content(path)
+            //Editor.set_javascript(content)
+            //Editor.add_path_to_files_menu(path)
+            Editor.edit_file(path)
         }
     }
 
@@ -304,6 +304,17 @@
         }
     }
     save_as_id.onclick=Editor.save_as
+
+    remove_id.onclick=function(){
+        Editor.current_file_path
+        let files = persistent_get("files_menu_paths")
+        let i = files.indexOf(Editor.current_file_path)
+        if (i != -1) {
+           files.splice(i, 1)
+           persistent_set("files_menu_paths", files)
+           Editor.restore_files_menu_paths_and_last_file()
+        }
+    }
 
     update_id.onclick = function (){check_for_latest_release()}
 
@@ -940,6 +951,8 @@ foo      //eval to see the latest values</pre>`,
         persistent_set("save_on_eval", val)
     }
     dde_init_dot_js_initialize()//must occcur after persistent_initialize
+    init_ros_service_if_url_changed() //must occure after dde_init_doc_js_initialize  init_ros_service($("#dexter_url").val())
+    // rde.ping() //rde.shell("date") //will show an error message
     Editor.restore_files_menu_paths_and_last_file()
     $("#simulate_checkbox_id").jqxCheckBox({ checked: persistent_get("default_dexter_simulate")})
     simulate_id.onclick = function(){ //so that clikcing on the label (but not the checkbox) will count as
@@ -1001,12 +1014,12 @@ function email_bug_report(){
     output = output.replace(/<p>/g,  "\n\n")
     output = output.replace(/<hr>/g, "_____________________________________\n")
     var bod = "Please describe your issue with DDE v " + dde_version + " here:\n\n\n" +
-        "Below are the contents of your JavaScript and Output panes\n"+
+        "Below are the contents of your Editor and Output panes\n"+
         "to help us with the context of your comment.\n" +
         "We won't use any software you send us without your permission,\n" +
         "but delete below whatever you want to protect or\n" +
         "what you think is not relevant to the issue.\n\n" +
-        "________JavaScript Pane______________\n" +
+        "________Editor Pane______________\n" +
         Editor.get_javascript() +
         "\n\n________Output Pane__________________\n" +
         output

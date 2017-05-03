@@ -213,7 +213,7 @@ function result_to_details_cmd(result){
 function pop_up_insert_cmd_question(in_cmd){
     var full_cmd = 'rde.shell("' + in_cmd + '")\n'
     var pop_up_content = `<div style='font-size:16px;padding:10px;'>Insert a call to<br/><b>` + in_cmd +
-                         `</b></br>into the JavaScript pane?</p>` +
+                         `</b></br>into the Editor pane?</p>` +
                          "<input type='hidden' name='full_cmd' value='" + full_cmd + "'/>\n" +
                          "<center><input type='submit' value='OK'/>&nbsp;&nbsp;" +
                          "<input type='submit' value='Cancel'/></center></div>"

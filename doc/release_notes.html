@@ -5,6 +5,37 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+
+<details class="doc_details"><summary>v 1.1.7, May 2, 2017</summary>
+    Highlights: Lots of UI tweaks. file system fix.
+    <ul>
+        <li> Added indenting to "loading persistent" output message.</li>
+
+        <li> File menu new item: "Remove"<br/>
+            Tooltip: "Remove the edited file from the file list and editor.<br/>
+            Does not delete the file from disk."</li>
+
+        <li> Moved ros url setting to be later in initialization
+            to take account of dde_init.js setting.</li>
+
+        <li> Removed big DDE title bar. Now just the little "os" title bar.</li>
+
+        <li> New blue color scheme.</li>
+
+        <li> Renamed "JavaScript" pane to "Editor" pane
+            (shorter, more functional description, more compatible with
+            future features)</li>
+
+        <li> Editor pane header: files menu now in upper right of header.
+            Names of files that are in dde_apps have the folder before
+            dde_apps removed so the last part of the name will fit
+            in the too-narrow menu.
+            Tooltip on the menu shows you the full file path.</li>
+
+        <li> Made files outside of dde_apps accessable.</li>
+    </ul>
+</details>
+
 <details class="doc_details"><summary>v 1.1.5, Apr 30, 2017</summary>
  Highlights: Fixed bug in load_files, improved doc and DDE launch print outs.
  <ul><li>overview paper
@@ -422,7 +453,7 @@ Please read Known Issues.
     initially on a do_list, and waits until something gets on it.</li>
 
     <li> If the search type-in box is empty when you click the doc "Find" button,
-    the selected text in the Doc, JavaScript, or Output pane is used,
+    the selected text in the Doc, Editor, or Output pane is used,
     as noted in the new tooltip for the Find type-in box.</li>
 </ul>
 </details>

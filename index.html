@@ -93,7 +93,7 @@
             'open_basedir':   [__dirname ] //__dirname is the folder this app is installed in. //valid folders to get require's from. /usr/local/share/node_modules',
         })
     </script>--> <!-- errors inside of fs-lock's index.js -->
-    <!--<script>window.fs = require('fs');</script> -->
+    <script>window.fs = require('fs');</script>
 
     <script type="text/javascript" src="utils.js"></script>
     <script type="text/javascript" src="storage.js"></script>
@@ -135,29 +135,30 @@
     <script type="text/javascript" src="ready.js"></script>
     <link rel="stylesheet" href="styles.css" type="text/css"/>
 </head>
-<body id="body_id" class="window_frame" onload="on_ready()">
-<span style="font-size:30px;">Dexte<img src="dexter_128.png" width="20" alt="r"/> Development Environment</span>
-<i style="font-size:20px;padding-left:20px;">Create software to control the Dexter robot</i><br/>
-<div id="DIV1" style="width: 100%; height: 99%;"> <!--height of 99% allows a tiny pink bottom border which is good.-->
+<body id="body_id" class="window_frame" onload="on_ready()" style=" padding:0px">
+<!--<span style="font-size:30px;">Dexte<img src="dexter_128.png" width="20" alt="r"/> Development Environment</span>
+<i style="font-size:20px;padding-left:20px;">Create software to control the Dexter robot</i><br/>-->
+<!--<div style="width: 100%; height: 100%;margin:0px; padding:0px;">--> <!--height of 99% allows a tiny pink bottom border which is good.-->
     <div id="outer_splitter">
         <div>
             <div id="left_splitter">
                 <div>
-                    <div class="pane_header_wrapper" style="height:50px;min-height:50px;max-height:50px;">
-                        <span id="javascript_pane_help_id" class="pane_header" title="Click for help." style="vertical-align:super;"><u>JavaScript</u></span>
+                    <div class="pane_header_wrapper">
+                        <span id="javascript_pane_help_id" class="pane_header" title="Click for help." style="vertical-align:super;"><u>Editor</u></span>
                         <div id='js_menubar_id' class='dde_menu' style="display:inline-block;">
                             <ul style="display:inline-block;padding:0;margin-top:0px;">
-                                <li style="display:inline-block;">File&#9660;
+                                <li style="display:inline-block;padding-left:3px;padding-right:0px;">File&#9660;
                                     <ul>
                                         <li id="new_id"     title="Make a new file.">New</li>
                                         <li id="open_id"    title="Edit an exiting file.">Open...</li>
                                         <li id="insert_file_id" title="Insert the content of a file&#013;into the editor at the cursor,&#013;replacing the selection if any.">Insert file...</li>
                                         <li id="save_id"    title="Save the current file.">Save</li>
                                         <li id="save_as_id" title="Save the current file under a new name.">Save As...</li>
+                                        <li id="remove_id"  title="Remove the edited file from the file list and editor.&#013;Does not delete the file from disk.">Remove</li>
                                         <li id="update_id"  title="Shows doc on how to get&#013;the latest version of DDE.">Update DDE...</li>
                                     </ul>
                                 </li>
-                                <li style="display:inline-block;">Edit&#9660;
+                                <li style="display:inline-block;padding-left:3px;padding-right:0px;">Edit&#9660;
                                     <ul>
                                         <li id="undo_id"       title="Redo the last text change in the JS Editor.">Undo &#8984;z</li>
                                         <li id="redo_id"       title="Redo the last Undo text change in the JS Editor.">Redo</li>
@@ -170,7 +171,7 @@
                                         <li>Right click menu in JS pane has more operations.</li>
                                     </ul>
                                 </li>
-                                <li title="Choose these items to learn JavaScript.&#013;Using menu item order recommended." style="display:inline-block;">Learn JS&#9660;
+                                <li title="Choose these items to learn JavaScript.&#013;Using menu item order recommended." style="display:inline-block;padding-left:3px;padding-right:0px;">Learn JS&#9660;
                                     <ul>
                                        <li id="learn_js_help_id">Help</li>
                                         <li id="js_example_1_id" title="Example of a small JavaScript program.&#013;Good for a refresher course or quick learners.">JavaScript Example</li>
@@ -292,7 +293,7 @@
                                         </li>
                                     </ul>
                                 </li>
-                                <li style="display:inline-block;">Insert&#9660;
+                                <li style="display:inline-block;padding-left:3px;padding-right:0px;">Insert&#9660;
                                     <ul>
                                         <li id="show_output_id"  title="Prints its 1st argument to the output pane and returns it.">Print to output
                                             <ul>
@@ -339,7 +340,7 @@
                                         </li>
                                     </ul>
                                 </li>
-                                <li>Series&#9660;
+                                <li style="display:inline-block;padding-left:3px;padding-right:0px;">Series&#9660;
                                     <ul>
                                         <li id="series_help_id">Help</li>
                                         <li>Navigation
@@ -421,7 +422,7 @@
                                         <li id="series_test_suite_id">Test Suite</li>
                                     </ul>
                                 </li>
-                                <li style="display:inline-block;">Jobs&#9660;
+                                <li style="display:inline-block;padding-left:3px;padding-right:0px;">Jobs&#9660;
                                     <ul>
                                         <li id="jobs_help_id">Help</li>
                                         <!--<li id="start_job_id" title="Eval job that cursor is in and start it.">Start Job
@@ -454,7 +455,7 @@
                                         </li>
                                     </ul>
                                 </li>
-                                <li style="display:inline-block;">Test&#9660;
+                                <li style="display:inline-block;padding-left:3px;padding-right:0px;">Test&#9660;
                                     <ul>
                                         <li id="test_suites_help_id">Help</li>
                                         <li id="insert_test_suite_example_id" title="Insert an example of the JS code for a test suite.">Insert Example</li>
@@ -478,10 +479,12 @@
                             </ul>
                         </div>
                         <div style="vertical-align:top;display:inline-block;line-height: 1.0;font-size:10px;margin:0px;padding:0px;">
-                            fontsize<br/>
-                            <input id="font_size_id"  type="number" style="vertical-align:top; width:30px;" value="17" min="6"/>
+                            <div style="display:inline-block;">
+                               fontsize<br/>
+                               <input id="font_size_id"  type="number" style="vertical-align:top; width:30px;" value="17" min="6"/>
+                            </div>
+                            <select id="file_name_id" style="width:250px;font-size:14px;margin-right:0px;padding-right:0px;" title=""><option>new file</option></select>
                         </div>
-                        <select id="file_name_id" style="width:450px;font-size:14px;"><option>new file</option></select>
                         <!--ROS url: <input id='dexter_url' value="localhost:9090" style="font-size:14px;"/> -->
                     </div>
                     <textarea id="js_textarea" wrap="off" style="width:98%; height:84%; font-size:17px; font-family:monospace;padding:4px;"
@@ -580,7 +583,7 @@
             </div>
         </div>
     </div>
-</div>
+<!-- </div> -->
 <!--
 <div id='jqxwindowxx' style="display:none;">
     <div id="jqxwindow_header" style="background-color: #ff8c96;font-size:20px;">Header</div>
