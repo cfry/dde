@@ -142,7 +142,7 @@ function dde_init_dot_js_initialize() {
                   '//To change DDE colors,\n' +
                   '// 1. Uncomment the below line(s).\n' +
                   '// 2. Select the first arg.\n' +
-                  '// 3. Choose Insert menu "Color" item.\n' +
+                  '// 3. Choose the "Insert" menu, "Color" item.\n' +
                   '// 4. After inserting the new color, eval the "set_" call.\n' +
                   '// 5. To get the default color, just comment out the line and relaunch DDE.\n' +
                   '// set_window_frame_background_color("#ff8c96")\n' +
@@ -189,14 +189,22 @@ function choose_file(show_dialog_options={}) { //todo document
     const dialog    = app.dialog;
     const paths = dialog.showOpenDialog(show_dialog_options)
     if (paths) {
-        if (Array.isArray(paths) && (paths.length == 1)) { return paths[0] }
-        else return paths
+        if (Array.isArray(paths) && (paths.length == 1)) {
+            return convert_backslashes_to_slashes(paths[0]) }
+        else {
+            let slashed_paths = []
+            for (let p of paths){
+                slashed_paths.push(convert_backslashes_to_slashes(p))
+            }
+            return slashed_paths
+
+        }
     }
     else { return paths }
 }
 
 function choose_file_and_get_content(show_dialog_options={}, encoding="utf8") { //todo document
-    const path = choose_file(show_dialog_options)
+    var path = choose_file(show_dialog_options)
     if (path){
         if (Array.isArray(path)) { path = path[0] }
         return file_content(path, encoding)
@@ -258,7 +266,11 @@ function add_folder_separator_prefix_maybe(filepath){
     }
     else { return "/" + filepath }
 }
-
+//within dde, paths should have slashes.
+//I convert "incomming paths to have slashes.
+//but when we have to access the OS, the
+//files have to be convered to be OS specific, ie for windows, have backslashes.
+//for that we call adjust_path_to_os
 function convert_backslashes_to_slashes(a_string){
     return a_string.replace(/\\/g, "/")
 }

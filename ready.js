@@ -144,7 +144,7 @@
         if      (operating_system == "darwin")  { operating_system = "mac" }
         else if (operating_system == "windows") { operating_system = "win" }
         const remote = require("electron").remote
-        window.dde_apps_dir = remote.getGlobal("dde_apps_dir")
+        window.dde_apps_dir = convert_backslashes_to_slashes(remote.getGlobal("dde_apps_dir"))
         console.log("In renderer dde_apps_dir: " + window.dde_apps_dir)
         console.log("In renderer appPath: "      + remote.app.getAppPath())
         console.log("In renderer __dirname: "    + __dirname)

@@ -279,6 +279,7 @@ Editor.restore_selection_from_map = function(){
 }
 
 Editor.edit_file = function(path){ //path could be "new file"
+    path = convert_backslashes_to_slashes(path) //must store only slashes in files menu
     if(Editor.current_file_path){ //false when we first boot up.
         Editor.store_selection_in_map()
         if ((Editor.current_file_path != "new file") &&
@@ -290,7 +291,7 @@ Editor.edit_file = function(path){ //path could be "new file"
     if (!path_already_in_menu) { Editor.add_path_to_files_menu(path) }
     var content
     if (path == "new file"){ content = "" }
-    else                   { content = file_content(path) }
+    else                   { content = file_content(path) } //file_content will conver to windows format if needed
     Editor.set_javascript(content)
     Editor.current_file_path = path
     Editor.restore_selection_from_map()
