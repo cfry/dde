@@ -172,7 +172,7 @@ function replayPointsitr(points, times){
   for (var i = 0;i < points.length;i++){
     out("#"+i+" xyz:"+points[i][5]+" in,out,down:"+points[i][6])
     rt.push(make_ins("a",RoundArray(Kin.xyz_to_J_angles(points[i][5], points[i][6] , Dexter.RIGHT_UP_OUT))))
-    rt.push(Robot.wait_until(1000))
+    //rt.push(Robot.wait_until(1000)) //delay is not needed, each move starts after the last.
   }}
   return rt
 }
@@ -324,7 +324,7 @@ function resolve_choice()
     		}})
    
     na.push(function(){if (gWindowVals != undefined){updateXYZPoint()}})
-    na.push(function(){if (gWindowVals != undefined){return updateXYZForce()}})
+    //na.push(function(){if (gWindowVals != undefined){return updateXYZForce()}})
     na.push(function(){if (gJobDone == 0) {return resolve_choice()}})
     return na
 }
@@ -347,18 +347,21 @@ new Job({name: "j1", robot: Robot.my_dex, keep_history: false,
               make_ins("S", "J4BoundryHigh",340000),
               make_ins("S", "J5BoundryLow",-648000),
               make_ins("S", "J5BoundryHigh",648000),
-
-                make_ins("S", "MaxSpeed",360000),
-                make_ins("S", "Acceleration",4), //was 5... shaking
-                make_ins("S", "StartSpeed", 1000),
+// Since Dexter moves so well without these changes, I'm commenting them out.
+//                make_ins("S", "MaxSpeed",360000),
+//                make_ins("S", "Acceleration",5), 
+//                make_ins("S", "StartSpeed", 1000),
                 Dexter.move_all_joints(0, 0, 0, 0, 0),
                 function(){return resolve_choice},
-                make_ins("S", "MaxSpeed",240000),
-                make_ins("S", "Acceleration",1),
+//                make_ins("S", "MaxSpeed",240000),
+//                make_ins("S", "Acceleration",1),
                 Dexter.move_all_joints(0, 0, 0, 0, 0)
          ]})
 
 
 Job.j1.start()
-Job.j1.inter_do_item_dur = 10
+//Job.j1.inter_do_item_dur = 50 //Was 10. Actually, seems to work ok with the default value.
 //Dexter.heartbeat_dur = 25
+
+
+//DrawNum(123456, 23000, [0, 1])
