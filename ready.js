@@ -877,7 +877,7 @@ foo      //eval to see the latest values</pre>`,
         event.stopPropagation() //causes menuu to not shrink up, so you can see the effect of your click
                             //AND causes the onclick for simulate_id to NOT be run.
     }
-
+    insert_job_example0_id.onclick = function(){Editor.insert(job_examples[0])}
     insert_job_example1_id.onclick = function(){Editor.insert(job_examples[1])}
     insert_job_example2_id.onclick = function(){Editor.insert(job_examples[2])}
     insert_job_example3_id.onclick = function(){Editor.insert(job_examples[3])}
@@ -903,7 +903,7 @@ foo      //eval to see the latest values</pre>`,
     rosservice_is.onclick    = function(){rde.shell('rosservice list')}
     rostopic_id.onclick      = function(){rde.shell('rostopic list')}
 
-    clear_output_id.onclick   = function(){clear_output(); myCodeMirror.focus()}
+    clear_output_id.onclick  = function(){clear_output(); myCodeMirror.focus()}
 
     javascript_pane_help_id.onclick    = function(){ open_doc(javascript_pane_doc_id)  }
     output_pane_help_id.onclick        = function(){ open_doc(output_pane_doc_id)  }
@@ -932,10 +932,14 @@ foo      //eval to see the latest values</pre>`,
     videos_id.onchange            = video_changed
 
 
-    font_size_id.onclick = function(){ $(".CodeMirror").css("font-size", this.value + "px")}
+    font_size_id.onclick = function(){
+                             $(".CodeMirror").css("font-size", this.value + "px")
+                             persistent_set("editor_font_size", this.value)
+                           }
     $("#font_size_id").keyup(function(event){
             if(event.keyCode == 13){
                 $(".CodeMirror").css("font-size", this.value + "px")
+                persistent_set("editor_font_size", this.value)
             }
     })
 
@@ -951,34 +955,27 @@ foo      //eval to see the latest values</pre>`,
         persistent_set("save_on_eval", val)
     }
     dde_init_dot_js_initialize()//must occcur after persistent_initialize
+
+    const editor_font_size = persistent_get("editor_font_size")
+    $(".CodeMirror").css("font-size", editor_font_size + "px")
+    font_size_id.value = editor_font_size
+
+
     init_ros_service_if_url_changed() //must occure after dde_init_doc_js_initialize  init_ros_service($("#dexter_url").val())
     // rde.ping() //rde.shell("date") //will show an error message
     Editor.restore_files_menu_paths_and_last_file()
-    $("#simulate_checkbox_id").jqxCheckBox({ checked: persistent_get("default_dexter_simulate")})
-    simulate_id.onclick = function(){ //so that clikcing on the label (but not the checkbox) will count as
-                                      //clicking on the checkbox.
-        if ($("#simulate_checkbox_id").val()){
-            $("#simulate_checkbox_id").jqxCheckBox({ checked: false })
-        }
-        else {
-            $("#simulate_checkbox_id").jqxCheckBox({ checked: true })
-        }
-        persistent_set("default_dexter_simulate", $("#simulate_checkbox_id").val())
-        //event.stopPropagation() //does NOT cause menu to not shrink up, so you can see the effect of your click
-    }
-    simulate_checkbox_id.onclick = function(event) {
-        if ($("#simulate_checkbox_id").val()){
-            $("#simulate_checkbox_id").jqxCheckBox({ checked: true })
-        }
-        else {
-            $("#simulate_checkbox_id").jqxCheckBox({ checked: false })
-        }
-        persistent_set("default_dexter_simulate", $("#simulate_checkbox_id").val())
-        event.stopPropagation() //causes menuu to not shrink up, so you can see the effect of your click
-                                //AND causes the onclick for simulate_id to NOT be run.
-    }
 
-    setTimeout(check_for_latest_release, 100)
+    //$("#simulate_checkbox_id").jqxCheckBox({ checked: persistent_get("default_dexter_simulate")}
+     simulate_radio_true_id.onclick  = function(){ persistent_set("default_dexter_simulate", true);   event.stopPropagation()}
+     simulate_radio_false_id.onclick = function(){ persistent_set("default_dexter_simulate", false);  event.stopPropagation()}
+     simulate_radio_both_id.onclick  = function(){ persistent_set("default_dexter_simulate", "both"); event.stopPropagation()}
+
+     const sim_val = persistent_get("default_dexter_simulate")
+     if      (sim_val === true)   { simulate_radio_true_id.checked  = true }
+     else if (sim_val === false)  { simulate_radio_false_id.checked = true }
+     else if (sim_val === "both") { simulate_radio_both_id.checked  = true }
+
+     setTimeout(check_for_latest_release, 100)
 }
 function check_for_latest_release(){
     latest_release_version_and_date(function(err, response, body){

@@ -1,5 +1,9 @@
 /* Created by Fry on 3/11/16.*/
-var job_examples = [null, //don't have example 0
+var job_examples = [
+`new Job({name: "my_job",
+         do_list: [Robot.out("hey")]})
+`,
+
 `//////// Job Example 1
 //A Job is esssentially a named list of instructions to
 //be executed by a robot. There are several different
@@ -43,7 +47,7 @@ function sleep_and_move(){
            ]
 }
 new Dexter({name: "my_dex",
-            simulate: true //simulate is true by default
+            simulate: null //simulate is null by default, giving control to the Jobs menu item 'Simulate?'
            })
 new Job({name: "j1",
          robot: Robot.my_dex, //assigns a robot to this job
@@ -106,12 +110,13 @@ Job.j3.start()
 //to wait until all the other jobs with the same
 //sync_point name (i.e. "midway") reach that sync point.
 new Job({name: "job_a",
-    do_list: [Robot.out("hello"),
-              Robot.sync_point("midway", ["job_a", "job_b"]),
-              Robot.out("goodbye")]})
+         do_list: [Robot.out("hello"),
+                   Robot.sync_point("midway", ["job_a", "job_b"]),
+                   Robot.out("goodbye")]})
 
 new Job({name: "job_b",
-    do_list: [Robot.out("hello"),
+         robot: new Brain({name: "brain1"}),
+         do_list: [Robot.out("hello"),
               Robot.wait_until(10000),
               Robot.sync_point("midway", ["job_a", "job_b"]),
               Robot.out("goodbye")]})
@@ -126,14 +131,16 @@ Job.job_a.start(); Job.job_b.start() //execute both at once.
 // as well as pause (suspend) and resume (unsuspend) jobs.
 
 new Dexter({name: "my_dex", ip_address: "192.168.1.142", port: 5000})
-new Job({name: "j4", robot: Robot.my_dex,
+new Job({name: "j4", 
+         robot: Robot.my_dex,
          do_list: [Dexter.move_all_joints(100000, 200000),
                    Robot.suspend(), //j5 will unsuspend this
                    Robot.out("j4 sez goodbye.")]})
 Job.j4.start()
 
 new Dexter({name: "my_dex2", ip_address: "192.168.1.143", port: 5000})
-new Job({name: "j5", robot: Robot.my_dex2,
+new Job({name: "j5", 
+         robot: Robot.my_dex2,
          do_list: [Robot.send_to_job(
                      {do_list_item: Dexter.move_to([100000, 100000, 100000]),
                       where_to_insert: {job: "j4", offset: "after_program_counter"},
@@ -157,35 +164,32 @@ new Job({name: "j6", robot: new Dexter(), do_list: []})
 //Now for our requesting job:
 new Job({name: "j7",
          do_list: [Robot.send_to_job({
-                      do_list_item: Dexter.move_all_joints(200000, 100000),
-                      where_to_insert: {job: "j6", offset: "program_counter"},
-                      start: true, //starts j6
-                      wait_until_done: true,
-                      status_variable_name: "that_j6_task",
-                      //and any number of values you want to get from j6
-                      j6_joint_5_pos:    function(){return this.robot.joint_xyz(5)},
-                      j6_angle_number_2: function(){return this.robot.joint_angle(2)}
-                      })]})
+                   do_list_item: Dexter.move_all_joints(200000, 100000),
+                   where_to_insert: {job: "j6", offset: "program_counter"},
+                   start: true, //starts j6
+                   wait_until_done: true,
+                   status_variable_name: "that_j6_task",
+                   //and any number of values you want to get from j6
+                   j6_joint_5_pos: function(){return this.robot.joint_xyz(5)},
+                   j6_angle_number_2: function(){return this.robot.joint_angle(2)}
+                   })]})
 Job.j7.start()
-/* Job.j7.user_data    contains info snatched from job j6
+/* Job.j7.user_data.j6_joint_5_pos and
+   Job.j7.user_data.j6_angle_number_2 both
+   contain info snatched from job j6.
 If you use Robot.send_to_job({where_to_insert: {job: "to_job", offset: "end"},
                               wait_until_done: true, ...}
 then the job with the sent_to_job instruction will wait until
 the whole of the to_job is done before proceeding                           
 */
 
-////// Job Example 4d: Extending the do_list when calling start.
-//sent_from_job is not commonly used by users directly,
-//but is used internally by send_to_jobs that are not yet started.
-new Job ({name: "j8",
-          do_list: [Robot.out("first instruction"), //will cause 'first instruction' to be printed in output pane when run
-                    Robot.sync_point("sp1"),
+////// Job Example 4d: Prepending to the do_list when calling start.
+
+new Job({name: "j8",
+          do_list: [Robot.out("first instruction"),
                     Robot.out("2nd instruction")]})
                 
-Job.j8.start(Robot.sent_from_job({do_list_item: 
-                                  Robot.out("special insert"),
-                                  where_to_insert: "sp1"})) //insert "special interest" between "first instruction" nad "2nd instruction"
-                                  
+Job.j8.start({initial_instruction: Robot.out("special insert")})            
 `,
 
 
@@ -499,9 +503,9 @@ void loop() {
 */
 //Save this as an Arduino Sketch in led_y_or_n.ino  
 //In the Arduino IDE, click the upload button, annoying labeled as a right arrow.
-//This should cause the orange light on the Arduino to falsh briefly signifying
+//This should cause the orange light on the Arduino to flash briefly signifying
 //that its getting some data.
-//If the uplaod fails, you'll see red text in the Arduino IDE output pane.
+//If the upload fails, you'll see red text in the Arduino IDE output pane.
 //Try unplugging and replugging your USB cable and uploading again.
 //After success, connect to the device
 serial_connect_low_level(ard_path) //returns lots of info including the path
@@ -530,15 +534,18 @@ serial_path_to_info_map     //now this will return {}
 //Move that file to under your dde_apps folder and use:
 serial_send_low_level(file_content("some_arduino_file.ino.hex"), ard_path)
 //please let us know if this works, esp. if you're on a Mac.
+//If you can't get programmatic file upload into your Arduino,
+//just use the Arduion app, paste the code into the editor,
+//and click the right arrow to upload your Arduino code manually.
 
 //_________serial job_______  
 new Serial({name: "S1", simulate: false, 
 			sim_fun: function(input){ 
-                        return "got: " + input + "\n"
+                        return "got: " + input + "\\n"
                      },
-            path:            ard_path, 
+            path: ard_path, 
             connect_options: {baudRate: 300},
-            capture_n_items: 1,  parse_items: true})
+            capture_n_items: 1, parse_items: true})
 
 new Job({name: "j10",
          robot: Robot.S1,

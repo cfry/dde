@@ -34,6 +34,14 @@ var Robot = class Robot {
             $("#videos_id").prepend("<option>Robot: " + name + "</option>")
         }
     }
+    static get_simulate_actual(simulate_val){
+        if      (simulate_val === true)   { return true   }
+        else if (simulate_val === false)  { return false  }
+        else if (simulate_val === "both") { return "both" }
+        else if (simulate_val === null)   { return persistent_get("default_dexter_simulate") }
+        else { shouldnt("get_simulate_actual passed illegal value: " + simulate_val) }
+    }
+
     jobs_using_this_robot(){
         let result = []
         for (let j of Job.all_jobs()){
@@ -165,7 +173,7 @@ Robot.all_names = [] //needs to work in UI (for series) as well as sandbox
 
 Robot.robot_status_labels = [] //overridden by Serial and Dexter, needed by Show robot status history button
 
-/*simulate vs non-simulate makes no difference so set simulate to false, used by a_job.is_simulating */
+/*simulate vs non-simulate makes no difference so set simulate to false */
 var Brain = class Brain extends Robot { /*no associated hardware */
     constructor({name = "b1"}={}){
         super()
@@ -278,7 +286,8 @@ var Human = class Human extends Brain { /*no associated hardware */
 }
 
 Serial = class Serial extends Robot {
-    constructor({name = "s1", simulate = true, sim_fun = return_first_arg, path = "required", connect_options={},
+    constructor({name = "s1", simulate = null, //get sim val from Jobs menu item check box.
+                 sim_fun = return_first_arg, path = "required", connect_options={},
                  capture_n_items = 1, item_delimiter="\n", trim_whitespace=true,
                  parse_items = true, capture_extras = "error", /*"ignore", "capture", "error"*/
                  instruction_callback = Job.prototype.set_up_next_do }={}){
@@ -296,14 +305,14 @@ Serial = class Serial extends Robot {
                     warning("There's already a robot with the name: " + name +
                             ",<br/>that is a serial robot that has an active job " +
                             "<br/>so that's being used instead of a new Robot.serial instance.<br/>" +
-                            "Inactivate all Jobs using menu Jobs/Stop all jobs")
+                            "Stop a job by clicking on its button in the Output pane's header.")
                     return old_same_named_robot
                 }
                 else { //same name, active jobs, different robot characteristics
                     dde_error("Attempt to create Robot.Serial with name: " + name +
                               "<br/>but there is already a robot with that name with different properties " +
                               "that is active.<br/>" +
-                              "Inactivate all Jobs using menu Jobs/Stop all jobs"
+                              "Stop a job by clicking on its button in the Output pane's header."
                               )
                 }
             }
@@ -421,11 +430,11 @@ Serial = class Serial extends Robot {
         let job_instance = Serial.get_job_with_robot_path(path) //beware, this means only 1 job can use this robot!
         if (job_instance.status_code === "starting") {
             job_instance.set_status_code("running")
+            job_instance.set_up_next_do(0) //we don't want to increment because PC is at 0, so we just want to do the next instruction, ie 0.
         }
         //before setting it should be "starting"
-        if (job_instance.status_code === "running") {
-            rob.perform_instruction_callback(job_instance) //job_instance.set_up_next_do() //initial pc value is -1. this is the first call to
-            //set_up_next_do (and do_next_item) in this job's life.
+        else if (job_instance.status_code === "running") {
+            rob.perform_instruction_callback(job_instance) //job_instance.set_up_next_do() //initial pc value is 0.
         }
     }
 
@@ -601,7 +610,7 @@ Serial.string_instruction = function(instruction_string){
 
 /*anticipate classes for Dexter2, etc. */
 Dexter = class Dexter extends Robot {
-    constructor({name = "d1", simulate = true, simulate_from = "persistent_get",
+    constructor({name = "d1", simulate = null,
                  ip_address = null, port = null,
                  base_xyz = [0, 0, 0], base_plane = [0,0,1], base_rotation = 0,
                  enable_heartbeat=true, instruction_callback=Job.prototype.set_up_next_do }={}){  //"192.168.1.144"
@@ -609,7 +618,7 @@ Dexter = class Dexter extends Robot {
         if(!ip_address) { ip_address = persistent_get("default_dexter_ip_address") }
         if(!port)       { port       = persistent_get("default_dexter_port") }
 
-        let keyword_args = {name: name, simulate: simulate, simulate_from: simulate_from, ip_address: ip_address, port: port,
+        let keyword_args = {name: name, simulate: simulate, ip_address: ip_address, port: port,
                             base_xyz: base_xyz, base_plane: base_plane, base_rotation: base_rotation,
                             enable_heartbeat: enable_heartbeat, instruction_callback: instruction_callback }
         let old_same_named_robot = Robot[name]
@@ -672,7 +681,6 @@ Dexter = class Dexter extends Robot {
         this.base_rotation         = keyword_args.base_rotation //integer arcseconds
 
         this.simulate              = keyword_args.simulate
-        this.simulate_from         = keyword_args.simulate_from
         this.instruction_callback  = keyword_args.instruction_callback
         this.robot_status          = null //now contains the heartbeat rs
         this.is_connected          = false
@@ -693,12 +701,7 @@ Dexter = class Dexter extends Robot {
         return this
     }
 
-    is_initialized(){
-        return ((this.socket_id || (this.socket_id === 0)) ? true : false )
-    }
-
     start(job_instance) { //fill in initial robot_status
-        if (this.simulate_from === "persistent_get") { this.simulate = persistent_get("default_dexter_simulate") }
         if (this.is_initialized()) {
             //this.send(Dexter.get_robot_status()) //doesn't go on do_list, I guess that's ok. do_next_item still hasn't been called once yet
         }
@@ -707,16 +710,36 @@ Dexter = class Dexter extends Robot {
             let this_robot = this
             let this_job   = job_instance
             setTimeout(function(){ //give robot a chance to get its socket before doing th initial "g" send.
+                            const sim_actual = Robot.get_simulate_actual(this_robot.simulate)
                             if(!this_robot.is_initialized()){
-                                if (this_robot.simulate){
+                                if (this_robot.simulate === true){
                                     dde_error("The job: " + this_job.name + " is using robot: " + this_robot.name +
                                         "<br/>with simulate=true, but could not connect with the Dexter simulator.")
                                 }
-                                else {dde_error("The job: " + this_job.name + " is using robot: " + this_robot.name +
+                                else if ((this_robot.simulate === false) || (this_robot.simulate === "both")){
+                                  dde_error("The job: " + this_job.name + " is using robot: " + this_robot.name +
                                     "<br/>but could not connect with a Dexter robot at: " +
                                     this_robot.ip_address + " port: " + this_robot.port +
                                     "<br/>You can change this robot to <code>simulate=true</code> and run it.")
                                 }
+                                else if (this_robot.simulate === null){
+                                    if ((sim_actual === false) || (sim_actual === "both")){
+                                    dde_error("The job: " + this_job.name + " is using robot: " + this_robot.name +
+                                        '<br/>with the Jobs menu "Simulate?" item being: ' + sim_actual  +
+                                        "<br/>but could not connect with Dexter." +
+                                        "<br/>You can use the simulator by switching the menu item to 'true'. ")
+                                    }
+                                    else {
+                                        dde_error("The job: " + this_job.name + " is using robot: " + this_robot.name +
+                                                  "<br/>with a Jobs menu, 'Simulate?' value of 'true', " +
+                                                  "<br/>but could not connect with the Dexter simulator.")
+                                    }
+                                }
+                                else {
+                                    shouldnt("Dexter.start got invalid simulate value of: " + this_robot.simulate +
+                                             '.<br/> The value values are: true, false, "both" and null.')
+                                }
+
                             }
                             else { this_job.send(Dexter.get_robot_status())}
                         },
@@ -821,11 +844,14 @@ Dexter = class Dexter extends Robot {
         rob.is_connected = true
     }
 
+    //is_initialized(){ return ((this.socket_id || (this.socket_id === 0)) ? true : false ) }
+
     is_initialized(){
        return this.is_connected
     }
 
-    //beware, robot_status could be an ack.
+    //beware, robot_status could be an ack, can could be called by sim or real AND
+    //will be called twice if simulate == "both"
     static robot_done_with_instruction(robot_status){ //must be a class method, "called" from UI sockets
         if (!(Array.isArray(robot_status))) {
             throw(TypeError("Dexter.robot_done_with_instruction recieved a robot_status array: " +
@@ -1201,8 +1227,7 @@ Dexter.move_to = function(xyz = [], // New defaults are the cur pos, not straigh
 }
 
 
-/*Dexter.move_to_relative = function(delta_xyz = [], // New defaults are the cur pos, not straight up.
-                          // should be : 0, 82550, 866775 pointing straight up, J1_1 thru J4 = 0
+/*Dexter.move_to_relative = function(delta_xyz = [],
                           J5_direction = [0, 0, -1], //end effector pointing down
                           config       = Dexter.RIGHT_UP_OUT){
     return function(){
@@ -1217,9 +1242,7 @@ Dexter.move_to = function(xyz = [], // New defaults are the cur pos, not straigh
     }
 }*/
 
-Dexter.move_to_relative = function(delta_xyz = [] // New defaults are the cur pos, not straight up.
-                                   // should be : 0, 82550, 866775 pointing straight up, J1_1 thru J4 = 0
-                                   ){
+Dexter.move_to_relative = function(delta_xyz = [0, 0, 0]){
     return function(){
         let old_xyz      = Kin.J_angles_to_xyz(this.robot.angles)[5]
         let config       = Kin.J_angles_to_config(this.robot.angles)

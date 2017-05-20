@@ -32,47 +32,15 @@ const SerialPort = require('serialport')
 
 var serial_path_to_info_map = {}
 
-/*function serial_path_to_connection_id(path){
-    let info = serial_path_to_info_map[path]
-    if (info) { return info.connection_id }
-    else { return null }
-}*/
-
 function serial_path_to_info(path){
     return serial_path_to_info_map[path]
 }
 
-//function serial_show_connection_map(){
-//    out(stringify_value(serial_path_to_info_map))
-//}
-
-function serial_connection_id_to_info(id){
-    for (let path in serial_path_to_info_map){
-        let info = serial_path_to_info(path)
-        if (info.connection_id == id) { return info }
-    }
-    return null
-}
-
 const ipc     = require('electron').ipcRenderer
 function serial_devices(){
-
     const reply = ipc.sendSync('serial_devices')
     return reply
 }
-/*
-function serial_show_devices(){
-    let path_map = "serial_path_to_info_map:<br/>" +
-                   stringify_value(serial_path_to_info_map)
-    SerialPort.list(function (err, ports) {
-        let result = ""
-        ports.forEach(function(port) {
-            result += stringify_value(port) + "<br/>" //out(port.comName);
-        })
-        out(result + path_map)
-    })
-}
-*/
 
 //only used for testing.
 function serial_connect_low_level(path, options, capture_n_items=1, item_delimiter="\n",
@@ -123,33 +91,24 @@ function serial_send_low_level(path, content){
     }
 }
 
-var serial_last_sim_connection_id = 0 //when allocated, all of these will be negative.
-
-
 //called from robot.js
-function serial_connect(path, options, simulate=true, capture_n_items=1, item_delimiter="\n",
+function serial_connect(path, options, simulate=null, capture_n_items=1, item_delimiter="\n",
                         trim_whitespace=true,
                         parse_items=true, capture_extras="error"){ //"ignore", "capture", "error"
-    if(simulate){
-        let connection_id
-        let old_info = serial_path_to_info_map[path]
-        if (old_info) { connection_id = old_info.connection_id } //reuse id if its available
-        else {
-            serial_last_sim_connection_id -= 1
-            connection_id = serial_last_sim_connection_id
-        }
-        serial_path_to_info_map[path] =
-            {path: path, //Needed because sometimes we get the info without having the path thru serial_path_to_connection_id
-            simulate: simulate,
-            capture_n_items: capture_n_items,
-            item_delimiter: item_delimiter,
-            trim_whitespace: trim_whitespace,
-            parse_items: parse_items,
-            capture_extras: capture_extras,
-            pending_input: ""}
-        serial_new_socket_callback(path, connection_id) //don't need to simulate socket_id for now
+    const sim_actual = Robot.get_simulate_actual(simulate)
+    serial_path_to_info_map[path] =
+       {path:            path, //Needed because sometimes we get the info without having the path thru serial_path_to_connection_id
+        simulate:        sim_actual,
+        capture_n_items: capture_n_items,
+        item_delimiter:  item_delimiter,
+        trim_whitespace: trim_whitespace,
+        parse_items:     parse_items,
+        capture_extras:  capture_extras,
+        pending_input:   ""}
+    if(sim_actual === true){ //it its "both" we let the below handle it. Don't want to call serial_new_socket_callback twice when sim is "both"
+        serial_new_socket_callback(path) //don't need to simulate socket_id for now
     }
-    else {
+    if ((sim_actual === false) || (sim_actual == "both")){
         const port = new SerialPort(path, options)
         port.on('open', function(err){
             if (err) {
@@ -157,16 +116,7 @@ function serial_connect(path, options, simulate=true, capture_n_items=1, item_de
             }
             else {
                 out("Serial connection made to: " + path)
-                serial_path_to_info_map[path] =
-                    {path: path, //Needed because sometinmes we get the info without having the path thru serial_path_to_connection_idsimulate: simulate,
-                    simulate: simulate,
-                    port: port,
-                    capture_n_items: capture_n_items,
-                    item_delimiter:  item_delimiter,
-                    trim_whitespace: trim_whitespace,
-                    parse_items:     parse_items,
-                    capture_extras:  capture_extras,
-                    pending_input:   ""}
+                serial_path_to_info_map[path].port = port
                 serial_new_socket_callback(path)
                 let the_path = path //needed for closed over var below
                 port.on('data',  function(data) { serial_onReceiveCallback(data, the_path) } )
@@ -213,12 +163,13 @@ function serial_send(instruction_array, path, simulate=true, sim_fun) {
     info.robot_status[Serial.ERROR_CODE] = 0 //we haven't errored yet so pretend like its going to work
     //set the error code, and maybe call serial_on_done_with_sending
     info.robot_status[Serial.START_TIME] =  Date.now()
-    if (simulate){
+    const sim_actual = Robot.get_simulate_actual(simulate)
+    if ((sim_actual === true) || (sim_actual === "both")){
         setTimeout(function(){
-                        serial_send_simulate(ins_str, sim_fun, path)
+                        serial_send_simulate(ins_str, sim_fun, path, sim_actual)
                     }, 300)
     }
-    else {
+    if ((sim_actual === false) || (sim_actual === "both")){
         if (info.port){
             //out("just before serial send of: " + ins_str)
             info.port.write(convertStringToArrayBuffer(ins_str),
@@ -244,10 +195,13 @@ function serial_send(instruction_array, path, simulate=true, sim_fun) {
     }
 }
 
-function serial_send_simulate(ins_str, sim_fun, path){
+function serial_send_simulate(ins_str, sim_fun, path, sim_actual){
     let result = sim_fun.call(null, ins_str)
     let info_from_board = {buffer: convertStringToArrayBuffer(result)}
-    serial_onReceiveCallback(info_from_board, path)
+    out("in serial_send_simulate with ins_str: " + ins_str + " and info_from_board: " + info_from_board)
+    if (sim_actual === true) { //but NOT "both", since we let the hardware side take it from here if its "both".
+        serial_onReceiveCallback(info_from_board, path)
+    }
 }
 
 //_______receive data from serial_________
@@ -455,7 +409,7 @@ function serial_send_extra_item_to_job(string_from_robot, path, is_error=false, 
 
 function serial_flush(path){
     let info = serial_path_to_info(path)
-    if (info && !info.simulate) { info.port.flush(function(){ out("Serial path: " + path + " flushed.") }) }
+    if (info && ((info.simulate === false) || (info.simulate === "both"))) { info.port.flush(function(){ out("Serial path: " + path + " flushed.") }) }
     else {
         warning("Attempt to serial_flush path: " + path + " but that path doesn't have info.")
     }
@@ -466,9 +420,8 @@ function serial_flush(path){
 function serial_disconnect(path){
     let info = serial_path_to_info_map[path]
     if (info){
-        if(info.simulate) {}
-        else {
-           info.port.close(out)
+        if((info.simulate === false) || (info.simulate === "both")) {
+            info.port.close(out)
         }
         delete serial_path_to_info_map[path]
     }

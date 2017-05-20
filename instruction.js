@@ -181,17 +181,17 @@ Instruction.Control.go_to = class go_to extends Instruction.Control{
 
 Instruction.Control.grab_robot_status = class grab_robot_status extends Instruction.Control{
     constructor (user_data_variable, //a string
-                 start_index = Serial.DATA0, //integer
-                 end_index=null)  //if integer and same as starting field
-    //makes a vector of the starting_field value,
-    //otherwise makes array of the starting field THROUGH
-    //ending field. OR can be the string "end" meaning
-    //grab through the end of the array
+                 start_index = Serial.DATA0, //integer, but can also be "all"
+                 end_index=null)  //if integer and same as start_index,
+                                //makes a vector of the start_index value,
+                                //otherwise makes array of the start_index THROUGH
+                                //end_index. OR can be the string "end" meaning
+                                //grab through the end of the array
                  {
         super()
         this.user_data_variable = user_data_variable
-        this.start_index     = start_index
-        this.end_index       = end_index
+        this.start_index        = start_index
+        this.end_index          = end_index
     }
     do_item (job_instance){
         let rs = job_instance.robot.robot_status
@@ -201,7 +201,7 @@ Instruction.Control.grab_robot_status = class grab_robot_status extends Instruct
             this.end_index   = "end"
         }
         //set val
-        if (this.starting_field == "all") { val = rs }
+        if (this.start_index == "all") { val = rs }
         else if (this.end_index) {
             if (this.end_index === "end") { this.end_index = rs.length - 1 }
             else if (this.start_index > this.end_index ) {
@@ -898,7 +898,9 @@ Instruction.Control.send_to_job = class send_to_job extends Instruction.Control{
                   wait_until_done = false,
                   start           = false,
                   unsuspend       = false,
-                  status_variable_name = null} = {}) {
+                  status_variable_name = null} = {},
+                  already_sent_instruction = false //used internally
+                  ) {
         super()
         let params = arguments[0]
         if (!params.where_to_insert || (params.where_to_insert == "required")) { //the defaults listed above don't actually work
@@ -911,14 +913,19 @@ Instruction.Control.send_to_job = class send_to_job extends Instruction.Control{
     do_item (job_instance){ //job_instance is the "from" job
         this.from_job_name       = job_instance.name
         this.from_instruction_id = job_instance.program_counter
-        if (this.status_variable_name){
-            job_instance.user_data[this.status_variable_name] = "sent"
-        }
-        this.destination_do_send_to_job(job_instance) //this COULD be just a json obj of name value pairs. Don't really need the whole instance here.
+        if (!this.already_sent_instruction) { //only excute this code once per send_to_job instance
+            if (this.status_variable_name){
+             job_instance.user_data[this.status_variable_name] = "sent"
+            }
+            this.destination_do_send_to_job(job_instance) //this COULD be just a json obj of name value pairs. Don't really need the whole instance here.
                                                          //if we need to send to a job on another computer, convert to that json obj.
+            this.already_sent_instruction = true
+        }
         if(this.wait_until_done){
             job_instance.wait_until_instruction_id_has_run = job_instance.program_counter
-            job_instance.set_up_next_do(0) //the one place I pass 0 here!
+            //don't do the below because the to_job will, when its inserted instr is done,
+            //call from_job.send_to_job_receive_done which will call set_up_next_do(1)
+           // job_instance.set_up_next_do(0) //a rare place I pass 0 here!
                       //since this is not going through robot_done_with_instruction
         }
         else{
@@ -933,7 +940,7 @@ Instruction.Control.send_to_job = class send_to_job extends Instruction.Control{
         let params = this
         var to_job_instance = Job.instruction_location_to_job(params.where_to_insert, false)
         if (!to_job_instance) { to_job_instance = from_job_instance }
-        if (to_job_instance === job_instance) { this.wait_until_done = false } //when a job is inserting code into itself,//we don't want it to hang waiting for itself.
+        if (to_job_instance === from_job_instance) { this.wait_until_done = false } //when a job is inserting code into itself,//we don't want it to hang waiting for itself.
 
         //first, add destination_send_to_job_is_done to do_items if need be.
         let do_items = params.do_list_item
@@ -965,7 +972,7 @@ Instruction.Control.send_to_job = class send_to_job extends Instruction.Control{
                 }
             }
         }
-        // next, bundle do_items into a sent_from_job instruction
+        // next, bundle do_items into a sent_from_job instruction and stick it on the to_job
         let sfj_ins = new Instruction.Control.sent_from_job({do_list_item: do_items,
                                                      from_job_name: from_job_instance.name,
                                                      from_instruction_id: from_job_instance.program_counter,
@@ -975,10 +982,11 @@ Instruction.Control.send_to_job = class send_to_job extends Instruction.Control{
         Job.insert_instruction(sfj_ins, params.where_to_insert) //must do before starting or unsuspending
         if (to_job_instance.status_code == "not_started"){
             if(params.start){
-                to_job_instance.start({initial_instruction: sfj_ins})
+                to_job_instance.start() //{initial_instruction: sfj_ins} //commented out because its redunant with insert_instruction and would put sfj_ins on to_job twice
+
             }
         }
-        else if (to_job_instance.status_code == "suspended"){
+        if (to_job_instance.status_code == "suspended"){
             if(params.unsuspend){
                 to_job_instance.unsuspend()
                 //this.set_up_next_do(1) //don't do this because unsuspend does it.
@@ -989,50 +997,16 @@ Instruction.Control.send_to_job = class send_to_job extends Instruction.Control{
         //    to_job_instance.set_up_next_do(1)
         //}
     }
-    /* obsolete with instructsion_location arch
-    static insert_sent_from_job(to_job_instance, sfj_ins){
-        switch(sfj_ins.where_to_insert){
-            case "after_pc":
-                to_job_instance.insert_single_instruction(sfj_ins)
-                break;
-            case "end":
-                to_job_instance.do_list.push(sfj_ins)
-                break;
-            case "next_top_level":
-                to_job_instance.sent_from_job_instruction_queue.push(sfj_ins)
-                break;
-            default:
-                let valid = false
-                for(let to_job_ins_id = to_job_instance.program_counter;
-                        to_job_ins_id < to_job_instance.do_list.length;
-                        to_job_ins_id++){
-                    if (to_job_ins_id < 0) { continue; } //might be on -1 (when job isn't started.)
-                    let to_job_ins = to_job_instance.do_list[to_job_ins_id]
-                    if ((to_job_ins instanceof Instruction.Control.sync_point) &&
-                        (to_job_ins.name == sfj_ins.where_to_insert)) {
-                        to_job_instance.do_list.splice(to_job_ins_id + 1, 0, sfj_ins)
-                        valid = true
-                        break;
-                    }
-                }
-                if (!valid) {dde_error("The send_to_job instruction in job: " + sfj_ins.from_job_name +
-                    " with id: " +  sfj_ins.from_instruction_id +
-                    " has a where_to_insert of: " + sfj_ins.where_to_insert +
-                    " but there is no sync point with that name in job: " + to_job_instance.name +
-                    " at or after the id of: " + to_job_instance.program_counter)
-                }
-                break;
-        }
-    }*/
 }
 
 Instruction.Control.send_to_job.param_names = ["do_list_item",    "where_to_insert",
                                                "wait_until_done", "start",
                                                "unsuspend",       "status_variable_name",
-                                               "from_job_name",   "from_instruction_id"]
+                                               "from_job_name",   "from_instruction_id",
+                                                "already_sent_instruction"]
 
 //user's never create this directly, but an instance of this is created by destination_do_send_to_job
-//and stuck on the destination do_list.
+//and stuck on the to_job do_list.
 Instruction.Control.destination_send_to_job_is_done = class destination_send_to_job_is_done extends Instruction.Control{
     constructor (params){
         super()
@@ -1041,11 +1015,11 @@ Instruction.Control.destination_send_to_job_is_done = class destination_send_to_
     do_item(job_instance){ //job_instance is the "to" job
         var from_job_instance = Job[this.params.from_job_name]
         for (var user_var of Object.getOwnPropertyNames(this.params)){ //we can have multiple user_data vars that we set. The vars arae set in the sending job
-            if(Instruction.Control.send_to_job.param_names.indexOf(user_var) == -1){ //if its not one of the regular paranms. that mens its the name of a user_data var to set in the from_job_instance
+            if(Instruction.Control.send_to_job.param_names.indexOf(user_var) == -1){ //if its not one of the regular paranms. that means its the name of a user_data var to set in the from_job_instance
                 var fn = this.params[user_var]
                 if (typeof(fn) == "function"){
                     var val = fn.call(job_instance)
-                    this.params[user_var] = val  //this.params is really the to_job_instance.
+                    from_job_instance.user_data[user_var] = val  //this.params is really the to_job_instance.
                 }
                 else {
                     shouldnt("In job: " + job_instance.name +
@@ -1059,6 +1033,7 @@ Instruction.Control.destination_send_to_job_is_done = class destination_send_to_
     }
 }
 
+//an instance of this instr is stuck on the to_job by instr send_to_job
 Instruction.Control.sent_from_job = class sent_from_job extends Instruction.Control{
     constructor ({do_list_item       = null, //can be null, a single instruction, or an array of instructions
                  from_job_name       = "required",
@@ -1080,7 +1055,7 @@ Instruction.Control.sent_from_job = class sent_from_job extends Instruction.Cont
             job_instance.insert_single_instruction(this.do_list_item)
             job_instance.added_items_count[job_instance.program_counter] = 1
         }
-        else {
+        else { //we've got more than 1 instr to insert.
             job_instance.insert_instructions(this.do_list_item)
             job_instance.added_items_count[job_instance.program_counter] = this.do_list_item.length
         }

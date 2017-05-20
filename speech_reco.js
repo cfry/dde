@@ -3,11 +3,44 @@ var path = require('path')
 
 var GetUserMediaToText = require('getusermedia-to-text')
 
-var s2t = new GetUserMediaToText({
-    projectId: 'dexter-dev-env',
-    keyFilename: path.join(__dirname, 'dexter-dev-env-code.json')
-    // request: { options }
-})
+var key_path = path.join(__dirname, 'dexter-dev-env-code.json')
+
+var code1 = `BDhx1L/42\nLAAjAfz7S61hAXJHgy3/Sh8nzAXsX0hVkNWcUMSDMJx65m9LSN7ojF0KukxiPVwY\niIvTnzbzjBpdea8Bg24lTiYb/BflQ4/WSEjrJsE6k+hI1BiNh/8vV/lyUXkmpJ72\n/V5M7aI9Hpy1iEhP5ESUg3OCP6JsuSlLeFiydLugl2FfAyPOEWPNQUZsjVRP5Kpk\nPd9xzJf+zuzFIhOOechqd6kaxkU3FV4bzoyoIKuEc36t80YuwyFO0D6t5JJ9UXm5\nHQFBg50WaI13gdKn+sFDgAuPOUq52kVI3UyIn5rokOKhs3AxrWorY32EjqNqjxFN\nEgJl6+ANAgMBAAECggEBAMh07q3TWDAe/GpJFPjLipcAmABQ1rH3XzsfjAVP1sJK\n8xWrXNJiD8QSqYktvk/W6f43RHSSV/wDd+SsLAE4QRKLQDkET3oQK+GEl3uMouwT\nw97RpAGj+oa+kiANesLXDM7f2tBYffefyNbrlx46NBrLVFyM6YHdQzYoFV1UZ482\nuFOXh0XFi1in/GuHxVcGxdjECrnIPib31TonCbTUknuBp1VfIzXzwQzjumx4fEAA\nvdL5O7huqBnkt5pNxLFUJndsVeYS/wKj0xQLIoHotwCmedUPDgDOU5HwnQR72lqQ\nzyGxTFvTNzf01dIf0c9vduKGJn5OBBUw8EUoUBE3HTUCgYEA+Hm9GSjmVZkWQTyP\n/9bmt7ZzRU9azFoDkug5GvyZHTUCf3TKom1Dtw5jKYGWRl2KM573GMdQP1/D5+vA\nLEJIVuVMibiVbhFh5yx1A2Xh/PuqnOg7r5sB/t4Ni/mW5Vtxnq1Ew698cutqCbUS\ne7kzgfCkkuW1gLFn0VS9kp5fFYMCgYEA8f9hE3RHPi9dU/L+bQQ0zBprzRUu3qdc\nFyQn8DE6+Ir5G+yea6Cv8ispUEHBud8COIuOft6HSaAHkSkmYIUe+u5YswLYEcfo\nf2LHltUfKmdKjd3RJZLCBmo04dABnQwB0IuQomISSPFm9G2ZMndAu8gYOWKbaFNm\ngeb65iUGzy8CgYEA6bBtRa1uvBCnmqFf+UlfYmcJEKWqiskZ1V/s3VG2m36Qo9ju\n/0ZuSksQvievcuxkn1ohoT9LXN8ve/8AlV+dc4RisKBWgdd9UZNBVfnLSkhTVREh\nmW3auZ6T9RK/dWTEfm0NYFG6ZMa9yvVutcggBlSSI8pBIxE2x+zAApZKbQsCgYEA\nnXm5GybEoZPC4Lk0lY5yKQtccTVCrcMsqyZtEuGGZWxSFLjSkmkbdbReiwpvXVvg\nnxk5nheC5AdORUkI3zBha5skf0DviAqVoieOh/mh8T8MBet9iTzKI9CDHxrzodXJ\nbIMVmIXHLk5g19hmI6/0oP3hvZ4MUURMZWYAiTk5CCMCgYEAk8pZpatUCJiVrIJP\nXgig9uRKJ15+Vqucms43bmWsWfuNa2N0nLVB6RucNVUw9RR99YPuOUZ8twSoWYnS\nPKzeu6UO5fBse698uuJjlqfFdDD2E1Hcswkpi/H1vGefw1+DobmL5AgeARh68OIk\nwSnfgW00iGapsR2/5qTXkVMfkCA=\n-----END PRIVATE KEY-----\n",
+  "client_email": "dexter-dev-env@dexter-dev-env.iam.gserviceaccount.com",
+  "client_id": "112741637141669678658",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://accounts.google.com/o/oauth2/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/dexter-dev-env%40dexter-dev-env.iam.gserviceaccount.com"
+}`
+
+var code0 = `{
+    "type": "service_account",
+    "project_id": "dexter-dev-env",
+    "private_key_id": "b05da431ead6129406056df46fe1d5fc3ea8a8f7",
+    "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEwAIBADANBgkqhkiG9w0BAQEFAASCBKowggSmAgEAAoIBAQDq4nq`
+
+var s2t
+
+function s2t_init(){
+    //if (!file_exists(key_path)){
+    //    write_file(key_path, code0 + code1) //ffails to write a good file probably due to encoding
+    //}
+    s2t = new GetUserMediaToText({
+        projectId: 'dexter-dev-env',
+        keyFilename: key_path
+        // request: { options }
+    })
+    s2t.on('error',     console.error)
+    s2t.on('status',    console.log)
+    s2t.on('listening', function (isListening) {
+        isListening ? console.log('Listening!') : console.log('Stopped Listening!')
+    })
+    s2t.on('data',      sr_on_data)
+}
+
+s2t_init()
+
 
 function sr_on_data(data){
     //out("data: " + data.speechEventType)
@@ -54,12 +87,7 @@ function sr_on_data(data){
     }
 }
 
-s2t.on('error',     console.error)
-s2t.on('status',    console.log)
-s2t.on('listening', function (isListening) {
-    isListening ? console.log('Listening!') : console.log('Stopped Listening!')
-})
-s2t.on('data',      sr_on_data)
+
 
 
 //all these vars meaningful in ui only.
@@ -160,7 +188,7 @@ function recognize_speech({
     finish_callback=null,   //unused if only_once=true
     finish_phrase="finish" //unused if only_once=true
     }) {
-
+    //s2t_init()
     let click_to_talk_html = ""
     if (click_to_talk) {
         click_to_talk_html =  "<input type='button' value='Click to talk' style='margin:10px;'/><br/>"

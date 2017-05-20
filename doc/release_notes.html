@@ -5,6 +5,61 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 1.1.8, May 19, 2017</summary>
+    Highlights: New Robot simulation options "both" (experimental) and null.
+                Bug fixes to simulate, send_to_job, serial port
+<ul>
+    <li> serial port error message fixes.</li>
+    <li> fixed bug in running serial jobs that accidentally skipped the
+        first instruction of the job.</li>
+    <li>fixed bug in grab_robot_status and its documentation.</li>
+    <li>fixed bug in that explicitly declaring new Dexter({simulate:false}),
+        DDE still used the value of the Jobs menu "Simulate?" item.</li>
+    <li><code>robot.simulate</code> now has 2 more options.
+        In addition to true and false, we now have <code>"both"</code> and <code>null</code>.
+        "both" means it does both simulate and "real" simultaneously.
+         but note, these are not perfectly in sync.
+        <code>null</code> means: get the value for robot.simulate from
+             the Jobs menu item "Simulate?" which
+            is persistent across DDE launches.
+            See new doc in Ref Man, "new Dexter parameters" under "simulate".
+            <p/>
+        The Dexter init param: <code>simulate_from</code> is no longer used.
+        Please search for and remove uses of it if you have any.
+    </li>
+    <li> Job Examples updated:
+         <ul><li>Jobs/Example 0 (brand new), simplest, just a 1 instruction job with no doc.</li>
+             <li>Jobs/Example 1 with new simulate architecture.</li>
+             <li>Jobs/Example 4a updated</li>
+             <li>Jobs/Example 4c by fixing bug in Job initialization.</li>
+             <li>Jobs/Example 4d Updated to take advantage of <code>Job.start</code>'s initial_instruction param.</li>
+             <li>Jobs/Example 9  fixed typo in serial port.</li>
+         </ul>
+    </li>
+
+    <li>Fixed <code>send_to_job</code>, 2 bugs: the setting of user_data via functions passed into the instruction,
+         and a bug with sending to a job that has yet to be started.
+        New documentation in the Ref Man under send_to_job, start param
+        explains the behavior of inserting into an as-yet unstarted job.</li>
+
+     <li> <code>Dexter.move_to_relative</code> fixed default value from [ ] to [0,0,0]</li>
+
+    <li> <code>prompt()</code> now doesn't display "undefined" if you don't give it a title for the
+          first arg.</li>
+
+    <li> editor font_size (set from the widget in DDE Editor pane header)
+        is now persistent accross DDE launches.</li>
+
+    <li>Now clicking the stop sign doesn't change the color of the button
+        for jobs that have been defined but never run.</li>
+
+    <li>hdrobotic.com DDE documentation display:
+       <ul>
+           <li>Increased the width of DDE documentation.</li>
+           <li>Removed the redundant title of "DDE".</li>
+       </ul>
+     </li>
+</details>
 
 <details class="doc_details"><summary>v 1.1.7, May 3, 2017</summary>
     Highlights: Lots of UI tweaks. file system fix.

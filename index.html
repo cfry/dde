@@ -433,16 +433,27 @@
                                         <!--<li id="stop_all_jobs_id"       title="Stop all of the currently running jobs.">Stop all jobs</li> -->
                                         <!-- <li id="clear_stopped_jobs_id"  title="Remove stopped jobs so they don't clutter the jobs report.">Clear stopped jobs</li> -->
                                         <li id="simulate_id"            title='Dexter instances with a simulate_from value of "persistent_get",&#013;such as the default Dexter: "dexter0",&#013;get their simulate value from this checkbox.'>
-                                            <div style='float: left; margin-right: 5px;' id='simulate_checkbox_id'></div>
                                             Simulate?
+                                            <ul>
+                                                <li title="Simulate robots that have simulate=null.">
+                                                    <input id="simulate_radio_true_id"  type="radio" name="simulate" value="true" checked="true"/> true</li>
+                                                <li title="Send (hardware) instructions to robots that have simulate=null.">
+                                                    <input id="simulate_radio_false_id" type="radio" name="simulate" value="false"/> false</li>
+                                                <li title="Run both the simulator and the 'real' for robots that have simulate=null.">
+                                                    <input id="simulate_radio_both_id"  type="radio" name="simulate" value="both"/> both</li>
+
+                                            </ul>
                                         </li>
+
+
                                         <li id="real_time_sim_id"       title="If unchecked, simulation&#013;will run as fast as it can.&#013;No pauses for sleep or motion.">
                                             <div style='float: left; margin-right: 5px;' id='real_time_sim_checkbox_id'></div>
                                             Real time sim
                                         </li>
                                         <li> Insert Example
                                             <ul>
-                                                <li id="insert_job_example1_id" title="Insert into the editor an example of defining a simple job.">1. Simplest</li>
+                                                <li id="insert_job_example0_id" title="Insert into the editor a 1 instruction Job definition.">0. Simplest</li>
+                                                <li id="insert_job_example1_id" title="Insert into the editor an example of defining a simple job.">1. Simple</li>
                                                 <li id="insert_job_example2_id" title="Insert into the editor a job with function call instructions.">2. Dexter & Fns</li>
                                                 <li id="insert_job_example3_id" title="Insert into the editor examples of defining 3 complex jobs using generators.">3. Generators</li>
                                                 <li id="insert_job_example4_id" title="Insert into the editor examples of defining jobs that interact with other jobs.">4. Multiple Jobs</li>
@@ -541,7 +552,8 @@
                             <button id="start_job_id" style="vertical-align:top;" title='Eval job that cursor is in and start it.&#13;Click on "Output" pane title for doc.'>Start Job</button>&nbsp;
                             <!-- <button id="stop_all_jobs_id" title="Stop all of the currently running jobs."><b>X</b></button></span> -->
                             <img id="stop_all_jobs_id" src="stop_sign.png" title="Stop all of the currently running jobs."/>
-                            <button id="undefine_jobs_id" style="vertical-align:top;" title="Undefine the jobs that are not running.">Undef</button>
+                            <button id="undefine_jobs_id" style="vertical-align:top;" title="Undefine all jobs that are not running.">Undef</button>
+                            &nbsp;<span style="vertical-align:70%;margin-right:0px;padding-right:0px;">Jobs:</span>
                         </span>
                     </div>
                     <div id="output_div" contentEditable="false" style="width:98%; height:65%; font-size:16px;overflow:auto;white-space:nowrap;padding:5px;"></div> <!-- bugs in css with overlow:auto and height=70% but these are the best settings I can get, othersie last line of output can't be scrollwd into view OR too much wasted whitespace at botton of error pane -->

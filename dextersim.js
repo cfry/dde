@@ -1,20 +1,23 @@
 /* Created by Fry on 3/30/16.*/
 //whole file loaded in ui env only as is tcp
 DexterSim = class DexterSim{
-    constructor({robot_name = "required"}){
+    constructor({robot_name = "required", sim_actual = "required"}){
         this.robot_name = robot_name
-        this.rs = Dexter.make_default_status_array()
+        this.sim_actual = sim_actual
+        this.rs         = Dexter.make_default_status_array()
         this.instruction_queue = []
         this.completed_instructions = []
         this.status = "before_first_send"
         this.sent_instructions_count = 0
         this.now_processing_instruction = null //a Dexter can only be doing at most 1 instruction at a time. This is it.
         DexterSim.robot_name_to_dextersim_instance_map[robot_name] = this
-        Socket.new_socket_callback(robot_name)
+        if (this.sim_actual === true) { //do not call new_sockket_callback if siulate is "both" because we don't want to call it twice
+            Socket.new_socket_callback(robot_name)
+        }
     }
 
-    static create(robot_name){
-        new DexterSim({robot_name: robot_name})
+    static create(robot_name, sim_actual = "required"){
+        new DexterSim({robot_name: robot_name, sim_actual: sim_actual})
     }
 
     static send(robot_name, instruction_array){
@@ -42,15 +45,18 @@ DexterSim = class DexterSim{
                 break;
             case "F": //empty_instruction_queue, //waits to be "executed" when instruction is processed
                 the_inst.instruction_queue.push(instruction_array)
+                the_inst.process_next_instruction()
                 break;
             case "g": //get naturally. This is like "F" in that it lets the buffer empty out.
                 //so like F, don't ack_reply. This is automatically sent as the last instruction in a job.
                 //it always returns a full robot_status in order.
-                the_inst.instruction_queue.push(instruction_array) //stick it on the front of the queue so it will be done next
+                the_inst.instruction_queue.push(instruction_array)
+                the_inst.process_next_instruction()
                 break;
             case "G": //get immediate. The very first instruction sent to send should be  "G",
                                      //so let it be the first call to process_next_instruction & start out the setTimeout chain
                 the_inst.instruction_queue.unshift(instruction_array) //stick it on the front of the queue so it will be done next
+                the_inst.process_next_instruction()
                 break;
             case "h": //doesn't go on instruction queue, just immediate ack
                 the_inst.ack_reply(instruction_array)
@@ -60,7 +66,9 @@ DexterSim = class DexterSim{
                 the_inst.ack_reply(instruction_array)
                 break;
         }
-        if (prev_status == "before_first_send") { the_inst.process_next_instruction() }
+        if (prev_status == "before_first_send") { //since first inst is always a "g", the inst woud be a g.
+           // the_inst.process_next_instruction()
+        }
         //else there should already be a setTimeout chain for process_next_instruction going on
     }
 
@@ -72,11 +80,14 @@ DexterSim = class DexterSim{
         ack_array[Dexter.STOP_TIME]         = Date.now()
         ack_array[Dexter.INSTRUCTION_TYPE]  = instruction_array[Instruction.INSTRUCTION_TYPE] //leave this as a 1 char string for now. helpful for debugging
         ack_array[Dexter.ERROR_CODE]        = 0
-        setTimeout(function(){
-                    Dexter.robot_done_with_instruction(ack_array)
-                    }, 1)
+        if (this.sim_actual === true){
+            setTimeout(function(){
+                        Dexter.robot_done_with_instruction(ack_array)
+                        }, 1)
+        }
     }
 
+    //only called when oplet is F, g, G. All other oplets have ack_reply called.
     process_next_instruction(){
         let dur = 10
         if ((this.now_processing_instruction == null) && //we're not busy and
@@ -181,7 +192,9 @@ DexterSim = class DexterSim{
                             const job_id       = robot_status[Dexter.JOB_ID]
                             const job_instance = Job.job_id_to_job_instance(job_id)
                             SimUtils.render_once(robot_status, "Job: " + job_instance.name) //renders after dur, ie when the dexter move is completed.
-                            if (["F", "G", "g"].includes(oplet)) { Dexter.robot_done_with_instruction(ds_copy) } //or I could just always do this when in sim mode.
+                            if ((the_inst.sim_actual === true) && ["F", "G", "g"].includes(oplet)) { //dont do when sim == "both"
+                                Dexter.robot_done_with_instruction(ds_copy)
+                            } //or I could just always do this when in sim mode.
                             the_inst.now_processing_instruction = null     //Done with cur ins,
                             if((the_inst.instruction_queue.length == 0) && //nothing in the queue,
                                (the_inst.status == "closing")) {           //and no more coming from DDE.
@@ -193,7 +206,7 @@ DexterSim = class DexterSim{
         }
 
         if(this.status == "closed") {} //don't call process_next_instruction any more
-        else {
+        else if (this.instruction_queue.length > 0) {
             let the_inst = this
             setTimeout(function(){
                 the_inst.process_next_instruction()

@@ -6,8 +6,9 @@ const net = require("net")
 var Socket = class Socket{
     static init(robot_name, simulate, ip_address, port=50000){
         //console.log("Creating Socket for ip_address: " + ip_address + " port: "   + port + " robot_name: " + robot_name)
-        if (simulate){ DexterSim.create(robot_name) }
-        else {
+        const sim_actual = Robot.get_simulate_actual(simulate)
+        if ((sim_actual === true)  || (sim_actual == "both")) { DexterSim.create(robot_name, sim_actual) }
+        if ((sim_actual === false) || (sim_actual == "both")) {
             try {
                 let ws_inst = new net.Socket()
                 Socket.robot_name_to_ws_instance_map[robot_name] = ws_inst
@@ -23,7 +24,7 @@ var Socket = class Socket{
         }
     }
 
-    static new_socket_callback(robot_name){
+    static new_socket_callback(robot_name){ //only called by the "real" side if simulate == "both".
         console.log("Socket.new_socket_callback passed: " + "robot_name: " + robot_name)
         Dexter.set_a_robot_instance_socket_id(robot_name)
     }
@@ -47,14 +48,11 @@ var Socket = class Socket{
     }
 
     static send(robot_name, instruction_array, simulate){ //can't name a class method and instance method the same thing
-        if(simulate){
+        const sim_actual = Robot.get_simulate_actual(simulate)
+        if((sim_actual === true) || (sim_actual === "both")){
             DexterSim.send(robot_name, instruction_array)
         }
-        else {
-            //const array = new Float32Array(instruction_array.length);
-            //for (var i = 0; i < array.length; ++i) {
-            //    array[i] = instruction_array[i]
-            //}
+        if ((sim_actual === false) || (sim_actual === "both")) {
             const array = Socket.instruction_array_to_array_buffer(instruction_array)
             let ws_inst = Socket.robot_name_to_ws_instance_map[robot_name]
             ws_inst.write(array);

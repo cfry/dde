@@ -17,8 +17,9 @@ persistent_values = {}
 function get_persistent_values_defaults() {
     return {"save_on_eval":     false,
             "files_menu_paths": [add_default_file_prefix_maybe("dde_init.js")],
-            "default_dexter_simulate": true
-            }
+            "default_dexter_simulate": true,
+            "editor_font_size": 17
+           }
 }
 //if keep_existing is true, don't delete any existing values.
 //but if its false, wipe out everything and set to only the initial values.

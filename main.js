@@ -164,7 +164,8 @@ ipc.on('prompt', function(eventRet, arg) {
         frame: false
     })
     //coral #ff8c96, orange #ffbe3c
-    arg.val = arg.val || ''
+    arg.val   = arg.val   || ''
+    arg.title = arg.title || ''
     const promptHtml = '<div margin:0px;padding:0px; style="background-color:' + arg.window_frame_background_color +
                        ';font-size:21px;">DDE Prompt</div><div style="padding:10px;">' +
                        arg.title +

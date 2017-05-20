@@ -832,10 +832,10 @@ where within the job to insert the given instruction as does the method
                           with the new value.
                           <p/>
                           After this instruction is run, the grabbed value
-                          is available globally Job.the_job_name.user_data_var_name.<br/>
+                          is available globally Job.the_job_name.user_data.the_val_of_this_arg.<br/>
                           For instance, if this job is named "my_job" and the value of
                           user_data_variable is "my_var" then:
-                          <code>Job.my_job.my_var</code>
+                          <code>Job.my_job.user_data.my_var</code>
                           But inside another instruction that is defined as a function,
                           <code>this</code> will be bound to the current job instance so:
                           <code>this.user_data.my_var</code> will access the grabbed data.
@@ -1075,11 +1075,24 @@ Robot.send_to_job({do_list_item: Dexter.move_to([100000, 100000, 100000]),
     Not as safe as "next_top_level".</li>
     <li><code>"end"</code> At the very end of the do_list. With no job designator,
     this will extend the current job's do_list by one new instruction on the end.</li>
-    </ul></li>
+    </ul>
+</li>
  <li><b>wait_until_done</b> (default false) If true, the from_job will wait until the to_job
     executes its newly inserted instructions.</li> 
  <li><b>start</b> (default false) If true, and the to_job has yet to be started,
-    it will be started after the do_list_item is inserted into its do_list.</li> 
+    it will be started after the do_list_item is inserted into its do_list.
+    <p/>
+    If a job has yet to be started and you send instructions to it, those
+    instructions will be stored in a special place until the job is started.
+    During the start process, after the do_list is made but before the
+    initial_instruction (if any) is prepended to the do_list,
+    the sent instructions will be inserted into the do_list at
+    the location specified in 'where_to_insert'. These instructions will
+    be used for that initial running of the job only. Even if the job is running
+    at the time its sent instructions, they will only run in that running of the job.
+    They will not be present if you restart the job. Restarating the job uses
+    the do_list defined for the job only.
+ </li>
  <li><b>unsuspend</b> (default false) If true, and the to_job is suspended,
      the to_job will be unsuspended after the do_list_item is inserted into its do_list.</li> 
  <li><b>status_variable_name</b> The name of a field placed in the user_data of the from_job.
@@ -1198,32 +1211,34 @@ An instance of Dexter is created like so:
             simulate: true
            })</code></pre>
 <p/>
-Multiple jobs may use a given robot instance as their robot. It is up to the programmer
+<!--Multiple jobs may use a given robot instance as their robot. It is up to the programmer
 to make sure such jobs don't screw each other up. You may not have more than one
-active robot with the same name or ip_address.
+active robot with the same name or ip_address.-->
+It is recommended that each job have their own robot.
 <p/>
 The default robot is <code>Robot.dexter0</code>. This is created in your dde_apps/dde_init.js file.
-Set the robots <code>ip_address</code> and <code>port</code> in that file.
-Robot's not explicity given a <code>simulate_from</code> value will get that value
-from the Job's menu item "Simulate?" when a job containing the robot starts.
+Set dexter0's <code>ip_address</code> and <code>port</code> in that file.
+We recommend allowning dexter0's simulate param default to <code>null</code> so that
+it can take advantage of the Job menu's Simulate? item.
 
 <details class="doc_details"><summary>new Dexter parameters</summary>
 The parameters used to define an instance of Dexter are:
 <ul>
     <li><b>name</b> Any string, but must be unique across all robots.
     The instance of the robot is stored in <code>Robot.the_name</code></li>
-    <li><b>simulate</b> true or false, default true.
-    If simulate is <code>true</code>, instructions will not be sent to the robot, but rather
-    simulated in software, fully under DDE's control. If simulate is <code>false</code>,
-    the instructions will be sent to the Dexter at the given ip_address.
-    </li>
-    <li><b>simulate_from</b> If the value of this property is
-         <code>"persistent_get"</code> (the default), then
-        every time a job is started, its asociated robot's simulate property
-        is set with the value of  <code>persistent_get("default_dexter_simulate")</code>
-        The value of <code>default_dexter_simulate</code> can be toggled with
-        the Jobs menu item of <i>Simulate?</i>.
-        The initial value of <code>Robot.dexter0.simulate_from</code> is <code>"persistent_get"</code>.
+    <li><b>simulate</b> Possible values:
+         <ul>
+             <li><b>true</b> Instructions will not be sent to the Dexter robot but rather
+               to DDE's Dexter simulator, showing an image of Dexter in DDE's "Sim" pane.</li>
+             <li> <b>false</b> Instructions will only be sent to the ip_address and port
+                  designated for a Dexter. </li>
+             <li><b>"both"</b> Instructions will be sent to both Dexter and DDE's simulator.
+                 Note DDE's simulation might not be perfectly in sync with the position
+                 of the actual robot.</li>
+             <li><b>null</b> (the default). The value for simulate will be taken from
+                 the Jobs menu Simulate? item.</li> The value you choose from the menu
+                 will be persistent accross DDE launches.</li>
+          </ul>
     </li>
     <li><b>ip_address</b> A string of an ip_address such as: <code>"192.168.1.1"</code>
         Default null. You can use a Dexter without an ip_address, but only with <code>simulate: true</code></li>

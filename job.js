@@ -38,6 +38,11 @@ var Job = class Job{
                       "You can let the robot param to new Job default to get a correct Robot.dexter.0")
         }
     }
+    this.program_counter = program_counter //this is set in start BUT, if we have an unstarted job, and
+                         //instruction_location_to_id needs access to program_counter, this needs to be set
+    this.highest_completed_instruction_id = -1 //same comment as for program_counter above.
+    this.sent_from_job_instruction_queue = [] //will be re-inited by start, but needed here
+      //just in case some instructions are to be inserted before this job starts.
     Job[this.name]         = this //beware: if we create this job twice, the 2nd version will be bound to the name, not the first.
     Job.remember_job_name(this.name)
     this.status_code       = "not_started" //see Job.status_codes for the legal values
@@ -65,7 +70,7 @@ var Job = class Job{
             this.program_counter   = this.orig_args.program_counter //see robot_done_with_instruction as to why this isn't 0,
                                      //its because the robot.start effectively calls set_up_next_do(1), incremening the PC
             this.ending_program_counter = this.orig_args.ending_program_counter
-            this.initial_instruction = this.orig_args.initial_instruction //also used by sent_from_job
+            this.initial_instruction = this.orig_args.initial_instruction
 
             //first we set all the orig (above), then we over-ride them with the passed in ones
             for (let key in options){
@@ -86,18 +91,6 @@ var Job = class Job{
                           "of an instruction_location that contains a job. It shouldn't.")
             }
             this.program_counter = this.instruction_location_to_id(maybe_symbolic_pc)
-            if (this.program_counter >= this.do_list.length){ //note that maybe_symbolic_pc can be "end" which is length of do_list which is ok, though no instructions would be execute in that case so we error.
-                dde_error("While starting job: " + this.name +
-                "<br/>the programer_counter is initialized to: " + this.program_counter +
-                "<br/>but the highest instruction ID in the do_list is: " +  (this.do_list.length - 1))
-            }
-            else if (this.program_counter >= this.do_list.length){
-                warning("While starting job: " + this.name +
-                    "<br/>the programer_counter is initialized to: " + this.program_counter +
-                    "<br/>but the highest instruction ID in the do_list is: " +  (this.do_list.length - 1) +
-                    ".<br/>so no instructions in this job will be executed.")
-            }
-            Job.last_job           = this
 
             //this.robot_status      = []  use this.robot.robot_status instead //only filled in when we have a Dexter robot by Dexter.robot_done_with_instruction or a Serial robot
             this.rs_history        = [] //only filled in when we have a Dexter robot by Dexter.robot_done_with_instruction or a Serial robot
@@ -113,13 +106,31 @@ var Job = class Job{
             this.highest_completed_instruction_id  = -1
 
             //this.iterator_stack    = []
+            if (this.sent_from_job_instruction_queue.length > 0) { //if this job hasn't been started when another job
+                 // runs a sent_to_job instruction to insert into this job, then that
+                 //instruction is stuck in this job's sent_from_job_instruction_queue,
+                 //so that it can be inserted into this job when it starts.
+                 //(but NOT into its original_do_list, so its only inserted the first time this
+                 //job is run.
+                Job.insert_instruction(this.sent_from_job_instruction_queue, this.sent_from_job_instruction_location)
+                //this.do_list.splice(this.program_counter, 0, ...this.sent_from_job_instruction_queue)
+            }
             this.sent_from_job_instruction_queue = [] //send_to_job uses this. its on the "to_job" instance and only stores instructions when send_to_job has
-                                                  //where_to_insert="next_top_level"
-            if (this.initial_instruction) {
+                                                  //where_to_insert="next_top_level", or when this job has yet to be starter. (see above comment.)
+            this.sent_from_job_instruction_location = null
+            if (this.initial_instruction) { //do AFTER the sent_from_job_instruction_queue insertion.
                 //Instruction.Control.send_to_job.insert_sent_from_job(this, sent_from_job)
                 Job.insert_instruction(this.initial_instruction, {job: this, offset: "program_counter"})
             }
-            const added_items_initial_length =
+            //must be after  insrt queue and init_insrr processing
+            if (this.program_counter >= this.do_list.length){ //note that maybe_symbolic_pc can be "end" which is length of do_list which is valid, though no instructions would be executed in that case so we error.
+                dde_error("While starting job: " + this.name +
+                    "<br/>the programer_counter is initialized to: " + this.program_counter +
+                    "<br/>but the highest instruction ID in the do_list is: " +  (this.do_list.length - 1))
+            }
+            Job.last_job           = this
+
+
             this.added_items_count = new Array(this.program_counter) //This array parallels and should be the same length as the run items on the do_list.
             this.added_items_count.fill(0) //stores the number of items "added" by each do_list item beneath it
                 //if the initial pc is > 0, we need to have a place holder for all the instructions before it
@@ -491,7 +502,7 @@ var Job = class Job{
             stat_code = "<span style='color:#cc0000;'>" + stat_code + "</span>"
         }
         let dur_string = milliseconds_to_human_string(this.stop_time - this.start_time)
-        let result = "Job <i>name</i>: "        + this.name                  + ", <i>job_id</i>: " + this.job_id + ", <i>is_simulating</i>: " + this.is_simulating() + "<br/>" +
+        let result = "Job <i>name</i>: "        + this.name                  + ", <i>job_id</i>: " + this.job_id + ", <i>simulate</i>: " + this.robot.simulate + "<br/>" +
                      "<i>start_time</i>: "      + this.time_to_string(this.start_time) +
                      ", <i>stop_time</i>:  "    + this.time_to_string(this.stop_time)  +
                      ", <i>dur</i>: "           + dur_string + "<br/>" +
@@ -567,7 +578,7 @@ var Job = class Job{
 }
 Job.status_codes = ["not_started", "starting", "running", "completed",
                     "suspended", "waiting",   //(wait_until, sync_point)
-                    "errored", "interrupted", //(user stopped manually),
+                    "errored", "interrupted" //(user stopped manually),
                     ]
 
 Job.global_user_data = {}
@@ -620,7 +631,7 @@ Job.last_job = null
 Job.stop_all_jobs = function(){
     var stopped_job_names = []
     for(var j of Job.all_jobs()){
-        if (j.stop_reason == null){
+        if ((j.stop_reason == null) && (j.status_code != "not_started")){
             j.set_status_code("interrupted")
             j.stop_reason = "User stopped all jobs."
             j.stop_time   = new Date()
@@ -732,11 +743,6 @@ Job.prototype.status = function (){
        if (this.program_counter) { pc = this.program_counter }
        return this.status_code + ", pc: " + pc + " of " + len
     }
-}
-
-Job.prototype.is_simulating = function(){
-    return this.robot.simulate //don't look at this.socket_id because that won't be inited until after we call start and get back the socket_id
-                           //when in simulation, the job_id is always the same integer         j.send(Dexter.get_robot_status()) //doesn't go on do_list, I guess that's ok. do_next_item still hasn't been called once yet
 }
 
 Job.prototype.finish_job = function(){ //regardless of more to_do items or wiating for instruction, its over.
@@ -1057,24 +1063,26 @@ Job.prototype.send = function(instruction_array){ //if remember is false, its a 
 }
 
 //"this" is the from_job
+// params is the instance of Instruction.send_to_job
 //send_to_job_receive_done is kinda like Serial and Dexter.robot_done_with_instruction
-//but used only with sent_to_job and only when the from_job is waiting for the
+//but used only with send_to_job and only when the from_job is waiting for the
 //to_job to complete the ins it was sent before allowing the from_job to continue.
 Job.prototype.send_to_job_receive_done = function(params){
     if (this.wait_until_instruction_id_has_run == params.from_instruction_id){
         this.highest_completed_instruction_id  = params.from_instruction_id
         this.wait_until_instruction_id_has_run = null
-        for (var user_var in params){
-            if (Instruction.Control.send_to_job.param_names.indexOf(user_var) == -1){
-                var val = params[user_var]
-                this.user_data[user_var] = val
-            }
-        }
+        //below is done in Instruction.Control.destination_send_to_job_is_done.do_item
+        //for (var user_var in params){
+        //    if (Instruction.Control.send_to_job.param_names.indexOf(user_var) == -1){
+        //        var val = params[user_var]
+        //        this.user_data[user_var] = val
+        //    }
+        //}
         this.user_data[params.status_variable_name] = "done"
         this.set_up_next_do(1)
     }
     else {
-        shouldnt("In job: " + this.name + " destination_send_to_job_is_done got params.from_instruction_id of: " +
+        shouldnt("In job: " + this.name + " send_to_job_receive_done got params.from_instruction_id of: " +
             params.from_instruction_id +
             " but wait_until_instruction_id_has_run is: " + this.wait_until_instruction_id_has_run)
     }
@@ -1534,8 +1542,13 @@ Job.insert_instruction = function(instruction, location){
     const the_job = Job.instruction_location_to_job(location)
     if (the_job){
         const index = the_job.instruction_location_to_id(location)
-        if (index === "next_top_level"){
-            the_job.sent_from_job_instruction_queue.push(instruction)
+        if ((index === "next_top_level") ||
+            ["not_started", "completed", "errored", "interrupted"].includes(the_job.status_code)){
+                the_job.sent_from_job_instruction_queue.push(instruction)
+                the_job.sent_from_job_instruction_location = location
+                //if a job isn't running, then we stick it on the ins queue so that
+                //the next time is DOES run (ie its restarted), this
+                //insertined instruction will make it in to the do_list.
         }
         else { the_job.do_list.splice(index, 0, instruction) }
     }
