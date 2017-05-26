@@ -93,7 +93,7 @@ var Kin = new function(){
         if (D3 > Dexter.LINK2 + Dexter.LINK3){
         	let out_of_reach_dist = Vector.round(Convert.microns_to_mms(D3 - (Dexter.LINK2 + Dexter.LINK3)), 3)
             
-        	dde_error(Vector.round(Convert.microns_to_mms(xyz), 1) + 'Location is ' + out_of_reach_dist + ' mm out of reach')
+        	dde_error(Vector.round(Convert.microns_to_mms(xyz), 1) + ' Location is ' + out_of_reach_dist + ' mm out of reach')
         }
         
 
@@ -224,7 +224,7 @@ var Kin = new function(){
         if (D3 > Dexter.LINK2 + Dexter.LINK3){
         	let out_of_reach_dist = Vector.round(Convert.microns_to_mms(D3 - (Dexter.LINK2 + Dexter.LINK3)), 3)
             out(V54)
-        	dde_error(Vector.round(Convert.microns_to_mms(xyz), 1) + 'Location is ' + out_of_reach_dist + ' mm out of reach')
+        	dde_error(Vector.round(Convert.microns_to_mms(xyz), 1) + ' Location is ' + out_of_reach_dist + ' mm out of reach')
         }
         
 
@@ -384,7 +384,7 @@ var Kin = new function(){
         if (D3 > Dexter.LINK2 + Dexter.LINK3){
         	let out_of_reach_dist = Vector.round(Convert.microns_to_mms(D3 - (Dexter.LINK2 + Dexter.LINK3)), 3)
             out(V54)
-        	dde_error(Vector.round(Convert.microns_to_mms(xyz), 1) + 'Location is ' + out_of_reach_dist + ' mm out of reach')
+        	dde_error(Vector.round(Convert.microns_to_mms(xyz), 1) + ' Location is ' + out_of_reach_dist + ' mm out of reach')
         }
         
 
@@ -513,8 +513,34 @@ var Kin = new function(){
     
     //Public
     this.J_angles_to_config = function(joint_angles){
+    	let U54_Proj, U3_a, U3_b, dist_a, dist_b
     	let J = Convert.deep_copy(joint_angles)
         let U = Kin.forward_kinematics(J)
+        let L = [Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5] //Link Lengths
+        let right_arm, elbow_up, wrist_out
+        
+        P[1] = Vector.points_to_plane(U[1], U[0], U[4])
+        U54_Proj = Vector.project_vector_onto_plane(V54, P[1])
+    	U3_a = Vector.add(U[4], Vector.multiply(L[3], Vector.rotate(Vector.normalize(U54_Proj), P[1], 324000)))
+        U3_b = Vector.add(U[4], Vector.multiply(L[3], Vector.rotate(Vector.normalize(U54_Proj), P[1], -324000)))
+        dist_a = Vector.distance(U3_a, U[1], U[0])
+    	dist_b = Vector.distance(U3_b, U[1], U[0])
+    		
+        if(U[3] == U3_a){
+        	if (dist_a < dist_b){
+            	wrist_out = 1
+            }else{
+            	wrist_out = 0
+            }
+        }else{
+        	if (dist_a < dist_b){
+            	wrist_out = 0
+            }else{
+            	wrist_out = 1
+            }
+        }
+        
+        return [right_arm, elbow_up, wrist_out]
     }
 
 	//Public
@@ -936,8 +962,10 @@ var Kin = new function(){
     }
     
     this.three_joints_force = function(J_angles, torques = [0, 0, 0], touch_point = 'EndAxisHub'){
-    	let U, V, P, D, L2, L3, P1_offset, torque_vectors, U_contact
+    	let U, V, P, D, L2, L3, P1_offset, torque_vectors, U_contact, base_rot
         let tangent_forces, force_vector, num, den, force_direction, force_magnitude, cartesian_forces, Fv_mag
+        base_rot = J_angles[0]
+        J_angles[0] = 0
         [U, V, P] = Kin.forward_kinematics(J_angles)
         L2 = Dexter.LINK2
         L3 = Dexter.LINK3
@@ -962,8 +990,8 @@ var Kin = new function(){
         D[0] = Vector.subtract(Vector.project_vector_onto_plane(U_contact, rot_axis_0))
         D[1] = Vector.subtract(Vector.project_vector_onto_plane(U_contact, P[1]), U[1])
         D[2] = Vector.subtract(Vector.project_vector_onto_plane(U_contact, P[1]), U[2])
-        out("D: ")
-        out(D)
+        //out("D: ")
+        //out(D)
         let row_two = Vector.multiply(Vector.magnitude(D[1]), P[1])
         let row_three = Vector.multiply(Vector.magnitude(D[1]), P[1])
         /*
@@ -1061,7 +1089,7 @@ var Kin = new function(){
         	}
             switch(temp_list.length){
             	case 0:
-            		force_vector[j] = undefined
+            		force_vector[j] = NaN
                 	break
                 case 1:
                 	force_vector[j] = temp_list[0]
@@ -1120,8 +1148,10 @@ var Kin = new function(){
         //Converting tangent forces into cartesian
         force_vector = Vector.add(tangent_forces[0], tangent_forces[1], tangent_forces[2])
         */
+
         
-        
+        let trans_mat = Vector.rotate_DCM(undefined, rot_axis_0, base_rot)
+        out(Vector.matrix_multiply(Vector.transpose(force_vector), trans_mat))
         return force_vector
         //return cartesian_forces
     }
@@ -1129,8 +1159,10 @@ var Kin = new function(){
     var J_angles = Convert.degrees_to_arcseconds([0, 0, 0, 0, 0]) 
     var F = 22
     var T = [F*Convert.mms_to_microns(40.7), F*(Dexter.LINK2 + Dexter.LINK3), F*Dexter.LINK3]
-    //debugger
+    debugger
     out(Kin.three_joints_force(J_angles, T, 'EndAxisHub'))
+    
+    NaN
     
     var J_angles = Convert.degrees_to_arcseconds([0, 0, 90, 0, 0]) 
     var F = 22
@@ -1155,7 +1187,7 @@ var Kin = new function(){
     Vector.cross(Fv[1], [0,0,1])
     */
     
-    this.get_move_time = function(J_angles_1, J_angles_2, speed){
+    this.get_move_dur = function(J_angles_current, J_angles_destination, speed){
     	if(speed == undefined){
         	
         }

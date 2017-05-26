@@ -2,7 +2,7 @@
 //Vector and Matrix math functions
 //James Wigglesworth
 //Started: 6_18_16
-//Updated: 4_19_17
+//Updated: 4_21_17
 
 
 //Public
@@ -217,19 +217,19 @@ var Vector = new function(){
         let temp_args = Convert.deep_copy(args)
         var sum = temp_args[0]
         
-    	for(var i = 1; i < Vector.size(arguments); i++){
+    	for(let i = 1; i < Vector.size(arguments); i++){
         	if (Vector.size(arguments[i]) === Vector.size(sum)){
 				if (Vector.size(sum) === 1){
                 	sum += arguments[i]
                 }else{
-                	for(var j = 0; j < Vector.size(sum); j++){
+                	for(let j = 0; j < Vector.size(sum); j++){
                 		sum[j] += arguments[i][j]
                 	}
                 }
             	
             }else{
             	if (Vector.size(arguments[i]) === 1){
-                	for(var j = 0; j < Vector.size(sum); j++){
+                	for(let j = 0; j < Vector.size(sum); j++){
                 		sum[j] += arguments[i]
                 	}
                 }else{
@@ -240,7 +240,22 @@ var Vector = new function(){
                 			sum[j] += temp
                         }
                 	}else{
-                    	out("Error: inputs to function 'add()' are not correct sizes", "red")
+                    	let dim_1 = Vector.matrix_dimensions(sum)
+                        let dim_2 = Vector.matrix_dimensions(arguments[i])
+                        if(dim_1[0] == 1 && dim_1[1] == dim_2[1]){
+                        	let shift_vector = sum
+                            sum = arguments[i]
+                            for(let m = 0; m < dim_2[0]; m++){
+                            	sum[m] = Vector.add(sum[m], shift_vector)
+                            }
+                        }else if(dim_2[0] == 1 && dim_2[1] == dim_1[1]){
+                        	let shift_vector = arguments[i]
+                            for(let m = 0; m < dim_1[0]; m++){
+                            	sum[m] = Vector.add(sum[m], shift_vector)
+                            }
+                        }else{
+                    		out("Error: inputs to function 'add()' are not correct sizes", "red")
+                        }
                     }
                 }
             }
@@ -467,10 +482,23 @@ var Vector = new function(){
         var result_2 = Vector.matrix_divide(pose_2, pose_1)
     */
     
+    /*
+    debugger
+    Vector.average([1, 2, 3])
+    */
+    
     this.average = function(...args){
     	let temp_args = Convert.deep_copy(args)
-        var sum = temp_args[0]
+        let sum
+        if(temp_args.length == 1){
+        	sum = temp_args[0][0]
+        	for(let i = 1; i < temp_args[0].length; i++){
+            	sum += temp_args[0][i]
+            }
+            return sum/temp_args[0].length
+        }
         
+        sum = temp_args[0]
     	for(var i = 1; i < Vector.size(arguments); i++){
         	if (Vector.size(arguments[i]) === Vector.size(sum)){
 				if (Vector.size(sum) === 1){
@@ -941,6 +969,10 @@ var Vector = new function(){
     /**********************************************************
     //Matrix Math
     ***********************************************************/
+    /*
+    Vector.make_matrix(3,"tilt")
+    Vector.make_matrix(3)
+    */
     
     this.make_matrix = function(nRows, nColumns, value = 0){
     	let result = []
@@ -951,6 +983,15 @@ var Vector = new function(){
             }else{
         		nColumns = nRows
             }
+        }
+        if(nColumns === "tilt"){
+        	result = Vector.make_matrix(nRows)
+            for(let i = 0; i < nRows; i++){
+            	for(let j = 0; j < nRows; j++){
+            		result[i][j] = 2*nRows-i-j-2
+            	}
+            }
+            return result
         }
         if(nRows < 1 || nColumns < 1){
         	dde_error("matrix dimensions must be greater than 1")
@@ -1140,6 +1181,102 @@ var Vector = new function(){
     var det = Vector.determinant(mat)
     */
     
+    /////////////////////////////////////////////////////////////////////////////////////
+	//16 Nov 2013 by Andrew Ippoliti
+    //http://blog.acipo.com/matrix-inversion-in-javascript/
+    // Returns the inverse of matrix `M`.
+	function matrix_invert(M){
+    	// I use Guassian Elimination to calculate the inverse:
+    	// (1) 'augment' the matrix (left) by the identity (on the right)
+    	// (2) Turn the matrix on the left into the identity by elemetry row ops
+    	// (3) The matrix on the right is the inverse (was the identity matrix)
+    	// There are 3 elemtary row ops: (I combine b and c in my code)
+    	// (a) Swap 2 rows
+    	// (b) Multiply a row by a scalar
+    	// (c) Add 2 rows
+    
+    	//if the matrix isn't square: exit (error)
+    	if(M.length !== M[0].length){return;}
+    
+    	//create the identity matrix (I), and a copy (C) of the original
+    	var i=0, ii=0, j=0, dim=M.length, e=0, t=0;
+    	var I = [], C = [];
+    	for(i=0; i<dim; i+=1){
+        	// Create the row
+        	I[I.length]=[];
+        	C[C.length]=[];
+        	for(j=0; j<dim; j+=1){
+            	//if we're on the diagonal, put a 1 (for identity)
+            	if(i==j){ I[i][j] = 1; }
+            	else{ I[i][j] = 0; }
+            	// Also, make the copy of the original
+            	C[i][j] = M[i][j];
+        	}
+    	}
+    
+    	// Perform elementary row operations
+    	for(i=0; i<dim; i+=1){
+        	// get the element e on the diagonal
+        	e = C[i][i];
+        
+        	// if we have a 0 on the diagonal (we'll need to swap with a lower row)
+        	if(e==0){
+            	//look through every row below the i'th row
+            	for(ii=i+1; ii<dim; ii+=1){
+                	//if the ii'th row has a non-0 in the i'th col
+                	if(C[ii][i] != 0){
+                    	//it would make the diagonal have a non-0 so swap it
+                    	for(j=0; j<dim; j++){
+                        	e = C[i][j];       //temp store i'th row
+                        	C[i][j] = C[ii][j];//replace i'th row by ii'th
+                        	C[ii][j] = e;      //repace ii'th by temp
+                        	e = I[i][j];       //temp store i'th row
+                        	I[i][j] = I[ii][j];//replace i'th row by ii'th
+                        	I[ii][j] = e;      //repace ii'th by temp
+                    	}
+                    	//don't bother checking other rows since we've swapped
+                    	break;
+                	}
+            	}
+            	//get the new diagonal
+            	e = C[i][i];
+            	//if it's still 0, not invertable (error)
+            	if(e==0){return}
+        	}
+        
+        	// Scale this row down by e (so we have a 1 on the diagonal)
+        	for(j=0; j<dim; j++){
+            	C[i][j] = C[i][j]/e; //apply to original matrix
+            	I[i][j] = I[i][j]/e; //apply to identity
+        	}
+        
+        	// Subtract this row (scaled appropriately for each row) from ALL of
+        	// the other rows so that there will be 0's in this column in the
+        	// rows above and below this one
+        	for(ii=0; ii<dim; ii++){
+            	// Only apply to other rows (we want a 1 on the diagonal)
+            	if(ii==i){continue;}
+            
+            	// We want to change this element to 0
+            	e = C[ii][i];
+            
+            	// Subtract (the row above(or below) scaled by e) from (the
+            	// current row) but start at the i'th column and assume all the
+            	// stuff left of diagonal is 0 (which it should be if we made this
+            	// algorithm correctly)
+            	for(j=0; j<dim; j++){
+                	C[ii][j] -= e*C[i][j]; //apply to original matrix
+                	I[ii][j] -= e*I[i][j]; //apply to identity
+            	}
+        	}
+    	}
+    
+    	//we've done all operations, C should be the identity
+    	//matrix I should be the inverse:
+    	return I;
+	}
+    /////////////////////////////////////////////////////////////////////////////////////
+    
     this.inverse = function(matrix){
     	let result
     	let dim = Vector.matrix_dimensions(matrix)
@@ -1215,10 +1352,11 @@ var Vector = new function(){
             result = [[b11, b12, b13, b14], [b21, b22, b23, b24], [b31, b32, b33, b34], [b41, b42, b43, b44]]
             result = Vector.multiply(1/Vector.determinant(matrix),result)
         }else{
-        	dde_error("the inverse of matricies with these dimensions is not supported yet")
+        	result = matrix_invert(matrix)
         }
         return result
    }
+   
    /*
    var mat = Vector.identity_matrix(3)
    var mat = [[3, 2, 1.7, 1.5],[4.5, 5, 4.1, 1.9], [1.1, 8.5, 9, 8], [3, 9, 9, 10]]
@@ -1349,7 +1487,7 @@ var Vector = new function(){
     //var im = Vector.identity_matrix(4)
     //var det = Vector.determinant(im)
     
-    this.rotate_DCM = function(DCM, axis_of_rotation, angle){
+    this.rotate_DCM = function(DCM = [[1, 0, 0],[0, 1, 0],[0, 0, 1]], axis_of_rotation, angle){
     	let trans_matrix = Vector.identity_matrix(3)
         let x_vector, y_vector, z_vector
     	switch(axis_of_rotation){
@@ -1590,7 +1728,252 @@ var Vector = new function(){
     var result = Vector.insert(my_big, my_small, [3, 4])
     */
     
+    this.concatinate = function(direction, matrix_1, matrix_2){
+    	let result, dim_1, dim_2
+        if(matrix_1.length == 0){
+        	return matrix_2
+        }
+        if(matrix_2.length == 0){
+        	return matrix_1
+        }
+    	switch(direction){
+        	//Vertical concatination
+            case 0:
+            dim_1 = Vector.matrix_dimensions(matrix_1)
+            dim_2 = Vector.matrix_dimensions(matrix_2)
+            if(dim_1[1] != dim_2[1]){
+            	dde_error("Vector.concatinate, matrix widths must match")
+            }
+            if(dim_1[0] == 1){
+            	result = [matrix_1]
+            }else{
+            	result = matrix_1
+            }
+            if(dim_2[0] == 1){
+            	for(let i = 0; i < dim_2[0]; i++){
+            		result.push(matrix_2)
+            	}
+            }else{
+            	for(let i = 0; i < dim_2[0]; i++){
+            		result.push(matrix_2[i])
+            	}
+            }
+            break
+            
+            //Horizontal concatination
+            case 1:
+            dim_1 = Vector.matrix_dimensions(matrix_1)
+            dim_2 = Vector.matrix_dimensions(matrix_2)
+            if(dim_1[0] != dim_2[0]){
+            	dde_error("Vector.concatinate, matrix heights must match")
+            }
+            if(dim_1[0] == 1){
+            	result = Vector.make_matrix(dim_1[0], dim_1[1]+dim_2[1])[0]
+                for(let j = 0; j < dim_1[1]; j++){
+                	result[j] = matrix_1[j]
+                }
+                for(let j = 0; j < dim_2[1]; j++){
+                	result[j+dim_1[1]] = matrix_2[j]
+                }
+            }else{
+            	result = Vector.make_matrix(dim_1[0], dim_1[1]+dim_2[1])
+                for(let i = 0; i < dim_1[0]; i++){
+            		for(let j = 0; j < dim_1[1]; j++){
+                		result[i][j] = matrix_1[i][j]
+                	}
+                	for(let j = 0; j < dim_2[1]; j++){
+                		result[i][j+dim_1[1]] = matrix_2[i][j]
+                	}
+            	}
+           	}
+            
+            break
+            default:
+            dde_error("In Vector.concatinate, direction must 0 or 1")
+        }
+        return result
+    }
+    /*
+    var matrix_1 = [1, 2, 3]
+    var matrix_2 = [4, 5, 6]
+    //debugger
+    var ans = Vector.concatinate(0, matrix_1, matrix_2)
+	Vector.concatinate(0, [1, 2, 3], [4, 5, 6])  
+    Vector.concatinate(1, [1, 2, 3], [4, 5, 6])
+    Vector.concatinate(1, [[1, 1], [2, 2], [3, 2]], [[4], [5], [6]])
 
+    var matrix_1 = [1, 2, 3]
+    var matrix_2 = [4, 5, 6]
+    debugger
+    var ans = Vector.concatinate(1, matrix_1, matrix_2)
+    
+    var matrix_1 = [[1, 1], [2, 2], [3, 2]]
+    var matrix_2 = [[4], [5], [6]]
+    //debugger
+    var ans = Vector.concatinate(1, matrix_1, matrix_2)
+    */
+    
+    this.data_to_file = function(...args){
+    //debugger
+    
+    	let temp_args = Convert.deep_copy(args)
+        let file_name, elt, file_string, data_array, table_titles
+        let data = []
+        for(let i = 0; i < temp_args.length; i++){
+        	elt = temp_args[i]
+            if($.type(elt) === "string"){
+            	//if contains 
+            	if (elt.indexOf(" ") > -1){
+                	table_titles = elt
+                }else if(file_name == undefined){
+                	file_name = elt
+                }else{
+                	dde_error("Vector.data_to_file can only take in one string")
+                }
+            }else{
+            	data.push(elt)
+            }
+        }
+        if(file_name == undefined){
+        	dde_error("Vector.data_to_file needs a filename input arg")
+        }
+        
+        let dim = Vector.matrix_dimensions(data[0])
+        let height = dim[1]
+        data_array = []
+        for(var i = 0; i < data.length; i++){
+        	elt = data[i]
+            dim = Vector.matrix_dimensions(elt)
+            if(dim[0] == 1){
+            	elt = Vector.transpose(elt)
+            }
+            data_array = Vector.concatinate(1, data_array, elt)
+        }
+        
+        dim = Vector.matrix_dimensions(data_array)
+        if(table_titles == undefined){
+        	file_string = ""
+        }else{
+        	file_string = table_titles + "\r\n"
+        }
+        for(let i = 0; i < dim[0]; i++){
+        	file_string += data_array[i][0]
+        	for(let j = 1; j < dim[1]; j++){
+        		file_string += " " + data_array[i][j]
+            }
+            file_string += "\r\n"
+        }
+        write_file(file_name, file_string)
+        return file_string
+    }
+    /*
+    var data_1 = [1, 2, 3, 4]
+    var data_2 = [100, 200, 300, 400]
+    var filename = "2017/Main_Work_Version_Control/_Test_Files/torque_data.txt"
+    var table_titles = "x y"
+    //debugger
+    var sol = Vector.data_to_file(table_titles, filename, Vector.transpose(data_1), Vector.transpose(data_2))
+    
+    //write_file("2017/Main_Work_Version_Control/_Test_Files/torque_data.txt", "lol")
+    
+    var my_string = "hello"
+    _.isString(my_string)
+    $.type(my_string) === "string"
+    
+    */
+    /*
+    var x_data = [361.1, 433.95, 474.3, 534.61, 966.06]
+	var y_data = [0, 63500.24892, 158750.6223, 317501.2446, 1587506.223]
+	
+	var solution = Vector.poly_fit(x_data, y_data, 1)
+    //debugger
+	var solution = Vector.poly_fit(x_data, y_data, 4)
+*/
+    
+    this.poly_fit = function(x_data, y_data, order = 1){
+		let dim_x = Vector.matrix_dimensions(x_data)
+    	let dim_y = Vector.matrix_dimensions(y_data)
+    	if((dim_x[0]!=1) || (dim_y[0]!=1) || (dim_x[1]!=dim_y[1])){
+    		dde_error(" Input data has incorrect dimensions for function Vector.poly_fit()")
+    	}
+        
+		let sol = Vector.make_matrix(1, order)[0]
+    	let A, B, B1=0, B2=0, A11=0, A12=0, A21=0, A22=0, xi, yi
+    	switch(order){
+    		case 0:
+        		result = [Vector.average(y_data)]
+        		break
+        	case 1:
+        		for(let i = 0; i < dim_x[1]; i++){
+            		xi = x_data[i]
+                	yi = y_data[i]
+                
+            		B1  += 2*xi*yi
+                	B2  += 2*yi
+                	A11 += 2*xi*xi
+                	A12 += 2*xi
+                	A21 += 2*xi
+                	A22 += 2
+            	}
+            	A = [[A11, A12], [A21, A22]]
+            	B = [[B1], [B2]]
+            	sol = Vector.matrix_multiply(Vector.inverse(A), B)
+                out("A: ")
+                out(A)
+                out("B: ")
+                out(B)
+        		break
+        	default:
+            	let size = order+1
+                /*
+            	let x_sum_vector = Vector.make_matrix(1, size)[0]
+                let y_sum = 0
+                let temp_vector
+                
+            	A = Vector.make_matrix(size,1)
+                B = Vector.make_matrix(size,1)
+            	for(let i = 0; i < dim_x[1]; i++){
+                	xi = x_data[i]
+                    temp_vector = []
+                    for(let j = size-1; j >= 0; j--){
+                    	temp_vector.push(Math.pow(xi,j))
+                    }
+                    x_sum_vector = Vector.add(x_sum_vector, temp_vector)
+                    y_sum += y_data[i]
+                }
+                for(let i = 0; i < size; i++){
+                	A[i] = x_sum_vector
+                    B[i] = [y_sum]
+                }*/
+                A = Vector.make_matrix(size)
+                B = Vector.make_matrix(size,1)
+                let powers = Vector.make_matrix(size, "tilt")
+                for(let i = 0; i < dim_x[1]; i++){
+            		xi = x_data[i]
+                	yi = y_data[i]
+                	for(let i = 0; i < size; i++){
+                    	for(let j = 0; j < size; j++){
+            				A[i][j] += 2*Math.pow(xi, powers[i][j])
+                        }
+                        B[i][0] += 2*Math.pow(xi, size-i-1)*yi
+                    }
+            	}
+                out("A: ")
+                out(A)
+                out("B: ")
+                out(B)
+                
+                sol = Vector.matrix_multiply(Vector.inverse(A), B)
+            	
+            
+            	//dde_error(" A polynomial fit of order " + order + " is not supported yet")
+    	}
+    	return sol
+	}
+    /*
+    
+    */
+	
 }
 
 
@@ -1643,5 +2026,8 @@ new TestSuite("Vector Library - Matrix Math",
     ["Vector.rotate_DCM(Vector.identity_matrix(3), [1, 0, 0], Convert.degrees_to_arcseconds(90))", "[[1, 0, 0], [0, 6.123233995736766e-17, -1], [0, 1, 6.123233995736766e-17]]"],
     ['Vector.rotate_pose(Vector.make_pose(), "Z", Convert.degrees_to_arcseconds(90), [10, 0, 0])', "[ [6.123233995736766e-17, -1, 0, 10], [1, 6.123233995736766e-17, 0, -10], [0, 0, 1, 0], [0, 0, 0, 1]]"],
     ["Vector.is_pose(Vector.make_pose())", "true"],
-    ["Vector.pull([[1, 2, 3], [4, 5, 6], [7, 8, 9]], [1, 2], [1, 2])", "[[5, 6], [8, 9]]"]
+    ["Vector.pull([[1, 2, 3], [4, 5, 6], [7, 8, 9]], [1, 2], [1, 2])", "[[5, 6], [8, 9]]"],
+    ["Vector.concatinate(0, [1, 2, 3], [4, 5, 6])", "[[1, 2, 3], [4, 5, 6]]"],
+    ["Vector.concatinate(1, [1, 2, 3], [4, 5, 6])", "[1, 2, 3, 4, 5, 6]"],
+    ["Vector.concatinate(1, [[1, 1], [2, 2], [3, 2]], [[4], [5], [6]])", "[[1, 1, 4], [2, 2, 5], [3, 2, 6]]"]
 )

@@ -27,6 +27,7 @@ var DXF = new function(){
  	}
 	
     this.edit = function(points, shift = [0, 0, 0], scale_factor = 1){
+        
         let dim = Vector.matrix_dimensions(points)
         let result = points
         for(let i = 0; i < dim[0]; i++){
@@ -140,6 +141,80 @@ var DXF = new function(){
     	return [shift, Math.min(scale_factor_1, scale_factor_2)]
 	}
     
+    /*
+    this.text_fit_top_left = function(dxf_points, J_angles_1, J_angles_2, J_angles_3, scale = 1){
+		let points_A, points_B, points_C, UA5, UA4, UB5, UB4, UC5, UC4, U5_ave, U4_ave, U45
+    	let point, x_vector, y_vector, z_vector, pose, angleA, angleB, angleC, vector_1, vector_2, x_length, y_length, y_dist_1, y_dist_2
+        
+    	points_A = Kin.J_angles_to_xyz(J_angles_1)
+    	points_B = Kin.J_angles_to_xyz(J_angles_2)
+    	points_C = Kin.J_angles_to_xyz(J_angles_3)
+        
+    	UA5 = points_A[5]
+    	UA4 = points_A[4]
+    	UB5 = points_B[5]
+    	UB4 = points_B[4]
+    	UC5 = points_C[5]
+    	UC4 = points_C[4]
+        
+    	U5_ave = Vector.average(UA5, UB5, UC5)
+    	U4_ave = Vector.average(UA4, UB4, UC4)
+    	U45 = Vector.subtract(U4_ave, U5_ave)
+        
+    	angleA = Vector.angle(Vector.subtract(UB5, UA5), Vector.subtract(UC5, UA5))
+    	angleB = Vector.angle(Vector.subtract(UA5, UB5), Vector.subtract(UC5, UB5))
+    	angleC = Vector.angle(Vector.subtract(UB5, UC5), Vector.subtract(UA5, UC5))
+        
+    	switch(Math.max(angleA, angleB, angleC)){
+        	case angleA:
+            	point = UA5
+            	vector_1 = Vector.subtract(UB5, UA5)
+             	vector_2 = Vector.subtract(UC5, UA5)
+            	y_dist_1 = Vector.distance(UC5, point, UB5)
+            	y_dist_2 = Vector.distance(UB5, point, UC5)
+            	break
+                
+        	case angleB:
+            	point = UB5
+            	vector_1 = Vector.subtract(UA5, UB5)
+            	vector_2 = Vector.subtract(UC5, UB5)
+            	y_dist_1 = Vector.distance(UC5, point, UA5)
+            	y_dist_2 = Vector.distance(UA5, point, UC5)
+            	break
+                
+        	case angleC:
+            	point = UC5
+            	vector_1 = Vector.subtract(UB5, UC5)
+            	vector_2 = Vector.subtract(UA5, UC5)
+            	y_dist_1 = Vector.distance(UA5, point, UB5)
+            	y_dist_2 = Vector.distance(UB5, point, UA5)
+            	break
+    	}
+        
+    	if(0 < Vector.dot(Vector.cross(vector_1, vector_2), U45)){
+    		x_length = Vector.magnitude(vector_1)
+        	x_vector = Vector.normalize(vector_1)
+        	y_length = y_dist_1
+    	}else{
+    		x_length = Vector.magnitude(vector_2)
+        	x_vector = Vector.normalize(vector_2)
+        	y_length = y_dist_2
+    	}
+        
+    	let upper = Vector.max(dxf_points)
+    	let lower = Vector.min(dxf_points)
+    	let diff = Vector.subtract(upper, lower)
+        let shift = 
+    	let shift = y_length - 1.1*scale
+    	let width = Math.abs(diff[0])
+    	let height = Math.abs(diff[1])
+    
+    	let scale_factor_1 = x_length / width
+    	let scale_factor_2 = y_length / height
+    
+    	return [shift, scale]
+	}
+    
     
     this.draw_dxf_on_plane = function(dxf_content = Hello_World_DXF, J_angles){
 		let lift_height = 25000
@@ -180,8 +255,5 @@ var DXF = new function(){
         	}
     	}
     	return movCMD
-	}
-    
-    
-    
+	}*/
 }

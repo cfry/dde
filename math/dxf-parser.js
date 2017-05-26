@@ -394,12 +394,12 @@ function parseBoolean(str) {
 
 //fry comment out   var log = require('loglevel');
 
-//log.setLevel('trace');
-//log.setLevel('debug');
-//log.setLevel('info');
-//log.setLevel('warn');
-//fry comment out   log.setLevel('error');
-//log.setLevel('silent');
+////log.setLevel('trace');
+////log.setLevel('debug');
+////log.setLevel('info');
+////log.setLevel('warn');
+//fry comment out   //log.setLevel('error');
+////log.setLevel('silent');
 
 
 function DxfParser(stream) {}
@@ -465,25 +465,25 @@ DxfParser.prototype._parse = function(dxfString) {
             }
 
             if (curr.value === 'HEADER') {
-               log.debug('> HEADER');
+               //log.debug('> HEADER');
                dxf.header = parseHeader();
-               log.debug('<');
+               //log.debug('<');
             } else if (curr.value === 'BLOCKS') {
-               log.debug('> BLOCKS');
+               //log.debug('> BLOCKS');
                dxf.blocks = parseBlocks();
-               log.debug('<');
+               //log.debug('<');
             } else if(curr.value === 'ENTITIES') {
-               log.debug('> ENTITIES');
+               //log.debug('> ENTITIES');
                dxf.entities = parseEntities(false);
-               log.debug('<');
+               //log.debug('<');
             } else if(curr.value === 'TABLES') {
-               log.debug('> TABLES');
+               //log.debug('> TABLES');
                dxf.tables = parseTables();
-               log.debug('<');
+               //log.debug('<');
             } else if(curr.value === 'EOF') {
-               log.debug('EOF');
+               //log.debug('EOF');
             } else {
-               log.warn('Skipping section \'%s\'', curr.value);
+               //log.warn('Skipping section \'%s\'', curr.value);
             }
          } else {
             curr = scanner.next();
@@ -551,14 +551,15 @@ DxfParser.prototype._parse = function(dxfString) {
          }
 
          if(groupIs(0, 'BLOCK')) {
-            log.debug('block {');
+            //log.debug('block {');
             block = parseBlock();
-            log.debug('}');
+            //log.debug('}');
             ensureHandle(block);
-                if(!block.name)
-                    log.error('block with handle "' + block.handle + '" is missing a name.');
-            else
+                if(!block.name){
+                    //log.error('block with handle "' + block.handle + '" is missing a name.');
+            	}else{
                     blocks[block.name] = block;
+                }
          } else {
             logUnhandledGroup(curr);
             curr = scanner.next();
@@ -655,11 +656,11 @@ DxfParser.prototype._parse = function(dxfString) {
 
             var tableDefinition = tableDefinitions[curr.value];
             if(tableDefinition) {
-               log.debug(curr.value + ' Table {');
+               //log.debug(curr.value + ' Table {');
                tables[tableDefinitions[curr.value].tableName] = parseTable();
-               log.debug('}');
+               //log.debug('}');
             } else {
-               log.debug('Unhandled Table ' + curr.value);
+               //log.debug('Unhandled Table ' + curr.value);
             }
          } else {
             // else ignored
@@ -724,7 +725,7 @@ DxfParser.prototype._parse = function(dxfString) {
          } else if(typeof(tableRecords) === 'object') {
             actualCount = Object.keys(tableRecords).length;
          }
-         if(expectedCount !== actualCount) log.warn('Parsed ' + actualCount + ' ' + tableDefinition.dxfSymbolName + '\'s but expected ' + expectedCount);
+         //if(expectedCount !== actualCount) log.warn('Parsed ' + actualCount + ' ' + tableDefinition.dxfSymbolName + '\'s but expected ' + expectedCount);
       }
       curr = scanner.next();
       return table;
@@ -734,7 +735,7 @@ DxfParser.prototype._parse = function(dxfString) {
       var viewPorts = [], // Multiple table entries may have the same name indicating a multiple viewport configuration
          viewPort = {};
 
-      log.debug('ViewPort {');
+      //log.debug('ViewPort {');
       curr = scanner.next();
       while(!groupIs(0, END_OF_TABLE_VALUE)) {
 
@@ -833,9 +834,9 @@ DxfParser.prototype._parse = function(dxfString) {
             case 0:
                // New ViewPort
                if(curr.value === 'VPORT') {
-                  log.debug('}');
+                  //log.debug('}');
                   viewPorts.push(viewPort);
-                  log.debug('ViewPort {');
+                  //log.debug('ViewPort {');
                   viewPort = {};
                   curr = scanner.next();
                }
@@ -848,7 +849,7 @@ DxfParser.prototype._parse = function(dxfString) {
       }
       // Note: do not call scanner.next() here,
       //  parseTable() needs the current group
-      log.debug('}');
+      //log.debug('}');
       viewPorts.push(viewPort);
 
       return viewPorts;
@@ -860,7 +861,7 @@ DxfParser.prototype._parse = function(dxfString) {
          ltype = {},
          length;
 
-      log.debug('LType {');
+      //log.debug('LType {');
       curr = scanner.next();
       while(!groupIs(0, 'ENDTAB')) {
 
@@ -888,11 +889,11 @@ DxfParser.prototype._parse = function(dxfString) {
                curr = scanner.next();
                break;
             case 0:
-               log.debug('}');
-               if(length > 0 && length !== ltype.pattern.length) log.warn('lengths do not match on LTYPE pattern');
+               //log.debug('}');
+               if(length > 0 && length !== ltype.pattern.length) //log.warn('lengths do not match on LTYPE pattern');
                ltypes[ltypeName] = ltype;
                ltype = {};
-               log.debug('LType {');
+               //log.debug('LType {');
                curr = scanner.next();
                break;
             default:
@@ -900,7 +901,7 @@ DxfParser.prototype._parse = function(dxfString) {
          }
       }
 
-      log.debug('}');
+      //log.debug('}');
       ltypes[ltypeName] = ltype;
       return ltypes;
    };
@@ -910,7 +911,7 @@ DxfParser.prototype._parse = function(dxfString) {
          layerName,
          layer = {};
 
-      log.debug('Layer {');
+      //log.debug('Layer {');
       curr = scanner.next();
       while(!groupIs(0, 'ENDTAB')) {
 
@@ -929,9 +930,9 @@ DxfParser.prototype._parse = function(dxfString) {
             case 0:
                // New Layer
                if(curr.value === 'LAYER') {
-                  log.debug('}');
+                  //log.debug('}');
                   layers[layerName] = layer;
-                  log.debug('Layer {');
+                  //log.debug('Layer {');
                   layer = {};
                   layerName = undefined;
                   curr = scanner.next();
@@ -945,7 +946,7 @@ DxfParser.prototype._parse = function(dxfString) {
       }
       // Note: do not call scanner.next() here,
       //  parseLayerTable() needs the current group
-      log.debug('}');
+      //log.debug('}');
       layers[layerName] = layer;
 
       return layers;
@@ -995,52 +996,52 @@ DxfParser.prototype._parse = function(dxfString) {
             var entity;
             // Supported entities here
             if(curr.value === 'LWPOLYLINE') {
-               log.debug('LWPOLYLINE {');
+               //log.debug('LWPOLYLINE {');
                entity = parseLWPOLYLINE();
-               log.debug('}')
+               //log.debug('}')
             } else if(curr.value === 'POLYLINE') {
-               log.debug('POLYLINE {');
+               //log.debug('POLYLINE {');
                entity = parsePOLYLINE();
-               log.debug('}');
+               //log.debug('}');
             } else if(curr.value === 'LINE') {
-               log.debug('LINE {');
+               //log.debug('LINE {');
                entity = parseLINE();
-               log.debug('}');
+               //log.debug('}');
             } else if(curr.value === 'CIRCLE') {
-               log.debug('CIRCLE {');
+               //log.debug('CIRCLE {');
                entity = parseCIRCLE();
-               log.debug('}');
+               //log.debug('}');
             } else if(curr.value === 'ARC') {
-               log.debug('ARC {');
+               //log.debug('ARC {');
                // similar properties to circle?
                entity = parseCIRCLE();
-               log.debug('}')
+               //log.debug('}')
             } else if(curr.value === 'TEXT') {
-               log.debug('TEXT {');
+               //log.debug('TEXT {');
                entity = parseTEXT();
-               log.debug('}')
+               //log.debug('}')
             } else if(curr.value === 'DIMENSION') {
-               log.debug('DIMENSION {');
+               //log.debug('DIMENSION {');
                entity = parseDIMENSION();
-               log.debug('}')
+               //log.debug('}')
             } else if(curr.value === 'SOLID') {
-               log.debug('SOLID {');
+               //log.debug('SOLID {');
                entity = parseSOLID();
-               log.debug('}')
+               //log.debug('}')
             } else if(curr.value === 'POINT') {
-               log.debug('POINT {');
+               //log.debug('POINT {');
                entity = parsePOINT();
-               log.debug('}')
+               //log.debug('}')
             } else if(curr.value === 'MTEXT') {
-               log.debug('MTEXT {');
+               //log.debug('MTEXT {');
                entity = parseMTEXT();
-               log.debug('}')
+               //log.debug('}')
             } else if(curr.value === 'ATTDEF') {
-               log.debug('ATTDEF {');
+               //log.debug('ATTDEF {');
                entity = parseATTDEF();
-               log.debug('}')
+               //log.debug('}')
             } else {
-               log.warn('Unhandled entity ' + curr.value);
+               //log.warn('Unhandled entity ' + curr.value);
                curr = scanner.next();
                continue;
             }
@@ -1773,7 +1774,7 @@ DxfParser.prototype._parse = function(dxfString) {
 };
 
 function logUnhandledGroup(curr) {
-   log.debug('unhandled group ' + debugCode(curr));
+   //log.debug('unhandled group ' + debugCode(curr));
 }
 
 
@@ -1957,7 +1958,7 @@ const BLOCK_REFERENCED_XREF = 64;
                     return "No console available for logging";
                 }
             } else {
-                throw "log.setLevel() called with invalid level: " + level;
+                throw "//log.setLevel() called with invalid level: " + level;
             }
         };
 
