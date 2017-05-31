@@ -2,7 +2,7 @@
 //Inverse Kinematics + Forward Kinematics
 //James Wigglesworth
 //Started: 6_18_16
-//Updated: 4_14_17
+//Updated: 5_31_17
 
 
 var Kin = new function(){
@@ -509,18 +509,21 @@ var Kin = new function(){
             	}
             }
             return state
-    }
+    }	
     
     //Public
     this.J_angles_to_config = function(joint_angles){
     	let U54_Proj, U3_a, U3_b, dist_a, dist_b
     	let J = Convert.deep_copy(joint_angles)
-        let U = Kin.forward_kinematics(J)
+        let fk = Kin.forward_kinematics(J)
+        let U = fk[0]
+        let V = fk[1]
         let L = [Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5] //Link Lengths
         let right_arm, elbow_up, wrist_out
+        let P = fk[2] 
         
         P[1] = Vector.points_to_plane(U[1], U[0], U[4])
-        U54_Proj = Vector.project_vector_onto_plane(V54, P[1])
+        U54_Proj = Vector.project_vector_onto_plane(V[4], P[1])
     	U3_a = Vector.add(U[4], Vector.multiply(L[3], Vector.rotate(Vector.normalize(U54_Proj), P[1], 324000)))
         U3_b = Vector.add(U[4], Vector.multiply(L[3], Vector.rotate(Vector.normalize(U54_Proj), P[1], -324000)))
         dist_a = Vector.distance(U3_a, U[1], U[0])
@@ -539,6 +542,33 @@ var Kin = new function(){
             	wrist_out = 1
             }
         }
+        
+        let U50 = Vector.subtract(U[5], U[0])
+        if(Vector.dot(Vector.cross(U50, P[1]), V[0]) > 0){
+        	right_arm = 0
+            if(wrist_out == 0){
+            	wrist_out = 1
+            }else{
+            	wrist_out = 0
+            }
+        }else{
+        	right_arm = 1
+        }
+        
+        if(right_arm == 1){
+        	if(Vector.dot(Vector.cross(V[1], V[2]), P[1]) > 0){
+        		elbow_up = 0
+        	}else{
+        		elbow_up = 1
+        	}
+        }else{
+        	if(Vector.dot(Vector.cross(V[1], V[2]), P[1]) < 0){
+        		elbow_up = 0
+        	}else{
+        		elbow_up = 1
+        	}
+        }
+        
         
         return [right_arm, elbow_up, wrist_out]
     }
