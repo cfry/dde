@@ -1,5 +1,5 @@
 //Kinematics Class
-//Inverse Kinematics + Forward Kinematics
+//Inverse Kinematics + Forward Kinematics + supporting functions
 //James Wigglesworth
 //Started: 6_18_16
 //Updated: 6_6_17
@@ -1227,7 +1227,7 @@ var Kin = new function(){
     */
     
     //returns time in seconds
-    this.predict_move_dur = function(/*returns milliseconds*/ J_angles_current, J_angles_destination, robot){
+    this.predict_move_dur = function(/*returns milliseconds*/ J_angles_original, J_angles_destination, robot){
     	let speed
         if(robot == undefined){
         	try{
@@ -1238,7 +1238,7 @@ var Kin = new function(){
         }else{
         	speed = robot.param.MAX_SPEED
         }
-    	let delta = Vector.subtract(J_angles_current, J_angles_destination)
+    	let delta = Vector.subtract(J_angles_original, J_angles_destination)
         return 1000*Vector.max(delta)/speed
     }
     
