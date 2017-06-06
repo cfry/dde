@@ -2,7 +2,7 @@
 //Inverse Kinematics + Forward Kinematics
 //James Wigglesworth
 //Started: 6_18_16
-//Updated: 5_31_17
+//Updated: 6_6_17
 
 
 var Kin = new function(){
@@ -520,7 +520,7 @@ var Kin = new function(){
         let V = fk[1]
         let L = [Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5] //Link Lengths
         let right_arm, elbow_up, wrist_out
-        let P = fk[2] 
+        let P = fk[2]
         
         P[1] = Vector.points_to_plane(U[1], U[0], U[4])
         U54_Proj = Vector.project_vector_onto_plane(V[4], P[1])
@@ -1090,7 +1090,7 @@ var Kin = new function(){
         torque_vectors[1] = P[1] // torque about P1 axis
         torque_vectors[2] = P[1] // torque about P1 axis
         
-        //
+        //Convert.arcseconds_to_degrees(100000)
         tangent_forces = [0, 0, 0]
         for(var i = 0; i < 3; i++){
         	force_magnitude = torques[i]/Vector.magnitude(D[i])
@@ -1216,13 +1216,30 @@ var Kin = new function(){
     var hyp2 = Fv_mag*Math.sqrt(1+Math.pow(Fv[0][1]/Fv[1][2],2))
     Vector.cross(Fv[1], [0,0,1])
     */
-    
-    this.get_move_dur = function(J_angles_current, J_angles_destination, speed){
-    	if(speed == undefined){
-        	
+    /*
+    function dde_warning(message){
+        if(!(dde_warning_list.indexOf(message) > -1)){
+        	dde_warning_list.push(message)
+    		out("dde_warning: " + message, "red")
         }
-    	let delta = Vector.subtract(J_angles_2, J_angles_1)
-        return Vector.max(delta)/speed
+    }
+   	out(Kin.predict_move_dur(J_angles_A[0], J_angles_A[1]))
+    */
+    
+    //returns time in seconds
+    this.predict_move_dur = function(/*returns milliseconds*/ J_angles_current, J_angles_destination, robot){
+    	let speed
+        if(robot == undefined){
+        	try{
+        		speed = this.robot.param.MAX_SPEED
+            }catch(err) {
+                speed = 100000
+            }
+        }else{
+        	speed = robot.param.MAX_SPEED
+        }
+    	let delta = Vector.subtract(J_angles_current, J_angles_destination)
+        return 1000*Vector.max(delta)/speed
     }
     
     
