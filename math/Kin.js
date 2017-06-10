@@ -1227,22 +1227,12 @@ var Kin = new function(){
     */
     
     //returns time in seconds
-    this.predict_move_dur = function(/*returns milliseconds*/ J_angles_original, J_angles_destination, robot){
-    	let speed
-        if(robot == undefined){
-        	try{
-        		speed = this.robot.param.MAX_SPEED
-            }catch(err) {
-                speed = 100000
-            }
-        }else{
-        	speed = robot.param.MAX_SPEED
-        }
-    	let delta = Vector.subtract(J_angles_original, J_angles_destination)
+    // example call: Kin.predict_move_dur()
+this.predict_move_dur = function(J_angles_original, J_angles_destination, robot /*returns milliseconds*/){
+        let speed = robot.props().MAX_SPEED
+        let delta = Vector.subtract(J_angles_original, J_angles_destination)
         return 1000*Vector.max(delta)/speed
     }
-    
-    
 }
 
 new TestSuite("Inverse to Forward Kinematics and Back",
