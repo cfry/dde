@@ -265,6 +265,19 @@
         const inner_path = e.target.value //could be "new file" or an actual file
         const path = Editor.files_menu_path_to_path(inner_path)
         Editor.edit_file(path)
+        //
+        let files = persistent_get("files_menu_paths")
+        let i = files.indexOf(path) //Editor.current_file_path
+        if (i != -1) {
+            files.splice(i, 1) //remove the file
+            files.unshift(path)
+            persistent_set("files_menu_paths", files)
+            //Editor.restore_files_menu_paths_and_last_file() //don't do so we don't change the order
+                                   //in the current menu BUT next time user launches DDE,
+                                    //the last file they were editing when htey quit should
+                                    //show up in the editor.
+            return
+        }
     }
     /*dde_overview_id.onclick = function() {
                           //window.open("here is text") //dde_paper_text)
@@ -887,8 +900,10 @@ foo      //eval to see the latest values</pre>`,
     insert_job_example7_id.onclick = function(){Editor.insert(job_examples[7])}
     insert_job_example8_id.onclick = function(){Editor.insert(job_examples[8])}
     insert_job_example9_id.onclick = function(){Editor.insert(job_examples[9])}
+    insert_job_example10_id.onclick = function(){Editor.insert(job_examples[10])}
 
-    //Output_ops menu
+
+        //Output_ops menu
     ping_id.onclick          = function(){ rde.ping()}
     cat_etc_hosts_id.onclick = function(){ rde.shell('cat /etc/hosts')}
     rosversion_id.onclick    = function(){ rde.shell('rosversion -d')}

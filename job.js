@@ -4,7 +4,7 @@ var esprima = require('esprima')
 var Job = class Job{
     constructor({name=null, robot=Robot.dexter0, do_list=[], keep_history=true, show_instructions=false,
                  inter_do_item_dur = 100, user_data={}, program_counter=0, ending_program_counter="end",
-                 initial_instruction = null} = {}){
+                 initial_instruction = null, when_stopped = "stop"} = {}){
     //program_cpunter is the counter of the next instruction that should be executed.
     //so since we're currently "executing" 1 instruction, and after its done,
     //we'll be incrementing the pc, then internally we decriment the
@@ -14,10 +14,13 @@ var Job = class Job{
     //with the job. -2 means we want to execute the last instruction of the
     //job next, etc.
     //save the args
+    if (!Job.is_plausible_when_stopped_value(when_stopped)) {
+        dde_error("new Job passed: " + when_stopped + " but that isn't a valid value.")
+    }
     this.orig_args = {do_list: do_list, keep_history: keep_history, show_instructions: show_instructions,
         inter_do_item_dur: inter_do_item_dur, user_data: user_data,
         program_counter: program_counter, ending_program_counter: ending_program_counter,
-        initial_instruction: initial_instruction}
+        initial_instruction: initial_instruction, when_stopped: when_stopped}
     this.name              = name
     this.robot             = robot
     //setup name
@@ -52,10 +55,7 @@ var Job = class Job{
 
     //Called by user to start the job and "reinitialize" a stopped job
     start(options={}){  //sent_from_job = null
-        if(Job.disable_all){
-            out('Attempt to start Job: ' + this.name + " but all jobs have been disabled.")
-        }
-        else if (["starting", "running", "suspended"].includes(this.status_code)){
+        if (["starting", "running", "suspended"].includes(this.status_code)){
             dde_error("Attempt to restart job: "  + this.name +
                       " but it has status code: " + this.status_code +
                       " which doesn't permit restarting.")
@@ -63,14 +63,15 @@ var Job = class Job{
         else{//init from orig_args
             this.do_list           = Job.flatten_do_list_array(this.orig_args.do_list) //make a copy in case the user passes in an array that they will use elsewhere, which we wouldn't want to mung
             this.keep_history      = this.orig_args.keep_history
-            this.show_instructions  = this.orig_args.show_instructions
+            this.show_instructions = this.orig_args.show_instructions
             this.inter_do_item_dur = this.orig_args.inter_do_item_dur
             this.user_data         = // don't do as gets non-enumerables, etc. messes up printing of what should be empty user_data of a job jQuery.extend(true, {}, this.orig_args.user_data) //performs deep copy. This is hard, so use jquery
                                      shallow_copy(this.orig_args.user_data)
             this.program_counter   = this.orig_args.program_counter //see robot_done_with_instruction as to why this isn't 0,
                                      //its because the robot.start effectively calls set_up_next_do(1), incremening the PC
             this.ending_program_counter = this.orig_args.ending_program_counter
-            this.initial_instruction = this.orig_args.initial_instruction
+            this.initial_instruction    = this.orig_args.initial_instruction
+            this.when_stopped           = this.orig_args.when_stopped
 
             //first we set all the orig (above), then we over-ride them with the passed in ones
             for (let key in options){
@@ -80,15 +81,20 @@ var Job = class Job{
                     if (key == "do_list")         { new_val = Job.flatten_do_list_array(new_val) }
                     else if (key == "user_data")  { new_val = shallow_copy(new_val) }
                     else if (key == "name")       {} //don't allow renaming of the job
+                    else if ((key == "when_stopped") &&
+                             !Job.is_plausible_when_stopped_value(new_val)) {
+                        dde_error("Job.start called with an invalid value for 'when_stopped' of: " +
+                                  new_val)
+                    }
                     this[key] = new_val
                 }
             }
             let maybe_symbolic_pc = this.program_counter
             this.program_counter = 0 //just temporarily so that instruction_location_to_id can start from 0
             const job_in_pc = Job.instruction_location_to_job(maybe_symbolic_pc, false)
-            if (job_in_pc) {
+            if ((job_in_pc != null) && (job_in_pc != this)) {
                 dde_error("Job." + this.name + " has a program_counter initialization<br/>" +
-                          "of an instruction_location that contains a job. It shouldn't.")
+                          "of an instruction_location that contains a job that is not the job being started. It shouldn't.")
             }
             this.program_counter = this.instruction_location_to_id(maybe_symbolic_pc)
 
@@ -122,14 +128,16 @@ var Job = class Job{
                 //Instruction.Control.send_to_job.insert_sent_from_job(this, sent_from_job)
                 Job.insert_instruction(this.initial_instruction, {job: this, offset: "program_counter"})
             }
-            //must be after  insrt queue and init_insrr processing
-            if (this.program_counter >= this.do_list.length){ //note that maybe_symbolic_pc can be "end" which is length of do_list which is valid, though no instructions would be executed in that case so we error.
+            //must be after insert queue and init_instr processing
+            if ((this.program_counter == 0) &&
+                (this.do_list.length  == 0) &&
+                ((this.when_stopped   == "wait") || (typeof(this.when_stopped) == "function"))) {} //special case to allow an empty do_list if we are waiting for an instruction or have a callback.
+            else if (this.program_counter >= this.do_list.length){ //note that maybe_symbolic_pc can be "end" which is length of do_list which is valid, though no instructions would be executed in that case so we error.
                 dde_error("While starting job: " + this.name +
                     "<br/>the programer_counter is initialized to: " + this.program_counter +
                     "<br/>but the highest instruction ID in the do_list is: " +  (this.do_list.length - 1))
             }
             Job.last_job           = this
-
 
             this.added_items_count = new Array(this.program_counter) //This array parallels and should be the same length as the run items on the do_list.
             this.added_items_count.fill(0) //stores the number of items "added" by each do_list item beneath it
@@ -138,7 +146,7 @@ var Job = class Job{
             //this.init_show_instructions()
             out("Starting job: " + this.name + " ...")
             this.color_job_button()
-            this.robot.start(this)
+            this.robot.start(this) //the only call to robot.start
         }
     }
     //show_instruction in editor
@@ -294,7 +302,7 @@ var Job = class Job{
                     the_job.unsuspend()
                 }
                 else if(the_job.is_active()){
-                    the_job.stop_for_reason("interrupted", "User stopped job")
+                    the_job.stop_for_reason("interrupted", "User stopped job", false)
                 }
                 else {
                     the_job.start()
@@ -327,40 +335,65 @@ var Job = class Job{
         var tooltip  = ""
         switch(this.status_code){
             case "not_started":
-                bg_color = "#CCCCCC";
+                bg_color = "rgb(204, 204, 204)";
                 tooltip  = "This job has not been started since it was defined.\nClick to start this job."
                 break; //defined but never started.
             case "starting":
-                bg_color = "#88FF88";
+                bg_color = "rgb(136, 255, 136)";
                 tooltip  = "This job is in the process of starting.\nClick to stop it."
                 break;
             case "running":
-                bg_color = "#88FF88";
-                tooltip  = "This job is running.\nClick to stop this job."
+                if((this.when_stopped    == "wait") &&
+                   (this.program_counter == this.instruction_location_to_id(this.ending_program_counter))) {
+                    bg_color = "rgb(255, 255, 102)"; //pale yellow
+                    tooltip  = 'This job is waiting for a new last instruction\nbecause it has when_stopped="wait".\nClick to stop this job.'
+                }
+                else {
+                    const cur_ins = this.do_list[this.program_counter]
+                    if (Instruction.is_instruction_array(cur_ins)){
+                        const oplet   = cur_ins[Dexter.INSTRUCTION_TYPE]
+                        if(oplet == "z") {
+                            bg_color = "rgb(255, 255, 102)"; //pale yellow
+                            tooltip  = "Now running 'sleep' instruction."
+                            break;
+                        }
+                    }
+                    bg_color = "rgb(136, 255, 136)";
+                    tooltip  = "This job is running.\nClick to stop this job."
+                }
                 break;
             case "suspended":
-                bg_color = "#FFFF11"; //bright yellow
+                bg_color = "rgb(255, 255, 17)"; //bright yellow
                 tooltip  = "This job is suspended.\nClick to unsuspend it.\nAfter it is running, you can click to stop it."
                 break; //yellow
             case "waiting":
-                bg_color = "#FFFF66"; //pale yellow
+                bg_color = "rgb(255, 255, 102)"; //pale yellow
                 tooltip  = "This job is waiting for:\n" + this.wait_reason + "\nClick to stop this job."
                 break; //yellow
             case "completed":
-                bg_color = "#e6b3ff" // purple. blues best:"#66ccff"  "#33bbff" too dark  //"#99d3ff" too light
-                tooltip  = "This job has successfully completed.\nClick to restart it."
+                if((this.program_counter === this.do_list.length) &&
+                    (this.when_stopped === "wait")){
+                    bg_color = "rgb(255, 255, 102)"; //pale yellow
+                    tooltip  = 'This job is waiting for a new last instruction\nbecause it has when_stopped="wait".\nClick to stop this job.'
+                }
+                else {
+                    bg_color = "rgb(230, 179, 255)" // purple. blues best:"#66ccff"  "#33bbff" too dark  //"#99d3ff" too light
+                    tooltip  = "This job has successfully completed.\nClick to restart it."
+                }
                 break;
             case "errored":
-                bg_color = "#FF4444";
+                bg_color = "rgb(255, 68, 68)";
                 tooltip  = "This job errored with:\n" + this.stop_reason + "\nClick to restart this job."
                 break;
             case "interrupted":
-                bg_color = "#ff7b00"; //orange
+                bg_color = "rgb(255, 123, 0)"; //orange
                 tooltip  = "This job was interrupted by:\n" + this.stop_reason + "\nClick to restart this job."
                 break;
         }
-        but_elt.style.backgroundColor = bg_color
-        but_elt.title                 = tooltip
+        if (but_elt.style.backgroundColor !== bg_color) { //cut down the "jitter" in the culor, don't set unnecessarily
+            but_elt.style.backgroundColor = bg_color
+        }
+        but_elt.title = tooltip
     }
     //end of jobs buttons
 
@@ -583,7 +616,6 @@ Job.status_codes = ["not_started", "starting", "running", "completed",
 
 Job.global_user_data = {}
 Job.job_id_base = 0 //only used for making the job_id.
-Job.disable_all = false //allows all jobs to run
 Job.all_names = [] //maintained in both UI and sandbox/ used by replacement series job names
 
 //note that once we make 1 job instance with a name, that binding of
@@ -628,15 +660,14 @@ Job.job_id_to_job_instance = function(job_id){
 
 Job.last_job = null
 
+//does not perform when_stopped action on purpose. This is a drastic stop.
 Job.stop_all_jobs = function(){
     var stopped_job_names = []
     for(var j of Job.all_jobs()){
         if ((j.stop_reason == null) && (j.status_code != "not_started")){
-            j.set_status_code("interrupted")
-            j.stop_reason = "User stopped all jobs."
-            j.stop_time   = new Date()
-            if (j.robot.heartbeat_timeout_obj) { clearTimeout(j.robot.heartbeat_timeout_obj) }
+            j.stop_for_reason("interrupted", "User stopped all jobs.", false)
             stopped_job_names.push(j.name)
+            j.color_job_button()
         }
        // j.robot.close() //does not delete the name of the robot from Robot, ie Robot.mydex will still exist, but does disconnect serial robots
           //this almost is a good idea, but if there's a job that's stopped but for some reason,
@@ -745,11 +776,42 @@ Job.prototype.status = function (){
     }
 }
 
-Job.prototype.finish_job = function(){ //regardless of more to_do items or wiating for instruction, its over.
-    this.robot.finish_job()
-    this.color_job_button()
-    this.print_out()
-    out("Done with job: " + this.name)
+Job.prototype.finish_job = function(perform_when_stopped=true){ //regardless of more to_do items or waiting for instruction, its over.
+    if(perform_when_stopped && (this.when_stopped !== "stop")){
+        let the_job = this //for closure
+        setTimeout(function(){
+                      if(the_job.when_stopped == "wait") { //even if we somehow stopped in the middle of the do_list,
+                           // we are going to wait for a new instruction to be added
+                           //beware, maybe race condition here with adding a new instruction.
+                          the_job.status_code = "running"
+                          the_job.stop_reason = null
+                          the_job.program_counter = the_job.do_list.length
+                          the_job.color_job_button()
+                          the_job.set_up_next_do(0)
+                      }
+                      else if (typeof(the_job.when_stopped) === "function"){
+                          setTimeout(function () { the_job.when_stopped.call(the_job) },
+                                     100)
+                      }
+                      else if (Job.is_plausible_when_stopped_value(the_job.when_stopped)){
+                          setTimeout(function(){
+                                        const found_job = Job.instruction_location_to_job(the_job.when_stopped, false)
+                                        if (found_job) { the_job = found_job }
+                                        the_job.start({program_counter: the_job.when_stopped})
+                                     }, 100)
+                      }
+                      else {
+                          shouldnt("Job: " + the_job.name + " has an invalid wnen_stopped value of: " + the_job.when_stopped)
+                      }
+                   },
+                   1)
+    }
+    else {
+        this.robot.finish_job()
+        this.color_job_button()
+        this.print_out()
+        out("Done with job: " + this.name)
+    }
 }
 
 Job.go_button_state = true
@@ -837,10 +899,13 @@ Job.prototype.set_up_next_do = function(program_counter_increment = 1, allow_onc
 }
 
 Job.prototype.stop_for_reason = function(status_code, //"errored", "interrupted", "completed"
-                                         reason_string){
+                                         reason_string,
+                                         perform_when_stopped = false){
+    this.stop_reason  = reason_string //put before set_status_code because set_status_code calls color_job_button
     this.set_status_code(status_code)
-    this.stop_reason = reason_string
-    this.stop_time   = new Date()
+    if (this.robot.heartbeat_timeout_obj) { clearTimeout(this.robot.heartbeat_timeout_obj) }
+    this.stop_time    = new Date()
+    if(!perform_when_stopped) { this.when_stopped = "stop"}
 }
 
 
@@ -849,12 +914,7 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
     if (this.show_instructions){
         console.log("Top of do_next_item in job: " + this.name + " with PC: " + this.program_counter)
     }
-    //this.pc_at_do_item_start = this.program_counter
-    if (Job.disable_all){//stop even if we're waiting for instrunctions to be confirmed done.
-        this.stop_for_reason("interrupted", "Job: " + this.name + " and all jobs disabled.")
-        this.finish_job()
-    }
-    else if ((this.status_code == "interrupted") || //put before the wait until instruction_id because interrupted is the user wanting to halt, regardless of pending instructions.
+    if ((this.status_code == "interrupted") || //put before the wait until instruction_id because interrupted is the user wanting to halt, regardless of pending instructions.
              (this.status_code == "errored")){
         this.finish_job()
     }
@@ -863,10 +923,15 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
         //the waited for instruction coming back thru robot_done_with_instruction will call set_up_next_do(1)
         //so don't do it here. BUT still have this clause to block doing anything below if we're waiting.
     }
-    else if (this.stop_reason){ this.finish_job() }
+    else if (this.stop_reason){ this.finish_job() } //muswt be before the below since if we've
+    //already got a stop reason, we don't want to keep waiting for another instruction.
     else if (this.program_counter >= this.instruction_location_to_id(this.ending_program_counter)) {  //this.do_list.length
              //the normal stop case
-        if ((this.robot instanceof Dexter) &&
+        if (this.when_stopped == "wait") { //we're in a loop waiting for th next instruction.
+            this.color_job_button()
+            this.set_up_next_do(0)
+        }
+        else if ((this.robot instanceof Dexter) &&
             ((this.do_list.length == 0) ||
             (last(this.do_list)[Dexter.INSTRUCTION_TYPE] != "g"))){
             this.program_counter = this.do_list.length //probably already true, but just to make sure.
@@ -880,7 +945,7 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
                 stat = "interrupted"
                 reas = this.stop_job_instruction_reason
             }
-            this.stop_for_reason(stat, reas)
+            this.stop_for_reason(stat, reas, true) //true becuse this is a normal stop so perform the sotp reason if any
             this.finish_job()
         }
         else { this.finish_job() }
@@ -971,6 +1036,7 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
             this.do_next_item()
         }
     }
+    //this.color_job_button() //todo needs to work for Dexter.sleep (z) insurction and to undo its yellow.
 }
 
 /*cur_do_item is the fn, do_items is the val returned from calling it.
@@ -1040,7 +1106,8 @@ Job.prototype.insert_instructions = function(array_of_do_items){
 
 Job.prototype.send = function(instruction_array){ //if remember is false, its a heartbeat
     var instruction_id
-    if(instruction_array[Instruction.INSTRUCTION_TYPE] == "h") { //op_let is first elt UNTIL we stick in the instuction id
+    const oplet = instruction_array[Instruction.INSTRUCTION_TYPE]
+    if(oplet == "h") { //op_let is first elt UNTIL we stick in the instuction id
         //instruction_id = -1 //heartbeat always has instruction id of -1
         shouldnt('Job.send passed "h" instruction (heartbeat) but that shouldnt happen as heartbeat is handled lower level by Dexter robot')
     }
@@ -1059,6 +1126,7 @@ Job.prototype.send = function(instruction_array){ //if remember is false, its a 
     if (this.keep_history){
         this.sent_instructions.push(instruction_array) //for debugging mainly
     }
+
     this.robot.send(instruction_array)
 }
 
@@ -1384,7 +1452,7 @@ Job.prototype.instruction_location_to_id = function(instruction_location, starti
                       "in the original_instruction_location: " + orig_instruction_location)
         }
     }
-    if (typeof(inst_loc) == "number"){
+    if (Number.isInteger(inst_loc)){
         if (starting_id == null){
             if (inst_loc >= 0) { starting_id = 0 }
             else { starting_id = job_instance.do_list.length } // an initial negative inst_loc means count from the end, with -1 pointin at the last instruction
@@ -1557,6 +1625,33 @@ Job.insert_instruction = function(instruction, location){
                   " which doesn't specify a job. Location should be an array with" +
             "a first element of a literal object of {job:'some-job'}")
     }
+}
+
+//returns true if the argument is the right type to be an
+///instrudtion location. Note it might not actualy BE an instruction location,
+//but at least it coforms to the bare minimum of a type
+//called from Job constructor for use in finish_job
+Job.is_plausible_instruction_location = function(instruction_locaction){
+    return Number.isInteger(instruction_locaction) ||
+           (typeof(instruction_locaction) === "string") ||
+            //array check must be before object check because typeof([]) => "object"
+            (Array.isArray(instruction_locaction) &&
+                (instruction_locaction.length > 0) &&
+                Job.is_plausible_instruction_location(instruction_locaction[0])
+            ) ||
+           ((typeof(instruction_locaction) === "object") &&
+            (   instruction_locaction.offset ||
+                instruction_locaction.job    ||
+                instruction_locaction.process
+            ))
+}
+
+Job.is_plausible_when_stopped_value = function(val){
+    return ((val === "stop") ||
+            (val === "wait") ||
+            (typeof(val) === "function") ||
+            Job.is_plausible_instruction_location(val)
+            )
 }
 
 

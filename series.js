@@ -747,14 +747,21 @@ Series.instances = [
                                                                 return result},
         menu_insertion_string: Series.job_dot_last_job_name, menu_sel_start: true, menu_sel_end:null, sample:Series.job_dot_last_job_name}),
 
+    new Series({id:"series_job_method_id",
+        //in_series_fn: function(str){return str.endsWith("props")},
+        array: ["Job.insert_instruction","j1.start"],
+        menu_insertion_string: "Job.insert_instruction()", menu_sel_start:0, menu_sel_end:-2, sample:"Job.insert_instruction()"}),
+
     new Series({id:"series_robot_instruction_id", array: ["Dexter.capture_ad", "Dexter.capture_points", "Dexter.cause_error",
                                                           "Dexter.dma_read", "Dexter.dma_write", "Dexter.draw_dxf", "Dexter.exit",
                                                           "Dexter.empty_instruction_queue_immediately", "Dexter.empty_instruction_queue",
                                                           "Dexter.find_home", "Dexter.find_home_rep", "Dexter.find_index",
                                                           "Dexter.get_robot_status", "Dexter.get_robot_status_immediately",
                                                           "Dexter.load_tables", "Dexter.move_home", "Dexter.move_all_joints",
+                                                           "Dexter.move_all_joints_relative",
                                                           "Dexter.move_to",
                                                           "Dexter.run_gcode", "Dexter.record_movement", "Dexter.replay_movement",
+                                                          "Dexter.set_follow_me", "Dexter.set_force_protect", "Dexter.set_keep_position", "Dexter.set_keep_position_lock",
                                                           "Dexter.set_parameter", "Dexter.sleep",  "Dexter.slow_move", "Dexter.write", "Dexter.write_to_robot",
                                                           "Dexter.prototype.joint_angle", "Dexter.prototype.joint_angles", "Dexter.prototype.joint_xyz", "Dexter.prototype.joint_xyzs", "Dexter.prototype.xyz_invalid", //beware: these are NOT instructions but 'utility fns.' they are documented.
                                                            "make_ins",
@@ -773,7 +780,11 @@ Series.instances = [
                 "Dexter.RIGHT_IN",      "Dexter.RIGHT_OUT",     "Dexter.RIGHT_DOWN_IN", "Dexter.RIGHT_DOWN_OUT",
                 "Dexter.RIGHT_UP_IN",   "Dexter.RIGHT_UP_OUT"],
         menu_insertion_string:"Dexter.RIGHT_UP_IN", menu_sel_start:true, menu_sel_end:null, sample:"Dexter.RIGHT_UP_IN"}),
-    new Series({id:"series_dexter_constant_id",    array: [ 'Dexter.HOME_ANGLES', 'Dexter.PARKED_ANGLES',
+    new Series({id:"series_dexter_utility_id",
+        //in_series_fn: function(str){return str.endsWith("props")},
+        array: ["Robot.dexter0.joint_angle","Robot.dexter0.joint_angles","Robot.dexter0.joint_xyz","Robot.dexter0.joint_xyzs", "Robot.dexter0.prop", "Robot.dexter0.xyz_invalid"],
+        menu_insertion_string:"Robot.dexter0.prop()", menu_sel_start:0, menu_sel_end:-2, sample:"Robot.dexter0.prop()"}),
+    new Series({id:"series_dexter_constant_id",    array: [ 'Dexter.ACCELERATION', 'Dexter.HOME_ANGLES', 'Dexter.PARKED_ANGLES',
                                                             "Dexter.J1_ANGLE_MIN", "Dexter.J1_ANGLE_MAX",
                                                             "Dexter.J2_ANGLE_MIN", "Dexter.J2_ANGLE_MAX",
                                                             "Dexter.J3_ANGLE_MIN", "Dexter.J3_ANGLE_MAX",
@@ -781,7 +792,7 @@ Series.instances = [
                                                             "Dexter.J5_ANGLE_MIN", "Dexter.J5_ANGLE_MAX",
                           'Dexter.LINK1', 'Dexter.LINK2', 'Dexter.LINK3', 'Dexter.LINK4', 'Dexter.LINK5',
                           'Dexter.LINK1_AVERAGE_DIAMETER', 'Dexter.LINK2_AVERAGE_DIAMETER', 'Dexter.LINK3_AVERAGE_DIAMETER', 'Dexter.LINK4_AVERAGE_DIAMETER', 'Dexter.LINK5_AVERAGE_DIAMETER',
-                                                            'Dexter.LEG_LENGTH'
+                          'Dexter.LEG_LENGTH', 'Dexter.MAX_SPEED', 'Dexter.START_SPEED'
                                                             ],
         menu_insertion_string:"Dexter.LINK1", menu_sel_start:true, menu_sel_end:null, sample:"Dexter.LINK1"}),
     new Series({id:"series_robot_status_label_id", array: function(){ return Dexter.robot_status_index_labels},

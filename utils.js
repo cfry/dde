@@ -139,8 +139,8 @@ function integer_array_to_rgb_string(arr3){
 }
 //________Date________
 function is_valid_new_date_arg(string_or_int){
-    var d  = new Date(string_or_int)
-    if (Number.isNaN( d.valueOf())) { return false }
+    const timestamp = Date.parse(string_or_int)
+    if (Number.isNaN(timestamp)) { return false }
     else { return true }
 }
 

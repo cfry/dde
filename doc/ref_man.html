@@ -515,6 +515,26 @@ The parameters used to define a new Job are:
         the location of program_counter. Thus this instruction will be executed
         first when the job is run. Default null (no instruction added).
         </li>
+        <li><b>when_stopped</b> controls what happens when a job stops normally.<br/>
+             <code>"stop"</code> The default. The job stops.<br/>
+             <code>"wait"</code> The job waits for another instruction to be added
+               at the end of the do_list. Call <code>Job.insert_instruction</code>
+               from any JavaScript code to do this.<br/>
+             <code>A function</code> When the job reaches its normal stopping point,
+             the function is called with a 'this' of the job instance and no arguments.
+             This is effectively a callback when the job is done.<br/>
+             <code>An instruction location</code> This is similar to Robot.go_to
+             except that the job is re-iniitlizated with its original (as defined) do_list.
+             Any valid instruction location can be used (see doc in Robot.go_to) except
+             that it must have no job or indicate the current job. Using <code>0</code>
+             set's the job's program counte to instruction 0, causing the job to loop.
+             Using an instruction location 'offset' of greater than 0, such as a label,
+             will cause the initial running of the job to execute its top instructions,
+             but then subsequent iterations will start somewhere in the middle.<br/>
+             A Robot.stop_job instruction can be used to end a loop.
+             <p/>
+             See the menu item: Jobs/Insert Example/when_stopped
+        </li>
     </ol>
 </details> <!-- end new Job parameters -->
 
@@ -709,11 +729,11 @@ Example:<pre> Robot.get_page(make_url("www.nactem.ac.uk/software/acromine/dictio
 
 <details id="Robot.go_to_doc_id" class="doc_details"><summary>go_to</summary>
 In the 1960's programs were usually characterized by a list of instructions.
-As more flexible control was needed, the "go_to" instruction was added to
+As more flexible control was needed, the "goto" instruction was added to
 cause the program_counter that was pointing at the executing instruction to jump to
 a new location, instead of just incrementing. Overuse
 of this control structure gave rise to difficult-to-debug code and
-go_to fell out of favor, to the extent that it isn't even <i>in</i> popular modern
+goto fell out of favor, to the extent that it isn't even <i>in</i> popular modern
 general purpose languages.
 <p/>
 The process of making things often has a long list
@@ -1006,6 +1026,10 @@ is stopped and restarted.
   the current job will be stopped immediately. See Robot.go_to for details
   on the <code>instruction_location</code> format.<br/>
   <b>reason</b> A string. The reason that the job is being told to stop.<br/>
+  <b>perform_when_stopped</b> A boolean. When <code>false</code> (the default)
+  the job will behave as if its 'when_stopped' parameter is <code>"stop"</code>,
+  i.e. the job will end. When <code>true</code>, the job's when_stopped action will
+  be performed.<br/>
   Example:<pre>
   Robot.stop_job({job: "my_job", offset: "label1"})</pre>
   <code>Job.my_job</code> will stop when it reaches the instruction named "label1".
@@ -1343,50 +1367,84 @@ Unlike <code>get_robot_status</code>, this instruction causes Dexter to return i
 before any of the instructions on its <i>instruction queue</i> are executed.
 </details>
 
+<details id="Dexter.move_all_joints_doc_id" class="doc_details"><summary>move_all_joints</summary>
+move_all_joints is a lower level instruction than move_to, giving you the ability to dicate
+the angle of each of Dexter's 5 joints, J1 through J5. A joint's angle is specified in arc_seconds. 
+(There are 3600 arc_seconds per degree and 648,000 per 180 degrees.)
+The min and max angles of each joint are in constants: <code>Dexter.J1_ANGLE_MIN</code> 
+through <code>Dexter.J5_ANGLE_MAX</code>, all included in the series <b>Dexter_constant</b>. 
+Examples:<br/>
+<code>Dexter.move_all_joints(10000, null, 30000)</code><br/>
+<code>Dexter.move_all_joints([10000, null, 30000])</code><br/>
+Both of these have the same function, i.e. you can pass in an array of up to 5 arc_seconds,
+or you can pass in individual numbers.
+<code>null</code> or the lack of enough numbers means keep the angle for that joint what it is at now.
+</details>
+
+<details id="Dexter.move_all_joints_relative_doc_id" class="doc_details"><summary>move_all_joints_relative</summary>
+Similar to <code>Dexter.move_all_joints</code> except that the argument of an array of 5 joint angles are
+not used absolutely, but added to the previous angles indicated by DDE Dexter motion instructions.
+Note that this "base" that is added to is not literally the output of Dexter's optical sensors
+for joint position, but rather where the robot was <i>told</i> to go in its last motion instruction.
+<p/>
+A <code>null</code> or missing angle increments default to 0.<br/>
+<i>Example</i>:<br/>
+<code>dexter0.move_all_joints_relative([100000, 100000])</code><br/>
+tells dexter0 to move joints 1 and 2 to
+an angle that is 100K arc_seconds <i>more</i> than it is currently at.
+Joints 3, 4, and 5 stay the same.
+</details>
+
+<details id="Dexter.move_home_doc_id" class="doc_details"><summary>move_home</summary>
+Moves all joints to 0. J1 is facing forwards, J2, J3, J4 are straight up. J5 
+causes Link 5 to be horizontal pointing forwards.
+Example: <code>Dexter.move_home()</code>
+</details>
+
 <details id="Dexter.move_to_doc_id" class="doc_details"><summary>move_to</summary>
-This instruction commands Dexter to move from whereever it is, to position its
-end effector at the given x, y, z location. It is complicated by the fact that
-usually there is more than one configuration of Dexter's joints that
-can achieve that position and that Dexter is inherently limited by the
-lengths of its links. 
-<i>Parameters</i><br/>
-<b>xyz</b> tells Dexter to position its end effector to a position.
-An array of 3 numbers, each indicating microns from the position 0, 0, 0
-which is at the center of the base of Dexter, in its surface (think table) plane.
-Imagine yourself as Dexter facing forwards. The x-axis is to your left and right
-with left being negative and right being positive. The valid range is
--747804 to 747804. The Y axis runs from behind you to in front of you with
-negative behind you and positive in front ranging from -747804 to 747804.
-The z axis is vertical with below the table being negative and above the
-table ranging from -582704 to 912904 with 0 being at the table surface.
-Note that not all of the x,y,z combinations are reachable by Dexter. 
-If Dexter is on a table, then none of the negative y values are reachable,
-since they are below the table.
-The J5_direction parameter also affects reachability.
-<p/>
-<b>J5_direction</b> indicates the direction you want the end effector to be pointing.
-This is an array of 3 numbers (each ranging from -1 to 1)
-that you can think of as indicating a "point" off
-of the end of the end effector. The default is [0, 0, -1] which
-causes the end effector to point straight down. {needs work}
-<p/>
-<b>config</b> For most points within the reachability of Dexter, there are multiple
-ways in which Dexter can get there. config helps you specify your preference
-as to <i>how</i> Dexter configures its joints to get to the indicated x, y, z.
-There are 3 independent boolean values to determining this configuration.
-They are: <ul>
-<li><i>base-rotation</i> <code>LEFT</code> means J1, the base joint has a negative value,
-     ie it is to the right of facing front. Looking down from the top at Dexter this would
-     mean its rotated counter clockwise. The opposite direction is <code>RIGHT</code>
-     or clockwise.</li>
-<li><i>J3-position</i> Joint 3 can be thought of as Dexter's elbow. The elbow can be either
-      <code>UP</code> i.e. away from the table or <code>DOWN</code>, closer to the table./li>
-<li><i>J4 Position</i> Joint 4 can be thought of as Dexter's wrist. It can be pointing either
-    <code>IN</code>, towards the base, or <code>OUT</code>, away from the base.</li>
-</ul>
-Config is most easily specified using one of 26 constants such as:
-<code>Dexter.LEFT_DOWN_IN</code> or <code>Dexter.RIGHT_UP_OUT</code>. You can omit 1 or 2 of these value as in
-<code>Dexter.LEFT_IN</code>  or <code>Dexer.OUT</code>. The complete list is:<pre>
+        This instruction commands Dexter to move from whereever it is, to position its
+        end effector at the given x, y, z location. It is complicated by the fact that
+        usually there is more than one configuration of Dexter's joints that
+        can achieve that position and that Dexter is inherently limited by the
+        lengths of its links.
+        <i>Parameters</i><br/>
+        <b>xyz</b> tells Dexter to position its end effector to a position.
+        An array of 3 numbers, each indicating microns from the position 0, 0, 0
+        which is at the center of the base of Dexter, in its surface (think table) plane.
+        Imagine yourself as Dexter facing forwards. The x-axis is to your left and right
+        with left being negative and right being positive. The valid range is
+        -747804 to 747804. The Y axis runs from behind you to in front of you with
+        negative behind you and positive in front ranging from -747804 to 747804.
+        The z axis is vertical with below the table being negative and above the
+        table ranging from -582704 to 912904 with 0 being at the table surface.
+        Note that not all of the x,y,z combinations are reachable by Dexter.
+        If Dexter is on a table, then none of the negative y values are reachable,
+        since they are below the table.
+        The J5_direction parameter also affects reachability.
+        <p/>
+        <b>J5_direction</b> indicates the direction you want the end effector to be pointing.
+        This is an array of 3 numbers (each ranging from -1 to 1)
+        that you can think of as indicating a "point" off
+        of the end of the end effector. The default is [0, 0, -1] which
+        causes the end effector to point straight down. {needs work}
+        <p/>
+        <b>config</b> For most points within the reachability of Dexter, there are multiple
+        ways in which Dexter can get there. config helps you specify your preference
+        as to <i>how</i> Dexter configures its joints to get to the indicated x, y, z.
+        There are 3 independent boolean values to determining this configuration.
+        They are: <ul>
+            <li><i>base-rotation</i> <code>LEFT</code> means J1, the base joint has a negative value,
+                ie it is to the right of facing front. Looking down from the top at Dexter this would
+                mean its rotated counter clockwise. The opposite direction is <code>RIGHT</code>
+                or clockwise.</li>
+            <li><i>J3-position</i> Joint 3 can be thought of as Dexter's elbow. The elbow can be either
+                <code>UP</code> i.e. away from the table or <code>DOWN</code>, closer to the table./li>
+            <li><i>J4 Position</i> Joint 4 can be thought of as Dexter's wrist. It can be pointing either
+                <code>IN</code>, towards the base, or <code>OUT</code>, away from the base.</li>
+        </ul>
+        Config is most easily specified using one of 26 constants such as:
+        <code>Dexter.LEFT_DOWN_IN</code> or <code>Dexter.RIGHT_UP_OUT</code>. You can omit 1 or 2 of these value as in
+        <code>Dexter.LEFT_IN</code>  or <code>Dexer.OUT</code>. The complete list is:<pre>
 Dexter.LEFT            = [0, null, null]
 Dexter.LEFT_DOWN       = [0, 0,    null]
 Dexter.LEFT_UP         = [0, 1,    null]
@@ -1413,41 +1471,32 @@ Dexter.DOWN_OUT        = [null, 0, 1]
 Dexter.UP              = [null, 1, null]
 Dexter.UP_IN           = [null, 1, 0]
 Dexter.UP_OUT          = [null, 1, 1]</pre>
-The above list is in the series <b>Robot/robot config</b>.
-Not mentioning a boolean (null) means "don't care", ie let DDE figure it out. Since config limits
-the possible options, some configurations will be impossible with some xyz settings and/or
-J5_direction settings. Impossible settings cause an error.
+        The above list is in the series <b>Robot/robot config</b>.
+        Not mentioning a boolean (null) means "don't care", ie let DDE figure it out. Since config limits
+        the possible options, some configurations will be impossible with some xyz settings and/or
+        J5_direction settings. Impossible settings cause an error.
 </details> <!--end move_to -->
 
-<!--<details id="Dexter.move_to_relative_doc_id" class="doc_details"><summary>move_to_relative</summary>
-This function is the same as <code>Dexter.move_to</code> except that the xyz values are ADDED to Dexter's
-existing end effector xyz values, not taken as absolutes.
-</details>-->
+<details id="Dexter.move_to_relative_doc_id" class="doc_details"><summary>move_to_relative</summary>
+    This instruction is similar to <code>Dexter.move_to</code> except that the passed in
+    xyz array values are ADDED to Dexter's
+    existing end effector xyz values, not taken as absolutes. The other arguments to move_to
+    are not passed to this function but rather their previously supplied values are used.<br/>
+    <i>Parameter</i><br/>
+    <b>delta_xyz</b> Default: <code>[0, 0, 0]</code> The other instructions that move Dexter: Dexter.move_all_joints, Dexter.move_home, Dexter.move_to,
+     record the position that they've told Dexter to move to. Then Dexter.move_to_relative
+     uses that stored position and "increments" it by the supplied delta_xyz.
+     Note this "base" is not exactly the position of Dexter, but rather
+     the position that its been told to go by previous instructions.
+     <p>
+     <i>Example</i>:
+<pre>new Job({name: "my_job",
+         do_list: [Dexter.move_all_joints(Dexter.NEUTRAL_ANGLES),
+                   Dexter.move_to_relative([20000, 30000, 0])
+                   ]})</pre>
 
-<details id="Dexter.move_all_joints_doc_id" class="doc_details"><summary>move_all_joints</summary>
-move_all_joints is a lower level instruction than move_to, giving you the ability to dicate
-the angle of each of Dexter's 5 joints, J1 through J5. A joint's angle is specified in arc_seconds. 
-(There are 3600 arc_seconds per degree and 648,000 per 180 degrees.)
-The min and max angles of each joint are in constants: <code>Dexter.J1_ANGLE_MIN</code> 
-through <code>Dexter.J5_ANGLE_MAX</code>, all included in the series <b>Dexter_constant</b>. 
-Examples:<br/>
-<code>Dexter.move_all_joints(10000, null, 30000)</code><br/>
-<code>Dexter.move_all_joints([10000, null, 30000])</code><br/>
-Both of these have the same function, i.e. you can pass in an array of up to 5 arc_seconds,
-or you can pass in individual numbers.
-<code>null</code> or the lack of enough numbers means keep the angle for that joint what it is at now.
 </details>
 
-<!-- <details id="Dexter.move_all_joints_relative_doc_id" class="doc_details"><summary>move_all_joints_relative</summary>
-The same as Dexter.move_all_joints except that the given angles are added to the current
-angles of the robot. <code>null</code> or missing angle increments default to 0.
-</details> -->
-
-<details id="Dexter.move_home_doc_id" class="doc_details"><summary>move_home</summary>
-Moves all joints to 0. J1 is facing forwards, J2, J3, J4 are straight up. J5 
-causes Link 5 to be horizontal pointing forwards.
-Example: <code>Dexter.move_home()</code>
-</details>
 
 <details id="make_ins_doc_id" class="doc_details"><summary>make_ins</summary>
 Normally you should make instructions for Dexter using one of the high level method calls,
@@ -1498,33 +1547,79 @@ to move Dexter to "draw the lines" indicated by the gcode file.
   Causes Dexter to "go to sleep" for the number of milliseconds in the one argument.
   When Dexter receives the instruction, it waits for that number of milliseconds
   before returning control to the DDE job.<br/>
-  Example:<code>Dexter.sleep(1000)</code><br/>
+  <i>Example</i>:<code>Dexter.sleep(1000)</code><br/>
   Sleeps for 1 second.
 </details>
+<details class="doc_details"><summary>Dexter Modes</summary>
+Dexter can be put into one of several <i>modes</i> that governs its behavior.
+This is done by putting any one of the following Dexter instructions
+into a job. When the instruction is run, Dexter will go into that mode.
+<p/>
+Dexter maintains the last mode it was set to even across jobs, across DDE launches,
+and across power cycling Dexter. <p/>
+The default mode is set_keep_position.<br/>
+None of these instructions take arguments.
+    <details id="Dexter.set_follow_me_doc_id" class="doc_details"><summary>set_follow_me</summary>
+        The joints are freed up and the user can drag Dexter's end-effector.
+        Dexter's motion instructions (move_to, move_all_joints, etc.) will not work in this mode.
+        <p/>
+        <i>Example</i>: (as an instruction in a job's do_list.) <br/>
+        <code>Dexter.set_follow_me()</code>
+    </details>
+    <details id="Dexter.set_force_protect_doc_id" class="doc_details"><summary>set_force_protect</summary>
+        Dexter will move to the locations it is told to by instructions.
+        But if Dexter is bumped or runs into an object (ie a <i>quick</i> force)
+        it will move out of the way.
+        However, if a <i>slow</i> force is applied, even if that force is large,
+        Dexter will counter that force and attempt to maintain its position.
+        <p/>
+        <i>Example</i>: (as an instruction in a job's do_list.) <br/>
+        <code>Dexter.set_force_protect()</code>
+    </details>
+    <details id="Dexter.set_keep_position_doc_id" class="doc_details"><summary>set_keep_position</summary>
+        Dexter will move to the locations it is told to by instructions.
+        Dexter will actively compensate for any applied forces.
+        This mode creates the most accurate joint angles and paths.
+        This is the default mode.
+        <p/>
+        <i>Example</i>: (as an instruction in a job's do_list.) <br/>
+        <code>Dexter.set_keep_position()</code>
+    </details>
+    <details id="Dexter.set_keep_position_lock_doc_id" class="doc_details"><summary>set_keep_position_lock</summary>
+        Dexter will move to the locations it is told to by instructions.
+        Dexter will not actively compensate for any applied forces.
+        The stepper motors are locked at each desired location but the actually joint angles will have error.
+        This mode can be useful for accurately measuring torque.<br/>
+        <i>Example</i>: (as an instruction in a job's do_list.)
+        <p/>
+        <code>Dexter.set_keep_position_lock()</code>
+    </details>
+</details>
+
 </details> <!-- end dexter_instructions -->
 
 <details  class="doc_details"><summary>Dexter Utilities</summary>
 
-<details id="Dexter.prototype.joint_angle_doc_id" class="doc_details"><summary>joint_angle</summary>
+<details id="Robot.dexter0.joint_angle_doc_id" class="doc_details"><summary>joint_angle</summary>
 Returns the present angle of the joint indicated in the argument in arc_seconds.
 Example:<br/><code>a_robot.joint_angle(2)</code> => some_arc_seconds.
 The argument defaults to 1, ie the base joint.
 </details>
 
-<details id="Dexter.prototype.joint_angles_doc_id" class="doc_details"><summary>joint_angles</summary>
+<details id="Robot.dexter0.joint_angles_doc_id" class="doc_details"><summary>joint_angles</summary>
 Takes no arguments. Returns an array of the angles of the 5 joints in arc_seconds.
 Example:<br/><code>a_robot.joint_angles()</code> => <br/>
 [j1_arc_seconds, j2_arc_seconds, j3_arc_seconds, j4_arc_seconds, j5_arc_seconds]
 </details>
 
-<details id="Dexter.prototype.joint_xyz_doc_id" class="doc_details"><summary>joint_xyz</summary>
+<details id="Robot.dexter0.joint_xyz_doc_id" class="doc_details"><summary>joint_xyz</summary>
 Takes one argument, an integer from 1 to 5 indicating a joint.
 Returns the present angle of the indicated joint in arc_seconds.
 Example:<br/><code>a_robot.joint_xyz(2)</code> => some number in microns.
 The argument defaults to 5, ie the end effector.
 </details>
 
-<details id="Dexter.prototype.joint_xyzs_doc_id" class="doc_details"><summary>joint_xyzs</summary>
+<details id="Robot.dexter0.joint_xyzs_doc_id" class="doc_details"><summary>joint_xyzs</summary>
 Takes no arguments. Returns an array of the xyzs of the 5 joints with
 the base position prepended on the beginning of the returned array.
 Positions are in microns.
@@ -1539,7 +1634,7 @@ Example:<br/><code>a_robot.joint_xyzs()</code> => <pre>
 ]</pre>
 </details>
 
-<details id="Dexter.prototype.xyz_invalid_doc_id" class="doc_details"><summary>xyz_invalid</summary>
+<details id="Robot.dexter0.xyz_invalid_doc_id" class="doc_details"><summary>xyz_invalid</summary>
 Returns false if the given xyz point does not collide with the table or Dexter.
 Returns joint number and microns below table if xyz is below the table.<br/>
 <i>Parameters</i><br/>
@@ -1549,11 +1644,47 @@ Returns joint number and microns below table if xyz is below the table.<br/>
  See Dexter.move_to for explanation of 'config'.<br/>
  Example: <code>a_robot.xyz_invalid([10000, 20000, 30000])</code> => false
 </details>
+
+<details id="Robot.dexter0.prop_doc_id" class="doc_details"><summary>prop</summary>
+<b>prop</b> is a Dexter instance method that takes a string
+naming a property and returns it's value.
+Most of the values are numbers.<br/>
+<i>Example</i>:<br/>
+<code>Robot.dexter0.prop("LINK1"] => 330200</code><p/>
+If the the Dexter instance has the property as an instance property,
+its value is returned.<br/>
+Else if the property is included in a file
+on the dexter robot of //robot.ip_address./share/robot_props.json<br/>
+<i>Example:</i><br/>
+<code>//192.168.1.142/share/robot_props.json</code><br/>
+then a value specific to the robot is returned.
+This is used for link lengths (properties LINK1, LINK2 ... LINK5)
+because each Dexter has very slightly different link lengths.
+Due to Dexter's precision, we must take these lengths into
+account when moving the robot to a location.<br/>
+Else if the the property is a class property of Dexter
+(used for "typical values" or values appropriate for all Dexters),
+then that value is returned.<br/>
+Otherwise, <code>undefined</code> is returned.
+
+This method checks for a file in DDE apps corresponding
+to a robot and, if any, parses its content as a JSON object.
+If the file does not exist, an object is created and returned.
+<p/>
+You may add a property to a dexter instance like so:<br/>
+<code> Robot.dexter0.my_val = 123</code><br/>
+and you can access that via <br/>
+<code>Robot.dexter0.my_val</code> or <br/>
+<code>Robot.dexter0.prop("my_val")</code><br/>
+If you want this value to persist accross DDE launches,
+just stick<br/>
+<code> Robot.dexter0.my_val = 123</code><br/>
+in the file "dde_apps/dde_init.js"
+</details>
 </details> <!-- end Dexter Utilities -->
 
 <details class="doc_details"><summary>Dexter Constants</summary>
-<pre>
-//values in microns
+<pre>//values in microns
 Dexter.LINK1 = 165100   //  6.5 inches,    
 Dexter.LINK2 = 320675   // 12 5/8 inches 
 Dexter.LINK3 = 330200   // 13 inches      
@@ -1580,9 +1711,14 @@ Dexter.J4_ANGLE_MAX  =  486000    //  135 degrees
 Dexter.J5_ANGLE_MIN  = -Infinity  // rotate
 Dexter.J5_ANGLE_MAX  =  Infinity  // rotate
 
-Dexter.RIGHT_ANGLE   = 324000 // 90 degrees
-Dexter.HOME_ANGLES   = [0, 0, 0, 0, 0]  //j2,j3,j4 straight up, link 5 horizontal pointing frontwards.
-Dexter.PARKED_ANGLES = [0, 0, 630000, 162000, 0 ] //all folded up, compact.
+Dexter.RIGHT_ANGLE    = 324000 // 90 degrees
+Dexter.HOME_ANGLES    = [0, 0, 0, 0, 0]  //j2,j3,j4 straight up, link 5 horizontal pointing frontwards.
+Dexter.NEUTRAL_ANGLES = [0, 162000, 324000, -162000, 0] // lots of room for Dexter to move from here.
+Dexter.PARKED_ANGLES  = [0, 0, 486000, 162000, 0 ] //all folded up, compact.
+
+Dexter.MAX_SPEED    = 100 //arcseconds per milliseconds
+Dexter.START_SPEED  = 0.5 //arcseconds per milliseconds
+Dexter.ACCELERATION = 1   //arcseconds^2 per milliseconds
 </pre>
 </details> <!--end Dexter Contantants -->
 
@@ -1905,6 +2041,12 @@ These new methods, in conjunction with existing JS functions,
 give you a pretty good prototype object system.
 <p/>
 </details> <!-- overview -->
+
+<details class="doc_details"><summary>Calling Methods</summary>
+Method calls look very similar to Javscript method calls.
+Within the body of a method, you can use <code>this</code> to refer
+to the object instance that the method was called with, just like JS.
+</details>
 
 <details class="doc_details"><summary>New Object System Methods</summary>
 DDE augments JS with some new variables, functions and methods to
@@ -2303,7 +2445,8 @@ newObject({name: "junk"}).sourceCode() =><br/>
             &nbsp;&nbsp;&nbsp;content:'&lt;p id="p_id" class="clickable">some para&lt;/p>',<br/>
             &nbsp;&nbsp;&nbsp;callback: function (vals){ append_in_ui("p_id", "&lt;h1>hey&lt;/h1>")}<br/>
             })</code><br/>
-        <b>callback</b> A function of one argument. It will be called when a the user clicks a button in
+        <b>callback</b> A function of one argument. Any returned valued will be ignored.
+        It will be called when a the user clicks a button in
         a show_window. It's argument will be a literal object. Many of its fields are x and y positions
         reletive to the top-left of html elements in or containing the clicked position.
         An example:<br/><pre>

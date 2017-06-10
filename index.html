@@ -125,6 +125,8 @@
     <script type="text/javascript" src="math/Vector.js"></script>
     <script type="text/javascript" src="math/Kin.js"></script>
     <script type="text/javascript" src="math/Coor.js"></script>
+    <script type="text/javascript" src="math/Dexter_Modes.js"></script>
+    <script type="text/javascript" src="math/txt.js"></script>
     <script type="text/javascript" src="math/dxf-parser.js"></script>
     <script type="text/javascript" src="math/DXF.js"></script>
 
@@ -404,7 +406,8 @@
                                         <li File id="series_file_id" title="Functions for files and persistent data.">File</li>
                                         <li>Job
                                             <ul>
-                                                <li id="series_job_name_id"            title="Insert a job name.">job name</li>
+                                                <li id="series_job_name_id"     title="Insert a job name.">job name</li>
+                                                <li id="series_job_method_id"  title="Insert a job method.">job method</li>
                                             </ul>
                                         </li>
                                         <li>Robot
@@ -415,6 +418,7 @@
                                                 <li id="series_robot_status_label_id"  title="Insert a robot status label.">robot status label</li>
                                                 <li id="series_robot_subclass_id"      title="Insert a call to create an instance of a Robot subclass.">robot subclass</li>
                                                 <li id="series_robot_name_id"          title="Insert code to get a robot instance.">robot name</li>
+                                                <li id="series_dexter_utility_id"      title="Insert a call to a Dexter method.">Dexter utility</li>
                                                 <li id="series_dexter_constant_id"     title="Insert a Dexter joint angle min, max or link length.">Dexter constant</li>
                                                 <li id="series_serial_id"              title="Insert function names of DDE's serial port interface.&#013;These low level functions are used by Robot.Series">serial port</li>
                                             </ul>
@@ -456,12 +460,13 @@
                                                 <li id="insert_job_example1_id" title="Insert into the editor an example of defining a simple job.">1. Simple</li>
                                                 <li id="insert_job_example2_id" title="Insert into the editor a job with function call instructions.">2. Dexter & Fns</li>
                                                 <li id="insert_job_example3_id" title="Insert into the editor examples of defining 3 complex jobs using generators.">3. Generators</li>
-                                                <li id="insert_job_example4_id" title="Insert into the editor examples of defining jobs that interact with other jobs.">4. Multiple Jobs</li>
+                                                <li id="insert_job_example4_id" title="Insert into the editor examples of defining jobs that interact with other jobs.">4. Sync Jobs</li>
                                                 <li id="insert_job_example5_id" title="Insert into the editor examples of defining a job that gets user input while running.">5. User Input</li>
                                                 <li id="insert_job_example6_id" title="Insert into the editor examples of using a human 'robot'.">6. Human Instrs</li>
                                                 <li id="insert_job_example7_id" title="Insert into the editor a job containing&#013;Human.enter_instruction.">7. Enter Instruction</li>
                                                 <li id="insert_job_example8_id" title="Insert into the editor a tutorial on using Asynchronous Functions.">8. Async Fns</li>
                                                 <li id="insert_job_example9_id" title="Insert into the editor a tutorial on using Serial Port.">9. Serial Port</li>
+                                                <li id="insert_job_example10_id" title="Insert into the editor a tutorial on using&#013;when_stopped for looping a job, etc.">10. when_stopped</li>
                                             </ul>
                                         </li>
                                     </ul>

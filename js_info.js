@@ -209,7 +209,7 @@ Js_info = class Js_info {
 
     static strip_path_prefix_maybe(fn_name){
         if (!fn_name.includes(".")) { return fn_name }
-        else if (starts_with_one_of(fn_name, ["Dexter.", "Math.", "Number.", "Object.", "Series.",
+        else if (starts_with_one_of(fn_name, ["Dexter.", "Job.", "Math.", "Number.", "Object.", "Series.",
                                               "Brain.", "Human.", "Robot.", "Serial."
                                               ])) {
             return fn_name
@@ -353,8 +353,8 @@ Js_info = class Js_info {
                 let fn11 = value_of_path(fn_name)
                 return "function " + Js_info.wrap_fn_name(fn_name) + function_params(fn11)
             case "series_file_id":
-                let fn2 = value_of_path(fn_name)
-                let prefix = ((typeof(fn2) == "function") ? "function " : "global variable ")
+                let fn2       = value_of_path(fn_name)
+                let prefix    = ((typeof(fn2) == "function") ? "function " : "global variable ")
                 let fn_params = ((typeof(fn2) == "function") ? function_params(fn2) : " = " + fn2) //good for "operating_system" global var
                 return prefix + Js_info.wrap_fn_name(fn_name) + fn_params
             case "series_object_system_id":
@@ -367,6 +367,9 @@ Js_info = class Js_info {
                     return "<code style='color:blue;'>" + before_start + the_a_tag + "</code>"
                 }
                 else { return "<code style='color:blue;'>" + fn_name + "</code> => instance of Job"}
+            case "series_job_method_id":
+                let fn13 = value_of_path(fn_name)
+                return "function " + Js_info.wrap_fn_name(fn_name) + function_params(fn13)
             case "series_robot_instruction_id":
                 if (fn_name == '"debugger"') {
                     return '<span style="color:blue;">&quot;</span>' +
@@ -377,6 +380,9 @@ Js_info = class Js_info {
                 return "function " + Js_info.wrap_fn_name(fn_name) + function_params(fn4)
             case "series_robot_status_label_id":
                 return 'Job.a_job_name.robot.robot_status[<code style="color:blue;">' + fn_name + '</code>]'
+            case "series_dexter_utility_id":
+                let fn40 = value_of_path(fn_name)
+                return "<span style='color:blue;'>" + Js_info.wrap_fn_name(fn_name) + '</span>' + function_params(fn40)
             case "series_dexter_constant_id": //fn_name looks like 'Dexter.link0'
                 let the_constant_val = Dexter[fn_name.split(".")[1]]
                 let dc_units = ""

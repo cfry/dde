@@ -1122,10 +1122,11 @@ Instruction.Control.start_job = class start_job extends Instruction.Control{
 }
 
 Instruction.Control.stop_job = class stop_job extends Instruction.Control{
-    constructor (instruction_location="program_counter", stop_reason=null) {
+    constructor (instruction_location="program_counter", stop_reason=null, perform_when_stopped=false) {
         super()
         this.instruction_location = instruction_location
         this.stop_reason = stop_reason
+        this.perform_when_stopped = perform_when_stopped
     }
     do_item (job_instance){
         var job_to_stop = Job.instruction_location_to_job(this.instruction_location, false)
@@ -1133,9 +1134,9 @@ Instruction.Control.stop_job = class stop_job extends Instruction.Control{
         if (!job_to_stop) { job_to_stop = job_instance }
         job_to_stop.ending_program_counter = this.instruction_location
         if (!this.stop_reason){
-            job_to_stop.stop_for_reason("interrupted", "Stopped by Job." + job_instance.name + " instruction: Robot.stop_job.")
+            this.stop_reason = "Stopped by Job." + job_instance.name + " instruction: Robot.stop_job."
         }
-        //job_to_stop.stop_job_instruction_reason = this.stop_reason
+        job_to_stop.stop_for_reason("interrupted", this.stop_reason, this.perform_when_stopped)
         job_instance.set_up_next_do()
     }
     toString(){
@@ -1372,6 +1373,7 @@ Instruction.Control.wait_until = class wait_until extends Instruction.Control{
                                        Brain.wait_until(this.fn_date_dur.milliseconds - 1000)] //create new wait_until to wait for the remaining time
                 job_instance.insert_instructions(new_instructions)
                 this.start_time = null //essential for the 2nd thru nth call to start() for this job.
+                job_instance.wait_reason = null
                 job_instance.set_status_code("running")
                 job_instance.set_up_next_do(1)
             }
@@ -1388,16 +1390,22 @@ Instruction.Control.wait_until = class wait_until extends Instruction.Control{
                                        null : job_instance.do_list[pc + 1])
             if (this.old_instruction === undefined){ //first time through only
                 this.old_instruction = next_instruction
+                job_instance.wait_reason = 'until "new_instruction"'
+                job_instance.set_status_code("waiting")
                 job_instance.set_up_next_do(0)
             }
             else if (this.old_instruction === null){ //started with this instr as the last one
                 if (pc_on_last_instr) { job_instance.set_up_next_do(0) }
-                else                  { job_instance.set_up_next_do(1) } //got a neew last instr
+                else                  {
+                   job_instance.set_up_next_do(1)
+                } //got a new last instr
             }
             else if (next_instruction == this.old_instruction){//no change so don't advance the pos
                 job_instance.set_up_next_do(0)
             }
             else { //got a new instruction since this instruction started running so execute it
+                job_instance.wait_reason = null
+                job_instance.set_status_code("running")
                 job_instance.set_up_next_do(1)
             }
         }
@@ -1413,9 +1421,13 @@ Instruction.Control.wait_until = class wait_until extends Instruction.Control{
                     warning("Robot.wait_until is waiting for job: " + loc_job_instance.name +
                             "<br/>but that job is stopped, so it will probably wait forever.")
                 }
+                job_instance.wait_reason = "until instruction_location reached"
+                job_instance.set_status_code("waiting")
                 job_instance.set_up_next_do(0)
             }
             else { //done waiting, loc_job_instance already at or passe loc_ps
+                job_instance.wait_reason = null
+                job_instance.set_status_code("running")
                 job_instance.set_up_next_do(1)
             }
         }

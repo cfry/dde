@@ -43,7 +43,7 @@ function move_once(){
 function sleep_and_move(){
     return [Dexter.move_all_joints([10000, 20000, 30000, 40000, 50000]),
             Dexter.sleep(500),
-            Dexter.move_to([100000, 200000, 250000], [0, 0, -1], Dexter.RIGHT_UP_IN)
+            Dexter.move_to([100000, 80000, 90000], [0, 0, -1], Dexter.RIGHT_UP_IN)
            ]
 }
 new Dexter({name: "my_dex",
@@ -560,5 +560,59 @@ Job.j10.start()
 
 Job.j10.user_data //all the user data
 Job.j10.user_data.yes_result //just our yes_result
+`,
+
+`/*Job Example 10 when_stopped
+The 'when_stopped' parameter to new Job controls what
+happens when a job executes all its instructions or otherwise
+comes to a normal stopping point. The default value is "stop",
+i.e. just stop the job. But you can instead cause the job to
+wait for another instruction, loop, or call a callback function.
+*/
+//______job_ws1_____Wait for a new instruction to be added
+//Click the Job's button in the Output pane header to stop it.
+new Job({name: "job_ws1", 
+         when_stopped: "wait",
+         do_list: [Robot.out("hey")]})
+Job.job_ws1.start()
+//Select and eval the below to add an instruction to the started job_ws1
+Job.insert_instruction(Robot.out("you2"), {job: "job_ws1", offset: "end"})
+//You can do this as many times as you like.
+//Click the Job's button to stop it or Eval:
+Job.insert_instruction(Robot.stop_job(), {job: "job_ws1", offset: "end"})
+         
+//______job_ws2_____You can even avoid a do_list completely.
+new Job({name: "job_ws2", 
+         when_stopped: "wait"})
+Job.job_ws2.start()
+//Eval the below to add and run an instruction:
+Job.insert_instruction(Robot.out("joe1"), {job: "job_ws2", offset: "end"})
+
+
+//______job_ws3______Call a callback function when the job finishes
+new Job({name: "job_ws3", 
+         when_stopped: function(){out("I've had it.")},
+         do_list: [Robot.out("I'm running.")]})
+
+//______job_ws4______Call a callback function when the job finishes
+//but also perform the when_stopped action due to stop_job's 3rd (true) arg.
+new Job({name: "job_ws4", 
+         when_stopped: function(){out("I'm dead.")},
+         do_list: [Robot.out("I'm alive."),
+                   Robot.stop_job("program_counter", "because I said so", true),
+                   Robot.out("I'm not run.") //not reached
+                 ]})
+         
+//______job_ws5______Infinite Loop
+new Job({name: "job_ws5", 
+         when_stopped: 0, //when its done, restart job at instruction 0 
+         do_list: [function(){
+                      if(Job.global_user_data.counter) {
+                          Job.global_user_data.counter += 1
+                      }
+                      else { Job.global_user_data.counter = 1 }
+                      out("counter = " + Job.global_user_data.counter)
+                    },
+                    Robot.wait_until(2000)]}) //sleep for 2 seconds
 `
 ]

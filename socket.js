@@ -7,7 +7,7 @@ var Socket = class Socket{
     static init(robot_name, simulate, ip_address, port=50000){
         //console.log("Creating Socket for ip_address: " + ip_address + " port: "   + port + " robot_name: " + robot_name)
         const sim_actual = Robot.get_simulate_actual(simulate)
-        if ((sim_actual === true)  || (sim_actual == "both")) { DexterSim.create(robot_name, sim_actual) }
+        if ((sim_actual === true)  || (sim_actual == "both")) { DexterSim.create_or_just_init(robot_name, sim_actual) }
         if ((sim_actual === false) || (sim_actual == "both")) {
             try {
                 let ws_inst = new net.Socket()

@@ -5,6 +5,112 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+
+<details class="doc_details"><summary>v 1.1.9, June 9, 2017</summary>
+    Highlights: New simulate archtecture that more closely models Dexter
+    hardware. New Job param: when_stopped. New instructions:
+    Dexter.move_all_joints_relative and 4 new Dexter "mode" instructions.
+    New dexter0.prop("prop_name")
+<ul>
+<li>Now when you switch to edit a file that's in the files menu,
+then relaunch DDE, the last file you edited will show up in the editor
+after you relaunch.</li>
+
+<li> New Reference manual section Object System/Calling Methods</li>
+
+<li> Ref Man documentation for Robot.go_to now has the word
+"goto" in it so that users can "find" such a string
+if they type in it.</li>
+
+<li> New Dexter instruction Dexter.move_all_joints_relevative takes same params as move_all_joints
+     angles default to 0. See Ref Man/Robots/Dexter/Dexter utilities/prop</li>
+
+
+<li>Dexter.move_all_joints, Dexter.move_to and
+Dexter.move_to_relative now properly stores the angles
+it causes Dexter to move to.</li>
+
+<li> Cleaned up Dexter.move_all_joints for defaulting values.</li>
+
+<li>Dexter.move_to now errors if told to move out of range.</li>
+
+<li>Dexter.move_to_relative: fixed bugs and documented in the ref man.</li>
+
+<li>improved the program_counter argument of Job.start to
+be able to accept an instuction location of a job
+that is the same as the job being started, rather than
+only NO JOB.</li>
+
+<li>New <code>new Job</code> parameter of 'when_stopped', permitting
+a job to loop, have a callback, or wait for an instruction.
+See Ref Man/Job/new Job Parameters and
+DDE menu item: Jobs/Insert Example/when_stopped.</li>
+
+<li>Now when a job is waiting for "new_instruction",
+its button is colored yellow.</li>
+
+<li>New Dexter instructions to set Dexter in a "mode":
+  <ul><li>Dexter.set_follow_me</li>
+      <li>Dexter.set_force_protect</li>
+      <li>Dexter.set_keep_position</li>
+      <li>Dexter.set_keep_position_lock</li>
+   </ul>
+New Ref Man Section: Dexter Instructions/Dexter Modes/
+that documents each. Click help supported.
+</li>
+
+<li> New support for drawing characters. Not yet documented.</li>
+
+<li> New series: "Dexter Utility" now on the series menu,
+with click help for all the methods in the Dexter Utilities
+section of the Ref Man.</li>
+
+<li> Kin.J_angles_to_config fixed</li>
+
+
+<li> Adjusted Jobs/Insert Example/2 microns to not error.</li>
+
+<li>  Extended User Guide with info on "Common JS Errors".</li>
+
+<li>Robot.stop_job now takes a 3rd arg:
+       perform_when_stopped (default false )
+       See Ref Man/Job/new Job parameters/when_stopped and
+       DDE menu bar/Jobs/Insert Example/10. when_stopped</li>
+
+<li> New simulation architecture that more closely models
+   Dexter hardware by being more independent of DDE processing.
+   This was necessary to support new Jobs param: when_stopped.</li>
+
+
+<li>Ref man for show_window callback param extended to say that
+returned values will be ignored.</li>
+
+<li> DDE menu bar/Jobs/Insert Example/Multiple Jobs respelled to "Sync Jobs"</li>
+
+<li> New constants:
+<ul><li>Dexter.MAX_SPEED    = 100 //arcseconds per milliseconds</li>
+    <li>Dexter.START_SPEED  = 0.5 //arcseconds per milliseconds</li>
+    <li>Dexter.ACCELERATION = 1   //arcseconds^2 per millisecond</li>
+</ul></li>
+
+<li>added constant: Dexter.NEUTRAL_ANGLES
+           where there's lots of room to move from this position.
+
+<li> New value for Dexter.PARKED_ANGLES  that doesn't error: [0, 0, 486000, 162000, 0 ]</li>
+
+
+<li> New method: dexter0.prop. sophisticated lookup of properties on Dexter.
+   See Ref Man/Robots/Dexter/Dexster Utilities/prop.</li>
+
+<li> New series "job_method" includes Job.insert_instruction and j1.start
+     Now has click help and doc in ref man. See DDE menu bar/Series/Job/job method</li>
+
+
+<li> Speed improvement for testing if a source code string is a date.</li>
+
+<li> Dexter.sleep: fixed bug with duration being off by a factor of a million.</li>
+</ul>
+</details>
 <details class="doc_details"><summary>v 1.1.8, May 19, 2017</summary>
     Highlights: New Robot simulation options "both" (experimental) and null.
                 Bug fixes to simulate, send_to_job, serial port
