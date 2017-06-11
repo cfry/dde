@@ -1223,13 +1223,10 @@ var Kin = new function(){
     		out("dde_warning: " + message, "red")
         }
     }
-   	out(Kin.predict_move_dur(J_angles_A[0], J_angles_A[1]))
     */
     
-    //returns time in seconds
-    // example call: Kin.predict_move_dur()
-this.predict_move_dur = function(J_angles_original, J_angles_destination, robot /*returns milliseconds*/){
-        let speed = robot.props().MAX_SPEED
+this.predict_move_dur = function(J_angles_original, J_angles_destination, robot /*returns time in milliseconds*/){
+        let speed = robot.prop.MAX_SPEED
         let delta = Vector.subtract(J_angles_original, J_angles_destination)
         return 1000*Vector.max(delta)/speed
     }
