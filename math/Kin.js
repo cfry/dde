@@ -1226,7 +1226,7 @@ var Kin = new function(){
     */
     
 this.predict_move_dur = function(J_angles_original, J_angles_destination, robot /*returns time in milliseconds*/){
-        let speed = robot.prop.MAX_SPEED
+        let speed = robot.prop("MAX_SPEED")
         let delta = Vector.subtract(J_angles_original, J_angles_destination)
         return 1000*Vector.max(delta)/speed
     }
