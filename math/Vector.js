@@ -971,7 +971,8 @@ var Vector = new function(){
     ***********************************************************/
     /*
     Vector.make_matrix(3,"tilt")
-    Vector.make_matrix(3)
+    debugger
+    Vector.make_matrix(1,0)
     */
     
     this.make_matrix = function(nRows, nColumns, value = 0){
@@ -1369,13 +1370,22 @@ var Vector = new function(){
    var mat2 = Vector.inverse(imat)
    */
     
+    /*
+    var mat = []
+    Vector.matrix_dimensions(mat)
+    debugger
+    Vector.matrix_dimensions(3)
+    */
     
     this.matrix_dimensions = function(matrix){
     	let width
-    	let height = matrix.length
-        if(height == undefined || height == 0){
-        	width = 1
-        	height = 1
+        let height = matrix.length
+        if(height == undefined){
+        	return [1, 0]
+        }
+        if(height == 0){
+        	width = 0
+        	height = 0
             return [height, width]
         }
         width  = matrix[0].length
@@ -1918,33 +1928,9 @@ var Vector = new function(){
             	A = [[A11, A12], [A21, A22]]
             	B = [[B1], [B2]]
             	sol = Vector.matrix_multiply(Vector.inverse(A), B)
-                out("A: ")
-                out(A)
-                out("B: ")
-                out(B)
         		break
         	default:
             	let size = order+1
-                /*
-            	let x_sum_vector = Vector.make_matrix(1, size)[0]
-                let y_sum = 0
-                let temp_vector
-                
-            	A = Vector.make_matrix(size,1)
-                B = Vector.make_matrix(size,1)
-            	for(let i = 0; i < dim_x[1]; i++){
-                	xi = x_data[i]
-                    temp_vector = []
-                    for(let j = size-1; j >= 0; j--){
-                    	temp_vector.push(Math.pow(xi,j))
-                    }
-                    x_sum_vector = Vector.add(x_sum_vector, temp_vector)
-                    y_sum += y_data[i]
-                }
-                for(let i = 0; i < size; i++){
-                	A[i] = x_sum_vector
-                    B[i] = [y_sum]
-                }*/
                 A = Vector.make_matrix(size)
                 B = Vector.make_matrix(size,1)
                 let powers = Vector.make_matrix(size, "tilt")
@@ -1958,15 +1944,7 @@ var Vector = new function(){
                         B[i][0] += 2*Math.pow(xi, size-i-1)*yi
                     }
             	}
-                out("A: ")
-                out(A)
-                out("B: ")
-                out(B)
-                
                 sol = Vector.matrix_multiply(Vector.inverse(A), B)
-            	
-            
-            	//dde_error(" A polynomial fit of order " + order + " is not supported yet")
     	}
     	return sol
 	}

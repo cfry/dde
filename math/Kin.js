@@ -2,17 +2,155 @@
 //Inverse Kinematics + Forward Kinematics + supporting functions
 //James Wigglesworth
 //Started: 6_18_16
-//Updated: 6_19_17
+//Updated: 6_16_17
 
 
-var newKin = new function(){
+var Kin = new function(){
+    
+    this.IK = function({xyz, normal = [0, 0, -1], config = [1, 1, 1], base_coor, ref_coor}){
+    	if(base_coor === undefined){
+        	
+        }else{
+        	U[0] = base_coor.get_position()
+            P[0] = base_coor.get_pose()
+        }
+    
+    	var J = new Array(5) // Joint Angles
+    	var U = new Array(5).fill(new Array(3)) //Point Locations
+        var P = new Array(3).fill(new Array(4)) //Planes
+        var L = [Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5] //Link Lengths
+
+		//Default Values:
+    	U[0] = U0 		//Base Location
+    	var V10 = V10 	//Base Orientation
+    	P[0] = P0 		//Base Plane
+    	var right_arm = state[0];
+    	var elbow_up = state[1];
+    	var wrist_out = state[2];
+		
+		
+        
+    	//Calculations:
+    	var V54 = Vector.multiply(-1, Vector.normalize(normal)) //Direction of 
+        if(Vector.is_equal(tool_xyz, [0, 0, Dexter.LINK5]) && (Vector.is_equal(tool_normal, [0, 0, 1]))){
+        	//Desired End Effector Position
+        	U[5] = xyz
+            U[4] = Vector.add(U[5], Vector.multiply(L[4], V54))
+        }else{
+        	/*
+            let tool_V54 = Vector.multiply(-1, tool_xyz)
+            let tool_U5 = xyz
+            let tool_U4 = Vector.add(xyz, tool_V54)
+            let theta = Vector.signed_angle(normal, tool_normal, Vector.cross(normal, tool_normal))
+            let tool_U4 = Vector.rotate(tool_U4, Vector.cross(normal, tool_normal), theta, tool_U5)
+            let tool_plane = Vector.complete_plane(tool_V54, tool_U4)
+            //let proj_U1 = 
+            
+            local_xyz
+            local_normal
+        	U[4] = Vector.add(U[5], Vector.multiply(L[4], V54))
+            */
+        }
+    	 
+    	
+    	//Easy points
+    	U[1] = Vector.add(U[0], Vector.multiply(L[0], V10))
+    	
+        
+    	//Solving for P1
+        //debugger
+    	P[1] = Vector.points_to_plane(U[1], U[0], U[4])
+        
+    	//Solving for U3
+    	var U54_Proj = Vector.project_vector_onto_plane(V54, P[1])
+    	var U3_a = Vector.add(U[4], Vector.multiply(L[3], Vector.rotate(Vector.normalize(U54_Proj), P[1], 324000)))
+        var U3_b = Vector.add(U[4], Vector.multiply(L[3], Vector.rotate(Vector.normalize(U54_Proj), P[1], -324000)))
+        var dist_a = Vector.distance(U3_a, U[1], U[0])
+    	var dist_b = Vector.distance(U3_b, U[1], U[0])
+    	if (wrist_out){
+    		if (dist_a < dist_b){
+        		U[3] = U3_a
+        	}else{
+        		U[3] = U3_b
+        	}
+    	}else{
+    		if (dist_a > dist_b){
+        		U[3] = U3_a
+        	}else{
+        		U[3] = U3_b
+        	}
+    	}
+        
+        
+    	//Solving for P2
+    	P[2] = Vector.points_to_plane(U[5], U[4], U[3])
+		
+    	//Solving for U2
+    	var D3 = Vector.distance(U[3], U[1])
+        
+        //Checking if in reach
+        //debugger
+        if (D3 > Dexter.LINK2 + Dexter.LINK3){
+        	let out_of_reach_dist = Vector.round(Convert.microns_to_mms(D3 - (Dexter.LINK2 + Dexter.LINK3)), 3)
+            
+        	dde_error(Vector.round(Convert.microns_to_mms(xyz), 1) + ' Location is ' + out_of_reach_dist + ' mm out of reach')
+        }
+        
+
+    	var Beta = Vector.acos_arcsec((-Math.pow(L[2], 2) + Math.pow(L[1], 2) + Math.pow(D3, 2)) / (2 * D3 * L[1])) // Law of Cosines
+        var V31 = Vector.normalize(Vector.subtract(U[3], U[1]))
+    	var V23
+    	
+    	var U2_a = Vector.add(U[1], Vector.multiply(L[1], Vector.rotate(V31, P[1], Beta)))
+    	var U2_b = Vector.add(U[1], Vector.multiply(L[1], Vector.rotate(V31, P[1], -Beta)))
+    	var U2_a_dist = Vector.distance(U2_a, P[0])
+    	var U2_b_dist = Vector.distance(U2_b, P[0])
+    	
+    	if (elbow_up){
+    		if(U2_a_dist > U2_b_dist){
+        		U[2] = U2_a
+        	}else{
+        		U[2] = U2_b
+        	}
+    	}else{
+      		if(U2_a_dist < U2_b_dist){
+        		U[2] = U2_a
+        	}else{
+        		U[2] = U2_b
+        	}
+    	}
+
+
+    //Solving for joint angles
+    
+	//var V10 = minus(U[1], U[0])
+    var V21 = Vector.normalize(Vector.subtract(U[2], U[1]))
+    var V32 = Vector.normalize(Vector.subtract(U[3], U[2]))
+    var V43 = Vector.normalize(Vector.subtract(U[4], U[3]))
+    //var V54 = minus(U[5], U[3])
+
+    J[0] = Vector.signed_angle(P[1], P[0], V10) //648000 = 180 degrees
+    J[1] = Vector.signed_angle(V21, V10, P[1])
+    J[2] = Vector.signed_angle(V32, V21, P[1])
+    J[3] = Vector.signed_angle(V43, V32, P[1])
+    J[4] = Vector.signed_angle(P[2], P[1], V43) //648000 = 180 degrees
+	
+    return [J, U, P]
+    }
+    
+    
+    
+    
+    
+    
+    
+    //Private
     this.inverse_kinematics = function (xyz, normal = [0, 0, -1], state = [1, 1, 1], U0 = [0, 0, 0], V10 = [0, 0, 1], P0 = [1, 0, 0, 0], tool_xyz = [0, 0, Dexter.LINK5], tool_normal = [0, 0, 1]){
     	//debugger
         
-        var J = Vector.make_matrix(5) // Joint Angles
-    	//var U = new Array(5).fill(new Array(3)) //Point Locations
-        var U = Vector.make_matrix(5, 3)
-        var P = [1, 0, 0, 0]
+        var J = new Array(5) // Joint Angles
+    	var U = new Array(5).fill(new Array(3)) //Point Locations
+        var P = new Array(3).fill(new Array(4)) //Planes
         var L = [Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5] //Link Lengths
 
 		//Default Values:
