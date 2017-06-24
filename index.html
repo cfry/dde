@@ -101,6 +101,8 @@
     <script type="text/javascript" src="js_info.js"></script>
     <script type="text/javascript" src="editor.js"></script>
     <script type="text/javascript" src="series.js"></script>
+    <script type="text/javascript" src="units.js"></script>
+
     <script type="text/javascript" src="simutils.js"></script>
     <script type="text/javascript" src="simulate.js"></script>
     <script type="text/javascript" src="video.js"></script>
@@ -108,6 +110,7 @@
     <!--<script type="text/javascript" src="getusermedia.js"></script> -->
     <script type="text/javascript"> require("./output.js") </script>
     <script type="text/javascript"> require("./speech_reco.js") </script>
+    <script type="text/javascript" src="gamepad.js"></script>
     <script type="text/javascript" src="svg.js"></script> <!--needed in ui only for series help -->
     <script type="text/javascript" src="eval.js"></script>
     <script type="text/javascript" src="dex.js"></script>
@@ -367,6 +370,21 @@
                                                 <li id="series_number_constant_id" title="Insert a symbolic math constant like 'Math.PI'.">number constant</li>
                                             </ul>
                                         </li>
+                                        <li>Units
+                                            <ul>
+                                                <li id="series_length_units_id"    title="Insert a length units converter.">length</li>
+                                                <li id="series_angle_units_id"     title="Insert an angle units converter.">angle</li>
+                                                <li id="series_duration_units_id"  title="Insert a duration_units converter.">duration_units</li>
+                                                <li id="series_frequency_units_id" title="Insert a frequency units converter.">frequency</li>
+                                                <li id="series_mass_units_id"      title="Insert a mass units converter.">mass</li>
+                                                <li id="series_force_units_id"     title="Insert a force units converter.">force</li>
+                                                <li id="series_pressure_units_id"  title="Insert a pressure units converter.">pressure</li>
+                                                <li id="series_torque_units_id"    title="Insert a torque units converter.">torque</li>
+                                                <li id="series_power_units_id"     title="Insert a power units converter.">power</li>
+                                                <li id="series_energy_units_id"    title="Insert an energy units converter.">energy</li>
+                                                <li id="series_temperature_id"     title="Insert a temperature converter.">temperature</li>
+                                            </ul>
+                                        </li>
                                         <li id="series_assignment_id" title="Assign a value to a variable">Assignment</li>
                                         <li>Strings & Arrays
                                             <ul>
@@ -467,6 +485,14 @@
                                                 <li id="insert_job_example8_id" title="Insert into the editor a tutorial on using Asynchronous Functions.">8. Async Fns</li>
                                                 <li id="insert_job_example9_id" title="Insert into the editor a tutorial on using Serial Port.">9. Serial Port</li>
                                                 <li id="insert_job_example10_id" title="Insert into the editor a tutorial on using&#013;when_stopped for looping a job, etc.">10. when_stopped</li>
+                                            </ul>
+                                        </li>
+                                        <li>Run dexter0 instr
+                                            <ul>
+                                                <li id="move_to_home_id"    title="Runs a job with the instruction:&#013;Dexter.move_all_joints(Dexter.HOME_ANGLES)">HOME_ANGLES</li>
+                                                <li id="move_to_neutral_id" title="Runs a job with the instruction:&#013;Dexter.move_all_joints(Dexter.NEUTRAL_ANGLES)">NEUTRAL_ANGLES</li>
+                                                <li id="move_to_parked_id"  title="Runs a job with the instruction:&#013;Dexter.move_all_joints(Dexter.PARKED_ANGLES)">PARKED_ANGLES</li>
+                                                <li id="move_to_selection_id"  title="Treat the selection as an instruction&#013;to run on dexter0.&#013;A number or number array < 4&#013;are args to move_to.&#013;Arrays of 4 or 5 numbers&#013;are args to move_all_joints.">selection</li>
                                             </ul>
                                         </li>
                                     </ul>

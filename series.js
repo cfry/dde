@@ -38,6 +38,7 @@ var Series = class Series {
         robots_help_id.onclick = function(){ open_doc(robots_doc_id) }
 
         Series.init_series_instances()
+        init_units()
         //install the onclick methods for the Series menu items.
         for (var ser of Series.instances){
             let the_ser = ser; //must do this let so that each fn generated will use the ser of the for loop.

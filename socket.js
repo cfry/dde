@@ -25,7 +25,7 @@ var Socket = class Socket{
     }
 
     static new_socket_callback(robot_name){ //only called by the "real" side if simulate == "both".
-        console.log("Socket.new_socket_callback passed: " + "robot_name: " + robot_name)
+        //console.log("Socket.new_socket_callback passed: " + "robot_name: " + robot_name)
         Dexter.set_a_robot_instance_socket_id(robot_name)
     }
 
@@ -73,11 +73,12 @@ var Socket = class Socket{
         Dexter.robot_done_with_instruction(js_array) //this is called directly by simulator
     }
 
-    static close(robot_name, simulate){ //called only from sandbox, with NO arg,
-        if (simulate){ //simulation
+    static close(robot_name, simulate){
+        const sim_actual = Robot.get_simulate_actual(simulate)
+        if ((sim_actual === true) || (sim_actual === "both")){ //simulation
             DexterSim.close(robot_name)
         }
-        else {
+        if ((sim_actual === false) || (sim_actual == "both")){
             const ws_inst = Socket.robot_name_to_ws_instance_map[robot_name]
             if(ws_inst){
                 ws_inst.destroy()}

@@ -596,7 +596,7 @@ on how to continually add and execute a new instruction in a running job.
 <details class="doc_details"><summary>Robot Instructions</summary>
 These instructions can be used for any robot, as can the instructions for
 the Human robot.
-<details class="doc_details"><summary>Any Function Def</summary>
+<details class="doc_details"><summary>Any JS Function Def</summary>
 Any function definition can be put on the do_list as an instruction.
 When it is run, the function is called with <code>this</code>
 being the instance of Job that the function def is in. Since you can put any
@@ -695,6 +695,66 @@ look like:
 If you are confused about what a given instruction on a Job's do_list
 returns, just select it in the editor and EVAL it.
 </details>
+
+<details class="doc_details"><summary>Any JS Generator</summary>
+A relatively new feature of JavaScript is generators.
+A generator is a function that can effectively return a value
+in the middle of its definition via 'yield', then be called again
+and resume after the previous 'yield'.
+<a target="_blank" href="https://davidwalsh.name/es6-generators">Tutorial</a>
+<p/>
+A generator can be used as a do-list instruction.
+Running a job automatically handles the re-calling
+of a generator until it is exhausted i.e. no more
+yield statements, or a return statement is executed.
+<p/>
+Generators are useful when you want to dynamically compute
+a bunch of instructions, but are not sure how many until
+after you've started generating the instructions. Real-time
+control or interaction with other jobs often have these chracteristics.
+<p/>
+Usually a generator will have one or more yield statements
+with a following value of a dynamcially computed instruction
+to insert and run in the job. The software that controls
+the execution of instructions in a Job will call a generator's
+"next" method until the "done" flag is returned,
+in which case the generator is done and on the
+next iteration of the job, the following instruction will
+be run.
+<p/>
+You may have a yield statement
+with nothing following it to simply do nothing for
+that iteration, but the generator will still be called
+for the next job iteration until the generator is exhausted.
+<p/>
+<p>The body of a generator looks like a function.
+Often its yield statement(s) will be wrapped in a loop,
+that has an <code>if</code/> statement with
+a clause (or more) that terminates the loop by calling <code>return</code>
+and a clause (or more) that uses <code>yield</code> to produce
+an instruction.<br/>
+<i>Example:</i><pre><code>
+function* my_gen(){
+  while(true){
+    if(Math.random() > 0.2) {
+        yield Robot.out("my_gen still alive")
+    }
+    else { return Robot.out("gotta go") }
+  }
+}
+new Job({name: "my_job",
+         do_list: [my_gen]})
+</code></pre>
+</p>
+See DDE menu bar/Jobs/Insert Example/Generators<br/>
+for code examples. Related Job facilities are:
+<ul><li>
+ using instruction
+<code>wait_until("new_instruction")</code></li>
+<li>Job parameter: <code>when_stopped</code></li>
+</ul>
+</details>
+
 
 <details id="Robot.error_doc_id" class="doc_details"><summary>error</summary>
   Causes the job to error, immediately stopping it.
@@ -1650,11 +1710,16 @@ Returns joint number and microns below table if xyz is below the table.<br/>
 naming a property and returns it's value.
 Most of the values are numbers.<br/>
 <i>Example</i>:<br/>
-<code>Robot.dexter0.prop("LINK1"] => 330200</code><p/>
-If the the Dexter instance has the property as an instance property,
+<code>Robot.dexter0.prop("LINK1") => 330200</code><p/>
+<i>Parameters</i>:<br/>
+<b>prop</b> A string naming the property who's value will be returned.<br/>
+<b>get_from_dexter</b> If <code>true</code>, the value will be retrieved from the
+current value of the file //robot.ip_address./share/robot_props.json<br/>
+If <code>false</code> (the default):<br/>
+If the Dexter instance has the property as an instance property,
 its value is returned.<br/>
-Else if the property is included in a file
-on the dexter robot of //robot.ip_address./share/robot_props.json<br/>
+Else if the property is included in the file
+on the dexter robot named //robot.ip_address./share/robot_props.json<br/>
 <i>Example:</i><br/>
 <code>//192.168.1.142/share/robot_props.json</code><br/>
 then a value specific to the robot is returned.
@@ -1666,10 +1731,6 @@ Else if the the property is a class property of Dexter
 (used for "typical values" or values appropriate for all Dexters),
 then that value is returned.<br/>
 Otherwise, <code>undefined</code> is returned.
-
-This method checks for a file in DDE apps corresponding
-to a robot and, if any, parses its content as a JSON object.
-If the file does not exist, an object is created and returned.
 <p/>
 You may add a property to a dexter instance like so:<br/>
 <code> Robot.dexter0.my_val = 123</code><br/>

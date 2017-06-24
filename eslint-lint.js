@@ -38,6 +38,7 @@
         "last":       false,
         "load_files": false,
         "out":        false,
+        "make_ins":   false,
         "persistent_get": false,
         "persistent_set": false,
         "rde":        false,

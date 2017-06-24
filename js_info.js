@@ -409,10 +409,23 @@ Js_info = class Js_info {
                 //if (fn_name.startsWith("Object"){}
                 let fn7 = value_of_path(fn_name)
                 return "<code style='color:blue;'>" + Js_info.wrap_fn_name(fn_name) + '</code>' + function_params(fn7)
+            case "series_temperature_id":
+                let fn8 = value_of_path(fn_name)
+                return "<code style='color:blue;'>" + Js_info.wrap_fn_name(fn_name) + '</code>' + function_params(fn8)
         }
         if (["series_hours_minutes_seconds_id", "series_time_id", "series_3_letter_month_id",
              "series_full_month_id", "series_date_id"].indexOf(series.id) != -1){
             return fn_name + " is part of a " + Js_info.make_atag("Date", "Date")
+        }
+        else if (series.id.endsWith("_units_id")){
+            let unit_full_name = unit_abbrev_to_full_name(series.id, fn_name)
+            let [unity_abbrev, unity_full_name] = series_name_to_unity_unit(series.id)
+            return "for " + unit_full_name +
+                    ": <code style='color:blue;'>" + fn_name +
+                    "</code> = " + window[fn_name] +
+                    "&nbsp; <code>" + pluralize_full_unit_name(unit_full_name) + "*" + fn_name +
+                    " => " + pluralize_full_unit_name(unity_full_name) +
+                    "</code>"
         }
         return false
     }

@@ -6,11 +6,60 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 1.1.10, June 23, 2017</summary>
+    Highlights: New DDE menu bar menu Jobs/move dexter0, prop method extended,
+                generators extended and documented.
+    <ul>
+    <li>Minor fix to rel notes 1.1.9 highlights: now: New Robot.dexter0.prop("prop_name")</li>
+    <li>"make_ins" is now known to the editor so it won't show a warning red dot.</li>
+    <li>Fixed typo in ref man example which now reads: Robot.dexter0.prop("LINK1")</li>
+    <li>fixed bug in Robot.dexter0.prop()</li>
+    <li> Dexter's prop method has a new parameter: "get_from_dexter"
+         See Ref Man/Robots/Dexter/Dexter Utilities/prop for details</li>
+    <li> Updated Dexter constants:
+        <ul><li>J2_ANGLE_MIN</li>
+            <li>J2_ANGLE_MAX</li>
+            <li>J3_ANGLE_MIN</li>
+            <li>J3_ANGLE_MAX</li>
+            <li>J4_ANGLE_MIN</li>
+            <li>J4_ANGLE_MAX</li>
+         </ul>
+    </li>
+    <li>simulation simulates actual duration that
+        Dexter takes to move between positions.
+        Fixes in surrounding code.
+        Some other internal problems with simulation fixed.</li>
+
+    <li>When using a JavaScript generator as an instruction,
+        you can now yield (with no argument) and
+        it will not quit the generator, but just
+        do nothing and keep calling the generator
+        on the next iteration of the running job.
+        You quit the generator by a "return" statement.</li>
+
+    <li> Using JavaScript generators as Job instructions now
+         documented in Ref Man/Robot/Robot Instructions/Any JS Generator</li>
+
+    <li>New DDE menu bar menu Jobs/move dexter0 to
+         with submenu items:
+         <ul><li>HOME_ANGLES</li>
+             <li>NEUTRAL_ANGLES</li>
+             <li>PARKED_ANGLES</li>
+             <li>selection</li>
+         </ul>
+    </li>
+    <li> 11 new unit-converting series added for physics computation. <br/>
+         See Series/Units menu.<br/>
+         DDE now has 50 series'.
+    </li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 1.1.9, June 9, 2017</summary>
     Highlights: New simulate archtecture that more closely models Dexter
     hardware. New Job param: when_stopped. New instructions:
     Dexter.move_all_joints_relative and 4 new Dexter "mode" instructions.
-    New dexter0.prop("prop_name")
+    New Robot.dexter0.prop("prop_name")
 <ul>
 <li>Now when you switch to edit a file that's in the files menu,
 then relaunch DDE, the last file you edited will show up in the editor

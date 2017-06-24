@@ -330,9 +330,8 @@ var Job = class Job{
     }
 
     color_job_button(){
-        var but_elt = this.get_job_button()
-        var bg_color = null
-        var tooltip  = ""
+        let bg_color = null
+        let tooltip  = ""
         switch(this.status_code){
             case "not_started":
                 bg_color = "rgb(204, 204, 204)";
@@ -390,6 +389,7 @@ var Job = class Job{
                 tooltip  = "This job was interrupted by:\n" + this.stop_reason + "\nClick to restart this job."
                 break;
         }
+        const but_elt = this.get_job_button()
         if (but_elt.style.backgroundColor !== bg_color) { //cut down the "jitter" in the culor, don't set unnecessarily
             but_elt.style.backgroundColor = bg_color
         }
@@ -987,10 +987,10 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
             //note that a user normally wouldn't directly put an array on the do_list,
             //but Job.insert_instruction very likely would to put > 1 instruction on
         }
-        else if (is_iterator(cur_do_item)){ //must be before "function" because an iterator is also of type "function".
+        else if (is_iterator(cur_do_item)){ //generator. must be before "function" because an iterator is also of type "function".
             var next_obj = cur_do_item.next()
             var do_items = next_obj.value
-            if (next_obj.done){ //don't insert cur_do_item (the iterator) cause we're all done.
+            /*if (next_obj.done){ //don't insert cur_do_item (the iterator) cause we're all done.
                 if (do_items) { //happens when our gen fn has a return value.
                     if(Instruction.is_instructions_array(do_items)){ this.insert_instructions(do_items) }
                     else { this.insert_single_instruction(do_items) }
@@ -1013,7 +1013,28 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
                 do_items.push(cur_do_item) //add the iterator on the end so that after we do these "next" items, we'll call next again on the iterator
                 this.insert_instructions(do_items)
                 this.set_up_next_do(1)
+            }*/
+            let have_item_to_insert
+            if      (do_items === null)       { have_item_to_insert = false }
+            else if (do_items === undefined)  { have_item_to_insert = false }
+            else if (Array.isArray(do_items) && (do_items.length == 0)) { have_item_to_insert = false }
+            else have_item_to_insert = true
+
+            if (have_item_to_insert) {
+                if (!next_obj.done) { //we must insert the cur_do_item
+                    if (Instruction.is_instructions_array(do_items)) { do_items = [do_items, cur_do_item] }
+                    else if (Array.isArray(do_items)) {
+                        do_items = do_items.slice(0) //copy the do_items just in case user is hanging on to that array, we don't want to mung it.
+                        do_items.push(cur_do_item)
+                    }
+                    else { //do_itmes is not an array of any kind, nor is it a no-op like null.undefimed or []
+                      do_items = [do_items, cur_do_item]
+                    }
+                }
+                this.insert_single_instruction(do_items) //ok to use tis to insert an array of instructions.
             }
+            if ((!next_obj.done) && (have_item_to_insert === false)) { this.set_up_next_do(0) } //loop around on the same item
+            else {  this.set_up_next_do(1) }
         }
         //else if (is_iterator(cur_do_item)){ //calling a generator fn returns an iterator
         //    this.iterator_stack.push([cur_do_item, this.program_counter])
@@ -1094,6 +1115,8 @@ Job.prototype.handle_function_call_or_gen_next_result = function(cur_do_item, do
     }
 }
 
+//note this could also take an array of instructions,
+//but it inserts it as one item, not multiple items.
 Job.prototype.insert_single_instruction = function(instruction_array){
     let the_do_list = this.do_list
     //if (!the_do_list){ the_do_list = this.orig_args.do_list }

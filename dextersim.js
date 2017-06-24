@@ -3,6 +3,7 @@
 DexterSim = class DexterSim{
     constructor(robot_name){ //called once per DDE session per robot_name by create_or_just_init
         this.robot_name = robot_name
+        this.robot      = Robot[robot_name] //only used by predict_move_dur
         this.rs         = Dexter.make_default_status_array()
         DexterSim.robot_name_to_dextersim_instance_map[robot_name] = this
     }
@@ -137,7 +138,6 @@ DexterSim = class DexterSim{
         }
     }
 
-    //only called when oplet is F, g, G. All other oplets have ack_reply called.
     process_next_instruction(){
         let dur = 10 // in ms
         this.now_processing_instruction = this.instruction_queue.shift() //pop off next inst from front of the list
@@ -153,11 +153,11 @@ DexterSim = class DexterSim{
         let angle
         switch (oplet){
             case "a": //move_all_joints
-                let orig_angle =   [robot_status[Dexter.J1_ANGLE],
-                                    robot_status[Dexter.J1_ANGLE],
-                                    robot_status[Dexter.J1_ANGLE],
-                                    robot_status[Dexter.J1_ANGLE],
-                                    robot_status[Dexter.J1_ANGLE]]
+                let orig_angles =  [robot_status[Dexter.J1_ANGLE],
+                                    robot_status[Dexter.J2_ANGLE],
+                                    robot_status[Dexter.J3_ANGLE],
+                                    robot_status[Dexter.J4_ANGLE],
+                                    robot_status[Dexter.J5_ANGLE]]
                 angle = ins_args[0]
                 if (!isNaN(angle)){ robot_status[Dexter.J1_ANGLE] = angle}
                 angle = ins_args[1]
@@ -168,7 +168,7 @@ DexterSim = class DexterSim{
                 if (!isNaN(angle)){ robot_status[Dexter.J4_ANGLE] = angle}
                 angle = ins_args[4]
                 if (!isNaN(angle)){ robot_status[Dexter.J5_ANGLE] = angle}
-                dur = 1000 //todo comment in when predict_move_dur bug fixed woth its param names. Kin.predict_move_dur(orig_angle, ins_args, Dexter.MAX_SPEED) * 1000 //get_move_dur returns seconds, but I need milliseconds
+                dur = Math.abs(Kin.predict_move_dur(orig_angles, ins_args, this.robot)) //milliseconds
                 break;
             case "b": //move_to  xyz
                 /*if (!isNaN(instruction_array[2])) robot_status[Dexter.ds_j5_x_index]     = instruction_array[2]
@@ -202,7 +202,7 @@ DexterSim = class DexterSim{
                 //dur = 0;
                 shouldnt("In dextersim.process_next_instruction, got an 'h' oplet but this fn shouldn't get 'h' instructions.")
                 break;
-            case "R": //move_all_joints_relative //no longer used
+            case "R": //move_all_joints_relative //no longer used because Dexter.move_all_joints_relative  converts to "a" oplet
                 angle = ins_args[0]
                 if (!isNaN(angle)){ robot_status[Dexter.J1_ANGLE] += angle}
                 angle = ins_args[1]
@@ -238,7 +238,7 @@ DexterSim = class DexterSim{
         if (!$("#real_time_sim_checkbox_id").val()){
             dur = 0
         }
-        this.ending_time_of_cur_instruction = Date.now() + dur
+        this.ending_time_of_cur_instruction = robot_status[Dexter.START_TIME] + dur
         const job_id       = robot_status[Dexter.JOB_ID]
         const job_instance = Job.job_id_to_job_instance(job_id)
         SimUtils.render_once(robot_status, "Job: " + job_instance.name) //renders after dur, ie when the dexter move is completed.
@@ -248,7 +248,7 @@ DexterSim = class DexterSim{
         //when this is called, no more instructions will be coming from the job, but there might be
         //be stragglers left in the instruction_queue
         let sim_inst = DexterSim.robot_name_to_dextersim_instance_map[robot_name]
-        if(the_inst){
+        if(sim_inst){
            if ((sim_inst.instruction_queue.length == 0) &&
                (sim_inst.now_processing_instruction == null)){
                 sim_inst.stop_sim() //also set near bottom of process_next_instruction

@@ -239,6 +239,7 @@
     dde_release_date_id.innerHTML = dde_release_date
 
     Series.init_series()
+
     $('#js_textarea').focus() //same as myCodeMirror.focus()  but  myCodeMerror not inited yet
 
     find_doc_button_id.onclick = find_doc
@@ -901,6 +902,46 @@ foo      //eval to see the latest values</pre>`,
     insert_job_example8_id.onclick = function(){Editor.insert(job_examples[8])}
     insert_job_example9_id.onclick = function(){Editor.insert(job_examples[9])}
     insert_job_example10_id.onclick = function(){Editor.insert(job_examples[10])}
+
+    move_to_home_id.onclick    = function(){ Robot.dexter0.move_all_joints_fn() }
+    move_to_neutral_id.onclick = function(){ Robot.dexter0.move_all_joints_fn(Dexter.NEUTRAL_ANGLES) }
+    move_to_parked_id.onclick  = function(){ Robot.dexter0.move_all_joints_fn(Dexter.PARKED_ANGLES) }
+    move_to_selection_id.onclick = function(){
+         var sel = Editor.get_selection_or_cmd_input().trim()
+         if (sel === "") {
+            warning("There is no selection for a dexter0 instruction.")
+            return
+         }
+         //selection could be [asdf] or 123 or 123,456 or foo or bar()
+         //if it looks like numbers, wrap [] around them
+         if (sel[0] !== "[") {
+             if (is_digit(sel[0])) {
+                sel = "[" + sel
+                if (sel[sel.length - 1] !== "]") { sel = sel + "]" }
+             }
+         }
+         try{  sel = eval(sel) }
+         catch (err) { warning("The selection did not evaluate to an array.") }
+         if (Array.isArray(sel)){
+             if (sel.length == 0){
+                warning("The selection is an empty array meaning it would have no effect.")
+             }
+             else if ((sel.length <= 3) && (typeof(sel[0]) == "number")){
+                 Robot.dexter0.move_to_fn(sel)
+             }
+             else if ((sel.length <= 5) && (typeof(sel[0]) == "number")){
+                 Robot.dexter0.move_all_joints_fn(sel)
+             }
+             else { Robot.dexter0.run_instructon_fn(sel) }
+         }
+         else if ((sel === undefined) ||
+                  (sel === null) ||
+                  (typeof(sel) == "boolean")){
+             warning("The selection evals to undefined, null, or a boolean,<br/>" +
+                     "neither of which are valid Job instructions.")
+         }
+         else { Robot.dexter0.run_instructon_fn(sel) }
+    }
 
 
         //Output_ops menu

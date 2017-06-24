@@ -1,6 +1,4 @@
-/**
- * Created by Fry on 3/29/16.
- */
+/* Created by Fry on 3/29/16. */
 var Robot = class Robot {
     constructor (){
     }
@@ -1001,6 +999,28 @@ Dexter = class Dexter extends Robot {
         if (result === true) { return false  }
         else                 { return result }
     }
+
+    move_all_joints_fn(angle_array=Dexter.HOME_ANGLES){
+        const job_00 = new Job({name: "job_00",
+                             robot: this,
+                             do_list: [Dexter.move_all_joints(angle_array)]
+        })
+        job_00.start()
+    }
+    move_to_fn(xyz=[0,0,0]){
+        const job_00 = new Job({name: "job_00",
+            robot: this,
+            do_list: [Dexter.move_to(xyz)]
+        })
+        job_00.start()
+    }
+    run_instructon_fn(instr){
+        const job_00 = new Job({name: "job_00",
+            robot: this,
+            do_list: [instr]
+        })
+        job_00.start()
+    }
 }
 Dexter.all_names = []
 Dexter.last_robot = null //last Dexter defined.
@@ -1202,7 +1222,7 @@ Dexter.move_to = function(xyz = [], // New defaults are the cur pos, not straigh
     }
     else {*/
         return function(){
-            let existing_xyz = this.xyz //just to get defaults. this.robot.joint_xyz()
+            let existing_xyz = Kin.J_angles_to_xyz(this.robot.angles)[5]//this.xyz //just to get defaults. this.robot.joint_xyz()
             let xyz_copy = xyz.slice(0)
             for(let i = 0; i < 3; i++){
                 if (xyz_copy.length <= i)     { xyz_copy.push(existing_xyz[i]) }
@@ -1238,25 +1258,26 @@ Dexter.move_to = function(xyz = [], // New defaults are the cur pos, not straigh
 }*/
 
 Dexter.move_to_relative = function(delta_xyz = [0, 0, 0]){
+    let the_delta_xyz = delta_xyz
     return function(){
         let old_xyz      = Kin.J_angles_to_xyz(this.robot.angles)[5]
         let config       = Kin.J_angles_to_config(this.robot.angles)
         let J5_direction = Kin.J_angles_L5_Direction(this.robot.angles)
-        let new_xyz = Vector.add(old_xyz, delta_xyz) //makes a new array
+        let new_xyz = Vector.add(old_xyz, the_delta_xyz) //makes a new array
         let angles
         try {
             angles = Kin.xyz_to_J_angles(new_xyz, J5_direction, config,
                 this.robot.base_xyz, this.robot.base_plane, this.robot.base_rotation)
         }
         catch(err){
-            dde_error("move_to_relative called with out of range delta_xyz: " + delta_xyz)
+            dde_error("move_to_relative called with out of range delta_xyz: " + the_delta_xyz)
         }
         for(let i = 0; i < 5; i++){ angles[i] = Math.round(angles[i]) }
         if (Kin.check_J_ranges(angles)){
             this.robot.angles = angles
             return make_ins("a", ...angles) // Dexter.move_all_joints(angles)
         }
-        else { dde_error("move_to_relative called with out of range delta_xyz: " + delta_xyz) }
+        else { dde_error("move_to_relative called with out of range delta_xyz: " + the_delta_xyz) }
     }
 }
 /*
@@ -1377,30 +1398,52 @@ var cache_of_dexter_instance_files = {}
 //returns undefined or value of prop_name
 //errors if the robot file is not valid json format
 //first checks dexter instance, then file prop, then Dexter class prop
-Dexter.prototype.prop = function(prop_name){
-    var val = this[prop_name]
-    if(val !== undefined) { return val }
-    if (cache_of_dexter_instance_files[this.name] === false) { } //don't lookup file as we already determined that it doesn't exist
+
+//returns a string if error, or literal name-value pairs object.
+Dexter.prototype.get_dexter_props_file_object = function(){
+    let file_path  = "//" + this.ip_address + "/share/robot_props.json" //todo needs verificatin
+    if (file_exists(file_path)) {
+        let content = file_content(file_path)
+        try {
+            const result = JSON.parse(content)
+            return result
+            //cache_of_dexter_instance_files[this.name] = result
+        }
+        catch(err) {
+            return "The file: " + __dirname + "/" + file_name +
+                "<br/>is not valid jason format: " + err.message
+        }
+    }
+    else { return null }
+}
+
+Dexter.prototype.prop = function(prop_name, get_from_dexter=false){
+    if (get_from_dexter){
+        const file_result = this.get_dexter_props_file_object()
+        if (typeof(file_result) == "string") { dde_error(file_result) }
+        else { return file_result[prop_name] }
+    }
     else {
-        let file_path  = "//" + this.ip_address + "/share/robot_props.json" //todo needs verificatin
-        if (file_exists(file_path)) {
-            let content = file_content(file_path)
-            try {
-                const result = JSON.parse(content)
-                if (result[prop_name] !== undefined) { return result[prop_name] }
+        var val = this[prop_name]
+        if(val !== undefined) { return val }
+        else if (cache_of_dexter_instance_files[this.name] === undefined){ //fill up cache_of_dexter_instance_files or error, but don't even attempt to get actual result yet
+            const file_result = this.get_dexter_props_file_object()
+            if (typeof(file_result) == "string") {
+                dde_error(file_result)
             }
-            catch(err) {
-                dde_error("The file: " + __dirname + "/" + file_name +
-                    "<br/>is not valid jason format: " + err.message)
+            else if (file_result === null){
+                let file_path  = "//" + this.ip_address + "/share/robot_props.json"
+                warning("The file: " + file_path + " does not exist.")
+                cache_of_dexter_instance_files[this.name] = false
             }
         }
-        else { cache_of_dexter_instance_files[this.name] = false } //we just check for the file ONCE per DDE session,
-            //at the first prop call for that robot. So if the file changes.
-            //you have to relaunch DDE to get the new values.
-            //setting the cache value to false here prents us from chcking the
-            //file each subsequent time
+        const obj = cache_of_dexter_instance_files[this.name] //obj will NOT be undefined. Its eitehr false or is a lit obj
+        if (obj !== false){
+            const result = obj[prop_name]
+            if (result !== undefined) { return result }
+        }
+        return Dexter[prop_name]  //get the typical "class value" of the prop
     }
-    return Dexter[prop_name]  //get the typical "class value" of the prop
 }
 
 //Dexter constants
@@ -1427,10 +1470,10 @@ Dexter.J1_ANGLE_MIN = -Infinity  // rotate
 Dexter.J1_ANGLE_MAX =  Infinity  // rotate
 Dexter.J2_ANGLE_MIN = -648000    // -180 degrees
 Dexter.J2_ANGLE_MAX =  648000    //  180 degrees
-Dexter.J3_ANGLE_MIN = -594000    // -165 dgrees
-Dexter.J3_ANGLE_MAX =  594000    //  165 degrees
-Dexter.J4_ANGLE_MIN = -486000    // -135 degrees
-Dexter.J4_ANGLE_MAX =  486000    //  135 degrees
+Dexter.J3_ANGLE_MIN = -648000    // -165 dgrees
+Dexter.J3_ANGLE_MAX =  648000    //  165 degrees
+Dexter.J4_ANGLE_MIN = -648000    // -135 degrees
+Dexter.J4_ANGLE_MAX =  648000    //  135 degrees
 Dexter.J5_ANGLE_MIN = -1296000   // rotate -360 degrees
 Dexter.J5_ANGLE_MAX =  1296000   // rotate   360 degrees,  ie J5 can rotate 720 degrees until the
                                  // infinite fix of the next dexter or 2

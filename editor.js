@@ -147,6 +147,13 @@ Editor.restore_files_menu_paths_and_last_file = function(){ //called by on ready
     }
 }
 
+//return editor sel or if none, cmd input, or if none, ""
+Editor.get_selection_or_cmd_input = function(){
+    var sel_text = myCodeMirror.doc.getValue().substring(Editor.selection_start(), Editor.selection_end())
+    if (sel_text.length == 0) { sel_text = cmd_input_id.value }
+    return sel_text
+}
+
 Editor.get_javascript = function(use_selection=false){
     //if use_selection is true, return it.
     // if false, return whole buffer.
