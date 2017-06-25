@@ -17,12 +17,7 @@ var Vector = new function(){
  plane               P           [x, y, z, d]    [0, .707, .707, 5]     Unit vector perpendicular to plane and distance from the origin.
  
 */
-    
-    
-    
-    //Public
-    //a more robust version of ".length"
-    //will return 1 for both a number and array elemement (if it's length is 1)
+
     this.size = function(a){
     	
     	if (a === undefined){
@@ -163,48 +158,6 @@ var Vector = new function(){
     	}
       	return vector_C
 	}
-    
-    
-    
-    //Private
-    //*************************************************
-    //trigonometric functions with angles in arcseconds
-    //These might belong in a different Class
-    
-    
-    //Trig
-    this.cos_arcsec = function(theta){
-        return Math.cos(Convert.arcseconds_to_radians(theta))
-    }
-    this.sin_arcsec = function(theta){
-    	return Math.sin(Convert.arcseconds_to_radians(theta))
-    }
-    this.tan_arcsec = function(theta){
-    	return Math.tan(Convert.arcseconds_to_radians(theta))
-    }
-    
-    //Inverse Trig
-    this.asin_arcsec = function(ratio){
-    	//return Math.round(Convert.radians_to_arcseconds(Math.asin(ratio)))
-        return Convert.radians_to_arcseconds(Math.asin(ratio))
-    }
-    
-    this.acos_arcsec = function(ratio){
-    	return Convert.radians_to_arcseconds(Math.acos(ratio))
-        //return Math.round(Convert.radians_to_arcseconds(Math.acos(ratio)))
-    }
-    
-    this.atan_arcsec = function(ratio){
-    	return Convert.radians_to_arcseconds(Math.atan(ratio))
-        //return Math.round(Convert.radians_to_arcseconds(Math.atan(ratio)))
-    }
-    
-    this.atan2_arcsec = function(a, b){
-    	return Convert.radians_to_arcseconds(Math.atan2(a, b))
-        //return Math.round(Convert.radians_to_arcseconds(Math.atan2(a, b)))
-    }
-    
-    
     
     //*************************************************
     
@@ -742,7 +695,7 @@ var Vector = new function(){
         	if (Vector.distance(Vector.add(short_A, short_B)) === 0){
             	result = 648000 //this is 180 degrees in arcseconds
             }else{
-            	var result = Vector.atan2_arcsec(Vector.distance(Vector.cross(short_A, short_B)), Vector.dot(short_A, short_B))
+            	var result = Math.atan2(Vector.distance(Vector.cross(short_A, short_B)), Vector.dot(short_A, short_B))*_rad
         	}
         }
         return result
@@ -828,7 +781,7 @@ var Vector = new function(){
                 return [intersection_point, alpha]
         }
     }
-    
+
     //Public
     //rotates a vector in 3D space on a plane by angle theta
     //will also rotate a point about a line by substituting the line's vector in plane and its point in point
@@ -842,8 +795,8 @@ var Vector = new function(){
                 if(Vector.is_equal(short_vector, point)){
             		result[i] = short_vector
             	}else{
-                	term_1 = Vector.multiply(Vector.cos_arcsec(theta), short_vector)
-            		term_2 = Vector.multiply(Vector.sin_arcsec(theta), Vector.cross(Vector.shorten(plane), short_vector))
+                	term_1 = Vector.multiply(Math.cos(theta/_rad), short_vector)
+            		term_2 = Vector.multiply(Math.sin(theta/_rad), Vector.cross(Vector.shorten(plane), short_vector))
                 	result[i] = Vector.add(Vector.multiply(Vector.magnitude(vector),  Vector.normalize(Vector.add(term_1, term_2))), point)
                 }
             }
@@ -852,8 +805,8 @@ var Vector = new function(){
             if(Vector.is_equal(short_vector, point)){
             	return short_vector
             }
-            term_1 = Vector.multiply(Vector.cos_arcsec(theta), short_vector)
-            term_2 = Vector.multiply(Vector.sin_arcsec(theta), Vector.cross(Vector.shorten(plane), short_vector))
+            term_1 = Vector.multiply(Math.cos(theta/_rad), short_vector)
+            term_2 = Vector.multiply(Math.sin(theta/_rad), Vector.cross(Vector.shorten(plane), short_vector))
             result = Vector.add(Vector.multiply(Vector.magnitude(short_vector),  Vector.normalize(Vector.add(term_1, term_2))), point)
         }
         return result
@@ -965,6 +918,22 @@ var Vector = new function(){
     var result = Vector.min([1, 2, 10])
     */
     
+    this.is_NaN = function(vector){
+    	let dim = Vector.matrix_dimensions(vector)
+        if(dim[0] == 1 && dim[1] == 0){return isNaN(vector)}
+        if(dim[0] == 1){
+        	for(let i = 0; i < dim[1]; i++){
+        		if(isNaN(vector[i])){return true}
+        	}
+        }else{
+        	for(let i = 0; i < dim[0]; i++){
+            	for(let j = 0; j < dim[1]; j++){
+        			if(isNaN(vector[i][j])){return true}
+                }
+        	}
+        }
+        return dim
+    }
     
     /**********************************************************
     //Matrix Math
@@ -1481,11 +1450,7 @@ var Vector = new function(){
                     [0, 0, 0, 1]]
         return pose
 	}
-    //Vector.make_pose()
-    //Vector.make_pose([10, 20, 30], [Convert.degrees_to_arcseconds(45), 0, 0])
-    //Vector.make_pose([10, 20, 30], [Convert.degrees_to_arcseconds(45), 0, 0], "ZX'Z'")
-    
-  
+
     
     this.identity_matrix = function(size){
     	let result = Vector.make_matrix(size, size)
@@ -1500,24 +1465,25 @@ var Vector = new function(){
     this.rotate_DCM = function(DCM = [[1, 0, 0],[0, 1, 0],[0, 0, 1]], axis_of_rotation, angle){
     	let trans_matrix = Vector.identity_matrix(3)
         let x_vector, y_vector, z_vector
+        let angle_rad = angle/_rad
     	switch(axis_of_rotation){
         	case "X":
-            	trans_matrix[1][1] = Vector.cos_arcsec(angle)
-                trans_matrix[2][2] = Vector.cos_arcsec(angle)
-                trans_matrix[2][1] = Vector.sin_arcsec(angle)
-                trans_matrix[1][2] = -Vector.sin_arcsec(angle)
+            	trans_matrix[1][1] = Math.cos(angle_rad)
+                trans_matrix[2][2] = Math.cos(angle_rad)
+                trans_matrix[2][1] = Math.sin(angle_rad)
+                trans_matrix[1][2] = -Math.sin(angle_rad)
                 break
             case "Y":
-            	trans_matrix[0][0] = Vector.cos_arcsec(angle)
-                trans_matrix[2][2] = Vector.cos_arcsec(angle)
-                trans_matrix[0][2] = Vector.sin_arcsec(angle)
-                trans_matrix[2][0] = -Vector.sin_arcsec(angle)
+            	trans_matrix[0][0] = Math.cos(angle_rad)
+                trans_matrix[2][2] = Math.cos(angle_rad)
+                trans_matrix[0][2] = Math.sin(angle_rad)
+                trans_matrix[2][0] = -Math.sin(angle_rad)
             	break
             case "Z":
-            	trans_matrix[0][0] = Vector.cos_arcsec(angle)
-                trans_matrix[1][1] = Vector.cos_arcsec(angle)
-                trans_matrix[1][0] = Vector.sin_arcsec(angle)
-                trans_matrix[0][1] = -Vector.sin_arcsec(angle)
+            	trans_matrix[0][0] = Math.cos(angle_rad)
+                trans_matrix[1][1] = Math.cos(angle_rad)
+                trans_matrix[1][0] = Math.sin(angle_rad)
+                trans_matrix[0][1] = -Math.sin(angle_rad)
             	break
             case "X'":
             	x_vector = [DCM[0][0], DCM[1][0], DCM[2][0]]
@@ -1580,15 +1546,7 @@ var Vector = new function(){
         position = Vector.rotate(position, axis, angle, point_of_rotation)
         return Vector.make_pose(position, DCM)
     }
-    /*
-    var my_pose = Vector.make_pose()
-    var rot_pose = Vector.rotate_pose(my_pose, "Z", Convert.degrees_to_arcseconds(90), [10, 0, 0])
-    var center = [10, 0, 0]
-    var point = [0, 0, 0]
-    debugger
-    var result = Vector.rotate(point, [0, 0, 1], 162000, center)
-    Convert.degrees_to_arcseconds(45)
-    */
+
     
     this.is_pose = function(pose){
     	let dim = Vector.matrix_dimensions(pose)
@@ -1998,11 +1956,11 @@ new TestSuite("Vector Library - Matrix Math",
     ["Vector.properly_define_point([[10], [20], [30]])", "[[10], [20], [30], [1]]"],
     ["Vector.properly_define_point([[10, 20, 30], [10, 20, 30], [10, 20, 30]])", "[[10, 10, 10], [20, 20, 20], [30, 30, 30], [1, 1, 1]]"],
     ["Vector.make_pose()", "[[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]"],
-    ["Vector.make_pose([10, 20, 30], [Convert.degrees_to_arcseconds(45), 0, 0])", "[ [1, 0, 0, 10], [0, 0.7071067811865476, 0.7071067811865475, 20], [0, -0.7071067811865475, 0.7071067811865476, 30], [0, 0, 0, 1]]"],
+    ["Vector.make_pose([10, 20, 30], [45, 0, 0])", "[ [1, 0, 0, 10], [0, 0.7071067811865476, 0.7071067811865475, 20], [0, -0.7071067811865475, 0.7071067811865476, 30], [0, 0, 0, 1]]"],
     ["Vector.identity_matrix(4)", "[[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]"],
     ["Vector.identity_matrix(2)", "[[1, 0], [0, 1]]"],
-    ["Vector.rotate_DCM(Vector.identity_matrix(3), [1, 0, 0], Convert.degrees_to_arcseconds(90))", "[[1, 0, 0], [0, 6.123233995736766e-17, -1], [0, 1, 6.123233995736766e-17]]"],
-    ['Vector.rotate_pose(Vector.make_pose(), "Z", Convert.degrees_to_arcseconds(90), [10, 0, 0])', "[ [6.123233995736766e-17, -1, 0, 10], [1, 6.123233995736766e-17, 0, -10], [0, 0, 1, 0], [0, 0, 0, 1]]"],
+    ["Vector.rotate_DCM(Vector.identity_matrix(3), [1, 0, 0], 90)", "[[1, 0, 0], [0, 6.123233995736766e-17, -1], [0, 1, 6.123233995736766e-17]]"],
+    ['Vector.rotate_pose(Vector.make_pose(), "Z", 90, [10, 0, 0])', "[ [6.123233995736766e-17, -1, 0, 10], [1, 6.123233995736766e-17, 0, -10], [0, 0, 1, 0], [0, 0, 0, 1]]"],
     ["Vector.is_pose(Vector.make_pose())", "true"],
     ["Vector.pull([[1, 2, 3], [4, 5, 6], [7, 8, 9]], [1, 2], [1, 2])", "[[5, 6], [8, 9]]"],
     ["Vector.concatinate(0, [1, 2, 3], [4, 5, 6])", "[[1, 2, 3], [4, 5, 6]]"],

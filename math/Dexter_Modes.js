@@ -4,6 +4,7 @@
 var pidXYZ = 0x3e4ecccc
 var pidRP = 0x3cf5c28f
 var pidBase = 0x3f000000
+
 var PID_DELTATNOT = 16
 var PID_DELTAT = 17
 var PID_D = 18
@@ -96,7 +97,7 @@ function setKeepPosition(){
     return retCMD
 }
 
-function setKeepPositionLock(){
+function setOpenLoop(){
 	var retCMD = []
     retCMD.push(make_ins("w", DIFF_FORCE_SPEED_FACTOR_ANGLE, 0))
     retCMD.push(make_ins("w", DIFF_FORCE_SPEED_FACTOR_ROT, 0))
