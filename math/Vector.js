@@ -932,7 +932,7 @@ var Vector = new function(){
                 }
         	}
         }
-        return dim
+        return false
     }
     
     /**********************************************************
