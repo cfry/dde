@@ -109,7 +109,7 @@ var Kin = new function(){
         }
         
 
-    	let Beta = Math.acos((-Math.pow(L[2], 2) + Math.pow(L[1], 2) + Math.pow(D3, 2)) / (2 * D3 * L[1]))*Math.PI/180 // Law of Cosines
+    	let Beta = Math.acos((-Math.pow(L[2], 2) + Math.pow(L[1], 2) + Math.pow(D3, 2)) / (2 * D3 * L[1]))*180/Math.PI // Law of Cosines
         let V31 = Vector.normalize(Vector.subtract(U[3], U[1]))
     	let V23
     	

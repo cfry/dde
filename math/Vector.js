@@ -695,7 +695,7 @@ var Vector = new function(){
         	if (Vector.distance(Vector.add(short_A, short_B)) === 0){
             	result = 648000 //this is 180 degrees in arcseconds
             }else{
-            	var result = Math.atan2(Vector.distance(Vector.cross(short_A, short_B)), Vector.dot(short_A, short_B))*Math.PI/180
+            	var result = Math.atan2(Vector.distance(Vector.cross(short_A, short_B)), Vector.dot(short_A, short_B))*180/Math.PI
         	}
         }
         return result
@@ -797,8 +797,8 @@ var Vector = new function(){
                 if(Vector.is_equal(short_vector, point)){
             		result[i] = short_vector
             	}else{
-                	term_1 = Vector.multiply(Math.cos(theta/(Math.PI/180)), short_vector)
-            		term_2 = Vector.multiply(Math.sin(theta/(Math.PI/180)), Vector.cross(Vector.shorten(plane), short_vector))
+                	term_1 = Vector.multiply(Math.cos(theta/(180/Math.PI)), short_vector)
+            		term_2 = Vector.multiply(Math.sin(theta/(180/Math.PI)), Vector.cross(Vector.shorten(plane), short_vector))
                 	result[i] = Vector.add(Vector.multiply(Vector.magnitude(vector),  Vector.normalize(Vector.add(term_1, term_2))), point)
                 }
             }
@@ -807,8 +807,8 @@ var Vector = new function(){
             if(Vector.is_equal(short_vector, point)){
             	return short_vector
             }
-            term_1 = Vector.multiply(Math.cos(theta/(Math.PI/180)), short_vector)
-            term_2 = Vector.multiply(Math.sin(theta/(Math.PI/180)), Vector.cross(Vector.shorten(plane), short_vector))
+            term_1 = Vector.multiply(Math.cos(theta/(180/Math.PI)), short_vector)
+            term_2 = Vector.multiply(Math.sin(theta/(180/Math.PI)), Vector.cross(Vector.shorten(plane), short_vector))
             result = Vector.add(Vector.multiply(Vector.magnitude(short_vector),  Vector.normalize(Vector.add(term_1, term_2))), point)
         }
         return result
