@@ -695,7 +695,7 @@ var Vector = new function(){
         	if (Vector.distance(Vector.add(short_A, short_B)) === 0){
             	result = 648000 //this is 180 degrees in arcseconds
             }else{
-            	var result = Math.atan2(Vector.distance(Vector.cross(short_A, short_B)), Vector.dot(short_A, short_B))*_rad
+            	var result = Math.atan2(Vector.distance(Vector.cross(short_A, short_B)), Vector.dot(short_A, short_B))*Math.PI/180
         	}
         }
         return result
@@ -732,10 +732,7 @@ var Vector = new function(){
     	switch (Vector.size(arguments)){
         	case 2:
         		//Assumes intersection between two planes
-                
-                
-                
-                return
+                return Vector.normalize(Vector.cross(arguments[1], arguments[2]))
         	case 3:
             	//Assumes intersection between plane and line
             	var line_vector, complete_point, alpha, intersection_point
@@ -779,6 +776,11 @@ var Vector = new function(){
                 alpha = -Vector.dot(plane, complete_point) / (Math.pow(line_vector[0], 2), Math.pow(line_vector[1], 2), Math.pow(line_vector[2], 2))
                 intersection_point = Vector.add(Vector.multiply(alpha, line_vector), point_A)
                 return [intersection_point, alpha]
+        	
+            
+            case 4:
+            
+            	
         }
     }
 
@@ -795,8 +797,8 @@ var Vector = new function(){
                 if(Vector.is_equal(short_vector, point)){
             		result[i] = short_vector
             	}else{
-                	term_1 = Vector.multiply(Math.cos(theta/_rad), short_vector)
-            		term_2 = Vector.multiply(Math.sin(theta/_rad), Vector.cross(Vector.shorten(plane), short_vector))
+                	term_1 = Vector.multiply(Math.cos(theta/(Math.PI/180)), short_vector)
+            		term_2 = Vector.multiply(Math.sin(theta/(Math.PI/180)), Vector.cross(Vector.shorten(plane), short_vector))
                 	result[i] = Vector.add(Vector.multiply(Vector.magnitude(vector),  Vector.normalize(Vector.add(term_1, term_2))), point)
                 }
             }
@@ -805,8 +807,8 @@ var Vector = new function(){
             if(Vector.is_equal(short_vector, point)){
             	return short_vector
             }
-            term_1 = Vector.multiply(Math.cos(theta/_rad), short_vector)
-            term_2 = Vector.multiply(Math.sin(theta/_rad), Vector.cross(Vector.shorten(plane), short_vector))
+            term_1 = Vector.multiply(Math.cos(theta/(Math.PI/180)), short_vector)
+            term_2 = Vector.multiply(Math.sin(theta/(Math.PI/180)), Vector.cross(Vector.shorten(plane), short_vector))
             result = Vector.add(Vector.multiply(Vector.magnitude(short_vector),  Vector.normalize(Vector.add(term_1, term_2))), point)
         }
         return result
@@ -1465,7 +1467,7 @@ var Vector = new function(){
     this.rotate_DCM = function(DCM = [[1, 0, 0],[0, 1, 0],[0, 0, 1]], axis_of_rotation, angle){
     	let trans_matrix = Vector.identity_matrix(3)
         let x_vector, y_vector, z_vector
-        let angle_rad = angle/_rad
+        let angle_rad = angle/(Math.PI/180)
     	switch(axis_of_rotation){
         	case "X":
             	trans_matrix[1][1] = Math.cos(angle_rad)

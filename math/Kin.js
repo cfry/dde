@@ -2,14 +2,38 @@
 //Inverse Kinematics + Forward Kinematics + supporting functions
 //James Wigglesworth
 //Started: 6_18_16
-//Updated: 6_24_17
+//Updated: 6_25_17
 
+//Convert to meters
+Dexter.LINK1 = 0.165100
+Dexter.LINK2 = 0.320675
+Dexter.LINK3 = 0.330200
+Dexter.LINK4 = 0.050800
+Dexter.LINK5 = 0.082550
 
+//Convert to degrees
+Dexter.J2_ANGLE_MIN = -90
+Dexter.J2_ANGLE_MAX = 90
+Dexter.J3_ANGLE_MIN = -150
+Dexter.J3_ANGLE_MAX = 150
+Dexter.J4_ANGLE_MIN = -100
+Dexter.J4_ANGLE_MAX = 100
+Dexter.J5_ANGLE_MIN = -185
+Dexter.J5_ANGLE_MAX = 185
+
+/*
+debugger
+Kin.xyz_to_J_angles([.1, .2, .3], [0, 0])
+
+*/
 
 var Kin = new function(){
-    this.inverse_kinematics = function (xyz, direction = [0, 0, -1], config = [1, 1, 1]){
+    this.inverse_kinematics = function (xyz, direction = [0, 0, -1], config = [1, 1, 1], pose){
     	if(xyz == undefined){
         	dde_error("xyz must be defined. To prevent unpredictable movement a default is not used.")
+        }
+        if(pose == undefined){
+        	pose = Vector.identiy_matrix(4)
         }
     
         let J = Vector.make_matrix(1, 5)[0] // Joint Angles
@@ -85,7 +109,7 @@ var Kin = new function(){
         }
         
 
-    	let Beta = Math.acos((-Math.pow(L[2], 2) + Math.pow(L[1], 2) + Math.pow(D3, 2)) / (2 * D3 * L[1]))*_rad // Law of Cosines
+    	let Beta = Math.acos((-Math.pow(L[2], 2) + Math.pow(L[1], 2) + Math.pow(D3, 2)) / (2 * D3 * L[1]))*Math.PI/180 // Law of Cosines
         let V31 = Vector.normalize(Vector.subtract(U[3], U[1]))
     	let V23
     	
@@ -402,8 +426,8 @@ var Kin = new function(){
 
     //Wrapper function for inverse kinematics
     //Returns joint angles
-    this.xyz_to_J_angles = function(xyz, J5_direction = [0, 0, -1], config = Dexter.RIGHT_UP_OUT){
-        return Kin.inverse_kinematics(xyz, J5_direction, config)[0]
+    this.xyz_to_J_angles = function(xyz, J5_direction = [0, 0, -1], config = Dexter.RIGHT_UP_OUT, pose){
+        return Kin.inverse_kinematics(xyz, J5_direction, config, pose)[0]
     }
 
     //Wrapper function for inverse kinematics
@@ -513,200 +537,84 @@ var Kin = new function(){
         pose = Vector.make_pose(point, Vector.make_dcm(x_vector, undefined, z_vector))
         return pose
     }
+    /*
+    var applied_force = -10 //Nm
+    var angles = [0, 45, 90, -45, 0]
+    angles = [0, 0, 0, 0, 0]
+    var fk = Kin.forward_kinematics(angles)
+    var points = fk[0]
+    
+    var forcepoint = points[5]
+    var arm1 = Vector.subtract(points[5], points[1])[1]
+    var arm2 = Vector.subtract(points[5], points[2])[1]
+    var T = [0, 0, 0]
+    T[1] = arm1*applied_force
+    T[2] = arm2*applied_force
+    out(T)
+    
+    var angles = [0, 0, 0, 0, 0]
+    T = [0, -0.8255, -0.8255]
+    //debugger
+    Kin.three_torques_to_force(angles, T)
+    */
 
-    this.three_joints_force = function(J_angles, torques = [0, 0, 0], touch_point = 'EndAxisHub'){
-    	let U, V, P, D, L2, L3, P1_offset, torque_vectors, U_contact, base_rot
+    this.three_torques_to_force = function(J_angles, torques = [0, 0, 0]){
+    	if(torques.length != 3){dde_error("Only the first three torques are required for this function")}
+        
+        let U, V, P, L2, L3, P1_offset, torque_vectors, U_contact, base_rot
         let tangent_forces, force_vector, num, den, force_direction, force_magnitude, cartesian_forces, Fv_mag
-        base_rot = J_angles[0]
-        J_angles[0] = 0
-        [U, V, P] = Kin.forward_kinematics(J_angles)
+        let axes = [0, 0, 0]
+        let D = [0, 0, 0]
+        let T = [0, 0, 0]
+        let F = [0, 0, 0]
+        let temp_J_angles = Convert.deep_copy(J_angles)
+        base_rot = temp_J_angles[0]
+        temp_J_angles[0] = 0
+        let fk = Kin.forward_kinematics(temp_J_angles)
+        U = fk[0]
+        V = fk[1]
+        P = fk[2]
         L2 = Dexter.LINK2
         L3 = Dexter.LINK3
         
-        //Defining geometry based on touch_point
-        switch(touch_point){
-        	case 'EndAxisHub':
-            	P1_offset = Convert.mms_to_microns(40.7)
-                U_contact = Vector.add(U[3], Vector.multiply(P1_offset, P[1]))
-                break
-            case 'Differential':
-                U_contact = U[3]
-                break
-            default:
-            	P1_offset = 0
-                U_contact = U[5]
-        }
+        U_contact = U[5]
         
-        //Moment arms:
-        let rot_axis_0 = Vector.normalize(V[0])
-        D = Vector.make_matrix(3)
-        D[0] = Vector.subtract(Vector.project_vector_onto_plane(U_contact, rot_axis_0))
+        //Torque axes
+        axes[0] = Vector.normalize(V[0])
+        axes[1] = P[1]
+        axes[2] = P[1]
+        
+        //Moment arms (as vectors):
+        D[0] = Vector.project_vector_onto_plane(U_contact, axes[0])
         D[1] = Vector.subtract(Vector.project_vector_onto_plane(U_contact, P[1]), U[1])
         D[2] = Vector.subtract(Vector.project_vector_onto_plane(U_contact, P[1]), U[2])
-        //out("D: ")
-        //out(D)
-        let row_two = Vector.multiply(Vector.magnitude(D[1]), P[1])
-        let row_three = Vector.multiply(Vector.magnitude(D[1]), P[1])
-        /*
-        let A = [[D[0][1], D[0][0], 0],
-        		 [Vector.multiply(D[1][2], Vector.sin_arcsec(J_angles[0])), Vector.multiply(D[1][2], Vector.cos_arcsec(J_angles[0])), 0],
-                 [Vector.multiply(D[2][2], Vector.sin_arcsec(J_angles[0])), Vector.multiply(D[2][2], Vector.cos_arcsec(J_angles[0])), 0]]
-        */
+		
+        //Torques (as vectors):
+        T[0] = Vector.multiply(torques[0], axes[0])
+        T[1] = Vector.multiply(torques[1], axes[1])
+        T[2] = Vector.multiply(torques[2], axes[2])
         
-        //Linear algebra approach
+        //Perpendicular forces:
+        F[0] = Vector.multiply(-torques[0]/Vector.magnitude(D[0]), Vector.normalize(Vector.cross(D[0], T[0])))
+        F[1] = Vector.multiply(-torques[1]/Vector.magnitude(D[1]), Vector.normalize(Vector.cross(D[1], T[1])))
+        F[2] = Vector.multiply(-torques[2]/Vector.magnitude(D[2]), Vector.normalize(Vector.cross(D[2], T[2])))
         
-        /*
-        //Global Approach
-        let A = Vector.make_matrix(3)
+        //Force-space calcs:
+        let F1a = F[1]
+        let F1b = Vector.add(F[1], Vector.cross(F[1], P[1]))
+        let F2a = F[2]
+        let F2b = Vector.add(F[2], Vector.cross(F[2], P[1]))
+ 
+        let A = (F2b[1]-F1b[1])/(F1a[1]-F1b[1])
+        let B = ((F2a[1]-F2b[1])*(F1b[2]-F2b[2]))/((F1a[1]-F1b[1])*(F2a[2]-F2b[2]))
+        let C = ((F2a[1]-F2b[1])*(F1a[2]-F1b[2]))/((F1a[1]-F1b[1])*(F2a[2]-F2b[2]))
+        let alpha = (A+B)/(1-C)
+        let beta = (F1b[2]-F2b[2]+(F1a[2]-F1b[2])*alpha)/(F2a[2]-F2b[2])
         
-        A[0][0] = D[0][1]
-        A[0][1] = D[0][0]
-        A[0][2] = 0
-        
-        A[1][0] = Vector.sin_arcsec(J_angles[0])*D[1][2]
-        A[1][1] = Vector.cos_arcsec(J_angles[0])*D[1][2]
-        A[1][2] = Math.hypot(D[1][0], D[1][1])
-        
-        A[2][0] = Vector.sin_arcsec(J_angles[0])*D[2][2]
-        A[2][1] = Vector.cos_arcsec(J_angles[0])*D[2][2]
-        A[2][2] = Math.hypot(D[2][0], D[2][1])
-        */
-        
-        //Local approach
-        let A = Vector.make_matrix(3)
-        
-        A[0][0] = Math.hypot(D[0][0], D[0][1])
-        A[0][1] = P1_offset
-        A[0][2] = 0
-        
-        A[1][0] = 0
-        A[1][1] = D[1][2]
-        A[1][2] = Math.hypot(D[1][0], D[1][1])
-        
-        A[2][0] = 0
-        A[2][1] = D[2][2]
-        A[2][2] = Math.hypot(D[2][0], D[2][1])
-        
-        
-        out('A: ')
-        out(A)
-        if(Vector.determinant(A) != 0){
-        	//this will not work in singularities
-        	let B = Vector.transpose(torques)
-        	force_vector = Vector.transpose(Vector.matrix_multiply(Vector.inverse(A), B))
-        }else{
-        
-        //Geomtric Approach
-        //this happens to only work in singularities
-        
-        /*
-        //Moment arms:
-        D = Vector.make_matrix(3)
-        D[0] = Vector.subtract(Vector.project_vector_onto_plane(U_contact, rot_axis_0))
-        D[1] = Vector.subtract(Vector.project_vector_onto_plane(U_contact, P[1]), U[1])
-        D[2] = Vector.subtract(Vector.project_vector_onto_plane(U_contact, P[1]), U[2])
-        */
-        
-        //Torque Vectors
-        torque_vectors = Vector.make_matrix(3)
-        torque_vectors[0][2] = -1 // torque about Z axis
-        torque_vectors[1] = P[1] // torque about P1 axis
-        torque_vectors[2] = P[1] // torque about P1 axis
-        
-        //Convert.arcseconds_to_degrees(100000)
-        tangent_forces = [0, 0, 0]
-        for(var i = 0; i < 3; i++){
-        	force_magnitude = torques[i]/Vector.magnitude(D[i])
-            force_direction = Vector.normalize(Vector.cross(torque_vectors[i], D[i]))
-            tangent_forces[i] = Vector.multiply(force_magnitude, force_direction)
-        }
-        
-        //Cartesian Forces
-        cartesian_forces = Vector.make_matrix(3)
-        for(var i = 0; i < 3; i++){
-        	Fv_mag = Vector.magnitude(tangent_forces[i])
-        	cartesian_forces[i][0] = Fv_mag*Math.sqrt(1+Math.pow(Math.hypot(tangent_forces[i][1], tangent_forces[i][2])/tangent_forces[i][0],2))
-            cartesian_forces[i][1] = Fv_mag*Math.sqrt(1+Math.pow(Math.hypot(tangent_forces[i][2], tangent_forces[i][0])/tangent_forces[i][1],2))
-            cartesian_forces[i][2] = Fv_mag*Math.sqrt(1+Math.pow(Math.hypot(tangent_forces[i][0], tangent_forces[i][1])/tangent_forces[i][2],2))
-        }
-        
-        //Filtering out the invalid forces
-        force_vector = [0, 0, 0]
-        for(let j = 0; j < 3; j++){
-        	
-            var temp_list = []
-            for(let i = 0; i < 3; i++){
-        		if(cartesian_forces[i][j] != Infinity){
-                	temp_list.push(cartesian_forces[i][j])
-                }
-        	}
-            switch(temp_list.length){
-            	case 0:
-            		force_vector[j] = NaN
-                	break
-                case 1:
-                	force_vector[j] = temp_list[0]
-                	break
-                default:
-                	valid = true
-                	for(let i = 0; i < temp_list.length-1; i++){
-                    	if(Vector.is_equal([temp_list[i]], [temp_list[i+1]], 5)){
-                			force_vector[j] = (temp_list[i]+temp_list[i+1])/2
-            			}else{
-                        	valid = false
-                        }
-                    }
-                    if(valid == false){
-                    	force_vector[j] = 0
-                    }
-            }//end of switch
-        }//end of for(j) loop
-        }//end of if(det(A) == 0)
-        
-        
-        
-        /*
-        Vector Algebra Approach:
-        
-        //Vectorizing the torques
-        torque_vectors = Vector.make_matrix(3)
-        torque_vectors[0][2] = 1 // torque about Z axis
-        torque_vectors[1] = P[1] // torque about P1 axis
-        torque_vectors[2] = P[1] // torque about P1 axis
-
-        torque_vectors[0] = Vector.multiply(torques[0], torque_vectors[0])
-        torque_vectors[1] = Vector.multiply(torques[1], torque_vectors[1])
-        torque_vectors[2] = Vector.multiply(torques[2], torque_vectors[2])
-        
-        //Moment arms:
-        let rot_axis_0 = Vector.normalize(V[0])
-        D = Vector.make_matrix(3)
-        D[0] = Vector.subtract(Vector.project_vector_onto_plane(U_contact, rot_axis_0))
-        D[1] = Vector.subtract(Vector.project_vector_onto_plane(U_contact, P[1]), U[1])
-        D[2] = Vector.subtract(Vector.project_vector_onto_plane(U_contact, P[1]), U[2])
-        
-        //Calculating tangent forces
-        tangent_forces = Vector.make_matrix(3)
-        for(let i = 0; i < 3; i++){
-        	if (Vector.magnitude(torque_vectors[i]) == 0){
-				tangent_forces[i] = [0, 0, 0]
-            }else{
-        		num = Vector.cross(D[i], torque_vectors[i])
-        		den = 1/Vector.dot(torque_vectors[i], torque_vectors[i])
-        		tangent_forces[i] = Vector.multiply(num, den)
-                //tangent_forces[i] = Vector.divide(1, tangent_forces[i])
-            }
-        }
-        
-        //Converting tangent forces into cartesian
-        force_vector = Vector.add(tangent_forces[0], tangent_forces[1], tangent_forces[2])
-        */
-
-        
-        let trans_mat = Vector.rotate_DCM(undefined, rot_axis_0, base_rot)
-        out(Vector.matrix_multiply(Vector.transpose(force_vector), trans_mat))
+        let ForceYZ = Vector.add(F2b, Vector.multiply(beta, Vector.subtract(F2a, F2b)))
+    	out(ForceYZ)
+    
         return force_vector
-        //return cartesian_forces
     }
     /*
     var J_angles = Convert.degrees_to_arcseconds([0, 0, 0, 0, 0]) 
@@ -785,6 +693,9 @@ var Kin = new function(){
     this.angles_to_direction = function(x_angle = 0, y_angle = 0){
         let ZX_plane = [0, cosd(y_angle), sind(y_angle)]
         let ZY_plane = [cosd(x_angle), 0, sind(x_angle)]
+        if(Vector.is_equal(ZX_plane, ZY_plane) || Vector.is_equal(Vector.multiply(-1, ZX_plane), ZY_plane)){
+        	dde_error("Direction (" + x_angle +", " + y_angle + ") causes a singularity")
+        }
 		return Vector.round(Vector.normalize(Vector.cross(ZX_plane, ZY_plane)), 15)
     }
     /*
