@@ -38,12 +38,12 @@ Job.my_job.start() //Start running 'my_job'
 //wrap a call in another function and call that other function
 //as we do below by wrapping Dexter.move_all_joints in "move_once".
 function move_once(){
-    return Dexter.move_all_joints([1, 2, 3, 4, 5]) //also try: Dexter.move_to([100000, 200000, 300000])
+    return Dexter.move_all_joints([0, 45, 90, -45, 0]) //also try: Dexter.move_to([100000, 200000, 300000])
 }
 function sleep_and_move(){
-    return [Dexter.move_all_joints([10000, 20000, 30000, 40000, 50000]),
+    return [Dexter.move_all_joints([0, 0, 135, 45, 0]),
             Dexter.sleep(500),
-            Dexter.move_to([100000, 80000, 90000], [0, 0, -1], Dexter.RIGHT_UP_IN)
+            Dexter.move_to([0, 0.5, 0.075], [0, 0, -1], Dexter.RIGHT_UP_IN)
            ]
 }
 new Dexter({name: "my_dex",
@@ -74,9 +74,9 @@ Job.j1.start()
 
 //_______Job Example 3a: Simple Generator
 function* gen_moves(){
-    yield (Dexter.move_all_joints([1, 200000, 3, 40, 50]))
+    yield (Dexter.move_all_joints([0, 0, 135, 45, 0]))
     yield (Dexter.sleep(1000))
-    yield* [Dexter.move_all_joints([1, 300001]),
+    yield* [Dexter.move_all_joints([0, 45, 90, -45, 0]),
             Dexter.sleep(999)
            ]
 }
@@ -86,7 +86,7 @@ Job.j1.start()
 //_______Job Example 3b: Generator with for loop
 function* complex_gen(){
     for(var i = 0; i < 4; i++){
-        yield Dexter.move_all_joints(i * 100000)
+        yield Dexter.move_all_joints(i * 10)
     }
 }
 new Job({name: "j2",  robot: new Dexter(), do_list: [complex_gen]})
@@ -117,7 +117,7 @@ new Job({name: "job_a",
 new Job({name: "job_b",
          robot: new Brain({name: "brain1"}),
          do_list: [Robot.out("hello"),
-              Robot.wait_until(10000),
+              Robot.wait_until(10),
               Robot.sync_point("midway", ["job_a", "job_b"]),
               Robot.out("goodbye")]})
 Job.job_a.start(); Job.job_b.start() //execute both at once.
@@ -133,7 +133,7 @@ Job.job_a.start(); Job.job_b.start() //execute both at once.
 new Dexter({name: "my_dex", ip_address: "192.168.1.142", port: 5000})
 new Job({name: "j4", 
          robot: Robot.my_dex,
-         do_list: [Dexter.move_all_joints(100000, 200000),
+         do_list: [Dexter.move_all_joints(0, 45, 90, -45, 0),
                    Robot.suspend(), //j5 will unsuspend this
                    Robot.out("j4 sez goodbye.")]})
 Job.j4.start()
@@ -164,7 +164,7 @@ new Job({name: "j6", robot: new Dexter(), do_list: []})
 //Now for our requesting job:
 new Job({name: "j7",
          do_list: [Robot.send_to_job({
-                   do_list_item: Dexter.move_all_joints(200000, 100000),
+                   do_list_item: Dexter.move_all_joints(0, 0, 135, 45, 0),
                    where_to_insert: {job: "j6", offset: "program_counter"},
                    start: true, //starts j6
                    wait_until_done: true,
@@ -229,7 +229,7 @@ function print_job_1_dialog(){
 
 new Job({name: "print_job_1", robot: new Dexter(),
     do_list:
-    [Dexter.move_all_joints([1, 2, 3, 4, 5]),
+    [Dexter.move_all_joints([0, 45, 90, -45, 0]),
      function(){print_job_1_dialog()},
      Robot.wait_until(function(){return this.user_data.color_status != undefined}),
      function(){if (this.user_data.color_status == "cancel"){
@@ -237,7 +237,7 @@ new Job({name: "print_job_1", robot: new Dexter(),
                    }
                 else {return null}
                },
-     Dexter.move_all_joints([10, 20, 30, 40, 50])
+     Dexter.move_all_joints( [0, 0, 135, 45, 0 ])
     ]})
 Job.print_job_1.start()
 // Job.print_job_1.user_data  //data set by the dialog
@@ -257,7 +257,7 @@ new Job({name: "lots_of_options_task",
                                height: 150,
                                background_color: "rgb(230, 200, 250)"
                              }), //waits until user clicks 'Done'.
-                    Dexter.move_to([0, 100000, 450000])
+                    Dexter.move_to([0, 0.5, 0.075])
                 ]})                           
 Job.lots_of_options_task.start()
 
@@ -551,7 +551,7 @@ new Job({name: "j10",
          robot: Robot.S1,
          do_list: [Serial.string_instruction("y"),
                    Robot.grab_robot_status("yes_result"),
-                   Robot.wait_until(new Duration(2000)),
+                   Robot.wait_until(2)),
                    Serial.string_instruction("n"),
                    Robot.grab_robot_status("no_result", Serial.DATA0)
                    ]}
@@ -613,6 +613,6 @@ new Job({name: "job_ws5",
                       else { Job.global_user_data.counter = 1 }
                       out("counter = " + Job.global_user_data.counter)
                     },
-                    Robot.wait_until(2000)]}) //sleep for 2 seconds
+                    Robot.wait_until(2)]}) //sleep for 2 seconds
 `
 ]

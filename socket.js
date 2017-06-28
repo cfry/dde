@@ -47,7 +47,59 @@ var Socket = class Socket{
         return arr_buff
     }
 
+    //also converts S params: "MaxSpeed", "StartSpeed", "Acceleration"
+    static instruction_array_degrees_to_arcseconds_maybe(instruction_array){
+        const oplet = instruction_array[Dexter.INSTRUCTION_TYPE]
+        if (oplet == "a"){
+            var instruction_array_copy = instruction_array.slice()
+            instruction_array_copy[Instruction.INSTRUCTION_ARG0] =
+                Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG0] * 3600)
+            instruction_array_copy[Instruction.INSTRUCTION_ARG1] =
+                Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG1] * 3600)
+            instruction_array_copy[Instruction.INSTRUCTION_ARG2] =
+                Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG2] * 3600)
+            instruction_array_copy[Instruction.INSTRUCTION_ARG3] =
+                Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG3] * 3600)
+            instruction_array_copy[Instruction.INSTRUCTION_ARG4] =
+                Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG4] * 3600)
+            return instruction_array_copy
+        }
+        else if (oplet == "S") {
+            const name = instruction_array[Instruction.INSTRUCTION_ARG0]
+            if(["MaxSpeed", "StartSpeed", "Acceleration"].includes(name)){
+                var instruction_array_copy = instruction_array.slice()
+                instruction_array_copy[Instruction.INSTRUCTION_ARG01] =
+                    Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG01] * _nbits_cf)
+                return instruction_array_copy
+            }
+            else if (name == "JBoundries") {
+                instruction_array_copy[Instruction.INSTRUCTION_ARG01] =
+                    Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG01] * 3600) //deg to arcseconds
+                return instruction_array_copy
+            }
+            else { return instruction_array }
+        }
+        else { return instruction_array }
+    }
+
+    static instruction_array_arcseconds_to_degrees_maybe(instruction_array){
+        const oplet = instruction_array[Dexter.INSTRUCTION_TYPE]
+        if (oplet == "a"){
+            var instruction_array_copy = instruction_array.slice()
+            instruction_array_copy[Instruction.INSTRUCTION_ARG0] /= 3600
+            instruction_array_copy[Instruction.INSTRUCTION_ARG1] /= 3600
+            instruction_array_copy[Instruction.INSTRUCTION_ARG2] /= 3600
+            instruction_array_copy[Instruction.INSTRUCTION_ARG3] /= 3600
+            instruction_array_copy[Instruction.INSTRUCTION_ARG4] /= 3600
+            return instruction_array_copy
+        }
+        else { return instruction_array }
+    }
+
+    //static robot_done_with_instruction_convert()
+
     static send(robot_name, instruction_array, simulate){ //can't name a class method and instance method the same thing
+        instruction_array = Socket.instruction_array_degrees_to_arcseconds_maybe(instruction_array)
         const sim_actual = Robot.get_simulate_actual(simulate)
         if((sim_actual === true) || (sim_actual === "both")){
             DexterSim.send(robot_name, instruction_array)

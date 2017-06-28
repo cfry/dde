@@ -5,6 +5,8 @@ DexterSim = class DexterSim{
         this.robot_name = robot_name
         this.robot      = Robot[robot_name] //only used by predict_move_dur
         this.rs         = Dexter.make_default_status_array()
+        this.parameters = {}
+        this.write_array = new Array(128)
         DexterSim.robot_name_to_dextersim_instance_map[robot_name] = this
     }
 
@@ -46,39 +48,6 @@ DexterSim = class DexterSim{
         this.status = "closed"
     }
 
-    static process_next_instructions(){
-        const the_now = Date.now()
-        //for(var sim_inst in DexterSim.robot_name_to_dextersim_instance_map.values()){
-        for(var robot_name in DexterSim.robot_name_to_dextersim_instance_map){
-            const sim_inst = DexterSim.robot_name_to_dextersim_instance_map[robot_name]
-            //hits when just ending an instruction
-            if (sim_inst.now_processing_instruction &&
-                (sim_inst.ending_time_of_cur_instruction <= the_now)) { //end the cur instruction and move to the next
-                let ds_copy = sim_inst.rs.slice(0) //make a copy to return as some subseqent call to this meth will modify the one "model of dexter" that we're saving in the instance
-                ds_copy[Dexter.STOP_TIME] = Date.now()
-                const oplet = sim_inst.now_processing_instruction[Dexter.INSTRUCTION_TYPE]
-                if ((sim_inst.sim_actual === true) && ["F", "G", "g"].includes(oplet)) { //dont do when sim == "both"
-                    Dexter.robot_done_with_instruction(ds_copy)
-                }
-                sim_inst.completed_instructions.push(sim_inst.now_processing_instruction)
-                sim_inst.now_processing_instruction = null     //Done with cur ins,
-                sim_inst.ready_to_start_new_instruction = true
-            }
-            //hits when there's more on the queue to do
-            if(sim_inst.ready_to_start_new_instruction &&
-               (sim_inst.instruction_queue.length > 0) &&
-                (sim_inst.status != "closed")) {
-                sim_inst.ready_to_start_new_instruction = false
-                sim_inst.process_next_instruction()
-            }
-            if((sim_inst.instruction_queue.length == 0) && //nothing in the queue,
-                (sim_inst.status == "closing")) {          //and no more coming from DDE.
-                sim_inst.ready_to_start_new_instruction = false
-                DexterSim.close(sim_inst.robot_name)       //cleaner to set "closed" in one place.
-            }
-        }
-    }
-
     //typically adds instruction to sim_inst.instruction_queue
     static send(robot_name, instruction_array){
         //out("Sim.send passed instruction_array: " + instruction_array + " robot_name: " + robot_name)
@@ -92,32 +61,25 @@ DexterSim = class DexterSim{
         sim_inst.status = "after_first_send"
         let oplet  = instruction_array[Dexter.INSTRUCTION_TYPE]
         switch(oplet){
-            case "E":  //empty_instruction_queue_immediately
-                out("In simulating Dexter at robot_name: " + sim_inst.robot_name +
-                    ", an E instruction (empty_instruction_queue_immediately),<br/> is " +
-                    "deleting " + sim_inst.instruction_queue.length + " instructions:<br/>" +
-                    sim_inst.instruction_queue.join("<br/>") +
-                    "<br/>from the queue that will never be run.")
-                sim_inst.instruction_queue = []
-                sim_inst.ack_reply(instruction_array)
-                break;
+            //case "E":  //empty_instruction_queue_immediately
+            //now handled by the default clause below, and add_instruction_to_queue
             case "F": //empty_instruction_queue, //waits to be "executed" when instruction is processed
-                sim_inst.instruction_queue.push(instruction_array)
+                sim_inst.add_instruction_to_queue(instruction_array)
                 break;
             case "g": //get naturally. This is like "F" in that it lets the buffer empty out.
                 //so like F, don't ack_reply. This is automatically sent as the last instruction in a job.
                 //it always returns a full robot_status in order.
-                sim_inst.instruction_queue.push(instruction_array)
+                sim_inst.add_instruction_to_queue(instruction_array)
                 break;
             case "G": //get immediate. The very first instruction sent to send should be  "G",
                                      //so let it be the first call to process_next_instruction & start out the setTimeout chain
-                sim_inst.instruction_queue.unshift(instruction_array) //stick it on the front of the queue so it will be done next
+                sim_inst.add_instruction_to_queue(instruction_array) //stick it on the front of the queue so it will be done next
                 break;
             case "h": //doesn't go on instruction queue, just immediate ack
                 sim_inst.ack_reply(instruction_array)
                 break;
             default:
-                sim_inst.instruction_queue.push(instruction_array)
+                sim_inst.add_instruction_to_queue(instruction_array)
                 sim_inst.ack_reply(instruction_array)
                 break;
         }
@@ -135,6 +97,55 @@ DexterSim = class DexterSim{
             setTimeout(function(){
                         Dexter.robot_done_with_instruction(ack_array)
                         }, 1)
+        }
+    }
+
+    //this is the method that moves an instrucction from the "DDE side"
+    //to the "hardware side"
+    add_instruction_to_queue(instruction_array){
+        const oplet = instruction_array[Dexter.INSTRUCTION_TYPE]
+        if (oplet == "E") { //empty_instruction_queue_immediately
+            out("In simulating Dexter at robot_name: " + this.robot_name +
+                ", an E instruction (empty_instruction_queue_immediately),<br/> is " +
+                "deleting " + this.instruction_queue.length + " instructions:<br/>" +
+                this.instruction_queue.join("<br/>") +
+                "<br/>from the queue. They will never be run.")
+            this.instruction_queue = []
+        }
+        else { this.instruction_queue.push(instruction_array) }
+    }
+
+    //hardware side methods below
+    static process_next_instructions(){
+        const the_now = Date.now()
+        //for(var sim_inst in DexterSim.robot_name_to_dextersim_instance_map.values()){
+        for(var robot_name in DexterSim.robot_name_to_dextersim_instance_map){
+            const sim_inst = DexterSim.robot_name_to_dextersim_instance_map[robot_name]
+            //hits when just ending an instruction
+            if (sim_inst.now_processing_instruction &&
+                (sim_inst.ending_time_of_cur_instruction <= the_now)) { //end the cur instruction and move to the next
+                let ds_copy = sim_inst.rs.slice() //make a copy to return as some subseqent call to this meth will modify the one "model of dexter" that we're saving in the instance
+                ds_copy[Dexter.STOP_TIME] = Date.now()
+                const oplet = sim_inst.now_processing_instruction[Dexter.INSTRUCTION_TYPE]
+                if ((sim_inst.sim_actual === true) && ["F", "G", "g"].includes(oplet)) { //dont do when sim == "both"
+                    Dexter.robot_done_with_instruction(ds_copy)
+                }
+                sim_inst.completed_instructions.push(sim_inst.now_processing_instruction)
+                sim_inst.now_processing_instruction = null     //Done with cur ins,
+                sim_inst.ready_to_start_new_instruction = true
+            }
+            //hits when there's more on the queue to do
+            if(sim_inst.ready_to_start_new_instruction &&
+                (sim_inst.instruction_queue.length > 0) &&
+                (sim_inst.status != "closed")) {
+                sim_inst.ready_to_start_new_instruction = false
+                sim_inst.process_next_instruction()
+            }
+            if((sim_inst.instruction_queue.length == 0) && //nothing in the queue,
+                (sim_inst.status == "closing")) {          //and no more coming from DDE.
+                sim_inst.ready_to_start_new_instruction = false
+                DexterSim.close(sim_inst.robot_name)       //cleaner to set "closed" in one place.
+            }
         }
     }
 
@@ -216,7 +227,17 @@ DexterSim = class DexterSim{
                 //DexterSim.fill_in_robot_status_xyzs(robot_status)
                 break;
             case "S": //set_parameter
+                this.parameters[ins_args[0]] = ins_args[1]
                 dur = 0
+                break
+            case "w": //write
+                dur = 0
+                const write_location = ins_args[0]
+                if (write_location < this.write_array.length) {
+                    this.write_array[write_location] = ins_args[1]
+                }
+                else { shouldnt('DexterSim.write_array is too short to accomodate "w" instruction<br/> with write_location of: ' +
+                                 write_location + " and value of: " + ins_args[1]) }
                 break
             case "z": //sleep
                 dur =  Math.round(ins_args[0]/ 1000000) //instruction array z sleep time is in milliseconds in Jobs and robots,
@@ -247,18 +268,20 @@ DexterSim = class DexterSim{
     static close(robot_name){
         //when this is called, no more instructions will be coming from the job, but there might be
         //be stragglers left in the instruction_queue
-        let sim_inst = DexterSim.robot_name_to_dextersim_instance_map[robot_name]
-        if(sim_inst){
-           if ((sim_inst.instruction_queue.length == 0) &&
-               (sim_inst.now_processing_instruction == null)){
-                sim_inst.stop_sim() //also set near bottom of process_next_instruction
-            }
-            else { //note: now that I automatically put a "g" instruction as the automatic last instruction
-            //of a job's do_list, we shouldn't be getting this "closing" state because
-            //the "g" naturally empties the instruction_queue.
-            sim_inst.status = "closing"
-            //setTimeout(function(){DexterSim.close(socket_id)}, 1000) //shouldn't be necessary.
-            //as process_next_instruction will handle final close in this case.
+        if (DexterSim.robot_name_to_dextersim_instance_map) { //because close might be called before we init the map
+            let sim_inst = DexterSim.robot_name_to_dextersim_instance_map[robot_name]
+            if(sim_inst){
+               if ((sim_inst.instruction_queue.length == 0) &&
+                   (sim_inst.now_processing_instruction == null)){
+                    sim_inst.stop_sim() //also set near bottom of process_next_instruction
+                }
+                else { //note: now that I automatically put a "g" instruction as the automatic last instruction
+                //of a job's do_list, we shouldn't be getting this "closing" state because
+                //the "g" naturally empties the instruction_queue.
+                sim_inst.status = "closing"
+                //setTimeout(function(){DexterSim.close(socket_id)}, 1000) //shouldn't be necessary.
+                //as process_next_instruction will handle final close in this case.
+                }
             }
         }
     }

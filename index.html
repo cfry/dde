@@ -120,18 +120,21 @@
     <script type="text/javascript" src="dextersim.js"></script>
     <script type="text/javascript" src="job.js"></script>
     <script type="text/javascript" src="job_examples.js"></script> <!--evals no Job code, just literal strings for insertion-->
+    <script type="text/javascript" src="run_instruction.js"></script>
     <script type="text/javascript" src="app_builder.js"></script>
     <script type="text/javascript" src="test_suite.js"></script>
     <script type="text/javascript" src="test_suites.js"></script>
 
-    <script type="text/javascript" src="math/Convert.js"></script>
+    <!--loading order of this blcok specified by James -->
+    <script type="text/javascript" src="math/Trig_in_Degrees.js"></script>
     <script type="text/javascript" src="math/Vector.js"></script>
+    <script type="text/javascript" src="math/Convert.js"></script>
     <script type="text/javascript" src="math/Kin.js"></script>
     <script type="text/javascript" src="math/Coor.js"></script>
-    <script type="text/javascript" src="math/Dexter_Modes.js"></script>
-    <script type="text/javascript" src="math/txt.js"></script>
     <script type="text/javascript" src="math/dxf-parser.js"></script>
     <script type="text/javascript" src="math/DXF.js"></script>
+    <script type="text/javascript" src="math/txt.js"></script>
+    <script type="text/javascript" src="math/Dexter_Modes.js"></script>
 
     <script type="text/javascript" src="serial.js"></script>
     <script type="text/javascript" src="low_level_dexter/calibration.js"></script>
@@ -487,11 +490,11 @@
                                                 <li id="insert_job_example10_id" title="Insert into the editor a tutorial on using&#013;when_stopped for looping a job, etc.">10. when_stopped</li>
                                             </ul>
                                         </li>
-                                        <li>Run dexter0 instr
+                                        <li id="run_instruction_id" title="Show a dialog for running an instruction on Dexter.">Run Instruction
                                             <ul>
-                                                <li id="move_to_home_id"    title="Runs a job with the instruction:&#013;Dexter.move_all_joints(Dexter.HOME_ANGLES)">HOME_ANGLES</li>
-                                                <li id="move_to_neutral_id" title="Runs a job with the instruction:&#013;Dexter.move_all_joints(Dexter.NEUTRAL_ANGLES)">NEUTRAL_ANGLES</li>
-                                                <li id="move_to_parked_id"  title="Runs a job with the instruction:&#013;Dexter.move_all_joints(Dexter.PARKED_ANGLES)">PARKED_ANGLES</li>
+                                                <li id="move_to_home_id"    title="Runs a job on dexter0 with the instruction:&#013;Dexter.move_all_joints(Dexter.HOME_ANGLES)">HOME_ANGLES</li>
+                                                <li id="move_to_neutral_id" title="Runs a job on dexter0 with the instruction:&#013;Dexter.move_all_joints(Dexter.NEUTRAL_ANGLES)">NEUTRAL_ANGLES</li>
+                                                <li id="move_to_parked_id"  title="Runs a job on dexter0 with the instruction:&#013;Dexter.move_all_joints(Dexter.PARKED_ANGLES)">PARKED_ANGLES</li>
                                                 <li id="move_to_selection_id"  title="Treat the selection as an instruction&#013;to run on dexter0.&#013;A number or number array < 4&#013;are args to move_to.&#013;Arrays of 4 or 5 numbers&#013;are args to move_all_joints.">selection</li>
                                             </ul>
                                         </li>

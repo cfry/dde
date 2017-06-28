@@ -324,6 +324,12 @@ function install_submit_window_fns(jqxw_jq){
             if (inp.dataset.oninput  == "true") { inp.oninput  = submit_window }
         }
     }
+    var ins = info_win_div.find("select")
+    for (var index = 0; index < ins.length; index++){ //bug in js chrome: for (var elt in elts) doesn't work here.
+        var inp = ins[index]
+        if (inp.dataset.onchange == "true") { inp.onchange = submit_window }
+        if (inp.dataset.oninput  == "true") { inp.oninput  = submit_window }
+    }
     var ins = info_win_div.find("a")
     for (var index = 0; index  < ins.length; index++){ //bug in js chrome: for (var elt in elts) doesn't work here.
         var inp = ins[index]
@@ -392,7 +398,7 @@ window.submit_window = function(event){
               metaKey:event.metaKey, //on WindowsOS, the windows key, on Mac, the Command key.
               shiftKey:event.shiftKey,
               tagName:this.tagName}
-    result.window_index    = get_window_index_containing_elt(this)//get_index_of_window(jsxw_jq)
+    result.window_index = get_window_index_containing_elt(this)//get_index_of_window(jsxw_jq)
     //var jsxw_jq                 = get_jqxw_jq_of_window_containing_elt(this)
     if (this.tagName == "LI"){ //user clicked on a menu item
         if ($(this).attr("data-name")) {result.clicked_button_value = $(this).attr("data-name")}
@@ -417,8 +423,15 @@ window.submit_window = function(event){
         }
     }
     else if (this.tagName == "INPUT") {
-        if ((this.type == "button") || (this.type == "submit")) {
-            result.clicked_button_value = this.value  //used by the callback to chose the appropriate action
+        if ((this.type == "button") || (this.type == "submit")) { //used by the callback to chose the appropriate action
+            if(this.name)     { result.clicked_button_value = this.name   }
+            else if (this.id) { result.clicked_button_value = this.id     }
+            else              { result.clicked_button_value = this.value  } //this is the disolayed text in the button.
+                //but note that we *might* have 2 buttons with the same label but want them to have different actions
+                //so check name and id first because we can give them different values even if
+                //the label (value) is the same for 2 different buttons.
+                //but if we WANT the action to be the same for 2 same-valued buttons, fine
+                //give the buttons values but no name or id.
         }
         else { //for sliders, etc. if they have data-onchange='true' or data-onclick='true'
             // if (this.oninput) { this.focus() } //because at least for input type="text", when
@@ -951,7 +964,7 @@ function beep(keyword_args={}){
     setTimeout(function(){oscillator.stop()}, keyword_args.duration);
 };
 */
-function beep({duration = 500, frequency = 440, volume = 1, waveform = "triangle", callback = null}={}){
+function beep({duration = 0.5, frequency = 440, volume = 1, waveform = "triangle", callback = null}={}){
     var oscillator = audioCtx.createOscillator();
     var gainNode = audioCtx.createGain();
 
@@ -964,7 +977,7 @@ function beep({duration = 500, frequency = 440, volume = 1, waveform = "triangle
     if (callback){oscillator.onended = callback;}
 
     oscillator.start();
-    setTimeout(function(){oscillator.stop()}, duration);
+    setTimeout(function(){oscillator.stop()}, duration * 1000);
 }
 window.beep = beep
 

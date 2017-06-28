@@ -113,7 +113,7 @@ function setKeepPosition(){
     ]
 }
 
-function setKeepPositionLock(){
+function setOpenLoop(){
 	return [
         make_ins("w", DIFF_FORCE_SPEED_FACTOR_ANGLE, 0),
         make_ins("w", DIFF_FORCE_SPEED_FACTOR_ROT, 0),

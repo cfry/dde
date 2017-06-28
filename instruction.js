@@ -105,8 +105,22 @@ Instruction.labels = [
 "INSTRUCTION_ID",     // 1
 "START_TIME",         // 2
 "STOP_TIME",          // 3 //END_TIME is better in this context BUT stop_time, stop_reason is used in Jobs and I wanted to be consistent with that.
-"INSTRUCTION_TYPE"    // 4
+"INSTRUCTION_TYPE",   // 4
+"INSTRUCTION_ARG0",    // 5
+"INSTRUCTION_ARG1",    // 6
+"INSTRUCTION_ARG2",    // 7
+"INSTRUCTION_ARG3",    // 8
+"INSTRUCTION_ARG4",    // 9
 ] // and after those come the arguments to the instruction.
+
+for (let i = 0; i < Instruction.labels.length; i++){
+    Instruction[Instruction.labels[i]] = i
+}
+
+//return an array of the instruction args
+Instruction.args = function(ins_array){
+    return ins_array.slice(Instruction.INSTRUCTION_ARG0)
+}
 
 //user might call this at top level in a do_list so make it's name short.
 function make_ins(instruction_type, ...args){
@@ -117,14 +131,7 @@ function make_ins(instruction_type, ...args){
   return result.concat(args)
 }
 
-for (let i = 0; i < Instruction.labels.length; i++){
-    Instruction[Instruction.labels[i]] = i
-}
 
-//return an array of the instruction args
-Instruction.args = function(ins_array){
-    return ins_array.slice(Instruction.INSTRUCTION_TYPE + 1)
-}
 //now Instruction.INSTRUCTION_TYPE == 4, and some_ins_array[Instruction.INSTRUCTION_TYPE] will return the oplet
 //make_ins("a", 1, 2, 3, 4, 5) works
 //make_ins("a", ...[1, 2, 3, 4, 5]) works
@@ -1316,9 +1323,8 @@ Instruction.Control.wait_until = class wait_until extends Instruction.Control{
         super()
         this.fn_date_dur = fn_date_dur
         if (typeof(this.fn_date_dur) == "function"){}
-        else if (this.fn_date_dur instanceof Date){}
-        else if (typeof(fn_date_dur) == "number") { this.fn_date_dur = new Duration(fn_date_dur) }
-        else if (this.fn_date_dur instanceof Duration) {}
+        else if (this.fn_date_dur instanceof Date) {}
+        else if (typeof(fn_date_dur) == "number")  {}
         else if (this.fn_date_dur == "new_instruction"){}
         else if (Array.isArray(this.fn_date_dur) ||
                  (typeof(this.fn_date_dur) == "object")){
@@ -1329,6 +1335,11 @@ Instruction.Control.wait_until = class wait_until extends Instruction.Control{
                              "That implies this job will wait for itself, and thus forever.<br/>" +
                              "However, unusual circumstances could make this ok.")
                  }
+        }
+        else {
+            dde_error("Robot.wait_until instruction passed: " + this.fn_date_dur +
+                      '<br/> which is not a number, date, function,<br/>' +
+                      '"new_instruction" or instruction location array.')
         }
         this.start_time = null
     }
@@ -1358,10 +1369,10 @@ Instruction.Control.wait_until = class wait_until extends Instruction.Control{
                 job_instance.set_up_next_do(0)
             }
         }
-        else if (this.fn_date_dur instanceof Duration){
+        else if (typeof(fn_date_dur) == "number"){
             if (this.start_time == null) { this.start_time = Date.now() } //hits the first time this do_item is called for an inst
             var dur_from_start = Date.now() - this.start_time
-            if (dur_from_start >= this.fn_date_dur.milliseconds){
+            if (dur_from_start >= this.fn_date_dur * 1000){ //dur_from_start is in ms, fn_date_dur is in seconds
                 job_instance.wait_reason = null
                 job_instance.set_status_code("running")
                 this.start_time = null //essential for the 2nd thru nth call to start() for this job.
@@ -1370,7 +1381,7 @@ Instruction.Control.wait_until = class wait_until extends Instruction.Control{
             else if ((job_instance.robot instanceof Dexter) && (dur_from_start > 1000)){
                 //so that we can keep the tcp connection alive, send a virtual heartbeat
                 let new_instructions = [make_ins("g"), //just a do nothing to get a round trip to Dexter.
-                                       Brain.wait_until(this.fn_date_dur.milliseconds - 1000)] //create new wait_until to wait for the remaining time
+                                       Robot.wait_until(this.fn_date_dur - 1)] //create new wait_until to wait for the remaining time
                 job_instance.insert_instructions(new_instructions)
                 this.start_time = null //essential for the 2nd thru nth call to start() for this job.
                 job_instance.wait_reason = null
@@ -1378,7 +1389,7 @@ Instruction.Control.wait_until = class wait_until extends Instruction.Control{
                 job_instance.set_up_next_do(1)
             }
             else {
-                job_instance.wait_reason = "until Duration: " +  this.fn_date_dur.milliseconds + " ms"
+                job_instance.wait_reason = "until Duration: " +  this.fn_date_dur + " seconds"
                 job_instance.set_status_code("waiting")
                 job_instance.set_up_next_do(0)
             }

@@ -6,6 +6,122 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 2.0.0, June 27, 2017</summary>
+    Incompatible Changes: We have adopted SI standard units throughout DDE,
+    meaning that we will use: meters, degrees, kilograms, seconds where feasible.
+    In particular:<br/>
+    Angles are now specified in degrees, not arcseconds.
+    Lengths are specified in meters, not microns.
+    Durations mostly now specified in seconds, not milliseconds.
+    We expect these changes will break most jobs, however, its simple to fix them using
+    our new units system.
+    <p/>
+    Highlights: New "units" system to help convert numerical values into SI units.
+    New top level article in Doc Pane: "Dexter Kinematics".
+    DDE menu bar/Jobs/Run Instruction is now clickable and pops up a multi-instruction dialog.
+    Click help now works in Command input (in Output pane header) and code examples in Doc pane.
+
+<ul><li>units system for converting numbers into SI units.
+    <li>show_window buttons extended to look at name and id before value for
+        binding the clicked_button_value</li>
+
+    <li> ref man now has all JavaScript examples formatted in white for easier identification.</li>
+
+    <li> The command input typein now has click help.
+         Type in something and click within it,
+         and you'll see the same click help that you see when
+         you click on that thing in the editor.</li>
+
+    <li> The "code" examples in the doc pane (white background)
+         now have click help.</li>
+
+    <li> New top level article in Doc pane: "Dexter Kinematics"</li>
+
+    <li> Now the simulator is keeping track of set_parameter (oplet "S") instructions.</li>
+
+    <li> Now the simulator is handling and keeping track of write (oplet "w") instructions.</li>
+
+    <li> The simulator more faithfully simulates "empty_instruction_queue_immediately"</li>
+
+    <li> The previous release added a DDE menu bar menu Jobs/move dexter0.
+         This has been renamed to Jobs/Run Instruction.
+         Clicking on "Run Instruction" itself pops up a dialog allowing
+         you more control over running an instruction on Dexter
+         including:
+         <ul>
+             <li>move_to</li>
+             <li>move_to_relative</li>
+             <li>move_all_joints</li>
+             <li>move_all_joints_relative</li>
+             <li>empty_instruction_queue_immediate</li>
+             <li>switching between the 4 Dexter modes</li>
+             <li>sending instructions to any defined Dexter (not just dexter0)</li>
+         </ul>
+    </li>
+    <li> show_window has been extended to handle onchange events for SELECT tags.</li>
+
+    <li> The comment at the top of DDE menubar/Insert/show_window/onchange calls
+         has been improved. The Ref Man for show_window now has a brief
+         section for onchange.</li>
+
+    <li> move_to and move_to_relative now check for out of range positions
+        and error if they are passed them.</li>
+
+    <li> Before the "move_all_joints" instruction (oplet "a") is sent
+         to Dexter, its angles in degrees are converted into the arcseconds
+         that Dexter requires.</li>
+
+    <li> The method: <code>Dexter.xyz_invalid</code> has been removed.</li>
+
+    <li>Dexter instruction: <code>Dexter.set_keep_position_lock</code>
+        has been renamed to Dexter.set_open_loop<li>
+
+    <li>Many changes for converting DDE to SI units including, but not limited to:
+        <ul><li>Constants: Dexter.HOME_ANGLES, Dexter.NEURAL_ANGLES Dexter.PARKED_ANGLES converted
+                from arcsecondss to degrees.</li>
+             <li>move_to, got rid of its 3 base_* args.</li>
+
+             <li>J5_direction can now accept an array of 2 items,
+                  each is in degrees (an angle).
+                  See RefMan/Robots/Dexter/Dexter Instructions/move_to/J5_direction</li>
+
+             <li>Making a new Dexter robot has had its 3 base_* params replaced with the
+                  "pose" param.</li>
+
+            <li> Dexter.move_to if J5_direction and/or config are passed in as null,
+                 then get their values from the existing angles in the robot.</li>
+
+             <li>move_to now errors if passed a J5_direction of <br/>
+                [90, 90] [-90, -90], [-90 90] or [90, -90]</li>
+
+             <li>wait_until no longer accepts a Duration instance as its first arg.
+                 You can still pass it a number, but this number is now
+                 interpreted as seconds, not milliseconds.</li>
+
+            <li> beep now takes its duration in seconds, not milliseconds</li>
+            <li> The constant Dexter.MAX_SPEED  now has a value of 30 (was 100)
+                  and is in units  "degrees per second" not "arcseconds per millisecond"</li>
+            <li>  New value: Dexter.MAX_SPEED = 30 // degrees per second</li>
+
+            <li> New value: Dexter.START_SPEED = .05 // degrees per second</li>
+
+            <li> New contant: Dexter.HOME_POSITION    = [0, 0.08255, 0.866775] //meters</li>
+            <li> New contant: Dexter.NEUTRAL_POSITION = [0, 0.5,     0.075],   //meters</li>
+
+            <li> Before sending S params of :
+                 MaxSpeed, StartSpeed, Acceleration,
+                 there values are converted via: Math.round(MaxSpeed * _nbits_cf)</li>
+            <li>Before sending S param of: JBoundries,
+                 it is now converted to arcseconds.</li>
+
+            <li> All Job examples converted from microns, arcseconds, milliseconds to
+                  meters, degrees, seconds.</li>
+
+            <li> Dexter instance variable "xyz" removed.</li>
+        </ul>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 1.1.10, June 23, 2017</summary>
     Highlights: New DDE menu bar menu Jobs/move dexter0, prop method extended,
                 generators extended and documented.
@@ -102,7 +218,7 @@ its button is colored yellow.</li>
   <ul><li>Dexter.set_follow_me</li>
       <li>Dexter.set_force_protect</li>
       <li>Dexter.set_keep_position</li>
-      <li>Dexter.set_keep_position_lock</li>
+      <li>Dexter.set_open_loop</li>
    </ul>
 New Ref Man Section: Dexter Instructions/Dexter Modes/
 that documents each. Click help supported.

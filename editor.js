@@ -1330,9 +1330,10 @@ Editor.in_whitespace = function(full_src, pos){
     else { return false }
 }
 
-Editor.identifier_or_operator = function(){
-    var pos      = Editor.selection_start()
-    var full_src = Editor.get_javascript()
+//called by both editor click help and cmd_in help
+Editor.identifier_or_operator = function(full_src=null, pos=null){
+    if (full_src === null) { full_src = Editor.get_javascript() }
+    if (pos === null)      { pos = Editor.selection_start() }
     if (full_src.length == 0){
         return "_the_editor_is_empty"
     }
@@ -1450,8 +1451,8 @@ Editor.variable_info = function(identifier){
     return null
 }
 
-Editor.show_identifier_info = function(){
-    var identifier = Editor.identifier_or_operator()
+Editor.show_identifier_info = function(full_src=null, pos=null){
+    var identifier = Editor.identifier_or_operator(full_src, pos)
     if (identifier){
         var info = Js_info.get_info_string(identifier)
         /* this is now implemented in identifier_or_operator that returns a potential array with var, let and param into in it.

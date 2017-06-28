@@ -148,6 +148,10 @@ function init_units(){
         Series.instances.push(ser)
     }
     Series.instances.push(make_temperature_series())
+    define_global_constant("_nbits_cf", 7754.73550222) //(nbits*seconds/degree)
+      //don't put _nbits_cf into a series. Not for use by users.
+      //it is used for converting S params: MaxSpeec StartSpeed, Accelleration
+      //before sending this to Dexter hardware.
 }
 
 function units_to_series(name, units_for_one_series){

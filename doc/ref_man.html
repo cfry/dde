@@ -40,14 +40,14 @@ of the page.
 It will not eval scripts on the page
 so you may see an error when retriving a page containing JavaScript.
 <p/>
-Example: <pre>get_page_async("http://ibm.com",
+Example: <pre><code>get_page_async("http://ibm.com",
   function(err, response, body){
      if(err) { out("get_page_async got error.") }
      else if (response.statusCode !== 200){
         out("Got an error with statusCode: " + response.statusCode)
      }
      else { out(body) }
-  })</pre><br/>
+  })</code></pre><br/>
 <p/>
 Instead of a url as the argument, you can pass a literal JS object
 with lots of options, described at:
@@ -86,10 +86,10 @@ with lots of options, described at:
         y: 45, 
         color: "blue"}</code></pre>
         This later form makes it easy to compute and set indivudal args.<br/>
-      Example:<pre>
+      Example:<pre><code>
       var args = {x: 12.3 * 10}
       args.y = 40 + 5
-      make_url("www.ibm.com", args)</pre>   
+      make_url("www.ibm.com", args)</code></pre>
 </details>
 
 <details class="doc_details"><summary>Sound</summary>
@@ -97,21 +97,21 @@ with lots of options, described at:
 <details id="beep_doc_id" class="doc_details"><summary>beep</summary>
 Plays an electronic sound.<br/>
 <i>Parameters</i>:<br/>
-<b>duration</b> A number milliseconds. Default: 500<br/>
+<b>duration</b> A number seconds. Default: 0.5<br/>
 <b>frequency</b> A number in Hertz. Default: 400<br/>
 <b>volume</b> A number between zero and 1. Default: 1<br/>
 <b>waveform</b> The timbre or waverform of the sound. Default: "triangle".
     Other options are: "sine", "square", "sawtooth".<br/>
 <b>callback</b> A function of no arguments that is called when the beep finishes playing.
                Default: null, meaning do nothing.<br/>
-<i>Example</i>: <pre>
-beep({duration: 500,
+<i>Example</i>: <pre><code>
+beep({duration: 0.5,
       frequency: 440,
       volume: 1,
       waveform: "triangle",
       callback: function(){beep({frequency: 493.88})}
      })
-</pre>
+</code></pre>
 </details>
 
 <details id="beeps_doc_id" class="doc_details"><summary>beeps</summary>
@@ -120,12 +120,11 @@ Beeps the indicated number of times with the default <code>beep</code> settings.
     <b>times</b> An integer indicated the number of times to beep. Default: 1.<br/>
     <b>callback</b> A function of no arguments that is called when beeps finishes playing.
     Default: null, meaning do nothing.<br/>
-    <i>Example</i>: <pre>
-beeps(3,
+    <i>Example</i>: <pre><code>beeps(3,
       function(){
         speak({speak_data: "Third Floor, home robots"})
       })
-</pre>
+</code></pre>
 </details>
 
 
@@ -209,7 +208,7 @@ Example:<br/>
 By passing a literal object, you can control many aspects of <code>speak</code>.
 The <code>speak_data</code> input can be more than just text. You can feed speak any JavaScript data
 (such as a boolean, a number, a date, an array, etc.) and it will do its best to say it out loud.<br/>
-Example:<pre> speak({speak_data: [true, "It is", new Date()],//default="hello"
+Example:<pre><code> speak({speak_data: [true, "It is", new Date()],//default="hello"
         volume: 1.0,   //default=1.0   0 to 1.0,
         rate: 1.0,     //default=1.0   0.1 to 10,
         pitch: 1.0,    //default=1.0   0 to 2,
@@ -217,7 +216,7 @@ Example:<pre> speak({speak_data: [true, "It is", new Date()],//default="hello"
         voice: 0,      //default=0     0, 1, 2, or 3
         callback: function(event) {out('Dur in nsecs: ' + event.elapsedTime)}  //default=null  called when speech is done.
           })
-</pre>
+</code></pre>
 </details> <!-- end of speak -->
 
 </details> <!-- end of Sound -->
@@ -291,7 +290,7 @@ folder names. A file path of "/" resets the default file path prefix (...Documen
 <p/>
 <i>Examples</i>:<br/>
 <code>load_files("foo.js")</code> Loads the file in your dde_apps folder named foo.js<br/>
-<pre style="background-color:white;">load_files(
+<pre style="background-color:white;"><code>load_files(
  "a/b.js", //loads .../dde_apps/a/b.js
  "c.js",   //loads .../dde_apps/c.js
  "d/e/",   //no load but sets prefix to ".../dde_apps/d/e/"
@@ -300,7 +299,7 @@ folder names. A file path of "/" resets the default file path prefix (...Documen
  "/",      //no load but sets prefix to .../dde_apps/
  "h.js"    //loads .../dde_apps/h.js
 )
-</pre>
+</code></pre>
 <p/>
 load_files returns the result of evaluating the last expression in the last file loaded.
 </details> <!-- end load_files  -->
@@ -395,7 +394,7 @@ get the JSON syntax correct.
     If you modify (not set) a persistent value that is an array or a literal object,
     call this function to save it. If you have a bunch of such modifications,
     do them all, then call <code>persistent_save</code> once at the end.<br/>
-    <i>Example:</i> <pre>
+    <i>Example:</i> <pre><code>
 var a1 = [10, 11, 12]
 persistent_save("my_array", a1)
 a1[1] = 234
@@ -404,7 +403,7 @@ persistent_save()
 persistent_get("my_array") //=> 234
 persistent_remove("my_array")
 persistent_get("my_array") //=> undefined
-    </pre>
+    </code></pre>
 </details>
 
 <details id="persistent_set_doc_id" style="margin-left:40px;"><summary>persistent_set</summary>
@@ -421,9 +420,9 @@ A job contains a do_list of instructions that it feeds to a robot to make things
 The syntax of defining a job is:
 <pre><code>new Job({name: "j1", 
          robot: new Dexter(), 
-         do_list: [ Dexter.move_to([200000, 200000, 50000]),
-                    Robot.wait_until(1000)
-                    ...
+         do_list: [ Dexter.move_to([0, 0.5, 0.075]),
+                    Robot.wait_until(2)
+                    //...
                    ]
         })</code></pre>
 Defined jobs remain inert until they are started like so:<br/>
@@ -573,10 +572,10 @@ Insert an instruction into a Job's do_list at a particular location.<br/>
 if you effectively want to insert more than one.<br/>
 <b>location</b> Any instruction_location documented under <code>Robot.go_to</code> can be used
 including integers, names of labels, etc. <br/>
-<i>Example</i>: <pre>
+<i>Example</i>: <pre><code>
 Job.insert_instruction(Robot.out("the end"),
                        {job: "my_job",
-                        offset: "end"})</pre><br/>
+                        offset: "end"})</code></pre><br/>
 Adds an instruction that prints "the end" at the end of <code>Job.my_job.do_list</code>.<br/>
 The instruction <code>Robot.send_to_job</code> performs the core of this functionality
 in an instruction format.<br/>
@@ -632,7 +631,7 @@ which will mean that after a short pause, run this instruction
 again. Then in some other running of the instruction, a different
 branch of an <code>if</code> may be taken that will call
 <code>this.set_up_next_do(1)</code> causing the job to proceed.
-<i>Example</i>:<pre>
+<i>Example</i>:<pre><code>
 function pause_a_bit(){
    if (new Date().getSeconds() < 30){
       this.set_up_next_do(0)
@@ -642,7 +641,7 @@ function pause_a_bit(){
    }
    return "dont_call_set_up_next_do"
 }
-</pre>
+</code></pre>
 The above example could better be implemented using
 <code>Robot.wait_until</code>, but there are
 cases where the increased flexibility of the above is convenient.
@@ -666,12 +665,12 @@ only have to define it once.
 If you have some JavaScript code that you want to go between 2
 other instructions on a Job's do_list, your first inclination
 might be to just stick it on the do_list like so
-<pre>
+<pre><code>
 do_list: [Robot.out("hi"),
           my_fn(12, 34),
           Robot.out("bye")
           ]
-</pre>
+</code></pre>
 What happens here is that when the <i>definition</i> of the job is evaled,
 the function my_fn will be called with args 12 and 34.
 Whatever that function returns will be put on the do list
@@ -759,19 +758,19 @@ for code examples. Related Job facilities are:
 <details id="Robot.error_doc_id" class="doc_details"><summary>error</summary>
   Causes the job to error, immediately stopping it.
   The one argument is a string of a reason for the error which
-  will aid in debugging. Example:<pre>
-  Robot.error("fubar")</pre>
+  will aid in debugging. Example:<pre><code>
+  Robot.error("fubar")</code></pre>
 </details>
 
 <details id="Robot.get_page_doc_id" class="doc_details"><summary>get_page</summary>
   Similar to the function <code>get_page</code>, only made into an instruction.
   This instruction gets the content of a url and places it in a given user_data variable
   on the job instance before allowing the next instruction in the do_list to run.<br/>
-  Example:<pre> new Job({name: "j1",
+  Example:<pre><code> new Job({name: "j1",
          do_list: [Robot.get_page("http://www.nactem.ac.uk/software/acromine/dictionary.py?sf=BMI"),
                    function(){out("got response of: " + 
                                     this.user_data.http_response)}
-         ]}) </pre>
+         ]}) </code></pre>
   <i>Parameters:</i><br/>
   <b>url_or_options</b>: The url whose contents this instruction gets.<br/>
     Instead of a url as the argument, you can pass a literal JS object with lots of options, described at:
@@ -782,8 +781,8 @@ for code examples. Related Job facilities are:
      content of the url.
   <p/>
 Using <code>make_url</code> can help make constructing calls to <code>get_page</code> a bit easier.
-Example:<pre> Robot.get_page(make_url("www.nactem.ac.uk/software/acromine/dictionary.py",
-                         {sf: "BMI"}))</pre>
+Example:<pre><code> Robot.get_page(make_url("www.nactem.ac.uk/software/acromine/dictionary.py",
+                         {sf: "BMI"}))</code></pre>
 <code>make_url</code> is documented in the reference manual under "I/O".
 </details> <!-- end get_page -->
 
@@ -825,7 +824,7 @@ the next instruction of type "label" found.<br/>
 <b>Instruction oplet</b> Low level instructions to Dexter have a letter that
 designates their type. For example <code>"a"</code> would refer to
 the <code>move_all_joints</code> instruction. You can see the oplet for
-an instruction by evaling the call to make it, i.e. <code>Dexter.move_all_joints(100)</code><br/>
+an instruction by evaling the call to make it, i.e. <code>Dexter.move_all_joints([45])</code><br/>
 <b>"program_counter"</b> Set's the program_counter to the program_counter. Only useful
 when the instruction_location is an array. <br/>
 <b>"before_program_counter"</b> Set's the program_counter to the instruction just
@@ -947,7 +946,7 @@ where within the job to insert the given instruction as does the method
                   For Dexter, it will be DMA_READ_DATA.
                   <p/>                     
     You can use some constants for the values of start_index and end_index.<br/>
-    For a Dexter robot these are: <pre>
+    For a Dexter robot these are: <pre><code>
 Dexter.JOB_ID
 Dexter.INSTRUCTION_ID
 Dexter.START_TIME //ms since jan 1, 1970 from Dexter's clock
@@ -969,10 +968,10 @@ Dexter.J1_A2D_COS,         // BASE_COS
 Dexter.J1_PLAYBACK,        // PLAYBACK_BASE_POSITION
 Dexter.J1_SENT,            // SENT_BASE_POSITION
 Dexter.J1_SLOPE,           // SLOPE_BASE_POSITION
-</pre>
+</code></pre>
 and a similar set of names beginning with J2, J3, J4 and J5.
 <p/>
-For a Serial robot these are:<pre/>
+For a Serial robot these are:<pre/><code>
 Serial.JOB_ID              
 Serial.INSTRUCTION_ID      
 Serial.START_TIME          // ms since jan 1, 1970 from Dexter's clock
@@ -990,7 +989,7 @@ Serial.DATA6
 Serial.DATA7
 Serial.DATA8
 Serial.DATA9
-</pre>
+</code></pre>
 
 In order to insure that the Dexter robot_status array is up to date,
 you should place <code>Dexter.get_robot_status()</code> in your do_list before
@@ -1090,8 +1089,8 @@ is stopped and restarted.
   the job will behave as if its 'when_stopped' parameter is <code>"stop"</code>,
   i.e. the job will end. When <code>true</code>, the job's when_stopped action will
   be performed.<br/>
-  Example:<pre>
-  Robot.stop_job({job: "my_job", offset: "label1"})</pre>
+  Example:<pre><code>
+  Robot.stop_job({job: "my_job", offset: "label1"})</code></pre>
   <code>Job.my_job</code> will stop when it reaches the instruction named "label1".
 </details>
 
@@ -1137,7 +1136,7 @@ is stopped and restarted.
 <code>send_to_job</code> inserts instructions into another job's do_list. It can also
 start, unsuspend and grab data from another job. <code>send_to_job</code> is complex, powerful,
 and rarely used. Example: <pre>
-Robot.send_to_job({do_list_item: Dexter.move_to([100000, 100000, 100000]),
+Robot.send_to_job({do_list_item: Dexter.move_to([0, 0.5, 0.075]),
                    where_to_insert: "end",
                    unsuspend: true,
                    wait_until_done: true})</pre>
@@ -1212,14 +1211,9 @@ you call start with no argument.
 
 <details id="Robot.wait_until_doc_id" class="doc_details"><summary>wait_until</summary>
 This instruction causes a job to pause until the supplied condition is met.<br/>
-Example:<code>Robot.wait_until(1000)</code><br/>
+Example:<code>Robot.wait_until(2)</code><br/>
 The one argument can be:
-<ul><li><b>an integer</b> The number of milliseconds for the wait. </li>
-    <li><b>an instance of Duration</b> The amount of time to wait. Takes numerical arguments
-    of hours, minutes, seconds and milliseconds.<br/>
-    Example:<code>new Duration(1, 59, 30, 500)</code><br/>
-    This causes a pause of 1 hour, 59 minutes, 30 seconds and 500 milliseconds.       
-    </li>
+<ul><li><b>an integer</b> The number of seconds for the wait. </li>
     <li><b>an instance of Date</b> Causes a wait until the JavaScript date occurs. 
          Careful, you can easily cause a job to wait for years!</li>
     <li><b>a function</b> The function is called at each do_loop iteration.
@@ -1230,7 +1224,7 @@ The one argument can be:
           so you can access the entire job's state when determining whether
           or not to return <code>true</code>.
     </li>
-    <li><b>"new_instruction"</b> Causes a wait until an instruction is added
+    <li><b>"new_instruction"</b> Causes a wait_until instruction to be added
     just below this instruction on the do_list. If this is the last instruction
     on the do_list, then this job waits until a new instruction is added on the
     end of a do list.<br/>
@@ -1327,12 +1321,9 @@ The parameters used to define an instance of Dexter are:
     <li><b>ip_address</b> A string of an ip_address such as: <code>"192.168.1.1"</code>
         Default null. You can use a Dexter without an ip_address, but only with <code>simulate: true</code></li>
     <li><b>port</b> An integer. Default 50000. </li>
-    <li><b>base_xyz</b> An array of three numbers.
-           Indicates the position of Dexter on its table in microns. Default: <code>[0, 0, 0]</code></li>
-    <li><b>base_plane</b> Indicates the plane of Dexter. The default: <code>[0, 0, 0]</code> 
-       means that Dexter is standing vertically on a horizontal table surface.</li>
-    <li><b>base_rotation</b> A number of arc-seconds. 
-           The rotation of Dexter's base on the base_plane. Default <code>0</code>.</li>
+    <li><b>pose</b> Indicates the position and orientation of a Dexter as a
+        4 x 4 matrix of numbers.
+     </li>
     <li><b>enable_heartbeat</b> A Dexter instance sends a "heartbeat" to a Dexter robot to
       keep the connection alive. If true, the default, that heartbeat will be sent.</li>
 </ul>
@@ -1373,7 +1364,7 @@ The parameters used to define an instance of Dexter are:
 <i>Example:</i><pre>
  new Job({name: "j1", 
          robot: new Dexter(), 
-         do_list: [ Dexter.move_to([200000, 200000, 50000]),
+         do_list: [ Dexter.move_to([0, 0.5, 0.075]),
                     Dexter.draw_dxf("UML.DXF")
          ]})
  Job.j1.start()</pre>
@@ -1429,29 +1420,30 @@ before any of the instructions on its <i>instruction queue</i> are executed.
 
 <details id="Dexter.move_all_joints_doc_id" class="doc_details"><summary>move_all_joints</summary>
 move_all_joints is a lower level instruction than move_to, giving you the ability to dicate
-the angle of each of Dexter's 5 joints, J1 through J5. A joint's angle is specified in arc_seconds. 
-(There are 3600 arc_seconds per degree and 648,000 per 180 degrees.)
-The min and max angles of each joint are in constants: <code>Dexter.J1_ANGLE_MIN</code> 
+the angle of each of Dexter's 5 joints, J1 through J5. A joint's angle is specified in degrees.
+The min and max angles of each joint are in constants: <code>Dexter.J1_ANGLE_MIN</code>
 through <code>Dexter.J5_ANGLE_MAX</code>, all included in the series <b>Dexter_constant</b>. 
 Examples:<br/>
-<code>Dexter.move_all_joints(10000, null, 30000)</code><br/>
-<code>Dexter.move_all_joints([10000, null, 30000])</code><br/>
+<code>Dexter.move_all_joints(15, null, 30)</code><br/>
+<code>Dexter.move_all_joints([15, null, 30])</code><br/>
 Both of these have the same function, i.e. you can pass in an array of up to 5 arc_seconds,
 or you can pass in individual numbers.
-<code>null</code> or the lack of enough numbers means keep the angle for that joint what it is at now.
+<code>null</code> or the lack of enough numbers means keep the angle for that joint what the
+last instruction run in a Job set it to.
 </details>
 
 <details id="Dexter.move_all_joints_relative_doc_id" class="doc_details"><summary>move_all_joints_relative</summary>
 Similar to <code>Dexter.move_all_joints</code> except that the argument of an array of 5 joint angles are
 not used absolutely, but added to the previous angles indicated by DDE Dexter motion instructions.
 Note that this "base" that is added to is not literally the output of Dexter's optical sensors
-for joint position, but rather where the robot was <i>told</i> to go in its last motion instruction.
+for joint position, but rather where the robot was <i>told</i> to go in its last motion instruction
+in a Job.
 <p/>
 A <code>null</code> or missing angle increments default to 0.<br/>
 <i>Example</i>:<br/>
-<code>dexter0.move_all_joints_relative([100000, 100000])</code><br/>
+<code>dexter0.move_all_joints_relative([15, 15])</code><br/>
 tells dexter0 to move joints 1 and 2 to
-an angle that is 100K arc_seconds <i>more</i> than it is currently at.
+an angle that is 15 degrees <i>more</i> than it is currently at.
 Joints 3, 4, and 5 stay the same.
 </details>
 
@@ -1469,24 +1461,32 @@ Example: <code>Dexter.move_home()</code>
         lengths of its links.
         <i>Parameters</i><br/>
         <b>xyz</b> tells Dexter to position its end effector to a position.
-        An array of 3 numbers, each indicating microns from the position 0, 0, 0
+        An array of 3 numbers, each indicating meters from the position 0, 0, 0
         which is at the center of the base of Dexter, in its surface (think table) plane.
         Imagine yourself as Dexter facing forwards. The x-axis is to your left and right
         with left being negative and right being positive. The valid range is
-        -747804 to 747804. The Y axis runs from behind you to in front of you with
-        negative behind you and positive in front ranging from -747804 to 747804.
+        -0.747804 to 0.747804. The Y axis runs from behind you to in front of you with
+        negative behind you and positive in front ranging from -0.747804 to 0.747804.
         The z axis is vertical with below the table being negative and above the
-        table ranging from -582704 to 912904 with 0 being at the table surface.
+        table ranging from -0.582704 to 0.912904 with 0 being at the table surface.
         Note that not all of the x,y,z combinations are reachable by Dexter.
         If Dexter is on a table, then none of the negative y values are reachable,
         since they are below the table.
         The J5_direction parameter also affects reachability.
         <p/>
         <b>J5_direction</b> indicates the direction you want the end effector to be pointing.
-        This is an array of 3 numbers (each ranging from -1 to 1)
+        This is usually an array of 3 numbers (each ranging from -1 to 1)
         that you can think of as indicating a "point" off
         of the end of the end effector. The default is [0, 0, -1] which
-        causes the end effector to point straight down. {needs work}
+        causes the end effector to point straight down.
+        <p/>
+        J5_direction can alternatively be an array of two angles (in degrees)
+        indicating a direction (pitch and yaw). However it cannot be<br/>
+        [90, 90], [-90, 90], [90, -90] or [-90, -90]<br/>
+        because they represent singularities. If that's the direction you
+        want, use an array of 3 numbers.<br/>
+        If J5_direction is null, the current direction of the robot (as set by
+        the most recent DDE instruction) is used.
         <p/>
         <b>config</b> For most points within the reachability of Dexter, there are multiple
         ways in which Dexter can get there. config helps you specify your preference
@@ -1504,7 +1504,7 @@ Example: <code>Dexter.move_home()</code>
         </ul>
         Config is most easily specified using one of 26 constants such as:
         <code>Dexter.LEFT_DOWN_IN</code> or <code>Dexter.RIGHT_UP_OUT</code>. You can omit 1 or 2 of these value as in
-        <code>Dexter.LEFT_IN</code>  or <code>Dexer.OUT</code>. The complete list is:<pre>
+        <code>Dexter.LEFT_IN</code>  or <code>Dexer.OUT</code>. The complete list is:<pre><code>
 Dexter.LEFT            = [0, null, null]
 Dexter.LEFT_DOWN       = [0, 0,    null]
 Dexter.LEFT_UP         = [0, 1,    null]
@@ -1530,16 +1530,18 @@ Dexter.DOWN_IN         = [null, 0, 0]
 Dexter.DOWN_OUT        = [null, 0, 1]
 Dexter.UP              = [null, 1, null]
 Dexter.UP_IN           = [null, 1, 0]
-Dexter.UP_OUT          = [null, 1, 1]</pre>
+Dexter.UP_OUT          = [null, 1, 1]</code></pre>
         The above list is in the series <b>Robot/robot config</b>.
         Not mentioning a boolean (null) means "don't care", ie let DDE figure it out. Since config limits
         the possible options, some configurations will be impossible with some xyz settings and/or
-        J5_direction settings. Impossible settings cause an error.
+        J5_direction settings. Impossible settings cause an error.<br/>
+        If config is null, then the config set by the previous instruction in DDE
+        that set config is used.
 </details> <!--end move_to -->
 
 <details id="Dexter.move_to_relative_doc_id" class="doc_details"><summary>move_to_relative</summary>
     This instruction is similar to <code>Dexter.move_to</code> except that the passed in
-    xyz array values are ADDED to Dexter's
+    xyz array values (in meters) that are ADDED to Dexter's
     existing end effector xyz values, not taken as absolutes. The other arguments to move_to
     are not passed to this function but rather their previously supplied values are used.<br/>
     <i>Parameter</i><br/>
@@ -1550,10 +1552,10 @@ Dexter.UP_OUT          = [null, 1, 1]</pre>
      the position that its been told to go by previous instructions.
      <p>
      <i>Example</i>:
-<pre>new Job({name: "my_job",
+<pre><code>new Job({name: "my_job",
          do_list: [Dexter.move_all_joints(Dexter.NEUTRAL_ANGLES),
-                   Dexter.move_to_relative([20000, 30000, 0])
-                   ]})</pre>
+                   Dexter.move_to_relative([0.005, 0.01, 0])
+                   ]})</code></pre>
 
 </details>
 
@@ -1617,7 +1619,7 @@ into a job. When the instruction is run, Dexter will go into that mode.
 <p/>
 Dexter maintains the last mode it was set to even across jobs, across DDE launches,
 and across power cycling Dexter. <p/>
-The default mode is set_keep_position.<br/>
+The default mode is <i>set_keep_position</i>.<br/>
 None of these instructions take arguments.
     <details id="Dexter.set_follow_me_doc_id" class="doc_details"><summary>set_follow_me</summary>
         The joints are freed up and the user can drag Dexter's end-effector.
@@ -1645,14 +1647,14 @@ None of these instructions take arguments.
         <i>Example</i>: (as an instruction in a job's do_list.) <br/>
         <code>Dexter.set_keep_position()</code>
     </details>
-    <details id="Dexter.set_keep_position_lock_doc_id" class="doc_details"><summary>set_keep_position_lock</summary>
+    <details id="Dexter.set_open_loop_doc_id" class="doc_details"><summary>set_open_loop</summary>
         Dexter will move to the locations it is told to by instructions.
         Dexter will not actively compensate for any applied forces.
         The stepper motors are locked at each desired location but the actually joint angles will have error.
         This mode can be useful for accurately measuring torque.<br/>
         <i>Example</i>: (as an instruction in a job's do_list.)
         <p/>
-        <code>Dexter.set_keep_position_lock()</code>
+        <code>Dexter.set_open_loop()</code>
     </details>
 </details>
 
@@ -1692,17 +1694,6 @@ Example:<br/><code>a_robot.joint_xyzs()</code> => <pre>
 [10000.000000000044, -40328.00000000006, 59999.99999999999],
 [10000.00000000006, 42221.99999999993, 60000]
 ]</pre>
-</details>
-
-<details id="Robot.dexter0.xyz_invalid_doc_id" class="doc_details"><summary>xyz_invalid</summary>
-Returns false if the given xyz point does not collide with the table or Dexter.
-Returns joint number and microns below table if xyz is below the table.<br/>
-<i>Parameters</i><br/>
-<b>xyz</b> An array of 3 numbers, x, y, and z in microns, in table coordinates.<br/>
-<b>J5_direction</b> The direction J5 is pointing as a point. Default: [0, 1, 0] <br/>
-<b>config</b> The 'config' of the joints. Default <code>Dexter.RIGHT_UP_IN</code>
- See Dexter.move_to for explanation of 'config'.<br/>
- Example: <code>a_robot.xyz_invalid([10000, 20000, 30000])</code> => false
 </details>
 
 <details id="Robot.dexter0.prop_doc_id" class="doc_details"><summary>prop</summary>
@@ -1745,7 +1736,7 @@ in the file "dde_apps/dde_init.js"
 </details> <!-- end Dexter Utilities -->
 
 <details class="doc_details"><summary>Dexter Constants</summary>
-<pre>//values in microns
+<pre>//values in microns<code>
 Dexter.LINK1 = 165100   //  6.5 inches,    
 Dexter.LINK2 = 320675   // 12 5/8 inches 
 Dexter.LINK3 = 330200   // 13 inches      
@@ -1774,13 +1765,16 @@ Dexter.J5_ANGLE_MAX  =  Infinity  // rotate
 
 Dexter.RIGHT_ANGLE    = 324000 // 90 degrees
 Dexter.HOME_ANGLES    = [0, 0, 0, 0, 0]  //j2,j3,j4 straight up, link 5 horizontal pointing frontwards.
-Dexter.NEUTRAL_ANGLES = [0, 162000, 324000, -162000, 0] // lots of room for Dexter to move from here.
-Dexter.PARKED_ANGLES  = [0, 0, 486000, 162000, 0 ] //all folded up, compact.
+Dexter.NEUTRAL_ANGLES = [0, 162000, 324000, -162000, 0] //lots of room for Dexter to move from here.
+Dexter.PARKED_ANGLES  = [0, 0, 486000, 162000, 0] //all folded up, compact.
 
-Dexter.MAX_SPEED    = 100 //arcseconds per milliseconds
-Dexter.START_SPEED  = 0.5 //arcseconds per milliseconds
+Dexter.HOME_POSITION    = [0, 0.08255, 0.866775] //meters
+Dexter.NEUTRAL_POSITION = [0, 0.5,     0.075]    //meters
+
+Dexter.MAX_SPEED    = 30  //degrees per second
+Dexter.START_SPEED  = 0.5 //degrees per second
 Dexter.ACCELERATION = 1   //arcseconds^2 per milliseconds
-</pre>
+</code></pre>
 </details> <!--end Dexter Contantants -->
 
 </details> <!-- end Dexter -->
@@ -2239,7 +2233,7 @@ Object.isNewObject(newObject({name: "trash"})) => true<br/>
 </code>
 </details>
 <details class="doc_details"><summary>subObjects</summary>
-Returns an array of the named subojects of <code>this</code><br/>
+Returns an array of the named subobjects of <code>this</code><br/>
 Example:<br/>
 <code>Root.subObjects()</code> => array of the top level named new objects.
 </details>
@@ -2507,7 +2501,7 @@ newObject({name: "junk"}).sourceCode() =><br/>
             &nbsp;&nbsp;&nbsp;callback: function (vals){ append_in_ui("p_id", "&lt;h1>hey&lt;/h1>")}<br/>
             })</code><br/>
         <b>callback</b> A function of one argument. Any returned valued will be ignored.
-        It will be called when a the user clicks a button in
+        It will be called when the user clicks a button in
         a show_window. It's argument will be a literal object. Many of its fields are x and y positions
         reletive to the top-left of html elements in or containing the clicked position.
         An example:<br/><pre>
@@ -2531,7 +2525,7 @@ newObject({name: "junk"}).sourceCode() =><br/>
                        //will close the show_window window.
     clicked_button_value: "my_in_id", //the 'name' or 'id' attribute of the clicked on element.
     trim_strings: true}</pre>
-        <i>Example show_window_call:</i><pre>//Called when a button is clicked.
+        <i>Example show_window_call:</i><pre><code>//Called when a button is clicked.
 function show_vals(vals){out(vals)} //this is the default callback
 show_window({
     content:
@@ -2562,8 +2556,14 @@ button: &lt;input type="button" value="Show settings"/>
 submit: &lt;input type="submit" value="OK"/>&#39;,
 
     width:380, height:450, title:"Printer Config", x:100, y:100,
-    callback: show_vals})</pre>
-        For more examples of calling <code>show_window</code> see the menu Insert/show_window.
+    callback: show_vals})</code></pre>
+
+    <h3>onchange</h3>
+    Normally the callback is only called when the user clicks a button. However,
+    you can get the callback to be called for any input HTML tag if you give it
+    an attribute of <code>data-onchange='true'</code>
+    <p/>
+    For more examples of calling <code>show_window</code> see the DDE menubar/Insert/show_window.
     </details> <!-- end show_window -->
 
     <details class="doc_details"><summary>Window Utilities</summary>
@@ -2658,7 +2658,7 @@ submit: &lt;input type="submit" value="OK"/>&#39;,
             <b>child_elements</b>: Default: <code>[]</code>. An array of strings of the html for
             svg shapes. Usually these strings should be created with the svg shape creator functions
             such as <code>svg_circle</code>. <p/>
-            <i>Example</i>:<pre> show_window({
+            <i>Example</i>:<pre><code> show_window({
    content:svg_svg({
        id:"s_id", width:500, height:200,
        html_class:"clickable",
@@ -2667,7 +2667,7 @@ submit: &lt;input type="submit" value="OK"/>&#39;,
                      width:200, height: 50,
                      color:"yellow"})
            ]})
-})</pre>
+})</code></pre>
         </details> <!-- end svg_svg -->
 
         <details id="svg_circle_doc_id" class="doc_details"><summary>svg_circle</summary>
@@ -2714,14 +2714,14 @@ submit: &lt;input type="submit" value="OK"/>&#39;,
             not the special spelling used in the other svg functions of <code>html_class</code>.
             <p/>
             <i>Example</i>:<br/>
-            <pre>svg_html({html: "&lt;i
+            <pre><code>svg_html({html: "&lt;i
                id="yikes_id"
                class="clickable"
                style='font-size:30px;'>
                yikes
                &lt;/i>",
           x: 60,
-          y: 100})</pre>
+          y: 100})</code></pre>
         </details>
 
         <details id="svg_line_doc_id" class="doc_details"><summary>svg_line</summary>

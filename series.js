@@ -762,9 +762,9 @@ Series.instances = [
                                                            "Dexter.move_all_joints_relative",
                                                           "Dexter.move_to",
                                                           "Dexter.run_gcode", "Dexter.record_movement", "Dexter.replay_movement",
-                                                          "Dexter.set_follow_me", "Dexter.set_force_protect", "Dexter.set_keep_position", "Dexter.set_keep_position_lock",
+                                                          "Dexter.set_follow_me", "Dexter.set_force_protect", "Dexter.set_keep_position", "Dexter.set_open_loop",
                                                           "Dexter.set_parameter", "Dexter.sleep",  "Dexter.slow_move", "Dexter.write", "Dexter.write_to_robot",
-                                                          "Dexter.prototype.joint_angle", "Dexter.prototype.joint_angles", "Dexter.prototype.joint_xyz", "Dexter.prototype.joint_xyzs", "Dexter.prototype.xyz_invalid", //beware: these are NOT instructions but 'utility fns.' they are documented.
+                                                          "Dexter.prototype.joint_angle", "Dexter.prototype.joint_angles", "Dexter.prototype.joint_xyz", "Dexter.prototype.joint_xyzs",  //beware: these are NOT instructions but 'utility fns.' they are documented.
                                                            "make_ins",
                                                           "Human.enter_choice", "Human.enter_instruction", "Human.enter_number",
                                                           "Human.enter_text",   "Human.notify", "Human.task",
@@ -783,7 +783,7 @@ Series.instances = [
         menu_insertion_string:"Dexter.RIGHT_UP_IN", menu_sel_start:true, menu_sel_end:null, sample:"Dexter.RIGHT_UP_IN"}),
     new Series({id:"series_dexter_utility_id",
         //in_series_fn: function(str){return str.endsWith("props")},
-        array: ["Robot.dexter0.joint_angle","Robot.dexter0.joint_angles","Robot.dexter0.joint_xyz","Robot.dexter0.joint_xyzs", "Robot.dexter0.prop", "Robot.dexter0.xyz_invalid"],
+        array: ["Robot.dexter0.joint_angle","Robot.dexter0.joint_angles","Robot.dexter0.joint_xyz","Robot.dexter0.joint_xyzs", "Robot.dexter0.prop"],
         menu_insertion_string:"Robot.dexter0.prop()", menu_sel_start:0, menu_sel_end:-2, sample:"Robot.dexter0.prop()"}),
     new Series({id:"series_dexter_constant_id",    array: [ 'Dexter.ACCELERATION', 'Dexter.HOME_ANGLES', 'Dexter.PARKED_ANGLES',
                                                             "Dexter.J1_ANGLE_MIN", "Dexter.J1_ANGLE_MAX",

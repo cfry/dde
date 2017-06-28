@@ -61,7 +61,7 @@ function init_simulation(){
     sim.J0.position.y  = 0.06
     sim.table.add(sim.J0)
 
-    let leg_length = Dexter.LEG_LENGTH / 1000000 //(Dexter.LINK1 / 1000000) / 0.8 //2
+    let leg_length = Dexter.LEG_LENGTH //m / 1000000 //(Dexter.LINK1 / 1000000) / 0.8 //2
     let leg_width  = leg_length / 6 //8
     draw_legs(sim.J0, leg_width, leg_length)         //0.04, 0.4)
 
@@ -70,8 +70,8 @@ function init_simulation(){
     sim.J1.position.y  = 0.1
     sim.table.add(sim.J1) //scene.add(J1)
 
-    sim.LINK1_height  = Dexter.LINK1 / 1000000 //0.5
-    sim.LINK1_width   = Dexter.LINK1_AVERAGE_DIAMETER / 1000000 //sim.LINK1_height / 1  //0.3
+    sim.LINK1_height  = Dexter.LINK1 //m / 1000000 //0.5
+    sim.LINK1_width   = Dexter.LINK1_AVERAGE_DIAMETER //m / 1000000 //sim.LINK1_height / 1  //0.3
     sim.LINK1         = draw_arm(sim.J1, sim.LINK1_width, sim.LINK1_height)
     sim.J2            = new THREE.Object3D()
     sim.J2.position.y = sim.LINK1_height / 2.0
@@ -81,31 +81,31 @@ function init_simulation(){
     //sim.J2 = new THREE.Object3D();
     //sim.J1.add(sim.J2);
 
-    sim.LINK2_height  = Dexter.LINK2 / 1000000 // 1.0
-    sim.LINK2_width   = Dexter.LINK2_AVERAGE_DIAMETER / 1000000 //sim.LINK2_height / 4, //0.2,
+    sim.LINK2_height  = Dexter.LINK2 //m / 1000000 // 1.0
+    sim.LINK2_width   = Dexter.LINK2_AVERAGE_DIAMETER //m / 1000000 //sim.LINK2_height / 4, //0.2,
     sim.LINK2         = draw_arm(sim.J2, sim.LINK2_width, sim.LINK2_height)
     //LINK2.position.y += 0.12 //extra rise to arm0 to get it to appear to sit on top of the legs.
     sim.J3            = new THREE.Object3D();
     sim.J3.position.y = sim.LINK2_height / 2.0
     sim.LINK2.add(sim.J3)
 
-    sim.LINK3_height  = Dexter.LINK3 / 1000000 //0.9
-    sim.LINK3_width   = Dexter.LINK3_AVERAGE_DIAMETER / 1000000 //sim.LINK3_height / 6 // 0.1
+    sim.LINK3_height  = Dexter.LINK3 //m / 1000000 //0.9
+    sim.LINK3_width   = Dexter.LINK3_AVERAGE_DIAMETER //m / 1000000 //sim.LINK3_height / 6 // 0.1
     sim.LINK3         = draw_arm(sim.J3, sim.LINK3_width, sim.LINK3_height)
     sim.J4            = new THREE.Object3D();
     sim.J4.position.y = sim.LINK3_height / 2.0
     sim.LINK3.add(sim.J4)
 
-    sim.LINK4_height  = Dexter.LINK4 / 1000000 //0.8
-    sim.LINK4_width   = Dexter.LINK4_AVERAGE_DIAMETER / 1000000 //sim.LINK4_height / 4 // 0.05
+    sim.LINK4_height  = Dexter.LINK4 //m / 1000000 //0.8
+    sim.LINK4_width   = Dexter.LINK4_AVERAGE_DIAMETER //m / 1000000 //sim.LINK4_height / 4 // 0.05
     sim.LINK4         = draw_arm(sim.J4, sim.LINK4_width, sim.LINK4_height)
     sim.J5            = new THREE.Object3D();
     sim.J5.position.y = sim.LINK4_height / 2.0
     sim.J5.rotation.z = Math.PI / 2
     sim.LINK4.add(sim.J5)
 
-    sim.LINK5_height = Dexter.LINK5 / 1000000 //0.125
-    sim.LINK5_width  = Dexter.LINK5_AVERAGE_DIAMETER / 1000000 //sim.LINK5_height / 4 //0.05
+    sim.LINK5_height = Dexter.LINK5 //m / 1000000 //0.125
+    sim.LINK5_width  = Dexter.LINK5_AVERAGE_DIAMETER //m / 1000000 //sim.LINK5_height / 4 //0.05
     sim.LINK5        = draw_arm(sim.J5, sim.LINK5_width, sim.LINK5_height)
     //below only for the "random flailing demo"
     LINK2_bending = "+" //start out increaing arm0 bending

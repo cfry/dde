@@ -121,6 +121,9 @@
         let content =   '<details><summary class="doc_top_level_summary">Overview</summary>\n' +
                             file_content(__dirname + "/doc/dde_overview/Dexter_Development_Environment.html") +
                         "</details>\n" +
+                        '<details><summary class="doc_top_level_summary">Dexter Kinematics</summary>\n' +
+                            file_content(__dirname + "/doc/dexter_kinematics.html") +
+                        "</details>\n" +
                         '<details><summary class="doc_top_level_summary">User Guide</summary>\n' +
                             file_content(__dirname + "/doc/guide.html") +
                         "</details>\n" +
@@ -228,6 +231,15 @@
         cmd_input_id.focus()
     })
 
+    cmd_input_id.onclick  = function(event) {
+        const full_src = cmd_input_id.value
+        const pos = cmd_input_id.selectionStart
+        if (full_src.length > 0) {
+            Editor.show_identifier_info(full_src, pos)
+            //Editor.identifier_or_operator = function(full_src=null, pos=null)
+        }
+    }
+
     init_simulation()
 
     //init_guide()
@@ -249,6 +261,14 @@
           if (sel.length == 0) {out("There is no selection in the Doc pane to eval.", "orange", true) }
           else { eval_js_part2(sel) }
           }
+
+    //doc_pane_content_id.onclick = //doesn't get called when I click in doc pane, so do the below.
+    //click help for all text inside the code tag (white).
+    $('code').click(function(event) {
+                         const full_src = window.getSelection().focusNode.data
+                         const pos      = window.getSelection().focusOffset
+                         Editor.show_identifier_info(full_src, pos)
+                    })
 
     //handles the button clicks and menu selects that chromp Apps prevent in tHTM where they belong
     eval_id.onclick = function(event){
@@ -483,17 +503,12 @@ submit: <input type="submit" value="OK"/>` + "`" +
    But you CAN have the callback called whenever the value
    of an input element changes. 
    
-   An HTML property of data-onchange='true' causes the
-   callback call when the user clicks on another element,
-   defocusing the element whose value changed. 
+   An HTML property of data-oninput='true' causes the
+   callback to be called as soon as a new value is entered.
+   For input type="text" this is upon each character entered.
    For input type="radio" this is when any radio button in
    the group is clicked on.
-   For 'range' (slider) inputs, this happens when the user 
-   stops moving the slider.
-   
-   An HTML property of data-oninput='true' causes the
-   callback call as soon as a new value is entered.
-   For input type="text" this is upon each charcter entered.
+   For select menus, this is when the value is changed.
    For input type="range" (sliders) this is upon every
    little move of the slider.
    
@@ -903,6 +918,7 @@ foo      //eval to see the latest values</pre>`,
     insert_job_example9_id.onclick = function(){Editor.insert(job_examples[9])}
     insert_job_example10_id.onclick = function(){Editor.insert(job_examples[10])}
 
+    run_instruction_id.onclick = run_instruction
     move_to_home_id.onclick    = function(){ Robot.dexter0.move_all_joints_fn() }
     move_to_neutral_id.onclick = function(){ Robot.dexter0.move_all_joints_fn(Dexter.NEUTRAL_ANGLES) }
     move_to_parked_id.onclick  = function(){ Robot.dexter0.move_all_joints_fn(Dexter.PARKED_ANGLES) }
@@ -932,7 +948,7 @@ foo      //eval to see the latest values</pre>`,
              else if ((sel.length <= 5) && (typeof(sel[0]) == "number")){
                  Robot.dexter0.move_all_joints_fn(sel)
              }
-             else { Robot.dexter0.run_instructon_fn(sel) }
+             else { Robot.dexter0.run_instruction_fn(sel) }
          }
          else if ((sel === undefined) ||
                   (sel === null) ||
@@ -940,7 +956,7 @@ foo      //eval to see the latest values</pre>`,
              warning("The selection evals to undefined, null, or a boolean,<br/>" +
                      "neither of which are valid Job instructions.")
          }
-         else { Robot.dexter0.run_instructon_fn(sel) }
+         else { Robot.dexter0.run_instruction_fn(sel) }
     }
 
 

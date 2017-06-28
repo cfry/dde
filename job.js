@@ -600,7 +600,7 @@ var Job = class Job{
         let rob = this.robot
         for(let rs of this.rs_history){
             let angles = [rs[Dexter.J1_ANGLE], rs[Dexter.J2_ANGLE], rs[Dexter.J3_ANGLE], rs[Dexter.J4_ANGLE], rs[Dexter.J5_ANGLE]]
-            let a_xyz  = Kin.J_angles_to_xyz(angles, rob.base_xyz, rob.base_plane, rob.base_rotation)[5]
+            let a_xyz  = Kin.J_angles_to_xyz(angles, rob.pose)[0]
             result.push(a_xyz)
         }
         return result
