@@ -23,17 +23,27 @@ Dexter.J5_ANGLE_MAX = 185
 
 /*
 debugger
-Kin.xyz_to_J_angles([.1, .2, .3], [0, 0])
+//Kin.xyz_to_J_angles([0, 0.08255, 0.8667749999999999], [0, 1, 0])
+Kin.xyz_to_J_angles([[0, .5, .075], [0, 0], [1, 1, 1]])
+debugger
+Kin.xyz_to_J_angles(Kin.J_angles_to_xyz([0,0, 0, 0, 0]))
 
 */
 
 var Kin = new function(){
-    this.inverse_kinematics = function (xyz, direction = [0, 0, -1], config = [1, 1, 1], pose){
+    this.inverse_kinematics = function (xyz, direction = [0, 0, -1], config = [1, 1, 1], robot_pose){
     	if(xyz == undefined){
         	dde_error("xyz must be defined. To prevent unpredictable movement a default is not used.")
         }
-        if(pose == undefined){
-        	pose = Vector.identiy_matrix(4)
+        let xyz_dim = Vector.matrix_dimensions(xyz)
+        if(xyz_dim[0] == 3 && xyz_dim[1] == 3){
+        	robot_pose = direction
+            config = xyz[2]
+            direction = xyz[1]
+            xyz = xyz[0]
+        }
+        if(robot_pose == undefined || robot_pose == [0, 0, -1]){
+        	robot_pose = Vector.identity_matrix(4)
         }
     
         let J = Vector.make_matrix(1, 5)[0] // Joint Angles
@@ -67,11 +77,14 @@ var Kin = new function(){
     	//Solving for P1
     	P[1] = Vector.points_to_plane(U[1], U[0], U[4])
         if(Vector.is_NaN(P[1])){
-        	dde_error(`Singularity: Toolpoint xyz is on Base axis. [0, 0, z] divides by 0.
-            Try [0, 1e-10, z] if it works use the ouputted joint angles for a move_all_joints() instead.
-            The first joint angle can be changed to any value without affecting the tool point`)
+        	P[1] = Vector.points_to_plane(U[1], U[0], U[3])
+            if(Vector.is_NaN(P[1])){
+        		dde_error(`Singularity: Toolpoint xyz is on Base axis. [0, 0, z] divides by 0.
+            	Try [0, 1e-10, z] if it works use the ouputted joint angles for a move_all_joints() instead.
+            	The first joint angle can be changed to any value without affecting the tool point`)
+            }
         }
-        
+        Math.PI.toFixed(20)
     	//Solving for U3
     	var U54_Proj = Vector.project_vector_onto_plane(V54, P[1])
     	var U3_a = Vector.add(U[4], Vector.multiply(L[3], Vector.rotate(Vector.normalize(U54_Proj), P[1], 90)))
@@ -103,7 +116,7 @@ var Kin = new function(){
     	var D3 = Vector.distance(U[3], U[1])
         
         //Checking if in reach
-        if (D3 > Dexter.LINK2 + Dexter.LINK3){
+        if (D3 >= Dexter.LINK2 + Dexter.LINK3){
         	let out_of_reach_dist = Vector.round(D3 - (Dexter.LINK2 + Dexter.LINK3), 4)
         	dde_error("Point [" + Vector.round(xyz, 3)+"], [" + Vector.round(V54,3) + '] is ' + out_of_reach_dist + 'm out of reach')
         }
@@ -538,22 +551,22 @@ var Kin = new function(){
         return pose
     }
     /*
-    var applied_force = -10 //Nm
+    var applied_force = -30 //Nm
     var angles = [0, 45, 90, -45, 0]
     angles = [0, 0, 0, 0, 0]
     var fk = Kin.forward_kinematics(angles)
     var points = fk[0]
     
     var forcepoint = points[5]
-    var arm1 = Vector.subtract(points[5], points[1])[1]
-    var arm2 = Vector.subtract(points[5], points[2])[1]
+    var arm1 = Vector.subtract(points[5], points[1])[2]
+    var arm2 = Vector.subtract(points[5], points[2])[2]
     var T = [0, 0, 0]
     T[1] = arm1*applied_force
     T[2] = arm2*applied_force
     out(T)
     
     var angles = [0, 0, 0, 0, 0]
-    T = [0, -0.8255, -0.8255]
+    T = [0, -0.8255, 0.8255]
     //debugger
     Kin.three_torques_to_force(angles, T)
     */
@@ -614,7 +627,7 @@ var Kin = new function(){
         let ForceYZ = Vector.add(F2b, Vector.multiply(beta, Vector.subtract(F2a, F2b)))
     	out(ForceYZ)
     
-        return force_vector
+        return [0, ForceYZ[1], ForceYZ[2]]
     }
     /*
     var J_angles = Convert.degrees_to_arcseconds([0, 0, 0, 0, 0]) 
@@ -623,7 +636,7 @@ var Kin = new function(){
     debugger
     out(Kin.three_joints_force(J_angles, T, 'EndAxisHub'))
     
-    NaN
+    
     
     var J_angles = Convert.degrees_to_arcseconds([0, 0, 90, 0, 0]) 
     var F = 22
