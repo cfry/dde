@@ -43,7 +43,7 @@ var Kin = new function(){
     	let wrist_out = config[2]
         
         if(direction.length == 2){
-        	normal = Kin.angles_to_direction(direction[0], direction[1])
+        	normal = Kin.angles_to_dir_xyz(direction[0], direction[1])
         }else if(direction.length == 3){
         	if(Vector.magnitude(direction) == 0){
             	dde_error("Direction must have a magnitude. Try [0, 0, -1] or [0, 0] for the [x_angle, y_angle] form")
@@ -763,10 +763,7 @@ var Kin = new function(){
 		return Vector.multiply(100, Vector.divide(dir_xyz, total))
     }
     
-    this.dir_xyz_to_percent = function(dir_xyz = [0, 0, -1]){
-    	let total = Vector.sum(Vector.abs(dir_xyz))
-		return Vector.multiply(100, Vector.divide(dir_xyz, total))
-    }
+
     
     /*
     out(Kin.angles_to_direction(0, 45))
