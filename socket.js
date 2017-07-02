@@ -68,16 +68,22 @@ var Socket = class Socket{
             const name = instruction_array[Instruction.INSTRUCTION_ARG0]
             if(["MaxSpeed", "StartSpeed", "Acceleration"].includes(name)){
                 var instruction_array_copy = instruction_array.slice()
-                instruction_array_copy[Instruction.INSTRUCTION_ARG01] =
-                    Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG01] * _nbits_cf)
+                instruction_array_copy[Instruction.INSTRUCTION_ARG1] =
+                    Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG1] * _nbits_cf)
                 return instruction_array_copy
             }
-            else if (name == "JBoundries") {
-                instruction_array_copy[Instruction.INSTRUCTION_ARG01] =
-                    Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG01] * 3600) //deg to arcseconds
+            else if (name.includes("Boundry")) {
+                instruction_array_copy[Instruction.INSTRUCTION_ARG1] =
+                    Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG1] * 3600) //deg to arcseconds
                 return instruction_array_copy
             }
             else { return instruction_array }
+        }
+        else if (oplet == "z") {
+            var instruction_array_copy = instruction_array.slice()
+            instruction_array_copy[Instruction.INSTRUCTION_ARG0] =
+                Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG0] * 1000) //seconds to milliseconds
+            return instruction_array_copy
         }
         else { return instruction_array }
     }

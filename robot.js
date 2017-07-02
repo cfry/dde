@@ -1087,19 +1087,20 @@ Dexter.get_robot_status_immediately = function(){ return make_ins("G") }
 //pass in an array of up to 5 elts OR up to 5 separate args.
 //If an arg is not present or null, keep the value now in dexer_status unchanged.
 //EXCEPT if no args passed in, set to home position.
-Dexter.load_tables     = function(...args){ return make_ins("l", ...args) }
+Dexter.load_tables     = function(...args){ return make_ins("l", ...args) } //
+//loads the data created from calibration onto the SD card for persistent storage.
 
 Dexter.move_home = function(){ //move straight up
     return Dexter.move_all_joints(Dexter.HOME_ANGLES)
 }
 
-Dexter.move_all_joints = function(int_array_5=[]){
-    if (Array.isArray(int_array_5)){ int_array_5 = int_array_5.slice(0) }//copy so we don't modify the input array
-    else { int_array_5 = Array.prototype.slice.call(arguments) }
+Dexter.move_all_joints = function(array_of_5_angles=[]){
+    if (Array.isArray(array_of_5_angles)){ array_of_5_angles = array_of_5_angles.slice(0) }//copy so we don't modify the input array
+    else { array_of_5_angles = Array.prototype.slice.call(arguments) }
     let has_non_nulls = false
-    for(let ang of int_array_5) { if (ang !== null) { has_non_nulls = true; break; } }
+    for(let ang of array_of_5_angles) { if (ang !== null) { has_non_nulls = true; break; } }
     if (!has_non_nulls) { return null }
-    let the_int_array = int_array_5 //closed over
+    let the_int_array = array_of_5_angles //closed over
     return function(){ //returns a fn because we must compute this at instruction do time
                 //since we may need to get default values out of the current robot_status
                 //if the input array is < 5 or has nulls.
@@ -1112,7 +1113,7 @@ Dexter.move_all_joints = function(int_array_5=[]){
                     this.robot.angles = the_int_array
                     return make_ins("a", ...the_int_array)
                 }
-                else { dde_error("move_all_joints passed angles that are not reachable by Dexter.") }
+                else { dde_error("move_all_joints passed angles: " + the_int_array + "<br/>that are not reachable by Dexter.") }
     }
 }
 
@@ -1233,7 +1234,7 @@ Dexter.move_to_relative = function(xyz, joint_4_angle){
 Dexter.record_movement = function(...args){ return make_ins("m", ...args) }
 Dexter.replay_movement = function(...args){ return make_ins("o", ...args) }
 Dexter.set_parameter   = function (name="Acceleration", value){ return make_ins("S", name, value)}
-Dexter.sleep           = function(milliseconds_int){ return make_ins("z", milliseconds_int) }
+Dexter.sleep           = function(seconds){ return make_ins("z", seconds) }
 Dexter.slow_move       = function(...args){ return make_ins("s", ...args) }
 Dexter.write           = function(...args){ return make_ins("w", ...args) }
 

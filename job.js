@@ -3,7 +3,7 @@ var esprima = require('esprima')
 
 var Job = class Job{
     constructor({name=null, robot=Robot.dexter0, do_list=[], keep_history=true, show_instructions=false,
-                 inter_do_item_dur = 100, user_data={}, program_counter=0, ending_program_counter="end",
+                 inter_do_item_dur = 0.01, user_data={}, program_counter=0, ending_program_counter="end",
                  initial_instruction = null, when_stopped = "stop"} = {}){
     //program_cpunter is the counter of the next instruction that should be executed.
     //so since we're currently "executing" 1 instruction, and after its done,
@@ -175,7 +175,7 @@ var Job = class Job{
                         Job.j0.stop_for_reason("interrupted", "Start Job menu action stopped job.")
                         setTimeout(function() {
                                        Job.init_show_instructions_for_insts_only_and_start(start_cursor_pos, end_cursor_pos, eval2_result.value, selection)}
-                        (Job.j0.inter_do_item_dur * 2) + 10)
+                        (Job.j0.inter_do_item_dur * 1000 * 2) + 10) //convert from seconds to milliseconds
                     }
                     else {
                         Job.init_show_instructions_for_insts_only_and_start(start_cursor_pos, end_cursor_pos, eval2_result.value, selection)
@@ -871,7 +871,7 @@ Job.prototype.set_up_next_do = function(program_counter_increment = 1, allow_onc
         setTimeout(function(){
                         job_instance.do_next_item()
                     },
-                    this.inter_do_item_dur)
+                    this.inter_do_item_dur * 1000) //convert from seconds to milliseconds
     }
     else {
         job_instance.pause_next_program_counter_increment = program_counter_increment

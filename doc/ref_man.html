@@ -231,6 +231,29 @@ The code for your Job definitions should live under that folder (at any depth be
 that folder).
 If you do not have a dde_apps folder under your Documents folder, please create one.
 
+<details id="choose_file_doc_id" style="margin-left:40px;"><summary>choose_file</summary>
+Pops up a dialog box allowing you to navigate the file system to choose a file.
+Returns a string of the full path of the file.<br/>
+<i>Parameter:</i><br/>
+<b>show_dialog_options</b> A JS literal object of name-value pairs, all of which
+are optional. See the options under "showOpenDialog" in <a target="_blank" href="https://github.com/electron/electron/blob/master/docs/api/dialog.md">showOpenDialog</a>
+for details.<br/>
+<i>Example:</i><br/>
+<code>choose_file({buttonLabel: "pick the best"})</code>
+</details>
+
+<details id="choose_save_file_doc_id" style="margin-left:40px;"><summary>choose_save_file</summary>
+    Pops up a dialog box allowing you to enter a name to save a file as,
+    and navigate the file system &amp; choose a directory to save it in.
+    Returns a string of the full path of the file.<br/>
+    <i>Parameter:</i><br/>
+    <b>show_dialog_options</b> A JS literal object of name-value pairs, all of which
+    are optional. See the options under showSaveDialog in <a target="_blank" href="https://github.com/electron/electron/blob/master/docs/api/dialog.md">showSaveDialog</a>
+    for details.<br/>
+    <i>Example:</i><br/>
+    <code>choose_save_file({buttonLabel: "save the best"})</code>
+</details>
+
 <details id="dde_apps_dir_doc_id" style="margin-left:40px;"><summary>dde_apps_dir</summary>
 <code>dde_apps_dir</code> is a global constant whose value is a string
 of the name of the folder beneath which DDE has programmatic access.
@@ -1380,7 +1403,7 @@ An <code>empty_instruction_queue</code> instruction changes that behavior and ca
 queue to be executed before DDE attempts to run another instruction on the do_list.
 </details> <!-- end empty_instruction_queue -->
 
-<details id="Dexter.empty_instruction_immediately_queue_doc_id" class="doc_details"><summary>empty_instruction_queue_immediately</summary>
+<details id="Dexter.empty_instruction_queue_immediately_doc_id" class="doc_details"><summary>empty_instruction_queue_immediately</summary>
 <i>Parameters:</i> None.<br/>
 A Dexter robot has an <i>instruction queue</i> which contains instructions that have been sent from
 DDE but not yet executed. As soon as Dexter recieves an instruction from DDE, it typically acknowledges receipt
@@ -1605,12 +1628,60 @@ to move Dexter to "draw the lines" indicated by the gcode file.
 </ul>
 </details> <!-- end run_gcode -->
 
+<details id="Dexter.set_parameter_doc_id" class="doc_details"><summary>set_parameter</summary>
+This instruction sets a parameter within the Dexter robot in the current Job.
+The parameter will remain set to that value after the job is done,
+and across DDE launches. Power cycling of the Dexter does not keep
+set parameter values.
+<p/>
+<i>Parameters:</i><br/>
+<b>name</b> A string. The name of the parameter. The valid names are:
+   <table>
+   <tr><th>Name</th><th>Default Value</th></tr>
+    <tr><td>J1Force</td><td>0</td></tr>
+    <tr><td>J2Force</td><td>0</td></tr>
+    <tr><td>J3Force</td><td>0</td></tr>
+    <tr><td>J4Force</td><td>0</td></tr>
+    <tr><td>J5Force</td><td>0</td></tr>
+    <tr><td>J1Friction</td><td>0.1</td></tr>
+    <tr><td>J2Friction</td><td>0.1</td></tr>
+    <tr><td>J3Friction</td><td>0.1</td></tr>
+    <tr><td>J4Friction</td><td>0.1</td></tr>
+    <tr><td>J5Friction</td><td>0.1</td></tr>
+    <tr><td>J1BoundryHigh</td><td></td></tr>
+    <tr><td>J1BoundryLow</td><td></td></tr>
+    <tr><td>J2BoundryHigh</td><td></td></tr>
+    <tr><td>J2BoundryLow</td><td></td></tr>
+    <tr><td>J3BoundryHigh</td><td></td></tr>
+    <tr><td>J3BoundryLow</td><td></td></tr>
+    <tr><td>J4BoundryHigh</td><td></td></tr>
+    <tr><td>J4BoundryLow</td><td></td></tr>
+    <tr><td>J5BoundryHigh</td><td></td></tr>
+    <tr><td>J5BoundryLow</td><td></td></tr>
+    <tr><td>Acceleration</td><td></td></tr>
+    <tr><td>EERoll</td><td>512</td></tr>
+    <tr><td>EESpan</td><td>512</td></tr>
+    <tr><td>End</td><td></td></tr>
+    <tr><td>GripperMotor</td><td>512</td></tr>
+    <tr><td>MaxSpeed</td><td></td></tr>
+    <tr><td>StartSpeed</td><td></td></tr>
+    </table>
+    <b>value</b> A number (integer or floating point).
+    <p/>
+    <i>Example Job Instruction:</i>
+    Dexter.set_parameter("J1BoundryHigh", 188)
+</details>
+
+
 <details id="Dexter.sleep_doc_id" class="doc_details"><summary>sleep</summary>
-  Causes Dexter to "go to sleep" for the number of milliseconds in the one argument.
-  When Dexter receives the instruction, it waits for that number of milliseconds
+  Causes Dexter to "go to sleep" for the number of seconds in the one argument.
+  When Dexter receives the instruction, it waits for that duration
   before returning control to the DDE job.<br/>
-  <i>Example</i>:<code>Dexter.sleep(1000)</code><br/>
-  Sleeps for 1 second.
+  <i>Example</i>:<code>Dexter.sleep(2)</code><br/>
+  Sleeps for 2 seconds.<p/>
+  If you effectively want sleep to occur in DDE for any robot,
+  you can use a do_list_item of <code>Dexter.wait_until(2)</code>
+  to wait for 2 seconds.
 </details>
 <details class="doc_details"><summary>Dexter Modes</summary>
 Dexter can be put into one of several <i>modes</i> that governs its behavior.
@@ -2062,6 +2133,67 @@ See Job Example 9 for examples.
 
 </details> <!-- end Robots -->
 
+<details class="doc_details"><summary>Units System</summary>
+    Throughout DDE, the primary functions and instructions assume SI units for their
+    numerical values. Example: length is in meters.
+    There are a few exceptions to this rule, but we stick to it for the major functionality.
+    Internally, Dexter uses microns for length and arcseconds for degrees,
+    but programmers rarely see such numbers.
+    <p/>
+    However, we recognize that for various reasons, you might want to record numbers
+    in some other units. To facilitate that, we provide an easy way to convert
+    from other common units into DDE standard units.
+    On the DDE menubar/Series/DDE/Units/ you can see the various series for the
+    dimensions DDE supports. Pick one to insert it (such as "length" to insert "_km".)
+    <code>_km</code> is a global variable bound to a constant number, in this case, 1000.
+    To convert a number "my_length" from kilometers to the DDE standard, meters, use
+    <code>my_length*_km</code> and that will eval to: my_length * 1000
+    which represents my_length in meters instead of kilometers.
+    If my_length is 2, and it is meant to refer to 2 kilometers, then
+    my_length*_km evals to 2000 and is meant to be in meters.
+    You can think of "*_km" as declaring the units that my_length is in.
+    <h4>More Examples</h4>
+    _unitname is the conversion factor to go from that unitname into the Base Unit for that series.
+    For example 1*_rev specifies 1 revolution and because the Base Unit for angles is degrees,
+    1*_rev will become 360 and 0.5*_rev will become 180 and so on.
+    There is nothing fancy going on behind the scenes, _rev is just a number,
+    in this case 360. To go backwards from a base unit to a desired unit simply divide.
+    If you were wondering how many revolutions 1 million degrees is eval what's in white below:
+    1000000 / _rev
+    It works for combination of unit too. For example the Base Unit for speed is meter / second.
+    If you are not familiar with how much a m/s is you specify your speed,
+     then multiply by _mile / _hour for MPH or _in / _s inches per second.
+     These can help with complicated conversions for example:
+    <p/>
+    I've run a mile in 4:24 what is that in MPH?
+    var meter_per_sec = _mile / (4*_min+24*_s)
+    var MPH = meter_per_sec / (_mile/_hour)
+    <p/>
+    Mathematically, the notation _unit is shorthand for base_unit / _unit.
+    For example the value of _rev is 360 as in there are 360 degrees per 1 revolution.
+    This system only works when the Base Unit is assumed.
+    DDE "assumes" the Base Units by have every constant in those units and having every
+    function only work with the Base Units.
+    The majority of Base Units are SI units with a few exceptions:<br/>
+    For angles: DDE uses degree instead of radian.<br/>
+    For temperature DDE uses -Celsius instead of Kelvin.
+    <p/>
+    <h4>Base Units</h4>
+    These are the units that DDE uses in its constants and functions.
+    These are also the units that the Units System converts to.
+    <ul><li>For length: meters</li>
+        <li>For angles: degree</li>
+        <li>For duration: second</li>
+        <li>For weight: kilogram</li>
+        <li>For mass: Newton</li>
+        <li>For frequency: hertz</li>
+        <li>For Pascal</li>
+        <li>For energy: Joule</li>
+        <li>For power: Watt</li>
+    </ul>
+</details>
+
+
 <details class="doc_details"><summary>Object System</summary>
 <details class="doc_details"><summary>Overview</summary>
 An object system helps you organize data that can inherit from
@@ -2471,10 +2603,10 @@ newObject({name: "junk"}).sourceCode() =><br/>
         modified when DDE launches. Their default color values are given
         in the examples below.
         <ul>
-            <li><code id="set_window_frame_background_color_doc_id">set_window_frame_background_color("#ff8c96")</code></li>
-            <li><code id="set_pane_header_background_color_doc_id">set_pane_header_background_color("#e39f5a")</code></li>
-            <li><code id="set_menu_background_color_doc_id">set_menu_background_color("#ff8c96")</code></li>
-            <li><code id="set_button_background_color_doc_id">set_button_background_color("#ff8c96")</code></li>
+            <li><code id="set_window_frame_background_color_doc_id">set_window_frame_background_color("#b8bbff")</code></li>
+            <li><code id="set_pane_header_background_color_doc_id">set_pane_header_background_color("#93dfff")</code></li>
+            <li><code id="set_menu_background_color_doc_id">set_menu_background_color("#4cc9fd")</code></li>
+            <li><code id="set_button_background_color_doc_id">set_button_background_color("#4cc9fd")</code></li>
         </ul>
     </details>
 
@@ -2482,12 +2614,14 @@ newObject({name: "junk"}).sourceCode() =><br/>
         A call to <code>show_window</code> creates a dialog box using HTML and JavaScript.
         <i>Parameters</i><br/>
         <b>title</b> A string of the HTML displayed in the window's title bar. Default: "DDE Information"<br/>
-        <b>width</b> The number of pixels wide that the window will be. Default: 400<br/>
-        <b>height</b> The number of pixels tall that the window will be. Default: 400<br/>
+        <b>width</b> The number of pixels wide that the window will be. Default: 400.
+                     Minimum 100: Maximum: window.outerWidth<br/>
+        <b>height</b> The number of pixels tall that the window will be. Default: 400.
+                      Minimum: 50, Maximum: window.outerHeight<br/>
         <b>x</b> The number of pixels that the left edge of the window will be from the left edge of the DDE window.
-        Default: 200<br/>
+        Default: 200 . Minimum: 0 positions window at left of DDE window.<br/>
         <b>y</b> The number of pixels that the top edge of the window will be from the top edge of the DDE window.
-        Default: 200<br/>
+        Default: 200. Minimum: 0 positions window at top of the DDE window.<br/>
         <b>content</b> HTML to be rendered in the body of the window. input tags with <code>type</code>
         attributes of <code>button</code> and <code>submit</code> will cause the window's
         callback function to be called. <code>submit</code> will also cause the window to be closed.<p/>
@@ -2495,7 +2629,7 @@ newObject({name: "junk"}).sourceCode() =><br/>
         will cause the window's callback button to be called with a <code>clicked_button_value</code>
         property of the <code>name</code>, or if none, the <code>id</code> of the clicked on element.
         Clicking on such HTML elements will <i>not</i> close the window.<br/>
-        <i>Example</i>:<br/>
+        <i>Examples</i>:<br/>
         <code>show_window({<br/>
             &nbsp;&nbsp;&nbsp;content:'&lt;p id="p_id" class="clickable">some para&lt;/p>',<br/>
             &nbsp;&nbsp;&nbsp;callback: function (vals){ append_in_ui("p_id", "&lt;h1>hey&lt;/h1>")}<br/>
@@ -2529,7 +2663,7 @@ newObject({name: "junk"}).sourceCode() =><br/>
 function show_vals(vals){out(vals)} //this is the default callback
 show_window({
     content:
-&#39;text: &lt;input type="text" name="my_text" value="Dexter">
+&#96;text: &lt;input type="text" name="my_text" value="Dexter"/>
 textarea: &lt;textarea name="my_textarea">Hi Rez&lt;/textarea>
 checkbox: &lt;input name="my_checkbox" type="checkbox" checked="checked"/>heated bed?
     &lt;!-- you can add the checked="checked" attribute to make it initially checked. -->
@@ -2548,20 +2682,29 @@ select: &lt;select name="size">
             &lt;option selected="selected">Ginormace&lt;/option> &lt;!--the inital value-->
             &lt;option>Gilossal&lt;/option>
         &lt;/select>
+file: &lt;input type="file" name="my_file"/>No dir info.
 combo_box: &lt;div name="my_combo_box" class="combo_box" style="display:inline-block;vertical-align:middle;">
                 &lt;option>one&lt;/option>
                 &lt;option selected="selected">two&lt;/option>
            &lt;/div>
 button: &lt;input type="button" value="Show settings"/>
-submit: &lt;input type="submit" value="OK"/>&#39;,
-
+submit: &lt;input type="submit" value="OK"/>&#96;,
     width:380, height:450, title:"Printer Config", x:100, y:100,
     callback: show_vals})</code></pre>
 
-    <h3>onchange</h3>
+    <h4>onchange</h4>
     Normally the callback is only called when the user clicks a button. However,
     you can get the callback to be called for any input HTML tag if you give it
     an attribute of <code>data-onchange='true'</code>
+
+    <h4>Cover DDE Window</h4/>
+    To have a show_window cover the entire DDE window:
+    <pre><code>show_window({content: "hi",
+             x: 0,
+             y: 0,
+             width:  window.outerWidth,
+             height: window.outerHeight})
+    </code></pre>
     <p/>
     For more examples of calling <code>show_window</code> see the DDE menubar/Insert/show_window.
     </details> <!-- end show_window -->

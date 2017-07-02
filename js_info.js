@@ -378,6 +378,10 @@ Js_info = class Js_info {
                 }
                 let fn4 = value_of_path(fn_name)
                 return "function " + Js_info.wrap_fn_name(fn_name) + function_params(fn4)
+            case "series_oplet_id":
+                const oplet_full_name = "Dexter." + Dexter.instruction_type_to_function_name_map[fn_name]
+                var full_name_tag = Js_info.wrap_fn_name(oplet_full_name)
+                return "<code style='color:blue;'>" + fn_name + "</code> means Dexter instruction: " + full_name_tag
             case "series_robot_status_label_id":
                 return 'Job.a_job_name.robot.robot_status[<code style="color:blue;">' + fn_name + '</code>]'
             case "series_dexter_utility_id":
@@ -386,12 +390,14 @@ Js_info = class Js_info {
             case "series_dexter_constant_id": //fn_name looks like 'Dexter.link0'
                 let the_constant_val = Dexter[fn_name.split(".")[1]]
                 let dc_units = ""
-                if      (fn_name === "Dexter.LEG_LENGTH")    { dc_units = " microns ("     + (the_constant_val / 1000) + " millimeters)"}
-                else if (fn_name === "Dexter.HOME_ANGLES")   { dc_units = " arc_seconds"}  //because we've got > 1, don't include degrees
-                else if (fn_name === "Dexter.PARKED_ANGLES") { dc_units = " arc_seconds"}  //because we've got > 1, don't include degrees
-                else if (fn_name.includes("LINK"))           { dc_units = " microns ("     + (the_constant_val / 1000) + " millimeters)"} // &mu;m"  don't use greek!
-                else if (fn_name.includes("ANGLE"))          { dc_units = " arc_seconds (" + (the_constant_val / 3600) + " degrees)"}
+                if      (fn_name === "Dexter.LEG_LENGTH")    { dc_units = " meters"}
+                else if (fn_name === "Dexter.HOME_ANGLES")   { dc_units = " degrees"}
+                else if (fn_name === "Dexter.PARKED_ANGLES") { dc_units = " degrees"}
+                else if (fn_name.includes("LINK"))           { dc_units = " meters" }
+                else if (fn_name.includes("ANGLE"))          { dc_units = " degrees"}
                 return "<code style='color:blue;'>"     + fn_name + "</code> => " + the_constant_val + dc_units
+            case "series_set_parameter_name_id":
+                return "<code style='color:blue;'>"     + fn_name + "</code>" //=> " + the_constant_val + dc_units
             case "series_robot_subclass_id":
                 let fn5 = value_of_path(fn_name)
                 return "new <code style='color:blue;'>" + Js_info.wrap_fn_name(fn_name) + '</code>' + function_params(fn5)
@@ -420,7 +426,8 @@ Js_info = class Js_info {
         else if (series.id.endsWith("_units_id")){
             let unit_full_name = unit_abbrev_to_full_name(series.id, fn_name)
             let [unity_abbrev, unity_full_name] = series_name_to_unity_unit(series.id)
-            return "for " + unit_full_name +
+            return  "Base: " + unity_abbrev +
+                    " for " + unit_full_name +
                     ": <code style='color:blue;'>" + fn_name +
                     "</code> = " + window[fn_name] +
                     "&nbsp; <code>" + pluralize_full_unit_name(unit_full_name) + "*" + fn_name +
@@ -433,7 +440,7 @@ Js_info = class Js_info {
     static wrap_fn_name(fn_name){
         let result = fn_name
         let the_doc_id = fn_name + "_doc_id"
-        if (window[the_doc_id]){ //otherwise we have to load the doc into teh snadbox instead of just the UI.
+        if (window[the_doc_id]){
             let onclick_val = "open_doc(" + the_doc_id + ")"
             let click_id = fn_name + "_click_help_id"
             let the_html = "<a id='" + click_id + "' href='#'>" + fn_name + "</a>"

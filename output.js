@@ -452,6 +452,7 @@ window.submit_window = function(event){
     for (var i = 0; i < inputs.length; i++){
         var inp = inputs[i]
         var in_name      = inp.name
+        if (!in_name) { in_name      = inp.id }
         var in_type      = inp.type    //text (one-liner), submit, button, radio, checkbox, etc.
         if (in_type == "radio"){
             if (inp.checked){
@@ -473,6 +474,7 @@ window.submit_window = function(event){
                 result[in_name] = val
             }
         }
+        else if (in_type == "file") { result[in_name] = inp.files[0].name }
         else if (in_name == "window_callback_string") { //type == "hidden"
             result["window_callback_string"] = inp.value //still needed nov 9, 2016
         }

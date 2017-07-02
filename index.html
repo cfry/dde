@@ -359,92 +359,105 @@
                                                 <li id="series_prev_id"      title="Replace the selection with &#013;an item from the previous series&#013;Numbers, colors, and various JS function names&#013;are in their own series.&#013;For speed, use the up arrow key.">Prev series&nbsp; &uarr;</li>
                                             </ul>
                                         </li>
-                                        <li id="series_punctuation_id" title="Insert a punctuation character">Punctuation</li>
-                                        <li id="series_boolean_id" title="Insert true, false, null or undefined.">Boolean</li>
-                                        <li>Number
+                                        <li>JavaScript
+                                            <uL>
+                                                <li id="series_punctuation_id" title="Insert a punctuation character">Punctuation</li>
+                                                <li id="series_boolean_id" title="Insert true, false, null or undefined.">Boolean</li>
+                                                <li>Number
+                                                    <ul>
+                                                        <li id="series_integer_id"    title="Insert an integer to increment or decriment.">integer</li>
+                                                        <li id="series_float_id"      title="Insert a floating point number to increment or decriment.">float</li>
+                                                        <li id="series_arithmetic_id" title="Insert an arithmetic operator.">arithmetic</li>
+                                                        <li id="series_comparison_id" title="Insert a comparison operator.">comparison</li>
+                                                        <li id="series_math_id"       title="Insert a Math function.">math</li>
+                                                        <li id="series_trigonometry_id" title="Insert a trigonometry function.">trigonometry</li>
+                                                        <li id="series_number_misc_id" title="Insert a low level number function.">number misc</li>
+                                                        <li id="series_number_constant_id" title="Insert a symbolic math constant like 'Math.PI'.">number constant</li>
+                                                    </ul>
+                                                </li>
+                                                <li id="series_assignment_id" title="Assign a value to a variable">Assignment</li>
+                                                <li>Strings & Arrays
+                                                    <ul>
+                                                        <li id="series_literal_string_id" title="Insert a literal string.">literal string</li>
+                                                        <li id="series_string_id"  title="Insert a string method.">string</li>
+                                                        <li id="series_array_id"   title="Insert an array method.">array</li>
+                                                        <li id="series_forEach_id" title="Loop over the elements of an array.">forEach</li>
+                                                    </ul>
+                                                </li>
+                                                <li>Date
+                                                    <ul>
+                                                        <li id="series_hours_minutes_seconds_id" title="Insert a time of hours:minutes:seconds.">hours:mins:secs</li>
+                                                        <li id="series_time_id"           title="Insert a time of hours:minutes or minutes:seconds.">time</li>
+                                                        <li id="series_3_letter_month_id" title="Insert a 3 letter month name.">3 letter month</li>
+                                                        <li id="series_full_month_id"     title="Insert a full month name.">full month</li>
+                                                        <li id="series_date_id"           title="Insert a date.">date</li>
+                                                    </ul>
+                                                </li>
+                                                <li title="Control the flow of execution">Control Flow
+                                                    <ul>
+                                                        <li id="series_if_id"      title='Insert "if", "else if", or "else".'>if</li>
+                                                        <li id="series_for_id"     title='Insert "for" or "while".'>for</li>
+                                                        <li id="series_try_id"     title="Insert a try, catch, or finally">try</li>
+                                                    </ul>
+                                                </li>
+                                                <li id="series_function_id"   title="Insert a function definition&#013;or one of its friends.">Function</li>
+                                             </ul>
+                                         </li> <!-- end JavaScript -->
+                                         <li>DDE
                                             <ul>
-                                                <li id="series_integer_id"    title="Insert an integer to increment or decriment.">integer</li>
-                                                <li id="series_float_id"      title="Insert a floating point number to increment or decriment.">float</li>
-                                                <li id="series_arithmetic_id" title="Insert an arithmetic operator.">arithmetic</li>
-                                                <li id="series_comparison_id" title="Insert a comparison operator.">comparison</li>
-                                                <li id="series_math_id"       title="Insert a Math function.">math</li>
-                                                <li id="series_trigonometry_id" title="Insert a trigonometry function.">trigonometry</li>
-                                                <li id="series_number_misc_id" title="Insert a low level number function.">number misc</li>
-                                                <li id="series_number_constant_id" title="Insert a symbolic math constant like 'Math.PI'.">number constant</li>
+                                                <li>Units System
+                                                    <ul>
+                                                        <li id="series_length_units_id"    title="Insert a length units converter.">length</li>
+                                                        <li id="series_angle_units_id"     title="Insert an angle units converter.">angle</li>
+                                                        <li id="series_duration_units_id"  title="Insert a duration_units converter.">duration_units</li>
+                                                        <li id="series_frequency_units_id" title="Insert a frequency units converter.">frequency</li>
+                                                        <li id="series_mass_units_id"      title="Insert a mass units converter.">mass</li>
+                                                        <li id="series_force_units_id"     title="Insert a force units converter.">force</li>
+                                                        <li id="series_pressure_units_id"  title="Insert a pressure units converter.">pressure</li>
+                                                        <li id="series_torque_units_id"    title="Insert a torque units converter.">torque</li>
+                                                        <li id="series_power_units_id"     title="Insert a power units converter.">power</li>
+                                                        <li id="series_energy_units_id"    title="Insert an energy units converter.">energy</li>
+                                                        <li id="series_temperature_id"     title="Insert a temperature converter.">temperature</li>
+                                                    </ul>
+                                                </li>
+                                                <li id="series_object_system_id"          title="Functions for creating and accessing the prototype object system.">Object System</li>
+                                                <li>Output
+                                                    <ul>
+                                                        <li id="series_output_id"     title="Insert a call to an output function.">output functions</li>
+                                                        <li id="series_color_name_id" title="Insert a color name&#013;such as 'blue'.">color name</li>
+                                                        <li id="series_color_rgb_id"  title="Insert a color rgb designation&#013;such as rgb(0, 100, 255)">color rgb</li>
+                                                    </ul>
+                                                </li>
+                                                <li id="series_window_id"     title="Insert a call to a window function.">Window</li>
+                                                <li File id="series_file_id" title="Functions for files and persistent data.">File</li>
+                                                <li>Job
+                                                    <ul>
+                                                        <li id="series_job_name_id"    title="Insert a job name.">job name</li>
+                                                        <li id="series_job_method_id"  title="Insert a job method.">job method</li>
+                                                    </ul>
+                                                </li>
+                                                <li>Robot
+                                                    <ul>
+                                                        <li id="robots_help_id">Help</li>
+                                                        <li id="series_robot_instruction_id"   title="Insert a job instruction for Dexter.">instruction</li>
+                                                        <li id="series_robot_config_id"        title="Insert a config arg for the Dexter.move_to instruction.">robot config</li>
+                                                        <li id="series_robot_status_label_id"  title="Insert a robot status label.">robot status label</li>
+                                                        <li id="series_robot_subclass_id"      title="Insert a call to create an instance of a Robot subclass.">robot subclass</li>
+                                                        <li id="series_robot_name_id"          title="Insert code to get a robot instance.">robot name</li>
+                                                        <li id="series_serial_id"              title="Insert function names of DDE's serial port interface.&#013;These low level functions are used by Robot.Series">serial port</li>
+                                                    </ul>
+                                                </li>
+                                                <li>Dexter Robot
+                                                    <ul>
+                                                        <li id="series_dexter_utility_id"      title="Insert a call to a Dexter method.">Dexter utility</li>
+                                                        <li id="series_dexter_constant_id"     title="Insert a Dexter joint angle min, max or link length.">Dexter constant</li>
+                                                        <li id="series_oplet_id"               title="make_ins is a low_level way to make an instruction.&#013;Its first arg is an 'oplet' for 'type of instruction'.">oplet</li>
+                                                        <li id="series_set_parameter_name_id"  title="Insert a set_parameter name (1st arg).">set_param name</li>
+                                                    </ul>
+                                                </li>
+                                                <li id="series_test_suite_id">Test Suite</li>
                                             </ul>
                                         </li>
-                                        <li>Units
-                                            <ul>
-                                                <li id="series_length_units_id"    title="Insert a length units converter.">length</li>
-                                                <li id="series_angle_units_id"     title="Insert an angle units converter.">angle</li>
-                                                <li id="series_duration_units_id"  title="Insert a duration_units converter.">duration_units</li>
-                                                <li id="series_frequency_units_id" title="Insert a frequency units converter.">frequency</li>
-                                                <li id="series_mass_units_id"      title="Insert a mass units converter.">mass</li>
-                                                <li id="series_force_units_id"     title="Insert a force units converter.">force</li>
-                                                <li id="series_pressure_units_id"  title="Insert a pressure units converter.">pressure</li>
-                                                <li id="series_torque_units_id"    title="Insert a torque units converter.">torque</li>
-                                                <li id="series_power_units_id"     title="Insert a power units converter.">power</li>
-                                                <li id="series_energy_units_id"    title="Insert an energy units converter.">energy</li>
-                                                <li id="series_temperature_id"     title="Insert a temperature converter.">temperature</li>
-                                            </ul>
-                                        </li>
-                                        <li id="series_assignment_id" title="Assign a value to a variable">Assignment</li>
-                                        <li>Strings & Arrays
-                                            <ul>
-                                                <li id="series_literal_string_id" title="Insert a literal string.">literal string</li>
-                                                <li id="series_string_id"  title="Insert a string method.">string</li>
-                                                <li id="series_array_id"   title="Insert an array method.">array</li>
-                                                <li id="series_forEach_id" title="Loop over the elements of an array.">forEach</li>
-                                            </ul>
-                                        </li>
-                                        <li>Date
-                                            <ul>
-                                                <li id="series_hours_minutes_seconds_id" title="Insert a time of hours:minutes:seconds.">hours:mins:secs</li>
-                                                <li id="series_time_id"           title="Insert a time of hours:minutes or minutes:seconds.">time</li>
-                                                <li id="series_3_letter_month_id" title="Insert a 3 letter month name.">3 letter month</li>
-                                                <li id="series_full_month_id"     title="Insert a full month name.">full month</li>
-                                                <li id="series_date_id"           title="Insert a date.">date</li>
-                                            </ul>
-                                        </li>
-                                        <li id="series_object_system_id"          title="Functions for creating and accessing the prototype object system.">Object System</li>
-                                        <li title="Control the flow of execution">Control Flow
-                                            <ul>
-                                                <li id="series_if_id"      title='Insert "if", "else if", or "else".'>if</li>
-                                                <li id="series_for_id"     title='Insert "for" or "while".'>for</li>
-                                                <li id="series_try_id"     title="Insert a try, catch, or finally">try</li>
-                                            </ul>
-                                        </li>
-                                        <li id="series_function_id"   title="Insert a function definition&#013;or one of its friends.">Function</li>
-
-                                        <li>Output
-                                            <ul>
-                                                <li id="series_output_id"     title="Insert a call to an output function.">output functions</li>
-                                                <li id="series_color_name_id" title="Insert a color name&#013;such as 'blue'.">color name</li>
-                                                <li id="series_color_rgb_id"  title="Insert a color rgb designation&#013;such as rgb(0, 100, 255)">color rgb</li>
-                                            </ul>
-                                        </li>
-                                        <li id="series_window_id"     title="Insert a call to a window function.">Window</li>
-                                        <li File id="series_file_id" title="Functions for files and persistent data.">File</li>
-                                        <li>Job
-                                            <ul>
-                                                <li id="series_job_name_id"     title="Insert a job name.">job name</li>
-                                                <li id="series_job_method_id"  title="Insert a job method.">job method</li>
-                                            </ul>
-                                        </li>
-                                        <li>Robot
-                                            <ul>
-                                                <li id="robots_help_id">Help</li>
-                                                <li id="series_robot_instruction_id"   title="Insert a job instruction for Dexter.">instruction</li>
-                                                <li id="series_robot_config_id"        title="Insert a config arg for the Dexter.move_to instruction.">robot config</li>
-                                                <li id="series_robot_status_label_id"  title="Insert a robot status label.">robot status label</li>
-                                                <li id="series_robot_subclass_id"      title="Insert a call to create an instance of a Robot subclass.">robot subclass</li>
-                                                <li id="series_robot_name_id"          title="Insert code to get a robot instance.">robot name</li>
-                                                <li id="series_dexter_utility_id"      title="Insert a call to a Dexter method.">Dexter utility</li>
-                                                <li id="series_dexter_constant_id"     title="Insert a Dexter joint angle min, max or link length.">Dexter constant</li>
-                                                <li id="series_serial_id"              title="Insert function names of DDE's serial port interface.&#013;These low level functions are used by Robot.Series">serial port</li>
-                                            </ul>
-                                        </li>
-                                        <li id="series_test_suite_id">Test Suite</li>
                                     </ul>
                                 </li>
                                 <li style="display:inline-block;padding-left:3px;padding-right:0px;">Jobs&#9660;
@@ -538,7 +551,7 @@
                 <div style="background-color:#dddddd;">
                     <div class='pane_header_wrapper' style="white-space:nowrap;height:57px;min-height:57px;max-height:57px;">
                         <span id="output_pane_help_id" class='pane_header' title="Click for help."><u>Output</u></span>
-                        <button id="eval_id" style="vertical-align:middle;" title="Evaluate (run) the selected JS or, if none,&#013;all the JavaScript in the pane.&#013;Can also be invoked by typing &#8984;e">Eval</button>
+                        <button id="eval_id" style="vertical-align:middle;" title="Evaluate (run) the selected JS in any pane&#013;or, if none, all the JavaScript in the Editor pane.&#013;Can also be invoked by typing &#8984;e">Eval</button>
                         <div title="Automatically save the edited file&#013;when you click 'Eval',&#013;and when you edit another file." style="vertical-align:middle;display:inline-block;"><input id="save_on_eval_id" type="checkbox" style="vertical-align:60%;padding_bottom:15px;"/> <div style="padding:0px;margin:0px;display:inline-block;font-size:10px; line-height:10px;">Save<br/>on</br/>Eval</div></div>
                         <button id="clear_output_id" title="Remove all previously output text.">Clear</button>
                         <div id='error_ops_menu' class="dde_menu" style="display:inline-block;margin-left:10px;vertical-align: middle;">
@@ -600,9 +613,9 @@
                 <div id="doc_pane_id" style="background-color:#e1e1e1; padding-left:5px;">
                     <div class="pane_header_wrapper" style="height:30px;white-space:nowrap;">
                         <span id="documentation_pane_help_id" class="pane_header"><u>Doc</u></span>
-                        <input id="find_doc_input_id" placeholder="search string" title="If this field is empty,&#013;the selection in the&#013;Doc, JavaScript, or Output&#013;pane is used." style="width:100px;"/>
-                        <button id="find_doc_button_id">Find</button>
-                        <button id="eval_doc_button_id" title="Evaluated the selected code&#013;in the Doc pane.&#013;Result goes in the Output pane.ƒ">Eval Doc</button>
+                        <input id="find_doc_input_id" placeholder="search string" title="If this field is empty,&#013;the selection in the&#013;Editor, Cmd line, Doc, or Output&#013;pane is used." style="width:100px;"/>
+                        <button id="find_doc_button_id" title="Find documentation on text to the left&#013;or, if none, selected text anywhere.">Find</button>
+                       <!--  <button id="eval_doc_button_id" title="Evaluated the selected code&#013;in the Doc pane.&#013;Result goes in the Output pane.ƒ">Eval Doc</button> obsolete now that Out pane Eval button can do this-->
                     </div>
                     <div id="doc_pane_content_id" contentEditable="false" style="width:97%; height:90%;padding:5px;overflow:scroll;">
                     </div>

@@ -56,9 +56,8 @@ function eval_js_part1(){
     //offsets into the editor buffer correct is important.
     if (src.trim() == ""){
         open_doc(learning_js_doc_id)
-        out("There is no JavaScript to execute.<br/>See <span style='color:black;'>Learning JavaScript</span> " +
-            "in the Documentation pane for help.",
-            "red")
+        warning("There is no JavaScript to execute.<br/>See <span style='color:black;'>Learning JavaScript</span> " +
+            "in the Documentation pane for help.")
     }
     else{
         eval_js_part2(src)

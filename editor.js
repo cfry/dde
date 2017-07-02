@@ -147,11 +147,41 @@ Editor.restore_files_menu_paths_and_last_file = function(){ //called by on ready
     }
 }
 
+Editor.get_any_selection = function(){
+    var sel_text = ""
+    sel_text = myCodeMirror.doc.getValue().substring(Editor.selection_start(), Editor.selection_end())
+    if(sel_text.length > 0) { return sel_text }
+    sel_text = Editor.get_cmd_selection()
+    if(sel_text > 0 ) { return sel_text }
+    if (!window.getSelection().isCollapsed) { //got sel in doc or output pane
+        return window.getSelection().getRangeAt(0).toString()
+    }
+    if (window.run_src_id){ //run_insutruction dialog type in
+        const sel_start = run_src_id.selectionStart
+        const sel_end = run_src_id.selectionEnd
+        if (sel_start != sel_end) {   //got sel in cmd_input
+            const full_src = run_src_id.value
+            return full_src.substring(sel_start, sel_end)
+        }
+    }
+    return ""
+}
+
 //return editor sel or if none, cmd input, or if none, ""
 Editor.get_selection_or_cmd_input = function(){
     var sel_text = myCodeMirror.doc.getValue().substring(Editor.selection_start(), Editor.selection_end())
     if (sel_text.length == 0) { sel_text = cmd_input_id.value }
     return sel_text
+}
+
+Editor.get_cmd_selection = function(){
+    const sel_start = cmd_input_id.selectionStart
+    const sel_end = cmd_input_id.selectionEnd
+    if (sel_start != sel_end) {   //got sel in cmd_input
+        const full_src = cmd_input_id.value
+        return full_src.substring(sel_start, sel_end)
+    }
+    else { return "" }
 }
 
 Editor.get_javascript = function(use_selection=false){

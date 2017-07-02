@@ -157,15 +157,18 @@ function init_units(){
 function units_to_series(name, units_for_one_series){
     var the_keys = Object.keys(units_for_one_series)
     for(let a_unit_abrev of the_keys) {
-        let val = units_for_one_series[a_unit_abrev][0]
-        define_global_constant(a_unit_abrev, val)
+        if(a_unit_abrev != "base") {
+            let val = units_for_one_series[a_unit_abrev][0]
+            define_global_constant(a_unit_abrev, val)
+        }
     }
     return new Series({ id: "series_" + name + "_id",
                         array: the_keys,
                         menu_insertion_string: the_keys[0],
                         menu_sel_start: true,
                         menu_sel_end: null,
-                        sample: the_keys[0]
+                        sample: the_keys[0],
+                        base: units_for_one_series.base
                         })
 }
 

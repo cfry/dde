@@ -146,10 +146,10 @@ function dde_init_dot_js_initialize() {
                   '// 3. Choose the "Insert" menu, "Color" item.\n' +
                   '// 4. After inserting the new color, eval the "set_" call.\n' +
                   '// 5. To get the default color, just comment out the line and relaunch DDE.\n' +
-                  '// set_window_frame_background_color("#ff8c96")\n' +
-                  '// set_pane_header_background_color("#e39f5a")\n' +
-                  '// set_menu_background_color("#ff8c96")\n' +
-                  '// set_button_background_color("#ff8c96")\n' +
+                  '// set_window_frame_background_color("#b8bbff")\n' +
+                  '// set_pane_header_background_color("#93dfff")\n' +
+                  '// set_menu_background_color("#4cc9fd")\n' +
+                  '// set_button_background_color("#4cc9fd")\n' +
                   '\n' +
                   'persistent_set("default_dexter_ip_address", "'    +
                   default_default_dexter_ip_address + '") //required property but you can edit the value.\n' +
@@ -204,7 +204,7 @@ function choose_file(show_dialog_options={}) { //todo document
     else { return paths }
 }
 
-function choose_file_and_get_content(show_dialog_options={}, encoding="utf8") { //todo document
+function choose_file_and_get_content(show_dialog_options={}, encoding="utf8") {
     var path = choose_file(show_dialog_options)
     if (path){
         if (Array.isArray(path)) { path = path[0] }

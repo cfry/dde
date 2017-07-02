@@ -6,9 +6,35 @@
     var js_cmds_array = []
     var js_cmds_index = -1
 
+    //called for cmd input AND run instruction dialog run_src type in
+    function onclick_for_click_help(event) {
+        const full_src = event.target.value
+        if (full_src.length > 0) {
+            const pos = event.target.selectionStart
+            Editor.show_identifier_info(full_src, pos)
+        }
+    }
+
     function eval_button_action(){ //used by both clicking on the eval button and Cmd-e
         if((Editor.current_file_path != "new file") && (save_on_eval_id.checked)) { Editor.save_current_file() }
-        eval_js_part1();
+        /*if (Editor.get_javascript(true) != ""){ eval_js_part1() } //got sel in editor
+        else {
+            //get sel in output pane and doc pane but not editor pane or cmd input.
+            if (!window.getSelection().isCollapsed) { //got sel in doc or output pane
+                const sel_text = window.getSelection().getRangeAt(0).toString()
+                eval_js_part2(sel_text)
+            }
+            else {
+                const sel_text = Editor.get_cmd_selection()
+                if (sel_text.length > 0) { eval_js_part2(sel_text) }
+                else { //grab whole editor buffer, and execute or warn if no content in editor buffer
+                    eval_js_part1()
+                }
+            }
+        }*/
+        var sel_text = Editor.get_any_selection()
+        if (sel_text.length > 0) { eval_js_part2(sel_text) }
+        else { eval_js_part1() } //gets whole editor bugger and if empty, prints warning.
     }
 
     function open_doc(details_elt){
@@ -32,17 +58,10 @@
 
     function find_doc(){
         let search_string = find_doc_input_id.value
-        if (search_string.length == 0){
-            let sel = window.getSelection().toString().trim()
-            if (sel.length == 0) { sel = Editor.get_javascript(true) }
-            if (sel.length == 0) { return }
-            else {
-                //find_doc_input_id.value = sel //don't do so that user can do
-                 //other searches for sel with empty type in without having to
-                 //delete the type in. Note output pane shows what's
-                 //being searched for so that's good enough feedback.
-                search_string = sel
-            }
+        if (search_string.length == 0) { search_string = Editor.get_any_selection() } //doc & output panes
+        if (search_string.length == 0) {
+            warning("There is no text in the Find type-in nor selection anywhere to search for.")
+            return
         }
         close_all_details()
         undecorate_doc_details()
@@ -123,6 +142,9 @@
                         "</details>\n" +
                         '<details><summary class="doc_top_level_summary">Dexter Kinematics</summary>\n' +
                             file_content(__dirname + "/doc/dexter_kinematics.html") +
+                        "</details>\n" +
+                        '<details><summary class="doc_top_level_summary">Glossary</summary>\n' +
+                        file_content(__dirname + "/doc/glossary.html") +
                         "</details>\n" +
                         '<details><summary class="doc_top_level_summary">User Guide</summary>\n' +
                             file_content(__dirname + "/doc/guide.html") +
@@ -231,16 +253,9 @@
         cmd_input_id.focus()
     })
 
-    cmd_input_id.onclick  = function(event) {
-        const full_src = cmd_input_id.value
-        const pos = cmd_input_id.selectionStart
-        if (full_src.length > 0) {
-            Editor.show_identifier_info(full_src, pos)
-            //Editor.identifier_or_operator = function(full_src=null, pos=null)
-        }
-    }
+    cmd_input_id.onclick = onclick_for_click_help
 
-    init_simulation()
+        init_simulation()
 
     //init_guide()
     //init_ref_man()
@@ -256,11 +271,12 @@
 
     find_doc_button_id.onclick = find_doc
     find_doc_input_id.onchange = find_doc
-    eval_doc_button_id.onclick = function(){
-          let sel = window.getSelection().toString().trim()
-          if (sel.length == 0) {out("There is no selection in the Doc pane to eval.", "orange", true) }
-          else { eval_js_part2(sel) }
-          }
+
+    //eval_doc_button_id.onclick = function(){
+    //      let sel = window.getSelection().toString().trim()
+    //      if (sel.length == 0) {out("There is no selection in the Doc pane to eval.", "orange", true) }
+    //      else { eval_js_part2(sel) }
+    //      } obsolete now that Out pane Eval button evals selection in any pane.
 
     //doc_pane_content_id.onclick = //doesn't get called when I click in doc pane, so do the below.
     //click help for all text inside the code tag (white).
@@ -391,8 +407,8 @@ show_window("hi <i style='font-size:100px;'>wizard</i>")
 window_options_id.onclick=function(){Editor.insert('show_window({\n' +
                                                               '    content: "hi",      // Any HTML OK here.\n' +
                                                               '    title: "Greetings", // Appears above the content. Any HTML OK.\n' +
-                                                              '    width: 150, // window width\n' +
-                                                              '    height: 70, // window height\n' +
+                                                              '    width: 150, // 100 to window.outerWidth\n' +
+                                                              '    height: 70, //  50 to window.outerHeight\n' +
                                                               "    x: 0,       // Distance from left of DDE window to this window's left\n" +
                                                               "    y: 100,     // Distance from top  of DDE window to this window's top\n" +
                                                               '    is_modal: false, // If true, prevents you from interacting with other windows. Default false.\n' +
@@ -491,7 +507,8 @@ select: <select name="size">
 combo_box: <div name="my_combo_box" class="combo_box" style="display:inline-block;vertical-align:middle;">
         <option>one</option>
         <option selected="selected">two</option>
-</div><br/><br/>
+</div><br/>
+file:   <input type="file" name="my_file"/><br/><br/>
 button: <input type="button" value="Show settings"/><br/><br/>
 submit: <input type="submit" value="OK"/>` + "`" +
 ',\n     width:380, height:450, title:"Printer Config", x:100, y:100,\n     callback: show_vals})\n')}

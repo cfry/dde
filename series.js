@@ -595,7 +595,7 @@ Series.instances = [
                                                     "Math.imul", "Math.log",   "Math.log10", "Math.log1p",  "Math.log2",
                                                     "Math.max",  "Math.min",   "Math.pow",   "Math.random", "Math.round",
                                                     "Math.sign", "Math.sqrt",  "Math.trunc"],
-        menu_insertion_string:"Math.abs(-3)", menu_sel_start:5, menu_sel_end:8, sample:"Math.abs"}),
+        menu_insertion_string:"Math.abs(-3)", menu_sel_start:0, menu_sel_end:8, sample:"Math.abs"}),
     new Series({id:"series_trigonometry_id",  array: ["Math.acos", "Math.acosh", "Math.asin", "Math.asinh", "Math.atan", "Math.atan2", "Math.atanh",
                                                       "Math.cos", "Math.cosh", "Math.sin", "Math.sinh", "Math.tan", "Math.tanh"],
         menu_insertion_string:"Math.sin(1)",  menu_sel_start:5, menu_sel_end:8, sample:"Math.sin"}),
@@ -781,6 +781,10 @@ Series.instances = [
                 "Dexter.RIGHT_IN",      "Dexter.RIGHT_OUT",     "Dexter.RIGHT_DOWN_IN", "Dexter.RIGHT_DOWN_OUT",
                 "Dexter.RIGHT_UP_IN",   "Dexter.RIGHT_UP_OUT"],
         menu_insertion_string:"Dexter.RIGHT_UP_IN", menu_sel_start:true, menu_sel_end:null, sample:"Dexter.RIGHT_UP_IN"}),
+    new Series({id:"series_oplet_id",
+                array:["a","b","c","d","e","E","F","f","G","g","h","i","l",
+                       "m","n","o","p","R","s","S","t","w","W","x","z"],
+        menu_insertion_string:"S", menu_sel_start:true, menu_sel_end:null, sample:"S"}),
     new Series({id:"series_dexter_utility_id",
         //in_series_fn: function(str){return str.endsWith("props")},
         array: ["Robot.dexter0.joint_angle","Robot.dexter0.joint_angles","Robot.dexter0.joint_xyz","Robot.dexter0.joint_xyzs", "Robot.dexter0.prop"],
@@ -796,6 +800,14 @@ Series.instances = [
                           'Dexter.LEG_LENGTH', 'Dexter.MAX_SPEED', 'Dexter.START_SPEED'
                                                             ],
         menu_insertion_string:"Dexter.LINK1", menu_sel_start:true, menu_sel_end:null, sample:"Dexter.LINK1"}),
+
+    new Series({id:"series_set_parameter_name_id",
+          array: ["J1Force","J2Force","J3Force", "J4Force","J5Force",
+                  "J1Friction","J2Friction","J3Friction","J4Friction","J5Friction",
+                  "J1BoundryHigh","J1BoundryLow","J2BoundryHigh","J2BoundryLow","J3BoundryHigh","J3BoundryLow","J4BoundryHigh","J4BoundryLow","J5BoundryHigh","J5BoundryLow",
+                  "Acceleration", "EERoll","EESpan","End", "GripperMotor", "MaxSpeed","StartSpeed"],
+        menu_insertion_string:"J1Force", menu_sel_start:true, menu_sel_end:null, sample:"J1Force"
+    }),
     new Series({id:"series_robot_status_label_id", array: function(){ return Dexter.robot_status_index_labels},
         menu_insertion_string: function(){return Series.job_dot_last_job_name() + '.robot.robot_status[Dexter.J1_ANGLE]'},
                                               menu_sel_start: -16,  menu_sel_end:-1, sample:"Dexter.J1_ANGLE"}),
@@ -803,7 +815,7 @@ Series.instances = [
         menu_insertion_string:'new Dexter({name: "my_dex"})', menu_sel_start: 4,  menu_sel_end:10, sample:"new Dexter"}),
 
     new Series({id:"series_robot_name_id", array: Series.get_robot_name_array,
-        menu_insertion_string: 'Robot.Dex1',
+        menu_insertion_string: 'Robot.dexter0',
         menu_sel_start: 0, sample: Series.robot_dot_last_robot_name}),
     new Series({id:"series_serial_id", array: ['serial_devices', 'serial_path_to_info_map',
                                                'serial_connect_low_level', 'serial_send_low_level', 'serial_flush', 'serial_disconnect'],

@@ -734,33 +734,34 @@ function stringify_value_aux (value, job, depth=0){
         let constructor_name = value.constructor.name
         if (constructor_name != "Object") { result += "class: " + constructor_name + ",<br/>"}
         for (var prop in value) {
-            let prop_val = value[prop]
-            if (prop == "robot_status"){
-                if (!job && value.job_id) { job = Job.job_id_to_job_instance(value.job_id) }
-                let where_from = ""
-                if (value instanceof Job)   { where_from = " on job: "   + value.name }
-                if (value instanceof Robot) { where_from = " on robot: " + value.name }
-                result += Dexter.robot_status_to_html(prop_val, where_from)
-            }
-            else if (prop == "do_list"){
-                result += job.do_list_to_html() //Job.do_list_to_html(value[prop])
-            }
-            else if (prop == "original_do_list"){
-                result += Job.non_hierarchical_do_list_to_html(prop_val) //Job.do_list_to_html(value[prop])
-            }
-            else if (prop == "sent_instructions"){
-                result += Dexter.sent_instructions_to_html(prop_val)
-            }
-            else if (prop == "rs_history"){ //value is instance of Dexter
-                result += prop + ": " + Dexter.make_show_rs_history_button_html(value.job_id)
-            }
-            else if(value.hasOwnProperty( prop ) ) {
-                try{
-                  result += prop + ": " + stringify_value_aux(prop_val, job, depth + 1) + ",<br/>"
+            if(value.hasOwnProperty(prop)){
+                let prop_val = value[prop]
+                if (prop == "robot_status"){
+                    if (!job && value.job_id) { job = Job.job_id_to_job_instance(value.job_id) }
+                    let where_from = ""
+                    if (value instanceof Job)   { where_from = " on job: "   + value.name }
+                    if (value instanceof Robot) { where_from = " on robot: " + value.name }
+                    result += Dexter.robot_status_to_html(prop_val, where_from)
                 }
-                catch(e) {} //doing window["caches"] errors so just forget about this prop and maybe others.
+                else if (prop == "do_list"){
+                    result += job.do_list_to_html() //Job.do_list_to_html(value[prop])
+                }
+                else if (prop == "original_do_list"){
+                    result += Job.non_hierarchical_do_list_to_html(prop_val) //Job.do_list_to_html(value[prop])
+                }
+                else if (prop == "sent_instructions"){
+                    result += Dexter.sent_instructions_to_html(prop_val)
+                }
+                else if (prop == "rs_history"){ //value is instance of Dexter
+                    result += prop + ": " + Dexter.make_show_rs_history_button_html(value.job_id)
+                }
+                else {
+                    try{
+                      result += prop + ": " + stringify_value_aux(prop_val, job, depth + 1) + ",<br/>"
+                    }
+                    catch(e) {} //doing window["caches"] errors so just forget about this prop and maybe others.
+                }
             }
-
         }
         result += "}"
         if (result == "{}") {  //as is the case with iterators

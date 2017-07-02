@@ -5,6 +5,128 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 2.0.1, Jul 2, 2017</summary>
+Highlight: Run Instruction dialog extended. Units System documented.
+           More details of new units system converted.
+<ul><li> Eval button now can eval selected text in Output pane, Doc pane and Command input as
+    well as the editor buffer. If no selection, the whole editor buffer is evaled as usual.
+    Removed the "Eval Doc" button at the top of the Doc pane.
+    New mini-tutorial about this under User Guide/Learning JavaScript.</li>
+
+    <li> show_window documented how to have a show_window cover the DDE window completely
+        in Doc pane/Ref Man/Window System/show_window
+        and comments in DDE Menubar/Insert/show_window/Window Options</li>
+
+    <li> show_window, input elements: if they don't have a "name" attribute but
+        do have an "id" attribute, that id attribute value is used as the input's "name".</li>
+
+    <li>show_window: fixed to properly have the value of the file name for
+a &lt;input type="file"/&gt; tag. Includes extension, does not include directory.</li>
+
+<li>DDE menu bar/Insert/show_window/many_inputs example extended
+    to have an example of &lt;input type="file"/&gt;
+    Fixed and extended the big show_window example in the Ref Man.</li>
+
+    <li> choose_file and choose_save_file now documented under
+         Doc pane/Ref Man/IO/File Access.</li>
+
+    <li> Find button can now find documentation on text selected in the command line.
+
+    <li> new series "oplet". Click help shows the full instruction name,
+         which, if documented, you can click on it to see ref man documentation.</li>
+
+    <li> reoganization of the Series menu to make all menu items visible on
+short screens. Also helps classify series.</li>
+
+    <li> instruction_array_degrees_to_arcseconds_maybe fixed ar01 bug to arg0
+          and the "Boundries" bug</li>
+
+
+    <li> default content for dde_init.js and Ref Man now has the default colors
+         in the calls for:
+    <ul><li>set_window_frame_background_color</li>
+        <li>set_pane_header_background_color</li>
+        <li>set_menu_background_color</li>
+        <li>set_button_background_color</li>
+    </ul>
+
+    <li> Dexter.set_parameter documented and
+        click help now underlines set_parameter help.</li>
+
+    <li>fixed click help for empty_instruction_queue_immediately.</li>
+
+    <li>Extending Run instruction dialog box:
+    <ul><li>put min and max on J1 thru J5
+        <li> put step size of 5 on j1 through j5 (you can still type in a more precise number.</li>
+        <li>  put step size of 0.01 on X, Y, Z (you can still type in a more precise number.)</li>
+        <li> Set parameter: name:  turn into select menu (first make the set params into a series)</li>
+        <li> show user the source code of a generated instruction.</li>
+        <li> new "run" button and place to enter an instruction's source code.</li>
+        <li> If there's a selection anywhere when you choose "run instructions",
+             it is put in the "source" type in. Use it to run a selected instruction.</li>
+        <li>now the source type in works like other places of code:
+            <ul><li>click_help works on it</li>
+                <li>make a selection and hit Eval button</li>
+                <li>make a selection and hit Find button</li>
+            </ul>
+        </li>
+    <li>run instruction dialog: added insert and "job" buttons at end of Run typein.
+        When inserting whole job, the "set_mode" instruction is inserted as well as
+        the new actual instruction.</li>
+
+    <li> move_to J5_direction:  has radio button  angles, xyz
+        that toggles between 2 number inputs (for angles) and 3 number inputs (for xyz)</li>
+    <li>move_to config:
+        made 3 sets of ratio buttons for lEFT RIGHT,  UP DOWN,  IN OUT.</li>
+    </ul>
+</li>
+
+    <li> inter_do_item_dur now is interpreted as seconds,
+        not milliseconds like it was previously.</li>
+
+    <li> click help on a unit, ie _km  tells you what the "base" for units
+        in that series is ie _m.</li>
+
+    <li>Dexter.sleep now takes seconds as its argument and converts
+          to milliseconds just before sending to Dexter.</li>
+
+    <li>new "Convert V.1 to V.2" guide in Release Notes section of the doc pane.</li>
+
+    <li>Ref Man new top level section "Units System"</li>
+</ul>
+</details>
+
+<details class="doc_details"><summary>Convert V.1 to V.2</summary>
+DDE Jobs written in DDE version 1 will likely break in DDE version 2 because
+we have changed the default units for:
+<ul><li><b>angles</b> from arcseconds to degrees <br/>
+                      (3600 times lower value for the same effect).<br/>
+                      Affects instructions: <code>Dexter.move_all_joints</code>,
+                     <code>Dexter.move_all_joints_relative</code>.
+                     The Dexter.set_parameter names that contain <code>Boundry</code>
+                     have changed from referring to arcseconds to referring to degrees.</li>
+<li><b>lengths</b> from microns to meters<br/>
+                   (1M times lower value for the same effect).<br/>
+                   Affects instructions: <code>Dexter.move_to</code>,
+                   <code>Dexter.move_to_relative</code>.</li>
+<li><b>durations</b> from milliseconds to seconds <br/>
+                    (1K times lower value for the same effect).<br/>
+                 Affects <code>Robot.wait_until</code> when passed a number,
+                 <code>Dexter.sleep</code> instruction,
+         and Job's <code>inter_do_item_dur</code>,
+         all of which now expect durations in seconds.<br/>
+  Note that inter_do_item_dur's default has also changed from 100 milliseocnds
+  to 10 milliseconds, which should increase job running speed slightly. <br/>
+  The Dexter.set_parameter names of <code>MaxSpeed</code>, <code>StartSpeed</code>,
+  <code>Acceleration</code> have also changed into now being "seconds" based.
+  </li>
+</ul>
+To convert your Jobs to the new units, search for each of the names
+in white above and adjust their arguments accordingly. If you want
+to preserve the actual numbers, you can leave them in place but
+enter a "conversion suffix" after them using
+our new <i>Units System</i> See doc pane/Ref Man/Units System.
+</details>
 
 <details class="doc_details"><summary>v 2.0.0, June 27, 2017</summary>
     Incompatible Changes: We have adopted SI standard units throughout DDE,
