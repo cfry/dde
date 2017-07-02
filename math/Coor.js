@@ -4,13 +4,8 @@
 //Updated: 4_7_17
 
 
-try{
-	//Electron version
-	var Coor = newObject({prototype: Root, name: "Coor", pose: Vector.make_pose()})
-}catch(err){
-	//Chrome apps version
-	var Coor = newObject({name: "Coor", pose: Vector.make_pose()})
-}
+var Coor = newObject({prototype: Root, name: "Coor", pose: Vector.make_pose()})
+
 
 Coor.create_child = function(pose, name){
 	if(pose === undefined){
@@ -185,7 +180,6 @@ Coor.move_points_to_coor = function(points, destination_coordinate_system, refer
     	}
         result = Vector.pull(result, [0, dim[0] - 1], [0, 2])
     }
-    
     return result
 }
 /*
