@@ -4,31 +4,18 @@
 //Started: 6_18_16
 //Updated: 6_25_17
 
-//Convert to meters
-Dexter.LINK1 = 0.165100
-Dexter.LINK2 = 0.320675
-Dexter.LINK3 = 0.330200
-Dexter.LINK4 = 0.050800
-Dexter.LINK5 = 0.082550
-
-//Convert to degrees
-Dexter.J2_ANGLE_MIN = -90
-Dexter.J2_ANGLE_MAX = 90
-Dexter.J3_ANGLE_MIN = -150
-Dexter.J3_ANGLE_MAX = 150
-Dexter.J4_ANGLE_MIN = -100
-Dexter.J4_ANGLE_MAX = 100
-Dexter.J5_ANGLE_MIN = -185
-Dexter.J5_ANGLE_MAX = 185
 
 /*
 debugger
 //Kin.xyz_to_J_angles([0, 0.08255, 0.8667749999999999], [0, 1, 0])
 Kin.xyz_to_J_angles([[0, .5, .075], [0, 0], [1, 1, 1]])
 debugger
-Kin.xyz_to_J_angles(Kin.J_angles_to_xyz([0,0, 0, 0, 0]))
+Kin.xyz_to_J_angles(Kin.J_angles_to_xyz([0,4, 0, 0, 0]))
+
+Vector.matrix_multiply(Vector.make_pose([1, 2, 3], [0, 0, 0]), Vector.properly_define_point([[1, 2, 3], [4, 5, 6]]))
 
 */
+
 
 var Kin = new function(){
     this.inverse_kinematics = function (xyz, direction = [0, 0, -1], config = [1, 1, 1], robot_pose){
@@ -84,7 +71,7 @@ var Kin = new function(){
             	The first joint angle can be changed to any value without affecting the tool point`)
             }
         }
-        Math.PI.toFixed(20)
+        
     	//Solving for U3
     	var U54_Proj = Vector.project_vector_onto_plane(V54, P[1])
     	var U3_a = Vector.add(U[4], Vector.multiply(L[3], Vector.rotate(Vector.normalize(U54_Proj), P[1], 90)))
@@ -115,14 +102,18 @@ var Kin = new function(){
     	//Solving for U2
     	var D3 = Vector.distance(U[3], U[1])
         
+        if(Vector.is_equal(D3, Dexter.LINK2 + Dexter.LINK3, 9)){
+        	D3 = Dexter.LINK2 + Dexter.LINK3
+        }
+        
         //Checking if in reach
-        if (D3 >= Dexter.LINK2 + Dexter.LINK3){
+        if (D3 > Dexter.LINK2 + Dexter.LINK3){
         	let out_of_reach_dist = Vector.round(D3 - (Dexter.LINK2 + Dexter.LINK3), 4)
         	dde_error("Point [" + Vector.round(xyz, 3)+"], [" + Vector.round(V54,3) + '] is ' + out_of_reach_dist + 'm out of reach')
         }
         
 
-    	let Beta = Math.acos((-Math.pow(L[2], 2) + Math.pow(L[1], 2) + Math.pow(D3, 2)) / (2 * D3 * L[1]))*180/Math.PI // Law of Cosines
+    	let Beta = acosd((-Math.pow(L[2], 2) + Math.pow(L[1], 2) + Math.pow(D3, 2)) / (2 * D3 * L[1])) // Law of Cosines
         let V31 = Vector.normalize(Vector.subtract(U[3], U[1]))
     	let V23
     	
@@ -333,6 +324,12 @@ var Kin = new function(){
     
     
     /*
+    I've run a mile in 4:24 what is that in MPH?
+    var meter_per_sec = _mile / (4*_min+24*_s)
+    var MPH = meter_per_sec / (_mile/_hour)
+    
+    
+    
     this.gravity_torques = function(J_angles, base_xyz = [0, 0, 0], base_plane = [0, 0, 1], base_rotation = 0){
     	//This will return the torques expected due to the forces of gravity
         //As of now the output units are in Newton-meters but are subject to change
@@ -556,7 +553,7 @@ var Kin = new function(){
     angles = [0, 0, 0, 0, 0]
     var fk = Kin.forward_kinematics(angles)
     var points = fk[0]
-    
+    _rev
     var forcepoint = points[5]
     var arm1 = Vector.subtract(points[5], points[1])[2]
     var arm2 = Vector.subtract(points[5], points[2])[2]
@@ -626,7 +623,7 @@ var Kin = new function(){
         
         let ForceYZ = Vector.add(F2b, Vector.multiply(beta, Vector.subtract(F2a, F2b)))
     	out(ForceYZ)
-    
+    	
         return [0, ForceYZ[1], ForceYZ[2]]
     }
     /*
@@ -703,7 +700,11 @@ var Kin = new function(){
     Kin.tip_speed_to_angle_speed([0, 90*3600, 0, 0, 0], [1*3600, 90*3600, 0, 0, 0], 1000)
     */
     
-    this.angles_to_direction = function(x_angle = 0, y_angle = 0){
+    this.angles_to_dir_xyz = function(x_angle = 0, y_angle = 0){
+        if(x_angle.length == 2){
+        	y_angle = x_angle[1]
+            x_angle = x_angle[0]
+        }
         let ZX_plane = [0, cosd(y_angle), sind(y_angle)]
         let ZY_plane = [cosd(x_angle), 0, sind(x_angle)]
         if(Vector.is_equal(ZX_plane, ZY_plane) || Vector.is_equal(Vector.multiply(-1, ZX_plane), ZY_plane)){
@@ -711,8 +712,67 @@ var Kin = new function(){
         }
 		return Vector.round(Vector.normalize(Vector.cross(ZX_plane, ZY_plane)), 15)
     }
+    
+    this.dir_xyz_to_angles = function(dir_xyz = [0, 0, -1]){
+    	let x_angle, y_angle
+        if(dir_xyz[2] == 0){
+        	dde_error("The direction " + dir_xyz + " cannot be converted to angles")
+        }
+        if(dir_xyz[2] < 0){
+        	x_angle = atan2d(dir_xyz[0], -dir_xyz[2])
+        	y_angle = atan2d(dir_xyz[1], -dir_xyz[2])
+        }else{
+        	if(Math.abs(dir_xyz[0]) > Math.abs(dir_xyz[1])){
+        		x_angle = atan2d(dir_xyz[0], -dir_xyz[2])
+        		y_angle = -atan2d(dir_xyz[1], dir_xyz[2])
+            }else{
+            	x_angle = -atan2d(dir_xyz[0], dir_xyz[2])
+        		y_angle = atan2d(dir_xyz[1], -dir_xyz[2])
+            }
+        }
+		return [x_angle, y_angle]
+    }
+    
+    /*
+    
+    Kin.angles_to_dir_xyz(90, 0)
+    
+    Kin.angles_to_dir_xyz(91, 45) //[0.999695459881888, -0.017449749160683, 0.017449749160683]
+    Kin.angles_to_dir_xyz(91, -45) //[0.999695459881888, 0.017449749160683, 0.017449749160683]
+    Kin.angles_to_dir_xyz(-91, 45) //[-0.999695459881888, -0.017449749160683, 0.017449749160683]
+    Kin.angles_to_dir_xyz(-91, -45) //[-0.999695459881888, 0.017449749160683, 0.017449749160683]
+    
+    
+    Kin.angles_to_dir_xyz(45, 91) //[-0.017449749160683, 0.999695459881888, 0.017449749160683]
+    Kin.angles_to_dir_xyz(-45, 91) //[0.017449749160683, 0.999695459881888, 0.017449749160683]
+    
+    Kin.angles_to_dir_xyz(91, 91) //[-0.707052927141246, -0.707052927141246, -0.012341654750937]
+    Kin.angles_to_dir_xyz(-91, 91) //[0.707052927141246, -0.707052927141246, -0.012341654750937]
+    Kin.angles_to_dir_xyz(91, -91) //[-0.707052927141246, 0.707052927141246, -0.012341654750937]
+    Kin.angles_to_dir_xyz(-95, -95) //[0.707052927141246, 0.707052927141246, -0.012341654750937]
+    
+    [0.705757556807952, 0.705757556807952, -0.061745785418449]
+    [0.705757556807952, 0.705757556807952, -0.061745785418449] 
+    
+    Kin.angles_to_dir_xyz(85, 85) //[0.707052927141246, 0.707052927141246, -0.012341654750937]
+    
+    */
+    
+    this.dir_xyz_to_percent = function(dir_xyz = [0, 0, -1]){
+    	let total = Vector.sum(Vector.abs(dir_xyz))
+		return Vector.multiply(100, Vector.divide(dir_xyz, total))
+    }
+    
+    this.dir_xyz_to_percent = function(dir_xyz = [0, 0, -1]){
+    	let total = Vector.sum(Vector.abs(dir_xyz))
+		return Vector.multiply(100, Vector.divide(dir_xyz, total))
+    }
+    
     /*
     out(Kin.angles_to_direction(0, 45))
+    
+    
+    
     */
 }
 

@@ -695,7 +695,7 @@ var Vector = new function(){
         	if (Vector.distance(Vector.add(short_A, short_B)) === 0){
             	result = 648000 //this is 180 degrees in arcseconds
             }else{
-            	var result = Math.atan2(Vector.distance(Vector.cross(short_A, short_B)), Vector.dot(short_A, short_B))*180/Math.PI
+            	var result = atan2d(Vector.distance(Vector.cross(short_A, short_B)), Vector.dot(short_A, short_B))
         	}
         }
         return result
@@ -797,8 +797,8 @@ var Vector = new function(){
                 if(Vector.is_equal(short_vector, point)){
             		result[i] = short_vector
             	}else{
-                	term_1 = Vector.multiply(Math.cos(theta/(180/Math.PI)), short_vector)
-            		term_2 = Vector.multiply(Math.sin(theta/(180/Math.PI)), Vector.cross(Vector.shorten(plane), short_vector))
+                	term_1 = Vector.multiply(cosd(theta), short_vector)
+            		term_2 = Vector.multiply(sind(theta), Vector.cross(Vector.shorten(plane), short_vector))
                 	result[i] = Vector.add(Vector.multiply(Vector.magnitude(vector),  Vector.normalize(Vector.add(term_1, term_2))), point)
                 }
             }
@@ -807,8 +807,8 @@ var Vector = new function(){
             if(Vector.is_equal(short_vector, point)){
             	return short_vector
             }
-            term_1 = Vector.multiply(Math.cos(theta/(180/Math.PI)), short_vector)
-            term_2 = Vector.multiply(Math.sin(theta/(180/Math.PI)), Vector.cross(Vector.shorten(plane), short_vector))
+            term_1 = Vector.multiply(cosd(theta), short_vector)
+            term_2 = Vector.multiply(sind(theta), Vector.cross(Vector.shorten(plane), short_vector))
             result = Vector.add(Vector.multiply(Vector.magnitude(short_vector),  Vector.normalize(Vector.add(term_1, term_2))), point)
         }
         return result
@@ -936,6 +936,33 @@ var Vector = new function(){
         }
         return false
     }
+    
+    this.sum = function(array){
+    	let dim = Vector.matrix_dimensions(array)
+        let sum = 0
+        if(dim[0] == 1){
+        	for(let i = 0; i < dim[1]; i++){
+            	sum += array[i]
+            }
+        }
+        return sum
+    }
+    
+    this.abs = function(array){
+    	let dim = Vector.matrix_dimensions(array)
+        let array_copy = Convert.deep_copy(array)
+        if(dim[0] == 1){
+        	for(let i = 0; i < dim[1]; i++){
+            	array_copy[i] = Math.abs(array_copy[i])
+            }
+        }
+        return array_copy
+    }
+    /*
+    var myvec = [1, -4, 5, -4]
+    Vector.abs(myvec)
+    out(myvec)
+    */
     
     /**********************************************************
     //Matrix Math
@@ -1467,25 +1494,24 @@ var Vector = new function(){
     this.rotate_DCM = function(DCM = [[1, 0, 0],[0, 1, 0],[0, 0, 1]], axis_of_rotation, angle){
     	let trans_matrix = Vector.identity_matrix(3)
         let x_vector, y_vector, z_vector
-        let angle_rad = angle/(Math.PI/180)
     	switch(axis_of_rotation){
         	case "X":
-            	trans_matrix[1][1] = Math.cos(angle_rad)
-                trans_matrix[2][2] = Math.cos(angle_rad)
-                trans_matrix[2][1] = Math.sin(angle_rad)
-                trans_matrix[1][2] = -Math.sin(angle_rad)
+            	trans_matrix[1][1] = cosd(angle)
+                trans_matrix[2][2] = cosd(angle)
+                trans_matrix[2][1] = sind(angle)
+                trans_matrix[1][2] = -sind(angle)
                 break
             case "Y":
-            	trans_matrix[0][0] = Math.cos(angle_rad)
-                trans_matrix[2][2] = Math.cos(angle_rad)
-                trans_matrix[0][2] = Math.sin(angle_rad)
-                trans_matrix[2][0] = -Math.sin(angle_rad)
+            	trans_matrix[0][0] = cosd(angle)
+                trans_matrix[2][2] = cosd(angle)
+                trans_matrix[0][2] = sind(angle)
+                trans_matrix[2][0] = -sind(angle)
             	break
             case "Z":
-            	trans_matrix[0][0] = Math.cos(angle_rad)
-                trans_matrix[1][1] = Math.cos(angle_rad)
-                trans_matrix[1][0] = Math.sin(angle_rad)
-                trans_matrix[0][1] = -Math.sin(angle_rad)
+            	trans_matrix[0][0] = cosd(angle)
+                trans_matrix[1][1] = cosd(angle)
+                trans_matrix[1][0] = sind(angle)
+                trans_matrix[0][1] = -sind(angle)
             	break
             case "X'":
             	x_vector = [DCM[0][0], DCM[1][0], DCM[2][0]]
