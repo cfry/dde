@@ -426,8 +426,8 @@ Js_info = class Js_info {
         else if (series.id.endsWith("_units_id")){
             let unit_full_name = unit_abbrev_to_full_name(series.id, fn_name)
             let [unity_abbrev, unity_full_name] = series_name_to_unity_unit(series.id)
-            return  "Base: " + unity_abbrev +
-                    " for " + unit_full_name +
+            return  "Base: <code>" + unity_abbrev +
+                    "</code> for " + unit_full_name +
                     ": <code style='color:blue;'>" + fn_name +
                     "</code> = " + window[fn_name] +
                     "&nbsp; <code>" + pluralize_full_unit_name(unit_full_name) + "*" + fn_name +

@@ -8,10 +8,21 @@
 
     //called for cmd input AND run instruction dialog run_src type in
     function onclick_for_click_help(event) {
-        const full_src = event.target.value
-        if (full_src.length > 0) {
-            const pos = event.target.selectionStart
-            Editor.show_identifier_info(full_src, pos)
+        var full_src = event.target.value
+        if (full_src) {
+            if(full_src.length > 0){
+                var pos = event.target.selectionStart
+                Editor.show_identifier_info(full_src, pos)
+            }
+        }
+        else {
+            full_src = window.getSelection().focusNode.data
+            if (full_src && (full_src.length > 0)){
+                var pos      = window.getSelection().focusOffset
+                if ((pos == 0) || pos) {
+                    Editor.show_identifier_info(full_src, pos)
+                }
+            }
         }
     }
 
@@ -255,7 +266,7 @@
 
     cmd_input_id.onclick = onclick_for_click_help
 
-        init_simulation()
+     init_simulation()
 
     //init_guide()
     //init_ref_man()
@@ -285,6 +296,8 @@
                          const pos      = window.getSelection().focusOffset
                          Editor.show_identifier_info(full_src, pos)
                     })
+
+     output_div_id.onclick = onclick_for_click_help
 
     //handles the button clicks and menu selects that chromp Apps prevent in tHTM where they belong
     eval_id.onclick = function(event){

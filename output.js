@@ -680,23 +680,22 @@ window.out_eval_result = function(text, color="#000000"){
 }
 
 window.get_output = function(){ //rather uncommon op, used only in append_to_output
-    return $("#output_div").html()
+    return $("#output_div_id").html()
 
 }
 
 window.clear_output = function(){
-    output_div.innerText = ""
+    output_div_id.innerText = ""
 }
 
 
 //now literally never useful as if its called from js pane, then the return val from this fn will replace the output
 window.append_to_output = function(text){
-    var out_height = output_div.scrollHeight
+    var out_height = output_div_id.scrollHeight
     //var orig = get_output()
     text += "\n"
-    //$("#output_div").html(orig + text)
-    $("#output_div").append(text)
-    output_div.scrollTop = out_height
+    $("#output_div_id").append(text)
+    output_div_id.scrollTop = out_height
     install_onclick_via_data_fns()
 }
 

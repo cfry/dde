@@ -12,7 +12,7 @@ function handle_run_instruction(vals){
     else if     (vals.clicked_button_value == "move_to"){
         const xyz = "[" + vals.X_id + ", " + vals.Y_id + ", " + vals.Z_id + "]"
         const J5_dir = "[" +  ((vals.angles_xyz == "angles") ?
-                                   vals.J5_direction_angle_x_id + ", " + vals.vals.J5_direction_angle_y_id :
+                                   vals.J5_direction_x_angle_id + ", " + vals.J5_direction_y_angle_id :
                                    vals.J5_direction_xyz_x_id + ", " + vals.J5_direction_xyz_y + ", " + vals.J5_direction_xyz_z) +
                        "]"
         const config = "Dexter." + vals.left_right + "_" + vals.up_down + "_" + vals.in_out
@@ -101,7 +101,7 @@ function J5_direction_to_angles_html(){
             new_angles = [0, 0]
         }
         else {
-            try { new_angles = Kin.Kin.dir_xyz_to_angles(xyz_array)
+            try { new_angles = Kin.dir_xyz_to_angles(xyz_array)
             }
             catch(err){
                 warning("Cannot convert J5_direction from xyz: " + xyz_array + " to angles<br/>" +
@@ -148,7 +148,7 @@ show_window({content:
              <br/><span id="J3_range_id" style="font-size:10px;margin:0;padding-left:30px"></span></td>
  </tr>
  <tr><td style="font-size:11px;"><b>J5_direction</b><br/>
-           <input type="radio" name="angles_xyz" value="angles" onclick="J5_direction_to_angles_html()" checked/>angles       &nbsp;&nbsp;&nbsp;&nbsp;
+           <input type="radio" name="angles_xyz" value="angles" onclick="J5_direction_to_angles_html()" checked/>angles       &nbsp;&nbsp;&nbsp;
            <input type="radio" name="angles_xyz" value="xyz"    onclick="J5_direction_to_xyz_html()" id="angles_xyz_xyz_id"/>xyz
            <div id="J5_direction_args_id">
            </div> 
