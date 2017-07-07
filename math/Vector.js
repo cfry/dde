@@ -2,7 +2,7 @@
 //Vector and Matrix math functions
 //James Wigglesworth
 //Started: 6_18_16
-//Updated: 4_21_17
+//Updated: 7_6_17
 
 
 //Public
@@ -659,7 +659,6 @@ var Vector = new function(){
     
     //Public
     this.is_equal = function(array1, array2, decimal_places = 14){
-    	//debugger
         let result
         if (array1.length !== array2.length){
         	return false
@@ -813,7 +812,7 @@ var Vector = new function(){
             }
         }else{
         	short_vector = Vector.subtract(Vector.shorten(vector), point)
-            if(Vector.is_equal(short_vector, point)){
+            if(Vector.is_equal(short_vector, plane)){
             	return short_vector
             }
             term_1 = Vector.multiply(cosd(theta), short_vector)
@@ -1996,8 +1995,8 @@ new TestSuite("Vector Library - Matrix Math",
     ["Vector.make_pose([10, 20, 30], [45, 0, 0])", "[ [1, 0, 0, 10], [0, 0.7071067811865476, 0.7071067811865475, 20], [0, -0.7071067811865475, 0.7071067811865476, 30], [0, 0, 0, 1]]"],
     ["Vector.identity_matrix(4)", "[[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]"],
     ["Vector.identity_matrix(2)", "[[1, 0], [0, 1]]"],
-    ["Vector.rotate_DCM(Vector.identity_matrix(3), [1, 0, 0], 90)", "[[1, 0, 0], [0, 6.123233995736766e-17, -1], [0, 1, 6.123233995736766e-17]]"],
-    ['Vector.rotate_pose(Vector.make_pose(), "Z", 90, [10, 0, 0])', "[ [6.123233995736766e-17, -1, 0, 10], [1, 6.123233995736766e-17, 0, -10], [0, 0, 1, 0], [0, 0, 0, 1]]"],
+    ["Vector.rotate_DCM(Vector.identity_matrix(3), [1, 0, 0], 90)", "[[1, 0, 0], [0, 0, -1], [0, 1, 0]]"],
+    ['Vector.rotate_pose(Vector.make_pose(), "Z", 90, [10, 0, 0])', "[ [0, -1, 0, 10], [1, 0, 0, -10], [0, 0, 1, 0], [0, 0, 0, 1]]"],
     ["Vector.is_pose(Vector.make_pose())", "true"],
     ["Vector.pull([[1, 2, 3], [4, 5, 6], [7, 8, 9]], [1, 2], [1, 2])", "[[5, 6], [8, 9]]"],
     ["Vector.concatinate(0, [1, 2, 3], [4, 5, 6])", "[[1, 2, 3], [4, 5, 6]]"],
