@@ -659,14 +659,23 @@ var Vector = new function(){
     
     //Public
     this.is_equal = function(array1, array2, decimal_places = 14){
-    	if (array1.length !== array2.length){
+    	//debugger
+        let result
+        if (array1.length !== array2.length){
         	return false
         }else{
         	let array1_temp = Vector.round(Convert.deep_copy(array1), decimal_places)
         	let array2_temp = Vector.round(Convert.deep_copy(array2), decimal_places)
-        	var result = true
+            if(array1_temp.length == undefined){
+            	if(array1_temp == array2_temp){
+                	return true
+                }else{
+                	return false
+                }
+            }
+        	result = true
         	for(var i = 0; i < array1_temp.length; i++){
-            	if (array1_temp[i] !== array2_temp[i]){
+            	if (array1_temp[i] != array2_temp[i]){
                 	result = false
                     break
                 }

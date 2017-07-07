@@ -2,7 +2,7 @@
 //Inverse Kinematics + Forward Kinematics + supporting functions
 //James Wigglesworth
 //Started: 6_18_16
-//Updated: 6_25_17
+//Updated: 7_6_17
 
 
 /*
@@ -12,6 +12,14 @@ Kin.xyz_to_J_angles([[0, .5, .075], [0, 0], [1, 1, 1]])
 debugger
 Kin.xyz_to_J_angles(Kin.J_angles_to_xyz([0,4, 0, 0, 0]))
 
+debugger
+Kin.J_angles_to_xyz(Dexter.NEUTRAL_ANGLES)
+Kin.xyz_to_J_angles(Kin.J_angles_to_xyz(Dexter.NEUTRAL_ANGLES))
+
+debugger
+Kin.xyz_to_J_angles([0, 0.511038126204794, 0.07581480790919819])
+
+Dexter.NEUTRAL_ANGLES
 Vector.matrix_multiply(Vector.make_pose([1, 2, 3], [0, 0, 0]), Vector.properly_define_point([[1, 2, 3], [4, 5, 6]]))
 
 */
@@ -101,7 +109,6 @@ var Kin = new function(){
 		
     	//Solving for U2
     	var D3 = Vector.distance(U[3], U[1])
-        
         if(Vector.is_equal(D3, Dexter.LINK2 + Dexter.LINK3, 9)){
         	D3 = Dexter.LINK2 + Dexter.LINK3
         }
@@ -112,8 +119,9 @@ var Kin = new function(){
         	dde_error("Point [" + Vector.round(xyz, 3)+"], [" + Vector.round(V54,3) + '] is ' + out_of_reach_dist + 'm out of reach')
         }
         
-
-    	let Beta = acosd((-Math.pow(L[2], 2) + Math.pow(L[1], 2) + Math.pow(D3, 2)) / (2 * D3 * L[1])) // Law of Cosines
+        
+    	//let Beta = acosd((-Math.pow(L[2], 2) + Math.pow(L[1], 2) + Math.pow(D3, 2)) / (2 * D3 * L[1])) // Law of Cosines
+        let Beta = acosd((-Math.pow(L[2], 2) + Math.pow(L[1], 2) + Math.pow(D3, 2)) / (2 * D3 * L[1])) // Law of Cosines
         let V31 = Vector.normalize(Vector.subtract(U[3], U[1]))
     	let V23
     	
@@ -456,6 +464,7 @@ var Kin = new function(){
     this.J_angles_to_xyz = function(joint_angles){
         let temp_angles = Convert.deep_copy(joint_angles)
         let xyzs = Kin.forward_kinematics(temp_angles)[0]
+        out(xyzs)
         let direction = Vector.normalize(Vector.subtract(xyzs[5], xyzs[4]))
         let config = Kin.J_angles_to_config(temp_angles)
         return [xyzs[5], direction, config]
