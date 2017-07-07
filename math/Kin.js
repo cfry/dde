@@ -686,27 +686,22 @@ var Kin = new function(){
     
     this.tip_speed_to_angle_speed = function(J_angles_original, J_angles_destination, tip_speed){
         let U1, U2
-        let points_dest = Kin.J_angles_to_xyz(J_angles_destination)
-        let points_orig = Kin.J_angles_to_xyz(J_angles_original)
+        let EE_point_1 = Kin.J_angles_to_xyz(J_angles_destination)[0]
+        let EE_point_2 = Kin.J_angles_to_xyz(J_angles_original)[0]
         let delta = Vector.subtract(J_angles_destination, J_angles_original)
         let data = []
         let temp_dist
-        let EE_point_1 = points_orig[5]
-        let EE_point_2 = points_dest[5]
         let dist = Vector.distance(EE_point_2, EE_point_1)
-        if(dist == 0){return 250000}
+        if(dist == 0){return 30}
         let time = dist/tip_speed
         for(let i = 0; i < delta.length; i++){
         	delta[i] = Math.abs(delta[i])
-            //U1 = points_orig[i]
-            //U2 = points_dest[i]
-            //data.push({theta: Math.abs(delta[i]), U1: U1, U2: U2, idx: i})
         }
         let max_theta = Vector.max(delta)
         return max_theta/time
     }
     /*
-    Kin.tip_speed_to_angle_speed([0, 90*3600, 0, 0, 0], [1*3600, 90*3600, 0, 0, 0], 1000)
+    Kin.tip_speed_to_angle_speed([0, 90, 0, 0, 0], [1, 90, 0, 0, 0], 5*_mm/_s)
     */
     
     this.angles_to_dir_xyz = function(x_angle = 0, y_angle = 0){
@@ -772,8 +767,30 @@ var Kin = new function(){
 		return Vector.multiply(100, Vector.divide(dir_xyz, total))
     }
     
-
-    
+	/*
+    debugger
+    Kin.interp_movement([0, 0, 0, 0, 0], [44, 45, 0, 0, 0], 30)
+    */
+    this.interp_movement = function(J_angles_original, J_angles_destination, resolution = 5*_deg){
+    	let delta = Vector.subtract(J_angles_destination, J_angles_original)
+        let abs_delta = [0, 0, 0, 0, 0]
+        for(let i = 0; i < delta.length; i++){
+        	abs_delta[i] = Math.abs(delta[i])
+        }
+        let max_delta = Vector.max(abs_delta)
+        let div = 1
+    	let step = Infinity
+    	while(resolution < step){
+    		div++
+        	step = max_delta / div
+    	}
+        let J_angles_array = []
+        let delta_steps = Vector.divide(delta, div)
+        for(let i = 1; i < div+1; i++){
+    		J_angles_array.push(Vector.add(Vector.multiply(i, delta_steps), J_angles_original))
+    	}
+        return J_angles_array
+    }
     /*
     out(Kin.angles_to_direction(0, 45))
     
