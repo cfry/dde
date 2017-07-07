@@ -441,9 +441,11 @@ Serial = class Serial extends Robot {
           serial_send(ins_array, this.path, this.simulate, this.sim_fun)
         }
         else {
-            dde_error("Series Robot: " + this.name +
-                " was sent an instruction to execute on path: " + this.path +
-                " but this robot is not connected")
+            const job_inst = Instruction.job_of_instruction_array(ins_array)
+            job_inst.stop_for_reason("errored",
+                                     "Series Robot: " + this.name +
+                                     " was sent an instruction to execute on path: " + this.path +
+                                     " but this robot is not connected")
         }
     }
 
@@ -466,8 +468,10 @@ Serial = class Serial extends Robot {
         let job_id       = robot_status[Serial.JOB_ID]
         var job_instance = Job.job_id_to_job_instance(job_id)
         if (job_instance == null){
-            throw new Error("Serial.robot_done_with_instruction passed job_id: " + job_id +
-                " but couldn't find a Job instance with that job_id.")
+            job_instance.stop_for_reason("errored",
+                      "Serial.robot_done_with_instruction passed job_id: " + job_id +
+                      " but couldn't find a Job instance with that job_id.")
+
         }
         var rob    = job_instance.robot
         var ins_id = robot_status[Serial.INSTRUCTION_ID] //-1 means the initiating status get, before the first od_list instruction
@@ -481,13 +485,25 @@ Serial = class Serial extends Robot {
         //only comming for simulation and not from read dexter.
         //else if (ins_id == -1) {}
         else if (!(Array.isArray(robot_status))) {
-            throw(TypeError("Serial.robot_done_with_instruction recieved a robot_status array: " +
-                robot_status + " that is not an array."))
+            job_instance.stop_for_reason("errored",
+                              "Serial.robot_done_with_instruction recieved a robot_status array: " +
+                               robot_status + " that is not an array.")
+            if (job_instance.wait_until_instruction_id_has_run == ins_id){ //we've done it!
+                job_instance.wait_until_instruction_id_has_run = null //but don't increment PC
+            }
+            rob.perform_instruction_callback(job_instance)
+            return
         }
         else if (robot_status.length < Serial.DATA0){
-            dde_error("Serial.robot_done_with_instruction recieved a robot_status array: " +
+            job_instance.stop_for_reason("errored",
+                "Serial.robot_done_with_instruction recieved a robot_status array: " +
                 robot_status + "<br/> of length: " + robot_status.length +
                 " that is less than the : " + (Serial.DATA0 - 1) + " required.<br/>" + stringify_value(robot_status))
+            if (job_instance.wait_until_instruction_id_has_run == ins_id){ //we've done it!
+                job_instance.wait_until_instruction_id_has_run = null //but don't increment PC
+            }
+            rob.perform_instruction_callback(job_instance)
+            return
         }
         else {
             //job_instance.highest_completed_instruction_id = ins_id //now always done by set_up_next_do
@@ -608,7 +624,7 @@ Serial.string_instruction = function(instruction_string){
 
 /*anticipate classes for Dexter2, etc. */
 Dexter = class Dexter extends Robot {
-    constructor({name = "d1", simulate = null,
+    constructor({name = "dex1", simulate = null,
                  ip_address = null, port = null,
                  pose = Vector.identity_matrix(4), //default position and orientation
                  enable_heartbeat=true, instruction_callback=Job.prototype.set_up_next_do }={}){  //"192.168.1.144"
@@ -1100,20 +1116,22 @@ Dexter.move_all_joints = function(array_of_5_angles=[]){
     let has_non_nulls = false
     for(let ang of array_of_5_angles) { if (ang !== null) { has_non_nulls = true; break; } }
     if (!has_non_nulls) { return null }
-    let the_int_array = array_of_5_angles //closed over
+    let the_inst_array = array_of_5_angles //closed over
     return function(){ //returns a fn because we must compute this at instruction do time
                 //since we may need to get default values out of the current robot_status
                 //if the input array is < 5 or has nulls.
                 for (var i = 0; i < 5; i++){
-                    if (the_int_array[i] == null){
-                        the_int_array[i] = this.robot.angles[i] //this.robot_status[Dexter.ds_j0_angle_index + i] //ie don't change angle
+                    if (the_inst_array[i] == null){
+                        the_inst_array[i] = this.robot.angles[i] //this.robot_status[Dexter.ds_j0_angle_index + i] //ie don't change angle
                     }
                 }
-                if(Kin.check_J_ranges(the_int_array)) {
-                    this.robot.angles = the_int_array
-                    return make_ins("a", ...the_int_array)
+                if(Kin.check_J_ranges(the_inst_array)) {
+                    this.robot.angles = the_inst_array
+                    return make_ins("a", ...the_inst_array)
                 }
-                else { dde_error("move_all_joints passed angles: " + the_int_array + "<br/>that are not reachable by Dexter.") }
+                else {
+                   this.stop_for_reason("errored", "move_all_joints passed angles: " + the_inst_array + "<br/>that are not reachable by Dexter.")
+                }
     }
 }
 
@@ -1144,21 +1162,69 @@ Dexter.move_all_joints_relative = function(delta_angles=[]){
     }
 }
 
+Dexter.move_to_straight = function(xyz           = [],
+                                   J5_direction  = [0, 0, -1],
+                                   config        = Dexter.RIGHT_UP_OUT,
+                                   tool_speed    = 5*_mm / _s,
+                                   resolution    = 0.5*_mm){
+    return function(){
+        let [old_xyz, old_J5_direction, old_config] = Kin.J_angles_to_xyz(this.robot.angles, this.robot.pose)
+        return move_to_straight_aux(old_xyz, xyz,
+                                    J5_direction, config,
+                                    tool_speed,
+                                    resolution,
+                                    this.robot.pose)
+    }
+}
+
+function move_to_straight_aux(xyz_1, xyz_2, J5_direction, config, tool_speed = 5*_mm / _s, resolution = .5*_mm, robot_pose){
+    let movCMD = []
+    let U1 = xyz_1
+    let U2 = xyz_2
+    let U21 = Vector.subtract(U2, U1)
+    let v21 = Vector.normalize(U21)
+    let mag = Vector.magnitude(U21)
+    let div = 1
+    let step = Infinity
+    while(resolution < step){
+        div++
+        step = mag / div
+    }
+    let angular_velocity
+    let Ui, new_J_angles
+    let old_J_angles = Kin.xyz_to_J_angles(U1, J5_direction, config, robot_pose)
+    for(let i = 1; i < div+1; i++){
+        Ui = Vector.add(U1, Vector.multiply(i*step, v21))
+        new_J_angles = Kin.xyz_to_J_angles(Ui, J5_direction, config, robot_pose)
+        angular_velocity = Kin.tip_speed_to_angle_speed(old_J_angles, new_J_angles, tool_speed)
+        old_J_angles = new_J_angles
+        movCMD.push(make_ins("S", "MaxSpeed", angular_velocity))
+        movCMD.push(make_ins("S", "StartSpeed", angular_velocity))
+        movCMD.push(Dexter.move_to(Ui, J5_direction, config, robot_pose))
+    }
+    return movCMD
+}
+
 //warning calling with no args to default everything will be out-of-reach becuase JS_direction is not straight up,
-Dexter.move_to = function(xyz = [], // New defaults are the cur pos, not straight up.
-                                    // should be : 0, 82550, 866775 pointing straight up, J1_1 thru J4 = 0
-                          J5_direction  = [0, 0, -1], //end effector pointing down
+//params info:
+// xyz New defaults are the cur pos, not straight up.
+// J5_direction  = [0, 0, -1], //end effector pointing down
+Dexter.move_to = function(xyz = [],
+                          J5_direction  = [0, 0, -1],
                           config        = Dexter.RIGHT_UP_OUT
                          ){
         return function(){
-            let [existing_xyz, existing_direction, existing_config] = Kin.J_angles_to_xyz(this.robot.angles, this.robot.pose)[0] //just to get defaults. this.robot.joint_xyz()
-            if(J5_direction === null) { J5_direction = existing_direction }
-            if(config       === null) { config       = existing_config }
+            if((J5_direction === null) || (config === null)){
+                let [existing_xyz, existing_direction, existing_config] = Kin.J_angles_to_xyz(this.robot.angles, this.robot.pose) //just to get defaults.
+                if(J5_direction === null) { J5_direction = existing_direction }
+                if(config       === null) { config       = existing_config }
+            }
             if(Array.isArray(J5_direction) &&
                (J5_direction.length == 2) &&
                (Math.abs(J5_direction[0]) == 90) &&
                (Math.abs(J5_direction[1]) == 90)){
-                dde_error("Dexter.move_to was passed an invalid J5_direction of:<br/>" + J5_direction +
+                const job_inst = Instruction.job_of_instruction_array(the_inst_array)
+                job_inst.stop_for_reason("errored", "Dexter.move_to was passed an invalid J5_direction of:<br/>" + J5_direction +
                           "<br/>[90, 90], [-90, 90], [90, -90] and [-90, -90]<br/> are all invalid.")
             }
             let xyz_copy = xyz.slice(0)
@@ -1172,15 +1238,18 @@ Dexter.move_to = function(xyz = [], // New defaults are the cur pos, not straigh
 
             }
             catch(err){
-                dde_error("Dexter instruction move_to passed xyz values:<br/>" + xyz + "<br/>that are not valid.<br/>" +
-                          err.message)
+                const job_inst = Instruction.job_of_instruction_array(the_inst_array)
+                job_inst.stop_for_reason("errored", "Dexter instruction move_to passed xyz values:<br/>" + xyz + "<br/>that are not valid.<br/>" +
+                                                    err.message)
             }
             for(let i = 0; i < 5; i++){ angles[i] = Math.round( angles[i]) }
             if (Kin.check_J_ranges(angles)){
                 this.robot.angles       = angles
                 return make_ins("a", ...angles) // Dexter.move_all_joints(angles)
             }
-            else { dde_error("move_to called with out of range xyz: " + xyz) }
+            else {
+                this.stop_for_reason("errored", "move_to called with out of range xyz: " + xyz)
+            }
         }
     //}
 }
@@ -1188,24 +1257,25 @@ Dexter.move_to = function(xyz = [], // New defaults are the cur pos, not straigh
 Dexter.move_to_relative = function(delta_xyz = [0, 0, 0]){
     let the_delta_xyz = delta_xyz
     return function(){
-        let old_xyz      = Kin.J_angles_to_xyz(this.robot.angles, this.robot.pose)[0]
-        let config       = Kin.J_angles_to_config(this.robot.angles)
-        let J5_direction = Kin.J_angles_L5_Direction(this.robot.angles)
+        //let old_xyz      = Kin.J_angles_to_xyz(this.robot.angles, this.robot.pose)[0]
+        //let J5_direction = Kin.J_angles_to_xyz(this.robot.angles)[1]
+        //let config       = Kin.J_angles_to_config(this.robot.angles)
+        let [old_xyz, J5_direction, config] = Kin.J_angles_to_xyz(this.robot.angles, this.robot.pose)
         let new_xyz = Vector.add(old_xyz, the_delta_xyz) //makes a new array
         let angles
         try {
             angles = Kin.xyz_to_J_angles(new_xyz, J5_direction, config, this.robot.pose)
         }
         catch(err){
-            dde_error("move_to_relative called with out of range delta_xyz: " + the_delta_xyz +
-                      "<br/> " + err.message)
+            this.stop_for_reason("errored", "move_to_relative called with out of range delta_xyz: " + the_delta_xyz +
+                                                "<br/> " + err.message)
         }
         for(let i = 0; i < 5; i++){ angles[i] = Math.round(angles[i]) }
         if (Kin.check_J_ranges(angles)){
             this.robot.angles = angles
             return make_ins("a", ...angles) // Dexter.move_all_joints(angles)
         }
-        else { dde_error("move_to_relative called with out of range delta_xyz: " + the_delta_xyz) }
+        else { this.stop_for_reason("errored", "move_to_relative called with out of range delta_xyz: " + the_delta_xyz) }
     }
 }
 /*
@@ -1270,7 +1340,7 @@ Dexter.write_to_robot = function(a_string="", file_name=null){
 Dexter.set_follow_me          = function(){ return setFollowMe() }
 Dexter.set_force_protect      = function(){ return setForceProtect() }
 Dexter.set_keep_position      = function(){ return setKeepPosition() }
-Dexter.set_open_loop = function(){ return setOpenLoop() }
+Dexter.set_open_loop          = function(){ return setOpenLoop() }
 
 //End Dexter Instructions
 //____________Dexter Database______________
@@ -1393,30 +1463,29 @@ Dexter.LINK5_AVERAGE_DIAMETER =  0.030000 //meters
 
 Dexter.LEG_LENGTH = 0.152400 //meters  6 inches
 
-//values in arcseconds
-Dexter.J1_ANGLE_MIN = -Infinity  // rotate
-Dexter.J1_ANGLE_MAX =  Infinity  // rotate
-Dexter.J2_ANGLE_MIN = -90     //degrees
-Dexter.J2_ANGLE_MAX =  90     //degrees
-Dexter.J3_ANGLE_MIN = -150    //degrees
-Dexter.J3_ANGLE_MAX =  150    //degrees
-Dexter.J4_ANGLE_MIN = -100    //degrees
-Dexter.J4_ANGLE_MAX =  100    //degrees
-Dexter.J5_ANGLE_MIN = -185    //degrees
-Dexter.J5_ANGLE_MAX =  185    //degrees,
+//values in degrees
+Dexter.J1_ANGLE_MIN = -Infinity
+Dexter.J1_ANGLE_MAX = Infinity
+Dexter.J2_ANGLE_MIN = -90
+Dexter.J2_ANGLE_MAX = 90
+Dexter.J3_ANGLE_MIN = -150
+Dexter.J3_ANGLE_MAX = 150
+Dexter.J4_ANGLE_MIN = -100
+Dexter.J4_ANGLE_MAX = 100
+Dexter.J5_ANGLE_MIN = -185
+Dexter.J5_ANGLE_MAX = 185
 
 Dexter.MAX_SPEED    = 30  //degrees per second
 Dexter.START_SPEED  = 0.5 //degrees per second
 Dexter.ACCELERATION = 0.000129 //degrees/(second^2)
 
-Dexter.RIGHT_ANGLE   = 90 //degrees
-//Dexter.joint5_offset = -Dexter.right_angle //degrees, from joint0_angle
-Dexter.HOME_ANGLES    = [0, 0, 0, 0, 0]     //degrees j2,3,4 straight up. link 5 horizontal pointing frontwards.
-Dexter.NEUTRAL_ANGLES = [0, 45, 90, -45, 0] //degrees
-Dexter.PARKED_ANGLES  = [0, 0, 135, 45, 0 ] //degrees
-//                                                          J5_direction, config
-Dexter.HOME_POSITION    = [0, 0.08255, 0.866775] //meters,  [0, 0,-1],    [1, 1, 1]
-Dexter.NEUTRAL_POSITION = [0, 0.5,     0.075]    //meters   [0, 0, -1],   [1, 1, 1]
+Dexter.RIGHT_ANGLE    = 90 // 90 degrees
+Dexter.HOME_ANGLES    = [0, 0, 0, 0, 0]  //j2,j3,j4 straight up, link 5 horizontal pointing frontwards.
+Dexter.NEUTRAL_ANGLES = [0, 45, 90, -45, 0] //lots of room for Dexter to move from here.
+Dexter.PARKED_ANGLES  = [0, 0, 135, 45, 0 ] //all folded up, compact.
+
+Dexter.HOME_POSITION    = [[0, 0.08255, 0.866775],[0, 0,-1], [1, 1, 1]] //meters, j5 direction, config
+Dexter.NEUTRAL_POSITION = [[0, 0.5,     0.075],[0, 0, -1],[1, 1, 1]]    //meters, j5 direction, config
 //don't define   Dexter.PARKED_POSITION = [0, 0.15, 0.20],  [0, -1, 0],   [1, 1, 1]
 
     /*Dexter.robot_status_labels = [

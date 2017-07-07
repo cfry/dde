@@ -246,10 +246,10 @@ DexterSim = class DexterSim{
                 break;
             default:
                 if (Dexter.instruction_type_to_function_name_map[oplet]){
-                    out("Warning: Dextersim.send doesn't know what to do with the legal oplet: " + oplet, "red")
+                    warning("Dextersim.send doesn't know what to do with the legal oplet: " + oplet)
                 }
                 else {
-                    out("Error: DexterSim.send received an instruction array with an illegal oplet: " + instruction_array, "red")
+                    warning("DexterSim.send received an instruction array with an illegal oplet: " + instruction_array)
                 }
         }
         //if (oplet != "h"){  //never put -1 in instruction_id of robot status except before first instruction is run.
@@ -262,7 +262,15 @@ DexterSim = class DexterSim{
         this.ending_time_of_cur_instruction = robot_status[Dexter.START_TIME] + dur
         const job_id       = robot_status[Dexter.JOB_ID]
         const job_instance = Job.job_id_to_job_instance(job_id)
-        SimUtils.render_once(robot_status, "Job: " + job_instance.name) //renders after dur, ie when the dexter move is completed.
+        if (job_instance){
+            SimUtils.render_once(robot_status, "Job: " + job_instance.name) //renders after dur, ie when the dexter move is completed.
+        }
+        else {
+            this.instruction_queue = []
+            this.now_processing_instruction = null
+            DexterSim.close(this.name)
+            dde_error("in Dexter Simulation, could not find a job with job_id: " + job_id)
+        }
     }
 
     static close(robot_name){

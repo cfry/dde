@@ -221,6 +221,7 @@ var TestSuite = class TestSuite{
     }
 
     static run_all(){
+        if (!TestSuite["reference_manual_id"]) { TestSuite.make_test_suites_from_doc() }
         var reports = "<b style='font-size:20px;'>All Test Suites Report</b><br/>"
         let start_time = Date.now()
         for (let suite of TestSuite.suites){
@@ -229,6 +230,7 @@ var TestSuite = class TestSuite{
         }
         let end_time = Date.now()
         out(reports + " All test suites duration: " + (end_time - start_time) + " ms")
+
     }
 
     //can't just return the value and have it seen, has to output to out.
@@ -327,16 +329,17 @@ var TestSuite = class TestSuite{
     //run a test suite
     static run(name){
         var this_suite = TestSuite[name]
-        if (!this_suite) {throw new Error("Attempted to run test suite: " + name + " but its isn't defined.")}
+        if (!this_suite) {throw new Error("Attempted to run test suite: " + name + " but it isn't defined.")}
         var report = ""
         var unknown_failure_count = 0
         var known_failure_count   = 0
         var start_time = Date.now()
         for(let test_number = 0; test_number < this_suite.tests.length; test_number++){
             var test     = this_suite.tests[test_number]
+            console.log("About to run test: " + test_number + " " + test)
             let [status, error_message] = TestSuite.run_test_array(test, test_number)
             if (status) {
-                report += error_message
+                report += error_message + "\n"
                 if      (status == "known")   { known_failure_count += 1 }
                 else if (status == "unknown") { unknown_failure_count += 1 }
             }
@@ -361,10 +364,20 @@ var TestSuite = class TestSuite{
         var test_number_html = (test_number ? "Test " + test_number + ". ": "")
         //permit 'let' but warn
         if (src.startsWith("let ") || src.includes(" let ") || src.startsWith("\nlet ")) {
-            out("<span style='color:#cc04ef;'>Test " + test_number + ". Warning: variable bindings made with 'let' will not be available in subsequent tests.<br/>Use 'var' if you want them to be.<br/>" + src + "</span>")}
+            out("<span style='color:#cc04ef;'>Test " + test_number +
+                ". Warning: variable bindings made with 'let' will not be available in subsequent tests.<br/>Use 'var' if you want them to be.<br/>" +
+                src + "</span>")
+            }
+        else if (src.startsWith("{")) { //assume there is only 1 literal object in src, should end with "}"
+            src = "let ts_temp = " + src + "\nts_temp" //if I don't do this the try wrapped around my inner eval will cause just a literal object to syntactically error. Looks like a chrome eval bug, but do this as its harmless
+        }
+        else if (src.startsWith("function(")) { //assume there is only 1 fn def in src, should end with "}"
+            src = "let ts_temp = " + src + "\nts_temp" //if I don't do this the try wrapped around my inner eval will cause just a fn to syntactically error. Looks like a chrome eval bug, but do this as its harmless
+        }
         TestSuite.last_src_error_message = false //needs to be a global to get the val out of the catch clause.
         //unlike every other use of curly braces in JS, try returns the value of its last try expr if no error, and otherwise returns the value of the last expr in catch
-        var src_result      = window.eval("try{ " + src + "} catch(err) {TestSuite.last_src_error_message = err.name + ' ' + err.message; TestSuite.error}")
+        var wrapped_src = "try{ " + src + "} catch(err) {TestSuite.last_src_error_message = err.name + ' ' + err.message; TestSuite.error}"
+        var src_result = window.eval(wrapped_src)
         if(test.length == 1) {
             if(TestSuite.last_src_error_message){
                 status = "unknown" //no utility in init code that errors so never a "known" one with a 1 elt test array
@@ -671,9 +684,62 @@ var TestSuite = class TestSuite{
         }
         out(result_html)
     }
-
+    /*
+    static run_test_suites_in_doc(){
+       debugger
+       var code_elts = reference_manual_id.querySelectorAll('code')
+       var error_count = 0
+       var result_html = ""
+       for (let code_elt of code_elts){
+           var src = code_elt.innerText
+           if(src[0] != " ") {
+               var src_val
+               try { src_val = eval(src) }
+               catch(err) {
+                   result_html += "<br/>error evaling: " + scr
+               }
+               var next_elt = code_elt.nextElementSibling
+               if (next_elt && (next_elt.tagName == "SAMP")){
+                   var result_src = next_elt.innerText
+                   var result_val
+                   try { result_val = eval(result_src) }
+                   catch(err) {
+                       result_html += "<br/> error evaling: " + result_src
+                   }
+                   if(!similar(src_val, result_val)){
+                       result_html += "<br/>ref man example failed test: " + src + " != " + result_src
+                   }
+               }
+           }
+       }
+       if (
+       out(error_count == 0) { + "doc bugs", ((error_count == 0) ? "green" : "red"))
+        code_elts =  user_guide_id.querySelector('code')
+    }
+    */
+    static make_test_suites_from_doc(){
+        var doc_test_suites = []
+        for(var dom_elt of [reference_manual_id]){ //user_guide_id
+            var code_elts = dom_elt.querySelectorAll('code')
+            var a_test_suite_tests = []
+            for (let code_elt of code_elts){
+                var src = code_elt.innerText
+                if(src[0] != " ") {
+                    var a_test = [src]
+                    var next_elt = code_elt.nextElementSibling
+                    if (next_elt && (next_elt.tagName == "SAMP")){
+                        a_test.push(next_elt.innerText)
+                    }
+                    a_test_suite_tests.push(a_test)
+                }
+            }
+            doc_test_suites.push(new TestSuite(dom_elt.id, ...a_test_suite_tests))
+        }
+        return doc_test_suites
+    }
 
 } //end class TestSuite
+// make_test_suites_in_doc()
 
 TestSuite.error = {name:"used for an expected value of an error."}
 TestSuite.dont_care = {name:"used for an expected value when anything the source returns is ok, except if it errors."}

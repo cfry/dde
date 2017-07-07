@@ -117,6 +117,11 @@ for (let i = 0; i < Instruction.labels.length; i++){
     Instruction[Instruction.labels[i]] = i
 }
 
+Instruction.job_of_instruction_array = function(ins_array){
+    var job_id = ins_array[Instruction.JOB_ID]
+    return Job.job_id_to_job_instance(job_id)
+}
+
 //return an array of the instruction args
 Instruction.args = function(ins_array){
     return ins_array.slice(Instruction.INSTRUCTION_ARG0)
@@ -153,7 +158,7 @@ Instruction.Control.error = class error extends Instruction.Control{
     do_item (job_instance){
         job_instance.stop_for_reason("errored", "Job: " + job_instance.name + " errored with: " + this.reason)
         //job_instance.set_up_next_do(0) //no, get out faster, we errored.
-        job_instance.do_next_item()
+        job_instance.set_up_next_do(0)
     }
     toString(){
         return "error: " + this.reason
@@ -171,11 +176,12 @@ Instruction.Control.go_to = class go_to extends Instruction.Control{
     do_item (job_instance){
         let id = job_instance.instruction_location_to_id(this.instruction_location)
         if (id == job_instance.program_counter){
-            dde_error("In job." + job_instance.name +
+            job_instance.stop_for_reason("errored", "In job." + job_instance.name +
                         "<br/>with a go_to instruction whose instruction_location: " + this.instruction_location +
                         "<br/>points to id: " + id +
                         "<br/>that is the same as this go_to instruction," +
                         "<br/>which would cause an infinite loop.")
+            job_instance.set_up_next_do(0)
 
         }
         else {
@@ -212,8 +218,10 @@ Instruction.Control.grab_robot_status = class grab_robot_status extends Instruct
         else if (this.end_index) {
             if (this.end_index === "end") { this.end_index = rs.length - 1 }
             else if (this.start_index > this.end_index ) {
-                dde_error("instruction: grab_robot_status passed end_index: " + this.end_index +
+                job_instance.stop_for_reason("errored", "instruction: grab_robot_status passed end_index: " + this.end_index +
                           " that is less than start_index: " + this.start_index)
+                job_instance.set_up_next_do(0)
+                return
             }
             else { val = rs.slice(this.start_index, this.end_index + 1) }
         }
@@ -276,7 +284,7 @@ var human_task_handler = function(vals){
                 var j_inst = Job[j_name]
                 if (!j_inst.stop_reason){ //if j_inst is still going, stop it.
                     j_inst.stop_for_reason("interrupted", "In human_task, user stopped this job which is dependent on job: " + job_instance.name)
-                    j_inst.set_up_next_do(1)
+                    j_inst.set_up_next_do(0)
                 }
             }
         }
@@ -355,7 +363,8 @@ var human_enter_choice_handler = function(vals){
                 var j_inst = Job[j_name]
                 if (!j_inst.stop_reason){ //if j_inst is still going, stop it.
                     j_inst.stop_for_reason("interrupted", "In human_task, user stopped this job which is dependent on job: " + job_instance.name)
-                    j_inst.set_up_next_do(1)
+                    j_inst.set_up_next_do(0)
+                    return
                 }
             }
         }
@@ -486,7 +495,8 @@ var human_enter_instruction_handler = function(vals){
                 let j_inst = Job[j_name]
                 if (!j_inst.stop_reason){ //if j_inst is still going, stop it.
                     j_inst.stop_for_reason("interrupted", "In human_enter_instruction, user stopped this job which is dependent on job: " + job_instance.name)
-                    j_inst.set_up_next_do(1)
+                    j_inst.set_up_next_do(0)
+                    return
                 }
             }
         }
@@ -670,7 +680,8 @@ var human_enter_number_handler = function(vals){
                 var j_inst = Job[j_name]
                 if (!j_inst.stop_reason){ //if j_inst is still going, stop it.
                     j_inst.stop_for_reason("interrupted", "In human_enter_number, user stopped this job which is dependent on job: " + job_instance.name)
-                    j_inst.set_up_next_do(1)
+                    j_inst.set_up_next_do(0)
+                    return
                 }
             }
         }
@@ -752,7 +763,7 @@ var human_enter_text_handler = function(vals){
                 var j_inst = Job[j_name]
                 if (!j_inst.stop_reason){ //if j_inst is still going, stop it.
                     j_inst.stop_for_reason("interrupted", "In human_enter_text, user stopped this job which is dependent on job: " + job_instance.name)
-                    j_inst.set_up_next_do(1)
+                    j_inst.set_up_next_do(0)
                 }
             }
         }
@@ -859,10 +870,12 @@ Instruction.Control.if_any_errors = class if_any_errors extends Instruction.Cont
                     break;
                 }
             }
-            else { dde_error("In job: " + job_instance.name +
+            else {
+                job_instance.stop_for_reason("errored", "In job: " + job_instance.name +
                              ", an instruction of type: Robot.if_any_errors<br/> " +
                              "was passed a job name of:  " + job_name + "<br/> that doesn't exist.")
-                   return
+                job_instance.set_up_next_do(0)
+                return
             }
         }
         job_instance.set_up_next_do(1)
@@ -1029,9 +1042,10 @@ Instruction.Control.destination_send_to_job_is_done = class destination_send_to_
                     from_job_instance.user_data[user_var] = val  //this.params is really the to_job_instance.
                 }
                 else {
-                    shouldnt("In job: " + job_instance.name +
+                    job_instance.stop_for_reason("errored", "In job: " + job_instance.name +
                         " Instruction.Control.destination_send_to_job_is_done.do_item got user var: " + user_var +
                         " whose value: " + fn + " is not a function.")
+                    return
                 }
             }
         }
@@ -1097,7 +1111,8 @@ Instruction.Control.start_job = class start_job extends Instruction.Control{
                    job_instance.stop_for_reason("errored",
                         "Robot_start_job tried to start job: " + this.job_name +
                         " but it was already started.")
-                   job_instance.set_up_next_do(1)
+                   job_instance.set_up_next_do(0)
+                   return
                }
                else if (this.if_started == "restart"){
                    new_job.stop_for_reason("interrupted",
@@ -1106,8 +1121,8 @@ Instruction.Control.start_job = class start_job extends Instruction.Control{
                               new_job.inter_do_item_dur * 2)
                    job_instance.set_up_next_do(1)
                }
-               else {
-                   dde_error("Job." + job_instance.name +
+               else { //if_started is tested for validity in the constructor, but just in case...
+                   shouldnt("Job." + job_instance.name +
                      " has a Robot.start_job instruction with an invalid " +
                      "<br/> if_started value of: " + this.if_started)
                }
@@ -1121,7 +1136,7 @@ Instruction.Control.start_job = class start_job extends Instruction.Control{
                           new_job.name + " that it doesn't understand.")
             }
         }
-        else { dde_error("Robot.start_job attempted to start non-existent Job." + this.job_name) }
+        else { job_instance.stop_for_reason("errored", "Robot.start_job attempted to start non-existent Job." + this.job_name) }
     }
     toString(){
         return "start_job: " + this.job_name
@@ -1284,13 +1299,6 @@ Instruction.Control.sync_point = class sync_point extends Instruction.Control{
                             " which is not defined.")
                         return;
                     }
-                    // j_inst might have stopped, and perhaps completed fine so don't halt syn_point
-                    //   just because a job is stopped.
-                    // else if (j_inst.stop_reason){
-                    //    job_instance.stop_for_reason("errored", "sync_point has a job-to-sync-with named: Job." + job_name +
-                    //                                 " that has already stopped.")
-                    //    return;
-                    //}
                     else if (j_inst.program_counter < 0) {//j_inst hasn't started yet. That's ok, it just hasn't reached the sync point.
                         job_instance.wait_reason = "for Job." + j_inst.name + " to get to sync_point named: " + this.name + " but that Job hasn't started yet.."
                         //job_instance.status_code = "waiting" //don't change this from "not_started"
@@ -1442,8 +1450,8 @@ Instruction.Control.wait_until = class wait_until extends Instruction.Control{
                 job_instance.set_up_next_do(1)
             }
         }
-        else {
-            dde_error("In job: " + job_instance.name +
+        else { //this is checked in the constructor, but just in case ...
+            shouldnt("In job: " + job_instance.name +
                       ' in wait_until("new_instruction")<br/>' +
                       " got fn_date_dur of: " + this.fn_date_dur +
                       " which is invalid.<br/>" +

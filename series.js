@@ -758,13 +758,13 @@ Series.instances = [
                                                           "Dexter.empty_instruction_queue_immediately", "Dexter.empty_instruction_queue",
                                                           "Dexter.find_home", "Dexter.find_home_rep", "Dexter.find_index",
                                                           "Dexter.get_robot_status", "Dexter.get_robot_status_immediately",
-                                                          "Dexter.load_tables", "Dexter.move_home", "Dexter.move_all_joints",
-                                                           "Dexter.move_all_joints_relative",
-                                                          "Dexter.move_to",
+                                                          "Dexter.load_tables",  "Dexter.move_all_joints", "Dexter.move_all_joints_relative",
+                                                            "Dexter.move_home",
+                                                          "Dexter.move_to", "Dexter.move_to_relative",
                                                           "Dexter.run_gcode", "Dexter.record_movement", "Dexter.replay_movement",
                                                           "Dexter.set_follow_me", "Dexter.set_force_protect", "Dexter.set_keep_position", "Dexter.set_open_loop",
                                                           "Dexter.set_parameter", "Dexter.sleep",  "Dexter.slow_move", "Dexter.write", "Dexter.write_to_robot",
-                                                          "Dexter.prototype.joint_angle", "Dexter.prototype.joint_angles", "Dexter.prototype.joint_xyz", "Dexter.prototype.joint_xyzs",  //beware: these are NOT instructions but 'utility fns.' they are documented.
+                                                          //"Dexter.prototype.joint_angle", "Dexter.prototype.joint_angles", "Dexter.prototype.joint_xyz", "Dexter.prototype.joint_xyzs",  //beware: these are NOT instructions but 'utility fns.' they are documented.
                                                            "make_ins",
                                                           "Human.enter_choice", "Human.enter_instruction", "Human.enter_number",
                                                           "Human.enter_text",   "Human.notify", "Human.task",

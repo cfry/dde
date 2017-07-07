@@ -6,6 +6,52 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 2.0.3, Jul 7, 2017</summary>
+Highlights: run_instruction dialog extensions, Ref Man Examples are now tests.
+            bug fixes.
+<ul><li>run_instruction dialog now has menu for selecting any Robot instruction.
+        Shows param list of selected instruction.</li>
+
+    <li> run_instruction dialog clicking an instruction button or selecting
+         a new instruction from the instruction menu displays the params
+          of the instruction and scrolls doc pane to the appropriate section
+          if doc exists on that instruction.</li>
+
+    <li>  Now documented in Ref Man and with click help: All 7 temperature conversion
+          functions. See Ref Man/Units System/</li>
+
+    <li> fixed bug in make_url with lack of ampersands between args in the result.</li>
+
+    <li>  move_to_relative modified to fully use new Kin.J_angles_to_xyz</li>
+
+    <li>  fixed bug in run_instruction dialog with move_to.</li>
+
+    <li>  fixed bug in Dexter.move_to with wrong defaulting of args.</li>
+
+    <li> kinematics range bug fixed.</li>
+
+    <li> jobs now stop when they error.</li>
+
+
+    <li> the FIND algorithm changed. Now searching for "dexter kin"
+         will find only terms that contain "dexter" followed by a space,
+        followed by "kin", NOT all instances of "dexter" and all instances of "kin.
+        This permits more accurate searches.
+        All are case insensitive.</li>
+
+    <li>   DDE can now turn the code examples of Ref Man into TestSuite.
+    This test suite is automatically created and run when you choose:
+    DDE menu bar/Tests/Run All TestSuites.
+    It now contains 487 tests, all passing, and helps immensely in keeping
+    the examples in the Ref Man will be kept up to date with the code.
+    As part of this project, the expected results of examples now have a pale
+    green background. About 60 examples and a bunch of underlying code
+    was fixed in this process.</li>
+
+    <li>New help item to top of units series menu that scrolls to Unit System doc.</li>
+ </ul>
+</details>
+
 <details class="doc_details"><summary>v 2.0.2, Jul 2, 2017</summary>
 <ul>
     <li> fixed run_instruction move_to button action.</li>

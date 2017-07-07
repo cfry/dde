@@ -81,6 +81,7 @@
         mark_inst.unmark()
         mark_inst.mark(search_string, {
             diacritics: false,  //I don't need diacritics, and it use to not work but is working now. Default is true.
+            separateWordSearch: false,
             done:function(count){
                 if (count === 0 ) {
                    warning("No matches of <code>" + search_string + "</code> found.<br/>" +
@@ -160,7 +161,7 @@
                         '<details><summary class="doc_top_level_summary">User Guide</summary>\n' +
                             file_content(__dirname + "/doc/guide.html") +
                         "</details>\n" +
-                        '<details><summary class="doc_top_level_summary">Reference Manual</summary>\n' +
+                        '<details id="reference_manual_id" ><summary class="doc_top_level_summary">Reference Manual</summary>\n' +
                             file_content(__dirname + "/doc/ref_man.html") +
                         "</details>\n" +
                         '<details><summary class="doc_top_level_summary">Release Notes</summary>\n' +
@@ -296,6 +297,12 @@
                          const pos      = window.getSelection().focusOffset
                          Editor.show_identifier_info(full_src, pos)
                     })
+        //for results of code examples.
+    $('samp').click(function(event) {
+        const full_src = window.getSelection().focusNode.data
+        const pos      = window.getSelection().focusOffset
+        Editor.show_identifier_info(full_src, pos)
+    })
 
      output_div_id.onclick = onclick_for_click_help
 
@@ -910,7 +917,11 @@ foo      //eval to see the latest values</pre>`,
     anonymous_function_id.onclick = function(){Editor.wrap_around_selection('function(x, y) {\n', '\n}\n')}
     return_id.onclick             = function(){Editor.insert("return ")}
     //End of Learn JS menu
-    //jobs menu
+
+    //series Menu
+     units_system_help_id.onclick = function(){ open_doc(units_system_help_doc_id) }
+
+     //jobs menu
     show_robot_status_id.onclick   = Dexter.show_robot_status
     jobs_report_id.onclick         = function(){Job.report() }
     stop_all_jobs_id.onclick       = function(){Job.stop_all_jobs() }

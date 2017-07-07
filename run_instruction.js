@@ -13,7 +13,7 @@ function handle_run_instruction(vals){
         const xyz = "[" + vals.X_id + ", " + vals.Y_id + ", " + vals.Z_id + "]"
         const J5_dir = "[" +  ((vals.angles_xyz == "angles") ?
                                    vals.J5_direction_x_angle_id + ", " + vals.J5_direction_y_angle_id :
-                                   vals.J5_direction_xyz_x_id + ", " + vals.J5_direction_xyz_y + ", " + vals.J5_direction_xyz_z) +
+                                   vals.J5_direction_xyz_x_id + ", " + vals.J5_direction_xyz_y_id + ", " + vals.J5_direction_xyz_z_id) +
                        "]"
         const config = "Dexter." + vals.left_right + "_" + vals.up_down + "_" + vals.in_out
         instr_src    = "Dexter.move_to(" + xyz + ", " + J5_dir + ", " + config + ")"
@@ -28,24 +28,21 @@ function handle_run_instruction(vals){
     }
     else if (vals.clicked_button_value == "move_all_joints_relative"){
         const arg = [vals.J1_id, vals.J2_id, vals.J3_id, vals.J4_id, vals.J5_id]
-        instr_str = "Dexter.move_all_joints_relative(" + arg + ")"
+        instr_src = "Dexter.move_all_joints_relative(" + arg + ")"
     }
     else if (vals.clicked_button_value == "set_parameter"){
         instr_src = 'Dexter.set_parameter("' + vals.set_param_name + '", ' + vals.set_param_value + ")"
     }
     else if (vals.clicked_button_value == "run"){
-        instr_src = run_src_id.value
+        instr_src = src_of_run_instruction()
     }
     else if (vals.clicked_button_value == "insert"){
-        if(run_src_id.value.length > 0){ Editor.insert(run_src_id.value) }
-        else { warning("No code to insert.") }
+        Editor.insert(src_of_run_instruction() + "\n")
         return
     }
     else if (vals.clicked_button_value == "job"){
         var src = vals.mode_name
-        if(run_src_id.value.length > 0){
-           src += ",\n                   " + run_src_id.value
-        }
+        src += ",\n                   " + src_of_run_instruction()
         src = '\nnew Job({name: "my_job",\n' +
               '         robot: Robot.' + vals.dex_name_id + ',\n' +
               '         do_list: [' + src +
@@ -53,9 +50,40 @@ function handle_run_instruction(vals){
         Editor.insert(src)
         return
     }
-    run_src_id.value = instr_src
+    var args_source = instr_src.substring(instr_src.indexOf("(") + 1, instr_src.length - 1)
+    run_src_id.value = args_source
+    var instr_name = instr_src.substring(0, instr_src.indexOf("("))
+    var instr_select_index = null
+    for(var i = 0; i < dexter_instructions_id.options.length; i++){
+        var opt_elt = dexter_instructions_id.options[i]
+        if (opt_elt.value == instr_name) {
+            instr_select_index = i
+            break
+        }
+    }
+    dexter_instructions_id.selectedIndex = instr_select_index
+    onchange_run_instruction_src_aux(instr_name)
     var instr = eval(instr_src)
     dex.run_instruction_fn(instr)
+}
+
+function onchange_run_instruction_src(){
+    const instr_name = dexter_instructions_id.value
+    onchange_run_instruction_src_aux(instr_name)
+    run_src_id.value = ""
+}
+
+function onchange_run_instruction_src_aux(instr_name){
+    const instr_fn = value_of_path(instr_name)
+    const instr_params = function_params(instr_fn)
+    run_instruction_params_id.innerHTML = instr_params
+    const details_elt_name = instr_name + "_doc_id"
+    const details_elt = window[details_elt_name]
+    if (details_elt) { open_doc(details_elt) }
+}
+
+function src_of_run_instruction(){
+    return dexter_instructions_id.value + "(" + run_src_id.value + ")"
 }
 
 function make_robots_select_html(){
@@ -84,6 +112,18 @@ function make_set_parameter_name_html(){
     result += "</div>"
     return result
 }
+
+function make_dexter_instructions_html(){
+    let result = '<select id="dexter_instructions_id" style="width:170px;" onchange="onchange_run_instruction_src()">'
+    for(let instr_name of Series.id_to_series("series_robot_instruction_id").array){
+        if(!instr_name.startsWith("Serial")) {
+            result += "<option>" + instr_name + "</option>"
+        }
+    }
+    result += "</select>"
+    return result
+}
+
 function J5_direction_to_xyz_html(){
     const new_xyz = Kin.angles_to_dir_xyz(J5_direction_x_angle_id.value, J5_direction_y_angle_id.value)
     const html = 'x: <input id="J5_direction_xyz_x_id" type="number" value="' + new_xyz[0] + '" step="0.1" style="width:75px;"/><br/>' +
@@ -173,14 +213,16 @@ show_window({content:
       </td>
  </tr>
  </table>
- <input type="button" value="run" title="Eval this source to make an instruction,&#013;then run it." style="margin:5px;"/> 
- <input id="run_src_id" type="text" onclick="onclick_for_click_help(event)" style="width:435px;font-size:14px;"/>
+ <div id="run_instruction_params_id" style="margin-left:218px;"></div>
+ <input type="button" value="run" title="Eval this source to make an instruction,&#013;then run it." style="margin:5px;"/>` +
+ make_dexter_instructions_html() +
+ `(<input id="run_src_id" type="text" onclick="onclick_for_click_help(event)" style="width:255px;font-size:14px;"/>)
  `,
  title: "Run an Instruction on a Dexter",
- x: 400,
+ x: 250,
  y: 50,
  width: 520,
- height: 520,
+ height: 530,
  callback: handle_run_instruction})
   J1_range_id.innerHTML = Dexter.J1_ANGLE_MIN + " to " + Dexter.J1_ANGLE_MAX
 

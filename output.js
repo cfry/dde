@@ -1085,7 +1085,8 @@ function make_url(url, arguments) {
            var on_first = true
            for (let key in arguments){
                let val = arguments[key]
-               arg_string += (on_first? "" : "&") + key + "=" + val
+               arg_string += (on_first ? "" : "&") + key + "=" + val
+               on_first = false
            }
         }
         else if (typeof(arguments) == "string") { arg_string = arguments }

@@ -891,8 +891,18 @@ function inspect_set_new_object_onclick(id_string, path){
             }
         }
         else { elts.onclick = fn } //only one
-        inspect_previous_value_id.onclick = inspect_previous_value
-        inspect_next_value_id.onclick     = inspect_next_value
+        if(window.inspect_previous_value_id){
+            inspect_previous_value_id.onclick = inspect_previous_value
+        }
+        else {
+            console.log("inspect_previous_value_id not bound in inspect_set_new_object_onclick.")
+        }
+        if(window.inspect_next_value_id) {
+            inspect_next_value_id.onclick     = inspect_next_value
+        }
+        else {
+            console.log("inspect_next_value_id not bound in inspect_set_new_object_onclick.")
+        }
     }, 1000)
 }
 

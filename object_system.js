@@ -12,7 +12,7 @@ function ob_sys_is_class(obj){
     return ((typeof(obj) == "function") && obj.toString().startsWith("class "))
 }
 
-const Root = {name: "Root"} //"root" is an old node global that's been deprucated but still defined. I decidd to steer clear of it by using capitalied Root.
+const Root = {name: "Root"} //"root" is an old node,js global that's been depricated but still defined. I decidd to steer clear of it by using capitalied Root.
 window.Root = Root //if I don't to this, value_of_path fails since window["rootObjject"] fails
 //rootObject.name = "rootObject" //errors if I do this. the error happens in Jquery on something
                                //that looks very unlrelated, in ready, when seting the operating_system variable.
@@ -310,7 +310,7 @@ Object.defineProperty(Object.prototype, 'normal_keys_aux',{
 })
 
 
-//result array has rootObject first
+//result array has Root first
 Object.defineProperty(Object.prototype, 'ancestors',{
     value : function(include_self=false){
                 if(this == Root){
@@ -394,6 +394,27 @@ Object.defineProperty(Object.prototype, 'object_path_aux',{
     } ,
     enumerable : false
 })
+
+//new_obj.toString errors without this fn
+Root.toString = function(){
+    const path = this.objectPath()
+    if (path) { return path }
+    else {
+        const anses = this.ancestors(true) //include self
+        let result = ""
+        for(let ans of anses){
+            if(ans === Root) { result = "Root" }
+            else if (Object.hasOwnProperty("name") && ans.name){
+                result +=  "." + ans.name
+            }
+            else { //no more named ancestors
+                result = "An instance of: " + result
+                break;
+            }
+        }
+        return result
+    }
+}
 
 // the printer!
 Object.defineProperty(Object.prototype, 'sourceCode',{

@@ -863,7 +863,11 @@ Job.go = function(){
 //that inserted instruction is run next.
 Job.prototype.set_up_next_do = function(program_counter_increment = 1, allow_once=false){ //usual arg is 1 but a few control instructions that want to take a breath call it with 0
     var job_instance = this
-    if (Job.go_button_state || allow_once){ //the normal case
+    if (Job.go_button_state || allow_once){ //Job.go_button_state being true is the normal case
+        if ((this.status_code == "errored") || (this.status_code == "interrupted")){
+            program_counter_increment = 0 //don't increment because we want pc and highest_completed_instruction_id
+                                          //the instruction that errored when the job finishes.
+        }
         if (program_counter_increment > 0) {
             job_instance.highest_completed_instruction_id = job_instance.program_counter
         }
@@ -873,7 +877,7 @@ Job.prototype.set_up_next_do = function(program_counter_increment = 1, allow_onc
                     },
                     this.inter_do_item_dur * 1000) //convert from seconds to milliseconds
     }
-    else {
+    else { //the stepper output
         job_instance.pause_next_program_counter_increment = program_counter_increment
         job_instance.go_state = false
         let suffix = ""
@@ -915,7 +919,7 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
         console.log("Top of do_next_item in job: " + this.name + " with PC: " + this.program_counter)
     }
     if ((this.status_code == "interrupted") || //put before the wait until instruction_id because interrupted is the user wanting to halt, regardless of pending instructions.
-             (this.status_code == "errored")){
+        (this.status_code == "errored")){
         this.finish_job()
     }
     else if (this.wait_until_instruction_id_has_run || (this.wait_until_instruction_id_has_run === 0)){ //the ordering of this clause is important. Nothing below has to wait for instructions to complete
@@ -923,7 +927,7 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
         //the waited for instruction coming back thru robot_done_with_instruction will call set_up_next_do(1)
         //so don't do it here. BUT still have this clause to block doing anything below if we're waiting.
     }
-    else if (this.stop_reason){ this.finish_job() } //muswt be before the below since if we've
+    else if (this.stop_reason){ this.finish_job() } //must be before the below since if we've
     //already got a stop reason, we don't want to keep waiting for another instruction.
     else if (this.program_counter >= this.instruction_location_to_id(this.ending_program_counter)) {  //this.do_list.length
              //the normal stop case
@@ -990,30 +994,6 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
         else if (is_iterator(cur_do_item)){ //generator. must be before "function" because an iterator is also of type "function".
             var next_obj = cur_do_item.next()
             var do_items = next_obj.value
-            /*if (next_obj.done){ //don't insert cur_do_item (the iterator) cause we're all done.
-                if (do_items) { //happens when our gen fn has a return value.
-                    if(Instruction.is_instructions_array(do_items)){ this.insert_instructions(do_items) }
-                    else { this.insert_single_instruction(do_items) }
-                    this.set_up_next_do(1)
-                }
-                else { //normal, we're beyond the last yield but just did our next call to "exhaust" the gen. nothing to do for cur_do_item
-                    this.set_up_next_do(1)
-                }
-            }
-            else { //iterator not done. push the next_obj.value into the do_list followed by the iterator in cur_do_item
-                if(Instruction.is_instructions_array(do_items)){
-                    do_items = do_items.slice(0) //copy the do_items just in case user is hanging on to that array, we don't want to mung it.
-                }
-                else if (do_items == null) { do_items = [] } //no point in sticking null on do_list as its a no-op. An iterator might return null because
-                               //its waiting for some callback to complete as in dxf_to_instructions,
-                               //so throw out the null and let do_list loop around again.
-                else {//just one item
-                    do_items = [do_items]
-                }
-                do_items.push(cur_do_item) //add the iterator on the end so that after we do these "next" items, we'll call next again on the iterator
-                this.insert_instructions(do_items)
-                this.set_up_next_do(1)
-            }*/
             let have_item_to_insert
             if      (do_items === null)       { have_item_to_insert = false }
             else if (do_items === undefined)  { have_item_to_insert = false }
@@ -1036,13 +1016,9 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
             if ((!next_obj.done) && (have_item_to_insert === false)) { this.set_up_next_do(0) } //loop around on the same item
             else {  this.set_up_next_do(1) }
         }
-        //else if (is_iterator(cur_do_item)){ //calling a generator fn returns an iterator
-        //    this.iterator_stack.push([cur_do_item, this.program_counter])
-        //    this.set_up_next_do(1)
-        //}
         else if (typeof(cur_do_item) == "function"){
-            var do_items = cur_do_item.call(this)
-            this.handle_function_call_or_gen_next_result(cur_do_item, do_items)
+            var do_items = cur_do_item.call(this) //the fn is called with "this" of this job
+            this.handle_function_call_or_gen_next_result(cur_do_item, do_items) //take the result of the fn call and put it on the do_list
         }
         else if (cur_do_item == "debugger"){
             Job.set_go_button_state(false)
@@ -1050,11 +1026,11 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
         }
         else {
             this.stop_for_reason("errored", "Job: " + this.name + " got illegal do_item on do_list of: " +
-                stringify_value(cur_do_item))
+                                            stringify_value(cur_do_item))
             //It's over, Jim, So don't take a breath, by calling set_up_next_do(0),
             //just kill it quickly before anything else can happen.
             //we don't want to increment the pc,
-            this.do_next_item()
+            this.set_up_next_do(0)
         }
     }
     //this.color_job_button() //todo needs to work for Dexter.sleep (z) insurction and to undo its yellow.
@@ -1396,7 +1372,7 @@ Job.instruction_location_to_job = function (instruction_location, maybe_error=tr
         if (instruction_location.length === 0){
             if (maybe_error) {
                 dde_error("Job.instruction_location_to_job passed empty array.<br/>" +
-                          " It must have at least 1 item in it,,br/>" +
+                          " It must have at least 1 item in it,<br/>" +
                           'with the first of format: {job: "some_job"}')
             }
             else {return null}

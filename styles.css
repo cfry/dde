@@ -26,6 +26,7 @@ input[type=submit] {background-color:#4cc9fd; font-size:14px;} /*background-colo
 */
 /* .jqx-menu-item {width:400px !important;} this forces menu items to be just 1 line but truncates it at about 150px regardless of the setting*/
 code { background-color:white; }
+samp { background-color: #cefff3; } /* pale green for results of code examples*/
 
 table, th, td, th { border: 1px solid black;  }
 table { border-collapse: collapse; }
