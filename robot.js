@@ -1169,11 +1169,19 @@ Dexter.move_to_straight = function(xyz           = [],
                                    resolution    = 0.5*_mm){
     return function(){
         let [old_xyz, old_J5_direction, old_config] = Kin.J_angles_to_xyz(this.robot.angles, this.robot.pose)
-        return move_to_straight_aux(old_xyz, xyz,
-                                    J5_direction, config,
-                                    tool_speed,
-                                    resolution,
-                                    this.robot.pose)
+        try {
+            return move_to_straight_aux(old_xyz, xyz,
+                                        J5_direction, config,
+                                        tool_speed,
+                                        resolution,
+                                        this.robot.pose)
+        }
+        catch(err){
+            this.stop_for_reason("errored", "Dexter instruction move_to_straight passed xyz values:<br/>" + xyz +
+                                     "<br/>that are not valid for moving straight to. <br/>" +
+                                     err.message)
+
+        }
     }
 }
 
@@ -1344,6 +1352,7 @@ Dexter.set_open_loop          = function(){ return setOpenLoop() }
 
 //End Dexter Instructions
 //____________Dexter Database______________
+//Note: often you should use Robot.instruction_type_to_
 Dexter.instruction_type_to_function_name_map = {
     a:"move_all_joints",
     b:"move_to",           //fry
@@ -1372,6 +1381,7 @@ Dexter.instruction_type_to_function_name_map = {
     x:"exit",
     z:"sleep"
 }
+
 /*
 Dexter.prototype.props = function(){
     let file_name  = "dde_" + this.name + "_props.json"

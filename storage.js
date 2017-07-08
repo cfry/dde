@@ -370,10 +370,12 @@ function load_files(...paths) {
         else if (path.endsWith("/")) { //path does not start with slash.
             prefix = path //assumes path is intended to be under dde_apps/
         }
+        /*kent doesn't like restriction. Sending filesin email neednot tto have the .js extension
+               and some pure data files maybe shouldn't have .js extnsions.
         else if (!path.endsWith(".js")){
             dde_error("loading_file got path: " + path + ' which does not end in ".js"'  +
                         "<br/>No files were loaded.")
-        }
+        }*/
         else {
             path = prefix + path
             resolved_paths.push(path)

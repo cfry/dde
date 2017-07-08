@@ -149,15 +149,20 @@
 
     function init_doc(){
         const path = __dirname + "/doc/guide.html"
-        let content =   '<details><summary class="doc_top_level_summary">Overview</summary>\n' +
-                            file_content(__dirname + "/doc/dde_overview/Dexter_Development_Environment.html") +
-                        "</details>\n" +
-                        '<details><summary class="doc_top_level_summary">Dexter Kinematics</summary>\n' +
-                            file_content(__dirname + "/doc/dexter_kinematics.html") +
-                        "</details>\n" +
-                        '<details><summary class="doc_top_level_summary">Glossary</summary>\n' +
-                        file_content(__dirname + "/doc/glossary.html") +
-                        "</details>\n" +
+        let content =   '<details><summary class="doc_top_level_summary">Articles</summary>\n' +
+                           '<details class="doc_details"><summary class="doc_articles_level_summary">Overview</summary>\n' +
+                                file_content(__dirname + "/doc/dde_overview/Dexter_Development_Environment.html") +
+                            "</details>\n" +
+                            '<details class="doc_details"><summary class="doc_articles_level_summary">Browser vs. DDE</summary>\n' +
+                            file_content(__dirname + "/doc/browser_vs_dde.html") +
+                            "</details>\n" +
+                            '<details class="doc_details"><summary class="doc_articles_level_summary">Dexter Kinematics</summary>\n' +
+                                file_content(__dirname + "/doc/dexter_kinematics.html") +
+                            "</details>\n" +
+                            '<details class="doc_details"><summary class="doc_articles_level_summary">Glossary</summary>\n' +
+                                file_content(__dirname + "/doc/glossary.html") +
+                            "</details>\n" +
+                        '</details>\n' +
                         '<details><summary class="doc_top_level_summary">User Guide</summary>\n' +
                             file_content(__dirname + "/doc/guide.html") +
                         "</details>\n" +

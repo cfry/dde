@@ -214,6 +214,9 @@ Js_info = class Js_info {
                                               ])) {
             return fn_name
         }
+        else if(!Number.isNaN(parseFloat(fn_name))){  //could be an integer or a float. that's ok, return whole fn_name
+          return fn_name
+        }
         else {
             let path_elts = fn_name.split(".")
             return last(path_elts)
@@ -379,7 +382,7 @@ Js_info = class Js_info {
                 let fn4 = value_of_path(fn_name)
                 return "function " + Js_info.wrap_fn_name(fn_name) + function_params(fn4)
             case "series_oplet_id":
-                const oplet_full_name = "Dexter." + Dexter.instruction_type_to_function_name_map[fn_name]
+                const oplet_full_name = "Dexter." + Dexter.instruction_type_full_function_name(fn_name)
                 var full_name_tag = Js_info.wrap_fn_name(oplet_full_name)
                 return "<code style='color:blue;'>" + fn_name + "</code> means Dexter instruction: " + full_name_tag
             case "series_robot_status_label_id":

@@ -50,6 +50,11 @@ th, td { text-align:left; }
     font-weight:400;
     background-color: #b8bbff;
 }
+.doc_articles_level_summary {
+    font-size:16px;
+    font-weight:100;
+    background-color: #b8bbff;
+}
 #stop_all_jobs_id:active{ /*for button press effect */
     height:25px;
     width:30px;

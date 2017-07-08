@@ -87,7 +87,7 @@ with lots of options, described at:
       Example:<pre><code>
       var args = {x: 12.3 * 10}
       args.y = 40 + 5
-      make_url("www.ibm.com", args)</code> => "http://www.ibm.com?x=123&y=45"</pre>
+      make_url("www.ibm.com", args)</code> => <samp>"http://www.ibm.com?x=123&y=45"</samp></pre>
 </details>
 
 <details class="doc_details"><summary>Sound</summary>
@@ -324,6 +324,9 @@ folder names. A file path of "/" resets the default file path prefix (...Documen
 </code></pre>
 <p/>
 load_files returns the result of evaluating the last expression in the last file loaded.
+<p/>
+It is conventional to use a file extension of ".js" for files containing JavaScript,
+but not strictly necessary.
 </details> <!-- end load_files  -->
 
 <details id="write_file_doc_id" style="margin-left:40px;"><summary>write_file</summary>
@@ -387,7 +390,7 @@ get the JSON syntax correct.
     persistent_get returns the value of the variable in the argument.<br/>
     <b>Example:</b> <br/>
     <code>persistent_set("test4", 44)</code><br/>
-    <code>persistent_get("test4")</code> => 44<br/>
+    <code>persistent_get("test4")</code> => <samp>44</samp><br/>
 </details> <!-- end persistent_get -->
 
 <details id="persistent_initialize_doc_id" style="margin-left:40px;"><summary>persistent_initialize</summary>
@@ -1469,7 +1472,7 @@ Example: <code>Dexter.move_home()</code>
 </details>
 
 <details id="Dexter.move_to_doc_id" class="doc_details"><summary>move_to</summary>
-        This instruction commands Dexter to move from whereever it is, to position its
+        This instruction commands Dexter to move from where ever it is, to position its
         end effector at the given x, y, z location. It is complicated by the fact that
         usually there is more than one configuration of Dexter's joints that
         can achieve that position and that Dexter is inherently limited by the
@@ -1577,6 +1580,41 @@ Example: <code>Dexter.move_home()</code>
 
 </details>
 
+<details id="Dexter.move_to_straight_doc_id" class="doc_details"><summary>move_to</summary>
+<code>Dexter.move_to_straight</code> is quite similar to <code>Dexter.move_to</code>.
+It takes the same first three arguments as move_to and moves Dexter to
+the same spot. The difference is the path that Dexter's end effector takes
+to getting to the destination. move_to's path is the path that results
+from moving all the joints such that they all start moving at the same
+time and stop moving at the same time, but each joint may move at
+a different speed than the others. In move_to_straignt,
+the path approximates a straight line.
+<p/>
+Dexter achieves this by breaking up the distance between the start
+and end xyz locations into many short straight-line segments where
+the start and end location of each of these segments is on
+a straight line between the starting and ending locations.
+<p/>
+<i>Parameters:</i><br/>
+<b>xyz</b> An array of 3 numbers indicating the x, y, and z location to
+           move to. Same as move_to.<br/>
+<b>J5_direction</b> The ending direction that LINK5 will be pointing when
+    the move is complete. Same as move_to.<br/>
+<b>config</b> The configuration of the joints at the end of the move.
+    Same as move_to.<br/>
+<b>tool_speed</b> The maximum speed that Dexter's end effector will move.
+                  Default: 5 millimeters per second. Not in move_to.<br/>
+<b>resolution</b> How short to make the straight lines that connect the
+starting xyz to the ending xyz. Default: 0.5 millimeters.
+<p/>
+Example:<br/>
+<pre><code> new Job({name: "my_job",
+          do_list: [Dexter.move_to([0, 0.55, 0.075]),
+                    Dexter.move_to_straight([0, 0.5, 0.075])]
+          })</code></pre>
+Moves Dexter's end effector from location: [0, 0.55, 0.075] to
+location [0, 0.5, 0.075] in a straight line.
+</details>
 
 <details id="make_ins_doc_id" class="doc_details"><summary>make_ins</summary>
 Normally you should make instructions for Dexter using one of the high level method calls,
@@ -1584,8 +1622,10 @@ ie <code>Dexter.move_all_joints</code>. However, we provide the function <code>m
 useful in some low level situations. The first argument is the instruction type, (nickname: "oplet")
 a single letter string such as "a". The remaining arguments are whatever that instruction type
 accepts. Example:<br/>
-<code>make_ins("a", 1, 2, 3, 4 ,5)</code> creates an instruction that moves the 5 joints 
-by 1, through 5 respectively.
+<code>make_ins("a", 1, 2, 3, 4 ,5)</code> =>
+<samp>[undefined, undefined, undefined, undefined, "a", 1, 2, 3, 4, 5]</samp>
+creates an instruction that moves the 5 joints
+by 1, through 5 degrees respectively.
 If you have the arguments in an array, you can use this syntax:<br/>
 <code> make_ins("a", ...my_array)</code>
 <p/>

@@ -760,7 +760,7 @@ Series.instances = [
                                                           "Dexter.get_robot_status", "Dexter.get_robot_status_immediately",
                                                           "Dexter.load_tables",  "Dexter.move_all_joints", "Dexter.move_all_joints_relative",
                                                             "Dexter.move_home",
-                                                          "Dexter.move_to", "Dexter.move_to_relative",
+                                                          "Dexter.move_to", "Dexter.move_to_relative", "Dexter.move_to_straight",
                                                           "Dexter.run_gcode", "Dexter.record_movement", "Dexter.replay_movement",
                                                           "Dexter.set_follow_me", "Dexter.set_force_protect", "Dexter.set_keep_position", "Dexter.set_open_loop",
                                                           "Dexter.set_parameter", "Dexter.sleep",  "Dexter.slow_move", "Dexter.write", "Dexter.write_to_robot",

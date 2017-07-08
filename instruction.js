@@ -129,11 +129,15 @@ Instruction.args = function(ins_array){
 
 //user might call this at top level in a do_list so make it's name short.
 function make_ins(instruction_type, ...args){
-  let result = new Array(Instruction.INSTRUCTION_TYPE)
-  result.push(instruction_type)
-  if (args.length === 0) { return result } //avoids generating the garbage that concat with an arg of an empty list would for this common case, ie for "g" ahd "h" instructions
-  else { return result.concat(args) }
-  return result.concat(args)
+    if(!Dexter.instruction_type_to_function_name_map[instruction_type]){
+        warning("make_ins called with an invalid instruction_type: " + instruction_type +
+                "<br/>make_ins still returning an array using: " + instruction_type)
+    }
+    let result = new Array(Instruction.INSTRUCTION_TYPE)
+    result.push(instruction_type)
+    if (args.length === 0) { return result } //avoids generating the garbage that concat with an arg of an empty list would for this common case, ie for "g" ahd "h" instructions
+    else { return result.concat(args) }
+    return result.concat(args)
 }
 
 

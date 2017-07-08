@@ -177,7 +177,7 @@ new TestSuite("obj_sys_js_fns_on_new_objects",
 	["Root.testpart.isPrototypeOf(Root.testpart.bolt.smallbolt)", "true", "isA with args reversed"],
 	['Root.testpart.bolt.hasOwnProperty("color")', "true"],
 	['Root.testpart.bolt.hasOwnProperty("weight")', "false"],
-	["Root.testpart.bolt.trash", "undefined"],
+	["Root.testpart.bolt.trash23", "undefined"],
 	["Root.testpart.bolt.smallbolt.color", "undefined", "So a prop with an undefined value blocks inheritance. Fine but good to know."]
 )
 
