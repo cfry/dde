@@ -7,8 +7,8 @@
 </style>
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version:  <span id="dde_version_id">2.0.4</span><br/>
-    released: <span id="dde_release_date_id">Jul 8, 2017</span>
+    version:  <span id="dde_version_id">2.0.5</span><br/>
+    released: <span id="dde_release_date_id">Jul 21, 2017</span>
     <p/>
     DDE helps you create, debug, and send software to a Dexter robot.
     You can use any JavaScript augmented with DDE-specific functions to help find out about,
@@ -62,40 +62,40 @@
         To get the latest DDE release,
         <ul><li> Browse <a href="https://github.com/cfry/dde/releases/latest" target="_blink">Github</a></li>
             <li> Click on the file for your operating system:
-                <ul><li>For Windows: <code>.exe</code></li>
-                    <li>For Mac: <code>.dmg</code></li>
-                    <li>For Linux: <code>.AppImage</code> </li>
+                <ul><li>For Windows: <samp>.exe</samp></li>
+                    <li>For Mac: <samp>.dmg</samp></li>
+                    <li>For Linux: <samp>.AppImage</samp> </li>
                 </ul></li>
             <li> The clicked file will be copied to your downloads folder.
                 For Windows and Mac, you may have to click on it to
                 complete installation, or that might start automatically.
                 For Linux, you will have to make the file executable like so:<br/>
-                <code>$ chmod +x dexter_dev_env.AppImage</code><br/>
+                <samp>$ chmod +x dexter_dev_env.AppImage</samp><br/>
                 in order to run it.
             </li>
         </ul>
     </details>
     <details id="update_doc_id" class="doc_details"><summary>Updating to the latest DDE</summary>
         Follow the directions under <b>First Install</b> above.
-        This will not change any files in your <code>dde_apps</code> folder.
+        This will not change any files in your <samp> Documents/dde_apps</samp> folder.
         <p/>
         Twist down the <b>About</b> row in the Doc pane to see the installed version number of DDE.
     </details>
     <details class="doc_details"><summary>Launch DDE</summary>
         On Windows, the DDE application is installed in
-        <code>C:\Program Files\dexter_dev_env\dexter_dev_env.exe</code>
+        <samp>C:\Program Files\dexter_dev_env\dexter_dev_env.exe</samp>
         and on the desktop.<br/>
-        On Mac, <code>Macintosh HD/Applications/dever_dev_env.app</code>
+        On Mac, <samp>Macintosh HD/Applications/dever_dev_env.app</samp>
         <p/>
         Double click on the file to launch DDE. If there is a file
-        <code>Documents/dde_apps/dde_init.js</code>, it will be
+        <samp>Documents/dde_apps/dde_init.js</samp>, it will be
         loaded automatically. Thus you can put any code in that file
         that you want to be evaled at start-up, such as libraries you've
         written, etc.
     </details>
 </details>
-<details class="doc_details"><summary>Configuration</summary>
-    DDE requires that you create a folder under your Documents folder named <code>dde_apps</code>.
+<details class="doc_details"><summary>Configure DDE</summary>
+    DDE requires that you create a folder under your Documents folder named <samp> dde_apps</samp>.
     If this does not exist when you launch DDE, you'll see a warning in the output pane.
     <p/>
     DDE requires that you define a default robot named "dexter0". Usually the one
@@ -103,15 +103,244 @@
     However, in that file you will need to set the ip_address and port number
     of Dexter. {todo: document how to find Dexter's ip_address.} The port number
     is typically <code>"50000"</code>.
-    <p/>
-    When you plug in and power on Dexter, you will see LEDs light up on Dexter's processor board.
 </details>
+
+<details class="doc_details"><summary>Configure Dexter</summary>
+    <details class="doc_details"><summary>Key Parts</summary>
+     Dexter has 5 joints and 5 links between them. The two longest links
+    are each about 32 centimeters long and made of square carbon fiber tubes.
+    The tube closest  to Dexter's base is LINK2.
+    <p/>
+    Mounted on it is the
+    <i>motor controller</i> printed circuit board, 17cm x 6 cm. Mounted on top
+    of it is the <i>processor</i> board, 10cm x 6cm. Mounted on the bottom of the processor
+    board is an <i>Ethernet socket</i> for an RJ45 connector. Underneath this
+    socket on the motor controller board is a green-yellow LED.
+    This is the "power" LED. It is fairly hidden, but you can see
+    it between the boards if you look carefully.
+    </details>
+    <details class="doc_details"><summary>Power Up</summary>
+When Dexter is off and disconnected from the power, you can move each joint
+manually with just a little resistence from Dexter. When transporting
+Dexter you should move the joints to fold it up into a compact configuration.
+<p/>
+Moving a joint will cause a corresponding drive belt to move.
+You'll hear a "whirring" sound from the transmission.
+You should also see the power light to go on. Dexter's motors act as generators
+and will generate electricity which powers the power LED. Seeing the light go
+on when you move a joint is a diagnostic that the wiring is, at least partially, correct.
+<p/>
+Dexter does not have an on-off switch. You just plug it into its
+power adapter and the wall to turn it on.
+The power adapter that comes with Dexter is a fairly common "power brick" or "wall wart" used
+on many PC laptops. It is about 3 meters long.
+The wall end is a 2 prong, unpolarized connector, common
+for USA appliances. Electrically, it accepts input of 100 to 240 volts, 50 to 60 Hz AC,
+which is supplied throughout the world. However, mechanical connections vary from
+country to country. Adapter plugs that accept the USA 2 prong plugs are commonly available.
+<p/>
+The Dexter end of the power adapter is a male cylinder 5mm in outer diameter, common
+on older PC laptops. The Power Adapter consumes 1.5 Amps and outputs
+3.15 Amps at 19 volts. If you lose it, many PC laptop power adapters will work.
+<p/>
+Before turning on Dexter, move its joints so that its standing straight up.
+With the power board facing you, the final link should be horizontal pointing to the left.
+Dexter's power socket is connected by 2 short wires to Dexter's base. You turn on Dexter by
+plugging in the the power adapter to Dexter and the wall.
+If the wall has power, an LED on the power adapter will go on.
+<p/>
+When Dexter is turned on, after about 8 seconds, it does a 5 second or so little "dance"
+moving each of its joints.
+<p/>
+The processor board has 3 bright LEDs.
+<ul>
+    <li><b style="color:green;">green</b> lights when the processor board is getting power.</li>
+    <li><b style="color:blue;">blue</b>   lights when the FPGA is programmed and ready for operation.</li>
+    <li><b style="color:red;">red</b>     lights during disk access (to the 8 Gigabyte SD card.) </li>
+</ul>
+The base of the motor controller board has 3
+<b style="color:#c6ff21;">green-yellow</b> LEDs on one side and 2 on the other.
+Each indicates that a joint has power.
+    </details> <!-- end Power Up -->
+
+    <details class="doc_details" ><summary>Data Connection</summary>
+    The primary interface between the computer running DDE and Dexter is WiFi.
+    Dexter ships with a USB WiFi "nub", a tiny device ethat plugs into
+    a USB port. We recommend USB 3.0. USB2.0 will work but is slower.
+    You will need to be in a strong WiFi area for best results.
+    <p/>
+    Dexter is shipped with an ip_address of <code>"192.168.1.142"</code>
+    You can use a low level tool called "command prompt" or "terminal"
+    to verify connectivity. Windows and Mac OS's do an excellent job
+    at hiding these useful tools.<br/>
+     On Windows 7, <br/>
+     Start/All Programs/Accessories/Command Prompt.<br/>
+    On MacOS: try <br/>Favorites/Applications/Utilities/terminal.app.<br/>
+    Enter <code title="unevalable">ping 192.168.1.142</code>
+    <p/>
+    If you have connectivity you
+    should see something like the cryptic:<br/>
+     <samp>Reply from 192.168.1.142 bytes=32 time 1ms</samp><br/>
+    several times. Without connectivity you'll see something like:<br/>
+     <samp> Destination host unreachable</samp> or<br/> <samp>Request timeout</samp>
+     or<br/><samp>Host is down</samp>
+    several times.
+    <p/>
+    If WiFi doesn't work for you, use an Ethernet cable (with RJ45 male connectors) to go between
+    Dexter and your computer. Available at Stapes, Home Depot, Best Buy, Amazon, etc.
+    Ethernet cables come in different "Categories". Get "Cat 5e".
+    The <i>Ethernet socket</i> on Dexter is on the bottom of the processor
+    board with the socket facing down. Most modern laptop computers lack an Ethernet socket but there
+    are <i>USB 3.0 to Ethernet RJ45 adaptors</i> for about $15
+    <a href="https://www.amazon.com/s/ref=nb_sb_noss_2?tag=laptop-magazine-20&url=search-alias%3daps&field-keywords=USB+to+Ethernet&rh=i%3aaps%2ck%3aUSB+to+Ethernet"
+       target="_blank">here</a>.
+    Get one that purports to work with your OS, as there are some incompatibilities.
+    Beware that for some adaptors for some OS's you need to install a software driver.
+    <p/>
+    The software setup for such direct-wire connectivity is a bit tricky.<br/>
+    <b>On Windows 7:</b>
+    <ol><li>go to Start/Control Panel/Network and Sharing Center/Change Adapter settings.</li>
+        <li>In that dialog. click right on "Local Area Connection" and </li>
+        <li>Choose "Properties".</li>
+        <li>In the "Network" tab, click on "Internet Protocol Version 4" to select it.</li>
+        <li>Click on the "Properties" button. This presents yet another dialog box.</li>
+        <li>Select "Use the following IP address"</li>
+        <li>Enter ip address: <code title="unevalable">192.168.1.50</code></li>
+        <li>The subnet mask should be:<br/><code title="unevalable">255 255 255 0</code></li>
+        <li>Click the OK button and close the remaining dialogs.</li>
+     </ol>
+        You should now be able to ping Dexter and have connectivity.
+    </details> <!-- end Data Connectivity -->
+    <details class="doc_details"><summary>Test Connectivity</summary>
+        If you are using an Ehternet cable, there are two LEDs on top of the RJ45 socket.
+        When the amber one is lit, it shows connectivity. The green LED indicates
+        data transfer.
+        <p/>
+        On the Jobs menu/Simulate? submenu, choose "false".
+        Now choose Jobs menu/Run Instruction/NEUTRAL_ANGLES,
+        or other angles.
+        <p/>
+        If the robot moves, you can control it from DDE!
+        The next step is using the Jobs menu/Run Instruction (dialog).
+        You can run individual instructions or insert them into
+        the editor pane and start building more complex jobs.
+        We recommend choosing <span style="color:blue;">?</span>
+        in the upper right corner of the Doc pane to understand the Help System.
+    </details>
+
+</details><!-- end Set Up Dexter -->
+
+<details class="doc_details" id="calibrate_doc_id"><summary>Calibrate Dexter</summary>
+To obtain optimal precision, Dexter must be calibrated each time it is powered on.
+Environmental affects of heat, humidity, movement, and orientation towards gravity,
+all conspire to make minor changes that affect Dexter's accuracy.
+<p/>
+Choose the Test menu item of "Calibrate Dexter..." to open a dialog
+aiding calibration.
+</details>
+
 <details class="doc_details"><summary>User Interface</summary>
-    <a style="margin-left:21px;" href="https://youtu.be/y8Mip5NUDPI">Video tutorial of DDE</a>
+    <details id="help_system_doc_id" class="doc_details"><summary>Help System</summary>
+        Web programmers spend an inordinate amount of time searching the web
+        because of missing or incomplete documentation. DDE bends over backwards to
+        provide the documentation you need to create jobs. There are quite a number
+        of ways to get "just in time & place" help within DDE. We've tried to
+        make them easy to discover, but in such a sophisticated environment,
+        you might miss a few. So here's the list:
+        <ul><li><b><a href="http://hdrobotic.com/videos/" target="_blank">DDE video</a></b>
+            This web page has videos on the overall mission, DDE, and the hardware.
+            The DDE video is 10 minutes long and covers the basics.<p/></li>
+            <li><b><a href="http://hdrobotic.com/software" target="_blank">http://hdrobotic.com/software</a></b>
+                This url shows you the content
+                that is in DDE's documentation pane.
+                Usually its better to view this content
+                from within DDE, but there may be times when this web page is handy.
+                For instance, <b>User Guide/Installation</b> tells you how to install DDE.
+                You can also browse the <b>Release Notes</b> before installing a version.<p/></li>
+            <li><b>tooltips</b> Many menu items and buttons provide concise help. Place the
+                mouse over the item and don't move it for a couple of seconds.<p/></li>
+            <li><b>code examples</b> DDE's Learn JS, Insert, and Job menus let you insert,
+                into the editor buffer,
+                practical examples of JavaScript which you can then customize to your needs.<p/></li>
+            <li><b>TestSuite</b> DDE's test suite is used primarily to verify functionality.
+                But you can also use the Test/Insert All menu item to
+                see the source code of many of the tests. This will generally
+                be <i>less</i> useful than explicit examples, but
+                may come in handy for edge cases.<p/></li>
+            <li><b>Doc Pane</b> <br/>The <b>Articles</b> provide overall, abstract help.<br/>
+                The <b>User Guide</b> helps you with the DDE programming
+                environment.<br/>
+                The <b>Reference Manual</b> provides details of the <i>language</i>
+                that is used to create Jobs.<br/>
+                The <b>Release Notes</b> tell you what has changed between releases.
+                The vast majority of this information is folded into the regular documentation
+                upon each release, but if you want to know what's changed,
+                browse the release notes. Recommended each time you update DDE.<br/>
+                The <b>Known Issues</b> tells you about large omissions and problems within DDE.
+                Please don't send us any bug reports about things documented here.<p/></li>
+            <li><b><a href="https://github.com/cfry/dde" target="_blank">https://github.com/cfry/dde</a></b> Rarely should you need to examine
+                DDE's source code to figure out how something works, but its all
+                available on github, including the documentation. <p/>
+                <a href="https://github.com/cfry/dde/releases" target="_blank"> https://github.com/cfry/dde/releases</a> has download instructions.</li>
+            <li><b>New Releases</b> Each time you launch DDE, the Output pane will
+                tell you whether or not there is a later release and how to download it.<p/></li>
+            <li><b>Find button</b> In the Doc pane header, there's a type-in box.
+                Enter text and click the Find button. Sections containing
+                that text will have an orange background. Expand them.
+                The text itself will have a yellow background.
+                This scheme allows you to avoid looking at sections
+                that you may not care about, such as Release Notes.
+                <p/>
+                If the text type-in is blank, the Find button will grab
+                a selection and search for that text in the documentation.
+                You can select text in the Editor, Output, and Doc panes.
+                You can also select text in the Command type-in (Output pane
+                header) and the Run Instruction dialog box's source code type-in.<p/></li>
+            <li><b>Click Help</b> If you click on text in the Editor pane, Output pane,
+                Command line type-in or Doc pane code examples,
+                a line of help about what you clicked on will appear
+                in the output pane. Often this will have a blue, underlined
+                link that you can click on for more information.<p/></li>
+            <li><b>Eval button</b> The Eval button lets you run code pretty much
+                where ever you find it in DDE. The result of the evaluation
+                will appear in the Output pane. While coding, we recommend
+                evaling little pieces of code often. This will prevent
+                hard-to-find bugs. This is a great way to learn
+                about functionality.
+                <ul><li>If there is a selection in the Editor,
+                    it will be evaled when you click the button.
+                    Triple click on a line in the editor to select
+                    the whole line.
+                    Note that all "valid" code won't necessarily
+                    be valid <i>in isolation</i>. For instance, in:<br/>
+                    <code>function foo(my_arg){ my_arg + 2 + 3 }</code><br/>
+                    selecting <code  title="unevalable code fragment"> my_arg</code> (either place)
+                    will error because <code title="unevalable code fragment"> my_arg</code> is undefined.
+                    However, <code>2 + 3</code> => <samp>5</samp></li>
+                    <li>If there is a selection in the Output pane,
+                        Doc pane, or Command type-in, it will be evaled.</li>
+                    <li>If there is no selection, the entire contents of
+                        the Editor pane will be evaluated.</li>
+                </ul><p/></li>
+            <li><b>Run Instruction</b> The Run Instruction dialog let's you trivally created
+                instructions and run them. Open it by choosing Jobs/Run Instruction.
+                Clicking on any of the
+                buttons or the instruction SELECT menu let's you
+                see the parameters of the instruction.
+                The "Insert Job" button will wrap the instruction
+                source in a Job and insert it into the editor
+                buffer at the cursor. This is an easy way to get
+                started on defining a Job. Use the "Insert" button
+                to insert just the source for an instruction.
+                Position the cursor in the Job's do_list first.
+            </li>
+            <!-- <li><b></b> </li>-->
+        </ul>
+    </details>
     <details id="javascript_pane_doc_id" class="doc_details"><summary>Editor Pane</summary>
         The Editor pane is a text editor. You can view and edit any text documents in it,
         but primarily you will be editing JavaScript that defines a job to make something
-        with Dexter. DDE expects you to save such "apps" in your <code>Documents/dde_apps/</code>
+        with Dexter. DDE expects you to save such "apps" in your <samp> Documents/dde_apps/</samp>
         folder.
     </details>
     <details id="output_pane_doc_id" class="doc_details"><summary>Output Pane</summary>
@@ -133,11 +362,12 @@
             If there is a selection within the do_list, then the first instruction
             run will be the one that contains the start of the selection,
             and the last instruction run will be the one that contains the
-            end of the selection. This works by setting the job's <code>program_counter</code>
-            and <code>ending_program_counter</code> properties.
+            end of the selection. This works by setting the job's
+            <code title="unevalable code fragment"> program_counter</code>
+            and <code title="unevalable code fragment"> ending_program_counter</code> properties.
             <p/>
             If you have selected the source code for one or more instructions
-            (with comma's between them) and there is no <code>new Job</code> wrapper
+            (with comma's between them) and there is no <code  title="not in TestSuite"> new Job()</code> wrapper
             around the instructions, then a Job wrapper will be automatically made
             behind the scenes, the job will be defined, and started.
             <p/>
@@ -191,8 +421,8 @@
                 will cause a pause.
                 <p/>
                 Note that using the string <code>"debugger"</code>
-                is intentionally similar to using the JavaScript constant <code>debugger</code>.
-                If you have the constant <code>debugger</code>
+                is intentionally similar to using the JavaScript constant <code title="not in TestSuite"> debugger</code>.
+                If you have the constant <code title="not in TestSuite"> debugger</code>
                 in the body of a function that is a do_list item, or is called by
                 a do_list item, it will cause a JavaScript breakpoint and you
                 can step through that code using the Chrome dev tools.
@@ -200,6 +430,7 @@
             </details>
         </details>
     </details>
+
 </details> <!-- end User Interface -->
 <details class="doc_details"><summary>JavaScript</summary>
     DDE let's you control a Dexter robot with Javascript. You can execute all of JS.
@@ -218,7 +449,7 @@
     just the selected code will be evaluated. In fact, <button>Eval</button>
     works on any selected text. Try it by:
     <ul><li>Select the all below code in white.</li>
-        <li><code style='padding:4px;'>  6 / 2 + " * 4 "  </code></li>
+        <li><code style='padding:4px;'>6 / 2 + " * 4 "  </code></li>
         <li>Click the Eval button.</li>
         <li>In the Output pane, select<br/> 3 * 4</li>
         <li>Click the Eval button.</li>
@@ -236,14 +467,14 @@
     HTML, CSS or JQuery that are commonly taught in conjunction with JavaScript.
     <p/>
     <a href="http://jsforcats.com" target="_blank">A very gentle intro to JavaScript.</a> Ignore the
-    parts that use the <code>Underscore</code> library.<br/>
+    parts that use the <i>Underscore</i> library.<br/>
     A more formal (and long) <a href="http://www.w3schools.com/js/" target="_blank">tutorial</a>.
     <details class="doc_details"><summary>JS for Programmers</summary>
         If you're already a competent programmer but don't know JS specifics,
         here's a few tips:<br/>
         JavaScript is an <b>untyped</b> language. That means you don't declare types
         of variables, function parameters, or return values. So for instance,
-        <br/>C's &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<code>int foo = 32;</code> <br/>
+        <br/>C's &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<code  title="unevalable code fragment"> int foo = 32;</code> <br/>
         in JS is <code>var foo = 32;</code><br/>
         The type system is,
         um, weak. The <b>object system</b> is also in somewhat of disarray. Because of that
@@ -267,14 +498,14 @@
         <code>Math.min(3, 4)<br/>
             Math.min(5, 6)</code><br/>
         but not:<br/>
-        <code>Math.min(3, 4)  &nbsp;Math.min(5, 6)</code>
+        <code title="errors"> Math.min(3, 4)  &nbsp;Math.min(5, 6)</code>
         <p/>
         There is no <b>Window System</b> per se in JavaScript but it ties into
         HTML, CSS and the browser's Document Object Model. This is confusing since
         it requires several different syntaxes and ways-of-thinking. DDE
         simplifies this by providing
         the key window system facilites you'll need for commanding Dexter
-        via the function <code>show_window</code>, the <code>Human.enter_*</code> instructions
+        via the function <code>show_window</code>, the <code title="unevalable code fragment"> Human.enter_*</code> instructions
         and a few other utilities. See the <button>Insert&#9660;</button> menu.
         <p/>
         Javascript's functionality greatly expanded in 2016 with a new version who's name
@@ -327,9 +558,11 @@
         Imagine you define
         <br/><code>function foo(){return bar()}</code> and
         <br/><code>function bar(){return 'stuff'}</code>
-        <br/>You call <code>foo()</code> and it returns <code>'stuff'</code>.
-        Now you rename <code>bar</code> to <code>baz</code> and test <code>baz()</code>. It returns
-        <code>'stuff'</code> as expected, as does calling <code>foo()</code>. Now
+        <br/>You call <code>foo()</code> => <samp>'stuff'</samp>.
+        Now you rename <code>bar</code> to <code title="unevalable code fragment"> baz</code> like so:
+        <code>function baz(){return 'stuff'}</code>and test
+        <code>baz()</code> => <samp>'stuff'</samp> as expected, as does calling
+        <code>foo()</code> => <samp>'stuff'</samp>. Now
         <ul><li>Save this code in a file</li>
             <li>Relaunch DDE</li>
             <li>Open the file in the editor</li>
@@ -366,12 +599,12 @@
     in its series. The Up and Down arrow buttons replace a selected series item
     with an item from <i>another</i> series. Effectively this uses the series of series.
     <p/>
-    An example of a series is <code>boolean</code>. Choose it from the <button>Series&#9660;</button>
+    An example of a series is <i>boolean</i>. Choose it from the <button>Series&#9660;</button>
     menu. It inserts <code>true</code>. Now hit the right arrow key to see additional items
-    in the series (false, null, etc.) The left arrow goes backwards through the series.
+    in the series (<code>false</code>, <code>null</code>, etc.) The left arrow goes backwards through the series.
     <p/>
     With any series item selected, hit the down arrow. If you're on a member of the boolean series,
-    this will replace the selection with an item from the <code>integer</code> series.
+    this will replace the selection with an item from the <i>integer</i> series.
     Press the up and down arrows to go to a new series.
     <p/>
     Each time you go to a new item from series or click on one already in the editor,
@@ -390,11 +623,11 @@
 <details class="doc_details" id='robots_doc_id'><summary>Robots</summary>
     A robot is a machine capable of performing the instructions in its instruction set.
     The class hierarchy of DDE Robots is:<br/>
-    <ul><li>Robot
-        <ul><li>Brain</li>
-            <li>Dexter</li>
-            <li>Human</li>
-            <li>Serial</li>
+    <ul><li><code>Robot</code>
+        <ul><li><code>Brain</code></li>
+            <li><code>Dexter</code></li>
+            <li><code>Human</code></li>
+            <li><code>Serial</code></li>
         </ul>
     </li>
     </ul>
@@ -402,7 +635,7 @@
     at least a name (and in the case of Dexter, an ip_address and a port number) then
     create an instance of Job and give it a robot property of the robot you created.
     The job should also have a do_list, which is the sequence of instructions to run
-    on the robot. When the <code>start</code> method is called on a Job, it sends the items
+    on the robot. When the <code title="unevalable code fragment"> start</code> method is called on a Job, it sends the items
     on its do_list to the associated robot, sequentially, one at a time.
     <p/>
     From a software standpoint, a robot <i>is</i> its instruction set.
@@ -474,15 +707,15 @@
     of JavaScript code, only that code will be evaled when you click <button>Eval</button>
     <br/><br/>
     Another technique is to comment out code until your bug goes away.<br/>
-    <b><code>// </code></b> comments out to the end of the line.<br/>
-    <b><code>/* comment */</code></b> Wrap JavaScript in <br/>
+    <b><code title="unevalable code fragment"> // </code></b> comments out to the end of the line.<br/>
+    <b><code title="unevalable code fragment"> /* comment */</code></b> Wrap JavaScript in <br/>
     slash-star ... star-slash<br/> to comment
     out code in the middle of a line or multiple lines.
     See the Editor pane's <button>Learn JS&#9660;</button> <i>debugging</i> menu items.
     <br/><br/>
-    Entering <code>debugger;</code> into the body of a JS function definition will set a breakpoint there.
-    When <code>debugger;</code> is evaluated (after you call the function) and the <i>Chrome Developer Tools</i>
-    window is open, execution will pause and highlight the <code>debugger;"</code> statement in a copy
+    Entering <code title="not in TestSuite"> debugger;</code> into the body of a JS function definition will set a breakpoint there.
+    When <code  title="not in TestSuite"> debugger;</code> is evaluated (after you call the function) and the <i>Chrome Developer Tools</i>
+    window is open, execution will pause and highlight the <code title="not in TestSuite"> debugger;</code> statement in a copy
     of your source code.
     (To open the <i>Chrome Developer Tools</i> window, click right on any DDE pane and choose
     <b>Inspect</b>. If you don't see "Inspect" on the menu, read the documentation
@@ -490,18 +723,18 @@
     Use the arrow buttons <img src="stepper_buttons.png" width="120" alt="stepper buttons"/>
     in the Developer Tools window upper right to step execution.
     <br/><br/>
-    Wrapping <code>console.log(...)</code> around a complex data structure will print it
+    Wrapping <code>console.log()</code> around a complex data structure will print it
     out in the Chrome Developer Tools console with arrows to allow you to expand
     data pieces of your choice to inspect. To see the console,
     click right anywhere in DDE and choose "Inspect".<p/>
     You can print strings into the Output pane with a call to <code>out</code>.
     Because <b>out</b> returns
     its 1st argument, you can embed it in code to see an intermediate value.<br/>
-    <code> (out(2 + 3)) * 4</code> <br/>will print out 5, but return 20.<br/>
+    <code>out(2 + 3) * 4</code> => <samp>20</samp><br/>will print out 5, but return 20.<br/>
     <button>Insert&#9660;</button> <i>Print to output</i> has items that print in a few different colors
     so that you can distinquish some outputs from others in a complex debugging session.
     <br/><br/>
-    <b>speak</b> behaves similarly to <b>out</b> in that it returns its 1st arg.
+    <b>speak</b> behaves similarly to <code>out</code> in that it returns its 1st arg.
     It can be useful in contexts where you want to know a value but don't
     want to look at the screen to find it.
     speak is on the Insert menu, under <i>Learn Javascript/debugging</i>.

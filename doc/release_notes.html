@@ -5,6 +5,114 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 2.0.5, Jul 21, 2017</summary>
+Highlights: Gamepad & keyboard input,
+            Help system doc,
+            Configure Dexter Doc,
+            All User Guide code examples now in test suite just like ref man.
+<ul>
+    <li> Ref Man <code>move_to_straight</code>: The header fixed from
+         "move_to" to "move_to_straight".</li>
+
+    <li> Glossary: added definitions for:<br/>
+          config<br/>
+          J5_direction<br/>
+          position,<br/>
+          pose</li>
+
+    <li> A job now stops if it cannot connect.</li>
+
+    <li> <code>move_to</code> now stops its job for 2 more error conditions.</li>
+
+    <li> Fixed bug in <code>Robot.wait_until</code> with a number (duration) argument.</li>
+
+    <li> Added to Dexter Constant Series:<br/>
+        "Dexter.NEUTRAL_ANGLE"<br/>
+        "Dexter.HOME_POSITION"<br/>
+        "Dexter.NEUTRAL_POSITION"</li>
+
+    <li> Stop sign now empties the instruction queue ASAP.</li>
+
+    <li> The user_guide code examples are now a TestSuite just like
+         the code examples in the ref man.</li>
+
+    <li> The white-background code examples in the User Guide and
+        Ref Man that can NOT be evaled or are not part of the TestSuite,
+        now have tooltips explaining that.</li>
+
+    <li> Extended <code>show_window</code> such that if a SELECT tag has
+        an attribute of data-onchange, and no "name" but an "id",
+        that it uses the "id" for the "name" as do other inputs
+        in show_window.</li>
+
+    <li> run_instruction dialog: Now when you choose an instruction
+        from the instruction menu, it defaults the args to
+        the settings above for:<br/>
+        move_to<br/>
+        move_to_relative<br/>
+        move_to_straight<br/>
+        move_all_joints<br/>
+        move_all_joints_relative<br/>
+        set_parameter</li>
+
+    <li> run_instruction dialog, parameter documentation:
+        long parameter strings are put in a smaller font to show more
+        of it in the limited space.</li>
+
+    <li> http://hdrobotic.com/software/ now has a purple header for "Glossary"
+        like the other sections.</li>
+
+    <li> http://hdrobotic.com/software/ expanded region for showing documentation
+        now eliminates the redundant vertical scroll bar.</li>
+
+    <li> New doc section: User Guide/User Interface/<b>Help System</b>
+        12 ways to get help.</li>
+
+    <li> "?" link in upper right corner of Doc pane header now
+        scrolls the doc pane to doc on the "Help System".</li>
+
+    <li> New File menu item: "Load ..."</li>
+
+    <li> Glossary new terms:<br/>
+        Job<br/>
+        robot<br/>
+        do_list<br/>
+        instruction</li>
+
+    <li> Ref Man/IO reorg: new section: "Web" which includes the existing doc for:<br/>
+        <code>get_page</code><br/>
+        <code>get_page_async</code><br/>
+        <code>make_url</code>.</li>
+
+    <li> Support for using gamepads and keyboards for real-time control of Dexter
+        and other processes added.
+        Extensive documentation in Ref Man/IO/Gamepad & Keyboard
+        including an example of using a gamepad and/or keyboard for incrementing
+        Dexter joint angles inside a Job.</li>
+
+    <li> Fix to <code>Socket.instruction_array_degrees_to_arcseconds_maybe</code>
+        that precluded the "ViewEye" calibration process from working.</li>
+
+    <li> Updated Job examples, calls to <code>Dexter.sleep</code> to
+        use time in seconds, not milliseconds.</li>
+
+    <li> Updated Job Example 2 for new <code>move_to</code> arguments.</li>
+
+    <li> Fixed simulator for processing z oplets.</li>
+
+    <li> New Jobs menu/Job Example 2 (simple dexter-moving with
+         <code>move_all_joints</code>
+        and <code>move_to</code> instructions.
+        The subsequent Job examples have had their example numbers incremented.</li>
+
+    <li> <code>speak</code> extended to be able to accept any JavaScript data
+        (except null) as an argument: ie speak(123)
+        Extended doc in Ref Man/IO/Sound/speak</li>
+
+    <li> User Guide new top level section: <b>Configure Dexter</b>
+         includes power up and data connection instructions.</li>
+    </ul>
+    </details>
 
 <details class="doc_details"><summary>v 2.0.4, Jul 8, 2017</summary>
 Highlights: load_files can now load file of any extensions.<br/>

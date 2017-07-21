@@ -117,7 +117,7 @@ DexterSim = class DexterSim{
 
     //hardware side methods below
     static process_next_instructions(){
-        const the_now = Date.now()
+        const the_now = Date.now() //in milliseconds
         //for(var sim_inst in DexterSim.robot_name_to_dextersim_instance_map.values()){
         for(var robot_name in DexterSim.robot_name_to_dextersim_instance_map){
             const sim_inst = DexterSim.robot_name_to_dextersim_instance_map[robot_name]
@@ -125,7 +125,7 @@ DexterSim = class DexterSim{
             if (sim_inst.now_processing_instruction &&
                 (sim_inst.ending_time_of_cur_instruction <= the_now)) { //end the cur instruction and move to the next
                 let ds_copy = sim_inst.rs.slice() //make a copy to return as some subseqent call to this meth will modify the one "model of dexter" that we're saving in the instance
-                ds_copy[Dexter.STOP_TIME] = Date.now()
+                ds_copy[Dexter.STOP_TIME] = Date.now() //in milliseconds
                 const oplet = sim_inst.now_processing_instruction[Dexter.INSTRUCTION_TYPE]
                 if ((sim_inst.sim_actual === true) && ["F", "G", "g"].includes(oplet)) { //dont do when sim == "both"
                     Dexter.robot_done_with_instruction(ds_copy)
@@ -157,10 +157,10 @@ DexterSim = class DexterSim{
         var oplet  = instruction_array[Dexter.INSTRUCTION_TYPE]
         robot_status[Dexter.JOB_ID]            = instruction_array[Instruction.JOB_ID]
         robot_status[Dexter.INSTRUCTION_ID]    = instruction_array[Instruction.INSTRUCTION_ID]
-        robot_status[Dexter.START_TIME]        = Date.now()
+        robot_status[Dexter.START_TIME]        = Date.now() //in ms
         robot_status[Dexter.INSTRUCTION_TYPE]  = instruction_array[Instruction.INSTRUCTION_TYPE] //leave this as a 1 char string for now. helpful for debugging
         robot_status[Dexter.ERROR_CODE]        = 0
-        let ins_args = Instruction.args(instruction_array)
+        let ins_args = Instruction.args(instruction_array) //in arcseconds
         let angle
         switch (oplet){
             case "a": //move_all_joints
@@ -168,7 +168,7 @@ DexterSim = class DexterSim{
                                     robot_status[Dexter.J2_ANGLE],
                                     robot_status[Dexter.J3_ANGLE],
                                     robot_status[Dexter.J4_ANGLE],
-                                    robot_status[Dexter.J5_ANGLE]]
+                                    robot_status[Dexter.J5_ANGLE]] //these are in arcseconds
                 angle = ins_args[0]
                 if (!isNaN(angle)){ robot_status[Dexter.J1_ANGLE] = angle}
                 angle = ins_args[1]
@@ -179,7 +179,12 @@ DexterSim = class DexterSim{
                 if (!isNaN(angle)){ robot_status[Dexter.J4_ANGLE] = angle}
                 angle = ins_args[4]
                 if (!isNaN(angle)){ robot_status[Dexter.J5_ANGLE] = angle}
-                dur = Math.abs(Kin.predict_move_dur(orig_angles, ins_args, this.robot)) //milliseconds
+                //predict needs its angles in degrees but ins_args are in arcseconds
+                const orig_angles_in_deg = orig_angles.map(function(ang) { return ang / 3600 })
+                const ins_args_in_deg    = ins_args.map(function(ang) { return ang / 3600 })
+                dur = Math.abs(Kin.predict_move_dur(orig_angles_in_deg, ins_args_in_deg, this.robot)) * 1000
+                     //we convert from arcseconds to degrees, pass in the angles to preduct,
+                    // which returns a dur in seconds, then convert that to milliseconds
                 break;
             case "b": //move_to  xyz
                 /*if (!isNaN(instruction_array[2])) robot_status[Dexter.ds_j5_x_index]     = instruction_array[2]
@@ -240,9 +245,8 @@ DexterSim = class DexterSim{
                                  write_location + " and value of: " + ins_args[1]) }
                 break
             case "z": //sleep
-                dur =  Math.round(ins_args[0]/ 1000000) //instruction array z sleep time is in milliseconds in Jobs and robots,
-                      //but Dexter expects nanoseconds so ns_args[0] is in nanosecs.
-                      //So we convert it to ms here for setTimeout
+                dur = Math.round(ins_args[0] / 1000) //ins_args z sleep time is in microseconds,
+                                               //converted from secs to to usecs in in socket.js
                 break;
             default:
                 if (Dexter.instruction_type_to_function_name_map[oplet]){
@@ -292,6 +296,11 @@ DexterSim = class DexterSim{
                 }
             }
         }
+    }
+
+    static empty_instruction_queue_now(robot_name){
+        let sim_inst = DexterSim.robot_name_to_dextersim_instance_map[robot_name]
+        sim_inst.instruction_queue = []
     }
     
 }

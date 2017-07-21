@@ -723,31 +723,31 @@ Dexter = class Dexter extends Robot {
                         const sim_actual = Robot.get_simulate_actual(this_robot.simulate)
                         if(!this_robot.is_initialized()){
                             if (this_robot.simulate === true){
-                                dde_error("The job: " + this_job.name + " is using robot: " + this_robot.name +
-                                    "<br/>with simulate=true, but could not connect with the Dexter simulator.")
+                                this_job.stop_for_reason("errored", "The job: " + this_job.name + " is using robot: " + this_robot.name +
+                                    "<br/>\nwith simulate=true, but could not connect with the Dexter simulator.")
                             }
                             else if ((this_robot.simulate === false) || (this_robot.simulate === "both")){
-                              dde_error("The job: " + this_job.name + " is using robot: " + this_robot.name +
-                                "<br/>but could not connect with a Dexter robot at: " +
+                                this_job.stop_for_reason("errored", "The job: " + this_job.name + " is using robot: " + this_robot.name +
+                                "<br/>\nbut could not connect with a Dexter robot at: " +
                                 this_robot.ip_address + " port: " + this_robot.port +
-                                "<br/>You can change this robot to <code>simulate=true</code> and run it.")
+                                "<br/>\nYou can change this robot to <code>simulate=true</code> and run it.")
                             }
                             else if (this_robot.simulate === null){
                                 if ((sim_actual === false) || (sim_actual === "both")){
-                                dde_error("The job: " + this_job.name + " is using robot: " + this_robot.name +
-                                    '<br/>with the Jobs menu "Simulate?" item being: ' + sim_actual  +
-                                    "<br/>but could not connect with Dexter." +
-                                    "<br/>You can use the simulator by switching the menu item to 'true'. ")
+                                    this_job.stop_for_reason("errored", "The job: " + this_job.name + " is using robot: " + this_robot.name +
+                                    '<br/>\nwith the Jobs menu "Simulate?" item being: ' + sim_actual  +
+                                    "<br/>\nbut could not connect with Dexter." +
+                                    "<br/>\nYou can use the simulator by switching the menu item to 'true'. ")
                                 }
                                 else {
-                                    dde_error("The job: " + this_job.name + " is using robot: " + this_robot.name +
-                                              "<br/>with a Jobs menu, 'Simulate?' value of 'true', " +
-                                              "<br/>but could not connect with the Dexter simulator.")
+                                    this_job.stop_for_reason("errored", "The job: " + this_job.name + " is using robot: " + this_robot.name +
+                                              "<br/>\nwith a Jobs menu, 'Simulate?' value of 'true', " +
+                                              "<br/>\nbut could not connect with the Dexter simulator.")
                                 }
                             }
                             else {
                                 shouldnt("Dexter.start got invalid simulate value of: " + this_robot.simulate +
-                                         '.<br/> The value values are: true, false, "both" and null.')
+                                         '.<br/>\nThe value values are: true, false, "both" and null.')
                             }
 
                         }
@@ -823,6 +823,10 @@ Dexter = class Dexter extends Robot {
         //and as such we want that binding of Robot.this_name to still be around.
     }
 
+    empty_instruction_queue_now(){
+        Socket.empty_instruction_queue_now(this.name, this.simulate)
+    }
+
     send(ins_array){
         //var is_heartbeat = ins_array[Instruction.INSTRUCTION_TYPE] == "h"
         let oplet = ins_array[Instruction.INSTRUCTION_TYPE]
@@ -831,12 +835,12 @@ Dexter = class Dexter extends Robot {
             shouldnt(this.name + ".send called with oplet: " + oplet +
                      ", but " + this.name + ".processing_flush is true so send shouldn't have been called.")
         }
-        else if (oplet == "z"){
+        /*else if (oplet == "z"){ //converstin done in sockets.
             ins_array = ins_array.slice()
             const sleep_in_ms = ins_array[Dexter.INSTRUCTION_TYPE + 1]
             const sleep_in_ns = Math.round(sleep_in_ms * 1000000)
             ins_array[Dexter.INSTRUCTION_TYPE + 1] = sleep_in_ns //because Dexter expects nanoseconds
-        }
+        }*/
         //note: we send F instructions through the below.
         Socket.send(this.name, ins_array, this.simulate)
     }
@@ -1213,15 +1217,36 @@ function move_to_straight_aux(xyz_1, xyz_2, J5_direction, config, tool_speed = 5
     return movCMD
 }
 
-//warning calling with no args to default everything will be out-of-reach becuase JS_direction is not straight up,
+
+Dexter.is_position = function(an_array){
+    return (Array.isArray(an_array)    &&
+             (an_array.length == 3)     &&
+
+             Array.isArray(an_array[0]) &&
+            (an_array[0].length == 3)  &&
+
+            Array.isArray(an_array[1]) &&
+            (an_array[1].length == 3)  &&
+
+             Array.isArray(an_array[2]) &&
+            (an_array[2].length == 3)
+    )
+}
+//warning: calling with no args to default everything will be out-of-reach because JS_direction is not straight up,
 //params info:
 // xyz New defaults are the cur pos, not straight up.
 // J5_direction  = [0, 0, -1], //end effector pointing down
+//warning: soe valid xyz locations won't be valid with the default J5_direction and config.
 Dexter.move_to = function(xyz = [],
                           J5_direction  = [0, 0, -1],
                           config        = Dexter.RIGHT_UP_OUT
                          ){
         return function(){
+            if(Dexter.is_position(xyz)){
+                xyz = xyz[0]
+                J5_direction = xyz[1]
+                config = xyz[2]
+            }
             if((J5_direction === null) || (config === null)){
                 let [existing_xyz, existing_direction, existing_config] = Kin.J_angles_to_xyz(this.robot.angles, this.robot.pose) //just to get defaults.
                 if(J5_direction === null) { J5_direction = existing_direction }
@@ -1231,9 +1256,11 @@ Dexter.move_to = function(xyz = [],
                (J5_direction.length == 2) &&
                (Math.abs(J5_direction[0]) == 90) &&
                (Math.abs(J5_direction[1]) == 90)){
-                const job_inst = Instruction.job_of_instruction_array(the_inst_array)
-                job_inst.stop_for_reason("errored", "Dexter.move_to was passed an invalid J5_direction of:<br/>" + J5_direction +
+                this.stop_for_reason("errored", "Dexter.move_to was passed an invalid J5_direction of:<br/>" + J5_direction +
                           "<br/>[90, 90], [-90, 90], [90, -90] and [-90, -90]<br/> are all invalid.")
+            }
+            if (similar(xyz, Dexter.HOME_POSITION[0])) {
+                return make_ins("a", ...Dexter.HOME_ANGLES)
             }
             let xyz_copy = xyz.slice(0)
             for(let i = 0; i < 3; i++){
@@ -1246,8 +1273,7 @@ Dexter.move_to = function(xyz = [],
 
             }
             catch(err){
-                const job_inst = Instruction.job_of_instruction_array(the_inst_array)
-                job_inst.stop_for_reason("errored", "Dexter instruction move_to passed xyz values:<br/>" + xyz + "<br/>that are not valid.<br/>" +
+                this.stop_for_reason("errored", "Dexter instruction move_to passed xyz values:<br/>" + xyz + "<br/>that are not valid.<br/>" +
                                                     err.message)
             }
             for(let i = 0; i < 5; i++){ angles[i] = Math.round( angles[i]) }
@@ -1259,7 +1285,6 @@ Dexter.move_to = function(xyz = [],
                 this.stop_for_reason("errored", "move_to called with out of range xyz: " + xyz)
             }
         }
-    //}
 }
 
 Dexter.move_to_relative = function(delta_xyz = [0, 0, 0]){
@@ -1494,9 +1519,9 @@ Dexter.HOME_ANGLES    = [0, 0, 0, 0, 0]  //j2,j3,j4 straight up, link 5 horizont
 Dexter.NEUTRAL_ANGLES = [0, 45, 90, -45, 0] //lots of room for Dexter to move from here.
 Dexter.PARKED_ANGLES  = [0, 0, 135, 45, 0 ] //all folded up, compact.
 
-Dexter.HOME_POSITION    = [[0, 0.08255, 0.866775],[0, 0,-1], [1, 1, 1]] //meters, j5 direction, config
-Dexter.NEUTRAL_POSITION = [[0, 0.5,     0.075],[0, 0, -1],[1, 1, 1]]    //meters, j5 direction, config
-//don't define   Dexter.PARKED_POSITION = [0, 0.15, 0.20],  [0, -1, 0],   [1, 1, 1]
+Dexter.HOME_POSITION    = [[0, 0.08255, 0.866775],[0, 1, 0], [1, 1, 1]] //meters, j5 direction, config
+Dexter.NEUTRAL_POSITION = [[0, 0.5,     0.075],   [0, 0, -1],[1, 1, 1]]    //meters, j5 direction, config
+//don't define   Dexter.PARKED_POSITION = [0, 0.151, 0.20],  [0, -1, 0],   [1, 1, 1]
 
     /*Dexter.robot_status_labels = [
         "ds_instruction_id",    // = 0

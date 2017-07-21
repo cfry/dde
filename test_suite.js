@@ -221,7 +221,8 @@ var TestSuite = class TestSuite{
     }
 
     static run_all(){
-        if (!TestSuite["reference_manual_id"]) { TestSuite.make_test_suites_from_doc() }
+        if (!TestSuite["user_guide_id"]) { TestSuite.make_test_suites_from_doc(user_guide_id) }
+        if (!TestSuite["reference_manual_id"]) { TestSuite.make_test_suites_from_doc(reference_manual_id) }
         var reports = "<b style='font-size:20px;'>All Test Suites Report</b><br/>"
         let start_time = Date.now()
         for (let suite of TestSuite.suites){
@@ -684,47 +685,15 @@ var TestSuite = class TestSuite{
         }
         out(result_html)
     }
-    /*
-    static run_test_suites_in_doc(){
-       debugger
-       var code_elts = reference_manual_id.querySelectorAll('code')
-       var error_count = 0
-       var result_html = ""
-       for (let code_elt of code_elts){
-           var src = code_elt.innerText
-           if(src[0] != " ") {
-               var src_val
-               try { src_val = eval(src) }
-               catch(err) {
-                   result_html += "<br/>error evaling: " + scr
-               }
-               var next_elt = code_elt.nextElementSibling
-               if (next_elt && (next_elt.tagName == "SAMP")){
-                   var result_src = next_elt.innerText
-                   var result_val
-                   try { result_val = eval(result_src) }
-                   catch(err) {
-                       result_html += "<br/> error evaling: " + result_src
-                   }
-                   if(!similar(src_val, result_val)){
-                       result_html += "<br/>ref man example failed test: " + src + " != " + result_src
-                   }
-               }
-           }
-       }
-       if (
-       out(error_count == 0) { + "doc bugs", ((error_count == 0) ? "green" : "red"))
-        code_elts =  user_guide_id.querySelector('code')
-    }
-    */
-    static make_test_suites_from_doc(){
+
+    static make_test_suites_from_doc(html_elt=reference_manual_id){
         var doc_test_suites = []
-        for(var dom_elt of [reference_manual_id]){ //user_guide_id
+        for(var dom_elt of [html_elt]){ //user_guide_id
             var code_elts = dom_elt.querySelectorAll('code')
             var a_test_suite_tests = []
             for (let code_elt of code_elts){
                 var src = code_elt.innerText
-                if(src[0] != " ") {
+                if (!code_elt.title){  //(src[0] != " ")
                     var a_test = [src]
                     var next_elt = code_elt.nextElementSibling
                     if (next_elt && (next_elt.tagName == "SAMP")){

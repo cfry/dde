@@ -28,8 +28,26 @@ Job.my_job.start() //Start running 'my_job'
 //followed by details of the job's ending state,
 //including status_code: "completed" if all goes well.
 `,
+`/*       Example 2 
+move_all_joints takes 5 angles in degrees, one for each 
+of Dexter's joints.
+move_to takes an xyz position (in meters from Dexter's base),
+where you want the end effect to end up.
+Beware, the 2nd and 3rd args to move_to determine the ending
+J5_direction and which way the joints go. 
+These are tricky to get right.
+*/
+new Job({name: "j2",
+        do_list: [Dexter.move_all_joints([0, 0, 0, 0, 0]), //angles
+                  Dexter.move_to([0, 0.5, 0.075],     //xyz
+                                 [0, 0, -1],          //J5_direction
+                                 Dexter.RIGHT_UP_OUT) //config
+                 ]})
+//After defining this Job by clicking the EVAL button,
+//click this job's button in the Output pane's header to start it.
+`,
 
-`///////// Job Example 2
+`///////// Job Example 3
 //An instruction can also be a function call that
 //returns a low level array for Dexter to execute.
 ///Dexter.sleep and Dexter.move_to
@@ -42,8 +60,8 @@ function move_once(){
 }
 function sleep_and_move(){
     return [Dexter.move_all_joints([0, 0, 135, 45, 0]),
-            Dexter.sleep(500),
-            Dexter.move_to([0, 0.5, 0.075], [0, 0, -1], Dexter.RIGHT_UP_IN)
+            Dexter.sleep(2),
+            Dexter.move_to([0, 0.5, 0.075], [0, 0, -1], Dexter.RIGHT_UP_OUT)
            ]
 }
 new Dexter({name: "my_dex",
@@ -64,7 +82,7 @@ Job.j1.start()
 `,
 
 
-`//////// Job Example 3: Generators  See https://davidwalsh.name/es6-generators
+`//////// Job Example 4: Generators  See https://davidwalsh.name/es6-generators
 //A generator is a function that can effectively return a value
 //in the middle of its definition via 'yield', then be called again
 //and resume after the previous 'yield'.
@@ -72,40 +90,37 @@ Job.j1.start()
 //Running a job automatically handles the re-calling
 //of a generator until its exhausted.
 
-//_______Job Example 3a: Simple Generator
+//_______Job Example 4a: Simple Generator
 function* gen_moves(){
     yield (Dexter.move_all_joints([0, 0, 135, 45, 0]))
-    yield (Dexter.sleep(1000))
+    yield (Dexter.sleep(1))
     yield* [Dexter.move_all_joints([0, 45, 90, -45, 0]),
-            Dexter.sleep(999)
+            Dexter.sleep(1)
            ]
 }
-new Job({name: "j1", robot: new Dexter(), do_list: [gen_moves]})
-Job.j1.start()
+new Job({name: "ja", do_list: [gen_moves]})
 
-//_______Job Example 3b: Generator with for loop
+//_______Job Example 4b: Generator with for loop
 function* complex_gen(){
     for(var i = 0; i < 4; i++){
         yield Dexter.move_all_joints(i * 10)
     }
 }
-new Job({name: "j2",  robot: new Dexter(), do_list: [complex_gen]})
-Job.j2.start()
+new Job({name: "jb",  robot: new Dexter(), do_list: [complex_gen]})
 
-//________Job Example 3c: Nested Generators
+//________Job Example 4c: Nested Generators
 function* nested_gen(){
     var complex_iterator = complex_gen()
     for(var instru of complex_iterator){
         yield instru
     }
-    yield Dexter.sleep(1000)
+    yield Dexter.sleep(1)
 }
-new Job({name: "j3", robot: new Dexter(), do_list: [nested_gen]})
-Job.j3.start()
+new Job({name: "jc", robot: new Dexter(), do_list: [nested_gen]})
 `,
 
 
-`////////Job Example 4a: synchronizing Jobs
+`////////Job Example 5a: synchronizing Jobs
 //The sync_point control instruction causes a job
 //to wait until all the other jobs with the same
 //sync_point name (i.e. "midway") reach that sync point.
@@ -125,7 +140,7 @@ Job.job_a.start(); Job.job_b.start() //execute both at once.
 //its "midway" point, then they both proceed.
 
 
-/////////Job Example 4b: One job controlling another
+/////////Job Example 5b: One job controlling another
 //Control instructions increase the flexibility of Jobs.
 //They can add instructions to other jobs (send_to_job)
 // as well as pause (suspend) and resume (unsuspend) jobs.
@@ -149,7 +164,7 @@ new Job({name: "j5",
                    Robot.out("j5 sez goodbye.")]})
 Job.j5.start()
 
-////////Job Example 4c: Instructing another job and getting its data
+////////Job Example 5c: Instructing another job and getting its data
 //In DDE, its easy for a job to get the state of another job.
 //Job.other_job_name.program_counter or Job.other_job_name.user_data
 //or any other part of the job. But if you want to send an instruction
@@ -183,7 +198,7 @@ then the job with the sent_to_job instruction will wait until
 the whole of the to_job is done before proceeding                           
 */
 
-////// Job Example 4d: Prepending to the do_list when calling start.
+////// Job Example 5d: Prepending to the do_list when calling start.
 
 new Job({name: "j8",
           do_list: [Robot.out("first instruction"),
@@ -193,7 +208,7 @@ Job.j8.start({initial_instruction: Robot.out("special insert")})
 `,
 
 
-`//////// Job Example 5 Calling show_window from an instruction
+`//////// Job Example 6 Calling show_window from an instruction
 function handle_print_job_1_dialog_input(vals){
     if(vals.clicked_button_value == "Continue"){
         Job.print_job_1.user_data.color = vals.input_3
@@ -244,7 +259,7 @@ Job.print_job_1.start()
 `,
 
 
-`//////// Job Example 6a: Using a human 'robot' cooperating with a Brain robot
+`//////// Job Example 7a: Using a human 'robot' cooperating with a Brain robot
 //Jobs may contain instructions for human operators as well as robots,
 //facilitating well-coordinated human-machine processes.
 new Job({name: "lots_of_options_task",
@@ -261,7 +276,7 @@ new Job({name: "lots_of_options_task",
                 ]})                           
 Job.lots_of_options_task.start()
 
-//////// Job Example 6b: Dependent Jobs
+//////// Job Example 7b: Dependent Jobs
 new Job({name: "dependent_job", //robot type defaults to Brain
     do_list: [Robot.sync_point("load_filament", ["my_job"]),
               Robot.out("dependent_job last instruction")]})
@@ -278,7 +293,7 @@ new Job({name: "my_job", robot: new Human({name: "Joe Jones"}),
 Job.dependent_job.start(); Job.my_job.start() //start both at once
 
 
-//////// Job Example 6c: human chooses material from list
+//////// Job Example 7c: human chooses material from list
 new Job({name: "material_job", robot: new Human({name: "Joe Jones"}),
     do_list: [Human.enter_choice({
                  task: "Which material should we use?",
@@ -292,7 +307,7 @@ new Job({name: "material_job", robot: new Human({name: "Joe Jones"}),
 Job.material_job.start()
 // Job.material_job.user_data
 
-//////// Job Example 6d: human enters a number
+//////// Job Example 7d: human enters a number
 new Job({name: "number_job",
     robot: new Human({name: "Joe Jones"}),
     do_list: [Human.enter_number({
@@ -307,7 +322,7 @@ new Job({name: "number_job",
 Job.number_job.start()
 // Job.number_job.user_data
 
-//////// Job Example 6e: human enters text
+//////// Job Example 7e: human enters text
 new Job({name: "text_job",
     robot: new Human({name: "Joe Jones"}),
     do_list: [Human.enter_text({
@@ -320,7 +335,7 @@ new Job({name: "text_job",
 Job.text_job.start()
 // Job.text_job.user_data
 
-//////// Job Example 6f: Notify
+//////// Job Example 7f: Notify
 //Tell human something without pausing execution.
 new Job({name: "notify_job",
     robot: new Human({name: "Joe Jones"}),
@@ -336,7 +351,7 @@ Job.notify_job.start()
 `,
 
 
-`//////// Job Example 7: Human Enter Instruction
+`//////// Job Example 8: Human Enter Instruction
 //This job pauses and presents a dialog box allowing
 //the entry of an instruction, to continue the job, or to cancel it.
 //An instruction can be entered via text or we can GENERATE
@@ -354,7 +369,7 @@ Job.my_job.start()
 `,
 
 
-`/*     Job Example 8 Async Instructions
+`/*     Job Example 9 Async Instructions
 Using "dont_call_set_up_next_do"
  Normally when a function in JS is called, it
  executes the code in its body and returns 
@@ -454,7 +469,7 @@ Job.my_job.start()
 beep({frequency: 440,   duration: 5000})
 beep({frequency: 440.5, duration: 5000})
 `,
-`/* Job Example 9 Serial Port
+`/* Job Example 10 Serial Port
    Connections between different devices are often problematic,
    because this is much more complex than most programmers expect.
    Your most useful trait is persistence! 
@@ -562,7 +577,7 @@ Job.j10.user_data //all the user data
 Job.j10.user_data.yes_result //just our yes_result
 `,
 
-`/*Job Example 10 when_stopped
+`/*Job Example 11 when_stopped
 The 'when_stopped' parameter to new Job controls what
 happens when a job executes all its instructions or otherwise
 comes to a normal stopping point. The default value is "stop",

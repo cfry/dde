@@ -1,13 +1,15 @@
-/**
- * Created by Fry on 6/19/17.
- */
+/*Created by Fry on 6/19/17.*/
 
 var Gamepad = class Gamepad {
+   //////keyboard specific code
     static remember_keydown(event){
         Gamepad.the_down_keys[event.keyCode] = true
+        //event.stopPropagation() //doens't work in stopping keystokes going to the editor.
+                                  //so just clock mouse on another pane first.
     }
     static remember_keyup(event){
         Gamepad.the_down_keys[event.keyCode] = false
+        //event.stopPropagation()
     }
     //this is effectively, "init". Do it once per dde session,
     //or whenever a key is "stuck down" and you want to clear
@@ -26,32 +28,152 @@ var Gamepad = class Gamepad {
         window.removeEventListener("keyup",   Gamepad.remember_keydown)
         Gamepad.is_remembering_keydown = false
     }
-    static keycode_to_keyname(keycode){
-        return Gamepad.keyboardMap[keycode]
+    static keycode_to_keyname(keycode){ //keycode is NOT the ascii integer. keyname is the char, ie "a" or "3"
+        return Gamepad.keycode_to_keyname_map[keycode]
     }
+    ///////gamepad specific code
+    //good for axes too
+    static gamecode_to_gamename(but_or_axes_code){
+        if (but_or_axes_code >= 0) { // 0 to 16 or so
+            if (but_or_axes_code < Gamepad.gamecode_to_gamename_map.length){
+                return Gamepad.gamecode_to_gamename_map[but_or_axes_code]
+            }
+            else { return "button" + but_or_axes_code }
+        }
+        else { //but_code is really an axis_code from -1 on down.
+            let i = (but_or_axes_code + 1) * -1 //i is now axes names array index
+            if (i < Gamepad.axes_names.length){
+                return Gamepad.axes_names[i]
+            }
+            else { return "axes" + but_or_axes_code }
+        }
+    }
+
+    static gamename_to_gamecode(gamename){
+        for (var gamecode = 0; gamecode < Gamepad.gamecode_to_keycode_map.length; gamecode++) {
+            var a_gamename =  Gamepad.gamecode_to_gamename(gamecode)
+            if (a_gamename == gamename) { return gamecode }
+        }
+        for (var i = 0; i < Gamepad.axes_names.length; i++) {
+            var a_gamename =  Gamepad.axes_names[i]
+            if (a_gamename == gamename) { return (i + 1) * -1 }  //returns -1, -2, -3 or -4
+        }
+        if (gamename.startsWith("button")) {
+            var gamecode_str = gamename.substring(6)
+            if(is_string_a_integer(gamecode_str)){
+                return Number.parseInt(gamecode_str)
+            }
+            else { return null }
+        }
+        return null
+    }
+
+
+    /////keyboard & gamepad code
+    //return an array of literal objects, each one standing for a key that's down
+    //this is the main user function.
     /*a,b,x,y l(eft bumper) r(ight bumper)
      [ left_stick   ] right_stick
      v view, m menu
      1-> 4 left trigger for values 0.25, 0.5. 0.71. 1
      and 6->9 right trigger
      arrows: up, down, left, right*/
-    static keycode_to_button_number(keycode){
-        return "some_but_num"
+     //may return null
+    static gamecode_to_keycode(gamecode){ //gamecode is an integer 0 through 17 or so depending on the gamepad.
+        if (gamecode >= Gamepad.gamecode_to_keycode_map.length) { return null }
+        else if (gamecode < 0) { return null } //game axis, not a game button.
+        else { return Gamepad.gamecode_to_keycode_map[gamecode] }
     }
-    static down_keys(){
-        if(!Gamepad.is_remembering_keydown){
-            Gamepad.start_remembering_keydown()
+    //may return null
+    static keycode_to_gamecode(keycode){ //gamecode is an integer 0 through 17 or so depending on the gamepad.
+        for (var gamecode = 0; gamecode < Gamepad.gamecode_to_keycode_map.length; gamecode++) {
+            var a_keycode = Gamepad.gamecode_to_keycode_map[gamecode]
+            if (a_keycode == keycode) { return gamecode }
         }
+        var keyname = Gamepad.keycode_to_keyname(keycode)
+        if (["1", "2", "3", "4"].includes(keyname)) {
+            return Gamepad.gamename_to_gamecode("LEFT_TRIGGER")
+        }
+        else if (["5", "6", "7", "8"].includes(keyname)) {
+            return Gamepad.gamename_to_gamecode("RIGHT_TRIGGER")
+        }
+        else { return null }
+    }
+
+    static down_keys(device="keyboard_gamepad", which_gamepad=0){
         const result = []
-        for(var keycode = 0; keycode < Gamepad.the_down_keys.length; keycode++){
-            if(Gamepad.the_down_keys[keycode]) {
-                result.push(
-                    {keyname: Gamepad.keycode_to_keyname(keycode),
-                        keycode: keycode,
-                        value: 1,
-                        button_number:  Gamepad.keycode_to_button_number(keycode),
-                        button_name: "some_but_name"
-                    })
+        if (device.includes("keyboard")){
+            if (!Gamepad.is_remembering_keydown){
+                 Gamepad.start_remembering_keydown()
+            }
+            for(var keycode = 0; keycode < Gamepad.the_down_keys.length; keycode++){
+                if(Gamepad.the_down_keys[keycode]) {
+                    var gamecode = Gamepad.keycode_to_gamecode(keycode)
+                    var gamename = Gamepad.gamecode_to_gamename(gamecode)
+                    var keyname  = Gamepad.keycode_to_keyname(keycode)
+                    var val      = 1
+                    switch(keyname){
+                        case "1": val = 0.25; break;
+                        case "2": val = 0.5;  break;
+                        case "3": val = 0.75; break;
+                        case "4": val = 1;    break;
+                        case "5": val = 0.25; break;
+                        case "6": val = 0.5.  break;
+                        case "7": val = 0.75; break;
+                        case "8": val = 1;    break;
+                    }
+                    result.push({device:   "keyboard",
+                                 gamecode:  gamecode,
+                                 gamename:  gamename,
+                                 keycode:   keycode,
+                                 keyname:   keyname,
+                                 value:     val
+                                })
+                }
+            }
+        }
+        if (device.includes("gamepad")){
+            var gp = navigator.getGamepads()[which_gamepad]
+            if (!gp && !device.includes("keyboard")) { //if there's no gamepad AND we're not allowing kwyboard input, then no possibility of any input so error
+                if (which_gamepad > 3) {
+                    dde_error("Usually, only 4 gamepads can be used (0 thru 3) but you tried for: " + which_gamepad)
+                }
+                else { dde_error("No gamepad at index: " + which_gamepad + " found." +
+                    "<br/>Make sure a gamepad is plugged into a USB port," +
+                    "<br/>Hit a button on it, and try again.")
+                }
+            }
+            else if (gp) {
+                const num_of_buttons = gp.buttons.length
+                for (let gamecode = 0; gamecode < num_of_buttons; gamecode++){
+                    var   but     = gp.buttons[gamecode]
+                    if(but.pressed){
+                        let gamename = Gamepad.gamecode_to_gamename(gamecode)
+                        let keycode = Gamepad.gamecode_to_keycode(gamecode)
+                        let keyname = (keycode ? Gamepad.keycode_to_keyname(keycode) : null)
+                        result.push({device:   "gamepad",
+                                     gamecode:  gamecode,
+                                     gamename:  gamename,
+                                     keycode:   keycode,
+                                     keyname:   keyname,
+                                     value:     1
+                                     })
+                    }
+                }
+                const num_of_axes = gp.axes.length
+                for(let i = 0; i < num_of_axes; i++){
+                    let val = gp.axes[i]
+                    if ((val >= 0.1) || (val <= -0.1)) { //joysticks are "noisy" so filter out values close to 0
+                        let axes_num = (i + 1) * -1 //axes_num is typically -1 thru -4
+                        var axes_name = gamepad_button_number_to_name(axes_num)
+                        result.push({gamename: axes_name,
+                                     gamecode: axes_num, //will be -1, -2, -3, or -4
+                                     keycode:  null,
+                                     keyname:  null,
+                                     value:    val //will not be 0
+                                    })
+                    }
+                }
             }
         }
         return result
@@ -64,11 +186,16 @@ Gamepad.is_remembering_keydown = false
 
 //from https://stackoverflow.com/questions/1772179/get-character-value-from-keycode-in-javascript-then-trim/5829387#5829387
 //array index is a keyCode and the corresponding value
-//is the "name" of  the key. Note that there's
+//is the "name" of the key. Note that there's
 //just 1 set of letters (upper case) because
 //there's just one set of letters on a keyboard.
+//the "name" is generally the name printed on the key thouse these vary slightly.
 //this has nothing to do with ascii codes.
-Gamepad.keyboardMap = [
+//this maps keycode (0 to 255)  to keyname (a string)
+//speical keys:
+// fn on both mac and windows does not get an event
+//both shift keys, Alt/option keys and command/windows keys retun the same keycode
+Gamepad.keycode_to_keyname_map = [
     "", // [0]
     "", // [1]
     "", // [2]
@@ -77,7 +204,7 @@ Gamepad.keyboardMap = [
     "", // [5]
     "HELP", // [6]
     "", // [7]
-    "BACK_SPACE", // [8]
+    "BACK_SPACE", // [8] sometimes called "delete"
     "TAB", // [9]
     "", // [10]
     "", // [11]
@@ -87,7 +214,7 @@ Gamepad.keyboardMap = [
     "", // [15]
     "SHIFT", // [16]
     "CONTROL", // [17]
-    "ALT", // [18]
+    "ALT", // [18] called "option" on Mac
     "PAUSE", // [19]
     "CAPS_LOCK", // [20]
     "KANA", // [21]
@@ -101,7 +228,7 @@ Gamepad.keyboardMap = [
     "NONCONVERT", // [29]
     "ACCEPT", // [30]
     "MODECHANGE", // [31]
-    "SPACE", // [32]
+    " ", //"SPACE", // [32]
     "PAGE_UP", // [33]
     "PAGE_DOWN", // [34]
     "END", // [35]
@@ -253,15 +380,15 @@ Gamepad.keyboardMap = [
     "VOLUME_MUTE", // [181]
     "VOLUME_DOWN", // [182]
     "VOLUME_UP", // [183]
-    "", // [184]
-    "", // [185]
-    "SEMICOLON", // [186]
-    "EQUALS", // [187]
-    "COMMA", // [188]
-    "MINUS", // [189]
-    "PERIOD", // [190]
-    "SLASH", // [191]
-    "BACK_QUOTE", // [192]
+    "",  // [184]
+    "",  // [185]
+    ";", // "SEMICOLON", // [186]
+    "=", //"EQUALS", // [187]
+    ",", //"COMMA", // [188]
+    "-", //"MINUS", // [189]
+    ".", //"PERIOD", // [190]
+    "/", //"SLASH", // [191]
+    "`", //"BACK_QUOTE", // [192]
     "", // [193]
     "", // [194]
     "", // [195]
@@ -288,10 +415,10 @@ Gamepad.keyboardMap = [
     "", // [216]
     "", // [217]
     "", // [218]
-    "OPEN_BRACKET", // [219]
-    "BACK_SLASH", // [220]
-    "CLOSE_BRACKET", // [221]
-    "QUOTE", // [222]
+    "[", //"OPEN_BRACKET", // [219]
+    "\\", //"BACK_SLASH", // [220]
+    "]", //"CLOSE_BRACKET", // [221]
+    "'", //"QUOTE", // [222]
     "", // [223]
     "META", // [224]
     "ALTGR", // [225]
@@ -325,4 +452,53 @@ Gamepad.keyboardMap = [
     "PA1", // [253]
     "WIN_OEM_CLEAR", // [254]
     "" // [255]
+]
+
+Gamepad.axes_names = [
+    //axis name      //gamecode
+    "LEFT_STICK_X",  //-1
+    "LEFT_STICK_Y",  //-2
+    "RIGHT_STICK_X", //-3
+    "RIGHT_STICK_Y"  //-4
+]
+
+Gamepad.gamecode_to_gamename_map = [ //xbox one button names from https://support.xbox.com/en-US/xbox-one/accessories/xbox-one-wireless-controller
+    "A",             //0 right thumb 0 or 1
+    "B",             //1 right thumb 0 or 1
+    "X",             //2 right thumb 0 or 1
+    "Y",             //3 right thumb 0 or 1
+    "LEFT_BUMPER",   //4 left  forefinger (above trigger) 0 or 1
+    "RIGHT_BUMPER",  //5 right forefinger (above trigger) 0 or 1
+    "LEFT_TRIGGER",  //6 left  forefinger 0 to 1
+    "RIGHT_TRIGGER", //7 right forefinger 0 to 1
+    "VIEW",          //8 left  thumb (near center little button) 0 or 1
+    "MENU",          //9 right thumb (near center little button) 0 or 1
+    "LEFT_STICK",    //10 left  thumb joystick button 0 or 1 and horizontal -1 to 1 and vertical -1 to 1
+    "RIGHT_STICK",   //11 right thumb joystick button 0 or 1 and horizontal -1 to 1 and vertical -1 to 1
+    "UP",            //12 left  thumb Direction pad 0 or 1
+    "DOWN",          //13 left  thumb Direction pad 0 or 1
+    "LEFT",          //14 left  thumb Direction pad 0 or 1
+    "RIGHT",         //15 left  thumb Direction pad 0 or 1
+    "OS_KEY"         //16 XBOX either thumb (top center of gamepad) 0 or 1
+]
+
+Gamepad.gamecode_to_keycode_map = [
+//keycode, gamecode, keyname, gamename
+     65,   //0, A       A
+     66,   //1, B       B
+     88,   //2, X       X
+     89,   //3, Y       Y
+     76,   //4, L       LEFT BUMPER
+     82,   //5, R       RIGHT BUMPER
+     52,   //6  4       LEFT_TRIGGER  (really keynames 1, 2, 3, 4)
+     57,   //7  9       RIGHT_TRIGGER (really keynames 5 ,6, 7, 8)
+     86,   //8  V       VIEW
+     77,   //9  M       MENU
+     219, //10  [       LEFT_STICK
+     221, //11  ]       RIGHT_STICK
+     38,  //12  UP      UP
+     40,  //13  DOWN    DOWN
+     37,  //14  LEFT    LEFT
+     39,  //15  RIGHT   RIGHT
+     91   //16  OS_KEY  OS_KEY
 ]

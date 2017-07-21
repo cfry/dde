@@ -6,7 +6,7 @@ You must have a good web connection.
 try{dict1} catch(err) { dict1 = {} } //so we don't accidently overwrite dict1 when evaling the file, but do initialize it if need be.
 
 function translate(text){
-    result = text
+    var result = text
     for(let key of Object.keys(dict1)){
         const def = dict1[key]
         result = replace_substrings(result, key, def)

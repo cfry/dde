@@ -427,7 +427,7 @@ Object.defineProperty(Object.prototype, 'sourceCode',{
                 let prop_names     = Object.getOwnPropertyNames(this)
                 let has_props      = prop_names.length != 0
                 let last_prop_name = (has_props? prop_names[prop_names.length - 1] : undefined)
-                result = "{prototype: " + proto.objectPath() + (has_props ? ",\n " : "}\n")
+                let result = "{prototype: " + proto.objectPath() + (has_props ? ",\n " : "}\n")
                 for(let prop_name of prop_names){
                     let val = this[prop_name]
                     let val_string

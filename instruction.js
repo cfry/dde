@@ -1381,7 +1381,7 @@ Instruction.Control.wait_until = class wait_until extends Instruction.Control{
                 job_instance.set_up_next_do(0)
             }
         }
-        else if (typeof(fn_date_dur) == "number"){
+        else if (typeof(this.fn_date_dur) == "number"){
             if (this.start_time == null) { this.start_time = Date.now() } //hits the first time this do_item is called for an inst
             var dur_from_start = Date.now() - this.start_time
             if (dur_from_start >= this.fn_date_dur * 1000){ //dur_from_start is in ms, fn_date_dur is in seconds

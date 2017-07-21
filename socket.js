@@ -47,7 +47,8 @@ var Socket = class Socket{
         return arr_buff
     }
 
-    //also converts S params: "MaxSpeed", "StartSpeed", "Acceleration"
+    //also converts S params: "MaxSpeed", "StartSpeed", "Acceleration", S params of  boundry
+    //and  the z oplet. Note that instruction start and end times are always in milliseconds
     static instruction_array_degrees_to_arcseconds_maybe(instruction_array){
         const oplet = instruction_array[Dexter.INSTRUCTION_TYPE]
         if (oplet == "a"){
@@ -73,6 +74,7 @@ var Socket = class Socket{
                 return instruction_array_copy
             }
             else if (name.includes("Boundry")) {
+                var instruction_array_copy = instruction_array.slice()
                 instruction_array_copy[Instruction.INSTRUCTION_ARG1] =
                     Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG1] * 3600) //deg to arcseconds
                 return instruction_array_copy
@@ -82,7 +84,7 @@ var Socket = class Socket{
         else if (oplet == "z") {
             var instruction_array_copy = instruction_array.slice()
             instruction_array_copy[Instruction.INSTRUCTION_ARG0] =
-                Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG0] * 1000) //seconds to milliseconds
+                Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG0] * 1000000) //seconds to microseconds
             return instruction_array_copy
         }
         else { return instruction_array }
@@ -97,6 +99,28 @@ var Socket = class Socket{
             instruction_array_copy[Instruction.INSTRUCTION_ARG2] /= 3600
             instruction_array_copy[Instruction.INSTRUCTION_ARG3] /= 3600
             instruction_array_copy[Instruction.INSTRUCTION_ARG4] /= 3600
+            return instruction_array_copy
+        }
+        else if (oplet == "S"){
+            const name = instruction_array[Instruction.INSTRUCTION_ARG0]
+            if(["MaxSpeed", "StartSpeed", "Acceleration"].includes(name)){
+                var instruction_array_copy = instruction_array.slice()
+                instruction_array_copy[Instruction.INSTRUCTION_ARG1] =
+                    instruction_array_copy[Instruction.INSTRUCTION_ARG1] / _nbits_cf
+                return instruction_array_copy
+            }
+            else if (name.includes("Boundry")) {
+                var instruction_array_copy = instruction_array.slice()
+                instruction_array_copy[Instruction.INSTRUCTION_ARG1] =
+                    instruction_array_copy[Instruction.INSTRUCTION_ARG1] / 3600 //arcseconds to deg
+                return instruction_array_copy
+            }
+            else { return instruction_array }
+        }
+        else if (oplet == "z") {
+            var instruction_array_copy = instruction_array.slice()
+            instruction_array_copy[Instruction.INSTRUCTION_ARG0] =
+                instruction_array_copy[Instruction.INSTRUCTION_ARG0] / 1000 //milliseocnds to seconds
             return instruction_array_copy
         }
         else { return instruction_array }
@@ -140,6 +164,21 @@ var Socket = class Socket{
             const ws_inst = Socket.robot_name_to_ws_instance_map[robot_name]
             if(ws_inst){
                 ws_inst.destroy()}
+        }
+    }
+
+    static empty_instruction_queue_now(robot_name, simulate){
+        const sim_actual = Robot.get_simulate_actual(simulate)
+        if ((sim_actual === true) || (sim_actual === "both")){ //simulation
+            DexterSim.empty_instruction_queue_now(robot_name)
+        }
+        if ((sim_actual === false) || (sim_actual == "both")){
+            const ws_inst = Socket.robot_name_to_ws_instance_map[robot_name]
+            if(ws_inst){
+                const instruction_array = make_inst("E") //don't expect to hear anything back from this.
+                const array = instruction_array_to_array_buffer(instruction_array)
+                ws_inst.write(array)
+            }
         }
     }
 }

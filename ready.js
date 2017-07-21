@@ -148,7 +148,6 @@
     }*/
 
     function init_doc(){
-        const path = __dirname + "/doc/guide.html"
         let content =   '<details><summary class="doc_top_level_summary">Articles</summary>\n' +
                            '<details class="doc_details"><summary class="doc_articles_level_summary">Overview</summary>\n' +
                                 file_content(__dirname + "/doc/dde_overview/Dexter_Development_Environment.html") +
@@ -163,10 +162,10 @@
                                 file_content(__dirname + "/doc/glossary.html") +
                             "</details>\n" +
                         '</details>\n' +
-                        '<details><summary class="doc_top_level_summary">User Guide</summary>\n' +
+                        '<details id="user_guide_id"><summary class="doc_top_level_summary">User Guide</summary>\n' +
                             file_content(__dirname + "/doc/guide.html") +
                         "</details>\n" +
-                        '<details id="reference_manual_id" ><summary class="doc_top_level_summary">Reference Manual</summary>\n' +
+                        '<details id="reference_manual_id"><summary class="doc_top_level_summary">Reference Manual</summary>\n' +
                             file_content(__dirname + "/doc/ref_man.html") +
                         "</details>\n" +
                         '<details><summary class="doc_top_level_summary">Release Notes</summary>\n' +
@@ -360,6 +359,16 @@
             //Editor.set_javascript(content)
             //Editor.add_path_to_files_menu(path)
             Editor.edit_file(path)
+        }
+    }
+
+    load_file_id.onclick=function(e) {
+        const path = choose_file(show_dialog_options={title: "Choose a file to load"})
+        if (path){
+            //const content = file_content(path)
+            //Editor.set_javascript(content)
+            //Editor.add_path_to_files_menu(path)
+            out(load_files(path))
         }
     }
 
@@ -963,6 +972,8 @@ foo      //eval to see the latest values</pre>`,
     insert_job_example8_id.onclick = function(){Editor.insert(job_examples[8])}
     insert_job_example9_id.onclick = function(){Editor.insert(job_examples[9])}
     insert_job_example10_id.onclick = function(){Editor.insert(job_examples[10])}
+    insert_job_example11_id.onclick = function(){Editor.insert(job_examples[11])}
+
 
     run_instruction_id.onclick = run_instruction
     move_to_home_id.onclick    = function(){ Robot.dexter0.move_all_joints_fn() }
@@ -1003,6 +1014,11 @@ foo      //eval to see the latest values</pre>`,
                      "neither of which are valid Job instructions.")
          }
          else { Robot.dexter0.run_instruction_fn(sel) }
+    }
+
+    calibrate_id.onclick = function(){
+            load_files("calibrate_ui.js")
+            start_calibrate()
     }
 
 
@@ -1093,7 +1109,10 @@ foo      //eval to see the latest values</pre>`,
      else if (sim_val === false)  { simulate_radio_false_id.checked = true }
      else if (sim_val === "both") { simulate_radio_both_id.checked  = true }
 
-     setTimeout(check_for_latest_release, 100)
+     help_system_id.onclick = function(){ open_doc(help_system_doc_id) }
+
+
+        setTimeout(check_for_latest_release, 100)
 }
 function check_for_latest_release(){
     latest_release_version_and_date(function(err, response, body){

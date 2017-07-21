@@ -664,6 +664,7 @@ Job.last_job = null
 Job.stop_all_jobs = function(){
     var stopped_job_names = []
     for(var j of Job.all_jobs()){
+        if (j.robot instanceof Dexter) { j.robot.empty_instruction_queue_now() }
         if ((j.stop_reason == null) && (j.status_code != "not_started")){
             j.stop_for_reason("interrupted", "User stopped all jobs.", false)
             stopped_job_names.push(j.name)
@@ -725,7 +726,7 @@ Job.report = function(){
                 "for help in creating a job.")
         }
         else {
-            result  = "<table style='border: 1px solid black;border-collapse: collapse;'><tr style='background-color:white;'><th>Job Name</th><th>ID</th><th>Robot</th><th>Start Time</th><th>Stop Time</th><th>Status</th></tr>"
+            var result  = "<table style='border: 1px solid black;border-collapse: collapse;'><tr style='background-color:white;'><th>Job Name</th><th>ID</th><th>Robot</th><th>Start Time</th><th>Stop Time</th><th>Status</th></tr>"
             for (var j of Job.all_jobs()){
                 var start_time = "Not started"
                 var stop_time = ""

@@ -600,6 +600,13 @@ function trim_string_for_eval(str){
     }
 }
 
+//removes prefix, & suffix whitespace AND replaces multiple
+//redundant interior whtiespace with a single space.
+function all_trim(str){
+    str = str.trim()
+    return str.replace(/\s+/g,' ')
+}
+
 function replace_substrings(orig_string, substring_to_replace, replacement){
     return orig_string.replace(new RegExp(substring_to_replace, 'g'), replacement);
 }

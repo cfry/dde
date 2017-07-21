@@ -159,6 +159,7 @@
                                     <ul>
                                         <li id="new_id"     title="Make a new file.">New</li>
                                         <li id="open_id"    title="Edit an exiting file.">Open...</li>
+                                        <li id="load_file_id"    title="Evaluate the content of a JavaScript file.">Load...</li>
                                         <li id="insert_file_id" title="Insert the content of a file&#013;into the editor at the cursor,&#013;replacing the selection if any.">Insert file...</li>
                                         <li id="save_id"    title="Save the current file.">Save</li>
                                         <li id="save_as_id" title="Save the current file under a new name.">Save As...</li>
@@ -493,15 +494,17 @@
                                             <ul>
                                                 <li id="insert_job_example0_id" title="Insert into the editor a 1 instruction Job definition.">0. Simplest</li>
                                                 <li id="insert_job_example1_id" title="Insert into the editor an example of defining a simple job.">1. Simple</li>
-                                                <li id="insert_job_example2_id" title="Insert into the editor a job with function call instructions.">2. Dexter & Fns</li>
-                                                <li id="insert_job_example3_id" title="Insert into the editor examples of defining 3 complex jobs using generators.">3. Generators</li>
-                                                <li id="insert_job_example4_id" title="Insert into the editor examples of defining jobs that interact with other jobs.">4. Sync Jobs</li>
-                                                <li id="insert_job_example5_id" title="Insert into the editor examples of defining a job that gets user input while running.">5. User Input</li>
-                                                <li id="insert_job_example6_id" title="Insert into the editor examples of using a human 'robot'.">6. Human Instrs</li>
-                                                <li id="insert_job_example7_id" title="Insert into the editor a job containing&#013;Human.enter_instruction.">7. Enter Instruction</li>
-                                                <li id="insert_job_example8_id" title="Insert into the editor a tutorial on using Asynchronous Functions.">8. Async Fns</li>
-                                                <li id="insert_job_example9_id" title="Insert into the editor a tutorial on using Serial Port.">9. Serial Port</li>
-                                                <li id="insert_job_example10_id" title="Insert into the editor a tutorial on using&#013;when_stopped for looping a job, etc.">10. when_stopped</li>
+                                                <li id="insert_job_example2_id" title="Insert into the editor a simple Dexter-moving Job.">2. Dexter-moving</li>
+
+                                                <li id="insert_job_example3_id" title="Insert into the editor a job with function call instructions.">3. Dexter & Fns</li>
+                                                <li id="insert_job_example4_id" title="Insert into the editor examples of defining 3 complex jobs using generators.">4. Generators</li>
+                                                <li id="insert_job_example5_id" title="Insert into the editor examples of defining jobs that interact with other jobs.">5. Sync Jobs</li>
+                                                <li id="insert_job_example6_id" title="Insert into the editor examples of defining a job that gets user input while running.">6. User Input</li>
+                                                <li id="insert_job_example7_id" title="Insert into the editor examples of using a human 'robot'.">7. Human Instrs</li>
+                                                <li id="insert_job_example8_id" title="Insert into the editor a job containing&#013;Human.enter_instruction.">8. Enter Instruction</li>
+                                                <li id="insert_job_example9_id" title="Insert into the editor a tutorial on using Asynchronous Functions.">9. Async Fns</li>
+                                                <li id="insert_job_example10_id" title="Insert into the editor a tutorial on using Serial Port.">10. Serial Port</li>
+                                                <li id="insert_job_example11_id" title="Insert into the editor a tutorial on using&#013;when_stopped for looping a job, etc.">11. when_stopped</li>
                                             </ul>
                                         </li>
                                         <li id="run_instruction_id" title="Show a dialog for running an instruction on Dexter.">Run Instruction
@@ -533,6 +536,8 @@
                                         <li id="insert_all_test_suites_id"  title="Insert all test suites' source code into the Editor.">Insert all</li>
                                         <li id="run_all_test_suites_id"     title="Run all defined test suites.">Run all TestSuites</li>
                                         <li id="selection_to_test_id"       title="Wrap a test around the current selection.&#13;If no selection, insert an empty test template.">Selection to test</li>
+                                        <li id="calibrate_id"               title="Calibrate one or more Dexters.&#13;Needed each time you power on a Dexter.">Calibrate Dexter...</li>
+
                                     </ul>
                                 </li>
                             </ul>
@@ -616,7 +621,8 @@
                         <span id="documentation_pane_help_id" class="pane_header"><u>Doc</u></span>
                         <input id="find_doc_input_id" placeholder="search string" title="If this field is empty,&#013;the selection in the&#013;Editor, Cmd line, Doc, or Output&#013;pane is used."
                                style="width:150px; font-size:14px;"/>
-                        <button id="find_doc_button_id" title="Find documentation on text to the left&#013;or, if none, selected text anywhere.">Find</button>
+                        <button id="find_doc_button_id" title="Find documentation on text to the left&#013;or, if none, selected text anywhere.">Find</button>&nbsp;
+                        <a id="help_system_id" href="#" title="Help on DDE's Help System">?</a>
                        <!--  <button id="eval_doc_button_id" title="Evaluated the selected code&#013;in the Doc pane.&#013;Result goes in the Output pane.ƒ">Eval Doc</button> obsolete now that Out pane Eval button can do this-->
                     </div>
                     <div id="doc_pane_content_id" contentEditable="false" style="width:97%; height:90%;padding:5px;overflow:scroll;">

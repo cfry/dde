@@ -388,7 +388,7 @@ window.install_menus_and_recurse = install_menus_and_recurse
 window.submit_window = function(event){
      // descriptions of x & y's: http://stackoverflow.com/questions/6073505/what-is-the-difference-between-screenx-y-clientx-y-and-pagex-y
     event.stopPropagation();
-    result = {offsetX:event.offsetX,  offsetY:event.offsetY, //relative to the elt clocked on
+    let result = {offsetX:event.offsetX,  offsetY:event.offsetY, //relative to the elt clocked on
               x:event.x,              y:event.y, //relative to the parent of the elt clicked on
               clientX:event.clientX,  clientY:event.clientY, //Relative to the upper left edge of the content area (the viewport) of the browser window. This point does not move even if the user moves a scrollbar from within the browser.
               pageX:event.pageX,      pageY:event.pageY, //Relative to the top left of the fully rendered content area in the browser.
@@ -522,7 +522,7 @@ window.submit_window = function(event){
     var selects = $(window_content_elt).find("select") //finds all the descentents of teh outer div that are "input" tags
     for (var i = 0; i < selects.length; i++){
         var inp = selects[i]
-        var in_name = inp.name
+        var in_name = (inp.name ? inp.name : inp.id)
         if (in_name){
             var val = inp.value
             result[in_name] = val
@@ -703,9 +703,20 @@ window.append_to_output = function(text){
 //note Series is not defined in sandbox
 window.month_names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September','October', 'November', 'December']
 
-function stringify_for_speak(value){
+//value can either be some single random js type, or a literal object
+//with a field of speak_data, in which case we use that.
+function stringify_for_speak(value, recursing=false){
     var result
-    if (typeof(value) == "string") { result = value }
+    if ((typeof(value) == "object") && (value !== null) && value.hasOwnProperty("speak_data")){
+        if (recursing) {
+            dde_error('speak passed an invalid argument that is a literal object<br/>' +
+                      'that has a property of "speak_data" (normally valid)<br/>' +
+                      'but whose value itself is a literal object with a "speak_data" property<br/>' +
+                      'which can cause infinite recursion.')
+        }
+        else { return stringify_for_speak(value.speak_data, true) }
+    }
+    else if (typeof(value) == "string") { result = value }
     else if (value === undefined)  { result = "undefined"}
     else if (value instanceof Date){
         var mon   = value.getMonth()
@@ -736,9 +747,7 @@ function stringify_for_speak(value){
 window.stringify_for_speak = stringify_for_speak
 
 function speak({speak_data = "hello", volume = 1.0, rate = 1.0, pitch = 1.0, lang = "en_US", voice = 0, callback = null} = {}){
-    //since there's no graphical UI, this can all happen in the sandbox.
-    // if (true) { //!in_sandbox()){
-    if ((arguments.length > 0) && (typeof(arguments[0]) == "string")){
+    if (arguments.length > 0){
         var speak_data = arguments[0] //, volume = 1.0, rate = 1.0, pitch = 1.0, lang = "en_US", voice = 0, callback = null
     }
     var text = stringify_for_speak(speak_data)
