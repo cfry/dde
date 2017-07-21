@@ -440,6 +440,7 @@ var Vector = new function(){
     Vector.average([1, 2, 3])
     */
     
+    
     this.average = function(...args){
     	let temp_args = Convert.deep_copy(args)
         let sum
@@ -615,6 +616,54 @@ var Vector = new function(){
 		return Vector.subtract(vector, Vector.multiply(term1 / term2, short_plane))
 	}
     
+    this.project_point_onto_line = function(point, line_point_1, line_point_2){
+    	let U1a = line_point_1
+        let U1b = point
+        let U2a = line_point_1
+        let U2b = line_point_2
+        let U1ba = Vector.subtract(U1b, U1a)
+        let U2ba = Vector.subtract(U2b, U2a)
+        let proj = Vector.add(Vector.multiply(Vector.dot(U2ba, U1ba) / Vector.magnitude(U2ba)**2, U2ba), U2a)
+        return proj
+    }
+    
+    /*
+    debugger
+    Vector.sign(0)
+    */
+    this.sign = function(array){
+		let dim = Vector.matrix_dimensions(array)
+        let sign_array
+        if(dim[1] == 0){
+        	if(array >= 0){
+            	return 1
+            }else{
+            	return -1
+            }
+        }else if(dim[0] == 1){
+        	sign_array = Vector.make_matrix(dim)[0]
+        	for(let i = 0; i < dim[1]; i++){
+            	if(array[i] >= 0){
+            		sign_array[i] = 1
+            	}else{
+            		sign_array[i] = -1
+            	}
+            }
+        }else{
+        	sign_array = Vector.make_matrix(dim)
+        	for(let i = 0; i < dim[0]; i++){
+            	for(let j = 0; j < dim[1]; i++){
+            		if(array[i][j] >= 0){
+            			sign_array[i][j] = 1
+            		}else{
+            			sign_array[i][j] = -1
+            		}
+                }
+            }
+        }
+        return sign_array
+	}
+    
     //Public
     this.points_to_plane = function(Ua, Ub, Uc){
     	var Uba = Vector.subtract(Ub, Ua)
@@ -701,7 +750,7 @@ var Vector = new function(){
         	result =  0
         }else{
         	if (Vector.distance(Vector.add(short_A, short_B)) === 0){
-            	result = 648000 //this is 180 degrees in arcseconds
+            	result = 180
             }else{
             	var result = atan2d(Vector.distance(Vector.cross(short_A, short_B)), Vector.dot(short_A, short_B))
         	}
@@ -956,12 +1005,28 @@ var Vector = new function(){
         return sum
     }
     
+    /*
+    debugger
+    Vector.abs([[-10, 9], [-8, -6],[-1, -5]])
+    Vector.abs([[-10, 9], [-8, -6]])
+    */
     this.abs = function(array){
     	let dim = Vector.matrix_dimensions(array)
         let array_copy = Convert.deep_copy(array)
-        if(dim[0] == 1){
+        
+        if(dim[1] == 0){
+        	return Math.abs(array)
+        }else if(dim[0] == 1){
+        	array_copy = Vector.make_matrix(dim)[0]
         	for(let i = 0; i < dim[1]; i++){
-            	array_copy[i] = Math.abs(array_copy[i])
+            	array_copy[i] = Math.abs(array[i])
+            }
+        }else{
+        	array_copy = Vector.make_matrix(dim)
+        	for(let i = 0; i < dim[0]; i++){
+            	for(let j = 0; j < dim[1]; j++){
+            		array_copy[i][j] = Math.abs(array[i][j])
+                }
             }
         }
         return array_copy
@@ -971,6 +1036,15 @@ var Vector = new function(){
     Vector.abs(myvec)
     out(myvec)
     */
+    
+    this.quadratic_formula = function(a, b, c){
+    	let det = Math.sqrt(b**2-4*a*c)
+        if(isNaN(det)){
+        	dde_error("Vector.quadratic_formula does not support imaginery roots yet")
+        }
+        return [(-b+det)/(2*a), (-b-det)/(2*a)]
+    }
+    
     
     /**********************************************************
     //Matrix Math

@@ -2,7 +2,7 @@
 //Inverse Kinematics + Forward Kinematics + supporting functions
 //James Wigglesworth
 //Started: 6_18_16
-//Updated: 7_6_17
+//Updated: 7_10_17
 
 
 /*
@@ -557,24 +557,29 @@ var Kin = new function(){
         return pose
     }
     /*
-    var applied_force = -30 //Nm
+    var applied_force = -75 //N
     var angles = [0, 45, 90, -45, 0]
-    angles = [0, 0, 0, 0, 0]
     var fk = Kin.forward_kinematics(angles)
     var points = fk[0]
-    _rev
-    var forcepoint = points[5]
-    var arm1 = Vector.subtract(points[5], points[1])[2]
-    var arm2 = Vector.subtract(points[5], points[2])[2]
+
+	var forcepoint = points[5]
+    var arm1 = Vector.subtract(points[5], points[1])[1]
+    var arm2 = 0
+    var arm3 = 0
+    //var arm1 = 0
+    //var arm2 = Vector.subtract(points[5], points[1])[1]
+    //var arm3 = Vector.subtract(points[5], points[2])[1]
     var T = [0, 0, 0]
-    T[1] = arm1*applied_force
-    T[2] = arm2*applied_force
+    T[0] = arm1*applied_force
+    T[1] = arm2*applied_force
+    T[2] = arm3*applied_force
     out(T)
     
-    var angles = [0, 0, 0, 0, 0]
-    T = [0, -0.8255, 0.8255]
+    //var angles = [0, 45, 0, 0, 0]
+    //T = [0, -0.8255, 0.8255]
     //debugger
     Kin.three_torques_to_force(angles, T)
+    
     */
 
     this.three_torques_to_force = function(J_angles, torques = [0, 0, 0]){
@@ -614,16 +619,17 @@ var Kin = new function(){
         T[2] = Vector.multiply(torques[2], axes[2])
         
         //Perpendicular forces:
-        F[0] = Vector.multiply(-torques[0]/Vector.magnitude(D[0]), Vector.normalize(Vector.cross(D[0], T[0])))
-        F[1] = Vector.multiply(-torques[1]/Vector.magnitude(D[1]), Vector.normalize(Vector.cross(D[1], T[1])))
-        F[2] = Vector.multiply(-torques[2]/Vector.magnitude(D[2]), Vector.normalize(Vector.cross(D[2], T[2])))
+        F[0] = Vector.multiply(Vector.abs(torques[0]/Vector.magnitude(D[0])), Vector.normalize(Vector.cross(D[0], T[0])))
+        F[1] = Vector.multiply(Vector.abs(torques[1]/Vector.magnitude(D[1])), Vector.normalize(Vector.cross(D[1], T[1])))
+        F[2] = Vector.multiply(Vector.abs(torques[2]/Vector.magnitude(D[2])), Vector.normalize(Vector.cross(D[2], T[2])))
         
         //Force-space calcs:
         let F1a = F[1]
         let F1b = Vector.add(F[1], Vector.cross(F[1], P[1]))
         let F2a = F[2]
         let F2b = Vector.add(F[2], Vector.cross(F[2], P[1]))
- 
+        
+        
         let A = (F2b[1]-F1b[1])/(F1a[1]-F1b[1])
         let B = ((F2a[1]-F2b[1])*(F1b[2]-F2b[2]))/((F1a[1]-F1b[1])*(F2a[2]-F2b[2]))
         let C = ((F2a[1]-F2b[1])*(F1a[2]-F1b[2]))/((F1a[1]-F1b[1])*(F2a[2]-F2b[2]))
@@ -631,9 +637,21 @@ var Kin = new function(){
         let beta = (F1b[2]-F2b[2]+(F1a[2]-F1b[2])*alpha)/(F2a[2]-F2b[2])
         
         let ForceYZ = Vector.add(F2b, Vector.multiply(beta, Vector.subtract(F2a, F2b)))
-    	out(ForceYZ)
-    	
-        return [0, ForceYZ[1], ForceYZ[2]]
+		if(torques[1] == 0 && torques[2] == 0){
+        	ForceYZ[1] = 0
+            ForceYZ[2] = 0
+        }
+
+		let lineYZa = [0, ForceYZ[1], ForceYZ[2]]
+        let lineYZb = [1, ForceYZ[1], ForceYZ[2]]
+        let ForceXYZ
+        if(torques[0] == 0){
+        	ForceXYZ = [0, ForceYZ[1], ForceYZ[2]]
+        }else{
+        	ForceXYZ = Vector.project_point_onto_line(F[0], lineYZa, lineYZb)
+        }
+        
+        return ForceXYZ
     }
     /*
     var J_angles = Convert.degrees_to_arcseconds([0, 0, 0, 0, 0]) 
@@ -793,10 +811,59 @@ var Kin = new function(){
     }
     /*
     out(Kin.angles_to_direction(0, 45))
-    
-    
-    
     */
+    
+    this.move_to_straight = function(xyz_1, xyz_2, J5_direction, config, tool_speed = 5*_mm / _s, resolution = .5*_mm, robot_pose){
+    	let movCMD = []
+    	let U1 = xyz_1
+    	let U2 = xyz_2
+    	let U21 = Vector.subtract(U2, U1)
+    	let v21 = Vector.normalize(U21)
+    	let mag = Vector.magnitude(U21)
+    	let div = 1
+    	let step = Infinity
+    	while(resolution < step){
+    		div++
+        	step = mag / div
+    	}
+    	let angular_velocity
+    	let Ui, new_J_angles
+    	let old_J_angles = Kin.xyz_to_J_angles(U1, J5_direction, config, robot_pose)
+        let xyzs = []
+        let speeds = []
+    	for(let i = 0; i < div+1; i++){
+    		Ui = Vector.add(U1, Vector.multiply(i*step, v21))
+        	new_J_angles = Kin.xyz_to_J_angles(Ui, J5_direction, config, robot_pose)
+        	angular_velocity = Kin.tip_speed_to_angle_speed(old_J_angles, new_J_angles, tool_speed)
+        	old_J_angles = new_J_angles
+            
+            xyzs.push(Ui)
+            speeds.push(angular_velocity)
+            /*
+        	movCMD.push(make_ins("S", "MaxSpeed", angular_velocity))
+    		movCMD.push(make_ins("S", "StartSpeed", angular_velocity))
+        	movCMD.push(Dexter.move_to(Ui, J5_direction, config, robot_pose))
+            */
+    	}
+		return [xyzs, speeds]
+	}
+    /*
+    
+    Kin.move_to_straight([0, .5, .075], [0, .6, .075])
+    */
+    /*
+    this.make_ins_move_straight(xyz_1, xyz_2, J5_direction, config, tool_speed = 5*_mm / _s, resolution = .5*_mm, robot_pose){
+    	let CMD = []
+        
+        
+        for(let i = 0; i < .length; i++){
+    		CMD.push(make_ins("S", "MaxSpeed", angular_velocity))
+    		CMD.push(make_ins("S", "StartSpeed", angular_velocity))
+        	CMD.push(Dexter.move_to(Ui, J5_direction, config, robot_pose))
+        }
+        return CMD
+    }*/
+    
 }
 
 /*
