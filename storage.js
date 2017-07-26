@@ -181,7 +181,7 @@ function file_content(path, encoding="utf8"){
                       path)
         }
         else {
-            dde_error("Error getting content for: " + path)
+            dde_error("Error getting content for:<br/><code title='unEVALable'>" + path + "</code>")
         }
     }
 }
@@ -359,24 +359,26 @@ function load_files(...paths) {
             prefix = dde_apps_dir + "/"
         }
         else if (is_root_path(path)){  //path.startsWith("/")
-            if (path.endsWith(".js")){ resolved_paths.push(path) } //don't modify prefix.
-            //this is undocumentd for our users. It allows loading of a file
+            // if (path.endsWith(".js")){ resolved_paths.push(path) } //don't modify prefix.
+            //this is undocumented for our users. It allows loading of a file
             //that is in the electron_dde folder or maybe a full path to the dde_apps folder
-            else {
-                dde_error("loading_file got path: " + path + ' which does not end in ".js"' +
-                          "<br/>No files were loaded.")
-            }
+            //else {
+            //     dde_error("loading_file got path: " + path + ' which does not end in ".js"' +
+            //              "<br/>No files were loaded.")
+            // }
+            if (path.endsWith("/")) { prefix = path }
+            else { resolved_paths.push(path) }
         }
         else if (path.endsWith("/")) { //path does not start with slash.
-            prefix = path //assumes path is intended to be under dde_apps/
+            prefix = dde_apps_dir + "/" + path //assumes path is intended to be under dde_apps/
         }
-        /*kent doesn't like restriction. Sending filesin email neednot tto have the .js extension
+        /*kent doesn't like restriction. Sending filesin email need not tto have the .js extension
                and some pure data files maybe shouldn't have .js extnsions.
         else if (!path.endsWith(".js")){
             dde_error("loading_file got path: " + path + ' which does not end in ".js"'  +
                         "<br/>No files were loaded.")
         }*/
-        else {
+        else { //path does not start or end with slash.
             path = prefix + path
             resolved_paths.push(path)
         }

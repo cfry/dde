@@ -175,7 +175,7 @@ var Socket = class Socket{
         if ((sim_actual === false) || (sim_actual == "both")){
             const ws_inst = Socket.robot_name_to_ws_instance_map[robot_name]
             if(ws_inst){
-                const instruction_array = make_inst("E") //don't expect to hear anything back from this.
+                const instruction_array = make_ins("E") //don't expect to hear anything back from this.
                 const array = instruction_array_to_array_buffer(instruction_array)
                 ws_inst.write(array)
             }

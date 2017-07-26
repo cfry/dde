@@ -118,7 +118,7 @@ function add_cmd_to_user_menu(the_cmd){
     if (!already_in_menu){
         //user_cmds_ul_jq.html("")
         user_cmds_ul_jq.prepend("<li class='jqx-item jqx-menu-item' onclick='rde.shell(\"" + the_cmd  + "\")'>" + the_cmd + "</li>")
-        $("#error_ops_menu").jqxMenu({ width: '50px', height: '25px' }); //re-init the menu
+        $("#ros_menu_id").jqxMenu({ width: '50px', height: '25px' }); //re-init the menu
     }
 }
 

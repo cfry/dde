@@ -384,7 +384,6 @@ function install_menus_and_recurse(inner_lis, window_index){ //the arg is li elt
 window.install_menus_and_recurse = install_menus_and_recurse
 
 
-//called only in UI context, not in sandbox
 window.submit_window = function(event){
      // descriptions of x & y's: http://stackoverflow.com/questions/6073505/what-is-the-difference-between-screenx-y-clientx-y-and-pagex-y
     event.stopPropagation();
@@ -447,7 +446,7 @@ window.submit_window = function(event){
     var trim_strings = trim_strings_elt[0].value
     if (trim_strings == "false") { trim_strings = false}
     else {trim_strings = true}
-    var inputs = $(window_content_elt).find("input") //finds all the descentents of teh outer div that are "input" tags
+    var inputs = $(window_content_elt).find("input") //finds all the descentents of the outer div that are "input" tags
     var window_callback_string = null
     for (var i = 0; i < inputs.length; i++){
         var inp = inputs[i]
@@ -602,20 +601,21 @@ function out(val, color="black", temp=false){
     if ((color != "black") && (color != "#000000")){
         text = "<span style='color:" + color + "';>" + text + "</span>"
     }
-    var existing_temp = $("#temp")
+    var temp_str_id = ((typeof(temp) == "string") ? temp : "temp")
+    var existing_temp_elts = $("#" + temp_str_id)
     if (temp){
-        if (existing_temp.length == 0){
-            text = '<div id="temp" style="border-style:solid;border-width:1px;border-color:#0000FF;margin:5px 5px 5px 15px;padding:4px;">' + text + '</div>'
+        if (existing_temp_elts.length == 0){
+            text = '<div id="' + temp_str_id + '" style="border-style:solid;border-width:1px;border-color:#0000FF;margin:5px 5px 5px 15px;padding:4px;">' + text + '</div>'
             append_to_output(text)
         }
         else {
-            existing_temp.html(text)
+            existing_temp_elts.html(text)
         }
         return "dont_print"
     }
     else {
-        if (existing_temp.length > 0){
-            existing_temp.remove()
+        if ((existing_temp_elts.length > 0) && (temp_str_id == "temp")){ //don't remove if temp is another string. This is used in Job.show_progress
+            existing_temp_elts.remove()
         }
         var out_item_id = "out_" + out_item_index
         out_item_index += 1
@@ -623,7 +623,7 @@ function out(val, color="black", temp=false){
         append_to_output(text)
     }
     myCodeMirror.focus()
-        /* This fails because the "position" of the callto show_output is the position in THIS source code,
+        /* This fails because the "position" of the call to show_output is the position in THIS source code,
          not the code being evaled.
          StackTrace.get(function(sf){
          return true //sf.functionName == show_output

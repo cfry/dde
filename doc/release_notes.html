@@ -5,6 +5,66 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+
+<details class="doc_details"><summary>v 2.0.6, Jul 24, 2017</summary>
+Highlights: Calibrate Dexter menu item, Job progress bar,
+            Many extensions to: User Guide/Configure Dexter
+<ul><li>Tweaks to Gamepad doc headers: shorter to fit in Doc pane.</li>
+
+    <li> <code>out</code> functionality expanded w.r.t. the temp arg.
+        See the extended doc in Ref Man/IO/out</li>
+
+    <li> progress bar now shown in the output pane when a Job is running
+         with the "last instruction sent" to Dexter or executed.</li>
+
+    <li> User Guide and Ref Man instances of "unevalable" respelled to "unEVALable".</li>
+
+    <li> Warning message added to Jobs menu/Show Robot Status when no jobs have been run.</li>
+
+    <li> Brain and Human robots given an "all_names" field just like Dexter and Serial
+    example: Brain.all_names  returns an array of all Brain robot names.</li>
+
+    <li> Now loading DDE is more robust against the last file edited no longer
+        being available. You get a warning in the Output pane,
+        but otherwise loading DDE completes.</li>
+
+    <li> load_files removed the restriction that "root" file paths have
+        to end in ".js" to load.</li>
+
+    <li> load_files extended to be able to have a path that starts
+    and ends with a slash and thus becomes an absolute prefix
+    for subsequent files. Ref Man/IO/File Access/load_files rewritten.</li>
+
+    <li> User Guide/Configure Dexter/Data Connection
+         new section on Mac.</li>
+
+    <li> New doc section: User Guide/Configure Dexter/Dexter's File System.</li>
+
+    <li> New doc: User Guide/Configure Dexter/Data Connection/On MacOS.</li>
+
+    <li> New doc: User Guide/Configure Dexter/Dexter's File System.</li>
+
+    <li> New menu item: Test/Calibrate Dexter which
+         opens a dialog box and scrolls to new doc section:
+         User Guide/Calibrate Dexter.</li>
+
+    <li> Fixed bug in EVAL button not evaling selection of cmd line.</li>
+
+    <li> Bug fixed in File menu/Remove not working for non-existent files.</li>
+
+    <li> Fixed bug in empty_instruction_queue_now of typo "make_inst"</li>
+
+    <li> Moved init_ros from happening always during start up
+        to the new first menu item on the OPS menu.
+        Now you must choose that meny item before using ROS.
+        This eliminates the error in the console upon startup if ROS can't be inited.</li>
+
+    <li> Hide the Ops menu until user clicks on the "ROS" radio button.</li>
+
+    <li> Renamed "Ops" menu to "ROS".</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 2.0.5, Jul 21, 2017</summary>
 Highlights: Gamepad & keyboard input,
             Help system doc,

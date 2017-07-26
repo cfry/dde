@@ -7,8 +7,8 @@
 </style>
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version:  <span id="dde_version_id">2.0.5</span><br/>
-    released: <span id="dde_release_date_id">Jul 21, 2017</span>
+    version:  <span id="dde_version_id">2.0.6</span><br/>
+    released: <span id="dde_release_date_id">Jul 24, 2017</span>
     <p/>
     DDE helps you create, debug, and send software to a Dexter robot.
     You can use any JavaScript augmented with DDE-specific functions to help find out about,
@@ -114,8 +114,12 @@
     Mounted on it is the
     <i>motor controller</i> printed circuit board, 17cm x 6 cm. Mounted on top
     of it is the <i>processor</i> board, 10cm x 6cm. Mounted on the bottom of the processor
-    board is an <i>Ethernet socket</i> for an RJ45 connector. Underneath this
-    socket on the motor controller board is a green-yellow LED.
+    board is a metal housing containing an <i>Ethernet socket</i> for an RJ45 connector.
+    The lower portion of the housing for the RJ45 contains a USB socket.
+    To the left of the housing hanging over the bottom of the processor board
+    is a micro USB socket.
+    Underneath this
+    housing on the motor controller board is a green-yellow LED.
     This is the "power" LED. It is fairly hidden, but you can see
     it between the boards if you look carefully.
     </details>
@@ -169,6 +173,7 @@ Each indicates that a joint has power.
     a USB port. We recommend USB 3.0. USB2.0 will work but is slower.
     You will need to be in a strong WiFi area for best results.
     <p/>
+    <b>ping</b><br/>
     Dexter is shipped with an ip_address of <code>"192.168.1.142"</code>
     You can use a low level tool called "command prompt" or "terminal"
     to verify connectivity. Windows and Mac OS's do an excellent job
@@ -176,18 +181,19 @@ Each indicates that a joint has power.
      On Windows 7, <br/>
      Start/All Programs/Accessories/Command Prompt.<br/>
     On MacOS: try <br/>Favorites/Applications/Utilities/terminal.app.<br/>
-    Enter <code title="unevalable">ping 192.168.1.142</code>
+    Enter <code title="unEVALable">ping 192.168.1.142</code>
     <p/>
     If you have connectivity you
     should see something like the cryptic:<br/>
      <samp>Reply from 192.168.1.142 bytes=32 time 1ms</samp><br/>
     several times. Without connectivity you'll see something like:<br/>
-     <samp> Destination host unreachable</samp> or<br/> <samp>Request timeout</samp>
+     <samp>Destination host unreachable</samp> or<br/> <samp>Request timeout</samp>
      or<br/><samp>Host is down</samp>
     several times.
     <p/>
+    <b>Ethernet Cable</b><br/>
     If WiFi doesn't work for you, use an Ethernet cable (with RJ45 male connectors) to go between
-    Dexter and your computer. Available at Stapes, Home Depot, Best Buy, Amazon, etc.
+    Dexter and your computer. Available at Staples, Home Depot, Best Buy, Amazon, etc.
     Ethernet cables come in different "Categories". Get "Cat 5e".
     The <i>Ethernet socket</i> on Dexter is on the bottom of the processor
     board with the socket facing down. Most modern laptop computers lack an Ethernet socket but there
@@ -195,27 +201,69 @@ Each indicates that a joint has power.
     <a href="https://www.amazon.com/s/ref=nb_sb_noss_2?tag=laptop-magazine-20&url=search-alias%3daps&field-keywords=USB+to+Ethernet&rh=i%3aaps%2ck%3aUSB+to+Ethernet"
        target="_blank">here</a>.
     Get one that purports to work with your OS, as there are some incompatibilities.
-    Beware that for some adaptors for some OS's you need to install a software driver.
+    Beware that for some adaptors for some OS's you need to install a software driver,
+    typically downloadable for free from the USB to Ethernet adaptor's website.
+    (Necessary for Macs at least.)
+    <p/>Instead of getting a USB to Ethernet adaptor, you can use a USB cable that
+    has a male micro USB and a regular (larger) USB male.
+    The micro USB male plugs into the micro USB socket on Dexter's processor board.
+    See the <b>Key Parts</b> section above for how to find the micro USB socket.
     <p/>
-    The software setup for such direct-wire connectivity is a bit tricky.<br/>
+    The software setup for such direct-wire connectivity is a bit tricky.
+        First, make sure your cable is plugged into and firmly seating in
+        both your computer and Dexter.<br/>
     <b>On Windows 7:</b>
-    <ol><li>go to Start/Control Panel/Network and Sharing Center/Change Adapter settings.</li>
-        <li>In that dialog. click right on "Local Area Connection" and </li>
+    <ol><li>Go to Start/Control Panel<li>
+        <li>Click on: "Network and Sharing Center"</li>
+        <li>In the left column, click on "Change adapter settings".</li>
+        <li>In the new dialog, click right on "Local Area Connection" and </li>
         <li>Choose "Properties".</li>
-        <li>In the "Network" tab, click on "Internet Protocol Version 4" to select it.</li>
+        <li>In the new dialog, in "Network" tab, click on "Internet Protocol Version 4" to select it.</li>
         <li>Click on the "Properties" button. This presents yet another dialog box.</li>
         <li>Select "Use the following IP address"</li>
-        <li>Enter ip address: <code title="unevalable">192.168.1.50</code></li>
-        <li>The subnet mask should be:<br/><code title="unevalable">255 255 255 0</code></li>
+        <li>Enter ip address: <code title="unEVALable">192.168.1.50</code></li>
+        <li>The Subnet mask should be:<br/><code title="unEVALable">255 255 255 0</code></li>
+        <li>Leave the "Default gateway blank.</li>
         <li>Click the OK button and close the remaining dialogs.</li>
      </ol>
-        You should now be able to ping Dexter and have connectivity.
+     <b>On MacOS</b> its even harder.
+     <ol><li>Disconnect your WiFi (sorry, its necessary) by clicking on the
+             "Radio waves" icon in the upper right of the screen.
+             Choose "Turn WiFi Off".</li>
+         <li>Select Apple Menu/System Preferences</li>
+         <li>If your OS version is Sierra, a mostly useless dialog will come up.
+             You have to click the left arrow in the upper left of this dialog
+             to get the useful System Preferences with lots of choices.</li>
+         <li>Click the "Network" icon to get another dialog box.</li>
+         <li>Running down the left side of this dialog is an unlabeled column of
+             all the possible connections. Apple cleverly made this column too
+             narrow to be useful, so hover your mouse over each items to
+             be able to read one in full. You're looking for a USB to Ethernet connection.
+             For example, the <i>UGreen</i> adaptor helpfully says "AX881" until you
+             hover the mouse over it to see its full name ending in "USB 3.0 to Gigabit Ethernet".
+             Click on the appropriate connection.</li>
+         <li>Clicking on the connection changes the inputs to the right.<br/>
+             For the <b>Configure IPV4</b> field, choose <samp>Manually</samp><br/>
+             For the <b>IP Address</b> field, type in the IP address to give your Mac,
+             typically <samp>192.168.1.200</samp> works, but definately <i>not</i> the
+             IP address of Dexter.<br/>
+             For the <b>Subnet Mask</b> field, type in <samp>255.255.255.1</samp><br/>
+             For the <b>Router</b> field, leave it blank.</li>
+         <li>Click the "Apply" button.</li>
+      </ol>
+      We are working on making this easier.
     </details> <!-- end Data Connectivity -->
     <details class="doc_details"><summary>Test Connectivity</summary>
-        If you are using an Ehternet cable, there are two LEDs on top of the RJ45 socket.
+        You should now be able to ping Dexter and have connectivity.<br/>
+        (See above on how to "ping".)<br/>
+        <b>Troubleshooting</b><br/>
+        Ping doesn't find the host? Try reseating all the cables. Try power cycling
+        Dexter and/or your computer. <br/>
+        If you are using an Ethernet cable, there are two LEDs on top of the RJ45 socket.
         When the amber one is lit, it shows connectivity. The green LED indicates
         data transfer.
         <p/>
+        <b>Using DDE</b><br/>
         On the Jobs menu/Simulate? submenu, choose "false".
         Now choose Jobs menu/Run Instruction/NEUTRAL_ANGLES,
         or other angles.
@@ -224,19 +272,86 @@ Each indicates that a joint has power.
         The next step is using the Jobs menu/Run Instruction (dialog).
         You can run individual instructions or insert them into
         the editor pane and start building more complex jobs.
+        <p/>
         We recommend choosing <span style="color:blue;">?</span>
         in the upper right corner of the Doc pane to understand the Help System.
     </details>
+    <details id="dexters_file_system_doc_id" class="doc_details"><summary>Dexter's File System</summary>
+    Dexter's processor board runs Linux. Once you are connected to Dexter,
+    you should be able to browse this file system using your computer's
+    file navigation tools. Dexter's file system will show up as
+    a separate "Volume" or "Device".
+    On the Mac, in the Finder, you should see, in the left column,
+    <samp>Localhost</samp>. Click on it. In a half minute or so,
+    you should see in the right (main) pane of the finder a
+    single folder <samp>share</samp>. This folder is on Dexter.
+    Expand it to see several files on Dexter.
+    <p/>
+    DDE can also access this share folder on Dexter.
+    Use the File menu/Open to edit a file. You can save modified
+    files on Dexter too.
 
-</details><!-- end Set Up Dexter -->
+    </details>
+
+
+    </details><!-- end Set Up Dexter -->
 
 <details class="doc_details" id="calibrate_doc_id"><summary>Calibrate Dexter</summary>
-To obtain optimal precision, Dexter must be calibrated each time it is powered on.
+<h4>When</h4>
+To obtain optimal precision, Dexter must be calibrated after it is built.
+If you recieved a full assembed Dexter, this initial calibration has been done.
+If you are building a kit, you must calibrate it when the building is complete.
+<p/>
 Environmental affects of heat, humidity, movement, and orientation towards gravity,
 all conspire to make minor changes that affect Dexter's accuracy.
-<p/>
+You can calibrate at any time, though you may not need to if Dexter's environment
+is faily constant.
+<h4>How</h4>
 Choose the Test menu item of "Calibrate Dexter..." to open a dialog
 aiding calibration.
+<h5>Step 1</h5>
+Select the robot to calibrate. If you have only one Dexter, the default of
+<i>dexter0</i> will already be selected.
+<h5>Step 2</h5>
+Calibrate each of the five joints. When you choose the radio button for a joint,
+this begins a Job that draws thousands of points in the right-middle part of the dialog.
+If you don't see points drawn, probably you have your robot set to <i>simulate</i>.
+If the robot has its simulate init parameter set to <code>null</code> (the default
+and the case for dexter0), choose Jobs menu/Simulate?/ of <code>false</code>.
+<p/>
+To calibrate, twist the two trim pots on the small (several centimeters per side)
+printed circuit board
+(the "optical board")
+for the joint that you are calibrating,
+until the drawn points form a circle, or as near a circle as you can make.
+Joints 1, 4, and 5 also have two screws to adjust the position of the pc boards.
+ <p/>
+ If you see the drawn points form the pattern of an elongated diagonal oval,
+ that indicates that the positional screws need to be adjusted.
+ <p/>
+ All adjustments can be made with provided small screw driver.
+ <p/>
+ As you adjust, the screen will become cluttered with now obsolete dots.
+ Click the "Restart" button to clear the dots and start calibrating the
+ selected Joint over again.
+ <p/>
+ Allow the drawing of points to complete (several minutes).
+ If the circle looks good, click the mouse in the center of the circle.
+ This will draw a red point there. If you are not satisfied with the
+ center you've chosen, click the mouse again at a new location.
+ <p/>
+ Once you are satisfied with the circle center you've chosen,
+ click the "Done" check box underneath the Joint's radio button.
+ Then click another Joint's radio button and repeat the above process
+ for that Joint.
+ <p/>
+ When you've completed calibrating all five joints, click the
+ "Save" button.
+ <h5>Step 3</h5>
+ Calibrate the optical encoder geometry by clicking the bottom button in the dialog.
+ This will take about a minute.
+ When the directions line in Step 2 says that calibration is complete, you
+ can close this dialog by clicking the <b>x</b> in its upper right corner.
 </details>
 
 <details class="doc_details"><summary>User Interface</summary>
@@ -314,8 +429,8 @@ aiding calibration.
                     Note that all "valid" code won't necessarily
                     be valid <i>in isolation</i>. For instance, in:<br/>
                     <code>function foo(my_arg){ my_arg + 2 + 3 }</code><br/>
-                    selecting <code  title="unevalable code fragment"> my_arg</code> (either place)
-                    will error because <code title="unevalable code fragment"> my_arg</code> is undefined.
+                    selecting <code  title="unEVALable code fragment"> my_arg</code> (either place)
+                    will error because <code title="unEVALable code fragment"> my_arg</code> is undefined.
                     However, <code>2 + 3</code> => <samp>5</samp></li>
                     <li>If there is a selection in the Output pane,
                         Doc pane, or Command type-in, it will be evaled.</li>
@@ -363,8 +478,8 @@ aiding calibration.
             run will be the one that contains the start of the selection,
             and the last instruction run will be the one that contains the
             end of the selection. This works by setting the job's
-            <code title="unevalable code fragment"> program_counter</code>
-            and <code title="unevalable code fragment"> ending_program_counter</code> properties.
+            <code title="unEVALable code fragment"> program_counter</code>
+            and <code title="unEVALable code fragment"> ending_program_counter</code> properties.
             <p/>
             If you have selected the source code for one or more instructions
             (with comma's between them) and there is no <code  title="not in TestSuite"> new Job()</code> wrapper
@@ -474,7 +589,7 @@ aiding calibration.
         here's a few tips:<br/>
         JavaScript is an <b>untyped</b> language. That means you don't declare types
         of variables, function parameters, or return values. So for instance,
-        <br/>C's &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<code  title="unevalable code fragment"> int foo = 32;</code> <br/>
+        <br/>C's &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<code  title="unEVALable code fragment"> int foo = 32;</code> <br/>
         in JS is <code>var foo = 32;</code><br/>
         The type system is,
         um, weak. The <b>object system</b> is also in somewhat of disarray. Because of that
@@ -505,7 +620,7 @@ aiding calibration.
         it requires several different syntaxes and ways-of-thinking. DDE
         simplifies this by providing
         the key window system facilites you'll need for commanding Dexter
-        via the function <code>show_window</code>, the <code title="unevalable code fragment"> Human.enter_*</code> instructions
+        via the function <code>show_window</code>, the <code title="unEVALable code fragment"> Human.enter_*</code> instructions
         and a few other utilities. See the <button>Insert&#9660;</button> menu.
         <p/>
         Javascript's functionality greatly expanded in 2016 with a new version who's name
@@ -559,7 +674,7 @@ aiding calibration.
         <br/><code>function foo(){return bar()}</code> and
         <br/><code>function bar(){return 'stuff'}</code>
         <br/>You call <code>foo()</code> => <samp>'stuff'</samp>.
-        Now you rename <code>bar</code> to <code title="unevalable code fragment"> baz</code> like so:
+        Now you rename <code>bar</code> to <code title="unEVALable code fragment"> baz</code> like so:
         <code>function baz(){return 'stuff'}</code>and test
         <code>baz()</code> => <samp>'stuff'</samp> as expected, as does calling
         <code>foo()</code> => <samp>'stuff'</samp>. Now
@@ -635,7 +750,7 @@ aiding calibration.
     at least a name (and in the case of Dexter, an ip_address and a port number) then
     create an instance of Job and give it a robot property of the robot you created.
     The job should also have a do_list, which is the sequence of instructions to run
-    on the robot. When the <code title="unevalable code fragment"> start</code> method is called on a Job, it sends the items
+    on the robot. When the <code title="unEVALable code fragment"> start</code> method is called on a Job, it sends the items
     on its do_list to the associated robot, sequentially, one at a time.
     <p/>
     From a software standpoint, a robot <i>is</i> its instruction set.
@@ -707,8 +822,8 @@ aiding calibration.
     of JavaScript code, only that code will be evaled when you click <button>Eval</button>
     <br/><br/>
     Another technique is to comment out code until your bug goes away.<br/>
-    <b><code title="unevalable code fragment"> // </code></b> comments out to the end of the line.<br/>
-    <b><code title="unevalable code fragment"> /* comment */</code></b> Wrap JavaScript in <br/>
+    <b><code title="unEVALable code fragment"> // </code></b> comments out to the end of the line.<br/>
+    <b><code title="unEVALable code fragment"> /* comment */</code></b> Wrap JavaScript in <br/>
     slash-star ... star-slash<br/> to comment
     out code in the middle of a line or multiple lines.
     See the Editor pane's <button>Learn JS&#9660;</button> <i>debugging</i> menu items.

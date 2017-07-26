@@ -137,8 +137,10 @@
     <script type="text/javascript" src="math/Dexter_Modes.js"></script>
 
     <script type="text/javascript" src="serial.js"></script>
-    <script type="text/javascript" src="low_level_dexter/calibration.js"></script>
-    <script type="text/javascript" src="low_level_dexter/ViewEyeRealTime.js"></script>
+    <!--loaded when user chooses "calbrate" from Test menu.
+     <script type="text/javascript" src="low_level_dexter/calibration.js"></script>
+     <script type="text/javascript" src="low_level_dexter/ViewEyeRealTime.js"></script>
+    -->
 
     <script type="text/javascript" src="ready.js"></script>
     <link rel="stylesheet" href="styles.css" type="text/css"/>
@@ -560,10 +562,11 @@
                         <button id="eval_id" style="vertical-align:middle;" title="Evaluate (run) the selected JS in any pane&#013;or, if none, all the JavaScript in the Editor pane.&#013;Can also be invoked by typing &#8984;e">Eval</button>
                         <div title="Automatically save the edited file&#013;when you click 'Eval',&#013;and when you edit another file." style="vertical-align:middle;display:inline-block;"><input id="save_on_eval_id" type="checkbox" style="vertical-align:60%;padding_bottom:15px;"/> <div style="padding:0px;margin:0px;display:inline-block;font-size:10px; line-height:10px;">Save<br/>on</br/>Eval</div></div>
                         <button id="clear_output_id" title="Remove all previously output text.">Clear</button>
-                        <div id='error_ops_menu' class="dde_menu" style="display:inline-block;margin-left:10px;vertical-align: middle;">
+                        <div id="ros_menu_id" class="dde_menu" style="display:none;margin-left:10px;vertical-align: middle;">
                             <ul style="display:inline-block;padding:0;margin-top:0px;">
-                                <li style="display:inline-block;">Ops&#9660;
+                                <li style="display:inline-block;">ROS&#9660;
                                     <ul>
+                                        <li id="init_ros_id" title="Initialize ROS. Will error without proper set up.">Init ROS</li>
                                         <li title="Get Information about your running ROS">ROS Info
                                             <ul>
                                                 <li id="ping_id" title="Connected to ROS?"                          >ping</li>
@@ -593,8 +596,8 @@
                             </ul>
                         </div>
                         <div style="display:inline-block;font-size:10px;margin:0px;padding:0px;height:16px;vertical-align:top;">
-                              <input id="js_radio_button_id" type="radio" name="js_or_ros" value="js" checked="checked" style="margin-top:0px;padding-top:0px;""/>JS<br/>
-                              <input type="radio" name="js_or_ros" value="ros"/>ROS
+                              <input id="js_radio_button_id"  type="radio" name="js_or_ros" value="js" checked="checked" style="margin-top:0px;padding-top:0px;"/>JS<br/>
+                              <input id="ros_radio_button_id" type="radio" name="js_or_ros" value="ros"/>ROS
                         </div>
                         <input id="cmd_input_id"
                                placeholder="Type in code & hit Enter key to eval"

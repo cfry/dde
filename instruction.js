@@ -3,6 +3,17 @@
  */
 
 var Instruction = class Instruction {
+    static to_string(instr){
+       if(instr instanceof Instruction) { return instr.toString() }
+       else if (Instruction.is_instruction_array(instr)) {
+           var oplet = instr[Dexter.INSTRUCTION_TYPE]
+           var fn_name = Dexter.instruction_type_to_function_name(oplet)
+           var args = instr.slice(Instruction.INSTRUCTION_ARG0)
+           return fn_name + " " + args
+       }
+       else if (Array.isArray(instr)) { return "Array of " + instr.length + " instructions" }
+       else { return instr.toString() }
+    }
     toString(){
         return "{instanceof: " + stringify_value_aux(this.constructor) + "}"
     }

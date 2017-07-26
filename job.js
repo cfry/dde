@@ -53,6 +53,20 @@ var Job = class Job{
     this.color_job_button()
     }
 
+    show_progress(){
+        var html_id = this.name + this.start_time.getTime()
+        var cur_instr = this.current_instruction()
+        if (this.program_counter >= this.do_list.length) { cur_instr = "Done." }
+        else { cur_instr = "Last instruction sent: "  + Instruction.to_string(cur_instr) }
+        var content = "Job: " + this.name + " pc: "   + this.program_counter +
+            " <progress style='width:100px;' value='" + this.program_counter +
+                      "' max='" + this.do_list.length + "'></progress>" +
+            " of " +  this.do_list.length + ". " +
+            cur_instr
+            //var fooo = '<span style="background-color:#5808ff;">aa</span>'
+        out(content, "#5808ff", html_id)
+    }
+
     //Called by user to start the job and "reinitialize" a stopped job
     start(options={}){  //sent_from_job = null
         if (["starting", "running", "suspended"].includes(this.status_code)){
@@ -144,7 +158,8 @@ var Job = class Job{
                 //if the initial pc is > 0, we need to have a place holder for all the instructions before it
             this.go_state          = true
             //this.init_show_instructions()
-            out("Starting job: " + this.name + " ...")
+            //out("Starting job: " + this.name + " ...")
+            this.show_progress()
             this.color_job_button()
             this.robot.start(this) //the only call to robot.start
         }
@@ -810,6 +825,7 @@ Job.prototype.finish_job = function(perform_when_stopped=true){ //regardless of 
     else {
         this.robot.finish_job()
         this.color_job_button()
+        this.show_progress()
         this.print_out()
         out("Done with job: " + this.name)
     }
@@ -960,6 +976,7 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
         //regardless of whether we're in an iter or not, do the item at pc. (might or might not
         //have been just inserted by the above).
         var cur_do_item = this.current_instruction()
+        this.show_progress()
         this.select_instruction_maybe(cur_do_item)
         if (this.program_counter >= this.added_items_count.length) { this.added_items_count.push(0)} //might be overwritten further down in this method
         else if (this.added_items_count[this.program_counter] > 0) { //will only happen if we go_to backwards,

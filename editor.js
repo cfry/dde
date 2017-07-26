@@ -139,7 +139,14 @@ Editor.restore_files_menu_paths_and_last_file = function(){ //called by on ready
         }
         file_name_id.innerHTML = html
         if (paths.length > 0) {
-            Editor.edit_file(paths[0]) //sometimes paths[0] will be 'new file' and that's fine
+            try {
+                Editor.edit_file(paths[0]) //sometimes paths[0] will be 'new file' and that's fine
+            }
+            catch(err) {
+                warning("Could not find the last edited file:<br/><code title='unEVALable'>" + paths[0] +
+                        "</code><br/> to insert into the editor.")
+                Editor.edit_file("new file")
+            }
         }
         else {
             Editor.edit_file("new file")
@@ -152,7 +159,7 @@ Editor.get_any_selection = function(){
     sel_text = myCodeMirror.doc.getValue().substring(Editor.selection_start(), Editor.selection_end())
     if(sel_text.length > 0) { return sel_text }
     sel_text = Editor.get_cmd_selection()
-    if(sel_text > 0 ) { return sel_text }
+    if(sel_text.length > 0 ) { return sel_text }
     if (!window.getSelection().isCollapsed) { //got sel in doc or output pane
         return window.getSelection().getRangeAt(0).toString()
     }

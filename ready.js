@@ -226,7 +226,7 @@
     //$("#js_insert_menu").jqxMenu(  { width: '65px', height: '25px' });
     //$("#js_jobs_menu").jqxMenu(    { width: '55px', height: '25px' });
 
-    $("#error_ops_menu").jqxMenu({ width: '50px', height: '25px' });
+    $("#ros_menu_id").jqxMenu({ width: '50px', height: '25px' });
     //$("#jqxwindow").jqxWindow({ height:400, width:400, showCloseButton: true});
     //$('#jqxwindow').jqxWindow('hide');
     $("#cmd_input_id").keyup(function(event){ //output pane  type in
@@ -268,6 +268,9 @@
         }
         cmd_input_id.focus()
     })
+
+    js_radio_button_id.onclick  = function() { ros_menu_id.style.display = "none"}
+    ros_radio_button_id.onclick = function() { ros_menu_id.style.display = "inline-block"}
 
     cmd_input_id.onclick = onclick_for_click_help
 
@@ -390,9 +393,13 @@
     save_as_id.onclick=Editor.save_as
 
     remove_id.onclick=function(){
-        Editor.current_file_path
         let files = persistent_get("files_menu_paths")
-        let i = files.indexOf(Editor.current_file_path)
+        let the_file_to_remove = file_name_id.value
+        if (the_file_to_remove.startsWith("dde_apps/")){
+            let prefix = dde_apps_dir.substring(0, dde_apps_dir.length - 8)
+            the_file_to_remove = prefix + the_file_to_remove
+        }
+        let i = files.indexOf(the_file_to_remove)
         if (i != -1) {
            files.splice(i, 1)
            persistent_set("files_menu_paths", files)
@@ -941,7 +948,7 @@ foo      //eval to see the latest values</pre>`,
     stop_all_jobs_id.onclick       = function(){Job.stop_all_jobs() }
     undefine_jobs_id.onclick       = function(){Job.clear_stopped_jobs() }
 
-    $("#real_time_sim_checkbox_id").jqxCheckBox({ checked: true })
+    /*$("#real_time_sim_checkbox_id").jqxCheckBox({ checked: true })
     real_time_sim_id.onclick = function(){
         if ($("#real_time_sim_checkbox_id").val()){
             $("#real_time_sim_checkbox_id").jqxCheckBox({ checked: false })
@@ -949,7 +956,7 @@ foo      //eval to see the latest values</pre>`,
         else {
             $("#real_time_sim_checkbox_id").jqxCheckBox({ checked: true })
         }
-    }
+    }*/
 
     real_time_sim_checkbox_id.onclick = function(event) {
         if ($("#real_time_sim_checkbox_id").val()){
@@ -1017,10 +1024,11 @@ foo      //eval to see the latest values</pre>`,
     }
 
     calibrate_id.onclick = function(){
-            load_files("calibrate_ui.js")
-            start_calibrate()
+        load_files(__dirname + "/low_level_dexter/ViewEyeRealTime.js")
+        load_files(__dirname + "/low_level_dexter/calibrate_optical.js")
+        load_files(__dirname + "/low_level_dexter/calibrate_ui.js")
+        start_calibrate()
     }
-
 
         //Output_ops menu
     ping_id.onclick          = function(){ rde.ping()}
@@ -1094,13 +1102,15 @@ foo      //eval to see the latest values</pre>`,
     $(".CodeMirror").css("font-size", editor_font_size + "px")
     font_size_id.value = editor_font_size
 
-
-    init_ros_service_if_url_changed() //must occure after dde_init_doc_js_initialize  init_ros_service($("#dexter_url").val())
+    init_ros_id.onclick = function(){
+             init_ros_service_if_url_changed()
+    } //must occur after dde_init_doc_js_initialize  init_ros_service($("#dexter_url").val())
     // rde.ping() //rde.shell("date") //will show an error message
     Editor.restore_files_menu_paths_and_last_file()
 
-    //$("#simulate_checkbox_id").jqxCheckBox({ checked: persistent_get("default_dexter_simulate")}
-     simulate_radio_true_id.onclick  = function(){ persistent_set("default_dexter_simulate", true);   event.stopPropagation()}
+     simulate_radio_true_id.onclick  = function(){
+          persistent_set("default_dexter_simulate", true);   event.stopPropagation()
+     }
      simulate_radio_false_id.onclick = function(){ persistent_set("default_dexter_simulate", false);  event.stopPropagation()}
      simulate_radio_both_id.onclick  = function(){ persistent_set("default_dexter_simulate", "both"); event.stopPropagation()}
 

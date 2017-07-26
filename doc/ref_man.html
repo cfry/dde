@@ -85,23 +85,30 @@
         </details>
 
         <details id="load_files_doc_id" style="margin-left:40px;"><summary>load_files</summary>
-            <code>load_files</code> gets the content of files from disk and evaluates
+            <code>load_files</code> gets the content of files from disk
+            (expected to be JavaScript) and evaluates
             it in the DDE environment programmatically. You can pass any number of file paths to
             load files. It will load the files sequentially, such that later files
             can depend on the contents of earlier files loaded.
             <p/>
-            File paths should not begin with slash, except for "/".
-            They must be under your ...Documents/dde_apps/ folder.
+            File paths that start with slash are absolute and have no prefix prepended to them.
+            File paths that don't start with slash have a prefix appended to them.
+            The default prefix is the value of <code>dde_apps_dir + "/"</code>
+            A file path that is exactly <code>"/"</code> sets the prefix
+            to the default.
             <p/>
-            File paths that end in slash don't load files but do set the prefx to be
-            prepended for files in later args. This saves repetition of long
-            folder names. A file path of "/" resets the default file path prefix (...Documents/dde_apps/).
+            File paths that end in slash don't load files but do set the prefix to be
+            prepended for files in later args.
+            If such a file path starts with slash, it becomes the prefix
+            (other than <code>"/"</code> , see above).
+            If not, the new prefix is <code title="unEVALABLE">dde_apps_dir + "/" + path</code>
+            This saves repetition of long folder names.
             <p/>
             <i>Examples</i>:<br/>
             <code title="not in TestSuite"> load_files("foo.js")</code> Loads the file in your dde_apps folder named foo.js<br/>
             <pre style="background-color:white;"><code title="not in TestSuite"> load_files(
- "a/b.js", //loads .../dde_apps/a/b.js
  "c.js",   //loads .../dde_apps/c.js
+ "a/b.js", //loads .../dde_apps/a/b.js
  "d/e/",   //no load but sets prefix to ".../dde_apps/d/e/"
  "f.js,    //loads .../dde_apps/d/e/f.js
  "g.js",   //loads .../dde_apps/d/e/g.js
@@ -246,7 +253,7 @@ and reliability.
     value: 1
     }]</samp></pre>
     </details> <!-- end down_keys -->
-    <details class="doc_details"><summary>Gamepad names and codes</summary>
+    <details class="doc_details"><summary>Gamepad names &amp; codes</summary>
     <table>
      <tr><th>keycode</th><th>keyname</th><th>gamecode</th><th>gamename</th><th>description</th></tr>
       <tr><td>none</td><td>none</td><td>-1</td><td>LEFT_STICK_X</td><td>value: -1 to 1</td></tr>
@@ -540,7 +547,7 @@ and reliability.
         the part of your program that uses keyboard keys for
         real-time apps is done. It takes no arguments.
     </details>
-    <details class="doc_details"><summary>Example Job with wait_until</summary>
+    <details class="doc_details"><summary>Job with wait_until</summary>
      This simple example of wrapping <code>Gamepad.down_keys</code>
      in a Job is not good for constructing instructions, but
      is useful for learning and when you don't need to
@@ -577,7 +584,7 @@ and reliability.
            ]})</code></pre>
 
     </details>
-    <details class="doc_details"><summary>Example Job with generator</summary>
+    <details class="doc_details"><summary>Job with generator</summary>
     Using a generator makes it relatively easy to add instructions
     to the Job based on keystrokes. The <code>Dexter.move_all_joints_relative</code>
     calls create instructions which are "yielded" i.e. returned from the generator
@@ -586,7 +593,7 @@ and reliability.
     <p/>
     These calls just rotate a Dexter join by 1 degree so it moves slowly.
     You can increase that 1 degree to move faster.
-    The Job's argument of <code title="unevalable JS fragment">inter_do_item_dur: 0.05</code>
+    The Job's argument of <code title="unEVALable JS fragment">inter_do_item_dur: 0.05</code>
     also affects speed.
     <p/>Operation: When you start this job, press the 4 arrow keys and/or a and b keys
     on either the keyboard or a gamepad to move Dexter's joints.
@@ -646,9 +653,26 @@ new Job({name: "gamepad_job2",
 </details> <!-- end Gamepad -->
 
 <details id="out_doc_id" class="doc_details"><summary>out</summary>
-    <code>out</code> prints its first argument into the Output pane.
-    The optional 2nd argument controls the color printed (default "black").<br/>
-    Example:<code>out("hi", "blue")</code><p/>
+    <code>out</code> prints html that is rendered in the Output pane.<br/>
+    <i>Parameters:</i><br/>
+    <b>val</b> The JavaScript data to be printed. Typically this is a string.<br/>
+    <b>color</b> Default: <code>"black"</code>. The color of the text to be printed.<br/>
+    <b>temp</b> Default: <code>false</code>. With the default, printed output stays in the
+       Output pane until DDE is relaunched.
+       <p/>
+       If temp is <code>true</code>,
+       then <b>val</b> is still printed in the Output pane, but is over-ridden
+       by subsequence calls to out with temp == true. Calls to out with temp == false
+       will erase any "temp" output.
+       <p/>
+       If temp is a string, then out prints <b>val</b> similarly to temp == true in that
+       the previous call to out with that temp string will be over-ridden in place.
+       However, when another call to out with a different value for temp occurs,
+       the output of out with a temp string will <i>not</i> be erased.
+       Thus the last call to out with a given temp string remains in the Output pane,
+       in its place, regardless of other out calls.
+    <p/>
+    <i>Example:</i><code>out("hi", "blue")</code><p/>
     If you have a lot of out calls, it can be helpful to give them
     different colors so you can easily find a particular one.
 </details>
@@ -804,7 +828,7 @@ Beeps the indicated number of times with the default <code>beep</code> settings.
         <li><b>click_to_talk</b> Default <code>true</code>. When <code>true</code>, the user
              must click <button>click to talk</button> to start the recognition. 
              When <code>false</code>, recognition starts as soon as the dialog is shown,
-             or as soon as it has recognized the previous phrase (when <code title="unevalable code fragment"> only_once=false</code>).
+             or as soon as it has recognized the previous phrase (when <code title="unEVALable code fragment"> only_once=false</code>).
              </li>
         <li><b>width</b> Default: <code>400</code>. The distance from the left edge of the dialog to the right edge in pixels.
         </li>
@@ -827,10 +851,10 @@ Beeps the indicated number of times with the default <code>beep</code> settings.
              This function is called when the user says the finish_phrase.
              It is passed an array of arrays. Each inner array has elements of the text
              and the confidence number of each phrase spoken in this use of recognize_speech.
-             This argument is moot if <code title="unevalable code fragment"> only_once=true</code>.
+             This argument is moot if <code title="unEVALable code fragment"> only_once=true</code>.
          </li>
          <li><b>finish_phrase</b> Default: <code>"finish"</code>. The phrase that the user should speak to
-             end the dialog. Moot when <code title="unevalable code fragment"> only_once=true</code>.
+             end the dialog. Moot when <code title="unEVALable code fragment"> only_once=true</code>.
         </li>
     </ul>
 </details> <!-- end of recognize_speech -->
@@ -851,7 +875,7 @@ directly.<br/>
 <code title="not in TestSuite">speak(["It is now ", new Date()])</code>
 <p/>
 By passing a literal object, you can control many aspects of <code>speak</code>.
-The <code title="unevalable code fragment"> speak_data</code> input can be any JavaScript data
+The <code title="unEVALable code fragment"> speak_data</code> input can be any JavaScript data
 (such as a boolean, a number, a date, an array, etc.) and it will do its best to say it out loud.<br/>
 Example:<pre><code title="not in TestSuite"> speak({speak_data: [true, "It is", new Date()],//default="hello"
         volume: 1.0,   //default=1.0   0 to 1.0,
@@ -961,16 +985,16 @@ The syntax of defining a job is:
         })</code></pre>
 Defined jobs remain inert until they are started like so:<br/>
 <code title="not in TestSuite"> Job.j1.start()</code><br/>
-<code title="unevalable code fragment"> start</code> initializes the job and feeds the instructions in its do_list to
+<code title="unEVALable code fragment"> start</code> initializes the job and feeds the instructions in its do_list to
 the job's robot, which executes the instructions. Jobs either run to completion,
 error, or are stopped by the user via <button>Jobs&#9660;</button> menu <b>Stop all jobs</b>.
 Stopped jobs may be restarted by calling <code title="not in TestSuite"> Job.j1.start()</code> again.
-This reinitializes the job with the original arguments passed to <code title="unevalable code fragment"> new Job</code>
+This reinitializes the job with the original arguments passed to <code title="unEVALable code fragment"> new Job</code>
 and runs the do_list instructions again. 
 
 <details class="doc_details"><summary>new Job parameters</summary>
 The parameters used to define a new Job are:
-    <ol><li><b>name</b> You can use <code title="unevalable code fragment"> Job.a_job_name</code> to get the instance programmatically.</li>
+    <ol><li><b>name</b> You can use <code title="unEVALable code fragment"> Job.a_job_name</code> to get the instance programmatically.</li>
         <li><b>robot</b> An instance of one of the subclasses of <code>Robot</code>, such as
             <code>Dexter</code>, designating where
             this Job's instructions are sent.</li>
@@ -985,7 +1009,7 @@ The parameters used to define a new Job are:
         </li>
         <li><b>keep_history</b> true or false, default true. If true, the robot_status arrays
             returned from running instructions on the robot
-            are stored in <code title="unevalable code fragment"> Job.the_job_name.rs_history</code>.
+            are stored in <code title="unEVALable code fragment"> Job.the_job_name.rs_history</code>.
             This is useful for debugging, but uses memory, which can be
             saved by setting keep_history to <code>false</code>.</li>
         <li><b>show_instructions</b> true or false, default false. As the instructions for
@@ -1000,9 +1024,9 @@ The parameters used to define a new Job are:
            It can be initialized in the call to new job like so:<br/>
            <code>new Job ({name:"j22", user_data:{color: "blue", weight: 123} })</code><br/>
            Within an instruction, you can get a user_data value via 
-           <br/><code title="unevalable code fragment"> this.user_data.color</code></br>
+           <br/><code title="unEVALable code fragment"> this.user_data.color</code></br>
            or set it via<br/>
-           <code title="unevalable code fragment"> this.user_data.color = "green"</code></br>
+           <code title="unEVALable code fragment"> this.user_data.color = "green"</code></br>
            You can set existing user_data names or create new ones by setting them.
            <p/>
            user_data is persistent only while a job is executing. If you restart the
@@ -1053,10 +1077,10 @@ The parameters used to define a new Job are:
              <code>"wait"</code> The job waits for another instruction to be added
                at the end of the do_list. Call <code>Job.insert_instruction</code>
                from any JavaScript code to do this.<br/>
-             <code title="unevalable code fragment"> A function</code> When the job reaches its normal stopping point,
+             <code title="unEVALable code fragment"> A function</code> When the job reaches its normal stopping point,
              the function is called with a 'this' of the job instance and no arguments.
              This is effectively a callback when the job is done.<br/>
-             <code title="unevalable code fragment"> An instruction location</code> This is similar to Robot.go_to
+             <code title="unEVALable code fragment"> An instruction location</code> This is similar to Robot.go_to
              except that the job is re-iniitlizated with its original (as defined) do_list.
              Any valid instruction location can be used (see doc in Robot.go_to) except
              that it must have no job or indicate the current job. Using <code>0</code>
@@ -1072,14 +1096,14 @@ The parameters used to define a new Job are:
 </details> <!-- end new Job parameters -->
 
 <details id="start_doc_id" class="doc_details"><summary>start</summary>
-   <code title="unevalable code fragment"> start</code> is an instance method on <code>Job</code> that
+   <code title="unEVALable code fragment"> start</code> is an instance method on <code>Job</code> that
    causes the job instance to feed its do_list to the Job's robot instance.
-   After a job instance is done running, you can call <code title="unevalable code fragment"> start</code>
+   After a job instance is done running, you can call <code title="unEVALable code fragment"> start</code>
    again to run it again.<p/>
-   <i>Example</i> <code title="unevalable code fragment"> Job.my_job.start()</code><p/>
+   <i>Example</i> <code title="unEVALable code fragment"> Job.my_job.start()</code><p/>
    <i>Parameters</i><br/>
-   <code title="unevalable code fragment"> start</code> takes an object literal as its argument with the
-   same names and values as <code title="unevalable code fragment"> new Job</code> except that it can't
+   <code title="unEVALable code fragment"> start</code> takes an object literal as its argument with the
+   same names and values as <code title="unEVALable code fragment"> new Job</code> except that it can't
    take "name" as a property (i.e. you can't rename the job when you start it).
    Below are two of the most useful properties you can use:<br/>
     <li><b>program_counter</b> Initialize the program_counter to an instruction id.
@@ -1094,7 +1118,7 @@ The parameters used to define a new Job are:
     a new job, but they are only used for this call to start. They
     do not perminently affect the job definition.<br/>
     <i>Example</i>:<br/>
-    <code title="unevalable code fragment"> Job.my_job.start({program_counter: "highest_completed_instruction_or_zero"})</code><br/>
+    <code title="unEVALable code fragment"> Job.my_job.start({program_counter: "highest_completed_instruction_or_zero"})</code><br/>
     If a job errored the last time it ran, you can use this to restart the job
     with the errored instruction being the first one run.
 </details>
@@ -1106,10 +1130,10 @@ Insert an instruction into a Job's do_list at a particular location.<br/>
 if you effectively want to insert more than one.<br/>
 <b>location</b> Any instruction_location documented under <code>Robot.go_to</code> can be used
 including integers, names of labels, etc. <br/>
-<i>Example</i>: <pre><code title="unevalable code fragment"> Job.insert_instruction(Robot.out("the end"),
+<i>Example</i>: <pre><code title="unEVALable code fragment"> Job.insert_instruction(Robot.out("the end"),
                        {job: "my_job",
                         offset: "end"})</code></pre><br/>
-Adds an instruction that prints "the end" at the end of <code title="unevalable code fragment"> Job.my_job.do_list</code>.<br/>
+Adds an instruction that prints "the end" at the end of <code title="unEVALable code fragment"> Job.my_job.do_list</code>.<br/>
 The instruction <code>Robot.send_to_job</code> performs the core of this functionality
 in an instruction format.<br/>
 See <code>Robot.wait_until</code> documentation for its "new_instruction" argument
@@ -1144,7 +1168,7 @@ function def, and they will be run next.
 <p/>
 <i>The below functionality is advanced use of DDE.</i><br/>
 The function
-body might have an <code title="unevalable code fragment"> if</code> in it. Under certain
+body might have an <code title="unEVALable code fragment"> if</code> in it. Under certain
 conditions the function will return one instruction,
 and it other cases, it will return another (or <code>null</code>, meaning
 just do the next instruction on the do_list, or an array of
@@ -1155,15 +1179,15 @@ If a function returns the special string
 then that will cause nothing to happen in the job. It won't advance.
 This is not a good thing to do by itself, but you might
 want to conditionally call
-<code title="unevalable code fragment"> this.set_up_next_do()</code>. This tells DDE to
+<code title="unEVALable code fragment"> this.set_up_next_do()</code>. This tells DDE to
 continue processing this job's instructions.
 The argument to this function is an integer saying how much
 to increment the program counter. It defaults to 1, meaning
 do the next instruction. Another useful value is 0,
 which will mean that after a short pause, run this instruction
 again. Then in some other running of the instruction, a different
-branch of an <code title="unevalable code fragment"> if</code> may be taken that will call
-<code title="unevalable code fragment"> this.set_up_next_do(1)</code> causing the job to proceed.
+branch of an <code title="unEVALable code fragment"> if</code> may be taken that will call
+<code title="unEVALable code fragment"> this.set_up_next_do(1)</code> causing the job to proceed.
 <i>Example</i>:<pre><code>function pause_a_bit(){
    if (new Date().getSeconds() < 30){
       this.set_up_next_do(0)
@@ -1197,7 +1221,7 @@ only have to define it once.
 If you have some JavaScript code that you want to go between 2
 other instructions on a Job's do_list, your first inclination
 might be to just stick it on the do_list like so
-<pre><code title="unevalable code fragment"> do_list: [Robot.out("hi"),
+<pre><code title="unEVALable code fragment"> do_list: [Robot.out("hi"),
           my_fn(12, 34),
           Robot.out("bye")
           ]
@@ -1210,7 +1234,7 @@ So if my_fn  <i>returns</i> an instruction to run, and the making of that instru
 does not depend on anything that happens while running the instructions of the job,
 then you're all set.
 <br/>
-<b>BUT</b> if what you want is for the eval of <code title="unevalable code fragment"> my_fn(12, 34)</code>
+<b>BUT</b> if what you want is for the eval of <code title="unEVALable code fragment"> my_fn(12, 34)</code>
 to occur after the instruction returned by <code>Robot.out("hi")</code> is run,
 then you'll want to wrap your code in a function, and put the definition
 of that wrapper function on the do_list like so:<br/>
@@ -1259,9 +1283,9 @@ for the next job iteration until the generator is exhausted.
 <p/>
 <p>The body of a generator looks like a function.
 Often its yield statement(s) will be wrapped in a loop,
-that has an <code title="unevalable code fragment"> if</code> statement with
-a clause (or more) that terminates the loop by calling <code title="unevalable code fragment"> return</code>
-and a clause (or more) that uses <code title="unevalable code fragment"> yield</code> to produce
+that has an <code title="unEVALable code fragment"> if</code> statement with
+a clause (or more) that terminates the loop by calling <code title="unEVALable code fragment"> return</code>
+and a clause (or more) that uses <code title="unEVALable code fragment"> yield</code> to produce
 an instruction.<br/>
 <i>Example:</i><pre><code>
 function* my_gen(){
@@ -1281,7 +1305,7 @@ for code examples. Related Job facilities are:
 <ul><li>
  using instruction
 <code>Robot.wait_until("new_instruction")</code></li>
-<li>Job parameter: <code title="unevalable code fragment"> when_stopped</code></li>
+<li>Job parameter: <code title="unEVALable code fragment"> when_stopped</code></li>
 </ul>
 </details>
 
@@ -1330,14 +1354,14 @@ of instructions that are executed sequentially. DDE provides the
 more conventional function calling, including return, if, and for loops.
 But sometimes the most convenient thing to do is "leap over" some instructions
 on a job's do_list and proceed from there.
-Thus DDE provides the taboo <code title="unevalable code fragment"> go_to</code> instruction.
+Thus DDE provides the taboo <code title="unEVALable code fragment"> go_to</code> instruction.
 Don't use it a lot. Going backwards is particularly dangerous.
 But we give you enough rope to hang yourself or build a masterpiece.
 <p/>
 DDE's go_to is more versatile than go_to's of the past.
 If this complexity is too hard, just don't use it.
 <p/>
-The go_to instruction takes just one argument: <code title="unevalable code fragment"> instruction_location</code>.
+The go_to instruction takes just one argument: <code title="unEVALable code fragment"> instruction_location</code>.
 It has a number of different kinds of arguments.<br/>
 <b>a positive integer</b> Moves the program counter to the indicated instruction id.
 The instruction at that id will be the one executed after the go_to instruction.<br/>
@@ -1389,7 +1413,7 @@ Generally <code>"highest_completed_instruction_or_zero"</code> is more useful th
       you may have more than one label with a given name, the order in which
       you traverse the do_list looking for such labels can matter. Possible values:
     <ul><li><b>forward</b> Search forward from the current location (default 0)
-        for the location in the <code title="unevalable code fragment">  offset</code>
+        for the location in the <code title="unEVALable code fragment">  offset</code>
         <i>Example</i>: <code>{offset: "label3", process: "forward"}</code>
         searches forward from the current location in the do_list to
         the first label or sync_point instruction named "label3".
@@ -1420,7 +1444,7 @@ Generally <code>"highest_completed_instruction_or_zero"</code> is more useful th
     the first instruction of type "sync_point".<br/>
 </ul>
 Instruction_locations are also used in
-initializing a Job's <code title="unevalable code fragment"> program_counter</code> in defining the job, as well as
+initializing a Job's <code title="unEVALable code fragment"> program_counter</code> in defining the job, as well as
 in calling a job's start method. The <code>Robot.send_to_job</code> instruction
 uses an instruction_location for identifying
 where within the job to insert the given instruction as does the method
@@ -1431,12 +1455,12 @@ where within the job to insert the given instruction as does the method
 <details id="Robot.grab_robot_status_doc_id" class="doc_details"><summary>grab_robot_status</summary>
    robot_status is an array that holds data from the robot, along with aspects of the instruction
    that was sent to the robot to capture that data. This array is the value of the robot
-   instance field <code title="unevalable code fragment"> robot_status</code>. <p/>
+   instance field <code title="unEVALable code fragment"> robot_status</code>. <p/>
    <code>Robot.dexter0.grab_robot_status</code> provides an easy way to get values out of that array
    and made available for other instructions to use.<br/>
    <i>Parameters</i><br/>
    <b>user_data_variable</b> A string (required) of the name of the job's 
-                          <code title="unevalable code fragment"> user_data</code> variable to shove the grabbed
+                          <code title="unEVALable code fragment"> user_data</code> variable to shove the grabbed
                           robot_status data into. If their is already such a variable,
                           its value is over-written. If not, it is created and intialized
                           with the new value.
@@ -1445,10 +1469,10 @@ where within the job to insert the given instruction as does the method
                           is available globally Job.the_job_name.user_data.the_val_of_this_arg.<br/>
                           For instance, if this job is named "my_job" and the value of
                           user_data_variable is "my_var" then:
-                          <code title="unevalable code fragment"> Job.my_job.user_data.my_var</code>
+                          <code title="unEVALable code fragment"> Job.my_job.user_data.my_var</code>
                           But inside another instruction that is defined as a function,
                           <code>this</code> will be bound to the current job instance so:
-                          <code title="unevalable code fragment"> this.user_data.my_var</code> will access the grabbed data.
+                          <code title="unEVALable code fragment"> this.user_data.my_var</code> will access the grabbed data.
 
    <b>start_index</b> A non-negative integer signifying the
                  first data item to extract from the robot_status array.
@@ -1540,7 +1564,7 @@ See Job Example 9 for an extended example.
     <b>job_names</b> An array of strings of job names. If a named job doesn't exist, error.<br/>
     <b>instruction_if_error</b> An instruction that will be inserted into the do_list
     immediately after this instruction IF one of the named jobs has errored.
-    The default for <code title="unevalable code fragment"> instruction_if_error</code> is a function that
+    The default for <code title="unEVALable code fragment"> instruction_if_error</code> is a function that
     inserts an instance of Robot.error into the do_list of this job, causing it to error.
     The "reason" for that error instruction is explicit about the cause of the error.
     <p/>
@@ -1574,7 +1598,7 @@ a location to insert an instruction using <code>Robot.send_to_job</code>.<br/>
   the job its in has reached this instruction. Unlike an instruction such as:<br/>
   <code>function(){out("The status is: " + this.status_code)}</code><br/>
   Robot.out cannot access its job instance, but it does print out
-  its job name and instruction ID right before printing <code title="unevalable code fragment"> val</code>.
+  its job name and instruction ID right before printing <code title="unEVALable code fragment"> val</code>.
 </details>
 
 <details id="Robot.start_job_doc_id" class="doc_details"><summary>start_job</summary>
@@ -1599,27 +1623,27 @@ If the status of the job to be started is:<br/>
 <b>"not_started", "completed", "errored", or "interrupted"</b>
 The job is started.<br/>
 <b>"running" or "waiting"</b> then what happens depends on the
-value of the <code title="unevalable code fragment"> if_started</code> argument.
+value of the <code title="unEVALable code fragment"> if_started</code> argument.
 </details>
 
 <details id="Robot.stop_job_doc_id" class="doc_details"><summary>stop_job</summary>
   Causes the indicated job to stop just before executing a particular instruction.<br/>
   <i>Parameters</i>:<br/>
   <b>instruction_location</b> Determines the job to stop and the instruction within that
-  job that it should stop before executing. If <code title="unevalable code fragment"> instruction_location</code> does
+  job that it should stop before executing. If <code title="unEVALable code fragment"> instruction_location</code> does
   not indicate a job, then the job that this instruction is in will be stopped.
-  If <code title="unevalable code fragment"> instruction_location</code> is not given, then
+  If <code title="unEVALable code fragment"> instruction_location</code> is not given, then
   the offset will be <code>"program_counter"</code>, i.e. the job will
   stop before executing its next instruction. Thus the default is that
   the current job will be stopped immediately. See Robot.go_to for details
-  on the <code title="unevalable code fragment"> instruction_location</code> format.<br/>
+  on the <code title="unEVALable code fragment"> instruction_location</code> format.<br/>
   <b>reason</b> A string. The reason that the job is being told to stop.<br/>
   <b>perform_when_stopped</b> A boolean. When <code>false</code> (the default)
   the job will behave as if its 'when_stopped' parameter is <code>"stop"</code>,
   i.e. the job will end. When <code>true</code>, the job's when_stopped action will
   be performed.<br/>
   Example:<code>Robot.stop_job({job: "my_job", offset: "label1"})</code>
-  <code title="unevalable code fragment"> Job.my_job</code> will stop when it reaches the instruction named "label1".
+  <code title="unEVALable code fragment"> Job.my_job</code> will stop when it reaches the instruction named "label1".
 </details>
 
 <details id="Robot.suspend_doc_id" class="doc_details"><summary>suspend</summary>
@@ -1628,7 +1652,7 @@ value of the <code title="unevalable code fragment"> if_started</code> argument.
   Example:<code>Robot.suspend()</code>.
   <p/>
   <b>unsuspend</b> is a method on a job.<br/> 
-  Example:<code title="unevalable code fragment"> Job.my_job.unsuspend()</code>.
+  Example:<code title="unEVALable code fragment"> Job.my_job.unsuspend()</code>.
   This causes the job to resume from a suspension. You can call it
   from any JavaScript code such as in a function that's a do_list item.
   A job cannot unsuspend itself.
@@ -1671,7 +1695,7 @@ Robot.send_to_job({do_list_item: Dexter.move_to([0, 0.5, 0.075]),
 <i>Parameters:</i><ul>
 <li><b>do_list_item</b> An instruction or array of instructions to insert into the to_job.</li>
 <li><b>where_to_insert</b> The location in the do_list of the to_job to insert the do_list_item.
-  The full list of instruction_locations for <code title="unevalable code fragment"> where_to_insert</code>
+  The full list of instruction_locations for <code title="unEVALable code fragment"> where_to_insert</code>
   can be seen in the documentation for the <code>Robot.go_to</code> instruction.
   Particularly useful ones for send_to_job are:<br/>
   <ul><li><code>{job: "other_job", offset: "next_top_level"}</code> Inserts the do_list_item
@@ -1745,7 +1769,7 @@ The one argument can be:
     <li><b>an instance of Date</b> Causes a wait until the JavaScript date occurs. 
          Careful, you can easily cause a job to wait for years!</li>
     <li><b>a function</b> The function is called at each do_loop iteration.
-          The function's return value is used in a JavaScript <code title="unevalable code fragment"> if</code> statement.
+          The function's return value is used in a JavaScript <code title="unEVALable code fragment"> if</code> statement.
           false, undefined, null, 0, NaN, or the empty string ("") are considered to be false.
           Anything else is considered to be true and the wait will be over.
           The function is called with a <code>this</code> of the current job,
@@ -1760,20 +1784,20 @@ The one argument can be:
          do_list: [Robot.out("first instruction"),
                    Robot.wait_until("new_instruction")]})
 Job.my_job.start()</code></pre>
-        Evaling <code title="unevalable code fragment"> Job.my_job.start()</code><br/>
+        Evaling <code title="unEVALable code fragment"> Job.my_job.start()</code><br/>
         causes "first instruction" to be printed out, then the
         job pauses until an instruction is inserted into the do_list right after this "wait_until" instruction.<pre>
-<code title="unevalable code fragment"> Job.insert_instruction(Robot.out("the end"),
+<code title="unEVALable code fragment"> Job.insert_instruction(Robot.out("the end"),
                        {job: "my_job",
                         offset: "after_program_counter"})</code></pre>
         Causes wait_until to stop waiting, "the end" is printed and the job completes successfully.<br/>
         If instead of that argument to <code>Job.insert_instruction</code>, we had instead used:<pre>
-<code title="unevalable code fragment"> Job.insert_instruction([Robot.out("the middle"),
+<code title="unEVALable code fragment"> Job.insert_instruction([Robot.out("the middle"),
                         Robot.wait_until("new_instruction")],
                         {job: "my_job",
                          offset: "after_program_counter"})</code></pre>
         then each time we eval that code, it prints "the middle" and
-        <code title="unevalable code fragment"> Job.my_job</code> pauses again.
+        <code title="unEVALable code fragment"> Job.my_job</code> pauses again.
         We can end the pause by inserting an instruction after the program counter
         that doesn't contain a wait_until,
         such as our first call to <code>Job.insert_instruction</code> above.
@@ -1823,8 +1847,8 @@ active robot with the same name or ip_address.-->
 It is recommended that each job have their own robot.
 <p/>
 The default robot is <code>Robot.dexter0</code>. This is created in your dde_apps/dde_init.js file.
-Set dexter0's <code title="unevalable code fragment"> ip_address</code> and
-<code title="unevalable code fragment"> port</code> in that file.
+Set dexter0's <code title="unEVALable code fragment"> ip_address</code> and
+<code title="unEVALable code fragment"> port</code> in that file.
 We recommend allowing dexter0's simulate param to default to <code>null</code> so that
 it can take advantage of the Job menu's Simulate? item.
 <p/>
@@ -1836,7 +1860,7 @@ The parameters used to define an instance of Dexter are:
 <ul>
     <li><b>name</b> Any string, but must be unique across all robots.
     The instance of the robot is stored in
-    <code title="unevalable code fragment"> Robot.the_name</code></li>
+    <code title="unEVALable code fragment"> Robot.the_name</code></li>
     <li><b>simulate</b> Possible values:
          <ul>
              <li><b>true</b> Instructions will not be sent to the Dexter robot but rather
@@ -1853,7 +1877,7 @@ The parameters used to define an instance of Dexter are:
     </li>
     <li><b>ip_address</b> A string of an ip_address such as: <code>"192.168.1.1"</code>
         Default null. You can use a Dexter without an ip_address, but only with
-        <code title="unevalable code fragment"> simulate: true</code></li>
+        <code title="unEVALable code fragment"> simulate: true</code></li>
     <li><b>port</b> An integer. Default 50000. </li>
     <li><b>pose</b> Indicates the position and orientation of a Dexter as a
         4 x 4 matrix of numbers.
@@ -1878,7 +1902,7 @@ The parameters used to define an instance of Dexter are:
         will be assumed to be a string of actual dxf code.
         </li>
     <li><b>scale</b></li> dxf files indicate line endpoint positions as dimensionless units.
-       DDE requires the x,y,z positions to be in microns. <code title="unevalable code fragment"> scale</code> converts
+       DDE requires the x,y,z positions to be in microns. <code title="unEVALable code fragment"> scale</code> converts
        the dxf positions to microns. If scale is a number, it multiplies the dxf
        positions by that number. The default for scale is 1, meaning no transformation.
        If the dxf positions are intended to be in millimeters, use 1000 for scale.
@@ -1929,14 +1953,14 @@ You might want to do this in an emergency situation or if the environment unexpe
 <details id="Dexter.get_robot_status_queue_doc_id" class="doc_details"><summary>get_robot_status</summary>
 <i>Paramenters:</i> None<br/>
 Retrieves lots of information from Dexter. This is placed in an array that becomes the value of
-the job's <code title="unevalable code fragment"> robot_status</code> field, and, if the job's
-<code title="unevalable code fragment"> keep_history</code> is true, gets pushed onto the
-job's <code title="unevalable code fragment"> rs_history</code> array.
+the job's <code title="unEVALable code fragment"> robot_status</code> field, and, if the job's
+<code title="unEVALable code fragment"> keep_history</code> is true, gets pushed onto the
+job's <code title="unEVALable code fragment"> rs_history</code> array.
 <p/>
 <i>Examples</i>:
 <code>Dexter.get_robot_status()</code>  //how this should look on  job's do list.<br/>
-<code title="unevalable code fragment"> Jobs.j1.robot_status</code  //getting the whole status array after the above instruction is run><br/>
-<code title="unevalable code fragment"> Jobs.j1.robot_status[Dexter.J1_ANGLE]</code> //returns the angle of Joint 1, in arcseconds<p/>
+<code title="unEVALable code fragment"> Jobs.j1.robot_status</code  //getting the whole status array after the above instruction is run><br/>
+<code title="unEVALable code fragment"> Jobs.j1.robot_status[Dexter.J1_ANGLE]</code> //returns the angle of Joint 1, in arcseconds<p/>
 This instruction blocks further processing of the job's do_list instructions until
 all of the instructions on Dexter's instruction_queue are executed.
 <p/>
@@ -1946,8 +1970,8 @@ See also the instruction: <code>Robot.grab_robot_status</code>
 <details id="Dexter.get_robot_status_immediately_doc_id" class="doc_details"><summary>get_robot_status_immediately</summary>
 <i>Paramenters:</i> None<br/>
 Retrieves lots of information from Dexter. This is placed in an array that becomes the value of
-the job's <code title="unevalable code fragment"> robot_status</code> field, but is not placed on the job's
-<code title="unevalable code fragment"> rs_history</code> array.
+the job's <code title="unEVALable code fragment"> robot_status</code> field, but is not placed on the job's
+<code title="unEVALable code fragment"> rs_history</code> array.
 <p/>
 Unlike <code>Dexter.get_robot_status</code>, this instruction causes Dexter to return its data immediately,
 before any of the instructions on its <i>instruction queue</i> are executed.
@@ -2028,17 +2052,17 @@ Example: <code>Dexter.move_home()</code>
         as to <i>how</i> Dexter configures its joints to get to the indicated x, y, z.
         There are 3 independent boolean values to determining this configuration.
         They are: <ul>
-            <li><i>base-rotation</i> <code title="unevalable code fragment"> LEFT</code> means J1, the base joint has a negative value,
+            <li><i>base-rotation</i> <code title="unEVALable code fragment"> LEFT</code> means J1, the base joint has a negative value,
                 ie it is to the right of facing front. Looking down from the top at Dexter this would
                 mean its rotated counter clockwise. The opposite direction is
-                <code title="unevalable code fragment"> RIGHT</code>
+                <code title="unEVALable code fragment"> RIGHT</code>
                 or clockwise.</li>
             <li><i>J3-position</i> Joint 3 can be thought of as Dexter's elbow. The elbow can be either
-                <code title="unevalable code fragment"> UP</code> i.e. away from the table or
-                <code title="unevalable code fragment"> DOWN</code>, closer to the table./li>
+                <code title="unEVALable code fragment"> UP</code> i.e. away from the table or
+                <code title="unEVALable code fragment"> DOWN</code>, closer to the table./li>
             <li><i>J4 Position</i> Joint 4 can be thought of as Dexter's wrist. It can be pointing either
-                <code title="unevalable code fragment"> IN</code>, towards the base, or
-                <code title="unevalable code fragment"> OUT</code>, away from the base.</li>
+                <code title="unEVALable code fragment"> IN</code>, towards the base, or
+                <code title="unEVALable code fragment"> OUT</code>, away from the base.</li>
         </ul>
         Config is most easily specified using one of 26 constants such as:
         <code>Dexter.LEFT_DOWN_IN</code> or <code>Dexter.RIGHT_UP_OUT</code>. You can omit 1 or 2 of these value as in
@@ -2147,7 +2171,7 @@ accepts. Example:<br/>
 creates an instruction that moves the 5 joints
 by 1, through 5 degrees respectively.
 If you have the arguments in an array, you can use this syntax:<br/>
-<code title="unevalable code fragment"> make_ins("a", ...my_array)</code>
+<code title="unEVALable code fragment"> make_ins("a", ...my_array)</code>
 <p/>
 The returned value is an array that has its first several fields empty. DDE uses them
 for storing the job_id, instruction_id and some timing information.
@@ -2161,7 +2185,7 @@ to move Dexter to "draw the lines" indicated by the gcode file.
     nested in subfolders of any depth. Typically the filepath will have an extension of ".gcode"
     but that isn't required by filepath.</li>
     <li><b>scale</b></li> gcode files indicate line endpoint positions as dimensionless units.
-       DDE requires the x,y,z positions to be in microns. <code title="unevalable code fragment"> scale</code> converts
+       DDE requires the x,y,z positions to be in microns. <code title="unEVALable code fragment"> scale</code> converts
        the gcode positions to microns. If scale is a number, it multiplies the gcode
        positions by that number. The default for scale is 1, meaning no transformation.
        If the gcode positions are intended to be in millimeters, use 1000 for scale.
@@ -2291,20 +2315,20 @@ None of these instructions take arguments.
 
 <details id="Robot.dexter0.joint_angle_doc_id" class="doc_details"><summary>joint_angle</summary>
 Returns the present angle of the joint indicated in the argument in arc_seconds.
-Example:<br/><code title="unevalable code fragment"> Robot.dexter0.joint_angle(2)</code> => some_arc_seconds.
+Example:<br/><code title="unEVALable code fragment"> Robot.dexter0.joint_angle(2)</code> => some_arc_seconds.
 The argument defaults to 1, ie the base joint.
 </details>
 
 <details id="Robot.dexter0.joint_angles_doc_id" class="doc_details"><summary>joint_angles</summary>
 Takes no arguments. Returns an array of the angles of the 5 joints in arc_seconds.
-Example:<br/><code title="unevalable code fragment"> Robot.dexter0.joint_angles()</code> => <br/>
+Example:<br/><code title="unEVALable code fragment"> Robot.dexter0.joint_angles()</code> => <br/>
 [j1_arc_seconds, j2_arc_seconds, j3_arc_seconds, j4_arc_seconds, j5_arc_seconds]
 </details>
 
 <details id="Robot.dexter0.joint_xyz_doc_id" class="doc_details"><summary>joint_xyz</summary>
 Takes one argument, an integer from 1 to 5 indicating a joint.
 Returns the present angle of the indicated joint in arc_seconds.
-Example:<br/><code title="unevalable code fragment"> Robot.dexter0.joint_xyz(2)</code> => some number in microns.
+Example:<br/><code title="unEVALable code fragment"> Robot.dexter0.joint_xyz(2)</code> => some number in microns.
 The argument defaults to 5, ie the end effector.
 </details>
 
@@ -2312,7 +2336,7 @@ The argument defaults to 5, ie the end effector.
 Takes no arguments. Returns an array of the xyzs of the 5 joints with
 the base position prepended on the beginning of the returned array.
 Positions are in microns.
-Example:<br/><code title="unevalable code fragment"> Robot.dexter0.joint_xyzs()</code> => <samp><pre>
+Example:<br/><code title="unEVALable code fragment"> Robot.dexter0.joint_xyzs()</code> => <samp><pre>
 [
 [0, 0, 0],
 [0, 0, 165100],
@@ -2351,13 +2375,13 @@ then that value is returned.<br/>
 Otherwise, <code>undefined</code> is returned.
 <p/>
 You may add a property to a dexter instance like so:<br/>
-<code title="unevalable code fragment"> Robot.dexter0.my_val = 123</code><br/>
+<code title="unEVALable code fragment"> Robot.dexter0.my_val = 123</code><br/>
 and you can access that via <br/>
 <code>Robot.dexter0.my_val</code> or <br/>
 <code>Robot.dexter0.prop("my_val")</code><br/>
 If you want this value to persist accross DDE launches,
 just stick<br/>
-<code title="unevalable code fragment"> Robot.dexter0.my_val = 123</code><br/>
+<code title="unEVALable code fragment"> Robot.dexter0.my_val = 123</code><br/>
 in the file "dde_apps/dde_init.js"
 </details>
 </details> <!-- end Dexter Utilities -->
@@ -2444,7 +2468,7 @@ access robot hardware.
     Each of the numbers for red, green, and blue can be between 0 and 255 inclusive. 0,0,0 is black.<br/>
     <i style="color:rgb(200,0,200);">All of these parameters are common to <b>all</b> human instructions. 
       All are optional. They affect the appearance of the dialog box, except for</i>
-      <code title="unevalable code fragment"> dependent_job_names</code>.<br/>
+      <code title="unEVALable code fragment"> dependent_job_names</code>.<br/>
 </details> <!-- end task -->
 
 <details id="Human.enter_choice_doc_id" class="doc_details"><summary>enter_choice</summary>
@@ -2461,14 +2485,14 @@ access robot hardware.
    left to right, taking up more than 1 line only when necessary to display the extra buttons.<br/>
   <b>user_data_variable_name</b> Default: "choice". When the user clicks <button>Done</button>, 
   the selected choice will be made the value of the variable named in this parameter.
-  That variable will be in the <code title="unevalable code fragment"> user_data</code> of the current job.
+  That variable will be in the <code title="unEVALable code fragment"> user_data</code> of the current job.
   Within another instruction in the same job, the selected choice will be accessible using
   JavaScript. If the user_data_variable_name is 'my_color' and the choice is 'blue'.
-  then <code title="unevalable code fragment"> this.users_data.my_color</code will return <code>'blue'</code>.
+  then <code title="unEVALable code fragment"> this.users_data.my_color</code will return <code>'blue'</code>.
   You can access this value from <i>another</i> job via:<br/>
-  <code title="unevalable code fragment"> job.some-job-name.user_data.my_color</code>.
+  <code title="unEVALable code fragment"> job.some-job-name.user_data.my_color</code>.
   Note that JavaScript from any job can also reset this value. For example:<br/>
-  <code title="unevalable code fragment"> job.some-job-name.user_data.my_color = 'green'</code>.
+  <code title="unEVALable code fragment"> job.some-job-name.user_data.my_color = 'green'</code>.
 </details>
 
 <details id="Human.enter_instruction_doc_id" class="doc_details"><summary>enter_instruction</summary>
@@ -2558,7 +2582,7 @@ accomodate standard Arduino add-on (shield) boards but the Leonardo can.
 </details> <!-- end Arduino and Mac-->
 
 Create an instance of Serial similar to the other robots. Example: <br/>
-<code title="unevalable code fragment"> new Serial({name: "S1", ...})</code><p/>
+<code title="unEVALable code fragment"> new Serial({name: "S1", ...})</code><p/>
 
 <details class="doc_details"><summary>Parameters to new</summary>
 <b>name</b> A string. Makes this instance of a Serial Robot accessible from Robot.the_name<br/>
@@ -2566,10 +2590,10 @@ Create an instance of Serial similar to the other robots. Example: <br/>
 <b>simulate</b> true or false. Default <code>true</code>. If true, no data is sent or recieved over
 the actual serial port.<br/>
 
-<b>sim_fun</b> A function. Default <code title="unevalable code fragment"> return_first_arg</code>.
-Used only when <code title="unevalable code fragment"> simulate: true</code><br/>
+<b>sim_fun</b> A function. Default <code title="unEVALable code fragment"> return_first_arg</code>.
+Used only when <code title="unEVALable code fragment"> simulate: true</code><br/>
 When a Serial.string.instruction is simulated, its argument,
-<code title="unevalable code fragment"> instruction_string</code> is
+<code title="unEVALable code fragment"> instruction_string</code> is
 passed to the sim_fun. The value returned from calling sim_fun is the simulated return value (a string)
 from the serial port for this instruction. The function can use any JavaScript to compute
 the returned string. <p/>
@@ -2579,7 +2603,7 @@ We're not expecting
 the sim_fun to do exactly what the Serial hardware would do. In fact if it could,
 there would be no need for the hardware! Rather sim_fun should perform as a diagnostic
 for at least one case or perhaps a few cases of instruction strings.
-The default value of <code title="unevalable code fragment"> return_first_arg</code> just returns its input to help you verify that
+The default value of <code title="unEVALable code fragment"> return_first_arg</code> just returns its input to help you verify that
 the basic communication path is working.<br/>
 
 <b>path</b> A string. Required. The label for the device connected to a serial port on the computer running DDE 
@@ -2589,8 +2613,8 @@ by calling <code>serial_devices()</code>. On Windows, they look something like
  <code>"COM3"</code>.
 On Mac, they look something like <code>"/dev/tty.usbmodem1411"</code>. 
  In addition to the tty path, Mac's also have a "cu" path such as: <code>"/dev/cu.usbmodem1411"</code>.
- We've found both <code title="unevalable code fragment"> tty</code> and
- <code title="unevalable code fragment"> cu</code> paths to work with DDE.<br/>
+ We've found both <code title="unEVALable code fragment"> tty</code> and
+ <code title="unEVALable code fragment"> cu</code> paths to work with DDE.<br/>
 
 <b>connect_options</b> A literal object. Default <code>{}</code>. <br/>
 Example: <code>{baudRate: 9600}</code> <br/>
@@ -2600,37 +2624,37 @@ Example: <code>{baudRate: 9600}</code> <br/>
 <b>capture_n_items</b> A non-negative integer. Default <code>1</code>.<br/>
 DDE waits until it has recieved capture_n_items from the device before calling the next instruction on
 the job's do_list. The string returned by the serial device is cut up by
-<code title="unevalable code fragment"> item_delimiter</code>,
+<code title="unEVALable code fragment"> item_delimiter</code>,
 to determine the number of items returned by the serial device.
 <br/>
 
 <b>item_delimiter</b> A string. Default <code>"\\n"</code>. Note that Arduino's 
-<code title="unevalable code fragment"> Serial.println("foo")</code> will send out a 5 character string of <code>"foo\\r\\n"</code><br/>
+<code title="unEVALable code fragment"> Serial.println("foo")</code> will send out a 5 character string of <code>"foo\\r\\n"</code><br/>
 
 <b>trim_whitespace</b> A boolean. Default <code>true</code>.
 If this is true, then an "item" (string) returned by the serial port, will have the
 whitespace at its beginning and end removed. Note that with the defaults in place
 of an item_delimiter of <code>"\\n"</code>, and trim_whitespace of <code>true</code>,
-then when Arduino executes: <code title="unevalable code fragment"> Serial.println("hi")</code> the actual 4 characters
-transmitted to DDE are: <code title="unevalable code fragment"> vhi\\r\\n</code>. It is recognized as one item because
+then when Arduino executes: <code title="unEVALable code fragment"> Serial.println("hi")</code> the actual 4 characters
+transmitted to DDE are: <code title="unEVALable code fragment"> vhi\\r\\n</code>. It is recognized as one item because
 it ends in the delimiter, giving us a 3 character item, except that the
-<code title="unevalable code fragment"> vtrim_whitespace</code>
-takes off that final <code title="unevalable code fragment"> v\\r</code> and we're left with
-<code title="unevalable code fragment"> hi</code>, usually what you want.
+<code title="unEVALable code fragment"> vtrim_whitespace</code>
+takes off that final <code title="unEVALable code fragment"> v\\r</code> and we're left with
+<code title="unEVALable code fragment"> hi</code>, usually what you want.
 <p/>
 This arrangement gets around our society's failure to set one standard for the most important formatting
-operation, breaking up of lines, with <code title="unevalable code fragment"> \\n</code> being used by Unix and Mac, and
-<code title="unevalable code fragment"> \\r\\n</code> being used by Windows and Arduino. DDE tries to use the more
-sensible <code title="unevalable code fragment"> \\n</code> where possible. Thus <code title="unevalable code fragment"> \\n</code> can be our
+operation, breaking up of lines, with <code title="unEVALable code fragment"> \\n</code> being used by Unix and Mac, and
+<code title="unEVALable code fragment"> \\r\\n</code> being used by Windows and Arduino. DDE tries to use the more
+sensible <code title="unEVALable code fragment"> \\n</code> where possible. Thus <code title="unEVALable code fragment"> \\n</code> can be our
 default item_delimiter and we still win calling Arduino's
-<code title="unevalable code fragment"> Serial.println</code>.
+<code title="unEVALable code fragment"> Serial.println</code>.
 <br/>
 
 <b>parse_items</b> true or false. Default true. If true, the returned items will be converted from strings to
 primitive JS data types: booleans, numbers, arrays, literal objects, strings, and aggrigates of such.
 Example: In Arduino C, you could have a program that executes: 
-<br/><code title="unevalable code fragment"> Serial.println("[1, 20, 300]");</code><br/>
-With <code title="unevalable code fragment"> parse_items: true</code> that would result in DDE's robot_status array as an element of
+<br/><code title="unEVALable code fragment"> Serial.println("[1, 20, 300]");</code><br/>
+With <code title="unEVALable code fragment"> parse_items: true</code> that would result in DDE's robot_status array as an element of
 an array of three integers.
 
 <b>capture_extras</b> One of "error", "ignore" or "capture". Default "error". 
@@ -2665,7 +2689,7 @@ DDE provides a number of low level functions that can be invoked without interac
 to help you verify connectivity.<p/>
 
 <b id="serial_devices_doc_id"><code>serial_devices()</code></b> Returns an array of objects representing
-the available devices on serial ports. the <code title="unevalable code fragment"> comName</code> field holds the path to the serial
+the available devices on serial ports. the <code title="unEVALable code fragment"> comName</code> field holds the path to the serial
 port that you can use to connect to that device. 
 <p/>
 
@@ -2675,21 +2699,21 @@ the associated Serial robot. The value of this global variable is a JS literal o
 keys of each path to which there is a serial connection, and values of
 another JS literal object holding useful properties of that connection, i.e. its "info".<p/>
 You can get the info for a path via <br/>
-<code title="unevalable code fragment"> serial_path_to_info_map[path]</code>
+<code title="unEVALable code fragment"> serial_path_to_info_map[path]</code>
 <p/>
 
-<b id="serial_connect_low_level_doc_id"><code title="unevalable code fragment"> serial_connect_low_level("/dev/tty.some_device")</code></b>
+<b id="serial_connect_low_level_doc_id"><code title="unEVALable code fragment"> serial_connect_low_level("/dev/tty.some_device")</code></b>
 Allows you to create a software connection between a serial device and DDE software NOT in a job.
 <p/>
 
-<b id="serial_send_low_level_doc_id"><code title="unevalable code fragment"> serial_send_low_level( "some_path", "some_string")</code></b>
+<b id="serial_send_low_level_doc_id"><code title="unEVALable code fragment"> serial_send_low_level( "some_path", "some_string")</code></b>
 Allows you to send a string to a serial device from DDE but NOT in a job.
 <p/>
 
-<b id="serial_disconnect_doc_id"><code title="unevalable code fragment"> serial_disconnect("some_path")</code></b> Disconnects an existing connection.
+<b id="serial_disconnect_doc_id"><code title="unEVALable code fragment"> serial_disconnect("some_path")</code></b> Disconnects an existing connection.
 <p/>
 
-<b id="serial_flush_doc_id"><code title="unevalable code fragment"> serial_flush("some_path")</code></b> Removes all bytes in the given path's input and output buffers.
+<b id="serial_flush_doc_id"><code title="unEVALable code fragment"> serial_flush("some_path")</code></b> Removes all bytes in the given path's input and output buffers.
 <p/>
 See Job Example 9 for examples.
 </details> <!-- End Debugging Serial -->
@@ -2711,7 +2735,7 @@ See Job Example 9 for examples.
     dimensions DDE supports. Pick one to insert it (such as "length" to insert "_km".)
     <code>_km</code> is a global variable bound to a constant number, in this case, 1000.
     To convert a number "my_length" from kilometers to the DDE standard, meters, use
-    <code title="unevalable code fragment"> my_length*_km</code> and that will eval to: my_length * 1000
+    <code title="unEVALable code fragment"> my_length*_km</code> and that will eval to: my_length * 1000
     which represents my_length in meters instead of kilometers.
     If my_length is 2, and it is meant to refer to 2 kilometers, then
     my_length*_km evals to 2000 and is meant to be in meters.
@@ -2874,7 +2898,7 @@ specially.
 <p/>
 <b><i>prototype</i></b> This property sets the "parent" object
 of the new object. <i>prototype</i> defaults to <code>Root</code>.
-Once you have the new object, <code title="unevalable code fragment"> new_obj.prototype</code> gives you
+Once you have the new object, <code title="unEVALable code fragment"> new_obj.prototype</code> gives you
 back that prototype. Unlike most other properties, you cannot set this property and win.
 Class-instance object systems don't allow you to change the class of an object.
 In practice, this usually isn't needed.
@@ -2915,11 +2939,11 @@ Examples:<br/>
 When creating an object, (or afterwards) you can set a property named 
 <code>constructor</code> in the new object to a method. This method is called
 whenever a new object is created with <code>newObject</code>.
-Unlike its counterpart in JS6 classes, <code title="unevalable code fragment"> constructor</code>
+Unlike its counterpart in JS6 classes, <code title="unEVALable code fragment"> constructor</code>
 is called with no arguments. However, <code>this</code>
 is our new object with all the fields populated from the properties
 passed in the call to <code>newObject</code>, saving a ton of boiler plate code.
-In the body of <code title="unevalable code fragment"> constructor</code>, you can call any code you like,
+In the body of <code title="unEVALable code fragment"> constructor</code>, you can call any code you like,
 including code that modifies the passed in property values, create
 entirely new properties or remove ones from <code>this</code>.
 <p/>
@@ -2940,7 +2964,7 @@ Here's the state of the relevant properties:<br/>
 Each object has its own copy of the "fur" property.
 Setting one will not set the other.
 <p/>
-JS6 class constructor methods can have a call to <code title="unevalable code fragment"> super</code>.
+JS6 class constructor methods can have a call to <code title="unEVALable code fragment"> super</code>.
 It's counterpart in DDE is a method whose name makes sense:
 <code>callPrototypeConstructor</code>, documented below.
 </details>
@@ -3009,7 +3033,7 @@ to mean such named objects.
 With no argument, 
 returns true if <code>this</code> is a named new object and that name is a
 property in <code>this.prototype</code> with a value of this.<br/>
-In other words: <code title="unevalable code fragment"> this == this.prototype[this.name]</code>
+In other words: <code title="unEVALable code fragment"> this == this.prototype[this.name]</code>
 Example:<br/>
 <code>newObject({prototype: Root, name: "junk"}).isSubObject()</code> => <samp>true</samp>
 <p/>
@@ -3100,7 +3124,7 @@ The default is <code>false</code>.<br/>
 Example: <code>Root.vehicle.normal_keys(true, true, true)</code> => <samp>["color", "weight", "boat", "launch"]</samp><br/>
 <b>include_name_and_prototype</b> The keys "'name" and "prototype" will be included.<br/>
 The default is <code>false</code>.<br/>
-Example: <code title="unevalable code fragment"> Root.vehicle.normal_keys(true, true, true, true)</code> => <samp>["color", "weight"  "name", "prototype"]</samp>
+Example: <code title="unEVALable code fragment"> Root.vehicle.normal_keys(true, true, true, true)</code> => <samp>["color", "weight"  "name", "prototype"]</samp>
 <p/>
 Note that you shouldn't depend on the order of the elements in the result array.
 If you want to force them into a consistent order, you can sort them alphabetically.
@@ -3133,7 +3157,7 @@ Evaluating the returned string will return a copy of <code>this</code>.
 <details id="hasOwnProperty_doc_id" class="doc_details"><summary>hasOwnProperty</summary>
   Returns true if the argument is the name of a property directly in the subject.<br/>
  <i>Example</i><br/>
-  <code title="unevalable code fragment"> Root.vehicle.hasOwnProperty("color")</code> => <samp>>true</samp>
+  <code title="unEVALable code fragment"> Root.vehicle.hasOwnProperty("color")</code> => <samp>>true</samp>
 </details>
 
 <details id="Object.getOwnPropertyNames_doc_id" class="doc_details"><summary>getOwnPropertyNames</summary>
@@ -3183,7 +3207,7 @@ Evaluating the returned string will return a copy of <code>this</code>.
     Returns true if the subject is the same as, or an ancestor of, the argument.<br/>
     <i>Example</i><br/>
   <code>Root.isPrototypeOf(Root.vehicle)</code> => <samp>true</samp><br/>
-  Note this is like <code title="unevalable code fragment"> isA</code> (documented above) but with the
+  Note this is like <code title="unEVALable code fragment"> isA</code> (documented above) but with the
   subject and argument swapped.
 </details>
 
@@ -3218,7 +3242,7 @@ Evaluating the returned string will return a copy of <code>this</code>.
 
     <details class="doc_details"><summary>Set DDE Colors</summary>
         Users can customize the DDE colors by calling the below functions.
-        Calls to these functions appear in the default <code title="unevalable code fragment"> dde_init.js</code> file
+        Calls to these functions appear in the default <code title="unEVALable code fragment"> dde_init.js</code> file
         commented out. By commenting them in, the DDE colors will be
         modified when DDE launches. Their default color values are given
         in the examples below.
@@ -3243,16 +3267,16 @@ Evaluating the returned string will return a copy of <code>this</code>.
         <b>y</b> The number of pixels that the top edge of the window will be from the top edge of the DDE window.
         Default: 200. Minimum: 0 positions window at top of the DDE window.<br/>
         <b>content</b> HTML to be rendered in the body of the window. input tags with
-        <code title="unevalable code fragment"> type</code>
-        attributes of <code title="unevalable code fragment"> button</code> and
-        <code title="unevalable code fragment"> submit</code> will cause the window's
+        <code title="unEVALable code fragment"> type</code>
+        attributes of <code title="unEVALable code fragment"> button</code> and
+        <code title="unEVALable code fragment"> submit</code> will cause the window's
         callback function to be called.
-        <code title="unevalable code fragment"> submit</code> will also cause the window to be closed.<p/>
+        <code title="unEVALable code fragment"> submit</code> will also cause the window to be closed.<p/>
         HTML elements with a class of "clickable" will behave as a button. Clicking on them
         will cause the window's callback button to be called with a
-        <code title="unevalable code fragment"> clicked_button_value</code>
-        property of the <code title="unevalable code fragment"> name</code>, or if none, the
-        <code title="unevalable code fragment"> id</code> of the clicked on element.
+        <code title="unEVALable code fragment"> clicked_button_value</code>
+        property of the <code title="unEVALable code fragment"> name</code>, or if none, the
+        <code title="unEVALable code fragment"> id</code> of the clicked on element.
         Clicking on such HTML elements will <i>not</i> close the window.<br/>
         <i>Examples</i>:<br/>
         <pre><code>show_window({
@@ -3320,7 +3344,7 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
     <h4>onchange</h4>
     Normally the callback is only called when the user clicks a button. However,
     you can get the callback to be called for any input HTML tag if you give it
-    an attribute of<br/> <code title="unevalable code fragment"> data-onchange='true'</code>
+    an attribute of<br/> <code title="unEVALable code fragment"> data-onchange='true'</code>
 
     <h4>Cover DDE Window</h4/>
     To have a show_window cover the entire DDE window:
@@ -3340,9 +3364,9 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
             Closes a window created with show_window.<br/>
             <i>Parameter:</i><br/>
             <b>window_index</b>: When a show_window callback function is called, it will be passed a literal object
-            with a property of <code title="unevalable code fragment"> window_index</code> that can be used as the argument
+            with a property of <code title="unEVALable code fragment"> window_index</code> that can be used as the argument
             to <code>close_window</code>. This is a non-negative integer.<p/>
-            Example: <code title="unevalable code fragment"> close_window(vals.window_index)</code>
+            Example: <code title="unEVALable code fragment"> close_window(vals.window_index)</code>
         </details>
 
         <details id="append_in_ui_doc_id" class="doc_details"><summary>append_in_ui</summary>
@@ -3365,14 +3389,14 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
             <b>callback</b> A function that is called by get_in_ui with the value
             of the attribute indicated in the path_string.
 
-            <i>Example</i>: <code title="unevalable code fragment"> get_in_ui("my_in_id.value", function(val){out("got val: " + val)})</code><br/>
+            <i>Example</i>: <code title="unEVALable code fragment"> get_in_ui("my_in_id.value", function(val){out("got val: " + val)})</code><br/>
         </details>
 
         <details id="remove_in_ui_doc_id" class="doc_details"><summary>remove_in_ui</summary>
             Remove an HTML element (usually from a <code>show_window</code> window). <br/>
             <i>Parameter:</i><br/>
             <b>path_string</b> The path to a shown html element. This is often just the id of an element.<p/>
-            <i>Example</i>: <code title="unevalable code fragment"> remove_in_ui("my_in_id")</code><br/>
+            <i>Example</i>: <code title="unEVALable code fragment"> remove_in_ui("my_in_id")</code><br/>
         </details>
 
         <details id="replace_in_ui_doc_id" class="doc_details"><summary>replace_in_ui</summary>
@@ -3380,7 +3404,7 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
             <i>Parameters:</i><br/>
             <b>path_string</b> The path to a shown html element. This is often just the id of an element.<br/>
             <b>new_html</b>: A string of HTML to create the new element.<p/><p/>
-            <i>Example</i>: <code title="unevalable code fragment"> replace_in_ui("my_in_id", "&lt;h2>hey&lt;/h2>")</code><br/>
+            <i>Example</i>: <code title="unEVALable code fragment"> replace_in_ui("my_in_id", "&lt;h2>hey&lt;/h2>")</code><br/>
         </details>
 
         <details id="set_in_ui_doc_id" class="doc_details"><summary>set_in_ui</summary>
@@ -3389,7 +3413,7 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
             <b>path_string</b> The path to a shown html element's attribute.
             This is often the id of an element followed by a dot, followed by an attributre name.<br/>
             <b>value</b>: The value of an HTML element's attribute. Usually this is a string.<p/>
-            <i>Example</i>: <code title="unevalable code fragment"> set_in_ui("my_in_id.value", "aluminum")</code><br/>
+            <i>Example</i>: <code title="unEVALable code fragment"> set_in_ui("my_in_id.value", "aluminum")</code><br/>
         </details>
     </details> <!-- end window Utilities -->
 
@@ -3405,17 +3429,17 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
         <i>Parameters for all svg functions</i>:<br/>
         <b>id</b> The html id of the element, useful in calls to window utility functions
         such as <code>append_in_ui</code>.<br/>
-        <b>html_class</b>: Used to set the <code title="unevalable code fragment"> class</code> attrbute of the element.
-        Due to a name conflict with <code title="unevalable code fragment"> class</code> in JavaScript, we had to name this
-        <code title="unevalable code fragment"> html_class</code>.<br/>
+        <b>html_class</b>: Used to set the <code title="unEVALable code fragment"> class</code> attrbute of the element.
+        Due to a name conflict with <code title="unEVALable code fragment"> class</code> in JavaScript, we had to name this
+        <code title="unEVALable code fragment"> html_class</code>.<br/>
         <b>style</b>: A string setting the css style of the element. Note that some
         arguments to svg functions are actually rendered as style attributes, such as
-        <code title="unevalable code fragment"> color</code>,
-        <code title="unevalable code fragment"> border_color</code>,
-        <code title="unevalable code fragment"> border_width</code>.
+        <code title="unEVALable code fragment"> color</code>,
+        <code title="unEVALable code fragment"> border_color</code>,
+        <code title="unEVALable code fragment"> border_width</code>.
 
         <details id="svg_svg_doc_id" class="doc_details"><summary>svg_svg</summary>
-            svg shapes must be drawn as child elements of an <code title="unevalable code fragment"> svg</code> element.
+            svg shapes must be drawn as child elements of an <code title="unEVALable code fragment"> svg</code> element.
             The x and y of those child elements is relative to the upper left corner of
             the containing svg element. So for instance, if you draw a circle with
             x: 0, y: 0, you will see only the lower right corner of the circle
@@ -3441,7 +3465,7 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
         </details> <!-- end svg_svg -->
 
         <details id="svg_circle_doc_id" class="doc_details"><summary>svg_circle</summary>
-            svg_circle must be drawn as a child element of an <code title="unevalable code fragment"> svg</code> element.
+            svg_circle must be drawn as a child element of an <code title="unEVALable code fragment"> svg</code> element.
             <i>Parameters</i> <br/>
             <b>cx</b>: Default: 0.  The x position of the center of the circle.<br/>
             <b>cy</b>: Default: 0.  The y position of the center of the circle.<br/>
@@ -3454,7 +3478,7 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
         </details>
 
         <details id="svg_ellipse_doc_id" class="doc_details"><summary>svg_ellipse</summary>
-            svg_ellipse must be drawn as a child element of an <code title="unevalable code fragment"> svg</code> element.
+            svg_ellipse must be drawn as a child element of an <code title="unEVALable code fragment"> svg</code> element.
             <i>Parameters</i> <br/>
             <b>cx</b>: Default: 0.  The x position of the center of the ellipse.<br/>
             <b>cy</b>: Default: 0.  The y position of the center of the ellipse.<br/>
@@ -3470,7 +3494,7 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
 
         <details id="svg_html_doc_id" class="doc_details"><summary>svg_html</summary>
             This renders arbitrary html at the location specified.
-            svg_html must be drawn as a child element of an <code title="unevalable code fragment"> svg</code> element.<br/>
+            svg_html must be drawn as a child element of an <code title="unEVALable code fragment"> svg</code> element.<br/>
             <i>Parameters</i> <br/>
             <b>x</b>: Default: 0.  The x position of the upper left of the rendered HTML.<br/>
             <b>y</b>: Default: 0.  The y position of the upper left of the rendered HTML.<br/>
@@ -3478,14 +3502,14 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
             <b>height</b>: Default: 100. The height of the area to render the HTML into.
             <p/>
             Unlike the other svg functions, <code>svg_html</code> does not take
-            <code title="unevalable code fragment"> id</code>,
-            <code title="unevalable code fragment"> class</code>
-            and <code title="unevalable code fragment"> style</code> arguments. If you desire these, they must be placed on the individual
-            html tags within the value of the <code title="unevalable code fragment"> html</code> argument. Note that
+            <code title="unEVALable code fragment"> id</code>,
+            <code title="unEVALable code fragment"> class</code>
+            and <code title="unEVALable code fragment"> style</code> arguments. If you desire these, they must be placed on the individual
+            html tags within the value of the <code title="unEVALable code fragment"> html</code> argument. Note that
             here we need to spell the class attribute by its correct HTML name,
-            <code title="unevalable code fragment"> class</code>,
+            <code title="unEVALable code fragment"> class</code>,
             not the special spelling used in the other svg functions of
-            <code title="unevalable code fragment"> html_class</code>.
+            <code title="unEVALable code fragment"> html_class</code>.
             <p/>
             <i>Example</i>:<br/>
             <pre><code>svg_html({html: `&lt;i
@@ -3500,7 +3524,7 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
 
         <details id="svg_line_doc_id" class="doc_details"><summary>svg_line</summary>
             svg_line must be drawn as a child element of an
-            <code title="unevalable code fragment"> svg</code> element.
+            <code title="unEVALable code fragment"> svg</code> element.
             <i>Parameters</i> <br/>
             <b>x1</b>: Default: 0.   The x position of the start of the line.<br/>
             <b>y1</b>: Default: 0.   The y position of the start of the line.<br/>
@@ -3515,7 +3539,7 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
 
         <details id="svg_rect_doc_id" class="doc_details"><summary>svg_rect</summary>
             svg_rect must be drawn as a child element of an
-            <code title="unevalable code fragment"> svg</code> element.
+            <code title="unEVALable code fragment"> svg</code> element.
             <i>Parameters</i> <br/>
             <b>x</b>:      Default: 0.   The x position of the upper left corner of the rectangle.<br/>
             <b>y</b>:      Default: 0.   The y position of the upper left corner of the rectangle.<br/>
@@ -3533,7 +3557,7 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
 
         <details id="svg_polygon_doc_id" class="doc_details"><summary>svg_polygon</summary>
             Draws a closed figure with corners at the indicated x and y positions.
-            svg_polygon must be drawn as a child element of an <code title="unevalable code fragment"> svg</code> element.
+            svg_polygon must be drawn as a child element of an <code title="unEVALable code fragment"> svg</code> element.
             <i>Parameters</i> <br/>
             <b>points</b>:       Default: [].  The positions of the corners of the polygon.<br/>
             <b>color</b>:        Default: "black". The color of the interior of the polygon.<br/>
@@ -3545,7 +3569,7 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
 
         <details id="svg_polyline_doc_id" class="doc_details"><summary>svg_polyline</summary>
             Draws an open figure with corners at the indicated x and y positions.
-            svg_polyline must be drawn as a child element of an <code title="unevalable code fragment"> svg</code> element.
+            svg_polyline must be drawn as a child element of an <code title="unEVALable code fragment"> svg</code> element.
             <i>Parameters</i> <br/>
             <b>points</b>: Default: [].      The positions of the end points of the line segments.<br/>
             <b>color</b>:  Default: "black". The color of the line.<br/>
@@ -3556,7 +3580,7 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
 
         <details id="svg_text_doc_id" class="doc_details"><summary>svg_text</summary>
             Draws text at the indicated x and y position.
-            svg_text must be drawn as a child element of an <code title="unevalable code fragment"> svg</code> element.
+            svg_text must be drawn as a child element of an <code title="unEVALable code fragment"> svg</code> element.
             <i>Parameters</i> <br/>
             <b>text</b>:   Default: "hi". The string to be displayed.<br/>
             <b>x</b>:      Default: 20.   The x position of the upper left corner of the text.<br/>

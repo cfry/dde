@@ -167,7 +167,7 @@ var Robot = class Robot {
     close_robot(){ //overridden in Serial and Dexter
     }
 }
-Robot.all_names = [] //needs to work in UI (for series) as well as sandbox
+Robot.all_names = []
 
 Robot.robot_status_labels = [] //overridden by Serial and Dexter, needed by Show robot status history button
 
@@ -177,6 +177,10 @@ var Brain = class Brain extends Robot { /*no associated hardware */
         super()
         this.name = name
         Robot.set_robot_name(this.name, this)
+        let i = Brain.all_names.indexOf(this.name)
+        if (i != -1) {  Brain.all_names.splice(i, 1) }
+        Brain.all_names.push(this.name) //ensures the last name on the list is the latest with no redundancy
+        Brain.last_robot = this
         this.simulate = false
         //the_job //a Robot can have at most 1 current job associated with it.
     }
@@ -202,11 +206,17 @@ var Brain = class Brain extends Robot { /*no associated hardware */
     }
 }
 
+Brain.all_names = []
+
 var Human = class Human extends Brain { /*no associated hardware */
     constructor({name = "h1"}={}){
         super()
         this.name = name
         Robot.set_robot_name(this.name, this)
+        let i = Human.all_names.indexOf(this.name)
+        if (i != -1) {  Human.all_names.splice(i, 1) }
+        Human.all_names.push(this.name) //ensures the last name on the list is the latest with no redundancy
+        Human.last_robot = this
         this.simulate = false
         //the_job //a Robot can have at most 1 current job associated with it.
     }
@@ -282,6 +292,8 @@ var Human = class Human extends Brain { /*no associated hardware */
         return new Instruction.Control.human_notify(arguments[0])
     }
 }
+
+Human.all_names = []
 
 Serial = class Serial extends Robot {
     constructor({name = "s1", simulate = null, //get sim val from Jobs menu item check box.
@@ -1851,8 +1863,8 @@ Dexter.update_robot_status_init = function(){
 
 //called from UI from the menu item
 Dexter.show_robot_status = function(){
-    if(!Dexter.last_robot){
-        out('There are no Dexter robots defined.<br/>Use <code>new Dexter({name: "my_dex"})', "red")
+    if(!Job.last_job){
+        warning('No Jobs have been run so there is no robot status to show.')
     }
     else {
         if((Dexter.updating_robot_status_robot_name == null) &&
@@ -1860,7 +1872,9 @@ Dexter.show_robot_status = function(){
             Dexter.updating_robot_status_job_name = Job.last_job.name
         }
         let job_robot_select_html = Dexter.update_robot_status_job_or_robot_menu_html()
-        let robot_status = (Dexter.updating_robot_status_job_name   ? Job[Dexter.updating_robot_status_job_name].robot.robot_status : Dexter[Dexter.updating_robot_status_robot_name].robot_status)
+        let robot_status = (Dexter.updating_robot_status_job_name   ?
+             Job[Dexter.updating_robot_status_job_name].robot.robot_status :
+             Dexter[Dexter.updating_robot_status_robot_name].robot_status)
         let content = Dexter.update_robot_status_to_html_table(robot_status)
         show_window({content: content,
                      title:  "<span style='font-size:16px;'>Robot Status of</span> " + job_robot_select_html + ": " +
