@@ -5,10 +5,11 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version:  <span id="dde_version_id">2.0.6</span><br/>
-    released: <span id="dde_release_date_id">Jul 24, 2017</span>
+    version:  <span id="dde_version_id">2.0.7</span><br/>
+    released: <span id="dde_release_date_id">Jul 27, 2017</span>
     <p/>
     DDE helps you create, debug, and send software to a Dexter robot.
     You can use any JavaScript augmented with DDE-specific functions to help find out about,
@@ -297,39 +298,50 @@ Each indicates that a joint has power.
     </details><!-- end Set Up Dexter -->
 
 <details class="doc_details" id="calibrate_doc_id"><summary>Calibrate Dexter</summary>
-<h4>When</h4>
+<b>When</b><br/>
 To obtain optimal precision, Dexter must be calibrated after it is built.
-If you recieved a full assembed Dexter, this initial calibration has been done.
+If you received a fully assembled Dexter, this initial calibration has been done.
 If you are building a kit, you must calibrate it when the building is complete.
 <p/>
-Environmental affects of heat, humidity, movement, and orientation towards gravity,
+Environmental effects of heat, humidity, movement, and orientation towards gravity,
 all conspire to make minor changes that affect Dexter's accuracy.
-You can calibrate at any time, though you may not need to if Dexter's environment
-is faily constant.
-<h4>How</h4>
+<b>Calibrate optical sensors</b> will most likely only need to be done once.
+<b>Calibrate optical encoders</b> needs to be done every time Dexter is turned on.
+If Dexter is having sporadic movement or is not smooth
+in FollowMe mode, try going through a full calibration.
+<p/>
+<b>How</b><br/>
 Choose the Test menu item of "Calibrate Dexter..." to open a dialog
 aiding calibration.
 <h5>Step 1</h5>
 Select the robot to calibrate. If you have only one Dexter, the default of
 <i>dexter0</i> will already be selected.
 <h5>Step 2</h5>
-Calibrate each of the five joints. When you choose the radio button for a joint,
-this begins a Job that draws thousands of points in the right-middle part of the dialog.
-If you don't see points drawn, probably you have your robot set to <i>simulate</i>.
-If the robot has its simulate init parameter set to <code>null</code> (the default
+<b>Calibrate optical sensors</b> by
+calibrating each of the five joints. When you choose the radio button for a joint,
+this begins a Job that draws thousands of points in the
+large white square plot area on the right of the dialog.
+If you don't see points drawn, you probably have your robot set to <i>simulate</i>
+i.e. <code title="not in TestSuite">new Dexter({simulate: true})</code> or
+have that simulate init param set to <code>null</code> which causes it
+to look at the Jobs menu/Simulate? radio buttons for a value,
+or there is a discontinuity in your wiring.
+If the robot has its <i>simulate</i> init parameter
+set to <code>null</code> (the default
 and the case for dexter0), choose Jobs menu/Simulate?/ of <code>false</code>.
 <p/>
-To calibrate, twist the two trim pots on the small (several centimeters per side)
+For each Joint, twist the two trim pots on the small (several centimeters per side)
 printed circuit board
 (the "optical board")
 for the joint that you are calibrating,
 until the drawn points form a circle, or as near a circle as you can make.
-Joints 1, 4, and 5 also have two screws to adjust the position of the pc boards.
- <p/>
+The desired circle fills the white plot area in the dialog.
+<p/>
+Joints 1, 4, and 5 also have two screws to adjust the position of the optical blocks.
  If you see the drawn points form the pattern of an elongated diagonal oval,
  that indicates that the positional screws need to be adjusted.
  <p/>
- All adjustments can be made with provided small screw driver.
+ All adjustments can be made with the provided small screw driver.
  <p/>
  As you adjust, the screen will become cluttered with now obsolete dots.
  Click the "Restart" button to clear the dots and start calibrating the
@@ -348,7 +360,9 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the pc boards.
  When you've completed calibrating all five joints, click the
  "Save" button.
  <h5>Step 3</h5>
- Calibrate the optical encoder geometry by clicking the bottom button in the dialog.
+ <b>Calibrate optical encoders</b><br/>
+ <span style="color:red;">Caution! Clear area for large robot movements.</span><br/>
+    Calibrate the optical encoders by clicking the bottom button in the dialog.
  This will take about a minute.
  When the directions line in Step 2 says that calibration is complete, you
  can close this dialog by clicking the <b>x</b> in its upper right corner.

@@ -1023,12 +1023,7 @@ foo      //eval to see the latest values</pre>`,
          else { Robot.dexter0.run_instruction_fn(sel) }
     }
 
-    calibrate_id.onclick = function(){
-        load_files(__dirname + "/low_level_dexter/ViewEyeRealTime.js")
-        load_files(__dirname + "/low_level_dexter/calibrate_optical.js")
-        load_files(__dirname + "/low_level_dexter/calibrate_ui.js")
-        start_calibrate()
-    }
+    calibrate_id.onclick = init_calibrate //defines 2 jobs and brings up calibrate dialog box
 
         //Output_ops menu
     ping_id.onclick          = function(){ rde.ping()}

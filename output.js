@@ -421,7 +421,7 @@ window.submit_window = function(event){
             return
         }
     }
-    else if (this.tagName == "INPUT") {
+    /*else if (this.tagName == "INPUT") {
         if ((this.type == "button") || (this.type == "submit")) { //used by the callback to chose the appropriate action
             if(this.name)     { result.clicked_button_value = this.name   }
             else if (this.id) { result.clicked_button_value = this.id     }
@@ -437,6 +437,16 @@ window.submit_window = function(event){
                                                //the oninput fires, it unfocues the input elt.
             result.clicked_button_value = this.name
         }
+    }*/
+    else if (this.tagName == "INPUT") {
+        if(this.name)     { result.clicked_button_value = this.name   }
+        else if (this.id) { result.clicked_button_value = this.id     }
+        else              { result.clicked_button_value = this.value  } //this is the disolayed text in the button.
+        //but note that we *might* have 2 buttons with the same label but want them to have different actions
+        //so check name and id first because we can give them different values even if
+        //the label (value) is the same for 2 different buttons.
+        //but if we WANT the action to be the same for 2 same-valued buttons, fine
+        //give the buttons values but no name or id.
     }
     else if (this.name) { result.clicked_button_value = this.name }
     else if (this.id)   { result.clicked_button_value = this.id }
@@ -473,7 +483,9 @@ window.submit_window = function(event){
                 result[in_name] = val
             }
         }
-        else if (in_type == "file") { result[in_name] = inp.files[0].name }
+        else if (in_type == "file") { result[in_name] = ((inp.files.length > 0) ?
+                                                          inp.files[0].name:
+                                                          null) }
         else if (in_name == "window_callback_string") { //type == "hidden"
             result["window_callback_string"] = inp.value //still needed nov 9, 2016
         }

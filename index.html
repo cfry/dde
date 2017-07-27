@@ -137,10 +137,12 @@
     <script type="text/javascript" src="math/Dexter_Modes.js"></script>
 
     <script type="text/javascript" src="serial.js"></script>
-    <!--loaded when user chooses "calbrate" from Test menu.
-     <script type="text/javascript" src="low_level_dexter/calibration.js"></script>
-     <script type="text/javascript" src="low_level_dexter/ViewEyeRealTime.js"></script>
-    -->
+
+    <script type="text/javascript" src="low_level_dexter/ViewEye_Support_Functions.js"></script>
+    <script type="text/javascript" src="low_level_dexter/ViewEyeRealTime.js"></script>
+    <script type="text/javascript" src="low_level_dexter/calibrate_optical.js"></script>
+    <script type="text/javascript" src="low_level_dexter/calibrate_ui.js"></script>
+
 
     <script type="text/javascript" src="ready.js"></script>
     <link rel="stylesheet" href="styles.css" type="text/css"/>
@@ -517,6 +519,7 @@
                                                 <li id="move_to_selection_id"  title="Treat the selection as an instruction&#013;to run on dexter0.&#013;A number or number array < 4&#013;are args to move_to.&#013;Arrays of 4 or 5 numbers&#013;are args to move_all_joints.">selection</li>
                                             </ul>
                                         </li>
+                                        <li id="calibrate_id"               title="Calibrate one or more Dexters.&#13;Needed each time you power on a Dexter.">Calibrate Dexter...</li>
                                     </ul>
                                 </li>
                                 <li style="display:inline-block;padding-left:3px;padding-right:0px;">Test&#9660;
@@ -538,8 +541,6 @@
                                         <li id="insert_all_test_suites_id"  title="Insert all test suites' source code into the Editor.">Insert all</li>
                                         <li id="run_all_test_suites_id"     title="Run all defined test suites.">Run all TestSuites</li>
                                         <li id="selection_to_test_id"       title="Wrap a test around the current selection.&#13;If no selection, insert an empty test template.">Selection to test</li>
-                                        <li id="calibrate_id"               title="Calibrate one or more Dexters.&#13;Needed each time you power on a Dexter.">Calibrate Dexter...</li>
-
                                     </ul>
                                 </li>
                             </ul>
