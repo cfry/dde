@@ -8,8 +8,8 @@
 
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version:  <span id="dde_version_id">2.0.7</span><br/>
-    released: <span id="dde_release_date_id">Jul 27, 2017</span>
+    version:  <span id="dde_version_id">2.0.8</span><br/>
+    released: <span id="dde_release_date_id">Jul 29, 2017</span>
     <p/>
     DDE helps you create, debug, and send software to a Dexter robot.
     You can use any JavaScript augmented with DDE-specific functions to help find out about,
@@ -270,9 +270,8 @@ Each indicates that a joint has power.
         or other angles.
         <p/>
         If the robot moves, you can control it from DDE!
-        The next step is using the Jobs menu/Run Instruction (dialog).
-        You can run individual instructions or insert them into
-        the editor pane and start building more complex jobs.
+        The next step is calibrating Dexter. Choose the menu item
+        Jobs menu/Calibrate Dexter to start.
         <p/>
         We recommend choosing <span style="color:blue;">?</span>
         in the upper right corner of the Doc pane to understand the Help System.
@@ -300,12 +299,12 @@ Each indicates that a joint has power.
 <details class="doc_details" id="calibrate_doc_id"><summary>Calibrate Dexter</summary>
 <b>When</b><br/>
 To obtain optimal precision, Dexter must be calibrated after it is built.
-If you received a fully assembled Dexter, this initial calibration has been done.
-If you are building a kit, you must calibrate it when the building is complete.
 <p/>
 Environmental effects of heat, humidity, movement, and orientation towards gravity,
 all conspire to make minor changes that affect Dexter's accuracy.
 <b>Calibrate optical sensors</b> will most likely only need to be done once.
+If you received a fully assembled Dexter, this initial calibration has been done.
+If you are building a kit, you must calibrate it when the building is complete.
 <b>Calibrate optical encoders</b> needs to be done every time Dexter is turned on.
 If Dexter is having sporadic movement or is not smooth
 in FollowMe mode, try going through a full calibration.
@@ -335,7 +334,8 @@ printed circuit board
 (the "optical board")
 for the joint that you are calibrating,
 until the drawn points form a circle, or as near a circle as you can make.
-The desired circle fills the white plot area in the dialog.
+The desired circle fills the white plot area in the dialog, not smaller and
+not larger.
 <p/>
 Joints 1, 4, and 5 also have two screws to adjust the position of the optical blocks.
  If you see the drawn points form the pattern of an elongated diagonal oval,

@@ -49,7 +49,7 @@ function persistent_initialize(keep_existing=true) { //was persistent_clear
             }
             else { //first launch of dde by user
                 persistent_save()
-                out("dde_persistent.json doesn't exist so<br/>" +
+                out("The file dde_persistent.json doesn't exist so<br/>" +
                      "persistent values have been initialized to their defaults and<br/>" +
                      "Documents.dde_apps/dde_persistent.json has been created.",
                      "green")
@@ -151,6 +151,7 @@ function dde_init_dot_js_initialize() {
                   '// set_menu_background_color("#4cc9fd")\n' +
                   '// set_button_background_color("#4cc9fd")\n' +
                   '\n' +
+                  'persistent_set("ROS_URL", "' + default_default_ROS_URL + '") //required property, but you can edit the value.\n'
                   'persistent_set("default_dexter_ip_address", "'    +
                   default_default_dexter_ip_address + '") //required property but you can edit the value.\n' +
                   'persistent_set("default_dexter_port", "'          +

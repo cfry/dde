@@ -5,6 +5,39 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+
+<details class="doc_details"><summary>v 2.0.8, Jul 29, 2017</summary>
+Highlights: Improvements for Calibrate & other minor but important details
+<ul><li> The "?" help icon in the Doc pane header made bigger and bolder for easier finding.</li>
+
+    <li> Run instruction dialog box menu item moved from selecting
+        "Jobs menu/Run Instruction" to  "Jobs menu/Run Instruction/Show Dialog..."
+        to make it more obvious.</li>
+
+    <li> Caught an error for empty_instruction_queue_now when it can't write to a socket.</li>
+
+    <li> Fix for robot_done_with_instruction w.r.t. "a" oplet setting rob.angles.</li>
+
+    <li> Fix for Socket.empty_instruction_queue_now attempting to write to a closed socket.</li>
+
+    <li> When DDE automatically creates a dde_init.js file, it now adds persistent_set("ROS_URL",...)</li>
+
+    <li>Calibrate fixes:
+        <ul><li> Fixed bug in smlinex with "axis" undefined.</li>
+
+            <li> Doc calibrate optical sensor now has: ideal circle should just
+                 fill up whole square, not more, not less.</li>
+
+            <li> Calibrate dialog, clicking on Joint 1 fixed.</li>
+
+            <li> Calibrate dialog "save" button fix for the path of the file saved to.</li>
+
+            <li> Calibrate, witb sim == true, clicking calibrate optical button now
+                 warns you that you must not be simulating to calibrate.</li>
+        </ul></li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 2.0.7, Jul 27, 2017</summary>
 Highlights: Calibrate dialog and doc improvements.
 <ul>

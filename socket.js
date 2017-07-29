@@ -174,10 +174,17 @@ var Socket = class Socket{
         }
         if ((sim_actual === false) || (sim_actual == "both")){
             const ws_inst = Socket.robot_name_to_ws_instance_map[robot_name]
-            if(ws_inst){
+            if(ws_inst && !ws_inst.destroyed){
                 const instruction_array = make_ins("E") //don't expect to hear anything back from this.
                 const array = Socket.instruction_array_to_array_buffer(instruction_array)
-                ws_inst.write(array)
+                try { ws_inst.write(array) } //band-aid for not knowing what in Dexter's queue.
+                                              //if the queue is empty we shouldn't do.
+                                              //we should empty the queue whenever DDE detects an error,
+                                              //but before closing the socket.
+                catch(err) {
+                    warning("Writing to the robot: " + robot_name +
+                            " while emptying its queue failed, but that may be ok.")
+                }
             }
         }
     }

@@ -935,16 +935,18 @@ Dexter = class Dexter extends Robot {
                 //job_instance.robot_status = robot_status
                 rob.robot_status          = robot_status //thus rob.robot_status always has the latest rs we got from Dexter.
                 if((ins_id === -1) && (op_let == "g")){
-                    rob.angles = rob.joint_angles() //must happen after rob.robot_status = robot_status
+                    rob.angles = rob.joint_angles() //must happen after rob.robot_status = robot_status because extracts angles from the robot_status which is ok for this FIRST time init of rob.angles
                 }
                 if (job_instance.keep_history && (op_let == "g")){ //don't do it for oplet "G", get_robot_status_immediate
                     job_instance.rs_history.push(robot_status)
                 }
+                /*Don't do this rob.angles is set by move_all_joints BEFORE sending it to robot and should not
+                  be set by a move_all_joints coming back from robot.
                 else if (op_let == "a"){ //no robot_status so I must get the pos we tried to move_to. This works for orign insturctions of move_to, move_to_relative, and move_all_joints
                                          //rob.xy used by move_to_relative
                     const full_inst = job_instance.do_list[ins_id]
                     rob.angles = [full_inst[Dexter.J1_ANGLE], full_inst[Dexter.J2_ANGLE], full_inst[Dexter.J3_ANGLE], full_inst[Dexter.J4_ANGLE], full_inst[Dexter.J5_ANGLE]]
-                }
+                }*/
                 if (job_instance.name === Dexter.updating_robot_status_job_name) { //don't update the table if it isn't shown
                     Dexter.update_robot_status_table(robot_status)
                 }

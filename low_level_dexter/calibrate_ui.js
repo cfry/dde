@@ -1,3 +1,6 @@
+window.cal_svg_height = 410
+window.cal_working_axis = undefined //this is either undefined, 0, 1, 2, 3, 4 (ie zero based joint numbers)
+
 function make_calibrate_joint_buttons_html(){
      var result = ""
      for(var i = 1; i <= 5; i++){
@@ -16,8 +19,6 @@ function make_calibrate_joint_buttons_html(){
     return result + stop_button + restart_button + save_button
 }
 
-window.cal_svg_height = 410
-
 function flip_point_y(y){
     return (y * -1) + window.cal_svg_height
 }
@@ -35,12 +36,13 @@ function are_all_joints_calibrated(){
 }
 
 function handle_cal(vals){
+    var the_robot = cal_get_robot()
     if (vals.clicked_button_value.startsWith("cal_joint_done")) {
         if(Job.CalSensors.is_active()){
             Job.CalSensors.stop_for_reason("interrupted", "User stopped job.")
         }
         //let user check or uncheck this Joint, its just "note taking" for the user.
-        //window.cal_working_axis = undefined
+        //window.cal_working_axis = undefined //don't do because we have the radio button selected, and besides, we might want to "restart" the current one.
         remove_svg_points()
         cal_instructions_id.innerHTML = (are_all_joints_calibrated() ?
                                         "All joints are calibrated.<br/>&nbsp;&nbsp;&nbsp;&nbsp;Click the 'Save' button." :
@@ -48,17 +50,17 @@ function handle_cal(vals){
                                         )
     }
     else if (vals.clicked_button_value.startsWith("cal_joint")){
-        if(window.cal_working_axis){
+        if(window.cal_working_axis !== undefined){
             Job.CalSensors.stop_for_reason("interrupted", "User stopped job.")
         }
         remove_svg_points()
-        window.cal_working_axis = parseInt(last(vals[vals.clicked_button_value]))
-        var message = "Adjust the 2 trim pots for Joint " + window.cal_working_axis + " to make a circle.<br/>"
-        if ([1, 4, 5].includes(window.cal_working_axis)){
-            message += "&nbsp;&nbsp;&nbsp;&nbsp;You can also adjust Joint " + window.cal_working_axis + "'s two position screws."
+        var working_axis_1_5 = parseInt(last(vals[vals.clicked_button_value]))
+        window.cal_working_axis = working_axis_1_5 - 1 //the only place this global is set besides being inited (to undefined)
+        var message = "Adjust the 2 trim pots for Joint " + working_axis_1_5 + " to make a circle.<br/>"
+        if ([1, 4, 5].includes(working_axis_1_5)){
+            message += "&nbsp;&nbsp;&nbsp;&nbsp;You can also adjust Joint " + (window.cal_working_axis - 1) + "'s two position screws."
         }
         cal_instructions_id.innerHTML = message
-        var the_robot = cal_get_robot()
         if (the_robot.simulate === true) {
             warning("To calibrate a Dexter, it must have its simulate property set to false.<br/>" +
                 the_robot.name + " has simulate==true. <br/>" +
@@ -74,7 +76,7 @@ function handle_cal(vals){
         }
     }
 	else if(vals.clicked_button_value === "svg_id") {
-	 if (!window.cal_working_axis){
+	 if (window.cal_working_axis === undefined){
          cal_instructions_id.innerHTML = "<span style='color:red'>You must first press a Joint button to calibrate.<br/></span>"
      }
      else {
@@ -106,10 +108,10 @@ function handle_cal(vals){
             Job.CalSensors.stop_for_reason("interrupted", "User stopped job.")
         }
         remove_svg_points()
-        if(window.cal_working_axis){
-            var message = "Adjust the 2 trim pots for Joint " + window.cal_working_axis + " to make a circle.<br/>"
-            if ([1, 4, 5].includes(window.cal_working_axis)){
-                message += "&nbsp;&nbsp;&nbsp;&nbsp;You can also adjust Joint " + window.cal_working_axis + "'s two position screws."
+        if(window.cal_working_axis !== undefined){
+            var message = "Adjust the 2 trim pots for Joint " + (window.cal_working_axis - 1) + " to make a circle.<br/>"
+            if ([1, 4, 5].includes(window.cal_working_axis - 1)){
+                message += "&nbsp;&nbsp;&nbsp;&nbsp;You can also adjust Joint " + (window.cal_working_axis - 1) + "'s two position screws."
             }
             cal_instructions_id.innerHTML = message
             Job.CalSensors.start({robot: cal_get_robot()})
@@ -131,7 +133,17 @@ function handle_cal(vals){
         cal_instructions_id.innerHTML = message_prefix + " <b>Calibrate Optical Encoders</b>"
     }
     else if (vals.clicked_button_value === "calibrate_optical_id"){
-        if (confirm("Caution! Clear the hemisphere that the fully extended Dexter can reach.")){
+        if (the_robot.simulate === true) {
+            warning("To calibrate a Dexter, it must have its simulate property set to false.<br/>" +
+                the_robot.name + " has simulate==true. <br/>" +
+                'Use <code>new Dexter({name: "' + the_robot.name + '" simulate: true ...})</code><br>' +
+                "to define your Dexter.")
+        }
+        else if (Robot.get_simulate_actual(the_robot.simulate) == true){
+            cal_instructions_id.innerHTML = "<span style='color:red'>To calibrate " + the_robot.name + ", the Jobs menu/Simulate? radio button <br/>" +
+                "&nbsp;&nbsp;&nbsp;&nbsp;should be set to false.</span>"
+        }
+        else if (confirm("Caution! Clear the hemisphere that the fully extended Dexter can reach.")){
             Job.CalEncoders.start({robot: cal_get_robot()})
             cal_instructions_id.innerHTML = "Now calibrating optical encoders...<br/>&nbsp;&nbsp;&nbsp;&nbsp;<i>This takes about a minute.</i>"
         }
@@ -139,6 +151,7 @@ function handle_cal(vals){
             cal_instructions_id.innerHTML = "Optical encoder calibration canceled.<br/>"
         }
     }
+    else { shouldnt("handle_cal called with invalid vals.clicked_button_value of: " + vals.clicked_button_value) }
 }
 
 function make_dexter_robot_menu_html(){

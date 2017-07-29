@@ -212,9 +212,6 @@
         panels: [{ size: "60%", min: "5%", collapsible: false },
                  { size: '40%', min: "5%"}]
     })
-    // $('#upper_left_splitter').jqxSplitter({orientation: 'horizontal', width: "100%", height: "100%",
-    //     panels: [{ size: "70%"}, { size: "30%"}]
-    // });
 
     $('#right_splitter').jqxSplitter({ orientation: 'horizontal', width: "100%", height: "100%",
         panels: [{ size: "50%"}, { size: "50%"}]
@@ -274,7 +271,7 @@
 
     cmd_input_id.onclick = onclick_for_click_help
 
-     init_simulation()
+    init_simulation()
 
     //init_guide()
     //init_ref_man()
@@ -311,7 +308,7 @@
         Editor.show_identifier_info(full_src, pos)
     })
 
-     output_div_id.onclick = onclick_for_click_help
+    output_div_id.onclick = onclick_for_click_help
 
     //handles the button clicks and menu selects that chromp Apps prevent in tHTM where they belong
     eval_id.onclick = function(event){
@@ -981,8 +978,7 @@ foo      //eval to see the latest values</pre>`,
     insert_job_example10_id.onclick = function(){Editor.insert(job_examples[10])}
     insert_job_example11_id.onclick = function(){Editor.insert(job_examples[11])}
 
-
-    run_instruction_id.onclick = run_instruction
+    //RUN INSTRUCTION
     move_to_home_id.onclick    = function(){ Robot.dexter0.move_all_joints_fn() }
     move_to_neutral_id.onclick = function(){ Robot.dexter0.move_all_joints_fn(Dexter.NEUTRAL_ANGLES) }
     move_to_parked_id.onclick  = function(){ Robot.dexter0.move_all_joints_fn(Dexter.PARKED_ANGLES) }
@@ -1022,6 +1018,8 @@ foo      //eval to see the latest values</pre>`,
          }
          else { Robot.dexter0.run_instruction_fn(sel) }
     }
+    run_instruction_dialog_id.onclick = run_instruction
+
 
     calibrate_id.onclick = init_calibrate //defines 2 jobs and brings up calibrate dialog box
 

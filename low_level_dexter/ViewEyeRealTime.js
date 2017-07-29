@@ -3,7 +3,7 @@ var centers_string
 var AxisTable
 
 function smLinex(){
-    let xydata = []
+    xydata = []
     const size = AxisTable[window.cal_working_axis][4]
     const result = []
     result.push (make_ins("F"))
@@ -23,15 +23,23 @@ function smLinex(){
             append_in_ui("svg_id", thehtml)
 
             //James Code
-            xydata.push([AxisTable [axis][1], AxisTable [axis][2]])
-            let eye_suggest_result = eye_suggestion(xydata)
-            let eye_center = eye_suggest_result[2] //this should get stored somewhere
-            $(".cal_svg_circle_auto_center").remove();
-            thehtml = svg_circle({html_class: "cal_svg_circle_auto_center", cx: eye_center[0]/10, cy: flip_point_y(eye_center[1]/10), r: 3, color: "green"}) //replace this with colored dot (maybe yellow) that deletes the previous one
-            append_in_ui("svg_id", thehtml)
+            xydata.push([x*10, y*10])
 
-            let suggestion_string = eye_suggestion_string(eye_suggest_result)
-            cal_instructions_id.innerHTML = eye_suggestion_string(eye_suggest_result) //replace this with something that changes the text in the show window
+            if(xydata.length > 200){
+                //debugger
+                let eye_suggest_result = eye_suggestion(xydata)
+                let eye_center = eye_suggest_result[2] //this should get stored somewhere
+                $(".cal_svg_circle_auto_center_min").remove()
+                $(".cal_svg_circle_auto_center_ave").remove()
+                //debugger
+                thehtml = svg_circle({html_class:"cal_svg_circle_auto_center_min", cx: eye_center[0][0]/10, cy:flip_point_y(eye_center[0][1]/10), r: 3, color: "green"}) //replace thiswith colored dot (maybe yellow) that deletes the previous one
+                append_in_ui("svg_id", thehtml)
+                //thehtml = svg_circle({html_class:"cal_svg_circle_auto_center_ave", cx: eye_center[1][0]/10, cy:flip_point_y(eye_center[1][1]/10), r: 3, color: "blue"}) //replace thiswith colored dot (maybe yellow) that deletes the previous one
+                //append_in_ui("svg_id", thehtml)
+                //out(eye_center)
+                let suggestion_string = eye_suggestion_string(eye_suggest_result)
+                cal_instructions_id.innerHTML = eye_suggestion_string(eye_suggest_result) //replace this withsomething that changes the text in the show window
+            }
 
         })}
     return result
@@ -42,7 +50,7 @@ function centers_output(){
     var content = replace_substrings(JSON.stringify(centers_string), ",", ", ")
     try{
         var ip_address = Job.CalSensors.robot.ip_address
-        var path = "/" + ip_address + "/share/AdcCenters.txt"
+        var path = "//" + ip_address + "/share/AdcCenters.txt"
         write_file(path, content)
         return true
     }

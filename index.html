@@ -511,12 +511,13 @@
                                                 <li id="insert_job_example11_id" title="Insert into the editor a tutorial on using&#013;when_stopped for looping a job, etc.">11. when_stopped</li>
                                             </ul>
                                         </li>
-                                        <li id="run_instruction_id" title="Show a dialog for running an instruction on Dexter.">Run Instruction
+                                        <li title="Send a single instruction to a Dexter without typing.">Run Instruction
                                             <ul>
                                                 <li id="move_to_home_id"    title="Runs a job on dexter0 with the instruction:&#013;Dexter.move_all_joints(Dexter.HOME_ANGLES)">HOME_ANGLES</li>
                                                 <li id="move_to_neutral_id" title="Runs a job on dexter0 with the instruction:&#013;Dexter.move_all_joints(Dexter.NEUTRAL_ANGLES)">NEUTRAL_ANGLES</li>
                                                 <li id="move_to_parked_id"  title="Runs a job on dexter0 with the instruction:&#013;Dexter.move_all_joints(Dexter.PARKED_ANGLES)">PARKED_ANGLES</li>
                                                 <li id="move_to_selection_id"  title="Treat the selection as an instruction&#013;to run on dexter0.&#013;A number or number array < 4&#013;are args to move_to.&#013;Arrays of 4 or 5 numbers&#013;are args to move_all_joints.">selection</li>
+                                                <li id="run_instruction_dialog_id" title="Show a dialog box for running an instruction on Dexter.">Show Dialog...</li>
                                             </ul>
                                         </li>
                                         <li id="calibrate_id"               title="Calibrate one or more Dexters.&#13;Needed each time you power on a Dexter.">Calibrate Dexter...</li>
@@ -626,7 +627,7 @@
                         <input id="find_doc_input_id" placeholder="search string" title="If this field is empty,&#013;the selection in the&#013;Editor, Cmd line, Doc, or Output&#013;pane is used."
                                style="width:150px; font-size:14px;"/>
                         <button id="find_doc_button_id" title="Find documentation on text to the left&#013;or, if none, selected text anywhere.">Find</button>&nbsp;
-                        <a id="help_system_id" href="#" title="Help on DDE's Help System">?</a>
+                        <a id="help_system_id" href="#" title="Help on DDE's Help System"><b style="font-size:20px;">?</b></a>
                        <!--  <button id="eval_doc_button_id" title="Evaluated the selected code&#013;in the Doc pane.&#013;Result goes in the Output pane.ƒ">Eval Doc</button> obsolete now that Out pane Eval button can do this-->
                     </div>
                     <div id="doc_pane_content_id" contentEditable="false" style="width:97%; height:90%;padding:5px;overflow:scroll;">
