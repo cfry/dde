@@ -41,16 +41,22 @@ function eye_suggestion(xydata){
     let max_val = 4096 //Change this to actual max value
     let x_state = 0
     let y_state = 0
+    let right_connected = true
+    let left_connected = true
 
-    if(Vector.max(x) > max_val){
+    if(Vector.max(x) === 0){
+    	right_connected = false
+    }else if(Vector.max(x) > max_val){
         //x amplitude too high
         x_state = -1
     }else if(Vector.max(x) < .8*max_val){
         //x amplitude too low
         x_state = 1
     }
-
-    if(Vector.max(y) > max_val){
+	
+    if(Vector.max(y) === 0){
+    	left_connected = false
+    }else if(Vector.max(y) > max_val){
         //y amplitude too high
         y_state = -1
     }else if(Vector.max(y) < .8*max_val){
@@ -60,13 +66,22 @@ function eye_suggestion(xydata){
 
     //suggested but probably not correct center 
     //let center_xy = [Vector.average(x), Vector.average(x)]
-    let center_xy = find_perfect_center(xydata)
+    //let center_xy = find_perfect_center(xydata)
+    let center_xy = undefined
 
-    return [block_postion_state, [x_state, y_state], center_xy]
+    return [block_postion_state, [x_state, y_state], center_xy, [left_connected, right_connected]]
 }
 
 function eye_suggestion_string(eye_suggest_result){
-	if(eye_suggest_result[0] != 0){
+	if(eye_suggest_result[3][0] === false || eye_suggest_result[3][1] === false){
+    	if(eye_suggest_result[3][0] === false && eye_suggest_result[3][1] === false){
+        	return "Check connection of the optical board and sensors.<br/>"
+        }else if(eye_suggest_result[3][0] === false){
+        	return "Check connection of left sensors.<br/>"
+        }else if(eye_suggest_result[3][1] === false){
+        	return "Check connection of right sensors.<br/>"
+        }
+    }else if(eye_suggest_result[0] != 0){
     	if(eye_suggest_result[0] == 1){
         	return "Move optical block closer to code disk.<br/>"
         }else{
@@ -75,16 +90,16 @@ function eye_suggestion_string(eye_suggest_result){
     }
 	else if((eye_suggest_result[1][0] != 0) || (eye_suggest_result[1][1] != 0)){
     	if(eye_suggest_result[1][0] == 1){
-        	return "Rotate left optical encoder clockwise.<br/>"
+        	return "Rotate right potentiometer clockwise.<br/>"
         }
         else if(eye_suggest_result[1][0] == -1){
-        	return "Rotate left optical encoder counter-clockwise.<br/>"
+        	return "Rotate right potentiometer counter-clockwise.<br/>"
         }
         else if(eye_suggest_result[1][1] == 1){
-        	return "Rotate right optical encoder clockwise.<br/>"
+        	return "Rotate left potentiometer clockwise.<br/>"
         }
         else if(eye_suggest_result[1][1] == -1){
-        	return "Rotate right optical encoder counter-clockwise.<br/>"
+        	return "Rotate left potentiometer counter-clockwise.<br/>"
         }
     }
     else { return "Eye is accaptable. Wait for completion.<br/>" }

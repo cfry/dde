@@ -1,5 +1,4 @@
 var centers_string
-                      
 var AxisTable
 
 function smLinex(){
@@ -28,12 +27,14 @@ function smLinex(){
             if(xydata.length > 200){
                 //debugger
                 let eye_suggest_result = eye_suggestion(xydata)
-                let eye_center = eye_suggest_result[2] //this should get stored somewhere
-                $(".cal_svg_circle_auto_center_min").remove()
-                $(".cal_svg_circle_auto_center_ave").remove()
+                //let eye_center = eye_suggest_result[2] //this should get stored somewhere
+                //$(".cal_svg_circle_auto_center_min").remove()
+                //$(".cal_svg_circle_auto_center_ave").remove()
                 //debugger
-                thehtml = svg_circle({html_class:"cal_svg_circle_auto_center_min", cx: eye_center[0][0]/10, cy:flip_point_y(eye_center[0][1]/10), r: 3, color: "green"}) //replace thiswith colored dot (maybe yellow) that deletes the previous one
-                append_in_ui("svg_id", thehtml)
+                
+                //thehtml = svg_circle({html_class:"cal_svg_circle_auto_center_min", cx: eye_center[0][0]/10, cy:flip_point_y(eye_center[0][1]/10), r: 3, color: "green"}) //replace thiswith colored dot (maybe yellow) that deletes the previous one
+                //append_in_ui("svg_id", thehtml)
+                
                 //thehtml = svg_circle({html_class:"cal_svg_circle_auto_center_ave", cx: eye_center[1][0]/10, cy:flip_point_y(eye_center[1][1]/10), r: 3, color: "blue"}) //replace thiswith colored dot (maybe yellow) that deletes the previous one
                 //append_in_ui("svg_id", thehtml)
                 //out(eye_center)
@@ -50,7 +51,7 @@ function centers_output(){
     var content = replace_substrings(JSON.stringify(centers_string), ",", ", ")
     try{
         var ip_address = Job.CalSensors.robot.ip_address
-        var path = "//" + ip_address + "/share/AdcCenters.txt"
+        var path = "\\" + ip_address + "\share\AdcCenters.txt"
         write_file(path, content)
         return true
     }
@@ -61,6 +62,13 @@ function centers_output(){
         out(content, "green")
         return false
     }
+}
+
+function display_center_guess(){
+	$(".cal_svg_circle_auto_center_min").remove()
+    let eye_center = find_perfect_center(xydata)
+	thehtml = svg_circle({html_class:"cal_svg_circle_auto_center_min", cx: eye_center[0][0]/10, cy:flip_point_y(eye_center[0][1]/10), r: 3, color: "green"})
+    append_in_ui("svg_id", thehtml)
 }
 
 function init_view_eye(){
@@ -77,8 +85,6 @@ function init_view_eye(){
                         ["0x000", "0x000"],
                         ["0x000", "0x000"]]
     window.cal_working_axis = undefined //global needed by calibrate_ui.js
-
-//new Dexter({name: "my_dex2", ip_address: "192.168.1.142", port: 50000, enable_heartbeat: false, simulate: false})
     new Job({name: "CalSensors", keep_history: true,
              do_list: [ Dexter.move_all_joints(0, 0, 0, 0, 0),
                         make_ins("w", 42, 64),
@@ -98,7 +104,7 @@ function init_view_eye(){
                         make_ins("S", "StartSpeed",.7),
                         //scan_axis(),
                         smLinex,
-                        //function () {return centers_output()},
+                        display_center_guess,
                         make_ins("S", "MaxSpeed",13),
                         make_ins("S", "Acceleration",1/_nbits_cf),
                         make_ins("S", "StartSpeed",.05),

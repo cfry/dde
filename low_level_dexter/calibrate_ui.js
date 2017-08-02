@@ -183,7 +183,7 @@ function init_calibrate(){
       //    " Right potentiometer: &nbsp;Clockwise pot rotation &rarr;" +
       //    "</div></td><td>" +
       svg_svg({width:20, height:410, child_elements: [svg_text({x:0, y:380, transform: 'rotate(-90 15 380)',
-               text:'Right potentiometer: &nbsp;Clockwise pot rotation &rarr;'
+               text:'Left potentiometer: &nbsp;Clockwise pot rotation &rarr;'
       })]}) + "</td><td>" +
       svg_svg({id: "svg_id", height: window.cal_svg_height, width: window.cal_svg_height,
                    html_class: "clickable", style:"background-color:white;",
@@ -192,7 +192,7 @@ function init_calibrate(){
                        svg_text({text: "Y   Axis", x:  30, y: 250, size: 30, color: "#DDDDDD", border_width: 1, border_color: "black", style: 'font-weight:bold;', transform: 'rotate(-90 30 250)'}),
 
                    ]}) +
-      "</td></tr><tr style='border-collapse:collapse;'><td style='border-collapse:collapse;'></td><td>&nbsp;&nbsp;&nbsp;&nbsp;Left potentiometer: &nbsp;Clockwise pot rotation &rarr;</td></tr>" +
+      "</td></tr><tr style='border-collapse:collapse;'><td style='border-collapse:collapse;'></td><td>&nbsp;&nbsp;&nbsp;&nbsp;Right potentiometer: &nbsp;Clockwise pot rotation &rarr;</td></tr>" +
       "</table></td></tr></table>" +
   "3. <input type='button' id='calibrate_optical_id' style='margin-top:10px;' " +
              "value='Calibrate optical encoders'/> Do each time you turn on Dexter.",
