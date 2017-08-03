@@ -45,13 +45,28 @@ function smLinex(){
         })}
     return result
 }
+/*
+var ip_address = "192.168.1.142"
+var path = "//" + ip_address + "/share/AdcCenters.txt"
+var centers_content = file_content(path)
+var centers_content = file_content(path)
+write_file(path, centers_content)
+*/
 
 //returns true if successful at writing the file, false if not.
 function centers_output(){
-    var content = replace_substrings(JSON.stringify(centers_string), ",", ", ")
+    //var content = replace_substrings(JSON.stringify(centers_string), ",", ", ")
+    //debugger
+    var content = ""
+    for(let i = 0; i < 10; i+=2){
+    	content += centers_string[i]
+        content += "\r\n"
+        content += centers_string[i+1]
+        content += "\r\n"
+    }
     try{
         var ip_address = Job.CalSensors.robot.ip_address
-        var path = "\\" + ip_address + "\share\AdcCenters.txt"
+        var path = "//" + ip_address + "/share/AdcCenters.txt"
         write_file(path, content)
         return true
     }
@@ -79,11 +94,14 @@ function init_view_eye(){
                     [[0, 0, 100/_nbits_cf, 0, 0], Dexter.J3_A2D_SIN, Dexter.J3_A2D_COS, [0, 0, -500000*_arcsec, 0, 0], 1500],
                     [[0, 0, 0, 200/_nbits_cf, 0], Dexter.J4_A2D_SIN, Dexter.J4_A2D_COS, [0, 0, 0, -190000*_arcsec, 0], 1800],
                     [[0, 0, 0, 0, -100/_nbits_cf], Dexter.J5_A2D_SIN, Dexter.J5_A2D_COS, [0, 0, 0, 0, -148000*_arcsec], 4240]]
-    centers_string = [["0x000", "0x000"],
-                        ["0x000", "0x000"],
-                        ["0x000", "0x000"],
-                        ["0x000", "0x000"],
-                        ["0x000", "0x000"]]
+    
+    /*
+    centers_string = [["0x000000", "0x000000"],
+                        ["0x000000", "0x000000"],
+                        ["0x000000", "0x000000"],
+                        ["0x000000", "0x000000"],
+                        ["0x000000", "0x000000"]]
+           */                      
     window.cal_working_axis = undefined //global needed by calibrate_ui.js
     new Job({name: "CalSensors", keep_history: true,
              do_list: [ Dexter.move_all_joints(0, 0, 0, 0, 0),
@@ -112,4 +130,29 @@ function init_view_eye(){
                         function() { cal_instructions_id.innerHTML =
                                      "Click in the center of the dot_pattern circle.<br/>"}
                        ]})
+	let ip_address = Job.CalSensors.robot.ip_address
+    let path = "//" + ip_address + "/share/AdcCenters.txt"
+    try{
+        let original_content = file_content(path)
+        let content_array = original_content.split("\r\n")
+    	centers_string = []
+    	for(let i = 0; i < 10; i+=2){
+    		centers_string.push(content_array[i], content_array[i+1])
+    	}
+    }
+    catch(err) {
+        warning("DDE was unable to read the calibration file named:<br/><code title='unEVALable'> " + path)
+        centers_string =
+`0x000000
+0x000000
+0x000000
+0x000000
+0x000000
+0x000000
+0x000000
+0x000000
+0x000000
+0x000000
+0x000000`
+    }
 }

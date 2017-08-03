@@ -81,11 +81,24 @@ function handle_cal(vals){
      }
      else {
          cal_instructions_id.innerHTML = "Check this joint's <b>Done</b> check box<br/>&nbsp;&nbsp;&nbsp;&nbsp;if you like the center you've chosen."
-         const y_val_to_save = flip_point_y(vals.offsetX)
-         centers_string[window.cal_working_axis][0] =
+         const y_val_to_save = flip_point_y(vals.offsetY)
+         let idx
+         switch(window.cal_working_axis){
+         	case 1:
+            	idx = 2
+                break
+            case 2:
+            	idx = 1
+                break
+         	default:
+         		idx = window.cal_working_axis
+         }
+         centers_string[2*window.cal_working_axis] =
               "0x" + ((vals.offsetX  * 10) * 65536).toString(16)
-         centers_string[window.cal_working_axis][1] =
+         centers_string[2*window.cal_working_axis+1] =
               "0x" + ((y_val_to_save * 10) * 65536).toString(16)
+              
+              
          out ("0x" + ((vals.offsetX  * 10) * 65536).toString(16) + " " +
               "0x" + ((y_val_to_save * 10) * 65536).toString(16))
          $("." + "cal_svg_circle").css("fill", "#fdd715")
@@ -168,6 +181,8 @@ function cal_get_robot(){
 }
 
 function init_calibrate(){
+	
+
     init_view_eye() //will define (or redefine the view eye job, which is ok)
     init_calibrate_optical() //will define (or redefine the calibrate_optical job, which is ok)
   show_window({

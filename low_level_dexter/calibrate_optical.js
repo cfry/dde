@@ -2,6 +2,7 @@ function init_calibrate_optical() {
   new Job({name: "CalEncoders",
             do_list: [setOpenLoop(),
                       make_ins("a", 0, 0, 0, 0, 0),
+                      make_ins("F"),
                       make_ins("w", 42,64),
                       make_ins("w", 42,0),
                       make_ins("w", 42,256),
