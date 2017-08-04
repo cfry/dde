@@ -336,6 +336,7 @@ var Job = class Job{
         if (Job.status_codes.includes(status_code)){
             this.status_code = status_code
             this.color_job_button()
+            if (status_code != "waiting") { this.wait_reason = null }
         }
         else {
             shouldnt("set_status_code passed illegal status_code of: " + status_code +
@@ -472,7 +473,8 @@ var Job = class Job{
                 (ins.name == sync_point_name))
     }
 
-    at_or_past_sync_point(sync_point_name){
+    at_or_past_sync_point(sync_point_name){ //presumes that the THIS job HAS an instuction with the named sync point
+        if(!this.do_list) { return false} //before this job has started so its definately not past any of its sync points.
         for(let a_pc = this.program_counter; a_pc >= 0; a_pc--){
             let ins = this.do_list[a_pc]
             if ((ins instanceof Instruction.Control.sync_point) &&
@@ -1035,8 +1037,17 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
             else {  this.set_up_next_do(1) }
         }
         else if (typeof(cur_do_item) == "function"){
-            var do_items = cur_do_item.call(this) //the fn is called with "this" of this job
-            this.handle_function_call_or_gen_next_result(cur_do_item, do_items) //take the result of the fn call and put it on the do_list
+            try{
+                var do_items = cur_do_item.call(this) //the fn is called with "this" of this job
+                this.handle_function_call_or_gen_next_result(cur_do_item, do_items) //take the result of the fn call and put it on the do_list
+            }
+            catch(err){
+                warning("Job " + this.name + " errored executing instruction with id: " + this.program_counter + "<br/>" +
+                         cur_do_item.toString() + "<br/>" +
+                         err.message)
+                this.stop_for_reason("errored", "function at instruction id: " + this.program_counter)
+                    this.set_up_next_do(1)
+             }
         }
         else if (cur_do_item == "debugger"){
             Job.set_go_button_state(false)

@@ -26,7 +26,9 @@ var mainWindow
 
 function createWindow () {
   // Create the browser window.
-  mainWindow = new BrowserWindow({width: 1000, height: 600})
+  mainWindow = new BrowserWindow({width: 1000, height: 600, show: false,
+                   title: "Dexter Development Environment" //not obvious that this actually shows up anywhere.
+                   })
   //mainWindow.focus() //doesn't do anything.
 
   // and load the index.html of the app.
@@ -42,7 +44,18 @@ function createWindow () {
     // when you should delete the corresponding element.
     mainWindow = null
   })
+  mainWindow.once('ready-to-show', () => { mainWindow.show()})
+  var mainWindow_for_closure = mainWindow
+  mainWindow.on("resize", function(){
+     //onsole.log("win resized to: " + mainWindow.getSize() )
+     //onsole.log("got mWcl: " + mainWindow_for_closure)
+     mainWindow_for_closure.webContents.send('record_dde_window_size')
+  })
 }
+
+// win.setSize(width, height)
+// win.getSize() //retruns an array of 2 ints, width and height.
+
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
@@ -84,6 +97,7 @@ function register_shortcuts(){
 
 app.on("browser-window-focus", register_shortcuts)
 app.on("browser-window-blur",  function(){ globalShortcut.unregisterAll() })
+
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
@@ -190,4 +204,8 @@ ipc.on('prompt', function(eventRet, arg) {
 ipc.on('prompt-response', function(event, arg) {
     if (arg === ''){ arg = null }
     promptResponse = arg
+})
+
+ipc.on('set_dde_window_size', function(event, width, height){
+    mainWindow.setSize(width, height)
 })

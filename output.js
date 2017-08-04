@@ -4,6 +4,21 @@
 const ipcRenderer = require('electron').ipcRenderer
 const request = require('request')
 
+ipcRenderer.on('record_dde_window_size', function(event){
+    //onsole.log("top of on record_window_size")
+    persistent_set("dde_window_width",  window.outerWidth)
+    persistent_set("dde_window_height", window.outerHeight)
+});
+
+window.set_dde_window_size_to_persistent_values = function(){
+    console.log("top of set_dde_window_size_to_persistent_values " +
+                  persistent_get("dde_window_width") + " " +
+                  persistent_get("dde_window_height"))
+    ipcRenderer.send('set_dde_window_size',
+                       persistent_get("dde_window_width"),
+                        persistent_get("dde_window_height"))
+}
+
 //_________show_window and helper fns__________
 window.set_in_ui = function(path_string, value){
     let path_elts = path_string.split(".")
@@ -188,9 +203,9 @@ function get_window_of_index(index){
     if (index == undefined){ //risky to just get the latest created, but a good trick when I need to call some init  for a window as in combo box for app builder from ab.fill_in_action_names
         index = window_index - 1
     }
-    console.log ("getting window of index: " + index + " with next window_index: " + window_index)
+    //onsole.log ("getting window of index: " + index + " with next window_index: " + window_index)
     let win = $('[data-window_index=' + index + ']')
-    console.log("get_window_of_index got win: " + win)
+    //onsole.log("get_window_of_index got win: " + win)
     return win
 }
 window.get_window_of_index = get_window_of_index
@@ -240,7 +255,7 @@ function close_all_show_windows(){
 window.close_all_show_windows = close_all_show_windows
 
 function show_window_values(vals){out(vals)}
-window.show_window_values
+window.show_window_values = show_window_values
 
 window.show_window = function({content = "", title = "DDE Information", width = 400, height = 400, x = 200, y = 200,
                         background_color = "rgb(238, 238, 238)",
@@ -255,12 +270,28 @@ window.show_window = function({content = "", title = "DDE Information", width = 
        }
        if (typeof(callback) == "function"){
            let fn_name = callback.name
-           if (fn_name && (fn_name != "")) { callback = fn_name }
-           else { callback = "" + callback }
+           if (fn_name && (fn_name != "")) {
+                if(fn_name == "callback") { //careful, might be just JS being clever and not the ctual name in the fn def
+                    fn_name = function_name(callback.toString()) //extracts real name if any
+                    if (fn_name == "") { //nope, no actual name in fn
+                        callback = callback.toString() //get the src of the anonymous fn
+                    }
+                    else { callback = fn_name }
+                }
+                else { callback = fn_name }
+            }
+           else { callback = callback.toString() } //using the src of an annonymous fn.
        }
-        content = "<div class='show_window_content' contentEditable='false' style='font-size:15px;'>" +
-            "<input name='window_callback_string' type='hidden' value='" + callback + "'/>" +
-            "<input name='trim_strings' type='hidden' value='" + trim_strings + "'/>" +
+       //var the_instruction_id = null
+       //if(arguments[0]) {the_instruction_id =  arguments[0].the_instruction_id}
+        content = "<div class='show_window_content' contentEditable='false' style='font-size:15px;'>\n" +
+            "<input name='window_callback_string' type='hidden' value='" + callback + "'/>\n" +
+            "<input name='trim_strings' type='hidden' value='" + trim_strings + "'/>\n" +
+            //the next 2 are only for Human.show_window
+            ((arguments[0].the_job_name) ?
+            "<input name='the_job_name' type='hidden' value='" + arguments[0].the_job_name + "'/>\n": "") +
+            //((the_instruction_id || (the_instruction_id == 0)) ?
+            //"<input name='the_instruction_id' type='hidden' value='" + the_instruction_id + "'/>\n": "") +
             content + "</div>" //to allow selection and copying of window content
         //kludge but that's dom reality
         var holder_div = document.createElement("div"); // a throw away elt
@@ -460,8 +491,9 @@ window.submit_window = function(event){
     var window_callback_string = null
     for (var i = 0; i < inputs.length; i++){
         var inp = inputs[i]
-        var in_name      = inp.name
-        if (!in_name) { in_name      = inp.id }
+        var in_name = inp.name
+        if      (!in_name) { in_name = inp.id }
+        else if (!in_name) { in_name = inp.value }
         var in_type      = inp.type    //text (one-liner), submit, button, radio, checkbox, etc.
         if (in_type == "radio"){
             if (inp.checked){
@@ -486,16 +518,15 @@ window.submit_window = function(event){
         else if (in_type == "file") { result[in_name] = ((inp.files.length > 0) ?
                                                           inp.files[0].name:
                                                           null) }
-        else if (in_name == "window_callback_string") { //type == "hidden"
-            result["window_callback_string"] = inp.value //still needed nov 9, 2016
-        }
         else if (in_type  == "submit"){}
         else if (in_type  == "button"){} //button click still causes the callback to be called, but leaves window open
-        else if ((in_type == "hidden") && (in_name == "trim_strings")) {
+        else if (in_type == "hidden") { //trim_strings, window_callback_string, and for Human.show_instruction: the_job_name
             var val = inp.value
-            if (val == "false") {val = false}
-            else { val = true}
-            result["trim_strings"] = val
+            if      (val == "false") {val = false}
+            else if (val == "true")  {val = true}
+            else if (val == "null")  {val = null}
+            else if (is_string_a_number(val)) { val = parseFloat(val) } //for "123", this will return an int
+            result[in_name] = val
         }
         else if (in_type == "text"){
             if (in_name){
@@ -561,7 +592,13 @@ window.submit_window = function(event){
     if (!cb) { //cb could have been a named fn such that wehn evaled didn't return the fn due to bad js design
        if(callback_fn_string.startsWith("function ")){
            let fn_name = function_name(callback_fn_string)
-           cb = window.fn_name
+           if ((typeof(fn_name) == "string") && (fn_name.length > 0)) { cb = window.fn_name }
+           else { //we've got an anonyous function source cde def
+                cb = eval("(" + callback_fn_string + ")") //need extra parens are veal will error becuase JS is wrong
+                if(typeof(cb) != "function"){
+                    dde_error("show_window got a callback that doesn't look like a function.")
+                }
+           }
        }
        else {
            dde_error("In submit_window with bad format for the callback function of: " + callback_fn_string)

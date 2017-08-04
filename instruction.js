@@ -275,6 +275,8 @@ Instruction.Control.human_task = class human_task extends Instruction.Control{
             }
         }
         else if (this.title == "") { this.title = "<span style='height:25px;'>&nbsp;</span>" }
+        job_instance.wait_reason = "user on Human.show_window interaction." //do before set_status_code so the tooltip gets set with the wait_reason.
+        job_instance.set_status_code("waiting")
         show_window({content: this.task + "<p/>" + buttons + hidden,
                     callback: human_task_handler,
                     title: this.title,
@@ -352,6 +354,8 @@ Instruction.Control.human_enter_choice = class human_enter_choice extends Instru
             }
         }
         else if (this.title == "") { this.title = "<span style='height:25px;'>&nbsp;</span>" }
+        job_instance.wait_reason = "user on Human.show_window interaction." //do before set_status_code so the tooltip gets set with the wait_reason.
+        job_instance.set_status_code("waiting")
         show_window({content: this.task + "<br/>" + select + "<br/>" + buttons + hidden,
                     callback: human_enter_choice_handler,
                     title: this.title,
@@ -475,6 +479,8 @@ Instruction.Control.human_enter_instruction = class human_enter_instruction exte
         if(job_instance.robot instanceof Dexter){
             out(Dexter.robot_status_to_html(job_instance.robot.robot_status, "on job: " + job_instance.name), "black", true)
         }
+        job_instance.wait_reason = "user on Human.show_window interaction." //do before set_status_code so the tooltip gets set with the wait_reason.
+        job_instance.set_status_code("waiting")
         show_window({content: "<div style='margin-bottom:10px;'><i>" + this.task + "</i></div>" +
                               "Instruction type: " + type_html +
                               immediate_do +
@@ -672,6 +678,8 @@ Instruction.Control.human_enter_number = class human_enter_number extends Instru
             }
         }
         else if (this.title == "") { this.title = "<span style='height:25px;'>&nbsp;</span>" }
+        job_instance.wait_reason = "user on Human.show_window interaction." //do before set_status_code so the tooltip gets set with the wait_reason.
+        job_instance.set_status_code("waiting")
         show_window({content: this.task + "<br/>" + number_html + "<br/>" + buttons + hidden,
                     callback: human_enter_number_handler,
                     title: this.title,
@@ -754,6 +762,8 @@ Instruction.Control.human_enter_text = class human_enter_text extends Instructio
                 this.title = job_instance.name + " task for: " +  job_instance.robot.name
             }
         }
+        job_instance.wait_reason = "user on Human.show_window interaction." //do before set_status_code so the tooltip gets set with the wait_reason.
+        job_instance.set_status_code("waiting")
         show_window({content: this.task + "<br/>" + text_html + "<br/><br/>" + buttons + hidden,
                     callback: human_enter_text_handler,
                     title: this.title,
@@ -861,6 +871,43 @@ Instruction.Control.human_notify = class human_notify extends Instruction.Contro
 
 Instruction.Control.human_notify.window_x = 0
 Instruction.Control.human_notify.window_y = 0
+
+Instruction.Control.human_show_window = class human_show_window extends Instruction.Control{
+    constructor (sw_lit_obj_args = {}) {
+        super()
+        this.win_index = null
+        this.sw_lit_obj_args = sw_lit_obj_args
+        this.user_data_variable_name = sw_lit_obj_args.user_data_variable_name
+        this.orig_callback = sw_lit_obj_args.callback
+    }
+
+    do_item (job_instance){ //only gets called once, the first time this instr is run
+        this.sw_lit_obj_args.the_job_name       = job_instance.name
+        //this.sw_lit_obj_args.the_instruction_id = job_instance.do_list.indexOf(this)
+
+        job_instance.wait_reason = "user on Human.show_window interaction." //do before set_status_code so the tooltip gets set with the wait_reason.
+        job_instance.set_status_code("waiting")
+        //can't use a closure here bevause if its an anonymous fn, then it gets src code
+        //saved in the show-window dom, and that has to get evaled in an env
+        //that's not this one so closed over vars won't work.
+        this.sw_lit_obj_args.callback = human_show_window_handler
+        this.win_index = show_window(this.sw_lit_obj_args)
+    }
+}
+
+var human_show_window_handler = function(vals){
+    const the_job  = Job[vals.the_job_name]
+    delete vals.the_job_name
+    const hsw_inst = the_job.current_instruction() //the_job.do_list[vals.the_instruction_id]
+    const cb = hsw_inst.orig_callback
+    cb.call(the_job, vals)
+    if(!is_window_shown(vals.window_index)){
+        //if windows is not shown, that means time to save its values in the job an let the job got to its next instruction
+        the_job.user_data[hsw_inst.sw_lit_obj_args.user_data_variable_name] = vals
+        the_job.set_status_code("running")
+        the_job.set_up_next_do(1)
+    }
+}
 
 Instruction.Control.if_any_errors = class if_any_errors extends Instruction.Control{
     constructor (job_names=[], instruction_if_error=null) {
@@ -1301,7 +1348,7 @@ Instruction.Control.sync_point = class sync_point extends Instruction.Control{
             let instruction_array = Dexter.empty_instruction_queue()
             job_instance.do_list.splice(job_instance.program_counter, 0, instruction_array);
             this.inserted_empty_instruction_queue = true
-            job_instance.set_up_next_do(0) //go an do this empty_instruction_queue instruction, and when it finaly returns, to the sync_point proper
+            job_instance.set_up_next_do(0) //go an do this empty_instruction_queue instruction, and when it finnaly returns, to the sync_point proper
         }
         else {
             for(let job_name of this.job_names){
@@ -1314,9 +1361,10 @@ Instruction.Control.sync_point = class sync_point extends Instruction.Control{
                             " which is not defined.")
                         return;
                     }
-                    else if (j_inst.program_counter < 0) {//j_inst hasn't started yet. That's ok, it just hasn't reached the sync point.
-                        job_instance.wait_reason = "for Job." + j_inst.name + " to get to sync_point named: " + this.name + " but that Job hasn't started yet.."
-                        //job_instance.status_code = "waiting" //don't change this from "not_started"
+                    else if(!j_inst.is_active()) { //perhaps not_started, perhaps done (but might be restarted).
+                        job_instance.wait_reason = "Job." + j_inst.name + " to get to sync_point named: " + this.name +
+                                                   "\nbut that Job has status: " + j_inst.status_code
+                        job_instance.set_status_code("waiting")
                         job_instance.set_up_next_do(0)
                         return
                     }
@@ -1325,7 +1373,7 @@ Instruction.Control.sync_point = class sync_point extends Instruction.Control{
                         //beware that j_inst *could* be at a sync point of a different name, and if so,
                         //let's hope there's a 3rd job that it will sync with to get it passed that sync point.
                         else { //j_inst didn't get to sync point yet
-                            job_instance.wait_reason = "for Job." + j_inst.name + " to get to sync_point named: " + this.name
+                            job_instance.wait_reason = "Job." + j_inst.name + " to get to sync_point named: " + this.name
                             job_instance.set_status_code("waiting")
                             job_instance.set_up_next_do(0)
                             return; //we have not acheived sync, so just pause job_instance, in hopes
@@ -1336,6 +1384,7 @@ Instruction.Control.sync_point = class sync_point extends Instruction.Control{
                 }
             }
             //made it through all job_names, so everybody's in sync, but each job has to unfreeze itself.
+            job_instance.set_status_code("running")
             job_instance.set_up_next_do(1)
         }
     }

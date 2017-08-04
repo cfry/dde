@@ -5,8 +5,52 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 2.0.9, Aug 3, 2017</summary>
+Highlights: Improvements to Calibrate Dexter (on the Jobs menu).
+New instruction: Human.show_window
+<ul><li><code>show_window</code>
+        <ul><li>Fixes to show_window callback functions.
+             <li>Fixes to show_window examples.
+             <li>Extensions to show_window documentation.
+        </ul>
+    </li>
+    <li> New instruction: <code>Human.show_window</code>
+         very similar to the show_window function
+        but acts like a Human instruction by pausing the job. Useful
+        for entering multiple values in one dialog.
+        Lots of doc in<br/>
+        Ref Man/Robot/Human/show_instruction.</li>
 
-<details class="doc_details"><summary>v 2.0.8, Jul 29, 2017</summary>
+    <li> Moved menu bar Insert/Build Application to Insert/show_window/Build Window.</li>
+
+    <li> Extended all the human instructions to set the status of
+        "waiting" and a wait_reason
+        of "waiting for Human.enter_*".</li>
+
+    <li> Extended sync_point to declare that a job is waiting if its waiting for
+        a sync point, with proper yellow coloring of the waiting Job's button.</li>
+
+    <li> In the editor, Ctrl/cmd-s now saves the current file.</li>
+
+    <li> Reduced startup display of spurious content.</li>
+
+    <li> Runnng a job with a function that errors now terminates the Job properly.</li>
+
+    <li>Now when you relaunch DDE, the window is the same size as it was the last time
+        you resized it.</li>
+
+    <li> Improvements to calibrate including the data for calibrate_optical_sensors
+    is now saved automatically (for windows OS only).</li>
+
+    <li> Fix to click help for oplets in printing the function name associated
+         with the oplet.</li>
+
+    <li> Removed menu bar Insert/Train Dexter (obsolete).</li>
+
+</ul>
+</details>
+
+<details class="doc_details"><summary>v 2.0.8, Jul 29, 2017 private</summary>
 Highlights: Improvements for Calibrate & other minor but important details
 <ul><li> The "?" help icon in the Doc pane header made bigger and bolder for easier finding.</li>
 
@@ -38,7 +82,7 @@ Highlights: Improvements for Calibrate & other minor but important details
 </ul>
 </details>
 
-<details class="doc_details"><summary>v 2.0.7, Jul 27, 2017</summary>
+<details class="doc_details"><summary>v 2.0.7, Jul 27, 2017 private</summary>
 Highlights: Calibrate dialog and doc improvements.
 <ul>
     <li>Calibrate dialog: numerous small bug fixes and improvements.</li>
@@ -53,7 +97,7 @@ Highlights: Calibrate dialog and doc improvements.
 </ul>
 </details>
 
-<details class="doc_details"><summary>v 2.0.6, Jul 24, 2017</summary>
+<details class="doc_details"><summary>v 2.0.6, Jul 24, 2017 private</summary>
 Highlights: Calibrate Dexter menu item, Job progress bar,
             Many extensions to: User Guide/Configure Dexter
 <ul><li>Tweaks to Gamepad doc headers: shorter to fit in Doc pane.</li>
@@ -112,7 +156,7 @@ Highlights: Calibrate Dexter menu item, Job progress bar,
 </ul>
 </details>
 
-<details class="doc_details"><summary>v 2.0.5, Jul 21, 2017</summary>
+<details class="doc_details"><summary>v 2.0.5, Jul 21, 2017 private</summary>
 Highlights: Gamepad & keyboard input,
             Help system doc,
             Configure Dexter Doc,
@@ -245,7 +289,7 @@ Highlights: load_files can now load file of any extensions.<br/>
 </ul>
 </details>
 
-<details class="doc_details"><summary>v 2.0.3, Jul 7, 2017</summary>
+<details class="doc_details"><summary>v 2.0.3, Jul 7, 2017 private</summary>
 Highlights: run_instruction dialog extensions, Ref Man Examples are now tests.
             bug fixes.
 <ul><li>run_instruction dialog now has menu for selecting any Robot instruction.
@@ -291,7 +335,7 @@ Highlights: run_instruction dialog extensions, Ref Man Examples are now tests.
  </ul>
 </details>
 
-<details class="doc_details"><summary>v 2.0.2, Jul 2, 2017</summary>
+<details class="doc_details"><summary>v 2.0.2, Jul 2, 2017 private</summary>
 <ul>
     <li> fixed run_instruction move_to button action.</li>
     <li> run_instruction dialog/move_to/J5_direction:
@@ -423,7 +467,7 @@ enter a "conversion suffix" after them using
 our new <i>Units System</i> See doc pane/Ref Man/Units System.
 </details>
 
-<details class="doc_details"><summary>v 2.0.0, June 27, 2017</summary>
+<details class="doc_details"><summary>v 2.0.0, June 27, 2017 private</summary>
     Incompatible Changes: We have adopted SI standard units throughout DDE,
     meaning that we will use: meters, degrees, kilograms, seconds where feasible.
     In particular:<br/>

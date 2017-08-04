@@ -36,10 +36,12 @@ Editor.init_editor = function(){
                                //indent each line to the line above it when you hit Return
          extraKeys:{"Left":  Series.ts_or_replace_sel_left,
                     "Right": Series.ts_or_replace_sel_right,
-                    "Shift-Right" : Series.ts_sel_shift_right, //no non ts semantics
+                    "Shift-Right": Series.ts_sel_shift_right, //no non ts semantics
                     "Up":    Series.ts_or_replace_sel_up,
                     "Down":  Series.ts_or_replace_sel_down,
-                    "Cmd-E": eval_button_action //the correct Cmd-e doesn't work
+                    "Cmd-E": eval_button_action, //the correct Cmd-e doesn't work
+                    "Cmd-S": Editor.save, //mac
+                    "Ctrl-S": Editor.save //windows
                     }
         });
     undo_id.onclick        = Editor.undo
@@ -345,6 +347,15 @@ Editor.edit_file = function(path){ //path could be "new file"
 
 Editor.save_current_file = function(){
         write_file(Editor.current_file_path, Editor.get_javascript())
+}
+
+//called by the File menu "Save" item and Cmd-s keystroke
+Editor.save = function() {
+    if (Editor.current_file_path == "new file"){ Editor.save_as() }
+    else {
+        Editor.save_current_file();
+        myCodeMirror.focus()
+    }
 }
 
 Editor.save_as = function(){ //also called by onclick save

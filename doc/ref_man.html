@@ -2545,7 +2545,73 @@ access robot hardware.
   <b>speak</b> true or false, default: false. Whether or not to speak the title and task when this
          instruction is run.
 </details>
-
+<details id="Human.show_window_doc_id" class="doc_details"><summary>show_window</summary>
+<i>show_window</i> comes in two flavors. The first is as a function that can
+be called from any JS code.
+It is documented under<br/><a href="#" onclick="open_doc(show_window_doc_id)">
+Ref Man/Window System/show_window</a>
+<p/>
+The second is as a Human robot instruction. It is documented here but
+you will need the function-equivalent documentation to understand the show_window instruction.
+<samp>Human.show_window</samp> is very similar to  <samp>show_window</samp>,
+but intended to be an instruction in a job. When the show_window instruction
+is run, a dialog box pops up containing its content, just like the function,
+except that it pauses the job that it is in.
+Clicking on buttons, etc, calls the callback function, just like the function.
+But when a "submit" button is clicked or something else in the
+callback function that also closes the window, such as a call to
+<code title="unEVALable code fragment.">close_window(vals.window_index)</code>,
+the argument to the callback function, which contains the values of all the
+input elements, is saved into the Job's <samp>user_data</samp> for use by subsequent instructions
+in the job.
+<p/>
+if you just want to get one value at a time from a user, its easier to
+use the other Human instructions for number, text, etc. But
+if you want to get multiple values in one dialog, using this
+instruction is the way to go.
+<p/>
+<i>Parameters:</i><br/>
+The vast majority of the parameters to the show_window instrution are the same
+as to the show_window instruction. Here we only document differences.<br/>
+<b>callback</b> Very similar to the function-equivalent except that
+when it is called, <code title="unEVALable JS fragment">this</code> is bound
+to the job that the instruction is in. You can use this to, for instance, stop the job,
+by calling (within the callback)
+<code title="unEVALable JS fragment">this.stop_for_reason("interrupted", "your explanation.")</code><br/>
+<b>user_data_variable_name</b> Default: <code>"show_window_vals"</code>.
+Similar to other Human instructions, this is the place that values from
+input elements are stored when the dialog is closed.
+<p/>
+<i>Example:</i><br/>
+<pre><code>new Job({name: "my_job",
+         do_list:
+           [Human.show_window({content:
+`First name: &lt;input type="text" name="first_name"/>&lt;br/>
+ Last name:  &lt;input type="text" name="last_name"/>&lt;br/>
+ &lt;input type="submit" value="Done"/>`,
+                          user_data_variable_name: "my_name"}),
+            function(){ out("Hello, " +
+                            this.user_data.my_name.first_name + " " +
+                            this.user_data.my_name.last_name)}]})
+                         </code></pre>
+    In this example, we don't care about the callback function.
+    The values of the first and last name that the user entered are
+    stored in<br/>
+    <code title="unEvalable JS fragment">Job.my_job.user_data.my_name.first_name</code> (and last_name)<br/>
+    then used by the 2nd instruction to print them out.
+    <p/>
+    An easy debugging trick, is that you can EVAL the call to <code>show_window</code>
+    and see the dialog that will be presented, by running the instruction WITHOUT
+    actually running the job. To do this for the above example, select the
+    text starting with <code>show_window</code> and continuing only through
+    its close paren, excluding the following comma separating it from the
+    next instruction. Then click the <button>Eval</button> button.
+    <p/>
+    Note that when you click on buttons in the resulting dialog,
+    <code title="unEVALable JS fragment">this</code> will not be bound to
+    the surrounding job, but otherwise the callback should behave the same
+    as it does when running the whole job.
+</details>
 
 </details> <!-- end human instructions -->
 </details> <!-- end Human -->
@@ -3285,61 +3351,72 @@ Evaluating the returned string will return a copy of <code>this</code>.
             })</code></pre>
         <b>callback</b> A function of one argument. Any returned valued will be ignored.
         It will be called when the user clicks a button in
-        a show_window. It's argument will be a literal object. Many of its fields are x and y positions
-        reletive to the top-left of html elements in or containing the clicked position.
-        An example:<br/><pre>
+        a show_window. It's argument will be a literal object. Many of its properties are x and y positions
+        relative to the top-left of html elements in or containing the clicked position.
+        <p/>
+        Others of its properties will be names and the corresponding values of input elements
+        designated in the <i>content</i> argument. The actual "name" used for such an element
+        is: <br/>If the element has a "name" properties, use the value of that.<br/>
+        else if the element has a "id" property, use that. Note that "id" properties
+        become global variables bound to the element, which can be useful
+        if you want to programatically change them.<br/>
+        else if the element has a "value" property, use that. Note that an
+        "input" element of type "button" will have its displayed label be
+        the value of its "value" property.
+        <p/>
+        <i>Example </i> of an argument passed to the callback function:<br/><pre>
     <code>{x: 300,           //relative to the parent of the elt clicked on
-    y: 213,
-    clientX: 300,      //relative to the content area (the viewport) of the browser window
-    clientY: 213,      //This point does not move even if the user moves a scrollbar from within the browser.
-    offsetX: 290,      //relative to the html element that the user clicked in
-    offsetY: 68,
-    pageX: 300,        //relative to the top left of the fully rendered content area in the browser.
-    pageY: 213,
-    screenX: 395,      //relative to the physical display
-    screenY: 270,
-    altKey: false,     //true if the alt key (option on Mc) was pressed when the mouse was clicked
-    ctrlKey: false,    //control key
-    metaKey: false,    //Windows key on Windows OS, command key on Mac
-    shiftKey: false,
-    tagName: "input",  //html element tag clicked on.
-    window_index: "1", //a show_window instance identifier.
+     y: 213,
+     clientX: 300,      //relative to the content area (the viewport) of the browser window
+     clientY: 213,      //This point does not move even if the user moves a scrollbar from within the browser.
+     offsetX: 290,      //relative to the html element that the user clicked in
+     offsetY: 68,
+     pageX: 300,        //relative to the top left of the fully rendered content area in the browser.
+     pageY: 213,
+     screenX: 395,      //relative to the physical display
+     screenY: 270,
+     altKey: false,     //true if the alt key (option on Mc) was pressed when the mouse was clicked
+     ctrlKey: false,    //control key
+     metaKey: false,    //Windows key on Windows OS, command key on Mac
+     shiftKey: false,
+     tagName: "input",  //html element tag clicked on.
+     window_index: "1", //a show_window instance identifier.
                        //close_window(window_index)
                        //will close the show_window window.
-    clicked_button_value: "my_in_id", //the 'name' or 'id' attribute of the clicked on element.
-    trim_strings: true}</code></pre>
+     clicked_button_value: "my_in_id", //the 'name' or 'id' attribute of the clicked on element.
+     trim_strings: true}</code></pre>
         <i>Example callback that is called when a button is clicked.:</i><pre><code>
-function show_vals(vals){out(vals)} //this is the default callback
+function show_vals(vals){out(vals)} //this is, effectively, the default callback
 show_window({
     content:
-&#96;text: &lt;input type="text" name="my_text" value="Dexter"/>
-textarea: &lt;textarea name="my_textarea">Hi Rez&lt;/textarea>
-checkbox: &lt;input name="my_checkbox" type="checkbox" checked="checked"/>heated bed?
-    &lt;!-- you can add the checked="checked" attribute to make it initially checked. -->
+&#96;text: &lt;input type="text" name="my_text" value="Dexter"/>&lt;br/>
+textarea: &lt;textarea name="my_textarea">Hi Rez&lt;/textarea>&lt;br/>
+checkbox: &lt;input name="my_checkbox" type="checkbox" checked="checked"/>heated bed?&lt;br/>
+    &lt;!-- you can add the checked="checked" attribute to make it initially checked. -->&lt;br/>
 radio:
 &lt;input type="radio" name="my_radio_group" value="abs" />ABS
 &lt;input type="radio" name="my_radio_group" value="carbon"/>Carbon Fiber
-&lt;input type="radio" name="my_radio_group" value="pla" checked="checked"/>PLA
+&lt;input type="radio" name="my_radio_group" value="pla" checked="checked"/>PLA&lt;br/>
     &lt;!-- At most, only 1 radio button can be checked. If none are checked,
          the return value for the group will be undefined . -->
-number: &lt;input type="number" name="my_number" value="0.4" min="0" max="1" step="0.2"/>
-range:  &lt;input type="range"  name="my_range"  value="33"  min="0" max="100"/>
-color:  &lt;input type="color"  name="my_color"  value="#00FF88"/>
-date:   &lt;input type="date"   name="my_date"   value="2017-01-20"/>
+number: &lt;input type="number" name="my_number" value="0.4" min="0" max="1" step="0.2"/>&lt;br/>
+range:  &lt;input type="range"  name="my_range"  value="33"  min="0" max="100"/>&lt;br/>
+color:  &lt;input type="color"  name="my_color"  value="#00FF88"/>&lt;br/>
+date:   &lt;input type="date"   name="my_date"   value="2017-01-20"/>&lt;br/>
 select: &lt;select name="size">
             &lt;option>Gihugeic&lt;/option>
             &lt;option selected="selected">Ginormace&lt;/option> &lt;!--the inital value-->
             &lt;option>Gilossal&lt;/option>
-        &lt;/select>
-file: &lt;input type="file" name="my_file"/>No dir info.
+        &lt;/select>&lt;br/>
+file: &lt;input type="file" name="my_file"/>No dir info. &lt;br/>
 combo_box: &lt;div name="my_combo_box" class="combo_box" style="display:inline-block;vertical-align:middle;">
                 &lt;option>one&lt;/option>
                 &lt;option selected="selected">two&lt;/option>
-           &lt;/div>
-button: &lt;input type="button" value="Show settings"/>
+           &lt;/div>&lt;br/>
+button: &lt;input type="button" value="Show settings"/>&lt;br/>
 submit: &lt;input type="submit" value="OK"/>&#96;,
     width:380, height:450, title:"Printer Config", x:100, y:100,
-    callback: show_vals})</code></pre>
+    callback: show_vals})  </code></pre>
 
     <h4>onchange</h4>
     Normally the callback is only called when the user clicks a button. However,
@@ -3356,6 +3433,9 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
     </code></pre>
     <p/>
     For more examples of calling <code>show_window</code> see the DDE menubar/Insert/show_window.
+    See also:<br/>
+    <a href="#" onclick="open_doc('Human.show_window_doc_id')">
+                Ref Man/Robot/Human/show_window</a>
     </details> <!-- end show_window -->
 
     <details class="doc_details"><summary>Window Utilities</summary>

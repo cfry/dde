@@ -750,7 +750,7 @@ ab.launch = function(){ //happens in ui env, called from Insert menu item when u
         </center>
 `,
     title: '<span title="Build the code for a window that becomes\nthe interface to an application.\nWrap it in a function that, when called,\nshows the window.">' +
-           'Application Builder</span>',
+           'Build Window</span>',
     width:480,
     height:590,
     x:540, //x and y positioned so that if you shrink this window, it will as much as pssible not occlude the most useful DDE info.

@@ -1,20 +1,20 @@
 {
-  "name":         "dexter_dev_env",
-  "productName":  "dexter_dev_env",
-  "version":      "2.0.8",
-  "release_date": "Jul 29, 2017",
-  "description":  "Dexter Development Environment",
-  "author":  "Fry",
+  "name": "dexter_dev_env",
+  "productName": "dexter_dev_env",
+  "version": "2.0.9",
+  "release_date": "Aug 3, 2017",
+  "description": "Dexter Development Environment",
+  "author": "Fry",
   "license": "GPL-3.0",
-  "main":    "main.js",
+  "main": "main.js",
   "scripts": {
-    "test":     "dependency-check ./package.json",
-    "start":    "electron main",
-    "rebuild":  "electron-rebuild",
-    "build":    "build --dir",
-    "dist":     "build",
+    "test": "dependency-check ./package.json",
+    "start": "electron main",
+    "rebuild": "electron-rebuild",
+    "build": "build --dir",
+    "dist": "build",
     "appveyor": "build.cmd",
-    "clean":    "rimraf dist"
+    "clean": "rimraf dist"
   },
   "keywords": [
     "robot",
@@ -29,6 +29,7 @@
     "jquery": "^3.1.1",
     "request": "^2.79.0",
     "serialport": "^4.0.7",
+    "webmidi": "^2.0.0-rc.5",
     "ws": "^1.1.1"
   },
   "devDependencies": {

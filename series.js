@@ -767,7 +767,7 @@ Series.instances = [
                                                           //"Dexter.prototype.joint_angle", "Dexter.prototype.joint_angles", "Dexter.prototype.joint_xyz", "Dexter.prototype.joint_xyzs",  //beware: these are NOT instructions but 'utility fns.' they are documented.
                                                            "make_ins",
                                                           "Human.enter_choice", "Human.enter_instruction", "Human.enter_number",
-                                                          "Human.enter_text",   "Human.notify", "Human.task",
+                                                          "Human.enter_text",   "Human.notify", "Human.show_window", "Human.task",
                                                           "Serial.string_instruction",
                                                           "Robot.error",  "Robot.get_page", "Robot.go_to", "Robot.grab_robot_status",
                                                             "Robot.if_any_errors", "Robot.label", "Robot.out",

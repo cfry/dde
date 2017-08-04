@@ -48,7 +48,16 @@
         else { eval_js_part1() } //gets whole editor bugger and if empty, prints warning.
     }
 
+    //if an id name has a dot in it, then
+    //open_doc(foo.bar_doc_id) won't work because
+    //foo will be eevaled, then it looks for bar_doc_id inside that and
+    //won't find it.
+    //but if we do open_doc("foo.bar_doc_id") it will work because
+    //the below fn does "if its a string. then look it up in "window".
     function open_doc(details_elt){
+        if(typeof(details_elt) == "string"){
+            details_elt = window[details_elt]
+        }
         //details_elt.open = true;
         open_doc_elt_and_ancestors(details_elt)
         $('#doc_pane_content_id').animate({scrollTop: details_elt.offsetTop - 40}, 800); //WORKS! 800 is milliseconds for the animation to take.
@@ -380,14 +389,8 @@
         }
     }
 
-    save_id.onclick=function(e) {
-        if (Editor.current_file_path == "new file"){ Editor.save_as() }
-        else { 
-            Editor.save_current_file(); 
-            myCodeMirror.focus() 
-        }
-    }
-    save_as_id.onclick=Editor.save_as
+    save_id.onclick =    Editor.save
+    save_as_id.onclick = Editor.save_as
 
     remove_id.onclick=function(){
         let files = persistent_get("files_menu_paths")
@@ -474,7 +477,7 @@ function count_up(vals){ //vals contains name-value pairs for each
     }
 }\n` +
 'show_window({content:\n' +
-'`<input name="count" type="button" value="Count"/> <!-- Regular button. Does not close window.-->\n' +
+'`<input type="button" value="Count"/> <!-- Regular button. Does not close window.-->\n' +
 ' <span  name="count_display" id="count_id">6</span><br/><br/>\n' +
 ' <input type="submit" value="Done"/>`, // submit button closes window\n' +
 '             callback: count_up})      // This function called when either button is clicked.\n'
@@ -578,29 +581,29 @@ submit: <input type="submit" value="OK"/>` + "`" +
 */
 `
      var window_onchange_content =
-`Text input with <code>data-onchange='true'</code>
+`Text input with <samp>data-onchange='true'</samp>
         calls the callback when user clicks on another input.<br/>
     <input type="text"  name="my_onchange_text"  value="33"  min="0" max="100"
     data-onchange='true'/>
         <hr/>
-        Text input with <code>data-oninput='true'</code>
+        Text input with <samp>data-oninput='true'</samp>
         calls the callback after each keystroke entering text.<br/>
     <input type="text" name="my_oninput_text" value="33"  min="0" max="100"
     data-oninput='true'/>
         <hr/>
 
-        Range "slider" with <code>data-onchange='true'</code>
+        Range "slider" with <samp>data-onchange='true'</samp>
         calls the callback after user stops moving the slider.<br/>
     <input type="range"  name="my_onchange_range"  value="33"  min="0" max="100"
     data-onchange='true'/><br/>
         <hr/>
-        Range "slider" with <code>data-oninput='true'</code>
+        Range "slider" with <samp>data-oninput='true'</samp>
         calls the callback often as user moves the slider.<br/>
     <input type="range"  name="my_oninput_range"  value="33"  min="0" max="100"
     data-oninput='true'/>
         <hr/>
         
-        Radio button group input with each input having <code>data-onchange='true'</code>
+        Radio button group input with each input having <samp>data-onchange='true'</samp>
         calls the callback once whenever one radio button is clicked.<br/>
     <input type="radio" name="my_radio_group" value="abs"    data-onchange="true"/>ABS
         <input type="radio" name="my_radio_group" value="carbon" data-onchange="true"/>Carbon Fiber
@@ -615,7 +618,7 @@ show_window({content:
 `       + "`" +
         window_onchange_content + "`" +
 `,           title: "show_window onchange & oninput",
-             height: 440, x: 500, callback: the_cb})
+             height: 440, x: 500, y: 100, callback: the_cb})
 ` )}
     window_svg_id.onclick=function(){Editor.insert(
 `//SVG Example 1: lots of shapes
@@ -703,6 +706,7 @@ show_window({
    callback: handle3
 })
 `)}
+    build_window_id.onclick=ab.launch
     window_close_all_id.onclick=close_all_show_windows
     show_web_page_id.onclick=function(){Editor.wrap_around_selection('show_web_page(', ')\n', '"hdrobotic.com"')}
 
@@ -766,8 +770,7 @@ get_page_async("http://www.ibm.com", function(err, response, body){ out(body.len
      finish_callback: out})          //Passed array of arrays of text and confidence when user says "finish". Default null. Only called if only_once=false
 `)}
     inspect_rootObject_id.onclick=function(){ inspect_new_object("Root") }
-    train_id.onclick=dex.train
-    build_application_id.onclick=ab.launch
+    //train_id.onclick=dex.train //obsolete
     make_dictionary_id.onclick=function(){
         const code = file_content(__dirname + "/examples/make_dictionary.js")
         Editor.insert(code)
@@ -1080,6 +1083,8 @@ foo      //eval to see the latest values</pre>`,
 
     //setTimeout(init_view_eye(), 1000) //todo now this file is loaded in sandbox.html. once I get rid of that and solve reuire issues, and on-ready for render process issues, revisit this.
     persistent_initialize() //called before loading dde_init.js by design.
+
+    set_dde_window_size_to_persistent_values()
 
     const val = persistent_get("save_on_eval")
     if(val) { //have to do this because, unlike the DOM doc, chrome/electron checks the box if you set it to false.

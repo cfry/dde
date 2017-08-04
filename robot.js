@@ -291,6 +291,29 @@ var Human = class Human extends Brain { /*no associated hardware */
     }={}){
         return new Instruction.Control.human_notify(arguments[0])
     }
+    static show_window({content="", title="DDE Information",
+                        x=200, y=200, width=400, height=400,
+                        background_color = "rgb(238, 238, 238)",
+                        is_modal = false,
+                        show_close_button = true,
+                        show_collapse_button = true,
+                        trim_strings = true,
+                        callback = window.show_window_values,
+                        user_data_variable_name="show_window_vals"
+    }={}){
+        return new Instruction.Control.human_show_window({
+            content: content,
+            title: title,
+            x: x, y: y, width: width, height: height,
+            background_color:        background_color,
+            is_modal:                is_modal,
+            show_close_button:       show_close_button,
+            show_collapse_button:    show_collapse_button,
+            trim_strings:            trim_strings,
+            callback:                callback,
+            user_data_variable_name: user_data_variable_name
+    })
+    }
 }
 
 Human.all_names = []

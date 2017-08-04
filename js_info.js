@@ -382,7 +382,7 @@ Js_info = class Js_info {
                 let fn4 = value_of_path(fn_name)
                 return "function " + Js_info.wrap_fn_name(fn_name) + function_params(fn4)
             case "series_oplet_id":
-                const oplet_full_name = "Dexter." + Dexter.instruction_type_full_function_name(fn_name)
+                const oplet_full_name = Dexter.instruction_type_to_function_name(fn_name)
                 var full_name_tag = Js_info.wrap_fn_name(oplet_full_name)
                 return "<code style='color:blue;'>" + fn_name + "</code> means Dexter instruction: " + full_name_tag
             case "series_robot_status_label_id":
@@ -446,6 +446,7 @@ Js_info = class Js_info {
         if (window[the_doc_id]){
             let onclick_val = "open_doc(" + the_doc_id + ")"
             let click_id = fn_name + "_click_help_id"
+            //click_id = replace_substrings(click_id, ".", "_")
             let the_html = "<a id='" + click_id + "' href='#'>" + fn_name + "</a>"
             result = the_html
             setTimeout(function(){

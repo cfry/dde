@@ -422,6 +422,10 @@ function value_of_path(path_string){
 //returns null if fn_src doesn't look like a fn def.
 //returns "" if its an anonymous fn
 //else returns the fn name
+//beware: js is clever about assigning names to annonymous fns if
+//th happen to be bound to a keyword arg to a fn,
+//In such cases, some.fn.name might yield the name its bound to,
+//not the name its given in its source code.
 function function_name(fn_or_src){
     if (typeof(fn_or_src) == "string"){
         if (!fn_or_src.startsWith("function ")) {return null}
