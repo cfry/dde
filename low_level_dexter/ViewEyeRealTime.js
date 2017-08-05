@@ -40,6 +40,12 @@ function smLinex(){
                 //out(eye_center)
                 let suggestion_string = eye_suggestion_string(eye_suggest_result)
                 cal_instructions_id.innerHTML = eye_suggestion_string(eye_suggest_result) //replace this withsomething that changes the text in the show window
+            	if(xydata.length%200 == 0){
+                	$(".cal_svg_circle_auto_center_min").remove()
+    				let eye_center = find_perfect_center(xydata)
+					thehtml = svg_circle({html_class:"cal_svg_circle_auto_center_min", cx: eye_center[0][0]/10, cy:flip_point_y(eye_center[0][1]/10), r: 3, color: "green"})
+    				append_in_ui("svg_id", thehtml)
+                }
             }
 
         })}
@@ -58,10 +64,8 @@ function centers_output(){
     //var content = replace_substrings(JSON.stringify(centers_string), ",", ", ")
     //debugger
     var content = ""
-    for(let i = 0; i < 10; i+=2){
+    for(let i = 0; i < 10; i++){
     	content += centers_string[i]
-        content += "\r\n"
-        content += centers_string[i+1]
         content += "\r\n"
     }
     try{
@@ -74,7 +78,9 @@ function centers_output(){
         warning("DDE was unable to write the calibration file named:<br/><code title='unEVALable'> " + path +
             "</code><br/>Please copy and paste the below (green) string into that file<br/>" +
             "on your Dexter.")
-        out(content, "green")
+    	for(let i = 0; i < 10; i++){
+        	out(centers_string[i], "green")
+    	}
         return false
     }
 }
@@ -133,26 +139,17 @@ function init_view_eye(){
 	let ip_address = Job.CalSensors.robot.ip_address
     let path = "//" + ip_address + "/share/AdcCenters.txt"
     try{
+    	//debugger
         let original_content = file_content(path)
         let content_array = original_content.split("\r\n")
     	centers_string = []
-    	for(let i = 0; i < 10; i+=2){
-    		centers_string.push(content_array[i], content_array[i+1])
+    	for(let i = 0; i < 10; i++){
+    		//centers_string.push(content_array[i], content_array[i+1])
+            centers_string.push(content_array[i])
     	}
     }
     catch(err) {
-        warning("DDE was unable to read the calibration file named:<br/><code title='unEVALable'> " + path)
-        centers_string =
-`0x000000
-0x000000
-0x000000
-0x000000
-0x000000
-0x000000
-0x000000
-0x000000
-0x000000
-0x000000
-0x000000`
+        warning("DDE was unable to connect to Dexter's file system<br/> and read the calibration file named:<br/><code title='unEVALable'> " + path )
+        centers_string = ["0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000"]
     }
 }
