@@ -1,42 +1,18 @@
-/* Job.j1                    //the newly created Job instance
- Job.j1.status_code
- Job.j1.robot.joint_angles() //array of 5 angles, each in arcseconds
- Job.j1.robot.joint_angle(2) //1 thru 5
- Job.j1.robot.joint_xyz(5)   //0 thru 5, default 5. 0 is robot base position
- Job.j1.robot.joint_xyzs()   //Array of base xyz and all joint xyzs.
-*/
 //Kent Gilson
 //James Wigglesworth
-
-/* Fry notes:
-- js has a new declaration "const" for "vars that are never set, ony initialized.
-  I've used that on those "var"s that are not set in this file.
-  Maybe access is a little faster but I do it to make the intent clearer.
-  If you attempt to set a const, you get a warning, which is good.
-  
-- I simplified using push and a variable to return by
-  just building an array and using it.
- */
-
-const pidXYZ  = 0x3e4ecccc //not set in this file
-const pidRP   = 0x3cf5c28f
-const pidBase = 0x3f000000
-//var PID_DELTATNOT = 16 //not used in this file
-//var PID_DELTAT = 17    //not used in this file
-//var PID_D = 18         //not used in this file
-//var PID_I = 19         //not used in this file
-const PID_P = 20
-const PID_ADDRESS = 21
-
-const DIFF_FORCE_SPEED_FACTOR_ANGLE = 55
-const DIFF_FORCE_SPEED_FACTOR_ROT   = 56
-const SPEED_FACTORA = 27
-//var SPEED_FACTORB = 28  //not used in this file
-
-const DEF_SPEED_FACTOR_A    = 30
-const DEF_SPEED_FACTOR_DIFF = 8
+//Fry 
 
 function setFollowMe(){
+	let pidXYZ  = 0x3e4ecccc //not set in this file
+	let pidRP   = 0x3cf5c28f
+	let pidBase = 0x3f000000
+	let PID_P = 20
+	let PID_ADDRESS = 21
+	let DIFF_FORCE_SPEED_FACTOR_ANGLE = 55
+	let DIFF_FORCE_SPEED_FACTOR_ROT   = 56
+	let SPEED_FACTORA = 27
+	let DEF_SPEED_FACTOR_A    = 30
+	let DEF_SPEED_FACTOR_DIFF = 8
 	return [
         make_ins("w", DIFF_FORCE_SPEED_FACTOR_ANGLE, DEF_SPEED_FACTOR_DIFF),
         make_ins("w", DIFF_FORCE_SPEED_FACTOR_ROT, DEF_SPEED_FACTOR_DIFF),
@@ -68,6 +44,16 @@ function setFollowMe(){
 }
 
 function setForceProtect(){
+	let pidXYZ  = 0x3e4ecccc //not set in this file
+	let pidRP   = 0x3cf5c28f
+	let pidBase = 0x3f000000
+	let PID_P = 20
+	let PID_ADDRESS = 21
+	let DIFF_FORCE_SPEED_FACTOR_ANGLE = 55
+	let DIFF_FORCE_SPEED_FACTOR_ROT   = 56
+	let SPEED_FACTORA = 27
+	let DEF_SPEED_FACTOR_A    = 30
+	let DEF_SPEED_FACTOR_DIFF = 8
 	return [
         make_ins("w", DIFF_FORCE_SPEED_FACTOR_ANGLE, 3),
         make_ins("w", DIFF_FORCE_SPEED_FACTOR_ROT, 3),
@@ -95,6 +81,16 @@ function setForceProtect(){
 }
 
 function setKeepPosition(){
+	let pidXYZ  = 0x3e4ecccc //not set in this file
+	let pidRP   = 0x3cf5c28f
+	let pidBase = 0x3f000000
+	let PID_P = 20
+	let PID_ADDRESS = 21
+	let DIFF_FORCE_SPEED_FACTOR_ANGLE = 55
+	let DIFF_FORCE_SPEED_FACTOR_ROT   = 56
+	let SPEED_FACTORA = 27
+	let DEF_SPEED_FACTOR_A    = 30
+	let DEF_SPEED_FACTOR_DIFF = 8
 	return [
         make_ins("w", DIFF_FORCE_SPEED_FACTOR_ANGLE, 0),
         make_ins("w", DIFF_FORCE_SPEED_FACTOR_ROT, 0),
@@ -114,6 +110,16 @@ function setKeepPosition(){
 }
 
 function setOpenLoop(){
+	let pidXYZ  = 0x3e4ecccc //not set in this file
+	let pidRP   = 0x3cf5c28f
+	let pidBase = 0x3f000000
+	let PID_P = 20
+	let PID_ADDRESS = 21
+	let DIFF_FORCE_SPEED_FACTOR_ANGLE = 55
+	let DIFF_FORCE_SPEED_FACTOR_ROT   = 56
+	let SPEED_FACTORA = 27
+	let DEF_SPEED_FACTOR_A    = 30
+	let DEF_SPEED_FACTOR_DIFF = 8
 	return [
         make_ins("w", DIFF_FORCE_SPEED_FACTOR_ANGLE, 0),
         make_ins("w", DIFF_FORCE_SPEED_FACTOR_ROT, 0),
