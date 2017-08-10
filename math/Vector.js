@@ -2,7 +2,7 @@
 //Vector and Matrix math functions
 //James Wigglesworth
 //Started: 6_18_16
-//Updated: 7_6_17
+//Updated: 8_2_17
 
 
 //Public
@@ -1037,6 +1037,31 @@ var Vector = new function(){
     out(myvec)
     */
     
+    /*
+    Vector.is_greater([4, 4, 5], [4, 3, 5])
+    */
+    this.is_greater = function(vector_1, vector_2){
+        let state = false
+        for(let i = 0; i < vector_1.length; i++){
+        	if(vector_1[i] > vector_2[i]){
+            	state = true
+                break
+            }
+        }
+        return state
+    }
+    
+    this.is_less = function(vector_1, vector_2){
+        let state = false
+        for(let i = 0; i < vector_1.length; i++){
+        	if(vector_1[i] < vector_2[i]){
+            	state = true
+                break
+            }
+        }
+        return state
+    }
+    
     this.quadratic_formula = function(a, b, c){
     	let det = Math.sqrt(b**2-4*a*c)
         if(isNaN(det)){
@@ -1045,6 +1070,17 @@ var Vector = new function(){
         return [(-b+det)/(2*a), (-b-det)/(2*a)]
     }
     
+    this.root_mean_sum = function(vector){
+    	if(vector.length){
+        	let sum = 0
+        	for(let i = 0; i < vector.length; i++){
+            	sum += vector[i] * vector[i]
+        	}
+            return Math.sqrt(sum / vector.length)
+        }else{
+        	return vector
+        }
+    }
     
     /**********************************************************
     //Matrix Math
@@ -1510,6 +1546,32 @@ var Vector = new function(){
     Vector.properly_define_point([[10, 20, 30], [10, 20, 30], [10, 20, 30]])
     */
 	
+    this.properly_define_vector = function(vectors){
+    	//a proper point takes the following form: [[x], [y], [z], [1]]
+        //for points: [[x1, x2, ..., xn], [y1, y2, ..., yn], [z1, z2, ..., zm=n] [1, 1, ..., 1]]
+    	let dim = Vector.matrix_dimensions(vectors)
+        let proper_vectors = Convert.deep_copy(vectors)
+        if(dim[0] == 1){
+        	proper_vectors = Vector.transpose(proper_vectors)
+            proper_vectors.push([0])
+            return proper_vectors
+        }else{
+        	if(dim[1] == 3){
+            	for(var i = 0; i < dim[0]; i++){
+                	proper_vectors[i].push(0)
+                }
+                proper_vectors = Vector.transpose(proper_vectors)
+            	return proper_vectors
+            }else{
+            	if(dim[0] == 3){
+                	//let ones = Vector.add(Vector.make_matrix(1, dim[0])[0], 1)
+                    proper_vectors.push([0])
+                    return proper_vectors
+                }
+            }
+        }
+    }
+    
     this.make_dcm = function(x_vector, y_vector, z_vector){
     	let dcm = Vector.identity_matrix(3)
         
@@ -1597,15 +1659,15 @@ var Vector = new function(){
             	break
             case "X'":
             	x_vector = [DCM[0][0], DCM[1][0], DCM[2][0]]
-            	Vector.rotate_DCM(DCM, x_vector, angle)
+            	DCM = Vector.rotate_DCM(DCM, x_vector, angle)
             	break
            	case "Y'":
             	y_vector = [DCM[0][1], DCM[1][1], DCM[2][1]]
-            	Vector.rotate_DCM(DCM, y_vector, angle)
+            	DCM = Vector.rotate_DCM(DCM, y_vector, angle)
             	break
             case "Z'":
             	z_vector = [DCM[0][2], DCM[1][2], DCM[2][2]]
-            	Vector.rotate_DCM(DCM, z_vector, angle)
+            	DCM = Vector.rotate_DCM(DCM, z_vector, angle)
             	break
             default:
             	x_vector = [DCM[0][0], DCM[1][0], DCM[2][0]]
