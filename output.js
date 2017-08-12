@@ -6,6 +6,8 @@ const request = require('request')
 
 ipcRenderer.on('record_dde_window_size', function(event){
     //onsole.log("top of on record_window_size")
+    persistent_set("dde_window_x",      window.screenX)
+    persistent_set("dde_window_y",      window.screenY)
     persistent_set("dde_window_width",  window.outerWidth)
     persistent_set("dde_window_height", window.outerHeight)
 });
@@ -15,7 +17,9 @@ window.set_dde_window_size_to_persistent_values = function(){
                   persistent_get("dde_window_width") + " " +
                   persistent_get("dde_window_height"))
     ipcRenderer.send('set_dde_window_size',
-                       persistent_get("dde_window_width"),
+                        persistent_get("dde_window_x"),
+                        persistent_get("dde_window_y"),
+                        persistent_get("dde_window_width"),
                         persistent_get("dde_window_height"))
 }
 

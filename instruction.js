@@ -204,7 +204,7 @@ Instruction.Control.go_to = class go_to extends Instruction.Control{
             job_instance.set_up_next_do(0)
         }
     }
-    toString(){ return this.instruction_location }
+    toString(){ return "Robot.go_to instruction_location: " + this.instruction_location }
 }
 
 Instruction.Control.grab_robot_status = class grab_robot_status extends Instruction.Control{
@@ -604,7 +604,7 @@ var human_enter_instruction_handler = function(vals){
       let new_human_instruction = Human.enter_instruction({task: hei_instance.task, instruction_type: ins_type, instruction_args: args, dependent_job_names: hei_instance.dependent_job_names})
       let new_ins_array = [args_array, new_human_instruction]
       job_instance.insert_instructions(new_ins_array)
-      job_instance.added_items_count[job_instance.program_counter] = 1
+      job_instance.added_items_count[job_instance.program_counter] = 2
     }
     job_instance.set_up_next_do(1) //even for the case where we're stopping the job,
     //this lets the do_next_item handle finishing the job properly
@@ -929,6 +929,7 @@ Instruction.Control.if_any_errors = class if_any_errors extends Instruction.Cont
                         the_error_ins =  Robot.error(message)
                     }
                     job_instance.insert_single_instruction(the_error_ins)
+                    job_instance.added_items_count[this.program_counter] = 1
                     break;
                 }
             }
@@ -1136,11 +1137,11 @@ Instruction.Control.sent_from_job = class sent_from_job extends Instruction.Cont
         if (Instruction.is_instruction_array(this.do_list_item) ||
             !Array.isArray(this.do_list_item)){
             job_instance.insert_single_instruction(this.do_list_item)
-            job_instance.added_items_count[job_instance.program_counter] = 1
+            job_instance.added_items_count[job_instance.program_counter] += 1
         }
         else { //we've got more than 1 instr to insert.
             job_instance.insert_instructions(this.do_list_item)
-            job_instance.added_items_count[job_instance.program_counter] = this.do_list_item.length
+            job_instance.added_items_count[job_instance.program_counter] += this.do_list_item.length
         }
         job_instance.set_up_next_do(1)
     }
@@ -1220,7 +1221,8 @@ Instruction.Control.stop_job = class stop_job extends Instruction.Control{
         if (!this.stop_reason){
             this.stop_reason = "Stopped by Job." + job_instance.name + " instruction: Robot.stop_job."
         }
-        job_to_stop.stop_for_reason("interrupted", this.stop_reason, this.perform_when_stopped)
+        job_to_stop.stop_for_reason("completed", this.stop_reason, this.perform_when_stopped)
+          //this is not an error or interrupted, its a normal stoppage of the job.
         job_instance.set_up_next_do()
     }
     toString(){
@@ -1455,6 +1457,7 @@ Instruction.Control.wait_until = class wait_until extends Instruction.Control{
                 let new_instructions = [make_ins("g"), //just a do nothing to get a round trip to Dexter.
                                        Robot.wait_until(this.fn_date_dur - 1)] //create new wait_until to wait for the remaining time
                 job_instance.insert_instructions(new_instructions)
+                job_instance.added_items_count[job_instance.program_counter] += 2
                 this.start_time = null //essential for the 2nd thru nth call to start() for this job.
                 job_instance.wait_reason = null
                 job_instance.set_status_code("running")
@@ -1566,3 +1569,26 @@ Instruction.Control.Get_page = class Get_page extends Instruction.Control{
        else { job_instance.set_up_next_do(1)} //got the response, move to next instruction
     }
 }
+
+Instruction.Control.play_notes = class play_notes extends Instruction.Control{
+    constructor (note_or_phrase) {
+        super()
+        if (typeof(note_or_phrase) == "string"){
+            note_or_phrase = note_or_phrase.trim()
+            if(note_or_phrase.includes(" ")){ //phrase
+                   note_or_phrase = new Phrase({notes: note_or_phrase})
+            }
+            else { note_or_phrase = Note.n(note_or_phrase) }
+        }
+        this.note_or_phrase = note_or_phrase
+    }
+    do_item(job_instance){ //send all the notes on first call, then do a set_timeout of the overall dur to setup_next
+        //works when note_or_phrase is either a note or a phrase
+        this.note_or_phrase.play()
+        //setTimeout(function(){
+              job_instance.set_up_next_do(1, false, this.note_or_phrase.dur_in_seconds())
+           // },
+           // this.note_or_phrase.dur_in_ms())
+    }
+}
+

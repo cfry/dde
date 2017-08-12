@@ -152,7 +152,36 @@ var Socket = class Socket{
         let op_code = js_array[Dexter.INSTRUCTION_TYPE]
         let op_let  = String.fromCharCode(op_code)
         js_array[Dexter.INSTRUCTION_TYPE] = op_let
+        Socket.convert_robot_status_to_degrees(js_array)
         Dexter.robot_done_with_instruction(js_array) //this is called directly by simulator
+    }
+
+    static convert_robot_status_to_degrees(robot_status){
+        if (robot_status.length == Dexter.robot_status_labels.length){
+            robot_status[Dexter.J1_ANGLE] *= 0.0002777777777777778 //this number == _arcsec
+            robot_status[Dexter.J2_ANGLE] *= 0.0002777777777777778
+            robot_status[Dexter.J3_ANGLE] *= 0.0002777777777777778
+            robot_status[Dexter.J4_ANGLE] *= 0.0002777777777777778
+            robot_status[Dexter.J5_ANGLE] *= 0.0002777777777777778
+
+            robot_status[Dexter.J1_DELTA] *= 0.0002777777777777778
+            robot_status[Dexter.J2_DELTA] *= 0.0002777777777777778
+            robot_status[Dexter.J3_DELTA] *= 0.0002777777777777778
+            robot_status[Dexter.J4_DELTA] *= 0.00001736111111111111
+            robot_status[Dexter.J5_DELTA] *= 0.00001736111111111111
+
+            robot_status[Dexter.J1_PID_DELTA] *= 0.0002777777777777778
+            robot_status[Dexter.J2_PID_DELTA] *= 0.0002777777777777778
+            robot_status[Dexter.J3_PID_DELTA] *= 0.0002777777777777778
+            robot_status[Dexter.J4_PID_DELTA] *= 0.00001736111111111111
+            robot_status[Dexter.J5_PID_DELTA] *= 0.00001736111111111111
+
+            robot_status[Dexter.J1_FORCE_CALC_ANGLE] *= 0.0002777777777777778
+            robot_status[Dexter.J2_FORCE_CALC_ANGLE] *= 0.0002777777777777778
+            robot_status[Dexter.J3_FORCE_CALC_ANGLE] *= 0.0002777777777777778
+            robot_status[Dexter.J4_FORCE_CALC_ANGLE] *= 0.00001736111111111111
+            robot_status[Dexter.J5_FORCE_CALC_ANGLE] *= 0.00001736111111111111
+        }
     }
 
     static close(robot_name, simulate){

@@ -2,7 +2,7 @@
 var esprima = require('esprima')
 
 var Job = class Job{
-    constructor({name=null, robot=Robot.dexter0, do_list=[], keep_history=true, show_instructions=false,
+    constructor({name=null, robot=Robot.dexter0, do_list=[], keep_history=true, show_instructions=true,
                  inter_do_item_dur = 0.01, user_data={}, program_counter=0, ending_program_counter="end",
                  initial_instruction = null, when_stopped = "stop"} = {}){
     //program_cpunter is the counter of the next instruction that should be executed.
@@ -54,18 +54,21 @@ var Job = class Job{
     }
 
     show_progress(){
-        var html_id = this.name + this.start_time.getTime()
-        var cur_instr = this.current_instruction()
-        if (this.program_counter >= this.do_list.length) { cur_instr = "Done." }
-        else { cur_instr = "Last instruction sent: "  + Instruction.to_string(cur_instr) }
-        var content = "Job: " + this.name + " pc: "   + this.program_counter +
-            " <progress style='width:100px;' value='" + this.program_counter +
-                      "' max='" + this.do_list.length + "'></progress>" +
-            " of " +  this.do_list.length + ". " +
-            cur_instr
-            //var fooo = '<span style="background-color:#5808ff;">aa</span>'
-        out(content, "#5808ff", html_id)
+        if(this.show_instructions) {
+            var html_id = this.name + this.start_time.getTime()
+            var cur_instr = this.current_instruction()
+            if (this.program_counter >= this.do_list.length) { cur_instr = "Done." }
+            else { cur_instr = "Last instruction sent: "  + Instruction.to_string(cur_instr) }
+            var content = "Job: " + this.name + " pc: "   + this.program_counter +
+                " <progress style='width:100px;' value='" + this.program_counter +
+                          "' max='" + this.do_list.length + "'></progress>" +
+                " of " +  this.do_list.length + ". " +
+                cur_instr
+                //var fooo = '<span style="background-color:#5808ff;">aa</span>'
+            out(content, "#5808ff", html_id)
+        }
     }
+
 
     //Called by user to start the job and "reinitialize" a stopped job
     start(options={}){  //sent_from_job = null
@@ -880,7 +883,7 @@ Job.go = function(){
 //will run next. So we want to keep the incrementing of the PC to be
 //in the setTimeout so that when we do a insert "after_pc",
 //that inserted instruction is run next.
-Job.prototype.set_up_next_do = function(program_counter_increment = 1, allow_once=false){ //usual arg is 1 but a few control instructions that want to take a breath call it with 0
+Job.prototype.set_up_next_do = function(program_counter_increment = 1, allow_once=false, inter_do_item_dur=this.inter_do_item_dur){ //usual arg is 1 but a few control instructions that want to take a breath call it with 0
     var job_instance = this
     if (Job.go_button_state || allow_once){ //Job.go_button_state being true is the normal case
         if ((this.status_code == "errored") || (this.status_code == "interrupted")){
@@ -894,7 +897,7 @@ Job.prototype.set_up_next_do = function(program_counter_increment = 1, allow_onc
         setTimeout(function(){
                         job_instance.do_next_item()
                     },
-                    this.inter_do_item_dur * 1000) //convert from seconds to milliseconds
+                    inter_do_item_dur * 1000) //convert from seconds to milliseconds
     }
     else { //the stepper output
         job_instance.pause_next_program_counter_increment = program_counter_increment
@@ -984,8 +987,11 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
         else if (this.added_items_count[this.program_counter] > 0) { //will only happen if we go_to backwards,
            //in which case we *might* call an instruction twice that makes some items that it adds to the to_do list.
            //so we want to get rid of those items and "start over" with that instruction.
-            const sub_items_count = this.added_items_count[this.program_counter]
-            this.do_list.splice(this.program_counter + 1, sub_items_count) //cut out the sub-items under the pc instruction
+            const sub_items_count = //this.added_items_count[this.program_counter]
+                                      this.total_sub_instruction_count(this.program_counter)
+            this.do_list.splice(this.program_counter + 1, sub_items_count) //cut out all the sub-items under the pc instruction
+            this.added_items_count.splice(this.program_counter + 1, sub_items_count)
+            this.added_items_count[this.program_counter] = 0 //because we just deleted all of ites subitems and their descendents
         }
         if (cur_do_item == null){ //nothing to do, just skip it.
             this.set_up_next_do(1)
@@ -1031,7 +1037,9 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
                       do_items = [do_items, cur_do_item]
                     }
                 }
-                this.insert_single_instruction(do_items) //ok to use tis to insert an array of instructions.
+                this.insert_single_instruction(do_items) //ok to use this to insert an array of instructions.
+                this.added_items_count[this.program_counter] += 1
+
             }
             if ((!next_obj.done) && (have_item_to_insert === false)) { this.set_up_next_do(0) } //loop around on the same item
             else {  this.set_up_next_do(1) }
@@ -1065,6 +1073,18 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
     //this.color_job_button() //todo needs to work for Dexter.sleep (z) insurction and to undo its yellow.
 }
 
+Job.prototype.total_sub_instruction_count = function(id_of_top_ins){
+    var this_level_subitems = this.added_items_count[id_of_top_ins]
+    var result = 0
+    var this_level_subitems_left = this_level_subitems
+    var accum_sub_sub_level_items = 0
+    for(let i = 0; i < this_level_subitems; i++){
+        result += 1 //for each this_level_sub_item
+        result += this.total_sub_instruction_count(id_of_top_ins + result)
+    }
+    return result
+}
+
 /*cur_do_item is the fn, do_items is the val returned from calling it.
  cur_do_item merely for error message. the real item to do is do_items which might be an array of items
 
@@ -1090,25 +1110,25 @@ Job.prototype.handle_function_call_or_gen_next_result = function(cur_do_item, do
              (typeof(do_items) == "function") //ok if this includes generator functions
              ) {
         this.insert_single_instruction(do_items)
-        this.added_items_count[this.program_counter] = 1
+        this.added_items_count[this.program_counter] += 1
         this.set_up_next_do(1)
     }
     else if (Array.isArray(do_items)){
         let flatarr = Job.flatten_do_list_array(do_items)
         this.insert_instructions(flatarr)
-        this.added_items_count[this.program_counter] = flatarr.length
+        this.added_items_count[this.program_counter] += flatarr.length
         this.set_up_next_do(1)
     }
     else if (is_iterator(do_items)){ //calling a generator fn returns an iterator
         //this.iterator_stack.push([do_items, this.program_counter])
         //this.set_up_next_do(1)
         this.insert_single_instruction(do_items)
-        this.added_items_count[this.program_counter] = 1
+        this.added_items_count[this.program_counter] += 1
         this.set_up_next_do(1)
     }
     else if (do_items == "debugger"){
         this.insert_single_instruction(do_items)
-        this.added_items_count[this.program_counter] = 1
+        this.added_items_count[this.program_counter] += 1
         this.set_up_next_do(1)
     }
     else {
@@ -1644,9 +1664,17 @@ Job.insert_instruction = function(instruction, location){
                 the_job.sent_from_job_instruction_location = location
                 //if a job isn't running, then we stick it on the ins queue so that
                 //the next time is DOES run (ie its restarted), this
-                //insertined instruction will make it in to the do_list.
+                //inserted instruction will make it in to the do_list.
         }
-        else { the_job.do_list.splice(index, 0, instruction) }
+        else { the_job.do_list.splice(index, 0, instruction)
+               if(index > 0) { //unlike the istance method cousins of this static method,
+                    //this meth must do the added_items_count increment because
+                    //the caler of this meth doesn't know the index of the instr to increment
+                    //the added_items_count of.
+                    job_instance.added_items_count[this.program_counter] += 1
+               }
+
+        }
     }
     else {
         dde_error("insert_instruction passed location: " + insert_instruction +

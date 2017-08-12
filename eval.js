@@ -134,9 +134,15 @@ function eval_js_part3(result){
         string_to_print = result.error_type + ": " + result.error_message
         if (result.starting_index != undefined) { //beware, starting_index might == 0 which is false to IF
             var cm_pos = myCodeMirror.doc.posFromIndex(start_of_selection + result.starting_index)
-            string_to_print += "<br/>At line: " + (cm_pos.line + 1) + ", char: " + (cm_pos.ch + 1)
+            string_to_print += "<br/>&nbsp;&nbsp;&nbsp;At line: " + (cm_pos.line + 1) + ", char: " + (cm_pos.ch + 1)
         }
-        out_eval_result(string_to_print, "red")
+        var stack_trace = result.full_error_message
+        var first_newline = stack_trace.indexOf("\n")
+        if (first_newline != -1) { stack_trace = stack_trace.substring(first_newline + 1) }
+        stack_trace = replace_substrings(stack_trace, "\n", "<br/>")
+        string_to_print = "<details><summary><span style='color:red;'>" + string_to_print +
+                          "</span></summary>" + stack_trace + "</details>"
+        out_eval_result(string_to_print)
     }
     else if (result.value_string == '"dont_print"') {}
     else {

@@ -47,9 +47,10 @@ function createWindow () {
   mainWindow.once('ready-to-show', () => { mainWindow.show()})
   var mainWindow_for_closure = mainWindow
   mainWindow.on("resize", function(){
-     //onsole.log("win resized to: " + mainWindow.getSize() )
-     //onsole.log("got mWcl: " + mainWindow_for_closure)
-     mainWindow_for_closure.webContents.send('record_dde_window_size')
+        mainWindow_for_closure.webContents.send('record_dde_window_size')
+  })
+  mainWindow.on("move", function(){
+        mainWindow_for_closure.webContents.send('record_dde_window_size')
   })
 }
 
@@ -206,6 +207,7 @@ ipc.on('prompt-response', function(event, arg) {
     promptResponse = arg
 })
 
-ipc.on('set_dde_window_size', function(event, width, height){
+ipc.on('set_dde_window_size', function(event,  x, y, width, height){
+    mainWindow.setPosition(x, y)
     mainWindow.setSize(width, height)
 })

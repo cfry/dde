@@ -4,12 +4,20 @@ function shouldnt(message){
 }
 
 function warning(message, temp=false){
-    out("Warning: " + message, '#e50', temp) //#ff751a e61
+    var err = new Error();
+    var stack_trace = replace_substrings(err.stack, "\n", "<br/>")
+    out_string = "<details><summary><span style='color:#e50;'>Warning:" + message +
+                 "</span></summary>" + stack_trace + "</details>"
+    out(out_string, "black", temp) //#ff751a e61
 }
 
 function dde_error(message){
     console.log("dde_error: " + message)
-    out("dde_error: " + message, "red") //I shouldn't have to do this but sometimes with setTimeouts and/or
+    var err = new Error();
+    var stack_trace = err.stack
+    //var  out_string = //"<details><summary><span style='color:red;'>" + message +
+                      //"</span></summary>" + stack_trace + "</details>"
+    out(message, "red") //I shouldn't have to do this but sometimes with setTimeouts and/or
     //ui to sandbox transfer, the error doesn't get printed out from dde eval so do this to be sure.
     throw new Error("dde_error: " + message)
 }

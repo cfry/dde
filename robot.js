@@ -164,6 +164,9 @@ var Robot = class Robot {
     static get_page(url_or_options, response_variable_name="http_response"){
         return new Instruction.Control.Get_page(url_or_options, response_variable_name)
     }
+    static play(note_or_phrase){
+        return new Instruction.Control.play_notes(note_or_phrase)
+    }
     close_robot(){ //overridden in Serial and Dexter
     }
 }
@@ -748,9 +751,10 @@ Dexter = class Dexter extends Robot {
     }
 
     start(job_instance) { //fill in initial robot_status
-        if (!this.is_initialized()) {
+        //if (!this.is_initialized()) {
             Socket.init(this.name, this.simulate, this.ip_address, this.port)
-        }
+        //}
+        this.processing_flush = false
         let this_robot = this
         let this_job   = job_instance
         //give it a bit of time in case its in the process of initializing
@@ -1313,7 +1317,7 @@ Dexter.move_to = function(xyz = [],
                 this.stop_for_reason("errored", "Dexter instruction move_to passed xyz values:<br/>" + xyz + "<br/>that are not valid.<br/>" +
                                                     err.message)
             }
-            for(let i = 0; i < 5; i++){ angles[i] = Math.round( angles[i]) }
+            //for(let i = 0; i < 5; i++){ angles[i] = Math.round( angles[i]) }
             if (Kin.check_J_ranges(angles)){
                 this.robot.angles       = angles
                 return make_ins("a", ...angles) // Dexter.move_all_joints(angles)
@@ -1340,7 +1344,7 @@ Dexter.move_to_relative = function(delta_xyz = [0, 0, 0]){
             this.stop_for_reason("errored", "move_to_relative called with out of range delta_xyz: " + the_delta_xyz +
                                                 "<br/> " + err.message)
         }
-        for(let i = 0; i < 5; i++){ angles[i] = Math.round(angles[i]) }
+        //for(let i = 0; i < 5; i++){ angles[i] = Math.round(angles[i]) }
         if (Kin.check_J_ranges(angles)){
             this.robot.angles = angles
             return make_ins("a", ...angles) // Dexter.move_all_joints(angles)

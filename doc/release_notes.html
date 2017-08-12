@@ -5,6 +5,34 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+
+<details class="doc_details"><summary>v 2.0.10, Aug 11, 2017</summary>
+Highlights: Behind the scenes bug fixes.
+<ul><li> Fixed rounding bug in <code>Robot.move_to</code> and <code>Robot.move_to_relative</code></li>
+
+    <li> Extended Browser VS DDE to contain the full name "Dexter Development Environment"</li>
+
+    <li> <code>Robot.start</code> now always inits its Socket and sets processing_flush to false.</li>
+
+    <li> Now the Job init param of <code>show_instructions</code> turns on or off
+        the display of the progress bar while the Job is running.
+        Default is true.</li>
+
+    <li> Now the DDE window position is preserved across launching DDE (along with
+         its size).</li>
+
+    <li> Now when a job runs a <code>Robot.stop_job</code> instruction, that's considered to be
+         a normal completion, not an error or interruption.</li>
+
+    <li> Improvements to Kinematics math.</li>
+
+    <li> The robot_status returned from Dexter now has its arcseconds converted to degrees,
+         and related changes for our new Units system.</li>
+
+    <li> Improved the error message on "no dde_apps" folder upon DDE startup.</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 2.0.9, Aug 3, 2017</summary>
 Highlights: Improvements to Calibrate Dexter (on the Jobs menu).
 New instruction: Human.show_window
@@ -344,7 +372,7 @@ Highlights: run_instruction dialog extensions, Ref Man Examples are now tests.
 </ul>
 </details>
 
-<details class="doc_details"><summary>v 2.0.1, Jul 2, 2017</summary>
+<details class="doc_details"><summary>v 2.0.1, Jul 2, 2017 private</summary>
 Highlight: Run Instruction dialog extended. Units System documented.
            More details of new units system converted.
 <ul><li> Eval button now can eval selected text in Output pane, Doc pane and Command input as

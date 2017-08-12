@@ -648,7 +648,8 @@ and reliability.
 new Job({name: "gamepad_job2",
          inter_do_item_dur: 0.05,
          do_list: [Dexter.move_all_joints(Dexter.NEUTRAL_ANGLES),
-                   gamepad_moves]})</code></pre>
+                   gamepad_moves]})
+        </code></pre>
     </details>
 </details> <!-- end Gamepad -->
 
@@ -1012,8 +1013,9 @@ The parameters used to define a new Job are:
             are stored in <code title="unEVALable code fragment"> Job.the_job_name.rs_history</code>.
             This is useful for debugging, but uses memory, which can be
             saved by setting keep_history to <code>false</code>.</li>
-        <li><b>show_instructions</b> true or false, default false. As the instructions for
-           a job are being run, they are shown in DDE.</li>
+        <li><b>show_instructions</b> true or false, default true. As the instructions for
+           a job are being run, they are shown in DDE along with a "progress bar".
+           You might want to turn this off for time-sensitive jobs.</li>
         <li><b>inter_do_item_dur</b> A number indicating the number of milliseconds between
            when an instruction is completed by its robot, and when the next instruction is
            computed and sent to the robot of the job. This "taking a breath" gives other
@@ -2561,11 +2563,17 @@ Clicking on buttons, etc, calls the callback function, just like the function.
 But when a "submit" button is clicked or something else in the
 callback function that also closes the window, such as a call to
 <code title="unEVALable code fragment.">close_window(vals.window_index)</code>,
-the argument to the callback function, which contains the values of all the
-input elements, is saved into the Job's <samp>user_data</samp> for use by subsequent instructions
-in the job.
+here's what happens:
+<ol><li>The dialog box is closed.</li>
+    <li>The argument to the callback function that contains all the values
+        of all the input widgets is bound to the Job's <samp>user_data</samp> variable
+        named in user_data_variable_name argument to the instruction.
+        These values can be used by subsequent instructions.</li>
+    <li>The instruction is finished, and the next instruction in the Job's
+        do-list (if any) is run.</li>
+</ol>
 <p/>
-if you just want to get one value at a time from a user, its easier to
+If you just want to get one value at a time from a user, its easier to
 use the other Human instructions for number, text, etc. But
 if you want to get multiple values in one dialog, using this
 instruction is the way to go.
@@ -2577,7 +2585,10 @@ as to the show_window instruction. Here we only document differences.<br/>
 when it is called, <code title="unEVALable JS fragment">this</code> is bound
 to the job that the instruction is in. You can use this to, for instance, stop the job,
 by calling (within the callback)
-<code title="unEVALable JS fragment">this.stop_for_reason("interrupted", "your explanation.")</code><br/>
+<code title="unEVALable JS fragment">this.stop_for_reason("interrupted", "your explanation.")</code>
+<br/>It is common in using this instruction to not have a callback function, since the
+real action(s) taken due to the values that the user has input occurs by subsequent
+instructions in the job that read those values from the Job's user_data.<br/>
 <b>user_data_variable_name</b> Default: <code>"show_window_vals"</code>.
 Similar to other Human instructions, this is the place that values from
 input elements are stored when the dialog is closed.

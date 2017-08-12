@@ -20,7 +20,9 @@ function get_persistent_values_defaults() {
             "default_dexter_simulate": true,
             "editor_font_size":    17,
             "dde_window_width":  1000,
-            "dde_window_height":  600
+            "dde_window_height":  600,
+            "dde_window_x":       100,
+            "dde_window_y":       100
            }
 }
 //if keep_existing is true, don't delete any existing values.
@@ -59,7 +61,8 @@ function persistent_initialize(keep_existing=true) { //was persistent_clear
         }
     }
     else {
-        dde_error("Please create a folder in your <code>Documents</code> folder<br/>" +
+        dde_error("Please create a folder in your <code>" +
+                   dde_apps_dir.substring(0, dde_apps_dir.length - 8) + "</code> folder<br/>" +
                   "named: <code>dde_apps</code> to hold the code that you will write,<br/>" +
                   "then relaunch DDE."
                   )
