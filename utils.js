@@ -13,8 +13,8 @@ function warning(message, temp=false){
 
 function dde_error(message){
     console.log("dde_error: " + message)
-    var err = new Error();
-    var stack_trace = err.stack
+    //var err = new Error();
+    //var stack_trace = err.stack
     //var  out_string = //"<details><summary><span style='color:red;'>" + message +
                       //"</span></summary>" + stack_trace + "</details>"
     out(message, "red") //I shouldn't have to do this but sometimes with setTimeouts and/or
@@ -127,6 +127,23 @@ function is_iterator(obj){
 //so in other words, ES6 doesn't have classes!
 function is_class(obj){
     return ((typeof(obj) == "function") && obj.toString().startsWith("class "))
+}
+
+//returns string or null if no class name
+function get_class_name(a_class){
+    if (typeof(a_class) == "function"){
+        const src = a_class.toString()
+        if (src.startsWith("class ")){
+            const end_of_class_name_pos = src.indexOf("{")
+            let result = src.substring(6, end_of_class_name_pos)
+            if (result.includes(" extends ")) {
+                let name_split = result.split(" ")
+                result = name_split[2] + "." + name_split[0]
+            }
+            return result
+        }
+    }
+    return null
 }
 
 //______color_______
@@ -614,9 +631,20 @@ function trim_string_for_eval(str){
 
 //removes prefix, & suffix whitespace AND replaces multiple
 //redundant interior whtiespace with a single space.
-function all_trim(str){
+function trim_all(str){
     str = str.trim()
     return str.replace(/\s+/g,' ')
+}
+
+function trim_string_quotes(a_string){
+    if(a_string.length < 2) {return a_string}
+    const first_char = a_string[0]
+    if (["'", '"', "`"].includes(first_char)){
+        if (last(a_string) == first_char){
+            return a_string.substring(1, a_string.length - 1)
+        }
+    }
+    return a_string
 }
 
 function replace_substrings(orig_string, substring_to_replace, replacement){
@@ -640,14 +668,14 @@ function string_to_literal(a_string){
 //called on the eval result by eval part 2, and by show_output if the input is not already a string
 //and by Js_info
 function stringify_value(value){
-    if (Object.isNewObject(value)) { inspect_new_object(value) }
-    else {
+    //if (Object.isNewObject(value)) { inspect_new_object(value) }
+    //else {
         var result = stringify_value_aux (value)
         if (typeof(value) != "string"){
             result = "<code>" + result + "</code>"
         }
         return result
-    }
+    //}
 }
 
 function stringify_value_aux (value, job, depth=0){
@@ -817,8 +845,10 @@ function stringify_value_aux (value, job, depth=0){
 //crude but guarentees fidelity with stringify_value, but that might not be what I really want.
 function stringify_value_sans_html(value){
     let result = stringify_value(value)
-    result = result.replace(/<code>/g,   "")
-    result = result.replace(/<\/code>/g, "")
+    //result = replace_substrings(result, "<co"  + "de>", "") //screws up inspetion of this fn (while inspecting 'window') having '<co  de>' in it. //
+    result.replace(/<code>/g,   "")
+    //result = replace_substrings(result, "</co" + "de>", "") //
+    result.replace(/<\/code>/g, "")
     result = result.replace(/<br\/>/g,   "\n")
     result = result.replace(/&nbsp;/g,   " ")
     return result

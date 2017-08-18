@@ -3,10 +3,11 @@
  */
 
 Phrase = class Phrase{
-    constructor({notes=".5C3 2D3",
-                time=0, //in beats
+    constructor({notes=".5C3 2D#3",
+                time=0, //in beats. for a noteon this is start_time
                 duration=null,   //in beats, null means compute dur from time and end of last note
-                                 //this is the "logical dur", ie 2 bars or 4 bars (8 or 16 respectively)
+                                 //this is the "logical dur" of the whole phrase,
+                                 // ie 2 bars or 4 bars (8 or 16 respectively)
                                  //ignoring pickup notes and ignroing some rest at the end.
                                  //used for "concatenating phrases where you might have "picu notes"
                                  //before the logical 0 of the phrase. Those pickup notes
@@ -21,14 +22,14 @@ Phrase = class Phrase{
         this.channel = channel
         this.seconds_per_beat = seconds_per_beat
         var time_of_next_note = time //in beats
-        if(typeof(notes) == "string"){
-           const array_of_note_strings = notes.trim().split(" ")
+        if((arguments.length == 1) && (typeof(arguments[0]) == "string")){
+           const array_of_note_strings = trim_all(arguments[0]).split(" ")
            this.notes = []
            for (var note_string of array_of_note_strings) {
                note_string = note_string.trim()
                if (note_string == "") {} //happens if user puts 2 spaces between notes. skip it
                else {
-                   var note = Note.n(note_string)
+                   var note = new Note(note_string)
                    note.time = time_of_next_note
                    note.seconds_per_beat = seconds_per_beat
                    note.velocity = velocity
@@ -47,12 +48,17 @@ Phrase = class Phrase{
     copy(){
          let notes_copy = []
          for(let n of this.notes) { notes_copy.push(n.copy()) }
-         return new Phrase({notes:              notes_copy,
-                            time:               this.time,
-                            duration:           this.duration,
-                            velocity:           this.velocity,
-                            channel:            this.channel,
-                            seconds_per_beat:   this.seconds_per_beat})
+         let result = this.copy_except_notes()
+         result.notes = notes_copy
+         return result
+    }
+    copy_except_notes(){
+        return new Phrase({ notes:    this.notes,
+                            time:     this.time,
+                            duration: this.duration,
+                            velocity: this.velocity,
+                            channel:  this.channel,
+                            seconds_per_beat: this.seconds_per_beat})
     }
     //this is used in Instruction.control.play to decide when playing a phrase,
     //how long from the start of the instruction should it be until the instruction ends
@@ -132,6 +138,21 @@ Phrase = class Phrase{
         }
         result.duration = longest_dur
         return result
+    }
+    harmonize(key=0, interval_or_array){
+       if (typeof(interval_or_array) == "number") { interval_or_array = [interval_or_array]}
+       const new_notes = []
+       key = Note.pitch_name_to_number(key)
+       for(let note of this.notes){
+           for(let interval of interval_or_array){
+               let new_note = note.copy()
+               new_note.pitch = Note.diatonic_transpose(note.pitch, key, interval)
+               new_notes.push(new_note)
+           }
+       }
+       let result = this.copy_except_notes()
+       result.notes = new_notes
+       return result
     }
 
 }

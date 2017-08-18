@@ -108,7 +108,7 @@ function onchange_run_instruction_src(){
 
 function onchange_run_instruction_src_aux(instr_name){
     const instr_fn = value_of_path(instr_name)
-    const instr_params = all_trim(function_params(instr_fn))
+    const instr_params = trim_all(function_params(instr_fn))
     var font_size = "14px"
     if (instr_params.length > 80) {
         font_size = "10px"

@@ -961,14 +961,15 @@ Instruction.Control.label = class label extends Instruction.Control{
 }
 
 Instruction.Control.out = class Out extends Instruction.Control{
-    constructor (val, color) {
+    constructor (val, color, temp) {
         super()
-        this.val = val
+        this.val   = val
         this.color = color
+        this.temp  = temp
     }
     do_item (job_instance){
         let message = "Job: " + job_instance.name + ", instruction ID: " + job_instance.program_counter + "<br/>" + this.val
-        out(message, this.color)
+        out(message, this.color, this.temp)
         job_instance.set_up_next_do(1)
     }
     toString() { return "Robot.out of: " + this.val }

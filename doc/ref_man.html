@@ -676,6 +676,8 @@ new Job({name: "gamepad_job2",
     <i>Example:</i><code>out("hi", "blue")</code><p/>
     If you have a lot of out calls, it can be helpful to give them
     different colors so you can easily find a particular one.
+    <p/>
+    See also Robot Instruction <a href="#" onclick="open_doc('Robot.out_doc_id')">Robot.out</a>
 </details>
 
     <details class="doc_details"><summary>Persistent Database</summary>
@@ -1013,9 +1015,20 @@ The parameters used to define a new Job are:
             are stored in <code title="unEVALable code fragment"> Job.the_job_name.rs_history</code>.
             This is useful for debugging, but uses memory, which can be
             saved by setting keep_history to <code>false</code>.</li>
-        <li><b>show_instructions</b> true or false, default true. As the instructions for
-           a job are being run, they are shown in DDE along with a "progress bar".
-           You might want to turn this off for time-sensitive jobs.</li>
+        <li><b>show_instructions</b> Possible values:
+           <ul><code>true</code> The default. Each time Dexter begins the execution of an instruction, it
+               is printed in the Output pane, refreshing that section of the output pane as
+               each new instruction is run. The method used is <code>Job.prototype.show_instruction</code>.
+               Eval that to see its source code.</li>
+               <li><code>false</code> Do nothing. Use this for time-sensitive jobs.</li>
+               <li>A method</li> The method will be called (with the job as <code title="unEVALable">this</code>)
+                   as each instruction is run, so you can do whatever you like.
+                   A function written for this purpose is
+                   <code>Job.prototype.show_instruction_and_user_data</code>.
+                   This allows you to see user data as it is updated by the job.
+                   Eval the above code to see the method's source code.</li>
+               </ul>
+         </li>
         <li><b>inter_do_item_dur</b> A number indicating the number of milliseconds between
            when an instruction is completed by its robot, and when the next instruction is
            computed and sent to the robot of the job. This "taking a breath" gives other
@@ -1594,13 +1607,29 @@ a location to insert an instruction using <code>Robot.send_to_job</code>.<br/>
              can be a number, an array etc.<br/>
   <b>color</b> A string representing a color. Default "black". Can
              be any string in the <b>color</b> series, or have the format:<br/>
-             <code>"rgb(255, 100, 0)"</code>.
+             <code>"rgb(255, 100, 0)"</code>.<br/>
+  <b>temp</b> Default: <code>false</code>. With the default, printed output stays in the
+    Output pane until DDE is relaunched.
+    <p/>
+    If temp is <code>true</code>,
+    then <b>val</b> is still printed in the Output pane, but is over-ridden
+    by subsequence calls to out with temp == true. Calls to out with temp == false
+    will erase any "temp" output.
+    <p/>
+    If temp is a string, then out prints <b>val</b> similarly to temp == true in that
+    the previous call to out with that temp string will be over-ridden in place.
+    However, when another call to out with a different value for temp occurs,
+    the output of out with a temp string will <i>not</i> be erased.
+    Thus the last call to out with a given temp string remains in the Output pane,
+    in its place, regardless of other out calls.
   <p/>
   This is the most basic debugging tool, often used to let you know that 
   the job its in has reached this instruction. Unlike an instruction such as:<br/>
   <code>function(){out("The status is: " + this.status_code)}</code><br/>
   Robot.out cannot access its job instance, but it does print out
   its job name and instruction ID right before printing <code title="unEVALable code fragment"> val</code>.
+  <p/>
+  See also <a href="#" onclick="open_doc(out_doc_id)">out</a>
 </details>
 
 <details id="Robot.start_job_doc_id" class="doc_details"><summary>start_job</summary>
@@ -2476,7 +2505,7 @@ access robot hardware.
 <details id="Human.enter_choice_doc_id" class="doc_details"><summary>enter_choice</summary>
   <code>Human.enter_choice</code> presents a dialog allowing the user to choose one of several supplied options.
   See <b>Human.task</b> for behavior common to all Human instructions.<p/>
-  <i>Uncommon Paramaters:</i><br/>
+  <i>Uncommon Parameters:</i><br/>
   <b>choices</b> Default: []. An array of strings. 
       The user is allowed to select one of the given choices.<br/>
   <b>show_choices_as_buttons</b> true or false, default: false. When false, the choices are 

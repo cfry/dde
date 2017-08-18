@@ -214,3 +214,12 @@ function make_temperature_series(){
         menu_insertion_string:"deg_f_to_c()",  menu_sel_start:0, menu_sel_end:10, sample:"deg_f_to_c"})
 
 }
+
+function es_lint_names_of_units(){
+    let result = ""
+    for(let obj_name in units_data){
+        for(let subobj_name in units_data[obj_name])
+        result += '        "' + subobj_name + '": false,\n'
+    }
+    return result
+}

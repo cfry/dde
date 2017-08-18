@@ -1,4 +1,4 @@
-var char_position = function(src, line_number, col_number){
+ var char_position = function(src, line_number, col_number){
 // line_number is 1 based. as are chrome error messages
 // col_number is 1 based.  as are chrome error messages
 // result is 0 based.
@@ -146,8 +146,12 @@ function eval_js_part3(result){
     }
     else if (result.value_string == '"dont_print"') {}
     else {
-        string_to_print = result.value_string + " <span style='padding-left:50px;font-size:10px;'>" + result.duration + " ms</span>"
-        out_eval_result(string_to_print)
+        if (inspect_is_primitive(result.value)) {
+            string_to_print = result.value_string +
+                            " <span style='padding-left:50px;font-size:10px;'>" + result.duration + " ms</span>"
+            out_eval_result(string_to_print)
+        }
+        else { inspect_out(result.value) }
     }
     //highlight erroring source code if possible. If result.starting_index == undefined, that means no error.
     if (result.starting_index && (result.starting_index != 0)){ //we've got an error

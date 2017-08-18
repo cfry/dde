@@ -8,8 +8,8 @@
 
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version:  <span id="dde_version_id">2.0.10</span><br/>
-    released: <span id="dde_release_date_id">Aug 11, 2017</span>
+    version:  <span id="dde_version_id">2.0.18</span><br/>
+    released: <span id="dde_release_date_id">Aug 17, 2017</span>
     <p/>
     DDE helps you create, debug, and send software to a Dexter robot.
     You can use any JavaScript augmented with DDE-specific functions to help find out about,
@@ -99,10 +99,10 @@
     DDE requires that you create a folder under your Documents folder named <samp> dde_apps</samp>.
     If this does not exist when you launch DDE, you'll see a warning in the output pane.
     <p/>
-    DDE requires that you define a default robot named "dexter0". Usually the one
+    DDE requires that you have a default robot named "dexter0". Usually the one
     that is automatically inserted into the file dde_apps/dde_init.js is fine.
-    However, in that file you will need to set the ip_address and port number
-    of Dexter. {todo: document how to find Dexter's ip_address.} The port number
+    However, in that file you may need to modify the ip_address and port number
+    of Dexter. The default ip_address is <code>"192.168.1.142"</code> The port number
     is typically <code>"50000"</code>.
 </details>
 
@@ -470,7 +470,11 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
         The Editor pane is a text editor. You can view and edit any text documents in it,
         but primarily you will be editing JavaScript that defines a job to make something
         with Dexter. DDE expects you to save such "apps" in your <samp> Documents/dde_apps/</samp>
-        folder.
+        folder.<p/>
+        The red dots on the left column of the editor indicate possible syntactic errors.
+        Many of these are unnecessary or trivial formatting issues that will
+        not affect running the code. If the code doesn't Eval, look at the red dots and their
+        tooltips for clues.
     </details>
     <details id="output_pane_doc_id" class="doc_details"><summary>Output Pane</summary>
         DDE prints information in the Output pane that will be useful in your current context.
@@ -709,9 +713,9 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
             "User Commands" should you want to execute it again.
         </li>
             <li>The Output pane's <button>Ops&#9660;</button> menu allows easy access to finding out about the ROS environment.</li>
-            <li>If you click on underlined text in the Output pane, it will pop up a help
-                window about the clicked on item. Often the help window will have buttons allowing
-                you to insert relevant JS function calls into the Editor pane.</li>
+            <li>If you click on underlined text in the Output pane, it will scroll to
+                a relevent section of the Doc pane, or, in the case of core JavaScript,
+                pop up a window of documentation.</li>
         </ol>
     </details>
 </details>

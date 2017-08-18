@@ -18,9 +18,9 @@ var Job = class Job{
         dde_error("new Job passed: " + when_stopped + " but that isn't a valid value.")
     }
     this.orig_args = {do_list: do_list, keep_history: keep_history, show_instructions: show_instructions,
-        inter_do_item_dur: inter_do_item_dur, user_data: user_data,
-        program_counter: program_counter, ending_program_counter: ending_program_counter,
-        initial_instruction: initial_instruction, when_stopped: when_stopped}
+                        inter_do_item_dur: inter_do_item_dur, user_data: user_data,
+                        program_counter: program_counter, ending_program_counter: ending_program_counter,
+                        initial_instruction: initial_instruction, when_stopped: when_stopped}
     this.name              = name
     this.robot             = robot
     //setup name
@@ -53,6 +53,15 @@ var Job = class Job{
     this.color_job_button()
     }
 
+    show_progress_maybe(){
+        if(this.show_instructions === true) { this.show_progress() }
+        else if(typeof(this.show_instructions) === "function") {
+            this.show_instructions.call(this)
+        }
+        //else do nothing
+    }
+
+
     show_progress(){
         if(this.show_instructions) {
             var html_id = this.name + this.start_time.getTime()
@@ -63,8 +72,32 @@ var Job = class Job{
                 " <progress style='width:100px;' value='" + this.program_counter +
                           "' max='" + this.do_list.length + "'></progress>" +
                 " of " +  this.do_list.length + ". " +
-                cur_instr
-                //var fooo = '<span style="background-color:#5808ff;">aa</span>'
+                cur_instr +
+                "&nbsp;&nbsp;<button onclick='inspect_out(Job." + this.name + ")'>Inspect</button>"
+
+            out(content, "#5808ff", html_id)
+        }
+    }
+
+    show_progress_and_user_data(){
+        if(this.show_instructions) {
+            var html_id = this.name + this.start_time.getTime()
+            var cur_instr = this.current_instruction()
+            if (this.program_counter >= this.do_list.length) { cur_instr = "Done." }
+            else { cur_instr = "Last instruction sent: "  + Instruction.to_string(cur_instr) }
+            var content = "Job: " + this.name + " pc: "   + this.program_counter +
+                " <progress style='width:100px;' value='" + this.program_counter +
+                "' max='" + this.do_list.length + "'></progress>" +
+                " of " +  this.do_list.length + ". " +
+                cur_instr +
+                "&nbsp;&nbsp;<button onclick='inspect_out(Job." + this.name + ")'>Inspect</button>" +
+                "<br/>"
+            let has_user_data = false
+            for(let prop_name in this.user_data){
+                has_user_data = true
+                content += "<i>" + prop_name + "</i>: " + this.user_data[prop_name] + "&nbsp;&nbsp;"
+            }
+            if (!has_user_data) content += "<i>No user data in this job.</i>"
             out(content, "#5808ff", html_id)
         }
     }
@@ -162,7 +195,7 @@ var Job = class Job{
             this.go_state          = true
             //this.init_show_instructions()
             //out("Starting job: " + this.name + " ...")
-            this.show_progress()
+            this.show_progress_maybe()
             this.color_job_button()
             this.robot.start(this) //the only call to robot.start
         }
@@ -176,7 +209,7 @@ var Job = class Job{
         var start_of_job = -1
         if (text_just_after_cursor == "new Job") { start_of_job = start_cursor_pos }
         else { start_of_job = Editor.find_backwards(full_src, start_cursor_pos, "new Job") }
-        if (start_of_job == -1) {
+        if (start_of_job == null) {
             warning("There's no Job definition surrounding the cursor.")
             var selection = Editor.get_javascript(true).trim()
             //if (selection.endsWith(",")) { selection = selection.substring(0, selection.length - 1) } //ok to have trailing commas in array new JS
@@ -431,7 +464,7 @@ var Job = class Job{
 
     do_list_to_html(){
         Job.do_list_to_html_set_up_onclick()
-        return "<details><summary>do_list</summary>" +
+        return "<details style='display:inline-block'><summary></summary>" +
                 this.do_list_to_html_aux(0, 1) +
                 "</details>"
     }
@@ -830,9 +863,11 @@ Job.prototype.finish_job = function(perform_when_stopped=true){ //regardless of 
     else {
         this.robot.finish_job()
         this.color_job_button()
-        this.show_progress()
-        this.print_out()
-        out("Done with job: " + this.name)
+        this.show_progress_maybe()
+        //this.print_out()
+        //out("Done with job: " + this.name +
+        //    "&nbsp;&nbsp;<button onclick='function(){inspect_out(Job." + this.name + ")}'>Inspect</button>")
+        //inspect_out(this, null, null, null, true) //collapse inspector
     }
 }
 
@@ -981,7 +1016,7 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
         //regardless of whether we're in an iter or not, do the item at pc. (might or might not
         //have been just inserted by the above).
         var cur_do_item = this.current_instruction()
-        this.show_progress()
+        this.show_progress_maybe()
         this.select_instruction_maybe(cur_do_item)
         if (this.program_counter >= this.added_items_count.length) { this.added_items_count.push(0)} //might be overwritten further down in this method
         else if (this.added_items_count[this.program_counter] > 0) { //will only happen if we go_to backwards,

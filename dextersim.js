@@ -124,11 +124,12 @@ DexterSim = class DexterSim{
             //hits when just ending an instruction
             if (sim_inst.now_processing_instruction &&
                 (sim_inst.ending_time_of_cur_instruction <= the_now)) { //end the cur instruction and move to the next
-                let ds_copy = sim_inst.rs.slice() //make a copy to return as some subseqent call to this meth will modify the one "model of dexter" that we're saving in the instance
-                ds_copy[Dexter.STOP_TIME] = Date.now() //in milliseconds
+                let rs_copy = sim_inst.rs.slice() //make a copy to return as some subseqent call to this meth will modify the one "model of dexter" that we're saving in the instance
+                rs_copy[Dexter.STOP_TIME] = Date.now() //in milliseconds
                 const oplet = sim_inst.now_processing_instruction[Dexter.INSTRUCTION_TYPE]
                 if ((sim_inst.sim_actual === true) && ["F", "G", "g"].includes(oplet)) { //dont do when sim == "both"
-                    Dexter.robot_done_with_instruction(ds_copy)
+                    Socket.convert_robot_status_to_degrees(rs_copy)
+                    Dexter.robot_done_with_instruction(rs_copy)
                 }
                 sim_inst.completed_instructions.push(sim_inst.now_processing_instruction)
                 sim_inst.now_processing_instruction = null     //Done with cur ins,

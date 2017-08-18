@@ -707,12 +707,81 @@ Editor.select_call = function(){
             }
         }
     }
+    if (!start_and_end){
+        start_and_end = Editor.find_comment(full_src, cursor_pos)
+    }
     if (start_and_end){
         Editor.select_javascript(start_and_end[0], start_and_end[1])
         return true
     }
     return false
 
+}
+
+Editor.find_comment = function(full_src, cursor_pos){
+    let start = null
+    let end = null
+    if (full_src.startsWith("/*", cursor_pos)) {
+        start = cursor_pos
+        end = Editor.find_forwards(full_src, cursor_pos, "*/")
+        if (end) { end += 2 }
+    }
+    else if ((cursor_pos > 1) &&
+             (full_src[cursor_pos - 1] == "*") &&
+        (full_src[cursor_pos - 2] == "/")){
+        start = Editor.find_backwards_string(full_src, cursor_pos, "/*")
+        end = Editor.find_forwards(full_src, cursor_pos, "*/")
+        if (end) { end += 2 }
+    }
+    else if ((cursor_pos > 0) &&
+             (full_src[cursor_pos - 1] == "/") &&
+             (full_src[cursor_pos] == "*")){  //we've clicked between / and *
+        start = cursor_pos - 1
+        end = Editor.find_forwards(full_src, cursor_pos, "*/")
+        if (end) { end += 2 }
+    }
+    //maybe we're at the end ie */
+    else if ((cursor_pos < (full_src.length - 1))     &&
+             (full_src[cursor_pos]     == "*") &&
+             (full_src[cursor_pos + 1] == "/")){ //cursor in front of */
+        end = cursor_pos + 2
+        start = Editor.find_backwards(full_src, cursor_pos, "/*")
+    }
+    else if ((cursor_pos < (full_src.length))     &&
+             (full_src[cursor_pos - 1] == "*") &&
+             (full_src[cursor_pos] == "/")){ //cursor between * and /
+        end = cursor_pos + 1
+        start  = Editor.find_backwards(full_src, cursor_pos, "/*")
+    }
+    else if ((full_src[cursor_pos - 2] == "*") &&
+             (full_src[cursor_pos - 1] == "/")){ //cursor after */
+        end = cursor_pos
+        start  = Editor.find_backwards(full_src, cursor_pos, "/*")
+    }
+    else if (full_src.startsWith("//", cursor_pos)){
+        start = cursor_pos
+        end   = Editor.find_forwards(full_src, cursor_pos, "\n")
+        if (!end) { end = full_src.length }
+        return [start, end]
+    }
+    else if (full_src.startsWith("/", cursor_pos) &&
+             (cursor_pos > 0) &&
+             (full_src[cursor_pos - 1] == "/")){
+        start = cursor_pos - 1
+        end   = Editor.find_forwards(full_src, cursor_pos, "\n")
+        if (!end) { end = full_src.length }
+        return [start, end]
+    }
+    else if ((cursor_pos > 1) &&
+             (full_src[cursor_pos - 1] == "/") &&
+             (full_src[cursor_pos - 2] == "/")){
+        start = cursor_pos - 2
+        end   = Editor.find_forwards(full_src, cursor_pos, "\n")
+        if (!end) { end = full_src.length }
+        return [start, end]
+    }
+    if ((start || (start === 0)) && end) { return [start, end] } //if end == 0, we can't have a selection
+    else              { return null }
 }
 
 //if right before cursor_pos is ");" or ")" then this returns the start and end pos of the call
@@ -797,7 +866,7 @@ Editor.find_call_start_end_from_end = function(full_src, cursor_pos){
 //cursor_pos pointing at open paren
 Editor.find_call_start_from_open_paren = function(full_src, cursor_pos){
     var temp_cur = Editor.backup_over_whitespace(full_src, cursor_pos - 1)
-    if (temp_cur == -1) { return null } //only whitespace between open paren and doc begin
+    if (temp_cur == null) { return null } //only whitespace between open paren and doc begin
     else {
         var identifier_bounds = Editor.bounds_of_identifier(full_src, temp_cur)
         if (!identifier_bounds) {return null}
@@ -814,7 +883,7 @@ Editor.find_call_start_end_from_start = function(full_src, cursor_pos){
     var identifier_bounds = Editor.bounds_of_identifier(full_src, cursor_pos)
     if (identifier_bounds){
         var identifier = full_src.substring(identifier_bounds[0], identifier_bounds[1])
-        if (["catch", "else if", "function", "function*", "for", "if", "switch", "while"].indexOf(identifier) != -1){
+        if (["catch", "else if", "function", "function*", "for", "if", "switch", "while"].includes(identifier)){
             var open_paren_pos = Editor.find_forward_delimiter(full_src, identifier_bounds[1])
             var delim_char = full_src[open_paren_pos]
             if (delim_char != "("){ return null }
@@ -832,7 +901,7 @@ Editor.find_call_start_end_from_start = function(full_src, cursor_pos){
                 }
             }
         }
-        else if (["else", "try"].indexOf(identifier) != -1){
+        else if (["else", "try"].includes(identifier)){
             var open_curley_pos = Editor.find_forward_delimiter(full_src, identifier_bounds[1])
             if (!open_curley_pos) { return null }
             else if (full_src[open_curley_pos] == "{"){
@@ -853,8 +922,19 @@ Editor.find_call_start_end_from_start = function(full_src, cursor_pos){
                 }
             }
         }
+        else if (identifier == "var"){
+
+        }
     }
     var open_pos = Editor.find_forward_open_delimiter(full_src, cursor_pos)
+    let end_comment_pos = null
+    if (cursor_pos > 2) {
+        end_comment_pos = Editor.find_forwards(full_src, cursor_pos - 1)
+    }
+    if (end_comment_pos < open_pos) { return null } //sitauation is
+          //   /* foo |*/ function bar(){}
+         //or  /* foo *|/ function bar(){}
+         // or /* foo */| function bar(){} and we want to sel the comment, not function bar
     if (open_pos || (open_pos == 0)){
         var close_pos = Editor.find_forward_close_delimiter(full_src, cursor_pos)
         if (close_pos < open_pos) { return null }
@@ -877,7 +957,7 @@ Editor.find_call_start_end_from_start = function(full_src, cursor_pos){
                     //it somewhere else. //however, if preceeded by "new ", we want to select that.
                     if (temp_cur > 0){
                         var ws = Editor.backup_over_whitespace(full_src, temp_cur - 1)
-                        if (ws < temp_cur){ //found some whitespace
+                        if (ws && (ws < temp_cur)){ //found some whitespace
                             var new_pos_start = Editor.find_backwards_string(full_src, ws + 1, "new")
                             if ((new_pos_start == 0) || new_pos_start){ temp_cur = new_pos_start}
                         }
@@ -992,7 +1072,7 @@ Editor.find_matching_open = function(full_src, cursor_pos=0){
      return null
 }
 
-//expects cur_pos to point at open paren, searches fowwards
+//expects cur_pos to point at open paren, searches forwards
 Editor.find_matching_close = function(full_src, cursor_pos=0){
     var open_delim    = full_src[cursor_pos]
     var close_delim   = Editor.matching_delimiter(open_delim)
@@ -1006,7 +1086,7 @@ Editor.find_matching_close = function(full_src, cursor_pos=0){
         }
         else if ("\"'`".includes(char)){
             let quote_end_pos = Editor.find_forwards_matching_quote(full_src, i)
-            if (quote_end_pos != -1){
+            if (quote_end_pos){
                 i = quote_end_pos //skip over literal string. note that quote_end_pos points at the
                   //quote but when we get to the top of the loop, i is incremented so
                   //the next char we process will be after the quote.
@@ -1041,6 +1121,7 @@ Editor.find_backwards_string = function(full_src, cursor_pos, string_to_find){
 //returns -1 if can't find string_to_find
 Editor.find_backwards = function(full_src, cursor_pos, string_to_find){
     var pos = full_src.lastIndexOf(string_to_find, cursor_pos)
+    if (pos == -1) { return null }
     if(Editor.in_a_comment(full_src, pos)) {
         var slash_slash_pos = full_src.lastIndexOf("//", pos)
         return Editor.find_backwards(full_src, slash_slash_pos, string_to_find)
@@ -1048,8 +1129,19 @@ Editor.find_backwards = function(full_src, cursor_pos, string_to_find){
     else { return pos }
 }
 
+Editor.find_forwards = function(full_src, cursor_pos, string_to_find){
+     return full_src.indexOf(string_to_find, cursor_pos)
+}
 
-//might return -1 if none. returns pos of the quote
+Editor.skip_forward_over_whitespace = function(full_src, cursor_pos){
+   for (let pos = cursor_pos; i < full_src.length - cursor_pos; i++){
+       if (!is_whitespace(full_src[pos])) { return pos }
+   }
+   return full_src.length
+}
+
+
+// pos of the quote or null
 Editor.find_forwards_any_kind_of_quote = function(full_src, cursor_pos=0){
     let double_pos   = full_src.indexOf('"', cursor_pos)
     let single_pos   = full_src.indexOf("'", cursor_pos)
@@ -1058,29 +1150,34 @@ Editor.find_forwards_any_kind_of_quote = function(full_src, cursor_pos=0){
     if (single_pos   == -1) { single_pos   = 1000000}
     if (backtick_pos == -1) { backtick_pos = 1000000}
     let result = Math.min(double_pos, single_pos, backtick_pos)
-    if (result == 1000000) {return -1}
-    else {return result}
+    if (result === 1000000) { return null }
+    else if (result === -1) { return null }
+    else                    { return result }
 }
 
-//might return -1 if none. returns pos of the quote
+//returns pos of the quote or null
 Editor.find_backwards_any_kind_of_quote = function(full_src, cursor_pos){
     let double_pos   = full_src.lastIndexOf('"', cursor_pos)
     let single_pos   = full_src.lastIndexOf("'", cursor_pos)
     let backtick_pos = full_src.lastIndexOf('`', cursor_pos)
-    return Math.max(double_pos, single_pos, backtick_pos)
+    let result = Math.max(double_pos, single_pos, backtick_pos)
+    if (result === -1) { return null }
+    else { return result }
 }
 
 Editor.find_forwards_matching_quote = function(full_src, cursor_pos=0){
     let quote_char = full_src[cursor_pos]
     let pos = full_src.indexOf(quote_char, cursor_pos + 1)
-    return pos
+    if (pos === -1) { return null }
+    else            { return pos }
 }
 
 Editor.find_backwards_matching_quote = function(full_src, cursor_pos){
-    if (cursor_pos == 0) { return -1 }
+    if (cursor_pos == 0) { return null }
     let quote_char = full_src[cursor_pos]
     let pos = full_src.lastIndexOf(quote_char, cursor_pos - 1)
-    return pos
+    if (pos === - 1) { return null }
+    else             { return pos  }
 }
 //returns the pos of the start of a comment but doesn't go beyond a newline.
 //cursor_pos is expected to be just before a newline, and if no
@@ -1099,7 +1196,7 @@ Editor.backup_over_slash_slash = function(full_src, cursor_pos){
 //returns index of the first char before a whitespace group, or, if none, cursor_pos
 //in any case, returned index char will not point at whitespace,
 //and may be the last char before a whitespace group
-//if all whtespace from cursor_pos back to doc start, returns -1
+//if all whitespace from cursor_pos back to doc start, returns null
 //If this fn is to backup at all, cursor_pos should point at whitespace.
 Editor.backup_over_whitespace = function(full_src, cursor_pos){
     for (var i = cursor_pos; i >= 0; i--){
@@ -1111,7 +1208,7 @@ Editor.backup_over_whitespace = function(full_src, cursor_pos){
          return 0
       }
     }
-    return -1 //whitespace including cursor_pos and all the way to front of doc.
+    return null //whitespace including cursor_pos and all the way to front of doc.
 }
 
 //cursorpos is expected to not be on whitespace, though it might be
@@ -1130,7 +1227,7 @@ Editor.backup_to_whitespace = function(full_src, cursor_pos){
 //returns null if cursor pos not in a function def
 Editor.bounds_of_function_def = function(full_src, cursor_pos){
     var function_pos = Editor.find_backwards(full_src, cursor_pos, "function")
-    if (function_pos == -1){ return null }
+    if (function_pos == null){ return null }
     var end_of_params_pos = full_src.indexOf("){", function_pos)
     if (end_of_params_pos == -1){ return null }
     var function_end_pos  = Editor.find_matching_delimiter(full_src, end_of_params_pos + 1)
@@ -1450,7 +1547,7 @@ Editor.variable_info = function(identifier){
         var pos      = Editor.selection_start()
         var start_pos = Editor.find_backwards(full_src, pos, "function")
         //I don't handle nested fn defs so probably will just break with them.
-        if (start_pos != -1){
+        if (start_pos){
             var [fn_def_start, fn_def_end] = Editor.find_call_start_end_from_start(full_src, start_pos)
             if (fn_def_end == -1) { //hmm, if no valid end, then presume we're writing the fn now
                 fn_def_end = full_src.length
@@ -1458,7 +1555,7 @@ Editor.variable_info = function(identifier){
             var param_open_paren = full_src.indexOf("(", start_pos)
             if ((param_open_paren != -1) && (pos < fn_def_end)){
                 var param_close_paren = Editor.find_matching_close(full_src, param_open_paren)
-                if (param_close_paren != -1){
+                if (param_close_paren != null){
                     var params_string = full_src.slice(param_open_paren + 1, param_close_paren)
                     var params_array = params_string.split(",")
                     for (let param of params_array){
@@ -1475,7 +1572,7 @@ Editor.variable_info = function(identifier){
             }
             var var_identifier = "var " + identifier
             var var_pos = full_src.indexOf(var_identifier, start_pos)
-            if ((var_pos != -1) && (var_identifier != -1) && (var_pos < pos) && (var_pos < fn_def_end)){ //note,
+            if ((var_pos != -1) && (var_pos < pos) && (var_pos < fn_def_end)){ //note,
                 //we might find the var but if its beyond the end of the fn def, then not so good.
                 var char_after_identifier = full_src[var_pos + var_identifier.length]
                 if ([" ", "\n", "="].indexOf(char_after_identifier) != -1){
@@ -1485,7 +1582,7 @@ Editor.variable_info = function(identifier){
             //I don't pretend to get the let scoping right, just check if let is declared between fn begin and cursor pos
             var_identifier = "let " + identifier
             var_pos = full_src.indexOf(var_identifier)
-            if ((var_pos != -1) && (var_identifier != -1) && (var_pos < pos) && (var_pos < fn_def_end)){
+            if ((var_pos != -1) && (var_pos < pos) && (var_pos < fn_def_end)){
                 var char_after_identifier = full_src[var_pos + var_identifier.length]
                 if ([" ", "\n", "="].indexOf(char_after_identifier) != -1){
                     return "probably a local variable " + Js_info.make_atag("let", "let")

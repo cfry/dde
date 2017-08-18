@@ -13,6 +13,7 @@ var Socket = class Socket{
                 let ws_inst = new net.Socket()
                 Socket.robot_name_to_ws_instance_map[robot_name] = ws_inst
                 ws_inst.on("data", Socket.on_receive)
+                out("Now attempting to connect to Dexter: " + robot_name + " at ip_address: " + ip_address + " port: " + port + " ...", "brown")
                 ws_inst.connect(port, ip_address, function(){
                     Socket.new_socket_callback(robot_name)
                 })
@@ -181,7 +182,15 @@ var Socket = class Socket{
             robot_status[Dexter.J3_FORCE_CALC_ANGLE] *= 0.0002777777777777778
             robot_status[Dexter.J4_FORCE_CALC_ANGLE] *= 0.00001736111111111111
             robot_status[Dexter.J5_FORCE_CALC_ANGLE] *= 0.00001736111111111111
+            Socket.compute_measured_angles(robot_status)
         }
+    }
+    static compute_measured_angles(robot_status){
+        robot_status[Dexter.J1_MEASURED_ANGLE] = robot_status[Dexter.J1_ANGLE] + robot_status[Dexter.J1_DELTA] - robot_status[Dexter.J1_PID_DELTA] + robot_status[Dexter.J1_FORCE_CALC_ANGLE]
+        robot_status[Dexter.J2_MEASURED_ANGLE] = robot_status[Dexter.J2_ANGLE] + robot_status[Dexter.J2_DELTA] - robot_status[Dexter.J2_PID_DELTA] + robot_status[Dexter.J2_FORCE_CALC_ANGLE]
+        robot_status[Dexter.J3_MEASURED_ANGLE] = robot_status[Dexter.J3_ANGLE] + robot_status[Dexter.J3_DELTA] - robot_status[Dexter.J3_PID_DELTA] + robot_status[Dexter.J3_FORCE_CALC_ANGLE]
+        robot_status[Dexter.J4_MEASURED_ANGLE] = robot_status[Dexter.J4_ANGLE] + robot_status[Dexter.J4_DELTA] - robot_status[Dexter.J4_PID_DELTA] + robot_status[Dexter.J4_FORCE_CALC_ANGLE]
+        robot_status[Dexter.J5_MEASURED_ANGLE] = robot_status[Dexter.J5_ANGLE] + robot_status[Dexter.J5_DELTA] - robot_status[Dexter.J5_PID_DELTA] + robot_status[Dexter.J5_FORCE_CALC_ANGLE]
     }
 
     static close(robot_name, simulate){

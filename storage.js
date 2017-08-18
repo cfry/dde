@@ -114,7 +114,15 @@ function dde_init_dot_js_initialize() {
        //reported to user in persistent_initialize
     }
     else if (file_exists("dde_init.js")){ //we don't want to error if the file doesn't exist.
-        load_files("dde_init.js")
+        try{
+            load_files("dde_init.js")
+        }
+        catch(err0){
+            Editor.edit_file("dde_init.js")
+            dde_error("The file: Documents/dde_apps/dde_init.js has invalid JavaScript in it.<br/>" +
+                      "Please fix this and relaunch DDE.")
+            return
+        }
         var add_to_dde_init_js = ""
         if (!persistent_get("ROS_URL")){
             add_to_dde_init_js += 'persistent_set("ROS_URL", "' + default_default_ROS_URL + '") //required property, but you can edit the value.\n'
@@ -156,7 +164,7 @@ function dde_init_dot_js_initialize() {
                   '// set_menu_background_color("#4cc9fd")\n' +
                   '// set_button_background_color("#4cc9fd")\n' +
                   '\n' +
-                  'persistent_set("ROS_URL", "' + default_default_ROS_URL + '") //required property, but you can edit the value.\n'
+                  'persistent_set("ROS_URL", "' + default_default_ROS_URL + '") //required property, but you can edit the value.\n' +
                   'persistent_set("default_dexter_ip_address", "'    +
                   default_default_dexter_ip_address + '") //required property but you can edit the value.\n' +
                   'persistent_set("default_dexter_port", "'          +
@@ -403,7 +411,17 @@ function load_files(...paths) {
         let resolved_path = resolved_paths[resolved_paths_index]
         let content = contents[resolved_paths_index]
         out("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;loading file: " + resolved_path, "green")
-        result = window.eval(content)
+        try{
+            result = window.eval(content)
+        }
+        catch(err){
+            let  out_string = "<details><summary><span style='color:red;'>\n" +
+                              "loading file: " + resolved_path +
+                              "<br/>\n&nbsp;&nbsp;&nbsp;&nbsp;got error: " + err.message + "</span></summary>" +
+                               replace_substrings(err.stack, "\n", "<br/>") + "</details>"
+            out(out_string)
+            throw new Error("dde_error: " + err.message)
+        }
         out("Done loading file: " + resolved_path, "green")
     }
     return result

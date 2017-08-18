@@ -8,19 +8,24 @@
 
     //called for cmd input AND run instruction dialog run_src type in
     function onclick_for_click_help(event) {
-        var full_src = event.target.value
-        if (full_src) {
-            if(full_src.length > 0){
-                var pos = event.target.selectionStart
-                Editor.show_identifier_info(full_src, pos)
-            }
+        if($(event.target).closest(".inspector").length > 0){ //don't do regular on_click if inside an inspector
+             //var elt = event.target  //; the click just go to the underlined item in the inspector
         }
         else {
-            full_src = window.getSelection().focusNode.data
-            if (full_src && (full_src.length > 0)){
-                var pos      = window.getSelection().focusOffset
-                if ((pos == 0) || pos) {
+            var full_src = event.target.value
+            if (full_src) {
+                if(full_src.length > 0){
+                    var pos = event.target.selectionStart
                     Editor.show_identifier_info(full_src, pos)
+                }
+            }
+            else {
+                full_src = window.getSelection().focusNode.data
+                if (full_src && (full_src.length > 0)){
+                    var pos      = window.getSelection().focusOffset
+                    if ((pos == 0) || pos) {
+                        Editor.show_identifier_info(full_src, pos)
+                    }
                 }
             }
         }
@@ -1041,7 +1046,7 @@ foo      //eval to see the latest values</pre>`,
     rosservice_is.onclick    = function(){rde.shell('rosservice list')}
     rostopic_id.onclick      = function(){rde.shell('rostopic list')}
 
-    clear_output_id.onclick  = function(){clear_output(); myCodeMirror.focus()}
+    clear_output_id.onclick  = function(){clear_output(); init_inspect(); myCodeMirror.focus()}
 
     javascript_pane_help_id.onclick    = function(){ open_doc(javascript_pane_doc_id)  }
     output_pane_help_id.onclick        = function(){ open_doc(output_pane_doc_id)  }

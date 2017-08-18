@@ -12,6 +12,11 @@ var Robot = class Robot {
         return result
     }
     */
+    static all_robots(){
+        let result = []
+        for(let robot_name of Robot.all_names) { result.push(Robot[robot_name]) }
+        return result
+    }
     static default_robot_name(){
         if (Robot.all_names.length > 0){
             return Robot.all_names[Robot.all_names.length - 1]
@@ -95,8 +100,8 @@ var Robot = class Robot {
         return new Instruction.Control.label(name)
     }
 
-    static out(val, color="black"){
-        return new Instruction.Control.out(val, color)
+    static out(val, color="black", temp){
+        return new Instruction.Control.out(val, color, temp)
     }
 
     /* Warning the below is at least somewhat obsolete as of new arch Aug 25, 2016
@@ -898,6 +903,7 @@ Dexter = class Dexter extends Robot {
     static set_a_robot_instance_socket_id(robot_name){
         let rob          = Dexter[robot_name]
         //rob.socket_id    = socket_id
+        out("Succeeded connection to Dexter: " + robot_name + " at ip_address: " + rob.ip_address + " port: " + rob.port, "green")
         rob.is_connected = true
     }
 
@@ -1709,18 +1715,18 @@ Dexter.robot_ack_labels = [
 "J1_PLAYBACK",         // PLAYBACK_BASE_POSITION     16
 "J1_SENT",             // SENT_BASE_POSITION         17
 "J1_SLOPE",            // SLOPE_BASE_POSITION        18
-"UNUSED_19",           // new field                  19
+"J1_MEASURED_ANGLE",   // actual angle from Dexter   19
 //J2 block of 10
 "J2_ANGLE",            // END_POSITION_AT            20
 "J2_DELTA",            // END_POSITION_DELTA         21
 "J2_PID_DELTA",        // END_POSITION_PID_DELTA     22
-"J2_FORCE_CALC_ANGLE",            // END_POSITION_FORCE_DELTA   23
+"J2_FORCE_CALC_ANGLE", // END_POSITION_FORCE_DELTA   23
 "J2_A2D_SIN",          // END_SIN                    24
 "J2_A2D_COS",          // END_COS                    25
 "J2_PLAYBACK",         // PLAYBACK_END_POSITION      26
 "J2_SENT",             // SENT_END_POSITION          27
 "J2_SLOPE",            // SLOPE_END_POSITION         28
-"UNUSED_29",           // new field                  29
+"J2_MEASURED_ANGLE",   // new field                  29
 //J2 block of 10
 "J3_ANGLE",            // PIVOT_POSITION_AT           30
 "J3_DELTA",            // PIVOT_POSITION_DELTA        31
@@ -1731,7 +1737,7 @@ Dexter.robot_ack_labels = [
 "J3_PLAYBACK",         // PLAYBACK_PIVOT_POSITION     36
 "J3_SENT",             // SENT_PIVOT_POSITION         37
 "J3_SLOPE",            // SLOPE_PIVOT_POSITION        38
-"UNUSED_39",           // new field                   39
+"J3_MEASURED_ANGLE",   // new field                   39
 //J4 block of 10
 "J4_ANGLE",            // ANGLE_POSITION_AT           40
 "J4_DELTA",            // ANGLE_POSITION_DELTA        41
@@ -1742,7 +1748,7 @@ Dexter.robot_ack_labels = [
 "J4_PLAYBACK",         // PLAYBACK_ANGLE_POSITION     46
 "J4_SENT",             // SENT_ANGLE_POSITION         47
 "J4_SLOPE",            // SLOPE_ANGLE_POSITION        48
-"UNUSED_49",           // new field                   49
+"J4_MEASURED_ANGLE",   // new field                   49
 //J4 block of 10
 "J5_ANGLE",            // ROTATE_POSITION_AT          50
 "J5_DELTA",            // ROTATE_POSITION_DELTA       51
@@ -1753,7 +1759,7 @@ Dexter.robot_ack_labels = [
 "J5_PLAYBACK",         // PLAYBACK_ROT_POSITION       56
 "J5_SENT",             // SENT_ROT_POSITION           57
 "J5_SLOPE",            // SLOPE_ROT_POSITION          58
-"UNUSED_59"            // new field                   59
+"J5_MEASURED_ANGLE"    // new field                   59
 ]
 
 Dexter.robot_status_index_labels = []
@@ -1910,8 +1916,8 @@ Dexter.show_robot_status = function(){
                              Dexter.update_robot_status_names_menu_html() +
                              " <span id='updating_robot_status_info_id' style='font-size:12px'>" + Dexter.update_robot_status_info_html() + "</span>" +
                              "<span style='font-size:12px;margin-left:10px;'> Updated: <span id='robot_status_window_time_id'>" + Dexter.update_time_string() + "</span></span>",
-                     width:  745,
-                     height: 380
+                     width:  755,
+                     height: 410
                     })
         setTimeout(Dexter.update_robot_status_init, 300)
     }
@@ -2033,10 +2039,11 @@ Dexter.update_robot_status_to_html_table = function(robot_status){
         Dexter.make_rs_row(robot_status, "", "ERROR_CODE",      "DMA_READ_DATA",      "READ_BLOCK_COUNT",      "RECORD_BLOCK_SIZE",      "END_EFFECTOR_IN") +
 
             "<tr><th></th>         <th>Joint 1</th><th>Joint 2</th><th>Joint 3</th><th>Joint 4</th><th>Joint 5</th></tr>" +
+        Dexter.make_rs_row(robot_status, "MEASURED_ANGLE",    "J1_MEASURED_ANGLE",   "J2_MEASURED_ANGLE",   "J3_MEASURED_ANGLE",   "J4_MEASURED_ANGLE", "J5_MEASURED_ANGLE") +
         Dexter.make_rs_row(robot_status, "ANGLE",     "J1_ANGLE",     "J2_ANGLE",     "J3_ANGLE",     "J4_ANGLE",     "J5_ANGLE"    ) +
         Dexter.make_rs_row(robot_status, "DELTA",     "J1_DELTA",     "J2_DELTA",     "J3_DELTA",     "J4_DELTA",     "J5_DELTA"    ) +
         Dexter.make_rs_row(robot_status, "PID_DELTA", "J1_PID_DELTA", "J2_PID_DELTA", "J3_PID_DELTA", "J4_PID_DELTA", "J5_PID_DELTA") +
-        Dexter.make_rs_row(robot_status, "FORCE_CALC_ANGLE", "J1_FORCE_CALC_ANGLE", "J2_FORCE_CALC_ANGLE", "J3_FORCE_CALC_ANGLE", "J4_FORCE_CALC_ANGLE",     "J5_FORCE_CALC_ANGLE"    ) +
+        Dexter.make_rs_row(robot_status, "FORCE_CALC_ANGLE", "J1_FORCE_CALC_ANGLE", "J2_FORCE_CALC_ANGLE", "J3_FORCE_CALC_ANGLE", "J4_FORCE_CALC_ANGLE", "J5_FORCE_CALC_ANGLE") +
         Dexter.make_rs_row(robot_status, "A2D_SIN",   "J1_A2D_SIN",   "J2_A2D_SIN",   "J3_A2D_SIN",   "J4_A2D_SIN",   "J5_A2D_SIN"  ) +
         Dexter.make_rs_row(robot_status, "A2D_COS",   "J1_A2D_COS",   "J2_A2D_COS",   "J3_A2D_COS",   "J4_A2D_COS",   "J5_A2D_COS"  ) +
         Dexter.make_rs_row(robot_status, "PLAYBACK",  "J1_PLAYBACK",  "J2_PLAYBACK",  "J3_PLAYBACK",  "J4_PLAYBACK",  "J5_PLAYBACK" ) +
@@ -2089,11 +2096,16 @@ Dexter.sent_instructions_to_html = function(sent_ins){
         result +=  "<tr><td>" + ins[Instruction.JOB_ID] + "</td><td>" + ins[Instruction.INSTRUCTION_ID] + "</td><td>" + ins[Instruction.START_TIME] + "</td><td>" + ins[Instruction.STOP_TIME] + "</td><td>" + instruction_type + instruction_name + "</td><td>" + Instruction.args(ins) + "</td></tr>"
     }
     result += "</table>"
-    return "<details><summary>sent_instructions table</summary>" + result + "</details>"
+    return "<details style='display:inline-block;'><summary></summary>" + result + "</details>"
 }
 //called from utils stringify_value
 Dexter.make_show_rs_history_button_html = function(job_id){
-    return "<button class='onclick_via_data' data-onclick='Dexter.show_rs_history,," + job_id + "'>Show robot status history</button><br/>"
+    return "<button class='onclick_via_data' data-onclick='Dexter.show_rs_history,," + job_id + "'>Show robot status history</button>"
+
+}
+//called from inspect
+Dexter.make_show_rs_history_button_html2 = function(job_id){
+    return "<button onclick='Dexter.show_rs_history(" + job_id + ")'>Show robot status history</button>"
 
 }
 
@@ -2126,9 +2138,9 @@ Dexter.show_rs_history_get_rs_history = function(job_id){
                 )
 }
 
- Dexter.show_rs_history_display = function(job_name, robot_name, status, highest_completed_instruction_id, sent_instructions, rs_history, rs_labels){
+Dexter.show_rs_history_display = function(job_name, robot_name, status, highest_completed_instruction_id, sent_instructions, rs_history, rs_labels){
     //var job_instance = Job.job_id_to_instance(job_id) //won't work cause we'er in the UI.
-    out("in show_rs_history_display: " + sent_instructions)
+    //out("in show_rs_history_display: " + sent_instructions)
     var highest_sent_instruction = "null"
     if (sent_instructions.length > 0) {
         highest_sent_instruction = sent_instructions[sent_instructions.length - 1][1]

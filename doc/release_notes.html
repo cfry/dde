@@ -7,6 +7,42 @@
 </style>
 
 <details class="doc_details"><summary>v 2.0.10, Aug 11, 2017</summary>
+    Highlights: New Inspector, robot status includes Joint measured angles,
+                Job init param: show_instructions extended.
+<ul><li> Added: Dexter.J1_MEASURED_ANGLE constants,  thru J5
+    robot_status now contains MEASURED_ANGLES for each of the 5 joints in
+    addition to the ANGLES (where the joints were *told* to go).
+    New row in the dialog produced by Jobs menu/show_robot_status
+    shows you the measured angles.</li>
+
+    <li> when attempting a socket connection to Dexter, a message is printed in the output pane.
+         when the connection is successful, another message is printed.</li>
+
+    <li> Robot.out instruction extended to have the same 3rd arg as "out", ie "temp".
+          Documented, and links between Robot.out and out added to the ref man doc for each.</li>
+
+    <li> fixed bug in the simulator not updating robot status angles to degrees.</li>
+
+    <li> The Job init parameter of <code>show_instructions</code> can now accept
+         a method as the value to be called at the start of the running of each instruction.
+          See doc Ref Man/Job/new Job parameters. Includes doc on how to show user data</li>
+
+    <li> option click on /*, */  or // selects whole comment.</li>
+
+    <li> while loading init file, if there's an error, a better error message is output.</li>
+
+    <li> Improved the initialization of the file dde_init.js</li>
+
+    <li> _arcsec and the other units conversion constants: disabled editor warnings.</li>
+
+    <li> new data Inspector   used for Eval results.</li>
+
+    <li> when a job completes, rather than print out lots of stuff like it use to,
+         now an INSPECT button is added to the progress bar in the output pane.</li>
+</ul>
+</details>
+
+<details class="doc_details"><summary>v 2.0.10, Aug 11, 2017</summary>
 Highlights: Behind the scenes bug fixes.
 <ul><li> Fixed rounding bug in <code>Robot.move_to</code> and <code>Robot.move_to_relative</code></li>
 

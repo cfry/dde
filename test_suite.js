@@ -114,12 +114,12 @@ var TestSuite = class TestSuite{
         result.push(src.substring(start_quote + 1, end_quote )) //cut off the quotes
 
         start_quote = Editor.find_forwards_any_kind_of_quote(src, end_quote + 1)
-        if (start_quote == -1) { return result }
+        if (start_quote == null) { return result }
         end_quote = Editor.find_forwards_matching_quote(src, start_quote)
         result.push(src.substring(start_quote + 1, end_quote)) //cut off the quotes
 
         start_quote = Editor.find_forwards_any_kind_of_quote(src, end_quote + 1)
-        if (start_quote == -1) { return result }
+        if (start_quote == null) { return result }
         end_quote = Editor.find_forwards_matching_quote(src, start_quote)
         result.push(src.substring(start_quote + 1, end_quote)) //cut off the quotes
         return result
@@ -146,13 +146,13 @@ var TestSuite = class TestSuite{
         let full_src = Editor.get_javascript()
         let sel_start = Editor.selection_start()
         let new_ts_start = Editor.find_backwards(full_src, sel_start, "new TestSuite")
-        if (new_ts_start == -1) { return false }
+        if (new_ts_start == null) { return false }
         else {
             let open_paren_index = full_src.indexOf("(", new_ts_start)
             if (open_paren_index == -1) {return false}
             else{
                 let close_paren_index = Editor.find_matching_close(full_src, open_paren_index)
-                if (close_paren_index == -1)  { close_paren_index = full_src.length } //allow this case but beware if use for other than test suite stepping
+                if (close_paren_index == null)  { close_paren_index = full_src.length } //allow this case but beware if use for other than test suite stepping
                 if((sel_start > open_paren_index) && (sel_start < close_paren_index)){
                     return true
                 }
@@ -167,7 +167,7 @@ var TestSuite = class TestSuite{
         let open_paren_index = sel_text.indexOf("(")
         if (open_paren_index == -1) {return false}
         let close_paren_index = Editor.find_matching_close(sel_text, open_paren_index)
-        if (close_paren_index == -1)  {return false}
+        if (close_paren_index == null)  {return false}
         //we have a valid first test suite, just see if any non-whitespace after it
         else if (close_paren_index == (sel_text.length - 1)){ return false } //only 1 test suite
         else { return true } //since we know the last char isn't whitespace due the the above trim,
@@ -476,7 +476,7 @@ var TestSuite = class TestSuite{
                         let open_paren = full_src.indexOf("(", ts_start)
                         if (open_paren !== - 1) {
                             let close_paren = Editor.find_matching_delimiter(full_src, open_paren)
-                            if (close_paren !== - 1) {
+                            if (close_paren !== null) {
                                 Editor.select_javascript(ts_start, close_paren + 1)
                                 myCodeMirror.scrollTo(0)
                                 return true
@@ -510,7 +510,7 @@ var TestSuite = class TestSuite{
                     else { //select DOWN
                         let t_start = full_src.indexOf("[", sel_start)
                         if (t_start == -1) {out("No tests found."); return false}
-                        let t_end   = Editor.find_matching_delimiter(full_src, t_start)
+                        let t_end = Editor.find_matching_delimiter(full_src, t_start)
                         if(t_end == null) {out("No valid tests found. Look for proper ] at end of first test in suite."); return false}
                         Editor.select_javascript(t_start, t_end + 1)
                         myCodeMirror.scrollTo(0)
@@ -537,7 +537,7 @@ var TestSuite = class TestSuite{
                         if (t_start == -1) { return false; }
                         else {
                             t_end = Editor.find_matching_delimiter(full_src, t_start)
-                            if (t_end == -1) {return false}
+                            if (t_end == null) {return false}
                         }
                     }
                     Editor.select_javascript(t_start, t_end + 1)
@@ -559,9 +559,9 @@ var TestSuite = class TestSuite{
                     }
                     else { //select DOWN
                         let src_start = Editor.find_forwards_any_kind_of_quote(full_src, sel_start)
-                        if (src_start == -1) {out("No test source found."); return false}
+                        if (src_start == null) {out("No test source found."); return false}
                         let src_end   = Editor.find_forwards_matching_quote(full_src, src_start)
-                        if(src_end == -1) {out("No ending quote for test source found."); return false}
+                        if(src_end == null) {out("No ending quote for test source found."); return false}
                         Editor.select_javascript(src_start, src_end + 1)
                         myCodeMirror.scrollTo(0)
                     }
@@ -573,15 +573,15 @@ var TestSuite = class TestSuite{
                     if(arrow_key_direction == -1) { //prev
                         if(sel_start == 0) { return false; }
                         end_pos = Editor.find_backwards_any_kind_of_quote(full_src, sel_start - 1)
-                        if (end_pos == -1) {return false;}
+                        if (end_pos == null) {return false;}
                         start_pos = Editor.find_backwards_matching_quote(full_src, end_pos)
-                        if (start_pos == -1) {return false;}
+                        if (start_pos == null) {return false;}
                     }
                     else{ //next
                         start_pos = Editor.find_forwards_any_kind_of_quote(full_src, sel_end)
-                        if (start_pos == -1) {return false;}
+                        if (start_pos == null) {return false;}
                         end_pos = Editor.find_forwards_matching_quote(full_src, start_pos)
-                        if (end_pos == -1) {return false;}
+                        if (end_pos == null) {return false;}
                     }
                     Editor.select_javascript(start_pos, end_pos + 1)
                 }
