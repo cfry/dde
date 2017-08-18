@@ -464,7 +464,7 @@ var Kin = new function(){
     this.J_angles_to_xyz = function(joint_angles){
         let temp_angles = Convert.deep_copy(joint_angles)
         let xyzs = Kin.forward_kinematics(temp_angles)[0]
-        out(xyzs)
+        //out(xyzs)
         let direction = Vector.normalize(Vector.subtract(xyzs[5], xyzs[4]))
         let config = Kin.J_angles_to_config(temp_angles)
         return [xyzs[5], direction, config]
