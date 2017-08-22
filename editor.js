@@ -40,6 +40,8 @@ Editor.init_editor = function(){
                     "Up":    Series.ts_or_replace_sel_up,
                     "Down":  Series.ts_or_replace_sel_down,
                     "Cmd-E": eval_button_action, //the correct Cmd-e doesn't work
+                    "Cmd-O": Editor.open,
+                    "Ctrl-O": Editor.open,
                     "Cmd-S": Editor.save, //mac
                     "Ctrl-S": Editor.save //windows
                     }
@@ -324,6 +326,16 @@ Editor.restore_selection_from_map = function(){
     }
 }
 
+Editor.open = function(){
+    const path = choose_file(show_dialog_options={title: "Choose a file to edit"})
+    if (path){
+        //const content = file_content(path)
+        //Editor.set_javascript(content)
+        //Editor.add_path_to_files_menu(path)
+        Editor.edit_file(path)
+    }
+}
+
 Editor.edit_file = function(path){ //path could be "new file"
     path = convert_backslashes_to_slashes(path) //must store only slashes in files menu
     if(Editor.current_file_path){ //false when we first boot up.
@@ -346,6 +358,7 @@ Editor.edit_file = function(path){ //path could be "new file"
 }
 
 Editor.save_current_file = function(){
+        out("Saved: " + Editor.current_file_path)
         write_file(Editor.current_file_path, Editor.get_javascript())
 }
 

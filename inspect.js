@@ -185,9 +185,9 @@ function inspect(item, stack_number, in_stack_position){ //called from Insert me
         let refresh_id = "inspect_refresh_"  + stack_number
 
         result = "<div class='inspector' style='background-color:#ffd9b4;'>\n" +
-            "&nbsp;<span             id='" + prev_id + "' title='Inspect previous value.' style='color:blue;font-weight:900; opacity:font-size:30px;" + prev_opacity + "'>&lt;</span>\n" +
-            "&nbsp;&nbsp;&nbsp;<span id='" + next_id + "' title='Inspect next value.'     style='color:blue;font-weight:900; opacity:font-size:30px;" + next_opacity + ";'>&gt;</span>\n" +
-            "<span id='" + refresh_id + "'style='padding-left:30px;font-size:20px;'>" + "&#10227;</span>" +
+            "&nbsp;<span             id='" + prev_id + "' title='Inspect previous value.' style='cursor:pointer;color:blue;font-weight:900; font-size:20px;opacity:"  + prev_opacity + "'>&lt;</span>\n" +
+            "&nbsp;&nbsp;&nbsp;<span id='" + next_id + "' title='Inspect next value.'     style='cursor:pointer;color:blue;font-weight:900; font-size:20px;opacity:"  + next_opacity + ";'>&gt;</span>\n" +
+            "<span id='" + refresh_id + "'style='cursor:pointer;padding-left:30px;font-size:20px;opacity:0.5;' title='refresh' >" + "&#10227;</span>" +
             "<b style='padding-left:70px;'><i>" + title + "</i></b><br/>"  +
             result + "</div>"
         inspect_set_prev_onclick(stack_number, in_stack_position, prev_id)
@@ -368,7 +368,7 @@ function inspect_clickable_path(item, stack_number, in_stack_position, prop_name
         if (!path) { path = "{...}" }
     }
     let id_string = "inspect_item_pos_" + stack_number + "_" + in_stack_position + "_" + prop_name
-    let result = '<span id="' + id_string + '" style="color:blue; text-decoration:underline;">' + path + '</span>'
+    let result = '<span id="' + id_string + '" style="cursor:pointer;color:blue; text-decoration:underline;">' + path + '</span>'
     inspect_set_onclick(item, stack_number, in_stack_position, id_string)
     return result
 }

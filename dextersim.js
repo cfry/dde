@@ -261,7 +261,7 @@ DexterSim = class DexterSim{
         //For heartbeats, we want to leave in robot_status whatever the last "real" instruction was in there.
         //    ds_copy[0] = instruction_array[0] //instruction id
                 //}
-        if (!$("#real_time_sim_checkbox_id").val()){
+        if ($("#real_time_sim_checkbox_id").val()){
             dur = 0
         }
         this.ending_time_of_cur_instruction = robot_status[Dexter.START_TIME] + dur

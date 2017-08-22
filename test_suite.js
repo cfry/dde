@@ -408,11 +408,13 @@ var TestSuite = class TestSuite{
                         " => <span style='color:red;'>" + TestSuite.last_expected_error_message +
                         "</span> " + desc_html + "<br/>"
                 }
-                else { //no unexpected errors
-                    var src_result_html = "<span style='color:red;'>" + stringify_value(src_result) + "</span>"
-                    error_message = test_number_html + "&nbsp;<code>"   + src +
-                        "</code> => <code>" + src_result_html  +
-                        "</code>, <i>but expected</i>: <code>" + stringify_value(expected_result) +
+                else { //unexpected error
+                    let src_result_str = stringify_value(src_result)
+                    let src_result_html = "<span style='color:red;'>" + src_result_str + "</span>"
+                    error_message = test_number_html +
+                        "&nbsp;<code>" + src +
+                        "</code> => "                    + ((src_result_str.length > 20) ? "<br/>" : "") + "<code>" + src_result_html  +
+                        "</code>, <i>but expected</i>: " + ((src_result_str.length > 20) ? "<br/>" : "") + "<code>" + stringify_value(expected_result) +
                         "</code> " + desc_html + "<br/>"
                 }
             }

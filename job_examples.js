@@ -67,17 +67,16 @@ function sleep_and_move(){
 new Dexter({name: "my_dex",
             simulate: null //simulate is null by default, giving control to the Jobs menu item 'Simulate?'
            })
-new Job({name: "j1",
+new Job({name: "j3",
          robot: Robot.my_dex, //assigns a robot to this job
          do_list: [move_once, sleep_and_move]} //use the above function definitions as do_list items
 )
-Job.j1.start()
-/* Job.j1                    //the newly created Job instance
- Job.j1.status_code
- Job.j1.robot.joint_angles() //array of 5 angles, each in arcseconds
- Job.j1.robot.joint_angle(2) //1 thru 5
- Job.j1.robot.joint_xyz(5)   //0 thru 5, default 5. 0 is robot base position
- Job.j1.robot.joint_xyzs()   //Array of base xyz and all joint xyzs.
+/* Job.j3                    //the newly created Job instance
+ Job.j3.status_code
+ Job.j3.robot.joint_angles() //array of 5 angles, each in arcseconds
+ Job.j3.robot.joint_angle(2) //1 thru 5
+ Job.j3.robot.joint_xyz(5)   //0 thru 5, default 5. 0 is robot base position
+ Job.j3.robot.joint_xyzs()   //Array of base xyz and all joint xyzs.
 */
 `,
 

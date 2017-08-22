@@ -1,0 +1,493 @@
+Eval or How to Think like a Computer
+Fry Aug 2017
+Prerequisites: A bit of JavAScript programming
+(which you can get with a few hours of playing with DDE)
+and a thirst for undertanding how software works.
+
+Disclaimer: The subtitle will conjure up, in the minds of many readers,
+that this article is about zeros and ones, about logic gates of
+and/or/not. All that is good to know, but it is too low level
+to understand most of the interesting things about software.
+
+There are many ways to understand Eval. Here's some important ones:
+Definition 1:
+For the JS programmer
+eval is a JavaScript function.
+Its first argument is a string of source code.
+It "runs" the source code and returns a value (if any).
+Side effects of running the code are performed.
+
+Definition 2:
+for the C programmer:
+eval parses & compiles source code, executes it and returns a value,
+all in one fell swoop.
+In 2017, 
+Javascript runs about half the speed of compiled C.
+Given Moore's law you could say JS today runs about as fast as C did
+18 months ago. Or you could say 
+"JS is faster to write so I care about programmer time more than 
+execution time." Of course running faster saves programmer time,
+but for most user interface operations, the difference between
+1 milliseconds and 10 milliseconds is unnoticable.
+
+Definition 3:
+data centric
+eval converts data from one format (a string of source code)
+into another format (a boolean, number, array, object, or possibly
+   a different, or the same string)
+Both the input and output are different representations
+of the same data. 
+
+Definition 4:
+conceptual:
+eval is a process for manipulating information.
+You can think of it as a "translator" from its
+input language to its output language.
+This process of translation is actually a meta process. 
+The input to
+eval is source code that describes a process,
+and eval 'runs" that process using the "eval process".
+
+If we expand our concept of eval to other languages,
+say English or "picture", eval takes low level "syntax"
+and converts it into higher level "semantics".
+Or perhaps you'd prefer converting "information" into
+"knowledge". A language is a mapping between syntax
+and semantics. Eval is a process for converting
+syntax into semantics. Different languages will
+have different syntaxes, at least somewhat different
+semantics, and, necessarily, different evals.
+Regardless the concept of Eval is the very essence of language.
+
+Eval is a basic process in "thinking".
+A dyed in the wool Lisp programmer would say that
+if you don't understand eval, you don't understand.
+What I'd say is that the *easiest* way to understand is
+to understand Eval. You certainly won't be a decent
+JavaScript programmer without understanding eval.
+The good news is that eval isn't SO hard to understand.
+The bad news is you can't understand eval without understanding
+eval. We break this chicken and egg problem below.
+
+Examples:
+JavaScript's eval, unlike Lisp's eval, only accepts strings
+as arguments:
+eval("true") => true (the boolean symbol)
+eval("123")  => 123  (an integer)
+eval("'123'") => "123" (a string of 3 characters, all of which happen to be digits.)
+eval("12" + "3") => 123 (an integer)
+eval("12 + 3")   => 15 (an integer)
+eval("'12' + '3'") => "123" (a string)
+eval(eval("'123'")) => 123 (an integer)
+Since we can manipulate strings of code,
+we can create source code with our program
+then eval that source code. 
+Thus in a language with eval, the code
+that is executed is not limited to the code in the program.
+This is consider dangerous by security professionals.
+Its considered powerful by people who understand what
+a good language can do. Imagine if you were told
+"Here's two interesting ideas for you but you're not
+allowed to combine them and come up with something creative."
+That's the equivalent of programming in a language without eval.
+
+Implementation:
+You won't understand eval until you understand how to implement eval.
+So now we show you what's in this magic box by gradually 
+implementing a simple eval which we name "eval zero", or eval0 for short.
+We are going to implement this using a combination of regular JS and itself.
+We will cut corners to use a minimum amount of JS, keeping our new eval0 simple.
+Our first pass:
+function eval0(a_string) {
+    if      (a_string == "true")  { return true }
+    else if (a_string == "false") { return false }
+}
+Example: eval0("true") => true
+Next we handle numbers:
+
+function eval0(a_string) {
+    if (a_string == "true")  { return true }
+    if (a_string == "false") { return false }
+    return parseFloat(a_string)
+}
+
+Now let's implement +
+function eval0(a_string) {
+    debugger
+    if (a_string == "true")  { return true }
+    if (a_string == "false") { return false }
+    let an_array = a_string.split(" ")
+    if (an_array.length == 1){
+    	return parseFloat(a_string)
+    }
+    if(an_array.length == 3){
+        if(an_array[1] == "+") { return eval0(an_array[0]) + eval0(an_array[2]) }
+    }  
+}
+eval0("2 + 3") => 5
+Above we use <code>split</code> to divide up a_string into the 3 smaller strings
+that are separated by spaces in a_string. Split returns an array
+(a sequence of items) accessible by their positions within the array.
+We're also (recursively) calling eval0 to process the two strings of digits
+on either side of "+" into numbers before adding them together
+with +. 
+
+So far we've just used eval to *return* values. But we can use it
+for side-effects like setting a variable value.
+function eval0(a_string) {
+    debugger
+    if (a_string == "true")  { return true }
+    if (a_string == "false") { return false }
+    let an_array = a_string.split(" ")
+    if (an_array.length == 1){
+    	return parseFloat(a_string)
+    }
+    if(an_array.length == 3){
+        if(an_array[1] == "+") { return eval0(an_array[0]) + eval0(an_array[2]) }
+        if(an_array[1] == "=") { return window[an_array[0]] = eval0(an_array[2]) }
+    }
+}
+
+Now eval0("foo = 2") sets the global variable named "foo" to the number 2.
+We can get back the variable's value with:
+function eval0(a_string) {
+    debugger
+    if (a_string == "true")  { return true }
+    if (a_string == "false") { return false }
+    let an_array = a_string.split(" ")
+    if (an_array.length == 1){
+        if(window[a_string] == undefined){
+    		return parseFloat(a_string)
+        }
+        return window[a_string]
+    }
+    if(an_array.length == 3){
+         if(an_array[1] == "+") { return eval0(an_array[0]) + eval0(an_array[2]) }
+         if(an_array[1] == "=") { return window[an_array[0]] = eval0(an_array[2]) }
+    }
+}
+Now eval0("foo") => 2
+<p/>
+If a_string isn't found to be anything else, we assume its a global variable
+and return its value.
+<p/>
+We're using "==" a bunch for comparison, so let's implement it.
+function eval0(a_string) {
+    debugger
+    if (a_string == "true")  { return true }
+    if (a_string == "false") { return false }
+    let an_array = a_string.split(" ")
+    if (an_array.length == 1){
+        if(window[a_string] == undefined){
+    		return parseFloat(a_string)
+        }
+        return window[a_string]
+    }
+    if(an_array.length == 3){
+         if(an_array[1] == "+") { return eval0(an_array[0]) + eval0(an_array[2]) }
+         if(an_array[1] == "=") { return window[an_array[0]] = eval0(an_array[2]) }
+         if(an_array[1] == "=="){ return [an_array[0]] == eval0(an_array[2])}
+   }
+}
+eval0("2 == 2") => true
+eval0("2 == 3") => false
+
+Here's a poor man's implementation of return
+function eval0(a_string) {
+    debugger
+    if(a_string == "true"){return true}
+    if(a_string == "false"){return false}
+    if(a_string.startsWith("return")){return eval0(a_string.substring(7))}
+    let an_array = a_string.split(" ")
+    if (an_array.length == 1){
+        if(window[a_string] == undefined){
+    		return parseFloat(a_string)
+        }
+        return window[a_string]
+    }
+    if(an_array.length == 3){
+         if(an_array[1] == "+") {return eval0(an_array[0]) + eval0(an_array[2])}
+         if(an_array[1] == "=") {return window[an_array[0]] = eval0(an_array[2])}
+         if(an_array[1] == "=="){return [an_array[0]] == eval0(an_array[2])}
+   }
+}
+eval0("return 4") => 4
+eval0("return 2 + 3") => 5
+
+Note the above doesn't work in JS eval. 
+But it will come in handy soon.
+<p/>
+Now let's tackle if.
+function eval0(a_string) {
+    debugger
+    if(a_string == "true"){return true}
+    if(a_string == "false"){return false}
+    if(a_string.startsWith("return")){return eval0(a_string.substring(7))}
+    if (a_string.startsWith("if(")){
+        let close_pos = a_string.indexOf(")")
+        let condition = a_string.substring(3, close_pos)
+        let action = a_string.substring(close_pos + 2, a_string.length - 1)
+        if(eval0(condition)){return eval0(action)}
+        return undefined
+    }
+    let an_array = a_string.split(" ")
+    if(an_array.length == 1){
+        if(window[a_string] == undefined){
+    		return parseFloat(a_string)
+        }
+        return window[a_string]
+    }
+    if(an_array.length == 3){
+         if(an_array[1] == "+") {return eval0(an_array[0]) + eval0(an_array[2])}
+         if(an_array[1] == "=") {return window[an_array[0]] = eval0(an_array[2])}
+         if(an_array[1] == "=="){return eval0(an_array[0]) == eval0(an_array[2])}
+   }
+}
+
+eval0("if(3 == 3){return 33}") => 33
+eval0("if(3 == 4){return 33}") => undefined
+eval0("if(3 == 3){return 4 + 5}") => 9
+
+
+We facilitate complexity by dividing up code into reusable functions.
+Here's a cheap implementation:
+function eval0(a_string) {
+    debugger
+    if(a_string == "true"){return true}
+    if(a_string == "false"){return false}
+    if(a_string.startsWith("return")){return eval0(a_string.substring(7))}
+    if (a_string.startsWith("if(")){
+        let close_pos = a_string.indexOf(")")
+        let condition = a_string.substring(3, close_pos)
+        let action = a_string.substring(close_pos + 2, a_string.length - 1)
+        if(eval0(condition)){return eval0(action)}
+        return undefined
+    }
+    if(a_string.startsWith("function ")){
+       let open_pos = a_string.indexOf("(")
+       let name = a_string.substring(9, open_pos)
+       let open_brace = a_string.indexOf("{")
+       let body = a_string.substring(open_brace + 1, a_string.length - 1)
+       window[name] = body
+    }
+    let an_array = a_string.split(" ")
+    if(an_array.length == 1){
+        if(window[a_string] == undefined){
+    		return parseFloat(a_string)
+        }
+        return window[a_string]
+    }
+    if(an_array.length == 3){
+         if(an_array[1] == "+") {return eval0(an_array[0]) + eval0(an_array[2])}
+         if(an_array[1] == "=") {return window[an_array[0]] = eval0(an_array[2])}
+         if(an_array[1] == "=="){return eval0(an_array[0]) == eval0(an_array[2])}
+   }
+}
+
+eval0("function bar(){return 6 + 7}")
+eval0("bar") => "return 6 + 7"
+
+And now to call our ultra-simple function.
+
+function eval0(a_string) {
+    debugger
+    if(a_string == "true"){return true}
+    if(a_string == "false"){return false}
+    if(a_string.startsWith("return")){return eval0(a_string.substring(7))}
+    if (a_string.startsWith("if(")){
+        let close_pos = a_string.indexOf(")")
+        let condition = a_string.substring(3, close_pos)
+        let action = a_string.substring(close_pos + 2, a_string.length - 1)
+        if(eval0(condition)){return eval0(action)}
+        return undefined
+    }
+    if(a_string.startsWith("function ")){
+       let open_pos = a_string.indexOf("(")
+       let name = a_string.substring(9, open_pos)
+       let open_brace = a_string.indexOf("{")
+       let body = a_string.substring(open_brace + 1, a_string.length - 1)
+       window[name] = body
+    }
+    if(a_string.endsWith(")")){
+      let name = a_string.split("(")[0]
+      return eval0(window[name])
+    }
+    let an_array = a_string.split(" ")
+    if(an_array.length == 1){
+        if(window[a_string] == undefined){
+    		return parseFloat(a_string)
+        }
+        return window[a_string]
+    }
+    if(an_array.length == 3){
+         if(an_array[1] == "+") {return eval0(an_array[0]) + eval0(an_array[2])}
+         if(an_array[1] == "=") {return window[an_array[0]] = eval0(an_array[2])}
+         if(an_array[1] == "=="){return eval0(an_array[0]) == eval0(an_array[2])}
+   }
+}
+
+eval0("bar()") => 13
+
+Befoer wrapping up our definition of eval0, let's throw in a few more features
+because its easy, they are commonly needed in JS, and to paint the way
+for further extension, should you care to implement it.
+
+function eval0(a_string) {
+    debugger
+    if(a_string == "true"){return true}
+    if(a_string == "false"){return false}
+    if(a_string == "null"){return null}
+    if(a_string == "undefined"){return undefined}
+    if(a_string.startsWith("'")){return a_string.substring(1, a_string.length - 1)}
+    if(a_string.startsWith('"')){return a_string.substring(1, a_string.length - 1)}
+    if(a_string.startsWith("return")){return eval0(a_string.substring(7))}
+    if (a_string.startsWith("if(")){
+        let close_pos = a_string.indexOf(")")
+        let condition = a_string.substring(3, close_pos)
+        let action = a_string.substring(close_pos + 2, a_string.length - 1)
+        if(eval0(condition)){return eval0(action)}
+        return undefined
+    }
+    if(a_string.startsWith("function ")){
+       let open_pos = a_string.indexOf("(")
+       let name = a_string.substring(9, open_pos)
+       let open_brace = a_string.indexOf("{")
+       let body = a_string.substring(open_brace + 1, a_string.length - 1)
+       window[name] = body
+    }
+    if(a_string.endsWith(")")){
+      let name = a_string.split("(")[0]
+      return eval0(window[name])
+    }
+    let an_array = a_string.split(" ")
+    if(an_array.length == 1){
+        if(window[a_string] == undefined){
+    		return parseFloat(a_string)
+        }
+        return window[a_string]
+    }
+    if(an_array.length == 3){
+         if(an_array[1] == "+") {return eval0(an_array[0]) + eval0(an_array[2])}
+         if(an_array[1] == "=") {return window[an_array[0]] = eval0(an_array[2])}
+         if(an_array[1] == "=="){return eval0(an_array[0]) == eval0(an_array[2])}
+   }
+}
+
+eval0("null") => null
+eval0("undefined") => undefined
+eval0('"hey"')  => "hey"
+eval0("'you'")  => 'you'
+
+What haven't we accomplished? We haven't made a practical eval
+because its missing many features of JavaScript, many of which are
+essential for writing useful applications. In particular,
+there's no support for looping, error handling, local variables, arrays,
+or objects. Our support for return, strings, if, arithmetic, or comparisons.
+The most important weakness is functions that take arguments.
+
+Functions are the "verbs" of programming. Their arguments are the adverbs,
+helping to customize a function to be applicable to myriads of additional
+uses. Hint: Local variables are implemented with name-value pair data structures
+just like the <code>window</code> data stucuture we use above for global variables.
+At function call time, such a data structure is populated with the names
+of the arguments and their values, then passed into eval so that references
+to local variables can be looked up in it.
+
+Despite all these deficiencies, let's celebrate our victories.
+The goal was not to duplicate the eval of JavaScript, highly
+evolved over decades. It was to understand the core concepts
+of what eval embodies and how it can be acheived. The number
+one task of a programmer is to be able to understand code.
+You do that best by running eval in your head. You do *that*
+best by knowing how eval is implemented. 
+
+Eval is the most complex function in JS so we can't expect
+it to be easy to completely understand. But even a low resolution
+understanding will make you a much better programmer. If you
+understand this document (for most, at least a couple of readings
+and much pondering will be necessessary) you'll be ahead of
+the majority of programmers, even those with a decade of experience
+under their belt, in one crucial aspect of programming.
+
+If you examine the features we have implemented and the features used
+by eval0, we've got a pretty healthy start on implementing what's
+needed by eval0, all in about 40 lines of code. With
+several times more code, we could define eval0 by just the features
+it supports. Thus
+eval0("function eval0(a_string){...}") 
+would have eval0 redefined not just itself, but the
+language that it itself is writen in.
+This achieves the "meta"
+goal so essential (magical though it may be) to advanced knowledge processing.
+
+
+
+
+Eval In DDE
+The editor buffer edits a sting, the input to Eval.
+DDE's Eval button takes that string and passes it
+to JavaScript's eval function (with a bit of extra processing)
+and formats the result of calling eval into the Output pane.
+
+(Files:)
+A file is just a big string of source code.
+"Loading" the file just feeds the string to eval.
+In JavaScript there's no explicit compiler or compiled representation
+of source code, though internally all kinds of clever tricks
+are played by eval to make code run fast. 
+
+You can eval regular old JS this way, but DDE has a bunch of "libraries"
+or extensions to JS (all written JS) that help you do higher level things.
+The most important one is defining a Job to make things.
+new Job({name: "my_job", do_list:[...]})
+uses JS syntax and a definition of the class Job to make
+a new instance of Job, which is a data structure, essentially
+with name-value parts.
+
+One of the ways that data structure is represented is as a button
+in the Output pane header named by the Job's name.
+Clicking that button automatically constructs the string
+"Job.my_job.start()" and then passes that string to Eval.
+Start starts DDE's special "do_list eval" that picks the
+instructions one by one off the do_list and
+"evals" them with a special evaluator. 
+- If the instruction
+is a move_all_joints instruction, the 5 joint degrees are
+translated into arc-seconds (which the precise Dexter likes)
+and sent to Dexter. 
+- If the instruction is a "move_to",
+the X, Y, and Z numbered arguments are "translated" into
+5 joint angles (via our "Kinematics evaluator") and
+those joint angles are sent to Dexter.
+- If the instruction is a JS function definition,
+that function is called. Calling a function fundamentally
+calls Eval on the code in the body of the function definition.
+You can even think of a Job Instance as a function who's
+body is the Job's do_list.
+
+Eval in Making
+When 3D printing there's a description of the object you want to
+print in some "CAD" files. One of the formats of such files is
+as JavaScript which describes the shapes to print. 
+Typically that file is "translated" into STL format, a low
+level representation of triangles. Then STL is cut up into
+Layers by  a "slicer", a special kind of evaluator. Each
+layer is then turned into a "tool path" for the motion
+of the 3D printer's extruder, and when the extruder is
+to be extruding molten plastic. Finally this tool path
+(usually in the language "g-code") is sent to the 
+printer itself. The printer can be though of as a kind of
+"eval" that translate g_code into a physical object.
+
+
+
+_____maybe cut____
+History:
+eval was first popularized in Lisp, an exceedingly flexible
+language used in AI, not so much because there's anything
+"high level intelligent" in Lisp, but rather just because
+Lisp (and its most important function, eval),
+is good at dealing with complexity.
+
+
+

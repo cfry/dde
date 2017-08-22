@@ -903,7 +903,9 @@ Dexter = class Dexter extends Robot {
     static set_a_robot_instance_socket_id(robot_name){
         let rob          = Dexter[robot_name]
         //rob.socket_id    = socket_id
-        out("Succeeded connection to Dexter: " + robot_name + " at ip_address: " + rob.ip_address + " port: " + rob.port, "green")
+        if ([false, "both"].includes(Robot.get_simulate_actual(rob.simulate))) {
+            out("Succeeded connection to Dexter: " + robot_name + " at ip_address: " + rob.ip_address + " port: " + rob.port, "green")
+        }
         rob.is_connected = true
     }
 

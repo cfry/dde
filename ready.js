@@ -366,15 +366,7 @@
                                         title:"DDE Overview"})
                            }*/
 
-    open_id.onclick=function(e) {
-        const path = choose_file(show_dialog_options={title: "Choose a file to edit"})
-        if (path){
-            //const content = file_content(path)
-            //Editor.set_javascript(content)
-            //Editor.add_path_to_files_menu(path)
-            Editor.edit_file(path)
-        }
-    }
+    open_id.onclick=Editor.open
 
     load_file_id.onclick=function(e) {
         const path = choose_file(show_dialog_options={title: "Choose a file to load"})
@@ -953,15 +945,7 @@ foo      //eval to see the latest values</pre>`,
     stop_all_jobs_id.onclick       = function(){Job.stop_all_jobs() }
     undefine_jobs_id.onclick       = function(){Job.clear_stopped_jobs() }
 
-    /*$("#real_time_sim_checkbox_id").jqxCheckBox({ checked: true })
-    real_time_sim_id.onclick = function(){
-        if ($("#real_time_sim_checkbox_id").val()){
-            $("#real_time_sim_checkbox_id").jqxCheckBox({ checked: false })
-        }
-        else {
-            $("#real_time_sim_checkbox_id").jqxCheckBox({ checked: true })
-        }
-    }*/
+    $("#real_time_sim_checkbox_id").jqxCheckBox({ checked: false })
 
     real_time_sim_checkbox_id.onclick = function(event) {
         if ($("#real_time_sim_checkbox_id").val()){
@@ -970,7 +954,7 @@ foo      //eval to see the latest values</pre>`,
         else {
             $("#real_time_sim_checkbox_id").jqxCheckBox({ checked: false })
         }
-        event.stopPropagation() //causes menuu to not shrink up, so you can see the effect of your click
+        event.stopPropagation() //causes menu to not shrink up, so you can see the effect of your click
                             //AND causes the onclick for simulate_id to NOT be run.
     }
     insert_job_example0_id.onclick = function(){Editor.insert(job_examples[0])}
