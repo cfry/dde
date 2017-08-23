@@ -1010,7 +1010,7 @@ window.beeps = beeps
 window.audioCtx = new window.AudioContext()
 /*
 function beep(keyword_args={}){
-    var defaults = {duration: 500, frequency: 440, volume: 1, waveform: "triangle", callback: null}
+    var defaults = {duration: 1, frequency: 440, volume: 1, waveform: "triangle", callback: null}
     copy_missing_fields(defaults, keyword_args)
     var oscillator = audioCtx.createOscillator();
     var gainNode = audioCtx.createGain();
@@ -1052,15 +1052,16 @@ window.beep = beep
  beep_snd.play();
  }
  */
-//________show_web_page__________
-function show_web_page(url){
+//________show_page__________
+function show_page(url, options={x:100, y:100, width: 800, height: 600}){
     if (url.indexOf("://") == -1){
         url = "http://" + url
     }
-    window.open(url) //show_url(url)
+   // window.open(url) //show_url(url) //fails in electron
+    ipcRenderer.sendSync('show_page', url, options) //see main.js "show_page"
     return url
 }
-window.show_web_page = show_web_page
+window.show_page = show_page
 
 
 /*

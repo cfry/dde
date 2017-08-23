@@ -356,7 +356,7 @@
     }
     /*dde_overview_id.onclick = function() {
                           //window.open("here is text") //dde_paper_text)
-                           //show_web_page('Dexter Development Environment.html')
+                           //show_page('Dexter Development Environment.html')
                            //my_dialog_id.innerHTML = "<iframe>" + dde_paper_text + "</iframe>"
                            //my_dialog_id.showModal()
                            //window.open("doc/Dexter_Development_Environment.html") //permissions error
@@ -705,7 +705,7 @@ show_window({
 `)}
     build_window_id.onclick=ab.launch
     window_close_all_id.onclick=close_all_show_windows
-    show_web_page_id.onclick=function(){Editor.wrap_around_selection('show_web_page(', ')\n', '"hdrobotic.com"')}
+    show_page_id.onclick=function(){Editor.wrap_around_selection('show_page(', ')\n', '"hdrobotic.com"')}
 
     get_page_id.onclick=function(){Editor.insert(
 `//Return the content of the given URL.
@@ -734,7 +734,7 @@ get_page_async("http://www.ibm.com", function(err, response, body){ out(body.len
 
     beep_id.onclick = function(){Editor.insert("beep()\n")}
     beep_options_id.onclick = function(){Editor.insert(
-`beep({duration: 500,  //the default, in milliseconds, 
+`beep({duration: 0.5,  //the default,, 
       frequency: 440, //the default, in Hertz. This is A above middle C.    
       volume: 1,      //the default, 0 to 1
       waveform: "triangle", //the default, other choices: "sine", "square", "sawtooth"

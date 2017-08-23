@@ -910,6 +910,8 @@ Example:<pre><code title="not in TestSuite"> speak({speak_data: [true, "It is", 
         Instead of a url as the argument, you can pass a literal JS object
         with lots of options, described at:
         <a target="_blank" href="https://www.npmjs.com/package/request">options</a>
+        <p/>
+        See also: <a href="#" onclick="open_doc(show_page_doc_id)">show_page</a>
     </details>
 
     <details id="get_page_async_doc_id" class="doc_details"><summary>get_page_async</summary>
@@ -3477,6 +3479,22 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
     <a href="#" onclick="open_doc('Human.show_window_doc_id')">
                 Ref Man/Robot/Human/show_window</a>
     </details> <!-- end show_window -->
+
+    <details id="show_page_doc_id" class="doc_details"><summary>show_page</summary>
+       Creates a new browser window and shows a web page in it.<br/>
+       <i>Parameters:</i><br/>
+       <b>url</b> The url to show in the new browser window.<br/>
+       <b>options</b> The options for the window that is created, which are the same as
+       Electron's BrowserWindow.
+       <a href="https://github.com/electron/electron/blob/master/docs/api/browser-window.md" target="_blank">Options Doc</a>
+       <p/>
+       <i>Example:</i>
+       <pre><code>show_page("http://hdrobotic.com",
+          {x:100, y:100,
+           width:800, height:600})
+           </code></pre>
+        See also: <a href="#" onclick="open_doc(get_page_doc_id)">get_page</a>
+    </details>
 
     <details class="doc_details"><summary>Window Utilities</summary>
 

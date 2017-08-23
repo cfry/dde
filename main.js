@@ -164,6 +164,16 @@ ipc.on('get_page', function(event, url_or_options){
   catch(err) { event.returnValue = "Error: " + err}
 })
 
+ipc.on('show_page', function(event, url, options={width: 800, height: 600}){
+    try{
+        let win = new BrowserWindow(options)
+        win.loadURL(url)
+        win.show()
+        event.returnValue = null
+    }
+    catch(err) { evnt.return_value = "Error: " + err }
+})
+
 // see https://github.com/konsumer/electron-prompt/blob/master/main.js
 // prompt normally not supported by Electron, but this clever implementation works
 var promptResponse

@@ -430,7 +430,7 @@ beep({frequency: 330, callback: function(){beep({frequency: 220})}})
  for the same instrution.*/
 function my_waiting_beeper(){
     var job_instance = this
-    beep({duration: 1000, callback: function(){job_instance.set_up_next_do()}})
+    beep({duration: 1, callback: function(){job_instance.set_up_next_do()}})
     return "dont_call_set_up_next_do"
 }
 /* Now our Job definition can just list 2 references to the 
@@ -447,8 +447,8 @@ Job.my_job.start()
 
 function my_waiting_chording_beeper(){
     var job_instance = this
-    beep({duration: 1000, frequency: 600})
-    beep({duration: 1000, callback: function(){job_instance.set_up_next_do()}})
+    beep({duration: 1, frequency: 600})
+    beep({duration: 1, callback: function(){job_instance.set_up_next_do()}})
     return "dont_call_set_up_next_do"
 }
 
@@ -465,8 +465,8 @@ Job.my_job.start()
  One last fun audio trick: play a chord with the two notes being very close
  in frequency to each other for the 'beating' effect. */
 
-beep({frequency: 440,   duration: 5000})
-beep({frequency: 440.5, duration: 5000})
+beep({frequency: 440,   duration: 1})
+beep({frequency: 440.5, duration: 1})
 `,
 `/* Job Example 10 Serial Port
    Connections between different devices are often problematic,

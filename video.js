@@ -40,7 +40,7 @@
         }
         else {
             //play_youtube_video(select_val)
-            show_web_page(select_val)
+            show_page(select_val)
         }
     }
     //function show_url(url){

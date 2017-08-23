@@ -846,9 +846,9 @@ function stringify_value_aux (value, job, depth=0){
 function stringify_value_sans_html(value){
     let result = stringify_value(value)
     //result = replace_substrings(result, "<co"  + "de>", "") //screws up inspetion of this fn (while inspecting 'window') having '<co  de>' in it. //
-    result.replace(/<code>/g,   "")
+    result = result.replace(/<code>/g,   "")
     //result = replace_substrings(result, "</co" + "de>", "") //
-    result.replace(/<\/code>/g, "")
+    result = result.replace(/<\/code>/g, "")
     result = result.replace(/<br\/>/g,   "\n")
     result = result.replace(/&nbsp;/g,   " ")
     return result
