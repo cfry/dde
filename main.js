@@ -165,6 +165,8 @@ ipc.on('get_page', function(event, url_or_options){
 })
 
 ipc.on('show_page', function(event, url, options={width: 800, height: 600}){
+    //onsole.log("in show_page in main.js with url:  " + url + " options: " + JSON.stringify(options))
+
     try{
         let win = new BrowserWindow(options)
         win.loadURL(url)

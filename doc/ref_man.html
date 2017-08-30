@@ -677,7 +677,7 @@ new Job({name: "gamepad_job2",
     If you have a lot of out calls, it can be helpful to give them
     different colors so you can easily find a particular one.
     <p/>
-    See also Robot Instruction <a href="#" onclick="open_doc('Robot.out_doc_id')">Robot.out</a>
+    See also <a href="#" onclick="open_doc(print_statements_doc_id)">print statements</a>
 </details>
 
     <details class="doc_details"><summary>Persistent Database</summary>
@@ -997,7 +997,7 @@ Stopped jobs may be restarted by calling <code title="not in TestSuite"> Job.j1.
 This reinitializes the job with the original arguments passed to <code title="unEVALable code fragment"> new Job</code>
 and runs the do_list instructions again. 
 
-<details class="doc_details"><summary>new Job parameters</summary>
+<details id="new_job_parameters_doc_id" class="doc_details"><summary>new Job parameters</summary>
 The parameters used to define a new Job are:
     <ol><li><b>name</b> You can use <code title="unEVALable code fragment"> Job.a_job_name</code> to get the instance programmatically.</li>
         <li><b>robot</b> An instance of one of the subclasses of <code>Robot</code>, such as
@@ -1029,7 +1029,8 @@ The parameters used to define a new Job are:
                    <code>Job.prototype.show_instruction_and_user_data</code>.
                    This allows you to see user data as it is updated by the job.
                    Eval the above code to see the method's source code.</li>
-               </ul>
+           </ul>
+           See <a href="#" onclick="open_doc(print_statements_doc_id)">print statements</a>
          </li>
         <li><b>inter_do_item_dur</b> A number indicating the number of milliseconds between
            when an instruction is completed by its robot, and when the next instruction is
@@ -1631,7 +1632,7 @@ a location to insert an instruction using <code>Robot.send_to_job</code>.<br/>
   Robot.out cannot access its job instance, but it does print out
   its job name and instruction ID right before printing <code title="unEVALable code fragment"> val</code>.
   <p/>
-  See also <a href="#" onclick="open_doc(out_doc_id)">out</a>
+  See also <a href="#" onclick="open_doc(print_statements_doc_id)">print statements</a>
 </details>
 
 <details id="Robot.start_job_doc_id" class="doc_details"><summary>start_job</summary>
@@ -3348,7 +3349,71 @@ Evaluating the returned string will return a copy of <code>this</code>.
     DDE uses those technologies but with a simplied wrapper for them to help
     users create interactive windows with the most needed features.
 
-    <details class="doc_details"><summary>Set DDE Colors</summary>
+    <details class="doc_details"><summary>Machine Vision with OpenCV</summary>
+        Robots need sensors to understand their environment. A very useful sensor
+        is a camera. However, scene recognition is one of the more complex cognitive tasks
+        that humans do. Its no different for Robots.
+        <p/>
+        The most widely used vision software for Robotics is called <i>OpenCV</i>.
+        OpenCV is large and complex; necessary characteristics for the task.
+        DDE uses a new version of OpenCV called opencv.js, a verison of the
+        original C++ program that has been transpiled into JavaScript.
+        DDE's opencv.js (as of Aug 30, 2017) corresponds to OpenCV version 3.3.
+        That version of OpenCV was released in August 2017.
+        opencv.js allows you to use JavaScript calls to access most of the funtionality
+        in OpenCV.
+        <p/>
+        DDE is in the early stages of using opencv.js. There is just one example:<br/>
+        Insert menu/show_window/OpenCV<br/> opencv.js functions are available
+        from the <code title="unEVALable">cv</code> object, which can be initialized via:<br/>
+        <code>var cv = require("opencv.js")</code><br/>
+        The first time you do this after launching DDE will take several seconds.
+        The rest of the times it is very quick, so no harm in calling it
+        more than once.
+        <p/>
+        <b>Depth Perception</b><br/>
+        Many applications in Robotics need 3D scene understanding.
+        OpenCV has some tools for processing stereo-pair images for
+        sensing depth. It is also possible to mount a single camera on Dexter
+        and have it take pictures at different locations to give you a stereo pair.
+        <p/>
+        Probably using a camera that has build-in depth sensing is the best technique.
+        Intel's <a href="https://www.intel.com/content/www/us/en/architecture-and-technology/realsense-overview.html" target="_blank">RealSense</a>
+        cameras are a good bet here. There is software to integrate the output of the RealSense cameras
+        and OpenCV, though we have yet to experiment with this in DDE.
+        <p/>
+        <b>Performance</b><br/>
+        Computer vision tends to eat up a lot of memory and processor power.
+        Modern laptops can keep up for simple tasks, but the faster the machine and the
+        more memory you have, the better, especially when processing video.
+        <p/>
+        <b>OpenCV Help</b><br/>
+        Because opencv.js is brand new, most of the documentation you will find
+        has examples in C++. opencv.js uses very similar or identical names
+        so with a bit of effort, you can make sense of C++ documentation. There
+        are also bindings of OpenCV for Python, in case that's easier for you.
+        <p/>
+        The most definitive guide is
+        <a href="http://shop.oreilly.com/product/0636920044765.do" target="_blank">Learning OpenCV 3</a>.
+        At 1024 pages, this isn't a quick read, but that length is necessary to
+        describe the considerable functionality. <a href="http://opencv.org/" target="_blank">OpenCV.org</a>
+        has tons of useful information.
+        <p/>
+        Documentation on opencv.js is sparser.
+        First, Understand the DDE opencv example.
+        Then, you can use DDE's inspector on <code title="unEVALable">cv</code>
+        to see available constants and function names. Beware, there are over
+        1K properties in this object!
+        Next, take a look at: <a href="https://huningxin.github.io/opencv_docs/tutorial_js_root.html" target="_blank">
+         opencv.js docs</a>
+         <p/>
+         <b>Acknowledgement</b><br/>
+         opencv.js was created by Sajjad Taheri and his collegues at the University of California, Irvine,
+         supported by Intel Corporation. We greatly appreciate this valuable contribution
+         to robotics and makers everywhere.
+    </details>
+
+        <details class="doc_details"><summary>Set DDE Colors</summary>
         Users can customize the DDE colors by calling the below functions.
         Calls to these functions appear in the default <code title="unEVALable code fragment"> dde_init.js</code> file
         commented out. By commenting them in, the DDE colors will be
@@ -3498,7 +3563,14 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
 
     <details class="doc_details"><summary>Window Utilities</summary>
 
-        <details id="close_window_doc_id"class="doc_details"><summary>close_window</summary>
+           <details id="clear_output_doc_id" class="doc_details"><summary>clear_output</summary>
+               Erase all content in the output pane. This does the same thing
+               as clicking the "clear" button in the Output pane header.<br/>
+               <i>Example:</i>
+               <pre><code>  clear_output()  </code></pre>
+           </details>
+
+            <details id="close_window_doc_id"class="doc_details"><summary>close_window</summary>
             Closes a window created with show_window.<br/>
             <i>Parameter:</i><br/>
             <b>window_index</b>: When a show_window callback function is called, it will be passed a literal object

@@ -72,8 +72,11 @@ function handle_run_instruction(vals){
         return
     }
     else if (vals.clicked_button_value == "job"){
-        var src = vals.mode_name
-        src += ",\n                   " + src_of_run_instruction()
+        let src = vals.mode_name
+        let src_of_run_ins = src_of_run_instruction()
+        if (src_of_run_ins != src) {
+            src += ",\n                   " + src_of_run_ins
+        }
         src = '\nnew Job({name: "my_job",\n' +
               '         robot: Robot.' + vals.dex_name_id + ',\n' +
               '         do_list: [' + src +
@@ -134,8 +137,9 @@ function make_robots_select_html(){
 }
 
 function make_modes_select_html(){
-  var result = "<select name='mode_name' style='font-size:14px;width:200px;margin:8px;' data-onchange='true'>"
-  for(let name of ["set_keep_position", "set_open_loop", "set_follow_me", "set_force_protect"]){
+  var result = "<select name='mode_name' title='Changing this will send a mode change instruction to Dexter.' " +
+                       "style='font-size:14px;width:200px;margin:8px;' data-onchange='true'>"
+  for(let name of ["set_open_loop", "set_follow_me", "set_force_protect", "set_keep_position"]){
     result += "<option>Dexter." + name + "()</option>"
   }
   result += "</select>"
@@ -200,8 +204,8 @@ show_window({content:
 `<br/>
  <!--<input type="radio" name="abs_rel" checked="checked"/>Absolute &nbsp;
  <input type="radio" name="abs_rel"/>Relative-->
- Mode:` + make_modes_select_html() +
- '<input type="button" style="margin-left:55px;" value="Empty Instr Queue" title="Dexter.empty_instruction_queue_immediately()"/>' +
+ Change mode to:` + make_modes_select_html() +
+ '<input type="button" value="Empty Instr Queue" title="Dexter.empty_instruction_queue_immediately()"/>' +
  `<table>
  <tr><td><input type="button" value="move_to" title="Dexter.move_to(xyz, ...)"/> 
          <input type="button" value="rel" name="move_to_relative" title="Dexter.move_to_relative(delta_xyz)"/>

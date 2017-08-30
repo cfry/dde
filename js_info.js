@@ -47,7 +47,9 @@ Js_info = class Js_info {
                         info_after_fn_name  = ""
                     }
                 }
-                let new_info = info_before_fn_name + Js_info.make_atag(new_fn_name, new_fn_name) + info_after_fn_name
+                let the_class = new_fn_name
+                if(info.startsWith("JSON.parse")) { the_class = "JSON" } //parse is used for both JSON.parse and Date.parse so we had to sepcial case here.
+                let new_info = info_before_fn_name + Js_info.make_atag(the_class, new_fn_name) + info_after_fn_name
                 if (series) { return Js_info.add_series_wrapper_to_info(series, new_info) }
                 else { return new_info }
             }
@@ -140,8 +142,8 @@ Js_info = class Js_info {
                 fn = Number[fn_name]
                 return "Number." + fn_name + "(" + Js_info.get_param_string(fn) + ")"
             }*/
-            else if (["parse", "stringify"].indexOf(fn_name) != -1){
-                return "JSON." + Js_info.make_atag("Number", fn_name) + "(" + Js_info.get_param_string(fn) + ")"
+            else if (JSON[fn_name]) { //["parse", "stringify"].indexOf(fn_name) != -1)
+                return "JSON." + Js_info.make_atag("JSON", fn_name) + "(" + Js_info.get_param_string(fn) + ")"
             }
             //else if (Js_info.document_prototype_lookup_ok(fn_name)){
             //    fn = Document.prototype[fn_name]
@@ -257,6 +259,8 @@ Js_info = class Js_info {
                 return Js_info.make_atag("boolean", fn_name) + " is a boolean literal."
             case "series_literal_string_id":
                 return "<span style='color:blue;'>" + fn_name + "</span> is a literal string."
+            case "series_global_js_id":
+                return Js_info.make_atag("global_js", fn_name) + " is a JS global function."
             case "series_arithmetic_id":
                 return "2 " +  Js_info.make_atag("arithmetic", fn_name) + " 3 => number"
             case "series_comparison_id":
@@ -507,6 +511,9 @@ Js_info = class Js_info {
         else if (the_class == "arithmetic"){
             url = "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators"
         }
+        else if (the_class == "Array"){
+            url = "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/" + fn_name
+        }
         else if (the_class == "array_literal"){
             url = "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_Types#Array_literals"
         }
@@ -526,17 +533,26 @@ Js_info = class Js_info {
         else if (the_class == "float"){
             url = "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_Types#Floating-point_literals"
         }
+        else if (the_class == "if"){
+            url = "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/if...else"
+        }
         else if (the_class == "integer"){
             url = "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_Types#Integers"
+        }
+        else if (the_class == "JSON"){
+            url = "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/" + fn_name
         }
         else if (the_class == "Math"){
             url = "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/" + fn_name
         }
-        else if (the_class == "if"){
-            url = "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/if...else"
+        else if (the_class == "Number"){
+            url = "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/" + fn_name
         }
         else if (the_class == "object_literal"){
             url = "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_Types#Object_literals"
+        }
+        else if (the_class == "String"){
+            url = "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/" + fn_name
         }
         else if (the_class == "string_literal"){
             url = "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_Types#String_literals"
@@ -544,11 +560,12 @@ Js_info = class Js_info {
         else if (the_class == "try"){
             url = "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch"
         }
-        else {
+        else if (the_class == "global_js"){
             url = "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/" +
-                the_class + "/" + fn_name
+                //the_class + "/"
+                fn_name
         }
-       window.open(url, "js_doc")
+       show_page(url) //window.open(url, "js_doc")
     }
 }
 
@@ -558,6 +575,7 @@ Js_info.fn_name_to_info_map = {
     "&&":        ["Performs logical <b>and</b> &nbsp;example: true && true",  "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Logical_Operators"],
     "||":        ["Performs logical <b>or</b>  &nbsp;example: true || false", "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Logical_Operators"],
     "!":         ["Performs logical <b>not</b> &nbsp;example: !false",        "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Logical_Operators"],
+    "apply":     ["fn.apply(thisArg, argsArray)",       "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/apply"],
     "break":     ["while(true){break;}",                "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/break"],
     "class":     ["class Boat extends Vehicle {}",      "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes"],
     "debugger":  ["debugger; sets a breakpoint.",       "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/debugger"],
@@ -567,6 +585,7 @@ Js_info.fn_name_to_info_map = {
     "function*": ["function* foo(){yield 1; yield 2}",  "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function*"],
     "in":        ["for(var index in ['a', 'b']){out(index)}",     "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for...in"],
     "Infinity":  ["Infinity",                           "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Infinity"],
+    "JSON.parse": ["JSON.parse(a_string)",                        "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse"],
     "instanceof":["new Date() instanceof Date => true", "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/instanceof"],
     "let":       ["let foo = 2;",                       "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/let"],
     "new":       ['new Date("Apr 1 2016")',             "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/new"],

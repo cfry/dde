@@ -6,6 +6,77 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 2.0.14, Aug 30, 2017</summary>
+Highlights: OpenCV integrated into DDE. Article: "How to Think Like a Computer".
+Extended Debugging Documentation. Inspector improvements. Run instruction improvements.
+<ul><li>Fixed bug with not getting the selection when clicking the Eval button.</li>
+
+    <li> New function <code>clear_output()</code>
+         clears output pane. See doc Ref Man/Window System/Window Utilities/clear_output</li>
+
+    <li> Inspector
+        <ul><li>New function <code>inspect(item)</code> lets you programmatically inspect data.</li>
+            <li>Ungrayed-out the "refresh" button.</li>
+            <li>Now supports JS Typed Arrays.</li>
+            <li>Now handles long arrays and objects interactively.</li>
+            <li>Fix for literal objects with first prop val of a function. (formattimg)</li>
+        </ul>
+    </li>
+    <li> New documentation section: User Guide/Debugging/Print Statements,
+         includes console.log, out, Robot.out, Job's show_instructions param,
+         inspect, clear_output.</li>
+
+    <li> Updated 2 cases of example calls to <code>beep</code> durations from ms to seconds.</li>
+
+    <li> DDE window's width and height now have minimum saved values of 20
+         to prevent relaunching DDE and having the window be invisible.</li>
+
+    <li> New Article in the doc pane: "How to Think Like a Computer"</li>
+
+    <li> New Series "global js functions", provides click help for "eval", "parseFloat"
+        and several more top level JS functions.</li>
+
+    <li> Improved <code>wait_until</code> reason text.</li>
+
+    <li><code>show_page</code> options argument now properly default the options of
+         x, y, width, and height.</li>
+
+    <li>Fixed calibrate menu item doc.</li>
+
+    <li>Fixed web help for: function, this, push (and other Array methods), String methods,
+        Math, Number constants, JSON (stringify and parse), apply.</li>
+
+    <li> Updated: <br/><code>Dexter.J4_ANGLE_MAX = 130</code>
+                  <br/><code>Dexter.J4_ANGLE_MIN = -130</code></li>
+
+    <li> Run instruction
+        <ul><li> Dialog box: changed the default mode from "set_keep_position" to
+                 to "set_open_loop".</li>
+
+            <li> Dialog box: If you select a new mode, then choose the "Job",
+                 that mode change instruction now appears just once in the created Job's do_list.</li>
+
+            <li> Dialog box: Added tooltip to the mode change select menu
+                 and improved its label.</li>
+
+            <li> Menu items: HOME_ANGLES, NEUTRAL_ANGLES, PARKED_ANGLES and "selection"
+                 now all first set Dexter's default speed to 25 (degrees per second)
+                 before the move.</li>
+        </ul>
+    </li>
+
+
+    <li> <code>show_window</code> with content of<br/>
+         <code>&lt;input type=file".../&gt;</code><br/>
+               now has a "value" of
+         the full path of the chosen file,
+         not just the "name" (sans folder) part of the path.</li>
+
+    <li> OpenCV is now integrated into DDE.
+         See Ref Man/Window System/Machine Vision with OpenCV.</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 2.0.13, Aug 23, 2017</summary>
     Highlights: show_page
 <ul><li> <code>beep</code> fixed durations from ms to seconds in the examples.</li>

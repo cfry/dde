@@ -151,7 +151,7 @@ function eval_js_part3(result){
                             " <span style='padding-left:50px;font-size:10px;'>" + result.duration + " ms</span>"
             out_eval_result(string_to_print)
         }
-        else { inspect_out(result.value) }
+        else { inspect(result.value) }
     }
     //highlight erroring source code if possible. If result.starting_index == undefined, that means no error.
     if (result.starting_index && (result.starting_index != 0)){ //we've got an error

@@ -20,7 +20,10 @@
                 }
             }
             else {
-                full_src = window.getSelection().focusNode.data
+                full_src = window.getSelection().focusNode
+                if ((typeof(full_src) == "object") && (full_src !== null) && full_src["data"]) {
+                    full_src = full_src.data
+                }
                 if (full_src && (full_src.length > 0)){
                     var pos      = window.getSelection().focusOffset
                     if ((pos == 0) || pos) {
@@ -32,23 +35,8 @@
     }
 
     function eval_button_action(){ //used by both clicking on the eval button and Cmd-e
+        let sel_text = Editor.get_any_selection() //must do before Edotor>save because now mysteriously that clears the selection
         if((Editor.current_file_path != "new file") && (save_on_eval_id.checked)) { Editor.save_current_file() }
-        /*if (Editor.get_javascript(true) != ""){ eval_js_part1() } //got sel in editor
-        else {
-            //get sel in output pane and doc pane but not editor pane or cmd input.
-            if (!window.getSelection().isCollapsed) { //got sel in doc or output pane
-                const sel_text = window.getSelection().getRangeAt(0).toString()
-                eval_js_part2(sel_text)
-            }
-            else {
-                const sel_text = Editor.get_cmd_selection()
-                if (sel_text.length > 0) { eval_js_part2(sel_text) }
-                else { //grab whole editor buffer, and execute or warn if no content in editor buffer
-                    eval_js_part1()
-                }
-            }
-        }*/
-        var sel_text = Editor.get_any_selection()
         if (sel_text.length > 0) { eval_js_part2(sel_text) }
         else { eval_js_part1() } //gets whole editor bugger and if empty, prints warning.
     }
@@ -171,6 +159,9 @@
                             "</details>\n" +
                             '<details class="doc_details"><summary class="doc_articles_level_summary">Dexter Kinematics</summary>\n' +
                                 file_content(__dirname + "/doc/dexter_kinematics.html") +
+                            "</details>\n" +
+                            '<details class="doc_details"><summary class="doc_articles_level_summary">How to Think Like a Computer</summary>\n' +
+                                file_content(__dirname + "/doc/eval.html") +
                             "</details>\n" +
                             '<details class="doc_details"><summary class="doc_articles_level_summary">Glossary</summary>\n' +
                                 file_content(__dirname + "/doc/glossary.html") +
@@ -704,6 +695,43 @@ show_window({
 })
 `)}
     build_window_id.onclick=ab.launch
+
+    opencv1_id.onclick=function(){Editor.insert(
+`//Caution: converting an image to b&w doesn't work for all images.
+var cv = require("opencv.js")
+
+function handle_hello_opencv(vals){
+    if(vals.clicked_button_value == "show images"){
+        src_image_id.src = vals.file_input_id
+        let mat = cv.imread(src_image_id)
+        let gray_mat = new cv.Mat(700, 700, cv.CV_8UC1)
+        cv.cvtColor(mat, gray_mat, cv.COLOR_RGBA2GRAY)
+        cv.imshow("output_canvas_id", gray_mat)
+        mat.delete()
+        gray_mat.delete()
+    }
+}
+
+show_window({
+    content:
+` + "\`" +
+`<b>Hello OpenCV.js</b><br/>
+ Choose a file with an extension of<br/>
+ .gif, .jpeg or .png<br/>
+ then click on "show image".<br/>
+ The image on the left has no cv processing.<br/>
+ The right is changed to black & white by cv.<br/>
+<input type="file" id="file_input_id"
+       accept="image/gif, image/jpeg, image/png"/>
+<input type="button" value="show images"/>
+<p/>
+<img id="src_image_id"></img>
+<canvas id="output_canvas_id"></canvas>` + "`" +
+`,
+    callback: handle_hello_opencv
+})
+` )}
+
     window_close_all_id.onclick=close_all_show_windows
     show_page_id.onclick=function(){Editor.wrap_around_selection('show_page(', ')\n', '"hdrobotic.com"')}
 
@@ -1030,7 +1058,7 @@ foo      //eval to see the latest values</pre>`,
     rosservice_is.onclick    = function(){rde.shell('rosservice list')}
     rostopic_id.onclick      = function(){rde.shell('rostopic list')}
 
-    clear_output_id.onclick  = function(){clear_output(); init_inspect(); myCodeMirror.focus()}
+    clear_output_id.onclick  = function(){clear_output(); myCodeMirror.focus()}
 
     javascript_pane_help_id.onclick    = function(){ open_doc(javascript_pane_doc_id)  }
     output_pane_help_id.onclick        = function(){ open_doc(output_pane_doc_id)  }

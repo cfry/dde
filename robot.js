@@ -1059,18 +1059,36 @@ Dexter = class Dexter extends Robot {
         return Kin.forward_kinematics(this.joint_angles(), this.pose)[0]
     }
 
-    move_all_joints_fn(angle_array=Dexter.HOME_ANGLES){
-        const job_00 = new Job({name: "job_00",
-                             robot: this,
-                             do_list: [Dexter.move_all_joints(angle_array)]
-        })
+    move_all_joints_fn(angle_array=Dexter.HOME_ANGLES, set_default_speed_first = true){
+        let job_00
+        if (set_default_speed_first) {
+            job_00 = new Job({name: "job_00", robot: this,
+                             do_list: [make_ins("S", "MaxSpeed", 25),
+                                       Dexter.move_all_joints(angle_array)]
+                     })
+        }
+        else {
+            job_00 = new Job({name: "job_00", robot: this,
+                              do_list: [Dexter.move_all_joints(angle_array)]
+            })
+        }
         job_00.start()
     }
-    move_to_fn(xyz=[0,0,0]){
-        const job_00 = new Job({name: "job_00",
-            robot: this,
-            do_list: [Dexter.move_to(xyz)]
-        })
+
+    move_to_fn(xyz=[0,0,0], set_default_speed_first = true){
+        let job_00
+        if (set_default_speed_first) {
+            job_00 = new Job({name: "job_00", robot: this,
+                              do_list: [make_ins("S", "MaxSpeed", 25),
+                                        Dexter.move_to(xyz)
+                                        ]
+                     })
+        }
+         else {
+            job_00 = new Job({name: "job_00", robot: this,
+                              do_list: [Dexter.move_to(xyz)]
+                     })
+         }
         job_00.start()
     }
     run_instruction_fn(instr){
@@ -1554,8 +1572,8 @@ Dexter.J2_ANGLE_MIN = -90
 Dexter.J2_ANGLE_MAX = 90
 Dexter.J3_ANGLE_MIN = -150
 Dexter.J3_ANGLE_MAX = 150
-Dexter.J4_ANGLE_MIN = -100
-Dexter.J4_ANGLE_MAX = 100
+Dexter.J4_ANGLE_MIN = -130 //-100
+Dexter.J4_ANGLE_MAX = 130  //100
 Dexter.J5_ANGLE_MIN = -185
 Dexter.J5_ANGLE_MAX = 185
 

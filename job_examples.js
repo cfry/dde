@@ -398,8 +398,8 @@ Using "dont_call_set_up_next_do"
  */
 beep({frequency: 440})
 /*ok now select two calls to beep at once before hitting "Eval".*/
-beep({frequency: 440, duration: 1000})
-beep({frequency: 500, duration: 2000})
+beep({frequency: 440, duration: 1})
+beep({frequency: 500, duration: 2})
 /*notice that the first call returns immediately and the
  2nd call is executing while the first beep is still beeping
  thus playing a 2 note chord.

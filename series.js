@@ -586,6 +586,9 @@ Series.instances = [
                         return this.sample
                     }
     }),
+    new Series({id:"series_global_js_id", array: ["eval", "isFinite", "isNaN", "parseFloat", "parseInt",
+                          "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent"],
+        menu_insertion_string:'eval("2 + 3")', menu_sel_start:0, menu_sel_end:4, sample:"eval"}),
     new Series({id:"series_arithmetic_id",  array: ["+", "-", "*", "/", "%"],
         menu_insertion_string:"2 + 3",      menu_sel_start:2, menu_sel_end:3, sample:"+"}),
     new Series({id:"series_comparison_id",  array: ["<", "<=", "==", "===", ">=", ">", "!=", "!==", "instanceof"],
@@ -714,7 +717,7 @@ Series.instances = [
     new Series({id:"series_output_id",      array: ['beep', 'beeps', 'Editor.insert', 'get_page', 'get_page_async','make_url', 'out', 'show_page', 'speak', 'recognize_speech'],
         menu_insertion_string: "beep({duration: 1, frequency: 440, volume: 1})",
         menu_sel_start:0, menu_sel_end:4, sample: "beep"}),
-    new Series({id:"series_window_id",      array: ['close_window', 'show_window',
+    new Series({id:"series_window_id",      array: ['clear_output', 'close_window', 'show_window',
                                                     'append_in_ui', 'get_in_ui', 'remove_in_ui', 'replace_in_ui', 'set_in_ui',
                                                     'set_window_frame_background_color', 'set_pane_header_background_color',
                                                     'set_menu_background_color', 'set_button_background_color',

@@ -14,13 +14,18 @@ var inspect_stacks = [] //Outer array has one array per inspector_display.
                         //that are viewed in a particular inspector.
                         //adn the inner are the whole lsit of items you can get
                         //to with the forward and back arrows.
-var inspect_stacks_positions = [] //should always be the same length as inspect_stacks.
+var inspect_stacks_positions   = [] //NOT NOW USED should always be the same length as inspect_stacks.
                                   //holds the index of the currently inspected elt
                                   //within all the 2nd level arrays within insepct_stacks
 
+var inspect_stack_max_display_length = []  //a 2D array indexed by stack_number and in_stack_position
+                                           //the inner array may be sparse. use dfor interactive didpaly of
+                                           //long arrays and objects with many properties
+
 function init_inspect(){
-    inspect_stacks = []
-    inspect_stacks_positions = []
+    inspect_stacks             = []
+    inspect_stacks_positions   = []
+    inspect_stack_max_display_length = []
 }
 
 function inspect_is_primitive(item){
@@ -33,11 +38,21 @@ function inspect_is_primitive(item){
             (item instanceof Date))
 }
 
-//in_stack_position is thhe place where the ITEM will go.
+function make_inspector_id_string(stack_number, in_stack_position){
+    return "inspector_" + stack_number + //"_" + in_stack_position +
+           "_id"
+}
+
+function inspect(item){
+    inspect_out(item)
+    return "dont_print"
+}
+
+//in_stack_position is the place where the ITEM will go.
 //if in_stack_position is null, then use the length of inspect_stacks[stack_number]
 //as the stack_postion of the new item, ie push it on the end.
-function inspect_out(item, stack_number, in_stack_position, html_elt_to_replace, collapse=false){
-    if(!item) { item = inspect_stacks[stack_number][in_stack_position] }
+function inspect_out(item, stack_number, in_stack_position, html_elt_to_replace, collapse=false, increase_max_display_length=false){
+    if(!item && (item != 0)) { item = inspect_stacks[stack_number][in_stack_position] }
     else if (stack_number || (stack_number == 0)){
         if(!in_stack_position) {
             in_stack_position = inspect_stacks[stack_number].length
@@ -58,10 +73,11 @@ function inspect_out(item, stack_number, in_stack_position, html_elt_to_replace,
         stack_number = inspect_stacks.length
         in_stack_position = 0
         inspect_stacks.push([item])
+        inspect_stack_max_display_length.push([])
     }
     inspect_stacks_positions[stack_number] = in_stack_position //but is this used anywhere?
     //now first 3 args all filled in and consistent
-    let new_inspect_html = inspect(item, stack_number, in_stack_position)
+    let new_inspect_html = inspect_aux(item, stack_number, in_stack_position, increase_max_display_length)
     if (collapse) {
         const title_start = new_inspect_html.indexOf("<i>") + 3
         const title_end   = new_inspect_html.indexOf("</i>")
@@ -70,11 +86,18 @@ function inspect_out(item, stack_number, in_stack_position, html_elt_to_replace,
     }
     if (html_elt_to_replace){
         //const inspect_elt = $(event.target).closest(".inspector")
-        html_elt_to_replace.replaceWith(new_inspect_html) }
+        if(html_elt_to_replace === true){
+            html_elt_to_replace = make_inspector_id_string(stack_number, in_stack_position)
+        }
+        if (typeof(html_elt_to_replace) == "string"){
+            html_elt_to_replace = window[html_elt_to_replace]
+        }
+        $(html_elt_to_replace).replaceWith(new_inspect_html) } //must use query repalceWith here as regular DOM replaceWith doesn't work
     else {  out_eval_result(new_inspect_html) }
+    return item
 }
 
-function inspect(item, stack_number, in_stack_position){ //called from Insert menu item and stringify_value
+function inspect_aux(item, stack_number, in_stack_position, increase_max_display_length=false){
     // still causes jquery infinite error if the below is commented in.
     //if (typeof(new_object_or_path) == "string")  { return new_object_or_path }
     //else { return value_of_path(new_object_or_path) }
@@ -86,96 +109,138 @@ function inspect(item, stack_number, in_stack_position){ //called from Insert me
     else { //we're making a full inspector with back arrow
         let result
         let title = ""
-        if (Array.isArray(item)){ //return "Array of " + item.length
-            if ((item.length > 0) && Array.isArray(item[0])) {
+        let array_type = typed_array_name(item) //"Array", "Int8Array" ... or null
+        let div_id = make_inspector_id_string(stack_number, in_stack_position)
+        let max_display_factor = (increase_max_display_length ? 2 : 1)
+        if (array_type){ //return "Array of " + item.length
+            if ((item.length > 0) && Array.isArray(item[0])) { //2D arrays can't be "typed arrays"
                 title = "A 2D Array of " + item.length + "x" + item[0].length
                 result = inspect_format_2D_array(item)
             }
             else {
-                title = "An Array of " + item.length
+                title = "A " + array_type + " of " + item.length
                 result = "["
+                let max_display_factor = (increase_max_display_length? 2 : 1)
+                let orig_array_max_display_length = inspect_stack_max_display_length[stack_number][in_stack_position]
+                let new_array_max_display_length  = (orig_array_max_display_length ? orig_array_max_display_length * max_display_factor : 10)
+                inspect_stack_max_display_length[stack_number][in_stack_position] = new_array_max_display_length
                 for(let prop_name = 0; prop_name < item.length; prop_name++){
-                    var prefix = "&nbsp;"
-                    if (prop_name == 0) { prefix = "" }
-                    let prop_val = item[prop_name]
-                    let prop_val_string = inspect_one_liner(prop_val, stack_number, in_stack_position, prop_name)
-                    prop_val_string = inspect_prop_val_string_exceptions(item, prop_name, prop_val, prop_val_string)
-                    result += prefix + "<i>" + prop_name + "</i>: " + prop_val_string + "<br/>\n"
+                    if(prop_name >= new_array_max_display_length) {
+                        result += `<button onclick="inspect_out(undefined, ` +
+                                    stack_number      + ", " +
+                                    in_stack_position + ", " +
+                                    true              + `, false, true)">more...</button>`
+                        break;
+                    }
+                    else {
+                        var prefix = "&nbsp;"
+                        if (prop_name == 0) { prefix = "" }
+                        let prop_val = item[prop_name]
+                        let prop_val_string = inspect_one_liner(prop_val, stack_number, in_stack_position, prop_name)
+                        prop_val_string = inspect_prop_val_string_exceptions(item, prop_name, prop_val, prop_val_string)
+                        result += prefix + "<i>" + prop_name + "</i>: " + prop_val_string + "<br/>\n"
+                    }
                 }
                 result += "]"
             }
         }
-        else {
-            if ((the_type == "function") &&
-                out.constructor &&
-                (out.constructor.name == "Function") &&
-                !is_class(item)){//a regular function
-                result = inspect_one_liner_regular_fn(item)
+        else if ((the_type == "function") &&
+            out.constructor &&
+            (out.constructor.name == "Function") &&
+            !is_class(item)){//a regular function
+            result = inspect_one_liner_regular_fn(item)
+            //note that this title for a fn is probably never used since fns
+            //are either handld outside the insepctor at top level or
+            //are parts where you just twist them down and can't inspect them furter.
+            //But the below "future proofs" the code
+            let fn_name = item.name
+            if (fn_name && (fn_name != "")) {
+                title = "A Function named " + fn_name
             }
-            else { //not an array, not a fn
-                result = "{"
-                let prefix = ""
-                if (Object.isNewObject(item)) { title = "A newObject named: " + item.name }
-                else {
-                    let class_name = get_class_name(item)
-                    if (class_name) { title = "A Class named: " + class_name }
-                }
-                if (item.hasOwnProperty("prototype")){
-                    let prop_name = "prototype"
-                    const constructor_class_name = get_class_name(item.constructor)
-                    if(constructor_class_name) { prop_name = constructor_class_name }
-                    let prop_value = item.prototype
+            else { title = "An Anonymous Function" }
+        }
+        else { //not an array, not a fn
+            result = "{"
+            let prefix = ""
+            if (Object.isNewObject(item)) { title = "A newObject named: " + item.name }
+            else {
+                let class_name = get_class_name(item)
+                if (class_name) { title = "A Class named: " + class_name }
+            }
+            if (item.hasOwnProperty("prototype")){
+                let prop_name = "prototype"
+                const constructor_class_name = get_class_name(item.constructor)
+                if(constructor_class_name) { prop_name = constructor_class_name }
+                let prop_value = item.prototype
 
-                    //if(title == "") { title = "A " + prop_name }
-                    result += prefix + "<i>" + prop_name + "</i>: "   + inspect_one_liner(prop_value, stack_number, in_stack_position, prop_name)   + "<br/>\n"
-                    prefix = "&nbsp;&nbsp;"
-                }
-                if (item.hasOwnProperty("name")){
-                    let prop_name = "name"
-                    let prop_value = item.name
-                    result += prefix + "<i>name</i>: "                + inspect_one_liner(prop_value, stack_number, in_stack_position, prop_name)        + "<br/>\n"
-                    prefix = "&nbsp;&nbsp;"
-                }
-                if (item.constructor && item.constructor.name){
-                    let prop_name  = "constructor"
-                    let prop_value = item.constructor
-                    if (prop_value == {}.constructor) { } //just don't show this as we'be probably just inspecting a {foo: 2, bar: 3} literal obj
-                    else {
-                        if(is_class(item.constructor)) {
-                            prop_name = "class"
-                            title = "A " + get_class_name(item.constructor) + ((item.name) ? " named: " + item.name : "")
-                        }
-                        result += prefix + "<i>" + prop_name + "</i>: "   + inspect_one_liner(prop_value, stack_number, in_stack_position, prop_name) + "<br/>\n"
-                        prefix = "&nbsp;&nbsp;"
-                    }
-                }
-                //https://stackoverflow.com/questions/30881632/es6-iterate-over-class-methods
-                for(let prop_name of Object.getOwnPropertyNames(item).sort()){
-                  if (!["prototype", "constructor", "name"].includes(prop_name)){ //item.hasOwnProperty(prop_name) &&
-                    let prop_val = item[prop_name]
-                    let prop_val_string = inspect_one_liner(prop_val, stack_number, in_stack_position, prop_name)
-                    prop_val_string = inspect_prop_val_string_exceptions(item, prop_name, prop_val, prop_val_string)
-                    //prop_name = "<div style='display:inline-block; vertical-align:top;'>" + prop_name + "</div>"
-                    result += prefix + "<div style='display:inline-block; vertical-align:top;'><i>" + prop_name + "</i>:</div> "    + prop_val_string + "<br/>\n"
-                        //(prop_val_string.startsWith("<details") ? "" : "<br/>") + "\n"
-                    prefix = "&nbsp;&nbsp;"
-                  }
-                }
-                if (item == Job) {
-                    let prop_name = "Job instances"
-                    let prop_val  = Job.all_jobs()
-                    let prop_val_string = inspect_one_liner(prop_val, stack_number, in_stack_position, prop_name)
-                    result += "<br/>" + prefix + "<div style='display:inline-block; vertical-align:top;'><i>" + prop_name + "</i>:</div> "    + prop_val_string + "<br/>\n"
-                }
-                else if ([Robot, Brain, Serial, Dexter, Human].includes(item)) {
-                    let prop_name = "Robot instances"
-                    let prop_val  = Robot.all_robots()
-                    let prop_val_string = inspect_one_liner(prop_val, stack_number, in_stack_position, prop_name)
-                    result += "<br/>" + prefix + "<div style='display:inline-block; vertical-align:top;'><i>" + prop_name + "</i>:</div> "    + prop_val_string + "<br/>\n"
-                }
-                if (result.startsWith("{")) { result += "}" }
+                //if(title == "") { title = "A " + prop_name }
+                result += prefix + "<i>" + prop_name + "</i>: "   + inspect_one_liner(prop_value, stack_number, in_stack_position, prop_name)   + "<br/>\n"
+                prefix = "&nbsp;&nbsp;"
             }
-            if(title == "") { title = "An Object" + ((item.name) ? " named: " + item.name : "") }
+            if (item.hasOwnProperty("name")){
+                let prop_name = "name"
+                let prop_value = item.name
+                result += prefix + "<i>name</i>: "                + inspect_one_liner(prop_value, stack_number, in_stack_position, prop_name)        + "<br/>\n"
+                prefix = "&nbsp;&nbsp;"
+            }
+            if (item.constructor && item.constructor.name){
+                let prop_name  = "constructor"
+                let prop_value = item.constructor
+                if (prop_value == {}.constructor) { } //just don't show this as we'be probably just inspecting a {foo: 2, bar: 3} literal obj
+                else {
+                    if(is_class(item.constructor)) {
+                        prop_name = "class"
+                        title = "A " + get_class_name(item.constructor) + ((item.name) ? " named: " + item.name : "")
+                    }
+                    result += prefix + "<i>" + prop_name + "</i>: "   + inspect_one_liner(prop_value, stack_number, in_stack_position, prop_name) + "<br/>\n"
+                    prefix = "&nbsp;&nbsp;"
+                }
+            }
+            //https://stackoverflow.com/questions/30881632/es6-iterate-over-class-methods
+            let prop_names = Object.getOwnPropertyNames(item)
+            if ((prop_names.length > 0) && (typeof(prop_names[0]) != "number")){ //don't sort if the array props are numbers.
+                prop_names.sort()
+            }
+            let orig_array_max_display_length = inspect_stack_max_display_length[stack_number][in_stack_position]
+            let new_array_max_display_length  = (orig_array_max_display_length ? orig_array_max_display_length * max_display_factor : 10)
+            inspect_stack_max_display_length[stack_number][in_stack_position] = new_array_max_display_length
+            for(let prop_index = 0; prop_index < prop_names.length; prop_index ++){
+                if(prop_index >= new_array_max_display_length) {
+                    result += `<button onclick="inspect_out(undefined, ` +
+                                    stack_number      + ", " +
+                                    in_stack_position + ", " +
+                                    true              + `, false, true)">more...</button>`
+                    break;
+                }
+                else {
+                      let prop_name = prop_names[prop_index]
+                      if (!["prototype", "constructor", "name"].includes(prop_name)){ //item.hasOwnProperty(prop_name) &&
+                        let prop_val = item[prop_name]
+                        let prop_val_string = inspect_one_liner(prop_val, stack_number, in_stack_position, prop_name)
+                        prop_val_string = inspect_prop_val_string_exceptions(item, prop_name, prop_val, prop_val_string)
+                        if ((prop_index == 0) && (typeof(prop_val) == "function")) {//due to weirdness in formatting details tags when expanded and when the first item is inside or {}. This is a workaround.
+                              prefix = "<br/>" + "&nbsp;&nbsp;"
+                        }
+                        result += prefix + "<div style='display:inline-block; vertical-align:top;'><i>" + prop_name + "</i>:</div> "    + prop_val_string + "<br/>\n"
+                            //(prop_val_string.startsWith("<details") ? "" : "<br/>") + "\n"
+                        prefix = "&nbsp;&nbsp;"
+                      }
+                }
+            }
+            if (item == Job) {
+                let prop_name = "Job instances"
+                let prop_val  = Job.all_jobs()
+                let prop_val_string = inspect_one_liner(prop_val, stack_number, in_stack_position, prop_name)
+                result += "<br/>" + prefix + "<div style='display:inline-block; vertical-align:top;'><i>" + prop_name + "</i>:</div> "    + prop_val_string + "<br/>\n"
+            }
+            else if ([Robot, Brain, Serial, Dexter, Human].includes(item)) {
+                let prop_name = "Robot instances"
+                let prop_val  = Robot.all_robots()
+                let prop_val_string = inspect_one_liner(prop_val, stack_number, in_stack_position, prop_name)
+                result += "<br/>" + prefix + "<div style='display:inline-block; vertical-align:top;'><i>" + prop_name + "</i>:</div> "    + prop_val_string + "<br/>\n"
+            }
+            if (result.startsWith("{")) { result += "}" }
+            if(title == "") { title = "An Object" + ((item.name) ? " named: " + item.name : "") + " of " + prop_names.length + " properties"}
         }
         let stack_len = inspect_stacks[stack_number].length
         let prev_opacity = (in_stack_position > 0) ? 1 : 0.3
@@ -183,15 +248,14 @@ function inspect(item, stack_number, in_stack_position){ //called from Insert me
         let prev_id    = "inspect_previous_" + stack_number  //don't include in_stack_position
         let next_id    = "inspect_next_"     + stack_number  //don't include in_stack_position
         let refresh_id = "inspect_refresh_"  + stack_number
-
-        result = "<div class='inspector' style='background-color:#ffd9b4;'>\n" +
-            "&nbsp;<span             id='" + prev_id + "' title='Inspect previous value.' style='cursor:pointer;color:blue;font-weight:900; font-size:20px;opacity:"  + prev_opacity + "'>&lt;</span>\n" +
-            "&nbsp;&nbsp;&nbsp;<span id='" + next_id + "' title='Inspect next value.'     style='cursor:pointer;color:blue;font-weight:900; font-size:20px;opacity:"  + next_opacity + ";'>&gt;</span>\n" +
-            "<span id='" + refresh_id + "'style='cursor:pointer;padding-left:30px;font-size:20px;opacity:0.5;' title='refresh' >" + "&#10227;</span>" +
-            "<b style='padding-left:70px;'><i>" + title + "</i></b><br/>"  +
+        result = "<div id='" + div_id + "' class='inspector' style='background-color:#ffd9b4;'>\n" +
+            "&nbsp;<span             id='" + prev_id + "' title='Inspect previous value.' style='cursor:pointer;color:blue;font-weight:900; font-size:20px; opacity:"  + prev_opacity + ";'>&lt;</span>\n" +
+            "&nbsp;&nbsp;&nbsp;<span id='" + next_id + "' title='Inspect next value.'     style='cursor:pointer;color:blue;font-weight:900; font-size:20px; opacity:"  + next_opacity + ";'>&gt;</span>\n" +
+            "<span id='" + refresh_id + "' style='cursor:pointer;padding-left:30px;font-size:20px;' title='refresh' >" + "&#10227;</span>\n" +
+            "<b style='padding-left:70px;'><i>" + title + "</i></b><br/>\n"  +
             result + "</div>"
-        inspect_set_prev_onclick(stack_number, in_stack_position, prev_id)
-        inspect_set_next_onclick(stack_number, in_stack_position, next_id)
+        inspect_set_prev_onclick(   stack_number, in_stack_position, prev_id)
+        inspect_set_next_onclick(   stack_number, in_stack_position, next_id)
         inspect_set_refresh_onclick(stack_number, in_stack_position, refresh_id)
 
         return result
@@ -205,6 +269,7 @@ function inspect(item, stack_number, in_stack_position){ //called from Insert me
 
 function inspect_one_liner(item, stack_number, in_stack_position, prop_name){
     const the_type = typeof(item)
+    //onsole.log("inspect_one_liner got: " + prop_name + ": " + item) //will hang DDE if item is a very long array
     if (item === undefined)            { return "undefined" }
     else if (item === null)            { return "null" }
     else if (the_type == "boolean")    { return "" + item }
@@ -239,7 +304,7 @@ function inspect_one_liner(item, stack_number, in_stack_position, prop_name){
        else return inspect_clickable_path(item, stack_number, in_stack_position, prop_name) +
                     inspect_extra_info(item)
     }
-    else if (the_type == "object") {
+    else if (the_type == "object") { //handles the typeArray case but note, is same call as nomral array
         return inspect_clickable_path(item, stack_number, in_stack_position, prop_name) +
                  inspect_extra_info(item)
     }
@@ -264,7 +329,7 @@ function inspect_one_liner_regular_fn(item){
         result = "<details style='display:inline-block;'><summary><code style='background-color:transparent;'>" +
             //"<i>String of " + item.length + "</i>: " +
             //can't get rid of the blank line beteeen the first part and the body so best to make the background color same as the inspector
-            first_part + "</code></summary><pre style='display:inline-block;'><code style='background-color:transparent;'>" + body + "</code></pre></details>"
+            first_part + "</code></summary><pre style='margin:0;'><code style='background-color:transparent;'>" + body + "</code></pre></details>"
         return result
     }
     /*if (bod_pos.length <= 12) { //very little to go on. probably an anonymous fn with no args
@@ -278,6 +343,9 @@ function inspect_one_liner_regular_fn(item){
 
 function inspect_extra_info(item){
     var info
+    if (typed_array_name(item)){ //an array of some sort
+       item = item.slice(0, 6) //just in case we have a really long array, don't want to have JSON.stringify try to make a super long string
+    }
     try{ info = JSON.stringify(item) } //might be a circular structure such as happens with newObjects
     catch(err) { return "" }
     if (info.length > 50) {
@@ -356,8 +424,9 @@ function inspect_next_value(){
 //called for the parts of a inspector display that are themselves inspectable
 function inspect_clickable_path(item, stack_number, in_stack_position, prop_name){
     let path
-    if(Array.isArray(item))     { path = "Array of " + item.length }
-    else if (item.objectPath()) { path = item.objectPath() }
+    let array_type = typed_array_name(item)
+    if      (array_type)            { path = array_type + " of " + item.length } //handles regular arrays and typed arrays. Absolutely necessary for cv
+    else if (item.objectPath())     { path = item.objectPath() }
     else if (item instanceof Job)   { path = "Job." + item.name }
     else if (item instanceof Robot) { path = "Robot." + item.name }
     else {
@@ -451,21 +520,22 @@ function inspect_set_next_onclick(stack_number, in_stack_position, id_string){
 }
 
 function inspect_set_refresh_onclick(stack_number, in_stack_position, id_string){
-    setTimeout(function(){ //we need to wait until the html is actually rendered.
-            let fn = function(event){
+    let set_onclick_fn_fn = function(){ //we need to wait until the html is actually rendered.
+            let onclick_fn = function(event){
                 const html_elt_to_replace = $(event.target).closest(".inspector")
                 inspect_out(null, stack_number, in_stack_position , html_elt_to_replace)
             }
             let elts = window[id_string] //beware, if there's more than one elt with this id, we get an HTMlCollection of the etls.
             // this is a very broken data structure that I can't even test for except with length
             if (elts == undefined) {
-                shouldnt("In inspect_set_onclick, didn't find: " +  id_string)
+                shouldnt("In inspect_set_refresh_onclick, didn't find: " +  id_string)
             }
             else if (elts.length){
                 for(let i = 0; i < elts.length; i++) {
-                    elts[i].onclick = fn
+                    elts[i].onclick = onclick_fn
                 }
             }
-            else { elts.onclick = fn } //only one
-        }, 1000)
+            else { elts.onclick = onclick_fn } //only one
+    }
+    setTimeout(set_onclick_fn_fn, 1000)
 }

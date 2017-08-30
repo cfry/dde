@@ -520,7 +520,7 @@ window.submit_window = function(event){
             }
         }
         else if (in_type == "file") { result[in_name] = ((inp.files.length > 0) ?
-                                                          inp.files[0].name:
+                                                          inp.files[0].path :
                                                           null) }
         else if (in_type  == "submit"){}
         else if (in_type  == "button"){} //button click still causes the callback to be called, but leaves window open
@@ -739,6 +739,8 @@ window.get_output = function(){ //rather uncommon op, used only in append_to_out
 
 window.clear_output = function(){
     output_div_id.innerText = ""
+    init_inspect();
+    return "dont_print"
 }
 
 
@@ -1053,10 +1055,23 @@ window.beep = beep
  }
  */
 //________show_page__________
-function show_page(url, options={x:100, y:100, width: 800, height: 600}){
+function show_page(url, options={x:0, y:0, width: 800, height: 600}){
     if (url.indexOf("://") == -1){
         url = "http://" + url
     }
+    if (!options) { options = {} }
+    //electron's BrowserWindow options must have both x & y or neighter.
+    //that's an unnecessary restriction so I fix this deficiency in electron below.
+    //if (options.x || (options.x == 0)) {
+    //    if (!options.y && (options.y != 0)) { options.y = 0 }
+    //}
+    //if (options.y || (options.y == 0)) {
+    //    if (!options.x  && (options.x != 0)) { options.x = 0 }
+    //}
+    if (!options.x)      { options.x = 0 }
+    if (!options.y)      { options.y = 0 }
+    if (!options.width)  { options.width  = 800 } //does not allow width to be 0. Is that good? a 0 width means the window is invisible
+    if (!options.height) { options.height = 600 } //does not allow width to be 0. Is that good? a 0 width means the window is invisible
    // window.open(url) //show_url(url) //fails in electron
     ipcRenderer.sendSync('show_page', url, options) //see main.js "show_page"
     return url

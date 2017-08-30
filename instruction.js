@@ -1427,7 +1427,7 @@ Instruction.Control.wait_until = class wait_until extends Instruction.Control{
                 job_instance.set_up_next_do(1) //advance the PC
             }
             else {
-                job_instance.wait_reason = "until function returns true"
+                job_instance.wait_reason = "a wait_until function returns true"
                 job_instance.set_status_code("waiting")
                 job_instance.set_up_next_do(0) //loop until its true
             }

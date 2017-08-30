@@ -267,8 +267,23 @@ function starts_with_one_of(a_string, possible_starting_strings){
     return false
 }
 
+
 //the default for Robot Serial.sim_fun
 function return_first_arg(arg){ return arg }
+
+function typed_array_name(item){
+    if(Array.isArray(item)) { return "Array" }
+    else if (item instanceof Int8Array)         { return "Int8Array" }
+    else if (item instanceof Uint8Array)        { return "Uint8Array" }
+    else if (item instanceof Uint8ClampedArray) { return "Uint8ClampedArray" }
+    else if (item instanceof Int16Array)        { return "Int16Array" }
+    else if (item instanceof Uint16Array)       { return "Uint16Array" }
+    else if (item instanceof Int32Array)        { return "Int32Array" }
+    else if (item instanceof Uint32Array)       { return "Uint32Array" }
+    else if (item instanceof Float32Array)      { return "Float32Array" }
+    else if (item instanceof Float64Array)      { return "Float64Array" }
+    else { return null } //not an array of any type
+}
 
 //returns null or the last elt of an array or a string
 function last(arg){
@@ -715,8 +730,8 @@ function stringify_value_aux (value, job, depth=0){
     }
     else if (depth > 2) { return "***" } //the below clauses call stringify_value_aux meaning
         //they can get into infinite recursion, so cut that off here.
-    else if (Array.isArray(value)){
-        let len = value.length
+    else if (typed_array_name(value)){ //any type of array
+        let len = Math.min(value.length, 100)  //large arrays will cause problems
         result = "[<br/>"
         for (let i = 0; i < len; i++){ //don't use "for ... in here as it gets some wrong stuff
             let sep = ((i == len - 1) ? "<br/>" : ",<br/>")
@@ -780,34 +795,34 @@ function stringify_value_aux (value, job, depth=0){
         var result = "{"
         let constructor_name = value.constructor.name
         if (constructor_name != "Object") { result += "class: " + constructor_name + ",<br/>"}
-        for (var prop in value) {
-            if(value.hasOwnProperty(prop)){
-                let prop_val = value[prop]
-                if (prop == "robot_status"){
-                    if (!job && value.job_id) { job = Job.job_id_to_job_instance(value.job_id) }
-                    let where_from = ""
-                    if (value instanceof Job)   { where_from = " on job: "   + value.name }
-                    if (value instanceof Robot) { where_from = " on robot: " + value.name }
-                    result += Dexter.robot_status_to_html(prop_val, where_from)
+        let prop_names = Object.getOwnPropertyNames(value) //long objects like cv cause problems
+        for (var prop_index = 0; prop_index < Math.min(prop_names.length, 6); prop_index++) {
+            let prop_name = prop_names[prop_index]
+            let prop_val = value[prop_name]
+            if (prop_name == "robot_status"){
+                if (!job && value.job_id) { job = Job.job_id_to_job_instance(value.job_id) }
+                let where_from = ""
+                if (value instanceof Job)   { where_from = " on job: "   + value.name }
+                if (value instanceof Robot) { where_from = " on robot: " + value.name }
+                result += Dexter.robot_status_to_html(prop_val, where_from)
+            }
+            else if (prop_name == "do_list"){
+                result += job.do_list_to_html() //Job.do_list_to_html(value[prop])
+            }
+            else if (prop_name == "original_do_list"){
+                result += Job.non_hierarchical_do_list_to_html(prop_val) //Job.do_list_to_html(value[prop])
+            }
+            else if (prop_name == "sent_instructions"){
+                result += Dexter.sent_instructions_to_html(prop_val)
+            }
+            else if (prop_name == "rs_history"){ //value is instance of Dexter
+                result += prop_name + ": " + Dexter.make_show_rs_history_button_html(value.job_id)
+            }
+            else {
+                try{
+                  result += prop_name + ": " + stringify_value_aux(prop_val, job, depth + 1) + ",<br/>"
                 }
-                else if (prop == "do_list"){
-                    result += job.do_list_to_html() //Job.do_list_to_html(value[prop])
-                }
-                else if (prop == "original_do_list"){
-                    result += Job.non_hierarchical_do_list_to_html(prop_val) //Job.do_list_to_html(value[prop])
-                }
-                else if (prop == "sent_instructions"){
-                    result += Dexter.sent_instructions_to_html(prop_val)
-                }
-                else if (prop == "rs_history"){ //value is instance of Dexter
-                    result += prop + ": " + Dexter.make_show_rs_history_button_html(value.job_id)
-                }
-                else {
-                    try{
-                      result += prop + ": " + stringify_value_aux(prop_val, job, depth + 1) + ",<br/>"
-                    }
-                    catch(e) {} //doing window["caches"] errors so just forget about this prop and maybe others.
-                }
+                catch(e) {} //doing window["caches"] errors so just forget about this prop and maybe others.
             }
         }
         result += "}"

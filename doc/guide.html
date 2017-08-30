@@ -8,8 +8,8 @@
 
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version:  <span id="dde_version_id">2.0.13</span><br/>
-    released: <span id="dde_release_date_id">Aug 23, 2017</span>
+    version:  <span id="dde_version_id">2.0.14</span><br/>
+    released: <span id="dde_release_date_id">Aug 30, 2017</span>
     <p/>
     DDE helps you create, debug, and send software to a Dexter robot.
     You can use any JavaScript augmented with DDE-specific functions to help find out about,
@@ -310,7 +310,7 @@ If Dexter is having sporadic movement or is not smooth
 in FollowMe mode, try going through a full calibration.
 <p/>
 <b>How</b><br/>
-Choose the Test menu item of "Calibrate Dexter..." to open a dialog
+Choose the Jobs menu item of "Calibrate Dexter..." to open a dialog
 aiding calibration.
 <h5>Step 1</h5>
 Select the robot to calibrate. If you have only one Dexter, the default of
@@ -857,22 +857,51 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
     window is open, execution will pause and highlight the <code title="not in TestSuite"> debugger;</code> statement in a copy
     of your source code.
     (To open the <i>Chrome Developer Tools</i> window, click right on any DDE pane and choose
-    <b>Inspect</b>. If you don't see "Inspect" on the menu, read the documentation
-    under "Installation" on "Configure Chrome".)
+    <b>Inspect Element</b>.
     Use the arrow buttons <img src="stepper_buttons.png" width="120" alt="stepper buttons"/>
     in the Developer Tools window upper right to step execution.
-    <br/><br/>
-    Wrapping <code>console.log()</code> around a complex data structure will print it
+
+    <h4 id="print_statements_doc_id">Print Statements</h4>
+    The oldest and crudest debugging techique is embedding print statements
+    in your code. DDE supports a number of these to make debugging easier.
+    <ul><li><b>console.log</b> Wrapping <code>console.log()</code> around a complex data structure will print it
     out in the Chrome Developer Tools console with arrows to allow you to expand
     data pieces of your choice to inspect. To see the console,
-    click right anywhere in DDE and choose "Inspect".<p/>
-    You can print strings into the Output pane with a call to <code>out</code>.
-    Because <b>out</b> returns
+    click right anywhere in DDE and choose "Inspect".</li>
+
+    <li><b>out</b> <code>out</code> prints its first argument
+    into the Output pane. Because <code>out</code> returns
     its 1st argument, you can embed it in code to see an intermediate value.<br/>
     <code>out(2 + 3) * 4</code> => <samp>20</samp><br/>will print out 5, but return 20.<br/>
+    It also can print it different colors to keep your outputs separate. It can also
+    print just temporarily to the output pane and print to a named spot in the output
+    pane.
     <button>Insert&#9660;</button> <i>Print to output</i> has items that print in a few different colors
     so that you can distinquish some outputs from others in a complex debugging session.
-    <br/><br/>
+    See <a href="#" onclick="open_doc(out_doc_id)">out</a></li>
+
+    <li><b>Robot.out</b> <code>Robot.out("some data")</code> creates an
+    instruction in a Job's do_list to print content to the output console
+    with similar functionality to <code>out</code>
+    See <a href="#" onclick="open_doc('Robot.out_doc_id')">Robot.out</a></li>
+
+    <li><b>show_instructions</b> <code title="unEVALable">new Job({show_instructions=some_fn})</code>
+    lets you call an arbitrary function (with clever defaults) before each
+    instruction in a Job is run.
+    <a href="#" onclick="open_doc(new_job_parameters_doc_id)">new Job parameters</a></li>
+
+    <li><b>inspect</b> <code title="unEVALable"> inspect(some_data) </code>
+       will print a representation of its argument in the output pane.
+       If it is a complex data structure, an interactive inspector will be displayed
+       that will let you navigate to its parts. This mechanism is used when you
+       click the <button>Eval</button> button, but you can call it programmatically
+       from the middle of your code to inspect an intermediate value.</li>
+    <li><b>clear_output</b> To erase all content in the output pane,
+       click the <button>Clear</button> button in the Output pane or
+       Eval <code>clear_output()</code><br/>
+       See <a href="#" onclick="open_doc(clear_output_doc_id)">clear_output</a></li>
+    </ul>
+    <p/>
     <b>speak</b> behaves similarly to <code>out</code> in that it returns its 1st arg.
     It can be useful in contexts where you want to know a value but don't
     want to look at the screen to find it.
