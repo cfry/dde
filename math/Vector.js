@@ -1070,7 +1070,7 @@ var Vector = new function(){
         return [(-b+det)/(2*a), (-b-det)/(2*a)]
     }
     
-    this.root_mean_sum = function(vector){
+    this.root_mean_square = function(vector){
     	if(vector.length){
         	let sum = 0
         	for(let i = 0; i < vector.length; i++){

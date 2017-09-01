@@ -2,7 +2,7 @@
 //Inverse Kinematics + Forward Kinematics + supporting functions
 //James Wigglesworth
 //Started: 6_18_16
-//Updated: 7_10_17
+//Updated: 9_1_17
 
 
 /*
@@ -79,8 +79,8 @@ var Kin = new function(){
             	The first joint angle can be changed to any value without affecting the tool point`)
             }
         }
-        
-    	//Solving for U3
+
+		//Solving for U3
     	var U54_Proj = Vector.project_vector_onto_plane(V54, P[1])
     	var U3_a = Vector.add(U[4], Vector.multiply(L[3], Vector.rotate(Vector.normalize(U54_Proj), P[1], 90)))
         var U3_b = Vector.add(U[4], Vector.multiply(L[3], Vector.rotate(Vector.normalize(U54_Proj), P[1], -90)))
@@ -214,10 +214,46 @@ var Kin = new function(){
         return [U, V, P]
     }
 
-    this.is_in_reach = function(xyz, J5_direction = [0, 0, -1], base_xyz = [0, 0, 0], base_plane = [0, 0, 1]){
-    	let U1 = Vector.add(base_xyz, Vector.multiply(base_plane, Dexter.LINK1))
-    	let U4 = Vector.add(xyz, Vector.multiply(-1, Vector.normalize(J5_direction)))
-		if (Vector.distance(U1, U4) <= Dexter.LINK2 + Dexter.LINK3 + Dexter.LINK4){
+    this.is_in_reach = function(xyz, J5_direction = [0, 0, -1], config = [1, 1, 1], robot_pose){
+    	let base_xyz = [0, 0, 0] // Come back to this and pull it from robot_pose
+        let base_plane = [0, 0, 1]
+        let U3
+        let U1 = Vector.add(base_xyz, Vector.multiply(base_plane, Dexter.LINK1))
+    	let U4 = Vector.add(xyz, Vector.multiply(-Dexter.LINK5, Vector.normalize(J5_direction)))
+
+		//Solving for P1
+    	let P1 = Vector.points_to_plane(U1, base_xyz, U4)
+        if(Vector.is_NaN(P1)){
+        	P1 = Vector.points_to_plane(U1, base_xyz, U3)
+            if(Vector.is_NaN(P1)){
+        		return false
+            }
+        }
+        
+        
+    	//Solving for U3
+        let V54 = Vector.subtract(xyz, U4)
+    	var U54_Proj = Vector.project_vector_onto_plane(V54, P1)
+    	var U3_a = Vector.add(U4, Vector.multiply(Dexter.LINK3, Vector.rotate(Vector.normalize(U54_Proj), P1, 90)))
+        var U3_b = Vector.add(U4, Vector.multiply(Dexter.LINK3, Vector.rotate(Vector.normalize(U54_Proj), P1, -90)))
+        var dist_a = Vector.distance(U3_a, U1, base_xyz)
+    	var dist_b = Vector.distance(U3_b, U1, base_xyz)
+    	if (config[2] == 1){
+    		if (dist_a < dist_b){
+        		U3 = U3_a
+        	}else{
+        		U3 = U3_b
+        	}
+    	}else{
+    		if (dist_a > dist_b){
+        		U3 = U3_a
+        	}else{
+        		U3 = U3_b
+        	}
+    	}
+        
+        
+		if (Vector.distance(U1, U3) <= Dexter.LINK2 + Dexter.LINK3){
         	return true
         }else{
         	return false
@@ -503,9 +539,9 @@ var Kin = new function(){
     	let points_A, points_B, points_C, UA5, UA4, UB5, UB4, UC5, UC4, U5_ave, U4_ave, U45
         let point, x_vector, y_vector, z_vector, pose, angleA, angleB, angleC, vector_1, vector_2
         
-        points_A = Kin.J_angles_to_xyz(J_angles_1)
-        points_B = Kin.J_angles_to_xyz(J_angles_2)
-        points_C = Kin.J_angles_to_xyz(J_angles_3)
+        points_A = Kin.forward_kinematics(J_angles_1)[0]
+        points_B = Kin.forward_kinematics(J_angles_2)[0]
+        points_C = Kin.forward_kinematics(J_angles_3)[0]
         
         UA5 = points_A[5]
         UA4 = points_A[4]
@@ -813,7 +849,7 @@ var Kin = new function(){
     out(Kin.angles_to_direction(0, 45))
     */
     
-    this.move_to_straight = function(xyz_1, xyz_2, J5_direction, config, tool_speed = 5*_mm / _s, resolution = .5*_mm, robot_pose){
+    this.move_to_straight = function(xyz_1, xyz_2, J5_direction, config, tool_speed = 5*_mm / _s, resolution = .5*_mm, robot_pose, no_error = false){
     	let movCMD = []
     	let U1 = xyz_1
     	let U2 = xyz_2
@@ -833,7 +869,10 @@ var Kin = new function(){
         let speeds = []
     	for(let i = 0; i < div+1; i++){
     		Ui = Vector.add(U1, Vector.multiply(i*step, v21))
-        	new_J_angles = Kin.xyz_to_J_angles(Ui, J5_direction, config, robot_pose)
+            if(!Kin.is_in_reach(Ui, J5_direction, config, robot_pose) && no_error){
+        		return xyzs
+            }
+            new_J_angles = Kin.xyz_to_J_angles(Ui, J5_direction, config, robot_pose)
         	angular_velocity = Kin.tip_speed_to_angle_speed(old_J_angles, new_J_angles, tool_speed)
         	old_J_angles = new_J_angles
             
