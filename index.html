@@ -131,6 +131,7 @@
     <script type="text/javascript" src="job_examples.js"></script> <!--evals no Job code, just literal strings for insertion-->
     <script type="text/javascript" src="run_instruction.js"></script>
     <script type="text/javascript" src="app_builder.js"></script>
+    <script type="text/javascript" src="doc_code.js"></script>
     <script type="text/javascript" src="test_suite.js"></script>
     <script type="text/javascript" src="test_suites.js"></script>
 
@@ -338,8 +339,13 @@
                                                 <li id="window_onchange_id"       title="Examples of using onchange and oninput&#013;to call the callback as soon as&#013;there's a change in an input.">onchange calls</li>
                                                 <li id="window_svg_id"            title="Examples of using svg&#013;to dynamically add and reposition&#013;shapes in a window.">svg</li>
                                                 <li id="build_window_id"          title="Create a show_window call via a dialog box.">Build Window</li>
-                                                <li id="opencv1_id"               title="Simple example of OpenCV image processing.">OpenCV</li>
                                                 <li id="window_close_all_id"      title="Closes all open 'show_windows'.&#013;Does not insert code into Editor.">Close all</li>
+                                            </ul>
+                                        </li>
+                                        <li title="Image processing using OpenCV.">Machine Vision
+                                            <ul>
+                                                <li id="convert_to_b_and_w_id" title="Convert chosen color picture to black and white.">Convert to B&W</li>
+                                                <li id="process_webcam_id"     title="Make snapshots from webcam video and modify them.">Process Webcam</li>
                                             </ul>
                                         </li>
                                         <li id="show_page_id"     title="Open a browser window on the given url.">show_page(...)</li>
@@ -635,9 +641,12 @@
             <div id="right_splitter">
                 <div id="doc_pane_id" style="background-color:#e1e1e1; padding-left:5px;">
                     <div class="pane_header_wrapper" style="height:30px;white-space:nowrap;">
-                        <span id="documentation_pane_help_id" class="pane_header"><u>Doc</u></span>
+                        <span id="documentation_pane_help_id" class="pane_header"><u>Doc</u></span>&nbsp;
+                        <span id="doc_prev_id" title='Show previous documentation.' style='cursor:pointer;color:blue;font-weight:900; font-size:20px; opacity:0.3;'>&lt;</span>
+                        <span id="doc_next_id" title='Show next documentation.'     style='cursor:pointer;color:blue;font-weight:900; font-size:20px; opacity:0.3;'>&gt;</span>
                         <input id="find_doc_input_id" placeholder="search string" title="If this field is empty,&#013;the selection in the&#013;Editor, Cmd line, Doc, or Output&#013;pane is used."
                                style="width:150px; font-size:14px;"/>
+                        <!--<div style='display:inline-block;' id="find_doc_input_id"/> -->
                         <button id="find_doc_button_id" title="Find documentation on text to the left&#013;or, if none, selected text anywhere.">Find</button>&nbsp;
                         <a id="help_system_id" href="#" title="Help on DDE's Help System"><b style="font-size:20px;">?</b></a>
                        <!--  <button id="eval_doc_button_id" title="Evaluated the selected code&#013;in the Doc pane.&#013;Result goes in the Output pane.ƒ">Eval Doc</button> obsolete now that Out pane Eval button can do this-->

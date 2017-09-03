@@ -34,19 +34,33 @@ Editor.init_editor = function(){
          lint: true,
          smartIndent: false, //default is true but that screws up a lot. false is suppose to
                                //indent each line to the line above it when you hit Return
-         extraKeys:{"Left":  Series.ts_or_replace_sel_left,
+         extraKeys: //undo z and select_all (a) work automaticaly with proper ctrl and cmd bindings for win and  mac
+             ((operating_system === "win") ?
+                    {"Left":  Series.ts_or_replace_sel_left,
                     "Right": Series.ts_or_replace_sel_right,
                     "Shift-Right": Series.ts_sel_shift_right, //no non ts semantics
                     "Up":    Series.ts_or_replace_sel_up,
                     "Down":  Series.ts_or_replace_sel_down,
-                    "Cmd-E": eval_button_action, //the correct Cmd-e doesn't work
-                    "Cmd-O": Editor.open,
+                    "Ctrl-E": eval_button_action, //the correct Cmd-e doesn't work
                     "Ctrl-O": Editor.open,
-                    "Cmd-S": Editor.save, //mac
+                    "Ctrl-N": Editor.edit_new_file,
                     "Ctrl-S": Editor.save //windows
-                    }
+                    } :
+                    {"Left":  Series.ts_or_replace_sel_left,
+                     "Right": Series.ts_or_replace_sel_right,
+                     "Shift-Right": Series.ts_sel_shift_right, //no non ts semantics
+                     "Up":    Series.ts_or_replace_sel_up,
+                     "Down":  Series.ts_or_replace_sel_down,
+                     "Cmd-E": eval_button_action, //the correct Cmd-e doesn't work
+                     "Cmd-N": Editor.edit_new_file,
+                     "Cmd-O": Editor.open,
+                     "Cmd-S": Editor.save, //mac
+                    })
+
+
         });
     undo_id.onclick        = Editor.undo
+    set_menu_string(undo_id, "Undo", "z")
     redo_id.onclick        = function(){myCodeMirror.getDoc().redo()}
     find_id.onclick        = function(){CodeMirror.commands.findPersistent(myCodeMirror)}
     replace_id.onclick     = function(){CodeMirror.commands.replace(myCodeMirror)} //allows user to also replace all.
@@ -54,6 +68,7 @@ Editor.init_editor = function(){
     unfold_all_id.onclick  = function(){CodeMirror.commands.unfoldAll(myCodeMirror)}
     select_call_id.onclick = function(){Editor.select_call()}
     select_all_id.onclick  = function(){CodeMirror.commands.selectAll(myCodeMirror); myCodeMirror.focus()}
+    set_menu_string(select_all_id, "Select All", "a")
 
     myCodeMirror.on("mousedown",
                     function(cm, mouse_event){
@@ -149,11 +164,11 @@ Editor.restore_files_menu_paths_and_last_file = function(){ //called by on ready
             catch(err) {
                 warning("Could not find the last edited file:<br/><code title='unEVALable'>" + paths[0] +
                         "</code><br/> to insert into the editor.")
-                Editor.edit_file("new file")
+                Editor.edit_new_file()
             }
         }
         else {
-            Editor.edit_file("new file")
+            Editor.edit_new_file()
         }
     }
 }
@@ -335,6 +350,8 @@ Editor.open = function(){
         Editor.edit_file(path)
     }
 }
+
+Editor.edit_new_file = function(){ Editor.edit_file("new file") }
 
 Editor.edit_file = function(path){ //path could be "new file"
     path = convert_backslashes_to_slashes(path) //must store only slashes in files menu

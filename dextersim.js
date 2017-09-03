@@ -187,14 +187,14 @@ DexterSim = class DexterSim{
                      //we convert from arcseconds to degrees, pass in the angles to preduct,
                     // which returns a dur in seconds, then convert that to milliseconds
                 break;
-            case "b": //move_to  xyz
+            //case "b": //move_to  xyz
                 /*if (!isNaN(instruction_array[2])) robot_status[Dexter.ds_j5_x_index]     = instruction_array[2]
                 if (!isNaN(instruction_array[3])) robot_status[Dexter.ds_j5_y_index]     = instruction_array[3]
                 if (!isNaN(instruction_array[4])) robot_status[Dexter.ds_j5_z_index]     = instruction_array[4]
                 if (!isNaN(instruction_array[5])) robot_status[Dexter.ds_j4_angle_index] = instruction_array[5]
                 DexterSim.fill_in_robot_status_joint_angles(robot_status)
                 */
-                break;
+             //   break;
            // case "B": //move_to_relative  xyz
                 /*if (!isNaN(instruction_array[2])) robot_status[Dexter.ds_j5_x_index]     = robot_status[Dexter.ds_j5_x_index] + instruction_array[2]
                 if (!isNaN(instruction_array[3])) robot_status[Dexter.ds_j5_y_index]     = robot_status[Dexter.ds_j5_y_index] + instruction_array[3]
@@ -261,7 +261,7 @@ DexterSim = class DexterSim{
         //For heartbeats, we want to leave in robot_status whatever the last "real" instruction was in there.
         //    ds_copy[0] = instruction_array[0] //instruction id
                 //}
-        if ($("#real_time_sim_checkbox_id").val()){
+        if (!$("#real_time_sim_checkbox_id").val()){
             dur = 0
         }
         this.ending_time_of_cur_instruction = robot_status[Dexter.START_TIME] + dur

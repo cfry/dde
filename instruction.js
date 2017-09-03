@@ -250,12 +250,15 @@ Instruction.Control.grab_robot_status = class grab_robot_status extends Instruct
 }
 
 Instruction.Control.human_task = class human_task extends Instruction.Control{
-    constructor ({task="", dependent_job_names=[],
+    constructor ({task="",
                   title, //don't give this default of "" because we reserve that for when you want NO title.
                          //without passing this, or passing "undefined", you get a smart default including the job name and "Human Task"
+                  add_stop_button=true,
+                  dependent_job_names=[],
                   x=200, y=200, width=400, height=400,  background_color = "rgb(238, 238, 238)"}={}) {
         super()
         this.task    = task
+        this.add_stop_button     = add_stop_button
         this.dependent_job_names = dependent_job_names
         this.title   = title
         this.x       = x
@@ -267,7 +270,9 @@ Instruction.Control.human_task = class human_task extends Instruction.Control{
     do_item (job_instance){
         var hidden  = '<input type="hidden" name="job_name" value="' + job_instance.name        + '"/>' +
                       "<input type='hidden' name='dependent_job_names' value='" + JSON.stringify(this.dependent_job_names) + "'/>"
-        var buttons = '<center><input type="submit" value="Done"/>&nbsp;<input type="submit" value="Stop this & dependent jobs"/></center>'
+        var buttons = '<center><input type="submit" value="Done"/>&nbsp;'
+        if (this.add_stop_button) { buttons += '<input type="submit" value="Stop this & dependent jobs"/>' }
+        buttons += '</center>'
         if (this.title === undefined){
             this.title = "Job: " + job_instance.name + ", Human Task"
             if (job_instance.robot instanceof Human){
@@ -313,13 +318,15 @@ var human_task_handler = function(vals){
 Instruction.Control.human_enter_choice = class human_enter_choice extends Instruction.Control{
     constructor ({task="", user_data_variable_name="choice", choices=[], dependent_job_names=[],
                   show_choices_as_buttons=false, one_button_per_line=false,
+                  add_stop_button=true,
                   title, x=200, y=200, width=400, height=400,  background_color="rgb(238, 238, 238)"}={}) {
         super()
         this.task        = task
         this.user_data_variable_name = user_data_variable_name
-        this.choices                 = choices
+        //this.choices                 = choices
         this.show_choices_as_buttons = show_choices_as_buttons
         this.one_button_per_line     = one_button_per_line
+        this.add_stop_button         = add_stop_button
         this.dependent_job_names     = dependent_job_names
         this.title   = title
         this.x       = x
@@ -327,25 +334,36 @@ Instruction.Control.human_enter_choice = class human_enter_choice extends Instru
         this.width   = width
         this.height  = height
         this.background_color = background_color
+        this.choices = []
+        for (let choice of choices){  //put each choice into an array. If already an array. leave it as is.
+            if (typeof(choice) == "string") { choice = [choice] }
+            if (Array.isArray(choice)) {  this.choices.push(choice) }
+            else {dde_error("Human.enter_choice passed a choice that is not a string and not an array: " + choice)}
+        }
     }
     do_item (job_instance){
-        var hidden  = "<input type='hidden' name='job_name' value='" + job_instance.name                                   + "'/>" +
-                      "<input type='hidden' name='dependent_job_names' value='" + JSON.stringify(this.dependent_job_names) + "'/>" +
-                      "<input type='hidden' name='user_data_variable_name' value='" + this.user_data_variable_name         + "'/>"
+        var hidden  = "<input type='hidden' name='job_name' value='" + job_instance.name                                   + "'/>\n" +
+                      "<input type='hidden' name='dependent_job_names' value='" + JSON.stringify(this.dependent_job_names) + "'/>\n" +
+                      "<input type='hidden' name='user_data_variable_name' value='" + this.user_data_variable_name         + "'/>\n" +
+                      "<input type='hidden' name='choices_string' value='" + JSON.stringify(this.choices)                  + "'/>\n"
         let select = ""
         let buttons
         if (this.show_choices_as_buttons){
             for (var item of this.choices){
-                select += "<input type='submit' style='background-color:#FFACB6;margin:4px;' value='" + item + "'/> "
+                select += "<input type='submit' style='background-color:#FFACB6;margin:4px;' value='" + item[0] + "'/> "
                 if (this.one_button_per_line) { select += "<br/>" }
             }
-            buttons = '<center><input type="submit" value="Stop this & dependent jobs"/></center>'
+            if(this.add_stop_button) {
+              buttons = '<center><input type="submit" value="Stop this & dependent jobs"/></center>'
+            }
         }
         else { //show as menu items,the default because we can have more of them.
             select  = "<center><select name='choice'>"
-            for (var item of this.choices){ select += "<option>" + item + "</option>" }
+            for (var item of this.choices){ select += "<option>" + item[0] + "</option>" }
             select += "</select></center>"
-            buttons = '<center><input type="submit" value="Submit"/>&nbsp;<input type="submit" value="Stop this & dependent jobs"/></center>'
+            if(this.add_stop_button) {
+                buttons = '<center><input type="submit" value="Submit"/>&nbsp;<input type="submit" value="Stop this & dependent jobs"/></center>'
+            }
         }
         if (this.title === undefined){
             this.title = "Job: " + job_instance.name + ", Human Task"
@@ -356,7 +374,7 @@ Instruction.Control.human_enter_choice = class human_enter_choice extends Instru
         else if (this.title == "") { this.title = "<span style='height:25px;'>&nbsp;</span>" }
         job_instance.wait_reason = "user on Human.show_window interaction." //do before set_status_code so the tooltip gets set with the wait_reason.
         job_instance.set_status_code("waiting")
-        show_window({content: this.task + "<br/>" + select + "<br/>" + buttons + hidden,
+        show_window({content: this.task + "<br/>" + select + "<br/>" + (buttons ? buttons : "") + hidden,
                     callback: human_enter_choice_handler,
                     title: this.title,
                     x: this.x,
@@ -370,7 +388,8 @@ Instruction.Control.human_enter_choice = class human_enter_choice extends Instru
 var human_enter_choice_handler = function(vals){
     var job_instance = Job[vals.job_name]
     if(vals.clicked_button_value == "Submit") { //means the choices are in a menu, not individual buttons
-        job_instance.user_data[vals.user_data_variable_name] = vals.choice
+        //job_instance.user_data[vals.user_data_variable_name] = vals.choice
+        human_enter_choice_set_var(job_instance, vals.choice, vals.choices_string, vals.user_data_variable_name)
     }
     else if (vals.clicked_button_value == "Stop this & dependent jobs"){
         job_instance.stop_for_reason("interrupted", "In human_task, user stopped this job.")
@@ -389,23 +408,57 @@ var human_enter_choice_handler = function(vals){
         }
     }
     else { //individual choices are in buttons and the user clicked on one of them
-        job_instance.user_data = vals.clicked_button_value
+        //job_instance.user_data[vals.user_data_variable_name] = vals.clicked_button_value
+        human_enter_choice_set_var(job_instance, vals.clicked_button_value, vals.choices_string, vals.user_data_variable_name)
     }
     job_instance.set_up_next_do(1) //even for the case where we're stopping the job,
     //this lets the do_next_item handle finishing the job properly
 }
 
+var human_enter_choice_set_var = function (job_instance, choice_string, choices_string, user_data_variable_name){
+    let choices = JSON.parse(choices_string)
+    let choice_array
+    for(let a_choice_array of choices) {
+        if (a_choice_array[0] == choice_string) {
+            choice_array = a_choice_array
+            break;
+        }
+    }
+    if (!choice_array) { shouldnt("human_enter_choice got choice_string of: " + choice_string +
+        " that isn't in: " + choices)}
+    if (choice_array.length == 1) { job_instance.user_data[user_data_variable_name] = choice_array[0] }
+    else {
+        let val_src = choice_array[1]
+        let val
+        if(typeof(val_src == "string")) {
+            let fn = new Function("return (" + val_src + ")") //create a new fn with no args and body of val_src
+            val = fn.call(job_instance)
+        }
+        else { val = val_src }
+        if (!choice_array[2]) {
+            job_instance.user_data[user_data_variable_name] = val
+        }
+        else {
+            Job.insert_instruction(val, {job: job_instance.name, offset:"after_program_counter"})
+        }
+    }
+}
+
+
+
 Instruction.Control.human_enter_instruction = class human_enter_instruction extends Instruction.Control{
     constructor ({task = "Enter a next instruction for this Job.",
-                  instruction_type = "Dexter.move_all_joints (a)",
-                  instruction_args = "5000, 5000, 5000, 5000, 5000",
+                  instruction_type = "Dexter.move_all_joints",
+                  instruction_args = "0, 0, 0, 0, 0",
+                  add_stop_button = true,
                   dependent_job_names = [],
-                  title, x=600, y=200, width=420, height=400,  background_color="rgb(238, 238, 238)"}={}) {
+                  title, x=300, y=200, width=420, height=400,  background_color="rgb(238, 238, 238)"}={}) {
         super()
         this.task = task
         this.instruction_type    = instruction_type
         this.instruction_args    = instruction_args
         this.dependent_job_names = dependent_job_names
+        this.add_stop_button     = add_stop_button
         this.title   = title
         this.x       = x
         this.y       = y
@@ -425,7 +478,7 @@ Instruction.Control.human_enter_instruction = class human_enter_instruction exte
             let oplet = pair[0]
             let name  = pair[1]
             let label    = name + " (" + oplet + ")"
-            let sel_html = ((label == this.instruction_type) ? "selected" : "")
+            let sel_html = ((name == this.instruction_type) ? "selected" : "")
             let the_html = "<option " + sel_html + ">" + label + "</option>"
             result      += the_html
         }
@@ -468,7 +521,7 @@ Instruction.Control.human_enter_instruction = class human_enter_instruction exte
         var args_html = "<input name='args' style='width:290px;' value='" + this.instruction_args + "'/>"
         var buttons =   '<input type="submit" value="Run instruction & reprompt"/><p/>' +
                         '<input type="submit" value="Continue this job without reprompting"/><p/>' +
-                        '<input type="submit" value="Stop this & dependent jobs"/>'
+            (this.add_stop_button ? '<input type="submit" value="Stop this & dependent jobs"/>' : "")
         if (this.title === undefined) {
             this.title = "Job: " + job_instance.name + ", Human Enter Instruction"
             if (job_instance.robot instanceof Human){
@@ -601,7 +654,8 @@ var human_enter_instruction_handler = function(vals){
           job_instance.enter_instruction_recording.push(args_array)
           //don't to the above set_in_ui because the win is now closed, but the new count will show up when the window redisplays
       }
-      let new_human_instruction = Human.enter_instruction({task: hei_instance.task, instruction_type: ins_type, instruction_args: args, dependent_job_names: hei_instance.dependent_job_names})
+      let ins_name = ins_type.split(" ")[0]
+      let new_human_instruction = Human.enter_instruction({task: hei_instance.task, instruction_type: ins_name, instruction_args: args, dependent_job_names: hei_instance.dependent_job_names})
       let new_ins_array = [args_array, new_human_instruction]
       job_instance.insert_instructions(new_ins_array)
       job_instance.added_items_count[job_instance.program_counter] = 2
@@ -641,6 +695,7 @@ Instruction.Control.human_enter_number = class human_enter_number extends Instru
                     min=0,
                     max=100,
                     step=1,
+                    add_stop_button = true,
                     dependent_job_names=[],
                     title, x=200, y=200, width=400, height=400,  background_color="rgb(238, 238, 238)"}={}){
         super()
@@ -650,6 +705,7 @@ Instruction.Control.human_enter_number = class human_enter_number extends Instru
         this.min = min
         this.max = max
         this.step = step
+        this.add_stop_button = add_stop_button
         this.dependent_job_names = dependent_job_names
         this.title   = title
         this.x       = x
@@ -670,7 +726,9 @@ Instruction.Control.human_enter_number = class human_enter_number extends Instru
                            "' max='"   + this.max +
                            "' step='"  + this.step +
                            "'/></center>"
-        var buttons = '<center><input type="submit" value="Submit"/>&nbsp;<input type="submit" value="Stop this & dependent jobs"/></center>'
+        var buttons = '<center><input type="submit" value="Submit"/>&nbsp;'
+        if (this.add_stop_button) { buttons += '<input type="submit" value="Stop this & dependent jobs"/>' }
+        buttons += '</center>'
         if (this.title === undefined){
             this.title = "Job: " + job_instance.name + ", Human Task"
             if (job_instance.robot instanceof Human){
@@ -720,8 +778,9 @@ var human_enter_number_handler = function(vals){
 Instruction.Control.human_enter_text = class human_enter_text extends Instruction.Control{
     constructor ({task="",
                     user_data_variable_name="a_text",
-                    initial_value="OK",
+                    initial_value="",
                     line_count=1, //if 1, makes an input type=text. If > 1 makes a resizeable text area
+                    add_stop_button = true,
                     dependent_job_names=[],
                     title, x=200, y=200, width=400, height=400,  background_color="rgb(238, 238, 238)"}={}) {
         super()
@@ -729,6 +788,7 @@ Instruction.Control.human_enter_text = class human_enter_text extends Instructio
         this.user_data_variable_name = user_data_variable_name
         this.initial_value = initial_value
         this.line_count = line_count
+        this.add_stop_button = add_stop_button
         this.dependent_job_names = dependent_job_names
         this.title   = title
         this.x       = x
@@ -755,7 +815,9 @@ Instruction.Control.human_enter_text = class human_enter_text extends Instructio
             "' cols='50'>" + this.initial_value +
              "</textarea>"
         }
-        var buttons = '<center><input type="submit" value="Submit"/>&nbsp;<input type="submit" value="Stop this & dependent jobs"/></center>'
+        var buttons = '<center><input type="submit" value="Submit"/>&nbsp;'
+        if (this.add_stop_button) buttons += '<input type="submit" value="Stop this & dependent jobs"/>'
+        buttons += '</center>'
         if (this.title === undefined){
             this.title = "Job: " + job_instance.name + ", Human Task"
             if (job_instance.robot instanceof Human){
@@ -968,7 +1030,7 @@ Instruction.Control.out = class Out extends Instruction.Control{
         this.temp  = temp
     }
     do_item (job_instance){
-        let message = "Job: " + job_instance.name + ", instruction ID: " + job_instance.program_counter + "<br/>" + this.val
+        let message = "Job: " + job_instance.name + ", instruction ID: " + job_instance.program_counter + ", Robot.out<br/>" + this.val
         out(message, this.color, this.temp)
         job_instance.set_up_next_do(1)
     }

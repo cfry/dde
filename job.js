@@ -63,43 +63,42 @@ var Job = class Job{
 
 
     show_progress(){
-        if(this.show_instructions) {
-            var html_id = this.name + this.start_time.getTime()
-            var cur_instr = this.current_instruction()
-            if (this.program_counter >= this.do_list.length) { cur_instr = "Done." }
-            else { cur_instr = "Last instruction sent: "  + Instruction.to_string(cur_instr) }
-            var content = "Job: " + this.name + " pc: "   + this.program_counter +
-                " <progress style='width:100px;' value='" + this.program_counter +
-                          "' max='" + this.do_list.length + "'></progress>" +
-                " of " +  this.do_list.length + ". " +
-                cur_instr +
-                "&nbsp;&nbsp;<button onclick='inspect_out(Job." + this.name + ")'>Inspect</button>"
+        var html_id = this.name + this.start_time.getTime()
+        var cur_instr = this.current_instruction()
+        if (this.program_counter >= this.do_list.length) { cur_instr = "Done." }
+        else { cur_instr = "Last instruction sent: "  + Instruction.to_string(cur_instr) }
+        var content = "Job: " + this.name + " pc: "   + this.program_counter +
+            " <progress style='width:100px;' value='" + this.program_counter +
+                      "' max='" + this.do_list.length + "'></progress>" +
+            " of " +  this.do_list.length + ". " +
+            cur_instr +
+            "&nbsp;&nbsp;<button onclick='inspect_out(Job." + this.name + ")'>Inspect</button>"
 
-            out(content, "#5808ff", html_id)
-        }
+        out(content, "#5808ff", html_id)
     }
 
     show_progress_and_user_data(){
-        if(this.show_instructions) {
-            var html_id = this.name + this.start_time.getTime()
-            var cur_instr = this.current_instruction()
-            if (this.program_counter >= this.do_list.length) { cur_instr = "Done." }
-            else { cur_instr = "Last instruction sent: "  + Instruction.to_string(cur_instr) }
-            var content = "Job: " + this.name + " pc: "   + this.program_counter +
-                " <progress style='width:100px;' value='" + this.program_counter +
-                "' max='" + this.do_list.length + "'></progress>" +
-                " of " +  this.do_list.length + ". " +
-                cur_instr +
-                "&nbsp;&nbsp;<button onclick='inspect_out(Job." + this.name + ")'>Inspect</button>" +
-                "<br/>"
-            let has_user_data = false
-            for(let prop_name in this.user_data){
+        var html_id = this.name + this.start_time.getTime()
+        var cur_instr = this.current_instruction()
+        if (this.program_counter >= this.do_list.length) { cur_instr = "Done." }
+        else { cur_instr = "Last instruction sent: "  + Instruction.to_string(cur_instr) }
+        var content = "Job: " + this.name + " pc: "   + this.program_counter +
+            " <progress style='width:100px;' value='" + this.program_counter +
+            "' max='" + this.do_list.length + "'></progress>" +
+            " of " +  this.do_list.length + ". " +
+            cur_instr +
+            "&nbsp;&nbsp;<button onclick='inspect_out(Job." + this.name + ")'>Inspect</button>" +
+            "<br/>"
+        let has_user_data = false
+        for(let prop_name in this.user_data){
+            if(!has_user_data) { //first iteration only
+                content += "<b>user_data: </b> "
                 has_user_data = true
-                content += "<i>" + prop_name + "</i>: " + this.user_data[prop_name] + "&nbsp;&nbsp;"
             }
-            if (!has_user_data) content += "<i>No user data in this job.</i>"
-            out(content, "#5808ff", html_id)
+            content += "<i>" + prop_name + "</i>: " + this.user_data[prop_name] + "&nbsp;&nbsp;"
         }
+        if(!has_user_data) { content += "<i>No user data in this job.</i>" }
+        out(content, "#5808ff", html_id)
     }
 
 
@@ -1690,18 +1689,18 @@ Job.prototype.ilti_backward = function(inst_loc, starting_id){
 }
 
 Job.insert_instruction = function(instruction, location){
-    const the_job = Job.instruction_location_to_job(location)
-    if (the_job){
-        const index = the_job.instruction_location_to_id(location)
+    const job_instance = Job.instruction_location_to_job(location)
+    if (job_instance){
+        const index = job_instance.instruction_location_to_id(location)
         if ((index === "next_top_level") ||
-            ["not_started", "completed", "errored", "interrupted"].includes(the_job.status_code)){
-                the_job.sent_from_job_instruction_queue.push(instruction)
-                the_job.sent_from_job_instruction_location = location
+            ["not_started", "completed", "errored", "interrupted"].includes(job_instance.status_code)){
+            job_instance.sent_from_job_instruction_queue.push(instruction)
+            job_instance.sent_from_job_instruction_location = location
                 //if a job isn't running, then we stick it on the ins queue so that
                 //the next time is DOES run (ie its restarted), this
                 //inserted instruction will make it in to the do_list.
         }
-        else { the_job.do_list.splice(index, 0, instruction)
+        else { job_instance.do_list.splice(index, 0, instruction)
                if(index > 0) { //unlike the istance method cousins of this static method,
                     //this meth must do the added_items_count increment because
                     //the caler of this meth doesn't know the index of the instr to increment

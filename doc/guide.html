@@ -8,8 +8,8 @@
 
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version:  <span id="dde_version_id">2.0.14</span><br/>
-    released: <span id="dde_release_date_id">Aug 30, 2017</span>
+    version:  <span id="dde_version_id">2.0.15</span><br/>
+    released: <span id="dde_release_date_id">Sep 3, 2017</span>
     <p/>
     DDE helps you create, debug, and send software to a Dexter robot.
     You can use any JavaScript augmented with DDE-specific functions to help find out about,
@@ -878,17 +878,17 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
     pane.
     <button>Insert&#9660;</button> <i>Print to output</i> has items that print in a few different colors
     so that you can distinquish some outputs from others in a complex debugging session.
-    See <a href="#" onclick="open_doc(out_doc_id)">out</a></li>
+    See <a href="#" onclick="open_doc(out_doc_id)">out</a>.</li>
 
     <li><b>Robot.out</b> <code>Robot.out("some data")</code> creates an
     instruction in a Job's do_list to print content to the output console
     with similar functionality to <code>out</code>
-    See <a href="#" onclick="open_doc('Robot.out_doc_id')">Robot.out</a></li>
+    See <a href="#" onclick="open_doc('Robot.out_doc_id')">Robot.out</a>.</li>
 
     <li><b>show_instructions</b> <code title="unEVALable">new Job({show_instructions=some_fn})</code>
     lets you call an arbitrary function (with clever defaults) before each
     instruction in a Job is run.
-    <a href="#" onclick="open_doc(new_job_parameters_doc_id)">new Job parameters</a></li>
+    See <a href="#" onclick="open_doc(new_job_parameters_doc_id)">new Job parameters</a>.</li>
 
     <li><b>inspect</b> <code title="unEVALable"> inspect(some_data) </code>
        will print a representation of its argument in the output pane.
@@ -899,16 +899,20 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
     <li><b>clear_output</b> To erase all content in the output pane,
        click the <button>Clear</button> button in the Output pane or
        Eval <code>clear_output()</code><br/>
-       See <a href="#" onclick="open_doc(clear_output_doc_id)">clear_output</a></li>
+       See <a href="#" onclick="open_doc(clear_output_doc_id)">clear_output</a>.</li>
+    <li><b>speak</b> behaves similarly to <code>out</code> in that it returns its 1st arg.
+        It can be useful in contexts where you want to know a value but don't
+        want to look at the screen to find it.
+        An example of speak is on the Insert menu, under <i>Learn Javascript/debugging</i>.
+        See also <a href="#" onclick="open_doc(speak_doc_id)">speak doc</a>.</li>
+    </il>
+    <li><b>Human.notify</b> is an instruction that you can place ina Job's do_list to pop up a window
+           and give the user a message.
+           See <a href="#" onclick="open_doc('Human.notify_doc_id')">Human.notify</a>.</li>
     </ul>
     <p/>
-    <b>speak</b> behaves similarly to <code>out</code> in that it returns its 1st arg.
-    It can be useful in contexts where you want to know a value but don't
-    want to look at the screen to find it.
-    speak is on the Insert menu, under <i>Learn Javascript/debugging</i>.
-    <p/>
     Because JavaScript, like all popular textual programming languages, has not been
-    designed with the "user experience" in mind, it is full of
+    designed <i>carefully</i> with the "user experience" in mind, it is full of
     ideosyncracies that make learning how to use it require remembering a lot
     of "gotchas". The web has pages on common JavaScript programming errors.
     A good one is: <a href="https://www.w3schools.com/js/js_mistakes.asp">

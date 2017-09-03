@@ -6,32 +6,13 @@
     var js_cmds_array = []
     var js_cmds_index = -1
 
-    //called for cmd input AND run instruction dialog run_src type in
-    function onclick_for_click_help(event) {
-        if($(event.target).closest(".inspector").length > 0){ //don't do regular on_click if inside an inspector
-             //var elt = event.target  //; the click just go to the underlined item in the inspector
-        }
-        else {
-            var full_src = event.target.value
-            if (full_src) {
-                if(full_src.length > 0){
-                    var pos = event.target.selectionStart
-                    Editor.show_identifier_info(full_src, pos)
-                }
-            }
-            else {
-                full_src = window.getSelection().focusNode
-                if ((typeof(full_src) == "object") && (full_src !== null) && full_src["data"]) {
-                    full_src = full_src.data
-                }
-                if (full_src && (full_src.length > 0)){
-                    var pos      = window.getSelection().focusOffset
-                    if ((pos == 0) || pos) {
-                        Editor.show_identifier_info(full_src, pos)
-                    }
-                }
-            }
-        }
+    operating_system = "not inited" //on MAC this is "mac", on windows its "win".  bound in both ui and sandbox by ready
+    dde_apps_dir  = null
+
+    function set_menu_string(elt, label, key){
+        let modifier = ((operating_system === "win") ? "Ctrl" : "&#8984")
+        let needed_spaces = 20 - label.length
+        elt.innerHTML = label + "&nbsp;".repeat(needed_spaces) + modifier + key
     }
 
     function eval_button_action(){ //used by both clicking on the eval button and Cmd-e
@@ -40,149 +21,6 @@
         if (sel_text.length > 0) { eval_js_part2(sel_text) }
         else { eval_js_part1() } //gets whole editor bugger and if empty, prints warning.
     }
-
-    //if an id name has a dot in it, then
-    //open_doc(foo.bar_doc_id) won't work because
-    //foo will be eevaled, then it looks for bar_doc_id inside that and
-    //won't find it.
-    //but if we do open_doc("foo.bar_doc_id") it will work because
-    //the below fn does "if its a string. then look it up in "window".
-    function open_doc(details_elt){
-        if(typeof(details_elt) == "string"){
-            details_elt = window[details_elt]
-        }
-        //details_elt.open = true;
-        open_doc_elt_and_ancestors(details_elt)
-        $('#doc_pane_content_id').animate({scrollTop: details_elt.offsetTop - 40}, 800); //WORKS! 800 is milliseconds for the animation to take.
-        myCodeMirror.focus()
-    }
-
-    function open_doc_elt_and_ancestors(elt){
-        if(elt.tagName == "DETAILS") {elt.open = true}
-        if (elt.id != "doc_pane_content_id") { open_doc_elt_and_ancestors(elt.parentElement) }
-    }
-
-    function close_all_details(){
-        var details = document.getElementsByTagName("details");
-        for(var i = 0; i < details.length; i++){
-            details[i].removeAttribute("open");
-        }
-    }
-
-    function find_doc(){
-        let search_string = find_doc_input_id.value
-        if (search_string.length == 0) { search_string = Editor.get_any_selection() } //doc & output panes
-        if (search_string.length == 0) {
-            warning("There is no text in the Find type-in nor selection anywhere to search for.")
-            return
-        }
-        close_all_details()
-        undecorate_doc_details()
-        //out(search_string) //for testing only
-        var mark_inst = new Mark(doc_pane_content_id) //document.querySelector("#doc_pane_content_id"))
-        mark_inst.unmark()
-        mark_inst.mark(search_string, {
-            diacritics: false,  //I don't need diacritics, and it use to not work but is working now. Default is true.
-            separateWordSearch: false,
-            done:function(count){
-                if (count === 0 ) {
-                   warning("No matches of <code>" + search_string + "</code> found.<br/>" +
-                   "Matches are case-insensitive, so changing the case<br/>" +
-                   "of your search string won't help.")
-                }
-                else {
-                    out(count + ' matches of <span style="background-color:yellow;">' +
-                        search_string + '</span> now highlighed  in yellow in the Doc pane.<br/>' +
-                        'To see them, twist down the <details style="background-color:rgb(255, 214, 153);"><summary><b>Orange Rows</b></summary></details>',
-                        "black", true)
-                }
-            },
-            each:function(text_node){
-                let details_ancestors = $(text_node).parents("details").children("summary")
-                for(let i = 0; i <  details_ancestors.length; i++){
-                    let elt = details_ancestors[i]
-                    elt.style.backgroundColor = "#ffd699" //"#ffc266" //"orange"
-                }
-                //out("hey" + text_node)
-
-                return true; //true means we keep this match
-            }
-        }) //does not work with the non-jquery (vanilla js ) verison of mark.js either ES5 or ES6
-        //error message:  Cannot read property 'caseSensitive' of undefined
-        //but goes away with a 2nd arg of {caseSensitive: false} but then
-        //it will only match all uppercase keywords , another bug.
-        //with {caseSensitive: true}, it doesn't match anything
-        //bug submitted sep 5, 2016 to https://github.com/julmot/mark.js/issues/68
-        //$("#doc_pane_content_id").mark(search_string)
-        //let elts = $( "#doc_pane_content_id > :contains(" + search_string + ")" )
-        //elts.css( "text-decoration", "underline" );
-    }
-
-    function undecorate_doc_details(){
-        var summaries = $("#doc_pane_content_id").find("summary");
-        for(var i = 0; i < summaries.length; i++){
-            let sum1 = summaries[i]
-            sum1.style.backgroundColor = null //this is hard to do, but here's one syntax that seems to work
-            //note the proper spelling of the property in css is background-color but because JS
-            //broke the minus sign, and css "designers" were too stupid to avoid using it,
-            //we have this convoluted syntax.
-        }
-    }
-
-    /*function init_guide(){
-        const path = __dirname + "/doc/guide.html"
-        console.log("init_guide using path: " + path)
-        doc_pane_content_id.innerHTML = file_content(path)
-    }
-
-    function init_ref_man(){
-        ref_man_doc_id.innerHTML =
-            "<summary>Reference Manual</summary>" +
-            file_content(__dirname + "/doc/ref_man.html")
-    }
-
-    function init_release_notes(){
-        release_notes_id.innerHTML =
-            "<summary>Release Notes</summary>" +
-            file_content(__dirname + "/doc/known_issues.html") +
-            "<i>Note: some releases have no notes because they contain only internal changes.</i>" +
-            file_content(__dirname + "/doc/release_notes.html")
-    }*/
-
-    function init_doc(){
-        let content =   '<details><summary class="doc_top_level_summary">Articles</summary>\n' +
-                           '<details class="doc_details"><summary class="doc_articles_level_summary">Overview</summary>\n' +
-                                file_content(__dirname + "/doc/dde_overview/Dexter_Development_Environment.html") +
-                            "</details>\n" +
-                            '<details class="doc_details"><summary class="doc_articles_level_summary">Browser vs. DDE</summary>\n' +
-                            file_content(__dirname + "/doc/browser_vs_dde.html") +
-                            "</details>\n" +
-                            '<details class="doc_details"><summary class="doc_articles_level_summary">Dexter Kinematics</summary>\n' +
-                                file_content(__dirname + "/doc/dexter_kinematics.html") +
-                            "</details>\n" +
-                            '<details class="doc_details"><summary class="doc_articles_level_summary">How to Think Like a Computer</summary>\n' +
-                                file_content(__dirname + "/doc/eval.html") +
-                            "</details>\n" +
-                            '<details class="doc_details"><summary class="doc_articles_level_summary">Glossary</summary>\n' +
-                                file_content(__dirname + "/doc/glossary.html") +
-                            "</details>\n" +
-                        '</details>\n' +
-                        '<details id="user_guide_id"><summary class="doc_top_level_summary">User Guide</summary>\n' +
-                            file_content(__dirname + "/doc/guide.html") +
-                        "</details>\n" +
-                        '<details id="reference_manual_id"><summary class="doc_top_level_summary">Reference Manual</summary>\n' +
-                            file_content(__dirname + "/doc/ref_man.html") +
-                        "</details>\n" +
-                        '<details><summary class="doc_top_level_summary">Release Notes</summary>\n' +
-                            file_content(__dirname + "/doc/release_notes.html") +
-                        "</details>\n" +
-                        '<details><summary class="doc_top_level_summary">Known Issues</summary>\n' +
-                            file_content(__dirname + "/doc/known_issues.html") +
-                        "</details>\n"
-        doc_pane_content_id.innerHTML = content
-    }
-    operating_system = "not inited" //on MAC this is "mac", on windows its "win".  bound in both ui and sandbox by ready
-    dde_apps_dir  = null
 
     function on_ready() {
         const os = require('os');
@@ -290,10 +128,14 @@
 
     $('#js_textarea').focus() //same as myCodeMirror.focus()  but  myCodeMerror not inited yet
 
+    doc_prev_id.onclick        = open_doc_prev
+    doc_next_id.onclick        = open_doc_next
     find_doc_button_id.onclick = find_doc
     find_doc_input_id.onchange = find_doc
+    $("#find_doc_input_id").jqxComboBox({ source: [], width: '150px', height: '25px',}); //create
 
-    //eval_doc_button_id.onclick = function(){
+
+        //eval_doc_button_id.onclick = function(){
     //      let sel = window.getSelection().toString().trim()
     //      if (sel.length == 0) {out("There is no selection in the Doc pane to eval.", "orange", true) }
     //      else { eval_js_part2(sel) }
@@ -325,7 +167,8 @@
 
     //File Menu
 
-    new_id.onclick = function(){ Editor.edit_file("new file") }
+    new_id.onclick = Editor.edit_new_file
+    set_menu_string(new_id, "New", "n")
 
     file_name_id.onchange = function(e){ //similar to open
         const inner_path = e.target.value //could be "new file" or an actual file
@@ -358,6 +201,7 @@
                            }*/
 
     open_id.onclick=Editor.open
+    set_menu_string(open_id, "Open", "o")
 
     load_file_id.onclick=function(e) {
         const path = choose_file(show_dialog_options={title: "Choose a file to load"})
@@ -378,6 +222,8 @@
     }
 
     save_id.onclick =    Editor.save
+    set_menu_string(save_id, "Save", "s")
+
     save_as_id.onclick = Editor.save_as
 
     remove_id.onclick=function(){
@@ -696,41 +542,15 @@ show_window({
 `)}
     build_window_id.onclick=ab.launch
 
-    opencv1_id.onclick=function(){Editor.insert(
-`//Caution: converting an image to b&w doesn't work for all images.
-var cv = require("opencv.js")
-
-function handle_hello_opencv(vals){
-    if(vals.clicked_button_value == "show images"){
-        src_image_id.src = vals.file_input_id
-        let mat = cv.imread(src_image_id)
-        let gray_mat = new cv.Mat(700, 700, cv.CV_8UC1)
-        cv.cvtColor(mat, gray_mat, cv.COLOR_RGBA2GRAY)
-        cv.imshow("output_canvas_id", gray_mat)
-        mat.delete()
-        gray_mat.delete()
+    convert_to_b_and_w_id.onclick=function(){
+        const code = file_content(__dirname + "/examples/convert_to_b_and_w.js")
+        Editor.insert(code)
     }
-}
 
-show_window({
-    content:
-` + "\`" +
-`<b>Hello OpenCV.js</b><br/>
- Choose a file with an extension of<br/>
- .gif, .jpeg or .png<br/>
- then click on "show image".<br/>
- The image on the left has no cv processing.<br/>
- The right is changed to black & white by cv.<br/>
-<input type="file" id="file_input_id"
-       accept="image/gif, image/jpeg, image/png"/>
-<input type="button" value="show images"/>
-<p/>
-<img id="src_image_id"></img>
-<canvas id="output_canvas_id"></canvas>` + "`" +
-`,
-    callback: handle_hello_opencv
-})
-` )}
+    process_webcam_id.onclick=function(){
+        const code = file_content(__dirname + "/examples/process_webcam.js")
+        Editor.insert(code)
+    }
 
     window_close_all_id.onclick=close_all_show_windows
     show_page_id.onclick=function(){Editor.wrap_around_selection('show_page(', ')\n', '"hdrobotic.com"')}
@@ -973,7 +793,7 @@ foo      //eval to see the latest values</pre>`,
     stop_all_jobs_id.onclick       = function(){Job.stop_all_jobs() }
     undefine_jobs_id.onclick       = function(){Job.clear_stopped_jobs() }
 
-    $("#real_time_sim_checkbox_id").jqxCheckBox({ checked: false })
+    $("#real_time_sim_checkbox_id").jqxCheckBox({ checked: true })
 
     real_time_sim_checkbox_id.onclick = function(event) {
         if ($("#real_time_sim_checkbox_id").val()){

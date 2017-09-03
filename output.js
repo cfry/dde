@@ -1072,6 +1072,7 @@ function show_page(url, options={x:0, y:0, width: 800, height: 600}){
     if (!options.y)      { options.y = 0 }
     if (!options.width)  { options.width  = 800 } //does not allow width to be 0. Is that good? a 0 width means the window is invisible
     if (!options.height) { options.height = 600 } //does not allow width to be 0. Is that good? a 0 width means the window is invisible
+    if (!options.title)  { options.title = url }
    // window.open(url) //show_url(url) //fails in electron
     ipcRenderer.sendSync('show_page', url, options) //see main.js "show_page"
     return url

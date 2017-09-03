@@ -1447,7 +1447,7 @@ Dexter.set_open_loop          = function(){ return setOpenLoop() }
 //Note: often you should use Robot.instruction_type_to_
 Dexter.instruction_type_to_function_name_map = {
     a:"move_all_joints",
-    b:"move_to",           //fry
+    //b:"move_to",           //fry  obsolete
     //B:"move_to_relative",  //fry
     c:"capture_ad", 
     d:"dma_read",

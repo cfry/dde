@@ -5,6 +5,76 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 2.0.15, Sep 3, 2017</summary>
+Highlights: Video capture & processing example with OpenCV.<br/>
+            Human.enter_choice greatly extended.<br/>
+            All Human instructions now have examples.<br/>
+            Kin.is_in_reach() updated.
+<ul>
+    <li>Fixed the Real time sim checkbox on the Jobs menu.
+    Now it is checked when you launch DDE, and the simulator tries to
+    run at the same speed as the robot with that checkbox checked.
+    verify that "both" simulate ignores the "real time sim".</li>
+
+    <li> <code>console.log</code> and "call" click_help now works.</li>
+
+    <li> fixed documentation for Job param "show_instructions" method values
+        to be <code>Job.prototype.show_progress</code> and
+       <code>Job.prototype.show_progress_and_user_data</code></li>
+
+    <li> Improved printout for <code>Job.prototype.show_progress_and_user_data</code></li>
+
+    <li> Fixed bug in Job.insert_instruction.</li>
+
+    <li> <code>Human.enter_choice</code> was not correctly recording the selected value in
+        user_data when show_choices_as_buttons: true. Fixed.</li>
+
+    <li> Human.enter_choice was not correctly recording the selected value in
+        user_data when show_choices_as_buttons: true. Fixed.</li>
+
+    <li> Human.enter_choice has powerful new features and documentation to match in
+        Ref Man/Robot/Human/Human Instructions/enter_choice.</li>
+
+    <li> <code>Human.enter_instruction</code> changed default angles to 0,0,0,0,0</li>
+
+    <li> <code>Human.enter_choice</code> was not correctly recording the selected value in
+        user_data when show_choices_as_buttons: true. Fixed.</li>
+
+    <li> The Human.enter instructions now have a new param: "add_stop_button: true"
+        Behavior without using this button is the same, but you can now "turn off"
+        the display of a stop button.</li>
+
+
+    <li> Fixed bugs in <code>Human.enter_instruction</code> with initializing the selected instruction.</li>
+
+    <li> All Human.enter instructions now have code examples in their Ref Man doc
+         including: task, choice, number, text, instruction, notify.</li>
+
+    <li> Doc pane header now has "back" & "forward" buttons  ("<" and ">").</li>
+
+    <li> In doc pane, if there is no selection and no text in the find input,
+        the colored sections are removed and the find pane is collapsed.</li>
+
+    <li> More intra-Ref-Man clickble links esp for Robot.go_to,
+         and uman.task references.</li>
+
+    <li> <code>Kin.is_in_reach()</code> has been updated.</li>
+
+    <li> New keyboard shortcut: Crtl n for "new file" in the editor.</li>
+
+    <li> Clean up of keystroke shortcuts and their menu item labels.
+         Now both labels and actual keybindings are properly OS-specific (MacOS vs WindowsOS)</li>
+
+    <li> "b" is no longer a valid oplet for Dexter instructions.</li>
+
+    <li> New menu: Insert/Machine Vision/
+        now contains "Convert to B&W" (from the previous version of DDE, but
+        with a larger window size to accomodate bigger pictures)<br/>
+        and a new item: "Process Webcam" which displays the video from
+        a laptop webcam, let's you take a snapshot, then processes
+        the image into two different formats.</li>
+</ul>
+</details>
 
 <details class="doc_details"><summary>v 2.0.14, Aug 30, 2017</summary>
 Highlights: OpenCV integrated into DDE. Article: "How to Think Like a Computer".

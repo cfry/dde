@@ -31,6 +31,7 @@ Js_info = class Js_info {
             //}
             var info_and_url = Js_info.fn_name_to_info_map[fn_name] //miscelaneous stuff
             fn_name = Js_info.strip_path_prefix_maybe(fn_name)
+            if (!info_and_url) { info_and_url = Js_info.fn_name_to_info_map[fn_name] } //try again without prefix, for cases where orign fn_name is "fn.call", for instance
             if (!series){ series = Series.find_series(fn_name) }
             if (Array.isArray(info_and_url)){
                 let [info, url] = info_and_url
@@ -49,7 +50,7 @@ Js_info = class Js_info {
                 }
                 let the_class = new_fn_name
                 if(info.startsWith("JSON.parse")) { the_class = "JSON" } //parse is used for both JSON.parse and Date.parse so we had to sepcial case here.
-                let new_info = info_before_fn_name + Js_info.make_atag(the_class, new_fn_name) + info_after_fn_name
+                let new_info = info_before_fn_name + Js_info.make_atag(the_class, new_fn_name, url) + info_after_fn_name
                 if (series) { return Js_info.add_series_wrapper_to_info(series, new_info) }
                 else { return new_info }
             }
@@ -489,23 +490,24 @@ Js_info = class Js_info {
                     .split(',').filter(Boolean); // split & filter [""]
     }
 
-    static make_atag(the_class, fn_name){
+    static make_atag(the_class, fn_name, url){
         setTimeout(function(){
                     if(window["js_doc_link_id"]) { //intermittently, this is not defined and thus errors. So if its
                         //undefined, just don't set the onclick. Not great but better than erroring
                         //and usually the user doesn't click on the click-help link anyway.
-                        js_doc_link_id.onclick=function(){Js_info.show_doc(the_class, fn_name)}
+                        js_doc_link_id.onclick=function(){Js_info.show_doc(the_class, fn_name, url)}
                     }
                    }, 300)
         let display_name = fn_name
         if (fn_name == "Infinity") { display_name = fn_name }
         else if (["Math", "Number"].includes(the_class)){ display_name = the_class + "." + fn_name }
-        return '<a id="js_doc_link_id" href="#">' + display_name + '</a>'
+        if (url) { return '<a href="' + url + '" target="_blank">' + display_name + '</a>' }
+        else     { return '<a id="js_doc_link_id" href="#">' + display_name + '</a>' }
     }
 
-    static show_doc(the_class, fn_name){
-        var url
-        if (Js_info.fn_name_to_info_map[fn_name]){
+    static show_doc(the_class, fn_name, url){
+        if (url) {}
+        else if (Js_info.fn_name_to_info_map[fn_name]){
             url = Js_info.fn_name_to_info_map[fn_name][1]
         }
         else if (the_class == "arithmetic"){
@@ -577,7 +579,9 @@ Js_info.fn_name_to_info_map = {
     "!":         ["Performs logical <b>not</b> &nbsp;example: !false",        "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Logical_Operators"],
     "apply":     ["fn.apply(thisArg, argsArray)",       "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/apply"],
     "break":     ["while(true){break;}",                "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/break"],
+    "call":      ["fn.call(thisArg, arg1, arg2, arg3)", "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call"],
     "class":     ["class Boat extends Vehicle {}",      "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes"],
+    "console.log": ["console.log(foo)",                 "https://developer.mozilla.org/en-US/docs/Web/API/Console/log"],
     "debugger":  ["debugger; sets a breakpoint.",       "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/debugger"],
     "delete":    ["delete foo.bar",                     "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/delete"],
     "for":       ["for(var i = 0; i < 3; i++){out(i)}", "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for"],

@@ -1020,13 +1020,13 @@ The parameters used to define a new Job are:
         <li><b>show_instructions</b> Possible values:
            <ul><code>true</code> The default. Each time Dexter begins the execution of an instruction, it
                is printed in the Output pane, refreshing that section of the output pane as
-               each new instruction is run. The method used is <code>Job.prototype.show_instruction</code>.
+               each new instruction is run. The method used is <code>Job.prototype.show_progress</code>.
                Eval that to see its source code.</li>
                <li><code>false</code> Do nothing. Use this for time-sensitive jobs.</li>
                <li>A method</li> The method will be called (with the job as <code title="unEVALable">this</code>)
                    as each instruction is run, so you can do whatever you like.
                    A function written for this purpose is
-                   <code>Job.prototype.show_instruction_and_user_data</code>.
+                   <code>Job.prototype.show_progress_and_user_data</code>.
                    This allows you to see user data as it is updated by the job.
                    Eval the above code to see the method's source code.</li>
            </ul>
@@ -1075,7 +1075,8 @@ The parameters used to define a new Job are:
            <b>Reference Manual/IO/Persistent Database</b>.         
            </li>
         <li><b>program_counter</b> Initialize the program_counter to an instruction id.
-        The default is 0. You can use any instruction_location here. See Robot.go_to
+        The default is 0. You can use any instruction_location here.
+        See <a href="#" onclick="open_doc('Robot.go_to_doc_id')">Robot.go_to</a>
         for documentation on all the different kinds of instruction_locations.
         </li>
         <li><b>ending_program_counter</b> Declare at the outset of a job that it
@@ -1083,7 +1084,8 @@ The parameters used to define a new Job are:
             valid instruction_location that does not include a job. It is evaluated
             at the start of each instruction, so if labels move as a result of
             dynamically added instructions, that's OK.
-            The default is "end". See <code>Robot.go_to</code>
+            The default is "end".
+            See <a href="#" onclick="open_doc('Robot.go_to_doc_id')">Robot.go_to</a>
             for documentation on all the different kinds of instruction_locations.
         </li>
         <li><b>initial_instruction</b> Add an initial instruction to the do_list at
@@ -1100,7 +1102,8 @@ The parameters used to define a new Job are:
              This is effectively a callback when the job is done.<br/>
              <code title="unEVALable code fragment"> An instruction location</code> This is similar to Robot.go_to
              except that the job is re-iniitlizated with its original (as defined) do_list.
-             Any valid instruction location can be used (see doc in Robot.go_to) except
+             Any valid instruction location can be used
+             (see doc in <a href="#" onclick="open_doc('Robot.go_to_doc_id')">Robot.go_to</a>) except
              that it must have no job or indicate the current job. Using <code>0</code>
              set's the job's program counte to instruction 0, causing the job to loop.
              Using an instruction location 'offset' of greater than 0, such as a label,
@@ -1125,7 +1128,8 @@ The parameters used to define a new Job are:
    take "name" as a property (i.e. you can't rename the job when you start it).
    Below are two of the most useful properties you can use:<br/>
     <li><b>program_counter</b> Initialize the program_counter to an instruction id.
-        The default is 0. You can use any instruction_location here. See Robot.go_to
+        The default is 0. You can use any instruction_location here.
+        See <a href="#" onclick="open_doc('Robot.go_to_doc_id')">Robot.go_to</a>
         for documentation on all the different kinds of instruction_locations.
     </li>
     <li><b>initial_instruction</b> Add an initial instruction to the do_list at
@@ -1146,7 +1150,8 @@ Insert an instruction into a Job's do_list at a particular location.<br/>
 <i>Parameters</i>:<br/>
 <b>instruction</b> The instruction to insert. This can be an array of instructions
 if you effectively want to insert more than one.<br/>
-<b>location</b> Any instruction_location documented under <code>Robot.go_to</code> can be used
+<b>location</b> Any instruction_location documented under
+              <a href="#" onclick="open_doc('Robot.go_to_doc_id')">Robot.go_to</a> can be used
 including integers, names of labels, etc. <br/>
 <i>Example</i>: <pre><code title="unEVALable code fragment"> Job.insert_instruction(Robot.out("the end"),
                        {job: "my_job",
@@ -1162,7 +1167,7 @@ on how to continually add and execute a new instruction in a running job.
 </details> <!-- end job -->
 
 
-<details class="doc_details"><summary>Robots</summary>
+<details id="Robot_doc_id" class="doc_details"><summary>Robot</summary>
   A robot is a machine that can execute the instructions in its instruction set. In general,
   each kind of robot will have its own instruction set. The primary
   difference between robots is the difference in their instruction sets.
@@ -1224,7 +1229,7 @@ You can put both named and anonymous functions on a do_list.
 A named instruction allows you to add a bit of "documentation" to
 the function. You can also use the name of a function like a
 label and "go to"
-that name using a <code>Robot.go_to</code> instruction,
+that name using a <a href="#" onclick="open_doc('Robot.go_to_doc_id')">Robot.go_to</a> instruction,
 or use the function's name in
 any uses of an instruction_location.
 <p/>
@@ -1594,7 +1599,7 @@ See Job Example 9 for an extended example.
 
 <details id="Robot.label_doc_id" class="doc_details"><summary>label</summary>
 This instruction is a no-op. However, it provides a target location
-for <code>Robot.go_to</code>, initializing the program_counter of a job, and
+for <a href="#" onclick="open_doc('Robot.go_to_doc_id')">Robot.go_to</a>, initializing the program_counter of a job, and
 a location to insert an instruction using <code>Robot.send_to_job</code>.<br/>
 <i>Example</i>: <code>Robot.label("lab2")</code>
 </details>
@@ -1669,7 +1674,8 @@ value of the <code title="unEVALable code fragment"> if_started</code> argument.
   If <code title="unEVALable code fragment"> instruction_location</code> is not given, then
   the offset will be <code>"program_counter"</code>, i.e. the job will
   stop before executing its next instruction. Thus the default is that
-  the current job will be stopped immediately. See Robot.go_to for details
+  the current job will be stopped immediately.
+  See <a href="#" onclick="open_doc('Robot.go_to_doc_id')">Robot.go_to</a> for details
   on the <code title="unEVALable code fragment"> instruction_location</code> format.<br/>
   <b>reason</b> A string. The reason that the job is being told to stop.<br/>
   <b>perform_when_stopped</b> A boolean. When <code>false</code> (the default)
@@ -1730,7 +1736,8 @@ Robot.send_to_job({do_list_item: Dexter.move_to([0, 0.5, 0.075]),
 <li><b>do_list_item</b> An instruction or array of instructions to insert into the to_job.</li>
 <li><b>where_to_insert</b> The location in the do_list of the to_job to insert the do_list_item.
   The full list of instruction_locations for <code title="unEVALable code fragment"> where_to_insert</code>
-  can be seen in the documentation for the <code>Robot.go_to</code> instruction.
+  can be seen in the documentation for the
+  <a href="#" onclick="open_doc('Robot.go_to_doc_id')">Robot.go_to</a> instruction.
   Particularly useful ones for send_to_job are:<br/>
   <ul><li><code>{job: "other_job", offset: "next_top_level"}</code> Inserts the do_list_item
   after the program_counter and just before the next original (top level) do_list item
@@ -2443,8 +2450,8 @@ values in degrees<br/>
 <code>Dexter.J2_ANGLE_MAX</code> => <samp>90</samp><br/>
 <code>Dexter.J3_ANGLE_MIN</code> => <samp>-150</samp><br/>
 <code>Dexter.J3_ANGLE_MAX</code> => <samp>150</samp><br/>
-<code>Dexter.J4_ANGLE_MIN</code> => <samp>-100</samp><br/>
-<code>Dexter.J4_ANGLE_MAX</code> => <samp>100</samp><br/>
+<code>Dexter.J4_ANGLE_MIN</code> => <samp>-130</samp><br/>
+<code>Dexter.J4_ANGLE_MAX</code> => <samp>130</samp><br/>
 <code>Dexter.J5_ANGLE_MIN</code> => <samp>-185</samp><br/>
 <code>Dexter.J5_ANGLE_MAX</code> => <samp>185</samp><br/>
 
@@ -2490,7 +2497,9 @@ access robot hardware.
      the instruction, they should press <button>Done</button>.
      If the human is unable to complete the task, they should press
      <button>Stop this & dependent jobs</button><p/>
-   <b>dependent_job_names</b> Default: []. The names of the jobs that will be stopped if the
+  <b>add_stop_button</b> Default: <code>true</code> Adds a button that, when clicked,
+     will stop this job and the give dependent jobs without executing additional instructions.<br/>
+  <b>dependent_job_names</b> Default: <code>[]</code>. The names of the jobs that will be stopped if the
        user presses <button>Stop this & dependent jobs</button><br/>
    <b>title</b> Default: the job name and "Human Task". A string shown in the title bar of the dialog.
           To have no title, pass in <code>""</code> .<br/>
@@ -2502,15 +2511,67 @@ access robot hardware.
     Each of the numbers for red, green, and blue can be between 0 and 255 inclusive. 0,0,0 is black.<br/>
     <i style="color:rgb(200,0,200);">All of these parameters are common to <b>all</b> human instructions. 
       All are optional. They affect the appearance of the dialog box, except for</i>
-      <code title="unEVALable code fragment"> dependent_job_names</code>.<br/>
+      <code title="unEVALable code fragment"> dependent_job_names</code>.
+    <p/>
+    <i>Examples:</i>
+    <pre><code> new Job({name: "my_job",
+    do_list: [Human.task({task: "Load filament now."}),
+              Robot.out("We're done.")]})
+              </code></pre>
+    <pre><code> new Job({name: "my_job",
+    do_list: [Human.task({title: "&lt;b>Attention&lt;/b> Operator!",
+                          task:  "Load filament &lt;i>now&lt;/i>.",
+                          add_stop_button: false,
+                          dependent_job_names: [],
+                          x: 100, y:50,
+                          width:  300,
+                          height: 120,
+                          background_color: "rgb(200, 255, 200)"}),
+    Robot.out("We're done.")]})
+    </code></pre>
 </details> <!-- end task -->
 
 <details id="Human.enter_choice_doc_id" class="doc_details"><summary>enter_choice</summary>
-  <code>Human.enter_choice</code> presents a dialog allowing the user to choose one of several supplied options.
-  See <b>Human.task</b> for behavior common to all Human instructions.<p/>
+  <code>Human.enter_choice</code> presents a dialog
+  allowing the user to choose one of several supplied options.
+  It is the most flexible of the single-value entry Human instructions.
+  See <a href="#" onclick="open_doc('Human.task_doc_id')">Human.task</a>
+  for behavior common to all Human instructions.<p/>
   <i>Uncommon Parameters:</i><br/>
-  <b>choices</b> Default: []. An array of strings. 
+  <b>choices</b> Default: <code>[]</code>. An array of strings.
       The user is allowed to select one of the given choices.<br/>
+      Their are several different formats for a choice.
+      <ul><li>A string. The string is displayed as the choice, and used as the value
+              for the user_data_variable.</li>
+          <li>An array of one string. Same as using just a string.</li>
+          <li>An array of a string and a value.
+              If the value is a string, it is considered to be JS source code and
+              is evaluated when the user clicks the button. The resultant value
+              becomes the value of the user_data_variable.
+              You may have the variable <code>this</code> in the string.
+              It will have the value of the Job that this instruction is in.
+              Note that you <i>might</i> not care about the value created but
+              are just doing the evaluation for its side effects. This is as designed.
+              You can eval any JS here for maximum flexibility.
+              <p/>
+              If the value is not a string, it will be used directly as the
+              value of the user_data_variable. The evaluation of this item
+              happens at Job definition time.
+              <p/>
+              Note that if you want the user data variable to have the value
+              as a string, you must use a format like <code>'"foo"'</code>. At Job definition
+              time this becomes a string of 5 chars, <code>"foo"</code>.
+              Then at button-click time, that is evaled and produces a string
+              of 3 chars, <code title="unEVALable">foo</code> which is stored
+              in the user_data_variable.
+              </li>
+          <li>An array of a string, a value and a boolean.
+              Same as above but if the boolean is <code>true</code>,
+              then the value produced by the array's 2nd element is
+              considered to be an instruction and is inserted into
+              the Job's do_list right after this Human.enter_choice instruction.</li>
+      </ul>
+
   <b>show_choices_as_buttons</b> true or false, default: false. When false, the choices are 
     shown in a menu with the first choice selected.
     When true, each choice has a button and there is no <button>Done</button> button.
@@ -2527,57 +2588,189 @@ access robot hardware.
   <code title="unEVALable code fragment"> job.some-job-name.user_data.my_color</code>.
   Note that JavaScript from any job can also reset this value. For example:<br/>
   <code title="unEVALable code fragment"> job.some-job-name.user_data.my_color = 'green'</code>.
+  <p/>
+  <i>Examples:</i>
+  <pre><code>new Job({name: "my_job",
+  do_list: [Human.enter_choice({task: "Please pick one.",
+                                choices: ["aa", "bb", "cc"]}),
+           function(){out("You chose: " + this.user_data.choice)}
+  ]}) </code></pre>
+  Above we define 3 choices and display them in the default select menu.
+  The default user_data_variable_name is <code>"choice"</code>, which
+  can be read by any subsequent instruction. Using the default is a bit dangerous
+  because it will be overwritten by a subsquent Human.enter_choice instruction
+  (though that <i>might</i> be what you want).
+
+  <pre><code>
+  function myfn() {out("The job name is: " + this.name)}
+  new Job({name: "my_job",
+         show_instructions: Job.prototype.show_progress_and_user_data,
+         do_list:
+  [Human.enter_choice({
+        choices: ["aa",
+                  ["bb"],
+                  ["cc", true],
+                  ["dd", '"joe"'],
+                  ["ee", 'this.name + " is cool"'],
+                  ["ff", 'myfn.call(this)'],
+                  ["gg", 'Robot.out("hey")', true]
+                 ],
+        show_choices_as_buttons: true,
+        add_stop_button: false,
+        user_data_variable_name: "mychoice",
+        height: 150
+      })]})  </code></pre>
+    Above we use <code title="unEVALable">show_instructions: Job.prototype.show_progress_and_user_data</code>
+    so that our Job's user_data will be printed out in the progress bar, updated after
+    each instruction is executed. This makes it easy to see our user-data as it is set.
+    <p/>
+    We've used all the different kinds of choices described above. <br/>
+    <b>"bb"</b> behaves the same as "aa"<br/>
+    <b>"cc"</b> sets our user_data_variable to <code>true</code><br/>
+    <b>"dd"</b> set our user_data_varabie to a string of 3 chars, joe.<br/>
+    <b>"ee"</b> has the given source code evaled with <code>this</code> bound to
+                the Job instance.<br/>
+    <b>"ff"</b> calls <code title="unEVALable">myfn</code>. If you have
+                something other than a very simple snippet, we recommend
+                putting it in a function and calling it. That makes it
+                easier to test and is overal more reliable.
+                By using <code title="unEVALable">call</code> with a first arg,
+                the value of <code>this</code> inside the function body will be
+                that first arg's value.<br/>
+    <b>"gg"</b> creates a new instruction and inserts it in the Job's do_list
+                right below this Human.enter_choice instruction.
 </details>
 
 <details id="Human.enter_instruction_doc_id" class="doc_details"><summary>enter_instruction</summary>
   Presents a dialog allowing the user to enter an instruction to be immediately run.
   This can also record instructions and create a job with the recorded do_list.
-  See <code>Human.task</code> for behavior common to all Human instructions.<p/>
-  This instruction does not use <b>user_data_variable_name</b>.<p/>
+  See <a href="#" onclick="open_doc('Human.task_doc_id')">Human.task</a> for behavior common to all Human instructions.<p/>
+  This instruction does not use <code title="unEVALable">user_data_variable_name</code>.<p/>
   This instruction can only be used on jobs with a Dexter robot.<p/>
   <i>Uncommon Paramaters:</i><br/>
-  <b>instruction_type</b> Default: "Dexter.move_all_joints". Set's the dialog's default instruction type.</br/>
-  <b>instruction_args</b> Default "5000, 5000, 5000, 5000, 5000". 
-    Set's the dialog's default instruction args.<p/>
-  This instruction is a work in progress. See the tooltips in the dialog for help.
+  <b>instruction_type</b> Default: <code>"Dexter.move_all_joints"</code>. Set's the dialog's default instruction type.</br/>
+  <b>instruction_args</b> Default <code>"0, 0, 0, 0, 0"</code>.
+    Set's the dialog's default instruction args.
+  <p/>
+  <i>Examples:</i><br/>
+  <pre><code> new Job({name: "my_job",
+    do_list: [Human.enter_instruction({task: "do it"})]})
+        </code></pre>
+
+  <pre><code> new Job({name: "my_job",
+    do_list: [Human.enter_instruction(
+              {task: "do it",
+               instruction_type: "Dexter.sleep",
+               instruction_args: "0, 0.2, 0.3"
+                })]})
+        </code></pre>
+  See also <button>Jobs</button> menu/Run Instruction.<br/>
+  This instruction is a work in progress. See the tooltips in the dialog for more help.
 </details>
 
 <details id="Human.enter_number_doc_id" class="doc_details"><summary>enter_number</summary>
     <code>Human.enter_number</code> presents a dialog allowing the user to enter a number via typing or clicking.
-  See <b>Human.task</b> for behavior common to all Human instructions.<p/>
-  See <b>Human.enter_choice</b> for documentation on the <b>user_data_variable_name</b> parameter.<p/>
+  See <a href="#" onclick="open_doc('Human.task_doc_id')">Human.task</a> for behavior common to all Human instructions.<p/>
+  See <a href="#" onclick="open_doc('Human.enter_choice_doc_id')">Human.enter_choice</a> for documentation on the
+  <b>user_data_variable_name</b> parameter.
+  <p/>
   <i>Uncommon Paramaters:</i><br/>
-  <b>initial_value</b> Default: 0.</br/>
-  <b>min</b> Default 0. The minimun acceptable value.</br/>
-  <b>max</b> Default 100. The maximum acceptable value.</br/>
-  <b>step</b> Default 1. The step size that clicking on the increment and decriment arrows will add or subtract
-              to the current value. 
+  <b>initial_value</b> Default: <code>0</code>.</br/>
+  <b>min</b> Default: <code>0</code>. The minimun acceptable value.</br/>
+  <b>max</b> Default: <code>100</code>. The maximum acceptable value.</br/>
+  <b>step</b> Default: <code>1</code>. The step size that clicking on the
+            increment and decriment arrows will add or subtract
+             to the current value.<br/>
+  <b>user_data_variable_name</b> Default: <code>"a_number"</code>.
+       Where the chosen number is stored.
+  <p/>
+  <i>Examples:</i>
+  <pre><code> new Job({name: "my_job",
+  do_list: [Human.enter_number({task: "How much?"}),
+            function(){ out("Amount: " +
+                        this.user_data.a_number)}]})
+            </code></pre>
+    In the above example, the 2nd instruction couldn't be simply
+    <code title="unEVALable">Robot.out("Amount: " this.user_data.a_number)</code><br/>
+    nor even:<br/>
+    <code title="unEVALable">Robot.out("Amount: " Job.my_job.user_data.a_number)</code><br/>
+    because each of those would be evaluated during the call to<br/>
+    <code title="unEVALable">new Job(...)</code> and thus
+    the new job would not yet be defined, much less have the
+    first instruction run.
+    By wrapping this in a function, we get the critical code
+    evaled at the time the 2nd instruction is called,
+    AND we have <code title="unEVALable">this</code> bound to the
+    job instance so we don't have to mention the Job's name inside
+    the code. This is important because you might want to change its name and
+    don't want the code to break if you do.
+
+    <pre><code> new Job({name: "my_job",
+  do_list: [Human.enter_number({task: "length to cut?",
+                                min: 40,
+                                max: 75,
+                                initial_value: 50,
+                                step: 0.5,
+                                user_data_variable_name: "size"})]})
+        </code></pre>
 </details>
 
 <details id="Human.enter_text_doc_id" class="doc_details"><summary>enter_text</summary>
     <code>Human.enter_text</code> presents a dialog allowing the user to enter text via typing.
-  See <b>Human.task</b> for behavior common to all Human instructions.<p/>
-  See <b>Human.enter_choice</b> for documentation on the <b>user_data_variable_name</b> parameter.<p/>
+  See <a href="#" onclick="open_doc('Human.task_doc_id')">Human.task</a> for behavior common to all Human instructions.<p/>
   <i>Uncommon Paramaters:</i><br/>
-  <b>initial_value</b> Default: "OK".</br/>
-  <b>line_count</b> Default 1. The number of lines that the input control will be configured for.
+  <b>initial_value</b> Default: <code>""</code>.<br/>
+  <b>line_count</b> Default <code>1</code>. The number of lines that the input control will be configured for.
      If this is more than 1, a user will be able to drag the lower right corner of the text field
-     to increase the visible lines.
+     to increase the visible lines.<br/>
+  <b>user_data_variable_name</b> Default: <code title="unEVALable">"a_text"</code>
+    See <a href="#" onclick="open_doc('Human.enter_choice_doc_id')">Human.enter_choice</a> f
+    or more documentation on this.
+    <p/>
+    <i>Examples:</i><br/>
+    <pre><code> new Job({name: "my_job",
+    do_list: [Human.enter_text({task: "Enter message."}),
+              function(){out("The message: " + this.user_data.a_text) }]})
+              </code></pre>
+
+    <pre><code> new Job({name: "my_job",
+    do_list: [Human.enter_text({task: "Enter message.",
+                                initial_value: "SOS",
+                                line_count: 3,
+                                user_data_variable_name: "a_mess"
+                             })]})
+            </code></pre>
 </details>
 
 <details id="Human.notify_doc_id" class="doc_details"><summary>notify</summary>
     <code>Human.notify</code> displays information for the user.
-  See <b>Human.task</b> for behavior common to all Human instructions,
-  but unlike other Human instructions, <b>notify</b> does not have a <b>user_data_variable_name</b> parameter,
+  See <a href="#" onclick="open_doc('Human.task_doc_id')">Human.task</a> for behavior common to all Human instructions,
+  but unlike other Human instructions, <b>notify</b> does not have a
+  <code title="unEVALable">user_data_variable_name</code> parameter,
   nor do its dialog boxes have buttons.
   It also does not wait for a user action before allowing its job to continue to the next do_list item.<p/>
   <i>Uncommon Parameters:</i><br/>
-  <b>window</b> true or false, default: true. Whether or not to present the information in a window.<br/>
-  <b>output_pane</b> true or false, default: true. Whether or not to present the task in the output pane.<br/>
-  <b>beep_count</b> Non-negative integer, default: 0. How many beep 'alerts' to sound when
+  <b>window</b> true or false. Default: <code>true</code>. Whether or not to present the information in a window.<br/>
+  <b>output_pane</b> true or false. Default: <code>true</code>. Whether or not to present the task in the output pane.<br/>
+  <b>beep_count</b> Non-negative integer. Default: <code>0</code>. How many beep 'alerts' to sound when
                    this instruction is run.<br/>
-  <b>speak</b> true or false, default: false. Whether or not to speak the title and task when this
-         instruction is run.
+  <b>speak</b> true or false. Default: <code>false</code>.
+         Whether or not to speak the title and task when this instruction is run.
+   <p/>
+   <i>Examples:</i>
+    <pre><code> new Job({name: "my_job",
+    do_list: [Human.notify({task: "do it"}),
+    Human.notify({task: "do more"})]})
+        </code></pre>
+
+    <pre><code> new Job({name: "my_job",
+          do_list: [Human.notify({task: "do it",
+          window: true,
+          output_pane: false,
+          beep_count: 3,
+          speak: true
+    })]})
+        </code></pre>
 </details>
 <details id="Human.show_window_doc_id" class="doc_details"><summary>show_window</summary>
 <i>show_window</i> comes in two flavors. The first is as a function that can
@@ -3363,13 +3556,18 @@ Evaluating the returned string will return a copy of <code>this</code>.
         opencv.js allows you to use JavaScript calls to access most of the funtionality
         in OpenCV.
         <p/>
-        DDE is in the early stages of using opencv.js. There is just one example:<br/>
-        Insert menu/show_window/OpenCV<br/> opencv.js functions are available
-        from the <code title="unEVALable">cv</code> object, which can be initialized via:<br/>
+        <b>cv</b> opencv.js functions are available
+        from the <code title="unEVALable">cv</code> global variable,
+        which can be initialized via:<br/>
         <code>var cv = require("opencv.js")</code><br/>
         The first time you do this after launching DDE will take several seconds.
         The rest of the times it is very quick, so no harm in calling it
         more than once.
+        <p/>
+        <i>Examples:</i><br/>
+        See Insert menu/Machine Vision submenu.
+        <p/>
+        DDE is in the early stages of using opencv.js. More to come.
         <p/>
         <b>Depth Perception</b><br/>
         Many applications in Robotics need 3D scene understanding.
@@ -3432,9 +3630,9 @@ Evaluating the returned string will return a copy of <code>this</code>.
         <i>Parameters</i><br/>
         <b>title</b> A string of the HTML displayed in the window's title bar. Default: "DDE Information"<br/>
         <b>width</b> The number of pixels wide that the window will be. Default: 400.
-                     Minimum 100: Maximum: window.outerWidth<br/>
+                     Minimum 100: Maximum: <code>window.outerWidth</code><br/>
         <b>height</b> The number of pixels tall that the window will be. Default: 400.
-                      Minimum: 50, Maximum: window.outerHeight<br/>
+                      Minimum: 50, Maximum: <code>window.outerHeight</code><br/>
         <b>x</b> The number of pixels that the left edge of the window will be from the left edge of the DDE window.
         Default: 200 . Minimum: 0 positions window at left of DDE window.<br/>
         <b>y</b> The number of pixels that the top edge of the window will be from the top edge of the DDE window.
@@ -3456,7 +3654,7 @@ Evaluating the returned string will return a copy of <code>this</code>.
             &nbsp;&nbsp;&nbsp;content:'&lt;p id="p_id" class="clickable">some para&lt;/p>',
             &nbsp;&nbsp;&nbsp;callback: function (vals){ append_in_ui("p_id", "&lt;h1>hey&lt;/h1>")}
             })</code></pre>
-        <b>callback</b> A function of one argument. Any returned valued will be ignored.
+        <b>callback</b> A function of one argument. Any returned value will be ignored.
         It will be called when the user clicks a button in
         a show_window. It's argument will be a literal object. Many of its properties are x and y positions
         relative to the top-left of html elements in or containing the clicked position.
@@ -3464,7 +3662,7 @@ Evaluating the returned string will return a copy of <code>this</code>.
         Others of its properties will be names and the corresponding values of input elements
         designated in the <i>content</i> argument. The actual "name" used for such an element
         is: <br/>If the element has a "name" properties, use the value of that.<br/>
-        else if the element has a "id" property, use that. Note that "id" properties
+        else if the element has an "id" property, use that. Note that "id" properties
         become global variables bound to the element, which can be useful
         if you want to programatically change them.<br/>
         else if the element has a "value" property, use that. Note that an
