@@ -5,8 +5,6 @@
 
 
 var Convert = new function(){
-
-
 	//Private
     //This is used to prevent functions from altering outside arrays
     this.deep_copy = function(arg){

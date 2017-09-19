@@ -5,39 +5,19 @@
 //Updated: 9_1_17
 
 
-/*
-debugger
-//Kin.xyz_to_J_angles([0, 0.08255, 0.8667749999999999], [0, 1, 0])
-Kin.xyz_to_J_angles([[0, .5, .075], [0, 0], [1, 1, 1]])
-debugger
-Kin.xyz_to_J_angles(Kin.J_angles_to_xyz([0,4, 0, 0, 0]))
-
-debugger
-Kin.J_angles_to_xyz(Dexter.NEUTRAL_ANGLES)
-Kin.xyz_to_J_angles(Kin.J_angles_to_xyz(Dexter.NEUTRAL_ANGLES))
-
-debugger
-Kin.xyz_to_J_angles([0, 0.511038126204794, 0.07581480790919819])
-
-Dexter.NEUTRAL_ANGLES
-Vector.matrix_multiply(Vector.make_pose([1, 2, 3], [0, 0, 0]), Vector.properly_define_point([[1, 2, 3], [4, 5, 6]]))
-
-*/
-
-
 var Kin = new function(){
     this.inverse_kinematics = function (xyz, direction = [0, 0, -1], config = [1, 1, 1], robot_pose){
     	if(xyz == undefined){
         	dde_error("xyz must be defined. To prevent unpredictable movement a default is not used.")
         }
         let xyz_dim = Vector.matrix_dimensions(xyz)
-        if(xyz_dim[0] == 3 && xyz_dim[1] == 3){
-        	robot_pose = direction
-            config = xyz[2]
-            direction = xyz[1]
-            xyz = xyz[0]
+        if(!(xyz_dim[0] == 1 && xyz_dim[1] == 3)){
+        	robot_pose = direction.slice()
+            config = xyz[2].slice()
+            direction = xyz[1].slice()
+            xyz = xyz[0].slice()
         }
-        if(robot_pose == undefined || robot_pose == [0, 0, -1]){
+        if((robot_pose == undefined) || (robot_pose == [0, 0, -1])){
         	robot_pose = Vector.identity_matrix(4)
         }
     
@@ -215,7 +195,14 @@ var Kin = new function(){
     }
 
     this.is_in_reach = function(xyz, J5_direction = [0, 0, -1], config = [1, 1, 1], robot_pose){
-    	let base_xyz = [0, 0, 0] // Come back to this and pull it from robot_pose
+    	try{
+			Kin.xyz_to_J_angles(xyz, J5_direction, config, robot_pose)
+            return true
+		}catch(err){
+			return false
+		}
+        /*
+        let base_xyz = [0, 0, 0] // Come back to this and pull it from robot_pose
         let base_plane = [0, 0, 1]
         let U3
         let U1 = Vector.add(base_xyz, Vector.multiply(base_plane, Dexter.LINK1))
@@ -258,6 +245,7 @@ var Kin = new function(){
         }else{
         	return false
         }
+        */
     }
     
     
