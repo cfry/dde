@@ -1,7 +1,7 @@
 //DXF class
 //James Wigglesworth
 //Started: 2_10_2017
-//Updated: 9_18_2017
+//Updated: 9_20_2017
 
 
 var DXF = new function(){
@@ -299,7 +299,6 @@ var DXF = new function(){
     	let m2 = m*m
 		let n = Math.sin(theta_radians)
     	let n2 = n*n
-
 		let result = [[  m2,  n2,  2*n*m],
                   	  [  n2,  m2, -2*n*m],
           		  	  [-n*m, n*m,  m2-n2]]
@@ -340,7 +339,6 @@ var DXF = new function(){
         		//debugger
             	/*
             	if(t > 1 && int[i].idx == fill.idxs[fill.idxs.length-1][1]){ //if connected to the same perimeter line
-
             		fill.idxs.push(int[i].idx, int[i+1].idx)
             		fill.lines.push([t-1, t])
             		//t+=2
@@ -605,11 +603,11 @@ debugger
 DXF.init_drawing()
 */
 
-
 	this.init_drawing = function(
 						file_name = "choose_file",
 						three_points = [[0, .50, 0.1], [0, .35, 0.1], [.200, .35, 0.1]], //(m) 
                         plane_normal_guess = [0, 0, 1],
+                        calc_plane_normal = false,
                         tool_height = 0.057000,
                         tool_length = 0.140000,
                         DXF_units,
@@ -618,39 +616,22 @@ DXF.init_drawing()
                         lift_height = 0.01
                       ){
                       
-                      
-                      
-                      
-//var three_points = [[0, .50, 0.1], [0, .35, 0.1], [.200, .35, 0.1]]
-
-
-//var filename = "2017/DXFs/5x5_box.dxf"
-//new Dexter({name: "my_dex", ip_address: "192.168.1.142", port: 50000})
-//var DXF_units = undefined //undefined will autofit the DXF to the bounding box
-//var DXF_units = "mm"
-//var DXF_units = "cm"
-//var DXF_units = "in"
 
 //Plane points
-var Apoint1 = three_points[0]		//(m)
-var Apoint2 = three_points[1]		//(m)
-var Apoint3 = three_points[2] 	//(m)
-
-//Tooltip location (microns)
-//tool_height = .057000
-//tool_length = .140000
+var Apoint1 = three_points[0] //(m)
+var Apoint2 = three_points[1] //(m)
+var Apoint3 = three_points[2] //(m)
 
 var speed = draw_speed //microns per second
 var resolution = draw_res //(microns) Straight line movements are made up of interpolated points with this as spacing
-//var lift_height = 10000*_um
-
-
-var Adir = Vector.multiply(-1, plane_normal_guess)
 var global_inter_do_item_dur = 1*_ms
 
-//Uncomment this to do different planes
-//var plane_pose = Kin.three_positions_to_pose(J_angles_A[0], J_angles_A[1], J_angles_A[2])
-//var Adir = Vector.multiply(1, Vector.pull(plane_pose, [0, 2], 2))
+if(calc_plane_normal){
+	var plane_pose = Kin.three_positions_to_pose(J_angles_A[0], J_angles_A[1], J_angles_A[2])
+	var Adir = Vector.multiply(1, Vector.pull(plane_pose, [0, 2], 2))
+}else{
+	var Adir = Vector.multiply(-1, plane_normal_guess)
+}
 
 ///////////////////////////////////////////////////////
 
@@ -1356,7 +1337,6 @@ function z_rotate_matrix(theta){
     let m2 = m*m
 	let n = Math.sin(theta_radians)
     let n2 = n*n
-
 	let result = [[  m2,  n2,  2*n*m],
                   [  n2,  m2, -2*n*m],
           		  [-n*m, n*m,  m2-n2]]
