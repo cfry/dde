@@ -1,7 +1,7 @@
 //DXF class
 //James Wigglesworth
 //Started: 2_10_2017
-//Updated: 9_20_2017
+//Updated: 9_21_2017
 
 
 var DXF = new function(){
@@ -478,87 +478,8 @@ var DXF = new function(){
     	}
     	return movCMD
 	}*/
-    
-    
-this.dxf_to_instructions = function(dxf_filepath, J_angles_A = [[0, 39.3299269794896, 87.73461599877282, -37.064542978262416, 0], [0, 19.842581231816105, 122.12940522787682, -51.97198645969291, 0], [29.74488129694223, 26.571085191624196, 110.86421721470252, -47.4353024063267, 0]], lift_height = 0.01, resolution = 0.0005, cut_speed = 0.0015, scale, fill = false){
-    let rapid_speed = 30
-    let my_path
-    let dxf_content
-    
-    let J_angles_1 = J_angles_A[0]
-    let J_angles_2 = J_angles_A[1]
-    let J_angles_3 = J_angles_A[2]
-    
-    let my_pose = Kin.three_positions_to_pose(J_angles_1, J_angles_2, J_angles_3)
-    let J5_dir = Adir
-    var work_plane = Table.create_child(my_pose, "work_plane")
-    let bounds = get_bounds_from_three_positions(J_angles_1, J_angles_2, J_angles_3)
-    
-    let my_entities, my_points
-    if(Arry.isArray(dxf_filepath)){
-    	my_path = dxf_filepath
-    }else{
-    	if((dxf_filepath.length <= 512) && (dxf_filepath.endsWith(".dxf") || dxf_filepath.endsWith(".DXF"))){
-    		dxf_content = file_content(dxf_filepath)
-    	}else{
-  			dxf_content = dxf_filepath
-        }
-        let my_entities = DXF.content_to_entities(dxf_content)
-    	let my_points
-    	if(fill == false){
-    		my_points = DXF.entities_to_points(my_entities)
-        	my_points = scale_points(my_points, scale, J_angles_A)
-    	}else{
-    		let fill_obj = fill_DXF(dxf_file_name, scale, 30, 5)
-        	my_points = object_to_points(fill_obj)
-    	}
-    	my_path = DXF.points_to_path(my_points, lift_height)
-    }
 
-    
-    
-    
-    let path_points = my_path[0]
-    let rapid = my_path[1]
-    path_points = Coor.move_points_to_coor(path_points, work_plane)
-    let dim = Vector.matrix_dimensions(path_points)
-    
-    let movCMD = []
-    
-   
-    
-    
-    let temp_mov
-    movCMD.push(make_ins("S", "MaxSpeed", rapid_speed))
-    movCMD.push(make_ins("S", "StartSpeed", .5))
-    movCMD.push(Dexter.move_to(path_points[0], J5_dir))
-    
-    for(let i = 1; i < dim[0]; i++){
-    	if(rapid[i] == 0){
-            temp_mov = move_straight(cut_speed, path_points[i-1], path_points[i], resolution, J5_dir, Dexter.RIGHT_UP_OUT)
-            for(let j = 0; j < temp_mov.length; j++){
-            	movCMD.push(temp_mov[j])
-            }
-        }else{
-        	if(rapid[i+0] == 0){
-                temp_mov = move_straight_to(path_points[i-1], path_points[i], 0.0005, J5_dir)
-            	for(let j = 0; j < temp_mov.length; j++){
-            		movCMD.push(temp_mov[j])
-            	}
-            }else{
-                movCMD.push(make_ins("S", "MaxSpeed", rapid_speed))
-    			movCMD.push(make_ins("S", "StartSpeed", .5))
-            }
-        	
-            temp_mov = move_straight_to(path_points[i-1], path_points[i], .2, J5_dir)
-            for(let j = 0; j < temp_mov.length; j++){
-            	movCMD.push(temp_mov[j])
-            }
-            
-        }
-    }
-    return movCMD
-}
+
     
     
     
@@ -570,256 +491,10 @@ this.dxf_to_instructions = function(dxf_filepath, J_angles_A = [[0, 39.329926979
 //Started 6_1_17
 //Updated 9_19_17
 
-/*General Setup (these can be done before or after the below instructions):
-- Attach drawing end effector such as a pen or laser to Dexter
-- On a flat work surface within Dexter's reach place a flat work piece (Paper, cardboard etc.)
-- 
-*/
-/*Instructions:
-1. Choose the Jobs menu and click 'DXF.init_drawing...' to define the jobs used to help make DXF drawings
-1. Before turning Dexter on, orient all joints to [0, 0, 0, 0, 0]
-2. Run the job Cal by clicking the Cal button on the job bar
-3. Change the value of the global variable Apoint1 and eval
-4. Start Job.A1 by clicking the 'A1' button in the Jobs bar
-5. Adjust the value of Apoint1 until laser is in focus or pen is on paper
-6. Repeat for A2 and A3
-   These points define your plane and bounding box
-   Create a right triangle with these points. 
-   The corner with approximately 90 degrees will become the origin
-7. Set 'filename' to the path from dde_apps to your DXF file.
-8. Choose the units that the DXF was drawn in
-9. Adjust tooltip location which is relative to the top of the differential cylinder
-10. Click Cut_DXF or Draw_DXF to laser cut or draw with a pen.
-*/
-///////////////////////////////////////////////////////
 
-
-
-///////////////////////////////////////////////////////
-//USER UNPUT:
-//
-/*
-debugger
-DXF.init_drawing()
-*/
-
-	this.init_drawing = function(
-						file_name = "choose_file",
-						three_points = [[0, .50, 0.1], [0, .35, 0.1], [.200, .35, 0.1]], //(m) 
-                        plane_normal_guess = [0, 0, 1],
-                        calc_plane_normal = false,
-                        tool_height = 0.057000,
-                        tool_length = 0.140000,
-                        DXF_units,
-                        draw_speed = 0.03,
-                        draw_res = 0.0005,
-                        lift_height = 0.01
-                      ){
-                      
-
-//Plane points
-var Apoint1 = three_points[0] //(m)
-var Apoint2 = three_points[1] //(m)
-var Apoint3 = three_points[2] //(m)
-
-var speed = draw_speed //microns per second
-var resolution = draw_res //(microns) Straight line movements are made up of interpolated points with this as spacing
-var global_inter_do_item_dur = 1*_ms
-
-if(calc_plane_normal){
-	var plane_pose = Kin.three_positions_to_pose(J_angles_A[0], J_angles_A[1], J_angles_A[2])
-	var Adir = Vector.multiply(1, Vector.pull(plane_pose, [0, 2], 2))
-}else{
-	var Adir = Vector.multiply(-1, plane_normal_guess)
-}
-
-///////////////////////////////////////////////////////
-
-
-
-
-
-
-
-var J_angles_A = [Kin.xyz_to_J_angles(Apoint1, Adir), 
-			  	  Kin.xyz_to_J_angles(Apoint2, Adir), 
-              	  Kin.xyz_to_J_angles(Apoint3, Adir)]
-
-
-new Job({name: "Home",
-         do_list: [function(){return my_settings(30)},
-         		   function(){return Dexter.move_all_joints([0, 0, 0, 0, 0])}]}
-)
-
-/////////////////////////////////////////////////////////////////
-//Calibration
-/////////////////////////////////////////////////////////////////
-var old_boundaries
-new Job({name: "Cal", 
-    do_list: [function(){return save_boundaries()},
-    		  setOpenLoop(),
-    		  make_ins("w", 42,64),
-    		  make_ins("w", 42,0),
-              make_ins("w", 42,256),
-              make_ins("w", 42,0),
-              make_ins("S", "MaxSpeed", 30),
-              make_ins("S", "Acceleration", 0.000129),
-              make_ins("S", "StartSpeed", .05),
-              make_ins("w", 79, 50 ^ 200 ),
-              make_ins("w", 80, 50 ^ 200 ),
-              make_ins("w", 81, 50 ^ 200 ),
-        	  make_ins("S", "J1BoundryLow",-188),
-              make_ins("S", "J1BoundryHigh",188),
-              make_ins("S", "J2BoundryLow",-97),
-              make_ins("S", "J2BoundryHigh",97),
-              make_ins("S", "J3BoundryLow",-158),
-              make_ins("S", "J3BoundryHigh",158),
-              make_ins("S", "J4BoundryLow",-108),
-              make_ins("S", "J4BoundryHigh",108),
-              make_ins("S", "J5BoundryLow",-190),
-              make_ins("S", "J5BoundryHigh",190),
-    		  Dexter.move_all_joints(187,0,0,0,0),
-              make_ins("F"),
-              make_ins("S", "MaxSpeed",10),
-              make_ins("w", 42,1),
-              Dexter.move_all_joints(-187,0,0,0,0),
-              make_ins("F"),
-              make_ins("w", 42,0),
-              make_ins("S", "MaxSpeed",30),
-              Dexter.move_all_joints(0,0,0,0,0),
-              Dexter.move_all_joints(0,92,0,0,0),
-              make_ins("F"),
-              make_ins("S", "MaxSpeed",10),
-			  make_ins("w", 42,4),
-              Dexter.move_all_joints(0,-92,0,0,0),
-              make_ins("F"),
-              make_ins("w", 42,0),
-              make_ins("S", "MaxSpeed",30),
-              Dexter.move_all_joints(0,0,0,0,0),
-              Dexter.move_all_joints(0,0,153,0,0),
-              make_ins("F"),
-              make_ins("S", "MaxSpeed",10),
-              make_ins("w", 42,2),
-              Dexter.move_all_joints(0,0,-153,0,0),
-              make_ins("F"),
-              make_ins("w", 42,0),
-              make_ins("S", "MaxSpeed",30),              
-              Dexter.move_all_joints(0,0,0,0,0),
-              make_ins("S", "MaxSpeed", 10),
-              Dexter.move_all_joints(0,0,0,103,0),
-              make_ins("F"),
-              make_ins("w", 42,1024),
-              Dexter.move_all_joints(0,0,0,-103,0),
-              make_ins("F"),
-              make_ins("w", 42,0),
-              Dexter.move_all_joints(0,0,0,0,189),
-              make_ins("F"),
-              make_ins("w", 42,2048),
-              Dexter.move_all_joints(0,0,0,0,-189),
-              make_ins("F"),
-              make_ins("w", 42,0),
-              Dexter.move_all_joints(0,0,0,0,0),
-              make_ins("S", "MaxSpeed", 30),
-              Dexter.move_all_joints(30,30,30,30,30),
-              Dexter.move_all_joints(0,0,0,0,0),
-              make_ins("w", 42,12448),
-              make_ins("l"),
-              setKeepPosition(),
-              function(){return restore_boundaries()}
-    ]})
-
-function save_boundaries(){
-	old_boundaries = [Dexter.J1_ANGLE_MIN, Dexter.J1_ANGLE_MAX, 
-    				  Dexter.J2_ANGLE_MIN, Dexter.J2_ANGLE_MAX,
-                      Dexter.J3_ANGLE_MIN, Dexter.J3_ANGLE_MAX,
-                      Dexter.J4_ANGLE_MIN, Dexter.J4_ANGLE_MAX,
-                      Dexter.J5_ANGLE_MIN, Dexter.J5_ANGLE_MAX
-                      ]
-                      
-    Dexter.J1_ANGLE_MIN = -188
-    Dexter.J1_ANGLE_MAX = 188
-    Dexter.J2_ANGLE_MIN = -97
-    Dexter.J2_ANGLE_MAX = 97
-    Dexter.J3_ANGLE_MIN = -158
-    Dexter.J3_ANGLE_MAX = 158
-    Dexter.J4_ANGLE_MIN = -108
-    Dexter.J4_ANGLE_MAX = 108
-    Dexter.J5_ANGLE_MIN = -190
-    Dexter.J5_ANGLE_MAX = 190               
-}
-
-function restore_boundaries(){
-	Dexter.J1_ANGLE_MIN = old_boundaries[0]
-    Dexter.J1_ANGLE_MAX = old_boundaries[1]
-    Dexter.J2_ANGLE_MIN = old_boundaries[2]
-    Dexter.J2_ANGLE_MAX = old_boundaries[3]
-    Dexter.J3_ANGLE_MIN = old_boundaries[4]
-    Dexter.J3_ANGLE_MAX = old_boundaries[5]
-    Dexter.J4_ANGLE_MIN = old_boundaries[6]
-    Dexter.J4_ANGLE_MAX = old_boundaries[7]
-    Dexter.J5_ANGLE_MIN = old_boundaries[8]
-    Dexter.J5_ANGLE_MAX = old_boundaries[9]
-}
-
-
-
-new Job({name: "A1",
-         do_list: [function(){return my_settings(30)},
-         		   function(){return setKeepPosition()},
-         		   function(){return Dexter.move_to(Apoint1, Adir, Dexter.RIGHT_UP_OUT)}
-         		  ]}
-)
-new Job({name: "A2",
-         do_list: [function(){return my_settings()},
-         		   function(){return setKeepPosition()},
-         		   function(){return Dexter.move_to(Apoint2, Adir, Dexter.RIGHT_UP_OUT)}
-         		  ]} 
-)
-new Job({name: "A3",
-         do_list: [function(){return my_settings()},
-                   function(){return setKeepPosition()},
-         		   function(){return Dexter.move_to(Apoint3, Adir, Dexter.RIGHT_UP_OUT)}
-         		  ]}
-)
-
-new Job({name: "Bounds",
-         do_list: [Robot.out("X: " + Vector.round(get_bounds_from_three_positions(J_angles_A[0], J_angles_A[1], J_angles_A[2])[0], 1) + "   Y: " + Vector.round(get_bounds_from_three_positions(J_angles_A[0], J_angles_A[1], J_angles_A[2])[1], 1) + "  (microns)")
-         		  ]}
-)
-
-new Job({name: "Laser_Off",
-         do_list: [make_ins("w", 64, 0),
-         		   dummy_move()]}
-)
-new Job({name: "Laser_Low",
-         do_list: [make_ins("S", "EERoll", 430),
-         		   dummy_move()
-                   ]}
-)
-new Job({name: "Laser_On", 
-         do_list: [make_ins("w", 64, 2),
-         		   dummy_move()
-                   ]}
-)
-
-new Job({name: "Cut_DXF",
-         inter_do_item_dur: global_inter_do_item_dur,
-         show_instructions: false,
-         do_list: [function(){return my_settings(30)},
-         		   function(){return setKeepPosition()},
-         		   function(){return laser_cut_dxf(filename, J_angles_A, resolution, speed, DXF_units)}
-            	  ]}
-)
-
-new Job({name: "Draw_DXF",
-         inter_do_item_dur: global_inter_do_item_dur,
-         show_instructions: false,
-         do_list: [function(){return my_settings(30)},
-         		   function(){return setKeepPosition()},
-         		   function(){return draw_dxf(filename, J_angles_A, lift_height, resolution, speed, DXF_units)}
-            	  ]}
-)
-
+////////////////////////////////////////////////////////////////////////////
+//DXF drawing utility functions
+////////////////////////////////////////////////////////////////////////////
 
 function get_bounds_from_three_positions(J_angles_1, J_angles_2, J_angles_3){
 	let points_A, points_B, points_C, UA5, UA4, UB5, UB4, UC5, UC4, U5_ave, U4_ave, U45
@@ -881,7 +556,7 @@ function get_bounds_from_three_positions(J_angles_1, J_angles_2, J_angles_3){
     }
     
     return [x_length, y_length]
-}    
+}
 
 function move_straight_to(xyz_1, xyz_2, resolution, J5_direction, config, base_xyz, base_plane, base_rotation){
     let movCMD = []
@@ -942,12 +617,13 @@ function PID_move_to(xyz, J5_direction, config, base_xyz, base_plane, base_rotat
 }
 
 function my_settings(speed = 20){
-
+	/*
     Dexter.LINK1 = .165100
     Dexter.LINK2 = .327025 
     Dexter.LINK3 = .295425 
     Dexter.LINK4 = tool_height
     Dexter.LINK5 = tool_length
+    */
     
 	return [
     make_ins("S", "MaxSpeed", speed),
@@ -964,163 +640,6 @@ function my_settings(speed = 20){
     make_ins("S", "J5BoundryHigh",680000*_arcsec),
     make_ins("S", "J5BoundryLow",-680000*_arcsec)
     ]
-}
-
-///////////////////////////////////////////////////////////////////////////////////
-// DXF stuff 
-///////////////////////////////////////////////////////////////////////////////////
-
-
-function laser_cut_dxf(dxf_file_name, J_angles_A /*array of three J_angles*/, resolution, cut_speed, scale, fill = false){
-    let lift_height = 1*_um
-    let rapid_speed = 30
-    let dxf_content = file_content(dxf_file_name)
-    
-    let J_angles_1 = J_angles_A[0]
-    let J_angles_2 = J_angles_A[1]
-    let J_angles_3 = J_angles_A[2]
-    
-    let my_pose = Kin.three_positions_to_pose(J_angles_1, J_angles_2, J_angles_3)
-    //let J5_dir = Vector.multiply(-1, Vector.pull(my_pose, [0, 2], 2))
-    let J5_dir = Adir
-    var work_plane = Table.create_child(my_pose, "work_plane")
-    let bounds = get_bounds_from_three_positions(J_angles_1, J_angles_2, J_angles_3)
-    
-    let my_entities = DXF.content_to_entities(dxf_content)
-    let my_points
-    if(fill == false){
-    	my_points = DXF.entities_to_points(my_entities)
-        my_points = scale_points(my_points, scale, J_angles_A)
-    }else{
-    	let fill_obj = fill_DXF(dxf_file_name, scale, 30, 5)
-        my_points = object_to_points(fill_obj)
-    }
-    
-    let my_path = DXF.points_to_path(my_points, lift_height)
-    
-    let path_points = my_path[0]
-    let rapid = my_path[1]
-    path_points = Coor.move_points_to_coor(path_points, work_plane)
-    let dim = Vector.matrix_dimensions(path_points)
-    
-    let movCMD = []
-    let temp_mov
-    movCMD.push(make_ins("w", 64, 0))
-    movCMD.push(make_ins("S", "MaxSpeed", rapid_speed))
-    movCMD.push(make_ins("S", "StartSpeed", .5))
-    
-    movCMD.push(Dexter.move_to(path_points[0], J5_dir))
-    //movCMD.push(PID_move_to(path_points[0], J5_dir, Dexter.RIGHT_UP_OUT))
-    
-    if(trace == true){
-    	movCMD.push(make_ins("S", "EERoll", 430))
-    }else{
-    	movCMD.push(make_ins("w", 64, 2))
-    }
-    
-    for(let i = 1; i < dim[0]; i++){
-    	if(rapid[i] == 0){
-        	if(trace == true){
-    			movCMD.push(make_ins("S", "EERoll", 430))
-    		}else{
-    			movCMD.push(make_ins("w", 64, 2))
-    		}
-            
-            
-            
-            temp_mov = move_straight(cut_speed, path_points[i-1], path_points[i], resolution, J5_dir, Dexter.RIGHT_UP_OUT)
-            
-            
-        	//temp_mov = move_straight_to(path_points[i-1], path_points[i], resolution, J5_dir, Dexter.RIGHT_UP_OUT)
-            for(let j = 0; j < temp_mov.length; j++){
-            	movCMD.push(temp_mov[j])
-            }
-        }else{
-        	if(rapid[i+0] == 0){
-                if(trace == true){
-    				movCMD.push(make_ins("S", "EERoll", 430))
-    			}else{
-    				movCMD.push(make_ins("w", 64, 2))
-    			}
-            }else{
-                movCMD.push(make_ins("S", "MaxSpeed", rapid_speed))
-    			movCMD.push(make_ins("S", "StartSpeed", .5))
-                movCMD.push(make_ins("w", 64, 0))
-            }
-        	
-            temp_mov = move_straight_to(path_points[i-1], path_points[i], .2, J5_dir)
-            for(let j = 0; j < temp_mov.length; j++){
-            	movCMD.push(temp_mov[j])
-            }
-            
-        }
-    }
-    movCMD.push(make_ins("w", 64, 0))
-    movCMD.push(dummy_move())
-    return movCMD
-}
-
-function draw_dxf(dxf_file_name, J_angles_A /*array of three J_angles*/, lift_height, resolution, cut_speed, scale, fill = false){
-    let rapid_speed = 30
-    let dxf_content = file_content(dxf_file_name)
-    
-    let J_angles_1 = J_angles_A[0]
-    let J_angles_2 = J_angles_A[1]
-    let J_angles_3 = J_angles_A[2]
-    
-    let my_pose = Kin.three_positions_to_pose(J_angles_1, J_angles_2, J_angles_3)
-    let J5_dir = Adir
-    var work_plane = Table.create_child(my_pose, "work_plane")
-    let bounds = get_bounds_from_three_positions(J_angles_1, J_angles_2, J_angles_3)
-    
-    let my_entities = DXF.content_to_entities(dxf_content)
-    let my_points
-    if(fill == false){
-    	my_points = DXF.entities_to_points(my_entities)
-        my_points = scale_points(my_points, scale, J_angles_A)
-    }else{
-    	let fill_obj = fill_DXF(dxf_file_name, scale, 30, 5)
-        my_points = object_to_points(fill_obj)
-    }
-    
-    let my_path = DXF.points_to_path(my_points, lift_height)
-    
-    let path_points = my_path[0]
-    let rapid = my_path[1]
-    path_points = Coor.move_points_to_coor(path_points, work_plane)
-    let dim = Vector.matrix_dimensions(path_points)
-    
-    let movCMD = []
-    let temp_mov
-    movCMD.push(make_ins("S", "MaxSpeed", rapid_speed))
-    movCMD.push(make_ins("S", "StartSpeed", .5))
-    movCMD.push(Dexter.move_to(path_points[0], J5_dir))
-    
-    for(let i = 1; i < dim[0]; i++){
-    	if(rapid[i] == 0){
-            temp_mov = move_straight(cut_speed, path_points[i-1], path_points[i], resolution, J5_dir, Dexter.RIGHT_UP_OUT)
-            for(let j = 0; j < temp_mov.length; j++){
-            	movCMD.push(temp_mov[j])
-            }
-        }else{
-        	if(rapid[i+0] == 0){
-                temp_mov = move_straight_to(path_points[i-1], path_points[i], 0.0005, J5_dir)
-            	for(let j = 0; j < temp_mov.length; j++){
-            		movCMD.push(temp_mov[j])
-            	}
-            }else{
-                movCMD.push(make_ins("S", "MaxSpeed", rapid_speed))
-    			movCMD.push(make_ins("S", "StartSpeed", .5))
-            }
-        	
-            temp_mov = move_straight_to(path_points[i-1], path_points[i], .2, J5_dir)
-            for(let j = 0; j < temp_mov.length; j++){
-            	movCMD.push(temp_mov[j])
-            }
-            
-        }
-    }
-    return movCMD
 }
 
 function dummy_move(){
@@ -1388,5 +907,385 @@ function fill_perimeter(perimeter_obj, tool_diameter, overlap_ratio = .1, toggle
     }
     return fill
 } // closes fill_perimeter
+
+
+////////////////////////////////////////////////////////////////////////////
+//DXF drawing instruction
+////////////////////////////////////////////////////////////////////////////
+/*
+DXF.dxf_to_instructions()
+*/
+
+this.dxf_to_instructions = function({
+						dxf_filepath = "choose_file",
+						three_J_angles = [[0, 30, 90, -30, 0], [0, 45, 90, -45, 0], [15, 45, 90, -45, 0]],
+                        tool_height = 5.08 * _cm,
+                        tool_length = 8.255 * _cm,
+                        DXF_units,
+                        draw_speed = 3 * _cm/_s,
+                        draw_res = 0.5 * _mm,
+                        lift_height = 1 * _cm,
+                        tool_action = false,
+                        tool_action_on_function = function(){
+							return [
+							make_ins("w", 64, 2),
+							dummy_move()]
+						},
+						tool_action_off_function = function(){
+							return [
+							make_ins("w", 64, 0),
+							dummy_move()]
+						}
+                      } = {}){
+	
+    //correct link lengths for tool geometry:
+    Dexter.LINK4 = tool_height
+    Dexter.LINK5 = tool_length
+    
+    if(dxf_filepath == "choose_file"){
+    	let title_string
+        if(tool_action){
+        	title_string = "Select File with '.dxf' Extension to Apply Tool Action to"
+        }else{
+        	title_string = "Select File with '.dxf' Extension to Draw"
+        }
+		dxf_filepath = choose_file({title: title_string})
+        if(dxf_filepath == undefined){
+        	out("No file has been selected. Nothing will be drawn.", "blue")
+            return
+        }
+        if(!(dxf_filepath.endsWith(".dxf") || dxf_filepath.endsWith(".DXF"))){
+        	dde_error("Only DXF's are supported. The following file needs the extension '.dxf': " + dxf_filepath)
+        }
+	}
+    
+	if(tool_action){
+		new Job({name: "Action_Off",
+         	 	do_list: [tool_action_off_function]}
+			    )
+        new Job({name: "Action_On",
+         	 	do_list: [tool_action_on_function]}
+			    )
+	}
+        
+    let rapid_speed = 30
+    let dxf_content = file_content(dxf_filepath)
+    
+    let J_angles_1 = three_J_angles[0]
+    let J_angles_2 = three_J_angles[1]
+    let J_angles_3 = three_J_angles[2]
+    
+    let my_pose = Kin.three_positions_to_pose(J_angles_1, J_angles_2, J_angles_3)
+    let J5_dir = Vector.multiply(-1, Vector.pull(my_pose, [0, 2], 2))
+    var work_plane = Table.create_child(my_pose, "work_plane")
+    let bounds = get_bounds_from_three_positions(J_angles_1, J_angles_2, J_angles_3)
+    
+    let my_entities = DXF.content_to_entities(dxf_content)
+    let my_points
+    /*
+    if(fill == false){
+    	my_points = DXF.entities_to_points(my_entities)
+        my_points = scale_points(my_points, scale, J_angles_A)
+    }else{
+    	let fill_obj = fill_DXF(dxf_file_name, scale, 30, 5)
+        my_points = object_to_points(fill_obj)
+    }
+    */
+    my_points = DXF.entities_to_points(my_entities)
+    my_points = scale_points(my_points, DXF_units, three_J_angles)
+    
+    let my_path = DXF.points_to_path(my_points, lift_height)
+    
+    let path_points = my_path[0]
+    let rapid = my_path[1]
+    path_points = Coor.move_points_to_coor(path_points, work_plane)
+    let dim = Vector.matrix_dimensions(path_points)
+    
+    let movCMD = []
+    let temp_mov
+    if(tool_action){movCMD.push(make_ins("w", 64, 0))}
+    movCMD.push(make_ins("S", "MaxSpeed", rapid_speed))
+    movCMD.push(make_ins("S", "StartSpeed", .5))
+    movCMD.push(Dexter.move_to(path_points[0], J5_dir))
+    if(tool_action){movCMD.push(tool_action_on_function)}
+    
+    for(let i = 1; i < dim[0]; i++){
+    	if(rapid[i] == 0){
+        	if(tool_action){movCMD.push(tool_action_on_function)}
+            temp_mov = move_straight(draw_speed, path_points[i-1], path_points[i], draw_res, J5_dir, Dexter.RIGHT_UP_OUT)
+            for(let j = 0; j < temp_mov.length; j++){
+            	movCMD.push(temp_mov[j])
+            }
+        }else{
+        	if(rapid[i+0] == 0){
+                if(tool_action){
+                	movCMD.push(tool_action_on_function)
+                }else{
+                	temp_mov = move_straight_to(path_points[i-1], path_points[i], draw_res, J5_dir)
+            		for(let j = 0; j < temp_mov.length; j++){
+            			movCMD.push(temp_mov[j])
+            		}
+                }
+            }else{
+                movCMD.push(make_ins("S", "MaxSpeed", rapid_speed))
+    			movCMD.push(make_ins("S", "StartSpeed", .5))
+                if(tool_action){movCMD.push(make_ins("w", 64, 0))}
+            }
+        	
+            temp_mov = move_straight_to(path_points[i-1], path_points[i], .2, J5_dir)
+            for(let j = 0; j < temp_mov.length; j++){
+            	movCMD.push(temp_mov[j])
+            }
+            
+        }
+    }
+    if(tool_action){
+    		movCMD.push(tool_action_off_function)
+    }
+    return movCMD
+}
+
+
+/*General Setup (these can be done before or after the below instructions):
+- Attach drawing end effector such as a pen or laser to Dexter
+- On a flat work surface within Dexter's reach place a flat work piece (Paper, cardboard etc.)
+- 
+*/
+/*Instructions:
+1. Choose the Jobs menu and click 'DXF.init_drawing...' to define the jobs used to help make DXF drawings
+1. Before turning Dexter on, orient all joints to [0, 0, 0, 0, 0]
+2. Run the job Cal by clicking the Cal button on the job bar
+3. Change the value of the global variable Apoint1 and eval
+4. Start Job.A1 by clicking the 'A1' button in the Jobs bar
+5. Adjust the value of Apoint1 until laser is in focus or pen is on paper
+6. Repeat for A2 and A3
+   These points define your plane and bounding box
+   Create a right triangle with these points. 
+   The corner with approximately 90 degrees will become the origin
+7. Set 'filename' to the path from dde_apps to your DXF file.
+8. Choose the units that the DXF was drawn in
+9. Adjust tooltip location which is relative to the top of the differential cylinder
+10. Click Cut_DXF or Draw_DXF to laser cut or draw with a pen.
+*/
+///////////////////////////////////////////////////////
+
+
+
+///////////////////////////////////////////////////////
+//USER UNPUT:
+//
+/*
+debugger
+DXF.init_drawing()
+*/
+
+	this.init_drawing = function({
+						dxf_filepath = "choose_file",
+						three_points = [[0, .55, 0.05], [0, .4, 0.05], [.15, .4, 0.05]], //(m) 
+                        plane_normal_guess = [0, 0, 1],
+                        calc_plane_normal = false,
+                        tool_height = 5.08 * _cm,
+                        tool_length = 8.255 * _cm,
+                        DXF_units,
+                        draw_speed = 1 * _cm/_s,
+                        draw_res = 0.5 * _mm,
+                        lift_height = 1 * _cm,
+                        tool_action = false,
+                        tool_action_on_function = function(){
+							return [
+							make_ins("w", 64, 2),
+							dummy_move()]
+						},
+						tool_action_off_function = function(){
+							return [
+							make_ins("w", 64, 0),
+							dummy_move()]
+						}
+                      } = {}){
+
+//Plane points
+var Apoint1 = three_points[0] //(m)
+var Apoint2 = three_points[1] //(m)
+var Apoint3 = three_points[2] //(m)
+
+var speed = draw_speed //microns per second
+var resolution = draw_res //(microns) Straight line movements are made up of interpolated points with this as spacing
+var global_inter_do_item_dur = 1*_ms
+
+var Adir = Vector.multiply(-1, plane_normal_guess)
+var J_angles_A = [Kin.xyz_to_J_angles(Apoint1, Adir), 
+			  	  Kin.xyz_to_J_angles(Apoint2, Adir), 
+              	  Kin.xyz_to_J_angles(Apoint3, Adir)]
+if(calc_plane_normal){
+	var plane_pose = Kin.three_positions_to_pose(J_angles_A[0], J_angles_A[1], J_angles_A[2])
+	Adir = Vector.multiply(1, Vector.pull(plane_pose, [0, 2], 2))
+}
+
+new Job({name: "Home",
+         do_list: [function(){return my_settings(30)},
+         		   function(){return Dexter.move_all_joints([0, 0, 0, 0, 0])}]}
+)
+
+/////////////////////////////////////////////////////////////////
+//Calibration
+/////////////////////////////////////////////////////////////////
+var old_boundaries
+new Job({name: "Cal", 
+    do_list: [setOpenLoop(),
+            		  make_ins("S", "J1BoundryHigh",180),
+                      make_ins("S", "J1BoundryLow",-180),
+                      make_ins("S", "J2BoundryLow",-90),
+                      make_ins("S", "J2BoundryHigh",90),
+                      make_ins("S", "J3BoundryLow",-150),
+                      make_ins("S", "J3BoundryHigh",150),
+                      make_ins("S", "J4BoundryLow",-130),
+                      make_ins("S", "J4BoundryHigh",130),
+                      make_ins("S", "J5BoundryLow",-185),
+                      make_ins("S", "J5BoundryHigh",180),
+                      make_ins("a", 0, 0, 0, 0, 0),
+                      make_ins("F"),
+                      make_ins("w", 42,64),
+                      make_ins("w", 42,0),
+                      make_ins("w", 42,256),
+                      make_ins("w", 42,0),
+                      make_ins("S", "MaxSpeed", 30),
+                      make_ins("S", "Acceleration", 0.000129),
+                      make_ins("S", "StartSpeed", .05),
+                      make_ins("w", 79, 50 ^ 200 ),
+                      make_ins("w", 80, 50 ^ 200 ),
+                      make_ins("w", 81, 50 ^ 200 ),
+                      make_ins("a", 187, 0, 0, 0, 0),
+                      make_ins("F"),
+                      make_ins("S", "MaxSpeed",10),
+                      make_ins("w", 42,1),
+                      make_ins("a", -187, 0, 0, 0, 0),
+                      make_ins("F"),
+                      make_ins("w", 42,0),
+                      make_ins("S", "MaxSpeed",30),
+                      make_ins("a", 0, 0, 0, 0, 0),
+                      make_ins("a", 0, 92, 0, 0, 0),
+                      make_ins("F"),
+                      make_ins("S", "MaxSpeed",10),
+                      make_ins("w", 42,4),
+                      make_ins("a", 0, -92, 0, 0, 0),
+                      make_ins("F"),
+                      make_ins("w", 42,0),
+                      make_ins("S", "MaxSpeed",30),
+                      make_ins("a", 0, 0, 0, 0, 0),
+                      make_ins("a", 0, 0, 153, 0, 0),
+                      make_ins("F"),
+                      make_ins("S", "MaxSpeed",10),
+                      make_ins("w", 42,2),
+                      make_ins("a", 0, 0, -153, 0, 0),
+                      make_ins("F"),
+                      make_ins("w", 42,0),
+                      make_ins("S", "MaxSpeed",30),
+                      make_ins("a", 0, 0, 0, 0, 0),
+                      make_ins("S", "MaxSpeed", 10),
+                      make_ins("a", 0, 0, 0, 103, 0),
+                      make_ins("F"),
+                      make_ins("w", 42,1024),
+                      make_ins("a", 0, 0, 0, -103, 0),
+                      make_ins("F"),
+                      make_ins("w", 42,0),
+                      make_ins("a", 0, 0, 0, 0, 189),
+                      make_ins("F"),
+                      make_ins("w", 42,2048),
+                      make_ins("a", 0, 0, 0, 0, -189),
+                      make_ins("F"),
+                      make_ins("w", 42,0),
+                      make_ins("a", 0, 0, 0, 0, 0),
+                      make_ins("S", "MaxSpeed", 30),
+                      make_ins("a", 30, 30, 30, 30, 30),
+                      make_ins("a", 0, 0, 0, 0, 0),
+                      make_ins("w", 42,12448),
+                      make_ins("l"),
+                      setKeepPosition()
+    ]})
+
+new Job({name: "Point1",
+         do_list: [function(){return my_settings(30)},
+         		   //function(){return setKeepPosition()},
+         		   function(){return Dexter.move_to(Apoint1, Adir, Dexter.RIGHT_UP_OUT)}
+         		  ]}
+)
+new Job({name: "Point2",
+         do_list: [function(){return my_settings()},
+         		   //function(){return setKeepPosition()},
+         		   function(){return Dexter.move_to(Apoint2, Adir, Dexter.RIGHT_UP_OUT)}
+         		  ]} 
+)
+new Job({name: "Point3",
+         do_list: [function(){return my_settings()},
+                   //function(){return setKeepPosition()},
+         		   function(){return Dexter.move_to(Apoint3, Adir, Dexter.RIGHT_UP_OUT)}
+         		  ]}
+)
+
+new Job({name: "Out_Rectangle",
+		 simulate: true,
+		 show_instructions: false,
+         do_list: [function(){out("Width: " + Vector.round(Vector.multiply(100, get_bounds_from_three_positions(J_angles_A[0], J_angles_A[1], J_angles_A[2])[0]), 3) + " (cm)   Height: " + Vector.round(Vector.multiply(100, get_bounds_from_three_positions(J_angles_A[0], J_angles_A[1], J_angles_A[2])[1]), 3) + "  (cm)", "blue")}
+         		  ]}
+)
+
+if(tool_action){
+new Job({name: "Action_Off",
+         do_list: [tool_action_off_function]}
+)
+/*
+new Job({name: "Laser_Low",
+         do_list: [make_ins("S", "EERoll", 430),
+         		   dummy_move()
+                   ]}
+)
+*/
+new Job({name: "Action_On", 
+         do_list: [tool_action_on_function]}
+)
+
+new Job({name: "DXF_Tool",
+         inter_do_item_dur: global_inter_do_item_dur,
+         show_instructions: false,
+         do_list: [function(){return my_settings(30)},
+         		   function(){return laser_cut_dxf(filename, J_angles_A, resolution, speed, DXF_units)}
+            	  ]}
+)
+}else{
+new Job({name: "Draw_DXF",
+         inter_do_item_dur: global_inter_do_item_dur,
+         show_instructions: false,
+         do_list: [function(){return my_settings(30)},
+         		   function(){return DXF.dxf_to_instructions({
+                   								dxf_filepath: dxf_filepath, 
+                                                three_J_angles: J_angles_A,
+                                                tool_height: tool_height,
+                        						tool_length: tool_length,
+                          						DXF_units: DXF_units,
+                        						draw_speed: draw_speed,
+                        						draw_res: draw_res,
+                        						lift_height: lift_height,
+                        						tool_action: false,
+                                                tool_action_on_function: tool_action_on_function,
+												tool_action_off_function: tool_action_off_function
+                                                })}
+            	  ]}
+)
+}
+
+/*
+this.dxf_to_instructions = function({
+						dxf_filepath = "choose_file",
+						three_J_angles = [[0, 30, 90, -30, 0], [0, 45, 90, -45, 0], [15, 45, 90, -45, 0]],
+                        tool_height = 5.08 * _cm,
+                        tool_length = 8.255 * _cm,
+                        DXF_units,
+                        draw_speed = 3 * _cm/_s,
+                        draw_res = 0.5 * _mm,
+                        lift_height = 1 * _cm,
+                        laser_cut = false
+                      } = {}){
+*/
+   
 } // closes DXF.init_drawing
 } // closes DXF class
