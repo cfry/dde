@@ -1156,6 +1156,19 @@ Dexter.draw_dxf       //= DXF.dxf_to_instructions //this must be done in ready.j
                                  scale, fill)
                     }*/
 
+Dexter.dummy_move = function(){
+    let CMD = []
+    CMD.push(function(){return Dexter.get_robot_status()})
+    CMD.push(function(){
+        let X = Dexter.my_dex.robot_status
+        let J_angles = [X[Dexter.J1_ANGLE], X[Dexter.J2_ANGLE], X[Dexter.J3_ANGLE], X[Dexter.J4_ANGLE], X[Dexter.J5_ANGLE]]
+        return Dexter.move_all_joints(J_angles)
+        //return Dexter.move_all_joints([0, 0, 0, 0, 0])
+        //return make_ins("P", J_angles)
+    })
+    return CMD
+}
+
 Dexter.run_gcode      = function(filepath, scale=1){
                             return function(){
                             return this.gcode_to_instructions(filepath, scale)

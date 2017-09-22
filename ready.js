@@ -11,7 +11,7 @@
 
     function set_menu_string(elt, label, key){
         let modifier = ((operating_system === "win") ? "Ctrl" : "&#8984")
-        let needed_spaces = 20 - label.length
+        let needed_spaces = Math.max(18 - label.length, 1)
         elt.innerHTML = label + "&nbsp;".repeat(needed_spaces) + modifier + key
     }
 

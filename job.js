@@ -1235,8 +1235,8 @@ Job.prototype.handle_start_object = function(cur_do_item){
             }
         }
     }
-    else if(cur_do_item.duration) {
-        this.insert_single_instruction(Robot.wait_until(cur_do_item.duration))
+    else if(cur_do_item.dur) {
+        this.insert_single_instruction(Robot.wait_until(cur_do_item.dur))
     }
     if (!start_args)                    { cur_do_item.start.apply(the_inst_this) }
     else if (Array.isArray(start_args)) { cur_do_item.start.apply(the_inst_this, start_args) }

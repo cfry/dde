@@ -1949,6 +1949,11 @@ callback_param is<br/>
 call will look like: <br/>
 <code title="unEVALable">the_start_object.start({speak_data: "hi there", callback: function(){...}</code>
 </li>
+<li><b>dur</b> If there's no callback_param but there is a dur, then
+     the ob will pause for the number of seconds in the dur field before
+     running the next instruction.
+<pre><code>{start: function(){out("wait a sec or 3")},
+ dur: 3}    </code></pre>
 <li><b>user_data_variable</b> Default: <code>null</code> If present and non-null,
  the automatically synthesized callback
 function will set the given user_data variable in the job to an array of
@@ -1983,10 +1988,19 @@ new Job({name: "my_job",
         </code></pre>
 When a note is created, it has a duration (default 1 second).
 The above plays a melody, with each note waiting for the previos note to
-complete because running start_object checks for a "duration" field and,
+complete because running start_object checks for a "dur" field and,
 if present, waits for that amount of time before proceedng to the next
 instruction.<br/>
 See <a href="#" onclick="open_doc('music_with_midi_doc_id')">Music with MIDI</a>.
+<pre><code>
+new Job({name: "my_job",
+         do_list: [{start: function(){out("wait a sec or 3")},
+                    dur: 3},
+                    Robot.out("done waiting")]})
+    </code></pre>
+    Above when the job starts, "wait a sec or 3" is printed in the Output pane,
+    then there's a pause of 3 seconds until the 2nd insruction is run
+    and prints out "done waiting".
 
 <pre><code>new Job({name: "my_job",
     do_list: [Robot.out("hey"),
@@ -2677,7 +2691,7 @@ The parameters used to define an instance of Dexter are:
     </ul>
     are replaced by one argument: three_J_angles, that defines the drawing surface.
     Its default value is:<br/>
-    <code>[[0, 45, 90, -45, 0], [0, 30, 120, -60, 0], [-10, 30, 120, -60, 0]]</code>
+    <code>[[0, 30, 90, -30, 0], [0, 45, 90, -45, 0], [15, 45, 90, -45, 0]]</code>
     <p/>
     <i>Examples:</i>
 <pre><code>new Job({name: "Draw",
@@ -2689,11 +2703,11 @@ The parameters used to define an instance of Dexter are:
     <p/>
     You may CALL this function at Job definition time like so:<br/>
     <pre><code title="not in TestSuite">new Job({name: "Draw",
-    do_list: [Robot.draw_dxf({dxf_filepath: "foo.dxf" ...})]})
+    do_list: [Dexter.draw_dxf({dxf_filepath: "foo.dxf" ...})]})
     </code></pre>
     or call it at run instruction time like so:
     <pre><code>new Job({name: "Draw",
-    do_list: [function(){ Robot.draw_dxf({dxf_filepath: "foo.dxf"})} ]})
+    do_list: [function(){ Dexter.draw_dxf({dxf_filepath: "foo.dxf"})} ]})
     </code></pre>
     with as many args as you like.
 

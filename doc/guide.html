@@ -8,8 +8,8 @@
 
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version:  <span id="dde_version_id">2.1.0</span><br/>
-    released: <span id="dde_release_date_id">Sep 3, 2017</span>
+    version:  <span id="dde_version_id">2.1.1</span><br/>
+    released: <span id="dde_release_date_id">Sep 22, 2017</span>
     <p/>
     DDE helps you create, debug, and send software to a Dexter robot.
     You can use any JavaScript augmented with DDE-specific functions to help find out about,
@@ -921,15 +921,21 @@ the drawing will touch only 3 sides of the bounding box.
     draw_speed: .03,       //cartesian speed in (m/s)
     draw_res: 0.0005,      //resolution for max step size of interpolated straight line in meters
     lift_height: 0.01,     // height that the pen lifts between unconnected lines in meters
-    tool_action: false,
+    tool_action: false,    ///enable tool actions (true or false)
     tool_action_on_function:  function(){
                                   return [make_ins("w", 64, 2),
-                                          dummy_move()]},
+                                          Dexter.dummy_move()]},
     tool_action_off_function: function(){
                                   return [make_ins("w", 64, 0),
-                                          dummy_move()]}
+                                          Dexter.dummy_move()]}
     })
 </code></pre>
+    The tool_action_on function is called when drawing a line just after the
+    "pen goes down" on the surface. For a laser the function would turn on the laser.
+    <p/>
+    The tool_action_off function is called when drawing a line just before the
+    "pen goes up" from the surface as it completes drawing a line.
+     For a laser, the function would turn off the laser.
     </details>
     See also <a href="#" onclick="open_doc('Dexter.draw_dxf_doc_id')">draw_dxf instruction</a>
 </details>

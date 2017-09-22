@@ -37,10 +37,10 @@ Editor.init_editor = function(){
          extraKeys: //undo z and select_all (a) work automaticaly with proper ctrl and cmd bindings for win and  mac
              ((operating_system === "win") ?
                     {"Left":  Series.ts_or_replace_sel_left,
-                    "Right": Series.ts_or_replace_sel_right,
+                    "Right":  Series.ts_or_replace_sel_right,
                     "Shift-Right": Series.ts_sel_shift_right, //no non ts semantics
-                    "Up":    Series.ts_or_replace_sel_up,
-                    "Down":  Series.ts_or_replace_sel_down,
+                    "Up":     Series.ts_or_replace_sel_up,
+                    "Down":   Series.ts_or_replace_sel_down,
                     "Ctrl-E": eval_button_action, //the correct Cmd-e doesn't work
                     "Ctrl-O": Editor.open,
                     "Ctrl-N": Editor.edit_new_file,
