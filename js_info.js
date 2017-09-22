@@ -191,21 +191,33 @@ Js_info = class Js_info {
                 }
                 else {shouldnt("In Js_info.get_info_string, with fn_name: " + fn_name)}
             }
-            else {
+            else { //last ditch effort
                 val = value_of_path(fn_name)
-                if (val === undefined){
+                let doc_id_string = fn_name + "_doc_id"
+                let doc_id_elt = window[doc_id_string]
+                if ((val === undefined) && (doc_id_elt === undefined)){
                     return "Sorry, DDE doesn't know what " + '<span style="color:blue">' + fn_name + "</span> is."
                 }
                 else if (typeof(val) == "function"){
                     if (is_class(val)){
-                        return "new <span style='color:blue;'>" + Js_info.wrap_fn_name(fn_name)  + "</span>" + function_params(val)
+                            if(doc_id_elt) {
+                                   return `new <a href='#' onclick="open_doc('` + doc_id_string + `')">` + Js_info.wrap_fn_name(fn_name)  + "</a>" + function_params(val)
+                            }
+                            else { return "new <span style='color:blue;'>" + Js_info.wrap_fn_name(fn_name)  + "</span>" + function_params(val) }
                     }
                     else {
-                        return "function <span style='color:blue;'>" + fn_name  + "</span>" + function_params(val)
+                        if(doc_id_elt) {
+                               return `function <a href='#' onclick="open_doc('` + doc_id_string + `')">` + fn_name + "</a>" + function_params(val)
+                        }
+                        else { return "function <span style='color:blue;'>" + fn_name  + "</span>" + function_params(val) }
+
                     }
                 }
                 else{
-                   return "<span style='color:blue;'>" + fn_name + "</span> = " + stringify_value(val)
+                    if(doc_id_elt) {
+                           return `<a href='#' onclick="open_doc('` + doc_id_string + `')">` + fn_name + "</a>" + stringify_value(val)
+                    }
+                    else { return "<span style='color:blue;'>" + fn_name + "</span> = " + stringify_value(val) }
                 }
             }
     }
@@ -501,7 +513,9 @@ Js_info = class Js_info {
         let display_name = fn_name
         if (fn_name == "Infinity") { display_name = fn_name }
         else if (["Math", "Number"].includes(the_class)){ display_name = the_class + "." + fn_name }
-        if (url) { return '<a href="' + url + '" target="_blank">' + display_name + '</a>' }
+        if (url && !url.endsWith("_doc_id")) {
+                   return '<a href="' + url + '" target="_blank">' + display_name + '</a>'
+        }
         else     { return '<a id="js_doc_link_id" href="#">' + display_name + '</a>' }
     }
 
@@ -567,7 +581,9 @@ Js_info = class Js_info {
                 //the_class + "/"
                 fn_name
         }
-       show_page(url) //window.open(url, "js_doc")
+
+        if (url.endsWith("_doc_id")) { open_doc(window[url]) }
+        else                         { show_page(url) } //window.open(url, "js_doc")
     }
 }
 
@@ -582,6 +598,7 @@ Js_info.fn_name_to_info_map = {
     "call":      ["fn.call(thisArg, arg1, arg2, arg3)", "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call"],
     "class":     ["class Boat extends Vehicle {}",      "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes"],
     "console.log": ["console.log(foo)",                 "https://developer.mozilla.org/en-US/docs/Web/API/Console/log"],
+    "cv":        ["cv",                                 "cv_doc_id"],
     "debugger":  ["debugger; sets a breakpoint.",       "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/debugger"],
     "delete":    ["delete foo.bar",                     "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/delete"],
     "for":       ["for(var i = 0; i < 3; i++){out(i)}", "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for"],
@@ -595,7 +612,7 @@ Js_info.fn_name_to_info_map = {
     "new":       ['new Date("Apr 1 2016")',             "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/new"],
     "null":      ["null",                               "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/null"],
     "return":    ["function foo(){return 7}",           "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/return"],
-    "Root": ["Root is the common ancestor<br/>of all objects made with newObject."],
+    "Root":      ["Root is the common ancestor<br/>of all objects made with newObject."],
     "switch":    ['switch (2 + 3) {case 5: out("five"); break;}', "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch"],
     "this":      ["function(){this}",                   "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this"],
     "throw":     ['function foo(){throw "busted"}',     "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/throw"],

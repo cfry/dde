@@ -242,7 +242,7 @@ DexterSim = class DexterSim{
                 if (write_location < this.write_array.length) {
                     this.write_array[write_location] = ins_args[1]
                 }
-                else { shouldnt('DexterSim.write_array is too short to accomodate "w" instruction<br/> with write_location of: ' +
+                else { shouldnt('DexterSim.write_array is too short to accommodate "w" instruction<br/> with write_location of: ' +
                                  write_location + " and value of: " + ins_args[1]) }
                 break
             case "z": //sleep

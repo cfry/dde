@@ -16,11 +16,10 @@ function handle_hello_opencv(vals){
 show_window({
     content:
     `<b>Hello OpenCV.js</b><br/>
-     Choose a file with an extension of<br/>
-     .gif, .jpeg or .png<br/>
-     then click on "show image".<br/>
+     1. Choose a file with an extension of .gif, .jpeg or .png<br/>
+     2. Click on "show image".<br/>
      The image on the left has no cv processing.<br/>
-     The right is changed to black & white by cv.<br/>
+     The right is changed to gray by cv.<br/>
      You may have to click on "Show Images" twice to show the 2nd image.<br/>
     <input type="file" id="file_input_id"
            accept="image/gif, image/jpeg, image/png"/>

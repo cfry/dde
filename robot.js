@@ -169,9 +169,9 @@ var Robot = class Robot {
     static get_page(url_or_options, response_variable_name="http_response"){
         return new Instruction.Control.Get_page(url_or_options, response_variable_name)
     }
-    static play(note_or_phrase){
-        return new Instruction.Control.play_notes(note_or_phrase)
-    }
+    //static play(note_or_phrase){
+    //    return new Instruction.Control.play_notes(note_or_phrase)
+    //}
     close_robot(){ //overridden in Serial and Dexter
     }
 }
@@ -782,6 +782,7 @@ Dexter = class Dexter extends Robot {
                                     '<br/>\nwith the Jobs menu "Simulate?" item being: ' + sim_actual  +
                                     "<br/>\nbut could not connect with Dexter." +
                                     "<br/>\nYou can use the simulator by switching the menu item to 'true'. ")
+                                    out("Could not connect to Dexter.", "red")
                                 }
                                 else {
                                     this_job.stop_for_reason("errored", "The job: " + this_job.name + " is using robot: " + this_robot.name +
@@ -1137,15 +1138,23 @@ Dexter.OUT             = [null, null, 1]
 
 
 //__________INSTRUCTIONS______________
-//called only for testing purposes. Goes all the way through to the simulator
+//called only for testing purposes. Goes all the way through to the simulate
 //or dexter, unlike Job.error
 Dexter.capture_ad     = function(...args){ return make_ins("c", ...args) }
 Dexter.capture_points = function(...args){ return make_ins("i", ...args) }
 Dexter.cause_error    = function(error_code=1){ return make_ins("e", error_code) } //fry made up. useful for testing
 
-Dexter.draw_dxf       = function(filepath, scale=1, up_distance=2000){
-                        return this.dxf_to_instructions(filepath, scale = 1, up_distance = up_distance)
-                    }
+Dexter.draw_dxf       //= DXF.dxf_to_instructions //this must be done in ready.js because
+                      //DXF.dxf_to_instructions isn't defined when this file is loaded.
+                     /*function(dxf_filepath,
+                                 J_angles_A=[[0, 39.3299269794896, 87.73461599877282, -37.064542978262416, 0],
+                                             [0, 19.842581231816105, 122.12940522787682, -51.97198645969291, 0],
+                                             [29.74488129694223, 26.571085191624196, 110.86421721470252, -47.4353024063267, 0]],
+                                 lift_height=0.01, resolution=0.0005, cut_speed=0.0015,
+                                 scale=1, fill=false){
+                        return DXF.dxf_to_instructions(dxf_filepath, J_angles_A, lift_height, resolution, cut_speed,
+                                 scale, fill)
+                    }*/
 
 Dexter.run_gcode      = function(filepath, scale=1){
                             return function(){
@@ -1927,17 +1936,18 @@ Dexter.show_robot_status = function(){
             Dexter.updating_robot_status_job_name = Job.last_job.name
         }
         let job_robot_select_html = Dexter.update_robot_status_job_or_robot_menu_html()
-        let robot_status = (Dexter.updating_robot_status_job_name   ?
-             Job[Dexter.updating_robot_status_job_name].robot.robot_status :
-             Dexter[Dexter.updating_robot_status_robot_name].robot_status)
-        let content = Dexter.update_robot_status_to_html_table(robot_status)
+        let robot = (Dexter.updating_robot_status_job_name   ?
+                        Job[Dexter.updating_robot_status_job_name].robot :
+                        Dexter[Dexter.updating_robot_status_robot_name])
+        let robot_status = robot.robot_status
+        let content = Dexter.update_robot_status_to_html_table(robot)
         show_window({content: content,
                      title:  "<span style='font-size:16px;'>Robot Status of</span> " + job_robot_select_html + ": " +
                              Dexter.update_robot_status_names_menu_html() +
                              " <span id='updating_robot_status_info_id' style='font-size:12px'>" + Dexter.update_robot_status_info_html() + "</span>" +
                              "<span style='font-size:12px;margin-left:10px;'> Updated: <span id='robot_status_window_time_id'>" + Dexter.update_time_string() + "</span></span>",
                      width:  755,
-                     height: 410
+                     height: 430
                     })
         setTimeout(Dexter.update_robot_status_init, 300)
     }
@@ -2046,10 +2056,14 @@ Dexter.update_robot_status_info_html = function(){
     }
 }
 
-Dexter.update_robot_status_to_html_table = function(robot_status){
+Dexter.update_robot_status_to_html_table = function(robot){
     //setting table class and using css to set fonts in th and td cells fails
     //let cs = " style='font-size:10pt;' " //cell style
     //let oplet = ds[Dexter.INSTRUCTION_TYPE]
+    let robot_status = robot.robot_status
+    let xyz
+       try { xyz = robot.joint_xyz() }
+       catch(e) {xyz = ["no status", "no status", "no status"] }
     let result =
         "<table class='robot_status_table'>" +
         "<tr><th></th>    <th>JOB_ID</th><th>INSTRUCTION_ID</th><th>START_TIME</th><th>STOP_TIME</th><th>INSTRUCTION_TYPE</th></tr>" +
@@ -2069,6 +2083,7 @@ Dexter.update_robot_status_to_html_table = function(robot_status){
         Dexter.make_rs_row(robot_status, "PLAYBACK",  "J1_PLAYBACK",  "J2_PLAYBACK",  "J3_PLAYBACK",  "J4_PLAYBACK",  "J5_PLAYBACK" ) +
         Dexter.make_rs_row(robot_status, "SENT",      "J1_SENT",      "J2_SENT",      "J3_SENT",      "J4_SENT",      "J5_SENT"     ) +
         Dexter.make_rs_row(robot_status, "SLOPE",     "J1_SLOPE",     "J2_SLOPE",     "J3_SLOPE",     "J4_SLOPE",     "J5_SLOPE"    ) +
+        "<tr><th>MEASURED X</th><td>" + xyz[0] + "</td><th>MEASURED Y</th><td>" + xyz[1] + "</td><th>MEASURED Z</th><td>" + xyz[2] + "</td></tr>" +
         "</table>"
     return result
 }

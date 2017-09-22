@@ -349,7 +349,7 @@ function inspect_extra_info(item){
     try{ info = JSON.stringify(item) } //might be a circular structure such as happens with newObjects
     catch(err) { return "" }
     if (info.length > 50) {
-        info = info.substring(0, 60) + " &nbsp;..."
+        info = info.substring(0, 80) + " &nbsp;..."
         if      (info[0] == "{") { info += "}" }
         else if (info[0] == "[") { info += "]" }
     }

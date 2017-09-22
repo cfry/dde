@@ -1,7 +1,7 @@
 {
   "name": "dexter_dev_env",
   "productName": "dexter_dev_env",
-  "version": "2.0.15",
+  "version": "2.1.0",
   "release_date": "Sep 3, 2017",
   "description": "Dexter Development Environment",
   "author": "Fry",
@@ -29,6 +29,7 @@
     "jquery": "^3.1.1",
     "opencv.js": "^1.1.10",
     "request": "^2.79.0",
+    "semver": "^5.4.1",
     "serialport": "^4.0.7",
     "webmidi": "^2.0.0-rc.7",
     "ws": "^1.1.1"
@@ -50,6 +51,9 @@
     },
     "nsis": {
       "perMachine": true
+    },
+    "linux": {
+      "category": "Development;Education;Robotics"
     }
   }
 }

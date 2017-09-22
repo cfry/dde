@@ -14,44 +14,54 @@ var Job = class Job{
     //with the job. -2 means we want to execute the last instruction of the
     //job next, etc.
     //save the args
-    if (!Job.is_plausible_when_stopped_value(when_stopped)) {
-        dde_error("new Job passed: " + when_stopped + " but that isn't a valid value.")
+    if (Job[name] && Job[name].is_active()) { //we're redefining the job so we want to make sure the
+       //previous version is stopped.
+        if (Job[name].robot instanceof Dexter) {Job[name].robot.empty_instruction_queue_now() }
+        Job[name].stop_for_reason("interrupted", "User is redefining this job.")
+        let orig_args = arguments[0]
+        setTimeout(function(){ new Job (orig_args) }, this.inter_do_item_dur * 3)
+
     }
-    this.orig_args = {do_list: do_list, keep_history: keep_history, show_instructions: show_instructions,
-                        inter_do_item_dur: inter_do_item_dur, user_data: user_data,
-                        program_counter: program_counter, ending_program_counter: ending_program_counter,
-                        initial_instruction: initial_instruction, when_stopped: when_stopped}
-    this.name              = name
-    this.robot             = robot
-    //setup name
-    Job.job_id_base       += 1
-    this.job_id            = Job.job_id_base
-    if (this.name == null){ this.name = "job_" + this.job_id }
-    if (!(robot instanceof Robot)){
-        if (!Robot.dexter0){
-            dde_error("Attempt to created Job: " + this.name + " with no valid robot instance.<br/>" +
-                      " Note that Robot.dexter0 is not defined<br/> " +
-                      " but should be in your file: Documents/dde_apps/dde_init.js <br/>" +
-                      " after setting the default ip_address and port.<br/> " +
-                      "To generate the default dde_init.js file,<br/>" +
-                      " rename your existing one and relaunch DDE.")
+    else {
+        if (!Job.is_plausible_when_stopped_value(when_stopped)) {
+            dde_error("new Job passed: " + when_stopped + " but that isn't a valid value.")
         }
-        else {
-            dde_error("Attempt to created Job: " + this.name + " with no valid robot instance.<br/>" +
-                      "You can let the robot param to new Job default to get a correct Robot.dexter.0")
+        this.orig_args = {do_list: do_list, keep_history: keep_history, show_instructions: show_instructions,
+                            inter_do_item_dur: inter_do_item_dur, user_data: user_data,
+                            program_counter: program_counter, ending_program_counter: ending_program_counter,
+                            initial_instruction: initial_instruction, when_stopped: when_stopped}
+        this.name              = name
+        this.robot             = robot
+        //setup name
+        Job.job_id_base       += 1
+        this.job_id            = Job.job_id_base
+        if (this.name == null){ this.name = "job_" + this.job_id }
+        if (!(robot instanceof Robot)){
+            if (!Robot.dexter0){
+                dde_error("Attempt to created Job: " + this.name + " with no valid robot instance.<br/>" +
+                          " Note that Robot.dexter0 is not defined<br/> " +
+                          " but should be in your file: Documents/dde_apps/dde_init.js <br/>" +
+                          " after setting the default ip_address and port.<br/> " +
+                          "To generate the default dde_init.js file,<br/>" +
+                          " rename your existing one and relaunch DDE.")
+            }
+            else {
+                dde_error("Attempt to created Job: " + this.name + " with no valid robot instance.<br/>" +
+                          "You can let the robot param to new Job default to get a correct Robot.dexter.0")
+            }
         }
+        this.program_counter = program_counter //this is set in start BUT, if we have an unstarted job, and
+                             //instruction_location_to_id needs access to program_counter, this needs to be set
+        this.highest_completed_instruction_id = -1 //same comment as for program_counter above.
+        this.sent_from_job_instruction_queue = [] //will be re-inited by start, but needed here
+          //just in case some instructions are to be inserted before this job starts.
+        Job[this.name]         = this //beware: if we create this job twice, the 2nd version will be bound to the name, not the first.
+        Job.remember_job_name(this.name)
+        this.status_code       = "not_started" //see Job.status_codes for the legal values
+        this.add_job_button_maybe()
+        this.color_job_button()
     }
-    this.program_counter = program_counter //this is set in start BUT, if we have an unstarted job, and
-                         //instruction_location_to_id needs access to program_counter, this needs to be set
-    this.highest_completed_instruction_id = -1 //same comment as for program_counter above.
-    this.sent_from_job_instruction_queue = [] //will be re-inited by start, but needed here
-      //just in case some instructions are to be inserted before this job starts.
-    Job[this.name]         = this //beware: if we create this job twice, the 2nd version will be bound to the name, not the first.
-    Job.remember_job_name(this.name)
-    this.status_code       = "not_started" //see Job.status_codes for the legal values
-    this.add_job_button_maybe()
-    this.color_job_button()
-    }
+    } //end constructor
 
     show_progress_maybe(){
         if(this.show_instructions === true) { this.show_progress() }
@@ -104,6 +114,7 @@ var Job = class Job{
 
     //Called by user to start the job and "reinitialize" a stopped job
     start(options={}){  //sent_from_job = null
+        if(this.wait_until_this_prop_is_false) { this.wait_until_this_prop_is_false = false } //just in case previous running errored before it could set this to false, used by start_objects
         if (["starting", "running", "suspended"].includes(this.status_code)){
             dde_error("Attempt to restart job: "  + this.name +
                       " but it has status code: " + this.status_code +
@@ -352,6 +363,7 @@ var Job = class Job{
                     the_job.unsuspend()
                 }
                 else if(the_job.is_active()){
+                    if (the_job.robot instanceof Dexter) { the_job.robot.empty_instruction_queue_now() }
                     the_job.stop_for_reason("interrupted", "User stopped job", false)
                 }
                 else {
@@ -618,6 +630,7 @@ var Job = class Job{
            else if (Instruction.is_control_instruction(elt)) { result.push(elt) }
            else if (typeof(elt) === "function")              { result.push(elt) }
            else if (is_iterator(elt))                        { result.push(elt) }
+           else if ((typeof(elt) === "object") && (typeof(elt.start) == "function")) { result.push(elt) }
            else if (elt === "debugger")                      { result.push(elt) }
            else {
                 throw(TypeError("Job.flatten_do_list_array got illegal item on do list: " + elt))
@@ -971,9 +984,7 @@ Job.prototype.stop_for_reason = function(status_code, //"errored", "interrupted"
 
 Job.prototype.do_next_item = function(){ //user calls this when they want the job to start, then this fn calls itself until done
     //this.program_counter += 1 now done in set_up_next_do
-    if (this.show_instructions){
-        console.log("Top of do_next_item in job: " + this.name + " with PC: " + this.program_counter)
-    }
+    //if (this.show_instructions){ console.log("Top of do_next_item in job: " + this.name + " with PC: " + this.program_counter)}
     if ((this.status_code == "interrupted") || //put before the wait until instruction_id because interrupted is the user wanting to halt, regardless of pending instructions.
         (this.status_code == "errored")){
         this.finish_job()
@@ -985,6 +996,7 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
     }
     else if (this.stop_reason){ this.finish_job() } //must be before the below since if we've
     //already got a stop reason, we don't want to keep waiting for another instruction.
+    else if (this.wait_until_this_prop_is_false) { this.set_up_next_do(0) }
     else if (this.program_counter >= this.instruction_location_to_id(this.ending_program_counter)) {  //this.do_list.length
              //the normal stop case
         if (this.when_stopped == "wait") { //we're in a loop waiting for th next instruction.
@@ -1091,6 +1103,9 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
                     this.set_up_next_do(1)
              }
         }
+        else if (Instruction.is_start_object(cur_do_item)){
+            this.handle_start_object(cur_do_item)
+        }
         else if (cur_do_item == "debugger"){
             Job.set_go_button_state(false)
             this.set_up_next_do(1)
@@ -1174,6 +1189,61 @@ Job.prototype.handle_function_call_or_gen_next_result = function(cur_do_item, do
     }
 }
 
+//cur_do_item guraenteed to have a start method whenthis fn is called.
+Job.prototype.handle_start_object = function(cur_do_item){
+    let user_data_variable = cur_do_item.user_data_variable
+    let job_instance = this
+    let cb_fn = null
+    let the_inst_this = cur_do_item.start_this
+    if (!the_inst_this) { the_inst_this = cur_do_item }
+    else if (the_inst_this == "job_instance") { the_inst_this = job_instance }
+    let start_args = cur_do_item.start_args
+    let cb_param = cur_do_item.callback_param
+    if(cb_param) {
+        job_instance.wait_until_this_prop_is_false = "waiting for start object callback to run"
+        let cb_fn = function(...args) {
+            if (user_data_variable){
+                job_instance.user_data[user_data_variable] =  args
+            }
+            job_instance.wait_until_this_prop_is_false = false
+        }
+        if(typeof(cb_param) === "number") { //must be a non-neg int
+            if ((start_args === undefined) || (start_args === null)) {start_args = []}
+            if (Array.isArray(start_args)) {
+                 start_args = start_args.slice() //copy
+                 start_args[cb_param] = cb_fn
+            }
+            else { dde_error("For Job: " + job_instance.name +
+                " pc: " +  job_instance.program_counter +
+                "<br/>got data structure instruction: " + cur_do_item +
+                "<br/> which has a cb_param of a number but the start_args " +
+                "is not an array.")
+            }
+        }
+        else if (typeof(cb_param) === "string") {
+            if ((start_args === undefined) || (start_args === null)) { start_args = {} }
+            if (typeof(start_args) == "object") {
+               start_args =  jQuery.extend({}, start_args) //shallow copy
+               start_args[cb_param] = cb_fn
+            }
+            else {
+               dde_error("For Job: " + job_instance.name +
+                        " pc: " +  job_instance.program_counter +
+                        "<br/>got data structure instruction: " + cur_do_item +
+                        '<br/> which has a cb_param of a string, "' + cb_param + '", but the start_args ' +
+                        "is not an object.")
+            }
+        }
+    }
+    else if(cur_do_item.duration) {
+        this.insert_single_instruction(Robot.wait_until(cur_do_item.duration))
+    }
+    if (!start_args)                    { cur_do_item.start.apply(the_inst_this) }
+    else if (Array.isArray(start_args)) { cur_do_item.start.apply(the_inst_this, start_args) }
+    else                                { cur_do_item.start.call(the_inst_this, start_args) }
+    this.set_up_next_do(1)
+}
+
 //note this could also take an array of instructions,
 //but it inserts it as one item, not multiple items.
 Job.prototype.insert_single_instruction = function(instruction_array){
@@ -1239,7 +1309,7 @@ Job.prototype.send_to_job_receive_done = function(params){
 }
 
 //right now I don't use this (a_job) but will need it in the future to get a_job.robot. its transformations
-Job.prototype.dxf_to_instructions = function (filepath, scale = 1, up_distance = 2000){
+/*Job.prototype.dxf_to_instructions = function (filepath, scale = 1, up_distance = 2000){
     let  the_content
     if((filepath.length <= 512) &&
         (filepath.endsWith(".dxf") || filepath.endsWith(".DXF"))){
@@ -1294,7 +1364,7 @@ Job.prototype.dxf_to_instructions = function (filepath, scale = 1, up_distance =
         return ins
     }
     catch(err) { out(err.message); }
-}
+}*/
 
 //right now I don't use this (a_job) but will need it in the future to get a_job.robot. its transformations
 Job.prototype.gcode_to_instructions = function* (filepath, scale = 1){

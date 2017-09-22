@@ -9,7 +9,7 @@
     .new_code { background-color: #ffd9b4; }
 </style>
 <h3>How to Think Like a Computer</h3>
-<i>Fry Aug 30, 2017</i><br/>
+<i>Fry Sep 13, 2017</i><br/>
 <b>Prerequisites:</b> A bit of JavaScript programming
 (which you can get with a few hours of playing with Dexter Development Environment)
 and a thirst for understanding how software works.
@@ -54,7 +54,8 @@ eval converts data from one format (a string of source code)
 into another format (a Boolean, number, array, object, or possibly
 a different, or even the same, string)
 Both the input and output are representations
-of the same data. Example: "2 + 3" means the same thing as 5,
+of the same data.<br/>
+<i>Example:</i> <code title="unEVALable">"2 + 3"</code> means the same thing as <samp>5</samp>,
 more or less.
 <p/>
 <b>Definition 4:</b> <i>Conceptual</i><br/>
@@ -228,7 +229,7 @@ decrease the complexity of implementing the core "traffic directing" of eval.
 to get hierarchical traffic directing. You can even think of eval as
 just packaging up a bunch of ifs.
 <p/>
-So far we've just used eval to *return* values. But we can also use it
+So far we've just used eval to <i>return</i> values. But we can also use it
 for side-effects like setting a variable value.
 <pre><code>function eval0(arg) {
     let the_type = typeof(arg)
@@ -247,7 +248,8 @@ for side-effects like setting a variable value.
     return arg
 }</code></pre>
 
-<i>Example:</i> <code>eval0("foo = 2")</code> sets the global variable named "foo" to the number 2.
+<i>Example:</i> <code>eval0("foo = 2")</code> => <samp>2</samp><br/>
+sets the global variable named "foo" to the number 2.
 <p/>
 We can get back the value by handling variable references with:
 <pre><code>function eval0(arg) {
@@ -272,11 +274,11 @@ We can get back the value by handling variable references with:
 
 <i>Example:</i> <code>eval0("foo")</code> => <samp>2</samp>
 <p/>
-If <code title="unEVALable">arg</code> doesn't have spaces and is in <code>window</code>,
+Above, if <code title="unEVALable">arg</code> doesn't have spaces and is in <code>window</code>,
 we assume its a global variable and return its value.
 <p/>
-We're using <code>===</code> a bunch for comparison, so let's implement it.
-<pre><code>function eval0(arg) {
+We're using <code title="unEVALable">===</code> a bunch for comparison, so let's implement it.
+<pre><code>eval0(arg) {
     let the_type = typeof(arg)
     if(the_type === "string"){
         if (arg === "true") {return true}
@@ -326,9 +328,9 @@ Here's a poor man's implementation of return
 <i>Example:</i> <code>eval0("return 2 + 3")</code> => <samp>5</samp><br/>
 
 Note the above doesn't work in JS eval. 
-But it will come in handy soon.
+But for our cheap eval0, it will come in handy soon.
 <p/>
-Now let's tackle <code>if</code>.
+Now let's tackle the principle control-flow functionality of <code>if</code>.
 <pre><code>function eval0(arg) {
     let the_type = typeof(arg)
     if(the_type === "string"){
@@ -401,9 +403,9 @@ Here's a cheap implementation of defining zero-argument functions:
     return arg
 }</code></pre>
 
-<i>Example:</i> <code>eval0("function bar(){return 6 + 7}")</code>
+<i>Example:</i> <code>eval0("function bar(){return 6 + 7}")</code><br/>
 <i>Example:</i> <code>eval0("bar")</code> => <samp>"return 6 + 7"</samp><br/>
-The definition of our function is just the string of its body. Cheap, incomplete,
+Above the definition of our function is just the string of its body. Cheap, incomplete,
 but adequate for a first pass.
 <p/>
 After we've defined our function, we need a way to call it.
@@ -432,7 +434,7 @@ We tackle such zero-argument function calls with the below:
         }
         <samp class="new_code">if(arg.endsWith(")")){
           let name = arg.split("(")[0]
-          return eval0(window[name])
+          return eval0(eval0(name))
         }</samp>
         let an_array = arg.split(" ")
         if(an_array.length === 1){
@@ -450,7 +452,22 @@ We tackle such zero-argument function calls with the below:
     return arg
 }</code></pre>
 
-<i>Example:</i> <code>eval0("bar()")</code> => <samp>13</samp>
+<i>Example:</i> <code>eval0("bar()")</code> => <samp>13</samp><br/>
+In the crucial line above,<br/>
+<code title="unEVALable">eval0(eval0(name))</code><br/>
+in the inner call to eval0, we are evaling <code title="unEVALable">name</code> to get the
+body source code of the function bar, which is<br/>
+<code>"return 6 + 7}"</code><br/>
+That string is passed to our outer eval0, which ultimately evals the string<br/>
+<code title="unEVALable">"6 + 7"</code><br/>
+who's result is <code>13</code>, which is finally returned.
+<p/>
+Recursive calls to <code>eval0</code> make this admittedly tricky to wrap
+your head around, but by breaking down each piece to the small action that it performs,
+the synergistic whole of <code>eval0</code> adds up to more than the
+sum of its parts. This is the magic of eval.
+
+
 <p/>
 Before wrapping up our definition of eval0, let's throw in a few more features
 because its easy, they are commonly needed in JS, and to paint the way
@@ -484,7 +501,7 @@ Here's handling <code>null</code>, <code>undefined</code> and string literals.
         }
         if(arg.endsWith(")")){
           let name = arg.split("(")[0]
-          return eval0(window[name])
+          return eval0(eval0(name))
         }
         let an_array = arg.split(" ")
         if(an_array.length === 1){

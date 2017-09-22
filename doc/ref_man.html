@@ -781,13 +781,552 @@ Beeps the indicated number of times with the default <code>beep</code> settings.
     <b>times</b> An integer indicated the number of times to beep. Default: 1.<br/>
     <b>callback</b> A function of no arguments that is called when beeps finishes playing.
     Default: null, meaning do nothing.<br/>
-    <i>Example</i>: <pre><code>beeps(3,
+    <i>Example</i>: <pre><code>beeps(2,
       function(){
-        speak({speak_data: "Third Floor, home robots"})
+        speak({speak_data: "Second Floor, home robots"})
       })
 </code></pre>
 </details>
 
+<details id="music_with_midi_doc_id" class="doc_details"><summary>Music with MIDI</summary>
+DDE facilitates using MIDI to play and receive MIDI notes.
+There are higher level "phrase processors" that make creating scores
+relatively easy. <a href="#" onclick="open_doc(music_article_doc_id)">
+The Language of Music</a> describes DDE's approach to music in broad themes.
+<p/>
+The fundamental class is Note, that represents a musical note, including
+its duration (and, effectively, its ending time).
+Phrase is a class who's instances hold sequences of Note instances.
+Notes and Phrases share nearly the same instances variables and methods.
+<p/>
+In order to play notes, we need to interface to MIDI.
+<details class="doc_details"><summary>MIDI</summary>
+MIDI is an aycroymn for Musical Instrument Digital Interface.
+Its a decades old standard for how to control sounds using
+electronics, that has been applied to lighting and other
+remote control situations.
+<p/>
+DDE uses the <a href="https://github.com/cotejp/webmidi" target="_blank">WebMidi</a> Javascript library to connect
+DDE and MIDI. DDE layers software on top of WebMidi to form higher level
+msuic data structures and methods including integrating them into Jobs
+for making things. One of the things you can make in DDE is music.
+<p/>
+DDE can be used to both create MIDI events and receive them.
+To hear a MIDI note that DDE creates, you must connect a synthesizer to
+the computer running DDE. Numerous hardware synthesizers are avaiable
+starting at about $100. You can also use free or commercial "software synthesizers".
+</details>
+<details  class="doc_details"><summary>Synthesizers</summary>
+One such software synthesizer is in Apple's GarageBand,
+which is now free for Mac and Windows.
+On modern Macs, in your Applications folder
+you should see GarageBand.app which comes comes with the OS.
+Double click on it. This will cause its full contents
+to download. I takes 15 minutes or so because GarageBand uses
+mmany digitally recorded instruments to create natural sounds.
+(Other synthesizers uses alorithms to create sounds which are typcally
+much smaller, have lots of "variations" but none of them sound
+like acoustic instruments.)
+Once GarageBand downloading complete, launch it by double clicking the file,
+if it isn' already up.
+<p/>
+On WindowsOS, see https://garagebandforwindowspc.org/ for the more
+complex installationn on Windows.
+<p/>
+With GB launched, double click on "Keyboard Collection".
+You can leave the default instrument, or
+select another one from the left side of GB.
+Then choose GB menu bar/Window/Show Keyboard.  The image of a piano
+keyboard should appear. Click on any note. If you don't hear
+a sound, verify that the unlabeled
+horizontal slider in the upper right of GB is slid to the right for
+a non-zreo volume.
+(Note Apple has followed its standard user interface guidelines
+here, spending effort to make the slider look pretty
+but difficult to figure out what it actually means.)
+Also check that the volume control on your computer is up.
+<p/>
+<b id="Midi.init_doc_id">Midi.init</b> initializes Midi.
+This is automatically done when you attempt to play a note
+and Midi has not been inited, but there will be a slight delay in that case.
+If Midi has previously been inited, this calls <code>Midi.all_notes_off</code>.
+This can also be called by choosing Insert menu/Sound/Midi.init().
+<i>Parameters:</i> None.
+<p/>
+<b id="Midi.all_notes_off_doc_id">Midi.all_notes_off</b> Turns off
+all curently on notes on all channels. Does not work when using
+GarageBand for a synthesizer.
+<i>Parameters:</i> None.
+<p/>
+<b id="Midi.describe_midi_event_doc_id">Midi.describe_midi_event</b>
+used as a diagnostic function to print out of of the properties of
+a MIDI event.
+<i>Example:</i>
+<code title="not in TestSuite">WebMidi.inputs[1].addListener('noteon',  "all", Midi.describe_midi_event)</code>
+<p/>
+
+In DDE, Eval <code title="not in TestSuite">Midi.init()</code>.<br/>
+Now eval <code title="not in TestSuite">new Note("C").start()</code><br/>
+OR select <code>new Note("C")</code><br/>
+and click <button>Eval&Start</button><br/>
+Often the first note or two will get lost so do it a few times
+and you should hear Middle C played on the instrument you have
+selected in GarageBand. <br/>
+<code>Midi.init</code> can also be called by choosing
+Insert menu/Sound/Midi.init().
+<p/>
+If you don't hear a sound, check the MIDI connections in
+GarageBand: menu bar/GarageBand/Preferences.<br/>
+Select "Audio/Midi"<br/>
+In the bottom of the dialog you should see
+"Midi Status: X MIDI inputs detected."<br/>
+(if X == 0, try clicking the "Reset Midi Drivers" button.)
+</details>
+
+<details class="doc_details"><summary>Note</summary>
+Note is the fundamental class for creating music. It contains
+a number of instance variables to hold the properties of a note,
+and a bunch of methods to manipulate Notes.
+    <details class="doc_details"><summary>Note's Instance Variables</summary>
+        <ul><li><b>time</b> A number. The starting time of the note. This is in beats.
+             <i>time</i> defaults to <code>0</code>. seconds_per_beat defaults to
+             1, but is usually supplied by the Phrase that contains the note.
+             If the Note isn't being played from a phrase, the default seconds_per_beat of 1 will
+             be used.
+        </li>
+        <li><b>dur</b> A positive number indicating note duration. The amount of time from <i>time</i> that the note ends,
+             in beats
+        </li>
+        <li><b>pitch</b> Default <code>60</code>. An integer between 0 and 127.
+             This determines the frequency of the note. 60 is Middle C, 72 is the C an octave higher.
+             <p/>
+             When you are creating notes, you can use the more friendly notation of "C" for
+             Middle C, "C4" for C an octave higher, "C#" for C sharp, "Db" for D flat, etc.<br/>
+             "R" is used to mean "rest", useful when you're making a sequnce of
+             notes in a phrase.
+             Beware: sometimes MIDIcians use the term "note" to mean pitch.
+        </li>
+        <li><b>velocity</b> Default <code>0.5</code>. MIDI's misspelling for "volume".
+            The term comes from
+            the harder you hit a piano key, the faster it goes, making a louder sound.
+            A number between 0 and 1. This results in an actual MIDI velocity
+            of an integer between 0 and 127. WebMidi wisely chose to make this
+            a float between 0 and 1 by default (which DDE follows)
+            as volumes are often multiplied
+            to increase or decrease them. 0 to 1 is more convenient for that.
+        </li>
+        <li><b>channel</b> Default 1. An integer between 1 and 16 inclusive,
+            determining the MIDI channel of the note. Think of this as the instrument
+            to play the note on, though beware. Channel can be remapped by syntheizer software
+            to play different instruments.
+        </li>
+        </ul>
+    </details> <!-- end Note Instance Vars -->
+    <details class="doc_details">
+      <summary>Making Notes with <code title="unEVALable">new</code></summary>
+      DDE provides 2 different ways to make notes. The hard, comprehensive way
+      is to use JS literal object notation:
+      <pre><code>new Note({time:     0,
+          dur: 1,
+          pitch:    60,
+          velocity: 0.5,
+          channel:  1})
+      </code></pre>
+      The above values are the defaults. Leave a property out and you
+      get its default value.
+      <p/>
+      The easy way is to use a string with
+      <ol><li>the (optional) duration first (default 1),
+            <li>followed by the pitch class (C, D, E, F, G, A, B)</li>
+            <li>that may include a trailing accidental (# or b)</li>
+            <li>and ending with an optional octave integer (-2 to 8 inclusive)
+            The "C"s in each octave are:
+            Octave -2 is MIDI pitch 0,<br/> -1 is 12,<br/>
+            0 is 24,<br/> 1 is 36,<br/>  2 is 48,<br/>
+            3 is 60, (Middle C),<br/> 4 is 72,<br/>
+             5 is 84,<br/> 6 is 96,<br/> 7 is 108,<br/> 8 is 120
+           </li>
+      </ol>
+            <i>Examples:</i><br/>
+            <code>"C"</code> and <code>"1C3"</code>
+            are both a one beat long Middle C.<br/>
+        <code>"0.5C#4"</code> is an eighth note C sharp an octave and a half-step above Middle C.<br/>
+        <code>"0.5Db4"</code> is the same.<br/>
+            For creating an actual note the easy way use:<br/>
+            <code>new Note("0.5C#4")</code><br/>
+            This is equivalent to the hard way:
+             <pre><code>new Note({dur: 0.5, pitch: 73})</code></pre>
+            or you can use the string technique for pitch:
+            <pre><code>new Note({dur: 0.5, pitch: "C#4"})</code></pre>
+      </code></pre>
+      You may place a Note directly on the do_list of a Job.
+      When that "instruction" is run, it will call the Note's start method
+      to play it, and delay running the next instruction until the note is done.
+    </details>
+
+    <details class="doc_details"><summary>Note Methods</summary>
+    <ul><li><b>start</b> Plays the note.
+        You can also play a Note by selecting it and clicking <button>Eval&Start</button><br/>
+        <i>Parameter:</i><br/>
+        <b>seconds_per_beat</b> Default = 1.<br/>
+        <i>Example:</i> <code title="not in TestSuite"> new Note("C").start()</code><br/>
+        </li>
+        <li><b>copy</b> Copies the note.<br/>
+        <i>No Parameters</i><br/>
+        <i>Example:</i> <code> new Note("C").copy()</code>
+        </li>
+        <li><b>concat</b> Concatenates the <code title="unEVALable">this</code>
+        note with any number of another supplied note arguments.<br/>
+        <i>Example:</i><br/>
+         <pre><code>new Note("E").concat(
+    new Note("D"),
+    new Note("C"))
+    </code></pre><br>
+         Returns a phrase that's a melody, with the last note starting on beat 2 and
+         ending on beat 3.<br/>
+         Equivalent to<br/><code>new Phrase("E D C")</code>
+        </li>
+        <li><b>merge</b>  Merges the <code title="unEVALable">this</code>
+            note with any number of another supplied note arguments.<br/>
+            <i>Example:</i>
+            <pre><code>new Note("C").merge(
+    new Note("E"),
+    new Note("G"))
+    </code></pre>
+            Returns a phrase that's a C major chord, with all notes starting
+            on beat 0 and ending on beat 1.<br/>
+            Equivalent to<br/> <code>new Phrase("CEG")</code>
+        </li>
+        <li><b id="Note.transpose_doc_id">transpose</b>
+        Increments the pitch by an interval or possibly multiple inteverals to make
+        a chord.<br/>
+        <i>Parameters:</i><br/>
+        <b>interval_or_array</b> Add this value to the original pitch. Can be negative
+        or positive. If an array, create a note for each interval in the array
+        and return a phrase.
+        <br/>
+            <b>key</b> Default: "chromatic". If "chromatic", treats each interval as
+            half_steps and directly adds them to the pitch. If a pitch class
+            ("C", "D", "E", "F", "G", "A", "B"), considers the intervals to be
+            "diatonic". 1 is unison (no change from original pitch. 2 is a 2nd, either
+            major or minor to keep the new pitch within the key specified. Same for a
+            third, forth, fifth, etc. If the interval ends in .5, ie 3.5, then
+            a half-step is added to the whole interval which is, in this case, "3".
+            <p/>
+            The result might
+            or might not be within the given key depending on the whole number of the interval.
+            For instance, in the key of "C", an interval of 3.5 yields an "F', ie the
+            same as an interval of 4 and in the given key.
+            However 4.5 yields F#, out of the key.
+            <i>Examples:</i><br/>
+            <code>new Note("D4").transpose(1)</code><br/>=> <samp>new Note("D#4")</samp><br/>
+            <code>new Note("D4").transpose(1, "C")</code><br/>=> <samp>new Note("D4")</samp><br/>
+            <code>new Note("D4").transpose(2, "C")</code><br/>=> <samp>new Note("E4")</samp><br/>
+            <code>new Note("D4").transpose(3, "C")</code><br/>=> <samp>new Note("F4")</samp><br/>
+            Since 1 is a "unison" interval in diatonic space,
+            perhaps 0 is down one scale degree from that. But this counters
+            music convention, ie down a 2nd would be down a whole step, ie -2.
+            Thus down a -1 would be down less than a 2nd ie a unison.
+            So in DDE's diatonic tranpose, -1 and 1 are both "unison".
+            Perhaps a diatonic interval of 0 should error, but we made it unison too,
+            so diatonic intervals of -1, 0, and 1 all mean unison.
+            If our key is "chromatic", then an interval of 0 means unison but not so for
+            -1 and 1.
+            "chromatic" is 0 based (as is JavaScript) but diatonic keys are 1 based
+            (as is music nomenclature).
+            <p/>
+            <i>Examples:</i><br/>
+            <code>new Note("D4").transpose(0, "C")</code><br/>=> <samp>new Note("D4")</samp><br/>
+            <code>new Note("D4").transpose(-1, "C")</code><br/>=> <samp>new Note("D4")</samp><br/>
+            <code>new Note("D4").transpose(-2, "C")</code><br/>=> <samp>new Note("C4")</samp><br/>
+            <code>new Note("D4").transpose(-3, "C")</code><br/>=> <samp>new Note("B3")</samp>
+            <p/>
+            This discrepancy is not just an inconsistency in DDE, its a descrepancy in the English
+            designators for items in a list and math. If the first item in a list was
+            called "zeroth" instead of "first", that would fix the problem. I suspect
+            the concept and term of "first" occured before the concept of zero. Such "off by one"
+            issues account for an astoundingly high percentage of bugs in programs, so
+            be on the lookout for them.</i><br/>
+            <code>new Note("D4").transpose([1, 3, 5], "C")</code> => <samp>new Phrase("D4F4A4")</samp><br/>
+            <i>A D minor triad (chord), all of whose pitches are in the designated key of C.</i>
+            <br/>
+        </li>
+        <li><b>set_property</b> Returns a copy of "this" except with one of its properties
+           set to a new value.<br/>
+        <i>Parameters:</i><br/>
+        <b>prop_name</b> The property within the Note to set. One of:
+          "time", "dur", "pitch", "velocity", "channel".
+          An extra "virtual" prop_name of "octave" may also be used.
+          <br/>
+        <b>new_value</b> The new value to give the designated prop-name.
+         A number unless prop_name is "pitch", in which case new_value
+         may also be a pitch name, i.e. "C#4"<br/>
+        <b>min</b> Default -2. (-2 is the lowest possible octave and thus the lowest likely
+           valid new_value.) If new_value is less than min,
+           then prop_name will be set to min.<br/>
+           Does not apply to prop_name of "time".<br/>
+            Usually a number but if prop_name is "pitch", new_value
+            may also be a pitch name, i.e. "C#4".<br/>
+            If min is null, no minimum is enforced.<br/>
+        <b>max</b> Default 128. A number. If new_val is more than max,
+           then prop_name will be set to max.
+           Usually a number but if prop_name is "pitch",  new_value
+            may also be a pitch name, i.e. "C#4".<br/>
+            If max is null, no maximum is enforced.<br/>
+            <i>Examples:</i><br/>
+            <code>new Note("C").set_property("pitch", 73)</code><br/>=>
+            <samp>new Note("C#4")</samp><br/>
+            <code>new Note("C").set_property("pitch", "B2")</code><br/>=>
+            <samp>new Note("B2")</samp>
+
+        </li>
+        <li><b>increment_property</b> Similar to set_property with
+        the 2nd argument being the amount to <i>increase</i> the given
+        prop_name's value by. The increment number may be negative.
+        </li>
+        <li><b>multiply_property</b> Similar to set_property with
+            the 2nd argument being the amount to <i>multiply</i> the given
+            prop_name's value by. The multiplication factor may be negative.
+        </li>
+    </ul>
+    </details> <!-- end Note Methods -->
+
+</details> <!-- end Note -->
+
+<details class="doc_details"><summary>Phrase</summary>
+    <details class="doc_details"><summary>Phrase's Instance Variables</summary>
+        <ul><li><b/>notes</b> An array of instances of Note. May be empty.</li>
+            <li><b>time</b> A number. The starting time of the note. This is in beats.
+            <i>time</i> defaults to <code>0</code>. The start time in beats of the
+            first note when using a string argument to <code>new Phrase()</code>.
+            </li>
+            <li><b>dur</b> A positive number indicating the phrase duration. The amount of time from <i>0</i> that the phrase ends,
+                in beats. Defaults to the ending tome of the last note in the phrase or 0 if no
+                notes in the phrase. dur repressents the "logical duration of the phrase from time 0 to the end of the phrase.
+                This is often <i>not</i> the duration from the start time of the first note to the
+                end time of the last note. For instance a phrase might have some negative time "pick-up" notes,
+                and have the last note end before or after the logical end. dur is used for concat in
+                knowing when the start time of the 2nd through nth phrases will be.
+                Thus phrase durs are often 4 or 8 beats even though the actual duration of the
+                notes in the phrase are longer or shorter.
+            </li>
+            <li><b>velocity</b> Default <code>0.5</code>.
+                The initial velocity of all the notes in the phrase.
+                Velocity is MIDI's misspelling for "volume". (Tech-musicians often fail English class.)
+                The term comes from
+                the harder you hit a piano key, the faster it goes, making a louder sound.
+                A number between 0 and 1. This results in an actual MIDI velocity
+                of an integer between 0 and 127. WebMidi wisely chose to make this
+                a float between 0 and 1 by default (which DDE follows)
+                as volumes are often multiplied
+                to increase or decrease them. 0 to 1 is more convenient for that.
+            </li>
+            <li><b>channel</b> Default <code>1</code>. An integer between 1 and 16 inclusive,
+                determining the MIDI channel of the note. Think of this as the instrument
+                to play the note on, though beware. Channel can be remapped by syntheizer software
+                to play different instruments.
+            </li>
+        </ul>
+    </details> <!-- end Phrase's Instance Vars -->
+    <details class="doc_details">
+        <summary>Making Phrases with <code title="unEVALable">new</code></summary>
+        DDE provides 2 different ways to make a phrase. The hard, comprehensive way
+        is to use JS literal object notation to create each note for the notes instance
+        variable like so:
+        <pre><code>
+new Phrase({notes: [new Note({time: 0, dur: 1, pitch: 60, velocity: 0.25, channel:  1}),
+                    new Note({time: 3, dur: 1, pitch: 61, velocity: 0.75, channel:  2})
+            ]})
+      </code></pre>
+        This gives us lots of flexibility. Notice that the 2nd note starts a whole beat after
+        the first note ends. This flexibility, explicitness and ease of programming
+        comes at the cost of verbosity. We can use a concise language to
+        describe all but the channel and velocity attributes with:<br/>
+        <code>new Phrase("C R C#")</code><br/> The R stands for "rest" giving us a
+        start time for the 2nd note of 3 (beats).
+        <p/>
+        The easier way uses strings with notes that are separated from other notes by a space.
+        See the documentation on making Notes for details.
+        <p/>
+        <i>Parameters:</i><br/>
+        <b>time</b> Default <code>0</code>. A number. time in beats that the first note will have
+            when the "notes" parameter is a string.<br/>
+        <b>seconds_per_beat</b> Default: <code>1</code>. A non-negative number. The duration in seconds of a beat.
+         The default corrsponds to 60 beats per minute. A typical value for modern music is
+         <code>0.5</code><br/>
+         <b>dur</b> Default: <code>null</code> meaning the ending time of the last note in the phrase.
+         dur representes the "logical duration of the phrase from time 0 to the end of the phrase.
+         This is often <i>not</i> the duration from the start time of the first note to the
+         end time of the last note. For instance a phrase might have some negative time "pick-up" notes,
+         and have the last note end before or after the logical end. dur is used for concat in
+         knowing when the start time of the 2nd through nth phrases will be.
+         Thus phrase durs are often 4 or 8 beats even though the actual duration of the
+         notes in the phrase are longer or shorter.<br/>
+        <b>velocity</b> Default: 0.5. A number from  though 1 inclusive indicating the default volume
+           or loudness of the notes in a phrase when they aren't each given an explicit velocity.<br/>
+           <i>Example:</i><br/>
+            <code>new Phrase({velocity: 0.25, notes:"C D"})</code><br/>
+            Both notes will have a velocity of 0.25, a low volume.<br/>
+        <br/>
+        <code>new Phrase({channel: 3, notes:"C D"})</code><br/>
+        Both notes will have a channel of 3.<br/>
+         <b>channel</b> Default: 1. An integer from 1 though 16 inclusive.<br/>
+           <code>new Phrase({channel: 3, notes:"C D"})</code><br/>
+           Both notes will have a channel of 3.
+        <p/>
+        <i>Examples:</i><br/>
+        <code>new Phrase("C E G")</code> A three note melody.<br/>
+        <code>new Phrase("CEG")</code> A three note chord (C Major triad).<br/>
+        <code>new Phrase({seconds_per_beat: 0.5, notes:"C E G"})</code><br/>
+         A faster three note melody.
+         <p/>
+        <code>new Phrase("C R G")</code><br/> A 2 note melody with a rest in the middle.
+        Rests can have a duration ie "0.5R" but not an accidental or octave.
+        <p/>
+        <pre><code>new Phrase({
+     seconds_per_beat: 0.5,
+      channel: 2,
+      notes: `CEG CEG 0.5R 0.5FAC4 FAC4
+              GBD4 GBD4 0.5R 0.5FAC4 FAC4
+              0.5CEG 0.5CEG CEG 0.5R 0.5FAC4
+              0.5R 0.6FAC4 GBD4 0.125R GBD4
+              2/3R 2/3F 2/3FA
+              2/3FAC4 2/3FAC4E4 2/3FACE4G4 8CEGBD4`
+            })
+            </code></pre>
+            A standard 3-chord rock and roll chord progression.
+        <p/>
+        You may place a Phrase directly on the do_list of a Job.
+        When that "instruction" is run, it will call the Phrase's start method
+        to play it, and delay running the next instruction until the Phrase is done.
+    </details>
+
+    <details class="doc_details"><summary>Phrase Methods</summary>
+    All of these phrase processors return a phrase.
+    None of them modify the subject phrase but rather make a copy.
+    <ul>
+    <li><b>start</b> Plays the phrase. Will call Midi.init() if Midi has yet to be enabled.
+    Returns the input phrase as is.
+    You can also play a phrase by selecting it's soruce code and clicking <button>Eval&Start</button>
+    </li>
+
+    <li><b>copy</b> Returns a copy of the input Phrase.</li>
+
+    <li><b>concat</b> Takes any number of Phrases as arguments and
+    concatenates them together with the subject. Each Phrase's "dur" is used
+    to deterime the starting time of the next phrase. Use concat for
+    making long phrases.</li>
+
+    <li><b>merge</b> Takes any number of Phrases as arguments and merges them together.
+    The notes in the new returned phrase will have their same start times as
+    their input start times. The resultant Phrase will have a dur that is the
+    maximum of all the input phrases. Use merge for layering the parts of a piece
+    together.</li>
+
+    <li><b>transpose</b><br/> Increments the pitch of all the notes in the input Phrase.<br/>
+    <i>Parameters:</i><br/>
+        <b>interval_or_array</b> Add this value to the original pitch. Can be negative
+        or positive.<br/>
+        <code>new Phrase("C D").transpose(1)</code><br/>=>
+        <samp>new Phrase("C# D#")</samp>
+         If an array, create a note for each interval in the array
+        and include them all in the output phrase. This is quite useful for
+        turning a base line into a chord progression.<br/>
+        <code>new Phrase("C D").transpose([0, 4, 7])</code><br/>=>
+        <samp>new Phrase("CEG DF#A")</samp>
+        <br/>
+        <b>key</b> Default: "chromatic". If "chromatic", increment the pitch of each
+        note by the interval_or_array. Otherwise see
+        <a href="#" onclick="open_doc('Note.transpose_doc_id')">Note.transpose</a>
+        for incrementing pitch by a diatonic interval.</li>
+
+    <li><b>set_property</b> Returns a copy of "this" except that eacn note in
+        the phrase will have one of its properties set to a new value.<br/>
+        <i>Parameters:</i><br/>
+        <b>prop_name</b> The property within the Notes to set. One of:
+        "time", "dur", "pitch", "velocity", "channel".
+        An extra "virtual" prop_name of "octave" may also be used.
+        <br/>
+        <b>new_value</b> The new value to give the designated prop-name.
+        A number, unless prop_name is "pitch", in which case new_value
+        may also be a pitch name, i.e. "C#4"<br/>
+        <b>min</b> Default -2. (-2 is the lowest possible octave and thus the lowest likely
+        valid new_value.) If new_value is less than min,
+        then prop_name will be set to min.<br/>
+        Does not apply to prop_name of "time".<br/>
+        Usually a number but if prop_name is "pitch", new_value
+        may also be a pitch name, i.e. "C#4".<br/>
+        If min is null, no minimum is enforced.<br/>
+        <b>max</b> Default 128. A number. If new_val is more than max,
+        then prop_name will be set to max.
+        Usually a number but if prop_name is "pitch",  new_value
+        may also be a pitch name, i.e. "C#4".<br/>
+        If max is null, no maximum is enforced.<br/>
+        <i>Examples:</i><br/>
+        <code>new Phrase("C D").set_property("pitch", 73)</code><br/>=>
+        <samp>new Phrase("C#4 C#4")</samp><br/>
+    </li>
+    <li><b>increment_property</b> Similar to set_property with
+        the 2nd argument being the amount to <i>increase</i> the given
+        prop_name's value by. The increment number may be negative.<br/>
+        <code>new Phrase("C D").increment_property("pitch", 1)</code><br/>=>
+        <samp>new Phrase("C#4 D#4")</samp><br/>
+        Note that incrementing pitch is a transpose, but we can increment
+        any other note property.
+    </li>
+    <li><b>multiply_property</b> Similar to set_property with
+        the 2nd argument being the amount to <i>multiply</i> the given
+        prop_name's value by. The multiplication factor may be negative.
+        <code>new Phrase("C D").multiply_property("velocity", 2)</code>
+        Since the default velocity is 0.5, the returned phrase
+        will have all of its note at a velocity of 1 (the maximum).
+    </li>
+    </ul>
+    </details>
+</details> <!-- end Phrase -->
+    <details class="doc_details"><summary>Listening for MIDI input</summary>
+        Even though GB has a soft keyboard, it can't send out Midi.
+        You can download <a href="http://vmpk.sourceforge.net/" target="_blank"">VMPK software</a>
+        for a virtual midi controller,
+        for Mac/Windows/Linux. It has no synthesizers in it.
+        <p/>
+        In the VMPK menu bar, choose "MIDI Connections".<br/>
+        For "MIDI OUT Driver", choose "CoreMIDI".<br/>
+        For "Output MIDI Connection" Choose "IAC Driver Bus 1"
+        (the default on the Mac, it will be something else on Windows.)<br/>
+        Click the OK button.<br/>
+        Choose VMPK menu bar/Tools/Note Input/Computer Keyboard,<br/>
+        and also in the same sub menu, "Mouse".<br/>
+        Now click on the keyboard or hit a key (like "q")<br/>
+        and you should see "Got Midi event..." in DDE.
+        You should also hear the note played in GarageBand or any synthezier you have
+        that listens to the appropriate MIDI channel.
+        <p/>
+        VMPK has a nice feature for labeling the keys on its
+        piano keyboard: Choose menu bar/View/Note names
+        Unfortunately this labels Middle C as C4, whereas
+        WebMidi uses Middle C as C3. Octave nomenclature is
+        not consistent in conventional music as well as MIDI.
+        <p/>
+        You can call a method when a particular kind of Midi event occurs.<br/>
+        <i>Example:</i><br/>
+        <code title="not in TestSuite">WebMidi.inputs[1].addListener('noteon',  "all", Midi.describe_midi_event)</code><br/>
+        Above we are adding a listener on input 1.<br/>
+        If you configured GarageBand as mentioned above, it will be on input[0], so
+        input[1] will get you the VMPK keyboard.
+        This listener is listening for Midi events of<br/>
+        type "noteon". ("noteoff" is another choice here.)<br/>
+        We are listening on "all" channels, but you can use an integer from 1 to 16 here to
+        narrow this down to a particular channel.<br/>
+        The last argument is a callback function.<br/>
+        <code>Midi.describe_midi_event</code> is a DDE utility function that
+        prints out important properties of the event that is passed as the one argument
+        to the callback.<br/> Eval <code>Midi.describe_midi_event</code> to inspect
+        its source code, which will show you how to
+        access pitch, channel, velocity and other properties from the passed in event.
+
+    </details> <!-- end Listening -->
+</details> <!-- end Music with MIDI -->
 
 <details id="recognize_speech_doc_id" class="doc_details"><summary>recognize_speech</summary>
     Speech recognition has a long history in AI. After many decades of research, it <i>can</i>
@@ -1332,6 +1871,198 @@ for code examples. Related Job facilities are:
 </ul>
 </details>
 
+<details class="doc_details"><summary>Any Start Object</summary>
+<i>Caution: this is advanced functionality not needed by
+simple uses of DDE.</i>
+<p/>
+In the body of an ordinary JavaScript function with a sequence
+of top level function calls, a function call will begin
+executing as soon as the previous function call returns.
+But sometimes we don't want that
+because a preceeding call may "return" but it is not really done,
+since it has passed processing off to another process. In order to
+delay the start of another call, there are various tricks in
+JS.
+<p/>
+One of the tricks JS uses is to pass a function a "callback" function
+as an argument. Then when the original function is really "done",
+it calls the callback function.
+<p/>
+A DDE Job and its do_list is another way to carefully control
+when "instructions" on the do_list are started.
+DDE has a number of instruction types that help you control
+when the next instruction is run. A primary one is called
+<a href="#" onclick="open_doc('Robot.wait_until_doc_id')">wait_until</a>
+that blocks the processing of the following instruction.
+<p/>
+In order to provide a more general mechanism to handle such methods
+without special casing Job processing for each one, we've invented the
+<i>start_object</i> instruction. This is not like other more constrained
+instructions, but it does fit a pattern that you can leverage to
+accomplish a wide variety of tasks by reusing code written by others
+within a Job that you create.
+<p/>
+A start_object is any JS object that has a method named start.
+After a Job's instruction prcessing has exhausted all other possibilities,
+it looks to see if an instruction has a start method.
+If it does not, it errors with "invalid instruction type".
+But if it does, it calls the <code title="unEVALable">start</code> method with the instruction object
+as <code title="unEVALable">this</code>. Classes whose instances have start
+methods in DDE include:
+<ul><li><code>Job</code> the Job is started and the next instruction in the do_list
+         is run immediately.</li>
+    <li><code>Note</code> a musical note. The note is played, but the next instruction
+        is not run until the note is finished playing. For the note to sound,
+         you must have called <code title="not in TestSuite">Midi.init()</code> and connected
+         a synthesizer (hardware or software).
+    </li>
+    <li><code>Phrase</code> A sequence of notes. Played under similar conditions to Note.</li>
+</ul>
+There are several other properties that control the starting, processing and the
+delay caused by start_objects.
+<ul><li><b>start_args</b> Default: <code>null</code>
+If the start_object has a property named "start_args",
+its value is used to supply arguments to the start method when it is called.
+If the method accepts arguments in the  normal, by_position configuration<br/>
+<i>Example:</i> <code title="unEVALable">foo(1, 2, 3)</code><br/>
+start_args should be an array. However, if the method takes arguments
+by keyword<br/>
+ <i>Example:</i> <code title="unEVALable">foo({a: 1, b:2})</code><br/>
+ then start_args should be a literal object.</li>
+<li><b>callback_param</b> If this property is present and non-null,
+it indicates that a callback function will be created by DDE and
+passed to the start function at the position indicated by the
+callback_param's value. If start_args is an array, callback_oaram,
+if present, must be a non-negative integer. The start method will
+have the callback method passed at that position in the argment list.
+For instance, if the start_args are <code>["one", "two"]</code> and the
+callback_param is <code>2</code> then the call to start will look like<br/>
+<code title="unEVALable">the_start_object.start("one", "two", function(){...}</code>
+<p/>
+However, if start_args is a literal object, then the callback_param,
+if present, must be a string that names the keyword of the callback function
+in the argument list. For instance,
+if the start_args are<br/>
+<code>{speak_data: "hi there"}</code> and the
+callback_param is<br/>
+<code>"callback"</code>, then the
+call will look like: <br/>
+<code title="unEVALable">the_start_object.start({speak_data: "hi there", callback: function(){...}</code>
+</li>
+<li><b>user_data_variable</b> Default: <code>null</code> If present and non-null,
+ the automatically synthesized callback
+function will set the given user_data variable in the job to an array of
+the arguments passed to the callback function. This is so that
+subsequent instructions can retrieve the real result of the start method
+and use them. For instance, if the value of user_data_variable is <code>"foo"</code>,
+then after this instruction has completed,<br/>
+<code title="unEVALable">job_instance.user_data.foo = ["array", "of", "args", "passed", "to the callback"]</code>
+<p/>
+<i>Examples:</i>
+<pre><code>new Job({name: "my_job1",
+         do_list: [Robot.out("hey from my_job1")]})
+new Job({name: "my_job2",
+         do_list: [Job.my_job1]})
+         </code></pre>
+When Job.my_job2 is started, it will cause my_job1 to start then immediately
+move to my_job2's "next" instruction, but since there isn't one,
+my_job will finish, perhaps before my_job1 does.
+It starts my_job1 just by calling
+its start method, the same way you can.
+<pre><code title="not in TestSuite">
+new Job({name: "my_job",
+         do_list: [function(){Midi.init()},
+                   new Note("E"),
+                   new Note("D"),
+                   new Note("C"),
+                   new Note("R"), //rest
+                   new Phrase("G F E"),
+                   new Note("R"),
+                   new Phrase("2/3G 1/3G 2/3F 1/3F E") //triplets
+                  ]})
+        </code></pre>
+When a note is created, it has a duration (default 1 second).
+The above plays a melody, with each note waiting for the previos note to
+complete because running start_object checks for a "duration" field and,
+if present, waits for that amount of time before proceedng to the next
+instruction.<br/>
+See <a href="#" onclick="open_doc('music_with_midi_doc_id')">Music with MIDI</a>.
+
+<pre><code>new Job({name: "my_job",
+    do_list: [Robot.out("hey"),
+    {start: speak,
+     start_args: {speak_data: "Clean my work space.", rate:0.8},
+     callback_param: "callback",
+     user_data_variable: "the_text"
+    },
+    {start: speak,
+     start_args: {speak_data: "Don't forget the end effector.", rate:1.2},
+     callback_param: "callback",
+     user_data_variable: "the_text2"
+    },
+    Robot.out("you")
+    ]})
+    </code></pre>
+    The above job first prints out "hey", then speaks
+    "Clean my work space." slowly, then speaks
+    "Don't forget the end effector." faster,
+    and when that's done, finally prints out "you".<br/>
+    To run the first speak instruction, DDE calls an automatically synthesized call
+    that looks like:
+    <pre><code title="unEVALable">the_start_object.start({speak_data: "Clean my work space.",
+                        rate:0.8,
+                        callback: function(...args){
+                                    job_instance.user_data.the_text = args
+                                    job_instance.wait_until_this_prop_is_false = false
+                        }})
+            </code></pre>
+    When its all done, Job.my_job.user_data.the_text has a value of the
+    array of args passed to the synthesized callback function,
+    for use by subsequent instructions.
+    <pre><code>function test_cb(a, b, callback){
+    out("got: " + a + " " + b)
+    callback(b, a, 123)
+    }
+new Job({name: "my_job",
+    do_list: [Robot.out("hey"),
+    {start: test_cb,
+    start_args: [11, 22],
+    callback_param: 2,
+    user_data_variable: "the_args_to_the_cb"
+    }]})
+    </code></pre>
+    Above we define a "start" method so you can get a little deeper insight.
+    We call it "test_cb". It looks like a normal method in that it has
+    args and the first thing it does is print out its first two argumetns.
+    But its 3rd argument is a method that is called in the 2nd (and last) line
+    of the method with the original args a and b reversed in order
+    and one extra arg, 123.
+    <p/>
+    On the Job's do_list, we have a start_object because it is
+    an object with a method as the value of the "start" property
+    of the object. Note that it doesn't matter that the real method
+    being called is named "test_cb". What's important is that
+    the start_object has a field named "start" whose value is some function.
+    <p/>
+    When our Job is run, the first instruction is run by
+    calling the value of the "start" property with arguments
+    [11, 22, syntehsized_callback_fn]. Then test_cb is run
+    and it executes its<br/>
+     <code title="unEVALable">out("got: " + a + " " + b)</code><br/>
+     then calls <code title="unEVALable">callback(b, a, 123)</code>
+     which sets the value of<br/>
+    <code title="unEVALable">Job.my_job.user_data.the_args_to_the_cb</code>
+    to <samp>[22, 11, 123]</samp> Note that we reversed the order of a & b
+    just to show flexibility here.
+    <p/>
+    We can make jobs that have any combination of the above kinds of
+    start_objects, plus others, plus any other valid instructions.
+    They will all wait for each other (if so configured).
+    <p/>
+    This syntax is complex, but not as complex as other ways of
+    doing the same thing and makes Jobs significantly more flexible than
+    they already were.
+</details>
 
 <details id="Robot.error_doc_id" class="doc_details"><summary>error</summary>
   Causes the job to error, immediately stopping it.
@@ -1902,7 +2633,7 @@ The parameters used to define an instance of Dexter are:
     <li><b>name</b> Any string, but must be unique across all robots.
     The instance of the robot is stored in
     <code title="unEVALable code fragment"> Robot.the_name</code></li>
-    <li><b>simulate</b> Possible values:
+    <li id="simulate_doc_id"><b>simulate</b> Possible values:
          <ul>
              <li><b>true</b> Instructions will not be sent to the Dexter robot but rather
                to DDE's Dexter simulator, showing an image of Dexter in DDE's "Sim" pane.</li>
@@ -1932,40 +2663,40 @@ The parameters used to define an instance of Dexter are:
 
 
 <details id="Dexter.draw_dxf_doc_id" class="doc_details"><summary>draw_dxf</summary>
-    This instruction accepts the name of a file as input and creates additional instructions
-    to move Dexter to "draw the lines" indicated by the dxf file.
-    <ul><li><b>filepath</b> A string representing the name of the dxf file under the <b>dde_apps</b> folder
-        containing the dxf instructions. The file can be directly under dde_apps or
-        nested in subfolders of any depth.
-        <p/>
-        The filepath is usually a string that ends in <code>".dxf"</code> or
-        <code>".DXF"</code> If it does not and is more than 512 characters long, it
-        will be assumed to be a string of actual dxf code.
-        </li>
-    <li><b>scale</b></li> dxf files indicate line endpoint positions as dimensionless units.
-       DDE requires the x,y,z positions to be in microns. <code title="unEVALable code fragment"> scale</code> converts
-       the dxf positions to microns. If scale is a number, it multiplies the dxf
-       positions by that number. The default for scale is 1, meaning no transformation.
-       If the dxf positions are intended to be in millimeters, use 1000 for scale.
-       <p/>
-       Scale can also be a string representing a scale factor.
-       <table><tr><th>String</th><th>Factor</th></tr>
-               <tr><td>"microns"     </td><td style='text-align:right'> 1       </td></tr>
-               <tr><td>"millimeters" </td><td style='text-align:right'> 1000    </td></tr>
-               <tr><td>"centimeters" </td><td style='text-align:right'> 10000   </td></tr>
-               <tr><td>"meters"      </td><td style='text-align:right'> 1000000 </td></tr>
-               <tr><td>"inches"      </td><td style='text-align:right'> 25400   </td></tr>
-               <tr><td>"feet"        </td><td style='text-align:right'> 304800  </td></tr>
-       </table>
-    <li><b>up_distance</b> The distance in microns to "lift the pen above the paper" when drawing a line.
-        Default: 2000</li>
-</ul>
-<i>Example:</i><pre><code title="not in TestSuite"> new Job({name: "j1",
-         robot: new Dexter(), 
-         do_list: [ Dexter.move_to([0, 0.5, 0.075]),
-                    Dexter.draw_dxf("UML.DXF")
-         ]})
- Job.j1.start()</code></pre>
+    <code>Dexter.draw_dxf</code> accepts the name of a file as input along with other information,
+    and returns instructions (which will automatically be placed on the job's do_list)
+    to move Dexter to "draw the lines" indicated by the dxf file.<br/>
+    <i>Parameters:</i>
+    The arguments to this instruction are the same as those documented for
+    DXF.init_drawing documented in
+    <a href="#" onclick="open_doc('drawing_with_DXF_doc_id')">Drawing with DXF</a><br/>
+    <i>except that</i> the init_drawing arguments of
+    <ul><li>three_points</li>
+        <li>plane_normal_guess</li>
+        <li>calc_plane_normal</li>
+    </ul>
+    are replaced by one argument: three_J_angles, that defines the drawing surface.
+    Its default value is:<br/>
+    <code>[[0, 45, 90, -45, 0], [0, 30, 120, -60, 0], [-10, 30, 120, -60, 0]]</code>
+    <p/>
+    <i>Examples:</i>
+<pre><code>new Job({name: "Draw",
+    show_instructions: false, //speeds drawing of many tiny lines
+    do_list: [Dexter.draw_dxf]})
+    </code></pre>
+    This uses all the defaults. When the first instruction is run, it
+    pops up a choose file dialog to ask for the dxf file you want to draw.
+    <p/>
+    You may CALL this function at Job definition time like so:<br/>
+    <pre><code title="not in TestSuite">new Job({name: "Draw",
+    do_list: [Robot.draw_dxf({dxf_filepath: "foo.dxf" ...})]})
+    </code></pre>
+    or call it at run instruction time like so:
+    <pre><code>new Job({name: "Draw",
+    do_list: [function(){ Robot.draw_dxf({dxf_filepath: "foo.dxf"})} ]})
+    </code></pre>
+    with as many args as you like.
+
 </details> <!-- end draw_dxf -->
 
 <details id="Dexter.empty_instruction_queue_doc_id" class="doc_details"><summary>empty_instruction_queue</summary>
@@ -2590,10 +3321,10 @@ access robot hardware.
   <code title="unEVALable code fragment"> job.some-job-name.user_data.my_color = 'green'</code>.
   <p/>
   <i>Examples:</i>
-  <pre><code>new Job({name: "my_job",
-  do_list: [Human.enter_choice({task: "Please pick one.",
-                                choices: ["aa", "bb", "cc"]}),
-           function(){out("You chose: " + this.user_data.choice)}
+  <pre><code> new Job({name: "my_job",
+          do_list: [Human.enter_choice({task: "Please pick one.",
+                                         choices: ["aa", "bb", "cc"]}),
+                    function(){out("You chose: " + this.user_data.choice)}
   ]}) </code></pre>
   Above we define 3 choices and display them in the default select menu.
   The default user_data_variable_name is <code>"choice"</code>, which
@@ -2604,8 +3335,8 @@ access robot hardware.
   <pre><code>
   function myfn() {out("The job name is: " + this.name)}
   new Job({name: "my_job",
-         show_instructions: Job.prototype.show_progress_and_user_data,
-         do_list:
+           show_instructions: Job.prototype.show_progress_and_user_data,
+           do_list:
   [Human.enter_choice({
         choices: ["aa",
                   ["bb"],
@@ -2615,10 +3346,10 @@ access robot hardware.
                   ["ff", 'myfn.call(this)'],
                   ["gg", 'Robot.out("hey")', true]
                  ],
-        show_choices_as_buttons: true,
-        add_stop_button: false,
-        user_data_variable_name: "mychoice",
-        height: 150
+           show_choices_as_buttons: true,
+           add_stop_button: false,
+           user_data_variable_name: "mychoice",
+           height: 150
       })]})  </code></pre>
     Above we use <code title="unEVALable">show_instructions: Job.prototype.show_progress_and_user_data</code>
     so that our Job's user_data will be printed out in the progress bar, updated after
@@ -2760,7 +3491,7 @@ access robot hardware.
    <i>Examples:</i>
     <pre><code> new Job({name: "my_job",
     do_list: [Human.notify({task: "do it"}),
-    Human.notify({task: "do more"})]})
+              Human.notify({task: "do more"})]})
         </code></pre>
 
     <pre><code> new Job({name: "my_job",
@@ -3532,17 +4263,58 @@ Evaluating the returned string will return a copy of <code>this</code>.
 </details>
 </details> <!-- Existing JS methods-->
 </details> <!-- ob sys -->
-<details id="operating_system_doc_id" class="doc_details"><summary>operating_system</summary>
-    <code>operating_system</code> is a global constant that has a value of the name of the current operating system.
+<details id="operating_system_doc_id" class="doc_details"><summary>operating_system, etc.</summary>
+    <code>operating_system</code> is a global constant that has
+    a value of the name of the current operating system.
+    It will not have upper case characters in it.
     Windows OS's have the value "win". Macintosh OS's have the value "mac".
     If you find the value of other operating systems, please tell us!
+    <p/>
+    <b id="dde_version_doc_id">dde_version</b><br/>
+    A global variable that contains a semantic version string
+    of the format: <code>"1.2.3"</code> indicating the running version number of DDE.<br/>
+    <i>Example:</i> <code>dde_version</code>
+    <p/>
+    <b id="dde_version_equal_doc_id">dde_version_equal</b><br/>
+     Compare semantic version numbers.<br/>
+    <i>Parameters:</i><br/>
+    <b>version_string1</b> required string of the format <code>"1.2.3"</code><br/>
+    <b>version_string2</b> Default: <code>dde_version</code><br/>
+    <i>Example:</i> <code>dde_version_equal("1.0.2")</code> => <samp>false</samp>
+    <p/>
+    <b id="dde_version_less_than_doc_id">dde_version_less_than</b><br/>
+     Compare semantic version numbers.<br/>
+    <i>Parameters:</i><br/>
+    <b>version_string1</b> required string of the format <code>"1.2.3"</code><br/>
+    <b>version_string2</b> Default: <code>dde_version</code><br/>
+    <i>Example:</i> <code>dde_version_less_than("1.0.2")</code> => <samp>true</samp>
+    <p/>
+    <b id="dde_version_more_than_doc_id">dde_version_more_than</b><br/>
+     Compare semantic version numbers.<br/>
+    <i>Parameters:</i><br/>
+    <b>version_string1</b> required string of the format <code>"1.2.3"</code><br/>
+    <b>version_string2</b> Default: <code>dde_version</code><br/>
+    <i>Example:</i> <code>dde_version_more_than("1.0.2")</code> => <samp>false</samp>
 </details>
+
 <details class="doc_details"><summary>Window System</summary>
     Dealing with HTML, CSS and JavaScript of traditional web apps is complex.
     DDE uses those technologies but with a simplied wrapper for them to help
     users create interactive windows with the most needed features.
 
-    <details class="doc_details"><summary>Machine Vision with OpenCV</summary>
+    <details class="doc_details"><summary>DDE Window Dimensions</summary>
+    <code>window.outerWidth</code> stores the width in pixels of the DDE window.
+    <p/>
+    <code>window.outerHeight</code> stores the height in pixels of the DDE window.
+    <p/>
+    <code>window.screenX</code> stores the x position of the DDE window in pixels from
+          the left of the screen.
+    <p/>
+    <code>window.screenY</code> stores the y position of the DDE window in pixels from
+        the top of the screen.
+    </details>
+
+        <details id="machine_vision_doc_id" class="doc_details"><summary>Machine Vision with OpenCV</summary>
         Robots need sensors to understand their environment. A very useful sensor
         is a camera. However, scene recognition is one of the more complex cognitive tasks
         that humans do. Its no different for Robots.
@@ -3551,12 +4323,13 @@ Evaluating the returned string will return a copy of <code>this</code>.
         OpenCV is large and complex; necessary characteristics for the task.
         DDE uses a new version of OpenCV called opencv.js, a verison of the
         original C++ program that has been transpiled into JavaScript.
-        DDE's opencv.js (as of Aug 30, 2017) corresponds to OpenCV version 3.3.
+        DDE's opencv.js (as of Sept, 2017) corresponds to OpenCV version 3.3.
         That version of OpenCV was released in August 2017.
         opencv.js allows you to use JavaScript calls to access most of the funtionality
-        in OpenCV.
+        in OpenCV. It does not yet support all of OpenCV, but work is ongoing to
+        add functionality.
         <p/>
-        <b>cv</b> opencv.js functions are available
+        <b id="cv_doc_id">cv</b> opencv.js functions are available
         from the <code title="unEVALable">cv</code> global variable,
         which can be initialized via:<br/>
         <code>var cv = require("opencv.js")</code><br/>
@@ -3578,7 +4351,10 @@ Evaluating the returned string will return a copy of <code>this</code>.
         Probably using a camera that has build-in depth sensing is the best technique.
         Intel's <a href="https://www.intel.com/content/www/us/en/architecture-and-technology/realsense-overview.html" target="_blank">RealSense</a>
         cameras are a good bet here. There is software to integrate the output of the RealSense cameras
-        and OpenCV, though we have yet to experiment with this in DDE.
+        and OpenCV, though at this point (Aug. 2017) they are add-ons to OpenCV, not part of the
+        core software. See Intel
+        <a href="https://software.intel.com/sites/landingpage/realsense/camera-sdk/v1.1/documentation/html/index.html?doc_essential_image_data.html"
+            target="_blank">documentation</a>.
         <p/>
         <b>Performance</b><br/>
         Computer vision tends to eat up a lot of memory and processor power.
@@ -3598,18 +4374,90 @@ Evaluating the returned string will return a copy of <code>this</code>.
         has tons of useful information.
         <p/>
         Documentation on opencv.js is sparser.
-        First, Understand the DDE opencv example.
+        First, understand the DDE opencv examples on the Insert menu/Machine Vision.
         Then, you can use DDE's inspector on <code title="unEVALable">cv</code>
         to see available constants and function names. Beware, there are over
         1K properties in this object!
         Next, take a look at: <a href="https://huningxin.github.io/opencv_docs/tutorial_js_root.html" target="_blank">
-         opencv.js docs</a>
+         opencv.js docs</a>/  A crucial document within that last url is a
+         <a href="https://huningxin.github.io/opencv_docs/tutorial_js_some_data_structures.html"
+            target="_blank">"cheat sheet"</a> of
+         data structures that will help you convert C++ examples of using OpenCV to
+         opencv.js compatible syntax.
          <p/>
+         <b>Converting C++ to JS</b><br/>
+         In addition to the above examples and "cheat sheet", you will find the following
+         tips useful in converting C++ examples to opencv.js<br/>
+         <ul>
+         <li>C++ is a strongly typed language so all variables and
+         function parameters have type declarations. JS does not.<br/>
+         C++ <code title="unEVALable">cv::Mat foo = cv::imread(...)</code> =><br/>
+         JS &nbsp;&nbsp;&nbsp;<samp>let foo = cv.imread(...)</samp> </li>
+         <li>For functions and variables, generally<br/>
+         C++ <code title="unEVALable">cv::foo</code> =><br/>
+         JS &nbsp;&nbsp;&nbsp;<samp title="unEVALable">cv.foo</samp> <i>except ...</i></li>
+         <li>C++ does not use <samp>new</samp>
+         in front of types to create an instance like JS.<br/>
+         C++ <code title="unEVALable">cv::Size()</code> =><br/>
+          JS &nbsp;&nbsp;&nbsp;<samp>new cv.Size()</samp><br/>
+         Similarly for <samp>Mat</samp>, <samp>Scalar</samp>, <samp>Point</samp>.
+         </li>
+         <li>opencv.js functions have the same signature as their C++ counterparts.
+         This includes parameter names, types and default values.
+         </li>
+         <li> <code title="unEVALable">Scalar</code> usually refers to a number.
+         In OpenCV and opencv.js,
+         it refers to an array of 4 numbers. It is often employed to represent
+         a pixel, with numbers for red, green, blue and alpha (transparency) (RGBA).
+         It can also be used for any other group of 4 numbers.</li>
+         <li> In normal Javascript, an automatic garbage collector deletes no-longer used objects from memory.
+              C++ doesn't have an automatic garbage collector built-in so the user must delete unused objects.
+              In opencv.js, the user is responsible for deleting large objects such as
+              those of type <code title="unEVALable">Mat</code> used
+              for images, including anything created with <code title="unEVALable">new cv.  ...</code>
+              <i>Example:</i>
+              <pre><code title="unEVALable">let mat = new cv.Mat()
+//some code
+mat.delete()</code></pre>
+         </li>
+         </ul>
          <b>Acknowledgement</b><br/>
          opencv.js was created by Sajjad Taheri and his collegues at the University of California, Irvine,
          supported by Intel Corporation. We greatly appreciate this valuable contribution
          to robotics and makers everywhere.
     </details>
+
+    <details class="doc_details"><summary>Mouse Input</summary>
+    <b>Position</b><br/>
+    Javascript doesn't have just a method you can call to get the mouse position.
+    JS does support getting the mouse position from an event.
+    Below is code you can evaluate to keep global variables updated to
+    the current mouse position.<br/>
+    <pre><code title="not in TestSuite">document.addEventListener('mousemove',
+            function(e){window.mouse_x = e.clientX
+                        window.mouse_y = e.clientY})
+         </code></pre>
+     With the above code evaluated, you can then eval<br/>
+      <code title="not in TestSuite">mouse_x</code> and/or <code title="not in TestSuite">mouse_y</code>
+      to get the current mouse position as a non-negative integer
+      from the upper left of the DDE window.
+      <p/>
+      You can extend the function definition above to perform an action
+      every time the mouse moves.
+      <p/>
+      <b>Clicks</b><br/>
+      You can cause a function to be called every time a mouse button is clicked via:
+      <pre><code title="not in TestSuite">
+document.addEventListener("click", function(e){
+    let x      = e.clientX
+    let y      = e.clientY
+    let button = e.button //left=0, middle=1, right=2
+    console.log("x: " + x + " y: " + y + " button: " + button)
+});</code></pre>
+        <a href="https://developer.mozilla.org/en-US/docs/Web/Events/click" target="_blank">
+            Additional details</a>
+    </details>
+
 
         <details class="doc_details"><summary>Set DDE Colors</summary>
         Users can customize the DDE colors by calling the below functions.

@@ -666,7 +666,7 @@ Series.instances = [
     new Series({id:"series_if_id",          array: ["if", "else if", "else"],
         menu_insertion_string:"else if",    menu_sel_start:true, menu_sel_end:null, sample:"else if"}),
     new Series({id:"series_for_id",         array: ["for", "while"],
-        menu_insertion_string:'for(var i = 0; i < 3; i++){out(i, "magenta")}',    menu_sel_start:0, menu_sel_end:3, sample:"for"}),
+        menu_insertion_string:'for(let i = 0; i < 3; i++){out(i, "magenta")}',    menu_sel_start:0, menu_sel_end:3, sample:"for"}),
     new Series({id:"series_try_id",         array: ["try", "catch", "finally"],
         menu_insertion_string:"try",        menu_sel_start:true, menu_sel_end:null, sample:"try"}),
     new Series({id:"series_function_id",    array: ["function", "function*", "yield", "return", "class"],

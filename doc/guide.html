@@ -8,7 +8,7 @@
 
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version:  <span id="dde_version_id">2.0.15</span><br/>
+    version:  <span id="dde_version_id">2.1.0</span><br/>
     released: <span id="dde_release_date_id">Sep 3, 2017</span>
     <p/>
     DDE helps you create, debug, and send software to a Dexter robot.
@@ -396,7 +396,18 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
                 But you can also use the Test/Insert All menu item to
                 see the source code of many of the tests. This will generally
                 be <i>less</i> useful than explicit examples, but
-                may come in handy for edge cases.<p/></li>
+                may come in handy for edge cases.
+                <p/>
+                To find a relevant test suite:
+                <ul><li>Enter a string into the Find type-in or, with that typein-in empty,
+                        select a string in the editor (or Doc or Output pane)
+                        that you want to search for.</li>
+                    <li>Click "Find". The Output pane tells you not just where in the Documentation
+                        that string is, but also which test suites its in,
+                        and allows you to browse those test suites.
+                    </li>
+                </ul>
+            </li>
             <li><b>Doc Pane</b> <br/>The <b>Articles</b> provide overall, abstract help.<br/>
                 The <b>User Guide</b> helps you with the DDE programming
                 environment.<br/>
@@ -793,6 +804,137 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
     See <button>Series&#9660;</button> submenu "robot" for details about robots as
     well as the <b>Reference Manual</b> section on Robots.
 </details>
+<details class="doc_details" id='drawing_with_DXF_doc_id'><summary>Drawing with DXF</summary>
+Dexter can draw the lines specified in a dxf file. To do that, Dexter needs to know
+a bunch of other information, most importantly the plane that it will be drawing on.
+Note that only line segments are currently supported.
+The DXF shapes of Circles, fillets, and polylines etc. are not.
+<p/>
+To draw, you must define the plane of the drawing surface.
+A plane can be defined by specifying three points.
+We define each point using an array of 3 numbers, x, y, and z in meters
+for each point.
+You set these points in the 2nd argument to DXF.init_drawing
+as an array of three points or in other words, an array of
+three element where each element is an array of three numbers.
+By doing repeated calls to DXF.init_drawing
+(tweaking the points each iteration)
+and running a job to see where the robot moves, you can hone-in on good locations
+for these points.
+<p/>
+The default input args assume that the plane that you are defining is approximately horizontal, in the x-y plane.
+If this is not the case, the plane_normal_guess arg can be changed to specify the approximate desired plane normal vector.
+This variable controls the orientation of the last joint while you are searching for the plane points but will not affect the drawing process.
+<p/>
+The drawing process will calculate the direction
+(See Glossary on 'direction') based off of the the plane that was defined by the three points and move Dexter to be perpendicular to it.
+<p/>
+If it is desired to have the robot point in the direction of the
+calculated plane during the point finding process,
+set the calc_plane_normal arg to true.
+This is not recommended until the points are dialed in due to large changes in normal direction.
+<p/>
+The 3 points should form a right triangle. The vertices of this triangle will
+be the three points that define the plane.
+The order these points are chosen will not matter.
+If the "DXF_units" argument
+to DXF.init_drawing is <code>undefined</code>, ie not passed in,
+tben DXF_units will automatically be chosen.
+<p/>
+Here's how.
+The legs of the right triangle (the non-hypotenuse sides) form an x and y axis for the drawing's coordinate system. The triangle leg that is in the clockwise direction from the other leg will always define the x-axis and counter-clockwise, the y-axis. With the origin being the point they share and the z-axis being perpendicular. This clockwise calculation is from the endeffector's point of view with assumption that if the robot can physically touch the point then it's last joint is on the front facing side of the plane.
+The rectangular bounding box is also formed by these three points.
+The two points on the x-axis leg of the triangle define the base line segment of the rectangle.
+While the third point determines the rectangle's height.
+Note that the angle between the x-axis and y-axis triangle legs can be between 45º and 180º apart for this to still work.
+Where the y-axis and rectangle height will be defined by the perpendicular from the x-axis to the third point.
+In other words it creates a perfect right triangle from the approximate one.
+This is important because the points that define the x-axis contribute to the orientation of the local coordinate system more than the y-axis point.
+<p/>
+When DXF_units is undefined, the size of the drawing
+ will be set such that the
+drawing will be the maximum size that
+it can be and still be contained within the bounding box. The "aspect ratio"
+of the drawing won't change to completely fill the bounding box. So usually
+the drawing will touch only 3 sides of the bounding box.
+<p/>
+    <details class="doc_details"><summary>Drawing Details</summary>
+    <ol><li>Attach drawing end effector such as a pen or laser to Dexter</li>
+        <li>On a flat work surface within Dexter's reach,
+            place a flat work piece (paper, cardboard etc.)
+        <li>Before turning Dexter on, orient all joints to<br/>
+           [0, 0, 0, 0, 0] (straight up)</li>
+        <li>Choose Jobs menu/DXF.init_drawing() to insert a call to init_drawing
+            into the editor buffer.
+        </li>
+        <li>Edit the DXF_filepath argument to contain a string
+            of the filepath of the dxf file you want to draw.
+        <li>
+        <li>Select the call and click <button>Eval</button>.<br/>
+            This defines a bunch of jobs that use the arguments to init_drawing.
+        </li>
+        <li>Start Job.Cal by clicking <button style="background-color:#CCC">Cal</button>  added to the Jobs bar by
+             DXF.init_drawing. When it is complete ...</li>
+        <li>Start Job.Point1 by clicking <button style="background-color:#CCC">Point1</button> in the Jobs bar.
+            Dexter will move to the first point defined in the three_points argument to
+            init_drawing.
+        </li>
+        <li>If it is not where you want it, adjust the x, y and z of the first point.</li>
+        <li>Now evaluate the call to init_drawing again. If the point is closer to
+            where you want it, good, you're moving in the right direction.
+            If not, adjust the x, y and z values to move in the correct direction.</li>
+        <li>Keep tweaking x, y, and z until the first point is where you want it.</li>
+        <li> Now follow this process for the other two points in the three_points argument,
+             clicking <button style="background-color:#CCC">Point2</button> and
+            <button style="background-color:#CCC">Point33</button> to move Dexter
+             until you have the 3 points defining a right triangle on the
+             drawing surface.
+        </li>
+        <li>Once the points are just about where you want them,
+            set the calc_plane_normal argument to true to check the points
+            using the calculated normal.
+            This is the normal that will be used while drawing.</li>
+        <li>Adjust the lift_height argument to init_drawing for the
+            height above the drawing surface
+            that the pen will go to when moving to start drawing a new line.</li>
+        <li>Adjust the resolution, draw_speed and DXF_units in the remaining arguments to
+            init_drawing. Select the call and click <button>Eval</button></li>
+        <li>Start drawing by clicking on <button style="background-color:#CCC">Draw_DXF</button></li>
+    </ol>
+    </details>
+    <details class="doc_details" id="DXF.init_drawing_doc_id"><summary>DXF.init_drawing</summary>
+    <code>DXF.init_drawing</code> defines a bunch of jobs to help set point locations
+    and initialize the values used by jobs for laser cutting or drawing with a pen.<br/>
+    <i>Example:</i>
+<pre><code title="not in TestSuite">DXF.init_drawing({
+    file_name: "choose_file",        //file_path to DXF
+    three_points: [[0, .50, 0.1],    //Point1
+                    [0, .35, 0.1],   //Point2
+                    [.200, .35, 0.1] //Point3
+                    ], //all numbers in meters
+    plane_normal_guess: [0, 0, 1], //initial guess of plane normal. (usually [0, 0, 1], [+-1, 0, 0], or [0, -1, 0])
+    calc_plane_normal: false, //if true then plane_normal_guess is ignored and plane_normal is determined by three points
+    tool_height: 0.057000, //if in home position, vertical distance from the tool tip down to axis of rotation of J4
+    tool_length: 0.140000, //if in home position, horizontal distance from the tool tip down to axis of rotation of J4
+    DXF_units: undefined,  //units the DXF was drawn in, _mm, _in, _cm etc.
+                           //undefined means the drawing will fit the bounding box
+    draw_speed: .03,       //cartesian speed in (m/s)
+    draw_res: 0.0005,      //resolution for max step size of interpolated straight line in meters
+    lift_height: 0.01,     // height that the pen lifts between unconnected lines in meters
+    tool_action: false,
+    tool_action_on_function:  function(){
+                                  return [make_ins("w", 64, 2),
+                                          dummy_move()]},
+    tool_action_off_function: function(){
+                                  return [make_ins("w", 64, 0),
+                                          dummy_move()]}
+    })
+</code></pre>
+    </details>
+    See also <a href="#" onclick="open_doc('Dexter.draw_dxf_doc_id')">draw_dxf instruction</a>
+</details>
+
+
 <details class="doc_details" id='TestSuite_doc_id'><summary>TestSuite</summary>
     DDE has the capability to compose, run and report on Test Suites.
     DDE comes with several Test Suites and you can define more.

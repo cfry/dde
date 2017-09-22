@@ -179,6 +179,7 @@ Editor.get_any_selection = function(){
     if(sel_text.length > 0) { return sel_text }
     sel_text = Editor.get_cmd_selection()
     if(sel_text.length > 0 ) { return sel_text }
+    //console.log("sel: " + window.getSelection().getRangeAt(0).toString())
     if (!window.getSelection().isCollapsed) { //got sel in doc or output pane
         return window.getSelection().getRangeAt(0).toString()
     }

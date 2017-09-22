@@ -73,7 +73,9 @@ function persistent_save(){
     //we need this because on windows 10, if you minimize the DDE window, then
     //quit DDE, the below saved values will be0, then launching dde
     //makes the window invisible. So this protects against that.
-    persistent_values.dde_window_width = Math.max(persistent_values.dde_window_width, 20)
+    persistent_values.dde_window_x      = Math.max(persistent_values.dde_window_x, 0) //on WinOS, when minimizing, sometimes the x & y vals are negative, hiding the window.
+    persistent_values.dde_window_y      = Math.max(persistent_values.dde_window_y, 0)
+    persistent_values.dde_window_width  = Math.max(persistent_values.dde_window_width, 60)
     persistent_values.dde_window_height = Math.max(persistent_values.dde_window_height, 20)
     const path = add_default_file_prefix_maybe("dde_persistent.json")
     var content = JSON.stringify(persistent_values)

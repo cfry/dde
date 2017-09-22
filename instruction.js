@@ -45,18 +45,23 @@ var Instruction = class Instruction {
     static is_control_instruction(obj){
         return obj instanceof Instruction.Control
     }
+
+    static is_start_object(obj){
+        return (typeof(obj) == "object") && (typeof(obj.start) == "function")
+    }
     static instruction_color(ins){
-        if(Instruction.is_instruction_array(ins)) { return "#FFFFFF" }
+        if(Instruction.is_instruction_array(ins)) { return "#FFFFFF" }        //white
         else if (Instruction.is_control_instruction(ins)) {
             if(ins.constructor.name.startsWith("human")) { return "#ffb3d1" } //pink
             else                                         { return "#e6b3ff" } //lavender
         }
-        else if (is_generator_function(ins)) { return "#ccffcc" } //green
-        else if (is_iterator(ins))           { return "#aaffaa" } //lighter green
-        else if (typeof(ins) == "function")  { return "#b3e6ff" } //blue
-        else if (ins == "debugger")          { return "red" }
+        else if (is_generator_function(ins)) { return "#ccffcc" }             //green
+        else if (is_iterator(ins))           { return "#aaffaa" }             //lighter green
+        else if (typeof(ins) == "function")  { return "#b3e6ff" }             //blue
+        else if (Instruction.is_start_object(ins)) { return "#ffd492"}        //tan
+        else if (ins == "debugger")          { return "red" }                 //red
         else if (ins == null) { return "#aaaaaa" }
-        else if (Array.isArray(ins)) { return "#aaaaaa" }
+        else if (Array.isArray(ins)) { return "#aaaaaa" }                     //gray
         else { shouldnt("Instruction.instruction_color got unknown instruction type: " + ins) }
     }
     static text_for_do_list_item(ins){
@@ -78,7 +83,9 @@ var Instruction = class Instruction {
         else if (is_iterator(ins)){
             return "iterator " + ins.toString().substring(0, 70)
         }
-        else if (typeof(ins) == "function") { return ins.toString().substring(0, 80) }
+        else if (typeof(ins)  == "function")       { return ins.toString().substring(0, 80) }
+        else if (Instruction.is_start_object(ins)) { return ins.toString().substring(0, 80) }
+
         else if (ins == "debugger")         { return '"debugger"' }
         else if (ins == null) { return 'null' }
         else if (Array.isArray(ins)) { return stringify_value(ins) }
@@ -1633,6 +1640,7 @@ Instruction.Control.Get_page = class Get_page extends Instruction.Control{
     }
 }
 
+/*Obsoleted by just putting a phrase directly on the do_list
 Instruction.Control.play_notes = class play_notes extends Instruction.Control{
     constructor (note_or_phrase) {
         super()
@@ -1653,5 +1661,5 @@ Instruction.Control.play_notes = class play_notes extends Instruction.Control{
            // },
            // this.note_or_phrase.dur_in_ms())
     }
-}
+}*/
 

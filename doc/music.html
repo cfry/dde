@@ -1,0 +1,259 @@
+<style>
+    .doc_details {
+        margin-left:20px;
+        font-size:16px;
+    }
+    .doc_details summary { font-weight: 600; }
+</style>
+<div style='font-size:16px;'>
+
+<h2>The Language of Music</h2>
+<i>Fry Sep 16, 2017</i>
+<div style="background-color:#dfccff">
+<i>Warning:</i><br/>
+Non musicians will be prone to skip an article with "Music" in the title.
+I hope to dissuade readers from that behavior. Even if you lack an interest
+in music, recognize that it is a prevalent art form in all cultures. It also
+can help to understand sound, the sense that has the 2nd most neurons (after sight) devoted to it
+in the human brain. Additionally it is the art form most sophisticated in manipulating time,
+easily in the top two dimensions (along with space) that describe the physical universe,
+including robotics.</div>
+<br/>
+<b>Language and Knowledge</b><br/>
+A language is a mapping between syntax and semantics.
+Convention Music Notation (CMN) uses a rich set of graphics to represent music.
+This syntax, like natural language, evolved over many years.
+Never designed languages like music, inevitably consist of a train wreck of unnecessary complexity.
+Having to learn this unnecessary complexity accounts for why the majority of
+students/people are not
+interested in conventional music education. Even modern popular music
+uses the antiquated, cumbersome language of CMN, stifling most who enjoy music from
+deeper understanding.
+<p/>
+By representing knowledge in optimal ways, we facilitate understanding
+and creation of new knowledge. But it is difficult to take advantage of
+the past without adopting its language. Dexter Development Environment
+takes a middle ground w.r.t. music. It borrows many concepts from the past, but
+molds them into being compatible with the
+more-designed language of JavaScript, imperfect though it is.
+<p/>
+<b>Programming</b><br/>
+JavaScript is far more general than music,
+but, in its pure form, contains no constructs specifically for music.
+DDE augments JavaScript with data structures and methods to facilitate
+the creation of music in a more flexible way than is possible with CMN.
+<p/>
+Because these extensions to JS integrate so well with general purpose
+JS, we can apply the concepts of programming to the process of
+music creation, deriving multiple benefits from both fields.
+This interdisciplinary approach helps musicians learn how to program,
+helps programmers learn music, and helps people in each profession more
+deeply understand their profession.
+<p/>
+<b>Counter Criticism</b><br/>
+Critics of my criticism of CMN will say that there are good reasons
+that CMN is the way it is. They are myopically correct. If you start
+building a house on top of an unlevel foundation, you have to add
+"shims" to compensate. Then, if those shims aren't perfect,
+you have to shim the shims. If you start with a decent foundation,
+the unnecessary complexity of the shims evaporate. But music
+did not start with a decent foundation.
+<p/>
+Defenders of CMN will also say "but the graphics provide rapidly
+digestible visual clues aiding in reading complex scores". Though
+this is true, there is no fundamental reason why a good language
+can't be both "easily learned" and "fast for the expert". Yes
+its more difficult to design, but compared to the billions of hours
+wasted on learning CMN, its a drop in the bucket.
+<p/>
+<b>Good Design</b><br/>
+<i>Staves</i><br/>
+As a thought experiment for the CMN defenders, imagine that
+we used 1 kind of stave with exactly 1 ledger line between staves.
+Furthermore, The interval between lines is always a whole tone.
+We add an "octave signature" at the beginning of each stave (just an integer).
+Now the concepts of sharp, flat, natural (and their complex defaulting rules)
+key signature, clefs (treble, bass, etc.)
+and multiple ledger lines become superfluous.
+Now a given pitch class, say "C", always occurs in the same <i>one</i> place
+in a staff.
+Similar good design can do the same for time. Then, at least half the
+stumbling blocks to students learning formal music are gone.
+<p/>
+<i>Pitch</i><br/>
+CMN evolved into 12 tones from a 7 tone (diatonic system).
+CMN notates its 7 primary tones from C through B
+like so (C, D, E, F, G, A, B). Far easier to comprehend
+would have been (A, B, C, D, E, F, G).
+<p/>
+Because non-diatonic
+notes are so common, much of CMN is devoted to somehow grafting
+12 tones into 7. The unholy "accidental" concept was invented to
+preserve some continuity between 7 tones and 12 tones per octave.
+We have yet to recover from a more reasonable transition
+to 12 equal, uniform pitches.
+Call them: A, B, C, D, E, F, G, H, I, J, K, L.
+CMN defenders like the simplicity of the key of C represented
+without accidentals. But that notation hides where the "half steps" are.
+A, C, E, F, H, J, L doesn't.
+<p/>
+<i>Time</i><br/>
+CMN has such a chaotic denotation for time, its a tribute to human
+intelligence that musicians have any mental bandwidth left to
+deal with pitch, the 2nd most important concept in music.
+<p/>
+<i>Time Signature</i><br/>
+4/4, 3/4 (What's a whole note? A circle or a dotted half?)
+Why is the most common note a quarter note, not a whole note?
+In the term "quarter note", if you use the word "note" to refer to duration,
+then what do you use to refer to the entire note? (Observe
+that sometimes pitch is referred to as "note" as well.)
+Much easier is just to indicate the number of beats per bar
+in the time signature, and never change how the duration of a beat is represented.
+<p/>
+<i>Duration</i><br/>
+Speakers of English conflate the concepts of a particular point in time,
+with a duration (the length interval between two points in time).
+Musical notes have a start time, an end time, and a duration between them.
+Of the three, start time is by far the most important. (Play a melody staccato
+and you will recognize it. Change the start times but not the duration of the
+notes nor their end times, and you won't.)
+<p/>
+<i>Time and Pitch</i><br/>
+Pitch really refers to frequency of air vibration. In Physics, the common
+unit is "Hertz" or "Hz" for short. A better syntax for this concept is
+"cycles per second" or "cps". (Physics is not immune to bad design either.)
+<p/>
+By international standard, the "A" above Middle C is 440cps.
+You'd think they would have set the standard on Middle C, not the A above it.
+Some physicist thought A was a better choice and they were right, especially
+if my A through L pitch notation were adopted in place of C through B.
+<p/>
+As it happens, A at 440cps sets Middle C at the convenient to remember 261.626 cps.
+You can see the tortured frequency and musical pitch relationship
+<a href="http://www.sengpielaudio.com/calculator-notenames.htm" target="_blank">here</a>.
+<p/>
+Slightly different values of cps are imperceptible to most people.
+So imagine that reason prevailed and we set the standard at exactly 256cps for Middle C.
+256 is 2 to the 8th power. Because an octave is the musical interval where
+the higher point of the interval is double the lower point, powers of two
+make a lot of sense. The C below Middle C would be 128cps and the one above, 512cps.
+This series of numbers (2, 4, 8, 16, 32, 64, 128, 256, 512, etc.) will be familiar to
+computer scientists and anyone calculating computer memory sizes.
+<p/>
+<i>Octave Designation</i><br/>
+Like most other "standards", octave notation is all screwed up.
+There is an international standard of
+Middle C being octave 4. MIDI designates pitch number 60 as middle C, but
+neglected to indicate what octave number that should be.
+Since 5 * 12 is 60, 5 would make sense, but that's incompatible with
+the "4" standard. However, for some unfathomable reason, many synthesizer
+and audio workstation software products use 3 as the octave of Middle C.
+Because the WedMidi software package that DDE uses also uses 3, DDE uses 3.
+<p/>
+But what would make the most sense?  Following the sensible frequency for Middle C
+of 256, which is 2 to the 8th power, 8 makes the most sense.
+This puts 2 to the 0 power at 0cps (obviously the lower limit), so we can
+designate all possible octaves as non-negative integers.
+<p/>
+<i>Tempo</i><br/>
+A reasonable default tempo for popular music is 120 beats per minute.
+This makes sense for human psychology because its the pace of a fast walk,
+or perhaps more emotionally important, a compelling dance tempo.
+From a physics standpoint, we'd want our "default" tempo to be 60 beats per minute.
+This matches scientific "SI" units used throughout science, and, for that reason, DDE.
+Since we want to unify our units as best as is practical in DDE in order to
+get cross domain elegance, we use 60 beats per minute as the default tempo.
+<p/>
+But we don't use "beats per minute" as that's too convoluted. A far more
+elegant way to think is seconds per beat. That puts 60 beats per minute
+at the far simpler syntax of 1 second per beat.
+<p/>
+<i>Unifying Beats and Frequencies</i><br/>
+The relationship between these two different representations of the same dimension, time,
+are unnecessarily confusing. If we go with our middle C at 256cps, then
+we get 256 cycles of sound per the default beat of 1 second.
+A CMN half note at Middle C would thus be 512 cycles.
+A CMN eighth note at Middle C would 128 cycles.
+Then physicists and musicians could talk to each other,
+fostering a creative, interdisciplinary world.
+<p/>
+<b>Higher Level Music</b><br/>
+CMN uses the term "bar" to refer to the time of several beats, typically 4 but
+not uncommonly 3. Chord progressions are usually best described using bars.
+The most common chord progression in the history of, err, chord progressions,
+is the 12 bar blues.
+<div style="background:#ffd1b9">Note: same number of bars as pitches in an octave!
+In fact, having a base 12 number system would be far better than base 10,
+because 12 is evenly divisible by 2, 3, 4, and 6 whereas 10 has
+only 2 and 5, with 5 being much less valuable than 6 because
+hexagons can tile planes.
+<p/>
+In a base 12 world,<br/>
+0.3333333333333333 and (and even that's inaccurate) gets replaced
+by a perfect 0.4.<br/>
+ 0.6666666666666666 becomes 0.8.<br/>
+Also 0.25 gets replaced by a simpler 0.3.<br/>
+I wonder how many decades this design mistake set back civilization.
+</div>
+
+<p/>
+DDE doesn't use the abstraction of a bar, but rather skips over it for
+the more general "phrase", which can be any number of beats long (including
+fractional beats). Though bars are a convenient abstraction for understanding
+modern music, they usually get in the way of computational elegance.
+<p/>
+The principle paradigm for DDE's music system is <i>phrase processing</i>.
+A <b>phrase</b> in DDE is a sequence of notes that share the same seconds per beat
+for designating their start times and durations.
+<p/>
+<b>Note</b> is the other primary data structure in DDE's music system. It
+has the properties time, duration, pitch, velocity, (MIDI's misspelled "volume" designation),
+and channel (typically instrument type).
+A phrase can include
+overlapping or simultaneous notes. Creating phrases that include melodies
+and/or chords is facilitated in DDE using a concise, obvious ASCII representation.
+<p/>
+CMN has repeat, 2nd endings, etc. but is pretty weak
+in notating higher level structures. This leads to redundant & verbose scores
+that are unnecessarily difficult to understand and re-arrange.
+Here's where computer power and decent language design can really shine.
+Repeat (any number of times including fractional), concat, merge, and harmonize are
+some of DDE's higher level phrase processors.
+<p/>
+We can't hope to do everything at a high level, so DDE has a next layer down
+of phrase processors: set_property, increment_property and multiply_property can
+designate low level operations on every note in a phrase, in one fell swoop.
+<p/>
+Finally, we may find the need to operate at an even lower level to gain yet more
+generality. For this you can use all of JavaScript to manipulate phrase and note
+properties. This includes math, if, for-loops and writing custom functions
+to make your own high-level abstractions, germane to a particular musical style or
+piece you'd like to create.
+<p/>
+<b>Why Design?</b><br/>
+Given the overwhelming adoption of CMN and our unwillingness to throw out
+its rich literature, why did I waste all this space designing a better music language
+that will never be adopted?
+<p/>
+Humans, like all computers, have a too-limited amount
+of memory and computation speed. To optimize this scarce resource, we construct simplified
+models of reality to get "good enough" answers with our limited computational power.
+Having an elegant language for describing a complex system helps immeasurably in
+understanding that complex system. An ideosyncratic language confuses us.
+Rather than wallow in this confusion, its better to understand a good representation,
+then map between that good representation and reality, than to be stuck
+with merely the confusion of reality, represented by unnecessarily complex languages like
+CMN, Math, and English.
+<p/>
+Knowing whether
+an apparent inconsistency is an artifact of bad language design or a misunderstanding
+of the semantics on our part, is an exceedingly valuable debugging paradigm.
+Good language design facilitates the understanding of cross-discipline paradigms.
+By understanding the relationships between:<br/>
+physics (including kinematics & acoustics),<br/>
+programming (including JavaScript & debugging),<br/>
+perceptual psychology (including vision & hearing),<br/>
+and art (including graphics & music),<br/>
+we gain a deeper understanding of all those disciplines,
+while taking up less of our brain-power, leaving some for higher level tasks.

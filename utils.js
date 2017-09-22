@@ -22,6 +22,23 @@ function dde_error(message){
     throw new Error("dde_error: " + message)
 }
 
+let semver = require("semver")
+
+function dde_version_equal(version_string1, version_string2=dde_version){
+    //let semver = require("semver")
+    return semver.eq(version_string1, version_string2)
+}
+
+function dde_version_less_than(version_string1, version_string2=dde_version){
+    //let semver = require("semver")
+    return semver.lt(version_string1, version_string2)
+}
+
+function dde_version_more_than(version_string1, version_string2=dde_version){
+    //let semver = require("semver")
+    return semver.gt(version_string1, version_string2)
+}
+
 var primitive_types = ["undefined", "boolean", "string", "number"] //beware; leave out null because
   //for some strange reason, null is of type "object"
 
@@ -984,6 +1001,13 @@ function scale_to_micron_factor(scale){
             ' use a number or "microns", "millimeters", "centimeters", "meters", "inches", "feet".')
         }
     }
+}
+
+function limit_to_range(value, min=null, max=null){
+    let result = value
+    if (min){ result = Math.max(result, min) }
+    if (max){ result = Math.min(result, max) }
+    return result
 }
 
 //dxf uses objects but dde standardizes on arrays

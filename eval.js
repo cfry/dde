@@ -65,7 +65,7 @@ function eval_js_part1(){
 }
 
 //part 2 of 3 is in eval.js,  window.addEventListener('message'  under the message name of "eval"
-function eval_js_part2 (command){
+function eval_js_part2 (command, calL_eval_part3_if_no_error=true){ //2nd arg passed in as false for eval_and_paly
     //var command = event.data.command; //might be whole editor buffer or just the selection.
     //command = trim_string_for_eval(command) //cuts trailing whitespace and // comments only. but buggy
     command = fix_code_to_be_evaled(command)
@@ -113,13 +113,10 @@ function eval_js_part2 (command){
         result.error_type         = err.name
         result.full_error_message = err.stack
         result.error_message      = err.message
+        eval_js_part3(result)
+        return "Error: " + err.message
     }
-    /*event.source.postMessage({ //send result to the UI side
-     name:            "eval_result",
-     result:          result,
-     },
-     event.origin)*/
-    eval_js_part3(result)
+    if (calL_eval_part3_if_no_error) { eval_js_part3(result) }
     return result
 }
 
@@ -191,5 +188,32 @@ function error_message_start_and_end_pos(err){
         }
         catch(e){return error_result} //because might be some weird format of err.stack
          //that I can't parse, so just bail.
+    }
+}
+
+function eval_and_start(){
+     let sel_text = Editor.get_any_selection()
+     if (sel_text.length == 0) {
+        warning("There is no selection to eval.")
+        return
+     }
+     let result   = eval_js_part2(sel_text, false) //don't call eval part 3 if no error
+     if ((typeof(result) == "string") && result.startsWith("Error:")) {} //handled by eval_js_part3
+     else {
+         let val = result.value
+         if(val && typeof(val.start) == "function") {
+             try { inspect(val.start()) }
+             catch(err) {
+                 warning("The result of evaling: " + sel_text +
+                     "<br/> is: " + val +
+                     "<br/> but calling its <code>start</code> method errored with:<br/>" +
+                     err.message)
+             }
+         }
+         else {
+             warning("The result of evaling: " + sel_text +
+                 "<br/> is: " + val +
+                 "<br/> but that doesn't have a start method.")
+         }
     }
 }

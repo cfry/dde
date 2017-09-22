@@ -215,17 +215,21 @@ show_window({content:
      </td>
      <td><input type="button" value="set_parameter" title="Dexter.set_parameter(name, value)"/></td>
  </tr>
- <tr><td>X:    <input name="X_id"  type="number" value=0 step="0.01" style="width:90px;"/></td>
+ <tr><td>X:<input name="X_id"  type="number" value=0 step="0.01" style="width:90px;"/><br/>
+        <span style="margin-left:20px;font-size:10px;">meters</span>
+ </td>
      <td>J1:   <input id="J1_id" type="number" value=0 min="Dexter.J1_ANGLE_MIN" max="Dexter.J1_ANGLE_MAX" step="5" style="width:90px;"></input>
                <br style="height:10px;"/><span id="J1_range_id" style="font-size:10px;margin:0;padding-left:30px; padding-top:0px; padding-bottom:0px;"></span></td>
      <td>Name: ` + make_set_parameter_name_html() + `</td>
  </tr>
- <tr><td>Y:     <input name="Y_id"  type="number" value=0.5 step="0.01" style="width:90px;"/></td>
+ <tr><td>Y:<input name="Y_id"  type="number" value=0.5 step="0.01" style="width:90px;"/><br/>
+         <span style="margin-left:20px;font-size:10px;">meters</span></td>
      <td>J2:    <input id="J2_id" type="number" value=0  step="5" style="width:90px;"/>
                 <br/><span id="J2_range_id" style="font-size:10px;margin:0;padding-left:30px"></span></td>
      <td>Value: <input name="set_param_value" type="number" value=0 style="width:90px;"/></td>
  </tr>
- <tr><td>Z:  <input name="Z_id"   type="number" value=0.075 step="0.01" style="width:90px;"/></td>
+ <tr><td>Z:<input name="Z_id"   type="number" value=0.075 step="0.01" style="width:90px;"/><br/>
+        <span style="margin-left:20px;font-size:10px;">meters</span></td>
      <td>J3: <input id="J3_id"    type="number" value=0 step="5" style="width:90px;"/>
              <br/><span id="J3_range_id" style="font-size:10px;margin:0;padding-left:30px"></span></td>
  </tr>
@@ -270,19 +274,19 @@ show_window({content:
 
   J2_id.min = Dexter.J2_ANGLE_MIN
   J2_id.max = Dexter.J2_ANGLE_MAX
-  J2_range_id.innerHTML = Dexter.J2_ANGLE_MIN + " to " + Dexter.J2_ANGLE_MAX
+  J2_range_id.innerHTML = Dexter.J2_ANGLE_MIN + " to " + Dexter.J2_ANGLE_MAX + " degrees"
 
   J3_id.min = Dexter.J3_ANGLE_MIN
   J3_id.max = Dexter.J3_ANGLE_MAX
-  J3_range_id.innerHTML = Dexter.J3_ANGLE_MIN + " to " + Dexter.J3_ANGLE_MAX
+  J3_range_id.innerHTML = Dexter.J3_ANGLE_MIN + " to " + Dexter.J3_ANGLE_MAX + " degrees"
 
   J4_id.min = Dexter.J4_ANGLE_MIN
   J4_id.max = Dexter.J4_ANGLE_MAX
-  J4_range_id.innerHTML = Dexter.J4_ANGLE_MIN + " to " + Dexter.J4_ANGLE_MAX
+  J4_range_id.innerHTML = Dexter.J4_ANGLE_MIN + " to " + Dexter.J4_ANGLE_MAX + " degrees"
 
   J5_id.min = Dexter.J5_ANGLE_MIN
   J5_id.max = Dexter.J5_ANGLE_MAX
-  J5_range_id.innerHTML = Dexter.J5_ANGLE_MIN + " to " + Dexter.J5_ANGLE_MAX
+  J5_range_id.innerHTML = Dexter.J5_ANGLE_MIN + " to " + Dexter.J5_ANGLE_MAX + " degrees"
 
   J5_direction_to_angles_html()
   const sel_text = Editor.get_any_selection()

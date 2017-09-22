@@ -24,9 +24,10 @@
 
     function on_ready() {
         const os = require('os');
-        operating_system = os.platform()
-        if      (operating_system == "darwin")  { operating_system = "mac" }
-        else if (operating_system == "windows") { operating_system = "win" }
+        operating_system = os.platform().toLowerCase()
+
+        if      (operating_system == "darwin")       { operating_system = "mac" }
+        else if (operating_system.startsWith("win")) { operating_system = "win" }
         const remote = require("electron").remote
         window.dde_apps_dir = convert_backslashes_to_slashes(remote.getGlobal("dde_apps_dir"))
         console.log("In renderer dde_apps_dir: " + window.dde_apps_dir)
@@ -43,6 +44,7 @@
         dde_release_date = pckg.release_date
    // window.$ = require('jquery'); //Now done in index.html   after doing npm install --save jquery, we still need this
     //onload_fn()
+    Dexter.draw_dxf = DXF.dxf_to_instructions //see Robot.js
 
     $('#outer_splitter').jqxSplitter({
         width: '98%', height: '97%', //was 93%
@@ -272,6 +274,9 @@ foo("hello", [7, 10, 20, -3.2]) //call function foo with 2 args
                "replace_selection", //insertion_pos.   "replace_selection" is the default. Other options: "start", "end", "selection_start", "selection_end", "whole", an integer
                false)               //select_new_text. false is the default.
 `)}
+
+
+   show_window_help_id.onclick = function(){open_doc(show_window_doc_id)}
 
     window_simple_message_id.onclick=function(){Editor.insert(
 `//Pop up a window with content of the given HTML.
@@ -542,17 +547,29 @@ show_window({
 `)}
     build_window_id.onclick=ab.launch
 
-    convert_to_b_and_w_id.onclick=function(){
-        const code = file_content(__dirname + "/examples/convert_to_b_and_w.js")
+    opencv_gray_id.onclick=function(){
+        const code = file_content(__dirname + "/examples/opencv_gray.js")
+        Editor.insert(code)
+    }
+    opencv_blur_id.onclick=function(){
+        const code = file_content(__dirname + "/examples/opencv_blur.js")
         Editor.insert(code)
     }
 
-    process_webcam_id.onclick=function(){
-        const code = file_content(__dirname + "/examples/process_webcam.js")
+    opencv_in_range_id.onclick=function(){
+        const code = file_content(__dirname + "/examples/opencv_in_range.js")
+        Editor.insert(code)
+    }
+
+    opencv_process_webcam_id.onclick=function(){
+        const code = file_content(__dirname + "/examples/opencv_process_webcam.js")
         Editor.insert(code)
     }
 
     window_close_all_id.onclick=close_all_show_windows
+
+    machine_vision_help_id.onclick = function(){open_doc(machine_vision_doc_id)}
+
     show_page_id.onclick=function(){Editor.wrap_around_selection('show_page(', ')\n', '"hdrobotic.com"')}
 
     get_page_id.onclick=function(){Editor.insert(
@@ -614,6 +631,9 @@ get_page_async("http://www.ibm.com", function(err, response, body){ out(body.len
      finish_phrase: "finish",        //Say this to end speech reco when only_once=false.
      finish_callback: out})          //Passed array of arrays of text and confidence when user says "finish". Default null. Only called if only_once=false
 `)}
+    eval_and_start_button_id.onclick = eval_and_start
+    midi_init_id.onclick = Midi.init
+
     inspect_rootObject_id.onclick=function(){ inspect_new_object("Root") }
     //train_id.onclick=dex.train //obsolete
     make_dictionary_id.onclick=function(){
@@ -634,7 +654,7 @@ get_page_async("http://www.ibm.com", function(err, response, body){ out(body.len
     run_all_test_suites_id.onclick     = function(){TestSuite.run_all()}
     // show_all_test_suites_id.onclick    = function(){TestSuite.show_all()}  //functionality obtained with Find and no selection
     insert_all_test_suites_id.onclick  = function(){TestSuite.insert_all()}
-    find_test_suites_id.onclick        = function(){TestSuite.find_test_suites(Editor.get_javascript(true))}
+    //obsoleted by increased functionality in doc pane Find button. find_test_suites_id.onclick        = function(){TestSuite.find_test_suites(Editor.get_any_selection())}
     selection_to_test_id.onclick=function(){
        TestSuite.selection_to_test(Editor.get_javascript(true), Editor.get_javascript(), Editor.selection_start())
        }
@@ -771,8 +791,8 @@ foo      //eval to see the latest values</pre>`,
     // Control Flow menu
     if_single_armed_id.onclick = function(){Editor.wrap_around_selection('if (1 + 1 == 2) {\n    ', '\n}')}
     if_multi_armed_id.onclick  = function(){Editor.wrap_around_selection('if (1 + 1 == 2) {\n    ', '\n}\nelse if (2 + 2 == 4){\n    \n}\nelse {\n    \n}\n')}
-    for_number_of_times_id.onclick  = function(){Editor.wrap_around_selection('for(var i = 0; i < 10; i++){\n', '\n}\n')}
-    for_through_array_elts_id.onclick = function(){Editor.wrap_around_selection('for(var x of [7, 4, 6]){\n', '\n}\n')}
+    for_number_of_times_id.onclick  = function(){Editor.wrap_around_selection('for(let i = 0; i < 10; i++){\n', '\n}\n')}
+    for_through_array_elts_id.onclick = function(){Editor.wrap_around_selection('for(let x of [7, 4, 6]){\n', '\n}\n')}
     try_id.onclick             = function(){Editor.wrap_around_selection('try{\n', '\n} catch(err){handle errors here}')}
     dde_error_id.onclick       = function(){Editor.wrap_around_selection('dde_error(', ')', '"busted!"')}
     setTimeout_id.onclick=function(){Editor.insert('setTimeout(function(){console.log("waited 3 seconds")}, 3000)nnll')}
@@ -860,7 +880,34 @@ foo      //eval to see the latest values</pre>`,
     }
     run_instruction_dialog_id.onclick = run_instruction
 
-
+    init_dxf_drawing_id.onclick = function(){
+        var content =
+`DXF.init_drawing({dxf_filepath: "choose_file",    //image to draw
+                 three_points: [[0,  .55, 0.05],  //Point1 locates the drawing plane
+                                [0,   .4, 0.05],  //Point2
+                                [.15, .4, 0.05]], //Point3
+                 plane_normal_guess: [0, 0, 1],
+                 calc_plane_normal: false,
+                 tool_height: 5.08 * _cm,
+                 tool_length: 8.255 * _cm,
+                 DXF_units: undefined, //0.001 means each DXF distance unit is worth 1mm
+                                       //undefined means scale drawing to fit the three_points
+                 draw_speed:  1 * _cm/_s,
+                 draw_res:  0.5 * _mm, //Max step size of straight line
+                 lift_height: 1 * _cm, //distance above surface when pen is not drawing
+                 tool_action: false,
+                 tool_action_on_function: function(){
+					return [make_ins("w", 64, 2),
+							dummy_move()]
+				 },
+                 tool_action_off_function: function(){
+                    return [make_ins("w", 64, 0),
+                            dummy_move()]
+                 }})
+`
+        Editor.insert(content)
+        open_doc("DXF.init_drawing_doc_id")
+    }
     calibrate_id.onclick = init_calibrate //defines 2 jobs and brings up calibrate dialog box
 
         //Output_ops menu
@@ -942,7 +989,7 @@ foo      //eval to see the latest values</pre>`,
     } //must occur after dde_init_doc_js_initialize  init_ros_service($("#dexter_url").val())
     // rde.ping() //rde.shell("date") //will show an error message
     Editor.restore_files_menu_paths_and_last_file()
-
+     simulate_help_id.onclick=function(){ open_doc(simulate_doc_id) }
      simulate_radio_true_id.onclick  = function(){
           persistent_set("default_dexter_simulate", true);   event.stopPropagation()
      }

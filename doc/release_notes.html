@@ -5,6 +5,127 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 2.1.0, Sep 21, 2017</summary>
+Highlights: New subsystems of Drawing with Dexter and Music with MIDI.
+  New kind of instruction: start_object.
+  New Articles: "A Mental Model of Memory" and "The Language of Music"
+<ul>
+    <li> Improved formatting of Ref Man Human.enter_choice examples</li>
+
+    <li> Added Help menu item to Insert/show_window menu</li>
+
+    <li> Added Help menu item to Insert/Machine Vision menu</li>
+
+    <li> Now there's click help for "cv", the global var accessing OpenCV.</li>
+
+    <li> Click_help for "for": replaced "var i" with "let i"</li>
+
+    <li> Now Find window prev and next buttons also include Find string searches.</li>
+
+    <li> Human.notify ref man doc: improved first example formatting.</li>
+
+    <li> Fixed bug that disabled all shortcut keys and "operating_system" name.</li>
+
+    <li> minimum saved DDE window width now is 60 instead of 20.</li>
+
+    <li> Fixed bug in windowsOS for minimized DDE window that caused
+    the x and y location of the window to be saved to an invisible negative integer,
+    making a launched DDE invisible.
+    If you have this problem, with DDE closed, edit dde_apps/dde_persistent.json
+    file to give dde_window_width & dde_window_height values of several hundred,
+    and dde_window_y & dde_window_x positive values.</li>
+
+    <li> Fixed Linux .desktop file requirements.</li>
+
+    <li> Added functions dde_version_equal, dde_version_less_than, dde_version_more_than.
+    Docmentation along with dde_version under: Ref Man/operating_system, etc.
+    These functions compare strings like  "2.0.9" and 2.0.12" to yield the right answer.</li>
+
+    <li> Learn JS "for" examples: changed "var" to "let"</li>
+
+    <li> Insert menu/Machine Vision/ new examples in menu items:
+    "in_range B&W" for super high contrast feature detection.
+    "Blur" for making a blurry image.</li>
+
+    <li> Support for playing musical notes and phrases with Midi
+        and constructing higher level sequences of notes.
+        <ul><li>Documentation in Ref Man/IO/Sound/Music with Midi</li>
+            <li>Article in Doc pane: "The Language of Music"
+                about the benefits of language design using the example of music.
+            </li>
+            <li> Insert Menu/Sound has new item "Midi.init()"</li>
+            <li> new Eval&Start button will evaluate JS source code that
+                 creates a note or phrase and immediately play it.</li>
+             <li> Notes and Phrases can put put directly on a Job's do_list
+                  and will play when that "instruction" is run.</li>
+         </ul>
+    </li>
+
+    <li> Replaced Tests menu item "Find Test Suites" with similar functionality added to the
+    existing functionality of the doc pane Find button.
+    Now when you click find, it gets the selection
+    (from more places than the old places).
+    and displays found tests in the Output pane.</li>
+
+    <li> Now when you make a selection in a temporary output region,
+    you do NOT get click help on it, rather, the text you selected
+    stays selected and you can now use in in a Find or Eval operation,
+    or copy and paste it.</li>
+
+    <li> Minor fixes to "How to Think Like a Computer"
+    along with a deeper explanation of how calling a function works and
+    tweaks to the code examples.</li>
+
+    <li> Ref Man/Window System/Mouse Input now documents how to
+         get the current position of the mouse and capture mouse clicks.</li>
+
+    <li> Run instruction dialog now has the word "degrees" in 4 strategic places
+    and "meters" in 3 places.</li>
+
+    <li> Jobs menu/Simulate? menu radio buttons now work when you click on the label
+        In addition to the circle radio button itself.</li>
+
+    <li> Jobs menu/Simulate? tooltip updated.</li>
+
+    <li> New menu item Jobs menu/Simulate?/Help taking you to the Ref man section that
+        describes simulate.</li>
+
+    <li> now output pane tells you "Could not connect to Dexter"
+         when a job attempts to and fails.</li>
+
+    <li> robot status dialog: Now displays measured x, y, z,
+          values in a new bottom row.</li>
+
+    <li> New documentation section: Ref Man/Window/System/DDE Window Dimensions</li>
+
+    <li> New Article in the doc pane: A Mental Model of Memory which
+        compliments  "How to Think Like a Computer"</li>
+
+    <li> New Kind of instruction on the do_list: "start object".
+         Documented under Ref Man/Robot/Robot Instructions/Any Start Object<br/>
+        Allows, job instances, music notes and phrases,
+        methods with callbacks to go on the do_list.</li>
+
+    <li> New Article: "The Language of Music" about the benefits of
+         language design using the example of music.</li>
+
+    <li> Clicking on a running job's button now flushes its queue.</li>
+
+    <li> Fix for redefining a job while its running which
+    use to cause the error:
+    "in Dexter Simulation, could not find a job with job_id: 3"
+    The fix is to kill the old job if it is redefined while running.</li>
+
+   <li> Drawing with DXF
+       <ul><li>New user Guide section: Drawing with DXF</li>
+           <li>New method: DXF.init_drawing</li>
+           <li>New instruction: Dexter.draw_dex.</li>
+               See Ref Man/Robot/Dexter/Dexter Instructions/draw_dxf</li>
+        </ul>
+    </li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 2.0.15, Sep 3, 2017</summary>
 Highlights: Video capture & processing example with OpenCV.<br/>
             Human.enter_choice greatly extended.<br/>
@@ -69,7 +190,7 @@ Highlights: Video capture & processing example with OpenCV.<br/>
 
     <li> New menu: Insert/Machine Vision/
         now contains "Convert to B&W" (from the previous version of DDE, but
-        with a larger window size to accomodate bigger pictures)<br/>
+        with a larger window size to accommodate bigger pictures)<br/>
         and a new item: "Process Webcam" which displays the video from
         a laptop webcam, let's you take a snapshot, then processes
         the image into two different formats.</li>
@@ -1138,7 +1259,7 @@ Each function has click help.
 
         <li> Make Dictionary under the Insert/Examples menu extended.</li>
 
-        <li> Make Dictionary, the help dialog enlarged to accomodate Windows scroll bar.</li>
+        <li> Make Dictionary, the help dialog enlarged to accommodate Windows scroll bar.</li>
 
         <li> When a file can't be loaded due to security restrictions,
               an error message now displayed in

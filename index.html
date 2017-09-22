@@ -329,8 +329,9 @@
                                         </li>
                                         <li id="editor_insert_id"      title="Programmatically inserts text into the Editor.">Editor.insert</li>
                                         <li id="insert_color_id"       title="Choose a color to insert into the Editor.&#013;If you select a color first,&#013;the selection will be replaced.">Color</li>
-                                        <li                            title="Pops up a dialog box with HTML content.">show_window
+                                        <li                            title="Pops up an interactive dialog box with HTML content.">show_window
                                             <ul>
+                                                <li id="show_window_help_id"      title="Documetation for show_window">Help</li>
                                                 <li id="window_simple_message_id" title="Basic information presentation">Simple Message</li>
                                                 <li id="window_options_id"        title="Window title, size, position">Window Options</li>
                                                 <li id="window_buttons_id"        title="Submit and non-window-closing buttons&#013;Explains callback function.">Buttons</li>
@@ -344,8 +345,11 @@
                                         </li>
                                         <li title="Image processing using OpenCV.">Machine Vision
                                             <ul>
-                                                <li id="convert_to_b_and_w_id" title="Convert chosen color picture to black and white.">Convert to B&W</li>
-                                                <li id="process_webcam_id"     title="Make snapshots from webcam video and modify them.">Process Webcam</li>
+                                                <li id="machine_vision_help_id"        title="Documentation on Machine Vision and OpenCV.">Help</li>
+                                                <li id="opencv_gray_id"                title="Convert chosen color picture to gray image.">Convert to gray</li>
+                                                <li id="opencv_in_range_id"            title="Convert chosen color picture to black and white from a designated range of pixel colors.">in_range B&W</li>
+                                                <li id="opencv_blur_id"                title="Convert chosen picture to blurry.">Blur</li>
+                                                <li id="opencv_process_webcam_id"      title="Make snapshots from webcam video and modify them.">Process Webcam</li>
                                             </ul>
                                         </li>
                                         <li id="show_page_id"     title="Open a browser window on the given url.">show_page(...)</li>
@@ -358,6 +362,8 @@
                                                 <li id="speak_id"         title="Say a string.&#013;Wraps call around selection, if any.">speak()</li>
                                                 <li id="speak_options_id" title="Say data with lots of options.&#013;Wraps call around selection, if any.">speak with options</li>
                                                 <li id="recognize_speech_id" title="Pops up a control dialog and &#013;calls a callback with recognized text and confidence score.">recognize_speech</li>
+                                                <li id="midi_init_id"     title="Evaluates Midi.init()&#013;Does not insert into the editor.&#013;Put Midi.init() in your dde_init.js file&#013;if you usually need this.">Midi.init()</li>
+
                                             </ul>
                                         </li>
                                         <li id="inspect_rootObject_id"        title="Display an inspector for the DDE object system.">Inspect root object</li>
@@ -494,16 +500,19 @@
                                         <li id="jobs_report_id"         title="Display a report of all Jobs in this session.">Show report</li>
                                         <!--<li id="stop_all_jobs_id"       title="Stop all of the currently running jobs.">Stop all jobs</li> -->
                                         <!-- <li id="clear_stopped_jobs_id"  title="Remove stopped jobs so they don't clutter the jobs report.">Clear stopped jobs</li> -->
-                                        <li id="simulate_id"            title='Dexter instances with a simulate_from value of "persistent_get",&#013;such as the default Dexter: "dexter0",&#013;get their simulate value from this checkbox.'>
+                                        <li id="simulate_id"            title='Dexter instances with a simulate value of null,&#013;such as the default Dexter: "dexter0",&#013;get their simulate value from the selected radio button.'>
                                             Simulate?
                                             <ul>
+                                                <li id="simulate_help_id" title="Documentation on simulate.">Help</li>
                                                 <li title="Simulate robots that have simulate=null.">
-                                                    <input id="simulate_radio_true_id"  type="radio" name="simulate" value="true" checked="true"/> true</li>
+                                                    <input id="simulate_radio_true_id"  type="radio" name="simulate" value="true" checked="true"/>
+                                                    <label for="simulate_radio_true_id">true</label></li>
                                                 <li title="Send (hardware) instructions to robots that have simulate=null.">
-                                                    <input id="simulate_radio_false_id" type="radio" name="simulate" value="false"/> false</li>
+                                                    <input id="simulate_radio_false_id" type="radio" name="simulate" value="false"/>
+                                                    <label for="simulate_radio_false_id">false</label></li>
                                                 <li title="Run both the simulator and the 'real' for robots that have simulate=null.">
-                                                    <input id="simulate_radio_both_id"  type="radio" name="simulate" value="both"/> both</li>
-
+                                                    <input id="simulate_radio_both_id"  type="radio" name="simulate" value="both"/>
+                                                    <label for="simulate_radio_both_id">both</label></li>
                                             </ul>
                                         </li>
 
@@ -538,7 +547,8 @@
                                                 <li id="run_instruction_dialog_id" title="Show a dialog box for running an instruction on Dexter.">Show Dialog...</li>
                                             </ul>
                                         </li>
-                                        <li id="calibrate_id"               title="Calibrate one or more Dexters.&#13;Needed each time you power on a Dexter.">Calibrate Dexter...</li>
+                                        <li id="init_dxf_drawing_id" title="Insert a call to DXF.init_drawing&#13;into the editor.">DXF.init_drawing()</li>
+                                        <li id="calibrate_id"        title="Calibrate one or more Dexters.&#13;Needed each time you power on a Dexter.">Calibrate Dexter...</li>
                                     </ul>
                                 </li>
                                 <li style="display:inline-block;padding-left:3px;padding-right:0px;">Test&#9660;
@@ -555,7 +565,7 @@
                                             </ul>
                                         </li>
                                         <li id="show_suite_statistics_id"   title="Show number of suites and tests.">Show suite stats</li>
-                                        <li id="find_test_suites_id"        title="Find TestSuites that contain the selected string.&#13;With no selection, show all defined test suites.">Find TestSuites</li>
+                                        <!--obsoleted by increased functionality in doc pane Find button <li id="find_test_suites_id"        title="Find TestSuites that contain the selected string.&#13;With no selection, show all defined test suites.">Find TestSuites</li>-->
                                         <!-- <li id="show_all_test_suites_id"    title="Show all test suites' source code in the Output pane.">Show all</li> functionality obtained with Find and no selection -->
                                         <li id="insert_all_test_suites_id"  title="Insert all test suites' source code into the Editor.">Insert all</li>
                                         <li id="run_all_test_suites_id"     title="Run all defined test suites.">Run all TestSuites</li>
@@ -580,6 +590,8 @@
                     <div class='pane_header_wrapper' style="white-space:nowrap;height:57px;min-height:57px;max-height:57px;">
                         <span id="output_pane_help_id" class='pane_header' title="Click for help."><u>Output</u></span>
                         <button id="eval_id" style="vertical-align:middle;" title="Evaluate (run) the selected JS in any pane&#013;or, if none, all the JavaScript in the Editor pane.&#013;Can also be invoked by typing &#8984;e">Eval</button>
+                        <button id="eval_and_start_button_id" style="vertical-align:middle;" title="Eval the selected JS&#013;and call the 'start' method&#013;with no arguments, on the result.">Eval&Start</button>
+
                         <div title="Automatically save the edited file&#013;when you click 'Eval',&#013;and when you edit another file." style="vertical-align:middle;display:inline-block;"><input id="save_on_eval_id" type="checkbox" style="vertical-align:60%;padding_bottom:15px;"/> <div style="padding:0px;margin:0px;display:inline-block;font-size:10px; line-height:10px;">Save<br/>on</br/>Eval</div></div>
                         <button id="clear_output_id" title="Remove all previously output text.">Clear</button>
                         <div id="ros_menu_id" class="dde_menu" style="display:none;margin-left:10px;vertical-align: middle;">

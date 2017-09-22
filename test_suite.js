@@ -221,6 +221,8 @@ var TestSuite = class TestSuite{
     }
 
     static run_all(){
+        load_files(__dirname + "/music/note_testsuite.js")
+        load_files(__dirname + "/music/phrase_testsuite.js")
         if (!TestSuite["user_guide_id"]) { TestSuite.make_test_suites_from_doc(user_guide_id) }
         if (!TestSuite["reference_manual_id"]) { TestSuite.make_test_suites_from_doc(reference_manual_id) }
         var reports = "<b style='font-size:20px;'>All Test Suites Report</b><br/>"
@@ -378,7 +380,13 @@ var TestSuite = class TestSuite{
         TestSuite.last_src_error_message = false //needs to be a global to get the val out of the catch clause.
         //unlike every other use of curly braces in JS, try returns the value of its last try expr if no error, and otherwise returns the value of the last expr in catch
         var wrapped_src = "try{ " + src + "} catch(err) {TestSuite.last_src_error_message = err.name + ' ' + err.message; TestSuite.error}"
-        var src_result = window.eval(wrapped_src)
+        var src_result
+        try{ src_result = window.eval(wrapped_src) }
+        catch(err) {
+           status = "unknown"
+           error_message = test_number_html + src + " errored with: " + err
+           return [status, error_message]
+         }
         if(test.length == 1) {
             if(TestSuite.last_src_error_message){
                 status = "unknown" //no utility in init code that errors so never a "known" one with a 1 elt test array
@@ -681,11 +689,31 @@ var TestSuite = class TestSuite{
                 }
             }
         }
-        let result_html = ""
-        for(let ts of result_tses){
-            result_html += ts.to_html() + "<br/>"
+        //let result_html = ""
+        // for(let ts of result_tses){
+        //    result_html += ts.to_html() + "<br/>"
+        //}
+        //out(result_html)
+        return result_tses
+    }
+
+    static find_test_suites_and_print(string_to_search_for){
+        let result_tses = TestSuite.find_test_suites(string_to_search_for)
+        if (result_tses.length == 1) {
+            let the_html = string_to_search_for + " is in:<br/>" + result_tses[0].to_html()
+            the_html = replace_substrings(the_html, string_to_search_for,
+                "<span style='background-color:yellow;'>" + string_to_search_for + "</span>")
+            out(the_html)
         }
-        out(result_html)
+        else {
+            let the_html = string_to_search_for + " is in the TestSuites: "
+            for(let ts of result_tses){
+                the_html += "<details><summary>" + ts.name + "</summary>" + ts.to_html() + "</details>"
+            }
+            the_html = replace_substrings(the_html, string_to_search_for,
+                "<span style='background-color:yellow;'>" + string_to_search_for + "</span>")
+            out(the_html)
+        }
     }
 
     static make_test_suites_from_doc(html_elt=reference_manual_id){
