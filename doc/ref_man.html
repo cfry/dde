@@ -677,7 +677,7 @@ new Job({name: "gamepad_job2",
     If you have a lot of out calls, it can be helpful to give them
     different colors so you can easily find a particular one.
     <p/>
-    See also <a href="#" onclick="open_doc(print_statements_doc_id)">print statements</a>
+    See also <a href="#" onclick="open_doc(print_statements_doc_id, event)">print statements</a>
 </details>
 
     <details class="doc_details"><summary>Persistent Database</summary>
@@ -758,7 +758,7 @@ persistent_set("my_array", orig_array)</code><br/>
 <details id="beep_doc_id" class="doc_details"><summary>beep</summary>
 Plays an electronic sound.<br/>
 <i>Parameters</i>:<br/>
-<b>duration</b> A number seconds. Default: 0.5<br/>
+<b>dur</b> The duration in number seconds to beep. Default: 0.5<br/>
 <b>frequency</b> A number in Hertz. Default: 400<br/>
 <b>volume</b> A number between zero and 1. Default: 1<br/>
 <b>waveform</b> The timbre or waverform of the sound. Default: "triangle".
@@ -766,7 +766,7 @@ Plays an electronic sound.<br/>
 <b>callback</b> A function of no arguments that is called when the beep finishes playing.
                Default: null, meaning do nothing.<br/>
 <i>Example</i>: <pre><code>
-beep({duration: 0.5,
+beep({dur: 0.5,
       frequency: 440,
       volume: 1,
       waveform: "triangle",
@@ -791,7 +791,7 @@ Beeps the indicated number of times with the default <code>beep</code> settings.
 <details id="music_with_midi_doc_id" class="doc_details"><summary>Music with MIDI</summary>
 DDE facilitates using MIDI to play and receive MIDI notes.
 There are higher level "phrase processors" that make creating scores
-relatively easy. <a href="#" onclick="open_doc(music_article_doc_id)">
+relatively easy. <a href="#" onclick="open_doc(music_article_doc_id, event)">
 The Language of Music</a> describes DDE's approach to music in broad themes.
 <p/>
 The fundamental class is Note, that represents a musical note, including
@@ -1237,7 +1237,7 @@ new Phrase({notes: [new Note({time: 0, dur: 1, pitch: 60, velocity: 0.25, channe
         <br/>
         <b>key</b> Default: "chromatic". If "chromatic", increment the pitch of each
         note by the interval_or_array. Otherwise see
-        <a href="#" onclick="open_doc('Note.transpose_doc_id')">Note.transpose</a>
+        <a href="#" onclick="open_doc('Note.transpose_doc_id', event)">Note.transpose</a>
         for incrementing pitch by a diatonic interval.</li>
 
     <li><b>set_property</b> Returns a copy of "this" except that eacn note in
@@ -1450,7 +1450,7 @@ Example:<pre><code title="not in TestSuite"> speak({speak_data: [true, "It is", 
         with lots of options, described at:
         <a target="_blank" href="https://www.npmjs.com/package/request">options</a>
         <p/>
-        See also: <a href="#" onclick="open_doc(show_page_doc_id)">show_page</a>
+        See also: <a href="#" onclick="open_doc(show_page_doc_id, event)">show_page</a>
     </details>
 
     <details id="get_page_async_doc_id" class="doc_details"><summary>get_page_async</summary>
@@ -1569,7 +1569,7 @@ The parameters used to define a new Job are:
                    This allows you to see user data as it is updated by the job.
                    Eval the above code to see the method's source code.</li>
            </ul>
-           See <a href="#" onclick="open_doc(print_statements_doc_id)">print statements</a>
+           See <a href="#" onclick="open_doc(print_statements_doc_id, event)">print statements</a>
          </li>
         <li><b>inter_do_item_dur</b> A number indicating the number of milliseconds between
            when an instruction is completed by its robot, and when the next instruction is
@@ -1615,7 +1615,7 @@ The parameters used to define a new Job are:
            </li>
         <li><b>program_counter</b> Initialize the program_counter to an instruction id.
         The default is 0. You can use any instruction_location here.
-        See <a href="#" onclick="open_doc('Robot.go_to_doc_id')">Robot.go_to</a>
+        See <a href="#" onclick="open_doc('Robot.go_to_doc_id', event)">Robot.go_to</a>
         for documentation on all the different kinds of instruction_locations.
         </li>
         <li><b>ending_program_counter</b> Declare at the outset of a job that it
@@ -1624,7 +1624,7 @@ The parameters used to define a new Job are:
             at the start of each instruction, so if labels move as a result of
             dynamically added instructions, that's OK.
             The default is "end".
-            See <a href="#" onclick="open_doc('Robot.go_to_doc_id')">Robot.go_to</a>
+            See <a href="#" onclick="open_doc('Robot.go_to_doc_id', event)">Robot.go_to</a>
             for documentation on all the different kinds of instruction_locations.
         </li>
         <li><b>initial_instruction</b> Add an initial instruction to the do_list at
@@ -1642,7 +1642,7 @@ The parameters used to define a new Job are:
              <code title="unEVALable code fragment"> An instruction location</code> This is similar to Robot.go_to
              except that the job is re-iniitlizated with its original (as defined) do_list.
              Any valid instruction location can be used
-             (see doc in <a href="#" onclick="open_doc('Robot.go_to_doc_id')">Robot.go_to</a>) except
+             (see doc in <a href="#" onclick="open_doc('Robot.go_to_doc_id', event)">Robot.go_to</a>) except
              that it must have no job or indicate the current job. Using <code>0</code>
              set's the job's program counte to instruction 0, causing the job to loop.
              Using an instruction location 'offset' of greater than 0, such as a label,
@@ -1668,7 +1668,7 @@ The parameters used to define a new Job are:
    Below are two of the most useful properties you can use:<br/>
     <li><b>program_counter</b> Initialize the program_counter to an instruction id.
         The default is 0. You can use any instruction_location here.
-        See <a href="#" onclick="open_doc('Robot.go_to_doc_id')">Robot.go_to</a>
+        See <a href="#" onclick="open_doc('Robot.go_to_doc_id', event)">Robot.go_to</a>
         for documentation on all the different kinds of instruction_locations.
     </li>
     <li><b>initial_instruction</b> Add an initial instruction to the do_list at
@@ -1690,7 +1690,7 @@ Insert an instruction into a Job's do_list at a particular location.<br/>
 <b>instruction</b> The instruction to insert. This can be an array of instructions
 if you effectively want to insert more than one.<br/>
 <b>location</b> Any instruction_location documented under
-              <a href="#" onclick="open_doc('Robot.go_to_doc_id')">Robot.go_to</a> can be used
+              <a href="#" onclick="open_doc('Robot.go_to_doc_id', event)">Robot.go_to</a> can be used
 including integers, names of labels, etc. <br/>
 <i>Example</i>: <pre><code title="unEVALable code fragment"> Job.insert_instruction(Robot.out("the end"),
                        {job: "my_job",
@@ -1768,7 +1768,7 @@ You can put both named and anonymous functions on a do_list.
 A named instruction allows you to add a bit of "documentation" to
 the function. You can also use the name of a function like a
 label and "go to"
-that name using a <a href="#" onclick="open_doc('Robot.go_to_doc_id')">Robot.go_to</a> instruction,
+that name using a <a href="#" onclick="open_doc('Robot.go_to_doc_id', event)">Robot.go_to</a> instruction,
 or use the function's name in
 any uses of an instruction_location.
 <p/>
@@ -1892,7 +1892,7 @@ A DDE Job and its do_list is another way to carefully control
 when "instructions" on the do_list are started.
 DDE has a number of instruction types that help you control
 when the next instruction is run. A primary one is called
-<a href="#" onclick="open_doc('Robot.wait_until_doc_id')">wait_until</a>
+<a href="#" onclick="open_doc('Robot.wait_until_doc_id', event)">wait_until</a>
 that blocks the processing of the following instruction.
 <p/>
 In order to provide a more general mechanism to handle such methods
@@ -1991,7 +1991,7 @@ The above plays a melody, with each note waiting for the previos note to
 complete because running start_object checks for a "dur" field and,
 if present, waits for that amount of time before proceedng to the next
 instruction.<br/>
-See <a href="#" onclick="open_doc('music_with_midi_doc_id')">Music with MIDI</a>.
+See <a href="#" onclick="open_doc('music_with_midi_doc_id', event)">Music with MIDI</a>.
 <pre><code>
 new Job({name: "my_job",
          do_list: [{start: function(){out("wait a sec or 3")},
@@ -2077,6 +2077,7 @@ new Job({name: "my_job",
     doing the same thing and makes Jobs significantly more flexible than
     they already were.
 </details>
+
 
 <details id="Robot.error_doc_id" class="doc_details"><summary>error</summary>
   Causes the job to error, immediately stopping it.
@@ -2344,7 +2345,7 @@ See Job Example 9 for an extended example.
 
 <details id="Robot.label_doc_id" class="doc_details"><summary>label</summary>
 This instruction is a no-op. However, it provides a target location
-for <a href="#" onclick="open_doc('Robot.go_to_doc_id')">Robot.go_to</a>, initializing the program_counter of a job, and
+for <a href="#" onclick="open_doc('Robot.go_to_doc_id', event)">Robot.go_to</a>, initializing the program_counter of a job, and
 a location to insert an instruction using <code>Robot.send_to_job</code>.<br/>
 <i>Example</i>: <code>Robot.label("lab2")</code>
 </details>
@@ -2382,7 +2383,7 @@ a location to insert an instruction using <code>Robot.send_to_job</code>.<br/>
   Robot.out cannot access its job instance, but it does print out
   its job name and instruction ID right before printing <code title="unEVALable code fragment"> val</code>.
   <p/>
-  See also <a href="#" onclick="open_doc(print_statements_doc_id)">print statements</a>
+  See also <a href="#" onclick="open_doc(print_statements_doc_id, event)">print statements</a>
 </details>
 
 <details id="Robot.start_job_doc_id" class="doc_details"><summary>start_job</summary>
@@ -2420,7 +2421,7 @@ value of the <code title="unEVALable code fragment"> if_started</code> argument.
   the offset will be <code>"program_counter"</code>, i.e. the job will
   stop before executing its next instruction. Thus the default is that
   the current job will be stopped immediately.
-  See <a href="#" onclick="open_doc('Robot.go_to_doc_id')">Robot.go_to</a> for details
+  See <a href="#" onclick="open_doc('Robot.go_to_doc_id', event)">Robot.go_to</a> for details
   on the <code title="unEVALable code fragment"> instruction_location</code> format.<br/>
   <b>reason</b> A string. The reason that the job is being told to stop.<br/>
   <b>perform_when_stopped</b> A boolean. When <code>false</code> (the default)
@@ -2482,7 +2483,7 @@ Robot.send_to_job({do_list_item: Dexter.move_to([0, 0.5, 0.075]),
 <li><b>where_to_insert</b> The location in the do_list of the to_job to insert the do_list_item.
   The full list of instruction_locations for <code title="unEVALable code fragment"> where_to_insert</code>
   can be seen in the documentation for the
-  <a href="#" onclick="open_doc('Robot.go_to_doc_id')">Robot.go_to</a> instruction.
+  <a href="#" onclick="open_doc('Robot.go_to_doc_id', event)">Robot.go_to</a> instruction.
   Particularly useful ones for send_to_job are:<br/>
   <ul><li><code>{job: "other_job", offset: "next_top_level"}</code> Inserts the do_list_item
   after the program_counter and just before the next original (top level) do_list item
@@ -2683,7 +2684,7 @@ The parameters used to define an instance of Dexter are:
     <i>Parameters:</i>
     The arguments to this instruction are the same as those documented for
     DXF.init_drawing documented in
-    <a href="#" onclick="open_doc('drawing_with_DXF_doc_id')">Drawing with DXF</a><br/>
+    <a href="#" onclick="open_doc('drawing_with_DXF_doc_id', event)">Drawing with DXF</a><br/>
     <i>except that</i> the init_drawing arguments of
     <ul><li>three_points</li>
         <li>plane_normal_guess</li>
@@ -2962,6 +2963,20 @@ If you have the arguments in an array, you can use this syntax:<br/>
 The returned value is an array that has its first several fields empty. DDE uses them
 for storing the job_id, instruction_id and some timing information.
 </details> <!-- end make_ins -->
+
+<details id="Dexter.pid_move_all_joints_doc_id" class="doc_details"><summary>pid_move_all_joints</summary>
+Similar to <a href="#" onclick="open_doc('Dexter.move_all_joints_doc_id', event)">Dexter.move_all_joints</a>
+except that it uses a <a href="https://en.wikipedia.org/wiki/PID_controller" target="_blank">
+proportional–integral–derivative controller</a>.
+</details>
+
+<details id="Dexter.pid_move_to_doc_id" class="doc_details"><summary>pid_move_to</summary>
+    Similar to <a href="#" onclick="open_doc('Dexter.move_to_doc_id', event)">Dexter.move_to</a>
+    except that it uses a
+    <a href="https://en.wikipedia.org/wiki/PID_controller" target="_blank">
+        proportional–integral–derivative controller</a>.
+</details>
+
 
 <details id="Dexter.run_gcode_doc_id" class="doc_details"><summary>run_gcode</summary>
 This instruction accepts the name of a file as input and creates additional instructions 
@@ -3280,7 +3295,7 @@ access robot hardware.
   <code>Human.enter_choice</code> presents a dialog
   allowing the user to choose one of several supplied options.
   It is the most flexible of the single-value entry Human instructions.
-  See <a href="#" onclick="open_doc('Human.task_doc_id')">Human.task</a>
+  See <a href="#" onclick="open_doc('Human.task_doc_id', event)">Human.task</a>
   for behavior common to all Human instructions.<p/>
   <i>Uncommon Parameters:</i><br/>
   <b>choices</b> Default: <code>[]</code>. An array of strings.
@@ -3389,7 +3404,7 @@ access robot hardware.
 <details id="Human.enter_instruction_doc_id" class="doc_details"><summary>enter_instruction</summary>
   Presents a dialog allowing the user to enter an instruction to be immediately run.
   This can also record instructions and create a job with the recorded do_list.
-  See <a href="#" onclick="open_doc('Human.task_doc_id')">Human.task</a> for behavior common to all Human instructions.<p/>
+  See <a href="#" onclick="open_doc('Human.task_doc_id', event)">Human.task</a> for behavior common to all Human instructions.<p/>
   This instruction does not use <code title="unEVALable">user_data_variable_name</code>.<p/>
   This instruction can only be used on jobs with a Dexter robot.<p/>
   <i>Uncommon Paramaters:</i><br/>
@@ -3415,8 +3430,8 @@ access robot hardware.
 
 <details id="Human.enter_number_doc_id" class="doc_details"><summary>enter_number</summary>
     <code>Human.enter_number</code> presents a dialog allowing the user to enter a number via typing or clicking.
-  See <a href="#" onclick="open_doc('Human.task_doc_id')">Human.task</a> for behavior common to all Human instructions.<p/>
-  See <a href="#" onclick="open_doc('Human.enter_choice_doc_id')">Human.enter_choice</a> for documentation on the
+  See <a href="#" onclick="open_doc('Human.task_doc_id', event)">Human.task</a> for behavior common to all Human instructions.<p/>
+  See <a href="#" onclick="open_doc('Human.enter_choice_doc_id', event)">Human.enter_choice</a> for documentation on the
   <b>user_data_variable_name</b> parameter.
   <p/>
   <i>Uncommon Paramaters:</i><br/>
@@ -3462,14 +3477,14 @@ access robot hardware.
 
 <details id="Human.enter_text_doc_id" class="doc_details"><summary>enter_text</summary>
     <code>Human.enter_text</code> presents a dialog allowing the user to enter text via typing.
-  See <a href="#" onclick="open_doc('Human.task_doc_id')">Human.task</a> for behavior common to all Human instructions.<p/>
+  See <a href="#" onclick="open_doc('Human.task_doc_id', event)">Human.task</a> for behavior common to all Human instructions.<p/>
   <i>Uncommon Paramaters:</i><br/>
   <b>initial_value</b> Default: <code>""</code>.<br/>
   <b>line_count</b> Default <code>1</code>. The number of lines that the input control will be configured for.
      If this is more than 1, a user will be able to drag the lower right corner of the text field
      to increase the visible lines.<br/>
   <b>user_data_variable_name</b> Default: <code title="unEVALable">"a_text"</code>
-    See <a href="#" onclick="open_doc('Human.enter_choice_doc_id')">Human.enter_choice</a> f
+    See <a href="#" onclick="open_doc('Human.enter_choice_doc_id', event)">Human.enter_choice</a> f
     or more documentation on this.
     <p/>
     <i>Examples:</i><br/>
@@ -3489,7 +3504,7 @@ access robot hardware.
 
 <details id="Human.notify_doc_id" class="doc_details"><summary>notify</summary>
     <code>Human.notify</code> displays information for the user.
-  See <a href="#" onclick="open_doc('Human.task_doc_id')">Human.task</a> for behavior common to all Human instructions,
+  See <a href="#" onclick="open_doc('Human.task_doc_id', event)">Human.task</a> for behavior common to all Human instructions,
   but unlike other Human instructions, <b>notify</b> does not have a
   <code title="unEVALable">user_data_variable_name</code> parameter,
   nor do its dialog boxes have buttons.
@@ -3520,7 +3535,7 @@ access robot hardware.
 <details id="Human.show_window_doc_id" class="doc_details"><summary>show_window</summary>
 <i>show_window</i> comes in two flavors. The first is as a function that can
 be called from any JS code.
-It is documented under<br/><a href="#" onclick="open_doc(show_window_doc_id)">
+It is documented under<br/><a href="#" onclick="open_doc(show_window_doc_id, event)">
 Ref Man/Window System/show_window</a>
 <p/>
 The second is as a Human robot instruction. It is documented here but
@@ -4601,7 +4616,7 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
     <p/>
     For more examples of calling <code>show_window</code> see the DDE menubar/Insert/show_window.
     See also:<br/>
-    <a href="#" onclick="open_doc('Human.show_window_doc_id')">
+    <a href="#" onclick="open_doc('Human.show_window_doc_id', event)">
                 Ref Man/Robot/Human/show_window</a>
     </details> <!-- end show_window -->
 
@@ -4618,7 +4633,7 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
           {x:100, y:100,
            width:800, height:600})
            </code></pre>
-        See also: <a href="#" onclick="open_doc(get_page_doc_id)">get_page</a>
+        See also: <a href="#" onclick="open_doc(get_page_doc_id, event)">get_page</a>
     </details>
 
     <details class="doc_details"><summary>Window Utilities</summary>

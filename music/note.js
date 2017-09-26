@@ -328,7 +328,7 @@ Note = class Note{
 
     copy(){
         return new Note({   time:      this.time,
-                            dur:  this.dur,
+                            dur:       this.dur,
                             pitch:     this.pitch,
                             velocity:  this.velocity,
                             channel:   this.channel })

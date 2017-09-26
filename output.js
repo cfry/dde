@@ -1010,26 +1010,8 @@ function beeps(times=1, callback){
 window.beeps = beeps
 
 window.audioCtx = new window.AudioContext()
-/*
-function beep(keyword_args={}){
-    var defaults = {duration: 1, frequency: 440, volume: 1, waveform: "triangle", callback: null}
-    copy_missing_fields(defaults, keyword_args)
-    var oscillator = audioCtx.createOscillator();
-    var gainNode = audioCtx.createGain();
 
-    oscillator.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
-
-    if (keyword_args.volume){gainNode.gain.value = keyword_args.volume;};
-    if (keyword_args.frequency){oscillator.frequency.value = keyword_args.frequency;}
-    if (keyword_args.waveform){oscillator.type = keyword_args.waveform;}
-    if (keyword_args.callback){oscillator.onended = keyword_args.callback;}
-
-    oscillator.start();
-    setTimeout(function(){oscillator.stop()}, keyword_args.duration);
-};
-*/
-function beep({duration = 0.5, frequency = 440, volume = 1, waveform = "triangle", callback = null}={}){
+function beep({dur = 0.5, frequency = 440, volume = 1, waveform = "triangle", callback = null}={}){
     var oscillator = audioCtx.createOscillator();
     var gainNode = audioCtx.createGain();
 
@@ -1042,7 +1024,7 @@ function beep({duration = 0.5, frequency = 440, volume = 1, waveform = "triangle
     if (callback){oscillator.onended = callback;}
 
     oscillator.start();
-    setTimeout(function(){oscillator.stop()}, duration * 1000);
+    setTimeout(function(){oscillator.stop()}, dur * 1000);
 }
 window.beep = beep
 

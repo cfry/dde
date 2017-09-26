@@ -599,7 +599,7 @@ get_page_async("http://www.ibm.com", function(err, response, body){ out(body.len
 
     beep_id.onclick = function(){Editor.insert("beep()\n")}
     beep_options_id.onclick = function(){Editor.insert(
-`beep({duration: 0.5,  //the default,, 
+`beep({dur: 0.5,  //the default,, 
       frequency: 440, //the default, in Hertz. This is A above middle C.    
       volume: 1,      //the default, 0 to 1
       waveform: "triangle", //the default, other choices: "sine", "square", "sawtooth"

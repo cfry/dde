@@ -51,6 +51,16 @@ function open_doc(details_elt, record=true){
     //details_elt.open = true;
     open_doc_elt_and_ancestors(details_elt)
     if(record) {
+        if(record instanceof Event){
+            let pars = $(record.target).parents()
+            for (let par of pars){
+                if (par && par.id && (par.id !== "") &&
+                    (par.id !== last(doc_pane_elt_id_history))){
+                    doc_pane_elt_id_history.push(par)
+                    break;
+                }
+            }
+        }
         doc_pane_elt_id_history.push(details_elt)
         doc_pane_elt_id_history_cur_index = doc_pane_elt_id_history.length - 1
     }

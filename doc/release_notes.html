@@ -5,6 +5,35 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 2.1.3, Sep 26, 2017</summary>
+Highlights: DXF drawing improvements.
+            New instructions Dexter.pid_move_all_joints, Dexter.pid_move_to.
+<ul>
+    <li>New Instructions: <code>Dexter.pid_move_all_joints</code>,
+        <code>Dexter.pid_move_to</code></li>
+
+    <li> <code>beep</code>: the "duration" argument has been respelled to "dur",
+        conforming with Note, Phrase, and other places.
+        Because beep takes its arguments as keywords, this is an incompatibility.</li>
+
+    <li> Fixed history recording of Find button for first history item.</li>
+
+    <li> When you initialized a job's user data to a var with an array or lit obj
+        as its data, then when restarting a job, it used to
+        keep the content of whatever was pushed into that array when
+        the job was restarted. Now it initializes the user-data var's value of
+        an array to a copy of its original self.</li>
+
+    <li>DXF J5 direction bug fixed</li>
+
+    <li> Default value (functions) for DXF.init_drawing and Dexter.draw_dxf
+        for action_on_function and action_off_function
+        now uses Dexter.dummy_move in place of dummy_move.</li>
+
+    <li> <code>DXF.init_drawing</code> and Robot.draw_dxf now can take an array of points to be drawn for their
+        dxf_filepath argument. See User Guide/ Drawing with DXF/DXF.init_drawing/dxf_filepath</li>
+</ul>
+</details>
 <details class="doc_details"><summary>v 2.1.1, Sep 22, 2017</summary>
 Highlights: Small fixes for DXF drawing.
 <ul>

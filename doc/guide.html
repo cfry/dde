@@ -8,8 +8,8 @@
 
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version:  <span id="dde_version_id">2.1.2</span><br/>
-    released: <span id="dde_release_date_id">Sep 22, 2017</span>
+    version:  <span id="dde_version_id">2.1.3</span><br/>
+    released: <span id="dde_release_date_id">Sep 26, 2017</span>
     <p/>
     DDE helps you create, debug, and send software to a Dexter robot.
     You can use any JavaScript augmented with DDE-specific functions to help find out about,
@@ -904,10 +904,37 @@ the drawing will touch only 3 sides of the bounding box.
     </details>
     <details class="doc_details" id="DXF.init_drawing_doc_id"><summary>DXF.init_drawing</summary>
     <code>DXF.init_drawing</code> defines a bunch of jobs to help set point locations
-    and initialize the values used by jobs for laser cutting or drawing with a pen.<br/>
+    and initialize the values used by jobs for laser cutting or drawing with a pen.
+    <p/>
+    <i>Parameters:</i><br/>
+    <b>dxf_filepath</b> This argument has several different formats for allowing the user
+    to specify the lines to be drawn.<br/>
+       <ul><li><code>"choose_file"</code> The default. When the call is evaluated,
+                a dialog box pops up to allow the user to choose a .dxf file.</li>
+           <li>The filepath of a dxf file as a string.</li>
+           <li>A string of the content of a dxf file. If the string is 500 or more characters long,
+               it will be considered to be the <i>content</i> of a dxf file, not a pathname to it.</li>
+           <li>An array of points, each which is an array of 3 numbers, x, y, z which are auto-scaled
+                to fit the bounding box decribed by the three_points argument, unless you supply
+                a DXF_units arg.
+                <p/>
+                The even indexed points in the array are considered to be the starting point of
+                a line, and the odd indexed points are considered to be its ending point.
+                <p/>
+                In the other formats for dxf_filepath, the drawing is 2 dimensional.
+                With an array of points, it can be 3 dimensional, though if you don't supply
+                DXF_units, the x and y of those 3D points will
+                still be bounded in X and Y to the bounding box described in the "three_points" argument.
+                <br/>
+                <i>Example:</i> <code>[[0, 0, 0] [1, 2, 3], [10, 20, 30], [40, 50, 60]]</code><br/>
+                The above array describes 2 points to be drawn.
+           </li>
+       </ul>
+       <b>Other args</b> Please see the below example.
+       <p/>
     <i>Example:</i>
 <pre><code title="not in TestSuite">DXF.init_drawing({
-    file_name: "choose_file",        //file_path to DXF
+    DXF_filepath: "choose_file",        //file_path to DXF
     three_points: [[0, .50, 0.1],    //Point1
                     [0, .35, 0.1],   //Point2
                     [.200, .35, 0.1] //Point3

@@ -571,9 +571,10 @@ function params_string_to_param_names(params_full_string){
     return param_names
 }
 
+//not general purpose
 function shallow_copy(obj){ //copies only enumerable, own properites. Used in
                             //copying Job's user_data at start
-    let result
+    let result = obj
     if(Array.isArray(obj)){
         result = []
         for (let elt of obj) { result.push(elt) }
@@ -584,7 +585,15 @@ function shallow_copy(obj){ //copies only enumerable, own properites. Used in
             result[name] = obj[name]
         }
     }
-    else { dde_error("shallow_copy can only copy arrays and literal objects, not: " + obj) }
+    return result //might be a Date, I hope that's not mungable
+}
+
+function shallow_copy_lit_obj(obj){ //copies only enumerable, own properites. Used in
+    //copying Job's user_data at start
+    let result = {}
+    for(let name of Object.keys(obj)){
+        result[name] = shallow_copy(obj[name])
+    }
     return result
 }
 
@@ -682,6 +691,9 @@ function trim_string_quotes(a_string){
 function replace_substrings(orig_string, substring_to_replace, replacement){
     return orig_string.replace(new RegExp(substring_to_replace, 'g'), replacement);
 }
+
+//used by users in calling  DXF.init_drawing for its dxf_filepath arg
+function text_to_lines(text) { return txt.text_to_lines(text) }
 
 //fry's get a js string into literal source code. Used in printout out a TestSuite test
 function string_to_literal(a_string){

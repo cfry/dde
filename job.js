@@ -125,8 +125,7 @@ var Job = class Job{
             this.keep_history      = this.orig_args.keep_history
             this.show_instructions = this.orig_args.show_instructions
             this.inter_do_item_dur = this.orig_args.inter_do_item_dur
-            this.user_data         = // don't do as gets non-enumerables, etc. messes up printing of what should be empty user_data of a job jQuery.extend(true, {}, this.orig_args.user_data) //performs deep copy. This is hard, so use jquery
-                                     shallow_copy(this.orig_args.user_data)
+            this.user_data         = shallow_copy_lit_obj(this.orig_args.user_data)
             this.program_counter   = this.orig_args.program_counter //see robot_done_with_instruction as to why this isn't 0,
                                      //its because the robot.start effectively calls set_up_next_do(1), incremening the PC
             this.ending_program_counter = this.orig_args.ending_program_counter
@@ -139,7 +138,7 @@ var Job = class Job{
                     let new_val = options[key]
                     //if (key == "program_counter") { new_val = new_val - 1 } //don't do. You set the pc to the pos just before the first instr to execute.
                     if (key == "do_list")         { new_val = Job.flatten_do_list_array(new_val) }
-                    else if (key == "user_data")  { new_val = shallow_copy(new_val) }
+                    else if (key == "user_data")  { new_val = shallow_copy_lit_obj(new_val) }
                     else if (key == "name")       {} //don't allow renaming of the job
                     else if ((key == "when_stopped") &&
                              !Job.is_plausible_when_stopped_value(new_val)) {

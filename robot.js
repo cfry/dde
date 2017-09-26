@@ -1228,6 +1228,33 @@ Dexter.move_all_joints = function(array_of_5_angles=[]){
     }
 }
 
+//the same as move_all_joints but generates a "P" oplet
+
+Dexter.pid_move_all_joints = function(array_of_5_angles=[]){
+    if (Array.isArray(array_of_5_angles)){ array_of_5_angles = array_of_5_angles.slice(0) }//copy so we don't modify the input array
+    else { array_of_5_angles = Array.prototype.slice.call(arguments) }
+    let has_non_nulls = false
+    for(let ang of array_of_5_angles) { if (ang !== null) { has_non_nulls = true; break; } }
+    if (!has_non_nulls) { return null }
+    let the_inst_array = array_of_5_angles //closed over
+    return function(){ //returns a fn because we must compute this at instruction do time
+        //since we may need to get default values out of the current robot_status
+        //if the input array is < 5 or has nulls.
+        for (var i = 0; i < 5; i++){
+            if (the_inst_array[i] == null){
+                the_inst_array[i] = this.robot.angles[i] //this.robot_status[Dexter.ds_j0_angle_index + i] //ie don't change angle
+            }
+        }
+        if(Kin.check_J_ranges(the_inst_array)) {
+            this.robot.angles = the_inst_array
+            return make_ins("P", ...the_inst_array)
+        }
+        else {
+            this.stop_for_reason("errored", "move_all_joints passed angles: " + the_inst_array + "<br/>that are not reachable by Dexter.")
+        }
+    }
+}
+
 //beware, this can't do error checking for out of reach.
 //MAYBE this should be implemented like move_to_relative which can do the error checking.
 
@@ -1376,6 +1403,57 @@ Dexter.move_to = function(xyz = [],
         }
 }
 
+//the same as move_to but generates a "P" oplet
+Dexter.pid_move_to = function(xyz = [],
+                          J5_direction  = [0, 0, -1],
+                          config        = Dexter.RIGHT_UP_OUT
+){
+    return function(){
+        if(Dexter.is_position(xyz)){
+            xyz = xyz[0]
+            J5_direction = xyz[1]
+            config = xyz[2]
+        }
+        if((J5_direction === null) || (config === null)){
+            let [existing_xyz, existing_direction, existing_config] = Kin.J_angles_to_xyz(this.robot.angles, this.robot.pose) //just to get defaults.
+            if(J5_direction === null) { J5_direction = existing_direction }
+            if(config       === null) { config       = existing_config }
+        }
+        if(Array.isArray(J5_direction) &&
+            (J5_direction.length == 2) &&
+            (Math.abs(J5_direction[0]) == 90) &&
+            (Math.abs(J5_direction[1]) == 90)){
+            this.stop_for_reason("errored", "Dexter.move_to was passed an invalid J5_direction of:<br/>" + J5_direction +
+                "<br/>[90, 90], [-90, 90], [90, -90] and [-90, -90]<br/> are all invalid.")
+        }
+        if (similar(xyz, Dexter.HOME_POSITION[0])) {
+            return make_ins("a", ...Dexter.HOME_ANGLES)
+        }
+        let xyz_copy = xyz.slice(0)
+        for(let i = 0; i < 3; i++){
+            if (xyz_copy.length <= i)     { xyz_copy.push(existing_xyz[i]) }
+            else if (xyz_copy[i] == null) { xyz_copy[i] = existing_xyz[i]  }
+        }
+        let angles
+        try {
+            angles = Kin.xyz_to_J_angles(xyz_copy, J5_direction, config, this.robot.pose)
+
+        }
+        catch(err){
+            this.stop_for_reason("errored", "Dexter instruction move_to passed xyz values:<br/>" + xyz + "<br/>that are not valid.<br/>" +
+                err.message)
+        }
+        //for(let i = 0; i < 5; i++){ angles[i] = Math.round( angles[i]) }
+        if (Kin.check_J_ranges(angles)){
+            this.robot.angles       = angles
+            return make_ins("P", ...angles) // Dexter.move_all_joints(angles)
+        }
+        else {
+            this.stop_for_reason("errored", "move_to called with out of range xyz: " + xyz)
+        }
+    }
+}
+
 Dexter.move_to_relative = function(delta_xyz = [0, 0, 0]){
     let the_delta_xyz = delta_xyz
     return function(){
@@ -1485,6 +1563,7 @@ Dexter.instruction_type_to_function_name_map = {
     m:"record_movement",
     n:"find_index",
     o:"replay_movement",
+    P:"pid_move_all_joints",
     p:"find_home_rep",
     R:"move_all_joints_relative",
     s:"slow_move",
