@@ -914,15 +914,19 @@ function fill_perimeter(perimeter_obj, tool_diameter, overlap_ratio = .1, toggle
 ////////////////////////////////////////////////////////////////////////////
 /*
 DXF.dxf_to_instructions()
+new Job({name: "Draw",
+				show_instructions: false,
+         	 	do_list: [DXF.dxf_to_instructions]}
+			    )
 */
 
 this.dxf_to_instructions = function({
 						dxf_filepath = "choose_file",
-						three_J_angles = [[0, 30, 90, -30, 0], [0, 45, 90, -45, 0], [15, 45, 90, -45, 0]],
+						three_J_angles = [[0, 45, 90, -45, 0], [0, 30, 120, -60, 0], [-10, 30, 120, -60, 0]],
                         tool_height = 5.08 * _cm,
                         tool_length = 8.255 * _cm,
                         DXF_units,
-                        draw_speed = 3 * _cm/_s,
+                        draw_speed = 1 * _cm/_s,
                         draw_res = 0.5 * _mm,
                         lift_height = 1 * _cm,
                         tool_action = false,
@@ -941,7 +945,10 @@ this.dxf_to_instructions = function({
     //correct link lengths for tool geometry:
     Dexter.LINK4 = tool_height
     Dexter.LINK5 = tool_length
-    
+        
+    let dxf_content
+    let my_entities
+    let my_points
     if(dxf_filepath == "choose_file"){
     	let title_string
         if(tool_action){
@@ -959,6 +966,16 @@ this.dxf_to_instructions = function({
         }
 	}
     
+    if(typeof(dxf_filepath) == "string" && dxf_filepath.length < 512){
+    	dxf_content = file_content(dxf_filepath)
+        my_entities = DXF.content_to_entities(dxf_content)
+        my_points = DXF.entities_to_points(my_entities)
+    }else if(Array.isArray(dxf_filepath)){
+    	my_points = dxf_filepath
+    }else{
+    	dde_error("Input arg, file_path, to DXF.dxf_to_instructions is incorrect data type")
+    }
+    
 	if(tool_action){
 		new Job({name: "Action_Off",
          	 	do_list: [tool_action_off_function]}
@@ -969,7 +986,7 @@ this.dxf_to_instructions = function({
 	}
         
     let rapid_speed = 30
-    let dxf_content = file_content(dxf_filepath)
+    //let dxf_content = file_content(dxf_filepath)
     
     let J_angles_1 = three_J_angles[0]
     let J_angles_2 = three_J_angles[1]
@@ -980,8 +997,7 @@ this.dxf_to_instructions = function({
     var work_plane = Table.create_child(my_pose, "work_plane")
     let bounds = get_bounds_from_three_positions(J_angles_1, J_angles_2, J_angles_3)
     
-    let my_entities = DXF.content_to_entities(dxf_content)
-    let my_points
+    //let my_entities = DXF.content_to_entities(dxf_content)
     /*
     if(fill == false){
     	my_points = DXF.entities_to_points(my_entities)
@@ -991,7 +1007,7 @@ this.dxf_to_instructions = function({
         my_points = object_to_points(fill_obj)
     }
     */
-    my_points = DXF.entities_to_points(my_entities)
+    
     my_points = scale_points(my_points, DXF_units, three_J_angles)
     
     let my_path = DXF.points_to_path(my_points, lift_height)
@@ -1094,12 +1110,12 @@ DXF.init_drawing()
                         tool_action_on_function = function(){
 							return [
 							make_ins("w", 64, 2),
-							dummy_move()]
+							Dexter.dummy_move()]
 						},
 						tool_action_off_function = function(){
 							return [
 							make_ins("w", 64, 0),
-							dummy_move()]
+							Dexter.dummy_move()]
 						}
                       } = {}){
 
@@ -1116,9 +1132,14 @@ var Adir = Vector.multiply(-1, plane_normal_guess)
 var J_angles_A = [Kin.xyz_to_J_angles(Apoint1, Adir), 
 			  	  Kin.xyz_to_J_angles(Apoint2, Adir), 
               	  Kin.xyz_to_J_angles(Apoint3, Adir)]
+
+function calc_dir_from_J_angles(J_angles){
+	let plane_pose = Kin.three_positions_to_pose(J_angles_A[0], J_angles_A[1], J_angles_A[2])
+	return Vector.multiply(-1, Vector.pull(plane_pose, [0, 2], 2))
+}
+
 if(calc_plane_normal){
-	var plane_pose = Kin.three_positions_to_pose(J_angles_A[0], J_angles_A[1], J_angles_A[2])
-	Adir = Vector.multiply(1, Vector.pull(plane_pose, [0, 2], 2))
+	Adir = calc_dir_from_J_angles(J_angles_A)
 }
 
 new Job({name: "Home",
