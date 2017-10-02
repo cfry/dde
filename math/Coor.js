@@ -155,7 +155,7 @@ Coor.set_orientation = function(orientation, reference_coordinate_system){
     }
     return result
 }
-
+/*
 Coor.is_Coor = function(){
 	
 }
@@ -163,6 +163,10 @@ Coor.is_Coor = function(){
 Coor.insert = function(){
 	Object.set_prototypeof 
 }
+*/
+var result = [1, 2, 3, 4]
+var new_res = 
+
 
 Coor.move_points_to_coor = function(points, destination_coordinate_system, reference_coordinate_system){
 	let dest = destination_coordinate_system
@@ -171,17 +175,47 @@ Coor.move_points_to_coor = function(points, destination_coordinate_system, refer
     if(ref === undefined){
     	ref = Table
     }
-    let trans = dest.get_pose(Table)
+    let trans = dest.get_pose(ref)
     let result = points
     let dim = Vector.matrix_dimensions(points)
-    if(dim[1] == 3){
+    if(dim[0] == 1){
+    	result = Vector.transpose(Vector.matrix_multiply(trans, Vector.properly_define_point(points)))
+        result = result.slice(0, 3)
+    }else if(dim[1] == 3){
     	for(let i = 0; i < dim[0]; i++){
     		result[i] = Vector.transpose(Vector.matrix_multiply(trans, Vector.properly_define_point(points[i])))
     	}
         result = Vector.pull(result, [0, dim[0] - 1], [0, 2])
     }
+    
     return result
 }
+
+Coor.move_vectors_to_coor = function(vectors, destination_coordinate_system, reference_coordinate_system){
+	let dest = destination_coordinate_system
+    let ref = reference_coordinate_system
+    
+    if(ref === undefined){
+    	ref = Table
+    }
+    let trans = dest.get_pose(ref)
+    let result
+    let dim = Vector.matrix_dimensions(vectors)
+    if(dim[0] == 1){
+    	result = Vector.transpose(Vector.matrix_multiply(trans, Vector.properly_define_vector(vectors)))
+        result = result.slice(0, 3)
+    }else if(dim[1] == 3){
+    	for(let i = 0; i < dim[0]; i++){
+    		result[i] = Vector.transpose(Vector.matrix_multiply(trans, Vector.properly_define_vector(vectors[i])))
+    	}
+        result = Vector.pull(result, [0, dim[0] - 1], [0, 2])
+    }
+    
+    return result
+}
+
+
+
 /*
 var board = Table.create_child(Vector.make_pose([0, 0, 1000], [0, 0, 324000]), "board")
 var points = [[1, 2, 3], [4, 5, 6]]
