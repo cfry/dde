@@ -102,6 +102,21 @@ Coor.get_orientation = function(reference_coordinate_system){
     return result
 }
 
+Coor.get_xy_plane_direction = function(reference_coordinate_system){
+	let pose = this.get_pose(reference_coordinate_system)
+	return Vector.multiply(-1, Vector.pull(pose, [0, 2], 2))
+}
+
+Coor.get_xz_plane_direction = function(reference_coordinate_system){
+	let pose = this.get_pose(reference_coordinate_system)
+	return Vector.multiply(-1, Vector.pull(pose, [0, 2], 1))
+}
+
+Coor.get_yz_plane_direction = function(reference_coordinate_system){
+	let pose = this.get_pose(reference_coordinate_system)
+	return Vector.multiply(-1, Vector.pull(pose, [0, 2], 0))
+}
+
 Coor.set_pose = function(pose, reference_coordinate_system){
 	let result
     let ref = reference_coordinate_system
