@@ -233,7 +233,7 @@ Note = class Note{
             return WebMidi.guessNoteNumber(pitch_name)
         }
     }
-
+    /* previous diatonic transpose. didn't andle octaves or fracitonal intervals well
     static pitch_class_in_c_to_diatonic_index(pitch_class_in_c){
         for(var i = 0; i < Note.diatonic_intervals.length; i++){
             var dia_val = Note.diatonic_intervals[i]
@@ -256,20 +256,10 @@ Note = class Note{
         return result
     }
 
-    static convert_diatonic_interval_to_0_based(interval){ //interval is 1 for unison, 3 for a third, etc.
-        if      (interval == 0) { return 0 } //perhaps should be an error, but let's just call this unison
-        else if (interval > 0)  { return interval - 1 }
-        else if (interval < 0)  { return interval + 1 }
-    }
 
-    static convert_diatonic_interval_to_1_based(interval){ //interval is 1 for unison, 3 for a third, etc.
-        if      (interval == 0) { return 0 } //perhaps should be an error, but let's just call this unison
-        else if (interval > 0)  { return interval + 1 }
-        else if (interval < 0)  { return interval - 1 }
-    }
 
      //high level fn
-    static diatonic_transpose(pitch, key, diatonic_interval){
+    static diatonic_transpose_old(pitch, key, diatonic_interval){
         pitch = Note.pitch_name_to_number(pitch)       //ok if pitch is already a number
         key   = Note.pitch_to_pitch_class_number(key)  //ok if key   is already a number
         let zero_based_diatonic_interval = Note.convert_diatonic_interval_to_0_based(diatonic_interval)
@@ -285,6 +275,99 @@ Note = class Note{
         var pitch_in_key = new_pitch_in_c + key
         return pitch_in_key + (simple_oct * 12)
     }
+    */
+    ////
+    static diatonic_transpose(pitch, key, diatonic_interval){
+        pitch = Note.pitch_name_to_number(pitch)       //ok if pitch is already a number
+        key   = Note.pitch_to_pitch_class_number(key)  //ok if key   is already a number
+        if((diatonic_interval <= 1) && (diatonic_interval >= -1)) { return pitch } //-1 -0.5, 0, 0.5, 1 all mean unison
+        let [diatonic_interval_whole, dia_interval_semitones_to_add] = Note.diatonic_interval_whole_and_frac(diatonic_interval) // returns a whole numb (neg or pos), returns a frac, -0.5, 0, or 0.5
+        let zero_based_diatonic_interval = Note.convert_diatonic_interval_to_0_based(diatonic_interval_whole) ////with zero adjustment. still has octaves
+        //so that input of 1 will mean "unison, 3 will mean the interval of a 3rd, etc.
+        //note 3 is not major or minor 3rd its whichever one is diatonic witk key
+        //but from hear on, diatonic_interval is 0 based.
+        let pitch_in_c = pitch - key
+        let pitch_class_in_c = Note.pitch_to_pitch_class_number(pitch_in_c) // in key of C
+        let pitch_in_c_octave =  Math.floor(pitch_in_c / 12)
+        let[interval_0_6, interval_octs] = Note.zero_based_interval_to_0_to_6_and_octs(zero_based_diatonic_interval)
+        let pitch_in_dia_c_scale_degree = Note.pitch_class_to_dia_scale_degree_in_c(pitch_class_in_c)
+        let new_scale_degree_in_c = pitch_in_dia_c_scale_degree + interval_0_6 //since dia_interval_0_6 will be positive,
+                                    //new_scale_degree_in_C will never be neg. May have a 0.5 res
+        let [new_scale_degree_in_c_sans_oct, scale_degree_in_c_octs] =
+                Note.scale_degree_0_to_6_and_octs(new_scale_degree_in_c)
+        let new_pitch_class_in_c = Note.dia_scale_degree_in_c_to_pitch_class(new_scale_degree_in_c_sans_oct)
+        let new_pitch_with_octaves =  new_pitch_class_in_c + ((scale_degree_in_c_octs + interval_octs + pitch_in_c_octave) * 12)
+        let new_pitch_in_orig_key  = new_pitch_with_octaves + key + dia_interval_semitones_to_add
+        return new_pitch_in_orig_key
+    }
+
+    //for 1.5 returns 1 and 1. for -1.5 returns -1 and -1 where the 2nd number is really "semitone to add" after all other processing done.
+    static diatonic_interval_whole_and_frac(diatonic_interval){
+            let frac = diatonic_interval % 1
+            if (frac == -0.5) { frac = -1}
+            else if (frac == 0.5) { frac = 1 }
+            return [Math.trunc(diatonic_interval), frac]
+    }
+
+    static scale_degree_0_to_6_and_octs(new_scale_degree_in_C){
+        let sd_0_6 = new_scale_degree_in_C % 7
+        let oct = Math.floor(new_scale_degree_in_C / 7)
+        if (sd_0_6 == 6.5) { //ie b flat, happens when input is 6.5
+            sd_0_6 = 0 //6 means "the (maj) 7th in music terms so add .05 to that and you get to unison of next octave up
+                       //since we are using zero_based intervals here, return 0 for unison
+            oct += 1
+        }
+        return [sd_0_6, oct]
+    }
+
+    static pitch_class_to_dia_scale_degree_in_c(pitch_class_in_c){
+              //C  C#   D  D#   E  F  F#   G  G#   A  A#   B
+        return [0, 0.5, 1, 1.5, 2, 3, 3.5, 4, 4.5, 5, 5.5, 6][pitch_class_in_c]
+    }
+
+    static dia_scale_degree_in_c_to_pitch_class(dia_scale_degree_in_c){
+        if (dia_scale_degree_in_c == 2.5) { return 5 }
+        else {
+                //C  C#   D  D#   E  F  F#   G  G#   A  A#   B
+          return [0, 0.5, 1, 1.5, 2, 3, 3.5, 4, 4.5, 5, 5.5, 6].indexOf(dia_scale_degree_in_c)
+        }
+    }
+
+    //returns [interval_0_6, octs]   interval_0_6 will be non-neg but octs might be neg
+    static zero_based_interval_to_0_to_6_and_octs(zero_based_diatonic_interval){
+        let interval_0_6
+        let interval_octs
+        if (zero_based_diatonic_interval == 0) { interval_0_6 = 0; interval_octs = 0 }
+        else if (zero_based_diatonic_interval > 0) {
+            interval_octs = Math.floor(zero_based_diatonic_interval / 7)
+            interval_0_6  = zero_based_diatonic_interval % 7
+        }
+        else if (zero_based_diatonic_interval < 0) {
+            interval_octs = 0
+            interval_0_6 = zero_based_diatonic_interval
+            for(interval_octs = 0; interval_0_6 < 0; interval_octs--){
+                interval_0_6 += 7
+            }
+            if (interval_0_6 == 6.5) {
+                interval_0_6 = 0.5
+                interval_octs += 1
+            }
+        }
+        return [interval_0_6, interval_octs]
+    }
+
+    static convert_diatonic_interval_to_0_based(interval){ //interval is 1 for unison, 3 for a third, etc.
+        if      (interval == 0) { return 0 } //perhaps should be an error, but let's just call this unison
+        else if (interval > 0)  { return interval - 1 }
+        else if (interval < 0)  { return interval + 1 }
+    }
+
+    static convert_diatonic_interval_to_1_based(interval){ //interval is 1 for unison, 3 for a third, etc.
+        if      (interval == 0) { return 0 } //perhaps should be an error, but let's just call this unison
+        else if (interval > 0)  { return interval + 1 }
+        else if (interval < 0)  { return interval - 1 }
+    }
+
 
     // beats spb1 spb2   result
     // 2,     1,  0.5 => 4
@@ -326,6 +409,41 @@ Note = class Note{
         }
     }
 
+    arpeggio(interval_or_array, key="chromatic", dur_or_array=null, notelet_index=0){
+        if (Array.isArray(interval_or_array)){
+            let new_phrase = this.note_to_phrase()
+            return new_phrase.arpeggio(interval_or_array, key, dur_or_array)
+        }
+        else {
+            let new_note = this.copy()
+            let new_pitch
+            if (this.is_rest()) { new_pitch = -1 }
+            else if (key == "chromatic") { new_pitch = this.pitch + interval_or_array }
+            else {
+                key = Note.pitch_to_pitch_class_number(key)
+                //let extra_halfstep = interval_or_array % 1 //-3.5 % 1 => -0.5, which is what we want for "adding" at the end
+                //interval_or_array = Math.trunc(interval_or_array) //get integer towards 0, might be negative
+                new_pitch = Note.diatonic_transpose(this.pitch, key, interval_or_array)
+                //if (extra_halfstep) { new_pitch += 1 }
+            }
+            new_note.pitch = new_pitch
+            let dur
+            if (Array.isArray(dur_or_array)) { dur = dur_or_array[notelet_index] }
+            else if (dur_or_array == null)   { dur = this.dur } //if interval_or_array is an array, control is passed to Phrase.arpeggio whcch passes a real dur number back down
+            else                             { dur = dur_or_array }
+            new_note.dur   = dur
+            let new_note_time_incr = 0
+            if (Array.isArray(dur_or_array)) { //add up all the durs before notelet_index and sum them into new_note_time
+                for(let i = 0; i < notelet_index; i++) {
+                    new_note_time_incr += dur_or_array[i]
+                }
+            }
+            else { new_note_time_incr = dur * notelet_index }
+            new_note.time = this.time + new_note_time_incr
+            return new_note
+        }
+    }
+
     copy(){
         return new Note({   time:      this.time,
                             dur:       this.dur,
@@ -339,9 +457,90 @@ Note = class Note{
         return new_p.concat(...args)
     }
 
+    filter_in_prop(prop, min_note, max_note, max_is_inclusive){
+        let is_in
+        let min_val = min_note[prop]
+        let max_val = max_note[prop]
+        let note_val = this[prop]
+        if (prop == "pitch") {
+            if (min_val) { min_val = Note.pitch_name_to_number(min_val) }
+            if (max_val) { max_val = Note.pitch_name_to_number(max_val) }
+            if (min_val == -1) { // a rest
+                if (this.pitch == -1)   { is_in = true }
+                else                    { is_in = false }
+            }
+            else if (this.pitch == -1) { is_in = true } //min_val is not -1
+        }
+        if ((prop == "channel") &&
+            ((min_val == "all") ||
+                (max_val == "all"))) { is_in == true }
+        if (is_in === undefined) {
+            let above_min = false
+            if (min_val === undefined) { above_min = true }
+            else if (note_val >= min_val) { above_min = true }
+
+            let below_max = false
+            if (max_val === undefined) { below_max = true }
+            else if (note_val < max_val) { below_max = true }
+            else if (max_is_inclusive &&
+                (note_val === max_val)) { below_max = true }
+
+            is_in = above_min && below_max
+        }
+        return is_in
+    }
+    //returns this or null
+    filter(min_note={}, max_note=min_note, max_is_inclusive=true, filter_in=true){
+        let include_if_is_in = true
+        for(let prop of ["channel", "dur", "pitch", "velocity", "time"]){
+            let is_in = this.filter_in_prop(prop, min_note, max_note, max_is_inclusive)
+            if (!is_in){
+                include_if_is_in = false
+                break
+            }
+        }
+        if (filter_in) { return (include_if_is_in? this : null) }
+        else           { return (include_if_is_in? null : this) }
+    }
+
     merge(...args){
         let new_p = this.note_to_phrase()
         return new_p.merge(...args)
+    }
+
+    //returns a phrase that will be empty if repetitions = 0
+    repeat(repetitions = 2) {
+        let result = new Phrase()
+        let whole_number = Math.floor(repetitions)
+        let fraction     = repetitions % 1
+
+        for(let i = 0; i < whole_number; i++){
+            let new_note = this.copy()
+            if (i != 0) { new_note.time = this.dur * i }
+            result.notes.push(new_note)
+        }
+        if (fraction > 0){
+            let new_note  = this.copy()
+            new_note.time = (this.time + this.dur) * result.notes.length
+            new_note.dur  = this.dur * fraction
+            result.notes.push(new_note)
+        }
+        if (result.notes.length == 0) { result.dur = 0}
+        else { result.dur = last(result.notes).time + last(result.notes).dur }
+        return result
+    }
+
+    time_interval(start_time=0, end_time){
+        if (end_time === undefined)    { end_time = this.time + this.dur }
+        if (end_time < start_time)     { return null }
+        else if (this.time > end_time) { return null }
+        else if ((this.time + this.dur) < start_time) { return null }
+        else {
+            let result = this.copy()
+            if (this.time < start_time) { result.time = start_time }
+            if ((result.time + this.dur) > end_time) { result.dur = end_time - result.time }
+            return result
+        }
     }
 
     transpose(interval_or_array, key="chromatic"){
@@ -356,15 +555,16 @@ Note = class Note{
             else if (key == "chromatic") { new_pitch = this.pitch + interval_or_array }
             else {
                 key = Note.pitch_to_pitch_class_number(key)
-                let extra_halfstep = interval_or_array % 1 //-3.5 % 1 => -0.5, which is what we want for "adding" at the end
-                interval_or_array = Math.trunc(interval_or_array) //get integer towards 0, might be negative
+                //let extra_halfstep = interval_or_array % 1 //-3.5 % 1 => -0.5, which is what we want for "adding" at the end
+                //interval_or_array = Math.trunc(interval_or_array) //get integer towards 0, might be negative
                 new_pitch = Note.diatonic_transpose(this.pitch, key, interval_or_array)
-                if (extra_halfstep) { new_pitch += 1 }
+                //if (extra_halfstep) { new_pitch += 1 }
             }
             new_note.pitch = new_pitch
             return new_note
         }
     }
+
 
     //virtual prop: octave (affects pitch)
     //min and max not applied to prop_name "time"
@@ -418,6 +618,12 @@ Note = class Note{
         }
         return note_copy
     }
+
+
+
+
+
+
 
 
 

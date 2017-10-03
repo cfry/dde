@@ -8,9 +8,9 @@
 
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version:  <span id="dde_version_id">2.1.3</span><br/>
-    released: <span id="dde_release_date_id">Sep 26, 2017</span>
-    <p/>
+    version:  <span id="dde_version_id">2.1.4</span><br/>
+    released: <span id="dde_release_date_id">Oct 3, 2017</span>
+    <p></p>
     DDE helps you create, debug, and send software to a Dexter robot.
     You can use any JavaScript augmented with DDE-specific functions to help find out about,
     and manipulate, a robot.<br/>
@@ -79,7 +79,7 @@
     <details id="update_doc_id" class="doc_details"><summary>Updating to the latest DDE</summary>
         Follow the directions under <b>First Install</b> above.
         This will not change any files in your <samp> Documents/dde_apps</samp> folder.
-        <p/>
+        <p></p>
         Twist down the <b>About</b> row in the Doc pane to see the installed version number of DDE.
     </details>
     <details class="doc_details"><summary>Launch DDE</summary>
@@ -87,7 +87,7 @@
         <samp>C:\Program Files\dexter_dev_env\dexter_dev_env.exe</samp>
         and on the desktop.<br/>
         On Mac, <samp>Macintosh HD/Applications/dever_dev_env.app</samp>
-        <p/>
+        <p></p>
         Double click on the file to launch DDE. If there is a file
         <samp>Documents/dde_apps/dde_init.js</samp>, it will be
         loaded automatically. Thus you can put any code in that file
@@ -98,7 +98,7 @@
 <details class="doc_details"><summary>Configure DDE</summary>
     DDE requires that you create a folder under your Documents folder named <samp> dde_apps</samp>.
     If this does not exist when you launch DDE, you'll see a warning in the output pane.
-    <p/>
+    <p></p>
     DDE requires that you have a default robot named "dexter0". Usually the one
     that is automatically inserted into the file dde_apps/dde_init.js is fine.
     However, in that file you may need to modify the ip_address and port number
@@ -111,7 +111,7 @@
      Dexter has 5 joints and 5 links between them. The two longest links
     are each about 32 centimeters long and made of square carbon fiber tubes.
     The tube closest  to Dexter's base is LINK2.
-    <p/>
+    <p></p>
     Mounted on it is the
     <i>motor controller</i> printed circuit board, 17cm x 6 cm. Mounted on top
     of it is the <i>processor</i> board, 10cm x 6cm. Mounted on the bottom of the processor
@@ -128,13 +128,13 @@
 When Dexter is off and disconnected from the power, you can move each joint
 manually with just a little resistence from Dexter. When transporting
 Dexter you should move the joints to fold it up into a compact configuration.
-<p/>
+<p></p>
 Moving a joint will cause a corresponding drive belt to move.
 You'll hear a "whirring" sound from the transmission.
 You should also see the power light to go on. Dexter's motors act as generators
 and will generate electricity which powers the power LED. Seeing the light go
 on when you move a joint is a diagnostic that the wiring is, at least partially, correct.
-<p/>
+<p></p>
 Dexter does not have an on-off switch. You just plug it into its
 power adapter and the wall to turn it on.
 The power adapter that comes with Dexter is a fairly common "power brick" or "wall wart" used
@@ -143,20 +143,20 @@ The wall end is a 2 prong, unpolarized connector, common
 for USA appliances. Electrically, it accepts input of 100 to 240 volts, 50 to 60 Hz AC,
 which is supplied throughout the world. However, mechanical connections vary from
 country to country. Adapter plugs that accept the USA 2 prong plugs are commonly available.
-<p/>
+<p></p>
 The Dexter end of the power adapter is a male cylinder 5mm in outer diameter, common
 on older PC laptops. The Power Adapter consumes 1.5 Amps and outputs
 3.15 Amps at 19 volts. If you lose it, many PC laptop power adapters will work.
-<p/>
+<p></p>
 Before turning on Dexter, move its joints so that its standing straight up.
 With the power board facing you, the final link should be horizontal pointing to the left.
 Dexter's power socket is connected by 2 short wires to Dexter's base. You turn on Dexter by
 plugging in the the power adapter to Dexter and the wall.
 If the wall has power, an LED on the power adapter will go on.
-<p/>
+<p></p>
 When Dexter is turned on, after about 8 seconds, it does a 5 second or so little "dance"
 moving each of its joints.
-<p/>
+<p></p>
 The processor board has 3 bright LEDs.
 <ul>
     <li><b style="color:green;">green</b> lights when the processor board is getting power.</li>
@@ -173,7 +173,7 @@ Each indicates that a joint has power.
     Dexter ships with a USB WiFi "nub", a tiny device ethat plugs into
     a USB port. We recommend USB 3.0. USB2.0 will work but is slower.
     You will need to be in a strong WiFi area for best results.
-    <p/>
+    <p></p>
     <b>ping</b><br/>
     Dexter is shipped with an ip_address of <code>"192.168.1.142"</code>
     You can use a low level tool called "command prompt" or "terminal"
@@ -183,7 +183,7 @@ Each indicates that a joint has power.
      Start/All Programs/Accessories/Command Prompt.<br/>
     On MacOS: try <br/>Favorites/Applications/Utilities/terminal.app.<br/>
     Enter <code title="unEVALable">ping 192.168.1.142</code>
-    <p/>
+    <p></p>
     If you have connectivity you
     should see something like the cryptic:<br/>
      <samp>Reply from 192.168.1.142 bytes=32 time 1ms</samp><br/>
@@ -191,7 +191,7 @@ Each indicates that a joint has power.
      <samp>Destination host unreachable</samp> or<br/> <samp>Request timeout</samp>
      or<br/><samp>Host is down</samp>
     several times.
-    <p/>
+    <p></p>
     <b>Ethernet Cable</b><br/>
     If WiFi doesn't work for you, use an Ethernet cable (with RJ45 male connectors) to go between
     Dexter and your computer. Available at Staples, Home Depot, Best Buy, Amazon, etc.
@@ -205,11 +205,11 @@ Each indicates that a joint has power.
     Beware that for some adaptors for some OS's you need to install a software driver,
     typically downloadable for free from the USB to Ethernet adaptor's website.
     (Necessary for Macs at least.)
-    <p/>Instead of getting a USB to Ethernet adaptor, you can use a USB cable that
+    <p></p>Instead of getting a USB to Ethernet adaptor, you can use a USB cable that
     has a male micro USB and a regular (larger) USB male.
     The micro USB male plugs into the micro USB socket on Dexter's processor board.
     See the <b>Key Parts</b> section above for how to find the micro USB socket.
-    <p/>
+    <p></p>
     The software setup for such direct-wire connectivity is a bit tricky.
         First, make sure your cable is plugged into and firmly seating in
         both your computer and Dexter.<br/>
@@ -263,16 +263,16 @@ Each indicates that a joint has power.
         If you are using an Ethernet cable, there are two LEDs on top of the RJ45 socket.
         When the amber one is lit, it shows connectivity. The green LED indicates
         data transfer.
-        <p/>
+        <p></p>
         <b>Using DDE</b><br/>
         On the Jobs menu/Simulate? submenu, choose "false".
         Now choose Jobs menu/Run Instruction/NEUTRAL_ANGLES,
         or other angles.
-        <p/>
+        <p></p>
         If the robot moves, you can control it from DDE!
         The next step is calibrating Dexter. Choose the menu item
         Jobs menu/Calibrate Dexter to start.
-        <p/>
+        <p></p>
         We recommend choosing <span style="color:blue;">?</span>
         in the upper right corner of the Doc pane to understand the Help System.
     </details>
@@ -286,7 +286,7 @@ Each indicates that a joint has power.
     you should see in the right (main) pane of the finder a
     single folder <samp>share</samp>. This folder is on Dexter.
     Expand it to see several files on Dexter.
-    <p/>
+    <p></p>
     DDE can also access this share folder on Dexter.
     Use the File menu/Open to edit a file. You can save modified
     files on Dexter too.
@@ -299,7 +299,7 @@ Each indicates that a joint has power.
 <details class="doc_details" id="calibrate_doc_id"><summary>Calibrate Dexter</summary>
 <b>When</b><br/>
 To obtain optimal precision, Dexter must be calibrated after it is built.
-<p/>
+<p></p>
 Environmental effects of heat, humidity, movement, and orientation towards gravity,
 all conspire to make minor changes that affect Dexter's accuracy.
 <b>Calibrate optical sensors</b> will most likely only need to be done once.
@@ -308,7 +308,7 @@ If you are building a kit, you must calibrate it when the building is complete.
 <b>Calibrate optical encoders</b> needs to be done every time Dexter is turned on.
 If Dexter is having sporadic movement or is not smooth
 in FollowMe mode, try going through a full calibration.
-<p/>
+<p></p>
 <b>How</b><br/>
 Choose the Jobs menu item of "Calibrate Dexter..." to open a dialog
 aiding calibration.
@@ -328,7 +328,7 @@ or there is a discontinuity in your wiring.
 If the robot has its <i>simulate</i> init parameter
 set to <code>null</code> (the default
 and the case for dexter0), choose Jobs menu/Simulate?/ of <code>false</code>.
-<p/>
+<p></p>
 For each Joint, twist the two trim pots on the small (several centimeters per side)
 printed circuit board
 (the "optical board")
@@ -336,27 +336,27 @@ for the joint that you are calibrating,
 until the drawn points form a circle, or as near a circle as you can make.
 The desired circle fills the white plot area in the dialog, not smaller and
 not larger.
-<p/>
+<p></p>
 Joints 1, 4, and 5 also have two screws to adjust the position of the optical blocks.
  If you see the drawn points form the pattern of an elongated diagonal oval,
  that indicates that the positional screws need to be adjusted.
- <p/>
+ <p></p>
  All adjustments can be made with the provided small screw driver.
- <p/>
+ <p></p>
  As you adjust, the screen will become cluttered with now obsolete dots.
  Click the "Restart" button to clear the dots and start calibrating the
  selected Joint over again.
- <p/>
+ <p></p>
  Allow the drawing of points to complete (several minutes).
  If the circle looks good, click the mouse in the center of the circle.
  This will draw a red point there. If you are not satisfied with the
  center you've chosen, click the mouse again at a new location.
- <p/>
+ <p></p>
  Once you are satisfied with the circle center you've chosen,
  click the "Done" check box underneath the Joint's radio button.
  Then click another Joint's radio button and repeat the above process
  for that Joint.
- <p/>
+ <p></p>
  When you've completed calibrating all five joints, click the
  "Save" button.
  <h5>Step 3</h5>
@@ -378,7 +378,7 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
         you might miss a few. So here's the list:
         <ul><li><a href="http://hdrobotic.com/videos/" target="_blank">DDE videos</a>
             This web page has videos on the overall mission, DDE, and the hardware.
-            The DDE video is 10 minutes long and covers the basics.<p/></li>
+            The DDE video is 10 minutes long and covers the basics.<p></p></li>
             <li><a href="http://hdrobotic.com/webinar/" target="_blank">Webinar videos</a> on DDE and Building Dexter</li>
             <li><a href="http://hdrobotic.com/software" target="_blank">http://hdrobotic.com/software</a>
                 This url shows you the content
@@ -386,18 +386,18 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
                 Usually its better to view this content
                 from within DDE, but there may be times when this web page is handy.
                 For instance, <b>User Guide/Installation</b> tells you how to install DDE.
-                You can also browse the <b>Release Notes</b> before installing a version.<p/></li>
+                You can also browse the <b>Release Notes</b> before installing a version.<p></p></li>
             <li><b>tooltips</b> Many menu items and buttons provide concise help. Place the
-                mouse over the item and don't move it for a couple of seconds.<p/></li>
+                mouse over the item and don't move it for a couple of seconds.<p></p></li>
             <li><b>code examples</b> DDE's Learn JS, Insert, and Job menus let you insert,
                 into the editor buffer,
-                practical examples of JavaScript which you can then customize to your needs.<p/></li>
+                practical examples of JavaScript which you can then customize to your needs.<p></p></li>
             <li><b>TestSuite</b> DDE's test suite is used primarily to verify functionality.
                 But you can also use the Test/Insert All menu item to
                 see the source code of many of the tests. This will generally
                 be <i>less</i> useful than explicit examples, but
                 may come in handy for edge cases.
-                <p/>
+                <p></p>
                 To find a relevant test suite:
                 <ul><li>Enter a string into the Find type-in or, with that typein-in empty,
                         select a string in the editor (or Doc or Output pane)
@@ -418,30 +418,30 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
                 upon each release, but if you want to know what's changed,
                 browse the release notes. Recommended each time you update DDE.<br/>
                 The <b>Known Issues</b> tells you about large omissions and problems within DDE.
-                Please don't send us any bug reports about things documented here.<p/></li>
+                Please don't send us any bug reports about things documented here.<p></p></li>
             <li><b><a href="https://github.com/cfry/dde" target="_blank">https://github.com/cfry/dde</a></b> Rarely should you need to examine
                 DDE's source code to figure out how something works, but its all
-                available on github, including the documentation. <p/>
+                available on github, including the documentation. <p></p>
                 <a href="https://github.com/cfry/dde/releases" target="_blank"> https://github.com/cfry/dde/releases</a> has download instructions.</li>
             <li><b>New Releases</b> Each time you launch DDE, the Output pane will
-                tell you whether or not there is a later release and how to download it.<p/></li>
+                tell you whether or not there is a later release and how to download it.<p></p></li>
             <li><b>Find button</b> In the Doc pane header, there's a type-in box.
                 Enter text and click the Find button. Sections containing
                 that text will have an orange background. Expand them.
                 The text itself will have a yellow background.
                 This scheme allows you to avoid looking at sections
                 that you may not care about, such as Release Notes.
-                <p/>
+                <p></p>
                 If the text type-in is blank, the Find button will grab
                 a selection and search for that text in the documentation.
                 You can select text in the Editor, Output, and Doc panes.
                 You can also select text in the Command type-in (Output pane
-                header) and the Run Instruction dialog box's source code type-in.<p/></li>
+                header) and the Run Instruction dialog box's source code type-in.<p></p></li>
             <li><b>Click Help</b> If you click on text in the Editor pane, Output pane,
                 Command line type-in or Doc pane code examples,
                 a line of help about what you clicked on will appear
                 in the output pane. Often this will have a blue, underlined
-                link that you can click on for more information.<p/></li>
+                link that you can click on for more information.<p></p></li>
             <li><b>Eval button</b> The Eval button lets you run code pretty much
                 where ever you find it in DDE. The result of the evaluation
                 will appear in the Output pane. While coding, we recommend
@@ -462,7 +462,7 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
                         Doc pane, or Command type-in, it will be evaled.</li>
                     <li>If there is no selection, the entire contents of
                         the Editor pane will be evaluated.</li>
-                </ul><p/></li>
+                </ul><p></p></li>
             <li><b>Inspector</b> When you select some code and click the Eval button,
                the reslt of running that code is shown in the Output pane in an Inspector.
                This allwows you to navigate complex data strutures (including circular ones)
@@ -487,7 +487,7 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
         The Editor pane is a text editor. You can view and edit any text documents in it,
         but primarily you will be editing JavaScript that defines a job to make something
         with Dexter. DDE expects you to save such "apps" in your <samp> Documents/dde_apps/</samp>
-        folder.<p/>
+        folder.<p></p>
         The red dots on the left column of the editor indicate possible syntactic errors.
         Many of these are unnecessary or trivial formatting issues that will
         not affect running the code. If the code doesn't Eval, look at the red dots and their
@@ -501,26 +501,26 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
         <code>out</code> accepts any valid HTML as its first argument. It will be rendered in the Output pane.
         <details id="start_job_help_doc_id" class="doc_details"><summary>Start Job Button</summary>
             Clicking this button evals and starts the job that the cursor is in.
-            <p/>
+            <p></p>
             If the cursor is in a job's source code but not in the do_list,
             then the job source will be evaled, and the job started.
-            <p/>
+            <p></p>
             If the cursor is on an instruction in the do_list with no selection,
             the job will be evaled and started with the first instruction run being
             the one the cursor is on.
-            <p/>
+            <p></p>
             If there is a selection within the do_list, then the first instruction
             run will be the one that contains the start of the selection,
             and the last instruction run will be the one that contains the
             end of the selection. This works by setting the job's
             <code title="unEVALable code fragment"> program_counter</code>
             and <code title="unEVALable code fragment"> ending_program_counter</code> properties.
-            <p/>
+            <p></p>
             If you have selected the source code for one or more instructions
             (with comma's between them) and there is no <code  title="not in TestSuite"> new Job()</code> wrapper
             around the instructions, then a Job wrapper will be automatically made
             behind the scenes, the job will be defined, and started.
-            <p/>
+            <p></p>
             Just before an instruction is run, it will be selected in the editor.
         </details>
 
@@ -528,7 +528,7 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
     <details id="documentation_pane_doc_id" class="doc_details"><summary>Documentation Pane</summary>
         The Documentation pane describes the core knowledge you'll need to command Dexter to make things.
         Admittedly we'll always fall short of this goal, but let us know if some crucial information
-        is missing and we'll do our best to fill the void.<p/>
+        is missing and we'll do our best to fill the void.<p></p>
         You can find out what version of DDE is running and the latest changes under the
         <b>Release Notes</b> section of the documentation.
         Details about programming Dexter are in the <b>Reference Manual</b> section.
@@ -538,17 +538,17 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
             The simulate pane shows a graphical simulation of Dexter with
             joint angles of the last heartbeat robot status returned.
             (By default, heartbeats happen every 100ms.)
-            <p/>
+            <p></p>
             Use the mouse in the <i>Simulate</i> pane to:
             <ul style="padding:0px;margin-left:20px;display:inline-block;" >
                 <li><b>Rotate table</b>: mouse-down then drag.</li>
                 <li><b>Zoom</b>: shift-down then mouse-down then drag.</li>
                 <li><b>Pan</b>: alt or option down, then mouse-down, then drag.</li>
             </ul>
-            <p/>
+            <p></p>
             <button>Demo</button> shows Dexter randomly flailing around, not
             correlated to a connected Dexter.
-            <p/>
+            <p></p>
             The menu in the Simulate pane header let's you browse several videos showing
             off Dexter's capabilities.
         </div>
@@ -557,19 +557,19 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
             Checking the <b>pause</b> checkbox will cause running jobs to pause
             when they have completed their current instruction. Jobs started when
             the pause button is checked will pause right before the first user instruction
-            on the do_list is run.<p/>
+            on the do_list is run.<p></p>
             When a job is paused, clicking the <button>Go</button> button will cause
             it to execute the next instruction, print out useful information in the Output
             pane, and pause. If a job is paused, and you uncheck the pause checkbox,
             then click the <button>Go</button> button, the job will begin running normally.
-            <p/>
+            <p></p>
             <details id="debugger_doc_id" class="doc_details"><summary>"debugger"</summary>
                 The instruction of <code>"debugger"</code> in a do_list will cause
                 the <b>pause</b> checkbox to be checked and the job to pause.
                 A function that returns the string <code>"debugger"</code> or
                 even an array that has an element of <code>"debugger"</code>
                 will cause a pause.
-                <p/>
+                <p></p>
                 Note that using the string <code>"debugger"</code>
                 is intentionally similar to using the JavaScript constant <code title="not in TestSuite"> debugger</code>.
                 If you have the constant <code title="not in TestSuite"> debugger</code>
@@ -586,7 +586,7 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
     DDE let's you control a Dexter robot with Javascript. You can execute all of JS.
     DDE extends JavaScript with a library of functions that control Dexter, allow access to Unix commands
     on Dexter's computer, Window system extensions, as well as ROS specific function calls allowing you to find out about
-    and control Dexter.<p/>
+    and control Dexter.<p></p>
     In DDE, <code>console.log</code> sends its output
     to the (usually hidden) Chrome console.
     Use <code>out</code> (on the <button>Insert&#9660;</button> menu) to see output in the Output pane.
@@ -612,10 +612,10 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
     <a target="_blank" href="https://www.codecademy.com/learn/javascript">
         https://www.codecademy.com/learn/javascript</a> Beware that <code>console.log</code> prints to the
     <i>normally hidden</i> chrome console. DDE's <code>out</code> is easier to use.
-    <p/>
+    <p></p>
     If you want more prose, there are lots of JavaScript tutorials on the web. You will not need to know
     HTML, CSS or JQuery that are commonly taught in conjunction with JavaScript.
-    <p/>
+    <p></p>
     <a href="http://jsforcats.com" target="_blank">A very gentle intro to JavaScript.</a> Ignore the
     parts that use the <i>Underscore</i> library.<br/>
     A more formal (and long) <a href="http://www.w3schools.com/js/" target="_blank">tutorial</a>.
@@ -630,13 +630,13 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
         um, weak. The <b>object system</b> is also in somewhat of disarray. Because of that
         there are many packages adding a more rational Object system, but they all
         differ, confusingly.
-        <p/>
+        <p></p>
         There's no <b>compiler</b> in JavaScript. There are no "includes" or
         "pre processors" or "macros". The code is run in an iterpreter inside
         a browser (every browser, actually). The major browsers also offer a
         debugging environment, though typically no Editor. DDE gives you an editor
         and a lot of other convenieces for developing code.
-        <p/>
+        <p></p>
         <b>Whitespace</b> characters are those characers that "take up space" but you can't
         otherwise see. This includes space, tab, newline and a few others. In Javascript,
         mostly its the case that 1 whitespace character is equivalent to any number of
@@ -649,7 +649,7 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
             Math.min(5, 6)</code><br/>
         but not:<br/>
         <code title="errors"> Math.min(3, 4)  &nbsp;Math.min(5, 6)</code>
-        <p/>
+        <p></p>
         There is no <b>Window System</b> per se in JavaScript but it ties into
         HTML, CSS and the browser's Document Object Model. This is confusing since
         it requires several different syntaxes and ways-of-thinking. DDE
@@ -657,23 +657,23 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
         the key window system facilites you'll need for commanding Dexter
         via the function <code>show_window</code>, the <code title="unEVALable code fragment"> Human.enter_*</code> instructions
         and a few other utilities. See the <button>Insert&#9660;</button> menu.
-        <p/>
+        <p></p>
         Javascript's functionality greatly expanded in 2016 with a new version who's name
         itself is confusing. You'll see <b>EcmaScript 6</b>, JavaScript 2015 and a few variants.
         Browsers vary as to how much of this they implement, but Chrome, the browser
         DDE uses, has nearly 100% of this new standard implemented as of June, 2016.
         DDE depends on these new features.
-        <p/>
+        <p></p>
         See in, this documentation, <b>Installation/Keep Chrome up to date</b>.
         JS 6 can run code from earlier versions of JS, but there's an awful lot
         of new functionality that isn't in most existing JS documentation.
-        <p/>
+        <p></p>
         Like all popular programming languages, JavaScript has its problems.
         But its unique in its "deployability". JS and DDE runs on Windows, Macs,
         Linux, and Chromebooks. Its new features are quite powerful, and DDE strives
         to make learning and using JS as simple as possible. Your new skills will
         serve you well in Web programming for billions of users.
-        <p/>
+        <p></p>
         Recommended JS Tutorials for the experienced programmer (both of which ignore
         the new JS 6 extensions):<br/>
         <a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/A_re-introduction_to_JavaScript">
@@ -703,7 +703,7 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
         When you have defined a named function, set a global variable or a property
         reachable by a global variable, that data will remain in the JS environment until
         you relaunch DDE. This is even true if you bring a new file into the editor.
-        <p/>
+        <p></p>
         Overall this facilitates programming, but it does have some behavior that may be unexpected.
         Imagine you define
         <br/><code>function foo(){return bar()}</code> and
@@ -741,29 +741,29 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
     DDE calls such lists <b><i>series</i></b>. There are over 30 series in DDE, including
     numbers, dates, colors, functions for math, strings, arrays, etc.
     The most useful functions and data structures in DDE are in a series.
-    <p/>
+    <p></p>
     The <button>Series&#9660;</button> menu allows you to insert into the
     editor, an example item from each series. When you click on a series item in the editor,
     help is given on that item in the Output pane. Using the Right and Left arrow
     keys, you can replace a selected series item with the next or previous item
     in its series. The Up and Down arrow buttons replace a selected series item
     with an item from <i>another</i> series. Effectively this uses the series of series.
-    <p/>
+    <p></p>
     An example of a series is <i>boolean</i>. Choose it from the <button>Series&#9660;</button>
     menu. It inserts <code>true</code>. Now hit the right arrow key to see additional items
     in the series (<code>false</code>, <code>null</code>, etc.) The left arrow goes backwards through the series.
-    <p/>
+    <p></p>
     With any series item selected, hit the down arrow. If you're on a member of the boolean series,
     this will replace the selection with an item from the <i>integer</i> series.
     Press the up and down arrows to go to a new series.
-    <p/>
+    <p></p>
     Each time you go to a new item from series or click on one already in the editor,
     help on it will be displayed in the Output pane.
 </details>
 <details class="doc_details"><summary>Jobs</summary>
     A job feeds the instructions in its do_list to a robot for making things.
     Most users of DDE will spend most of their time creating and running jobs.
-    <p/>
+    <p></p>
     The <button>Series&#9660;</button> menu gives help on Jobs and Robots.
     <br/>
     The <button>Jobs&#9660;</button> menu contains numerous examples of defining Jobs and
@@ -787,7 +787,7 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
     The job should also have a do_list, which is the sequence of instructions to run
     on the robot. When the <code title="unEVALable code fragment"> start</code> method is called on a Job, it sends the items
     on its do_list to the associated robot, sequentially, one at a time.
-    <p/>
+    <p></p>
     From a software standpoint, a robot <i>is</i> its instruction set.
     The key difference between different kinds of Robots is the difference
     between their instruction sets. If a robot is sent
@@ -800,7 +800,7 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
         to end a job immediately without processing the insructions after the stop instruction,
         and <code>Robot.wait_until</code> which pauses execution of the job's instructions until
         the calling of the given JS function returns true.
-    <p/>
+    <p></p>
     See <button>Series&#9660;</button> submenu "robot" for details about robots as
     well as the <b>Reference Manual</b> section on Robots.
 </details>
@@ -809,7 +809,7 @@ Dexter can draw the lines specified in a dxf file. To do that, Dexter needs to k
 a bunch of other information, most importantly the plane that it will be drawing on.
 Note that only line segments are currently supported.
 The DXF shapes of Circles, fillets, and polylines etc. are not.
-<p/>
+<p></p>
 To draw, you must define the plane of the drawing surface.
 A plane can be defined by specifying three points.
 We define each point using an array of 3 numbers, x, y, and z in meters
@@ -821,26 +821,26 @@ By doing repeated calls to DXF.init_drawing
 (tweaking the points each iteration)
 and running a job to see where the robot moves, you can hone-in on good locations
 for these points.
-<p/>
+<p></p>
 The default input args assume that the plane that you are defining is approximately horizontal, in the x-y plane.
 If this is not the case, the plane_normal_guess arg can be changed to specify the approximate desired plane normal vector.
 This variable controls the orientation of the last joint while you are searching for the plane points but will not affect the drawing process.
-<p/>
+<p></p>
 The drawing process will calculate the direction
 (See Glossary on 'direction') based off of the the plane that was defined by the three points and move Dexter to be perpendicular to it.
-<p/>
+<p></p>
 If it is desired to have the robot point in the direction of the
 calculated plane during the point finding process,
 set the calc_plane_normal arg to true.
 This is not recommended until the points are dialed in due to large changes in normal direction.
-<p/>
+<p></p>
 The 3 points should form a right triangle. The vertices of this triangle will
 be the three points that define the plane.
 The order these points are chosen will not matter.
 If the "DXF_units" argument
 to DXF.init_drawing is <code>undefined</code>, ie not passed in,
 tben DXF_units will automatically be chosen.
-<p/>
+<p></p>
 Here's how.
 The legs of the right triangle (the non-hypotenuse sides) form an x and y axis for the drawing's coordinate system. The triangle leg that is in the clockwise direction from the other leg will always define the x-axis and counter-clockwise, the y-axis. With the origin being the point they share and the z-axis being perpendicular. This clockwise calculation is from the endeffector's point of view with assumption that if the robot can physically touch the point then it's last joint is on the front facing side of the plane.
 The rectangular bounding box is also formed by these three points.
@@ -850,14 +850,14 @@ Note that the angle between the x-axis and y-axis triangle legs can be between 4
 Where the y-axis and rectangle height will be defined by the perpendicular from the x-axis to the third point.
 In other words it creates a perfect right triangle from the approximate one.
 This is important because the points that define the x-axis contribute to the orientation of the local coordinate system more than the y-axis point.
-<p/>
+<p></p>
 When DXF_units is undefined, the size of the drawing
  will be set such that the
 drawing will be the maximum size that
 it can be and still be contained within the bounding box. The "aspect ratio"
 of the drawing won't change to completely fill the bounding box. So usually
 the drawing will touch only 3 sides of the bounding box.
-<p/>
+<p></p>
     <details class="doc_details"><summary>Drawing Details</summary>
     <ol><li>Attach drawing end effector such as a pen or laser to Dexter</li>
         <li>On a flat work surface within Dexter's reach,
@@ -905,7 +905,7 @@ the drawing will touch only 3 sides of the bounding box.
     <details class="doc_details" id="DXF.init_drawing_doc_id"><summary>DXF.init_drawing</summary>
     <code>DXF.init_drawing</code> defines a bunch of jobs to help set point locations
     and initialize the values used by jobs for laser cutting or drawing with a pen.
-    <p/>
+    <p></p>
     <i>Parameters:</i><br/>
     <b>dxf_filepath</b> This argument has several different formats for allowing the user
     to specify the lines to be drawn.<br/>
@@ -917,10 +917,10 @@ the drawing will touch only 3 sides of the bounding box.
            <li>An array of points, each which is an array of 3 numbers, x, y, z which are auto-scaled
                 to fit the bounding box decribed by the three_points argument, unless you supply
                 a DXF_units arg.
-                <p/>
+                <p></p>
                 The even indexed points in the array are considered to be the starting point of
                 a line, and the odd indexed points are considered to be its ending point.
-                <p/>
+                <p></p>
                 In the other formats for dxf_filepath, the drawing is 2 dimensional.
                 With an array of points, it can be 3 dimensional, though if you don't supply
                 DXF_units, the x and y of those 3D points will
@@ -931,7 +931,7 @@ the drawing will touch only 3 sides of the bounding box.
            </li>
        </ul>
        <b>Other args</b> Please see the below example.
-       <p/>
+       <p></p>
     <i>Example:</i>
 <pre><code title="not in TestSuite">DXF.init_drawing({
     DXF_filepath: "choose_file",        //file_path to DXF
@@ -959,19 +959,19 @@ the drawing will touch only 3 sides of the bounding box.
 </code></pre>
     The tool_action_on function is called when drawing a line just after the
     "pen goes down" on the surface. For a laser the function would turn on the laser.
-    <p/>
+    <p></p>
     The tool_action_off function is called when drawing a line just before the
     "pen goes up" from the surface as it completes drawing a line.
      For a laser, the function would turn off the laser.
     </details>
-    See also <a href="#" onclick="open_doc('Dexter.draw_dxf_doc_id')">draw_dxf instruction</a>
+    See also <a href="#" onclick="open_doc('Dexter.draw_dxf_doc_id', event)">draw_dxf instruction</a>
 </details>
 
 
 <details class="doc_details" id='TestSuite_doc_id'><summary>TestSuite</summary>
     DDE has the capability to compose, run and report on Test Suites.
     DDE comes with several Test Suites and you can define more.
-    <p/>
+    <p></p>
     Each Test Suite has a name and an array of <i>tests</i>.
     A <i>test</i> is composed of an array of 1, 2, or 3 literal strings.
     <ol><li>A literal string of JavaScript code to evaluate that returns a value to be tested.</li>
@@ -984,13 +984,13 @@ the drawing will touch only 3 sides of the bounding box.
             you'd like to defer fixing it and just want to see the "unknown" failures.</li>
     </ol>
     Choose <button>Test&#9660;</button> <b>Insert Example</b> to see a demonstation
-    Test Suite. <p/>
+    Test Suite. <p></p>
     You run a Test Suite by selecting it and hitting the right arrow key or
     choosing the Editor pane's <b>Test/naviation/Run & sel next item</b> menu item.
     Use the down arrow key to select the next level down item such as a test or
     even a part of a test. In each case, the right arrow executes the item and
     selects the next item at that level.
-    <p/>
+    <p></p>
     To create a Test Suite, type in the JavaScript source of the suite's first test,
     select it, and choose <button>Test&#9660;</button> <b>Selection to test</b>.
     This will wrap a Test Suite around the item and fill in the test's expected value
@@ -998,7 +998,7 @@ the drawing will touch only 3 sides of the bounding box.
     for a second JavaScript selection, it will also create a test, but this time,
     because the test is <i>already</i> in a Test Suite, it will not create a new
     Test Suite.
-    <p/>
+    <p></p>
     Other operations on the <button>Test&#9660;</button> menu are documented with tooltips.
 </details>
 <details class="doc_details" id='debugging_id'><summary>Debugging</summary>
@@ -1007,7 +1007,7 @@ the drawing will touch only 3 sides of the bounding box.
     That way, when a bug shows up, you'll know it was in the last bit that you added.
     If you fail to do this, and have a large amount of code that has a bug, comment out
     lines incrementally and test to isolate the bug.
-    <p/>DDE uses an automatic syntax checker named <i>ESLint</i>. It
+    <p></p>DDE uses an automatic syntax checker named <i>ESLint</i>. It
     indicates syntax errors in the Editor pane as soon as you enter them.
     There are many different styles of JS coding and different versions
     of JS so its hard to get such errors correct. Even if you have syntax
@@ -1053,17 +1053,17 @@ the drawing will touch only 3 sides of the bounding box.
     pane.
     <button>Insert&#9660;</button> <i>Print to output</i> has items that print in a few different colors
     so that you can distinquish some outputs from others in a complex debugging session.
-    See <a href="#" onclick="open_doc(out_doc_id)">out</a>.</li>
+    See <a href="#" onclick="open_doc(out_doc_id, event)">out</a>.</li>
 
     <li><b>Robot.out</b> <code>Robot.out("some data")</code> creates an
     instruction in a Job's do_list to print content to the output console
     with similar functionality to <code>out</code>
-    See <a href="#" onclick="open_doc('Robot.out_doc_id')">Robot.out</a>.</li>
+    See <a href="#" onclick="open_doc('Robot.out_doc_id', event)">Robot.out</a>.</li>
 
     <li><b>show_instructions</b> <code title="unEVALable">new Job({show_instructions=some_fn})</code>
     lets you call an arbitrary function (with clever defaults) before each
     instruction in a Job is run.
-    See <a href="#" onclick="open_doc(new_job_parameters_doc_id)">new Job parameters</a>.</li>
+    See <a href="#" onclick="open_doc(new_job_parameters_doc_id, event)">new Job parameters</a>.</li>
 
     <li><b>inspect</b> <code title="unEVALable"> inspect(some_data) </code>
        will print a representation of its argument in the output pane.
@@ -1074,18 +1074,18 @@ the drawing will touch only 3 sides of the bounding box.
     <li><b>clear_output</b> To erase all content in the output pane,
        click the <button>Clear</button> button in the Output pane or
        Eval <code>clear_output()</code><br/>
-       See <a href="#" onclick="open_doc(clear_output_doc_id)">clear_output</a>.</li>
+       See <a href="#" onclick="open_doc(clear_output_doc_id, event)">clear_output</a>.</li>
     <li><b>speak</b> behaves similarly to <code>out</code> in that it returns its 1st arg.
         It can be useful in contexts where you want to know a value but don't
         want to look at the screen to find it.
         An example of speak is on the Insert menu, under <i>Learn Javascript/debugging</i>.
-        See also <a href="#" onclick="open_doc(speak_doc_id)">speak doc</a>.</li>
-    </il>
+        See also <a href="#" onclick="open_doc(speak_doc_id, event)">speak doc</a>.
+    </li>
     <li><b>Human.notify</b> is an instruction that you can place ina Job's do_list to pop up a window
            and give the user a message.
-           See <a href="#" onclick="open_doc('Human.notify_doc_id')">Human.notify</a>.</li>
+           See <a href="#" onclick="open_doc('Human.notify_doc_id', event)">Human.notify</a>.</li>
     </ul>
-    <p/>
+    <p></p>
     Because JavaScript, like all popular textual programming languages, has not been
     designed <i>carefully</i> with the "user experience" in mind, it is full of
     ideosyncracies that make learning how to use it require remembering a lot

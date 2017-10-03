@@ -827,7 +827,17 @@ Series.instances = [
         menu_insertion_string: 'serial_devices()',
         menu_sel_start: 0,  menu_sel_end: -2, sample: "serial_devices"}),
 
-    //the problem with test suites as a series is tha the left and right
+    new Series({id:"series_note_id", array: ["arpeggio", "copy", "concat", "filter", "increment_property",
+                           "multiply_property", "merge", "repeat",
+                            "set_property", "start", "time_interval",  "transpose"],
+        menu_insertion_string:'new Note("C#4").transpose(2)', menu_sel_start:16, menu_sel_end:25, sample:"transpose"}),
+
+    new Series({id:"series_phrase_id", array: ["arpeggio", "copy", "concat", "filter", "increment_property",
+        "multiply_property", "merge", "repeat",
+        "set_property", "start", "time_interval", "transpose", "Phrase.pattern" ],
+        menu_insertion_string:'new Phrase("C D").transpose(2)', menu_sel_start:18, menu_sel_end:27, sample:"transpose"}),
+
+    //the problem with test suites as a series is that the left and right
     //arrow keys are used for both executing test suites AND moving to
     //the next item in the series. Now choosing test suite from
     //the series menu inserts the first test suite, but

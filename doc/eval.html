@@ -13,7 +13,7 @@
 <b>Prerequisites:</b> A bit of JavaScript programming
 (which you can get with a few hours of playing with Dexter Development Environment)
 and a thirst for understanding how software works.
-<p/>
+<p></p>
 The bulk of this article is about understanding the core function of
 thinking like a computer. In JavaScript and Lisp,
 this function is named <code>eval</code>. But ...
@@ -30,14 +30,14 @@ this function is named <code>eval</code>. But ...
 that this article is about zeros and ones, about logic gates executing
 and/or/not. All that is good to know, but it is too low level
 to understand most of the interesting things about software.
-<p/>
+<p></p>
 There are many ways to understand Eval. Here's some important ones:<br/>
 <b>Definition 1:</b> <i>For the JS programmer</i><br/>
 <code>eval</code> is a JavaScript function.
 Its first argument is a string of source code.
 It "runs" the source code and returns a value (if any).
 Side effects of running the code are performed.
-<p/>
+<p></p>
 <b>Definition 2:</b> <i>For the C programmer</i><br/>
 eval parses & compiles source code, executes it, and returns a value,
 all in one fell swoop.
@@ -48,7 +48,7 @@ Given Moore's law you could say JS today runs about as fast as C did
 execution time." Of course, running faster saves programmer time,
 but for most user interface operations, the difference between
 1 millisecond and 10 milliseconds is unnoticeable.
-<p/>
+<p></p>
 <b>Definition 3:</b> <i>Data-centric</i><br/>
 eval converts data from one format (a string of source code)
 into another format (a Boolean, number, array, object, or possibly
@@ -57,7 +57,7 @@ Both the input and output are representations
 of the same data.<br/>
 <i>Example:</i> <code title="unEVALable">"2 + 3"</code> means the same thing as <samp>5</samp>,
 more or less.
-<p/>
+<p></p>
 <b>Definition 4:</b> <i>Conceptual</i><br/>
 Eval is a process for manipulating information.
 You can think of it as a "translator" from its
@@ -66,7 +66,7 @@ This process of translation is actually a meta process.
 The input to
 eval is source code that describes a process,
 and eval 'runs" that process using the "eval process".
-<p/>
+<p></p>
 <b>Definition 5:</b> <i>Linguistic</i><br/>
 If we expand our concept of eval to other languages,
 say English or "picture", eval takes low level "syntax"
@@ -79,7 +79,7 @@ syntax into semantics. Different languages will
 have different syntaxes, at least somewhat different
 semantics, and, necessarily, different evals.
 Regardless, the concept of Eval is the very essence of language.
-<p/>
+<p></p>
 <b>Definition 6:</b> <i>Philosophic</i><br/>
 Eval is a basic process of "thinking".
 A dyed-in-the-wool Lisp programmer would say that
@@ -97,7 +97,7 @@ has its arguments evaluated, then those values are passed into the function body
 For arguments of most types, eval just returns the argument.<br/>
 <code>eval(true)</code> => <samp>true</samp> (returns the input <code>true</code>)<br/>
 <code>eval(2 + 3)</code> => <samp>5</samp> (returns the input <code>5</code>)
-<p/>
+<p></p>
 But if the argument is a string, it is treated as source code and executed.<br/>
 <code>eval("true")</code> => <samp>true</samp> (the Boolean symbol)<br/>
 <code>eval("123")</code>  => <samp>123</samp>  (an integer)<br/>
@@ -110,18 +110,18 @@ But if the argument is a string, it is treated as source code and executed.<br/>
 In all of the above examples, there's really 2 evals occurring. The first
 is as part of the function calling mechanism of JS. The argument is
 evaled. Then THAT value is passed into eval and our 2nd eval occurs.
-<p/>
+<p></p>
 Below we have 3 evals. The first, <code>"'123'"</code>
 evaluates to a string with 5 characters in it. (3 digits and two surrounding single quote characters.)
 Then that string is passed into the inner eval which returns a new string
 of 3 digits. Finally, that string of 3 digits is passed to the outer eval
 and it returns a number.
-<p/>
+<p></p>
 <code>eval(eval("'123'"))</code> => <samp>123</samp> (an integer)<br/>
 These examples are nit-picky, tedious, and essential to getting
 what eval does. Spend the time to understand them and you will save
 hours of debugging.
-<p/>
+<p></p>
 Since we can manipulate strings of code,
 we can create source code with our program,
 then eval that source code. 
@@ -130,7 +130,7 @@ that is executed is not limited to the code in the program.<br/>
 This is considered dangerous by security professionals.<br/>
 This is considered powerful by people who understand what
 a good language can do.
-<p/>
+<p></p>
 Both perspectives are accurate, but imagine if you were told
 <i>Here's two interesting ideas for you but you're not
 allowed to combine them at a low level and come up with something really creative.</i>
@@ -146,14 +146,14 @@ implementing a simple eval.
 We name it "eval zero", or eval0 for short.
 We are going to implement this using a combination of regular JS and itself.
 We will cut corners to use a minimum amount of JS, keeping our new eval0 simple.
-<p/>
+<p></p>
 Our first pass handles most input data types accurately.<br/>
 <pre><code>function eval0(arg){
     <samp class="new_code">return arg</samp>
 }</code></pre>
 
 <i>Example:</i> <code>eval0(2 + 3)</code> => <samp>5</samp>
-<p/>
+<p></p>
 Next we handle two easy case string inputs without losing our
 'return non-strings" functionality.
 <pre><code>function eval0(arg) {
@@ -165,7 +165,7 @@ Next we handle two easy case string inputs without losing our
     return arg
 }</code></pre>
 <i>Example:</i> <code>eval0("true")</code> => <samp>true</samp>
-<p/>
+<p></p>
 Next we handle strings containing numbers:
 
 <pre><code>function eval0(arg) {
@@ -179,7 +179,7 @@ Next we handle strings containing numbers:
 }</code></pre>
 
 <i>Example:</i> <code>eval0("123")</code> => <samp>123</samp>
-<p/>
+<p></p>
 Now let's implement <code>+</code> . This is a bit harder because
 we can't just assume <i>If its not true or false, it must be a number</i>
 like we did above. Our extra work for <code>+</code> will come in
@@ -202,18 +202,18 @@ handy for numerous other features as well.
 }</code></pre>
 
 <i>Example:</i> <code>eval0("2 + 3")</code> => <samp>5</samp>
-<p/>
+<p></p>
 Above we use <code>split</code> to divide up <code title="unEVALable">arg</code> into the 3 smaller strings
 that are separated by spaces in <code title="unEVALable">arg</code>. <code>split</code> returns an array
 (a sequence of items) accessible by their positions within the array.
 We're also (recursively) calling eval0 to process the two strings of digits
 on either side of "+" into numbers before adding them together
 with +. 
-<p/>
+<p></p>
 Its fair to complain we're not implementing all the features of JS + here.
 True. We don't handle string arguments or <code>1 + 2 + 3</code> .
 Like mentioned above, we're cutting corners to simplify understanding.
-<p/>
+<p></p>
 A more serious critique is that we're not implementing <code>+</code> at all,
 we're passing off the real work to JS's +. Sure, but if we like,
 we could replace that call to <code>+</code> with <code>*</code> i.e.<br/>
@@ -224,11 +224,11 @@ eval doesn't do all the work itself, it farms it out to utility functions
 like <code>+</code>. Think of eval as a manager, not a worker-bee.
 Or think of <code>+</code> as a modular extension of eval used to
 decrease the complexity of implementing the core "traffic directing" of eval.
-<p/>
+<p></p>
 <code>if</code> is JS's low-level traffic director. We nest ifs
 to get hierarchical traffic directing. You can even think of eval as
 just packaging up a bunch of ifs.
-<p/>
+<p></p>
 So far we've just used eval to <i>return</i> values. But we can also use it
 for side-effects like setting a variable value.
 <pre><code>function eval0(arg) {
@@ -250,7 +250,7 @@ for side-effects like setting a variable value.
 
 <i>Example:</i> <code>eval0("foo = 2")</code> => <samp>2</samp><br/>
 sets the global variable named "foo" to the number 2.
-<p/>
+<p></p>
 We can get back the value by handling variable references with:
 <pre><code>function eval0(arg) {
     let the_type = typeof(arg)
@@ -273,10 +273,10 @@ We can get back the value by handling variable references with:
 }</code></pre>
 
 <i>Example:</i> <code>eval0("foo")</code> => <samp>2</samp>
-<p/>
+<p></p>
 Above, if <code title="unEVALable">arg</code> doesn't have spaces and is in <code>window</code>,
 we assume its a global variable and return its value.
-<p/>
+<p></p>
 We're using <code title="unEVALable">===</code> a bunch for comparison, so let's implement it.
 <pre><code>eval0(arg) {
     let the_type = typeof(arg)
@@ -301,7 +301,7 @@ We're using <code title="unEVALable">===</code> a bunch for comparison, so let's
 
 <i>Example:</i> <code>eval0("2 === 2")</code> => <samp>true</samp><br/>
 <i>Example:</i> <code>eval0("2 === 3")</code> => <samp>false</samp>
-<p/>
+<p></p>
 Here's a poor man's implementation of return
 <pre><code>function eval0(arg) {
     let the_type = typeof(arg)
@@ -329,7 +329,7 @@ Here's a poor man's implementation of return
 
 Note the above doesn't work in JS eval. 
 But for our cheap eval0, it will come in handy soon.
-<p/>
+<p></p>
 Now let's tackle the principle control-flow functionality of <code>if</code>.
 <pre><code>function eval0(arg) {
     let the_type = typeof(arg)
@@ -363,7 +363,7 @@ Now let's tackle the principle control-flow functionality of <code>if</code>.
 <i>Example:</i> <code>eval0("if(3 === 3){return 33}")</code> => <samp>33</samp><br/>
 <i>Example:</i> <code>eval0("if(3 === 4){return 33}")</code> => <samp>undefined</samp><br/>
 <i>Example:</i> <code>eval0("if(3 === 3){return 4 + 5}")</code> => <samp>9</samp>
-<p/>
+<p></p>
 We facilitate complexity by dividing up code into reusable functions.
 Here's a cheap implementation of defining zero-argument functions:
 <pre><code>function eval0(arg) {
@@ -407,7 +407,7 @@ Here's a cheap implementation of defining zero-argument functions:
 <i>Example:</i> <code>eval0("bar")</code> => <samp>"return 6 + 7"</samp><br/>
 Above the definition of our function is just the string of its body. Cheap, incomplete,
 but adequate for a first pass.
-<p/>
+<p></p>
 After we've defined our function, we need a way to call it.
 We tackle such zero-argument function calls with the below:
 
@@ -461,14 +461,14 @@ body source code of the function bar, which is<br/>
 That string is passed to our outer eval0, which ultimately evals the string<br/>
 <code title="unEVALable">"6 + 7"</code><br/>
 who's result is <code>13</code>, which is finally returned.
-<p/>
+<p></p>
 Recursive calls to <code>eval0</code> make this admittedly tricky to wrap
 your head around, but by breaking down each piece to the small action that it performs,
 the synergistic whole of <code>eval0</code> adds up to more than the
 sum of its parts. This is the magic of eval.
 
 
-<p/>
+<p></p>
 Before wrapping up our definition of eval0, let's throw in a few more features
 because its easy, they are commonly needed in JS, and to paint the way
 for further extension, should you care to implement it.
@@ -523,7 +523,7 @@ Here's handling <code>null</code>, <code>undefined</code> and string literals.
 <i>Example:</i> <code>eval0("undefined")</code> => <samp>undefined</samp><br/>
 <i>Example:</i> <code>eval0('"hey"')</code> => <samp>"hey"</samp><br/>
 <i>Example:</i> <code>eval0("'you'")</code> => <samp>"you"</samp>
-<p/>
+<p></p>
 <h3>Results</h3>
 What haven't we accomplished? We haven't made a practical eval
 because its missing many features of JavaScript, many of which are
@@ -532,12 +532,12 @@ there's no support for
 local variables, arrays, objects, looping and error handling.
 Our support for return, strings, if, arithmetic, comparisons,
 handling of whitespace and many other features is incomplete.
-<p/>
+<p></p>
 The most important omission is functions that take arguments.
 Functions are the "verbs" of programming. Their arguments are the adverbs,
 helping to customize a function to be applicable to myriads of additional
 uses.
-<p/>
+<p></p>
 <i>Hint:</i> Local variables are implemented with name-value pair data structures
 just like the <code>window</code> data structure we use above for global variables.
 At function call time, such a data structure is populated with the names
@@ -545,7 +545,7 @@ of the arguments and their values, then passed into eval so that references
 to local variables can be looked up in it. A helper function for eval that is defined in
 JS named <code>apply</code> takes a function as a subject, a value for
 <code title="unEVALable">this</code> and an array of argument values.
-<p/>
+<p></p>
 Despite all these deficiencies, let's celebrate our victories.
 The goal was not to duplicate the eval of JavaScript, highly
 evolved over decades. It was to understand the core concepts
@@ -553,7 +553,7 @@ of what eval embodies and how it can be achieved. The number
 one task of a programmer is to be able to understand code.
 You do that best by running eval in your head. You do <i>that</i>
 best by knowing how eval is implemented. 
-<p/>
+<p></p>
 Eval is the most complex function in JS, so we can't expect
 it to be easy to completely understand. But even a low resolution
 understanding will make you a better programmer.
@@ -561,7 +561,7 @@ Understanding this article will likely take at least a couple of readings
 and much pondering.  By then, you'll be ahead of
 the majority of programmers, even those with a decade of experience
 under their belt, in one crucial aspect of programming.
-<p/>
+<p></p>
 If you examine the features we have implemented and the features used
 by eval0, we've got a pretty healthy start on implementing what's
 needed by eval, all in about 40 lines of code. With
@@ -584,7 +584,7 @@ A file is just a big string of source code.
 "Loading" the file passes the string to eval.
 DDE has a function named <code>load_files</code> that performs this.
 It can load large files provided the JS source code is valid.
-<p/>
+<p></p>
 In JavaScript there's no explicit compiler or compiled representation
 of source code, though internally all kinds of clever tricks
 are played by eval to make code run fast.
@@ -597,7 +597,7 @@ The most important one is defining a Job to make things.
 uses JS syntax and a definition of the class <code>Job</code> to make
 a new instance of Job, which is a data structure
 with name-value parts.
-<p/>
+<p></p>
 One of the ways that data structure is represented is as a button
 in the Output pane header named by the Job's name.
 Clicking that button automatically constructs the string
@@ -647,18 +647,18 @@ the features of a specification. The problem with this
 approach is that when the spec <i>inevitably</i> changes,
 you may have to re-architect your application to make some
 relatively minor semantic change.
-<p/>
+<p></p>
 Such disruption <i>can</i> be avoided by first
 implementing a language that describes the domain
 of your application. After that, call your new language to
 implement the surface features of your application.
 When the spec changes, your underlying language doesn't have to,
 providing a good base for improving your app.
-<p/>
+<p></p>
 Designing a good foundational language is a special skill
 not taught in even the best universities in 2017.
 Understanding eval is on the easiest path to knowing how to design languages.
-<p/>
+<p></p>
 If your underlying language is good enough (like JS)
 leverage it so you don't have to
 re-implement the low_level stuff.

@@ -65,33 +65,45 @@ new TestSuite("Phrase.multiply_property",
     ['new Phrase("C C4").multiply_property("time_and_dur", 4).notes[1].time', "4"],
     ['new Phrase("C C4").multiply_property("time_and_dur", 4).notes[1].dur',  "4"]
 )
-/*
-new Phrase("CEGB R DFAC4 R EGBD4 R DFAC4").start() //does play final A
 
-//3 chord rock and roll
-new Phrase({
-   seconds_per_beat: 0.3,
-   channel: 2,
-   notes: "CEG CEG 0.5R 0.5FAC4 FAC4 GBD4 GBD4 0.5R 0.5FAC4 FAC4 " +
-          "0.5CEG 0.5CEG CEG 0.5R 0.5FAC4 0.5R 0.5FAC4 GBD4 0.125R GBD4 2/3R 2/3F 2/3FA " +
-          " 2/3FAC4 2/3FAC4E4 2/3FACE4G4 8CEGBD4"
-   }).start()
-   
-//blues
- new Phrase({channel: 1, 
-                seconds_per_beat: 1/2,
-                notes: "8C 8C 8F 8C 4G 4F 4C 4G"}).transpose([1, 3, 5, 6.5], "C")
-   
-new Note("C").play()
-new Note("1").play()
+new TestSuite("Phrase.filter",
+    ['new Phrase("C D E").filter().notes.length', "3"],
+    ['new Phrase("C D E").filter({pitch: "D"}).notes.length', "1"],
+    ['new Phrase("C D E F").filter({pitch: "D"}, {time: 2}).notes.length', "2"],
+    ['new Phrase("C D E F").filter({pitch: "D"}, {pitch: "E"}).notes.length', "2"],
+    ['new Phrase("C D E F G").filter({pitch: "D"}, {pitch: "E"}, true, false).notes.length', "3"]
+)
 
-new Phrase({seconds_per_beat: 1/3,
-                  notes: 
-                    new Phrase("C2 E2").concat(
-                    new Phrase({seconds_per_beat: 1/3,
-                                notes: "G2 A2"}), 
-                    new Phrase({seconds_per_beat: 1/3,
-                                notes: "Bb2 A2 G2 E2"}))})
-                                
-*/
+new TestSuite("Phrase.time_interval",
+    ['new Phrase("C D E F").time_interval().dur', '4'],
+    ['new Phrase("C D E F").time_interval(1.5, 2.5).notes.length', "2"]
+)
+new TestSuite("Phrase.repeat",
+    ['new Phrase("C D").repeat()',    'new Phrase("C D C D")'],
+    ['new Phrase("C D").repeat(2.5)', 'new Phrase("C D C D C")'],
+    ['new Phrase("C D").repeat(2.25)', 'new Phrase("C D C D 1/2C")']
+)
+
+new TestSuite("Phrase.arpeggio",
+    ['new Phrase("C D").arpeggio([1, 3, 5], "C").notes.length', "6"],
+    ['new Phrase("C D").arpeggio([1, 3, 5, 7], "C").notes[1].dur', "0.25"],
+    ['new Phrase("C D").arpeggio([1, 3, 5, 7], "C").dur', "2"],
+    ['new Phrase("C D").arpeggio([1, 3, 5, 7], "C").notes[5].pitch', "65"]
+)
+
+new TestSuite("Phrase.pattern",
+    ['Phrase.pattern([0, 0, 1, 0], [new Phrase("C D"), new Phrase("E F")])',
+         'new Phrase("C D C D E F C D")'],
+     ['var phr11 = Phrase.pattern([0, 1], [new Phrase("C D"), new Phrase("E F")], true)'],
+     ['phr11.dur', '2'],
+     ['phr11.notes.length', '4'],
+     ['phr11.notes[0].pitch', '60'],
+     ['var phr12 = Phrase.pattern([0, 1, 0], [new Note("C"), new Phrase("E F")])'],
+     ['phr12.dur', '4'],
+     ['phr12.notes.length',    '4'],
+     ['phr12.notes[0].pitch', '60'],
+     ['phr12.notes[2].pitch', '65']    
+)
+
+
 

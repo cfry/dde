@@ -207,6 +207,7 @@ var Job = class Job{
             this.show_progress_maybe()
             this.color_job_button()
             this.robot.start(this) //the only call to robot.start
+            return this
         }
     }
     //show_instruction in editor

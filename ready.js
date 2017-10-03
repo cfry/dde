@@ -19,7 +19,7 @@
         let sel_text = Editor.get_any_selection() //must do before Edotor>save because now mysteriously that clears the selection
         if((Editor.current_file_path != "new file") && (save_on_eval_id.checked)) { Editor.save_current_file() }
         if (sel_text.length > 0) { eval_js_part2(sel_text) }
-        else { eval_js_part1() } //gets whole editor bugger and if empty, prints warning.
+        else { eval_js_part1() } //gets whole editor buffer and if empty, prints warning.
     }
 
     function on_ready() {
@@ -644,6 +644,10 @@ get_page_async("http://www.ibm.com", function(err, response, body){ out(body.len
         const code = file_content(__dirname + "/examples/nat_lang_reasoning.js")
         Editor.insert(code)
     }
+    music_examples_id.onclick=function(){
+        const code = file_content(__dirname + "/music/music_examples.js")
+        Editor.insert(code)
+    }
 
     jobs_help_id.onclick          = function(){ open_doc(Job_doc_id) }
     start_job_id.onclick          = Job.start_job_menu_item_action
@@ -691,7 +695,17 @@ get_page_async("http://www.ibm.com", function(err, response, body){ out(body.len
         //$("#debugging_id").parent().animate({scrollTop: $("#debugging_id").offset().top}, 1000) //doesn't work
          } //fails: window.open("chrome://inspect/#apps")
     console_log_id.onclick     = function(){Editor.wrap_around_selection("console.log(", ")", '"Hello"')}
-    debugger_id.onclick        = function(){Editor.insert("debugger;nnll");}
+    debugger_id.onclick        = function(){Editor.insert("debugger;nnll")}
+    debugger_instruction_id.onclick = function(){
+             let cursor_pos = Editor.selection_start()
+             let src = Editor.get_javascript()
+             let prev_char = ((cursor_pos == 0) ? null : src[cursor_pos - 1])
+             let prefix
+             if (Editor.selection_start() == 0)     {prefix = ""}
+             else if ("[, \n]".includes(prev_char)) {prefix = ""}
+             else                                   {prefix = ","}
+             Editor.insert(prefix + '"debugger",nnll') //ok if have comma after last list item in new JS.
+    }
     comment_out_id.onclick     = function(){Editor.wrap_around_selection("/*", "*/")}
     comment_eol_id.onclick     = function(){Editor.insert("//")}
       //true & false menu

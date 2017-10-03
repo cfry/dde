@@ -98,6 +98,35 @@ Phrase = class Phrase{
         return this
     }
 
+    //dur = null means spread notelets out to fill orig note's dur
+    //dur = array means array of the durs of the notelets.
+    //dur = number, the dur of each notelet.
+    arpeggio(interval_or_array, key="chromatic", dur_or_array=null){
+        if (typeof(interval_or_array) == "number") { interval_or_array = [interval_or_array]}
+        const new_notes = []
+        for(let note of this.notes){
+            if (note.is_rest()) { new_notes.push(note.copy()) }
+            else {
+                let notelet_dur //all notelets have the same dur
+                if (dur_or_array == null) { notelet_dur = note.dur / interval_or_array.length }
+                else             { notelet_dur = dur_or_array }
+                let notelet_durs
+                if(Array.isArray(notelet_dur)) { notelet_durs = notelet_dur }
+                else {
+                    notelet_durs = new Array(interval_or_array.length)
+                    notelet_durs.fill(notelet_dur)
+                }
+                for(let notelet_index = 0; notelet_index < interval_or_array.length; notelet_index++){
+                    let interval = interval_or_array[notelet_index]
+                    new_notes.push(note.arpeggio(interval, key, notelet_durs, notelet_index))
+                }
+            }
+        }
+        let result = this.copy_except_notes()
+        result.notes = new_notes
+        return result
+    }
+
     copy(){
         let notes_copy = []
         for(let n of this.notes) { notes_copy.push(n.copy()) }
@@ -107,12 +136,12 @@ Phrase = class Phrase{
     }
     //not defined for note
     copy_except_notes(){
-        return new Phrase({ notes:    this.notes,
-            time:     this.time,
-            dur: this.dur,
-            velocity: this.velocity,
-            channel:  this.channel,
-            seconds_per_beat: this.seconds_per_beat})
+        return new Phrase({ notes:    [], //expected to be a new empty array by phrase.filter
+                            time:     this.time,
+                            dur:      this.dur,
+                            velocity: this.velocity,
+                            channel:  this.channel,
+                            seconds_per_beat: this.seconds_per_beat})
     }
 
     /*concat(...args){
@@ -153,7 +182,7 @@ Phrase = class Phrase{
     concat(...args){
         let result = this.copy()
         let new_notes                     = result.notes
-        let orig_spb               = result.seconds_per_beat
+        let orig_spb                      = result.seconds_per_beat
         let prev_phrase_end_time_in_beats = this.dur //always in orig beats
         for (var n_or_p of args){
             n_or_p = n_or_p.copy()
@@ -165,7 +194,7 @@ Phrase = class Phrase{
                 n.dur = Note.convert_beats(n.dur, 1, orig_spb)
                 new_notes.push(n)
                 prev_phrase_end_time_in_beats = Note.convert_beats(n.time + n.dur, 1, orig_spb)
-                result.dur += n.time + n.dur
+                result.dur = n.time + n.dur
             }
             else if(n_or_p instanceof Phrase){ //a given phrase might have notes of different spb
                 let phr = n_or_p
@@ -181,40 +210,15 @@ Phrase = class Phrase{
         }
         return result
     }
-   /* merge(...args){
-        var result = this.copy()
-        var new_notes = result.notes
-        var orig_spb = result.seconds_per_beat
-        var longest_dur = result.dur
-        for (var n_or_p of args){
-            n_or_p = n_or_p.copy()
-            if(n_or_p instanceof Note){
-                var n = n_or_p
-                var time_in_seconds = n.time * n.seconds_per_beat
-                var time_in_beats_of_result = time_in_seconds / result.seconds_per_beat
-                n.time = time_in_beats_of_result
-                n.dur = n_or_p.dur_in_seconds() / result.seconds_per_beat
-                n.seconds_per_beat = result.seconds_per_beat
-                new_notes.push(n)
-                var new_dur_in_beats_of_result = result.seconds_to_beats(n.dur_in_seconds())
-                longest_dur = Math.max(longest_dur, new_dur_in_beats_of_result)
-            }
-            else if(n_or_p instanceof Phrase){
-                for (var n of n_or_p.notes) {
-                    var time_in_seconds = n.time * n.seconds_per_beat
-                    var time_in_beats_of_result = time_in_seconds / result.seconds_per_beat
-                    n.time = time_in_beats_of_result
-                    n.dur = n.dur_in_seconds() / result.seconds_per_beat
-                    n.seconds_per_beat = result.seconds_per_beat
-                    new_notes.push(n)
-                }
-                var new_dur_in_beats_of_result = n_or_p.dur_in_seconds() / result.seconds_per_beat
-                longest_dur = Math.max(longest_dur, new_dur_in_beats_of_result)
-            }
+    filter(min_note={}, max_note=min_note, max_is_inclusive=true, filter_in=true){
+        let result = this.copy_except_notes()
+        for (let note of this.notes){
+            let in_note = note.filter(min_note, max_note, max_is_inclusive, filter_in)
+            if (in_note) { result.notes.push(in_note) }
         }
-        result.dur = longest_dur
         return result
-    }*/
+    }
+
     merge(...args){
         let result = this.copy()
         let new_notes = result.notes
@@ -240,6 +244,62 @@ Phrase = class Phrase{
                 }
                 result.dur = Math.max(result.dur, Note.convert_beats(phr.dur, phr.seconds_per_beat, orig_spb))
             }
+        }
+        return result
+    }
+    static pattern(pattern_array, phrase_library, merge=false){
+        let phrases_to_combine = []
+        for(let pat_elt of pattern_array){
+            if (pat_elt >= phrase_library.length) {
+                 dde_error("Phrase.pattern passed pattern_array containing: " + pat_elt +
+                           " which is longer than the phrase_library of: " + phrase_library.length)
+            }
+            phrases_to_combine.push(phrase_library[pat_elt])
+        }
+        if      (phrases_to_combine.length == 0) { return new Phrase() }
+        let subject = phrases_to_combine[0]
+        if (subject instanceof Note)        { subject = new Phrase({notes: [subject]}) }
+        if (phrases_to_combine.length == 1) { return subject }
+        else {
+            let arg_phrases = phrases_to_combine.slice(1)
+            if(merge) { return subject.merge(...arg_phrases)  }
+            else      { return subject.concat(...arg_phrases) }
+        }
+    }
+    //warning repetitions might not be a whole number
+    repeat(repetitions = 2){
+        let result = this.copy_except_notes()
+        let whole_number = Math.ceil(repetitions)
+        let end_time     = this.dur * repetitions
+
+        for(let i = 0; i < whole_number; i++){
+            //let new_phrase = this.increment_property("time", this.dur)
+            let this_phrase_time_increment = this.dur * i
+            for(let orig_n of this.notes){
+                let new_n = orig_n.copy()
+                new_n.time = new_n.time + this_phrase_time_increment
+                let new_n_end_time = new_n.time + new_n.dur
+                if(new_n_end_time <= end_time) {  result.notes.push(new_n) }
+                //just because we find one note that's over the end,
+                //don't stop the for loop since we might have a big chord at the end
+                //of the phrase. Even allow for "out of order" notes.
+
+                else if (new_n.time >= end_time) {} //off the end so forget it
+                else {  //n overlaps the end time so cut its dur.
+                    new_n.dur = end_time - new_n.time
+                    result.notes.push(new_n)
+                }
+            }
+        }
+        if (result.notes.length == 0) { result.dur = 0}
+        else { result.dur = this.dur * repetitions } //handles fractional repetitions too.
+        return result
+    }
+    time_interval(start_time=0, end_time){
+        let result = this.copy_except_notes()
+        for (let note of this.notes){
+            let in_note = note.time_interval(start_time, end_time)
+            if (in_note) { result.notes.push(in_note) }
         }
         return result
     }

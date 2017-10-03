@@ -11,7 +11,7 @@
         Web clients reading an writing files to their local file system has been impossible in the past.
         DDE gives you programmatic read/write access to all files under the dde_apps folder
         under your Documents folder, typically under the user's home folder.
-        <p/>
+        <p></p>
         The code for your Job definitions should live under that folder (at any depth beneath
         that folder).
         If you do not have a dde_apps folder under your Documents folder, please create one.
@@ -57,14 +57,14 @@
             <br/>
             <b>encoding</b> A string indicating the encoding of the file. Default: "utf8".
             The default works fine for most plain text files, including .js files.
-            <p/>
+            <p></p>
             <b>Example:</b> <code>file_content("dde_init.js")</code>
         </details> <!-- end file_content -->
 
         <details id="Editor.edit_file_doc_id" style="margin-left:40px;"><summary>Editor.edit_file</summary>
             <code>Editor.edit_file</code> takes an argument of a filepath, similar to <code>load_files</code>,
             and puts that file in DDE's editor.
-            <p/>
+            <p></p>
             Its 2nd argument is a callback that takes no arguments. It is called when the file's content
             is in DDE's editor.<br/>
             <b>Example:</b> <code>Editor.edit_file("dde_init.js")</code> edits the
@@ -90,20 +90,20 @@
             it in the DDE environment programmatically. You can pass any number of file paths to
             load files. It will load the files sequentially, such that later files
             can depend on the contents of earlier files loaded.
-            <p/>
+            <p></p>
             File paths that start with slash are absolute and have no prefix prepended to them.
             File paths that don't start with slash have a prefix appended to them.
             The default prefix is the value of <code>dde_apps_dir + "/"</code>
             A file path that is exactly <code>"/"</code> sets the prefix
             to the default.
-            <p/>
+            <p></p>
             File paths that end in slash don't load files but do set the prefix to be
             prepended for files in later args.
             If such a file path starts with slash, it becomes the prefix
             (other than <code>"/"</code> , see above).
             If not, the new prefix is <code title="unEVALABLE">dde_apps_dir + "/" + path</code>
             This saves repetition of long folder names.
-            <p/>
+            <p></p>
             <i>Examples</i>:<br/>
             <code title="not in TestSuite"> load_files("foo.js")</code> Loads the file in your dde_apps folder named foo.js<br/>
             <pre style="background-color:white;"><code title="not in TestSuite"> load_files(
@@ -116,9 +116,9 @@
  "h.js"    //loads .../dde_apps/h.js
 )
 </code></pre>
-            <p/>
+            <p></p>
             load_files returns the result of evaluating the last expression in the last file loaded.
-            <p/>
+            <p></p>
             It is conventional to use a file extension of ".js" for files containing JavaScript,
             but not strictly necessary.
         </details> <!-- end load_files  -->
@@ -164,7 +164,7 @@ sophisticated input devices. They differ from keyboards in that
 they have fewer keys, have some "analog" joysticks, and are usually
 not "event" based like a keyboard, but rather "polled" to see
 what buttons are currently pressed.
-<p/>
+<p></p>
 DDE supports gamepads in this "currently pressed" mode.
 DDE also can use the computer keyboard for similar "real time" input.
 It is even easy to write one program that can use either
@@ -177,12 +177,12 @@ and reliability.
         an XBOX One or XBOX 360 gamepad. Though we have not done
         extensive testing, probably many other gamepads will work.
         These plug into a computer via their USB connector.
-        <p/>
+        <p></p>
         Windows OS supports gamepads natively. MacOS requires
         that you install driver software.
         For XBOX One & 360 gamepads, you can get a free driver
         <a href="https://github.com/360Controller/360Controller/releases" target="_blank">here</a>.
-        <p/>
+        <p></p>
         To "initialize" the gamepad, you must press a key on it before
         you start using it. It doesn't matter which key you press.
         If DDE is not detecting key presses, try unplugging and replugging
@@ -193,7 +193,7 @@ and reliability.
         to both gamepads and keyboards. It returns an array of literal objects
         that represent the keys on the keyboard and/or gamepad that
         are pressed when this method is called.
-        <p/>
+        <p></p>
         <i>Parameters:</i><br/>
         <b>device</b> A string that determines which
         devices have their keys monitored. Valid values are <code>"keyboard"</code>,
@@ -201,7 +201,7 @@ and reliability.
         The default allows you to use both gamepad and keyboard simultaneously.<br/>
         <b>which_gamepad</b> You can have up to 4 gamepads plugged in to your computer,
         named 0, 1, 2, and 3. <code>0</code> is the default.
-        <p/>
+        <p></p>
         <i>Returned value:</i><br/>
          <code>Gamepad.down_keys</code> returns an array
         of 0 or more literal objects, each representing a key that is down.
@@ -220,7 +220,7 @@ and reliability.
         <b>keyname</b> A string indicating the key on the keyboard that is pressed,
                       or its equivalent on a gamepad. For keys that have a name printed
                       on them, this is that name.
-                      <p/>
+                      <p></p>
                       Note that the standard QWERTY keyboards
                       have many design deficiencies. Relevant here is the fact that
                       keys indicating letters are generally labeled with their
@@ -228,7 +228,7 @@ and reliability.
                       you a lower case letter. None-the-less, the keyname for lettered
                       keys is the upper case letter. For keys with two names, (i.e. 2 and @)
                       the keyname is the unshifted (lower) name (i.e. 2).
-                      <p/> The space bar is named <code>" "</code>. Other names are multi-lettered,
+                      <p></p> The space bar is named <code>" "</code>. Other names are multi-lettered,
                       upper case with underscores separating words (i.e. <code>"BACK_SPACE"</code>).
                       <br/>
         <b>value</b> A number. For most keys this is <code>1</code> indicating that
@@ -241,7 +241,7 @@ and reliability.
                  If the "RIGHT_TRIGGER" was indicated using the keyboard equialent of
                  the digit keys 5, 6, 7, or 8, the values will be, correspondingly:
                  0.25, 0.5, 0.75, or 1.
-        <p/>
+        <p></p>
         <i>Example:</i><br/>
         <code title="not in TestSuite">Gamepad.down_keys()</code> =>
         <pre><samp>[{
@@ -552,7 +552,7 @@ and reliability.
      in a Job is not good for constructing instructions, but
      is useful for learning and when you don't need to
      extend a Job's do_list.
-     <p/>
+     <p></p>
      If the function arg to <code>Robot.wait_until</code> returns false when it is called
      by the job running process, the Job continues
      waiting. Hit the ESC key on the keyboard to end the wait_until.
@@ -590,12 +590,12 @@ and reliability.
     calls create instructions which are "yielded" i.e. returned from the generator
     and added to the Job's do_list each time an appropriate key or gamepad button
     is pressed.
-    <p/>
+    <p></p>
     These calls just rotate a Dexter join by 1 degree so it moves slowly.
     You can increase that 1 degree to move faster.
     The Job's argument of <code title="unEVALable JS fragment">inter_do_item_dur: 0.05</code>
     also affects speed.
-    <p/>Operation: When you start this job, press the 4 arrow keys and/or a and b keys
+    <p></p>Operation: When you start this job, press the 4 arrow keys and/or a and b keys
     on either the keyboard or a gamepad to move Dexter's joints.
 
      <pre><code>function* gamepad_moves(){
@@ -660,23 +660,23 @@ new Job({name: "gamepad_job2",
     <b>color</b> Default: <code>"black"</code>. The color of the text to be printed.<br/>
     <b>temp</b> Default: <code>false</code>. With the default, printed output stays in the
        Output pane until DDE is relaunched.
-       <p/>
+       <p></p>
        If temp is <code>true</code>,
        then <b>val</b> is still printed in the Output pane, but is over-ridden
        by subsequence calls to out with temp == true. Calls to out with temp == false
        will erase any "temp" output.
-       <p/>
+       <p></p>
        If temp is a string, then out prints <b>val</b> similarly to temp == true in that
        the previous call to out with that temp string will be over-ridden in place.
        However, when another call to out with a different value for temp occurs,
        the output of out with a temp string will <i>not</i> be erased.
        Thus the last call to out with a given temp string remains in the Output pane,
        in its place, regardless of other out calls.
-    <p/>
-    <i>Example:</i><code>out("hi", "blue")</code><p/>
+    <p></p>
+    <i>Example:</i><code>out("hi", "blue")</code><p></p>
     If you have a lot of out calls, it can be helpful to give them
     different colors so you can easily find a particular one.
-    <p/>
+    <p></p>
     See also <a href="#" onclick="open_doc(print_statements_doc_id, event)">print statements</a>
 </details>
 
@@ -687,7 +687,7 @@ new Job({name: "gamepad_job2",
         numbers, strings, arrays and other literal objects nested as deep as you like.
         It is not meant to store a large amount of data, mostly preferences and
         small objects.
-        <p/>
+        <p></p>
         The DB is stored in the file <code>"dde_apps/persistent.json"</code> as plain text.
         You can view the entire by opening it in DDE's editor if you like.
         However, we do not recommend editing it from DDE. That's because
@@ -702,7 +702,7 @@ new Job({name: "gamepad_job2",
             which gets a JavaScript literal object that has key-value pairs for all the
             calls to <code>persistent_set</code>. If a key is not in the database,
             <code>undefined</code> will be retreived.
-            <p/>
+            <p></p>
             persistent_get returns the value of the variable in the argument.<br/>
             <b>Example:</b> <br/>
             <code>persistent_set("test4", 44)</code><br/>
@@ -716,7 +716,7 @@ new Job({name: "gamepad_job2",
             set them to their default value.<br/>
             If the argument is false, it will remove all the existing persistent properties
             and set the required properties to their default values.
-            <p/>
+            <p></p>
             <b>Warning:</b> DDE uses the persistent db to store the keys of edited files amongst
             other things, so an argument of false will get rid of your editing history.
             <i>This function should only rarely, if ever, called by users.</i>
@@ -748,7 +748,7 @@ persistent_set("my_array", orig_array)</code><br/>
             Binds a literal to a string key that can be retreived in a later DDE session.
             Null, booleans, numbers, strings, arrays, and literal objects can all be stored.<br/>
             <b>Example:</b> <code>persistent_set("test4", 44)</code><br/>
-            <code>persistent_get("test4")</code> => 44 </pre>
+            <code>persistent_get("test4")</code> => <samp>44</samp>
         </details>
 
     </details> <!-- end Persistent -->
@@ -793,24 +793,24 @@ DDE facilitates using MIDI to play and receive MIDI notes.
 There are higher level "phrase processors" that make creating scores
 relatively easy. <a href="#" onclick="open_doc(music_article_doc_id, event)">
 The Language of Music</a> describes DDE's approach to music in broad themes.
-<p/>
+<p></p>
 The fundamental class is Note, that represents a musical note, including
 its duration (and, effectively, its ending time).
 Phrase is a class who's instances hold sequences of Note instances.
 Notes and Phrases share nearly the same instances variables and methods.
-<p/>
+<p></p>
 In order to play notes, we need to interface to MIDI.
 <details class="doc_details"><summary>MIDI</summary>
 MIDI is an aycroymn for Musical Instrument Digital Interface.
 Its a decades old standard for how to control sounds using
 electronics, that has been applied to lighting and other
 remote control situations.
-<p/>
+<p></p>
 DDE uses the <a href="https://github.com/cotejp/webmidi" target="_blank">WebMidi</a> Javascript library to connect
 DDE and MIDI. DDE layers software on top of WebMidi to form higher level
 msuic data structures and methods including integrating them into Jobs
 for making things. One of the things you can make in DDE is music.
-<p/>
+<p></p>
 DDE can be used to both create MIDI events and receive them.
 To hear a MIDI note that DDE creates, you must connect a synthesizer to
 the computer running DDE. Numerous hardware synthesizers are avaiable
@@ -829,10 +829,10 @@ much smaller, have lots of "variations" but none of them sound
 like acoustic instruments.)
 Once GarageBand downloading complete, launch it by double clicking the file,
 if it isn' already up.
-<p/>
+<p></p>
 On WindowsOS, see https://garagebandforwindowspc.org/ for the more
 complex installationn on Windows.
-<p/>
+<p></p>
 With GB launched, double click on "Keyboard Collection".
 You can leave the default instrument, or
 select another one from the left side of GB.
@@ -845,25 +845,25 @@ a non-zreo volume.
 here, spending effort to make the slider look pretty
 but difficult to figure out what it actually means.)
 Also check that the volume control on your computer is up.
-<p/>
+<p></p>
 <b id="Midi.init_doc_id">Midi.init</b> initializes Midi.
 This is automatically done when you attempt to play a note
 and Midi has not been inited, but there will be a slight delay in that case.
 If Midi has previously been inited, this calls <code>Midi.all_notes_off</code>.
 This can also be called by choosing Insert menu/Sound/Midi.init().
 <i>Parameters:</i> None.
-<p/>
+<p></p>
 <b id="Midi.all_notes_off_doc_id">Midi.all_notes_off</b> Turns off
 all curently on notes on all channels. Does not work when using
 GarageBand for a synthesizer.
 <i>Parameters:</i> None.
-<p/>
+<p></p>
 <b id="Midi.describe_midi_event_doc_id">Midi.describe_midi_event</b>
 used as a diagnostic function to print out of of the properties of
 a MIDI event.
 <i>Example:</i>
 <code title="not in TestSuite">WebMidi.inputs[1].addListener('noteon',  "all", Midi.describe_midi_event)</code>
-<p/>
+<p></p>
 
 In DDE, Eval <code title="not in TestSuite">Midi.init()</code>.<br/>
 Now eval <code title="not in TestSuite">new Note("C").start()</code><br/>
@@ -874,7 +874,7 @@ and you should hear Middle C played on the instrument you have
 selected in GarageBand. <br/>
 <code>Midi.init</code> can also be called by choosing
 Insert menu/Sound/Midi.init().
-<p/>
+<p></p>
 If you don't hear a sound, check the MIDI connections in
 GarageBand: menu bar/GarageBand/Preferences.<br/>
 Select "Audio/Midi"<br/>
@@ -899,7 +899,7 @@ and a bunch of methods to manipulate Notes.
         </li>
         <li><b>pitch</b> Default <code>60</code>. An integer between 0 and 127.
              This determines the frequency of the note. 60 is Middle C, 72 is the C an octave higher.
-             <p/>
+             <p></p>
              When you are creating notes, you can use the more friendly notation of "C" for
              Middle C, "C4" for C an octave higher, "C#" for C sharp, "Db" for D flat, etc.<br/>
              "R" is used to mean "rest", useful when you're making a sequnce of
@@ -934,7 +934,7 @@ and a bunch of methods to manipulate Notes.
       </code></pre>
       The above values are the defaults. Leave a property out and you
       get its default value.
-      <p/>
+      <p></p>
       The easy way is to use a string with
       <ol><li>the (optional) duration first (default 1),
             <li>followed by the pitch class (C, D, E, F, G, A, B)</li>
@@ -958,35 +958,127 @@ and a bunch of methods to manipulate Notes.
              <pre><code>new Note({dur: 0.5, pitch: 73})</code></pre>
             or you can use the string technique for pitch:
             <pre><code>new Note({dur: 0.5, pitch: "C#4"})</code></pre>
-      </code></pre>
       You may place a Note directly on the do_list of a Job.
       When that "instruction" is run, it will call the Note's start method
       to play it, and delay running the next instruction until the note is done.
     </details>
 
     <details class="doc_details"><summary>Note Methods</summary>
-    <ul><li><b>start</b> Plays the note.
-        You can also play a Note by selecting it and clicking <button>Eval&Start</button><br/>
-        <i>Parameter:</i><br/>
-        <b>seconds_per_beat</b> Default = 1.<br/>
-        <i>Example:</i> <code title="not in TestSuite"> new Note("C").start()</code><br/>
-        </li>
-        <li><b>copy</b> Copies the note.<br/>
-        <i>No Parameters</i><br/>
-        <i>Example:</i> <code> new Note("C").copy()</code>
-        </li>
-        <li><b>concat</b> Concatenates the <code title="unEVALable">this</code>
-        note with any number of another supplied note arguments.<br/>
+        <details id="Note.start_doc_id" class="doc_details"><summary>start</summary>
+            Plays the note.
+            You can also play a Note by selecting it and clicking <button>Eval&Start</button><br/>
+            <i>Parameter:</i><br/>
+            <b>seconds_per_beat</b> Default = 1.<br/>
+            <i>Example:</i> <code title="not in TestSuite"> new Note("C").start()</code><br/>
+        </details>
+
+        <details id="Note.arpeggio_doc_id" class="doc_details"><summary>arpeggio</summary>
+        An arpeggio is several small, short notes played in rapid succession.
+        Often the pitches are those of a chord played from lowest to highest.
+        The arpeggio method on a note returns a phrase based in the intervals
+        and durations it is passed.<p></p>
+        <i>Parameters:</i><br/>
+        <b>interval_or_array</b> If this is one number, it represents an interval from the
+        incoming pitch to be output. If this is an array, it represents several intervals,
+        each of which will be made into a new pitch (and note). Usually this is an array
+        since a 1 note arpegio is easier to accomplish in other ways.<br/>
+        <b>key</b> Default: <code>"chromatic"</code>. If "chromatic", interpret the
+        intervals as half-steps to add to the incoming pitch to form the new pitch(es).
+        If this is a pitch class, ie "C", "D#", etc. interpret the intervals as diatonic,
+        with 1 meaning the "unison".<br/>
+        <b>dur_or_array</b> Default: <code>null</code>
+        <ul><li>If this is a number,
+        it is the duration of the note(s) produced by this arpeggio.</li>
+        <li>If it is an array,
+        it is the duration of the notes corresponding to the intervals in interval_or_array,
+        which should be an array of the same length.</li>
+        <li>If it is null, and there is just an integer for interval_or_array,
+        the dur of the output note will be the same as its original dur.
+        But if interval_or_array is an array, then the dur of each note
+        in the arpeggio will be the original dur divided by the number
+        of notes specified in interval_or_array. For instance,
+        if the original note has a dur of 0.5 and the
+        interval_or_array has 2 intervals and the dur is null.
+        each note in the output arpeggio will have a dur of<br/>
+        <code>0.5 / 2</code> => <samp>0.25</samp>.
+        </li></ul>
         <i>Example:</i><br/>
-         <pre><code>new Note("E").concat(
+        <code>new Note("C").arpeggio([1, 3, 5], "C")</code>=><br/>
+        <samp>new Phrase("1/3C 1/3E 1/3G")</samp>
+        </details>
+
+        <details id="Note.copy_doc_id" class="doc_details"><summary>copy</summary>
+           Copies the note. Most note processors copy their note.<br/>
+            <i>No Parameters</i><br/>
+            <i>Example:</i> <code> new Note("C").copy()</code>
+        </details>
+        <details id="Note.concat_doc_id" class="doc_details"><summary>concat</summary>
+            Concatenates the <code title="unEVALable">this</code>
+            note with any number of another supplied note arguments.<br/>
+            <i>Example:</i><br/>
+            <pre><code>new Note("E").concat(
     new Note("D"),
     new Note("C"))
     </code></pre><br>
          Returns a phrase that's a melody, with the last note starting on beat 2 and
          ending on beat 3.<br/>
          Equivalent to<br/><code>new Phrase("E D C")</code>
-        </li>
-        <li><b>merge</b>  Merges the <code title="unEVALable">this</code>
+        </details>
+        <details id="Note.filter_doc_id" class="doc_details"><summary>filter</summary>
+            This returns either null or the note passed in as "this".
+            If the filter_in arg is true (the default), then
+            if this is between min_note and max_note in all
+            the properties supplied in min_note and max_note, then
+            this is returned. Otherwise null is returned.
+            <i>Parameters:</i><br/>
+            <b>min_note</b> Default <code>{}</code>. A note or a literal object
+            with possible properties of channel, dur, pitch, time, velocity.
+            The note will possibly be "filtered in" if the corresponding
+            values in this are more than or equal to the values in min_note.
+            Pitch may be an integer or a "named" pitch ("C", "D#4", etc.)
+            <br/>
+            <b>max_note</b> Default <code title="unEVALable">min_note</code>. A note or a literal object
+            with possible properties of channel, dur, pitch, time, velocity.
+            The note will possibly be "filtered in" if the corresponding
+            values in this are less than the values in min_note.
+            Pitch may be an integer or a "named" pitch ("C", "D#4", etc.)
+            <br/>
+            <b>max_is_inclusive</b> Default <code>true</code>. A boolean.
+            If the corresponding values of this and max_note are equal,
+            then if max_is_inclusive is true, then this is returned.
+            Otherwise null is returned.
+            <br/>
+            <b>filter_in</b> Default: <code>true</code> A boolean.
+            If true, the above descriptions of the returned value are correct.
+            If false, then return this only when the note is "filtered out" by
+            the above. In other words, for two calls to filter,
+            if we keep all the parameters the same
+            except for filter_in, then one of those two calls will return this,
+            and the other will return null.
+            <br/>
+            <i>Examples:</i><br/>
+            <code>new Note("C").filter({pitch: "B2"}, {pitch: "D"})</code> <br/>
+            returns the note because "C" is between "B2" and "D".<br/>
+            <code>new Note("C").filter({pitch: "D"}, {pitch: "F"})</code> <br/>
+            returns null because "C" is not between "D" and "F".<br/>
+            <code>new Note("C").filter({pitch: 60, velocity: 0.25}, {pitch: 60, velocity: 0.75})</code><br/>
+            returns this because the pitch for this, min_note & max_note is 60 <i>and</i>
+            because the velocity of this (0.5) is between 0.25 and 0.75.
+            <p></p>
+            You may include any combination of the 5 properties of a note.
+            You do not have to include the same properties in min_note and max_note.
+            Unincluded properties when filter_in is true do not filter-out the note.
+            <p></p>
+            <b>Rests</b><br/>
+            If min_note's pitch is a rest, then max_note's pitch is not considered.
+            If this' pitch is also a rest, the note is "filtered in", but
+            if this's pitch is not a rest, it is filtered out.
+            If this's pitch is a rest and min_note's pitch is not a rest.
+            the note is filtered in. (unless of course, filter_in is false,
+            in which case it is filtered out).
+        </details>
+        <details id="Note.merge_doc_id" class="doc_details"><summary>merge</summary>
+            Merges the <code title="unEVALable">this</code>
             note with any number of another supplied note arguments.<br/>
             <i>Example:</i>
             <pre><code>new Note("C").merge(
@@ -996,23 +1088,62 @@ and a bunch of methods to manipulate Notes.
             Returns a phrase that's a C major chord, with all notes starting
             on beat 0 and ending on beat 1.<br/>
             Equivalent to<br/> <code>new Phrase("CEG")</code>
-        </li>
-        <li><b id="Note.transpose_doc_id">transpose</b>
-        Increments the pitch by an interval or possibly multiple inteverals to make
+        </details>
+        <details id="Note.repeat_doc_id" class="doc_details"><summary>repeat</summary>
+            Returns a phrase that contains the given number of copies of note with
+            times of the previous note's time plus its duration.<br/>
+            <i>Parameters:</i><br/>
+            <b>repetitions</b> Default: <code>2</code><br/>
+            0 means return an empty phrase with no notes.<br/>
+            1 means return a phrase with a copy of the note.<br/>
+            2 or more means that many notes in the output phrase.
+            <p></p>
+            You may supply a non-integer. i.e. 1.5 will yield a 2 note phrase
+            where the last note is half the duration of the first.
+            <p></p>
+            <i>Example:</i><br/>
+            <code>new Note("C").repeat(2.5)</code> =><br/><samp>new Phrase("C C 1/2C")</samp>
+        </details>
+        <details id="Note.time_interval_doc_id" class="doc_details"><summary>time_interval</summary>
+            Returns a note that fits within the passed in start and end times.
+            <p></p>
+            <i>Parameters:</i><br/>
+            <b>start_time</b> Default: <code>0</code>. Returns a note whose start time
+            is more than or equal to this arg's value.<br/>
+            <b>end_time</b> Default: the time + dur of this.<br/>
+            Returns a note whose time + dur is less than or equal to end_time.
+            <p></p>
+            <i>Example:</i><br/>
+            <code>new Note("C").time_interval(0.25, 0.75)</code>.
+            The returned note has a time of 0.25 and a dur of 0.5.
+            All its other properties are the same as the input note.
+        </details>
+        <details id="Note.transpose_doc_id" class="doc_details"><summary>transpose</summary>
+        Increments the pitch by an interval or possibly multiple intervals to make
         a chord.<br/>
         <i>Parameters:</i><br/>
         <b>interval_or_array</b> Add this value to the original pitch. Can be negative
         or positive. If an array, create a note for each interval in the array
-        and return a phrase.
+        and return a phrase. The number (or numbers in the array) are usually
+        whole numbers but can be mixed numbers with a 0.5 fractional part.
+        These <i>may</i> yeild out-of-key pitches. See below.
         <br/>
             <b>key</b> Default: "chromatic". If "chromatic", treats each interval as
             half_steps and directly adds them to the pitch. If a pitch class
-            ("C", "D", "E", "F", "G", "A", "B"), considers the intervals to be
-            "diatonic". 1 is unison (no change from original pitch. 2 is a 2nd, either
+            ("C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B",
+            or the flat equivlents, ie "Db"),
+            considers the intervals to be
+            "diatonic". 1 is unison (no change from original pitch). 2 is a 2nd, either
             major or minor to keep the new pitch within the key specified. Same for a
             third, forth, fifth, etc. If the interval ends in .5, ie 3.5, then
             a half-step is added to the whole interval which is, in this case, "3".
-            <p/>
+            <p></p>
+            Observe that "chromatic" is zero based, (as is JavaScript for array indexing),
+            whereas the diatonic transpose is
+            one based, as is convention music notation.
+            Using a diatonic key, any value between -1 and +1 is
+            the "unison" interval, ie no change.
+            <p></p>
             The result might
             or might not be within the given key depending on the whole number of the interval.
             For instance, in the key of "C", an interval of 3.5 yields an "F', ie the
@@ -1023,38 +1154,58 @@ and a bunch of methods to manipulate Notes.
             <code>new Note("D4").transpose(1, "C")</code><br/>=> <samp>new Note("D4")</samp><br/>
             <code>new Note("D4").transpose(2, "C")</code><br/>=> <samp>new Note("E4")</samp><br/>
             <code>new Note("D4").transpose(3, "C")</code><br/>=> <samp>new Note("F4")</samp><br/>
-            Since 1 is a "unison" interval in diatonic space,
-            perhaps 0 is down one scale degree from that. But this counters
-            music convention, ie down a 2nd would be down a whole step, ie -2.
-            Thus down a -1 would be down less than a 2nd ie a unison.
-            So in DDE's diatonic tranpose, -1 and 1 are both "unison".
-            Perhaps a diatonic interval of 0 should error, but we made it unison too,
-            so diatonic intervals of -1, 0, and 1 all mean unison.
-            If our key is "chromatic", then an interval of 0 means unison but not so for
-            -1 and 1.
-            "chromatic" is 0 based (as is JavaScript) but diatonic keys are 1 based
-            (as is music nomenclature).
-            <p/>
+            Using a negative number in the <code>"chromatic"</code> key, just subtracts
+            that number from the pitch to transpose it. Using a negative number for
+            a diatonic key also "subtracts" it, but is more compelex.
+            A negative interval does NOT mean
+            a "minor second interval". It means go down 1 "scale degree".
+            Thus In the key of "C", starting with a pitch of "C", if we have -2,
+            it transposes "C" to "B2". -3 transposes to "A2".
+
+            <p></p>
             <i>Examples:</i><br/>
             <code>new Note("D4").transpose(0, "C")</code><br/>=> <samp>new Note("D4")</samp><br/>
             <code>new Note("D4").transpose(-1, "C")</code><br/>=> <samp>new Note("D4")</samp><br/>
             <code>new Note("D4").transpose(-2, "C")</code><br/>=> <samp>new Note("C4")</samp><br/>
             <code>new Note("D4").transpose(-3, "C")</code><br/>=> <samp>new Note("B3")</samp>
-            <p/>
-            This discrepancy is not just an inconsistency in DDE, its a descrepancy in the English
+            <p></p>
+            The discrepancy between one-based and zero-based
+            is not just an inconsistency in DDE, its a descrepancy in the English
             designators for items in a list and math. If the first item in a list was
             called "zeroth" instead of "first", that would fix the problem. I suspect
             the concept and term of "first" occured before the concept of zero. Such "off by one"
             issues account for an astoundingly high percentage of bugs in programs, so
-            be on the lookout for them.</i><br/>
-            <code>new Note("D4").transpose([1, 3, 5], "C")</code> => <samp>new Phrase("D4F4A4")</samp><br/>
+            be on the lookout for them.<br/>
+            <code>new Note("D4").transpose([1, 3, 5], "C")</code><br/>
+            => <samp>new Phrase("D4F4A4")</samp><br/>
             <i>A D minor triad (chord), all of whose pitches are in the designated key of C.</i>
-            <br/>
-        </li>
-        <li><b>set_property</b> Returns a copy of "this" except with one of its properties
-           set to a new value.<br/>
-        <i>Parameters:</i><br/>
-        <b>prop_name</b> The property within the Note to set. One of:
+            <p></p>
+            Diatonic intervals are normally whole numbers. When they are, transposing
+            an in-key pitch using an integer interval will yeild another in-key pitch.
+            However, you can also use intervals such as 1.5, 2.5, etc.
+            These use the whole number to transpose as above, then add a half step to
+            the resulting pitch. That might or might not end up with an in-key pitch
+            depending on the original pitch.
+            <p></p>
+            Negative mixed-number intervals such as -1.5 and -2.5 are also allowed.
+            These use the integer component to find a new pitch then decrease the pitch
+            by a half-step to complete the transpose.<br/>
+            <i>Example:</i> transposing "C" in the key of "C" by 1.5 yields "C#".
+            The 1 is used for "unison" transpose, i.e. no change, and the 0.5 is
+            used to go one half step more, giving us an out-of-key pitch.<br/>
+            <i>Examples:</i><br/>
+            <code>new Note("C").transpose([1, 3, 5, 7], "C")</code><br/>
+            => <samp>new Phrase("CEGB")</samp> i.e. a C Major 7 chord.<br/>
+            <code>new Note("C").transpose([1, 2.5, 5, 6.5], "C")</code><br/>
+            => <samp>new Phrase("CEbGBb")</samp> i.e. a C Minor 7 chord.<br/>
+
+
+        </details>
+        <details id="Note.set_property_doc_id" class="doc_details"><summary>set_property</summary>
+            Returns a copy of "this" except with one of its properties
+            set to a new value.<br/>
+            <i>Parameters:</i><br/>
+         <b>prop_name</b> The property within the Note to set. One of:
           "time", "dur", "pitch", "velocity", "channel".
           An extra "virtual" prop_name of "octave" may also be used.
           <br/>
@@ -1079,23 +1230,25 @@ and a bunch of methods to manipulate Notes.
             <code>new Note("C").set_property("pitch", "B2")</code><br/>=>
             <samp>new Note("B2")</samp>
 
-        </li>
-        <li><b>increment_property</b> Similar to set_property with
+        </details>
+        <details id="Note.increment_property_doc_id" class="doc_details"><summary>increment_property</summary>
+        Similar to set_property with
         the 2nd argument being the amount to <i>increase</i> the given
         prop_name's value by. The increment number may be negative.
-        </li>
-        <li><b>multiply_property</b> Similar to set_property with
+        </details>
+        <details id="Note.multiply_property_doc_id" class="doc_details"><summary>multiply_property</summary>
+            Similar to set_property with
             the 2nd argument being the amount to <i>multiply</i> the given
             prop_name's value by. The multiplication factor may be negative.
-        </li>
-    </ul>
-    </details> <!-- end Note Methods -->
+        </details>
+
+        </details> <!-- end Note Methods -->
 
 </details> <!-- end Note -->
 
 <details class="doc_details"><summary>Phrase</summary>
     <details class="doc_details"><summary>Phrase's Instance Variables</summary>
-        <ul><li><b/>notes</b> An array of instances of Note. May be empty.</li>
+        <ul><li><b>notes</b> An array of instances of Note. May be empty.</li>
             <li><b>time</b> A number. The starting time of the note. This is in beats.
             <i>time</i> defaults to <code>0</code>. The start time in beats of the
             first note when using a string argument to <code>new Phrase()</code>.
@@ -1144,10 +1297,10 @@ new Phrase({notes: [new Note({time: 0, dur: 1, pitch: 60, velocity: 0.25, channe
         describe all but the channel and velocity attributes with:<br/>
         <code>new Phrase("C R C#")</code><br/> The R stands for "rest" giving us a
         start time for the 2nd note of 3 (beats).
-        <p/>
+        <p></p>
         The easier way uses strings with notes that are separated from other notes by a space.
         See the documentation on making Notes for details.
-        <p/>
+        <p></p>
         <i>Parameters:</i><br/>
         <b>time</b> Default <code>0</code>. A number. time in beats that the first note will have
             when the "notes" parameter is a string.<br/>
@@ -1173,16 +1326,16 @@ new Phrase({notes: [new Note({time: 0, dur: 1, pitch: 60, velocity: 0.25, channe
          <b>channel</b> Default: 1. An integer from 1 though 16 inclusive.<br/>
            <code>new Phrase({channel: 3, notes:"C D"})</code><br/>
            Both notes will have a channel of 3.
-        <p/>
+        <p></p>
         <i>Examples:</i><br/>
         <code>new Phrase("C E G")</code> A three note melody.<br/>
         <code>new Phrase("CEG")</code> A three note chord (C Major triad).<br/>
         <code>new Phrase({seconds_per_beat: 0.5, notes:"C E G"})</code><br/>
          A faster three note melody.
-         <p/>
+         <p></p>
         <code>new Phrase("C R G")</code><br/> A 2 note melody with a rest in the middle.
         Rests can have a duration ie "0.5R" but not an accidental or octave.
-        <p/>
+        <p></p>
         <pre><code>new Phrase({
      seconds_per_beat: 0.5,
       channel: 2,
@@ -1195,7 +1348,7 @@ new Phrase({notes: [new Note({time: 0, dur: 1, pitch: 60, velocity: 0.25, channe
             })
             </code></pre>
             A standard 3-chord rock and roll chord progression.
-        <p/>
+        <p></p>
         You may place a Phrase directly on the do_list of a Job.
         When that "instruction" is run, it will call the Phrase's start method
         to play it, and delay running the next instruction until the Phrase is done.
@@ -1204,26 +1357,125 @@ new Phrase({notes: [new Note({time: 0, dur: 1, pitch: 60, velocity: 0.25, channe
     <details class="doc_details"><summary>Phrase Methods</summary>
     All of these phrase processors return a phrase.
     None of them modify the subject phrase but rather make a copy.
-    <ul>
-    <li><b>start</b> Plays the phrase. Will call Midi.init() if Midi has yet to be enabled.
+    <details id="Phrase.start_doc_id" class="doc_details"><summary>start</summary>
+    Plays the phrase. Will call Midi.init() if Midi has yet to be enabled.
     Returns the input phrase as is.
     You can also play a phrase by selecting it's soruce code and clicking <button>Eval&Start</button>
-    </li>
+    </details>
 
-    <li><b>copy</b> Returns a copy of the input Phrase.</li>
+    <details id="Phrase.arpeggio_doc_id" class="doc_details"><summary>arpeggio</summary>
+    Very similar to <a href="#" onclick="open_doc('Note.arpeggio_doc_id')">Note.arpeggio</a>
+    Takes the same parameters and returns a phrase of arpeggios, one for
+    each note in the "this" phrase.
+    </details>
 
-    <li><b>concat</b> Takes any number of Phrases as arguments and
+    <details id="Phrase.copy_doc_id" class="doc_details"><summary>copy</summary>
+    Returns a copy of the input Phrase. Most Phrase methods return a new phrase.
+    </details>
+
+    <details id="Phrase.concat_doc_id" class="doc_details"><summary>concat</summary>
+    Takes any number of Phrases as arguments and
     concatenates them together with the subject. Each Phrase's "dur" is used
     to deterime the starting time of the next phrase. Use concat for
-    making long phrases.</li>
+    making long phrases.
+    </details>
 
-    <li><b>merge</b> Takes any number of Phrases as arguments and merges them together.
+    <details id="Phrase.filter_doc_id" class="doc_details"><summary>filter</summary>
+        Employs <a href="#" onclick="open_doc('Note.filter_doc_id', event)">Note.filter</a>
+        to filter in or out notes.
+        Takes the same parameters as Note.filter.
+    </details>
+
+    <details id="Phrase.merge_doc_id" class="doc_details"><summary>merge</summary>
+    akes any number of Phrases as arguments and merges them together.
     The notes in the new returned phrase will have their same start times as
     their input start times. The resultant Phrase will have a dur that is the
     maximum of all the input phrases. Use merge for layering the parts of a piece
-    together.</li>
+    together.
+    </details>
 
-    <li><b>transpose</b><br/> Increments the pitch of all the notes in the input Phrase.<br/>
+    <details id="Phrase.pattern_doc_id" class="doc_details"><summary>pattern</summary>
+    Pattern creates a phrase based on a pattern of other notes or phrases.
+    Pattern is perhaps the highest level phrase processor. It exists only as a
+    method on Phrases, not notes. It is also a <i>static</i> method in that it is
+    called with a subject of the <code>Phrase</code> class itself, not an instance.<br/>
+    <i>Parameters:</i><br/>
+    <b>pattern_array</b> Required. An array of non-negative integers that are less than
+    the length of the phrase_library array. Each element refers to the phrase at that
+    index in the phrase_library. The length of the pattern_array is the number of
+    phrases to be used from the phrase_library. A given phrase in the phrase library
+    maybe used zero or more times.<br/>
+    <i>Example:</i><br/>
+    <code>[0, 0, 1, 0]</code><br/>
+    Here we are playing the first phrase in the phrase library, followed by playing
+    that same phrase again, then the 2nd phrase in the phrase library and concluding
+    with the first phrase. This implements the common pattern in poopular music of "AABA".<br/>
+    <b>phrase_library</b> Required. An array of Notes and Phrases of possibilities to use
+    in the output phrase. Each may be used zero or more times.<br/>
+    <b>merge</b> Default: <code>false</code>. A boolean. If false,
+    concat the phrases together in the returned phrase. If true, merge the phrases
+    together. Using merge is unusual but an intriguing possibility of "layering"
+    phrases on top of each other and having the pattern be a simultaneous one rather
+    than a sequential one.
+    <p></p>
+    <i>Examples:</i>
+    <pre><code>Phrase.pattern([0, 0, 1, 0],
+           [new Phrase("C D"),
+            new Phrase("E F")])
+    </code></pre> =>
+        <samp>new Phrase("C D C D E F C D")</samp><br/>
+    Since both phrases in the library have 2 notes, think of the output as
+    4 pairs of notes, where a pair is either "C D" or "E F".
+    <p/>
+    We can get the same output by inverting our pattern and reversing
+    the phrases in our library like so:<br/>
+    <pre><code>Phrase.pattern([1, 1, 0, 1],
+       [new Phrase("E F"),
+        new Phrase("C D")])
+    </code></pre> =>
+    <samp>new Phrase("C D C D E F C D")</samp>
+    <p></p>
+    There's no restriction that library items be the same length
+    or even the same type as each other.
+    <p></p>
+    Here's a pattern using a Note and a Phrase in its library.
+    <pre><code>Phrase.pattern([0, 1, 0],
+        [new Note("C"),
+         new Phrase("E F")])
+    </code></pre>
+     =>   <samp>new Phrase("C E F C")</samp>
+     <p></p>
+     Mixing and matching pattern_arrays and phrase_libraries is an important way to consider
+     compositional choices in making music. By using JavaScript to automatically
+     generate patterns (or even the phrases in a library), an enormous range
+     of possibilities are available.
+    </details>
+
+    <details id="Phrase.repeat_doc_id" class="doc_details"><summary>repeat</summary>
+    Concatenates the given number of phrases into one long phrase and returns it.<br/>
+    <i>Parameters:</i><br/>
+    <b>repetitions</b> Default: <code>2</code>. Can be fractional like 1.5
+    to create a phrase that's 1.5 times as long as the first phrase.
+    The last half of the 2nd repetition will be missing in the output.<br/>
+    <i>Example:</i><br/>
+        <code>new Phrase("C D").repeat(2.25)</code> =><br/>
+        <samp>new Phrase("C D C D 1/2C")</samp>
+    </details>
+
+    <details id="Phrase.time_interval_doc_id" class="doc_details"><summary>time_interval</summary>
+        Employs <a href="#" onclick="open_doc('Note.time_interval_doc_id', event)">Note.time_interval</a>
+        to filter in or out notes.
+        Takes the same parameters as Note.time_interval.
+        <p></p>
+        It is different than filter in that it only deals with times and durs.
+        time_interval will modify the time
+        of notes that overlap start_time to start at the start time.
+        It also changes the dur of any notes that overlap end_time such
+        that they will end at end_time.
+    </details>
+
+    <details id="Phrase.transpose_doc_id" class="doc_details"><summary>transpose</summary>
+    Increments the pitch of all the notes in the input Phrase.<br/>
     <i>Parameters:</i><br/>
         <b>interval_or_array</b> Add this value to the original pitch. Can be negative
         or positive.<br/>
@@ -1238,9 +1490,11 @@ new Phrase({notes: [new Note({time: 0, dur: 1, pitch: 60, velocity: 0.25, channe
         <b>key</b> Default: "chromatic". If "chromatic", increment the pitch of each
         note by the interval_or_array. Otherwise see
         <a href="#" onclick="open_doc('Note.transpose_doc_id', event)">Note.transpose</a>
-        for incrementing pitch by a diatonic interval.</li>
+        for incrementing pitch by a diatonic interval.
+    </details>
 
-    <li><b>set_property</b> Returns a copy of "this" except that eacn note in
+    <details id="Phrase.set_property_doc_id" class="doc_details"><summary>set_property</summary>
+        Returns a copy of "this" except that eacn note in
         the phrase will have one of its properties set to a new value.<br/>
         <i>Parameters:</i><br/>
         <b>prop_name</b> The property within the Notes to set. One of:
@@ -1265,31 +1519,36 @@ new Phrase({notes: [new Note({time: 0, dur: 1, pitch: 60, velocity: 0.25, channe
         <i>Examples:</i><br/>
         <code>new Phrase("C D").set_property("pitch", 73)</code><br/>=>
         <samp>new Phrase("C#4 C#4")</samp><br/>
-    </li>
-    <li><b>increment_property</b> Similar to set_property with
+        </details>
+
+        <details id="Phrase.increment_property_doc_id" class="doc_details"><summary>increment_property</summary>
+        Similar to set_property with
         the 2nd argument being the amount to <i>increase</i> the given
         prop_name's value by. The increment number may be negative.<br/>
         <code>new Phrase("C D").increment_property("pitch", 1)</code><br/>=>
         <samp>new Phrase("C#4 D#4")</samp><br/>
         Note that incrementing pitch is a transpose, but we can increment
         any other note property.
-    </li>
-    <li><b>multiply_property</b> Similar to set_property with
+        </details>
+
+        <details id="Phrase.multiply_property_doc_id" class="doc_details"><summary>multiply_property</summary>
+          Similar to set_property with
         the 2nd argument being the amount to <i>multiply</i> the given
         prop_name's value by. The multiplication factor may be negative.
         <code>new Phrase("C D").multiply_property("velocity", 2)</code>
         Since the default velocity is 0.5, the returned phrase
         will have all of its note at a velocity of 1 (the maximum).
-    </li>
-    </ul>
-    </details>
+      </details>
+      For more extended examples of using Phrases see Insert menu/Examples/Music.
+      </details> <!-- end of Phrase methods -->
+
 </details> <!-- end Phrase -->
     <details class="doc_details"><summary>Listening for MIDI input</summary>
         Even though GB has a soft keyboard, it can't send out Midi.
-        You can download <a href="http://vmpk.sourceforge.net/" target="_blank"">VMPK software</a>
+        You can download <a href="http://vmpk.sourceforge.net/" target="_blank">VMPK software</a>
         for a virtual midi controller,
         for Mac/Windows/Linux. It has no synthesizers in it.
-        <p/>
+        <p></p>
         In the VMPK menu bar, choose "MIDI Connections".<br/>
         For "MIDI OUT Driver", choose "CoreMIDI".<br/>
         For "Output MIDI Connection" Choose "IAC Driver Bus 1"
@@ -1301,13 +1560,13 @@ new Phrase({notes: [new Note({time: 0, dur: 1, pitch: 60, velocity: 0.25, channe
         and you should see "Got Midi event..." in DDE.
         You should also hear the note played in GarageBand or any synthezier you have
         that listens to the appropriate MIDI channel.
-        <p/>
+        <p></p>
         VMPK has a nice feature for labeling the keys on its
         piano keyboard: Choose menu bar/View/Note names
         Unfortunately this labels Middle C as C4, whereas
         WebMidi uses Middle C as C3. Octave nomenclature is
         not consistent in conventional music as well as MIDI.
-        <p/>
+        <p></p>
         You can call a method when a particular kind of Midi event occurs.<br/>
         <i>Example:</i><br/>
         <code title="not in TestSuite">WebMidi.inputs[1].addListener('noteon',  "all", Midi.describe_midi_event)</code><br/>
@@ -1340,7 +1599,7 @@ new Phrase({notes: [new Note({time: 0, dur: 1, pitch: 60, velocity: 0.25, channe
     </ul>
         don't attempt to use recognize_speech.
     <b><i>Be sure to crank up the volume of your mic.</i></b>
-    <p/>
+    <p></p>
     The recognized text is quite good compared to recognizers of the past but, like people,
     it still makes mistakes. Recognized text comes with a <b>confidence</b> number indicating
     how good the recognizer <i>thinks</i> the text is at matching what you've said.
@@ -1349,11 +1608,11 @@ new Phrase({notes: [new Note({time: 0, dur: 1, pitch: 60, velocity: 0.25, channe
     though we've seen a bunch of 0 confidence numbers for perfectly fine text.
     Also in the middle of a session, you may well see network bugs even though
     it seems like your network is fine to you. 
-    <p/>
+    <p></p>
     If you are using speech to dictate
     a critical process, we recommend displaying or saying (via the <code>speak</code> function)
     the recognized text and asking the user for a simple <i>yes</i> or <i>no</i> confirmation.
-    <p/>
+    <p></p>
     When <b>recognize_speech</b> is called, it pops up a dialog telling you to speak. 
     The arguments to recognize_speech configure this dialog and the callbacks that receive the
     recognized text and confidence numbers. All of these are keyword arguments with defaults. See
@@ -1415,7 +1674,7 @@ directly.<br/>
 <code title="not in TestSuite">speak(true)</code><br/>
 <code title="not in TestSuite">speak(new Date())</code><br/>
 <code title="not in TestSuite">speak(["It is now ", new Date()])</code>
-<p/>
+<p></p>
 By passing a literal object, you can control many aspects of <code>speak</code>.
 The <code title="unEVALable code fragment"> speak_data</code> input can be any JavaScript data
 (such as a boolean, a number, a date, an array, etc.) and it will do its best to say it out loud.<br/>
@@ -1442,14 +1701,14 @@ Example:<pre><code title="not in TestSuite"> speak({speak_data: [true, "It is", 
         Example: <code title="not in TestSuite"> get_page("http://ibm.com")</code><br/>
         If there is an error, the returned string will start with "Error:"
         and be followed by some clues as to why the error happened.
-        <p/>
+        <p></p>
         It will not eval scripts on the page
         so you may see an error when retriving a page containing JavaScript.
-        <p/>
+        <p></p>
         Instead of a url as the argument, you can pass a literal JS object
         with lots of options, described at:
         <a target="_blank" href="https://www.npmjs.com/package/request">options</a>
-        <p/>
+        <p></p>
         See also: <a href="#" onclick="open_doc(show_page_doc_id, event)">show_page</a>
     </details>
 
@@ -1458,10 +1717,10 @@ Example:<pre><code title="not in TestSuite"> speak({speak_data: [true, "It is", 
         but when the actual page content is finally retrieved from the web,
         a callback is called and passed an error object, a response object, and the body string
         of the page.
-        <p/>
+        <p></p>
         It will not eval scripts on the page
         so you may see an error when retriving a page containing JavaScript.
-        <p/>
+        <p></p>
         Example: <pre><code title="not in TestSuite"> get_page_async("http://ibm.com",
   function(err, response, body){
      if(err) { out("get_page_async got error.") }
@@ -1470,7 +1729,7 @@ Example:<pre><code title="not in TestSuite"> speak({speak_data: [true, "It is", 
      }
      else { out(body) }
   })</code></pre><br/>
-        <p/>
+        <p></p>
         Instead of a url as the argument, you can pass a literal JS object
         with lots of options, described at:
         <a target="_blank" href="https://www.npmjs.com/package/request">options</a>
@@ -1482,12 +1741,12 @@ Example:<pre><code title="not in TestSuite"> speak({speak_data: [true, "It is", 
         It's normal behavior is as an asyncrhonous function call, where the
         call is typically on a web device known as a 'client', and it is sent to
         a different device on the web known as a 'server'.
-        <p/>
+        <p></p>
         Usually its used to
         get the content of a web page into a browser. Usually the content of a web page
         is written in a polyglot of languages (HTML, CSS, JavaScript, etc.) but
         we can use urls to retrieve data in other syntaxes such as JSON or just plain strings.
-        <p/>
+        <p></p>
         <i>make_url</i> does two things:
         <ol><li>Prepends "http://" to the url being constructed, if it looks like
             there is no protocol in the url already. If there is no "://" in the
@@ -1549,7 +1808,7 @@ The parameters used to define a new Job are:
              them as a single instruction or an array of instructions.
              Such instructions are inserted into the do_list just below the instruction that 
              made them.
-             <p/>Instructions are documented with the kind of robot that they run on.
+             <p></p>Instructions are documented with the kind of robot that they run on.
         </li>
         <li><b>keep_history</b> true or false, default true. If true, the robot_status arrays
             returned from running instructions on the robot
@@ -1557,12 +1816,12 @@ The parameters used to define a new Job are:
             This is useful for debugging, but uses memory, which can be
             saved by setting keep_history to <code>false</code>.</li>
         <li><b>show_instructions</b> Possible values:
-           <ul><code>true</code> The default. Each time Dexter begins the execution of an instruction, it
+           <ul><li><code>true</code> The default. Each time Dexter begins the execution of an instruction, it
                is printed in the Output pane, refreshing that section of the output pane as
                each new instruction is run. The method used is <code>Job.prototype.show_progress</code>.
                Eval that to see its source code.</li>
                <li><code>false</code> Do nothing. Use this for time-sensitive jobs.</li>
-               <li>A method</li> The method will be called (with the job as <code title="unEVALable">this</code>)
+               <li>A method &nbsp; The method will be called (with the job as <code title="unEVALable">this</code>)
                    as each instruction is run, so you can do whatever you like.
                    A function written for this purpose is
                    <code>Job.prototype.show_progress_and_user_data</code>.
@@ -1581,17 +1840,17 @@ The parameters used to define a new Job are:
            It can be initialized in the call to new job like so:<br/>
            <code>new Job ({name:"j22", user_data:{color: "blue", weight: 123} })</code><br/>
            Within an instruction, you can get a user_data value via 
-           <br/><code title="unEVALable code fragment"> this.user_data.color</code></br>
+           <br/><code title="unEVALable code fragment"> this.user_data.color</code><br/>
            or set it via<br/>
-           <code title="unEVALable code fragment"> this.user_data.color = "green"</code></br>
+           <code title="unEVALable code fragment"> this.user_data.color = "green"</code><br/>
            You can set existing user_data names or create new ones by setting them.
-           <p/>
+           <p></p>
            user_data is persistent only while a job is executing. If you restart the
            job, its user_data is lost. For data that you want to persist across restarts,
            or for user_data that doesn't really belong with any one job but is used
            by mulitple ones, use the <i>class</i> property <code>Job.global_user_data</code>.
            This can be written to like so: <code>Job.global_user_data.my_count = 123</code>.
-           <p/>
+           <p></p>
            The value for user_data is passed in when creating a job is shallow_copied when
            the job starts. So if this value was stored in some external-to-the-job way
            and a job is run twice with that very same user_data, the 2nd time the job
@@ -1605,7 +1864,7 @@ The parameters used to define a new Job are:
            values to it. But nested mutable data in user_data can "leak" over to
            another running of a job, or even other jobs. This might or might not
            be what you want.
-           <p/>
+           <p></p>
            <code>Job.global_user_data</code> is initialized to <code>{}</code> when DDE launches.
            You can store data here that you wish to persist across running jobs, but realize
            that if a job modifies <code>Job.global_user_data</code>, the 2nd time that
@@ -1649,7 +1908,7 @@ The parameters used to define a new Job are:
              will cause the initial running of the job to execute its top instructions,
              but then subsequent iterations will start somewhere in the middle.<br/>
              A Robot.stop_job instruction can be used to end a loop.
-             <p/>
+             <p></p>
              See the menu item: Jobs/Insert Example/when_stopped
         </li>
     </ol>
@@ -1659,13 +1918,14 @@ The parameters used to define a new Job are:
    <code title="unEVALable code fragment"> start</code> is an instance method on <code>Job</code> that
    causes the job instance to feed its do_list to the Job's robot instance.
    After a job instance is done running, you can call <code title="unEVALable code fragment"> start</code>
-   again to run it again.<p/>
-   <i>Example</i> <code title="unEVALable code fragment"> Job.my_job.start()</code><p/>
+   again to run it again.<p></p>
+   <i>Example</i> <code title="unEVALable code fragment"> Job.my_job.start()</code><p></p>
    <i>Parameters</i><br/>
    <code title="unEVALable code fragment"> start</code> takes an object literal as its argument with the
    same names and values as <code title="unEVALable code fragment"> new Job</code> except that it can't
    take "name" as a property (i.e. you can't rename the job when you start it).
-   Below are two of the most useful properties you can use:<br/>
+   Below are two of the most useful properties you can use:
+   <ul>
     <li><b>program_counter</b> Initialize the program_counter to an instruction id.
         The default is 0. You can use any instruction_location here.
         See <a href="#" onclick="open_doc('Robot.go_to_doc_id', event)">Robot.go_to</a>
@@ -1675,6 +1935,7 @@ The parameters used to define a new Job are:
         the location of program_counter. Thus this instruction will be executed
         first when the job is run. Default null (no instruction added).
     </li>
+    </ul>
     Note that these parameters override the same-named properties used in making
     a new job, but they are only used for this call to start. They
     do not perminently affect the job definition.<br/>
@@ -1720,14 +1981,14 @@ When it is run, the function is called with <code>this</code>
 being the instance of Job that the function def is in. Since you can put any
 JavaScript inside a function definition, you can have an instruction
 execute any JS whatsoever.
-<p/>
+<p></p>
 Often you'll make functions that have no returned value.
 If so, after the function is called, then the next instruction
 on the do_list will be run. But if the function returns
 another instruction, or an array of instructions, then those
 will be inserted into the do_list immediately below the
 function def, and they will be run next.
-<p/>
+<p></p>
 <i>The below functionality is advanced use of DDE.</i><br/>
 The function
 body might have an <code title="unEVALable code fragment"> if</code> in it. Under certain
@@ -1735,7 +1996,7 @@ conditions the function will return one instruction,
 and it other cases, it will return another (or <code>null</code>, meaning
 just do the next instruction on the do_list, or an array of
 instructions to do them all).
-<p/>
+<p></p>
 If a function returns the special string
 <code>"dont_call_set_up_next_do"</code>,
 then that will cause nothing to happen in the job. It won't advance.
@@ -1763,7 +2024,7 @@ branch of an <code title="unEVALable code fragment"> if</code> may be taken that
 The above example could better be implemented using
 <code>Robot.wait_until</code>, but there are
 cases where the increased flexibility of the above is convenient.
-<p/>
+<p></p>
 You can put both named and anonymous functions on a do_list.
 A named instruction allows you to add a bit of "documentation" to
 the function. You can also use the name of a function like a
@@ -1771,7 +2032,7 @@ label and "go to"
 that name using a <a href="#" onclick="open_doc('Robot.go_to_doc_id', event)">Robot.go_to</a> instruction,
 or use the function's name in
 any uses of an instruction_location.
-<p/>
+<p></p>
 If you name your function definition,
 you can define it <i>outside</i> of the do_list, then just
 have its name in the do_list source code. This lets you put
@@ -1807,7 +2068,7 @@ Note that if calling my_fn returns an instruction (or an array of instructions)
 that you want to run in the job, then our code for this do_list item should
 look like:
     <code>function(){ return my_fn(12, 34) }</code>
-<p/>
+<p></p>
 If you are confused about what a given instruction on a Job's do_list
 returns, just select it in the editor and EVAL it.
 </details>
@@ -1818,17 +2079,17 @@ A generator is a function that can effectively return a value
 in the middle of its definition via 'yield', then be called again
 and resume after the previous 'yield'.
 <a target="_blank" href="https://davidwalsh.name/es6-generators">Tutorial</a>
-<p/>
+<p></p>
 A generator can be used as a do-list instruction.
 Running a job automatically handles the re-calling
 of a generator until it is exhausted i.e. no more
 yield statements, or a return statement is executed.
-<p/>
+<p></p>
 Generators are useful when you want to dynamically compute
 a bunch of instructions, but are not sure how many until
 after you've started generating the instructions. Real-time
 control or interaction with other jobs often have these chracteristics.
-<p/>
+<p></p>
 Usually a generator will have one or more yield statements
 with a following value of a dynamcially computed instruction
 to insert and run in the job. The software that controls
@@ -1837,12 +2098,12 @@ the execution of instructions in a Job will call a generator's
 in which case the generator is done and on the
 next iteration of the job, the following instruction will
 be run.
-<p/>
+<p></p>
 You may have a yield statement
 with nothing following it to simply do nothing for
 that iteration, but the generator will still be called
 for the next job iteration until the generator is exhausted.
-<p/>
+<p></p>
 <p>The body of a generator looks like a function.
 Often its yield statement(s) will be wrapped in a loop,
 that has an <code title="unEVALable code fragment"> if</code> statement with
@@ -1861,7 +2122,6 @@ function* my_gen(){
 new Job({name: "my_job",
          do_list: [my_gen]})
 </code></pre>
-</p>
 See DDE menu bar/Jobs/Insert Example/Generators<br/>
 for code examples. Related Job facilities are:
 <ul><li>
@@ -1874,7 +2134,7 @@ for code examples. Related Job facilities are:
 <details class="doc_details"><summary>Any Start Object</summary>
 <i>Caution: this is advanced functionality not needed by
 simple uses of DDE.</i>
-<p/>
+<p></p>
 In the body of an ordinary JavaScript function with a sequence
 of top level function calls, a function call will begin
 executing as soon as the previous function call returns.
@@ -1883,25 +2143,25 @@ because a preceeding call may "return" but it is not really done,
 since it has passed processing off to another process. In order to
 delay the start of another call, there are various tricks in
 JS.
-<p/>
+<p></p>
 One of the tricks JS uses is to pass a function a "callback" function
 as an argument. Then when the original function is really "done",
 it calls the callback function.
-<p/>
+<p></p>
 A DDE Job and its do_list is another way to carefully control
 when "instructions" on the do_list are started.
 DDE has a number of instruction types that help you control
 when the next instruction is run. A primary one is called
 <a href="#" onclick="open_doc('Robot.wait_until_doc_id', event)">wait_until</a>
 that blocks the processing of the following instruction.
-<p/>
+<p></p>
 In order to provide a more general mechanism to handle such methods
 without special casing Job processing for each one, we've invented the
 <i>start_object</i> instruction. This is not like other more constrained
 instructions, but it does fit a pattern that you can leverage to
 accomplish a wide variety of tasks by reusing code written by others
 within a Job that you create.
-<p/>
+<p></p>
 A start_object is any JS object that has a method named start.
 After a Job's instruction prcessing has exhausted all other possibilities,
 it looks to see if an instruction has a start method.
@@ -1929,6 +2189,7 @@ start_args should be an array. However, if the method takes arguments
 by keyword<br/>
  <i>Example:</i> <code title="unEVALable">foo({a: 1, b:2})</code><br/>
  then start_args should be a literal object.</li>
+
 <li><b>callback_param</b> If this property is present and non-null,
 it indicates that a callback function will be created by DDE and
 passed to the start function at the position indicated by the
@@ -1938,7 +2199,7 @@ have the callback method passed at that position in the argment list.
 For instance, if the start_args are <code>["one", "two"]</code> and the
 callback_param is <code>2</code> then the call to start will look like<br/>
 <code title="unEVALable">the_start_object.start("one", "two", function(){...}</code>
-<p/>
+<p></p>
 However, if start_args is a literal object, then the callback_param,
 if present, must be a string that names the keyword of the callback function
 in the argument list. For instance,
@@ -1949,11 +2210,12 @@ callback_param is<br/>
 call will look like: <br/>
 <code title="unEVALable">the_start_object.start({speak_data: "hi there", callback: function(){...}</code>
 </li>
+
 <li><b>dur</b> If there's no callback_param but there is a dur, then
      the ob will pause for the number of seconds in the dur field before
      running the next instruction.
 <pre><code>{start: function(){out("wait a sec or 3")},
- dur: 3}    </code></pre>
+ dur: 3}    </code></pre></li>
 <li><b>user_data_variable</b> Default: <code>null</code> If present and non-null,
  the automatically synthesized callback
 function will set the given user_data variable in the job to an array of
@@ -1961,8 +2223,8 @@ the arguments passed to the callback function. This is so that
 subsequent instructions can retrieve the real result of the start method
 and use them. For instance, if the value of user_data_variable is <code>"foo"</code>,
 then after this instruction has completed,<br/>
-<code title="unEVALable">job_instance.user_data.foo = ["array", "of", "args", "passed", "to the callback"]</code>
-<p/>
+<code title="unEVALable">job_instance.user_data.foo = ["array", "of", "args", "passed", "to the callback"]</code></li>
+</ul>
 <i>Examples:</i>
 <pre><code>new Job({name: "my_job1",
          do_list: [Robot.out("hey from my_job1")]})
@@ -2051,13 +2313,13 @@ new Job({name: "my_job",
     But its 3rd argument is a method that is called in the 2nd (and last) line
     of the method with the original args a and b reversed in order
     and one extra arg, 123.
-    <p/>
+    <p></p>
     On the Job's do_list, we have a start_object because it is
     an object with a method as the value of the "start" property
     of the object. Note that it doesn't matter that the real method
     being called is named "test_cb". What's important is that
     the start_object has a field named "start" whose value is some function.
-    <p/>
+    <p></p>
     When our Job is run, the first instruction is run by
     calling the value of the "start" property with arguments
     [11, 22, syntehsized_callback_fn]. Then test_cb is run
@@ -2068,17 +2330,23 @@ new Job({name: "my_job",
     <code title="unEVALable">Job.my_job.user_data.the_args_to_the_cb</code>
     to <samp>[22, 11, 123]</samp> Note that we reversed the order of a & b
     just to show flexibility here.
-    <p/>
+    <p></p>
     We can make jobs that have any combination of the above kinds of
     start_objects, plus others, plus any other valid instructions.
     They will all wait for each other (if so configured).
-    <p/>
+    <p></p>
     This syntax is complex, but not as complex as other ways of
     doing the same thing and makes Jobs significantly more flexible than
     they already were.
 </details>
 
-
+<details  class="doc_details"><summary>"debugger"</summary>
+    The literal string <code>"debugger"</code> is a valid do_list instruction
+    that will allow you to pause and step through the rest of the instructions.
+    See <a href="#" onclick="open_doc(debugger_doc_id, event)">"debugger"</a>
+    <p></p>
+    You can insert this instruction using the Learn JS menu/Debugging etc/"debugger".
+</details>
 <details id="Robot.error_doc_id" class="doc_details"><summary>error</summary>
   Causes the job to error, immediately stopping it.
   The one argument is a string of a reason for the error which
@@ -2098,11 +2366,11 @@ new Job({name: "my_job",
   <b>url_or_options</b>: The url whose contents this instruction gets.<br/>
     Instead of a url as the argument, you can pass a literal JS object with lots of options, described at:
     <a target="_blank" href="https://www.npmjs.com/package/request">options</a>
-    <p/>
+    <p></p>
   <b>response_variable_name</b>: Default: <code>"http_response"</code>. The name
      of the property in the job instance's user_data object to set to the
      content of the url.
-  <p/>
+  <p></p>
 Using <code>make_url</code> can help make constructing calls to <code>get_page</code> a bit easier.
 Example:<pre><code title="not in TestSuite"> Robot.get_page(make_url("www.nactem.ac.uk/software/acromine/dictionary.py",
                          {sf: "BMI"}))</code></pre>
@@ -2117,7 +2385,7 @@ a new location, instead of just incrementing. Overuse
 of this control structure gave rise to difficult-to-debug code and
 goto fell out of favor, to the extent that it isn't even <i>in</i> popular modern
 general purpose languages.
-<p/>
+<p></p>
 The process of making things often has a long list
 of instructions that are executed sequentially. DDE provides the
 more conventional function calling, including return, if, and for loops.
@@ -2126,10 +2394,10 @@ on a job's do_list and proceed from there.
 Thus DDE provides the taboo <code title="unEVALable code fragment"> go_to</code> instruction.
 Don't use it a lot. Going backwards is particularly dangerous.
 But we give you enough rope to hang yourself or build a masterpiece.
-<p/>
+<p></p>
 DDE's go_to is more versatile than go_to's of the past.
 If this complexity is too hard, just don't use it.
-<p/>
+<p></p>
 The go_to instruction takes just one argument: <code title="unEVALable code fragment"> instruction_location</code>.
 It has a number of different kinds of arguments.<br/>
 <b>a positive integer</b> Moves the program counter to the indicated instruction id.
@@ -2202,7 +2470,7 @@ Generally <code>"highest_completed_instruction_or_zero"</code> is more useful th
     tell another job to jump to a new instruction for its next instruction
     if you like. <br/>
     <i>Example</i>: <code>{job: "my_other_job", offset: "label3"}</code></li>
-    <li><b>An array</b></li> There may not be a convenient "one shot" way to
+    <li><b>An array</b> There may not be a convenient "one shot" way to
     describe a location, however, by using two or more designators, you may
     better be able to describe it.<br/>
     <i>Examples</i>:<br/>
@@ -2210,7 +2478,7 @@ Generally <code>"highest_completed_instruction_or_zero"</code> is more useful th
     <code>["myLabel", -1]</code> indicates the instruction immediately before "myLabel".<br/>
     <code>["program_counter", {offset: "sync_point", process: "backward"}]</code>
     Searches backwards from the program_counter to
-    the first instruction of type "sync_point".<br/>
+    the first instruction of type "sync_point".</li>
 </ul>
 Instruction_locations are also used in
 initializing a Job's <code title="unEVALable code fragment"> program_counter</code> in defining the job, as well as
@@ -2224,7 +2492,7 @@ where within the job to insert the given instruction as does the method
 <details id="Robot.grab_robot_status_doc_id" class="doc_details"><summary>grab_robot_status</summary>
    robot_status is an array that holds data from the robot, along with aspects of the instruction
    that was sent to the robot to capture that data. This array is the value of the robot
-   instance field <code title="unEVALable code fragment"> robot_status</code>. <p/>
+   instance field <code title="unEVALable code fragment"> robot_status</code>. <p></p>
    <code>Robot.dexter0.grab_robot_status</code> provides an easy way to get values out of that array
    and made available for other instructions to use.<br/>
    <i>Parameters</i><br/>
@@ -2233,7 +2501,7 @@ where within the job to insert the given instruction as does the method
                           robot_status data into. If their is already such a variable,
                           its value is over-written. If not, it is created and intialized
                           with the new value.
-                          <p/>
+                          <p></p>
                           After this instruction is run, the grabbed value
                           is available globally Job.the_job_name.user_data.the_val_of_this_arg.<br/>
                           For instance, if this job is named "my_job" and the value of
@@ -2263,12 +2531,12 @@ where within the job to insert the given instruction as does the method
                   just that one element.<br/>
                   <i>Special value</i> <code>"end"</code> The portion of the robot_status
                   from start_index through the end of the robot_status array is extracted.
-                  <p/>
+                  <p></p>
                   If both the start_index and end_index are not passed,
                   then the value will be: For a Serial robot, the first "item"
                   returned from the serial port in response to a send.
                   For Dexter, it will be DMA_READ_DATA.
-                  <p/>                     
+                  <p></p>                     
     You can use some constants for the values of start_index and end_index.<br/>
     For a Dexter robot these are: <br/>
     <code>Dexter.JOB_ID</code><br/>
@@ -2293,7 +2561,7 @@ where within the job to insert the given instruction as does the method
     <code>Dexter.J1_SENT</code><br/>
     <code>Dexter.J1_SLOPE</code><br/>
 and a similar set of names beginning with J2, J3, J4 and J5.
-<p/>
+<p></p>
 For a Serial robot these are:<br/>
     <code>Serial.JOB_ID</code><br/>
     <code>Serial.INSTRUCTION_ID</code><br/>
@@ -2336,7 +2604,7 @@ See Job Example 9 for an extended example.
     The default for <code title="unEVALable code fragment"> instruction_if_error</code> is a function that
     inserts an instance of Robot.error into the do_list of this job, causing it to error.
     The "reason" for that error instruction is explicit about the cause of the error.
-    <p/>
+    <p></p>
     Generally a job should be stopped quickly if there is an error.
     This instruction makes it easy to stop jobs that are concurrently cooperating
     with the current job. The instruction_if_error can be a function (called with the
@@ -2353,9 +2621,9 @@ a location to insert an instruction using <code>Robot.send_to_job</code>.<br/>
 <details id="Robot.out_doc_id" class="doc_details"><summary>out</summary>
   Very similar to the function <code>out</code> but made for use as a robot instruction.
   Prints a message to the Output pane in the color of your choice.
-  This is the "print statement" as an instruction, so useful in debugging.<p/>
+  This is the "print statement" as an instruction, so useful in debugging.<p></p>
   <i>Example:</i><br/>
-  <code>Robot.out("hey " + 345, "green")</code><p/>
+  <code>Robot.out("hey " + 345, "green")</code><p></p>
   <i>Parameters:</i><br/>
   <b>val</b> Any JavaScript data. Most commonly this is a string, but
              can be a number, an array etc.<br/>
@@ -2364,25 +2632,25 @@ a location to insert an instruction using <code>Robot.send_to_job</code>.<br/>
              <code>"rgb(255, 100, 0)"</code>.<br/>
   <b>temp</b> Default: <code>false</code>. With the default, printed output stays in the
     Output pane until DDE is relaunched.
-    <p/>
+    <p></p>
     If temp is <code>true</code>,
     then <b>val</b> is still printed in the Output pane, but is over-ridden
     by subsequence calls to out with temp == true. Calls to out with temp == false
     will erase any "temp" output.
-    <p/>
+    <p></p>
     If temp is a string, then out prints <b>val</b> similarly to temp == true in that
     the previous call to out with that temp string will be over-ridden in place.
     However, when another call to out with a different value for temp occurs,
     the output of out with a temp string will <i>not</i> be erased.
     Thus the last call to out with a given temp string remains in the Output pane,
     in its place, regardless of other out calls.
-  <p/>
+  <p></p>
   This is the most basic debugging tool, often used to let you know that 
   the job its in has reached this instruction. Unlike an instruction such as:<br/>
   <code>function(){out("The status is: " + this.status_code)}</code><br/>
   Robot.out cannot access its job instance, but it does print out
   its job name and instruction ID right before printing <code title="unEVALable code fragment"> val</code>.
-  <p/>
+  <p></p>
   See also <a href="#" onclick="open_doc(print_statements_doc_id, event)">print statements</a>
 </details>
 
@@ -2436,7 +2704,7 @@ value of the <code title="unEVALable code fragment"> if_started</code> argument.
   Causes the job to pause. It will not execute any more of its instructions 
   until it is unsuspended. It takes no arguments.
   Example:<code>Robot.suspend()</code>.
-  <p/>
+  <p></p>
   <b>unsuspend</b> is a method on a job.<br/> 
   Example:<code title="unEVALable code fragment"> Job.my_job.unsuspend()</code>.
   This causes the job to resume from a suspension. You can call it
@@ -2457,10 +2725,10 @@ value of the <code title="unEVALable code fragment"> if_started</code> argument.
     contain the name of the job its in. Effectly that doesn't matter,
     but does allow all the same-named sync points to have the same list of job_names.<br/>
     Example: <code>Robot.sync_point("midway", ["job_one", "job_two"])</code><br/>
-   <p/>
+   <p></p>
    If a sync point instruction has no job names, or only its own job name,
    it will not wait but rather breeze right through its sync_point.
-   <p/>
+   <p></p>
    By having different job_names, you can configure a sync_point in one job
    to wait for the other job's sync point to be reached, yet <i>not</i> have
    the other job wait for the first job. Any combination of such lop-sided
@@ -2492,7 +2760,6 @@ Robot.send_to_job({do_list_item: Dexter.move_to([0, 0.5, 0.075]),
   this ensures that the inserted do_list_item will not go in the middle of such instructions.
   Thus if the instructions from the function must be executed as a continuous group, 
   "next_top_level" is a safe place to insert additional do_list items.</li>
-    </li>
     <li><code>"after_program_counter"</code> Immediately after the destination job's program_counter.
     Not as safe as "next_top_level".</li>
     <li><code>"end"</code> At the very end of the do_list. With no job designator,
@@ -2503,7 +2770,7 @@ Robot.send_to_job({do_list_item: Dexter.move_to([0, 0.5, 0.075]),
     executes its newly inserted instructions.</li> 
  <li><b>start</b> (default false) If true, and the to_job has yet to be started,
     it will be started after the do_list_item is inserted into its do_list.
-    <p/>
+    <p></p>
     If a job has yet to be started and you send instructions to it, those
     instructions will be stored in a special place until the job is started.
     During the start process, after the do_list is made but before the
@@ -2614,7 +2881,7 @@ Job.my_job.start()</code></pre>
 <b>Brain</b> is a virtual robot used to manage other robots or do purely software tasks.
 It has no special instructions of its own, but inherits Robot's instructions, just
 like all the other robots.
-<p/>
+<p></p>
 </details> <!-- End Brain -->
 
 <details id="Dexter_doc_id" class="doc_details"><summary>Dexter</summary>
@@ -2622,23 +2889,23 @@ like all the other robots.
 an instruction, it sends back information from its sensors confirming where it has moved
 and additional data. This data can be used in subsequent instructions to both verify
 Dexter's position as well as respond to forces on the arm and other sensor data.
-<p/>
+<p></p>
 An instance of Dexter is created like so:
 <pre><code title="not in TestSuite"> new Dexter({name: "my_dex",
             simulate: true
            })</code></pre>
-<p/>
+<p></p>
 <!--Multiple jobs may use a given robot instance as their robot. It is up to the programmer
 to make sure such jobs don't screw each other up. You may not have more than one
 active robot with the same name or ip_address.-->
 It is recommended that each job have their own robot.
-<p/>
+<p></p>
 The default robot is <code>Robot.dexter0</code>. This is created in your dde_apps/dde_init.js file.
 Set dexter0's <code title="unEVALable code fragment"> ip_address</code> and
 <code title="unEVALable code fragment"> port</code> in that file.
 We recommend allowing dexter0's simulate param to default to <code>null</code> so that
 it can take advantage of the Job menu's Simulate? item.
-<p/>
+<p></p>
 If you are using DDE to control zero or one Dexter, jsut use dexter0. No need
 to create your own Robot instance.
 
@@ -2658,7 +2925,7 @@ The parameters used to define an instance of Dexter are:
                  Note DDE's simulation might not be perfectly in sync with the position
                  of the actual robot.</li>
              <li><b>null</b> (the default). The value for simulate will be taken from
-                 the Jobs menu Simulate? item.</li> The value you choose from the menu
+                 the Jobs menu Simulate? item. The value you choose from the menu
                  will be persistent accross DDE launches.</li>
           </ul>
     </li>
@@ -2693,7 +2960,7 @@ The parameters used to define an instance of Dexter are:
     are replaced by one argument: three_J_angles, that defines the drawing surface.
     Its default value is:<br/>
     <code>[[0, 30, 90, -30, 0], [0, 45, 90, -45, 0], [15, 45, 90, -45, 0]]</code>
-    <p/>
+    <p></p>
     <i>Examples:</i>
 <pre><code>new Job({name: "Draw",
     show_instructions: false, //speeds drawing of many tiny lines
@@ -2701,7 +2968,7 @@ The parameters used to define an instance of Dexter are:
     </code></pre>
     This uses all the defaults. When the first instruction is run, it
     pops up a choose file dialog to ask for the dxf file you want to draw.
-    <p/>
+    <p></p>
     You may CALL this function at Job definition time like so:<br/>
     <pre><code title="not in TestSuite">new Job({name: "Draw",
     do_list: [Dexter.draw_dxf({dxf_filepath: "foo.dxf" ...})]})
@@ -2743,14 +3010,14 @@ Retrieves lots of information from Dexter. This is placed in an array that becom
 the job's <code title="unEVALable code fragment"> robot_status</code> field, and, if the job's
 <code title="unEVALable code fragment"> keep_history</code> is true, gets pushed onto the
 job's <code title="unEVALable code fragment"> rs_history</code> array.
-<p/>
+<p></p>
 <i>Examples</i>:
 <code>Dexter.get_robot_status()</code>  //how this should look on  job's do list.<br/>
-<code title="unEVALable code fragment"> Jobs.j1.robot_status</code  //getting the whole status array after the above instruction is run><br/>
-<code title="unEVALable code fragment"> Jobs.j1.robot_status[Dexter.J1_ANGLE]</code> //returns the angle of Joint 1, in arcseconds<p/>
+<code title="unEVALable code fragment"> Jobs.j1.robot_status</code>  //getting the whole status array after the above instruction is run.<br/>
+<code title="unEVALable code fragment"> Jobs.j1.robot_status[Dexter.J1_ANGLE]</code> //returns the angle of Joint 1, in arcseconds<p></p>
 This instruction blocks further processing of the job's do_list instructions until
 all of the instructions on Dexter's instruction_queue are executed.
-<p/>
+<p></p>
 See also the instruction: <code>Robot.grab_robot_status</code>
 </details>
 
@@ -2759,7 +3026,7 @@ See also the instruction: <code>Robot.grab_robot_status</code>
 Retrieves lots of information from Dexter. This is placed in an array that becomes the value of
 the job's <code title="unEVALable code fragment"> robot_status</code> field, but is not placed on the job's
 <code title="unEVALable code fragment"> rs_history</code> array.
-<p/>
+<p></p>
 Unlike <code>Dexter.get_robot_status</code>, this instruction causes Dexter to return its data immediately,
 before any of the instructions on its <i>instruction queue</i> are executed.
 </details>
@@ -2784,7 +3051,7 @@ not used absolutely, but added to the previous angles indicated by DDE Dexter mo
 Note that this "base" that is added to is not literally the output of Dexter's optical sensors
 for joint position, but rather where the robot was <i>told</i> to go in its last motion instruction
 in a Job.
-<p/>
+<p></p>
 A <code>null</code> or missing angle increments default to 0.<br/>
 <i>Example</i>:<br/>
 <code>Dexter.move_all_joints_relative([15, 15])</code><br/>
@@ -2819,13 +3086,13 @@ Example: <code>Dexter.move_home()</code>
         If Dexter is on a table, then none of the negative y values are reachable,
         since they are below the table.
         The J5_direction parameter also affects reachability.
-        <p/>
+        <p></p>
         <b>J5_direction</b> indicates the direction you want the end effector to be pointing.
         This is usually an array of 3 numbers (each ranging from -1 to 1)
         that you can think of as indicating a "point" off
         of the end of the end effector. The default is [0, 0, -1] which
         causes the end effector to point straight down.
-        <p/>
+        <p></p>
         J5_direction can alternatively be an array of two angles (in degrees)
         indicating a direction (pitch and yaw). However it cannot be<br/>
         [90, 90], [-90, 90], [90, -90] or [-90, -90]<br/>
@@ -2833,7 +3100,7 @@ Example: <code>Dexter.move_home()</code>
         want, use an array of 3 numbers.<br/>
         If J5_direction is null, the current direction of the robot (as set by
         the most recent DDE instruction) is used.
-        <p/>
+        <p></p>
         <b>config</b> For most points within the reachability of Dexter, there are multiple
         ways in which Dexter can get there. config helps you specify your preference
         as to <i>how</i> Dexter configures its joints to get to the indicated x, y, z.
@@ -2863,7 +3130,7 @@ Example: <code>Dexter.move_home()</code>
     <code>Dexter.LEFT_DOWN_OUT</code> => <samp>[0, 0,    1]</samp><br/>
     <code>Dexter.LEFT_UP_IN</code> => <samp>[0, 1,    0]</samp><br/>
     <code>Dexter.LEFT_UP_OUT</code> => <samp>[0, 1,    1]</samp><br/>
-<p/>
+<p></p>
     <code>Dexter.RIGHT</code> => <samp>[1, null, null]</samp><br/>
     <code>Dexter.RIGHT_DOWN </code> => <samp>[1, 0,    null]</samp><br/>
     <code>Dexter.RIGHT_UP</code> => <samp>[1, 1,    null]</samp><br/>
@@ -2873,14 +3140,14 @@ Example: <code>Dexter.move_home()</code>
     <code>Dexter.RIGHT_DOWN_OUT</code> => <samp>[1, 0,    1]</samp><br/>
     <code>Dexter.RIGHT_UP_IN</code> => <samp>[1, 1,    0]</samp><br/>
     <code>Dexter.RIGHT_UP_OUT</code> => <samp>[1, 1,    1]</samp><br/>
-<p/>
+<p></p>
     <code>Dexter.DOWN</code> => <samp>[null, 0, null]</samp><br/>
     <code>Dexter.DOWN_IN</code> => <samp>[null, 0, 0]</samp><br/>
     <code>Dexter.DOWN_OUT</code> => <samp>[null, 0, 1]</samp><br/>
     <code>Dexter.UP</code> => <samp>[null, 1, null]</samp><br/>
     <code>Dexter.UP_IN</code> => <samp>[null, 1, 0]</samp><br/>
     <code>Dexter.UP_OUT</code> => <samp>[null, 1, 1]</samp>
-<p/>
+<p></p>
     <code>Dexter.IN</code>  => <samp>[null, null, 0]</samp>
     <code>Dexter.OUT</code> => <samp>[null, null, 1]</samp>
         The above list is in the series <b>Robot/robot config</b>.
@@ -2920,12 +3187,12 @@ from moving all the joints such that they all start moving at the same
 time and stop moving at the same time, but each joint may move at
 a different speed than the others. In move_to_straignt,
 the path approximates a straight line.
-<p/>
+<p></p>
 Dexter achieves this by breaking up the distance between the start
 and end xyz locations into many short straight-line segments where
 the start and end location of each of these segments is on
 a straight line between the starting and ending locations.
-<p/>
+<p></p>
 <i>Parameters:</i><br/>
 <b>xyz</b> An array of 3 numbers indicating the x, y, and z location to
            move to. Same as move_to.<br/>
@@ -2937,7 +3204,7 @@ a straight line between the starting and ending locations.
                   Default: 5 millimeters per second. Not in move_to.<br/>
 <b>resolution</b> How short to make the straight lines that connect the
 starting xyz to the ending xyz. Default: 0.5 millimeters.
-<p/>
+<p></p>
 Example:<br/>
 <pre><code title="not in TestSuite"> new Job({name: "my_job",
           do_list: [Dexter.move_to([0, 0.55, 0.075]),
@@ -2959,7 +3226,7 @@ creates an instruction that moves the 5 joints
 by 1, through 5 degrees respectively.
 If you have the arguments in an array, you can use this syntax:<br/>
 <code title="unEVALable code fragment"> make_ins("a", ...my_array)</code>
-<p/>
+<p></p>
 The returned value is an array that has its first several fields empty. DDE uses them
 for storing the job_id, instruction_id and some timing information.
 </details> <!-- end make_ins -->
@@ -2985,12 +3252,12 @@ to move Dexter to "draw the lines" indicated by the gcode file.
     containing the gcode instructions. The file can be directly under dde_apps or
     nested in subfolders of any depth. Typically the filepath will have an extension of ".gcode"
     but that isn't required by filepath.</li>
-    <li><b>scale</b></li> gcode files indicate line endpoint positions as dimensionless units.
+    <li><b>scale</b> gcode files indicate line endpoint positions as dimensionless units.
        DDE requires the x,y,z positions to be in microns. <code title="unEVALable code fragment"> scale</code> converts
        the gcode positions to microns. If scale is a number, it multiplies the gcode
        positions by that number. The default for scale is 1, meaning no transformation.
        If the gcode positions are intended to be in millimeters, use 1000 for scale.
-       <p/>
+       <p></p>
        Scale can also be a string representing a scale factor.
        <table><tr><th>String</th><th>Factor</th></tr>
                <tr><td>"microns"     </td><td style='text-align:right'> 1       </td></tr>
@@ -3000,13 +3267,13 @@ to move Dexter to "draw the lines" indicated by the gcode file.
                <tr><td>"inches"      </td><td style='text-align:right'> 25400   </td></tr>
                <tr><td>"feet"        </td><td style='text-align:right'> 304800  </td></tr>
        </table>
-    <br/>
+    </li>
+</ul>
     <code>Dexter.run_gcode</code> is similar to <code>Dexter.draw_dxf</code>.
     <code>Dexter.run_gcode</code> only handles G0 and G1 instructions,
     and only their X, Y, and Z arguments.
     It treats G0 and G1 the same.
     <code>Dexter.run_gcode</code> needs lots of work.
-</ul>
 </details> <!-- end run_gcode -->
 
 <details id="Dexter.set_parameter_doc_id" class="doc_details"><summary>set_parameter</summary>
@@ -3014,7 +3281,7 @@ This instruction sets a parameter within the Dexter robot in the current Job.
 The parameter will remain set to that value after the job is done,
 and across DDE launches. Power cycling of the Dexter does not keep
 set parameter values.
-<p/>
+<p></p>
 <i>Parameters:</i><br/>
 <b>name</b> A string. The name of the parameter. The valid names are:
    <table>
@@ -3048,7 +3315,7 @@ set parameter values.
     <tr><td>StartSpeed</td><td></td></tr>
     </table>
     <b>value</b> A number (integer or floating point).
-    <p/>
+    <p></p>
     <i>Example Job Instruction:</i>
     <code>Dexter.set_parameter("J1BoundryHigh", 188)</code>
 </details>
@@ -3059,7 +3326,7 @@ set parameter values.
   When Dexter receives the instruction, it waits for that duration
   before returning control to the DDE job.<br/>
   <i>Example</i>:<code>Dexter.sleep(2)</code><br/>
-  Sleeps for 2 seconds.<p/>
+  Sleeps for 2 seconds.<p></p>
   If you effectively want sleep to occur in DDE for any robot,
   you can use a do_list_item of <code>Dexter.wait_until(2)</code>
   to wait for 2 seconds.
@@ -3068,15 +3335,15 @@ set parameter values.
 Dexter can be put into one of several <i>modes</i> that governs its behavior.
 This is done by putting any one of the following Dexter instructions
 into a job. When the instruction is run, Dexter will go into that mode.
-<p/>
+<p></p>
 Dexter maintains the last mode it was set to even across jobs, across DDE launches,
-and across power cycling Dexter. <p/>
+and across power cycling Dexter. <p></p>
 The default mode is <i>set_keep_position</i>.<br/>
 None of these instructions take arguments.
     <details id="Dexter.set_follow_me_doc_id" class="doc_details"><summary>set_follow_me</summary>
         The joints are freed up and the user can drag Dexter's end-effector.
         Dexter's motion instructions (move_to, move_all_joints, etc.) will not work in this mode.
-        <p/>
+        <p></p>
         <i>Example</i>: (as an instruction in a job's do_list.) <br/>
         <code>Dexter.set_follow_me()</code>
     </details>
@@ -3086,7 +3353,7 @@ None of these instructions take arguments.
         it will move out of the way.
         However, if a <i>slow</i> force is applied, even if that force is large,
         Dexter will counter that force and attempt to maintain its position.
-        <p/>
+        <p></p>
         <i>Example</i>: (as an instruction in a job's do_list.) <br/>
         <code>Dexter.set_force_protect()</code>
     </details>
@@ -3095,7 +3362,7 @@ None of these instructions take arguments.
         Dexter will actively compensate for any applied forces.
         This mode creates the most accurate joint angles and paths.
         This is the default mode.
-        <p/>
+        <p></p>
         <i>Example</i>: (as an instruction in a job's do_list.) <br/>
         <code>Dexter.set_keep_position()</code>
     </details>
@@ -3105,7 +3372,7 @@ None of these instructions take arguments.
         The stepper motors are locked at each desired location but the actually joint angles will have error.
         This mode can be useful for accurately measuring torque.<br/>
         <i>Example</i>: (as an instruction in a job's do_list.)
-        <p/>
+        <p></p>
         <code>Dexter.set_open_loop()</code>
     </details>
 </details>
@@ -3137,7 +3404,7 @@ The argument defaults to 5, ie the end effector.
 Takes no arguments. Returns an array of the xyzs of the 5 joints with
 the base position prepended on the beginning of the returned array.
 Positions are in microns.
-Example:<br/><code title="unEVALable code fragment"> Robot.dexter0.joint_xyzs()</code> => <samp><pre>
+Example:<br/><code title="unEVALable code fragment"> Robot.dexter0.joint_xyzs()</code> => <pre><samp>
 [
 [0, 0, 0],
 [0, 0, 165100],
@@ -3145,7 +3412,7 @@ Example:<br/><code title="unEVALable code fragment"> Robot.dexter0.joint_xyzs()<
 [10000.000000000044, -40328.00000000006, 9200],
 [10000.000000000044, -40328.00000000006, 59999.99999999999],
 [10000.00000000006, 42221.99999999993, 60000]
-]</pre></samp>
+]</samp></pre>
 </details>
 
 <details id="Robot.dexter0.prop_doc_id" class="doc_details"><summary>prop</summary>
@@ -3153,7 +3420,7 @@ Example:<br/><code title="unEVALable code fragment"> Robot.dexter0.joint_xyzs()<
 naming a property and returns it's value.
 Most of the values are numbers.<br/>
 <i>Example</i>:<br/>
-<code>Robot.dexter0.prop("LINK1")</code> => <samp>0.1651</samp><p/>
+<code>Robot.dexter0.prop("LINK1")</code> => <samp>0.1651</samp><p></p>
 <i>Parameters</i>:<br/>
 <b>prop</b> A string naming the property who's value will be returned.<br/>
 <b>get_from_dexter</b> If <code>true</code>, the value will be retrieved from the
@@ -3174,7 +3441,7 @@ Else if the the property is a class property of Dexter
 (used for "typical values" or values appropriate for all Dexters),
 then that value is returned.<br/>
 Otherwise, <code>undefined</code> is returned.
-<p/>
+<p></p>
 You may add a property to a dexter instance like so:<br/>
 <code title="unEVALable code fragment"> Robot.dexter0.my_val = 123</code><br/>
 and you can access that via <br/>
@@ -3194,15 +3461,15 @@ values in meters<br/>
 <code>Dexter.LINK3</code> => <samp>0.330200</samp><br/>
 <code>Dexter.LINK4</code> => <samp>0.050800</samp><br/>
 <code>Dexter.LINK5</code> => <samp>0.082550</samp><br/>
-<p/>
+<p></p>
 <code>Dexter.LINK1_AVERAGE_DIAMETER</code> => <samp>0.090000</samp><br/>
 <code>Dexter.LINK2_AVERAGE_DIAMETER</code> => <samp>0.120000</samp><br/>
 <code>Dexter.LINK3_AVERAGE_DIAMETER</code> => <samp>0.050000</samp><br/>
 <code>Dexter.LINK4_AVERAGE_DIAMETER</code> => <samp>0.035000</samp><br/>
 <code>Dexter.LINK5_AVERAGE_DIAMETER</code> => <samp>0.030000</samp><br/>
-<p/>
+<p></p>
 <code>Dexter.LEG_LENGTH</code> => <samp>0.152400</samp><br/>
-<p/>
+<p></p>
 values in degrees<br/>
 <code>Dexter.J1_ANGLE_MIN</code> => <samp>-Infinity</samp><br/>
 <code>Dexter.J1_ANGLE_MAX</code> => <samp>Infinity</samp><br/>
@@ -3219,11 +3486,11 @@ values in degrees<br/>
 <code>Dexter.HOME_ANGLES</code> => <samp>[0, 0, 0, 0, 0]</samp> degrees j2,3,4 straight up. link 5 horizontal pointing frontwards.<br/>
 <code>Dexter.NEUTRAL_ANGLES</code> => <samp>[0, 45, 90, -45, 0]</samp><br/>
 <code>Dexter.PARKED_ANGLES</code> => <samp>[0, 0, 135, 45, 0 ]</samp><br/>
-<p/>
+<p></p>
 First array of 3 values is in meters,<br/>2nd is J5_direction,<br/>3rd is config.</i><br/>
 <code>Dexter.HOME_POSITION</code> => <samp>[[0, 0.08255, 0.866775],[0, 1, 0], [1, 1, 1]]</samp><br/>
 <code>Dexter.NEUTRAL_POSITION</code> => <samp>[[0, 0.5,     0.075],[0, 0, -1],[1, 1, 1]]</samp><br/>
-<p/>
+<p></p>
 <code>Dexter.MAX_SPEED</code> => <samp>30</samp> degrees per second<br/>
 <code>Dexter.START_SPEED</code> => <samp>0.5</samp> degrees per second<br/>
 <code>Dexter.ACCELERATION</code> => <samp>0.000129</samp> degrees/(second^2)<br/>
@@ -3237,11 +3504,11 @@ Examples of its instructions are <code>Human.task</code>, and <code>Human.enter_
 When a human instruction is run, a dialog box is shown and the job waits for a user to
 enter some information and click on a button to either cancel the job (and dependent jobs)
 or proceed.
-<p/>
+<p></p>
 Human instructions are a way to encode tasks that Dexter can't do or information
 that it can't know. The inclusion of human instructions in DDE permits the design and
 running of jobs that need coodination between humans and machines.
-<p/>
+<p></p>
 Although the "home" of human instructions is in the <i>Human</i> robot, you can use
 these instructions in a job with <i>any</i> robot. They do not attempt to
 access robot hardware.
@@ -3250,13 +3517,13 @@ access robot hardware.
   When run, all human instructions present a dialog box on the screen and waits until the
   user clicks the <button>Done</button> button before allowing the job to proceed to the
   next instruction in its do_list. A <button>Stop this & dependent jobs</button> button is
-  also presented. If clicked, this job and its dependent jobs are stopped.<p/>
+  also presented. If clicked, this job and its dependent jobs are stopped.<p></p>
   <i>Parameters:</i><br/>
   <b>task</b> Default: "". A string that will appear in the body of the dialog box. It is intended
      as an English instruction to the human reading it. When the human has completed
      the instruction, they should press <button>Done</button>.
      If the human is unable to complete the task, they should press
-     <button>Stop this & dependent jobs</button><p/>
+     <button>Stop this & dependent jobs</button><p></p>
   <b>add_stop_button</b> Default: <code>true</code> Adds a button that, when clicked,
      will stop this job and the give dependent jobs without executing additional instructions.<br/>
   <b>dependent_job_names</b> Default: <code>[]</code>. The names of the jobs that will be stopped if the
@@ -3272,7 +3539,7 @@ access robot hardware.
     <i style="color:rgb(200,0,200);">All of these parameters are common to <b>all</b> human instructions. 
       All are optional. They affect the appearance of the dialog box, except for</i>
       <code title="unEVALable code fragment"> dependent_job_names</code>.
-    <p/>
+    <p></p>
     <i>Examples:</i>
     <pre><code> new Job({name: "my_job",
     do_list: [Human.task({task: "Load filament now."}),
@@ -3296,7 +3563,7 @@ access robot hardware.
   allowing the user to choose one of several supplied options.
   It is the most flexible of the single-value entry Human instructions.
   See <a href="#" onclick="open_doc('Human.task_doc_id', event)">Human.task</a>
-  for behavior common to all Human instructions.<p/>
+  for behavior common to all Human instructions.<p></p>
   <i>Uncommon Parameters:</i><br/>
   <b>choices</b> Default: <code>[]</code>. An array of strings.
       The user is allowed to select one of the given choices.<br/>
@@ -3313,11 +3580,11 @@ access robot hardware.
               Note that you <i>might</i> not care about the value created but
               are just doing the evaluation for its side effects. This is as designed.
               You can eval any JS here for maximum flexibility.
-              <p/>
+              <p></p>
               If the value is not a string, it will be used directly as the
               value of the user_data_variable. The evaluation of this item
               happens at Job definition time.
-              <p/>
+              <p></p>
               Note that if you want the user data variable to have the value
               as a string, you must use a format like <code>'"foo"'</code>. At Job definition
               time this becomes a string of 5 chars, <code>"foo"</code>.
@@ -3343,12 +3610,12 @@ access robot hardware.
   That variable will be in the <code title="unEVALable code fragment"> user_data</code> of the current job.
   Within another instruction in the same job, the selected choice will be accessible using
   JavaScript. If the user_data_variable_name is 'my_color' and the choice is 'blue'.
-  then <code title="unEVALable code fragment"> this.users_data.my_color</code will return <code>'blue'</code>.
+  then <code title="unEVALable code fragment"> this.users_data.my_color</code> will return <code>'blue'</code>.
   You can access this value from <i>another</i> job via:<br/>
   <code title="unEVALable code fragment"> job.some-job-name.user_data.my_color</code>.
   Note that JavaScript from any job can also reset this value. For example:<br/>
   <code title="unEVALable code fragment"> job.some-job-name.user_data.my_color = 'green'</code>.
-  <p/>
+  <p></p>
   <i>Examples:</i>
   <pre><code> new Job({name: "my_job",
           do_list: [Human.enter_choice({task: "Please pick one.",
@@ -3383,7 +3650,7 @@ access robot hardware.
     Above we use <code title="unEVALable">show_instructions: Job.prototype.show_progress_and_user_data</code>
     so that our Job's user_data will be printed out in the progress bar, updated after
     each instruction is executed. This makes it easy to see our user-data as it is set.
-    <p/>
+    <p></p>
     We've used all the different kinds of choices described above. <br/>
     <b>"bb"</b> behaves the same as "aa"<br/>
     <b>"cc"</b> sets our user_data_variable to <code>true</code><br/>
@@ -3404,14 +3671,14 @@ access robot hardware.
 <details id="Human.enter_instruction_doc_id" class="doc_details"><summary>enter_instruction</summary>
   Presents a dialog allowing the user to enter an instruction to be immediately run.
   This can also record instructions and create a job with the recorded do_list.
-  See <a href="#" onclick="open_doc('Human.task_doc_id', event)">Human.task</a> for behavior common to all Human instructions.<p/>
-  This instruction does not use <code title="unEVALable">user_data_variable_name</code>.<p/>
-  This instruction can only be used on jobs with a Dexter robot.<p/>
+  See <a href="#" onclick="open_doc('Human.task_doc_id', event)">Human.task</a> for behavior common to all Human instructions.<p></p>
+  This instruction does not use <code title="unEVALable">user_data_variable_name</code>.<p></p>
+  This instruction can only be used on jobs with a Dexter robot.<p></p>
   <i>Uncommon Paramaters:</i><br/>
-  <b>instruction_type</b> Default: <code>"Dexter.move_all_joints"</code>. Set's the dialog's default instruction type.</br/>
+  <b>instruction_type</b> Default: <code>"Dexter.move_all_joints"</code>. Set's the dialog's default instruction type.<br/>
   <b>instruction_args</b> Default <code>"0, 0, 0, 0, 0"</code>.
     Set's the dialog's default instruction args.
-  <p/>
+  <p></p>
   <i>Examples:</i><br/>
   <pre><code> new Job({name: "my_job",
     do_list: [Human.enter_instruction({task: "do it"})]})
@@ -3430,20 +3697,20 @@ access robot hardware.
 
 <details id="Human.enter_number_doc_id" class="doc_details"><summary>enter_number</summary>
     <code>Human.enter_number</code> presents a dialog allowing the user to enter a number via typing or clicking.
-  See <a href="#" onclick="open_doc('Human.task_doc_id', event)">Human.task</a> for behavior common to all Human instructions.<p/>
+  See <a href="#" onclick="open_doc('Human.task_doc_id', event)">Human.task</a> for behavior common to all Human instructions.<p></p>
   See <a href="#" onclick="open_doc('Human.enter_choice_doc_id', event)">Human.enter_choice</a> for documentation on the
   <b>user_data_variable_name</b> parameter.
-  <p/>
+  <p></p>
   <i>Uncommon Paramaters:</i><br/>
   <b>initial_value</b> Default: <code>0</code>.</br/>
-  <b>min</b> Default: <code>0</code>. The minimun acceptable value.</br/>
-  <b>max</b> Default: <code>100</code>. The maximum acceptable value.</br/>
+  <b>min</b> Default: <code>0</code>. The minimun acceptable value.<br/>
+  <b>max</b> Default: <code>100</code>. The maximum acceptable value.<br/>
   <b>step</b> Default: <code>1</code>. The step size that clicking on the
             increment and decriment arrows will add or subtract
              to the current value.<br/>
   <b>user_data_variable_name</b> Default: <code>"a_number"</code>.
        Where the chosen number is stored.
-  <p/>
+  <p></p>
   <i>Examples:</i>
   <pre><code> new Job({name: "my_job",
   do_list: [Human.enter_number({task: "How much?"}),
@@ -3477,7 +3744,7 @@ access robot hardware.
 
 <details id="Human.enter_text_doc_id" class="doc_details"><summary>enter_text</summary>
     <code>Human.enter_text</code> presents a dialog allowing the user to enter text via typing.
-  See <a href="#" onclick="open_doc('Human.task_doc_id', event)">Human.task</a> for behavior common to all Human instructions.<p/>
+  See <a href="#" onclick="open_doc('Human.task_doc_id', event)">Human.task</a> for behavior common to all Human instructions.<p></p>
   <i>Uncommon Paramaters:</i><br/>
   <b>initial_value</b> Default: <code>""</code>.<br/>
   <b>line_count</b> Default <code>1</code>. The number of lines that the input control will be configured for.
@@ -3486,7 +3753,7 @@ access robot hardware.
   <b>user_data_variable_name</b> Default: <code title="unEVALable">"a_text"</code>
     See <a href="#" onclick="open_doc('Human.enter_choice_doc_id', event)">Human.enter_choice</a> f
     or more documentation on this.
-    <p/>
+    <p></p>
     <i>Examples:</i><br/>
     <pre><code> new Job({name: "my_job",
     do_list: [Human.enter_text({task: "Enter message."}),
@@ -3508,7 +3775,7 @@ access robot hardware.
   but unlike other Human instructions, <b>notify</b> does not have a
   <code title="unEVALable">user_data_variable_name</code> parameter,
   nor do its dialog boxes have buttons.
-  It also does not wait for a user action before allowing its job to continue to the next do_list item.<p/>
+  It also does not wait for a user action before allowing its job to continue to the next do_list item.<p></p>
   <i>Uncommon Parameters:</i><br/>
   <b>window</b> true or false. Default: <code>true</code>. Whether or not to present the information in a window.<br/>
   <b>output_pane</b> true or false. Default: <code>true</code>. Whether or not to present the task in the output pane.<br/>
@@ -3516,7 +3783,7 @@ access robot hardware.
                    this instruction is run.<br/>
   <b>speak</b> true or false. Default: <code>false</code>.
          Whether or not to speak the title and task when this instruction is run.
-   <p/>
+   <p></p>
    <i>Examples:</i>
     <pre><code> new Job({name: "my_job",
     do_list: [Human.notify({task: "do it"}),
@@ -3537,7 +3804,7 @@ access robot hardware.
 be called from any JS code.
 It is documented under<br/><a href="#" onclick="open_doc(show_window_doc_id, event)">
 Ref Man/Window System/show_window</a>
-<p/>
+<p></p>
 The second is as a Human robot instruction. It is documented here but
 you will need the function-equivalent documentation to understand the show_window instruction.
 <samp>Human.show_window</samp> is very similar to  <samp>show_window</samp>,
@@ -3557,12 +3824,12 @@ here's what happens:
     <li>The instruction is finished, and the next instruction in the Job's
         do-list (if any) is run.</li>
 </ol>
-<p/>
+<p></p>
 If you just want to get one value at a time from a user, its easier to
 use the other Human instructions for number, text, etc. But
 if you want to get multiple values in one dialog, using this
 instruction is the way to go.
-<p/>
+<p></p>
 <i>Parameters:</i><br/>
 The vast majority of the parameters to the show_window instrution are the same
 as to the show_window instruction. Here we only document differences.<br/>
@@ -3577,7 +3844,7 @@ instructions in the job that read those values from the Job's user_data.<br/>
 <b>user_data_variable_name</b> Default: <code>"show_window_vals"</code>.
 Similar to other Human instructions, this is the place that values from
 input elements are stored when the dialog is closed.
-<p/>
+<p></p>
 <i>Example:</i><br/>
 <pre><code>new Job({name: "my_job",
          do_list:
@@ -3595,14 +3862,14 @@ input elements are stored when the dialog is closed.
     stored in<br/>
     <code title="unEvalable JS fragment">Job.my_job.user_data.my_name.first_name</code> (and last_name)<br/>
     then used by the 2nd instruction to print them out.
-    <p/>
+    <p></p>
     An easy debugging trick, is that you can EVAL the call to <code>show_window</code>
     and see the dialog that will be presented, by running the instruction WITHOUT
     actually running the job. To do this for the above example, select the
     text starting with <code>show_window</code> and continuing only through
     its close paren, excluding the following comma separating it from the
     next instruction. Then click the <button>Eval</button> button.
-    <p/>
+    <p></p>
     Note that when you click on buttons in the resulting dialog,
     <code title="unEVALable JS fragment">this</code> will not be bound to
     the surrounding job, but otherwise the callback should behave the same
@@ -3616,7 +3883,7 @@ input elements are stored when the dialog is closed.
 <b>Serial</b> is not a specific robot per se, its a connection to another computer via its serial port.
 This connection is very general. It knows nothing about the actual capabilities of what its
 connected to, only that it can send and receive strings on its serial port.
-<p/>
+<p></p>
 DDE's Serial robot is quite similar to Dexter from DDE's perspective. It
 can be sent instructions from a Job's do_list and its output is interpreted as
 a "robot_status" similarly to Dexter's robot_status. The Serial robot has been
@@ -3627,7 +3894,7 @@ similar devices.
 In order for the serial port connection to work with Arduino, you need to have
 the Arduino IDE installed. Its a free and easy download from 
 <a target="_blank" href="https://www.arduino.cc">https://www.arduino.cc</a>
-<p/>If you don't get a connection, sometimes unplugging and replugging the 
+<p></p>If you don't get a connection, sometimes unplugging and replugging the 
 USB cable will help. You can also try relaunching DDE.
 Another debugging techinque is using the Arduino IDE's menubar/Tools/Serial Monitor.
 The upper type in area is for a string that you want to send to the board.
@@ -3644,7 +3911,7 @@ accomodate standard Arduino add-on (shield) boards but the Leonardo can.
 </details> <!-- end Arduino and Mac-->
 
 Create an instance of Serial similar to the other robots. Example: <br/>
-<code title="unEVALable code fragment"> new Serial({name: "S1", ...})</code><p/>
+<code title="unEVALable code fragment"> new Serial({name: "S1", ...})</code><p></p>
 
 <details class="doc_details"><summary>Parameters to new</summary>
 <b>name</b> A string. Makes this instance of a Serial Robot accessible from Robot.the_name<br/>
@@ -3658,9 +3925,9 @@ When a Serial.string.instruction is simulated, its argument,
 <code title="unEVALable code fragment"> instruction_string</code> is
 passed to the sim_fun. The value returned from calling sim_fun is the simulated return value (a string)
 from the serial port for this instruction. The function can use any JavaScript to compute
-the returned string. <p/>
+the returned string. <p></p>
 Consider the item_delimiter when making up this returned string. Often
-the string should end in the item_delimiter, but it doesn't have to. <p/>
+the string should end in the item_delimiter, but it doesn't have to. <p></p>
 We're not expecting
 the sim_fun to do exactly what the Serial hardware would do. In fact if it could,
 there would be no need for the hardware! Rather sim_fun should perform as a diagnostic
@@ -3703,7 +3970,7 @@ it ends in the delimiter, giving us a 3 character item, except that the
 <code title="unEVALable code fragment"> vtrim_whitespace</code>
 takes off that final <code title="unEVALable code fragment"> v\\r</code> and we're left with
 <code title="unEVALable code fragment"> hi</code>, usually what you want.
-<p/>
+<p></p>
 This arrangement gets around our society's failure to set one standard for the most important formatting
 operation, breaking up of lines, with <code title="unEVALable code fragment"> \\n</code> being used by Unix and Mac, and
 <code title="unEVALable code fragment"> \\r\\n</code> being used by Windows and Arduino. DDE tries to use the more
@@ -3748,35 +4015,35 @@ See Job Example 9 for an extended example.
 Due to the interplay between two different computers (the one running DDE and the Serial device)
 and their entirely different software protocols, debugging Serial robot interfaces is challenging.
 DDE provides a number of low level functions that can be invoked without interacting with a job
-to help you verify connectivity.<p/>
+to help you verify connectivity.<p></p>
 
 <b id="serial_devices_doc_id"><code>serial_devices()</code></b> Returns an array of objects representing
 the available devices on serial ports. the <code title="unEVALable code fragment"> comName</code> field holds the path to the serial
 port that you can use to connect to that device. 
-<p/>
+<p></p>
 
 <b id="serial_path_to_info_map_doc_id"><code>serial_path_to_info_map</code></b> Holds the mapping between the
 path of a serial device and lots of properties about it, most of which come from defining
 the associated Serial robot. The value of this global variable is a JS literal object with
 keys of each path to which there is a serial connection, and values of
-another JS literal object holding useful properties of that connection, i.e. its "info".<p/>
+another JS literal object holding useful properties of that connection, i.e. its "info".<p></p>
 You can get the info for a path via <br/>
 <code title="unEVALable code fragment"> serial_path_to_info_map[path]</code>
-<p/>
+<p></p>
 
 <b id="serial_connect_low_level_doc_id"><code title="unEVALable code fragment"> serial_connect_low_level("/dev/tty.some_device")</code></b>
 Allows you to create a software connection between a serial device and DDE software NOT in a job.
-<p/>
+<p></p>
 
 <b id="serial_send_low_level_doc_id"><code title="unEVALable code fragment"> serial_send_low_level( "some_path", "some_string")</code></b>
 Allows you to send a string to a serial device from DDE but NOT in a job.
-<p/>
+<p></p>
 
 <b id="serial_disconnect_doc_id"><code title="unEVALable code fragment"> serial_disconnect("some_path")</code></b> Disconnects an existing connection.
-<p/>
+<p></p>
 
 <b id="serial_flush_doc_id"><code title="unEVALable code fragment"> serial_flush("some_path")</code></b> Removes all bytes in the given path's input and output buffers.
-<p/>
+<p></p>
 See Job Example 9 for examples.
 </details> <!-- End Debugging Serial -->
 </details> <!-- End Serial -->
@@ -3789,7 +4056,7 @@ See Job Example 9 for examples.
     There are a few exceptions to this rule, but we stick to it for the major functionality.
     Internally, Dexter uses microns for length and arcseconds for degrees,
     but programmers rarely see such numbers.
-    <p/>
+    <p></p>
     However, we recognize that for various reasons, you might want to record numbers
     in some other units. To facilitate that, we provide an easy way to convert
     from other common units into DDE standard units.
@@ -3814,11 +4081,11 @@ See Job Example 9 for examples.
     If you are not familiar with how much a m/s is you specify your speed,
      then multiply by _mile / _hour for MPH or _in / _s inches per second.
      These can help with complicated conversions for example:
-    <p/>
+    <p></p>
     I've run a mile in 4:24 what is that in MPH?
     var meter_per_sec = _mile / (4*_min+24*_s)
     var MPH = meter_per_sec / (_mile/_hour)
-    <p/>
+    <p></p>
     Mathematically, the notation _unit is shorthand for base_unit / _unit.
     For example the value of _rev is 360 as in there are 360 degrees per 1 revolution.
     This system only works when the Base Unit is assumed.
@@ -3827,7 +4094,7 @@ See Job Example 9 for examples.
     The majority of Base Units are SI units with a few exceptions:<br/>
     For angles: DDE uses degree instead of radian.<br/>
     For temperature DDE uses -Celsius instead of Kelvin.
-    <p/>
+    <p></p>
     <h4>Base Units</h4>
     These are the units that DDE uses in its constants and functions.
     These are also the units that the Units System converts to.
@@ -3913,7 +4180,7 @@ class-instance object systems. However, JS's original object
 system isn't a good prototype object system as demonstrated by
 the numerous object system varients added on to JS, including
 JS 6's class object system. 
-<p/>
+<p></p>
 One of the problems with class-instance object systems is that
 they force you to decide whether an object should be a class
 or an instance. But sometimes you want to use a particular object
@@ -3927,12 +4194,12 @@ to describe another instance of chair that inherits
 from the first instance. Class-instance object systems
 don't allow you to do this, but good prototype object systems
 and DDE's object system do.
-<p/>
+<p></p>
 We've coerced JS's prototype object system into
 a more useful one by adding some methods to JavaScript.
 These new methods, in conjunction with existing JS functions,
 give you a pretty good prototype object system.
-<p/>
+<p></p>
 </details> <!-- overview -->
 
 <details class="doc_details"><summary>Calling Methods</summary>
@@ -3957,14 +4224,14 @@ of the new object. If two of the input objects have a same named property,
 the property in the resulting object will have the value of the <i>last</i> argument.
 There are three properties that behave 
 specially.
-<p/>
+<p></p>
 <b><i>prototype</i></b> This property sets the "parent" object
 of the new object. <i>prototype</i> defaults to <code>Root</code>.
 Once you have the new object, <code title="unEVALable code fragment"> new_obj.prototype</code> gives you
 back that prototype. Unlike most other properties, you cannot set this property and win.
 Class-instance object systems don't allow you to change the class of an object.
 In practice, this usually isn't needed.
-<p/>
+<p></p>
 <b><i>name</i></b> This optional property gives the new object a "name"
 property (as is normal), but it also creates a field in the prototype
 object with the new name and a value of the new object. By doing this,
@@ -3972,7 +4239,7 @@ you have a path from the <code>Root</code> to this new object using the
 object names from the top on down separated by dot.
 The names immediately under the root object are global so
 you can omit <code>Root</code> from such paths.
-<p/>
+<p></p>
 You should only supply a name when calling newObject, and never set it.<br/>
 Examples:<br/>
 <pre><code>newObject({
@@ -3996,7 +4263,7 @@ Examples:<br/>
 <code>Root.vehicle.launch = function(){return "set sail"}</code><br/>
 <code>Root.vehicle.launch()</code> => <samp>"set sail"</samp><br/>
 <code>Root.vehicle.boat.launch()</code> => <samp>"set sail"</samp>
-<p/>
+<p></p>
 <b><i>constructor</i></b>
 When creating an object, (or afterwards) you can set a property named 
 <code>constructor</code> in the new object to a method. This method is called
@@ -4008,12 +4275,12 @@ passed in the call to <code>newObject</code>, saving a ton of boiler plate code.
 In the body of <code title="unEVALable code fragment"> constructor</code>, you can call any code you like,
 including code that modifies the passed in property values, create
 entirely new properties or remove ones from <code>this</code>.
-<p/>
+<p></p>
 Example: <pre><code>newObject({name: "animal",
  constructor: function(){ this.fur = "no"}})
  newObject({prototype: Root.animal,
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; name: "fido"})</code></pre>
-<p/>
+<p></p>
 Above, during the first call to newObject, <code>this</code> is bound
 to the <i>animal</i> object. But when the 2nd call to newObect is
 made, the <code>this</code> in animal.constructor is bound to
@@ -4025,7 +4292,7 @@ Here's the state of the relevant properties:<br/>
 
 Each object has its own copy of the "fur" property.
 Setting one will not set the other.
-<p/>
+<p></p>
 JS6 class constructor methods can have a call to <code title="unEVALable code fragment"> super</code>.
 It's counterpart in DDE is a method whose name makes sense:
 <code>callPrototypeConstructor</code>, documented below.
@@ -4039,7 +4306,7 @@ then another one on a sub-object, "boat". The boat object should
 probably call the constructor for the vehicle object at the top
 of the boat constructor, and then make additional modifications to
 "this" in the bottom part of the boat constructor method.
-<p/>
+<p></p>
 Example: <br/>
 <pre><code>newObject({name: "animal",
            constructor: function(){ this.fur = "no"}})
@@ -4066,7 +4333,6 @@ Returns true if the argument was created with newObject.
 Examples:<br/>
 <code>Object.isNewObject({a:11})</code> => <samp>false</samp><br/>
 <code>Object.isNewObject(newObject({name: "trash"}))</code> => <samp>true</samp><br/>
-</code>
 </details>
 <details class="doc_details"><summary>subObjects</summary>
 Returns an array of the named subobjects of <code>this</code><br/>
@@ -4082,7 +4348,7 @@ for a particular property than its prototype object does,
 ust create a property in the object, and that will effectiely
 "shadow" the prototype value and use the "local" value in the object
 for that property. 
-<p/>
+<p></p>
 An object always knows which object is its prototype. (All objects
 have a prototype except Root.) But prototypes only know
 what objects have them as their prototype if those other objects
@@ -4091,14 +4357,14 @@ By giving an object a name, you automatically install a property
 in its prototype with a key of that name and a value of the object.
 Now the prototype knows about its "children". We used the term subObject
 to mean such named objects.
-<p/>
+<p></p>
 With no argument, 
 returns true if <code>this</code> is a named new object and that name is a
 property in <code>this.prototype</code> with a value of this.<br/>
 In other words: <code title="unEVALable code fragment"> this == this.prototype[this.name]</code>
 Example:<br/>
 <code>newObject({prototype: Root, name: "junk"}).isSubObject()</code> => <samp>true</samp>
-<p/>
+<p></p>
 With an argument, the argument is the presumed prototype of this.
 If the argument is this's prototype, and the prototype has a field in it named the same as this, 
 and its value is this, then isSubObect returns true.<br/>
@@ -4113,7 +4379,6 @@ an ancestor of the argument.<br/>
 Examples:<br/>
     <code>newObject({name: "junk"}).isA(Root)</code> => <samp>true</samp><br/>
         <code>newObject({name: "junk"}).isA(123)</code> => <samp>false</samp>
-</code>
 </details>
 
 <details id="siblings_doc_id" class="doc_details"><summary>siblings</summary>
@@ -4125,7 +4390,6 @@ These will be the named objects that have the same prototype as <code>this</code
    If false, excludes <code>this</code> from the returned array.<br/>
 <i>Example:</i><br/>
     <code>Root.siblings()</code> => <samp>[]</samp> //the root never has siblings.
-</code>
 </details>
 
 <details id="Object.areSiblings_doc_id" class="doc_details"><summary>areSiblings</summary>
@@ -4158,14 +4422,12 @@ Does not include <code>this</code> in the returned array.<br/>
 Returns an array of all the ancestors that the arguments have in common.<br/>
 <i>Examples:</i><br/>
     <code>Object.allCommonAncestors(newObject(), newObject())</code> => <samp>[Root]</samp>
-</code>
 </details>
 
 <details id="Object.lowestCommonAncestor_doc_id" class="doc_details"><summary>lowestCommonAncestor</summary>
 Returns the lowest common ancestor of the arguments. If none, return null.
 <i>Examples:</i><br/>
     <code>Object.lowestCommonAncestor(newObject(), newObject())</code> => <samp>Root</samp>
-</code>
 </details>
 
 <details id="normal_keys_doc_id" class="doc_details"><summary>normal_keys</summary>
@@ -4187,10 +4449,10 @@ Example: <code>Root.vehicle.normal_keys(true, true, true)</code> => <samp>["colo
 <b>include_name_and_prototype</b> The keys "'name" and "prototype" will be included.<br/>
 The default is <code>false</code>.<br/>
 Example: <code title="unEVALable code fragment"> Root.vehicle.normal_keys(true, true, true, true)</code> => <samp>["color", "weight"  "name", "prototype"]</samp>
-<p/>
+<p></p>
 Note that you shouldn't depend on the order of the elements in the result array.
 If you want to force them into a consistent order, you can sort them alphabetically.
-<p/>
+<p></p>
 The use of "normal" in this method's name indicates that by passing no args,
 it gets you what you'll most likely want, and passing in more and more <code>true</code> arguments
 gets you more of the less-frequently used properties. (Your milage may vary,
@@ -4203,15 +4465,14 @@ Returns a string of the path to <code>this</code> such as
 will result in the object.
 <i>Example:</i><br/>
     <code>newObject({name: "junk"}).objectPath()</code> => <samp>"Root.junk"</samp>
-</code>
 </details>
 
 <details id="sourceCode_doc_id" class="doc_details"><summary>sourceCode</summary>
 Returns a string of source code for <code>this</code>.
 Evaluating the returned string will return a copy of <code>this</code>.
 <i>Example:</i><br/>
-    <code>newObject({name: "junk"}).sourceCode()</code> => <samp>"{prototype: Root,\n name: \"junk\",\n prototype: Root}\n"</samp>
-</code>
+    <code>newObject({name: "junk"}).sourceCode()</code> =>
+    <samp>"{prototype: Root,\n name: \"junk\",\n prototype: Root}\n"</samp>
 </details>
 </details> <!-- new ob sys methods -->
 
@@ -4298,26 +4559,26 @@ Evaluating the returned string will return a copy of <code>this</code>.
     It will not have upper case characters in it.
     Windows OS's have the value "win". Macintosh OS's have the value "mac".
     If you find the value of other operating systems, please tell us!
-    <p/>
+    <p></p>
     <b id="dde_version_doc_id">dde_version</b><br/>
     A global variable that contains a semantic version string
     of the format: <code>"1.2.3"</code> indicating the running version number of DDE.<br/>
     <i>Example:</i> <code>dde_version</code>
-    <p/>
+    <p></p>
     <b id="dde_version_equal_doc_id">dde_version_equal</b><br/>
      Compare semantic version numbers.<br/>
     <i>Parameters:</i><br/>
     <b>version_string1</b> required string of the format <code>"1.2.3"</code><br/>
     <b>version_string2</b> Default: <code>dde_version</code><br/>
     <i>Example:</i> <code>dde_version_equal("1.0.2")</code> => <samp>false</samp>
-    <p/>
+    <p></p>
     <b id="dde_version_less_than_doc_id">dde_version_less_than</b><br/>
      Compare semantic version numbers.<br/>
     <i>Parameters:</i><br/>
     <b>version_string1</b> required string of the format <code>"1.2.3"</code><br/>
     <b>version_string2</b> Default: <code>dde_version</code><br/>
     <i>Example:</i> <code>dde_version_less_than("1.0.2")</code> => <samp>true</samp>
-    <p/>
+    <p></p>
     <b id="dde_version_more_than_doc_id">dde_version_more_than</b><br/>
      Compare semantic version numbers.<br/>
     <i>Parameters:</i><br/>
@@ -4333,12 +4594,12 @@ Evaluating the returned string will return a copy of <code>this</code>.
 
     <details class="doc_details"><summary>DDE Window Dimensions</summary>
     <code>window.outerWidth</code> stores the width in pixels of the DDE window.
-    <p/>
+    <p></p>
     <code>window.outerHeight</code> stores the height in pixels of the DDE window.
-    <p/>
+    <p></p>
     <code>window.screenX</code> stores the x position of the DDE window in pixels from
           the left of the screen.
-    <p/>
+    <p></p>
     <code>window.screenY</code> stores the y position of the DDE window in pixels from
         the top of the screen.
     </details>
@@ -4347,7 +4608,7 @@ Evaluating the returned string will return a copy of <code>this</code>.
         Robots need sensors to understand their environment. A very useful sensor
         is a camera. However, scene recognition is one of the more complex cognitive tasks
         that humans do. Its no different for Robots.
-        <p/>
+        <p></p>
         The most widely used vision software for Robotics is called <i>OpenCV</i>.
         OpenCV is large and complex; necessary characteristics for the task.
         DDE uses a new version of OpenCV called opencv.js, a verison of the
@@ -4357,7 +4618,7 @@ Evaluating the returned string will return a copy of <code>this</code>.
         opencv.js allows you to use JavaScript calls to access most of the funtionality
         in OpenCV. It does not yet support all of OpenCV, but work is ongoing to
         add functionality.
-        <p/>
+        <p></p>
         <b id="cv_doc_id">cv</b> opencv.js functions are available
         from the <code title="unEVALable">cv</code> global variable,
         which can be initialized via:<br/>
@@ -4365,18 +4626,18 @@ Evaluating the returned string will return a copy of <code>this</code>.
         The first time you do this after launching DDE will take several seconds.
         The rest of the times it is very quick, so no harm in calling it
         more than once.
-        <p/>
+        <p></p>
         <i>Examples:</i><br/>
         See Insert menu/Machine Vision submenu.
-        <p/>
+        <p></p>
         DDE is in the early stages of using opencv.js. More to come.
-        <p/>
+        <p></p>
         <b>Depth Perception</b><br/>
         Many applications in Robotics need 3D scene understanding.
         OpenCV has some tools for processing stereo-pair images for
         sensing depth. It is also possible to mount a single camera on Dexter
         and have it take pictures at different locations to give you a stereo pair.
-        <p/>
+        <p></p>
         Probably using a camera that has build-in depth sensing is the best technique.
         Intel's <a href="https://www.intel.com/content/www/us/en/architecture-and-technology/realsense-overview.html" target="_blank">RealSense</a>
         cameras are a good bet here. There is software to integrate the output of the RealSense cameras
@@ -4384,24 +4645,24 @@ Evaluating the returned string will return a copy of <code>this</code>.
         core software. See Intel
         <a href="https://software.intel.com/sites/landingpage/realsense/camera-sdk/v1.1/documentation/html/index.html?doc_essential_image_data.html"
             target="_blank">documentation</a>.
-        <p/>
+        <p></p>
         <b>Performance</b><br/>
         Computer vision tends to eat up a lot of memory and processor power.
         Modern laptops can keep up for simple tasks, but the faster the machine and the
         more memory you have, the better, especially when processing video.
-        <p/>
+        <p></p>
         <b>OpenCV Help</b><br/>
         Because opencv.js is brand new, most of the documentation you will find
         has examples in C++. opencv.js uses very similar or identical names
         so with a bit of effort, you can make sense of C++ documentation. There
         are also bindings of OpenCV for Python, in case that's easier for you.
-        <p/>
+        <p></p>
         The most definitive guide is
         <a href="http://shop.oreilly.com/product/0636920044765.do" target="_blank">Learning OpenCV 3</a>.
         At 1024 pages, this isn't a quick read, but that length is necessary to
         describe the considerable functionality. <a href="http://opencv.org/" target="_blank">OpenCV.org</a>
         has tons of useful information.
-        <p/>
+        <p></p>
         Documentation on opencv.js is sparser.
         First, understand the DDE opencv examples on the Insert menu/Machine Vision.
         Then, you can use DDE's inspector on <code title="unEVALable">cv</code>
@@ -4409,11 +4670,11 @@ Evaluating the returned string will return a copy of <code>this</code>.
         1K properties in this object!
         Next, take a look at: <a href="https://huningxin.github.io/opencv_docs/tutorial_js_root.html" target="_blank">
          opencv.js docs</a>/  A crucial document within that last url is a
-         <a href="https://huningxin.github.io/opencv_docs/tutorial_js_some_data_structures.html"
+         <a href="https://huningxin.github.io/opencv_docs/d5/df1/tutorial_js_some_data_structures.html"
             target="_blank">"cheat sheet"</a> of
          data structures that will help you convert C++ examples of using OpenCV to
          opencv.js compatible syntax.
-         <p/>
+         <p></p>
          <b>Converting C++ to JS</b><br/>
          In addition to the above examples and "cheat sheet", you will find the following
          tips useful in converting C++ examples to opencv.js<br/>
@@ -4470,10 +4731,10 @@ mat.delete()</code></pre>
       <code title="not in TestSuite">mouse_x</code> and/or <code title="not in TestSuite">mouse_y</code>
       to get the current mouse position as a non-negative integer
       from the upper left of the DDE window.
-      <p/>
+      <p></p>
       You can extend the function definition above to perform an action
       every time the mouse moves.
-      <p/>
+      <p></p>
       <b>Clicks</b><br/>
       You can cause a function to be called every time a mouse button is clicked via:
       <pre><code title="not in TestSuite">
@@ -4519,7 +4780,7 @@ document.addEventListener("click", function(e){
         attributes of <code title="unEVALable code fragment"> button</code> and
         <code title="unEVALable code fragment"> submit</code> will cause the window's
         callback function to be called.
-        <code title="unEVALable code fragment"> submit</code> will also cause the window to be closed.<p/>
+        <code title="unEVALable code fragment"> submit</code> will also cause the window to be closed.<p></p>
         HTML elements with a class of "clickable" will behave as a button. Clicking on them
         will cause the window's callback button to be called with a
         <code title="unEVALable code fragment"> clicked_button_value</code>
@@ -4535,7 +4796,7 @@ document.addEventListener("click", function(e){
         It will be called when the user clicks a button in
         a show_window. It's argument will be a literal object. Many of its properties are x and y positions
         relative to the top-left of html elements in or containing the clicked position.
-        <p/>
+        <p></p>
         Others of its properties will be names and the corresponding values of input elements
         designated in the <i>content</i> argument. The actual "name" used for such an element
         is: <br/>If the element has a "name" properties, use the value of that.<br/>
@@ -4545,7 +4806,7 @@ document.addEventListener("click", function(e){
         else if the element has a "value" property, use that. Note that an
         "input" element of type "button" will have its displayed label be
         the value of its "value" property.
-        <p/>
+        <p></p>
         <i>Example </i> of an argument passed to the callback function:<br/><pre>
     <code>{x: 300,           //relative to the parent of the elt clicked on
      y: 213,
@@ -4605,7 +4866,7 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
     you can get the callback to be called for any input HTML tag if you give it
     an attribute of<br/> <code title="unEVALable code fragment"> data-onchange='true'</code>
 
-    <h4>Cover DDE Window</h4/>
+    <h4>Cover DDE Window</h4>
     To have a show_window cover the entire DDE window:
     <pre><code title="not in TestSuite"> show_window({content: "hi",
              x: 0,
@@ -4613,7 +4874,7 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
              width:  window.outerWidth,
              height: window.outerHeight})
     </code></pre>
-    <p/>
+    <p></p>
     For more examples of calling <code>show_window</code> see the DDE menubar/Insert/show_window.
     See also:<br/>
     <a href="#" onclick="open_doc('Human.show_window_doc_id', event)">
@@ -4627,7 +4888,7 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
        <b>options</b> The options for the window that is created, which are the same as
        Electron's BrowserWindow.
        <a href="https://github.com/electron/electron/blob/master/docs/api/browser-window.md" target="_blank">Options Doc</a>
-       <p/>
+       <p></p>
        <i>Example:</i>
        <pre><code>show_page("http://hdrobotic.com",
           {x:100, y:100,
@@ -4645,12 +4906,12 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
                <pre><code>  clear_output()  </code></pre>
            </details>
 
-            <details id="close_window_doc_id"class="doc_details"><summary>close_window</summary>
+            <details id="close_window_doc_id" class="doc_details"><summary>close_window</summary>
             Closes a window created with show_window.<br/>
             <i>Parameter:</i><br/>
             <b>window_index</b>: When a show_window callback function is called, it will be passed a literal object
             with a property of <code title="unEVALable code fragment"> window_index</code> that can be used as the argument
-            to <code>close_window</code>. This is a non-negative integer.<p/>
+            to <code>close_window</code>. This is a non-negative integer.<p></p>
             Example: <code title="unEVALable code fragment"> close_window(vals.window_index)</code>
         </details>
 
@@ -4660,7 +4921,7 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
             <b>path_string</b>: The path to a shown HTML element. Usually this will be the id of
             an element in a <code>show_window</code> window. The new element will become
             the new last child of the path element.<br/>
-            <b>new_htnl</b>: A string of HTML to create the new element.<p/>
+            <b>new_htnl</b>: A string of HTML to create the new element.<p></p>
             <i>Example</i>: <code>append_in_ui("my_in_id", "&lt;h1>hello&lt;/h1>")</code><br/>
             where "my_ui_id" is the id of a currently displayed html tag, usually in
             the content of a <code>show_window</code> window.
@@ -4680,7 +4941,7 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
         <details id="remove_in_ui_doc_id" class="doc_details"><summary>remove_in_ui</summary>
             Remove an HTML element (usually from a <code>show_window</code> window). <br/>
             <i>Parameter:</i><br/>
-            <b>path_string</b> The path to a shown html element. This is often just the id of an element.<p/>
+            <b>path_string</b> The path to a shown html element. This is often just the id of an element.<p></p>
             <i>Example</i>: <code title="unEVALable code fragment"> remove_in_ui("my_in_id")</code><br/>
         </details>
 
@@ -4688,7 +4949,7 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
             Replace an HTML element (usually from a <code>show_window</code> window). <br/>
             <i>Parameters:</i><br/>
             <b>path_string</b> The path to a shown html element. This is often just the id of an element.<br/>
-            <b>new_html</b>: A string of HTML to create the new element.<p/><p/>
+            <b>new_html</b>: A string of HTML to create the new element.<p></p><p></p>
             <i>Example</i>: <code title="unEVALable code fragment"> replace_in_ui("my_in_id", "&lt;h2>hey&lt;/h2>")</code><br/>
         </details>
 
@@ -4697,7 +4958,7 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
             <i>Parameters:</i><br/>
             <b>path_string</b> The path to a shown html element's attribute.
             This is often the id of an element followed by a dot, followed by an attributre name.<br/>
-            <b>value</b>: The value of an HTML element's attribute. Usually this is a string.<p/>
+            <b>value</b>: The value of an HTML element's attribute. Usually this is a string.<p></p>
             <i>Example</i>: <code title="unEVALable code fragment"> set_in_ui("my_in_id.value", "aluminum")</code><br/>
         </details>
     </details> <!-- end window Utilities -->
@@ -4707,10 +4968,10 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
         to draw 2D graphics on a web page. The drawn elements
         (circles, lines, etc.) are surrounded by a svg tag wrapper
         indicating the size of the drawing area. You can use
-        svg tags directly in the content for a show_window.<p/>
+        svg tags directly in the content for a show_window.<p></p>
         The methods documented below create that html from JavaScript calls,
         facilitating dynamic content creation as well as
-        making static svg shapes a little easier to create.<p/>
+        making static svg shapes a little easier to create.<p></p>
         <i>Parameters for all svg functions</i>:<br/>
         <b>id</b> The html id of the element, useful in calls to window utility functions
         such as <code>append_in_ui</code>.<br/>
@@ -4736,7 +4997,7 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
             of the contained svg elements.<br/>
             <b>child_elements</b>: Default: <code>[]</code>. An array of strings of the html for
             svg shapes. Usually these strings should be created with the svg shape creator functions
-            such as <code>svg_circle</code>. <p/>
+            such as <code>svg_circle</code>. <p></p>
             <i>Example</i>:<pre><code title="not in TestSuite"> show_window({
    content:svg_svg({
        id:"s_id", width:500, height:200,
@@ -4757,7 +5018,7 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
             <b>r</b>:  Default: 10. The radius of the circle.<br/>
             <b>color</b>: Default: "black". The color of the interior of the circle.<br/>
             <b>border_color</b>: Default: "black". The color of the perimeter of the circle.<br/>
-            <b>border_width</b>: Default: 1. The width of the perimeter of the circle.<p/>
+            <b>border_width</b>: Default: 1. The width of the perimeter of the circle.<p></p>
             <i>Example</i>:<br/>
             <code>svg_circle({cx: 100, cy: 50, r: 7, color: "red"})</code>
         </details>
@@ -4772,7 +5033,7 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
 
             <b>color</b>: Default: "black". The color of the interior of the ellipse.<br/>
             <b>border_color</b>: Default: "black". The color of the perimeter of the ellipse.<br/>
-            <b>border_width</b>: Default: 1. The width of the perimeter of the ellipse.<p/>
+            <b>border_width</b>: Default: 1. The width of the perimeter of the ellipse.<p></p>
             <i>Example</i>:<br/>
             <code>svg_ellipse({cx: 100, cy: 50, r: 7, color: "red"})</code>
         </details>
@@ -4785,7 +5046,7 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
             <b>y</b>: Default: 0.  The y position of the upper left of the rendered HTML.<br/>
             <b>width</b>: Default: 100. The width of the area to render the HTML into.<br/>
             <b>height</b>: Default: 100. The height of the area to render the HTML into.
-            <p/>
+            <p></p>
             Unlike the other svg functions, <code>svg_html</code> does not take
             <code title="unEVALable code fragment"> id</code>,
             <code title="unEVALable code fragment"> class</code>
@@ -4795,7 +5056,7 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
             <code title="unEVALable code fragment"> class</code>,
             not the special spelling used in the other svg functions of
             <code title="unEVALable code fragment"> html_class</code>.
-            <p/>
+            <p></p>
             <i>Example</i>:<br/>
             <pre><code>svg_html({html: `&lt;i
                id="yikes_id"
@@ -4817,7 +5078,7 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
             <b>y2</b>: Default: 100. The x position of the end of the line.<br/>
 
             <b>color</b>: Default: "black". The color of the line.<br/>
-            <b>width</b>: Default: 1. The width of the line.<p/>
+            <b>width</b>: Default: 1. The width of the line.<p></p>
             <i>Example</i>:<br/>
             <code>svg_line({x1: 10, y1: 50, x2: 75, y2: 100, color: "red", width: 5})</code>
         </details>
@@ -4835,7 +5096,7 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
             <b>ry</b>:     Default: 0.   The y-axis radius of the ellipse used to round off the corners of the rectangle.<br/>
             <b>color</b>:        Default: "black". The color of the interior of the rectangle.<br/>
             <b>border_color</b>: Default: "black". The color of the perimeter of the rectangle.<br/>
-            <b>border_width</b>: Default: 1.       The width of the perimeter of the rectangle.<p/>
+            <b>border_width</b>: Default: 1.       The width of the perimeter of the rectangle.<p></p>
             <i>Example</i>:<br/>
             <code>svg_rect({x: 10, y: 50, width: 75, height: 25, color: "green"})</code>
         </details>
@@ -4847,7 +5108,7 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
             <b>points</b>:       Default: [].  The positions of the corners of the polygon.<br/>
             <b>color</b>:        Default: "black". The color of the interior of the polygon.<br/>
             <b>border_color</b>: Default: "black". The color of the perimeter of the polygon.<br/>
-            <b>border_width</b>: Default: 1.       The width of the perimeter of the polygon.<p/>
+            <b>border_width</b>: Default: 1.       The width of the perimeter of the polygon.<p></p>
             <i>Example of a triangle</i>:<br/>
             <code>svg_polygon({points: [[0, 0], [100, 0], [50, 50]], color: "lime"})</code>
         </details>
@@ -4858,7 +5119,7 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
             <i>Parameters</i> <br/>
             <b>points</b>: Default: [].      The positions of the end points of the line segments.<br/>
             <b>color</b>:  Default: "black". The color of the line.<br/>
-            <b>width</b>:  Default: 1.       The width of the line.<p/>
+            <b>width</b>:  Default: 1.       The width of the line.<p></p>
             <i>Example of a triangle</i>:<br/>
             <code>svg_polyline({points: [[0, 0], [100, 0], [50, 50]], color: "brown"})</code>
         </details>
@@ -4876,7 +5137,7 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
             <b>border_width</b>:  Default: 0.       The width of the outline of the text.<br/>
             <b>transform</b>:  Default: "rotate(0, 0, 0)". Modifies the position, orientation and scale of the text.
             <a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/transform">Details</a>
-            <p/>
+            <p></p>
             <i>Example</i>:<br/>
             <code>svg_text({text: "hey", x:25, y:30, color: "brown"})</code>
         </details>

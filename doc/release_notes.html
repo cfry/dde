@@ -5,6 +5,53 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 2.1.4, Oct 3, 2017</summary>
+Highlights: Improvements to Coor(dinate) system.
+            Extensions to Music.
+<ul><li>Coor updated with bug fixes and new functions
+    <ul><li> Coor.move_points_to_coor() now accepts just one point
+             (instead of list of points) and ref coor now functional</li>
+        <li>Coor.move_vector_to_coor() function added</li>
+        <li>Coor.get_xy_plane_direction() function added</li>
+        <li>Coor.get_xz_plane_direction() function added</li>
+        <li>Coor.get_yz_plane_direction() function added</li>
+        </ul>
+    </li>
+
+    <li>Fixed Eval&Start error handling.</li>
+
+    <li>Eval&Start now will use the whole editor buffer if there's no selection.</li>
+
+    <li>Now Job.start returns the job instance just like Note and Phrase start.</li>
+
+    <li>hdrobotic.com software page fixed to reduce scrolling.</li>
+
+    <li>The two calibrate Jobs now have show_instructions: false (to increase running speed).</li>
+
+    <li>Jobs menu Examples Simplest changed to call Dexter.move_all_joints.</li>
+
+    <li>Updated several Job examples to use port 50000 and use new units system.</li>
+
+    <li>New menu item Insert menu/Debugging Etc/"debugger" for the "debugger" instruction
+        on a do_list. Added doc on "debugger" in Ref Man/Robots/Robot instructions/"debugger"</li>
+
+    <li> Many syntactic bugs fixed throughout documentation.</li>
+
+    <li>Fixed bug with getting selection from Doc pane.</li>
+
+    <li>new music methods for Note and Phrase: filter, time_interval, repeat, arpeggio, pattern.
+        See Ref Man/IO/Sound/Music with MIDI/</li>
+
+    <li>Music examples now insertable via Insert menu/Examples/Music/Note  & Phrase</li>
+
+    <li>Fixed: diatonic_transpose</li>
+
+    <li>New Series' for Note and for Phrase</li>
+
+    <li>Updated URL for OpenCV "Cheat Sheet" in Ref Man Machine Vision section.</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 2.1.3, Sep 26, 2017</summary>
 Highlights: DXF drawing improvements.
             New instructions Dexter.pid_move_all_joints, Dexter.pid_move_to.

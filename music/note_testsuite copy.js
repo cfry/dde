@@ -39,61 +39,38 @@ new TestSuite("Note.diatonic_transpose",
     ['Note.diatonic_transpose("C", "C", 4)', "65"],
     ['Note.diatonic_transpose("C", "C", 5)', "67"],
     ['Note.diatonic_transpose("C", "C", 6)', "69"],
-    ['Note.diatonic_transpose("C", "C", 7)', "71"]  
-)
-
- new TestSuite("Note.diatonic_transpose_2",
-    ['Note.diatonic_transpose("C", "C", 8)', "72", "C4"],
-    ['Note.diatonic_transpose("C", "C", 9)', "74", "D4"],    
+    ['Note.diatonic_transpose("C", "C", 7)', "71"],
+    ['Note.diatonic_transpose("C", "C", 8)', "72",  "C4"],
+    ['Note.diatonic_transpose("C", "C", 9)', "74",  "D4"],
     ['Note.diatonic_transpose("C", "C", 10)', "76", "E4"],
     ['Note.diatonic_transpose("C", "C", 11)', "77", "F4"],
     ['Note.diatonic_transpose("C", "C", 12)', "79", "G4"],
     ['Note.diatonic_transpose("C", "C", 13)', "81", "A4"],
-    ['Note.diatonic_transpose("C", "C", 14)', "83", "B4"]  
-)
-
-new TestSuite("Note.diatonic_transpose_3",
-    ['Note.diatonic_transpose("C", "C", -1)', '60'],
+    ['Note.diatonic_transpose("C", "C", -1)', "60"],
     ['Note.diatonic_transpose("C", "C", -2)', "59", "B2"],
     ['Note.diatonic_transpose("C", "C", -3)', "57", "A2"],
     ['Note.diatonic_transpose("C", "C", -4)', "55", "G2"],
     ['Note.diatonic_transpose("C", "C", -5)', "53", "F2"],
     ['Note.diatonic_transpose("C", "C", -6)', "52", "E2"],
     ['Note.diatonic_transpose("C", "C", -7)', "50", "D2"],
-    ['Note.diatonic_transpose("C", "C", -8)', "48", "C1"],
-    ['Note.diatonic_transpose("C", "C", -9)', "47", "B0"]
-)  
-
-new TestSuite("Note.diatonic_transpose_4",
-     ['Note.diatonic_transpose("C", "D", 1)',  "60"],
-     ['Note.diatonic_transpose("C", "D", 2)',  "62", "D3"],
-     ['Note.diatonic_transpose("C#", "D", 2)', "62"],
-     ['Note.diatonic_transpose("D", "D", 2)',  "64", "E3"],
-     ['Note.diatonic_transpose("D", "D", 3)',  "66", "F#3"],
-     ['Note.diatonic_transpose("D", "D", 4)',  "67", "G3"],
-     ['Note.diatonic_transpose("F", "D", 2)', "67"],
-     ['Note.diatonic_transpose("D", "D", -2)', "61", "C#3"],
-     ['Note.diatonic_transpose("D", "D", -3)', "59", "B2"]
-     )
-     
-new TestSuite("Note.diatonic_transpose_5",
-    ['Note.diatonic_transpose("C", "C", 0)',    "60"],
-    ['Note.diatonic_transpose("C", "C", 0.5)',  "60"],
-    ['Note.diatonic_transpose("C", "C", 1)',    "60"],
-    ['Note.diatonic_transpose("C", "C", -0.5)', "60"],
-    ['Note.diatonic_transpose("C", "C", -1)',   "60"]
-) 
-
-new TestSuite("Note.diatonic_transpose_6",
-    ['Note.diatonic_transpose("C", "C",  1.5)', "61"],
-    ['Note.diatonic_transpose("C", "C",  2.5)', "63"],
-    ['Note.diatonic_transpose("C", "C", -1.5)', "59"],
-    ['Note.diatonic_transpose("C", "C", -2.5)', "58"],
-    ['Note.diatonic_transpose("C", "D", 1.5)', "61"],
-    ['Note.diatonic_transpose("C", "D", 2.5)', "63", "D#3"]
-)    
+    ['Note.diatonic_transpose("C", "C", -8)', "48", "C2"],
+    ['Note.diatonic_transpose("C", "C", -9)', "47", "B1"],
+    ['Note.diatonic_transpose("C", "D", 0)', "60"],
+    ['Note.diatonic_transpose("C", "D", 1)', "60"],
+    ['Note.diatonic_transpose("C", "D", 2)', "62", "questionable since C is not in the key of D. it is zero baed interval of 5.5 in D. Add 1 to that and you get 6.5, Since 6 is C#, 6.5 should be D, so that's the logic."],
+    ['Note.diatonic_transpose("C#", "D", 2)', "62"],
+    ['Note.diatonic_transpose("B2", "D", 2)', "61"],
+    ['Note.diatonic_transpose("Bb2", "D", 2)', "60", "Bb not in key of C and neigher is 60 (C)"], 
+    ['Note.diatonic_transpose("C", "C", 0.5)', "60", "since any interval between -1 and +1 (inclusive) is considered unison, 0.5 does NOT yield C# but 1.5 does" ]
+    ['Note.diatonic_transpose("C", "C", 1.5)', "61"],
+    ['Note.diatonic_transpose("C", "C", 2.5)', "63"],
+    ['Note.diatonic_transpose("C", "C", -1.5)', "59", "1/2 step down from unity"]
     
-new TestSuite("Note.transpose",
+)
+    
+    
+    
+new TestSuite("Note.transpose"
    ['new Note("C").transpose(3).pitch', "63"],
    ['new Note("C").transpose(3, "C").pitch', "64"],
    ['new Note("C").transpose([0,2]).notes.length', "2"],

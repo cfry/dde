@@ -2,11 +2,12 @@ var TestSuite = class TestSuite{
     constructor(name, ...tests){
         this.name  = name
         this.tests = tests
-        TestSuite[name] = this
-        TestSuite.add_suite(this)
-        //TestSuite.make_suite_menu_items(this.name)
         this.verify_tests_syntax() //causes tests defined in DDE source to be verified upon every start up.
                                    //if this gets to be too slow, move this call to top of run.
+                                   //put this BEFORE the next line, so if it fails,
+                                   //we won't have a bad testsuite defined.
+        TestSuite[name] = this
+        TestSuite.add_suite(this)
     }
 
     static statistics(){
@@ -19,6 +20,9 @@ var TestSuite = class TestSuite{
 
     verify_tests_syntax(){
         var name = this.name
+        if (typeof(name) !== "string")       { throw new Error("TestSuite." + name + " doesn't have a string as a name.") }
+        else if (name.length == 0)           { throw new Error("TestSuite has an empty string as its name.") }
+        else if (!Array.isArray(this.tests)) { throw new Error("TestSuite." + name + " has a non-array for its tests.") }
         for(let test_number = 0; test_number < this.tests.length; test_number++){
             var test     = this.tests[test_number]
             if(!Array.isArray(test))         { throw new Error("TestSuite." + name + " has it's test " + test_number + " as not an array,<br/>but rather: " + test + ".<br/>Check for a missing comma at end of a test.")}
@@ -278,6 +282,7 @@ var TestSuite = class TestSuite{
                 if (run_item){
                     let ts_array = sel_text.split("new TestSuite")
                     for(let ts_string of ts_array){
+                        ts_string = ts_string.trim()
                         if (ts_string == "") { continue; } //junk from split
                         ts_string = "new TestSuite" + ts_string //make it complete again
                         //cut off any junk at end
@@ -302,8 +307,14 @@ var TestSuite = class TestSuite{
         if((arrow_key_orientation == "horizontal") &&
             (arrow_key_direction == 1) &&
             run_item){
-            let ts  = window.eval(sel_text)
-            out(ts.run_this())
+            if (run_item){
+                let ts  = window.eval(sel_text)
+                if (ts instanceof TestSuite) {out(ts.run_this());}
+                else {
+                    out("The source code for test suite: " + ts_string.split("\n")[0] + " isn't proper.")
+                    return false
+                }
+            }
         }
         TestSuite.select_next("test_suite", arrow_key_orientation, arrow_key_direction)
     }

@@ -390,6 +390,13 @@ Js_info = class Js_info {
             case "series_job_method_id":
                 let fn13 = value_of_path(fn_name)
                 return "function " + Js_info.wrap_fn_name(fn_name) + function_params(fn13)
+            case "series_note_id":
+                let fn_note = value_of_path("Note.prototype." + fn_name)
+                return "new Note()." + Js_info.wrap_fn_name(fn_name, "Note." + fn_name + "_doc_id") + function_params(fn_note)
+            case "series_phrase_id":
+                let fn_phrase = value_of_path("Note.prototype." + fn_name)
+                return "new Phrase()." + Js_info.wrap_fn_name(fn_name, "Phrase." + fn_name + "_doc_id") + function_params(fn_phrase)
+
             case "series_robot_instruction_id":
                 if (fn_name == '"debugger"') {
                     return '<span style="color:blue;">&quot;</span>' +
@@ -457,9 +464,9 @@ Js_info = class Js_info {
         return false
     }
 
-    static wrap_fn_name(fn_name){
+    static wrap_fn_name(fn_name, the_doc_id){
         let result = fn_name
-        let the_doc_id = fn_name + "_doc_id"
+        if(!the_doc_id) { the_doc_id = fn_name + "_doc_id"}
         if (window[the_doc_id]){
             let onclick_val = "open_doc(" + the_doc_id + ")"
             let click_id = fn_name + "_click_help_id"

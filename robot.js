@@ -744,6 +744,7 @@ Dexter = class Dexter extends Robot {
         this.heartbeat_timeout_obj = null
 
         this.angles = [0, 0, 0, 0, 0] //used by move_to_relative, set by move_all_joints, move_to, and move_to_relative
+        this.pid_angles = [0, 0, 0, 0, 0]
         this.processing_flush      = false //primarily used as a check. a_robot.send shouldn't get called while this var is true
         Robot.set_robot_name(this.name, this)
          //ensures the last name on the list is the latest with no redundancy

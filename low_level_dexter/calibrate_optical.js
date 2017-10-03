@@ -1,5 +1,5 @@
 function init_calibrate_optical() {
-  new Job({name: "CalEncoders",
+  new Job({name: "CalEncoders",  show_instructions: false,
             do_list: [setOpenLoop(),
             		  make_ins("S", "J1BoundryHigh",180),
                       make_ins("S", "J1BoundryLow",-180),

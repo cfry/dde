@@ -109,7 +109,7 @@ function init_view_eye(){
                         ["0x000000", "0x000000"]]
            */                      
     window.cal_working_axis = undefined //global needed by calibrate_ui.js
-    new Job({name: "CalSensors", keep_history: true,
+    new Job({name: "CalSensors", keep_history: true, show_instructions: false,
              do_list: [ Dexter.move_all_joints(0, 0, 0, 0, 0),
                         make_ins("w", 42, 64),
                         make_ins("S", "J1BoundryHigh",648000*_arcsec),

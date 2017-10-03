@@ -194,21 +194,27 @@ function error_message_start_and_end_pos(err){
 function eval_and_start(){
      let sel_text = Editor.get_any_selection()
      if (sel_text.length == 0) {
-        warning("There is no selection to eval.")
-        return
+         sel_text = Editor.get_javascript()
+         if (sel_text.length == 0) {
+            warning("There is no selection to eval.")
+            return
+         }
      }
      let result   = eval_js_part2(sel_text, false) //don't call eval part 3 if no error
      if ((typeof(result) == "string") && result.startsWith("Error:")) {} //handled by eval_js_part3
      else {
          let val = result.value
+         let start_result
          if(val && typeof(val.start) == "function") {
-             try { inspect(val.start()) }
+             try { start_result = val.start() }
              catch(err) {
                  warning("The result of evaling: " + sel_text +
                      "<br/> is: " + val +
                      "<br/> but calling its <code>start</code> method errored with:<br/>" +
                      err.message)
+                 return
              }
+             inspect(start_result)
          }
          else {
              warning("The result of evaling: " + sel_text +

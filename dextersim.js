@@ -150,6 +150,29 @@ DexterSim = class DexterSim{
         }
     }
 
+    process_next_instruction_a(ins_args){
+        var robot_status = this.rs
+        let orig_angles =  [robot_status[Dexter.J1_ANGLE],
+                            robot_status[Dexter.J2_ANGLE],
+                            robot_status[Dexter.J3_ANGLE],
+                            robot_status[Dexter.J4_ANGLE],
+                            robot_status[Dexter.J5_ANGLE]]
+        let idxs = [Dexter.J1_ANGLE, Dexter.J2_ANGLE, Dexter.J3_ANGLE, Dexter.J4_ANGLE, Dexter.J5_ANGLE]
+        for(let i = 0; i < 5; i++){
+            let angle = ins_args[i]
+            if (!isNaN(angle)){
+                robot_status[idxs[i]] = angle
+            }
+        }
+        //predict needs its angles in degrees but ins_args are in arcseconds
+        const orig_angles_in_deg = orig_angles.map(function(ang) { return ang / 3600 })
+        const ins_args_in_deg    = ins_args.map(function(ang) { return ang / 3600 })
+        let dur = Math.abs(Kin.predict_move_dur(orig_angles_in_deg, ins_args_in_deg, this.robot)) * 1000
+        //we convert from arcseconds to degrees, pass in the angles to preduct,
+        // which returns a dur in seconds, then convert that to milliseconds
+        return dur
+    }
+
     process_next_instruction(){
         let dur = 10 // in ms
         this.now_processing_instruction = this.instruction_queue.shift() //pop off next inst from front of the list
@@ -162,30 +185,10 @@ DexterSim = class DexterSim{
         robot_status[Dexter.INSTRUCTION_TYPE]  = instruction_array[Instruction.INSTRUCTION_TYPE] //leave this as a 1 char string for now. helpful for debugging
         robot_status[Dexter.ERROR_CODE]        = 0
         let ins_args = Instruction.args(instruction_array) //in arcseconds
-        let angle
         switch (oplet){
             case "a": //move_all_joints
-                let orig_angles =  [robot_status[Dexter.J1_ANGLE],
-                                    robot_status[Dexter.J2_ANGLE],
-                                    robot_status[Dexter.J3_ANGLE],
-                                    robot_status[Dexter.J4_ANGLE],
-                                    robot_status[Dexter.J5_ANGLE]] //these are in arcseconds
-                angle = ins_args[0]
-                if (!isNaN(angle)){ robot_status[Dexter.J1_ANGLE] = angle}
-                angle = ins_args[1]
-                if (!isNaN(angle)){ robot_status[Dexter.J2_ANGLE] = angle}
-                angle = ins_args[2]
-                if (!isNaN(angle)){ robot_status[Dexter.J3_ANGLE] = angle}
-                angle = ins_args[3]
-                if (!isNaN(angle)){ robot_status[Dexter.J4_ANGLE] = angle}
-                angle = ins_args[4]
-                if (!isNaN(angle)){ robot_status[Dexter.J5_ANGLE] = angle}
-                //predict needs its angles in degrees but ins_args are in arcseconds
-                const orig_angles_in_deg = orig_angles.map(function(ang) { return ang / 3600 })
-                const ins_args_in_deg    = ins_args.map(function(ang) { return ang / 3600 })
-                dur = Math.abs(Kin.predict_move_dur(orig_angles_in_deg, ins_args_in_deg, this.robot)) * 1000
-                     //we convert from arcseconds to degrees, pass in the angles to preduct,
-                    // which returns a dur in seconds, then convert that to milliseconds
+                this.robot.angles = ins_args
+                dur = this.process_next_instruction_a(Vector.add(ins_args, this.robot.pid_angles))
                 break;
             //case "b": //move_to  xyz
                 /*if (!isNaN(instruction_array[2])) robot_status[Dexter.ds_j5_x_index]     = instruction_array[2]
@@ -219,8 +222,12 @@ DexterSim = class DexterSim{
                 //dur = 0;
                 shouldnt("In dextersim.process_next_instruction, got an 'h' oplet but this fn shouldn't get 'h' instructions.")
                 break;
+            case "P": //pid_move_all_joints
+                this.robot.pid_angles = ins_args
+                dur = this.process_next_instruction_a(Vector.add(ins_args, this.robot.angles))
+            break;
             case "R": //move_all_joints_relative //no longer used because Dexter.move_all_joints_relative  converts to "a" oplet
-                angle = ins_args[0]
+                let angle = ins_args[0]
                 if (!isNaN(angle)){ robot_status[Dexter.J1_ANGLE] += angle}
                 angle = ins_args[1]
                 if (!isNaN(angle)){ robot_status[Dexter.J2_ANGLE] += angle}

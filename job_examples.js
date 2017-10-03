@@ -1,7 +1,7 @@
 /* Created by Fry on 3/11/16.*/
 var job_examples = [
 `new Job({name: "my_job",
-         do_list: [Robot.out("hey")]})
+         do_list: [Dexter.move_all_joints(30, 45, 60, 90, 120)]})
 `,
 
 `//////// Job Example 1
@@ -144,7 +144,7 @@ Job.job_a.start(); Job.job_b.start() //execute both at once.
 //They can add instructions to other jobs (send_to_job)
 // as well as pause (suspend) and resume (unsuspend) jobs.
 
-new Dexter({name: "my_dex", ip_address: "192.168.1.142", port: 5000})
+new Dexter({name: "my_dex", ip_address: "192.168.1.142", port: 50000})
 new Job({name: "j4", 
          robot: Robot.my_dex,
          do_list: [Dexter.move_all_joints(0, 45, 90, -45, 0),
@@ -152,11 +152,11 @@ new Job({name: "j4",
                    Robot.out("j4 sez goodbye.")]})
 Job.j4.start()
 
-new Dexter({name: "my_dex2", ip_address: "192.168.1.143", port: 5000})
+new Dexter({name: "my_dex2", ip_address: "192.168.1.143", port: 50000})
 new Job({name: "j5", 
          robot: Robot.my_dex2,
          do_list: [Robot.send_to_job(
-                     {do_list_item: Dexter.move_to([100000, 100000, 100000]),
+                     {do_list_item: Dexter.move_to([0.1, 0.2, 0.3]),
                       where_to_insert: {job: "j4", offset: "after_program_counter"},
                       unsuspend: true,
                       wait_until_done: true}),
