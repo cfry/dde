@@ -206,7 +206,7 @@
     set_menu_string(open_id, "Open", "o")
 
     load_file_id.onclick=function(e) {
-        const path = choose_file(show_dialog_options={title: "Choose a file to load"})
+        const path = choose_file({title: "Choose a file to load"})
         if (path){
             //const content = file_content(path)
             //Editor.set_javascript(content)

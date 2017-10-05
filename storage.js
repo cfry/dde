@@ -209,7 +209,16 @@ function file_content(path, encoding="utf8"){
 
 function choose_file(show_dialog_options={}) { //todo document
     const dialog    = app.dialog;
-    const paths = dialog.showOpenDialog(show_dialog_options)
+    const paths = dialog.showOpenDialog(app.getCurrentWindow(),
+        //passing this first arg of the window
+        // makes the dialog "modal" ie can't do anything but choose a file or cancel
+        //you can't even click outside the window ahd have it do anything.
+        //This prevents certain error states you can get into with
+        //the file dialog and DDE. Not *always* what you want but
+        //on average, mostly what you want, particulary on WindowsOS which is worse
+        //than MacOS when we DON'T pass this.
+        //Note that "title" option doesn't show up on Mac.
+            show_dialog_options)
     if (paths) {
         if (Array.isArray(paths) && (paths.length == 1)) {
             return convert_backslashes_to_slashes(paths[0]) }
@@ -235,7 +244,7 @@ function choose_file_and_get_content(show_dialog_options={}, encoding="utf8") {
 
 function choose_save_file(show_dialog_options={}) { //todo document
     const dialog    = app.dialog;
-    return dialog.showSaveDialog(show_dialog_options)
+    return dialog.showSaveDialog(app.getCurrentWindow(), show_dialog_options)
 }
 
 function write_file(path, content, encoding="utf8"){

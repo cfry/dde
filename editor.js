@@ -179,7 +179,7 @@ Editor.get_any_selection = function(){
     if(sel_text.length > 0) { return sel_text }
     sel_text = Editor.get_cmd_selection()
     if(sel_text.length > 0 ) { return sel_text }
-    console.log("sel: " + window.getSelection().getRangeAt(0).toString())
+    //console.log("sel: " + window.getSelection().getRangeAt(0).toString()) //this print statement cause a weird bug for certaon large selections.
     if (!window.getSelection().isCollapsed) { //got sel in doc or output pane
         return window.getSelection().getRangeAt(0).toString()
     }
@@ -343,7 +343,8 @@ Editor.restore_selection_from_map = function(){
 }
 
 Editor.open = function(){
-    const path = choose_file(show_dialog_options={title: "Choose a file to edit"})
+    const path = choose_file({title: "Choose a file to edit", properties: ['openFile']})
+       //note that no title is shown, at least on a mac.
     if (path){
         //const content = file_content(path)
         //Editor.set_javascript(content)

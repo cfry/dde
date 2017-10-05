@@ -765,12 +765,12 @@ Plays an electronic sound.<br/>
     Other options are: "sine", "square", "sawtooth".<br/>
 <b>callback</b> A function of no arguments that is called when the beep finishes playing.
                Default: null, meaning do nothing.<br/>
-<i>Example</i>: <pre><code>
-beep({dur: 0.5,
+<i>Example</i>: <pre><code title="not in TestSuite">
+beep({dur: 0.125,
       frequency: 440,
       volume: 1,
       waveform: "triangle",
-      callback: function(){beep({frequency: 493.88})}
+      callback: function(){beep({dur: 0.125, frequency: 493.88})}
      })
 </code></pre>
 </details>
@@ -781,7 +781,7 @@ Beeps the indicated number of times with the default <code>beep</code> settings.
     <b>times</b> An integer indicated the number of times to beep. Default: 1.<br/>
     <b>callback</b> A function of no arguments that is called when beeps finishes playing.
     Default: null, meaning do nothing.<br/>
-    <i>Example</i>: <pre><code>beeps(2,
+    <i>Example</i>: <pre><code title="not in TestSuite">beeps(2,
       function(){
         speak({speak_data: "Second Floor, home robots"})
       })

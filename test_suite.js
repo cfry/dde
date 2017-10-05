@@ -227,7 +227,7 @@ var TestSuite = class TestSuite{
     static run_all(){
         load_files(__dirname + "/music/note_testsuite.js")
         load_files(__dirname + "/music/phrase_testsuite.js")
-        if (!TestSuite["user_guide_id"]) { TestSuite.make_test_suites_from_doc(user_guide_id) }
+        if (!TestSuite["user_guide_id"])       { TestSuite.make_test_suites_from_doc(user_guide_id) }
         if (!TestSuite["reference_manual_id"]) { TestSuite.make_test_suites_from_doc(reference_manual_id) }
         var reports = "<b style='font-size:20px;'>All Test Suites Report</b><br/>"
         let start_time = Date.now()
