@@ -172,7 +172,7 @@ var Kin = new function(){
         
         //Calculates all vectors first
         P[0] = P0
-		P[1] = Vector.rotate(P[0], V10, J[0]-180)
+		P[1] = Vector.rotate(P[0], V10, -(J[0]-180))
         V21 = Vector.rotate(V10, P[1], J[1])
         V32 = Vector.rotate(V21, P[1], J[2])
         V43 = Vector.rotate(V32, P[1], J[3])
@@ -909,13 +909,37 @@ debugger
 var myJangles = Kin.xyz_to_J_angles(point_1, [0, 1, -1], Dexter.RIGHT_DOWN_OUT)
 */
 
+
+/*
+var point_1 = [.1, .2, .3]
+var myJangles = Kin.xyz_to_J_angles(point_1, [0, 1, -1], Dexter.RIGHT_DOWN_OUT)
+var myPoints = Kin.J_angles_to_xyz(myJangles)
+myPoints[0]
+point_1
+
+*/
+
+
+
+
+
+/*
+//Old broken code:
 new TestSuite("Inverse to Forward Kinematics and Back",
     ["var point_1 = [.1, .2, .3]"],
 	["var myJangles = Kin.xyz_to_J_angles(point_1, [0, 1, -1], Dexter.RIGHT_DOWN_OUT)"],
 	["var myPoints = Kin.J_angles_to_xyz(myJangles)"],
     ["myPoints[0]"],
 	["point_1"]
+)*/
+
+new TestSuite("Inverse to Forward Kinematics and Back",
+    ["var xyz_before = [.1, .2, .3]", "undefined"],
+    ["var Jangles = Kin.xyz_to_J_angles(xyz_before, [0, 0, -1])", "undefined"],
+    ["var xyz_after = Kin.J_angles_to_xyz(Jangles)", "undefined"],
+    ["Vector.is_equal(xyz_before, xyz_after[0])", "true"],
 )
+
 
 new TestSuite("Checking xyz",
     ["Kin.check_J_ranges([0, 0, 0, 0, 0])", "true"],
