@@ -1,8 +1,8 @@
 {
   "name": "dexter_dev_env",
   "productName": "dexter_dev_env",
-  "version": "2.1.5",
-  "release_date": "Oct 5, 2017",
+  "version": "2.1.6",
+  "release_date": "Oct 6, 2017",
   "description": "Dexter Development Environment",
   "author": "Fry",
   "license": "GPL-3.0",

@@ -279,6 +279,7 @@ function inspect_one_liner(item, stack_number, in_stack_position, prop_name){
     else if (the_type == "string")     {
         //return JSON.stringify(item)
         //var quoting_char = '"'
+        let str_length = item.length
         item = replace_substrings(item, "\n", "<br/>")
         var pos_of_br = item.indexOf("<br/>")
         if (pos_of_br != -1) {
@@ -286,7 +287,7 @@ function inspect_one_liner(item, stack_number, in_stack_position, prop_name){
             var body       = item.substring(pos_of_br + 5)
             body   = "<div style='display:inline-block;margin-left:17px;'>" + body + "</div>" //to indent by teh twist triangle
             result = "<details style='display:inline-block;'><summary>" +
-                      "<i>String of " + item.length + "</i>: " +
+                      "<i>String of " + str_length + "</i>: " +
                       first_part + "</summary>" + body + "</details>"
             return result
         }

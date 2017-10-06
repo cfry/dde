@@ -373,7 +373,7 @@ Instruction.Control.human_enter_choice = class human_enter_choice extends Instru
             }
         }
         if (this.title === undefined){
-            this.title = "Job: " + job_instance.name + ", Human Task"
+            this.title = "Job: " + job_instance.name + ", Human Enter Choice"
             if (job_instance.robot instanceof Human){
                 this.title = job_instance.name + " task for: " +  job_instance.robot.name
             }
@@ -737,7 +737,7 @@ Instruction.Control.human_enter_number = class human_enter_number extends Instru
         if (this.add_stop_button) { buttons += '<input type="submit" value="Stop this & dependent jobs"/>' }
         buttons += '</center>'
         if (this.title === undefined){
-            this.title = "Job: " + job_instance.name + ", Human Task"
+            this.title = "Job: " + job_instance.name + ", Human Enter Number"
             if (job_instance.robot instanceof Human){
                 this.title = job_instance.name + " task for: " +  job_instance.robot.name
             }
@@ -826,7 +826,7 @@ Instruction.Control.human_enter_text = class human_enter_text extends Instructio
         if (this.add_stop_button) buttons += '<input type="submit" value="Stop this & dependent jobs"/>'
         buttons += '</center>'
         if (this.title === undefined){
-            this.title = "Job: " + job_instance.name + ", Human Task"
+            this.title = "Job: " + job_instance.name + ", Human Enter Text"
             if (job_instance.robot instanceof Human){
                 this.title = job_instance.name + " task for: " +  job_instance.robot.name
             }

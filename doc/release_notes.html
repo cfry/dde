@@ -5,6 +5,17 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 2.1.6, Oct 6, 2017</summary>
+  Highlights: WARNING: Bug fix in Kin may break existing code.
+<ul><li>Kin.forward_kinematics() and Kin.J_angles_to_xyz()
+        no longer return a negative value for the first joint.
+    </li>
+    <li>Fixed string length computation in inspector for strings that have newlines in them.</li>
+
+    <li>Default titles for Human.enter_choice, Human.enter_number and Human,enter_text fixed to
+    reflect the type of data to be entered.</li>
+</ul>
+</details>
 <details class="doc_details"><summary>v 2.1.5, Oct 5, 2017</summary>
 Highlights: Fixed Eval button bug.
 <ul><li>Fixed bug in clicking the eval button with no selection. It now
