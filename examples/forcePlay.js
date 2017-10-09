@@ -1,3 +1,4 @@
+// This job requires DDE version 1.1.9 and will NOT function in 2.x.x
 
 persistent_get(
 	"Directory", 
