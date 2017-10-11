@@ -264,7 +264,7 @@ window.show_window_values = show_window_values
 window.show_window = function({content = "", title = "DDE Information", width = 400, height = 400, x = 200, y = 200,
                         background_color = "rgb(238, 238, 238)",
                         is_modal = false, show_close_button = true, show_collapse_button = true,
-                        trim_strings = true, callback = show_window_values} = {}){
+                        trim_strings = true, window_class, callback = show_window_values} = {}){
       //callback should be a string of the fn name or anonymous source.
        if ((arguments.length > 0) && (typeof(arguments[0]) == "string")){
          var content = arguments[0] //all the rest of the args will be bound to their defaults by the js calling method.
@@ -317,7 +317,7 @@ window.show_window = function({content = "", title = "DDE Information", width = 
             closeAnimationDuration: 500, //doesn't work. its always 0
             collapseAnimationDuration:500,
             maxHeight: 2000, maxWidth: 2000}) //default maxWidth = 800, default maxHeight=600
-        //if (content_or_obj.window_class){jqxw_jq.addClass(content_or_obj.window_class)} //class isn't used by DDE (apr 2016) and I don't document it so cut it out, at least  for now.
+        if (window_class){jqxw_jq.addClass(window_class)} //used by app_builder
         let the_window_index = set_window_index(jqxw_jq)
         jqxw_jq.on('close', function (event) { jqxw_jq.remove() }); //handles both the removal from a submit button AND the removal from usre hitting the upper right close box.
         //jqxw_jq.find(".jqx-window-content").css("background-color", "#eeeeee")

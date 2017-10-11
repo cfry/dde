@@ -151,15 +151,14 @@ new TestSuite("obj_sys_normal_keys",
 )
 
 new TestSuite("obj_sys_sourceCode",
-	['out("obj_sys_sourceCode")'],
-	["Root.sourceCode()", '"Root"'],
-	['newObject({name:"testpart", color: "white", weight:1, finished:true})'],
-	['newObject({prototype:Root.testpart, name:"bolt", color:"gray", diameter:4})'],
-	['newObject({prototype:Root.testpart.bolt, name:"smallbolt", diameter:2, color:undefined})'],
-	['eval("newObject(" + Root.testpart.bolt.smallbolt.sourceCode() + ")")', "Root.testpart.bolt.smallbolt"],
-	["Root.testpart.bolt.smallbolt.sourceCode()",
-		'`{prototype: Root.testpart.bolt,\n name: "smallbolt",\n diameter: 2,\n color: undefined,\n prototype: Root.testpart.bolt}\n`'
-	]
+    ["Root.sourceCode()", '"Root"'],
+    ['newObject({name:"testpart", color: "white", weight:1, finished:true})'],
+    ['newObject({prototype:Root.testpart, name:"bolt", color:"gray", diameter:4})'],
+    ['newObject({prototype:Root.testpart.bolt, name:"smallbolt", diameter:2, color:undefined})'],
+    ['eval(Root.testpart.bolt.smallbolt.sourceCode())', "Root.testpart.bolt.smallbolt"],
+    ["Root.testpart.bolt.smallbolt.sourceCode()",
+        '`newObject({\n  prototype: Root.testpart.bolt,\n  name: "smallbolt",\n  diameter: 2,\n  color: undefined\n})\nRoot.testpart.bolt.smallbolt`'
+    ]
 )
 
 new TestSuite("obj_sys_js_fns_on_new_objects",

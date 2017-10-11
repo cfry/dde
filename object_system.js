@@ -417,28 +417,99 @@ Root.toString = function(){
 }
 
 // the printer!
+// print_this=true, kid_levels="all" or non-neg-int, last_level_format="path"/"full"
+/*hier arch printer, fails with refs up  tree
 Object.defineProperty(Object.prototype, 'sourceCode',{
-    value : function(print_object_values_as_strings = true){
+    value : function(print_object_values_as_strings=true, indent="  "){
         if (this == Root) { return "Root" }
         else {
             let proto = Object.getPrototypeOf(this)
             if (!proto) { throw new Error("Object.sourceCode passed this with no prototype: " + stringify_value(this))}
             else {
                 let prop_names     = Object.getOwnPropertyNames(this)
-                let has_props      = prop_names.length != 0
+                let proto_index    = prop_names.indexOf("prototype")
+                proto_prop = prop_names.splice(proto_index, 1)
+                prop_names = proto_prop.concat(prop_names) //move prototype to begin of list.
+                let has_props      = prop_names.length != 0 //since newobjects will always have a prototype, I think this will always be true
                 let last_prop_name = (has_props? prop_names[prop_names.length - 1] : undefined)
-                let result = "{prototype: " + proto.objectPath() + (has_props ? ",\n " : "}\n")
+                let result = "newObject({\n"
                 for(let prop_name of prop_names){
+                   // let prefix
+                   // if (prop_name == "prototype") { prefix = "{"}
+                   // else                          { prefix = " "}
                     let val = this[prop_name]
                     let val_string
                     if (Object.isNewObject(val)){
-                        if (print_object_values_as_strings) { val_string = val.objectPath() }
+                        if (print_object_values_as_strings || (prop_name == "prototype")) { val_string = val.objectPath() }
                         else {
-                            val_string = val.sourceCode(false)
+                            val_string = val.sourceCode(false, indent + "  ")
                         }
                     }
                     else { val_string = stringify_value_sans_html(val) }
-                    result += prop_name + ": " + val_string + ((prop_name == last_prop_name)? "}\n" : ",\n ")
+                    result += indent + prop_name + ": " + val_string + ((prop_name == last_prop_name)?
+                                                                           "\n" +
+                                                                           indent +
+                                                                           "})" : ",\n")
+                }
+                return result
+            }
+        }
+    } ,
+    enumerable : false
+})
+*/
+//flat list of obj def printer.
+Object.defineProperty(Object.prototype, 'sourceCode',{
+    value : function({include_this=true, include_subobjects=true, indent="", at_top_level=true}={}){
+        if (this == Root) { return "Root" }
+        else {
+            let proto = Object.getPrototypeOf(this)
+            if (!proto) { throw new Error("Object.sourceCode passed this with no prototype: " + stringify_value(this))}
+            else {
+                let prop_names     = Object.getOwnPropertyNames(this)
+                let sub_objs = []
+                let non_subobject_prop_names = ["prototype"]
+                for(let prop_name of prop_names){
+                    let val = this[prop_name]
+                    if (prop_name === "prototype") {} //already is first in non_subobject_prop_names
+                    else if(val && val.isSubObject(this)) { sub_objs.push(val) } //needed to check that val is not undefined in order for val.isSubject to be found
+                    else { non_subobject_prop_names.push(prop_name) }
+                }
+                let result = ""
+                if(include_this){
+                    result = indent + "newObject({\n"
+                    indent += "  "
+                    for(let prop_name of non_subobject_prop_names){
+                        let val = this[prop_name]
+                        let val_string
+                        if (Object.isNewObject(val)){ //whether its the prototype or some other random, non-subobject, just print its path
+                            if (this.hasOwnProperty("name")) { //hits for prototype and possibly others, but no subobjects will even be tried here
+                                val_string = val.objectPath()
+                            }
+                            else { val_string = val.sourceCode({include_this: true, include_subobjects: true, indent: indent + "  ", at_top_level: false}) }
+                        }
+                        else { val_string = stringify_value_sans_html(val) }
+                        result += indent + prop_name + ": " + val_string + ((prop_name == last(non_subobject_prop_names))?
+                            "\n" +
+                            indent.substring(2) +
+                            "})\n" : ",\n")
+                    }
+                }
+                //all non-subojects printed, so the only thing left in this to print are subojects, if any
+                if (include_subobjects){
+                    for (let sub_ob of sub_objs){
+                        result += sub_ob.sourceCode({include_this: true, include_subobjects: true, indent: indent, at_top_level: false})
+                    }
+                }
+                if (at_top_level) {
+                    if (include_this){
+                        if(include_subobjects) { result += this.objectPath() }
+                        else {} //only printing this, just leave the object src as is
+                    }
+                    else {
+                        if(include_subobjects) { result = "[" + result + "]" }
+                        else {}  //result is empty string so just leave it.
+                    }
                 }
                 return result
             }

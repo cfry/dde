@@ -3831,8 +3831,8 @@ if you want to get multiple values in one dialog, using this
 instruction is the way to go.
 <p></p>
 <i>Parameters:</i><br/>
-The vast majority of the parameters to the show_window instrution are the same
-as to the show_window instruction. Here we only document differences.<br/>
+The vast majority of the parameters to the show_window instruction are the same
+as to the show_window function. Here we only document differences.<br/>
 <b>callback</b> Very similar to the function-equivalent except that
 when it is called, <code title="unEVALable JS fragment">this</code> is bound
 to the job that the instruction is in. You can use this to, for instance, stop the job,
@@ -4345,7 +4345,7 @@ The primary relationship between objects in DDE's object system
 is the prototype relationship. An object inherits properties from
 its prototype. If you want an object to have  a different value
 for a particular property than its prototype object does,
-ust create a property in the object, and that will effectiely
+just create a property in the object, and that will effectiely
 "shadow" the prototype value and use the "local" value in the object
 for that property. 
 <p></p>
@@ -4469,10 +4469,30 @@ will result in the object.
 
 <details id="sourceCode_doc_id" class="doc_details"><summary>sourceCode</summary>
 Returns a string of source code for <code>this</code>.
-Evaluating the returned string will return a copy of <code>this</code>.
+Using the default values for the args,
+evaluating the returned string will return a copy of <code>this</code>, but see below.<br/><br/>
+<i>Parameters:</i> (All keywords.)<br/>
+<b>include_this</b> A boolean. Default: <code>true</code>.
+   If <code>true</code>, prints all the properties
+   of <code title="unEVALable">this</code> other than the subobjects.
+   For any remaining property values that are newObjects,
+   if they have names, they are printed as their full paths.
+   If they don't have names, the full source of the object is printed.<br/>
+<b>include_subobjects</b> A boolean. Default: <code>true</code>.
+   If <code>true</code>, prints the subojects of <code title="unEVALable">this</code>,
+   all the way down.<br/>
+   <br/>
 <i>Example:</i><br/>
-    <code>newObject({name: "junk"}).sourceCode()</code> =>
-    <samp>"{prototype: Root,\n name: \"junk\",\n prototype: Root}\n"</samp>
+    <code>newObject({name: "junk", weight: 123}).sourceCode()</code> =>
+    <pre><samp>"newObject({
+  prototype: Root,
+  name: "junk",
+  weight: 123
+})"</samp></pre>
+If both include_this and include_subojects are <code>false</code>, the empty string will be returned.<br/>
+If only include_this is false, the returned source, when evaled, will return
+an array of the subobjects.<br/>
+If include_this is true, the returned source, when evaled, will return a copy of this.
 </details>
 </details> <!-- new ob sys methods -->
 
@@ -4764,7 +4784,7 @@ document.addEventListener("click", function(e){
     </details>
 
         <details id="show_window_doc_id" class="doc_details"><summary>show_window</summary>
-        A call to <code>show_window</code> creates a dialog box using HTML and JavaScript.
+        A call to <code>show_window</code> creates a dialog box using HTML and JavaScript.<br/>
         <i>Parameters</i><br/>
         <b>title</b> A string of the HTML displayed in the window's title bar. Default: "DDE Information"<br/>
         <b>width</b> The number of pixels wide that the window will be. Default: 400.
@@ -4775,7 +4795,18 @@ document.addEventListener("click", function(e){
         Default: 200 . Minimum: 0 positions window at left of DDE window.<br/>
         <b>y</b> The number of pixels that the top edge of the window will be from the top edge of the DDE window.
         Default: 200. Minimum: 0 positions window at top of the DDE window.<br/>
-        <b>content</b> HTML to be rendered in the body of the window. input tags with
+        <b>is_modal</b> A boolean. Default: <code>false</code>
+         If <code>true</code>, prevents you from interacting with other windows.<br/>
+        <b>show_close_button</b> A boolean. Default: <code>true</code>.
+           Show or hide the "X" in the upper right of the window's title bar.<br/>
+        <b>show_collapse_button</b> A boolean. Default: <code>true</code>.
+         Allow quick shrink of window with a triangle icon near the upper right of the window's title bar.<br/>
+        <b>trim_strings</b> A boolean. Default: <code>true</code>.
+         Remove whitespace from beginning and end of values from inputs of type text and texareas.<br/>
+        <b>background_color</b> Default: <code>"rgb(238, 238, 238)"</code> (gray).
+          A string representing a color. Symbolic names like "ivory" can be used as well as
+          Hexidecimal values like <code>"#EEAAEE"</code> (magenta).<br/>
+        <b>content</b> HTML to be rendered in the body of the window. Input tags with
         <code title="unEVALable code fragment"> type</code>
         attributes of <code title="unEVALable code fragment"> button</code> and
         <code title="unEVALable code fragment"> submit</code> will cause the window's

@@ -491,9 +491,9 @@ ab.show_window = function (vals){
     var handle_fn_code = ab.code_for_handle_fn(vals)
     var end_main_fn_code = dex.code_to_finish_window(vals)
     var win_name = vals.window_name
+    Editor.close_app_builder_temp_windows() //might be none open which is ok
     if (ab.input_names.length == 0){
         //out("You haven't declared any window parts yet so there's nothing to show.")
-        Editor.close_app_builder_temp_windows() //might be none open which is ok
         var start_main_fn_code = "function " + win_name + "(){" +
             "show_window({window_class:'app_builder_temp_window', content:`"
         var the_call = win_name + "()"
@@ -753,8 +753,8 @@ ab.launch = function(){ //happens in ui env, called from Insert menu item when u
            'Build Window</span>',
     width:480,
     height:590,
-    x:540, //x and y positioned so that if you shrink this window, it will as much as pssible not occlude the most useful DDE info.
-    y:80,
+    x:620, //x and y positioned so that if you shrink this window, it will as much as pssible not occlude the most useful DDE info.
+    y:40,
     callback: handle_ab //"handle_ab"
 })
     setTimeout(function(){ab.post_creation_window_init()}, 100) //needed to init the combo box for actions

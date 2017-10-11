@@ -5,6 +5,48 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 2.1.8, Oct 10, 2017</summary>
+Highlights: Improvements to newObject.sourceCode().<br/>
+           Many minor improvements to show_window.<br/>
+           New Learn JS submenu: User Interaction.
+
+<ul><li> newObject sourceCode method: fixed and extended.
+         See Ref Man/Object System/New Object System Methods/sourceCode</li>
+
+    <li> Updated newObject.sourceCode test suite</li>
+
+    <li> New LearnJS submenu "User Interaction" containing insertions for:
+        <ul><li>alert</li>
+            <li>confirm</li>
+            <li>prompt</li>
+        </ul>
+    </li>
+
+    <li> show_window example "many inputs" now calls "inspect" instead of "out"
+        so you can see ALL the passed in values.</li>
+
+    <li> show_window examples: Now commented at the top to say what example it is
+        so that the inserted src corresponds to the menu item you chose.</li>
+
+    <li> Insert menu/show_window/Build Window
+         Moved the 2 windows so they don't overlap.
+         Previous versions of the window being built are now closed when
+          the most recent change is made.</li>
+
+    <li> show_window documentation now documents:
+          <ul><li>is_modal</li>
+              <li>show_close_button</li>
+              <li>show_collapse_button</li>
+              <li>trim_strings</li>
+              <li>background_color</li>
+           </ul>
+    </li>
+
+    <li>show_window Insert menu/onchange call: improved the callback to show the name
+        of the widget and its new value.</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 2.1.6, Oct 6, 2017</summary>
   Highlights: WARNING: Bug fix in Kin may break existing code.
 <ul><li>Kin.forward_kinematics() and Kin.J_angles_to_xyz()

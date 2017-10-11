@@ -265,6 +265,11 @@ function foo(a, b){ //define function foo with 2 args
 foo("hello", [7, 10, 20, -3.2]) //call function foo with 2 args
                                 //a string and an array of numbers.
 `)}
+
+    alert_id.onclick   = function(){Editor.wrap_around_selection("alert(", ')',        '"Hi."')}
+    confirm_id.onclick = function(){Editor.wrap_around_selection("confirm(", ')',      '"Do it?"')}
+    prompt_id.onclick  = function(){Editor.wrap_around_selection("prompt(", ', "$1")', '"Price?"')}
+
     out_black_id.onclick =function(){Editor.wrap_around_selection("out(", ')', '"Hello"')}
     out_purple_id.onclick=function(){Editor.wrap_around_selection("out(", ', "blue")', '"Hello"')}
     out_brown_id.onclick =function(){Editor.wrap_around_selection("out(", ', "rgb(255, 100, 0)")', '"Hello"')}
@@ -279,12 +284,14 @@ foo("hello", [7, 10, 20, -3.2]) //call function foo with 2 args
    show_window_help_id.onclick = function(){open_doc(show_window_doc_id)}
 
     window_simple_message_id.onclick=function(){Editor.insert(
-`//Pop up a window with content of the given HTML.
+`//show_window simple message
+//Pop up a window with content of the given HTML.
 show_window("hi <i style='font-size:100px;'>wizard</i>")
 `
 )}
     insert_color_id.onclick = insert_color
-window_options_id.onclick=function(){Editor.insert('show_window({\n' +
+window_options_id.onclick=function(){Editor.insert('//show_window  Window Options\n' +
+                                                     'show_window({\n' +
                                                               '    content: "hi",      // Any HTML OK here.\n' +
                                                               '    title: "Greetings", // Appears above the content. Any HTML OK.\n' +
                                                               '    width: 150, // 100 to window.outerWidth\n' +
@@ -298,7 +305,8 @@ window_options_id.onclick=function(){Editor.insert('show_window({\n' +
                                                               '    background_color: "ivory"   // Default is "rgb(238, 238, 238)" (light gray). White is "rgb(255, 255, 255)"\n' +
                                                               '})\n')}
     window_buttons_id.onclick=function(){Editor.insert(
-`//Called when a button is clicked in the shown window.
+`//show_window  Buttons  
+//Called when a button is clicked in the shown window.
 function count_up(vals){ //vals contains name-value pairs for each
                          //html elt in show_window's content with a name.
     if(vals.clicked_button_value == "Count"){ // Clicked button value holds the name of the clicked button.
@@ -344,7 +352,8 @@ function count_up(vals){ //vals contains name-value pairs for each
 <input type="submit" value="Done"/>`
 
     window_menu_id.onclick=function(){Editor.insert(
-`//Called whenever user chooses a menu item or clicks a button.
+`//show_winow   Menu example
+//Called whenever user chooses a menu item or clicks a button.
 function menu_choice_cb(vals){
             if (vals.clicked_button_value != "Done"){ // True when menu item chosen.
                 var clicked_item = vals.clicked_button_value
@@ -359,8 +368,9 @@ show_window({content: ` + "`" + show_window_menu_body + "`," +
 `)}
 
     window_many_inputs_id.onclick=function(){Editor.insert(
-`//Called only when a button is clicked.
-function show_vals(vals){out(vals, "black", true)}
+`//show_window   Many Inputs
+//Called only when a button is clicked.
+function show_vals(vals){ inspect(vals) }
 
 show_window(
     {content:\n` +
@@ -395,7 +405,8 @@ submit: <input type="submit" value="OK"/>` + "`" +
 
 //______window_onchange_____________________
     var window_onchange_top_comments =
-`/* In most uses of show_window, its callback is called only
+`/* show_window   onchange calls
+   In most uses of show_window, its callback is called only
    when an input of type 'submit' or 'button' is clicked. 
    But you CAN have the callback called whenever the value
    of an input element changes. 
@@ -451,7 +462,8 @@ submit: <input type="submit" value="OK"/>` + "`" +
     window_onchange_id.onclick = function(){Editor.insert(
         window_onchange_top_comments +
 `function the_cb(vals){ //vals contains name-value pairs for each input
- out(vals)
+     out(vals.clicked_button_value + " = " +
+         vals[vals.clicked_button_value])
 }
 show_window({content:
 `       + "`" +
