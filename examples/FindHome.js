@@ -1,5 +1,6 @@
-//Requires DDE 1.1.9?
 //Finds home position after plugging the arm into a 3D printed fixture attached to one toe.
+//Requires DDE 1.1.9
+if(dde_version > "1.1.9"){dde_error("This file requires DDE version " + "1.1.9" +". You are running version " + dde_version + ".")}
 
 var my_dexter_ip = "192.168.1.142"
 
