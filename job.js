@@ -1,6 +1,13 @@
 /**Created by Fry on 2/5/16. */
 var esprima = require('esprima')
 
+//used by Job.prototype.to_source_code. Keep in sync with Job.constructor!
+var job_default_params = {name: null, robot: Robot.dexter0, do_list: [],
+                          keep_history: true, show_instructions: true,
+                          inter_do_item_dur: 0.01, user_data:{},
+                          program_counter:0, ending_program_counter:"end",
+                          initial_instruction: null, when_stopped: "stop"}
+
 var Job = class Job{
     constructor({name=null, robot=Robot.dexter0, do_list=[], keep_history=true, show_instructions=true,
                  inter_do_item_dur = 0.01, user_data={}, program_counter=0, ending_program_counter="end",
@@ -1074,7 +1081,7 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
 
             if (have_item_to_insert) {
                 if (!next_obj.done) { //we must insert the cur_do_item
-                    if (Instruction.is_instructions_array(do_items)) { do_items = [do_items, cur_do_item] }
+                    if (Instruction.is_instruction_array(do_items)) { do_items = [do_items, cur_do_item] }
                     else if (Array.isArray(do_items)) {
                         do_items = do_items.slice(0) //copy the do_items just in case user is hanging on to that array, we don't want to mung it.
                         do_items.push(cur_do_item)
@@ -1771,9 +1778,9 @@ Job.insert_instruction = function(instruction, location){
                 //inserted instruction will make it in to the do_list.
         }
         else { job_instance.do_list.splice(index, 0, instruction)
-               if(index > 0) { //unlike the istance method cousins of this static method,
+               if(index > 0) { //unlike the instance method cousins of this static method,
                     //this meth must do the added_items_count increment because
-                    //the caler of this meth doesn't know the index of the instr to increment
+                    //the caller of this meth doesn't know the index of the instr to increment
                     //the added_items_count of.
                     job_instance.added_items_count[this.program_counter] += 1
                }
@@ -1813,6 +1820,50 @@ Job.is_plausible_when_stopped_value = function(val){
             Job.is_plausible_instruction_location(val)
             )
 }
+
+Job.prototype.to_source_code = function(args={}){
+    if(!args.indent) { args.indent = "" }
+    let props_indent = args.indent + "         "
+    let result = 'new Job({name: "' + this.name + '",\n'
+    if (this.robot !== Robot.dexter0){
+        result += props_indent + 'robot: '  + this.robot.to_path() + ',\n'
+    }
+    let prop_names = ["keep_history", "show_instructions",
+                       "inter_do_item_dur", "program_counter",
+                       "ending_program_counter",
+                       "when_stopped",
+                       "initial_instruction",
+                       "user_data"]
+    let props_container = ((args.orig_args || !this.do_list) ? this.orig_args : this)
+
+    for(let prop_name of prop_names){ //if job has never been run, do_list will be undefined,
+                                      //in which case use orig_args even if orig_args arg is false
+       let prop_val = props_container[prop_name]
+       if (!similar(prop_val, job_default_params[prop_name])){ //I could *almost* use == instead pf similar but doesn't work for user_data of an empty lit obj
+            let args = jQuery.extend({}, args)
+            args.value = prop_val
+            let comma = ","
+            //if (prop_name == last(prop_names)) { comma = "" }
+            result += props_indent + prop_name + ": " + to_source_code(args) + comma + "\n"
+       }
+    }
+    result += props_indent + "do_list: ["
+    let do_list_val = props_container.do_list
+    let on_first = true
+    for(let i = 0; i < do_list_val.length; i++){
+       let on_last = (i == do_list_val.length - 1)
+       let args = jQuery.extend({}, arguments[0])
+       args.value = do_list_val[i]
+       args.indent = (on_first ? "" : props_indent + "          ")
+       let instr_src = to_source_code(args)
+       result += instr_src + (on_last ? "" : ",") + "\n"
+       on_first = false
+    }
+    result += props_indent + "         " + "]\n" + args.indent + "})"
+    return result
+}
+
+
 
 
 

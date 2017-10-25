@@ -66,7 +66,7 @@ Editor.init_editor = function(){
     replace_id.onclick     = function(){CodeMirror.commands.replace(myCodeMirror)} //allows user to also replace all.
     fold_all_id.onclick    = function(){CodeMirror.commands.foldAll(myCodeMirror)}
     unfold_all_id.onclick  = function(){CodeMirror.commands.unfoldAll(myCodeMirror)}
-    select_call_id.onclick = function(){Editor.select_call()}
+    select_expr_id.onclick = function(){Editor.select_expr()}
     select_all_id.onclick  = function(){CodeMirror.commands.selectAll(myCodeMirror); myCodeMirror.focus()}
     set_menu_string(select_all_id, "Select All", "a")
 
@@ -75,7 +75,7 @@ Editor.init_editor = function(){
                          if(mouse_event.altKey) {
                              var line_char = myCodeMirror.coordsChar({left: mouse_event.x, top: mouse_event.y})
                              myCodeMirror.getDoc().setCursor(line_char)
-                             if (Editor.select_call()){
+                             if (Editor.select_expr()){
                                  mouse_event.preventDefault()
                              }
                          }
@@ -714,11 +714,87 @@ Editor.in_a_comment = function(src, pos){
     }
 }
 
+Editor.select_expr = function(full_src = Editor.get_javascript(), cursor_pos = Editor.selection_start()){
+    let start_and_end = Editor.find_expr(full_src, cursor_pos)
+    if (start_and_end) {
+        Editor.select_javascript(start_and_end[0], start_and_end[1])
+    }
+    return start_and_end
+}
+
+Editor.find_expr = function(full_src = Editor.get_javascript(), cursor_pos = Editor.selection_start()){
+    let start_and_end = Editor.select_call(full_src, cursor_pos)
+    if (start_and_end &&
+        (start_and_end[0] <= cursor_pos) &&
+        (start_and_end[1] >= cursor_pos)) { return start_and_end }
+    let identifier_bounds = Editor.bounds_of_identifier(full_src, cursor_pos)
+    if (identifier_bounds){ return identifier_bounds }
+    let expr_bounds = Editor.find_delimited_expr(full_src, cursor_pos)
+    if(expr_bounds) { return expr_bounds }
+    expr_bounds = Editor.find_literal_string(full_src, cursor_pos)
+    if(expr_bounds) { return expr_bounds }
+    return null
+}
+
+//parens, square brakets, curley brace
+Editor.find_delimited_expr = function(full_src, cursor_pos){
+    let char = full_src[cursor_pos]
+    let char_pos = cursor_pos
+    if (!Editor.is_delimiter(char) && (cursor_pos >= 0)) {
+        char_pos = cursor_pos - 1
+        char = full_src[char_pos]
+    }
+    if (!Editor.is_delimiter(char) && (cursor_pos < (full_src.length - 1))) {
+        char_pos = cursor_pos + 1
+        char = full_src[char_pos]
+    }
+    if (Editor.is_delimiter(char)){
+        let delim_pos = Editor.find_matching_delimiter(full_src, char_pos)
+        return [Math.min(char_pos, delim_pos), Math.max(char_pos, delim_pos)]
+    }
+    else { return null }
+}
+
+Editor.find_literal_string = function(full_src, cursor_pos){
+    let char = full_src[cursor_pos]
+    let char_pos = cursor_pos
+    if (!Editor.is_quote(char) && (cursor_pos >= 0)) {
+        char_pos = cursor_pos - 1
+        char = full_src[char_pos]
+    }
+    if (!Editor.is_quote(char) && (cursor_pos < (full_src.length - 1))) {
+        char_pos = cursor_pos + 1
+        char = full_src[char_pos]
+    }
+    if (Editor.is_quote(char)){
+        let forward_pos          = Editor.find_forwards(full_src,  char_pos + 1, char)
+        let backward_pos         = Editor.find_backwards(full_src, char_pos - 1, char)
+        let forward_newline_pos  = Editor.find_forwards(full_src,  char_pos + 1, "\n")
+        let backward_newline_pos = Editor.find_backwards(full_src, char_pos - 1, "\n")
+        if ((char == "'") || (char == '"')){
+            if (forward_newline_pos < forward_pos)   { forward_pos  = null } //forward can't work
+            if (backward_newline_pos > backward_pos) { backward_pos = null } //backward can't work
+        }
+        if(forward_pos || (forward_pos == 0)){
+            if (backward_pos || (backward_pos == 0)){ //both are possible
+                if ((forward_pos - char_pos) < (char_pos - backward_pos)){ //forward wins as its shorter distance to it
+                    return [char_pos, forward_pos + 1]
+                }
+                else { return [backward_pos, char_pos + 1] }
+            }
+            //only forward pos is in the running
+            else { return [char_pos,  forward_pos + 1] }
+        }
+        else if (backward_pos || (backward_pos == 0)) { return [backward_pos, char_pos + 1] }
+        else return null
+    }
+    else { return null }
+}
+
+
 //____________select_call______________
 //return true if found selection and false if doesn't.
-Editor.select_call = function(){
-    var full_src      = Editor.get_javascript()
-    var cursor_pos    = Editor.selection_start()
+Editor.select_call = function(full_src = Editor.get_javascript(), cursor_pos = Editor.selection_start()){
     var start_and_end = Editor.find_call_start_end_from_end(full_src, cursor_pos)
     if (!start_and_end){
         start_and_end = Editor.find_call_start_end_from_start(full_src, cursor_pos)
@@ -743,11 +819,9 @@ Editor.select_call = function(){
         start_and_end = Editor.find_comment(full_src, cursor_pos)
     }
     if (start_and_end){
-        Editor.select_javascript(start_and_end[0], start_and_end[1])
-        return true
+        return start_and_end
     }
-    return false
-
+    return null
 }
 
 Editor.find_comment = function(full_src, cursor_pos){
@@ -912,7 +986,7 @@ Editor.find_call_start_from_open_paren = function(full_src, cursor_pos){
 }
 
 Editor.find_call_start_end_from_start = function(full_src, cursor_pos){
-    var identifier_bounds = Editor.bounds_of_identifier(full_src, cursor_pos)
+    let identifier_bounds = Editor.bounds_of_identifier(full_src, cursor_pos)
     if (identifier_bounds){
         var identifier = full_src.substring(identifier_bounds[0], identifier_bounds[1])
         if (["catch", "else if", "function", "function*", "for", "if", "switch", "while"].includes(identifier)){
@@ -954,16 +1028,24 @@ Editor.find_call_start_end_from_start = function(full_src, cursor_pos){
                 }
             }
         }
-        else if (identifier == "var"){
-
+        else if ((identifier == "var") || (identifier == "let")){
+            let equal_sign_pos = Editor.find_forwards(full_src, cursor_pos, "=")
+                if (equal_sign_pos) {
+                    let pos_of_first_val_char = Editor.skip_forward_over_whitespace(full_src, equal_sign_pos + 1)
+                    if (pos_of_first_val_char) {
+                        let expr_start_end = Editor.find_expr(full_src, pos_of_first_val_char)
+                        if (expr_start_end) { return [identifier_bounds[0], expr_start_end[1]] }
+                    }
+                }
+            return null
         }
     }
     var open_pos = Editor.find_forward_open_delimiter(full_src, cursor_pos)
-    let end_comment_pos = null
+    let end_comment_pos = -1
     if (cursor_pos > 2) {
-        end_comment_pos = Editor.find_forwards(full_src, cursor_pos - 1)
+        end_comment_pos = Editor.find_forwards(full_src, cursor_pos - 1, "*/")
     }
-    if (end_comment_pos < open_pos) { return null } //sitauation is
+    if ((end_comment_pos > -1) && (end_comment_pos < open_pos)) { return null } //situation is
           //   /* foo |*/ function bar(){}
          //or  /* foo *|/ function bar(){}
          // or /* foo */| function bar(){} and we want to sel the comment, not function bar
@@ -1166,12 +1248,14 @@ Editor.find_forwards = function(full_src, cursor_pos, string_to_find){
 }
 
 Editor.skip_forward_over_whitespace = function(full_src, cursor_pos){
-   for (let pos = cursor_pos; i < full_src.length - cursor_pos; i++){
+   for (let pos = cursor_pos; pos < full_src.length; pos++){
        if (!is_whitespace(full_src[pos])) { return pos }
    }
    return full_src.length
 }
 
+//______literal stirngs ________
+Editor.is_quote = function(char){ return (`"'` + "`").includes(char) }
 
 // pos of the quote or null
 Editor.find_forwards_any_kind_of_quote = function(full_src, cursor_pos=0){

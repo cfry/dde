@@ -389,13 +389,6 @@ function load_files(...paths) {
             prefix = dde_apps_dir + "/"
         }
         else if (is_root_path(path)){  //path.startsWith("/")
-            // if (path.endsWith(".js")){ resolved_paths.push(path) } //don't modify prefix.
-            //this is undocumented for our users. It allows loading of a file
-            //that is in the electron_dde folder or maybe a full path to the dde_apps folder
-            //else {
-            //     dde_error("loading_file got path: " + path + ' which does not end in ".js"' +
-            //              "<br/>No files were loaded.")
-            // }
             if (path.endsWith("/")) { prefix = path }
             else { resolved_paths.push(path) }
         }
@@ -427,16 +420,23 @@ function load_files(...paths) {
         let resolved_path = resolved_paths[resolved_paths_index]
         let content = contents[resolved_paths_index]
         out("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;loading file: " + resolved_path, "green")
-        try{
+        try{let prev_loading_file =  window["loading_file"]
+            window["loading_file"] = resolved_path
             result = window.eval(content)
+            window["loading_file"] = prev_loading_file
         }
         catch(err){
-            let  out_string = "<details><summary><span style='color:red;'>\n" +
-                              "loading file: " + resolved_path +
-                              "<br/>\n&nbsp;&nbsp;&nbsp;&nbsp;got error: " + err.message + "</span></summary>" +
-                               replace_substrings(err.stack, "\n", "<br/>") + "</details>"
-            out(out_string)
-            throw new Error("dde_error: " + err.message)
+            let file_mess = prepend_file_message_maybe(err.message) //do before undefining loading_file
+            window["loading_file"] = undefined //must do before calling dde_error or
+                                               //it won't get done BUT need dde_error to print out the loading file message.
+            dde_error(file_mess)
+           // window["loading_file"] = undefined //never gets called. must to after calling dde_error
+            //let  out_string = "<details><summary><span style='color:red;'>\n" +
+            //                  "loading file: " + resolved_path +
+            //                  "<br/>\n&nbsp;&nbsp;&nbsp;&nbsp;got error: " + err.message + "</span></summary>" +
+            //                   replace_substrings(err.stack, "\n", "<br/>") + "</details>"
+            //out(out_string)
+            //throw new Error("dde_error: " + err.message)
         }
         out("Done loading file: " + resolved_path, "green")
     }

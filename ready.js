@@ -775,9 +775,8 @@ get_page_async("http://www.ibm.com", function(err, response, body){ out(body.len
     date_valueOf_id.onclick       = function(){Editor.insert('new Date().valueOf()')}
     date_toString_id.onclick      = function(){Editor.insert('new Date().toString()')}
     duration_hms_id.onclick       = function(){Editor.insert('new Duration("01:14:05")')}
-    duration_ms_id.onclick        = function(){Editor.insert('new Duration(3000)')}
     duration_hmsms_id.onclick     = function(){Editor.insert('new Duration(1, 2, 5, 10)')}
-    duration_get_ms_id.onclick    = function(){Editor.insert('new Duration(100).milliseconds')}
+    duration_get_ms_id.onclick    = function(){Editor.insert('new Duration(0, 0, 1, 500).milliseconds')}
       //Variables menu
     variable_examples_id.onclick = function(){Editor.insert('var foo = 5 //initialize variable\nfoo //evals to 5\nfoo = "2nd" + " " + "val" ///set existing variable to new value\nfoo //now evals to "2nd val"\n')}
     init_variable_id.onclick     = function(){Editor.insert('var foo = ')}
@@ -863,8 +862,10 @@ foo      //eval to see the latest values</pre>`,
     insert_job_example9_id.onclick = function(){Editor.insert(job_examples[9])}
     insert_job_example10_id.onclick = function(){Editor.insert(job_examples[10])}
     insert_job_example11_id.onclick = function(){Editor.insert(job_examples[11])}
+    insert_job_example12_id.onclick = function(){Editor.insert(job_examples[12])}
 
-    //RUN INSTRUCTION
+
+        //RUN INSTRUCTION
     move_to_home_id.onclick    = function(){ Robot.dexter0.move_all_joints_fn() }
     move_to_neutral_id.onclick = function(){ Robot.dexter0.move_all_joints_fn(Dexter.NEUTRAL_ANGLES) }
     move_to_parked_id.onclick  = function(){ Robot.dexter0.move_all_joints_fn(Dexter.PARKED_ANGLES) }
@@ -996,13 +997,22 @@ foo      //eval to see the latest values</pre>`,
 
     set_dde_window_size_to_persistent_values()
 
-    const val = persistent_get("save_on_eval")
+    let val = persistent_get("save_on_eval")
     if(val) { //have to do this because, unlike the DOM doc, chrome/electron checks the box if you set it to false.
         save_on_eval_id.setAttribute("checked", val)
     }
     save_on_eval_id.onclick = function(event) {
         let val = save_on_eval_id.checked
         persistent_set("save_on_eval", val)
+    }
+
+    val = persistent_get("default_out_code")
+    if(val) { //have to do this because, unlike the DOM doc, chrome/electron checks the box if you set it to false.
+        format_as_code_id.setAttribute("checked", val)
+    }
+        format_as_code_id.onclick = function(event) {
+        let val = format_as_code_id.checked
+        persistent_set("default_out_code", val)
     }
     dde_init_dot_js_initialize()//must occcur after persistent_initialize
 

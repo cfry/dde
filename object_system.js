@@ -483,7 +483,7 @@ Object.defineProperty(Object.prototype, 'sourceCode',{
                         let val = this[prop_name]
                         let val_string
                         if (Object.isNewObject(val)){ //whether its the prototype or some other random, non-subobject, just print its path
-                            if (this.hasOwnProperty("name")) { //hits for prototype and possibly others, but no subobjects will even be tried here
+                            if (val.hasOwnProperty("name")) { //hits for prototype and possibly others, but no subobjects will even be tried here
                                 val_string = val.objectPath()
                             }
                             else { val_string = val.sourceCode({include_this: true, include_subobjects: true, indent: indent + "  ", at_top_level: false}) }
@@ -503,7 +503,7 @@ Object.defineProperty(Object.prototype, 'sourceCode',{
                 }
                 if (at_top_level) {
                     if (include_this){
-                        if(include_subobjects) { result += this.objectPath() }
+                        if(include_subobjects && (sub_objs.length > 0)) { result = "[" + result + "\n][0]" } //wrap result in an array and return the first one a sthe result of evaling the source code returned.
                         else {} //only printing this, just leave the object src as is
                     }
                     else {

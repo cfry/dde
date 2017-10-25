@@ -215,7 +215,7 @@ Js_info = class Js_info {
                 }
                 else{
                     if(doc_id_elt) {
-                           return `<a href='#' onclick="open_doc('` + doc_id_string + `')">` + fn_name + "</a>" + stringify_value(val)
+                           return `<a href='#' onclick="open_doc('` + doc_id_string + `')">` + fn_name + "</a> = " + stringify_value(val)
                     }
                     else { return "<span style='color:blue;'>" + fn_name + "</span> = " + stringify_value(val) }
                 }

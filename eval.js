@@ -145,7 +145,7 @@ function eval_js_part3(result){
     else {
         if (inspect_is_primitive(result.value)) {
             string_to_print = result.value_string +
-                            " <span style='padding-left:50px;font-size:10px;'>" + result.duration + " ms</span>"
+                            " <span style='padding-left:50px;font-size:10px;'>" + result.duration + " ms</span>" //beware, format_text_for_code depends on this exact string
             out_eval_result(string_to_print)
         }
         else { inspect(result.value) }

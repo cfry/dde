@@ -104,6 +104,7 @@
     -->
 
     <script type="text/javascript" src="utils.js"></script>
+    <script type="text/javascript" src="to_source_code.js"></script>
     <script type="text/javascript" src="inspect.js"></script>
     <script type="text/javascript" src="storage.js"></script>
     <script type="text/javascript" src="object_system.js"></script>
@@ -191,7 +192,7 @@
                                         <li id="replace_id"    title="Helps you change particular or all of certain strings.">Replace...</li>
                                         <li id="fold_all_id"   title="Compresses each multi-line statement into just its top line.">Fold All</li>
                                         <li id="unfold_all_id" title="Uncompress all compressed statements.">Unfold All</li>
-                                        <li id="select_call_id" title="Select JS calls, definitions,&#013;arrays, for, if, etc. by&#013;Alt-clicking on their&#013;start, middle or end.&#013;On Mac: Option-click">Select call alt-click</li>
+                                        <li id="select_expr_id" title="Select JS expressions, by&#013;Alt-clicking on their&#013;start, middle or end.&#013;On Mac: Option-click">Select expr alt-click</li>
                                         <li id="select_all_id" title="Select all the text in the Editor.">Select All Ctrl/&#8984;A</li>
                                         <li>Right click menu in JS pane has more operations.</li>
                                     </ul>
@@ -210,7 +211,7 @@
                                             <ul>
                                                 <li id="dev_tools_id"    title="Show instructions for&#013;seeing console.log output and&#013;using debugger; breakpoints.">Help</li>
                                                 <li id="console_log_id"  title="Prints complex data into the Chrome console. Click right anywhere in DDE and &#013;choose 'Inspect' to see it.&#013;out(...) prints to Output pane.">console.log(...)</li>
-                                                <li id="debugger_id"     title="Inserts a breakpoint in any JS code&#013;Click right and choose 'Inspect Element' &#013;to enable stepping.">debugger</li>
+                                                <li id="debugger_id"     title="Inserts a breakpoint in any JS code&#013;Click right and choose 'Inspect Element' &#013;to enable stepping.">debugger;</li>
                                                 <li id="debugger_instruction_id" title="Insert a literal string that is&#013;an instruction in a do list&#013;which pauses a job&#013;and allows you to step through its instructions.">&quot;debugger&quot;</li>
                                                 <li id="comment_out_id"  title="Place the selected text in a comment&#013;so it won't be evaled.">Comment out selection</li>
                                                 <li id="comment_eol_id"  title="Comment out from cursor to end of line&#013;so it won't be evaled.">Comment to end of line</li>
@@ -283,8 +284,7 @@
                                                 <li id="date_valueOf_id"  title="Get the total milliseconds&#013;of a date.&#013;new Date() with no arg&#013;makes a date representing now.">Date valueOf()</li>
                                                 <li id="date_toString_id" title="Get the string representation&#013;of a date.">Date toString()</li>
                                                 <li id="duration_hms_id"  title="Create a duration from hours:minutes:seconds&#013;This is not standard JS.">new Duration("01:14:05")</li>
-                                                <li id="duration_ms_id"   title="Create a duration from milliseconds&#013;This is not standard JS.">new Duration(ms)</li>
-                                                <li id="duration_hmsms_id"  title="Create a duration from&#013;hours, minutes, seconds, milliseconds.&#013;The last 2 are optional.&#013;This is not standard JS.">new Dur(h,m,s,ms)</li>
+                                                <li id="duration_hmsms_id"  title="Create a duration from&#013;hours, minutes, seconds, milliseconds.&#013;All default to 0..&#013;This is not standard JS.">new Dur(h,m,s,ms)</li>
                                                 <li id="duration_get_ms_id" title="Extract milliseconds from a duration.&#013;This is not standard JS.">Dur.milliseconds</li>
 
                                             </ul>
@@ -551,6 +551,7 @@
                                                 <li id="insert_job_example9_id" title="Insert into the editor a tutorial on using Asynchronous Functions.">9. Async Fns</li>
                                                 <li id="insert_job_example10_id" title="Insert into the editor a tutorial on using Serial Port.">10. Serial Port</li>
                                                 <li id="insert_job_example11_id" title="Insert into the editor a tutorial on using&#013;when_stopped for looping a job, etc.">11. when_stopped</li>
+                                                <li id="insert_job_example12_id" title="Insert into the editor a tutorial on using&#013;Robot.go_to instruction for looping a job.">12. Robot.go_to</li>
                                             </ul>
                                         </li>
                                         <li title="Send a single instruction to a Dexter without typing.">Run Instruction
@@ -602,12 +603,14 @@
                               placeholder="Enter JavaScript code here."></textarea>
                 </div>
                 <div style="background-color:#dddddd;">
-                    <div class='pane_header_wrapper' style="white-space:nowrap;height:57px;min-height:57px;max-height:57px;">
+                    <div class='pane_header_wrapper' style="white-space:nowrap;height:60px;min-height:60px;max-height:60px;">
                         <span id="output_pane_help_id" class='pane_header' title="Click for help."><u>Output</u></span>
                         <button id="eval_id" style="vertical-align:middle;" title="Evaluate (run) the selected JS in any pane&#013;or, if none, all the JavaScript in the Editor pane.&#013;Can also be invoked by typing &#8984;e">Eval</button>
                         <button id="eval_and_start_button_id" style="vertical-align:middle;" title="Eval the selected JS&#013;and call the 'start' method&#013;with no arguments, on the result.">Eval&Start</button>
-
-                        <div title="Automatically save the edited file&#013;when you click 'Eval',&#013;and when you edit another file." style="vertical-align:middle;display:inline-block;"><input id="save_on_eval_id" type="checkbox" style="vertical-align:60%;padding_bottom:15px;"/> <div style="padding:0px;margin:0px;display:inline-block;font-size:10px; line-height:10px;">Save<br/>on</br/>Eval</div></div>
+                        <div style="vertical-align:middle;display:inline-block;margin:0px;padding:0px;">
+                            <div title="Automatically save the edited file&#013;when you click 'Eval',&#013;and when you edit another file.">                               <input id="save_on_eval_id" type="checkbox" style="padding_bottom:15px;"/> <div style="padding:0px;margin:0px;display:inline-block;font-size:10px; vertical-align:0%;">Save</div></div>
+                            <div title="When checked, 'out' function calls, by default, format the output string as code." style="vertical-align:middle;display:inline-block;"><input id="format_as_code_id" type="checkbox" style="padding_bottom:15px;"/> <div style="padding:0px;margin:0px;display:inline-block;font-size:10px; line-height:10px;">Code</div></div>
+                        </div>
                         <button id="clear_output_id" title="Remove all previously output text.">Clear</button>
                         <div id="ros_menu_id" class="dde_menu" style="display:none;margin-left:10px;vertical-align: middle;">
                             <ul style="display:inline-block;padding:0;margin-top:0px;">

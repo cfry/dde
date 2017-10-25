@@ -157,7 +157,7 @@ new TestSuite("obj_sys_sourceCode",
     ['newObject({prototype:Root.testpart.bolt, name:"smallbolt", diameter:2, color:undefined})'],
     ['eval(Root.testpart.bolt.smallbolt.sourceCode())', "Root.testpart.bolt.smallbolt"],
     ["Root.testpart.bolt.smallbolt.sourceCode()",
-        '`newObject({\n  prototype: Root.testpart.bolt,\n  name: "smallbolt",\n  diameter: 2,\n  color: undefined\n})\nRoot.testpart.bolt.smallbolt`'
+        '`newObject({\n  prototype: Root.testpart.bolt,\n  name: "smallbolt",\n  diameter: 2,\n  color: undefined\n})\n`'
     ]
 )
 
@@ -191,3 +191,16 @@ new TestSuite("obj_sys_js_fns_on_new_objects2",
 	["keys(Object.getPrototypeOf(Root))", "keys({})"],
 	["Root.test_thing.toString()", "'[object Object]'"]
 )
+
+new TestSuite("version_functions",
+    ['version_equal("0.1.2")', "false"],
+    ['version_equal("2.1.2", "2.1.2")', "true"],
+    ['version_equal("2.1.2", "2.1.3")', "false"],
+    ['version_less_than("0.1.2")', "true"],
+    ['version_less_than("100.1.2")', "false"],
+    ['version_less_than("0.1.2", "0.1.2")', "false"],
+    ['version_more_than("0.1.2")', "false"],
+    ['version_more_than("100.1.2")', "true"],
+    ['version_more_than("0.1.2", "0.1.2")', "false"],
+    ['verify_dde_version_between("0.1.0", "100.1.1")', "true"],
+    ['verify_dde_version_between("0.1.0", "0.3.1", true)', "false"]  )  

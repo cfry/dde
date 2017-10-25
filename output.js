@@ -646,16 +646,17 @@ window.close_window = function(window_index_or_elt){ //elt can be a window_index
 
 //__________out  and helper fns_______
 window.out_item_index = 0
-function out(val, color="black", temp=false){
-    var text = val
+function out(val, color="black", temp=false, code=null){
+    let text = val
     if (typeof(text) != "string"){ //if its not a string, its some daeta structure so make it fixed width to demostrate code. Plus the json =retty printing doesn't work unless if its not fixed width.
         text = stringify_value(text)
     }
+    text = format_text_for_code(text, code)
     if ((color != "black") && (color != "#000000")){
         text = "<span style='color:" + color + "';>" + text + "</span>"
     }
-    var temp_str_id = ((typeof(temp) == "string") ? temp : "temp")
-    var existing_temp_elts = $("#" + temp_str_id)
+    let temp_str_id = ((typeof(temp) == "string") ? temp : "temp")
+    let existing_temp_elts = $("#" + temp_str_id)
     if (temp){
         if (existing_temp_elts.length == 0){
             text = '<div id="' + temp_str_id + '" style="border-style:solid;border-width:1px;border-color:#0000FF;margin:5px 5px 5px 15px;padding:4px;">' + text + '</div>'
@@ -699,6 +700,23 @@ function out(val, color="black", temp=false){
 }
 window.out = out
 
+function format_text_for_code(text, code=null){
+    if (code === null) {
+        code = persistent_get("default_out_code")
+        if ((code === undefined) || (code === null)) { code = false }
+    }
+    if (code) { //cut off timing info: too confusing to see it.
+        let timing_index = text.indexOf(" <span style='padding-left:50px;font-size:10px;'>")
+        if (timing_index !== -1) { text = text.substring(0, timing_index) }
+        text = replace_substrings(text, "<",   "&lt;")
+        text = replace_substrings(text, ">",   "&gt;")
+        //text = replace_substrings(text, "\n",  "<br/>")
+        text = replace_substrings(text, "\\\\n", "\n")
+        text = "<pre><code>" + text + "</code></pre>"
+    }
+    return text
+}
+
 /*
  StackTrace.get(function(sf){
  return sf.functionName == show_output
@@ -725,6 +743,7 @@ window.out_eval_result = function(text, color="#000000"){
         if (color && (color != "#000000")){
             text = "<span style='color:" + color + "';>" + text + "</span>"
         }
+        text = format_text_for_code(text)
         text = "<fieldset><legend><i>Eval Result</i></legend>" +  text + "</fieldset>"
         append_to_output(text)
     }

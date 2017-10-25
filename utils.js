@@ -1,42 +1,97 @@
+function prepend_file_message_maybe(message){
+    if (message.startsWith("while loading file:")) { return message }
+    else if (window["loading_file"]) {
+        return "while loading file: " + window["loading_file"] + "<br/>" + message
+    }
+    else { return message }
+}
+
 function shouldnt(message){
     console.log(message)
-    throw new Error("Shouldnt: " + message)
+    throw new Error("Shouldnt: " + prepend_file_message_maybe(message))
 }
 
 function warning(message, temp=false){
     var err = new Error();
     var stack_trace = replace_substrings(err.stack, "\n", "<br/>")
-    out_string = "<details><summary><span style='color:#e50;'>Warning:" + message +
+    out_string = "<details><summary><span style='color:#e50;'>Warning: " + prepend_file_message_maybe(message) +
                  "</span></summary>" + stack_trace + "</details>"
     out(out_string, "black", temp) //#ff751a e61
 }
 
 function dde_error(message){
-    console.log("dde_error: " + message)
+    let mess = prepend_file_message_maybe(message)
+    console.log("dde_error: " + mess)
     //var err = new Error();
     //var stack_trace = err.stack
     //var  out_string = //"<details><summary><span style='color:red;'>" + message +
                       //"</span></summary>" + stack_trace + "</details>"
-    out(message, "red") //I shouldn't have to do this but sometimes with setTimeouts and/or
+    out(mess, "red") //I shouldn't have to do this but sometimes with setTimeouts and/or
     //ui to sandbox transfer, the error doesn't get printed out from dde eval so do this to be sure.
-    throw new Error("dde_error: " + message)
+    throw new Error(mess)
 }
 
 let semver = require("semver")
 
-function dde_version_equal(version_string1, version_string2=dde_version){
+function version_equal(version_string1, version_string2=dde_version){
     //let semver = require("semver")
     return semver.eq(version_string1, version_string2)
 }
 
-function dde_version_less_than(version_string1, version_string2=dde_version){
+function version_less_than(version_string1, version_string2=dde_version){
     //let semver = require("semver")
     return semver.lt(version_string1, version_string2)
 }
 
-function dde_version_more_than(version_string1, version_string2=dde_version){
+function version_more_than(version_string1, version_string2=dde_version){
     //let semver = require("semver")
     return semver.gt(version_string1, version_string2)
+}
+
+function verify_dde_version_between(min=null, max=null, warn=false){
+    if (min == null){
+        if (max == null) {
+            dde_error("verify_dde_version_between given a null min and max." +
+                      "<br/>You must supply at least one on these.")
+        }
+        //only max
+        else if(version_less_than(max) || version_equal(max)) { return true }
+        else if (warn){
+            warning("You are running DDE version: " + dde_version +
+                     "<br/>but this code requires version: " + max + " or less.")
+            return false
+        }
+        else {
+            dde_error("You are running DDE version: " + dde_version +
+                      "<br/>but this code requires version: " + max + " or less.")
+        }
+    }
+    //min is present
+    else if (max == null) {
+        //only min
+        if (version_more_than(min) || version_equal(min)) { return true }
+        else if (warn){
+            warning("You are running DDE version: " + dde_version +
+                    "<br/>but this code requires version: " + min + " or more.")
+            return false
+        }
+        else {
+            dde_error("You are running DDE version: " + dde_version +
+                      "<br/>but this code requires version: " + min + " or more.")
+        }
+    }
+    //both min and max are present
+    else if (version_equal(min) || version_equal(max) ||
+             (version_less_than(min) && version_more_than(max))) { return true }
+    else if (warn){
+        warning("You are running DDE version: " + dde_version +
+                "<br/>but this code requires a version between " + min + " and " + max + " inclusive.")
+        return false
+    }
+    else {
+        dde_error("You are running DDE version: " + dde_version +
+                  "<br/>but this code requires a version between " + min + " and " + max + " inclusive.")
+    }
 }
 
 var primitive_types = ["undefined", "boolean", "string", "number"] //beware; leave out null because
@@ -305,10 +360,12 @@ function typed_array_name(item){
 //returns null or the last elt of an array or a string
 function last(arg){
     let len = arg.length
-    if (len == 0) { return null }
-    else if (typeof(arg) == "string") { return arg[len -1] }
-    else if (Array.isArray(arg)) { return arg[len -1] }
-    else { return null }
+    if (len == 0)                     { return null }
+    else if (typeof(arg) == "string") { return arg[len - 1 ] }
+    else if (Array.isArray(arg))      { return arg[len - 1] }
+    else if (arg instanceof NodeList) { return arg[len - 1] }
+    else if (arg instanceof HTMLCollection) { return arg[len - 1] }
+    else                              { return null }
 }
 
 function flatten(arr, result=[]){
@@ -715,9 +772,9 @@ function stringify_value(value){
     //if (Object.isNewObject(value)) { inspect_new_object(value) }
     //else {
         var result = stringify_value_aux (value)
-        if (typeof(value) != "string"){
-            result = "<code>" + result + "</code>"
-        }
+        //if (typeof(value) != "string"){
+        //    result = "<code>" + result + "</code>"
+        //}
         return result
     //}
 }
@@ -1039,14 +1096,12 @@ function point_equal(a, b) { return (a[0] == b[0]) && (a[1] == b[1]) && (a[2] ==
 
 var Duration = class Duration {
     //DO NOT default minutes to anything as we need null there so that the first arg will be interprested as ms
-    constructor(ms_string_or_hours, minutes=null, seconds=0, milliseconds=0){ //can be "12:34" for hours:mins,
+    constructor(string_or_hours=0, minutes=0, seconds=0, milliseconds=0){ //First arg can be "12:34" for hours:mins,
                                                                          // "12:34:56" for hours:mins:secs,
-                                                                         //123 (for milliseconds), ie just pass 1 arg
-                                                                         //If first two args are numbers, then
-                                                                         //they are hours and minutes. next 2 args are seconds and ms, are optional
-        if (typeof(ms_string_or_hours) == "string") { //presume "12:34"(hours and mins) or "12:34:56" hours, mins, secs
-            if (is_hour_colon_minute(ms_string_or_hours) || is_hour_colon_minute_colon_second(ms_string_or_hours)){
-                var [h, m, s] = ms_string_or_hours.split(":")
+                                                                         // or 123 for hours
+        if (typeof(string_or_hours) == "string") { //presume "12:34"(hours and mins) or "12:34:56" hours, mins, secs
+            if (is_hour_colon_minute(string_or_hours) || is_hour_colon_minute_colon_second(string_or_hours)){
+                var [h, m, s] = string_or_hours.split(":")
                 var secs = parseInt(h) * 60 * 60
                 secs += parseInt(m) * 60
                 if (s) { secs += parseInt(s) }
@@ -1054,20 +1109,26 @@ var Duration = class Duration {
                 return
             }
         }
-        else if (typeof(ms_string_or_hours) == "number"){
-            if (typeof(minutes) == "number"){
-                let secs = (ms_string_or_hours * 60 * 60) + (minutes * 60) + seconds
+        else if (typeof(string_or_hours) == "number"){
+                let secs = (string_or_hours * 60 * 60) + (minutes * 60) + seconds
                 this.milliseconds = (secs * 1000) + milliseconds
                 return
-            }
-            else{
-                this.milliseconds = ms_string_or_hours
-                return
-            }
         }
-        throw new Error("new Duration passed arg: " + ms_string_or_hours + " which is not a number or a string of the format 12:34 or 12:34:56 ")
+        throw new Error("new Duration passed arg: " + string_or_hours + " which is not a number or a string of the format 12:34 or 12:34:56 ")
     }
     toString(){
         return "{Duration: " + this.milliseconds + " milliseconds}"
+    }
+    to_seconds(){ return this.milliseconds / 1000 }
+
+    to_source_code(){
+        let total_ms  = this.milliseconds
+        let ms        = total_ms  % 1000
+        let total_sec = (total_ms - ms)   / 1000
+        let sec       = total_sec % 60
+        let total_min = (total_sec - sec) / 60
+        let min       = total_min % 60
+        let hour      = (total_min - min) / 60
+        return "new Duration(" + hour + ", " + min + ", " + sec + ", " + ms + ")"
     }
 }

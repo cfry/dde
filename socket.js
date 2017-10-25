@@ -25,7 +25,7 @@ var Socket = class Socket{
         }
     }
 
-    static new_socket_callback(robot_name){ //only called by the "real" side if simulate == "both".
+    static new_socket_callback(robot_name){
         //console.log("Socket.new_socket_callback passed: " + "robot_name: " + robot_name)
         Dexter.set_a_robot_instance_socket_id(robot_name)
     }

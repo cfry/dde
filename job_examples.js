@@ -28,7 +28,7 @@ Job.my_job.start() //Start running 'my_job'
 //followed by details of the job's ending state,
 //including status_code: "completed" if all goes well.
 `,
-`/*       Example 2 
+`/*      Job Example 2 
 move_all_joints takes 5 angles in degrees, one for each 
 of Dexter's joints.
 move_to takes an xyz position (in meters from Dexter's base),
@@ -105,7 +105,8 @@ function* complex_gen(){
         yield Dexter.move_all_joints(i * 10)
     }
 }
-new Job({name: "jb",  robot: new Dexter(), do_list: [complex_gen]})
+new Job({name: "jb",
+         do_list: [complex_gen]})
 
 //________Job Example 4c: Nested Generators
 function* nested_gen(){
@@ -115,7 +116,8 @@ function* nested_gen(){
     }
     yield Dexter.sleep(1)
 }
-new Job({name: "jc", robot: new Dexter(), do_list: [nested_gen]})
+new Job({name: "jc", 
+         do_list: [nested_gen]})
 `,
 
 
@@ -628,5 +630,53 @@ new Job({name: "job_ws5",
                       out("counter = " + Job.global_user_data.counter)
                     },
                     Robot.wait_until(2)]}) //sleep for 2 seconds
+`,
+
+`////Job Example 12: go_to
+//12a: initialize user data and display it
+new Job({name: "my_job",
+    user_data: {some_val: 0},
+    do_list: [function() { out("val: " + this.user_data.some_val)}
+    ]})
+
+//12b: set user data from user input
+new Job({name: "my_job",
+    user_data: {some_val: 0},
+    do_list: [Human.enter_number({user_data_variable_name: "some_val"}),
+        function() { out("val: " + this.user_data.some_val)},
+    ]})
+
+//12c: go_to instruction 0, infinite loop
+new Job({name: "my_job",
+    user_data: {some_val: 0},
+    do_list: [Human.enter_number({user_data_variable_name: "some_val"}),
+        function(){ out("val: " + this.user_data.some_val)},
+        Robot.go_to(0)
+    ]})
+
+//12d: stop if user enters zero
+new Job({name: "my_job",
+    user_data: {some_val: 0},
+    do_list: [Human.enter_number({user_data_variable_name: "some_val"}),
+        function(){ out("val: " + this.user_data.some_val)},
+        function(){ if(this.user_data.some_val == 0){
+            return Robot.stop_job()
+        }
+        },
+        Robot.go_to(0)
+    ]})
+
+//12e go_to a label ("lab1").
+new Job({name: "my_job",
+    user_data: {some_val: 0},
+    do_list: [Robot.label("lab1"),
+        Human.enter_number({user_data_variable_name: "some_val"}),
+        function(){ out("val: " + this.user_data.some_val)},
+        function(){ if(this.user_data.some_val === 0){
+            return Robot.stop_job()
+        }
+        },
+        Robot.go_to("lab1")
+    ]})
 `
 ]

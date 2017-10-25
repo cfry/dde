@@ -73,9 +73,9 @@
         </details> <!-- end file_content -->
 
         <details id="file_exists_doc_id" style="margin-left:40px;"><summary>file_exists</summary>
-            Returns true if the file path in the first argument exists.<br/>
-            <I>Example</i>:<br/>
-            <code>file_exists("dde_init.js")</code> => true
+        Returns true if the file path in the first argument exists.<br/>
+        <I>Example</i>:<br/>
+        <code>file_exists("dde_init.js")</code> => true
         </details>
 
         <details id="folder_separator_doc_id" style="margin-left:40px;"><summary>folder_separator</summary>
@@ -123,7 +123,12 @@
             but not strictly necessary.
         </details> <!-- end load_files  -->
 
-        <details id="write_file_doc_id" style="margin-left:40px;"><summary>write_file</summary>
+        <details id="loading_file_doc_id" style="margin-left:40px;"><summary>loading_file</summary>
+        <code>loading_file</code> is a global variable bound to the full path
+        of the file being loaded. If no file is being loaded, it is <code>undefined</code>
+        </details>
+
+            <details id="write_file_doc_id" style="margin-left:40px;"><summary>write_file</summary>
             Arguments:<br/>
             <b>filepath</b> The location to save to. It will overwrite the current content.
             Defaults to the file currently in the
@@ -671,7 +676,16 @@ new Job({name: "gamepad_job2",
        However, when another call to out with a different value for temp occurs,
        the output of out with a temp string will <i>not</i> be erased.
        Thus the last call to out with a given temp string remains in the Output pane,
-       in its place, regardless of other out calls.
+       in its place, regardless of other out calls.<br/>
+    <b>code</b> A boolean. Default: <code>null</code>. A <code>false</code> value renders the
+    first argument's string as HTML. <code>true</code> renders the
+    string as code. Newline chars actual cause a newline in the output
+    and HTML tags are shown as their source code, not rendered HTML.
+    A <code>true</code> value is useful for some kinds of debugging.
+    <p></p>
+    A <code>null</code> value looks at the value of the "Save" checkbox
+    in the Output pane header to get its real value. The checked or uncheched status
+    (true or false) is saved persistently accross DDE sessions.
     <p></p>
     <i>Example:</i><code>out("hi", "blue")</code><p></p>
     If you have a lot of out calls, it can be helpful to give them
@@ -3621,12 +3635,21 @@ access robot hardware.
           do_list: [Human.enter_choice({task: "Please pick one.",
                                          choices: ["aa", "bb", "cc"]}),
                     function(){out("You chose: " + this.user_data.choice)}
-  ]}) </code></pre>
+  ]})     </code></pre>
   Above we define 3 choices and display them in the default select menu.
   The default user_data_variable_name is <code>"choice"</code>, which
   can be read by any subsequent instruction. Using the default is a bit dangerous
   because it will be overwritten by a subsquent Human.enter_choice instruction
   (though that <i>might</i> be what you want).
+
+  <pre><code> new Job({name: "my_job",
+          do_list: [Human.enter_choice({task: "Ready?",
+                                        choices: [["Yes", true], ["No", false]],
+                                        show_choices_as_buttons: true}),
+                    function(){out("You chose: " + this.user_data.choice)}
+  ]})     </code></pre>
+  Above, When the user clicks on "Yes" or "No",
+  user_data.choice will be bound to <code>true</code> or <code>false</code>.
 
   <pre><code>
   function myfn() {out("The job name is: " + this.name)}
@@ -4164,8 +4187,37 @@ See Job Example 9 for examples.
             <i>Example:</i><br/>
             <code>deg_f_to_k(212)</code> => <samp>373.15</samp>
         </details>
-     </details>
-</details>
+     </details> <!-- end Temperatur Conversion -->
+    <details id="Duration_doc_id" class="doc_details"><summary>Duration</summary>
+     Duration is a class. Instances of it represent an amount of time.<br/>
+     <i>Constructor Parameters</i><br/>
+     <b>string_or_hours</b> Default: 0. If a string, this should be in the format
+        <code>"23:59:59"</code> for hours:minutes:seconds.
+        If this is a number, it is the number of hours in the duration.
+        Like the rest of the arguments,
+        that number must be non-negative. It can be a float
+        or exceed the next higher level time unit.
+        In the case of hours, that's 24.
+        The total duration represented by the instance is the
+        hours + minutes + seconds + milliseconds
+        <br/>
+     <b>minutes</b> Default: 0. The number of minutes of the duration.<br/>
+     <b>seconds</b> Default: 0. The number of seconds of the duration.<br/>
+     <b>milliseconds</b> Default: 0. The number of milliseconds of the duration.
+     <p></p>
+     <i>Instance Variable</i><br/>
+     <b>milliseconds</b> An instance variable holding the total number
+     of miliseconds of the duration.<br/>
+     <i>Method</i><br/>
+     <b>to_seconds()</b> Returns the total number of seconds of the duration
+     as a floating point number.
+     <p></p>
+     <i>Examples:</i><br/>
+     <code>new Duration().to_seconds()</code> => <samp>0</samp><br/>
+     <code>new Duration(0, 0, 0, 2000).to_seconds()</code>   => <samp>2</samp><br/>
+     <code>new Duration(0, 0, 1.5, 7).milliseconds</code> => <samp>1507</samp>
+    </details>
+  </details> <!-- end units-->
 
 <details class="doc_details"><summary>Object System</summary>
 <details class="doc_details"><summary>Overview</summary>
@@ -4462,9 +4514,10 @@ but thats the general idea behind the name.)
 <details id="objectPath_doc_id" class="doc_details"><summary>objectPath</summary>
 Returns a string of the path to <code>this</code> such as
 <code>"Root.animal.lion"</code><br/> Evaluating the returned string
-will result in the object.
+will result in the object.<br/>
 <i>Example:</i><br/>
-    <code>newObject({name: "junk"}).objectPath()</code> => <samp>"Root.junk"</samp>
+    <code>newObject({name: "junk"}).objectPath()</code> => <samp>"Root.junk"</samp><br/>
+    <code>eval("Root.junk").objectPath()</code> => <samp>"Root.junk"</samp>
 </details>
 
 <details id="sourceCode_doc_id" class="doc_details"><summary>sourceCode</summary>
@@ -4573,39 +4626,58 @@ If include_this is true, the returned source, when evaled, will return a copy of
 </details>
 </details> <!-- Existing JS methods-->
 </details> <!-- ob sys -->
-<details id="operating_system_doc_id" class="doc_details"><summary>operating_system, etc.</summary>
-    <code>operating_system</code> is a global constant that has
+<details id="operating_system_etc_doc_id" class="doc_details"><summary>Operating System, etc.</summary>
+    <details id="operating_system_doc_id"class="doc_details"><summary>operating_system</summary>
+     <code>operating_system</code>
+     is a global constant that has
     a value of the name of the current operating system.
     It will not have upper case characters in it.
     Windows OS's have the value "win". Macintosh OS's have the value "mac".
     If you find the value of other operating systems, please tell us!
-    <p></p>
-    <b id="dde_version_doc_id">dde_version</b><br/>
+    </details>
+    <details id="dde_version_doc_id"class="doc_details"><summary>dde_version</summary>
     A global variable that contains a semantic version string
     of the format: <code>"1.2.3"</code> indicating the running version number of DDE.<br/>
     <i>Example:</i> <code>dde_version</code>
-    <p></p>
-    <b id="dde_version_equal_doc_id">dde_version_equal</b><br/>
+    </details>
+    <details id="version_equal_doc_id"class="doc_details"><summary>version_equal</summary>
      Compare semantic version numbers.<br/>
     <i>Parameters:</i><br/>
     <b>version_string1</b> required string of the format <code>"1.2.3"</code><br/>
     <b>version_string2</b> Default: <code>dde_version</code><br/>
-    <i>Example:</i> <code>dde_version_equal("1.0.2")</code> => <samp>false</samp>
-    <p></p>
-    <b id="dde_version_less_than_doc_id">dde_version_less_than</b><br/>
-     Compare semantic version numbers.<br/>
+    <i>Example:</i> <code>version_equal("1.0.2")</code> => <samp>false</samp>
+    </details>
+    <details id="version_less_than_doc_id"class="doc_details"><summary>version_less_than</summary>
+        Compare semantic version numbers.<br/>
     <i>Parameters:</i><br/>
     <b>version_string1</b> required string of the format <code>"1.2.3"</code><br/>
     <b>version_string2</b> Default: <code>dde_version</code><br/>
-    <i>Example:</i> <code>dde_version_less_than("1.0.2")</code> => <samp>true</samp>
-    <p></p>
-    <b id="dde_version_more_than_doc_id">dde_version_more_than</b><br/>
-     Compare semantic version numbers.<br/>
+    <i>Example:</i> <code>version_less_than("1.0.2")</code> => <samp>true</samp>
+    </details>
+    <details id="version_more_than_doc_id"class="doc_details"><summary>version_more_than</summary>
+        Compare semantic version numbers.<br/>
     <i>Parameters:</i><br/>
     <b>version_string1</b> required string of the format <code>"1.2.3"</code><br/>
     <b>version_string2</b> Default: <code>dde_version</code><br/>
-    <i>Example:</i> <code>dde_version_more_than("1.0.2")</code> => <samp>false</samp>
-</details>
+    <i>Example:</i> <code>version_more_than("1.0.2")</code> => <samp>false</samp>
+    </details>
+    <details id="verify_dde_version_between_doc_id"class="doc_details"><summary>verify_dde_version_between</summary>
+     A call to this method is meant to go above code that you want to declare the
+     version of DDE that it can safely run in.<br/>
+     <i>Parameters:</i><br/>
+     <b>min</b> Default: <code>null</code> If dde_version is equal to or higher than min,
+         the call will return <code>true</code> if it satisfies max.<br/>
+         A <code>null</code> means there is no minimum. <br/>
+     <b>max</b> Default: <code>null</code> If dde_version is equal to or less than max,
+        the call will return <code>true</code> if it satisfies min.<br/>
+        A <code>null</code> means there is no maximum. <br/>
+        If both min and max are <code>null</code>, this function errors.<br/>
+      <b>warn</b> A boolean. Default: <code>false</code>. If false,
+        this function will error if dde_version is not between min and max inclusive.
+        If it is true, this function will print a warning message and
+        return <code>false</code> if <code>dde_version</code> is not between min and max inclusive.
+    </details>
+</details> <!-- end operating system etc -->
 
 <details class="doc_details"><summary>Window System</summary>
     Dealing with HTML, CSS and JavaScript of traditional web apps is complex.

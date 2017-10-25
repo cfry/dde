@@ -8,8 +8,8 @@
 
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version:  <span id="dde_version_id">2.1.8</span><br/>
-    released: <span id="dde_release_date_id">Oct 10, 2017</span>
+    version:  <span id="dde_version_id">2.1.9</span><br/>
+    released: <span id="dde_release_date_id">Oct 25, 2017</span>
     <p></p>
     DDE helps you create, debug, and send software to a Dexter robot.
     You can use any JavaScript augmented with DDE-specific functions to help find out about,
@@ -464,8 +464,8 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
                         the Editor pane will be evaluated.</li>
                 </ul><p></p></li>
             <li><b>Inspector</b> When you select some code and click the Eval button,
-               the reslt of running that code is shown in the Output pane in an Inspector.
-               This allwows you to navigate complex data strutures (including circular ones)
+               the result of running that code is shown in the Output pane in an Inspector.
+               This allows you to navigate complex data strutures (including circular ones)
                expanding just those parts you're interesting in, giving you control
                over the visualization of any data that can be produced by Eval.</li>
             <li><b>Run Instruction</b> The Run Instruction dialog let's you trivally created
@@ -1065,7 +1065,7 @@ the drawing will touch only 3 sides of the bounding box.
     instruction in a Job is run.
     See <a href="#" onclick="open_doc(new_job_parameters_doc_id, event)">new Job parameters</a>.</li>
 
-    <li><b>inspect</b> <code title="unEVALable"> inspect(some_data) </code>
+    <li><b id="inspect_doc_id">inspect</b> <code title="unEVALable"> inspect(some_data) </code>
        will print a representation of its argument in the output pane.
        If it is a complex data structure, an interactive inspector will be displayed
        that will let you navigate to its parts. This mechanism is used when you

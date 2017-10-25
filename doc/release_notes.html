@@ -5,6 +5,63 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 2.1.9, Oct 25, 2017</summary>
+Highlights: to_source_code implemented but not complete.
+            dde version checking code improved plus new
+            function verify_dde_version_between
+<ul><li> Doc for objectPath extended. See Ref Man/Object System/New Object System Methods/objectPath</li>
+
+    <li> The "last" function has been extended to work on NodeList and HTMLCollection</li>
+
+    <li><code>out</code> function now takes another arg: "code" controls formatting of the output as rendered HTML or code.
+        Default null gets its real value (true or false) from the new checkbox named "Code" in the
+        Output pane. The label for the "Save on Eval" checkbox has been reduced to "Save"
+        to make room for this new checkbox.
+        Just like simulate, the value of this checkbox is persistent.</li>
+
+    <li> option click now selects more expressions such as function calls (when you click on the function name)
+        and variable declarations (when you click on let and var)
+        Edit menu item changed from "Select call" to "Select expr".</li>
+
+    <li> <code>inspect</code> doc improved slightly. Now click help gives you a link to the doc on it in the User Guide.</li>
+
+    <li> <code>Duration</code> class simplified: defaults for all 4 arguments is now 0.
+        Passing just the first argument gives you hours, not milliseconds.
+        To pass only milliseconds, example: new Duration(0, 0, 0, 123) for 123 ms.
+        new Duration instance method: to_seconds()
+        See Ref Man/Units Systems/Duration.</li>
+
+    <li> Fixed bug for generator instructions that wasn't utilizing all the "generated" instructions.</li>
+
+    <li> Slight improvement to Generator Job Example 4b and Job Example 4c, the job definitions.</li>
+
+    <li> Jobs menu/Insert Example/  added new item:
+         Robot.go_to with several jobs using the Robot.go_to instruction</li>
+
+    <li> dde_version_equal, dde_version_less_than dde_version_more_than renamed to not start with "dde_".
+         doc and click_help improved.</li>
+
+    <li> New function:  <code>verify_dde_version_between("1.2.3", null, warn=false)</code>
+      If the current version is NOT 1.2.3, then
+    if first arg is null, the default, dde version must be before the 2nd arg.
+    If 2nd arg is null, the default dde version must be after the first arg.
+    If both are null ??? maybe just error.
+    if 3rd arg (warn) is false (the default) then error if dde_version is not between first and 2nd arg (inclusive)
+    else if warn is true, just print out a warning message.
+    This is kind of a "declaration" at the top of a dde src file.
+    See Ref Man/Operating System,etc.  verify_dde_version_between</li>
+
+
+    <li> New global var <code>loading_file</code> bound to the path of the loading file.
+        See Ref Man/IO/File Access/loading_file.
+        This is used to print error messages indicating errors in loading files,
+        but may be useful for users loading special files.</li>
+
+    <li> Click help printing of values of variables improved.</li>
+
+    <li> Extended <code>Human.enter_choice</code> doc with an example of Yes & No buttons returning true or false.</li>
+</ul>
+</details>
 <details class="doc_details"><summary>v 2.1.8, Oct 10, 2017</summary>
 Highlights: Improvements to newObject.sourceCode().<br/>
            Many minor improvements to show_window.<br/>
