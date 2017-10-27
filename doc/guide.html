@@ -8,8 +8,8 @@
 
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version:  <span id="dde_version_id">2.1.9</span><br/>
-    released: <span id="dde_release_date_id">Oct 25, 2017</span>
+    version:  <span id="dde_version_id">2.1.10</span><br/>
+    released: <span id="dde_release_date_id">Oct 26, 2017</span>
     <p></p>
     DDE helps you create, debug, and send software to a Dexter robot.
     You can use any JavaScript augmented with DDE-specific functions to help find out about,
@@ -965,6 +965,44 @@ the drawing will touch only 3 sides of the bounding box.
      For a laser, the function would turn off the laser.
     </details>
     See also <a href="#" onclick="open_doc('Dexter.draw_dxf_doc_id', event)">draw_dxf instruction</a>
+</details>
+
+<details class="doc_details" id='ez_teach_doc_id'><summary>ezTeach</summary>
+EZ Teach is a tool to help you create jobs that move Dexter
+along a path of points.
+The points are recorded from you positioning Dexster either
+by hand, or by using a gamepad controller.
+The EZ Teach code is encapulated in 2 jobs.
+<p/></p>
+    <i>User scenario:</i><br/>
+<ul><li>Plug in a gamepad and press any button to initialize.</li>
+    <li>Create new ezTeach project by choosing Insert menu/ezTeach</li>
+    <li>Edit the inserted code to customize your ezTeach project.</li>
+    <li>Eval the editor buffer to define 2 Jobs, ezCreate and ezRun</li>
+    <li>Save the editor buffer with a name and folder of your choosing.</li>
+    <li>See below for running each Job.</li>
+</ul>
+
+<b id="ez_create_doc_id">ezCreate</b> is a job that helps you create and save the points
+of the path that you want Dexter to follow.
+<p/></p>
+    <i>User scenario:</i><br/>
+<ul><li>Click on the exCreate Job button to start that Job.</li>
+    <li>See gamepad picture in pop-up window for functionality.</li>
+</ul>
+<p/></p>
+<b id="ez_run_doc_id">ezRun</b> is a job that helps you run the job that follows
+the points defined in ez_create.
+<p></p>
+<i>User scenario:</i><br/>
+<ul><li>Click on the exRun Job button to start that Job.</li>
+    <li>See gamepad picture in pop-up window for functionality.</li>
+</ul>
+</details>
+
+<details class="doc_details" id='find_home_doc_id'><summary>Find Home</summary>
+Find Home is a tool that you use to help Dexter locate its true home position.
+It requires having a "dock" that Dexter parks in a known location.
 </details>
 
 

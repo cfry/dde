@@ -112,7 +112,7 @@ function persistent_remove(key, callback=function() { out("Removed " + key + " f
 
 var default_default_ROS_URL           = "localhost:9090"
 var default_default_dexter_ip_address = "192.168.1.142"
-var default_default_dexter_port       = "50000"
+var default_default_dexter_port       = 50000
 
 //gaurentees that dde_init.js exists and that it has certain content in it,
 //and that that certain content is evaled and present in the js env.

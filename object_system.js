@@ -497,8 +497,11 @@ Object.defineProperty(Object.prototype, 'sourceCode',{
                 }
                 //all non-subojects printed, so the only thing left in this to print are subojects, if any
                 if (include_subobjects){
+                    let on_first_subobject = true
                     for (let sub_ob of sub_objs){
-                        result += sub_ob.sourceCode({include_this: true, include_subobjects: true, indent: indent, at_top_level: false})
+                        let comma_prefix = ((include_this || !on_first_subobject || !at_top_level) ? ", " : "")
+                        result += comma_prefix + sub_ob.sourceCode({include_this: true, include_subobjects: true, indent: indent, at_top_level: false})
+                        on_first_subobject = false
                     }
                 }
                 if (at_top_level) {

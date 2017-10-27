@@ -25,9 +25,18 @@ var Socket = class Socket{
         }
     }
 
+    /*static new_socket_callback(robot_name){
+        //console.log("Socket.new_socket_callback passed: " + "robot_name: " + robot_name)
+        Dexter.set_a_robot_instance_socket_id(robot_name)
+    }*/
+
     static new_socket_callback(robot_name){
         //console.log("Socket.new_socket_callback passed: " + "robot_name: " + robot_name)
         Dexter.set_a_robot_instance_socket_id(robot_name)
+        if (Socket.resend_instruction) {
+            let rob = Robot[robot_name]
+            Socket.send(robot_name, Socket.resend_instruction, rob.simulate)
+        }
     }
 
     static instruction_array_to_array_buffer(instruction_array){
@@ -129,7 +138,7 @@ var Socket = class Socket{
 
     //static robot_done_with_instruction_convert()
 
-    static send(robot_name, instruction_array, simulate){ //can't name a class method and instance method the same thing
+    /*static send(robot_name, instruction_array, simulate){ //can't name a class method and instance method the same thing
         instruction_array = Socket.instruction_array_degrees_to_arcseconds_maybe(instruction_array)
         const sim_actual = Robot.get_simulate_actual(simulate)
         if((sim_actual === true) || (sim_actual === "both")){
@@ -140,7 +149,67 @@ var Socket = class Socket{
             let ws_inst = Socket.robot_name_to_ws_instance_map[robot_name]
             ws_inst.write(array);
         }
-    }
+    }*/
+    static send(robot_name, instruction_array, simulate){ //can't name a class method and instance method the same thing
+       	if(instruction_array !== Socket.resend_instruction){ //we don't want to convert an array more than once as that would have degreees * 3600 * 3600 ...
+       	                                                     //so only to the convert on the first attempt.
+        	instruction_array = Socket.instruction_array_degrees_to_arcseconds_maybe(instruction_array)
+        }
+        const sim_actual = Robot.get_simulate_actual(simulate)
+        if((sim_actual === true) || (sim_actual === "both")){
+            DexterSim.send(robot_name, instruction_array)
+        }
+
+        if ((sim_actual === false) || (sim_actual === "both")) {
+            const array = Socket.instruction_array_to_array_buffer(instruction_array)
+            let ws_inst = Socket.robot_name_to_ws_instance_map[robot_name]
+            try {
+                ws_inst.write(array) //if doesn't error, success and we're done with send
+                Socket.resend_instruction = null
+                Socket.resend_count       = null
+                return
+            }
+            catch(err) {
+                let rob = Robot[robot_name]
+                if(instruction_array === Socket.resend_instruction) {
+                    if (Socket.resend_count >= 4) {  //we're done
+                        let job_instance = Job.id_to_job(instruction_array[INSTRUCTION_JOB_ID])
+                        job_instance.stop_for_reason("errored", "can't connect to Dexter")
+                        //job_instance.color_job_button() //probably not necessary
+                        this.set_up_next_do(0)  //necessary?
+                        return
+                    }
+                    else { //keep trying
+                        Socket.resend_count += 1
+                        Socket.close(robot_name, simulate) //both are send args
+                        let timeout_dur = Math.pow(10, Socket.resend_count)
+                        setTimeout(function(){
+                            Socket.init(robot_name, //passed to send
+                                simulate,   //passed to send
+                                rob.ip_address, //get from ws_inst ???
+                                rob.port //50000   //port
+                            )
+                        }, timeout_dur)
+                        return
+                    }
+                }
+                else { //first attempt failed so initiate retrys
+                    Socket.resend_instruction =  instruction_array
+                    Socket.resend_count = 0
+                    Socket.close(robot_name, simulate) //both are send args
+                    let timeout_dur = Math.pow(10, Socket.resend_count)
+                    setTimeout(function(){
+                        Socket.init(robot_name, //passed to send
+                            simulate,   //passed to send
+                            rob.ip_address, //get from ws_inst ???
+                            rob.port       //port
+                        )
+                    }, timeout_dur)
+                    return
+                }
+            }
+        }
+    } //end of send method
 
     static on_receive(data){ //only called by ws, not by simulator
         var js_array = []
@@ -227,6 +296,9 @@ var Socket = class Socket{
         }
     }
 }
+
+Socket.resend_instruction = null
+Socket.resend_count = null
 
 Socket.robot_name_to_ws_instance_map = {}
 

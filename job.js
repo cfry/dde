@@ -1840,11 +1840,11 @@ Job.prototype.to_source_code = function(args={}){
                                       //in which case use orig_args even if orig_args arg is false
        let prop_val = props_container[prop_name]
        if (!similar(prop_val, job_default_params[prop_name])){ //I could *almost* use == instead pf similar but doesn't work for user_data of an empty lit obj
-            let args = jQuery.extend({}, args)
-            args.value = prop_val
+            let prop_args = jQuery.extend({}, args)
+            prop_args.value = prop_val
             let comma = ","
             //if (prop_name == last(prop_names)) { comma = "" }
-            result += props_indent + prop_name + ": " + to_source_code(args) + comma + "\n"
+            result += props_indent + prop_name + ": " + to_source_code(prop_args) + comma + "\n"
        }
     }
     result += props_indent + "do_list: ["
@@ -1852,10 +1852,10 @@ Job.prototype.to_source_code = function(args={}){
     let on_first = true
     for(let i = 0; i < do_list_val.length; i++){
        let on_last = (i == do_list_val.length - 1)
-       let args = jQuery.extend({}, arguments[0])
-       args.value = do_list_val[i]
-       args.indent = (on_first ? "" : props_indent + "          ")
-       let instr_src = to_source_code(args)
+       let prop_args = jQuery.extend({}, arguments[0])
+       prop_args.value = do_list_val[i]
+       prop_args.indent = (on_first ? "" : props_indent + "          ")
+       let instr_src = to_source_code(prop_args)
        result += instr_src + (on_last ? "" : ",") + "\n"
        on_first = false
     }

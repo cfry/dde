@@ -187,7 +187,7 @@ function init_calibrate(){
     init_calibrate_optical() //will define (or redefine the calibrate_optical job, which is ok)
   show_window({
     title:"Calibrate your Dexter(s)",
-    x:325, y: 0, width:590, height: 615,
+    x:325, y: 0, width:590, height: 635,
     content:
   "1. Choose a Dexter to calibrate: " + make_dexter_robot_menu_html() + "<br/>" +
   "2. <span id='cal_instructions_id'>Calibrate optical sensors by<br/>&nbsp;&nbsp;&nbsp;&nbsp;choosing each joint to calibrate.</span><br/>" +
@@ -210,7 +210,10 @@ function init_calibrate(){
       "</td></tr><tr style='border-collapse:collapse;'><td style='border-collapse:collapse;'></td><td>&nbsp;&nbsp;&nbsp;&nbsp;Right potentiometer: &nbsp;Clockwise pot rotation &rarr;</td></tr>" +
       "</table></td></tr></table>" +
   "3. <input type='button' id='calibrate_optical_id' style='margin-top:10px;' " +
-             "value='Calibrate optical encoders'/> Do each time you turn on Dexter.",
+             "value='Calibrate optical encoders'/> Do each time you turn on Dexter.<br/>" +
+  `4. <button onclick='open_doc("find_home_doc_id"); load_files(__dirname + "/user_tools/find_home_for_DDE_2.js");'>
+              FindHome
+      </button> Defines a Job to helps Dexter find its home location.`,
    callback: handle_cal
   })
   open_doc(calibrate_doc_id)

@@ -661,6 +661,12 @@ get_page_async("http://www.ibm.com", function(err, response, body){ out(body.len
         Editor.insert(code)
     }
 
+    ez_teach_id.onclick=function(){
+        Editor.edit_new_file()
+        Editor.insert(file_content(__dirname + "/user_tools/ezTeach_template.js"))
+        open_doc(ez_teach_doc_id)
+    }
+
     jobs_help_id.onclick          = function(){ open_doc(Job_doc_id) }
     start_job_id.onclick          = Job.start_job_menu_item_action
     //start_job_help_id.onclick = function(){ open_doc(start_job_help_doc_id) } //nw help is simply under theh Output pane help, and users see it by clicking on the "Output" pane title.

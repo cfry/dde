@@ -5,6 +5,31 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 2.1.10, Oct 26, 2017</summary>
+Highlights: socket timeout bug fix. FindHome, ezTeach
+<ul><li>verify_dde_version_between documentation: Added an example call and return value
+        to the Ref Man doc.</li>
+
+    <li>Improvements to <code>to_source_code</code> including commas between elements
+        in Jobs and literal objects.</li>
+
+    <li>Changed default_default_dexter_port from a string "50000" to an integer: 50000</li>
+
+    <li>Auto-re-init for Dexter socket that has timed out.
+        This tries several times to connect at increasing durations between tries.
+        If it can't connect after 4 tries lasting up to a second, the
+        job errors.</li>
+
+    <li>ezTeach now available from the Insert menu/ezTeach
+        which scrolls to the new User Guide section: "ezTeach".</li>
+
+    <li>FindHome is a new button on the Calibrate dialog box.
+        It is also a new top level section in the User Guide.
+        Clicking on its button  in the Calibrate dialog
+        defines the FindHome job and scrolls
+        the doc pane to the FindHome section.</li>
+</ul>
+</details>
 <details class="doc_details"><summary>v 2.1.9, Oct 25, 2017</summary>
 Highlights: to_source_code implemented but not complete.
             dde version checking code improved plus new

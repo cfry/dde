@@ -109,7 +109,9 @@ function to_source_code_lit_obj(args){
                 quote_char = '"'
                 if (prop_name.indexOf('"') != -1) { prop_name = replace_substrings(prop_name, '"',  '\\"') }
             }
-            result += quote_char + prop_name + quote_char + ": " + to_source_code(prop_args) +  "\n"
+            let trailing_comma = ((prop_index == (prop_names.length - 1)) ? "" : ", ")
+            result += quote_char + prop_name + quote_char + ": " + to_source_code(prop_args) +
+                      trailing_comma + "\n"
         }
         result += "}"
         return result

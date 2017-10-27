@@ -5,7 +5,6 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
-
 <details id="i/o_doc_id" class="doc_details"><summary>I/O</summary>
     <details class="doc_details"><summary>File Access</summary>
         Web clients reading an writing files to their local file system has been impossible in the past.
@@ -4675,7 +4674,10 @@ If include_this is true, the returned source, when evaled, will return a copy of
       <b>warn</b> A boolean. Default: <code>false</code>. If false,
         this function will error if dde_version is not between min and max inclusive.
         If it is true, this function will print a warning message and
-        return <code>false</code> if <code>dde_version</code> is not between min and max inclusive.
+        return <code>false</code> if <code>dde_version</code> is not between min and max inclusive.<br/>
+        <i>Examples:</i><br/>
+        <code/>verify_dde_version_between("0.1.0", "100.1.1")</code> => <samp>true</samp>
+
     </details>
 </details> <!-- end operating system etc -->
 
