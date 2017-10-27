@@ -5,13 +5,13 @@
 //Updated: 10_26_17
 
 
-function ezTeach_init(points_filepath = "choose_file", robot = Robot.dexter0){
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // General Use Functions:
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function my_settings(speed = 30){
+function ez_my_settings(speed = 30){
     return [
     		make_ins("S", "GripperMotor", 0),
     		make_ins("w", 78, 1),
@@ -32,7 +32,7 @@ function my_settings(speed = 30){
     	   ]
 }
 
-function get_object(parent_obj, key_string){
+function ez_get_object(parent_obj, key_string){
 	let result = parent_obj
     let keys = key_string.split(".")
     for(let i = 0; i < keys.length; i++){
@@ -41,7 +41,7 @@ function get_object(parent_obj, key_string){
     return result
 }
 
-function get_path_string(object, name_stop = "Root"){
+function ez_get_path_string(object, name_stop = "Root"){
     let current_name = object.name
     let name_list = [current_name]
     let current_obj = object
@@ -58,6 +58,12 @@ function get_path_string(object, name_stop = "Root"){
     result += name_list[name_list.length-1]
     return result
 }
+
+
+
+
+
+function ezTeach_init(points_filepath = "choose_file", robot = Robot.dexter0){
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -106,7 +112,7 @@ function Init_Create(){
     // Move to the start position
     let start_position = this.user_data.inputs.start_position
     let CMD = [ ez_show_create_doc,
-    			my_settings,
+    			ez_my_settings,
                 Dexter.move_to(start_position[0], start_position[1], start_position[2]),
                 /*
                 function(){
@@ -152,8 +158,8 @@ function Main_Create(){
 	let J_angles = [rs[Dexter.J1_ANGLE], rs[Dexter.J2_ANGLE], rs[Dexter.J3_ANGLE], rs[Dexter.J4_ANGLE], rs[Dexter.J5_ANGLE]]
     let position = this.user_data.old_position
         
-    let base_coor = get_object(Coor, this.user_data.coordinate_systems[0])
-    let local_coor = get_object(Coor, this.user_data.coordinate_systems[this.user_data.coordinate_system_idx])
+    let base_coor = ez_get_object(Coor, this.user_data.coordinate_systems[0])
+    let local_coor = ez_get_object(Coor, this.user_data.coordinate_systems[this.user_data.coordinate_system_idx])
     let local_position = [[], [], position[2].slice()]
     let local_direction = local_coor.get_xy_plane_direction()
     local_position[0] = Coor.move_points_to_coor(position[0].slice(), base_coor, local_coor)
@@ -386,7 +392,7 @@ function Main_Create(){
         }else{
         	let new_pose = Kin.three_positions_to_pose(J_angles_1, J_angles_2, J_angles_3)
             let new_coor = local_coor.create_child(new_pose, "Coordinate_System_" + this.user_data.coordinate_systems.length)
-            this.user_data.coordinate_systems.push(get_path_string(new_coor, "Coor"))
+            this.user_data.coordinate_systems.push(ez_get_path_string(new_coor, "Coor"))
             this.user_data.coordinate_system_idx++
             
            	let dir = Vector.transpose(Vector.pull(new_coor.pose, [0, 2], [2,2]))
@@ -521,7 +527,7 @@ function Finish_Create(){
                     	}
 							
                         let coor_name = this.user_data.coordinate_systems[0]
-                        let coor_source_string = get_object(Coor, coor_name).sourceCode()
+                        let coor_source_string = ez_get_object(Coor, coor_name).sourceCode()
                         let file_string = JSON.stringify({old_user_data: this.user_data, coor_source_string: coor_source_string})
                     	write_file(points_filepath, file_string)
                         out("Positions saved to " + points_filepath, "blue")
@@ -584,7 +590,7 @@ function Init_Run(){
     clear_output()
 	
     // Load in saved points file
-    if(points_filepath == "chooose_file"){
+    if(points_filepath == "choose_file"){
 		points_filepath = choose_file({buttonLabel: "Open"})
     	if(points_filepath === undefined){
     		return Robot.stop_job
@@ -600,9 +606,14 @@ function Init_Run(){
     
     
     if(this.user_data.coordinate_systems.length > 1){
-    	CMD.push(Human.enter_choice({task: "Would you like to re-define local coordinate systems?", choices: ["Yes", "No"]}))
+    	CMD.push(Human.enter_choice({task: "Would you like to re-define local coordinate systems?<br/>", 
+        		      				 choices: [["Yes", true], ["No", false]],
+                                     add_stop_button: false,
+                                     height: 130,
+                                     width: 450,
+                                     show_choices_as_buttons: true}))
     	CMD.push(function(){
-        	if(this.user_data.choice == "Yes"){
+        	if(this.user_data.choice){
             	out("Gamepad will now control robot. Re-define coordinate systems then press the menu button to start running.")
             	return [Init_Edit_Coors_Run, Edit_Coors_Run]
             }
@@ -638,7 +649,7 @@ function Init_Edit_Coors_Run(){
     // Move to the start position
     let start_position = this.user_data.inputs.start_position
     let CMD = [ ez_show_run_doc,
-    			my_settings,
+    			ez_my_settings,
                 Dexter.move_to(start_position[0], start_position[1], start_position[2])
               ]
     this.user_data.old_buttons = navigator.getGamepads()[this.user_data.game_pad_idx].buttons
@@ -672,8 +683,8 @@ function Edit_Coors_Run(){
 	let J_angles = [rs[Dexter.J1_ANGLE], rs[Dexter.J2_ANGLE], rs[Dexter.J3_ANGLE], rs[Dexter.J4_ANGLE], rs[Dexter.J5_ANGLE]]
     let position = this.user_data.old_position
         
-    let base_coor = get_object(Coor, this.user_data.coordinate_systems[0])
-    let local_coor = get_object(Coor, this.user_data.coordinate_systems[this.user_data.coordinate_system_idx])
+    let base_coor = ez_get_object(Coor, this.user_data.coordinate_systems[0])
+    let local_coor = ez_get_object(Coor, this.user_data.coordinate_systems[this.user_data.coordinate_system_idx])
     let local_position = [[], [], position[2].slice()]
     let local_direction = local_coor.get_xy_plane_direction()
     local_position[0] = Coor.move_points_to_coor(position[0].slice(), base_coor, local_coor)

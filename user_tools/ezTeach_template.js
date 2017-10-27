@@ -5,11 +5,7 @@
 //Updated: 10_26_17
 
 
-// Version requirement:
-var required_version = "2.1.8"
-if(dde_version < required_version){
-	dde_error("This file requires DDE version " + required_version +". You are running version " + dde_version + ".")
-}
+// Version requirement: 2.1.10
 
 
 var joystick_threshold = .15 // Increase if arm is moving without pressing joysticks. Has range of 0-1. Originally the value was 0.1. 
@@ -45,9 +41,9 @@ function ez_create_position(info){
 	let CMD = [] 					//These are commands added to the do list everytime a position is created
 
 	let base_coor_name = info.job.user_data.coordinate_systems[0]
-	let base_coor = get_object(Coor, base_coor_name)
+	let base_coor = ez_get_object(Coor, base_coor_name)
     let local_coor_name = info.job.user_data.coordinate_systems[info.job.user_data.coordinate_system_idx]
-    let local_coor = get_object(Coor, local_coor_name)
+    let local_coor = ez_get_object(Coor, local_coor_name)
     
     let position_object = { 		//This object is added to the array that will get saved out and read by ez_run_position() below
 		xyz: info.position[0],
@@ -82,8 +78,8 @@ function ez_run_position(info, dry_run = false){
     let position_object = info.position_object
     
     // Coordinate system transforms:
-    let base_coor = get_object(Coor, info.job.user_data.coordinate_systems[0])
-    let local_coor = get_object(Coor, position_object.local_coor)
+    let base_coor = ez_get_object(Coor, info.job.user_data.coordinate_systems[0])
+    let local_coor = ez_get_object(Coor, position_object.local_coor)
     let base_xyz = Coor.move_points_to_coor(position_object.local_xyz, local_coor, base_coor)
     let base_dir = Coor.move_vectors_to_coor(position_object.local_normal, local_coor, base_coor)    
         
@@ -161,4 +157,4 @@ function ez_stop_run(info){
 }
 
 // Defines the Jobs 
-ezTeach_init("choose_file", Robot.dexter0)
+ezTeach_init(points_filepath = "choose_file", robot = Robot.dexter0)
