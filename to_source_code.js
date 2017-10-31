@@ -16,15 +16,8 @@ function to_source_code({value, indent="", function_names=false, newObject_paths
             else if  (value.includes('"'))   { return indent + "'" + value + "'" }
             else                             { return indent + '"' + value + '"' }
         }
-        else if (value instanceof Date)     { return value.toString() }
-        else if (typeof(value) == "function") {
-            let fn_name = function_name(value)
-            if (function_names && (fn_name !== null) && (fn_name !== "")) { return fn_name }
-            else {
-                let src = value.toString()
-                return replace_substrings(src, "\n", indent + "\n")
-            }
-        }
+        else if (value instanceof Date)      { return value.toString() }
+        else if (typeof(value) == "function"){ return to_source_code_function(arguments[0]) }
         else if (Object.isNewObject(value)) {
             if (newObject_paths) { return value.objectPath }
             else                 { return value.sourceCode() }
@@ -34,14 +27,12 @@ function to_source_code({value, indent="", function_names=false, newObject_paths
         }
         //Job. Robot, Instruction, Duration
         else if (value.to_source_code) { return value.to_source_code(arguments[0]) }
-        else if (value === window)     { return "{window object: stores globals}"  } //too many weird values in there and too slow so punt.
+        else if (value === window)     { return "window"  } //too many weird values in there and too slow so punt.
         else if (typeof(value) == "object"){//beware if we didn't catch arrays above this would hit
                                             //assumes at this point we just have a lit obj.
             return to_source_code_lit_obj(arguments[0])
         }
-        else {
-            shouldnt("to_source_code passed: " + arguments[0] + " which is not a handled type.")
-        }
+        else { shouldnt("to_source_code passed: " + value + " which is not a handled type.") }
 }
 
 
@@ -97,22 +88,36 @@ function to_source_code_instruction_array(args){
 
 function to_source_code_lit_obj(args){
         let value = args.value
-        let result = "{"
+        let indent = args.indent
+        let result = indent + "{"
         let prop_names = Object.getOwnPropertyNames(value) //long objects like cv cause problems
         for (var prop_index = 0; prop_index < prop_names.length; prop_index++) {
             let prop_name   = prop_names[prop_index]
             let prop_val    = value[prop_name]
             let prop_args = jQuery.extend({}, args) //copy the args
             prop_args.value = prop_val
+            prop_args.indent = "" //((prop_index == 0) ? "" : (indent + " "))
+            let prop_indent = ((prop_index == 0) ? "" : (indent + " "))
             let quote_char = ""
             if (prop_name.indexOf(" ") != -1){
                 quote_char = '"'
                 if (prop_name.indexOf('"') != -1) { prop_name = replace_substrings(prop_name, '"',  '\\"') }
             }
             let trailing_comma = ((prop_index == (prop_names.length - 1)) ? "" : ", ")
-            result += quote_char + prop_name + quote_char + ": " + to_source_code(prop_args) +
+            result += prop_indent + quote_char + prop_name + quote_char + ": " + to_source_code(prop_args) +
                       trailing_comma + "\n"
         }
-        result += "}"
+        result += indent + "}"
         return result
+}
+
+function to_source_code_function(args){
+    let fn_name = function_name(args.value)
+    if (args.function_names && (fn_name !== null) && (fn_name !== "")) {
+        return args.indent + fn_name
+    }
+    else {
+        let src = args.value.toString()
+        return replace_substrings(src, "\n", args.indent + "\n")
+    }
 }

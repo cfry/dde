@@ -48,50 +48,57 @@ function version_more_than(version_string1, version_string2=dde_version){
     return semver.gt(version_string1, version_string2)
 }
 
-function verify_dde_version_between(min=null, max=null, warn=false){
+function dde_version_between(min=null, max=null, action="error"){ //"error", "warn", "boolean"
+    if (!["error", "warn", "boolean"].includes(action)) {
+        dde_error("dde_version_between passed an invalid value for 'action' of: " + action +
+                  ' It must be "error", "warn", or "boolean", with the default of "error". ')
+    }
     if (min == null){
         if (max == null) {
-            dde_error("verify_dde_version_between given a null min and max." +
+            dde_error("dde_version_between given a null min and max." +
                       "<br/>You must supply at least one on these.")
         }
         //only max
-        else if(version_less_than(max) || version_equal(max)) { return true }
-        else if (warn){
+        else if(version_more_than(max) || version_equal(max)) { return true }
+        else if (action == "warn"){
             warning("You are running DDE version: " + dde_version +
                      "<br/>but this code requires version: " + max + " or less.")
             return false
         }
-        else {
+        else if (action == "error"){
             dde_error("You are running DDE version: " + dde_version +
                       "<br/>but this code requires version: " + max + " or less.")
         }
+        else { return false }
     }
     //min is present
     else if (max == null) {
         //only min
-        if (version_more_than(min) || version_equal(min)) { return true }
-        else if (warn){
+        if (version_less_than(min) || version_equal(min)) { return true }
+        else if (action == "warn"){
             warning("You are running DDE version: " + dde_version +
                     "<br/>but this code requires version: " + min + " or more.")
             return false
         }
-        else {
+        else if (action == "error") {
             dde_error("You are running DDE version: " + dde_version +
                       "<br/>but this code requires version: " + min + " or more.")
         }
+        else { return false }
     }
     //both min and max are present
     else if (version_equal(min) || version_equal(max) ||
              (version_less_than(min) && version_more_than(max))) { return true }
-    else if (warn){
+    else if (action == "warn"){
         warning("You are running DDE version: " + dde_version +
                 "<br/>but this code requires a version between " + min + " and " + max + " inclusive.")
         return false
     }
-    else {
+    else if (action == "error") {
         dde_error("You are running DDE version: " + dde_version +
                   "<br/>but this code requires a version between " + min + " and " + max + " inclusive.")
     }
+    else { return false }
 }
 
 var primitive_types = ["undefined", "boolean", "string", "number"] //beware; leave out null because
@@ -360,12 +367,12 @@ function typed_array_name(item){
 //returns null or the last elt of an array or a string
 function last(arg){
     let len = arg.length
-    if (len == 0)                     { return null }
+    if (len == 0)                     { return undefined }
     else if (typeof(arg) == "string") { return arg[len - 1 ] }
     else if (Array.isArray(arg))      { return arg[len - 1] }
     else if (arg instanceof NodeList) { return arg[len - 1] }
     else if (arg instanceof HTMLCollection) { return arg[len - 1] }
-    else                              { return null }
+    else                              { dde_error("last passed unhandled type of arg: " + arg) }
 }
 
 function flatten(arr, result=[]){

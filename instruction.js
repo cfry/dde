@@ -155,6 +155,7 @@ function make_ins(instruction_type, ...args){
     else { return result.concat(args) }
     return result.concat(args)
 }
+//to_source_code() handles instruction arrays.
 
 
 //now Instruction.INSTRUCTION_TYPE == 4, and some_ins_array[Instruction.INSTRUCTION_TYPE] will return the oplet
@@ -218,7 +219,7 @@ Instruction.Control.go_to = class go_to extends Instruction.Control{
     }
     toString(){ return "Robot.go_to instruction_location: " + this.instruction_location }
 
-    to_source_code(args ){
+    to_source_code(args){
         let this_indent = args.indent
         args        = jQuery.extend({}, arguments[0])
         args.value  = this.instruction_location
@@ -228,7 +229,7 @@ Instruction.Control.go_to = class go_to extends Instruction.Control{
 }
 
 Instruction.Control.grab_robot_status = class grab_robot_status extends Instruction.Control{
-    constructor (user_data_variable, //a string
+    constructor (user_data_variable = "grabbed_robot_status", //a string
                  start_index = Serial.DATA0, //integer, but can also be "all"
                  end_index=null)  //if integer and same as start_index,
                                 //makes a vector of the start_index value,
@@ -266,6 +267,23 @@ Instruction.Control.grab_robot_status = class grab_robot_status extends Instruct
     }
     toString(){
         return "grab_robot_status: " + this.user_data_variable
+    }
+    to_source_code(args){
+        let this_indent = args.indent
+        args        = jQuery.extend({}, args)
+        args.value  = this.user_data_variable
+        args.indent = ""
+        let ud_src  = to_source_code(args)
+        args        = jQuery.extend({}, args)
+        args.value  = this.start_index
+        args.indent = ""
+        let si_src  = to_source_code(args)
+        args        = jQuery.extend({}, args)
+        args.value  = this.end_index
+        args.indent = ""
+        let ei_src  = to_source_code(args)
+        return this_indent + "Robot.grab_robot_status(" +
+               ud_src + ", " + si_src + ", " + ei_src + ")"
     }
 }
 
@@ -309,8 +327,20 @@ Instruction.Control.human_task = class human_task extends Instruction.Control{
                     y: this.y,
                     width: this.width,
                     height: this.height,
-                    background_color: this.background_color
-                    })
+                    background_color: this.background_color})
+    }
+    to_source_code(args){
+        return args.indent + "Human.task({"  +
+               ((this.task == "") ? "" : ("task: " + to_source_code({value: this.task}) + ", ")) +
+               ((this.title === undefined) ? "" : ("title: " + to_source_code({value: this.title})  + ", ")) +
+               ((this.add_stop_button == true)         ? "" : ("add_stop_button: "     + this.add_stop_button  + ", ")) +
+               ((this.dependent_job_names.length == 0) ? "" : ("dependent_job_names: " + to_source_code({value: this.dependent_job_names}) + ", ")) +
+               ((this.x      == 200) ? "" : ("x: " + this.x       + ", "   )) +
+               ((this.y      == 200) ? "" : ("y: " + this.y       + ", "   )) +
+               ((this.width  == 400) ? "" : ("width: "  + this.width   + ", "   )) +
+               ((this.height == 400) ? "" : ("height: " + this.height  + ", "   )) +
+               ((this.background_color == "rgb(238, 238, 238)") ? "" : ("background_color: " + to_source_code({value: this.background_color}))) +
+               "})"
     }
 }
 
@@ -402,6 +432,24 @@ Instruction.Control.human_enter_choice = class human_enter_choice extends Instru
                     width: this.width,
                     height: this.height,
                     background_color: this.background_color})
+    }
+
+    to_source_code(args){
+        return args.indent + "Human.enter_choice({"  +
+            ((this.task == "") ? "" : ("task: " + to_source_code({value: this.task}) + ", ")) +
+            ((this.title === undefined) ? "" : ("title: " + to_source_code({value: this.title})  + ", ")) +
+            ((this.user_data_variable_name == "choice") ? "" : ("dependent_job_names: " + to_source_code({value: this.dependent_job_names}) + ", ")) +
+            ((this.show_choices_as_buttons == false) ? "" : (this.show_choices_as_buttons + ", ")) +
+            ((this.one_button_per_line == false)     ? "" : (this.one_button_per_line + ", ")) +
+            ((this.choices.length == 0) ? "" : ("choices: " + to_source_code({value: this.choices}) + ", ")) +
+            ((this.add_stop_button == true)         ? "" : ("add_stop_button: "     + this.add_stop_button  + ", ")) +
+            ((this.dependent_job_names.length == 0) ? "" : ("dependent_job_names: " + to_source_code({value: this.dependent_job_names}) + ", ")) +
+            ((this.x      == 200) ? "" : ("x: " + this.x       + ", "   )) +
+            ((this.y      == 200) ? "" : ("y: " + this.y       + ", "   )) +
+            ((this.width  == 400) ? "" : ("width: "  + this.width   + ", "   )) +
+            ((this.height == 400) ? "" : ("height: " + this.height  + ", "   )) +
+            ((this.background_color == "rgb(238, 238, 238)") ? "" : ("background_color: " + to_source_code({value: this.background_color}))) +
+            "})"
     }
 }
 
@@ -572,6 +620,22 @@ Instruction.Control.human_enter_instruction = class human_enter_instruction exte
         //setTimeout(function(){immediate_do_id.focus()}, 100) //always focus on immediate_do_id id because if user is in a loop using it, we might as well focus on it. No other widgets where focus would matter in this dialog
         //above line can't work because we're in sandbox where immediate_do_id is unbound
         immediate_do_id.focus()
+    }
+    to_source_code(args){
+        return args.indent + "Human.enter_choice({"  +
+            ((this.task == "") ? "" : ("task: " + to_source_code({value: this.task}) + ", ")) +
+            ((this.title === undefined) ? "" : ("title: " + to_source_code({value: this.title})  + ", ")) +
+            ((this.user_data_variable_name == "choice") ? "" : ("dependent_job_names: " + to_source_code({value: this.dependent_job_names}) + ", ")) +
+            ((this.instruction_type == "Dexter.move_all_joints") ? "" : (this.instruction_type + ", ")) +
+            ((this.instruction_args == "0, 0, 0, 0, 0") ? "" : ("instruction_args: " + this.instruction_args + ", ")) +
+            ((this.add_stop_button == true)         ? "" : ("add_stop_button: "     + this.add_stop_button  + ", ")) +
+            ((this.dependent_job_names.length == 0) ? "" : ("dependent_job_names: " + to_source_code({value: this.dependent_job_names}) + ", ")) +
+            ((this.x      == 200) ? "" : ("x: " + this.x       + ", "   )) +
+            ((this.y      == 200) ? "" : ("y: " + this.y       + ", "   )) +
+            ((this.width  == 400) ? "" : ("width: "  + this.width   + ", "   )) +
+            ((this.height == 400) ? "" : ("height: " + this.height  + ", "   )) +
+            ((this.background_color == "rgb(238, 238, 238)") ? "" : ("background_color: " + to_source_code({value: this.background_color}))) +
+            "})"
     }
 }
 

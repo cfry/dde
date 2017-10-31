@@ -87,7 +87,7 @@ var Robot = class Robot {
         return new Instruction.Control.go_to(instruction_location)
     }
 
-    static grab_robot_status(user_data_variable,
+    static grab_robot_status(user_data_variable = "grabbed_robot_status",
                              starting_index = Serial.DATA0,
                              ending_index=null){
         return new Instruction.Control.grab_robot_status(user_data_variable,
@@ -247,7 +247,7 @@ var Human = class Human extends Brain { /*no associated hardware */
         var reason = "An instruction intended for a physical robot: " + inst_array_with_inst_id + "<br/>was sent to a Robot.Human: " + this.name + ",<br/> which has no physical robot."
         job_instance.stop_for_reason("errored", reason)
         out(reason, "red")
-        throw new Error("send called on Robot.Brain, which has no physical robot.")
+        throw new Error("send called on Robot.Human, which has no physical robot.")
     }
 
     //the human instructions

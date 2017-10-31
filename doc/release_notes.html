@@ -5,6 +5,40 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 2.1.12, Oct 31, 2017</summary>
+Highlights: Fixed backwards go_to bug. dde_version_between, to_source_code
+<ul>
+    <li> <code>verify_dde_version_between</code> renamed to <code>dde_version_between</code>,<br/>
+         changed 3rd parameter to "action" that can take values "error", "warn", "boolean".<br/>
+         Fixed bug.<br/>
+         See Ref Man/Operating System, etc/dde_version_between.</li>
+
+    <li> Jobs that are defined but not yet started now have their user_data property inited
+            to the user_data value in the new constructor, just in case
+            we want to call to_source_code on unstarted jobs.</li>
+
+    <li> to_source_code for Jobs: indenting improved.</li>
+
+    <li> Utility fn last now returns undefined instead of null when passed a zero lengthed item.
+        If passed an unhandled type of arg, it now errors.</li>
+
+    <li> to_source_code on a Job that has been run and NOT using orig_do_list prints out
+        the trailing instruction of make_ins(3, 3, 1509036422423, "g")
+        but beware that printing jobs that have been run, with orig_do_list=false
+        will print both a move_all_joints and a make_inst("a")
+        for a job with just 1 do_list item of move_all_joints in its def.</li>
+
+    <li> new to_source_code methods for: Robot.grab_robot_status, Human.task, Human.enter_choice</li>
+
+    <li> Robot.grab_robot_status instruction now has a default for the
+         first arg (user data var) of "grabbed_robot_status".</li>
+
+    <li> bug fixed in inserting instructions into do list that was not properly updating
+        the hierarchical added_items_count array.
+        This caused some instructions to be skipped when a <code>Robot.go_to</code>
+        backwards instruction was executed.</li>
+</ul>
+</details>
 <details class="doc_details"><summary>v 2.1.11, Oct 27, 2017</summary>
 Highlights: exTeach bug fixes
 <ul><li>ezTeach fixed runtime bugs</li>
@@ -14,7 +48,7 @@ Highlights: exTeach bug fixes
 
 <details class="doc_details"><summary>v 2.1.10, Oct 26, 2017</summary>
 Highlights: socket timeout bug fix. FindHome, ezTeach
-<ul><li>verify_dde_version_between documentation: Added an example call and return value
+<ul><li>dde_version_between documentation: Added an example call and return value
         to the Ref Man doc.</li>
 
     <li>Improvements to <code>to_source_code</code> including commas between elements
@@ -40,7 +74,7 @@ Highlights: socket timeout bug fix. FindHome, ezTeach
 <details class="doc_details"><summary>v 2.1.9, Oct 25, 2017</summary>
 Highlights: to_source_code implemented but not complete.
             dde version checking code improved plus new
-            function verify_dde_version_between
+            function dde_version_between
 <ul><li> Doc for objectPath extended. See Ref Man/Object System/New Object System Methods/objectPath</li>
 
     <li> The "last" function has been extended to work on NodeList and HTMLCollection</li>
@@ -73,7 +107,7 @@ Highlights: to_source_code implemented but not complete.
     <li> dde_version_equal, dde_version_less_than dde_version_more_than renamed to not start with "dde_".
          doc and click_help improved.</li>
 
-    <li> New function:  <code>verify_dde_version_between("1.2.3", null, warn=false)</code>
+    <li> New function:  <code>dde_version_between("1.2.3", null, warn=false)</code>
       If the current version is NOT 1.2.3, then
     if first arg is null, the default, dde version must be before the 2nd arg.
     If 2nd arg is null, the default dde version must be after the first arg.
@@ -81,7 +115,7 @@ Highlights: to_source_code implemented but not complete.
     if 3rd arg (warn) is false (the default) then error if dde_version is not between first and 2nd arg (inclusive)
     else if warn is true, just print out a warning message.
     This is kind of a "declaration" at the top of a dde src file.
-    See Ref Man/Operating System,etc.  verify_dde_version_between</li>
+    See Ref Man/Operating System,etc.  dde_version_between</li>
 
 
     <li> New global var <code>loading_file</code> bound to the path of the loading file.

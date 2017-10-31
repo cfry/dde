@@ -39,6 +39,7 @@ var Job = class Job{
                             initial_instruction: initial_instruction, when_stopped: when_stopped}
         this.name              = name
         this.robot             = robot
+        this.user_data         = user_data //needed in case we call to_source_code before first start of the job
         //setup name
         Job.job_id_base       += 1
         this.job_id            = Job.job_id_base
@@ -185,7 +186,6 @@ var Job = class Job{
                  //(but NOT into its original_do_list, so its only inserted the first time this
                  //job is run.
                 Job.insert_instruction(this.sent_from_job_instruction_queue, this.sent_from_job_instruction_location)
-                //this.do_list.splice(this.program_counter, 0, ...this.sent_from_job_instruction_queue)
             }
             this.sent_from_job_instruction_queue = [] //send_to_job uses this. its on the "to_job" instance and only stores instructions when send_to_job has
                                                   //where_to_insert="next_top_level", or when this job has yet to be starter. (see above comment.)
@@ -1015,6 +1015,7 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
             (last(this.do_list)[Dexter.INSTRUCTION_TYPE] != "g"))){
             this.program_counter = this.do_list.length //probably already true, but just to make sure.
             this.do_list.splice(this.do_list.length, 0, Dexter.get_robot_status()) //this final instruction naturally flushes dexter'is instruction queue so that the job will stay alive until the last insetruction is done.
+            this.added_items_count(this.this.do_list.length, 0, 0)
             this.set_up_next_do(0)
         }
         else if (!this.stop_reason){
@@ -1053,6 +1054,11 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
                  this.is_top_level_do_item(cur_do_item)){
             //bad, inserts after pc not AT pc this.insert_instructions(this.sent_from_job_instruction_queue) //all items on queue are next_top_level, so just insert them all.
             this.do_list.splice(this.program_counter, 0, ...this.sent_from_job_instruction_queue)
+            let added_items_for_insert = new Array(this.sent_from_job_instruction_queue.length)
+            added_items_for_insert.fill(0)
+            this.added_items_count.splice(this.program_counter, 0, ...added_items_for_insert)
+
+
             //note we're inserting sent_from_job instructions, not the REAL instruction we want to execute.
             //that's because in the hierarchical do_list display, we want to see where those REAL instructions came from for debugging purposes.
             this.sent_from_job_instruction_queue = []
@@ -1254,13 +1260,15 @@ Job.prototype.handle_start_object = function(cur_do_item){
 //note this could also take an array of instructions,
 //but it inserts it as one item, not multiple items.
 Job.prototype.insert_single_instruction = function(instruction_array){
-    let the_do_list = this.do_list
-    //if (!the_do_list){ the_do_list = this.orig_args.do_list }
-    the_do_list.splice(this.program_counter + 1, 0, instruction_array);
+    this.do_list.splice(this.program_counter + 1, 0, instruction_array);
+    this.added_items_count.splice(this.program_counter + 1, 0, 0); //added oct 31, 2017
 }
 
 Job.prototype.insert_instructions = function(array_of_do_items){
     this.do_list.splice.apply(this.do_list, [this.program_counter + 1, 0].concat(array_of_do_items));
+    added_items_to_insert = new Array(array_of_do_items.length)
+    added_items_to_insert.fill(0)
+    this.added_items_count.splice.apply(this.do_list, [this.program_counter + 1, 0].concat(added_items_to_insert));
 }
 
 Job.prototype.send = function(instruction_array){ //if remember is false, its a heartbeat
@@ -1285,7 +1293,6 @@ Job.prototype.send = function(instruction_array){ //if remember is false, its a 
     if (this.keep_history){
         this.sent_instructions.push(instruction_array) //for debugging mainly
     }
-
     this.robot.send(instruction_array)
 }
 
@@ -1778,11 +1785,12 @@ Job.insert_instruction = function(instruction, location){
                 //inserted instruction will make it in to the do_list.
         }
         else { job_instance.do_list.splice(index, 0, instruction)
+               job_instance.added_items_count.splice(index, 0, 0) //added oct 31, 2017
                if(index > 0) { //unlike the instance method cousins of this static method,
                     //this meth must do the added_items_count increment because
                     //the caller of this meth doesn't know the index of the instr to increment
                     //the added_items_count of.
-                    job_instance.added_items_count[this.program_counter] += 1
+                    job_instance.added_items_count[this.program_counter] += 1 //do_to: doesn't seem right that pc has its added_items count incrementd. Maybe should be something lese, or no increment at all
                }
 
         }
@@ -1842,13 +1850,27 @@ Job.prototype.to_source_code = function(args={}){
        if (!similar(prop_val, job_default_params[prop_name])){ //I could *almost* use == instead pf similar but doesn't work for user_data of an empty lit obj
             let prop_args = jQuery.extend({}, args)
             prop_args.value = prop_val
+            let user_data_val_prefix = ""
+            if (prop_name == "user_data") {
+                prop_args.indent = props_indent + "    "
+                user_data_val_prefix = "\n"
+            }
             let comma = ","
             //if (prop_name == last(prop_names)) { comma = "" }
-            result += props_indent + prop_name + ": " + to_source_code(prop_args) + comma + "\n"
+            result += props_indent + prop_name + ": " +
+                      user_data_val_prefix + to_source_code(prop_args) +
+                      comma + "\n"
        }
     }
     result += props_indent + "do_list: ["
     let do_list_val = props_container.do_list
+    if (!args.orig_args){
+        let last_instr  = last(do_list_val)
+        if (Instruction.is_instruction_array(last_instr) &&
+            last_instr[Instruction.INSTRUCTION_TYPE] == "g") { //don't print the auto_added g instr at end of a run job
+            do_list_val = do_list_val.slice(0, (do_list_val.length - 1))
+        }
+    }
     let on_first = true
     for(let i = 0; i < do_list_val.length; i++){
        let on_last = (i == do_list_val.length - 1)

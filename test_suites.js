@@ -202,5 +202,7 @@ new TestSuite("version_functions",
     ['version_more_than("0.1.2")', "false"],
     ['version_more_than("100.1.2")', "true"],
     ['version_more_than("0.1.2", "0.1.2")', "false"],
-    ['verify_dde_version_between("0.1.0", "100.1.1")', "true"],
-    ['verify_dde_version_between("0.1.0", "0.3.1", true)', "false"]  )  
+    ['dde_version_between("0.1.0", "100.1.1", "boolean")', "true"],
+    ['dde_version_between("0.1.0", "0.3.1", "boolean")', "false"],
+    ['dde_version_between("1.1.0", null, "boolean")', "true"],
+    ['dde_version_between(null, "100.0.0", "boolean")', "true"])
