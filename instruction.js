@@ -1773,7 +1773,8 @@ Instruction.Control.move_all_joints = class move_all_joints extends Instruction.
         }
         if(Kin.check_J_ranges(angles)) {
             job_instance.robot.angles = angles
-            Job.insert_instruction(make_ins("a", ...angles), {job: job_instance, offset: "after_program_counter"})
+            job_instance.insert_single_instruction(make_ins("a", ...angles))
+            job_instance.added_items_count[job_instance.program_counter] += 1
             job_instance.set_up_next_do(1)
         }
         else {
@@ -1807,7 +1808,8 @@ Instruction.Control.pid_move_all_joints = class pid_move_all_joints extends Inst
         }
         if(Kin.check_J_ranges(angles)) {
             job_instance.robot.angles = angles
-            Job.insert_instruction(make_ins("P", ...angles), {job: job_instance, offset: "after_program_counter"})
+            job_instance.insert_single_instruction(make_ins("P", ...angles))
+            job_instance.added_items_count[job_instance.program_counter] += 1
             job_instance.set_up_next_do(1)
         }
         else {
@@ -1837,7 +1839,9 @@ Instruction.Control.move_all_joints_relative = class move_all_joints_relative ex
         for(var i = 0; i < 5; i++){
             abs_angles.push(job_instance.robot.angles[i] + this.delta_angles[i])
         }
-        Job.insert_instruction(Dexter.move_all_joints(abs_angles), {job: job_instance, offset: "after_program_counter"})
+        //Job.insert_instruction(Dexter.move_all_joints(abs_angles), {job: job_instance, offset: "after_program_counter"})
+        job_instance.insert_single_instruction(Dexter.move_all_joints(abs_angles))
+        job_instance.added_items_count[job_instance.program_counter] += 1
         job_instance.set_up_next_do(1)
     }
     toString(){
@@ -1880,7 +1884,9 @@ Instruction.Control.move_to = class move_to extends Instruction.Control{
                 "<br/>[90, 90], [-90, 90], [90, -90] and [-90, -90]<br/> are all invalid.")
         }
         if (similar(xyz, Dexter.HOME_POSITION[0])) {
-            Job.insert_instruction(make_ins("a", ...Dexter.HOME_ANGLES), {job: job_instance, offset: "after_program_counter"})
+            //Job.insert_instruction(make_ins("a", ...Dexter.HOME_ANGLES), {job: job_instance, offset: "after_program_counter"})
+            job_instance.insert_single_instruction(make_ins("a", ...Dexter.HOME_ANGLES))
+            job_instance.added_items_count[job_instance.program_counter] += 1
             job_instance.set_up_next_do(1)
             return
         }
@@ -1901,7 +1907,9 @@ Instruction.Control.move_to = class move_to extends Instruction.Control{
         //for(let i = 0; i < 5; i++){ angles[i] = Math.round( angles[i]) }
         if (Kin.check_J_ranges(angles)){
             job_instance.robot.angles       = angles
-            Job.insert_instruction(make_ins("a", ...angles), {job: job_instance, offset: "after_program_counter"})
+            //Job.insert_instruction(make_ins("a", ...angles), {job: job_instance, offset: "after_program_counter"})
+            job_instance.insert_single_instruction(make_ins("a", ...angles))
+            job_instance.added_items_count[job_instance.program_counter] += 1
             job_instance.set_up_next_do(1)
         }
         else {
@@ -1961,7 +1969,9 @@ Instruction.Control.pid_move_to = class pid_move_to extends Instruction.Control{
                 "<br/>[90, 90], [-90, 90], [90, -90] and [-90, -90]<br/> are all invalid.")
         }
         if (similar(xyz, Dexter.HOME_POSITION[0])) {
-            Job.insert_instruction(make_ins("P", ...Dexter.HOME_ANGLES), {job: job_instance, offset: "after_program_counter"})
+            //Job.insert_instruction(make_ins("P", ...Dexter.HOME_ANGLES), {job: job_instance, offset: "after_program_counter"})
+            job_instance.insert_single_instruction(make_ins("P", ...Dexter.HOME_ANGLES))
+            job_instance.added_items_count[job_instance.program_counter] += 1
             job_instance.set_up_next_do(1)
             return
         }
@@ -1984,7 +1994,9 @@ Instruction.Control.pid_move_to = class pid_move_to extends Instruction.Control{
         //for(let i = 0; i < 5; i++){ angles[i] = Math.round( angles[i]) }
         if (Kin.check_J_ranges(angles)){
             job_instance.robot.angles       = angles
-            Job.insert_instruction(make_ins("P", ...angles), {job: job_instance, offset: "after_program_counter"})
+            //Job.insert_instruction(make_ins("P", ...angles), {job: job_instance, offset: "after_program_counter"})
+            job_instance.insert_single_instruction(make_ins("P", ...angles))
+            job_instance.added_items_count[job_instance.program_counter] += 1
             job_instance.set_up_next_do(1)
         }
         else {
@@ -2038,7 +2050,10 @@ Instruction.Control.move_to_relative = class move_to_relative extends Instructio
         //for(let i = 0; i < 5; i++){ angles[i] = Math.round(angles[i]) }
         if (Kin.check_J_ranges(angles)){
             this.robot.angles = angles
-            return make_ins("a", ...angles) // Dexter.move_all_joints(angles)
+            //return make_ins("a", ...angles) // Dexter.move_all_joints(angles)
+            job_instance.insert_single_instruction(make_ins("a", ...angles))
+            job_instance.added_items_count[job_instance.program_counter] += 1
+            job_instance.set_up_next_do(1)
         }
         else { job_instance.stop_for_reason("errored", "move_to_relative called with out of range delta_xyz: " + this.delta_xyz) }
     }
@@ -2076,7 +2091,9 @@ Instruction.Control.move_to_straight = class move_to_straight extends Instructio
                 this.tool_speed,
                 this.resolution,
                 job_instance.robot.pose)
-            Job.insert_instruction(instrs, {job: job_instance, offset: "after_program_counter"})
+            //Job.insert_instruction(instrs, {job: job_instance, offset: "after_program_counter"})
+            job_instance.insert_instructions(instrs)
+            job_instance.added_items_count[job_instance.program_counter] += instrs.length
             job_instance.set_up_next_do(1)
         }
         catch(err){

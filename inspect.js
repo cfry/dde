@@ -54,7 +54,7 @@ function inspect(item){
 function inspect_out(item, stack_number, in_stack_position, html_elt_to_replace, collapse=false, increase_max_display_length=false){
     if(!item && (item != 0)) { item = inspect_stacks[stack_number][in_stack_position] }
     else if (stack_number || (stack_number == 0)){
-        if(!in_stack_position) {
+        if(!in_stack_position && (in_stack_position != 0)) {
             in_stack_position = inspect_stacks[stack_number].length
             inspect_stacks[stack_number].push(item)
         }
@@ -126,7 +126,7 @@ function inspect_aux(item, stack_number, in_stack_position, increase_max_display
                 inspect_stack_max_display_length[stack_number][in_stack_position] = new_array_max_display_length
                 for(let prop_name = 0; prop_name < item.length; prop_name++){
                     if(prop_name >= new_array_max_display_length) {
-                        result += `<button onclick="inspect_out(undefined, ` +
+                        result += `<button style="font-size:12px;height:20px;padding:1px;" onclick="inspect_out(undefined, ` +
                                     stack_number      + ", " +
                                     in_stack_position + ", " +
                                     true              + `, false, true)">more...</button>`
@@ -206,7 +206,7 @@ function inspect_aux(item, stack_number, in_stack_position, increase_max_display
             inspect_stack_max_display_length[stack_number][in_stack_position] = new_array_max_display_length
             for(let prop_index = 0; prop_index < prop_names.length; prop_index ++){
                 if(prop_index >= new_array_max_display_length) {
-                    result += `<button onclick="inspect_out(undefined, ` +
+                    result += `<button style="font-size:12px;height:20px;padding:1px;" onclick="inspect_out(undefined, ` +
                                     stack_number      + ", " +
                                     in_stack_position + ", " +
                                     true              + `, false, true)">more...</button>`
@@ -251,8 +251,9 @@ function inspect_aux(item, stack_number, in_stack_position, increase_max_display
         result = "<div id='" + div_id + "' class='inspector' style='background-color:#ffd9b4;'>\n" +
             "&nbsp;<span             id='" + prev_id + "' title='Inspect previous value.' style='cursor:pointer;color:blue;font-weight:900; font-size:20px; opacity:"  + prev_opacity + ";'>&lt;</span>\n" +
             "&nbsp;&nbsp;&nbsp;<span id='" + next_id + "' title='Inspect next value.'     style='cursor:pointer;color:blue;font-weight:900; font-size:20px; opacity:"  + next_opacity + ";'>&gt;</span>\n" +
-            "<span id='" + refresh_id + "' style='cursor:pointer;padding-left:30px;font-size:20px;' title='refresh' >" + "&#10227;</span>\n" +
-            "<b style='padding-left:70px;'><i>" + title + "</i></b><br/>\n"  +
+            //"<span id='" + refresh_id + "' style='cursor:pointer;padding-left:30px;font-size:20px;' title='refresh' >" + "&#10227;</span>\n" +
+            "<button id='" + refresh_id + "' style='cursor:pointer;font-size:12px;padding:1px;height:20px;' title='refresh the data being inspected.' >Refresh</button>\n" +
+            "<b style='padding-left:10px;'>INSPECTing<i> &nbsp;" + title + "</i></b><br/>\n"  +
             result + "</div>"
         inspect_set_prev_onclick(   stack_number, in_stack_position, prev_id)
         inspect_set_next_onclick(   stack_number, in_stack_position, next_id)

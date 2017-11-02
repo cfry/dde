@@ -1013,9 +1013,13 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
         else if ((this.robot instanceof Dexter) &&
             ((this.do_list.length == 0) ||
             (last(this.do_list)[Dexter.INSTRUCTION_TYPE] != "g"))){
-            this.program_counter = this.do_list.length //probably already true, but just to make sure.
-            this.do_list.splice(this.do_list.length, 0, Dexter.get_robot_status()) //this final instruction naturally flushes dexter'is instruction queue so that the job will stay alive until the last insetruction is done.
-            this.added_items_count(this.this.do_list.length, 0, 0)
+            //this.program_counter = this.do_list.length //probably already true, but just to make sure.
+            //this.do_list.splice(this.program_counter, 0, Dexter.get_robot_status()) //this final instruction naturally flushes dexter'is instruction queue so that the job will stay alive until the last insetruction is done.
+                //this.added_items_count(this.program_counter, 0, 0)
+            //this.added_items_count.splice(this.program_counter, 0, 0)
+
+            this.insert_single_instruction(Dexter.get_robot_status())
+            this.added_items_count[this.program_counter] += 1
             this.set_up_next_do(0)
         }
         else if (!this.stop_reason){
@@ -1250,6 +1254,7 @@ Job.prototype.handle_start_object = function(cur_do_item){
     }
     else if(cur_do_item.dur) {
         this.insert_single_instruction(Robot.wait_until(cur_do_item.dur))
+        this.added_items_count[this.program_counter] += 1
     }
     if (!start_args)                    { cur_do_item.start.apply(the_inst_this) }
     else if (Array.isArray(start_args)) { cur_do_item.start.apply(the_inst_this, start_args) }
@@ -1265,10 +1270,12 @@ Job.prototype.insert_single_instruction = function(instruction_array){
 }
 
 Job.prototype.insert_instructions = function(array_of_do_items){
-    this.do_list.splice.apply(this.do_list, [this.program_counter + 1, 0].concat(array_of_do_items));
+    //this.do_list.splice.apply(this.do_list, [this.program_counter + 1, 0].concat(array_of_do_items));
+    this.do_list.splice(this.program_counter + 1, 0, ...array_of_do_items)
     added_items_to_insert = new Array(array_of_do_items.length)
     added_items_to_insert.fill(0)
-    this.added_items_count.splice.apply(this.do_list, [this.program_counter + 1, 0].concat(added_items_to_insert));
+    //this.added_items_count.splice.apply(this.do_list, [this.program_counter + 1, 0].concat(added_items_to_insert));
+    this.added_items_count.splice(this.program_counter + 1, 0, ...added_items_to_insert)
 }
 
 Job.prototype.send = function(instruction_array){ //if remember is false, its a heartbeat
