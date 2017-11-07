@@ -61,6 +61,7 @@ SimUtils = class SimUtils{
                     j1 = j1[Dexter.J1_ANGLE] //last so we can use the array in J1
                 }
             }
+            j1 = j1 * -1 //fix for j1 wrong sign
             sim.J1.rotation.y = arc_seconds_to_radians(j1)
             sim.J2.rotation.z = arc_seconds_to_radians(j2)
             sim.J3.rotation.z = arc_seconds_to_radians(j3)

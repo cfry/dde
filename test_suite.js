@@ -10,6 +10,8 @@ var TestSuite = class TestSuite{
         TestSuite.add_suite(this)
     }
 
+    toString(){ return "TestSuite." + this.name }
+
     static statistics(){
         let test_count = 0
         for(let suite of TestSuite.suites){
@@ -292,7 +294,7 @@ var TestSuite = class TestSuite{
                         if (close_paren == null) {out("Found syntactically bad test suite with no closing paren: " + ts_string.split("\n")[0]); return false}
                         ts_string = ts_string.substring(0, close_paren + 1) //now have a good ts source string
                         let ts  = window.eval(ts_string)
-                        if (ts instanceof TestSuite) {out(ts.run_this());}
+                        if (ts instanceof TestSuite) {out(ts.start());}
                         else {
                             out("The source code for test suite: " + ts_string.split("\n")[0] + " isn't proper.")
                             return false
@@ -309,7 +311,7 @@ var TestSuite = class TestSuite{
             run_item){
             if (run_item){
                 let ts  = window.eval(sel_text)
-                if (ts instanceof TestSuite) {out(ts.run_this());}
+                if (ts instanceof TestSuite) {out(ts.start());}
                 else {
                     out("The source code for test suite: " + ts_string.split("\n")[0] + " isn't proper.")
                     return false
@@ -336,7 +338,7 @@ var TestSuite = class TestSuite{
     }
 
     //run a test suite
-    run_this(){ //the instance version of run
+    start(){ //the instance version of run
         return TestSuite.run(this.name)
     }
 
@@ -345,8 +347,8 @@ var TestSuite = class TestSuite{
         var this_suite = TestSuite[name]
         if (!this_suite) {throw new Error("Attempted to run test suite: " + name + " but it isn't defined.")}
         var report = ""
-        var unknown_failure_count = 0
-        var known_failure_count   = 0
+        this_suite.unknown_failure_count = 0
+        this_suite.known_failure_count   = 0
         var start_time = Date.now()
         for(let test_number = 0; test_number < this_suite.tests.length; test_number++){
             var test     = this_suite.tests[test_number]
@@ -354,19 +356,20 @@ var TestSuite = class TestSuite{
             let [status, error_message] = TestSuite.run_test_array(test, test_number)
             if (status) {
                 report += error_message + "\n"
-                if      (status == "known")   { known_failure_count += 1 }
-                else if (status == "unknown") { unknown_failure_count += 1 }
+                if      (status == "known")   { this_suite.known_failure_count += 1 }
+                else if (status == "unknown") { this_suite.unknown_failure_count += 1 }
             }
         }
         var stop_time = Date.now()
         var dur = stop_time - start_time
-        var unknown_html = ((unknown_failure_count == 0)? "0" :
-            "<span style='color:red;'>" + unknown_failure_count + "</span>")
+        var unknown_html = ((this_suite.unknown_failure_count == 0)? "0" :
+            "<span style='color:red;'>" + this_suite.unknown_failure_count + "</span>")
         report = "<b>Test Suite: " + this_suite.name + " Report</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style='font-size:14px;'>duration: " + dur + " ms</span><br/>" +
-            "failures: unknown=" + unknown_html + ", known=" + known_failure_count +
+            "failures: unknown=" + unknown_html + ", known=" + this_suite.known_failure_count +
             " out of " + this_suite.tests.length +
             " tests. <i>(test numbering starts at 0)</i><br/>" +
             report
+        this_suite.report = report
         return report
     }
 
@@ -410,7 +413,12 @@ var TestSuite = class TestSuite{
         else {
             var expected = test[1]
             TestSuite.last_expected_error_message = false
-            var expected_result = window.eval("try{" + expected + "} catch(err) {TestSuite.last_expected_error_message = err.name + ' ' + err.message; TestSuite.error}")
+            var expected_result
+            try { expected_result = window.eval(expected) }
+            catch(err) {
+               TestSuite.last_expected_error_message = err.name + ' ' + err.message
+               return ["unknown", TestSuite.last_expected_error_message]
+            }
             if ((expected_result == TestSuite.dont_care) && !TestSuite.last_src_error_message) {} //allows any value from src to pass (unless it errors)
             else if(!similar(src_result, expected_result)) { //note if both are TestSuite.error, they will be similar
                 var desc     = ((test.length > 2) ? test[2] : "")

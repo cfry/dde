@@ -292,7 +292,7 @@ window.show_window = function({content = "", title = "DDE Information", width = 
             "<input name='window_callback_string' type='hidden' value='" + callback + "'/>\n" +
             "<input name='trim_strings' type='hidden' value='" + trim_strings + "'/>\n" +
             //the next 2 are only for Human.show_window
-            ((arguments[0].the_job_name) ?
+            (((arguments.length > 0) && (arguments[0].the_job_name)) ?
             "<input name='the_job_name' type='hidden' value='" + arguments[0].the_job_name + "'/>\n": "") +
             //((the_instruction_id || (the_instruction_id == 0)) ?
             //"<input name='the_instruction_id' type='hidden' value='" + the_instruction_id + "'/>\n": "") +
@@ -522,8 +522,8 @@ window.submit_window = function(event){
         else if (in_type == "file") { result[in_name] = ((inp.files.length > 0) ?
                                                           inp.files[0].path :
                                                           null) }
-        else if (in_type  == "submit"){}
-        else if (in_type  == "button"){} //button click still causes the callback to be called, but leaves window open
+        else if (in_type == "submit"){}
+        else if (in_type == "button"){} //button click still causes the callback to be called, but leaves window open
         else if (in_type == "hidden") { //trim_strings, window_callback_string, and for Human.show_instruction: the_job_name
             var val = inp.value
             if      (val == "false") {val = false}
@@ -539,7 +539,7 @@ window.submit_window = function(event){
                 result[in_name] = val
             }
         }
-        else if (in_type == "number"){
+        else if ((in_type == "number") || (in_type == "range")){
             if (in_name){
                 var val = parseFloat(inp.value.trim()) //comes in as a string. Gee why would an input of type number return a number? It would be too logical
                 if (isNaN(val)) { val = null }

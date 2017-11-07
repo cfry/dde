@@ -5,6 +5,70 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 2.2.0, Nov 7, 2017</summary>
+Highlights: Machine Vision Blob Detection, Testsuite on do_list,
+hierarchical do_list improvements, simulator joint angle fix.
+
+<ul><li>Fix for Job.prototype.total_sub_instruction_count improves
+        hierarchical do_list display and processing.</li>
+
+    <li> added_items_count initialized to the length of the do_list in Job.start.
+        Better for the do_list display of sub-items.</li>
+
+    <li>Hierarchical do_list display now has a black border surrounding the item
+        at the Job's program counter.</li>
+
+    <li> Start Job button in Output pane header: Lots of fixes
+        including select isolated instruction and run it.
+        See functionality in
+        User Guide/user Interface/Output Pane/Start Job Button
+        or just click on the Output Pane header "Output" title.</li>
+
+    <li>  show_window() with no args now pops up an empty window rather than error.</li>
+
+    <li> Inspector:New title "INSPECTing" so that you know "this is the inspector".</li>
+
+
+    <li> Inspector: Changed The refresh circle icon into a button named "Refresh" to make it more obvious.</li>
+
+    <li>  TestSuite now a start_object and has a method "start" to run an instance of a testsuite.
+            After an instance is run, it will have properties
+            known_failures, unknown_failures,
+            bound to a non-neg integers of the failure count,
+            and  report, a string of HTML about the failures.</li>
+
+    <li>New Jobs menu/Insert Example/TestSuite in Job</li>
+
+    <li>Improved/added toString for Job, Brain, Human, Serial, Dexter, Duration, Note, Phrase</li>
+
+    <li> new Menu item: Insert/Machine Vision/Blob Detector
+        updated to opencv.js 1.2.1</li>
+
+    <li> Documented in Ref Man/Robot/Robot Instructions/Any Start Object
+        all the start objects including: jobs, notes, phrases, TestSuites
+        Documented in User Guide/TestSuite that its a start object.</li>
+
+    <li>  show_window, HTML input elements of type "range" now automatically
+        have their values passed into the callback function as numbers,
+        rather than strings of numbers.</li>
+
+    <li>  Documented how to get a show_window's callback function to be called
+        as soon as an input element's value is changed.
+        See Ref Man/Window System/show_window/onchange.
+        Improved doc for Insert menu/show_window/onchange calls</li>
+
+    <li>Bug fix for rendering of Joint 1, changed the sign of the angle.</li>
+
+    <li> Music: added Ref Man/IO/Sound/Music with MIDI/Connecting MIDI Apps</li>
+
+    <li> New submenu: Insert/Music/ with Help, Phrase Examples, Midi.init().</li>
+
+    <li> New documentation section in User Guide/Configure Dexter/Verify Joint Wiring</li>
+
+    <li> Fixed a couple bugs in the TestSuite obj_sys_js_fns_on_new_objects2</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 2.1.14, Nov 1, 2017</summary>
 <ul>
     <li> Fixed bug in do_list hierarchy.</li>

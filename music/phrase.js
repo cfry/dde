@@ -41,6 +41,8 @@ Phrase = class Phrase{
         else { this.dur = dur }
     } //end of Phrase constructor
 
+    toString() { "Phrase of " + this.notes.length + " notes" }
+
     fill_in_notes_from_string(notes_string){
         let time_of_next_note = this.time //in beats
         const array_of_note_strings = trim_all(notes_string).split(" ")

@@ -896,6 +896,29 @@ In the bottom of the dialog you should see
 (if X == 0, try clicking the "Reset Midi Drivers" button.)
 </details>
 
+<details class="doc_details"><summary>Connecting MIDI Apps</summary>
+DDE and GarageBand (or another synthesizer) are both MIDI Apps.
+To have DDE send a MIDI event to a synthesizer, you have to
+connect those apps via the operating system using a
+"Virtual Port".
+This is tricky.
+<span style="color:red">Beware, the details change from one OS version to another.</span>
+<p></p>
+<b>On Mac OS</b> <i>in Sierra (10.12)</i><br/>
+<ol><li>Launch Applications/Utilities/Audio Midi Setup.app</li>
+    <li>Choose menubar/Window/Show Midi Studio.</li>
+    <li>In the dialog box that comes up, double click "IAC Driver".</li>
+    <li>In the new dialog box that comes up, click on the port "Bus 1" to select it.</li>
+    <li>Above that, check "Device is online".</li>
+    <li>Click the "Apply" button.</li>
+</ol>
+<b>On Windows OS</b><br/>
+    <a target="_blank" href="http://www.tobias-erichsen.de/software/loopmidi.html">LoopMIDI</a>
+    looks promising. Please tell us if you've had success here and what you did
+    to achieve it.
+</details>
+
+
 <details class="doc_details"><summary>Note</summary>
 Note is the fundamental class for creating music. It contains
 a number of instance variables to hold the properties of a note,
@@ -2144,7 +2167,7 @@ for code examples. Related Job facilities are:
 </ul>
 </details>
 
-<details class="doc_details"><summary>Any Start Object</summary>
+<details id="start_object_doc_id" class="doc_details"><summary>Any Start Object</summary>
 <i>Caution: this is advanced functionality not needed by
 simple uses of DDE.</i>
 <p></p>
@@ -2190,6 +2213,11 @@ methods in DDE include:
          a synthesizer (hardware or software).
     </li>
     <li><code>Phrase</code> A sequence of notes. Played under similar conditions to Note.</li>
+    <li><code>TestSuite</code> A sequence of tests that test validity. The start method
+        runs all the tests and populates properties of the TestSuite instance of
+        <code title="unEVALable">known_failure_count</code>, (non-negative integer)<br/>
+        <code title="unEVALable">unknown_fallure_count</code>,(non-negative integer)<br/> and
+        <code title="unEVALable">report</code> (string hf HTML).
 </ul>
 There are several other properties that control the starting, processing and the
 delay caused by start_objects.
@@ -2335,7 +2363,7 @@ new Job({name: "my_job",
     <p></p>
     When our Job is run, the first instruction is run by
     calling the value of the "start" property with arguments
-    [11, 22, syntehsized_callback_fn]. Then test_cb is run
+    [11, 22, synthesized_callback_fn]. Then test_cb is run
     and it executes its<br/>
      <code title="unEVALable">out("got: " + a + " " + b)</code><br/>
      then calls <code title="unEVALable">callback(b, a, 123)</code>
@@ -4729,7 +4757,9 @@ If include_this is true, the returned source, when evaled, will return a copy of
         more than once.
         <p></p>
         <i>Examples:</i><br/>
-        See Insert menu/Machine Vision submenu.
+        DDE's Insert menu/Machine Vision submenu has examples of
+        capturing pictures and video from a webcam, modifying images
+        and blob detection for object identification.
         <p></p>
         DDE is in the early stages of using opencv.js. More to come.
         <p></p>
@@ -4976,7 +5006,15 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
     <h4>onchange</h4>
     Normally the callback is only called when the user clicks a button. However,
     you can get the callback to be called for any input HTML tag if you give it
-    an attribute of<br/> <code title="unEVALable code fragment"> data-onchange='true'</code>
+    an attribute of<br/> <code title="unEVALable code fragment"> data-onchange='true' </code><br/>
+    clicking on another element or tabbing away from an element you just changed
+    will cause the callback function to be called.
+    <p></p>
+    You can have the callback function for any modification of the value of an element
+    by adding the HTML attribute:<br/>
+    <code title="unEVALable code fragment"> data-oninput='true'</code><br/>
+    For text boxes, this activates on each character typed in.
+    For range sliders, this acticvates many times as you are dragging the slider.
 
     <h4>Cover DDE Window</h4>
     To have a show_window cover the entire DDE window:

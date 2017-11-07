@@ -194,9 +194,8 @@ var Brain = class Brain extends Robot { /*no associated hardware */
         this.simulate = false
         //the_job //a Robot can have at most 1 current job associated with it.
     }
-    toString(){
-        return "{instance of Brain::  name: " + this.name + "}"
-    }
+    toString(){ return "Brain." + this.name }
+
     stringify(){
         return "Brain: <i>name</i>: " + this.name
     }
@@ -230,9 +229,8 @@ var Human = class Human extends Brain { /*no associated hardware */
         this.simulate = false
         //the_job //a Robot can have at most 1 current job associated with it.
     }
-    toString(){
-        return "{instance of Human::  name: " + this.name + "}"
-    }
+    toString(){ return "Human." + this.name }
+
     stringify(){
         return "Human: <i>name</i>: " + this.name
     }
@@ -378,6 +376,8 @@ Serial = class Serial extends Robot {
             return this.make_new_robot_2()
         }
     }
+    toString(){ return "Serial." + this.name }
+
     make_new_robot_1(keyword_args){
         this.name                  = keyword_args.name
         this.path                  = keyword_args.path
@@ -730,7 +730,9 @@ Dexter = class Dexter extends Robot {
         }
     }
 
-     make_new_robot(keyword_args){
+    toString(){ return "Dexter." + this.name }
+
+    make_new_robot(keyword_args){
         this.name                  = keyword_args.name
         this.ip_address            = keyword_args.ip_address
         this.port                  = keyword_args.port

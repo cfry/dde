@@ -12,7 +12,7 @@ var Job = class Job{
     constructor({name=null, robot=Robot.dexter0, do_list=[], keep_history=true, show_instructions=true,
                  inter_do_item_dur = 0.01, user_data={}, program_counter=0, ending_program_counter="end",
                  initial_instruction = null, when_stopped = "stop"} = {}){
-    //program_cpunter is the counter of the next instruction that should be executed.
+    //program_counter is the counter of the next instruction that should be executed.
     //so since we're currently "executing" 1 instruction, and after its done,
     //we'll be incrementing the pc, then internally we decriment the
     //passed in program_counter. If its negative, it means
@@ -71,6 +71,7 @@ var Job = class Job{
     }
     } //end constructor
 
+    toString() { return "Job." + this.name }
     show_progress_maybe(){
         if(this.show_instructions === true) { this.show_progress() }
         else if(typeof(this.show_instructions) === "function") {
@@ -130,6 +131,10 @@ var Job = class Job{
         }
         else{//init from orig_args
             this.do_list           = Job.flatten_do_list_array(this.orig_args.do_list) //make a copy in case the user passes in an array that they will use elsewhere, which we wouldn't want to mung
+            this.added_items_count = new Array(this.do_list.length) //This array parallels and should be the same length as the run items on the do_list.
+            this.added_items_count.fill(0) //stores the number of items "added" by each do_list item beneath it
+            //if the initial pc is > 0, we need to have a place holder for all the instructions before it
+
             this.keep_history      = this.orig_args.keep_history
             this.show_instructions = this.orig_args.show_instructions
             this.inter_do_item_dur = this.orig_args.inter_do_item_dur
@@ -205,9 +210,6 @@ var Job = class Job{
             }
             Job.last_job           = this
 
-            this.added_items_count = new Array(this.program_counter) //This array parallels and should be the same length as the run items on the do_list.
-            this.added_items_count.fill(0) //stores the number of items "added" by each do_list item beneath it
-                //if the initial pc is > 0, we need to have a place holder for all the instructions before it
             this.go_state          = true
             //this.init_show_instructions()
             //out("Starting job: " + this.name + " ...")
@@ -225,7 +227,13 @@ var Job = class Job{
         var text_just_after_cursor = full_src.substring(start_cursor_pos, start_cursor_pos + 7)
         var start_of_job = -1
         if (text_just_after_cursor == "new Job") { start_of_job = start_cursor_pos }
-        else { start_of_job = Editor.find_backwards(full_src, start_cursor_pos, "new Job") }
+        else {
+            start_of_job = Editor.find_backwards(full_src, start_cursor_pos, "new Job")
+            let [start_job_pos, end_job_pos] = Editor.select_call(full_src, start_of_job)
+            if (end_job_pos < start_cursor_pos) { start_of_job = null } //because
+               //we found a new Job but the whole thing was before our start cursor,
+               //so the user is after the selection, not the preceding job.
+        }
         if (start_of_job == null) {
             warning("There's no Job definition surrounding the cursor.")
             var selection = Editor.get_javascript(true).trim()
@@ -260,9 +268,10 @@ var Job = class Job{
         }
         else {
             Editor.select_javascript(start_of_job)
-            if (Editor.select_call()){ //returns true if it manages to select the call.
+            let [start_pos, end_pos] = Editor.select_call()
+            if (end_pos){ //returns true if it manages to select the call.
                 //eval_button_action()
-                var job_src = Editor.get_javascript(true)
+                var job_src =  full_src.substring(start_pos, end_pos)    //Editor.get_javascript(true)
                 const eval2_result = eval_js_part2(job_src)
                 if (eval2_result.error_type) { } //got an error but error message should be displayed in Output pane automatically
                 else {
@@ -570,10 +579,12 @@ var Job = class Job{
             let class_html = "class='do_list_item' "
             let rs_button = ""
             if (Instruction.is_instruction_array(item)) { rs_button = " <button data-do_list_item='" + this.name + " " + id + "' + title='Show the robot status as it was immediately after this instruction was run.'" + class_html + ">RS</button> "}
-            let item_text =  "<span title='instruction_id'>id=" + id +
+            let item_text =  ((id == this.program_counter) ? "<span style='border-style:solid; border-width:2px;'> ": "") +
+                             "<span title='instruction_id'>id=" + id +
                              "</span>&nbsp;<span title='Number of sub_instructions&#13;added by this instruction below it.'> si=" + new_sub_item_count + "</span>" +
                              rs_button +
-                             "&nbsp;" + Instruction.text_for_do_list_item(item) //core of the_item
+                             "&nbsp;" + Instruction.text_for_do_list_item(item) + //core of the_item
+                             ((id == this.program_counter) ? "</span>" : "" )
             let html_indent = 'style="margin-left:' + (indent_level * 20) + 'px; background-color:' + Instruction.instruction_color(item) + ';"'
 
             let actual_sub_items_grabbed_this_iter
@@ -992,8 +1003,8 @@ Job.prototype.stop_for_reason = function(status_code, //"errored", "interrupted"
 Job.prototype.do_next_item = function(){ //user calls this when they want the job to start, then this fn calls itself until done
     //this.program_counter += 1 now done in set_up_next_do
     //if (this.show_instructions){ console.log("Top of do_next_item in job: " + this.name + " with PC: " + this.program_counter)}
-    if ((this.status_code == "interrupted") || //put before the wait until instruction_id because interrupted is the user wanting to halt, regardless of pending instructions.
-        (this.status_code == "errored")){
+    let ending_pc = this.instruction_location_to_id(this.ending_program_counter) //we end BEFORE executing the ending_pcm we don't execute the instr at the ending pc if any
+    if (["completed", "interrupted", "errored"].includes(this.status_code)){//put before the wait until instruction_id because interrupted is the user wanting to halt, regardless of pending instructions.
         this.finish_job()
     }
     else if (this.wait_until_instruction_id_has_run || (this.wait_until_instruction_id_has_run === 0)){ //the ordering of this clause is important. Nothing below has to wait for instructions to complete
@@ -1004,10 +1015,15 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
     else if (this.stop_reason){ this.finish_job() } //must be before the below since if we've
     //already got a stop reason, we don't want to keep waiting for another instruction.
     else if (this.wait_until_this_prop_is_false) { this.set_up_next_do(0) }
-    else if (this.program_counter >= this.instruction_location_to_id(this.ending_program_counter)) {  //this.do_list.length
+    else if (this.program_counter >= ending_pc) {  //this.do_list.length
              //the normal stop case
         if (this.when_stopped == "wait") { //we're in a loop waiting for th next instruction.
             this.color_job_button()
+            this.set_up_next_do(0)
+        }
+        else if (ending_pc < this.do_list.length) { //we're ending in the middle of the ob. Don't do the final g cmd, as tt confusing
+            this.stop_reason = "Stopped early due to ending_program_counter of: " + this.ending_program_counter
+            this.status_code = "completed"
             this.set_up_next_do(0)
         }
         else if ((this.robot instanceof Dexter) &&
@@ -1019,7 +1035,8 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
             //this.added_items_count.splice(this.program_counter, 0, 0)
 
             this.insert_single_instruction(Dexter.get_robot_status())
-            this.added_items_count[this.program_counter] += 1
+            this.added_items_count[this.program_counter] += 1 //hmm, the final g instr isn't reallyy "nested" under the last item, just a top level expr
+                //but its not an orig top level one either. so maybe nest it.
             this.set_up_next_do(0)
         }
         else if (!this.stop_reason){
@@ -1136,17 +1153,24 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
             this.set_up_next_do(0)
         }
     }
-    //this.color_job_button() //todo needs to work for Dexter.sleep (z) insurction and to undo its yellow.
+    //this.color_job_button() //todo needs to work for Dexter.sleep (z) instruction and to undo its yellow.
 }
 
-Job.prototype.total_sub_instruction_count = function(id_of_top_ins){
+/*Job.prototype.total_sub_instruction_count = function(id_of_top_ins){
     var this_level_subitems = this.added_items_count[id_of_top_ins]
     var result = 0
-    var this_level_subitems_left = this_level_subitems
-    var accum_sub_sub_level_items = 0
     for(let i = 0; i < this_level_subitems; i++){
         result += 1 //for each this_level_sub_item
         result += this.total_sub_instruction_count(id_of_top_ins + result)
+    }
+    return result
+}*/
+
+Job.prototype.total_sub_instruction_count = function(id_of_top_ins){
+    let result = 0
+    for(let i = 0; i < this.added_items_count[id_of_top_ins]; i++){
+        result += 1 //for each this_level_sub_item
+        result += this.total_sub_instruction_count(id_of_top_ins + i + 1)
     }
     return result
 }

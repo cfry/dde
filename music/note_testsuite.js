@@ -31,6 +31,12 @@ velocity: 0.5
 })`]
 )
 
+new TestSuite("Note.to_source_code",
+    ['new Note("2C#3").to_source_code()', '"new Note(\"2C#3\")"'],
+    ["new Note({velocity: 0.7}).to_source_code()", '"new Note({time: 0, dur: 1, pitch: \"C3\", velocity: 0.7, channel:  1})"']
+    )
+
+
 new TestSuite("Note.diatonic_transpose",
     ['Note.diatonic_transpose("C", "C", 0)', '60'],
     ['Note.diatonic_transpose("C", "C", 1)', "60"],

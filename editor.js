@@ -793,7 +793,7 @@ Editor.find_literal_string = function(full_src, cursor_pos){
 
 
 //____________select_call______________
-//return true if found selection and false if doesn't.
+//returns array of start and end pos  if found selection and null if no call found
 Editor.select_call = function(full_src = Editor.get_javascript(), cursor_pos = Editor.selection_start()){
     var start_and_end = Editor.find_call_start_end_from_end(full_src, cursor_pos)
     if (!start_and_end){

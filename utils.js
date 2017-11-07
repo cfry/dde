@@ -882,7 +882,7 @@ function stringify_value_aux (value, job, depth=0){
         }
         //I can't figure out how to tell if toString is explicity defined on value. hasOwnProperty doesn't work
         if ((value instanceof Instruction) || (value instanceof Duration) || (value instanceof Brain) ||
-            (value instanceof Human)){
+            (value instanceof Human) || (value instanceof TestSuite)){
             return value.toString()
         }
         var result = "{"
@@ -1123,10 +1123,7 @@ var Duration = class Duration {
         }
         throw new Error("new Duration passed arg: " + string_or_hours + " which is not a number or a string of the format 12:34 or 12:34:56 ")
     }
-    toString(){
-        return "{Duration: " + this.milliseconds + " milliseconds}"
-    }
-    to_seconds(){ return this.milliseconds / 1000 }
+    toString() { return this.to_source_code }
 
     to_source_code(){
         let total_ms  = this.milliseconds
@@ -1138,4 +1135,6 @@ var Duration = class Duration {
         let hour      = (total_min - min) / 60
         return "new Duration(" + hour + ", " + min + ", " + sec + ", " + ms + ")"
     }
+
+    to_seconds(){ return this.milliseconds / 1000 }
 }

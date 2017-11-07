@@ -678,5 +678,25 @@ new Job({name: "my_job",
         },
         Robot.go_to("lab1")
     ]})
+`,
+`//Job Example 13: TestSuite in Job
+//If the TestSuite has errors, 
+//the TestSuite report is output and the job stops early.
+
+new TestSuite("ts_in_job",
+    ["2 + 3", "15"]
+)
+
+new Job({name: "my_job",
+         do_list: [TestSuite.ts_in_job,
+                   function(){
+                     if((TestSuite.ts_in_job.known_failure_count > 0) ||
+                        (TestSuite.ts_in_job.unknown_failure_count > 0)){
+                        out(TestSuite.ts_in_job.report)
+                        return Robot.stop_job()
+                     }
+                   },
+                   Robot.out("last instruction")
+                   ]})
 `
 ]

@@ -81,6 +81,28 @@ Note = class Note{
         }
     }
 
+    toString() { return this.to_source_code() }
+
+    to_source_code(){
+        let result
+        if ((this.time     == 0) &&
+            (this.velocity == Phrase.default_velocity) &&
+            (this.channel  == Phrase.default_channel)) {
+            result =  Note.pitch_to_name(this.pitch) // ie C3
+            if (this.dur != 1) { result = this.dur + result }
+            result = '"' + result + '"'
+        }
+        else { result = "{" +
+                        "time: "       + this.time +
+                        ", dur: "      + this.dur +
+                        ', pitch: "'   + Note.pitch_to_name(this.pitch) + '"' +
+                        ", velocity: " + this.velocity +
+                        ", channel:  " + this.channel +
+                        "}"
+        }
+        return "new Note(" + result + ")"
+    }
+
     static extract_dur_string(a_string){
         let dur_string       = ""
         let base_pitch_index = 0

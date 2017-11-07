@@ -411,6 +411,10 @@ submit: <input type="submit" value="OK"/>` + "`" +
    But you CAN have the callback called whenever the value
    of an input element changes. 
    
+   An HTML property of data-onchange='true' will cause the 
+   callback method to be called for an element when
+   you change its value and select another elememt.
+   
    An HTML property of data-oninput='true' causes the
    callback to be called as soon as a new value is entered.
    For input type="text" this is upon each character entered.
@@ -573,6 +577,11 @@ show_window({
         Editor.insert(code)
     }
 
+    opencv_blob_detector_id.onclick=function(){
+        const code = file_content(__dirname + "/examples/opencv_blob_detector.js")
+        Editor.insert(code)
+    }
+
     opencv_process_webcam_id.onclick=function(){
         const code = file_content(__dirname + "/examples/opencv_process_webcam.js")
         Editor.insert(code)
@@ -643,10 +652,18 @@ get_page_async("http://www.ibm.com", function(err, response, body){ out(body.len
      finish_phrase: "finish",        //Say this to end speech reco when only_once=false.
      finish_callback: out})          //Passed array of arrays of text and confidence when user says "finish". Default null. Only called if only_once=false
 `)}
-    eval_and_start_button_id.onclick = eval_and_start
+
+    music_help_id.onclick=function(){ open_doc(music_with_midi_doc_id) }
+    phrase_examples_id.onclick=function(){
+        const code = file_content(__dirname + "/music/phrase_examples.js")
+        Editor.insert(code)
+    }
     midi_init_id.onclick = Midi.init
 
-    inspect_rootObject_id.onclick=function(){ inspect_new_object("Root") }
+   eval_and_start_button_id.onclick = eval_and_start
+
+
+   //inspect_rootObject_id.onclick=function(){ inspect_new_object("Root") }
     //train_id.onclick=dex.train //obsolete
     make_dictionary_id.onclick=function(){
         const code = file_content(__dirname + "/examples/make_dictionary.js")
@@ -656,10 +673,7 @@ get_page_async("http://www.ibm.com", function(err, response, body){ out(body.len
         const code = file_content(__dirname + "/examples/nat_lang_reasoning.js")
         Editor.insert(code)
     }
-    music_examples_id.onclick=function(){
-        const code = file_content(__dirname + "/music/music_examples.js")
-        Editor.insert(code)
-    }
+
 
     ez_teach_id.onclick=function(){
         Editor.edit_new_file()
@@ -869,6 +883,8 @@ foo      //eval to see the latest values</pre>`,
     insert_job_example10_id.onclick = function(){Editor.insert(job_examples[10])}
     insert_job_example11_id.onclick = function(){Editor.insert(job_examples[11])}
     insert_job_example12_id.onclick = function(){Editor.insert(job_examples[12])}
+    insert_job_example13_id.onclick = function(){Editor.insert(job_examples[13])}
+
 
 
         //RUN INSTRUCTION

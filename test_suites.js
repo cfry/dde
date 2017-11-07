@@ -183,12 +183,12 @@ new TestSuite("obj_sys_js_fns_on_new_objects",
 new TestSuite("obj_sys_js_fns_on_new_objects2",
 	['out("obj_sys_js_fns_on_new_objects2")'],
 	['newObject({ name: "test_thing",  color: "blue", weight: 85})'],
-	//["Object.values(Root.test_thing)", '["test_thing", "blue", 85, Root]', "known error Electron doens't support values yet"],
+	["Object.values(Root.test_thing)", '["test_thing", "blue", 85, Root]'],
 	["Object.entries(Root.test_thing)", '[["name", "test_thing"], ["color", "blue"], ["weight", 85], ["prototype", Root]]'],
 	["Object.is(Root.test_thing, Root.test_thing)", "true"],
 	["Object.is(Root.test_thing, Root)", "false"],
 	["Root.test_thing.valueOf()", "Root.test_thing"],
-	["keys(Object.getPrototypeOf(Root))", "keys({})"],
+	["Object.keys(Object.getPrototypeOf(Root))", "Object.keys({})"],
 	["Root.test_thing.toString()", "'[object Object]'"]
 )
 

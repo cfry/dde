@@ -8,8 +8,8 @@
 
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version:  <span id="dde_version_id">2.1.14</span><br/>
-    released: <span id="dde_release_date_id">Nov 1, 2017</span>
+    version:  <span id="dde_version_id">2.2.0</span><br/>
+    released: <span id="dde_release_date_id">Nov 7, 2017</span>
     <p></p>
     DDE helps you create, debug, and send software to a Dexter robot.
     You can use any JavaScript augmented with DDE-specific functions to help find out about,
@@ -254,6 +254,23 @@ Each indicates that a joint has power.
       </ol>
       We are working on making this easier.
     </details> <!-- end Data Connectivity -->
+
+    <details class="doc_details"><summary>Verify Joint Wiring</summary>
+    To verify that all 5 joints are wired correctly:
+    <ol><li>Verify that the Jumpers on processor board are configured like this picture.
+             <img src="processor_board_jumpers.png" alt="processor board jumpers picture."/>
+             This is a picture of the lower half of Dexter's processor board.
+             The 3 jumpers that must be in the right position are the horizontal
+             black rectangles on the lower left part of the board.
+             </li>
+        <li>Choose DDE's Jobs menu/Run Instruction/Show Dialog..."</li>
+        <li>for J1 through J5, make each Joint's 30 degrees with the others at 0,
+            and click on move_all_joints and observe that that joint should move by 30 degrees.
+            The movement should make a low volume continuous whirring sound.
+            If there are any abrupt noises, that can indicate a mechanical error in assembly.</li>
+     </ol>
+    </details>
+
     <details class="doc_details"><summary>Test Connectivity</summary>
         You should now be able to ping Dexter and have connectivity.<br/>
         (See above on how to "ping".)<br/>
@@ -1038,6 +1055,10 @@ It requires having a "dock" that Dexter parks in a known location.
     Test Suite.
     <p></p>
     Other operations on the <button>Test&#9660;</button> menu are documented with tooltips.
+    <p></p>
+    A TestSuite instance is a
+    <a href="#" onclick="open_doc(start_object_doc_id)">Start Object</a>
+    and as such can be put directly on a Job's do_list.
 </details>
 <details class="doc_details" id='debugging_id'><summary>Debugging</summary>
     Most programmers spend most of their time debugging.
