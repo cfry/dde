@@ -1,29 +1,57 @@
 var centers_string
 var AxisTable
 
-function smLinex(){
+function smLinex(run_backwards = false){
     xydata = []
-    const size = AxisTable[window.cal_working_axis][4]
+    const size = Math.floor(AxisTable[window.cal_working_axis][4])
     const result = []
     result.push (make_ins("F"))
-    for (var i = 0;i < size;i++){
+	out(run_backwards)
+    for (let j = 0;j < size;j++){
+    	let i = j
+    	if(run_backwards){
+        	i = size - j
+        }
+    	result.push(make_ins("a",
+            AxisTable[window.cal_working_axis][0][0] * i + AxisTable[window.cal_working_axis][5][0],
+            AxisTable[window.cal_working_axis][0][1] * i + AxisTable[window.cal_working_axis][5][1],
+            AxisTable[window.cal_working_axis][0][2] * i + AxisTable[window.cal_working_axis][5][2],
+            AxisTable[window.cal_working_axis][0][3] * i + AxisTable[window.cal_working_axis][5][3],
+            AxisTable[window.cal_working_axis][0][4] * i + AxisTable[window.cal_working_axis][5][4]))
+    
+    		
+            
+    /*
         result.push(make_ins("a",
             AxisTable[window.cal_working_axis][0][0] * i,
             AxisTable[window.cal_working_axis][0][1] * i,
             AxisTable[window.cal_working_axis][0][2] * i,
             AxisTable[window.cal_working_axis][0][3] * i,
             AxisTable[window.cal_working_axis][0][4] * i))
-
+	*/
+        
         result.push(make_ins("F"))
         result.push(function(){
             var x = cal_get_robot().robot_status[AxisTable[window.cal_working_axis][1]]/10
             var y = cal_get_robot().robot_status[AxisTable[window.cal_working_axis][2]]/10
             var thehtml = svg_circle({html_class: "cal_svg_circle", cx: x, cy: flip_point_y(y), r: 1})
+            let J_num = window.cal_working_axis+1
+            
+            cal_saved_points[J_num-1][0].push(x)
+            cal_saved_points[J_num-1][1].push(y)
+
             append_in_ui("svg_id", thehtml)
 
             //James Code
             xydata.push([x*10, y*10])
-
+			
+            if(xydata.length%10 == 0){
+            	let J_angle = cal_get_robot().joint_angle(J_num)
+                let angle_string = J_angle.toString().substring(0, 7)
+            	window["cal_angle_" + J_num + "_id"].innerHTML = angle_string
+            }
+            
+            
             if(xydata.length > 200){
                 //debugger
                 let eye_suggest_result = eye_suggestion(xydata)
@@ -40,17 +68,25 @@ function smLinex(){
                 //out(eye_center)
                 let suggestion_string = eye_suggestion_string(eye_suggest_result)
                 cal_instructions_id.innerHTML = eye_suggestion_string(eye_suggest_result) //replace this withsomething that changes the text in the show window
-            	if(xydata.length%200 == 0){
+            	
+                
+                if(xydata.length%200 == 0){
                 	$(".cal_svg_circle_auto_center_min").remove()
     				let eye_center = find_perfect_center(xydata)
-					thehtml = svg_circle({html_class:"cal_svg_circle_auto_center_min", cx: eye_center[0][0]/10, cy:flip_point_y(eye_center[0][1]/10), r: 3, color: "green"})
-    				append_in_ui("svg_id", thehtml)
+                    if (!Number.isNaN(eye_center[0][0])){
+						thehtml = svg_circle({html_class:"cal_svg_circle_auto_center_min", cx: eye_center[0][0]/10, cy:flip_point_y(eye_center[0][1]/10), r: 3, color: "green"})
+    					append_in_ui("svg_id", thehtml)
+                    }
                 }
             }
 
         })}
     return result
 }
+
+
+
+
 /*
 var ip_address = "192.168.1.142"
 var path = "//" + ip_address + "/share/AdcCenters.txt"
@@ -61,8 +97,15 @@ write_file(path, centers_content)
 
 //returns true if successful at writing the file, false if not.
 function centers_output(){
-    //var content = replace_substrings(JSON.stringify(centers_string), ",", ", ")
-    //debugger
+    
+    // Swapping pivot and end arm
+    let temp_string = centers_string[4]
+    centers_string[4] = centers_string[2]
+    centers_string[2] = temp_string
+    temp_string = centers_string[5]
+    centers_string[5] = centers_string[3]
+    centers_string[3] = temp_string
+    
     var content = ""
     for(let i = 0; i < 10; i++){
     	content += centers_string[i]
@@ -72,15 +115,18 @@ function centers_output(){
         var ip_address = Job.CalSensors.robot.ip_address
         var path = "//" + ip_address + "/share/AdcCenters.txt"
         write_file(path, content)
+        
         return true
     }
     catch(err) {
-        warning("DDE was unable to write the calibration file named:<br/><code title='unEVALable'> " + path +
-            "</code><br/>Please copy and paste the below (green) string into that file<br/>" +
-            "on your Dexter.")
-    	for(let i = 0; i < 10; i++){
+    	let path = choose_save_file({defaultPath: 'AdcCenters.txt'})
+        write_file(path, content)
+        warning("DDE was unable to save the 'AdcCenters.txt' file to Dexter.<br>Please save the file manually.</br>")
+    	/*
+        for(let i = 0; i < 10; i++){
         	out(centers_string[i], "green")
     	}
+        */
         return false
     }
 }
@@ -95,11 +141,12 @@ function display_center_guess(){
 function init_view_eye(){
     //this table has to be here rather than top level in the file even though it is static,
     //because _nbits_cf and the other units cause errors if referenced at top level.
-    AxisTable = [[[100/_nbits_cf, 0, 0, 0, 0], Dexter.J1_A2D_SIN, Dexter.J1_A2D_COS, [-648000*_arcsec, 0, 0, 0, 0], 1240],
-                    [[0, 100/_nbits_cf, 0, 0, 0], Dexter.J2_A2D_SIN, Dexter.J2_A2D_COS, [0, -324000*_arcsec, 0, 0, 0], 1900],
-                    [[0, 0, 100/_nbits_cf, 0, 0], Dexter.J3_A2D_SIN, Dexter.J3_A2D_COS, [0, 0, -500000*_arcsec, 0, 0], 1500],
-                    [[0, 0, 0, 200/_nbits_cf, 0], Dexter.J4_A2D_SIN, Dexter.J4_A2D_COS, [0, 0, 0, -190000*_arcsec, 0], 1800],
-                    [[0, 0, 0, 0, -100/_nbits_cf], Dexter.J5_A2D_SIN, Dexter.J5_A2D_COS, [0, 0, 0, 0, -148000*_arcsec], 4240]]
+    
+    AxisTable = [[[200/_nbits_cf, 0, 0, 0, 0], Dexter.J1_A2D_SIN, Dexter.J1_A2D_COS, [-648000*_arcsec, 0, 0, 0, 0], 1240, [0, 0, 0, 0, 0]],
+                    [[0, 200/_nbits_cf, 0, 0, 0], Dexter.J2_A2D_SIN, Dexter.J2_A2D_COS, [0, -324000*_arcsec, 0, 0, 0], 1900, [0, 0, 0, 0, 0]],
+                    [[0, 0, 200/_nbits_cf, 0, 0], Dexter.J3_A2D_SIN, Dexter.J3_A2D_COS, [0, 0, -500000*_arcsec, 0, 0], 1500, [0, 0, 0, 0, 0]],
+                    [[0, 0, 0, 200/_nbits_cf, 0], Dexter.J4_A2D_SIN, Dexter.J4_A2D_COS, [0, 0, 0, -190000*_arcsec, 0], 1800, [0, 0, 0, 0, 0]],
+                    [[0, 0, 0, 0, 200/_nbits_cf], Dexter.J5_A2D_SIN, Dexter.J5_A2D_COS, [0, 0, 0, 0, -148000*_arcsec], 4240, [0, 0, 0, 0, 0]]]
     
     /*
     centers_string = [["0x000000", "0x000000"],
@@ -111,6 +158,7 @@ function init_view_eye(){
     window.cal_working_axis = undefined //global needed by calibrate_ui.js
     new Job({name: "CalSensors", keep_history: true, show_instructions: false,
              do_list: [ Dexter.move_all_joints(0, 0, 0, 0, 0),
+             			Robot.label("loop_start"),
                         make_ins("w", 42, 64),
                         make_ins("S", "J1BoundryHigh",648000*_arcsec),
                         make_ins("S", "J1BoundryLow",-648000*_arcsec),
@@ -132,10 +180,23 @@ function init_view_eye(){
                         make_ins("S", "MaxSpeed",13),
                         make_ins("S", "Acceleration",1/_nbits_cf),
                         make_ins("S", "StartSpeed",.05),
+                        function(){
+                        	if(cal_is_loop_checked(window.cal_working_axis+1)){ //if looping
+                                return [
+                                	function(){return smLinex(true)},
+                                    Dexter.go_to("loop_start")
+                                ]
+                            }
+                        },
                         Dexter.move_all_joints(0, 0, 0, 0, 0),
-                        function() { cal_instructions_id.innerHTML =
+                        Dexter.empty_instruction_queue,
+                        function() { 
+                        	let J_num = window.cal_working_axis+1
+        					let start_button_dom_elt = window["Start_J_" + J_num + "_id"]
+                        	start_button_dom_elt.style.backgroundColor = "rgb(230, 179, 255)"
+                            cal_instructions_id.innerHTML =
                                      "Click in the center of the dot_pattern circle.<br/>"}
-                       ]})
+                        ]})
 	let ip_address = Job.CalSensors.robot.ip_address
     let path = "//" + ip_address + "/share/AdcCenters.txt"
     try{

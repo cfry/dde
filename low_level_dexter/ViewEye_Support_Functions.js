@@ -1,26 +1,19 @@
 /*
 These functions will tell the user what needs to be done based on the Eye data.
-
 The data should be stored in the following format:
-
 	xydata.push([AxisTable [axis][1], AxisTable [axis][2]])
-
 This line should be added to smLinex() right after the point is plotted.
 It could be stored in the Job's user_data as a global.
-
 Examples:
 var xydata = [[100, 0], [0, 100], [400, 500], [500, 400]]
 var eye_suggest_result = eye_suggestion(xydata)
 out(eye_suggestion_string(eye_suggest_result))
-
 var xydata = [[250, 0], [0, 250], [250, 300], [500, 250]]
 var eye_suggest_result = eye_suggestion(xydata)
 out(eye_suggestion_string(eye_suggest_result))
-
 var xydata = [[250, 0], [0, 250], [250, 500], [500, 250]]
 var eye_suggest_result = eye_suggestion(xydata)
 out(eye_suggestion_string(eye_suggest_result))
-
 */
 
 function eye_suggestion(xydata){
@@ -247,4 +240,3 @@ function dist(U1, U2a, U2b){
         return Vector.magnitude(Vector.subtract(U1, U2b))
     }
 }
-
