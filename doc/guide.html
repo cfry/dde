@@ -8,8 +8,8 @@
 
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version:  <span id="dde_version_id">2.2.0</span><br/>
-    released: <span id="dde_release_date_id">Nov 7, 2017</span>
+    version:  <span id="dde_version_id">2.2.1</span><br/>
+    released: <span id="dde_release_date_id">Nov 10, 2017</span>
     <p></p>
     DDE helps you create, debug, and send software to a Dexter robot.
     You can use any JavaScript augmented with DDE-specific functions to help find out about,
@@ -257,8 +257,8 @@ Each indicates that a joint has power.
 
     <details class="doc_details"><summary>Verify Joint Wiring</summary>
     To verify that all 5 joints are wired correctly:
-    <ol><li>Verify that the Jumpers on processor board are configured like this picture.
-             <img src="processor_board_jumpers.png" alt="processor board jumpers picture."/>
+    <ol><li>Verify that the Jumpers on processor board are configured like in this picture.<br/>
+             <img src="doc/processor_board_jumpers.png" alt="processor board jumpers picture."/><br/>
              This is a picture of the lower half of Dexter's processor board.
              The 3 jumpers that must be in the right position are the horizontal
              black rectangles on the lower left part of the board.
@@ -334,7 +334,7 @@ Select the robot to calibrate. If you have only one Dexter, the default of
 <i>dexter0</i> will already be selected.
 <h5>Step 2</h5>
 <b>Calibrate optical sensors</b> by
-calibrating each of the five joints. When you choose the radio button for a joint,
+calibrating each of the five joints. When you click the start button for a joint,
 this begins a Job that draws thousands of points in the
 large white square plot area on the right of the dialog.
 If you don't see points drawn, you probably have your robot set to <i>simulate</i>
@@ -346,9 +346,9 @@ If the robot has its <i>simulate</i> init parameter
 set to <code>null</code> (the default
 and the case for dexter0), choose Jobs menu/Simulate?/ of <code>false</code>.
 <p></p>
-For each Joint, twist the two trim pots on the small (several centimeters per side)
-printed circuit board
-(the "optical board")
+For each Joint, you are tyring to get the drawn points to form a near-circle.
+Twist the two trim pots on the small printed circuit board
+(the "optical board" which is several centimeters per side)
 for the joint that you are calibrating,
 until the drawn points form a circle, or as near a circle as you can make.
 The desired circle fills the white plot area in the dialog, not smaller and
@@ -370,12 +370,28 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
  center you've chosen, click the mouse again at a new location.
  <p></p>
  Once you are satisfied with the circle center you've chosen,
- click the "Done" check box underneath the Joint's radio button.
- Then click another Joint's radio button and repeat the above process
- for that Joint.
+ click the next joint's start button
  <p></p>
  When you've completed calibrating all five joints, click the
- "Save" button.
+ "Save" button. This saves the center points for each joint in
+ a file named "AdcCenters.txt" in Dexter's shared folder.
+ (currently only working on a PC).
+ <h5>Advanced Step 2</h5>
+ To save time or examing a specific joint angle range, use the
+ 2 number widgets to confine joint angle motion to between the
+ min and max degrees in the number widgets.
+ Click the "Reset Ranges" button at the bottom of the dialog
+ to initialize the min and max angles to their defaults for all joints.
+ <br/>
+ You can also check the "looping" checkbox for a joint to
+ have Dexter ossilate between the min and max set degrees.
+ <p></p>
+ Points are recorded as Dexter is running for a given joint.
+ You can click the "eye" radio button to the right of
+ a joint's start button to show its recorded points.
+ The clear button at the bottom of the dialog erases
+ the recorded points for the currently selected joint.
+
  <h5>Step 3</h5>
  <b>Calibrate optical encoders</b><br/>
  <span style="color:red;">Caution! Clear area for large robot movements.</span><br/>
@@ -1092,7 +1108,7 @@ It requires having a "dock" that Dexter parks in a known location.
     of your source code.
     (To open the <i>Chrome Developer Tools</i> window, click right on any DDE pane and choose
     <b>Inspect Element</b>.
-    Use the arrow buttons <img src="stepper_buttons.png" width="120" alt="stepper buttons"/>
+    Use the arrow buttons <img src="doc/stepper_buttons.png" width="120" alt="stepper buttons"/>
     in the Developer Tools window upper right to step execution.
 
     <h4 id="print_statements_doc_id">Print Statements</h4>

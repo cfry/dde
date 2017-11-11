@@ -187,7 +187,7 @@ DexterSim = class DexterSim{
         let ins_args = Instruction.args(instruction_array) //in arcseconds
         switch (oplet){
             case "a": //move_all_joints
-                this.robot.angles = ins_args
+                //this.robot.angles = ins_args //only set this in move_all_joints and friends
                 dur = this.process_next_instruction_a(Vector.add(ins_args, this.robot.pid_angles))
                 break;
             //case "b": //move_to  xyz

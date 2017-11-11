@@ -87,17 +87,17 @@ new Job({name: "j3",
 //and resume after the previous 'yield'.
 //A generator can be used as a do-list instruction.
 //Running a job automatically handles the re-calling
-//of a generator until its exhausted.
+//of a generator until it is exhausted.
 
 //_______Job Example 4a: Simple Generator
-function* gen_moves(){
-    yield (Dexter.move_all_joints([0, 0, 135, 45, 0]))
-    yield (Dexter.sleep(1))
+function* moves_gen(){
+    yield  Dexter.move_all_joints([0, 0, 135, 45, 0])
+    yield  Dexter.sleep(1)
     yield* [Dexter.move_all_joints([0, 45, 90, -45, 0]),
             Dexter.sleep(1)
            ]
 }
-new Job({name: "ja", do_list: [gen_moves]})
+new Job({name: "ja", do_list: [moves_gen]})
 
 //_______Job Example 4b: Generator with for loop
 function* complex_gen(){
@@ -118,6 +118,18 @@ function* nested_gen(){
 }
 new Job({name: "jc", 
          do_list: [nested_gen]})
+         
+//________Job Example 4d: yield and return examples
+function* yield_and_return_gen(){
+    yield  //don't execute any new instruction but keep generator alive
+    yield  null //don't execute any new instruction but keep generator alive
+    yield  Robot.out("gen still alive") //run Robot.out and keep generator alive
+    return Robot.out("last gen instruction") //run Robot.out and kill generator
+    return //don't execute any new instruction and kill generator. 
+           //note this line will not actually be executed in this context
+           //because the preceeding 'return' kills the generator.
+}
+new Job({name: "jd", do_list: [yield_and_return_gen]})
 `,
 
 

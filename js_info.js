@@ -608,7 +608,7 @@ Js_info.fn_name_to_info_map = {
     "cv":        ["cv",                                 "cv_doc_id"],
     "debugger":  ["debugger; sets a breakpoint.",       "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/debugger"],
     "delete":    ["delete foo.bar",                     "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/delete"],
-    "for":       ["for(var i = 0; i < 3; i++){out(i)}", "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for"],
+    "for":       ["for(let i = 0; i < 3; i++){out(i)}", "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for"],
     "function":  ["function foo(a, b){ a + b}",         "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Functions"],
     "function*": ["function* foo(){yield 1; yield 2}",  "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function*"],
     "in":        ["for(var index in ['a', 'b']){out(index)}",     "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for...in"],

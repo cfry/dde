@@ -243,7 +243,7 @@ function choose_file_and_get_content(show_dialog_options={}, encoding="utf8") {
 }
 
 function choose_save_file(show_dialog_options={}) { //todo document
-    const dialog    = app.dialog;
+    const dialog    = app.dialog;  //use {defaultPath: '~/foo.xml'} to set default file name
     return dialog.showSaveDialog(app.getCurrentWindow(), show_dialog_options)
 }
 

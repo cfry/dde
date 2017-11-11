@@ -975,9 +975,12 @@ Dexter = class Dexter extends Robot {
             if (!got_ack){
                 //job_instance.robot_status = robot_status
                 rob.robot_status          = robot_status //thus rob.robot_status always has the latest rs we got from Dexter.
-                if((ins_id === -1) && (op_let == "g")){
-                    rob.angles = rob.joint_angles() //must happen after rob.robot_status = robot_status because extracts angles from the robot_status which is ok for this FIRST time init of rob.angles
-                }
+               // if((ins_id === -1) && (op_let == "g")){
+                   //dont do this rob.angles is the commanded angles, set only in
+                   //move_all_joints and friends. rob.angles is used for getting default angles
+                   //to move_all_joints and friends
+                   // rob.angles = rob.joint_angles() //must happen after rob.robot_status = robot_status because extracts angles from the robot_status which is ok for this FIRST time init of rob.angles
+               // }
                 if (job_instance.keep_history && (op_let == "g")){ //don't do it for oplet "G", get_robot_status_immediate
                     job_instance.rs_history.push(robot_status)
                 }

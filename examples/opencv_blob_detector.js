@@ -48,7 +48,7 @@ function handle_keypoints_opencv(vals){
     else if (vals.clicked_button_value == "sort_by_y")    { sbd_sort_by = "y" }
     else if (vals.clicked_button_value == "sort_by_size_id") { sbd_sort_by = "size" }
     else if (vals.clicked_button_value == "sort_by_pt")   { sbd_sort_by = "pt" }
-    var image_path = __dirname + "/opencv/snickerdoodle_board.png"
+    var image_path = __dirname + "/examples/snickerdoodle_board.png"
         src_image_id.src = image_path //vals.file_input_id
         let white_level = vals.white_level_id //0 to 255
         sbd_params.minCircularity = vals.minCircularity_id

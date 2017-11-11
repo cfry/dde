@@ -1107,22 +1107,28 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
             else have_item_to_insert = true
 
             if (have_item_to_insert) {
-                if (!next_obj.done) { //we must insert the cur_do_item
-                    if (Instruction.is_instruction_array(do_items)) { do_items = [do_items, cur_do_item] }
-                    else if (Array.isArray(do_items)) {
+                if (next_obj.done){ //run the one last instruction from this gen
+                    this.insert_single_instruction(do_items)
+                    this.added_items_count[this.program_counter] += 1
+                    this.set_up_next_do(1)
+                }
+                else  { //not done so we must insert the cur_do_item
+                    if (Instruction.is_instruction_array(do_items) || !Array.isArray(do_items)) {
+                       do_items = [do_items, cur_do_item] }
+                    else  { //do_items is already an array
                         do_items = do_items.slice(0) //copy the do_items just in case user is hanging on to that array, we don't want to mung it.
                         do_items.push(cur_do_item)
                     }
-                    else { //do_itmes is not an array of any kind, nor is it a no-op like null.undefimed or []
-                      do_items = [do_items, cur_do_item]
-                    }
-                }
-                this.insert_single_instruction(do_items) //ok to use this to insert an array of instructions.
-                this.added_items_count[this.program_counter] += 1
+                    this.insert_instructions(do_items)
+                    this.added_items_count[this.program_counter] += do_items.length
+                    this.set_up_next_do(1)
 
+                }
             }
-            if ((!next_obj.done) && (have_item_to_insert === false)) { this.set_up_next_do(0) } //loop around on the same item
-            else {  this.set_up_next_do(1) }
+            else { //no items to insert
+                if (next_obj.done){ this.set_up_next_do(1) } //done with this generator
+                else              { this.set_up_next_do(0) } //keep generator alive
+            }
         }
         else if (typeof(cur_do_item) == "function"){
             try{

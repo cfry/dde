@@ -5,6 +5,7 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+
 <details id="i/o_doc_id" class="doc_details"><summary>I/O</summary>
     <details class="doc_details"><summary>File Access</summary>
         Web clients reading an writing files to their local file system has been impossible in the past.
@@ -17,7 +18,8 @@
 
         <details id="choose_file_doc_id" style="margin-left:40px;"><summary>choose_file</summary>
             Pops up a dialog box allowing you to navigate the file system to choose a file.
-            Returns a string of the full path of the file.<br/>
+            Returns a string of the full path of the file.
+            <br/>
             <i>Parameter:</i><br/>
             <b>show_dialog_options</b> A JS literal object of name-value pairs, all of which
             are optional. See the options under "showOpenDialog" in <a target="_blank" href="https://github.com/electron/electron/blob/master/docs/api/dialog.md">showOpenDialog</a>
@@ -29,7 +31,10 @@
         <details id="choose_save_file_doc_id" style="margin-left:40px;"><summary>choose_save_file</summary>
             Pops up a dialog box allowing you to enter a name to save a file as,
             and navigate the file system &amp; choose a directory to save it in.
-            Returns a string of the full path of the file.<br/>
+            Returns a string of the full path of the file.
+            Does not actualy <i>save</i> the contents of the file. Use
+            <code>write_file</code> for that.
+            <br/>
             <i>Parameter:</i><br/>
             <b>show_dialog_options</b> A JS literal object of name-value pairs, all of which
             are optional. See the options under showSaveDialog in <a target="_blank" href="https://github.com/electron/electron/blob/master/docs/api/dialog.md">showSaveDialog</a>

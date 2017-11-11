@@ -26,6 +26,6 @@ content:
 <p/>
 <img id="src_image_id"></img>
 <canvas id="output_canvas_id"></canvas>`,
-width:600,
+height: 800, width:600,
 callback: handle_hello_opencv
 })
