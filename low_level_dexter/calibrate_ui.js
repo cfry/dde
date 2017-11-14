@@ -109,11 +109,18 @@ function cal_redraw_points(){
     }
 }
 
-var my_string = ""
+function cal_draw_saved_center(){
+	let saved_x = parseInt(centers_string[2*(showing_J_num-1)]) / 655360
+    let saved_y = parseInt(centers_string[2*(showing_J_num-1)+1]) / 655360
+	
+    $(".cal_svg_circle_saved_center").remove()
+	thehtml = svg_circle({html_class:"cal_svg_circle_saved_center", cx: saved_x, cy:flip_point_y(saved_y), r: 3, color: "blue"})
+    append_in_ui("svg_id", thehtml)
+}
 
 function handle_cal(vals){
     var the_robot = cal_get_robot()
-    out(vals.clicked_button_value)
+    //out(vals.clicked_button_value)
     if(vals.clicked_button_value == "Reset Ranges") {
     	cal_reset_ranges()
     }else if(vals.clicked_button_value == "Clear") {
@@ -121,12 +128,14 @@ function handle_cal(vals){
     }else if(vals.clicked_button_value == ("cal_joint_radio")){
         showing_J_num = parseInt(vals.cal_joint_radio.substring(10, 11))
         cal_redraw_points()
+        cal_draw_saved_center()
     }else if (vals.clicked_button_value.startsWith("Start_J")) {
     	let J_num = parseInt(vals.clicked_button_value.substring(8, 9))
         let start_button_dom_elt = window["Start_J_" + J_num + "_id"]
         let radio_button_dom_elt = window["cal_joint_" + J_num + "_radio_id"]
         radio_button_dom_elt.checked = true
         showing_J_num = J_num
+        cal_draw_saved_center()
         
         let starting_timeout = 0
         if(Job.CalSensors.is_active()){
@@ -201,7 +210,8 @@ function handle_cal(vals){
 
             out ("0x" + ((vals.offsetX  * 10) * 65536).toString(16) + " " +
                 "0x" + ((y_val_to_save * 10) * 65536).toString(16))
-            $("." + "cal_svg_circle").css("fill", "#fdd715")
+            
+            //$("." + "cal_svg_circle").css("fill", "#fdd715") // turns black dots yellow
             append_in_ui("svg_id", svg_circle({html_class: "cal_svg_circle",
                 cx: vals.offsetX,
                 cy: vals.offsetY,

@@ -98,17 +98,18 @@ write_file(path, centers_content)
 //returns true if successful at writing the file, false if not.
 function centers_output(){
     
+    let centers_string_copy = centers_string.slice()
     // Swapping pivot and end arm
-    let temp_string = centers_string[4]
-    centers_string[4] = centers_string[2]
-    centers_string[2] = temp_string
-    temp_string = centers_string[5]
-    centers_string[5] = centers_string[3]
-    centers_string[3] = temp_string
+    let temp_string = centers_string_copy[4]
+    centers_string_copy[4] = centers_string_copy[2]
+    centers_string_copy[2] = temp_string
+    temp_string = centers_string_copy[5]
+    centers_string_copy[5] = centers_string_copy[3]
+    centers_string_copy[3] = temp_string
     
     var content = ""
     for(let i = 0; i < 10; i++){
-    	content += centers_string[i]
+    	content += centers_string_copy[i]
         content += "\r\n"
     }
     try{
@@ -154,7 +155,8 @@ function init_view_eye(){
                         ["0x000000", "0x000000"],
                         ["0x000000", "0x000000"],
                         ["0x000000", "0x000000"]]
-           */                      
+    */
+    
     window.cal_working_axis = undefined //global needed by calibrate_ui.js
     new Job({name: "CalSensors", keep_history: true, show_instructions: false,
              do_list: [ Dexter.move_all_joints(0, 0, 0, 0, 0),
@@ -172,7 +174,7 @@ function init_view_eye(){
                         make_ins("S", "J5BoundryHigh",648000*_arcsec),
 
                         make_ins("S", "MaxSpeed", 25*_deg/_s),
-                        make_ins("S", "Acceleration",0.00129*_deg/_s**2),
+                        make_ins("S", "Acceleration",0.000129),
                         make_ins("S", "StartSpeed",.7),
                         //scan_axis(),
                         smLinex,
@@ -184,6 +186,7 @@ function init_view_eye(){
                         	if(cal_is_loop_checked(window.cal_working_axis+1)){ //if looping
                                 return [
                                 	function(){return smLinex(true)},
+                                    function(){cal_clear_points()},
                                     Dexter.go_to("loop_start")
                                 ]
                             }
@@ -208,6 +211,15 @@ function init_view_eye(){
     		//centers_string.push(content_array[i], content_array[i+1])
             centers_string.push(content_array[i])
     	}
+        
+        // Switched J2 and J3
+        let temp_string = centers_string[4]
+    	centers_string[4] = centers_string[2]
+    	centers_string[2] = temp_string
+    	temp_string = centers_string[5]
+    	centers_string[5] = centers_string[3]
+    	centers_string[3] = temp_string
+        
     }
     catch(err) {
         warning("DDE was unable to connect to Dexter's file system<br/> and read the calibration file named:<br/><code title='unEVALable'> " + path )
