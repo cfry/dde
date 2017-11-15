@@ -1136,7 +1136,7 @@ new TestSuite("Inverse to Forward Kinematics and Back",
     ["var xyz_before = [.1, .2, .3]", "undefined"],
     ["var Jangles = Kin.xyz_to_J_angles(xyz_before, [0, 0, -1])", "undefined"],
     ["var xyz_after = Kin.J_angles_to_xyz(Jangles)", "undefined"],
-    ["Vector.is_equal(xyz_before, xyz_after[0])", "true"],
+    ["Vector.is_equal(xyz_before, xyz_after[0])", "true"]
 )
 
 
