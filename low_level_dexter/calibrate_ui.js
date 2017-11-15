@@ -121,7 +121,11 @@ function cal_draw_saved_center(){
 function handle_cal(vals){
     var the_robot = cal_get_robot()
     //out(vals.clicked_button_value)
-    if(vals.clicked_button_value == "Reset Ranges") {
+    if(vals.clicked_button_value == "Start FindHome"){
+    	open_doc("find_home_doc_id")
+        load_files(__dirname + "/user_tools/find_home_for_DDE_2.js")
+        Job.FindHome.start()
+    }else if(vals.clicked_button_value == "Reset Ranges") {
     	cal_reset_ranges()
     }else if(vals.clicked_button_value == "Clear") {
     	cal_clear_points()
@@ -182,14 +186,13 @@ function handle_cal(vals){
         remove_svg_points()
         setTimeout(function(){Job.CalSensors.start()}, starting_timeout) 
             
-        
-  	
     }else if(vals.clicked_button_value === "svg_id") {
         if (window.cal_working_axis === undefined){
-            cal_instructions_id.innerHTML = "<span style='color:red'>You must first press a Joint button to calibrate.<br/></span>"
+            cal_instructions_id.innerHTML = "<span style='color:red'>You must first press a Start J button to calibrate.<br/></span>"
         }
         else {
-            cal_instructions_id.innerHTML = "Check this joint's <b>Done</b> check box<br/>&nbsp;&nbsp;&nbsp;&nbsp;if you like the center you've chosen."
+            //cal_instructions_id.innerHTML = "Check this joint's <b>Done</b> check box<br/>&nbsp;&nbsp;&nbsp;&nbsp;if you like the center you've chosen."
+            cal_instructions_id.innerHTML = "If you like the center you've chosen, click the <b>Save</b> button to save it to Dexter<br/>or move onto the next joint."
             const y_val_to_save = flip_point_y(vals.offsetY)
             let idx
             switch(window.cal_working_axis){
@@ -232,9 +235,9 @@ function handle_cal(vals){
         }
         remove_svg_points()
         if(window.cal_working_axis !== undefined){
-            var message = "Adjust the 2 trim pots for Joint " + (window.cal_working_axis - 1) + " to make a circle.<br/>"
+            var message = "Adjust the 2 trim pots for Joint " + (window.cal_working_axis + 1) + " to make a circle.<br/>"
             if ([1, 4, 5].includes(window.cal_working_axis - 1)){
-                message += "&nbsp;&nbsp;&nbsp;&nbsp;You can also adjust Joint " + (window.cal_working_axis - 1) + "'s two position screws."
+                message += "&nbsp;&nbsp;&nbsp;&nbsp;You can also adjust Joint " + (window.cal_working_axis + 1) + "'s two position screws."
             }
             cal_instructions_id.innerHTML = message
             Job.CalSensors.start({robot: cal_get_robot()})
@@ -319,11 +322,11 @@ function init_calibrate(){
             ]}) +
         "</td></tr><tr style='border-collapse:collapse;'><td style='border-collapse:collapse;'></td><td>&nbsp;&nbsp;&nbsp;&nbsp;Right potentiometer: &nbsp;Clockwise pot rotation &rarr;</td></tr>" +
         "</table></td></tr></table>" +
-        "3. <input type='button' id='calibrate_optical_id' style='margin-top:10px;' " +
-        "value='Calibrate optical encoders'/> Do each time you turn on Dexter.<br/>" /*+
-        `4. <button onclick='open_doc("find_home_doc_id"); load_files(__dirname + "/user_tools/find_home_for_DDE_2.js");'>
-              FindHome
-      </button> Defines a Job to helps Dexter find its home location.`*/,
+        "3. <input type='button' id='calibrate_optical_id' style='margin-top:10px;' title='Do each time you turn on Dexter.'" +
+        "value='Calibrate optical encoders'/>" +
+        `&nbsp&nbsp4. <input type='button' style='margin-top:10px;' title='Click to start FindHome Job'
+              value='Start FindHome'>
+      </button> &nbsp(Experimental)`,
         callback: handle_cal
     })
     open_doc(calibrate_doc_id)

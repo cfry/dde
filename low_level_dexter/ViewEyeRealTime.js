@@ -73,7 +73,7 @@ function smLinex(run_backwards = false){
                 if(xydata.length%200 == 0){
                 	$(".cal_svg_circle_auto_center_min").remove()
     				let eye_center = find_perfect_center(xydata)
-                    if (!Number.isNaN(eye_center[0][0])){
+                    if (!Number.isNaN(eye_center[0][0]) && !Number.isNaN(eye_center[0][1])){
 						thehtml = svg_circle({html_class:"cal_svg_circle_auto_center_min", cx: eye_center[0][0]/10, cy:flip_point_y(eye_center[0][1]/10), r: 3, color: "green"})
     					append_in_ui("svg_id", thehtml)
                     }
