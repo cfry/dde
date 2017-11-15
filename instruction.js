@@ -155,8 +155,7 @@ function make_ins(instruction_type, ...args){
     else { return result.concat(args) }
     return result.concat(args)
 }
-//to_source_code() handles instruction arrays.
-
+//to_source_code_insruction_array(isntr_array) //inplemented in to_source_code.js
 
 //now Instruction.INSTRUCTION_TYPE == 4, and some_ins_array[Instruction.INSTRUCTION_TYPE] will return the oplet
 //make_ins("a", 1, 2, 3, 4, 5) works
@@ -190,6 +189,55 @@ Instruction.Control.error = class error extends Instruction.Control{
         args.value  = this.reason
         args.indent = ""
         return this_indent + "Robot.error(" + to_source_code(args) + ")"
+    }
+}
+
+//upper case G to avoid a conflict, but the user instruction is spelled Robot.get_page
+Instruction.Control.Get_page = class Get_page extends Instruction.Control{
+    constructor (url_or_options, response_variable_name="http_response") {
+        super()
+        this.url_or_options = url_or_options
+        this.response_variable_name = response_variable_name
+        this.sent = false
+    }
+    do_item (job_instance){
+        var the_var_name = this.response_variable_name  //for the closures
+        if (this.sent == false){ //hits first time only
+            job_instance.user_data[the_var_name] = undefined //must do in case there was some other
+            //http_request for this var name, esp likely if its default is used.
+            get_page_async(this.url_or_options, //note I *could* simplify here and use get_page (syncrhonos), but this doesn't freeze up UI while getting the page so a little safer.
+                function(err, response, body) {
+                    //console.log("gp top of cb with the_var_name: " + the_var_name)
+                    //console.log("gp got err: " + err)
+                    //console.log("ojb inst: "   + job_instance)
+                    //console.log("response: "    + response)
+                    if(err) { //bug err is not null when bad url
+                        console.log("gp in err: ")
+                        job_instance.user_data[the_var_name] = "Error: " + err
+                        console.log("gp after err: ")
+                    }
+                    else if(response.statusCode !== 200){
+                        job_instance.user_data[the_var_name] = "Error: in getting url: " + this.url_or_options + ", received error status code: " + response.statusCode
+                    }
+                    else {
+                        //console.log("gp in good: ")
+                        job_instance.user_data[the_var_name] = body
+                        //console.log("gp after good: ")
+                    }
+                })
+            this.sent = true
+            job_instance.set_up_next_do(0)
+        }
+        else if (job_instance.user_data[the_var_name] === undefined){ //still waiting for the response
+            job_instance.set_up_next_do(0)
+        }
+        else { job_instance.set_up_next_do(1)} //got the response, move to next instruction
+    }
+    to_source_code(args){
+        return args.indent + "Robot.get_page(" +
+            to_source_code({value: this.url_or_options}) +
+            ((this.response_variable_name == "http_response") ? "" : (", " + to_source_code({value: this.response_variable_name})))  +
+            ")"
     }
 }
 
@@ -308,8 +356,8 @@ Instruction.Control.human_task = class human_task extends Instruction.Control{
     do_item (job_instance){
         var hidden  = '<input type="hidden" name="job_name" value="' + job_instance.name        + '"/>' +
                       "<input type='hidden' name='dependent_job_names' value='" + JSON.stringify(this.dependent_job_names) + "'/>"
-        var buttons = '<center><input type="submit" value="Done"/>&nbsp;'
-        if (this.add_stop_button) { buttons += '<input type="submit" value="Stop this & dependent jobs"/>' }
+        var buttons = '<center><input type="submit" value="Continue Job" title="Signify you are done with this task which\ncloses this dialog box and\ncontinues this job"/>&nbsp;'
+        if (this.add_stop_button) { buttons += '<input type="submit" value="Stop Job" title="Close dialog box,\nstop this job and all dependent jobs."/>' }
         buttons += '</center>'
         if (this.title === undefined){
             this.title = "Job: " + job_instance.name + ", Human Task"
@@ -346,7 +394,7 @@ Instruction.Control.human_task = class human_task extends Instruction.Control{
 
 var human_task_handler = function(vals){
     var job_instance = Job[vals.job_name]
-    if (vals.clicked_button_value != "Done"){
+    if (vals.clicked_button_value != "Continue Job"){
         job_instance.stop_for_reason("interrupted", "In human_task, user stopped this job.")
         var dep_job_names = JSON.parse(vals.dependent_job_names) //If the user did not pass in a dependent_job_names arg when
                     //creating the human_job, dep_job_names will now be [] so the below if hits but
@@ -404,7 +452,7 @@ Instruction.Control.human_enter_choice = class human_enter_choice extends Instru
                 if (this.one_button_per_line) { select += "<br/>" }
             }
             if(this.add_stop_button) {
-              buttons = '<center><input type="submit" value="Stop this & dependent jobs"/></center>'
+              buttons = '<center><input type="submit" value="Stop Job" title="Close dialog box,\nstop this job and all dependent jobs."/></center>'
             }
         }
         else { //show as menu items,the default because we can have more of them.
@@ -412,7 +460,7 @@ Instruction.Control.human_enter_choice = class human_enter_choice extends Instru
             for (var item of this.choices){ select += "<option>" + item[0] + "</option>" }
             select += "</select></center>"
             if(this.add_stop_button) {
-                buttons = '<center><input type="submit" value="Submit"/>&nbsp;<input type="submit" value="Stop this & dependent jobs"/></center>'
+                buttons = '<center><input type="submit" value="Continue Job" title="Close dialog box and\ncontinue this job"/>&nbsp;<input type="submit" value="Stop Job" title="Close dialog box,\nstop this job and all dependent jobs."/></center>'
             }
         }
         if (this.title === undefined){
@@ -435,19 +483,19 @@ Instruction.Control.human_enter_choice = class human_enter_choice extends Instru
     }
 
     to_source_code(args){
-        return args.indent + "Human.enter_choice({"  +
-            ((this.task == "") ? "" : ("task: " + to_source_code({value: this.task}) + ", ")) +
-            ((this.title === undefined) ? "" : ("title: " + to_source_code({value: this.title})  + ", ")) +
-            ((this.user_data_variable_name == "choice") ? "" : ("dependent_job_names: " + to_source_code({value: this.dependent_job_names}) + ", ")) +
-            ((this.show_choices_as_buttons == false) ? "" : (this.show_choices_as_buttons + ", ")) +
-            ((this.one_button_per_line == false)     ? "" : (this.one_button_per_line + ", ")) +
-            ((this.choices.length == 0) ? "" : ("choices: " + to_source_code({value: this.choices}) + ", ")) +
-            ((this.add_stop_button == true)         ? "" : ("add_stop_button: "     + this.add_stop_button  + ", ")) +
-            ((this.dependent_job_names.length == 0) ? "" : ("dependent_job_names: " + to_source_code({value: this.dependent_job_names}) + ", ")) +
-            ((this.x      == 200) ? "" : ("x: " + this.x       + ", "   )) +
-            ((this.y      == 200) ? "" : ("y: " + this.y       + ", "   )) +
-            ((this.width  == 400) ? "" : ("width: "  + this.width   + ", "   )) +
-            ((this.height == 400) ? "" : ("height: " + this.height  + ", "   )) +
+        return args.indent + "Human.enter_choice({" +
+            ((this.task == "")                               ? "" : ("task: "                    + to_source_code({value: this.task})                    + ", ")) +
+            ((this.title === undefined)                      ? "" : ("title: "                   + to_source_code({value: this.title})                   + ", ")) +
+            ((this.user_data_variable_name == "choice")      ? "" : ("user_data_variable_name: " + to_source_code({value: this.user_data_variable_name}) + ", ")) +
+            ((this.show_choices_as_buttons == false)         ? "" : ("show_choices_as_buttons: " + this.show_choices_as_buttons                          + ", ")) +
+            ((this.one_button_per_line == false)             ? "" : ("one_button_per_line: "     + this.one_button_per_line                              + ", ")) +
+            ((this.choices.length == 0)                      ? "" : ("choices: "                 + to_source_code({value: this.choices})                 + ", ")) +
+            ((this.add_stop_button == true)                  ? "" : ("add_stop_button: "         + this.add_stop_button                                  + ", ")) +
+            ((this.dependent_job_names.length == 0)          ? "" : ("dependent_job_names: "     + to_source_code({value: this.dependent_job_names})     + ", ")) +
+            ((this.x      == 200)                            ? "" : ("x: " + this.x       + ", "   )) +
+            ((this.y      == 200)                            ? "" : ("y: " + this.y       + ", "   )) +
+            ((this.width  == 400)                            ? "" : ("width: "  + this.width   + ", "   )) +
+            ((this.height == 400)                            ? "" : ("height: " + this.height  + ", "   )) +
             ((this.background_color == "rgb(238, 238, 238)") ? "" : ("background_color: " + to_source_code({value: this.background_color}))) +
             "})"
     }
@@ -455,11 +503,11 @@ Instruction.Control.human_enter_choice = class human_enter_choice extends Instru
 
 var human_enter_choice_handler = function(vals){
     var job_instance = Job[vals.job_name]
-    if(vals.clicked_button_value == "Submit") { //means the choices are in a menu, not individual buttons
+    if(vals.clicked_button_value == "Continue Job") { //means the choices are in a menu, not individual buttons
         //job_instance.user_data[vals.user_data_variable_name] = vals.choice
         human_enter_choice_set_var(job_instance, vals.choice, vals.choices_string, vals.user_data_variable_name)
     }
-    else if (vals.clicked_button_value == "Stop this & dependent jobs"){
+    else if (vals.clicked_button_value == "Stop Job"){
         job_instance.stop_for_reason("interrupted", "In human_task, user stopped this job.")
         var dep_job_names = JSON.parse(vals.dependent_job_names) //If the user did not pass in a dependent_job_names arg when
         //creating the human_job, dep_job_names will now be [] so the below if hits but
@@ -510,6 +558,95 @@ var human_enter_choice_set_var = function (job_instance, choice_string, choices_
             Job.insert_instruction(val, {job: job_instance.name, offset:"after_program_counter"})
         }
     }
+}
+
+Instruction.Control.human_enter_filepath = class human_filepath extends Instruction.Control{
+    constructor ({task="",
+                  user_data_variable_name="a_filepath",
+                  initial_value="",
+                  add_stop_button = true,
+                  dependent_job_names=[],
+                  title, x=200, y=200, width=400, height=400,  background_color="rgb(238, 238, 238)"}={}) {
+        super()
+        this.task = task
+        this.user_data_variable_name = user_data_variable_name
+        this.initial_value           = initial_value
+        this.add_stop_button         = add_stop_button
+        this.dependent_job_names     = dependent_job_names
+        this.title   = title
+        this.x       = x
+        this.y       = y
+        this.width   = width
+        this.height  = height
+        this.background_color = background_color
+    }
+
+    do_item (job_instance){
+        var hidden  = "<input type='hidden' name='job_name' value='" + job_instance.name                                   + "'/>" +
+                      "<input type='hidden' name='dependent_job_names' value='" + JSON.stringify(this.dependent_job_names) + "'/>" +
+                      "<input type='hidden' name='user_data_variable_name' value='" + this.user_data_variable_name         + "'/>"
+        var text_html = "<input type='file' name='choice'/>"
+
+        var buttons = '<center><input type="submit" value="Continue Job" title="Close dialog box and\\ncontinue this job"/>&nbsp;'
+        if (this.add_stop_button) buttons += '<input type="submit" value="Stop Job" title="Close dialog box,\nstop this job and all dependent jobs."/>'
+        buttons += '</center>'
+        if (this.title === undefined){
+            this.title = "Job: " + job_instance.name + ", Human Enter Filepath"
+            if (job_instance.robot instanceof Human){
+                this.title = job_instance.name + " task for: " +  job_instance.robot.name
+            }
+        }
+        job_instance.wait_reason = "user on Human.enter_filepath interaction." //do before set_status_code so the tooltip gets set with the wait_reason.
+        job_instance.set_status_code("waiting")
+        show_window({content: this.task + "<br/>" + text_html + "<br/><br/>" + buttons + hidden,
+            callback: human_enter_filepath_handler,
+            title: this.title,
+            x: this.x,
+            y: this.y,
+            width: this.width,
+            height: this.height,
+            background_color: this.background_color}
+        )
+    }
+    to_source_code(args){
+        return args.indent + "Human.enter_text({" +
+            ((this.task == "")                               ? "" : ("task: "                    + to_source_code({value: this.task})                    + ", ")) +
+            ((this.title === undefined)                      ? "" : ("title: "                   + to_source_code({value: this.title})                   + ", ")) +
+            ((this.initial_value == "")                      ? "" : ("initial_value: "           + to_source_code({value: this.initial_value})           + ", ")) +
+            ((this.add_stop_button  == true)                 ? "" : ("add_stop_button: "         + this.add_stop_button                                  + ", ")) +
+            ((this.dependent_job_names.length == 0)          ? "" : ("dependent_job_names: "     + to_source_code({value: this.dependent_job_names})     + ", ")) +
+            ((this.x      == 200)                            ? "" : ("x: " + this.x       + ", "   )) +
+            ((this.y      == 200)                            ? "" : ("y: " + this.y       + ", "   )) +
+            ((this.width  == 400)                            ? "" : ("width: "  + this.width   + ", "   )) +
+            ((this.height == 400)                            ? "" : ("height: " + this.height  + ", "   )) +
+            ((this.background_color == "rgb(238, 238, 238)") ? "" : ("background_color: " + to_source_code({value: this.background_color}))) +
+            "})"
+    }
+}
+
+function human_enter_filepath_handler(vals){
+    var job_instance = Job[vals.job_name]
+    if(vals.clicked_button_value == "Continue Job") { //means the choices are in a menu, not individual buttons
+        job_instance.user_data[vals.user_data_variable_name] = vals.choice
+    }
+    else if (vals.clicked_button_value == "Stop Job"){
+        job_instance.stop_for_reason("interrupted", "In human_enter_filepath, user stopped this job.")
+        var dep_job_names = JSON.parse(vals.dependent_job_names) //If the user did not pass in a dependent_job_names arg when
+        //creating the human_job, dep_job_names will now be [] so the below if hits but
+        //the for loop has nothing to loop over so nothing will be done.
+        if (dep_job_names && Array.isArray(dep_job_names)){
+            for (let j_name of dep_job_names){
+                var j_inst = Job[j_name]
+                if (!j_inst.stop_reason){ //if j_inst is still going, stop it.
+                    j_inst.stop_for_reason("interrupted", "In human_task, user stopped this job which is dependent on job: " + job_instance.name)
+                    j_inst.set_up_next_do(0)
+                    return
+                }
+            }
+        }
+    }
+    job_instance.set_up_next_do(1) //even for the case where we're stopping the job,
+    //this lets the do_next_item handle finishing the job properly
 }
 
 
@@ -588,8 +725,8 @@ Instruction.Control.human_enter_instruction = class human_enter_instruction exte
 
         var args_html = "<input name='args' style='width:290px;' value='" + this.instruction_args + "'/>"
         var buttons =   '<input type="submit" value="Run instruction & reprompt"/><p/>' +
-                        '<input type="submit" value="Continue this job without reprompting"/><p/>' +
-            (this.add_stop_button ? '<input type="submit" value="Stop this & dependent jobs"/>' : "")
+                        '<input type="submit" value="Continue this job without reprompting" title="Close dialog box and\ncontinue this job"/><p/>' +
+            (this.add_stop_button ? '<input type="submit" value="Stop Job" title="Close dialog box,\nstop this job and all dependent jobs."/>' : "")
         if (this.title === undefined) {
             this.title = "Job: " + job_instance.name + ", Human Enter Instruction"
             if (job_instance.robot instanceof Human){
@@ -621,19 +758,19 @@ Instruction.Control.human_enter_instruction = class human_enter_instruction exte
         //above line can't work because we're in sandbox where immediate_do_id is unbound
         immediate_do_id.focus()
     }
+
     to_source_code(args){
-        return args.indent + "Human.enter_choice({"  +
-            ((this.task == "") ? "" : ("task: " + to_source_code({value: this.task}) + ", ")) +
-            ((this.title === undefined) ? "" : ("title: " + to_source_code({value: this.title})  + ", ")) +
-            ((this.user_data_variable_name == "choice") ? "" : ("dependent_job_names: " + to_source_code({value: this.dependent_job_names}) + ", ")) +
-            ((this.instruction_type == "Dexter.move_all_joints") ? "" : (this.instruction_type + ", ")) +
-            ((this.instruction_args == "0, 0, 0, 0, 0") ? "" : ("instruction_args: " + this.instruction_args + ", ")) +
-            ((this.add_stop_button == true)         ? "" : ("add_stop_button: "     + this.add_stop_button  + ", ")) +
-            ((this.dependent_job_names.length == 0) ? "" : ("dependent_job_names: " + to_source_code({value: this.dependent_job_names}) + ", ")) +
-            ((this.x      == 200) ? "" : ("x: " + this.x       + ", "   )) +
-            ((this.y      == 200) ? "" : ("y: " + this.y       + ", "   )) +
-            ((this.width  == 400) ? "" : ("width: "  + this.width   + ", "   )) +
-            ((this.height == 400) ? "" : ("height: " + this.height  + ", "   )) +
+        return args.indent + "Human.enter_instruction({" +
+            ((this.task == "")                               ? "" : ("task: "                    + to_source_code({value: this.task})                    + ", ")) +
+            ((this.title === undefined)                      ? "" : ("title: "                   + to_source_code({value: this.title})                   + ", ")) +
+            ((this.instruction_type == "Dexter.move_all_joints") ? "" : ("instruction_type: "    + to_source_code({value: this.instruction_type}) + ", ")) +
+            ((this.instruction_args  == "0, 0, 0, 0, 0")     ? "" : ("instruction_args: "        + to_source_code({value: this.instruction_args}) + ", ")) +
+            ((this.add_stop_button  == true)                 ? "" : ("add_stop_button: "         + this.add_stop_button                                  + ", ")) +
+            ((this.dependent_job_names.length == 0)          ? "" : ("dependent_job_names: "     + to_source_code({value: this.dependent_job_names})     + ", ")) +
+            ((this.x      == 200)                            ? "" : ("x: " + this.x       + ", "   )) +
+            ((this.y      == 200)                            ? "" : ("y: " + this.y       + ", "   )) +
+            ((this.width  == 400)                            ? "" : ("width: "  + this.width   + ", "   )) +
+            ((this.height == 400)                            ? "" : ("height: " + this.height  + ", "   )) +
             ((this.background_color == "rgb(238, 238, 238)") ? "" : ("background_color: " + to_source_code({value: this.background_color}))) +
             "})"
     }
@@ -642,7 +779,7 @@ Instruction.Control.human_enter_instruction = class human_enter_instruction exte
 var human_enter_instruction_handler = function(vals){
     var job_instance = Job[vals.job_name]
     var hei_instance = job_instance.do_list[job_instance.program_counter]
-    if      (vals.clicked_button_value == "Stop this & dependent jobs"){
+    if      (vals.clicked_button_value == "Stop Job"){
         job_instance.enter_instruction_recording = []
         job_instance.stop_for_reason("interrupted", "In human_enter_instruction, user stopped this job.")
         var dep_job_names = JSON.parse(vals.dependent_job_names) //If the user did not pass in a dependent_job_names arg when
@@ -810,8 +947,8 @@ Instruction.Control.human_enter_number = class human_enter_number extends Instru
                            "' max='"   + this.max +
                            "' step='"  + this.step +
                            "'/></center>"
-        var buttons = '<center><input type="submit" value="Submit"/>&nbsp;'
-        if (this.add_stop_button) { buttons += '<input type="submit" value="Stop this & dependent jobs"/>' }
+        var buttons = '<center><input type="submit" value="Continue Job" title="Close dialog box and\ncontinue this job"/>&nbsp;'
+        if (this.add_stop_button) { buttons += '<input type="submit" value="Stop Job" title="Close dialog box,\nstop this job and all dependent jobs."/>' }
         buttons += '</center>'
         if (this.title === undefined){
             this.title = "Job: " + job_instance.name + ", Human Enter Number"
@@ -831,11 +968,28 @@ Instruction.Control.human_enter_number = class human_enter_number extends Instru
                     height: this.height,
                     background_color: this.background_color})
     }
+    to_source_code(args){
+        return args.indent + "Human.enter_number({" +
+            ((this.task == "")                               ? "" : ("task: "                    + to_source_code({value: this.task})                    + ", ")) +
+            ((this.title === undefined)                      ? "" : ("title: "                   + to_source_code({value: this.title})                   + ", ")) +
+            ((this.initial_value == 0)                       ? "" : ("initial_value: "           + to_source_code({value: this.initial_value})           + ", ")) +
+            ((this.min           == 0)                       ? "" : ("min: "                     + to_source_code({value: this.min})                     + ", ")) +
+            ((this.max           == 1000)                    ? "" : ("max: "                     + to_source_code({value: this.max})                     + ", ")) +
+            ((this.step          == 1)                       ? "" : ("step: "                    + to_source_code({value: this.step})                    + ", ")) +
+            ((this.add_stop_button  == true)                 ? "" : ("add_stop_button: "         + this.add_stop_button                                  + ", ")) +
+            ((this.dependent_job_names.length == 0)          ? "" : ("dependent_job_names: "     + to_source_code({value: this.dependent_job_names})     + ", ")) +
+            ((this.x      == 200)                            ? "" : ("x: " + this.x       + ", "   )) +
+            ((this.y      == 200)                            ? "" : ("y: " + this.y       + ", "   )) +
+            ((this.width  == 400)                            ? "" : ("width: "  + this.width   + ", "   )) +
+            ((this.height == 400)                            ? "" : ("height: " + this.height  + ", "   )) +
+            ((this.background_color == "rgb(238, 238, 238)") ? "" : ("background_color: " + to_source_code({value: this.background_color}))) +
+            "})"
+    }
 }
 
 var human_enter_number_handler = function(vals){
     var job_instance = Job[vals.job_name]
-    if (vals.clicked_button_value != "Submit"){
+    if (vals.clicked_button_value != "Continue Job"){
         job_instance.stop_for_reason("interrupted", "In human_enter_number, user stopped this job.")
         var dep_job_names = JSON.parse(vals.dependent_job_names) //If the user did not pass in a dependent_job_names arg when
         //creating the human_job, dep_job_names will now be [] so the below if hits but
@@ -899,8 +1053,8 @@ Instruction.Control.human_enter_text = class human_enter_text extends Instructio
             "' cols='50'>" + this.initial_value +
              "</textarea>"
         }
-        var buttons = '<center><input type="submit" value="Submit"/>&nbsp;'
-        if (this.add_stop_button) buttons += '<input type="submit" value="Stop this & dependent jobs"/>'
+        var buttons = '<center><input type="submit" value="Continue Job"/>&nbsp;'
+        if (this.add_stop_button) buttons += '<input type="submit" value="Stop Job" title="Close dialog box,\nstop this job and all dependent jobs."/>'
         buttons += '</center>'
         if (this.title === undefined){
             this.title = "Job: " + job_instance.name + ", Human Enter Text"
@@ -920,11 +1074,26 @@ Instruction.Control.human_enter_text = class human_enter_text extends Instructio
                     background_color: this.background_color}
                     )
     }
+    to_source_code(args){
+        return args.indent + "Human.enter_text({" +
+            ((this.task == "")                               ? "" : ("task: "                    + to_source_code({value: this.task})                    + ", ")) +
+            ((this.title === undefined)                      ? "" : ("title: "                   + to_source_code({value: this.title})                   + ", ")) +
+            ((this.initial_value == "")                      ? "" : ("initial_value: "           + to_source_code({value: this.initial_value})           + ", ")) +
+            ((this.line_count    == 1)                       ? "" : ("line_count: "              + this.line_count                                       + ", ")) +
+            ((this.add_stop_button  == true)                 ? "" : ("add_stop_button: "         + this.add_stop_button                                  + ", ")) +
+            ((this.dependent_job_names.length == 0)          ? "" : ("dependent_job_names: "     + to_source_code({value: this.dependent_job_names})     + ", ")) +
+            ((this.x      == 200)                            ? "" : ("x: " + this.x       + ", "   )) +
+            ((this.y      == 200)                            ? "" : ("y: " + this.y       + ", "   )) +
+            ((this.width  == 400)                            ? "" : ("width: "  + this.width   + ", "   )) +
+            ((this.height == 400)                            ? "" : ("height: " + this.height  + ", "   )) +
+            ((this.background_color == "rgb(238, 238, 238)") ? "" : ("background_color: " + to_source_code({value: this.background_color}))) +
+            "})"
+    }
 }
 
 var human_enter_text_handler = function(vals){
     var job_instance = Job[vals.job_name]
-    if (vals.clicked_button_value != "Submit"){
+    if (vals.clicked_button_value != "Continue Job"){
         job_instance.stop_for_reason("interrupted", "In human_enter_text, user stopped this job.")
         var dep_job_names = JSON.parse(vals.dependent_job_names) //If the user did not pass in a dependent_job_names arg when
         //creating the human_job, dep_job_names will now be [] so the below if hits but
@@ -1013,6 +1182,21 @@ Instruction.Control.human_notify = class human_notify extends Instruction.Contro
         }
         return human_notify.window_y
     }
+    to_source_code(args){
+        return args.indent + "Human.notify({" +
+            ((this.task == "")                               ? "" : ("task: "                    + to_source_code({value: this.task})                    + ", ")) +
+            ((this.title === undefined)                      ? "" : ("title: "                   + to_source_code({value: this.title})                   + ", ")) +
+            ((this.window      == true)                      ? "" : ("window: "                  + this.window                                           + ", ")) +
+            ((this.output_pane == true)                      ? "" : ("output_pane: "             + this.output_pane                                      + ", ")) +
+            ((this.beep_count  == 0)                         ? "" : ("beep_count: "              + this.beep_count                                       + ", ")) +
+            ((this.speak       == false)                     ? "" : ("speak: "                   + this.speak                                            + ", ")) +
+            ((this.x      == 200)                            ? "" : ("x: " + this.x              + ", "   )) +
+            ((this.y      == 200)                            ? "" : ("y: " + this.y              + ", "   )) +
+            ((this.width  == 400)                            ? "" : ("width: "  + this.width     + ", "   )) +
+            ((this.height == 400)                            ? "" : ("height: " + this.height    + ", "   )) +
+            ((this.background_color == "rgb(238, 238, 238)") ? "" : ("background_color: " + to_source_code({value: this.background_color}))) +
+            "})"
+    }
 }
 
 Instruction.Control.human_notify.window_x = 0
@@ -1038,6 +1222,11 @@ Instruction.Control.human_show_window = class human_show_window extends Instruct
         //that's not this one so closed over vars won't work.
         this.sw_lit_obj_args.callback = human_show_window_handler
         this.win_index = show_window(this.sw_lit_obj_args)
+    }
+    to_source_code(args){
+        let extra_indent = ' '.repeat(37)
+        return args.indent + "Human.show_window(\n" +
+               to_source_code({indent: args.indent + extra_indent, value: this.sw_lit_obj_args}) + ")"
     }
 }
 
@@ -1089,6 +1278,11 @@ Instruction.Control.if_any_errors = class if_any_errors extends Instruction.Cont
         }
         job_instance.set_up_next_do(1)
     }
+    to_source_code(args){
+        return args.indent + "Robot.if_any_errors(" +
+                              to_source_code({value: this.job_names}) + ", " +
+                              to_source_code({value: this.instruction_if_error}) + ")"
+    }
 }
 
 Instruction.Control.label = class label extends Instruction.Control{
@@ -1104,6 +1298,10 @@ Instruction.Control.label = class label extends Instruction.Control{
         job_instance.set_up_next_do(1)
     }
     toString(){ return this.name }
+    to_source_code(args){
+        return args.indent + "Robot.label(" +
+              to_source_code({value: this.name})  + ")"
+    }
 }
 
 Instruction.Control.out = class Out extends Instruction.Control{
@@ -1119,7 +1317,37 @@ Instruction.Control.out = class Out extends Instruction.Control{
         job_instance.set_up_next_do(1)
     }
     toString() { return "Robot.out of: " + this.val }
+    to_source_code(args){
+        return args.indent + "Robot.out(" +
+                to_source_code({value: this.val})  +
+                ((this.color == "black") ? "" : (", " + to_source_code({value: this.color}))) +
+                (this.temp ? (", " + to_source_code({value: this.temp})) : "") +
+                ")"
+    }
 }
+
+/*Obsoleted by just putting a phrase directly on the do_list
+Instruction.Control.play_notes = class play_notes extends Instruction.Control{
+    constructor (note_or_phrase) {
+        super()
+        if (typeof(note_or_phrase) == "string"){
+            note_or_phrase = note_or_phrase.trim()
+            if(note_or_phrase.includes(" ")){ //phrase
+                   note_or_phrase = new Phrase({notes: note_or_phrase})
+            }
+            else { note_or_phrase = Note.n(note_or_phrase) }
+        }
+        this.note_or_phrase = note_or_phrase
+    }
+    do_item(job_instance){ //send all the notes on first call, then do a set_timeout of the overall dur to setup_next
+        //works when note_or_phrase is either a note or a phrase
+        this.note_or_phrase.play()
+        //setTimeout(function(){
+              job_instance.set_up_next_do(1, false, this.note_or_phrase.dur_in_seconds())
+           // },
+           // this.note_or_phrase.dur_in_ms())
+    }
+}*/
 
 Instruction.Control.send_to_job = class send_to_job extends Instruction.Control{
     constructor ({//to_job_name     = "required",
@@ -1128,10 +1356,15 @@ Instruction.Control.send_to_job = class send_to_job extends Instruction.Control{
                   wait_until_done = false,
                   start           = false,
                   unsuspend       = false,
-                  status_variable_name = null} = {},
-                  already_sent_instruction = false //used internally
-                  ) {
+                  status_variable_name = null} = {}) {
         super()
+        this.do_list_item    = do_list_item
+        this.where_to_insert = where_to_insert
+        this.wait_until_done = wait_until_done
+        this.start           = start
+        this.unsuspend       = unsuspend
+        this.status_variable_name = status_variable_name
+        this.already_sent_instruction = false //used internally
         let params = arguments[0]
         if (!params.where_to_insert || (params.where_to_insert == "required")) { //the defaults listed above don't actually work
             //params.where_to_insert = "next_top_level"
@@ -1162,8 +1395,18 @@ Instruction.Control.send_to_job = class send_to_job extends Instruction.Control{
             job_instance.set_up_next_do(1)
         }
     }
+    to_source_code(args){
+        return args.indent + "Robot.send_to_job({" +
+            ((this.do_list_item == null)          ? "" :  ("do_list_item: "         + to_source_code({value: this.do_list_item})                 + ", ")) +
+            ((this.where_to_insert === undefined) ? "" :  ("where_to_insert: "      + to_source_code({value: this.where_to_insert})      + ", ")) +
+            ((this.wait_until_done === false)     ? "" :  ("wait_until_done: "      + to_source_code({value: this.wait_until_done})      + ", ")) +
+            ((this.start === false)               ? "" :  ("start: "                + to_source_code({value: this.start})                + ", ")) +
+            ((this.unsuspend === false)           ? "" :  ("unsuspend: "            + to_source_code({value: this.unsuspend})            + ", ")) +
+            ((this.status_variable_name == null)  ? "" :  ("status_variable_name: " + to_source_code({value: this.status_variable_name}) )) +
+            "})"
+    }
 
-    //fns prefixed with destination are run on the to_job.
+            //fns prefixed with destination are run on the to_job.
 //"this" is the send_to_job instruction instance
 //This fn is not a user fn and is not an instruction for a do_list.
     destination_do_send_to_job(from_job_instance){
@@ -1302,6 +1545,7 @@ Instruction.Control.start_job = class start_job extends Instruction.Control{
                        '<br/>Valid values are: "ignore", "error", "restart"')
         }
         super()
+        if (job_name instanceof Job) { job_name = job_name.name }
         this.job_name      = job_name
         this.start_options = start_options
         this.if_started    = if_started
@@ -1351,6 +1595,13 @@ Instruction.Control.start_job = class start_job extends Instruction.Control{
     toString(){
         return "start_job: " + this.job_name
     }
+    to_source_code(args){
+        return args.indent + "Robot.start_job(" +
+            to_source_code({value: this.job_name})  +
+            (similar(this.start_options, {}) ? "" : (", " + to_source_code({value: this.start_options}))) +
+            ((this.if_started == "ignore")   ? "" : (", " + to_source_code({value: this.if_started}))) +
+            ")"
+    }
 }
 
 Instruction.Control.stop_job = class stop_job extends Instruction.Control{
@@ -1399,13 +1650,62 @@ Instruction.Control.stop_job = class stop_job extends Instruction.Control{
 }
 
 Instruction.Control.suspend = class suspend extends Instruction.Control{
-    constructor (reason) {
+    constructor (job_name = null, reason = "") {
         super()
-        this.reason = reason
+        if (job_name instanceof Job) { job_name = job_name.name }
+        this.job_name = job_name
+        this.reason   = reason
     }
     do_item (job_instance){
-        job_instance.set_status_code("suspended")
-        //doesn't call set_up_next_do nor does it change the pc
+        let job_to_suspend = this.job_name
+        if (!job_to_suspend) { job_to_suspend = job_instance }
+        else if (typeof(job_to_suspend) == "string") { job_to_suspend = Job[job_to_suspend] }
+        if (!job_to_suspend instanceof Job) {
+           job_instance.stop_for_reason("error", "suspend attempted to suspend job: " + job_to_suspend + " but that isn't a job.")
+           job_instance.set_up_next_do(1)
+           return
+        }
+        else {
+            job_to_suspend.wait_reason = this.reason //must be before set_status_code or it won't happen
+            job_to_suspend.set_status_code("suspended")
+            if (job_to_suspend !== job_instance) { job_instance.set_up_next_do(1) }
+        }
+    }
+    to_source_code(args){
+        return args.indent + "Robot.suspend(" +
+            to_source_code({value: this.job_name}) +
+            ((this.reason == "") ? "" : (", " + to_source_code({value: this.reason})))  +
+            ")"
+    }
+}
+
+Instruction.Control.unsuspend = class unsuspend extends Instruction.Control{
+    constructor (job_name = "required") {
+        super()
+        if(job_name == "required"){
+            dde_error("unsuspend not given a job name to uuspend. A job cannot unsuspend itself.")
+        }
+        if (job_name instanceof Job) { job_name = job_name.name }
+        this.job_name = job_name
+    }
+    do_item (job_instance){
+        let job_to_unsuspend = this.job_name
+        if (typeof(job_to_unsuspend) == "string") { job_to_unsuspend = Job[job_to_unsuspend] }
+        if (!(job_to_unsuspend instanceof Job))      {
+            job_instance.stop_for_reason("errored", "unsuspend attempted to unsuspend job: " + this.job_name + " but that isn't a job.")
+        }
+        else if (job_to_unsuspend == job_instance) { shouldnt("unsuspend instruction attempting to unsuspend itself.: " + this.job_name) }
+        else if (job_to_unsuspend.status_code == "suspended"){
+            job_to_unsuspend.unsuspend()
+        }
+        else {} //if job_to_unsuspend is not suspended, do nothing
+        job_instance.set_up_next_do(1)
+
+    }
+    to_source_code(args){
+        return args.indent + "Robot.unsuspend(" +
+            to_source_code({value: this.job_name}) +
+            ")"
     }
 }
 
@@ -1555,6 +1855,12 @@ Instruction.Control.sync_point = class sync_point extends Instruction.Control{
             job_instance.set_up_next_do(1)
         }
     }
+    to_source_code(args){
+        return args.indent + "Robot.sync_point("   +
+            to_source_code({value: this.name})     + ", " +
+            to_source_code({value: this.job_names}) +
+            ")"
+    }
 }
 
 Instruction.Control.wait_until = class wait_until extends Instruction.Control{
@@ -1691,73 +1997,12 @@ Instruction.Control.wait_until = class wait_until extends Instruction.Control{
                       ' It should be a function, a date, a number, or "new_instruction".')
         }
     }
-}
-
-//upper case G to avoid a conflict, but the user instruction is spelled Robot.get_page
-Instruction.Control.Get_page = class Get_page extends Instruction.Control{
-    constructor (url_or_options, response_variable_name) {
-        super()
-        this.url_or_options = url_or_options
-        this.response_variable_name = response_variable_name
-        this.sent = false
-    }
-    do_item (job_instance){
-       var the_var_name = this.response_variable_name  //for the closures
-       if (this.sent == false){ //hits first time only
-           job_instance.user_data[the_var_name] = undefined //must do in case there was some other
-           //http_request for this var name, esp likely if its default is used.
-           get_page_async(this.url_or_options, //note I *could* simplify here and use get_page (syncrhonos), but this doesn't freeze up UI while getting the page so a little safer.
-                    function(err, response, body) {
-                        //console.log("gp top of cb with the_var_name: " + the_var_name)
-                        //console.log("gp got err: " + err)
-                        //console.log("ojb inst: "   + job_instance)
-                        //console.log("response: "    + response)
-                        if(err) { //bug err is not null when bad url
-                            console.log("gp in err: ")
-                            job_instance.user_data[the_var_name] = "Error: " + err
-                            console.log("gp after err: ")
-                        }
-                        else if(response.statusCode !== 200){
-                            job_instance.user_data[the_var_name] = "Error: in getting url: " + this.url_or_options + ", received error status code: " + response.statusCode
-                        }
-                        else {
-                            //console.log("gp in good: ")
-                            job_instance.user_data[the_var_name] = body
-                            //console.log("gp after good: ")
-                        }
-                     })
-           this.sent = true
-           job_instance.set_up_next_do(0)
-       }
-       else if (job_instance.user_data[the_var_name] === undefined){ //still waiting for the response
-           job_instance.set_up_next_do(0)
-       }
-       else { job_instance.set_up_next_do(1)} //got the response, move to next instruction
+    to_source_code(args){
+        return args.indent + "Robot.wait_until("       +
+            to_source_code({value: this.fn_date_dur, function_names: true})  +
+            ")"
     }
 }
-
-/*Obsoleted by just putting a phrase directly on the do_list
-Instruction.Control.play_notes = class play_notes extends Instruction.Control{
-    constructor (note_or_phrase) {
-        super()
-        if (typeof(note_or_phrase) == "string"){
-            note_or_phrase = note_or_phrase.trim()
-            if(note_or_phrase.includes(" ")){ //phrase
-                   note_or_phrase = new Phrase({notes: note_or_phrase})
-            }
-            else { note_or_phrase = Note.n(note_or_phrase) }
-        }
-        this.note_or_phrase = note_or_phrase
-    }
-    do_item(job_instance){ //send all the notes on first call, then do a set_timeout of the overall dur to setup_next
-        //works when note_or_phrase is either a note or a phrase
-        this.note_or_phrase.play()
-        //setTimeout(function(){
-              job_instance.set_up_next_do(1, false, this.note_or_phrase.dur_in_seconds())
-           // },
-           // this.note_or_phrase.dur_in_ms())
-    }
-}*/
 
 Instruction.Control.move_all_joints = class move_all_joints extends Instruction.Control{
     constructor (array_of_5_angles) {

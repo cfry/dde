@@ -1,6 +1,6 @@
 function to_source_code({value, indent="", function_names=false, newObject_paths=false,
                         job_names=false, robot_names=false,
-                        depth_limit=Infinity, depth=0, original_do_list=false} = {}){
+                        depth_limit=Infinity, depth=0, job_orig_args=false} = {}){
         //if ((typeof(arguments[0]) == "object") && arguments[0].hasOwnProperty("value")) {}
         //else { value = arguments[0] } //so that I can do to_source_code 123) and win
         if (depth > depth_limit) { return "***" } //stops infinite recursion in circular structures.
@@ -89,6 +89,7 @@ function to_source_code_instruction_array(args){
 function to_source_code_lit_obj(args){
         let value = args.value
         let indent = args.indent
+        if (!indent) { indent = "" }
         let result = indent + "{"
         let prop_names = Object.getOwnPropertyNames(value) //long objects like cv cause problems
         for (var prop_index = 0; prop_index < prop_names.length; prop_index++) {

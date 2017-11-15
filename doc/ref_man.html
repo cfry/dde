@@ -810,7 +810,9 @@ Beeps the indicated number of times with the default <code>beep</code> settings.
 DDE facilitates using MIDI to play and receive MIDI notes.
 There are higher level "phrase processors" that make creating scores
 relatively easy. <a href="#" onclick="open_doc(music_article_doc_id, event)">
-The Language of Music</a> describes DDE's approach to music in broad themes.
+The Language of Music</a> describes DDE's approach to music in broad themes.<br/>
+For a video presentation of many of these ideas, watch
+<a href="http://hdrobotic.com/webinar#making_music" target="blank">Making Music</a>
 <p></p>
 The fundamental class is Note, that represents a musical note, including
 its duration (and, effectively, its ending time).
@@ -1834,7 +1836,11 @@ the job's robot, which executes the instructions. Jobs either run to completion,
 error, or are stopped by the user via <button>Jobs&#9660;</button> menu <b>Stop all jobs</b>.
 Stopped jobs may be restarted by calling <code title="not in TestSuite"> Job.j1.start()</code> again.
 This reinitializes the job with the original arguments passed to <code title="unEVALable code fragment"> new Job</code>
-and runs the do_list instructions again. 
+and runs the do_list instructions again.
+<p></p>
+Webinar videos for Job:<br/>
+<a target="_blank" href="http://hdrobotic.com/webinar#making_jobs"   target="_blank">Making Jobs</a><br/>
+<a target="_blank" href="http://hdrobotic.com/webinar#advanced_jobs" target="_blank">Advanced Jobs</a><br/>
 
 <details id="new_job_parameters_doc_id" class="doc_details"><summary>new Job parameters</summary>
 The parameters used to define a new Job are:
@@ -2747,16 +2753,31 @@ value of the <code title="unEVALable code fragment"> if_started</code> argument.
 </details>
 
 <details id="Robot.suspend_doc_id" class="doc_details"><summary>suspend</summary>
-  Causes the job to pause. It will not execute any more of its instructions 
-  until it is unsuspended. It takes no arguments.
-  Example:<code>Robot.suspend()</code>.
-  <p></p>
-  <b>unsuspend</b> is a method on a job.<br/> 
-  Example:<code title="unEVALable code fragment"> Job.my_job.unsuspend()</code>.
-  This causes the job to resume from a suspension. You can call it
-  from any JavaScript code such as in a function that's a do_list item.
-  A job cannot unsuspend itself.
+  Causes the indicated job to pause. It will not execute any more of its instructions
+  until it is unsuspended. <br/>
+  <i>Parameters:</i> <br/>
+  <b>job_name</b> Default: <code>null</code>
+  The job to be suspended. <code>null</code> means suspend the job that
+  this instruction is in. A string means suspend the job with that name.
+  May also be a job_instance to suspend.<br/>
+  <b>reason</b> Default: <code>""</code>. A string of why the job is suspended.
+  Example:<code>Robot.suspend()</code>. Suspends the current job for no reason.
 </details>
+
+<details id="Robot.unsuspend_doc_id" class="doc_details"><summary>unsuspend</summary>
+Unsuspend a suspended job. If the job to be suspended is not suspended,
+no action will be taken. Note that a job cannot unsuspend itself,
+because it is not running.
+<i>Parameters:</i> <br/>
+<b>job_name</b> Default: <code>"required"</code>
+The job name or job instance to be unsuspended.
+<p></p>
+<b>unsuspend</b> is also a method on a job.<br/>
+Example:<code title="unEVALable code fragment"> Job.my_job.unsuspend()</code>.
+This causes the job to resume from a suspension. You can call it
+from any JavaScript code such as in a function that's a do_list item.
+</details>
+
 
 <details id="Robot.sync_point_doc_id" class="doc_details"><summary>sync_point</summary>
   A sync_point instruction cases all running jobs with the same-named sync_point
@@ -3558,22 +3579,27 @@ running of jobs that need coodination between humans and machines.
 Although the "home" of human instructions is in the <i>Human</i> robot, you can use
 these instructions in a job with <i>any</i> robot. They do not attempt to
 access robot hardware.
+<p></p>
+<a href="http://hdrobotic.com/webinar#human_instructions" target="_blank">Human Instructions</a>
+is a video describing most of the Human instructions.
+
 <details class="doc_details"><summary>Human Instructions</summary>
+
 <details id="Human.task_doc_id" class="doc_details"><summary>task</summary>
   When run, all human instructions present a dialog box on the screen and waits until the
   user clicks the <button>Done</button> button before allowing the job to proceed to the
-  next instruction in its do_list. A <button>Stop this & dependent jobs</button> button is
+  next instruction in its do_list. A <button>Stop Job</button> button is
   also presented. If clicked, this job and its dependent jobs are stopped.<p></p>
   <i>Parameters:</i><br/>
   <b>task</b> Default: "". A string that will appear in the body of the dialog box. It is intended
      as an English instruction to the human reading it. When the human has completed
      the instruction, they should press <button>Done</button>.
      If the human is unable to complete the task, they should press
-     <button>Stop this & dependent jobs</button><p></p>
+     <button>Stop Job</button><p></p>
   <b>add_stop_button</b> Default: <code>true</code> Adds a button that, when clicked,
      will stop this job and the give dependent jobs without executing additional instructions.<br/>
   <b>dependent_job_names</b> Default: <code>[]</code>. The names of the jobs that will be stopped if the
-       user presses <button>Stop this & dependent jobs</button><br/>
+       user presses <button>Stop Job</button><br/>
    <b>title</b> Default: the job name and "Human Task". A string shown in the title bar of the dialog.
           To have no title, pass in <code>""</code> .<br/>
    <b>x</b> Default: 200. The number of pixels between the left edge of the dialog and the left edge of the DDE window.<br/>
@@ -3721,6 +3747,31 @@ access robot hardware.
                 that first arg's value.<br/>
     <b>"gg"</b> creates a new instruction and inserts it in the Job's do_list
                 right below this Human.enter_choice instruction.
+</details>
+
+<details id="Human.enter_filepath_doc_id" class="doc_details"><summary>enter_filepath</summary>
+When run, this instruction pops up a window containing the HTML input file
+element. The user clicks a button to select a file.
+When the user clicks on the submit button,
+the chosen file is set to the Job's user_data variable
+passed in. This instruction has the usual options for Human.enter
+instructions.
+<i>Parameter:</i>
+<b>user_data_variable_name</b> Default: <code>"a_filepath"</code>
+A string of the name of the user_data variable in the job
+to set to the chosen file.
+If no file is chosen, the variable is bound to <code>null</code>
+<p></p>
+<i>Example:</i><br/>
+<pre><code>new Job({name: "my_job",
+         do_list: [Human.enter_filepath(
+                     {task: "Pick a file.",
+                      user_data_variable_name: "my_file",
+                      height: 150}),
+                   function(){
+                     return Robot.out("You chose: " +
+                                       this.user_data.my_file)
+                   }]})    </code></pre>
 </details>
 
 <details id="Human.enter_instruction_doc_id" class="doc_details"><summary>enter_instruction</summary>
@@ -4739,6 +4790,9 @@ If include_this is true, the returned source, when evaled, will return a copy of
     </details>
 
         <details id="machine_vision_doc_id" class="doc_details"><summary>Machine Vision with OpenCV</summary>
+        For a video presentation of many of these concepts, please watch
+        <a href="http://hdrobotic.com/webinar#machine_vision" target="_blank">Machine Vision with OpenCV</a>
+        <p></p>
         Robots need sensors to understand their environment. A very useful sensor
         is a camera. However, scene recognition is one of the more complex cognitive tasks
         that humans do. Its no different for Robots.
@@ -4901,6 +4955,8 @@ document.addEventListener("click", function(e){
 
         <details id="show_window_doc_id" class="doc_details"><summary>show_window</summary>
         A call to <code>show_window</code> creates a dialog box using HTML and JavaScript.<br/>
+        For a video presentation of much of this content, please watch
+        <a href="http://hdrobotic.com/webinar#show_window" target="_blank">show_window (and friends)</a><br/>
         <i>Parameters</i><br/>
         <b>title</b> A string of the HTML displayed in the window's title bar. Default: "DDE Information"<br/>
         <b>width</b> The number of pixels wide that the window will be. Default: 400.

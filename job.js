@@ -442,7 +442,9 @@ var Job = class Job{
                 break;
             case "suspended":
                 bg_color = "rgb(255, 255, 17)"; //bright yellow
-                tooltip  = "This job is suspended.\nClick to unsuspend it.\nAfter it is running, you can click to stop it."
+                tooltip  = "This job is suspended because\n" +
+                            this.wait_reason + "\n" +
+                            "Click to unsuspend it.\nAfter it is running, you can click to stop it."
                 break; //yellow
             case "waiting":
                 bg_color = "rgb(255, 255, 102)"; //pale yellow
@@ -661,6 +663,7 @@ var Job = class Job{
     // which calls robot_done_with_instruction which calls set_up_next_do(1)
     unsuspend(){
         if (this.status_code == "suspended"){
+            this.wait_reason = ""
             this.set_status_code("running")
             this.set_up_next_do(1)
         }
@@ -1879,7 +1882,7 @@ Job.prototype.to_source_code = function(args={}){
                        "when_stopped",
                        "initial_instruction",
                        "user_data"]
-    let props_container = ((args.orig_args || !this.do_list) ? this.orig_args : this)
+    let props_container = ((args.job_orig_args || !this.do_list) ? this.orig_args : this)
 
     for(let prop_name of prop_names){ //if job has never been run, do_list will be undefined,
                                       //in which case use orig_args even if orig_args arg is false
@@ -1901,7 +1904,7 @@ Job.prototype.to_source_code = function(args={}){
     }
     result += props_indent + "do_list: ["
     let do_list_val = props_container.do_list
-    if (!args.orig_args){
+    if (!args.job_orig_args){
         let last_instr  = last(do_list_val)
         if (Instruction.is_instruction_array(last_instr) &&
             last_instr[Instruction.INSTRUCTION_TYPE] == "g") { //don't print the auto_added g instr at end of a run job

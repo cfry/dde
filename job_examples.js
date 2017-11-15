@@ -299,7 +299,7 @@ new Job({name: "my_job", robot: new Human({name: "Joe Jones"}),
                           height: 150,
                           dependent_job_names: ["dependent_job"]}), //this optional arg
                     //lists jobs to be stopped if user clicks
-                    //"Stop this & dependent jobs" button.
+                    //"Stop Job" button.
               Robot.sync_point("load_filament"),
               Robot.out("my_job last instruction")]})
 

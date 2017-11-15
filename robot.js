@@ -127,7 +127,7 @@ var Robot = class Robot {
 
     static send_to_job({do_list_item    = null,
                         where_to_insert = null,
-                        wait_until_done = false, //if true, a_job.send_to_job_receive_done will be called withthe do_list_item is done by the to_job
+                        wait_until_done = false, //if true, a_job.send_to_job_receive_done will be called when the do_list_item is done by the to_job
                         start           = false,
                         unsuspend       = false,
                         status_variable_name = null} = {}){
@@ -151,10 +151,13 @@ var Robot = class Robot {
         return new Instruction.Control.stop_job(instruction_location, reason, perform_when_stopped)
     }
 
-    static suspend(){
-        return new Instruction.Control.suspend()
+    static suspend(job_name = null, reason = ""){
+        return new Instruction.Control.suspend(job_name, reason)
     }
-    //unsuspend is a instance meth on Job and should be!
+    //unsuspend is also instance meth on Job and should be!
+    static unsuspend(job_name = "required"){
+        return new Instruction.Control.unsuspend(job_name)
+    }
 
     static sync_point(name, job_names=[]){
         return new Instruction.Control.sync_point(name, job_names)
@@ -260,6 +263,12 @@ var Human = class Human extends Brain { /*no associated hardware */
         user_data_variable_name="choice", dependent_job_names=[],
         title, x=200, y=200, width=400, height=400,  background_color = "rgb(238, 238, 238)"} = {}){
         return new Instruction.Control.human_enter_choice(arguments[0])
+    }
+
+    static enter_filepath({task = "",
+                           user_data_variable_name="a_filepath", dependent_job_names=[],
+                           title, x=200, y=200, width=400, height=400,  background_color = "rgb(238, 238, 238)"} = {}){
+        return new Instruction.Control.human_enter_filepath(arguments[0])
     }
 
     static enter_instruction({task = "Enter a next instruction for this Job.",
@@ -1544,6 +1553,12 @@ Dexter.LINK3 = 0.330200   //meters  13 inches
 Dexter.LINK4 = 0.050800   //meters  2 inches
 Dexter.LINK5 = 0.082550   //meters  3.25 inches  // from pivot point to tip of the end-effector
 //Dexter.LINKS = [0, Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5]
+
+Dexter.LINK1_v1 = Dexter.LINK1 * 1000000 //in microns
+Dexter.LINK2_v1 = Dexter.LINK2 * 1000000 //in microns
+Dexter.LINK3_v1 = Dexter.LINK3 * 1000000 //in microns
+Dexter.LINK4_v1 = Dexter.LINK4 * 1000000 //in microns
+Dexter.LINK5_v1 = Dexter.LINK5 * 1000000 //in microns
 
 Dexter.LINK1_AVERAGE_DIAMETER =  0.090000 //meters
 Dexter.LINK2_AVERAGE_DIAMETER =  0.120000 //meters

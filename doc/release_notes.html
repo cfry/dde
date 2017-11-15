@@ -5,6 +5,166 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 2.2.2, Nov 15, 2017</summary>
+Highlights: Bug fixes in calibrate, support for converting code from DDE 1 to DDE 2.
+          New insructions: Robot.unsuspend, Human.enter_filepath
+<ul>
+<li>Completed implementation of to_source_code methods for do_list Instructions.</li>
+
+    <li> to_source_code "original_do_list" param renamed to "job_orig_args" (more accurate).
+    </li>
+
+    <li> start_job can now take a job in addition to a job_name for its first arg.</li>
+
+    <li> Robot.suspend can now take optional args job_name (string or job instance) and "reason" string arg.
+reason is displayed in job button tooltip when job is suspended.
+See Ref Man/Robot/Robot Instructions/suspend</li>
+
+    <li> New Instruction: Robot.unsuspend. takes Job_name of job to unsuspend.
+        Compliments Job instance method "unsuspend".
+        See Ref Man/Robot/Robot Instructions/unsuspend.</li>
+
+    <li> New instruction: Human.enter_filepath
+        See Ref Man/Robot/Human Instructions/enter_filepath</li>
+
+    <li> Now the DDE documentation points to all the DDE webinar videos from
+        the appropriate places.</li>
+
+    <li> Human instructions: Changed The label on the "DONE"/Submit button to
+        "Continue Job" title="Close dialog box and\ncontinue this job"
+        For the cancel button, changed label to
+        "Stop Job" add tooltip: title="Close dialog box,\nstop this job and all dependent jobs."</li>
+
+    <li> Fix to calibrate math and ui colored center dots from James W.
+        FindHome button at bottom now is horizontal so takes up less vertical space.</li>
+
+
+    <li> [ ].micron()
+        Returns a new array.
+        All numbers in the input array are assumed to be in microns.
+        Those numbers are converted to meters in the output array
+        by dividing them by 1 million.</li>
+
+    <li> [ ].arcsec()
+        make_ins("a", 36000, 36000, 36000, 36000, 36000).arcsec()
+        make_ins("P", 36000, 36000, 36000, 36000, 36000).arcsec()
+        If the array is an instruction array with an oplet of "a" or "P" then
+        convert its 5 angles to degrees
+        else convert all numbers to degrees.
+        Returns a new array, does not modify the input array.</li>
+
+    <li> New function Kin.xyz_to_J_angles_v1() args in v1 format, return value in v1 format
+        very similar to Kin.xyz_to_J_angles except that
+        the args are in DDE v1 format, ie microns.</li>
+
+    <li> New function Kin.J_angles_to_xyz_v1() args in v1 format.
+         Return value in v1 format.</li>
+
+    <li> New variables:<br/>
+        Dexter.LINK1_v1 = Dexter.LINK1 * 1000000 //in microns<br/>
+        Dexter.LINK2_v1 = Dexter.LINK2 * 1000000 //in microns<br/>
+        Dexter.LINK3_v1 = Dexter.LINK3 * 1000000 //in microns<br/>
+        Dexter.LINK4_v1 = Dexter.LINK4 * 1000000 //in microns<br/>
+        Dexter.LINK5_v1 = Dexter.LINK5 * 1000000 //in microns<br/></li>
+
+    <li> Convert v1 to v2 extended in new doc:<br/>
+        "Convert v1 to v2 in DDE 2.2.2"
+        This is now a top level, "special" release notes doc.</li>
+
+</ul>
+</details>
+<details class="doc_details"><summary>Convert V.1 to V.2 in DDE 2.2.2</summary>
+DDE Jobs written in DDE version 1 will likely break in DDE version 2 because
+we have changed the default units for:
+<ul><li><b>angles</b> from arcseconds to degrees.<br/>
+    There are 3600 arcseconds in 1 degree.<br/>
+    Affects instructions:<br/>
+    <code>Dexter.move_all_joints</code>,<br/>
+    <code>Dexter.move_all_joints_relative</code>, <br/>
+    <code>make_ins("a" ...)</code><br/>
+    <code>make_ins("P" ...)</code><br/>
+    The <code>Dexter.set_parameter</code> names that contain <code>Boundry</code>
+    have changed from referring to arcseconds to referring to degrees.</li>
+    <li><b>lengths</b> from microns to meters.<br/>
+        There are 1 million microns in a meter.<br/>
+        Affects instructions:<br/>
+        <code>Dexter.move_to</code><br/>
+        <code>Dexter.move_to_relative</code><br/>
+        <code>Dexter.LINK1</code> thru <code>Dexter.LINK5</code></li>
+    <li><b>durations</b> from milliseconds to seconds <br/>
+        There are 1 thousand milliseconds in a second.<br/>
+        Affects<br/>
+         <code>Robot.wait_until</code> when passed a number,<br/>
+        <code>Dexter.sleep</code> instruction<br/>
+        Job's <code>inter_do_item_dur</code> parameter,<br/>
+        all of which now expect durations in seconds.<br/>
+        Note that inter_do_item_dur's default has also changed from 100 milliseocnds
+        to 10 milliseconds, (now represented as 0.01 seconds)
+         which should increase job running speed slightly. <br/>
+        The <code>Dexter.set_parameter</code> names of <code>MaxSpeed</code>, <code>StartSpeed</code>,
+        <code>Acceleration</code> have also changed into now being "seconds" based.
+    </li>
+</ul>
+To convert your Jobs to the new units, search for each of the names
+in white above and adjust their arguments accordingly. If you want
+to preserve the actual numbers, you can leave them in place but
+enter a "conversion suffix" after them using our new Ref Man documented
+<a href="#" onclick="open_doc(units_system_help_doc_id)">Units System</a>
+<p></p>
+    <b>A Step by Step Conversion Process</b><br/>
+    DDE code  from v1 to v2:
+    <ul><li>Search for all "move_all_joints(" and "move_all_joints_relative"<br/>
+            Add suffix to first arg like so:<br/>
+             Dexter.move_all_joints([1, 2, 3, 4, 5].arcsec())<br/>
+             arcsec() makes a copy of the array with the arcseconds
+             converted to degrees.</li>
+        <li>Add to make_ins("a" ...) a suffix like so:<br/>
+            make_ins("a" ...).arcsec()</li>
+
+        <li>Add to make_ins("P" ...) a suffix like so:<br/>
+            make_ins("P" ...).arcsec()</li>
+
+        <li>Search for all "move_to(" and "move_to_relative("<br/>
+            Add suffix to first arg like so:<br/>
+             Dexter.move_to([1, 2, 3].micron() ...)<br/>
+             micron makes a copy of the array with all numbers
+             converted from microns to meters.
+        </li>
+
+        <li>Replace Kin.xyz_to_J_angles with Kin.xyz_to_J_angles_v1</li>
+
+        <li>Replace Kin.J_angles_to_xyz() with Kin.J_angles_to_xyz_v1()</li>
+
+        <li>Convert Dexter.LINK1 to Dexter.LINK1_v1.<br/>
+            Same for  LINK's 2 through 5.</li>
+
+        <li>Convert calls like:<br/>
+            Robot.wait_until(1234) to <br/>
+            Robot.wait_until(1234*_ms) or <br/>
+            Robot.wait_until(1.234)
+            Note that wait_until takes several OTHER types for its
+            input arg that shouldn't be changed, but if
+            it has as number, that number should be in seconds.
+            </li>
+        <li>Convert calls Dexter.sleep smilarly to wait_until
+            except that sleep <i>only</i> take a number
+            of seconds as its one required arg.</li>
+        <li>In calls to <code>Dexter.set_parameter</code>,
+           when its first arg is <code>"MaxSpeed"</code>, <code>"StartSpeed"</code> or
+            <code>"Acceleration"</code>, add a suffix to the 2nd arg like so:
+            make_ins("S", "MaxSpeed", 30000 / _nbits_cf)
+        </li>
+        <li>Change calls to making a new Job that use parameter <code>inter_do_item_dur</code>
+            like so:<br/>
+            new Job({inter_do_item_dur*_ms} ...)</li>
+    </ul>
+    This process is only for code that originally ran in DDE 1.
+    Mixing DDE 1 and DDE 2 code is much more complex.<br/>
+    Numbers to be converted must be converted exactly once.
+    Converting a number more than once will cause a bug.
+    Sticking to the above process helps convert numbers exactly once,
+    but code can be complex so this process is not a guarantee of success.
+</details>
 <details class="doc_details"><summary>v 2.2.1, Nov 10, 2017</summary>
 Highlights: Calibrate dialog improved, generators in Jobs functionality expanded.
 <ul><li> User Guide/Configure Dexter/Verify Joint Wiring:  fix for the picture no showing up.</li>

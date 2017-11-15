@@ -199,6 +199,48 @@ function series_name_to_unity_unit(series_name){
     }
 }
 
+//[123, 456].micron() => [0.000123, 0.000456]
+//assumes input array has numbers in microns, and converts
+//those numbers to meters.
+Array.prototype.micron = function(){
+    let result = []
+    for(let elt of this) {
+       if (typeof(elt) === "number") {
+           elt = elt*_um
+       }
+       result.push(elt)
+    }
+    return result
+}
+
+//input array is in arcseconds, converts its angles to degrees.
+Array.prototype.arcsec = function(){
+    if(//Instruction.is_instruction_array(this) && //unnecessary.
+    // we know its an array or this method wouldn't be called.
+    //and if array is too short, a lookup returns undefined
+        ["a", "P"].includes(this[Instruction.INSTRUCTION_TYPE])){
+        let result = this.slice() //make copy
+        for(let i = Instruction.INSTRUCTION_ARG0;
+            i <= Instruction.INSTRUCTION_ARG4; i++){
+            let orig_val = this[i]
+            if (orig_val !== undefined){
+                result[i] = orig_val * _arcsec
+            }
+        }
+        return result
+    }
+    else {
+        let result = []
+        for(let elt of this) {
+            if (typeof(elt) === "number") {
+                elt = elt*_arcsec
+            }
+            result.push(elt)
+        }
+        return result
+    }
+}
+
 //TEMPERATURE
 function deg_c_to_c(deg_c){ return deg_c }
 function deg_f_to_c(deg_f){ return (deg_f-32)*5/9 }
