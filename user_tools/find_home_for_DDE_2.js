@@ -14,7 +14,6 @@ To Calibrate (just once per robot):
 6. Click 'RecordPark' button
 7. Move out of park to any position.
 8. Power off Dexter.
-
 To use:
 1. Power on generally close to home
 2. Eval this file
@@ -335,12 +334,12 @@ return rtString
 
 function start_find_home_ui(){
 show_window({content:
-`<i>You must start the FindHome job before using.</i>
+`<i>To stop job click the FindHome button on Jobs bar.</i>
  <p/>
 <input name="SetPoint" type="button" accesskey="p" value="SetPoint"/> 
  <input name="SetFollowMe" type="button" value="Follow"/>
  <input name="SetKeepPoint" type="button" value="Keep"/>
- <input name="AdjustHome" type="button" value="Home"/><br/>
+ <input name="AdjustHome" type="button" value="Home"/>
  <input name="SetParkPoint" type="button" value="RecordPark"/><br/><br/>
   Mode: <span id="mode_id">None</mode><br/>
  Base: <span  name="Base_display" id="Base_id">0</span><br/>
@@ -351,7 +350,7 @@ show_window({content:
  
  <input type="submit" value="Done"/>`,
              title: "Find Home",
-             width: 300, 
+             width: 400, 
              height: 340,
              callback: handleWindowUI})
 }
