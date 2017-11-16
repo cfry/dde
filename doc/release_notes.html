@@ -5,6 +5,20 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 2.2.3, Nov 15, 2017</summary>
+Highlight: Calibrate fixes, Convert v1 to v2 doc more complete.
+<ul>
+    <li> Calibrate button: "Start FindHome" bugs fixed, now functional.</li>
+
+    <li> Calibrate ui, small fixes</li>
+
+    <li> Minor syntactic bug in Kin.js in a TestSuite fixed.</li>
+
+    <li> Extended Convert v1 to v2 in DDE 2.2.2 to be more complete.</li>
+
+    <li> inter_do_item_dur: changed from 0.91 to 0.001 (1 millisecond.</li>
+</ul>
+<details>
 <details class="doc_details"><summary>v 2.2.2, Nov 15, 2017</summary>
 Highlights: Bug fixes in calibrate, support for converting code from DDE 1 to DDE 2.
           New insructions: Robot.unsuspend, Human.enter_filepath
@@ -117,7 +131,32 @@ enter a "conversion suffix" after them using our new Ref Man documented
             Add suffix to first arg like so:<br/>
              Dexter.move_all_joints([1, 2, 3, 4, 5].arcsec())<br/>
              arcsec() makes a copy of the array with the arcseconds
-             converted to degrees.</li>
+             converted to degrees.
+             Note for calls like<br/>
+            move_all_joints(1, 2, 3, 4, 5) it's easiest to change them to:
+        move_all_joints([1, 2, 3, 4, 5].arcsec())
+             </li>
+        <li>When the code is READING values out of robot_inst.robot_status
+            (user code shuld never write robot_status)
+            most of the values will be angles that must be converted from degrees
+            into arcseconds. These are
+            <pre>
+            "J1_ANGLE",            // BASE_POSITION_AT           10
+            "J1_DELTA",            // BASE_POSITION_DELTA        11
+            "J1_PID_DELTA",        // BASE_POSITION_PID_DELTA    12
+            "J1_FORCE_CALC_ANGLE",            // BASE_POSITION_FORCE_DELTA  13
+            "J1_MEASURED_ANGLE",   // actual angle from Dexter   19
+            for all 5 joints.
+            </pre>
+            a la robot_inst.robot_status[Dexter.J1_ANGLE]*_arcsec or
+            [robot_inst.robot_status[Dexter.J1_ANGLE],
+             robot_inst.robot_status[Dexter.J2_ANGLE],
+             robot_inst.robot_status[Dexter.J3_ANGLE],
+             robot_inst.robot_status[Dexter.J4_ANGLE],
+             robot_inst.robot_status[Dexter.J5_ANGLE]
+             ].arcsec()
+            </li>
+
         <li>Add to make_ins("a" ...) a suffix like so:<br/>
             make_ins("a" ...).arcsec()</li>
 
@@ -151,9 +190,27 @@ enter a "conversion suffix" after them using our new Ref Man documented
             of seconds as its one required arg.</li>
         <li>In calls to <code>Dexter.set_parameter</code>,
            when its first arg is <code>"MaxSpeed"</code>, <code>"StartSpeed"</code> or
-            <code>"Acceleration"</code>, add a suffix to the 2nd arg like so:
+            <code>"Acceleration"</code>, add a suffix to the second arg like so:<br/>
+            Dexter.set_parameter("MaxSpeed", 30000 / _nbits_cf)<br/>
+            or the third arg in:<br/>
             make_ins("S", "MaxSpeed", 30000 / _nbits_cf)
         </li>
+        <li>
+            In calls to <code>Dexter.set_parameter</code>,
+            when its first arg is <code>"J1BoundryHigh"</code>, <code>"J1BoundryLow"</code>
+            change the call to be:<br/>
+            Dexter.set_parameter("J1BoundryHigh", 648000*_arcsec) or<br/>
+            make_ins("S", "J1BoundryHigh", 648000*_arcsec)
+        </li>
+        <li>Calls to Kin.angles_to_direction are now unnecessary.
+           <pre>
+            Change:
+            J5_dir = Kin.angles_to_direction(GripperPossition[2], GripperPossition[3])
+            movCMD.push(Dexter.move_to(oldPoint.micron(), J5_dir))
+            To:
+            J5_dir = [GripperPossition[2], GripperPossition[3]]
+            movCMD.push(Dexter.move_to(oldPoint.micron(), J5_dir))
+           </pre>
         <li>Change calls to making a new Job that use parameter <code>inter_do_item_dur</code>
             like so:<br/>
             new Job({inter_do_item_dur*_ms} ...)</li>

@@ -4,7 +4,7 @@ var esprima = require('esprima')
 //used by Job.prototype.to_source_code. Keep in sync with Job.constructor!
 var job_default_params = {name: null, robot: Robot.dexter0, do_list: [],
                           keep_history: true, show_instructions: true,
-                          inter_do_item_dur: 0.01, user_data:{},
+                          inter_do_item_dur: 0.001, user_data:{},
                           program_counter:0, ending_program_counter:"end",
                           initial_instruction: null, when_stopped: "stop"}
 
