@@ -246,7 +246,8 @@ debugger;
 //persistent_get(vals.macro_name,function(val){db_fetch = val})
 function handleWindowUI(vals){ //vals contains name-value pairs for each
                          //html elt in show_window's content with a name.
-	gWindowVals = vals 
+	debugger
+    gWindowVals = vals 
     //updateXYZPoint()
     //out(vals)
     if(vals.clicked_button_value == "SetPoint" ){ // Clicked button value holds the name of the clicked button.
@@ -259,27 +260,27 @@ function handleWindowUI(vals){ //vals contains name-value pairs for each
     out(gbRcdArray)
     }
     else if(vals.clicked_button_value == "Follow" ) { 
-    	Job.j1.user_data.choicemade = function (){return setFollowMe()}
+    	Job.FindHome.user_data.choicemade = function (){return setFollowMe()}
         out("Set FollowMe mode")
     }
     else if(vals.clicked_button_value == "Keep" ){ 
-        Job.j1.user_data.choicemade = function (){return setKeepPossition()}
+        Job.FindHome.user_data.choicemade = function (){return setKeepPossition()}
         out("Set set Keep  mode")
 
     }
     else if(vals.clicked_button_value == "Home" ){ 
-        Job.j1.user_data.choicemade = function (){return setNewHome(lastTimeXYZ)}
+        Job.FindHome.user_data.choicemade = function (){return setNewHome(lastTimeXYZ)}
     }
     else if(vals.clicked_button_value == "RecordPark" ){ 
         //db_fetch = undefined
        // persistent_get(vals.macro_name,function(val){db_fetch = val})
-        /*Job.j1.user_data.choicemade = function ()
+        /*Job.FindHome.user_data.choicemade = function ()
          							  { var rt = []
                                         rt.push(Robot.wait_until(function(){return db_fetch}))
                                         rt.push(function(){return replayPointsitr(db_fetch,1)})
                                         return rt                                        
                                       }*/
-        Job.j1.user_data.choicemade = function ()
+        Job.FindHome.user_data.choicemade = function ()
          							  { 
                                       	write_file("ParkPoint.js",createPersistantSetPoint (updateXYZPoint()))
                                       }
@@ -291,7 +292,7 @@ function handleWindowUI(vals){ //vals contains name-value pairs for each
     		out(timeXYZ[i])
     	}
         out("outta here " )
-        //Job.j1.user_data.choicemade = function (){return Dexter.move_all_joints(0, 0, 0, 0, 0)}
+        //Job.FindHome.user_data.choicemade = function (){return Dexter.move_all_joints(0, 0, 0, 0, 0)}
     }
 }
 
@@ -336,11 +337,11 @@ function start_find_home_ui(){
 show_window({content:
 `<i>To stop job click the FindHome button on Jobs bar.</i>
  <p/>
-<input name="SetPoint" type="button" accesskey="p" value="SetPoint"/> 
- <input name="SetFollowMe" type="button" value="Follow"/>
- <input name="SetKeepPoint" type="button" value="Keep"/>
- <input name="AdjustHome" type="button" value="Home"/>
- <input name="SetParkPoint" type="button" value="RecordPark"/><br/><br/>
+<input type="button" accesskey="p" value="SetPoint"/> 
+ <input type="button" value="Follow"/>
+ <input type="button" value="Keep"/>
+ <input type="button" value="Home"/>
+ <input type="button" value="RecordPark"/><br/><br/>
   Mode: <span id="mode_id">None</mode><br/>
  Base: <span  name="Base_display" id="Base_id">0</span><br/>
  Pivot: <span  name="Pivot_display" id="Pivot_id">0</span><br/>
@@ -357,8 +358,7 @@ show_window({content:
 
 
 
-function resolve_choice()
-{
+function resolve_choice() {
 //debugger;
     if(gWindowVals != undefined ){updateXYZPoint()}
 	var na = []
@@ -401,4 +401,4 @@ new Job({name: "FindHome", robot: Robot.my_dex, keep_history: false, show_instru
 
 
 //Job.FindHome.start()
-Job.FindHome.inter_do_item_dur = 30*_ms
+//Job.FindHome.inter_do_item_dur = 30*_ms
