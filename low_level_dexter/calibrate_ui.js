@@ -318,7 +318,6 @@ function init_calibrate(){
             child_elements: [
                 svg_text({text: "X   Axis", x: 150, y: 400, size: 30, color: "#DDDDDD", border_width: 1, border_color: "black", style: 'font-weight:bold;'}),
                 svg_text({text: "Y   Axis", x:  30, y: 250, size: 30, color: "#DDDDDD", border_width: 1, border_color: "black", style: 'font-weight:bold;', transform: 'rotate(-90 30 250)'}),
-
             ]}) +
         "</td></tr><tr style='border-collapse:collapse;'><td style='border-collapse:collapse;'></td><td>&nbsp;&nbsp;&nbsp;&nbsp;Right potentiometer: &nbsp;Clockwise pot rotation &rarr;</td></tr>" +
         "</table></td></tr></table>" +
@@ -335,7 +334,9 @@ function init_calibrate(){
     	let robot_sim = Robot[robot_to_calibrate_id.value].simulate
         let sim_actual = Robot.get_simulate_actual(robot_sim)
         if(sim_actual === true){
-        	show_window({content: "Don't Sim"})
+        	//show_window({content: "Don't Sim"})
+            open_doc(simulate_doc_id)
+            confirm("Warning: Simulate is set to true so calibration window will not work. \nTo set to false, choose Jobs menu/Simulate/false.")
         }
     }, 1000)
 }
