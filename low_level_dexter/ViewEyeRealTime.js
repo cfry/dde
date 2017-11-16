@@ -116,7 +116,7 @@ function centers_output(){
         var ip_address = Job.CalSensors.robot.ip_address
         var path = "//" + ip_address + "/share/AdcCenters.txt"
         write_file(path, content)
-        
+        out("Saved: " + path)
         return true
     }
     catch(err) {
@@ -159,6 +159,7 @@ function init_view_eye(){
     
     window.cal_working_axis = undefined //global needed by calibrate_ui.js
     new Job({name: "CalSensors", keep_history: true, show_instructions: false,
+    		inter_do_item_dur: .5 * _ms,
              do_list: [ Dexter.move_all_joints(0, 0, 0, 0, 0),
              			Robot.label("loop_start"),
                         make_ins("w", 42, 64),
@@ -185,6 +186,7 @@ function init_view_eye(){
                         function(){
                         	if(cal_is_loop_checked(window.cal_working_axis+1)){ //if looping
                                 return [
+                                	function(){cal_clear_points()},
                                 	function(){return smLinex(true)},
                                     function(){cal_clear_points()},
                                     Dexter.go_to("loop_start")

@@ -67,7 +67,9 @@ function init_calibrate_optical() {
                       make_ins("S", "MaxSpeed", 30),
                       make_ins("a", 30, 30, 30, 30, 30),
                       make_ins("a", 0, 0, 0, 0, 0),
+                      make_ins("F"),
                       make_ins("w", 42,12448),
+                      make_ins("F"),
                       make_ins("l"),
                       setKeepPosition(),
                       function(){

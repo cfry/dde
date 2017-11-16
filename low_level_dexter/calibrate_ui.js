@@ -331,4 +331,11 @@ function init_calibrate(){
     })
     open_doc(calibrate_doc_id)
     setTimeout(cal_reset_ranges, 200)
+    setTimeout(function(){
+    	let robot_sim = Robot[robot_to_calibrate_id.value].simulate
+        let sim_actual = Robot.get_simulate_actual(robot_sim)
+        if(sim_actual === true){
+        	show_window({content: "Don't Sim"})
+        }
+    }, 1000)
 }
