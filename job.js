@@ -26,7 +26,7 @@ var Job = class Job{
         if (Job[name].robot instanceof Dexter) {Job[name].robot.empty_instruction_queue_now() }
         Job[name].stop_for_reason("interrupted", "User is redefining this job.")
         let orig_args = arguments[0]
-        setTimeout(function(){ new Job (orig_args) }, this.inter_do_item_dur * 3)
+        setTimeout(function(){ new Job (orig_args) }, 200)
 
     }
     else {

@@ -385,6 +385,18 @@ function flatten(arr, result=[]){
     return result
 }
 
+//used by inspector for printing 2D arrays
+function is_array_of_same_lengthed_arrays(array){
+  if (array.length === 0) { return false }
+  let len = null
+  for(let arr of array) {
+    if (!Array.isArray(arr))     { return false }
+    else if (len === null)       { len = arr.length }
+    else if (arr.length !== len) { return false }
+  }
+  return true
+}
+
 function similar(arg1, arg2, tolerance=0, tolerance_is_percent=false, arg1_already_seen=[], arg2_already_seen=[]){
     //I started to do a infinite circularity test but its trick to do quickly and maybe unnecessary because
     //if say 2 arrays both have themselves as the 3rd elt, and the 2 arrays are eq to begin with, that

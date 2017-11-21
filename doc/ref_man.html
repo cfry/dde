@@ -2392,6 +2392,54 @@ new Job({name: "my_job",
     they already were.
 </details>
 
+<details  class="doc_details"><summary>Any Array of Instructions</summary>
+Any valid instruction can be wrapped in an array of any length
+and put on a do_list. This is often useful when you have a function
+that makes a number of instuctions. The instructions need not be of the same type.
+<p></p>
+An empty array is valid but will have no effect.<br/>
+Arrays may be nested to any depth.<br/>
+<i>Example:</i><br/>
+<pre><code>new Job({name: "Job1",
+         do_list: [[Dexter.move_all_joints([10, 20, 0, 0, 0]), Robot.out("did it")],
+                    function(){
+                        let result = []
+                        for(let ang = 0; ang <= 90; ang += 15){
+                             result.push(Dexter.move_all_joints([ang, 0,0,0,0,]))
+                        }
+                        return result
+                    }
+                   ]})
+     </code></pre>
+  The first insruction above puts 1 array with two instructions on the do_list.
+  Both will be run in order.
+  The second instruction, an anonymous function definition,
+  creates an array of <code>Dexter.move_all_joints</code> instructions.
+  Those instructions have Joint 1 increasing in angles from 0 through 90,
+  incrementing by 15 degrees.
+  <p></p>
+  If we have a function (fun1) which returns an array of instructions, and a second
+  function (fun2) that returns a different array of instructions,
+  and we wanted to return them all, we could write:
+    <pre><code>new Job({name: "Job1",
+         do_list: function(){ return [fun1(), fun2()] }
+        })
+        </code></pre>
+  We could also write:
+    <pre><code>new Job({name: "Job1",
+         do_list: function(){ return [fun1, fun2] }
+        })
+         </code></pre>
+  as long as those functions take no arguments.<br/>
+  We could also just put both at top level on the do_list,
+  i.e. <pre><code title="unEVALable"<img src="doc/processor_board_jumpers.png" alt="processor board jumpers picture."/><br/>>new Job({name: "Job1",
+         do_list: [fun1, fun2]
+        })
+        </code></pre>
+    DDE gives you lots of options!
+</details>
+
+
 <details  class="doc_details"><summary>"debugger"</summary>
     The literal string <code>"debugger"</code> is a valid do_list instruction
     that will allow you to pause and step through the rest of the instructions.
@@ -2952,7 +3000,7 @@ like all the other robots.
 </details> <!-- End Brain -->
 
 <details id="Dexter_doc_id" class="doc_details"><summary>Dexter</summary>
-<b>Dexter</b> Dexter can perform instructions that command it to move. After it does
+Dexter can perform instructions that command it to move. After it does
 an instruction, it sends back information from its sensors confirming where it has moved
 and additional data. This data can be used in subsequent instructions to both verify
 Dexter's position as well as respond to forces on the arm and other sensor data.
@@ -3138,7 +3186,7 @@ Example: <code>Dexter.move_home()</code>
         end effector at the given x, y, z location. It is complicated by the fact that
         usually there is more than one configuration of Dexter's joints that
         can achieve that position and that Dexter is inherently limited by the
-        lengths of its links.
+        lengths of its links.<br/>
         <i>Parameters</i><br/>
         <b>xyz</b> tells Dexter to position its end effector to a position.
         An array of 3 numbers, each indicating meters from the position 0, 0, 0
@@ -3222,7 +3270,12 @@ Example: <code>Dexter.move_home()</code>
         the possible options, some configurations will be impossible with some xyz settings and/or
         J5_direction settings. Impossible settings cause an error.<br/>
         If config is null, then the config set by the previous instruction in DDE
-        that set config is used.
+        that set config is used.<br/>
+    <img width="350" src="doc/coor_images/Coordinate_System_Iso.PNG" alt="Coordinate_System picture."/><br/>
+    <img width="350" src="doc/coor_images/Coordinate_System_Top.PNG" alt="Coordinate_System picture."/><br/>
+    <img width="350" src="doc/coor_images/Direction_Vector.PNG"      alt="Coordinate_System picture."/><br/>
+    <img width="350" src="doc/coor_images/Tooltip_Location.PNG"      alt="Coordinate_System picture."/><br/>
+    <button onclick="show_configurations_image()">Show Configurations Image</button>
 </details> <!--end move_to -->
 
 <details id="Dexter.move_to_relative_doc_id" class="doc_details"><summary>move_to_relative</summary>

@@ -17,6 +17,8 @@ require("codemirror/addon/fold/brace-fold.js")
 require("codemirror/addon/fold/comment-fold.js")
 */
 
+const ipcRenderer = require('electron').ipcRenderer
+
 var myCodeMirror
 
 function Editor(){} //just a namespace of *some* internal fns
@@ -379,6 +381,13 @@ Editor.edit_file = function(path){ //path could be "new file"
 Editor.save_current_file = function(){
         out("Saved: " + Editor.current_file_path)
         write_file(Editor.current_file_path, Editor.get_javascript())
+}
+
+window.onbeforeunload = function(event){
+    if ((Editor.current_file_path != "new file") &&
+        persistent_get("save_on_eval")){
+        Editor.save_current_file()
+    }
 }
 
 //called by the File menu "Save" item and Cmd-s keystroke

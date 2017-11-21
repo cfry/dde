@@ -1220,6 +1220,26 @@ Dexter.move_home = function(){ //move straight up
     return Dexter.move_all_joints(Dexter.HOME_ANGLES)
 }
 
+//similar to Kin.check_J_ranges except returns string if out of range,
+//and false if in range whereas Kin.check_J_ranges returns true if
+//in range and false otherwise.
+Dexter.joints_out_of_range = function(J_angles){
+    let lower_limit = [Dexter.J1_ANGLE_MIN, Dexter.J2_ANGLE_MIN, Dexter.J3_ANGLE_MIN, Dexter.J4_ANGLE_MIN, Dexter.J5_ANGLE_MIN]
+    let upper_limit = [Dexter.J1_ANGLE_MAX, Dexter.J2_ANGLE_MAX, Dexter.J3_ANGLE_MAX, Dexter.J4_ANGLE_MAX, Dexter.J5_ANGLE_MAX]
+    let angle
+    for(var i = 0; i < J_angles.length; i++){
+        angle = J_angles[i]
+        if(angle == null) {}
+        else if (angle < lower_limit[i]){
+            return "Joint " + (i + 1) + " with angle: " + angle + "\nis less than the minimum: " + lower_limit[i]
+        }
+        else if (angle > upper_limit[i]){
+            return "Joint " + (i + 1) + " with angle: " + angle + "\nis more than the maximun: " + upper_limit[i]
+        }
+    }
+    return false
+}
+
 Dexter.move_all_joints = function(array_of_5_angles=[]){
     if (Array.isArray(array_of_5_angles)){ array_of_5_angles = array_of_5_angles.slice(0) }//copy so we don't modify the input array
     else { array_of_5_angles = Array.prototype.slice.call(arguments) }
@@ -1228,24 +1248,6 @@ Dexter.move_all_joints = function(array_of_5_angles=[]){
     if (!has_non_nulls) { return null } //means no movement from where it is now so this should do nothing.
     return new Instruction.Control.move_all_joints(array_of_5_angles)
 }
-  /*  let the_inst_array = array_of_5_angles //closed over
-    return function(){ //returns a fn because we must compute this at instruction do time
-                //since we may need to get default values out of the current robot_status
-                //if the input array is < 5 or has nulls.
-                for (var i = 0; i < 5; i++){
-                    if (the_inst_array[i] == null){
-                        the_inst_array[i] = this.robot.angles[i] //this.robot_status[Dexter.ds_j0_angle_index + i] //ie don't change angle
-                    }
-                }
-                if(Kin.check_J_ranges(the_inst_array)) {
-                    this.robot.angles = the_inst_array
-                    return make_ins("a", ...the_inst_array)
-                }
-                else {
-                   this.stop_for_reason("errored", "move_all_joints passed angles: " + the_inst_array + "<br/>that are not reachable by Dexter.")
-                }
-    }
-}*/
 
 //the same as move_all_joints but generates a "P" oplet
 
@@ -1257,24 +1259,7 @@ Dexter.pid_move_all_joints = function(array_of_5_angles=[]){
     if (!has_non_nulls) { return null }
     return new Instruction.Control.pid_move_all_joints(array_of_5_angles)
 }
-  /*  let the_inst_array = array_of_5_angles //closed over
-    return function(){ //returns a fn because we must compute this at instruction do time
-        //since we may need to get default values out of the current robot_status
-        //if the input array is < 5 or has nulls.
-        for (var i = 0; i < 5; i++){
-            if (the_inst_array[i] == null){
-                the_inst_array[i] = this.robot.angles[i] //this.robot_status[Dexter.ds_j0_angle_index + i] //ie don't change angle
-            }
-        }
-        if(Kin.check_J_ranges(the_inst_array)) {
-            this.robot.angles = the_inst_array
-            return make_ins("P", ...the_inst_array)
-        }
-        else {
-            this.stop_for_reason("errored", "move_all_joints passed angles: " + the_inst_array + "<br/>that are not reachable by Dexter.")
-        }
-    }
-}*/
+
 
 //beware, this can't do error checking for out of reach.
 //MAYBE this should be implemented like move_to_relative which can do the error checking.
@@ -1295,15 +1280,7 @@ Dexter.move_all_joints_relative = function(delta_angles=[]){
     }
     return new Instruction.Control.move_all_joints_relative(delta_angles)
 }
-    /*let the_int_array = delta_angles //closed over
-    return function(){
-        const abs_angles = []
-        for(var i = 0; i < 5; i++){
-            abs_angles.push(this.robot.angles[i] + the_int_array[i])
-        }
-        return Dexter.move_all_joints(abs_angles)
-    }
-}*/
+
 
 Dexter.move_to_straight = function(xyz           = [],
                                    J5_direction  = [0, 0, -1],
@@ -1346,56 +1323,11 @@ Dexter.pid_move_to = function(xyz = [],
                               config        = Dexter.RIGHT_UP_OUT){
     return new Instruction.Control.pid_move_to(xyz, J5_direction, config)
 }
-  /*  return function(){
-        if(Dexter.is_position(xyz)){
-            xyz = xyz[0]
-            J5_direction = xyz[1]
-            config = xyz[2]
-        }
-        if((J5_direction === null) || (config === null)){
-            let [existing_xyz, existing_direction, existing_config] = Kin.J_angles_to_xyz(this.robot.angles, this.robot.pose) //just to get defaults.
-            if(J5_direction === null) { J5_direction = existing_direction }
-            if(config       === null) { config       = existing_config }
-        }
-        if(Array.isArray(J5_direction) &&
-            (J5_direction.length == 2) &&
-            (Math.abs(J5_direction[0]) == 90) &&
-            (Math.abs(J5_direction[1]) == 90)){
-            this.stop_for_reason("errored", "Dexter.move_to was passed an invalid J5_direction of:<br/>" + J5_direction +
-                "<br/>[90, 90], [-90, 90], [90, -90] and [-90, -90]<br/> are all invalid.")
-        }
-        if (similar(xyz, Dexter.HOME_POSITION[0])) {
-            return make_ins("a", ...Dexter.HOME_ANGLES)
-        }
-        let xyz_copy = xyz.slice(0)
-        for(let i = 0; i < 3; i++){
-            if (xyz_copy.length <= i)     { xyz_copy.push(existing_xyz[i]) }
-            else if (xyz_copy[i] == null) { xyz_copy[i] = existing_xyz[i]  }
-        }
-        let angles
-        try {
-            angles = Kin.xyz_to_J_angles(xyz_copy, J5_direction, config, this.robot.pose)
 
-        }
-        catch(err){
-            this.stop_for_reason("errored", "Dexter instruction move_to passed xyz values:<br/>" + xyz + "<br/>that are not valid.<br/>" +
-                err.message)
-        }
-        //for(let i = 0; i < 5; i++){ angles[i] = Math.round( angles[i]) }
-        if (Kin.check_J_ranges(angles)){
-            this.robot.angles       = angles
-            return make_ins("P", ...angles) // Dexter.move_all_joints(angles)
-        }
-        else {
-            this.stop_for_reason("errored", "move_to called with out of range xyz: " + xyz)
-        }
-    }
-}*/
 
 Dexter.move_to_relative = function(delta_xyz = [0, 0, 0]){
     return new Instruction.Control.move_to_relative(delta_xyz)
 }
-
 
 Dexter.record_movement = function(...args){ return make_ins("m", ...args) }
 Dexter.replay_movement = function(...args){ return make_ins("o", ...args) }
@@ -1444,7 +1376,7 @@ Dexter.set_open_loop          = function(){ return setOpenLoop() }
 Dexter.instruction_type_to_function_name_map = {
     a:"move_all_joints",
     //b:"move_to",           //fry  obsolete
-    //B:"move_to_relative",  //fry
+    B:"set_boundries", //10 args: j1BoundryHigh, j1Boundrylow,  j2BoundryHigh, j2Boundrylow, j3BoundryHigh, j3Boundrylow, j4BoundryHigh, j4Boundrylow, j5BoundryHigh, j5Boundrylow,
     c:"capture_ad", 
     d:"dma_read",
     e:"cause_dexter_error", //fry

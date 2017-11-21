@@ -113,7 +113,8 @@ function inspect_aux(item, stack_number, in_stack_position, increase_max_display
         let div_id = make_inspector_id_string(stack_number, in_stack_position)
         let max_display_factor = (increase_max_display_length ? 2 : 1)
         if (array_type){ //return "Array of " + item.length
-            if ((item.length > 0) && Array.isArray(item[0])) { //2D arrays can't be "typed arrays"
+            if ((item.length > 0) && is_array_of_same_lengthed_arrays(item)) { //2D arrays can't be "typed arrays"
+                  //all elts of item are arrays, but they might be of different lengths.
                 title = "A 2D Array of " + item.length + "x" + item[0].length
                 result = inspect_format_2D_array(item)
             }
@@ -379,7 +380,10 @@ function inspect_format_2D_array(item){
                 else         { content = j  }
             }
             else if(j == -1) { content = i  }
-            else             { content = item[i][j] }
+            else {
+               let data = item[i][j]
+                content = (inspect_is_primitive(data) ? JSON.stringify(data) : ("" + data))
+            }
             result += tag_start + content + tag_end
         }
         result += "</tr>\n"

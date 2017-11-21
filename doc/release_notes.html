@@ -5,7 +5,39 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
-<details class="doc_details"><summary>v 2.2.3, Nov 15, 2017</summary>
+
+<details class="doc_details"><summary>v 2.2.6, Nov 20, 2017</summary>
+Highlights: Bug fixes and improved doc.
+<ul>
+    <li> Fixed release notes formatting that caused
+         hiding of know issues and other release notes at top level under
+         release notes.</li>
+
+    <li> More explicit error messages when the "Dexter.move_" instructions
+         are out of range.</li>
+
+    <li> When a job is defined that has a job of that definiton active,
+          that active job is stopped automatically.
+          The time allowed for that job to stop
+          was 3 times the inter_do_item_dur. Now its 200ms.</li>
+
+    <li> Fixed simulator joint 5, changed sign.</li>
+
+    <li> "B" oplet added. "set_boundries"</li>
+
+    <li>  New section of ref man: Robot/Robot Instructions/Any Array of Instructions</li>
+
+    <li> Inspector: improved printing of 2D arrays.</li>
+
+    <li> 5 Informative and pretty pictures on coordinates added to
+         Ref Man/Dexter/Dexter Instructions/move_to</li>
+
+    <li>  If the save (on eval) checkbox is checked and the user quits the application,
+          the current file is saved.</li>
+</ul>
+</details>
+
+<details class="doc_details"><summary>v 2.2.3, Nov 16, 2017</summary>
 Highlight: Calibrate fixes, Convert v1 to v2 doc more complete.
 <ul>
     <li> Calibrate button: "Start FindHome" bugs fixed, now functional.</li>
@@ -18,7 +50,7 @@ Highlight: Calibrate fixes, Convert v1 to v2 doc more complete.
 
     <li> inter_do_item_dur: changed from 0.91 to 0.001 (1 millisecond.</li>
 </ul>
-<details>
+</details>
 <details class="doc_details"><summary>v 2.2.2, Nov 15, 2017</summary>
 Highlights: Bug fixes in calibrate, support for converting code from DDE 1 to DDE 2.
           New insructions: Robot.unsuspend, Human.enter_filepath

@@ -262,3 +262,13 @@ function init_doc(){
         "</details>\n"
     doc_pane_content_id.innerHTML = content
 }
+
+function show_configurations_image(){
+    show_window({
+        title: "Dexter Configurations",
+        content: `
+    <img width="800" src="doc/coor_images/Configurations.png"/>
+    `,
+        x:0, y:0, width:830, height:670
+    })
+}

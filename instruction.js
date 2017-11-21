@@ -2016,17 +2016,19 @@ Instruction.Control.move_all_joints = class move_all_joints extends Instruction.
                 angles[i] = job_instance.robot.angles[i] //this.robot_status[Dexter.ds_j0_angle_index + i] //ie don't change angle
             }
         }
-        if(Kin.check_J_ranges(angles)) {
+        let error_mess = Dexter.joints_out_of_range(angles)
+        if (error_mess){ // a string like "Joint 1 with angle: 0.01 is less than the minimum: 30
+            job_instance.stop_for_reason("errored",
+                error_mess + "\nin Job." + job_instance.name + " at PC: " + job_instance.program_counter +
+                "\nin Robot.move_all_joints([" + angles + "])")
+            job_instance.set_up_next_do(0)
+        }
+        else  {
             job_instance.robot.angles = angles
             job_instance.insert_single_instruction(make_ins("a", ...angles))
             job_instance.added_items_count[job_instance.program_counter] += 1
             job_instance.set_up_next_do(1)
         }
-        else {
-            job_instance.stop_for_reason("errored", "move_all_joints passed angles: " + angles +
-                                         "<br/>that are not reachable by Dexter.")
-        }
-
     }
     toString(){
         return "{instanceof: move_all_joints " + this.array_of_5_angles + "}"
@@ -2051,17 +2053,19 @@ Instruction.Control.pid_move_all_joints = class pid_move_all_joints extends Inst
                 angles[i] = job_instance.robot.angles[i] //this.robot_status[Dexter.ds_j0_angle_index + i] //ie don't change angle
             }
         }
-        if(Kin.check_J_ranges(angles)) {
+        let error_mess = Dexter.joints_out_of_range(angles)
+        if (error_mess){ // a string like "Joint 1 with angle: 0.01 is less than the minimum: 30
+            job_instance.stop_for_reason("errored",
+                error_mess + "\nin Job." + job_instance.name + " at PC: " + job_instance.program_counter +
+                "\nin Robot.pid_move_all_joints([" + angles + "])")
+            job_instance.set_up_next_do(0)
+        }
+        else  {
             job_instance.robot.angles = angles
             job_instance.insert_single_instruction(make_ins("P", ...angles))
             job_instance.added_items_count[job_instance.program_counter] += 1
             job_instance.set_up_next_do(1)
         }
-        else {
-            job_instance.stop_for_reason("errored", "pid_move_all_joints passed angles: " + angles +
-                                         "<br/>that are not reachable by Dexter.")
-        }
-
     }
     toString(){
         return "{instanceof: pid_move_all_joints " + this.array_of_5_angles + "}"
@@ -2125,8 +2129,11 @@ Instruction.Control.move_to = class move_to extends Instruction.Control{
             (J5_direction.length == 2) &&
             (Math.abs(J5_direction[0]) == 90) &&
             (Math.abs(J5_direction[1]) == 90)){
-            job_instance.stop_for_reason("errored", "Dexter.move_to was passed an invalid J5_direction of:<br/>" + J5_direction +
-                "<br/>[90, 90], [-90, 90], [90, -90] and [-90, -90]<br/> are all invalid.")
+            job_instance.stop_for_reason("errored",
+                "In Job." + job_instance.name + " at PC: " + job_instance.program_counter +
+                "\nDexter.move_to([" + xyz + "], [" + J5_direction + "])\n" +
+                "was passed an invalid J5_direction." +
+                "\n[90, 90], [-90, 90], [90, -90] and [-90, -90]\n are all invalid.")
         }
         if (similar(xyz, Dexter.HOME_POSITION[0])) {
             //Job.insert_instruction(make_ins("a", ...Dexter.HOME_ANGLES), {job: job_instance, offset: "after_program_counter"})
@@ -2146,19 +2153,28 @@ Instruction.Control.move_to = class move_to extends Instruction.Control{
 
         }
         catch(err){
-            job_instance.stop_for_reason("errored", "Dexter instruction move_to passed xyz values:<br/>" + xyz + "<br/>that are not valid.<br/>" +
-                                         err.message)
+            job_instance.stop_for_reason("errored",
+                "In Job." + job_instance.name + " at PC: " + job_instance.program_counter +
+                "\nDexter.move_to([" + xyz + "], [" + J5_direction + "])" +
+                "\nwas passed invalid xyz.\n " +
+                err.message)
+            job_instance.set_up_next_do(0)
+            return
         }
-        //for(let i = 0; i < 5; i++){ angles[i] = Math.round( angles[i]) }
-        if (Kin.check_J_ranges(angles)){
+        let error_mess = Dexter.joints_out_of_range(angles)
+        if (error_mess){ // a string like "Joint 1 with angle: 0.01 is less than the minimum: 30
+            job_instance.stop_for_reason("errored",
+                error_mess + "\nin Job." + job_instance.name + " at PC: " + job_instance.program_counter +
+                "\nin Dexter.move_to([" + xyz + "])" +
+                "\nout of range xyz.")
+            job_instance.set_up_next_do(0)
+        }
+        else {
             job_instance.robot.angles       = angles
             //Job.insert_instruction(make_ins("a", ...angles), {job: job_instance, offset: "after_program_counter"})
             job_instance.insert_single_instruction(make_ins("a", ...angles))
             job_instance.added_items_count[job_instance.program_counter] += 1
             job_instance.set_up_next_do(1)
-        }
-        else {
-            job_instance.stop_for_reason("errored", "move_to called with out of range xyz: " + xyz)
         }
     }
 
@@ -2210,8 +2226,11 @@ Instruction.Control.pid_move_to = class pid_move_to extends Instruction.Control{
             (J5_direction.length == 2) &&
             (Math.abs(J5_direction[0]) == 90) &&
             (Math.abs(J5_direction[1]) == 90)){
-            job_instance.stop_for_reason("errored", "Dexter.pid_move_to was passed an invalid J5_direction of:<br/>" + J5_direction +
-                "<br/>[90, 90], [-90, 90], [90, -90] and [-90, -90]<br/> are all invalid.")
+            job_instance.stop_for_reason("errored",
+                "In Job." + job_instance.name + " at PC: " + job_instance.program_counter +
+                "\nDexter.pid_move_to([" + xyz + "], [" + J5_direction + "])\n" +
+                "was passed an invalid J5_direction." +
+                "\n[90, 90], [-90, 90], [90, -90] and [-90, -90]\n are all invalid.")
         }
         if (similar(xyz, Dexter.HOME_POSITION[0])) {
             //Job.insert_instruction(make_ins("P", ...Dexter.HOME_ANGLES), {job: job_instance, offset: "after_program_counter"})
@@ -2232,20 +2251,26 @@ Instruction.Control.pid_move_to = class pid_move_to extends Instruction.Control{
         }
         catch(err){
             job_instance.stop_for_reason("errored",
-                                         "Dexter instruction pid_move_to passed xyz values:<br/>" + xyz +
-                                            "<br/>that are not valid.<br/>" +
-                                            err.message)
+                "In Job." + job_instance.name + " at PC: " + job_instance.program_counter +
+                "\nDexter.pid_move_to([" + xyz + "], [" + J5_direction + "])" +
+                "\nwas passed invalid xyz.\n " +
+                err.message)
+            job_instance.set_up_next_do(0)
+            return
         }
-        //for(let i = 0; i < 5; i++){ angles[i] = Math.round( angles[i]) }
-        if (Kin.check_J_ranges(angles)){
+        let error_mess = Dexter.joints_out_of_range(angles)
+        if (error_mess){ // a string like "Joint 1 with angle: 0.01 is less than the minimum: 30
+            job_instance.stop_for_reason("errored",
+                error_mess + "\nin Job." + job_instance.name + " at PC: " + job_instance.program_counter +
+                "\nin Dexter.pid_move_to([" + xyz + "])")
+            job_instance.set_up_next_do(0)
+        }
+        else{
             job_instance.robot.angles       = angles
             //Job.insert_instruction(make_ins("P", ...angles), {job: job_instance, offset: "after_program_counter"})
             job_instance.insert_single_instruction(make_ins("P", ...angles))
             job_instance.added_items_count[job_instance.program_counter] += 1
             job_instance.set_up_next_do(1)
-        }
-        else {
-            job_instance.stop_for_reason("errored", "pid_move_to called with out of range xyz: " + xyz)
         }
     }
 
@@ -2289,18 +2314,28 @@ Instruction.Control.move_to_relative = class move_to_relative extends Instructio
             angles = Kin.xyz_to_J_angles(new_xyz, J5_direction, config, job_instance.robot.pose)
         }
         catch(err){
-            job_instance.stop_for_reason("errored", "move_to_relative called with out of range delta_xyz: " + this.delta_xyz +
-                "<br/> " + err.message)
+            job_instance.stop_for_reason("errored",
+                "In Job." + job_instance.name + " at PC: " + job_instance.program_counter +
+                "\nDexter.move_to_relative([" + this.delta_xyz + "])" +
+                "\ncalled with out of range delta_xyz\n" +
+                err.message)
+            job_instance.set_up_next_do(0)
+            return
         }
-        //for(let i = 0; i < 5; i++){ angles[i] = Math.round(angles[i]) }
-        if (Kin.check_J_ranges(angles)){
+        let error_mess = Dexter.joints_out_of_range(angles)
+        if (error_mess){ // a string like "Joint 1 with angle: 0.01 is less than the minimum: 30
+            job_instance.stop_for_reason("errored",
+                error_mess + "\nin Job." + job_instance.name + " at PC: " + job_instance.program_counter +
+                "\nin Dexter.move_to_relative([" + this.delta_xyz + "])")
+            job_instance.set_up_next_do(0)
+        }
+        else{
             this.robot.angles = angles
             //return make_ins("a", ...angles) // Dexter.move_all_joints(angles)
             job_instance.insert_single_instruction(make_ins("a", ...angles))
             job_instance.added_items_count[job_instance.program_counter] += 1
             job_instance.set_up_next_do(1)
         }
-        else { job_instance.stop_for_reason("errored", "move_to_relative called with out of range delta_xyz: " + this.delta_xyz) }
     }
     toString(){
         return "{instanceof: move_to_relative " + this.delta_xyz + "}"
@@ -2343,11 +2378,10 @@ Instruction.Control.move_to_straight = class move_to_straight extends Instructio
         }
         catch(err){
             job_instance.stop_for_reason("errored",
-                                         "Dexter instruction move_to_straight passed xyz values:<br/>" +
-                                             this.xyz +
-                                             "<br/>that are not valid for moving straight to. <br/>" +
-                                             err.message)
-
+            "In Job." + job_instance.name + " at PC: " + job_instance.program_counter +
+            "Dexter.move_to_straight([" + this.xyz + "])\n" +
+            "passed invalid xyz.\n" +
+            err.message)
         }
     }
     move_to_straight_aux (xyz_1, xyz_2, J5_direction, config, tool_speed = 5*_mm / _s, resolution = .5*_mm, robot_pose){

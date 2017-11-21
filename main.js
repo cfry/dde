@@ -37,12 +37,16 @@ function createWindow () {
   // Open the DevTools.
  /// mainWindow.webContents.openDevTools() //shows chrome dev tools. nice.
 
-  // Emitted when the window is closed.
+  // Emitted when the main window is closed. (ie click the "red circle" in Mac window bar
+  //as well as chose "Quit" from the Top window bar on Mac
   mainWindow.on('closed', function () {
     // Dereference the window object, usually you would store windows
     // in an array if your app supports multi windows, this is the time
     // when you should delete the corresponding element.
-    mainWindow = null
+        console.log("top of on.closed")
+        //mainWindow.webContents.send('save_current_file') //doesn't work now using window.onbeforeunload in reneder process (editor.js)
+        mainWindow = null
+
   })
   mainWindow.once('ready-to-show', () => { mainWindow.show()})
   var mainWindow_for_closure = mainWindow
@@ -71,6 +75,7 @@ app.on('ready', function() {
 app.on('window-all-closed', function () {
     // On OS X it is common for applications and their menu bar
     // to stay active until the user quits explicitly with Cmd + Q
+    //console.log("top of on window-all-closed")
     if (process.platform !== 'darwin') {
         app.quit()
     }
