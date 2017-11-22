@@ -3,6 +3,9 @@ function to_source_code({value, indent="", function_names=false, newObject_paths
                         depth_limit=Infinity, depth=0, job_orig_args=false} = {}){
         //if ((typeof(arguments[0]) == "object") && arguments[0].hasOwnProperty("value")) {}
         //else { value = arguments[0] } //so that I can do to_source_code 123) and win
+        if (!((typeof(arguments[0]) == "object") && arguments[0].hasOwnProperty("value"))){
+            value = arguments[0] //so we can just do calls of to_source_code("stuf")
+        }
         if (depth > depth_limit) { return "***" } //stops infinite recursion in circular structures.
         if      (value === undefined)       { return "undefined" }
         else if (value === null)            { return "null" } //since typeof(null) == "object", this must be before the typeof(value) == "object" clause

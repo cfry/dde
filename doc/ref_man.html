@@ -2266,8 +2266,11 @@ call will look like: <br/>
 <li><b>dur</b> If there's no callback_param but there is a dur, then
      the ob will pause for the number of seconds in the dur field before
      running the next instruction.
-<pre><code>{start: function(){out("wait a sec or 3")},
- dur: 3}    </code></pre></li>
+<pre><code>new Job({name: "Job1",
+      do_list: [{start: function(){out("wait a sec or 3")},
+                 dur: 3},
+                 Robot.out("done")]})
+      </code></pre></li>
 <li><b>user_data_variable</b> Default: <code>null</code> If present and non-null,
  the automatically synthesized callback
 function will set the given user_data variable in the job to an array of
@@ -2422,17 +2425,17 @@ Arrays may be nested to any depth.<br/>
   function (fun2) that returns a different array of instructions,
   and we wanted to return them all, we could write:
     <pre><code>new Job({name: "Job1",
-         do_list: function(){ return [fun1(), fun2()] }
-        })
+         do_list: [function(){ return [fun1(), fun2()] }
+        ]})
         </code></pre>
   We could also write:
     <pre><code>new Job({name: "Job1",
-         do_list: function(){ return [fun1, fun2] }
-        })
+         do_list: [function(){ return [fun1, fun2] }
+        ]})
          </code></pre>
   as long as those functions take no arguments.<br/>
   We could also just put both at top level on the do_list,
-  i.e. <pre><code title="unEVALable"<img src="doc/processor_board_jumpers.png" alt="processor board jumpers picture."/><br/>>new Job({name: "Job1",
+  i.e. <pre><code title="unEVALable"/>new Job({name: "Job1",
          do_list: [fun1, fun2]
         })
         </code></pre>

@@ -82,7 +82,10 @@ var Instruction = class Instruction {
             return "iterator " + ins.toString().substring(0, 70)
         }
         else if (typeof(ins)  == "function")       { return ins.toString().substring(0, 80) }
-        else if (Instruction.is_start_object(ins)) { return ins.toString().substring(0, 80) }
+        else if (Instruction.is_start_object(ins)) {
+            if(ins.to_source_code) { return ins.to_source_code() } //hits for Note and Phrase
+            else { return ins.toString().substring(0, 80)  }
+        }
 
         else if (ins == "debugger")         { return '"debugger"' }
         else if (ins == null) { return 'null' }
