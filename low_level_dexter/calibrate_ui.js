@@ -270,6 +270,7 @@ function handle_cal(vals){
                 "&nbsp;&nbsp;&nbsp;&nbsp;should be set to false.</span>"
         }
         else if (confirm("Caution! Clear the hemisphere that the fully extended Dexter can reach.")){
+            init_calibrate_optical()
             Job.CalEncoders.start({robot: cal_get_robot()})
             cal_instructions_id.innerHTML = "Now calibrating optical encoders...<br/>&nbsp;&nbsp;&nbsp;&nbsp;<i>This takes about a minute.</i>"
         }
@@ -297,7 +298,7 @@ function init_calibrate(){
 
 
     init_view_eye() //will define (or redefine the view eye job, which is ok)
-    init_calibrate_optical() //will define (or redefine the calibrate_optical job, which is ok)
+    //init_calibrate_optical() //will define (or redefine the calibrate_optical job, which is ok)
     show_window({
         title:"Calibrate your Dexter(s)",
         x:325, y: 0, width:680, height: 640,

@@ -1,5 +1,5 @@
 function init_calibrate_optical() {
-  new Job({name: "CalEncoders1", show_instructions: false,
+  new Job({name: "CalEncoders", show_instructions: false,
             do_list: [
               make_ins("w", 42,64),
     		  make_ins("w", 42,0),
@@ -51,8 +51,6 @@ function init_calibrate_optical() {
               make_ins("a", ...[0,0,0,0,680000].arcsec()),
               make_ins("F"),
               make_ins("w", 42,2048),
-              
-              
               
               make_ins("a", ...[0,0,0,0,-680000].arcsec()),
               make_ins("F"),
