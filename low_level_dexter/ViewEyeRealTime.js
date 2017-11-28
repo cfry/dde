@@ -45,7 +45,7 @@ function smLinex(run_backwards = false){
             //James Code
             xydata.push([x*10, y*10])
 			
-            if(xydata.length%10 == 0){
+            if(xydata.length%20 == 0){
             	let J_angle = cal_get_robot().joint_angle(J_num)
                 let angle_string = J_angle.toString().substring(0, 7)
             	window["cal_angle_" + J_num + "_id"].innerHTML = angle_string
@@ -120,14 +120,14 @@ function centers_output(){
         return true
     }
     catch(err) {
-    	let path = choose_save_file({defaultPath: 'AdcCenters.txt'})
-        write_file(path, content)
-        warning("DDE was unable to save the 'AdcCenters.txt' file to Dexter.<br>Please save the file manually.</br>")
-    	/*
-        for(let i = 0; i < 10; i++){
-        	out(centers_string[i], "green")
-    	}
-        */
+        warning("DDE was unable to save the 'AdcCenters.txt' file directly to Dexter.<br>Please save the file manually.</br>")
+		setTimeout(function(){ 
+        	let path = choose_save_file({defaultPath: 'AdcCenters.txt'})
+        	if(path){
+        		write_file(path, content)
+    			out("Saved: " + path)
+        	}
+        }, 500)
         return false
     }
 }
@@ -143,11 +143,11 @@ function init_view_eye(){
     //this table has to be here rather than top level in the file even though it is static,
     //because _nbits_cf and the other units cause errors if referenced at top level.
     
-    AxisTable = [[[200/_nbits_cf, 0, 0, 0, 0], Dexter.J1_A2D_SIN, Dexter.J1_A2D_COS, [-648000*_arcsec, 0, 0, 0, 0], 1240, [0, 0, 0, 0, 0]],
-                    [[0, 200/_nbits_cf, 0, 0, 0], Dexter.J2_A2D_SIN, Dexter.J2_A2D_COS, [0, -324000*_arcsec, 0, 0, 0], 1900, [0, 0, 0, 0, 0]],
-                    [[0, 0, 200/_nbits_cf, 0, 0], Dexter.J3_A2D_SIN, Dexter.J3_A2D_COS, [0, 0, -500000*_arcsec, 0, 0], 1500, [0, 0, 0, 0, 0]],
-                    [[0, 0, 0, 200/_nbits_cf, 0], Dexter.J4_A2D_SIN, Dexter.J4_A2D_COS, [0, 0, 0, -190000*_arcsec, 0], 1800, [0, 0, 0, 0, 0]],
-                    [[0, 0, 0, 0, 200/_nbits_cf], Dexter.J5_A2D_SIN, Dexter.J5_A2D_COS, [0, 0, 0, 0, -148000*_arcsec], 4240, [0, 0, 0, 0, 0]]]
+    AxisTable = [[[400/_nbits_cf, 0, 0, 0, 0], Dexter.J1_A2D_SIN, Dexter.J1_A2D_COS, [-648000*_arcsec, 0, 0, 0, 0], 1240, [0, 0, 0, 0, 0]],
+                    [[0, 400/_nbits_cf, 0, 0, 0], Dexter.J2_A2D_SIN, Dexter.J2_A2D_COS, [0, -324000*_arcsec, 0, 0, 0], 1900, [0, 0, 0, 0, 0]],
+                    [[0, 0, 400/_nbits_cf, 0, 0], Dexter.J3_A2D_SIN, Dexter.J3_A2D_COS, [0, 0, -500000*_arcsec, 0, 0], 1500, [0, 0, 0, 0, 0]],
+                    [[0, 0, 0, 400/_nbits_cf, 0], Dexter.J4_A2D_SIN, Dexter.J4_A2D_COS, [0, 0, 0, -190000*_arcsec, 0], 1800, [0, 0, 0, 0, 0]],
+                    [[0, 0, 0, 0, 400/_nbits_cf], Dexter.J5_A2D_SIN, Dexter.J5_A2D_COS, [0, 0, 0, 0, -148000*_arcsec], 4240, [0, 0, 0, 0, 0]]]
     
     /*
     centers_string = [["0x000000", "0x000000"],
@@ -224,7 +224,7 @@ function init_view_eye(){
         
     }
     catch(err) {
-        warning("DDE was unable to connect to Dexter's file system<br/> and read the calibration file named:<br/><code title='unEVALable'> " + path )
+        warning("DDE was unable to connect to Dexter's file system.<br/>A full calibration can still be completed without this connection.<br/>This occurs when running on a Mac OS, not being connected to Dexter, or a accessing a non-existent file.<br/>The calibration file is named:<br/><code title='unEVALable'> " + path)
         centers_string = ["0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000"]
     }
 }
