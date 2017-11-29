@@ -2,8 +2,6 @@
 //Requires DDE 2.0+
 if(dde_version < "2.0.0"){dde_error("This file requires DDE version " + "2.0.0" +" or later. You are running version " + dde_version + ".")}
 
-var my_dexter_ip = "192.168.1.142"
-
 /*
 To Calibrate (just once per robot):
 1. Power on in the best version of home you can get. 
@@ -375,7 +373,7 @@ function resolve_choice() {
 }
 
 
-new Dexter({name: "my_dex", ip_address: my_dexter_ip, port: 50000, enable_heartbeat: false, simulate: false})
+new Dexter({port: 50000, enable_heartbeat: false, simulate: false})
 new Job({name: "FindHome", robot: Robot.my_dex, keep_history: false, show_instructions: false,
          do_list: [	
               start_find_home_ui,
