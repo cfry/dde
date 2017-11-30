@@ -25,6 +25,8 @@ To use:
 Dexter is now at the home you first set and is callibrated. 
 This process can be repeated to really dial in Home Position.
 */
+
+function init_find_home(){
 var minSpeed = .5 // (deg/s)
 var maxSpeed = 25 // (deg/s)
 
@@ -244,7 +246,6 @@ debugger;
 //persistent_get(vals.macro_name,function(val){db_fetch = val})
 function handleWindowUI(vals){ //vals contains name-value pairs for each
                          //html elt in show_window's content with a name.
-	debugger
     gWindowVals = vals 
     //updateXYZPoint()
     //out(vals)
@@ -372,9 +373,16 @@ function resolve_choice() {
     return na
 }
 
+//If this file is loaded by the calibration window then its robot is used
+var my_robot
+try{
+	my_robot = cal_get_robot()
+}catch(err){
+	my_robot = Robot.dexter0
+}
 
 new Dexter({port: 50000, enable_heartbeat: false, simulate: false})
-new Job({name: "FindHome", robot: Robot.my_dex, keep_history: false, show_instructions: false,
+new Job({name: "FindHome", robot: my_robot, keep_history: false, show_instructions: false,
          do_list: [	
               start_find_home_ui,
               setKeepPosition(),
@@ -397,6 +405,5 @@ new Job({name: "FindHome", robot: Robot.my_dex, keep_history: false, show_instru
                 Dexter.move_all_joints(0, 0, 0, 0, 0)
          ]})
 
-
-//Job.FindHome.start()
-//Job.FindHome.inter_do_item_dur = 30*_ms
+}
+init_find_home()
