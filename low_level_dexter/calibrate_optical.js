@@ -60,6 +60,14 @@ function init_calibrate_optical() {
               make_ins("S", "MaxSpeed", 240000 / _nbits_cf),
               make_ins("a", ...[100000,100000,100000,100000,100000].arcsec()),
               make_ins("a", ...[0,0,0,0,0].arcsec()),
+              make_ins("F"),
+              
+              make_ins("w", 42,64),
+    		  make_ins("w", 42,0),
+              make_ins("w", 42,256),
+              make_ins("w", 42,0),
+              make_ins("l"),
+              
               make_ins("S", "J1BoundryHigh",648000 * _arcsec),
         	  make_ins("S", "J1BoundryLow",-648000 * _arcsec),
               make_ins("S", "J2BoundryLow",-300000 * _arcsec),
@@ -70,7 +78,8 @@ function init_calibrate_optical() {
               make_ins("S", "J4BoundryHigh",340000 * _arcsec),
               make_ins("S", "J5BoundryLow",-648000 * _arcsec),
               make_ins("S", "J5BoundryHigh",648000 * _arcsec),
-              make_ins("w", 42,12448),
-              make_ins("l")
+              
+              Dexter.sleep(1),
+              make_ins("w", 42,12960),
             ]})
 }
