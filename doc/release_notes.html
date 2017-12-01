@@ -5,6 +5,35 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 2.2.8, Dec 1, 2017</summary>
+Highlights: Bug fixes for Calibrate, FindHome. Doc improvements
+<ul>
+    <li> DDE now saves the editor buffer when you quit with the save checkbox checked.
+         (this was in the 2.2.7 release but I forgot to put it in the release note.)</li>
+
+    <li> Documented a software music synthesizer for Windows OS in
+          Ref Man/IO/Sound/Music with MIDI/Synthesizers</li>
+
+    <li> <code>close_window</code> can now take the title of a window to close.</li>
+
+    <li> <code>cshow_window</code> has a new init option: close_same_titled_windows
+      default <code>true</code>. See Ref Man/Window System/show_window/close_same_titled_windows</li>
+
+    <li> calibrate sped up by reducing the updating of joint angles in the display.</li>
+
+    <li> new calibrate algorithm.</li>
+
+    <li> FindHome button in Calibration dialog now
+    uses the Robot that is set at the top of the
+    Calibration dialog.</li>
+
+    <li> User Guide/Configure Dexter/Data Connection re-written
+    to remove the WiFi connectivity and indicate
+    the problem of connecting a Mac that doesn't have
+    a direct Ethernet socket.</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 2.2.7, Nov 21, 2017</summary>
 Highlights: Bug fixes, including calibrate optical encoders
 <ul>

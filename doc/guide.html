@@ -8,8 +8,8 @@
 
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version:  <span id="dde_version_id">2.2.7</span><br/>
-    released: <span id="dde_release_date_id">Nov 21, 2017</span>
+    version:  <span id="dde_version_id">2.2.8</span><br/>
+    released: <span id="dde_release_date_id">Dec 1, 2017</span>
     <p></p>
     DDE helps you create, debug, and send software to a Dexter robot.
     You can use any JavaScript augmented with DDE-specific functions to help find out about,
@@ -169,31 +169,8 @@ Each indicates that a joint has power.
     </details> <!-- end Power Up -->
 
     <details class="doc_details" ><summary>Data Connection</summary>
-    The primary interface between the computer running DDE and Dexter is WiFi.
-    Dexter ships with a USB WiFi "nub", a tiny device ethat plugs into
-    a USB port. We recommend USB 3.0. USB2.0 will work but is slower.
-    You will need to be in a strong WiFi area for best results.
-    <p></p>
-    <b>ping</b><br/>
-    Dexter is shipped with an ip_address of <code>"192.168.1.142"</code>
-    You can use a low level tool called "command prompt" or "terminal"
-    to verify connectivity. Windows and Mac OS's do an excellent job
-    at hiding these useful tools.<br/>
-     On Windows 7, <br/>
-     Start/All Programs/Accessories/Command Prompt.<br/>
-    On MacOS: try <br/>Favorites/Applications/Utilities/terminal.app.<br/>
-    Enter <code title="unEVALable">ping 192.168.1.142</code>
-    <p></p>
-    If you have connectivity you
-    should see something like the cryptic:<br/>
-     <samp>Reply from 192.168.1.142 bytes=32 time 1ms</samp><br/>
-    several times. Without connectivity you'll see something like:<br/>
-     <samp>Destination host unreachable</samp> or<br/> <samp>Request timeout</samp>
-     or<br/><samp>Host is down</samp>
-    several times.
-    <p></p>
     <b>Ethernet Cable</b><br/>
-    If WiFi doesn't work for you, use an Ethernet cable (with RJ45 male connectors) to go between
+    Use an Ethernet cable (with RJ45 male connectors) to go between
     Dexter and your computer. Available at Staples, Home Depot, Best Buy, Amazon, etc.
     Ethernet cables come in different "Categories". Get "Cat 5e".
     The <i>Ethernet socket</i> on Dexter is on the bottom of the processor
@@ -227,7 +204,15 @@ Each indicates that a joint has power.
         <li>Leave the "Default gateway blank.</li>
         <li>Click the OK button and close the remaining dialogs.</li>
      </ol>
-     <b>On MacOS</b> its even harder.
+     <b>On MacOS:</b> <br/>its even harder.
+     First, newer new Macintoshes that don't have an Ethernet socket will need a
+     "dongle" from USB (or Thunderbolt) to Ethernet socket.
+     You can buy these at a Apple store, or on the web.
+     Unfortuntately we haven't found a reliable way to use these dongles to
+     connect to Dexter. (If you have, please lete  us know!)
+     <p></p>
+      For an older Mac with an Ethernet socket, or one you manage to get working
+      with a dongle:
      <ol><li>Disconnect your WiFi (sorry, its necessary) by clicking on the
              "Radio waves" icon in the upper right of the screen.
              Choose "Turn WiFi Off".</li>
@@ -253,6 +238,25 @@ Each indicates that a joint has power.
          <li>Click the "Apply" button.</li>
       </ol>
       We are working on making this easier.
+      <p></p>
+        <b>ping</b><br/>
+        Dexter is shipped with an ip_address of <code>"192.168.1.142"</code>
+        You can use a low level tool called "command prompt" or "terminal"
+        to verify connectivity. Windows and Mac OS's do an excellent job
+        at hiding these useful tools.<br/>
+        On Windows 7, <br/>
+        Start/All Programs/Accessories/Command Prompt.<br/>
+        On MacOS: try <br/>Favorites/Applications/Utilities/terminal.app.<br/>
+        Enter <code title="unEVALable">ping 192.168.1.142</code>
+        <p></p>
+        If you have connectivity you
+        should see something like the cryptic:<br/>
+        <samp>Reply from 192.168.1.142 bytes=32 time 1ms</samp><br/>
+        several times. Without connectivity you'll see something like:<br/>
+        <samp>Destination host unreachable</samp> or<br/> <samp>Request timeout</samp>
+        or<br/><samp>Host is down</samp>
+        several times.
+        <p></p>
     </details> <!-- end Data Connectivity -->
 
     <details class="doc_details"><summary>Verify Joint Wiring</summary>

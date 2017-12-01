@@ -186,14 +186,23 @@ window.get_in_ui = function(path_string){
 }
 
 var window_index = 0
+var show_window_titles_to_window_index_map = {} //used by close_window, stores an array of all window_indexes for that title
 
-function set_window_index(jqxw_jq){
+function set_window_index(jqxw_jq, title){
     let the_window_index = window_index
     jqxw_jq.attr('data-window_index', the_window_index)
     //console.log ("setting window to index: " + the_window_index)
+    let index_arr = show_window_titles_to_window_index_map[title]
+    if (!index_arr) {
+       index_arr = [the_window_index]
+        show_window_titles_to_window_index_map[title] = index_arr
+    }
+    else { index_arr.push(the_window_index) }
     window_index += 1
     return the_window_index
 }
+
+
 window.set_window_index = set_window_index
 
 function is_window_shown(index){
@@ -264,8 +273,19 @@ window.show_window_values = show_window_values
 window.show_window = function({content = "", title = "DDE Information", width = 400, height = 400, x = 200, y = 200,
                         background_color = "rgb(238, 238, 238)",
                         is_modal = false, show_close_button = true, show_collapse_button = true,
-                        trim_strings = true, window_class, callback = show_window_values} = {}){
+                        trim_strings = true, window_class, callback = show_window_values,
+                        close_same_titled_windows = true} = {}){
       //callback should be a string of the fn name or anonymous source.
+       if (close_same_titled_windows){
+           let latest_win = latest_window_of_title(title)
+           if(latest_win && latest_win.offset()){
+               x = latest_win.offset().left //user might have repositioned the old window. let's preserve that
+               y = latest_win.offset().top
+               width = latest_win.width()   //user might have resized the old window. let's preserve that
+               height = latest_win.height()
+               close_window(title)
+           }
+       }
        if ((arguments.length > 0) && (typeof(arguments[0]) == "string")){
          var content = arguments[0] //all the rest of the args will be bound to their defaults by the js calling method.
        }
@@ -318,7 +338,7 @@ window.show_window = function({content = "", title = "DDE Information", width = 
             collapseAnimationDuration:500,
             maxHeight: 2000, maxWidth: 2000}) //default maxWidth = 800, default maxHeight=600
         if (window_class){jqxw_jq.addClass(window_class)} //used by app_builder
-        let the_window_index = set_window_index(jqxw_jq)
+        let the_window_index = set_window_index(jqxw_jq, title)
         jqxw_jq.on('close', function (event) { jqxw_jq.remove() }); //handles both the removal from a submit button AND the removal from usre hitting the upper right close box.
         //jqxw_jq.find(".jqx-window-content").css("background-color", "#eeeeee")
         jqxw_jq.css("border", "5px solid #666666") //dark gray border so that shows up against black of simulation pane
@@ -629,19 +649,63 @@ window.submit_window = function(event){
 
 
 //rde.hide_window = function() { $('#jqxwindow').jqxWindow('hide') }
-//called from the ui, window_index_or_elt can be either a window_index_or_elt.
-//called from sandbox, it must be a window_index
-window.close_window = function(window_index_or_elt){ //elt can be a window_index int
+//called from the ui, window_title_index_or_elt can be either a window_index, window title, or elt
+//in the window
+window.close_window = function(window_title_index_or_elt){ //elt can be a window_index int
     //var window_elt = elt.closest(".show_window")
     //$(window_elt).jqxWindow("close")
     // $(window_elt).remove() //done about near jqx window constructor see .on
-    if ((typeof(window_index_or_elt) == "string") || (typeof(window_index_or_elt) == "number")){ //ie a window_index
-       let win = get_window_of_index(window_index_or_elt)
+    if ((typeof(window_title_index_or_elt) == "string") &&
+         is_string_a_integer(window_title_index_or_elt)) {
+        window_title_index_or_elt = parseInt(window_title_index_or_elt)
+    }
+    if (typeof(window_title_index_or_elt) == "string") {
+        close_windows_of_title(window_title_index_or_elt)
+    }
+    else if (typeof(window_title_index_or_elt) == "number"){ //ie a window_index
+       let win = get_window_of_index(window_title_index_or_elt)
        win.jqxWindow("close")
+        remove_window_index_from_show_window_titles_to_window_index_map(window_title_index_or_elt)
     }
     else {
-        get_jqxw_jq_of_window_containing_elt(window_index_or_elt).jqxWindow("close")
+        let win_ind = get_window_index_containing_elt(window_title_index_or_elt)
+        remove_window_index_from_show_window_titles_to_window_index_map(win_ind)
+        get_jqxw_jq_of_window_containing_elt(window_title_index_or_elt).jqxWindow("close")
     }
+}
+
+function remove_window_index_from_show_window_titles_to_window_index_map(win_ind){
+    for(let title in show_window_titles_to_window_index_map){
+        let arr = show_window_titles_to_window_index_map[title]
+        let arr_ind = arr.indexOf(win_ind)
+        if (arr_ind >= 0) {
+            if (arr.length == 1) {
+                delete show_window_titles_to_window_index_map[title]
+            }
+            else { delete arr[arr_ind] }
+            return
+        }
+    }
+}
+
+function close_windows_of_title(title){
+    let win_inds = show_window_titles_to_window_index_map[title]
+    for (let win_ind of win_inds){
+        let win = get_window_of_index(win_ind)
+        if (win) { try { win.jqxWindow("close") }
+                   catch(err) {} //might have already been closed
+        }
+    }
+    delete show_window_titles_to_window_index_map[title]
+}
+
+function latest_window_of_title(title){
+    let win_inds = show_window_titles_to_window_index_map[title]
+    if(win_inds) {
+       let last_win_ind = last(win_inds)
+       return get_window_of_index(last_win_ind)
+    }
+    else { return null }
 }
 
 //__________out  and helper fns_______

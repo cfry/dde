@@ -821,7 +821,7 @@ Notes and Phrases share nearly the same instances variables and methods.
 <p></p>
 In order to play notes, we need to interface to MIDI.
 <details class="doc_details"><summary>MIDI</summary>
-MIDI is an aycroymn for Musical Instrument Digital Interface.
+MIDI is an acroymn for Musical Instrument Digital Interface.
 Its a decades old standard for how to control sounds using
 electronics, that has been applied to lighting and other
 remote control situations.
@@ -851,7 +851,12 @@ Once GarageBand downloading complete, launch it by double clicking the file,
 if it isn' already up.
 <p></p>
 On WindowsOS, see https://garagebandforwindowspc.org/ for the more
-complex installationn on Windows.
+complex installation on Windows.
+Another approach to getting good-sounding synthesized sounds on Windows is
+<a target="_blank" href="http://coolsoft.altervista.org/en/virtualmidisynth">
+VirtualMIDISynth</a> with some sampled instrument
+"sound fonts" such as
+<a target="_blank" href="http://www.synthfont.com/soundfonts.html">FluidR3 GM Bank</a>
 <p></p>
 With GB launched, double click on "Keyboard Collection".
 You can leave the default instrument, or
@@ -5034,6 +5039,16 @@ document.addEventListener("click", function(e){
         <b>background_color</b> Default: <code>"rgb(238, 238, 238)"</code> (gray).
           A string representing a color. Symbolic names like "ivory" can be used as well as
           Hexidecimal values like <code>"#EEAAEE"</code> (magenta).<br/>
+         <b>close_same_titled_windows</b> A boolean, default: <code>true</code>.
+         When true, all windows created with show_window with the same title
+         as the one being created will be closed. The new window will have
+         its x, y, width, and height parameters set to the latest show_window created
+         that is still open. This allows the user to position and resize the window
+         how they want it, and that will be preserved when another such window
+         is created. To reset a window's x, y, width, height to their defaults,
+         just close all such titled windows before opening a new one.<br/>
+         To have two or more windows with the same title open at once,
+         set this argument to <code>false</code>.
         <b>content</b> HTML to be rendered in the body of the window. Input tags with
         <code title="unEVALable code fragment"> type</code>
         attributes of <code title="unEVALable code fragment"> button</code> and
@@ -5176,10 +5191,19 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
             <details id="close_window_doc_id" class="doc_details"><summary>close_window</summary>
             Closes a window created with show_window.<br/>
             <i>Parameter:</i><br/>
-            <b>window_index</b>: When a show_window callback function is called, it will be passed a literal object
-            with a property of <code title="unEVALable code fragment"> window_index</code> that can be used as the argument
-            to <code>close_window</code>. This is a non-negative integer.<p></p>
-            Example: <code title="unEVALable code fragment"> close_window(vals.window_index)</code>
+            <b>window_title_index_or_elt</b>: This can be either the title of the window (a string),
+            a window index, or the jQuery window object.<br/>
+            Calling <code>show_window</code> returns a window_index.
+            When a show_window callback function is called, it will be passed a literal object
+            with a property of <code title="unEVALable code fragment"> window_index</code>.
+            These window_indexes can be passed
+            to <code>close_window</code> to close the window. This is a non-negative integer.<p></p>
+            <i>Example:</i> (from within a show_window callback function) <br/>
+            <code title="unEVALable code fragment"> close_window(vals.window_index)</code><br/>
+            Note that when a user clicks on an input of type "submit", that
+            will automatically close the window with no need to call close_window explicitly.<br/>
+            Also note that when show_window's close_same_titled_windows init arg is true
+            (the default), same titled windows will automatically be cloaed.
         </details>
 
         <details id="append_in_ui_doc_id" class="doc_details"><summary>append_in_ui</summary>
