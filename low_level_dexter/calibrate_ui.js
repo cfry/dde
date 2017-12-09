@@ -123,8 +123,8 @@ function handle_cal(vals){
     //out(vals.clicked_button_value)
     if(vals.clicked_button_value == "Start FindHome"){
     	open_doc("find_home_doc_id")
-        load_files(__dirname + "/user_tools/find_home_for_DDE_2.js")
-        Job.FindHome.start()
+        //load_files(__dirname + "/user_tools/find_home_for_DDE_2.js")
+        load_files(__dirname + "/low_level_dexter/find_home_for_DDE_2.js")
     }else if(vals.clicked_button_value == "Reset Ranges") {
     	cal_reset_ranges()
     }else if(vals.clicked_button_value == "Clear") {
