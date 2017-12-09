@@ -24,7 +24,7 @@
 
     function on_ready() {
         const os = require('os');
-        operating_system = os.platform().toLowerCase()
+        operating_system = os.platform().toLowerCase() //for Ubuntu, ths returns "linux"
 
         if      (operating_system == "darwin")       { operating_system = "mac" }
         else if (operating_system.startsWith("win")) { operating_system = "win" }

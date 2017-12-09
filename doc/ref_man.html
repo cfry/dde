@@ -7,7 +7,59 @@
 </style>
 
 <details id="i/o_doc_id" class="doc_details"><summary>I/O</summary>
-    <details class="doc_details"><summary>File Access</summary>
+        <details class="doc_details"><summary>CSV</summary>
+        CSV stands for "Comma Separated Value". It is a file format for spreadsheets
+        and some other two-dimensional data using programs.
+        Both MicroSoft Excel and Apple Numbers spreadsheets can read and write CSV files.
+        <p></p>
+        CSV is not a tight standard. There are variants so beware.
+        DDE's CSV methods convert a string of CSV into a two dimensional array,
+        and converts 2 dimensional arrays into strings.
+        These functions are simple, not meant to handle complex data or lots
+        of variants.
+            <details class="doc_details"><summary>array_to_csv</summary>
+            Converts a two dimensional array into a string that has
+            its rows separated by the newline character, \n and
+            the "cells" within each row separated by commas.<br/>
+            <i>Parameter:</i></br/>
+            <b>an_array</b> The array is expected to be two dimensional
+            with the outer arrays representing rows, and
+            the inner arrays representing cells.<br/>
+            <i>Example:</i>
+            <code>array_to_csv([["head one", "head two"], [10, 20], [100, 200]])</code> =><br/>
+            <samp>`head one,head two\n10,20\n100,200`</samp> <br/>
+            Note that there are no quotes around the string values of "head one" and "head two".
+            If this string is read in by <code>csv_to_array</code>,
+            "head one" and "head two" will be strings and the other values
+            will be numbers.
+            <p></p>
+            You can use DDE's <a href="#" onclick="open_doc(write_file_doc_id)">write_file</a>
+            to write the result of calling <code>array_to_csv</code> to a file.
+            </details>
+            <details class="doc_details"><summary>csv_to_array</summary>
+                Converts a string of csv format into a two dimensional array.
+                If the string has a newline char, \n, then newline is used
+                for the row separator, otherwise \r is used.
+                (Excel uses \r.)<br/>
+                If the string has a comma char, then comma is used as the
+                separator between cells in a row, otherwise tab, \t, is used.
+                <br/>
+                <i>Parameter:</i></br/>
+                <b>a_string</b> The string is expected to have newlines or \r separate rows
+                and commas or tab characters separate cells within a row.<br/>
+                <i>Example:</i>
+                <code>csv_to_array(`head one,head two\n10,20\n100,200`)</code> <br/>=>
+                <samp>[["head one", "head two"], [10, 20], [100, 200]])</samp>
+                Note that the numbers in the csv are converted to JS numbers,
+                and the other values are left as strings.
+                <p></p>
+                You can use DDE's <a href="#" onclick="open_doc(file_content_doc_id)">file_content</a>
+                to get the content of a csv file, then pass it to <code>csv_to_array</code> to
+                turn it into an array.
+            </details>
+        </details> <!-- end CSV -->
+
+        <details class="doc_details"><summary>File Access</summary>
         Web clients reading an writing files to their local file system has been impossible in the past.
         DDE gives you programmatic read/write access to all files under the dde_apps folder
         under your Documents folder, typically under the user's home folder.
@@ -4775,8 +4827,10 @@ If include_this is true, the returned source, when evaled, will return a copy of
      <code>operating_system</code>
      is a global constant that has
     a value of the name of the current operating system.
-    It will not have upper case characters in it.
-    Windows OS's have the value "win". Macintosh OS's have the value "mac".
+    It will not have upper case characters in it.<br/>
+    Windows OS's have the value "win".<br/>
+    Macintosh OS's have the value "mac".<br/>
+    Ubuntu's have the value "linux".<br/>
     If you find the value of other operating systems, please tell us!
     </details>
     <details id="dde_version_doc_id"class="doc_details"><summary>dde_version</summary>

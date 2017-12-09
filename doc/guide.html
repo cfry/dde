@@ -8,8 +8,8 @@
 
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version:  <span id="dde_version_id">2.2.8</span><br/>
-    released: <span id="dde_release_date_id">Dec 1, 2017</span>
+    version:  <span id="dde_version_id">2.2.9</span><br/>
+    released: <span id="dde_release_date_id">Dec 8, 2017</span>
     <p></p>
     DDE helps you create, debug, and send software to a Dexter robot.
     You can use any JavaScript augmented with DDE-specific functions to help find out about,
@@ -257,6 +257,22 @@ Each indicates that a joint has power.
         or<br/><samp>Host is down</samp>
         several times.
         <p></p>
+        Problems with data connectively can be do to an improper IP address of your Dexter,
+        ie at some other address than 192.168.1.142. It might also have to do
+        with its "MAC" address (nothing to do with "Macintosh") not being correctly set.
+        You can use an IP scanner to see what devices are connected to your computer.
+        There are many available on the net.
+        We suggest:
+        <ul><li>Windows OS: <a target="_blank" href="http://www.advanced-ip-scanner.com/">
+                Advanced IP Scanner</a></li>
+            <li>MacOS: "IP Scanner Home", $5 from Apple's "App Store". Use the "App Store.app"
+            application that should be in your Applications folder to buy and download.</li>
+            <li>Linux: <a target="_blank" href="http://angryip.org/">Angry IP Scanner</a>
+               This claims to work for Windows and Mac OS too,
+               but requires a Java SDK to be installed.
+            </li>
+        </ul>
+
     </details> <!-- end Data Connectivity -->
 
     <details class="doc_details"><summary>Verify Joint Wiring</summary>
@@ -1042,6 +1058,24 @@ the points defined in ez_create.
 <details class="doc_details" id='find_home_doc_id'><summary>Find Home</summary>
 Find Home is a tool that you use to help Dexter locate its true home position.
 It requires having a "dock" that Dexter parks in a known location.
+<p></p>
+Find Home is a part of Dexter Calibration. To use Find Home:
+<ol>
+<li>Choose Jobs menu/Calibrate Dexter</li>
+<li>Select the Dexter you want to calibrate (default dexter0)
+<li>If you have just built your Dexter from a kit, calibrate
+    each of the 5 joint's optical sensors. Dexter's bought
+    pre-built will have had this done at the factory.</li>
+<li>If you have never chosen the button <input type="button" value="Calibrate Optical Encoders"/>, do so.
+<li>Click the <input type="button" value="Start Find Home"/> button. This will start the FindHome job
+    and pop up the FindHome dialog box.</li>
+<li>With one hand grab Dexter's last link (so it wont fall), then
+    in the FindHome dialog box, click the button <input type="button" value="Follow"/></li>
+<li>Move Dexter into the parked position in the doc near the bottom of the robot.</li>
+<li>Let go of Dexter.</li>
+<li>Click the button <input type="button" value="Record Park"/></li>
+<li>Click the button <input type="button" value="Home"/></li>
+</ol>
 </details>
 
 

@@ -974,6 +974,38 @@ function stringify_value_sans_html(value){
     return result
 }
 
+/////// CSV ///////
+function array_to_csv(an_array){
+    let result = ""
+    for(let i = 0; i < an_array.length; i++){
+        let row = an_array[i]
+        for (let j = 0; j < row.length; j++) {
+            let cell = row[j]
+            result += "" + cell
+            if (j < (row.length - 1)) { result += "," }
+        }
+        if (i < (an_array.length - 1)) { result += "\n" } //don't print a final newline
+    }
+    return result
+}
+
+function csv_to_array(a_string){
+    let result = []
+    let row_strings = a_string.split("\n")
+    for (let row_string of row_strings){
+        let row_array = []
+        let cell_strings = row_string.split(",")
+        for (let cell_string of cell_strings){
+            if (is_string_a_number(cell_string)) {
+                cell_string = parseFloat(cell_string)
+            }
+            row_array.push(cell_string)
+        }
+        result.push(row_array)
+    }
+    return result
+}
+///// End CSV //////
 
 function inspect_new_object(new_object_or_path, add_to_stack=true){ //called from Insert menu item and stringify_value
     // still causes jquery infinite error if the below is commented in.

@@ -24,6 +24,8 @@
         "class":      false, //I still get a warning for class as a "reserved word"
         "close_window":       false,
         "console":    false, //permit using "console" without warning, but don't permit the setting of it.
+        "dde_error": false,
+        "dde_version": false,
         "Dexter":     false,
         "dex":        false,
         "Duration":   false,

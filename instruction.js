@@ -922,21 +922,31 @@ Instruction.Control.human_enter_number = class human_enter_number extends Instru
                     add_stop_button = true,
                     dependent_job_names=[],
                     title, x=200, y=200, width=400, height=400,  background_color="rgb(238, 238, 238)"}={}){
-        super()
-        this.task = task
-        this.user_data_variable_name = user_data_variable_name
-        this.initial_value=initial_value
-        this.min = min
-        this.max = max
-        this.step = step
-        this.add_stop_button = add_stop_button
-        this.dependent_job_names = dependent_job_names
-        this.title   = title
-        this.x       = x
-        this.y       = y
-        this.width   = width
-        this.height  = height
-        this.background_color = background_color
+        if (initial_value < min) {
+            dde_error("Human.enter_number passed an initial value: " + initial_value +
+                      "<br/> that is less than the min value of: " + min)
+        }
+        else if (initial_value > max) {
+            dde_error("Human.enter_number passed an initial value: " + initial_value +
+                      "<br/> that is more than the max value of: " + max)
+        }
+        else {
+            super()
+            this.task = task
+            this.user_data_variable_name = user_data_variable_name
+            this.initial_value=initial_value
+            this.min = min
+            this.max = max
+            this.step = step
+            this.add_stop_button = add_stop_button
+            this.dependent_job_names = dependent_job_names
+            this.title   = title
+            this.x       = x
+            this.y       = y
+            this.width   = width
+            this.height  = height
+            this.background_color = background_color
+        }
     }
     
     do_item (job_instance){

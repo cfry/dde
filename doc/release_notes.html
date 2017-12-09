@@ -5,6 +5,36 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 2.2.9, Dec 8, 2017</summary>
+Highlights: CSV conversion for DDE reading and writing spreadsheets.
+FindHome calibration improved but still a work-in-progress
+<ul>
+    <li> "dde_error" and "dde_version" defined for lint.
+    <li>  Ref man "operating_system" now documents that
+         Ubuntu OS has the value "linux".
+
+    <li> Human.enter_number now errors if the initial value
+        is less than the min or more than the max.
+
+    <li> show robot_status dialog expanded so you don't have
+        to scroll to see it all
+
+    <li> new functions array_to_csv and csv_to_array
+        for converting between JavaScript arrays and
+        common-separated-value strings that are used
+        by spreadhsheets and other programs.
+        See Ref Man/IO/CSV
+
+    <li> extended user Guide/Configure Dexter/Data Connection/Ping
+        about trouble shooting with an IP scanner.
+
+    <li>  FindHome button on the Calibrate window improved.
+          At the very least, the doc for this is incomplete,
+          though it has been extended in User Guide/Calibrate Dexter/Find Home
+
+
+</ul>
+</details>
 <details class="doc_details"><summary>v 2.2.8, Dec 1, 2017</summary>
 Highlights: Bug fixes for Calibrate, FindHome. Doc improvements
 <ul>

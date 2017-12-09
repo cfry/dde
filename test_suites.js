@@ -220,3 +220,11 @@ new TestSuite("micron",
     ['[1000000, 2000000, "junk"].micron()', "[1, 2, 'junk']"],
     ["[].micron()", "[]"]
 )
+
+new TestSuite("csv",
+    ['var spreadsheet_data = [["head one", "head two"], [10, 20], [100, 200]]'],
+    ["array_to_csv(spreadsheet_data)", '`head one,head two\n10,20\n100,200`'],
+    ['csv_to_array(`head one,head two\n10,20\n100,200`)',
+        '[["head one", "head two"], [10, 20], [100, 200]]'],
+    ['csv_to_array(array_to_csv(spreadsheet_data))', 'spreadsheet_data']
+)

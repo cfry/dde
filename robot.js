@@ -741,6 +741,18 @@ Dexter = class Dexter extends Robot {
 
     toString(){ return "Dexter." + this.name }
 
+    dexter_filepath(){
+        if (operating_system == "win"){
+            return "//" + this.ip_address + "/share"
+        }
+        else if (operating_system == "mac"){
+            return "//" + this.ip_address + "/share" //probably wrong
+        }
+        else { //presume linux
+            return "//" + this.ip_address + "/share" //probably wrong
+         }
+    }
+
     make_new_robot(keyword_args){
         this.name                  = keyword_args.name
         this.ip_address            = keyword_args.ip_address
@@ -1872,8 +1884,8 @@ Dexter.show_robot_status = function(){
                              Dexter.update_robot_status_names_menu_html() +
                              " <span id='updating_robot_status_info_id' style='font-size:12px'>" + Dexter.update_robot_status_info_html() + "</span>" +
                              "<span style='font-size:12px;margin-left:10px;'> Updated: <span id='robot_status_window_time_id'>" + Dexter.update_time_string() + "</span></span>",
-                     width:  755,
-                     height: 430
+                     width:  770,
+                     height: 440
                     })
         setTimeout(Dexter.update_robot_status_init, 300)
     }
