@@ -49,32 +49,32 @@ function handle_keypoints_opencv(vals){
     else if (vals.clicked_button_value == "sort_by_size_id") { sbd_sort_by = "size" }
     else if (vals.clicked_button_value == "sort_by_pt")   { sbd_sort_by = "pt" }
     var image_path = __dirname + "/examples/snickerdoodle_board.png"
-        src_image_id.src = image_path //vals.file_input_id
-        let white_level = vals.white_level_id //0 to 255
-        sbd_params.minCircularity = vals.minCircularity_id
-        sbd_params.maxCircularity = vals.maxCircularity_id
-        sbd_params.minArea = vals.minArea_id
-        sbd_params.maxArea = vals.maxArea_id
-        let src_mat  = cv.imread("src_image_id");
-		let dst_mat  = new cv.Mat();
-		let low_mat  = new cv.Mat(src_mat.rows , src_mat.cols, src_mat.type(), [0, 0, 0, 0]);
-		let high_mat = new cv.Mat(src_mat.rows , src_mat.cols, src_mat.type(), [white_level, white_level, white_level, 255]);
-		cv.inRange(src_mat, low_mat, high_mat, dst_mat);
-		cv.imshow("output_canvas_id", dst_mat);
-        
-        let detector  = new cv.SimpleBlobDetector(sbd_params);       
-		let keypoints = new cv.KeyPointVector();
-		//var image = cv.Mat.ones(5, 5, cv.CV_8UC3);
-		detector.detect(dst_mat, keypoints);
-        let dst_mat2  = new cv.Mat();
-        cv.drawKeypoints(dst_mat, keypoints, dst_mat2, 
-                         cv.Scalar.all(-1), //draw each point in a different color
-                         cv.DrawMatchesFlags_DRAW_RICH_KEYPOINTS //draw points at size of found point
-                         ) 
-        display_keypoint_data(keypoints)
-        cv.imshow("output_canvas2_id", dst_mat2) //dst_mat  image_with_keypoints);
-        
-		src_mat.delete(); dst_mat.delete(); low_mat.delete(); high_mat.delete(); dst_mat2.delete() 
+    src_image_id.src = image_path //vals.file_input_id
+    let white_level = vals.white_level_id //0 to 255
+    sbd_params.minCircularity = vals.minCircularity_id
+    sbd_params.maxCircularity = vals.maxCircularity_id
+    sbd_params.minArea = vals.minArea_id
+    sbd_params.maxArea = vals.maxArea_id
+    let src_mat  = cv.imread("src_image_id");
+    let dst_mat  = new cv.Mat();
+    let low_mat  = new cv.Mat(src_mat.rows , src_mat.cols, src_mat.type(), [0, 0, 0, 0]);
+    let high_mat = new cv.Mat(src_mat.rows , src_mat.cols, src_mat.type(), [white_level, white_level, white_level, 255]);
+    cv.inRange(src_mat, low_mat, high_mat, dst_mat);
+    cv.imshow("output_canvas_id", dst_mat);
+
+    let detector  = new cv.SimpleBlobDetector(sbd_params);
+    let keypoints = new cv.KeyPointVector();
+    //var image = cv.Mat.ones(5, 5, cv.CV_8UC3);
+    detector.detect(dst_mat, keypoints);
+    let dst_mat2  = new cv.Mat();
+    cv.drawKeypoints(dst_mat, keypoints, dst_mat2,
+                     cv.Scalar.all(-1), //draw each point in a different color
+                     cv.DrawMatchesFlags_DRAW_RICH_KEYPOINTS //draw points at size of found point
+                     )
+    display_keypoint_data(keypoints)
+    cv.imshow("output_canvas2_id", dst_mat2) //dst_mat  image_with_keypoints);
+
+    src_mat.delete(); dst_mat.delete(); low_mat.delete(); high_mat.delete(); dst_mat2.delete()
 }
 
 function sbd_data_table_header() {
@@ -145,7 +145,6 @@ show_window({
     ,
     x: 50, y: 50, width: 800, height: 600,
     title: "OpenCV.js simple blob dector",
-    callback: handle_keypoints_opencv
+    callback: handle_keypoints_opencv,
+    init_elt_id: "sort_by_size_id"
 })
-
-setTimeout(function(){sort_by_size_id.click()}, 200) //programmatically click on "size" button

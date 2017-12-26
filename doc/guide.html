@@ -8,8 +8,8 @@
 
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version:  <span id="dde_version_id">2.2.9</span><br/>
-    released: <span id="dde_release_date_id">Dec 8, 2017</span>
+    version:  <span id="dde_version_id">2.2.10</span><br/>
+    released: <span id="dde_release_date_id">Dec 26, 2017</span>
     <p></p>
     DDE helps you create, debug, and send software to a Dexter robot.
     You can use any JavaScript augmented with DDE-specific functions to help find out about,
@@ -632,11 +632,11 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
                 a do_list item, it will cause a JavaScript breakpoint and you
                 can step through that code using the Chrome dev tools.
                 See Documentation top level section <b>Debugging</b>.
-            </details>
-        </details>
-    </details>
+            </details> <!--end debugger-->
+        </details> <!--end stepping instructions -->
+    </details>  <!-- end simulate pane -->
+ </details> <!-- end user interface -->
 
-</details> <!-- end User Interface -->
 <details class="doc_details"><summary>JavaScript</summary>
     DDE let's you control a Dexter robot with Javascript. You can execute all of JS.
     DDE extends JavaScript with a library of functions that control Dexter, allow access to Unix commands
@@ -790,7 +790,36 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
                 pop up a window of documentation.</li>
         </ol>
     </details>
-</details>
+</details> <!-- end Workflow -->
+<details class="doc_details"><summary>UI Design Critera</summary>
+    Criteria for Choosing Best UI Design Candidate:
+    <ul><li> Ease of learning and using the first few times.
+        This is the most important criteria for DDE because there
+        are MANY functionalities and each user
+        should use many of them.
+        This criteria includes what the user is probably already familiar with
+        and good documentation or better, a UI that doesn't need any.</li>
+        <li>Quickness of use for experienced users
+            If you expect a user to use the interface many
+            times in a row, this becomes important.</li>
+        <li>Quickness and confidence of implementation
+            Sadly this is rarely highly predictable.</li>
+        <li>Non-redundant so users don't waste time scanning UI.</li>
+        <li>Small so screen real estate can be used for other things.
+            Use tooltips to meet "Ease of learning" and this criteria
+            simultaneously.</li>
+        <li>Demoability: big controls for easy hitting
+            while standing up & talking,
+            Big text so demo watchers can see easily.
+            Conflicts directly with "Small".</li>
+    </ul>
+    Such criteria, if complete, nearly always have "opposites" in them
+    such that 1 design can't possibly do all best,
+    though that is something to strive for.
+    If all design criteria are met best by one design,
+    you don't have to weight the criteria, which
+    is always problematic.
+</details> <!-- ui design -->
 <details class="doc_details" id='series_doc_id'><summary>Series</summary>
     A useful way to organize knowledge is to construct lists of similar-typed concepts.
     DDE calls such lists <b><i>series</i></b>. There are over 30 series in DDE, including
@@ -1219,4 +1248,5 @@ Find Home is a part of Dexter Calibration. To use Find Home:
     Please help us by emailing a bug report or suggestion to
     <a id="email_bug_report_id" href="#">cfry@hdrobotic.com</a> Take a look at the
     latest <i>Release Notes</i> and the <i>Known Issues</i> to avoid duplication.
+</details>
 </details>

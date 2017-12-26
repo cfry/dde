@@ -646,11 +646,11 @@ get_page_async("http://www.ibm.com", function(err, response, body){ out(body.len
     recognize_speech_id.onclick = function(){Editor.insert(
 `recognize_speech(
     {prompt: "Say something funny.", //Instructions shown to the speaker. Default "".
-     click_to_talk: false, //If false, speech recognition starts immediately. Default true.
-     only_once: false,     //If false, more than one phrase (after pauses) can be recognized. Default true.
+     click_to_talk: false,           //If false, speech recognition starts immediately. Default true.
+     only_once: false,               //If false, more than one phrase (after pauses) can be recognized. Default true.
      phrase_callback: undefined,     //Passed text and confidence score when user pauses. Default (undefined) prints text and confidence. If only_once=true, only this callback is called.
      finish_phrase: "finish",        //Say this to end speech reco when only_once=false.
-     finish_callback: out})          //Passed array of arrays of text and confidence when user says "finish". Default null. Only called if only_once=false
+     finish_callback: out})          //Passed array of arrays of text and confidence when user says "finish". Default null.
 `)}
 
     music_help_id.onclick=function(){ open_doc(music_with_midi_doc_id) }

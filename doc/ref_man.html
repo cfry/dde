@@ -1688,24 +1688,41 @@ new Phrase({notes: [new Note({time: 0, dur: 1, pitch: 60, velocity: 0.25, channe
 </details> <!-- end Music with MIDI -->
 
 <details id="recognize_speech_doc_id" class="doc_details"><summary>recognize_speech</summary>
-    Speech recognition has a long history in AI. After many decades of research, it <i>can</i>
-    be useful, but don't expect it to be as reliable as a human. DDE uses Google's speech
-    recognition, which sends audio over the web to be recognized on Google's servers.
+    Speech recognition has a long history in AI.
+    It hasn't been used much because:
+    <ul><li>The accuracy of recognition has been poor.</li>
+        <li>The API for calling the functionality has been poor.</li>
+        <li>The user interface has been poor</li>
+    </ul>
+    DDE goes a long ways towards solving these problems.
+    <ul><li>DDE uses Google's speech recognition. Although it isn't perfect,
+           its much better than past systems and improving.</li>
+        <li>DDE hides Google's API behind a much easier to call function and
+            an comparitively easy to use do_list instruction, named
+            Human.recognize_speech</li>
+        <li>DDE's dialog box provides clear help to users with an option to
+            type in text should recognition (or your network connnetion) fail.
+            We also have a mechanism to correct recognition mistakes. (ie "for" vs "four").</li>
+    </ul>
+    Don't expect recognition to be as reliable as a human. Google's speech
+    recognition sends digital audio over the net to be recognized on Google's servers.
     If you don't have: 
     <ul><li>a good microphone in your computer,</li>
         <li>a quiet room,</li>
         <li>a reliable net connection or</li>
         <li>a fast net connection</li>
     </ul>
-        don't attempt to use recognize_speech.
+        don't use recognize_speech.
+        However, because of the type-in capability, programs written to take
+        advantage of speech recognition in poor conditions can still\
+        be servicable via typing in instead of talking.
     <b><i>Be sure to crank up the volume of your mic.</i></b>
     <p></p>
-    The recognized text is quite good compared to recognizers of the past but, like people,
-    it still makes mistakes. Recognized text comes with a <b>confidence</b> number indicating
+    Recognized text comes with a <b>confidence</b> number indicating
     how good the recognizer <i>thinks</i> the text is at matching what you've said.
     In theory its nice to have this confidence number but in practice, it might
-    not matter much. The number varies from 1 (very confident) to 0 (very unconfident)
-    though we've seen a bunch of 0 confidence numbers for perfectly fine text.
+    not matter much. The number varies from 0 (unconfident) to 100 (very unconfident)
+    though these numbers themselves might not be so, ahem, confident.
     Also in the middle of a session, you may well see network bugs even though
     it seems like your network is fine to you. 
     <p></p>
@@ -3698,6 +3715,25 @@ is a video describing most of the Human instructions.
 
 <details class="doc_details"><summary>Human Instructions</summary>
 
+<details id="Human.speak_doc_id" class="doc_details"><summary>speak</summary>
+  Human.speak is an instruction that calls <a href="#" onclick="open_doc(speak_doc_id)">speak</a>.
+  It takes all the same arguments except, it does not take a "callback" arg, and
+  it takes one extra arg:<br/>
+  <i>Parameter:</i><br/>
+  <b>wait</b> Boolean, default: <code>true</code>. When true
+  the job pauses while the speaking is occuring, then performs the
+  next instruction when the speaking is done.
+  <i>Example:</i>
+  <pre><code>new Job({name: "j1",
+         do_list: [
+           Human.speak({speak_data: "hi there folks",
+                        rate: 0.25,
+                        wait: true}),
+           Robot.out("done")
+         ]})</code></pre>
+   This job doesn't print "done" until after "hi there folks" has been spoken.
+</details>
+
 <details id="Human.task_doc_id" class="doc_details"><summary>task</summary>
   When run, all human instructions present a dialog box on the screen and waits until the
   user clicks the <button>Done</button> button before allowing the job to proceed to the
@@ -5102,7 +5138,7 @@ document.addEventListener("click", function(e){
          is created. To reset a window's x, y, width, height to their defaults,
          just close all such titled windows before opening a new one.<br/>
          To have two or more windows with the same title open at once,
-         set this argument to <code>false</code>.
+         set this argument to <code>false</code>.<br/>
         <b>content</b> HTML to be rendered in the body of the window. Input tags with
         <code title="unEVALable code fragment"> type</code>
         attributes of <code title="unEVALable code fragment"> button</code> and
@@ -5115,11 +5151,11 @@ document.addEventListener("click", function(e){
         property of the <code title="unEVALable code fragment"> name</code>, or if none, the
         <code title="unEVALable code fragment"> id</code> of the clicked on element.
         Clicking on such HTML elements will <i>not</i> close the window.<br/>
-        <i>Examples</i>:<br/>
+        <i>Example</i>:<br/>
         <pre><code>show_window({
-            &nbsp;&nbsp;&nbsp;content:'&lt;p id="p_id" class="clickable">some para&lt;/p>',
-            &nbsp;&nbsp;&nbsp;callback: function (vals){ append_in_ui("p_id", "&lt;h1>hey&lt;/h1>")}
-            })</code></pre>
+    content:'&lt;p id="p_id" class="clickable">some para&lt;/p>',
+    callback: function (vals){ append_in_ui("p_id", "&lt;h1>hey&lt;/h1>")}
+})</code></pre>
         <b>callback</b> A function of one argument. Any returned value will be ignored.
         It will be called when the user clicks a button in
         a show_window. It's argument will be a literal object. Many of its properties are x and y positions
@@ -5136,28 +5172,28 @@ document.addEventListener("click", function(e){
         the value of its "value" property.
         <p></p>
         <i>Example </i> of an argument passed to the callback function:<br/><pre>
-    <code>{x: 300,           //relative to the parent of the elt clicked on
-     y: 213,
-     clientX: 300,      //relative to the content area (the viewport) of the browser window
-     clientY: 213,      //This point does not move even if the user moves a scrollbar from within the browser.
-     offsetX: 290,      //relative to the html element that the user clicked in
-     offsetY: 68,
-     pageX: 300,        //relative to the top left of the fully rendered content area in the browser.
-     pageY: 213,
-     screenX: 395,      //relative to the physical display
-     screenY: 270,
-     altKey: false,     //true if the alt key (option on Mc) was pressed when the mouse was clicked
-     ctrlKey: false,    //control key
-     metaKey: false,    //Windows key on Windows OS, command key on Mac
-     shiftKey: false,
-     tagName: "input",  //html element tag clicked on.
-     window_index: "1", //a show_window instance identifier.
-                       //close_window(window_index)
-                       //will close the show_window window.
-     clicked_button_value: "my_in_id", //the 'name' or 'id' attribute of the clicked on element.
-     trim_strings: true}</code></pre>
-        <i>Example callback that is called when a button is clicked.:</i><pre><code>
-function show_vals(vals){out(vals)} //this is, effectively, the default callback
+<code>{x: 300,           //relative to the parent of the elt clicked on
+ y: 213,
+ clientX: 300,      //relative to the content area (the viewport) of the browser window
+ clientY: 213,      //This point does not move even if the user moves a scrollbar from within the browser.
+ offsetX: 290,      //relative to the html element that the user clicked in
+ offsetY: 68,
+ pageX: 300,        //relative to the top left of the fully rendered content area in the browser.
+ pageY: 213,
+ screenX: 395,      //relative to the physical display
+ screenY: 270,
+ altKey: false,     //true if the alt key (option on Mc) was pressed when the mouse was clicked
+ ctrlKey: false,    //control key
+ metaKey: false,    //Windows key on Windows OS, command key on Mac
+ shiftKey: false,
+ tagName: "input",  //html element tag clicked on.
+ window_index: "1", //a show_window instance identifier.
+                   //close_window(window_index)
+                   //will close the show_window window.
+ clicked_button_value: "my_in_id", //the 'name' or 'id' attribute of the clicked on element.
+ trim_strings: true}</code></pre>
+        <i>Example callback that is called when a button is clicked:</i>
+<pre><code>function show_vals(vals){out(vals)} //this is, effectively, the default callback
 show_window({
     content:
 &#96;text: &lt;input type="text" name="my_text" value="Dexter"/>&lt;br/>
@@ -5188,6 +5224,38 @@ button: &lt;input type="button" value="Show settings"/>&lt;br/>
 submit: &lt;input type="submit" value="OK"/>&#96;,
     width:380, height:450, title:"Printer Config", x:100, y:100,
     callback: show_vals})  </code></pre>
+
+    <b>init_elt_id</b> Default: <code>null</code>
+    If this is a string, it is expected to be the id of an html input element
+    in the content. After the window is created, a programmatic click on
+    the named element is performed such that the callback of this show_window
+    is called. The "clicked_button_value" for this click will be the
+    value of init_elt_id.
+    <p></p>
+    init_elt_id is not commonly needed, but when you'd like to do some
+    initialization of the show_window that needs the default values of the inputs,
+    this argument is quite useful.<br/>
+    <i>Example:</i>
+    <pre><code title="not in testsuite"/>function handle_my_win(vals){
+    if(vals.clicked_button_value == "init_my_win_id"){
+        out("initing my_win")
+    }
+}
+show_window({
+    content: `&lt;input type="button" id="init_my_win_id" value="init"/>`,
+    init_elt_id:"init_my_win_id",
+    callback: handle_my_win,
+})
+        </code></pre>
+    This example calls the init code when the window first comes up and
+    when the user clicks on the init button. If you want to exclude the
+    user from seeing the init button, change the content to:<br/>
+    <code title="not in testsuite">&lt;input type="button" id="init_my_win_id" style="display:none;"/&gt;</code>
+
+    <h4>click</h4> You can programmatically click on an html input like so:<br/>
+    <code title="not in testsuite">init_my_win_id.click()</code><br/>
+    This will cause the callback in the previous example to be called
+    with a vals.clicked_button_value of <code>"init_my_win_id"</code>.
 
     <h4>onchange</h4>
     Normally the callback is only called when the user clicks a button. However,
@@ -5266,7 +5334,7 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
             <b>path_string</b>: The path to a shown HTML element. Usually this will be the id of
             an element in a <code>show_window</code> window. The new element will become
             the new last child of the path element.<br/>
-            <b>new_htnl</b>: A string of HTML to create the new element.<p></p>
+            <b>new_html</b>: A string of HTML to create the new element.<p></p>
             <i>Example</i>: <code>append_in_ui("my_in_id", "&lt;h1>hello&lt;/h1>")</code><br/>
             where "my_ui_id" is the id of a currently displayed html tag, usually in
             the content of a <code>show_window</code> window.

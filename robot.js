@@ -252,6 +252,35 @@ var Human = class Human extends Brain { /*no associated hardware */
     }
 
     //the human instructions
+
+    static recognize_speech ({title="Recognize Speech", prompt="",
+                             only_once=true, click_to_talk=true,
+                             width=430, height=270, x=400, y=200,
+                             background_color="rgb(238, 238, 238)",
+                             phrase_callback=recognize_speech_default_phrase_callback,
+                             finish_callback=null,
+                             finish_phrase="finish", //unused if only_once=true
+                             user_data_variable_name="recognized_speech"
+                             } = {}){ //
+        let args = {title: title, prompt: prompt, only_once:only_once, click_to_talk: click_to_talk,
+                    width:width, height: height, x: x, y: y,
+                    background_color: background_color,  phrase_callback:  phrase_callback,
+                    //finish_callback=null,   //unused if only_once=true does not have calLback on purpose
+                    finish_phrase:"finish",
+                    finish_callback: finish_callback,
+                    user_data_variable_name: user_data_variable_name}
+        return new Instruction.Control.human_recognize_speech(args)
+    }
+
+    static speak ({speak_data = "hello", volume = 1.0, rate = 1.0, pitch = 1.0,
+                     lang = "en_US", voice = 0, wait = true} = {}){ //does not have calLback on purpose
+        if (arguments[0].length > 0){ speak_data = arguments[0] }
+        let args = {speak_data: speak_data, volume: volume, rate: rate, pitch: pitch,
+                    lang: lang, voice: voice, wait: wait}
+        return new Instruction.Control.human_speak(args)
+    }
+
+
     static task({task = "", dependent_job_names=[],
                  title, x=200, y=200, width=400, height=400,  background_color = "rgb(238, 238, 238)"} = {}){
         return new Instruction.Control.human_task(arguments[0])

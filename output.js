@@ -267,14 +267,17 @@ function close_all_show_windows(){
 }
 window.close_all_show_windows = close_all_show_windows
 
-function show_window_values(vals){out(vals)}
+function show_window_values(vals){
+    inspect(vals)
+}
 window.show_window_values = show_window_values
 
 window.show_window = function({content = "", title = "DDE Information", width = 400, height = 400, x = 200, y = 200,
                         background_color = "rgb(238, 238, 238)",
                         is_modal = false, show_close_button = true, show_collapse_button = true,
                         trim_strings = true, window_class, callback = show_window_values,
-                        close_same_titled_windows = true} = {}){
+                        close_same_titled_windows = true,
+                        init_elt_id = null} = {}){
       //callback should be a string of the fn name or anonymous source.
        if (close_same_titled_windows){
            let latest_win = latest_window_of_title(title)
@@ -346,9 +349,14 @@ window.show_window = function({content = "", title = "DDE Information", width = 
         //jqxw_jq.jqxWindow({width:width, height:height, position:{x: x, y: y}, showCloseButton: true})
         //jqxw_jq.jqxWindow('setTitle', title);
         //jqxw_jq.jqxWindow('setContent', content);
+        //jqxw_jq.on('created', function (event) { out("made window") });
         jqxw_jq.jqxWindow('show'); //this is performed with creation option: autoOpen:true
+        jqxw_jq.jqxWindow('focus');
         setTimeout(install_onclick_via_data_fns, 10) //todo probably shouldn't have both of these!
         setTimeout(function(){install_submit_window_fns(jqxw_jq)}, 10)
+        if (init_elt_id){
+            setTimeout(function(){window[init_elt_id].click()} , 50)
+        }
         return the_window_index //used by dex.train
 }
 

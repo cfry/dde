@@ -5,6 +5,43 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 2.2.10, Dec 26, 2017</summary>
+    Highlights: show_window & Human.enter_number extensions.
+                New User Guide section: UI Design Criteria
+                new instruction Human.speak
+<ul>
+    <li> show_window, default callback inspects the arg passed
+    to the callback, allowing you to see more of its values and
+    in a better format.</li>
+
+    <li> show_window has new way to initialize a show_window after its popped up.
+        See Ref Man/Window System/show_window/init_elt_id.</li>
+
+    <li> Now show_window, just after its called, gets the keyboard focus
+    so that typing a char won't go into the editor.</li>
+
+    <li> Documented the "click" method in Ref Man/Window System/click</li>
+
+    <li> updated Insert menu/Machine Vision/Blob Detector to
+        use init_elt_id, improved formatting.</li>
+
+    <li> Human.enter_number now displays the min and max values automatically.</li>
+
+    <li> Human.enter_number If you type in an out of range number, it
+         tells you and let's you fix it.</li>
+
+    <li> New User Guide Section: User Interface/UI Design Criteria.</li>
+
+    <li> new instruction:
+        Human.speak("some text") that says the text before moving on to the next
+        instruction. See RefMan/Robot/Human/Human Instructions/speak.</li>
+
+    <li> Though there have been some significant extensions to
+         speech_recognition in this release, it is not now working.</li>
+
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 2.2.9, Dec 8, 2017</summary>
 Highlights: CSV conversion for DDE reading and writing spreadsheets.
 FindHome calibration improved but still a work-in-progress

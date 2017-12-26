@@ -22,7 +22,23 @@ var code0 = `{
 
 var s2t
 
+//all these vars meaningful in ui only.
+//var recognition = null
+var recognize_speech_window_index    = null
+var recognize_speech_prompt          = ""  //string or array of strings
+var recognize_speech_phrase_callback = null
+var recognize_speech_finish_callback = null
+//var recognize_speech_only_once       = null
+var recognize_speech_click_to_talk   = null
+var recognize_speech_last_text       = null
+var recognize_speech_last_confidence = null
+var recognize_speech_phrases_array   = [] //a array of arrays. the inner array is [recognized_text, confidence_float]
+var recognize_speech_finish_phrase   = "finish" //or a pos integer of # of phrases to reco. set by recognize_speech ui
+var recognize_speech_callback = null
+var recognize_speech_cancel_finish = false
+
 function s2t_init(){
+    out("init")
     //if (!file_exists(key_path)){
     //    write_file(key_path, code0 + code1) //ffails to write a good file probably due to encoding
     //}
@@ -39,47 +55,76 @@ function s2t_init(){
     s2t.on('data',      sr_on_data)
 }
 
-s2t_init()
+function start_recognition(){
+    s2t_init()
+    sr_start()
+}
 
+window.start_recognition = start_recognition
+
+function sr_start() {
+    //out("top of sr_start()")
+    let instructions = "<span style='vertical-align:100%;'>Speak now.</span><br/><i>&nbsp;Be quiet to recognize speech.</i>"
+    set_mic_and_instructions(instructions)
+    recognize_speech_cancel_finish = false
+    //out("calling s2t.start()")
+    s2t.start()
+    recognize_speech_type_in_id.focus() //often doesn't work.
+    recognize_speech_type_in_id.select()
+
+}
 
 function sr_on_data(data){
     //out("data: " + data.speechEventType)
+    if(window.recognize_speech_type_in_id) { recognize_speech_type_in_id.focus() }
     switch (data.speechEventType) { //the only value is "SPEECH_EVENT_UNSPECIFIED"
-        case "START_OF_SPEECH":
+        case "START_OF_SPEECH": //doesn't look like ever happens.
             out("START_OF_SPEECH")
             break;
-        case "END_OF_SPEECH":
+        case "END_OF_SPEECH": //doesn't look like ever happens.
             out("END_OF_SPEECH")
             set_mic_and_instructions()
             break;
-        case "END_OF_UTTERANCE":
+        case "END_OF_UTTERANCE": //doesn't look like ever happens.
             out("END_OF_UTTERANCE")
             set_mic_and_instructions()
-        case "END_OF_AUDIO":
+        case "END_OF_AUDIO": //doesn't look like ever happens.
             out("END_OF_AUDIO")
             break;
         case "SPEECH_EVENT_UNSPECIFIED":
-            set_mic_and_instructions() //don't talk
+            set_mic_and_instructions() //don't talk, turns off animation
             if(data && (data.results.length > 0)){
-                // out("got non zero text, calling s2t.stop()")
-                // s2t.stop()
-                recognize_speech_last_text = data.results[0].transcript.trim() //the 2nd through nth recos start with sapce,
-                  //which would be good for contnuous dictation, but bad for recognizing the ending phrase.
+                //debugger
+                recognize_speech_last_text       = data.results[0].transcript.trim() //the 2nd through nth recos start with sapce,
+                recognize_speech_last_confidence = data.results[0].confidence
+                  //which would be good for continuous dictation, but bad for recognizing the ending phrase.
                   //I could get clever and allow, but see how always trimming works out in practice.
                 //out("Recognized: " + recognize_speech_last_text)
-                sr_result(data)
-                if (recognize_speech_only_once || (recognize_speech_last_text == recognize_speech_finish_phrase)) {
-                    sr_end(data) //close window
+                let is_reco_text_valid = sr_result(data) //false, meaning no reco, true meaning reco the actual text recognize, or a string wichi is a "correction of the recognzed text and means reco suceeded.
+                if (typeof(recognize_speech_finish_phrase) == "number") {
+                    if (recognize_speech_phrases_array.length >= recognize_speech_finish_phrase){
+                      //give user chance to reject the last phrase.
+                        setTimeout(function(){
+                            out("timout")
+                            if(recognize_speech_cancel_finish == false){ sr_end(data) }
+                            else { sr_animate_gif() }
+                        }, 5000) //give user 5 secs to reject, else the last item is accepted
+                    }
+                    else { s2t_init() } //still more phrases to collect
                 }
-                else if (!recognize_speech_click_to_talk) {
-                    sr_start()
+                else { //has a finish_phrase string
+                    let is_finished = recognize_speech_finish_callback(recognize_speech_last_text, recognize_speech_last_confidence)
+                    if (is_finished) { sr_end(data) } //close window
+                    else {} //more phrases to go
                 }
-                else { //click to talk, so destroy so we won't be listening until next click to talk
-                        //sourceStream.destroy()
-                        //sourceStream.suspend()
-                        //recognizeStream.destroy()
-                        s2t.stop()
+                if(recognize_speech_type_in_id) { recognize_speech_type_in_id.select() }
+                if ((typeof(recognize_speech_finish_phrase) == "number") &&
+                    (recognize_speech_phrases_array.length >= recognize_speech_finish_phrase)){
+                    //s2t.stop()
                 }
+                else if (recognize_speech_click_to_talk) { //s2t.stop()
+                }
+                else { sr_animate_gif() }
             }
             break;
             default:
@@ -88,55 +133,55 @@ function sr_on_data(data){
 }
 
 
-
-
-//all these vars meaningful in ui only.
-var recognition = null
-var recognize_speech_window_index    = null
-var recognize_speech_phrase_callback = null
-var recognize_speech_finish_callback = null
-var recognize_speech_only_once       = null
-var recognize_speech_click_to_talk   = null
-var recognize_speech_last_text       = null
-var recognize_speech_last_confidence = null
-var recognize_speech_finish_array    = []
-var recognize_speech_finish_phrase   = "finish" //set by recognize_speech ui
-var recognize_speech_only_once       = false
-
-function start_recognition(){ sr_start() }
-
-window.start_recognition = start_recognition
-
-function sr_start() {
-    //out("top of sr_start()")
-    let instructions
-    if ( recognize_speech_only_once ) { instructions = "Speak now.<br/>Be quiet to finish.<br/>" }
-    else {
-        instructions = "Speak now.<br/>" +
-            "Pause to let DDE process your phrase.<br/>" +
-            'Say <b>' + recognize_speech_finish_phrase + '</b> to end recognition.'
+function set_mic_and_instructions(instructions="Don't talk"){
+    //out("set_mic_and_instructions passed: " + instructions)
+    if (window["recognize_speech_img_id"]) { //window is up
+        if (instructions == "Don't talk") { sr_unanimate_gif() }
+        else                              { sr_animate_gif()}
+        if ((instructions == "Don't talk") && recognize_speech_click_to_talk){
+            instructions = "<br/>" //since the click to talk button is on the screen, it is unncesssary and confusing to have "Don't talk"  also displayed
+        }
+        //out("set_mic_and_instructions to: " + instructions)
+        recognize_speech_instructions_id.innerHTML = instructions
     }
-    set_mic_and_instructions(instructions)
-    //out("calling s2t.start()")
-    s2t.start()
 }
 
+//not called if the recoed text effectively declares "finished"
 function sr_result(data) {
-    //out('recognize_speech top of onresult');
-    //recognize_speech_instructions_id.innerHTML = "Stop talking"
     recognize_speech_last_text       = data.results[0].transcript.trim() //event_to_text(event)
     recognize_speech_last_confidence = data.results[0].confidence //no confidence in Bret's new code
-    recognize_speech_finish_array.push([recognize_speech_last_text, recognize_speech_last_confidence])
-    //out("recognized speech--: " + recognize_speech_last_text)
-    if (!recognize_speech_only_once && (recognize_speech_last_text == recognize_speech_finish_phrase)){
-        out("recognized text: " + recognize_speech_last_text + "<br/>confidence: " + recognize_speech_last_confidence)
+    let is_reco_text_valid = true
+    if(recognize_speech_phrase_callback) {
+        is_reco_text_valid = recognize_speech_phrase_callback(recognize_speech_last_text, recognize_speech_last_confidence)
+        if (is_reco_text_valid !== false) {
+            if (typeof(is_reco_text_valid) == "string") { recognize_speech_last_text = is_reco_text_valid }
+            is_reco_text_valid = true
+        }
     }
-    else if(recognize_speech_phrase_callback) {
-        recognize_speech_phrase_callback(
-            recognize_speech_last_text,
-            recognize_speech_last_confidence
-        )
+    if (!is_reco_text_valid) { recognize_speech_last_text = "INVALID: " + recognize_speech_last_text }
+    else { recognize_speech_phrases_array.push([recognize_speech_last_text, recognize_speech_last_confidence])
     }
+    if(recognize_speech_type_in_id) {
+        recognize_speech_type_in_id.value = recognize_speech_last_text
+        recognize_speech_type_in_id.select()
+    }
+    if (!is_reco_text_valid || !got_enough_phrases()){
+        sr_display_finish_help()
+        sr_display_prompt()
+    }
+    return is_reco_text_valid
+}
+
+//called only when this dialog is all over. no more reco will be done.
+function sr_end(data) {
+    close_window(recognize_speech_window_index)
+    s2t.stop() //this will cause an error to be printed in the console if we take too long,
+               //but that seems to be harmless and we can keep going after that.
+               //from web commentary before Dec 18, 2017, this loooks like a google bug.
+    recognize_speech_callback(recognize_speech_phrases_array)
+    //if (recognize_speech_job_instance) {
+    //    Instruction.Control.human_recognize_speech.finished(recognize_speech_job_instance, recognize_speech_phrases_array)
+    //}
 }
 
 function sr_error(data) {
@@ -147,68 +192,164 @@ function sr_error(data) {
     s2t.stop()
 }
 
-//called only when this dialog is all over. no more reco will be done.
-function sr_end(data) {
-    close_window(recognize_speech_window_index)
-    if ((recognize_speech_last_text == recognize_speech_finish_phrase) &&
-        !recognize_speech_only_once &&
-         recognize_speech_finish_callback){
-            recognize_speech_finish_callback(recognize_speech_finish_array)
-    }
-    s2t.stop()
+
+function got_enough_phrases(){
+   if(typeof(recognize_speech_finish_phrase) == "number"){
+       return (recognize_speech_phrases_array.length >= recognize_speech_finish_phrase)
+   }
+   else { return false } //unlimited
 }
 
-function set_mic_and_instructions(instructions="Don't talk"){
-    //out("set_mic_and_instructions passed: " + instructions)
-    if (window["recognize_speech_img_id"]) { //window is up
-        var the_gif
-        if (instructions == "Don't talk") { the_gif = "mic.gif" }
-        else                              { the_gif = "mic-animate.gif"}
-        recognize_speech_img_id.src = the_gif
-        if ((instructions == "Don't talk") && recognize_speech_click_to_talk){
-            instructions = "" //since the click to talk button is on the screen, it is unncesssary and confusing to have "Don't talk"  also displayed
-        }
-        //out("set_mic_and_instructions to: " + instructions)
-        recognize_speech_instructions_id.innerHTML = instructions
-    }
+function limited_number_of_phrases(){
+    return (typeof(recognize_speech_finish_phrase) == "number")
 }
+
+function sr_animate_gif(){ recognize_speech_img_id.src = "mic-animate.gif"; out("on")  }
+
+function sr_unanimate_gif(){ recognize_speech_img_id.src = "mic.gif"; out("off") }
+
 
 //public
 function recognize_speech_default_phrase_callback(text, confidence){
     out("recognized text: " + text + "<br/>confidence: " + confidence.toFixed(2))
+    return true
 }
 window.recognize_speech_default_phrase_callback = recognize_speech_default_phrase_callback
 
+function sr_onkeypress(event){
+    if (event.charCode == 13){
+        let text = recognize_speech_type_in_id.value
+        data = {speechEventType: "SPEECH_EVENT_UNSPECIFIED",
+                results:[{transcript: text,
+                          confidence: 100}]}
+        sr_on_data(data)
+    }
+}
+
+window.sr_onkeypress = sr_onkeypress
+
+function sr_on_finish_button_click(){
+    let data = {speechEventType: "SPEECH_EVENT_UNSPECIFIED",
+                results:[{transcript: recognize_speech_finish_phrase,
+                          confidence: 100}]}
+    sr_on_data(data)
+}
+window.sr_on_finish_button_click = sr_on_finish_button_click
+
+function sr_display_finish_help(){
+    sr_finish_help_id.innerHTML = sr_finish_help()
+}
+
+function sr_finish_help(){
+    let finish_help
+    if (limited_number_of_phrases()) {
+        return "Recognized " + recognize_speech_phrases_array.length  +
+               " out of "    + recognize_speech_finish_phrase
+    }
+    else {
+        let finish_button_html = "<input type='button' value='" + recognize_speech_finish_phrase +
+                                 "' onmouseup='sr_on_finish_button_click()'/>" //for some inexplcable reason, onclick doesn't work here
+        return "To end recognition,<br/>say, type, or click " + finish_button_html
+    }
+}
+
+function sr_reject_html(){
+   return "<input type='button' value='reject' onmouseup='sr_reject()'/>"
+}
+
+function sr_reject(){
+    let new_phrase = ""
+    let current_phrase = recognize_speech_type_in_id.value
+    if(recognize_speech_phrases_array.length == 0) {
+        new_phrase = "NOTHING TO REJECT"
+    }
+    else if (current_phrase == "NOTHING TO REJECT") {} //leave the same
+    else if (current_phrase.startsWith("INVALID: ")) {
+        new_phrase = replace_substrings(current_phrase, "INVALID: ", "REJECT: ")
+    }
+    else if (current_phrase.startsWith("REJECT: ")) {} //leave the same
+    else {
+        new_phrase = "REJECT: " + current_phrase
+        recognize_speech_phrases_array.pop()
+    }
+    recognize_speech_type_in_id.value = new_phrase
+}
+
+window.sr_reject = sr_reject
+
+function sr_current_prompt(){
+    let prompt = recognize_speech_prompt
+    if (Array.isArray(prompt)) {
+        if(recognize_speech_phrases_array.length >= prompt.length) {
+            prompt = last(prompt)
+        }
+        else { prompt = prompt[recognize_speech_phrases_array.length] }
+    }
+    return prompt
+}
+
+function sr_display_prompt(){
+    sr_prompt_id.innerHTML = sr_current_prompt()
+}
+
+
 function recognize_speech({
     title="Recognize Speech", prompt="",
-    only_once=true, click_to_talk=true,
-    width=400, height=200, x=400, y=200,
+    //only_once=true, now integer on finish_phrase
+    click_to_talk=true,
+    width=430, height=270, x=400, y=200,
     background_color="rgb(238, 238, 238)",
     phrase_callback=recognize_speech_default_phrase_callback,
-    finish_callback=null,   //unused if only_once=true
-    finish_phrase="finish" //unused if only_once=true
-    }) {
+    finish_callback=null,   //defaults to matching the finish_phrase
+    finish_phrase=1,        //used for finish button label or an integer for how many to collect.
+    callback=null
+    } = {}) {
+    if (typeof(finish_phrase) == "number"){
+        if (finish_phrase < 1) {
+            dde_error("recognize_speech passed invalid finish_phrase of: " + finish_phrase +
+                      '.<br/>It must be a positive integer or a string of a phrase that finishes input.')
+        }
+        else if (finish_callback != null) {
+            dde_error("recognize_speech passed a valid finish_phrase of: " + finish_phrase +
+                      "<br/>but was also passed a finish_callback.<br/>" +
+                      "Since a finish_phrase of an integer determines the finish_callback,<br/>" +
+                      "you can't pass a finish_callback in when finish_phrase is an integer." )
+        }
+        else {
+            finish_callback = got_enough_phrases
+        }
+    }
     //s2t_init()
     let click_to_talk_html = ""
     if (click_to_talk) {
-        click_to_talk_html =  "<input type='button' value='Click to talk' style='margin:10px;'/><br/>"
+        click_to_talk_html =  "<input type='button' value='Click to talk' style='margin:10px;vertical-align:top;'/>"
     }
     recognize_speech_phrase_callback = phrase_callback
-    recognize_speech_finish_array  = []
-    recognize_speech_finish_phrase = finish_phrase
-    recognize_speech_only_once     = only_once
+    if (!finish_callback) { finish_callback = function(text, confidence) { return (text == finish_phrase) }}
+    recognize_speech_finish_callback = finish_callback
+    recognize_speech_callback        = callback
+    recognize_speech_phrases_array   = []
+    recognize_speech_finish_phrase   = finish_phrase
+    recognize_speech_prompt          = prompt
+    //recognize_speech_only_once       = only_once
+    //recognize_speech_job_instance    = job_instance
+    let content = "<div id='sr_prompt_id'>" + sr_current_prompt() + "</div>" +
+                click_to_talk_html +
+                "<img  id='recognize_speech_img_id' src='mic.gif'/> " +
+                "<span id='recognize_speech_instructions_id'><br/></span><br/> " + //must use a full close tag for span here because HTML is broken
+                "<br/>OR: type in text and hit ENTER.<br/>" +
+                "<input id='recognize_speech_type_in_id' autofocus style='width:330px;font-size:16px;margin:5px;' onkeypress='sr_onkeypress(event)'/> " +
+                sr_reject_html() +
+                "<div id=sr_finish_help_id>" + sr_finish_help() + "</div>"
     recognize_speech_window_index =
-        show_window({content: "<div>" + prompt   + "</div>" +
-        click_to_talk_html +
-        "<img id='recognize_speech_img_id' src='mic.gif'/>" +
-        "<span id='recognize_speech_instructions_id'/>",
-            title: title,
-            width: width, height: height, x: x, y: y,
-            background_color: background_color,
-            //callback only would ever get called if there's a click-to-talk button
-            callback: "window.start_recognition" //start_recognition //called from sandbox initially
-        })
-    recognize_speech_click_to_talk   = click_to_talk
+    show_window({content: content,
+                 title: title,
+                 width: width, height: height, x: x, y: y,
+                 background_color: background_color,
+                 //callback only would ever get called if there's a click-to-talk button
+                 callback: "window.start_recognition" //start_recognition //called from sandbox initially
+    })
+    recognize_speech_click_to_talk = click_to_talk
     if (!click_to_talk) { start_recognition() }
 }
 

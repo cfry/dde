@@ -338,6 +338,64 @@ Instruction.Control.grab_robot_status = class grab_robot_status extends Instruct
     }
 }
 
+Instruction.Control.human_recognize_speech = class human_recognize_speech extends Instruction.Control{
+    constructor (args){
+        super()
+        this.args = args
+    }
+    do_item (job_instance){
+        let the_instruction = this
+        this.args.callback = function(reco) {
+            job_instance.user_data[the_instruction.args.user_data_variable_name] = reco
+            inspect(reco)
+            job_instance.set_up_next_do(1)
+        }
+        //this.args.job_instance = job_instance
+        recognize_speech(this.args)
+    }
+    static finished(job_instance, reco){
+        let the_instruction = job_instance.current_instruction()
+        job_instance.user_data[the_instruction.args.user_data_variable_name] = reco
+        inspect(reco)
+        job_instance.set_up_next_do(1)
+    }
+}
+
+Instruction.Control.human_speak = class human_speak extends Instruction.Control{
+    constructor (args){
+        super()
+        this.args = args
+    }
+    do_item (job_instance){
+       //delete this.args.wait //don't do because in case user has backwards go_to. Probably the extra arg
+       //in this.args won't matter
+       if (this.args.wait){
+           this.args.callback = function (){
+                job_instance.set_up_next_do(1)
+           }
+           speak(this.args)
+           return
+       }
+       else { //don't wait for speak to be done to call the next instruction
+           speak(this.args)
+           job_instance.set_up_next_do(1)
+       }
+    }
+    to_source_code(args){
+        return args.indent + "Human.task({"  +
+            ((this.task == "") ? "" : ("task: " + to_source_code({value: this.task}) + ", ")) +
+            ((this.title === undefined) ? "" : ("title: " + to_source_code({value: this.title})  + ", ")) +
+            ((this.add_stop_button == true)         ? "" : ("add_stop_button: "     + this.add_stop_button  + ", ")) +
+            ((this.dependent_job_names.length == 0) ? "" : ("dependent_job_names: " + to_source_code({value: this.dependent_job_names}) + ", ")) +
+            ((this.x      == 200) ? "" : ("x: " + this.x       + ", "   )) +
+            ((this.y      == 200) ? "" : ("y: " + this.y       + ", "   )) +
+            ((this.width  == 400) ? "" : ("width: "  + this.width   + ", "   )) +
+            ((this.height == 400) ? "" : ("height: " + this.height  + ", "   )) +
+            ((this.background_color == "rgb(238, 238, 238)") ? "" : ("background_color: " + to_source_code({value: this.background_color}))) +
+            "})"
+    }
+}
+
 Instruction.Control.human_task = class human_task extends Instruction.Control{
     constructor ({task="",
                   title, //don't give this default of "" because we reserve that for when you want NO title.
@@ -954,12 +1012,17 @@ Instruction.Control.human_enter_number = class human_enter_number extends Instru
                       "<input type='hidden' name='dependent_job_names' value='" + JSON.stringify(this.dependent_job_names) + "'/>" +
                       "<input type='hidden' name='user_data_variable_name' value='" + this.user_data_variable_name         + "'/>"
 
-        var number_html  = "<center>"  + this.user_data_variable_name + " = " + "<input type='number' name='choice" +
+        var number_html  = "<table  style='border:none';border-collapse:collapse;>" +
+                           "<tr><td style='border:none;float:right;'>max: </td><td>" + this.max + "</td></tr>" +
+                           "<tr><td style='border:none;'>" + this.user_data_variable_name + " = </td><td>" +
+                           "<input type='number' name='choice' style='width:100px;font-size:16px;' " +
                            "' value='" + this.initial_value +
                            "' min='"   + this.min +
                            "' max='"   + this.max +
                            "' step='"  + this.step +
-                           "'/></center>"
+                           "'/></td></tr>" +
+                           "<tr><td style='border:none;float:right;'>min: </td><td>" + this.min + "</td></tr>" +
+                           "</table>"
         var buttons = '<center><input type="submit" value="Continue Job" title="Close dialog box and\ncontinue this job"/>&nbsp;'
         if (this.add_stop_button) { buttons += '<input type="submit" value="Stop Job" title="Close dialog box,\nstop this job and all dependent jobs."/>' }
         buttons += '</center>'
@@ -1017,13 +1080,26 @@ var human_enter_number_handler = function(vals){
                 }
             }
         }
+        job_instance.set_up_next_do(1) //we're stopping this job as it has a stop_reason so let it stop normally
     }
-    else { //Done
-        var the_choice = parseFloat(vals.choice)
-        job_instance.user_data[vals.user_data_variable_name] = the_choice
+    else { //Done if the_choice is in range
+        let the_choice = parseFloat(vals.choice)
+        let instruction_instance = job_instance.current_instruction()
+        if(the_choice > instruction_instance.max) {
+            alert("Job: " + job_instance.name + "\nhas a Human.enter_number instruction\nwhose entered value: " + the_choice +
+                  ",\n is more than the maximum: " + instruction_instance.max + ".\nPlease pick a lower value.")
+        job_instance.set_up_next_do(0)
+        }
+        else if(the_choice < instruction_instance.min) {
+            alert("Job: " + job_instance.name + "\nhas a Human.enter_number instruction\nwhose entered value: " + the_choice +
+                ",\n is less than the minimum: " + instruction_instance.min + ".\n Please pick a higher value.")
+            job_instance.set_up_next_do(0)
+        }
+        else {
+            job_instance.user_data[vals.user_data_variable_name] = the_choice
+            job_instance.set_up_next_do(1)
+        }
     }
-    job_instance.set_up_next_do(1) //even for the case where we're stopping the job,
-    //this lets the do_next_item handle finishing the job properly
 }
 
 Instruction.Control.human_enter_text = class human_enter_text extends Instruction.Control{

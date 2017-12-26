@@ -391,14 +391,22 @@ var TestSuite = class TestSuite{
         else if (src.startsWith("function(")) { //assume there is only 1 fn def in src, should end with "}"
             src = "let ts_temp = " + src + "\nts_temp" //if I don't do this the try wrapped around my inner eval will cause just a fn to syntactically error. Looks like a chrome eval bug, but do this as its harmless
         }
+        //out(src)
         TestSuite.last_src_error_message = false //needs to be a global to get the val out of the catch clause.
         //unlike every other use of curly braces in JS, try returns the value of its last try expr if no error, and otherwise returns the value of the last expr in catch
         var wrapped_src = "try{ " + src + "} catch(err) {TestSuite.last_src_error_message = err.name + ' ' + err.message; TestSuite.error}"
         var src_result
+        //if (window.prev_src && (src.trim() == "")) { out(windows.prev_src) }
         try{ src_result = window.eval(wrapped_src) }
+
         catch(err) {
            status = "unknown"
-           error_message = test_number_html + src + " errored with: " + err
+           error_message = test_number_html + src + " errored with: " + err +
+                           "<br/> Test Source: " + src +
+                           "<br/> Prev Test Source: " + window.prev_src +
+                           "<br/> Prev-prev Test Source: " + window.prev_prev_src
+            window.prev_prev_src  =   window.prev_src
+            window.prev_src = src
            return [status, error_message]
          }
         if(test.length == 1) {
@@ -446,6 +454,8 @@ var TestSuite = class TestSuite{
                 }
             }
         }
+        window.prev_prev_src = window.prev_src
+        window.prev_src = src
         return [status, error_message]
     }
 
