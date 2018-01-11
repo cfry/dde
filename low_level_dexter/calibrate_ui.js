@@ -5,7 +5,6 @@ var Outer_J_Ranges = {J1BoundryLow: -187,
                 J3BoundryLow: -153,
 			    J3BoundryHigh: 153,
                 J4BoundryLow: -103,
-			    J4BoundryHigh: 103,
                 J5BoundryLow: -189,
 			    J5BoundryHigh: 189}
 

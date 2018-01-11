@@ -53,6 +53,9 @@ function smLinex(run_backwards = false){
             
             
             if(xydata.length > 200){
+            
+            	let J_num = window.cal_working_axis
+                
                 //debugger
                 let eye_suggest_result = eye_suggestion(xydata)
                 //let eye_center = eye_suggest_result[2] //this should get stored somewhere
@@ -76,6 +79,23 @@ function smLinex(run_backwards = false){
                     if (!Number.isNaN(eye_center[0][0]) && !Number.isNaN(eye_center[0][1])){
 						thehtml = svg_circle({html_class:"cal_svg_circle_auto_center_min", cx: eye_center[0][0]/10, cy:flip_point_y(eye_center[0][1]/10), r: 3, color: "green"})
     					append_in_ui("svg_id", thehtml)
+                        
+                        let correct_direction
+                        let cw_state = cal_is_clockwise(eye_center, xydata)
+    					out("cw_state = " + cw_state)
+    					let joint_directions = [false, false, false, false, false] //All joints are expected to move counterclockwise
+                        
+                        if(Outer_J_Ranges["J" + J_num + "BoundryHigh"] < Outer_J_Ranges["J" + J_num + "BoundryLow"]){
+                        	correct_direction = cw_state != joint_directions[J_num]
+                        }else{
+                        	correct_direction = cw_state == joint_directions[J_num]
+                        }
+						
+
+                        if(!correct_direction){
+    						alert("The direction of the eye (clockwise vs counterclockwise) does not appear to be correct. Look in the Doc pane for further instruction.", "Calibration Error")
+                        }
+                        
                     }
                 }
             }
