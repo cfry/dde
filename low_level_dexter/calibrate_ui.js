@@ -183,7 +183,7 @@ function handle_cal(vals){
         AxisTable[window.cal_working_axis][0][J_num-1] = Math.sign(end_range - start_range) * Math.abs(AxisTable[window.cal_working_axis][0][J_num-1])
         
         remove_svg_points()
-        setTimeout(function(){Job.CalSensors.start()}, starting_timeout) 
+        setTimeout(function(){Job.CalSensors.start({robot: the_robot})}, starting_timeout)
             
     }else if(vals.clicked_button_value === "svg_id") {
         if (window.cal_working_axis === undefined){
