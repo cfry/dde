@@ -32,8 +32,13 @@ function smLinex(run_backwards = false){
         
         result.push(make_ins("F"))
         result.push(function(){
-            var x = cal_get_robot().robot_status[AxisTable[window.cal_working_axis][1]]/10
-            var y = cal_get_robot().robot_status[AxisTable[window.cal_working_axis][2]]/10
+        	let the_robot = cal_get_robot()
+            if(!the_robot){
+            	shouldnt("Calibrate's smlinex function could not a find a robot to calibrate.")
+            }
+        	
+            var x = the_robot.robot_status[AxisTable[window.cal_working_axis][1]]/10
+            var y = the_robot.robot_status[AxisTable[window.cal_working_axis][2]]/10
             var thehtml = svg_circle({html_class: "cal_svg_circle", cx: x, cy: flip_point_y(y), r: 1})
             let J_num = window.cal_working_axis+1
             
@@ -93,9 +98,14 @@ function smLinex(run_backwards = false){
 						
 
                         if(!correct_direction){
+<<<<<<< HEAD
                             open_doc(dexter_positive_joint_direction_diagrams_id)
                             alert("The direction of the eye for J" + J_num + " (clockwise vs counterclockwise) does not appear to be correct. Look in the Doc pane for further instruction.", "Calibration Error")
                             }
+=======
+    						alert("Calibration Error\n\nThe direction of the eye for J" + J_num + " (clockwise vs counterclockwise) does not appear to be correct. Look in the Doc pane for further instruction.")
+                        }
+>>>>>>> origin/master
                         
                     }
                 }
