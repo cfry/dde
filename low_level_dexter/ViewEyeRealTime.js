@@ -98,15 +98,9 @@ function smLinex(run_backwards = false){
 						
 
                         if(!correct_direction){
-<<<<<<< HEAD
                             open_doc(dexter_positive_joint_direction_diagrams_id)
                             alert("The direction of the eye for J" + J_num + " (clockwise vs counterclockwise) does not appear to be correct. Look in the Doc pane for further instruction.", "Calibration Error")
-                            }
-=======
-    						alert("Calibration Error\n\nThe direction of the eye for J" + J_num + " (clockwise vs counterclockwise) does not appear to be correct. Look in the Doc pane for further instruction.")
-                        }
->>>>>>> origin/master
-                        
+			}
                     }
                 }
             }
