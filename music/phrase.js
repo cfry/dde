@@ -43,6 +43,32 @@ Phrase = class Phrase{
 
     toString() { "Phrase of " + this.notes.length + " notes" }
 
+    to_source_code(){
+        let prev_attr = false
+        let result = "new Phrase({"
+        if(this.time != 0)     { result += (prev_attr ? ", " : "") + "time: " + this.time; prev_attr = true}
+        if(this.dur !== null)  { result += (prev_attr ? ", " : "") + "dur: " + this.dur; prev_attr = true}
+        if(this.velocity != Phrase.default_velocity) {
+            result += (prev_attr ? ", " : "") + "velocity: " + this.velocity; prev_attr = true}
+        if(this.channel !== Phrase.default_channel)  {
+            result += (prev_attr ? ", " : "") + "channel: " + this.channel; prev_attr = true}
+        if(this.seconds_per_beat != Phrase.default_seconds_per_beat)  { result += (prev_attr ? ", " : "") + "seconds_per_beat: " + this.seconds_per_beat; prev_attr = true}
+        if (this.notes.length > 0){ //nearly always true
+            let notes = "notes: ["
+            let first_note = true
+            let start_time_needed_if_defaulting_it = 0
+            for(let note of this.notes){
+                let note_src = note.to_source_code()
+                notes += (first_note ? "" : ", ") + note_src
+                first_note = false
+            }
+            result += (prev_attr ? ", " : "") + notes + "]"
+        }
+        result += "})"
+        return result
+    }
+
+
     fill_in_notes_from_string(notes_string){
         let time_of_next_note = this.time //in beats
         const array_of_note_strings = trim_all(notes_string).split(" ")

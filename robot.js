@@ -79,6 +79,12 @@ var Robot = class Robot {
     }
 
     //Control Instructions
+    static break(){ //stop a Robot.loop
+        return new Instruction.Control.break()
+    }
+    static debugger(){ //stop a Robot.loop
+        return new Instruction.Control.debugger()
+    }
     static error(reason){ //declare that an error happened. This will cause the job to stop.
         return new Instruction.Control.error(reason) //["error", reason]
     }
@@ -100,6 +106,10 @@ var Robot = class Robot {
     }
     static label(name){
         return new Instruction.Control.label(name)
+    }
+
+    static loop(boolean_int_array_fn, body_fn){
+        return new Instruction.Control.loop(boolean_int_array_fn, body_fn)
     }
 
     static out(val, color="black", temp){

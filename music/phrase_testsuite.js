@@ -106,4 +106,15 @@ new TestSuite("Phrase.pattern",
 )
 
 
+new TestSuite("Phrase.to_source_code",
+    ["new Phrase().to_source_code()", '"new Phrase({dur: 0})"'],
+    ["new Phrase({time: 3, velocity: 0.2, channel:4, seconds_per_beat:0.6}).to_source_code()", 
+      '"new Phrase({time: 3, dur: 0, velocity: 0.2, channel: 4, seconds_per_beat: 0.6})"'],
+    ['new Phrase("CD").to_source_code()', 
+       `'new Phrase({dur: 1, notes: [new Note("C3"), new Note("D3")]})'`],    
+    ['new Phrase("E F").to_source_code()', 
+    `'new Phrase({dur: 2, notes: [new Note("E3"), new Note({time: 1, dur: 1, pitch: "F3", velocity: 0.5, channel:  1})]})'`]
+)
+
+
 

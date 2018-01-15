@@ -31,6 +31,11 @@ function dde_error(message){
     throw new Error(mess)
 }
 
+function warning_or_error(message, error=false){
+    if(error) { dde_error(message) }
+    else      { warning(message) }
+}
+
 let semver = require("semver")
 
 function version_equal(version_string1, version_string2=dde_version){
@@ -137,6 +142,10 @@ function is_string_a_integer(a_string){
     var pat = /^-?[0-9]+$/;
     if(a_string.match(pat)) {  return true; }
     else { return false; }
+}
+
+function is_non_neg_integer(anything){
+    return Number.isInteger(anything) && (anything > -1)
 }
 
 function is_string_a_float(a_string){
@@ -397,6 +406,14 @@ function is_array_of_same_lengthed_arrays(array){
   return true
 }
 
+function intersection(arr1, arr2){
+    let result = []
+    for(let elt of arr1) {
+        if (arr2.includes(elt)) { result.push(elt) }
+    }
+    return result
+}
+
 function similar(arg1, arg2, tolerance=0, tolerance_is_percent=false, arg1_already_seen=[], arg2_already_seen=[]){
     //I started to do a infinite circularity test but its trick to do quickly and maybe unnecessary because
     //if say 2 arrays both have themselves as the 3rd elt, and the 2 arrays are eq to begin with, that
@@ -642,6 +659,51 @@ function params_string_to_param_names(params_full_string){
                 the_param =  param_and_default
             }
             param_names.push(the_param)
+        }
+    }
+    return param_names
+}
+
+function function_param_names_and_defaults(fn){
+    var params_full_string = function_params(fn, false)
+    return params_string_to_param_names_and_defaults(params_full_string)
+}
+
+//params_full_string can either be wrapped in parens or not
+function params_string_to_param_names_and_defaults(params_full_string){
+    if (params_full_string.startsWith("(")) {params_full_string = params_full_string.substring(1)}
+    if (params_full_string.endsWith(")"))   {params_full_string = params_full_string.substring(0, params_full_string.length - 1)}
+    var params_and_defaults_array = params_full_string.split(",")
+    var param_names = []
+    for(var param_and_default of params_and_defaults_array){
+        param_and_default = param_and_default.trim()
+        if (param_and_default.startsWith("{")){
+            var inner_params_and_defaults = param_and_default.substring(1, param_and_default.length -1) //cut off { and }
+            var inner_params_and_defaults_array = inner_params_and_defaults.split(",")
+            for(var inner_param_and_default of inner_params_and_defaults_array){
+                inner_param_and_default = inner_param_and_default.trim()
+                //var the_match = inner_param_and_default.match(/^[A-Za-z_-]+/)
+                //if (!the_match) {return null} //invalid syntax
+                //var the_param = the_match[0]
+                //param_names.push(the_param)
+                let the_param_default_array = inner_param_and_default.split("=")
+                the_param_default_array[0] = the_param_default_array[0].trim()
+                the_param_default_array[1] = the_param_default_array[1].trim()
+                param_names.push(the_param_default_array)
+            }
+        }
+        else {
+            let equal_pos = param_and_default.indexOf("=")
+            let the_param_default_array
+            if (equal_pos != -1){
+                let the_param = param_and_default.substring(0, equal_pos).trim()
+                let the_default = param_and_default.substring(equal_pos + 1).trim()
+                the_param_default_array = [the_param, the_default]
+            }
+            else {
+                the_param_default_array = [param_and_default.trim(), undefined]
+            }
+            param_names.push(the_param_default_array)
         }
     }
     return param_names
@@ -1143,6 +1205,29 @@ function scale_point(xyz, scale) {
 }
 
 function point_equal(a, b) { return (a[0] == b[0]) && (a[1] == b[1]) && (a[2] == b[2]) }
+
+function dom_child_elts_of_class(elt, html_class, return_first_or_null=false){
+    //returns a list of those child_elts of "elt" that have class "html_class"
+    //OR if return_first_or_null, return the first matching elt or null
+    let result = []
+    for (let a_child of elt.children){
+        if (a_child.classList.contains(html_class)) {
+            if (return_first_or_null) { return a_child }
+            else { result.push(a_child) }
+        }
+    }
+    if (result.length == 0) { return null }
+    else { return result }
+}
+
+//not called. Same as js: Object.getOwnPropertyNames(an_object)
+/*function own_properties(an_object) {
+    let result = []
+    for(let name in an_object){
+        if (an_object.hasOwnProperty(name)) { result.push(name) }
+    }
+    return result
+}*/
 
 
 var Duration = class Duration {

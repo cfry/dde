@@ -398,11 +398,6 @@ Js_info = class Js_info {
                 return "new Phrase()." + Js_info.wrap_fn_name(fn_name, "Phrase." + fn_name + "_doc_id") + function_params(fn_phrase)
 
             case "series_robot_instruction_id":
-                if (fn_name == '"debugger"') {
-                    return '<span style="color:blue;">&quot;</span>' +
-                           Js_info.wrap_fn_name("debugger")  +
-                           '<span style="color:blue;">&quot;</span>'
-                }
                 let fn4 = value_of_path(fn_name)
                 return "function " + Js_info.wrap_fn_name(fn_name) + function_params(fn4)
             case "series_oplet_id":
@@ -445,6 +440,39 @@ Js_info = class Js_info {
             case "series_temperature_id":
                 let fn8 = value_of_path(fn_name)
                 return "<code style='color:blue;'>" + Js_info.wrap_fn_name(fn_name) + '</code>' + function_params(fn8)
+            case "series_html_tag_id":
+                let prop_names = html_db.properties_for_tag(fn_name)
+                let props_str  = ""
+                for(let prop_name of prop_names){
+                    props_str += ((props_str == "") ? "" : ", ") +
+                      "<a target='_blank' href='https://www.w3schools.com/tags/att_" + prop_name + ".asp'>" + prop_name + '</a>:""'
+                }
+                return '<a href="#" onclick="open_doc(make_html_doc_id)">make_html</a>' +
+                       '("' +
+                       '<a title="HTML tag" target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/' +
+                       fn_name +
+                       '">' + fn_name + '</a>", {' + props_str + '}, "inner text") ' +
+                       "&nbsp;<a target='_blank'  title='HTML properties good for all HTML tags.' href='https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes'>Global props</a> " +
+                       "&nbsp; <a target='_blank' href='http://www.htmldog.com/references/css/properties/'>CSS props</a>"
+            case "series_html_property_id":
+                let tags_str = ""
+                for(let tag of html_db.html_property_tag_map[fn_name]){
+                    if (tag == "all"){
+                        tags_str = '<a title="HTML tag" target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/' +
+                            '">' + tag + '</a>'
+                        break;
+                    }
+                    else {
+                        tags_str += '<a title="HTML tag" target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/' +
+                                     tag +
+                                     '">' + tag + '</a> &nbsp;'
+                    }
+                }
+                return "<a target='_blank' href='https://www.w3schools.com/tags/att_" + fn_name + ".asp'>" +
+                        fn_name + "</a> used in HTML tags: " + tags_str
+            case "series_css_property_id":
+                return "<a target='_blank' href='https://developer.mozilla.org/en-US/docs/Web/CSS/" + fn_name + "'>" +
+                        fn_name + "</a>"
         }
         if (["series_hours_minutes_seconds_id", "series_time_id", "series_3_letter_month_id",
              "series_full_month_id", "series_date_id"].indexOf(series.id) != -1){

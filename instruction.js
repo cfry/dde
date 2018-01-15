@@ -51,13 +51,14 @@ var Instruction = class Instruction {
         if(Instruction.is_instruction_array(ins)) { return "#FFFFFF" }        //white
         else if (Instruction.is_control_instruction(ins)) {
             if(ins.constructor.name.startsWith("human")) { return "#ffb3d1" } //pink
+            else if (ins instanceof Instruction.Control.break)    { return "red" }
+            else if (ins instanceof Instruction.Control.debugger) { return "red" }
             else                                         { return "#e6b3ff" } //lavender
         }
         else if (is_generator_function(ins)) { return "#ccffcc" }             //green
         else if (is_iterator(ins))           { return "#aaffaa" }             //lighter green
         else if (typeof(ins) == "function")  { return "#b3e6ff" }             //blue
         else if (Instruction.is_start_object(ins)) { return "#ffd492"}        //tan
-        else if (ins == "debugger")          { return "red" }                 //red
         else if (ins == null) { return "#aaaaaa" }
         else if (Array.isArray(ins)) { return "#aaaaaa" }                     //gray
         else { shouldnt("Instruction.instruction_color got unknown instruction type: " + ins) }
@@ -86,10 +87,8 @@ var Instruction = class Instruction {
             if(ins.to_source_code) { return ins.to_source_code() } //hits for Note and Phrase
             else { return ins.toString().substring(0, 80)  }
         }
-
-        else if (ins == "debugger")         { return '"debugger"' }
-        else if (ins == null) { return 'null' }
-        else if (Array.isArray(ins)) { return stringify_value(ins) }
+        else if (ins == null)               { return 'null' }
+        else if (Array.isArray(ins))        { return stringify_value(ins) }
         else { shouldnt("Instruction.text_for_do_list_item got unknown instruction type: " + ins) }
     }
     static text_for_do_list_item_for_stepper(ins){
@@ -112,7 +111,6 @@ var Instruction = class Instruction {
             return "iterator " + ins.toString().substring(0, 70)
         }
         else if (typeof(ins) == "function") { return ins.toString().substring(0, 80) }
-        else if (ins == "debugger")          { return '"debugger"' }
         else if (ins == null) { return 'null' }
         else if (Array.isArray(ins)) { return stringify_value(ins) }
         else { shouldnt("Instruction.text_for_do_list_item_for_stepper got unknown instruction type: " + ins) }
@@ -171,6 +169,39 @@ Instruction.Control = class Control extends Instruction{
                                       this)
         job_instance.do_next_item()
     }
+}
+
+Instruction.Control.break = class Break extends Instruction.Control{ //class name must be upper case because lower case conflicts with js break
+    constructor () { super() }
+    do_item (job_instance){ //shouldnt("Instruction.Control.break do_item called but should be handled in do_next_item directly.")
+        let loop_pc = Instruction.Control.loop.pc_of_enclosing_loop(job_instance)
+        if (loop_pc === null) {
+            dde_warning("Job " + job_instance.name + ' has a Robot.break instruction at pc: ' + job_instance.program_counter +
+                "<br/> but there is no Robot.loop instruction above it.")
+            job_instance.set_up_next_do(1)
+        }
+        else {
+            let loop_ins = job_instance.do_list[loop_pc]
+            loop_ins.resolved_boolean_int_array_fn = null //just in case this loop is nested in another loop
+            //or we "go_to backwards" to it, we want its next "first_call" to initialize
+            //the loop so set resolved_boolean_int_array_fn to null
+            let items_within_loop = job_instance.added_items_count[loop_pc]
+            job_instance.program_counter = loop_pc + items_within_loop //np pc is pointing at last inst of loop iteratil instrs
+            job_instance.set_up_next_do(1) //skip past the last inst in the loop iteration, as we're done with the loop
+        }
+    }
+    toString(){ return "break" }
+    to_source_code(){ return "Robot.break()" }
+}
+
+Instruction.Control.debugger = class Debugger extends Instruction.Control{ //class name must be upper case because lower case conflicts with js debugger
+    constructor () { super() }
+    do_item (job_instance){ //shouldnt("Instruction.Control.break do_item called but should be handled in do_next_item directly.")
+        Job.set_go_button_state(false)
+        job_instance.set_up_next_do(1)
+    }
+    toString(){ return "debugger" }
+    to_source_code(){ return "Robot.debugger()" }
 }
 
 Instruction.Control.error = class error extends Instruction.Control{
@@ -1390,6 +1421,134 @@ Instruction.Control.label = class label extends Instruction.Control{
     to_source_code(args){
         return args.indent + "Robot.label(" +
               to_source_code({value: this.name})  + ")"
+    }
+}
+
+Instruction.Control.loop = class Loop extends Instruction.Control{
+    constructor (times_to_loop, body_fn) {
+        super()
+        this.times_to_loop   = times_to_loop
+        this.body_fn                = body_fn
+        this.resolved_times_to_loop = null
+        this.iter_index             = -1
+        this.iter_total             = Infinity
+        this.times_to_loop_object   = null //only used when times_to_loop is an object.
+                                           //in that case, we use resolved_times_to_loop to hold
+                                           //the array of own property names of the object,
+                                           //and thus can use its length for iter_total,
+                                           //and index into it to get the cur prop name
+                                           //which we then use to llok up in times_to_loop_object
+                                           //for the iter_val
+    }
+    //there is no do_items for loop. But this is similar. It does not call set_up_next_do,
+    //which is done only in the Job.prototype.do_next_item section that handles loop
+    //Returns an array of instructions to do for one iteration.
+    //If on a normal iteration with more to come, the last inst returned will be a
+    //go_to to this loop instruction.
+    //else if null is returned, we're done with this loop.
+    //the returned instruction array may contain a Robot.break instruction that
+    //ends this loop. That ending is handled in Job.prototype.do_next_item section that handles loop
+    get_instructions_for_one_iteration(job_instance){ //strategy: compute:
+        //1. iter_index, 2. iter_total,3. iter_val & iter_key, 4. instructions for this iteration & return them
+        this.iter_index++ //First compute iter_index. no changes to iter_index after this.
+        let fn_result = null
+        //compute  this.iter_total 7 this.resolved_time_to_loop
+        if(this.resolved_times_to_loop === null){ //first time
+            if      (typeof(this.times_to_loop) == "boolean")  { this.resolved_times_to_loop = this.times_to_loop} //leave iter_total at Infinity
+            else if (is_non_neg_integer(this.times_to_loop))   { this.resolved_times_to_loop = this.times_to_loop; this.iter_total = this.resolved_times_to_loop}
+            else if (Array.isArray(this.times_to_loop))        { this.resolved_times_to_loop = this.times_to_loop; this.iter_total = this.resolved_times_to_loop.length}
+            else if (typeof(this.times_to_loop) == "object")   {
+                this.times_to_loop_object = this.times_to_loop
+                this.resolved_times_to_loop = Object.getOwnPropertyNames(this.times_to_loop_object)
+                this.iter_total = this.resolved_times_to_loop.length
+            }
+            else if (typeof(this.times_to_loop) == "function"){
+               fn_result = this.times_to_loop.call(job_instance, this.iter_index, undefined, undefined, undefined)
+               if      (typeof(fn_result) == "boolean")        { this.resolved_times_to_loop = this.times_to_loop } //leave iter_total at Infinity
+               else if (typeof(fn_result) == "number"){
+                   if(is_non_neg_integer(fn_result))           { this.resolved_times_to_loop = fn_result; this.iter_total = this.resolved_times_to_loop}
+                   else {
+                       job_instance.stop_for_reason("errored", "Robot.loop passed times_to_loop that returned a number: " +  fn_result +
+                                                       "\n but it isn't a non-negative integer.")
+                       return null
+                   }
+               }
+               else if (Array.isArray(fn_result))              { this.resolved_times_to_loop = fn_result; this.iter_total = this.resolved_times_to_loop.length}
+               else if (typeof(fn_result) == "object")         {
+                   this.times_to_loop_object = fn_result
+                   this.resolved_times_to_loop = Object.getOwnPropertyNames(this.times_to_loop_object)
+                   this.iter_total = this.resolved_times_to_loop.length
+               }
+               else if (typeof(fn_result) == "function")       { this.resolved_times_to_loop = fn_result} //rare but possible. //leave iter_total at Infinity
+               else { job_instance.stop_for_reason("errored", "Robot.loop passed function for boolean_int_array_number but that function" +
+                                "\n returned an invalid type: " + fn_result +
+                                "\n It must return a boolean, non-negative integer, array, or function")
+                      return null
+               }
+           }
+           else { job_instance.stop_for_reason("errored", "Robot.loop passed times_to_loop of:\n " +
+                  this.times_to_loop +
+                "\n but that is not one of the valid types of:\n boolean, non-negative integer, array, or function.")
+                return null
+           }
+        } //end of special processing for first iteration.
+          // the below code is run for all iterations including the first iteration.
+          //compute iter_val & iter_key.  iter_index is computed at the top of this fn, iter_total computed just above
+        let iter_val = undefined
+        let iter_key = this.iter_index //valid for all times_to_loop types except object.
+        if (this.resolved_times_to_loop === false) { //no iterations of this loop will happen
+            return null
+        }
+        else if (this.resolved_times_to_loop === true){ iter_val = true } //loop forever or until body_fn returns Robot.break instruction
+        else if(is_non_neg_integer(this.resolved_times_to_loop)){
+            iter_val = this.iter_index
+        }
+        else if (this.times_to_loop_object){ //must be before Array.isArray(this.resolved_times_to_loop)
+            iter_key = this.resolved_times_to_loop[this.iter_index]
+            iter_val = this.times_to_loop_object[iter_key]
+        }
+        else if (Array.isArray(this.resolved_times_to_loop)) {
+             iter_val = this.resolved_times_to_loop[this.iter_index]
+        }
+        else if (typeof(this.resolved_times_to_loop) == "function"){
+           if      (this.iter_index > 0) { fn_result = this.resolved_times_to_loop.call(job_instance, this.iter_index, this.iter_index, this.iter_total)}
+           if      (fn_result === false) { return null } //looping is over, Jim
+           else if (fn_result === true)  { iter_val = true }
+           else {
+               job_instance.stop_for_reason("errored", "Robot.loop passed a function to call to determine if another iteration should occur" +
+                         "\n but that function returned: " + fn_result +
+                         "\n however, only true and false are valid results.")
+               return null
+           }
+       }
+       else { shouldnt("Robot.loop has an invalid this.resolved_times_to_loop of: " + this.resolved_times_to_loop)}
+       if(this.iter_index >= this.iter_total) { return null }
+       else {//ok, finally compute instructions for this iteration
+           let body_fn_result = this.body_fn.call(job_instance, this.iter_index, iter_val, this.iter_total, iter_key)
+           if(!Array.isArray(body_fn_result) ||
+              Instruction.is_instruction_array(body_fn_result)){
+               body_fn_result = [body_fn_result]
+           }
+           //body_fn_result can legitimately be the empty array at this point.
+           //it might also contain a Robot.break instruction.
+           let go_to_ins = new Instruction.Control.go_to(job_instance.program_counter)
+           body_fn_result.push(go_to_ins)
+           return body_fn_result
+       }
+    }
+    //when called, pc of job_instance will be to a Robot.break instruction
+    static pc_of_enclosing_loop(job_instance){
+        for(let a_pc  = job_instance.program_counter; a_pc >=0; a_pc--){
+            let a_ins = job_instance.do_list[a_pc]
+            if(a_ins instanceof Instruction.Control.loop) { return a_pc }
+        }
+        return null // not good. we didn't find an enclosing loop. this will become a warning.
+    }
+    to_source_code(args){
+        return args.indent + "Robot.loop(" +
+            to_source_code({value: this.times_to_loop})  + ",\n" +
+            to_source_code({value: this.body_fn}) +
+            ")"
     }
 }
 

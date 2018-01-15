@@ -773,10 +773,11 @@ Series.instances = [
                                                           "Human.enter_choice", "Human.enter_instruction", "Human.enter_number",
                                                           "Human.enter_text",   "Human.notify", "Human.show_window", "Human.task",
                                                           "Serial.string_instruction",
-                                                          "Robot.error",  "Robot.get_page", "Robot.go_to", "Robot.grab_robot_status",
+                                                          "Robot.break", "Robot.debugger","Robot.error",
+                                                          "Robot.get_page", "Robot.go_to", "Robot.grab_robot_status",
                                                           "Robot.if_any_errors", "Robot.label", "Robot.out",
                                                           "Robot.send_to_job", "Robot.sent_from_job", "Robot.start_job", "Robot.stop_job", "Robot.suspend", "Robot.sync_point",
-                                                          "Robot.unsuspend", "Robot.wait_until", "debugger"],
+                                                          "Robot.unsuspend", "Robot.wait_until"],
         menu_insertion_string:"Dexter.move_to()", menu_sel_start:0, menu_sel_end:-2, sample:"Dexter.move_to"}),
     new Series({id:"series_robot_config_id",
         array: ["Dexter.LEFT",          "Dexter.LEFT_DOWN",     "Dexter.LEFT_UP",       "Dexter.LEFT_IN",
@@ -841,7 +842,7 @@ Series.instances = [
     //arrow keys are used for both executing test suites AND moving to
     //the next item in the series. Now choosing test suite from
     //the series menu inserts the first test suite, but
-    //from then on the left nd right arrows execute the test suite, not
+    //from then on the left and right arrows execute the test suite, not
     //get the next in the series, ie another test suite.
     //maybe shift_right_arrow to get next TS in series?
     new Series({id:"series_test_suite_id",
@@ -850,8 +851,29 @@ Series.instances = [
                 menu_insertion_string: function(){return TestSuite.suites[0].to_source_code()},
                 menu_sel_start: true,
                 menu_sel_end:null,
-                sample:"Dexter"})
+                sample:"Dexter"}),
 
+    new Series({id:"series_html_tag_id",
+                array:html_db.tags,
+                menu_insertion_string:'make_html("div", {id: "greeting"}, "Hi")',
+                menu_sel_start:11,
+                menu_sel_end:-26,
+                sample:'div'
+        }),
+    new Series({id:"series_html_property_id",
+        array:html_db.html_properties,
+        menu_insertion_string:'href',
+        menu_sel_start:0,
+        //menu_sel_end:,
+        sample:'href'
+    }),
+    new Series({id:"series_css_property_id",
+        array:html_db.css_properties,
+        menu_insertion_string:'background-color',
+        menu_sel_start:0,
+        //menu_sel_end:,
+        sample:'href'
+    })
 ]
 }
 

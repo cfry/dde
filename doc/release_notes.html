@@ -5,6 +5,89 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 2.3.0, Jan 15, 2018</summary>
+Highlights: Robot.loop instruction, make_html function, Step button,
+            Calibration improvements
+<ul>
+    <li> Minor improvement in testSuite reporting for bad "expected source".</li>
+
+    <li> Running all tests now warns you to expect 2 unknown and 1 known
+         error in the first test suite.</li>
+
+    <li> <code>to_source_code</code> for <code>Note</code> and <code>Phrase</code> now implemented and in test suite,
+         fixing the test suite errors they had caused.</li>
+
+    <li> Bug fix to <code>to_source_code({value: a_fn})</code></li>
+
+    <li> Improved tooltip on the Command Line.</li>
+
+    <li> new instruction: <code>Robot.loop</code> See Ref Man/Robot/Robot.instructions/loop</li>
+
+    <li> new instruction: <code>Robot.break</code> for use with Robot.loop. See Ref Man/Robot/Robot.instructions/break</li>
+
+    <li> New menu item: Job menu/Insert Example/Robot.loop
+        Choosing this example inserts 6 loop example jobs AND
+        scrolls to the Robot.loop documentation in the Ref Man.</li>
+
+    <li> The instruction <code>"debugger"</code> has been replaced with <code>Robot.debugger()</code>
+        This makes DDE API more consistent with itself, and makes the
+        implementation more modular.
+        This is an incompatible change, but since "debugger" instructions
+        are necessarily temporary, this won't affect perminent Job definitions.
+        See Ref Man/Robot/Robot Instructions/debugger</li>
+
+    <li> New <button>Step</button> button in Output pane to left of <button>Eval</button> button.
+        Just like Eval button, but steps through the selected code instead.
+        Reduces need to insert <code>debugger;</code> in your code AND
+        need to set breakpoints in Chrome Dev Tools.<br/>
+        Opens Chrome Dev Tools automatically<br/>
+        See new doc in User Guide/Debugging/Stepping</li>
+
+
+    <li> New doc: Ref Man/Robot/Dexter/Dexter instructions/move_all_joints/Dexter Positive Joint Direction    Diagrams.</li>
+
+    <li> Extended calibration with better error message when the view eye goes in the working direction.</li>
+
+    <li> New Doc section: User Guide/Calibrate Dexter/Calibrate Optical Sensors/Troubleshooting</li>
+
+    <li> Fixed calibration dialog box to be able to take advantage of selecting
+          which Dexter you're calibrating.</li>
+
+    <li> Updated opencv.js to the latest version.</li>
+
+    <li> New function: <code>make_html</code><br/>
+        Advantages:
+     <ol><li>Just js syntax. You don't have to know HTML & CSS punctuation.</li>
+         <li>Easier to embedded computed values into the HTML. (better than string concat)</li>
+         <li>Don't have to remember what's an html attribute and what's a style.</li>
+         <li>Error checking for html tags, attribute names and style names which
+             browsers don't do.</li>
+    </ol>
+    See Ref Man/Window System/make_html</li>
+
+    <li> 3 new series': html_tags, html_property, css_property.
+        New item on Series menu: HTML that has a submenu of all 3.
+        Click help on each item has extensive links to doc for each.</li>
+
+    <li> Improved Output pane printing of literal strings by removing
+        backslash in some cases.</li>
+
+    <li> Removed the undocumented utility fn <code>own_properties</code> because its behavior is
+        the same as standard JS <code>Object.getOwnPropertyNames(an_object)</code>
+        This is an incompatibility, but a slight one. Any users that
+        happened to use own_properties will get an error as soon as its called,
+        and can find the standard JS fn Object.getOwnPropertyNames.
+        own_properties was not used within DDE before this so
+        its need is probably quite uncommon.</li>
+
+    <li> New utility function: <code>intersection</code>.</li>
+
+    <li> Added "inspect" to known function for syntax linting.</li>
+
+    <li> Improved User Guide/Configure Dexter/Data Connection for MacOS.</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 2.2.10, Dec 26, 2017</summary>
     Highlights: show_window & Human.enter_number extensions.
                 New User Guide section: UI Design Criteria

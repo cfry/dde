@@ -14,12 +14,12 @@
         let needed_spaces = Math.max(18 - label.length, 1)
         elt.innerHTML = label + "&nbsp;".repeat(needed_spaces) + modifier + key
     }
-
-    function eval_button_action(){ //used by both clicking on the eval button and Cmd-e
+    //called by both the eval button and the step button
+    function eval_button_action(step=false){ //used by both clicking on the eval button and Cmd-e
         let sel_text = Editor.get_any_selection() //must do before Edotor>save because now mysteriously that clears the selection
         if((Editor.current_file_path != "new file") && (save_on_eval_id.checked)) { Editor.save_current_file() }
-        if (sel_text.length > 0) { eval_js_part2(sel_text) }
-        else { eval_js_part1() } //gets whole editor buffer and if empty, prints warning.
+        if (sel_text.length > 0) { eval_js_part2((step? "debugger; " : "") + sel_text) }
+        else { eval_js_part1(step) } //gets whole editor buffer and if empty, prints warning.
     }
 
     function on_ready() {
@@ -164,6 +164,14 @@
                         event.stopPropagation()
                         eval_button_action()
                       }
+
+    step_button_id.onclick = function(event){
+                                event.stopPropagation()
+                                ipc.sendSync('open_dev_tools')
+                                setTimeout(function(){
+                                               eval_button_action(true) //cause stepping
+                                           }, 500)
+                             }
 
     email_bug_report_id.onclick=email_bug_report
 
@@ -736,7 +744,7 @@ get_page_async("http://www.ibm.com", function(err, response, body){ out(body.len
              if (Editor.selection_start() == 0)     {prefix = ""}
              else if ("[, \n]".includes(prev_char)) {prefix = ""}
              else                                   {prefix = ","}
-             Editor.insert(prefix + '"debugger",nnll') //ok if have comma after last list item in new JS.
+             Editor.insert(prefix + 'Robot.debugger(),nnll') //ok if have comma after last list item in new JS.
     }
     comment_out_id.onclick     = function(){Editor.wrap_around_selection("/*", "*/")}
     comment_eol_id.onclick     = function(){Editor.insert("//")}
@@ -883,9 +891,11 @@ foo      //eval to see the latest values</pre>`,
     insert_job_example10_id.onclick = function(){Editor.insert(job_examples[10])}
     insert_job_example11_id.onclick = function(){Editor.insert(job_examples[11])}
     insert_job_example12_id.onclick = function(){Editor.insert(job_examples[12])}
-    insert_job_example13_id.onclick = function(){Editor.insert(job_examples[13])}
-
-
+    insert_job_example13_id.onclick = function(){
+                                         Editor.insert(job_examples[13])
+                                         open_doc("Robot.loop_doc_id")
+    }
+    insert_job_example14_id.onclick = function(){Editor.insert(job_examples[14])}
 
         //RUN INSTRUCTION
     move_to_home_id.onclick    = function(){ Robot.dexter0.move_all_joints_fn() }

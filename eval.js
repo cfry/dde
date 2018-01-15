@@ -50,7 +50,7 @@ function fix_code_to_be_evaled(src){
 }
 
 //part 1 of 3.
-function eval_js_part1(){
+function eval_js_part1(step=false){
     var src = Editor.get_javascript("auto") //if no selection get whole buffer, else get just the selection
     //we do NOT want to pass to eval part 2 a trimmed string as getting its char
     //offsets into the editor buffer correct is important.
@@ -60,7 +60,7 @@ function eval_js_part1(){
             "in the Documentation pane for help.")
     }
     else{
-        eval_js_part2(src)
+        eval_js_part2((step? "debugger; ": "") + src)
     }
 }
 
@@ -144,7 +144,16 @@ function eval_js_part3(result){
     else if (result.value_string == '"dont_print"') {}
     else {
         if (inspect_is_primitive(result.value)) {
-            string_to_print = result.value_string +
+            let str = result.value_string
+            if ((str.length > 2) &&
+                (str[0] == '"') &&
+                str.includes('\\"') &&
+                !str.includes("'")
+                ) {
+                str = "'" + str.substring(1, str.length - 1) + "'"
+                str = replace_substrings(str , '\\\\"', '"')
+            }
+            string_to_print =  str +
                             " <span style='padding-left:50px;font-size:10px;'>" + result.duration + " ms</span>" //beware, format_text_for_code depends on this exact string
             out_eval_result(string_to_print)
         }

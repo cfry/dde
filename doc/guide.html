@@ -8,8 +8,8 @@
 
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version:  <span id="dde_version_id">2.2.10</span><br/>
-    released: <span id="dde_release_date_id">Dec 26, 2017</span>
+    version:  <span id="dde_version_id">2.3.0</span><br/>
+    released: <span id="dde_release_date_id">Jan 15, 2018</span>
     <p></p>
     DDE helps you create, debug, and send software to a Dexter robot.
     You can use any JavaScript augmented with DDE-specific functions to help find out about,
@@ -181,7 +181,10 @@ Each indicates that a joint has power.
     Get one that purports to work with your OS, as there are some incompatibilities.
     Beware that for some adaptors for some OS's you need to install a software driver,
     typically downloadable for free from the USB to Ethernet adaptor's website.
-    (Necessary for Macs at least.)
+    <p></p>
+    For connecting an Apple MacBook to Dexter, we recommend
+    <a target="_blank" href="https://www.apple.com/shop/product/MC704LL/A/apple-usb-ethernet-adapter?afid=p238%7Cs6ZAsQ09l-dc_mtid_1870765e38482_pcrid_52243316890_&cid=aos-us-kwgo-pla-btb--slid--product-MC704LL/A">Apple USB Ethernet Adapter</a>.
+
     <p></p>Instead of getting a USB to Ethernet adaptor, you can use a USB cable that
     has a male micro USB and a regular (larger) USB male.
     The micro USB male plugs into the micro USB socket on Dexter's processor board.
@@ -204,12 +207,10 @@ Each indicates that a joint has power.
         <li>Leave the "Default gateway blank.</li>
         <li>Click the OK button and close the remaining dialogs.</li>
      </ol>
-     <b>On MacOS:</b> <br/>its even harder.
+     <b>On MacOS:</b> <br/>
      First, newer new Macintoshes that don't have an Ethernet socket will need a
      "dongle" from USB (or Thunderbolt) to Ethernet socket.
-     You can buy these at a Apple store, or on the web.
-     Unfortuntately we haven't found a reliable way to use these dongles to
-     connect to Dexter. (If you have, please lete  us know!)
+     You can buy these at a Apple store or online (see above Apple URL).
      <p></p>
       For an older Mac with an Ethernet socket, or one you manage to get working
       with a dongle:
@@ -225,22 +226,23 @@ Each indicates that a joint has power.
              all the possible connections. Apple cleverly made this column too
              narrow to be useful, so hover your mouse over each items to
              be able to read one in full. You're looking for a USB to Ethernet connection.
-             For example, the <i>UGreen</i> adaptor helpfully says "AX881" until you
-             hover the mouse over it to see its full name ending in "USB 3.0 to Gigabit Ethernet".
-             Click on the appropriate connection.</li>
+             For the dongle we recommend above, it will be labeled
+             "Apple USB Eithernet Adaptor"</li>
          <li>Clicking on the connection changes the inputs to the right.<br/>
-             For the <b>Configure IPV4</b> field, choose <samp>Manually</samp><br/>
-             For the <b>IP Address</b> field, type in the IP address to give your Mac,
-             typically <samp>192.168.1.200</samp> works, but definately <i>not</i> the
-             IP address of Dexter.<br/>
-             For the <b>Subnet Mask</b> field, type in <samp>255.255.255.1</samp><br/>
+             For the <b>Configure IPV4</b> field, choose <code title="unEVALable">Manually</code><br/>
+             Choosing Manually causes the inputs below it to change.<br/>
+             For the <b>IP Address</b> field, enter: <code title="unEVALable">192.168.1.11</code><br/>
+             For the <b>Subnet Mask</b> field, type in <code title="unEVALable">255.255.255.0</code><br/>
              For the <b>Router</b> field, leave it blank.</li>
-         <li>Click the "Apply" button.</li>
+         <li>Click the "Apply" button.
+             If you are wired to Dexter, the left column entry for "Apple USB Eithernet Adaptor" there
+             should now be a green dot.
+         </li>
       </ol>
       We are working on making this easier.
       <p></p>
         <b>ping</b><br/>
-        Dexter is shipped with an ip_address of <code>"192.168.1.142"</code>
+        Dexter is shipped with an ip_address of <code title="unEVALable">192.168.1.142</code>
         You can use a low level tool called "command prompt" or "terminal"
         to verify connectivity. Windows and Mac OS's do an excellent job
         at hiding these useful tools.<br/>
@@ -258,7 +260,7 @@ Each indicates that a joint has power.
         several times.
         <p></p>
         Problems with data connectively can be do to an improper IP address of your Dexter,
-        ie at some other address than 192.168.1.142. It might also have to do
+        i.e. at some other address than 192.168.1.142. It might also have to do
         with its "MAC" address (nothing to do with "Macintosh") not being correctly set.
         You can use an IP scanner to see what devices are connected to your computer.
         There are many available on the net.
@@ -272,7 +274,6 @@ Each indicates that a joint has power.
                but requires a Java SDK to be installed.
             </li>
         </ul>
-
     </details> <!-- end Data Connectivity -->
 
     <details class="doc_details"><summary>Verify Joint Wiring</summary>
@@ -396,6 +397,28 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
  "Save" button. This saves the center points for each joint in
  a file named "AdcCenters.txt" in Dexter's shared folder.
  (currently only working on a PC).
+
+ <h5 id="calibration_troubleshooting_doc_id">Troubleshooting</h5>
+ During calibration, if you get an alert error message:<br/>
+ "The direction of the eye ..." then it means one of two possible problems:
+ <ol><li>The direction of the joint motion is reversed. Verify by
+ moving the joint in question
+ by adding degrees to its current position
+ (use Jobs menu/Run Instruction/Show Dialog)
+ and seeing if it moves in the direction indicated in these
+ diagrams.<br/>
+     <img src="doc/coor_images/Positive_Joint_Directions_J15.PNG" width="304"/><br/>
+     <img src="doc/coor_images/Positive_Joint_Directions_J234.PNG"/><br/>
+     If you find that the joint motion is reversed, the file
+     on Dexter shared/AxisCal.txt needs to be edited to
+     flip the sign of the 5 numbers,i.e. if they are positive,
+     add a "-" in front of each number, if they are negataive, remove
+     the "-".
+     </li>
+     <li>If joint moves in right direction. then the optical sensor
+        wire polerity could be reversed. Check wiring.
+     </li>
+ </ol>
  <h5>Advanced Step 2</h5>
  To save time or examing a specific joint angle range, use the
  2 number widgets to confine joint angle motion to between the
@@ -618,16 +641,18 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
             pane, and pause. If a job is paused, and you uncheck the pause checkbox,
             then click the <button>Go</button> button, the job will begin running normally.
             <p></p>
-            <details id="debugger_doc_id" class="doc_details"><summary>"debugger"</summary>
-                The instruction of <code>"debugger"</code> in a do_list will cause
+            <details id="Robot.debugger_doc_id" class="doc_details"><summary>debugger</summary>
+                The instruction of <code>Robot.debugger()</code> in a do_list will cause
                 the <b>pause</b> checkbox to be checked and the job to pause.
-                A function that returns the string <code>"debugger"</code> or
-                even an array that has an element of <code>"debugger"</code>
+                A function that returns the result of <code>Robot.debugger()</code> or
+                even an array that has an element of the result of <code>Robot.debugger()</code>
                 will cause a pause.
                 <p></p>
-                Note that using the string <code>"debugger"</code>
-                is intentionally similar to using the JavaScript constant <code title="not in TestSuite"> debugger</code>.
-                If you have the constant <code title="not in TestSuite"> debugger</code>
+                You can insert this instruction using the Learn JS menu/Debugging etc/Robot.debugger().
+                <p></p>
+                Note that using <code>Robot.debugger()</code>
+                is intentionally similar to using the JavaScript constant <code title="not in TestSuite">debugger</code>.
+                If you have the constant <code title="not in TestSuite">debugger</code>
                 in the body of a function that is a do_list item, or is called by
                 a do_list item, it will cause a JavaScript breakpoint and you
                 can step through that code using the Chrome dev tools.
@@ -1175,7 +1200,8 @@ Find Home is a part of Dexter Calibration. To use Find Home:
     slash-star ... star-slash<br/> to comment
     out code in the middle of a line or multiple lines.
     See the Editor pane's <button>Learn JS&#9660;</button> <i>debugging</i> menu items.
-    <br/><br/>
+
+    <h4>Stepping</h4>
     Entering <code title="not in TestSuite"> debugger;</code> into the body of a JS function definition will set a breakpoint there.
     When <code  title="not in TestSuite"> debugger;</code> is evaluated (after you call the function) and the <i>Chrome Developer Tools</i>
     window is open, execution will pause and highlight the <code title="not in TestSuite"> debugger;</code> statement in a copy
@@ -1184,6 +1210,11 @@ Find Home is a part of Dexter Calibration. To use Find Home:
     <b>Inspect Element</b>.
     Use the arrow buttons <img src="doc/stepper_buttons.png" width="120" alt="stepper buttons"/>
     in the Developer Tools window upper right to step execution.
+    <p></p>
+    Rather than enter <code title="not in TestSuite">debugger;</code> into your code,
+    its often easier to select the code you want to step through and click the
+    <button>Step</button> button. This works just like the <button>Eval</button> button
+    in that if there is no selection, all the code in the editor is stepped.
 
     <h4 id="print_statements_doc_id">Print Statements</h4>
     The oldest and crudest debugging techique is embedding print statements

@@ -2516,13 +2516,33 @@ Arrays may be nested to any depth.<br/>
     DDE gives you lots of options!
 </details>
 
-
-<details  class="doc_details"><summary>"debugger"</summary>
-    The literal string <code>"debugger"</code> is a valid do_list instruction
-    that will allow you to pause and step through the rest of the instructions.
-    See <a href="#" onclick="open_doc(debugger_doc_id, event)">"debugger"</a>
+<details id="Robot.break_doc_id" class="doc_details"><summary>break</summary>
+    The Robot.break() instruction, when in the body of a
+    <a href="#" onclick="open_doc('Robot.loop_doc_id', event)">Robot.loop</a>,
+    instruction, ends the loop.
     <p></p>
-    You can insert this instruction using the Learn JS menu/Debugging etc/"debugger".
+    <i>Parameters:</i> None.<br/>
+    <i>Example:</i> <pre><code>new Job({name: "my_job",
+     do_list: [Robot.out("start of job"),
+               Robot.loop(true,
+                          function(iter_index, iter_val, iter_total){
+                              if(iter_index < 3) {
+                                 return Robot.out("index: "       + iter_index +
+                                                  " iter_val: "   + iter_val +
+                                                  " iter_total: " + iter_total)}
+                              else { return Robot.break() } }),
+               Robot.out("end of job")
+               ]})    </code></pre>
+    If you have nested loops, Robot.break ends the inner loop only.
+    If Robot.break is not in a loop, a warning will be printed in the Output pane.
+    <p></p> Note that Javascript also uses the symbol <code title="unEVALable">break</code>
+    to end a JavaScript <code title="unEVALable">for</code> loop.
+</details>
+
+
+<details  class="doc_details"><summary>debugger</summary>
+    <code>Robot.debugger()</code> allows you to pause and step through the rest of the instructions.
+    See <a href="#" onclick="open_doc('Robot.debugger_doc_id')">Robot.debugger</a>
 </details>
 <details id="Robot.error_doc_id" class="doc_details"><summary>error</summary>
   Causes the job to error, immediately stopping it.
@@ -2663,6 +2683,10 @@ in calling a job's start method. The <code>Robot.send_to_job</code> instruction
 uses an instruction_location for identifying
 where within the job to insert the given instruction as does the method
 <code>Job.insert_instruction</code>.
+<p></p>
+    Much of the time that you'd be tempted to use a backwards
+    Robot.go_to,
+    <a href="#" onclick="open_doc('Robot.loop_doc_id')">Robot.loop</a> is better.
 </details>
 
 
@@ -2795,6 +2819,115 @@ a location to insert an instruction using <code>Robot.send_to_job</code>.<br/>
 <i>Example</i>: <code>Robot.label("lab2")</code>
 </details>
 
+<details id="Robot.loop_doc_id" class="doc_details"><summary>loop</summary>
+    <code>Robot.loop</code> lets a Job repeat a sequence of instructions a number of times.
+    This instruction is one of the most powerful and complex
+    in DDE, providing a wide range of looping behavior.<br/>
+    <i>Paramenters</i> (2)<br/>
+    <b>times_to_loop</b> Required. Determines the number of times that the body_fn is called,
+    i.e. the iteration count of the loop. It can be one of five types:
+    <p></p>
+    <i>boolean</i><br/> If <code>false</code>, loop no times. This loop becomes a no-op.<br/>
+    If <code>true</code>, loop forever, or until a <a href="#" onclick="open_doc('Robot.break_doc_id')">Robot.break</a> instruction in the body_fn
+    is executed. Like all arguments, this is evaluated at Job definition time to
+    supply a value of a boolean (true or false).
+    <p></p>
+    <i>non-negative integer</i><br/> Number of times to call the body_fn. If <code>0</code>,
+    the loop becomes a no-op, just like when this arg is <code>false</code>.
+    This can be <code>Infinity</code> such that looping would only
+    be limited by a <code>Robot.break</code> instruction in the body_fn or
+    stopping the Job.
+    <p></p>
+    <i>array</i><br/> The length of the array is the number of times to loop.
+    If this arg is <code>[]</code> i.e. the empty array, this loop is a no-op
+    just like a value of <code>false</code> or <code>0</code>.
+    At each iteration, the iter_val will be a successive value in the array.
+    <p></p>
+    <i>object</i><br/> The number of own properties of the object is the number
+    of times to loop. At each iteration, the iter_key will be a property name in the object,
+    and iter_val will be the property's value.
+    <p></p>
+    <i>function</i><br/> At the beginning of the first iteration, this function is
+    called with the arguments of:
+    <ul>
+        <li>this=the_job_instance</li>
+        <li>iter_index=<code>0</code></li>
+        <li>iter_value=<code>undefined</code></li>
+        <li>iter_total=<code>undefined</code></li>
+        <li>iter_key=<code>undefined</code></li>
+     </ul>
+    If it returns a:
+    <ul><li>non-neg-integer: Used for the rest of this loop.</li>
+        <li>array: Used for the rest of this loop.</li>
+        <li>object: Used for the rest of this loop.</li>
+        <li>boolean: The function is called upon every iteration to determine if
+    looping should stop or not. If <code>false</code> is returned,
+    no looping occurs, this loop is a no-op. If <code>true</code> is returned,
+    that "true" is used for the first iteration, and the function is called
+    at the beginning of every subsequent iteration until <code>false</code>
+    is returned or the body_fn executes a <code>Robot.break</code> instruction.</li>
+    </ul>
+    You want to use a function here instead of directly using a boolean, non-neg-integer,
+    or array, when you want those values to be computed at the time
+    the Robot.loop instruction is executed as opposed to Job definition time.
+    <p></p>
+    <b>body_fn</b> This function is called with basically the same args as
+    are used to call times_to_loop when it is a function.<br/>
+    <ol>
+        <li>this=the_job_instance</li>
+        <li>iter_index= a non negative integer of the iteration number i.e. 0, 1, 2, etc.</li>
+        <li>iter_val If times_to_loop is:
+           <ul><li> true: So is this arg.</li>
+               <li> integer: This arg is the same as iter_index</li>
+               <li> array: Uses the element of the array at the iter_index
+            position in the array.</li>
+            </ul>
+        </li>
+        <li>iter_total If times_to_loop is:
+           <ul><li> true: Uses <code>Infinity</code>.</li>
+               <li> integer: Uses that integer.</li>
+               <li> array: Uses length of the array.</li>
+           </ul>
+        </li>
+        <li>iter_key</li> the same as iter_index except if the times_to_loop
+            is an object (or a function that returns one), in which case
+            iter_key is the property name of the property being looped
+            through for this iteration.<br/>
+             Note that the order that the properties
+            are used in looping is strictly speaking indeterminant as JS does not
+            specify an order to object properties. However, we've found that
+            the order of string-named properties are usually the order in
+            which they were added to the object. <br/>
+            Beware: If you have created the object with number keys, i.e.
+            <code>{6:"some val"}</code>,
+            the iter_key will be a string: <code>"6"</code> not
+            a number <code>6</code> and generally appear before normal string-named keys.
+            Its best if you don't depend on an ordering of the properties.</li>
+    </ol>
+    Loop instructions may be nested. <code>Robot.break</code> instructions will
+    end the inner-most loop that contains the <code>Robot.break</code>.
+    <p></p>
+    Much of the time that you'd be tempted to use a backwards
+    <a href="#" onclick="open_doc('Robot.go_to_doc_id')">Robot.go_to</a>,
+    loops are better.
+    <p></p>
+    <i>Example</i>
+    <pre><code>new Job({name: "my_job",
+    do_list: [Robot.out("start of job"),
+              Robot.loop([100, 101, 102, 103, 104],
+                         function(iter_index, iter_val, iter_total){
+                             if(iter_index < 3) {
+                                return Robot.out("index: "       + iter_index +
+                                                 " iter_val: "   + iter_val +
+                                                 " iter_total: " + iter_total)}
+                             else { return Robot.break() }
+                         }
+                        ),
+               Robot.out("end of job"),
+]})     </code></pre>
+   See Jobs menu/Insert Example/Robot.loop for more examples.
+</details>
+
 <details id="Robot.out_doc_id" class="doc_details"><summary>out</summary>
   Very similar to the function <code>out</code> but made for use as a robot instruction.
   Prints a message to the Output pane in the color of your choice.
@@ -2840,20 +2973,21 @@ a location to insert an instruction using <code>Robot.send_to_job</code>.<br/>
  <i>Example</i>: <code>{program_counter: 2}</code> <br/>
     causes the job to be started, executing its 3rd do_list item first.<br/>
  <b>if_started</b> A string. Says what to do if the job that
- is to be started has a status of <b>"running" or "waiting"</b>.
+ is to be started has a status of <code>"running"</code> or <code>"waiting"</code>.
  Valid values for this argument are:
  <ul><li><code>"ignore"</code> Don't start the job. Just do nothing. This is the default.</li>
      <li><code>"error"</code> Stop the job running this instruction with an error.</li>
      <li><code>"restart"</code> Stop and restart the job named by <b>job_name</b>.</li>
 </ul>
 
-If the status of the job to be started is:<br/>
-<b>starting</b>, this instruction is ignored.<br/>
-<b>suspended</b> The job is unsuspended.<br/>
-<b>"not_started", "completed", "errored", or "interrupted"</b>
-The job is started.<br/>
-<b>"running" or "waiting"</b> then what happens depends on the
-value of the <code title="unEVALable code fragment"> if_started</code> argument.
+If the status of the job to be started is:
+    <ul><li><code>"starting"</code>, this instruction is ignored.</li>
+        <li><code>"suspended"</code> The job is unsuspended.</li>
+        <li><code>"not_started"</code>, <code>"completed"</code>, <code>"errored"</code>, or <code>"interrupted"</code>,
+                    the job is started.</li>
+        <li><code>"running"</code> or <code>"waiting"</code>, then what happens depends on the
+                value of the <b>if_started</b> argument.</li>
+    </ul>
 </details>
 
 <details id="Robot.stop_job_doc_id" class="doc_details"><summary>stop_job</summary>
@@ -3235,6 +3369,10 @@ Both of these have the same function, i.e. you can pass in an array of up to 5 a
 or you can pass in individual numbers.
 <code>null</code> or the lack of enough numbers means keep the angle for that joint what the
 last instruction run in a Job set it to.
+<p></p>
+<b id="dexter_positive_joint_direction_diagrams_id">Dexter Positive Joint Direction Diagrams</b><br/>
+<img src="doc/coor_images/Positive_Joint_Directions_J15.PNG" width="304"/><br/>
+<img src="doc/coor_images/Positive_Joint_Directions_J234.PNG"/>
 </details>
 
 <details id="Dexter.move_all_joints_relative_doc_id" class="doc_details"><summary>move_all_joints_relative</summary>
@@ -5056,6 +5194,129 @@ mat.delete()</code></pre>
          opencv.js was created by Sajjad Taheri and his collegues at the University of California, Irvine,
          supported by Intel Corporation. We greatly appreciate this valuable contribution
          to robotics and makers everywhere.
+    </details>
+
+    <details id="make_html_doc_id" class="doc_details"><summary>make_html</summary>
+    Normal web programing causes you to have to learn several different syntaxes
+    for the same kind of gramatical constructs. The most common examples are
+    JavaScript, HTML and CSS, all of which have their own needlessly
+    different syntaxes for encoding name-value pairs. DDE primarily uses JavaScript, but
+    programmers needing to create user interfaces in DDE must employ
+    HTML and CSS for the content of
+    <a href="#" onclick="open_doc(show_window_doc_id)">show_window</a>.
+    <p></p>
+    <code>make_html</code> relieves a programmer from having to know the
+    ideosynracies of HMTL and CSS by providing a flexible way to create
+    HTML and CSS source code using pure JS syntax. You can still use
+    pure HTML and CCS if you like, but the advantages of make_html are:
+    <ol><li>You don't have to know HTML & CSS punctuation.</li>
+        <li>It makes it easier to embedded JS computed values into the HTML & CSS
+             (better than string concat).</li>
+        <li>You don't have to remember what's an HTML property and what's a CSS
+            property.</li>
+        <li>Error checking for HTML tags, HTML properties, and CSS properties
+             (which browsers don't do ...one of their worst "features")
+            while maintaining the flexibility to include non-standard terms
+            if you really want to.</li>
+     </ol>
+     <i>Example:</i>
+     <pre><code> let size = Math.pow(5, 2) + "px"
+ make_html("b",
+           {"font-size":size, color:"red", title:"big font"},
+           "text")    </code></pre> =>
+     <samp>'&lt;b title="big font" style="font-size":25px; color:red;"&gt;text&lt;/b&gt;'</samp>
+     <p></p>
+     <i>Parameters</i><br/>
+     <b>tag</b> One of the 100+ tags in HTML. If you have a non-standard tag,
+        make_html will warn or error depending on the value of the "error"
+        parameter.<br/>
+        <i>Examples:</i> <code>"b"</code>, <code>"details"</code>
+     <p></p>
+     <b>properties</b> Default: <code>{}</code>.  name-value pairs of
+     HTML and/or CSS properties as a JS object. <br/>
+     <i>Example:</i>
+     <pre><code>{href:"hdrobotic.com",
+ "font-size":"12px"}</code></pre>
+     Note that you don't (usually) have to declare whether a property
+     is HTML or CSS. Also note that property names that have hyphens in them
+     must be quoted, as per JS.
+     <p></p>
+     DDE uses a database of HTML and CSS to help determine whether a given
+     property is HTML or CSS. There are over 100 of each.
+     There are 5 property names used by both HTML and CSS:<br/>
+        <code title="unEVALable">border</code>,
+        <code title="unEVALable">color</code>,
+        <code title="unEVALable">content</code>,
+        <code title="unEVALable">height</code>,
+        <code title="unEVALable">width</code>.<br/>
+        Fortunately most HTML tags can't accept any of these properties and
+        DDE knows which ones. The precise algorithm for determining
+        whether an attribute is HTML or CSS is complex, through for the above
+        properties, make_html prefers CSS over HTML. DDE prints out
+        warning or error messages when it is unconfident. See the "error" parameter.
+        <p></p>
+        You can guarentee that a property is a style by
+        including it in a property named <code title="unEVALable">style</code>,
+        just as you would in normal HTML. The style property can take a string
+        of CSS for its value, just like in normal syntax.<br/>
+        <i>Example:</i><pre><code>make_html("b",
+          {style:"color:blue;height:123;"},
+          "text")</code></pre>
+        Style can ALSO take a JS Object as a value.<br/>
+        <i>Example:</i><br/>
+        <pre><code>make_html("b",
+          {style: {color: "blue", height: 123}},
+          "text")</code></pre>
+        <p></p>
+        If you want to force a property to be HTML, you can use a similar trick,
+        through you have to use a property name that's NOT standard HTML.<br/>
+        The 'string' verison of this uses HTML property syntax:<br/>
+        <i>Example:</i><br/>
+        <code><pre>make_html("b",
+          {html_properties:"color=blue height=123"},
+          "text")</code></pre>
+        The object version uses JS object syntax:<br/>
+        <i>Example:</i><br/>
+        <pre><code>make_html("b",
+          {html_properties: {color: "blue", height: 123}},
+          "text")</code></pre>
+        Properties whose name starts with <code title="unEVALable">data-</code>
+        will be treated as an HTML property by default.
+     <p></p>
+     <b>innerHTML</b> Default: <code>""</code>. The text for
+     the content of the tag. Can also be any function that computes a string,
+     such as another <code>make_html</code> call
+      (or several if you concat their results together).
+     <p></p>
+     <b>ending</b> Default: <code>"auto"</code> Determines
+     the ending of the result string of HTML. Leaving off endings helps programmers
+     make partial HTML elements to be used in further dynamic code generation.
+     The result string has all HTML properties before any CSS (style) properties.<br/>
+     An ending of:<br/>
+     <code>"auto"</code> makes an
+     ending of <code title="unEVALable">/&gt;</code> if the innerHTML argument
+     is <code>""</code> (its default), and otherwise uses <code title="unEVALable">&lt;/tag&gt;</code>.<br/>
+     <code>"none"</code> If there are any style properties,
+     the last character of the result is the ending semicolon of the last style property.
+     If there are only HTML properties, the last character of the result is the end double_quote
+     of the last HTML property.<br/>
+     <code>"end_style_only"</code> If there are any style properties,
+     the last character of the result is the end double_quote of the style properties.
+     If there are only HTML properties, the ending double quote of the last HTML property ends the result.<br/>
+     <code>"short"</code> The last character of the result will be the &gt; that
+     ends the properties of an HTML call.<br/>
+     <code>"long"</code> The result will end with <code title="unEVALable">&lt;tag&gt;</code>
+     <p></p>
+     <b>error</b> Default: <code>false</code> A boolean.
+     If <code>true</code>, this call to make_html will error
+     if it is passed an invalid HTML tag, invalid HMTL property,
+     or invalid CSS property.
+     If <code>false</code>, this call will print a warning in the
+     Output pane but allow make_html to return normally invalid HTML.
+     The error/warning messages are very explicit about what's wrong.
+     <p></p>
+     When debugging calls to make_html, its useful to check the Output pane checkbox
+     <br>Code</b> to see the returned HTML.
     </details>
 
     <details class="doc_details"><summary>Mouse Input</summary>

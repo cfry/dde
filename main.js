@@ -129,10 +129,22 @@ ipc.on('synchronous-message', function (event, arg) {
 })
 
 ipc.on("open_dev_tools", function(event){
-   console.log("top of open_dev_tools")
-   mainWindow.webContents.openDevTools()
+   console.log("top of open_dev_tools2")
+   //debugger; //doesn't work.
+    if (mainWindow.isDevToolsOpened()) {
+        mainWindow.devToolsWebContents.focus()
+    }
+   else { mainWindow.webContents.openDevTools({mode:"undocked"})} //if devtools window is closed this opens it
+     //and focuses on it. If Not it does nothing but i need  to focus on the window.
+   //mainWindow.webContents.devToolsWebContents.focus() //errors
+   //mainWindow.blur() //causes step button to remain "down".
+    //mainWindow.webContents.toggleDevTools()
+    //mainWindow.webContents.toggleDevTools()
+    //console.log(mainWindow.webContents)
+
    event.returnValue = true //needed just to get the open_dev_tools button to not be highlighted
 })
+
 
 //called from serial.js serial_devices to get sychronous return value
 ipc.on('serial_devices', function(event){

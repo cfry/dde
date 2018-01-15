@@ -2,7 +2,7 @@
 <!-- good html validtor: https://www.onlinewebcheck.com/check.php?adv=1  -->
 <html lang="en">
 <head>
-    <title>Dexter Development Environment 2.2.10</title>
+    <title>Dexter Development Environment 2.3.0</title>
     <link rel="stylesheet" href="jqwidgets/styles/jqx.base.css" type="text/css" />
     <!-- <script type="text/javascript" src="jquery-1.11.3.min.js"></script> -->
     <script>window.$ = window.jQuery = require('jquery');</script>
@@ -96,6 +96,8 @@
     <script>window.fs = require('fs');</script>
 
     <script type="text/javascript" src="utils.js"></script>
+    <script type="text/javascript" src="html_db.js"></script>
+
     <script type="text/javascript" src="to_source_code.js"></script>
     <script type="text/javascript" src="inspect.js"></script>
     <script type="text/javascript" src="storage.js"></script>
@@ -125,8 +127,9 @@
     <script type="text/javascript" src="run_instruction.js"></script>
     <script type="text/javascript" src="app_builder.js"></script>
     <script type="text/javascript" src="doc_code.js"></script>
-    <script type="text/javascript" src="test_suite.js"></script>
-    <script type="text/javascript" src="test_suites.js"></script>
+    <script type="text/javascript" src="test_suite/test_suite.js"></script>
+    <script type="text/javascript" src="test_suite/test_suites.js"></script>
+    <script type="text/javascript" src="test_suite/make_html_testsuite.js"></script>
 
     <!--loading order of this blcok specified by James -->
     <script type="text/javascript" src="math/Trig_in_Degrees.js"></script>
@@ -205,7 +208,7 @@
                                                 <li id="dev_tools_id"    title="Show instructions for&#013;seeing console.log output and&#013;using debugger; breakpoints.">Help</li>
                                                 <li id="console_log_id"  title="Prints complex data into the Chrome console. Click right anywhere in DDE and &#013;choose 'Inspect' to see it.&#013;out(...) prints to Output pane.">console.log(...)</li>
                                                 <li id="debugger_id"     title="Inserts a breakpoint in any JS code&#013;Click right and choose 'Inspect Element' &#013;to enable stepping.">debugger;</li>
-                                                <li id="debugger_instruction_id" title="Insert a literal string that is&#013;an instruction in a do list&#013;which pauses a job&#013;and allows you to step through its instructions.">&quot;debugger&quot;</li>
+                                                <li id="debugger_instruction_id" title="Insert a Robot.debugger()&#013;instruction in a do list&#013;which pauses a job&#013;and allows you to step through its instructions.">Robot.debugger()</li>
                                                 <li id="comment_out_id"  title="Place the selected text in a comment&#013;so it won't be evaled.">Comment out selection</li>
                                                 <li id="comment_eol_id"  title="Comment out from cursor to end of line&#013;so it won't be evaled.">Comment to end of line</li>
                                             </ul>
@@ -438,6 +441,13 @@
                                                 <li id="series_function_id"   title="Insert a function definition&#013;or one of its friends.">Function</li>
                                              </ul>
                                          </li> <!-- end JavaScript -->
+                                         <li>HTML
+                                           <ul>
+                                               <li id="series_html_tag_id">HTML Tags</li>
+                                               <li id="series_html_property_id">HTML Properties</li>
+                                               <li id="series_css_property_id">CSS (Style) Properties</li>
+                                           </ul>
+                                         </li>
                                          <li>DDE
                                             <ul>
                                                 <li>Units System
@@ -549,7 +559,8 @@
                                                 <li id="insert_job_example10_id" title="Insert into the editor a tutorial on using Serial Port.">10. Serial Port</li>
                                                 <li id="insert_job_example11_id" title="Insert into the editor a tutorial on using&#013;when_stopped for looping a job, etc.">11. when_stopped</li>
                                                 <li id="insert_job_example12_id" title="Insert into the editor a tutorial on using&#013;Robot.go_to instruction for looping a job.">12. Robot.go_to</li>
-                                                <li id="insert_job_example13_id" title="Insert into the editor a tutorial on using&#013;A TestSuite in a job.">13. TestSuite in Job</li>
+                                                <li id="insert_job_example13_id" title="Insert into the editor a tutorial on using&#013;loops in a job.">13. Robot.loop</li>
+                                                <li id="insert_job_example14_id" title="Insert into the editor a tutorial on using&#013;A TestSuite in a job.">14. TestSuite in Job</li>
 
                                             </ul>
                                         </li>
@@ -605,7 +616,7 @@
                     <div class='pane_header_wrapper' style="white-space:nowrap;height:60px;min-height:60px;max-height:60px;">
                         <span id="output_pane_help_id" class='pane_header' title="Click for help."><u>Output</u></span>
                         <button id="eval_id" style="vertical-align:middle;" title="Evaluate (run) the selected JS in any pane&#013;or, if none, all the JavaScript in the Editor pane.&#013;Can also be invoked by typing &#8984;e">Eval</button>
-                        <button id="eval_and_start_button_id" style="vertical-align:middle;" title="Eval the selected JS&#013;and call the 'start' method&#013;with no arguments, on the result.">Eval&Start</button>
+                        <button id="step_button_id" style="vertical-align:middle;" title="Step through the evaluation of the selected code.">Step</button>
                         <div style="vertical-align:middle;display:inline-block;margin:0px;padding:0px;">
                             <div title="Automatically save the edited file&#013;when you click 'Eval',&#013;and when you edit another file.">                               <input id="save_on_eval_id" type="checkbox" style="padding_bottom:15px;"/> <div style="padding:0px;margin:0px;display:inline-block;font-size:10px; vertical-align:0%;">Save</div></div>
                             <div title="When checked, 'out' function calls, by default, format the output string as code." style="vertical-align:middle;display:inline-block;"><input id="format_as_code_id" type="checkbox" style="padding_bottom:15px;"/> <div style="padding:0px;margin:0px;display:inline-block;font-size:10px; line-height:10px;">Code</div></div>
@@ -650,10 +661,11 @@
                         </div>
                         <input id="cmd_input_id"
                                placeholder="Type in code & hit Enter key to eval"
-                               title="Type in code & hit Enter key to eval.&#13;Up arrow for previous cmd.&#13;Down arrow for next cmd&#13;or, at end, clear."
+                               title="Type in code & hit Enter key to eval.&#13;Up arrow for previous cmd.&#13;Down arrow for next cmd&#13;or, at end, clear cmd line."
                                style="font-size:14px;width:500px;"/>
                         <br/>
                         <span id="jobs_button_bar_id">
+                            <button id="eval_and_start_button_id" style="vertical-align:top;" title="Eval the selected JS&#013;and call the 'start' method&#013;with no arguments, on the result.">Eval&Start</button>
                             <button id="start_job_id" style="vertical-align:top;" title='Eval job that cursor is in and start it.&#13;Click on "Output" pane title for doc.'>Start Job</button>&nbsp;
                             <!-- <button id="stop_all_jobs_id" title="Stop all of the currently running jobs."><b>X</b></button></span> -->
                             <img id="stop_all_jobs_id" src="stop_sign.png" title="Stop all of the currently running jobs."/>

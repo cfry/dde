@@ -231,7 +231,8 @@ var TestSuite = class TestSuite{
         load_files(__dirname + "/music/phrase_testsuite.js")
         if (!TestSuite["user_guide_id"])       { TestSuite.make_test_suites_from_doc(user_guide_id) }
         if (!TestSuite["reference_manual_id"]) { TestSuite.make_test_suites_from_doc(reference_manual_id) }
-        var reports = "<b style='font-size:20px;'>All Test Suites Report</b><br/>"
+        var reports = '<b style="font-size:20px;">All Test Suites Report</b><br/>' +
+        '<span style="color:magenta;">test_suite_reporting *should* indicate<br/>"failures: unknown=2, known=1"</span><br/>'
         let start_time = Date.now()
         for (let suite of TestSuite.suites){
             var report = TestSuite.run(suite.name)
@@ -424,7 +425,8 @@ var TestSuite = class TestSuite{
             var expected_result
             try { expected_result = window.eval(expected) }
             catch(err) {
-               TestSuite.last_expected_error_message = err.name + ' ' + err.message
+               TestSuite.last_expected_error_message = err.name + ' ' + err.message +
+                   " with expected source: " + expected
                return ["unknown", TestSuite.last_expected_error_message]
             }
             if ((expected_result == TestSuite.dont_care) && !TestSuite.last_src_error_message) {} //allows any value from src to pass (unless it errors)

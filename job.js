@@ -651,7 +651,6 @@ var Job = class Job{
            else if (typeof(elt) === "function")              { result.push(elt) }
            else if (is_iterator(elt))                        { result.push(elt) }
            else if ((typeof(elt) === "object") && (typeof(elt.start) == "function")) { result.push(elt) }
-           else if (elt === "debugger")                      { result.push(elt) }
            else {
                 throw(TypeError("Job.flatten_do_list_array got illegal item on do list: " + elt))
            }
@@ -1088,6 +1087,34 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
             this.sent_from_job_instruction_queue = []
             this.set_up_next_do(0)
         }
+        /* now in Instruction.Control.break.do_item
+          else if (cur_do_item == "break") { //we're in a loop. skip over rest of items under the cur loop iteration (including any go_to at its end) and go to next instr after the whole loop
+            let loop_pc = Instruction.Control.loop.pc_of_enclosing_loop(this)
+            if (loop_pc === null) {
+                dde_warning("Job " + this.name + ' has a "break" instruction at pc: ' + this.program_counter +
+                            "<br/> but there is no Robot.loop instruction above it.")
+                this.set_up_next_do(1)
+            }
+            else {
+                let loop_ins = this.do_list[loop_pc]
+                loop_ins.resolved_boolean_int_array_fn = null //just in case this loop is nested in another loop
+                   //or we "go_to backwards" to it, we want its next "first_call" to initialize
+                   //the loop so set resolved_boolean_int_array_fn to null
+                let items_within_loop = this.added_items_count[loop_pc]
+                this.program_counter = loop_pc + items_within_loop //np pc is pointing at last inst of loop iteratil instrs
+                this.set_up_next_do(1) //skip past the last inst in the loop iteration, as we're done with the loop
+            }
+        }*/
+        else if (cur_do_item instanceof Instruction.Control.loop){
+            let ins = cur_do_item.get_instructions_for_one_iteration(this)
+            if (ins === null) { } //done with loop
+            else {
+                let flatarr = Job.flatten_do_list_array(ins)
+                this.insert_instructions(flatarr)
+                this.added_items_count[this.program_counter] += flatarr.length
+            }
+            this.set_up_next_do(1)
+        }
         else if (Instruction.is_control_instruction(cur_do_item)){
             cur_do_item.do_item(this)
         }
@@ -1143,16 +1170,16 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
                          cur_do_item.toString() + "<br/>" +
                          err.message)
                 this.stop_for_reason("errored", "function at instruction id: " + this.program_counter)
-                    this.set_up_next_do(1)
+                this.set_up_next_do(1)
              }
         }
         else if (Instruction.is_start_object(cur_do_item)){
             this.handle_start_object(cur_do_item)
         }
-        else if (cur_do_item == "debugger"){
+        /*else if (cur_do_item == "debugger"){
             Job.set_go_button_state(false)
             this.set_up_next_do(1)
-        }
+        }*/
         else {
             this.stop_for_reason("errored", "Job: " + this.name + " got illegal do_item on do_list of: " +
                                             stringify_value(cur_do_item))
@@ -1221,11 +1248,6 @@ Job.prototype.handle_function_call_or_gen_next_result = function(cur_do_item, do
     else if (is_iterator(do_items)){ //calling a generator fn returns an iterator
         //this.iterator_stack.push([do_items, this.program_counter])
         //this.set_up_next_do(1)
-        this.insert_single_instruction(do_items)
-        this.added_items_count[this.program_counter] += 1
-        this.set_up_next_do(1)
-    }
-    else if (do_items == "debugger"){
         this.insert_single_instruction(do_items)
         this.added_items_count[this.program_counter] += 1
         this.set_up_next_do(1)

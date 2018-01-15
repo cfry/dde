@@ -20,7 +20,10 @@ function to_source_code({value, indent="", function_names=false, newObject_paths
             else                             { return indent + '"' + value + '"' }
         }
         else if (value instanceof Date)      { return value.toString() }
-        else if (typeof(value) == "function"){ return to_source_code_function(arguments[0]) }
+        else if (typeof(value) == "function"){
+             let new_args = {value: value, indent: indent}
+             return to_source_code_function(new_args)
+        }
         else if (Object.isNewObject(value)) {
             if (newObject_paths) { return value.objectPath }
             else                 { return value.sourceCode() }

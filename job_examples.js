@@ -691,7 +691,101 @@ new Job({name: "my_job",
         Robot.go_to("lab1")
     ]})
 `,
-`//Job Example 13: TestSuite in Job
+`//Job Example 13: loop
+//13a: loop with times_to_loop = true (infinite) & Robot.break
+new Job({name: "my_job",
+         do_list: [Robot.out("start of job"),
+                   Robot.loop(true, 
+                              function(iter_index, iter_val, iter_total){
+                                  if(iter_index < 3) {
+                                     return Robot.out("index: "       + iter_index + 
+                                                      " iter_val: "   + iter_val +
+                                                      " iter_total: " + iter_total)}
+                                  else { return Robot.break() } }),
+                   Robot.out("end of job")
+                   ]})
+
+////13b: loop with times_to_loop = 3
+new Job({name: "my_job",
+         do_list: [Robot.out("start of job"),
+                   Robot.loop(1 + 2, 
+                              function(iter_index, iter_val, iter_total){
+                                  return Robot.out("index: "       + iter_index + 
+                                                   " iter_val: "   + iter_val +
+                                                   " iter_total: " + iter_total)}),
+                   Robot.out("end of job")
+                   ]})
+                   
+
+////13c: loop with times_to_loop = array                                     
+new Job({name: "my_job",
+         do_list: [Robot.out("start of job"),
+                   Robot.loop([100, 101, 102], 
+                              function(iter_index, iter_val, iter_total){
+                                  return Robot.out("index: "       + iter_index + 
+                                                   " iter_val: "   + iter_val +
+                                                   " iter_total: " + iter_total)}
+                             ),
+                   Robot.out("end of job"),
+                   ]})
+                   
+////13d: loop with times_to_loop = array  & multiple instructions per iteration                                   
+new Job({name: "my_job",
+         do_list: [Robot.out("start of job"),
+                   Robot.loop([100, 101, 102], 
+                              function(iter_index, iter_val, iter_total){
+                                  return [Robot.out("index: "       + iter_index + 
+                                                   " iter_val: "   + iter_val +
+                                                   " iter_total: " + iter_total),
+                                          Robot.out("another instruction" + iter_index)        
+                                         ]}
+                             ),
+                   Robot.out("end of job")
+                   ]})                  
+ 
+////13e: loop with times_to_loop = function (dynamically decide how many iterations)
+new Job({name: "my_job",
+         do_list: [Robot.out("start of job"),
+                   Robot.loop(function(iter_index, iter_val, iter_total){ return (iter_index < 3)}, 
+                              function(iter_index, iter_val, iter_total){
+                                  return Robot.out("index: "       + iter_index + 
+                                                      " iter_val: "   + iter_val +
+                                                      " iter_total: " + iter_total)}),
+                   Robot.out("end of job")
+                   ]}) 
+////13f: loop with times_to_loop a function returning an object to
+////    loop through the properties of the object.                
+new Job({name: "my_job",
+         user_data: {foo: 100, bar: 101},
+         do_list: [function(){ this.user_data.baz = 102 },
+                   function(){ return Robot.loop(this.user_data,
+                              function(iter_index, iter_val, iter_total, iter_key){
+                                  return [Robot.out("index: "       + iter_index + 
+                                                    " iter_val: "   + iter_val +
+                                                    " iter_total: " + iter_total +
+                                                    " iter_key: "   + iter_key)
+                                         ]}) },             
+                   function(){ inspect(this.user_data) }
+                   ]})                
+                   
+////13g: nested loops.  Note inner loop can reference outer loop vars.               
+new Job({name: "my_job",
+         do_list: [Robot.out("start of job"),
+                   Robot.loop(3,
+                              function(iter_index, iter_val, iter_total){
+                                  return [Robot.out("index: "       + iter_index + 
+                                                      " iter_val: "   + iter_val +
+                                                      " iter_total: " + iter_total),
+                                          Robot.loop(2, function(inner_iter_index) { 
+                                                           return Robot.out("inner" + iter_index + 
+                                                                            "." + inner_iter_index)
+                                                        })
+                                         ]}),             
+                   Robot.out("end of job")
+                   ]})
+`,
+
+`//Job Example 14: TestSuite in Job
 //If the TestSuite has errors, 
 //the TestSuite report is output and the job stops early.
 
