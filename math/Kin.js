@@ -84,9 +84,9 @@ var Kin = new function(){
     	var U54_Proj = Vector.project_vector_onto_plane(V54, P[1])
     	var U3_a = Vector.add(U[4], Vector.multiply(L[3], Vector.rotate(Vector.normalize(U54_Proj), P[1], 90)))
         var U3_b = Vector.add(U[4], Vector.multiply(L[3], Vector.rotate(Vector.normalize(U54_Proj), P[1], -90)))
-        var dist_a = Vector.distance(U3_a, U[1], U[0])
-    	var dist_b = Vector.distance(U3_b, U[1], U[0])
-    	if (wrist_out){
+        var dist_a = Vector.distance(U3_a, U[2])
+    	var dist_b = Vector.distance(U3_b, U[2])
+        if (wrist_out){
     		if (dist_a < dist_b){
         		U[3] = U3_a
         	}else{
@@ -99,6 +99,27 @@ var Kin = new function(){
         		U[3] = U3_b
         	}
     	}
+    	
+        
+        
+        /*
+        //This is proven to work for direction of approx. [0, 0, -1] 
+        var dist_a = Vector.distance(U3_a, U[1], U[0])
+    	var dist_b = Vector.distance(U3_b, U[1], U[0])
+        if (wrist_out){
+    		if (dist_a < dist_b){
+        		U[3] = U3_a
+        	}else{
+        		U[3] = U3_b
+        	}
+    	}else{
+    		if (dist_a > dist_b){
+        		U[3] = U3_a
+        	}else{
+        		U[3] = U3_b
+        	}
+    	}
+        */
         
         
     	//Solving for P2
@@ -504,7 +525,7 @@ var Kin = new function(){
         let direction = Vector.transpose(Vector.pull(EE_pose, [0,2], [1,1]))
         let xyz = Vector.transpose(Vector.pull(EE_pose, [0,2], [3,3]))
         let kin_res = Kin.inverse_kinematics(xyz, direction, config)
-        let x_vector = Vector.pull(kin_res[2], [1,1], [0,2])
+        let x_vector = kin_res[2][2].slice(0,3)
         //let y_vector = direction
         //let z_vector = Vector.cross(x_vector, y_vector)
         let x_vector_desired = Vector.transpose(Vector.pull(EE_pose, [0,2], [0,0]))
