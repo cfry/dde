@@ -35,7 +35,7 @@ console.log(the_dde_apps_dir + " exists=" + exists)
 if(!exists) { //probably on windows
     let last_backslash_index = documents_dir.lastIndexOf("\\")
     let before_docs_path = documents_dir.substring(0, last_backslash_index)
-    let the_dde_apps_dir = before_docs_path + "\\OneDrive\\Documents\\dde_apps"
+    the_dde_apps_dir = before_docs_path + "\\OneDrive\\Documents\\dde_apps"
     exists = fs.existsSync(the_dde_apps_dir)
     console.log(the_dde_apps_dir + " exists=" + exists)
     if (!exists) {
