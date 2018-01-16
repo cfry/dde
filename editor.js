@@ -176,23 +176,26 @@ Editor.restore_files_menu_paths_and_last_file = function(){ //called by on ready
 }
 
 Editor.get_any_selection = function(){
+    //do in this order because clicking in editor window makes other selections go away.
+    //so if ther are other selections, it means you made the AFTER you made
+    //the editor window sel, and therefore your attention is on that non-editor selection.
     var sel_text = ""
-    sel_text = myCodeMirror.doc.getValue().substring(Editor.selection_start(), Editor.selection_end())
-    if(sel_text.length > 0) { return sel_text }
-    sel_text = Editor.get_cmd_selection()
-    if(sel_text.length > 0 ) { return sel_text }
-    //console.log("sel: " + window.getSelection().getRangeAt(0).toString()) //this print statement cause a weird bug for certaon large selections.
     if (!window.getSelection().isCollapsed) { //got sel in doc or output pane
         return window.getSelection().getRangeAt(0).toString()
     }
-    if (window.run_src_id){ //run_insutruction dialog type in
+    sel_text = Editor.get_cmd_selection()
+    if(sel_text.length > 0 ) { return sel_text }
+    sel_text = myCodeMirror.doc.getValue().substring(Editor.selection_start(), Editor.selection_end())
+    if(sel_text.length > 0) { return sel_text }
+    /* obsolete because run_src_id is not the full src anymore
+    if (window.run_src_id){ //run_instruction dialog type in
         const sel_start = run_src_id.selectionStart
-        const sel_end = run_src_id.selectionEnd
+        const sel_end   = run_src_id.selectionEnd
         if (sel_start != sel_end) {   //got sel in cmd_input
             const full_src = run_src_id.value
             return full_src.substring(sel_start, sel_end)
         }
-    }
+    }*/
     return ""
 }
 

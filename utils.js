@@ -8,7 +8,11 @@ function prepend_file_message_maybe(message){
 
 function shouldnt(message){
     console.log(message)
-    throw new Error("Shouldnt: " + prepend_file_message_maybe(message))
+    throw new Error("The function: shouldnt has been called.<br/>" +
+                    "This means there is a bug in DDE.<br/>" +
+                    "Please send a bug report. See User_Guide/Contact.<br/>" +
+                    "Include this whole message.<br/>" +
+                     prepend_file_message_maybe(message))
 }
 
 function warning(message, temp=false){

@@ -15,7 +15,20 @@ console.log("in main.js with __dirname:    " + __dirname)
 console.log("in main.js with  app_path:    " + global.app_path)
 
 // Module to create native browser window.
-const documents_dir = app.getPath("documents")
+var documents_dir
+try { documents_dir = app.getPath("documents")
+    console.log("First try getting 'documents' yielded: " + documents_dir)
+}
+catch(err) {
+    console.log("Error evaling: " + 'app.getPath("documents")')
+    documents_dir = app.getPath("OneDrive/documents")
+    console.log("Second try getting 'documents' yielded: " + documents_dir)
+}
+if (!documents_dir) {
+    documents_dir = app.getPath("OneDrive/documents")
+    console.log("Third try getting 'documents' yielded: " + documents_dir)
+}
+//console.log("documents_dir = " + documents_dir)
 global.dde_apps_dir = documents_dir + "/dde_apps"
 console.log("in main.js with dde_apps_dir: " + global.dde_apps_dir)
 const BrowserWindow = electron.BrowserWindow

@@ -5416,7 +5416,12 @@ document.addEventListener("click", function(e){
         <pre><code>show_window({
     content:'&lt;p id="p_id" class="clickable">some para&lt;/p>',
     callback: function (vals){ append_in_ui("p_id", "&lt;h1>hey&lt;/h1>")}
-})</code></pre>
+})    </code></pre>
+        <a href="#" onclick="open_doc(make_html_doc_id)">make_html</a> has a lot of advantages for creating HTML,
+        many of which are not apparent from this simple example:
+<pre><code>show_window({
+    content: make_html("p", {"font-size": Math.pow(6, 2) + "px"}, "some para")
+            })    </code></pre>
         <b>callback</b> A function of one argument. Any returned value will be ignored.
         It will be called when the user clicks a button in
         a show_window. It's argument will be a literal object. Many of its properties are x and y positions
