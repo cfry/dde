@@ -8,7 +8,7 @@
 
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version:  <span id="dde_version_id">2.3.1</span><br/>
+    version:  <span id="dde_version_id">2.3.2</span><br/>
     released: <span id="dde_release_date_id">Jan 15, 2018</span>
     <p></p>
     DDE helps you create, debug, and send software to a Dexter robot.
@@ -526,8 +526,8 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
                 evaling little pieces of code often. This will prevent
                 hard-to-find bugs. This is a great way to learn
                 about functionality.
-                <ul><li>If there is a selection in the Editor,
-                    it will be evaled when you click the button.
+                <ul><li>If there is a selection in the Editor or other pane,
+                    it will be evaled when you click the <button>Eval</button> button.
                     Triple click on a line in the editor to select
                     the whole line.
                     Note that all "valid" code won't necessarily
@@ -541,7 +541,7 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
                     <li>If there is no selection, the entire contents of
                         the Editor pane will be evaluated.</li>
                 </ul><p></p></li>
-            <li><b>Inspector</b> When you select some code and click the Eval button,
+            <li><b>Inspector</b> When you select some code and click the <button>Eval</button> button,
                the result of running that code is shown in the Output pane in an Inspector.
                This allows you to navigate complex data strutures (including circular ones)
                expanding just those parts you're interesting in, giving you control
@@ -675,7 +675,8 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
     The quickest way to learn most of the JavaScript you'll need is from the
     Editor Pane's <button>Learn JS&#9660;</button> menu.
     Read menu item tooltips, choose an item to insert code, then click <button>Eval</button>
-    to eval all the code in the Editor. If there's a selection when you click Eval,
+    to eval all the code in the Editor.
+    If there's a selection when you click <button>Eval</button>,
     just the selected code will be evaluated. In fact, <button>Eval</button>
     works on any selected text. Try it by:
     <ul><li>Select the all below code in white.</li>

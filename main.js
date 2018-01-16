@@ -1,5 +1,14 @@
 "use strict";
 
+/* To see the below console.log printouts, you must launch DDE from
+a cmd line. IN windows run a terminal window, CD to your
+Program Files folder and find a file dde_dev_env.exe
+then that's the right folder so
+in hte terminal window, cd to that folder and
+enter dde_dev_env  to launch.
+Then the below console.log prinouts appear in that terminal window.
+ */
+
 const electron = require('electron')
 // Module to control application life.
 const app = electron.app
@@ -14,22 +23,31 @@ global.app_path = app.getAppPath()
 console.log("in main.js with __dirname:    " + __dirname)
 console.log("in main.js with  app_path:    " + global.app_path)
 
+const fs = require('fs');
 // Module to create native browser window.
-var documents_dir
-try { documents_dir = app.getPath("documents")
-    console.log("First try getting 'documents' yielded: " + documents_dir)
+//Because MS screwed up the relationhip between OneDrive and Documents in Windows 10,
+//we do a lot of work to work around their bug.
+let documents_dir = app.getPath("documents")
+console.log("First try getting 'documents' yielded: " + documents_dir)
+let the_dde_apps_dir = documents_dir + "/dde_apps"
+let exists = fs.existsSync(the_dde_apps_dir)
+console.log(the_dde_apps_dir + " exists=" + exists)
+if(!exists) { //probably on windows
+    let last_backslash_index = documents_dir.lastIndexOf("\\")
+    let before_docs_path = documents_dir.substring(0, last_backslash_index)
+    let the_dde_apps_dir = before_docs_path + "\\OneDrive\\Documents\\dde_apps"
+    exists = fs.existsSync(the_dde_apps_dir)
+    console.log(the_dde_apps_dir + " exists=" + exists)
+    if (!exists) {
+        console.log('DDE cannot find the folder "Documents/apps_dir/" . You must create it.')
+        the_dde_apps_dir = documents_dir + "/dde_apps" //user will need to create it
+    }
 }
-catch(err) {
-    console.log("Error evaling: " + 'app.getPath("documents")')
-    documents_dir = app.getPath("OneDrive/documents")
-    console.log("Second try getting 'documents' yielded: " + documents_dir)
-}
-if (!documents_dir) {
-    documents_dir = app.getPath("OneDrive/documents")
-    console.log("Third try getting 'documents' yielded: " + documents_dir)
-}
+//let init_file_one_drive = app.getPath("OneDrive/documents") + "/dde_apps"
+//exists = fs.existsSync(init_file_one_drive)
+//console.log(init_file_one_drive + " exists 2: " + exists)
 //console.log("documents_dir = " + documents_dir)
-global.dde_apps_dir = documents_dir + "/dde_apps"
+global.dde_apps_dir = the_dde_apps_dir //documents_dir + "/dde_apps"
 console.log("in main.js with dde_apps_dir: " + global.dde_apps_dir)
 const BrowserWindow = electron.BrowserWindow
 
