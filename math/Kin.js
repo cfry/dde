@@ -84,6 +84,9 @@ var Kin = new function(){
     	var U54_Proj = Vector.project_vector_onto_plane(V54, P[1])
     	var U3_a = Vector.add(U[4], Vector.multiply(L[3], Vector.rotate(Vector.normalize(U54_Proj), P[1], 90)))
         var U3_b = Vector.add(U[4], Vector.multiply(L[3], Vector.rotate(Vector.normalize(U54_Proj), P[1], -90)))
+        
+        
+        //This is proven to work for directions of approx. [0, 1, 0] but has potentially not been tested enough
         var dist_a = Vector.distance(U3_a, U[2])
     	var dist_b = Vector.distance(U3_b, U[2])
         if (wrist_out){
@@ -103,7 +106,7 @@ var Kin = new function(){
         
         
         /*
-        //This is proven to work for direction of approx. [0, 0, -1] 
+        //This is proven to work for directions of approx. [0, 0, -1] but not for [x, y, 0]
         var dist_a = Vector.distance(U3_a, U[1], U[0])
     	var dist_b = Vector.distance(U3_b, U[1], U[0])
         if (wrist_out){
@@ -193,7 +196,16 @@ var Kin = new function(){
     	}
     
     	if(Vector.is_NaN(J[2])){
-        	dde_error("Singularity at: " + xyz + ", " + direction + ", " + config + ". Please copy this message and report it as a bug.")
+        	let thres = 100
+        	if(Dexter.LINK1 > thres || Dexter.LINK2 > thres || Dexter.LINK3 > thres || Dexter.LINK4 > thres || Dexter.LINK5 > thres){
+            	dde_error("Link lengths are non properly defined: "  
+                + "</br>Dexter.LINK1: " + Dexter.LINK1 + " (meters)"
+                + "</br>Dexter.LINK2: " + Dexter.LINK2 + " (meters)"
+                + "</br>Dexter.LINK3: " + Dexter.LINK3 + " (meters)"
+                + "</br>Dexter.LINK4: " + Dexter.LINK4 + " (meters)"
+                + "</br>Dexter.LINK5: " + Dexter.LINK5 + " (meters)")
+            }
+        	dde_error("Singularity at: " + xyz + ", " + direction + ", " + config + ".</br>Please copy this message and report it as a bug.")
     	}
     
     	return [J, U, P]
