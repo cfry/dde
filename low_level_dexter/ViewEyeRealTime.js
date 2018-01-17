@@ -1,6 +1,24 @@
 var centers_string
 var AxisTable
 
+function cal_is_clockwise(data_points, center_point = [0, 0]){
+	let data_size = Vector.matrix_dimensions(data_points)
+    let v1 = Vector.normalize(Vector.subtract(data_points[1], center_point))
+    let v2 = Vector.normalize(Vector.subtract(data_points[0], center_point))
+    let old_angle = Math.atan2(v2[1] - v1[1], v2[0] - v1[0])
+    let angle
+	for(let i = 2; i < data_size[0]; i++){
+    	v1 = Vector.normalize(Vector.subtract(data_points[i-1], center_point))
+        v2 = Vector.normalize(Vector.subtract(data_points[i], center_point))
+        angle = Math.atan2(v2[1] - v1[1], v2[0] - v1[0])
+        if(angle*old_angle < 0){ // if sign change
+        	return null
+        }
+        old_angle = angle
+    }
+    return angle > 0
+}
+
 function smLinex(run_backwards = false){
     xydata = []
     const size = Math.floor(AxisTable[window.cal_working_axis][4])
@@ -87,7 +105,7 @@ function smLinex(run_backwards = false){
                         
                         let correct_direction
                         let cw_state = cal_is_clockwise(eye_center, xydata)
-    					out("cw_state = " + cw_state)
+    					//out("cw_state = " + cw_state)
     					let joint_directions = [false, false, false, false, false] //All joints are expected to move counterclockwise
                         
                         if(Outer_J_Ranges["J" + J_num + "BoundryHigh"] < Outer_J_Ranges["J" + J_num + "BoundryLow"]){
