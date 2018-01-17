@@ -2,7 +2,27 @@
 //Inverse Kinematics + Forward Kinematics + supporting functions
 //James Wigglesworth
 //Started: 6_18_16
-//Updated: 9_1_17
+//Updated: 7_10_17
+
+
+/*
+debugger
+//Kin.xyz_to_J_angles([0, 0.08255, 0.8667749999999999], [0, 1, 0])
+Kin.xyz_to_J_angles([[0, .5, .075], [0, 0], [1, 1, 1]])
+debugger
+Kin.xyz_to_J_angles(Kin.J_angles_to_xyz([0,4, 0, 0, 0]))
+
+debugger
+Kin.J_angles_to_xyz(Dexter.NEUTRAL_ANGLES)
+Kin.xyz_to_J_angles(Kin.J_angles_to_xyz(Dexter.NEUTRAL_ANGLES))
+
+debugger
+Kin.xyz_to_J_angles([0, 0.511038126204794, 0.07581480790919819])
+
+Dexter.NEUTRAL_ANGLES
+Vector.matrix_multiply(Vector.make_pose([1, 2, 3], [0, 0, 0]), Vector.properly_define_point([[1, 2, 3], [4, 5, 6]]))
+
+*/
 
 
 var Kin = new function(){
@@ -11,13 +31,13 @@ var Kin = new function(){
         	dde_error("xyz must be defined. To prevent unpredictable movement a default is not used.")
         }
         let xyz_dim = Vector.matrix_dimensions(xyz)
-        if(!(xyz_dim[0] == 1 && xyz_dim[1] == 3)){
-        	robot_pose = direction.slice()
-            config = xyz[2].slice()
-            direction = xyz[1].slice()
-            xyz = xyz[0].slice()
+        if(xyz_dim[0] == 3 && xyz_dim[1] == 3){
+        	robot_pose = direction
+            config = xyz[2]
+            direction = xyz[1]
+            xyz = xyz[0]
         }
-        if((robot_pose == undefined) || (robot_pose == [0, 0, -1])){
+        if(robot_pose == undefined || robot_pose == [0, 0, -1]){
         	robot_pose = Vector.identity_matrix(4)
         }
     
@@ -64,9 +84,12 @@ var Kin = new function(){
     	var U54_Proj = Vector.project_vector_onto_plane(V54, P[1])
     	var U3_a = Vector.add(U[4], Vector.multiply(L[3], Vector.rotate(Vector.normalize(U54_Proj), P[1], 90)))
         var U3_b = Vector.add(U[4], Vector.multiply(L[3], Vector.rotate(Vector.normalize(U54_Proj), P[1], -90)))
-        var dist_a = Vector.distance(U3_a, U[1], U[0])
-    	var dist_b = Vector.distance(U3_b, U[1], U[0])
-    	if (wrist_out){
+        
+        /*
+        
+        var dist_a = Vector.distance(U3_a, U[2])
+    	var dist_b = Vector.distance(U3_b, U[2])
+        if (wrist_out){
     		if (dist_a < dist_b){
         		U[3] = U3_a
         	}else{
@@ -79,6 +102,27 @@ var Kin = new function(){
         		U[3] = U3_b
         	}
     	}
+    	*/
+        
+        
+        
+        //This is proven to work for direction of approx. [0, 0, -1] 
+        var dist_a = Vector.distance(U3_a, U[1], U[0])
+    	var dist_b = Vector.distance(U3_b, U[1], U[0])
+        if (wrist_out){
+    		if (dist_a < dist_b){
+        		U[3] = U3_a
+        	}else{
+        		U[3] = U3_b
+        	}
+    	}else{
+    		if (dist_a > dist_b){
+        		U[3] = U3_a
+        	}else{
+        		U[3] = U3_b
+        	}
+    	}
+        
         
         
     	//Solving for P2
@@ -172,7 +216,7 @@ var Kin = new function(){
         
         //Calculates all vectors first
         P[0] = P0
-		P[1] = Vector.rotate(P[0], V10, -(J[0]-180))
+		P[1] = Vector.rotate(P[0], V10, J[0]-180)
         V21 = Vector.rotate(V10, P[1], J[1])
         V32 = Vector.rotate(V21, P[1], J[2])
         V43 = Vector.rotate(V32, P[1], J[3])
@@ -195,14 +239,7 @@ var Kin = new function(){
     }
 
     this.is_in_reach = function(xyz, J5_direction = [0, 0, -1], config = [1, 1, 1], robot_pose){
-    	try{
-			Kin.xyz_to_J_angles(xyz, J5_direction, config, robot_pose)
-            return true
-		}catch(err){
-			return false
-		}
-        /*
-        let base_xyz = [0, 0, 0] // Come back to this and pull it from robot_pose
+    	let base_xyz = [0, 0, 0] // Come back to this and pull it from robot_pose
         let base_plane = [0, 0, 1]
         let U3
         let U1 = Vector.add(base_xyz, Vector.multiply(base_plane, Dexter.LINK1))
@@ -245,7 +282,6 @@ var Kin = new function(){
         }else{
         	return false
         }
-        */
     }
     
     
@@ -472,17 +508,35 @@ var Kin = new function(){
         return Kin.inverse_kinematics(xyz, J5_direction, config, pose)[0]
     }
 
-    //Wrapper function for inverse kinematics
-    //Returns joint points
     this.xyz_to_J_points = function(xyz, J5_direction = [0, 0, -1], config = Dexter.RIGHT_UP_OUT){
         return Kin.inverse_kinematics(xyz, J5_direction, config)[1]
     }
     
-    //Wrapper function for inverse kinematics
-    //Returns joint points
     this.xyz_to_J_planes = function(xyz, J5_direction = [0, 0, -1], config = Dexter.RIGHT_UP_OUT){
         return Kin.inverse_kinematics(xyz, J5_direction, config)[2]
     }
+    
+    /*
+    var EE_pose = Vector.make_pose([-0.4, 0.4, 0.2], [90, 0, 0])
+    var direction = Vector.transpose(Vector.pull(EE_pose, [0,2], [1,1]))
+    debugger
+    var J_angles = Kin.xyz_to_J_angles_6_axes(EE_pose)
+    
+    
+    */
+    this.xyz_to_J_angles_6_axes = function(EE_pose, config = Dexter.RIGHT_UP_OUT){
+        let direction = Vector.transpose(Vector.pull(EE_pose, [0,2], [1,1]))
+        let xyz = Vector.transpose(Vector.pull(EE_pose, [0,2], [3,3]))
+        let kin_res = Kin.inverse_kinematics(xyz, direction, config)
+        let x_vector = kin_res[2][2].slice(0,3)
+        //let y_vector = direction
+        //let z_vector = Vector.cross(x_vector, y_vector)
+        let x_vector_desired = Vector.transpose(Vector.pull(EE_pose, [0,2], [0,0]))
+        let J6 = Vector.signed_angle(x_vector, x_vector_desired, direction)
+		
+        return [kin_res[0][0], kin_res[0][1], kin_res[0][2], kin_res[0][3], kin_res[0][4], J6]
+    }
+    
 	
     //Wrapper function for forward kinematics
     this.J_angles_to_xyz = function(joint_angles){
@@ -909,37 +963,13 @@ debugger
 var myJangles = Kin.xyz_to_J_angles(point_1, [0, 1, -1], Dexter.RIGHT_DOWN_OUT)
 */
 
-
-/*
-var point_1 = [.1, .2, .3]
-var myJangles = Kin.xyz_to_J_angles(point_1, [0, 1, -1], Dexter.RIGHT_DOWN_OUT)
-var myPoints = Kin.J_angles_to_xyz(myJangles)
-myPoints[0]
-point_1
-
-*/
-
-
-
-
-
-/*
-//Old broken code:
 new TestSuite("Inverse to Forward Kinematics and Back",
     ["var point_1 = [.1, .2, .3]"],
 	["var myJangles = Kin.xyz_to_J_angles(point_1, [0, 1, -1], Dexter.RIGHT_DOWN_OUT)"],
 	["var myPoints = Kin.J_angles_to_xyz(myJangles)"],
     ["myPoints[0]"],
 	["point_1"]
-)*/
-
-new TestSuite("Inverse to Forward Kinematics and Back",
-    ["var xyz_before = [.1, .2, .3]", "undefined"],
-    ["var Jangles = Kin.xyz_to_J_angles(xyz_before, [0, 0, -1])", "undefined"],
-    ["var xyz_after = Kin.J_angles_to_xyz(Jangles)", "undefined"],
-    ["Vector.is_equal(xyz_before, xyz_after[0])", "true"],
 )
-
 
 new TestSuite("Checking xyz",
     ["Kin.check_J_ranges([0, 0, 0, 0, 0])", "true"],
