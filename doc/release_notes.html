@@ -5,7 +5,7 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
-<details class="doc_details"><summary>v 2.3.4, Jan 20, 2018</summary>
+<details class="doc_details"><summary>v 2.3.5, Jan 19, 2018</summary>
 Highlights: Bug fixes and a few internal mods.
 <ul>
     <li> Improvements to Ref Man/Robot/Robot Instructions/Any Start Object</li>
@@ -22,11 +22,16 @@ Highlights: Bug fixes and a few internal mods.
         a column as a robot is moving.
         May still need improvement. Feedback welcome.</li>
 
-      <li> Expect a bug in calibration
-           that has an error message containing "add".
-           We will fix this soon.</li>
+    <li> Bug fix to the Kinematics "vector.add" bug.
+         Removed "known issue" about this bug.
+    </li>
+
     <li>Kinematics: Singularity error message updated to check if
          link length are in correct units.</li>
+
+    <li> Fixed release date (2.3.4 wrongly had Jan 20) </li>
+
+    <li> Fixed test suite for is_integer </li>
 </ul>
 </details>
 
