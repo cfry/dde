@@ -5,6 +5,30 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 2.3.4, Jan 20, 2018</summary>
+Highlights: Bug fixes and a few internal mods.
+<ul>
+    <li> Improvements to Ref Man/Robot/Robot Instructions/Any Start Object</li>
+
+    <li> Extended the Insert Menu/show_window/svg menu item label
+         with the suffix "(2D drawing)" just in case uses don't know
+         what svg means.</li>
+
+    <li> show robot_status dialog now prints the bulk of the numbers
+        as having exactly 3 digits to the right of the decimal point
+        and right-justifies the number so that the decimal points
+        of the cells in a column will line up.
+        This should also reduce the dynamic changing of the width of
+        a column as a robot is moving.
+        May still need improvement. Feedback welcome.</li>
+
+      <li> Expect a bug in calibration
+           that has an error message containing "add".
+           We will fix this soon.</li>
+    <li>Kinematics: Singularity error message updated to check if
+         link length are in correct units.</li>
+</ul>
+</details>
 
 <details class="doc_details"><summary>v 2.3.3, Jan 16, 2018</summary>
 Yet another attempt to fix the Windows 10 "OneDrive" bug.

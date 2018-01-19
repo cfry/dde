@@ -6,12 +6,14 @@ var job_default_params = {name: null, robot: Robot.dexter0, do_list: [],
                           keep_history: true, show_instructions: true,
                           inter_do_item_dur: 0.001, user_data:{},
                           program_counter:0, ending_program_counter:"end",
-                          initial_instruction: null, when_stopped: "stop"}
+                          initial_instruction: null, when_stopped: "stop",
+                          callback_param: "start_object_callback"}
 
 var Job = class Job{
     constructor({name=null, robot=Robot.dexter0, do_list=[], keep_history=true, show_instructions=true,
                  inter_do_item_dur = 0.01, user_data={}, program_counter=0, ending_program_counter="end",
-                 initial_instruction = null, when_stopped = "stop"} = {}){
+                 initial_instruction = null, when_stopped = "stop",
+                 callback_param = "start_object_callback"} = {}){
     //program_counter is the counter of the next instruction that should be executed.
     //so since we're currently "executing" 1 instruction, and after its done,
     //we'll be incrementing the pc, then internally we decriment the
@@ -36,7 +38,8 @@ var Job = class Job{
         this.orig_args = {do_list: do_list, keep_history: keep_history, show_instructions: show_instructions,
                             inter_do_item_dur: inter_do_item_dur, user_data: user_data,
                             program_counter: program_counter, ending_program_counter: ending_program_counter,
-                            initial_instruction: initial_instruction, when_stopped: when_stopped}
+                            initial_instruction: initial_instruction, when_stopped: when_stopped,
+                            callback_param: callback_param}
         this.name              = name
         this.robot             = robot
         this.user_data         = user_data //needed in case we call to_source_code before first start of the job
@@ -134,7 +137,7 @@ var Job = class Job{
             this.added_items_count = new Array(this.do_list.length) //This array parallels and should be the same length as the run items on the do_list.
             this.added_items_count.fill(0) //stores the number of items "added" by each do_list item beneath it
             //if the initial pc is > 0, we need to have a place holder for all the instructions before it
-
+            this.callback_param    = this.orig_args.callback_param
             this.keep_history      = this.orig_args.keep_history
             this.show_instructions = this.orig_args.show_instructions
             this.inter_do_item_dur = this.orig_args.inter_do_item_dur

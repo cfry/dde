@@ -152,6 +152,10 @@ function is_non_neg_integer(anything){
     return Number.isInteger(anything) && (anything > -1)
 }
 
+function is_integer(num) {
+    return (typeof num === 'number') && (num % 1 === 0);
+}
+
 function is_string_a_float(a_string){
     var pat = /^-?[0-9]+\.[0-9]+$/;
     if(a_string.match(pat)) {  return true; }
@@ -832,6 +836,33 @@ function trim_string_quotes(a_string){
 
 function replace_substrings(orig_string, substring_to_replace, replacement){
     return orig_string.replace(new RegExp(substring_to_replace, 'g'), replacement);
+}
+
+//the use of this fn is to left pad a number with spaces so tha the
+//decimal point comes at the same char position in a set of
+//numbers passed to this fn with the same non-first args.
+//After the decimal point is padded with zeros if
+//there aren't enough regular post decimal point numbers.
+// the end is padded with zeros.
+//if digits are cut on the end, the last digit in teh result is rounded
+//to reflect the cut digits.
+//returns a string whose length is digits_before_point + digits_after_point
+// + 1 (for the decinmat point, plus 1 if allow_for_negative is true.
+//returned string will b longer than that if num is bigger than can fit in digits_before_point,
+//but it won't be shorter. So calls sould have the largest digits_before_point expected,
+//and should only set allow_for_negative to false when they know the num args in
+// a displayed result set will never have a neg number.
+function format_number(num, digits_before_point=6, digits_after_point=3, allow_for_negative=true){
+    let result = num.toFixed(digits_after_point)
+    let min_chars_before_point = digits_before_point + (allow_for_negative ? 1 : 0)
+    let point_pos = result.indexOf(".")
+    if (point_pos == -1) { point_pos = result.length }
+    let needed_spaces_count = min_chars_before_point - point_pos
+    if (needed_spaces_count > 0) {
+        let needed_spaces = " ".repeat(needed_spaces_count)
+        result = needed_spaces + result
+    }
+    return result
 }
 
 //used by users in calling  DXF.init_drawing for its dxf_filepath arg

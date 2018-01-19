@@ -1934,7 +1934,7 @@ Dexter.show_robot_status = function(){
 Dexter.updating_robot_status_robot_name = null
 Dexter.updating_robot_status_job_name   = null
 
-//called initially from sandbox, from robot_done_with_instruction when the actual robot_status is changed.
+//called after the table is created, to update it dynamically.  from robot_done_with_instruction when the actual robot_status is changed.
 Dexter.update_robot_status_table = function(robot_status){
     if((Dexter.updating_robot_status_robot_name == null) &&
         (Dexter.updating_robot_status_job_name  == null)) {
@@ -1952,6 +1952,9 @@ Dexter.update_robot_status_table = function(robot_status){
            let label    = Dexter.robot_status_labels[i]
            if (!label.startsWith("UNUSED")){
                 let val      = (robot_status ? robot_status[i] : "no status") //its possible that a robot will have been defined, but never actually run when this fn is called.
+                if((typeof(val) == "number") && (i >= 10)) { //display as a real float
+                   val = val.toFixed(3)
+                }
                 let elt_name = label + "_id"
                 window[elt_name].innerHTML = val
            }
@@ -2060,7 +2063,7 @@ Dexter.update_robot_status_to_html_table = function(robot){
         Dexter.make_rs_row(robot_status, "PLAYBACK",  "J1_PLAYBACK",  "J2_PLAYBACK",  "J3_PLAYBACK",  "J4_PLAYBACK",  "J5_PLAYBACK" ) +
         Dexter.make_rs_row(robot_status, "SENT",      "J1_SENT",      "J2_SENT",      "J3_SENT",      "J4_SENT",      "J5_SENT"     ) +
         Dexter.make_rs_row(robot_status, "SLOPE",     "J1_SLOPE",     "J2_SLOPE",     "J3_SLOPE",     "J4_SLOPE",     "J5_SLOPE"    ) +
-        "<tr><th>MEASURED X</th><td>" + xyz[0] + "</td><th>MEASURED Y</th><td>" + xyz[1] + "</td><th>MEASURED Z</th><td>" + xyz[2] + "</td></tr>" +
+        "<tr><th>MEASURED X</th><td>" + xyz[0].toFixed(3) + "m</td><th>MEASURED Y</th><td>" + xyz[1].toFixed(3) + "m</td><th>MEASURED Z</th><td>" + xyz[2].toFixed(3) + "m</td></tr>" +
         "</table>"
     return result
 }
@@ -2068,6 +2071,10 @@ Dexter.update_robot_status_to_html_table = function(robot){
 Dexter.make_rs_row = function(robot_status, ...fields){
     let result   = "<tr>"
     let on_first = true
+    let row_header = fields[0]
+    let do_decimal_processing = row_header != ""
+    //let is_angle = fields[0].endsWith("ANGLE")
+    //let degree_html = (is_angle ? "&deg;" : "")
     for(let field of fields){
         let val = (robot_status ? robot_status[Dexter[field]] : "no status")
         if(on_first) {
@@ -2086,9 +2093,28 @@ Dexter.make_rs_row = function(robot_status, ...fields){
                         "' id='" + field + "_id'>" +
                         val + "</td>"
         }
-        else {
-            result += "<td id='" + field + "_id'>" + val + "</td>"
+        else if (row_header != "") { //body of table, expect floating point numbers, float right
+            val = val.toFixed(3) //format_number(val)
+            result += "<td>" +
+                "<span id='" + field + "_id' style='font-family:monospace;float:right;'>" + val + "</span>" +
+                //degree_html + not playing nicely with float right so skip for now.
+                "</td>"
+
         }
+        /*else if (is_integer(val)){
+            result += "<td style='font-family:monospace;' id='" + field + "_id'>" + val + degree_html + "</td>"
+        }
+        else if (typeof(val) == "number") { //it will be a float
+                val = val.toFixed(3) //format_number(val)
+                //val = val.substring(0, 12) //cut off precision because lots of prevision is
+                      //useless, AND it makes the columns wider and narrower dynamically
+                      //which is very distracting to read real time updates
+            result += "<td>" +
+                       "<span id='" + field + "_id' style='font-family:monospace;float:right;'>" + val + "</span>" +
+                           //degree_html + not playing nicely with float right so skip for now.
+                           "</td>"
+        }*/
+        else { result += "<td id='" + field + "_id'>" + val + "</td>" }
     }
     return result + "</tr>"
 }

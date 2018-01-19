@@ -2319,7 +2319,7 @@ by keyword<br/>
 <li><b>callback_param</b> If this property is present and non-null,
 it indicates that a callback function will be created by DDE and
 passed to the start function at the position indicated by the
-callback_param's value. If start_args is an array, callback_oaram,
+callback_param's value. If start_args is an array, callback_param,
 if present, must be a non-negative integer. The start method will
 have the callback method passed at that position in the argment list.
 For instance, if the start_args are <code>["one", "two"]</code> and the
@@ -2338,7 +2338,7 @@ call will look like: <br/>
 </li>
 
 <li><b>dur</b> If there's no callback_param but there is a dur, then
-     the ob will pause for the number of seconds in the dur field before
+     the Job will pause for the number of seconds in the dur field before
      running the next instruction.
 <pre><code>new Job({name: "Job1",
       do_list: [{start: function(){out("wait a sec or 3")},
@@ -2360,11 +2360,12 @@ then after this instruction has completed,<br/>
 new Job({name: "my_job2",
          do_list: [Job.my_job1]})
          </code></pre>
-When Job.my_job2 is started, it will cause my_job1 to start then immediately
-move to my_job2's "next" instruction, but since there isn't one,
-my_job will finish, perhaps before my_job1 does.
-It starts my_job1 just by calling
-its start method, the same way you can.
+When Job.my_job2 is started, it will cause my_job1 to start
+by calling its start method (the same way you can programmatcally
+start a Job).
+Immediately after starting my_job1,
+my_job2 runs its "next" instruction, but since there isn't one,
+my_job2 will finish, perhaps before my_job1 does.
 <pre><code title="not in TestSuite">
 new Job({name: "my_job",
          do_list: [function(){Midi.init()},
@@ -2378,7 +2379,7 @@ new Job({name: "my_job",
                   ]})
         </code></pre>
 When a note is created, it has a duration (default 1 second).
-The above plays a melody, with each note waiting for the previos note to
+The above plays a melody, with each note waiting for the previous note to
 complete because running start_object checks for a "dur" field and,
 if present, waits for that amount of time before proceedng to the next
 instruction.<br/>
@@ -2387,10 +2388,13 @@ See <a href="#" onclick="open_doc('music_with_midi_doc_id', event)">Music with M
 new Job({name: "my_job",
          do_list: [{start: function(){out("wait a sec or 3")},
                     dur: 3},
-                    Robot.out("done waiting")]})
+                   Robot.out("done waiting")]})
     </code></pre>
-    Above when the job starts, "wait a sec or 3" is printed in the Output pane,
-    then there's a pause of 3 seconds until the 2nd insruction is run
+    Above when the job starts, the first instruction's start method is
+    called, which prints in the Output pane, "wait a sec or 3".
+    Then there's a pause of 3 seconds
+    (the value of "dur" in the start_object).
+    Finally the Job's 2nd instruction is run
     and prints out "done waiting".
 
 <pre><code>new Job({name: "my_job",
@@ -2412,7 +2416,7 @@ new Job({name: "my_job",
     "Clean my work space." slowly, then speaks
     "Don't forget the end effector." faster,
     and when that's done, finally prints out "you".<br/>
-    To run the first speak instruction, DDE calls an automatically synthesized call
+    To run the first speak instruction, DDE evals an automatically synthesized call
     that looks like:
     <pre><code title="unEVALable">the_start_object.start({speak_data: "Clean my work space.",
                         rate:0.8,
@@ -2438,7 +2442,7 @@ new Job({name: "my_job",
     </code></pre>
     Above we define a "start" method so you can get a little deeper insight.
     We call it "test_cb". It looks like a normal method in that it has
-    args and the first thing it does is print out its first two argumetns.
+    args. The first thing it does is print out its first two arguments.
     But its 3rd argument is a method that is called in the 2nd (and last) line
     of the method with the original args a and b reversed in order
     and one extra arg, 123.

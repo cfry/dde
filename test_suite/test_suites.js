@@ -228,3 +228,24 @@ new TestSuite("csv",
         '[["head one", "head two"], [10, 20], [100, 200]]'],
     ['csv_to_array(array_to_csv(spreadsheet_data))', 'spreadsheet_data']
 )
+
+new TestSuite("format_number",
+    ["format_number(123.45678)", '"    123.457"'],
+    ["format_number(12345.45678)", '"  12345.457"'],
+    ["format_number(1234567.45678)", '"1234567.457"'],
+    ["format_number(-123.45678)", '"   -123.457"'],
+    ["format_number(123.45678, 4, 2)", '"  123.46"'],
+    ["format_number(123.45678, 4, 2, false)", '" 123.46"', "with no space for neg, we just add 1 space to make 4 before decimal."],
+    ["format_number(123.456, 4, 0)", '"  123"'],
+    ["format_number(123.987, 3, 2, false)", '"123.99"', "rounded on purpose"],
+    ["format_number(123.987, 3, 0, false)", '"124"', "rounded on purpose."],
+    ["format_number(123.987, 2, 0, false)", '"124"', "goes over the limit of 2 before decimal point by design. 2 is a min char count, not a max."]
+)
+
+new TestSuite("is_integer",
+    ["is_integer(23)",   "true"],
+    ["is_integer(-5)",   "true"],
+    ["is_integer(1.5)",  "false"],
+    ['is_integer("45")', "false"],
+    ["is_integer([])",   "false"],
+)
