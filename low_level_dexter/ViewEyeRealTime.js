@@ -11,9 +11,11 @@ function cal_is_clockwise(data_points, center_point = [0, 0]){
     	v1 = Vector.normalize(Vector.subtract(data_points[i-1], center_point))
         v2 = Vector.normalize(Vector.subtract(data_points[i], center_point))
         angle = Math.atan2(v2[1] - v1[1], v2[0] - v1[0])
+        /*
         if(angle*old_angle < 0){ // if sign change
         	return null
         }
+        */
         old_angle = angle
     }
     return angle > 0
@@ -24,7 +26,7 @@ function smLinex(run_backwards = false){
     const size = Math.floor(AxisTable[window.cal_working_axis][4])
     const result = []
     result.push (make_ins("F"))
-	out(run_backwards)
+	//out(run_backwards)
     for (let j = 0;j < size;j++){
     	let i = j
     	if(run_backwards){
@@ -98,27 +100,35 @@ function smLinex(run_backwards = false){
                 
                 if(xydata.length%200 == 0){
                 	$(".cal_svg_circle_auto_center_min").remove()
+                    
     				let eye_center = find_perfect_center(xydata)
                     if (!Number.isNaN(eye_center[0][0]) && !Number.isNaN(eye_center[0][1])){
 						thehtml = svg_circle({html_class:"cal_svg_circle_auto_center_min", cx: eye_center[0][0]/10, cy:flip_point_y(eye_center[0][1]/10), r: 3, color: "green"})
     					append_in_ui("svg_id", thehtml)
                         
+                        /*
+                        //Code for clockwise checking
+                        //Proven to be unstable. Need to cancel noise
                         let correct_direction
-                        let cw_state = cal_is_clockwise(eye_center, xydata)
+                        let cw_state = cal_is_clockwise(xydata, eye_center[0])
     					//out("cw_state = " + cw_state)
-    					let joint_directions = [false, false, false, false, false] //All joints are expected to move counterclockwise
+    					let joint_directions = [false, false, true, false, false] //All joints are expected to move counterclockwise
                         
                         if(Outer_J_Ranges["J" + J_num + "BoundryHigh"] < Outer_J_Ranges["J" + J_num + "BoundryLow"]){
                         	correct_direction = cw_state != joint_directions[J_num]
                         }else{
                         	correct_direction = cw_state == joint_directions[J_num]
                         }
+                        
 						
 
                         if(!correct_direction){
                             open_doc(dexter_positive_joint_direction_diagrams_id)
-                            alert("The direction of the eye for J" + J_num + " (clockwise vs counterclockwise) does not appear to be correct. Look in the Doc pane for further instruction.", "Calibration Error")
-			}
+                            alert("The direction of the eye for J" + (J_num+1) + " (clockwise vs counterclockwise) does not appear to be correct. Look in the Doc pane for further instruction.", "Calibration Error")
+						}
+                        //out("Correct Direction")
+                        */
+                        
                     }
                 }
             }

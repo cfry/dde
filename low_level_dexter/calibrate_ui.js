@@ -5,6 +5,7 @@ var Outer_J_Ranges = {J1BoundryLow: -187,
                 J3BoundryLow: -153,
 			    J3BoundryHigh: 153,
                 J4BoundryLow: -103,
+                J4BoundryHigh: 103,
                 J5BoundryLow: -189,
 			    J5BoundryHigh: 189}
 
@@ -76,6 +77,7 @@ function cal_reset_ranges(){
         
         let end_box_name = "cal_end_angle_" + i + "_id"
         let end_dom_elt = window[end_box_name]
+        
         end_dom_elt.value = Outer_J_Ranges["J" + i + "BoundryHigh"]
 		
         start_dom_elt.min = start_dom_elt.value
