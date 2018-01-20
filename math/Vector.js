@@ -163,7 +163,7 @@ var Vector = new function(){
     
     
 	//Public
-    //This is used to add vectors or equal length
+    //This is used to add vectors of equal length
     //Can also add scalars to each element in vector
     //unlimited number of inputs args
     this.add = function(...args){
@@ -207,7 +207,7 @@ var Vector = new function(){
                             	sum[m] = Vector.add(sum[m], shift_vector)
                             }
                         }else{
-                    		out("Error: inputs to function 'add()' are not correct sizes", "red")
+                    		dde_error("Error: inputs to function 'add()' are not correct sizes", "red")
                         }
                     }
                 }
@@ -220,7 +220,7 @@ var Vector = new function(){
     
     
     //Public
-    //This is used to add vectors or equal length
+    //This is used to subtract vectors of equal length
     //Can also add scalars to each element in vector
     //unlimited number of inputs args
     this.subtract = function(){
