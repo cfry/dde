@@ -707,27 +707,66 @@ var Vector = new function(){
     
     
     //Public
-    this.is_equal = function(array1, array2, decimal_places = 14){
-        let result
+    this.is_equal = function(array1, array2, tolerance = 14, tolerance_type = "decimal_places"){
+        
+        let result = true
         if (array1.length !== array2.length){
         	return false
         }else{
-        	let array1_temp = Vector.round(Convert.deep_copy(array1), decimal_places)
-        	let array2_temp = Vector.round(Convert.deep_copy(array2), decimal_places)
-            if(array1_temp.length == undefined){
-            	if(array1_temp == array2_temp){
-                	return true
-                }else{
+        	let array1_temp = Convert.deep_copy(array1)
+            let array2_temp = Convert.deep_copy(array2)
+        	
+        	switch(tolerance_type){
+            	case "decimal_places":
+        		array1_temp = Vector.round(array1_temp, tolerance)
+        		array2_temp = Vector.round(array2_temp, tolerance)
+            	if(array1_temp.length == undefined){
+            		if(array1_temp == array2_temp){
+                		return true
+                	}else{
+                		return false
+                	}
+            	}
+        		result = true
+        		for(var i = 0; i < array1_temp.length; i++){
+            		if (array1_temp[i] != array2_temp[i]){
+                    	return false
+                	}
+            	}
+                break
+                
+                case "absolute":
+				if (Vector.max(Vector.abs(Vector.subtract(array1_temp, array2_temp))) > tolerance){
                 	return false
                 }
-            }
-        	result = true
-        	for(var i = 0; i < array1_temp.length; i++){
-            	if (array1_temp[i] != array2_temp[i]){
-                	result = false
-                    break
+                break
+                
+                case "percent_difference":
+                if(tolerance > 1){
+                	
+                	dde_warning("Percent difference tolerance should be within 0 and 1.</br>Input of " 
+                    + tolerance + " changed to " + (tolerance/100) + ".")
+                    tolerance = tolerance/100
                 }
+                
+                let avg = Vector.average(array1_temp, array2_temp)
+				if (Vector.max(Vector.divide(Vector.abs(Vector.subtract(array1_temp, array2_temp)), avg)) > tolerance){
+                	return false
+                }
+                break
+                
+                case "magnitude":
+                if (Vector.max(Vector.magnitude(Vector.subtract(array1_temp, array2_temp))) > tolerance){
+                	return false
+                }
+                break
+                
+                default:
+                dde_error("Vector.is_equal does not support input of \"" + tolerance_type
+                + "\".</br>Supported tolerance types: \"decimal_places\", \"absolute\", \"percent_difference\", and \"magnitude\"")
+                
             }
+                
         }
         return result
     }
@@ -765,7 +804,6 @@ var Vector = new function(){
         var cross_product = Vector.normalize(Vector.cross(Vector.shorten(vector_A), Vector.shorten(vector_B)))
         var short_plane = Vector.shorten(plane)
         if (!(Vector.is_equal(cross_product, short_plane) || Vector.is_equal(Vector.multiply(-1, cross_product), short_plane)) && cross_product[0] === NaN){
-        	//debugger
             out("Error: input vectors do not lie in plane")
         }
     	
@@ -925,7 +963,11 @@ var Vector = new function(){
     this.max = function(vector){
     	let dim = Vector.matrix_dimensions(vector)
         let temp_max
+        
         if(dim[0] == 1){
+        	if(dim[1] == 0){
+            	return vector
+            }
         	temp_max = -Infinity
         	for(let i = 0; i < dim[1]; i++){
             	if(vector[i] > temp_max){
@@ -954,6 +996,9 @@ var Vector = new function(){
     	let dim = Vector.matrix_dimensions(vector)
         let temp_min
         if(dim[0] == 1){
+        	if(dim[1] == 0){
+            	return vector
+            }
         	temp_min = Infinity
         	for(let i = 0; i < dim[1]; i++){
             	if(vector[i] < temp_min){
@@ -2099,7 +2144,16 @@ new TestSuite("Vector Library",
 	["Vector.normalize([1, 1, 0])", "[0.7071067811865475, 0.7071067811865475, 0]"],
 	["Vector.dot([1, 2, 3], [4, 5, 6])", "32"],
 	["Vector.cross([1, 2, 3], [4, 5, 6])", "[-3, 6, -3]"],
-    ["Vector.transpose(Vector.transpose([1, 2, 3, 4, 5]))", "[1, 2, 3, 4, 5]"]
+    ["Vector.transpose(Vector.transpose([1, 2, 3, 4, 5]))", "[1, 2, 3, 4, 5]"],
+    ["Vector.is_equal([1, 2, 3], [1, 2, 3.01])", "false"],
+    ['Vector.is_equal([1, 2, 3], [1, 2, 3.01], 1, "decimal_places")', "true"],
+    ['Vector.is_equal([1, 2, 3], [1, 2, 3.01], .005, "absolute")', "false"],
+    ['Vector.is_equal([1, 2, 3], [1, 2, 3.01], .1, "absolute")', "true"],
+    ['Vector.is_equal([1, 2, 3], [1, 2, 3], .1, "percent_difference")', "true"],
+    ['Vector.is_equal([1, 2, 3], [1, 2, 3.01], .1, "percent_difference")', "true"],
+    ['Vector.is_equal([1, 2, 3], [1, 2, 3.01], .001, "percent_difference")', "false"],
+    ['Vector.is_equal([1, 1, 1], [2, 2, 2], 1, "absolute")', "true"],
+    ['Vector.is_equal([1, 1, 1], [2, 2, 2], 1, "magnitude")', "false"]
 )
 
 
