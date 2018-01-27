@@ -2,8 +2,7 @@
 //James Wigglesworth
 //Based off of code from Kent Gilson
 //Started: 8_14_17
-//Updated: 10_26_17
-
+//Updated: 1_26_18
 
 
 
@@ -525,10 +524,18 @@ function Finish_Create(){
                     	if(!points_filepath.endsWith(".json")){
                     		points_filepath += ".json"
                     	}
-							
+						
                         let coor_name = this.user_data.coordinate_systems[0]
                         let coor_source_string = ez_get_object(Coor, coor_name).sourceCode()
                         let file_string = JSON.stringify({old_user_data: this.user_data, coor_source_string: coor_source_string})
+                       
+                        file_string = replace_substrings(file_string, "\"saved_positions\":\\[\\{", "\"saved_positions\":\[\n\n\n{\n    ")
+                        file_string = replace_substrings(file_string, "\"start_position\"", "\n    \"start_position\"")
+                        file_string = replace_substrings(file_string, "}],\"plane_points\"", "\n}\n],\n\n\n\n\"plane_points\"")         
+                        file_string = replace_substrings(file_string, "{},", "{}, ")         
+                        file_string = replace_substrings(file_string, ",\"", ",\n    \"")
+                        file_string = replace_substrings(file_string, "},{", "\n},\n{\n    ")
+                        
                     	write_file(points_filepath, file_string)
                         out("Positions saved to " + points_filepath, "blue")
                     }else{
