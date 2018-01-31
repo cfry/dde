@@ -202,16 +202,12 @@ function init_view_eye(){
                     [[0, 0, 0, 400/_nbits_cf, 0], Dexter.J4_A2D_SIN, Dexter.J4_A2D_COS, [0, 0, 0, -190000*_arcsec, 0], 1800, [0, 0, 0, 0, 0]],
                     [[0, 0, 0, 0, 400/_nbits_cf], Dexter.J5_A2D_SIN, Dexter.J5_A2D_COS, [0, 0, 0, 0, -148000*_arcsec], 4240, [0, 0, 0, 0, 0]]]
     
-    /*
-    centers_string = [["0x000000", "0x000000"],
-                        ["0x000000", "0x000000"],
-                        ["0x000000", "0x000000"],
-                        ["0x000000", "0x000000"],
-                        ["0x000000", "0x000000"]]
-    */
-    
+
     window.cal_working_axis = undefined //global needed by calibrate_ui.js
-    out("Attempting to connect to " + robot_to_calibrate_id.value +"...", "blue")
+    
+    
+    
+    
     new Job({name: "CalSensors", keep_history: true, show_instructions: false,
     		inter_do_item_dur: .5 * _ms,
             robot: cal_get_robot(),
@@ -286,10 +282,15 @@ function init_view_eye(){
     }
     */
     
+    //console.log("Attempting to connect to " + robot_to_calibrate_id.value +"...")
+    out("Attempting to connect to " + robot_to_calibrate_id.value +"...", "blue")
     
+    let path_exists_state
+    setTimeout(function(){
+    	path_exists_state = file_exists(path)
+    }, 100)
     
-    
-    if(file_exists(path)){
+    if(path_exists_state){
     	
         let original_content = file_content(path)
         let content_array = original_content.split("\r\n")
@@ -307,8 +308,7 @@ function init_view_eye(){
     	centers_string[5] = centers_string[3]
     	centers_string[3] = temp_string
         
-    }
-    else{
+    }else{
         warning("DDE was unable to connect to Dexter's file system.<br/>A full calibration can still be completed without this connection.<br/>This occurs when running on a Mac OS, not being connected to Dexter, or a accessing a non-existent file.<br/>The calibration file is named:<br/><code title='unEVALable'> " + path)
         centers_string = ["0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000"]
     }
