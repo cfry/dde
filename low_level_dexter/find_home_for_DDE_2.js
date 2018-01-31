@@ -325,7 +325,9 @@ var FindHome = class FindHome {
          if(window["robot_to_calibrate_id"]) {
          	return Robot[robot_to_calibrate_id.value] 
          }
-         else { return Robot.dexter0 }
+         else {
+         	return Robot.dexter0
+         }
     }
     
     static define_job(){
@@ -354,7 +356,7 @@ var FindHome = class FindHome {
     }
 
     static init_find_home () {
-		FindHome.define_job().start() 
+		FindHome.define_job().start({robot: FindHome.find_home_get_robot()})
     }
 
 } //end of class FindHome def

@@ -1,5 +1,7 @@
 function init_calibrate_optical() {
-  new Job({name: "CalEncoders", show_instructions: false,
+  new Job({name: "CalEncoders",
+  			show_instructions: false,
+            robot: cal_get_robot(),
             do_list: [
               make_ins("w", 42,64),
     		  make_ins("w", 42,0),

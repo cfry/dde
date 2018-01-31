@@ -174,7 +174,7 @@ function centers_output(){
     }
     catch(err) {
         warning("DDE was unable to save the 'AdcCenters.txt' file directly to Dexter.<br>Please save the file manually.</br>")
-		setTimeout(function(){ 
+		setTimeout(function(){
         	let path = choose_save_file({defaultPath: 'AdcCenters.txt'})
         	if(path){
         		write_file(path, content)
@@ -211,9 +211,11 @@ function init_view_eye(){
     */
     
     window.cal_working_axis = undefined //global needed by calibrate_ui.js
+    out("Attempting to connect to " + robot_to_calibrate_id.value +"...", "blue")
     new Job({name: "CalSensors", keep_history: true, show_instructions: false,
     		inter_do_item_dur: .5 * _ms,
-             do_list: [ Dexter.move_all_joints(0, 0, 0, 0, 0),
+            robot: cal_get_robot(),
+            do_list: [ Dexter.move_all_joints(0, 0, 0, 0, 0),
              			Robot.label("loop_start"),
                         make_ins("w", 42, 64),
                         make_ins("S", "J1BoundryHigh",648000*_arcsec),
@@ -257,6 +259,8 @@ function init_view_eye(){
                         ]})
 	let ip_address = Job.CalSensors.robot.ip_address
     let path = "//" + ip_address + "/share/AdcCenters.txt"
+    /*
+    //Old Code:
     try{
     	//debugger
         let original_content = file_content(path)
@@ -280,4 +284,33 @@ function init_view_eye(){
         warning("DDE was unable to connect to Dexter's file system.<br/>A full calibration can still be completed without this connection.<br/>This occurs when running on a Mac OS, not being connected to Dexter, or a accessing a non-existent file.<br/>The calibration file is named:<br/><code title='unEVALable'> " + path)
         centers_string = ["0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000"]
     }
+    */
+    
+    
+    
+    
+    if(file_exists(path)){
+    	
+        let original_content = file_content(path)
+        let content_array = original_content.split("\r\n")
+    	centers_string = []
+    	for(let i = 0; i < 10; i++){
+    		//centers_string.push(content_array[i], content_array[i+1])
+            centers_string.push(content_array[i])
+    	}
+        
+        // Switched J2 and J3
+        let temp_string = centers_string[4]
+    	centers_string[4] = centers_string[2]
+    	centers_string[2] = temp_string
+    	temp_string = centers_string[5]
+    	centers_string[5] = centers_string[3]
+    	centers_string[3] = temp_string
+        
+    }
+    else{
+        warning("DDE was unable to connect to Dexter's file system.<br/>A full calibration can still be completed without this connection.<br/>This occurs when running on a Mac OS, not being connected to Dexter, or a accessing a non-existent file.<br/>The calibration file is named:<br/><code title='unEVALable'> " + path)
+        centers_string = ["0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000"]
+    }
+    cal_init_view_eye_state = false
 }

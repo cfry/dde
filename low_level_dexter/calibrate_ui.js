@@ -19,6 +19,8 @@ var cal_saved_points = [
     ]
 
 var showing_J_num = 1
+var cal_init_view_eye_state = true
+
 
 window.cal_svg_height = 410
 window.cal_working_axis = undefined //this is either undefined, 0, 1, 2, 3, 4 (ie zero based joint numbers)
@@ -122,19 +124,32 @@ function cal_draw_saved_center(){
 function handle_cal(vals){
     var the_robot = cal_get_robot()
     //out(vals.clicked_button_value)
+    
     if(vals.clicked_button_value == "Start FindHome"){
     	open_doc("find_home_doc_id")
         //load_files(__dirname + "/user_tools/find_home_for_DDE_2.js")
         load_files(__dirname + "/low_level_dexter/find_home_for_DDE_2.js")
     }else if(vals.clicked_button_value == "Reset Ranges") {
+    	if(cal_init_view_eye_state){
+        	init_view_eye()
+    	}
     	cal_reset_ranges()
     }else if(vals.clicked_button_value == "Clear") {
+    	if(cal_init_view_eye_state){
+        	init_view_eye()
+    	}
     	cal_clear_points()
     }else if(vals.clicked_button_value == ("cal_joint_radio")){
+    	if(cal_init_view_eye_state){
+        	init_view_eye()
+    	}
         showing_J_num = parseInt(vals.cal_joint_radio.substring(10, 11))
         cal_redraw_points()
         cal_draw_saved_center()
     }else if (vals.clicked_button_value.startsWith("Start_J")) {
+    	if(cal_init_view_eye_state){
+        	init_view_eye()
+    	}
     	let J_num = parseInt(vals.clicked_button_value.substring(8, 9))
         let start_button_dom_elt = window["Start_J_" + J_num + "_id"]
         let radio_button_dom_elt = window["cal_joint_" + J_num + "_radio_id"]
@@ -224,6 +239,9 @@ function handle_cal(vals){
         }
     }
     else if (vals.clicked_button_value == "Stop"){
+    	if(cal_init_view_eye_state){
+        	init_view_eye()
+    	}
         if(Job.CalSensors.is_active()){
             Job.CalSensors.stop_for_reason("interrupted", "User stopped job.")
         }
@@ -248,16 +266,20 @@ function handle_cal(vals){
         }
     }
     else if (vals.clicked_button_value === "Save"){
-        const file_write_worked = centers_output()
-        var message_prefix
-        if(file_write_worked) {
-            message_prefix = "Settings saved<br/>&nbsp;&nbsp;&nbsp;&nbsp;Now click"
+    	if (window.cal_working_axis === undefined){
+            cal_instructions_id.innerHTML = "<span style='color:red'>You must first press a Start J button to calibrate.<br/></span>"
+        }else{
+        	const file_write_worked = centers_output()
+        	var message_prefix
+        	if(file_write_worked) {
+            	message_prefix = "Settings saved<br/>&nbsp;&nbsp;&nbsp;&nbsp;Now click"
+        	}
+        	else {
+            	message_prefix = "<span style='color:red;'>Can't write file.</span> See Output and Doc panes,<br/>&nbsp;&nbsp;&nbsp;&nbsp;then click"
+            	open_doc(dexters_file_system_doc_id)
+        	}
+        	cal_instructions_id.innerHTML = message_prefix + " <b>Calibrate Optical Encoders</b>"
         }
-        else {
-            message_prefix = "<span style='color:red;'>Can't write file.</span> See Output and Doc panes,<br/>&nbsp;&nbsp;&nbsp;&nbsp;then click"
-            open_doc(dexters_file_system_doc_id)
-        }
-        cal_instructions_id.innerHTML = message_prefix + " <b>Calibrate Optical Encoders</b>"
     }
     else if (vals.clicked_button_value === "calibrate_optical_id"){
         if (the_robot.simulate === true) {
@@ -279,11 +301,14 @@ function handle_cal(vals){
             cal_instructions_id.innerHTML = "Optical encoder calibration canceled.<br/>"
         }
     }
+    else if (vals.clicked_button_value === "robot_to_calibrate_id"){
+    	cal_init_view_eye_state = true
+    }
     //else { shouldnt("handle_cal called with invalid vals.clicked_button_value of: " + vals.clicked_button_value) }
 }
 
 function make_dexter_robot_menu_html(){
-    var result = "<select id='robot_to_calibrate_id' style='font-size:16px;'>\n"
+    var result = "<select data-onchange='true' id='robot_to_calibrate_id' style='font-size:16px;' value='robot_to_calibrate'>\n"
     for(let dex_name of Dexter.all_names){
         result += "<option>" + dex_name + "</option>\n"
     }
@@ -292,13 +317,22 @@ function make_dexter_robot_menu_html(){
 
 //used in this file and ViewEye
 function cal_get_robot(){
-    return Robot[robot_to_calibrate_id.value]
+	try{
+    	return Robot[robot_to_calibrate_id.value]
+    }catch(err){
+    	debugger
+    	dde_error("cal_get_robot() was called before robot_to_calibrate_id exists")
+    	//return dexter0
+    }
 }
 
 function init_calibrate(){
 
-
-    init_view_eye() //will define (or redefine the view eye job, which is ok)
+	//this has been moved because the robot isn't known yet
+    //init_view_eye() //will define (or redefine the view eye job, which is ok)
+    cal_init_view_eye_state = true
+    
+    
     //init_calibrate_optical() //will define (or redefine the calibrate_optical job, which is ok)
     show_window({
         title:"Calibrate your Dexter(s)",
@@ -341,4 +375,6 @@ function init_calibrate(){
             confirm("Warning: Simulate is set to true so calibration window will not work. \nTo set to false, choose Jobs menu/Simulate/false.")
         }
     }, 1000)
+    
+    
 }
