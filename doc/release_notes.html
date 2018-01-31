@@ -5,6 +5,57 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 2.3.6, Jan 31, 2018</summary>
+Highlights: Calibration bug fixes. First pass fix for connectivity
+   while Dexter is booting bug.
+<ul>
+    <li> Fixed make_html_test_suite.js last test</li>
+
+    <li> Fixed test_suites.js is_integer (last test) AGAIN.</li>
+
+    <li> Formatting improvement for test report on a testsuite with multiple errors.</li>
+
+    <li> Fixed to_source_code methods for instructions when not passed "indent".</li>
+
+    <li> <code>make_html</code> fixed bug with style property ending quote.</li>
+
+    <li> New utility <code>make_dom_elt</code>  takes same args as make_html,
+        but returns a dom elt.</li>
+
+    <li> HTML DB, added the previously omitted
+         "on" html properties (about 80 of them)</li>
+
+    <li> html_db fixed omission in html properties. Now allows "data-*" props.</li>
+
+    <li> Minor fixes to Object system doc.</li>
+
+    <li> Extended User Guide/UI Design Criteria.</li>
+
+    <li> <code>Job.inter_do_item_dur</code> had a mistake in the documentation.
+        It said this was in milliseconds, but its actually seconds.
+        There was another error in recording the default value
+        that might have affected something else.
+        Both fixed.</li>
+
+    <li>Better formatting for data output from exTeach to make it much
+        more human readable.</li>
+
+    <li><code>newObject.callPrototypeConstructor</code> fixed infinite recursion bug.</li>
+
+    <li>Extended Ref Man/IO/Sound/Music With Midi/Connecting Midi Apps/
+      On Windows OS  with better doc from Github issue #16, now closed.</li>
+
+    <li>The example for "beating" with
+        <code>beep({frequency: 440,   dur: 10})</code>
+        has its dur increased from 1 to 10 to make the effect more obvious.</li>
+
+
+    <li> Calibration fixes for attempting to use dexter0 when it should't be.</li>
+
+    <li> First pass at fixing connectivity to dexter while its booting.</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 2.3.5, Jan 19, 2018</summary>
 Highlights: Bug fixes and a few internal mods.
 <ul>

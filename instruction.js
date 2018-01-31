@@ -191,7 +191,7 @@ Instruction.Control.break = class Break extends Instruction.Control{ //class nam
         }
     }
     toString(){ return "break" }
-    to_source_code(){ return "Robot.break()" }
+    to_source_code(args={indent:""}){ return args.indent + "Robot.break()" }
 }
 
 Instruction.Control.debugger = class Debugger extends Instruction.Control{ //class name must be upper case because lower case conflicts with js debugger
@@ -201,7 +201,7 @@ Instruction.Control.debugger = class Debugger extends Instruction.Control{ //cla
         job_instance.set_up_next_do(1)
     }
     toString(){ return "debugger" }
-    to_source_code(){ return "Robot.debugger()" }
+    to_source_code(args={indent:""}){ return args.indent + "Robot.debugger()" }
 }
 
 Instruction.Control.error = class error extends Instruction.Control{
@@ -217,7 +217,7 @@ Instruction.Control.error = class error extends Instruction.Control{
     toString(){
         return "error: " + this.reason
     }
-    to_source_code(args){
+    to_source_code(args={indent:""}){
         let this_indent = args.indent
         args        = jQuery.extend({}, arguments[0])
         args.value  = this.reason
@@ -267,7 +267,7 @@ Instruction.Control.Get_page = class Get_page extends Instruction.Control{
         }
         else { job_instance.set_up_next_do(1)} //got the response, move to next instruction
     }
-    to_source_code(args){
+    to_source_code(args={indent:""}){
         return args.indent + "Robot.get_page(" +
             to_source_code({value: this.url_or_options}) +
             ((this.response_variable_name == "http_response") ? "" : (", " + to_source_code({value: this.response_variable_name})))  +
@@ -301,7 +301,7 @@ Instruction.Control.go_to = class go_to extends Instruction.Control{
     }
     toString(){ return "Robot.go_to instruction_location: " + this.instruction_location }
 
-    to_source_code(args){
+    to_source_code(args={indent:""}){
         let this_indent = args.indent
         args        = jQuery.extend({}, arguments[0])
         args.value  = this.instruction_location
@@ -350,7 +350,7 @@ Instruction.Control.grab_robot_status = class grab_robot_status extends Instruct
     toString(){
         return "grab_robot_status: " + this.user_data_variable
     }
-    to_source_code(args){
+    to_source_code(args={indent:""}){
         let this_indent = args.indent
         args        = jQuery.extend({}, args)
         args.value  = this.user_data_variable
@@ -390,6 +390,13 @@ Instruction.Control.human_recognize_speech = class human_recognize_speech extend
         inspect(reco)
         job_instance.set_up_next_do(1)
     }
+    to_source_code(args={indent:""}){
+        let this_indent = args.indent
+        args        = jQuery.extend({}, arguments[0])
+        args.indent = ""
+        args.value = this.args
+        return this_indent + "Human.recognize_speech(" + to_source_code(args) + ")"
+    }
 }
 
 Instruction.Control.human_speak = class human_speak extends Instruction.Control{
@@ -412,7 +419,7 @@ Instruction.Control.human_speak = class human_speak extends Instruction.Control{
            job_instance.set_up_next_do(1)
        }
     }
-    to_source_code(args){
+    to_source_code(args={indent:""}){
         return args.indent + "Human.task({"  +
             ((this.task == "") ? "" : ("task: " + to_source_code({value: this.task}) + ", ")) +
             ((this.title === undefined) ? "" : ("title: " + to_source_code({value: this.title})  + ", ")) +
@@ -469,7 +476,7 @@ Instruction.Control.human_task = class human_task extends Instruction.Control{
                     height: this.height,
                     background_color: this.background_color})
     }
-    to_source_code(args){
+    to_source_code(args={indent:""}){
         return args.indent + "Human.task({"  +
                ((this.task == "") ? "" : ("task: " + to_source_code({value: this.task}) + ", ")) +
                ((this.title === undefined) ? "" : ("title: " + to_source_code({value: this.title})  + ", ")) +
@@ -574,7 +581,7 @@ Instruction.Control.human_enter_choice = class human_enter_choice extends Instru
                     background_color: this.background_color})
     }
 
-    to_source_code(args){
+    to_source_code(args={indent:""}){
         return args.indent + "Human.enter_choice({" +
             ((this.task == "")                               ? "" : ("task: "                    + to_source_code({value: this.task})                    + ", ")) +
             ((this.title === undefined)                      ? "" : ("title: "                   + to_source_code({value: this.title})                   + ", ")) +
@@ -700,7 +707,7 @@ Instruction.Control.human_enter_filepath = class human_filepath extends Instruct
             background_color: this.background_color}
         )
     }
-    to_source_code(args){
+    to_source_code(args={indent:""}){
         return args.indent + "Human.enter_text({" +
             ((this.task == "")                               ? "" : ("task: "                    + to_source_code({value: this.task})                    + ", ")) +
             ((this.title === undefined)                      ? "" : ("title: "                   + to_source_code({value: this.title})                   + ", ")) +
@@ -851,7 +858,7 @@ Instruction.Control.human_enter_instruction = class human_enter_instruction exte
         immediate_do_id.focus()
     }
 
-    to_source_code(args){
+    to_source_code(args={indent:""}){
         return args.indent + "Human.enter_instruction({" +
             ((this.task == "")                               ? "" : ("task: "                    + to_source_code({value: this.task})                    + ", ")) +
             ((this.title === undefined)                      ? "" : ("title: "                   + to_source_code({value: this.title})                   + ", ")) +
@@ -1075,7 +1082,7 @@ Instruction.Control.human_enter_number = class human_enter_number extends Instru
                     height: this.height,
                     background_color: this.background_color})
     }
-    to_source_code(args){
+    to_source_code(args={indent:""}){
         return args.indent + "Human.enter_number({" +
             ((this.task == "")                               ? "" : ("task: "                    + to_source_code({value: this.task})                    + ", ")) +
             ((this.title === undefined)                      ? "" : ("title: "                   + to_source_code({value: this.title})                   + ", ")) +
@@ -1194,7 +1201,7 @@ Instruction.Control.human_enter_text = class human_enter_text extends Instructio
                     background_color: this.background_color}
                     )
     }
-    to_source_code(args){
+    to_source_code(args={indent:""}){
         return args.indent + "Human.enter_text({" +
             ((this.task == "")                               ? "" : ("task: "                    + to_source_code({value: this.task})                    + ", ")) +
             ((this.title === undefined)                      ? "" : ("title: "                   + to_source_code({value: this.title})                   + ", ")) +
@@ -1302,7 +1309,7 @@ Instruction.Control.human_notify = class human_notify extends Instruction.Contro
         }
         return human_notify.window_y
     }
-    to_source_code(args){
+    to_source_code(args={indent:""}){
         return args.indent + "Human.notify({" +
             ((this.task == "")                               ? "" : ("task: "                    + to_source_code({value: this.task})                    + ", ")) +
             ((this.title === undefined)                      ? "" : ("title: "                   + to_source_code({value: this.title})                   + ", ")) +
@@ -1343,7 +1350,7 @@ Instruction.Control.human_show_window = class human_show_window extends Instruct
         this.sw_lit_obj_args.callback = human_show_window_handler
         this.win_index = show_window(this.sw_lit_obj_args)
     }
-    to_source_code(args){
+    to_source_code(args={indent:""}){
         let extra_indent = ' '.repeat(37)
         return args.indent + "Human.show_window(\n" +
                to_source_code({indent: args.indent + extra_indent, value: this.sw_lit_obj_args}) + ")"
@@ -1398,7 +1405,7 @@ Instruction.Control.if_any_errors = class if_any_errors extends Instruction.Cont
         }
         job_instance.set_up_next_do(1)
     }
-    to_source_code(args){
+    to_source_code(args={indent:""}){
         return args.indent + "Robot.if_any_errors(" +
                               to_source_code({value: this.job_names}) + ", " +
                               to_source_code({value: this.instruction_if_error}) + ")"
@@ -1418,7 +1425,7 @@ Instruction.Control.label = class label extends Instruction.Control{
         job_instance.set_up_next_do(1)
     }
     toString(){ return this.name }
-    to_source_code(args){
+    to_source_code(args={indent:""}){
         return args.indent + "Robot.label(" +
               to_source_code({value: this.name})  + ")"
     }
@@ -1544,7 +1551,7 @@ Instruction.Control.loop = class Loop extends Instruction.Control{
         }
         return null // not good. we didn't find an enclosing loop. this will become a warning.
     }
-    to_source_code(args){
+    to_source_code(args={indent:""}){
         return args.indent + "Robot.loop(" +
             to_source_code({value: this.times_to_loop})  + ",\n" +
             to_source_code({value: this.body_fn}) +
@@ -1565,7 +1572,7 @@ Instruction.Control.out = class Out extends Instruction.Control{
         job_instance.set_up_next_do(1)
     }
     toString() { return "Robot.out of: " + this.val }
-    to_source_code(args){
+    to_source_code(args={indent:""}){
         return args.indent + "Robot.out(" +
                 to_source_code({value: this.val})  +
                 ((this.color == "black") ? "" : (", " + to_source_code({value: this.color}))) +
@@ -1643,7 +1650,7 @@ Instruction.Control.send_to_job = class send_to_job extends Instruction.Control{
             job_instance.set_up_next_do(1)
         }
     }
-    to_source_code(args){
+    to_source_code(args={indent:""}){
         return args.indent + "Robot.send_to_job({" +
             ((this.do_list_item == null)          ? "" :  ("do_list_item: "         + to_source_code({value: this.do_list_item})                 + ", ")) +
             ((this.where_to_insert === undefined) ? "" :  ("where_to_insert: "      + to_source_code({value: this.where_to_insert})      + ", ")) +
@@ -1843,7 +1850,7 @@ Instruction.Control.start_job = class start_job extends Instruction.Control{
     toString(){
         return "start_job: " + this.job_name
     }
-    to_source_code(args){
+    to_source_code(args={indent:""}){
         return args.indent + "Robot.start_job(" +
             to_source_code({value: this.job_name})  +
             (similar(this.start_options, {}) ? "" : (", " + to_source_code({value: this.start_options}))) +
@@ -1877,7 +1884,7 @@ Instruction.Control.stop_job = class stop_job extends Instruction.Control{
         else              { job_to_stop = ": Job." + job_to_stop.name }
         return "stop_job" + job_to_stop + " because: " + this.stop_reason
     }
-    to_source_code(args = {}){
+    to_source_code(args={indent:""}){
         let indent = ((args && args.indent) ? args.indent : "")
         let props_args = args        = jQuery.extend({}, arguments[0])
         props_args.indent = ""
@@ -1919,7 +1926,7 @@ Instruction.Control.suspend = class suspend extends Instruction.Control{
             if (job_to_suspend !== job_instance) { job_instance.set_up_next_do(1) }
         }
     }
-    to_source_code(args){
+    to_source_code(args={indent:""}){
         return args.indent + "Robot.suspend(" +
             to_source_code({value: this.job_name}) +
             ((this.reason == "") ? "" : (", " + to_source_code({value: this.reason})))  +
@@ -1950,7 +1957,7 @@ Instruction.Control.unsuspend = class unsuspend extends Instruction.Control{
         job_instance.set_up_next_do(1)
 
     }
-    to_source_code(args){
+    to_source_code(args={indent:""}){
         return args.indent + "Robot.unsuspend(" +
             to_source_code({value: this.job_name}) +
             ")"
@@ -2103,7 +2110,7 @@ Instruction.Control.sync_point = class sync_point extends Instruction.Control{
             job_instance.set_up_next_do(1)
         }
     }
-    to_source_code(args){
+    to_source_code(args={indent:""}){
         return args.indent + "Robot.sync_point("   +
             to_source_code({value: this.name})     + ", " +
             to_source_code({value: this.job_names}) +
@@ -2245,7 +2252,7 @@ Instruction.Control.wait_until = class wait_until extends Instruction.Control{
                       ' It should be a function, a date, a number, or "new_instruction".')
         }
     }
-    to_source_code(args){
+    to_source_code(args={indent:""}){
         return args.indent + "Robot.wait_until("       +
             to_source_code({value: this.fn_date_dur, function_names: true})  +
             ")"
@@ -2281,7 +2288,7 @@ Instruction.Control.move_all_joints = class move_all_joints extends Instruction.
     toString(){
         return "{instanceof: move_all_joints " + this.array_of_5_angles + "}"
     }
-    to_source_code(args){
+    to_source_code(args={indent:""}){
         args = jQuery.extend({}, args)
         args.value = this.array_of_5_angles
         args.indent = ""
@@ -2318,7 +2325,7 @@ Instruction.Control.pid_move_all_joints = class pid_move_all_joints extends Inst
     toString(){
         return "{instanceof: pid_move_all_joints " + this.array_of_5_angles + "}"
     }
-    to_source_code(args){
+    to_source_code(args={indent:""}){
         args        = jQuery.extend({}, args)
         args.value  = this.array_of_5_angles
         args.indent = ""
@@ -2344,7 +2351,7 @@ Instruction.Control.move_all_joints_relative = class move_all_joints_relative ex
     toString(){
         return "{instanceof: move_all_joints_relative " + this.delta_angles + "}"
     }
-    to_source_code(args){
+    to_source_code(args={indent:""}){
         args        = jQuery.extend({}, args)
         args.value  = this.delta_angles
         args.indent = ""
@@ -2428,7 +2435,7 @@ Instruction.Control.move_to = class move_to extends Instruction.Control{
 
     toString(){ return "{instanceof: move_to " + this.xyz + "}" }
 
-    to_source_code(args){
+    to_source_code(args={indent:""}){
         args        = jQuery.extend({}, args)
         args.indent = ""
 
@@ -2524,7 +2531,7 @@ Instruction.Control.pid_move_to = class pid_move_to extends Instruction.Control{
 
     toString(){ return "{instanceof: pid_move_to " + this.xyz + "}" }
 
-    to_source_code(args){
+    to_source_code(args={indent:""}){
         args        = jQuery.extend({}, args)
         args.indent = ""
 
@@ -2588,7 +2595,7 @@ Instruction.Control.move_to_relative = class move_to_relative extends Instructio
     toString(){
         return "{instanceof: move_to_relative " + this.delta_xyz + "}"
     }
-    to_source_code(args){
+    to_source_code(args={indent:""}){
         let prop_args        = jQuery.extend({}, args)
         prop_args.indent     = ""
         prop_args.value      = this.delta_xyz
@@ -2662,7 +2669,7 @@ Instruction.Control.move_to_straight = class move_to_straight extends Instructio
     toString(){
         return "{instanceof: move_to_straignt " + this.xyz + "}"
     }
-    to_source_code(args){
+    to_source_code(args={indent:""}){
         args        = jQuery.extend({}, args)
         args.indent = ""
 

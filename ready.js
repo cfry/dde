@@ -128,7 +128,7 @@
 
     Series.init_series()
 
-    $('#js_textarea').focus() //same as myCodeMirror.focus()  but  myCodeMerror not inited yet
+    $('#js_textarea_id').focus() //same as myCodeMirror.focus()  but  myCodeMerror not inited yet
 
     doc_prev_id.onclick        = open_doc_prev
     doc_next_id.onclick        = open_doc_next

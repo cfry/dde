@@ -8,8 +8,8 @@
 
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version:  <span id="dde_version_id">2.3.5</span><br/>
-    released: <span id="dde_release_date_id">Jan 19, 2018</span>
+    version:  <span id="dde_version_id">2.3.6</span><br/>
+    released: <span id="dde_release_date_id">Jan 31, 2018</span>
     <p></p>
     DDE helps you create, debug, and send software to a Dexter robot.
     You can use any JavaScript augmented with DDE-specific functions to help find out about,
@@ -823,21 +823,58 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
         This is the most important criteria for DDE because there
         are MANY functionalities and each user
         should use many of them.
-        This criteria includes what the user is probably already familiar with
-        and good documentation or better, a UI that doesn't need any.</li>
-        <li>Quickness of use for experienced users
+        This criteria includes good documentation or better, a UI that doesn't need any.
+        </li>
+        <li>Quickness of use for experienced users.
             If you expect a user to use the interface many
-            times in a row, this becomes important.</li>
-        <li>Quickness and confidence of implementation
-            Sadly this is rarely highly predictable.</li>
-        <li>Non-redundant so users don't waste time scanning UI.</li>
-        <li>Small so screen real estate can be used for other things.
+            times in a row, this becomes important, though usually
+            this conflicts with first-time users. Try hard to accommodate both.
+        </li>
+        <li>Quickness and confidence of implementation.
+            Sadly this is rarely highly predictable, through generally
+            a more complex design takes longer to create and is more
+            likely to have bugs, a usability no-no.
+        </li>
+        <li>Reduce redundancy so users don't waste time scanning the UI.
+            <i>Exception</i>: A little redundancy to satisfy "just in place" information
+            is often warranted.
+        </li>
+        <li>Be concise so users don't waste time scanning the UI,
+            but just-in-place essential information is really useful.
+            Hiding more text behind tooltips is often a good strategy.
+            Use newlines i.e. <code title="unEVALable">\n</code> in tooltips
+            to improve readability.
+        </li>
+        <li>Don't use synonyms. Pick one word/term and always use that to
+            describe the same thing.<br/>
+            <i>Exception</i>: when you are <i>defining</i> the
+            word/term for a user, synonyms can help.
+        </li>
+        <li>Make the area your UI takes up small so screen real estate
+            can be used for other things.
             Use tooltips to meet "Ease of learning" and this criteria
-            simultaneously.</li>
+            simultaneously. Graphic designers love lots of whitespace, tiny fonts,
+            non-functional pictures, and low contrast between text &amp; its background.
+            But usability is more important than aesthetics
+            for anyone actually <i>using</i> the software.<br/>
+            <i>Exception</i>: Video games.
+         </li>
+        <li> Reduce typing when possible. Example: If the user is to enter a number,
+             dont use<br/>
+             <code title="unEVALable">&lt;input/&gt;</code>,<br/>
+             use something like:<br/>
+             <code title="unEVALable">&lt;input type="number" min="0" max="10" step="0.1"/&gt;</code>.<br/>
+             If there's a few possible words to enter, use an HTML
+             <code title="unEVALable">select</code> tag or radio buttons if just a couple.
+             For booleans use <code title="unEVALable">&lt;input type="checkbox"/&gt;</code><br/>
+             <i>Exception</i>: When prototyping and you're not sure what the input should be,
+             just use a text input.
+         </li>
         <li>Demoability: big controls for easy hitting
             while standing up & talking,
             Big text so demo watchers can see easily.
-            Conflicts directly with "Small".</li>
+            Conflicts directly with "Small".
+        </li>
     </ul>
     Such criteria, if complete, nearly always have "opposites" in them
     such that 1 design can't possibly do all best,

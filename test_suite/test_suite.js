@@ -426,7 +426,7 @@ var TestSuite = class TestSuite{
             try { expected_result = window.eval(expected) }
             catch(err) {
                TestSuite.last_expected_error_message = err.name + ' ' + err.message +
-                   " with expected source: " + expected
+                   " with expected source: " + expected + "<br/>"
                return ["unknown", TestSuite.last_expected_error_message]
             }
             if ((expected_result == TestSuite.dont_care) && !TestSuite.last_src_error_message) {} //allows any value from src to pass (unless it errors)
@@ -468,7 +468,8 @@ var TestSuite = class TestSuite{
             let sel_text_to_eval = sel_text.substring(1, sel_text.length - 1) //cut off the quotes
             let result
             let got_error = false
-            try{ result = window.eval(sel_text_to_eval) } catch(err) {
+            try{ result = window.eval(sel_text_to_eval) }
+            catch(err) {
                  got_error = true
                  result = err.message
                  }

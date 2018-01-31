@@ -1,0 +1,106 @@
+
+.toolkit_category_name {
+    padding:5px;
+}
+
+.toolkit_category_name:hover {
+    background-color: #EEEEEE;
+}
+
+.toolkit_type_name {
+    padding:0px;
+    margin:0px;
+}
+
+/*names of blocks in the pallet. */
+.toolkit_type_name:hover {
+    /*background-color: #FFFFFF !important;*/
+    border-width:2px !important;
+    border-color:#000000 !important;
+    border-style:solid !important;
+}
+
+
+
+
+.block {
+    display:inline-block;
+    background-color:#AAFFAA;
+    border-width:1px;
+    border-color:black;
+    border-style:solid;
+    padding-top:3px;
+    /*position:absolute;
+    left:100px;
+    top:20px;*/
+}
+/* a given block will always have class "block" and ONE of the below 2 classes */
+.block-absolute {
+    position:absolute;
+}
+
+.block-top-left {
+   position:static;
+}
+.block:hover {
+    border-color:red;
+}
+.block_name {
+    background-color:#AAFFAA;
+    display:inline;
+    margin:2px;
+}
+
+.block_args {
+    display:block; /*set to none when collapsed */
+    margin-top:2px;
+}
+
+.arg_name_val {
+    display:block;
+    margin-left:10px;
+    margin-right:10px;
+    margin-top:2px;
+}
+
+.arg_name {
+}
+
+.arg_val {
+    border: solid 1px black;
+    width:80px;
+}
+
+.arg_val:hover{
+    border-color: red;
+}
+
+.toggle_horiz_vert {
+    border-width:1px;
+    border-color:black;
+    border-style:solid;
+    width:5px;
+    height:5px;
+    display:inline-block;
+    background-color:#AAFFAA;
+    float:left;
+}
+
+.toggle_horiz_vert:hover{
+    background-color:black;
+}
+
+.toggle_expand_collapse {
+    border-width:1px;
+    border-color:black;
+    border-style:solid;
+    width:5px;
+    height:5px;
+    display:inline-block;
+    background-color:#AAFFAA;
+    float:right;
+}
+
+.toggle_expand_collapse:hover{
+    background-color:black;
+}

@@ -70,6 +70,14 @@ th, td { text-align:left; }
     width:30px;
 }
 
+/* needs to be here, not blocksde style sheet because that style sheet
+  is loaded under the blocksde_id only once its installed,
+  and removed when we go back to text
+ */
+#text_blocks_toggle_id:hover {
+    border: 2px solid black;
+}
+
 /*
 .vsplitbar {
     width: 10px;

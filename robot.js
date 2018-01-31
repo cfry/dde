@@ -820,7 +820,71 @@ Dexter = class Dexter extends Robot {
         return this
     }
 
-    start(job_instance) { //fill in initial robot_status
+    /*  ping-rpoxy doesn't seem to work or at least  doesn't have a timeout so it
+       waits forever if there is nothing at the ip address
+    start(job_instance){
+
+        let sim_actual = Robot.get_simulate_actual(this.simulate)
+        if ([false, "both"].includes(sim_actual)) {
+            let pingProxy = require('ping-proxy')
+            pingProxy({proxyHost: this.ip_address,
+                       proxyPort: this.port},
+                    function(err, options, statusCode) {
+                        if (err) {
+                            job_instance.stop_for_reason("errored", "Could not coonect to Dexter. " + err.message)
+                        }
+                        else {
+                            this.start_aux(job_instance)
+                        }
+                    })
+        }
+        else { this.start_aux(job_instance) } //no actual connection to Dexter needed as we're only simulating
+    }
+    */
+    use_ping_proxy(job_instance, timeout_secs=0){
+        let this_robot = this
+        let pingProxy = require('ping-proxy')
+        set_timeout(
+          function() {
+              pingProxy({proxyHost: this_robot.ip_address,
+                         proxyPort: this_robot.port},
+                  function(err, options, statusCode) {
+                      if (err) {
+                          if(timeout_secs >= 30){
+                                job_instance.stop_for_reason("errored", "Dexter port: " + this_robot.port + " is not open.\nIf it is because Dexter is initializing,\ntry again in a minute." + err.message)
+                          }
+                          else {
+                              this_robot.use_ping_proxy(job_instance(timeout_secs + 10))
+                          }
+                      }
+                      else {
+                          this.start_aux(job_instance)
+                      }
+                  })
+          }, timeout_secs * 1000)
+    }
+
+    start(job_instance){
+        let sim_actual = Robot.get_simulate_actual(this.simulate)
+        if ([false, "both"].includes(sim_actual)) {
+                let ping = require('ping') //https://www.npmjs.com/package/ping
+                let this_robot = this
+                ping.sys.probe(this.ip_address,
+                                function(isAlive){
+                                    if (isAlive) { //this.start_aux(job_instance)
+                                        this_robot.use_ping_proxy(job_instance)
+                                    }
+                                    else {
+                                         job_instance.stop_for_reason("errored", "Could not connect to Dexter.\nIf it is because Dexter is initializing,\ntry again in a minute.")
+                                    }
+                                },
+                               {timeout: 10}
+                               )
+        }
+        else { this.start_aux(job_instance) } //no actual connection to Dexter needed as we're only simulating
+    }
+
+    start_aux(job_instance) { //fill in initial robot_status
         //if (!this.is_initialized()) {
             Socket.init(this.name, this.simulate, this.ip_address, this.port)
         //}
@@ -828,7 +892,7 @@ Dexter = class Dexter extends Robot {
         let this_robot = this
         let this_job   = job_instance
         //give it a bit of time in case its in the process of initializing
-        setTimeout(function(){ //give robot a chance to get its socket before doing th initial "g" send.
+        setTimeout(function(){ //give robot a chance to get its socket before doing the initial "g" send.
                         const sim_actual = Robot.get_simulate_actual(this_robot.simulate)
                         if(!this_robot.is_initialized()){
                             if (this_robot.simulate === true){

@@ -105,8 +105,7 @@ new TestSuite("make_html_style",
     [`make_html("b", {html_properties:'color="red"', style:"bgcolor:blue;"})`,
     `'<b color="red" style="bgcolor:blue;"/>'`],
     [`make_html("b", {id:"my_id", "font-size":"14px", html_properties:'color="red"', style:"bgcolor:blue;"})`,
-    `'<b color="red" id="my_id" style="bgcolor:blue; font-size:14px;"/>'`],
-    
+    `'<b color="red" id="my_id" style="bgcolor:blue; font-size:14px;"/>'`]
     )
 
 //show_window(make_html("b", {style:'color:red;', "font-size":"22px"}, "inner text"))

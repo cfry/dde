@@ -819,7 +819,7 @@ window.out_eval_result = function(text, color="#000000"){
         text = "<fieldset><legend><i>Eval Result</i></legend>" +  text + "</fieldset>"
         append_to_output(text)
     }
-    //$('#js_textarea').focus() fails silently
+    //$('#js_textarea_id').focus() fails silently
     myCodeMirror.focus()
 }
 

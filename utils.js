@@ -561,6 +561,11 @@ function reverse_string(s) {
     return o;
 }
 
+function px_suffix_string_to_number(str){
+    str = str.substring(0, str.length - 2)
+    return parseFloat(str)
+}
+
 //avoids calling eval. If a path_elt isn't defined, this fn returns undefined.
 function value_of_path(path_string){
     let path = path_string.split(".")

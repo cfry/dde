@@ -1,7 +1,7 @@
 /**Created by Fry on 10/29/15.*/
 /* this has bugs. Conclusion: codemirror not really deignd for npm, too many plug-ins, etc.
-so load the old fashion way in index.html
-window.CodeMirror = require("codemirror") //now in index.html because this didn't work
+so load the old fashion way in index_obsolete.html
+window.CodeMirror = require("codemirror") //now in index_obsolete.html because this didn't work
 require("codemirror/mode/javascript/javascript")
 //require("eslint")
 //require("codemirror/addon/lint/lint.js")
@@ -24,8 +24,10 @@ var myCodeMirror
 function Editor(){} //just a namespace of *some* internal fns
 Editor.current_file_path = null //could be "new file" or "/Users/.../foo.fs"
 
+Editor.view = "text"
+
 Editor.init_editor = function(){
-    myCodeMirror = CodeMirror.fromTextArea(js_textarea,
+    myCodeMirror = CodeMirror.fromTextArea(js_textarea_id,
         {lineNumbers: true,
         //lineWrapping: true,
          mode: "javascript",
@@ -220,26 +222,33 @@ Editor.get_javascript = function(use_selection=false){
     //if use_selection is true, return it.
     // if false, return whole buffer.
     // if "auto", then if sel, return it, else return whole buffer.
-    var full_src =  myCodeMirror.doc.getValue() //$("#js_textarea").val() //careful: js_textarea.value returns a string with an extra space on the end! A crhome bug that jquery fixes
-    if (use_selection){
-        //var textComponent = document.getElementById('js_textarea')
-        //var sel_text = all_text.substring(textComponent.selectionStart,textComponent.selectionEnd )
-        var sel_text = full_src.substring(Editor.selection_start(), Editor.selection_end())
-        if (use_selection === true) { return sel_text}
-        else if (use_selection == "auto") {
-            if (sel_text == "") { return full_src}
-            else { return sel_text }
+    if(Editor.view == "text") {
+        let  full_src =  myCodeMirror.doc.getValue() //$("#js_textarea_id").val() //careful: js_textarea_id.value returns a string with an extra space on the end! A crhome bug that jquery fixes
+        if (use_selection){
+            //var textComponent = document.getElementById('js_textarea_id')
+            //var sel_text = all_text.substring(textComponent.selectionStart,textComponent.selectionEnd )
+            var sel_text = full_src.substring(Editor.selection_start(), Editor.selection_end())
+            if (use_selection === true) { return sel_text}
+            else if (use_selection == "auto") {
+                if (sel_text == "") { return full_src}
+                else { return sel_text }
+            }
+            //if (sel_text == ""){
+            //    return all_text
+            //}
+            //else { return sel_text }
         }
-        //if (sel_text == ""){
-        //    return all_text
-        //}
-        //else { return sel_text }
+        else { return full_src }
     }
-    else { return full_src }
+    else if (Editor.view == "blocks"){
+        return Workspace.inst.to_js() //doesn't do selection yet.
+    }
+    else { shouldnt("Editor.get_javascript found invalid Editor.view of: " + Editor.view) }
+
 }
 
 Editor.set_javascript = function(text){
-    //$("#js_textarea").val(text)
+    //$("#js_textarea_id").val(text)
     myCodeMirror.doc.setValue(text)
 }
 
@@ -278,9 +287,9 @@ Editor.is_selection = function(){
 
 
 Editor.select_javascript = function(start, end=start){
-    //js_textarea.setSelectionRange(start, end)
-    //$('#js_textarea').focus() //scroll to make the selection visible .. Wierdly bad var refs get a squiggly red underline voer the whole var name, but not sure how this happens. But its good.
-    //$('#js_textarea').scrollTop(start); //doesnt' scroll all the way
+    //js_textarea_id.setSelectionRange(start, end)
+    //$('#js_textarea_id').focus() //scroll to make the selection visible .. Wierdly bad var refs get a squiggly red underline voer the whole var name, but not sure how this happens. But its good.
+    //$('#js_textarea_id').scrollTop(start); //doesnt' scroll all the way
     var doc = myCodeMirror.getDoc()
     var cm_start_pos = doc.posFromIndex(start)
     var cm_end_pos   = doc.posFromIndex(end)
@@ -433,7 +442,7 @@ Editor.insert = function(text, insertion_pos="replace_selection", select_new_tex
     if (["replace_selection", "selection_start", "selection_end", "start", "end", "whole"].includes(insertion_pos) ||
         (typeof(insertion_pos) == "number")) {
         text = decode_quotes(text) //replace all ddqq with a double quote
-        //var ta = document.getElementById("js_textarea")
+        //var ta = document.getElementById("js_textarea_id")
         var orig_text = Editor.get_javascript()
         var orig_cursor_start = Editor.selection_start()
         var orig_cursor_start_object = myCodeMirror.getCursor("start")
@@ -453,7 +462,7 @@ Editor.insert = function(text, insertion_pos="replace_selection", select_new_tex
                               " 'replace_selection' -- the default (meaning replace the selection)."))
         }
         var new_text  = orig_text.substr(0, s) + text + orig_text.substr(e)
-        Editor.set_javascript(new_text) //$('#js_textarea').val(new_text);
+        Editor.set_javascript(new_text) //$('#js_textarea_id').val(new_text);
         var new_sel_end = e + text.length
         if (insertion_pos !== undefined) {new_sel_end = orig_cursor_start + text.length} //so cursor will be semantically where it started
         if (select_new_text){
@@ -502,7 +511,7 @@ Editor.wrap_around_selection = function(prefix, suffix, if_no_selection_text){
             sel_text = sel_text.slice(0, sel_text.length - 1)
         }
         var new_text  = orig_text.slice(0, s) + prefix + sel_text + suffix + orig_text.substr(e)
-        Editor.set_javascript(new_text) //$('#js_textarea').val(new_text);
+        Editor.set_javascript(new_text) //$('#js_textarea_id').val(new_text);
         var new_sel_start = s + prefix.length
         var new_sel_end   = new_sel_start + sel_text.length
         var doc = myCodeMirror.getDoc()

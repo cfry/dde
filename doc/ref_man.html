@@ -977,9 +977,16 @@ This is tricky.
     <li>Click the "Apply" button.</li>
 </ol>
 <b>On Windows OS</b><br/>
+    One of our most savvy tech users advises:
+    <ol>
+        <li>Install <a target="_blank" href="http://coolsoft.altervista.org/en/virtualmidisynth#soundfonts">VirtualMIDISynth</li></li>
+        <li>From <a target="_blank" ref="http://www.synthfont.com/soundfonts.html">synthfont</a>
+                 download and extract "FluidR3 GM Bank"</li>
+        <li>In VirtualMIDISynth, import the "FuidR3 GM Bank" sound fonts.</li>
+        <li>Restart DDE land oad a MIDI example code and eval it.</li>
+    </ol>
     <a target="_blank" href="http://www.tobias-erichsen.de/software/loopmidi.html">LoopMIDI</a>
-    looks promising. Please tell us if you've had success here and what you did
-    to achieve it.
+    also looks promising.
 </details>
 
 
@@ -1951,7 +1958,7 @@ The parameters used to define a new Job are:
            </ul>
            See <a href="#" onclick="open_doc(print_statements_doc_id, event)">print statements</a>
          </li>
-        <li><b>inter_do_item_dur</b> A number indicating the number of milliseconds between
+        <li><b>inter_do_item_dur</b> A number indicating the number of seconds between
            when an instruction is completed by its robot, and when the next instruction is
            computed and sent to the robot of the job. This "taking a breath" gives other
            jobs a chance to run. Default 100.</li>
@@ -4666,7 +4673,8 @@ object names from the top on down separated by dot.
 The names immediately under the root object are global so
 you can omit <code>Root</code> from such paths.
 <p></p>
-You should only supply a name when calling newObject, and never set it.<br/>
+If you want an object to have a name,
+supply it when calling newObject. Don't set it afterwards.<br/>
 Examples:<br/>
 <pre><code>newObject({
  &nbsp;&nbsp;&nbsp;name: "vehicle",
@@ -4699,7 +4707,8 @@ is called with no arguments. However, <code>this</code>
 is our new object with all the fields populated from the properties
 passed in the call to <code>newObject</code>, saving a ton of boiler plate code.
 In the body of <code title="unEVALable code fragment"> constructor</code>, you can call any code you like,
-including code that modifies the passed in property values, create
+including code that modifies the property values, of code title="unEVALable code fragment">this</code>,
+create
 entirely new properties or remove ones from <code>this</code>.
 <p></p>
 Example: <pre><code>newObject({name: "animal",

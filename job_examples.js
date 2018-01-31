@@ -479,8 +479,8 @@ Job.my_job.start()
  One last fun audio trick: play a chord with the two notes being very close
  in frequency to each other for the 'beating' effect. */
 
-beep({frequency: 440,   dur: 1})
-beep({frequency: 440.5, dur: 1})
+beep({frequency: 440,   dur: 10})
+beep({frequency: 440.5, dur: 10})
 `,
 `/* Job Example 10 Serial Port
    Connections between different devices are often problematic,

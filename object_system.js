@@ -259,9 +259,28 @@ Object.defineProperty(Object.prototype, 'inheritsPropertyFrom',{
 
 Object.defineProperty(Object.prototype, 'callPrototypeConstructor',{
     value : function(){
-        Object.getPrototypeOf(this).constructor.apply(this)
+        let next_cons = newObect_find_next_constructor(this)
+        if (next_cons) {
+            //return Object.getPrototypeOf(this).constructor.apply(this)
+            next_cons.apply(this)
+        }
+       // else {} //do nothing if there is no next_cons
     }
 })
+//callPrototypeConstructor is called within a constructor.
+//we don't want to return THAT constuctor, but rather the
+//next one up the change.
+function newObect_find_next_constructor(obj, cur_constructor){
+    let obj_of_cur_cons = obj.inheritsPropertyFrom("constructor")
+    let next_ans_above_cur_cons = Object.getPrototypeOf(obj_of_cur_cons)
+    if(next_ans_above_cur_cons) { return next_ans_above_cur_cons.constructor } //might be nothing
+    else { return null }
+    //if(!cur_constructor) { cur_constructor = obj.constructor }
+    //let obj_cons = obj.constructor
+    //if (!obj_constructor) { return null } //there is no next constructor
+    //else if (obj_cons != cur_constructor) { return obj_cons }
+    //else { return newObject_find_next_constructor(Object.getPrototypeOf(obj), cur_constructor) }
+}
 
 Object.defineProperty(Object.prototype, 'normal_keys',{
     enumerable : false,

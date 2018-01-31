@@ -19,8 +19,10 @@ var html_db = class html_db{
        else { return html_db.html_properties.includes(prop_name) }
    }
    static tag_has_property(tag, property){
+       if(property.startsWith("data-")) { return true }
        let valid_tags = html_db.html_property_tag_map[property]
-       if (valid_tags[0] == "all") { return true }
+       if (!valid_tags) { return false }
+       else if (valid_tags[0] == "all") { return true }
        else { return valid_tags.includes(tag) }
    }
    static properties_for_tag(tag){ //the properties specific to this tag. Does not grab "global properties"
@@ -254,6 +256,79 @@ html_db.html_property_tag_map = {
     muted:["audio", "video"],
     name:["button", "form", "fieldset", "iframe", "input", "keygen", "object", "output", "select", "textarea", "map", "meta", "param"],
     novalidate:["form"],
+
+    onabort: ["audio", "embed", "img", "object", "video"],
+    onafterprint: ["body"],
+    onbeforeprint: ["body"],
+    onbeforeunload: ["body"],
+    onblur: ["all"], //all visible elts
+    oncanplay: ["audio", "embed", "object", "video"],	//Script to be run when a file is ready to start playing (when it has buffered enough to begin)
+    oncanplaythrough: ["audio", "video"], //	Script to be run when a file can be played all the way to the end without pausing for buffering
+    onchange: ["all"], //All visible elements.	Script to be run when the value of the element is changed
+    onclick: ["all"], //All visible elements.	Script to be run when the element is being clicked
+    oncontextmenu: ["all"], //All visible elements.	Script to be run when a context menu is triggered
+    oncopy: ["all"], //All visible elements.	Script to be run when the content of the element is being copied
+    oncuechange: ["track"], //	Script to be run when the cue changes in a <track> element
+    oncut: ["all"], //All visible elements.	Script to be run when the content of the element is being cut
+    ondblclick: ["all"], //All visible elements.	Script to be run when the element is being double-clicked
+    ondrag: ["all"], //All visible elements.	Script to be run when the element is being dragged
+    ondragend: ["all"], //All visible elements.	Script to be run at the end of a drag operation
+    ondragenter: ["all"], //All visible elements.	Script to be run when an element has been dragged to a valid drop target
+    ondragleave: ["all"], //All visible elements.	Script to be run when an element leaves a valid drop target
+    ondragover: ["all"], //All visible elements.	Script to be run when an element is being dragged over a valid drop target
+    ondragstart: ["all"], //All visible elements.	Script to be run at the start of a drag operation
+    ondrop: ["all"], //All visible elements.	Script to be run when dragged element is being dropped
+    ondurationchange: ["audio", "video"],	//Script to be run when the length of the media changes
+    onemptied: ["audio", "video"],	//Script to be run when something bad happens and the file is suddenly unavailable (like unexpectedly disconnects)
+    onended: ["audio", "video"],	//Script to be run when the media has reach the end (a useful event for messages like "thanks for listening")
+    onerror: ["audio", "body", "embed", "img", "object", "script", "style", "video"], //	Script to be run when an error occurs
+    onfocus: ["all"], 	//All visible elements.	Script to be run when the element gets focus
+    onhashchange: ["body"], //Script to be run when there has been changes to the anchor part of the a URL
+    oninput: ["all"], //	All visible elements.	Script to be run when the element gets user input
+    oninvalid: ["all"], //	All visible elements.	Script to be run when the element is invalid
+    onkeydown: ["all"], //	All visible elements.	Script to be run when a user is pressing a key
+    onkeypress: ["all"], //	All visible elements.	Script to be run when a user presses a key
+    onkeyup: ["all"], //	All visible elements.	Script to be run when a user releases a key
+    onload: ["body", "iframe", "img", "input", "link", "script", "style"], //	Script to be run when the element is finished loading
+    onloadeddata: ["audio", "video"],	//Script to be run when media data is loaded
+    onloadedmetadata: ["audio", "video"],	//Script to be run when meta data (like dimensions and duration) are loaded
+    onloadstart: ["audio", "video"],	//Script to be run just as the file begins to load before anything is actually loaded
+    onmousedown: ["all"], //	All visible elements.	Script to be run when a mouse button is pressed down on an element
+    onmousemove: ["all"], //	All visible elements.	Script to be run as long as the  mouse pointer is moving over an element
+    onmouseout: ["all"], //	All visible elements.	Script to be run when a mouse pointer moves out of an element
+    onmouseover: ["all"], //	All visible elements.	Script to be run when a mouse pointer moves over an element
+    onmouseup: ["all"], //	All visible elements.	Script to be run when a mouse button is released over an element
+    onmousewheel: ["all"], //	All visible elements.	Script to be run when a mouse wheel is being scrolled over an element
+    onoffline: ["body"], //Script to be run when the browser starts to work offline
+    ononline: ["body"], //Script to be run when the browser starts to work online
+    onpagehide: ["body"], //Script to be run when a user navigates away from a page
+    onpageshow: ["body"], //Script to be run when a user navigates to a page
+    onpaste: ["all"], //	All visible elements.	Script to be run when the user pastes some content in an element
+    onpause: ["audio", "video"],	//Script to be run when the media is paused either by the user or programmatically
+    onplay: ["audio", "video"],	//Script to be run when the media is ready to start playing
+    onplaying: ["audio", "video"],	//Script to be run when the media actually has started playing.
+    onpopstate: ["body"], //Script to be run when the window's history changes.
+    onprogress: ["audio", "video"],	//Script to be run when the browser is in the process of getting the media data
+    onratechange: ["audio", "video"],	//Script to be run each time the playback rate changes (like when a user switches to a slow motion or fast forward mode).
+    onreset: ["form"], //	Script to be run when a reset button in a form is clicked.
+    onresize: ["body"], //Script to be run when the browser window is being resized.
+    onscroll: ["all"], //Script to be run when an element's scrollbar is being scrolled
+    onsearch: ["input"], //	Script to be run when the user writes something in a search field (for <input="search">)
+    onseeked: ["audio", "video"],	//Script to be run when the seeking attribute is set to false indicating that seeking has ended
+    onseeking: ["audio", "video"],	//Script to be run when the seeking attribute is set to true indicating that seeking is active
+    onselect: ["all"], //Script to be run when the element gets selected
+    onshow: ["menu"], //	Script to be run when a <menu> element is shown as a context menu
+    onstalled: ["audio", "video"],	//Script to be run when the browser is unable to fetch the media data for whatever reason
+    onstorage: ["body"], //Script to be run when a Web Storage area is updated
+    onsubmit: ["form"], //	Script to be run when a form is submitted
+    onsuspend: ["audio", "video"],	//Script to be run when fetching the media data is stopped before it is completely loaded for whatever reason
+    ontimeupdate: ["audio", "video"],	//Script to be run when the playing position has changed (like when the user fast forwards to a different point in the media)
+    ontoggle: ["details"], //	Script to be run when the user opens or closes the <details> element
+    onunload: ["body"], //Script to be run when a page has unloaded (or the browser window has been closed)
+    onvolumechange: ["audio", "video"],	//Script to be run each time the volume of a video/audio has been changed
+    onwaiting: ["audio", "video"],	//Script to be run when the media has paused but is expected to resume (like when the media pauses to buffer more data)
+    onwheel: ["all"],
+
     open:["details"],
     optimum:["meter"],
     pattern:["input"],
@@ -394,6 +469,7 @@ function make_html(tag, properties, innerHTML="", ending="auto", error=false){
         else if (prop_name == "style")           { direct_css_props  = properties["style"] }
         else if(tag_is_valid) {
             if(html_db.is_html_property(prop_name)) { //this clause checks for css overlap
+                console.log(prop_name + " is html")
                 let tag_has_prop = html_db.tag_has_property("tag", prop_name)
                 if(html_db.is_css_property(prop_name)) { //uh-oh, valid html and css prop but ...
                    if(tag_has_prop) { //double uh-oh, this prop is good for this tag
@@ -412,15 +488,15 @@ function make_html(tag, properties, innerHTML="", ending="auto", error=false){
                 else { html_props[prop_name] = properties[prop_name] } //no conflict with css
             }
             else if(html_db.is_css_property(prop_name)) {
+                console.log(prop_name + " is css")
                 css_props[prop_name] = properties[prop_name]
-                has_css = true
             }
             else {
-               warning_or_error("make_html called with tag of + tag + " +
+               warning_or_error("make_html called with tag of: " + tag +
                                 " with a property of: " + prop_name +
                                 " that is not in DDE's database.", error)
                warning(prop_name + " treated as HTML property." +
-                       "<br/> Stick it in the 'style' properto to force it to be CSS." ) //if the above doesn't error, give more info
+                       "<br/> Stick it in the 'style' property to force it to be CSS." ) //if the above doesn't error, give more info
                html_props[prop_name] = properties[prop_name]
             }
         }
@@ -428,7 +504,6 @@ function make_html(tag, properties, innerHTML="", ending="auto", error=false){
                //so we're skating on thin ice. Prefer HTML here. User has already been warned that
                //tag is unknown, so no fancy error messages.
             if(html_db.is_css_property(prop_name))  { //if a prop is both a css and and html prop, make it to a css prop
-                has_css = true
                 css_props[prop_name] = properties[prop_name]
             }
             else if     (html_db.is_html_property(prop_name)) { html_props[prop_name] = properties[prop_name] }
@@ -458,27 +533,26 @@ function make_html(tag, properties, innerHTML="", ending="auto", error=false){
     for (let attr in html_props){
         result += " " + attr + '="' + html_props[attr] + '"'
     }
-    let first_css_prop = true
     if (direct_css_props) {
         result += ' style="'
         if (typeof(direct_css_props) == "string"){
             result += direct_css_props
-            first_css_prop = false
+            has_css = true
         }
         else {
             for (let attr in direct_css_props){
-                result += (first_css_prop ? "": " ") + attr + ':' + direct_css_props[attr] + ';'
-                first_css_prop = false
+                result += (has_css ? " ": "") + attr + ':' + direct_css_props[attr] + ';'
+                has_css = true
             }
         }
         has_css = true
     }
     for(let attr in css_props){
-        if (first_css_prop) {
+        if (!has_css) {
             result += ' style="'  //before first style prop
         }
-        result += (first_css_prop ? "": " ") + attr + ":" + css_props[attr] + ";" //avoid extra space at end
-        first_css_prop = false
+        result += (has_css ? " ": "") + attr + ":" + css_props[attr] + ";" //avoid extra space at end
+        has_css = true
     }
     if (ending != "none") {
         if (has_css) { result += '"' }
@@ -503,3 +577,36 @@ function make_html(tag, properties, innerHTML="", ending="auto", error=false){
     else { shouldnt("make_html got invalid ending: " + ending) }
     return result
 }
+
+//from https://davidwalsh.name/convert-html-stings-dom-nodes
+//innerHTML can be a string, a Node (elt) or an array of Nodes
+
+//only uses the first top level element
+function html_to_dom_elt(html, use_first_top_level_elemment_only=true){
+    let frag = document.createRange().createContextualFragment(html)
+    if (use_first_top_level_elemment_only) {
+       return frag.firstChild
+    }
+    else { return frag }
+}
+
+function make_dom_elt(tag, properties, innerHTML="", ending="auto", error=false){
+    let html_string = make_html(tag, properties, "", ending, error)
+    console.log(html_string)
+    let result = html_to_dom_elt(html_string)
+    console.log(result)
+    if(typeof(innerHTML) == "string")   { result.innerHTML = innerHTML  }
+    else if (innerHTML instanceof Node) { result.appendChild(innerHTML) }
+    else if (Array.isArray(innerHTML)) {
+        for(elt of innerHTML){
+            result.appendChild(elt)
+        }
+    }
+    return result
+}
+
+function replace_dom_elt(old_elt, new_elt){
+    old_elt.parentNode.replaceChild(new_elt, old_elt)
+}
+
+function remove_dom_elt(elt){ elt.parentNode.removeChild(elt) }

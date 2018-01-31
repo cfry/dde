@@ -247,5 +247,5 @@ new TestSuite("is_integer",
     ["is_integer(-5)",   "true"],
     ["is_integer(1.5)",  "false"],
     ['is_integer("45")', "false"],
-    ["is_integer([])",   "false"],
+    ["is_integer([])",   "false"]
 )
