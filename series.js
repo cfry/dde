@@ -48,7 +48,25 @@ var Series = class Series {
                                          the_ser.menu_sel_end)
                 var sel_text = Editor.get_javascript(true)
                 var info = Js_info.get_info_string(sel_text, the_ser)
-                out(info, null, true)
+                out(info, null, false)
+                if (the_ser.id.endsWith("_units_id")){
+                    let [unity_abbrev, unity_full_name] = series_name_to_unity_unit(the_ser.id)
+                    let result = ""
+                    for (let item of the_ser.array){
+                        let unit_full_name = unit_abbrev_to_full_name(the_ser.id, item)
+                        let val = window[item]
+                        let tooltip = item + " = " + unit_full_name + " = " + unity_full_name + " * " + val +
+                                      "\nClick to insert: " + "*" + item
+                        result += make_html("a",
+                                            {href: "#",
+                                             title: tooltip,
+                                             "text-decoration": "none",
+                                             onclick: "Editor.insert('*" + item + "')"
+                                             },
+                                             item) + "&nbsp;&nbsp;"
+                    }
+                    out(result, null, false)
+                }
             }
             document.getElementById(the_ser.id).onclick = fn
         }
@@ -717,7 +735,7 @@ Series.instances = [
     new Series({id:"series_output_id",      array: ['beep', 'beeps', 'Editor.insert', 'get_page', 'get_page_async','make_url', 'out', 'show_page', 'speak', 'recognize_speech'],
         menu_insertion_string: "beep({dur: 1, frequency: 440, volume: 1})",
         menu_sel_start:0, menu_sel_end:4, sample: "beep"}),
-    new Series({id:"series_window_id",      array: ['clear_output', 'close_window', 'show_window',
+    new Series({id:"series_window_id",      array: ['clear_output', 'close_window', 'make_dom_elt', 'make_html', 'show_window',
                                                     'append_in_ui', 'get_in_ui', 'remove_in_ui', 'replace_in_ui', 'set_in_ui',
                                                     'set_window_frame_background_color', 'set_pane_header_background_color',
                                                     'set_menu_background_color', 'set_button_background_color',

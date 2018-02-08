@@ -225,23 +225,17 @@ Editor.get_javascript = function(use_selection=false){
     if(Editor.view == "text") {
         let  full_src =  myCodeMirror.doc.getValue() //$("#js_textarea_id").val() //careful: js_textarea_id.value returns a string with an extra space on the end! A crhome bug that jquery fixes
         if (use_selection){
-            //var textComponent = document.getElementById('js_textarea_id')
-            //var sel_text = all_text.substring(textComponent.selectionStart,textComponent.selectionEnd )
-            var sel_text = full_src.substring(Editor.selection_start(), Editor.selection_end())
+            let sel_text = full_src.substring(Editor.selection_start(), Editor.selection_end())
             if (use_selection === true) { return sel_text}
             else if (use_selection == "auto") {
                 if (sel_text == "") { return full_src}
                 else { return sel_text }
             }
-            //if (sel_text == ""){
-            //    return all_text
-            //}
-            //else { return sel_text }
         }
         else { return full_src }
     }
     else if (Editor.view == "blocks"){
-        return Workspace.inst.to_js() //doesn't do selection yet.
+        return Workspace.inst.get_javascript(use_selection)
     }
     else { shouldnt("Editor.get_javascript found invalid Editor.view of: " + Editor.view) }
 

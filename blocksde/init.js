@@ -1,3 +1,5 @@
+// load_files(__dirname + "/blocksde/init.js")
+
 load_files(__dirname + "/blocksde/",
            "workspace.js",
            "category_newObject.js",
@@ -53,7 +55,6 @@ var blocksde_dom_elt   = null
 
 
 function toggle_text_blocks_display(){
-
   if (Editor.view == "text"){
       out("installing blocks")
       if (!the_codemirror_elt) { //haven't used blocksde yet so initialize it
@@ -77,8 +78,11 @@ function toggle_text_blocks_display(){
   }
   else { 
      out("installing text")
-     replace_dom_elt(blocksde_dom_elt, the_codemirror_elt)
-     text_blocks_toggle_id.style["background-color"] = "#CCCCCC"
+      let js = Workspace.inst.to_js()
+      replace_dom_elt(blocksde_dom_elt, the_codemirror_elt)
+      text_blocks_toggle_id.style["background-color"] = "#CCCCCC"
+      Editor.set_javascript(js)
+
      Editor.view = "text"
   }
 }

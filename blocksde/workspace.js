@@ -12,6 +12,7 @@ var Workspace = class Workspace{
         this.highlighted_block=null //at most 1
         let the_dom_elt = this.make_dom_elt()
         workspace_container_id.appendChild(the_dom_elt)
+        the_dom_elt.appendChild(make_bottom_left_spacer())
         Workspace.inst = this
         setTimeout(function(){ Workspace.inst.init_workspace()}, 10) //give the html a chance to render
     }
@@ -20,6 +21,8 @@ var Workspace = class Workspace{
     }
     init_workspace() {
         workspace_id.onclick=function(event){
+            event.stopPropagation()
+            unselect_block()
             if(event["target"] && (event.target.tagName == "INPUT")) {} //handled in onmouseup
             else {
                 Workspace.floating_typein_x = event.x //needed by floating_typein_done
@@ -37,7 +40,7 @@ var Workspace = class Workspace{
        return make_dom_elt("div",
                            {id: "workspace_id", width: this.width, height: this.height,
                             ondragstart: "block_dragstart_handler(event)",
-                            ondragover:  "block_dragover_handler(event)",
+                            ondragover:  "block_dragover_handler(event)", //withoutthis, dragging a block anywhere causes the red delete zone to get colored red. Not sure why
                             ondrag:      "block_drag_handler(event)",
                             ondrop:      "block_drop_handler(event)",
                             },
@@ -56,19 +59,32 @@ var Workspace = class Workspace{
     //draws the category menu
     static toolkit_bar_mouseover(event){
         if (event.which == 0) { //mouse is up. If the mouse is down, we are draging a block into the area to delete it so don't op up the cat menu
-            let the_html = " <b>Categories</b><br/>"
-            for(let cat of Root.BlockCategory.subObjects()){
-                the_html +=
-                    '<div class="toolkit_category_name" ' +
-                    `onmouseover="Workspace.category_mouseover('` + cat.name + `')"`   +
-                    `onmouseout="category_menu_id.style.display = 'block'" ` +
-                    'style="width:70px; background-color:' + cat.color + ";" +
-                    '">'  +
-                    cat.name + "</div>"
+            //event.stopPropagation()
+            //let elementMouseIsOver = document.elementFromPoint(event.clientX, event.clientY);
+            if (block_being_dragged){
+                uninstall_block_drop_zones()
+                remove_drop_target_class()
+                remove_dom_elt(block_being_dragged)
+                block_being_dragged = null
+                toolkit_bar_id.style["background-color"] = "#DDDDDD"
+                clean_up_top_lefts()
             }
-            category_menu_id.innerHTML = the_html
-            //category_menu_id.show();
-            category_menu_id.style.display = "block"
+            else { //normal, mouse enters toolbar to pop up category menu
+                //user is drabbing a block into the toolkit bar to delete it.
+                let the_html = " <b>Categories</b><br/>"
+                for(let cat of Root.BlockCategory.subObjects()){
+                    the_html +=
+                        '<div class="toolkit_category_name" ' +
+                        `onmouseover="Root.BlockCategory.category_mouseover('` + cat.name + `')"`   +
+                        `onmouseout="category_menu_id.style.display = 'block'" ` +
+                        'style="width:70px; background-color:' + cat.color + ";" +
+                        '">'  +
+                        cat.name + "</div>"
+                }
+                category_menu_id.innerHTML = the_html
+                //category_menu_id.show();
+                category_menu_id.style.display = "block"
+            }
         }
     }
 
@@ -80,22 +96,6 @@ var Workspace = class Workspace{
                 return //there should only be 1.
             }
         }
-    }
-
-    static category_mouseover(cat_name){
-        let the_html = " <b>Block Types</b><br/>"
-        let cat = Root.BlockCategory.name_to_category(cat_name)
-        for(let bt of cat.block_types){
-            the_html +=
-                '<div class="toolkit_type_name" ' +
-                      'onclick="' + bt.objectPath() + '.make_and_draw_block(150, 70)"' +
-                     ' style="width:108px; background-color:' + cat.color + ';">' +
-                      bt.display_label +
-                "</div>"
-        }
-        block_type_menu_id.innerHTML     = the_html
-        category_menu_id.style.display   = "block"
-        block_type_menu_id.style.display = "block"
     }
 
     add_block_html(block_html){
@@ -128,13 +128,27 @@ var Workspace = class Workspace{
         return result
     }
 
+    get_javascript(use_selection="auto"){
+        if (use_selection === true) {
+            let sel_block = selected_block()
+            if (sel_block) { return block_to_js(sel_block) }
+            else { return "" } //no selection
+        }
+        else if (use_selection == "auto") {
+            let sel_block = selected_block()
+            if (sel_block) { return block_to_js(sel_block) }
+            else { return Workspace.inst.to_js() }
+        }
+        else if (use_selection === false) { return Workspace.inst.to_js() }
+        else { shouldnt("Workspace.get_javasript passed invalid: " + use_selection) }
+    }
+
     to_js(){
         let blocks = Workspace.inst.top_left_blocks()
         let result = ""
         for(let elt of blocks){
-            let bt = dom_elt_block_type(elt)
-            let src = bt.to_js(elt)
-            result += ((result == "") ? "" : "\n") + src
+            let src = block_to_js(elt)
+            result += ((result == "") ? "" : "\n\n") + src //1 blank line between top level items
         }
         out(result)
         return result

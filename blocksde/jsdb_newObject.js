@@ -18,22 +18,125 @@ newObject({name:    "jsdb_param",
                  result.push(par)
               }
               return result
+           },
+           all_params_to_js(block_elt){
+               let block_args_elt = dom_elt_child_of_class(block_elt, "block_args")
+               //let arg_vals = args_elt.querySelectorAll(".arg_val") //gets all arg_val etls below, but we want just the first level
+               let result = ""
+               debugger
+               let block_args_elt_children = block_args_elt.children
+               for(let i=0; i < block_args_elt_children.length; i++){
+                   let arg_name_val = block_args_elt_children[i]
+                   let arg_val_elt = dom_elt_child_of_class(arg_name_val, "arg_val") //warning will be null if arg_val_elt is a comma
+                   if (arg_name_val.classList.contains("comma")){ result += ", " }
+                   else if(arg_val_elt.tagName == "INPUT") {
+                        if(arg_val_elt.type == "checkbox") { result += arg_val_elt.checked }
+                        else { result += arg_val_elt.value }
+                   }
+                   else if(arg_val_elt.tagName == "SELECT") {
+                       result += arg_val_elt.value
+                   }
+                   else if (arg_val_elt.classList.contains("block")){
+                       let bt = dom_elt_block_type(arg_val_elt)
+                       result += bt.to_js(arg_val_elt)
+                   }
+                   else { shouldnt("in all_params_to_js with invalid arg_val_elt: " + arg_val_elt) }
+                   //if (i < (args_elt_children.length - 1)) { //i.e. we're NOT on the last arg
+                   //    result += ", "
+                   //}
+               }
+               return result
+           },
+           make_input_elt(){
+               return make_dom_elt("input",
+                                  {class:"arg_val",
+                                   type: "text", //general purpose but generally overridden bu subobjects
+                                   width: 80 + "px",
+                                   value:param.value,
+                                   ondragenter:"enter_drop_target(event)",
+                                   ondragleave:"leave_drop_target(event)"})
            }
 })
 
+
+
 newObject({prototype: Root.jsdb_param,
-           name: "number",
-           display_label: "num",
-           value: 0,
-           min: -Infinity,
-           max: Infinity
+    name: "boolean",
+    display_label: "",
+    value: false,
+    make_input_elt: function(){
+        return make_dom_elt("input",
+            {class:"arg_val",
+                type: "checkbox", //general purpose but generally overridden bu subobjects
+                width: 5 + "px", //if its smaller, the cursor over the checkbox isn't always an array, preventing you from clicking the checkbox
+                value:false,
+                ondragenter:"enter_drop_target(event)",
+                ondragleave:"leave_drop_target(event)"})
+    }
+
 })
 
 newObject({prototype: Root.jsdb_param,
-            name: "string",
-            display_label: "str",
-            value: ""
+    name: "string",
+    display_label: "",
+    value: false,
+    make_input_elt: function(){
+        return make_dom_elt("input",
+            {class:"arg_val",
+                type: "text", //general purpose but generally overridden bu subobjects
+                width: 80 + "px",
+                value:"",
+                ondragenter:"enter_drop_target(event)",
+                ondragleave:"leave_drop_target(event)"})
+    }
+
 })
+
+newObject({prototype: Root.jsdb_param,
+    name: "number",
+    display_label: "",
+    value: 0, //a default value. Axtual value is stored in the dom_elt
+    min: -Infinity,
+    max: Infinity,
+    make_input_elt: function(){
+        return make_dom_elt("input",
+            {class:"arg_val",
+                type: "number",
+                width: 60 + "px",
+                "margin-left": "0px",
+                value: this.value,
+                ondragenter:"enter_drop_target(event)",
+                ondragleave:"leave_drop_target(event)"})
+    }
+})
+
+newObject({prototype: Root.jsdb_param,
+    name: "one_of",
+    display_label: "",
+    value: "",
+    choices: ["one", "two"],
+    make_input_elt: function(){
+        let inner_elts = []
+        for(let choice of this.choices){
+            inner_elts.push(make_dom_elt("option", {}, choice))
+        }
+        return make_dom_elt("select",
+                            {class:"arg_val",
+                             width: 80 + "px", //at 70, the last letter of "undefined" is cut off.
+                             value: this.choices[0],
+                             ondragenter:"enter_drop_target(event)",
+                             ondragleave:"leave_drop_target(event)"},
+            inner_elts)
+    }
+})
+
+newObject({prototype: Root.jsdb_param,
+    name: "array",
+    display_label: "",
+    value: [],
+    make_input_elt: function(){ return null }
+})
+
 
 //_______JSDB______________
 newObject({
@@ -78,6 +181,7 @@ newObject({
         }
     },
     make_and_draw_block: function(x=null, y=25, arg_vals=[]){
+        debugger
         if (x == null) {
             x = Workspace.suck_left_margin + 100
         }
@@ -90,8 +194,12 @@ newObject({
     block_counter: 0, //used as suffix to dom elt block id's.
 
     get_next_block_counter: function() {
-        this.block_counter++;
-        return this.block_counter
+        Root.jsdb.block_counter = Root.jsdb.block_counter + 1
+        return Root.jsdb.block_counter
+    },
+    get_next_block_id: function() {
+        Root.jsdb.block_counter = Root.jsdb.block_counter + 1
+        return "block_" + Root.jsdb.block_counter + "_id"
     }
 })
 
@@ -191,13 +299,15 @@ newObject({prototype: Root.jsdb,
     }*/
     make_dom_elt: function(x, y, arg_vals){
         let result = make_dom_elt("div",
-                                  {class:"block block-absolute",
+                                  {class:"block block-absolute block_horiz",
+                                   "background-color": this.category.color,
+                                   id: Root.jsdb.get_next_block_id(),
                                    left: x + "px",
                                    top:  y + "px",
                                    draggable: "true",
                                    "data-block-type": "method." + this.name,
                                  //  ondragstart: "Root.jsdb.dragstart_handler(event)",
-                                   id: "block_" + this.get_next_block_counter() + "_id"
+                                   onclick: "select_block(event)"
                                    //position: "absolute"
                                    },
                                    make_dom_elt("div", {class:"block_name"}, this.display_label)
@@ -207,8 +317,13 @@ newObject({prototype: Root.jsdb,
         for(let param of this.params){
             let param_elt =
              make_dom_elt("label", {class:"arg_name_val"},
-                           [make_dom_elt("span", {class:"arg_name"}, param.display_label),
-                            make_dom_elt("input", {class:"arg_val", value:param.value})
+                           [make_dom_elt("span", {class:"arg_name", "vertical-align":"top"}, param.display_label),
+                            make_dom_elt("input",
+                                          {class:"arg_val",
+                                           width: 80 + "px", //don't put on css class arg_val because wehn I drop a block in there, it needs to expand
+                                           value:param.value,
+                                           ondragenter:"enter_drop_target(event)",
+                                           ondragleave:"leave_drop_target(event)"})
                             ])
             block_args_elt.appendChild(param_elt)
         }
@@ -218,13 +333,15 @@ newObject({prototype: Root.jsdb,
                              make_dom_elt("div", {class:"toggle_expand_collapse",
                                                   onclick:"toggle_expand_collapse(event)"})
                             ]))
+        make_block_horiz(result)
         return result
     },
-    to_js(elt){
+    to_js(block_elt){
         let result = ""
         if (this.is_static) { result = this.jsclassname + "." }
         result += this.methodname
         result += "("
+        result += Root.jsdb_param.all_params_to_js(block_elt)
         result += ")"
         return result
     }
@@ -236,32 +353,78 @@ newObject({prototype: Root.jsdb,
                        //or "(foo).bar" for an instance method on the class foo.
     return_type:"any" ,
     make_dom_elt: function(x, y, arg_vals){
+        debugger
         let result = make_dom_elt("div",
-               {class:"block",
+               {class:"block block-absolute",
+                "background-color": this.category.color,
+                id: Root.jsdb.get_next_block_id(),
                 left: x + "px",
                 top:  y + "px",
                 draggable: "true",
-                ondragstart: "Root.jsdb.dragstart_handler(event)",
-                id: "block_" + this.block_counter,
-                position: "absolute"
+                "data-block-type": "literal." + this.name,
+                onclick: "select_block(event)"
                },
-            make_dom_elt("div", {class:"block_name"}, this.display_label)
+            make_dom_elt("div", {class:"block_name", display:"inline-block"}, this.display_label)
         )
-        let block_args_elt = make_dom_elt("div", {class:"block_args"})
+        //a key diff between this meth and corresponding meth for "method"
+        //is the  display:"inline-block" on block-name, block_args, and arg_name_val
+        //so that we have the 1 param on the top line, same line as block-name
+        let block_args_elt = make_dom_elt("div", {class:"block_args block_args_collapsed"}) // display:"inline-block"})
         result.appendChild(block_args_elt)
-        let param_elt =
-                make_dom_elt("label", {class:"arg_name_val"},
-                    [make_dom_elt("span", {class:"arg_name"}, param.display_label),
-                        make_dom_elt("input", {class:"arg_val", value:param.value})
-                    ])
-        block_args_elt.appendChild(param_elt)
+        if(this.params.length == 1) { //excludes literal array which starts with no params
+            let param = this.params[0]
+            let input_elt = param.make_input_elt()
+            let param_elt =
+                    make_dom_elt("label", {class:"arg_name_val arg_name_val_horiz"}, //display:"inline-block"},
+                        [make_dom_elt("span",  {class:"arg_name", "margin-right": "0px"}, param.display_label),
+                         input_elt
+                        ])
+            block_args_elt.appendChild(param_elt)
+        }
+        else if (this.name == "array") {
+            this.append_array_begin_and_end(result)
+        }
         result.appendChild(make_dom_elt("div", {},
             [make_dom_elt("div", {class:"toggle_horiz_vert",
-                onclick:"toggle_horiz_vert(event)"}),
-                make_dom_elt("div", {class:"toggle_expand_collapse",
-                    onclick:"toggle_expand_collapse(event)"})
+                                  onclick:"toggle_horiz_vert(event)"}),
+             make_dom_elt("div", {class:"toggle_expand_collapse",
+                                  onclick:"toggle_expand_collapse(event)"})
             ]))
+        make_block_horiz(result)
         return result
+    },
+
+    append_array_begin_and_end: function(block_elt){
+        let block_args = dom_elt_child_of_class(block_elt, "block_args")
+        let begin = make_dom_elt("span",
+                                {class: "array_object_delimiter",
+                                    ondragenter:"enter_drop_target(event)",
+                                    ondragleave:"leave_drop_target(event)"},
+                                "&nbsp;[&nbsp;")
+        insert_elt_before(begin, block_args)
+        let end = make_dom_elt("span",
+                               {class: "array_object_delimiter",
+                                ondragenter:"enter_drop_target(event)",
+                                ondragleave:"leave_drop_target(event)"},
+                               "&nbsp;]&nbsp;")
+        insert_elt_after(end, block_args)
+    },
+
+    to_js: function(elt){
+        debugger
+        let src = Root.jsdb_param.all_params_to_js(elt)
+        if(this.name == "string"){
+            if (src.includes("\n"))   { return "`" + src + "`" } //src has newline
+            else if(src.includes('"')){
+                if(src.includes("'")) { return "`" + src + "`" } //src has both double and single quote
+                else                  { return "'" + src + "'" } //src has double quote but not single
+            }
+            else { return '"' + src + '"' } //src does not have double quote
+        }
+        else if (this.name == "array"){
+            return "[" + src + "]"
+        }
+        else { return src } //hits for this.name == "boolean", "null_undefined" at least
     }
 })
 
@@ -385,33 +548,68 @@ Root.BlockCategory.Math.add_block_type(
 */
 
 
-newObject({prototype: Root.jsdb.method,
-          name: "Math__abs",
-          category: Root.BlockCategory.Math,
-          jsclassname: "Math",
-          methodname: "abs",
-          is_static: true,
-          return_type: "number",
-          params: [Root.jsdb_param.number]
-          })
-
-newObject({prototype: Root.jsdb.method,
-            name: "Math__pow",
-            category: Root.BlockCategory.Math,
-            jsclassname: "Math",
-            methodname: "pow",
-            is_static: true,
-            return_type: "number",
-            params: [Root.jsdb_param.number, Root.jsdb_param.number]
+newObject({prototype: Root.jsdb.literal,
+    name: "boolean",
+    category: Root.BlockCategory.Logic,
+    display_label: 't/f',
+    return_type: "boolean",
+    params: [Root.jsdb_param.boolean]
 })
 
-console.log("str cat: " + Root.BlockCategory.String)
+newObject({prototype: Root.jsdb.literal,
+    name: "number",
+    category: Root.BlockCategory.Math,
+    display_label: '#',
+    return_type: "number",
+    params: [Root.jsdb_param.number]
+})
 
 newObject({prototype: Root.jsdb.literal,
-    name: "string_literal",
+    name: "null_undefined",
+    category: Root.BlockCategory.Logic,
+    display_label: 'n/u',
+    return_type: "null", //not too useful
+    params: [newObject({prototype: Root.jsdb_param.one_of,
+                        name: "null_undefined",
+                        display_label:"",
+                        choices:["null", "undefined"] //this is src code choices
+                        })]
+})
+
+newObject({prototype: Root.jsdb.literal,
+    name: "string",
     category: Root.BlockCategory.String,
+    display_label: '"',
     return_type: "string",
     params: [Root.jsdb_param.string]
+})
+
+newObject({prototype: Root.jsdb.literal,
+    name: "array",
+    category: Root.BlockCategory.Array,
+    display_label: 'Array',
+    return_type: "Array",
+    params: []
+})
+
+newObject({prototype: Root.jsdb.method,
+    name: "Math__abs",
+    category: Root.BlockCategory.Math,
+    jsclassname: "Math",
+    methodname: "abs",
+    is_static: true,
+    return_type: "number",
+    params: [Root.jsdb_param.number]
+})
+
+newObject({prototype: Root.jsdb.method,
+    name: "Math__pow",
+    category: Root.BlockCategory.Math,
+    jsclassname: "Math",
+    methodname: "pow",
+    is_static: true,
+    return_type: "number",
+    params: [Root.jsdb_param.number, Root.jsdb_param.number]
 })
 
 

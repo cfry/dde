@@ -469,7 +469,7 @@ function make_html(tag, properties, innerHTML="", ending="auto", error=false){
         else if (prop_name == "style")           { direct_css_props  = properties["style"] }
         else if(tag_is_valid) {
             if(html_db.is_html_property(prop_name)) { //this clause checks for css overlap
-                console.log(prop_name + " is html")
+                //console.log(prop_name + " is html")
                 let tag_has_prop = html_db.tag_has_property("tag", prop_name)
                 if(html_db.is_css_property(prop_name)) { //uh-oh, valid html and css prop but ...
                    if(tag_has_prop) { //double uh-oh, this prop is good for this tag
@@ -488,7 +488,7 @@ function make_html(tag, properties, innerHTML="", ending="auto", error=false){
                 else { html_props[prop_name] = properties[prop_name] } //no conflict with css
             }
             else if(html_db.is_css_property(prop_name)) {
-                console.log(prop_name + " is css")
+                //console.log(prop_name + " is css")
                 css_props[prop_name] = properties[prop_name]
             }
             else {
@@ -592,9 +592,9 @@ function html_to_dom_elt(html, use_first_top_level_elemment_only=true){
 
 function make_dom_elt(tag, properties, innerHTML="", ending="auto", error=false){
     let html_string = make_html(tag, properties, "", ending, error)
-    console.log(html_string)
+    //console.log(html_string)
     let result = html_to_dom_elt(html_string)
-    console.log(result)
+    //console.log(result)
     if(typeof(innerHTML) == "string")   { result.innerHTML = innerHTML  }
     else if (innerHTML instanceof Node) { result.appendChild(innerHTML) }
     else if (Array.isArray(innerHTML)) {
@@ -609,4 +609,26 @@ function replace_dom_elt(old_elt, new_elt){
     old_elt.parentNode.replaceChild(new_elt, old_elt)
 }
 
+function insert_elt_before(new_elt, old_elt){
+    old_elt.parentNode.insertBefore(new_elt, old_elt)
+}
+
+//works even when old_elt is the only elt in its parent.
+function insert_elt_after(new_elt, old_elt){
+    old_elt.parentNode.insertBefore(new_elt, old_elt.nextSibling);
+}
+
 function remove_dom_elt(elt){ elt.parentNode.removeChild(elt) }
+
+function is_dom_elt_ancestor(possible_ancestor, starting_elt){
+    if (possible_ancestor == null) { return false}
+    else if(possible_ancestor == starting_elt) { return true }
+    else { return is_dom_elt_ancestor(possible_ancestor.parentNode, starting_elt) }
+}
+//find the first child of elt that has class
+function dom_elt_child_of_class(elt, a_class){
+   for(let kid of elt.children){
+       if (kid.classList.contains(a_class)) { return kid }
+   }
+   return null
+}

@@ -5332,7 +5332,15 @@ mat.delete()</code></pre>
      <br>Code</b> to see the returned HTML.
     </details>
 
-    <details class="doc_details"><summary>Mouse Input</summary>
+    <details id="make_dom_elt_doc_id" class="doc_details"><summary>make_dom_elt</summary>
+        Same as <code>make_html</code> except that it returns a DOM element instead of
+        a string. That DOM element can be used with all JS functions that manipulate
+        DOM elememts. <br/>
+        <i>Example:</i>
+        <code>make_dom_elt("span", {color:"blue"}, "hi")</code>
+    </details>
+
+        <details class="doc_details"><summary>Mouse Input</summary>
     <b>Position</b><br/>
     Javascript doesn't have just a method you can call to get the mouse position.
     JS does support getting the mouse position from an event.

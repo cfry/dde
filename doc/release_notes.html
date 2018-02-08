@@ -5,6 +5,31 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 2.3.7, Feb 7, 2018</summary>
+ Highlights: Calibration bugs fixed, Dexter connectivity checked,
+ Extra Units series help
+<ul>
+    <li> <code>make_dom_elt</code> is now documented.
+        It and <code>make_html</code> are now in the 'window' series.</li>
+
+    <li>Now, before instructions are sent to a Dexter,
+        it is pinged. If it responds, the instructions are sent.
+        If not, the job errors with an instructive error message.</li>
+
+    <li> Now when you choose Series menu/Units System/any item
+        besides Help and temperature,
+        in addition to the usual insertion of the first series item
+        and a line in the output pane about it,
+        a <i>second</i> line in the output pane lists all the units in the
+        series you've selected.
+        The tooltip on each item gives you details about it.
+        Clicking the item itself inserts the
+        item in the editor, preceded by "*".
+        This is an experimental feature.</li>
+
+    <li> Calibration has some connectivity bugs fixed.</li>
+</ul>
+</details>
 <details class="doc_details"><summary>v 2.3.6, Jan 31, 2018</summary>
 Highlights: Calibration bug fixes. First pass fix for connectivity
    while Dexter is booting bug.

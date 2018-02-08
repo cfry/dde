@@ -844,7 +844,7 @@ Dexter = class Dexter extends Robot {
     use_ping_proxy(job_instance, timeout_secs=0){
         let this_robot = this
         let pingProxy = require('ping-proxy')
-        set_timeout(
+        setTimeout(
           function() {
               pingProxy({proxyHost: this_robot.ip_address,
                          proxyPort: this_robot.port},
@@ -854,11 +854,11 @@ Dexter = class Dexter extends Robot {
                                 job_instance.stop_for_reason("errored", "Dexter port: " + this_robot.port + " is not open.\nIf it is because Dexter is initializing,\ntry again in a minute." + err.message)
                           }
                           else {
-                              this_robot.use_ping_proxy(job_instance(timeout_secs + 10))
+                              this_robot.use_ping_proxy(job_instance, (timeout_secs + 10))
                           }
                       }
                       else {
-                          this.start_aux(job_instance)
+                          this_robot.start_aux(job_instance)
                       }
                   })
           }, timeout_secs * 1000)
@@ -871,8 +871,9 @@ Dexter = class Dexter extends Robot {
                 let this_robot = this
                 ping.sys.probe(this.ip_address,
                                 function(isAlive){
-                                    if (isAlive) { //this.start_aux(job_instance)
-                                        this_robot.use_ping_proxy(job_instance)
+                                    if (isAlive) {
+                                        this.start_aux(job_instance)
+                                        //this_robot.use_ping_proxy(job_instance)
                                     }
                                     else {
                                          job_instance.stop_for_reason("errored", "Could not connect to Dexter.\nIf it is because Dexter is initializing,\ntry again in a minute.")
