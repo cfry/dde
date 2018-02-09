@@ -5,7 +5,7 @@
 function setFollowMe(){
 	let pidXYZ  = 0x3e4ecccc //not set in this file
 	let pidRP   = 0x3cf5c28f
-	let pidBase = 0x3f000000
+	let pidBase = 0x3e4ecccc
 	let PID_P = 20
 	let PID_ADDRESS = 21
 	let DIFF_FORCE_SPEED_FACTOR_ANGLE = 55
@@ -46,7 +46,7 @@ function setFollowMe(){
 function setForceProtect(){
 	let pidXYZ  = 0x3e4ecccc //not set in this file
 	let pidRP   = 0x3cf5c28f
-	let pidBase = 0x3f000000
+	let pidBase = 0x3e4ecccc
 	let PID_P = 20
 	let PID_ADDRESS = 21
 	let DIFF_FORCE_SPEED_FACTOR_ANGLE = 55
@@ -83,7 +83,7 @@ function setForceProtect(){
 function setKeepPosition(){
 	let pidXYZ  = 0x3e4ecccc //not set in this file
 	let pidRP   = 0x3cf5c28f
-	let pidBase = 0x3f000000
+	let pidBase = 0x3e4ecccc
 	let PID_P = 20
 	let PID_ADDRESS = 21
 	let DIFF_FORCE_SPEED_FACTOR_ANGLE = 55
@@ -112,7 +112,7 @@ function setKeepPosition(){
 function setOpenLoop(){
 	let pidXYZ  = 0x3e4ecccc //not set in this file
 	let pidRP   = 0x3cf5c28f
-	let pidBase = 0x3f000000
+	let pidBase = 0x3e4ecccc
 	let PID_P = 20
 	let PID_ADDRESS = 21
 	let DIFF_FORCE_SPEED_FACTOR_ANGLE = 55
