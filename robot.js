@@ -807,9 +807,9 @@ Dexter = class Dexter extends Robot {
         this.waiting_for_heartbeat = false
         this.heartbeat_timeout_obj = null
 
-        this.angles = [0, 0, 0, 0, 0] //used by move_to_relative, set by move_all_joints, move_to, and move_to_relative
+        this.angles     = [0, 0, 0, 0, 0] //used by move_to_relative, set by move_all_joints, move_to, and move_to_relative
         this.pid_angles = [0, 0, 0, 0, 0]
-        this.processing_flush      = false //primarily used as a check. a_robot.send shouldn't get called while this var is true
+        this.processing_flush = false //primarily used as a check. a_robot.send shouldn't get called while this var is true
         Robot.set_robot_name(this.name, this)
          //ensures the last name on the list is the latest with no redundancy
         let i = Dexter.all_names.indexOf(this.name)
@@ -841,7 +841,7 @@ Dexter = class Dexter extends Robot {
         else { this.start_aux(job_instance) } //no actual connection to Dexter needed as we're only simulating
     }
     */
-    use_ping_proxy(job_instance, timeout_secs=0){
+   /* use_ping_proxy(job_instance, timeout_secs=0){ //couldn't ge tthis npm pkg to work.
         let this_robot = this
         let pingProxy = require('ping-proxy')
         setTimeout(
@@ -863,16 +863,17 @@ Dexter = class Dexter extends Robot {
                   })
           }, timeout_secs * 1000)
     }
-
+    */
     start(job_instance){
         let sim_actual = Robot.get_simulate_actual(this.simulate)
+        let this_robot = this
         if ([false, "both"].includes(sim_actual)) {
                 let ping = require('ping') //https://www.npmjs.com/package/ping
-                let this_robot = this
                 ping.sys.probe(this.ip_address,
                                 function(isAlive){
                                     if (isAlive) {
-                                        this.start_aux(job_instance)
+                                        setTimeout(function(){this_robot.start_aux(job_instance)},
+                                                  500) //in case dexster is booting up, give it a chance to complete boot cycle
                                         //this_robot.use_ping_proxy(job_instance)
                                     }
                                     else {
@@ -882,7 +883,9 @@ Dexter = class Dexter extends Robot {
                                {timeout: 10}
                                )
         }
-        else { this.start_aux(job_instance) } //no actual connection to Dexter needed as we're only simulating
+        else { setTimeout(function(){this_robot.start_aux(job_instance)},
+                         500) } //no actual connection to Dexter needed as we're only simulating, BUT
+                                 //to keep similation as much like non-sim. due the same timeout.
     }
 
     start_aux(job_instance) { //fill in initial robot_status
@@ -1447,7 +1450,25 @@ Dexter.move_to_relative = function(delta_xyz = [0, 0, 0]){
 
 Dexter.record_movement = function(...args){ return make_ins("m", ...args) }
 Dexter.replay_movement = function(...args){ return make_ins("o", ...args) }
-Dexter.set_parameter   = function(name="Acceleration", value){ return make_ins("S", name, value)}
+Dexter.set_parameter   = function(name="Acceleration", value){
+                          if (name == "StartSpeed") {
+                              if (value < 0){
+                                  dde_error("Dexter.set_parameter called with StartSpeed of: " + value +
+                                            " but it must be greater than or equal to zero.")
+                              }
+                          }
+                          else if (name == "MaxSpeed") {
+                              if (value <= 0){
+                                  dde_error("Dexter.set_parameter called with MaxSpeed of: " + value +
+                                            " but it must be greater than zero.")
+                              }
+                              else if (value < (1 / _nbits_cf)){
+                                  warning("Dexter.set_parameter called with MaxSpeed of: " + value +
+                                  " which is too low.<br/>MaxSpeed set to the minimum permissible speed of: " + (1 / _nbits_cf))
+                              }
+                          }
+                           return make_ins("S", name, value)
+                         }
 Dexter.sleep           = function(seconds){ return make_ins("z", seconds) }
 Dexter.slow_move       = function(...args){ return make_ins("s", ...args) }
 Dexter.write           = function(...args){ return make_ins("w", ...args) }

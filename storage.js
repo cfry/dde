@@ -125,7 +125,7 @@ function dde_init_dot_js_initialize() {
             load_files("dde_init.js")
         }
         catch(err0){
-            Editor.edit_file("dde_init.js")
+            Editor.edit_file(add_default_file_prefix_maybe("dde_init.js"))
             dde_error("The file: Documents/dde_apps/dde_init.js has invalid JavaScript in it.<br/>" +
                       "Please fix this and relaunch DDE.")
             return

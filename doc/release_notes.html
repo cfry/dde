@@ -5,6 +5,36 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+
+<details class="doc_details"><summary>v 2.3.8, Feb 9, 2018</summary>
+Highlights: Fix for Dexter's "jitters" and 6 other bug fixes.
+<ul>
+    <li>In Dexter's modes, pidBase changed to prevent oscillations.</li>
+
+    <li>Robot.start: at beginning of a job, if a 'ping' to Dexter
+    is successful, wait 500ms before sending instructions to give
+    Dexter initialization a chance to complete.</li>
+
+    <li> <code>Dexter.set_parameter("MaxSpeed", 0)</code> (or less)  causes an error.
+        (but not in low level make_ins calls)</li>
+
+    <li> <code>Dexter.set_parameter("MaxSpeed", 0.0000001)</code> warns:
+        Dexter.set_parameter called with MaxSpeed of: 0.0000001
+        which is too low.
+        MaxSpeed set to the minimum permissible speed of:
+        0.00012895346330171073</li>
+
+    <li> <code>Dexter.set_parameter("StartSpeed", -1)</code> now errors immediately.
+         0 is ok but less than 0 causes an error.</li>
+
+    <li> If a Job attempts to start that has a robot that is in use
+        by another job, the 2nd job errors.</li>
+
+    <li> Increased the likelihood that the last file edited
+        will be the file that comes up in the editor when you launch dde.</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 2.3.7, Feb 7, 2018</summary>
  Highlights: Calibration bugs fixed, Dexter connectivity checked,
  Extra Units series help

@@ -133,6 +133,13 @@ var Job = class Job{
                       " which doesn't permit restarting.")
         }
         else{//init from orig_args
+            let other_jobs = this.robot.active_jobs_using_this_robot()
+            for(let other_job of other_jobs){
+                if (other_job.robot instanceof Dexter){ //can 2 jobs use a Robot.Serial? I assume so for now.
+                    dde_error("Job." + this.name + " attempted to use: Dexter." + this.robot.name +
+                               " but that robot is in use by Job." + other_job.name)
+                }
+            }
             this.do_list           = Job.flatten_do_list_array(this.orig_args.do_list) //make a copy in case the user passes in an array that they will use elsewhere, which we wouldn't want to mung
             this.added_items_count = new Array(this.do_list.length) //This array parallels and should be the same length as the run items on the do_list.
             this.added_items_count.fill(0) //stores the number of items "added" by each do_list item beneath it

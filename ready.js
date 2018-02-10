@@ -184,19 +184,6 @@
         const inner_path = e.target.value //could be "new file" or an actual file
         const path = Editor.files_menu_path_to_path(inner_path)
         Editor.edit_file(path)
-        //
-        let files = persistent_get("files_menu_paths")
-        let i = files.indexOf(path) //Editor.current_file_path
-        if (i != -1) {
-            files.splice(i, 1) //remove the file
-            files.unshift(path)
-            persistent_set("files_menu_paths", files)
-            //Editor.restore_files_menu_paths_and_last_file() //don't do so we don't change the order
-                                   //in the current menu BUT next time user launches DDE,
-                                    //the last file they were editing when htey quit should
-                                    //show up in the editor.
-            return
-        }
     }
     /*dde_overview_id.onclick = function() {
                           //window.open("here is text") //dde_paper_text)

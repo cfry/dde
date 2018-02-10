@@ -382,6 +382,16 @@ Editor.edit_file = function(path){ //path could be "new file"
     Editor.restore_selection_from_map()
     file_name_id.title = path
     myCodeMirror.focus()
+
+    let files = persistent_get("files_menu_paths")
+    let i = files.indexOf(path) //Editor.current_file_path
+    if (i != -1) { files.splice(i, 1) } //remove the file (temporarily)
+    files.unshift(path) //push path onto the front of the array
+    persistent_set("files_menu_paths", files)
+        //Editor.restore_files_menu_paths_and_last_file() //don't do so we don't change the order
+        //in the current menu BUT next time user launches DDE,
+        //the last file they were editing when they quit should
+        //show up in the editor.
 }
 
 Editor.save_current_file = function(){
