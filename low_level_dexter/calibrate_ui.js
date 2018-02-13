@@ -34,9 +34,14 @@ function cal_is_loop_checked(J_num){
 function make_calibrate_joint_buttons_html(){
     //var result = "<input type='button' value='Start All Joints' id='Start_J_6'</input> <hr style='border-width:1px; border-color: #c89191'/>"
     var result = ""
+    
     for(var i = 1; i <= 5; i++){
+    	let title = 'Expect a circle of points to be drawn counter-clockwise.'
+        if(i == 5){
+        	title = 'Expect a circle of points to be drawn clockwise.'
+        }
         result += 
-            "<input type='button' value='Start J" + i + "' id='Start_J_" + i + "_id' style='margin-right:15px; background-color: rgb(204, 204, 204);margin-bottom:5px;'></input> " +
+            "<input title='" + title + "' type='button' value='Start J" + i + "' id='Start_J_" + i + "_id' style='margin-right:15px; background-color: rgb(204, 204, 204);margin-bottom:5px;'></input> " +
             "<span style='font-size:18px; margin:0px; padding:0px;' title='Make Joint " + i + " current and show recorded points.'> &#128065; </span>" +
             "<input name='cal_joint_radio' id='cal_joint_" + i +
             	"_radio_id' type='radio' style='margin-top:10px; margin-left:0px; margin-right:10px; padding:0px;' data-onchange='true' title='Make Joint " + i + " current and show recorded points.' value='cal_joint_" + i + "_value'/>" +
@@ -86,12 +91,13 @@ function cal_reset_ranges(){
         start_dom_elt.max = end_dom_elt.value
         end_dom_elt.min = start_dom_elt.value
         end_dom_elt.max = end_dom_elt.value
-        
+        /*
         if(i == 3){
         	let temp_val = end_dom_elt.value
             end_dom_elt.value = start_dom_elt.value
             start_dom_elt.value = temp_val
         }
+        */
     }
 }
 
@@ -131,16 +137,15 @@ function handle_cal(vals){
         load_files(__dirname + "/low_level_dexter/find_home_for_DDE_2.js")
     }else if(vals.clicked_button_value == "Reset Ranges") {
     	if(cal_init_view_eye_state){
+        	out("Attempting to connect to " + robot_to_calibrate_id.value +"...", "blue")
         	init_view_eye()
     	}
     	cal_reset_ranges()
     }else if(vals.clicked_button_value == "Clear") {
-    	if(cal_init_view_eye_state){
-        	init_view_eye()
-    	}
     	cal_clear_points()
     }else if(vals.clicked_button_value == ("cal_joint_radio")){
     	if(cal_init_view_eye_state){
+        	out("Attempting to connect to " + robot_to_calibrate_id.value +"...", "blue")
         	init_view_eye()
     	}
         showing_J_num = parseInt(vals.cal_joint_radio.substring(10, 11))
@@ -148,6 +153,7 @@ function handle_cal(vals){
         cal_draw_saved_center()
     }else if (vals.clicked_button_value.startsWith("Start_J")) {
     	if(cal_init_view_eye_state){
+        	out("Attempting to connect to " + robot_to_calibrate_id.value +"...", "blue")
         	init_view_eye()
     	}
     	let J_num = parseInt(vals.clicked_button_value.substring(8, 9))
@@ -320,9 +326,7 @@ function cal_get_robot(){
 	try{
     	return Robot[robot_to_calibrate_id.value]
     }catch(err){
-    	debugger
     	dde_error("cal_get_robot() was called before robot_to_calibrate_id exists")
-    	//return dexter0
     }
 }
 
