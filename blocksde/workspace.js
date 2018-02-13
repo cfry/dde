@@ -71,7 +71,8 @@ var Workspace = class Workspace{
             }
             else { //normal, mouse enters toolbar to pop up category menu
                 //user is drabbing a block into the toolkit bar to delete it.
-                let the_html = " <b>Categories</b><br/>"
+                //debugger
+                let the_html = "<div class='categories'><b>Categories</b><br/>"
                 for(let cat of Root.BlockCategory.subObjects()){
                     the_html +=
                         '<div class="toolkit_category_name" ' +
@@ -81,9 +82,11 @@ var Workspace = class Workspace{
                         '">'  +
                         cat.name + "</div>"
                 }
-                category_menu_id.innerHTML = the_html
-                //category_menu_id.show();
+                category_menu_id.innerHTML = the_html+ "</div>"
                 category_menu_id.style.display = "block"
+                //category_menu_id.firstChild.classList.add("categories") //this shuld trigger the animation
+                //category_menu_id.show();
+
             }
         }
     }

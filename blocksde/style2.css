@@ -1,4 +1,15 @@
 
+.categories {
+    animation-duration: 1s;
+    animation-name: slidein;
+}
+
+@keyframes slidein {
+    from { width: 0%;}
+    to   { width: 100%;}
+}
+
+
 .toolkit_category_name {
     padding:5px;
 }
@@ -20,25 +31,49 @@
     border-style:solid !important;
 }
 
-
 .block {
+    position:relative; /*relative;*/ /*with no top and left specified, they default to 0 so this is a no-op
+                        EXCEPT that it makes it so the resizer drag square can
+                        be absolute positioned against THIS block's container. */
     display:inline-block;
+    /*box-sizing: border-box; includes padding and border in width & height.
+            Seems like a good idea but screws up dynamic resizing totally */
+    vertical-align: top; /* make sure that different height blocks on the same row will have their tops in the same vertical place.*/
+    margin-right:5px;
+    margin-bottom:6px;
+    /*padding-left: 3px; breaks display*/
+    overflow:hidden;
+    border: 1px solid black;
     background-color:#AAAAAA;
-    border-width:1px;
-    border-color:black;
-    border-style:solid;
-    padding-top:3px;
-    /*cursor: move; obscures clicking on expand squares *//*channges cursor to the 4 arrows "move" cursor when mouse hovers over a block indicating it can be dragged.*/
-    /*position:absolute;
-    left:100px;
-    top:20px;*/
 }
 /* a given block will always have class "block" and ONE of the below 2 classes */
-.block-absolute {
+.block-absolute { /* top level "commented out" block not connected to top left. */
     position:absolute;
 }
 
-.block-top-left {
+/* obsolete
+.block-relative { a block inside another block. Might be connected to top_left, might not
+    position:relative;
+    margin-left:8px;  needed for a nested block to be "indented"
+}*/
+
+/*all blcoks always have their 2nd level in be an .block_always_relative div,
+which all other content is in. Necessary to get the resizer div to
+be posiitoned in lower right corner, even when the overall block
+is top_left, ie of position:static.
+So a block has its outermost block div which
+is either top-left and thus position: static, or
+position: absolute (as a top level comment or
+position: relative (is an inerior block within either top_left or absolute.
+
+ */
+.block_always_relative {
+    position:relative;
+    margin:0px;
+    padding:0px;
+}
+
+.block-top-left { /*top level, all the way left on screen.*/
    position:static;
    left: 0px;
 }
@@ -63,26 +98,11 @@
 }
 
 .block_name {
-    display:inline;
-    margin:2px;
+    margin-left:3px;
 }
 
 .block_args {
     margin-top:2px;
-}
-
-/*a block_arg elt always has just 1 of the following 3 classes */
-.block_args_collapsed  { /* set on a block that is horiz. implies that all its arg_name_value elts have
-                  class arg_name_value_horiz but doesn't enforce it */
-    display:none;
-}
-
-.block_args_horiz {
-   display:inline;
-}
-
-.block_args_vert {
-    display:block;
 }
 
 .arg_name_val {
@@ -91,18 +111,21 @@
     margin-top:2px;
 }
 
-/* a et of arg_name_val should also always have one of arg_name_val_horiz or arg_name_val_vert */
+/* a elt of arg_name_val should also always have one of arg_name_val_horiz or arg_name_val_vert */
+/*obsolete
 .arg_name_val_horiz {
-    display:inline; /*inline means horiz which it is by default, but make it "block" for vertical */
+/*
+    display:inline; inline means horiz which it is by default, but make it "block" for vertical
     marginLeft:0px;
     marginRight:10px;
 }
 
 .arg_name_val_vert {
-    display:block; /*inline means horiz which it is by default, but make it "block" for vertical */
+    display:block; inline means horiz which it is by default, but make it "block" for vertical
     marginLeft:10px;
     marginRight:0px;
 }
+*/
 
 .arg_name {
 }
@@ -115,30 +138,29 @@
     border-color: red;
 }
 
-.toggle_horiz_vert { /*the little square in the lower left of a block that clicking toggles between horiz and vert.*/
-    border-width:1px;
-    border-color:black;
-    border-style:solid;
-    width:5px;
-    height:5px;
-    display:inline-block;
-    float:left;
+.block_bottom_spacer{
+    height:6px;
+    margin:0px;
+    padding:0px;
 }
 
-.toggle_horiz_vert:hover{
+.resizer {
+    width:6px;
+    height:6px;
+    border:1px solid black;
+    display:inline-block;
+    position:absolute;
+    /*left:calc(100% - 5px);
+    top:calc(100% - 5px);*/
+    bottom:0;
+    right:0;
+}
+.resizer:hover{
     background-color:black;
 }
 
-.toggle_expand_collapse {
-    border-width:1px;
-    border-color:black;
-    border-style:solid;
-    width:5px;
-    height:5px;
+.comma {
     display:inline-block;
-    float:right;
-}
-
-.toggle_expand_collapse:hover{
-    background-color:black;
+    margin:0px;
+    padding:0px;
 }

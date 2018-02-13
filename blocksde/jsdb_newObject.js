@@ -143,6 +143,7 @@ newObject({
     name: "jsdb",
     methodname:"upper_type",
     constructor: function(){
+        debugger
         if (typeof(this.category) == "string") {
             let cat_maybe = Root.BlockCategory.name_to_category(this.category)
             if (cat_maybe) { this.category = cat_maybe }
@@ -185,8 +186,8 @@ newObject({
         if (x == null) {
             x = Workspace.suck_left_margin + 100
         }
-        category_menu_id.style.display   = "none"
         block_type_menu_id.style.display = "none"
+        category_menu_id.style.display   = "none"
         let elt = this.make_dom_elt(x, y, arg_vals)
         Workspace.inst.add_block_elt(elt)
     },
@@ -279,27 +280,10 @@ newObject({prototype: Root.jsdb,
                    }
             }
         },
-
-    /*make_html(){
-        return `<div class="block">
-            <div class="block_name">remainder</div>(
-            <div class="block_args">
-                <label class="arg_name_val"> <span class="arg_name">arg1</span>
-                    <input class="arg_val"></input>,
-                </label>
-                <label class="arg_name_val"> <span class="arg_name">arg2</span>
-                    <input class="arg_val"></input>)
-                </label>
-            </div>
-            <div>
-                <div class="toggle_horiz_vert"onclick="toggle_horiz_vert(event)"></div>
-                <div class="toggle_expand_collapse" onclick="toggle_expand_collapse(event)"></div>
-            </div>
-        </div>`
-    }*/
     make_dom_elt: function(x, y, arg_vals){
+        let always_rel = make_dom_elt("div", {class: "block_always_relative"})
         let result = make_dom_elt("div",
-                                  {class:"block block-absolute block_horiz",
+                                  {class:"block block-absolute",
                                    "background-color": this.category.color,
                                    id: Root.jsdb.get_next_block_id(),
                                    left: x + "px",
@@ -310,10 +294,14 @@ newObject({prototype: Root.jsdb,
                                    onclick: "select_block(event)"
                                    //position: "absolute"
                                    },
-                                   make_dom_elt("div", {class:"block_name"}, this.display_label)
+                                  always_rel
                                  )
+        always_rel.appendChild(make_dom_elt("div",
+                                            {class:"block_name"},
+                                            this.display_label))
+
         let block_args_elt = make_dom_elt("div", {class:"block_args"})
-        result.appendChild(block_args_elt)
+        always_rel.appendChild(block_args_elt)
         for(let param of this.params){
             let param_elt =
              make_dom_elt("label", {class:"arg_name_val"},
@@ -327,13 +315,14 @@ newObject({prototype: Root.jsdb,
                             ])
             block_args_elt.appendChild(param_elt)
         }
-        result.appendChild(make_dom_elt("div", {},
-                            [make_dom_elt("div", {class:"toggle_horiz_vert",
-                                                  onclick:"toggle_horiz_vert(event)"}),
-                             make_dom_elt("div", {class:"toggle_expand_collapse",
-                                                  onclick:"toggle_expand_collapse(event)"})
-                            ]))
-        make_block_horiz(result)
+        always_rel.appendChild(make_dom_elt("div", {class:"block_bottom_spacer"}))
+        always_rel.appendChild(make_dom_elt("div", {class:"resizer",
+                                                draggable:"true",
+                                                ondragstart:"resizer_dragstart_handler(event)",
+                                                ondrag:"resizer_drag_handler(event)",
+                                                ondragend:"resizer_dragend_handler(event)",
+                                                ondrop:"resizer_drop_handler(event)",
+                                                onclick:"resizer_onclick(event)"}))
         return result
     },
     to_js(block_elt){
@@ -354,6 +343,7 @@ newObject({prototype: Root.jsdb,
     return_type:"any" ,
     make_dom_elt: function(x, y, arg_vals){
         debugger
+        let always_rel = make_dom_elt("div", {class: "block_always_relative"})
         let result = make_dom_elt("div",
                {class:"block block-absolute",
                 "background-color": this.category.color,
@@ -364,33 +354,36 @@ newObject({prototype: Root.jsdb,
                 "data-block-type": "literal." + this.name,
                 onclick: "select_block(event)"
                },
-            make_dom_elt("div", {class:"block_name", display:"inline-block"}, this.display_label)
+            always_rel
         )
+        always_rel.appendChild(make_dom_elt("div", {class:"block_name", display:"inline-block"}, this.display_label))
+
         //a key diff between this meth and corresponding meth for "method"
         //is the  display:"inline-block" on block-name, block_args, and arg_name_val
         //so that we have the 1 param on the top line, same line as block-name
         let block_args_elt = make_dom_elt("div", {class:"block_args block_args_collapsed"}) // display:"inline-block"})
-        result.appendChild(block_args_elt)
+        always_rel.appendChild(block_args_elt)
         if(this.params.length == 1) { //excludes literal array which starts with no params
             let param = this.params[0]
             let input_elt = param.make_input_elt()
             let param_elt =
-                    make_dom_elt("label", {class:"arg_name_val arg_name_val_horiz"}, //display:"inline-block"},
+                    make_dom_elt("label", {class:"arg_name_val"}, //display:"inline-block"},
                         [make_dom_elt("span",  {class:"arg_name", "margin-right": "0px"}, param.display_label),
                          input_elt
                         ])
             block_args_elt.appendChild(param_elt)
         }
-        else if (this.name == "array") {
-            this.append_array_begin_and_end(result)
+        else if (this.name == "array") { //need to do something similar for lit_objs
+            this.append_array_begin_and_end(always_rel)
+            always_rel.appendChild(make_dom_elt("div", {class:"block_bottom_spacer"}))
+            always_rel.appendChild(make_dom_elt("div", {class:"resizer",
+                draggable:"true",
+                ondragstart:"resizer_dragstart_handler(event)",
+                ondrag:"resizer_drag_handler(event)",
+                ondragend:"resizer_dragend_handler(event)",
+                ondrop:"resizer_drop_handler(event)",
+                onclick:"resizer_onclick(event)"}))
         }
-        result.appendChild(make_dom_elt("div", {},
-            [make_dom_elt("div", {class:"toggle_horiz_vert",
-                                  onclick:"toggle_horiz_vert(event)"}),
-             make_dom_elt("div", {class:"toggle_expand_collapse",
-                                  onclick:"toggle_expand_collapse(event)"})
-            ]))
-        make_block_horiz(result)
         return result
     },
 
@@ -427,6 +420,46 @@ newObject({prototype: Root.jsdb,
         else { return src } //hits for this.name == "boolean", "null_undefined" at least
     }
 })
+
+newObject({prototype: Root.jsdb.literal,
+           name: "number",
+           return_type: "number",
+           min:  -Infinity,
+           max: Infinity,
+           step: 1,
+           make_dom_elt: function(x, y, arg_vals){
+               let always_rel = make_dom_elt("div", {class: "block_always_relative"})
+               let result = make_dom_elt("div",
+                      {class:"block block-absolute",
+                       "background-color": this.category.color,
+                       id: Root.jsdb.get_next_block_id(),
+                       left: x + "px",
+                       top:  y + "px",
+                       draggable: "true",
+                       "data-block-type": "literal." + this.name,
+                       onclick: "select_block(event)"
+                   },
+                   always_rel
+               )
+               //no block name by design: a num should be obviu. Don't take up the space of #, nor the newline usually after the block name
+               let block_args_elt = make_dom_elt("div", {class:"block_args block_args_collapsed"}) // display:"inline-block"})
+               always_rel.appendChild(block_args_elt)
+               let param_elt = make_dom_elt("input",
+                                               {class:"arg_val",
+                                               type: "number",
+                                               min: this.min,
+                                               max: this.max,
+                                               step: this.step,
+                                               width: 60 + "px",
+                                               "margin-left": "0px",
+                                               value: this.value,
+                                               ondragenter:"enter_drop_target(event)",
+                                               ondragleave:"leave_drop_target(event)"})
+
+               block_args_elt.appendChild(param_elt)
+               }
+})
+
 
 /*
 jsdb_method.kinds = []

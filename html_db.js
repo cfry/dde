@@ -632,3 +632,22 @@ function dom_elt_child_of_class(elt, a_class){
    }
    return null
 }
+
+//if elt has a_class. return it, else go up the parentNode until you find one
+//or, if not, return null
+function first_ancestor_of_class(elt, a_class){
+    if (elt == null) { return null }
+    else if(elt.classList && elt.classList.contains(a_class)) { return elt }
+    else { return first_ancestor_of_class(elt.parentNode, a_class) }
+}
+
+//possibly includes elt itself.
+function ancestors_of_class(elt, a_class){
+    let result = []
+    while(true) {
+        if (elt == null) { break }
+        else if(elt.classList && elt.classList.contains(a_class)) { result.push(elt) }
+        elt = elt.parentNode
+    }
+    return result
+}

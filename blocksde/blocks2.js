@@ -16,135 +16,6 @@ function dom_elt_block_type(elt){
     return value_of_path(bt_string)
 }
 
-function toggle_expand_collapse(event){
-    debugger
-    event.stopPropagation()
-    let block_elt = event.target.parentNode.parentNode
-    let block_args_elt = dom_elt_child_of_class(block_elt, "block_args")
-    if (is_block_collapsed(block_elt)) {
-         block_args_elt.classList.remove("block_args_collapsed")
-         if (is_block_horizontal(block_elt)) { block_args_elt.classList.add("block_args_horiz") }
-         else { block_args_elt.classList.add("block_args_vert") }
-    }
-    else {
-        block_args_elt.classList.remove("block_args_horiz")
-        block_args_elt.classList.remove("block_args_vert")
-        block_args_elt.classList.add("block_args_collapsed")
-    }
-    //if(block_args_elt.style.display == "none") { block_args_elt.style.display = "inline" }
-    //else                                       { block_args_elt.style.display = "none" }
-}
-
-function is_block_collapsed(block_elt){
-    let block_args_elt = dom_elt_child_of_class(block_elt, "block_args")
-    return block_args_elt.classList.contains("block_args_collapsed") //(block_args_elt.style.display == "none")
-}
-
-//even if a block is collapsed, its args are still either configured for horiz or vert.
-//(if no args, just call it "horiz".
-function is_block_horizontal(block_elt){
-    let block_args_elt   = dom_elt_child_of_class(block_elt, "block_args")
-    if(block_args_elt.classList.contains("block_args_horiz")) { return true }
-    else if(block_args_elt.classList.contains("block_args_vert")) { return false }
-    else { //its collapsed, and should have "block_args_collapsed" class
-       let first_name_val_arg =  block_args_elt.firstChild
-       if (first_name_val_arg) { return first_name_val_arg.classList.contains("arg_name_val_horiz") }
-       else { //no args so default to horiz
-          return true
-       }
-    }
-    //let arg_name_val_elt = dom_elt_child_of_class(block_args_elt, "arg_name_val")
-    //if (!arg_name_val_elt) { return true } //since "horiz" is the default, just assume its true.
-    //else return arg_name_val_elt.style.display == "inline" //its "block" if its vertical.
-}
-
-/*function toggle_horiz_vert(event){
-    event.stopPropagation()
-    debugger
-    let block_elt = event.target.parentNode.parentNode
-    let block_args_elt = dom_elt_child_of_class(block_elt, "block_args")
-    if(block_args_elt.style.display == "none") { //block is collapsed
-        block_args_elt.style.display = "inline" //expand block into horiz
-    } //might as well expand it
-    if(block_args_elt.style.display == "inline"){ //now horiz, change to vert
-        block_args_elt.style.display = "block"
-        for(let arg_name_val_elt of block_args_elt.children){
-            if(arg_name_val_elt.classList.contains("arg_name_val")) { //filter out commas
-                arg_name_val_elt.style.display     = "block"
-                arg_name_val_elt.style.marginLeft  = "10px"
-                arg_name_val_elt.style.marginRight = "0px"
-
-                let arg_name_elt = dom_elt_child_of_class(arg_name_val_elt, "arg_name")
-                arg_name_elt.style.display = "inline"
-            }
-        }
-    }
-    else {//now vert, change to horiz
-        block_args_elt.style.display     = "inline"
-        block_args_elt.style.marginLeft  = "0px"
-        block_args_elt.style.marginRight = "10px"
-        for(let arg_name_val_elt of block_args_elt.children){
-            if(arg_name_val_elt.classList.contains("arg_name_val")) { //filter out commas
-                arg_name_val_elt.style.display     = "inline"
-                arg_name_val_elt.style.marginLeft  = "0px"
-                arg_name_val_elt.style.marginRight = "0px"
-                let arg_name_elt = dom_elt_child_of_class(arg_name_val_elt, "arg_name")
-                arg_name_elt.style.display = "none" //hide the names in horiz view
-                let arg_val_elt = dom_elt_child_of_class(arg_name_val_elt, "arg_val")
-                arg_val_elt.style.marginLeft  = "0px"
-                arg_val_elt.style.marginRight = "0px"
-            }
-        }
-    }
-}*/
-
-function toggle_horiz_vert(event){
-    event.stopPropagation()
-    debugger
-    let block_elt = event.target.parentNode.parentNode
-    if(is_block_horizontal(block_elt)){ //now horiz, change to vert
-        make_block_vert(block_elt)
-    }
-    else {//now vert, change to horiz
-        make_block_horiz(block_elt)
-    }
-}
-
-function make_block_horiz(block_elt){
-    let block_args_elt = dom_elt_child_of_class(block_elt, "block_args")
-    block_args_elt.classList.remove("block_args_collapsed")
-    block_args_elt.classList.remove("block_args_vert")
-    block_args_elt.classList.add("block_args_horiz")
-    for(let arg_name_val_elt of block_args_elt.children){
-        if(arg_name_val_elt.classList.contains("arg_name_val")) { //filter out commas
-            arg_name_val_elt.classList.remove("arg_name_val_vert")
-            arg_name_val_elt.classList.add("arg_name_val_horiz")
-
-            let arg_name_elt = dom_elt_child_of_class(arg_name_val_elt, "arg_name")
-            arg_name_elt.style.display = "none" //hide the names in horiz view
-            //do I really need the below?
-            let arg_val_elt = dom_elt_child_of_class(arg_name_val_elt, "arg_val")
-            arg_val_elt.style.marginLeft  = "0px"
-            arg_val_elt.style.marginRight = "0px"
-        }
-    }
-}
-
-function make_block_vert(block_elt){
-    let block_args_elt = dom_elt_child_of_class(block_elt, "block_args")
-    block_args_elt.classList.remove("block_args_collapsed")
-    block_args_elt.classList.remove("block_args_horiz")
-    block_args_elt.classList.add("block_args_vert")
-    for(let arg_name_val_elt of block_args_elt.children){
-        if(arg_name_val_elt.classList.contains("arg_name_val")) { //filter out commas
-            arg_name_val_elt.classList.remove("arg_name_val_horiz")
-            arg_name_val_elt.classList.add("arg_name_val_vert")
-
-            let arg_name_elt = dom_elt_child_of_class(arg_name_val_elt, "arg_name")
-            arg_name_elt.style.display = "inline"
-        }
-    }
-}
 
 //only 1 block can be selected
 function selected_block(){
@@ -157,11 +28,11 @@ function unselect_block(){
 }
 
 function select_block(event){
+    //debugger;
     event.stopPropagation()
-    let elt = event.target
+    let elt = first_ancestor_of_class(event.target, "block") //event.target might be a block_name for instance
     if (elt.classList.contains("block")) {
-        let prev_sel_block = selected_block()
-        if (prev_sel_block) { prev_sel_block.classList.remove("selected_block") }
+        unselect_block()
         elt.classList.add("selected_block")
     }
     else {} //don't select things that aren't blocks. maybe a param got passed or something
@@ -172,6 +43,108 @@ function block_to_js(elt){
     let src = bt.to_js(elt)
     return src
 }
+//______resizer_______
+var drag_start_client_x
+var drag_start_client_x
+var old_client_x
+var old_client_y
+//var resizes= [] //just for testing of resizer_drag_handler
+
+function resizer_dragstart_handler(event){
+    event.stopPropagation()
+    drag_start_client_x = event.clientX
+    drag_start_client_x = event.clientY
+    old_client_x = event.clientX
+    old_client_y = event.clientY
+    //debugger
+}
+
+function ancestors_of_class_block_or_block_always_relative(elt){
+    let result = []
+    while(true) {
+        if (elt == null) { break }
+        else if(elt.classList &&
+                (elt.classList.contains("block") ||
+                 elt.classList.contains("block_always_relative"))) {
+                 result.push(elt)
+        }
+        elt = elt.parentNode
+    }
+    return result
+}
+
+function resizer_drag_handler(event){
+    //debugger
+    event.stopPropagation()
+    event.preventDefault()
+    if (event.buttons == 0) { //user has let up on the mouse so no longer dragging.
+        //sue to a chrome bug resizer_drag_handler will still be called  a few times
+        //after user lets up on the mouse.
+        //the biggest problem is that the values I compute for the new width and height
+        //are wrong when the mouse is u. (not serue quite why but
+        //apparently due to bl.clientWidth being wrong or something.
+        //in any case, stop attempting to resize the block when the mouse
+        //is up to avoid setting to the wrong bl.style.width and height
+        return
+    }
+    let deltax = event.clientX - old_client_x
+    let deltay = event.clientY - old_client_y
+    old_client_x = event.clientX
+    old_client_y = event.clientY
+    let resizer_elt = event.target
+    let always_rel_elt = first_ancestor_of_class(resizer_elt, "block_always_relative")
+    let elts_to_resize = ancestors_of_class_block_or_block_always_relative(always_rel_elt) //will include the immediate
+       // parent of block_always_relative and its par, a block_elt
+       //as well as all similar classes block ancestors
+    resizes = []
+    let resizes_internal = []
+    for (bl of elts_to_resize){
+        let wid = (bl.clientWidth  + deltax) + "px"
+        let hei = (bl.clientHeight + deltay) + "px"
+        //if(bl.style.width != "") { debugger }
+        bl.style.width  = wid
+        bl.style.height = hei
+        //resizes_internal.push([bl, bl.style.width, bl.style.height, event.buttons])
+    }
+    //resizes.push(resizes_internal)
+    //}
+}
+function resizer_drop_handler(event){
+    event.stopPropagation()
+    event.preventDefault()
+    let dropped_on_elt = event.target
+}
+function resizer_dragend_handler(event){
+    event.stopPropagation()
+    event.preventDefault()
+    let resizer_elt = event.target
+    let block_elt   = resizer_elt.parentNode
+}
+
+
+//this only resizes the block in question, not its container and on out.
+//if it did resize container and on out, *maybe* that would be a good thing
+//or maybe resize on in, or maybe both.
+function resizer_onclick(event){
+    debugger
+    event.stopPropagation() //we don't want this misinterpreted as a select of the block
+    let resi = event.target
+    let always_rel = first_ancestor_of_class(resi, "block_always_relative")
+    always_rel.style.width  = "auto"
+    always_rel.style.height = "auto"
+    let block_elt = first_ancestor_of_class(resi, "block")
+    block_elt.style.width  = "auto"
+    block_elt.style.height = "auto"
+}
+
+function unfold_all_blocks(){
+    let blks = document.querySelectorAll(".block")
+    for(let blk of blks){
+        blk.style.width  = "auto"
+        blk.style.height = "auto"
+    }
+}
+//_______End resizer_______
 
 function install_block_drop_zones(block_that_is_being_dragged){
     for(let a_class of [".top-left-spacer", ".bottom-left-spacer",
@@ -196,7 +169,14 @@ function uninstall_block_drop_zones(){
 //see https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API
 //http://apress.jensimmons.com/v5/pro-html5-programming/ch9.html more conceptual
 function block_dragstart_handler(event){
-    let elt = event.target //the dom elt being dragged
+
+    let elt = event.target //the dom elt being dragged, this will be a block
+    if(elt.style.position == "static") {
+        elt.style.position == "absolute"
+        elt.style.left = "auto"
+        elt.style.top  = "auto"
+    }
+    out("starting to drag: " + elt.classList)
     //event.effectAllowed = "move" doesn't seem to help
     event.dataTransfer.setData("text", elt.id);
     //event.dropEffect = "move"; //changes cursor into 4 arrows which makes it hard to click on the tiny expand/collapse squares
@@ -231,38 +211,6 @@ function block_dragover_handler(event) {
     //event.dataTransfer.dropEffect = "move"
 }
 
-/*function block_drop_handler(event) {
-    uninstall_block_drop_zones()
-    let dropped_on_elt = event.target //the dom elt that the dragged elt has just been dropped on
-    debugger
-    console.log("drop client x" + event.clientX)
-    remove_drop_target_class()
-    event.preventDefault();
-    // Get the id of the target and add the moved element to the target's DOM
-    let id_of_block = event.dataTransfer.getData("text");
-    out(id_of_block)
-    let elt = document.getElementById(id_of_block) //block being dragged
-    let delta_x = event.clientX - Workspace.inst.start_drag_client_x
-    let delta_y = event.clientY - Workspace.inst.start_drag_client_y
-    let new_x = elt.offsetLeft + delta_x
-    let new_y = elt.offsetTop  + delta_y
-    if (new_x < 0) { //delete this block
-        remove_dom_elt(elt);
-        toolkit_bar_id.style["background-color"] = "#DDDDDD"
-        clean_up_top_lefts()
-        return
-    }
-    else if (new_x < Workspace.suck_left_margin) {
-       reposition_top_left_block(elt, new_y)
-    }
-    else { //not a top_left block
-        elt.classList.remove("block-top-left")
-        elt.classList.add("block-absolute")
-        elt.style.left = new_x + "px"
-        elt.style.top  = new_y + "px"
-    }
-}*/
-
 function block_drop_handler(event) {
     block_being_dragged = null //global on purpose
     uninstall_block_drop_zones()
@@ -289,6 +237,8 @@ function block_drop_handler(event) {
         workspace_id.insertBefore(make_top_left_spacer(), dropped_on_elt)
         dragged_elt.classList.remove("block-absolute") //replace not supported on Chrome
         dragged_elt.classList.add("block-top-left")
+        dragged_elt.style.left="auto"
+        dragged_elt.style.top="auto"
         workspace_id.insertBefore(dragged_elt, dropped_on_elt)
         //dragged_elt.style.left = 0 + "px" //shouldn't matter
     }
@@ -463,29 +413,3 @@ function reposition_top_left_block(elt, new_y){
     elt.classList.add("block-top-left")
     clean_up_top_lefts()
 }
-
-/*function reposition_top_left_block(elt, new_y){
-    elt.style.left = "0px"
-    let tlbs = Workspace.inst.top_left_blocks() //sorted top to bottom
-    for(let tlb of tlbs) {
-
-        if(tlb != elt){ //because elt may show up in tlbs, and we don't want it too
-            let tlb_bounding_rect = tlb.getBoundingClientRect()
-            let tlb_y = tlb_bounding_rect.top
-            //let tlb_y = px_suffix_string_to_number(tlb.style.top) //can't rely on this
-            if(tlb_y >= new_y) { //elt goes before this block
-                let spacer_above_block = make_dom_elt("div", {class:"top-left-spacer"}, "&nbsp")
-                tlb.parentNode.insertBefore(spacer_above_block, tlb)
-                tlb.parentNode.insertBefore(elt, tlb)
-                return
-            }
-        }
-    }
-    let spacer_above_block = make_dom_elt("div", {class:"top-left-spacer"}, "&nbsp;")
-    workspace_id.appendChild(spacer_above_block)
-    workspace_id.appendChild(elt)  //workspace_id is same as tlb.parentNode here
-    elt.classList.remove("block-absolute")
-    elt.classList.add("block-top-left") //This will cause redrawing. Must be after top_left_blocks call
-    //so tha that doesn't accidentally pick it up.
-}
-*/

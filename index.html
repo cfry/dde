@@ -2,7 +2,7 @@
 <!-- good html validtor: https://www.onlinewebcheck.com/check.php?adv=1  -->
 <html lang="en">
 <head>
-    <title>Dexter Development Environment 2.3.8</title>
+    <title>Dexter Development Environment 2.3.9</title>
     <link rel="stylesheet" href="jqwidgets/styles/jqx.base.css" type="text/css" />
     <!-- <script type="text/javascript" src="jquery-1.11.3.min.js"></script> -->
     <script>window.$ = window.jQuery = require('jquery');</script>
@@ -175,7 +175,7 @@
                                         <li id="load_file_id"    title="Evaluate the content of a JavaScript file.">Load...</li>
                                         <li id="insert_file_id"  title="Insert the content of a file&#013;into the editor at the cursor,&#013;replacing the selection if any.">Insert file...</li>
                                         <li id="save_id"    title="Save the current file.">Save &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ctrl/&#8984;s</li>
-                                        <li id="save_as_id" title="Save the current file under a new name.">Save As...</li>
+                                        <li id="save_as_id" title="Save the current editor content under a new name.&#013;The old file remains unchanged.&#013;It will remain on the list of files.">Save As...</li>
                                         <li id="remove_id"  title="Remove the edited file from the file list and editor.&#013;Does not delete the file from disk.">Remove</li>
                                         <li id="update_id"  title="Shows doc on how to get&#013;the latest version of DDE.">Update DDE...</li>
                                     </ul>
@@ -673,7 +673,7 @@
                             &nbsp;<span style="vertical-align:70%;margin-right:0px;padding-right:0px;">Jobs:</span>
                         </span>
                     </div>
-                    <div id="output_div_id" contentEditable="false" style="width:98%; height:65%; font-size:16px;overflow:auto;white-space:nowrap;padding:5px;"></div> <!-- bugs in css with overlow:auto and height=70% but these are the best settings I can get, othersie last line of output can't be scrollwd into view OR too much wasted whitespace at botton of error pane -->
+                    <div id="output_div_id" contentEditable="false" style="width:98%; height:calc(100% - 60px); font-size:16px;overflow:auto;white-space:nowrap;padding:5px;"></div> <!-- for height:calc(100% - 60px);  te60 is the height of the output pane header, This letsthe lower part of outpt pane take up 100% of the hieght of the lower split pane MINUS the outut pane header of 60px.-->
                     <!-- contentEditable="false" means the text can't be edited BUT for chrome apps, this makes the content selectable and now I can copy and paste it whereas previoiusly I couldn't select and copy it. -->
                 </div>
             </div>
