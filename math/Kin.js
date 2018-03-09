@@ -2,7 +2,7 @@
 //Inverse Kinematics + Forward Kinematics + supporting functions
 //James Wigglesworth
 //Started: 6_18_16
-//Updated: 7_10_17
+//Updated: 1_23_18
 
 
 /*
@@ -23,7 +23,6 @@ Dexter.NEUTRAL_ANGLES
 Vector.matrix_multiply(Vector.make_pose([1, 2, 3], [0, 0, 0]), Vector.properly_define_point([[1, 2, 3], [4, 5, 6]]))
 
 */
-
 
 var Kin = new function(){
     this.inverse_kinematics = function (xyz, direction = [0, 0, -1], config = [1, 1, 1], robot_pose){
@@ -87,8 +86,8 @@ var Kin = new function(){
         
         
         //This is proven to work for directions of approx. [0, 1, 0] but has potentially not been tested enough
-        var dist_a = Vector.distance(U3_a, U[2])
-    	var dist_b = Vector.distance(U3_b, U[2])
+        var dist_a = Vector.distance(U3_a, [0, 0, 0])
+    	var dist_b = Vector.distance(U3_b, [0, 0, 0])
         if (wrist_out){
     		if (dist_a < dist_b){
         		U[3] = U3_a
@@ -225,11 +224,11 @@ var Kin = new function(){
         
         //Calculates all vectors first
         P[0] = P0
-		P[1] = Vector.rotate(P[0], V10, J[0]-180)
+		P[1] = Vector.rotate(P[0], V10, -(J[0]-180))
         V21 = Vector.rotate(V10, P[1], J[1])
         V32 = Vector.rotate(V21, P[1], J[2])
         V43 = Vector.rotate(V32, P[1], J[3])
-        P[2] = Vector.rotate(P[1], V43, J[4]-180)
+        P[2] = Vector.rotate(P[1], V43, -(J[4]-180))
         V54 = Vector.rotate(V43, P[2], -90)
 		let V = [V10, V21, V32, V43, V54]
         
@@ -341,6 +340,25 @@ var Kin = new function(){
         U54_Proj = Vector.project_vector_onto_plane(V[4], P[1])
     	U3_a = Vector.add(U[4], Vector.multiply(L[3], Vector.rotate(Vector.normalize(U54_Proj), P[1], 90)))
         U3_b = Vector.add(U[4], Vector.multiply(L[3], Vector.rotate(Vector.normalize(U54_Proj), P[1], -90)))
+        
+        
+        dist_a = Vector.distance(U3_a, U[2])
+    	dist_b = Vector.distance(U3_b, U[2])
+        if (Vector.is_equal(U[3], U3_a)){
+    		if (dist_a < dist_b){
+        		wrist_out = 0
+        	}else{
+        		wrist_out = 1
+        	}
+    	}else{
+    		if (dist_a > dist_b){
+        		wrist_out = 1
+        	}else{
+        		wrist_out = 0
+        	}
+    	}
+        /*
+        //Old code:
         dist_a = Vector.distance(U3_a, U[1], U[0])
     	dist_b = Vector.distance(U3_b, U[1], U[0])
     		
@@ -357,10 +375,13 @@ var Kin = new function(){
             	wrist_out = 1
             }
         }
+        */
+        
         
         let U50 = Vector.subtract(U[5], U[0])
         if(Vector.dot(Vector.cross(U50, P[1]), V[0]) > 0){
         	right_arm = 0
+            
             if(wrist_out == 0){
             	wrist_out = 1
             }else{
@@ -781,7 +802,9 @@ var Kin = new function(){
     */
     
 	this.predict_move_dur = function(J_angles_original, J_angles_destination, robot /*returns time in milliseconds*/){
-        let speed = robot.prop("MAX_SPEED")
+        
+        //let speed = robot.prop("MAX_SPEED")
+        let speed = 30
         let delta = Vector.subtract(J_angles_destination, J_angles_original)
         for(let i = 0; i < delta.length; i++){
         	delta[i] = Math.abs(delta[i])
@@ -968,16 +991,17 @@ Kin.xyz_to_J_angles(myPosition[0], myPosition[1], myPosition[2])
 
 
 var point_1 = [.1, .2, .3]
-debugger
+//debugger
 var myJangles = Kin.xyz_to_J_angles(point_1, [0, 1, -1], Dexter.RIGHT_DOWN_OUT)
+var new_point = Kin.J_angles_to_xyz(Kin.xyz_to_J_angles([.1, .2, .3], [0, 1, -1], Dexter.RIGHT_DOWN_OUT))
 */
 
 new TestSuite("Inverse to Forward Kinematics and Back",
-    ["var point_1 = [.1, .2, .3]"],
-	["var myJangles = Kin.xyz_to_J_angles(point_1, [0, 1, -1], Dexter.RIGHT_DOWN_OUT)"],
-	["var myPoints = Kin.J_angles_to_xyz(myJangles)"],
-    ["myPoints[0]"],
-	["point_1"]
+	["Kin.J_angles_to_xyz(Kin.xyz_to_J_angles([.1, .2, .3]))", "[[0.09999999999999996, 0.20000000000000004, 0.30000000000000004],[0, 0, -1],[1, 1, 1]]"],
+	["Kin.J_angles_to_xyz(Kin.xyz_to_J_angles([.1, .2, .3], [0, .1, -1]))", "[ [0.10000000000000012, 0.19999999999999998, 0.30000000000000004], [3.362274453740632e-16, 0.09950371902099878, -0.995037190209989], [1, 1, 1]]"],
+	["Kin.J_angles_to_xyz(Kin.xyz_to_J_angles([.1, .2, .3], [0, 0, -1], [1, 0, 1]))", "[ [0.09999999999999994, 0.20000000000000004, 0.3], [-3.362274453740631e-16, -6.724548907481262e-16, -1], [1, 0, 1]]", "known, wrist_out vs wrist_in issue"],
+    ["Kin.J_angles_to_xyz(Kin.xyz_to_J_angles([.1, .2, .3], [0, 0, -1], [1, 0, 0]))", "[[0.1, 0.20000000000000012, 0.29999999999999993], [0, 0, -1], [1, 0, 0]]"],
+    ["Kin.xyz_to_J_angles(Kin.J_angles_to_xyz([0, 45, 45, 30, 0]))", "[0, 45, 44.999999999999986, 30.000000000000014, 0]"]
 )
 
 new TestSuite("Checking xyz",
