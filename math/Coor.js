@@ -174,7 +174,6 @@ Coor.set_orientation = function(orientation, reference_coordinate_system){
 Coor.is_Coor = function(){
 	
 }
-
 Coor.insert = function(){
 	Object.set_prototypeof 
 }
@@ -189,9 +188,11 @@ Coor.move_points_to_coor = function(points, destination_coordinate_system, refer
     
     if(ref === undefined){
     	ref = Table
+    }else if(dest === undefined){
+    	dest = Coor.Table
     }
     let trans = dest.get_pose(ref)
-    let result = points
+    let result = points.slice()
     let dim = Vector.matrix_dimensions(points)
     if(dim[0] == 1){
     	result = Vector.transpose(Vector.matrix_multiply(trans, Vector.properly_define_point(points)))
@@ -211,10 +212,12 @@ Coor.move_vectors_to_coor = function(vectors, destination_coordinate_system, ref
     let ref = reference_coordinate_system
     
     if(ref === undefined){
-    	ref = Table
+    	ref = Coor.Table
+    }else if(dest === undefined){
+    	dest = Coor.Table
     }
     let trans = dest.get_pose(ref)
-    let result
+    let result = vectors.slice()
     let dim = Vector.matrix_dimensions(vectors)
     if(dim[0] == 1){
     	result = Vector.transpose(Vector.matrix_multiply(trans, Vector.properly_define_vector(vectors)))
@@ -298,9 +301,7 @@ J1 = J0.create_child(Vector.make_pose([10, 0, 0]), "J1")
 J2 = J1.create_child(Vector.make_pose([0, 0, 20]), "J2")
 J3 = J2.create_child(Vector.make_pose([0, 0, 20]), "J3")
 cube = table.create_child(Vector.make_pose([15, 10, 5], [0, 0, Convert.degrees_to_arcseconds(0)]), "cube")
-
 debugger
-
 J3.set_pose([[ 0.707, 0.707, 0, 15], [-0.707, 0.707, 0, 10],[0, 0, 1, 5],[0, 0, 0, 1]])
 J3.set_pose([[1, 0, 0, 10], [0, 1, 0, 10],[0, 0, 1, 10],[0, 0, 0, 1]])
 J3.set_pose([[1, 0, 0, 10], [0, 1, 0, 10],[0, 0, 1, 10],[0, 0, 0, 1]], table)
@@ -310,24 +311,16 @@ debugger
 J3.set_orientation(Convert.angles_to_DCM([0, 0, Convert.degrees_to_arcseconds(90)]))
 J3.set_orientation([[-1, 0, 0], [0, 0, 1], [0, 0, 1]])
 J3.set_orientation([[-1, 0, 0], [0, 0, 1], [0, 0, 1]], cube)
-
-
 J3.get_pose()
 J3.get_pose(table)
-
 cube.get_pose()
-
 J3.get_pose(cube)
 cube.get_pose(J3)
-
 cube = table.create_child(Vector.make_pose([15, 10, 5], [0, 0, Convert.degrees_to_arcseconds(45)]), "cube")
 J3.get_pose(cube)
 cube.get_pose(J3)
-
-
 J3.get_position()
 J3.get_position(cube)
-
 J3.get_orientation()
 J3.get_orientation(cube)
 */
