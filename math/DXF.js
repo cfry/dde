@@ -184,6 +184,9 @@ var DXF = new function(){
     	}
     
     	diml = Vector.matrix_dimensions(lines_seg)
+        if(diml[0] ==0){
+        	dde_error("The DXF appears to be empty. </br> Only regular line segments are currently supported. <br/>Polylines, circle, splines etc. are ignored.")
+        }
     	connectivity = Vector.make_matrix(diml[0], 2)
     	for(let i = 0; i < diml[0]; i++){
     		for(let j = 0; j < 2; j++){
