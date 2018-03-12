@@ -84,7 +84,7 @@ var Kin = new function(){
     	var U3_a = Vector.add(U[4], Vector.multiply(L[3], Vector.rotate(Vector.normalize(U54_Proj), P[1], 90)))
         var U3_b = Vector.add(U[4], Vector.multiply(L[3], Vector.rotate(Vector.normalize(U54_Proj), P[1], -90)))
         
-        /*
+        
         //This is proven to work for directions of approx. [0, 1, 0] but has potentially not been tested enough
         var dist_a = Vector.distance(U3_a, [0, 0, 0])
     	var dist_b = Vector.distance(U3_b, [0, 0, 0])
@@ -101,10 +101,10 @@ var Kin = new function(){
         		U[3] = U3_b
         	}
     	}
-    	*/
+    	
         
         
-       
+        /*
         //This is proven to work for directions of approx. [0, 0, -1] but not for [x, y, 0]
         var dist_a = Vector.distance(U3_a, U[1], U[0])
     	var dist_b = Vector.distance(U3_b, U[1], U[0])
@@ -121,7 +121,7 @@ var Kin = new function(){
         		U[3] = U3_b
         	}
     	}
-        
+        */
         
         
     	//Solving for P2
