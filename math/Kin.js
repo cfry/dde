@@ -84,7 +84,7 @@ var Kin = new function(){
     	var U3_a = Vector.add(U[4], Vector.multiply(L[3], Vector.rotate(Vector.normalize(U54_Proj), P[1], 90)))
         var U3_b = Vector.add(U[4], Vector.multiply(L[3], Vector.rotate(Vector.normalize(U54_Proj), P[1], -90)))
         
-        
+        /*
         //This is proven to work for directions of approx. [0, 1, 0] but has potentially not been tested enough
         var dist_a = Vector.distance(U3_a, [0, 0, 0])
     	var dist_b = Vector.distance(U3_b, [0, 0, 0])
@@ -101,10 +101,10 @@ var Kin = new function(){
         		U[3] = U3_b
         	}
     	}
-    	
+    	*/
         
         
-        /*
+       
         //This is proven to work for directions of approx. [0, 0, -1] but not for [x, y, 0]
         var dist_a = Vector.distance(U3_a, U[1], U[0])
     	var dist_b = Vector.distance(U3_b, U[1], U[0])
@@ -121,7 +121,7 @@ var Kin = new function(){
         		U[3] = U3_b
         	}
     	}
-        */
+        
         
         
     	//Solving for P2
@@ -996,12 +996,22 @@ var myJangles = Kin.xyz_to_J_angles(point_1, [0, 1, -1], Dexter.RIGHT_DOWN_OUT)
 var new_point = Kin.J_angles_to_xyz(Kin.xyz_to_J_angles([.1, .2, .3], [0, 1, -1], Dexter.RIGHT_DOWN_OUT))
 */
 
+/*
 new TestSuite("Inverse to Forward Kinematics and Back",
 	["Kin.J_angles_to_xyz(Kin.xyz_to_J_angles([.1, .2, .3]))", "[[0.09999999999999996, 0.20000000000000004, 0.30000000000000004],[0, 0, -1],[1, 1, 1]]"],
 	["Kin.J_angles_to_xyz(Kin.xyz_to_J_angles([.1, .2, .3], [0, .1, -1]))", "[ [0.10000000000000012, 0.19999999999999998, 0.30000000000000004], [3.362274453740632e-16, 0.09950371902099878, -0.995037190209989], [1, 1, 1]]"],
 	["Kin.J_angles_to_xyz(Kin.xyz_to_J_angles([.1, .2, .3], [0, 0, -1], [1, 0, 1]))", "[ [0.09999999999999994, 0.20000000000000004, 0.3], [-3.362274453740631e-16, -6.724548907481262e-16, -1], [1, 0, 1]]", "known, wrist_out vs wrist_in issue"],
     ["Kin.J_angles_to_xyz(Kin.xyz_to_J_angles([.1, .2, .3], [0, 0, -1], [1, 0, 0]))", "[[0.1, 0.20000000000000012, 0.29999999999999993], [0, 0, -1], [1, 0, 0]]"],
     ["Kin.xyz_to_J_angles(Kin.J_angles_to_xyz([0, 45, 45, 30, 0]))", "[0, 45, 44.999999999999986, 30.000000000000014, 0]"]
+)
+*/
+
+new TestSuite("Inverse to Forward Kinematics and Back",
+	["Kin.J_angles_to_xyz(Kin.xyz_to_J_angles([.1, .2, .3]))", "[[0.09999999999999998, 0.20000000000000004, 0.29999999999999993],[-1.6811372268703155e-16, -3.362274453740631e-16, -1],[1, 1, 1]]"],
+    ["Kin.J_angles_to_xyz(Kin.xyz_to_J_angles([.1, .2, .3], [0, .1, -1]))", "[[0.10000000000000013, 0.19999999999999996, 0.30000000000000016],[5.043411680610948e-16, 0.09950371902099911, -0.995037190209989],[1, 1, 1]]"],
+	["Kin.J_angles_to_xyz(Kin.xyz_to_J_angles([.1, .2, .3], [0, 0, -1], [1, 0, 1]))", "[[0.09999999999999994, 0.20000000000000004, 0.29999999999999993],[-1.6811372268703155e-16, -3.362274453740631e-16, -1],[1, 0, 0]]"],
+    ["Kin.J_angles_to_xyz(Kin.xyz_to_J_angles([.1, .2, .3], [0, 0, -1], [1, 0, 0]))", "[[0.09999999999999994, 0.2, 0.29999999999999993],[0, 0, -1],[1, 0, 0]]"],
+    ["Kin.xyz_to_J_angles(Kin.J_angles_to_xyz([0, 45, 45, 30, 0]))", "[0, 44.99999999999997, 45.00000000000003, 29.999999999999996, 0]"]
 )
 
 new TestSuite("Checking xyz",
