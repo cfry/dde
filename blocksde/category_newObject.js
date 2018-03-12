@@ -39,14 +39,20 @@ newObject({name: "BlockCategory",
 })
 
 newObject({prototype: Root.BlockCategory,
-    name: "misc",
-    color: "#BBBBBB", //green
+    name: "Misc",
+    color: "#DDDDDD",
     block_types: []
 })
 
 newObject({prototype: Root.BlockCategory,
     name: "Logic",
     color: "#AAAAFF",
+    block_types: []
+})
+
+newObject({prototype: Root.BlockCategory,
+    name: "Math",
+    color: "#AAFFAA", //green
     block_types: []
 })
 
@@ -63,8 +69,14 @@ newObject({prototype: Root.BlockCategory,
 })
 
 newObject({prototype: Root.BlockCategory,
-    name: "Math",
-    color: "#AAFFAA", //green
+    name: "Object",
+    color: "#8eceff",
+    block_types: []
+})
+
+newObject({prototype: Root.BlockCategory,
+    name: "Job",
+    color: "#4cecff", //green
     block_types: []
 })
 

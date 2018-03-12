@@ -5,6 +5,38 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 2.3.10, Mar 12, 2018</summary>
+Highlights: Kinematics improved, dxf drawing extended,
+  error messages & click help improved.
+<ul>
+<li>The bottom horizontal scroll bar in the output pane is now visible.</li>
+
+<li> Warning message improved to:
+"DDE can't reach the web to check for the latest release."</li>
+
+<li> click_help: made "in_a_comment" lower priority, for more useful information.</li>
+
+<li> For a long time, a Job being created with a name of null (the default),
+meant that a new unique name would be generated a la "job_123".
+Now, in addition to null, "" (the empty string) can be passed
+for the name param. Furthermore, "" is the new default.
+This provides more useful click help since the default value
+is of the same type as a normal value, i.e. a string.</li>
+
+<li> make_dom_elt improved warning message when a property is both HTML and CSS.</li>
+
+<li> Kinematics: cartisian computations improved, affecting move_to instruction.</li>
+
+<li>Dexter.draw_dxf extended to handle: LWPOLYLINE</li>
+
+<li>click help for Job, Dexter and Serial improved with more accurate
+calling syntax. (replaced "=" with ":")</li>
+
+<li> Errors in a show_window handler function are now caught and displayed.</li>
+
+<li>Many other error messages that are dispalyed with calls to <code>dde_error</code></li>
+</ul>
+</details>
 
 <details class="doc_details"><summary>v 2.3.9, Feb 12, 2018</summary>
 Highlights: Bug fixes and UI tweaks.
@@ -132,7 +164,7 @@ Highlights: Calibration bug fixes. First pass fix for connectivity
         has its dur increased from 1 to 10 to make the effect more obvious.</li>
 
 
-    <li> Calibration fixes for attempting to use dexter0 when it should't be.</li>
+    <li> Calibration fixes for attempting to use dexter0 when it shouldn't be.</li>
 
     <li> First pass at fixing connectivity to dexter while its booting.</li>
 </ul>

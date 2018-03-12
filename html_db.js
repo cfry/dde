@@ -470,7 +470,7 @@ function make_html(tag, properties, innerHTML="", ending="auto", error=false){
         else if(tag_is_valid) {
             if(html_db.is_html_property(prop_name)) { //this clause checks for css overlap
                 //console.log(prop_name + " is html")
-                let tag_has_prop = html_db.tag_has_property("tag", prop_name)
+                let tag_has_prop = html_db.tag_has_property(tag, prop_name)
                 if(html_db.is_css_property(prop_name)) { //uh-oh, valid html and css prop but ...
                    if(tag_has_prop) { //double uh-oh, this prop is good for this tag
                       warning_or_error("make_html called with tag: " + tag +
@@ -478,7 +478,9 @@ function make_html(tag, properties, innerHTML="", ending="auto", error=false){
                                        " which is valid HTML and css. ", error)
                        //didn't error so:
                        warning(prop_name + " being used as CSS property. " +
-                              "<br/>" + "Stick it in 'html_properties' to force it to be HTML.")
+                              "<br/> Stick it in 'html_properties' to force it to be HTML" +
+                              "<br/> or put it in 'style' property to get rid of this warning."
+                              )
                        css_props[prop_name] = properties[prop_name]
                    }
                    else { //ok prop is not an html prop for this tag so css wins, no error
@@ -531,7 +533,11 @@ function make_html(tag, properties, innerHTML="", ending="auto", error=false){
         }
     }
     for (let attr in html_props){
-        result += " " + attr + '="' + html_props[attr] + '"'
+        let val = html_props[attr]
+        if ((typeof(val) == "string") && val.includes('"')) {
+            val = replace_substrings(val, '"', '\"')
+        }
+        result += " " + attr + '="' + val + '"'
     }
     if (direct_css_props) {
         result += ' style="'
@@ -633,12 +639,36 @@ function dom_elt_child_of_class(elt, a_class){
    return null
 }
 
+function dom_elt_children_of_class(elt, a_class){
+    result = []
+    for(let kid of elt.children){
+        if (kid.classList.contains(a_class)) { result.push(kid) }
+    }
+    return result
+}
+
+function dom_elt_descendant_of_classes(elt, classes){
+    if(classes.length == 0) { shouldnt("dom_elt_descendant_of_classes passed empty classes array.") }
+    else {
+        let next_class = classes[0]
+        let result_maybe = dom_elt_child_of_class(elt, next_class)
+        if(!result_maybe) {
+            error("dom_elt_descendant_of_classes passed a class: " + next_class +
+                  "that is not present in elt: " + elt)
+        }
+        else if(classes.length == 1) { return result_maybe }
+        else { return dom_elt_descendant_of_classes(result_maybe, classes.slice(1)) }
+    }
+}
+
+
+
 //if elt has a_class. return it, else go up the parentNode until you find one
 //or, if not, return null
-function first_ancestor_of_class(elt, a_class){
+function closest_ancestor_of_class(elt, a_class){
     if (elt == null) { return null }
     else if(elt.classList && elt.classList.contains(a_class)) { return elt }
-    else { return first_ancestor_of_class(elt.parentNode, a_class) }
+    else { return closest_ancestor_of_class(elt.parentNode, a_class) }
 }
 
 //possibly includes elt itself.

@@ -1066,7 +1066,7 @@ function check_for_latest_release(){
         if(err){
             out("You're running DDE version: " + dde_version +
                 " released: " + dde_release_date +
-                "<br/>Can't reach web to check for latest release.")
+                "<br/>DDE can't reach the web to check for the latest release.")
         }
         else {
             const the_obj = JSON.parse(body)

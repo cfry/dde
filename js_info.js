@@ -146,25 +146,21 @@ Js_info = class Js_info {
             else if (JSON[fn_name]) { //["parse", "stringify"].indexOf(fn_name) != -1)
                 return "JSON." + Js_info.make_atag("JSON", fn_name) + "(" + Js_info.get_param_string(fn) + ")"
             }
-            //else if (Js_info.document_prototype_lookup_ok(fn_name)){
-            //    fn = Document.prototype[fn_name]
-            //    return 'a_Document.' + Js_info.make_atag("Document", fn_name) + "(" + Js_info.get_param_string(fn) + ")"
-            //}
-            else if (Editor.in_a_comment(Editor.get_javascript(), Editor.selection_start())){
-                return 'You clicked in a <a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Basics">comment</a>.'
-            }
             else if (is_whitespace(fn_name)){
                 return "<span style='color:blue;'>whitespace</span> (contiguous spaces, tabs, newlines) separates code fragments."
             }
             else if (fn_name == "Job"){
                 let val = value_of_path(fn_name)
-                return "new " + Js_info.wrap_fn_name(fn_name)  + //"</span>" +
-                       function_params(val)
+                return "new " + Js_info.wrap_fn_name(fn_name) +
+                    function_params_for_keyword_call(val)
             }
             else if (fn_name == "start"){
                 let val = Job.prototype.start
                 return "new " + Js_info.wrap_fn_name(fn_name)  + //"</span>" +
                     function_params(val)
+            }
+            else if (Editor.in_a_comment(Editor.get_javascript(), Editor.selection_start())){
+                return 'You clicked in a <a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Basics">comment</a>.'
             }
             else { return Js_info.get_info_string_aux(orig_input) }
     }
@@ -422,7 +418,7 @@ Js_info = class Js_info {
                 return "<code style='color:blue;'>"     + fn_name + "</code>" //=> " + the_constant_val + dc_units
             case "series_robot_subclass_id":
                 let fn5 = value_of_path(fn_name)
-                return "new <code style='color:blue;'>" + Js_info.wrap_fn_name(fn_name) + '</code>' + function_params(fn5)
+                return "new <code style='color:blue;'>" + Js_info.wrap_fn_name(fn_name) + '</code>' + function_params_for_keyword_call(fn5)
             case "series_robot_name_id":
                 return "<code style='color:blue;'>"     + fn_name + "</code> => instance of Robot"
             case "series_serial_id":

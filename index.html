@@ -2,7 +2,7 @@
 <!-- good html validtor: https://www.onlinewebcheck.com/check.php?adv=1  -->
 <html lang="en">
 <head>
-    <title>Dexter Development Environment 2.3.9</title>
+    <title>Dexter Development Environment 2.3.10</title>
     <link rel="stylesheet" href="jqwidgets/styles/jqx.base.css" type="text/css" />
     <!-- <script type="text/javascript" src="jquery-1.11.3.min.js"></script> -->
     <script>window.$ = window.jQuery = require('jquery');</script>
@@ -673,7 +673,7 @@
                             &nbsp;<span style="vertical-align:70%;margin-right:0px;padding-right:0px;">Jobs:</span>
                         </span>
                     </div>
-                    <div id="output_div_id" contentEditable="false" style="width:98%; height:calc(100% - 60px); font-size:16px;overflow:auto;white-space:nowrap;padding:5px;"></div> <!-- for height:calc(100% - 60px);  te60 is the height of the output pane header, This letsthe lower part of outpt pane take up 100% of the hieght of the lower split pane MINUS the outut pane header of 60px.-->
+                    <div id="output_div_id" contentEditable="false" style="width:98%; height:calc(100% - 80px); font-size:16px;overflow:auto;white-space:nowrap;padding:5px;"></div> <!-- for height:calc(100% - 60px);  te60 is the height of the output pane header, This letsthe lower part of outpt pane take up 100% of the hieght of the lower split pane MINUS the outut pane header of 60px.-->
                     <!-- contentEditable="false" means the text can't be edited BUT for chrome apps, this makes the content selectable and now I can copy and paste it whereas previoiusly I couldn't select and copy it. -->
                 </div>
             </div>
@@ -717,14 +717,9 @@
             </div>
         </div>
     </div>
-<!-- </div> -->
-<!--
-<div id='jqxwindowxx' style="display:none;">
-    <div id="jqxwindow_header" style="background-color: #ff8c96;font-size:20px;">Header</div>
-    <div id="jqxwindow_content">Content</div>
+<!-- used by compute_string_size utility -->
+<div id="compute_string_size_id"
+     style="position:absolute;visibility: hidden;height: auto;width: auto;white-space: nowrap;"
 </div>
-<dialog id='my_dialog_id'>some stuff</dialog>
--->
-
 </body>
 </html>

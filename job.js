@@ -9,8 +9,10 @@ var job_default_params = {name: null, robot: Robot.dexter0, do_list: [],
                           initial_instruction: null, when_stopped: "stop",
                           callback_param: "start_object_callback"}
 
+//for name param, both "" and null mean compute a job name a la "job_123"
 var Job = class Job{
-    constructor({name=null, robot=Robot.dexter0, do_list=[], keep_history=true, show_instructions=true,
+    constructor({name="",
+                 robot=Robot.dexter0, do_list=[], keep_history=true, show_instructions=true,
                  inter_do_item_dur = 0.01, user_data={}, program_counter=0, ending_program_counter="end",
                  initial_instruction = null, when_stopped = "stop",
                  callback_param = "start_object_callback"} = {}){
@@ -46,7 +48,7 @@ var Job = class Job{
         //setup name
         Job.job_id_base       += 1
         this.job_id            = Job.job_id_base
-        if (this.name == null){ this.name = "job_" + this.job_id }
+        if ((this.name == null) || (this.name == "")){ this.name = "job_" + this.job_id }
         if (!(robot instanceof Robot)){
             if (!Robot.dexter0){
                 dde_error("Attempt to created Job: " + this.name + " with no valid robot instance.<br/>" +
@@ -1490,7 +1492,7 @@ Job.prototype.gcode_to_instructions = function* (filepath, scale = 1){
 Job.gcode_line_to_obj = function(gstring){
     gstring = Job.gline_remove_comment(gstring)
     if (gstring == "") { return null }
-    else if (gstring.startsWith(";")){ //semicolon on non first line starts end of line comment.
+    else if (gstring.startsWith(";")){ //semicolon on non first column starts end of line comment.
         return Job.gcode_varline_to_obj(gstring)
     }
     else {

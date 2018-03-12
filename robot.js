@@ -1411,14 +1411,14 @@ Dexter.move_to_straight = function(xyz           = [],
 
 
 Dexter.is_position = function(an_array){
-    return (Array.isArray(an_array)    &&
+    return (Array.isArray(an_array)     &&
              (an_array.length == 3)     &&
 
              Array.isArray(an_array[0]) &&
-            (an_array[0].length == 3)  &&
+            (an_array[0].length == 3)   &&
 
-            Array.isArray(an_array[1]) &&
-            (an_array[1].length == 3)  &&
+            Array.isArray(an_array[1])  &&
+            (an_array[1].length == 3)   &&
 
              Array.isArray(an_array[2]) &&
             (an_array[2].length == 3)
@@ -1429,7 +1429,7 @@ Dexter.is_position = function(an_array){
 // xyz New defaults are the cur pos, not straight up.
 // J5_direction  = [0, 0, -1], //end effector pointing down
 //warning: soe valid xyz locations won't be valid with the default J5_direction and config.
-Dexter.move_to = function(xyz = [],
+Dexter.move_to = function(xyz           = [],
                           J5_direction  = [0, 0, -1],
                           config        = Dexter.RIGHT_UP_OUT
                          ){
@@ -1649,7 +1649,11 @@ Dexter.J4_ANGLE_MAX = 130  //100
 Dexter.J5_ANGLE_MIN = -185
 Dexter.J5_ANGLE_MAX = 185
 
-Dexter.MAX_SPEED    = 30  //degrees per second
+Dexter.MAX_SPEED    = 30  //degrees per second. NOT the max speed tha robot,
+                         //but rather for a givien instruction's envelope of speed,
+                         //its the max speed that will be attined by that instrution.
+                         //The JOINT that this is the max speed for is
+                         //the joint that changes the most in a given call to move_all_joints.
 Dexter.START_SPEED  = 0.5 //degrees per second
 Dexter.ACCELERATION = 0.000129 //degrees/(second^2)
 

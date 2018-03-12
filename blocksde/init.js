@@ -3,8 +3,11 @@
 load_files(__dirname + "/blocksde/",
            "workspace.js",
            "category_newObject.js",
-           "jsdb_newObject.js",
-           "blocks2.js")
+           "blocks2.js",
+           "jsdb_newObject.js"  //should be after blocks2.js
+           )
+
+jsdb_init() //for bootstrapping reasons, must be done after blocks2.js is defined
 
 setTimeout(function(){
 javascript_pane_header_wrapper_id.appendChild(
@@ -42,14 +45,14 @@ function make_blocksde_dom_elt(){
 
 <table><tr><td style="margin:0px; padding:0px;"><div id="toolkit_bar_id" style="margin:0px; padding:0px; width:20px; height:400px;background-color:#DDDDDD;"
                onmouseover="Workspace.toolkit_bar_mouseover(event)"
-               onmouseup="Workspace.toolkit_bar_mouseup(event)"
+              
                /></td>
            <td style="margin:0px; padding:0px;"><div id="workspace_container_id" style="margin:0px; padding:0px; position:relative;"></div></td>
        </tr>
 </table>
 }`)
 }
- 
+// onmouseup="Workspace.toolkit_bar_mouseup(event)"
 var the_codemirror_elt = null
 var blocksde_dom_elt   = null
 
@@ -77,13 +80,13 @@ function toggle_text_blocks_display(){
       Editor.view = "blocks"
   }
   else { 
-     out("installing text")
+      out("installing text")
       let js = Workspace.inst.to_js()
       replace_dom_elt(blocksde_dom_elt, the_codemirror_elt)
       text_blocks_toggle_id.style["background-color"] = "#CCCCCC"
       Editor.set_javascript(js)
-
-     Editor.view = "text"
+      Editor.view = "text"
+      myCodeMirror.focus()
   }
 }
              

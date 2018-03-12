@@ -24,14 +24,13 @@ function warning(message, temp=false){
 }
 
 function dde_error(message){
-    let mess = prepend_file_message_maybe(message)
-    console.log("dde_error: " + mess)
-    //var err = new Error();
-    //var stack_trace = err.stack
-    //var  out_string = //"<details><summary><span style='color:red;'>" + message +
-                      //"</span></summary>" + stack_trace + "</details>"
-    out(mess, "red") //I shouldn't have to do this but sometimes with setTimeouts and/or
-    //ui to sandbox transfer, the error doesn't get printed out from dde eval so do this to be sure.
+    let out_string = prepend_file_message_maybe(message)
+    console.log("dde_error: " + out_string)
+    var err = new Error();
+    var stack_trace = err.stack
+    out_string = "<details><summary><span style='color:red;'>" + out_string +
+                      "</span></summary>" + stack_trace + "</details>"
+    out(out_string, "red") //I shouldn't have to do this but sometimes with setTimeouts and/or
     throw new Error(mess)
 }
 
@@ -179,6 +178,11 @@ function is_string_a_literal_string(a_string){
     else { return false }
 }
 
+//needs work
+function is_literal_object(value){
+    return (Object.getPrototypeOf(value) === Object.getPrototypeOf({}))
+    //return ((typeof(value) == "object") && (value !== null) && !Array.isArray(params[0]))
+}
 //not perfect as could be escape sequences, internal quotes, but pretty good
 function is_string_a_literal_array(a_string){
     if (a_string.startsWith('[') && a_string.endsWith(']')) { return true }
@@ -561,6 +565,16 @@ function reverse_string(s) {
     return o;
 }
 
+//returns an array of width an height of a_string with the given font_size
+//font size is either a number or a string with a px suffix
+function compute_string_size(a_string, font_size=12, extra_width = 0){
+    if(typeof(font_size) == "number") { font_size = font_size + "px"}
+    //at this point, font_size is a string with a px suffix
+    compute_string_size_id.style["font-size"] = font_size
+    compute_string_size_id.innerText = a_string
+    return [compute_string_size_id.clientWidth + extra_width, compute_string_size_id.clientHeight]
+}
+
 function px_suffix_string_to_number(str){
     str = str.substring(0, str.length - 2)
     return parseFloat(str)
@@ -633,6 +647,20 @@ function function_params(fn, include_parens=true){
     if (include_parens){ result = "(" + result + ")" }
     return result
 }
+
+function function_params_for_keyword_call(fn, include_parens=true){
+    let result = function_params(fn, include_parens)
+    if (result.endsWith("={})")) {
+        result = result.substring(0, result.length - 4)
+        if(include_parens) { result += ")" }
+    }
+    else if (result.endsWith("= {})")) {
+        result = result.substring(0, result.length - 5)
+        if(include_parens) { result += ")" }
+    }
+    result = replace_substrings(result, "=", ":")
+    return result
+}
 //fn can be a constructor or other method who's src string doesn't have to start with "function".
 //we really only care about the text between the first paren and the first ")}", exclusive
 //returns an array of strings, the names of the params
@@ -677,9 +705,32 @@ function params_string_to_param_names(params_full_string){
     return param_names
 }
 
+//for function foo({a:1}={}){} => {a:1},
+//other cases returns an array of inner arrays of param_name, param_default_val
 function function_param_names_and_defaults(fn){
-    var params_full_string = function_params(fn, false)
-    return params_string_to_param_names_and_defaults(params_full_string)
+    let params_full_string = function_params(fn, false)
+    let params_string = params_full_string
+    if (params_full_string.startsWith("{")){
+        if (params_full_string.endsWith("= {}") ||
+            params_full_string.endsWith("={}")){
+            let closing_equal = params_full_string.lastIndexOf("=")
+            params_string = params_full_string.substring(0, closing_equal).trim()
+        }
+        params_string = replace_substrings(params_string, "\\n", " ")
+        var inner_params_and_defaults = params_string.substring(1, params_string.length -1) //cut off { and }
+        var inner_params_and_defaults_array = inner_params_and_defaults.split(",")
+        var param_names = []
+        for(let inner_param_and_default of inner_params_and_defaults_array){
+            inner_param_and_default = inner_param_and_default.trim()
+            let the_param_default_array = inner_param_and_default.split("=")
+            the_param_default_array[0] = the_param_default_array[0].trim()
+            the_param_default_array[1] = the_param_default_array[1].trim()
+            param_names.push(the_param_default_array)
+            //obj[the_param_default_array[0]] = the_param_default_array[1]
+        }
+        return [param_names, "{}"]
+    }
+    else { return params_string_to_param_names_and_defaults(params_full_string) }
 }
 
 //params_full_string can either be wrapped in parens or not
@@ -695,10 +746,6 @@ function params_string_to_param_names_and_defaults(params_full_string){
             var inner_params_and_defaults_array = inner_params_and_defaults.split(",")
             for(var inner_param_and_default of inner_params_and_defaults_array){
                 inner_param_and_default = inner_param_and_default.trim()
-                //var the_match = inner_param_and_default.match(/^[A-Za-z_-]+/)
-                //if (!the_match) {return null} //invalid syntax
-                //var the_param = the_match[0]
-                //param_names.push(the_param)
                 let the_param_default_array = inner_param_and_default.split("=")
                 the_param_default_array[0] = the_param_default_array[0].trim()
                 the_param_default_array[1] = the_param_default_array[1].trim()

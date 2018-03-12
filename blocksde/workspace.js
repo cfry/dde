@@ -1,11 +1,13 @@
-/*function on_load(){
+/*
+
+function on_load(){
     new Workspace(400, 400)
     //init_block()
 }*/
 
 var Workspace = class Workspace{
     constructor(width=600, height=600, html_wrapper_name="workspace_container_id"){
-        console.log("Workspace constructor top")
+        //console.log("Workspace constructor top")
         this.width  = width
         this.height = height
         this.html_wrapper_name = html_wrapper_name
@@ -57,19 +59,27 @@ var Workspace = class Workspace{
     }
 
     //draws the category menu
+    //see block_drag_handler for related
     static toolkit_bar_mouseover(event){
         if (event.which == 0) { //mouse is up. If the mouse is down, we are draging a block into the area to delete it so don't op up the cat menu
             //event.stopPropagation()
             //let elementMouseIsOver = document.elementFromPoint(event.clientX, event.clientY);
-            if (block_being_dragged){
+            if (block_being_dragged){ //looks like never called
+                console.log("toolkit_bar_mouseover")
                 uninstall_block_drop_zones()
                 remove_drop_target_class()
-                remove_dom_elt(block_being_dragged)
+                let arg_name_val_elt = closest_ancestor_of_class(block_being_dragged, "arg_name_val")
+                if (arg_name_val_elt) {
+                    let dropped_on_block = closest_ancestor_of_class(arg_name_val_elt, "block")
+                    remove_dom_elt(arg_name_val_elt)
+                    clean_up_arg_names(dropped_on_block)
+                }
+                else { remove_dom_elt(block_being_dragged) }
                 block_being_dragged = null
                 toolkit_bar_id.style["background-color"] = "#DDDDDD"
                 clean_up_top_lefts()
-            }
-            else { //normal, mouse enters toolbar to pop up category menu
+           }
+           else { //normal, mouse enters toolbar to pop up category menu
                 //user is drabbing a block into the toolkit bar to delete it.
                 //debugger
                 let the_html = "<div class='categories'><b>Categories</b><br/>"
@@ -84,13 +94,10 @@ var Workspace = class Workspace{
                 }
                 category_menu_id.innerHTML = the_html+ "</div>"
                 category_menu_id.style.display = "block"
-                //category_menu_id.firstChild.classList.add("categories") //this shuld trigger the animation
-                //category_menu_id.show();
-
             }
         }
     }
-
+    /* obsolete
     static toolkit_bar_mouseup(event){
         console.log("toolkit_bar_mouseup")
         for(let a_block of Root.block.workspace_blocks){
@@ -99,7 +106,7 @@ var Workspace = class Workspace{
                 return //there should only be 1.
             }
         }
-    }
+    }*/
 
     add_block_html(block_html){
         workspace_id.insertAdjacentHTML("beforeend", block_html)

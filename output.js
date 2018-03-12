@@ -618,7 +618,7 @@ window.submit_window = function(event){
     let callback_fn_string = result["window_callback_string"]
     let cb = value_of_path(callback_fn_string)
     if (!cb) { try { cb = window.eval(callback_fn_string) }
-               catch(err){} //just ignore
+               catch(err){ dde_error("During show_window handler, could not find: " + callback_fn_string) } //just ignore
     }
      //cb is probably "function () ..." ie a string of a fn src code
     if (!cb) { //cb could have been a named fn such that wehn evaled didn't return the fn due to bad js design
@@ -636,7 +636,10 @@ window.submit_window = function(event){
            dde_error("In submit_window with bad format for the callback function of: " + callback_fn_string)
        }
     }
-    cb.call(null, result) //todo likely not right after electron conversion. IS result the right format for the callback
+    try { cb.call(null, result) }
+    catch(err){
+        dde_error("While calling the show_window handler function of: " + cb.name + ",<br/>" + err.message)
+    }
     event.preventDefault()
     event.stopPropagation()
     if (this.oninput) { //work around bug in Chrome 51 June 8 2016 wherein when you have
