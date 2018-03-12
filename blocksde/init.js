@@ -1,4 +1,4 @@
-// load_files(__dirname + "/blocksde/init.js")
+// to load blocks:  load_files(__dirname + "/blocksde/init.js")
 
 load_files(__dirname + "/blocksde/",
            "workspace.js",

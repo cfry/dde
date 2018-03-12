@@ -318,7 +318,6 @@ function block_drop_handler(event){
         replace_dom_elt(dropped_on_block, dragged_block_elt)
     }
     else if (dropped_on_elt.classList.contains("block_args_delimiter")){
-        debugger
         let dropped_on_block      = closest_ancestor_of_class(dropped_on_elt, "block")
         let dropped_on_block_block_type_string = dropped_on_block.dataset.blockType
         let dropped_on_always_rel = dom_elt_child_of_class(dropped_on_block, "block_always_relative")
@@ -385,7 +384,8 @@ function block_drop_handler(event){
         //    dragged_block_elt.classList.remove("block-top-left")
         //    clean_up_top_lefts()
         //}
-        let new_arg_name_val = make_arg_name_val((is_lit_obj? "" : "0"), dragged_block_elt, true, is_lit_obj)
+        let new_arg_name_val = make_arg_name_val((is_lit_obj? "" : "0"), dragged_block_elt, true, is_lit_obj,
+                                                 ((close_delimiter == "}") ? ":" : ""))
         insert_elt_after(new_arg_name_val, old_arg_name_val)
         clean_up_arg_names(dropped_on_block)
     }
@@ -509,7 +509,6 @@ function make_arg_name_val(param_name="", arg_val_elt, add_comma_suffix=false, n
     arg_val_elt.style.left = "auto"
     arg_val_elt.style.top  = "auto"
    let content = [arg_name_elt]
-   debugger
    if(between_name_and_value.length > 0) { content.push(make_dom_elt("span", {}, between_name_and_value)) }
    content.push(arg_val_elt)
    if(add_comma_suffix) { content.push(make_comma_drop_zone()) }
@@ -556,7 +555,6 @@ function remove_block_enclosing_arg_name_val(block_elt){
 }
 
 function clean_up_arg_names(block_elt){
-    debugger
     let block_type_string = block_elt.dataset.blockType  //crap syntax for working around the hyphen
     let always_rel        = dom_elt_child_of_class(block_elt, "block_always_relative")
     let block_args_elt    = dom_elt_child_of_class(always_rel, "block_args")
