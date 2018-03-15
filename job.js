@@ -5,6 +5,7 @@ var esprima = require('esprima')
 var job_default_params = {name: null, robot: Robot.dexter0, do_list: [],
                           keep_history: true, show_instructions: true,
                           inter_do_item_dur: 0.01, user_data:{},
+                          default_workspace_pose: null, //error on loading DDE if I use: Coor.Table, so we init this in Job.construcdtor
                           program_counter:0, ending_program_counter:"end",
                           initial_instruction: null, when_stopped: "stop",
                           callback_param: "start_object_callback"}
@@ -13,8 +14,10 @@ var job_default_params = {name: null, robot: Robot.dexter0, do_list: [],
 var Job = class Job{
     constructor({name="",
                  robot=Robot.dexter0, do_list=[], keep_history=true, show_instructions=true,
-                 inter_do_item_dur = 0.01, user_data={}, program_counter=0, ending_program_counter="end",
-                 initial_instruction = null, when_stopped = "stop",
+                 inter_do_item_dur=0.01, user_data={},
+                 default_workspace_pose=Coor.Table,
+                 program_counter=0, ending_program_counter="end",
+                 initial_instruction=null, when_stopped = "stop",
                  callback_param = "start_object_callback"} = {}){
     //program_counter is the counter of the next instruction that should be executed.
     //so since we're currently "executing" 1 instruction, and after its done,
@@ -25,6 +28,9 @@ var Job = class Job{
     //with the job. -2 means we want to execute the last instruction of the
     //job next, etc.
     //save the args
+    if (job_default_params.default_workspace_pose == null) { //really an init DDE action,but keep it local
+        job_default_params.default_workspace_pose = Coor.Table
+    }
     if (Job[name] && Job[name].is_active()) { //we're redefining the job so we want to make sure the
        //previous version is stopped.
         if (Job[name].robot instanceof Dexter) {Job[name].robot.empty_instruction_queue_now() }
@@ -39,6 +45,7 @@ var Job = class Job{
         }
         this.orig_args = {do_list: do_list, keep_history: keep_history, show_instructions: show_instructions,
                             inter_do_item_dur: inter_do_item_dur, user_data: user_data,
+                            default_workspace_pose: Coor.Table,
                             program_counter: program_counter, ending_program_counter: ending_program_counter,
                             initial_instruction: initial_instruction, when_stopped: when_stopped,
                             callback_param: callback_param}
@@ -151,6 +158,7 @@ var Job = class Job{
             this.show_instructions = this.orig_args.show_instructions
             this.inter_do_item_dur = this.orig_args.inter_do_item_dur
             this.user_data         = shallow_copy_lit_obj(this.orig_args.user_data)
+            this.default_workspace_pose = this.default_workspace_pose
             this.program_counter   = this.orig_args.program_counter //see robot_done_with_instruction as to why this isn't 0,
                                      //its because the robot.start effectively calls set_up_next_do(1), incremening the PC
             this.ending_program_counter = this.orig_args.ending_program_counter
@@ -162,7 +170,7 @@ var Job = class Job{
                 if (options.hasOwnProperty(key)){
                     let new_val = options[key]
                     //if (key == "program_counter") { new_val = new_val - 1 } //don't do. You set the pc to the pos just before the first instr to execute.
-                    if (key == "do_list")         { new_val = Job.flatten_do_list_array(new_val) }
+                    if      (key == "do_list")         { new_val = Job.flatten_do_list_array(new_val) }
                     else if (key == "user_data")  { new_val = shallow_copy_lit_obj(new_val) }
                     else if (key == "name")       {} //don't allow renaming of the job
                     else if ((key == "when_stopped") &&
@@ -171,6 +179,9 @@ var Job = class Job{
                                   new_val)
                     }
                     this[key] = new_val
+                }
+                else if (!job_default_params.hasOwnProperty(key)){
+                    warning("Job.start passed an option: " + key + " that is unknown. This is probably a mistake.")
                 }
             }
             let maybe_symbolic_pc = this.program_counter

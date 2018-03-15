@@ -1431,9 +1431,10 @@ Dexter.is_position = function(an_array){
 //warning: soe valid xyz locations won't be valid with the default J5_direction and config.
 Dexter.move_to = function(xyz           = [],
                           J5_direction  = [0, 0, -1],
-                          config        = Dexter.RIGHT_UP_OUT
+                          config        = Dexter.RIGHT_UP_OUT,
+                          workspace_pose = null //will default to the job's default workspace_pose
                          ){
-       return new Instruction.Control.move_to(xyz, J5_direction, config)
+       return new Instruction.Control.move_to(xyz, J5_direction, config, workspace_pose)
 }
 
 //the same as move_to but generates a "P" oplet

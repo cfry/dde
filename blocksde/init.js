@@ -31,7 +31,11 @@ show_window({content: make_html("div", {},
 */
 function make_blocksde_dom_elt(){
   return make_dom_elt("div", {id:"blocksde_id"},
-`<div id="category_menu_id"
+`<datalist id="identifiers_datalist_id">
+    <option value="one">this</option>
+    <option value="two">window</option>
+ </datalist>
+<div id="category_menu_id"
      onmouseover="category_menu_id.style.display='block'"
      onmouseout="category_menu_id.style.display='none'"
      style="display:none; position:absolute; left:10px; top:30px; z-index:2;
@@ -47,10 +51,11 @@ function make_blocksde_dom_elt(){
                onmouseover="Workspace.toolkit_bar_mouseover(event)"
               
                /></td>
-           <td style="margin:0px; padding:0px;"><div id="workspace_container_id" style="margin:0px; padding:0px; position:relative;"></div></td>
+           <td style="margin:0px; padding:0px;"><div id="workspace_container_id" style="margin:0px; padding:0px; position:relative;"> 
+           </div></td>
        </tr>
 </table>
-}`)
+`)
 }
 // onmouseup="Workspace.toolkit_bar_mouseup(event)"
 var the_codemirror_elt = null

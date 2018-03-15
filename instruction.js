@@ -2362,7 +2362,9 @@ Instruction.Control.move_all_joints_relative = class move_all_joints_relative ex
 Instruction.Control.move_to = class move_to extends Instruction.Control{
     constructor (xyz           = [],
                  J5_direction  = [0, 0, -1],
-                 config        = Dexter.RIGHT_UP_OUT){
+                 config        = Dexter.RIGHT_UP_OUT,
+                 workspace_pose = null //default's to the job's default_workspace_pos
+                 ){
         super()
         this.xyz = xyz
         this.J5_direction = J5_direction
@@ -2390,13 +2392,14 @@ Instruction.Control.move_to = class move_to extends Instruction.Control{
                 "was passed an invalid J5_direction." +
                 "\n[90, 90], [-90, 90], [90, -90] and [-90, -90]\n are all invalid.")
         }
-        if (similar(xyz, Dexter.HOME_POSITION[0])) {
-            //Job.insert_instruction(make_ins("a", ...Dexter.HOME_ANGLES), {job: job_instance, offset: "after_program_counter"})
-            job_instance.insert_single_instruction(make_ins("a", ...Dexter.HOME_ANGLES))
-            job_instance.added_items_count[job_instance.program_counter] += 1
-            job_instance.set_up_next_do(1)
-            return
-        }
+        let the_workspace_pose = ((this.workspace_pose == null) ? job_instance.default_workspace_pos : this.workspace_pose)
+       // if (similar(xyz, Dexter.HOME_POSITION[0])) {
+       //     job_instance.robot.angles = angles
+       //     job_instance.insert_single_instruction(make_ins("a", ...Dexter.HOME_ANGLES))
+       //     job_instance.added_items_count[job_instance.program_counter] += 1
+       //     job_instance.set_up_next_do(1)
+       //     return
+       // }
         let xyz_copy = xyz.slice(0)
         for(let i = 0; i < 3; i++){
             if (xyz_copy.length <= i)     { xyz_copy.push(existing_xyz[i]) }
@@ -2404,7 +2407,7 @@ Instruction.Control.move_to = class move_to extends Instruction.Control{
         }
         let angles
         try {
-            angles = Kin.xyz_to_J_angles(xyz_copy, J5_direction, config, job_instance.robot.pose)
+            angles = Kin.xyz_to_J_angles(xyz_copy, J5_direction, config, the_workspace_pose) //was: job_instance.robot.pose
 
         }
         catch(err){
@@ -2419,7 +2422,8 @@ Instruction.Control.move_to = class move_to extends Instruction.Control{
         let error_mess = Dexter.joints_out_of_range(angles)
         if (error_mess){ // a string like "Joint 1 with angle: 0.01 is less than the minimum: 30
             job_instance.stop_for_reason("errored",
-                error_mess + "\nin Job." + job_instance.name + " at PC: " + job_instance.program_counter +
+                error_mess + "\nin Job." + job_instance.name + " at PC: " +
+                job_instance.program_counter +
                 "\nin Dexter.move_to([" + xyz + "])" +
                 "\nout of range xyz.")
             job_instance.set_up_next_do(0)
@@ -2487,13 +2491,13 @@ Instruction.Control.pid_move_to = class pid_move_to extends Instruction.Control{
                 "was passed an invalid J5_direction." +
                 "\n[90, 90], [-90, 90], [90, -90] and [-90, -90]\n are all invalid.")
         }
-        if (similar(xyz, Dexter.HOME_POSITION[0])) {
+        //if (similar(xyz, Dexter.HOME_POSITION[0])) {
             //Job.insert_instruction(make_ins("P", ...Dexter.HOME_ANGLES), {job: job_instance, offset: "after_program_counter"})
-            job_instance.insert_single_instruction(make_ins("P", ...Dexter.HOME_ANGLES))
-            job_instance.added_items_count[job_instance.program_counter] += 1
-            job_instance.set_up_next_do(1)
-            return
-        }
+        //    job_instance.insert_single_instruction(make_ins("P", ...Dexter.HOME_ANGLES))
+        //    job_instance.added_items_count[job_instance.program_counter] += 1
+        //    job_instance.set_up_next_do(1)
+        //    return
+        //}
         let xyz_copy = xyz.slice(0)
         for(let i = 0; i < 3; i++){
             if (xyz_copy.length <= i)     { xyz_copy.push(existing_xyz[i]) }
@@ -2552,7 +2556,7 @@ Instruction.Control.pid_move_to = class pid_move_to extends Instruction.Control{
     }
 }
 Instruction.Control.move_to_relative = class move_to_relative extends Instruction.Control{
-    constructor (delta_xyz = [0, 0, 0]){
+    constructor (delta_xyz = [0, 0, 0], workspace_pose = null){
         super()
         if (delta_xyz.length == 1) {
             delta_xyz.push(0)
@@ -2566,7 +2570,7 @@ Instruction.Control.move_to_relative = class move_to_relative extends Instructio
         let new_xyz = Vector.add(old_xyz, this.delta_xyz) //makes a new array
         let angles
         try {
-            angles = Kin.xyz_to_J_angles(new_xyz, J5_direction, config, job_instance.robot.pose)
+            angles = Kin.xyz_to_J_angles(new_xyz, J5_direction, config, workspace_pose) //job_instance.robot.pose)
         }
         catch(err){
             job_instance.stop_for_reason("errored",

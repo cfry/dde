@@ -126,8 +126,8 @@ newObject({
                 let param_default_src    = param_name_val_array[1]
                 let param_default_value  = ((param_default_src == "{}") ? {} : eval(param_default_src)) //bug in js eval
                 let arg_val_elt          = Root.jsdb.value_to_block(param_default_value, param_default_src)
-                let add_comma_suffix     = i < (params_obj.length - 1)
-                let arg_name_val_elt     = make_arg_name_val(param_name, arg_val_elt, add_comma_suffix, make_editable_arg_names) //4th arg is make arg_name editable
+                let suffix_char          = ((i < (params_obj.length - 1)) ? "," : "")
+                let arg_name_val_elt     = make_arg_name_val(param_name, arg_val_elt, suffix_char, make_editable_arg_names) //4th arg is make arg_name editable
                 arg_name_val_elts.push(arg_name_val_elt)
             }
         }
@@ -138,8 +138,8 @@ newObject({
                 let param_default_src = params_obj[param_name]
                 let param_default_value = ((param_default_src == "{}") ? {} : eval(param_default_src)) //bug in js eval
                 let arg_val_elt = Root.jsdb.value_to_block(param_default_value, param_default_src)
-                let add_comma_suffix = i < (keys.length - 1)
-                let arg_name_val_elt = make_arg_name_val(param_name, arg_val_elt, add_comma_suffix, true) //4th arg is make arg_name editable
+                let suffix_char = ((i < (keys.length - 1)) ? "," : "")
+                let arg_name_val_elt = make_arg_name_val(param_name, arg_val_elt, suffix_char, true) //4th arg is make arg_name editable
                 arg_name_val_elts.push(arg_name_val_elt)
             }
         }
@@ -323,6 +323,8 @@ newObject({prototype: Root.jsdb.literal,
         always_rel.appendChild(this.make_quote_button("close"))
         return result
     },
+
+    //careful, the below two used by assignment and maybe some other blocks
     oninput(event){
         let elt = event.target
         let width = Root.jsdb.literal.string.compute_width(elt.value, elt.style["font-size"], 3)
@@ -414,7 +416,6 @@ newObject({prototype: Root.jsdb.literal,
         let names = Object.keys(val) //if val is an array, returns ["0", "1" ...] which is fine,
         let last_name = last(names)
         for(let param_name of names){
-            //if (!on_first_param) { block_args_elt.appendChild(make_comma_drop_zone()) }
             let param_name_elt = make_dom_elt("span", {class: "arg_name"}, param_name)
             let array_elt_or_param_block_type = val[param_name]
             let param_val_elt
@@ -427,19 +428,14 @@ newObject({prototype: Root.jsdb.literal,
             param_val_elt.classList.remove("block-absolute") //because its not absolute, and should inherit the position:relative of the always_relative wrapper in this block
             param_val_elt.classList.add("arg_val")
             //param_val_elt.style["margin-left"] = "10px"
-            let name_val_elt = make_arg_name_val(param_name_elt, param_val_elt, param_name != last_name)
+            let suffix_char = ((param_name != last_name)? "," : "")
+            let name_val_elt = make_arg_name_val(param_name_elt, param_val_elt, suffix_char)
             block_args_elt.append(name_val_elt)
         }
         delim_elt = make_delimiter_drop_zone("]")
         delim_elt.style["margin-left"]  = "3px", //with an empty array, the [] brackets are too close to one another
         block_args_elt.append(delim_elt)
-        always_rel.appendChild(make_dom_elt("div", {class:"resizer",
-            draggable:"true",
-            ondragstart:"resizer_dragstart_handler(event)",
-            ondrag:"resizer_drag_handler(event)",
-            ondragend:"resizer_dragend_handler(event)",
-            ondrop:"resizer_drop_handler(event)",
-            onclick:"resizer_onclick(event)"}))
+        always_rel.appendChild(make_resizer_elt())
         return result
     },
     to_js: function(block_elt){
@@ -514,7 +510,8 @@ newObject({prototype: Root.jsdb.literal,
             }
             param_val_elt.classList.remove("block-absolute") //because its not absolute, and should inherit the position:relative of the always_relative wrapper in this block
             param_val_elt.classList.add("arg_val")
-            let name_val_elt = make_arg_name_val(param_name_elt, param_val_elt, param_name != last_name, true, ":")
+            let suffix_char = ((param_name != last_name) ? "," : "")
+            let name_val_elt = make_arg_name_val(param_name_elt, param_val_elt, suffix_char, true, ":")
             block_args_elt.append(name_val_elt)
             param_name_elt.style["margin-right"]  = "0px" //todo doesn't work
             param_name_elt.style["padding-right"] = "0px" //todo doesn't work
@@ -523,13 +520,7 @@ newObject({prototype: Root.jsdb.literal,
         delim_elt.style["margin-left"]  = "3px" //with an empty array, the [] brackets are too close to one another
         block_args_elt.append(delim_elt)
         //always_rel.appendChild(make_dom_elt("div", {class:"block_bottom_spacer"}))
-        always_rel.appendChild(make_dom_elt("div", {class:"resizer",
-            draggable:"true",
-            ondragstart:"resizer_dragstart_handler(event)",
-            ondrag:"resizer_drag_handler(event)",
-            ondragend:"resizer_dragend_handler(event)",
-            ondrop:"resizer_drop_handler(event)",
-            onclick:"resizer_onclick(event)"}))
+        always_rel.appendChild(make_resizer_elt())
         return result
     },
     to_js: function(block_elt){
@@ -558,11 +549,11 @@ newObject({prototype: Root.jsdb,
     value: undefined, //used by null_or_undefined
     choices: undefined,
     width:   undefined,
-    make_dom_elt: function(x, y, arg_val, choices){
+    make_dom_elt: function(x, y, arg_val, choices, eval_each_choice=true){
         let always_rel = make_dom_elt("div", {class: "block_always_relative"})
         let result = make_dom_elt("div",
             {class:"block block-absolute",
-                "background-color": this.category.color,
+                "background-color": (this.category ? this.category.color : Root.BlockCategory.Misc.color), //when we're dynamicallymaking a one_oflike in assignment, there's no category
                 id: Root.jsdb.get_next_block_id(),
                 left: x + "px",
                 top:  y + "px",
@@ -579,7 +570,7 @@ newObject({prototype: Root.jsdb,
         let val = ((arg_val !== undefined) ? arg_val : this.value)
         choices = ((choices !== undefined) ? choices : this.choices)
         for (let choice of choices){
-            let choice_val = eval(choice)
+            let choice_val = (eval_each_choice? eval(choice) : choice)
             let attrs = {}
             debugger
             if(this.name=="null_undefined") {} //without this check "undefined" will be selected by default,when "null" should be.
@@ -613,6 +604,80 @@ newObject({prototype: Root.jsdb,
             ["block_always_relative", "block_args", "arg_name_val", "arg_val"])
         let val            = arg_val.value
         return val
+    }
+})
+
+newObject({prototype: Root.jsdb,
+    name: "path",
+    category: Root.BlockCategory.Misc,
+    display_label: 'pa.th',
+    //value: [], //don't us this, use params for each elt of the array.
+    return_type:"any",
+    params: ["this", "foo"], //don't make this undefined as we don't need to look at  the "method" of "array"to know what its default args arg
+    //category:"misc",
+    constructor: function(){ this.callPrototypeConstructor() },
+    //similar to method.make_dom_elt
+    make_dom_elt: function(x, y, arg_vals){ //arg_vals can be an array of the elts of the array, or not passed
+        let always_rel = make_dom_elt("div",
+            {class:          "block_always_relative",
+                "min-width":     "28px", //otherwise the resizer box appears on top of the []
+                "margin-bottom": "3px"}) //otherwise, the bottom of the squrae brackets too close to the bottom of the block.
+        let result = make_dom_elt("div",
+            {class:"block block-absolute",
+                "background-color": this.category.color,
+                id: Root.jsdb.get_next_block_id(),
+                left: x + "px",
+                top:  y + "px",
+                draggable: "true",
+                "data-block-type": "path", //"literal." + this.name,
+                //  ondragstart: "Root.jsdb.dragstart_handler(event)",
+                ondragenter:"enter_drop_target(event)",
+                ondragleave:"leave_drop_target(event)",
+                onclick: "select_block(event)"
+                //position: "absolute"
+            },
+            always_rel
+        )
+        let block_name_elt = make_dom_elt("div",
+            {class:"block_name"},
+            "")
+        let delim_elt = make_delimiter_drop_zone(block_left_triangle) //big black left pintingtriangle//&blacktriangleleft;") //&langd;
+        block_name_elt.appendChild(delim_elt)
+        always_rel.appendChild(block_name_elt)
+        let block_args_elt = make_dom_elt("div", {class:"block_args", display:"inline-block", "margin-right":"2px"})
+        always_rel.appendChild(block_args_elt)
+        let vals = (Array.isArray(arg_vals) ? arg_vals : this.params)
+        let last_name = last(vals)
+        for(let val of vals){
+            let param_name_elt = make_dom_elt("span", {class: "arg_name"}, "")
+            param_val_elt = Root.jsdb.identifier.make_dom_elt(undefined, undefined, ƒval)
+            param_val_elt.classList.remove("block-absolute") //because its not absolute, and should inherit the position:relative of the always_relative wrapper in this block
+            param_val_elt.classList.add("arg_val")
+            //param_val_elt.style["margin-left"] = "10px"
+            let suffix_char = ((val != last_name) ? "." : "")
+            let name_val_elt = make_arg_name_val(param_name_elt, param_val_elt, suffix_char)
+            block_args_elt.append(name_val_elt)
+        }
+        delim_elt = make_delimiter_drop_zone(block_right_triangle) //big black right pointing triangle &blacktriangleright;") //&rangd;
+        delim_elt.style["margin-left"]  = "3px", //with an empty array, the [] brackets are too close to one another
+            block_args_elt.append(delim_elt)
+        always_rel.appendChild(make_resizer_elt())
+        return result
+    },
+    to_js: function(block_elt){
+        let always_rel   = dom_elt_child_of_class(block_elt, "block_always_relative")
+        let block_args   = dom_elt_child_of_class(always_rel, "block_args")
+        let arg_name_vals = dom_elt_children_of_class(block_args, "arg_name_val")
+        let result = ""
+        let on_first = true
+        for (let arg_name_val of arg_name_vals){
+            let arg_val  = dom_elt_child_of_class(arg_name_val, "arg_val")
+            let src = block_to_js(arg_val)
+            if (!on_first) { result += "." }
+            result += src
+            on_first = false
+        }
+        return result
     }
 })
 
@@ -723,7 +788,6 @@ newObject({prototype: Root.jsdb,
             let names = Object.keys(this.params)
             let last_name = last(names)
             for(let param_name of names){
-                //if (!on_first_param) { block_args_elt.appendChild(make_comma_drop_zone()) }
                 let param_name_elt = make_dom_elt("span", {class: "arg_name"}, param_name)
                 //if (param_name_elt) { block_args_elt.appendChild(param_name_elt) }
                 let param_block_type = this.params[param_name]
@@ -731,7 +795,8 @@ newObject({prototype: Root.jsdb,
                 param_val_elt.classList.remove("block-absolute") //because its not absolute, and should inherit the position:relative of the always_relative wrapper in this block
                 param_val_elt.classList.add("arg_val")
                 //param_val_elt.style["margin-left"] = "10px"
-                let name_val_elt = make_arg_name_val(param_name_elt, param_val_elt, param_name != last_name)
+                let suffix_char = ((param_name != last_name) ? "," : "")
+                let name_val_elt = make_arg_name_val(param_name_elt, param_val_elt, suffix_char)
                 block_args_elt.append(name_val_elt)
             }
         }
@@ -744,16 +809,7 @@ newObject({prototype: Root.jsdb,
         delim_elt = make_delimiter_drop_zone(")")
         delim_elt.style["margin-left"]  = "3px" //with an empty array, the [] brackets are too close to one another
         block_args_elt.append(delim_elt)
-        always_rel.appendChild(//make_dom_elt("div",{class:"block_bottom_spacer"},
-            make_dom_elt("div",
-                {class:"resizer",
-                    draggable:"true",
-                    ondragstart:"resizer_dragstart_handler(event)",
-                    ondrag:"resizer_drag_handler(event)",
-                    ondragend:"resizer_dragend_handler(event)",
-                    ondrop:"resizer_drop_handler(event)",
-                    onclick:"resizer_onclick(event)"}
-            ))
+        always_rel.appendChild(make_resizer_elt())
         return result
     },
     to_js: function(block_elt){
@@ -831,20 +887,6 @@ newObject({prototype: Root.jsdb,
         //always_rel.appendChild(make_delimiter_drop_zone("("))
         let block_args_elt = make_dom_elt("div", {class:"block_args"})
         always_rel.appendChild(block_args_elt)
-        /*let names = Object.keys(this.params)
-        let last_name = last(names)
-        for(let param_name of names){
-            //if (!on_first_param) { block_args_elt.appendChild(make_comma_drop_zone()) }
-            let param_name_elt = make_dom_elt("span", {class: "arg_name"}, param_name)
-            //if (param_name_elt) { block_args_elt.appendChild(param_name_elt) }
-            let param_block_type = this.params[param_name]
-            let param_val_elt = param_block_type.make_dom_elt()
-            param_val_elt.classList.remove("block-absolute") //because its not absolute, and should inherit the position:relative of the always_relative wrapper in this block
-            param_val_elt.classList.add("arg_val")
-            //param_val_elt.style["margin-left"] = "10px"
-            let name_val_elt = make_arg_name_val(param_name_elt, param_val_elt, param_name != last_name)
-            block_args_elt.append(name_val_elt)
-        }*/
         let meth = this.get_method()
         let arg_name_val_elts = Root.jsdb.method_to_arg_name_val_elts(meth)
         for (let arg_name_val_elt of arg_name_val_elts){
@@ -853,16 +895,7 @@ newObject({prototype: Root.jsdb,
         delim_elt = make_delimiter_drop_zone(")")
         delim_elt.style["margin-left"]  = "3px" //with an empty array, the [] brackets are too close to one another
         block_args_elt.appendChild(delim_elt)
-        always_rel.appendChild(//make_dom_elt("div",{class:"block_bottom_spacer"},
-            make_dom_elt("div",
-                {class:"resizer",
-                    draggable:"true",
-                    ondragstart:"resizer_dragstart_handler(event)",
-                    ondrag:"resizer_drag_handler(event)",
-                    ondragend:"resizer_dragend_handler(event)",
-                    ondrop:"resizer_drop_handler(event)",
-                    onclick:"resizer_onclick(event)"}
-            ))
+        always_rel.appendChild(make_resizer_elt())
         return result
     },
     to_js: function(block_elt){
@@ -1016,7 +1049,7 @@ newObject({prototype: Root.jsdb,
 newObject({prototype: Root.jsdb.identifier,
     name: "combo_box",
     category: Root.BlockCategory.Misc,
-    display_label: "identifiers",
+    display_label: "identifiers_simple",
     return_type: "any",
     choices: ["this", "window"],
     value: "",
@@ -1088,7 +1121,154 @@ newObject({prototype: Root.jsdb.identifier,
     }
 })
 
+newObject({prototype: Root.jsdb.identifier,
+    name: "combo_datalist",
+    category: Root.BlockCategory.Misc,
+    display_label: "identifiers",
+    return_type: "any",
+    choices: "identifiers_datalist_id", // ["this", "window"],
+    value: "",
+    make_dom_elt: function(x=0, y=0, arg_val){
+        let always_rel = make_dom_elt("div", {class: "block_always_relative"})
+        let result = make_dom_elt("div",
+            {class:"block block-absolute",
+                "margin-top": "0px",
+                "background-color": this.category.color,
+                id: Root.jsdb.get_next_block_id(),
+                left: x + "px",
+                top:  y + "px",
+                draggable: "true",
+                "data-block-type": "identifier." + this.name,
+                onclick: "select_block(event)"
+            },
+            always_rel
+        )
+        always_rel.appendChild(make_dom_elt("span",
+            {class:"block_name", display:"inline-block"},
+            ""))
+        let block_args_elt = make_dom_elt("div", {class:"block_args", display:"inline-block", "margin-top": "0px", "padding-top": "0px"})
+        always_rel.appendChild(block_args_elt)
+        //let val = ((typeof(arg_val) == "string") ? arg_val : this.value)
+        let longest_choice = ""
+       /* debugger
+        for(let cho of this.choices){
+            if(cho.length > longest_choice.length) { longest_choice = cho }
+        }
+        let width = Root.jsdb.literal.string.compute_width(longest_choice, 15, 3)
+        */
+        //let options = []
+        //for(let opt of this.choices){
+        //    let opt_elt = make_dom_elt("option", {}, opt)
+        //    options.push(opt_elt)
+        //}
+        let val_elt = make_dom_elt("input", {type: "text", list: "identifiers_datalist_id"}) //todo doesn't show thelsit of choices and never does the more complex version below.
+          /*make_dom_elt("input",
+            {class:"arg_val",
+                type: "text",
+                list: this.choices,
+                "margin-left": "0px",
+                //value: (arg_val? arg_val : this.value),
+                //style: "width:" + width + "px;", //does nothing. jqxcombobox overrules
+                margin: "0px",
+                padding: "0px",
+                "font-size": "14px",
+                //oninput: "Root.jsdb.literal.string.oninput(event)",
+                ondragenter:"enter_drop_target(event)",
+                ondragleave:"leave_drop_target(event)"})*/
+        let arg_name_val_elt = make_arg_name_val("", val_elt)
+        block_args_elt.appendChild(arg_name_val_elt)
+        return result
+    },
+    oninput(event){
+        let elt = event.target
+        let width = Root.jsdb.literal.string.compute_width(elt.value, elt.style["font-size"], 10)
+        elt.style.width = width + "px"
+    },
+    compute_width(val, font_size, extra_width=0) {
+        //f (typeof(val) != "string") { val = (val).toString() }
+        //return ((val.length + 2) * 7) + "px" //just slightly bigger than necesary but making either constant 1 smaller makes it too small
+        return compute_string_size(val, font_size, extra_width)[0]
+    },
+    to_js: function(block_elt){
+        debugger
+        let arg_val = dom_elt_descendant_of_classes(block_elt,
+            ["block_always_relative", "block_args", "arg_name_val", "arg_val"])
+        let val     = $(arg_val).val()
+        return val
+    }
+})
 
+newObject({prototype: Root.jsdb,
+    name: "assignment",
+    category: Root.BlockCategory.Misc,
+    display_label: "assignment",
+    return_type:   "undefined",
+    make_dom_elt: function(x=0, y=0, arg_val){
+        let always_rel = make_dom_elt("div", {class: "block_always_relative"})
+        let result = make_dom_elt("div",
+            {class:"block block-absolute",
+                "margin-top": "0px",
+                "background-color": this.category.color,
+                id: Root.jsdb.get_next_block_id(),
+                left: x + "px",
+                top:  y + "px",
+                draggable: "true",
+                "data-block-type": this.name,
+                onclick: "select_block(event)"
+            },
+            always_rel
+        )
+        always_rel.appendChild(make_dom_elt("span",
+            {class:"block_name", display:"inline-block"},
+            ""))
+        let block_args_elt = make_dom_elt("div", {class:"block_args", display:"inline-block", "margin-top": "0px", "padding-top": "0px"})
+        always_rel.appendChild(block_args_elt)
+        let kind_elt = make_dom_elt("select", {class: "assignment_kind"},
+                                     [make_dom_elt("option", {}, ""),
+                                      make_dom_elt("option", {}, "let"),
+                                      make_dom_elt("option", {}, "var"),
+                                      make_dom_elt("option", {}, "const")])
+        let kind_name_val_elt = make_arg_name_val("", kind_elt)
+        kind_name_val_elt.style["vertical-align"] = "50%"
+        block_args_elt.appendChild(kind_name_val_elt)
+        let var_name_elt = make_dom_elt("input",
+                            {class:"arg_val",
+                                type:    "text",
+                                value:   "",
+                                style:   "width:" + 20 + "px;",
+                                margin:  "0px",
+                                display: "inline-block",
+                                //"margin-top": "-15px:",
+                                "vertical-align" : "super",
+                                "font-size": "14px",
+                                oninput: "Root.jsdb.literal.string.oninput(event)",
+                                ondragenter:"enter_drop_target(event)",
+                                ondragleave:"leave_drop_target(event)"})
+        let var_name_val_elt = make_arg_name_val("", var_name_elt)
+        block_args_elt.appendChild(var_name_val_elt)
+        block_args_elt.appendChild(make_dom_elt("span", {"vertical-align" : "50%"}, " ="))
+        let val_elt = Root.jsdb.js.make_dom_elt(undefined, undefined, "")
+        val_elt.style["vertical-align"] = "bottom"
+        val_elt.style.margin  = "0px"
+        val_elt.style.padding = "0px"
+        let val_name_val_elt = make_arg_name_val("", val_elt)
+        block_args_elt.appendChild(val_name_val_elt)
+        return result
+    },
+    to_js: function(block_elt){
+        debugger
+        let block_args = dom_elt_descendant_of_classes(block_elt,
+            ["block_always_relative", "block_args"])
+        let arg_name_vals  = dom_elt_children_of_class(block_args, "arg_name_val")
+        let variable_kind  = arg_name_vals[0].children[1].value //one of "",let, var, const
+        let variable_name  = arg_name_vals[1].children[1].value
+        let variable_value = block_to_js(arg_name_vals[2].children[1])
+        let result = variable_kind
+        result += ((result == "")? "" : " ")
+        result += variable_name + " = " + variable_value
+        return result
+    }
+})
 newObject({prototype: Root.jsdb,
             name: "infix",
             display_label: "", //can be "foo" for a global fn, or "Math.abs" for a static method
@@ -1156,16 +1336,7 @@ newObject({prototype: Root.jsdb,
             delim_elt = make_delimiter_drop_zone(")")
             delim_elt.style["margin-left"]  = "3px" //with an empty array, the [] brackets are too close to one another
             block_args_elt.append(delim_elt)
-            always_rel.appendChild(//make_dom_elt("div",{class:"block_bottom_spacer"},
-                make_dom_elt("div",
-                    {class:"resizer",
-                        draggable:"true",
-                        ondragstart:"resizer_dragstart_handler(event)",
-                        ondrag:"resizer_drag_handler(event)",
-                        ondragend:"resizer_dragend_handler(event)",
-                        ondrop:"resizer_drop_handler(event)",
-                        onclick:"resizer_onclick(event)"}
-                ))
+            always_rel.appendChild(make_resizer_elt())
             return result
         },
         to_js: function(block_elt){

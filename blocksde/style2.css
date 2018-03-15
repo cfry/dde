@@ -177,6 +177,7 @@ such as (,),[,], {, },  ({, }), single, double, and backquote
     display:inline-block;
     margin:0px;
     padding:0px;
+    font-weight:bold;
 }
 
 .block_bottom_spacer{

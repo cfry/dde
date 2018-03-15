@@ -2000,6 +2000,11 @@ The parameters used to define a new Job are:
            If you want data to persist across launches, see 
            <b>Reference Manual/IO/Persistent Database</b>.         
            </li>
+        <li><b>default_workspace_pose</b> Default: <code>Coor.Table</code>
+            <code>Robot.move_do</code> instructions take an argument of: workspace_pose.
+          If you have a move_to instruction in this Job's do_list that is not passed
+          a pose, it defaults to the value of the Job's default_workspace_pose.
+        </li>
         <li><b>program_counter</b> Initialize the program_counter to an instruction id.
         The default is 0. You can use any instruction_location here.
         See <a href="#" onclick="open_doc('Robot.go_to_doc_id', event)">Robot.go_to</a>

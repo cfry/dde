@@ -4,6 +4,24 @@
 
 // This file has dom manipulation code having to do with blocks
 
+var block_left_triangle  = "&#9664;" //used for open delimiter for path
+
+function is_block_left_triangle(str) {
+    let block_left_triangle_icon = "◀"
+     return ((str == block_left_triangle) ||
+             (str == block_left_triangle_icon)
+            )
+}
+
+var block_right_triangle = "&#9654;" //used for close delimiter for path
+
+function is_block_right_triangle(str) {
+    let block_right_triangle_icon = "▶"
+    return ((str == block_right_triangle) ||
+            (str == block_right_triangle_icon)
+           )
+}
+
 function is_top_left_block(elt){
     return ((elt instanceof Node) &&
              elt.classList.contains("block-top-left")
@@ -55,6 +73,18 @@ var drag_start_client_x
 var old_client_x
 var old_client_y
 //var resizes= [] //just for testing of resizer_drag_handler
+
+function make_resizer_elt(){
+    return make_dom_elt("div",
+                       {class:"resizer",
+                        title: "Click to toggle collapse/expand.\nDrag to resize.",
+                        draggable:"true",
+                        ondragstart:"resizer_dragstart_handler(event)",
+                        ondrag:"resizer_drag_handler(event)",
+                        ondragend:"resizer_dragend_handler(event)",
+                        ondrop:"resizer_drop_handler(event)",
+                        onclick:"resizer_onclick(event)"})
+}
 
 function resizer_dragstart_handler(event){
     event.stopPropagation()
@@ -210,11 +240,11 @@ function uninstall_block_drop_zones(){
 //http://apress.jensimmons.com/v5/pro-html5-programming/ch9.html more conceptual
 function block_dragstart_handler(event){
     let elt = event.target //the dom elt being dragged, this will be a block
-    if(elt.style.position == "static") {
+    /*if(elt.style.position == "static") {
         elt.style.position = "absolute"
         elt.style.left     = "auto"
         elt.style.top      = "auto"
-    }
+    }*/
     //out("starting to drag: " + elt.classList)
     //event.effectAllowed = "move" doesn't seem to help
     event.dataTransfer.setData("text", elt.id);
@@ -280,6 +310,7 @@ function block_drop_handler(event){
     let dragged_block_elt = document.getElementById(id_of_block) //block being dragged
     let orig_arg_name_val =  closest_ancestor_of_class(dragged_block_elt, "arg_name_val")
     let dragged_from_block = null
+    debugger
     if (orig_arg_name_val) {
         dragged_from_block = closest_ancestor_of_class(orig_arg_name_val, "block")
     }
@@ -331,6 +362,7 @@ function block_drop_handler(event){
         let arg_name_vals    = dom_elt_children_of_class(dropped_on_block_args, "arg_name_val")
         if (dropped_on_elt.classList.contains("open")){
             let open_delimiter  = dropped_on_elt.innerText
+            debugger
             if (dropped_on_block_block_type_string.startsWith("infix")){
                 let old_sel_elt = dom_elt_child_of_class(dropped_on_block_args, "operators")
                 let new_sel_elt = old_sel_elt.cloneNode(true)
@@ -342,7 +374,8 @@ function block_drop_handler(event){
             else {
                 let arg_name_elt     = arg_name_for_open_delimiter_drop(dropped_on_block, dropped_on_block_args, dropped_on_elt)
                 let is_lit_obj       = open_delimiter == "{"
-                let new_arg_name_val = make_arg_name_val(arg_name_elt, dragged_block_elt, arg_name_vals.length > 0, is_lit_obj, (is_lit_obj ? ":" : ""))
+                let suffix_char = ((arg_name_vals.length > 0) ? "," : "")
+                let new_arg_name_val = make_arg_name_val(arg_name_elt, dragged_block_elt, suffix_char, is_lit_obj, (is_lit_obj ? ":" : ""))
                 insert_elt_before(new_arg_name_val, dropped_on_block_args.firstChild)
             }
         }
@@ -360,10 +393,11 @@ function block_drop_handler(event){
             }
             else{
                 let is_lit_obj       = close_delimiter == "}"
-                let new_arg_name_val = make_arg_name_val(arg_name_elt, dragged_block_elt, false, is_lit_obj, (is_lit_obj ? ":" : ""))
+                let new_arg_name_val = make_arg_name_val(arg_name_elt, dragged_block_elt, "", is_lit_obj, (is_lit_obj ? ":" : ""))
                 if(arg_name_vals.length > 0){ //if there's only 1, don't insert a comma
                     let last_orig_name_val_elt = last(arg_name_vals)
-                    last_orig_name_val_elt.appendChild(make_comma_drop_zone())
+                    let suffix_char = ((is_block_right_triangle(close_delimiter)) ? "." : ",")
+                    last_orig_name_val_elt.appendChild(make_comma_drop_zone(suffix_char))
                 }
                 //dropped_on_block_args.appendChild(new_arg_name_val)
                 insert_elt_before(new_arg_name_val, dropped_on_elt)
@@ -384,12 +418,31 @@ function block_drop_handler(event){
         //    dragged_block_elt.classList.remove("block-top-left")
         //    clean_up_top_lefts()
         //}
-        let new_arg_name_val = make_arg_name_val((is_lit_obj? "" : "0"), dragged_block_elt, true, is_lit_obj,
-                                                 ((close_delimiter == "}") ? ":" : ""))
+        let arg_name_str
+        let name_val_sep_char
+        let suffix_char
+        if (is_block_right_triangle(close_delimiter))  {
+            arg_name_str = ""
+            name_val_sep_char = ""
+            suffix_char = "."
+
+        }
+        else if(is_lit_obj) {
+            arg_name_str = ""
+            name_val_sep_char = ":"
+            suffix_char = ","
+        }
+        else {
+            arg_name_str = "0"
+            name_val_sep_char = ""
+            suffix_char = ","
+        }
+        let new_arg_name_val = make_arg_name_val(arg_name_str, dragged_block_elt, suffix_char, is_lit_obj,
+                                                 name_val_sep_char)
         insert_elt_after(new_arg_name_val, old_arg_name_val)
         clean_up_arg_names(dropped_on_block)
     }
-    else { //dropped_on_elt is workspace_id
+    else if (dropped_on_elt == workspace_id){ //dropped_on_elt is workspace_id
         //if(dragged_block_elt.classList.contains("block-top-left")){
         //    dragged_block_elt.classList.remove("block-top-left")
         //    clean_up_top_lefts()
@@ -401,11 +454,14 @@ function block_drop_handler(event){
         dragged_block_elt.style.top  = event.offsetY + "px" //event.clientX + "px" new_y + "px" //event.offsetY + "px"
         workspace_id.appendChild(dragged_block_elt) //causes dragged_block_elt to be removed from orig_arg_name_val, if any
     }
+    else {
+        shouldnt("in block_drop_handler got invalid dropped_on_elt of: " + dropped_on_elt)
+    }
     let new_arg_name_val =  closest_ancestor_of_class(dragged_block_elt, "arg_name_val")
     if (orig_arg_name_val && (orig_arg_name_val != new_arg_name_val)) {
-        let dropped_on_block = closest_ancestor_of_class(orig_arg_name_val, "block")
+        //let dropped_on_block = closest_ancestor_of_class(orig_arg_name_val, "block")
         remove_dom_elt(orig_arg_name_val)
-        clean_up_arg_names(dropped_on_block)
+        //clean_up_arg_names(dropped_on_block)
     }
     if(dragged_from_block) { clean_up_arg_names(dragged_from_block) }
     clean_up_top_lefts() //doesn't need to be done EVERY time, but
@@ -452,9 +508,12 @@ function make_bottom_left_spacer(){
 }
 
 function make_delimiter_drop_zone(delim){
-    let open_or_close = "open"
-    if ("([{".includes(delim)) { open_or_close = "open" }
-    else                         { open_or_close = "close" }
+    debugger
+    let open_or_close
+    if      (is_block_left_triangle(delim))     { open_or_close = "open" }
+    else if (is_block_right_triangle(delim))    { open_or_close = "close" }
+    else if ("([{".includes(delim)) { open_or_close = "open" }
+    else                            { open_or_close = "close" }
     return make_dom_elt("span",
                         {class: "block_args_delimiter " + open_or_close,
                          ondragenter: "enter_drop_target(event)",
@@ -464,18 +523,18 @@ function make_delimiter_drop_zone(delim){
 
 //between args of a block. Dropping on it inserts a block at that location
 // (and a new comma drop zone!)
-function make_comma_drop_zone(){
+function make_comma_drop_zone(char = ","){ //also used for dot dropzone in a path
     return make_dom_elt("span",
                        {class: "comma",
                         ondragenter:"enter_drop_target(event)",
                         ondragleave:"leave_drop_target(event)"
                        },
-                       ", ")
+                       char + " ")
 }
 
 //if param_name is null, its not editable and has no visual representation,
 //such as when we have a literal boolean, number, string block
-function make_arg_name_val(param_name="", arg_val_elt, add_comma_suffix=false, name_is_editable_string=false, between_name_and_value=""){
+function make_arg_name_val(param_name="", arg_val_elt, suffix_char="", name_is_editable_string=false, between_name_and_value=""){
    arg_val_elt.classList.remove("block-absolute")
    arg_val_elt.classList.add("arg_val")
    let arg_name_elt = param_name //assume its already an elt, but ...
@@ -511,7 +570,7 @@ function make_arg_name_val(param_name="", arg_val_elt, add_comma_suffix=false, n
    let content = [arg_name_elt]
    if(between_name_and_value.length > 0) { content.push(make_dom_elt("span", {}, between_name_and_value)) }
    content.push(arg_val_elt)
-   if(add_comma_suffix) { content.push(make_comma_drop_zone()) }
+   if(suffix_char != "") { content.push(make_comma_drop_zone(suffix_char)) }
    return make_dom_elt("div", //was label
                       {class:"arg_name_val"},
                       content)
@@ -527,10 +586,12 @@ function arg_name_for_open_delimiter_drop(dropped_on_block, dropped_on_block_arg
        return result
    }
    else if (open_delim_string == "(") { return "arg0" } //needs work
+   else if (is_block_left_triangle(open_delim_string)) { return "" }
    else { shouldnt("arg_name_for_open_delimiter_drop passed dropped_on_elt delim of: " + open_delim_string) }
 }
 
 function arg_name_for_close_delimiter_drop(dropped_on_block, dropped_on_block_args, dropped_on_elt){
+    debugger
     let close_delim_string = dropped_on_elt.innerText
     if (close_delim_string == ")") {
         let kids = dom_elt_children_of_class(dropped_on_block_args, "arg_name_val")
@@ -546,7 +607,8 @@ function arg_name_for_close_delimiter_drop(dropped_on_block, dropped_on_block_ar
         result.classList.add("arg_name")
         return result
     }
-    else { shouldnt("arg_name_for_open_delimiter_drop passed dropped_on_elt delim of: " + open_delim_string) }
+    else if (is_block_right_triangle(close_delim_string))  { return "" }
+    else { shouldnt("arg_name_for_close_delimiter_drop passed dropped_on_elt delim of: " + close_delim_string) }
 }
 
 function remove_block_enclosing_arg_name_val(block_elt){
@@ -578,7 +640,7 @@ function clean_up_arg_names(block_elt){
            }
         }
     }
-    if(block_type_string.startsWith("infix")){
+    else if(block_type_string.startsWith("infix")){
         let children = block_args_elt.children
         let prev_elt = null
         debugger
@@ -593,22 +655,27 @@ function clean_up_arg_names(block_elt){
             prev_elt = child
         }
     }
-    else if (block_type_string == "literal.array"){
+    else if (block_type_string.startsWith("literal.array")){
       for(let i = 0; i <  arg_name_vals.length; i++){
           let arg_name_val = arg_name_vals[i]
           let arg_name = dom_elt_child_of_class(arg_name_val, "arg_name")
           arg_name.innerText = (i).toString()
           let bar = "foo"
       }
-
     }
     else if (block_type_string == "literal.object"){ //nothing  to do here
      //but maybe check for duplicates?
     }
+    else if (block_type_string == "path"){ //nothing to do here
+    }
     else {
         shouldnt("clean_up_arg_names got invalid data-block-type of: " + block_type_string)
     }
-
+    //comma elt's are children of arg_name_val elts. But they should never be in the LAST one
+    //so this removes the comma if its there.
+    let last_anv = last(arg_name_vals)
+    let comma_elt = dom_elt_child_of_class(last_anv, "comma") //this could also be a "dot" for paths
+    if (comma_elt) { remove_dom_elt(comma_elt) }
 }
 
 //ensure that every block has exactly 1 spacer above it.
