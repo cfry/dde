@@ -22,23 +22,35 @@ Kin.xyz_to_J_angles([0, 0.511038126204794, 0.07581480790919819])
 Dexter.NEUTRAL_ANGLES
 Vector.matrix_multiply(Vector.make_pose([1, 2, 3], [0, 0, 0]), Vector.properly_define_point([[1, 2, 3], [4, 5, 6]]))
 
+
+Kin.inverse_kinematics([0.1, 0.5, 0.075], undefined, undefined, Vector.make_pose([0, 0, 0]))[0]
+Kin.inverse_kinematics([0.1, 0.5, 0.075], undefined, undefined)[0]
+
+
+debugger
+Kin.J_angles_to_xyz(Dexter.NEUTRAL_ANGLES, Vector.make_pose([0, 0, 0.07581480790919819]))
+
+Kin.J_angles_to_xyz([0, 0, 0, 0, 0], Vector.make_pose())
+
+
+Kin.xyz_to_J_angles(Kin.J_angles_to_xyz(Dexter.NEUTRAL_ANGLES))
+
 */
 
 var Kin = new function(){
-    this.inverse_kinematics = function (xyz, direction = [0, 0, -1], config = [1, 1, 1], robot_pose){
+    this.inverse_kinematics = function (xyz, direction = [0, 0, -1], config = [1, 1, 1], workspace_pose = Vector.make_pose()){
     	if(xyz == undefined){
         	dde_error("xyz must be defined. To prevent unpredictable movement a default is not used.")
         }
         let xyz_dim = Vector.matrix_dimensions(xyz)
         if(xyz_dim[0] == 3 && xyz_dim[1] == 3){
-        	robot_pose = direction
+        	workspace_pose = direction
             config = xyz[2]
             direction = xyz[1]
             xyz = xyz[0]
         }
-        if(robot_pose == undefined || robot_pose == [0, 0, -1]){
-        	robot_pose = Vector.identity_matrix(4)
-        }
+        
+        
     
         let J = Vector.make_matrix(1, 5)[0] // Joint Angles
         let U = Vector.make_matrix(5, 3)
@@ -58,14 +70,27 @@ var Kin = new function(){
         }else{dde_error("Direction must be in the form [x, y, z] or [x_angle, y_angle]")}
         
         
+        let xyz_trans, normal_trans
+        if(workspace_pose == undefined || workspace_pose === [0, 0, -1]){
+        	workspace_pose = Vector.identity_matrix(4)
+            xyz_trans = xyz.slice()
+            normal_trans = normal.slice()
+        }else if(Vector.is_equal([4,4], Vector.matrix_dimensions(workspace_pose))){
+        	xyz_trans = Vector.transpose(Vector.matrix_multiply(workspace_pose, Vector.properly_define_point(xyz))).slice(0,3)
+        	normal_trans = Vector.transpose(Vector.matrix_multiply(workspace_pose, Vector.properly_define_vector(normal))).slice(0,3)
+        }else{
+        	dde_error("Unsupported workspace_pose datatype")
+        }
+        
+        
     	//Knowns:
         P[0] = [1, 0, 0, 0]
-    	let V54 = Vector.multiply(-1, Vector.normalize(normal)) //Direction of EE
+    	let V54 = Vector.multiply(-1, Vector.normalize(normal_trans)) //Direction of EE
         U[0] = [0, 0, 0]
         let V10 = [0, 0, 1]
     	U[1] = Vector.multiply(L[0], V10)
-        U[4] = Vector.add(xyz, Vector.multiply(Dexter.LINK5, V54))
-        U[5] = xyz
+        U[4] = Vector.add(xyz_trans, Vector.multiply(Dexter.LINK5, V54))
+        U[5] = xyz_trans
         
     	
     	//Solving for P1
@@ -210,7 +235,7 @@ var Kin = new function(){
     	return [J, U, P]
     } 
     
-    this.forward_kinematics = function(joint_angles){
+    this.forward_kinematics = function(joint_angles, workspace_pose = Vector.make_pose()){
         let J = Convert.deep_copy(joint_angles) //Joint Angles
         let U = new Array(5).fill(new Array(3)) //Point Locations
         let L = [Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5] //Link Lengths
@@ -243,10 +268,27 @@ var Kin = new function(){
         P[1] = Vector.round(P[1], 15)
         P[2] = Vector.round(P[2], 15)
         
+        
+        let trans_mat = Vector.inverse(workspace_pose)
+        if(Vector.is_equal([4,4], Vector.matrix_dimensions(workspace_pose))){
+        	for(let i = 0; i < U.length; i++){
+            	U[i] = Vector.transpose(Vector.matrix_multiply(trans_mat, Vector.properly_define_point(U[i]))).slice(0,3)
+            }
+            //debugger
+            for(let i = 0; i < P.length; i++){
+            	P[i] = Vector.transpose(Vector.matrix_multiply(trans_mat, Vector.properly_define_vector(P[i]))).slice(0,3)
+            }
+            for(let i = 0; i < V.length; i++){
+            	V[i] = Vector.transpose(Vector.matrix_multiply(trans_mat, Vector.properly_define_vector(V[i]))).slice(0,3)
+            }
+        }else{
+        	dde_error("Unsupported workspace_pose datatype")
+        }
+        
         return [U, V, P]
     }
 
-    this.is_in_reach = function(xyz, J5_direction = [0, 0, -1], config = [1, 1, 1], robot_pose){
+    this.is_in_reach = function(xyz, J5_direction = [0, 0, -1], config = [1, 1, 1], workspace_pose){
     	let base_xyz = [0, 0, 0] // Come back to this and pull it from robot_pose
         let base_plane = [0, 0, 1]
         let U3
@@ -534,16 +576,16 @@ var Kin = new function(){
 
     //Wrapper function for inverse kinematics
     //Returns joint angles
-    this.xyz_to_J_angles = function(xyz, J5_direction = [0, 0, -1], config = Dexter.RIGHT_UP_OUT, pose){
-        return Kin.inverse_kinematics(xyz, J5_direction, config, pose)[0]
+    this.xyz_to_J_angles = function(xyz, J5_direction = [0, 0, -1], config = Dexter.RIGHT_UP_OUT, workspace_pose = Vector.make_pose()){
+        return Kin.inverse_kinematics(xyz, J5_direction, config, workspace_pose)[0]
     }
 
-    this.xyz_to_J_points = function(xyz, J5_direction = [0, 0, -1], config = Dexter.RIGHT_UP_OUT){
-        return Kin.inverse_kinematics(xyz, J5_direction, config)[1]
+    this.xyz_to_J_points = function(xyz, J5_direction = [0, 0, -1], config = Dexter.RIGHT_UP_OUT, workspace_pose = Vector.make_pose()){
+        return Kin.inverse_kinematics(xyz, J5_direction, config, workspace_pose)[1]
     }
     
-    this.xyz_to_J_planes = function(xyz, J5_direction = [0, 0, -1], config = Dexter.RIGHT_UP_OUT){
-        return Kin.inverse_kinematics(xyz, J5_direction, config)[2]
+    this.xyz_to_J_planes = function(xyz, J5_direction = [0, 0, -1], config = Dexter.RIGHT_UP_OUT, workspace_pose = Vector.make_pose()){
+        return Kin.inverse_kinematics(xyz, J5_direction, config, workspace_pose)[2]
     }
     
     /*
@@ -554,10 +596,10 @@ var Kin = new function(){
     
     
     */
-    this.xyz_to_J_angles_6_axes = function(EE_pose, config = Dexter.RIGHT_UP_OUT){
+    this.xyz_to_J_angles_6_axes = function(EE_pose, config = Dexter.RIGHT_UP_OUT, workspace_pose = Vector.make_pose()){
         let direction = Vector.transpose(Vector.pull(EE_pose, [0,2], [1,1]))
         let xyz = Vector.transpose(Vector.pull(EE_pose, [0,2], [3,3]))
-        let kin_res = Kin.inverse_kinematics(xyz, direction, config)
+        let kin_res = Kin.inverse_kinematics(xyz, direction, config, workspace_pose)
         let x_vector = kin_res[2][2].slice(0,3)
         //let y_vector = direction
         //let z_vector = Vector.cross(x_vector, y_vector)
@@ -569,9 +611,9 @@ var Kin = new function(){
     
 	
     //Wrapper function for forward kinematics
-    this.J_angles_to_xyz = function(joint_angles){
+    this.J_angles_to_xyz = function(joint_angles, workspace_pose = Vector.make_pose()){
         let temp_angles = Convert.deep_copy(joint_angles)
-        let xyzs = Kin.forward_kinematics(temp_angles)[0]
+        let xyzs = Kin.forward_kinematics(temp_angles, workspace_pose)[0]
         //out(xyzs)
         let direction = Vector.normalize(Vector.subtract(xyzs[5], xyzs[4]))
         let config = Kin.J_angles_to_config(temp_angles)

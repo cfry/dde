@@ -2,7 +2,7 @@
 //Vector and Matrix math functions
 //James Wigglesworth
 //Started: 6_18_16
-//Updated: 8_2_17
+//Updated: 1_20_17
 
 
 //Public
@@ -811,7 +811,7 @@ var Vector = new function(){
         var guess_vector = Vector.round(Vector.rotate(vector_A, plane, guess_angle), 3)
         var test_vector = Vector.round([vector_B[0], vector_B[1], vector_B[2]], 3)
         
-        if (Vector.is_equal(guess_vector, test_vector)){
+        if (Vector.magnitude(Vector.subtract(guess_vector, test_vector)) < Vector.magnitude(Vector.subtract(guess_vector, Vector.multiply(-1, test_vector)))){
           return guess_angle
         }else{
           return -guess_angle
@@ -1082,6 +1082,30 @@ var Vector = new function(){
     out(myvec)
     */
     
+    this.pow = function(array, power){
+    	let dim = Vector.matrix_dimensions(array)
+        let array_copy = Convert.deep_copy(array)
+        
+        if(dim[1] == 0){
+        	return Math.pow(array, power)
+        }else if(dim[0] == 1){
+        	array_copy = Vector.make_matrix(dim)[0]
+        	for(let i = 0; i < dim[1]; i++){
+            	array_copy[i] = Math.pow(array[i], power)
+            }
+        }else{
+        	array_copy = Vector.make_matrix(dim)
+        	for(let i = 0; i < dim[0]; i++){
+            	for(let j = 0; j < dim[1]; j++){
+            		array_copy[i][j] = Math.pow(array[i][j], power)
+                }
+            }
+        }
+        return array_copy
+    }
+    
+    
+    
     /*
     Vector.is_greater([4, 4, 5], [4, 3, 5])
     */
@@ -1126,6 +1150,73 @@ var Vector = new function(){
         	return vector
         }
     }
+    
+    
+    
+	//Cubic Formula by Alexander Shtuchkin
+	//https://stackoverflow.com/questions/27176423/function-to-solve-cubic-equation-analytically
+    this.cuberoot = function(x){
+    	let y = Math.pow(Math.abs(x), 1/3);
+    	return x < 0 ? -y : y;
+	}
+    
+    this.solveCubic = function(a, b, c, d) {
+    	if (Math.abs(a) < 1e-8) { // Quadratic case, ax^2+bx+c=0
+        	a = b; b = c; c = d;
+        	if (Math.abs(a) < 1e-8) { // Linear case, ax+b=0
+            	a = b; b = c;
+            	if (Math.abs(a) < 1e-8) // Degenerate case
+                	return [];
+            	return [-b/a];
+        	}
+
+        	var D = b*b - 4*a*c;
+        	if (Math.abs(D) < 1e-8)
+            	return [-b/(2*a)];
+        	else if (D > 0)
+            	return [(-b+Math.sqrt(D))/(2*a), (-b-Math.sqrt(D))/(2*a)];
+        	return [];
+    	}
+
+    	// Convert to depressed cubic t^3+pt+q = 0 (subst x = t - b/3a)
+    	var p = (3*a*c - b*b)/(3*a*a);
+    	var q = (2*b*b*b - 9*a*b*c + 27*a*a*d)/(27*a*a*a);
+    	var roots;
+
+    	if (Math.abs(p) < 1e-8) { // p = 0 -> t^3 = -q -> t = -q^1/3
+        	roots = [cuberoot(-q)];
+    	} else if (Math.abs(q) < 1e-8) { // q = 0 -> t^3 + pt = 0 -> t(t^2+p)=0
+        	roots = [0].concat(p < 0 ? [Math.sqrt(-p), -Math.sqrt(-p)] : []);
+    	} else {
+        	var D = q*q/4 + p*p*p/27;
+        	if (Math.abs(D) < 1e-8) {       // D = 0 -> two roots
+            	roots = [-1.5*q/p, 3*q/p];
+        	} else if (D > 0) {             // Only one real root
+            	var u = cuberoot(-q/2 - Math.sqrt(D));
+            	roots = [u - p/(3*u)];
+        	} else {                        // D < 0, three roots, but needs to use complex numbers/trigonometric solution
+            	var u = 2*Math.sqrt(-p/3);
+            	var t = Math.acos(3*q/p/u)/3;  // D < 0 implies p < 0 and acos argument in [-1..1]
+            	var k = 2*Math.PI/3;
+            	roots = [u*Math.cos(t), u*Math.cos(t-k), u*Math.cos(t-2*k)];
+        	}
+    	}
+
+    	// Convert back from depressed cubic
+    	for (var i = 0; i < roots.length; i++)
+        	roots[i] -= b/(3*a);
+
+    	return roots;
+	}
+    
+    this.linspace = function(start, end, n){
+		let result = Vector.make_matrix(1, n)
+    	let step = (end-start)/(n-1)
+    	for(let i = 0; i < n; i++){
+    		result[i] = start+i*step
+    	}
+    	return result
+	}
     
     /**********************************************************
     //Matrix Math
@@ -1251,7 +1342,7 @@ var Vector = new function(){
         }
         let temp_args = Convert.deep_copy(args)
         let matrix_A = temp_args[0]
-        for(var i = 1; i < temp_args.length; i++){
+        for(let i = 1; i < temp_args.length; i++){
             let matrix_B = temp_args[i]
             matrix_A = multiply_two_matrices(matrix_A, matrix_B)
     	}
@@ -1598,7 +1689,9 @@ var Vector = new function(){
         let proper_vectors = Convert.deep_copy(vectors)
         if(dim[0] == 1){
         	proper_vectors = Vector.transpose(proper_vectors)
-            proper_vectors.push([0])
+            if(dim[1] == 3){
+            	proper_vectors.push([0])
+            }
             return proper_vectors
         }else{
         	if(dim[1] == 3){
