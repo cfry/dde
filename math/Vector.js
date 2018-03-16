@@ -800,9 +800,11 @@ var Vector = new function(){
     //Public
     //Returns angle between two vectors with range -180 to 180
     this.signed_angle = function(vector_A, vector_B, plane){
+    	let epsilon = 1e-14
     	//checks if vectors lie in plane
         var cross_product = Vector.normalize(Vector.cross(Vector.shorten(vector_A), Vector.shorten(vector_B)))
         var short_plane = Vector.shorten(plane)
+        
         if (!(Vector.is_equal(cross_product, short_plane) || Vector.is_equal(Vector.multiply(-1, cross_product), short_plane)) && cross_product[0] === NaN){
             out("Error: input vectors do not lie in plane")
         }
@@ -811,10 +813,11 @@ var Vector = new function(){
         var guess_vector = Vector.round(Vector.rotate(vector_A, plane, guess_angle), 3)
         var test_vector = Vector.round([vector_B[0], vector_B[1], vector_B[2]], 3)
         
-        if (Vector.magnitude(Vector.subtract(guess_vector, test_vector)) < Vector.magnitude(Vector.subtract(guess_vector, Vector.multiply(-1, test_vector)))){
-          return guess_angle
+        if (Vector.magnitude(Vector.subtract(guess_vector, test_vector)) < epsilon){
+        //if (Vector.magnitude(Vector.subtract(guess_vector, test_vector)) < Vector.magnitude(Vector.subtract(guess_vector, Vector.multiply(-1, test_vector)))){
+        	return guess_angle
         }else{
-          return -guess_angle
+        	return -guess_angle
         }
     }
     

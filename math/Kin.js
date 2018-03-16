@@ -32,8 +32,23 @@ Kin.J_angles_to_xyz(Dexter.NEUTRAL_ANGLES, Vector.make_pose([0, 0, 0.07581480790
 
 Kin.J_angles_to_xyz([0, 0, 0, 0, 0], Vector.make_pose())
 
+debugger
+Kin.xyz_to_J_angles(Kin.J_angles_to_xyz([30, 30, 30, 45, 0]))
 
-Kin.xyz_to_J_angles(Kin.J_angles_to_xyz(Dexter.NEUTRAL_ANGLES))
+Kin.J_angles_to_xyz(Kin.xyz_to_J_angles([0, 0.5, 0.175]))
+
+var my_J_angles = Kin.xyz_to_J_angles([0, 0.5, 0.0869])
+debugger
+
+Kin.J_angles_to_xyz(my_J_angles)[0]
+
+
+
+new Job({name: "move_to",
+         do_list: [Dexter.move_to([0, 0.5, 0.0869])]})
+new Job({name: "move_all_joints",
+         do_list: [Dexter.move_all_joints([0, 42.203, 92.72, 44.927, 0])]})
+
 
 */
 
@@ -71,7 +86,7 @@ var Kin = new function(){
         
         
         let xyz_trans, normal_trans
-        if(workspace_pose == undefined || workspace_pose === [0, 0, -1]){
+        if(workspace_pose == undefined || Vector.is_equal(workspace_pose, [0, 0, -1])){
         	workspace_pose = Vector.identity_matrix(4)
             xyz_trans = xyz.slice()
             normal_trans = normal.slice()
@@ -1046,7 +1061,18 @@ new TestSuite("Inverse to Forward Kinematics and Back",
     ["Kin.J_angles_to_xyz(Kin.xyz_to_J_angles([.1, .2, .3], [0, 0, -1], [1, 0, 0]))", "[[0.1, 0.20000000000000012, 0.29999999999999993], [0, 0, -1], [1, 0, 0]]"],
     ["Kin.xyz_to_J_angles(Kin.J_angles_to_xyz([0, 45, 45, 30, 0]))", "[0, 45, 44.999999999999986, 30.000000000000014, 0]"]
 )
+
+debugger
+Kin.xyz_to_J_angles([.1, .2, .3])
+Kin.J_angles_to_xyz(Kin.xyz_to_J_angles([.1, .2, .3]))
+
+Kin.J_angles_to_xyz(Kin.xyz_to_J_angles([0.1, .5, .3]))
+
+
+
 */
+
+
 
 new TestSuite("Inverse to Forward Kinematics and Back",
 	["Kin.J_angles_to_xyz(Kin.xyz_to_J_angles([.1, .2, .3]))", "[[0.09999999999999998, 0.20000000000000004, 0.29999999999999993],[-1.6811372268703155e-16, -3.362274453740631e-16, -1],[1, 1, 1]]"],
