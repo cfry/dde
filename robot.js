@@ -1429,19 +1429,21 @@ Dexter.is_position = function(an_array){
 // xyz New defaults are the cur pos, not straight up.
 // J5_direction  = [0, 0, -1], //end effector pointing down
 //warning: soe valid xyz locations won't be valid with the default J5_direction and config.
-Dexter.move_to = function(xyz           = [],
-                          J5_direction  = [0, 0, -1],
-                          config        = Dexter.RIGHT_UP_OUT,
+Dexter.move_to = function(xyz            = [],
+                          J5_direction   = [0, 0, -1],
+                          config         = Dexter.RIGHT_UP_OUT,
                           workspace_pose = null //will default to the job's default workspace_pose
                          ){
        return new Instruction.Control.move_to(xyz, J5_direction, config, workspace_pose)
 }
 
 //the same as move_to but generates a "P" oplet
-Dexter.pid_move_to = function(xyz = [],
-                              J5_direction  = [0, 0, -1],
-                              config        = Dexter.RIGHT_UP_OUT){
-    return new Instruction.Control.pid_move_to(xyz, J5_direction, config)
+Dexter.pid_move_to = function(xyz            = [],
+                              J5_direction   = [0, 0, -1],
+                              config         = Dexter.RIGHT_UP_OUT,
+                              workspace_pose = null //will default to the job's default workspace_pose
+                              ){
+    return new Instruction.Control.pid_move_to(xyz, J5_direction, config, workspace_pose)
 }
 
 

@@ -31,7 +31,7 @@ function dde_error(message){
     out_string = "<details><summary><span style='color:red;'>" + out_string +
                       "</span></summary>" + stack_trace + "</details>"
     out(out_string, "red") //I shouldn't have to do this but sometimes with setTimeouts and/or
-    throw new Error(mess)
+    throw new Error(message)
 }
 
 function warning_or_error(message, error=false){

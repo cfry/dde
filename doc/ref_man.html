@@ -2000,10 +2000,23 @@ The parameters used to define a new Job are:
            If you want data to persist across launches, see 
            <b>Reference Manual/IO/Persistent Database</b>.         
            </li>
-        <li><b>default_workspace_pose</b> Default: <code>Coor.Table</code>
-            <code>Robot.move_do</code> instructions take an argument of: workspace_pose.
-          If you have a move_to instruction in this Job's do_list that is not passed
-          a pose, it defaults to the value of the Job's default_workspace_pose.
+        <li><b>default_workspace_pose</b> Default: <code>Coor.Table</code> .<p/>
+            <code>Dexter.move_do</code> and <code>Dexter.pid_move_do</code>
+            instructions take an argument of: workspace_pose.
+          If you have a move_to instruction in a Job's do_list that is not passed
+          a pose, it defaults to the value of the Job's default_workspace_pose.<br/>
+          Below we show a Job with a move_to instruction that does <i>not</i>
+          default it's workspace_pose, but rather creates it explicitly.
+          A pose is composed of an xyz array, and an orientation array.<br/>
+          <i>Example:</i><br/>
+<pre><code>new Job({name: "my_job",
+         do_list: [Dexter.move_to([-0.1, 0.4, 0.075],
+                                  undefined,
+                                  undefined,
+                                  Vector.make_pose([0, 0, 0],
+                                                   [0, 0, 45]
+                                  ))]})
+     </code></pre>
         </li>
         <li><b>program_counter</b> Initialize the program_counter to an instruction id.
         The default is 0. You can use any instruction_location here.

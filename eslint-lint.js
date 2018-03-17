@@ -17,18 +17,20 @@
   var defaultConfig = {
     "globals": { //cfry added this whole section
         "ab":         false,
-        "append_in_ui":       false,
+        "append_in_ui": false,
         "beep":       false,
         "beeps":      false,
         "Brain":      false,
         "class":      false, //I still get a warning for class as a "reserved word"
         "close_window":       false,
         "console":    false, //permit using "console" without warning, but don't permit the setting of it.
-        "dde_error": false,
+        "Coor":       false,
+        "dde_error":  false,
         "dde_version": false,
         "Dexter":     false,
         "dex":        false,
         "Duration":   false,
+        "DXF":        false,
         "editor":     false,
         //"function*:   false,   doesn't work in getting rid of warning.
         "file_content": false,
@@ -38,6 +40,7 @@
         "Human":      false,
         "inspect":    false,
         "Job":        false,
+        "Kin":        false,
         "last":       false,
         "load_files": false,
         "out":        false,
@@ -50,8 +53,8 @@
         "Phrase":     false,
         "rde":        false,
         "recognize_speech": false,
-        "remove_in_ui":  false,
-        "replace_in_ui": false,
+        "remove_in_ui":   false,
+        "replace_in_ui":  false,
         "Robot":          false,
         "Root":           false,
         "setTimeout":     false,
@@ -75,7 +78,7 @@
         "svg_rect":       false,
         "svg_text":       false,
         "TestSuite":      false,
-
+        "Vector":         false
     },
      "parserOptions": {
          "ecmaVersion": 6,

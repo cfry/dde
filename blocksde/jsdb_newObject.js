@@ -1086,7 +1086,7 @@ newObject({prototype: Root.jsdb.identifier,
         //    options.push(opt_elt)
         //}
         let val_elt = make_dom_elt("div",
-                                    {class:"arg_val",
+                                    {class:"arg_val identifier_combo_box",
                                     type: "text",
                                     "margin-left": "0px",
                                     value: (arg_val? arg_val : this.value),
@@ -1094,19 +1094,61 @@ newObject({prototype: Root.jsdb.identifier,
                                     margin: "0px",
                                     padding: "0px",
                                     "font-size": "14px",
-                                    oninput: "Root.jsdb.literal.string.oninput(event)",
+                                    //oninput: "Root.jsdb.literal.string.oninput(event)",//does nothing for th jqx widget
                                     ondragenter:"enter_drop_target(event)",
                                     ondragleave:"leave_drop_target(event)"})
-        $(val_elt).jqxComboBox({height: '16px', source: this.choices, selectedIndex: 0, width: width + 25 + "px"})
+        this.jqx_combo = $(val_elt).jqxComboBox({height: '16px', source: this.choices, selectedIndex: 0, width: width + 25 + "px",
+                                })
+        this.jqx_combo.on('change', function (event){
+           // "this" inside this fn is the dom elt with class arg_val
+           // this.children[1].value  returns the orig value string but not a typed in value string.
+            debugger
+            let the_val
+            let sel_item = $(event.target).jqxComboBox("getSelectedItem")
+            if (sel_item) { //sel_item is null if you type in a single char to the combo box, the change willbe called but sel_item will be null due to bug in jqx
+                the_val = sel_item.value
+            }
+            else { //happens when user types in first new char
+                the_val = this.children[1].value
+            }
+            let new_width = Root.jsdb.literal.string.compute_width(the_val,
+                                                                   12, //elt.style["font-size"],
+                                                                    35)
+            $(event.target).jqxComboBox({ width: new_width + "px" })
+
+        })
+        this.jqx_combo.on('data', function (event){
+            // "this" inside this fn is the jqx combo widget.
+            debugger
+            let the_val = $(event.target).jqxComboBox("val")
+            let new_width = Root.jsdb.literal.string.compute_width(the_val,
+                12, //elt.style["font-size"],
+                50)
+            $(event.target).jqxComboBox({ width: new_width + "px" })
+        })
         let arg_name_val_elt = make_arg_name_val("", val_elt)
         block_args_elt.appendChild(arg_name_val_elt)
         return result
     },
-    oninput(event){
-        let elt = event.target
-        let width = Root.jsdb.literal.string.compute_width(elt.value, elt.style["font-size"], 10)
-        elt.style.width = width + "px"
+    //example call:  Root.jsdb.identifier.combo_box.add_item("new_item")
+    // adds the new item as new first item
+    //to all existing combo boxes and all new ones that will be created.
+    //keeps whatever item was selected in an existing combo box as selected.
+    add_item(new_item_string){
+        for (let cb of $(".identifier_combo_box")){
+            let sel_item = $(cb).jqxComboBox('getSelectedItem')
+            $(cb).jqxComboBox('insertAt',  new_item_string, 0) //putnew item at beginning
+            $(cb).jqxComboBox("selectItem", sel_item) //reselect orig item because the insertAt changes the sel item
+        }
+        this.choices.unshift(new_item_string) //add to beginning of choices so that the next new combo box will have the new item
     },
+    //oninput(event){
+    //    debugger
+    //    let elt = event.target //the jqx combon box jquery elt
+        //let width = Root.jsdb.literal.string.compute_width(elt.value, elt.style["font-size"], 10)
+        //elt.style.width = width + "px" //
+    //    elt.jqxComboBox({ width: '250px' });
+    //},
     compute_width(val, font_size, extra_width=0) {
         //f (typeof(val) != "string") { val = (val).toString() }
         //return ((val.length + 2) * 7) + "px" //just slightly bigger than necesary but making either constant 1 smaller makes it too small
