@@ -2,7 +2,7 @@
 //Inverse Kinematics + Forward Kinematics + supporting functions
 //James Wigglesworth
 //Started: 6_18_16
-//Updated: 3_12_18
+//Updated: 3_16_18
 
 
 /*
@@ -260,7 +260,7 @@ var Kin = new function(){
         //Knowns:
         let U0 = [0, 0, 0]
         let V10 = [0, 0, 1]
-        let P0 = [1, 0, 0, 0]
+        let P0 = [1, 0, 0]
         
         //Calculates all vectors first
         P[0] = P0
