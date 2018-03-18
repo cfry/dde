@@ -32,6 +32,9 @@ Kin.J_angles_to_xyz(Dexter.NEUTRAL_ANGLES, Vector.make_pose([0, 0, 0.07581480790
 
 Kin.J_angles_to_xyz([0, 0, 0, 0, 0], Vector.make_pose())
 
+Kin.xyz_to_J_angles([0, 500, 100], undefined, undefined, Vector.make_pose(undefined, undefined, _mm))
+
+
 debugger
 Kin.xyz_to_J_angles(Kin.J_angles_to_xyz([30, 30, 30, 45, 0]))
 
@@ -54,7 +57,7 @@ new Job({name: "move_all_joints",
 
 var Kin = new function(){
     this.inverse_kinematics = function (xyz, direction = [0, 0, -1], config = [1, 1, 1], workspace_pose = Vector.make_pose()){
-    	if(xyz == undefined){
+        if(xyz == undefined){
         	dde_error("xyz must be defined. To prevent unpredictable movement a default is not used.")
         }
         let xyz_dim = Vector.matrix_dimensions(xyz)
@@ -664,7 +667,7 @@ var Kin = new function(){
         return [L0.get_pose(Table), L1.get_pose(Table), L2.get_pose(Table), L3.get_pose(Table), L4.get_pose(Table), L5.get_pose(Table)]
     }
     
-    this.three_positions_to_pose = function(J_angles_1, J_angles_2, J_angles_3){
+    this.three_positions_to_pose = function(J_angles_1, J_angles_2, J_angles_3, scale_factor){
     	let points_A, points_B, points_C, UA5, UA4, UB5, UB4, UC5, UC4, U5_ave, U4_ave, U45
         let point, x_vector, y_vector, z_vector, pose, angleA, angleB, angleC, vector_1, vector_2
         
@@ -718,7 +721,7 @@ var Kin = new function(){
         	z_vector = Vector.multiply(-1, z_vector)
         }
         
-        pose = Vector.make_pose(point, Vector.make_dcm(x_vector, undefined, z_vector))
+        pose = Vector.make_pose(point, Vector.make_dcm(x_vector, undefined, z_vector), scale_factor)
         return pose
     }
     /*
