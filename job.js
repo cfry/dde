@@ -45,7 +45,7 @@ var Job = class Job{
         }
         this.orig_args = {do_list: do_list, keep_history: keep_history, show_instructions: show_instructions,
                             inter_do_item_dur: inter_do_item_dur, user_data: user_data,
-                            default_workspace_pose: Coor.Table,
+                            default_workspace_pose: default_workspace_pose,
                             program_counter: program_counter, ending_program_counter: ending_program_counter,
                             initial_instruction: initial_instruction, when_stopped: when_stopped,
                             callback_param: callback_param}
@@ -158,7 +158,7 @@ var Job = class Job{
             this.show_instructions = this.orig_args.show_instructions
             this.inter_do_item_dur = this.orig_args.inter_do_item_dur
             this.user_data         = shallow_copy_lit_obj(this.orig_args.user_data)
-            this.default_workspace_pose = this.default_workspace_pose
+            this.default_workspace_pose = this.orig_args.default_workspace_pose
             this.program_counter   = this.orig_args.program_counter //see robot_done_with_instruction as to why this isn't 0,
                                      //its because the robot.start effectively calls set_up_next_do(1), incremening the PC
             this.ending_program_counter = this.orig_args.ending_program_counter

@@ -78,7 +78,10 @@ newObject({
     // create a block_elt from a js value, typically a default value for a fn param but could be any
     value_to_block(value, src) {
         let type = typeof(value)
-        if((value === null) || (value === undefined)){
+        if (is_block(value)) { // means its already a block
+            return value
+        }
+        else if((value === null) || (value === undefined)){
             return Root.jsdb.one_of.null_undefined.make_dom_elt(undefined, undefined, value)
         }
         else if(type == "boolean") {
@@ -543,6 +546,75 @@ newObject({prototype: Root.jsdb.literal,
 })
 
 newObject({prototype: Root.jsdb,
+    name: "code_body",
+    category: Root.BlockCategory.Misc,
+    display_label: '{code}',
+    //value: [], //don't us this, use params for each elt of the array.
+    return_type:"any",
+    params: [],
+    constructor: function(){ this.callPrototypeConstructor() },
+    //similar to method.make_dom_elt
+    make_dom_elt: function(x, y, arg_vals){
+        let always_rel = make_dom_elt("div",
+            {class: "block_always_relative",
+                "min-width":     "32px", //otherwise the resizer box appears on top of the []
+                "margin-bottom": "3px"}) //otherwise, the bottom of the squrae brackets too close to the bottom of the block.
+        let result = make_dom_elt("div",
+            {class:"block block-absolute",
+                "background-color": this.category.color,
+                id: Root.jsdb.get_next_block_id(),
+                left: x + "px",
+                top:  y + "px",
+                draggable: "true",
+                "data-block-type": "this.name",
+                //  ondragstart: "Root.jsdb.dragstart_handler(event)",
+                onclick: "select_block(event)"
+                //position: "absolute"
+            },
+            always_rel
+        )
+        let block_name_elt = make_dom_elt("div",
+            {class:"block_name"},
+            "")
+        let delim_elt = make_delimiter_drop_zone("{")
+        block_name_elt.appendChild(delim_elt)
+        always_rel.appendChild(block_name_elt)
+        let block_args_elt = make_dom_elt("div", {class:"block_args", display:"inline-block", "margin-right":"2px"})
+        always_rel.appendChild(block_args_elt)
+        let vals = ((arg_vals !== undefined) ? arg_vals : this.params)
+        for(let val of vals){
+            let param_name_elt = make_dom_elt("span", {class: "arg_name", "margin-right": "0px", "padding-right": "0px"}, "")
+            let param_val_elt = Root.jsdb.value_to_block(val)
+            param_val_elt.classList.remove("block-absolute") //because its not absolute, and should inherit the position:relative of the always_relative wrapper in this block
+            param_val_elt.classList.add("arg_val")
+            let suffix_char = ";"
+            let name_val_elt = make_arg_name_val(param_name_elt, param_val_elt, suffix_char)
+            block_args_elt.append(name_val_elt)
+            param_name_elt.style["margin-right"]  = "0px" //todo doesn't work
+            param_name_elt.style["padding-right"] = "0px" //todo doesn't work
+        }
+        delim_elt = make_delimiter_drop_zone("}")
+        delim_elt.style["margin-left"]  = "3px" //with an empty array, the [] brackets are too close to one another
+        block_args_elt.append(delim_elt)
+        //always_rel.appendChild(make_dom_elt("div", {class:"block_bottom_spacer"}))
+        always_rel.appendChild(make_resizer_elt())
+        return result
+    },
+    to_js: function(block_elt){
+        let always_rel   = dom_elt_child_of_class(block_elt, "block_always_relative")
+        let block_args   = dom_elt_child_of_class(always_rel, "block_args")
+        let arg_name_vals = dom_elt_children_of_class(block_args, "arg_name_val")
+        let result = "{"
+        for (let arg_name_val of arg_name_vals){
+            let arg_val   = dom_elt_child_of_class(arg_name_val, "arg_val")
+            let val_src   = block_to_js(arg_val)
+            result += val_src + "\n"
+        }
+        return result + "}"
+    }
+})
+
+newObject({prototype: Root.jsdb,
     name: "one_of", //abstract class, not useful by itself
     //display_label: 'true/false', //not displayed in block but displayed in menu
     return_type: "any",
@@ -831,6 +903,7 @@ newObject({prototype: Root.jsdb,
     }
 })
 
+// example: new Job({name: "foo"})
 newObject({prototype: Root.jsdb,
     name: "class_instance",
     jsclassname:"",

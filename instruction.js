@@ -2375,7 +2375,9 @@ Instruction.Control.move_to = class move_to extends Instruction.Control{
         let xyz          = this.xyz
         let J5_direction = this.J5_direction
         let config       = this.config
+        let pose         = this.workspace_pose
         if(Dexter.is_position(this.xyz)){
+            pose         = J5_direction
             xyz          = this.xyz[0]
             J5_direction = this.xyz[1]
             config       = this.xyz[2]
@@ -2398,8 +2400,8 @@ Instruction.Control.move_to = class move_to extends Instruction.Control{
             if (xyz_copy.length <= i)     { xyz_copy.push(existing_xyz[i]) }
             else if (xyz_copy[i] == null) { xyz_copy[i] = existing_xyz[i]  }
         }
-        let pose = this.workspace_pose
-        if(pose == null) { pose = job_instance.default_workspace_pos }
+
+        if(pose == null) { pose = job_instance.default_workspace_pose }
         if (Object.isNewObject(pose)) { pose = pose.pose }
         if (Object.isNewObject(J5_direction)) {
             J5_direction = J5_direction.pose

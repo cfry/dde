@@ -4,6 +4,8 @@
 
 // This file has dom manipulation code having to do with blocks
 
+
+
 var block_left_triangle  = "&#9664;" //used for open delimiter for path
 
 function is_block_left_triangle(str) {
@@ -20,6 +22,12 @@ function is_block_right_triangle(str) {
     return ((str == block_right_triangle) ||
             (str == block_right_triangle_icon)
            )
+}
+
+function is_block(elt){
+    return ((elt instanceof Node) &&
+        elt.classList.contains("block")
+    )
 }
 
 function is_top_left_block(elt){
@@ -297,6 +305,7 @@ function block_drop_handler(event){
     block_being_dragged = null //global on purpose
     uninstall_block_drop_zones()
     remove_drop_target_class()
+    debugger
     let dropped_on_elt = event.target //the dom elt that the dragged elt has just been dropped on
     if (dropped_on_elt.classList.contains("block_always_relative")) {
         dropped_on_elt = closest_ancestor_of_class(dropped_on_elt, "block")
@@ -362,13 +371,16 @@ function block_drop_handler(event){
         let arg_name_vals    = dom_elt_children_of_class(dropped_on_block_args, "arg_name_val")
         if (dropped_on_elt.classList.contains("open")){
             let open_delimiter  = dropped_on_elt.innerText
-            debugger
             if (dropped_on_block_block_type_string.startsWith("infix")){
                 let old_sel_elt = dom_elt_child_of_class(dropped_on_block_args, "operators")
                 let new_sel_elt = old_sel_elt.cloneNode(true)
                 insert_elt_before(new_sel_elt, dropped_on_block_args.firstChild)
                 let arg_name_elt = make_dom_elt("span", {class: "arg_name"}, "")
                 let new_arg_name_val = make_arg_name_val(arg_name_elt, dragged_block_elt)
+                insert_elt_before(new_arg_name_val, dropped_on_block_args.firstChild)
+            }
+            else if (dropped_on_block_block_type_string.startsWith("code_body")){
+                let new_arg_name_val = make_arg_name_val("", dragged_block_elt, ";", false, "")
                 insert_elt_before(new_arg_name_val, dropped_on_block_args.firstChild)
             }
             else {
