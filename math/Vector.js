@@ -2,7 +2,7 @@
 //Vector and Matrix math functions
 //James Wigglesworth
 //Started: 6_18_16
-//Updated: 1_20_17
+//Updated: 3_16_18
 
 
 //Public
@@ -1741,9 +1741,10 @@ var Vector = new function(){
     var result = Vector.make_dcm([1, 1, 0], undefined, [0, 0, 1])
     */
     
-	this.make_pose = function(position = [0, 0, 0], orientation = [0, 0, 0], sequence = "XYZ"){
+	this.make_pose = function(position = [0, 0, 0], orientation = [0, 0, 0], scale_factor = 1, sequence = "XYZ"){
 		let dim = Vector.matrix_dimensions(orientation)
         let DCM
+        let s = scale_factor
         if(dim[0] == 1 && dim[1] == 3){
         	//Euler Angle
             DCM = Convert.angles_to_DCM(orientation, sequence)
@@ -1758,9 +1759,9 @@ var Vector = new function(){
         }
         
         //Please tell me there's a better way to do this:
-        let pose = [[DCM[0][0], DCM[0][1], DCM[0][2], position[0]],
-        			[DCM[1][0], DCM[1][1], DCM[1][2], position[1]],
-                    [DCM[2][0], DCM[2][1], DCM[2][2], position[2]],
+        let pose = [[s*DCM[0][0], s*DCM[0][1], s*DCM[0][2], position[0]],
+        			[s*DCM[1][0], s*DCM[1][1], s*DCM[1][2], position[1]],
+                    [s*DCM[2][0], s*DCM[2][1], s*DCM[2][2], position[2]],
                     [0, 0, 0, 1]]
         return pose
 	}
