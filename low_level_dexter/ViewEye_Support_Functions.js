@@ -95,7 +95,7 @@ function eye_suggestion_string(eye_suggest_result){
         	return "Rotate left potentiometer counter-clockwise.<br/>"
         }
     }
-    else { return "Eye is accaptable. Wait for completion.<br/>" }
+    else { return "Eye is acceptable. Wait for completion.<br/>" }
 }
 
 /*
