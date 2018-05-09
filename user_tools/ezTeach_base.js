@@ -258,7 +258,7 @@ function Main_Create(){
             if(!Kin.is_in_reach(xyz_2, position[1], position[2]) || !Kin.is_in_reach(xyz_1, position[1], position[2])){
             	//out("Robot limit reached", "blue")
             }else{
-            	res = Kin.move_to_straight(xyz_1, xyz_2, position[1], position[2], undefined, resolution, true)
+            	res = Kin.move_to_straight(xyz_1, xyz_2, position[1], position[2], undefined, resolution)
             	for(let i = 0; i < res[0].length; i++){
                 	if(Kin.is_in_reach(res[0][i], position[1], position[2])){
                 		CMD.push(make_ins("S", "MaxSpeed", speed_factor * joy_mag * max_ang_vel))
@@ -796,7 +796,7 @@ function Edit_Coors_Run(){
             let local_xyz_2 = Vector.add(local_xyz_1, xyzStep)
             let xyz_2 = Coor.move_points_to_coor(local_xyz_2, local_coor, base_coor)
             
-            res = Kin.move_to_straight(xyz_1, xyz_2, position[1], position[2], undefined, resolution, true)
+            res = Kin.move_to_straight(xyz_1, xyz_2, position[1], position[2], undefined, resolution)
             for(let i = 0; i < res[0].length; i++){
                 if(Kin.is_in_reach(res[0][i], position[1], position[2])){
                 	CMD.push(make_ins("S", "MaxSpeed", speed_factor * joy_mag * max_ang_vel))
@@ -1119,3 +1119,4 @@ clear_output()
 
 
 } //End of ezTeach_init()
+
