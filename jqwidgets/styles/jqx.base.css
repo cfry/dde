@@ -250,6 +250,7 @@ button.jqx-button, input[type=button].jqx-button,  input[type=submit].jqx-button
     *color: expression(this.parentNode.currentStyle['color']) !important;     
     outline: none;
     font-weight: normal !important;
+    line-height:14px;
 }
 .jqx-grid-menu-item-touch {
     padding-top: 6px !important;
@@ -295,9 +296,9 @@ button.jqx-button, input[type=button].jqx-button,  input[type=submit].jqx-button
     border-style: solid;
     border-width: 0px 0px 0px 1px;
     border-color: transparent;
-    background-image: url('images/menubutton.png');
+    background-image: url('images/icon-menu-small.png') !important;
     background-repeat: no-repeat;
-    background-position: center;
+    background-position: center !important;
     cursor: pointer;
  }
 .jqx-grid-column-menubutton-rtl {
@@ -362,7 +363,7 @@ button.jqx-button, input[type=button].jqx-button,  input[type=submit].jqx-button
   /*applied to the sort ascending menu item in the Grid's Context Menu*/
  .jqx-grid-sortasc-icon
  {
-    background-image: url('images/sortasc.png');
+    background-image: url('images/icon-sort-asc.png');
     background-repeat: no-repeat;
     background-position: left center;
     width: 16px;
@@ -374,7 +375,7 @@ button.jqx-button, input[type=button].jqx-button,  input[type=submit].jqx-button
   /*applied to the sort ascending menu item in the Grid's Context Menu*/
  .jqx-grid-sortdesc-icon
  {
-    background-image: url('images/sortdesc.png');
+    background-image: url('images/icon-sort-desc.png');
     background-repeat: no-repeat;
     background-position: left center;
     width: 16px;
@@ -386,7 +387,7 @@ button.jqx-button, input[type=button].jqx-button,  input[type=submit].jqx-button
   /*applied to the grid menu's sort remove item/*/
  .jqx-grid-sortremove-icon
  {
-    background-image: url('images/sortremove.png');
+    background-image: url('images/icon-sort-remove.png');
     background-repeat: no-repeat;
     background-position: left center;
     width: 16px;
@@ -528,6 +529,7 @@ button.jqx-button, input[type=button].jqx-button,  input[type=submit].jqx-button
     overflow: hidden; 
     position: absolute !important; 
     height: 100%; 
+    outline:none;
  }
 .jqx-grid-cell-locked {
     color: #aaa !important;
@@ -827,6 +829,7 @@ button.jqx-button, input[type=button].jqx-button,  input[type=submit].jqx-button
 /*jqxProgresBar Style*/
 .jqx-progressbar
 {
+    position: relative;
     overflow: hidden;
     outline: none;
     border: 1px solid transparent;
@@ -1156,6 +1159,7 @@ button.jqx-button, input[type=button].jqx-button,  input[type=submit].jqx-button
 /*applied to the anchor elements*/
 .jqx-menu-item a:link, .jqx-menu-item a:visited, .jqx-menu-item a:hover, .jqx-menu-item-top a:link, .jqx-menu-item-top a:visited, .jqx-menu-item-top a:hover
 {
+    font:inherit;
     text-decoration: none;
     color: inherit;
     outline: none;
@@ -3179,7 +3183,10 @@ of the horizontal scrollbar.*/
     margin-top: -7.5px !important;
 }
 /*applied to Inputs*/
-.jqx-input{overflow: hidden; background-color: inherit; border-color: #c7c7c7;}
+.jqx-input-widget{
+    box-sizing: border-box !important;
+}
+.jqx-input{ overflow: hidden; background-color: inherit; border-color: #c7c7c7;}
 .jqx-input-invalid {
     color: red !important;
 }
@@ -5231,7 +5238,7 @@ ol li .jqx-listmenu-item-label:before
     cursor: pointer;
     background-repeat: no-repeat !important;
     background-position: center !important;
-    z-index: 1000;
+    z-index: 0;
 }
 .jqx-ribbon-scrollbutton-top, .jqx-ribbon-scrollbutton-bottom
 {
@@ -5323,7 +5330,7 @@ ol li .jqx-listmenu-item-label:before
 .jqx-ribbon-selection-token
 {
     position: absolute;
-    z-index: 1000;
+    z-index: 0;
 }
 .jqx-ribbon-selection-token-top, .jqx-ribbon-selection-token-bottom
 {
@@ -5690,7 +5697,10 @@ ol li .jqx-listmenu-item-label:before
 {
     overflow: auto;
 }
-.jqx-responsive-panel, .jqx-responsive-panel-button
+.jqx-responsive-panel{
+    border-width:0px;
+}
+.jqx-responsive-panel-button
 {
     border-width: 1px;
     border-style: solid;
@@ -5960,13 +5970,14 @@ ol li .jqx-listmenu-item-label:before
     background: -moz-linear-gradient(#FFE4B5,  #FFD280) !important;
     background: linear-gradient(#FFE4B5,  #FFD280 ) !important;
 }
-.jqx-docking-layout-overlay, .jqx-docking-layout-overlay-square-edge
-{
-    display: none;
+.jqx-docking-layout-overlay, .jqx-docking-layout-overlay-square-edge {
     z-index: 99999;
     opacity: 0.9;
     -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=90)";
     *filter: alpha(opacity=90);
+}
+.jqx-docking-layout-overlay-square-edge {
+    display: none;
 }
 .jqx-docking-layout-overlay
 {
@@ -6061,14 +6072,15 @@ ol li .jqx-listmenu-item-label:before
     height: 9px;
     border-top-style: dashed;
 }
-.jqx-docking-layout-drop-overlay
-{
+.jqx-docking-layout-drop-overlay {
     display: none;
     background-color: #6495ED;
     opacity: 0.5;
     -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
     *filter: alpha(opacity=50);
     z-index: 10000;
+    top: 0px;
+    left: 0px;
 }
 .jqx-docking-layout-square-disabled
 {
@@ -6759,4 +6771,242 @@ ol li .jqx-listmenu-item-label:before
     color: #333 !important;
     text-shadow: none !important;
     border-color:  #f5f5f5 !important;
+}
+.jqx-element {
+    overflow: hidden;
+    border-style: solid;
+    border-width: 0px;
+    border-color: transparent;
+    box-sizing:border-box;
+}
+.jqx-element-no-border {
+    border-width:0px;
+}
+.jqx-element-container {
+}
+.jqx-resize-trigger, .jqx-resize-trigger-shrink {
+    position: absolute; 
+    left: 0; 
+    top: 0; 
+    transition: 0s
+}
+.jqx-resize-trigger-shrink {
+    width: 200%; 
+    height: 200%;
+}
+.jqx-resize-trigger-container {
+    display: block;
+    visibility:hidden;
+    position: relative;
+    top: -100%; 
+    left: 0; 
+    min-height:0.1px;
+    height: 100%; 
+    width: 100%; 
+    overflow: hidden; 
+    pointer-events: none; 
+    z-index: -1;
+    visibility:hidden;
+}
+
+/* jqxPivotGrid */
+.jqx-pivotgrid
+{
+    background-color: #DEDEDE;
+}
+
+.jqx-pivotgrid-item
+{
+    white-space: nowrap;
+    overflow: hidden;
+    position: absolute;
+    padding: 0px;
+    text-overflow: ellipsis;
+}
+
+.jqx-pivotgrid-content-wrapper
+{
+    align: left;
+    valign: top;
+    overflow: hidden;
+    border: solid 1px grey;
+}
+
+.jqx-pivotgrid-menu-button
+{
+    border: none;
+    background-image: url('images/icon-menu-small.png');
+    background-repeat: no-repeat;
+    background-position: center;
+    cursor: pointer;
+}
+.jqx-pivotgrid-expand-button
+{
+    outline: none;
+    background-image: url('images/icon_expand.png');
+    background-repeat: no-repeat;
+    cursor: pointer;
+    margin: 0 0 0 0;
+    padding: 0 0 0 0;
+    position: relative;
+    left: 5px;
+    float: left;
+    vertical-align: middle;
+}
+
+.jqx-pivotgrid-collapse-button
+{
+    outline: none;
+    background-image: url('images/icon_collapse.png');
+    background-repeat: no-repeat;
+    cursor: pointer;
+    margin: 0 0 0 0;
+    padding: 0 0 0 0;
+    position: relative;
+    left: 5px;
+    float: left;
+    vertical-align: middle;    
+}
+
+
+.jqx-pivotgrid-sortasc-icon
+ {
+    background-image: url('images/icon-sort-asc.png');
+    background-repeat: no-repeat;
+    background-position: left center;
+    width: 16px;
+    height: 16px;
+    float: left;
+    margin-left: -4px;
+    margin-right: 4px;
+ }
+
+.jqx-pivotgrid-sortdesc-icon
+ {
+    background-image: url('images/icon-sort-desc.png');
+    background-repeat: no-repeat;
+    background-position: left center;
+    width: 16px;
+    height: 16px;
+    float: left;
+    margin-left: -4px;
+    margin-right: 4px;
+ }
+
+.jqx-pivotgrid-sortremove-icon
+ {
+    background-image: url('images/icon-sort-remove.png');
+    background-repeat: no-repeat;
+    background-position: left center;
+    width: 16px;
+    height: 16px;
+    float: left;
+    margin-left: -4px;
+    margin-right: 4px;
+ }
+
+.jqx-pivotgrid-settings-icon
+ {
+    background-image: url('images/icon-menu-small.png');
+    background-repeat: no-repeat;
+    background-position: left center;
+    width: 16px;
+    height: 16px;
+    float: left;
+    margin-left: -4px;
+    margin-right: 4px;
+ }
+
+jqx-bullet-chart{
+    width:800px;
+    height:80px;
+}
+jqx-scroll-view{
+    width:600px;
+}
+jqx-bar-gauge, jqx-draw {
+    width: 850px;
+    height: 600px;
+}
+jqx-menu {
+    width:600px;
+}
+jqx-data-table, jqx-pivotgrid, jqx-grid, jqx-scheduler, jqx-tree-grid, jqx-docking-layout, jqx-layout, jqx-tree-map, jqx-splitter, jqx-kanban {
+    width: 850px;
+}
+jqx-nav-bar {
+    height:50px;
+}
+jqx-chart{
+    width: 850px;
+    height: 400px;
+}
+jqx-docking-layout, jqx-layout {
+    width: 850px;
+    height: 600px;
+}
+jqx-ribbon, jqx-panel{
+    width: 450px;
+    height: 300px;
+}
+jqx-scheduler {
+    height: 600px;
+}
+jqx-list-box, jqx-text-area{
+    width: 200px;
+    height: 200px;
+}
+jqx-file-upload {
+    width: 300px;
+}
+jqx-complex-input, jqx-formatted-input, jqx-password-input, jqx-input, jqx-number-input, jqx-slider,
+jqx-masked-input, jqx-drop-down-list, jqx-combo-box, jqx-date-time-input, jqx-drop-down-button{
+    width: 300px;
+    height: 35px;
+}
+jqx-loader{
+    width:100px !important;
+    height:60px !important;
+}
+jqx-expander, jqx-navigation-bar {
+    width:350px;
+}
+jqx-navigation-bar{
+    height:450px;
+}
+jqx-range-selector{
+    width:600px;
+}
+jqx-tabs{
+    width:800px;
+}
+jqx-tool-bar {
+    width:800px;
+    height: 35px;
+}
+jqx-editor {
+    width: 600px;
+    height: 400px;
+}
+jqx-tree-map{
+    width: 850px;
+    height: 600px;
+}
+jqx-tree{
+    width:250px;
+}
+jqx-linear-gauge{
+    width:100px;
+}
+jqx-color-picker, jqx-calendar{
+    width: 200px;
+    height: 200px;
+}
+jqx-scroll-bar {
+    width:400px;
+    height:20px;
+}
+jqx-knob {
+     width:600px;
+     height:600px;
 }

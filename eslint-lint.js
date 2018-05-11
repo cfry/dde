@@ -43,6 +43,7 @@
         "Kin":        false,
         "last":       false,
         "load_files": false,
+        //"of":         false, //used in for(let foo of ....) // doesn't work for getting rid of the warning.
         "out":        false,
         "make_html":  false,
         "make_ins":   false,

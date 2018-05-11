@@ -34,7 +34,6 @@ var recognize_speech_last_text       = null
 var recognize_speech_last_confidence = null
 var recognize_speech_phrases_array   = [] //a array of arrays. the inner array is [recognized_text, confidence_float]
 var recognize_speech_finish_phrase   = "finish" //or a pos integer of # of phrases to reco. set by recognize_speech ui
-var recognize_speech_callback = null
 var recognize_speech_cancel_finish = false
 
 function s2t_init(){
@@ -64,8 +63,7 @@ window.start_recognition = start_recognition
 
 function sr_start() {
     //out("top of sr_start()")
-    let instructions = "<span style='vertical-align:100%;'>Speak now.</span><br/><i>&nbsp;Be quiet to recognize speech.</i>"
-    set_mic_and_instructions(instructions)
+    set_mic_and_instructions(true)
     recognize_speech_cancel_finish = false
     //out("calling s2t.start()")
     s2t.start()
@@ -100,31 +98,41 @@ function sr_on_data(data){
                   //which would be good for continuous dictation, but bad for recognizing the ending phrase.
                   //I could get clever and allow, but see how always trimming works out in practice.
                 //out("Recognized: " + recognize_speech_last_text)
-                let is_reco_text_valid = sr_result(data) //false, meaning no reco, true meaning reco the actual text recognize, or a string wichi is a "correction of the recognzed text and means reco suceeded.
+                sr_result(data) //if the data is good, the phrase is pushed onto the result.
+                                //but if not, it isn't so even if finish_prhase is 1, we might
+                                //still get more input from user
+                                //if user says the finish phrase, it will be pushed onto the result.
                 if (typeof(recognize_speech_finish_phrase) == "number") {
                     if (recognize_speech_phrases_array.length >= recognize_speech_finish_phrase){
                       //give user chance to reject the last phrase.
-                        setTimeout(function(){
+                       //but this is too tricky to get right
+                        /*setTimeout(function(){
                             out("timout")
-                            if(recognize_speech_cancel_finish == false){ sr_end(data) }
-                            else { sr_animate_gif() }
+                            if(recognize_speech_cancel_finish == false){ sr_end() }
+                            else { set_mic_and_instructions(true) }
                         }, 5000) //give user 5 secs to reject, else the last item is accepted
+                        */
+                        sr_end()
                     }
-                    else { s2t_init() } //still more phrases to collect
+                    else { set_mic_and_instructions(true) } //still more phrases to collect
                 }
-                else { //has a finish_phrase string
-                    let is_finished = recognize_speech_finish_callback(recognize_speech_last_text, recognize_speech_last_confidence)
-                    if (is_finished) { sr_end(data) } //close window
-                    else {} //more phrases to go
+                else if (typeof(recognize_speech_finish_phrase) == "string"){ //has a finish_phrase string
+                    if (recognize_speech_last_text == recognize_speech_finish_phrase) { sr_end() } //close window
+                    else {set_mic_and_instructions(true)} //more phrases to go
                 }
-                if(recognize_speech_type_in_id) { recognize_speech_type_in_id.select() }
+                else if (typeof(recognize_speech_finish_phrase) == "function"){ //has a finish_phrase string
+                    let fp_result = recognize_speech_finish_phrase(recognize_speech_last_text, recognize_speech_last_confidence)
+                    if (fp_result) { sr_end() } //close window
+                    else {set_mic_and_instructions(true)} //more phrases to go
+                }
+                /*if(recognize_speech_type_in_id) { recognize_speech_type_in_id.select() }
                 if ((typeof(recognize_speech_finish_phrase) == "number") &&
                     (recognize_speech_phrases_array.length >= recognize_speech_finish_phrase)){
                     //s2t.stop()
                 }
                 else if (recognize_speech_click_to_talk) { //s2t.stop()
                 }
-                else { sr_animate_gif() }
+                else { sr_animate_gif() }*/
             }
             break;
             default:
@@ -133,14 +141,20 @@ function sr_on_data(data){
 }
 
 
-function set_mic_and_instructions(instructions="Don't talk"){
+function set_mic_and_instructions(instructions=false){
     //out("set_mic_and_instructions passed: " + instructions)
+    if (instructions === true) {
+        instructions = "<span style='vertical-align:100%;'>Speak now.</span><br/><i>&nbsp;Be quiet to recognize speech.</i>"
+    }
+    else if (instructions === false) { instructions = "Don't talk" }
     if (window["recognize_speech_img_id"]) { //window is up
         if (instructions == "Don't talk") { sr_unanimate_gif() }
-        else                              { sr_animate_gif()}
-        if ((instructions == "Don't talk") && recognize_speech_click_to_talk){
-            instructions = "<br/>" //since the click to talk button is on the screen, it is unncesssary and confusing to have "Don't talk"  also displayed
+        else if (recognize_speech_click_to_talk) {
+            sr_unanimate_gif();
+            recognize_speech_type_in_id.focus();
+            instructions = "<br/>" //click to talk button is on the screen so unnecessary and confusing to have more instructions
         }
+        else { sr_animate_gif() }
         //out("set_mic_and_instructions to: " + instructions)
         recognize_speech_instructions_id.innerHTML = instructions
     }
@@ -173,15 +187,14 @@ function sr_result(data) {
 }
 
 //called only when this dialog is all over. no more reco will be done.
-function sr_end(data) {
+function sr_end() {
     close_window(recognize_speech_window_index)
     s2t.stop() //this will cause an error to be printed in the console if we take too long,
                //but that seems to be harmless and we can keep going after that.
                //from web commentary before Dec 18, 2017, this loooks like a google bug.
-    recognize_speech_callback(recognize_speech_phrases_array)
-    //if (recognize_speech_job_instance) {
-    //    Instruction.Control.human_recognize_speech.finished(recognize_speech_job_instance, recognize_speech_phrases_array)
-    //}
+    if(typeof(recognize_speech_finish_callback)) {
+        recognize_speech_finish_callback(recognize_speech_phrases_array)
+    }
 }
 
 function sr_error(data) {
@@ -257,6 +270,7 @@ function sr_reject_html(){
    return "<input type='button' value='reject' onmouseup='sr_reject()'/>"
 }
 
+/* not called
 function sr_reject(){
     let new_phrase = ""
     let current_phrase = recognize_speech_type_in_id.value
@@ -276,6 +290,7 @@ function sr_reject(){
 }
 
 window.sr_reject = sr_reject
+*/
 
 function sr_current_prompt(){
     let prompt = recognize_speech_prompt
@@ -300,39 +315,27 @@ function recognize_speech({
     width=430, height=270, x=400, y=200,
     background_color="rgb(238, 238, 238)",
     phrase_callback=recognize_speech_default_phrase_callback,
-    finish_callback=null,   //defaults to matching the finish_phrase
-    finish_phrase=1,        //used for finish button label or an integer for how many to collect.
-    callback=null
+    finish_callback=null,   //this fn called only when we know we're done
+    finish_phrase=1,        //used for finish button label or an integer for how many to collect,
+                            //or a fn, passed the phrase, and return true to mean done.
+                            //if this fn returns true, the cur phrase does not go in the result.
     } = {}) {
     if (typeof(finish_phrase) == "number"){
         if (finish_phrase < 1) {
             dde_error("recognize_speech passed invalid finish_phrase of: " + finish_phrase +
                       '.<br/>It must be a positive integer or a string of a phrase that finishes input.')
         }
-        else if (finish_callback != null) {
-            dde_error("recognize_speech passed a valid finish_phrase of: " + finish_phrase +
-                      "<br/>but was also passed a finish_callback.<br/>" +
-                      "Since a finish_phrase of an integer determines the finish_callback,<br/>" +
-                      "you can't pass a finish_callback in when finish_phrase is an integer." )
-        }
-        else {
-            finish_callback = got_enough_phrases
-        }
     }
-    //s2t_init()
     let click_to_talk_html = ""
     if (click_to_talk) {
         click_to_talk_html =  "<input type='button' value='Click to talk' style='margin:10px;vertical-align:top;'/>"
     }
     recognize_speech_phrase_callback = phrase_callback
-    if (!finish_callback) { finish_callback = function(text, confidence) { return (text == finish_phrase) }}
     recognize_speech_finish_callback = finish_callback
-    recognize_speech_callback        = callback
     recognize_speech_phrases_array   = []
     recognize_speech_finish_phrase   = finish_phrase
     recognize_speech_prompt          = prompt
-    //recognize_speech_only_once       = only_once
-    //recognize_speech_job_instance    = job_instance
+    recognize_speech_click_to_talk = click_to_talk
     let content = "<div id='sr_prompt_id'>" + sr_current_prompt() + "</div>" +
                 click_to_talk_html +
                 "<img  id='recognize_speech_img_id' src='mic.gif'/> " +
@@ -349,7 +352,6 @@ function recognize_speech({
                  //callback only would ever get called if there's a click-to-talk button
                  callback: "window.start_recognition" //start_recognition //called from sandbox initially
     })
-    recognize_speech_click_to_talk = click_to_talk
     if (!click_to_talk) { start_recognition() }
 }
 

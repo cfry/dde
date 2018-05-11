@@ -156,7 +156,7 @@ function convertStringToArrayBuffer(str) {
 function serial_send(instruction_array, path, simulate=true, sim_fun) {
     let ins_str = instruction_array[Serial.INSTRUCTION_TYPE + 1]
     //out("top of serial_send about to send: " + ins_str)
-    let robot_status = instruction_array.slice(0, Serial.DATA0) //Make a copy. don't include any fields for data coming pack. We'll push onto this if need be.
+    let robot_status = instruction_array.slice(0, Serial.DATA0) //Make a copy. don't include any fields for data coming back. We'll push onto this if need be.
     let info = serial_path_to_info(path)
     let the_path = path //because JS closures sometimes don't close over para variables
     info.robot_status = robot_status //save this so that onReceive can get it later

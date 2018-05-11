@@ -20,6 +20,7 @@
         if((Editor.current_file_path != "new file") && (save_on_eval_id.checked)) { Editor.save_current_file() }
         if (sel_text.length > 0) { eval_js_part2((step? "debugger; " : "") + sel_text) }
         else { eval_js_part1(step) } //gets whole editor buffer and if empty, prints warning.
+        if (Editor.view == "blocks") { eval_id.blur() } //to get rid of the Eval button being "selected" when we're evaling in blocks view
     }
 
     function on_ready() {

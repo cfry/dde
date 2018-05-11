@@ -663,12 +663,13 @@ function dom_elt_descendant_of_classes(elt, classes){
 
 
 
-//if elt has a_class. return it, else go up the parentNode until you find one
+//if elt has a_class. return the elt, else go up the parentNode until you find one
 //or, if not, return null
 function closest_ancestor_of_class(elt, a_class){
     if (elt == null) { return null }
     else if(elt.classList && elt.classList.contains(a_class)) { return elt }
-    else { return closest_ancestor_of_class(elt.parentNode, a_class) }
+    else if (elt.parentNode) { return closest_ancestor_of_class(elt.parentNode, a_class) }
+    else return null
 }
 
 //possibly includes elt itself.

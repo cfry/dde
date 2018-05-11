@@ -175,6 +175,9 @@ Editor.restore_files_menu_paths_and_last_file = function(){ //called by on ready
             Editor.edit_new_file()
         }
     }
+    else {
+        warning("could not find the file: dde_apps/dde_perisistend.json")
+    }
 }
 
 Editor.get_any_selection = function(){
@@ -182,23 +185,22 @@ Editor.get_any_selection = function(){
     //so if ther are other selections, it means you made the AFTER you made
     //the editor window sel, and therefore your attention is on that non-editor selection.
     var sel_text = ""
-    if (!window.getSelection().isCollapsed) { //got sel in doc or output pane
-        return window.getSelection().getRangeAt(0).toString()
-    }
-    sel_text = Editor.get_cmd_selection()
-    if(sel_text.length > 0 ) { return sel_text }
-    sel_text = myCodeMirror.doc.getValue().substring(Editor.selection_start(), Editor.selection_end())
-    if(sel_text.length > 0) { return sel_text }
-    /* obsolete because run_src_id is not the full src anymore
-    if (window.run_src_id){ //run_instruction dialog type in
-        const sel_start = run_src_id.selectionStart
-        const sel_end   = run_src_id.selectionEnd
-        if (sel_start != sel_end) {   //got sel in cmd_input
-            const full_src = run_src_id.value
-            return full_src.substring(sel_start, sel_end)
+    if (Editor.view == "text") {
+        if (!window.getSelection().isCollapsed) { //got sel in doc or output pane
+             return window.getSelection().getRangeAt(0).toString()
         }
-    }*/
-    return ""
+        sel_text = Editor.get_cmd_selection()
+        if(sel_text.length > 0 ) { return sel_text }
+
+        sel_text = myCodeMirror.doc.getValue().substring(Editor.selection_start(), Editor.selection_end())
+        if(sel_text.length > 0) { return sel_text }
+        else return ""
+    }
+    else { //blocks view
+        sel_text = Editor.get_cmd_selection()
+        if(sel_text.length > 0 ) { return sel_text }
+        else { return Editor.get_javascript("auto") }
+    }
 }
 
 //return editor sel or if none, cmd input, or if none, ""
@@ -208,9 +210,10 @@ Editor.get_selection_or_cmd_input = function(){
     return sel_text
 }
 
+//if there is no selecion in the cmd input ,return "", else return the selected text.
 Editor.get_cmd_selection = function(){
     const sel_start = cmd_input_id.selectionStart
-    const sel_end = cmd_input_id.selectionEnd
+    const sel_end   = cmd_input_id.selectionEnd
     if (sel_start != sel_end) {   //got sel in cmd_input
         const full_src = cmd_input_id.value
         return full_src.substring(sel_start, sel_end)
@@ -1633,7 +1636,7 @@ Editor.identifier_or_operator = function(full_src=null, pos=null){
                      //so pretend they really clicked on the last o of foo.
         cur_char = full_src[pos]
     }
-    if (cur_char == ",") { return ","}
+    if      (cur_char == ",") { return ","}
     else if (cur_char == ";") { return ";"}
     else if (cur_char == ":") { return ":"}
     else if (cur_char == "{") { return "{"}
@@ -1642,7 +1645,12 @@ Editor.identifier_or_operator = function(full_src=null, pos=null){
     else if (cur_char == ")") { return ")"}
     else if (cur_char == "[") { return "["}
     else if (cur_char == "]") { return "]"}
-    else if ((cur_char == ".") && (pos > 0) && !is_digit(full_src[pos - 1])){ return "." } //NOT a decimal point
+    else if ((cur_char == ".")  && (pos > 0) && !is_digit(full_src[pos - 1])){ return "." } //NOT a decimal point
+    //looking for the "--" decrementor operator
+    else if ((cur_char == "-") && (full_src.length > 1) &&
+        (((pos < (full_src.length - 1)) && (full_src[pos + 1] == "-")) || //we're on first "-" of "--"
+          ((pos > 0) && (full_src[pos - 1] == "-")) //we're on sencond "=" or "--"
+        )) { return "--" }
     var bounds   = Editor.bounds_of_identifier(full_src, pos)
     if (bounds){
         var identifier = full_src.slice(bounds[0], bounds[1])

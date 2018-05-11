@@ -2,7 +2,7 @@
 <!-- good html validtor: https://www.onlinewebcheck.com/check.php?adv=1  -->
 <html lang="en">
 <head>
-    <title>Dexter Development Environment 2.3.14</title>
+    <title>Dexter Development Environment 2.3.15</title>
     <link rel="stylesheet" href="jqwidgets/styles/jqx.base.css" type="text/css" />
     <!-- <script type="text/javascript" src="jquery-1.11.3.min.js"></script> -->
     <script>window.$ = window.jQuery = require('jquery');</script>
@@ -156,14 +156,18 @@
     <script type="text/javascript" src="music/phrase.js"></script>
     <script type="text/javascript" src="user_tools/ezTeach_base.js"></script>
 
+    <script type="text/javascript" src="blocksde/init.js"></script>
+    <script type="text/javascript" src="blocksde/workspace.js"></script>
+    <script type="text/javascript" src="blocksde/category_newObject.js"></script>
+    <script type="text/javascript" src="blocksde/blocks2.js"></script>
+    <script type="text/javascript" src="blocksde/jsdb_newObject.js"></script>
+    <script type="text/javascript" src="blocksde/js2b.js"></script>
+
     <script type="text/javascript" src="ready.js"></script>
     <link rel="stylesheet" href="styles.css" type="text/css"/>
 </head>
-<body id="body_id" class="window_frame" onload="on_ready()" style=" padding:0px">
-<!--<datalist id="dl_id"><option>one</option><option>another one</option></datalist>
-<input class="awesomplete" list="dl_id"/>-->
-
-<!--<span style="font-size:30px;">Dexte<img src="dexter_128.png" width="20" alt="r"/> Development Environment</span>
+<body id="body_id" class="window_frame" onload="on_ready()" style=" padding:0px"><!--<datalist id="dl_id"><option>one</option><option>another one</option></datalist>
+<input class="awesomplete" list="dl_id"/>--><!--<span style="font-size:30px;">Dexte<img src="dexter_128.png" width="20" alt="r"/> Development Environment</span>
 <i style="font-size:20px;padding-left:20px;">Create software to control the Dexter robot</i><br/>-->
 <!--<div style="width: 100%; height: 100%;margin:0px; padding:0px;">--> <!--height of 99% allows a tiny pink bottom border which is good.-->
     <div id="outer_splitter">
@@ -406,6 +410,7 @@
                                             <uL>
                                                 <li id="series_punctuation_id" title="Insert a punctuation character">Punctuation</li>
                                                 <li id="series_boolean_id"     title="Insert true, false, null or undefined.">Boolean</li>
+                                                <li id="series_bitwise_id"     title="Insert &, |, ^, ~, <<, >>, >>>.">Bitwise</li>
                                                 <li id="series_global_js_id"   title="Insert a JS global function.">Global fns</li>
                                                 <li>Number
                                                     <ul>

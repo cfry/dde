@@ -1,6 +1,5 @@
-/**
- * Created by Fry on 3/22/16.
- */
+//Created by Fry on 3/22/16.
+
 Js_info = class Js_info {
     static get_info_string(fn_name, series=null){
             var orig_input = fn_name
@@ -122,7 +121,7 @@ Js_info = class Js_info {
             else if (Array[fn_name]){
                 if (fn_name == "length") { return '[...].' + Js_info.make_atag("Array", fn_name) }
                 else {
-                    fn = String[fn_name]
+                    fn = Array[fn_name]
                     return "Array." + Js_info.make_atag("Array", fn_name) + "(" + Js_info.get_param_string(fn) + ")"
                 }
             }
@@ -158,6 +157,10 @@ Js_info = class Js_info {
                 let val = Job.prototype.start
                 return "new " + Js_info.wrap_fn_name(fn_name)  + //"</span>" +
                     function_params(val)
+            }
+            else if (window[fn_name]){
+                let url = "https://developer.mozilla.org/en-US/docs/Web/API/Window/" + fn_name
+                return "window." + Js_info.make_atag("window", fn_name, url) + "(" + Js_info.get_param_string(fn) + ")"
             }
             else if (Editor.in_a_comment(Editor.get_javascript(), Editor.selection_start())){
                 return 'You clicked in a <a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Basics">comment</a>.'
@@ -202,6 +205,8 @@ Js_info = class Js_info {
                             else { return "new <span style='color:blue;'>" + Js_info.wrap_fn_name(fn_name)  + "</span>" + function_params(val) }
                     }
                     else {
+                        return `<a href='#' onclick="open_doc_show_fn_def('` + doc_id_string + "', '" + fn_name + `')">` + fn_name + "</a>" + function_params(val)
+
                         if(doc_id_elt) {
                                return `function <a href='#' onclick="open_doc('` + doc_id_string + `')">` + fn_name + "</a>" + function_params(val)
                         }
@@ -266,6 +271,8 @@ Js_info = class Js_info {
                 return result;
             case "series_boolean_id":
                 return Js_info.make_atag("boolean", fn_name) + " is a boolean literal."
+            case "series_bitwise_id":
+                return Js_info.make_atag("bitwise", fn_name) + " is a bitwise operator."
             case "series_literal_string_id":
                 return "<span style='color:blue;'>" + fn_name + "</span> is a literal string."
             case "series_global_js_id":
@@ -488,7 +495,7 @@ Js_info = class Js_info {
         return false
     }
 
-    static wrap_fn_name(fn_name, the_doc_id){
+    /*static wrap_fn_name(fn_name, the_doc_id){
         let result = fn_name
         if(!the_doc_id) { the_doc_id = fn_name + "_doc_id"}
         if (window[the_doc_id]){
@@ -504,6 +511,15 @@ Js_info = class Js_info {
         }
         else { result = "<span style='color:blue;'>" + fn_name + "</span>" }
        return result
+    }*/
+    //fn name might have dots in it like "Robot.go_to"
+    static wrap_fn_name(fn_name, the_doc_id){
+        let result = fn_name
+        if(!the_doc_id) { the_doc_id = fn_name + "_doc_id"}
+        if (!window[the_doc_id]){ the_doc_id = "" } //no doc
+        let onclick_val = "open_doc_show_fn_def('" + the_doc_id + "', '" + fn_name + "')"
+        let the_html = make_html("a", {href: "#", onclick: onclick_val}, fn_name)
+        return the_html
     }
 
 
@@ -534,20 +550,24 @@ Js_info = class Js_info {
     }
 
     static make_atag(the_class, fn_name, url){
-        setTimeout(function(){
-                    if(window["js_doc_link_id"]) { //intermittently, this is not defined and thus errors. So if its
+        //setTimeout(function(){
+        //            if(window["js_doc_link_id"]) { //intermittently, this is not defined and thus errors. So if its
                         //undefined, just don't set the onclick. Not great but better than erroring
                         //and usually the user doesn't click on the click-help link anyway.
-                        js_doc_link_id.onclick=function(){Js_info.show_doc(the_class, fn_name, url)}
-                    }
-                   }, 300)
+        //                js_doc_link_id.onclick=function(){Js_info.show_doc(the_class, fn_name, url)}
+        //            }
+        //           }, 300)
         let display_name = fn_name
         if (fn_name == "Infinity") { display_name = fn_name }
         else if (["Math", "Number"].includes(the_class)){ display_name = the_class + "." + fn_name }
         if (url && !url.endsWith("_doc_id")) {
                    return '<a href="' + url + '" target="_blank">' + display_name + '</a>'
         }
-        else     { return '<a id="js_doc_link_id" href="#">' + display_name + '</a>' }
+        else {
+           let url_js = (url? ", '" + url + "'" : "")
+           let onclick_val = "Js_info.show_doc('" + the_class + "', '" + fn_name + "'" + url_js + ")"
+           return '<a id="js_doc_link_id" href="#" onclick="' + onclick_val + '">' + display_name + '</a>'
+        }
     }
 
     static show_doc(the_class, fn_name, url){
@@ -568,7 +588,12 @@ Js_info = class Js_info {
             url = "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators"
         }
         else if (the_class == "boolean"){
-            url = "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_Types#Boolean_literals"
+            if ((fn_name === "true") || (fn_name === "false")){
+                url = "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_Types#Boolean_literals"
+            }
+            else {
+                url == "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators"
+            }
         }
         else if (the_class == "comparison"){
             //mozillia doesn't have  a page for each operator, but has a group of similar operators per page.
@@ -576,6 +601,9 @@ Js_info = class Js_info {
         }
         else if (the_class == "Date"){
             url = "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date"
+        }
+        else if (the_class == "Error"){
+            url = "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error"
         }
         else if (the_class == "float"){
             url = "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_Types#Floating-point_literals"
@@ -612,9 +640,9 @@ Js_info = class Js_info {
                 //the_class + "/"
                 fn_name
         }
-
-        if (url.endsWith("_doc_id")) { open_doc(window[url]) }
-        else                         { show_page(url) } //window.open(url, "js_doc")
+        if (!url) { return false }
+        else if (url.endsWith("_doc_id")) { open_doc(window[url]); return true; }
+        else                              { show_page(url); return true; } //window.open(url, "js_doc")
     }
 }
 
@@ -624,11 +652,21 @@ Js_info.fn_name_to_info_map = {
     "&&":        ["Performs logical <b>and</b> &nbsp;example: true && true",  "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Logical_Operators"],
     "||":        ["Performs logical <b>or</b>  &nbsp;example: true || false", "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Logical_Operators"],
     "!":         ["Performs logical <b>not</b> &nbsp;example: !false",        "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Logical_Operators"],
+    "++":        ["++ increments a variable",                                 "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Increment"],
+    "--":        ["-- decrements a variable",                                 "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Decrement"],
+    "&":         ["& bitwise and",                      "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators"],
+    "|":         ["& bitwise or",                       "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators"],
+    "^":         ["bitwise xor",                        "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators"],
+    "~":         ["~ bitwise not",                      "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators"],
+    "<<":        ["<< bitwise left shift",              "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators"],
+    ">>":        [">> bitwise right shift",             "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators"],
+    ">>>":       [">>> bitwise zero fill right shift",  "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators"],
     "apply":     ["fn.apply(thisArg, argsArray)",       "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/apply"],
     "break":     ["while(true){break;}",                "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/break"],
     "call":      ["fn.call(thisArg, arg1, arg2, arg3)", "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call"],
     "class":     ["class Boat extends Vehicle {}",      "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes"],
     "console.log": ["console.log(foo)",                 "https://developer.mozilla.org/en-US/docs/Web/API/Console/log"],
+    "continue":  ["while(true){continue;}",             "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/continue"],
     "cv":        ["cv",                                 "cv_doc_id"],
     "debugger":  ["debugger; sets a breakpoint.",       "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/debugger"],
     "delete":    ["delete foo.bar",                     "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/delete"],
@@ -649,8 +687,9 @@ Js_info.fn_name_to_info_map = {
     "throw":     ['function foo(){throw "busted"}',     "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/throw"],
     "typeof":    ['typeof new Date() === "object"',     "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/typeof"],
     "undefined": ["undefined",                          "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined"],
-    "while":     ["while (n < 3) { n = n + 1}",         "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/while"],
     "var":       ['var bar = "oak"',                    "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/var"],
+    "while":     ["while (n < 3) { n = n + 1}",         "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/while"],
+    "window":    ["window",                             "https://developer.mozilla.org/en-US/docs/Web/API/Window"],
     "yield":     ["function* foo(){yield 1; yield 2}",  "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/yield"],
     "yield*":    ["function* g4() {yield* [1, 2, 3];}", "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/yield*"]
 }

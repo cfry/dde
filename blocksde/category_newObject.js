@@ -11,7 +11,11 @@ newObject({name: "BlockCategory",
                }
                this.block_types.push(block_type)
            },
+           add_block_type_header: function (a_string){
+               this.block_types.push(a_string)
+           },
            name_to_category: function(name){
+                if(window.debug_name_to_category) { debugger; }
                 for(let cat of this.subObjects()){
                     if (cat.name == name) {return cat}
                     else {
@@ -26,11 +30,17 @@ newObject({name: "BlockCategory",
                 let cat = Root.BlockCategory.name_to_category(cat_name)
                 for(let bt of cat.block_types){
                     the_html +=
-                        '<div class="toolkit_type_name" ' +
-                        'onclick="' + bt.objectPath() + '.make_and_draw_block(150, 70)"' +
-                        ' style="width:108px; background-color:' + cat.color + ';">&nbsp;' +
+                        ((typeof(bt) == "string") ? //header
+                            make_html("div", {}, bt) :
+                        '<div class="toolkit_type_name"' +
+                        ' onclick="' + bt.objectPath() + '.make_and_draw_block(150, 70)"' +
+                        ' draggable="true"' +
+                        ' ondragstart="block_type_menu_dragstart_handler(event)"' +
+                        ' ondrag="block_type_menu_drag_handler(event)"' +
+                        ' data-block-type="' + bt.objectPath() + '"' +
+                        ' style="padding-left:10px; width:108px; background-color:' + cat.color + ';">' +
                         bt.display_label +
-                        "</div>"
+                        "</div>")
                 }
                 block_type_menu_id.innerHTML     = the_html
                 category_menu_id.style.display   = "block"
@@ -71,6 +81,12 @@ newObject({prototype: Root.BlockCategory,
 newObject({prototype: Root.BlockCategory,
     name: "Object",
     color: "#8eceff",
+    block_types: []
+})
+
+newObject({prototype: Root.BlockCategory,
+    name: "Control",
+    color: "#99ffd7",
     block_types: []
 })
 

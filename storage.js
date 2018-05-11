@@ -8,7 +8,7 @@ function add_default_file_prefix_maybe(path){
 }
 
 //_______PERSISTENT: store name-value pairs in a file. Keep a copy of hte file in JS env, persistent_values
-//and write it out even time its changed.
+//and write it out every time its changed.
 //require("url")
 //const path_pkg = require('path')
 persistent_values = {}
@@ -27,7 +27,7 @@ function get_persistent_values_defaults() {
 }
 //if keep_existing is true, don't delete any existing values.
 //but if its false, wipe out everything and set to only the initial values.
-function persistent_initialize(keep_existing=true) { //was persistent_clear
+function persistent_initialize(keep_existing=true) {
     if(file_exists("")){ //Documents/dde_apps
         const dp_path = add_default_file_prefix_maybe("dde_persistent.json")
         if(!keep_existing){ //unusual
@@ -279,13 +279,31 @@ function file_exists(path){
 } //fs-lock does not error on this. file_exists will return true for
   //files that exist, but would get access denied if you tried to
   //read or write them. That's bad. should return false if
-  //you can read or write them. I could read it, and if error,
+  //you can't read or write them. I could read it, and if error,
   //catch it and return false. A bit expensive but maybe worth it.
 
 //but maybe never call this as I use slash throughout.
 //since web server files want slash, and my other files,
 //I'm just getting an entry and looking them up,
 //I should be good with slash everywhere.
+
+//returns true or false. JS experts don't like fs.existsSync
+//due to the problem that the below method solves.
+function can_read_and_write_file(path){
+    try {fs.accessSync(path, fs.R_OK) //can read
+        fs.accessSync(path, fs.W_OK) //can write
+        return true
+    }
+    catch(err) {
+        if(fs.existsSync(path)){
+            warning(path + " exists but you can't read or write it.<br/>" +
+                "If you want to read or write this file,<br/>" +
+                "use your operating system to change its permissions.")
+        }
+        return false
+    }
+}
+
 function folder_separator(){
     if (operating_system == "win") { return "\\" }
     else                           { return "/"  }

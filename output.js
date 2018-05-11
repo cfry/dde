@@ -638,7 +638,11 @@ window.submit_window = function(event){
     }
     try { cb.call(null, result) }
     catch(err){
-        dde_error("While calling the show_window handler function of: " + cb.name + ",<br/>" + err.message)
+        let err_string
+        if (typeof(err) == "string") { err_string = err } //weiredly this DOES happen sometimes
+        else if (err.message) { err_string = err.message }
+        else { err_string = err.toString() }
+        dde_error("While calling the show_window handler function of: " + cb.name + ",<br/>" + err_string)
     }
     event.preventDefault()
     event.stopPropagation()
@@ -721,7 +725,7 @@ function latest_window_of_title(title){
 
 //__________out  and helper fns_______
 window.out_item_index = 0
-function out(val, color="black", temp=false, code=null){
+function out(val="", color="black", temp=false, code=null){
     let text = val
     if (typeof(text) != "string"){ //if its not a string, its some daeta structure so make it fixed width to demostrate code. Plus the json =retty printing doesn't work unless if its not fixed width.
         text = stringify_value(text)

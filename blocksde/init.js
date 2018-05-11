@@ -1,16 +1,16 @@
 // to load blocks:  load_files(__dirname + "/blocksde/init.js")
 
-load_files(__dirname + "/blocksde/",
+/*load_files(__dirname + "/blocksde/",
            "workspace.js",
            "category_newObject.js",
            "blocks2.js",
-           "jsdb_newObject.js"  //should be after blocks2.js
+           "jsdb_newObject.js",  //should be after blocks2.js
+           "js2b.js"
            )
+*/
 
-jsdb_init() //for bootstrapping reasons, must be done after blocks2.js is defined
-
-setTimeout(function(){
-javascript_pane_header_wrapper_id.appendChild(
+function blocks_init(){
+   javascript_pane_header_wrapper_id.appendChild(
    make_dom_elt("span",
                 {id:"text_blocks_toggle_id",
                  title: "Toggle editor view between text and blocks.",
@@ -20,22 +20,12 @@ javascript_pane_header_wrapper_id.appendChild(
                  margin:"0px",
                  "vertical-align":"20%",
                  onclick:"toggle_text_blocks_display()"},
-                " &boxbox; ")
-)}, 300)
-/*
-show_window({content: make_html("div", {}, 
-        `<input id='text_or_blocks_id' 
-                type='checkbox'
-                onchange='toggle_text_blocks_display()'/><span style='font-size:26px;'>&boxbox;</span>`),
-             title: "", x: 740, y: 0, width: 80, height: 10})
-*/
+                " &boxbox; "))
+}
+
 function make_blocksde_dom_elt(){
-  return make_dom_elt("div", {id:"blocksde_id"},
-`<datalist id="identifiers_datalist_id">
-    <option value="one">this</option>
-    <option value="two">window</option>
- </datalist>
-<div id="category_menu_id"
+  return make_dom_elt("div", {id:"blocksde_id", width:"100%", height:"100%"},
+`<div id="category_menu_id"
      onmouseover="category_menu_id.style.display='block'"
      onmouseout="category_menu_id.style.display='none'"
      style="display:none; position:absolute; left:10px; top:30px; z-index:2;
@@ -62,9 +52,21 @@ var the_codemirror_elt = null
 var blocksde_dom_elt   = null
 
 
+
 function toggle_text_blocks_display(){
   if (Editor.view == "text"){
       out("installing blocks")
+      let src = Editor.get_javascript("auto") //must do before the switch
+      let block_to_install
+      try{
+          if (src.trim() != ""){block_to_install = JS2B.js_to_block(src.trim())} //do before switching views in case this errors, we want to stay in text view
+      }
+      catch(err){
+          warning("Could not convert JavaScript source to blocks due to error:<br/>" +
+              err.message +
+              "<br/> Make sure your JS text evals without errors before switching to blocks.")
+          return
+      }
       if (!the_codemirror_elt) { //haven't used blocksde yet so initialize it
          the_codemirror_elt = document.getElementsByClassName("CodeMirror")[0]
          blocksde_dom_elt = make_blocksde_dom_elt()
@@ -78,8 +80,10 @@ function toggle_text_blocks_display(){
          //the_codemirror_elt.offsetWidth,  the_codemirror_elt.offsetHeight //this vals are always zero
          )
       }
-      else {
-            replace_dom_elt(the_codemirror_elt, blocksde_dom_elt)
+      else { replace_dom_elt(the_codemirror_elt, blocksde_dom_elt) }
+      Workspace.inst.clear_blocks()
+      if (block_to_install){ //we've got non empty src code so turin it into blocks.
+          install_top_left_block(block_to_install)
       }
       text_blocks_toggle_id.style["background-color"] = "#AAFFAA"
       Editor.view = "blocks"

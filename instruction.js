@@ -1140,6 +1140,101 @@ var human_enter_number_handler = function(vals){
     }
 }
 
+//beware: Human.enter_position returns an array of Dexter.follow_me AND an instance of this class.
+Instruction.Control.human_enter_position = class human_enter_position extends Instruction.Control{
+    constructor (  {task="Position Dexter's end effector<br/>to the position that you want to record,<br/>and click 'Continue Job'.",
+                    user_data_variable_name="a_position",
+                    add_stop_button = true,
+                    dependent_job_names=[],
+                    title, x=200, y=200, width=400, height=400,  background_color="rgb(238, 238, 238)"}={}){
+            super()
+            this.task = task
+            this.user_data_variable_name = user_data_variable_name
+            this.add_stop_button = add_stop_button
+            this.dependent_job_names = dependent_job_names
+            this.title   = title
+            this.x       = x
+            this.y       = y
+            this.width   = width
+            this.height  = height
+            this.background_color = background_color
+            this.status = "not started"
+    }
+
+    do_item (job_instance){
+        var hidden  = "<input type='hidden' name='job_name' value='" + job_instance.name                                   + "'/>" +
+            "<input type='hidden' name='dependent_job_names' value='" + JSON.stringify(this.dependent_job_names) + "'/>" +
+            "<input type='hidden' name='user_data_variable_name' value='" + this.user_data_variable_name         + "'/>"
+
+        var buttons = '<center><input type="submit" value="Continue Job" title="Capture position,\nclose dialog box and\ncontinue this job"/>&nbsp;'
+        if (this.add_stop_button) { buttons += '<input type="submit" value="Stop Job" title="Close dialog box,\nstop this job and all dependent jobs."/>' }
+        buttons += '</center>'
+        if (this.title === undefined){
+            this.title = "Job: " + job_instance.name + ", Human Enter Position"
+            if (job_instance.robot instanceof Human){
+                this.title = job_instance.name + " task for: " +  job_instance.robot.name
+            }
+        }
+        else if (this.title == "") { this.title = "<span style='height:25px;'>&nbsp;</span>" }
+        job_instance.wait_reason = "user on Human.show_window interaction." //do before set_status_code so the tooltip gets set with the wait_reason.
+        job_instance.set_status_code("waiting")
+        show_window({content: this.task + "<br/>" + buttons + hidden,
+            callback: human_enter_position_handler,
+            title: this.title,
+            x: this.x,
+            y: this.y,
+            width: this.width,
+            height: this.height,
+            background_color: this.background_color})
+    }
+    to_source_code(args={indent:""}){
+        return args.indent + "Human.enter_position({" +
+            ((this.task == "")                               ? "" : ("task: "                    + to_source_code({value: this.task})                    + ", ")) +
+            ((this.title === undefined)                      ? "" : ("title: "                   + to_source_code({value: this.title})                   + ", ")) +
+            ((this.add_stop_button  == true)                 ? "" : ("add_stop_button: "         + this.add_stop_button                                  + ", ")) +
+            ((this.dependent_job_names.length == 0)          ? "" : ("dependent_job_names: "     + to_source_code({value: this.dependent_job_names})     + ", ")) +
+            ((this.x      == 200)                            ? "" : ("x: " + this.x       + ", "   )) +
+            ((this.y      == 200)                            ? "" : ("y: " + this.y       + ", "   )) +
+            ((this.width  == 400)                            ? "" : ("width: "  + this.width   + ", "   )) +
+            ((this.height == 400)                            ? "" : ("height: " + this.height  + ", "   )) +
+            ((this.background_color == "rgb(238, 238, 238)") ? "" : ("background_color: " + to_source_code({value: this.background_color}))) +
+            "})"
+    }
+}
+
+var human_enter_position_handler = function(vals){
+    var job_instance = Job[vals.job_name]
+    if (vals.clicked_button_value != "Continue Job"){
+        job_instance.stop_for_reason("interrupted", "In human_enter_number, user stopped this job.")
+        var dep_job_names = JSON.parse(vals.dependent_job_names) //If the user did not pass in a dependent_job_names arg when
+        //creating the human_job, dep_job_names will now be [] so the below if hits but
+        //the for loop has nothing to loop over so nothing will be done.
+        if (dep_job_names && Array.isArray(dep_job_names)){
+            for (let j_name of dep_job_names){
+                var j_inst = Job[j_name]
+                if (!j_inst.stop_reason){ //if j_inst is still going, stop it.
+                    j_inst.stop_for_reason("interrupted", "In human_enter_number, user stopped this job which is dependent on job: " + job_instance.name)
+                    j_inst.set_up_next_do(0)
+                    return
+                }
+            }
+        }
+        job_instance.set_up_next_do(1) //we're stopping this job as it has a stop_reason so let it stop normally
+    }
+    else {
+        let new_ins =
+            [Dexter.get_robot_status,
+             function(){
+                 let xyz = job_instance.robot.joint_xyz()
+                 job_instance.user_data[vals.user_data_variable_name] = xyz
+             },
+             Dexter.set_keep_position
+             ]
+        job_instance.insert_instructions(new_ins)
+        job_instance.set_up_next_do(1)
+    }
+}
+
 Instruction.Control.human_enter_text = class human_enter_text extends Instruction.Control{
     constructor ({task="",
                     user_data_variable_name="a_text",
@@ -1529,7 +1624,11 @@ Instruction.Control.loop = class Loop extends Instruction.Control{
            }
        }
        else { shouldnt("Robot.loop has an invalid this.resolved_times_to_loop of: " + this.resolved_times_to_loop)}
-       if(this.iter_index >= this.iter_total) { return null }
+       if(this.iter_index >= this.iter_total) { //done looping but initialize so if the job is restrted, the loop will restart
+            this.resolved_times_to_loop === null
+            this.iter_index             = -1
+            return null
+       }
        else {//ok, finally compute instructions for this iteration
            let body_fn_result = this.body_fn.call(job_instance, this.iter_index, iter_val, this.iter_total, iter_key)
            if(!Array.isArray(body_fn_result) ||
@@ -1567,7 +1666,7 @@ Instruction.Control.out = class Out extends Instruction.Control{
         this.temp  = temp
     }
     do_item (job_instance){
-        let message = "Job: " + job_instance.name + ", instruction ID: " + job_instance.program_counter + ", Robot.out<br/>" + this.val
+        let message = "Job: " + job_instance.name + ", instruction ID: " + job_instance.program_counter + ", Instruction type: Robot.out<br/>" + this.val
         out(message, this.color, this.temp)
         job_instance.set_up_next_do(1)
     }
@@ -1793,7 +1892,7 @@ Instruction.Control.sent_from_job = class sent_from_job extends Instruction.Cont
 }
 
 Instruction.Control.start_job = class start_job extends Instruction.Control{
-    constructor (job_name, start_options={}, if_started="ignore") {
+    constructor (job_name, start_options={}, if_started="ignore", wait_until_job_done=false) {
         if(!["ignore", "error", "restart"].includes(if_started)){
             dde_error("Robot.start_job has invalid value for if_started of: " +
                        if_started +
@@ -1804,12 +1903,70 @@ Instruction.Control.start_job = class start_job extends Instruction.Control{
         this.job_name      = job_name
         this.start_options = start_options
         this.if_started    = if_started
+        this.wait_until_job_done = wait_until_job_done
     }
     do_item (job_instance){
         const new_job = Job[this.job_name]
         if (new_job){
             const stat = new_job.status_code
-            if      (stat == "starting")    { job_instance.set_up_next_do(1) } //just let continue starting
+            if (this.wait_until_job_done) {
+                 if (stat == "not_started")   {
+                    job_instance.wait_reason = "This job waiting for new_job.name to complete."
+                    job_instance.set_status_code("waiting")
+                    new_job.start(this.start_options)
+                    job_instance.set_up_next_do(0)
+                    return
+                }
+                else if(["starting", "running"].includes(stat)) {
+                    job_instance.wait_reason = "Robot.start_job waiting at instruction " +
+                                              job_instance.program_counter + " for " + new_job.name + " to complete."
+                    job_instance.set_status_code("waiting")
+                    job_instance.set_up_next_do(0)
+                    return
+                }
+                else if(stat == "waiting") {
+                     job_instance.wait_reason = "Robot.start_job waiting at instruction " +
+                         job_instance.program_counter + " for " + new_job.name + " to complete,\n" +
+                          "but its now waiting for: " + new_job.wait_reason
+                     job_instance.set_status_code("waiting")
+                     job_instance.set_up_next_do(0)
+                     return
+                }
+                else if (stat == "suspended")   {
+                        new_job.unsuspend()
+                        job_instance.wait_reason = "Robot.start_job waiting at instruction " +
+                            job_instance.program_counter + " for " + new_job.name + " to complete."
+                        job_instance.set_status_code("waiting")
+                        job_instance.set_up_next_do(0)
+                        return
+                }
+                else if (stat == "completed")   {
+                     job_instance.wait_reason = null
+                     job_instance.stop_reason = null
+                     job_instance.set_status_code("running")
+                     job_instance.set_up_next_do(1)
+                     return
+                }
+                else if (stat == "errored")   {
+                    job_instance.wait_reason = null
+                    job_instance.stop_reason = "This job stopped because the job it is waiting for, " +
+                                                new_job.name + " has errored with: " +
+                                                new_job.stop_reason
+                    job_instance.set_status_code("errored")
+                    job_instance.set_up_next_do(1)
+                    return
+                }
+                else if (stat == "interrupted")   {
+                    job_instance.wait_reason = null
+                    job_instance.stop_reason = "This job stopped because the job it is waiting for, " +
+                        new_job.name + " was interrupted with: " +
+                        new_job.stop_reason
+                    job_instance.set_status_code("interrupted")
+                    job_instance.set_up_next_do(1)
+                    return
+                }
+            }
+            else if (stat == "starting")    { job_instance.set_up_next_do(1) } //just let continue starting
             else if (stat == "suspended")   {
                 new_job.unsuspend()
                 job_instance.set_up_next_do(1)
@@ -2125,7 +2282,7 @@ Instruction.Control.wait_until = class wait_until extends Instruction.Control{
         if (typeof(this.fn_date_dur) == "function"){}
         else if (this.fn_date_dur instanceof Date) {}
         else if (typeof(fn_date_dur) == "number")  {}
-        else if (fn_date_dur instanceof Duration)  { fn_date_dur = this.seconds() }
+        else if (fn_date_dur instanceof Duration)  { this.fn_date_dur = fn_date_dur.to_seconds() }
         else if (this.fn_date_dur == "new_instruction"){}
         else if (Array.isArray(this.fn_date_dur) ||
                  (typeof(this.fn_date_dur) == "object")){
@@ -2137,6 +2294,7 @@ Instruction.Control.wait_until = class wait_until extends Instruction.Control{
                              "However, unusual circumstances could make this ok.")
                  }
         }
+        else if (fn_data_dur instanceof Job) {}
         else {
             dde_error("Robot.wait_until instruction passed: " + this.fn_date_dur +
                       '<br/> which is not a number, date, function,<br/>' +
@@ -2153,7 +2311,7 @@ Instruction.Control.wait_until = class wait_until extends Instruction.Control{
                 job_instance.set_up_next_do(1) //advance the PC
             }
             else {
-                job_instance.wait_reason = "a wait_until function returns true"
+                job_instance.wait_reason = "a wait_until function returns true."
                 job_instance.set_status_code("waiting")
                 job_instance.set_up_next_do(0) //loop until its true
             }
@@ -2165,7 +2323,7 @@ Instruction.Control.wait_until = class wait_until extends Instruction.Control{
                 job_instance.set_up_next_do(1)
             }
             else {
-                job_instance.wait_reason = "until Date: " +  this.fn_date_dur
+                job_instance.wait_reason = "a wait_until Date of: " +  this.fn_date_dur
                 job_instance.set_status_code("waiting")
                 job_instance.set_up_next_do(0)
             }
@@ -2191,7 +2349,7 @@ Instruction.Control.wait_until = class wait_until extends Instruction.Control{
                 job_instance.set_up_next_do(1)
             }
             else {
-                job_instance.wait_reason = "until Duration: " +  this.fn_date_dur + " seconds"
+                job_instance.wait_reason = "a wait_until duration of: " +  this.fn_date_dur + " seconds"
                 job_instance.set_status_code("waiting")
                 job_instance.set_up_next_do(0)
             }
@@ -2203,7 +2361,7 @@ Instruction.Control.wait_until = class wait_until extends Instruction.Control{
                                        null : job_instance.do_list[pc + 1])
             if (this.old_instruction === undefined){ //first time through only
                 this.old_instruction = next_instruction
-                job_instance.wait_reason = 'until "new_instruction"'
+                job_instance.wait_reason = 'a wait_until gets a "new_instruction"'
                 job_instance.set_status_code("waiting")
                 job_instance.set_up_next_do(0)
             }
@@ -2222,6 +2380,35 @@ Instruction.Control.wait_until = class wait_until extends Instruction.Control{
                 job_instance.set_up_next_do(1)
             }
         }
+        else if (this.fn_date_dur instanceof Job) {
+            let status_code = this.fn_date_dur.status_code
+            if(status_code == "completed") {
+                job_instance.wait_reason = null
+                job_instance.set_status_code("running")
+                job_instance.set_up_next_do(1)
+            }
+            else if(status_code == "errored") {
+                job_instance.wait_reason = null
+                job_instance.stop_reason = "The job that this job was waiting for to complete, " +
+                                                this.fn_date_dur.name + ", errored with: " +
+                                                "\n " + this.fn_date_dur.stop_reason
+                job_instance.set_status_code("errored")
+                job_instance.set_up_next_do(1)
+            }
+            else if(status_code == "interrupted") {
+                job_instance.wait_reason = null
+                job_instance.stop_reason = "The job that this job was waiting for to complete, " +
+                                                this.fn_date_dur.name + ", was interrupted with: " +
+                                                "\n " + this.fn_date_dur.stop_reason
+                job_instance.set_status_code("interrupted")
+                job_instance.set_up_next_do(1)
+            }
+            else {
+               job_instance.wait_reason = "a wait_until for Job " + this.fn_date_dur.name + " completes."
+               job_instance.set_status_code("waiting")
+               job_instance.set_up_next_do(0)
+            }
+        }
         else if (Array.isArray(this.fn_date_dur) ||
                  (typeof(this.fn_date_dur) == "object")){ //instruction_location, but not integer and string formats
             var loc_job_instance = Job.instruction_location_to_job(this.fn_date_dur, false)
@@ -2234,7 +2421,7 @@ Instruction.Control.wait_until = class wait_until extends Instruction.Control{
                     warning("Robot.wait_until is waiting for job: " + loc_job_instance.name +
                             "<br/>but that job is stopped, so it will probably wait forever.")
                 }
-                job_instance.wait_reason = "until instruction_location reached"
+                job_instance.wait_reason = "a wait_until instruction_location is reached."
                 job_instance.set_status_code("waiting")
                 job_instance.set_up_next_do(0)
             }
@@ -2536,13 +2723,14 @@ Instruction.Control.pid_move_to = class pid_move_to extends Instruction.Control{
             angles = Kin.xyz_to_J_angles(xyz_copy, J5_direction, config, pose) //job_instance.robot.pose
         }
         catch(err){
-            job_instance.stop_for_reason("errored",
-                "In Job." + job_instance.name + " at PC: " + job_instance.program_counter +
-                "\nDexter.pid_move_to([" + xyz + "], [" + J5_direction + "])" +
-                "\nwas passed invalid xyz.\n " +
-                err.message)
-            job_instance.set_up_next_do(0)
-            return
+            //job_instance.stop_for_reason("errored",
+            //    "In Job." + job_instance.name + " at PC: " + job_instance.program_counter +
+            //    "\nDexter.pid_move_to([" + xyz + "], [" + J5_direction + "])" +
+            //    "\nwas passed invalid xyz.\n " +
+            // err.message)
+            //job_instance.set_up_next_do(0)
+            //return
+            throw new Error("in pid_move_to do_item method. Call to Kin.xyz_to_J_angles has errored")
         }
         let error_mess = Dexter.joints_out_of_range(angles)
         if (error_mess){ // a string like "Joint 1 with angle: 0.01 is less than the minimum: 30
@@ -2728,4 +2916,84 @@ Instruction.Control.move_to_straight = class move_to_straight extends Instructio
             ")"
     }
 }
+
+Instruction.Control.read_from_robot = class read_from_robot extends Instruction.Control{
+    constructor (source        , //a file name path string
+                 destination   = "read_from_robot_content" //user data variable
+    ){
+        if (typeof(source) != "string") {
+            dde_error("read_from_robot passed non-string for 'source' of: " + source)
+        }
+        if (typeof(destination) != "string") {
+             dde_error("read_from_robot passed non-string for 'destination' of: " + destination)
+        }
+        super()
+        this.source = source
+        this.destination = destination
+        this.first_do_item_call = true
+        this.is_done = false
+        this.processing_r_instruction = false
+    }
+    do_item (job_instance){
+        if (this.first_do_item_call) {
+            job_instance.user_data[this.destination] = ""
+            this.first_do_item_call = false
+            this.is_done = false
+            this.processing_r_instruction = false
+        }
+        //the below can never happen
+        //if (this.is_done) {
+        //    this.processing_r_instruction = false
+        //    return Robot.break()
+        //}
+        let read_from_robot_instance = this
+        Job.insert_instruction(Robot.loop(true, function(content_hunk_index){
+            let job_instance = this
+            if (read_from_robot_instance.is_done) {
+                 //init this inst just in case it gets used again
+                read_from_robot_instance.is_done = false
+                read_from_robot_instance.first_do_item_call = true
+                read_from_robot_instance.processing_r_instruction = false
+                return Robot.break()
+            }
+            else {
+                read_from_robot_instance.processing_r_instruction = true
+                return [make_ins("r", content_hunk_index, read_from_robot_instance.source),
+                        Robot.wait_until(function(){
+                            return !read_from_robot_instance.processing_r_instruction
+                        })
+                       ]
+            }
+        }), {job: job_instance, offset: "after_program_counter"}
+        )
+        job_instance.set_up_next_do(1)
+    }
+    static got_content_hunk(job_id, ins_id, payload_string){
+        let job_instance = Job.job_id_to_job_instance(job_id)
+        if (job_instance == null){
+            throw new Error("Dexter.robot_done_with_instruction passed job_id: " + job_id +
+                " but couldn't find a Job instance with that job_id.")
+        }
+        let read_from_robot_instance
+        for (let i = ins_id; i >= 0; i--){
+            let an_instruction = job_instance.do_list[i]
+            if(an_instruction instanceof Instruction.Control.read_from_robot){
+                read_from_robot_instance = an_instruction
+                read_from_robot_instance.processing_r_instruction = false
+            }
+        }
+        if(read_from_robot_instance === undefined) {
+            throw new Error("Dexter.robot_done_with_instruction passed job: " + job_instance.name +
+                            " and ins_id: " + ins_id +
+                            "but could not find the read_from_robot instance.")
+        }
+        else {
+            job_instance.user_data[read_from_robot_instance.destination] += payload_string
+            if (payload_string.length < Instruction.Control.read_from_robot.payload_max_chars){
+                read_from_robot_instance.is_done = true
+            }
+        }
+    }
+}
+Instruction.Control.read_from_robot.payload_max_chars = 62
 

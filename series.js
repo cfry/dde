@@ -584,7 +584,9 @@ Series.instances = [
     //Standard JS Series
     new Series({id:"series_punctuation_id", array: [",", ";", ":", ".", "(", ")", "[", "]", "{", "}", '"', "'", "`", "/*", "*/", "//"],
         menu_insertion_string: ",",         menu_sel_start:true, menu_sel_end:null, sample: "," }),
-    new Series({id:"series_boolean_id",     array: ["&&", "||", "!", "true", "false", "null", "undefined"],
+    new Series({id:"series_boolean_id",     array: ["&&", "||", "!",  "true", "false", "null", "undefined"],
+        menu_insertion_string:"true",       menu_sel_start:true, menu_sel_end:null, sample:"true"}),
+    new Series({id:"series_bitwise_id",     array: ["&", "|", "^", "~", "<<", ">>", ">>>"],
         menu_insertion_string:"true",       menu_sel_start:true, menu_sel_end:null, sample:"true"}),
 
     //NUMBERS

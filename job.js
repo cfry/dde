@@ -28,6 +28,19 @@ var Job = class Job{
     //with the job. -2 means we want to execute the last instruction of the
     //job next, etc.
     //save the args
+    if (!Array.isArray(do_list)){
+        open_doc(do_list_doc_id)
+        dde_error("While defining Job." + name +
+                   "<br/> the do_list must be an array, but instead is: <br/>" +
+                   do_list)
+        return
+    }
+    try { do_list = Job.flatten_do_list_array(do_list) }
+    catch(err){
+        open_doc(do_list_doc_id)
+        dde_error("While defining Job." + name + "<br/>" + err.message)
+        return
+    }
     if (job_default_params.default_workspace_pose == null) { //really an init DDE action,but keep it local
         job_default_params.default_workspace_pose = Coor.Table
     }
@@ -147,8 +160,11 @@ var Job = class Job{
                 if (other_job.robot instanceof Dexter){ //can 2 jobs use a Robot.Serial? I assume so for now.
                     dde_error("Job." + this.name + " attempted to use: Dexter." + this.robot.name +
                                " but that robot is in use by Job." + other_job.name)
+                    return
                 }
             }
+            this.status_code       = "starting" //before setting it here, it should be "not_started"
+            this.color_job_button()
             this.do_list           = Job.flatten_do_list_array(this.orig_args.do_list) //make a copy in case the user passes in an array that they will use elsewhere, which we wouldn't want to mung
             this.added_items_count = new Array(this.do_list.length) //This array parallels and should be the same length as the run items on the do_list.
             this.added_items_count.fill(0) //stores the number of items "added" by each do_list item beneath it
@@ -177,6 +193,7 @@ var Job = class Job{
                              !Job.is_plausible_when_stopped_value(new_val)) {
                         dde_error("Job.start called with an invalid value for 'when_stopped' of: " +
                                   new_val)
+                        return
                     }
                     this[key] = new_val
                 }
@@ -190,6 +207,7 @@ var Job = class Job{
             if ((job_in_pc != null) && (job_in_pc != this)) {
                 dde_error("Job." + this.name + " has a program_counter initialization<br/>" +
                           "of an instruction_location that contains a job that is not the job being started. It shouldn't.")
+                return
             }
             this.program_counter = this.instruction_location_to_id(maybe_symbolic_pc)
 
@@ -199,7 +217,6 @@ var Job = class Job{
 
             this.start_time        = new Date()
             this.stop_time         = null
-            this.status_code       = "starting" //before setting it here, it should be "not_started"
             this.stop_reason       = null
 
             this.wait_reason       = null //not used when waiting for instruction, but used when status_code is "waiting"
@@ -226,18 +243,19 @@ var Job = class Job{
             if ((this.program_counter == 0) &&
                 (this.do_list.length  == 0) &&
                 ((this.when_stopped   == "wait") || (typeof(this.when_stopped) == "function"))) {} //special case to allow an empty do_list if we are waiting for an instruction or have a callback.
+            else if (this.do_list.length == 0) {
+                dde_error("While starting job: " + this.name + " the do_list is empty.")
+            }
             else if (this.program_counter >= this.do_list.length){ //note that maybe_symbolic_pc can be "end" which is length of do_list which is valid, though no instructions would be executed in that case so we error.
                 dde_error("While starting job: " + this.name +
                     "<br/>the programer_counter is initialized to: " + this.program_counter +
                     "<br/>but the highest instruction ID in the do_list is: " +  (this.do_list.length - 1))
             }
             Job.last_job           = this
-
             this.go_state          = true
             //this.init_show_instructions()
             //out("Starting job: " + this.name + " ...")
             this.show_progress_maybe()
-            this.color_job_button()
             this.robot.start(this) //the only call to robot.start
             return this
         }
@@ -440,7 +458,7 @@ var Job = class Job{
                 tooltip  = "This job has not been started since it was defined.\nClick to start this job."
                 break; //defined but never started.
             case "starting":
-                bg_color = "rgb(136, 255, 136)";
+                bg_color = "rgb(210, 255, 190)";
                 tooltip  = "This job is in the process of starting.\nClick to stop it."
                 break;
             case "running":
@@ -455,23 +473,26 @@ var Job = class Job{
                         const oplet   = cur_ins[Dexter.INSTRUCTION_TYPE]
                         if(oplet == "z") {
                             bg_color = "rgb(255, 255, 102)"; //pale yellow
-                            tooltip  = "Now running 'sleep' instruction."
+                            tooltip  = "Now running 'sleep' instruction " + this.program_counter + "."
                             break;
                         }
                     }
                     bg_color = "rgb(136, 255, 136)";
-                    tooltip  = "This job is running.\nClick to stop this job."
+                    tooltip  = "This job is running instruction " + this.program_counter +
+                               ".\nClick to stop this job."
                 }
                 break;
             case "suspended":
                 bg_color = "rgb(255, 255, 17)"; //bright yellow
-                tooltip  = "This job is suspended because\n" +
+                tooltip  = "This job is suspended at instruction: " + this.program_counter +
+                            "because\n" +
                             this.wait_reason + "\n" +
                             "Click to unsuspend it.\nAfter it is running, you can click to stop it."
                 break; //yellow
             case "waiting":
                 bg_color = "rgb(255, 255, 102)"; //pale yellow
-                tooltip  = "This job is waiting for:\n" + this.wait_reason + "\nClick to stop this job."
+                tooltip  = "This job is at instruction " + this.program_counter +
+                            " waiting for:\n" + this.wait_reason + "\nClick to stop this job."
                 break; //yellow
             case "completed":
                 if((this.program_counter === this.do_list.length) &&
@@ -486,11 +507,13 @@ var Job = class Job{
                 break;
             case "errored":
                 bg_color = "rgb(255, 68, 68)";
-                tooltip  = "This job errored with:\n" + this.stop_reason + "\nClick to restart this job."
+                tooltip  = "This job errored at instruction: " + this.program_counter +
+                " with:\n" + this.stop_reason + "\nClick to restart this job."
                 break;
             case "interrupted":
                 bg_color = "rgb(255, 123, 0)"; //orange
-                tooltip  = "This job was interrupted by:\n" + this.stop_reason + "\nClick to restart this job."
+                tooltip  = "This job was interrupted at instruction " + this.program_counter +
+                " by:\n" + this.stop_reason + "\nClick to restart this job."
                 break;
         }
         const but_elt = this.get_job_button()
@@ -664,7 +687,8 @@ var Job = class Job{
     //a dexter instrution array, a fn, or something else that can be a do_item.
     //could possibly return [] which will be ignored by do_next_item
     static flatten_do_list_array(arr, result=[]){
-       for(let elt of arr){
+       for(let i = 0; i < arr.length; i++){
+           let elt = arr[i]
            if      (Instruction.is_instruction_array(elt))   { result.push(elt) }
            else if (Array.isArray(elt)) { //if elt is empty array, tbis works fine too.
                                                              Job.flatten_do_list_array(elt, result)
@@ -675,7 +699,7 @@ var Job = class Job{
            else if (is_iterator(elt))                        { result.push(elt) }
            else if ((typeof(elt) === "object") && (typeof(elt.start) == "function")) { result.push(elt) }
            else {
-                throw(TypeError("Job.flatten_do_list_array got illegal item on do list: " + elt))
+                throw(TypeError("Invalid do_list item at index: " + i + "<br/>of: " + elt))
            }
        }
        return result
@@ -1080,6 +1104,7 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
     else{
         //regardless of whether we're in an iter or not, do the item at pc. (might or might not
         //have been just inserted by the above).
+      try {
         var cur_do_item = this.current_instruction()
         this.show_progress_maybe()
         this.select_instruction_maybe(cur_do_item)
@@ -1212,6 +1237,10 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
             this.set_up_next_do(0)
         }
     }
+    catch(err){ //this can happe when, for instance a fn def on the do_list is called and it contains an unbound var ref
+       this.stop_for_reason("errored", err.message) //let do_next_item loop around and stop normally
+    }
+  }
     //this.color_job_button() //todo needs to work for Dexter.sleep (z) instruction and to undo its yellow.
 }
 

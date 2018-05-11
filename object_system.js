@@ -257,6 +257,9 @@ Object.defineProperty(Object.prototype, 'inheritsPropertyFrom',{
     enumerable : false
 })
 
+/*fails because "this" needs to be the original obj, but
+as we go up the stack we need to remember the previous obj
+we came from which isn't 'this' after we've alread gone up one.*/
 Object.defineProperty(Object.prototype, 'callPrototypeConstructor',{
     value : function(){
         let next_cons = newObect_find_next_constructor(this)
@@ -267,6 +270,7 @@ Object.defineProperty(Object.prototype, 'callPrototypeConstructor',{
        // else {} //do nothing if there is no next_cons
     }
 })
+
 //callPrototypeConstructor is called within a constructor.
 //we don't want to return THAT constuctor, but rather the
 //next one up the change.

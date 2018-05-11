@@ -169,6 +169,13 @@ function is_string_a_color_rgb(a_string){
     return a_string.startsWith("rgb(") && a_string.endsWith(")") && a_string.includes(",") //not perfect but quick and pretty good
 }
 
+//this will count reserved words (ie "break" as an identifier, which
+//isn't what JS thinks of as a valid user variable or fn name identifier
+function is_string_an_identifier(a_string){
+  let the_regex = /^[_$a-zA-Z\xA0-\uFFFF][_$a-zA-Z0-9\xA0-\uFFFF]*$/
+  return the_regex.test(a_string)
+}
+
 //not perfect as could be escape sequences, internal quotes, but pretty good
 function is_string_a_literal_string(a_string){
     if (a_string.length < 2) { return false }
@@ -580,9 +587,11 @@ function px_suffix_string_to_number(str){
     return parseFloat(str)
 }
 
-//avoids calling eval. If a path_elt isn't defined, this fn returns undefined.
+//avoids calling eval. If he path_ isn't defined, this fn returns undefined.
+//arg can either be a string with dots or an array of strings that are path elts.
 function value_of_path(path_string){
-    let path = path_string.split(".")
+    let path = path_string
+    if (typeof(path) == "string"){ path = path.split(".") }
     let result
     if(window[path[0]] !== undefined) { result = window }
     //note window["window"] returns the window obj so the arg can be "window" and we still win
@@ -639,9 +648,9 @@ function function_params(fn, include_parens=true){
     if ((result == "") && (fn.length !== 0)) { //the src of the fn does not contain the params as is true for Math fns, and fns whose body source is [native code]
         let prefix = "arg"
         if (Math.hasOwnProperty(fn.name)) { prefix = "num" } //all fns in Math take only number args. This is not true for the "Number" class fns.
-        for (let i = 1; i <= fn.length; i++) {
+        for (let i = 0; i < fn.length; i++) {
             result += prefix + i
-            if (i != fn.length) { result += ", "}
+            if (i != (fn.length - 1)) { result += ", "}
         }
     }
     if (include_parens){ result = "(" + result + ")" }
@@ -734,6 +743,7 @@ function function_param_names_and_defaults(fn){
 }
 
 //params_full_string can either be wrapped in parens or not
+//returns an array of 2 elt arrays, name and default val.
 function params_string_to_param_names_and_defaults(params_full_string){
     if (params_full_string.startsWith("(")) {params_full_string = params_full_string.substring(1)}
     if (params_full_string.endsWith(")"))   {params_full_string = params_full_string.substring(0, params_full_string.length - 1)}
@@ -767,6 +777,41 @@ function params_string_to_param_names_and_defaults(params_full_string){
         }
     }
     return param_names
+}
+
+//fn can be either function foo({a:2}={}) style or function foo(a, b=3) style params
+//returns {param_name: "default_val", ...} ie the values are src, not actual js vals
+function function_param_names_and_defaults_lit_obj(fn){
+    let params_full_string = function_params(fn, false)
+    let params_string = params_full_string
+    if (params_full_string.startsWith("{")){
+        if (params_full_string.endsWith("= {}") ||
+            params_full_string.endsWith("={}")){
+            let closing_equal = params_full_string.lastIndexOf("=")
+            params_string = params_full_string.substring(0, closing_equal).trim()
+        }
+        params_string = replace_substrings(params_string, "\\n", " ")
+        var inner_params_and_defaults = params_string.substring(1, params_string.length -1) //cut off { and }
+        var inner_params_and_defaults_array = inner_params_and_defaults.split(",")
+        var param_names = []
+        for(let inner_param_and_default of inner_params_and_defaults_array){
+            inner_param_and_default = inner_param_and_default.trim()
+            let the_param_default_array = inner_param_and_default.split("=")
+            the_param_default_array[0] = the_param_default_array[0].trim()
+            the_param_default_array[1] = the_param_default_array[1].trim()
+            param_names.push(the_param_default_array)
+            //obj[the_param_default_array[0]] = the_param_default_array[1]
+        }
+        return [param_names, "{}"]
+    }
+    else {
+        let array_of_arrays = params_string_to_param_names_and_defaults(params_full_string)
+        let result = {}
+        for (let name_val of array_of_arrays) {
+            result[name_val[0]] = name_val[1]
+        }
+        return result
+    }
 }
 
 //not general purpose

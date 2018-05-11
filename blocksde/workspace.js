@@ -6,7 +6,7 @@ function on_load(){
 }*/
 
 var Workspace = class Workspace{
-    constructor(width=600, height=600, html_wrapper_name="workspace_container_id"){
+    constructor(width="100%", height="100%", html_wrapper_name="workspace_container_id"){
         //console.log("Workspace constructor top")
         this.width  = width
         this.height = height
@@ -81,7 +81,6 @@ var Workspace = class Workspace{
            }
            else { //normal, mouse enters toolbar to pop up category menu
                 //user is drabbing a block into the toolkit bar to delete it.
-                //debugger
                 let the_html = "<div class='categories'><b>Categories</b><br/>"
                 for(let cat of Root.BlockCategory.subObjects()){
                     the_html +=
@@ -114,7 +113,11 @@ var Workspace = class Workspace{
     add_block_elt(elt){
         workspace_id.appendChild(elt)
     }
-    clear_blocks(){}
+    clear_blocks(){
+        for(let node of workspace_id.childNodes){
+            if(is_block(node)) { remove_dom_elt(node) }
+        }
+    }
     deselect_block(){
         if(this.selected_block) {
             let delt = this.selected_block.get_dom_elt()
@@ -138,7 +141,8 @@ var Workspace = class Workspace{
         return result
     }
 
-    get_javascript(use_selection="auto"){
+    //parallel to Editor.get_javascript
+    get_javascript(use_selection=false){
         if (use_selection === true) {
             let sel_block = selected_block()
             if (sel_block) { return block_to_js(sel_block) }
@@ -175,9 +179,10 @@ var Workspace = class Workspace{
             workspace_floating_typein_id.style.visibility = "visible" // was "_wrapper_id
             workspace_floating_typein_id.focus()
             workspace_floating_typein_id.select()
+            out("Type in simple, short JavaScript like a number, string, or variable name.", undefined, true)
         }
     }
-    floating_typein_done(event){
+    /*floating_typein_done(event){
         if (event.key == "Enter"){
             let str = event.target.value
             if (str == ""){ //don't make a new block, just hide the type in area.
@@ -210,6 +215,48 @@ var Workspace = class Workspace{
                 workspace_floating_typein_id.style.visibility = "hidden"
             }
             event.stopPropagation()
+        }
+    }*/
+
+    floating_typein_done(event){
+        event.stopPropagation()
+        if (event.key == "Enter"){
+            let src = event.target.value
+            if (src == ""){ //don't make a new block, just hide the type in area.
+                workspace_floating_typein_id.style.visibility = "hidden"
+            }
+            else {
+                  let block
+                  let result = eval_js_part2(src, false) //eval(src) //eval_js_part2 needed since normal eval can't handle "{a:1}" embarrisngly.
+                  if ((typeof(result) == "string") && result.startsWith("Error: ")) {
+                      if(is_string_an_identifier(src)){
+                          block = Root.jsdb.identifier.identifiers.make_dom_elt(undefined, undefined, src)
+                      }
+                      else {
+                        warning(result) //result will be a string starting with "Error: "
+                        return  //don't hide the type_in, let user correct it
+                      }
+                  }
+                  else if (result.error_message){
+                      if(is_string_an_identifier(src)){
+                          block = Root.jsdb.identifier.identifiers.make_dom_elt(undefined, undefined, src)
+                      }
+                      else {
+                          warning(result.error_message) //result will be a string starting with "Error: "
+                          return  //don't hide the type_in, let user correct it
+                      }
+                  }
+                  else {
+                    let val = result.value
+                    block = Root.jsdb.value_to_block(val, src)
+                  }
+                  //we've made a valid block
+                  workspace_floating_typein_id.style.visibility = "hidden"
+                  block.style.position = "absolute"
+                  block.style.left = workspace_floating_typein_id.style.left //Workspace.floating_typein_x + "px"
+                  block.style.top  = workspace_floating_typein_id.style.top  //Workspace.floating_typein_y + "px"
+                  workspace_id.appendChild(block)
+            }
         }
     }
 }

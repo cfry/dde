@@ -145,9 +145,9 @@ new Job({name: "job_a",
 new Job({name: "job_b",
          robot: new Brain({name: "brain1"}),
          do_list: [Robot.out("hello"),
-              Robot.wait_until(10),
-              Robot.sync_point("midway", ["job_a", "job_b"]),
-              Robot.out("goodbye")]})
+                   Robot.wait_until(10),
+                   Robot.sync_point("midway", ["job_a", "job_b"]),
+                   Robot.out("goodbye")]})
 Job.job_a.start(); Job.job_b.start() //execute both at once.
 //job_a will wait at its "midway" point until job_b gets to 
 //its "midway" point, then they both proceed.
@@ -708,7 +708,7 @@ new Job({name: "my_job",
 ////13b: loop with times_to_loop = 3
 new Job({name: "my_job",
          do_list: [Robot.out("start of job"),
-                   Robot.loop(1 + 2, 
+                   Robot.loop(2 + 3, 
                               function(iter_index, iter_val, iter_total){
                                   return Robot.out("index: "       + iter_index + 
                                                    " iter_val: "   + iter_val +

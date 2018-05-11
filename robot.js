@@ -153,8 +153,8 @@ var Robot = class Robot {
         return new Instruction.Control.sent_from_job(arguments[0])
     }
 
-    static start_job(job_name, start_options={}, if_started="ignore"){
-        return new Instruction.Control.start_job(job_name, start_options, if_started)
+    static start_job(job_name, start_options={}, if_started="ignore", wait_until_job_done=false){
+        return new Instruction.Control.start_job(job_name, start_options, if_started, wait_until_job_done)
     }
 
     static stop_job(instruction_location, reason, perform_when_stopped = false){
@@ -327,6 +327,16 @@ var Human = class Human extends Brain { /*no associated hardware */
         dependent_job_names=[],
         title, x=200, y=200, width=400, height=400,  background_color = "rgb(238, 238, 238)"}={}) {
         return new Instruction.Control.human_enter_number(arguments[0])
+    }
+
+    static enter_position({task="Position Dexter's end effector<br/>to the position that you want to record,<br/>and click 'Continue Job'.",
+                           user_data_variable_name="a_position",
+                           dependent_job_names=[],
+                           title, x=200, y=200, width=400, height=400,  background_color = "rgb(238, 238, 238)"}={}) {
+        return[Dexter.empty_instruction_queue,
+               Dexter.set_follow_me,
+               new Instruction.Control.human_enter_position(arguments[0])
+              ]
     }
 
     static enter_text({task="",
@@ -1476,8 +1486,8 @@ Dexter.sleep           = function(seconds){ return make_ins("z", seconds) }
 Dexter.slow_move       = function(...args){ return make_ins("s", ...args) }
 Dexter.write           = function(...args){ return make_ins("w", ...args) }
 
-Dexter.write_to_robot = function(a_string="", file_name=null){
-    let max_content_chars = 252 //ie 256 - 4 for (instruction_id, oplet, suboplet, length
+/*Dexter.write_to_robot = function(a_string="", file_name=null){
+    let max_content_chars = 64 //244 //252 //ie 256 - 4 for (instruction_id, oplet, suboplet, length
     let next_start_index = 0
     let instrs = []
     if (file_name){
@@ -1504,6 +1514,51 @@ Dexter.write_to_robot = function(a_string="", file_name=null){
     }
     shouldnt("Dexter.write_to_robot didn't return out of its last while loop iteration.")
 }
+*/
+Dexter.socket_encode = function(char){
+    let code = char.charCodeAt(0)
+    if((0x00 == code) || (0x3B == code) || (0x25 == code)){
+        return "%" + code.toString(16).toUpperCase()
+    }
+    else { return char }
+}
+
+Dexter.write_to_robot = function(a_string="", file_name=null){
+    let max_content_chars = 62 //244 //252 //ie 256 - 4 for (instruction_id, oplet, suboplet, length
+    //payload can be max_contect_chars + 2 long if last character is escaped
+    let payload = ""
+    let instrs = []
+    if (file_name){
+        instrs.push(make_ins("W", "f", 0, file_name))
+    }
+    for(let char of a_string) {
+        payload += Dexter.socket_encode(char)
+        if (payload.length >= max_content_chars) {
+            instrs.push(make_ins("W", "m", payload.length, payload))
+            payload = ""
+        }
+    }
+    instrs.push(make_ins("W", "e", payload.length, payload)) //close the file
+    return instrs
+}
+/*testing code
+    var data = ""
+//for (var i = 255; i > 0; i--) { //top to bottom
+for (var i = 0; i < 256; i++) {  //bottom to top
+    data += String.fromCharCode(i)
+}
+
+//out(data);
+out(data.length)
+
+new Job({name: "my_job",
+    do_list: [out(Dexter.write_to_robot(data, "/srv/samba/share/test.txt"))]})
+*/
+
+Dexter.read_from_robot = function (source, destination){
+    return new Instruction.Control.read_from_robot(source, destination)
+}
+
 //from Dexter_Modes.js (these are instructions. The fns return an array of instructions
 Dexter.set_follow_me          = function(){ return setFollowMe() }
 Dexter.set_force_protect      = function(){ return setForceProtect() }
@@ -1534,6 +1589,7 @@ Dexter.instruction_type_to_function_name_map = {
     P:"pid_move_all_joints",
     p:"find_home_rep",
     R:"move_all_joints_relative",
+    r:"read_from_robot",
     s:"slow_move",
     S:"set_parameter",
     t:"dma_write",
@@ -1789,7 +1845,7 @@ Dexter.robot_ack_labels = [
     "ERROR_CODE"           //5   0 means ok
 ]
 
-    Dexter.robot_status_labels = [
+Dexter.robot_status_labels = [
 //new name   old name                   array index
 // misc block
 "JOB_ID",              //new field                    0

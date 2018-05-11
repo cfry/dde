@@ -95,7 +95,7 @@ position: relative (is an inerior block within either top_left or absolute.
 
 
 .block-drop-zone { /*installed only DURING a drag */
-    background-color: #9945ef; /*deep purple, no good for text background but fine for drop zone*/
+    background-color: #a945ff; /*deep purple, no good for text background but fine for drop zone*/
 }
 
 .drop_target { /*only installed during dragging when the dragged elt is over a valid drop zone */
@@ -104,9 +104,9 @@ position: relative (is an inerior block within either top_left or absolute.
 
 .block_name {
     display:inline-block;
-    margin-top:4px; /*because I can't raise the end delimiter, but delmiters shuld be on the same horizontal line,
+    margin-top:0px; /*4px because I can't raise the end delimiter, but delmiters should be on the same horizontal line,
                       so if you can't beat 'em, join 'em and bring the name down to
-                      mathc the close delim, and also looks better with
+                      match the close delim, and also looks better with
                       bloc-valued args that need the vert space when all args on the top line.*/
     margin-left:3px;
 }
@@ -124,8 +124,8 @@ such as (,),[,], {, },  ({, }), single, double, and backquote
  */
 .block_args_delimiter {
    font-weight: bold;
-  /* margin-top:-5px;
-   padding-top:0px; does nothing */
+   padding: 0px; /*looks like this does nothing*/
+   margin:  0px; /*looks like this does nothing*/
 }
 
 /*open and close are especially important in the case for the string delimiters.*/
@@ -134,7 +134,7 @@ such as (,),[,], {, },  ({, }), single, double, and backquote
 
 .arg_name_val {
     display:inline-block;
-    margin-left:10px;
+    margin-left:3px;
     margin-right:0px;
     margin-top:2px;
 }
@@ -156,7 +156,7 @@ such as (,),[,], {, },  ({, }), single, double, and backquote
 */
 
 .arg_name {
-  padding:0px 5px 0px 0px; /*making the top have a non-zero value doesn't help in pushing the name down.
+  padding:0px 3px 0px 0px; /*making the top have a non-zero value doesn't help in pushing the name down.
   margin:0px;
 }
 

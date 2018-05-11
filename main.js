@@ -66,7 +66,7 @@ function createWindow () {
   mainWindow.loadURL(`file://${__dirname}/index.html`)
 
   // Open the DevTools.
- /// mainWindow.webContents.openDevTools() //shows chrome dev tools. nice.
+ mainWindow.webContents.openDevTools() //shows chrome dev tools. nice.
 
   // Emitted when the main window is closed. (ie click the "red circle" in Mac window bar
   //as well as chose "Quit" from the Top window bar on Mac

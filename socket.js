@@ -222,8 +222,24 @@ var Socket = class Socket{
         let op_code = js_array[Dexter.INSTRUCTION_TYPE]
         let op_let  = String.fromCharCode(op_code)
         js_array[Dexter.INSTRUCTION_TYPE] = op_let
-        Socket.convert_robot_status_to_degrees(js_array)
+        if(op_let == "r"){
+            r_payload_grab(data, js_array)
+        }
+        else {
+            Socket.convert_robot_status_to_degrees(js_array)
+        }
         Dexter.robot_done_with_instruction(js_array) //this is called directly by simulator
+    }
+
+    static r_payload_grab(data, js_array){
+        let payload_length = out(js_array[Dexter.INSTRUCTION_TYPE + 2])
+        let data_start = (Dexter.INSTRUCTION_TYPE + 3) * 4
+        let data_end = data_start + payload_length
+        //debugger;
+        let payload_string = (data.slice(data_start, data_end).toString())
+        let job_id = js_array[Dexter.JOB_ID]
+        let ins_id = js_array[Dexter.INSTRUCTION_ID]
+        Instruction.Control.read_from_robot.got_content_hunk(job_id, ins_id, payload_string)
     }
 
     static convert_robot_status_to_degrees(robot_status){

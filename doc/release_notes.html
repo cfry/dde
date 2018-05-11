@@ -6,6 +6,105 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 2.3.15, May 11, 2018</summary>
+    Highlights: numerous bug fixes, minor other improvements.
+<ul>
+    <li>Updated jqxwidgets to latest version (was over a year old)</li>
+
+    <li> fixed click help for Array functions.</li>
+
+    <li> fixed Robot.loop so that jobs containing it can be restarted successfully.</li>
+
+    <li> dxf drawing characters now supports period and comma.</li>
+
+    <li> improved error message when a Job is started with an empty do_list.</li>
+
+    <li> click_help supported for <code>window</code>.</li>
+
+    <li> click_help supported for <code>--</code>. (decrement)</li>
+
+    <li> numerous other little fixes to click_help including "Job".</li>
+
+    <li> Improved error message printing for show_window handler function.</li>
+
+    <li> documentation for <code>out</code>'s "code" argument fixed and extended.</li>
+
+    <li> <code>out</code>'s "val" argument's default value changed from undefined to ""</li>
+
+    <li> Dexter.write_to_robot changed max_content_chars from 252 to 244.</li>
+
+    <li> A job's button tooltip tells you the instruction number
+        (Job Program Counter) that its currently at.</li>
+
+    <li> When a job reaches a wait_until instruction the job's button tooltip is
+        more explicit.</li>
+
+    <li> Robot.wait_until, fixed bug when you pass a Duration instance
+    as wait_until's argument.</li>
+
+    <li> Doc for Ref Man/Robots/Dexter/new Dexter parameters extended
+        with an example of:
+        new Dexter({name: "my_dex",
+        simulate: true,
+        ip_address: "192.186.1.142",
+        port: 50000 //the default
+        })</li>
+
+    <li> Robot.wait_until instruction now can take a Job as an instance.
+         The job containing the wait_until instruction waits until
+         the passed in Job completes (or errors).</li>
+
+    <li> Extend Robot.start_job to take another arg: wait_until_job_done (default false)
+        if true, the job containing the Robot.start_job instruction pauses until
+        the designated job is finished.
+        Now we can make a sequence of jobs in another job,
+        a la
+        new Job({do_list: [ Robot.start_job("a"), Robot.start_job("b")}
+        and have b be started after a is done.</li>
+
+    <li> fixed typo in "Overview" article.</li>
+
+    <li> bug fix: Dexter.write_to_robot  escapes written characters properly.
+          needs new files on Dexter to work properly.</li>
+
+    <li> Fixed minor text in recognize_speech ref man doc.</li>
+
+    <li> When defining a job, invalid initial instructions are now
+         caught, rather than waiting until the job is started.
+         Doc pane automatically scrolls to the "do_list" documentation.</li>
+
+    <li> Expanded doc in Ref Man/Job/new Job paramaters/do_list</li>
+
+    <li> New instruction: Dexter.write_to_robot writes a file to Dexter.
+        See Ref Man/Robot/Dexter/Dexter Instructions/write_to_robot
+        example file arg:
+        "/srv/samba/share/AdcCenters.txt"
+        but in the ViewEyeRealTime.js its
+        path =  "//" + ip_address + "/share/AdcCenters.txt"</li>
+
+    <li> User Guide "Debugging" section extended with "Click on Delimiter"
+         and a bit of reorganizing for easier access.</li>
+
+    <li>Added a warning in: Editor.restore_files_menu_paths_and_last_file
+        if it can't find dde_persistent.json file.</li>
+
+    <li>  DDE now always opens the chrome dev tools window at the beginning
+         of the launch process.</li>
+
+    <li>Job.start sets "starting" status earlier and colors job button accordingly
+       job button is now a pale green during "starting".</li>
+
+    <li> fixed bug in EasyTeach with workspace pose.</li>
+
+    <li> While running a job, if there is an error in a user defined function
+    (and some other possible errors) they are now caught and
+    the job terminates properly turning the job button red
+    and showing an error message in the tooltip relating to the cause.</li>
+
+    <li> improved formatting of sync point job example.</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 2.3.14, Mar 18, 2018</summary>
     Highlights: Dexter.pid_move_to updated.
     <ul>

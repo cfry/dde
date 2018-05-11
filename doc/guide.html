@@ -8,8 +8,8 @@
 
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version: <span id="dde_version_id">2.3.14</span><br/>
-    released: <span id="dde_release_date_id">Mar 18, 2018</span>
+    version: <span id="dde_version_id">2.3.15</span><br/>
+    released: <span id="dde_release_date_id">May 11, 2018</span>
     <p></p>
     DDE helps you create, debug, and send software to a Dexter robot.
     You can use any JavaScript augmented with DDE-specific functions to help find out about,
@@ -1219,7 +1219,9 @@ Find Home is a part of Dexter Calibration. To use Find Home:
     That way, when a bug shows up, you'll know it was in the last bit that you added.
     If you fail to do this, and have a large amount of code that has a bug, comment out
     lines incrementally and test to isolate the bug.
-    <p></p>DDE uses an automatic syntax checker named <i>ESLint</i>. It
+
+    <h4>Syntax Checker</h4>
+    DDE uses an automatic syntax checker named <i>ESLint</i>. It
     indicates syntax errors in the Editor pane as soon as you enter them.
     There are many different styles of JS coding and different versions
     of JS so its hard to get such errors correct. Even if you have syntax
@@ -1228,31 +1230,24 @@ Find Home is a part of Dexter Calibration. To use Find Home:
     your code. Perhaps runtime errors will help you fix the bug,
     or perhaps it will run OK and you'll know to just ignore the JS Pane syntax
     bug indication.
-    <br/><br/>
+
+    <h4>Click on Delimiter</h4>
+    Many syntax errors occur because of unmatched delimiters.
+    Click on an open or closed paren, square bracket or curley brace.
+    It should highlight in green, and highlight its corresponding
+    delimiter in green as well.
+
+    <h4>Selective Eval</h4>
     Evaling just selected portions is another way to isolate bugs. If there is a selection
     of JavaScript code, only that code will be evaled when you click <button>Eval</button>
-    <br/><br/>
+
+    <h4>Comment Out Code</h4>
     Another technique is to comment out code until your bug goes away.<br/>
     <b><code title="unEVALable code fragment"> // </code></b> comments out to the end of the line.<br/>
     <b><code title="unEVALable code fragment"> /* comment */</code></b> Wrap JavaScript in <br/>
     slash-star ... star-slash<br/> to comment
     out code in the middle of a line or multiple lines.
     See the Editor pane's <button>Learn JS&#9660;</button> <i>debugging</i> menu items.
-
-    <h4>Stepping</h4>
-    Entering <code title="not in TestSuite"> debugger;</code> into the body of a JS function definition will set a breakpoint there.
-    When <code  title="not in TestSuite"> debugger;</code> is evaluated (after you call the function) and the <i>Chrome Developer Tools</i>
-    window is open, execution will pause and highlight the <code title="not in TestSuite"> debugger;</code> statement in a copy
-    of your source code.
-    (To open the <i>Chrome Developer Tools</i> window, click right on any DDE pane and choose
-    <b>Inspect Element</b>.
-    Use the arrow buttons <img src="doc/stepper_buttons.png" width="120" alt="stepper buttons"/>
-    in the Developer Tools window upper right to step execution.
-    <p></p>
-    Rather than enter <code title="not in TestSuite">debugger;</code> into your code,
-    its often easier to select the code you want to step through and click the
-    <button>Step</button> button. This works just like the <button>Eval</button> button
-    in that if there is no selection, all the code in the editor is stepped.
 
     <h4 id="print_statements_doc_id">Print Statements</h4>
     The oldest and crudest debugging techique is embedding print statements
@@ -1303,10 +1298,26 @@ Find Home is a part of Dexter Calibration. To use Find Home:
            and give the user a message.
            See <a href="#" onclick="open_doc('Human.notify_doc_id', event)">Human.notify</a>.</li>
     </ul>
+
+    <h4>Stepping</h4>
+    Entering <code title="not in TestSuite"> debugger;</code> into the body of a JS function definition will set a breakpoint there.
+    When <code  title="not in TestSuite"> debugger;</code> is evaluated (after you call the function) and the <i>Chrome Developer Tools</i>
+    window is open, execution will pause and highlight the <code title="not in TestSuite"> debugger;</code> statement in a copy
+    of your source code.
+    (To open the <i>Chrome Developer Tools</i> window, click right on any DDE pane and choose
+    <b>Inspect Element</b>.
+    Use the arrow buttons <img src="doc/stepper_buttons.png" width="120" alt="stepper buttons"/>
+    in the Developer Tools window upper right to step execution.
     <p></p>
+    Rather than enter <code title="not in TestSuite">debugger;</code> into your code,
+    its often easier to select the code you want to step through and click the
+    <button>Step</button> button. This works just like the <button>Eval</button> button
+    in that if there is no selection, all the code in the editor is stepped.
+
+    <h4>JS Idiosyncracies</h4>
     Because JavaScript, like all popular textual programming languages, has not been
     designed <i>carefully</i> with the "user experience" in mind, it is full of
-    ideosyncracies that make learning how to use it require remembering a lot
+    idiosyncracies that make learning how to use it require remembering a lot
     of "gotchas". The web has pages on common JavaScript programming errors.
     A good one is: <a href="https://www.w3schools.com/js/js_mistakes.asp">
         https://www.w3schools.com/js/js_mistakes.asp</a> , incomplete, but

@@ -69,6 +69,50 @@ function open_doc(details_elt, record=true){
     myCodeMirror.focus()
 }
 
+//fn_name can be the actual fn or a string of its name or a path to the fn, or a class
+//fn name might have dots in it like "Robot.go_to"
+function open_doc_show_fn_def(details_elt, fn_name){
+    if(typeof(details_elt) == "string"){
+        details_elt = window[details_elt]
+    }
+    if(details_elt){ open_doc(details_elt) } //but ignore if no doc
+    else { Js_info.show_doc(fn_name, fn_name) }
+    let fn
+    if(typeof(fn_name) == "string"){
+        fn = value_of_path(fn_name)
+    }
+    else {
+        fn = fn_name
+        fn_name = fn.name
+    }
+    let non_last_parts_of_path = null
+    let last_dot_pos = fn_name.lastIndexOf(".")
+    if (last_dot_pos != -1) {
+        non_last_parts_of_path = fn_name.substring(0, last_dot_pos)
+    }
+    if (fn && (typeof(fn) == "function")){
+        let src = fn.toString() //for actual functions, the result starts with "function ", For classes it starts with "class "
+        if (src.startsWith("class ")) {}
+        else if (src.startsWith("function ")){
+            if (non_last_parts_of_path) {
+                src = non_last_parts_of_path + "<br/>" + src
+            }
+            else {} //ok as is
+        }
+        else {
+            if (non_last_parts_of_path) {
+                src = non_last_parts_of_path + "<br/>function " + src
+            }
+            else {src = "function " + src}
+
+        }
+        src = replace_substrings(src, "\n", "<br/>")
+        src = replace_substrings(src, " ", "&nbsp;")
+        out(src)
+    }
+    myCodeMirror.focus()
+}
+
 function open_doc_arrow_set_opacity(){
     if(doc_pane_elt_id_history_cur_index == 0) { doc_prev_id.style.opacity = 0.3 }
     else { doc_prev_id.style.opacity = 1}
