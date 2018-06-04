@@ -8,8 +8,8 @@
 
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version: <span id="dde_version_id">2.3.15</span><br/>
-    released: <span id="dde_release_date_id">May 11, 2018</span>
+    version: <span id="dde_version_id">2.3.16</span><br/>
+    released: <span id="dde_release_date_id">June 4, 2018</span>
     <p></p>
     DDE helps you create, debug, and send software to a Dexter robot.
     You can use any JavaScript augmented with DDE-specific functions to help find out about,
@@ -93,6 +93,24 @@
         loaded automatically. Thus you can put any code in that file
         that you want to be evaled at start-up, such as libraries you've
         written, etc.
+    </details>
+    <details class="doc_details"><summary>Windows 10 Problem</summary>
+      We suspect Microsoft's change to the default setting for a OneDrive configuration
+      checkbox in a Windows 10 update in Feb or Mar 2018 causes DDE
+      to not launch correctly. The underlying cause is that
+      DDE can't find the right folder for its dde_init.js and/or dde_persistent.json
+      files. This results in numerous problems like loading and saving files.
+      Applications besides DDE have had similar problems.
+      <p/>
+      If you are using Windows 10, we recommend:
+      <ol><li>Right-click the OneDrive icon on the Windows Task Bar.</li>
+          <li>In the dialog box that comes up, in its right-hand column,
+              click "Settings"</li>
+          <li>In the next dialog box that comes up, click the "Settings" tab.</li>
+          <li> In the "Files on Demand" section, uncheck
+               "Save space and download files as you use them"</li>
+      </ol>
+      If you have additional useful information about this issue, please tell us!
     </details>
 </details>
 <details class="doc_details"><summary>Configure DDE</summary>

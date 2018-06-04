@@ -59,7 +59,7 @@ function toggle_text_blocks_display(){
       let src = Editor.get_javascript("auto") //must do before the switch
       let block_to_install
       try{
-          if (src.trim() != ""){block_to_install = JS2B.js_to_block(src.trim())} //do before switching views in case this errors, we want to stay in text view
+          if (src.trim() != ""){block_to_install = JS2B.js_to_blocks(src.trim())} //do before switching views in case this errors, we want to stay in text view
       }
       catch(err){
           warning("Could not convert JavaScript source to blocks due to error:<br/>" +
@@ -82,7 +82,7 @@ function toggle_text_blocks_display(){
       }
       else { replace_dom_elt(the_codemirror_elt, blocksde_dom_elt) }
       Workspace.inst.clear_blocks()
-      if (block_to_install){ //we've got non empty src code so turin it into blocks.
+      if (block_to_install){ //we've got non empty src code so turn it into blocks.
           install_top_left_block(block_to_install)
       }
       text_blocks_toggle_id.style["background-color"] = "#AAFFAA"

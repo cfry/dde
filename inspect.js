@@ -432,7 +432,7 @@ function inspect_clickable_path(item, stack_number, in_stack_position, prop_name
     let path
     let array_type = typed_array_name(item)
     if      (array_type)            { path = array_type + " of " + item.length } //handles regular arrays and typed arrays. Absolutely necessary for cv
-    else if (item.objectPath())     { path = item.objectPath() }
+    else if (item.objectPath && item.objectPath()) { path = item.objectPath() }
     else if (item instanceof Job)   { path = "Job." + item.name }
     else if (item instanceof Robot) { path = "Robot." + item.name }
     else {

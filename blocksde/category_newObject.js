@@ -67,15 +67,15 @@ newObject({prototype: Root.BlockCategory,
 })
 
 newObject({prototype: Root.BlockCategory,
-            name: "String",
-            color: "#FFAAAA", //pink
-            block_types: []
-})
-
-newObject({prototype: Root.BlockCategory,
     name: "Array",
     color: "#ffb108",
     block_types: []
+})
+
+newObject({prototype: Root.BlockCategory,
+            name: "String",
+            color: "#FFAAAA", //pink
+            block_types: []
 })
 
 newObject({prototype: Root.BlockCategory,

@@ -3,7 +3,7 @@ is a good tutorial on usng the SimpleBlobDector,
 though all examples are in Python and C++
 It does help you understand the meaning of the params
 
-After unsig the dialog and adjusting sliders, the 
+After using the dialog and adjusting sliders, the
 resuling values for the sliders are stored in
 the global variable sbd_params,
 which can be used in your own call to making a SimpleBlobDector.
@@ -55,6 +55,14 @@ function handle_keypoints_opencv(vals){
     sbd_params.maxCircularity = vals.maxCircularity_id
     sbd_params.minArea = vals.minArea_id
     sbd_params.maxArea = vals.maxArea_id
+    //this setTimeout gives src_image_id.src = image_path a chance to load
+    //before we use it in cv.imread("src_image_id")
+    //otherwise we get an error when first bringing up this demo
+    setTimeout(function (){handle_keypoints_opencv_aux(sbd_params, white_level)},
+        100)
+}
+
+function handle_keypoints_opencv_aux(sbd_params, white_level){
     let src_mat  = cv.imread("src_image_id");
     let dst_mat  = new cv.Mat();
     let low_mat  = new cv.Mat(src_mat.rows , src_mat.cols, src_mat.type(), [0, 0, 0, 0]);
@@ -124,7 +132,7 @@ function display_keypoint_data(keypoints){
 
 show_window({
     content:
-    `<table><tr><td>
+    `<table><tr><td style="vertical-align:top;">
       Original<br/>
       <img id="src_image_id"></img><br/>
        B & W White level: 0<input type="range"  id="white_level_id"  value="150"  min="0" max="255" data-oninput='true'/>255<br/>
@@ -138,7 +146,7 @@ show_window({
      
       <canvas id="output_canvas2_id"></canvas>
     </td>
-    <td>` +
+    <td style="vertical-align:top;">` +
       sbd_data_table_header() +
     `<span id="data_id"/> </td>
     </tr></table>`

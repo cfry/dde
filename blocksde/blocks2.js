@@ -63,9 +63,16 @@ function elt_to_method(elt){
 }
 
 function block_to_js(elt, non_first_indent=""){
-    let bt = dom_elt_block_type(elt)
-    let src = bt.to_js(elt, non_first_indent)
-    return src
+    if(is_block(elt)) {
+        let bt = dom_elt_block_type(elt)
+        let src = bt.to_js(elt, non_first_indent)
+        return src
+    }
+    else {
+        let src = elt.innerText
+        if (src && (src.length > 0)) { return src } //works for the blockk name for "delete". returns "delete"
+        else { dde_error("block_to_js passed elt: " + elt + " that we can't figure out the js for.") }
+    }
 }
 
 //only 1 block can be selected
@@ -355,19 +362,25 @@ function block_dragover_handler(event) {
 }
 
 //new_block can be a previously created block like a "dragged_block"
+//new_block can be a single clock or an array of more than one top level block
 function install_top_left_block(new_block, dropped_on_block=null){
-    new_block.classList.remove("block-absolute") //replace not supported on Chrome
-    new_block.classList.add("block-top-left")
-    new_block.style.position = "static" //removing block-absolute and installing block-top-left doesnt do it
-    new_block.style.left="auto"
-    new_block.style.top="auto"
-    if (dropped_on_block){
-        workspace_id.insertBefore(new_block, dropped_on_block)
+    if(Array.isArray(new_block)){
+        for(let nb of new_block) { install_top_left_block(nb) }
     }
     else {
-        let bot_space = dom_elt_child_of_class(workspace_id, "bottom-left-spacer")
-        workspace_id.insertBefore(make_top_left_spacer(), bot_space)
-        workspace_id.insertBefore(new_block, bot_space)
+        new_block.classList.remove("block-absolute") //replace not supported on Chrome
+        new_block.classList.add("block-top-left")
+        new_block.style.position = "static" //removing block-absolute and installing block-top-left doesnt do it
+        new_block.style.left="auto"
+        new_block.style.top="auto"
+        if (dropped_on_block){
+            workspace_id.insertBefore(new_block, dropped_on_block)
+        }
+        else {
+            let bot_space = dom_elt_child_of_class(workspace_id, "bottom-left-spacer")
+            workspace_id.insertBefore(make_top_left_spacer(), bot_space)
+            workspace_id.insertBefore(new_block, bot_space)
+        }
     }
 }
 
@@ -426,16 +439,16 @@ function block_drop_handler(event){
         dragged_block_elt.style.position = "static"
         let arg_name_vals = dom_elt_children_of_class(dropped_on_block_args, "arg_name_val")
         if (dropped_on_elt.classList.contains("open")){
-            if (dropped_on_block_block_type_string == "Root.jsdb.path") {
+            //if (dropped_on_block_block_type_string == "Root.jsdb.path") {
                 //beware, this *might be just the block name of a method call block in which
                 //case we want to get its parennt block_elt.
-                if (dropped_on_block.classList.contains("block_name")){ //yep, we dropped on the opeb paren inside the path block that is the name of a method_call
-                    dropped_on_block = closest_ancestor_of_class(dropped_on_block.parentNode, "block")
-                    dropped_on_block_block_type_string = dropped_on_block.dataset.blockType
-                    dropped_on_always_rel = dom_elt_child_of_class(dropped_on_block, "block_always_relative")
-                    dropped_on_block_args = dom_elt_child_of_class(dropped_on_always_rel, "block_args")
-                }
-            }
+            //    if (dropped_on_block.classList.contains("block_name")){ //yep, we dropped on the opeb paren inside the path block that is the name of a method_call
+            //        dropped_on_block = closest_ancestor_of_class(dropped_on_block.parentNode, "block")
+            //        dropped_on_block_block_type_string = dropped_on_block.dataset.blockType
+            //        dropped_on_always_rel = dom_elt_child_of_class(dropped_on_block, "block_always_relative")
+            //        dropped_on_block_args = dom_elt_child_of_class(dropped_on_always_rel, "block_args")
+            //    }
+            //}
             let open_delimiter  = dropped_on_elt.innerText
             if (dropped_on_block_block_type_string.startsWith("Root.jsdb.infix")){
                 let old_sel_elt = dom_elt_child_of_class(dropped_on_block_args, "operators")
@@ -468,7 +481,6 @@ function block_drop_handler(event){
             }
         }
         else if (dropped_on_elt.classList.contains("close")){
-            let arg_name_elt     = arg_name_for_close_delimiter_drop(dropped_on_block, dropped_on_block_args, dropped_on_elt)
             let close_delimiter  = dropped_on_block.innerText
             let close_paren_elt  = dom_elt_child_of_class(dropped_on_block_args, "close")
             if (dropped_on_block_block_type_string.startsWith("Root.jsdb.infix")){
@@ -495,6 +507,7 @@ function block_drop_handler(event){
             }
             else{
                 let is_lit_obj       = close_delimiter == "}"
+                let arg_name_elt     = arg_name_for_close_delimiter_drop(dropped_on_block, dropped_on_block_args, dropped_on_elt)
                 let new_arg_name_val = make_arg_name_val(arg_name_elt, dragged_block_elt, is_lit_obj, (is_lit_obj ? ":" : ""), "")
                 //the below done by clean_up_arg_names so I commented it out.
                 //if(arg_name_vals.length > 0){ //if there's only 1, don't insert a comma
@@ -510,14 +523,17 @@ function block_drop_handler(event){
     }
     else if (dropped_on_elt.classList.contains("comma")){ //if present, it means there's already at least two args,
         //and the new arg will not be the first or last of the args after it is inserted just after the comma.
+        let dropped_on_block_block_type_string = dropped_on_block.dataset.blockType
         dragged_block_elt.classList.remove("block-top-left")
+        dragged_block_elt.classList.remove("block-absolute")
+
+        //compute is_lit_obj
         let old_arg_name_val      = dropped_on_block.parentNode
         let dropped_on_block_args = old_arg_name_val.parentNode
-        let dropped_on_block_block_type_string = dropped_on_block.dataset.blockType
         let close_elt = dom_elt_child_of_class(dropped_on_block_args, "close")
         let close_delimiter = (close_elt ? close_elt.innerText : null )
-        let is_lit_obj = close_delimiter == "}"
-        dragged_block_elt.classList.remove("block-absolute")
+        let is_lit_obj = close_delimiter == "}" //is dropped on block lit obj? todo is this right?
+
         let arg_name_str
         let name_val_sep_char
         let suffix_char
@@ -525,7 +541,6 @@ function block_drop_handler(event){
             arg_name_str = ""
             name_val_sep_char = ""
             suffix_char = "."
-
         }
         else if (dropped_on_block_block_type_string.startsWith("Root.jsdb.literal.object")) {
         //else if(is_lit_obj) {
@@ -550,7 +565,13 @@ function block_drop_handler(event){
             suffix_char = ","
             old_arg_name_val = dropped_on_elt.parentNode //the arg_name_val_elt that contains the comma. Inser the new arg_name_valPelt after this elt
         }
-        else {
+        else if (dropped_on_block_block_type_string.startsWith("Root.jsdb.literal.array")){
+            arg_name_str = "0"
+            name_val_sep_char = ""
+            suffix_char = ","
+            old_arg_name_val = dropped_on_elt.parentNode
+        }
+        else { //can happen when dropped_on_block is literal.array
             arg_name_str = "0"
             name_val_sep_char = ""
             suffix_char = ","
@@ -834,7 +855,6 @@ function clean_up_arg_names(block_elt){
           let arg_name_val = arg_name_vals[i]
           let arg_name = dom_elt_child_of_class(arg_name_val, "arg_name")
           arg_name.innerText = (i).toString()
-          let bar = "foo"
       }
     }
     else if (block_type_string == "Root.jsdb.literal.object"){ //nothing  to do here

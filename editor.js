@@ -185,22 +185,19 @@ Editor.get_any_selection = function(){
     //so if ther are other selections, it means you made the AFTER you made
     //the editor window sel, and therefore your attention is on that non-editor selection.
     var sel_text = ""
+    if (!window.getSelection().isCollapsed) { //got sel in doc or output pane
+         return window.getSelection().getRangeAt(0).toString()
+    }
+    sel_text = Editor.get_cmd_selection()
+    if(sel_text.length > 0 ) { return sel_text }
     if (Editor.view == "text") {
-        if (!window.getSelection().isCollapsed) { //got sel in doc or output pane
-             return window.getSelection().getRangeAt(0).toString()
-        }
-        sel_text = Editor.get_cmd_selection()
-        if(sel_text.length > 0 ) { return sel_text }
-
         sel_text = myCodeMirror.doc.getValue().substring(Editor.selection_start(), Editor.selection_end())
-        if(sel_text.length > 0) { return sel_text }
-        else return ""
     }
     else { //blocks view
-        sel_text = Editor.get_cmd_selection()
-        if(sel_text.length > 0 ) { return sel_text }
-        else { return Editor.get_javascript("auto") }
+        sel_text = Workspace.inst.get_javascript(use_selection=true)
     }
+    if(sel_text.length > 0) { return sel_text }
+    else { return "" }
 }
 
 //return editor sel or if none, cmd input, or if none, ""

@@ -1066,6 +1066,14 @@ Dexter = class Dexter extends Robot {
             throw(TypeError("Dexter.robot_done_with_instruction recieved a robot_status array: " +
                 robot_status + " that is not an array."))
         }
+        else if (robot_status[Dexter.ERROR_CODE] !== 0){
+            let job_id       = robot_status[Dexter.JOB_ID]
+            let job_instance = Job.job_id_to_job_instance(job_id)
+            if (job_instance) {
+                let ins_id = robot_status[Dexter.INSTRUCTION_ID]
+                job_instance.stop_for_reason("errored", "got error code: " + Dexter.ERROR_CODE + " back from Dexter for instruction id: " + ins_id)
+            }
+        }
         else if ((robot_status.length != Dexter.robot_status_labels.length) &&
                  (robot_status.length != Dexter.robot_ack_labels.length)){
             throw(TypeError("Dexter.robot_done_with_instruction recieved a robot_status array: " +
@@ -1306,7 +1314,7 @@ Dexter.dummy_move = function(){
     let CMD = []
     CMD.push(function(){return Dexter.get_robot_status()})
     CMD.push(function(){
-        let X = Dexter.my_dex.robot_status
+        let X = this.robot.robot_status //Dexter.my_dex.robot_status
         let J_angles = [X[Dexter.J1_ANGLE], X[Dexter.J2_ANGLE], X[Dexter.J3_ANGLE], X[Dexter.J4_ANGLE], X[Dexter.J5_ANGLE]]
         return Dexter.move_all_joints(J_angles)
         //return Dexter.move_all_joints([0, 0, 0, 0, 0])
@@ -2102,7 +2110,7 @@ Dexter.update_robot_status_table = function(robot_status){
            if (!label.startsWith("UNUSED")){
                 let val      = (robot_status ? robot_status[i] : "no status") //its possible that a robot will have been defined, but never actually run when this fn is called.
                 if((typeof(val) == "number") && (i >= 10)) { //display as a real float
-                   val = val.toFixed(3)
+                   val = to_fixed_smart(val, 3) //val.toFixed(3)
                 }
                 let elt_name = label + "_id"
                 window[elt_name].innerHTML = val
@@ -2212,7 +2220,9 @@ Dexter.update_robot_status_to_html_table = function(robot){
         Dexter.make_rs_row(robot_status, "PLAYBACK",  "J1_PLAYBACK",  "J2_PLAYBACK",  "J3_PLAYBACK",  "J4_PLAYBACK",  "J5_PLAYBACK" ) +
         Dexter.make_rs_row(robot_status, "SENT",      "J1_SENT",      "J2_SENT",      "J3_SENT",      "J4_SENT",      "J5_SENT"     ) +
         Dexter.make_rs_row(robot_status, "SLOPE",     "J1_SLOPE",     "J2_SLOPE",     "J3_SLOPE",     "J4_SLOPE",     "J5_SLOPE"    ) +
-        "<tr><th>MEASURED X</th><td>" + xyz[0].toFixed(3) + "m</td><th>MEASURED Y</th><td>" + xyz[1].toFixed(3) + "m</td><th>MEASURED Z</th><td>" + xyz[2].toFixed(3) + "m</td></tr>" +
+        "<tr><th>MEASURED X</th><td>"   + to_fixed_smart(xyz[0], 3) + //xyz[0].toFixed(3) +
+        "m</td><th>MEASURED Y</th><td>" + to_fixed_smart(xyz[1], 3) + //xyz[1].toFixed(3) +
+        "m</td><th>MEASURED Z</th><td>" + to_fixed_smart(xyz[2], 3) + //xyz[2].toFixed(3) + "m</td></tr>" +
         "</table>"
     return result
 }
@@ -2243,7 +2253,7 @@ Dexter.make_rs_row = function(robot_status, ...fields){
                         val + "</td>"
         }
         else if (row_header != "") { //body of table, expect floating point numbers, float right
-            val = val.toFixed(3) //format_number(val)
+            val = to_fixed_smart(val, 3) //val.toFixed(3) //format_number(val)
             result += "<td>" +
                 "<span id='" + field + "_id' style='font-family:monospace;float:right;'>" + val + "</span>" +
                 //degree_html + not playing nicely with float right so skip for now.

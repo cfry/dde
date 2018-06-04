@@ -26,7 +26,8 @@
             with the outer arrays representing rows, and
             the inner arrays representing cells.<br/>
             <i>Example:</i>
-            <code>array_to_csv([["head one", "head two"], [10, 20], [100, 200]])</code> =><br/>
+            <pre><code>array_to_csv([["head one", "head two"],
+              [10, 20], [100, 200]])    </code></pre> =>
             <samp>`head one,head two\n10,20\n100,200`</samp> <br/>
             Note that there are no quotes around the string values of "head one" and "head two".
             If this string is read in by <code>csv_to_array</code>,
@@ -3030,6 +3031,7 @@ a location to insert an instruction using <code>Robot.send_to_job</code>.<br/>
   See also <a href="#" onclick="open_doc(print_statements_doc_id, event)">print statements</a>
 </details>
 
+
 <details id="Robot.start_job_doc_id" class="doc_details"><summary>start_job</summary>
  <code>Robot.start_job</code> starts another job.<br/>
  <i>Parameters:</i><br/>
@@ -3725,6 +3727,26 @@ proportional–integral–derivative controller</a>.
         proportional–integral–derivative controller</a>.
 </details>
 
+<details id="Dexter.read_from_robot_doc_id" class="doc_details"><summary>read_from_robot</summary>
+    This instruction allows you to transfer the content of a file on Dexter into
+    a user_data variable in the enclosing Job.
+    <p></p>
+    If you are using the simulator, this can move the contents of a file on
+    the computer running DDE, into a user_data variable.
+    Note that you can use <code>file_content</code> to get the content of such files.
+    This instruction isn't particularly useful to simulate Dexter operation,
+    but at least you can use it to test overall Job architecture.
+    <br/>
+    <i>Parameters:</i><br/>
+    <b>source</b> A string. The path of a file on Dexter's file system who's
+    contents you want to get.<br/>
+    <b>destination</b> A string. The name of a user data variable on the running
+    job that will be written (or over-written) with the contents
+    of the file indicated in "source".
+    <p></p>
+    <i>Example:</i>
+    <pre><code>Dexter.read_from_robot("/srv/samba/share/AdcCenters.txt" , "my_AdcCenters")</code></pre>
+</details>
 
 <details id="Dexter.run_gcode_doc_id" class="doc_details"><summary>run_gcode</summary>
 This instruction accepts the name of a file as input and creates additional instructions 
@@ -4469,7 +4491,7 @@ accomodate standard Arduino add-on (shield) boards but the Leonardo can.
 Create an instance of Serial similar to the other robots. Example: <br/>
 <code title="unEVALable code fragment"> new Serial({name: "S1", ...})</code><p></p>
 
-<details class="doc_details"><summary>Parameters to new</summary>
+<details class="doc_details"><summary>Parameters to new Serial</summary>
 <b>name</b> A string. Makes this instance of a Serial Robot accessible from Robot.the_name<br/>
 
 <b>simulate</b> true or false. Default <code>true</code>. If true, no data is sent or recieved over

@@ -114,8 +114,9 @@ var Workspace = class Workspace{
         workspace_id.appendChild(elt)
     }
     clear_blocks(){
-        for(let node of workspace_id.childNodes){
+        for(let node of Array.from(workspace_id.childNodes)){
             if(is_block(node)) { remove_dom_elt(node) }
+            else if (node.classList.contains("top-left-spacer")) { remove_dom_elt(node) }
         }
     }
     deselect_block(){

@@ -223,7 +223,7 @@ var Socket = class Socket{
         let op_let  = String.fromCharCode(op_code)
         js_array[Dexter.INSTRUCTION_TYPE] = op_let
         if(op_let == "r"){
-            r_payload_grab(data, js_array)
+            Socket.r_payload_grab(data, js_array)
         }
         else {
             Socket.convert_robot_status_to_degrees(js_array)
@@ -231,9 +231,9 @@ var Socket = class Socket{
         Dexter.robot_done_with_instruction(js_array) //this is called directly by simulator
     }
 
-    static r_payload_grab(data, js_array){
-        let payload_length = out(js_array[Dexter.INSTRUCTION_TYPE + 2])
-        let data_start = (Dexter.INSTRUCTION_TYPE + 3) * 4
+    static r_payload_grab(data, js_array) {
+        let payload_length = js_array[Socket.PAYLOAD_LENGTH]
+        let data_start = Socket.PAYLOAD_START
         let data_end = data_start + payload_length
         //debugger;
         let payload_string = (data.slice(data_start, data_end).toString())
@@ -312,6 +312,9 @@ var Socket = class Socket{
         }
     }
 }
+
+Socket.PAYLOAD_START = 7 * 4 //7th integer array index, times 4 bytes per integer
+Socket.PAYLOAD_LENGTH = 6 //6th integer array index
 
 Socket.resend_instruction = null
 Socket.resend_count = null

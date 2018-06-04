@@ -142,7 +142,7 @@ newObject({
                 let param_default_src    = param_name_val_array[1]
                 //let param_default_value  = ((param_default_src == "{}") ? {} : eval(param_default_src)) //bug in js eval
                 //let arg_val_elt          = Root.jsdb.value_to_block(param_default_value, param_default_src)
-                let arg_val_elt          = JS2B.js_to_block(param_default_src)
+                let arg_val_elt          = JS2B.js_to_blocks(param_default_src)[0]
                 let suffix_char          = ((i < (params_obj.length - 1)) ? "," : "")
                 let arg_name_val_elt     = make_arg_name_val(param_name, arg_val_elt, make_editable_arg_names, between_name_and_val_char, suffix_char) //4th arg is make arg_name editable
                 arg_name_val_elts.push(arg_name_val_elt)
@@ -155,7 +155,7 @@ newObject({
                 let param_default_src = params_obj[param_name]
                 //let param_default_value = ((param_default_src == "{}") ? {} : eval(param_default_src)) //bug in js eval
                 //let arg_val_elt = Root.jsdb.value_to_block(param_default_value, param_default_src)
-                let arg_val_elt          = JS2B.js_to_block(param_default_src)
+                let arg_val_elt          = JS2B.js_to_blocks(param_default_src)[0]
                 let suffix_char = ((i < (keys.length - 1)) ? "," : "")
                 let arg_name_val_elt = make_arg_name_val(param_name, arg_val_elt, true, ":", suffix_char) //3rd arg is make arg_name editable
                 arg_name_val_elts.push(arg_name_val_elt)
@@ -517,12 +517,13 @@ newObject({prototype: Root.jsdb.literal,
     //value: [], //don't us this, use params for each elt of the array.
     return_type:"object",
     params: {},
+    between_name_and_value: ":",
     constructor: function(){ this.callPrototypeConstructor() },
     //similar to method_call.make_dom_elt
     //arg_vals can be:
     // - a lit obj with names of strings (the prop names) and vals of a js value like 123 or block_elts
-    //an array of arg_name_val_elts
-    make_dom_elt: function(x, y, arg_vals){
+    // - an array of arg_name_val_elts
+    make_dom_elt: function(x, y, arg_vals, between_name_and_value){
         let always_rel = make_dom_elt("div",
                                       {class: "block_always_relative",
                                        "min-width":     "32px", //otherwise the resizer box appears on top of the []
@@ -558,8 +559,22 @@ newObject({prototype: Root.jsdb.literal,
         else {
             let names = Object.keys(val)
             let last_name = last(names)
+            between_name_and_value = (between_name_and_value ? between_name_and_value : this.between_name_and_value)
             for(let param_name of names){
-                let param_name_elt = Root.jsdb.identifier.identifiers.make_dom_elt(undefined, undefined, param_name)//make_dom_elt("span", {class: "arg_name", "margin-right": "0px", "padding-right": "0px"}, param_name)
+                let param_name_elt
+                if      (is_string_a_number(param_name))  {
+                      let num = parseFloat(param_name)
+                      param_name_elt = Root.jsdb.literal.number.make_dom_elt(undefined, undefined, num)}
+                else if (param_name == "true")  { param_name_elt = Root.jsdb.literal.boolean.make_dom_elt(undefined, undefined, true)}
+                else if (param_name == "false") { param_name_elt = Root.jsdb.literal.boolean.make_dom_elt(undefined, undefined, false)}
+                else if (param_name == "null")  { param_name_elt = Root.jsdb.one_of.null_undefined.make_dom_elt(undefined, undefined, null)}
+                else if (typeof(param_name) == "string") {
+                    if(is_string_an_identifier(param_name)) {
+                           param_name_elt = Root.jsdb.identifier.identifiers.make_dom_elt(undefined, undefined, param_name)
+                    }
+                    else { param_name_elt = Root.jsdb.literal.string.make_dom_elt(undefined, undefined, param_name) }
+                }
+                else { shouldnt("in Root.jsdb.literal.object.make_dom_elt got invalid param_name of: " + param_name) }
                 let array_elt_or_param_block_type = val[param_name]
                 let param_val_elt
                 if (arg_vals !== undefined){
@@ -568,10 +583,8 @@ newObject({prototype: Root.jsdb.literal,
                 else { //array_elt_or_param_block_type should be a block_type
                     param_val_elt = array_elt_or_param_block_type.make_dom_elt()
                 }
-                param_val_elt.classList.remove("block-absolute") //because its not absolute, and should inherit the position:relative of the always_relative wrapper in this block
-                param_val_elt.classList.add("arg_val")
                 let suffix_char = ((param_name != last_name) ? "," : "")
-                let name_val_elt = make_arg_name_val(param_name_elt, param_val_elt, true, ":", suffix_char)
+                let name_val_elt = make_arg_name_val(param_name_elt, param_val_elt, true, between_name_and_value, suffix_char)
                 block_args_elt.append(name_val_elt)
                 param_name_elt.style["margin-right"]  = "0px" //todo doesn't work
                 param_name_elt.style["padding-right"] = "0px" //todo doesn't work
@@ -592,11 +605,13 @@ newObject({prototype: Root.jsdb.literal,
         let on_first = true
         for (let arg_name_val of arg_name_vals){
             let arg_name  = dom_elt_child_of_class(arg_name_val, "arg_name") //this will be a lit string block
+            let between_name_and_val = arg_name_val.childNodes[1].innerText //equal sign when we've got fn params with default vals, otherwise colon
+            if (between_name_and_val == ":") { between_name_and_val = between_name_and_val + " " }
             let arg_val   = dom_elt_child_of_class(arg_name_val, "arg_val")
             let name_src  = block_to_js(arg_name)
             let val_src   = block_to_js(arg_val)
             if (!on_first) { result += ",\n " + non_first_indent}
-            result += name_src + ": " + val_src
+            result += name_src + between_name_and_val + val_src
             on_first = false
         }
         return result + "}"
@@ -615,7 +630,7 @@ newObject({prototype: Root.jsdb,
     params: [],
     constructor: function(){ this.callPrototypeConstructor() },
     //similar to method_call.make_dom_elt
-    make_dom_elt: function(x, y, arg_vals){
+    make_dom_elt: function(x, y, params){
         let always_rel = make_dom_elt("div",
             {class: "block_always_relative",
                 "min-width":     "32px", //otherwise the resizer box appears on top of the []
@@ -642,8 +657,8 @@ newObject({prototype: Root.jsdb,
         always_rel.appendChild(block_name_elt)
         let block_args_elt = make_dom_elt("div", {class:"block_args", display:"inline-block", "margin-right":"2px"})
         always_rel.appendChild(block_args_elt)
-        let vals = ((arg_vals !== undefined) ? arg_vals : this.params)
-        for(let val of vals){
+        params = ((params !== undefined) ? params : this.params)
+        for(let val of params){
             let param_name_elt = make_dom_elt("span", {class: "arg_name", "margin-right": "0px", "padding-right": "0px"}, "")
             let param_val_elt = Root.jsdb.value_to_block(val)
             param_val_elt.classList.remove("block-absolute") //because its not absolute, and should inherit the position:relative of the always_relative wrapper in this block
@@ -714,11 +729,13 @@ newObject({prototype: Root.jsdb,
                if (((choice_val === null)      && (value === null)) ||
                    ((choice_val === null)      && (value === "null")) ||
                    ((choice_val === undefined) && (value === "undefined")) ||
-                   ((choice_val === undefined) && (value === undefined))
+                   ((choice_val === undefined) && (value === undefined)) ||
+                   (choice_val == value)
                   )
                    { attrs.selected = "selected" }
             }
             else if(value === choice_val) { attrs.selected = "selected" }
+            else if((typeof(choice_val) === "string") && choice_val.startsWith(value + "&nbsp;")) { attrs.selected = "selected" }
             choice_elts.push(make_dom_elt("option", attrs, choice))
         }
         let arg_val_elt = make_dom_elt("select",
@@ -776,6 +793,7 @@ newObject({prototype: Root.jsdb,
                                 left: x + "px",
                                 top:  y + "px",
                                 padding: "0px",
+                                //"margin-left": "20px",
                                 draggable: "true",
                                 "data-block-type": this.make_data_block_type_string(), //"path", //"literal." + this.name,
                                 //  ondragstart: "Root.jsdb.dragstart_handler(event)",
@@ -803,10 +821,10 @@ newObject({prototype: Root.jsdb,
             else if (path_elt.isA(Root.jsdb)) {
                 path_val_elt = path_elt.make_dom_elt()
             }
-            else if (typeof(a_path_elt) == "string"){
+            else if (typeof(path_elt) == "string"){
                 path_val_elt = Root.jsdb.identifier.identifiers.make_dom_elt(undefined, undefined, path_elt)
             }
-            else { shouldnt("in Root.jsdb.path.make_dome_elt with invalid path element type: " + path_elt) }
+            else { shouldnt("in Root.jsdb.path.make_dom_elt with invalid path element type: " + path_elt) }
             processed_path_elts.push(path_val_elt)
         }
         for(let i = 0; i <  processed_path_elts.length; i++) {
@@ -1308,9 +1326,11 @@ newObject({prototype: Root.jsdb.identifier,
             var items = $(this).jqxComboBox('getItems')
             let identifiers_elt = closest_ancestor_of_class(this, "block")
             let path_elt        = closest_ancestor_of_class(identifiers_elt.parentNode, "block")
-            let meth_call_elt   = closest_ancestor_of_class(path_elt.parentNode, "block")
-            if (meth_call_elt && meth_call_elt.dataset.blockType == "Root.jsdb.method_call"){
-                clean_up_arg_names(meth_call_elt)
+            if (path_elt){
+                let meth_call_elt   = closest_ancestor_of_class(path_elt.parentNode, "block")
+                if (meth_call_elt && meth_call_elt.dataset.blockType == "Root.jsdb.method_call"){
+                 clean_up_arg_names(meth_call_elt)
+                }
             }
             Root.jsdb.identifier.identifiers.add_item_maybe(the_val, $(this)[0])
         })
@@ -1457,6 +1477,144 @@ newObject({prototype: Root.jsdb.identifier,
 })
 */
 
+//mst be before for_iter
+newObject({prototype: Root.jsdb,
+    name:          "identifiers_postfix",
+    display_label: "i++/--",
+    category:       Root.BlockCategory.Math,
+    selected_identifier: "i",
+    choices: ["++&nbsp;(increment before return)",
+        "--&nbsp;&nbsp;&nbsp;(decriment before return)"],
+    selected_operator:   "++",
+
+    constructor: function(){
+        this.callPrototypeConstructor()
+    },
+    //arg_vals are the blocks in the code_body, expr is wrapped in static parens
+    make_dom_elt: function(x, y, selected_identifier, selected_operator){
+        let always_rel = make_dom_elt("div", {class: "block_always_relative"})
+        let result = make_dom_elt("div",
+            {class:"block block-absolute",
+                "background-color": this.category.color,
+                id: Root.jsdb.get_next_block_id(),
+                left: x + "px",
+                top:  y + "px",
+                draggable: "true",
+                "data-block-type": this.make_data_block_type_string(),
+                onclick: "select_block(event)"
+            },
+            always_rel
+        )
+        let block_name_elt = make_dom_elt("div", {class:"block_name"}, "")
+        always_rel.appendChild(block_name_elt)
+        let block_args_elt = make_dom_elt("div", {class:"block_args"})
+        always_rel.appendChild(block_args_elt)
+
+        selected_identifier = Root.jsdb.param_to_identifiers_block_probably(selected_identifier, this.selected_identifier)
+        selected_operator   = Root.jsdb.param_to_identifiers_block_probably(selected_operator, this.selected_operator, this.choices)
+
+        let identifer_arg_name_val_elt = make_arg_name_val("", selected_identifier)
+        let option_elts = []
+        for(let op of this.choices) {
+            option_elts.push(make_dom_elt("option", {}, op))
+        }
+        let operator_elt   = make_dom_elt("select", {width: "45px"}, option_elts)
+        let operator_arg_name_val_elt = make_arg_name_val("", selected_operator)
+        block_args_elt.appendChild(identifer_arg_name_val_elt)
+        block_args_elt.appendChild(operator_arg_name_val_elt)
+        always_rel.appendChild(make_resizer_elt())
+        return result
+    },
+    to_js: function(block_elt){
+        let always_rel     = dom_elt_child_of_class(block_elt, "block_always_relative")
+        let block_name_elt = dom_elt_child_of_class(always_rel, "block_name")
+        let block_args     = dom_elt_child_of_class(always_rel, "block_args")
+        let ident_elt      = dom_elt_child_of_class(block_args.childNodes[0], "arg_val")
+        let op_select_elt  = dom_elt_child_of_class(block_args.childNodes[1], "arg_val")
+        let op_str         = block_to_js(op_select_elt)
+        let result         = block_to_js(ident_elt) + op_str
+        return result
+    },
+    click_help_string(block_elt){
+        let always_rel     = dom_elt_child_of_class(block_elt, "block_always_relative")
+        let block_args     = dom_elt_child_of_class(always_rel, "block_args")
+        let op_select_elt  = dom_elt_child_of_class(block_args.childNodes[1], "arg_val")
+        let op_str         = op_select_elt.value
+        op_str             = Root.jsdb.clean_select_value(op_str)
+        return op_str
+    }
+})
+
+newObject({prototype: Root.jsdb,
+    name:          "identifiers_prefix",
+    display_label: "! (not), etc",
+    category:       Root.BlockCategory.Logic,
+    selected_identifier: "i",
+    choices: ["!&nbsp;&nbsp;&nbsp;&nbsp;(not)",
+        "~&nbsp;&nbsp;&nbsp;(bitwise not)",
+        "-&nbsp;&nbsp;&nbsp;&nbsp;(negation)",
+        "++&nbsp;(increment after return)",
+        "--&nbsp;&nbsp;&nbsp;(decriment after return)"],
+    selected_operator:   "!",
+
+    constructor: function(){
+        this.callPrototypeConstructor()
+    },
+    //arg_vals are the blocks in the code_body, expr is wrapped in static parens
+    make_dom_elt: function(x, y, selected_identifier, selected_operator){
+        let always_rel = make_dom_elt("div", {class: "block_always_relative"})
+        let result = make_dom_elt("div",
+            {class:"block block-absolute",
+                "background-color": this.category.color,
+                id: Root.jsdb.get_next_block_id(),
+                left: x + "px",
+                top:  y + "px",
+                draggable: "true",
+                "data-block-type": this.make_data_block_type_string(),
+                onclick: "select_block(event)"
+            },
+            always_rel
+        )
+        let block_name_elt = make_dom_elt("div", {class:"block_name"}, "")
+        always_rel.appendChild(block_name_elt)
+        let block_args_elt = make_dom_elt("div", {class:"block_args"})
+        always_rel.appendChild(block_args_elt)
+        selected_identifier = Root.jsdb.param_to_identifiers_block_probably(selected_identifier, this.selected_identifier)
+        selected_operator   = Root.jsdb.param_to_identifiers_block_probably(selected_operator, this.selected_operator, this.choices)
+
+        let identifier_elt = Root.jsdb.identifier.identifiers.make_dom_elt(undefined, undefined, selected_identifier)
+        let identifer_arg_name_val_elt = make_arg_name_val("", selected_identifier)
+        let option_elts = []
+        for(let op of this.choices) {
+            option_elts.push(make_dom_elt("option", {}, op))
+        }
+        let operator_elt   = make_dom_elt("select", {width:"45px"}, option_elts)
+        let operator_arg_name_val_elt = make_arg_name_val("", selected_operator)
+        block_args_elt.appendChild(operator_arg_name_val_elt)
+        block_args_elt.appendChild(identifer_arg_name_val_elt)
+        always_rel.appendChild(make_resizer_elt())
+        return result
+    },
+    to_js: function(block_elt){
+        let always_rel     = dom_elt_child_of_class(block_elt,  "block_always_relative")
+        let block_name_elt = dom_elt_child_of_class(always_rel, "block_name")
+        let block_args     = dom_elt_child_of_class(always_rel, "block_args")
+        let ident_elt      = dom_elt_child_of_class(block_args.childNodes[1], "arg_val")
+        let op_select_elt  = dom_elt_child_of_class(block_args.childNodes[0], "arg_val")//op comes first in prefix
+        let op_str         = block_to_js(op_select_elt)
+        let result         = op_str + block_to_js(ident_elt)
+        return result
+    },
+    click_help_string(block_elt){
+        let always_rel     = dom_elt_child_of_class(block_elt, "block_always_relative")
+        let block_args     = dom_elt_child_of_class(always_rel, "block_args")
+        let op_select_elt  = block_args.childNodes[0].childNodes[1]
+        let op_str         = op_select_elt.value
+        op_str             = Root.jsdb.clean_select_value(op_str)
+        return op_str
+    }
+})
+
 newObject({prototype: Root.jsdb,
     name:            "assignment",
     category:         Root.BlockCategory.Misc,
@@ -1467,7 +1625,7 @@ newObject({prototype: Root.jsdb,
     initial_value:    0,
     show_initial_value: true,
 
-    make_dom_elt: function(x=0, y=0, declaration_type, variable_name, initial_value, show_initial_value=true){ //set to false when showing the assignment in for(let of [6, 7, 8]) {...}
+    make_dom_elt: function(x=0, y=0, declaration_type, variable_name, initial_value, show_initial_value){ //set to false when showing the assignment in for(let of [6, 7, 8]) {...}
         let always_rel = make_dom_elt("div", {class: "block_always_relative"})
         let result     = make_dom_elt("div",
             {class:"block block-absolute",
@@ -1529,19 +1687,20 @@ newObject({prototype: Root.jsdb,
         let variable_kind  = arg_name_vals[0].children[0].value //one of "",let, var, const
         let variable_name_block  = arg_name_vals[1].children[0]
         let variable_name        = block_to_js(variable_name_block)
-        let variable_val_block   = (arg_name_vals[2]? rg_name_vals[2].children[0] : null)
+        let variable_val_block   = (arg_name_vals[2]? arg_name_vals[2].children[0] : null)
         let variable_value       = (variable_val_block? block_to_js(variable_val_block) : "undefined")
         let result = variable_kind
         result += ((result == "")? "" : " ")
         result += variable_name
         if (variable_value != "undefined") { result += " = " + variable_value }
+        //if(this.show_initial_value) { result += " = " + variable_value }
         return result
     },
     click_help_string(block_elt){
         let block_args     = dom_elt_descendant_of_classes(block_elt,
             ["block_always_relative", "block_args"])
         let arg_name_vals  = dom_elt_children_of_class(block_args, "arg_name_val")
-        let variable_kind  = arg_name_vals[0].children[1].value //one of "",let, var, const
+        let variable_kind  = arg_name_vals[0].children[0].value //one of "",let, var, const
         if (variable_kind != "") { return variable_kind} //"let" or "var"
         else {
             let src = block_to_js(block_elt)
@@ -1747,6 +1906,7 @@ newObject({prototype: Root.jsdb,
     display_label: "", //can be "foo" for a global fn, or "Math.abs" for a static method
     //or "(foo).bar" for an instance method on the class foo.
     //category:"misc",
+    code_body:     undefined, //null,
     constructor: function(){
         this.callPrototypeConstructor()
         if(this.name != "rword_code_body"){
@@ -1756,7 +1916,7 @@ newObject({prototype: Root.jsdb,
         }
     },
     //arg_vals are the blocks in the body_body
-    make_dom_elt: function(x, y, arg_vals){
+    make_dom_elt: function(x, y, code_body){
         let always_rel = make_dom_elt("div", {class: "block_always_relative"})
         let result = make_dom_elt("div",
             {class:"block block-absolute",
@@ -1776,9 +1936,11 @@ newObject({prototype: Root.jsdb,
         always_rel.appendChild(block_name_elt)
         let block_args_elt = make_dom_elt("div", {class:"block_args"})
         always_rel.appendChild(block_args_elt)
-        let code_body = Root.jsdb.code_body.make_dom_elt(x, y, arg_vals)
+        code_body = ((code_body == undefined) ? this.code_body : code_body)
+        if (!is_block(code_body)) {
+            code_body = Root.jsdb.code_body.make_dom_elt(x, y, code_body)
+        }
         //code_body.style.position = "static"
-        code_body.classList.remove("block-absolute")
         let arg_name_val_elt = make_arg_name_val("", code_body)
         block_args_elt.appendChild(arg_name_val_elt)
         always_rel.appendChild(make_resizer_elt())
@@ -1789,7 +1951,7 @@ newObject({prototype: Root.jsdb,
         let block_name_elt = dom_elt_child_of_class(always_rel, "block_name")
         let block_args     = dom_elt_child_of_class(always_rel, "block_args")
         let name_string    = block_name_elt.innerText
-        let code_body      = block_args.childNodes[0].childNodes[1]
+        let code_body      = block_args.childNodes[0].childNodes[0]
         let code_body_src  = block_to_js(code_body)
         code_body_src = "{\n" + code_body_src.substring(1)
         let result = name_string + code_body_src
@@ -1803,10 +1965,12 @@ newObject({prototype: Root.jsdb,
     }
 })
 
-//not used directly but used as superclass for if, else if, catch
-newObject({prototype: Root.jsdb,
-    name: "rword_expr_code_body",
-    display_label: "",
+newObject({prototype: Root.jsdb, //used for delete, yield, yield*. No parens around expr
+    name: "rword_expr",
+    display_label: "return",
+    category: Root.BlockCategory.Control,
+    operation: "return", // but could be yield, yield* delete
+    operation_choices: ["return&nbsp;(value from fn or gen)", "yield&nbsp;&nbsp;&nbsp;(value from gen)", "yield*&nbsp;(values from gen)"],
     expr: "Root.jsdb.infix.comparison", //make it a string because comparison is lower down in the file so this errors on loading the file
     constructor: function(){
         this.callPrototypeConstructor()
@@ -1817,7 +1981,7 @@ newObject({prototype: Root.jsdb,
         }
     },
     //arg_vals are the blocks in the code_body, expr is wrapped in static parens
-    make_dom_elt: function(x, y, expr, arg_vals){
+    make_dom_elt: function(x, y, operation, expr, operation_choices){
         let always_rel = make_dom_elt("div", {class: "block_always_relative"})
         let result = make_dom_elt("div",
             {class:"block block-absolute",
@@ -1831,9 +1995,227 @@ newObject({prototype: Root.jsdb,
             },
             always_rel
         )
+        operation = ((operation === undefined) ? this.operation : operation)
+        operation_choices = ((operation_choices === undefined) ? this.operation_choices : operation_choices)
+        let block_name_elt
+        if (operation_choices) {
+            block_name_elt = Root.jsdb.one_of.make_dom_elt(undefined, undefined,
+                                                            operation,
+                                                            operation_choices,
+                                                            false,
+                                                            65)
+            block_name_elt.classList.add("block_name")
+        }
+        else {
+            block_name_elt = make_dom_elt("div", {class:"block_name"}, operation)
+        }
+        block_name_elt.classList.remove("block-absolute")
+        always_rel.appendChild(block_name_elt)
+        let block_args_elt = make_dom_elt("div", {class:"block_args"})
+        always_rel.appendChild(block_args_elt)
+        expr = ((expr === undefined) ? this.expr : expr)
+        if(!is_block(expr)){
+            if(typeof(expr) == "string") {
+                expr = value_of_path(expr)
+            }
+            expr = expr.make_dom_elt()
+            expr.classList.remove("block-absolute")
+        }
+        let expr_bt = dom_elt_block_type(expr)
+        let add_parens = false //((expr_bt == Root.jsdb.infix.comparison) ? false : true)
+        if(add_parens) { //need to do this for "catch"
+            block_args_elt.appendChild(make_dom_elt("span", {}, "("))
+        } //don't include if expr is a  comparison since it already have their own internal parens
+        let expr_arg_name_val_elt = make_arg_name_val("", expr)
+        block_args_elt.appendChild(expr_arg_name_val_elt)
+        if(add_parens) {
+            block_args_elt.appendChild(make_dom_elt("span", {}, ")"))
+        }
+        always_rel.appendChild(make_resizer_elt())
+        return result
+    },
+    to_js: function(block_elt){
+        let always_rel     = dom_elt_child_of_class(block_elt, "block_always_relative")
+        let block_name_elt = dom_elt_child_of_class(always_rel, "block_name")
+        let name_string    = block_to_js(block_name_elt) //block_name_elt.innerText
+        let block_args     = dom_elt_child_of_class(always_rel, "block_args")
+        let expr_name_val  = block_args.childNodes[0] //((block_args.childNodes.length == 2) ?  block_args.childNodes[0] :  block_args.childNodes[1])
+        let expr_val       = dom_elt_child_of_class(expr_name_val, "arg_val") //expr_name_val.childNodes[1]
+        let expr_src       = block_to_js(expr_val)
+        //let open_paren_maybe   = (expr_src.startsWith("(") ? "" : "(")
+        //let close_paren_maybe  = (expr_src.endsWith(")")   ? "" : ")")
+        let result = name_string + " " + expr_src
+        return result
+    },
+    click_help_string(block_elt){
+        let always_rel     = dom_elt_child_of_class(block_elt, "block_always_relative")
+        let block_name_elt = dom_elt_child_of_class(always_rel, "block_name")
+        let name_string    = block_name_elt.innerText
+        return name_string
+    }
+})
+
+newObject({prototype: Root.jsdb.rword_expr,
+        name:          "delete",
+        display_label: "delete",
+        category:       Root.BlockCategory.Object,
+        operation:     "delete",
+        operation_choices: null,
+        expr:           Root.jsdb.path
+    }
+)
+/*constructor: function(){
+    this.callPrototypeConstructor()
+},
+//arg_vals are the blocks in the code_body, expr is wrapped in static parens
+make_dom_elt: function(x, y, expr){
+    let always_rel = make_dom_elt("div", {class: "block_always_relative"})
+    let result = make_dom_elt("div",
+        {class:"block block-absolute",
+            "background-color": this.category.color,
+            id: Root.jsdb.get_next_block_id(),
+            left: x + "px",
+            top:  y + "px",
+            draggable: "true",
+            "data-block-type": this.make_data_block_type_string(),
+            onclick: "select_block(event)"
+        },
+        always_rel
+    )
+    let block_name_elt = make_dom_elt("div", {class:"block_name"}, "delete")
+    always_rel.appendChild(block_name_elt)
+    let block_args_elt = make_dom_elt("div", {class:"block_args"})
+    always_rel.appendChild(block_args_elt)
+
+    let expr_elt   = Root.jsdb.path.make_dom_elt()
+    let expr_arg_name_val_elt = make_arg_name_val("", expr_elt)
+    block_args_elt.appendChild(expr_arg_name_val_elt)
+    always_rel.appendChild(make_resizer_elt())
+    return result
+},
+to_js: function(block_elt){
+    let always_rel     = dom_elt_child_of_class(block_elt, "block_always_relative")
+    let block_name_elt = dom_elt_child_of_class(always_rel, "block_name")
+    let block_args     = dom_elt_child_of_class(always_rel, "block_args")
+    let expr_elt       = block_args.childNodes[0].childNodes[1]
+    let result         = "delete " + block_to_js(expr_elt)
+    return result
+},
+click_help_string(block_elt) { return "delete" }
+
+})*/
+/*
+newObject({prototype: Root.jsdb.rword_expr,
+        name:          "yield",
+        display_label: "yield",
+        category:       Root.BlockCategory.Object,
+        expr:           Root.jsdb.path,
+        delegate:       false,
+    make_dom_elt: function(x, y, expr, delegate){
+        let always_rel = make_dom_elt("div", {class: "block_always_relative"})
+        let result = make_dom_elt("div",
+            {class:"block block-absolute",
+                "background-color": this.category.color,
+                id: Root.jsdb.get_next_block_id(),
+                left: x + "px",
+                top:  y + "px",
+                draggable: "true",
+                "data-block-type": this.make_data_block_type_string(),
+                onclick: "select_block(event)"
+            },
+            always_rel
+        )
+        delegate = ((delegate === undefined) ? this.delegate : delegate)
         let block_name_elt = make_dom_elt("div",
             {class:"block_name"},
-            this.display_label)
+            (delegate ? "yield*" : "yield"))
+        always_rel.appendChild(block_name_elt)
+        let block_args_elt = make_dom_elt("div", {class:"block_args"})
+        always_rel.appendChild(block_args_elt)
+        expr = ((expr === undefined) ? this.expr : expr)
+        if(!is_block(expr)){
+            if(typeof(expr) == "string") {
+                expr = value_of_path(expr)
+            }
+            expr = expr.make_dom_elt()
+            expr.classList.remove("block-absolute")
+        }
+        let expr_bt = dom_elt_block_type(expr)
+        let add_parens = false //((expr_bt == Root.jsdb.infix.comparison) ? false : true)
+        if(add_parens) { //need to do this for "catch"
+            block_args_elt.appendChild(make_dom_elt("span", {}, "("))
+        } //don't include if expr is a  comparison since it already have their own internal parens
+        let expr_arg_name_val_elt = make_arg_name_val("", expr)
+        block_args_elt.appendChild(expr_arg_name_val_elt)
+        if(add_parens) {
+            block_args_elt.appendChild(make_dom_elt("span", {}, ")"))
+        }
+        always_rel.appendChild(make_resizer_elt())
+        return result
+    },
+    to_js: function(block_elt){
+        let always_rel     = dom_elt_child_of_class(block_elt, "block_always_relative")
+        let block_name_elt = dom_elt_child_of_class(always_rel, "block_name")
+        let block_args     = dom_elt_child_of_class(always_rel, "block_args")
+        let name_string    = block_name_elt.innerText
+        let expr_name_val  = block_args.childNodes[0] //((block_args.childNodes.length == 2) ?  block_args.childNodes[0] :  block_args.childNodes[1])
+        let expr_val       = dom_elt_child_of_class(expr_name_val, "arg_val") //expr_name_val.childNodes[1]
+        let expr_src       = block_to_js(expr_val)
+        //let open_paren_maybe   = (expr_src.startsWith("(") ? "" : "(")
+        //let close_paren_maybe  = (expr_src.endsWith(")")   ? "" : ")")
+        let result = name_string + " " + expr_src
+        return result
+    }
+    }
+)*/
+
+//not used directly but used as superclass for if, else if, catch
+newObject({prototype: Root.jsdb,
+    name: "rword_expr_code_body",
+    display_label: "",
+    category:  Root.BlockCategory.Control,
+    operation: "required", //if, else if, catch
+    operation_choices: null,
+    expr: "Root.jsdb.infix.comparison", //make it a string because comparison is lower down in the file so this errors on loading the file
+    code_body: undefined,
+    constructor: function(){
+        this.callPrototypeConstructor()
+        if(this.name != "rword_expr_code_body"){
+            if(this.display_label.length == 0) {
+                this.display_label = this.name
+            }
+        }
+    },
+    //arg_vals are the blocks in the code_body, expr is wrapped in static parens
+    make_dom_elt: function(x, y, operation, expr, code_body, operation_choices){
+        let always_rel = make_dom_elt("div", {class: "block_always_relative"})
+        let result = make_dom_elt("div",
+            {class:"block block-absolute",
+                "background-color": this.category.color,
+                id: Root.jsdb.get_next_block_id(),
+                left: x + "px",
+                top:  y + "px",
+                draggable: "true",
+                "data-block-type": this.make_data_block_type_string(),
+                onclick: "select_block(event)"
+            },
+            always_rel
+        )
+        operation = ((operation == undefined) ? this.operation : operation)
+        operation_choices = ((operation_choices == undefined) ? this.operation_choices : operation_choices)
+        let block_name_elt
+        if (operation_choices) {
+            block_name_elt = Root.jsdb.one_of.make_dom_elt(undefined, undefined,
+                                                            operation,
+                                                            operation_choices,
+                                                            false,
+                                                            65)
+            block_name_elt.classList.add("block_name")
+        }
+        else {
+            block_name_elt = make_dom_elt("div", {class:"block_name"}, operation)
+        }
+        block_name_elt.classList.remove("block-absolute")
         always_rel.appendChild(block_name_elt)
         let block_args_elt = make_dom_elt("div", {class:"block_args"})
         always_rel.appendChild(block_args_elt)
@@ -1855,9 +2237,11 @@ newObject({prototype: Root.jsdb,
         if(add_parens) {
             block_args_elt.appendChild(make_dom_elt("span", {}, ")"))
         }
-        let code_body = Root.jsdb.code_body.make_dom_elt(x, y, arg_vals)
-        code_body.classList.remove("block-absolute")
-        let arg_name_val_elt = make_arg_name_val("", code_body)
+        code_body = ((code_body == undefined) ?  this.code_body : code_body)
+        let code_body_elt
+        if(is_block(code_body)) { code_body_elt = code_body }
+        else { code_body_elt = Root.jsdb.code_body.make_dom_elt(x, y, code_body) }
+        let arg_name_val_elt = make_arg_name_val("", code_body_elt)
         block_args_elt.appendChild(arg_name_val_elt)
         always_rel.appendChild(make_resizer_elt())
         return result
@@ -1865,15 +2249,15 @@ newObject({prototype: Root.jsdb,
     to_js: function(block_elt){
         let always_rel     = dom_elt_child_of_class(block_elt, "block_always_relative")
         let block_name_elt = dom_elt_child_of_class(always_rel, "block_name")
+        let name_string    = block_to_js(block_name_elt) //block_name_elt.innerText
         let block_args     = dom_elt_child_of_class(always_rel, "block_args")
-        let name_string    = block_name_elt.innerText
         let expr_name_val  = ((block_args.childNodes.length == 2) ?  block_args.childNodes[0] :  block_args.childNodes[1])
-        let expr_val       = expr_name_val.childNodes[1]
+        let expr_val       = dom_elt_child_of_class(expr_name_val, "arg_val") //expr_name_val.childNodes[1]
         let expr_src       = block_to_js(expr_val)
         let open_paren_maybe   = (expr_src.startsWith("(") ? "" : "(")
         let close_paren_maybe  = (expr_src.endsWith(")")   ? "" : ")")
         let code_body_name_val = ((block_args.childNodes.length == 2) ?  block_args.childNodes[1] :  block_args.childNodes[3])
-        let code_body      = code_body_name_val.childNodes[1]
+        let code_body      = dom_elt_child_of_class(code_body_name_val, "arg_val") //code_body_name_val.childNodes[1]
         let code_body_src  = block_to_js(code_body)
         code_body_src = "{\n" + code_body_src.substring(1) //start the first expr on a newline, like the rest of them
         let result = name_string + open_paren_maybe + expr_src + close_paren_maybe + code_body_src
@@ -1980,13 +2364,16 @@ newObject({prototype: Root.jsdb.for,
         return result
     }
 })
-
+//todo js2b needs work below here.
 newObject({prototype: Root.jsdb.for,
     name:          "for_of",
     display_label: "for of / in",
     category:      Root.BlockCategory.Control,
-    assignment_arg: newObject({prototype: Root.jsdb.identifier,
-                               value: "val"
+    assignment_arg: newObject({prototype: Root.jsdb.assignment,
+                                declaration_type: "let",
+                                variable_name:    "val",
+                                initial_value:    undefined,
+                                show_initial_value: false
     }),
     comparison_arg: newObject({prototype: Root.jsdb.one_of,
                                choices: ["of", "in"],
@@ -2020,6 +2407,7 @@ newObject({prototype: Root.jsdb.for,
 })
 
 //very similar to Root.jsdb.literal.object
+//used ony for fn defs.
 newObject({prototype: Root.jsdb,
     name: "function_params",
     category: null,
@@ -2057,15 +2445,42 @@ newObject({prototype: Root.jsdb,
         let block_args_elt = make_dom_elt("div", {class:"block_args", display:"inline-block", "margin-right":"2px"})
         always_rel.appendChild(block_args_elt)
         params = (params ? params : this.params)
-        let names = Object.keys(params)
-        let last_name = last(names)
-        for(let param_name of names){
-            let param_name_elt     = Root.jsdb.identifier.make_dom_elt(undefined, undefined, param_name)
-            let param_val          = params[param_name]
-            let param_val_elt      = Root.jsdb.value_to_block(param_val)
-            let suffix_char        = ((param_name == last_name) ? "" : ",")
-            let param_arg_name_val = make_arg_name_val(param_name_elt, param_val_elt,  true, "=", suffix_char)
-            block_args_elt.append(param_arg_name_val)
+        if(Array.isArray(params)){
+            for(let i = 0; i < params.length; i++){
+                let param_name_val_array = params[i]
+                let param_name = param_name_val_array[0]
+                let param_name_elt     = Root.jsdb.identifier.make_dom_elt(undefined, undefined, param_name)
+                let param_val          = param_name_val_array[1]
+                let param_val_elt
+                let name_is_editable_string = true
+                let between_name_and_val = "="
+                if(is_literal_object(param_val)) {
+                    if(param_name == "") {
+                        param_name_elt = ""
+                        name_is_editable_string = false //if param_name is "", then no param name will be dispalyed so need to set editable to false
+                        between_name_and_val = "" //so no equal sign will be shown
+                    }
+                    param_val_elt =  Root.jsdb.literal.object.make_dom_elt(undefined, undefined, param_val, "=")
+                }
+                else {
+                    param_val_elt = Root.jsdb.value_to_block(param_val)
+                }
+                let suffix_char        = ((i == (params.length - 1)) ? "" : ",")
+                let param_arg_name_val = make_arg_name_val(param_name_elt, param_val_elt,  name_is_editable_string, between_name_and_val, suffix_char)
+                block_args_elt.append(param_arg_name_val)
+            }
+        }
+        else {
+            let names = Object.keys(params)
+            let last_name = last(names)
+            for(let param_name of names){
+                let param_name_elt     = Root.jsdb.identifier.make_dom_elt(undefined, undefined, param_name)
+                let param_val          = params[param_name]
+                let param_val_elt      = Root.jsdb.value_to_block(param_val)
+                let suffix_char        = ((param_name == last_name) ? "" : ",")
+                let param_arg_name_val = make_arg_name_val(param_name_elt, param_val_elt,  true, "=", suffix_char)
+                block_args_elt.append(param_arg_name_val)
+            }
         }
         delim_elt = make_delimiter_drop_zone(")")
         delim_elt.style["margin-left"]  = "3px" //with an empty array, the [] brackets are too close to one another
@@ -2080,13 +2495,22 @@ newObject({prototype: Root.jsdb,
         let result = "("
         let on_first = true
         for (let arg_name_val of arg_name_vals){
-            let arg_name  = dom_elt_child_of_class(arg_name_val, "arg_name") //this will be a lit string block
+            let arg_name  = dom_elt_child_of_class(arg_name_val, "arg_name") //will be undefiend when have function foo({a=2, b=3}){}
             let arg_val   = dom_elt_child_of_class(arg_name_val, "arg_val")
-            let name_src  = block_to_js(arg_name)
+            let name_src
+            let between_name_and_value
+            if(arg_name) {
+                name_src  = block_to_js(arg_name)
+                between_name_and_value = "="
+            }
+            else { //as when we have a big keyword lit obj
+                name_src = ""
+                between_name_and_value = ""
+            }
             let val_src   = block_to_js(arg_val)
             if (!on_first) { result += ", "}
             result += name_src
-            if (val_src !== "undefined") { result +=  "=" + val_src }
+            if (val_src !== "undefined") { result += between_name_and_value + val_src }
             on_first = false
         }
         return result + ")"
@@ -2103,12 +2527,13 @@ newObject({prototype: Root.jsdb,
     name_arg:       "",
     params_arg:     Root.jsdb.function_params,
     body_arg:       Root.jsdb.code_body,
+    is_generator:  false,
 
     constructor: function(){
         this.callPrototypeConstructor()
     },
     //arg_vals are the blocks in the code_body, expr is wrapped in static parens
-    make_dom_elt: function(x, y, name_arg, params_arg, body_arg){
+    make_dom_elt: function(x, y, name_arg, params_arg, body_arg, is_generator){
         let always_rel = make_dom_elt("div", {class: "block_always_relative"})
         let result = make_dom_elt("div",
             {class:"block block-absolute",
@@ -2123,8 +2548,10 @@ newObject({prototype: Root.jsdb,
             always_rel
         )
         result.style.paddingLeft = "10px"
+        is_generator = ((is_generator === undefined) ? this.is_generator : is_generator)
+        let operation = (is_generator ? "function*" : "function")
         let block_name_elt = Root.jsdb.one_of.make_dom_elt(undefined, undefined,
-                                 "function",
+                                 operation,
                                  ["function&nbsp;&nbsp;&nbsp;(define function)", "function*&nbsp;(define generator)"],
                                  false,
                                  80)
@@ -2191,6 +2618,8 @@ newObject({prototype: Root.jsdb,
     is_static:   false, //if jsclassname = "", this is moot.
     return_type: "any",
     params:      undefined,
+    keyword_params: null, //means we don't know. if we have to take defaults from the method def.
+                         //then fill this in from there.
     //category:"misc",
     constructor: function(){
         if(this != Root.jsdb.method_call){
@@ -2218,14 +2647,16 @@ newObject({prototype: Root.jsdb,
         this.display_label = this.path_array.join(".")
     },
     //https://stackoverflow.com/questions/8389643/css-making-the-content-div-auto-size-after-the-content-within
-    make_dom_elt: function(x, y, path_array, params){
+    make_dom_elt: function(x, y, path_array, params, keyword_params=null){
         let always_rel = make_dom_elt("div", {class: "block_always_relative"})
         let result = make_dom_elt("div",
             {class:"block block-absolute",
                 "background-color": this.category.color,
                 id: Root.jsdb.get_next_block_id(),
+                //margin_left: "10px",
                 left: x + "px",
                 top:  y + "px",
+                "padding-left": "10px", //needed for dragging the whole meth call. Otherwise draggign the upper left will just drag that path out of the meth call.
                 draggable: "true",
                 "data-block-type": this.make_data_block_type_string(),
                 //  ondragstart: "Root.jsdb.dragstart_handler(event)",
@@ -2252,23 +2683,36 @@ newObject({prototype: Root.jsdb,
         let block_args_elt = make_dom_elt("div", {class:"block_args"})
         always_rel.appendChild(block_args_elt)
         params = (params ? params : this.params)
+        keyword_params = (keyword_params ? keyword_params : this.keyword_params)
         if(params) {
-            let names = Object.keys(params)
-            let last_name = last(names)
-            for(let param_name of names){
-                let param_name_elt = make_dom_elt("span", {class: "arg_name"}, param_name)
-                //if (param_name_elt) { block_args_elt.appendChild(param_name_elt) }
-                let param_val = params[param_name]
-                let param_val_elt
-                if(is_block(param_val))            { param_val_elt = param_val }
-                else if (param_val.isA(Root.jsdb)) { param_val_elt = param_val.make_dom_elt() }
-                else                               { param_val_elt = Root.jsdb.value_to_block(param_val) }
-                param_val_elt.classList.remove("block-absolute") //because its not absolute, and should inherit the position:relative of the always_relative wrapper in this block
-                param_val_elt.classList.add("arg_val")
-                //param_val_elt.style["margin-left"] = "10px"
-                let suffix_char = ((param_name != last_name) ? "," : "")
-                let name_val_elt = make_arg_name_val(param_name_elt, param_val_elt, false, "", suffix_char)
+            if(keyword_params) {
+                let param_arg_val = Root.jsdb.literal.object.make_dom_elt(undefined, undefined, params)
+                let name_val_elt = make_arg_name_val("", param_val_elt)
                 block_args_elt.append(name_val_elt)
+            }
+            else if (Array.isArray(params)){ //array of arg_name_val elts. Happens when we parse the js.
+                for(let name_val_elt of params){
+                    block_args_elt.append(name_val_elt)
+                }
+            }
+            else {
+                let names = Object.keys(params)
+                let last_name = last(names)
+                for(let param_name of names){
+                    let param_name_elt = make_dom_elt("span", {class: "arg_name"}, param_name)
+                    //if (param_name_elt) { block_args_elt.appendChild(param_name_elt) }
+                    let param_val = params[param_name]
+                    let param_val_elt
+                    if(is_block(param_val))            { param_val_elt = param_val }
+                    else if (param_val.isA(Root.jsdb)) { param_val_elt = param_val.make_dom_elt() }
+                    else                               { param_val_elt = Root.jsdb.value_to_block(param_val) }
+                    param_val_elt.classList.remove("block-absolute") //because its not absolute, and should inherit the position:relative of the always_relative wrapper in this block
+                    param_val_elt.classList.add("arg_val")
+                    //param_val_elt.style["margin-left"] = "10px"
+                    let suffix_char = ((param_name != last_name) ? "," : "")
+                    let name_val_elt = make_arg_name_val(param_name_elt, param_val_elt, false, "", suffix_char)
+                    block_args_elt.append(name_val_elt)
+                }
             }
         }
         else {
@@ -2318,190 +2762,8 @@ newObject({prototype: Root.jsdb.rword_expr_code_body,
     name:        "while",
     category:    Root.BlockCategory.Control,
     expr:        Root.jsdb.infix.comparison,
+    code_body:   undefined,
     return_type: "undefined"
-})
-
-Root.jsdb.identifiers_postfix
-newObject({prototype: Root.jsdb,
-    name:          "identifiers_postfix",
-    display_label: "i++/--",
-    category:       Root.BlockCategory.Math,
-    selected_identifier: "i",
-    choices: ["++&nbsp;(increment before return)",
-              "--&nbsp;&nbsp;&nbsp;(decriment before return)"],
-    selected_operator:   "++",
-
-    constructor: function(){
-        this.callPrototypeConstructor()
-    },
-    //arg_vals are the blocks in the code_body, expr is wrapped in static parens
-    make_dom_elt: function(x, y, selected_identifier, selected_operator){
-        let always_rel = make_dom_elt("div", {class: "block_always_relative"})
-        let result = make_dom_elt("div",
-            {class:"block block-absolute",
-                "background-color": this.category.color,
-                id: Root.jsdb.get_next_block_id(),
-                left: x + "px",
-                top:  y + "px",
-                draggable: "true",
-                "data-block-type": this.make_data_block_type_string(),
-                onclick: "select_block(event)"
-            },
-            always_rel
-        )
-        let block_name_elt = make_dom_elt("div", {class:"block_name"}, "")
-        always_rel.appendChild(block_name_elt)
-        let block_args_elt = make_dom_elt("div", {class:"block_args"})
-        always_rel.appendChild(block_args_elt)
-
-        selected_identifier = Root.jsdb.param_to_identifiers_block_probably(selected_identifier, this.selected_identifier)
-        selected_operator   = Root.jsdb.param_to_identifiers_block_probably(selected_operator, this.selected_operator, this.choices)
-
-        let identifer_arg_name_val_elt = make_arg_name_val("", selected_identifier)
-        let option_elts = []
-        for(let op of this.choices) {
-            option_elts.push(make_dom_elt("option", {}, op))
-        }
-        let operator_elt   = make_dom_elt("select", {width: "45px"}, option_elts)
-        let operator_arg_name_val_elt = make_arg_name_val("", selected_operator)
-        block_args_elt.appendChild(identifer_arg_name_val_elt)
-        block_args_elt.appendChild(operator_arg_name_val_elt)
-        always_rel.appendChild(make_resizer_elt())
-        return result
-    },
-    to_js: function(block_elt){
-        let always_rel     = dom_elt_child_of_class(block_elt, "block_always_relative")
-        let block_name_elt = dom_elt_child_of_class(always_rel, "block_name")
-        let block_args     = dom_elt_child_of_class(always_rel, "block_args")
-        let ident_elt      = dom_elt_child_of_class(block_args.childNodes[0], "arg_val")
-        let op_select_elt  = dom_elt_child_of_class(block_args.childNodes[1], "arg_val")
-        let op_str         = block_to_js(op_select_elt)
-        let result         = block_to_js(ident_elt) + op_str
-        return result
-    },
-    click_help_string(block_elt){
-        let always_rel     = dom_elt_child_of_class(block_elt, "block_always_relative")
-        let block_args     = dom_elt_child_of_class(always_rel, "block_args")
-        let op_select_elt  = dom_elt_child_of_class(block_args.childNodes[1], "arg_val")
-        let op_str         = op_select_elt.value
-        op_str             = Root.jsdb.clean_select_value(op_str)
-        return op_str
-    }
-})
-
-newObject({prototype: Root.jsdb,
-    name:          "identifiers_prefix",
-    display_label: "! (not), etc",
-    category:       Root.BlockCategory.Logic,
-    selected_identifier: "i",
-    choices: ["!&nbsp;&nbsp;&nbsp;&nbsp;(not)",
-              "~&nbsp;&nbsp;&nbsp;(bitwise not)",
-              "-&nbsp;&nbsp;&nbsp;&nbsp;(negation)",
-              "++&nbsp;(increment after return)",
-              "--&nbsp;&nbsp;&nbsp;(decriment after return)"],
-    selected_operator:   "!",
-
-    constructor: function(){
-        this.callPrototypeConstructor()
-    },
-    //arg_vals are the blocks in the code_body, expr is wrapped in static parens
-    make_dom_elt: function(x, y, selected_identifier, selected_operator){
-        let always_rel = make_dom_elt("div", {class: "block_always_relative"})
-        let result = make_dom_elt("div",
-            {class:"block block-absolute",
-                "background-color": this.category.color,
-                id: Root.jsdb.get_next_block_id(),
-                left: x + "px",
-                top:  y + "px",
-                draggable: "true",
-                "data-block-type": this.make_data_block_type_string(),
-                onclick: "select_block(event)"
-            },
-            always_rel
-        )
-        let block_name_elt = make_dom_elt("div", {class:"block_name"}, "")
-        always_rel.appendChild(block_name_elt)
-        let block_args_elt = make_dom_elt("div", {class:"block_args"})
-        always_rel.appendChild(block_args_elt)
-        selected_identifier = Root.jsdb.param_to_identifiers_block_probably(selected_identifier, this.selected_identifier)
-        selected_operator   = Root.jsdb.param_to_identifiers_block_probably(selected_operator, this.selected_operator, this.choices)
-
-        let identifier_elt = Root.jsdb.identifier.identifiers.make_dom_elt(undefined, undefined, selected_identifier)
-        let identifer_arg_name_val_elt = make_arg_name_val("", selected_identifier)
-        let option_elts = []
-        for(let op of this.choices) {
-            option_elts.push(make_dom_elt("option", {}, op))
-        }
-        let operator_elt   = make_dom_elt("select", {width:"45px"}, option_elts)
-        let operator_arg_name_val_elt = make_arg_name_val("", selected_operator)
-        block_args_elt.appendChild(operator_arg_name_val_elt)
-        block_args_elt.appendChild(identifer_arg_name_val_elt)
-        always_rel.appendChild(make_resizer_elt())
-        return result
-    },
-    to_js: function(block_elt){
-        let always_rel     = dom_elt_child_of_class(block_elt,  "block_always_relative")
-        let block_name_elt = dom_elt_child_of_class(always_rel, "block_name")
-        let block_args     = dom_elt_child_of_class(always_rel, "block_args")
-        let ident_elt      = dom_elt_child_of_class(block_args.childNodes[1], "arg_val")
-        let op_select_elt  = dom_elt_child_of_class(block_args.childNodes[0], "arg_val")//op comes first in prefix
-        let op_str         = block_to_js(op_select_elt)
-        let result         = op_str + block_to_js(ident_elt)
-        return result
-    },
-    click_help_string(block_elt){
-        let always_rel     = dom_elt_child_of_class(block_elt, "block_always_relative")
-        let block_args     = dom_elt_child_of_class(always_rel, "block_args")
-        let op_select_elt  = block_args.childNodes[0].childNodes[1]
-        let op_str         = op_select_elt.value
-        op_str             = Root.jsdb.clean_select_value(op_str)
-        return op_str
-    }
-})
-
-newObject({prototype: Root.jsdb,
-    name:          "delete",
-    display_label: "delete",
-    category:       Root.BlockCategory.Object,
-
-    constructor: function(){
-        this.callPrototypeConstructor()
-    },
-    //arg_vals are the blocks in the code_body, expr is wrapped in static parens
-    make_dom_elt: function(x, y, selected_identifier, selected_operator){
-        let always_rel = make_dom_elt("div", {class: "block_always_relative"})
-        let result = make_dom_elt("div",
-            {class:"block block-absolute",
-                "background-color": this.category.color,
-                id: Root.jsdb.get_next_block_id(),
-                left: x + "px",
-                top:  y + "px",
-                draggable: "true",
-                "data-block-type": this.make_data_block_type_string(),
-                onclick: "select_block(event)"
-            },
-            always_rel
-        )
-        let block_name_elt = make_dom_elt("div", {class:"block_name"}, "delete")
-        always_rel.appendChild(block_name_elt)
-        let block_args_elt = make_dom_elt("div", {class:"block_args"})
-        always_rel.appendChild(block_args_elt)
-
-        let expr_elt   = Root.jsdb.path.make_dom_elt()
-        let expr_arg_name_val_elt = make_arg_name_val("", expr_elt)
-        block_args_elt.appendChild(expr_arg_name_val_elt)
-        always_rel.appendChild(make_resizer_elt())
-        return result
-    },
-    to_js: function(block_elt){
-        let always_rel     = dom_elt_child_of_class(block_elt, "block_always_relative")
-        let block_name_elt = dom_elt_child_of_class(always_rel, "block_name")
-        let block_args     = dom_elt_child_of_class(always_rel, "block_args")
-        let expr_elt       = block_args.childNodes[0].childNodes[1]
-        let result         = "delete " + block_to_js(expr_elt)
-        return result
-    },
-    click_help_string(block_elt) { return "delete" }
 })
 
 newObject({prototype: Root.jsdb.literal.array,
@@ -2540,32 +2802,13 @@ newObject({prototype: Root.jsdb.one_of,
 })
 
 
-
-
-newObject({prototype: Root.jsdb.method_call,
-    name: "Math__abs",
-    category: Root.BlockCategory.Math,
-    path_array: ["Math", "abs"],
-    is_static: true,
-    return_type: "number",
-    params: {arg0: Root.jsdb.literal.number}
-})
-
-newObject({prototype: Root.jsdb.method_call,
-    name: "Math__pow",
-    category: Root.BlockCategory.Math,
-    path_array: ["Math", "pow"],
-    is_static: true,
-    return_type: "number",
-    params: {arg0: Root.jsdb.literal.number, arg1: Root.jsdb.literal.number,
-             arg2: Root.jsdb.literal.number, arg3: Root.jsdb.literal.number}
-})
-
 Root.BlockCategory.Control.add_block_type_header("CONDITIONAL")
 
 newObject({prototype: Root.jsdb.rword_expr_code_body,
     name:        "if",
     category:    Root.BlockCategory.Control,
+    operation:   "if",
+    operation_choices: ["if", "else if"],
     expr:        Root.jsdb.infix.comparison,
     return_type: "undefined"
 })
@@ -2574,13 +2817,17 @@ newObject({prototype: Root.jsdb.rword_expr_code_body,
     name:           "elseif", //tricky because can't have space in it.
     display_label:  "else if",
     category:       Root.BlockCategory.Control,
+    operation:      "else if",
+    operation_choices: ["if", "else if"],
     expr:           Root.jsdb.infix.comparison,
     return_type:    "undefined"
 })
 
 newObject({prototype: Root.jsdb.rword_code_body,
-    name:        "else",
+    name:           "else",
+    display_label:  "else",
     category:     Root.BlockCategory.Control,
+    code_body:    undefined,
     return_type: "undefined"
 })
 
@@ -2600,20 +2847,43 @@ Root.BlockCategory.Control.add_block_type_header("ERROR HANDLING")
 newObject({prototype: Root.jsdb.rword_code_body,
            name: "try",
            category: Root.BlockCategory.Control,
+           code_body:     undefined,
            return_type: "undefined"
 })
 
 newObject({prototype: Root.jsdb.rword_expr_code_body,
-    name: "catch",
-    category: Root.BlockCategory.Control,
-    expr: newObject({prototype: Root.jsdb.identifier, value: "err"}),
-    return_type: "undefined"
+            name: "catch",
+            category: Root.BlockCategory.Control,
+            operation: "catch",
+            expr: newObject({prototype: Root.jsdb.identifier, value: "err"}),
+            code_body: undefined,
+            return_type: "undefined"
 })
 
 newObject({prototype: Root.jsdb.rword_code_body,
-    name: "finally",
-    category: Root.BlockCategory.Control,
-    return_type: "undefined"
+            name:       "finally",
+            category:    Root.BlockCategory.Control,
+            code_body:   undefined,
+            return_type: "undefined"
+})
+
+newObject({prototype: Root.jsdb.method_call,
+    name: "Math__abs",
+    category: Root.BlockCategory.Math,
+    path_array: ["Math", "abs"],
+    is_static: true,
+    return_type: "number",
+    params: {arg0: Root.jsdb.literal.number}
+})
+
+newObject({prototype: Root.jsdb.method_call,
+    name: "Math__pow",
+    category: Root.BlockCategory.Math,
+    path_array: ["Math", "pow"],
+    is_static: true,
+    return_type: "number",
+    params: {arg0: Root.jsdb.literal.number, arg1: Root.jsdb.literal.number,
+        arg2: Root.jsdb.literal.number, arg3: Root.jsdb.literal.number}
 })
 
 newObject({prototype: Root.jsdb.class_instance,

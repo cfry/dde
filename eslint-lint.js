@@ -334,6 +334,8 @@
         "_cal": false,
         "_ft_lbf": false,
         "_BTU": false
+
+        //"of": false doesn't work for getting rid of the warning
     }
   }
   

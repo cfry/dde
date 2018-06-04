@@ -355,7 +355,7 @@ window.show_window = function({content = "", title = "DDE Information", width = 
         setTimeout(install_onclick_via_data_fns, 10) //todo probably shouldn't have both of these!
         setTimeout(function(){install_submit_window_fns(jqxw_jq)}, 10)
         if (init_elt_id){
-            setTimeout(function(){window[init_elt_id].click()} , 50)
+            setTimeout(function(){window[init_elt_id].click()} , 100)
         }
         return the_window_index //used by dex.train
 }

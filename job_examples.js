@@ -1,7 +1,7 @@
 /* Created by Fry on 3/11/16.*/
 var job_examples = [
 `new Job({name: "my_job",
-         do_list: [Dexter.move_all_joints(30, 45, 60, 90, 120)]})
+         do_list: [Dexter.move_all_joints([30, 45, 60, 90, 120])]})
 `,
 
 `//////// Job Example 1
@@ -579,7 +579,7 @@ new Job({name: "j10",
          robot: Robot.S1,
          do_list: [Serial.string_instruction("y"),
                    Robot.grab_robot_status("yes_result"),
-                   Robot.wait_until(2)),
+                   Robot.wait_until(2),
                    Serial.string_instruction("n"),
                    Robot.grab_robot_status("no_result", Serial.DATA0)
                    ]}

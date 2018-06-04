@@ -12,15 +12,15 @@ var JS2B = class JS2B{
           return esprima.parse(src, {range: true, loc: true})
       }
   }
-  static js_to_block(src){
-      let st
+
+  //returns a block_elt or an array of block_elts
+  static js_to_blocks(src){
       try {
         let st = JS2B.string_to_ast(src) //esprima.parse(src, {range: true, loc: true}) //st for syntax tree.
         let switcher = st.type
-        let part = st
         switch(switcher) {
-            case "ObjectExpression": return JS2B[switcher].call(undefined, part);
-            case "Program":          return JS2B[switcher].call(undefined, part);
+            case "ObjectExpression": return JS2B[switcher].call(undefined, st);
+            case "Program":          return JS2B[switcher].call(undefined, st);
             default: shouldnt("Can't handle exprima type: " + switcher)
         }
       }
@@ -30,13 +30,19 @@ var JS2B = class JS2B{
   }
   static Program(st){
       let switcher = st.sourceType
-      let part     = st.body[0]
       switch(switcher) {
           case "module": dde_error("unimplemented: JS2B module");
-          case "script": return JS2B[switcher].call(undefined, part);
+          case "script": {
+              let result = []
+              for(let part of st.body) { //expect multiple top level parts.
+                  result.push(JS2B[switcher].call(undefined, part))
+              }
+              return result
+          }
           default: shouldnt("Can't handle exprima switcher: " + switcher)
       }
   }
+
   static script(st){
       let switcher = st.type
       switch(switcher){
@@ -44,7 +50,12 @@ var JS2B = class JS2B{
           case "ExpressionStatement": return JS2B[switcher].call(undefined, st);
           case "ForStatement":        return JS2B[switcher].call(undefined, st);
           case "ForOfStatement":      return JS2B[switcher].call(undefined, st);
+          case "FunctionDeclaration": return JS2B[switcher].call(undefined, st);
+          case "IfStatement":         return JS2B[switcher].call(undefined, st);
+          case "TryStatement":        return JS2B[switcher].call(undefined, st);
           case "VariableDeclaration": return JS2B[switcher].call(undefined, st);
+          case "WhileStatement":      return JS2B[switcher].call(undefined, st);
+
           default: shouldnt("Can't handle exprima switcher: " + switcher)
       }
   }
@@ -79,8 +90,10 @@ var JS2B = class JS2B{
                //whereas the "object" encompasses all path elts except the last name, ie foo.bar
 
           case "NewExpression":        return JS2B[switcher].call(undefined, part);
+          case "ReturnStatement":      return JS2B[switcher].call(undefined, part);
           case "UnaryExpression":      return JS2B[switcher].call(undefined, part);
           case "UpdateExpression":     return JS2B[switcher].call(undefined, part);
+          case "YieldExpression":      return JS2B[switcher].call(undefined, part);
           default: shouldnt("Can't handle exprima switcher: " + switcher)
       }
   }
@@ -96,7 +109,9 @@ var JS2B = class JS2B{
   static ForOfStatement(st){
         let left   = JS2B[st.left.type].call(undefined, st.left);
         //but have to remove the init val and equal sign of the declaration
-        Root.jsdb.assignment.remove_init_val(left)
+        if (dom_elt_block_type(left).isA(Root.jsdb.assignment)) {
+            Root.jsdb.assignment.remove_init_val(left)
+        }
         let of_elt = newObject({prototype: Root.jsdb.one_of,
                                 choices: ["of", "in"],
                                 value: "of",
@@ -105,6 +120,12 @@ var JS2B = class JS2B{
         let right  = JS2B[st.right.type].call(undefined, st.right);
         let body   = JS2B[st.body.type].call(undefined, st.body);
         return Root.jsdb.for.for_of.make_dom_elt(undefined, undefined, left, of_elt, right, body)
+  }
+
+  static WhileStatement(st){
+      let test_elt   = JS2B[st.test.type].call(undefined, st.test);
+      let body_elt   = JS2B[st.body.type].call(undefined, st.body);
+      return Root.jsdb.rword_expr_code_body.while.make_dom_elt(undefined, undefined, test_elt, body_elt)
   }
 
   static ArrayExpression(st){
@@ -139,8 +160,12 @@ var JS2B = class JS2B{
           return JS2B.get_src(st.object) +  "." + JS2B.get_src(st.property)
       }
   }
-
-  static CallExpression(st){
+  /* this grabs all the possible params from the fn def of the fn call
+     and supplies ALL of them in the output block (with default vals),
+     not just the ones passed. BUT
+    doesn't handle keyworded fns properly.
+ */
+ /* static CallExpression(st){
       let callee   = st.callee //could be a single Identifier or could be MemberExpression when its a path
       let meth_src = JS2B.get_src(callee)
       let meth     = value_of_path(meth_src)
@@ -149,8 +174,10 @@ var JS2B = class JS2B{
       let meth_block = JS2B[callee.type].call(undefined, callee)
       let arg_blocks = {}
       let iterations
-      if(param_names_and_defaults) { iterations = Math.max(param_names_and_defaults.length, st.arguments.length) }
-      else                         { iterations = st.arguments.length }
+      if(param_names_and_defaults) {
+             iterations = Math.max(param_names_and_defaults.length, st.arguments.length)
+      }
+      else { iterations = st.arguments.length }
       for(let i = 0; i < iterations;  i++){
          let arg_val_block
          if (i < st.arguments.length) {
@@ -171,6 +198,34 @@ var JS2B = class JS2B{
       }
       let call_block = Root.jsdb.method_call.make_dom_elt(undefined, undefined, meth_block, arg_blocks)
       return call_block
+  }
+ */
+  //this does not add non passed args with their default vals
+  // the new def
+   static CallExpression(st){
+      let callee   = st.callee //could be a single Identifier or could be MemberExpression when its a path
+      let meth_block = JS2B[callee.type].call(undefined, callee) //might be a path, or a single "Literal" identifier
+      let meth_src = JS2B.get_src(callee)
+      let meth     = value_of_path(meth_src)
+      let param_arrays = null
+      if(meth) { param_arrays = function_param_names_and_defaults_array(meth) }
+      let arg_blocks = []
+      for(let i = 0; i < st.arguments.length; i++){
+          let arg_ast = st.arguments[i]
+          let name = "arg" + i
+          if(param_arrays) {
+            if (i >= param_arrays.length) { name = "Xarg" + i }
+            else                          { name = param_arrays[i][0] }
+          }
+          let arg_st = st.arguments[i]
+          let arg_val_block = JS2B[arg_st.type].call(undefined, arg_st)
+          let suffix_char = ","
+          if (i == (st.arguments.length - 1)) { suffix_char = "" }
+          let arg_name_val_elt = make_arg_name_val(name, arg_val_block, false, "", suffix_char )
+          arg_blocks.push(arg_name_val_elt)
+      }
+      let result = Root.jsdb.method_call.make_dom_elt(undefined, undefined, meth_block, arg_blocks)
+      return result
   }
 
 //called for paths
@@ -217,9 +272,132 @@ var JS2B = class JS2B{
     return result_block
   }
 
-    // ie:  -23  is a Unary Expression
+  static FunctionDeclaration(st){
+      let fn_name = "" //used in annoymous fn defs
+      if (st.id) { fn_name = st.id.name }
+      //else {} //handles annoymous fn defs.
+      let param_arg_name_vals = [] //an array of arrays. Each inner array has the param name and the default val block elt.
+      for(let param_st of st.params) {
+          let param_name
+          let param_val
+          if (param_st.type == "Identifier"){
+              param_name = param_st.name
+              param_val = Root.jsdb.one_of.null_undefined.make_dom_elt(undefined, undefined, undefined)
+          }
+          else if(param_st.type == "AssignmentPattern"){
+              param_name = param_st.left.name
+              param_val = JS2B[param_st.right.type].call(undefined, param_st.right)
+          }
+          else if (param_st.type == "ObjectPattern"){ //happens when function foo ({a=1, b=2})
+              param_name = ""
+              param_val = {}
+              for(let prop of param_st.properties){
+                  let prop_assign_pat = prop.value
+                  let prop_name = prop_assign_pat.left.name
+                  let prop_val_block_elt = JS2B[prop_assign_pat.right.type].call(undefined, prop_assign_pat.right)
+                  param_val[prop_name] = prop_val_block_elt
+              }
+          }
+          else {
+              shouldnt("FunctionDexlaration for: " + fn_name + " got unhandled param type of: " + param_st.type)
+          }
+          param_arg_name_vals.push([param_name, param_val])
+      }
+      let params_block_elt = Root.jsdb.function_params.make_dom_elt(undefined, undefined, param_arg_name_vals)
+      let body_st = st.body
+      let body_block_elt = JS2B[body_st.type].call(undefined, body_st)
+      let is_generator = st.generator
+      return Root.jsdb.function.make_dom_elt(undefined, undefined, fn_name, params_block_elt, body_block_elt, is_generator)
+  }
+
+  static FunctionExpression(st, operation="if"){
+      return JS2B.FunctionDeclaration.call(undefined, st)
+  }
+  //always returns an array of block elts
+  static IfStatement(st, operation="if"){
+      let test = st.test
+      let test_elt = JS2B[test.type].call(undefined, test)
+      let consequent = st.consequent
+      let consequent_elt = JS2B[consequent.type].call(undefined, consequent)
+      let one_clause
+      if(operation == "if") {
+          one_clause = [Root.jsdb.rword_expr_code_body.if.make_dom_elt(undefined, undefined, operation, test_elt, consequent_elt)]
+      }
+      else { //operation is "else if"
+          one_clause = [Root.jsdb.rword_expr_code_body.elseif.make_dom_elt(undefined, undefined, operation, test_elt, consequent_elt)]
+      }
+      if(st.alternate) {
+        if(st.alternate.type == "IfStatement") { //alternate is an "else if"
+            return one_clause.concat(JS2B.IfStatement(st.alternate, "else if"))
+        }
+        else { //alternate is a "else". usually st.alternative.type is ExpressionStatement
+            let bod_block_elt = JS2B[st.alternate.type].call(undefined, st.alternate)
+            let block_elt = Root.jsdb.rword_code_body.else.make_dom_elt(undefined, undefined, bod_block_elt)
+            one_clause.push(block_elt)
+            return one_clause
+        }
+      }
+      else { return one_clause }
+  }
+
+    static TryStatement(st){
+        let block_st = st.block
+        let block_elt = JS2B[block_st.type].call(undefined, block_st)
+        let try_elt = Root.jsdb.rword_code_body.try.make_dom_elt(undefined, undefined, block_elt)
+        let result = [try_elt]
+        if(st.handler) {
+            let catch_elt = JS2B.CatchClause(st.handler)
+            result.push(catch_elt)
+        }
+        if (st.finalizer) {
+            let inner_elt = JS2B[st.finalizer.type].call(undefined, st.finalizer)
+            let finally_elt = Root.jsdb.rword_code_body.finally.make_dom_elt(undefined, undefined, inner_elt)
+            result.push(finally_elt)
+        }
+        return result
+    }
+
+    static CatchClause(st){
+        let param_elt = JS2B[st.param.type].call(undefined, st.param)
+        let body_elt  = JS2B[st.body.type].call(undefined, st.body)
+        let catch_elt = Root.jsdb.rword_expr_code_body.catch.make_dom_elt(undefined, undefined, "catch", param_elt, body_elt)
+        return catch_elt
+    }
+     /*   let test_elt = JS2B[test.type].call(undefined, test)
+        let consequent = st.consequent
+        let consequent_elt = JS2B[consequent.type].call(undefined, consequent)
+        let one_clause
+        if(operation == "if") {
+            one_clause = [Root.jsdb.rword_expr_code_body.if.make_dom_elt(undefined, undefined, operation, test_elt, consequent_elt)]
+        }
+        else { //operation is "else if"
+            one_clause = [Root.jsdb.rword_expr_code_body.elseif.make_dom_elt(undefined, undefined, operation, test_elt, consequent_elt)]
+        }
+        if(st.alternate) {
+            if(st.alternate.type == "IfStatement") { //alternate is an "else if"
+                return one_clause.concat(JS2B.IfStatement(st.alternate, "else if"))
+            }
+            else { //alternate is a "else". usually st.alternative.type is ExpressionStatement
+                let bod_block_elt = JS2B[st.alternate.type].call(undefined, st.alternate)
+                let block_elt = Root.jsdb.rword_code_body.else.make_dom_elt(undefined, undefined, bod_block_elt)
+                one_clause.push(block_elt)
+                return one_clause
+            }
+        }
+        else { return one_clause }
+    }*/
+
+    // ie:  -23  is a Unary Expression, delete is a unary expression.
   static UnaryExpression(st){
-      return JS2B.UpdateExpression(st) //works for -23  but maybe not for others.
+      let op = st.operator
+      switch(op){
+          case "delete":
+            let arg_type = st.argument.type
+            let expr_block  = JS2B[arg_type].call(undefined, st.argument)
+            return Root.jsdb.rword_expr.delete.make_dom_elt(undefined, undefined, "delete", expr_block, null)
+          default:
+            return JS2B.UpdateExpression(st) //works for -23  but maybe not for others.
+      }
   }
 
     static UpdateExpression(st){
@@ -248,15 +426,28 @@ var JS2B = class JS2B{
 
   static VariableDeclarator(st, kind="var"){ //kind can also be "let"
       let name_string = st.id.name
-      let inititial_value_st = st.init
-      let inititial_value_block
-      if (inititial_value_st === null) {
+      let initial_value_st = st.init
+      let initial_value_block
+      if (initial_value_st === null) {
           // inititial_value_st = undefined  //not used
-          inititial_value_block = Root.jsdb.one_of.null_undefined.make_dom_elt(undefined, undefined, "undefined")
+          initial_value_block = Root.jsdb.one_of.null_undefined.make_dom_elt(undefined, undefined, "undefined")
       }
-      else { inititial_value_block = JS2B[inititial_value_st.type].call(undefined, inititial_value_st) }
-      return Root.jsdb.assignment.make_dom_elt(undefined, undefined, kind, name_string, inititial_value_block)
+      else { initial_value_block = JS2B[initial_value_st.type].call(undefined, initial_value_st) }
+      return Root.jsdb.assignment.make_dom_elt(undefined, undefined, kind, name_string, initial_value_block)
   }
+
+    static ReturnStatement(st){
+        let arg = st.argument
+        let operation = "return"
+        let arg_block = JS2B[arg.type].call(undefined, arg)
+        return Root.jsdb.rword_expr.make_dom_elt(undefined, undefined, operation, arg_block)
+    }
+    static YieldExpression(st){
+        let arg = st.argument
+        let operation = (st.delegate ? "yield*" : "yield")
+        let arg_block = JS2B[arg.type].call(undefined, arg)
+        return Root.jsdb.rword_expr.make_dom_elt(undefined, undefined, operation, arg_block)
+    }
 
   static Identifier(st){
       let name = st.name
@@ -267,6 +458,10 @@ var JS2B = class JS2B{
       }
   }
 
+    static ThisExpression(st){
+        return Root.jsdb.identifier.identifiers.make_dom_elt(undefined, undefined, "this")
+    }
+
   static Literal(st){
      let part = st.value
      return Root.jsdb.value_to_block(part)
@@ -276,11 +471,20 @@ var JS2B = class JS2B{
       let name_val_block_elt_lit_obj = {} //names of strings, vals of actual block elts
       for(let prop of st.properties){
           let key = prop.key //typically (at least) identifier
-          let name_string = key.name
+          let name
+          if (key.type == "Identifier") { name = key.name }
+              //the below turn into strings anyway, so no utility in giving them real values.
+              //but I do speical case these strings in Root.jsdb.literal.object.make_dom_elt
+              //if      (key.name == "null")  { name = null }
+              //else if (key.name == "true")  { name = true }
+              // else if (key.name == "false") { name = false }
+              // else                          { name = key.name } // a string
+
+          else if (key.type == "Literal") { name = key.value } //works for strings a la "a str" and numbers.
           //let key_block_elt = JS2B[key.type].call(undefined, key)
           let val = prop.value
           let value_block_elt = JS2B[val.type].call(undefined, val)
-          name_val_block_elt_lit_obj[name_string] = value_block_elt
+          name_val_block_elt_lit_obj[name] = value_block_elt
       }
       let lit_obj_block = Root.jsdb.literal.object.make_dom_elt(undefined, undefined, name_val_block_elt_lit_obj)
       return lit_obj_block

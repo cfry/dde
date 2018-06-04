@@ -146,7 +146,8 @@ Instruction.args = function(ins_array){
 
 //user might call this at top level in a do_list so make it's name short.
 function make_ins(instruction_type, ...args){
-    if(!Dexter.instruction_type_to_function_name_map[instruction_type]){
+    if(!Dexter.instruction_type_to_function_name_map[instruction_type] &&
+       !Serial.instruction_type_to_function_name_map[instruction_type]){
         warning("make_ins called with an invalid instruction_type: " + instruction_type +
                 "<br/>make_ins still returning an array using: " + instruction_type)
     }

@@ -316,6 +316,14 @@ function pad_integer(int, places=3, pad_char="0"){
     return result
 }
 
+function to_fixed_smart(num, digits=0){
+    try{ return num.toFixed(digits)}
+    catch(err){
+        warning("to_fixed_smart called with non_number: " + num)
+        return "" + num
+    }
+}
+
 function is_json_date(a_string){
     if((a_string.length > 19) && (a_string.length < 30)) {//impresise
         return (is_string_a_integer(a_string.substring(0, 4)) &&
@@ -740,6 +748,89 @@ function function_param_names_and_defaults(fn){
         return [param_names, "{}"]
     }
     else { return params_string_to_param_names_and_defaults(params_full_string) }
+}
+
+//returns an array of arrays. Each param is representated an a array of
+//1 or 2 elements. THe first elt is the param name and
+// the 2nd elt is the defualt value (which might be the symbol undefined
+//if you have a fn of function foo(a, b=2 {c=3, d=4}, {e=5, f=6}={}) {} then this fnunction returns
+//the param names and the SOURCE CODE of the default values.
+//[["a", "undefined"], ["b","2"], ["", {c="3", d="4"}], ["", {e:"5", f:"6"}] }
+/*function function_param_names_and_defaults_array(fn){
+    let params_full_string = function_params(fn, false)
+    let params_string = params_full_string
+    if (params_full_string.startsWith("{")){
+        if (params_full_string.endsWith("= {}") ||
+            params_full_string.endsWith("={}")){
+            let closing_equal = params_full_string.lastIndexOf("=")
+            params_string = params_full_string.substring(0, closing_equal).trim()
+        }
+        params_string = replace_substrings(params_string, "\\n", " ")
+        var inner_params_and_defaults = params_string.substring(1, params_string.length -1) //cut off { and }
+        var inner_params_and_defaults_array = inner_params_and_defaults.split(",")
+        var param_names = []
+        for(let inner_param_and_default of inner_params_and_defaults_array){
+            inner_param_and_default = inner_param_and_default.trim()
+            let the_param_default_array = inner_param_and_default.split("=")
+            the_param_default_array[0] = the_param_default_array[0].trim()
+            the_param_default_array[1] = the_param_default_array[1].trim()
+            param_names.push(the_param_default_array)
+            //obj[the_param_default_array[0]] = the_param_default_array[1]
+        }
+        return [param_names, "{}"]
+    }
+    else { return params_string_to_param_names_and_defaults(params_full_string) }
+}*/
+
+function function_param_names_and_defaults_array(fn){
+    debugger
+    let param_string = "function foo(" + function_params(fn, false) + "){}"
+    let ast = esprima.parse(param_string, {range: true, raw: true})
+    let params_ast = ast.body[0].params
+    let result = []
+    for (let param_ast of params_ast){
+        let name
+        let val_src
+        switch(param_ast.type){
+            case "Identifier":
+                result.push([param_ast.name, undefined])
+                break;
+            case "AssignmentPattern": //ie has an equal sign
+                if (param_ast.left.type == "Identifier"){ //ie a = 2
+                    name = param_ast.left.name
+                    val_src = param_names_get_default_val_src(param_string,
+                        param_ast.right)
+                }
+                else if (param_ast.left.type == "ObjectPattern"){  //ie {a:2} = {}
+                    name = "" //no real param name
+                    val_src = param_names_get_default_val_src(param_string,
+                        param_ast.left)
+                }
+                result.push([name, val_src])
+                break;
+            case "ObjectPattern": //ie {a:2, b:3}
+                name = "" //no real param name
+                val_src = param_names_get_default_val_src(param_string,
+                    param_ast)
+                //for(let prop of param_ast.properties){
+                //	let ass_pat_ast = prop.value
+                //  let name = ass_pat_ast.left.name
+                //  let val_src = param_names_get_default_val_src(param_string,
+                //                                                ass_pat_ast.right)
+                result.push([name, val_src])
+                //}
+                break;
+            default:
+                shouldnt("in param_names_and_defaults_array for fn: " + fn)
+        }//end switch
+    }//end for
+    return result
+}
+
+function param_names_get_default_val_src(full_string, ast){
+    let offset = 0 //"function foo(".length + 1
+    return full_string.substring(ast.range[0] + offset,
+        ast.range[1] + offset)
 }
 
 //params_full_string can either be wrapped in parens or not
