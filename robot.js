@@ -725,12 +725,15 @@ Serial.string_instruction = function(instruction_string){
     return make_ins("I", instruction_string)
 }
 
-/*anticipate classes for Dexter2, etc. */
+/*anticipate classes for Dexter2, etc.
+//the pose matrix includes info on position and orientation
+* */
 Dexter = class Dexter extends Robot {
     constructor({name = "dex1", simulate = null,
                  ip_address = null, port = null,
-                 pose = Vector.identity_matrix(4), //default position and orientation
-                 enable_heartbeat=true, instruction_callback=Job.prototype.set_up_next_do }={}){  //"192.168.1.144"
+                 pose = Vector.identity_matrix(4),
+                 enable_heartbeat=true,
+                 instruction_callback=Job.prototype.set_up_next_do }={}){  //"192.168.1.144"
         //because arguments[0] doesn't work like it does for fns, I have to resort to this redundancy
         if(!ip_address) { ip_address = persistent_get("default_dexter_ip_address") }
         if(!port)       { port       = persistent_get("default_dexter_port") }

@@ -141,18 +141,18 @@ function is_letter_or_underscore(char) {
     else { return false; }
 }
 
-function is_string_a_integer(a_string){
-    var pat = /^-?[0-9]+$/;
-    if(a_string.match(pat)) {  return true; }
-    else { return false; }
+function is_integer(num) {
+    return (typeof num === 'number') && (num % 1 === 0);
 }
 
 function is_non_neg_integer(anything){
     return Number.isInteger(anything) && (anything > -1)
 }
 
-function is_integer(num) {
-    return (typeof num === 'number') && (num % 1 === 0);
+function is_string_a_integer(a_string){
+    var pat = /^-?[0-9]+$/;
+    if(a_string.match(pat)) {  return true; }
+    else { return false; }
 }
 
 function is_string_a_float(a_string){
@@ -183,6 +183,17 @@ function is_string_a_literal_string(a_string){
     else if (a_string.startsWith("'") && a_string.endsWith("'")) { return true }
     else if (a_string.startsWith("`") && a_string.endsWith("`")) { return true }
     else { return false }
+}
+
+function is_string_a_path(path_string_maybe){
+   if(typeof(path_string_maybe) !== "string") { return false }
+   else {
+       let arr = path_string_maybe.split(".")
+       for(let ident of arr) {
+           if (!is_string_an_identifier(ident)) { return false}
+       }
+       return true
+   }
 }
 
 //needs work
@@ -1489,4 +1500,12 @@ var Duration = class Duration {
     }
 
     to_seconds(){ return this.milliseconds / 1000 }
+}
+
+function make_ins_arrays(ins){
+    let result = []
+    for(let instr of ins) {
+        result.push(make_ins(...instr))
+    }
+    return result
 }

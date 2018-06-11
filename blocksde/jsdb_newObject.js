@@ -136,10 +136,11 @@ newObject({
             for(let i = 0; i < params_obj.length; i++){
                 let param_name_val_array = params_obj[i]
                 let param_name           = param_name_val_array[0]
-                if (names_are_identifiers) {
+                if ((names_are_identifiers) || (typeof(param_name) === "string")) {
                     param_name = Root.jsdb.identifier.make_dom_elt(undefined, undefined, param_name)
                 }
                 let param_default_src    = param_name_val_array[1]
+                if (param_default_src === undefined) { param_default_src = "undefined" }
                 //let param_default_value  = ((param_default_src == "{}") ? {} : eval(param_default_src)) //bug in js eval
                 //let arg_val_elt          = Root.jsdb.value_to_block(param_default_value, param_default_src)
                 let arg_val_elt          = JS2B.js_to_blocks(param_default_src)[0]
@@ -744,6 +745,7 @@ newObject({prototype: Root.jsdb,
                                         //value: this.value,
                                         margin:  "4px",
                                         padding: "0px",
+                                        "font-size": "13px !important", //doesn't work. still shows in font-size 11 grrrr.
                                         ondragenter:"enter_drop_target(event)",
                                         ondragleave:"leave_drop_target(event)"},
                                     choice_elts)
@@ -781,7 +783,7 @@ newObject({prototype: Root.jsdb,
                    //each elt can be a string, a block, or a Root.jsdb instance.
     constructor: function(){ this.callPrototypeConstructor() },
     //similar to method_call.make_dom_elt
-    make_dom_elt: function(x, y, path_elements){ //arg_vals can be an array of the elts of the array, or not passed
+    make_dom_elt: function(x, y, path_elements){ //arg_vals can be an array of the elts of the array, or a string (maybe with dots in it) or not passed.
         let always_rel = make_dom_elt("div",
                                       {class: "block_always_relative",
                                       "min-width": "28px", //otherwise the resizer box appears on top of the []
@@ -811,6 +813,7 @@ newObject({prototype: Root.jsdb,
         let block_args_elt = make_dom_elt("div", {class:"block_args", display:"inline-block", "margin-right":"2px"})
         always_rel.appendChild(block_args_elt)
         path_elements = (path_elements ? path_elements : this.path_elements)
+        if (typeof(path_elements) == "string")  { path_elements = path_elements.split(".") } //turns a string of 1 or more dot separated path element into an array of identifiers
         let last_elt = last(path_elements)
         let processed_path_elts = []
         for(let path_elt of path_elements){
@@ -1076,8 +1079,8 @@ newObject({prototype: Root.jsdb,
     category: Root.BlockCategory.Misc,
     display_label: "js source",
     return_type: "any",
-    value: "",
-    make_dom_elt: function(x=0, y=0, arg_val){
+    js_src: "",
+    make_dom_elt: function(x=0, y=0, js_src){
         let always_rel = make_dom_elt("div", {class: "block_always_relative"})
         let result = make_dom_elt("div",
             {class:"block block-absolute",
@@ -1097,13 +1100,13 @@ newObject({prototype: Root.jsdb,
                                             "js"))
         let block_args_elt = make_dom_elt("div", {class:"block_args", display:"inline-block", "margin-top": "0px", "padding-top": "0px"})
         always_rel.appendChild(block_args_elt)
-        let val = ((typeof(arg_val) == "string") ? arg_val : this.value)
-        let width = Root.jsdb.literal.string.compute_width(val, 15, 3)
+        js_src = ((js_src === undefined) ? this.js_src : js_src )
+        let width = Root.jsdb.literal.string.compute_width(js_src, 15, 3)
         let val_elt = make_dom_elt("input",
                {class:"arg_val",
                 type: "text",
                 "margin-left": "0px",
-                value: (arg_val? arg_val : this.value),
+                value: js_src,
                 style: "width:" + width + "px;",
                 margin: "0px",
                 padding: "0px",
@@ -1290,7 +1293,8 @@ newObject({prototype: Root.jsdb.identifier,
                                     margin:  "0px",
                                     padding: "0px",
                                     "font-size": "14px",
-                                    //oninput: "Root.jsdb.literal.string.oninput(event)",//does nothing for th jqx widget
+                                    //style: "vertical-align:0%;", //doesn't help
+                                        //oninput: "Root.jsdb.literal.string.oninput(event)",//does nothing for th jqx widget
                                     ondragenter:"enter_drop_target(event)",
                                     ondragleave:"leave_drop_target(event)"
                                     })
@@ -1649,11 +1653,11 @@ newObject({prototype: Root.jsdb,
         variable_name    = ((variable_name    == undefined) ? this.variable_name : variable_name)
         initial_value    = ((initial_value    == undefined) ? this.initial_value : initial_value)
 
-        let kind_elt = make_dom_elt("select", {class: "assignment_kind", "vertical-align": "baseline"},
-                                     [make_dom_elt("option", ((declaration_type == "")      ? {selected: "selected"} : {}), ""),
-                                      make_dom_elt("option", ((declaration_type == "let")   ? {selected: "selected"} : {}), "let"),
-                                      make_dom_elt("option", ((declaration_type == "var")   ? {selected: "selected"} : {}), "var"),
-                                      make_dom_elt("option", ((declaration_type == "const") ? {selected: "selected"} : {}), "const")
+        let kind_elt = make_dom_elt("select", {class: "assignment_kind", "vertical-align": "baseline",  width: "60px"},
+                                     [make_dom_elt("option", ((declaration_type == "")      ? {selected: "selected"} : {}), "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(set variable)"),
+                                      make_dom_elt("option", ((declaration_type == "let")   ? {selected: "selected"} : {}), "let&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(declare local variable"),
+                                      make_dom_elt("option", ((declaration_type == "var")   ? {selected: "selected"} : {}), "var&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(declare function def variable)"),
+                                      make_dom_elt("option", ((declaration_type == "const") ? {selected: "selected"} : {}), "const&nbsp;(declare constant)")
                                       ])
         let kind_name_val_elt = make_arg_name_val("", kind_elt)
         kind_name_val_elt.style["vertical-align"] = "50%"
@@ -1685,6 +1689,7 @@ newObject({prototype: Root.jsdb,
                                                            ["block_always_relative", "block_args"])
         let arg_name_vals  = dom_elt_children_of_class(block_args, "arg_name_val")
         let variable_kind  = arg_name_vals[0].children[0].value //one of "",let, var, const
+        variable_kind = Root.jsdb.clean_select_value(variable_kind)
         let variable_name_block  = arg_name_vals[1].children[0]
         let variable_name        = block_to_js(variable_name_block)
         let variable_val_block   = (arg_name_vals[2]? arg_name_vals[2].children[0] : null)
@@ -1701,11 +1706,12 @@ newObject({prototype: Root.jsdb,
             ["block_always_relative", "block_args"])
         let arg_name_vals  = dom_elt_children_of_class(block_args, "arg_name_val")
         let variable_kind  = arg_name_vals[0].children[0].value //one of "",let, var, const
-        if (variable_kind != "") { return variable_kind} //"let" or "var"
+        variable_kind      = Root.jsdb.clean_select_value(variable_kind)
+        if (variable_kind != "") { return variable_kind} //"let", "var", or "const"
         else {
             let src = block_to_js(block_elt)
             let var_name = src.split(" ")[0]
-            return ["<code>" + src + "</code> sets the <code>" + var_name + "</code> variable."]
+            return ["<code>" + src + "</code> sets the <code>" + var_name + "</code> variable to a value."]
         }
     }
 })
@@ -1965,16 +1971,17 @@ newObject({prototype: Root.jsdb,
     }
 })
 
+//See also  "Root.jsdb.rword_expr.return"
 newObject({prototype: Root.jsdb, //used for delete, yield, yield*. No parens around expr
     name: "rword_expr",
-    display_label: "return",
-    category: Root.BlockCategory.Control,
+    display_label: "",
+    //category: Root.BlockCategory.Control,
     operation: "return", // but could be yield, yield* delete
     operation_choices: ["return&nbsp;(value from fn or gen)", "yield&nbsp;&nbsp;&nbsp;(value from gen)", "yield*&nbsp;(values from gen)"],
     expr: "Root.jsdb.infix.comparison", //make it a string because comparison is lower down in the file so this errors on loading the file
     constructor: function(){
         this.callPrototypeConstructor()
-        if(this.name != "rword_expr_code_body"){
+        if(this.name != "rword_expr"){
             if(this.display_label.length == 0) {
                 this.display_label = this.name
             }
@@ -2055,15 +2062,23 @@ newObject({prototype: Root.jsdb, //used for delete, yield, yield*. No parens aro
     }
 })
 
+newObject({prototype: Root.jsdb.rword_expr, //used for delete, yield, yield*. No parens around expr
+    name: "return",
+    display_label: "return",
+    category: Root.BlockCategory.Control,
+    operation: "return", // but could be yield, yield* delete
+    operation_choices: ["return&nbsp;(value from fn or gen)", "yield&nbsp;&nbsp;&nbsp;(value from gen)", "yield*&nbsp;(values from gen)"],
+    expr: "Root.jsdb.infix.comparison", //make it a string because comparison is lower down in the file so this errors on loading the file
+})
+
 newObject({prototype: Root.jsdb.rword_expr,
-        name:          "delete",
-        display_label: "delete",
-        category:       Root.BlockCategory.Object,
-        operation:     "delete",
-        operation_choices: null,
-        expr:           Root.jsdb.path
-    }
-)
+    name:          "delete",
+    display_label: "delete",
+    category:       Root.BlockCategory.Object,
+    operation:     "delete",
+    operation_choices: null,
+    expr:           Root.jsdb.path
+})
 /*constructor: function(){
     this.callPrototypeConstructor()
 },
@@ -2675,6 +2690,8 @@ newObject({prototype: Root.jsdb,
         block_name_elt.style.borderBottomStyle = "none"
         block_name_elt.style.borderLeftStyle   = "none"
         block_name_elt.style.marginLeft        = "0px"
+        //block_name_elt.style.verticalAlign   = "top" //does nothing
+        block_name_elt.style.marginTop         = "0px"
         let delim_elt = make_delimiter_drop_zone("(")
         delim_elt.style.verticalAlign = "125%"
         block_name_elt.appendChild(delim_elt)
@@ -2715,10 +2732,10 @@ newObject({prototype: Root.jsdb,
                 }
             }
         }
-        else {
-            let meth = value_of_path(path_array)
-            if (meth) { // if no meth, we probably have an emptu "function call" which is ok, don't set up an args for that.
-                let name_val_elts = Root.jsdb.method_to_arg_name_val_elts(this.get_method())
+        else { //no params passed, so display all of them that the meth takes.
+            let meth = Root.jsdb.method_call.block_elt_to_method(result) //value_of_path(path_array)
+            if (meth) { // if no meth, we probably have an empty "function call" which is ok, don't set up an args for that.
+                let name_val_elts = Root.jsdb.method_to_arg_name_val_elts(meth)
                 for(let name_val_elt of name_val_elts){
                     block_args_elt.append(name_val_elt)
                 }
@@ -2761,6 +2778,7 @@ newObject({prototype: Root.jsdb,
 newObject({prototype: Root.jsdb.rword_expr_code_body,
     name:        "while",
     category:    Root.BlockCategory.Control,
+    operation:   "while",
     expr:        Root.jsdb.infix.comparison,
     code_body:   undefined,
     return_type: "undefined"
@@ -2894,6 +2912,15 @@ newObject({prototype: Root.jsdb.class_instance,
     return_type: "Job",
     //params: undefined
     click_help_string: function(block_elt) { return "Job" }
+})
+newObject({prototype: Root.jsdb.class_instance,
+    superclass:null,
+    name: "Dexter",
+    jsclassname: "Dexter",
+    category: Root.BlockCategory.Job,
+    return_type: "Dexter",
+    //params: undefined
+    click_help_string: function(block_elt) { return "Dexter" }
 })
 newObject({prototype: Root.jsdb.method_call,
     name: "Dexter__move_all_joints",

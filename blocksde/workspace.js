@@ -50,9 +50,10 @@ var Workspace = class Workspace{
                                           //{id:"workspace_floating_typein_id", display: "none"}
                                       {id:         "workspace_floating_typein_id",
                                        position:   "absolute",
-                                       onclick:    "floating_typein_done(event)",
+                                       //onclick:    "floating_typein_done(event)", //causes an error when you click in the floating type in. no point to doing this.
                                        display:    "block",
-                                       visibility: "hidden"
+                                       visibility: "hidden",
+                                       "font-size": "14px" //even thogh 13 is the font size for nomral block, 14 looks closer to the actual size in the type in
                                        }
                                      ))
 
@@ -112,6 +113,37 @@ var Workspace = class Workspace{
     }
     add_block_elt(elt){
         workspace_id.appendChild(elt)
+        focus_on_descendant_with_tag(elt) //defaults to "input"
+    }
+
+    spacer_elt_at(y){
+        for(let elt of workspace_id.childNodes){
+            if(elt.classList.contains("top-left-spacer")){
+                let spacer_y = elt.offsetTop
+                let spacer_bottom = spacer_y + elt.offsetHeight
+                if ((y >= spacer_y) && (y <= spacer_bottom)) { return elt }
+            }
+        }
+        return dom_elt_child_of_class(workspace_id, "bottom-left-spacer")  //every workkspace_id should have exactly 1 child of class bottom-left-spacer
+
+    }
+    //if x is less than or equal to
+    draw_block_at(block_elt, x, y){
+        if(x <= Workspace.suck_left_margin) {
+            let dropped_on_block = Workspace.inst.spacer_elt_at(y) //document.elementFromPoint(x, y) fails due to wierd offset
+            install_top_left_block(block_elt, dropped_on_block)
+            clean_up_top_lefts()
+        }
+        else { //see blocks2.js block_drop_handler
+            block_elt.classList.remove("block-top-left")
+            block_elt.classList.remove("arg_val")
+            block_elt.classList.add("block-absolute")
+            block_elt.style.position = "absolute" //note that setting its class to block-absolute SHOULD set its postion to "absolute" but it doesn't.
+            block_elt.style.left = x + "px" //event.clientX + "px" //new_x + "px" // event.offsetX + "px"
+            block_elt.style.top  = y + "px" //event.clientX + "px" new_y + "px" //event.offsetY + "px"
+            Workspace.inst.add_block_elt(block_elt)
+        }
+        focus_on_descendant_with_tag(block_elt)
     }
     clear_blocks(){
         for(let node of Array.from(workspace_id.childNodes)){
@@ -183,7 +215,8 @@ var Workspace = class Workspace{
             out("Type in simple, short JavaScript like a number, string, or variable name.", undefined, true)
         }
     }
-    /*floating_typein_done(event){
+    /* first version
+    floating_typein_done(event){
         if (event.key == "Enter"){
             let str = event.target.value
             if (str == ""){ //don't make a new block, just hide the type in area.
@@ -218,7 +251,7 @@ var Workspace = class Workspace{
             event.stopPropagation()
         }
     }*/
-
+    /* 2nd version
     floating_typein_done(event){
         event.stopPropagation()
         if (event.key == "Enter"){
@@ -259,6 +292,112 @@ var Workspace = class Workspace{
                   workspace_id.appendChild(block)
             }
         }
+    }*/
+    shortcut_to_longcut(shortcut){
+        let longcut = {"<"      : "foo < 0",
+                       "less"   : "foo < 0",
+                       "<="     : "foo <= 0",
+                       "=="     : "foo == 0",
+                       "==="    : "foo === 0",
+                       "equals" : "foo === 0",
+                       "!="     : "foo != 0",
+                       "!=="    : "foo !== 0",
+                       "not equals": "foo !== 0",
+                       ">="     : "foo >= 0",
+                       ">"      : "foo > 0",
+                       "more"   : "foo > 0",
+                       "+"      : "foo + 1",
+                       "*"      : "foo * 2",
+                       "/"      : "foo / 2",
+                       "%"      : "foo % 2",
+                       "++"     : "i++",
+                       "--"     : "i--",
+                       "&&"     : "foo && bar",
+                       "and"    : "foo && bar",
+                       "||"     : "foo || bar",
+                       "or"     : "foo || bar",
+                       "!"      : "!foo",
+                       "not"    : "!foo",
+                       "="      : "let foo = 0",
+                       "set"    : "foo = 0",
+                       "else if": "elseif",
+                       fn       : "function",
+                       for      : "for_iter"
+                       }[shortcut]
+        if(longcut) { return longcut }
+        else { return shortcut }
+    }
+    floating_typein_done(event){
+        event.stopPropagation()
+        if (event.key == "Enter"){
+            let float_typein = event.target
+            let src = float_typein.value.trim()
+            if (src == ""){ //don't make a new block, just hide the type in area.
+                workspace_floating_typein_id.style.visibility = "hidden"
+            }
+            else { Workspace.inst.install_block_from_typein_src_or_series_item(src) }
+        }
+    }
+    install_block_from_typein_src_or_series_item(src){
+        let x = workspace_floating_typein_id.offsetLeft
+        let y = workspace_floating_typein_id.offsetTop
+        src = Workspace.inst.shortcut_to_longcut(src)
+        let block_obj
+        let block_elt
+        if (is_string_an_identifier(src)){
+            if(src == "return") {
+                block_obj = Root.jsdb.rword_expr.return
+            }
+            else if(src == "break") {
+                block_elt = Root.jsdb.one_of.break_continue.make_dom_elt(undefined, undefined, "break")
+            }
+            else if(src == "continue") {
+                block_elt = Root.jsdb.one_of.break_continue.make_dom_elt(undefined, undefined, "continue")
+            }
+            else if (typeof(value_of_path(src)) === "function") { //make a call
+                let fn_name_path_array = src.split(".")
+                block_elt = Root.jsdb.method_call.make_dom_elt(undefined, undefined, fn_name_path_array)
+            }
+            else { block_obj = Root.jsdb.leafObjectNamed(src) }
+        }
+        else if (is_string_a_path(src)) { //if src's val is a fn, then make a call to it.
+            let val_of_path = value_of_path(src)
+            if(typeof(val_of_path) === "function") {
+                let fn_name_path_array = src.split(".")
+                block_elt = Root.jsdb.method_call.make_dom_elt(undefined, undefined, fn_name_path_array)
+            }
+        }
+        if(block_obj) {
+           let block_elt = block_obj.make_dom_elt(x, y)
+           workspace_floating_typein_id.style.visibility = "hidden"
+           Workspace.inst.draw_block_at(block_elt, x, y)
+        }
+        else if(block_elt){
+            workspace_floating_typein_id.style.visibility = "hidden"
+            Workspace.inst.draw_block_at(block_elt, x, y)
+        }
+        else {
+            try{
+                let block_to_install = JS2B.js_to_blocks(src)
+                Workspace.inst.draw_block_at(block_to_install[0], event.target.offsetLeft, event.target.offsetTop) //event.target is the text input elt
+                try{ let result = eval(src) } //todo probably not a good idea due to side effects and long possible eval time
+                catch(err){
+                    warning("Your type-in is syntactically valid<br/>but when Evaled, errors with:<br/>" + err.message, true)
+                }
+                workspace_floating_typein_id.style.visibility = "hidden"
+            }
+            catch(err){ //syntactically invalid. Leave typein up so user can edit it.
+                warning("You've entered syntactically invalid JavaScript.<br/>" + err.message, true)
+            }
+        }
+    }
+    install_blocks_from_series(the_ser){
+        let x = workspace_floating_typein_id.offsetLeft
+        let y = workspace_floating_typein_id.offsetTop
+        let series_items = the_ser.array
+        let meth_name_one_of_elt = Root.jsdb.one_of.make_dom_elt(undefined, undefined, series_items[0], series_items)
+        let block_to_install = Root.jsdb.method_call.make_dom_elt(undefined, undefined, meth_name_one_of_elt)
+        Workspace.inst.draw_block_at(block_to_install, x, y)
     }
 }
 

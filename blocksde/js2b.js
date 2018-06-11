@@ -13,14 +13,14 @@ var JS2B = class JS2B{
       }
   }
 
-  //returns a block_elt or an array of block_elts
+  //returns an array of block_elts (but might be only 1 long).
   static js_to_blocks(src){
       try {
         let st = JS2B.string_to_ast(src) //esprima.parse(src, {range: true, loc: true}) //st for syntax tree.
         let switcher = st.type
         switch(switcher) {
-            case "ObjectExpression": return JS2B[switcher].call(undefined, st);
-            case "Program":          return JS2B[switcher].call(undefined, st);
+            case "ObjectExpression": return [JS2B[switcher].call(undefined, st)]
+            case "Program":          return  JS2B[switcher].call(undefined, st);
             default: shouldnt("Can't handle exprima type: " + switcher)
         }
       }
@@ -91,6 +91,7 @@ var JS2B = class JS2B{
 
           case "NewExpression":        return JS2B[switcher].call(undefined, part);
           case "ReturnStatement":      return JS2B[switcher].call(undefined, part);
+          case "TemplateLiteral":      return JS2B[switcher].call(undefined, part);
           case "UnaryExpression":      return JS2B[switcher].call(undefined, part);
           case "UpdateExpression":     return JS2B[switcher].call(undefined, part);
           case "YieldExpression":      return JS2B[switcher].call(undefined, part);
@@ -395,8 +396,16 @@ var JS2B = class JS2B{
             let arg_type = st.argument.type
             let expr_block  = JS2B[arg_type].call(undefined, st.argument)
             return Root.jsdb.rword_expr.delete.make_dom_elt(undefined, undefined, "delete", expr_block, null)
+          case "-":
+            let arg = st.argument
+            if ((arg.type = "Literal") && (typeof(arg.value) == "number")){ //we've got a neg number
+                return Root.jsdb.literal.number.make_dom_elt(undefined, undefined, - arg.value)
+            }
+            else {
+                return JS2B.UpdateExpression(st)
+            }
           default:
-            return JS2B.UpdateExpression(st) //works for -23  but maybe not for others.
+            return JS2B.UpdateExpression(st) //works for -23  but neg lit numbs treated above
       }
   }
 
@@ -440,7 +449,7 @@ var JS2B = class JS2B{
         let arg = st.argument
         let operation = "return"
         let arg_block = JS2B[arg.type].call(undefined, arg)
-        return Root.jsdb.rword_expr.make_dom_elt(undefined, undefined, operation, arg_block)
+        return Root.jsdb.rword_expr.return.make_dom_elt(undefined, undefined, operation, arg_block)
     }
     static YieldExpression(st){
         let arg = st.argument
@@ -464,7 +473,17 @@ var JS2B = class JS2B{
 
   static Literal(st){
      let part = st.value
-     return Root.jsdb.value_to_block(part)
+     if (typeof(part) == "string") {
+        let quote_char = st.raw[0]
+        return Root.jsdb.literal.string.make_dom_elt(undefined, undefined, part, quote_char)
+     }
+     else { return Root.jsdb.value_to_block(part) }
+  }
+
+  static TemplateLiteral(st){
+        let part = st.quasis[0].value.raw
+        let quote_char = "`"
+        return Root.jsdb.literal.string.make_dom_elt(undefined, undefined, part, quote_char)
   }
 
   static ObjectExpression(st){

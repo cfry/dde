@@ -67,6 +67,11 @@ Editor.init_editor = function(){
     set_menu_string(undo_id, "Undo", "z")
     redo_id.onclick        = function(){myCodeMirror.getDoc().redo()}
     find_id.onclick        = function(){CodeMirror.commands.findPersistent(myCodeMirror)}
+    set_menu_string(find_id, "Find", "f")
+    find_next_id.onclick   = function(){CodeMirror.commands.findNext(myCodeMirror)}
+    set_menu_string(find_next_id, "Find Next", "g")
+    find_prev_id.onclick   = function(){CodeMirror.commands.findPrev(myCodeMirror)}
+    set_menu_string(find_prev_id, "Find Prev   shift", "g")
     replace_id.onclick     = function(){CodeMirror.commands.replace(myCodeMirror)} //allows user to also replace all.
     fold_all_id.onclick    = function(){CodeMirror.commands.foldAll(myCodeMirror)}
     unfold_all_id.onclick  = function(){CodeMirror.commands.unfoldAll(myCodeMirror)}

@@ -192,6 +192,14 @@ new TestSuite("obj_sys_js_fns_on_new_objects2",
 	["Root.test_thing.toString()", "'[object Object]'"]
 )
 
+new TestSuite("obj_sys_js_leaf",
+    ['newObject({name: "animal"})'],
+    ["Root.isLeafObject()", "false"],
+    ["Root.animal.isLeafObject()", "true"],
+    ['Root.leafObjectNamed("junk747")', "null"],
+    ['Root.leafObjectNamed("animal")', "Root.animal"]
+)
+
 new TestSuite("version_functions",
     ['version_equal("0.1.2")', "false"],
     ['version_equal("2.1.2", "2.1.2")', "true"],

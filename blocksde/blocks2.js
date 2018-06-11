@@ -620,6 +620,13 @@ function remove_drop_target_class(){
     if (elt) { elt.classList.remove("drop_target") }
 }
 
+//pop up the floating typein window
+function spacer_on_click(event){
+    event.stopPropagation()
+    let spacer_elt = event.target
+    Workspace.inst.workspace_onclick(spacer_elt.offsetLeft, spacer_elt.offsetTop)
+}
+
 function make_top_left_spacer(){
     return make_dom_elt("div",
                         {class:"top-left-spacer",
@@ -628,6 +635,7 @@ function make_top_left_spacer(){
                          height: "15px",
                          ondragenter:"enter_drop_target(event)",
                          ondragleave:"leave_drop_target(event)",
+                         onclick: "spacer_on_click(event)"
                          },
                         "&nbsp")
 }
@@ -639,6 +647,7 @@ function make_bottom_left_spacer(){
                         height: "100px",
                         ondragenter:"enter_drop_target(event)",
                         ondragleave:"leave_drop_target(event)",
+                        onclick: "spacer_on_click(event)"
                         },
                         "&nbsp")
 

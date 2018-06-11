@@ -749,8 +749,6 @@ function human_enter_filepath_handler(vals){
     //this lets the do_next_item handle finishing the job properly
 }
 
-
-
 Instruction.Control.human_enter_instruction = class human_enter_instruction extends Instruction.Control{
     constructor ({task = "Enter a next instruction for this Job.",
                   instruction_type = "Dexter.move_all_joints",
@@ -979,7 +977,7 @@ var human_enter_instruction_handler = function(vals){
       let new_human_instruction = Human.enter_instruction({task: hei_instance.task, instruction_type: ins_name, instruction_args: args, dependent_job_names: hei_instance.dependent_job_names})
       let new_ins_array = [args_array, new_human_instruction]
       job_instance.insert_instructions(new_ins_array)
-      job_instance.added_items_count[job_instance.program_counter] = 2
+      //job_instance.added_items_count[job_instance.program_counter] = 2 //now performed by insert_instructions
     }
     job_instance.set_up_next_do(1) //even for the case where we're stopping the job,
     //this lets the do_next_item handle finishing the job properly
@@ -1487,7 +1485,6 @@ Instruction.Control.if_any_errors = class if_any_errors extends Instruction.Cont
                         the_error_ins =  Robot.error(message)
                     }
                     job_instance.insert_single_instruction(the_error_ins)
-                    job_instance.added_items_count[this.program_counter] = 1
                     break;
                 }
             }
@@ -1882,11 +1879,9 @@ Instruction.Control.sent_from_job = class sent_from_job extends Instruction.Cont
         if (Instruction.is_instruction_array(this.do_list_item) ||
             !Array.isArray(this.do_list_item)){
             job_instance.insert_single_instruction(this.do_list_item)
-            job_instance.added_items_count[job_instance.program_counter] += 1
         }
         else { //we've got more than 1 instr to insert.
             job_instance.insert_instructions(this.do_list_item)
-            job_instance.added_items_count[job_instance.program_counter] += this.do_list_item.length
         }
         job_instance.set_up_next_do(1)
     }
@@ -2226,9 +2221,11 @@ Instruction.Control.sync_point = class sync_point extends Instruction.Control{
             ((this.job_names.length > 1)  || //must contain a job other than itself
             (this.job_names[0] != job_instance.name))){ //the one job name its got is not job_instance so we've got to flush the instruction_queue
             let instruction_array = Dexter.empty_instruction_queue()
-            job_instance.do_list.splice(job_instance.program_counter, 0, instruction_array);
+            job_instance.do_list.splice(job_instance.program_counter, 0, instruction_array); //before really testing th sync point, first empty the queue. We only need to do this the first time this do_item is called.
+            job_instance.added_items_count.splice(this.program_counter, 0, 0);
+            //job_instance.insert_single_instruction(instruction_array) //don't call because this inserts AFTER PC, not at it.
             this.inserted_empty_instruction_queue = true
-            job_instance.set_up_next_do(0) //go an do this empty_instruction_queue instruction, and when it finnaly returns, to the sync_point proper
+            job_instance.set_up_next_do(0) //go and do this empty_instruction_queue instruction, and when it finally returns, do the sync_point proper that is the next instruction
         }
         else {
             for(let job_name of this.job_names){
@@ -2301,7 +2298,7 @@ Instruction.Control.wait_until = class wait_until extends Instruction.Control{
                       '<br/> which is not a number, date, function,<br/>' +
                       '"new_instruction" or instruction location array.')
         }
-        this.start_time = null
+        this.start_time_in_ms = null
     }
     do_item (job_instance){
         if (typeof(this.fn_date_dur) == "function"){
@@ -2330,21 +2327,22 @@ Instruction.Control.wait_until = class wait_until extends Instruction.Control{
             }
         }
         else if (typeof(this.fn_date_dur) == "number"){ //number is seconds
-            if (this.start_time == null) { this.start_time = Date.now() } //hits the first time this do_item is called for an inst
-            var dur_from_start = Date.now() - this.start_time
-            if (dur_from_start >= this.fn_date_dur * 1000){ //dur_from_start is in ms, fn_date_dur is in seconds
+            if (this.start_time_in_ms == null) { this.start_time_in_ms = Date.now() } //hits the first time this do_item is called for an inst
+            let dur_from_start_in_ms = Date.now() - this.start_time_in_ms
+            if (dur_from_start_in_ms >= this.fn_date_dur * 1000){ //The wait is over. dur_from_start_in_ms is in ms, fn_date_dur is in seconds
                 job_instance.wait_reason = null
                 job_instance.set_status_code("running")
-                this.start_time = null //essential for the 2nd thru nth call to start() for this job.
+                this.start_time_in_ms = null //essential for the 2nd thru nth call to start() for this job.
                 job_instance.set_up_next_do(1)
             }
-            else if ((job_instance.robot instanceof Dexter) && (dur_from_start > 1000)){
+            else if ((job_instance.robot instanceof Dexter) && (dur_from_start_in_ms > 1000)){
                 //so that we can keep the tcp connection alive, send a virtual heartbeat
+                let new_wait_dur_in_sec = this.fn_date_dur - (dur_from_start_in_ms / 1000)
                 let new_instructions = [make_ins("g"), //just a do nothing to get a round trip to Dexter.
-                                       Robot.wait_until(this.fn_date_dur - 1)] //create new wait_until to wait for the remaining time
+                                       Robot.wait_until(new_wait_dur_in_sec)] //create new wait_until to wait for the remaining time
                 job_instance.insert_instructions(new_instructions)
-                job_instance.added_items_count[job_instance.program_counter] += 2
-                this.start_time = null //essential for the 2nd thru nth call to start() for this job.
+                //job_instance.added_items_count[job_instance.program_counter] += 2 this is done automatically by insert_instructions
+                this.start_time_in_ms = null //essential for the 2nd thru nth call to start() for this job.
                 job_instance.wait_reason = null
                 job_instance.set_status_code("running")
                 job_instance.set_up_next_do(1)
@@ -2469,7 +2467,6 @@ Instruction.Control.move_all_joints = class move_all_joints extends Instruction.
         else  {
             job_instance.robot.angles = angles
             job_instance.insert_single_instruction(make_ins("a", ...angles))
-            job_instance.added_items_count[job_instance.program_counter] += 1
             job_instance.set_up_next_do(1)
         }
     }
@@ -2506,7 +2503,6 @@ Instruction.Control.pid_move_all_joints = class pid_move_all_joints extends Inst
         else  {
             job_instance.robot.angles = angles
             job_instance.insert_single_instruction(make_ins("P", ...angles))
-            job_instance.added_items_count[job_instance.program_counter] += 1
             job_instance.set_up_next_do(1)
         }
     }
@@ -2533,7 +2529,6 @@ Instruction.Control.move_all_joints_relative = class move_all_joints_relative ex
         }
         //Job.insert_instruction(Dexter.move_all_joints(abs_angles), {job: job_instance, offset: "after_program_counter"})
         job_instance.insert_single_instruction(Dexter.move_all_joints(abs_angles))
-        job_instance.added_items_count[job_instance.program_counter] += 1
         job_instance.set_up_next_do(1)
     }
     toString(){
@@ -2633,7 +2628,6 @@ Instruction.Control.move_to = class move_to extends Instruction.Control{
             job_instance.robot.angles       = angles
             //Job.insert_instruction(make_ins("a", ...angles), {job: job_instance, offset: "after_program_counter"})
             job_instance.insert_single_instruction(make_ins("a", ...angles))
-            job_instance.added_items_count[job_instance.program_counter] += 1
             job_instance.set_up_next_do(1)
         }
     }
@@ -2744,7 +2738,6 @@ Instruction.Control.pid_move_to = class pid_move_to extends Instruction.Control{
             job_instance.robot.angles       = angles
             //Job.insert_instruction(make_ins("P", ...angles), {job: job_instance, offset: "after_program_counter"})
             job_instance.insert_single_instruction(make_ins("P", ...angles))
-            job_instance.added_items_count[job_instance.program_counter] += 1
             job_instance.set_up_next_do(1)
         }
     }
@@ -2808,7 +2801,6 @@ Instruction.Control.move_to_relative = class move_to_relative extends Instructio
             this.robot.angles = angles
             //return make_ins("a", ...angles) // Dexter.move_all_joints(angles)
             job_instance.insert_single_instruction(make_ins("a", ...angles))
-            job_instance.added_items_count[job_instance.program_counter] += 1
             job_instance.set_up_next_do(1)
         }
     }
@@ -2848,7 +2840,6 @@ Instruction.Control.move_to_straight = class move_to_straight extends Instructio
                 job_instance.robot.pose)
             //Job.insert_instruction(instrs, {job: job_instance, offset: "after_program_counter"})
             job_instance.insert_instructions(instrs)
-            job_instance.added_items_count[job_instance.program_counter] += instrs.length
             job_instance.set_up_next_do(1)
         }
         catch(err){

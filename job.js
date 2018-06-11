@@ -169,6 +169,7 @@ var Job = class Job{
             this.added_items_count = new Array(this.do_list.length) //This array parallels and should be the same length as the run items on the do_list.
             this.added_items_count.fill(0) //stores the number of items "added" by each do_list item beneath it
             //if the initial pc is > 0, we need to have a place holder for all the instructions before it
+            //see total_sub_instruction_count_aux for explaination of added_items_count
             this.callback_param    = this.orig_args.callback_param
             this.keep_history      = this.orig_args.keep_history
             this.show_instructions = this.orig_args.show_instructions
@@ -1083,9 +1084,10 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
                 //this.added_items_count(this.program_counter, 0, 0)
             //this.added_items_count.splice(this.program_counter, 0, 0)
 
-            this.insert_single_instruction(Dexter.get_robot_status())
-            this.added_items_count[this.program_counter] += 1 //hmm, the final g instr isn't reallyy "nested" under the last item, just a top level expr
+            this.insert_single_instruction(Dexter.get_robot_status(), false) //false says making this new instruction a top level (not sub) instruction
+            //this.added_items_count[this.program_counter] += 1 //hmm, the final g instr isn't reallyy "nested" under the last item, just a top level expr
                 //but its not an orig top level one either. so maybe nest it.
+                //jun 9, 2018: No consider the new g a top level cmd with 0 subinstructions
             this.set_up_next_do(0)
         }
         else if (!this.stop_reason){
@@ -1114,6 +1116,9 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
            //so we want to get rid of those items and "start over" with that instruction.
             const sub_items_count = //this.added_items_count[this.program_counter]
                                       this.total_sub_instruction_count(this.program_counter)
+            console.log("For " + this.name + " about to delete " + sub_items_count + " from do_list")
+            console.log(this.do_list)
+
             this.do_list.splice(this.program_counter + 1, sub_items_count) //cut out all the sub-items under the pc instruction
             this.added_items_count.splice(this.program_counter + 1, sub_items_count)
             this.added_items_count[this.program_counter] = 0 //because we just deleted all of ites subitems and their descendents
@@ -1159,7 +1164,6 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
             else {
                 let flatarr = Job.flatten_do_list_array(ins)
                 this.insert_instructions(flatarr)
-                this.added_items_count[this.program_counter] += flatarr.length
             }
             this.set_up_next_do(1)
         }
@@ -1187,7 +1191,6 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
             if (have_item_to_insert) {
                 if (next_obj.done){ //run the one last instruction from this gen
                     this.insert_single_instruction(do_items)
-                    this.added_items_count[this.program_counter] += 1
                     this.set_up_next_do(1)
                 }
                 else  { //not done so we must insert the cur_do_item
@@ -1198,7 +1201,6 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
                         do_items.push(cur_do_item)
                     }
                     this.insert_instructions(do_items)
-                    this.added_items_count[this.program_counter] += do_items.length
                     this.set_up_next_do(1)
 
                 }
@@ -1237,7 +1239,7 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
             this.set_up_next_do(0)
         }
     }
-    catch(err){ //this can happe when, for instance a fn def on the do_list is called and it contains an unbound var ref
+    catch(err){ //this can happen when, for instance a fn def on the do_list is called and it contains an unbound var ref
        this.stop_for_reason("errored", err.message) //let do_next_item loop around and stop normally
     }
   }
@@ -1254,11 +1256,61 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
     return result
 }*/
 
-Job.prototype.total_sub_instruction_count = function(id_of_top_ins){
+/*Job.prototype.total_sub_instruction_count = function(id_of_top_ins){
     let result = 0
     for(let i = 0; i < this.added_items_count[id_of_top_ins]; i++){
         result += 1 //for each this_level_sub_item
         result += this.total_sub_instruction_count(id_of_top_ins + i + 1)
+    }
+    return result
+}
+*/
+
+Job.prototype.total_sub_instruction_count = function(id_of_top_ins){
+    return total_sub_instruction_count_aux(id_of_top_ins, this.added_items_count)
+}
+
+/*
+added_items_count is the way in which the do_list can be considered to be a
+hierarchy such that an insturciton that adds more instuctoins nder it,
+those new insturctions will be considered sub-instrustions.
+This is important for presenting the do_lsit as a hierarchy
+(as the Inspect does, but alos necessary to remove previous do_list items
+from the do_list when we start an loop iteratioin or perform a backward s go_to.
+
+added_items_count is an array that is maintained to always be the same
+length as the do_list, and contains a non-neg integer sayng
+how many sub-instructions the instruction at that array index
+has beneath it *when they are first added*
+If a subinstruction, when it is run, returns more instructions to
+instert the orig instruction sub-instruction count is NOT increased,
+its just left alone, but the orig subinsrution's item-count is
+incremented by the new sub-sub-instructions added.
+This makes computing how many actuaul insturcitons are underneath
+a given instruciton tricky, as it may well be more than its
+added_items_count indicates.
+(If the added_items_count is 0, it has no sub-instructions but
+if it is more than 0, it might be that number or more.)
+The job of total_sub_instruction_count_aux is to figure out
+total sub)instructions. It walks down the  added_items_count
+from the given index until it "runs out" of sub-insructions,
+and returns the count. The sub-instructions count excludes the
+instruction at the given index. See the test suite for
+total_sub_instruction_count_aux for examples.
+*/
+
+function total_sub_instruction_count_aux(id_of_top_ins, aic_array){
+    let result = 0 //this.added_items_count[id_of_top_ins]
+    let tally  = 1 //this.added_items_count[id_of_top_ins]
+    for(let i = id_of_top_ins; true ; i++){
+        let aic_for_i = aic_array[i] //this.added_items_count[i]
+        if (aic_for_i === undefined) {
+            shouldnt("total_sub_instruction_count_aux got undefined from aic_array: " + aic_array)
+        }
+        result += aic_for_i //often this is adding 0
+        tally  += aic_for_i - 1
+        if (tally == 0) { break; }
+        else if (tally < 0) { shouldnt("in total_sub_instruction_count got a negative tally") }
     }
     return result
 }
@@ -1288,20 +1340,17 @@ Job.prototype.handle_function_call_or_gen_next_result = function(cur_do_item, do
              (typeof(do_items) == "function") //ok if this includes generator functions
              ) {
         this.insert_single_instruction(do_items)
-        this.added_items_count[this.program_counter] += 1
         this.set_up_next_do(1)
     }
     else if (Array.isArray(do_items)){
         let flatarr = Job.flatten_do_list_array(do_items)
         this.insert_instructions(flatarr)
-        this.added_items_count[this.program_counter] += flatarr.length
         this.set_up_next_do(1)
     }
     else if (is_iterator(do_items)){ //calling a generator fn returns an iterator
         //this.iterator_stack.push([do_items, this.program_counter])
         //this.set_up_next_do(1)
         this.insert_single_instruction(do_items)
-        this.added_items_count[this.program_counter] += 1
         this.set_up_next_do(1)
     }
     else {
@@ -1361,7 +1410,6 @@ Job.prototype.handle_start_object = function(cur_do_item){
     }
     else if(cur_do_item.dur) {
         this.insert_single_instruction(Robot.wait_until(cur_do_item.dur))
-        this.added_items_count[this.program_counter] += 1
     }
     if (!start_args)                    { cur_do_item.start.apply(the_inst_this) }
     else if (Array.isArray(start_args)) { cur_do_item.start.apply(the_inst_this, start_args) }
@@ -1369,20 +1417,26 @@ Job.prototype.handle_start_object = function(cur_do_item){
     this.set_up_next_do(1)
 }
 
-//note this could also take an array of instructions,
-//but it inserts it as one item, not multiple items.
-Job.prototype.insert_single_instruction = function(instruction_array){
+//These 2 fns take care of inserting into added_items_count array,
+//slots for the new items they are inserting
+Job.prototype.insert_single_instruction = function(instruction_array, is_sub_instruction=true){
     this.do_list.splice(this.program_counter + 1, 0, instruction_array);
     this.added_items_count.splice(this.program_counter + 1, 0, 0); //added oct 31, 2017
+    if (is_sub_instruction) {
+        this.added_items_count[this.program_counter] += 1
+    }
 }
 
-Job.prototype.insert_instructions = function(array_of_do_items){
+Job.prototype.insert_instructions = function(array_of_do_items, are_sub_instructions=true){
     //this.do_list.splice.apply(this.do_list, [this.program_counter + 1, 0].concat(array_of_do_items));
     this.do_list.splice(this.program_counter + 1, 0, ...array_of_do_items)
-    added_items_to_insert = new Array(array_of_do_items.length)
+    let added_items_to_insert = new Array(array_of_do_items.length)
     added_items_to_insert.fill(0)
     //this.added_items_count.splice.apply(this.do_list, [this.program_counter + 1, 0].concat(added_items_to_insert));
     this.added_items_count.splice(this.program_counter + 1, 0, ...added_items_to_insert)
+    if(are_sub_instructions) {
+        this.added_items_count[this.program_counter] += added_items_to_insert.length
+    }
 }
 
 Job.prototype.send = function(instruction_array){ //if remember is false, its a heartbeat

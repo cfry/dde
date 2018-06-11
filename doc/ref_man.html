@@ -4949,6 +4949,19 @@ Example:<br/>
 <code>Root.subObjects()</code> => array of the top level named new objects.
 </details>
 
+<details id="isLeafObject_doc_id" class="doc_details"><summary>isLeafObject</summary>
+Returns true if the subject has no named subobjects.<br/>
+<i>Example:</i><br/>
+<code>Root.isLeafObject()</code> <samp>false</samp>
+</details>
+
+<details id="leafObjectNamed_doc_id" class="doc_details"><summary>leafObjectNamed</summary>
+Returns a leaf object below <code>this</code> named by the argument,
+or returns null.<br/>
+<i>Example:</i><br/>
+<code>Root.leafObjectNamed("junk747")</code> <samp>null</samp>
+</details>
+
 <details id="isSubObject_doc_id" class="doc_details"><summary>isSubObject</summary>
 The primary relationship between objects in DDE's object system
 is the prototype relationship. An object inherits properties from

@@ -189,6 +189,30 @@ Object.defineProperty(Object.prototype, 'isSubObject',{
     enumerable : false
 })
 
+Object.defineProperty(Object.prototype, 'isLeafObject',{
+    value : function(){
+        let sub_objs = this.subObjects()
+        return sub_objs.length == 0
+    }
+})
+
+Object.defineProperty(Object.prototype, 'leafObjectNamed',{
+    value : function(leaf_name){
+        if(this.isLeafObject()){
+            if(this.name == leaf_name) { return this }
+            else { return null }
+        }
+        else {
+            for(let subobj of this.subObjects()){
+                let result = subobj.leafObjectNamed(leaf_name)
+                if(result) { return result }
+            }
+            return null
+        }
+    }
+})
+
+
 //returns true if this == ancestor. This makes sense for prototype object system.
 Object.defineProperty(Object.prototype, 'isA',{
     value : function(ancestor){

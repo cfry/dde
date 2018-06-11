@@ -647,6 +647,17 @@ function dom_elt_children_of_class(elt, a_class){
     return result
 }
 
+//focuses on the first elt of a_tag name that it finds.
+//exludes elt in the returned results.
+//searchers all descendents of elt.
+//casing of a_tag doesn't matter.
+function focus_on_descendant_with_tag(elt, a_tag="input"){
+    let sub_elts = elt.getElementsByTagName(a_tag)
+    if(sub_elts.length > 0) {
+      sub_elts[0].focus()
+    }
+}
+
 function dom_elt_descendant_of_classes(elt, classes){
     if(classes.length == 0) { shouldnt("dom_elt_descendant_of_classes passed empty classes array.") }
     else {

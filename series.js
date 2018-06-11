@@ -43,29 +43,34 @@ var Series = class Series {
         for (var ser of Series.instances){
             let the_ser = ser; //must do this let so that each fn generated will use the ser of the for loop.
             var fn = function(){
-                Editor.replace_selection(the_ser.get_menu_insertion_string(),
-                                         the_ser.menu_sel_start,
-                                         the_ser.menu_sel_end)
-                var sel_text = Editor.get_javascript(true)
-                var info = Js_info.get_info_string(sel_text, the_ser)
-                out(info, null, false)
-                if (the_ser.id.endsWith("_units_id")){
-                    let [unity_abbrev, unity_full_name] = series_name_to_unity_unit(the_ser.id)
-                    let result = ""
-                    for (let item of the_ser.array){
-                        let unit_full_name = unit_abbrev_to_full_name(the_ser.id, item)
-                        let val = window[item]
-                        let tooltip = item + " = " + unit_full_name + " = " + unity_full_name + " * " + val +
-                                      "\nClick to insert: " + "*" + item
-                        result += make_html("a",
-                                            {href: "#",
-                                             title: tooltip,
-                                             "text-decoration": "none",
-                                             onclick: "Editor.insert('*" + item + "')"
-                                             },
-                                             item) + "&nbsp;&nbsp;"
+                if(Editor.view == "text"){
+                    Editor.replace_selection(the_ser.get_menu_insertion_string(),
+                                             the_ser.menu_sel_start,
+                                             the_ser.menu_sel_end)
+                    var sel_text = Editor.get_javascript(true)
+                    var info = Js_info.get_info_string(sel_text, the_ser)
+                    out(info, null, false)
+                    if (the_ser.id.endsWith("_units_id")){
+                        let [unity_abbrev, unity_full_name] = series_name_to_unity_unit(the_ser.id)
+                        let result = ""
+                        for (let item of the_ser.array){
+                            let unit_full_name = unit_abbrev_to_full_name(the_ser.id, item)
+                            let val = window[item]
+                            let tooltip = item + " = " + unit_full_name + " = " + unity_full_name + " * " + val +
+                                          "\nClick to insert: " + "*" + item
+                            result += make_html("a",
+                                                {href: "#",
+                                                 title: tooltip,
+                                                 "text-decoration": "none",
+                                                 onclick: "Editor.insert('*" + item + "')"
+                                                 },
+                                                 item) + "&nbsp;&nbsp;"
+                        }
+                        out(result, null, false)
                     }
-                    out(result, null, false)
+                }
+                else { //"blocks" view
+                    Workspace.inst.install_blocks_from_series(the_ser)
                 }
             }
             document.getElementById(the_ser.id).onclick = fn
@@ -785,9 +790,10 @@ Series.instances = [
                                                             "Dexter.move_home",
                                                           "Dexter.move_to", "Dexter.move_to_relative", "Dexter.move_to_straight",
                                                           "Dexter.pid_move_all_joints", "Dexter.pid_move_to",
-                                                          "Dexter.run_gcode", "Dexter.record_movement", "Dexter.replay_movement",
+                                                          "Dexter.read_from_robot", "Dexter.run_gcode", "Dexter.record_movement", "Dexter.replay_movement",
                                                           "Dexter.set_follow_me", "Dexter.set_force_protect", "Dexter.set_keep_position", "Dexter.set_open_loop",
-                                                          "Dexter.set_parameter", "Dexter.sleep",  "Dexter.slow_move", "Dexter.write", "Dexter.write_to_robot",
+                                                          "Dexter.set_parameter", "Dexter.sleep",  "Dexter.slow_move",
+                                                          "Dexter.write", "Dexter.write_to_robot",
                                                           //"Dexter.prototype.joint_angle", "Dexter.prototype.joint_angles", "Dexter.prototype.joint_xyz", "Dexter.prototype.joint_xyzs",  //beware: these are NOT instructions but 'utility fns.' they are documented.
                                                            "make_ins",
                                                           "Human.enter_choice", "Human.enter_instruction", "Human.enter_number",

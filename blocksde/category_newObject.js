@@ -49,27 +49,27 @@ newObject({name: "BlockCategory",
 })
 
 newObject({prototype: Root.BlockCategory,
-    name: "Misc",
-    color: "#DDDDDD",
-    block_types: []
+            name: "Misc",
+            color: "#DDDDDD",
+            block_types: []
 })
 
 newObject({prototype: Root.BlockCategory,
-    name: "Logic",
-    color: "#AAAAFF",
-    block_types: []
+            name: "Logic",
+            color: "#AAAAFF",
+            block_types: []
 })
 
 newObject({prototype: Root.BlockCategory,
-    name: "Math",
-    color: "#AAFFAA", //green
-    block_types: []
+            name: "Math",
+            color: "#AAFFAA", //green
+            block_types: []
 })
 
 newObject({prototype: Root.BlockCategory,
-    name: "Array",
-    color: "#ffb108",
-    block_types: []
+            name: "Array",
+            color: "#ffb108",
+            block_types: []
 })
 
 newObject({prototype: Root.BlockCategory,
@@ -79,20 +79,20 @@ newObject({prototype: Root.BlockCategory,
 })
 
 newObject({prototype: Root.BlockCategory,
-    name: "Object",
-    color: "#8eceff",
-    block_types: []
+            name: "Object",
+            color: "#8eceff",
+            block_types: []
 })
 
 newObject({prototype: Root.BlockCategory,
-    name: "Control",
-    color: "#99ffd7",
-    block_types: []
+            name: "Control",
+            color: "#99ffd7",
+            block_types: []
 })
 
 newObject({prototype: Root.BlockCategory,
-    name: "Job",
-    color: "#4cecff", //green
-    block_types: []
+            name: "Job",
+            color: "#4cecff", //green
+            block_types: []
 })
 
