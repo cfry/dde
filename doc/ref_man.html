@@ -2135,7 +2135,7 @@ Insert an instruction into a Job's do_list at a particular location.<br/>
 <b>instruction</b> The instruction to insert. This can be an array of instructions
 if you effectively want to insert more than one.<br/>
 <b>location</b> Any instruction_location documented under
-              <a href="#" onclick="open_doc('Robot.go_to_doc_id', event)">Robot.go_to</a> can be used
+              <a href="#" onclick="open_doc('Robot.go_to_literal_doc_id', event)">Robot.go_to literal</a> can be used
 including integers, names of labels, etc. <br/>
 <i>Example</i>: <pre><code title="unEVALable code fragment"> Job.insert_instruction(Robot.out("the end"),
                        {job: "my_job",
@@ -2706,7 +2706,7 @@ executed instruction will be the first instruction in the do_list.
 Generally <code>"highest_completed_instruction_or_zero"</code> is more useful than
     <code>"highest_completed_instruction"</code>.
 <br/>
-<b>A literal object</b> The literal object can have up to three properites.
+<b id="Robot.go_to_literal_doc_id">A literal object</b> The literal object can have up to three properites.
 <ul><li><b>offset</b> Can be any one of the above instruction_locations.<br/>
     <i>Example</i>: <code>{offset: 12}</code>
     </li>
@@ -2734,7 +2734,8 @@ Generally <code>"highest_completed_instruction_or_zero"</code> is more useful th
     tell another job to jump to a new instruction for its next instruction
     if you like. <br/>
     <i>Example</i>: <code>{job: "my_other_job", offset: "label3"}</code></li>
-    <li><b>An array</b> There may not be a convenient "one shot" way to
+    </ul>
+    <b>An array</b> There may not be a convenient "one shot" way to
     describe a location, however, by using two or more designators, you may
     better be able to describe it.<br/>
     <i>Examples</i>:<br/>
@@ -2742,7 +2743,7 @@ Generally <code>"highest_completed_instruction_or_zero"</code> is more useful th
     <code>["myLabel", -1]</code> indicates the instruction immediately before "myLabel".<br/>
     <code>["program_counter", {offset: "sync_point", process: "backward"}]</code>
     Searches backwards from the program_counter to
-    the first instruction of type "sync_point".</li>
+    the first instruction of type "sync_point".
 </ul>
 Instruction_locations are also used in
 initializing a Job's <code title="unEVALable code fragment"> program_counter</code> in defining the job, as well as

@@ -1419,6 +1419,7 @@ Job.prototype.handle_start_object = function(cur_do_item){
 
 //These 2 fns take care of inserting into added_items_count array,
 //slots for the new items they are inserting
+//Both of these fns always insert right after the pc
 Job.prototype.insert_single_instruction = function(instruction_array, is_sub_instruction=true){
     this.do_list.splice(this.program_counter + 1, 0, instruction_array);
     this.added_items_count.splice(this.program_counter + 1, 0, 0); //added oct 31, 2017
@@ -1760,7 +1761,7 @@ Job.instruction_location_to_job = function (instruction_location, maybe_error=tr
 //if the first offset is negative, it is added to the job's do_list length to
 //get the resulting instruction id.
 Job.prototype.instruction_location_to_id = function(instruction_location, starting_id=null, orig_instruction_location=null){
-    var job_instance = this
+    let job_instance = this
     if (orig_instruction_location == null) { orig_instruction_location = instruction_location} //used for error messages
     let inst_loc = instruction_location
     let process = "forward_then_backward" //process ignored for integer inst_loc's.
@@ -1958,9 +1959,9 @@ Job.insert_instruction = function(instruction, location){
                     //this meth must do the added_items_count increment because
                     //the caller of this meth doesn't know the index of the instr to increment
                     //the added_items_count of.
-                    job_instance.added_items_count[this.program_counter] += 1 //do_to: doesn't seem right that pc has its added_items count incrementd. Maybe should be something lese, or no increment at all
+                    //job_instance.added_items_count[this.program_counter] += 1 //isn't right that pc has its added_items count incremented. Maybe should be something else, or no increment at all
+                   job_instance.increment_added_items_count_for_parent_instruction_of(index)
                }
-
         }
     }
     else {
@@ -1970,8 +1971,46 @@ Job.insert_instruction = function(instruction, location){
     }
 }
 
+Job.prototype.increment_added_items_count_for_parent_instruction_of = function(instr_id){
+    if(instr_id == 0) { } //must be at top level, so no parent aic to increment. This is ok
+    else {
+        let par_id_maybe = instr_id - 1
+        let par_instr = this.do_list[par_id_maybe]
+        if(par_instr instanceof Instruction.Control.go_to) { //below code is hairy but very rarely if ever called
+            let location = par_instr.instruction_location
+            let par_loc_job_inst = Job.instruction_location_to_job(location)
+            let par_loc_index = this.instruction_location_to_id(location)
+            if((par_loc_job_inst === this) &&
+               (type_of(par_loc_index) == "number") &&
+               (par_loc_index < this.program_counter)) { //backwards goto in same job
+               let loop_inst_maybe = this.do_list[par_loc_index]
+               if(loop_inst_maybe instanceof Robot.loop){ //shoot, we can't make the inserted instruction a sub_object of a loop's go_to
+                    //so we've got to climb up the tree and increment the next instr that has a positive added_items_count
+                    //but that aic must "contain" the instr_id of the added instruction
+                   for(let maybe_par_id = par_loc_index - 1; maybe_par_id >= 0; maybe_par_id--){
+                       //assumes go_to of a loop instr won't have a positive added_items_count which should be right
+                       if(this.added_items_count[maybe_par_id] > 0) {
+                           let sub_items_count = this.total_sub_instruction_count(maybe_par_id)
+                           let last_instruction_id_under_maybe_par = maybe_par_id + sub_items_count
+                           if (instr_id <= (last_instruction_id_under_maybe_par + 1)){ //even if our new instr is one beyond the current scope of our maybe_par_id, consider that we're adding to the end of that maybe_par's sub_instructions. The laternative is to keep going up but this is good enough.
+                               this.added_items_count[maybe_par_id] += 1
+                               return
+                           }
+                       }
+                   }
+                   return //didn't find a parent that included instr_id so it must be at top level,
+                          //in which case, no need to increment any par instr aic
+               }
+            }
+        }
+        //the case that applies nearly all of the time
+        //do not make this an else as the inner if's above need to fall through to here.
+        this.added_items_count[instr_id - 1] += 1 //fairly dumb but usually right. Just make it the sub_instruction of the instruction above it.
+    }
+}
+
 //returns true if the argument is the right type to be an
-///instrudtion location. Note it might not actualy BE an instruction location,
+///instrudtion location. Note it might not actually BE an instruction location,
 //but at least it coforms to the bare minimum of a type
 //called from Job constructor for use in finish_job
 Job.is_plausible_instruction_location = function(instruction_locaction){

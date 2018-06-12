@@ -186,8 +186,8 @@ Instruction.Control.break = class Break extends Instruction.Control{ //class nam
             loop_ins.resolved_boolean_int_array_fn = null //just in case this loop is nested in another loop
             //or we "go_to backwards" to it, we want its next "first_call" to initialize
             //the loop so set resolved_boolean_int_array_fn to null
-            let items_within_loop = job_instance.added_items_count[loop_pc]
-            job_instance.program_counter = loop_pc + items_within_loop //np pc is pointing at last inst of loop iteratil instrs
+            let items_within_loop = job_instance.total_sub_instruction_count(loop_pc) //job_instance.added_items_count[loop_pc]
+            job_instance.program_counter = loop_pc + items_within_loop //now pc is pointing at last inst of loop iteration instrs
             job_instance.set_up_next_do(1) //skip past the last inst in the loop iteration, as we're done with the loop
         }
     }
@@ -1640,7 +1640,10 @@ Instruction.Control.loop = class Loop extends Instruction.Control{
            return body_fn_result
        }
     }
-    //when called, pc of job_instance will be to a Robot.break instruction
+    //when called, pc of job_instance will (as of Jun 11 ) be to a Robot.break instruction
+    //Just search backwards for the first loop instruction and return its pc.
+    //If job_instance.program_counter happens to be pointing at a loop,
+    //its just returned.
     static pc_of_enclosing_loop(job_instance){
         for(let a_pc  = job_instance.program_counter; a_pc >=0; a_pc--){
             let a_ins = job_instance.do_list[a_pc]
@@ -2221,9 +2224,10 @@ Instruction.Control.sync_point = class sync_point extends Instruction.Control{
             ((this.job_names.length > 1)  || //must contain a job other than itself
             (this.job_names[0] != job_instance.name))){ //the one job name its got is not job_instance so we've got to flush the instruction_queue
             let instruction_array = Dexter.empty_instruction_queue()
-            job_instance.do_list.splice(job_instance.program_counter, 0, instruction_array); //before really testing th sync point, first empty the queue. We only need to do this the first time this do_item is called.
-            job_instance.added_items_count.splice(this.program_counter, 0, 0);
+            //   job_instance.do_list.splice(job_instance.program_counter, 0, instruction_array); //before really testing th sync point, first empty the queue. We only need to do this the first time this do_item is called.
+            //   job_instance.added_items_count.splice(this.program_counter, 0, 0);
             //job_instance.insert_single_instruction(instruction_array) //don't call because this inserts AFTER PC, not at it.
+            Job.insert_instruction(instruction_array, {job: job_instance, offset: "program_counter"})
             this.inserted_empty_instruction_queue = true
             job_instance.set_up_next_do(0) //go and do this empty_instruction_queue instruction, and when it finally returns, do the sync_point proper that is the next instruction
         }

@@ -6,6 +6,21 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 2.3.18, June 12, 2018</summary>
+<ul>
+    <li> Fixed <code>Robot.sync_point</code> and all calls to <code>Job.insert_instruction</code>
+        to better handle being called inside of a loop.</li>
+
+    <li> Fixed <code>Robot.break</code> instruction to properly handle skipping past end of loop
+        when the loop body has nested instructions.</li>
+
+    <li> Improved doc for <code>Robot.go_to</code></li>
+
+    <li> Improved doc for <code>Job.insert_instruction</code></li>
+
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 2.3.17, June 11, 2018</summary>
 <ul>
     <li> <code>isLeafObject</code> new newObject system method.
