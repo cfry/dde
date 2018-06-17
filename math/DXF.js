@@ -1,8 +1,21 @@
 //DXF class
 //James Wigglesworth
 //Started: 2_10_2017
-//Updated: 9_21_2017
+//Updated: 6_21_2018
 
+//Remove this later:
+Dexter.dummy_move = function(job){
+	let CMD = []
+    CMD.push(function(){return Dexter.get_robot_status()})
+    CMD.push(function(){
+        let X = job.robot.robot_status
+        let J_angles = [X[Dexter.J1_ANGLE], X[Dexter.J2_ANGLE], X[Dexter.J3_ANGLE], X[Dexter.J4_ANGLE], X[Dexter.J5_ANGLE]]
+        return Dexter.move_all_joints(J_angles)
+        //return Dexter.move_all_joints([0, 0, 0, 0, 0])
+        //return make_ins("P", J_angles)
+    })
+    return CMD
+}
 
 var DXF = new function(){
 	
@@ -21,8 +34,26 @@ var DXF = new function(){
                		b = point_object_to_array(ent.vertices[1])
                 	points.push(a)
                     points.push(b)
+                }else if (ent.type == "POLYLINE"){
+                	a = point_object_to_array(ent.vertices[0])
+               		b = point_object_to_array(ent.vertices[1])
+                	points.push(a)
+                    points.push(b)
+                }else if (ent.type == "LWPOLYLINE"){
+                	let v_array = ent.vertices
+                    points.push([v_array[0].x, v_array[0].y, v_array[0].z])
+                    for(let j = 1; j < v_array.length-1; j++){
+                    	points.push([v_array[j].x, v_array[j].y, v_array[j].z])
+                        points.push([v_array[j].x, v_array[j].y, v_array[j].z])
+                    }
+                    points.push([v_array[v_array.length-1].x, v_array[v_array.length-1].y, v_array[v_array.length-1].z])
+                }else{
+                	warning("Entity of type " + ent.type + " is not currently supported.")
                 }
+                
             }//end for
+            
+        out(points)
         return points
  	}
 	
@@ -645,11 +676,12 @@ function my_settings(speed = 20){
     ]
 }
 
-function dummy_move(){
+function dummy_move(job){
     let CMD = []
     CMD.push(function(){return Dexter.get_robot_status()})
     CMD.push(function(){
-    			let X = Dexter.my_dex.robot_status
+    			let robot = job.robot
+    			let X = robot.robot_status
                 let J_angles = [X[Dexter.J1_ANGLE], X[Dexter.J2_ANGLE], X[Dexter.J3_ANGLE], X[Dexter.J4_ANGLE], X[Dexter.J5_ANGLE]]
                 return Dexter.move_all_joints(J_angles)
                 //return Dexter.move_all_joints([0, 0, 0, 0, 0])
@@ -932,6 +964,7 @@ this.dxf_to_instructions = function({
                         draw_speed = 1 * _cm/_s,
                         draw_res = 0.5 * _mm,
                         lift_height = 1 * _cm,
+                        rapid_speed = 20,
                         tool_action = false,
                         tool_action_on_function = function(){
 							return [
@@ -979,6 +1012,7 @@ this.dxf_to_instructions = function({
     	dde_error("Input arg, file_path, to DXF.dxf_to_instructions is incorrect data type")
     }
     
+    /*
 	if(tool_action){
 		new Job({name: "Action_Off",
          	 	do_list: [tool_action_off_function]}
@@ -987,8 +1021,9 @@ this.dxf_to_instructions = function({
          	 	do_list: [tool_action_on_function]}
 			    )
 	}
+    */
         
-    let rapid_speed = 30
+    //let rapid_speed = 30
     //let dxf_content = file_content(dxf_filepath)
     
     let J_angles_1 = three_J_angles[0]
@@ -1090,6 +1125,7 @@ this.dxf_to_instructions = function({
 
 
 
+
 ///////////////////////////////////////////////////////
 //USER UNPUT:
 //
@@ -1099,28 +1135,41 @@ DXF.init_drawing()
 */
 
 	this.init_drawing = function({
-						dxf_filepath = "choose_file",
-						three_points = [[0, .55, 0.05], [0, .4, 0.05], [.15, .4, 0.05]], //(m) 
-                        plane_normal_guess = [0, 0, 1],
-                        calc_plane_normal = false,
-                        tool_height = 5.08 * _cm,
-                        tool_length = 8.255 * _cm,
-                        DXF_units,
-                        draw_speed = 1 * _cm/_s,
-                        draw_res = 0.5 * _mm,
-                        lift_height = 1 * _cm,
-                        tool_action = false,
-                        tool_action_on_function = function(){
-							return [
-							make_ins("w", 64, 2),
-							Dexter.dummy_move()]
-						},
-						tool_action_off_function = function(){
-							return [
-							make_ins("w", 64, 0),
-							Dexter.dummy_move()]
-						}
-                      } = {}){
+		dxf_filepath = "choose_file",
+		robot = Dexter.dexter0,
+		three_points = [[0, .55, 0.05], [0, .4, 0.05], [.15, .4, 0.05]], //(m) 
+		plane_normal_guess = [0, 0, 1],
+		calc_plane_normal = false,
+		tool_height = 5.08 * _cm,
+		tool_length = 8.255 * _cm,
+		DXF_units,
+		draw_speed = 1 * _cm/_s,
+		draw_res = 0.5 * _mm,
+		lift_height = 1 * _cm,
+        lift_speed = 20,
+		tool_action = false,
+		tool_action_on_function = function(){
+		return [
+			make_ins("S", "SetIOState",80),
+			Dexter.set_parameter("EESpan", 0),
+			function(){return Dexter.dummy_move(this)}
+        ]
+		},
+        tool_action_mid_function = function(){
+		return [
+			make_ins("S", "SetIOState",80),
+			Dexter.set_parameter("EESpan", 430),
+			function(){return Dexter.dummy_move(this)}
+        ]
+		},
+		tool_action_off_function = function(){
+		return [
+			make_ins("S", "SetIOState",80),
+			Dexter.set_parameter("EESpan", 512),
+			function(){return Dexter.dummy_move(this)}
+        ]
+		}
+	} = {}){
 
 //Plane points
 var Apoint1 = three_points[0] //(m)
@@ -1146,7 +1195,9 @@ if(calc_plane_normal){
 }
 
 new Job({name: "Home",
-         do_list: [function(){return my_settings(30)},
+		 robot: robot,
+         show_instructions: false,
+         do_list: [function(){return my_settings(20)},
          		   function(){return Dexter.move_all_joints([0, 0, 0, 0, 0])}]}
 )
 
@@ -1155,6 +1206,8 @@ new Job({name: "Home",
 /////////////////////////////////////////////////////////////////
 var old_boundaries
 new Job({name: "Cal", 
+	robot: robot,
+    show_instructions: false,
     do_list: [setOpenLoop(),
             		  make_ins("S", "J1BoundryHigh",180),
                       make_ins("S", "J1BoundryLow",-180),
@@ -1227,26 +1280,38 @@ new Job({name: "Cal",
                       setKeepPosition()
     ]})
 
-new Job({name: "Point1",
-         do_list: [function(){return my_settings(30)},
-         		   //function(){return setKeepPosition()},
-         		   function(){return Dexter.move_to(Apoint1, Adir, Dexter.RIGHT_UP_OUT)}
-         		  ]}
-)
-new Job({name: "Point2",
-         do_list: [function(){return my_settings()},
-         		   //function(){return setKeepPosition()},
-         		   function(){return Dexter.move_to(Apoint2, Adir, Dexter.RIGHT_UP_OUT)}
-         		  ]} 
-)
-new Job({name: "Point3",
-         do_list: [function(){return my_settings()},
-                   //function(){return setKeepPosition()},
-         		   function(){return Dexter.move_to(Apoint3, Adir, Dexter.RIGHT_UP_OUT)}
-         		  ]}
-)
+new Job({
+	name: "Point1",
+	robot: robot,
+    show_instructions: false,
+    do_list: [
+    	function(){return my_settings(20)},
+        function(){return Dexter.move_to(Apoint1, Adir, Dexter.RIGHT_UP_OUT)}
+	]
+})
+
+new Job({
+	name: "Point2",
+    robot: robot,
+    show_instructions: false,
+	do_list: [
+    	function(){return my_settings(20)},
+        function(){return Dexter.move_to(Apoint2, Adir, Dexter.RIGHT_UP_OUT)}
+	]
+})
+
+new Job({
+	name: "Point3",
+    robot: robot,
+    show_instructions: false,
+    do_list: [
+    	function(){return my_settings(20)},
+        function(){return Dexter.move_to(Apoint3, Adir, Dexter.RIGHT_UP_OUT)}
+	]
+})
 
 new Job({name: "Out_Rectangle",
+		 robot: robot,
 		 simulate: true,
 		 show_instructions: false,
          do_list: [function(){out("Width: " + Vector.round(Vector.multiply(100, get_bounds_from_three_positions(J_angles_A[0], J_angles_A[1], J_angles_A[2])[0]), 3) + " (cm)   Height: " + Vector.round(Vector.multiply(100, get_bounds_from_three_positions(J_angles_A[0], J_angles_A[1], J_angles_A[2])[1]), 3) + "  (cm)", "blue")}
@@ -1254,47 +1319,73 @@ new Job({name: "Out_Rectangle",
 )
 
 if(tool_action){
-new Job({name: "Action_Off",
-         do_list: [tool_action_off_function]}
-)
-/*
-new Job({name: "Laser_Low",
-         do_list: [make_ins("S", "EERoll", 430),
-         		   dummy_move()
-                   ]}
-)
-*/
-new Job({name: "Action_On", 
-         do_list: [tool_action_on_function]}
-)
+	new Job({
+		name: "Action_Off",
+    	robot: robot,
+        show_instructions: false,
+		do_list: [tool_action_off_function]}
+	)
+    
+    new Job({
+		name: "Action_Mid",
+    	robot: robot,
+        show_instructions: false,
+		do_list: [tool_action_mid_function]}
+	)
 
-new Job({name: "DXF_Tool",
-         inter_do_item_dur: global_inter_do_item_dur,
-         show_instructions: false,
-         do_list: [function(){return my_settings(30)},
-         		   function(){return laser_cut_dxf(filename, J_angles_A, resolution, speed, DXF_units)}
-            	  ]}
-)
+	new Job({
+		name: "Action_On", 
+        robot: robot,
+        show_instructions: false,
+		do_list: [tool_action_on_function]}
+	)
+
+	new Job({
+		name: "DXF_Tool",
+        robot: robot,
+		inter_do_item_dur: global_inter_do_item_dur,
+		show_instructions: false,
+		do_list: [
+    		function(){return my_settings(30)},
+			function(){
+        		return DXF.dxf_to_instructions({
+					dxf_filepath: dxf_filepath, 
+					three_J_angles: J_angles_A,
+					tool_height: tool_height,
+					tool_length: tool_length,
+					DXF_units: DXF_units,
+					draw_speed: draw_speed,
+					draw_res: draw_res,
+					lift_height: lift_height,
+					tool_action: tool_action,
+					tool_action_on_function: tool_action_on_function,
+					tool_action_off_function: tool_action_off_function
+				})
+        	}
+		]
+    })
 }else{
-new Job({name: "Draw_DXF",
-         inter_do_item_dur: global_inter_do_item_dur,
-         show_instructions: false,
-         do_list: [function(){return my_settings(30)},
-         		   function(){return DXF.dxf_to_instructions({
-                   								dxf_filepath: dxf_filepath, 
-                                                three_J_angles: J_angles_A,
-                                                tool_height: tool_height,
-                        						tool_length: tool_length,
-                          						DXF_units: DXF_units,
-                        						draw_speed: draw_speed,
-                        						draw_res: draw_res,
-                        						lift_height: lift_height,
-                        						tool_action: false,
-                                                tool_action_on_function: tool_action_on_function,
-												tool_action_off_function: tool_action_off_function
-                                                })}
-            	  ]}
-)
+	new Job({
+		name: "Draw_DXF",
+    	robot: robot,
+		inter_do_item_dur: global_inter_do_item_dur,
+		show_instructions: false,
+		do_list: [
+    		function(){return my_settings(30)},
+			function(){return DXF.dxf_to_instructions({
+				dxf_filepath: dxf_filepath, 
+				three_J_angles: J_angles_A,
+				tool_height: tool_height,
+				tool_length: tool_length,
+				DXF_units: DXF_units,
+				draw_speed: draw_speed,
+				draw_res: draw_res,
+				lift_height: lift_height,
+				tool_action: tool_action,
+				tool_action_on_function: tool_action_on_function,
+				tool_action_off_function: tool_action_off_function
+			})}
+		]})
 }
 
 /*
