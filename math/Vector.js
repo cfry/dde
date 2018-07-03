@@ -2,10 +2,10 @@
 //Vector and Matrix math functions
 //James Wigglesworth
 //Started: 6_18_16
-//Updated: 3_16_18
+//Updated: 4_13_18
 
 
-//Public
+var dde_github_issues = "https://github.com/cfry/dde/issues"
 var Vector = new function(){
 //The Vector Class contains functions for manipulating the following:
 /*
@@ -887,9 +887,10 @@ var Vector = new function(){
     //will also rotate a point about a line by substituting the line's vector in plane and its point in point
     this.rotate = function(vector, plane, theta, point = [0, 0, 0]){
     	plane =  Vector.normalize(Vector.shorten(plane))
+        let dim = Vector.matrix_dimensions(vector)
         let result, short_vector, term_1, term_2, term_3
-        if (vector[0].length == 3){
-        	result = [0, 0, 0]
+        if (dim[1] == 3 && dim[0] != 1){
+        	result = Vector.make_matrix(dim[0], 1)
             for(var i = 0; i < vector.length; i++){
             	short_vector = Vector.subtract(vector[i], point)
                 if(Vector.is_equal(short_vector, point)){
@@ -897,12 +898,12 @@ var Vector = new function(){
             	}else{
                 	term_1 = Vector.multiply(cosd(theta), short_vector)
             		term_2 = Vector.multiply(sind(theta), Vector.cross(Vector.shorten(plane), short_vector))
-                	result[i] = Vector.add(Vector.multiply(Vector.magnitude(vector),  Vector.normalize(Vector.add(term_1, term_2))), point)
+                	result[i] = Vector.add(Vector.multiply(Vector.magnitude(short_vector),  Vector.normalize(Vector.add(term_1, term_2))), point)
                 }
             }
         }else{
         	short_vector = Vector.subtract(Vector.shorten(vector), point)
-            if(Vector.is_equal(short_vector, plane)){
+            if(Vector.magnitude(Vector.cross(short_vector, plane)) < 1e-10){
             	return short_vector
             }
             term_1 = Vector.multiply(cosd(theta), short_vector)
@@ -1220,6 +1221,292 @@ var Vector = new function(){
     	}
     	return result
 	}
+    
+    
+
+	//Private
+    //This is used to prevent functions from altering outside arrays
+    this.deep_copy = function(arg){
+    	if (typeof(arg) == "number"){
+        	return arg
+        }else{
+        	let result = []
+        	for(var i = 0; i < arg.length; i++){
+            	let elt = arg[i]
+                if (typeof(elt) !== "number"){
+                    elt = elt.slice(0)
+                }
+                result.push(elt)
+            }
+            return result
+        }
+    }
+
+
+    //*******************************************
+    //Orientation representation conversions:
+    
+    this.euler_angles_to_DCM = function(euler_angles = [0, 0, 0], euler_sequence = "ZYX"){
+    	//default could be ZX'Z'
+        let dim = Vector.matrix_dimensions(euler_angles)
+        if(dim[0] == 2 && dim[1] == 3){
+        	euler_sequence = euler_angles[1]
+            euler_angles = euler_angles[0]
+        }
+        
+        var result = []
+        let elt = ""
+        for(let char of euler_sequence){
+        	if(elt.length == 1){
+            	if(char == "'"){
+                	elt += char
+                    result.push(elt)
+                    elt = ""
+                }else{
+                	result.push(elt)
+                    elt = char
+                }
+            }else{
+            	elt = char
+            } 
+        }
+        if((elt != "'") && (elt.length == 1)){
+        	result.push(elt)
+        }
+          
+        
+    	let DCM = Vector.identity_matrix(3)
+        if(result.length == 3){
+        	for(var i = 0; i < 3; i++){
+        		DCM = Vector.rotate_DCM(DCM, result[i], euler_angles[i]) 
+            }
+        }
+        //return Vector.transpose(DCM)
+        return DCM
+    }
+    //Convert.angles_to_DCM([Convert.degrees_to_arcseconds(45), Convert.degrees_to_arcseconds(45), 0])
+    /* 
+    debugger
+    Vector.DCM_to_euler_angles(Vector.transpose(Vector.euler_angles_to_DCM([30, 0, 0])))
+    */
+      
+    this.DCM_to_euler_angles = function(DCM, euler_sequence = "ZYX"){
+    	let euler_angles = [0, 0, 0]
+        switch(euler_sequence){
+        	
+        	case "ZYZ":
+            	//euler_angles[0] = atan2d(DCM[0][1], DCM[0][0])
+                //euler_angles[1] = asind(DCM[0][2])
+                //euler_angles[2] = atan2d(DCM[1][2], DCM[2][2])
+            	if(DCM[2][2] == 0){
+                	dde_error("Singularity in DCM_to_Euler_Angles for euler_sequence: " + euler_sequence + " and DCM:")
+                    out(Vector.round(DCM,3))
+                }
+            	euler_angles[0] = atan2d(DCM[2][0], DCM[2][1])
+                euler_angles[1] = acosd(DCM[2][2])
+                euler_angles[2] = atan2d(DCM[0][2], DCM[1][2])
+            
+            case "XYZ":
+            	let x_prime, y_prime, z_prime
+                
+            	let DCM_0 = DCM.slice()
+                out("DCM_0:")
+                out(Vector.round(DCM_0, 3))
+                x_prime = Vector.transpose(Vector.pull(DCM_0, [0, 2], [0, 0]))
+                let x_prime_proj = Vector.project_vector_onto_plane(x_prime, [0, 0, 1])
+                euler_angles[2] = Vector.signed_angle(x_prime_proj, [1, 0, 0], [0, 0, 1])
+                
+                let DCM_1 = Vector.rotate_DCM(DCM_0, [0, 0, 1], -euler_angles[2])
+                out("DCM_1:")
+                out(Vector.round(DCM_1, 3))
+                x_prime = Vector.transpose(Vector.pull(DCM_1, [0, 2], [0, 0]))
+                euler_angles[1] = Vector.signed_angle(x_prime, [1, 0, 0], [0, 1, 0])
+                
+                //debugger
+                let DCM_2 = Vector.rotate_DCM(DCM_1, [0, 1, 0], -euler_angles[1])
+                out("DCM_2:")
+                out(Vector.round(DCM_2, 3))
+                x_prime = Vector.transpose(Vector.pull(DCM_2, [0, 2], [0, 0]))
+                z_prime = Vector.transpose(Vector.pull(DCM_2, [0, 2], [2, 2]))
+                y_prime = Vector.transpose(Vector.pull(DCM_2, [0, 2], [1, 1]))
+                euler_angles[0] = Vector.signed_angle(y_prime, [0, 1, 0], [1, 0, 0])
+                
+            break
+            
+            
+            default:
+           		dde_error("The euler sequence of " + euler_sequence + " is not supported.</br>If you wish to have this specific sequence implimented post an Issue on the DDE Github:</br>" + dde_github_issues)
+        }
+        
+        return euler_angles
+    }
+    
+    this.quaternion_to_DCM = function(quaternion = [1, 0, 0, 0]){
+    	//Algorithm was found here:
+        //http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToMatrix/
+    	let w = quaternion[0]
+        let x = quaternion[1]
+        let y = quaternion[2]
+        let z = quaternion[3]
+        
+        let DCM = Vector.make_matrix(3,3)
+        DCM[0][0] = 1-2*y*y-2*z*z
+        DCM[1][0] = 2*x*y+2*z*w
+        DCM[2][0] = 2*x*z-2*y*w
+        DCM[0][1] = 2*x*y-2*z*w
+        DCM[1][1] = 1-2*x*x-2*z*z
+        DCM[2][1] = 2*y*z+2*x*w
+        DCM[0][2] = 2*x*z+2*y*w
+        DCM[1][2] = 2*y*z-2*x*w
+        DCM[2][2] = 1-2*x*x-2*y*y
+        return DCM
+    }
+
+    
+    this.DCM_to_quaternion = function(DCM = Vector.make_DCM()){
+    	//Algorithm was found here:
+        //http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/
+    	let trace = DCM[0][0] + DCM[1][1] + DCM[2][2]
+        let S, w, x, y, z, quaternion
+        if(trace > 0){
+        	S = Math.sqrt(1.0 + trace) * 2
+			w = .25 * S
+            x = (DCM[2][1] - DCM[1][2]) / S
+            y = (DCM[2][1] - DCM[1][2]) / S
+            z = (DCM[2][1] - DCM[1][2]) / S
+        }else if(DCM[0][0] > DCM[1][1] && DCM[0][0] > DCM[2][2]){
+        	S = 2 * Math.sqrt(1 + DCM[0][0] - DCM[1][1] - DCM[2][2])
+            w = (DCM[2][1] - DCM[1][2]) / S
+            x = .25 * S
+            y = (DCM[0][1] + DCM[1][0]) / S
+            z = (DCM[0][2] + DCM[2][0]) / S
+        }else if(DCM[1][1] > DCM[2][2]){
+        	S = 2 * Math.sqrt(1 + DCM[1][1] - DCM[0][0] - DCM[2][2])
+            w = (DCM[0][2] - DCM[2][0]) / S
+            x = (DCM[0][1] + DCM[1][0]) / S
+            y = .25 * S
+            z = (DCM[1][2] + DCM[2][1]) / S
+        }else if(DCM[1][1] > DCM[2][2]){
+        	S = 2 * Math.sqrt(1 + DCM[2][2] - DCM[0][0] - DCM[1][1])
+            w = (DCM[1][0] - DCM[0][1]) / S
+            x = (DCM[0][2] + DCM[2][0]) / S
+            y = (DCM[1][2] + DCM[2][1]) / S
+            z = .25 * S
+        }
+    	quaternion = [w, x, y, z]
+        return quaternion
+    }
+    
+    this.euler_angles_to_quaternion = function(euler_angles = [0, 0, 0], euler_sequence = "XYZ"){
+        return Vector.DCM_to_quaternion(Vector.euler_angles_to_DCM(euler_angles, euler_sequence))
+    }
+    
+    this.quaternion_to_euler_angles = function(quaternion = [1, 0, 0, 0], euler_sequence = "XYZ"){
+        return Vector.DCM_to_euler_angles(Vector.quaternion_to_DCM(quaternion), euler_sequence)
+    }
+    
+    this.get_orientation_format = function(orientation){
+    	let result
+        let dim = Vector.matrix_dimensions(orientation)
+        if(dim[0] == 1 && dim[1] == 3){
+            result = "euler_angles"
+        }else if(dim[0] == 2 && dim[1] == 3){
+            result = "euler_angles"
+        }else if(dim[0] == 1 && dim[1] == 4){
+            result = "quaternion"
+        }else if(dim[0] == 3 && dim[1] == 3){
+        	result = "DCM"
+        }else{
+        	dde_error("orientation is improperly formatted")
+        }
+        return result
+    }
+    
+    //Euler_angles Utilities:
+    this.make_euler_angles = function(orientation = [0, 0, 0], euler_sequence = "XYZ"){
+    	let format = Vector.get_orientation_format(orientation)
+        let angles
+        switch(format){
+        	case "euler_angles":
+            	angles = [orientation, euler_sequence]
+            break
+            case "quaternion":
+            	angles = Vector.quaternion_to_euler_angles(orientation, euler_sequence)
+            break
+            case "DCM":
+            	angles = Vector.DCM_to_euler_angles(orientation, euler_sequence)
+            break
+        }
+        return angles
+    }
+    
+    this.make_quaternion = function(orientation = [1, 0, 0, 0]){
+    	let format = Vector.get_orientation_format(orientation)
+        let quat
+        switch(format){
+        	case "euler_angles":
+            	quat = Vector.euler_angles_to_quaternion(orientation)
+            break
+            case "quaternion":
+            	quat = orientation
+            break
+            case "DCM":
+            	quat = Vector.DCM_to_quaternion(orientation)
+            break
+        }
+        return quat
+    }
+    
+    //DCM Utilities:
+    this.make_DCM = function(orientation = [0, 0, 0]){
+    	let type = Vector.get_orientation_format(orientation)
+        let DCM
+        switch(type){
+        	case "euler_angles":
+            	DCM = Vector.euler_angles_to_DCM(orientation)
+            break
+            case "quaternion":
+            	DCM = Vector.quaternion_to_DCM(orientation)
+            break
+            case "DCM":
+            	DCM = orientation
+            break
+        }
+        return DCM
+    }
+    
+    this.get_x_vector_from_DCM = function(DCM = Vector.make_DCM()){
+    	return Vector.transpose(Vector.pull(DCM, [0, 2], [0, 0]))
+    }
+    
+    this.get_y_vector_from_DCM = function(DCM = Vector.make_DCM()){
+    	return Vector.transpose(Vector.pull(DCM, [0, 2], [1, 1]))
+    }
+    
+    this.get_z_vector_from_DCM = function(DCM = Vector.make_DCM()){
+    	return Vector.transpose(Vector.pull(DCM, [0, 2], [2, 2]))
+    }
+    
+    //Pose Utilities:
+    this.get_x_vector_from_pose = function(pose = Vector.make_pose()){
+    	return Vector.transpose(Vector.pull(pose, [0, 2], [0, 0]))
+    }
+    
+    this.get_y_vector_from_pose = function(pose = Vector.make_pose()){
+    	return Vector.transpose(Vector.pull(pose, [0, 2], [1, 1]))
+    }
+    
+    this.get_z_vector_from_pose = function(pose = Vector.make_pose()){
+    	return Vector.transpose(Vector.pull(pose, [0, 2], [2, 2]))
+    }
+    
+    this.get_xyz_from_pose = function(pose = Vector.make_pose()){
+    	return Vector.transpose(Vector.pull(pose, [0, 2], [3, 3]))
+    }
+    
+    this.get_DCM_from_pose = function(pose = Vector.make_pose()){
+    	return Vector.transpose(Vector.pull(pose, [0, 2], [0, 2]))
+    }
     
     /**********************************************************
     //Matrix Math
@@ -1714,7 +2001,8 @@ var Vector = new function(){
     }
     
     this.make_dcm = function(x_vector, y_vector, z_vector){
-    	let dcm = Vector.identity_matrix(3)
+    	warning("This function is being depricated.</br>Please replace with")
+        let dcm = Vector.identity_matrix(3)
         
         if(x_vector == undefined && y_vector == undefined && z_vector == undefined){
         	return dcm
@@ -1741,7 +2029,31 @@ var Vector = new function(){
     var result = Vector.make_dcm([1, 1, 0], undefined, [0, 0, 1])
     */
     
-	this.make_pose = function(position = [0, 0, 0], orientation = [0, 0, 0], scale_factor = 1, sequence = "XYZ"){
+    this.make_DCM_from_3_vectors = function(x_vector, y_vector, z_vector){
+        let dcm = Vector.identity_matrix(3)
+        
+        if(x_vector == undefined && y_vector == undefined && z_vector == undefined){
+        	return dcm
+        }else if(x_vector == undefined && y_vector != undefined && z_vector != undefined){
+        	x_vector = Vector.cross(y_vector, z_vector)
+        }else if(x_vector != undefined && y_vector == undefined && z_vector != undefined){
+        	y_vector = Vector.cross(z_vector, x_vector)
+        }else if(x_vector != undefined && y_vector != undefined && z_vector == undefined){
+        	z_vector = Vector.cross(x_vector, y_vector)
+        }
+        
+        x_vector = Vector.normalize(x_vector)
+        y_vector = Vector.normalize(y_vector)
+        z_vector = Vector.normalize(z_vector)
+        
+        dcm = Vector.insert(dcm, Vector.transpose(x_vector), [0, 0])
+        dcm = Vector.insert(dcm, Vector.transpose(y_vector), [0, 1])
+        dcm = Vector.insert(dcm, Vector.transpose(z_vector), [0, 2])
+        
+        return dcm
+    }
+    
+	this.make_pose = function(position = [0, 0, 0], orientation = [0, 0, 0], scale_factor = 1, sequence = "ZYX"){
 		let dim = Vector.matrix_dimensions(orientation)
         let DCM
         let s = scale_factor
@@ -1861,7 +2173,13 @@ var Vector = new function(){
         return Vector.make_pose(position, DCM)
     }
 
-    
+	/*
+	this.quaternion_interpolation = function(quaternion){
+    	THREE.QuaternionLinearInterpolant()
+        THREE.Quaternion
+    }
+    */
+
     this.is_pose = function(pose){
     	let dim = Vector.matrix_dimensions(pose)
         if (!(dim[0] == 4 && dim[1] == 4)){
