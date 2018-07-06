@@ -2993,3 +2993,138 @@ Instruction.Control.read_from_robot = class read_from_robot extends Instruction.
 }
 Instruction.Control.read_from_robot.payload_max_chars = 62
 
+Instruction.Control.show_picture = class show_picture extends Instruction.Control{
+    constructor ({canvas_id="canvas_id", //string of a canvas_id or canvasId dom elt
+                  content=null, //mat or file_path
+                  title=undefined,
+                  x=200, y=40, width=320, height=240,
+                  rect_to_draw=null}){
+        super()
+        this.canvas_id = canvas_id
+        this.content = content
+        this.title = title
+        this.x = x
+        this.y = y
+        this.width = width
+        this.height = height
+        this.rect_to_draw = rect_to_draw
+        this.first_time = true
+        Picture.init()
+    }
+    do_item (job_instance){
+        if(this.first_time){
+        let cont = this.content
+        if((typeof(this.content) == "string") &&
+            job_instance.user_data[this.content]){
+            cont = job_instance.user_data[this.content] //should be a mat
+        }
+        Picture.show_picture({canvas_id: this.canvas_id, //string of a canvas_id or canvasId dom elt
+                                content: cont, //mat or file_path
+                                title: this.title,
+                                x: this.x,
+                                y: this.y,
+                                width: this.width,
+                                height: this.height,
+                                rect_to_draw: this.rect_to_draw})
+        this.first_time = false
+        job_instance.set_up_next_do(0)
+        }
+        else if (is_dom_elt(this.canvas_id)) {
+            this.first_time = true //in case we're in a loop, initialize for next time around
+            job_instance.set_up_next_do(1)
+        }
+        else if (value_of_path(this.canvas_id)) { //canvas_id is a string
+            this.first_time = true //in case we're in a loop, initialize for next time around
+            job_instance.set_up_next_do(1)
+        }
+        else { job_instance.set_up_next_do(0) } //wait until picture is up
+    }
+}
+
+Instruction.Control.show_video = class show_video extends Instruction.Control{
+    constructor ({video_id="video_id", //string of a canvas_id or canvasId dom elt
+                     content="webcam", //file_path or "webcam"
+                     title=undefined,
+                     x=200, y=40, width=320, height=240,
+                     play=true}){
+        super()
+        this.video_id = video_id
+        this.content = content
+        this.title = title
+        this.x = x
+        this.y = y
+        this.width = width
+        this.height = height
+        this.play = play
+        this.first_time = true
+        Picture.init() //do at job def time
+    }
+    do_item (job_instance){
+        if(this.first_time){
+            Picture.show_video({video_id: this.video_id, //string of a canvas_id or canvasId dom elt
+                                content: this.content, //mat or file_path
+                                title: this.title,
+                                x: this.x,
+                                y: this.y,
+                                width: this.width,
+                                height: this.height,
+                                play: this.play})
+            this.first_time = false
+            job_instance.set_up_next_do(0)
+        }
+        else if (is_dom_elt(this.video_id)) {
+            this.first_time = true //in case we're in a loop, initialize for next time around
+            job_instance.set_up_next_do(1)
+        }
+        else if (value_of_path(this.video_id)) { //video_id is a string
+            this.first_time = true //in case we're in a loop, initialize for next time around
+            job_instance.set_up_next_do(1)
+        }
+        else { job_instance.set_up_next_do(0) } //wait until video is up
+    }
+}
+
+Instruction.Control.take_picture = class take_picture extends Instruction.Control{
+    constructor ({video_id="video_id", //string of a canvas_id or canvasId dom elt
+                  callback=Picture.show_picture_of_mat}={}){
+        super()
+        this.video_id = video_id
+        this.callback = callback
+        this.first_time = true
+        this.clock_start = null
+        Picture.init() //do at fn def time, not at run time, else, grabbing the pic fails
+    }
+    do_item (job_instance){
+        if(this.clock_start_ms) { //at least close to done. take_picture called and video is up but has the callback been called and is done?
+            if ((Date.now() - this.clock_start_ms) > 150){ //Now assume done. Had to give a pause to make sure  the callback got run before moving on to the next instruction, in case it depends upon it.
+                //in case we're in a loop, initialize for next time around
+                this.clock_start_ms = null
+                this.first_time = true
+                job_instance.set_up_next_do(1)
+            }
+            else { job_instance.set_up_next_do(0) } //not done yet
+        }
+        else if(this.first_time){
+            let cb
+            if(typeof(this.callback) == "string"){
+              let user_data_var_name = this.callback
+              cb = function(mat) {
+                   out("in cb with ud_var: " + user_data_var_name + " and mat: " + mat)
+                   job_instance.user_data[user_data_var_name] = mat
+                  }
+            }
+            else { cb = this.callback }
+            Picture.take_picture({video_id: this.video_id, //string of a canvas_id or canvasId dom elt
+                                  callback: cb})
+            this.first_time = false
+            job_instance.set_up_next_do(0)
+        }
+
+        else if (is_dom_elt(this.video_id) ||value_of_path(this.video_id)) {
+           this.clock_start_ms = Date.now() //start the timer
+            job_instance.set_up_next_do(0)
+        }
+        else { job_instance.set_up_next_do(0) } //take_pciture has been called, but wait until video is up
+    }
+}
+

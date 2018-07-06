@@ -827,6 +827,877 @@ persistent_set("my_array", orig_array)</code><br/>
 
     </details> <!-- end Persistent -->
 
+<details id="Picture_doc_id" class="doc_details"><summary>Picture</summary>
+The web has a long and tortured history of using images.
+This undesigned mess consists of:
+<ul>
+<li>Numerous file formats: jpeg, png, gif, etc.</li>
+<li>Numerous video formats.</li>
+<li>3 HTML tags: img, canvas, video.</li>
+<li>No good internal representation standard.</li>
+<li>Asynchronous interfaces that make grown men cry.</li>
+</ul>
+On top of that mess we'd like to do conceptually simple tasks like
+show pictures, videos, and take pictures. We'd
+also like to do complex machine vision tasks such as recognize
+objects.
+<p></p>
+DDE attempts to make this reasonable with our Picture class,
+associated Robot instructions and OpenCV.js. Please understand
+that this is not nearly as easy as you can imagine and will
+no doubt have unexpected behavior. But we're doing the best we can
+from the perplexing foundation we're building upon.
+For lower level, but broader capabilities, see
+ <a href="#" onclick="open_doc('machine_vision_doc_id')">Machine Vision with OpenCV</a>
+
+<details id="Picture.init_doc_id" class="doc_details"><summary>init</summary>
+Before Picture methods can be used,<br/>
+<code>&nbsp;Picture.init() </code><br/> must be evaled.
+It takes a few seconds because it loads in OpenCV.js and other libraries.
+The 2nd through nth times it is called, it does nothing and
+returns very quickly so no harm in calling it multiple times a session.
+<p></p>
+Picture.init need not be called for the Robot instructions
+that correspond to the Picture methods.
+</details>
+
+<details class="doc_details"><summary>Camera I/O</summary>
+<details id="Picture.show_picture_doc_id" class="doc_details"><summary>show_picture</summary>
+<code>Picture.show_picture()</code><br/>
+ pops up a window that displays an image.<br/>
+<i>Parameters:</i><br/>
+<b>canvas_id</b> Default: <code>"canvas_id"</code> The string id to
+a canvas dom element, or a canvas dom element itself, to render the
+picture in. If this is a string that is NOT the id of a canvas dom element,
+such a dom element will be created inside a new show_window and used to
+display the image. The id of that dom element will be the canvas_id.<br/>
+This makes it easy to show pictures in a given place, or make a new place.<br/>
+
+<b>content</b> The picture to be shown. The default is:<br/>
+<code>__dirname + "/examples/snickerdoodle_board.png"</code>
+which is a picture of a printed circuit board similar to Dexter's processor board
+that is included in DDE. You can also show pictures stored in your dde_apps folder
+by using their name (without a prefix).
+Content can also be a url or OpenCV.js's "mat" object.<br/>
+
+<b>title</b> Default: null. If null, and a new widnow is
+created for showing this picture, a title for the window will be made up
+based on the <i>content</i> arg. If its a string, that string will be shown in the title.<br/>
+
+<b>x</b> Default: <code>200</code> If a new window is created, the x location
+    of that window. 0 means left.</b><br/>
+
+<b>y</b> Default: <code>40</code> If a new window is created, the y location
+    of that window. 0 means top.<br/>
+
+<b>width</b> Default: <code>320</code>.  If a new window is created, the width
+    of the image shown in that window.<br/>
+
+<b>height</b> Default: <code>240</code>.  If a new window is created, the height
+    of the image shown in that window.<br/>
+
+<b>rect_to_draw</b> Default: <code>null</code>. If this is an array of 4 non-negative integers,
+it is used to make a single pixel wide red box at the
+x, y, width and height specified in the array.<br/>
+<b>show_window_callback</b> Default <code>show_window_callback_for_canvas_click</code>.
+If canvas_id does not exist, a new show_window will be created that has an HTML canvas
+tag that displays the content image. That show_window gets its callback argument
+from this argument.
+<p></p>
+The default prints details about the pixel clicked on,
+into the Output pane. View its source (by selecting and Evaling the function's name)
+to see how you might write
+a custom callback that does what you want with the clicked on pixel.
+<i>Examples</i><br/>
+<code>Picture.show_picture()</code><br/> Uses all the defaults.
+<pre><code>Picture.show_picture({content:
+"https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png"})</code></pre>
+  A picture from the web you've seen before.<p><p/>
+<pre><code>Picture.show_picture({content: __dirname + "/examples/snickerdoodle_board.png",
+rect_to_draw:[20, 20, 50, 50]})</code></pre>
+A picture file in DDE.<p><p/>
+<pre><code>Picture.show_picture({canvas_id: "mycan", x: 20, y: 100,
+        width: 200, height: 300})</code></pre>
+ The default picture in a canvas with id: "mycan".</pre>
+<pre><code>Picture.show_picture({canvas_id: "mycan", content:
+    "https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png"})</code></pre>
+  Another picture displayed in "mycan".
+  <p></p>
+  <i id="Robot.show_picture_doc_id">Robot Instruction</i><br/>
+  There is a robot instruction with the same arguments and functionality as the above
+  method that you can stick directly on the do_list of a job.<br/>
+  <i>Example:</i>
+  <pre><code>new Job({name: "my_job",
+         do_list: [Robot.show_picture()]})
+      </code></pre>
+</details>
+
+<details id="Picture.show_video_cameras_doc_id"class="doc_details">
+         <summary>show_video_cameras</summary>
+A given computer may have 0 or more cameras.
+If you don't have one on your computer, "webcams" that plug into
+a USB port are cheap and plentiful. We bought a Logitec c170 Webcam for $20
+in June, 2018. It has 640 x 480 video resolution and works fine with the DDE software.
+<br/>
+A higher end camera, especially good for pictures of tiny objects that
+we've used is <a target="_blank" href="https://www.amazon.com/Opti-Tekscope-Digital-Microscope-Definition-1600x1200/dp/B00PEZ3GMK/ref=pd_sbs_421_7">
+Opti-Tekscope</a>
+<p></p>
+Even if you do have a webcam on your computer, you may want one or more to attach
+to your Dexter. The above Logitec has a small table top stand. If you hacked
+that off, you'd be left with a 2 inch wide, 1 inch high, 1/2 inch deep camera.
+<p></p>
+Its 3 foot USB cord isn't long enough to allow mounting on Dexter, but you can
+get USB extention cables. We have seen 10 feet long USB cables work.
+The USB 2 spec says 16 feet is the maximum length. USB 2 is the most common
+version in use in 2018, but USB 3 is the new version and it is not recommended
+to be longer than 10 feet.
+<p></p>
+The "default" webcam for the DDE software will be the one built-in to
+your computer (if any). But if you're attaching a webcam to a computer,
+you'll have to specify the ID of the camera you intend to use.<br/>
+<code> Picture.show_video_cameras() </code></br> prints out a list of the video cameras
+that are currently connected to your computer. Each camera has a:
+<ul>
+<li><b>kind</b> Always "videoinput"</li>
+<li><b>label</b> For the Logitec, this is: "Webcam C170 (046d:082b)"</li>
+<li><b>deviceId</b> A 50 character or so random string containing digits and lower case letters.
+  I guess this is a unique ID. Its certainly long enough.
+  This string can be used for the camera_id input for
+  <code title="unEVALable">show_video</code> and
+  <code title="unEVALable">take_picture</code>.
+  Copy it from DDE's output pane and paste it into your camera_id argument.</li>
+</ul>
+<i>Parameter:</i><br/>
+<b>callback</b> Default: <code>null</code>. If present, this
+is a function that takes one argument, an array of camera "devices".
+Each device is represented as a literal object with properties of kind, label, deviceId,
+all with string values.<br/>
+<i>Example:</i>
+<pre><code>Picture.show_video_cameras(
+        function(cams){
+          out("You've got " +
+              cams.length +
+              " cameras.")})
+        </code></pre>
+</details>
+
+<details  id="show_video_doc_id" class="doc_details"><summary>show_video</summary>
+In order to take a picture for machine vision, you need to set up a video
+stream and take a snapshot of it. This is quite difficult using web-based
+sofware so we've made a wrapper for it.<br/>
+<i>Parameters:</i><br/>
+<b>video_id</b> Default: <code>"video_id"</code>. The location
+that the video will be put in. This can be the id of a dom element
+or the dom element object itself. If you give an id string
+that does not have a corresponding dom element, a new
+one will be made and wrapped in a show_window.
+<br/>
+<b>content</b> Default: <code>"webcam"</code> Where
+the content displayed in the video_id will come from.
+If "webcam", the actual webcam used is specified in the <i>camera_id</i> argument.<br/>
+This can also be the name of a video file or url.
+For grabbing urls from <a target="_blank" href="http:www.youtube.com">Youtube</a>:
+<ol><li>Click right on a video for a menu of operations.</li>
+    <li>Click on "Copy video URL".</li>
+    <li>Paste the string into the content argument in a call to show_video.</li>
+</ol>
+<b>title</b> A string. Default: <code>undefined</code> which will make a title
+based on the <i>content</i> arg.<br/>
+<b>x</b> Default: <code>400</code> The horizontal position of the show_window
+  created if the video_id does not refer to an existing dom element.
+  0 is on the left.<br/>
+<b>y</b> Default: <code>0</code> The vertical position of the show_window
+    created if the video_id does not refer to an existing dom element.
+    0 is on the top. <br/>
+<b>width</b> Default: <code>320</code>The width of the video element
+    created if the video_id does not refer to an existing dom element.<br/>
+<b>height</b> Default: <code>240</code> The height of the video element
+    created if the video_id does not refer to an existing dom element.<br/>
+<b>play</b> Default: <code>true</code> If true, the
+video is played as soon as the display can handle it.<br/>
+<b>camera_id</b> Default: <code>undefined</code> If the content is
+    <code>"webcam"</code>, then this is the id of the camera used
+    for the video stream. If no such ID exists, the default webcam for
+    your computer will be used. See <a href="#"
+    onclick="open_doc('Picture.show_video_cameras_doc_id')">show_video_cameras</a>
+    or click <button onclick="Picture.show_video_cameras()">show video cameras</button>
+    for a list of attached cameras and their id's. <br/>
+<b>callback</b> Default: <code>undefined</code>
+Once the video display is up, this method is called. The default is to do nothing.
+<p></p>
+<i>Examples:</i>
+<pre><code title="not in testsuite"> Picture.show_video() </code></pre>
+<!-- we should be able to do at least one of a show_video or tke_picture,
+but when runing all tests, I get error: "DomException: The play() request..."
+with any show_video or take_picture calls in the test suite. -->
+<pre><code title="not in testsuite"> Picture.show_video({content:
+  "https://youtu.be/JAiHGA_I-P4"})
+    </code></pre>
+
+<i id="Robot.show_video_doc_id">Robot Instruction</i><br/>
+There is a robot instruction with the same arguments and functionality as the above
+method that you can stick directly on the do_list of a job.<br/>
+<i>Example:</i>
+<pre><code>new Job({name: "my_job",
+     do_list: [Robot.show_video()]})
+      </code></pre>
+</details>
+
+<details id="Picture.take_picture" class="doc_details"><summary>take_picture</summary>
+To capture a picture from a camera, you must create a video stream to
+the camera and take a snapshot. This is what take_picture does.<br/>
+<i>Parameters:</i><br/>
+<b>video_id</b> Default: <code>"video_id"</code> This can be a string of
+the id of a VIDEO DOM element to show the video, or the DOM element itself.
+If its a string and the corresponding DOM element doesn't exist,
+one is created in a new show_window.<br/>
+<b>camera_id</b> Default: <code>undefined</code> If there is already
+a DOM element in, or pointed to, by video_id, this argument is ignored.
+Otherwise its the ID of the camera to take the picture with.<br/>
+<b>callback</b> Default: <code>Picture.show_picture_of_mat</code>
+Called with an argument of the OpenCV.js mat made from this snapshot.<br/>
+<i>Examples:</i><br/>
+<pre><code title="not in testsuite"> Picture.take_picture() </code></pre>
+<pre><code title="not in testsuite"> Picture.take_picture({callback: inspect}) </code></pre>
+
+<i id="Robot.take_picture_doc_id">Robot Instruction</i><br/>
+There is a robot instruction with the same arguments and functionality as the above
+method that you can stick directly on the do_list of a job.
+<p></p>
+The callback is called with <code>this</code> bound to the job
+this instruction is running in.<br/>
+If the callback is a string, it is considered to be the name of
+a user_data variable that you want to set to the mat created
+with take_picture. You can then use this mat in further instructions.
+<br/>
+<i>Example:</i>
+<pre><code>new Job({name: "my_job",
+ do_list: [Robot.take_picture({
+             callback: "my_pic"})]})
+  </code></pre>
+  <code>Job.my_job.user_data.my_pic</code><br/>
+  returns the mat.
+</details>
+</details> <!-- Camera I/O -->
+<details class="doc_details"><summary>Low Level</summary>
+OpenCV.js's low level data structures are tricky, probably
+due to being based on C++ and the need for speed and memory efficiency.
+See all of the links on <a target="_blank"
+  href="https://docs.opencv.org/3.4.1/d1/d78/tutorial_js_table_of_contents_core.html">
+  OpenCV.js Core Operations</a>.
+DDE's easier-to-use wrappers for them slows them down a bit, but for many uses, not
+enough to matter. (The slowest code is non-working code!)
+<p></p>
+We've tried to design
+Picture such that it is essentially compatible with OpenCV.js so you can
+mix and match Picture constructs with OpenCV.js's.
+<p></p>
+<i>The most important of the data structures are ...</i>
+<details id="cv.Scalar_doc_id" class="doc_details"><summary>Scalar</summary>
+In computer software, usually this term refers to a single number.
+OpenCV uses it to mean an array of 4 numbers, usally representing a pixel's
+red, green, blue, and alpha channels. In OpenCV.js you can often use<br/>
+<code>[0, 55, 128, 255]</code><br/>
+in place of<br/>
+<code>new cv.Scalar(0, 55, 128, 255)</code>.<br/>This represents a blue-green color.
+</details>
+
+<details id="mat_doc_id" class="doc_details"><summary>mat</summary>
+OpenCVs representation of a picture, or image. It is a 2D matrix
+with some meta-data attached. There are many kinds of elements in mats,
+with different number of bytes, etc. Picture concerns itself with just two.<br/>
+1. A mat with a single byte for an element used for gray pictures (values 0 through
+255 inclusive).<br/>
+2. A mat with 4 bytes, one for each of red, green, blue, and alpha (rgba).
+Alpha is transparency wherein 0 is completely transparent and 255 is opague.
+Picture defaults alpha to 255.<br/>
+These two mat types can get you through a lot of image processing.
+</details>
+<i>Low-Level Methods ...</i>
+<details id="Picture.is_mat_doc_id" class="doc_details"><summary>is_mat</summary>
+Returns true if the passed in object is a mat, otherwise false.<br/>
+<i>Parameters:</i></br/>
+<b>mat</b> A mat. Required.<br/>
+<b>type</b> Default: <code>null</code> meaning any type of mat is ok.<br/>
+Possible values:<br/>
+    <code>null</code> meaning any type of mat is ok.<br/>
+    <code>"gray"</code>. This function will return <code>true</code> only if mat is a gray mat.
+        (Each matrix is a byte where 0 means black and 255 means white.<br/>
+        <code>"color"</code> This function will return <code>true</code> only if mat is a color mat.<br/>
+    <i>Examples:</i><br/>
+     <code>Picture.is_mat(Picture.make_mat(), "rgba")</code> => <samp>true</samp><br/>
+     <code>Picture.is_mat(42)</code> => <samp>false</samp>
+</details>
+
+<details id="Picture.make_mat_doc_id" class="doc_details"><summary>make_mat</summary>
+A wrapper for <br/>
+<code> new cv.Mat() </code><br/>
+Creates an OpenCV image.<br/>
+    <i>Parameters:</i><br/>
+    <b>type</b> Default: <code>"rgba"</code> <br/>
+    Possible values:<br/>
+    <code>"rgba"</code> Makes a color mat.<br/>
+    <code>"gray"</code> Makes a gray-scale mat. Don't use "grey".<br/>
+    <b>width</b> Default: <code>320</code><br/>
+    <b>height</b> Default: <code>240</code><br/>
+    <b>color</b> Default: <code>[0, 0, 0, 255]</code>
+    For "rgba" mats, an array of 4 numbers, one for red, green, blue, and alpha
+    ranging from 0 through 255 inclusive.<br/>
+     For "gray" mats, only the first
+    element is used. If this is a number, say, 33, it is used to
+    construct [33, 33, 33, 255] which is used in place of the number.<br/>
+    <i>Examples:</i><br/>
+    <code>Picture.make_mat()</code><br/>
+     Makes a color initialized to all black.<p></p>
+    <code>Picture.make_mat({type: "gray", color: 75} )</code><br/>
+    A gray-scale mat initialized to a dark gray.<p></p>
+    <code>Picture.make_mat({type: "rgba", color: [255, 0, 200, 255]})</code><br/>
+    A color mat initiaized to magenta.
+</details>
+<details id="Picture.mat_width" class="doc_details"><summary>mat_width</summary>
+Returns the width of the mat argument.<br/>
+<i>Example:</i><br/>
+<code>Picture.mat_width(Picture.make_mat())</code><br/> => <samp>320</samp>
+</details>
+<details id="Picture.mat_height" class="doc_details"><summary>mat_height</summary>
+    Returns the height of the mat argument.<br/>
+    <i>Example:</i><br/>
+    <code>Picture.mat_height(Picture.make_mat())</code><br/> => <samp>240</samp>
+</details>
+
+<details id="Picture.mat_red" class="doc_details"><summary>mat_red</summary>
+    Returns the integer value of the red component of the pixel in
+    the given mat at the x and y args.<br/>
+    <i>Parameters:</i><br/>
+    <b>mat</b> Required.<br/>
+    <b>x</b> Required. An integer between 0 and (mat width - 1) inclusive.<br/>
+    <b>y</b> Required. An integer between 0 and (mat height - 1) inclusive.<br/>
+    <i>Example:</i><br/>
+    <code>Picture.mat_red(Picture.make_mat(), 16, 25)</code><br/>=> <samp>0</samp>
+</details>
+<details id="Picture.mat_green" class="doc_details"><summary>mat_green</summary>
+    Returns the integer value of the green component of the pixel in
+    the given mat at the x and y args.<br/>
+    <i>Parameters:</i><br/>
+    <b>mat</b> Required.<br/>
+    <b>x</b> Required. An integer between 0 and (mat width - 1) inclusive.<br/>
+    <b>y</b> Required. An integer between 0 and (mat height - 1) inclusive.<br/>
+    <i>Example:</i><br/>
+    <code>Picture.mat_green(Picture.make_mat(), 16, 25)</code><br/>=> <samp>0</samp>
+</details>
+<details id="Picture.mat_blue" class="doc_details"><summary>mat_blue</summary>
+    Returns the integer value of the blue component of the pixel in
+    the given mat at the x and y args.<br/>
+    <i>Parameters:</i><br/>
+    <b>mat</b> Required.<br/>
+    <b>x</b> Required. An integer between 0 and (mat width - 1) inclusive.<br/>
+    <b>y</b> Required. An integer between 0 and (mat height - 1) inclusive.<br/>
+    <i>Example:</i><br/>
+    <code>Picture.mat_blue(Picture.make_mat(), 16, 25)</code><br/>=> <samp>0</samp>
+</details>
+
+<details id="Picture.mat_alpha" class="doc_details"><summary>mat_alpha</summary>
+    Returns the integer value of the alpha component of the pixel in
+    the given mat at the x and y args.<br/>
+    <i>Parameters:</i><br/>
+    <b>mat</b> Required.<br/>
+    <b>x</b> Required. An integer between 0 and (mat width - 1) inclusive.<br/>
+    <b>y</b> Required. An integer between 0 and (mat height - 1) inclusive.<br/>
+    <i>Example:</i><br/>
+    <code>Picture.mat_alpha(Picture.make_mat(), 16, 25)</code><br/>=> <samp>255</samp>
+</details>
+
+<details id="Picture.mat_gray" class="doc_details"><summary>mat_gray</summary>
+    Returns the integer value of the gray component of the pixel in
+    the given mat at the x and y args.<br/>
+    <i>Parameters:</i><br/>
+    <b>mat</b> Required.<br/>
+    <b>x</b> Required. An integer between 0 and (mat width - 1) inclusive.<br/>
+    <b>y</b> Required. An integer between 0 and (mat height - 1) inclusive.<br/>
+    <i>Example:</i><br/>
+    <code>Picture.mat_gray(Picture.make_mat(), 16, 25)</code><br/>=> <samp>255</samp>
+</details>
+
+<details id="Picture.mat_pixel" class="doc_details"><summary>mat_pixel</summary>
+    Returns the typed array of the pixel in
+    the given mat at the x and y args.<br/>
+    For a "rgba" mat this array is 4 long.<br/>
+    For a "gray" mat this array is 1 long.<br/>
+    <i>Parameters:</i><br/>
+    <b>mat</b> Required.<br/>
+    <b>x</b> Required. An integer between 0 and (mat width - 1) inclusive.<br/>
+    <b>y</b> Required. An integer between 0 and (mat height - 1) inclusive.<br/>
+    <i>Example:</i><br/>
+    <code>Picture.mat_pixel(Picture.make_mat(), 16, 25)</code><br/>
+    => <samp>Uint8Array.from([0, 0, 0, 255])</samp><br/>
+    Note that a Uint8 Array is a JS typed array. Most untyped array operations work on it
+    including length, getting and setting elements.<br/>
+    <code>Picture.mat_pixel(Picture.make_mat({type: "gray"}), 16, 25)</code><br/>
+    => <samp>Uint8Array.from([0])</samp><br/>
+    Note that you can set the element of this typed array and that will
+    be reflected in the mat that it came from, ie.<br/>
+    <code title="uneVALable">the_pixel[0] = 23 </code>
+    <code title="uneVALable">Picture.mat_pixel(16, 25)[0]</code><br/>
+    => <samp>23</samp><br/>
+</details>
+
+<details id="Picture.set_mat_red" class="doc_details"><summary>set_mat_red</summary>
+    Sets the red component of the pixel in the given mat at x and y.<br/>
+    <i>Parameters:</i>
+    <b>mat</b> Required.<br/>
+    <b>x</b> Required. An integer between 0 and (mat width - 1) inclusive.<br/>
+    <b>y</b> Required. An integer between 0 and (mat width - 1) inclusive.<br/>
+    <b>value</b> Default: <code>0</code> The new value of the pixel's red component.
+    An integer between 0 and 255 inclusive.<br/>
+    <i>Example:</i><br/>
+    <pre><code>let mat = Picture.make_mat()
+Picture.set_mat_red(mat, 2, 3, 128)
+Picture.mat_red(mat, 2, 3)
+    </code></pre>
+=> <samp>128</samp>
+</details>
+
+<details id="Picture.set_mat_green" class="doc_details"><summary>set_mat_green</summary>
+    Sets the green component of the pixel in the given mat at x and y.<br/>
+    <i>Parameters:</i>
+    <b>mat</b> Required.<br/>
+    <b>x</b> Required. An integer between 0 and (mat width - 1) inclusive.<br/>
+    <b>y</b> Required. An integer between 0 and (mat width - 1) inclusive.<br/>
+    <b>value</b> Default: <code>0</code> The new value of the pixel's green component.
+    An integer between 0 and 255 inclusive.<br/>
+    <i>Example:</i><br/>
+    <pre><code>let mat = Picture.make_mat()
+Picture.set_mat_green(mat, 2, 3, 128)
+Picture.mat_green(mat, 2, 3)
+    </code></pre>
+    => <samp>128</samp>
+</details>
+
+<details id="Picture.set_mat_blue" class="doc_details"><summary>set_mat_blue</summary>
+    Sets the blue component of the pixel in the given mat at x and y.<br/>
+    <i>Parameters:</i>
+    <b>mat</b> Required.<br/>
+    <b>x</b> Required. An integer between 0 and (mat width - 1) inclusive.<br/>
+    <b>y</b> Required. An integer between 0 and (mat width - 1) inclusive.<br/>
+    <b>value</b> Default: <code>0</code> The new value of the pixel's red component.
+    An integer between 0 and 255 inclusive.<br/>
+    <i>Example:</i><br/>
+    <pre><code>let mat = Picture.make_mat()
+Picture.set_mat_blue(mat, 2, 3, 128)
+Picture.mat_blue(mat, 2, 3)
+    </code></pre>
+    => <samp>128</samp>
+</details>
+
+<details id="Picture.set_mat_alpha" class="doc_details"><summary>set_mat_alpha</summary>
+    Sets the alpha component of the pixel in the given mat at x and y.<br/>
+    <i>Parameters:</i>
+    <b>mat</b> Required.<br/>
+    <b>x</b> Required. An integer between 0 and (mat width - 1) inclusive.<br/>
+    <b>y</b> Required. An integer between 0 and (mat width - 1) inclusive.<br/>
+    <b>value</b> Default: <code>0</code> The new value of the pixel's alpha component.
+    An integer between 0 and 255 inclusive.<br/>
+    0 means transparent. 255 means opague.
+    <i>Example:</i><br/>
+    <pre><code>let mat = Picture.make_mat()
+Picture.set_mat_alpha(mat, 2, 3, 128)
+Picture.mat_alpha(mat, 2, 3)
+    </code></pre>
+    => <samp>128</samp>
+</details>
+
+<details id="Picture.set_mat_gray" class="doc_details"><summary>set_mat_gray</summary>
+    Sets the gray value of the pixel in the given mat at x and y.<br/>
+    <i>Parameters:</i>
+    <b>mat</b> Required.<br/>
+    <b>x</b> Required. An integer between 0 and (mat width - 1) inclusive.<br/>
+    <b>y</b> Required. An integer between 0 and (mat width - 1) inclusive.<br/>
+    <b>value</b> Default: <code>0</code> The new value of the pixel's gray component.
+    An integer between 0 and 255 inclusive.<br/>
+    <i>Example:</i><br/>
+    <pre><code>let mat = Picture.make_mat({type: "gray"})
+Picture.set_mat_gray(mat, 2, 3, 128)
+Picture.mat_gray(mat, 2, 3)
+    </code></pre>
+    => <samp>128</samp>
+</details>
+
+<details id="Picture.set_mat_pixel" class="doc_details"><summary>set_mat_pixel</summary>
+    Sets the blue component of the pixel in the given mat at x and y.<br/>
+    <i>Parameters:</i>
+    <b>mat</b> Required.<br/>
+    <b>x</b> Required. An integer between 0 and (mat width - 1) inclusive.<br/>
+    <b>y</b> Required. An integer between 0 and (mat width - 1) inclusive.<br/>
+    <b>value</b> Default: <code>0</code> The new value of the pixel.
+    An integer between 0 and 255 inclusive.<br/>
+    <i>Example:</i><br/>
+    <pre><code>let mat = Picture.make_mat()
+Picture.set_mat_pixel(mat, 2, 3, [128, 129, 130, 250])
+Picture.mat_pixel(mat, 2, 3)
+    </code></pre>
+    => <samp>Uint8Array.from([128, 129, 130, 250])</samp>
+</details>
+
+<details id="Picture.set_mat_reds" class="doc_details"><summary>set_mat_reds</summary>
+    Sets the red component of all the pixels in the given mat.<br/>
+    <i>Parameters:</i><br/>
+    <b>mat</b> Required.<br/>
+    <b>value</b> Default: <code>0</code> The new value of all the pixels' red component.
+    An integer between 0 and 255 inclusive.<br/>
+    <i>Example:</i><br/>
+    <pre><code>let mat = Picture.make_mat()
+Picture.set_mat_reds(mat, 133)
+Picture.mat_red(mat, 2, 3)
+    </code></pre>
+    => <samp>133</samp>
+</details>
+
+<details id="Picture.set_mat_greens" class="doc_details"><summary>set_mat_greens</summary>
+    Sets the green component of all the pixels in the given mat.<br/>
+    <i>Parameters:</i><br/>
+    <b>mat</b> Required.<br/>
+    <b>value</b> Default: <code>0</code> The new value of all the pixels' green component.
+    An integer between 0 and 255 inclusive.<br/>
+    <i>Example:</i><br/>
+    <pre><code>let mat = Picture.make_mat()
+Picture.set_mat_greens(mat, 133)
+Picture.mat_green(mat, 2, 3)
+    </code></pre>
+    => <samp>133</samp>
+</details>
+
+<details id="Picture.set_mat_blues" class="doc_details"><summary>set_mat_blues</summary>
+    Sets the blue component of all the pixels in the given mat.<br/>
+    <i>Parameters:</i><br/>
+    <b>mat</b> Required.<br/>
+    <b>value</b> Default: <code>0</code> The new value of all the pixels' blue component.
+    An integer between 0 and 255 inclusive.<br/>
+    <i>Example:</i><br/>
+    <pre><code>let mat = Picture.make_mat()
+Picture.set_mat_blues(mat, 133)
+Picture.mat_blue(mat, 2, 3)
+    </code></pre>
+    => <samp>133</samp>
+</details>
+
+<details id="Picture.set_mat_grays" class="doc_details"><summary>set_mat_grays</summary>
+    Sets the gray component of all the pixels in the given mat.<br/>
+    <i>Parameters:</i><br/>
+    <b>mat</b> Required.<br/>
+    <b>value</b> Default: <code>0</code> The new value of all the pixels' gray component.
+    An integer between 0 and 255 inclusive, or an array, who's first element is used.<br/>
+    <i>Example:</i><br/>
+    <pre><code>let mat = Picture.make_mat({type: "gray"})
+Picture.set_mat_grays(mat, 133)
+Picture.mat_gray(mat, 2, 3)
+    </code></pre>
+    => <samp>133</samp>
+</details>
+
+<details id="Picture.set_mat_pixels" class="doc_details"><summary>set_mat_pixels</summary>
+    Sets all the pixels in the given mat to the given value.<br/>
+    <i>Parameters:</i><br/>
+    <b>mat</b> Required. May be an "rgba" or a "gray" mat.<br/>
+    <b>value</b> Default: <code>[0, 0, 0, 255]</code> The new value of all the pixels.
+    An array of integers between 0 and 255 inclusive.
+    If the value is an integer, it is converted to [value, value, value, 255]
+    before being used to set the pixels.
+     <br/>
+    <i>Example:</i><br/>
+    <pre><code>let mat = Picture.make_mat()
+Picture.set_mat_pixels(mat, [133, 134, 135, 250])
+Picture.mat_pixel(mat, 2, 3)
+    </code></pre>
+    => <samp>Uint8Array.from([133, 134, 135, 250])</samp>
+</details>
+</details> <!-- ends Low Level -->
+
+<details class="doc_details"><summary>High Level</summary>
+These methods are, for the most part, wrappers around
+one or more OpenCV.js methods that take a mat or two as inputs
+and return a mat or some analysis of the input mats.
+<p></p>
+In OpenCV.js, generally the methods must take a "dst" argument
+which is a mat that is "filled in" by the method.
+Picture methods allow you to NOT pass in this "dst" argument
+(which Picture calls "mat_out"). If it is not passed in,
+a new one of the appropriate size is automatically created.
+Regardless of whether the mat is created, the mat_out is returned
+by the method. It is efficient to "reuse" output mats.
+
+<details id="Picture.mat_average_color" class="doc_details"><summary>mat_average_color</summary>
+Returns the average of all the pixels in the passed in mat.
+Think of this as a drastic simplification of a picture, which
+is sometimes all you need. You can use it to compare two
+pictures for "overall color balance".<br/>
+The workhorse of this method is <code>cv.mean</code>
+<br/>
+<i>Parameters:</i><br/>
+<b>mat</b> Required. May be of type "rgba" or "gray".<br/>
+<b>return_integer</b> Default: <code>false</code>
+When  <code>false</code>, an array of 4 nuumbers is returned.
+If the mat is "gray", the first number in the array will be the
+average gray value of all the pixels and the other array elements
+will be 0. <br/>
+If the mat is "rgba", the average of each component is returned.
+So for example, a picture of a forrest will likely have a higher
+value for the green component than the red and blue components.
+<p></p>
+If return_integer is  <code>true</code> ,
+and if the mat is of type "gray", the first element of the
+average color array is returned, ie the average gray value for
+the whole image.<br/>
+If the mat is "rgba", then the red, green and blue pixel values
+are averaged and that is returned.
+The integer will be between 0 and 255 inclusive.<br/>
+<i>Examples:</i><br/>
+<code>Picture.mat_average_color(Picture.make_mat(), true)</code><br/>
+    => <samp>0</samp><br/>
+<code title="unEVALable">Picture.mat_average_color(mat, true) > 128</code>
+is a great first cut at sensing if its day time or the lights are on.
+A value closer to 1 than 0 indicates a more lighted area.<br/>
+</details>
+
+<details id="Picture.mat_to_gray" class="doc_details"><summary>mat_to_gray</summary>
+    Converts a color mat to a gray mat that has just one numerical value
+    (0 to 255 inclusive) per pixel.<br/>
+    <i>Parameters:</i><br/>
+    <b>mat_in</b> Required. A color mat.<br/>
+    <b>mat_out</b> Default: <code>null</code> meaning that a new mat of the
+    same width and height of mat_in will be created.
+    Whether or not a new mat is created, a gray mat will be returned.<br/>
+    <i>Example:</i><br/>
+    <code>Picture.mat_to_gray(Picture.make_mat())</code><br/>
+</details>
+
+<details id="Picture.mats_diff" class="doc_details"><summary>mats_diff</summary>
+    Subtracts each component of each pixel in mat_in1 from the corresponding
+    pixel in mat_in2, and places the absolute value of the result
+    into mat_out, which is returned. The output mat will be
+    of the same type as the input mat (i.e. "rgba" or "gray".)
+    <i>Parameters:</i><br/>
+    <b>mat_in1</b> Required. mat of type "rgba" or "gray".<br/>
+    <b>mat_in2</b> Required. mat of type "rgba" or "gray". Must be the same type as mat_in1.
+    Which of the two input mats is mat_in1 and mat_in2 doesn't matter.<br/>
+    <b>mat_out</b> Default: <code>null</code> meaning that a new mat of the
+    same width, height and type of mat_in1 will be created.
+    Whether or not a new mat is created, the output mat will be returned.<br/>
+    <i>Example:</i><br/>
+    <code>Picture.mats_diff({mat_in1: Picture.make_mat(), mat_in2: Picture.make_mat()})</code>
+    <p></p>
+    This method is especially useful in subtracting a background from a picture
+    with the same background except that there's a foreground object,
+    thus giving you a picture with a black background and just the
+    pixels of the foreground. Note that because the foreground region
+    will also have the background "behind it" subtracted, the
+    colors of resultant image in the foreground region will not
+    be the same as the forefround in the original picture,
+    but they are very likely to have positive (not zero) values.
+</details>
+
+<details id="Picture.threshold" class="doc_details"><summary>threshold</summary>
+    The input mat can be either "rgba" or 'gray".
+    The output mat will be of the same type as the input,
+    but the color components of its pixels will be one of two values.
+    The two values are chosen from a set of 4 values:
+    0, thresh, max_value, and the original value of the pixel.
+    Which 2 out of the 4 possible values and how those two
+    are used, is determined by the threshold_type argument.
+    This function is a wrapper around <code>cv.threshold</code>
+    <br/>
+    <i>Parameters:</i><br/>
+    <b>mat_in</b> Required. An "rgba" or "gray" mat.<br/>
+    <b>thresh</b> Default: <code>30</code>. A number between 0 and 255 inclusive.<br/>
+    <b>max_value</b> Default: <code>255</code>. A number between 0 and 255 inclusive.<br/>
+    <b>threshold_type</b> Default: <code>cv.THRESH_BINARY</code>.
+    Determines each output pixel's value based on the relationship
+    between the input pixel's value and the thresh input.
+    The output pixel values are computed like so:
+    <ul>
+        <li><code>cv.THRESH_BINARY</code><br/>(in > thresh) ? max_value : 0 </li>
+        <li><code>cv.THRESH_BINARY_INV</code><br/>(in > thresh) ? 0 : max_value</li>
+        <li><code>cv.THRESH_TRUNC</code><br/>(in > thresh) ? thresh : in</li>
+        <li><code>cv.THRESH_TOZERO</code><br/>(in > thresh) ? thresh : 0</li>
+        <li><code>cv.THRESH_TOZERO_INV</code><br/>(in > thresh) ? 0 : in</li>
+    </ul>
+    <i>Example:</i><br/>
+    <pre><code>Picture.threshold({
+    mat_in: Picture.make_mat(),
+    thresh: 1,
+    max_value: 254,
+    threshold_type: cv.THRESH_BINARY_INV})
+    </code></pre>
+</details>
+<details id="Picture.remove_noise" class="doc_details"><summary>remove_noise</summary>
+    The input mat can be either "rgba" or "gray".
+    The output mat will be of the same type as the input,
+    but it will have less detail. Small, isolated patches of a color will
+    be removed.
+    <br/>
+    <i>Parameters:</i><br/>
+    <b>mat_in</b> Required. An "rgba" or "gray" mat.<br/>
+    <b>noise_size</b> Default: <code>3</code>. A positive integer that
+    is the number of pixels of the side of a square.
+    That "square" is conceptually placed over the top of
+    each pixel in mat_in. That pixel is replaced by the
+    median value of the pixels in the surrounding square.
+    The larger the square, the larger the particles of noise are
+    filtered out, but the more detail lost.<br/>
+    This method is a wrapper around <code>cv.medianBlur</code>
+    <br/>
+    <i>Example:</i><br/>
+    <pre><code>Picture.remove_noise({
+    mat_in: Picture.make_mat(),
+    noise_size: 5})
+    </code></pre>
+</details>
+
+<details id="Picture.locate_object" class="doc_details"><summary>locate_object</summary>
+The input mat can be either "rgba" or "gray".
+The output mat will be "gray".
+The returned rectangle says where an object is in the input mat.
+<p></p>
+The secrete to locate_object works by subtracting a background mat (mat_in2) from
+a mat containing an object you want to locate (in mat_in1).
+Although its cleanest if you have a "pure background" mat and a background + object
+mat, you can also have two mat's that both contain the object that
+has moved a slight amount. In that case, the center of the located object
+will be between the center's of the objects in the two mats and the
+rect contains a union of the object's points in both mats.
+If the difference in the position of the object in the two input mats is slight,
+this is often good enough at locating the object.<br/>
+It calls, in order:
+<ol><li>Picture.mats_diff</li>
+    <li>Picture.mat_to_gray</li>
+    <li>Picture.threshold</li>
+    <li>Picture.remove_noise</li>
+</ol>
+<i>Parameters:</i><br/>
+<b>mat_in1</b> Default: Required. The "foreground" mat.<br/>
+<b>mat_in2</b> Default: <code>null</code>. The background mat.
+If null, assume that the foreground mat is a picture of
+an object surrounded by black.<br/>
+<b>mat_out</b> Default: <code>null</code>.
+If null, a new mat is created for the output. It will be of type "gray".<br/>
+<b>threshold</b> Default: <code>30</code>. An integer between 0 and 255 inclusive.
+Pixel values below or equal to the threshold will be converted to black.
+Those above it will be converted to white. Those white pixels will
+depict the object you want to locate.<br/>
+<b>noise_size</b> Default: <code>3</code>. See Picture.noise_filter noise_size.<br/>
+<b>out_format</b> Default: <code>"min_area_rect"</code>.
+Determines what kind of rectangle is computed to locate the object.<br/>
+<i style="color:darkorange;">The details of the object returned by locate_object depend on
+this argument but are in flux and will likely change in future releases.</i><br/>
+<code>"rect"</code> returns a rect that is oriented with the pixel grid
+and represented as an array of x, y, width and height.<br/>
+<code>"min_area_rect"</code> causes the returned rect to be a rotated rect of the
+minimum area to enclose the points of the object. It often has
+a smaller area to enclose the object points than "rect". Please inspect the returned
+value to see its fields. A work in progress!<br/>
+<code>"hull"</code> does not return a rectangle at all but rather
+a set of points that describe lines that surround the object.
+Whereas a rectangle will have, effectively just 4 such points,
+with 4 lines, where lines 1 and 3 are parallel and lines 2 and 4
+are parallel, "hull" may have many lines, none of which may be parallel.
+The described hull is convex, meaning that the angle between two adjacent
+lines is less than 180 degrees from the standpoint of the center of the object.
+"hull" gives the most accurate shape of the object, (hugs the object tightest)
+ but is more complex to work with.<br/>
+ If there are no points for a located object, <code>null</code> will be returned
+ from locate_object.
+<b>avg_center</b> Default: <code>true</code>.
+Only relevent for "min_area_rect". If this is <code>false</code>,
+ the center_x and center_y properties of the returned object
+ represent the center of the rectangle locating the object.
+ If it is <code>true</code>, center_x and center_y represent
+ a kind of "center of mass", wherein for all the pixels of the
+ object (white), center_x is the average of all the x locations,
+ and center_y is the average of all the y locations.
+ If the recognized object's pixels solidly fill in the rectangle
+ with no external points, the rect center and  average center are
+ the same. But often the recognized object's pixels are more "clumped"
+ with lots of blackspace in between clumps.
+ If there happen to be a few "noise points" not part of the object,
+ these are effectively averaged out by the more numerous in-object points.
+ Thus the noise points are less damaging to the accuracy of the real
+ center of the object.<br/>
+<b>show</b> Default: <code>true</code>.
+After location of the object, display a show_window containing the
+black and white mat of the white points of the located object
+with the rect and center_x and center_y shown as an overlay in red.<br/>
+<i>Example:</i><br/>
+<pre><code>Picture.locate_object({
+    mat_in1: Picture.make_mat(),
+    mat_in2: Picture.make_mat(),
+    mat_out:null,
+    threshold:30,
+    noise_size:3,
+    out_format:"min_area_rect", //or "rect", "hull"
+    avg_center:true,
+    show:true})
+    </code></pre>
+    => <samp>null</samp>
+</details> <!-- locate_object -->
+</details>    <!-- High Level -->
+
+<details class="doc_details"><summary>Similarity</summary>
+Understanding how similar two pictures are can help classify pictures into categories,
+tell you if the scene is as expected and a variety of other useful machine vision tasks.
+<p></p>
+Similarity has many potential dimensions. The Picture class contains
+some methods for telling you how similar two mats are along different dimentions.
+They all take 2 mats as inputs and return a floating point number between
+0 and 1, with 0 meaning very dissimilar and 1 meaning very similar.
+
+<details id="Picture.mats_similarity_by_average_color" class="doc_details"><summary>mats_similarity_by_average_color</summary>
+    This method gets the average color of the two input methods,
+    subtracts them, takes the absolute value of that,
+    divides it by 255 and subtracts it from 1.
+    Its a crude similarity wherein what counts is the overall color balance
+    of a picture, not <i>where</i> those colors are in the picture.
+    Thus its possible that a picture of white clouds and a picture of a white wedding dress
+    would be very similar. But different camera angles or lighting on those two subjects
+    might have very different similarities.<br/>
+    <i>Parameters:</i><br/>
+    <b>mat_in1</b> Required. mat of type "rgba" or "gray".<br/>
+    <b>mat_in2</b> Required. mat of type "rgba" or "gray". in1 and in2
+    needn't be the same type, nor even the same width and height.
+    Which of the two input mats is mat_in1 and mat_in2 doesn't matter.<br/>
+    <i>Example:</i><br/>
+    <pre><code>Picture.mats_similarity_by_average_color(
+    Picture.make_mat(),
+    Picture.make_mat())
+    </code></pre>
+    => <samp>1</samp>
+    This method is less discerning than Picture.mats_similarity_by_color.
+</details>
+
+<details id="Picture.mats_similarity_by_color" class="doc_details"><summary>mats_similarity_by_color</summary>
+    Uses Picture.mats_diff to substract one mat from another, then
+    gets the average value of that mat to return a number
+    between 0 and 1. The result is adjusted such that
+    0 means the pictures are very different, and 1 means they are very similar.
+    The two input mats can both be "rgba" or both be "gray".
+    <i>Parameters:</i><br/>
+    <b>mat_in1</b> Required. mat of type "rgba" or "gray".<br/>
+    <b>mat_in2</b> Required. mat of type "rgba" or "gray". Must be the same type as mat_in1.
+    Which of the two input mats is mat_in1 and mat_in2 doesn't matter.<br/>
+    <b>mat_out</b> Default: <code>null</code> meaning that a new mat of the
+    same width, height and type of mat_in1 will be created to store the
+    difference of the two input mats temporarily.<br/>
+    <i>Example:</i><br/>
+    <pre><code>Picture.mats_similarity_by_color(
+    Picture.make_mat(),
+    Picture.make_mat())
+    </code></pre>
+    => <samp>1</samp>
+    This method is a cheap way to tell how similar two mats are.
+</details> <!-- mats_similarity_by_color -->
+</details> <!-- Similarity -->
+</details> <!-- ends Picture -->
+
+
 <details class="doc_details"><summary>Sound</summary>
 
 <details id="beep_doc_id" class="doc_details"><summary>beep</summary>
@@ -983,7 +1854,7 @@ This is tricky.
 <b>On Windows OS</b><br/>
     One of our most savvy tech users advises:
     <ol>
-        <li>Install <a target="_blank" href="http://coolsoft.altervista.org/en/virtualmidisynth#soundfonts">VirtualMIDISynth</li></li>
+        <li>Install <a target="_blank" href="http://coolsoft.altervista.org/en/virtualmidisynth#soundfonts">VirtualMIDISynth</a></li></li>
         <li>From <a target="_blank" ref="http://www.synthfont.com/soundfonts.html">synthfont</a>
                  download and extract "FluidR3 GM Bank"</li>
         <li>In VirtualMIDISynth, import the "FuidR3 GM Bank" sound fonts.</li>
@@ -1012,10 +1883,15 @@ and a bunch of methods to manipulate Notes.
              This determines the frequency of the note. 60 is Middle C, 72 is the C an octave higher.
              <p></p>
              When you are creating notes, you can use the more friendly notation of "C" for
-             Middle C, "C4" for C an octave higher, "C#" for C sharp, "Db" for D flat, etc.<br/>
+             Middle C, "C5" for C an octave higher, "C#" for C sharp, "Db" for D flat, etc.<br/>
              "R" is used to mean "rest", useful when you're making a sequnce of
              notes in a phrase.
-             Beware: sometimes MIDIcians use the term "note" to mean pitch.
+             Beware: Sometimes MIDIcians use the term "note" to mean pitch.
+             Beware: Middle C can be refered to as "C4" (as is a somewhat
+             standard practice in music) but it produces
+             the MIDI pitch of 60. It would have been more logical to have
+             "C4" map to 48 since that's 4 times 12 (the number of pitches in an octave).
+             MIDI's designers were not logical.
         </li>
         <li><b>velocity</b> Default <code>0.5</code>. MIDI's misspelling for "volume".
             The term comes from
@@ -1052,23 +1928,24 @@ and a bunch of methods to manipulate Notes.
             <li>that may include a trailing accidental (# or b)</li>
             <li>and ending with an optional octave integer (-2 to 8 inclusive)
             The "C"s in each octave are:
-            Octave -2 is MIDI pitch 0,<br/> -1 is 12,<br/>
-            0 is 24,<br/> 1 is 36,<br/>  2 is 48,<br/>
-            3 is 60, (Middle C),<br/> 4 is 72,<br/>
-             5 is 84,<br/> 6 is 96,<br/> 7 is 108,<br/> 8 is 120
+            Octave -2 is MIDI pitch 0,<br/> -1 is 0,<br/>
+            0 is 12,<br/> 1 is 24,<br/>  2 is 36,<br/>
+            3 is 48,<br/> 4 is 60 (Middle C),<br/>
+             5 is 71,<br/> 6 is 84,<br/> 7 is 96,<br/> 8 is 108<br/>
+             9 is 120.
            </li>
       </ol>
             <i>Examples:</i><br/>
-            <code>"C"</code> and <code>"1C3"</code>
+            <code>"C"</code> and <code>"1C4"</code>
             are both a one beat long Middle C.<br/>
-        <code>"0.5C#4"</code> is an eighth note C sharp an octave and a half-step above Middle C.<br/>
-        <code>"0.5Db4"</code> is the same.<br/>
+        <code>"0.5C#5"</code> is an eighth note C sharp an octave and a half-step above Middle C.<br/>
+        <code>"0.5Db5"</code> is the same.<br/>
             For creating an actual note the easy way use:<br/>
-            <code>new Note("0.5C#4")</code><br/>
+            <code>new Note("0.5C#5")</code><br/>
             This is equivalent to the hard way:
              <pre><code>new Note({dur: 0.5, pitch: 73})</code></pre>
             or you can use the string technique for pitch:
-            <pre><code>new Note({dur: 0.5, pitch: "C#4"})</code></pre>
+            <pre><code>new Note({dur: 0.5, pitch: "C#5"})</code></pre>
       You may place a Note directly on the do_list of a Job.
       When that "instruction" is run, it will call the Note's start method
       to play it, and delay running the next instruction until the note is done.
@@ -1270,12 +2147,12 @@ and a bunch of methods to manipulate Notes.
             a diatonic key also "subtracts" it, but is more compelex.
             A negative interval does NOT mean
             a "minor second interval". It means go down 1 "scale degree".
-            Thus In the key of "C", starting with a pitch of "C", if we have -2,
-            it transposes "C" to "B2". -3 transposes to "A2".
+            Thus In the key of "C", starting with a pitch of "C4", if we have -2,
+            it transposes "C" to "B3". -3 transposes to "A3".
 
             <p></p>
             <i>Examples:</i><br/>
-            <code>new Note("D4").transpose(0, "C")</code><br/>=> <samp>new Note("D4")</samp><br/>
+            <code>new Note("D4").transpose(0, "C")</code> <br/>=> <samp>new Note("D4")</samp><br/>
             <code>new Note("D4").transpose(-1, "C")</code><br/>=> <samp>new Note("D4")</samp><br/>
             <code>new Note("D4").transpose(-2, "C")</code><br/>=> <samp>new Note("C4")</samp><br/>
             <code>new Note("D4").transpose(-3, "C")</code><br/>=> <samp>new Note("B3")</samp>
@@ -1336,7 +2213,7 @@ and a bunch of methods to manipulate Notes.
             may also be a pitch name, i.e. "C#4".<br/>
             If max is null, no maximum is enforced.<br/>
             <i>Examples:</i><br/>
-            <code>new Note("C").set_property("pitch", 73)</code><br/>=>
+            <code>new Note("C").set_property("pitch", 61)</code><br/>=>
             <samp>new Note("C#4")</samp><br/>
             <code>new Note("C").set_property("pitch", "B2")</code><br/>=>
             <samp>new Note("B2")</samp>
@@ -1450,12 +2327,12 @@ new Phrase({notes: [new Note({time: 0, dur: 1, pitch: 60, velocity: 0.25, channe
         <pre><code>new Phrase({
      seconds_per_beat: 0.5,
       channel: 2,
-      notes: `CEG CEG 0.5R 0.5FAC4 FAC4
-              GBD4 GBD4 0.5R 0.5FAC4 FAC4
-              0.5CEG 0.5CEG CEG 0.5R 0.5FAC4
-              0.5R 0.6FAC4 GBD4 0.125R GBD4
+      notes: `CEG CEG 0.5R 0.5FAC5 FAC5
+              GBD5 GBD5 0.5R 0.5FAC5 FAC5
+              0.5CEG 0.5CEG CEG 0.5R 0.5FAC5
+              0.5R 0.6FAC5 GBD5 0.125R GBD5
               2/3R 2/3F 2/3FA
-              2/3FAC4 2/3FAC4E4 2/3FACE4G4 8CEGBD4`
+              2/3FAC5 2/3FAC5E5 2/3FACE5G5 8CEGBD5`
             })
             </code></pre>
             A standard 3-chord rock and roll chord progression.
@@ -1628,7 +2505,7 @@ new Phrase({notes: [new Note({time: 0, dur: 1, pitch: 60, velocity: 0.25, channe
         may also be a pitch name, i.e. "C#4".<br/>
         If max is null, no maximum is enforced.<br/>
         <i>Examples:</i><br/>
-        <code>new Phrase("C D").set_property("pitch", 73)</code><br/>=>
+        <code>new Phrase("C D").set_property("pitch", 63)</code><br/>=>
         <samp>new Phrase("C#4 C#4")</samp><br/>
         </details>
 
@@ -1673,10 +2550,7 @@ new Phrase({notes: [new Note({time: 0, dur: 1, pitch: 60, velocity: 0.25, channe
         that listens to the appropriate MIDI channel.
         <p></p>
         VMPK has a nice feature for labeling the keys on its
-        piano keyboard: Choose menu bar/View/Note names
-        Unfortunately this labels Middle C as C4, whereas
-        WebMidi uses Middle C as C3. Octave nomenclature is
-        not consistent in conventional music as well as MIDI.
+        piano keyboard: Choose menu bar/View/Note names.
         <p></p>
         You can call a method when a particular kind of Midi event occurs.<br/>
         <i>Example:</i><br/>
@@ -1796,6 +2670,11 @@ with a field of "speak_data", then the value of "speak_data" is spoken
 with vocal characteristics indiated by the other properties of
 the literal object. Otherwise, the argument is the data to be spoken
 directly.<br/>
+<b>voice</b> Integer 0 through 3. Default: <code>0</code>
+    Though the underlying software claims to support different "voices", we've
+    noticed that changing the voice parameter from 0 through 3 does not change the
+    actualy quality of the voice. Perhaps some day this will work.<br/>
+
 <i>Examples:</i><br/>
 <code>speak("testing 1, 2, 3")</code><br/>
 <code title="not in TestSuite">speak(123)</code><br/>
@@ -3544,15 +4423,20 @@ Example: <code>Dexter.move_home()</code>
         <b>xyz</b> tells Dexter to position its end effector to a position.
         An array of 3 numbers, each indicating meters from the position 0, 0, 0
         which is at the center of the base of Dexter, in its surface (think table) plane.
-        Imagine yourself as Dexter facing forwards. The x-axis is to your left and right
-        with left being negative and right being positive. The valid range is
-        -0.747804 to 0.747804. The Y axis runs from behind you to in front of you with
-        negative behind you and positive in front ranging from -0.747804 to 0.747804.
-        The z axis is vertical with below the table being negative and above the
-        table ranging from -0.582704 to 0.912904 with 0 being at the table surface.
-        Note that not all of the x,y,z combinations are reachable by Dexter.
-        If Dexter is on a table, then none of the negative y values are reachable,
-        since they are below the table.
+        Imagine yourself as Dexter facing forwards. <br/>
+        The <b>X axis</b> is to your left and right
+        with left being negative and right being positive.<br/>
+        The valid range is from <br/>
+        -0.747804 to 0.747804. <br/>
+        The <b>Y axis</b> runs from behind you to in front of you with
+        negative behind you and positive in front of you.<br/>
+        The valid range is from<br/>
+         -0.747804 to 0.747804.<br/>
+        The <b>Z axis</b> is vertical with the table surface at 0,
+        below the surface being negative and above the surface being positive.<br/>
+        The valid range is from <br/>
+        -0.582704 to 0.912904.
+        <p></p>
         The J5_direction parameter also affects reachability.
         <p></p>
         <b>J5_direction</b> indicates the direction you want the end effector to be pointing.
@@ -5395,6 +6279,10 @@ mat.delete()</code></pre>
          opencv.js was created by Sajjad Taheri and his collegues at the University of California, Irvine,
          supported by Intel Corporation. We greatly appreciate this valuable contribution
          to robotics and makers everywhere.
+         <p></p>
+         For higher level calls to some of the simpler capabilities of OpenCV.js,
+         see <a href="#" onclick="open_doc('Picture_doc_id')">Picture</a>.
+
     </details>
 
     <details id="make_html_doc_id" class="doc_details"><summary>make_html</summary>
@@ -5584,6 +6472,13 @@ document.addEventListener("click", function(e){
                      Minimum 100: Maximum: <code>window.outerWidth</code><br/>
         <b>height</b> The number of pixels tall that the window will be. Default: 400.
                       Minimum: 50, Maximum: <code>window.outerHeight</code><br/>
+         <b>resizable</b> Boolean, default: <code>true</code>. Unfortunately the
+         widget library we're using to implement show_window follows the web convention
+         of making the drag areas for resizing tiny and thus hard to use.
+         Hover the mouse on the inside but very close to any edge of the window
+         to see a little arrow pop up indicating that you can press the mouse down and drag
+         to resize the window.
+         Dragging any corner corner is possible but even harder.<br/>
         <b>x</b> The number of pixels that the left edge of the window will be from the left edge of the DDE window.
         Default: 200 . Minimum: 0 positions window at left of DDE window.<br/>
         <b>y</b> The number of pixels that the top edge of the window will be from the top edge of the DDE window.
@@ -5801,6 +6696,13 @@ show_window({
             will automatically close the window with no need to call close_window explicitly.<br/>
             Also note that when show_window's close_same_titled_windows init arg is true
             (the default), same titled windows will automatically be cloaed.
+            <p></p>
+            If no argument is passed, the latest show_window is closed.<br/>
+            <i>Example:</i> (from within a show_window callback function) <br/>
+            <code title="not in test suite">close_window()</code>
+            <p></p>
+            If close_window is unable to find an open window specified in the argument,
+            it prints a warning, but does not error.
         </details>
 
         <details id="append_in_ui_doc_id" class="doc_details"><summary>append_in_ui</summary>

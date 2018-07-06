@@ -229,6 +229,7 @@ var TestSuite = class TestSuite{
     static run_all(){
         load_files(__dirname + "/music/note_testsuite.js")
         load_files(__dirname + "/music/phrase_testsuite.js")
+        load_files(__dirname + "/test_suite/picture_testsuite.js")
         if (!TestSuite["user_guide_id"])       { TestSuite.make_test_suites_from_doc(user_guide_id) }
         if (!TestSuite["reference_manual_id"]) { TestSuite.make_test_suites_from_doc(reference_manual_id) }
         var reports = '<b style="font-size:20px;">All Test Suites Report</b><br/>' +
@@ -654,7 +655,9 @@ var TestSuite = class TestSuite{
                 let expected_result = window.eval(full_str)
                 let expected_str
                 if (expected_result === undefined)             { expected_str = '"undefined"' }
-                else if (expected_result == TestSuite.error) { expected_str = '"TestSuite.error"'}
+                else if (expected_result == TestSuite.error) {
+                    expected_str = '"TestSuite.error"'
+                }
                 else {
                     expected_str = stringify_value_sans_html(expected_result)
                     expected_str = string_to_literal(expected_str)

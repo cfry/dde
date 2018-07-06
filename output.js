@@ -185,7 +185,13 @@ window.get_in_ui = function(path_string){
         return value_of_path(path_string)
 }
 
-var window_index = 0
+window.window_index = 0
+
+window.latest_window_index = function () {
+    if(window_index === 0) { return null } //no windows have been created
+    else { return window_index - 1 }
+}
+
 var show_window_titles_to_window_index_map = {} //used by close_window, stores an array of all window_indexes for that title
 
 function set_window_index(jqxw_jq, title){
@@ -273,6 +279,7 @@ function show_window_values(vals){
 window.show_window_values = show_window_values
 
 window.show_window = function({content = "", title = "DDE Information", width = 400, height = 400, x = 200, y = 200,
+                        resizable = true,
                         background_color = "rgb(238, 238, 238)",
                         is_modal = false, show_close_button = true, show_collapse_button = true,
                         trim_strings = true, window_class, callback = show_window_values,
@@ -339,7 +346,9 @@ window.show_window = function({content = "", title = "DDE Information", width = 
             showAnimationDuration: 500,
             closeAnimationDuration: 500, //doesn't work. its always 0
             collapseAnimationDuration:500,
-            maxHeight: 2000, maxWidth: 2000}) //default maxWidth = 800, default maxHeight=600
+            maxHeight: 2000, maxWidth: 2000,
+            resizable: resizable
+            }) //default maxWidth = 800, default maxHeight=600
         if (window_class){jqxw_jq.addClass(window_class)} //used by app_builder
         let the_window_index = set_window_index(jqxw_jq, title)
         jqxw_jq.on('close', function (event) { jqxw_jq.remove() }); //handles both the removal from a submit button AND the removal from usre hitting the upper right close box.
@@ -417,6 +426,12 @@ function install_submit_window_fns(jqxw_jq){
             cb.jqxComboBox({height: '16px', source: choices, selectedIndex: sel_index})
         }
     }
+    //don't do this. Just give the canvas tag (or any tag  you want to be clickable,  prop:
+    // class="clickable"
+    //let canvases = info_win_div.find("canvas")
+    //for(let canvas_elt of canvases) {
+    //  canvas_elt.onclick = submit_window
+    //}
     var window_index = get_index_of_window(jqxw_jq)
     var menus = jqxw_jq.find(".menu")
     for (var i = 0; i < menus.length; i++){
@@ -617,7 +632,7 @@ window.submit_window = function(event){
     //widget_values: result,
     let callback_fn_string = result["window_callback_string"]
     let cb = value_of_path(callback_fn_string)
-    if (!cb) { try { cb = window.eval(callback_fn_string) }
+    if (!cb) { try { cb = window.eval("(" + callback_fn_string + ")") } //probably have an anonymous fn. Evaling it without the parent wrappers errors.
                catch(err){ dde_error("During show_window handler, could not find: " + callback_fn_string) } //just ignore
     }
      //cb is probably "function () ..." ie a string of a fn src code
@@ -670,22 +685,31 @@ window.close_window = function(window_title_index_or_elt){ //elt can be a window
     //var window_elt = elt.closest(".show_window")
     //$(window_elt).jqxWindow("close")
     // $(window_elt).remove() //done about near jqx window constructor see .on
-    if ((typeof(window_title_index_or_elt) == "string") &&
-         is_string_a_integer(window_title_index_or_elt)) {
-        window_title_index_or_elt = parseInt(window_title_index_or_elt)
+    if((window_title_index_or_elt === undefined) ||
+       (window_title_index_or_elt === null)){
+       window_title_index_or_elt = latest_window_index()
     }
-    if (typeof(window_title_index_or_elt) == "string") {
-        close_windows_of_title(window_title_index_or_elt)
+    try {
+        if ((typeof(window_title_index_or_elt) == "string") &&
+             is_string_a_integer(window_title_index_or_elt)) {
+            window_title_index_or_elt = parseInt(window_title_index_or_elt)
+        }
+        if (typeof(window_title_index_or_elt) == "string") {
+            close_windows_of_title(window_title_index_or_elt)
+        }
+        else if (typeof(window_title_index_or_elt) == "number"){ //ie a window_index
+            let win = get_window_of_index(window_title_index_or_elt)
+            win.jqxWindow("close")
+            remove_window_index_from_show_window_titles_to_window_index_map(window_title_index_or_elt)
+        }
+        else {
+            let win_ind = get_window_index_containing_elt(window_title_index_or_elt)
+            remove_window_index_from_show_window_titles_to_window_index_map(win_ind)
+            get_jqxw_jq_of_window_containing_elt(window_title_index_or_elt).jqxWindow("close")
+        }
     }
-    else if (typeof(window_title_index_or_elt) == "number"){ //ie a window_index
-       let win = get_window_of_index(window_title_index_or_elt)
-       win.jqxWindow("close")
-        remove_window_index_from_show_window_titles_to_window_index_map(window_title_index_or_elt)
-    }
-    else {
-        let win_ind = get_window_index_containing_elt(window_title_index_or_elt)
-        remove_window_index_from_show_window_titles_to_window_index_map(win_ind)
-        get_jqxw_jq_of_window_containing_elt(window_title_index_or_elt).jqxWindow("close")
+    catch(err) { warning("DDE unable to close the window specified in: " + window_title_index_or_elt +
+                         "<br/>Perhaps its already closed.")
     }
 }
 

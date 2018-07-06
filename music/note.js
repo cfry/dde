@@ -134,7 +134,7 @@ Note = class Note{
 
     //needs to handle "CDE4" when octaive index is pointing at D but it should skip ahead to 4
     static extract_octave_string(a_string, octave_index){
-        let octave_string = "3"
+        let octave_string = "4"
         if(octave_index < a_string.length) {
             let octave_string_maybe = a_string[octave_index]
                 if (is_digit(octave_string_maybe)) { //good we're done with octave
@@ -188,7 +188,7 @@ Note = class Note{
                 octave_index += 1
            }
        }
-       let octave = "3"
+       let octave = "4"
        if(octave_index < a_string.length) {
          octave = a_string[octave_index]
          if ((octave_index + 1) < a_string.length) {
@@ -208,7 +208,7 @@ Note = class Note{
 
     pitch_class_number() { return this.pitch % 12 }
     pitch_class_name()   { return Note.pitch_class_names[this.pitch_class_number()] }
-    octave()             { return Math.floor(this.pitch / 12) - 2 } //middle C is C3
+    octave()             { return Math.floor(this.pitch / 12) - 1 } //middle C is C4
     pitch_name()         { return this.pitch_class_name() + this.octave() }
     toString()           { return this.dur + this.pitch_name() }
     //dur_in_seconds(spb=1) { return this.dur * spb }
@@ -217,7 +217,7 @@ Note = class Note{
 
     static pitch_to_octave(pitch) {
         pitch = Note.pitch_name_to_number(pitch)
-        return (Math.floor(pitch / 12)) - 2
+        return (Math.floor(pitch / 12)) - 1
     }
     static pitch_to_pitch_class_number(pitch) {
        pitch = Note.pitch_name_to_number(pitch)
@@ -251,7 +251,7 @@ Note = class Note{
         if (typeof(pitch_name) == "number") { return pitch_name }
         else {
             if (pitch_name.startsWith("R")) { return -1 } //rest, It might have an octave on it
-            if(!is_digit(last(pitch_name))) { pitch_name += "3" }
+            if(!is_digit(last(pitch_name))) { pitch_name += "4" } //the oct of middle C
             return WebMidi.guessNoteNumber(pitch_name)
         }
     }
@@ -404,7 +404,7 @@ Note = class Note{
     note_to_phrase(spb=1){ //spb is desintnation spb, source spb is considered to be 1
         return new Phrase({ notes: [this.copy()],
             time:               Note.convert_beats(this.time,     1, spb),
-            dur:           Note.convert_beats(this.dur, 1, spb),
+            dur:                Note.convert_beats(this.dur, 1, spb),
             velocity:           this.velocity,
             channel:            this.channel,
             seconds_per_beat:   this.spb})
@@ -600,8 +600,8 @@ Note = class Note{
         if (prop_name != "time") {
             new_value = limit_to_range(new_value, min, max)
          }
-        if (prop_name == "octave") { //C3 is middle C, is 60
-             new_value = (new_value + 2) * 12
+        if (prop_name == "octave") { //C4 is middle C, is 60
+             new_value = (new_value + 1) * 12
              prop_name = "pitch"
         }
         note_copy[prop_name] = new_value
@@ -616,7 +616,7 @@ Note = class Note{
             min       = Note.pitch_name_to_number(min)
             max       = Note.pitch_name_to_number(max)
         }
-        if (prop_name == "octave") { //C3 is middle C, is 60
+        if (prop_name == "octave") { //C4 is middle C, is 60
             increment = increment * 12
             prop_name = "pitch"
         }

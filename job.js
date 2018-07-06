@@ -165,11 +165,12 @@ var Job = class Job{
             }
             this.status_code       = "starting" //before setting it here, it should be "not_started"
             this.color_job_button()
-            this.do_list           = Job.flatten_do_list_array(this.orig_args.do_list) //make a copy in case the user passes in an array that they will use elsewhere, which we wouldn't want to mung
-            this.added_items_count = new Array(this.do_list.length) //This array parallels and should be the same length as the run items on the do_list.
-            this.added_items_count.fill(0) //stores the number of items "added" by each do_list item beneath it
+           // this.do_list           = Job.flatten_do_list_array(this.orig_args.do_list) //make a copy in case the user passes in an array that they will use elsewhere, which we wouldn't want to mung
+           // this.added_items_count = new Array(this.do_list.length) //This array parallels and should be the same length as the run items on the do_list.
+           // this.added_items_count.fill(0) //stores the number of items "added" by each do_list item beneath it
             //if the initial pc is > 0, we need to have a place holder for all the instructions before it
-            //see total_sub_instruction_count_aux for explaination of added_items_count
+            //see total_sub_instruction_count_aux for explanation of added_items_count
+            this.init_do_list()
             this.callback_param    = this.orig_args.callback_param
             this.keep_history      = this.orig_args.keep_history
             this.show_instructions = this.orig_args.show_instructions
@@ -1114,14 +1115,7 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
         else if (this.added_items_count[this.program_counter] > 0) { //will only happen if we go_to backwards,
            //in which case we *might* call an instruction twice that makes some items that it adds to the to_do list.
            //so we want to get rid of those items and "start over" with that instruction.
-            const sub_items_count = //this.added_items_count[this.program_counter]
-                                      this.total_sub_instruction_count(this.program_counter)
-            console.log("For " + this.name + " about to delete " + sub_items_count + " from do_list")
-            console.log(this.do_list)
-
-            this.do_list.splice(this.program_counter + 1, sub_items_count) //cut out all the sub-items under the pc instruction
-            this.added_items_count.splice(this.program_counter + 1, sub_items_count)
-            this.added_items_count[this.program_counter] = 0 //because we just deleted all of ites subitems and their descendents
+            this.remove_sub_instructions_from_do_list(this.program_counter)
         }
         if (cur_do_item == null){ //nothing to do, just skip it.
             this.set_up_next_do(1)
@@ -1246,74 +1240,7 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
     //this.color_job_button() //todo needs to work for Dexter.sleep (z) instruction and to undo its yellow.
 }
 
-/*Job.prototype.total_sub_instruction_count = function(id_of_top_ins){
-    var this_level_subitems = this.added_items_count[id_of_top_ins]
-    var result = 0
-    for(let i = 0; i < this_level_subitems; i++){
-        result += 1 //for each this_level_sub_item
-        result += this.total_sub_instruction_count(id_of_top_ins + result)
-    }
-    return result
-}*/
 
-/*Job.prototype.total_sub_instruction_count = function(id_of_top_ins){
-    let result = 0
-    for(let i = 0; i < this.added_items_count[id_of_top_ins]; i++){
-        result += 1 //for each this_level_sub_item
-        result += this.total_sub_instruction_count(id_of_top_ins + i + 1)
-    }
-    return result
-}
-*/
-
-Job.prototype.total_sub_instruction_count = function(id_of_top_ins){
-    return total_sub_instruction_count_aux(id_of_top_ins, this.added_items_count)
-}
-
-/*
-added_items_count is the way in which the do_list can be considered to be a
-hierarchy such that an insturciton that adds more instuctoins nder it,
-those new insturctions will be considered sub-instrustions.
-This is important for presenting the do_lsit as a hierarchy
-(as the Inspect does, but alos necessary to remove previous do_list items
-from the do_list when we start an loop iteratioin or perform a backward s go_to.
-
-added_items_count is an array that is maintained to always be the same
-length as the do_list, and contains a non-neg integer sayng
-how many sub-instructions the instruction at that array index
-has beneath it *when they are first added*
-If a subinstruction, when it is run, returns more instructions to
-instert the orig instruction sub-instruction count is NOT increased,
-its just left alone, but the orig subinsrution's item-count is
-incremented by the new sub-sub-instructions added.
-This makes computing how many actuaul insturcitons are underneath
-a given instruciton tricky, as it may well be more than its
-added_items_count indicates.
-(If the added_items_count is 0, it has no sub-instructions but
-if it is more than 0, it might be that number or more.)
-The job of total_sub_instruction_count_aux is to figure out
-total sub)instructions. It walks down the  added_items_count
-from the given index until it "runs out" of sub-insructions,
-and returns the count. The sub-instructions count excludes the
-instruction at the given index. See the test suite for
-total_sub_instruction_count_aux for examples.
-*/
-
-function total_sub_instruction_count_aux(id_of_top_ins, aic_array){
-    let result = 0 //this.added_items_count[id_of_top_ins]
-    let tally  = 1 //this.added_items_count[id_of_top_ins]
-    for(let i = id_of_top_ins; true ; i++){
-        let aic_for_i = aic_array[i] //this.added_items_count[i]
-        if (aic_for_i === undefined) {
-            shouldnt("total_sub_instruction_count_aux got undefined from aic_array: " + aic_array)
-        }
-        result += aic_for_i //often this is adding 0
-        tally  += aic_for_i - 1
-        if (tally == 0) { break; }
-        else if (tally < 0) { shouldnt("in total_sub_instruction_count got a negative tally") }
-    }
-    return result
-}
 
 /*cur_do_item is the fn, do_items is the val returned from calling it.
  cur_do_item merely for error message. the real item to do is do_items which might be an array of items
@@ -1415,29 +1342,6 @@ Job.prototype.handle_start_object = function(cur_do_item){
     else if (Array.isArray(start_args)) { cur_do_item.start.apply(the_inst_this, start_args) }
     else                                { cur_do_item.start.call(the_inst_this, start_args) }
     this.set_up_next_do(1)
-}
-
-//These 2 fns take care of inserting into added_items_count array,
-//slots for the new items they are inserting
-//Both of these fns always insert right after the pc
-Job.prototype.insert_single_instruction = function(instruction_array, is_sub_instruction=true){
-    this.do_list.splice(this.program_counter + 1, 0, instruction_array);
-    this.added_items_count.splice(this.program_counter + 1, 0, 0); //added oct 31, 2017
-    if (is_sub_instruction) {
-        this.added_items_count[this.program_counter] += 1
-    }
-}
-
-Job.prototype.insert_instructions = function(array_of_do_items, are_sub_instructions=true){
-    //this.do_list.splice.apply(this.do_list, [this.program_counter + 1, 0].concat(array_of_do_items));
-    this.do_list.splice(this.program_counter + 1, 0, ...array_of_do_items)
-    let added_items_to_insert = new Array(array_of_do_items.length)
-    added_items_to_insert.fill(0)
-    //this.added_items_count.splice.apply(this.do_list, [this.program_counter + 1, 0].concat(added_items_to_insert));
-    this.added_items_count.splice(this.program_counter + 1, 0, ...added_items_to_insert)
-    if(are_sub_instructions) {
-        this.added_items_count[this.program_counter] += added_items_to_insert.length
-    }
 }
 
 Job.prototype.send = function(instruction_array){ //if remember is false, its a heartbeat
@@ -1941,6 +1845,120 @@ Job.prototype.ilti_backward = function(inst_loc, starting_id){
         "<br/>in the original_instruction_location: " + orig_instruction_location)
 }
 
+//functions for managing adding and removal from do_list
+// (and keeping added_items_count in sync).
+//see also Job.insert_instruction and Job.prototype.do_list_to_html_aux
+
+//called by Job.start
+Job.prototype.init_do_list = function(new_do_list=undefined){
+    if(new_do_list === undefined) { new_do_list = this.orig_args.do_list }
+    this.do_list           = Job.flatten_do_list_array(new_do_list) //make a copy in case the user passes in an array that they will use elsewhere, which we wouldn't want to mung
+    this.added_items_count = new Array(this.do_list.length) //This array parallels and should be the same length as the run items on the do_list.
+    this.added_items_count.fill(0) //stores the number of items "added" by each do_list item beneath it
+    //if the initial pc is > 0, we need to have a place holder for all the instructions before it
+    //see total_sub_instruction_count_aux for explanation of added_items_count
+}
+
+Job.prototype.remove_sub_instructions_from_do_list = function(instr_id){
+    const sub_items_count = this.total_sub_instruction_count(instr_id)
+    this.do_list.splice(instr_id + 1, sub_items_count) //cut out all the sub-instructions under instr_id
+    this.added_items_count.splice(instr_id + 1, sub_items_count)
+    this.added_items_count[instr_id] = 0 //because we just deleted all of ites subitems and their descendents
+}
+
+/*Job.prototype.total_sub_instruction_count = function(id_of_top_ins){
+    var this_level_subitems = this.added_items_count[id_of_top_ins]
+    var result = 0
+    for(let i = 0; i < this_level_subitems; i++){
+        result += 1 //for each this_level_sub_item
+        result += this.total_sub_instruction_count(id_of_top_ins + result)
+    }
+    return result
+}*/
+
+/*Job.prototype.total_sub_instruction_count = function(id_of_top_ins){
+    let result = 0
+    for(let i = 0; i < this.added_items_count[id_of_top_ins]; i++){
+        result += 1 //for each this_level_sub_item
+        result += this.total_sub_instruction_count(id_of_top_ins + i + 1)
+    }
+    return result
+}
+*/
+
+Job.prototype.total_sub_instruction_count = function(id_of_top_ins){
+    return total_sub_instruction_count_aux(id_of_top_ins, this.added_items_count)
+}
+
+/*
+added_items_count is the way in which the do_list can be considered to be a
+hierarchy such that an insturciton that adds more instuctoins nder it,
+those new insturctions will be considered sub-instrustions.
+This is important for presenting the do_lsit as a hierarchy
+(as the Inspect does, but alos necessary to remove previous do_list items
+from the do_list when we start an loop iteratioin or perform a backward s go_to.
+
+added_items_count is an array that is maintained to always be the same
+length as the do_list, and contains a non-neg integer sayng
+how many sub-instructions the instruction at that array index
+has beneath it *when they are first added*
+If a subinstruction, when it is run, returns more instructions to
+instert the orig instruction sub-instruction count is NOT increased,
+its just left alone, but the orig subinsrution's item-count is
+incremented by the new sub-sub-instructions added.
+This makes computing how many actuaul insturcitons are underneath
+a given instruciton tricky, as it may well be more than its
+added_items_count indicates.
+(If the added_items_count is 0, it has no sub-instructions but
+if it is more than 0, it might be that number or more.)
+The job of total_sub_instruction_count_aux is to figure out
+total sub)instructions. It walks down the  added_items_count
+from the given index until it "runs out" of sub-insructions,
+and returns the count. The sub-instructions count excludes the
+instruction at the given index. See the test suite for
+total_sub_instruction_count_aux for examples.
+*/
+
+function total_sub_instruction_count_aux(id_of_top_ins, aic_array){
+    let result = 0 //this.added_items_count[id_of_top_ins]
+    let tally  = 1 //this.added_items_count[id_of_top_ins]
+    for(let i = id_of_top_ins; true ; i++){
+        let aic_for_i = aic_array[i] //this.added_items_count[i]
+        if (aic_for_i === undefined) {
+            shouldnt("total_sub_instruction_count_aux got undefined from aic_array: " + aic_array)
+        }
+        result += aic_for_i //often this is adding 0
+        tally  += aic_for_i - 1
+        if (tally == 0) { break; }
+        else if (tally < 0) { shouldnt("in total_sub_instruction_count got a negative tally") }
+    }
+    return result
+}
+
+//These 2 fns take care of inserting into added_items_count array,
+//slots for the new items they are inserting
+//Both of these fns always insert right after the pc
+Job.prototype.insert_single_instruction = function(instruction_array, is_sub_instruction=true){
+    this.do_list.splice(this.program_counter + 1, 0, instruction_array);
+    this.added_items_count.splice(this.program_counter + 1, 0, 0); //added oct 31, 2017
+    if (is_sub_instruction) {
+        this.added_items_count[this.program_counter] += 1
+    }
+}
+
+Job.prototype.insert_instructions = function(array_of_do_items, are_sub_instructions=true){
+    //this.do_list.splice.apply(this.do_list, [this.program_counter + 1, 0].concat(array_of_do_items));
+    this.do_list.splice(this.program_counter + 1, 0, ...array_of_do_items)
+    let added_items_to_insert = new Array(array_of_do_items.length)
+    added_items_to_insert.fill(0)
+    //this.added_items_count.splice.apply(this.do_list, [this.program_counter + 1, 0].concat(added_items_to_insert));
+    this.added_items_count.splice(this.program_counter + 1, 0, ...added_items_to_insert)
+    if(are_sub_instructions) {
+        this.added_items_count[this.program_counter] += added_items_to_insert.length
+    }
+}
+
+
 Job.insert_instruction = function(instruction, location){
     const job_instance = Job.instruction_location_to_job(location)
     if (job_instance){
@@ -2008,6 +2026,8 @@ Job.prototype.increment_added_items_count_for_parent_instruction_of = function(i
         this.added_items_count[instr_id - 1] += 1 //fairly dumb but usually right. Just make it the sub_instruction of the instruction above it.
     }
 }
+
+//end do_list management fns
 
 //returns true if the argument is the right type to be an
 ///instrudtion location. Note it might not actually BE an instruction location,

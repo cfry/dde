@@ -136,10 +136,15 @@ function block_type_menu_drag_handler(event){
 
 
 //______resizer_______
-var drag_start_client_x
-var drag_start_client_x
-var old_client_x
-var old_client_y
+var resizer_drag_start_client_x
+var resizer_drag_start_client_y
+var block_elt_at_drag_start_width
+var block_elt_at_drag_start_height
+var always_rel_elt_at_drag_start_width
+var always_rel_elt_at_drag_start_height
+
+//var old_client_x
+//var old_client_y
 //var resizes= [] //just for testing of resizer_drag_handler
 
 function make_resizer_elt(){
@@ -156,12 +161,20 @@ function make_resizer_elt(){
 
 function resizer_dragstart_handler(event){
     event.stopPropagation()
-    drag_start_client_x = event.clientX
-    drag_start_client_x = event.clientY
-    old_client_x = event.clientX
-    old_client_y = event.clientY
+    resizer_drag_start_client_x = event.clientX
+    resizer_drag_start_client_y = event.clientY
+    let resizer        = event.target
+    let always_rel_elt = resizer.parentElement
+    let block_elt      = always_rel_elt.parentElement
+    always_rel_elt_at_drag_start_width  = always_rel_elt.clientWidth
+    always_rel_elt_at_drag_start_height = always_rel_elt.clientHeight
+    block_elt_at_drag_start_width       = block_elt.clientWidth
+    block_elt_at_drag_start_height      = block_elt.clientHeight
+    //old_client_x = event.clientX
+    //old_client_y = event.clientY
+    //out("start: " + event.movementX + "  " + event.offsetX + "  " + event.clientX)
 }
-
+/*
 function ancestors_of_class_block_and_block_always_relative(elt){
     let result = []
     while(true) {
@@ -174,11 +187,12 @@ function ancestors_of_class_block_and_block_always_relative(elt){
         elt = elt.parentNode
     }
     return result
-}
+}*/
 
 function resizer_drag_handler(event){
     event.stopPropagation()
     event.preventDefault()
+    //out("drag:  " + event.movementX + "  " + event.offsetX + "  " + event.clientX)
     if (event.buttons == 0) { //user has let up on the mouse so no longer dragging.
         //due to a chrome bug resizer_drag_handler will still be called a few times
         //after user lets up on the mouse.
@@ -189,11 +203,12 @@ function resizer_drag_handler(event){
         //is up to avoid setting to the wrong bl.style.width and height
         return
     }
-    let deltax = event.clientX - old_client_x
-    let deltay = event.clientY - old_client_y
-    old_client_x = event.clientX
-    old_client_y = event.clientY
     let resizer_elt = event.target
+    let deltax = event.clientX - resizer_drag_start_client_x //old_client_x
+    let deltay = event.clientY - resizer_drag_start_client_y //old_client_y
+    //old_client_x = event.clientX
+    //old_client_y = event.clientY
+
     let always_rel_elt = closest_ancestor_of_class(resizer_elt, "block_always_relative")
     let block_args_elt = dom_elt_child_of_class(always_rel_elt, "block_args")
     let block_elt = closest_ancestor_of_class(resizer_elt, "block")
@@ -202,15 +217,20 @@ function resizer_drag_handler(event){
           //d = 35 - be
         deltay = 30 - block_elt.clientHeight //limits the height of a block to b no less than 30
     }
-   /*let block_name_elt = dom_elt_child_of_class(always_rel_elt, "block_name")
-    if (block_elt.clientHeight < 40) {//so block name and args can all be on the same line.
-        block_name_elt.style.display = "inline-block"
-        block_args_elt.style.display = "inline-block"
-    }
-    else {
-        block_name_elt.style.display = "inline-block"
-        block_args_elt.style.display = "inline-block"
-    }*/
+    always_rel_elt.style.width  = always_rel_elt_at_drag_start_width  + deltax + "px"
+    always_rel_elt.style.height = always_rel_elt_at_drag_start_height + deltay + "px"
+    block_elt.style.width       = block_elt_at_drag_start_width       + deltax + "px"
+    block_elt.style.height      = block_elt_at_drag_start_height      + deltay + "px"
+
+    /*let block_name_elt = dom_elt_child_of_class(always_rel_elt, "block_name")
+     if (block_elt.clientHeight < 40) {//so block name and args can all be on the same line.
+         block_name_elt.style.display = "inline-block"
+         block_args_elt.style.display = "inline-block"
+     }
+     else {
+         block_name_elt.style.display = "inline-block"
+         block_args_elt.style.display = "inline-block"
+     }*/
     //this code is so that when we have the args mostly vertical,
     //we already have an indent for the arg name.
     //but when the block is so narrow that we have the arg name
@@ -225,20 +245,24 @@ function resizer_drag_handler(event){
             }
         }
     }*/
-    let elts_to_resize = ancestors_of_class_block_and_block_always_relative(always_rel_elt) //will include the immediate
+    //let elts_to_resize = ancestors_of_class_block_and_block_always_relative(always_rel_elt) //will include the immediate
        // parent of block_always_relative and its par, a block_elt
        //as well as all similar classes block ancestors
-    for (bl of elts_to_resize){
-        let wid = (bl.clientWidth  + deltax) + "px"
-        let hei = (bl.clientHeight + deltay) + "px"
-        bl.style.width  = wid
-        bl.style.height = hei
-    }
+    //for (bl of elts_to_resize){
+    //    let wid = (bl.clientWidth  + deltax) + "px"
+    //    let hei = (bl.clientHeight + deltay) + "px"
+    //    bl.style.width  = wid
+    //    bl.style.height = hei
+        //block_elt.style.display = "block"
+    //}
+
 }
 function resizer_drop_handler(event){
     event.stopPropagation()
     event.preventDefault()
-    let dropped_on_elt = event.target
+    let resizer_elt = event.target
+    let block_elt = elt_to_containing_block_elt(resizer_elt)
+    //block_elt.style.display = "inline-block"
 }
 function resizer_dragend_handler(event){
     event.stopPropagation()

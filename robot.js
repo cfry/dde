@@ -78,6 +78,19 @@ var Robot = class Robot {
         return null
     }
 
+    static is_oplet(oplet, known_oplet=false){
+        if((typeof(oplet) === "string") && (oplet.length == 1)){
+            if(known_oplet){
+                if(Dexter.instruction_type_to_function_name_map[oplet]) {
+                    return true
+                }
+                else { return false }
+            }
+            else { return true }
+        }
+        else { return false }
+    }
+
     //Control Instructions
     static break(){ //stop a Robot.loop
         return new Instruction.Control.break()
@@ -188,6 +201,41 @@ var Robot = class Robot {
     //    return new Instruction.Control.play_notes(note_or_phrase)
     //}
     close_robot(){ //overridden in Serial and Dexter
+    }
+
+    static show_picture({canvas_id="canvas_id", //string of a canvas_id or canvasId dom elt
+                            content=null, //mat or file_path
+                            title=undefined,
+                            x=200, y=40, width=320, height=240,
+                            rect_to_draw=null}={}) {
+        return new Instruction.Control.show_picture({canvas_id: canvas_id, //string of a canvas_id or canvas dom elt
+                                                     content: content, //mat or file_path
+                                                     title: title,
+                                                     x: x,
+                                                     y: y,
+                                                     width: width,
+                                                     height: height,
+                                                     rect_to_draw: rect_to_draw})
+    }
+
+    static show_video({video_id="video_id", //string of a video_id or video dom elt
+                        content="webcam", //"webcam" or file_path
+                        title=undefined,
+                        x=200, y=40, width=320, height=240,
+                        play=true}={}) {
+        return new Instruction.Control.show_video({video_id: video_id, //string of a video_id or video dom elt
+                                                    content: content, //mat or file_path
+                                                    title: title,
+                                                    x: x,
+                                                    y: y,
+                                                    width: width,
+                                                    height: height,
+                                                    play: true})
+    }
+    static take_picture({video_id="video_id", //string of a video_id or video dom elt
+                         callback=Picture.show_picture_of_mat}={}) {
+        return new Instruction.Control.take_picture({video_id: video_id, //string of a video_id or video dom elt
+                                                     callback: callback})
     }
 }
 Robot.all_names = []
@@ -1328,8 +1376,8 @@ Dexter.dummy_move = function(){
 
 Dexter.run_gcode      = function(filepath, scale=1){
                             return function(){
-                            return this.gcode_to_instructions(filepath, scale)
-                        }
+                                return this.gcode_to_instructions(filepath, scale)
+                            }
                         }
 
 Dexter.dma_read       = function(...args){ return make_ins("d", ...args) }

@@ -5,6 +5,53 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 2.4.0, July 6, 2018</summary>
+Highlights: new Picture class for machine vision. Bug fix for Vector.rotate.
+<ul>
+<li>Improved face reco demo to not depend on Internet connection.</li>
+
+<li><code>string_to_literal</code> now places backquote around strings with embedded
+newlines. Fixes bug in selection to test for tests returning multi-lined
+results.</li>
+
+<li>Updated numerous packages that DDE uses to their latest version
+(with the same MAJOR version).<br/>
+This caused an incompatibility with webmidi.
+Previously, Middle C (midi pitch 60) was in octave 3.
+Now it is octave 4.<br/>
+    <code>WebMidi.guessNoteNumber("C4")</code> => <samp>60</samp>
+This is more standard amongst musicians
+that actually know what an octave is, and thus better.
+Lacking still is the mistake by MIDI designers of
+making Middle C being pitch number 60 instead of 48
+(because 4 * 12 = 48, not 60),
+but most standards have these kinds of illogic in them.</li>
+
+<li><code>close_window</code>  Extended functionality:
+If no argument is passed, the latest <code>show_window</code> is closed.
+if there is no existing window specified by the argument, a warning
+is printed but does not error.
+See Ref Man/Window System/Window Utilities/close_window.</li>
+
+<li> Ref Man/Robot/Dexter Instructions/move_to improved.</li>
+
+<li> Bug in <code>Vector.rotate()</code> fixed.</li>
+
+<li> <code>Picture</code> is a new class that's a high level wrapper for
+some simpler, more common OpenCV.js use cases.
+There are 34 new methods and a LOT of doc (with example calls) in<br/>
+Ref Man/IO/Picture<br/>
+New menu item: Insert Menu/Machine Vision/Locate Object.<br/>
+Still a work in progress.</li>
+
+<li>Inspector specializes OpenCV "mat" instances to make inspecting and viewing them easier.
+  When inspecting a "mat", a "show_picture" button is displayed.
+  Clicking on the button shows you the image.
+  If you click on a pixel in the image, you see its
+  x, y, red, green, blue values displayed in the Output pane.</li>
+
+</ul>
+</details>
 
 <details class="doc_details"><summary>v 2.3.18, June 12, 2018</summary>
 <ul>

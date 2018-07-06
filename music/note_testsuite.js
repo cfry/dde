@@ -12,21 +12,21 @@ velocity: 0.5
 channel: 1,
 time: 0,
 dur: 1,
-pitch: 86,
+pitch: 74,
 velocity: 0.5
 })`],
     ['new Note("Eb-1")', `new Note({
 channel: 1,
 time: 0,
 dur: 1,
-pitch: 15,
+pitch: 3,
 velocity: 0.5
 })`],
     ['new Note("2C#3")', `new Note({
 channel: 1,
 time: 0,
 dur: 2,
-pitch: 61,
+pitch: 49,
 velocity: 0.5
 })`]
 )
@@ -34,7 +34,7 @@ velocity: 0.5
 new TestSuite("Note.to_source_code",
     ['new Note("2C#3").to_source_code()', `'new Note("2C#3")'`],
     ["new Note({velocity: 0.7}).to_source_code()", 
-      `'new Note({time: 0, dur: 1, pitch: "C3", velocity: 0.7, channel:  1})'`]
+      `'new Note({time: 0, dur: 1, pitch: "C4", velocity: 0.7, channel:  1})'`]
     )
 
 
@@ -109,14 +109,14 @@ new TestSuite("Note.transpose",
 )
 
 new TestSuite("Note.set_property",
-    ['new Note("C").set_property("pitch", "C#4").pitch', "73"],
-    ['new Note("C").set_property("pitch", "C#2", "B2", "C4").pitch', "59"], 
-    ['new Note("C").set_property("pitch", "C#5", "B2", "C4").pitch', "72"],    
+    ['new Note("C").set_property("pitch", "C#4").pitch', "61"],
+    ['new Note("C").set_property("pitch", "C#2", "B2", "C4").pitch', "47"], 
+    ['new Note("C").set_property("pitch", "C#5", "B2", "C4").pitch', "60"],    
     ['new Note("C").set_property("pitch", 55).pitch', "55"],
     ['new Note("C").set_property("pitch", 55, 62, 70).pitch', "62"],
     ['new Note("C").set_property("pitch", 72, 62, 70).pitch', "70"], 
     ['new Note("C").set_property("time", 130).time', "130"], 
-    ['new Note("C").set_property("octave", 5).pitch', "84"]
+    ['new Note("C").set_property("octave", 5).pitch', "72"]
  )
 new TestSuite("Note.increment_property",
     ['new Note("C").increment_property("pitch", 2).pitch', "62"],

@@ -588,6 +588,11 @@ show_window({
         Editor.insert(code)
     }
 
+    opencv_locate_object_id.onclick=function(){
+        const code = file_content(__dirname + "/examples/opencv_locate_object.js")
+        Editor.insert(code)
+    }
+
     window_close_all_id.onclick=close_all_show_windows
 
     machine_vision_help_id.onclick = function(){open_doc(machine_vision_doc_id)}

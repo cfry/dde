@@ -160,6 +160,21 @@ function inspect_aux(item, stack_number, in_stack_position, increase_max_display
             }
             else { title = "An Anonymous Function" }
         }
+        else if (cv.Mat && Picture.is_mat(item)) { //if cv is not inited, cv.Mat === undefined. We must check for this, otherwise calling Picture.is_mat will error
+            title = "OpenCV.js Mat"
+            let type
+            if(Picture.is_mat(item, "gray"))       { type = '"gray"' }
+            else if (Picture.is_mat(item, "rgba")) { type = '"rgba"' }
+            else if (item.channels == 1)           { type = "probably gray" }
+            else                                   { type = "probably color"}
+            result = "type: "      + type + ", " +
+                     "width: "     + Picture.mat_width(item)  + ", " +
+                     "height: "    + Picture.mat_height(item) + ", " +
+                     "channels: "  + item.channels() +
+                     " &nbsp;&nbsp;<button onclick='inspect_show_mat(" + stack_number + ", " + in_stack_position + ")'" +
+                            "'>show picture </button><br/>" +
+                     '<i>After clicking "show picture", click a pixel to see its details.</i>'
+        }
         else { //not an array, not a fn
             result = "{"
             let prefix = ""
@@ -267,6 +282,11 @@ function inspect_aux(item, stack_number, in_stack_position, increase_max_display
     //but beware, after the browser html is renderend, we need to set the onclicks,
     //which has a timeout too that must be longer than this timeout.
     }
+}
+
+function inspect_show_mat(stack_number, in_stack_position){
+         let mat = inspect_stacks[stack_number][in_stack_position]
+         Picture.show_picture({content: mat})
 }
 
 function inspect_one_liner(item, stack_number, in_stack_position, prop_name){

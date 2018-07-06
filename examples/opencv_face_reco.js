@@ -17,20 +17,20 @@ into the url format used by this demo.
 var cv = require("opencv.js")
 var request  = require("request")
 var faceClassifier
-request.get('https://raw.githubusercontent.com/opencv/opencv/master/data/lbpcascades/lbpcascade_frontalface.xml', //face model
-    function (error, response,
-              body //a large string containing the face model
-    ) {
-        if (!error && response.statusCode == 200) {
-            // Create the virtual file
-            cv.FS_createDataFile('/', "model.xml", body, true, true, false)
-            faceClassifier = new cv.CascadeClassifier();
-            faceClassifier.load("model.xml");
-            if(faceClassifier.empty() == false) {
-                out("Model loaded into classifier.")
-            }
+
+function init_face_classifier(){
+    if(!faceClassifier) { //calling the below code twice in a dde session will error
+        let body = file_content(__dirname + "/vision/lbpcascade_frontalface.xml")
+        cv.FS_createDataFile('/', "model.xml", body, true, true, false)
+        faceClassifier = new cv.CascadeClassifier();
+        faceClassifier.load("model.xml");
+        if(faceClassifier.empty() == false) {
+            out("Model loaded into classifier.")
         }
-    })
+    }
+}
+
+init_face_classifier()
 
 function handle_webcam_video(vals){ //vals contains name-value pairs for each
     //html elt in show_window's content with a name.

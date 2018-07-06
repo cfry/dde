@@ -464,6 +464,7 @@ function similar(arg1, arg2, tolerance=0, tolerance_is_percent=false, arg1_alrea
     if (arg1_type !== typeof(arg2)) { return false }
     //ok now we know their js "types" are the same but beware, null is of type "object"
     else if (arg1 === null) { return false } //because if both were null, it would have been caught by === above
+    else if (arg2 === null) { return false }
     //else if (arg1_type === "boolean") { return false } //because if both were true or both were false, it would have been caught by === above
     else if(arg1_type == "number") { //because of same type test above, we know arg2 is also a number
         if (tolerance === 0) { return false } //if they were === would have been caught by the above.
@@ -1069,7 +1070,8 @@ function text_to_lines(text) { return txt.text_to_lines(text) }
 
 //fry's get a js string into literal source code. Used in printout out a TestSuite test
 function string_to_literal(a_string){
-    if      (!a_string.includes('"')) { return '"' + a_string + '"'}
+    if      (a_string.includes("\n")) {return '`' + a_string + '`'} //let's hope any backquotes in a_string are escaped!
+    else if (!a_string.includes('"')) { return '"' + a_string + '"'}
     else if (!a_string.includes("'")) { return "'" + a_string + "'"}
     else if (!a_string.includes("`")) { return "`" + a_string + "`"}
     else {
@@ -1440,20 +1442,6 @@ function scale_point(xyz, scale) {
 
 function point_equal(a, b) { return (a[0] == b[0]) && (a[1] == b[1]) && (a[2] == b[2]) }
 
-function dom_child_elts_of_class(elt, html_class, return_first_or_null=false){
-    //returns a list of those child_elts of "elt" that have class "html_class"
-    //OR if return_first_or_null, return the first matching elt or null
-    let result = []
-    for (let a_child of elt.children){
-        if (a_child.classList.contains(html_class)) {
-            if (return_first_or_null) { return a_child }
-            else { result.push(a_child) }
-        }
-    }
-    if (result.length == 0) { return null }
-    else { return result }
-}
-
 //not called. Same as js: Object.getOwnPropertyNames(an_object)
 /*function own_properties(an_object) {
     let result = []
@@ -1502,10 +1490,28 @@ var Duration = class Duration {
     to_seconds(){ return this.milliseconds / 1000 }
 }
 
-function make_ins_arrays(ins){
+/*function make_ins_arrays(ins){
     let result = []
     for(let instr of ins) {
         result.push(make_ins(...instr))
+    }
+    return result
+}*/
+
+function make_ins_arrays(default_oplet, instruction_arrays=[]){
+    let result = []
+    for(let instr of instruction_arrays) {
+        if((instr.length > 0) && (Robot.is_oplet(instr[0], false))) {//instr ok as is
+            result.push(make_ins(...instr))
+        }
+        else if(default_oplet) {
+            let new_array = instr.slice()
+            new_array.unshift(default_oplet)
+            result.push(make_ins(...new_array))
+        }
+        else {
+            dde_error("make_ins_arrays called with no default oplet and an instruction args array without an oplet: " + instr)
+        }
     }
     return result
 }

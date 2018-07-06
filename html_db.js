@@ -596,6 +596,15 @@ function html_to_dom_elt(html, use_first_top_level_elemment_only=true){
     else { return frag }
 }
 
+/* from stack overflow
+function htmlToElement(html) {
+    var template = document.createElement('template');
+    html = html.trim(); // Never return a text node of whitespace as the result
+    template.innerHTML = html;
+    return template.content.firstChild;
+}
+*/
+
 function make_dom_elt(tag, properties, innerHTML="", ending="auto", error=false){
     let html_string = make_html(tag, properties, "", ending, error)
     //console.log(html_string)
@@ -625,6 +634,10 @@ function insert_elt_after(new_elt, old_elt){
 }
 
 function remove_dom_elt(elt){ elt.parentNode.removeChild(elt) }
+
+function is_dom_elt(obj){
+  return obj instanceof HTMLElement
+}
 
 function is_dom_elt_ancestor(possible_ancestor, starting_elt){
     if (possible_ancestor == null) { return false}

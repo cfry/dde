@@ -257,3 +257,31 @@ new TestSuite("is_integer",
     ['is_integer("45")', "false"],
     ["is_integer([])",   "false"]
 )
+
+new TestSuite("Robot.is_oplet",
+    ["Robot.is_oplet()", "false"],
+    ["Robot.is_oplet(123)", "false"],
+    ['Robot.is_oplet("a")', "true"],
+    ['Robot.is_oplet("Y")', "true"],
+    ['Robot.is_oplet("Y", true)', "false"],
+    ['Robot.is_oplet("Y", false)', "true"]
+)
+
+new TestSuite("make_ins_arrays",
+    ['make_ins_arrays("a", [[1, 2, 3, 4, 5]])', 
+     '[[undefined, undefined, undefined, undefined, "a", 1, 2, 3, 4, 5]]'],
+    ['make_ins_arrays("Y", [[1, 2, 3, 4, 5]])', 
+     '[[undefined, undefined, undefined, undefined, "Y", 1, 2, 3, 4, 5]]'],
+    ['make_ins_arrays("a", [[1, 2, 3, 4, 5], [6, 2, 3, 4, 5]])', 
+     `[[undefined, undefined, undefined, undefined, "a", 1, 2, 3, 4, 5 ],
+       [undefined, undefined, undefined, undefined, "a", 6, 2, 3, 4, 5]]`],
+    ['make_ins_arrays("a", [["b", 1, 2, 3, 4, 5], [6, 2, 3, 4, 5]])', 
+     `[[undefined, undefined, undefined, undefined, "b", 1, 2, 3, 4, 5],
+       [undefined, undefined, undefined, undefined, "a", 6, 2, 3, 4, 5]]`
+    ],
+    ['make_ins_arrays(undefined, [["b", 1, 2, 3, 4, 5], [6, 2, 3, 4, 5]])', 
+     "TestSuite.error"],
+    ['make_ins_arrays(undefined, [["b", 1, 2, 3, 4, 5], ["a", 6, 2, 3, 4, 5]])', 
+     `[[undefined, undefined, undefined, undefined, "b", 1, 2, 3, 4, 5],
+       [undefined, undefined, undefined, undefined, "a", 6, 2, 3, 4, 5]]`],
+)

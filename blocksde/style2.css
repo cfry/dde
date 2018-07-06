@@ -50,6 +50,7 @@
 /* a given block will always have class "block" and ONE of the below 2 classes */
 .block-absolute { /* top level "commented out" block not connected to top left. */
     position:absolute;
+    display:block;
 }
 
 /* obsolete
