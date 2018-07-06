@@ -207,7 +207,7 @@ var Picture = class Picture{
                         x=400, y=0, width=320, height=240,
                         play=true,
                         camera_id=undefined,
-                        callback}={},
+                        callback}={}
                        ){
       let video_elt 
       if(is_dom_elt(video_id)){ 

@@ -283,5 +283,5 @@ new TestSuite("make_ins_arrays",
      "TestSuite.error"],
     ['make_ins_arrays(undefined, [["b", 1, 2, 3, 4, 5], ["a", 6, 2, 3, 4, 5]])', 
      `[[undefined, undefined, undefined, undefined, "b", 1, 2, 3, 4, 5],
-       [undefined, undefined, undefined, undefined, "a", 6, 2, 3, 4, 5]]`],
+       [undefined, undefined, undefined, undefined, "a", 6, 2, 3, 4, 5]]`]
 )
