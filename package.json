@@ -2,7 +2,7 @@
   "name": "dexter_dev_env",
   "productName": "dexter_dev_env",
   "version": "2.4.1",
-  "release_date": "July 6, 2018",
+  "release_date": "July 7, 2018",
   "description": "Dexter Development Environment",
   "author": "Fry",
   "license": "GPL-3.0",
@@ -35,6 +35,7 @@
     "rotating-calipers": "0.0.0",
     "semver": "^5.4.1",
     "serialport": "^4.0.7",
+    "three-stl-loader": "^1.0.6",
     "webmidi": "^2.2.0",
     "ws": "^1.1.1"
   },

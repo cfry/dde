@@ -28,9 +28,10 @@ function init_simulation(){
 //camera.position.set( -15, 10, 15 );
 //camera.lookAt( scene.position );
 
-    sim.renderer = new THREE.WebGLRenderer(); //errors despite: example: https://threejs.org/docs/#Manual/Introduction/Creating_a_scene
+    sim.renderer = new THREE.WebGLRenderer(); //example: https://threejs.org/docs/#Manual/Introduction/Creating_a_scene
     sim.renderer.setSize( window.innerWidth, window.innerHeight );
-    document.getElementById("sim_graphics_pane_id").appendChild( sim.renderer.domElement );
+    //sim_graphics_pane_id.innerHTML = "" //done in video.js
+    sim_graphics_pane_id.appendChild(sim.renderer.domElement);
 
 /* doesn't do anything //var light = new THREE.PointLight( 0xFFFF00 );
  var light = new THREE.DirectionalLight( 0xffffff, 0.5 );
@@ -366,5 +367,95 @@ function draw_help(text) {
 }
 
 //render();
+//_________STL VIEWER ________
+function stl_init_viewer(){
+        stl_init_mouse()
+        sim.enable_rendering = false
+        sim.scene  = new THREE.Scene();
+        sim.camera = new THREE.PerspectiveCamera(75, //75,
+            window.innerWidth / window.innerHeight, 0.1, 1000);
+        sim.camera.position.z = 2; //2
+        sim.camera.position.y = 1
+        sim.camera.zoom.zoom = 4 //0.79 //has no effect.
 
+//camera.position.set( -15, 10, 15 );
+//camera.lookAt( scene.position );
+
+        sim.renderer = new THREE.WebGLRenderer();
+        sim.renderer.setSize( window.innerWidth, window.innerHeight );
+        sim_graphics_pane_id.innerHTML = "" //clear out the previous contents
+        sim_graphics_pane_id.appendChild(sim.renderer.domElement);
+}
+
+function stl_render(){
+    requestAnimationFrame(stl_render)
+    if (sim.mouseDown){
+        stl_sim_handle_mouse_move()
+    }
+    sim.renderer.render(sim.scene, sim.camera);
+}
+
+function stl_init_mouse(){
+    sim.mouseX_at_mouseDown    = 0
+    sim.mouseY_at_mouseDown    = 0
+    //sim.tableX_at_mouseDown    = 0
+    //sim.tableY_at_mouseDown    = 0
+    sim.zoom_at_mouseDown      = 1
+    sim.rotationX_at_mouseDown = 0
+    sim.rotationY_at_mouseDown = 0
+
+    sim_graphics_pane_id.addEventListener("mousedown", function(event) {
+        sim.mouseDown              = true
+        sim.shiftDown              = event.shiftKey
+        sim.altDown                = event.altKey
+        sim.mouseX_at_mouseDown    = event.clientX
+        sim.mouseY_at_mouseDown    = event.clientY
+        //sim.tableX_at_mouseDown    = sim.table.position.x
+        //sim.tableY_at_mouseDown    = sim.table.position.y
+        sim.zoom_at_mouseDown      = sim.camera.zoom
+        sim.rotationX_at_mouseDown = sim.table.rotation.x
+        sim.rotationY_at_mouseDown = sim.table.rotation.y
+    }, false);
+
+    sim_graphics_pane_id.addEventListener('mousemove', function(event) {
+        if (sim.mouseDown){
+            sim.mouseX = event.clientX;
+            sim.mouseY = event.clientY;
+            stl_sim_handle_mouse_move()
+            sim.renderer.render(sim.scene, sim.camera);
+        }
+    }, false);
+
+    sim_graphics_pane_id.addEventListener("mouseup", function(event) {
+        sim.mouseDown = false
+        sim.shiftDown = false
+        sim.altDown   = false
+    }, false);
+}
+//from https://stackoverflow.com/questions/27095251/how-to-rotate-a-three-perspectivecamera-around-on-object
+var stl_camera_angle = 0;
+var stl_camera_radius = 500;
+function stl_sim_handle_mouse_move(){
+    var mouseX_diff =  sim.mouseX - sim.mouseX_at_mouseDown //positive if moving right, neg if moving left
+    var mouseY_diff =  sim.mouseY - sim.mouseY_at_mouseDown //positive if moving right, neg if moving left
+    if (sim.shiftDown){
+        //alert(camera.zoom)  //camera.zoom starts at 1
+        let zoom_increment = mouseX_diff / 100.0
+        sim.camera.zoom = sim.zoom_at_mouseDown + zoom_increment //(spdy * 0.1)
+        sim.camera.updateProjectionMatrix()
+    }
+    else if (sim.altDown){
+        let panX_inc = mouseX_diff / 100
+        let panY_inc = mouseY_diff / 100
+        sim.camera.position.x =  sim.camera.position.x + panX_inc
+        sim.camera.position.y =  sim.camera.position.y - panY_inc
+    }
+    else {
+        //sim.table.rotation.x = sim.rotationX_at_mouseDown + (mouseY_diff / 100)
+        //sim.table.rotation.y = sim.rotationY_at_mouseDown + (mouseX_diff / 100)
+        sim.camera.position.x = stl_camera_radius * Math.cos( stl_camera_angle );
+        sim.camera.position.z = stl_camera_radius * Math.sin( stl_camera_angle );
+        stl_camera_angle += 0.01;
+    }
+}
 
