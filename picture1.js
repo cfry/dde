@@ -54,7 +54,14 @@ var Picture = class Picture{
       }
       if(canvas_elt) { Picture.render_canvas_content(canvas_elt, content, rect_to_draw) }
       else {
-          if(!title) { title = "Picture from: " + content}
+          if(!title) {
+            let title_suffix
+            if(typeof(content) == "string") {  title_suffix = content }
+            else { title_suffix = Picture.mat_type(content) +
+                                  " mat (" + Picture.mat_width(content) +
+                                  " x " +  Picture.mat_height(content) + ")"}
+            title = "Picture from: " + title_suffix
+          }
           let the_html
           the_html = '<canvas class="clickable" id="' + canvas_id + //'" width="'    + width + '" height="'   + height +
                      //onclick=function(event){debugger}
@@ -118,13 +125,13 @@ var Picture = class Picture{
     }
 
     // draw red rectangle for: [x,y, width, height], cv.Rect, cv.Point, or [[x,y][x,y]...]
-    static render_canvas_rect(canvas_elt, rect){
+    static render_canvas_rect(canvas_elt, full_data_rect){
         if(typeof(canvas_elt) == "string") { canvas_elt = value_of_path(canvas_elt) }
         if(!canvas_elt) { dde_error("Picture.draw_rect_on_canvas got invalid rect: " + rect) }
-        if (Picture.is_min_area_rect(rect)) {
-            Picture.render_canvas_rect(canvas_elt, [rect.center_x, rect.center_y])
+        if (Picture.is_min_area_rect(full_data_rect)) {
+            Picture.render_canvas_rect(canvas_elt, [full_data_rect.center_x, full_data_rect.center_y])
         }
-        rect = Picture.rect_to_array(rect)
+        let rect = Picture.rect_to_array(full_data_rect)
         let ctx = canvas_elt.getContext("2d")
         ctx.beginPath();
         ctx.lineWidth="1";
@@ -141,6 +148,18 @@ var Picture = class Picture{
             ctx.closePath();
         }
         ctx.stroke();
+        if (full_data_rect.hasOwnProperty("slope")){
+            ctx.beginPath();
+            ctx.lineWidth="1";
+            ctx.strokeStyle="green"
+            let x1 = 0
+            let y1 = x1 * full_data_rect.slope + full_data_rect.y_intercept
+            let x2 = 320
+            let y2 = x2 * full_data_rect.slope + full_data_rect.y_intercept
+            ctx.moveTo(x1, y1)
+            ctx.lineTo(x2, y2)
+            ctx.stroke();
+        }
     }
 
     //returns array of x, y, width, height. if rect_or_point is a point,
@@ -236,6 +255,7 @@ var Picture = class Picture{
               	the_html = '<video id="' + video_id + 
                            '" width="'   + width +
                            '" height="'  + height +
+                           '" preload="auto' +
                            '" controls></video>'
               }
               show_window({title: title,
@@ -266,10 +286,26 @@ var Picture = class Picture{
                                 video_elt.srcObject = stream;
                                 if(play) {
                                     //video_elt.pause() //without this, we sometimes get an error if there is a previous video running. Shoot, this doesn't work either.
-                                    video_elt.play().then( () => {
-                                    	if(callback) {callback.call(this, video_elt)} //just in case "this" is a job instance, we want the callback to get it
-                                    })
-                                }
+
+                                    //video_elt.onloadstart, function () {
+                                    //    setTimeout( function() {
+                                    //        video_elt.play().then( () => {
+                                    //            if(callback) {callback.call(this, video_elt)}
+                                    //    })}, 10);
+                                    //}
+                                    //from https://stackoverflow.com/questions/36803176/how-to-prevent-the-play-request-was-interrupted-by-a-call-to-pause-error
+                                    let isPlaying = video_elt.currentTime > 0 &&
+                                                    !video_elt.paused && !video.ended &&
+                                                    video.readyState > 2;
+                                    if (isPlaying) {
+                                        if(callback) {callback.call(this, video_elt)}
+                                    }
+                                    else {
+                                       video_elt.play().then( () => {
+                                       	      if(callback) {callback.call(this, video_elt)} //just in case "this" is a job instance, we want the callback to get it
+                                       })
+                                    }
+                                 }
                             })
                       }
                       else { dde_error("Video not supported on this computer.") }
@@ -373,6 +409,12 @@ var Picture = class Picture{
              }
          }
          else { return false }
+    }
+    static mat_type(mat){
+        let mat_type = mat.type()
+        if (mat_type === cv.CV_8UC4)      { return "rgba" }
+        else if (mat_type === cv.CV_8UC1) { return "gray" }
+        else                              { return mat_type }
     }
 
     //makes mat filled with random colors.
@@ -663,6 +705,8 @@ var Picture = class Picture{
         let transposed_points = Vector.transpose(points) //[[all x's], [all y's]
         let line_obj = Vector.poly_fit(transposed_points[0], transposed_points[1], 1)
         mar.slope_degrees = atand(line_obj[0][0]) //arc_tan_degrees, defined in James W code
+        mar.slope = line_obj[0][0]
+        mar.y_intercept = line_obj[1][0]
         //debugger
         return mar
     }
@@ -729,9 +773,157 @@ var Picture = class Picture{
         if (show) { Picture.show_picture({content: mat_out, rect_to_draw: rect_to_draw}) }
         return rect_to_draw
     }
+
+    static detect_blobs({mat_in, mat_out=null, white_level=128,
+                         show_picture=true, show_keypoints=true, sort_by="max_size_first",
+                         opencv_result_format = false,
+
+                        thresholdStep = 10,
+                        minThreshold = 50,
+                        maxThreshold        = 220,
+
+                        minRepeatability    = 2,
+                        minDistBetweenBlobs = 10,
+
+                        filterByColor = true, //true to filter by color or false to not filter by color
+                        blobColor     = 0,    //0 to select darker blobs, 255 for lighter blobs
+
+                        filterByArea = true, //true to filter by area, false to not filter by area.
+                        minArea      = 40,   //area is in pixels
+                        maxArea      = 700,   //a non negative integer  Number.MAX_VALUE;
+
+                        filterByCircularity = true, //true to filter by circularity, false to not filter by circularity
+                        minCircularity = 0, //0 means the furthest from a circle you can get.
+                        maxCircularity = 1, //1 means perfect circle. 0.785 is a square.
+
+                        filterByInertia = false, //true to filterByInertia by inertia, false to not filter by inertia
+                        minInertiaRatio = 0.1, //0 to 1. 0 means a line, 1 means a circle
+                        maxInertiaRatio = 1,   //0 to 1. An ellipse is recognized by a value between 0 and 1.
+
+                        filterByConvexity = false, //true to filter by convexivity, false to not filter by cinvexivity
+                        minConvexity = 0.95, //0 to 1  0 means lots of concave parts of the perimeter (like a star)
+                        maxConvexity = 1}={}){
+        //if(!mat_out) { mat_out  = Picture.make_similar_mat(mat_in) }
+        //let low_mat  = Picture.make_similar_mat(mat_in, [0, 0, 0, 0])
+        //let high_mat = Picture.make_similar_mat(mat_in, [white_level, white_level, white_level, 255])
+
+        mat_out  = new cv.Mat();
+        let low_mat  = new cv.Mat(mat_in.rows , mat_in.cols, mat_in.type(), [0, 0, 0, 0]);
+        let high_mat = new cv.Mat(mat_in.rows , mat_in.cols, mat_in.type(), [white_level, white_level, white_level, 255]);
+
+
+        cv.inRange(mat_in, low_mat, high_mat, mat_out);
+        //cv.imshow("output_canvas_id", dst_mat);
+        //Picture.show_picture({//canvas_id: "canvas2_id", content: mat_out})
+
+        let detector  = new cv.SimpleBlobDetector(Picture.detect_blobs_fill_in_args(arguments[0]));
+        let keypoints = new cv.KeyPointVector();
+        //var image = cv.Mat.ones(5, 5, cv.CV_8UC3);
+        detector.detect(mat_out, keypoints);
+        if(show_picture) {
+            let dst_mat2  = Picture.make_similar_mat(mat_in)
+            cv.drawKeypoints(mat_out, keypoints, dst_mat2,
+                cv.Scalar.all(-1), //draw each point in a different color
+                cv.DrawMatchesFlags_DRAW_RICH_KEYPOINTS //draw points at size of found point
+            )
+            Picture.show_picture({content: dst_mat2})
+        }
+        let key_pt_reasonable_array = Picture.keypoints_to_reasonable_array(keypoints, sort_by)
+        if(show_keypoints) {
+            Picture.display_keypoint_data(key_pt_reasonable_array)
+        }
+        return (opencv_result_format ? keypoints : key_pt_reasonable_array)
+    }
+
+    static detect_blobs_fill_in_args(obj){
+        if(!obj.hasOwnProperty("thresholdStep")) { obj.thresholdStep = 10 }
+        if(!obj.hasOwnProperty("minThreshold"))  { obj.minThreshold = 50 }
+        if(!obj.hasOwnProperty("maxThreshold"))  { obj.maxThreshold = 220 }
+
+        if(!obj.hasOwnProperty("minRepeatability"))    { obj.minRepeatability = 2 }
+        if(!obj.hasOwnProperty("minDistBetweenBlobs")) { obj.minDistBetweenBlobs = 10 }
+
+        if(!obj.hasOwnProperty("filterByColor")) { obj.filterByColor = true }
+        if(!obj.hasOwnProperty("blobColor"))     { obj.blobColor = 0 }
+
+        if(!obj.hasOwnProperty("filterByArea")) { obj.filterByArea = true }
+        if(!obj.hasOwnProperty("minArea"))      { obj.minArea = 40 }
+        if(!obj.hasOwnProperty("maxArea"))      { obj.maxArea = 700 }
+
+        if(!obj.hasOwnProperty("filterByCircularity")) { obj.filterByCircularity = true }
+        if(!obj.hasOwnProperty("minCircularity"))      { obj.minCircularity = 0 }
+        if(!obj.hasOwnProperty("maxCircularity"))      { obj.maxCircularity = 1 }
+
+        if(!obj.hasOwnProperty("filterByInertia")) { obj.filterByInertia = false }
+        if(!obj.hasOwnProperty("minInertiaRatio")) { obj.minInertiaRatio = 0.1 }
+        if(!obj.hasOwnProperty("maxInertiaRatio")) { obj.maxInertiaRatio = 1 }
+
+        if(!obj.hasOwnProperty("filterByConvexity")) { obj.filterByConvexity = 1 }
+        if(!obj.hasOwnProperty("minConvexity"))      { obj.minConvexity = 0.95 }
+        if(!obj.hasOwnProperty("maxConvexity"))      { obj.maxConvexity = 1 }
+        return obj
+    }
+
+    static keypoints_to_array(keypoints) {
+        let number_of_points = keypoints.size()
+        let points_array = []
+        for(let i = 0; i < number_of_points; i++){ points_array.push(keypoints.get(i)) }
+        return points_array
+    }
+
+    static keypoints_to_reasonable_array(keypoints, sort_by) {
+        let number_of_points = keypoints.size()
+        let points_array = []
+        for(let i = 0; i < number_of_points; i++){
+            let kp = keypoints.get(i)
+            let lit_obj = {i: i, x: kp.pt.x, y:kp.pt.y, size:kp.size}
+            points_array.push(lit_obj)
+        }
+        if      (sort_by == "max_y_first") {}
+        else if (sort_by == "max_x_first"){
+            points_array.sort(function(a, b) {
+                if      (a["x"] >  b["x"]) { return -1 }
+                else if (a["x"] == b["x"]) { return  0 }
+                else                       { return  1 }
+            })}
+        else if(sort_by == "max_size_first"){
+            points_array.sort(function(a, b) {
+                if      (a["size"] >  b["size"]) { return -1 }
+                else if (a["size"] == b["size"]) { return  0 }
+                else                             { return  1 }
+            })}
+        else if ((sort_by == "x") || (sort_by == "y") || (sort_by == "size")) {
+            points_array.sort(function(a, b) {
+                if      (a[sort_by] <  b[sort_by]) { return -1 }
+                else if (a[sort_by] == b[sort_by]) { return  0 }
+                else                               { return  1 }
+            })}
+        else {dde_error("keypoints_to_reasonable_array passed invalid size.<br/>" +
+                            'It should be one of:  "x", "y", "size", "max_x_first", "max_y_first", "max_size_first"')}
+        return points_array
+    }
+
+    static display_keypoint_data(key_pt_reasonable_array){
+        let data_html = "<table> <tr><th><input type='button' name='sort_by_pt'   value=' pt '/></th>\n" +
+                                    "<th><input type='button' name='sort_by_x'    value=' x ' style='width:54px;'/></th>\n" +
+                                    "<th><input type='button' name='sort_by_y'    value=' y ' style='width:62px;'/></th>\n" +
+                                    "<th><input type='button' id='sort_by_size_id' value=' size ' style='width:62px;'/></th>\n" +
+                                "</tr>"
+        for(let i = 0; i < key_pt_reasonable_array.length; i++){
+            let kp = key_pt_reasonable_array[i]
+            data_html += "<tr><td>"  + i +
+                "</td><td>" + ("" + kp.x).substring(0, 6)  +
+                "</td><td>" + ("" + kp.y).substring(0, 6)  +
+                //"</td><td>" + ("" + kp.angle).substring(0, 6) +
+                "</td><td>" + ("" + kp.size).substring(0, 6)  +
+                "</td></tr>"
+        }
+        data_html += "</table>"
+        show_window({content: data_html, title: key_pt_reasonable_array.length + " Detected Blob Points"})
+    }
 //________mats_similarity_______
     //returns a float, 0 to 1. 0 means very dissimilar,r, 1 means very similar
-    static mats_similarity_by_color(mat_in1, mat_in2, mat_out=null){
+    static mats_similarity_by_color({mat_in1, mat_in2, mat_out=null}){
         mat_out = Picture.mats_diff({mat_in1: mat_in1, mat_in2: mat_in2, mat_out: mat_out})
         let avg_color = cv.mean(mat_out) //array of 4 items. ignore the 4th (alpha) channel
         if (avg_color.length == 1) {
@@ -745,11 +937,85 @@ var Picture = class Picture{
         }
     }
 
-    static mats_similarity_by_average_color(mat_in1, mat_in2){
+    static mats_similarity_by_average_color({mat_in1, mat_in2}){
         let mat_in1_avg = Picture.mat_average_color(mat_in1, true)
         let mat_in2_avg = Picture.mat_average_color(mat_in2, true)
         let dif = Math.abs(mat_in1_avg - mat_in2_avg)
         return 1 - (dif / Picture.max_color_component_value)
+    }
+
+    static mats_similarity_by_detect_blobs(
+        {mat_in1, mat_in2, point_count=10, mat_out=null, white_level=128,
+        show_picture=true, show_keypoints=true, sort_by="max_size_first",
+        opencv_result_format = false,
+
+        thresholdStep = 10,
+        minThreshold = 50,
+        maxThreshold        = 220,
+        minRepeatability    = 2,
+        minDistBetweenBlobs = 10,
+
+        filterByColor = true, //true to filter by color or false to not filter by color
+        blobColor     = 0,    //0 to select darker blobs, 255 for lighter blobs
+
+        filterByArea = true, //true to filter by area, false to not filter by area.
+        minArea      = 40,   //area is in pixels
+        maxArea      = 700,   //a non negative integer  Number.MAX_VALUE;
+
+        filterByCircularity = true, //true to filter by circularity, false to not filter by circularity
+        minCircularity = 0, //0 means the furthest from a circle you can get.
+        maxCircularity = 1, //1 means perfect circle. 0.785 is a square.
+
+        filterByInertia = false, //true to filterByInertia by inertia, false to not filter by inertia
+        minInertiaRatio = 0.1, //0 to 1. 0 means a line, 1 means a circle
+        maxInertiaRatio = 1,   //0 to 1. An ellipse is recognized by a value between 0 and 1.
+
+        filterByConvexity = false, //true to filter by convexivity, false to not filter by cinvexivity
+        minConvexity = 0.95, //0 to 1  0 means lots of concave parts of the perimeter (like a star)
+        maxConvexity = 1}){
+        let args_obj = Picture.detect_blobs_fill_in_args(arguments[0])
+        args_obj.mat_in = mat_in1
+        let key_pts_reasonable_array1 = Picture.detect_blobs(args_obj)
+        args_obj.mat_in = mat_in2
+      let key_pts_reasonable_array2 = Picture.detect_blobs(args_obj)
+      let significant_point_count_diff = 0
+      if (key_pts_reasonable_array1.length >= point_count){
+          if(key_pts_reasonable_array2.length >= point_count){} //we're good with orig passed in point count
+          else { //1 is long enough but not 2.
+              significant_point_count_diff =  point_count - key_pts_reasonable_array2.length
+              point_count = key_pts_reasonable_array2.length //use the shortest one
+          }
+      }
+      else if (key_pts_reasonable_array1.length ==
+               key_pts_reasonable_array2.length){ //good!
+          point_count = key_pts_reasonable_array1.length
+      }
+      else if (key_pts_reasonable_array2.length >= point_count){ //1 is too short but 2 is ok
+          significant_point_count_diff =  point_count - key_pts_reasonable_array1.length
+          point_count = key_pts_reasonable_array1.length //use the shortest one
+      }
+      else { //both are too short and NOT equal in length
+          significant_point_count_diff = Math.abs(key_pts_reasonable_array1.length - key_pts_reasonable_array2.length)
+          point_count = Math.min(key_pts_reasonable_array1.length, key_pts_reasonable_array2.length)
+      }
+      let result = 0
+      for(let i = 0; i < point_count; i++){
+          let pt1 = key_pts_reasonable_array1[i]
+          let pt2 = key_pts_reasonable_array1[i]
+          let sim_size = number_similarity(pt1.size, pt2.size)
+          let sim_x    = number_similarity(pt1.x, pt2.x)
+          let sim_y    = number_similarity(pt2.y, pt2.y)
+          let sim = (sim_size + sim_x + sim_y) / 3
+          result += sim
+      }
+      //for all the points that are significant_point_count_diff,
+      //count them as 0, when comparing, ie the max dif
+      //sp adding them into result makes no change to result,
+      //BUT just boost the point_count by significant_point_count_diff
+      //which will decrease the result proportionately
+      if (point_count == 0) { return 0.5 } //no blobs in either picture, but aer they similar? can't really tell, so return 0.5
+      result = result / (point_count + significant_point_count_diff)
+      return result
     }
 }
 Picture.max_color_component_value = 255

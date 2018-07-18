@@ -63,7 +63,8 @@
         panels: [{ size: "50%"}, { size: "50%"}]
     })
     //TestSuite.make_suites_menu_items() //doesn't work
-    $("#js_menubar_id").jqxMenu(    {  height: '25px' });
+    $("#js_menubar_id").jqxMenu({autoOpen: false, clickToOpen: false, height: '25px' }) //autoOpen: false, clickToOpen: true,
+    //to open a menu, click. Once it is open, if you slide to another menu, it DOESN'T open it. oh well.
     //$("#js_edit_menu").jqxMenu(    { width: '50px', height: '25px' });
     //$("#js_learn_js_menu").jqxMenu({ width: '90px', height: '25px' });
     //$("#js_insert_menu").jqxMenu(  { width: '65px', height: '25px' });
@@ -576,6 +577,7 @@ show_window({
     opencv_blob_detector_id.onclick=function(){
         const code = file_content(__dirname + "/examples/opencv_blob_detector.js")
         Editor.insert(code)
+        open_doc("Picture.detect_blobs_doc_id")
     }
 
     opencv_process_webcam_id.onclick=function(){
@@ -591,6 +593,13 @@ show_window({
     opencv_locate_object_id.onclick=function(){
         const code = file_content(__dirname + "/examples/opencv_locate_object.js")
         Editor.insert(code)
+        open_doc("Picture.locate_object_doc_id")
+    }
+
+    opencv_picture_similarity_id.onclick=function(){
+        const code = file_content(__dirname + "/examples/opencv_picture_similarity.js")
+        Editor.insert(code)
+        open_doc("Picture.mats_similarity_by_color_doc_id")
     }
 
     window_close_all_id.onclick=close_all_show_windows

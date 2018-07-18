@@ -517,6 +517,64 @@ function similar(arg1, arg2, tolerance=0, tolerance_is_percent=false, arg1_alrea
     }
 }
 
+//return 0 if very dissimilar, 1 if the same (or very similar)
+//now working only for num1 and num2, min, max being non neg
+function number_similarity(num1, num2, min=null, max=null){
+    if (num1 == num2) { return 1 }
+    if (num1 > num2) {  //swap: ensure that num1 is less than num2.
+        let temp = num1;
+        num1 = num2;
+        num2 = temp
+    }
+    /*if (min === null)
+        if (num1 >= 0) { min = 0 }
+        else { //num1 is negative, so if we set min to 0, num1 wold be out of bounds.
+               //but we want the defautl case when you pass just num1 and num2 to basically work.
+
+          min = num1
+        }
+    if (max === null) { max = num2 }
+    if(min > num1) { dde_error("In number_similarity, num: " + num1 + " is less than min: " + min) }
+    if(max < num2) { dde_error("In number_similarity, num: " + num2 + " is more than min: " + max) }
+    */
+    //strategy: if either or both of num1 and numb 2 are neg, adjust them plus
+    //min and max so that num1 and num2 are non-neg
+    if(num1 >= 0){ //means num2 will be > 0
+       if(min === null)  { min = 0 }
+       if(max === null)  { max = num2 }
+    }
+    else if (num2 <= 0) { //means num1 is also less than 0 }
+       if (max === null) { max = 0 }
+       if (min === null) { min = num1 }
+       //now we've defaulted min and max. so now shift all 4 numbers to positive
+        num1 = Math.abs(num1)
+        num2 = Math.abs(num2)
+        let temp = num1;
+        num1 = num2;
+        num2 = temp
+        let orig_min = min
+        min = Math.abs(max)
+        max = Math.abs(orig_min)
+    }
+    else { //num1 is < 0 and num2 is >= 0
+        let inc_by = num1 * -1
+        num1 += inc_by //num1 is now 0
+        num2 += inc_by
+        if (min === null) { min = num1 }
+        else { min += inc_by }
+        if (max === null) { max = num2 }
+        else { max += inc_by }
+    }
+    let range = max - min
+    let new_max = range //so now min is effectively 0
+    num1 -= min
+    num2 -= min
+    let num1_ratio = num1 / new_max  //0 to 1
+    let num2_ratio = num2 / new_max  //0 to 1
+    let raw_score = Math.abs(num1_ratio - num2_ratio)
+    return 1 - raw_score
+}
+
 //arrays can be arrays, or can be a random objects.
 //all must be of the same type and have elts of the same names with the same values
 //compared with ===
@@ -795,7 +853,6 @@ function function_param_names_and_defaults(fn){
 }*/
 
 function function_param_names_and_defaults_array(fn){
-    debugger
     let param_string = "function foo(" + function_params(fn, false) + "){}"
     let ast = esprima.parse(param_string, {range: true, raw: true})
     let params_ast = ast.body[0].params

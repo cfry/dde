@@ -2,7 +2,7 @@
 <!-- good html validtor: https://www.onlinewebcheck.com/check.php?adv=1  -->
 <html lang="en">
 <head>
-    <title>Dexter Development Environment 2.4.2</title>
+    <title>Dexter Development Environment 2.4.3</title>
     <link rel="stylesheet" href="jqwidgets/styles/jqx.base.css" type="text/css" />
     <!-- <script type="text/javascript" src="jquery-1.11.3.min.js"></script> -->
     <script>window.$ = window.jQuery = require('jquery');</script>
@@ -371,6 +371,7 @@
                                                 <li id="opencv_process_webcam_id"      title="Make snapshots from webcam video and modify them.">Process Webcam</li>
                                                 <li id="opencv_face_reco_id"           title="Locate the faces in a webcam image.">Face Recogition</li>
                                                 <li id="opencv_locate_object_id"       title="Locate an object using OpenCV and a Job.">Locate Object</li>
+                                                <li id="opencv_picture_similarity_id"  title="Compare 2 pictures using OpenCV and a Job.">Picture Similarity</li>
 
                                             </ul>
                                         </li>
@@ -602,11 +603,11 @@
                                         <li id="insert_test_suite_example_id" title="Insert an example of the JS code for a test suite.">Insert Example</li>
                                         <li>Navigation
                                             <ul>
-                                                <li id="ts_run_sel_next_item_id" title="Run the selected test, test suite or test suites&#013;and select the next one.&#013;For speed, use the right arrow key.">Run & sel next&nbsp; &rarr;</li>
-                                                <li id="ts_sel_next_item_id"     title="Select the next without running the selected.&#013;For speed, use Shift right arrow key.">Select next&nbsp; Sh-&rarr;</li>
-                                                <li id="ts_sel_prev_id"          title="Select the previous item.&#013;For speed, use the left arrow key.">Prev item &nbsp; &larr;</li>
-                                                <li id="ts_sel_down_id"          title="Select the first contained item.&#013;For speed, use the down arrow key.">Down item&nbsp; &darr;</li>
-                                                <li id="ts_sel_up_id"            title="Select the containing item.&#013;For speed, use the up arrow key.">Up Item&nbsp; &uarr;</li>
+                                                <li id="ts_run_sel_next_item_id" title="Run the selected test, test suite or test suites&#013;and select the next one.&#013;For speed, use Alt right arrow key.">Run&sel next Alt-&rarr;</li>
+                                                <li id="ts_sel_next_item_id"     title="Select the next without running the selected.&#013;For speed, use Alt Shift right arrow key.">Sel next&nbsp; Alt-Sh-&rarr;</li>
+                                                <li id="ts_sel_prev_id"          title="Select the previous item.&#013;For speed, use Alt left arrow key.">Prev item &nbsp; Alt-&larr;</li>
+                                                <li id="ts_sel_down_id"          title="Select the first contained item.&#013;For speed, use Alt down arrow key.">Down item&nbsp; Alt-&darr;</li>
+                                                <li id="ts_sel_up_id"            title="Select the containing item.&#013;For speed, use Alt up arrow key.">Up Item&nbsp; Alt-&uarr;</li>
                                             </ul>
                                         </li>
                                         <li id="show_suite_statistics_id"   title="Show number of suites and tests.">Show suite stats</li>
@@ -632,7 +633,7 @@
                               placeholder="Enter JavaScript code here."></textarea>
                 </div>
                 <div style="background-color:#dddddd;">
-                    <div class='pane_header_wrapper' style="white-space:nowrap;height:60px;min-height:60px;max-height:60px;">
+                    <div class='pane_header_wrapper' style="white-space:nowrap;height:80px;min-height:80px;max-height:80px;">
                         <span id="output_pane_help_id" class='pane_header' title="Click for help."><u>Output</u></span>
                         <button id="eval_id" style="vertical-align:middle;" title="Evaluate (run) the selected JS in any pane&#013;or, if none, all the JavaScript in the Editor pane.&#013;Can also be invoked by typing &#8984;e">Eval</button>
                         <button id="step_button_id" style="vertical-align:middle;" title="Step through the evaluation of the selected code.">Step</button>
@@ -683,16 +684,18 @@
                                title="Type in code & hit Enter key to eval.&#13;Up arrow for previous cmd.&#13;Down arrow for next cmd&#13;or, at end, clear cmd line."
                                style="font-size:14px;width:500px;"/>
                         <br/>
-                        <span id="jobs_button_bar_id">
+                        <div style="display:inline-block;width:100%;">
                             <button id="eval_and_start_button_id" style="vertical-align:top;" title="Eval the selected JS&#013;and call the 'start' method&#013;with no arguments, on the result.">Eval&Start</button>
                             <button id="start_job_id" style="vertical-align:top;" title='Eval job that cursor is in and start it.&#13;Click on "Output" pane title for doc.'>Start Job</button>&nbsp;
                             <!-- <button id="stop_all_jobs_id" title="Stop all of the currently running jobs."><b>X</b></button></span> -->
-                            <img id="stop_all_jobs_id" src="stop_sign.png" title="Stop all of the currently running jobs."/>
+                            <img id="stop_all_jobs_id" src="stop_sign.png" title="Stop all of the currently running jobs." style="vertical-align:top;"/>
                             <button id="undefine_jobs_id" style="vertical-align:top;" title="Undefine all jobs that are not running.">Undef</button>
-                            &nbsp;<span style="vertical-align:70%;margin-right:0px;padding-right:0px;">Jobs:</span>
-                        </span>
+                            &nbsp;<span style="vertical-align:top; margin-right:0px; padding-right:0px;">Jobs:</span>
+                            <div id="jobs_button_bar_id" style="display:inline-block; vertical-align:100%; height: 50px; width:calc(100% - 320px); overflow-x:auto; padding:0px;margin:0px;">
+                            </div>
+                        </div>
                     </div>
-                    <div id="output_div_id" contentEditable="false" style="width:98%; height:calc(100% - 80px); font-size:16px;overflow:auto;white-space:nowrap;padding:5px;"></div> <!-- for height:calc(100% - 60px);  te60 is the height of the output pane header, This letsthe lower part of outpt pane take up 100% of the hieght of the lower split pane MINUS the outut pane header of 60px.-->
+                    <div id="output_div_id" contentEditable="false" style="width:98%; height:calc(100% - 90px); font-size:16px;overflow:auto;white-space:nowrap;padding:5px;"></div> <!-- for height:calc(100% - 60px);  te60 is the height of the output pane header, This letsthe lower part of outpt pane take up 100% of the hieght of the lower split pane MINUS the outut pane header of 60px.-->
                     <!-- contentEditable="false" means the text can't be edited BUT for chrome apps, this makes the content selectable and now I can copy and paste it whereas previoiusly I couldn't select and copy it. -->
                 </div>
             </div>
@@ -723,6 +726,7 @@
                             <option value='None'>None</option>
                             <option value='http://hdrobotic.com/videos/'>Dexter Videos</option>
                             <option value='http://static1.squarespace.com/static/55f1275ee4b0c65e2113baa5/563c04f5e4b0904f35c87cbb/563c0973e4b06c4bb72a5c89/1446775444596/HD+Robotics-8517.jpg'>Dexter Photo</option>
+                            <option value='Reference Manual'>Reference Manual</option>
                             <option value='Choose File'>Choose File</option>
                             <!--<option value=''>Measurements Video</option>-->
                         </select>

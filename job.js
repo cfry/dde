@@ -413,7 +413,7 @@ var Job = class Job{
         if (!but_elt){
             const job_name = this.name
             const the_id = this.get_job_button_id()
-            const the_html = '<button style="margin-left:10px; vertical-align:top;" id="' + the_id + '">'+ job_name + '</button>'
+            const the_html = '<button style="margin-left:10px; margin-botton:0px; padding-bottom:0px; vertical-align:top;" id="' + the_id + '">'+ job_name + '</button>'
             $("#jobs_button_bar_id").append(the_html)
             but_elt = window[the_id]
             but_elt.onclick = function(){

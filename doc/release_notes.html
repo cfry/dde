@@ -5,6 +5,80 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+
+<details class="doc_details"><summary>v 2.4.3, July 18, 2018</summary>
+Highlights: New methods: Picture.detect_blobs, Picture.similarity_by_detect_blobs.
+Arrow keys in editor behave more conventionally. Sim pane more useful.
+<ul>
+    <li> Sim Pane menu "Dexter Photo" now expands the photo as the user expands the pane.
+    "Reference Manual" displays the ref man in the sim pane.
+    "Choose File" allows you to choose and image file, HTML file
+    or various text files to display.</li>
+
+    <li> Insert menu/Machine Vision/Locate Object code cleaned up to
+    remove lint formatting warnings. Picture declared as a known value.</li>
+
+    <li> Insert menu/Machine Vision/Locate Object demo slightly improved.</li>
+
+    <li> New method: <code>Picture.detect_blobs</code>
+        See Ref Man/IO/Picture/High Level/detect_blobs</li>
+
+    <li> New method: <code>Picture.similarity_by_detect_blobs</code>
+        See Ref Man/IO/Picture/Similarity/similarity_by_detect_blobs</li>
+
+    <li> New Insert menu/Machine Vision/Picture Similarity  demo</li>
+
+    <li> All Picture.similarity methods now take keyword, instead of by-position args.</li>
+
+    <li> <code>Picture.show_picture</code> dialog box now has a more informative title when
+        displaying a mat, giving its type and size.</li>
+
+    <li> Choosing Insert menu/Machine Vision/Locate Object and
+        Insert menu/Machine Vision/Picture Similarity
+        scrolls the doc to the appropriate method.</li>
+
+    <li> Robot status dialog box fixed for displaying non-numbers.</li>
+
+    <li> In the previous releases, using the arrows keys in the editor
+    navigated TestSuites and Series. This conflicted with more
+    conventional uses of the arrow keys for text editing operations.
+    In this release, DDE's special uses of arrow keys have been switched
+    to Alt- arrow key, and the conventional use of the arrow keys
+    is now available.
+    Test menu/Navigation and User Guide/TestSuite have been
+    updated accordingly.</li>
+
+    <li> Joint limits: Now the Dexter instructions:
+       <ul><li><code>move_to</code></li>
+           <li><code>pid_move_to</code></li>
+           <li><code>move_all_joints</code></li>
+           <li><code>pid_move_all_joints</code></li>
+       </ul>
+       do not error when they are passed angles that exceed the joint limits.</li>
+
+    <li> <code>show_window</code> new parameter: resizable.
+        Previously, show_windows were unresizable.
+        Now you can set resizable to true (the default)
+        such that existing calls to show_window are now all resizable
+        by the user.
+        See Doc Ref Man/Window System/show_window/resizable.</li>
+
+    <li> Series menu/DDE/Robot/Robot subclass now inserts
+    <code title="not in test suite.">new Dexter({name: "my_dex", ip_address: "192.168.1.142", simulate: null})</code>
+    (added ip_address and simulate args)</li>
+
+    <li> Jobs bar buttons now scroll horizontally if there are
+        too many of them to fit in the Output pane header.
+        You can still drag DDE's vertical splitter bar to the right
+        to show more job buttons at a time.</li>
+
+    <li> Fixed <code>number_similarity</code> bug for a neg and a pos number.</li>
+
+    <li> DDE menu bar menus: now you have to click to pull them down.
+         Hovering no longer does it.</li>
+    </ul>
+</details>
+
 <details class="doc_details"><summary>v 2.4.1, July 7, 2018</summary>
 <ul>
  <li> fixed typo in test_suites.js</li>

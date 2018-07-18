@@ -862,6 +862,7 @@ that correspond to the Picture methods.
 </details>
 
 <details class="doc_details"><summary>Camera I/O</summary>
+
 <details id="Picture.show_picture_doc_id" class="doc_details"><summary>show_picture</summary>
 <code>Picture.show_picture()</code><br/>
  pops up a window that displays an image.<br/>
@@ -1044,7 +1045,7 @@ method that you can stick directly on the do_list of a job.<br/>
       </code></pre>
 </details>
 
-<details id="Picture.take_picture" class="doc_details"><summary>take_picture</summary>
+<details id="Picture.take_picture_doc_id" class="doc_details"><summary>take_picture</summary>
 To capture a picture from a camera, you must create a video stream to
 the camera and take a snapshot. This is what take_picture does.<br/>
 <i>Parameters:</i><br/>
@@ -1155,18 +1156,18 @@ Creates an OpenCV image.<br/>
     <code>Picture.make_mat({type: "rgba", color: [255, 0, 200, 255]})</code><br/>
     A color mat initiaized to magenta.
 </details>
-<details id="Picture.mat_width" class="doc_details"><summary>mat_width</summary>
+<details id="Picture.mat_width_doc_id" class="doc_details"><summary>mat_width</summary>
 Returns the width of the mat argument.<br/>
 <i>Example:</i><br/>
 <code>Picture.mat_width(Picture.make_mat())</code><br/> => <samp>320</samp>
 </details>
-<details id="Picture.mat_height" class="doc_details"><summary>mat_height</summary>
+<details id="Picture.mat_height_doc_id" class="doc_details"><summary>mat_height</summary>
     Returns the height of the mat argument.<br/>
     <i>Example:</i><br/>
     <code>Picture.mat_height(Picture.make_mat())</code><br/> => <samp>240</samp>
 </details>
 
-<details id="Picture.mat_red" class="doc_details"><summary>mat_red</summary>
+<details id="Picture.mat_red_doc_id" class="doc_details"><summary>mat_red</summary>
     Returns the integer value of the red component of the pixel in
     the given mat at the x and y args.<br/>
     <i>Parameters:</i><br/>
@@ -1176,7 +1177,7 @@ Returns the width of the mat argument.<br/>
     <i>Example:</i><br/>
     <code>Picture.mat_red(Picture.make_mat(), 16, 25)</code><br/>=> <samp>0</samp>
 </details>
-<details id="Picture.mat_green" class="doc_details"><summary>mat_green</summary>
+<details id="Picture.mat_green_doc_id" class="doc_details"><summary>mat_green</summary>
     Returns the integer value of the green component of the pixel in
     the given mat at the x and y args.<br/>
     <i>Parameters:</i><br/>
@@ -1186,7 +1187,7 @@ Returns the width of the mat argument.<br/>
     <i>Example:</i><br/>
     <code>Picture.mat_green(Picture.make_mat(), 16, 25)</code><br/>=> <samp>0</samp>
 </details>
-<details id="Picture.mat_blue" class="doc_details"><summary>mat_blue</summary>
+<details id="Picture.mat_blue_doc_id" class="doc_details"><summary>mat_blue</summary>
     Returns the integer value of the blue component of the pixel in
     the given mat at the x and y args.<br/>
     <i>Parameters:</i><br/>
@@ -1197,7 +1198,7 @@ Returns the width of the mat argument.<br/>
     <code>Picture.mat_blue(Picture.make_mat(), 16, 25)</code><br/>=> <samp>0</samp>
 </details>
 
-<details id="Picture.mat_alpha" class="doc_details"><summary>mat_alpha</summary>
+<details id="Picture.mat_alpha_doc_id" class="doc_details"><summary>mat_alpha</summary>
     Returns the integer value of the alpha component of the pixel in
     the given mat at the x and y args.<br/>
     <i>Parameters:</i><br/>
@@ -1208,7 +1209,7 @@ Returns the width of the mat argument.<br/>
     <code>Picture.mat_alpha(Picture.make_mat(), 16, 25)</code><br/>=> <samp>255</samp>
 </details>
 
-<details id="Picture.mat_gray" class="doc_details"><summary>mat_gray</summary>
+<details id="Picture.mat_gray_doc_id" class="doc_details"><summary>mat_gray</summary>
     Returns the integer value of the gray component of the pixel in
     the given mat at the x and y args.<br/>
     <i>Parameters:</i><br/>
@@ -1219,7 +1220,7 @@ Returns the width of the mat argument.<br/>
     <code>Picture.mat_gray(Picture.make_mat(), 16, 25)</code><br/>=> <samp>255</samp>
 </details>
 
-<details id="Picture.mat_pixel" class="doc_details"><summary>mat_pixel</summary>
+<details id="Picture.mat_pixel_doc_id" class="doc_details"><summary>mat_pixel</summary>
     Returns the typed array of the pixel in
     the given mat at the x and y args.<br/>
     For a "rgba" mat this array is 4 long.<br/>
@@ -1242,7 +1243,7 @@ Returns the width of the mat argument.<br/>
     => <samp>23</samp><br/>
 </details>
 
-<details id="Picture.set_mat_red" class="doc_details"><summary>set_mat_red</summary>
+<details id="Picture.set_mat_red_doc_id" class="doc_details"><summary>set_mat_red</summary>
     Sets the red component of the pixel in the given mat at x and y.<br/>
     <i>Parameters:</i>
     <b>mat</b> Required.<br/>
@@ -1258,7 +1259,7 @@ Picture.mat_red(mat, 2, 3)
 => <samp>128</samp>
 </details>
 
-<details id="Picture.set_mat_green" class="doc_details"><summary>set_mat_green</summary>
+<details id="Picture.set_mat_green_doc_id" class="doc_details"><summary>set_mat_green</summary>
     Sets the green component of the pixel in the given mat at x and y.<br/>
     <i>Parameters:</i>
     <b>mat</b> Required.<br/>
@@ -1274,7 +1275,7 @@ Picture.mat_green(mat, 2, 3)
     => <samp>128</samp>
 </details>
 
-<details id="Picture.set_mat_blue" class="doc_details"><summary>set_mat_blue</summary>
+<details id="Picture.set_mat_blue_doc_id" class="doc_details"><summary>set_mat_blue</summary>
     Sets the blue component of the pixel in the given mat at x and y.<br/>
     <i>Parameters:</i>
     <b>mat</b> Required.<br/>
@@ -1290,7 +1291,7 @@ Picture.mat_blue(mat, 2, 3)
     => <samp>128</samp>
 </details>
 
-<details id="Picture.set_mat_alpha" class="doc_details"><summary>set_mat_alpha</summary>
+<details id="Picture.set_mat_alpha_doc_id" class="doc_details"><summary>set_mat_alpha</summary>
     Sets the alpha component of the pixel in the given mat at x and y.<br/>
     <i>Parameters:</i>
     <b>mat</b> Required.<br/>
@@ -1307,7 +1308,7 @@ Picture.mat_alpha(mat, 2, 3)
     => <samp>128</samp>
 </details>
 
-<details id="Picture.set_mat_gray" class="doc_details"><summary>set_mat_gray</summary>
+<details id="Picture.set_mat_gray_doc_id" class="doc_details"><summary>set_mat_gray</summary>
     Sets the gray value of the pixel in the given mat at x and y.<br/>
     <i>Parameters:</i>
     <b>mat</b> Required.<br/>
@@ -1323,7 +1324,7 @@ Picture.mat_gray(mat, 2, 3)
     => <samp>128</samp>
 </details>
 
-<details id="Picture.set_mat_pixel" class="doc_details"><summary>set_mat_pixel</summary>
+<details id="Picture.set_mat_pixel_doc_id" class="doc_details"><summary>set_mat_pixel</summary>
     Sets the blue component of the pixel in the given mat at x and y.<br/>
     <i>Parameters:</i>
     <b>mat</b> Required.<br/>
@@ -1339,7 +1340,7 @@ Picture.mat_pixel(mat, 2, 3)
     => <samp>Uint8Array.from([128, 129, 130, 250])</samp>
 </details>
 
-<details id="Picture.set_mat_reds" class="doc_details"><summary>set_mat_reds</summary>
+<details id="Picture.set_mat_reds_doc_id" class="doc_details"><summary>set_mat_reds</summary>
     Sets the red component of all the pixels in the given mat.<br/>
     <i>Parameters:</i><br/>
     <b>mat</b> Required.<br/>
@@ -1353,7 +1354,7 @@ Picture.mat_red(mat, 2, 3)
     => <samp>133</samp>
 </details>
 
-<details id="Picture.set_mat_greens" class="doc_details"><summary>set_mat_greens</summary>
+<details id="Picture.set_mat_greens_doc_id" class="doc_details"><summary>set_mat_greens</summary>
     Sets the green component of all the pixels in the given mat.<br/>
     <i>Parameters:</i><br/>
     <b>mat</b> Required.<br/>
@@ -1367,7 +1368,7 @@ Picture.mat_green(mat, 2, 3)
     => <samp>133</samp>
 </details>
 
-<details id="Picture.set_mat_blues" class="doc_details"><summary>set_mat_blues</summary>
+<details id="Picture.set_mat_blues_doc_id" class="doc_details"><summary>set_mat_blues</summary>
     Sets the blue component of all the pixels in the given mat.<br/>
     <i>Parameters:</i><br/>
     <b>mat</b> Required.<br/>
@@ -1381,7 +1382,7 @@ Picture.mat_blue(mat, 2, 3)
     => <samp>133</samp>
 </details>
 
-<details id="Picture.set_mat_grays" class="doc_details"><summary>set_mat_grays</summary>
+<details id="Picture.set_mat_grays_doc_id" class="doc_details"><summary>set_mat_grays</summary>
     Sets the gray component of all the pixels in the given mat.<br/>
     <i>Parameters:</i><br/>
     <b>mat</b> Required.<br/>
@@ -1395,7 +1396,7 @@ Picture.mat_gray(mat, 2, 3)
     => <samp>133</samp>
 </details>
 
-<details id="Picture.set_mat_pixels" class="doc_details"><summary>set_mat_pixels</summary>
+<details id="Picture.set_mat_pixels_doc_id" class="doc_details"><summary>set_mat_pixels</summary>
     Sets all the pixels in the given mat to the given value.<br/>
     <i>Parameters:</i><br/>
     <b>mat</b> Required. May be an "rgba" or a "gray" mat.<br/>
@@ -1418,7 +1419,7 @@ These methods are, for the most part, wrappers around
 one or more OpenCV.js methods that take a mat or two as inputs
 and return a mat or some analysis of the input mats.
 <p></p>
-In OpenCV.js, generally the methods must take a "dst" argument
+In OpenCV.js, generally the methods must take a "dst" (destination) argument
 which is a mat that is "filled in" by the method.
 Picture methods allow you to NOT pass in this "dst" argument
 (which Picture calls "mat_out"). If it is not passed in,
@@ -1426,7 +1427,7 @@ a new one of the appropriate size is automatically created.
 Regardless of whether the mat is created, the mat_out is returned
 by the method. It is efficient to "reuse" output mats.
 
-<details id="Picture.mat_average_color" class="doc_details"><summary>mat_average_color</summary>
+<details id="Picture.mat_average_color_doc_id" class="doc_details"><summary>mat_average_color</summary>
 Returns the average of all the pixels in the passed in mat.
 Think of this as a drastic simplification of a picture, which
 is sometimes all you need. You can use it to compare two
@@ -1459,7 +1460,7 @@ is a great first cut at sensing if its day time or the lights are on.
 A value closer to 1 than 0 indicates a more lighted area.<br/>
 </details>
 
-<details id="Picture.mat_to_gray" class="doc_details"><summary>mat_to_gray</summary>
+<details id="Picture.mat_to_gray_doc_id" class="doc_details"><summary>mat_to_gray</summary>
     Converts a color mat to a gray mat that has just one numerical value
     (0 to 255 inclusive) per pixel.<br/>
     <i>Parameters:</i><br/>
@@ -1471,7 +1472,7 @@ A value closer to 1 than 0 indicates a more lighted area.<br/>
     <code>Picture.mat_to_gray(Picture.make_mat())</code><br/>
 </details>
 
-<details id="Picture.mats_diff" class="doc_details"><summary>mats_diff</summary>
+<details id="Picture.mats_diff_doc_id" class="doc_details"><summary>mats_diff</summary>
     Subtracts each component of each pixel in mat_in1 from the corresponding
     pixel in mat_in2, and places the absolute value of the result
     into mat_out, which is returned. The output mat will be
@@ -1496,7 +1497,7 @@ A value closer to 1 than 0 indicates a more lighted area.<br/>
     but they are very likely to have positive (not zero) values.
 </details>
 
-<details id="Picture.threshold" class="doc_details"><summary>threshold</summary>
+<details id="Picture.threshold_doc_id" class="doc_details"><summary>threshold</summary>
     The input mat can be either "rgba" or 'gray".
     The output mat will be of the same type as the input,
     but the color components of its pixels will be one of two values.
@@ -1529,7 +1530,7 @@ A value closer to 1 than 0 indicates a more lighted area.<br/>
     threshold_type: cv.THRESH_BINARY_INV})
     </code></pre>
 </details>
-<details id="Picture.remove_noise" class="doc_details"><summary>remove_noise</summary>
+<details id="Picture.remove_noise_doc_id" class="doc_details"><summary>remove_noise</summary>
     The input mat can be either "rgba" or "gray".
     The output mat will be of the same type as the input,
     but it will have less detail. Small, isolated patches of a color will
@@ -1553,7 +1554,7 @@ A value closer to 1 than 0 indicates a more lighted area.<br/>
     </code></pre>
 </details>
 
-<details id="Picture.locate_object" class="doc_details"><summary>locate_object</summary>
+<details id="Picture.locate_object_doc_id" class="doc_details"><summary>locate_object</summary>
 The input mat can be either "rgba" or "gray".
 The output mat will be "gray".
 The returned rectangle says where an object is in the input mat.
@@ -1584,7 +1585,7 @@ If null, a new mat is created for the output. It will be of type "gray".<br/>
 Pixel values below or equal to the threshold will be converted to black.
 Those above it will be converted to white. Those white pixels will
 depict the object you want to locate.<br/>
-<b>noise_size</b> Default: <code>3</code>. See Picture.noise_filter noise_size.<br/>
+<b>noise_size</b> Default: <code>3</code>. See <a href="#" onclick="open_doc('Picture.remove_noise_doc_id')">noise_size</a>.<br/>
 <b>out_format</b> Default: <code>"min_area_rect"</code>.
 Determines what kind of rectangle is computed to locate the object.<br/>
 <i style="color:darkorange;">The details of the object returned by locate_object depend on
@@ -1639,6 +1640,89 @@ with the rect and center_x and center_y shown as an overlay in red.<br/>
     </code></pre>
     => <samp>null</samp>
 </details> <!-- locate_object -->
+
+<details id="Picture.detect_blobs_doc_id" class="doc_details"><summary>detect_blobs</summary>
+In machine vision, a blob is a small, dense set of connected pixels of similar color
+often forming a simple geometric shape like a filled in circle or rectangle.
+Many pictures will contain several to numerous blobs. By identifying the
+size, shape and location of such blobs, you can locate particular "features"
+within an image, or even use the pattern of such blobs to identify
+complex objects.
+<p></p>
+Picture.detect_blobs is a complex wrapper for the complex <code>cv.SimpleBlobDetector</code>.
+It returns an array of objects, one for each blob.<br/>
+<i>Parameters:</i><br/>
+    <b>mat_in</b> Default: Required. The mat to detect the blobs in. It can be of type "rgba" or "gray".<br/>
+    <b>mat_out</b> Default: <code>null</code>. A mat to use in internal processing. If null,
+    one is created. <br/>
+    <b>white_level</b> Default: <code>128</code>. An integer from 0 through 255 inclusive.
+    This converts the mat_in to a black and white image wherein the all the values
+    in mat_in that are between 0 and 128 are converted to 255 (white) and
+     the values above white_level are converted to 0 (black).
+     Thus it inverts the colors. mat_in light areas are converted to black.
+     mat_in dark areas are converted to white.
+     Our blobs are formed by the lighter areas in mat_in.
+     white_level is used as the "lowerb" in <code>cv.inRange</code> to implement this
+     stage of processing mat_in.<br/>
+    <b>show_picture</b> Default: <code>true</code>. If true, a picture is shown with
+    the detected blobs circled in a color. Useful for debugging and tweaking
+    other parameters.<br/>
+    <b>show_keypoints</b> Default: <code>true</code>. Shows a window of the detected blobs
+    and their properties. Useful for debugging.<br/>
+    <b>sort_by</b> Default: <code>"max_size_first"</code>.  How to order the array of returned
+    blob objects. <br/>
+    Possible values:<br/>
+    <code>"max_size_first"</code> Orders the blobs by largest first.<br/>
+    <code>"size"</code> Orders the blobs by smallest first.<br/>
+    <code>"max_x_first"</code> Orders the blobs by right-most first.<br/>
+    <code>"x"</code> Orders the blobs by left-most first.<br/>
+    <code>"max_y_first"</code> Orders the blobs by bottom-most first.<br/>
+    <code>"y"</code> Orders the blobs by top-most first.<br/>
+
+    <b>opencv_result_format</b> Default: <code>false</code>. If false, the result array
+    has objects with properties:
+    <ul>
+        <li><b>x</b> The number of pixels from the left of the picture of the blob.</li>
+        <li><b>y</b> The number of pixels from the top of the picture of the blob</li>
+        <li><b>size</b> A rough measure of the size or diameter of the blob.</li>
+    </ul>
+    If <code>true</code>, the result objects are OpenCV's format for keypoints that's more confusing.
+    <p></p>
+     <i>The rest of these parameters are passed to cv.SimpleBlobDetector.
+     See OpenCV for documentation.</i><br/>
+     <b>thresholdStep</b> Default: <code>10</code>.<br/>
+     <b>minThreshold</b> Default: <code>50</code>.<br/>
+     <b>maxThreshold</b> Default: <code>220</code>.<br/>
+
+     <b>minRepeatability</b> Default: <code>2</code>.<br/>
+     <b>minDistBetweenBlobs</b> Default: <code>10</code>.<br/>
+
+     <b>filterByColor</b> Default: <code>true</code>. Use false to not filter by color<br/>
+     <b>blobColor</b> Default: <code>0</code>.  Use 0 to select darker blobs, 255for lighter blobs<br/>
+
+     <b>filterByArea</b> Default: <code>true</code>. Use true to filter by area, false to not filter by area.<br/>
+     <b>minArea</b> Default: <code>40</code>.   Area is in pixels.<br/>
+     <b>maxArea</b> Default: <code>700</code>. A non negative integer. <br/>
+     <b>filterByCircularity</b> Default: <code>true</code>.<br/>
+     <b>minCircularity</b> Default:  <code>0</code>.  0 means the least circular shape. <br/>
+     <b>maxCircularity</b> Default: <code>1</code>. 1 means a perfect circle. 0.785 is a square. <br/>
+
+     <b>filterByInertia</b> Default:  <code>false</code>.<br/>
+     <b>minInertiaRatio</b> Default:  <code>0.1</code>.  0 means a line. 1 means a circle<br/>
+     <b>maxInertiaRatio</b> Default:  <code>1</code>.   0 to 1. An ellipse is recognized by a value between 0 and 1.<br/>
+
+     <b>filterByConvexity</b> Default: <code>false</code>.<br/>
+     <b>minConvexity</b> Default: <code>0.95</code>.  0 to 1.  0 means lots of concave parts of the perimeter (like a star)<br/>
+     <b>maxConvexity</b> Default:  <code>1</code>. <br/>
+     <i>Example:</i><br/>
+     <pre><code>Picture.init()
+Picture.show_picture() //uses a picture of a PC board.
+//Wait for picture to show
+var mat1 = cv.imread(canvas_id)
+Picture.detect_blobs({mat_in: mat1, sort_by:"y"})
+    </code></pre>
+</details>
+
 </details>    <!-- High Level -->
 
 <details class="doc_details"><summary>Similarity</summary>
@@ -1650,7 +1734,7 @@ some methods for telling you how similar two mats are along different dimentions
 They all take 2 mats as inputs and return a floating point number between
 0 and 1, with 0 meaning very dissimilar and 1 meaning very similar.
 
-<details id="Picture.mats_similarity_by_average_color" class="doc_details"><summary>mats_similarity_by_average_color</summary>
+<details id="Picture.mats_similarity_by_average_color_doc_id" class="doc_details"><summary>mats_similarity_by_average_color</summary>
     This method gets the average color of the two input methods,
     subtracts them, takes the absolute value of that,
     divides it by 255 and subtracts it from 1.
@@ -1665,15 +1749,15 @@ They all take 2 mats as inputs and return a floating point number between
     needn't be the same type, nor even the same width and height.
     Which of the two input mats is mat_in1 and mat_in2 doesn't matter.<br/>
     <i>Example:</i><br/>
-    <pre><code>Picture.mats_similarity_by_average_color(
-    Picture.make_mat(),
-    Picture.make_mat())
+    <pre><code>Picture.mats_similarity_by_average_color({
+    mat_in1: Picture.make_mat(),
+    mat_in2: Picture.make_mat()})
     </code></pre>
     => <samp>1</samp>
     This method is less discerning than Picture.mats_similarity_by_color.
 </details>
 
-<details id="Picture.mats_similarity_by_color" class="doc_details"><summary>mats_similarity_by_color</summary>
+<details id="Picture.mats_similarity_by_color_doc_id" class="doc_details"><summary>mats_similarity_by_color</summary>
     Uses Picture.mats_diff to substract one mat from another, then
     gets the average value of that mat to return a number
     between 0 and 1. The result is adjusted such that
@@ -1687,13 +1771,61 @@ They all take 2 mats as inputs and return a floating point number between
     same width, height and type of mat_in1 will be created to store the
     difference of the two input mats temporarily.<br/>
     <i>Example:</i><br/>
-    <pre><code>Picture.mats_similarity_by_color(
-    Picture.make_mat(),
-    Picture.make_mat())
+    <pre><code>Picture.mats_similarity_by_color({
+    mat_in1: Picture.make_mat(),
+    mat_in2: Picture.make_mat()})
     </code></pre>
     => <samp>1</samp>
     This method is a cheap way to tell how similar two mats are.
 </details> <!-- mats_similarity_by_color -->
+
+<details id="Picture.mats_similarity_by_detect_blobs_doc_id" class="doc_details"><summary>mats_similarity_by_detect_blobs</summary>
+<code>Picture.detect_blobs</code> is called on each of the two input mats. Then the arrays of blob objects
+are compared for similarity.<br>
+<i>Parameters:</i><br/>
+<b>mat_in1</b> Default: Required. Can be of type "rgba" or "gray".<br/>
+<b>mat_in2</b> Default: Required. Can be of type "rgba" or "gray".<br/>
+<b>mat_out</b> Default: <code>null</code>. A mat used for internal processing. It will be automatically created if not passed in.<br/>
+<b>point_count</b> Default: <code>10</code>. The number of blobs to consider from
+each input mat. You may want to set this number low to avoid "noise" blobs.<br/>
+If the number of blobs found in one or more input mats is
+less than this number, then only that number are considered.
+When the number of blobs in one or two input mats is less than point_count,
+and the blob counts from each mat are not equal, that will boost the dissimilarity
+of the input mats.<br/>
+<b>sort_by</b> Default: <code>"max_size_first"</code> The array of blobs found
+in each input mat are sorted by this. As blobs are compared,
+the first blob from mat_in1 is compared to the first blob in mat_in2,
+then the second blob from each input mat is compared, etc. on up
+to point_count blobs. Thus the value of sort_by is crucial for determining
+the kind of similarity you will get.
+See <a href="#" onclick="open_doc('Picture.detect_blob_doc_id')">Picture.detect_blob</a>
+for sort_by details.
+<p></p> Each blob comparison contributes a score to the similarity returned value.
+Each attribute within each blob object is compared with its counterpart in
+the other input mat. So for instance,
+mat_in1's first blob, x attribute is compared with
+mat_in2's first blob, x attribute. If they happen to be the same,
+that comparison indicates maximum similarity. If they differ by a bit,
+say 105 and 107 then they are considered to be very similar.
+If they differ by a lot, say 2 to 103, they are considered to be quite dissimilar.
+The comparison of numbers is not a simple difference. For instance,
+the similarity between 1 and 2 is much less than the similarity of 67 and 68
+even through their strict difference in both cases is just 1.
+<p></p>
+mats_similarity_by_detect_blobs takes all the arguments of
+<a href="#" onclick="open_doc('Picture.detect_blobs_doc_id')">Picture.detect_blob</a>
+except that Picture.detect_blobs' <i>mat_in</i> is replaced by
+Picture.mats_similarity_by_detect_blob's <i>mat_in1</i> and <i>mat_in2</i>.<br/>
+<i>Example:</i><br/>
+<pre><code>Picture.mats_similarity_by_detect_blobs(
+    {mat_in1: Picture.make_mat(),
+     mat_in2: Picture.make_mat()})
+     </code></pre> =>
+<samp>0.5</samp><br/>
+Because we are passing in mats where no blobs are detected, we can't really say much about
+their similarity. so <code>0.5</code> is returned.
+</details> <!-- ends mats_similarity_by_detect_blobs -->
 </details> <!-- Similarity -->
 </details> <!-- ends Picture -->
 

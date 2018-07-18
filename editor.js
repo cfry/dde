@@ -40,21 +40,21 @@ Editor.init_editor = function(){
                                //indent each line to the line above it when you hit Return
          extraKeys: //undo z and select_all (a) work automaticaly with proper ctrl and cmd bindings for win and  mac
              ((operating_system === "win") ?
-                    {"Left":  Series.ts_or_replace_sel_left,
-                    "Right":  Series.ts_or_replace_sel_right,
-                    "Shift-Right": Series.ts_sel_shift_right, //no non ts semantics
-                    "Up":     Series.ts_or_replace_sel_up,
-                    "Down":   Series.ts_or_replace_sel_down,
+                    {"Alt-Left":  Series.ts_or_replace_sel_left,
+                    "Alt-Right":  Series.ts_or_replace_sel_right,
+                    "Shift-Alt-Right": Series.ts_sel_shift_right, //no non ts semantics decided to cut this as is uncommonly used and shift right is "continue selection" in normal test editor and conde mirror AND alt_shift_right too hairy to remember.
+                    "Alt-Up":     Series.ts_or_replace_sel_up,
+                    "Alt-Down":   Series.ts_or_replace_sel_down,
                     "Ctrl-E": eval_button_action, //the correct Cmd-e doesn't work
                     "Ctrl-O": Editor.open,
                     "Ctrl-N": Editor.edit_new_file,
                     "Ctrl-S": Editor.save //windows
                     } :
-                    {"Left":  Series.ts_or_replace_sel_left,
-                     "Right": Series.ts_or_replace_sel_right,
-                     "Shift-Right": Series.ts_sel_shift_right, //no non ts semantics
-                     "Up":    Series.ts_or_replace_sel_up,
-                     "Down":  Series.ts_or_replace_sel_down,
+                    {"Alt-Left":  Series.ts_or_replace_sel_left,
+                     "Alt-Right": Series.ts_or_replace_sel_right,
+                     "Shift-Alt-Right": Series.ts_sel_shift_right, //no non ts semantics see above for why cuttong this
+                     "Alt-Up":    Series.ts_or_replace_sel_up,
+                     "Alt-Down":  Series.ts_or_replace_sel_down,
                      "Cmd-E": eval_button_action, //the correct Cmd-e doesn't work
                      "Cmd-N": Editor.edit_new_file,
                      "Cmd-O": Editor.open,

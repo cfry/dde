@@ -237,7 +237,7 @@ var Series = class Series {
             else {
                 var new_index = index + index_increment
                 if (new_index == -1)                 { new_index = arr.length - 1 } //wrap around for left
-                else if (new_index == arr.length) { new_index = 0 }                 //wrap around for right
+                else if (new_index == arr.length)    { new_index = 0 }              //wrap around for right
                 var new_text = arr[new_index]
                 Editor.replace_selection(new_text, true)
                 Series.last = this
@@ -844,7 +844,7 @@ Series.instances = [
         menu_insertion_string: function(){return Series.job_dot_last_job_name() + '.robot.robot_status[Dexter.J1_ANGLE]'},
                                               menu_sel_start: -16,  menu_sel_end:-1, sample:"Dexter.J1_ANGLE"}),
     new Series({id:"series_robot_subclass_id", array:["Dexter", "Brain", "Human", "Serial"],
-        menu_insertion_string:'new Dexter({name: "my_dex"})', menu_sel_start: 4,  menu_sel_end:10, sample:"new Dexter"}),
+        menu_insertion_string:'new Dexter({name: "my_dex", ip_address: "192.168.1.142", simulate: null})', menu_sel_start: 4,  menu_sel_end:10, sample:"new Dexter"}),
 
     new Series({id:"series_robot_name_id", array: Series.get_robot_name_array,
         menu_insertion_string: 'Robot.dexter0',

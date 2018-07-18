@@ -1408,24 +1408,29 @@ Dexter.move_home = function(){ //move straight up
     return Dexter.move_all_joints(Dexter.HOME_ANGLES)
 }
 
+Dexter.check_joint_limits = false
+
 //similar to Kin.check_J_ranges except returns string if out of range,
 //and false if in range whereas Kin.check_J_ranges returns true if
 //in range and false otherwise.
 Dexter.joints_out_of_range = function(J_angles){
-    let lower_limit = [Dexter.J1_ANGLE_MIN, Dexter.J2_ANGLE_MIN, Dexter.J3_ANGLE_MIN, Dexter.J4_ANGLE_MIN, Dexter.J5_ANGLE_MIN]
-    let upper_limit = [Dexter.J1_ANGLE_MAX, Dexter.J2_ANGLE_MAX, Dexter.J3_ANGLE_MAX, Dexter.J4_ANGLE_MAX, Dexter.J5_ANGLE_MAX]
-    let angle
-    for(var i = 0; i < J_angles.length; i++){
-        angle = J_angles[i]
-        if(angle == null) {}
-        else if (angle < lower_limit[i]){
-            return "Joint " + (i + 1) + " with angle: " + angle + "\nis less than the minimum: " + lower_limit[i]
+    if (!Dexter.check_joint_limits) { return false }
+    else {
+        let lower_limit = [Dexter.J1_ANGLE_MIN, Dexter.J2_ANGLE_MIN, Dexter.J3_ANGLE_MIN, Dexter.J4_ANGLE_MIN, Dexter.J5_ANGLE_MIN]
+        let upper_limit = [Dexter.J1_ANGLE_MAX, Dexter.J2_ANGLE_MAX, Dexter.J3_ANGLE_MAX, Dexter.J4_ANGLE_MAX, Dexter.J5_ANGLE_MAX]
+        let angle
+        for(var i = 0; i < J_angles.length; i++){
+            angle = J_angles[i]
+            if(angle == null) {}
+            else if (angle < lower_limit[i]){
+                return "Joint " + (i + 1) + " with angle: " + angle + "\nis less than the minimum: " + lower_limit[i]
+            }
+            else if (angle > upper_limit[i]){
+                return "Joint " + (i + 1) + " with angle: " + angle + "\nis more than the maximun: " + upper_limit[i]
+            }
         }
-        else if (angle > upper_limit[i]){
-            return "Joint " + (i + 1) + " with angle: " + angle + "\nis more than the maximun: " + upper_limit[i]
-        }
+        return false
     }
-    return false
 }
 
 Dexter.move_all_joints = function(array_of_5_angles=[]){

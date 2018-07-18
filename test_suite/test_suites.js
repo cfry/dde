@@ -36,6 +36,28 @@ new TestSuite("similar",
     ["foo", "bar", "These circular arrays are similar"]
 )
 
+new TestSuite("number_similarity",
+    ["number_similarity(3, 3)", "1"],
+    ["number_similarity(0, 0)", "1"],
+    ["number_similarity(0, 1)", "0"],
+    ["number_similarity(1, 0)", "0"],
+    ["number_similarity(1, 10)", "0.09999999999999998"],
+    ["number_similarity(10, 1)", "0.09999999999999998"],
+    ["number_similarity(10, 0)", "0"],
+    ["number_similarity(4, 5)", "0.8"],
+    ["number_similarity(4, 5, 0, 10)", "0.9"],
+    ["number_similarity(4, 5, 4, 5)", "0"],
+    ["number_similarity(4, 5, 4, 10)", "0.8333333333333334"],
+    ["number_similarity(0.5, 0.7, 0, 1)", "0.8"],
+    ["number_similarity(-1, -2)", "0.5"],
+    ["number_similarity(-5, -5)", "1"],
+    ["number_similarity(-5, 0, -5, 0)", "0"],
+    ["number_similarity(5, 1)",   "0.19999999999999996"],
+    ["number_similarity(-5, -1)", "0.19999999999999996"],
+    ["number_similarity(-5, 1)", "0"]
+
+)
+
 new TestSuite("flatten",
 	["flatten(2)", "[2]"],
 	["flatten([3, 2, 1])", "[3, 2, 1]"],
@@ -285,3 +307,4 @@ new TestSuite("make_ins_arrays",
      `[[undefined, undefined, undefined, undefined, "b", 1, 2, 3, 4, 5],
        [undefined, undefined, undefined, undefined, "a", 6, 2, 3, 4, 5]]`]
 )
+

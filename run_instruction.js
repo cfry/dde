@@ -267,7 +267,7 @@ show_window({content:
  title: "Run an Instruction on a Dexter",
  x: 250,
  y: 50,
- width: 525,
+ width: 550,
  height: 530,
  callback: handle_run_instruction})
   J1_range_id.innerHTML = Dexter.J1_ANGLE_MIN + " to " + Dexter.J1_ANGLE_MAX

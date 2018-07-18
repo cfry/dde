@@ -36,8 +36,8 @@
         var new_element = sim_graphics_pane_id.cloneNode(false);
         sim_graphics_pane_id.parentNode.replaceChild(new_element, sim_graphics_pane_id);
     }
-    function video_changed(){
-        var select_val = videos_id.value
+    function video_changed(select_val){
+        if(select_val instanceof Event) { select_val = videos_id.value }
         if (select_val == "Choose File") {
             select_val = choose_file()
         }
@@ -60,7 +60,7 @@
                  select_val.endsWith(".bmp") ||
                  select_val.endsWith(".svg")
                 ){
-            sim_graphics_pane_id.innerHTML = "<img style='width:370px;' src='" + select_val + "'/>"
+            sim_graphics_pane_id.innerHTML = "<img style='width:100%;' src='" + select_val + "'/>"
         }
         else if (select_val.endsWith(".stl")){
             clear_out_sim_graphics_pane_id()
@@ -74,9 +74,37 @@
             })
             stl_render()
         }
-        else {
+        else if (select_val.startsWith("http")){
             //play_youtube_video(select_val)
             show_page(select_val)
+        }
+        else if (select_val == "Reference Manual"){
+            let div_html = `<div contenteditable='false' 
+                                style='height:300px; width:300px; padding:5%; background-color:#DDDDDD; overflow:scroll;'>` +
+                             "<div style='font-size:18px; font-weight:700;'>Reference Manual</div>"
+            let content = file_content(__dirname + "/doc/ref_man.html")
+            //sim_graphics_pane_id.style = "width:97%; height:90%; padding:5%; background-color:white; overflow:scroll !important;"
+            sim_graphics_pane_id.innerHTML = div_html + content + "</div>"
+        }
+        else if (select_val.endsWith(".txt")  ||
+                 select_val.endsWith(".js")   ||
+                 select_val.endsWith(".json") ||
+                 select_val.endsWith(".dde")){
+            let div_html = `<div title="Click to choose a different file." onclick='video_changed(\"Choose File\")' style='padding:7px; font-size:12px; font-weight:600;background-color:rgb(184, 187, 255);'>` +
+                            select_val + "</div>" +
+              "<div contenteditable='false' style='height:300px; width:800px; padding:5%; background-color:white; overflow:scroll;'>"
+
+            let content = file_content(select_val)
+            content = replace_substrings(content, "<", "&lt;")
+            //sim_graphics_pane_id.style = "width:97%; height:90%; padding:5%; background-color:white; overflow:scroll !important;"
+            sim_graphics_pane_id.innerHTML = div_html + "<pre>" + content + "</pre></div>"
+        }
+        else //if (select_val.endsWith(".html") || select_val.endsWith(".htm"))
+             {
+            let div_html = "<div contenteditable='false' style='height:300px; width:300px; padding:5%; background-color:white; overflow:scroll;'>"
+            let content = file_content(select_val)
+            //sim_graphics_pane_id.style = "width:97%; height:90%; padding:5%; background-color:white; overflow:scroll !important;"
+            sim_graphics_pane_id.innerHTML = div_html + content + "</div>"
         }
     }
     //function show_url(url){

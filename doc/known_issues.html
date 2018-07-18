@@ -10,6 +10,11 @@
 with this DDE release. All of them are on our "do list".
 <p></p>
 <ul>
+   <li>Picture.show_video() sometimes comes up with a blank video, not showing the
+       output of your webcam. Often just closing the show_window that is attempting
+       to display the video and starting over will work.
+       This intermittent problem also occurs when calling Picture.take_picture
+       which needs webcam output.</li>
     <!-- not sure this is really needed with the new timeout<li>Do not attempt to run a Job while Dexter is in the process of booting.
         Wait for its "dance" to be over. </li> -->
     <li>Speech Recognition is busted.</li>

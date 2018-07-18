@@ -52,6 +52,7 @@
         "persistent_get": false,
         "persistent_set": false,
         "Phrase":     false,
+        "Picture":    false,
         "rde":        false,
         "recognize_speech": false,
         "remove_in_ui":   false,
