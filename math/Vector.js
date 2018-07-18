@@ -2328,14 +2328,16 @@ var Vector = new function(){
     var result = Vector.insert(my_big, my_small, [3, 4])
     */
     
-    this.concatinate = function(direction, matrix_1, matrix_2){
-    	let result, dim_1, dim_2
+    this.concatinate = function(direction = 0, matrix_1, matrix_2){
+
+        let result, dim_1, dim_2
         if(matrix_1.length == 0){
         	return matrix_2
         }
         if(matrix_2.length == 0){
         	return matrix_1
         }
+        
     	switch(direction){
         	//Vertical concatination
             case 0:
@@ -2365,7 +2367,7 @@ var Vector = new function(){
             dim_1 = Vector.matrix_dimensions(matrix_1)
             dim_2 = Vector.matrix_dimensions(matrix_2)
             if(dim_1[0] != dim_2[0]){
-            	dde_error("Vector.concatinate, matrix heights must match")
+            	dde_error("Vector.concatinate: matrix heights must match")
             }
             if(dim_1[0] == 1){
             	result = Vector.make_matrix(dim_1[0], dim_1[1]+dim_2[1])[0]
@@ -2391,6 +2393,14 @@ var Vector = new function(){
             default:
             dde_error("In Vector.concatinate, direction must 0 or 1")
         }
+        
+        let n_matrices = arguments.length-1
+        if(n_matrices > 2){
+        	for(let i = 0; i < n_matrices-2; i++){
+            	result = Vector.concatinate(direction, result, arguments[i+3])
+            }
+        }
+        
         return result
     }
     /*
@@ -2539,9 +2549,137 @@ var Vector = new function(){
     	return sol
 	}
     /*
-    
+    var data_x = [2,1.80901699437495,1.30901699437495,0.690983005625053,0.190983005625053,0,0.190983005625053,0.690983005625053,1.30901699437495,1.80901699437495,2]
+    var data_y = [0,0.293892626146237,0.475528258147577,0.475528258147577,0.293892626146237,0,-0.293892626146237,-0.475528258147577,-0.475528258147577,-0.293892626146237,0]
+    debugger
+    Vector.ellipse_fit(data_x, data_y)
     */
-	
+    
+    this.ellipse_fit = function(x, y){
+		//Code adapted from Nikolai Chernov
+    	//https://www.mathworks.com/matlabcentral/fileexchange/22684-ellipse-fit-direct-method
+    
+    	let results = {}
+    	let x_dim = Vector.matrix_dimensions(x)
+    	let y_dim = Vector.matrix_dimensions(y)
+        if(1 == x_dim[0]){
+        	x = Vector.transpose(x)
+        }
+        if(1 == y_dim[0]){
+        	y = Vector.transpose(y)
+        }
+    
+    	let n_points = Math.max(x_dim[0], x_dim[1])
+    
+    	let orientation_tolerance = 1e-3
+
+    	let sum_x = 0
+        let sum_y = 0
+        for(let i = 0; i < n_points; i++){
+        	sum_x += x[i][0]
+            sum_y += y[i][0]
+        }
+        let mean_x = sum_x / n_points
+        let mean_y = sum_y / n_points
+        
+		x = Vector.subtract(x, mean_x)
+		y = Vector.subtract(y, mean_y)
+
+		//X = [x.^2, x.*y, y.^2, x, y ]; //look how elegant this is in MATLAB
+    	//solution = sum(X)/(X'*X);      //it's two lines!
+    	let X_prime = Vector.concatinate(0, Vector.pow(x, 2), Vector.multiply(x, y), Vector.pow(y, 2), x, y)
+		let X = Vector.transpose(X_prime)
+        let row_sum = [0, 0, 0, 0, 0]
+    	for(let i = 0; i < n_points; i++){
+    		row_sum = Vector.add(row_sum, X[i])
+    	}
+    	let coeffs = Vector.matrix_multiply(row_sum, Vector.inverse(Vector.matrix_multiply(X_prime, X)))[0]
+		results.coeffs = coeffs
+        let a = coeffs[0]
+        let b = coeffs[1]
+        let c = coeffs[2]
+        let d = coeffs[3]
+        let e = coeffs[4]
+        let f = coeffs[5]
+        
+        let cos_phi, sin_phi
+        if(Math.min(Math.abs(b/a), Math.abs(b/c)) > orientation_tolerance ){
+    		let orientation_rad = 1/2 * Math.atan(b/(c-a))
+    		cos_phi = Math.cos( orientation_rad )
+    		sin_phi = Math.sin( orientation_rad )
+        	a = a*cos_phi*cos_phi - b*cos_phi*sin_phi + c*sin_phi*sin_phi
+        	b = 0
+        	c = a*sin_phi*sin_phi + b*cos_phi*sin_phi + c*cos_phi*cos_phi
+        	d = d*cos_phi - e*sin_phi
+        	e = d*sin_phi + e*cos_phi
+        	mean_x = cos_phi*mean_x - sin_phi*mean_y
+        	mean_y = sin_phi*mean_x + cos_phi*mean_y
+		}else{
+    		orientation_rad = 0
+    		cos_phi = Math.cos( orientation_rad )
+    		sin_phi = Math.sin( orientation_rad )
+		}
+		
+        
+        let test = a*c
+        switch(test){
+        	case (test > 0):
+            	results.shape = "Ellipse"	
+            break
+            case (test == 0):
+            	results.shape = "Paraboloa"	
+            break
+            case (test < 0):
+            	results.shape = "Hyperbola"
+            break
+        }
+
+
+		if (test>0){
+    		if(a<0){
+    			a = -a
+        		c = -c
+        		d = -d
+        		e = -e
+            }
+    	}
+
+    	let x_center = mean_x - d/2/a
+    	let y_center = mean_y - e/2/c
+    	let F = 1 + (d**2)/(4*a) + (e**2)/(4*c)
+    	let radius_a = Math.sqrt( F/a )
+    	let radius_b = Math.sqrt( F/c )
+    	results.major_radius = Math.max(radius_a, radius_b)
+    	results.minor_radius = Math.min(radius_a, radius_b)
+		
+        let R = [
+        	[cos_phi, sin_phi], 
+            [-sin_phi, cos_phi]
+        ]
+		let P_in = Vector.matrix_multiply(R, [[x_center], [y_center]])
+    	let X0_in = P_in[0]
+    	let Y0_in = P_in[1]
+    
+    	//results.x0_in_center = X0_in[0]
+        //results.y0_in_center = Y0_in[0]
+        results.coeffs = coeffs
+        results.eccentricity = results.minor_radius / results.major_radius
+ 		results.rotation_angle = orientation_rad * 180 / Math.PI
+    	results.center_point = [x_center, y_center]
+        let phi = orientation_rad
+        results.quad_points_major = [
+        	[x_center + results.major_radius*Math.cos(phi), y_center + results.major_radius*Math.sin(phi)],
+            [x_center + results.major_radius*Math.cos(phi + Math.PI), y_center + results.major_radius*Math.sin(phi + Math.PI)]
+        ]
+        results.quad_points_minor = [
+        	[x_center + results.minor_radius*Math.cos(phi + Math.PI/2), y_center + results.minor_radius*Math.sin(phi + Math.PI/2)],
+            [x_center + results.minor_radius*Math.cos(phi - Math.PI/2), y_center + results.minor_radius*Math.sin(phi - Math.PI/2)]
+        ]
+        
+    	return results
+	}
+    
+    
 }
 
 
@@ -2597,8 +2735,8 @@ new TestSuite("Vector Library - Matrix Math",
     ["Vector.properly_define_point([[10], [20], [30]])", "[[10], [20], [30], [1]]"],
     ["Vector.properly_define_point([[10, 20, 30], [10, 20, 30], [10, 20, 30]])", "[[10, 10, 10], [20, 20, 20], [30, 30, 30], [1, 1, 1]]"],
     ["Vector.make_pose()", "[[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]"],
-    ["Vector.make_pose([10, 20, 30], [45, 0, 0])", "[ [1, 0, 0, 10], [0, 0.7071067811865476, 0.7071067811865475, 20], [0, -0.7071067811865475, 0.7071067811865476, 30], [0, 0, 0, 1]]"],
-    ["Vector.identity_matrix(4)", "[[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]"],
+    ["Vector.make_pose([10, 20, 30], [45, 0, 0])", "[ [0.7071067811865476, 0.7071067811865475, 0, 10], [-0.7071067811865475, 0.7071067811865476, 0, 20], [0, 0, 1, 30], [0, 0, 0, 1]]"],
+	["Vector.identity_matrix(4)", "[[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]"],
     ["Vector.identity_matrix(2)", "[[1, 0], [0, 1]]"],
     ["Vector.rotate_DCM(Vector.identity_matrix(3), [1, 0, 0], 90)", "[[1, 0, 0], [0, 0, -1], [0, 1, 0]]"],
     ['Vector.rotate_pose(Vector.make_pose(), "Z", 90, [10, 0, 0])', "[ [0, -1, 0, 10], [1, 0, 0, -10], [0, 0, 1, 0], [0, 0, 0, 1]]"],
