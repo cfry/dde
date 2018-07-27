@@ -113,6 +113,15 @@ var Robot = class Robot {
                                                          starting_index,
                                                          ending_index)
     }
+    //very useful for grabbing rs from a preceeding instr in the do_list of my_serial.string_instruction("foo")
+    grab_robot_status(user_data_variable = "grabbed_robot_status",
+                      starting_index = Serial.DATA0,
+                      ending_index=null){
+        return new Instruction.Control.grab_robot_status(user_data_variable,
+                                                         starting_index,
+                                                         ending_index,
+                                                         this)
+    }
 
     static if_any_errors(job_names=[], instruction_if_error=null){
         return new Instruction.Control.if_any_errors(job_names, instruction_if_error)
@@ -499,6 +508,7 @@ Serial = class Serial extends Robot {
     }
     make_new_robot_2(){
         this.is_connected          = false
+        this.connecting            = false
         this.robot_status          = null
         Robot.set_robot_name(this.name, this)
         let i = Serial.all_names.indexOf(this.name)
@@ -555,41 +565,57 @@ Serial = class Serial extends Robot {
         }
     }
 
-    close_robot(){
-        serial_disconnect(this.path)
-        this.is_connected = false
-    }
-
-    //called when a job is finished.
-    //returns true if no jobs are connected to this robot, false otherwise
-    finish_job(){
-        if(this.active_jobs_using_this_robot().length == 0) {
-            this.close_robot() //don't do as we may want to use this serial robot for some other job.
-            return true        //nope. close_robot just like Dexter robot does.
-                               //starting a job with this robot will reconnect the serial port
-        }
-        else { return false }
+    init(){
+        this.connecting = true
+        serial_connect(this.path, this.connect_options, this.simulate, this.capture_n_items, this.item_delimiter, this.parse_items, this.capture_extras)
+        /*serial_init_one_info_map_item(this.path,
+                                        this.options,
+                                        this.simulate,
+                                        this.capture_n_items,
+                                        this.item_delimiter,
+                                        this.trim_whitespace,
+                                        this.parse_items,
+                                        this.capture_extras)*/
+        //this.is_connected = true //do this only in set_a_robot_instance_socket_id
     }
 
     ///called from serial_new_socket_callback
     static set_a_robot_instance_socket_id(path){ //do I really need the socket_id of a serial?
         let rob          = Serial.get_robot_with_path(path)
         //rob.socket_id    = socket_id
+        rob.connecting   = false //connection and is_connected will never both be true
         rob.is_connected = true
+        out("Connected to serial port at: " + rob.path, undefined, true)
         let job_instance = Serial.get_job_with_robot_path(path) //beware, this means only 1 job can use this robot!
-        if (job_instance.status_code === "starting") {
-            job_instance.set_status_code("running")
-            job_instance.set_up_next_do(0) //we don't want to increment because PC is at 0, so we just want to do the next instruction, ie 0.
-        }
-        //before setting it should be "starting"
-        else if (job_instance.status_code === "running") {
-            rob.perform_instruction_callback(job_instance) //job_instance.set_up_next_do() //initial pc value is 0.
+        if(job_instance) {
+            if (job_instance.status_code === "starting") {
+                job_instance.set_status_code("running")
+                job_instance.set_up_next_do(0) //we don't want to increment because PC is at 0, so we just want to do the next instruction, ie 0.
+            }
+            //before setting it should be "starting"
+            else if (job_instance.status_code === "running") {
+                rob.perform_instruction_callback(job_instance) //job_instance.set_up_next_do() //initial pc value is 0.
+            }
         }
     }
 
     send(ins_array){
-        if      (this.is_connected)  {
-          serial_send(ins_array, this.path, this.simulate, this.sim_fun)
+        let sim_actual   = Robot.get_simulate_actual(this.simulate)
+        let job_id       = ins_array[Serial.JOB_ID]
+        let job_instance = Job.job_id_to_job_instance(job_id)
+        if (this.connecting) {
+            job_instance.set_up_next_do(0)
+            out("Connecting to serial port at: " + this.path, undefined, true)
+        }
+        else if (!this.is_connected){
+            //this.start(job_instance)
+            out("Initializing serial port at: " + this.path, undefined, true)
+            this.init()
+            job_instance.set_up_next_do(0)
+        }
+        else if (this.is_connected) { // || (sim_actual === true) || (sim_actual === "both"))  {
+            job_instance.wait_until_instruction_id_has_run = job_instance.program_counter //we don't wantto continue the job until this instr is done.
+            serial_send(ins_array, this.path, this.simulate, this.sim_fun) //ok time to finally run the instruction!
         }
         else {
             const job_inst = Instruction.job_of_instruction_array(ins_array)
@@ -603,30 +629,24 @@ Serial = class Serial extends Robot {
     perform_instruction_callback(job_instance){
         if (this.instruction_callback) { this.instruction_callback.call(job_instance) }
     }
-    stringify(){
-        return "Serial: <i>name</i>: "  + this.name           + ", " +
-            ", <i>path</i>: "  + this.path  + ", <i>is_connected</i>: " + this.is_connected +
-            Serial.robot_status_to_html(this.robot_status, " on robot: " + this.name)
-    }
-
-    static robot_status_to_html(rs, where_from){
-         return where_from + " robot_status: " + rs
-    }
 
     static robot_done_with_instruction(robot_status){ //must be a class method, "called" from UI sockets
         let stop_time    = Date.now() //the DDE stop time for the instruction, NOT Dexter's stop time for the rs.
 
         let job_id       = robot_status[Serial.JOB_ID]
-        var job_instance = Job.job_id_to_job_instance(job_id)
+        let job_instance = Job.job_id_to_job_instance(job_id)
         if (job_instance == null){
             job_instance.stop_for_reason("errored",
                       "Serial.robot_done_with_instruction passed job_id: " + job_id +
                       " but couldn't find a Job instance with that job_id.")
 
         }
-        var rob    = job_instance.robot
-        var ins_id = robot_status[Serial.INSTRUCTION_ID] //-1 means the initiating status get, before the first od_list instruction
         let op_let = robot_status[Serial.INSTRUCTION_TYPE]
+        let ins_id = robot_status[Serial.INSTRUCTION_ID] //-1 means the initiating status get, before the first od_list instruction
+        let ins = ((ins_id >= 0) ? job_instance.do_list[ins_id] : null)
+        let rob
+        if (ins && ins.robot) { rob = ins.robot } //used when instruction src code has a subject of a robot isntance
+        else                  { rob = job_instance.robot } //get the default robot for the job
         //let op_let = String.fromCharCode(op_let_number)
         job_instance.record_sent_instruction_stop_time(ins_id, stop_time)
         if (!rob.is_connected) {} //ignore any residual stuff coming back from Serial robot
@@ -721,6 +741,33 @@ Serial = class Serial extends Robot {
         }
     }
 
+    close_robot(){
+        serial_disconnect(this.path)
+        this.is_connected = false
+    }
+
+    //called when a job is finished.
+    //returns true if no jobs are connected to this robot, false otherwise
+    finish_job(){
+        if(this.active_jobs_using_this_robot().length == 0) {
+            this.close_robot() //don't do as we may want to use this serial robot for some other job.
+            return true        //nope. close_robot just like Dexter robot does.
+                               //starting a job with this robot will reconnect the serial port
+        }
+        else { return false }
+    }
+
+    stringify(){
+        return "Serial: <i>name</i>: "  + this.name           + ", " +
+            ", <i>path</i>: "  + this.path  + ", <i>is_connected</i>: " + this.is_connected +
+            Serial.robot_status_to_html(this.robot_status, " on robot: " + this.name)
+    }
+
+    static robot_status_to_html(rs, where_from){
+        return where_from + " robot_status: " + rs
+    }
+
+
 
 } //end Serial class
 Serial.all_names = []
@@ -771,6 +818,10 @@ Serial.string_instruction = function(instruction_string){
         instruction_string = JSON.stringify(instruction_string)
     }
     return make_ins("I", instruction_string)
+}
+
+Serial.prototype.string_instruction = function(instruction_string){
+    return new Instruction.Control.string_instruction(instruction_string, this)
 }
 
 /*anticipate classes for Dexter2, etc.
@@ -1298,11 +1349,19 @@ Dexter = class Dexter extends Robot {
         job_00.start()
     }
     run_instruction_fn(instr){
-        const job_00 = new Job({name: "job_00",
-            robot: this,
-            do_list: [instr]
-        })
-        job_00.start()
+        let the_job = Job.job_00
+        if (!the_job) { //job has yet to be defined in this session of dde, so define it
+            the_job = new Job({name: "job_00",
+                               robot: this,
+                               when_stopped: "wait"})
+        }
+        if (!the_job.is_active()) { //job is defined but is not running so start it. Might be brand new or might have just stopped
+            the_job.start()
+        }
+        Job.insert_instruction(instr, //finally add in the instr to run.
+                               {job: "job_00",
+                                offset: "end"})
+        //now job_00 is just waiting for another instruction to be passed to it.
     }
 }
 Dexter.all_names = []

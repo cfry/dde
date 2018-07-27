@@ -5,9 +5,9 @@ var esprima = require('esprima')
 var job_default_params = {name: null, robot: Robot.dexter0, do_list: [],
                           keep_history: true, show_instructions: true,
                           inter_do_item_dur: 0.01, user_data:{},
-                          default_workspace_pose: null, //error on loading DDE if I use: Coor.Table, so we init this in Job.construcdtor
+                          default_workspace_pose: null, //error on loading DDE if I use: Coor.Table, so we init this in Job.constructor
                           program_counter:0, ending_program_counter:"end",
-                          initial_instruction: null, when_stopped: "stop",
+                          initial_instruction: null, when_stopped: "stop", //also can be "wait" or a fn
                           callback_param: "start_object_callback"}
 
 //for name param, both "" and null mean compute a job name a la "job_123"
@@ -1344,7 +1344,7 @@ Job.prototype.handle_start_object = function(cur_do_item){
     this.set_up_next_do(1)
 }
 
-Job.prototype.send = function(instruction_array){ //if remember is false, its a heartbeat
+Job.prototype.send = function(instruction_array, robot){ //if remember is false, its a heartbeat
     var instruction_id
     const oplet = instruction_array[Instruction.INSTRUCTION_TYPE]
     if(oplet == "h") { //op_let is first elt UNTIL we stick in the instuction id
@@ -1366,7 +1366,8 @@ Job.prototype.send = function(instruction_array){ //if remember is false, its a 
     if (this.keep_history){
         this.sent_instructions.push(instruction_array) //for debugging mainly
     }
-    this.robot.send(instruction_array)
+    if (!robot) { robot = this.robot }
+    robot.send(instruction_array)
 }
 
 //"this" is the from_job

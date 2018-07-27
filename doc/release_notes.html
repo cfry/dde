@@ -6,6 +6,90 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 2.4.4, July 27, 2018</summary>
+Highlights: Serial port robot improved greatly.<br/>
+            new OpenCV classifier interface for detecting objects in images.<br/>
+            Click help for built-in JS constructs improved.<br/>
+            Eval&Start button can run a robot instruction.<br/>
+            patch_until helps manage software patches.<br/>
+            Improvements to the Vector library<br/>
+<ul>
+    <li> Removed console printouts when evaling a Job,
+        related to: inspect_set_new_object_onclick,
+        Inspect_next_value_id and not Inspect_prev_value_id
+        as their not indicating something that's wrong.</li>
+
+    <li> Removed undocumented & unused utility function dom_child_elts_of_class
+         Use  <code>dom_elt_children_of_class(elt, a_class)</code> instead.
+        Note that dom_elt_children_of_class does not take a return_first_or_null,
+        it always returns an array (which might be empty).</li>
+
+    <li> When printing out a result of an eval in the output pane,
+        the source is now shown. Note that you can select the source
+        or a portion of it, then click the Eval button to eval it again.
+        If the source is long, only its first line, and maximally only 55 chars
+        is shown (with ... indicated it has been truncated).
+        But hovering over it gives a tooltip of the full source.</li>
+
+    <li> Bug fix for the run instruction dialog when you attempt to start
+        running a new instruction before the previous one has completed.</li>
+
+    <li> Extended the documentation for <code>Picture.show_video</code> for the content and camera_id
+        parameters.</li>
+
+    <li>The serial port Job example, simulate flag on the robot definition
+        has been changed from <code>false</code> to <code>null</code>
+        so that it pays attention to the Jobs menu/Simulate? flag.</li>
+
+    <li><code>new Serial()</code> can now take a simulate arg that is null,
+        so that the actual simulate comes from the Jobs menu/Simulate? submenu.
+        null is the new default.</li>
+
+    <li> Fixed bug that had the Instruction class for string_instruction
+        erroneously named "suspend".</li>
+
+    <li><code>Serial.string_instruction</code> and <code>Robot.grab_robot_status</code> have been extended
+        to accept a robot instance in place of <code>Serial</code> and <code>Robot</code>
+        respectively,
+        to direct the instruction to a particular robot regardless of the
+        default robot declared in the job.
+        Ref Man/Robot/Serial and
+        Ref Man/Robot/Robot Instructions/grab_robot_status
+        have been improved and extended to describe these
+        new capabilities.
+        See especially the new section: Ref Man/Robot/Serial/Multiple Serial Ports</li>
+
+    <li>New Series: JavaScript Object Names.</li>
+
+    <li>Improved click_help for built-in JS classes and misc DDE global functions.</li>
+
+    <li> Eval&Start button extended to run a selected Dexter (or other) Instrucdtion
+        on an automatically defined job.</li>
+
+    <li> new function: patch_until for helping to manage patch source code.
+        See Ref Man/Operating System, etc./patch_until</li>
+
+    <li> <code>Picture.mat_to_gray</code> documentation extended to include that
+        it mat_in is already gray, it is just returned.</li>
+
+    <li>New method: <code>Picture.make_classifier</code>.
+        Use an xml file to create a classifier.</li>
+
+    <li>New method: <code>Picture.classifier_detect</code>. Use a classifier to
+        identify objects in a picture. Especially good for face detection.</li>
+
+    <li> <code>Vector</code> Library - Matrix Math Test Suite #24 bug fixed.</li>
+
+    <li> <code>Vector.concatinate</code> improved to take in an unlimited number of matrices instead of just two.</li>
+
+    <li> New method: <code>Vector.ellipse_fit</code>.
+         This fits a shifted, tilted, and squished ellipse
+         to a set of data points that are passed as arguments of:<br/>
+         - an array of x numbers and<br/>
+         - an array of y numbers.</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 2.4.3, July 18, 2018</summary>
 Highlights: New methods: Picture.detect_blobs, Picture.similarity_by_detect_blobs.
 Arrow keys in editor behave more conventionally. Sim pane more useful.

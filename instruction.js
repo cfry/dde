@@ -31,13 +31,25 @@ var Instruction = class Instruction {
     }
     //not a good name. really it means, obj is a non-empty array that isn't an instruction array.
     //so could have an array of fns or other elts that might go on a do list.
-    static is_instructions_array(obj){
-        return Array.isArray(obj) &&
-            (obj.length > 0)   &&
-            !Instruction.is_instruction_array(obj)
+    //static is_instructions_array(obj){
+    //    return Array.isArray(obj) &&
+    //        (obj.length > 0)   &&
+    //        !Instruction.is_instruction_array(obj)
         //Instruction.is_instruction_array(obj[0]) ||
         // Instruction.is_control_instruction(obj[0]) //permit a control instruction in here. thus "is_instructions_array" no longer a good name
         //)
+    //}
+
+    static is_instructions_array(obj){
+        if(Array.isArray(obj) &&
+           (obj.length > 0)   &&
+           !Instruction.is_instruction_array(obj)){
+           for(let elt of obj) {
+               if (!Instruction.is_do_list_item(elt)) { return false }
+           }
+           return true
+        }
+        else { return false }
     }
     
     static is_control_instruction(obj){
@@ -46,6 +58,19 @@ var Instruction = class Instruction {
 
     static is_start_object(obj){
         return (typeof(obj) == "object") && (typeof(obj.start) == "function")
+    }
+    //a valid item to put on a do_list
+    //mirrors Job.do_next_item ordering
+    static is_do_list_item(item) {
+        return ( (item === null) ||
+                 Instruction.is_control_instruction(item) ||
+                 Instruction.is_instruction_array(item) ||
+                 is_iterator(item) ||
+                 (typeof(item) === "function") ||
+                 Instruction.is_start_object(item) ||
+                 (Array.isArray(item) && item.length == 0) ||
+                 Instruction.is_instructions_array(item)
+        )
     }
     static instruction_color(ins){
         if(Instruction.is_instruction_array(ins)) { return "#FFFFFF" }        //white
@@ -314,19 +339,22 @@ Instruction.Control.go_to = class go_to extends Instruction.Control{
 Instruction.Control.grab_robot_status = class grab_robot_status extends Instruction.Control{
     constructor (user_data_variable = "grabbed_robot_status", //a string
                  start_index = Serial.DATA0, //integer, but can also be "all"
-                 end_index=null)  //if integer and same as start_index,
+                 end_index=null,  //if integer and same as start_index,
                                 //makes a vector of the start_index value,
                                 //otherwise makes array of the start_index THROUGH
                                 //end_index. OR can be the string "end" meaning
                                 //grab through the end of the array
+                 robot=null)
                  {
         super()
         this.user_data_variable = user_data_variable
         this.start_index        = start_index
         this.end_index          = end_index
+        this.robot = robot
     }
     do_item (job_instance){
-        let rs = job_instance.robot.robot_status
+        let robot = (this.robot ? this.robot : job_instance.robot)
+        let rs = robot.robot_status
         let val
         if (this.start_index == "data_array") {
             this.start_index = Serial.DATA0
@@ -2057,6 +2085,26 @@ Instruction.Control.stop_job = class stop_job extends Instruction.Control{
                      pws_src +
                      ")"
         return result
+    }
+}
+
+//for Serial.string_instruction when we have a Robot.Serial instance
+Instruction.Control.string_instruction = class string_instruction extends Instruction.Control{
+    constructor (instruction_string, robot = null //this is a robot instance. spelling of this prop name is important. Used by other methods & classes
+                ) {
+        super()
+        this.inst_array = Serial.string_instruction(instruction_string)
+        this.robot = robot
+    }
+    do_item (job_instance){
+        if (!this.robot) { this.robot = job_instance.robot }
+        //job_instance.wait_until_instruction_id_has_run = job_instance.program_counter// dont
+        //do this here because in the case that we have a robot, we might still be
+        //in the "connecting" state, ie initing the robot, in which case,
+        //we don't want to be waiting for this instruction because that
+        //will preclude processing of the instruction by the lower part of do_next_item.
+        job_instance.send(this.inst_array, this.robot)
+        //don't set up next do. That's handled by the wait_until_instruction_id_has_run code
     }
 }
 

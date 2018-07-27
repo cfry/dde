@@ -1017,8 +1017,61 @@ var Picture = class Picture{
       result = result / (point_count + significant_point_count_diff)
       return result
     }
+
+   static make_classifier(path=null){
+        if(!path) { path = __dirname + "/vision/lbpcascade_frontalface.xml"}
+        let body = file_content(path)
+        let model_name = "model" + ++Picture.model_index + ".xml"
+        cv.FS_createDataFile('/', model_name, body, true, true, false)
+        let classifier = new cv.CascadeClassifier();
+        classifier.load(model_name);
+        if(classifier.empty() == false) {
+            return classifier
+        }
+        else {
+          dde_error("In Picture.make_classifier, could not load: " + path)
+        }
+    }
+
+    //see https://github.com/opencv/opencv/blob/387e92353c75798cce0b1074ff00eea86344bb49/modules/objdetect/include/opencv2/objdetect.hpp#L270
+    static classifier_detect({classifier, mat_in,
+                              scale_factor=1.1,
+                              min_neighbors=3,
+                              min_size = new cv.Size(),
+                              max_size = new cv.Size(),
+                              show=true}){
+        let gray_mat = Picture.mat_to_gray(mat_in) //ok if mat_in is already gray.
+        let faceVect = new cv.RectVector()
+        let flags = 0 //this is used only in for older format (OpenCV 1) files. Ignore it now.
+        classifier.detectMultiScale(gray_mat, faceVect, scale_factor, min_neighbors,
+                       flags, //not passed in, but should it be? Now just use the default
+                       min_size,
+                       max_size
+                     )
+        let result = [] //an array of arrays. The inner arrays are [x, y. width, height]
+        for (let i = 0; i < faceVect.size(); i++) {
+            let rect = faceVect.get(i)
+            result.push(rect)
+        }
+        if (show) {
+            let mat_in_copy = mat_in.clone()
+            for (let i = 0; i < faceVect.size(); i++) {
+                let rect = faceVect.get(i) //example: {x:0, y:0; width:100, height:200}
+                cv.rectangle(mat_in_copy,
+                    new cv.Point(rect.x, rect.y),
+                    new cv.Point(rect.x + rect.width, rect.y + rect.height), //the lower right corner of the rect of a detected object
+                    [255, 0, 0, 255], //the color red
+                    1 //line thickness
+                )
+            }
+            Picture.show_picture({content: mat_in_copy})
+        }
+        return result //examples: [], [{x:0, y:0; width:100, height:200}, {x:0, y:0; width:100, height:200}]
+    }
 }
 Picture.max_color_component_value = 255
+
+Picture.model_index = 0 //used internally by make_classifier
 
 //used by Picture.show_window as its default callback.
 //intentially outside the Picture class because we need one simple string for its name

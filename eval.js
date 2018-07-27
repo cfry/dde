@@ -139,7 +139,7 @@ function eval_js_part3(result){
         stack_trace = replace_substrings(stack_trace, "\n", "<br/>")
         string_to_print = "<details><summary><span style='color:red;'>" + string_to_print +
                           "</span></summary>" + stack_trace + "</details>"
-        out_eval_result(string_to_print)
+        out_eval_result(string_to_print, undefined, result.command)
     }
     else if (result.value_string == '"dont_print"') {}
     else {
@@ -155,9 +155,9 @@ function eval_js_part3(result){
             }
             string_to_print =  str +
                             " <span style='padding-left:50px;font-size:10px;'>" + result.duration + " ms</span>" //beware, format_text_for_code depends on this exact string
-            out_eval_result(string_to_print)
+            out_eval_result(string_to_print, undefined, result.command)
         }
-        else { inspect(result.value) }
+        else { inspect(result.value, result.command) }
     }
     //highlight erroring source code if possible. If result.starting_index == undefined, that means no error.
     if (result.starting_index && (result.starting_index != 0)){ //we've got an error
@@ -209,12 +209,21 @@ function eval_and_start(){
             return
          }
      }
+     sel_text = sel_text.trim()
+     if(starts_with_one_of(sel_text, ["function ", "function(", "function*"])) {
+             sel_text = "(" + sel_text + ")"
+     } //necessary because
+       //without the parens, evaling an anonymous fn, named fn or gen def by itself errors (or returns undefined),
+       //due to JS design bug.
+       //BUT an anonymous fn as part of an array (as in the do_list) WILL return the fn def.
+       //wrapping parens causes eval to return the fn def so we can use it as a dp+list item
+       //and thus run it in a job.
      let result   = eval_js_part2(sel_text, false) //don't call eval part 3 if no error
      if ((typeof(result) == "string") && result.startsWith("Error:")) {} //handled by eval_js_part3
      else {
          let val = result.value
          let start_result
-         if(val && typeof(val.start) == "function") {
+         if(Instruction.is_start_object(val)) {
              try { start_result = val.start() }
              catch(err) {
                  warning("The result of evaling: " + sel_text +
@@ -223,12 +232,16 @@ function eval_and_start(){
                      err.message)
                  return
              }
-             inspect(start_result)
+             inspect(start_result, sel_text)
+         }
+         else if (Instruction.is_do_list_item(val)){
+             inspect(val, sel_text)
+             Robot.dexter0.run_instruction_fn(val)
          }
          else {
              warning("The result of evaling: " + sel_text +
                  "<br/> is: " + val +
-                 "<br/> but that doesn't have a start method.")
+                 "<br/> but that isn't a do_list item and doesn't have a start method.")
          }
     }
 }

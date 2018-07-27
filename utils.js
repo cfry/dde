@@ -109,6 +109,15 @@ function dde_version_between(min=null, max=null, action="error"){ //"error", "wa
     else { return false }
 }
 
+function patch_until(before_source=null, version, equal_and_after_source=null){
+    if(version_less_than(version, dde_version)) {
+        if (before_source) { return eval(before_source) }
+    }
+    else { //if version is more than or equal to the current dde_version, do this clause
+        if (equal_and_after_source) { return eval(equal_and_after_source) }
+    }
+}
+
 var primitive_types = ["undefined", "boolean", "string", "number"] //beware; leave out null because
   //for some strange reason, null is of type "object"
 
@@ -1439,7 +1448,13 @@ function inspect_set_new_object_onclick(id_string, path){
         let elts = window[id_string] //beware, if there's more than one elt with this id, we get an HTMlCollection of the etls.
         // this is a very broken data struture that I can't even test for except with length
         if (elts == undefined) {
-           console.log("In inspect_set_new_object_onclick, didn't find: " +  id_string)
+           //at least often this is not an error. One case it happens is when
+           //printing a Job, its orig_args object that has
+           //a default_workspace_pose with a paren of Roob.Coor.Table that
+           //is yet to have an id for it. But that's harmless and
+           //doesn't prevent you from clicking through to inspect it,
+           //so don't print this warning message as nothing's wrong.
+           //console.log("In inspect_set_new_object_onclick, didn't find: " +  id_string)
         }
         else if (elts.length){
             for(let i = 0; i < elts.length; i++) {
@@ -1450,14 +1465,14 @@ function inspect_set_new_object_onclick(id_string, path){
         if(window.inspect_previous_value_id){
             inspect_previous_value_id.onclick = inspect_previous_value
         }
-        else {
-            console.log("inspect_previous_value_id not bound in inspect_set_new_object_onclick.")
+        else { //will happen when inspecting the first obj
+            //console.log("inspect_previous_value_id not bound in inspect_set_new_object_onclick.")
         }
         if(window.inspect_next_value_id) {
             inspect_next_value_id.onclick     = inspect_next_value
         }
-        else {
-            console.log("inspect_next_value_id not bound in inspect_set_new_object_onclick.")
+        else { //will happen when inspecting the first obj
+            //console.log("inspect_next_value_id not bound in inspect_set_new_object_onclick.")
         }
     }, 1000)
 }

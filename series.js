@@ -611,6 +611,10 @@ Series.instances = [
                         return this.sample
                     }
     }),
+    new Series({id: "series_js_object_name_id", array: ["Array", "Boolean", "Date", "Error", "JSON",
+                                   "Math", "Number", "Object", "RegExp", "String"],
+                 menu_insertion_string: 'Array', menu_sel_start: 0, menu_sel_end: 5, sample:'Array'}),
+
     new Series({id:"series_global_js_id", array: ["eval", "isFinite", "isNaN", "parseFloat", "parseInt",
                           "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent"],
         menu_insertion_string:'eval("2 + 3")', menu_sel_start:0, menu_sel_end:4, sample:"eval"}),

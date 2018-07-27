@@ -159,8 +159,12 @@ Js_info = class Js_info {
                     function_params(val)
             }
             else if (window[fn_name]){
-                let url = "https://developer.mozilla.org/en-US/docs/Web/API/Window/" + fn_name
-                return "window." + Js_info.make_atag("window", fn_name, url) + "(" + Js_info.get_param_string(fn) + ")"
+                fn = window[fn_name]
+                if (fn && fn.toString().includes("[native code]")){ //catches at least a high percent of built0in js fns
+                    let url = "https://developer.mozilla.org/en-US/docs/Web/API/Window/" + fn_name
+                    return Js_info.make_atag("window", fn_name, url) + "(" + Js_info.get_param_string(fn) + ")"
+                }
+                else { return Js_info.get_info_string_aux(orig_input) }
             }
             else if (Editor.in_a_comment(Editor.get_javascript(), Editor.selection_start())){
                 return 'You clicked in a <a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Basics">comment</a>.'
@@ -277,6 +281,8 @@ Js_info = class Js_info {
                 return "<span style='color:blue;'>" + fn_name + "</span> is a literal string."
             case "series_global_js_id":
                 return Js_info.make_atag("global_js", fn_name) + " is a JS global function."
+            case "series_js_object_name_id":
+                return Js_info.make_atag("object_name", fn_name) + " is a JS global object."
             case "series_arithmetic_id":
                 return "2 " +  Js_info.make_atag("arithmetic", fn_name) + " 3 => number"
             case "series_comparison_id":
@@ -639,6 +645,10 @@ Js_info = class Js_info {
             url = "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/" +
                 //the_class + "/"
                 fn_name
+        }
+        else if (the_class == "object_name"){
+            url = "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/" +
+                   fn_name
         }
         if (!url) { return false }
         else if (url.endsWith("_doc_id")) { open_doc(window[url]); return true; }

@@ -308,3 +308,31 @@ new TestSuite("make_ins_arrays",
        [undefined, undefined, undefined, undefined, "a", 6, 2, 3, 4, 5]]`]
 )
 
+new TestSuite("Instruction.is_do_list_item",
+    ["Instruction.is_do_list_item(4)", "false"],
+    ['Instruction.is_do_list_item("abc")', "false"],
+    ["Instruction.is_do_list_item(true)", "false"],
+    ["Instruction.is_do_list_item({a: 1})", "false"],
+    ["Instruction.is_do_list_item([5, 6])", "false"],
+    ["Instruction.is_do_list_item(null)", "true"],
+    ["Instruction.is_do_list_item(Robot.loop())", "true"],
+    ['Instruction.is_do_list_item(make_ins("g"))', "true"],
+    ["function* my_genxx(){ yield 5 }"],
+    ["Instruction.is_do_list_item(my_genxx())", "true"],
+    ["Instruction.is_do_list_item(function() { return 2 })", "true"],
+    ['Instruction.is_do_list_item(new Job({name: "job_4235"}))', "true"],
+    ["Instruction.is_do_list_item([])", "true"],
+    ["Instruction.is_do_list_item([null, null])", "true"],
+    ["Instruction.is_do_list_item([null, [null, []]])", "true"]
+)
+
+new TestSuite("patch_until",
+    ['patch_until("1 + 2", "0.0.0", "4 + 5")', "3"],
+    ['patch_until("1 + 2", dde_version, "4 + 5")', "9"],    
+    ['patch_until("1 + 2", "1000.0.0", "4 + 5")', "9"],
+    ['patch_until("1 + 2", "1000", "4 + 5")', "TestSuite.error"],
+    ['patch_until("1 + 2", 1000, "4 + 5")', "TestSuite.error"]
+    )
+
+
+

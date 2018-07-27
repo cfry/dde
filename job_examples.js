@@ -567,15 +567,18 @@ serial_send_low_level(file_content("some_arduino_file.ino.hex"), ard_path)
 //and click the right arrow to upload your Arduino code manually.
 
 //_________serial job_______  
-new Serial({name: "S1", simulate: false, 
+new Serial({name: "S1", simulate: null, 
 			sim_fun: function(input){ 
                         return "got: " + input + "\\n"
                      },
             path: ard_path, 
             connect_options: {baudRate: 300},
-            capture_n_items: 1, parse_items: true})
+            capture_n_items: 1, 
+            parse_items: true}
+)
 
-new Job({name: "j10",
+//with the default robot being a serial robot.
+new Job({name: "j10a",
          robot: Robot.S1,
          do_list: [Serial.string_instruction("y"),
                    Robot.grab_robot_status("yes_result"),
@@ -584,10 +587,21 @@ new Job({name: "j10",
                    Robot.grab_robot_status("no_result", Serial.DATA0)
                    ]}
 )
-Job.j10.start()
+Job.j10a.start()
 
-Job.j10.user_data //all the user data
-Job.j10.user_data.yes_result //just our yes_result
+Job.j10a.user_data //all the user data
+Job.j10a.user_data.yes_result //just our yes_result
+
+//with each serial and grab robot_status instruction having a robot.
+new Job({name: "j10b",
+         robot: new Brain(), //Robot.S1,
+         do_list: [Robot.S1.string_instruction("y"),
+                   Robot.S1.grab_robot_status("yes_result"),
+                   Robot.wait_until(2),
+                   Robot.S1.string_instruction("n"),
+                   Robot.S1.grab_robot_status("no_result", Serial.DATA0)
+                   ]}
+)
 `,
 
 `/*Job Example 11 when_stopped

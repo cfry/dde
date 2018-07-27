@@ -43,15 +43,15 @@ function make_inspector_id_string(stack_number, in_stack_position){
            "_id"
 }
 
-function inspect(item){
-    inspect_out(item)
+function inspect(item, src){
+    inspect_out(item, undefined, undefined, undefined, undefined, undefined, src)
     return "dont_print"
 }
 
 //in_stack_position is the place where the ITEM will go.
 //if in_stack_position is null, then use the length of inspect_stacks[stack_number]
 //as the stack_postion of the new item, ie push it on the end.
-function inspect_out(item, stack_number, in_stack_position, html_elt_to_replace, collapse=false, increase_max_display_length=false){
+function inspect_out(item, stack_number, in_stack_position, html_elt_to_replace, collapse=false, increase_max_display_length=false, src){
     if(!item && (item != 0)) { item = inspect_stacks[stack_number][in_stack_position] }
     else if (stack_number || (stack_number == 0)){
         if(!in_stack_position && (in_stack_position != 0)) {
@@ -93,7 +93,7 @@ function inspect_out(item, stack_number, in_stack_position, html_elt_to_replace,
             html_elt_to_replace = window[html_elt_to_replace]
         }
         $(html_elt_to_replace).replaceWith(new_inspect_html) } //must use query repalceWith here as regular DOM replaceWith doesn't work
-    else {  out_eval_result(new_inspect_html) }
+    else {  out_eval_result(new_inspect_html, undefined, src) }
     return item
 }
 
@@ -103,7 +103,7 @@ function inspect_aux(item, stack_number, in_stack_position, increase_max_display
     //else { return value_of_path(new_object_or_path) }
     const the_type = typeof(item)
     if (inspect_is_primitive(item)) { return inspect_one_liner(item) }
-    else if ((the_type == "function") && !is_class(item)) {
+    else if ((the_type == "function") && !is_class(item) && (item !== Number)) {
          return inspect_one_liner_regular_fn(item) //just a twistdown with no links in it. So inspecting top level fn won't have the fwd and back arrows. that's ok
     }
     else { //we're making a full inspector with back arrow
@@ -148,7 +148,8 @@ function inspect_aux(item, stack_number, in_stack_position, increase_max_display
         else if ((the_type == "function") &&
             out.constructor &&
             (out.constructor.name == "Function") &&
-            !is_class(item)){//a regular function
+            !is_class(item) &&
+            (item !== Number)){//a regular function
             result = inspect_one_liner_regular_fn(item)
             //note that this title for a fn is probably never used since fns
             //are either handld outside the insepctor at top level or

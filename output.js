@@ -834,7 +834,7 @@ function format_text_for_code(text, code=null){
 // It has been trimmed, and stringified, with <code> </code> wrapped around it probably.
 //never passed 'dont_print, always prints <hr/> at end whereas regular output never does
 //ui only
-window.out_eval_result = function(text, color="#000000"){
+window.out_eval_result = function(text, color="#000000", src){
     if (text != '"dont_print"'){
         var existing_temp = $("#temp")
         if (existing_temp.length > 0){
@@ -847,7 +847,22 @@ window.out_eval_result = function(text, color="#000000"){
             text = "<span style='color:" + color + "';>" + text + "</span>"
         }
         text = format_text_for_code(text)
-        text = "<fieldset><legend><i>Eval Result</i></legend>" +  text + "</fieldset>"
+        let src_formatted = ""
+        let src_formatted_suffix = "" //but could be "..."
+        if(src) {
+            src_formatted = src
+            let src_first_newline = src_formatted.indexOf("\n")
+            if (src_first_newline != -1) {
+                src_formatted = src_formatted.substring(0, src_first_newline)
+                src_formatted_suffix = "..."
+            }
+            if (src_formatted.length > 55) {
+                src_formatted = src_formatted.substring(0, 55)
+                src_formatted_suffix = "..."
+                }
+            src_formatted = " of <code title='" + src + "'>&nbsp;" + src_formatted + src_formatted_suffix + "&nbsp;</code>"
+        }
+        text = "<fieldset><legend><i>Eval result</i>" + src_formatted + "</legend>" +  text + "</fieldset>"
         append_to_output(text)
     }
     //$('#js_textarea_id').focus() fails silently

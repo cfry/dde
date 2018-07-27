@@ -996,8 +996,13 @@ one will be made and wrapped in a show_window.
 <br/>
 <b>content</b> Default: <code>"webcam"</code> Where
 the content displayed in the video_id will come from.
-If "webcam", the actual webcam used is specified in the <i>camera_id</i> argument.<br/>
-This can also be the name of a video file or url.
+This can be the url or file name of a video file.
+If its value is "webcam" (the default), the "content" will come from a webcam.
+But your computer can have multiple webcams.
+The actual webcam used is specified in the <i>camera_id</i> argument.
+If you let camera_id default, the default webcam for your computer
+will be used, but you can supply another one. See the doc for <i>camera_id</i> below.
+<p></p>
 For grabbing urls from <a target="_blank" href="http:www.youtube.com">Youtube</a>:
 <ol><li>Click right on a video for a menu of operations.</li>
     <li>Click on "Copy video URL".</li>
@@ -1019,7 +1024,8 @@ based on the <i>content</i> arg.<br/>
 video is played as soon as the display can handle it.<br/>
 <b>camera_id</b> Default: <code>undefined</code> If the content is
     <code>"webcam"</code>, then this is the id of the camera used
-    for the video stream. If no such ID exists, the default webcam for
+    for the video stream. If no such ID exists, or if you don't pass this argument,
+    the default webcam for
     your computer will be used. See <a href="#"
     onclick="open_doc('Picture.show_video_cameras_doc_id')">show_video_cameras</a>
     or click <button onclick="Picture.show_video_cameras()">show video cameras</button>
@@ -1464,7 +1470,8 @@ A value closer to 1 than 0 indicates a more lighted area.<br/>
     Converts a color mat to a gray mat that has just one numerical value
     (0 to 255 inclusive) per pixel.<br/>
     <i>Parameters:</i><br/>
-    <b>mat_in</b> Required. A color mat.<br/>
+    <b>mat_in</b> Required. Usually a color mat.
+    If mat_in happens to already be a gray mat, it is returned and mat_out is not used.<br/>
     <b>mat_out</b> Default: <code>null</code> meaning that a new mat of the
     same width and height of mat_in will be created.
     Whether or not a new mat is created, a gray mat will be returned.<br/>
@@ -1723,6 +1730,62 @@ Picture.detect_blobs({mat_in: mat1, sort_by:"y"})
     </code></pre>
 </details>
 
+<details id="make_classifier" class="doc_details"><summary>make_classifier</summary>
+OpenCV.js has a way to detect objects based on a compilation of features of
+numerous pictures of the object you want to detect.
+A compilation of these features is stored in an xml file.
+<i>make_classifier</i> makes and returns an object that encapsulates such xml files
+for use by <code>Picture.classifier_detect</code>.<br/>
+It is wrapper for OpenCV's <code>new cv.CascadeClassifier()</code><br/>
+<i>Parameter:</i><br/>
+<b>path</b> Default: <code>null</code> which uses the file
+at the path: <code>__dirname + "/vision/lbpcascade_frontalface.xml"</code>,
+stored inside of DDE.
+This is a small, simple face recognition classifier.
+A larger, 1Mbyte face classifier is available at:<br/>
+https://raw.githubusercontent.com/opencv/opencv/master/data/lbpcascades/lbpcascade_frontalface.xml<br/>
+More xml files are under: https://github.com/opencv/opencv/tree/master/data
+<br/>
+<i>Examples:</i><br/>
+<code>Picture.init()</code><br/>
+<code>Picture.make_classifier()</code><br/>
+<code>Picture.make_classifier(__dirname + "/vision/lbpcascade_frontalface.xml")</code><br/>
+Both these examples use the same xml file because the file
+given in the 2nd example is the default file.
+</details>
+
+<details id="classifier_detect" class="doc_details"><summary>classifier_detect</summary>
+Finds objects specified by a classifier in a given picture.
+The returned value is an array of rectangles where the recognized objects
+appear in the given picture.<br/>
+It is wrapper for OpenCV's <code title="unEVALable psuedocode">classifier.detectMultiScale()</code><br/>
+<i>Parameters:</i><br/>
+    <b>classifier</b> Required. A classifier object made with
+        <code>Picture.make_classifier()</code><br/>
+    <b>mat_in</b> Required. A color or gray mat. <br/>
+    <b>scale_factor</b> Default: <code>1.1</code>
+        How much the image size is reduced at each image scale.<br/>
+    <b>min_neighbors</b> Default: <code>3</code> An integer. A lower value
+        makes the detection of an object more likely. A higher value
+        is more discerning when detecting an object.<br/>
+    <b>min_size</b>  Default: <code>new cv.Size()</code> The minimum size
+        of an object to be detected.<br/>
+        Example: <code> new cv.Size(50, 50)</code><br/>
+    <b>max_size</b>  Default: <code>new cv.Size()</code> <br/>
+        Example: <code> new cv.Size(200, 100)</code><br/>
+    <b>show</b> Default: <code>true</code>. If true,
+        a show_window pops up showing mat_in with red rectangles around
+        each detected object.<br/>
+<i>Example:</i><br/>
+<pre><code title="not in test suite"> Picture.init()
+ var my_classifier = Picture.make_classifier()
+ var mat1
+ Picture.take_picture({callback: function(mat) { mat1 = mat }} )
+ //pause to allow picture to be taken.
+ Picture.classifier_detect({classifier: my_classifier,
+                            mat_in: mat1})
+    </code></pre>
+</details>
 </details>    <!-- High Level -->
 
 <details class="doc_details"><summary>Similarity</summary>
@@ -2837,7 +2900,8 @@ Example:<pre><code title="not in TestSuite"> speak({speak_data: [true, "It is", 
         <code>get_page</code> retrieves the contents of a web page.
         You pass in a url and get_page returns the contents as a string.
         The argument can either be a string of a url, or a literal JS object.<br/>
-        Example: <code title="not in TestSuite"> get_page("http://ibm.com")</code><br/>
+        <i>Example:</i><br/>
+         <code title="not in TestSuite"> get_page("http://ibm.com")</code><br/>
         If there is an error, the returned string will start with "Error:"
         and be followed by some clues as to why the error happened.
         <p></p>
@@ -3088,7 +3152,7 @@ new Job({name: "my_job",
         <li><b>when_stopped</b> controls what happens when a job stops normally.<br/>
              <code>"stop"</code> The default. The job stops.<br/>
              <code>"wait"</code> The job waits for another instruction to be added
-               at the end of the do_list. Call <code>Job.insert_instruction</code>
+               at the end of the do_list. Call <code><a href="#" onclick="open_doc('Job.insert_instruction_doc_id')">Job.insert_instruction</a></code>
                from any JavaScript code to do this.<br/>
              <code title="unEVALable code fragment"> A function</code> When the job reaches its normal stopping point,
              the function is called with a 'this' of the job instance and no arguments.
@@ -3773,7 +3837,7 @@ where within the job to insert the given instruction as does the method
    robot_status is an array that holds data from the robot, along with aspects of the instruction
    that was sent to the robot to capture that data. This array is the value of the robot
    instance field <code title="unEVALable code fragment"> robot_status</code>. <p></p>
-   <code>Robot.dexter0.grab_robot_status</code> provides an easy way to get values out of that array
+   The instruction: <code>Robot.grab_robot_status()</code> provides an easy way to get values out of that array
    and made available for other instructions to use.<br/>
    <i>Parameters</i><br/>
    <b>user_data_variable</b> Default: <code>"grabbed_robot_status"</code> A string (required) of the name of the job's
@@ -3869,7 +3933,11 @@ the grab_robot_status instruction.<br/>
 
     <code>Dexter.get_robot_status()</code><br/>
     <code>Robot.grab_robot_status("my_zero_data", Serial.DATA0) </code><br/>
-See Job Example 9 for an extended example.
+grab_robot_status can be called with a subject of a job instance in place
+of <code>Robot</code> like so:<br/>
+<code> Robot.dexter0.grab_robot_status("my_user_data_var")</code>
+<p></p>
+See Job Example: <i>Serial Port</i> for an extended example.
 </details> <!-- end grab_robot_status -->
 
 <details id="Robot.if_any_errors_doc_id" class="doc_details"><summary>if_any_error</summary>
@@ -5475,7 +5543,7 @@ input elements are stored when the dialog is closed.
 </details> <!-- end Human -->
 
 <details id="Serial_doc_id" class="doc_details"><summary>Serial</summary>
-<b>Serial</b> is not a specific robot per se, its a connection to another computer via its serial port.
+<i>Serial</i> is not a specific robot per se, its a connection to another computer via its serial port.
 This connection is very general. It knows nothing about the actual capabilities of what its
 connected to, only that it can send and receive strings on its serial port.
 <p></p>
@@ -5511,8 +5579,10 @@ Create an instance of Serial similar to the other robots. Example: <br/>
 <details class="doc_details"><summary>Parameters to new Serial</summary>
 <b>name</b> A string. Makes this instance of a Serial Robot accessible from Robot.the_name<br/>
 
-<b>simulate</b> true or false. Default <code>true</code>. If true, no data is sent or recieved over
-the actual serial port.<br/>
+<b>simulate</b> <code>true</code>, <code>false</code> or <code>null</code>. Default <code>null</code>.
+If <code>true</code>, no data is sent or recieved over the actual serial port.<br/>
+If <code>null</code>, the actual value for simulate comes from the Jobs menu/Simulate?
+setting, just like for Dexter robots.<br/>
 
 <b>sim_fun</b> A function. Default <code title="unEVALable code fragment"> return_first_arg</code>.
 Used only when <code title="unEVALable code fragment"> simulate: true</code><br/>
@@ -5532,8 +5602,9 @@ the basic communication path is working.<br/>
 
 <b>path</b> A string. Required. The label for the device connected to a serial port on the computer running DDE 
 that you want this software robot to connect to.
-Valid paths can be seen
-by calling <code>serial_devices()</code>. On Windows, they look something like
+Valid paths can be seen by calling<br/>
+<code>serial_devices()</code><br/>
+On Windows, they look something like
  <code>"COM3"</code>.
 On Mac, they look something like <code>"/dev/tty.usbmodem1411"</code>. 
  In addition to the tty path, Mac's also have a "cu" path such as: <code>"/dev/cu.usbmodem1411"</code>.
@@ -5596,15 +5667,71 @@ do_list to be executed. Usually you won't want to change this.<br/>
 
 <details class="doc_details"><summary>Serial Instructions</summary>
 <details id="Serial.string_instruction_doc_id" class="doc_details"><summary>string_instruction</summary>
-Has one argument, a string, which is sent the the Serial robot. 
+takes one argument, a string, which is sent to the Serial robot.
 If the argument is <i>not</i> a string, it is converted to one using <code>JSON.stringify</code> .
 The functionality of that string is entirely dependent on how the device
 you are sending it to, interprets it.<br/>
 Example: <code>Serial.string_instruction(4.5)</code><br/>
-sends the 3 character string: <code>"4.5"</code>  to the serial robot.<br/>
-See Job Example 9 for an extended example.
+sends the 3 character string: <code>"4.5"</code>  to the serial robot.
+<p></p>
+This instruction causes the Job its in to pause until the instruction
+completes.<br/>
+See Job Example: Serial Port for an extended example.
 </details>
+
+<details  class="doc_details"><summary>Robot.grab_robot_status</summary>
+This is not a <i>Serial</i> instruction, but one that can be used
+with any robot. It captures the robot_status, or some portion of it,
+and saves it away in a user_data variable on the Job instance for
+use by subsequent instructions.
+<p></p>
+When a Serial.string_instruction is run and the device retruns a value,
+that string is placed in the robot_status. You can then use
+Robot.grab_robot_status to extract it from the robot status
+and stick it in a user_data variable.
+See <a href="#" onclick="open_doc('Robot.grab_robot_status_doc_id')">
+        Robot.grab_robot_status</a>
+</details>
+
+
 </details> <!-- end of Serial Instructions -->
+<details class="doc_details"><summary>Multiple Serial Ports</summary>
+Normally, each Job has a robot. If you must connect to multiple
+serial ports, you can set up a Job for each one and give
+its robot one of the serial ports you need to connect to.
+<p></p>
+However, you can also use the serial port robot as a <i>subject</i> to
+the call to a string_instruction. Thus you can call multiple serial
+ports in one job. The job will pause until each completes.
+In other words, the serial string_instructions run <i>in serial</i>,
+not parallel.
+<p></p>
+You can also call <code>Robot.grab_robot_status</code> with a subject of
+a robot instance (instead of <code>Robot</code>) so that
+you can be sure to get the correct return value from
+a given string_instruction instruction.<br/>
+<i>Example:</i>
+<pre><code>
+new Serial({name: "S1", simulate: null,
+			sim_fun: function(input){
+                        return "got: " + input + "\n"
+                     },
+            path: last(serial_devices()).comName,
+            connect_options: {baudRate: 300},
+            capture_n_items: 1,
+            parse_items: true}
+)
+new Job({name: "j10b",
+         robot: new Brain(), //not used, but prevents the default Robot.dexter0 from being used
+         do_list: [Robot.S1.string_instruction("y"),
+                   Robot.S1.grab_robot_status("yes_result"),
+                   Robot.wait_until(2),
+                   Robot.S1.string_instruction("n"),
+                   Robot.S1.grab_robot_status("no_result", Serial.DATA0)
+                   ]}
+)
+    </code></pre>
+</details>
 
 <details class="doc_details"><summary>Debugging Serial</summary>
 Due to the interplay between two different computers (the one running DDE and the Serial device)
@@ -5639,7 +5766,15 @@ Allows you to send a string to a serial device from DDE but NOT in a job.
 
 <b id="serial_flush_doc_id"><code title="unEVALable code fragment"> serial_flush("some_path")</code></b> Removes all bytes in the given path's input and output buffers.
 <p></p>
-See Job Example 9 for examples.
+Though strictly unnecessary, we recommend:
+<ol>
+    <li>supplying a <i>sim_fun</i> to your Serial robot definition</li>
+    <li>setting its <i>simulate</i> arg to null</li>
+    <li>using the Jobs menu/Simulate? submenu to toggle between
+        using simulation and not</li>
+</ol>
+while debugging.<br/>
+See Job Example <i>Serial Port</i> for examples.
 </details> <!-- End Debugging Serial -->
 </details> <!-- End Serial -->
 
@@ -6274,7 +6409,66 @@ If include_this is true, the returned source, when evaled, will return a copy of
         <p></p>
         <i>Examples:</i><br/>
         <code>dde_version_between("0.1.0", "100.1.1")</code> => <samp>true</samp>
-
+    </details>
+    <details id="patch_until_doc_id" class="doc_details"><summary>patch_until</summary>
+        Function calls to <i>patch_until</i> are meant to surround
+        code that is to be evaled conditionally based on what version of
+        DDE you are running.
+        <p></p>
+        The primary use case is that there is a
+        fix to some bug made in a later version of DDE, and
+        you need that fix in your code, <i>but</i> you are not
+        ready to switch to the new version yet. By using patch_until,
+        you can have the patch code evaluated only if the dde_version
+        is less than the version passed in to <i>patch_until</i>.
+        <p></p>
+        This allows you to include the call to <i>patch_until</i> in your code,
+        (such as your dde_init.js file) and it will automatically be
+        ignored when you run an equal to or higher version of DDE than in the <i>version</i>
+        argument to <i>patch_until</i>.<br/>
+        <i>patch_until</i> thus allows you to switch back and forth between
+        dde versions and not have to change your dde_init.js file (or other code)
+        to include or exclude "patches".
+        <p></p>
+        The function is so named because the source code in the first argument
+        is a valid patch for DDE versions up to (i.e. until) the
+        version number in the 2nd argument.<br/>
+        <i>Parameters:</i><br/>
+        <b>before_source</b> Default: <code>null</code>
+        If the current version of dde (stored in <code>dde_version</code>)
+        is less than the 2nd argument, and
+        before_source is a string, then before_source is passed to <code>eval</code>
+        and the result is returned. In the case that before_source is <code>null</code>
+        (the default), it is ignored.<br/>
+        <b>version</b> The version that is compared to <code>dde_version</code>.<br/>
+        <b>equal_and_after_source</b> Default: <code>null</code>.
+        If the current version of dde
+        is more than or equal to the 2nd argument, equal_and_after_source is passed to
+        <code>eval</code>
+        and the result is returned. In the case that equal_and_after_source is null(the default),
+        it is ignored.<br/>
+        <i>Example:</i><br/>
+        <code>patch_until("1 + 2", "1000.0.0", "4 + 5")</code><br/>
+        => <samp>3</samp><br/>
+        In the above example, until the dde_version exceeds "1000.0.0",
+        the above code will return <code>3</code> i.e. the result of evaling
+        the first arg.
+        When dde_version is "1000.0.0" or higher, this call will return <code>9</code>,
+        i.e. the result of evaling the third arg.
+        <p></p>
+        Since <i>patch_until</i> is just a funtion that returns a value,
+        it can be embedded in other definitions, etc.
+        But its most common use case is to declare that a given
+        function definition (in the first argument) is to be used
+        when the version number in the second argument is
+        more than the current dde_version.
+        In the normal case, the 3rd argument wouldn't be passed,
+        because the function defined in the first argument
+        is built-in to versions of DDE that are equal to or higher than the
+        version in the second argument.
+        <p></p>
+        Note that <i>patch_until</i> was introduced in DDE 2.4.4, so
+        calls to it will error in earlier versions of DDE.
     </details>
 </details> <!-- end operating system etc -->
 
@@ -6729,7 +6923,7 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
 
     <b>init_elt_id</b> Default: <code>null</code>
     If this is a string, it is expected to be the id of an html input element
-    in the content. After the window is created, a programmatic click on
+    in the content. After the window is created, an automatic programmatic click on
     the named element is performed such that the callback of this show_window
     is called. The "clicked_button_value" for this click will be the
     value of init_elt_id.

@@ -91,21 +91,31 @@ function serial_send_low_level(path, content){
     }
 }
 
+//called by serial_connect AND Serial.send
+function serial_init_one_info_map_item(path, options, simulate=null, capture_n_items=1, item_delimiter="\n",
+                                       trim_whitespace=true,
+                                       parse_items=true, capture_extras="error"){
+    let sim_actual = Robot.get_simulate_actual(simulate)
+    serial_path_to_info_map[path] =
+           {path:            path, //Needed because sometimes we get the info without having the path thru serial_path_to_connection_id
+            simulate:        sim_actual,
+            capture_n_items: capture_n_items,
+            item_delimiter:  item_delimiter,
+            trim_whitespace: trim_whitespace,
+            parse_items:     parse_items,
+            capture_extras:  capture_extras,
+            pending_input:   ""}
+
+}
+
 //called from robot.js
 function serial_connect(path, options, simulate=null, capture_n_items=1, item_delimiter="\n",
                         trim_whitespace=true,
                         parse_items=true, capture_extras="error"){ //"ignore", "capture", "error"
     const sim_actual = Robot.get_simulate_actual(simulate)
-    serial_path_to_info_map[path] =
-       {path:            path, //Needed because sometimes we get the info without having the path thru serial_path_to_connection_id
-        simulate:        sim_actual,
-        capture_n_items: capture_n_items,
-        item_delimiter:  item_delimiter,
-        trim_whitespace: trim_whitespace,
-        parse_items:     parse_items,
-        capture_extras:  capture_extras,
-        pending_input:   ""}
-    if(sim_actual === true){ //it its "both" we let the below handle it. Don't want to call serial_new_socket_callback twice when sim is "both"
+    serial_init_one_info_map_item(path, options, simulate, capture_n_items, item_delimiter,
+        trim_whitespace, parse_items, capture_extras)
+    if(sim_actual === true){ //if its "both" we let the below handle it. Don't want to call serial_new_socket_callback twice when sim is "both"
         serial_new_socket_callback(path) //don't need to simulate socket_id for now
     }
     if ((sim_actual === false) || (sim_actual == "both")){
@@ -153,7 +163,7 @@ function convertStringToArrayBuffer(str) {
 }
 
 //content is a string
-function serial_send(instruction_array, path, simulate=true, sim_fun) {
+function serial_send(instruction_array, path, simulate=null, sim_fun) {
     let ins_str = instruction_array[Serial.INSTRUCTION_TYPE + 1]
     //out("top of serial_send about to send: " + ins_str)
     let robot_status = instruction_array.slice(0, Serial.DATA0) //Make a copy. don't include any fields for data coming back. We'll push onto this if need be.

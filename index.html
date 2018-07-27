@@ -2,7 +2,7 @@
 <!-- good html validtor: https://www.onlinewebcheck.com/check.php?adv=1  -->
 <html lang="en">
 <head>
-    <title>Dexter Development Environment 2.4.3</title>
+    <title>Dexter Development Environment 2.4.4</title>
     <link rel="stylesheet" href="jqwidgets/styles/jqx.base.css" type="text/css" />
     <!-- <script type="text/javascript" src="jquery-1.11.3.min.js"></script> -->
     <script>window.$ = window.jQuery = require('jquery');</script>
@@ -433,6 +433,8 @@
                                                         <li id="series_number_constant_id" title="Insert a symbolic math constant like 'Math.PI'.">number constant</li>
                                                     </ul>
                                                 </li>
+                                                <li id="series_js_object_name_id"    title="Insert the name of a built-in global JS object.">Object Name</li>
+
                                                 <li id="series_assignment_id" title="Assign a value to a variable">Assignment</li>
                                                 <li>Strings & Arrays
                                                     <ul>
@@ -685,7 +687,7 @@
                                style="font-size:14px;width:500px;"/>
                         <br/>
                         <div style="display:inline-block;width:100%;">
-                            <button id="eval_and_start_button_id" style="vertical-align:top;" title="Eval the selected JS&#013;and call the 'start' method&#013;with no arguments, on the result.">Eval&Start</button>
+                            <button id="eval_and_start_button_id" style="vertical-align:top;" title="Eval the selected JS.&#013;With the result, call its 'start' method or, &#013;if its a do_list item, run it in a Job on dexter0.">Eval&Start</button>
                             <button id="start_job_id" style="vertical-align:top;" title='Eval job that cursor is in and start it.&#13;Click on "Output" pane title for doc.'>Start Job</button>&nbsp;
                             <!-- <button id="stop_all_jobs_id" title="Stop all of the currently running jobs."><b>X</b></button></span> -->
                             <img id="stop_all_jobs_id" src="stop_sign.png" title="Stop all of the currently running jobs." style="vertical-align:top;"/>
