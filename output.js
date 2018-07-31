@@ -860,6 +860,8 @@ window.out_eval_result = function(text, color="#000000", src){
                 src_formatted = src_formatted.substring(0, 55)
                 src_formatted_suffix = "..."
                 }
+            src_formatted = replace_substrings(src_formatted, ">", "&lt;")
+            src = replace_substrings(src, "'", "&apos;")
             src_formatted = " of <code title='" + src + "'>&nbsp;" + src_formatted + src_formatted_suffix + "&nbsp;</code>"
         }
         text = "<fieldset><legend><i>Eval result</i>" + src_formatted + "</legend>" +  text + "</fieldset>"

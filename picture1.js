@@ -387,6 +387,16 @@ var Picture = class Picture{
         let mat                = cv.imread(offScreenCanvas)
         return mat
     }
+    // pixel operators, accept either a number or an array of 4 as input
+    static pixel_to_gray(pixel){
+       if (typeof(pixel) == "number") { return pixel }
+       else { return Math.round((pixel[0] + pixel[1] + pixel[2]) / 3) }
+    }
+
+    static pixel_to_color(pixel){
+       if (typeof(pixel) == "number") { return [pixel, pixel, pixel, 255]}
+       else { return pixel }
+    }
     //____________Low level mat methods__________
     // see https://docs.opencv.org/3.4.1/df/d24/tutorial_js_image_display.html
     //mat.channels() => 1 if gray mat, 3 if rgb, 4 if rgba. For picture from a normal webcam, this will be 4
@@ -820,19 +830,30 @@ var Picture = class Picture{
         let keypoints = new cv.KeyPointVector();
         //var image = cv.Mat.ones(5, 5, cv.CV_8UC3);
         detector.detect(mat_out, keypoints);
+        let key_pt_reasonable_array = Picture.keypoints_to_reasonable_array(keypoints, sort_by)
         if(show_picture) {
             let dst_mat2  = Picture.make_similar_mat(mat_in)
             cv.drawKeypoints(mat_out, keypoints, dst_mat2,
                 cv.Scalar.all(-1), //draw each point in a different color
                 cv.DrawMatchesFlags_DRAW_RICH_KEYPOINTS //draw points at size of found point
             )
+            for (let pt of key_pt_reasonable_array){
+                cv.putText(dst_mat2, "" + pt.i, new cv.Point(pt.x, pt.y),
+                          cv.FONT_HERSHEY_PLAIN, 2.0, new cv.Scalar(255, 0, 0, 255))
+                //cv.addText(mat_out, "" + pt.i, new cv.Point(pt.x, pt.y), cv.FONT_HERSHEY_PLAIN)
+            }
             Picture.show_picture({content: dst_mat2})
         }
-        let key_pt_reasonable_array = Picture.keypoints_to_reasonable_array(keypoints, sort_by)
+        for (let kp of key_pt_reasonable_array){
+            let pix  = Picture.mat_pixel(mat_in, kp.x, kp.y)
+            kp.gray  = Picture.pixel_to_gray(pix)
+            kp.color = Picture.pixel_to_color(pix)
+        }
         if(show_keypoints) {
             Picture.display_keypoint_data(key_pt_reasonable_array)
         }
-        return (opencv_result_format ? keypoints : key_pt_reasonable_array)
+        if (opencv_result_format) { return keypoints}
+        else { return key_pt_reasonable_array }
     }
 
     static detect_blobs_fill_in_args(obj){
@@ -908,14 +929,23 @@ var Picture = class Picture{
                                     "<th><input type='button' name='sort_by_x'    value=' x ' style='width:54px;'/></th>\n" +
                                     "<th><input type='button' name='sort_by_y'    value=' y ' style='width:62px;'/></th>\n" +
                                     "<th><input type='button' id='sort_by_size_id' value=' size ' style='width:62px;'/></th>\n" +
-                                "</tr>"
+                                    "<th><input type='button' id='sort_by_gray_id' value=' gray ' style='width:62px;'/></th>\n" +
+                                    "<th><input type='button'                      value=' color ' style='width:62px;'/></th>\n" +
+
+            "</tr>"
         for(let i = 0; i < key_pt_reasonable_array.length; i++){
             let kp = key_pt_reasonable_array[i]
+            let rgb_string = "rgb(" + kp.color[0] + ", " +
+                                      kp.color[1] + ", " +
+                                      kp.color[2] + ");"
             data_html += "<tr><td>"  + i +
                 "</td><td>" + ("" + kp.x).substring(0, 6)  +
                 "</td><td>" + ("" + kp.y).substring(0, 6)  +
                 //"</td><td>" + ("" + kp.angle).substring(0, 6) +
                 "</td><td>" + ("" + kp.size).substring(0, 6)  +
+                "</td><td>" + ("" + kp.gray).substring(0, 6)  +
+                "</td><td>" + "<div title='" + rgb_string + "' style='display:inline-block; width:50px; height:20px; border:1px solid #000 !important; background-color:" +
+                               rgb_string + "'/>" +
                 "</td></tr>"
         }
         data_html += "</table>"

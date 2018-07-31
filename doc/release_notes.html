@@ -6,13 +6,23 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 2.4.5, July 31, 2018</summary>
+<ul>
+<li> Fixed bug in display of Evaled source code in the Output pane header.
+This bug was also responsible for breaking the Insert menu/Machine Vision/ demos,
+and probably a bunch of other things, especially when evaling a large
+amount of source code (that would likely include single quotes).
+</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 2.4.4, July 27, 2018</summary>
 Highlights: Serial port robot improved greatly.<br/>
             new OpenCV classifier interface for detecting objects in images.<br/>
             Click help for built-in JS constructs improved.<br/>
             Eval&Start button can run a robot instruction.<br/>
             patch_until helps manage software patches.<br/>
-            Improvements to the Vector library<br/>
+            Improvements to the Vector library.<br/>
 <ul>
     <li> Removed console printouts when evaling a Job,
         related to: inspect_set_new_object_onclick,
