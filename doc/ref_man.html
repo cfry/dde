@@ -1736,15 +1736,21 @@ numerous pictures of the object you want to detect.
 A compilation of these features is stored in an xml file.
 <i>make_classifier</i> makes and returns an object that encapsulates such xml files
 for use by <code>Picture.classifier_detect</code>.<br/>
-It is wrapper for OpenCV's <code>new cv.CascadeClassifier()</code><br/>
+<i>make_classifier</i> is a wrapper for OpenCV's <code>new cv.CascadeClassifier()</code><br/>
 <i>Parameter:</i><br/>
 <b>path</b> Default: <code>null</code> which uses the file
 at the path: <code>__dirname + "/vision/lbpcascade_frontalface.xml"</code>,
 stored inside of DDE.
 This is a small, simple face recognition classifier.
+Beware, it works poorly on faces with glasses on.
 A larger, 1Mbyte face classifier is available at:<br/>
 https://raw.githubusercontent.com/opencv/opencv/master/data/lbpcascades/lbpcascade_frontalface.xml<br/>
 More xml files are under: https://github.com/opencv/opencv/tree/master/data
+<p></p>
+You can't use a url for the path argument. You must first download
+the file to your local machine. The simplest place to put it is in your
+<code>dde_apps_dir</code> folder because then you can just use the file's name and extension
+(without a folder name) as the path argument to <i>make_classifier</i>.
 <br/>
 <i>Examples:</i><br/>
 <code>Picture.init()</code><br/>
@@ -1752,13 +1758,16 @@ More xml files are under: https://github.com/opencv/opencv/tree/master/data
 <code>Picture.make_classifier(__dirname + "/vision/lbpcascade_frontalface.xml")</code><br/>
 Both these examples use the same xml file because the file
 given in the 2nd example is the default file.
+<p></p>
+DDE does not yet document how to make such xml files from a set of pictures in an object.
+This is not easy, but can be done with OpenCV.
 </details>
 
 <details id="classifier_detect" class="doc_details"><summary>classifier_detect</summary>
 Finds objects specified by a classifier in a given picture.
 The returned value is an array of rectangles where the recognized objects
 appear in the given picture.<br/>
-It is wrapper for OpenCV's <code title="unEVALable psuedocode">classifier.detectMultiScale()</code><br/>
+It is a wrapper for OpenCV's <code title="unEVALable psuedocode">classifier.detectMultiScale()</code><br/>
 <i>Parameters:</i><br/>
     <b>classifier</b> Required. A classifier object made with
         <code>Picture.make_classifier()</code><br/>
@@ -1785,6 +1794,12 @@ It is wrapper for OpenCV's <code title="unEVALable psuedocode">classifier.detect
  Picture.classifier_detect({classifier: my_classifier,
                             mat_in: mat1})
     </code></pre>
+In the above example, the first line creates the cloassifier object
+that is used as an arugment in the last line.
+The 2nd line declares a global variable which
+is set in the callback of the 3rd line.
+This global variable is used in the last line as the mat_in
+to look in for the object being detected.
 </details>
 </details>    <!-- High Level -->
 

@@ -5,6 +5,26 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 2.4.6, Aug 3, 2018</summary>
+Highlghts: Jobs gracefully finish under some conditions of the
+socket connection between DDE and Dexter failing.
+<ul>
+    <li> If the socket connection between DDE and Dexter is broken after
+    DDE has sent an instruction but before that instruction's reception is acknowledged
+    from Dexter to DDE, then DDE will stop the job formally.
+    DDE waits 200ms after sending the instruction to declare that the
+    socket connection is broken.
+    </li>
+
+
+    <li> Picture.make_classifier doc extended to say that you can't use a url for the path argument,
+    it must be a local file.
+    The doc also explains that the default xml works poorly with faces with glasses on.
+    </li>
+
+    <li> Picture.classifier_detect doc updated to explain the example.</li>
+</ul>
+</details>
 
 <details class="doc_details"><summary>v 2.4.5, July 31, 2018</summary>
 <ul>

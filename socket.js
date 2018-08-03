@@ -163,20 +163,22 @@ var Socket = class Socket{
         if ((sim_actual === false) || (sim_actual === "both")) {
             const array = Socket.instruction_array_to_array_buffer(instruction_array)
             let ws_inst = Socket.robot_name_to_ws_instance_map[robot_name]
+            let job_id = instruction_array[INSTRUCTION_JOB_ID]
             try {
                 ws_inst.write(array) //if doesn't error, success and we're done with send
                 Socket.resend_instruction = null
                 Socket.resend_count       = null
+                this.stop_job_if_socket_dead(job_id, robot_name)
                 return
             }
             catch(err) {
                 let rob = Robot[robot_name]
                 if(instruction_array === Socket.resend_instruction) {
                     if (Socket.resend_count >= 4) {  //we're done
-                        let job_instance = Job.id_to_job(instruction_array[INSTRUCTION_JOB_ID])
+                        let job_instance = Job.id_to_job(job_id)
                         job_instance.stop_for_reason("errored", "can't connect to Dexter")
-                        //job_instance.color_job_button() //probably not necessary
-                        this.set_up_next_do(0)  //necessary?
+                        //job_instance.color_job_button() //automatically done by job.prototype.finish
+                        job_instance.set_up_next_do(0)  //necessary?
                         return
                     }
                     else { //keep trying
@@ -228,6 +230,10 @@ var Socket = class Socket{
         else {
             Socket.convert_robot_status_to_degrees(js_array)
         }
+        let job_id       = js_array[INSTRUCTION_JOB_ID]
+        let job_instance = Job.id_to_job(job_id)
+        let robot_name   = job_instance.robot.name
+        Socket.robot_is_waiting_for_reply[robot_name] = false
         Dexter.robot_done_with_instruction(js_array) //this is called directly by simulator
     }
 
@@ -311,7 +317,22 @@ var Socket = class Socket{
             }
         }
     }
+    static stop_job_if_socket_dead(job_id, robot_name){
+        Socket.robot_is_waiting_for_reply[robot_name] = true
+        setTimeout(function(){
+                    if (Socket.robot_is_waiting_for_reply[robot_name]){
+                        let job_instance = Job.id_to_job(job_id)
+                        job_instance.stop_for_reason("errored", "can't connect to Dexter")
+                        Socket.close(robot_name, false)
+                        job_instance.set_up_next_do(0)
+                    }
+                   },
+                   Socket.max_dur_to_wait_for_reply_ms)
+    }
 }
+
+Socket.robot_is_waiting_for_reply = {} //robot_name to boolean map.
+Socket.max_dur_to_wait_for_reply_ms = 200
 
 Socket.PAYLOAD_START = 7 * 4 //7th integer array index, times 4 bytes per integer
 Socket.PAYLOAD_LENGTH = 6 //6th integer array index
