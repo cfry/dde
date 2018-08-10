@@ -2,7 +2,7 @@
 //Inverse Kinematics + Forward Kinematics + supporting functions
 //James Wigglesworth
 //Started: 6_18_16
-//Updated: 3_16_18
+//Updated: 8_10_18
 
 
 /*
@@ -594,6 +594,8 @@ var Kin = new function(){
 
     //Wrapper function for inverse kinematics
     //Returns joint angles
+    
+    //Depricated wrapper functions:
     this.xyz_to_J_angles = function(xyz, J5_direction = [0, 0, -1], config = Dexter.RIGHT_UP_OUT, workspace_pose = Vector.make_pose()){
         return Kin.inverse_kinematics(xyz, J5_direction, config, workspace_pose)[0]
     }
@@ -605,6 +607,23 @@ var Kin = new function(){
     this.xyz_to_J_planes = function(xyz, J5_direction = [0, 0, -1], config = Dexter.RIGHT_UP_OUT, workspace_pose = Vector.make_pose()){
         return Kin.inverse_kinematics(xyz, J5_direction, config, workspace_pose)[2]
     }
+    
+    
+    //New wrapper functions:
+    this.xyz_dir_config_to_J_angles = function(xyz = [0, 0.5, 0.1], dir = [0, 0, -1], config = [1, 1, 1], workspace_pose = Vector.make_pose()){
+        let dim = Vector.matrix_dimensions(xyz)
+        if(dim[0] == 3 && dim[1] == 3){
+        	workspace_pose = dir
+            
+            config = xyz[2]
+            dir = xyz[1]
+            xyz = xyz[0]
+        }
+        return Kin.inverse_kinematics(xyz, dir, config, workspace_pose)[0]
+    }
+    
+    
+    
     
     /*
     var EE_pose = Vector.make_pose([-0.4, 0.4, 0.2], [90, 0, 0])
@@ -721,7 +740,7 @@ var Kin = new function(){
         	z_vector = Vector.multiply(-1, z_vector)
         }
         
-        pose = Vector.make_pose(point, Vector.make_dcm(x_vector, undefined, z_vector), scale_factor)
+        pose = Vector.make_pose(point, Vector.make_DCM_from_3_vectors(x_vector, undefined, z_vector), scale_factor)
         return pose
     }
     /*
@@ -861,6 +880,10 @@ var Kin = new function(){
     }
     */
     
+    this.make_xyz_dir_config = function(xyz = [0, 0.5, 0.1], dir = [0, 0, -1], config = [1, 1, 1]){
+    	return [xyz, dir, config]
+    }
+    
 	this.predict_move_dur = function(J_angles_original, J_angles_destination, robot /*returns time in milliseconds*/){
         
         //let speed = robot.prop("MAX_SPEED")
@@ -983,7 +1006,7 @@ var Kin = new function(){
     out(Kin.angles_to_direction(0, 45))
     */
     
-    this.move_to_straight = function(xyz_1, xyz_2, J5_direction, config, tool_speed = 5*_mm / _s, resolution = .5*_mm, robot_pose, no_error = false){
+    this.move_to_straight = function(xyz_1, xyz_2, J5_direction, config, tool_speed = 5*_mm / _s, resolution = .5*_mm, workspace_pose, no_error = false){
     	let movCMD = []
     	let U1 = xyz_1
     	let U2 = xyz_2
@@ -998,15 +1021,15 @@ var Kin = new function(){
     	}
     	let angular_velocity
     	let Ui, new_J_angles
-    	let old_J_angles = Kin.xyz_to_J_angles(U1, J5_direction, config, robot_pose)
+    	let old_J_angles = Kin.xyz_to_J_angles(U1, J5_direction, config, workspace_pose)
         let xyzs = []
         let speeds = []
     	for(let i = 0; i < div+1; i++){
     		Ui = Vector.add(U1, Vector.multiply(i*step, v21))
-            if(!Kin.is_in_reach(Ui, J5_direction, config, robot_pose) && no_error){
+            if(!Kin.is_in_reach(Ui, J5_direction, config, workspace_pose) && no_error){
         		return xyzs
             }
-            new_J_angles = Kin.xyz_to_J_angles(Ui, J5_direction, config, robot_pose)
+            new_J_angles = Kin.xyz_to_J_angles(Ui, J5_direction, config, workspace_pose)
         	angular_velocity = Kin.tip_speed_to_angle_speed(old_J_angles, new_J_angles, tool_speed)
         	old_J_angles = new_J_angles
             
@@ -1015,11 +1038,588 @@ var Kin = new function(){
             /*
         	movCMD.push(make_ins("S", "MaxSpeed", angular_velocity))
     		movCMD.push(make_ins("S", "StartSpeed", angular_velocity))
-        	movCMD.push(Dexter.move_to(Ui, J5_direction, config, robot_pose))
+        	movCMD.push(Dexter.move_to(Ui, J5_direction, config, workspace_pose))
             */
     	}
 		return [xyzs, speeds]
 	}
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    /*
+	Kin.inverse_kinematics([0, Dexter.LINK5, Dexter.LINK1+Dexter.LINK2+Dexter.LINK3+Dexter.LINK4], [0, 1, 0])
+	debugger
+    Kin.context_inverse_kinematics(
+    	[0, Dexter.LINK5, Dexter.LINK1+Dexter.LINK2+Dexter.LINK3+Dexter.LINK4],
+        [0, 1, 0],
+        [1, 1, 1],
+        {similar_J_angles: [30, 1e-10, 0, -1e-10, 0]}
+    )
+    var my_context = {similar_J_angles: [30, 1e-10, 0, -1e-10, 0]}
+    Kin.context_inverse_kinematics(
+    	[0, Dexter.LINK5, Dexter.LINK1+Dexter.LINK2+Dexter.LINK3+Dexter.LINK4],
+        [0, 1, 0],
+        [1, 1, 1],
+        my_context
+    )
+	
+    */
+    
+    /*
+    this.context_inverse_kinematics = function (xyz, direction = [0, 0, -1], config = [1, 1, 1], 
+    	context = {
+        	workspace_pose: Vector.make_pose(),
+            similar_J_angles: [30, 0, 0, 0, 0],
+            link_lengths: [Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5]
+        }
+        
+     this.context_inverse_kinematics = function (xyz, direction = [0, 0, -1], config = [1, 1, 1], 
+    	context = {
+        	workspace_pose: Vector.make_pose(),
+            similar_J_angles: [30, 0, 0, 0, 0],
+            link_lengths: [Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5]
+        }
+        
+		
+        //Singularity at home position
+		var jangles = Kin.context_inverse_kinematics({
+     		xyz: [0, Dexter.LINK5, Dexter.LINK1+Dexter.LINK2+Dexter.LINK3+Dexter.LINK4],
+            dir: [0, 1, 0],
+     		similar_J_angles: [-30, 0, 0, 0, 0],
+     	})[0]
+        out(jangles, 3)
+        
+        
+        
+        
+        
+        //Singularity when J5 is +/- 90
+		var jangles = Kin.context_inverse_kinematics({
+     		xyz: [Dexter.LINK5, 0.5, 0.3],
+            dir: [1, 0, 0],
+     		similar_J_angles: [0, 0, 0, 0, 0],
+     	})[0]
+        out(jangles, 3)
+        
+        
+        new Job({name: "my_job",
+         do_list: [
+         	Dexter.set_parameter("MaxSpeed", 20),
+         	Dexter.move_all_joints(jangles),
+            //Dexter.move_to([0, 0.0001, 0.45])
+         ]}).start()
+		
+        
+        function main(){
+        	CMD = []
+            let jangles
+            let start_theta = -90
+            let end_theta = 90
+            let theta_step = 1
+            
+            CMD.push(Dexter.set_parameter("MaxSpeed", 3))
+            CMD.push(Dexter.set_parameter("StartSpeed", 3))
+            
+            for(let theta = start_theta; theta < end_theta; theta += theta_step){
+            	jangles = Kin.context_inverse_kinematics({
+     				xyz: [Dexter.LINK5, 0.5, 0.3],
+            		dir: [1, 0, 0],
+     				similar_J_angles: [0, 0, 0, theta, 0],
+     			})[0]
+            	CMD.push(Dexter.move_all_joints(jangles))
+            }
+            for(let theta = end_theta; theta > start_theta; theta -= theta_step){
+            	jangles = Kin.context_inverse_kinematics({
+     				xyz: [Dexter.LINK5, 0.5, 0.3],
+            		dir: [1, 0, 0],
+     				similar_J_angles: [0, 0, 0, theta, 0],
+     			})[0]
+            	CMD.push(Dexter.move_all_joints(jangles))
+            }
+            
+            return CMD
+        }
+        
+        new Job({name: "J4_90_Singularity",
+         do_list: [
+         	Dexter.set_parameter("MaxSpeed", 20),
+            Dexter.set_parameter("StartSpeed", 0.1),
+         	main
+         ]}).start()
+         
+        
+        
+        Kin.inverse_kinematics([0, 0.0001, 0.45])[0]
+        
+        //Singularity at [0, 0, z]
+		var jangles = Kin.context_inverse_kinematics({
+     		xyz: [0, 0, 0.45],
+            dir: [0, 0, -1],
+            config: [1, 1, 1],
+     		similar_J_angles: [0, 0, 0, 0, 0],
+     	})[0]
+        out(jangles, 3)
+        
+        
+        
+        
+        
+        Kin.context_inverse_kinematics({
+     		xyz: [0, 0.5, 0.1],
+            dir: [0, 1, 0],
+     		similar_J_angles: [0, 0, 0, 0, 0],
+     	})
+        
+      	Kin.context_inverse_kinematics()
+     */
+     
+     function signed_angle_test(vector_A, vector_B, plane){
+    	let epsilon = 1e-14
+    	//checks if vectors lie in plane
+        let cross_product = Vector.normalize(Vector.cross(Vector.shorten(vector_A), Vector.shorten(vector_B)))
+        let short_plane = Vector.shorten(plane)
+        
+        let guess_angle = Vector.angle(vector_A, vector_B)
+        if(Vector.is_equal(cross_product, short_plane)){
+        	return guess_angle
+        }else if(Vector.is_equal(Vector.multiply(-1, cross_product), short_plane)){
+        	return -guess_angle
+        }else{
+        	dde_error("Error: input vectors do not lie in plane")
+        }
+    }
+    
+     
+     
+     this.context_inverse_kinematics = function(args){
+
+		//Input arg management:
+        
+        if(args.xyz_dir_config && (args.xyz || args.dir || args.config)){
+        	let error_string
+            if(args.config){error_string = "config"}
+            if(args.dir){error_string = "dir"}
+            if(args.xyz){error_string = "xyz"}
+            
+            dde_error("Both " + error_string + " and xyz_dir_config cannot be passed into Kin.context_inverse_kinematics")
+        }
+        
+        //Defaults:
+        if(args.xyz === undefined){				args.xyz = [0, 0.5, 0.1]}
+        if(args.dir === undefined){				args.dir = [0, 0, -1]}
+        if(args.config === undefined){			args.config = [1, 1, 1]}
+        if(args.workspace_pose === undefined){	args.workspace_pose = Vector.make_pose()}
+        if(args.similar_J_angles === undefined){args.similar_J_angles = [0, 0, 0, 0, 0]}
+        if(args.link_lengths === undefined){	args.link_lengths = [Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5]}
+
+		let xyz, direction, config
+		if(args.xyz_dir_config){
+			xyz = args.xyz_dir_config[0]
+            direction = args.xyz_dir_config[1]
+            config = args.xyz_dir_config[2]
+        }else{
+        	xyz = args.xyz
+            direction = args.dir
+            config = args.config
+        }
+
+
+		//Kinematics Start
+        let J = Vector.make_matrix(1, 5)[0] // Joint Angles
+        let U = Vector.make_matrix(5, 3)
+        let P = [0, 0, 0, 0]
+        let L = args.link_lengths 
+		let normal = direction
+    	let right_arm = config[0]
+    	let elbow_up = config[1]
+    	let wrist_out = config[2]
+        
+        if(direction.length == 2){
+        	normal = Kin.angles_to_dir_xyz(direction[0], direction[1])
+        }else if(direction.length == 3){
+        	if(Vector.magnitude(direction) == 0){
+            	dde_error("Direction must have a magnitude. Try [0, 0, -1] or [0, 0] for the [x_angle, y_angle] form")
+            }
+        }else{
+        	dde_error("Direction must be in the form [x, y, z] or [x_angle, y_angle]")
+        }
+        
+  		let xyz_trans = Vector.transpose(Vector.matrix_multiply(args.workspace_pose, Vector.properly_define_point(xyz))).slice(0,3)
+		let normal_trans = Vector.transpose(Vector.matrix_multiply(args.workspace_pose, Vector.properly_define_vector(normal))).slice(0,3)
+
+        
+        
+    	//Knowns:
+        P[0] = [1, 0, 0, 0]
+    	let V54 = Vector.multiply(-1, Vector.normalize(normal_trans)) //Direction of EE
+        U[0] = [0, 0, 0]
+        let V10 = [0, 0, 1]
+    	U[1] = Vector.multiply(L[0], V10)
+        U[4] = Vector.add(xyz_trans, Vector.multiply(Dexter.LINK5, V54))
+        U[5] = xyz_trans
+        
+    	
+    	//Solving for P1
+    	P[1] = Vector.points_to_plane(U[1], U[0], U[4])
+        if(Vector.is_NaN(P[1])){
+        	P[1] = Vector.points_to_plane(U[1], U[0], U[3])
+            if(Vector.is_NaN(P[1])){
+            /*
+        		dde_error(`Singularity: Toolpoint xyz is on Base axis. [0, 0, z] divides by 0.
+            	Try [0, 1e-10, z] if it works use the ouputted joint angles for a move_all_joints() instead.
+            	The first joint angle can be changed to any value without affecting the tool point`)
+                */
+                
+                P[1] = Vector.rotate([1, 0, 0], [0, 0, -1], args.similar_J_angles[0])
+                
+            }
+        }
+		
+    
+		//Solving for U3
+    	let U54_Proj = Vector.project_vector_onto_plane(V54, P[1])
+        
+        let U3_a, U3_b, dist_a, dist_b
+        if(Vector.magnitude(U54_Proj) > 1e-10){
+        
+    		U3_a = Vector.add(U[4], Vector.multiply(L[3], Vector.rotate(Vector.normalize(U54_Proj), P[1], 90)))
+        	U3_b = Vector.add(U[4], Vector.multiply(L[3], Vector.rotate(Vector.normalize(U54_Proj), P[1], -90)))
+        	
+        
+        	//This is proven to work for directions of approx. [0, 1, 0] but has potentially not been tested enough
+        	dist_a = Vector.distance(U3_a, [0, 0, 0])
+    		dist_b = Vector.distance(U3_b, [0, 0, 0])
+            /*
+        	if (wrist_out){
+    			if (dist_a < dist_b){
+        			U[3] = U3_a
+        		}else{
+        			U[3] = U3_b
+        		}
+    		}else{
+    			if (dist_a > dist_b){
+        			U[3] = U3_a
+        		}else{
+        			U[3] = U3_b
+        		}
+    		}
+            */
+            
+            //Solving for P2
+    		//P[2] = Vector.points_to_plane(U[5], U[4], U[3])
+        	let P2_a = Vector.points_to_plane(U[5], U[4], U3_a)
+            if(Vector.is_NaN(P2_a)){
+        		dde_error("Unknown plane_a singularity at: " + xyz + ", " + direction + ", " + config + ". Please copy this message and report it as a bug.")
+        	}
+            let P2_b = Vector.points_to_plane(U[5], U[4], U3_b)
+            if(Vector.is_NaN(P2_b)){
+        		dde_error("Unknown plane_b singularity at: " + xyz + ", " + direction + ", " + config + ". Please copy this message and report it as a bug.")
+        	}
+		
+    		//Solving for U2
+    		let D3_a = Vector.distance(U3_a, U[1])
+        	if(Vector.is_equal(D3_a, Dexter.LINK2 + Dexter.LINK3, 9)){
+        		D3_a = Dexter.LINK2 + Dexter.LINK3
+        	}
+            let D3_b = Vector.distance(U3_b, U[1])
+        	if(Vector.is_equal(D3_b, Dexter.LINK2 + Dexter.LINK3, 9)){
+        		D3_b = Dexter.LINK2 + Dexter.LINK3
+        	}
+        	
+        	let wrist_a_in_reach = true
+            let wrist_b_in_reach = true
+        	
+        	//Checking if in reach
+        	if (D3_a > Dexter.LINK2 + Dexter.LINK3){
+        		let out_of_reach_dist_a = Vector.round(D3_a - (Dexter.LINK2 + Dexter.LINK3), 4)
+        		wrist_a_in_reach = false
+                //dde_error("Point [" + Vector.round(xyz, 3)+"], [" + Vector.round(V54,3) + '] is ' + out_of_reach_dist + 'm out of reach')
+        	}
+            if (D3_b > Dexter.LINK2 + Dexter.LINK3){
+        		let out_of_reach_dist_b = Vector.round(D3_b - (Dexter.LINK2 + Dexter.LINK3), 4)
+        		//dde_error("Point [" + Vector.round(xyz, 3)+"], [" + Vector.round(V54,3) + '] is ' + out_of_reach_dist + 'm out of reach')
+        		wrist_b_in_reach = false
+            }
+        
+        
+    		//let Beta = acosd((-Math.pow(L[2], 2) + Math.pow(L[1], 2) + Math.pow(D3, 2)) / (2 * D3 * L[1])) // Law of Cosines
+        	let Beta_a = acosd((-Math.pow(L[2], 2) + Math.pow(L[1], 2) + Math.pow(D3_a, 2)) / (2 * D3_a * L[1])) // Law of Cosines
+        	let V31_a = Vector.normalize(Vector.subtract(U3_a, U[1]))
+            
+            let Beta_b = acosd((-Math.pow(L[2], 2) + Math.pow(L[1], 2) + Math.pow(D3_b, 2)) / (2 * D3_b * L[1])) // Law of Cosines
+        	let V31_b = Vector.normalize(Vector.subtract(U3_b, U[1]))
+            
+            
+    		let V23_a, V23_b
+        	//For wrist a
+    		let U2_aA = Vector.add(U[1], Vector.multiply(L[1], Vector.rotate(V31_a, P[1], Beta_a)))
+    		let U2_aB = Vector.add(U[1], Vector.multiply(L[1], Vector.rotate(V31_a, P[1], -Beta_a)))
+        	let V2A1_a = Vector.subtract(U2_aA, U[1])
+        	let V32A_a = Vector.subtract(U[3], U2_aA)
+        	
+        	let U2_a
+    		if (elbow_up){
+    			if(Vector.dot(Vector.cross(V2A1_a, V32A_a), P[1]) < 0){
+        			U2_a = U2_aA
+        		}else{
+        			U2_a = U2_aB
+        		}
+    		}else{
+      			if(Vector.dot(Vector.cross(V2A1_a, V32A_a), P[1]) > 0){
+        			U2_a = U2_aA
+        		}else{
+        			U2_a = U2_aB
+        		}
+    		}
+            
+            
+            
+            //For wrist b
+    		let U2_bA = Vector.add(U[1], Vector.multiply(L[1], Vector.rotate(V31_b, P[1], Beta_b)))
+    		let U2_bB = Vector.add(U[1], Vector.multiply(L[1], Vector.rotate(V31_b, P[1], -Beta_b)))
+        	let V2A1_b = Vector.subtract(U2_bA, U[1])
+        	let V32A_b = Vector.subtract(U[3], U2_bA)
+        
+        	let U2_b
+    		if (elbow_up){
+    			if(Vector.dot(Vector.cross(V2A1_b, V32A_b), P[1]) < 0){
+        			U2_b = U2_bA
+        		}else{
+        			U2_b = U2_bB
+        		}
+    		}else{
+      			if(Vector.dot(Vector.cross(V2A1_b, V32A_b), P[1]) > 0){
+        			U2_b = U2_bA
+        		}else{
+        			U2_b = U2_bB
+        		}
+    		}
+            
+            
+            //Solving for joint angles
+            
+            //wrist a
+    		let V21_a = Vector.normalize(Vector.subtract(U2_a, U[1]))
+    		let V32_a = Vector.normalize(Vector.subtract(U3_a, U2_a))
+    		let V43_a = Vector.normalize(Vector.subtract(U[4], U3_a))
+            let J0_a = Vector.signed_angle(P[1], P[0], V10) 
+    		let J1_a = Vector.signed_angle(V21_a, V10, P[1])
+    		let J2_a = Vector.signed_angle(V32_a, V21_a, P[1])
+    		let J3_a = Vector.signed_angle(V43_a, V32_a, P[1])
+    		let J4_a = Vector.signed_angle(P2_a, P[1], V43_a)
+            
+            //wrist b
+            let V21_b = Vector.normalize(Vector.subtract(U2_b, U[1]))
+    		let V32_b = Vector.normalize(Vector.subtract(U3_b, U2_b))
+    		let V43_b = Vector.normalize(Vector.subtract(U[4], U3_b))
+            let J0_b = Vector.signed_angle(P[1], P[0], V10) 
+    		let J1_b = Vector.signed_angle(V21_b, V10, P[1])
+    		let J2_b = Vector.signed_angle(V32_b, V21_b, P[1])
+    		let J3_b = Vector.signed_angle(V43_b, V32_b, P[1])
+    		let J4_b = Vector.signed_angle(P2_b, P[1], V43_b)
+            
+            let J0, J1, J2, J3, J4
+            let wrist_score_a = Math.abs(J3_a) + Math.abs(J4_a)
+            let wrist_score_b = Math.abs(J3_b) + Math.abs(J4_b)
+            if(!wrist_a_in_reach){
+            	wrist_score_a = Infinity 
+            }
+            if(!wrist_b_in_reach){
+            	wrist_score_b = Infinity 
+            }
+            
+            if(wrist_score_a < wrist_score_b){
+            	if(!wrist_a_in_reach){
+            		dde_error("Point [" + Vector.round(xyz, 3)+"], [" + Vector.round(V54,3) + '] is ' + out_of_reach_dist + 'm out of reach')
+            	}
+            	J0 = J0_a
+                J1 = J1_a
+                J2 = J2_a
+                J3 = J3_a
+                J4 = J4_a
+            }else{
+            	if(!wrist_b_in_reach){
+            		dde_error("Point [" + Vector.round(xyz, 3)+"], [" + Vector.round(V54,3) + '] is ' + out_of_reach_dist + 'm out of reach')
+            	}
+            	J0 = J0_b
+                J1 = J1_b
+                J2 = J2_b
+                J3 = J3_b
+                J4 = J4_b
+            }
+            
+			if(right_arm == 1){
+    			J[0] = J0
+    			J[1] = J1
+    			J[2] = J2
+    			J[3] = J3
+    			J[4] = J4
+    		}else{
+    			J[0] = J0
+    			J[1] = -J1
+    			J[2] = -J2
+    			J[3] = -J3
+    			J[4] = -J4
+    		}
+            
+            
+    	}else{
+        	let a = L[3]
+            let b = L[2]
+            let c = Math.sqrt(a**2 + b**2 -2*a*b*cosd(180-args.similar_J_angles[3])) //Law of Cosines
+            
+            let Gamma = acosd((-Math.pow(a, 2) + Math.pow(c, 2) + Math.pow(b, 2)) / (2 * c * b)) // Law of Cosines
+            
+            
+            a = L[1]
+            b = Vector.distance(U[4], U[1])
+            
+            let L41_max = L[1] + L[2] + L[3]
+        	if(Vector.is_equal(b, L41_max, 9)){
+        		b = L41_max
+        	}
+        
+        	//Checking if in reach
+        	if (b > L41_max){
+        		let out_of_reach_dist = Vector.round(b - (L41_max), 4)
+        		dde_error("Point [" + Vector.round(xyz, 3)+"], [" + Vector.round(V54,3) + '] is ' + out_of_reach_dist + 'm out of reach')
+        	}
+            
+        	let Beta = acosd((-Math.pow(c, 2) + Math.pow(a, 2) + Math.pow(b, 2)) / (2 * a * b)) // Law of Cosines
+        	let V41 = Vector.normalize(Vector.subtract(U[4], U[1]))
+    		let V23
+            
+            let U2_a = Vector.add(U[1], Vector.multiply(L[1], Vector.rotate(V41, P[1], Beta)))
+    		let U2_b = Vector.add(U[1], Vector.multiply(L[1], Vector.rotate(V41, P[1], -Beta)))
+        	
+            let V2a1 = Vector.subtract(U2_a, U[1])
+            let V2b1 = Vector.subtract(U2_b, U[1])
+        	//let V32a = Vector.subtract(U[3], U2_a)
+            
+            let V42a = Vector.subtract(U[4], U2_a)
+            let V42b = Vector.subtract(U[4], U2_b)
+            
+			
+            
+            let rot_sign = -1
+            
+            let theta_a = signed_angle_test(V2a1, V41, P[1])
+            let theta_b = signed_angle_test(V2b1, V41, P[1])
+            
+            if (elbow_up){
+    			if(theta_a < theta_b){
+        			U[2] = U2_a
+                    
+        		}else{
+        			U[2] = U2_b
+                    rot_sign = 1
+        		}
+    		}else{
+      			if(theta_a < theta_b){
+        			U[2] = U2_a
+                    rot_sign = 1
+        		}else{
+        			U[2] = U2_b
+        		}
+    		}
+            
+            
+            /*
+    		if (elbow_up){
+    			if(Vector.dot(Vector.cross(V2a1, V32a), P[1]) < 0){
+        			U[2] = U2_a
+                    rot_sign = 1
+        		}else{
+        			U[2] = U2_b
+        		}
+    		}else{
+      			if(Vector.dot(Vector.cross(V2a1, V32a), P[1]) > 0){
+        			U[2] = U2_a
+        		}else{
+        			U[2] = U2_b
+                    rot_sign = 1
+        		}
+    		}
+            */
+            
+            /*
+            V21 = Vector.normalize(Vector.subtract(U[2], U[1]))
+            V31 = Vector.rotate(V21, P[1], rot_sign*Gamma)
+            U[3] = Vector.add(U[2], Vector.multiply(L[2], V31))
+            */
+            
+            let V42 = Vector.normalize(Vector.subtract(U[4], U[2]))
+            let V32 = Vector.rotate(V42, P[1], Math.sign(args.similar_J_angles[3])*Gamma)
+            U[3] = Vector.add(U[2], Vector.multiply(L[2], V32))
+            
+            //Solving for P2
+    		P[2] = Vector.points_to_plane(U[5], U[4], U[3])
+        	if(Vector.is_NaN(P[2])){
+        		dde_error("Unknown plane singularity at: " + xyz + ", " + direction + ", " + config + ". Please copy this message and report it as a bug.")
+        	}
+            
+            //Solving for joint angles
+    		let V21 = Vector.normalize(Vector.subtract(U[2], U[1]))
+    		V32 = Vector.normalize(Vector.subtract(U[3], U[2]))
+    		let V43 = Vector.normalize(Vector.subtract(U[4], U[3]))
+			if(right_arm == 1){
+    			J[0] = Vector.signed_angle(P[1], P[0], V10) 
+    			J[1] = Vector.signed_angle(V21, V10, P[1])
+    			J[2] = Vector.signed_angle(V32, V21, P[1])
+    			J[3] = Vector.signed_angle(V43, V32, P[1])
+    			J[4] = Vector.signed_angle(P[2], P[1], V43)
+    		}else{
+    			J[0] = Vector.signed_angle(P[1], P[0], V10) + 180
+    			J[1] = -Vector.signed_angle(V21, V10, P[1])
+    			J[2] = -Vector.signed_angle(V32, V21, P[1])
+    			J[3] = -Vector.signed_angle(V43, V32, P[1])
+    			J[4] = -Vector.signed_angle(P[2], P[1], V43)
+    		}
+            
+            
+        }
+        
+        
+       
+    	
+
+
+    	
+    	
+    	if(Vector.is_NaN(J[2])){
+        	let thres = 100
+        	if(Dexter.LINK1 > thres || Dexter.LINK2 > thres || Dexter.LINK3 > thres || Dexter.LINK4 > thres || Dexter.LINK5 > thres){
+            	dde_error("Link lengths are non properly defined: "  
+                + "</br>Dexter.LINK1: " + Dexter.LINK1 + " (meters)"
+                + "</br>Dexter.LINK2: " + Dexter.LINK2 + " (meters)"
+                + "</br>Dexter.LINK3: " + Dexter.LINK3 + " (meters)"
+                + "</br>Dexter.LINK4: " + Dexter.LINK4 + " (meters)"
+                + "</br>Dexter.LINK5: " + Dexter.LINK5 + " (meters)")
+            }
+        	dde_error("Singularity at: " + xyz + ", " + direction + ", " + config + ".</br>Please copy this message and report it as a bug.")
+    	}
+    
+    	return [J, U, P]
+    } 
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     /*
     
     Kin.move_to_straight([0, .5, .075], [0, .6, .075])
@@ -1089,3 +1689,5 @@ new TestSuite("Checking xyz",
     ["Kin.check_J_ranges([0, 0, 0, 0, 0])", "true"],
     ["Kin.check_J_ranges([0, 0, 0, 181, 0])", "false"]
 )
+
+

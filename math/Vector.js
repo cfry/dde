@@ -2,7 +2,7 @@
 //Vector and Matrix math functions
 //James Wigglesworth
 //Started: 6_18_16
-//Updated: 7_27_18
+//Updated: 8_8_18
 
 
 var dde_github_issues = "https://github.com/cfry/dde/issues"
@@ -2001,7 +2001,7 @@ var Vector = new function(){
     }
     
     this.make_dcm = function(x_vector, y_vector, z_vector){
-    	warning("This function is being depricated.</br>Please replace with")
+    	warning("This function is being depricated.</br>Please replace with Vector.make_dcm_from_3_vectors, Vector.euler_angles_to_DCM, or Vector.quaternion_to_DCM")
         let dcm = Vector.identity_matrix(3)
         
         if(x_vector == undefined && y_vector == undefined && z_vector == undefined){
@@ -2024,10 +2024,7 @@ var Vector = new function(){
         
         return dcm
     }
-    /*
-    debugger
-    var result = Vector.make_dcm([1, 1, 0], undefined, [0, 0, 1])
-    */
+    
     
     this.make_DCM_from_3_vectors = function(x_vector, y_vector, z_vector){
         let dcm = Vector.identity_matrix(3)
@@ -2552,13 +2549,20 @@ var Vector = new function(){
     var data_x = [2,1.80901699437495,1.30901699437495,0.690983005625053,0.190983005625053,0,0.190983005625053,0.690983005625053,1.30901699437495,1.80901699437495,2]
     var data_y = [0,0.293892626146237,0.475528258147577,0.475528258147577,0.293892626146237,0,-0.293892626146237,-0.475528258147577,-0.475528258147577,-0.293892626146237,0]
     debugger
-    Vector.ellipse_fit(data_x, data_y)
+                  0  1  2  3  4  5
+    var data_x = [0, 1, 2, 3, 2, 1]
+    var data_y = [0, 1.5, 2.5, 3, 1.5, 0.5]
+  
+    var e = Vector.ellipse_fit(data_x, data_y)
     */
     
     this.ellipse_fit = function(x, y){
 		//Code adapted from Nikolai Chernov
     	//https://www.mathworks.com/matlabcentral/fileexchange/22684-ellipse-fit-direct-method
-    
+    	if(x.length < 5 || y.length < 5){
+        	dde_error("A minumum of 5 datapoints are required to fit an ellipse.<br>Only " + x.length + " were supplied to Vector.ellipse_fit().")
+        }
+        
     	let results = {}
     	let x_dim = Vector.matrix_dimensions(x)
     	let y_dim = Vector.matrix_dimensions(y)
@@ -2587,12 +2591,14 @@ var Vector = new function(){
 
 		//X = [x.^2, x.*y, y.^2, x, y ]; //look how elegant this is in MATLAB
     	//solution = sum(X)/(X'*X);      //it's two lines!
-    	let X_prime = Vector.concatinate(0, Vector.pow(x, 2), Vector.multiply(x, y), Vector.pow(y, 2), x, y)
+    	
+        let X_prime = Vector.concatinate(0, Vector.pow(x, 2), Vector.multiply(x, y), Vector.pow(y, 2), x, y)
 		let X = Vector.transpose(X_prime)
         let row_sum = [0, 0, 0, 0, 0]
     	for(let i = 0; i < n_points; i++){
     		row_sum = Vector.add(row_sum, X[i])
     	}
+        
     	let coeffs = Vector.matrix_multiply(row_sum, Vector.inverse(Vector.matrix_multiply(X_prime, X)))[0]
 		results.coeffs = coeffs
         let a = coeffs[0]
@@ -2602,9 +2608,12 @@ var Vector = new function(){
         let e = coeffs[4]
         let f = coeffs[5]
         
+        //debugger
+        
         let cos_phi, sin_phi
+        let orientation_rad
         if(Math.min(Math.abs(b/a), Math.abs(b/c)) > orientation_tolerance ){
-    		let orientation_rad = 1/2 * Math.atan(b/(c-a))
+    		orientation_rad = 1/2 * Math.atan(b/(c-a))
     		cos_phi = Math.cos( orientation_rad )
     		sin_phi = Math.sin( orientation_rad )
         	a = a*cos_phi*cos_phi - b*cos_phi*sin_phi + c*sin_phi*sin_phi
@@ -2622,6 +2631,7 @@ var Vector = new function(){
 		
         
         let test = a*c
+        /*
         switch(test){
         	case (test > 0):
             	results.shape = "Ellipse"	
@@ -2633,6 +2643,22 @@ var Vector = new function(){
             	results.shape = "Hyperbola"
             break
         }
+        */
+        if(test > 0){
+        	results.shape = "Ellipse"	
+        }else if(test == 0){
+        	results.shape = "Paraboloa"	
+        }else if(test < 0){
+        	results.shape = "Hyperbola"
+        }else{
+        	out("x_data:", "red")
+            out(x_data, "red")
+            out("y_data:", "red")
+            out(y_data, "red")
+        	dde_error("Vector.ellipse_fit() recieved bad data. ^ Data printed above ^")
+        }
+        
+        
 
 
 		if (test>0){
@@ -2659,7 +2685,7 @@ var Vector = new function(){
 		let P_in = Vector.matrix_multiply(R, [[x_center], [y_center]])
     	let X0_in = P_in[0]
     	let Y0_in = P_in[1]
-    
+    	
     	//results.x0_in_center = X0_in[0]
         //results.y0_in_center = Y0_in[0]
         results.coeffs = coeffs
@@ -2735,8 +2761,8 @@ new TestSuite("Vector Library - Matrix Math",
     ["Vector.properly_define_point([[10], [20], [30]])", "[[10], [20], [30], [1]]"],
     ["Vector.properly_define_point([[10, 20, 30], [10, 20, 30], [10, 20, 30]])", "[[10, 10, 10], [20, 20, 20], [30, 30, 30], [1, 1, 1]]"],
     ["Vector.make_pose()", "[[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]"],
-    ["Vector.make_pose([10, 20, 30], [45, 0, 0])", "[[0.7071067811865476, 0.7071067811865475, 0, 10], [-0.7071067811865475, 0.7071067811865476, 0, 20], [0, 0, 1, 30], [0, 0, 0, 1]]"],
-    ["Vector.identity_matrix(4)", "[[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]"],
+    ["Vector.make_pose([10, 20, 30], [45, 0, 0])", "[ [0.7071067811865476, 0.7071067811865475, 0, 10], [-0.7071067811865475, 0.7071067811865476, 0, 20], [0, 0, 1, 30], [0, 0, 0, 1]]"],
+	["Vector.identity_matrix(4)", "[[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]"],
     ["Vector.identity_matrix(2)", "[[1, 0], [0, 1]]"],
     ["Vector.rotate_DCM(Vector.identity_matrix(3), [1, 0, 0], 90)", "[[1, 0, 0], [0, 0, -1], [0, 1, 0]]"],
     ['Vector.rotate_pose(Vector.make_pose(), "Z", 90, [10, 0, 0])', "[ [0, -1, 0, 10], [1, 0, 0, -10], [0, 0, 1, 0], [0, 0, 0, 1]]"],
