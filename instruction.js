@@ -147,12 +147,20 @@ Instruction.labels = [
 "INSTRUCTION_ID",     // 1
 "START_TIME",         // 2
 "STOP_TIME",          // 3 //END_TIME is better in this context BUT stop_time, stop_reason is used in Jobs and I wanted to be consistent with that.
-"INSTRUCTION_TYPE",   // 4
-"INSTRUCTION_ARG0",    // 5
-"INSTRUCTION_ARG1",    // 6
-"INSTRUCTION_ARG2",    // 7
-"INSTRUCTION_ARG3",    // 8
-"INSTRUCTION_ARG4",    // 9
+"INSTRUCTION_TYPE",   // 4 //ie "oplet"
+"INSTRUCTION_ARG0",   // 5
+"INSTRUCTION_ARG1",   // 6
+"INSTRUCTION_ARG2",   // 7
+"INSTRUCTION_ARG3",   // 8
+"INSTRUCTION_ARG4",   // 9
+"INSTRUCTION_ARG5",   // 10
+"INSTRUCTION_ARG6",   // 11
+"INSTRUCTION_ARG7",   // 12
+"INSTRUCTION_ARG8",   // 13
+"INSTRUCTION_ARG9",   // 14
+"INSTRUCTION_ARG10",  // 15
+"INSTRUCTION_ARG11",  // 16
+"INSTRUCTION_ARG12"   // 17 //used in Socket.js instruction_array_degrees_to_arcseconds_maybe for "T"
 ] // and after those come the arguments to the instruction.
 
 for (let i = 0; i < Instruction.labels.length; i++){
@@ -179,8 +187,7 @@ function make_ins(instruction_type, ...args){
     let result = new Array(Instruction.INSTRUCTION_TYPE)
     result.push(instruction_type)
     if (args.length === 0) { return result } //avoids generating the garbage that concat with an arg of an empty list would for this common case, ie for "g" ahd "h" instructions
-    else { return result.concat(args) }
-    return result.concat(args)
+    else                   { return result.concat(args) }
 }
 //to_source_code_insruction_array(isntr_array) //inplemented in to_source_code.js
 
@@ -2498,15 +2505,21 @@ Instruction.Control.wait_until = class wait_until extends Instruction.Control{
 }
 
 Instruction.Control.move_all_joints = class move_all_joints extends Instruction.Control{
-    constructor (array_of_5_angles) {
+    constructor (array_of_angles, robot) {
         super()
-        this.array_of_5_angles = array_of_5_angles //keep for orig 5 angles so to_source_code can use them. May contain nulls
+        this.array_of_angles = array_of_angles //keep for orig 5 angles so to_source_code can use them. May contain nulls
+        this.robot = robot
     }
     do_item (job_instance){
-        let angles = this.array_of_5_angles.slice(0)
-        for (var i = 0; i < 5; i++){
-            if (angles[i] == null){
-                angles[i] = job_instance.robot.angles[i] //this.robot_status[Dexter.ds_j0_angle_index + i] //ie don't change angle
+        if(!this.robot) { this.robot = job_instance.robot }
+        let angles = this.array_of_angles.slice(0)
+        for (var i = 0; i < 7; i++){
+            let ang = angles[i]
+            if (ang == null){
+                angles[i] = this.robot.angles[i] //this.robot_status[Dexter.ds_j0_angle_index + i] //ie don't change angle
+            }
+            else if (Array.isArray(ang)) {  //relative move by the first elt of the array
+                angles[i] = this.robot.angles[i] + ang[0]
             }
         }
         let error_mess = Dexter.joints_out_of_range(angles)
@@ -2517,32 +2530,40 @@ Instruction.Control.move_all_joints = class move_all_joints extends Instruction.
             job_instance.set_up_next_do(0)
         }
         else  {
-            job_instance.robot.angles = angles
-            job_instance.insert_single_instruction(make_ins("a", ...angles))
-            job_instance.set_up_next_do(1)
+            this.robot.angles = angles
+            //job_instance.insert_single_instruction(make_ins("a", ...angles))
+            job_instance.wait_until_instruction_id_has_run = job_instance.program_counter
+            job_instance.send(make_ins("a", ...angles), this.robot)
+            //job_instance.set_up_next_do(1) //effectively done in robot_done_with_instruction
         }
     }
     toString(){
-        return "{instanceof: move_all_joints " + this.array_of_5_angles + "}"
+        return "{instanceof: move_all_joints " + this.array_of_angles + "}"
     }
     to_source_code(args={indent:""}){
         args = jQuery.extend({}, args)
-        args.value = this.array_of_5_angles
+        args.value = this.array_of_angles
         args.indent = ""
         return args.indent + "Dexter.move_all_joints(" + to_source_code(args) + ")"
     }
 }
 
 Instruction.Control.pid_move_all_joints = class pid_move_all_joints extends Instruction.Control{
-    constructor (array_of_5_angles) {
+    constructor (array_of_angles, robot) {
         super()
-        this.array_of_5_angles = array_of_5_angles //keep for orig 5 angles so to_source_code can use them. May contain nulls
+        this.array_of_angles = array_of_angles //keep for orig 5 angles so to_source_code can use them. May contain nulls
+        this.robot = robot
     }
     do_item (job_instance){
-        let angles = this.array_of_5_angles.slice(0)
-        for (var i = 0; i < 5; i++){
-            if (angles[i] == null){
-                angles[i] = job_instance.robot.angles[i] //this.robot_status[Dexter.ds_j0_angle_index + i] //ie don't change angle
+        if(!this.robot) { this.robot = job_instance.robot }
+        let angles = this.array_of_angles.slice(0)
+        for (var i = 0; i < 7; i++){
+            let ang = angles[i]
+            if (ang == null){
+                angles[i] = this.robot.pid_angles[i] //this.robot_status[Dexter.ds_j0_angle_index + i] //ie don't change angle
+            }
+            else if (Array.isArray(ang)) {  //relative move by the first elt of the array
+                angles[i] = this.robot.pid_angles[i] + ang[0]
             }
         }
         let error_mess = Dexter.joints_out_of_range(angles)
@@ -2553,35 +2574,50 @@ Instruction.Control.pid_move_all_joints = class pid_move_all_joints extends Inst
             job_instance.set_up_next_do(0)
         }
         else  {
-            job_instance.robot.angles = angles
-            job_instance.insert_single_instruction(make_ins("P", ...angles))
-            job_instance.set_up_next_do(1)
+            //doesn't change the length of robot.pid_angles which is expected to be 7.
+            //uses whatever new angles have come in and leaves the others (typically 6 & 7
+            //the same as they were.
+            for(let i = 0; i < angles.length; i++) {
+                this.robot.pid_angles[i] = angles[i]
+            }
+            //job_instance.insert_single_instruction(make_ins("P", ...angles))
+            job_instance.wait_until_instruction_id_has_run = job_instance.program_counter
+            job_instance.send(make_ins("P", ...angles), this.robot)
+            // job_instance.set_up_next_do(1) //called by robot_done_with_instruction
         }
     }
     toString(){
-        return "{instanceof: pid_move_all_joints " + this.array_of_5_angles + "}"
+        return "{instanceof: pid_move_all_joints " + this.array_of_angles + "}"
     }
     to_source_code(args={indent:""}){
         args        = jQuery.extend({}, args)
-        args.value  = this.array_of_5_angles
+        args.value  = this.array_of_angles
         args.indent = ""
         return args.indent + "Dexter.pid_move_all_joints(" + to_source_code(args) + ")"
     }
 }
 
 Instruction.Control.move_all_joints_relative = class move_all_joints_relative extends Instruction.Control{
-    constructor (delta_angles) {
+    constructor (delta_angles, robot) {
         super()
         this.delta_angles = delta_angles //keep for orig 5 angles so to_source_code can use them. May contain nulls
+        this.robot = robot
     }
     do_item (job_instance){
+        if(!this.robot) { this.robot = job_instance.robot }
         const abs_angles = []
-        for(var i = 0; i < 5; i++){
-            abs_angles.push(job_instance.robot.angles[i] + this.delta_angles[i])
+        for(var i = 0; i < this.robot.angles.length; i++){
+            let delta_ang = this.delta_angles[i]
+            if (delta_ang === undefined) { delta_ang = 0 }
+            abs_angles.push(this.robot.angles[i] + delta_ang)
         }
         //Job.insert_instruction(Dexter.move_all_joints(abs_angles), {job: job_instance, offset: "after_program_counter"})
-        job_instance.insert_single_instruction(Dexter.move_all_joints(abs_angles))
-        job_instance.set_up_next_do(1)
+        //job_instance.insert_single_instruction(Dexter.move_all_joints(abs_angles))
+
+        this.robot.angles = abs_angles
+        job_instance.wait_until_instruction_id_has_run = job_instance.program_counter
+        job_instance.send(make_ins("a", ...abs_angles), this.robot)
+        //job_instance.set_up_next_do(1) //called by robot_done_with_instruction
     }
     toString(){
         return "{instanceof: move_all_joints_relative " + this.delta_angles + "}"
@@ -2598,15 +2634,22 @@ Instruction.Control.move_to = class move_to extends Instruction.Control{
     constructor (xyz           = [],
                  J5_direction  = [0, 0, -1],
                  config        = Dexter.RIGHT_UP_OUT,
-                 workspace_pose = null //default's to the job's default_workspace_pos
+                 workspace_pose = null, //default's to the job's default_workspace_pose
+                 j6_angle = [0], //default is to move relatively 0, ie don't change
+                 j7_angle = [0],
+                 robot
                  ){
         super()
         this.xyz            = xyz
         this.J5_direction   = J5_direction
         this.config         = config
-        this.workspace_pose = workspace_pose
+        this.workspace_pose = ((workspace_pose === null) ? undefined : workspace_pose)
+        this.j6_angle       = j6_angle
+        this.j7_angle       = j7_angle
+        this.robot          = robot
        }
     do_item (job_instance){
+        if(!this.robot) { this.robot = job_instance.robot }
         let xyz          = this.xyz
         let J5_direction = this.J5_direction
         let config       = this.config
@@ -2617,7 +2660,7 @@ Instruction.Control.move_to = class move_to extends Instruction.Control{
             J5_direction = this.xyz[1]
             config       = this.xyz[2]
         }
-        let [existing_xyz, existing_direction, existing_config] = Kin.J_angles_to_xyz(job_instance.robot.angles, job_instance.robot.pose) //just to get defaults.
+        let [existing_xyz, existing_direction, existing_config] = Kin.J_angles_to_xyz(this.robot.angles, this.robot.pose) //just to get defaults.
         if(J5_direction === null) { J5_direction = existing_direction }
         if(config       === null) { config       = existing_config }
         if(Array.isArray(J5_direction) &&
@@ -2632,8 +2675,10 @@ Instruction.Control.move_to = class move_to extends Instruction.Control{
         }
         let xyz_copy = xyz.slice(0)
         for(let i = 0; i < 3; i++){
-            if (xyz_copy.length <= i)     { xyz_copy.push(existing_xyz[i]) }
-            else if (xyz_copy[i] == null) { xyz_copy[i] = existing_xyz[i]  }
+            let new_x_y_or_z = xyz_copy[i]
+            if (xyz_copy.length <= i)             { xyz_copy.push(existing_xyz[i]) }
+            else if (new_x_y_or_z == null)        { xyz_copy[i] = existing_xyz[i]  } //does not hit if new_x_y_or_z is 0
+            else if (Array.isArray(new_x_y_or_z)) { xyz_copy[i] = existing_xyz[i] + new_x_y_or_z[0] } //relative "new val"
         }
 
         if(pose == null) { pose = job_instance.default_workspace_pose }
@@ -2656,7 +2701,7 @@ Instruction.Control.move_to = class move_to extends Instruction.Control{
         let angles
         try {
             angles = Kin.xyz_to_J_angles(xyz_copy, J5_direction, config, pose) //was: job_instance.robot.pose
-
+            //angles is now 5 long
         }
         catch(err){
             job_instance.stop_for_reason("errored",
@@ -2677,10 +2722,20 @@ Instruction.Control.move_to = class move_to extends Instruction.Control{
             job_instance.set_up_next_do(0)
         }
         else {
-            job_instance.robot.angles       = angles
+            if(Array.isArray(this.j6_angle)) {
+                angles.push(this.robot.angles[5] + this.j6_angle[0])
+            }
+            else { angles.push(this.j6_angle) }
+            if(Array.isArray(this.j7_angle)) {
+                angles.push(this.robot.angles[6] + this.j7_angle[0])
+            }
+            else { angles.push(this.j7_angle) }
+            this.robot.angles       = angles
             //Job.insert_instruction(make_ins("a", ...angles), {job: job_instance, offset: "after_program_counter"})
-            job_instance.insert_single_instruction(make_ins("a", ...angles))
-            job_instance.set_up_next_do(1)
+            //job_instance.insert_single_instruction(make_ins("a", ...angles))
+            job_instance.wait_until_instruction_id_has_run = job_instance.program_counter
+            job_instance.send(make_ins("a", ...angles), this.robot)
+            //job_instance.set_up_next_do(1) //effectively done in robot_done_with_instruction
         }
     }
 
@@ -2711,15 +2766,21 @@ Instruction.Control.pid_move_to = class pid_move_to extends Instruction.Control{
     constructor (xyz           = [],
                  J5_direction  = [0, 0, -1],
                  config        = Dexter.RIGHT_UP_OUT,
-                 workspace_pose = null //default's to the job's default_workspace_pos
+                 workspace_pose = undefined, //default's to the job's default_workspace_pos
+                 j6_angle = [0], //default is to move relatively 0, ie don't change
+                 j7_angle = [0],
+                 robot
                  ){
         super()
         this.xyz            = xyz
         this.J5_direction   = J5_direction
         this.config         = config
-        this.workspace_pose = workspace_pose
+        this.workspace_pose = ((workspace_pose === null) ? undefined : workspace_pose)
+        this.j6_angle       = j6_angle
+        this.j7_angle       = j7_angle
     }
     do_item (job_instance){
+        if(!this.robot) { this.robot = job_instance.robot }
         let xyz          = this.xyz
         let J5_direction = this.J5_direction
         let config       = this.config
@@ -2730,7 +2791,7 @@ Instruction.Control.pid_move_to = class pid_move_to extends Instruction.Control{
             J5_direction = this.xyz[1]
             config       = this.xyz[2]
         }
-        let [existing_xyz, existing_direction, existing_config] = Kin.J_angles_to_xyz(job_instance.robot.angles, job_instance.robot.pose) //just to get defaults.
+        let [existing_xyz, existing_direction, existing_config] = Kin.J_angles_to_xyz(this.robot.pid_angles, this.robot.pose) //just to get defaults.
         if(J5_direction === null) { J5_direction = existing_direction }
         if(config       === null) { config       = existing_config }
         if(Array.isArray(J5_direction) &&
@@ -2745,8 +2806,10 @@ Instruction.Control.pid_move_to = class pid_move_to extends Instruction.Control{
         }
         let xyz_copy = xyz.slice(0)
         for(let i = 0; i < 3; i++){
-            if (xyz_copy.length <= i)     { xyz_copy.push(existing_xyz[i]) }
-            else if (xyz_copy[i] == null) { xyz_copy[i] = existing_xyz[i]  }
+            let new_x_y_or_z = xyz_copy[i]
+            if      (xyz_copy.length <= i)        { xyz_copy.push(existing_xyz[i]) }
+            else if (xyz_copy[i] == null)         { xyz_copy[i] = existing_xyz[i]  }
+            else if (Array.isArray(new_x_y_or_z)) { xyz_copy[i] = existing_xyz[i] + new_x_y_or_z[0] } //relative "new val"
         }
         if(pose == null) { pose = job_instance.default_workspace_pose }
         if (Object.isNewObject(pose)) { pose = pose.pose }
@@ -2768,6 +2831,7 @@ Instruction.Control.pid_move_to = class pid_move_to extends Instruction.Control{
         let angles
         try {
             angles = Kin.xyz_to_J_angles(xyz_copy, J5_direction, config, pose) //job_instance.robot.pose
+            //angles is now 5 long
         }
         catch(err){
             //job_instance.stop_for_reason("errored",
@@ -2787,10 +2851,20 @@ Instruction.Control.pid_move_to = class pid_move_to extends Instruction.Control{
             job_instance.set_up_next_do(0)
         }
         else{
-            job_instance.robot.angles       = angles
+            if(Array.isArray(this.j6_angle)) {
+                angles.push(this.robot.pid_angles[5] + this.j6_angle[0])
+            }
+            else { angles.push(this.j6_angle) }
+            if(Array.isArray(this.j7_angle)) {
+                angles.push(this.robot.pid_angles[6] + this.j7_angle[0])
+            }
+            else { angles.push(this.j7_angle) }
+            this.robot.pid_angles       = angles  //angles is 7 long
             //Job.insert_instruction(make_ins("P", ...angles), {job: job_instance, offset: "after_program_counter"})
-            job_instance.insert_single_instruction(make_ins("P", ...angles))
-            job_instance.set_up_next_do(1)
+            //job_instance.insert_single_instruction(make_ins("P", ...angles))
+            job_instance.wait_until_instruction_id_has_run = job_instance.program_counter
+            job_instance.send(make_ins("P", ...angles), this.robot)
+            //job_instance.set_up_next_do(1) //called by robot_done_with_instruction
         }
     }
 
@@ -2817,21 +2891,27 @@ Instruction.Control.pid_move_to = class pid_move_to extends Instruction.Control{
     }
 }
 Instruction.Control.move_to_relative = class move_to_relative extends Instruction.Control{
-    constructor (delta_xyz = [0, 0, 0], workspace_pose = null){
+    constructor (delta_xyz = [0, 0, 0], workspace_pose=undefined, j6_delta_angle=0, j7_delta_angle=0, robot){
         super()
         if (delta_xyz.length == 1) {
             delta_xyz.push(0)
             delta_xyz.push(0)
         }
         else if (delta_xyz.length == 2) {  delta_xyz.push(0) }
-        this.delta_xyz = delta_xyz
+        this.delta_xyz      = delta_xyz
+        this.workspace_pose = ((workspace_pose === null)? undefined : workspace_pose)
+        this.j6_delta_angle = j6_delta_angle
+        this.j7_delta_angle = j7_delta_angle
+        this.robot          = robot
     }
     do_item(job_instance){
-        let [old_xyz, J5_direction, config] = Kin.J_angles_to_xyz(job_instance.robot.angles, job_instance.robot.pose)
+        if(!this.robot) { this.robot = job_instance.robot }
+        let [old_xyz, J5_direction, config] = Kin.J_angles_to_xyz(this.robot.angles, this.workspace_pose) //job_instance.robot.pose
         let new_xyz = Vector.add(old_xyz, this.delta_xyz) //makes a new array
         let angles
         try {
-            angles = Kin.xyz_to_J_angles(new_xyz, J5_direction, config, workspace_pose) //job_instance.robot.pose)
+            angles = Kin.xyz_to_J_angles(new_xyz, J5_direction, config, this.workspace_pose) //job_instance.robot.pose)
+            //now of length 5
         }
         catch(err){
             job_instance.stop_for_reason("errored",
@@ -2842,6 +2922,9 @@ Instruction.Control.move_to_relative = class move_to_relative extends Instructio
             job_instance.set_up_next_do(0)
             return
         }
+        angles.push(this.robot.angles[5] + this.j6_delta_angle)
+        angles.push(this.robot.angles[6] + this.j7_delta_angle)
+
         let error_mess = Dexter.joints_out_of_range(angles)
         if (error_mess){ // a string like "Joint 1 with angle: 0.01 is less than the minimum: 30
             job_instance.stop_for_reason("errored",
@@ -2852,8 +2935,10 @@ Instruction.Control.move_to_relative = class move_to_relative extends Instructio
         else{
             this.robot.angles = angles
             //return make_ins("a", ...angles) // Dexter.move_all_joints(angles)
-            job_instance.insert_single_instruction(make_ins("a", ...angles))
-            job_instance.set_up_next_do(1)
+            //job_instance.insert_single_instruction(make_ins("a", ...angles))
+            job_instance.wait_until_instruction_id_has_run = job_instance.program_counter
+            job_instance.send(make_ins("a", ...angles), this.robot)
+            //job_instance.set_up_next_do(1) //called by robot_done_with_instruction
         }
     }
     toString(){
@@ -2868,41 +2953,101 @@ Instruction.Control.move_to_relative = class move_to_relative extends Instructio
 }
 
 Instruction.Control.move_to_straight = class move_to_straight extends Instruction.Control{
-    constructor (xyz           = [],
-                 J5_direction  = [0, 0, -1],
-                 config        = Dexter.RIGHT_UP_OUT,
-                 tool_speed    = 5*_mm / _s,
-                 resolution    = 0.5*_mm) {
+    constructor ({xyz           = [],
+                 J5_direction   = [0, 0, -1],
+                 config         = Dexter.RIGHT_UP_OUT,
+                 workspace_pose = undefined,
+                 tool_speed     = 5*_mm / _s,
+                 resolution     = 0.5*_mm,
+                 j6_angle       = [0],
+                 j7_angle       = [0],
+                 single_instruction = false, //false means make up all the make_ins for this here in DDE,
+                                             //true means create just 1 make_ins "T" instruction
+                 robot}) {
         super()
-        this.xyz = xyz
-        this.J5_direction = J5_direction
-        this.config = config
-        this.tool_speed = tool_speed
-        this.resolution = resolution
+        this.xyz            = xyz
+        this.J5_direction   = J5_direction
+        this.config         = config
+        this.workspace_pos  = ((workspace_pose === null) ? undefined : workspace_pose)
+        this.tool_speed     = tool_speed
+        this.resolution     = resolution
+        this.j6_angle       = j6_angle
+        this.j7_angle       = j7_angle
+        this.single_instruction = single_instruction
+        this.robot          = robot
     }
     do_item (job_instance){
-        let [old_xyz, old_J5_direction, old_config] = Kin.J_angles_to_xyz(job_instance.robot.angles,
-            job_instance.robot.pose)
-        try {
-            let instrs = this.move_to_straight_aux(old_xyz,
-                this.xyz,
-                this.J5_direction, this.config,
-                this.tool_speed,
-                this.resolution,
-                job_instance.robot.pose)
-            //Job.insert_instruction(instrs, {job: job_instance, offset: "after_program_counter"})
-            job_instance.insert_instructions(instrs)
-            job_instance.set_up_next_do(1)
+        if(!this.robot) { this.robot = job_instance.robot }
+        let [existing_xyz, existing_J5_direction, existing_config] =
+             Kin.J_angles_to_xyz(this.robot.angles, this.robot.pose)
+        let xyz_copy = this.xyz.slice(0)
+        for(let i = 0; i < 3; i++){
+            let new_x_y_or_z = xyz_copy[i]
+            if (xyz_copy.length <= i)             { xyz_copy.push(existing_xyz[i]) }
+            else if (new_x_y_or_z == null)        { xyz_copy[i] = existing_xyz[i]  } //does not hit if new_x_y_or_z is 0
+            else if (Array.isArray(new_x_y_or_z)) { xyz_copy[i] = existing_xyz[i] + new_x_y_or_z[0] } //relative "new val"
         }
+        let angles
+        try { angles = Kin.xyz_to_J_angles(xyz_copy, this.J5_direction, this.config, this.robot.pose)} //job_instance.robot.pose ?
         catch(err){
             job_instance.stop_for_reason("errored",
-            "In Job." + job_instance.name + " at PC: " + job_instance.program_counter +
-            "Dexter.move_to_straight([" + this.xyz + "])\n" +
-            "passed invalid xyz.\n" +
-            err.message)
+                "In Job." + job_instance.name + " at PC: " + job_instance.program_counter +
+                "\nDexter.move_to_straight([" + this.xyz + "])" +
+                "\ncalled with out of range xyz\n" +
+                err.message)
+            job_instance.set_up_next_do(0)
+            return
+        }
+        let new_j6_angle
+        if(Array.isArray(this.j6_angle)) {
+            new_j6_angle = this.robot.angles[5] + this.j6_angle[0]
+        }
+        else {  new_j6_angle = this.j6_angle }
+        angles.push(new_j6_angle)
+
+        let new_j7_angle
+        if(Array.isArray(this.j7_angle)) {
+            new_j7_angle =  this.robot.angles[6] + this.j7_angle[0]
+        }
+        else { new_j7_angle = this.j7_angle }
+        angles.push(new_j7_angle)
+
+        this.robot.angles = angles
+        if(this.single_instruction) {
+            let ins = make_ins("T",
+                                xyz_copy[0], xyz_copy[1], xyz_copy[2], //args 0, 1, 2
+                                this.J5_direction[0], this.J5_direction[1], this.J5_direction[2],
+                                this.config[0], this.config[1], this.config[2],
+                                this.tool_speed, this.resolution,
+                                new_j6_angle, new_j7_angle) //args 11, 12
+            job_instance.wait_until_instruction_id_has_run = job_instance.program_counter
+            job_instance.send(ins, this.robot)
+            //job_instance.set_up_next_do(1) //will be called by robot_done_with_instruction
+        }
+        else {
+            try {
+                let instrs = this.move_to_straight_aux(existing_xyz,
+                                                        xyz_copy,
+                                                        this.J5_direction,
+                                                        this.config,
+                                                        this.robot.pose,
+                                                        this.tool_speed,
+                                                        this.resolution,
+                                                        this.robot)
+                //Job.insert_instruction(instrs, {job: job_instance, offset: "after_program_counter"})
+                job_instance.insert_instructions(instrs)
+                job_instance.set_up_next_do(1)
+            }
+            catch(err){
+                job_instance.stop_for_reason("errored",
+                "In Job." + job_instance.name + " at PC: " + job_instance.program_counter +
+                "Dexter.move_to_straight([" + this.xyz + "])\n" +
+                "passed invalid xyz.\n" +
+                err.message)
+            }
         }
     }
-    move_to_straight_aux (xyz_1, xyz_2, J5_direction, config, tool_speed = 5*_mm / _s, resolution = .5*_mm, robot_pose){
+    move_to_straight_aux (xyz_1, xyz_2, J5_direction, config,  robot_pose, tool_speed = 5*_mm / _s, resolution = .5*_mm, robot){
         let movCMD = []
         let U1 = xyz_1
         let U2 = xyz_2
@@ -2926,6 +3071,7 @@ Instruction.Control.move_to_straight = class move_to_straight extends Instructio
             movCMD.push(make_ins("S", "MaxSpeed", angular_velocity))
             movCMD.push(make_ins("S", "StartSpeed", angular_velocity))
             movCMD.push(Dexter.move_to(Ui, J5_direction, config, robot_pose))
+            movCMD.push(robot)
         }
         return movCMD
     }

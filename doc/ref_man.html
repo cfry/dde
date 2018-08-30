@@ -116,6 +116,9 @@
             The default works fine for most plain text files, including .js files.
             <p></p>
             <b>Example:</b> <code>file_content("dde_init.js")</code>
+            <p></p>
+            See <a href="#" onclick="open_doc(load_files_doc_id)">load_files</a>
+            for grabbing the file contents, then evaling it.
         </details> <!-- end file_content -->
 
         <details id="Editor.edit_file_doc_id" style="margin-left:40px;"><summary>Editor.edit_file</summary>
@@ -178,6 +181,9 @@
             <p></p>
             It is conventional to use a file extension of ".js" for files containing JavaScript,
             but not strictly necessary.
+            <p></p>
+            See <a href="#" onclick="open_doc(file_content_doc_id)">file_content</a>
+            for getting the file contents as a string but not evaling it.
         </details> <!-- end load_files  -->
 
         <details id="loading_file_doc_id" style="margin-left:40px;"><summary>loading_file</summary>
@@ -5103,9 +5109,9 @@ values in degrees<br/>
 <code>Dexter.J5_ANGLE_MAX</code> => <samp>185</samp><br/>
 
 <code>Dexter.RIGHT_ANGLE</code> => <samp>90</samp><br/>
-<code>Dexter.HOME_ANGLES</code> => <samp>[0, 0, 0, 0, 0]</samp> degrees j2,3,4 straight up. link 5 horizontal pointing frontwards.<br/>
-<code>Dexter.NEUTRAL_ANGLES</code> => <samp>[0, 45, 90, -45, 0]</samp><br/>
-<code>Dexter.PARKED_ANGLES</code> => <samp>[0, 0, 135, 45, 0 ]</samp><br/>
+<code>Dexter.HOME_ANGLES</code> => <samp>[0, 0, 0, 0, 0, 0, 0]</samp> degrees j2,3,4 straight up. link 5 horizontal pointing frontwards.<br/>
+<code>Dexter.NEUTRAL_ANGLES</code> => <samp>[0, 45, 90, -45, 0, 0, 0]</samp><br/>
+<code>Dexter.PARKED_ANGLES</code> => <samp>[0, 0, 135, 45, 0, 0, 0]</samp><br/>
 <p></p>
 First array of 3 values is in meters,<br/>2nd is J5_direction,<br/>3rd is config.</i><br/>
 <code>Dexter.HOME_POSITION</code> => <samp>[[0, 0.08255, 0.866775],[0, 1, 0], [1, 1, 1]]</samp><br/>

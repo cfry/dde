@@ -213,15 +213,19 @@ ipc.on('get_page', function(event, url_or_options){
 })
 
 ipc.on('show_page', function(event, url, options={width: 800, height: 600}){
-    //onsole.log("in show_page in main.js with url:  " + url + " options: " + JSON.stringify(options))
+    console.log("in show_page in main.js with url:  " + url + " options: " + JSON.stringify(options))
 
     try{
         let win = new BrowserWindow(options)
         win.loadURL(url)
+        //win.loadUrl("data:text/html;charset=utf-8," + encodeURI("<body><i>hillo</i></body>"));
+
         win.show()
+
         event.returnValue = null
+
     }
-    catch(err) { evnt.return_value = "Error: " + err }
+    catch(err) { event.return_value = "Error: " + err }
 })
 
 // see https://github.com/konsumer/electron-prompt/blob/master/main.js

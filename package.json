@@ -1,8 +1,8 @@
 {
   "name": "dexter_dev_env",
   "productName": "dexter_dev_env",
-  "version": "2.4.6",
-  "release_date": "Aug 3, 2018",
+  "version": "2.5.0",
+  "release_date": "Aug 29, 2018",
   "description": "Dexter Development Environment",
   "author": "Fry",
   "license": "GPL-3.0",
@@ -23,6 +23,7 @@
   ],
   "dependencies": {
     "awesomplete": "^1.1.2",
+    "chart.js": "^2.7.2",
     "electron-context-menu": "^0.8.0",
     "eslint": "^3.14.1",
     "esprima": "^3.1.3",

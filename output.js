@@ -335,20 +335,22 @@ window.show_window = function({content = "", title = "DDE Information", width = 
             '</div>'
         var window_elt = holder_div.firstElementChild
         //body_id.appendChild(window_elt) //this is automatically done when I call jqxw_jq.jqxWindow({width:width below
-        var jqxw_jq = $(window_elt).jqxWindow({width: width, height: height,
-            position: {x: x, y: y},
-            //autoOpen: true, //open window upon creation, always
-            isModal: is_modal, //default false
-            showCloseButton: show_close_button, //default true but may want to turn off
-            // IFF you want to always close the window with your own submit button and do some action whenever window closes.
-            //otherwise, user could click the close button and it wouldn't run user code assocaited with their own submit button.
-            showCollapseButton: show_collapse_button, //default true
-            showAnimationDuration: 500,
-            closeAnimationDuration: 500, //doesn't work. its always 0
-            collapseAnimationDuration:500,
-            maxHeight: 2000, maxWidth: 2000,
-            resizable: resizable
-            }) //default maxWidth = 800, default maxHeight=600
+        var jqxw_jq = $(window_elt).jqxWindow({width: width,
+                                                height: height,
+                                                position: {x: x, y: y},
+                                                //autoOpen: true, //open window upon creation, always
+                                                isModal: is_modal, //default false
+                                                showCloseButton: show_close_button, //default true but may want to turn off
+                                                // IFF you want to always close the window with your own submit button and do some action whenever window closes.
+                                                //otherwise, user could click the close button and it wouldn't run user code assocaited with their own submit button.
+                                                showCollapseButton: show_collapse_button, //default true
+                                                showAnimationDuration: 500,
+                                                closeAnimationDuration: 500, //doesn't work. its always 0
+                                                collapseAnimationDuration:500,
+                                                maxHeight: 2000,
+                                                maxWidth: 2000,
+                                                resizable: resizable
+                                                }) //default maxWidth = 800, default maxHeight=600
         if (window_class){jqxw_jq.addClass(window_class)} //used by app_builder
         let the_window_index = set_window_index(jqxw_jq, title)
         jqxw_jq.on('close', function (event) { jqxw_jq.remove() }); //handles both the removal from a submit button AND the removal from usre hitting the upper right close box.

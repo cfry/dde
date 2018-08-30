@@ -210,7 +210,7 @@ show_window({content:
  <tr><td><input type="button" value="move_to" title="Dexter.move_to(xyz, ...)"/> 
          <input type="button" value="rel" name="move_to_relative" title="Dexter.move_to_relative(delta_xyz)"/>
      </td>
-     <td><input type="button" value="move_all_joints" title="Dexter.move_all_joints(array_of_5_angles)"/>
+     <td><input type="button" value="move_all_joints" title="Dexter.move_all_joints(array_of_angles)"/>
          <input type="button" value="rel" name="move_all_joints_relative" title="Dexter.move_all_joints_relative(delta_angles)"/>
      </td>
      <td><input type="button" value="set_parameter" title="Dexter.set_parameter(name, value)"/></td>

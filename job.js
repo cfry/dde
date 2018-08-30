@@ -1366,7 +1366,10 @@ Job.prototype.send = function(instruction_array, robot){ //if remember is false,
     if (this.keep_history){
         this.sent_instructions.push(instruction_array) //for debugging mainly
     }
-    if (!robot) { robot = this.robot }
+    //if there's both a passed in robot, and one in the instruction_array, prefer
+    //the one in the instruction array
+    if (last(instruction_array) instanceof Robot) { robot = instruction_array.pop() }
+    else if (!robot)                              { robot = this.robot }
     robot.send(instruction_array)
 }
 

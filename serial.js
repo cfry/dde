@@ -403,7 +403,13 @@ function onReceiveErrorCallback(info_from_board, path) {
 function serial_on_done_with_sending(robot_status, path){
     robot_status[Serial.STOP_TIME] = Date.now()
     out("serial_on_done_with_sending with rs: " + robot_status)
-    Serial.robot_done_with_instruction(robot_status)
+    let job_id       = robot_status[Serial.JOB_ID]
+    let job_instance = Job.job_id_to_job_instance(job_id)
+    let ins = ((ins_id >= 0) ? job_instance.do_list[ins_id] : null)
+    let rob
+    if (ins && ins.robot) { rob = ins.robot } //used when instruction src code has a subject of a robot isntance
+    else                  { rob = job_instance.robot } //get the default robot for the job
+    rob.robot_done_with_instruction(robot_status)
 }
 
 function serial_send_extra_item_to_job(string_from_robot, path, is_error=false, info){ //info only needed on UI side.

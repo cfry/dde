@@ -5,6 +5,173 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+
+<details class="doc_details"><summary>v 2.5.0, Aug 29, 2018</summary>
+Highlights: Jobs may run instructions on more than one Dexter.<br/>
+            Support for Joint 6 & Joint 7<br/>
+            Reconfiguration of robot_status 1D array.<br/>
+            New RobotStatus class<br/>
+            move_to_straight extended, including a new "T" oplet for it.
+<p></p>
+<i><b>Lots of low-level software has changed in this release.
+Mostly this is backwards-compatible but there might be a few
+unusual cases where this is not the case.
+<p></p>
+This is a "test" release for Haddington internal testing purposes.
+The extensions in this release will be more formally documented in a subsequent
+release. For now, please make-do with the below.</b></i></li>
+<ul>
+    <li> Ref man entries for load_files and file_content now point at each other.</li>
+
+    <li>Undid first item in 2.4.6 release notes, regarding Sockets because
+        it caused bugs.</li>
+
+    <li>A job may now contain instructions for more than one Dexter.
+        The "move" instructions can take a subject of an instance of a Dexter,<br/>
+        i.e. <code>Robot.dexter0.move_all_joints(1, 2, 3, 4, 5, 6, 7)</code><br/>
+        These instructions don't incur an extra item added to the do_list like
+        they use to so they will be faster.</li>
+
+
+    <li> Most places you use an array or list of joints now take
+         7 joint angles instead of 5.<br/>
+         The "move_to" instructions also take new args for J6 and J7.<br/>
+         J6 is generally the "twist" of the end effector, and<br/>
+         J7 is generally the gripper motor degrees for opening
+           and closing a gripper.</li>
+
+    <li> <code>move_all_joints, pid_move_all_joints, move_all_joints_relative</code>
+        have their
+        params named: <code>array_of_5_angles</code> renamed to <code>array_of_angles</code></li>
+
+
+    <li> Dexter.robot_status_labels  updated:
+<pre><code>Depricated:
+Dexter.DMA_READ_DATA    = 6
+Dexter.READ_BLOCK_COUNT = 7
+
+Dexter.J1_PLAYBACK = 16
+Dexter.J1_SLOPE    = 18
+
+Dexter.J2_PLAYBACK = 26
+Dexter.J2_SLOPE    = 28
+
+Dexter.J3_PLAYBACK = 36
+Dexter.J3_SLOPE    = 38
+
+Dexter.J4_PLAYBACK = 46
+Dexter.J4_SLOPE    = 48
+
+Dexter.J5_PLAYBACK = 56
+Dexter.J5_SLOPE    = 58
+</code></pre>
+</li>
+
+    <li><code>Dexter.J1_FORCE_CALC_ANGLE</code> and on up to <code>J5_FORCE_CALC_ANGLE</code>
+         have been deprecated.
+         Now these values are set to the same index of the new
+         <code>Dexter.J1_MEASURED_ANGLE</code> (and friends)
+         so that asking for the value of the robot_status 1D array at <code>Dexter.J1_FORCE_CALC_ANGLE</code>
+         will now get the value at <code>Dexter.J1_MEASURED_ANGLE</code></li>
+
+    <li>New fields in the 1D robot_status array:
+        <ul><li><code>Dexter.J6_MEASURED_ANGLE</code>
+            <li><code>Dexter.J7_MEASURED_ANGLE</code>
+            <li><code>Dexter.J6_MEASURED_TORQUE</code>
+            <li><code>Dexter.J7_MEASURED_TORQUE</code>
+            <li><code>Dexter.JOB_ID_OF_CURRENT_INSTRUCTION</code>
+            <li><code>Dexter.CURRENT_INSTRUCTION_ID</code>
+        </ul>
+    </li>
+
+    <li> Socket.instruction_array_degrees_to_arcseconds_maybe can now take
+        "a" and "P" instructions with any number of angle args.</li>
+
+    <li><code>make-ins("a" ...)</code> calls now take any number of joint angle args.</li>
+
+    <li> <code>make_ins</code> new optional last arg of a robot_instance,
+        where the instruction is sent. If no such last arg exists,
+        the instrution will be sent to the "default" robot defined
+        in the Job instance.</li>
+
+    <li> <code>Dexter.pid_move_all_angles</code> & <code>Dexter.pid_move_to</code> now consistently
+        get default angles from and set robot.pid_angles.</li>
+
+    <li> <code>move_all_joints</code>, <code>pid_move_all_joints</code>,
+         <code>move_to</code>, <code>pid_move_to</code>, <code>move_to_straight</code>,
+        All default unpassed values for joint angles (or x, y, z) to their
+        previous values.</li>
+
+    <li> If a passed in degree  (or x,y,z) value for a "move" command is
+        wrapped in an array,
+        then the first value of that array is considered to be "relative"
+        and is added to the existing value to come up with the new value.<br/>
+        Example: <br/>
+        <code>Robot.dexter0.move_all_joints(1, [2.5], 3, [4.5], 5, 6, 7)</code>
+        Above the values of 2.5 and 4.5 are <i>relative</i> to the previously
+        commanded degrees for joints 2 and 4.</li>
+
+    <li> <code>Dexter.HOME_ANGLES</code> <code>NEUTRAL_ANGLES</code>, <code>PARKED_ANGLES</code>
+        all are now of length 7 with two zeros on the end.</li>
+
+    <li>New Oplet "T" for the Dexter-side version of <code>Dexter.move_to_straight</code>.
+        Example:<br/>
+        <pre><code>make_ins("T",
+            x, y, z,
+            J5_direction[0], J5_direction[1], J5_direction[2],
+            config[0], config[1], config[2],
+            tool_speed, resolution,
+            j6_angle, j7_angle)</code></pre>
+            with an optional robot_instance as an additional last arg.
+    </li>
+
+    <li> <code>Dexter.move_to_straight</code> instruction has been extended
+         with a new param: <code>single_instruction</code>.
+         Default false. But if true,
+        a <code>make_ins("T" ...)</code> instruction is generated and sent to Dexter
+        instead of a long array of other low level instructions.
+    </li>
+
+    <li>To support the new "T" instruction, the Socket code now converts
+         tool_speed and resolution args from "meters" to "microns",
+         ie they are multiplied by 1,000,000</li>
+
+    <li> move_to_straight's generated make_ins instructions now take
+         a last array elt of the robot instance.</li>
+
+    <li> Bug fix: <code>Dexter.move_to_relative</code>  changed
+       from using <code>job_instance.robot.pose</code>
+        to
+       <code>this.workspace_pose</code></li>
+
+
+    <li> <code>Dexter.move_to_straight</code> now takes a new <code>workspace_pose</code> arg.</li>
+
+    <li> <code>Dexter.move_to_straight</code> now takes keyword args.
+      This is an incompatible change.
+       An explicit error message is displayed when you call move_to_straight with
+       by_position args.</li>
+
+    <li> Bugs fixed in <code>Dexter.move_to_relative</code> with the workspace_pose.
+        It had some params misspelled of "workspace_pos".</li>
+
+    <li> <code>robot.pid_angles</code> used more consistently for the pid instructions.</li>
+
+
+    <li> <code>robot.angles</code> and <code>robot.pid_angles</code> now inited to
+        <code>[0,0,0,0,0,0,0]</code>
+         (was <code>[0,0,0,0,0]</code> ).</li>
+
+    <li>Updated Dexter simulator to the new 7 angles, etc. Fixes to
+         compution duration.</li>
+
+    <li>The "Show Robot Status" dialog box has been updated to the new
+        robot_status fields.</li>
+
+    <li><code>RobotStatus</code> class provides high level access to the robot_status array.</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 2.4.6, Aug 3, 2018</summary>
 Highlghts: Jobs gracefully finish under some conditions of the
 socket connection between DDE and Dexter failing.

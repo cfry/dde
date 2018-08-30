@@ -630,7 +630,7 @@ Serial = class Serial extends Robot {
         if (this.instruction_callback) { this.instruction_callback.call(job_instance) }
     }
 
-    static robot_done_with_instruction(robot_status){ //must be a class method, "called" from UI sockets
+    robot_done_with_instruction(robot_status){ //called from UI sockets
         let stop_time    = Date.now() //the DDE stop time for the instruction, NOT Dexter's stop time for the rs.
 
         let job_id       = robot_status[Serial.JOB_ID]
@@ -643,10 +643,10 @@ Serial = class Serial extends Robot {
         }
         let op_let = robot_status[Serial.INSTRUCTION_TYPE]
         let ins_id = robot_status[Serial.INSTRUCTION_ID] //-1 means the initiating status get, before the first od_list instruction
-        let ins = ((ins_id >= 0) ? job_instance.do_list[ins_id] : null)
-        let rob
-        if (ins && ins.robot) { rob = ins.robot } //used when instruction src code has a subject of a robot isntance
-        else                  { rob = job_instance.robot } //get the default robot for the job
+        //let ins = ((ins_id >= 0) ? job_instance.do_list[ins_id] : null)
+        let rob = this
+        //if (ins && ins.robot) { rob = ins.robot } //used when instruction src code has a subject of a robot isntance
+       // else                  { rob = job_instance.robot } //get the default robot for the job
         //let op_let = String.fromCharCode(op_let_number)
         job_instance.record_sent_instruction_stop_time(ins_id, stop_time)
         if (!rob.is_connected) {} //ignore any residual stuff coming back from Serial robot
@@ -919,8 +919,8 @@ Dexter = class Dexter extends Robot {
         this.waiting_for_heartbeat = false
         this.heartbeat_timeout_obj = null
 
-        this.angles     = [0, 0, 0, 0, 0] //used by move_to_relative, set by move_all_joints, move_to, and move_to_relative
-        this.pid_angles = [0, 0, 0, 0, 0]
+        this.angles     = [0, 0, 0, 0, 0, 0, 0] //used by move_to_relative, set by move_all_joints, move_to, and move_to_relative
+        this.pid_angles = [0, 0, 0, 0, 0, 0, 0]
         this.processing_flush = false //primarily used as a check. a_robot.send shouldn't get called while this var is true
         Robot.set_robot_name(this.name, this)
          //ensures the last name on the list is the latest with no redundancy
@@ -1041,7 +1041,7 @@ Dexter = class Dexter extends Robot {
                             }
 
                         }
-                        else { this_job.send(Dexter.get_robot_status())}
+                        else { this_job.send(Dexter.get_robot_status(), this_robot)}
                     },
                     200)
     }
@@ -1163,7 +1163,7 @@ Dexter = class Dexter extends Robot {
 
     //beware, robot_status could be an ack, can could be called by sim or real AND
     //will be called twice if simulate == "both"
-    static robot_done_with_instruction(robot_status){ //must be a class method, "called" from UI sockets
+    robot_done_with_instruction(robot_status){ //called from UI sockets
         if (!(Array.isArray(robot_status))) {
             throw(TypeError("Dexter.robot_done_with_instruction recieved a robot_status array: " +
                 robot_status + " that is not an array."))
@@ -1191,7 +1191,7 @@ Dexter = class Dexter extends Robot {
             throw new Error("Dexter.robot_done_with_instruction passed job_id: " + job_id +
                 " but couldn't find a Job instance with that job_id.")
         }
-        let rob    = job_instance.robot
+        let rob    = this //job_instance.robot
         let ins_id = robot_status[Dexter.INSTRUCTION_ID] //-1 means the initiating status get, before the first od_list instruction
         let op_let = robot_status[Dexter.INSTRUCTION_TYPE]
         //let op_let = String.fromCharCode(op_let_number)
@@ -1223,12 +1223,8 @@ Dexter = class Dexter extends Robot {
             if (!got_ack){
                 //job_instance.robot_status = robot_status
                 rob.robot_status          = robot_status //thus rob.robot_status always has the latest rs we got from Dexter.
-               // if((ins_id === -1) && (op_let == "g")){
-                   //dont do this rob.angles is the commanded angles, set only in
-                   //move_all_joints and friends. rob.angles is used for getting default angles
-                   //to move_all_joints and friends
-                   // rob.angles = rob.joint_angles() //must happen after rob.robot_status = robot_status because extracts angles from the robot_status which is ok for this FIRST time init of rob.angles
-               // }
+                rob.rs = new RobotStatus({robot_status: robot_status})
+
                 if (job_instance.keep_history && (op_let == "g")){ //don't do it for oplet "G", get_robot_status_immediate
                     job_instance.rs_history.push(robot_status)
                 }
@@ -1427,8 +1423,6 @@ Dexter.dummy_move = function(){
         let X = this.robot.robot_status //Dexter.my_dex.robot_status
         let J_angles = [X[Dexter.J1_ANGLE], X[Dexter.J2_ANGLE], X[Dexter.J3_ANGLE], X[Dexter.J4_ANGLE], X[Dexter.J5_ANGLE]]
         return Dexter.move_all_joints(J_angles)
-        //return Dexter.move_all_joints([0, 0, 0, 0, 0])
-        //return make_ins("P", J_angles)
     })
     return CMD
 }
@@ -1492,32 +1486,38 @@ Dexter.joints_out_of_range = function(J_angles){
     }
 }
 
-Dexter.move_all_joints = function(array_of_5_angles=[]){
-    if (Array.isArray(array_of_5_angles)){ array_of_5_angles = array_of_5_angles.slice(0) }//copy so we don't modify the input array
-    else { array_of_5_angles = Array.prototype.slice.call(arguments) }
+Dexter.prototype.move_all_joints = function(array_of_angles=[]) {
+    return Dexter.move_all_joints(array_of_angles, this)
+}
+
+Dexter.move_all_joints = function(array_of_angles=[], robot){
+    if (Array.isArray(array_of_angles)){ array_of_angles = array_of_angles.slice(0) }//copy so we don't modify the input array
+    else { array_of_angles = Array.prototype.slice.call(arguments) }
     let has_non_nulls = false
-    for(let ang of array_of_5_angles) { if (ang !== null) { has_non_nulls = true; break; } }
+    for(let ang of array_of_angles) { if (ang !== null) { has_non_nulls = true; break; } }
     if (!has_non_nulls) { return null } //means no movement from where it is now so this should do nothing.
-    return new Instruction.Control.move_all_joints(array_of_5_angles)
+    return new Instruction.Control.move_all_joints(array_of_angles, robot)
 }
 
 //the same as move_all_joints but generates a "P" oplet
 
-Dexter.pid_move_all_joints = function(array_of_5_angles=[]){
-    if (Array.isArray(array_of_5_angles)){ array_of_5_angles = array_of_5_angles.slice(0) }//copy so we don't modify the input array
-    else { array_of_5_angles = Array.prototype.slice.call(arguments) }
+Dexter.pid_move_all_joints = function(array_of_angles=[]){
+    if (Array.isArray(array_of_angles)){ array_of_angles = array_of_angles.slice(0) }//copy so we don't modify the input array
+    else { array_of_angles = Array.prototype.slice.call(arguments) }
     let has_non_nulls = false
-    for(let ang of array_of_5_angles) { if (ang !== null) { has_non_nulls = true; break; } }
+    for(let ang of array_of_angles) { if (ang !== null) { has_non_nulls = true; break; } }
     if (!has_non_nulls) { return null }
-    return new Instruction.Control.pid_move_all_joints(array_of_5_angles)
+    return new Instruction.Control.pid_move_all_joints(array_of_angles)
 }
 
 
 //beware, this can't do error checking for out of reach.
 //MAYBE this should be implemented like move_to_relative which can do the error checking.
 
-
-Dexter.move_all_joints_relative = function(delta_angles=[]){
+Dexter.prototype.move_all_joints_relative = function(array_of_angles=[]) {
+    return Dexter.move_all_joints(array_of_angles, this)
+}
+Dexter.move_all_joints_relative = function(delta_angles=[], robot){
     if (Array.isArray(delta_angles)){ delta_angles = delta_angles.slice(0) }//copy so we don't modify the input array
     else { delta_angles = Array.prototype.slice.call(arguments) }
     let has_non_nulls = false
@@ -1530,17 +1530,9 @@ Dexter.move_all_joints_relative = function(delta_angles=[]){
             delta_angles.push(0)
         }
     }
-    return new Instruction.Control.move_all_joints_relative(delta_angles)
+    return new Instruction.Control.move_all_joints_relative(delta_angles, robot)
 }
 
-
-Dexter.move_to_straight = function(xyz           = [],
-                                   J5_direction  = [0, 0, -1],
-                                   config        = Dexter.RIGHT_UP_OUT,
-                                   tool_speed    = 5*_mm / _s,
-                                   resolution    = 0.5*_mm){
-    return new Instruction.Control.move_to_straight(xyz, J5_direction, config, tool_speed, resolution)
-}
 
 
 Dexter.is_position = function(an_array){
@@ -1562,26 +1554,108 @@ Dexter.is_position = function(an_array){
 // xyz New defaults are the cur pos, not straight up.
 // J5_direction  = [0, 0, -1], //end effector pointing down
 //warning: soe valid xyz locations won't be valid with the default J5_direction and config.
+Dexter.prototype.move_to = function(xyz            = [],
+                                    J5_direction   = [0, 0, -1],
+                                    config         = Dexter.RIGHT_UP_OUT,
+                                    workspace_pose = null, //will default to the job's default workspace_pose
+                                    j6_angle       = [0],
+                                    j7_angle       = [0]) {
+    return Dexter.move_to(xyz,
+                         J5_direction,
+                         config,
+                         workspace_pose,
+                         j6_angle,
+                         j7_angle,
+                         this)
+}
 Dexter.move_to = function(xyz            = [],
                           J5_direction   = [0, 0, -1],
                           config         = Dexter.RIGHT_UP_OUT,
-                          workspace_pose = null //will default to the job's default workspace_pose
+                          workspace_pose = null, //will default to the job's default workspace_pose
+                          j6_angle       = [0],
+                          j7_angle       = [0],
+                          robot
                          ){
-       return new Instruction.Control.move_to(xyz, J5_direction, config, workspace_pose)
+       return new Instruction.Control.move_to(xyz, J5_direction, config, workspace_pose, j6_angle, j7_angle, robot)
 }
 
 //the same as move_to but generates a "P" oplet
+Dexter.prototype.pid_move_to = function(xyz        = [],
+                                    J5_direction   = [0, 0, -1],
+                                    config         = Dexter.RIGHT_UP_OUT,
+                                    workspace_pose = null, //will default to the job's default workspace_pose
+                                    j6_angle       = [0],
+                                    j7_angle       = [0]) {
+    return Dexter.pid_move_to(xyz,
+                              J5_direction,
+                              config,
+                              workspace_pose,
+                              j6_angle,
+                              j7_angle,
+                              this)
+}
+
 Dexter.pid_move_to = function(xyz            = [],
                               J5_direction   = [0, 0, -1],
                               config         = Dexter.RIGHT_UP_OUT,
-                              workspace_pose = null //will default to the job's default workspace_pose
+                              workspace_pose = null, //will default to the job's default workspace_pose
+                              j6_angle       = [0],
+                              j7_angle       = [0],
+                              robot
                               ){
-    return new Instruction.Control.pid_move_to(xyz, J5_direction, config, workspace_pose)
+    return new Instruction.Control.pid_move_to(xyz, J5_direction, config, workspace_pose, j6_angle, j7_angle, robot)
 }
 
+Dexter.prototype.move_to_relative = function(delta_xyz = [0, 0, 0], workspace_pose=null,
+                                             j6_delta_angle = 0, j7_delta_angle = 0){
+    return Dexter.move_to_relative(delta_xyz, workspace_pose, j6_delta_angle, j7_delta_angle, this)
+}
+Dexter.move_to_relative = function(delta_xyz = [0, 0, 0], workspace_pose=null, j6_delta_angle=0, j7_delta_angle=0, robot){
+    return new Instruction.Control.move_to_relative(delta_xyz, workspace_pose, j6_delta_angle, j7_delta_angle,  robot)
+}
 
-Dexter.move_to_relative = function(delta_xyz = [0, 0, 0]){
-    return new Instruction.Control.move_to_relative(delta_xyz)
+Dexter.prototype.move_to_straight = function({xyz           = "required",
+                                             J5_direction   = [0, 0, -1],
+                                             config         = Dexter.RIGHT_UP_OUT,
+                                             workspace_pose = null,
+                                             tool_speed     = 5*_mm / _s,
+                                             resolution     = 0.5*_mm,
+                                             j6_angle       = [0],
+                                             j7_angle       = [0],
+                                             single_instruction = false}) {
+    return Dexter.move_to_straight({xyz: xyz,
+                                    J5_direction: J5_direction,
+                                    config: config,
+                                    workspace_pose: workspace_pose,
+                                    tool_speed: tool_speed,
+                                    resolution: resolution,
+                                    j6_angle: j6_angle,
+                                    j7_angle: j7_angle,
+                                    single_instruction: single_instruction,
+                                    robot: this})
+                            }
+
+Dexter.move_to_straight = function({xyz          = "required",
+                                   J5_direction  = [0, 0, -1],
+                                   config        = Dexter.RIGHT_UP_OUT,
+                                   workspace_pose = null,
+                                   tool_speed    = 5*_mm / _s,
+                                   resolution    = 0.5*_mm,
+                                   j6_angle      = [0],
+                                   j7_angle      = [0],
+                                   single_instruction = false,
+                                   robot}){
+    if(xyz == "required") { dde_error("Dexter.move_to_straight was not passed the required 'xyz' arg.<br/>move_to_straight takes keyword args.") }
+    return new Instruction.Control.move_to_straight({xyz: xyz,
+                                                    J5_direction: J5_direction,
+                                                    config: config,
+                                                    workspace_pose: workspace_pose,
+                                                    tool_speed: tool_speed,
+                                                    resolution: resolution,
+                                                    j6_angle: j6_angle,
+                                                    j7_angle: j7_angle,
+                                                    single_instruction: single_instruction,
+                                                    robot: robot})
 }
 
 Dexter.record_movement = function(...args){ return make_ins("m", ...args) }
@@ -1716,6 +1790,7 @@ Dexter.instruction_type_to_function_name_map = {
     s:"slow_move",
     S:"set_parameter",
     t:"dma_write",
+    T:"move_to_straight",
     w:"write",
     W:"write_to_robot",
     x:"exit",
@@ -1840,9 +1915,9 @@ Dexter.START_SPEED  = 0.5 //degrees per second
 Dexter.ACCELERATION = 0.000129 //degrees/(second^2)
 
 Dexter.RIGHT_ANGLE    = 90 // 90 degrees
-Dexter.HOME_ANGLES    = [0, 0, 0, 0, 0]  //j2,j3,j4 straight up, link 5 horizontal pointing frontwards.
-Dexter.NEUTRAL_ANGLES = [0, 45, 90, -45, 0] //lots of room for Dexter to move from here.
-Dexter.PARKED_ANGLES  = [0, 0, 135, 45, 0 ] //all folded up, compact.
+Dexter.HOME_ANGLES    = [0, 0, 0, 0, 0, 0, 0]  //j2,j3,j4 straight up, link 5 horizontal pointing frontwards.
+Dexter.NEUTRAL_ANGLES = [0, 45, 90, -45, 0, 0, 0] //lots of room for Dexter to move from here.
+Dexter.PARKED_ANGLES  = [0, 0, 135, 45, 0, 0, 0] //all folded up, compact.
 
 Dexter.HOME_POSITION    = [[0, 0.08255, 0.866775],[0, 1, 0], [1, 1, 1]] //meters, j5 direction, config
 Dexter.NEUTRAL_POSITION = [[0, 0.5,     0.075],   [0, 0, -1],[1, 1, 1]]    //meters, j5 direction, config
@@ -1971,73 +2046,73 @@ Dexter.robot_ack_labels = [
 Dexter.robot_status_labels = [
 //new name   old name                   array index
 // misc block
-"JOB_ID",              //new field                    0
-"INSTRUCTION_ID",      //same name                    1
-"START_TIME",          //new field                    2 //ms since jan 1, 1970? From Dexter's clock
-"STOP_TIME",           //new field                    3 //ms since jan 1, 1970? From Dexter's clock
-"INSTRUCTION_TYPE",    //same name                    4 //"oplet"
+"JOB_ID",              //new field                    0 //for commmanded instruction (when added to queue)
+"INSTRUCTION_ID",      //same name                    1 //for cmd ins
+"START_TIME",          //new field                    2 //for cmd ins//ms since jan 1, 1970? From Dexter's clock
+"STOP_TIME",           //new field                    3 //for cmd ins//ms since jan 1, 1970? From Dexter's clock
+"INSTRUCTION_TYPE",    //same name                    4 //for cmd ins  //"oplet"
 
-"ERROR_CODE",          //same name                    5  //0 means no error.
-"DMA_READ_DATA",       //same name                    6
-"READ_BLOCK_COUNT",    //same name                    7
-"RECORD_BLOCK_SIZE",   //same name                    8
-"END_EFFECTOR_IN",     //END_EFFECTOR_IO_IN           9
+"ERROR_CODE",          //same name                    5 //for any error      //0 means no error. 1 means an error
+"JOB_ID_OF_CURRENT_INSTRUCTION", //                   6 // depricated DMA_READ_DATA
+"CURRENT_INSTRUCTION_ID",                   //        7 // depricated READ_BLOCK_COUNT
+"RECORD_BLOCK_SIZE",   //same name                    8 //unused
+"END_EFFECTOR_IN",     //END_EFFECTOR_IO_IN           9 //0, 1, or 2 indicatingtype of io for end effector
 
 //J1 block
-"J1_ANGLE",            // BASE_POSITION_AT           10
+"J1_ANGLE",            // BASE_POSITION_AT           10 //means commanded stepped angle, not commanded_angle and not current_angle
 "J1_DELTA",            // BASE_POSITION_DELTA        11
 "J1_PID_DELTA",        // BASE_POSITION_PID_DELTA    12
-"J1_FORCE_CALC_ANGLE",            // BASE_POSITION_FORCE_DELTA  13
+null,                  // BASE_POSITION_FORCE_DELTA  13 //was J1_FORCE_CALC_ANGLE
 "J1_A2D_SIN",          // BASE_SIN                   14
 "J1_A2D_COS",          // BASE_COS                   15
-"J1_PLAYBACK",         // PLAYBACK_BASE_POSITION     16
-"J1_SENT",             // SENT_BASE_POSITION         17
-"J1_SLOPE",            // SLOPE_BASE_POSITION        18
-"J1_MEASURED_ANGLE",   // actual angle from Dexter   19
+"J1_MEASURED_ANGLE",   // PLAYBACK_BASE_POSITION     16 //depricated J1_PLAYBACK
+"J1_SENT",             // SENT_BASE_POSITION         17 //unused. angle sent in the commanded angle of INSTRUCTION_ID
+"J6_MEASURED_ANGLE",   // SLOPE_BASE_POSITION        18 //depricated J1_SLOPE
+ null,                 //                            19 //was J1_MEASURED_ANGLE. not used, get rid of, now don't compute on dde side,
 //J2 block of 10
 "J2_ANGLE",            // END_POSITION_AT            20
 "J2_DELTA",            // END_POSITION_DELTA         21
-"J2_PID_DELTA",        // END_POSITION_PID_DELTA     22
-"J2_FORCE_CALC_ANGLE", // END_POSITION_FORCE_DELTA   23
+"J2_PID_DELTA",        // END_POSITION_PID_DELTA     22 was J2_FORCE_CALC_ANGLE
+null, // END_POSITION_FORCE_DELTA   23
 "J2_A2D_SIN",          // END_SIN                    24
 "J2_A2D_COS",          // END_COS                    25
-"J2_PLAYBACK",         // PLAYBACK_END_POSITION      26
-"J2_SENT",             // SENT_END_POSITION          27
-"J2_SLOPE",            // SLOPE_END_POSITION         28
-"J2_MEASURED_ANGLE",   // new field                  29
+"J2_MEASURED_ANGLE",   // PLAYBACK_END_POSITION      26 //depricated J2_PLAYBACK
+"J2_SENT",             // SENT_END_POSITION          27 //unused
+"J6_MEASURED_TORQUE",  // SLOPE_END_POSITION         28 //depricated J2_SLOPE
+ null,                 // new field                  29 //was J2_MEASURED_ANGLE, not used, get rid of,
 //J2 block of 10
 "J3_ANGLE",            // PIVOT_POSITION_AT           30
 "J3_DELTA",            // PIVOT_POSITION_DELTA        31
 "J3_PID_DELTA",        // PIVOT_POSITION_PID_DELTA    32
-"J3_FORCE_CALC_ANGLE",            // PIVOT_POSITION_FORCE_DELTA  33
+null,                  // PIVOT_POSITION_FORCE_DELTA  33  was "J3_FORCE_CALC_ANGLE"
 "J3_A2D_SIN",          // PIVOT_SIN                   34
 "J3_A2D_COS",          // PIVOT_SIN                   35
-"J3_PLAYBACK",         // PLAYBACK_PIVOT_POSITION     36
-"J3_SENT",             // SENT_PIVOT_POSITION         37
-"J3_SLOPE",            // SLOPE_PIVOT_POSITION        38
-"J3_MEASURED_ANGLE",   // new field                   39
+"J3_MEASURED_ANGLE",   // PLAYBACK_PIVOT_POSITION     36 //depricated J3_PLAYBACK
+"J3_SENT",             // SENT_PIVOT_POSITION         37 //unused
+"J7_MEASURED_ANGLE",    // SLOPE_PIVOT_POSITION       38 //depricated  J3_SLOPE
+ null,                 // new field                   39 //was J3_MESURED_ANGLE not used get rid of
 //J4 block of 10
 "J4_ANGLE",            // ANGLE_POSITION_AT           40
 "J4_DELTA",            // ANGLE_POSITION_DELTA        41
 "J4_PID_DELTA",        // ANGLE_POSITION_PID_DELTA    42
-"J4_FORCE_CALC_ANGLE",            // ANGLE_POSITION_FORCE_DELTA  43
+null,                  // ANGLE_POSITION_FORCE_DELTA  43 was "J4_FORCE_CALC_ANGLE"
 "J4_A2D_SIN",          // ANGLE_SIN                   44
 "J4_A2D_COS",          // ANGLE_SIN                   45
-"J4_PLAYBACK",         // PLAYBACK_ANGLE_POSITION     46
-"J4_SENT",             // SENT_ANGLE_POSITION         47
-"J4_SLOPE",            // SLOPE_ANGLE_POSITION        48
-"J4_MEASURED_ANGLE",   // new field                   49
+"J4_MEASURED_ANGLE",   // PLAYBACK_ANGLE_POSITION     46 //depricated J4_PLAYBACK
+"J4_SENT",             // SENT_ANGLE_POSITION         47 //unused
+"J7_MEASURED_TORQUE",  // SLOPE_ANGLE_POSITION        48 //depricated J4_SLOPE
+null,                  // new field                   49 //not used get rid of
 //J4 block of 10
 "J5_ANGLE",            // ROTATE_POSITION_AT          50
 "J5_DELTA",            // ROTATE_POSITION_DELTA       51
 "J5_PID_DELTA",        // ROTATE_POSITION_PID_DELTA   52
-"J5_FORCE_CALC_ANGLE",            // ROT_POSITION_FORCE_DELTA    53
+null,                  // ROT_POSITION_FORCE_DELTA    53 was "J5_FORCE_CALC_ANGLE"
 "J5_A2D_SIN",          // ROT_SIN                     54
 "J5_A2D_COS",          // ROT_SIN                     55
-"J5_PLAYBACK",         // PLAYBACK_ROT_POSITION       56
-"J5_SENT",             // SENT_ROT_POSITION           57
-"J5_SLOPE",            // SLOPE_ROT_POSITION          58
-"J5_MEASURED_ANGLE"    // new field                   59
+"J5_MEASURED_ANGLE",   // PLAYBACK_ROT_POSITION       56 //depricated J5_PLAYBACK
+"J5_SENT",             // SENT_ROT_POSITION           57 //unused
+null,                  // SLOPE_ROT_POSITION          58 //depricated J5_SLOPE  unusued
+null                   // new field                   59 //was J5_MEASURED_ANGLE, not used get rid of
 ]
 
 Dexter.robot_status_index_labels = []
@@ -2047,15 +2122,46 @@ Dexter.robot_status_index_labels = []
 //The explicit Dexter.robot_status_index_labels is needed for a series.
 Dexter.make_robot_status_indices = function(){
     for(var i = 0; i < Dexter.robot_status_labels.length; i++){
-        var label = Dexter.robot_status_labels[i]
-        var index_label = "Dexter." + label //+ "_INDEX"
-        Dexter[label] = i
-        Dexter.robot_status_index_labels.push(index_label)
+        var label = Dexter.robot_status_labels[i] //could be null
+        if (label) {
+            var index_label = "Dexter." + label //+ "_INDEX"
+            Dexter[label] = i
+            Dexter.robot_status_index_labels.push(index_label)
+        }
     }
 }
 
 Dexter.make_robot_status_indices()
 
+Dexter.make_backward_compatible_robot_status_indices = function(){
+    Dexter.DMA_READ_DATA    = 6
+    Dexter.READ_BLOCK_COUNT = 7
+
+    Dexter.J1_PLAYBACK = 16
+    Dexter.J1_SLOPE    = 18
+
+    Dexter.J2_PLAYBACK = 26
+    Dexter.J2_SLOPE    = 28
+
+    Dexter.J3_PLAYBACK = 36
+    Dexter.J3_SLOPE    = 38
+
+    Dexter.J4_PLAYBACK = 46
+    Dexter.J4_SLOPE    = 48
+
+    Dexter.J5_PLAYBACK = 56
+    Dexter.J5_SLOPE    = 58
+
+    Dexter.J1_FORCE_CALC_ANGLE = Dexter.J1_MEASURED_ANGLE
+    Dexter.J2_FORCE_CALC_ANGLE = Dexter.J2_MEASURED_ANGLE
+    Dexter.J3_FORCE_CALC_ANGLE = Dexter.J3_MEASURED_ANGLE
+    Dexter.J4_FORCE_CALC_ANGLE = Dexter.J4_MEASURED_ANGLE
+    Dexter.J5_FORCE_CALC_ANGLE = Dexter.J5_MEASURED_ANGLE
+}
+
+Dexter.make_backward_compatible_robot_status_indices()
+
+//also called by dexersim.js
 Dexter.make_default_status_array = function(){
     let result = new Array(Dexter.robot_status_labels.length).fill(0)
     result[Dexter.INSTRUCTION_ID]   = -1
@@ -2195,8 +2301,8 @@ Dexter.show_robot_status = function(){
                              Dexter.update_robot_status_names_menu_html() +
                              " <span id='updating_robot_status_info_id' style='font-size:12px'>" + Dexter.update_robot_status_info_html() + "</span>" +
                              "<span style='font-size:12px;margin-left:10px;'> Updated: <span id='robot_status_window_time_id'>" + Dexter.update_time_string() + "</span></span>",
-                     width:  770,
-                     height: 440
+                     width:  800,
+                     height: 380
                     })
         setTimeout(Dexter.update_robot_status_init, 300)
     }
@@ -2222,7 +2328,7 @@ Dexter.update_robot_status_table = function(robot_status){
         robot_status_window_time_id.innerHTML = Dexter.update_time_string()
         for (let i = 0; i < robot_status.length; i++){
            let label    = Dexter.robot_status_labels[i]
-           if (!label.startsWith("UNUSED")){
+           if ((label != null) && !label.startsWith("UNUSED")){
                 let val      = (robot_status ? robot_status[i] : "no status") //its possible that a robot will have been defined, but never actually run when this fn is called.
                 if((typeof(val) == "number") && (i >= 10)) { //display as a real float
                    val = to_fixed_smart(val, 3) //val.toFixed(3)
@@ -2321,20 +2427,22 @@ Dexter.update_robot_status_to_html_table = function(robot){
         "<tr><th></th>    <th>JOB_ID</th><th>INSTRUCTION_ID</th><th>START_TIME</th><th>STOP_TIME</th><th>INSTRUCTION_TYPE</th></tr>" +
         Dexter.make_rs_row(robot_status, "", "JOB_ID",      "INSTRUCTION_ID",      "START_TIME",      "STOP_TIME",      "INSTRUCTION_TYPE") +
 
-        "<tr><th></th>    <th>ERROR_CODE</th><th>DMA_READ_DATA</th><th>READ_BLOCK_COUNT</th><th>RECORD_BLOCK_SIZE</th><th>END_EFFECTOR_IN</th></tr>" +
-        Dexter.make_rs_row(robot_status, "", "ERROR_CODE",      "DMA_READ_DATA",      "READ_BLOCK_COUNT",      "RECORD_BLOCK_SIZE",      "END_EFFECTOR_IN") +
+        "<tr><th></th>    <th>ERROR_CODE</th><th>JOB_ID_OF_CI</th><th>CURRENT_INSTR</th><th>RECORD_BLOCK_SIZE</th><th>END_EFFECTOR_IN</th></tr>" +
+        Dexter.make_rs_row(robot_status, "", "ERROR_CODE",      "JOB_ID_OF_CURRENT_INSTRUCTION",      "CURRENT_INSTRUCTION_ID",      "RECORD_BLOCK_SIZE",      "END_EFFECTOR_IN") +
 
-            "<tr><th></th>         <th>Joint 1</th><th>Joint 2</th><th>Joint 3</th><th>Joint 4</th><th>Joint 5</th></tr>" +
-        Dexter.make_rs_row(robot_status, "MEASURED_ANGLE",    "J1_MEASURED_ANGLE",   "J2_MEASURED_ANGLE",   "J3_MEASURED_ANGLE",   "J4_MEASURED_ANGLE", "J5_MEASURED_ANGLE") +
+            "<tr><th></th>         <th>Joint 1</th><th>Joint 2</th><th>Joint 3</th><th>Joint 4</th><th>Joint 5</th><th>Joint 6</th><th>Joint 7</th></tr>" +
         Dexter.make_rs_row(robot_status, "ANGLE",     "J1_ANGLE",     "J2_ANGLE",     "J3_ANGLE",     "J4_ANGLE",     "J5_ANGLE"    ) +
         Dexter.make_rs_row(robot_status, "DELTA",     "J1_DELTA",     "J2_DELTA",     "J3_DELTA",     "J4_DELTA",     "J5_DELTA"    ) +
         Dexter.make_rs_row(robot_status, "PID_DELTA", "J1_PID_DELTA", "J2_PID_DELTA", "J3_PID_DELTA", "J4_PID_DELTA", "J5_PID_DELTA") +
-        Dexter.make_rs_row(robot_status, "FORCE_CALC_ANGLE", "J1_FORCE_CALC_ANGLE", "J2_FORCE_CALC_ANGLE", "J3_FORCE_CALC_ANGLE", "J4_FORCE_CALC_ANGLE", "J5_FORCE_CALC_ANGLE") +
+        //Dexter.make_rs_row(robot_status, "FORCE_CALC_ANGLE", "J1_FORCE_CALC_ANGLE", "J2_FORCE_CALC_ANGLE", "J3_FORCE_CALC_ANGLE", "J4_FORCE_CALC_ANGLE", "J5_FORCE_CALC_ANGLE") +
         Dexter.make_rs_row(robot_status, "A2D_SIN",   "J1_A2D_SIN",   "J2_A2D_SIN",   "J3_A2D_SIN",   "J4_A2D_SIN",   "J5_A2D_SIN"  ) +
         Dexter.make_rs_row(robot_status, "A2D_COS",   "J1_A2D_COS",   "J2_A2D_COS",   "J3_A2D_COS",   "J4_A2D_COS",   "J5_A2D_COS"  ) +
-        Dexter.make_rs_row(robot_status, "PLAYBACK",  "J1_PLAYBACK",  "J2_PLAYBACK",  "J3_PLAYBACK",  "J4_PLAYBACK",  "J5_PLAYBACK" ) +
+        //Dexter.make_rs_row(robot_status, "PLAYBACK",  "J1_PLAYBACK",  "J2_PLAYBACK",  "J3_PLAYBACK",  "J4_PLAYBACK",  "J5_PLAYBACK" ) +
+        Dexter.make_rs_row(robot_status, "MEASURED_ANGLE",    "J1_MEASURED_ANGLE",   "J2_MEASURED_ANGLE",   "J3_MEASURED_ANGLE",   "J4_MEASURED_ANGLE", "J5_MEASURED_ANGLE", "J6_MEASURED_ANGLE", "J7_MEASURED_ANGLE") +
+        Dexter.make_rs_row(robot_status, "MEASURED_TORQUE",    null,                 null,                   null,                  null,                null,               "J6_MEASURED_TORQUE", "J7_MEASURED_TORQUE") +
+
         Dexter.make_rs_row(robot_status, "SENT",      "J1_SENT",      "J2_SENT",      "J3_SENT",      "J4_SENT",      "J5_SENT"     ) +
-        Dexter.make_rs_row(robot_status, "SLOPE",     "J1_SLOPE",     "J2_SLOPE",     "J3_SLOPE",     "J4_SLOPE",     "J5_SLOPE"    ) +
+        //Dexter.make_rs_row(robot_status, "SLOPE",     "J1_SLOPE",     "J2_SLOPE",     "J3_SLOPE",     "J4_SLOPE",     "J5_SLOPE"    ) +
         "<tr><th>MEASURED X</th><td>"   + to_fixed_smart(xyz[0], 3) + //xyz[0].toFixed(3) +
         "m</td><th>MEASURED Y</th><td>" + to_fixed_smart(xyz[1], 3) + //xyz[1].toFixed(3) +
         "m</td><th>MEASURED Z</th><td>" + to_fixed_smart(xyz[2], 3) + //xyz[2].toFixed(3) + "m</td></tr>" +

@@ -42,6 +42,7 @@ SimUtils = class SimUtils{
     }
 
     //job_or_robot name format is really "Job: j1"  or "Robot: dex1", ie same as the menu item in the Simulate pane
+    //input angles are in arcseconds
     static render_once(j1, j2, j3, j4, j5, job_or_robot_name, force_render=false){ //inputs in arc_seconds
         if (Array.isArray(j1)) { job_or_robot_name = j2; force_render = j3; }
         if (force_render || (videos_id.value == job_or_robot_name) || (videos_id.value == "All")){
@@ -54,11 +55,11 @@ SimUtils = class SimUtils{
                     j1 = j1[0] //last so we can use the array in J1
                 }
                 else if (j1.length == Dexter.robot_status_labels.length){
-                    j2 = j1[Dexter.J2_ANGLE]
-                    j3 = j1[Dexter.J3_ANGLE]
-                    j4 = j1[Dexter.J4_ANGLE]
-                    j5 = j1[Dexter.J5_ANGLE]
-                    j1 = j1[Dexter.J1_ANGLE] //last so we can use the array in J1
+                    j2 = j1[Dexter.J2_MEASURED_ANGLE]
+                    j3 = j1[Dexter.J3_MEASURED_ANGLE]
+                    j4 = j1[Dexter.J4_MEASURED_ANGLE]
+                    j5 = j1[Dexter.J5_MEASURED_ANGLE]
+                    j1 = j1[Dexter.J1_MEASURED_ANGLE] //last so we can use the array in J1
                 }
             }
             j1 = j1 * -1 //fix for j1 wrong sign

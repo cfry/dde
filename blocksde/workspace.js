@@ -395,8 +395,29 @@ var Workspace = class Workspace{
         let x = workspace_floating_typein_id.offsetLeft
         let y = workspace_floating_typein_id.offsetTop
         let series_items = the_ser.array
-        let meth_name_one_of_elt = Root.jsdb.one_of.make_dom_elt(undefined, undefined, series_items[0], series_items)
-        let block_to_install = Root.jsdb.method_call.make_dom_elt(undefined, undefined, meth_name_one_of_elt)
+        let block_to_install
+        if ((the_ser.kind == "method_call") || (the_ser.kind == undefined)){
+            let meth_name_one_of_elt = Root.jsdb.one_of.make_dom_elt(undefined, undefined, series_items[0], series_items)
+            block_to_install = Root.jsdb.method_call.make_dom_elt(undefined, undefined, meth_name_one_of_elt)
+        }
+        else if(the_ser.kind == "infix"){
+            let meth_name_one_of_elt = Root.jsdb.one_of.make_dom_elt(undefined, undefined, series_items[0], series_items , false) //last arg of false means don't eval choices
+            block_to_install = Root.jsdb.infix.make_dom_elt(undefined, meth_name_one_of_elt, undefined)
+
+        }
+        else if(the_ser.kind == "variable"){
+            block_to_install = Root.jsdb.one_of.make_dom_elt(undefined, undefined, series_items[0], series_items)
+        }
+        else if(the_ser.kind == "string"){
+            let items =[]
+            for(let it of series_items) { items.push('"' + it + '"') }
+            block_to_install = Root.jsdb.one_of.make_dom_elt(undefined, undefined, series_items[0], items)
+        }
+        else if(the_ser.kind == "punctuation"){
+            warning("Blocks View handles the punctuation for you.")
+            return
+        }
+
         Workspace.inst.draw_block_at(block_to_install, x, y)
     }
 }

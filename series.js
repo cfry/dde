@@ -588,11 +588,12 @@ Series.init_series_instances = function(){
 Series.instances = [
     //Standard JS Series
     new Series({id:"series_punctuation_id", array: [",", ";", ":", ".", "(", ")", "[", "]", "{", "}", '"', "'", "`", "/*", "*/", "//"],
+                                            kind: "punctuation",
         menu_insertion_string: ",",         menu_sel_start:true, menu_sel_end:null, sample: "," }),
     new Series({id:"series_boolean_id",     array: ["&&", "||", "!",  "true", "false", "null", "undefined"],
         menu_insertion_string:"true",       menu_sel_start:true, menu_sel_end:null, sample:"true"}),
-    new Series({id:"series_bitwise_id",     array: ["&", "|", "^", "~", "<<", ">>", ">>>"],
-        menu_insertion_string:"true",       menu_sel_start:true, menu_sel_end:null, sample:"true"}),
+    new Series({id:"series_bitwise_id",     array: ["&", "|", "^", "~", "<<", ">>", ">>>"], kind: "infix",
+        menu_insertion_string:"&",       menu_sel_start:true, menu_sel_end:null, sample:"&"}),
 
     //NUMBERS
     new Series({id:"series_integer_id",     in_series_fn:is_string_a_integer, replace_sel_fn: Series.replacement_series_integer,
@@ -612,13 +613,14 @@ Series.instances = [
                     }
     }),
     new Series({id: "series_js_object_name_id", array: ["Array", "Boolean", "Date", "Error", "JSON",
-                                   "Math", "Number", "Object", "RegExp", "String"],
+                                                        "Math", "Number", "Object", "RegExp", "String"],
+                                                kind: "variable",
                  menu_insertion_string: 'Array', menu_sel_start: 0, menu_sel_end: 5, sample:'Array'}),
 
     new Series({id:"series_global_js_id", array: ["eval", "isFinite", "isNaN", "parseFloat", "parseInt",
                           "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent"],
         menu_insertion_string:'eval("2 + 3")', menu_sel_start:0, menu_sel_end:4, sample:"eval"}),
-    new Series({id:"series_arithmetic_id",  array: ["+", "-", "*", "/", "%"],
+    new Series({id:"series_arithmetic_id",  array: ["+", "-", "*", "/", "%", "**"],
         menu_insertion_string:"2 + 3",      menu_sel_start:2, menu_sel_end:3, sample:"+"}),
     new Series({id:"series_comparison_id",  array: ["<", "<=", "==", "===", ">=", ">", "!=", "!==", "instanceof"],
         menu_insertion_string:"2 < 3",      menu_sel_start:2, menu_sel_end:3, sample:"<"}),
@@ -670,7 +672,7 @@ Series.instances = [
                         return this.sample
                     }
     }),
-    new Series({id:"series_3_letter_month_id", array: Series.month_names_3_letters,
+    new Series({id:"series_3_letter_month_id", array: Series.month_names_3_letters, kind: "string",
         menu_insertion_string:'new Date("Apr 1 2016")', menu_sel_start:10, menu_sel_end:13, sample:"Apr",
         get_sample: function(old_series, old_sel_text){
                         if (old_series.id == "series_full_month_id"){
@@ -679,7 +681,7 @@ Series.instances = [
                         return this.sample
                     }
     }),
-    new Series({id:"series_full_month_id",  array: Series.month_names,
+    new Series({id:"series_full_month_id",  array: Series.month_names, kind: "string",
         menu_insertion_string:'"January"',  menu_sel_start:1, menu_sel_end:-1, sample:"January",
         get_sample: function(old_series, old_sel_text){
                         if (old_series.id == "series_3_letter_month_id"){
@@ -708,6 +710,7 @@ Series.instances = [
     "lavender", "lightgrey", "lime", "maroon", "magenta", "navajowhite", "orange",
     "plum", "purple", "red", "salmon", "skyblue", "turquoise", "violet", "white", "yellow",
     "rgb(0, 100, 255)", //all of these are in the 140 html colors supported in all browsers.*/
+        kind: "string",
         menu_insertion_string:'"black"',    menu_sel_start:1, menu_sel_end:-1, sample:"black",
         get_sample: function(old_series, old_sel_text){
                         if (old_series.id == "series_color_rgb_id"){
@@ -818,7 +821,7 @@ Series.instances = [
         menu_insertion_string:"Dexter.RIGHT_UP_IN", menu_sel_start:true, menu_sel_end:null, sample:"Dexter.RIGHT_UP_IN"}),
     new Series({id:"series_oplet_id",
                 array:["a","B", "b", "c", "d","E", "e","F","f","G","g","h","i","l",
-                       "m","n","o","P", "p","R","S", "s","t","W", "w","x","z"],
+                       "m","n","o","P", "p","R","S", "s","T", "t","W", "w","x","z"],
         menu_insertion_string:"S", menu_sel_start:true, menu_sel_end:null, sample:"S"}),
     new Series({id:"series_dexter_utility_id",
         //in_series_fn: function(str){return str.endsWith("props")},

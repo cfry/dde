@@ -4,7 +4,7 @@ DexterSim = class DexterSim{
     constructor(robot_name){ //called once per DDE session per robot_name by create_or_just_init
         this.robot_name = robot_name
         this.robot      = Robot[robot_name] //only used by predict_move_dur
-        this.rs         = Dexter.make_default_status_array()
+        this.robot_status_in_arcseconds = Dexter.make_default_status_array()
         this.parameters = {}
         this.write_array = new Array(128)
         DexterSim.robot_name_to_dextersim_instance_map[robot_name] = this
@@ -49,7 +49,7 @@ DexterSim = class DexterSim{
     }
 
     //typically adds instruction to sim_inst.instruction_queue
-    static send(robot_name, instruction_array){
+    static send(robot_name, instruction_array){ //instruction_array is in arcseconds
         //out("Sim.send passed instruction_array: " + instruction_array + " robot_name: " + robot_name)
         let sim_inst = DexterSim.robot_name_to_dextersim_instance_map[robot_name]
         sim_inst.sent_instructions_count += 1
@@ -94,8 +94,10 @@ DexterSim = class DexterSim{
         ack_array[Dexter.INSTRUCTION_TYPE]  = instruction_array[Instruction.INSTRUCTION_TYPE] //leave this as a 1 char string for now. helpful for debugging
         ack_array[Dexter.ERROR_CODE]        = 0
         if (this.sim_actual === true){
+            let rob = this.robot
             setTimeout(function(){
-                        Dexter.robot_done_with_instruction(ack_array)
+                        //rob.robot_done_with_instruction(ack_array)
+                        Socket.on_receive_sim(ack_array, rob.name)
                         }, 1)
         }
     }
@@ -124,12 +126,13 @@ DexterSim = class DexterSim{
             //hits when just ending an instruction
             if (sim_inst.now_processing_instruction &&
                 (sim_inst.ending_time_of_cur_instruction <= the_now)) { //end the cur instruction and move to the next
-                let rs_copy = sim_inst.rs.slice() //make a copy to return as some subseqent call to this meth will modify the one "model of dexter" that we're saving in the instance
+                let rs_copy = sim_inst.robot_status_in_arcseconds.slice() //make a copy to return as some subseqent call to this meth will modify the one "model of dexter" that we're saving in the instance
                 rs_copy[Dexter.STOP_TIME] = Date.now() //in milliseconds
                 const oplet = sim_inst.now_processing_instruction[Dexter.INSTRUCTION_TYPE]
                 if ((sim_inst.sim_actual === true) && ["F", "G", "g"].includes(oplet)) { //dont do when sim == "both"
-                    Socket.convert_robot_status_to_degrees(rs_copy)
-                    Dexter.robot_done_with_instruction(rs_copy)
+                    //Socket.convert_robot_status_to_degrees(rs_copy)
+                    //sim_inst.robot.robot_done_with_instruction(rs_copy)
+                    Socket.on_receive_sim(rs_copy, sim_inst.robot.name)
                 }
                 sim_inst.completed_instructions.push(sim_inst.now_processing_instruction)
                 sim_inst.now_processing_instruction = null     //Done with cur ins,
@@ -150,58 +153,27 @@ DexterSim = class DexterSim{
         }
     }
 
-    process_next_instruction_a(ins_args){
-        var robot_status = this.rs
-        let orig_angles =  [robot_status[Dexter.J1_ANGLE],
-                            robot_status[Dexter.J2_ANGLE],
-                            robot_status[Dexter.J3_ANGLE],
-                            robot_status[Dexter.J4_ANGLE],
-                            robot_status[Dexter.J5_ANGLE]]
-        let idxs = [Dexter.J1_ANGLE, Dexter.J2_ANGLE, Dexter.J3_ANGLE, Dexter.J4_ANGLE, Dexter.J5_ANGLE]
-        for(let i = 0; i < 5; i++){
-            let angle = ins_args[i]
-            if (!isNaN(angle)){
-                robot_status[idxs[i]] = angle
-            }
-        }
-        //predict needs its angles in degrees but ins_args are in arcseconds
-        const orig_angles_in_deg = orig_angles.map(function(ang) { return ang / 3600 })
-        const ins_args_in_deg    = ins_args.map(function(ang) { return ang / 3600 })
-        let dur = Math.abs(Kin.predict_move_dur(orig_angles_in_deg, ins_args_in_deg, this.robot)) * 1000
-        //we convert from arcseconds to degrees, pass in the angles to preduct,
-        // which returns a dur in seconds, then convert that to milliseconds
-        return dur
-    }
 
-    process_next_instruction_r(instruction_array) {
-        let job_id = instruction_array[Instruction.JOB_ID]
-        let ins_id = instruction_array[Instruction.INSTRUCTION_ID]
-        let hunk_index = instruction_array[Instruction.INSTRUCTION_ARG0]
-        let source     = instruction_array[Instruction.INSTRUCTION_ARG1]
-        let whole_content = file_content(source) //errors if path in "source" doesn't exist
-        let start_index = hunk_index * Instruction.Control.read_from_robot.payload_max_chars
-        let end_index = start_index + Instruction.Control.read_from_robot.payload_max_chars
-        let payload_string = whole_content.substring(start_index, end_index) //ok if end_index is > whole_cotnent.length, it just gets how much it can, no error
-        //out("some content from " + source + " hunk: " + hunk_index + " payload: " + payload_string)
-        Instruction.Control.read_from_robot.got_content_hunk(job_id, ins_id, payload_string)
-    }
 
     process_next_instruction(){
         let dur = 10 // in ms
         this.now_processing_instruction = this.instruction_queue.shift() //pop off next inst from front of the list
         let instruction_array = this.now_processing_instruction
-        var robot_status = this.rs
+        var robot_status = this.robot_status_in_arcseconds
         var oplet  = instruction_array[Dexter.INSTRUCTION_TYPE]
         robot_status[Dexter.JOB_ID]            = instruction_array[Instruction.JOB_ID]
         robot_status[Dexter.INSTRUCTION_ID]    = instruction_array[Instruction.INSTRUCTION_ID]
         robot_status[Dexter.START_TIME]        = Date.now() //in ms
         robot_status[Dexter.INSTRUCTION_TYPE]  = instruction_array[Instruction.INSTRUCTION_TYPE] //leave this as a 1 char string for now. helpful for debugging
         robot_status[Dexter.ERROR_CODE]        = 0
+        robot_status[Dexter.JOB_ID_OF_CURRENT_INSTRUCTION] = instruction_array[Instruction.JOB_ID]
+        robot_status[Dexter.CURRENT_INSTRUCTION_ID] = instruction_array[Instruction.INSTRUCTION_ID]
+
         let ins_args = Instruction.args(instruction_array) //in arcseconds
         switch (oplet){
             case "a": //move_all_joints
                 //this.robot.angles = ins_args //only set this in move_all_joints and friends
-                dur = this.process_next_instruction_a(Vector.add(ins_args, this.robot.pid_angles))
+                dur = this.process_next_instruction_a(ins_args) //Vector.add(ins_args))
                 break;
             //case "b": //move_to  xyz
                 /*if (!isNaN(instruction_array[2])) robot_status[Dexter.ds_j5_x_index]     = instruction_array[2]
@@ -227,7 +199,7 @@ DexterSim = class DexterSim{
             case "g": //get_robot_status
                 dur = 0;
                 break;
-            case "G": //get_robot_status
+            case "G": //get_robot_status_immediately
                 dur = 0;
                 break;
             //handled by send. h never gets to this fn
@@ -236,8 +208,8 @@ DexterSim = class DexterSim{
                 shouldnt("In dextersim.process_next_instruction, got an 'h' oplet but this fn shouldn't get 'h' instructions.")
                 break;
             case "P": //pid_move_all_joints
-                this.robot.pid_angles = ins_args
-                dur = this.process_next_instruction_a(Vector.add(ins_args, this.robot.angles))
+                this.robot.pid_angles = ins_args //but not used aug 27, 2018
+                dur = this.process_next_instruction_a(Vector.add(ins_args))
             break;
             case "R": //move_all_joints_relative //no longer used because Dexter.move_all_joints_relative  converts to "a" oplet
                 let angle = ins_args[0]
@@ -258,6 +230,9 @@ DexterSim = class DexterSim{
             case "S": //set_parameter
                 this.parameters[ins_args[0]] = ins_args[1]
                 dur = 0
+                break
+            case "T": //move_to_straight, the oplet version
+                dur = this.process_next_instruction_T(ins_args)
                 break
             case "w": //write
                 dur = 0
@@ -299,6 +274,62 @@ DexterSim = class DexterSim{
             DexterSim.close(this.name)
             dde_error("in Dexter Simulation, could not find a job with job_id: " + job_id)
         }
+    }
+
+    // also called by process_next_instruction_T(
+    process_next_instruction_a(ins_args){ //ins_args in arcseconds
+        var robot_status = this.robot_status_in_arcseconds
+        let idxs = [Dexter.J1_MEASURED_ANGLE, Dexter.J2_MEASURED_ANGLE, Dexter.J3_MEASURED_ANGLE,
+            Dexter.J4_MEASURED_ANGLE, Dexter.J5_MEASURED_ANGLE, Dexter.J6_MEASURED_ANGLE, Dexter.J7_MEASURED_ANGLE]
+
+        let orig_angles =  [] //in arcseconds
+        for(let i of idxs) { orig_angles.push(robot_status[i]) }
+        //set the angles in this robot's robot_status
+        for(let i = 0; i < ins_args.length; i++){
+            let angle = ins_args[i]
+            if (!isNaN(angle)){
+                robot_status[idxs[i]] = angle
+            }
+        }
+        //predict needs its angles in degrees but ins_args are in arcseconds
+        const orig_angles_in_deg = orig_angles.map(function(ang) { return ang / 3600 })
+        const ins_args_in_deg    = ins_args.map(function(ang)    { return ang / 3600 })
+        //predict_move_dur takes degrees in and returns seconds
+        let dur_in_seconds = Math.abs(Kin.predict_move_dur(orig_angles_in_deg, ins_args_in_deg, this.robot))
+        let dur_in_milliseconds = dur_in_seconds * 1000
+        return dur_in_milliseconds
+    }
+
+    process_next_instruction_T(ins_args){ //ins_args xyz in microns
+        let xyz_in_microns = [ins_args[0], ins_args[1], ins_args[2]]
+        let J5_direction = [ins_args[3], ins_args[4], ins_args[5]]
+        let config       = [ins_args[6], ins_args[7], ins_args[8]]
+        let j6_angle     = ins_args[11]
+        let j7_angle     = ins_args[12]
+        let pose         = undefined //its not in the ins_args, and defaults just fine
+
+        let xyz_in_meters = [xyz_in_microns[0] / 1000000,
+                             xyz_in_microns[1] / 1000000,
+                             xyz_in_microns[2] / 1000000]
+        let angles_in_degrees = Kin.xyz_to_J_angles(xyz_in_meters, J5_direction, config, pose)
+        let angles_in_arcseconds = angles_in_degrees.map(function(deg) { return deg * 3600})
+        angles_in_arcseconds.push(j6_angle)
+        angles_in_arcseconds.push(j7_angle)
+        return this.process_next_instruction_a(angles_in_arcseconds)
+    }
+
+    process_next_instruction_r(instruction_array) {
+        //let job_id = instruction_array[Instruction.JOB_ID]
+        //let ins_id = instruction_array[Instruction.INSTRUCTION_ID]
+        let hunk_index = instruction_array[Instruction.INSTRUCTION_ARG0]
+        let source     = instruction_array[Instruction.INSTRUCTION_ARG1]
+        let whole_content = file_content(source) //errors if path in "source" doesn't exist
+        let start_index = hunk_index * Instruction.Control.read_from_robot.payload_max_chars
+        let end_index = start_index + Instruction.Control.read_from_robot.payload_max_chars
+        let payload_string = whole_content.substring(start_index, end_index) //ok if end_index is > whole_cotnent.length, it just gets how much it can, no error
+        //out("some content from " + source + " hunk: " + hunk_index + " payload: " + payload_string)
+        Socket.r_payload_grab_aux(payload_string, instruction_array)
+        //Instruction.Control.read_from_robot.got_content_hunk(job_id, ins_id, payload_string)
     }
 
     static close(robot_name){
