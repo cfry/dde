@@ -355,7 +355,7 @@ var TestSuite = class TestSuite{
         var start_time = Date.now()
         for(let test_number = 0; test_number < this_suite.tests.length; test_number++){
             var test     = this_suite.tests[test_number]
-            console.log("About to run test: " + test_number + " " + test)
+            //onsole.log("About to run test: " + test_number + " " + test)
             let [status, error_message] = TestSuite.run_test_array(test, test_number)
             if (status) {
                 report += error_message + "\n"
