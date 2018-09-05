@@ -17,7 +17,7 @@ var RobotStatus = class RobotStatus{
     job_id_of_current_instruction() { return this.robot_status[Dexter.JOB_ID_OF_CURRENT_INSTRUCTION]}
     current_instruction_id()        { return this.robot_status[Dexter.CURRENT_INSTRUCTION_ID]}
     //unused "RECORD_BLOCK_SIZE",   //same name                    8 //unused
-    end_effector_in()       { return this.robot_status[Dexter.END_EFFECTOR_IN]}
+    end_effector_in()               { return this.robot_status[Dexter.END_EFFECTOR_IN]}
 
     angle(joint_number){
         let result = this.robot_status["J" + joint_number + "_ANGLE"]
@@ -61,7 +61,7 @@ var RobotStatus = class RobotStatus{
         return result
     }
 
-    force_calc_angle(joint_number){
+    /*force_calc_angle(joint_number){
         let result = this.robot_status["J" + joint_number + "_FORCE_CALC_ANGLE"]
         if(typeof(result) == "number") { return result}
         else { dde_error("RobotStatus.force_calc_angle passed joint_number: " + joint_number + " which isn't valid.") }
@@ -73,7 +73,7 @@ var RobotStatus = class RobotStatus{
             result.push(this.force_calc_angle(j_number))
         }
         return result
-    }
+    }*/
 
     a2d_sin(joint_number){
         let result = this.robot_status["J" + joint_number + "_A2D_SIN"]

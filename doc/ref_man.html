@@ -3027,8 +3027,18 @@ Webinar videos for Job:<br/>
 The parameters used to define a new Job are:
     <ol><li><b>name</b> You can use <code title="unEVALable code fragment"> Job.a_job_name</code> to get the instance programmatically.</li>
         <li><b>robot</b> An instance of one of the subclasses of <code>Robot</code>, such as
-            <code>Dexter</code>, designating where
-            this Job's instructions are sent.</li>
+            <code>Dexter</code>. This is the <i>default</i> robot to send the job's instructions to if
+            the instruction itself doesn't designate a robot. The default for a Job's default robot is
+            <code>Robot.dexter0</code>. For example, if we have:
+         <pre><code>new Job({do_list: [Dexter.move_all_joints([0, 10, 20, 30, 40]),
+                   Robot.dexter1.move_all_joints([0, 10, 20, 30, 40]) ]})
+             </code></pre>
+            The 1st instruction will be sent to <code>Robot.dexter0</code> (the default),
+            and the 2nd to <code>Robot.dexter1</code>.
+            You can also use a Serial robot instance as the subject of a "string_instruction"
+            instruction so that you can have one job that feeds instructions to
+            multiple serial robots as well as multiple Dexters.
+         </li>
         <li id="do_list_doc_id"><b>do_list</b> An array of instructions to be sent to the job's robot when the
              Job is run. There are a number of different kinds of instructions, including
              user-defined JavaScript functions that can call arbitrary JS code.
@@ -4595,18 +4605,47 @@ Unlike <code>Dexter.get_robot_status</code>, this instruction causes Dexter to r
 before any of the instructions on its <i>instruction queue</i> are executed.
 </details>
 
+<details id="make_ins_doc_id" class="doc_details"><summary>make_ins</summary>
+    Normally you should make instructions for Dexter using one of the high level method calls,
+    ie <code>Dexter.move_all_joints</code>. However, we provide the function <code>make_ins</code>,
+    useful in some low level situations. The first argument is the instruction type, (nickname: "oplet")
+    a single letter string such as "a". The remaining arguments are whatever that instruction type
+    accepts. Example:<br/>
+    <code>make_ins("a", 1, 2, 3, 4 ,5)</code> =>
+    <samp>[undefined, undefined, undefined, undefined, "a", 1, 2, 3, 4, 5]</samp>
+    creates an instruction that moves the 5 joints
+    by 1, through 5 degrees respectively.
+    If you have the arguments in an array, you can use this syntax:<br/>
+    <code title="unEVALable code fragment"> make_ins("a", ...my_array)</code>
+    <p></p>
+    If the last argument passed in a make_ins call is a Dexter robot instance,
+    the instruction will be sent to that Dexter.
+    <p></p>
+    The returned value is an array that has its first several fields empty. DDE uses them
+    for storing the job_id, instruction_id and some timing information.
+</details> <!-- end make_ins -->
+
 <details id="Dexter.move_all_joints_doc_id" class="doc_details"><summary>move_all_joints</summary>
 move_all_joints is a lower level instruction than move_to, giving you the ability to dicate
-the angle of each of Dexter's 5 joints, J1 through J5. A joint's angle is specified in degrees.
+the angle of each of Dexter's 5 main joints, J1 through J5
+as well as the two "end effector" joints J6 and J7. A joint's angle is specified in degrees.
 The min and max angles of each joint are in constants: <code>Dexter.J1_ANGLE_MIN</code>
 through <code>Dexter.J5_ANGLE_MAX</code>, all included in the series <b>Dexter_constant</b>. 
 Examples:<br/>
 <code>Dexter.move_all_joints(15, null, 30)</code><br/>
 <code>Dexter.move_all_joints([15, null, 30])</code><br/>
-Both of these have the same function, i.e. you can pass in an array of up to 5 arc_seconds,
+Both of these have the same function, i.e. you can pass in an array of up to 7 degrees,
 or you can pass in individual numbers.
 <code>null</code> or the lack of enough numbers means keep the angle for that joint what the
 last instruction run in a Job set it to.
+<p></p>
+If a joint angle is passed in as an array of one number, that number will
+be used as the "relative" degrees to add to the current joint angle.
+So for instance, if the preious move_all_joints instruction for j1 indicated 30,
+and the next move_all_joints command for j1 indicated [5], then
+j1 would be moved to 35 degrees. The syntax of using a number wrapped in an array
+can be used for any joint of any move joints instruction.
+It can also be used for the x, y, and z positions of any move_to instruction.
 <p></p>
 <b id="dexter_positive_joint_direction_diagrams_id">Dexter Positive Joint Direction Diagrams</b><br/>
 <img src="doc/coor_images/Positive_Joint_Directions_J15.PNG" width="304"/><br/>
@@ -4614,10 +4653,11 @@ last instruction run in a Job set it to.
 </details>
 
 <details id="Dexter.move_all_joints_relative_doc_id" class="doc_details"><summary>move_all_joints_relative</summary>
-Similar to <code>Dexter.move_all_joints</code> except that the argument of an array of 5 joint angles are
-not used absolutely, but added to the previous angles indicated by DDE Dexter motion instructions.
+Similar to <code>Dexter.move_all_joints</code> except that the argument
+ of an array of up to 7 joint angles are
+not used absolutely, but added to the previous angles indicated by DDE Dexter move instructions.
 Note that this "base" that is added to is not literally the output of Dexter's optical sensors
-for joint position, but rather where the robot was <i>told</i> to go in its last motion instruction
+for joint position, but rather where the robot was <i>told</i> to go in its last move instruction
 in a Job.
 <p></p>
 A <code>null</code> or missing angle increments default to 0.<br/>
@@ -4625,7 +4665,11 @@ A <code>null</code> or missing angle increments default to 0.<br/>
 <code>Dexter.move_all_joints_relative([15, 15])</code><br/>
 tells the Job's robot to move joints 1 and 2 to
 an angle that is 15 degrees <i>more</i> than it is currently at.
-Joints 3, 4, and 5 stay the same.
+Joints 3, 4, 5, 6 and 7 stay the same.
+<p></p>
+Note that the syntax used for move_all_joints to declare that an
+individual joint angle is relavtive cannot be used for
+move_all_joints_relative, as those joint angles are already relative.
 </details>
 
 <details id="Dexter.move_home_doc_id" class="doc_details"><summary>move_home</summary>
@@ -4657,6 +4701,9 @@ Example: <code>Dexter.move_home()</code>
         below the surface being negative and above the surface being positive.<br/>
         The valid range is from <br/>
         -0.582704 to 0.912904.
+        <p></p> If an x, y, or z argument is wrapped in an array, ie <code>[0.1]</code>
+        it means move the robot that number of meters relative to where it was told to
+        go in the last move command.
         <p></p>
         The J5_direction parameter also affects reachability.
         <p></p>
@@ -4745,6 +4792,12 @@ Example: <code>Dexter.move_home()</code>
     <a href="#" onclick="open_doc('job_default_workspace_pose_doc_id', event)">default_workspace_pose</a>
     which itself defaults to <code>Coor.Table</code> .
     Determines the "offset" of the xyz arg.
+    <b>j6_angle</b>  Default: <code>[0]</code> The angle to move Joint 6 to.
+    Wrapping it in an array makes the movement relative.
+    The default of <code>[0]</code> causes Joint 6 not to move.<br/>
+    <b>j7_angle</b>  Default: <code>[0]</code> The angle to move Joint 7 to.
+    Wrapping it in an array makes the movement relative.
+    The default of <code>[0]</code> causes Joint 7 not to move.
 </details> <!--end move_to -->
 
 <details id="Dexter.move_to_relative_doc_id" class="doc_details"><summary>move_to_relative</summary>
@@ -4758,13 +4811,21 @@ Example: <code>Dexter.move_home()</code>
      uses that stored position and "increments" it by the supplied delta_xyz.
      Note this "base" is not exactly the position of Dexter, but rather
      the position that its been told to go by previous instructions.
-     <p>
+    <b>workspace_pose</b> If not passed in or <code>null</code>, this
+    defaults to the containing Job's
+    <a href="#" onclick="open_doc('job_default_workspace_pose_doc_id', event)">default_workspace_pose</a>
+    which itself defaults to <code>Coor.Table</code> .
+    Determines the "offset" of the xyz arg.<br/>
+    <b>j6_delta_angle</b>  Default: <code>0</code> The relative amount to move Joint 6 to.<br/>
+    <b>j7_delta_angle</b>  Default: <code>0</code> The relative amount to move Joint 7 to.
+     <p></p>
      <i>Example</i>:
 <pre><code>new Job({name: "my_job",
          do_list: [Dexter.move_all_joints(Dexter.NEUTRAL_ANGLES),
                    Dexter.move_to_relative([0.005, 0.01, 0])
                    ]})</code></pre>
-
+    Unlike move_to, you cannot wrap x, y. or z in an array as those values
+    are already relative.
 </details>
 
 <details id="Dexter.move_to_straight_doc_id" class="doc_details"><summary>move_to_straight</summary>
@@ -4782,7 +4843,7 @@ and end xyz locations into many short straight-line segments where
 the start and end location of each of these segments is on
 a straight line between the starting and ending locations.
 <p></p>
-<i>Parameters:</i><br/>
+<i>Parameters passed by keyword:</i><br/>
 <b>xyz</b> An array of 3 numbers indicating the x, y, and z location to
            move to. Same as move_to.<br/>
 <b>J5_direction</b> The ending direction that LINK5 will be pointing when
@@ -4792,7 +4853,26 @@ a straight line between the starting and ending locations.
 <b>tool_speed</b> The maximum speed that Dexter's end effector will move.
                   Default: 5 millimeters per second. Not in move_to.<br/>
 <b>resolution</b> How short to make the straight lines that connect the
-starting xyz to the ending xyz. Default: 0.5 millimeters.
+starting xyz to the ending xyz. Default: 0.5 millimeters.<br/>
+<b>j6_angle</b>  Default <code>[0]</code> The degrees move move Joint 6 to.
+If it is wrapped in an array, move relative by that amount.
+<b>j7_angle</b>  Default <code>[0]</code> The degrees move move Joint 7 to.
+    If it is wrapped in an array, move relative by that amount.
+<b>single_instruction</b> Default: <code>false</code> False means generate
+many instructions within DDE to send to Dexter to cause it to
+move in a straight line.
+A true value means generate just one make_ins "T" instruction
+to send to Dexter. Dexter will then compute the numerous little moves
+to get Dexter to move in a straight line.
+A make_ins with an oplet of "T" looks like:
+<pre><code>
+make_ins("T",
+         x, y, z,
+         J5_direction[0], J5_direction[1], J5_direction[2],
+         config[0], config[1], config[2],
+         tool_speed, resolution,
+         j6_angle, j7_angle)
+         </code></pre>
 <p></p>
 Example:<br/>
 <pre><code title="not in TestSuite"> new Job({name: "my_job",
@@ -4802,23 +4882,6 @@ Example:<br/>
 Moves Dexter's end effector from location: [0, 0.55, 0.075] to
 location [0, 0.5, 0.075] in a straight line.
 </details>
-
-<details id="make_ins_doc_id" class="doc_details"><summary>make_ins</summary>
-Normally you should make instructions for Dexter using one of the high level method calls,
-ie <code>Dexter.move_all_joints</code>. However, we provide the function <code>make_ins</code>,
-useful in some low level situations. The first argument is the instruction type, (nickname: "oplet")
-a single letter string such as "a". The remaining arguments are whatever that instruction type
-accepts. Example:<br/>
-<code>make_ins("a", 1, 2, 3, 4 ,5)</code> =>
-<samp>[undefined, undefined, undefined, undefined, "a", 1, 2, 3, 4, 5]</samp>
-creates an instruction that moves the 5 joints
-by 1, through 5 degrees respectively.
-If you have the arguments in an array, you can use this syntax:<br/>
-<code title="unEVALable code fragment"> make_ins("a", ...my_array)</code>
-<p></p>
-The returned value is an array that has its first several fields empty. DDE uses them
-for storing the job_id, instruction_id and some timing information.
-</details> <!-- end make_ins -->
 
 <details id="Dexter.pid_move_all_joints_doc_id" class="doc_details"><summary>pid_move_all_joints</summary>
 Similar to <a href="#" onclick="open_doc('Dexter.move_all_joints_doc_id', event)">Dexter.move_all_joints</a>
@@ -5004,6 +5067,25 @@ None of these instructions take arguments.
 </details>
 
 </details> <!-- end dexter_instructions -->
+
+<details  class="RobotStatus_doc_id"><summary>RobotStatus</summary>
+<code>RobotStatus</code> is a class whose instances store information about
+a Dexter robot. Each Dexter robot instance has a field named <code>robot_status</code>
+whose value is an instance of <code>RobotStatus</code>.
+The following are instance methods on <code>RobotStatus</code>.
+<p></p>
+<b>job_id</b> The id of the job corresponding to this robot_status. This is usually the
+last instruciton sent to Dexter. Takes no parameters. <br/>
+<b>instruction_id</b>The id of the instruction last sent to Dexter. Takes no parameters. <br/>
+<b>start_time</b> The time this instruction was sent from DDE to Dexter in milliseconds form Jan 1, 1970. Takes no parameters. <br/>
+<b>stop_time</b> The time this robot status was revieved by DDE from Dexter in milliseconds form Jan 1, 1970. Takes no parameters. <br/>
+<b>instruction_type</b> The oplet of this instruction as a string of one letter. Takes no parameters. <br/>
+<b>error_code</b> An error code for this instruction. If <code>0<code>, that means no error. Takes no parameters. <br/>
+<b>job_id_of_current_instruction</b> The job id of the instruction that is now being executed by Dexter. Takes no parameters. <br/>
+<b>current_instruction_id</b> The instruction_id of the instruction that is now being executed by Dexter. Takes no parameters. <br/>
+<b>end_effector_in</b> ??? Takes no parameters.
+</details>
+
 
 <details  class="doc_details"><summary>Dexter Utilities</summary>
 
@@ -5696,8 +5778,24 @@ Example: <code>Serial.string_instruction(4.5)</code><br/>
 sends the 3 character string: <code>"4.5"</code>  to the serial robot.
 <p></p>
 This instruction causes the Job its in to pause until the instruction
-completes.<br/>
-See Job Example: Serial Port for an extended example.
+completes.
+<p></p>
+If you'd like to send string instructions to more than one serial port,
+you can use an instance of a serial port as the subject of a string_instruction.<br/>
+Example:
+<pre><code>
+new Serial({name: "S2",
+            path: "/dev/tty.usbmodem2822"})
+
+new Job({name: "j1",
+         robot: new Serial({name: "S1",
+                            path: "/dev/tty.usbmodem1411"}),
+         do_list: [Serial.string_instruction("hi"),
+                   Serial.S2.string_instruction("hey")]})
+    </code></pre>
+The first instruction goes to Serial robot "S1".
+The second goes to Serial robot "S2".<br/>
+See Jobs menu/Insert Example/Serial Port for an extended example.
 </details>
 
 <details  class="doc_details"><summary>Robot.grab_robot_status</summary>
