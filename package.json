@@ -57,6 +57,9 @@
       "perMachine": true
     },
     "linux": {
+      "target": [
+        "AppImage"
+      ],
       "category": "Development;Education;Robotics"
     }
   }
