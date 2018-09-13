@@ -121,7 +121,7 @@ var RobotStatus = class RobotStatus{
         return result
     }
 
-    send(joint_number){
+    sent(joint_number){
         let result = this.robot_status["J" + joint_number + "_SENT"]
         if(typeof(result) == "number") { return result}
         else { dde_error("RobotStatus.sent passed joint_number: " + joint_number + " which isn't valid.") }

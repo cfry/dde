@@ -4588,7 +4588,8 @@ job's <code title="unEVALable code fragment"> rs_history</code> array.
 <i>Examples</i>:
 <code>Dexter.get_robot_status()</code>  //how this should look on  job's do list.<br/>
 <code title="unEVALable code fragment"> Jobs.j1.robot_status</code>  //getting the whole status array after the above instruction is run.<br/>
-<code title="unEVALable code fragment"> Jobs.j1.robot_status[Dexter.J1_ANGLE]</code> //returns the angle of Joint 1, in arcseconds<p></p>
+<code title="unEVALable code fragment"> Jobs.j1.robot_status[Dexter.J1_ANGLE]</code> //returns the angle of Joint 1, in arcseconds
+<p></p>
 This instruction blocks further processing of the job's do_list instructions until
 all of the instructions on Dexter's instruction_queue are executed.
 <p></p>
@@ -5020,6 +5021,8 @@ set parameter values.
     <code>Dexter.write_to_robot("hello world", "/srv/samba/share/greeting.txt")</code><br/>
     This instruction requires an upgrade to Dexter's software available May, 2018.
 </details>
+</details> <!-- end dexter_instructions -->
+
 <details class="doc_details"><summary>Dexter Modes</summary>
 Dexter can be put into one of several <i>modes</i> that governs its behavior.
 This is done by putting any one of the following Dexter instructions
@@ -5064,27 +5067,140 @@ None of these instructions take arguments.
         <p></p>
         <code>Dexter.set_open_loop()</code>
     </details>
-</details>
+</details> <!--End Dexter Modes-->
 
-</details> <!-- end dexter_instructions -->
+<details class="doc_details"  id="RobotStatus_doc_id"><summary>RobotStatus</summary>
+    <code>RobotStatus</code> is a class whose instances store information about
+    a Dexter robot. Each Dexter robot instance has a field named <code>robot_status</code>
+    whose value is an instance of <code>RobotStatus</code>.
+    <p></p>
+    The following are instance methods on <code>RobotStatus</code>.
+    <details id="RobotStatus.job_id_doc_id" class="doc_details"><summary>job_id</summary>
+        Returns the job_id of the job corresponding to the instruction of this robot_status.
+        This is usually the last instruciton sent to Dexter.<br/>
+        Takes no parameters.
+    </details>
+    <details id="RobotStatus.instruction_id_doc_id" class="doc_details"><summary>instruction_id</summary>
+        Returns id of the instruction last sent to Dexter.<br/>
+        Takes no parameters.
+    </details>
+    <details id="RobotStatus.job_id_of_current_instruction_doc_id" class="doc_details"><summary>job_id_of_current_instruction</summary>
+        The job id of the instruction that is now being executed by Dexter.<br/>
+        Takes no parameters.
+    </details>
+    <details id="RobotStatus.current_instruction_id_doc_id" class="doc_details"><summary>current_instruction_id</summary>
+        The instruction_id of the instruction that is now being executed by Dexter.<br/>
+        Takes no parameters.
+    </details>
+    <details id="RobotStatus.start_time_doc_id" class="doc_details"><summary>start_time</summary>
+        The time this instruction was sent from DDE to Dexter in milliseconds form Jan 1, 1970.<br/>
+        Takes no parameters.
+    </details>
+    <details id="RobotStatus.stop_time_doc_id" class="doc_details"><summary>stop_time</summary>
+        The time this robot status was revieved by DDE from Dexter in milliseconds form Jan 1, 1970.<br/>
+        Takes no parameters.
+    </details>
+    <details id="RobotStatus.instruction_type_doc_id" class="doc_details"><summary>instruction_type</summary>
+        The oplet of this instruction as a string of one letter.<br/>
+        Takes no parameters.
+    </details>
+    <details id="RobotStatus.error_code_doc_id" class="doc_details"><summary>error_code</summary>
+        An error code for this instruction. If <code>0</code>, that means no error.<br/>
+        Takes no parameters.
+    </details>
 
-<details  class="RobotStatus_doc_id"><summary>RobotStatus</summary>
-<code>RobotStatus</code> is a class whose instances store information about
-a Dexter robot. Each Dexter robot instance has a field named <code>robot_status</code>
-whose value is an instance of <code>RobotStatus</code>.
-The following are instance methods on <code>RobotStatus</code>.
-<p></p>
-<b>job_id</b> The id of the job corresponding to this robot_status. This is usually the
-last instruciton sent to Dexter. Takes no parameters. <br/>
-<b>instruction_id</b>The id of the instruction last sent to Dexter. Takes no parameters. <br/>
-<b>start_time</b> The time this instruction was sent from DDE to Dexter in milliseconds form Jan 1, 1970. Takes no parameters. <br/>
-<b>stop_time</b> The time this robot status was revieved by DDE from Dexter in milliseconds form Jan 1, 1970. Takes no parameters. <br/>
-<b>instruction_type</b> The oplet of this instruction as a string of one letter. Takes no parameters. <br/>
-<b>error_code</b> An error code for this instruction. If <code>0<code>, that means no error. Takes no parameters. <br/>
-<b>job_id_of_current_instruction</b> The job id of the instruction that is now being executed by Dexter. Takes no parameters. <br/>
-<b>current_instruction_id</b> The instruction_id of the instruction that is now being executed by Dexter. Takes no parameters. <br/>
-<b>end_effector_in</b> ??? Takes no parameters.
-</details>
+    <details id="RobotStatus.end_effector_in_doc_id" class="doc_details"><summary>end_effector_in</summary>
+        ??? <br/>
+        Takes no parameters.
+    </details>
+
+    <details id="RobotStatus.a2d_cos_doc_id" class="doc_details"><summary>a2d_cos</summary>
+        Returns the a2d_cos of a joint.  <br/>
+        <i>Parameter</i><br/>
+        <b>joint_number</b> An integer from 1 through 7 indicated the joint that you want information on.
+    </details>
+    <details id="RobotStatus.a2d_coses_doc_id" class="doc_details"><summary>a2d_coses</summary>
+        Returns an array of a2d_cos. <br/>
+        <i>Parameter</i><br/>
+        <b>joint_count</b> Default: <code>5</code>
+        An integer from 0 through 7 indicating the number of joints to return their values on.
+    </details>
+
+    <details id="RobotStatus.a2d_sin_doc_id" class="doc_details"><summary>a2d_sin</summary>
+        Returns the a2d_sin of a joint.  <br/>
+        <i>Parameter</i><br/>
+        <b>joint_number</b> An integer from 1 through 7 indicated the joint that you want information on.
+    </details>
+    <details id="RobotStatus.a2d_sins_doc_id" class="doc_details"><summary>a2d_sins</summary>
+        Returns an array of a2d_sin. <br/>
+        <i>Parameter</i><br/>
+        <b>joint_count</b> Default: <code>5</code>
+        An integer from 0 through 7 indicating the number of joints to return their values on.
+    </details>
+
+    <details id="RobotStatus.angle_doc_id" class="doc_details"><summary>angle</summary>
+        Returns the stepper motor angle of a joint. Not normally useful. <br/>
+        <i>Parameter</i><br/>
+        <b>joint_number</b> An integer from 1 through 7 indicated the joint that you want information on.
+    </details>
+    <details id="RobotStatus.angles_doc_id" class="doc_details"><summary>angles</summary>
+        Returns an array of stepper motor angles. Not normally useful. <br/>
+        <i>Parameter</i><br/>
+        <b>joint_count</b> Default: <code>5</code>
+        An integer from 0 through 7 indicating the number of joints to return their angles on.
+    </details>
+
+    <details id="RobotStatus.delta_doc_id" class="doc_details"><summary>delta</summary>
+        Returns the delta of a joint.  <br/>
+        <i>Parameter</i><br/>
+        <b>joint_number</b> An integer from 1 through 7 indicated the joint that you want information on.
+    </details>
+    <details id="RobotStatus.deltas_doc_id" class="doc_details"><summary>deltas</summary>
+        Returns an array of deltas. <br/>
+        <i>Parameter</i><br/>
+        <b>joint_count</b> Default: <code>5</code>
+        An integer from 0 through 7 indicating the number of joints to return their angles on.
+    </details>
+
+    <details id="RobotStatus.pid_delta_doc_id" class="doc_details"><summary>pid_delta</summary>
+        Returns the pid_delta of a joint.  <br/>
+        <i>Parameter</i><br/>
+        <b>joint_number</b> An integer from 1 through 7 indicated the joint that you want information on.
+    </details>
+    <details id="RobotStatus.pid_deltas_doc_id" class="doc_details"><summary>pid_deltas</summary>
+        Returns an array of pid_deltas. <br/>
+        <i>Parameter</i><br/>
+        <b>joint_count</b> Default: <code>5</code>
+        An integer from 0 through 7 indicating the number of joints to return their angles on.
+    </details>
+
+
+
+    <details id="RobotStatus.measured_angle_doc_id" class="doc_details"><summary>measured_angle</summary>
+        Returns the a2d_cos of a joint.  <br/>
+        <i>Parameter</i><br/>
+        <b>joint_number</b> An integer from 1 through 7 indicated the joint that you want information on.
+    </details>
+    <details id="RobotStatus.measured_angles_doc_id" class="doc_details"><summary>measured_angles</summary>
+        Returns an array of measured_angles from Dexter. <br/>
+        <i>Parameter</i><br/>
+        <b>joint_count</b> Default: <code>5</code>
+        An integer from 0 through 7 indicating the number of joints to return their angles on.
+    </details>
+
+    <details id="RobotStatus.sent_doc_id" class="doc_details"><summary>sent</summary>
+        Returns the sent angle of a joint.  <br/>
+        <i>Parameter</i><br/>
+        <b>joint_number</b> An integer from 1 through 7 indicated the joint that you want information on.
+    </details>
+    <details id="RobotStatus.sents_doc_id" class="doc_details"><summary>sents</summary>
+        Returns an array of sent angles to Dexter. <br/>
+        <i>Parameter</i><br/>
+        <b>joint_count</b> Default: <code>5</code>
+        An integer from 0 through 7 indicating the number of joints to return their angles on.
+    </details>
+
+</details> <!-- end RobotStatus -->
 
 
 <details  class="doc_details"><summary>Dexter Utilities</summary>
@@ -6806,7 +6922,7 @@ mat.delete()</code></pre>
         through you have to use a property name that's NOT standard HTML.<br/>
         The 'string' verison of this uses HTML property syntax:<br/>
         <i>Example:</i><br/>
-        <code><pre>make_html("b",
+        <pre><code>make_html("b",
           {html_properties:"color=blue height=123"},
           "text")</code></pre>
         The object version uses JS object syntax:<br/>

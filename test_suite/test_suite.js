@@ -61,6 +61,7 @@ var TestSuite = class TestSuite{
         $( "#test_suites_id" ).append("<li id='" + the_id + "'>run " + suite_name + "</li>" );
         setTimeout(function(){ window[the_id].onclick = fn}, 300)
     }
+    //not called
     static make_suites_menu_items(){
          for (let suite of TestSuite.suites){
              console.log("calling make_suite_menu_items")
@@ -232,16 +233,28 @@ var TestSuite = class TestSuite{
         load_files(__dirname + "/test_suite/picture_testsuite.js")
         if (!TestSuite["user_guide_id"])       { TestSuite.make_test_suites_from_doc(user_guide_id) }
         if (!TestSuite["reference_manual_id"]) { TestSuite.make_test_suites_from_doc(reference_manual_id) }
-        var reports = '<b style="font-size:20px;">All Test Suites Report</b><br/>' +
+        let reports = '<b style="font-size:20px;">All Test Suites Report</b><br/>' +
         '<span style="color:magenta;">test_suite_reporting *should* indicate<br/>"failures: unknown=2, known=1"</span><br/>'
         let start_time = Date.now()
         for (let suite of TestSuite.suites){
-            var report = TestSuite.run(suite.name)
+            let report = TestSuite.run(suite.name)
             reports = reports + report + "<br/>"
         }
         let end_time = Date.now()
         out(reports + " All test suites duration: " + (end_time - start_time) + " ms")
 
+    }
+    static run_ts_in_file(path){
+        let ts_src = "[" + file_content(path) + "]"
+        let ts_array = eval(ts_src)
+        let reports = '<b style="font-size:20px;">Test Suites Report for ' + path + '</b><br/>'
+        let start_time = Date.now()
+        for(let ts of ts_array){
+            let report = TestSuite.run(suite.name)
+            reports = reports + report + "<br/>"
+        }
+        let end_time = Date.now()
+        out(reports + " All test suites duration: " + (end_time - start_time) + " ms")
     }
 
     //can't just return the value and have it seen, has to output to out.
