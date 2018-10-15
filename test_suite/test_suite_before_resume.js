@@ -228,78 +228,23 @@ var TestSuite = class TestSuite{
     }
 
     static run_all(){
-        load_files(__dirname + "/test_suite/move_all_joints_testsuite.js")
         load_files(__dirname + "/music/note_testsuite.js")
         load_files(__dirname + "/music/phrase_testsuite.js")
         load_files(__dirname + "/test_suite/picture_testsuite.js")
         load_files(__dirname + "/test_suite/make_html_testsuite.js")
         if (!TestSuite["user_guide_id"])       { TestSuite.make_test_suites_from_doc(user_guide_id) }
         if (!TestSuite["reference_manual_id"]) { TestSuite.make_test_suites_from_doc(reference_manual_id) }
-        let report_prefix = '<b style="font-size:20px;">All Test Suites Report</b><br/>' +
-            '<span style="color:magenta;">test_suite_reporting *should* indicate<br/>"failures: unknown=2, known=1"</span><br/>'
-        this.state = {reports:             report_prefix,
-                      start_time:          Date.now(),
-                      suites:              TestSuite.suites,
-                      current_suite_index: 0,
-                      next_test_index:     0
-                     }
-        this.resume()
-    }
-    //called from run_all before run_all actually runs any tests, and
-    //when a job finishes because its when_stopped method as set by
-    //the job's start method will call TestSuite.resume()
-    static resume(){
-        if (this.state){
-            for (let suite_index = this.state.current_suite_index;
-                     suite_index < this.state.suites.length;
-                     suite_index++){
-                this.state.current_suite_index = suite_index
-                let cur_suite = this.state.suites[suite_index]
-                if (typeof(cur_suite) == "string"){
-                    cur_suite = window.eval(cur_suite)
-                    this.state.suites[suite_index] = cur_suite
-                }
-                let report    = cur_suite.start(this.state.next_test_index)
-                if(report) {
-                    this.state.reports += report + "<br/>"
-                    this.state.current_suite_index += 1 //mostly redundant with setting this above, but not if we're on the last suite.
-                    this.state.next_test_index = 0 //don't do this above since we might be entering resume whule in the middle of some test suite
-                }
-                else { return } //suspend until TestSuite.resume() is called again.
-            }
-            this.state.end_time = Date.now()
-            out(this.state.reports + this.summary())
-            this.prev_state = this.state //allows for post-mortem examination.
-            this.state = null
+        let reports = '<b style="font-size:20px;">All Test Suites Report</b><br/>' +
+        '<span style="color:magenta;">test_suite_reporting *should* indicate<br/>"failures: unknown=2, known=1"</span><br/>'
+        let start_time = Date.now()
+        for (let suite of TestSuite.suites){
+            let report = TestSuite.run(suite.name)
+            reports = reports + report + "<br/>"
         }
-        else { dde_error("In TestSuite.resume, no state to resume from.") }
-    }
+        let end_time = Date.now()
+        out(reports + " All test suites duration: " + (end_time - start_time) + " ms")
 
-    static summary(){
-        let total_dur    = this.state.end_time - this.state.start_time //in ms
-        let total_suites = this.state.suites.length
-        let total_tests  = 0
-        let total_unknown_failures = 0
-        let total_known_failures   = 0
-        for(let ts of this.state.suites){
-            total_tests            += ts.tests.length
-            if ((ts.name == "test_suite_reporting") &&
-                (ts.unknown_failure_count == 2) &&
-                (ts.known_failure_count   == 1)){ }//so we don't get the usual "test" failures
-            else {
-                total_unknown_failures += ts.unknown_failure_count
-                total_known_failures   += ts.known_failure_count
-            }
-        }
-        let result =  "<b>Summary:</b><br/>" +
-                      " Test suites run: "  + total_suites +
-                      ", Total tests: "     + total_tests  +
-                      ", Duration: "        + total_dur    + " ms <br/>" +
-                      "Total unknown failures: <span style='color:" + ((total_unknown_failures == 0) ? "black" : "red") + "'>" + total_unknown_failures + "</span>" +
-                      ", Total known failures: <span style='color:" + ((total_known_failures   == 0) ? "black" : "red") + "'>" + total_known_failures   + "</span> "
-        return result
     }
-
     static run_ts_in_file_ui(){
         let path = choose_file()
         if(path){
@@ -313,15 +258,14 @@ var TestSuite = class TestSuite{
         ts_src = ts_src.substring(1) //cut off initial comma
         ts_src = "[\n" + ts_src + "\n]" //need the newlines in case last line in ts_src has a // comment in it
         let ts_array = eval(ts_src)
-        let report_prefix = '<b style="font-size:20px;">Test Suites Report for ' + path + '</b><br/>'
-        this.state = {
-            reports:             report_prefix,
-            start_time:          Date.now(),
-            suites:              ts_array,
-            current_suite_index: 0,
-            next_test_index:     0
+        let reports = '<b style="font-size:20px;">Test Suites Report for ' + path + '</b><br/>'
+        let start_time = Date.now()
+        for(let ts of ts_array){
+            let report = TestSuite.run(ts.name)
+            reports += report + "<br/>"
         }
-        this.resume()
+        let end_time = Date.now()
+        out(reports + " All test suites duration: " + (end_time - start_time) + " ms")
     }
 
     //can't just return the value and have it seen, has to output to out.
@@ -365,7 +309,6 @@ var TestSuite = class TestSuite{
             if (arrow_key_direction == 1){
                 if (run_item){
                     let ts_array = sel_text.split("new TestSuite")
-                    let ts_array_clean_strings = []
                     for(let ts_string of ts_array){
                         ts_string = ts_string.trim()
                         if (ts_string == "") { continue; } //junk from split
@@ -376,22 +319,13 @@ var TestSuite = class TestSuite{
                         let close_paren = Editor.find_matching_delimiter(ts_string, open_paren)
                         if (close_paren == null) {out("Found syntactically bad test suite with no closing paren: " + ts_string.split("\n")[0]); return false}
                         ts_string = ts_string.substring(0, close_paren + 1) //now have a good ts source string
-                        ts_array_clean_strings.push(ts_string)
-                        //let ts  = window.eval(ts_string)
-                        //if (ts instanceof TestSuite) {out(ts.start());}
-                        //else {
-                        //    out("The source code for test suite: " + ts_string.split("\n")[0] + " isn't proper.")
-                        //    return false
-                        //}
+                        let ts  = window.eval(ts_string)
+                        if (ts instanceof TestSuite) {out(ts.start());}
+                        else {
+                            out("The source code for test suite: " + ts_string.split("\n")[0] + " isn't proper.")
+                            return false
+                        }
                     }
-                    this.state = {
-                        reports:             "",
-                        start_time:          Date.now(),
-                        suites:              ts_array_clean_strings, //each will be evled when its time to run it
-                        current_suite_index: 0,
-                        next_test_index:     0
-                    }
-                    this.resume()
                 }
             }
         }
@@ -403,16 +337,7 @@ var TestSuite = class TestSuite{
             run_item){
             if (run_item){
                 let ts  = window.eval(sel_text)
-                if (ts instanceof TestSuite) {
-                        this.state = {
-                        reports:             "",
-                        start_time:          Date.now(),
-                        suites:              [ts],
-                        current_suite_index: 0,
-                        next_test_index:     0
-                    }
-                    this.resume()
-                }
+                if (ts instanceof TestSuite) {out(ts.start());}
                 else {
                     out("The source code for test suite: " + ts_string.split("\n")[0] + " isn't proper.")
                     return false
@@ -427,7 +352,7 @@ var TestSuite = class TestSuite{
             if (arrow_key_direction == 1){
                 if (run_item){
                     let test_array = TestSuite.test_source_to_array(sel_text)
-                    let [status, error_message] = TestSuite.run_test_array(test_array, null, null,  false)
+                    let [status, error_message] = TestSuite.run_test_array(test_array)
                     if (error_message == ""){
                         error_message = "<span style='color:blue;'>" + test_array[0] + "</span> passed."
                     }
@@ -438,13 +363,13 @@ var TestSuite = class TestSuite{
         return TestSuite.select_next("test", arrow_key_orientation, arrow_key_direction)
     }
 
-    //run a test suite. returns a string of the report OR false, meaning, suspend
-    start(starting_test_index){ //the instance version of run
-        return TestSuite.run(this.name, starting_test_index)
+    //run a test suite
+    start(){ //the instance version of run
+        return TestSuite.run(this.name)
     }
 
     //run a test suite
-    static run(name, starting_test_index = 0){
+    static run(name){
         console.log("Starting to run test suite: " + name)
         var this_suite = TestSuite[name]
         if (!this_suite) {throw new Error("Attempted to run test suite: " + name + " but it isn't defined.")}
@@ -452,27 +377,14 @@ var TestSuite = class TestSuite{
         this_suite.unknown_failure_count = 0
         this_suite.known_failure_count   = 0
         var start_time = Date.now()
-        for(let test_number = starting_test_index; test_number < this_suite.tests.length; test_number++){
+        for(let test_number = 0; test_number < this_suite.tests.length; test_number++){
             var test     = this_suite.tests[test_number]
             //onsole.log("About to run test: " + test_number + " " + test)
-            let [status, error_message] = TestSuite.run_test_array(test, test_number, this_suite)
-            this.state.next_test_index = test_number + 1
-            if (status == "known" ) {
+            let [status, error_message] = TestSuite.run_test_array(test, test_number)
+            if (status) {
                 report += error_message + "\n"
-                this_suite.known_failure_count   += 1
-            }
-            else if (status == "unknown") {
-                report += error_message + "\n"
-                this_suite.unknown_failure_count += 1
-            }
-            else if (status == "suspend") {
-                let job_path_string = last(error_message.split(" "))
-                let job_instance = value_of_path(job_path_string)
-                job_instance.start({when_stopped: function() {TestSuite.resume()}} ) //must be wraped in a fn because
-                //this fun will be called when job finishes with a this of the job instance.
-                //but we want to call resume with a this of TestSuite
-                return false //means we're suspending this TestSuite. No furterh action
-                //in this TestSuite until the job finishes. thenTestSuite.resume is called
+                if      (status == "known")   { this_suite.known_failure_count += 1 }
+                else if (status == "unknown") { this_suite.unknown_failure_count += 1 }
             }
         }
         var stop_time = Date.now()
@@ -488,18 +400,15 @@ var TestSuite = class TestSuite{
         return report
     }
 
-    //when called normally, suspend_jobs defaults to true.
-    //but when called when evaling just one test suite via user interaction,
-    //this fn  should be call with suspend_jobs=true
-    static run_test_array(test, test_number=null, ts=null, suspend_jobs=true){
-        var status = false //means test ran with no errors, no suspend
+    static run_test_array(test, test_number = null){
+        var status = false
         var error_message = ""
          //first elt: false means everything ok,  or "known"  or "unknown" for a bug
         var src      = test[0]
-        var test_number_html = ((test_number || (test_number === 0)) ? "Test " + test_number + ". ": "")
+        var test_number_html = (test_number ? "Test " + test_number + ". ": "")
         //permit 'let' but warn
-        if (src.startsWith("let ") || src.startsWith("\nlet ")) {
-            out("<span style='color:#cc04ef;'>TestSuite: " + (ts ? ts.name : "unknown") + ", Test: " + test_number +
+        if (src.startsWith("let ") || src.includes(" let ") || src.startsWith("\nlet ")) {
+            out("<span style='color:#cc04ef;'>Test " + test_number +
                 ". Warning: variable bindings made with 'let' will not be available in subsequent tests.<br/>Use 'var' if you want them to be.<br/>" +
                 src + "</span>")
             }
@@ -527,17 +436,7 @@ var TestSuite = class TestSuite{
             window.prev_src = src
            return [status, error_message]
          }
-         if (src_result instanceof Job) { //ignore the 2nd and 3rd array elts if any.
-            if (suspend_jobs) {
-                status = "suspend"
-                error_message =  test_number_html + " suspended until finish of Job." + src_result.name //this error message just end in " Job.foo" as that's used by run_test_array caller
-            }
-            else { //don't suspend, no error message
-               src_result.start() //don't add resume, jsut let the job run and user decides when its done
-                 //to manually go to the next item
-            }
-         }
-        else if(test.length == 1) {
+        if(test.length == 1) {
             if(TestSuite.last_src_error_message){
                 status = "unknown" //no utility in init code that errors so never a "known" one with a 1 elt test array
                 error_message = test_number_html + src + " => " + TestSuite.last_src_error_message + "<br/>"
@@ -883,13 +782,8 @@ var TestSuite = class TestSuite{
             var code_elts = dom_elt.querySelectorAll('code')
             var a_test_suite_tests = []
             for (let code_elt of code_elts){
-                let src = code_elt.innerText
-                if (code_elt.title.startsWith("unstartable")) {
-                    src = "[" + src +"]" //now src won't eval to a job so it won't be started and trigger the suspend/resume mechanism,
-                    //but below we will still EVAL the job so that we can at least test
-                    //that the job gets defined without error.
-                }
-                if (!code_elt.title || (code_elt.title.startsWith("unstartable"))){  //(src[0] != " ")
+                var src = code_elt.innerText
+                if (!code_elt.title){  //(src[0] != " ")
                     var a_test = [src]
                     var next_elt = code_elt.nextElementSibling
                     if (next_elt && (next_elt.tagName == "SAMP")){
@@ -909,7 +803,7 @@ var TestSuite = class TestSuite{
 TestSuite.error = {name:"used for an expected value of an error."}
 TestSuite.dont_care = {name:"used for an expected value when anything the source returns is ok, except if it errors."}
 TestSuite.suites = []
-TestSuite.state  = null //used to hold state to implement resume.
+Testsuite.state = null
 
 new TestSuite("test_suite_reporting",
     ["2 + 3", "5", "1st elt (source) evals to same as 2nd elt (expected) and the test passes."],

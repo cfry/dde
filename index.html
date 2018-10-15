@@ -2,7 +2,7 @@
 <!-- good html validtor: https://www.onlinewebcheck.com/check.php?adv=1  -->
 <html lang="en">
 <head>
-    <title>Dexter Development Environment 2.5.4</title>
+    <title>Dexter Development Environment</title>
     <link rel="stylesheet" href="jqwidgets/styles/jqx.base.css" type="text/css" />
     <!-- <script type="text/javascript" src="jquery-1.11.3.min.js"></script> -->
     <script>window.$ = window.jQuery = require('jquery');</script>
@@ -130,6 +130,7 @@
 
     <script type="text/javascript" src="job.js"></script>
     <script type="text/javascript" src="job_examples.js"></script> <!--evals no Job code, just literal strings for insertion-->
+    <script type="text/javascript" src="gcode.js"></script> <!-- adds methods to the class Job used by run_gcode-->
     <script type="text/javascript" src="run_instruction.js"></script>
     <script type="text/javascript" src="app_builder.js"></script>
     <script type="text/javascript" src="doc_code.js"></script>
@@ -619,6 +620,8 @@
                                         <!-- <li id="show_all_test_suites_id"    title="Show all test suites' source code in the Output pane.">Show all</li> functionality obtained with Find and no selection -->
                                         <li id="insert_all_test_suites_id"  title="Insert all test suites' source code into the Editor.">Insert all</li>
                                         <li id="run_all_test_suites_id"     title="Run all defined test suites.">Run all TestSuites</li>
+                                        <li id="run_test_suite_file_id"     title="Lets user choose file of tests to run.">Run TestSuite File</li>
+
                                         <li id="selection_to_test_id"       title="Wrap a test around the current selection.&#13;If no selection, insert an empty test template.">Selection to test</li>
                                     </ul>
                                 </li>

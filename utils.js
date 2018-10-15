@@ -336,7 +336,9 @@ function pad_integer(int, places=3, pad_char="0"){
     return result
 }
 
+//used in computing numbers to display in the robot_status dialog
 function to_fixed_smart(num, digits=0){
+    if((num == "no status") || (num === undefined)) { return num }
     try{ return num.toFixed(digits)}
     catch(err){
         warning("to_fixed_smart called with non_number: " + num)
@@ -1100,7 +1102,17 @@ function trim_string_quotes(a_string){
     return a_string
 }
 
-function replace_substrings(orig_string, substring_to_replace, replacement){
+function regexp_escape_special_chars(str){
+    return strr.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')
+}
+
+//the first arg to new RegExp is a regexp pattern that treats
+//lots of punctuation chars like parans specially.
+//To turn off that special treatment, pass in a 3rd arg of false
+function replace_substrings(orig_string, substring_to_replace, replacement, substring_to_replace_treated_speically=true){
+    if(!substring_to_replace_treated_speically) {
+        substring_to_replace = regexp_escape_special_chars(substring_to_replace)
+    }
     return orig_string.replace(new RegExp(substring_to_replace, 'g'), replacement);
 }
 

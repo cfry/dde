@@ -50,8 +50,10 @@ function fix_code_to_be_evaled(src){
 }
 
 //part 1 of 3.
+//when this is called, there is no selection, so either we're evaling the whole editor buffer
+//or the whole cmd line.
 function eval_js_part1(step=false){
-    var src = Editor.get_javascript("auto") //if no selection get whole buffer, else get just the selection
+    let src = Editor.get_javascript("auto") //if no selection get whole buffer, else get just the selection
     //we do NOT want to pass to eval part 2 a trimmed string as getting its char
     //offsets into the editor buffer correct is important.
     if (src.trim() == ""){
@@ -167,6 +169,7 @@ function eval_js_part3(result){
         }
         Editor.select_javascript(start_of_selection + result.starting_index, start_of_selection + result.ending_index)
     }
+    //else if(Editor.get_cmd_selection.length > 0) { cmd_input_id.focus() }
 }
 
 //doesn't really need to return result as this side_effects result

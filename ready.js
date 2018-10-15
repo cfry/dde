@@ -6,6 +6,8 @@
     var js_cmds_array = []
     var js_cmds_index = -1
 
+    var selected_text_when_eval_button_clicked = ""
+
     operating_system = "not inited" //on MAC this is "mac", on windows its "win".  bound in both ui and sandbox by ready
     dde_apps_dir  = null
 
@@ -16,10 +18,16 @@
     }
     //called by both the eval button and the step button
     function eval_button_action(step=false){ //used by both clicking on the eval button and Cmd-e
-        let sel_text = Editor.get_any_selection() //must do before Edotor>save because now mysteriously that clears the selection
+        //debugger
+        let sel_text = selected_text_when_eval_button_clicked //Editor.get_any_selection() //must do before Edotor>save because now mysteriously that clears the selection
         if((Editor.current_file_path != "new file") && (save_on_eval_id.checked)) { Editor.save_current_file() }
         if (sel_text.length > 0) { eval_js_part2((step? "debugger; " : "") + sel_text) }
-        else { eval_js_part1(step) } //gets whole editor buffer and if empty, prints warning.
+        /*else if (eval_previousActiveElement == cmd_input_id) { //document.activeElement == cmd_input_id //fails because clicking on the Eval button changes the activeElement
+            sel_text = cmd_input_id.value
+            if (sel_text.length > 0) { eval_js_part2((step? "debugger; " : "") + sel_text) }
+            else { warning("Cursor is in command line but it is empty so no JS to eval.", true) }
+        }*/
+        else {  eval_js_part1(step) }//gets whole editor buffer and if empty, prints warning.
         if (Editor.view == "blocks") { eval_id.blur() } //to get rid of the Eval button being "selected" when we're evaling in blocks view
     }
 
@@ -43,6 +51,11 @@
         var pckg         = require('./package.json');
         dde_version      = pckg.version
         dde_release_date = pckg.release_date
+        setTimeout(function(){
+            window.document.title = "Dexter Development Environment " + dde_version
+            dde_version_id.innerHTML      = dde_version
+            dde_release_date_id.innerHTML = dde_release_date
+        }, 1000)
    // window.$ = require('jquery'); //Now done in index.html   after doing npm install --save jquery, we still need this
     //onload_fn()
     Dexter.draw_dxf = DXF.dxf_to_instructions //see Robot.js
@@ -75,8 +88,10 @@
     //$('#jqxwindow').jqxWindow('hide');
     $("#cmd_input_id").keyup(function(event){ //output pane  type in
         if(event.keyCode == 13){ //ENTER key
+            let src = Editor.get_cmd_selection() //will return "" if no selection
+            if(src.length == 0) { src = cmd_input_id.value} //get full src if no selection
+            src = src.trim()
             if(js_radio_button_id.checked){
-                var src = cmd_input_id.value.trim()
                 if (src.length == 0) { warning("no JavaScript to eval.")}
                 else {
                     js_cmds_array.push(src)
@@ -84,7 +99,7 @@
                   eval_js_part2(src)
                 }
             }
-            else { call_cmd_service_custom($("#cmd_input_id").val()); } //ROS selected
+            else { call_cmd_service_custom(src) } //ROS selected
         }
         else if(event.keyCode == 38){ //up arrow
            if      (js_cmds_index == -1 ) { out("No JavaScript commands in history") }
@@ -113,22 +128,25 @@
         cmd_input_id.focus()
     })
 
+    //cmd_input_clicked_on_last = false //global var. Also set below and by Editor.init_editor
+
+    cmd_input_id.onclick = function(event) {
+        //cmd_input_clicked_on_last = true
+        onclick_for_click_help(event)
+    }
+
     js_radio_button_id.onclick  = function() { ros_menu_id.style.display = "none"}
     ros_radio_button_id.onclick = function() { ros_menu_id.style.display = "inline-block"}
 
-    cmd_input_id.onclick = onclick_for_click_help
-
     init_simulation()
 
-    //init_guide()
-    //init_ref_man()
-    //init_release_notes()
     init_doc()
 
     dde_version_id.innerHTML      = dde_version
     dde_release_date_id.innerHTML = dde_release_date
 
     Series.init_series()
+    Gcode.init() //must be after init_series which calls init_units()
 
     $('#js_textarea_id').focus() //same as myCodeMirror.focus()  but  myCodeMerror not inited yet
 
@@ -161,7 +179,12 @@
 
     output_div_id.onclick = onclick_for_click_help
 
-    //handles the button clicks and menu selects that chromp Apps prevent in tHTM where they belong
+    //handles the button clicks and menu selects that chrome Apps prevent in HTML where they belong
+
+    eval_id.onmousedown = function() {
+            selected_text_when_eval_button_clicked = Editor.get_any_selection()
+     };
+
     eval_id.onclick = function(event){
                         event.stopPropagation()
                         eval_button_action()
@@ -701,10 +724,13 @@ get_page_async("http://www.ibm.com", function(err, response, body){ out(body.len
     //start_job_help_id.onclick = function(){ open_doc(start_job_help_doc_id) } //nw help is simply under theh Output pane help, and users see it by clicking on the "Output" pane title.
 
     test_suites_help_id.onclick = function(){ open_doc(TestSuite_doc_id) }
-                                        
-    run_all_test_suites_id.onclick     = function(){TestSuite.run_all()}
-    // show_all_test_suites_id.onclick    = function(){TestSuite.show_all()}  //functionality obtained with Find and no selection
+
     insert_all_test_suites_id.onclick  = function(){TestSuite.insert_all()}
+
+     run_all_test_suites_id.onclick     = function(){TestSuite.run_all()}
+    // show_all_test_suites_id.onclick  = function(){TestSuite.show_all()}  //functionality obtained with Find and no selection
+     run_test_suite_file_id.onclick     =  TestSuite.run_ts_in_file_ui
+
     //obsoleted by increased functionality in doc pane Find button. find_test_suites_id.onclick        = function(){TestSuite.find_test_suites(Editor.get_any_selection())}
     selection_to_test_id.onclick=function(){
        TestSuite.selection_to_test(Editor.get_javascript(true), Editor.get_javascript(), Editor.selection_start())

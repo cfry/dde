@@ -89,7 +89,7 @@ new TestSuite("make_html_html_properties",
     `'<b color="red" junk="234"/>'`],
     [`make_html("b", {bgcolor: "green", html_properties:'color="red" junk="234"'})`,
     `'<b color="red" junk="234" bgcolor="green"/>'`]
-    )
+)
     
 new TestSuite("make_html_style",
     ['make_html("b", {style: {color:"blue"}})', 
@@ -106,7 +106,7 @@ new TestSuite("make_html_style",
     `'<b color="red" style="bgcolor:blue;"/>'`],
     [`make_html("b", {id:"my_id", "font-size":"14px", html_properties:'color="red"', style:"bgcolor:blue;"})`,
     `'<b color="red" id="my_id" style="bgcolor:blue; font-size:14px;"/>'`]
-    )
+)
 
 //show_window(make_html("b", {style:'color:red;', "font-size":"22px"}, "inner text"))
 

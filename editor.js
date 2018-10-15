@@ -95,6 +95,7 @@ Editor.init_editor = function(){
                          //Wrapping the setTimout fixes that bug.
                         setTimeout(function() {Editor.show_identifier_info()}, 1)
                         myCodeMirror.focus()
+                        cmd_input_clicked_on_last = false
                     })
 }
 
@@ -191,7 +192,8 @@ Editor.get_any_selection = function(){
     //the editor window sel, and therefore your attention is on that non-editor selection.
     var sel_text = ""
     if (!window.getSelection().isCollapsed) { //got sel in doc or output pane
-         return window.getSelection().getRangeAt(0).toString()
+         let sel_text = window.getSelection().getRangeAt(0).toString()
+         return sel_text
     }
     sel_text = Editor.get_cmd_selection()
     if(sel_text.length > 0 ) { return sel_text }

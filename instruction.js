@@ -2504,24 +2504,90 @@ Instruction.Control.wait_until = class wait_until extends Instruction.Control{
     }
 }
 
+//the returned array will have only numbers and be at least 5 numbers long.
+//if array_of_angles is less than 5, expand it to 5 with the previous value for that angle.
+//but after that, don't make it any longer than array_of_angles,
+//ie leave off j6 & j7 if they aren't passed in.
+//if there are "x"s on the end, remove them
+//but if j6 is "x" and j7 is a real number, then both should go in the output.
+//any input angle thats wrapped in an array, treat as relative and turn it into an absolute.
+function adjust_angle_args(array_of_angles){
+    let result = []
+    let ang
+    //make sure we have at least 5 numbers in result
+    for (let i = 0; i < 5; i++){
+        ang = array_of_angles[i]
+        if (ang == null){ //also catches undefined,
+            result.push(this.robot.angles[i]) //this.robot_status[Dexter.ds_j0_angle_index + i] //ie don't change angle
+        }
+        else if (ang == "x"){
+            result.push(this.robot.angles[i])
+        }
+        else if (Array.isArray(ang)) {  //relative move by the first elt of the array
+            result.push = this.robot.angles[i] + ang[0]
+        }
+        else { result.push(ang) }
+    }
+    //find the index of the highest actual value in the input array
+    let index_of_highest_actual_value = 4
+    //we want to ignore ending nulls, undefineds, "x"s
+    for(let i = array_of_angles.length; i >= 5; i--){
+        ang = array_of_angles[i]
+        if((typeof(ang) == "number") || Array.isArray(ang)) {
+            index_of_highest_actual_value = i
+            break
+        }
+    }
+    //loop through the 5th through nth actual value and push them onto the result
+    for(let i = 5; i <= index_of_highest_actual_value; i++){
+        ang = array_of_angles[i]
+        if (ang == null){ //also catches undefined,
+            result.push(this.robot.angles[i]) //this.robot_status[Dexter.ds_j0_angle_index + i] //ie don't change angle
+        }
+        else if (ang == "x"){
+            result.push(this.robot.angles[i])
+        }
+        else if (Array.isArray(ang)) {  //relative move by the first elt of the array
+            result.push = this.robot.angles[i] + ang[0]
+        }
+        else { result.push(ang) }
+    }
+    return result
+}
+
 Instruction.Control.move_all_joints = class move_all_joints extends Instruction.Control{
     constructor (array_of_angles, robot) {
         super()
         this.array_of_angles = array_of_angles //keep for orig 5 angles so to_source_code can use them. May contain nulls
-        this.robot = robot
+        this.robot = robot //if this is undefined, we will use the default robot of the job.
     }
     do_item (job_instance){
         if(!this.robot) { this.robot = job_instance.robot }
-        let angles = this.array_of_angles.slice(0)
-        for (var i = 0; i < 7; i++){
-            let ang = angles[i]
-            if (ang == null){
-                angles[i] = this.robot.angles[i] //this.robot_status[Dexter.ds_j0_angle_index + i] //ie don't change angle
+        let angles = []
+        for (let i = 0; i < 5; i++){
+            let ang = this.array_of_angles[i]
+            if ((ang === undefined) || //happens when array is less than 5 long
+                Number.isNaN(ang)) {
+                angles.push(this.robot.angles[i]) //this.robot_status[Dexter.ds_j0_angle_index + i] //ie don't change angle
             }
             else if (Array.isArray(ang)) {  //relative move by the first elt of the array
-                angles[i] = this.robot.angles[i] + ang[0]
+                angles.push(this.robot.angles[i] + ang[0])
             }
+            else { angles.push(ang) }
         }
+        //angles is now 5 long
+        for(let i = 5; i < this.array_of_angles.length; i++) {
+            let ang = this.array_of_angles[i]
+            if ((ang === undefined) ||
+                Number.isNaN(ang)) {
+                angles.push(NaN) //this.robot_status[Dexter.ds_j0_angle_index + i] //ie don't change angle
+            }
+            else if (Array.isArray(ang)) {  //relative move by the first elt of the array
+                angles.push(this.robot.angles[i] + ang[0])
+            }
+            else { angles.push(ang) }
+        }
+        //angles is at least 5 long, could be 6 or 7
         let error_mess = Dexter.joints_out_of_range(angles)
         if (error_mess){ // a string like "Joint 1 with angle: 0.01 is less than the minimum: 30
             job_instance.stop_for_reason("errored",
@@ -2530,7 +2596,8 @@ Instruction.Control.move_all_joints = class move_all_joints extends Instruction.
             job_instance.set_up_next_do(0)
         }
         else  {
-            this.robot.angles = angles
+            //this.robot.angles = angles
+            for(let i = 0; i < angles.length; i++) { this.robot.angles[i] = angles[i] }
             //job_instance.insert_single_instruction(make_ins("a", ...angles))
             job_instance.wait_until_instruction_id_has_run = job_instance.program_counter
             job_instance.send(make_ins("a", ...angles), this.robot)
@@ -2556,15 +2623,29 @@ Instruction.Control.pid_move_all_joints = class pid_move_all_joints extends Inst
     }
     do_item (job_instance){
         if(!this.robot) { this.robot = job_instance.robot }
-        let angles = this.array_of_angles.slice(0)
-        for (var i = 0; i < 7; i++){
-            let ang = angles[i]
-            if (ang == null){
-                angles[i] = this.robot.pid_angles[i] //this.robot_status[Dexter.ds_j0_angle_index + i] //ie don't change angle
+        let angles = []
+        for (let i = 0; i < 5; i++){
+            let ang = this.array_of_angles[i]
+            if ((ang === undefined) || //happens when array is less than 5 long
+                Number.isNaN(ang)) {
+                angles.push(this.robot.pid_angles[i]) //this.robot_status[Dexter.ds_j0_angle_index + i] //ie don't change angle
             }
             else if (Array.isArray(ang)) {  //relative move by the first elt of the array
-                angles[i] = this.robot.pid_angles[i] + ang[0]
+                angles.push(this.robot.pid_angles[i] + ang[0])
             }
+            else { angles.push(ang) }
+        }
+        //angles is now 5 long
+        for(let i = 5; i < this.array_of_angles.length; i++) {
+            let ang = this.array_of_angles[i]
+            if ((ang === undefined) ||
+                Number.isNaN(ang)) {
+                angles.push(NaN) //this.robot_status[Dexter.ds_j0_angle_index + i] //ie don't change angle
+            }
+            else if (Array.isArray(ang)) {  //relative move by the first elt of the array
+                angles.push(this.robot.pid_angles[i] + ang[0])
+            }
+            else { angles.push(ang) }
         }
         let error_mess = Dexter.joints_out_of_range(angles)
         if (error_mess){ // a string like "Joint 1 with angle: 0.01 is less than the minimum: 30
@@ -2574,12 +2655,7 @@ Instruction.Control.pid_move_all_joints = class pid_move_all_joints extends Inst
             job_instance.set_up_next_do(0)
         }
         else  {
-            //doesn't change the length of robot.pid_angles which is expected to be 7.
-            //uses whatever new angles have come in and leaves the others (typically 6 & 7
-            //the same as they were.
-            for(let i = 0; i < angles.length; i++) {
-                this.robot.pid_angles[i] = angles[i]
-            }
+            for(let i = 0; i < angles.length; i++) { this.robot.pid_angles[i] = angles[i] }
             //job_instance.insert_single_instruction(make_ins("P", ...angles))
             job_instance.wait_until_instruction_id_has_run = job_instance.program_counter
             job_instance.send(make_ins("P", ...angles), this.robot)
@@ -2605,19 +2681,50 @@ Instruction.Control.move_all_joints_relative = class move_all_joints_relative ex
     }
     do_item (job_instance){
         if(!this.robot) { this.robot = job_instance.robot }
-        const abs_angles = []
-        for(var i = 0; i < this.robot.angles.length; i++){
-            let delta_ang = this.delta_angles[i]
-            if (delta_ang === undefined) { delta_ang = 0 }
-            abs_angles.push(this.robot.angles[i] + delta_ang)
+        let angles = [] //the absolute angles after the rel has been added in
+        for (let i = 0; i < 5; i++){
+            let ang = this.delta_angles[i]
+            if ((ang === undefined) || //happens when array is less than 5 long
+                Number.isNaN(ang)) {
+                angles.push(this.robot.angles[i]) //this.robot_status[Dexter.ds_j0_angle_index + i] //ie don't change angle
+            }
+            else if (Array.isArray(ang)) {  //relative move by the first elt of the array
+                //angles.push(this.robot.angles[i] + ang[0])
+                dde_error("move_all_joints_relative passed an array: " + ang +
+                          " but can only accept numbers as these are already relative.")
+            }
+            else { angles.push(this.robot.angles[i] + ang) }
         }
-        //Job.insert_instruction(Dexter.move_all_joints(abs_angles), {job: job_instance, offset: "after_program_counter"})
-        //job_instance.insert_single_instruction(Dexter.move_all_joints(abs_angles))
+        //angles is now 5 long
+        for(let i = 5; i < this.delta_angles.length; i++) {
+            let ang = this.delta_angles[i]
+            if ((ang === undefined) ||
+                Number.isNaN(ang)) {
+                angles.push(NaN) //this.robot_status[Dexter.ds_j0_angle_index + i] //ie don't change angle
+            }
+            else if (Array.isArray(ang)) {
+                dde_error("move_all_joints_relative passed an array: " + ang +
+                    " but can only accept numbers as these are already relative.")
 
-        this.robot.angles = abs_angles
-        job_instance.wait_until_instruction_id_has_run = job_instance.program_counter
-        job_instance.send(make_ins("a", ...abs_angles), this.robot)
-        //job_instance.set_up_next_do(1) //called by robot_done_with_instruction
+            }
+            else { angles.push(this.robot.angles[i] + ang) }
+        }
+        //angles is at least 5 long, could be 6 or 7
+        let error_mess = Dexter.joints_out_of_range(angles)
+        if (error_mess){ // a string like "Joint 1 with angle: 0.01 is less than the minimum: 30
+            job_instance.stop_for_reason("errored",
+                error_mess + "\nin Job." + job_instance.name + " at PC: " + job_instance.program_counter +
+                "\nin Robot.move_all_joints_relative([" + angles + "])")
+            job_instance.set_up_next_do(0)
+        }
+        else  {
+            //this.robot.angles = angles
+            for(let i = 0; i < angles.length; i++) { this.robot.angles[i] = angles[i] }
+            //job_instance.insert_single_instruction(make_ins("a", ...angles))
+            job_instance.wait_until_instruction_id_has_run = job_instance.program_counter
+            job_instance.send(make_ins("a", ...angles), this.robot)
+            //job_instance.set_up_next_do(1) //effectively done in robot_done_with_instruction
+        }
     }
     toString(){
         return "{instanceof: move_all_joints_relative " + this.delta_angles + "}"
@@ -3041,7 +3148,7 @@ Instruction.Control.move_to_straight = class move_to_straight extends Instructio
             catch(err){
                 job_instance.stop_for_reason("errored",
                 "In Job." + job_instance.name + " at PC: " + job_instance.program_counter +
-                "Dexter.move_to_straight([" + this.xyz + "])\n" +
+                "Dexter.move_to_straight({xyz: [" + this.xyz + "]})\n" +
                 "passed invalid xyz.\n" +
                 err.message)
             }
@@ -3068,10 +3175,9 @@ Instruction.Control.move_to_straight = class move_to_straight extends Instructio
             new_J_angles = Kin.xyz_to_J_angles(Ui, J5_direction, config, robot_pose)
             angular_velocity = Kin.tip_speed_to_angle_speed(old_J_angles, new_J_angles, tool_speed)
             old_J_angles = new_J_angles
-            movCMD.push(make_ins("S", "MaxSpeed", angular_velocity))
-            movCMD.push(make_ins("S", "StartSpeed", angular_velocity))
-            movCMD.push(Dexter.move_to(Ui, J5_direction, config, robot_pose))
-            movCMD.push(robot)
+            movCMD.push(robot.make_ins("S", "MaxSpeed", angular_velocity))
+            movCMD.push(robot.make_ins("S", "StartSpeed", angular_velocity))
+            movCMD.push(robot.move_to(Ui, J5_direction, config, robot_pose))
         }
         return movCMD
     }

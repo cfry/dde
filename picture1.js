@@ -11,7 +11,7 @@ var Picture = class Picture{
    static init(){
        if(typeof(cv) == "string") { //calling int a 2nd time some times screws up do to timing,
                                     //robably due to hte show_video call.
-            cv = require("opencv.js")
+            cv = require("./node_modules/opencv.js/opencv")
             RotatingCalipers = require("rotating-calipers/rotating-calipers.js")
        //load_files(__dirname + "/node_modules/rotating-calipers/rotating-calipers.js")
         Picture.show_video({callback: close_window})

@@ -93,6 +93,9 @@ function open_doc_show_fn_def(details_elt, fn_name){
     if (fn && (typeof(fn) == "function")){
         let src = fn.toString() //for actual functions, the result starts with "function ", For classes it starts with "class "
         if (src.startsWith("class ")) {}
+        else if (src.startsWith("function (")){ //anonymous fn but I've got the fn_name
+            src = fn_name + "<br/>" + src
+        }
         else if (src.startsWith("function ")){
             if (non_last_parts_of_path) {
                 src = non_last_parts_of_path + "<br/>" + src
@@ -269,7 +272,18 @@ function init_release_notes(){
 }*/
 
 function init_doc(){
-    let content =   '<details><summary class="doc_top_level_summary">Articles</summary>\n' +
+    let content =
+        '<details id="getting_started_id"><summary class="doc_top_level_summary">Getting Started</summary>\n' +
+        file_content(__dirname + "/doc/getting_started.html") +
+        "</details>\n" +
+        '<details id="user_guide_id"><summary class="doc_top_level_summary">User Guide</summary>\n' +
+        file_content(__dirname + "/doc/guide.html") +
+        "</details>\n" +
+        '<details id="reference_manual_id"><summary class="doc_top_level_summary">Reference Manual</summary>\n' +
+        file_content(__dirname + "/doc/ref_man.html") +
+        "</details>\n" +
+
+        '<details><summary class="doc_top_level_summary">Articles</summary>\n' +
         '<details class="doc_details"><summary class="doc_articles_level_summary">Overview</summary>\n' +
         file_content(__dirname + "/doc/dde_overview/Dexter_Development_Environment.html") +
         "</details>\n" +
@@ -292,12 +306,7 @@ function init_doc(){
         file_content(__dirname + "/doc/glossary.html") +
         "</details>\n" +
         '</details>\n' +
-        '<details id="user_guide_id"><summary class="doc_top_level_summary">User Guide</summary>\n' +
-        file_content(__dirname + "/doc/guide.html") +
-        "</details>\n" +
-        '<details id="reference_manual_id"><summary class="doc_top_level_summary">Reference Manual</summary>\n' +
-        file_content(__dirname + "/doc/ref_man.html") +
-        "</details>\n" +
+
         '<details><summary class="doc_top_level_summary">Release Notes</summary>\n' +
         file_content(__dirname + "/doc/release_notes.html") +
         "</details>\n" +

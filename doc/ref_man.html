@@ -628,8 +628,8 @@ and reliability.
      has its first arg default to <code>"gamepad_keyboard"</code>,
      you can use either a gamepad or the keyboard, though
      as written, you must use the keyboard to end the wait_until.
-
-    <pre><code>new Job({
+     <!-- not in TestSuite because it runs jobs and this job waits for user interaction -->
+    <pre><code title="not in TestSuite">new Job({
   name: "gamepad_job1",
   do_list: [Robot.out("Press RIGHT arrow or ESC to exit."),
             Robot.wait_until(function(){
@@ -665,8 +665,8 @@ and reliability.
     also affects speed.
     <p></p>Operation: When you start this job, press the 4 arrow keys and/or a and b keys
     on either the keyboard or a gamepad to move Dexter's joints.
-
-     <pre><code>function* gamepad_moves(){
+     <!-- not in TestSuite because it runs jobs and this job waits for user interaction -->
+     <pre><code  title="not in TestSuite">function* gamepad_moves(){
     out("top of gen_moves")
     while(true) {
       let dks = Gamepad.down_keys("keyboard_gamepad") //automatically will start_remembering_keydown
@@ -1264,9 +1264,9 @@ Returns the width of the mat argument.<br/>
     <b>value</b> Default: <code>0</code> The new value of the pixel's red component.
     An integer between 0 and 255 inclusive.<br/>
     <i>Example:</i><br/>
-    <pre><code>let mat = Picture.make_mat()
-Picture.set_mat_red(mat, 2, 3, 128)
-Picture.mat_red(mat, 2, 3)
+    <pre><code> let mat = Picture.make_mat()
+ Picture.set_mat_red(mat, 2, 3, 128)
+ Picture.mat_red(mat, 2, 3)
     </code></pre>
 => <samp>128</samp>
 </details>
@@ -1280,9 +1280,9 @@ Picture.mat_red(mat, 2, 3)
     <b>value</b> Default: <code>0</code> The new value of the pixel's green component.
     An integer between 0 and 255 inclusive.<br/>
     <i>Example:</i><br/>
-    <pre><code>let mat = Picture.make_mat()
-Picture.set_mat_green(mat, 2, 3, 128)
-Picture.mat_green(mat, 2, 3)
+    <pre><code> let mat = Picture.make_mat()
+ Picture.set_mat_green(mat, 2, 3, 128)
+ Picture.mat_green(mat, 2, 3)
     </code></pre>
     => <samp>128</samp>
 </details>
@@ -1296,9 +1296,9 @@ Picture.mat_green(mat, 2, 3)
     <b>value</b> Default: <code>0</code> The new value of the pixel's red component.
     An integer between 0 and 255 inclusive.<br/>
     <i>Example:</i><br/>
-    <pre><code>let mat = Picture.make_mat()
-Picture.set_mat_blue(mat, 2, 3, 128)
-Picture.mat_blue(mat, 2, 3)
+    <pre><code> let mat = Picture.make_mat()
+ Picture.set_mat_blue(mat, 2, 3, 128)
+ Picture.mat_blue(mat, 2, 3)
     </code></pre>
     => <samp>128</samp>
 </details>
@@ -1313,9 +1313,9 @@ Picture.mat_blue(mat, 2, 3)
     An integer between 0 and 255 inclusive.<br/>
     0 means transparent. 255 means opague.
     <i>Example:</i><br/>
-    <pre><code>let mat = Picture.make_mat()
-Picture.set_mat_alpha(mat, 2, 3, 128)
-Picture.mat_alpha(mat, 2, 3)
+    <pre><code> let mat = Picture.make_mat()
+ Picture.set_mat_alpha(mat, 2, 3, 128)
+ Picture.mat_alpha(mat, 2, 3)
     </code></pre>
     => <samp>128</samp>
 </details>
@@ -1329,9 +1329,9 @@ Picture.mat_alpha(mat, 2, 3)
     <b>value</b> Default: <code>0</code> The new value of the pixel's gray component.
     An integer between 0 and 255 inclusive.<br/>
     <i>Example:</i><br/>
-    <pre><code>let mat = Picture.make_mat({type: "gray"})
-Picture.set_mat_gray(mat, 2, 3, 128)
-Picture.mat_gray(mat, 2, 3)
+    <pre><code> let mat = Picture.make_mat({type: "gray"})
+ Picture.set_mat_gray(mat, 2, 3, 128)
+ Picture.mat_gray(mat, 2, 3)
     </code></pre>
     => <samp>128</samp>
 </details>
@@ -1345,9 +1345,9 @@ Picture.mat_gray(mat, 2, 3)
     <b>value</b> Default: <code>0</code> The new value of the pixel.
     An integer between 0 and 255 inclusive.<br/>
     <i>Example:</i><br/>
-    <pre><code>let mat = Picture.make_mat()
-Picture.set_mat_pixel(mat, 2, 3, [128, 129, 130, 250])
-Picture.mat_pixel(mat, 2, 3)
+    <pre><code> let mat = Picture.make_mat()
+ Picture.set_mat_pixel(mat, 2, 3, [128, 129, 130, 250])
+ Picture.mat_pixel(mat, 2, 3)
     </code></pre>
     => <samp>Uint8Array.from([128, 129, 130, 250])</samp>
 </details>
@@ -1359,9 +1359,9 @@ Picture.mat_pixel(mat, 2, 3)
     <b>value</b> Default: <code>0</code> The new value of all the pixels' red component.
     An integer between 0 and 255 inclusive.<br/>
     <i>Example:</i><br/>
-    <pre><code>let mat = Picture.make_mat()
-Picture.set_mat_reds(mat, 133)
-Picture.mat_red(mat, 2, 3)
+    <pre><code> let mat = Picture.make_mat()
+ Picture.set_mat_reds(mat, 133)
+ Picture.mat_red(mat, 2, 3)
     </code></pre>
     => <samp>133</samp>
 </details>
@@ -1373,9 +1373,9 @@ Picture.mat_red(mat, 2, 3)
     <b>value</b> Default: <code>0</code> The new value of all the pixels' green component.
     An integer between 0 and 255 inclusive.<br/>
     <i>Example:</i><br/>
-    <pre><code>let mat = Picture.make_mat()
-Picture.set_mat_greens(mat, 133)
-Picture.mat_green(mat, 2, 3)
+    <pre><code> let mat = Picture.make_mat()
+ Picture.set_mat_greens(mat, 133)
+ Picture.mat_green(mat, 2, 3)
     </code></pre>
     => <samp>133</samp>
 </details>
@@ -1387,9 +1387,9 @@ Picture.mat_green(mat, 2, 3)
     <b>value</b> Default: <code>0</code> The new value of all the pixels' blue component.
     An integer between 0 and 255 inclusive.<br/>
     <i>Example:</i><br/>
-    <pre><code>let mat = Picture.make_mat()
-Picture.set_mat_blues(mat, 133)
-Picture.mat_blue(mat, 2, 3)
+    <pre><code> let mat = Picture.make_mat()
+ Picture.set_mat_blues(mat, 133)
+ Picture.mat_blue(mat, 2, 3)
     </code></pre>
     => <samp>133</samp>
 </details>
@@ -1401,9 +1401,9 @@ Picture.mat_blue(mat, 2, 3)
     <b>value</b> Default: <code>0</code> The new value of all the pixels' gray component.
     An integer between 0 and 255 inclusive, or an array, who's first element is used.<br/>
     <i>Example:</i><br/>
-    <pre><code>let mat = Picture.make_mat({type: "gray"})
-Picture.set_mat_grays(mat, 133)
-Picture.mat_gray(mat, 2, 3)
+    <pre><code> let mat = Picture.make_mat({type: "gray"})
+ Picture.set_mat_grays(mat, 133)
+ Picture.mat_gray(mat, 2, 3)
     </code></pre>
     => <samp>133</samp>
 </details>
@@ -1418,9 +1418,9 @@ Picture.mat_gray(mat, 2, 3)
     before being used to set the pixels.
      <br/>
     <i>Example:</i><br/>
-    <pre><code>let mat = Picture.make_mat()
-Picture.set_mat_pixels(mat, [133, 134, 135, 250])
-Picture.mat_pixel(mat, 2, 3)
+    <pre><code> let mat = Picture.make_mat()
+ Picture.set_mat_pixels(mat, [133, 134, 135, 250])
+ Picture.mat_pixel(mat, 2, 3)
     </code></pre>
     => <samp>Uint8Array.from([133, 134, 135, 250])</samp>
 </details>
@@ -3030,11 +3030,11 @@ The parameters used to define a new Job are:
             <code>Dexter</code>. This is the <i>default</i> robot to send the job's instructions to if
             the instruction itself doesn't designate a robot. The default for a Job's default robot is
             <code>Robot.dexter0</code>. For example, if we have:
-         <pre><code>new Job({do_list: [Dexter.move_all_joints([0, 10, 20, 30, 40]),
+         <pre><code title="unEVALable">new Job({do_list: [Dexter.move_all_joints([0, 10, 20, 30, 40]),
                    Robot.dexter1.move_all_joints([0, 10, 20, 30, 40]) ]})
              </code></pre>
             The 1st instruction will be sent to <code>Robot.dexter0</code> (the default),
-            and the 2nd to <code>Robot.dexter1</code>.
+            and the 2nd to <code  title="unEVALable">Robot.dexter1</code>.
             You can also use a Serial robot instance as the subject of a "string_instruction"
             instruction so that you can have one job that feeds instructions to
             multiple serial robots as well as multiple Dexters.
@@ -3181,6 +3181,7 @@ new Job({name: "my_job",
         first when the job is run. Default null (no instruction added).
         </li>
         <li><b>when_stopped</b> controls what happens when a job stops normally.<br/>
+             <i>Possible Values</i>:<br/>
              <code>"stop"</code> The default. The job stops.<br/>
              <code>"wait"</code> The job waits for another instruction to be added
                at the end of the do_list. Call <code><a href="#" onclick="open_doc('Job.insert_instruction_doc_id')">Job.insert_instruction</a></code>
@@ -3189,7 +3190,7 @@ new Job({name: "my_job",
              the function is called with a 'this' of the job instance and no arguments.
              This is effectively a callback when the job is done.<br/>
              <code title="unEVALable code fragment"> An instruction location</code> This is similar to Robot.go_to
-             except that the job is re-iniitlizated with its original (as defined) do_list.
+             except that the job is re-initialized with its original (as defined) do_list.
              Any valid instruction location can be used
              (see doc in <a href="#" onclick="open_doc('Robot.go_to_doc_id', event)">Robot.go_to</a>) except
              that it must have no job or indicate the current job. Using <code>0</code>
@@ -3490,7 +3491,7 @@ it indicates that a callback function will be created by DDE and
 passed to the start function at the position indicated by the
 callback_param's value. If start_args is an array, callback_param,
 if present, must be a non-negative integer. The start method will
-have the callback method passed at that position in the argment list.
+have the callback method passed at that position in the argument list.
 For instance, if the start_args are <code>["one", "two"]</code> and the
 callback_param is <code>2</code> then the call to start will look like<br/>
 <code title="unEVALable">the_start_object.start("one", "two", function(){...}</code>
@@ -3519,14 +3520,15 @@ call will look like: <br/>
 function will set the given user_data variable in the job to an array of
 the arguments passed to the callback function. This is so that
 subsequent instructions can retrieve the real result of the start method
-and use them. For instance, if the value of user_data_variable is <code>"foo"</code>,
+and use them. For instance, if the value the of user_data_variable is <code>"foo"</code>,
 then after this instruction has completed,<br/>
 <code title="unEVALable">job_instance.user_data.foo = ["array", "of", "args", "passed", "to the callback"]</code></li>
 </ul>
 <i>Examples:</i>
-<pre><code>new Job({name: "my_job1",
+<pre><code title="unstartable in TestSuite">new Job({name: "my_job1",
          do_list: [Robot.out("hey from my_job1")]})
 new Job({name: "my_job2",
+         robot: new Brain({name: "brain2"}),
          do_list: [Job.my_job1]})
          </code></pre>
 When Job.my_job2 is started, it will cause my_job1 to start
@@ -3535,7 +3537,7 @@ start a Job).
 Immediately after starting my_job1,
 my_job2 runs its "next" instruction, but since there isn't one,
 my_job2 will finish, perhaps before my_job1 does.
-<pre><code title="not in TestSuite">
+<pre><code title="unstartable in TestSuite">
 new Job({name: "my_job",
          do_list: [function(){Midi.init()},
                    new Note("E"),
@@ -3671,12 +3673,12 @@ Arrays may be nested to any depth.<br/>
   If we have a function (fun1) which returns an array of instructions, and a second
   function (fun2) that returns a different array of instructions,
   and we wanted to return them all, we could write:
-    <pre><code>new Job({name: "Job1",
+    <pre><code title="unstartable in TestSuite">new Job({name: "Job1",
          do_list: [function(){ return [fun1(), fun2()] }
         ]})
         </code></pre>
   We could also write:
-    <pre><code>new Job({name: "Job1",
+    <pre><code title="unstartable in TestSuite">new Job({name: "Job1",
          do_list: [function(){ return [fun1, fun2] }
         ]})
          </code></pre>
@@ -4189,7 +4191,7 @@ If the status of the job to be started is:
     <b>interrupted</b> This job is interrupted and stops.<br/>
     <i>Examples:</i>
     Have job2 start job1. job2 does not wait for job1 to complete. job1 completes first.
-    <pre><code>
+    <pre><code title="unstartable in TestSuite">
 new Job({name: "job1",
          do_list: [Robot.out("in job 1"),
                    Robot.wait_until(5)]})
@@ -4201,7 +4203,7 @@ new Job({name: "job2",
     because the last arg to start_job is true.
     Running job2 a second time completes quickly because job1 has
     already completed.
-    <pre><code>
+    <pre><code title="unstartable in TestSuite">
 new Job({name: "job1",
          do_list: [Robot.out("in job 1"),
                    Robot.wait_until(5)]})
@@ -4212,7 +4214,7 @@ new Job({name: "job2",
     Similar to above but
     note the call to <code title="unEvalable">set_status_code</code> which will cause job1
     to run even it had previously completed.
-    <pre><code>
+    <pre><code title="unstartable in TestSuite">
 new Job({name: "job1",
     do_list: [Robot.out("starting job 1"),
               Robot.wait_until(5),
@@ -4402,7 +4404,7 @@ The one argument can be:
     just below this instruction on the do_list. If this is the last instruction
     on the do_list, then this job waits until a new instruction is added on the
     end of a do list.<br/>
-    <i>Example</i>:<pre><code title="not in TestSuite"> new Job({name: "my_job",
+    <i>Example</i>:<pre><code title="unstartable in TestSuite"> new Job({name: "my_job",
          do_list: [Robot.out("first instruction"),
                    Robot.wait_until("new_instruction")]})
 Job.my_job.start()</code></pre>
@@ -4536,7 +4538,7 @@ The parameters used to define an instance of Dexter are:
     <code>[[0, 30, 90, -30, 0], [0, 45, 90, -45, 0], [15, 45, 90, -45, 0]]</code>
     <p></p>
     <i>Examples:</i>
-<pre><code>new Job({name: "Draw",
+<pre><code title="unstartable in TestSuite">new Job({name: "Draw",
     show_instructions: false, //speeds drawing of many tiny lines
     do_list: [Dexter.draw_dxf]})
     </code></pre>
@@ -4544,11 +4546,11 @@ The parameters used to define an instance of Dexter are:
     pops up a choose file dialog to ask for the dxf file you want to draw.
     <p></p>
     You may CALL this function at Job definition time like so:<br/>
-    <pre><code title="not in TestSuite">new Job({name: "Draw",
+    <pre><code title="unstartable in TestSuite">new Job({name: "Draw",
     do_list: [Dexter.draw_dxf({dxf_filepath: "foo.dxf" ...})]})
     </code></pre>
     or call it at run instruction time like so:
-    <pre><code>new Job({name: "Draw",
+    <pre><code title="unstartable in TestSuite">new Job({name: "Draw",
     do_list: [function(){ Dexter.draw_dxf({dxf_filepath: "foo.dxf"})} ]})
     </code></pre>
     with as many args as you like.
@@ -4578,17 +4580,17 @@ This is an unusual instruction as it implies that the instructions sent to Dexte
 You might want to do this in an emergency situation or if the environment unexpectedly changes.
 </details>
 
-<details id="Dexter.get_robot_status_queue_doc_id" class="doc_details"><summary>get_robot_status</summary>
+<details id="Dexter.get_robot_status_doc_id" class="doc_details"><summary>get_robot_status</summary>
 <i>Paramenters:</i> None<br/>
 Retrieves lots of information from Dexter. This is placed in an array that becomes the value of
-the job's <code title="unEVALable code fragment"> robot_status</code> field, and, if the job's
+the job's robot's <code title="unEVALable code fragment"> robot_status</code> field, and, if the job's
 <code title="unEVALable code fragment"> keep_history</code> is true, gets pushed onto the
 job's <code title="unEVALable code fragment"> rs_history</code> array.
 <p></p>
 <i>Examples</i>:
 <code>Dexter.get_robot_status()</code>  //how this should look on  job's do list.<br/>
-<code title="unEVALable code fragment"> Jobs.j1.robot_status</code>  //getting the whole status array after the above instruction is run.<br/>
-<code title="unEVALable code fragment"> Jobs.j1.robot_status[Dexter.J1_ANGLE]</code> //returns the angle of Joint 1, in arcseconds
+<code title="unEVALable code fragment"> Job.j1.robot.robot_status</code>  //getting the whole status array after the above instruction is run.<br/>
+<code title="unEVALable code fragment"> Job.j1.robot.robot_status[Dexter.J1_ANGLE]</code> //returns the angle of Joint 1, in arcseconds
 <p></p>
 This instruction blocks further processing of the job's do_list instructions until
 all of the instructions on Dexter's instruction_queue are executed.
@@ -4630,20 +4632,24 @@ before any of the instructions on its <i>instruction queue</i> are executed.
 move_all_joints is a lower level instruction than move_to, giving you the ability to dicate
 the angle of each of Dexter's 5 main joints, J1 through J5
 as well as the two "end effector" joints J6 and J7. A joint's angle is specified in degrees.
-The min and max angles of each joint are in constants: <code>Dexter.J1_ANGLE_MIN</code>
-through <code>Dexter.J5_ANGLE_MAX</code>, all included in the series <b>Dexter_constant</b>. 
+The min and max angles of each joint are in constants: >br/>
+    <code>Dexter.J1_ANGLE_MIN</code> and
+    <code>Dexter.J1_ANGLE_MAX</code><br/>
+through <code>Dexter.J5_ANGLE_MIN</code>
+and     <code>Dexter.J5_ANGLE_MAX</code>,<br/>
+all included in the series <b>Dexter_constant</b>.
 Examples:<br/>
-<code>Dexter.move_all_joints(15, null, 30)</code><br/>
-<code>Dexter.move_all_joints([15, null, 30])</code><br/>
-Both of these have the same function, i.e. you can pass in an array of up to 7 degrees,
-or you can pass in individual numbers.
-<code>null</code> or the lack of enough numbers means keep the angle for that joint what the
+<code>Dexter.move_all_joints([15, NaN, 30])</code><br/>
+You can pass in an array of up to 7 long, each indicating the
+degrees you want the corresponding joint to move to.<br/>
+<code>NaN</code> or the lack of enough numbers means keep the angle for that joint what the
 last instruction run in a Job set it to.
 <p></p>
 If a joint angle is passed in as an array of one number, that number will
 be used as the "relative" degrees to add to the current joint angle.
-So for instance, if the preious move_all_joints instruction for j1 indicated 30,
-and the next move_all_joints command for j1 indicated [5], then
+So for instance, if the preious move_all_joints instruction
+for j1 indicated <code>30</code>,
+and the next move_all_joints command for j1 indicated <code>[5]</code>, then
 j1 would be moved to 35 degrees. The syntax of using a number wrapped in an array
 can be used for any joint of any move joints instruction.
 It can also be used for the x, y, and z positions of any move_to instruction.
@@ -4654,14 +4660,15 @@ It can also be used for the x, y, and z positions of any move_to instruction.
 </details>
 
 <details id="Dexter.move_all_joints_relative_doc_id" class="doc_details"><summary>move_all_joints_relative</summary>
-Similar to <code>Dexter.move_all_joints</code> except that the argument
- of an array of up to 7 joint angles are
-not used absolutely, but added to the previous angles indicated by DDE Dexter move instructions.
+Similar to <code>Dexter.move_all_joints</code> except that the joint angles
+are not used absolutely, but are added to the previous angles
+indicated by the last DDE Dexter move instruction.
 Note that this "base" that is added to is not literally the output of Dexter's optical sensors
 for joint position, but rather where the robot was <i>told</i> to go in its last move instruction
 in a Job.
 <p></p>
-A <code>null</code> or missing angle increments default to 0.<br/>
+A <code>NaN</code> or missing angle default to 0, meaning
+move 0 degrees relative to the last value given for that joint<br/>
 <i>Example</i>:<br/>
 <code>Dexter.move_all_joints_relative([15, 15])</code><br/>
 tells the Job's robot to move joints 1 and 2 to
@@ -4669,7 +4676,7 @@ an angle that is 15 degrees <i>more</i> than it is currently at.
 Joints 3, 4, 5, 6 and 7 stay the same.
 <p></p>
 Note that the syntax used for move_all_joints to declare that an
-individual joint angle is relavtive cannot be used for
+individual joint angle is relavtive (i.e. wrapping it in square brackets) cannot be used for
 move_all_joints_relative, as those joint angles are already relative.
 </details>
 
@@ -4821,7 +4828,7 @@ Example: <code>Dexter.move_home()</code>
     <b>j7_delta_angle</b>  Default: <code>0</code> The relative amount to move Joint 7 to.
      <p></p>
      <i>Example</i>:
-<pre><code>new Job({name: "my_job",
+<pre><code>new Job({name: "job_mtr",
          do_list: [Dexter.move_all_joints(Dexter.NEUTRAL_ANGLES),
                    Dexter.move_to_relative([0.005, 0.01, 0])
                    ]})</code></pre>
@@ -4866,7 +4873,7 @@ A true value means generate just one make_ins "T" instruction
 to send to Dexter. Dexter will then compute the numerous little moves
 to get Dexter to move in a straight line.
 A make_ins with an oplet of "T" looks like:
-<pre><code>
+<pre><code title="unEVALable">
 make_ins("T",
          x, y, z,
          J5_direction[0], J5_direction[1], J5_direction[2],
@@ -4876,9 +4883,9 @@ make_ins("T",
          </code></pre>
 <p></p>
 Example:<br/>
-<pre><code title="not in TestSuite"> new Job({name: "my_job",
+<pre><code> new Job({name: "job_mts",
           do_list: [Dexter.move_to([0, 0.55, 0.075]),
-                    Dexter.move_to_straight([0, 0.5, 0.075])]
+                    Dexter.move_to_straight({xyz: [0, 0.5, 0.075]})]
           })</code></pre>
 Moves Dexter's end effector from location: [0, 0.55, 0.075] to
 location [0, 0.5, 0.075] in a straight line.
@@ -4920,33 +4927,57 @@ proportional–integral–derivative controller</a>.
 
 <details id="Dexter.run_gcode_doc_id" class="doc_details"><summary>run_gcode</summary>
 This instruction accepts the name of a file as input and creates additional instructions 
-to move Dexter to "draw the lines" indicated by the gcode file.
-<ul><li><b>filepath</b> A string representing the name of the gcode file under the <b>dde_apps</b> folder
+to move Dexter to "draw the lines" indicated by the gcode file. Most of
+the instructions created are <code>Dexter.move_to</code> instructions.
+<ul><li><b>filepath</b> Default: <code>null</code> A string representing the name of the gcode file under the <b>dde_apps</b> folder
     containing the gcode instructions. The file can be directly under dde_apps or
     nested in subfolders of any depth. Typically the filepath will have an extension of ".gcode"
-    but that isn't required by filepath.</li>
-    <li><b>scale</b> gcode files indicate line endpoint positions as dimensionless units.
-       DDE requires the x,y,z positions to be in microns. <code title="unEVALable code fragment"> scale</code> converts
-       the gcode positions to microns. If scale is a number, it multiplies the gcode
-       positions by that number. The default for scale is 1, meaning no transformation.
-       If the gcode positions are intended to be in millimeters, use 1000 for scale.
+    but that isn't required by filepath.
+    If this defaults to <code>null</code>, only the <i>gcode</i> argument supplies the
+    actual gcode to use.
+    </li>
+    <li><b>gcode</b> Default: <code>""</code> This string is
+    prepended to the gcode from the filepath argument. It is intended to
+    allow a user to "customize" the gcode in the file with some "header" codes.
+    A second use case is if you have a string of gcode but no file,
+    you can just let the filepath default to null and only the value of the <i>gcode</i>
+    argument will be used.</li>
+    <li><b>workspace_pose</b> Default:
+         <code>Vector.make_pose([0, 0.5, 0.1], [0, 0, 0], _mm)</code>
+        Gcode files indicate line endpoint positions as dimensionless units.
+       DDE requires the x,y,z positions passed to the <code>Dexter.move_to</code>
+       instructions created by run_gcode to be in meters.
+       <code title="unEVALable code fragment"> workspace_pose</code> acts to scale,
+       rotate and offset the positions in the gcode.
        <p></p>
-       Scale can also be a string representing a scale factor.
-       <table><tr><th>String</th><th>Factor</th></tr>
-               <tr><td>"microns"     </td><td style='text-align:right'> 1       </td></tr>
-               <tr><td>"millimeters" </td><td style='text-align:right'> 1000    </td></tr>
-               <tr><td>"centimeters" </td><td style='text-align:right'> 10000   </td></tr>
-               <tr><td>"meters"      </td><td style='text-align:right'> 1000000 </td></tr>
-               <tr><td>"inches"      </td><td style='text-align:right'> 25400   </td></tr>
-               <tr><td>"feet"        </td><td style='text-align:right'> 304800  </td></tr>
-       </table>
+       For instance, if the last argument to a call to <code>Vector.make_pos</code>
+       is <code>_mm</code>
+       as it is in the default for workspace_pose,
+       you are declaring that the position numbers in the gcode
+       are intended to be in millimeters. The position numbers will be multipled
+       by the value of _mm (which is 0.001) before they are passed into
+       the generated move_to instructions. Thus a gcode position value of 2
+       will be multipled by 0.001 to yield 0.002 and that is the number
+       used in the move_to argument, since move_to expects meters.
+       Conversely, if you pass in <code>_m</code> (which is 1),
+       your gcode position values are expeceted to be in meters.
+       <p></p>
+       See <a href="#" onclick="open_doc(units_system_help_doc_id)">Units System</a>
     </li>
 </ul>
+    <i>Examples:</i><br/>
+    <pre><code>Dexter.run_gcode({gcode: "G1 X0 Y5 Z8",
+                  position_units: _mm})
+          </code></pre>
+    run_gcode can also take a robot instance as its subject like so:
+    <pre><code>Robot.dexter0.run_gcode({gcode: "G1 X0 Y5 Z8",
+                  position_units: _mm})
+          </code></pre>
     <code>Dexter.run_gcode</code> is similar to <code>Dexter.draw_dxf</code>.
     <code>Dexter.run_gcode</code> only handles G0 and G1 instructions,
     and only their X, Y, and Z arguments.
-    It treats G0 and G1 the same.
-    <code>Dexter.run_gcode</code> needs lots of work.
+    It treats G0 and G1 the same.<br/>
+    <code>Dexter.run_gcode</code> needs lots of work to handle more gcodes.
 </details> <!-- end run_gcode -->
 
 <details id="Dexter.set_parameter_doc_id" class="doc_details"><summary>set_parameter</summary>
@@ -5004,7 +5035,7 @@ set parameter values.
   you can use a do_list_item of <code>Dexter.wait_until(2)</code>
   to wait for 2 seconds.
 </details>
-<details id="Dexter.write_to_robot_id" class="doc_details"><summary>write_to_robot</summary>
+<details id="Dexter.write_to_robot_doc_id" class="doc_details"><summary>write_to_robot</summary>
    Writes a file on Dexter's file system. The file is transmitted through
    DDE's socket interface to the Linux OS runnning on Dexter's processor
    board.<br/>
@@ -5071,7 +5102,8 @@ None of these instructions take arguments.
 
 <details class="doc_details"  id="RobotStatus_doc_id"><summary>RobotStatus</summary>
     <code>RobotStatus</code> is a class whose instances store information about
-    a Dexter robot. Each Dexter robot instance has a field named <code>robot_status</code>
+    a Dexter robot. Each Dexter robot instance has a field named <code title="unEVALable">robot_status</code>
+    i.e. <code>Robot.dexter0.robot_status</code>
     whose value is an instance of <code>RobotStatus</code>.
     <p></p>
     The following are instance methods on <code>RobotStatus</code>.
@@ -5305,6 +5337,10 @@ values in degrees<br/>
 <code>Dexter.J4_ANGLE_MAX</code> => <samp>130</samp><br/>
 <code>Dexter.J5_ANGLE_MIN</code> => <samp>-185</samp><br/>
 <code>Dexter.J5_ANGLE_MAX</code> => <samp>185</samp><br/>
+<code>Dexter.J6_ANGLE_MIN</code> => <samp> 0 </samp><br/>
+<code>Dexter.J6_ANGLE_MAX</code> => <samp> 296 </samp><br/>
+<code>Dexter.J7_ANGLE_MIN</code> => <samp> 0 </samp><br/>
+<code>Dexter.J7_ANGLE_MAX</code> => <samp> 296 </samp><br/>
 
 <code>Dexter.RIGHT_ANGLE</code> => <samp>90</samp><br/>
 <code>Dexter.HOME_ANGLES</code> => <samp>[0, 0, 0, 0, 0, 0, 0]</samp> degrees j2,3,4 straight up. link 5 horizontal pointing frontwards.<br/>
@@ -5389,11 +5425,11 @@ is a video describing most of the Human instructions.
       <code title="unEVALable code fragment"> dependent_job_names</code>.
     <p></p>
     <i>Examples:</i>
-    <pre><code> new Job({name: "my_job",
+    <pre><code title="unstartable in TestSuite"> new Job({name: "my_job",
     do_list: [Human.task({task: "Load filament now."}),
               Robot.out("We're done.")]})
               </code></pre>
-    <pre><code> new Job({name: "my_job",
+    <pre><code title="unstartable in TestSuite"> new Job({name: "my_job",
     do_list: [Human.task({title: "&lt;b>Attention&lt;/b> Operator!",
                           task:  "Load filament &lt;i>now&lt;/i>.",
                           add_stop_button: false,
@@ -5465,7 +5501,7 @@ is a video describing most of the Human instructions.
   <code title="unEVALable code fragment"> job.some-job-name.user_data.my_color = 'green'</code>.
   <p></p>
   <i>Examples:</i>
-  <pre><code> new Job({name: "my_job",
+  <pre><code title="unstartable in TestSuite"> new Job({name: "my_job",
           do_list: [Human.enter_choice({task: "Please pick one.",
                                          choices: ["aa", "bb", "cc"]}),
                     function(){out("You chose: " + this.user_data.choice)}
@@ -5476,7 +5512,7 @@ is a video describing most of the Human instructions.
   because it will be overwritten by a subsquent Human.enter_choice instruction
   (though that <i>might</i> be what you want).
 
-  <pre><code> new Job({name: "my_job",
+  <pre><code title="unstartable in TestSuite"> new Job({name: "my_job",
           do_list: [Human.enter_choice({task: "Ready?",
                                         choices: [["Yes", true], ["No", false]],
                                         show_choices_as_buttons: true}),
@@ -5485,7 +5521,7 @@ is a video describing most of the Human instructions.
   Above, When the user clicks on "Yes" or "No",
   user_data.choice will be bound to <code>true</code> or <code>false</code>.
 
-  <pre><code>
+  <pre><code title="unstartable in TestSuite">
   function myfn() {out("The job name is: " + this.name)}
   new Job({name: "my_job",
            show_instructions: Job.prototype.show_progress_and_user_data,
@@ -5539,7 +5575,7 @@ to set to the chosen file.
 If no file is chosen, the variable is bound to <code>null</code>
 <p></p>
 <i>Example:</i><br/>
-<pre><code>new Job({name: "my_job",
+<pre><code title="unstartable in TestSuite">new Job({name: "my_job",
          do_list: [Human.enter_filepath(
                      {task: "Pick a file.",
                       user_data_variable_name: "my_file",
@@ -5562,11 +5598,11 @@ If no file is chosen, the variable is bound to <code>null</code>
     Set's the dialog's default instruction args.
   <p></p>
   <i>Examples:</i><br/>
-  <pre><code> new Job({name: "my_job",
+  <pre><code title="unstartable in TestSuite"> new Job({name: "my_job",
     do_list: [Human.enter_instruction({task: "do it"})]})
         </code></pre>
 
-  <pre><code> new Job({name: "my_job",
+  <pre><code title="unstartable in TestSuite"> new Job({name: "my_job",
     do_list: [Human.enter_instruction(
               {task: "do it",
                instruction_type: "Dexter.sleep",
@@ -5594,7 +5630,7 @@ If no file is chosen, the variable is bound to <code>null</code>
        Where the chosen number is stored.
   <p></p>
   <i>Examples:</i>
-  <pre><code> new Job({name: "my_job",
+  <pre><code title="unstartable in TestSuite"> new Job({name: "my_job",
   do_list: [Human.enter_number({task: "How much?"}),
             function(){ out("Amount: " +
                         this.user_data.a_number)}]})
@@ -5614,7 +5650,7 @@ If no file is chosen, the variable is bound to <code>null</code>
     the code. This is important because you might want to change its name and
     don't want the code to break if you do.
 
-    <pre><code> new Job({name: "my_job",
+    <pre><code title="unstartable in TestSuite"> new Job({name: "my_job",
   do_list: [Human.enter_number({task: "length to cut?",
                                 min: 40,
                                 max: 75,
@@ -5637,12 +5673,12 @@ If no file is chosen, the variable is bound to <code>null</code>
     or more documentation on this.
     <p></p>
     <i>Examples:</i><br/>
-    <pre><code> new Job({name: "my_job",
+    <pre><code title="unstartable in TestSuite"> new Job({name: "my_job",
     do_list: [Human.enter_text({task: "Enter message."}),
               function(){out("The message: " + this.user_data.a_text) }]})
               </code></pre>
 
-    <pre><code> new Job({name: "my_job",
+    <pre><code title="unstartable in TestSuite"> new Job({name: "my_job",
     do_list: [Human.enter_text({task: "Enter message.",
                                 initial_value: "SOS",
                                 line_count: 3,
@@ -5728,7 +5764,7 @@ Similar to other Human instructions, this is the place that values from
 input elements are stored when the dialog is closed.
 <p></p>
 <i>Example:</i><br/>
-<pre><code>new Job({name: "my_job",
+<pre><code title="unstartable in TestSuite">new Job({name: "my_job",
          do_list:
            [Human.show_window({content:
 `First name: &lt;input type="text" name="first_name"/>&lt;br/>
@@ -5899,7 +5935,7 @@ completes.
 If you'd like to send string instructions to more than one serial port,
 you can use an instance of a serial port as the subject of a string_instruction.<br/>
 Example:
-<pre><code>
+<pre><code title="unstartable in TestSuite">
 new Serial({name: "S2",
             path: "/dev/tty.usbmodem2822"})
 
@@ -5946,7 +5982,7 @@ a robot instance (instead of <code>Robot</code>) so that
 you can be sure to get the correct return value from
 a given string_instruction instruction.<br/>
 <i>Example:</i>
-<pre><code>
+<pre><code title="not in testsuite because works on Mac but not on windows due to the 'comName' reference.">
 new Serial({name: "S1", simulate: null,
 			sim_fun: function(input){
                         return "got: " + input + "\n"

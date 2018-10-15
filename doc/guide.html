@@ -8,8 +8,8 @@
 
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version: <span id="dde_version_id">2.5.4</span><br/>
-    released: <span id="dde_release_date_id">Sep 6, 2018</span>
+    version: <span id="dde_version_id">???</span><br/>
+    released: <span id="dde_release_date_id">???</span>
     <p></p>
     DDE helps you create, debug, and send software to a Dexter robot.
     You can use any JavaScript augmented with DDE-specific functions to help find out about,
@@ -26,9 +26,9 @@
     By providing a general purpose language that is broad enough to cover all the bases,
     yet detailed enough to specify the action details, users can specify the
     precise behavior they desire.
-    We've extended JavaScript, most common web page programming language,
+    We've extended JavaScript, the most common web page programming language,
     with dexter-specific functions like
-    "move" and ways to gets values from its sensors (like camera").
+    "move" and ways to get values from sensors (like cameras).
     This allows you to specify things like:
     <i>If part X is in the workspace, then move it 10 millimeters to its left</i>.
     <br/><br/>
@@ -60,12 +60,13 @@
 </details>
 <details class="doc_details"><summary>Installation</summary>
     <details class="doc_details"><summary>First Install</summary>
-        To get the latest DDE release,
+        To get the latest DDE release, start the process by:
         <ul><li> Browse <a href="https://github.com/cfry/dde/releases/latest" target="_blink">Github</a></li>
             <li> Click on the file for your operating system:
                 <ul><li>For Windows: <samp>.exe</samp></li>
                     <li>For Mac: <samp>.dmg</samp></li>
                     <li>For Linux: <samp>.AppImage</samp> </li>
+                    <li>Sorry, other OS's like ChromeOS are not now supported.</li>
                 </ul></li>
             <li> The clicked file will be copied to your downloads folder.
                 For Windows and Mac, you may have to click on it to
@@ -212,7 +213,7 @@ Each indicates that a joint has power.
         First, make sure your cable is plugged into and firmly seating in
         both your computer and Dexter.<br/>
     <b>On Windows 7:</b>
-    <ol><li>Go to Start/Control Panel<li>
+    <ol><li>Go to Start/Control Panel</li>
         <li>Click on: "Network and Sharing Center"</li>
         <li>In the left column, click on "Change adapter settings".</li>
         <li>In the new dialog, click right on "Local Area Connection" and </li>
@@ -277,11 +278,22 @@ Each indicates that a joint has power.
         or<br/><samp>Host is down</samp>
         several times.
         <p></p>
+        To stop the output of ping, type Cottrol_c.
+        <p></p>
+        Use Jobs menu/simulate submenu, and select <b>false</b>
+        <p></p>
+        You should now be able to move Dexter from DDE.
+        For instance, choose Jobs menu/Run Insruction/NEUTRAL_ANGLES
+        or, in case the robot is already at NEUTRAL_ANGLES,
+        choose Jobs menu/Run Insruction/HOME_ANGLES,
+        and Dexter should move.
+        <p></p>
         Problems with data connectively can be do to an improper IP address of your Dexter,
         i.e. at some other address than 192.168.1.142. It might also have to do
         with its "MAC" address (nothing to do with "Macintosh") not being correctly set.
-        You can use an IP scanner to see what devices are connected to your computer.
-        There are many available on the net.
+        You can use an IP scanner to see what devices are connected to your computer,
+        including a Dexter robot.
+        There are many such apps available on the net.
         We suggest:
         <ul><li>Windows OS: <a target="_blank" href="http://www.advanced-ip-scanner.com/">
                 Advanced IP Scanner</a></li>
@@ -292,6 +304,12 @@ Each indicates that a joint has power.
                but requires a Java SDK to be installed.
             </li>
         </ul>
+        If you have just one Dexter, use the correct IP address to redefine
+        dexter0 in your dde_apps/init_dde.js file like so:
+        <pre><code>
+        new Dexter({name: "dexter0", ip_address: "192.168.1.142"})
+        </code></pre>
+        You can insert the definition of a Dexter in the Jobs menu/Run Instruction/Show Dialog.
     </details> <!-- end Data Connectivity -->
 
     <details class="doc_details"><summary>Verify Joint Wiring</summary>
@@ -485,9 +503,11 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
                 You can also browse the <b>Release Notes</b> before installing a version.<p></p></li>
             <li><b>tooltips</b> Many menu items and buttons provide concise help. Place the
                 mouse over the item and don't move it for a couple of seconds.<p></p></li>
-            <li><b>code examples</b> DDE's Learn JS, Insert, and Job menus let you insert,
+            <li><b>code examples</b> DDE's
+                <button>Learn JS&#9660;</button>, <button>Insert&#9660;</button>, <button>Series&#9660;</button> and <button>Jobs&#9660;</button> menus let you insert,
                 into the editor buffer,
-                practical examples of JavaScript which you can then customize to your needs.<p></p></li>
+                practical examples of JavaScript which you can then customize to your needs.
+                <p></p></li>
             <li><b>TestSuite</b> DDE's test suite is used primarily to verify functionality.
                 But you can also use the Test/Insert All menu item to
                 see the source code of many of the tests. This will generally
@@ -1199,7 +1219,16 @@ Find Home is a part of Dexter Calibration. To use Find Home:
     <p></p>
     Each Test Suite has a name and an array of <i>tests</i>.
     A <i>test</i> is composed of an array of 1, 2, or 3 literal strings.
-    <ol><li>A literal string of JavaScript code to evaluate that returns a value to be tested.</li>
+    <ol><li>A literal string of JavaScript code to evaluate that
+            returns a value to be tested.
+            If that string evals to an instance of a Job,
+            then the rest of the test array is ignored, the
+            job is started, and the running of the test suite
+            is suspended until the job has finished.
+            Then the test suite is resumed at the next instruction
+            after the Job-defining test. Subsequent tests can now
+            verify values in the finished job.
+            </li>
         <li>The expected value of the above JavaScript code, also represented by
             a literal string of JavaScript.</li>
         <li>A literal string of a comment to aid in understanding the purpose or behavior of this test.

@@ -368,7 +368,7 @@ function inspect_one_liner_regular_fn(item){
 function inspect_extra_info(item){
     var info
     if (typed_array_name(item)){ //an array of some sort
-       item = item.slice(0, 6) //just in case we have a really long array, don't want to have JSON.stringify try to make a super long string
+       item = item.slice(0, 10) //just in case we have a really long array, don't want to have JSON.stringify try to make a super long string
     }
     try{ info = JSON.stringify(item) } //might be a circular structure such as happens with newObjects
     catch(err) { return "" }

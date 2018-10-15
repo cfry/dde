@@ -42,11 +42,11 @@ var Socket = class Socket{
     static instruction_array_to_array_buffer(instruction_array){
         let result = ""
         for(var i = 0; i < instruction_array.length; i++){
-            let suffix = ((i == (instruction_array.length - 1))? ";": " ")
-            var elt = instruction_array[i] + suffix
-            //if (i == 1) { elt = instruction_array[i]} //the op letter
+            var elt = instruction_array[i]
+            if (Number.isNaN(elt)) { elt = "NaN" } //usually only for "a" instructions and only for elts > 4
             result += elt
         }
+        result += ";"
         var arr_buff = new Buffer(128) //dexter code expecting fixed length buf of 128
         //var view1    = new Uint8Array(arr_buff)
         for(var i = 0; i < result.length; i++){
@@ -59,7 +59,7 @@ var Socket = class Socket{
 
     //also converts S params: "MaxSpeed", "StartSpeed", "Acceleration", S params of  boundry
     //and  the z oplet. Note that instruction start and end times are always in milliseconds
-    static instruction_array_degrees_to_arcseconds_maybe(instruction_array){
+    static instruction_array_degrees_to_arcseconds_maybe(instruction_array, rob){
         const oplet = instruction_array[Dexter.INSTRUCTION_TYPE]
         if ((oplet == "a") || (oplet == "P")){
             let instruction_array_copy = instruction_array.slice()
@@ -79,23 +79,38 @@ var Socket = class Socket{
             for(let i = 0; i < angle_args_count; i++) {
                 let index = Instruction.INSTRUCTION_ARG0 + i
                 let arg_val = instruction_array_copy[index]
-                instruction_array_copy[index] = Math.round(arg_val * 3600)
+                let converted_val
+                if ((i == 5) || (i == 6)) { //J6 and J7
+                   converted_val =  Math.round(arg_val / Socket.DEGREES_PER_DYNAMIXEL_UNIT) //convert degrees to dynamixel units to get dynamixel integer from 0 through 1023 going from 0 to 296 degrees
+                }
+                else { converted_val = Math.round(arg_val * 3600) } //still might be a NaN
+                instruction_array_copy[index] = converted_val
             }
             return instruction_array_copy
         }
         else if (oplet == "S") {
             const name = instruction_array[Instruction.INSTRUCTION_ARG0]
+            const val  = instruction_array[Instruction.INSTRUCTION_ARG1]
             if(["MaxSpeed", "StartSpeed", "Acceleration"].includes(name)){
                 var instruction_array_copy = instruction_array.slice()
-                instruction_array_copy[Instruction.INSTRUCTION_ARG1] =
-                    Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG1] * _nbits_cf)
+                instruction_array_copy[Instruction.INSTRUCTION_ARG1] = Math.round(val * _nbits_cf)
                 return instruction_array_copy
             }
             else if (name.includes("Boundry")) {
                 let instruction_array_copy = instruction_array.slice()
-                instruction_array_copy[Instruction.INSTRUCTION_ARG1] =
-                    Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG1] * 3600) //deg to arcseconds
+                instruction_array_copy[Instruction.INSTRUCTION_ARG1] = Math.round(val * 3600) //deg to arcseconds
                 return instruction_array_copy
+            }
+            else if (name == "EERoll"){ //J6 no actual conversion here, but this is a conveneitn place
+                        //to put the setting of robot.angles and is also the same fn where we convert
+                        // the degrees to dynamixel units of 0.20 degrees
+                        //val is in dynamixel units
+                rob.angles[5] = val * Socket.DEGREES_PER_DYNAMIXEL_UNIT //convert dynamixel units to degrees then shove that into rob.angles for use by subsequent relative move instructions
+                return instruction_array
+            }
+            else if (name == "EESpan") { //J7
+                rob.angles[6] = val * Socket.DEGREES_PER_DYNAMIXEL_UNIT
+                return instruction_array
             }
             else { return instruction_array }
         }
@@ -181,9 +196,10 @@ var Socket = class Socket{
         }
     }*/
     static send(robot_name, instruction_array, simulate){ //can't name a class method and instance method the same thing
+        let rob = Robot[robot_name]
        	if(instruction_array !== Socket.resend_instruction){ //we don't want to convert an array more than once as that would have degreees * 3600 * 3600 ...
        	                                                     //so only to the convert on the first attempt.
-        	instruction_array = Socket.instruction_array_degrees_to_arcseconds_maybe(instruction_array)
+        	instruction_array = Socket.instruction_array_degrees_to_arcseconds_maybe(instruction_array, rob)
         }
         const sim_actual = Robot.get_simulate_actual(simulate)
         if((sim_actual === true) || (sim_actual === "both")){
@@ -193,7 +209,7 @@ var Socket = class Socket{
         if ((sim_actual === false) || (sim_actual === "both")) {
             const array = Socket.instruction_array_to_array_buffer(instruction_array)
             let ws_inst = Socket.robot_name_to_ws_instance_map[robot_name]
-            let job_id = instruction_array[Dexter.INSTRUCTION_JOB_ID]
+            let job_id = instruction_array[Instruction.JOB_ID]
             try {
                 ws_inst.write(array) //if doesn't error, success and we're done with send
                 Socket.resend_instruction = null
@@ -202,7 +218,6 @@ var Socket = class Socket{
                 return
             }
             catch(err) {
-                let rob = Robot[robot_name]
                 if(instruction_array === Socket.resend_instruction) {
                     if (Socket.resend_count >= 4) {  //we're done
                         let job_instance = Job.id_to_job(job_id)
@@ -280,7 +295,7 @@ var Socket = class Socket{
         let data_end = data_start + payload_length
         //debugger;
         let payload_string = (data.slice(data_start, data_end).toString())
-        r_payload_grab_aux(payload_string, js_array)
+        Socket.r_payload_grab_aux(payload_string, js_array)
     }
 
     //called by both Socket.r_payload_grab AND DexterSim.process_next_instruction_r
@@ -315,8 +330,8 @@ var Socket = class Socket{
             robot_status[Dexter.J3_MEASURED_ANGLE] *= 0.0002777777777777778
             robot_status[Dexter.J4_MEASURED_ANGLE] *= 0.0002777777777777778
             robot_status[Dexter.J5_MEASURED_ANGLE] *= 0.0002777777777777778
-            robot_status[Dexter.J6_MEASURED_ANGLE] *= 0.0002777777777777778
-            robot_status[Dexter.J7_MEASURED_ANGLE] *= 0.0002777777777777778
+            robot_status[Dexter.J6_MEASURED_ANGLE] *= Socket.DEGREES_PER_DYNAMIXEL_UNIT //0.0002777777777777778
+            robot_status[Dexter.J7_MEASURED_ANGLE] *= Socket.DEGREES_PER_DYNAMIXEL_UNIT //0.0002777777777777778
 
            /* deprecated
              robot_status[Dexter.J1_FORCE_CALC_ANGLE] *= 0.0002777777777777778
@@ -337,7 +352,7 @@ var Socket = class Socket{
         robot_status[Dexter.J5_MEASURED_ANGLE] = robot_status[Dexter.J5_ANGLE] + robot_status[Dexter.J5_DELTA] - robot_status[Dexter.J5_PID_DELTA] + robot_status[Dexter.J5_FORCE_CALC_ANGLE]
     }
 
-    static close(robot_name, simulate){
+    static close(robot_name, simulate=null){
         const sim_actual = Robot.get_simulate_actual(simulate)
         if ((sim_actual === true) || (sim_actual === "both")){ //simulation
             DexterSim.close(robot_name)
@@ -395,5 +410,6 @@ Socket.resend_instruction = null
 Socket.resend_count = null
 
 Socket.robot_name_to_ws_instance_map = {}
+Socket.DEGREES_PER_DYNAMIXEL_UNIT = 0.29
 
 //Socket.on_receive_added = false

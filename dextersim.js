@@ -208,7 +208,7 @@ DexterSim = class DexterSim{
                 shouldnt("In dextersim.process_next_instruction, got an 'h' oplet but this fn shouldn't get 'h' instructions.")
                 break;
             case "P": //pid_move_all_joints
-                this.robot.pid_angles = ins_args //but not used aug 27, 2018
+                //this.robot.pid_angles = ins_args //but not used aug 27, 2018. Note this would set DDE's robot object, but we really want to set the SIM robot if anything
                 dur = this.process_next_instruction_a(Vector.add(ins_args))
             break;
             case "R": //move_all_joints_relative //no longer used because Dexter.move_all_joints_relative  converts to "a" oplet
@@ -281,7 +281,10 @@ DexterSim = class DexterSim{
         var robot_status = this.robot_status_in_arcseconds
         let idxs = [Dexter.J1_MEASURED_ANGLE, Dexter.J2_MEASURED_ANGLE, Dexter.J3_MEASURED_ANGLE,
             Dexter.J4_MEASURED_ANGLE, Dexter.J5_MEASURED_ANGLE, Dexter.J6_MEASURED_ANGLE, Dexter.J7_MEASURED_ANGLE]
-
+        //idxs is 7 long. But we don't want to get more than ins_args because those
+        //extra args aren't actually passed and it will screw up Kin.predict_move_dur to
+        //pass in 2 arrays of different lengths.
+        idxs = idxs.slice(0, ins_args.length) //
         let orig_angles =  [] //in arcseconds
         for(let i of idxs) { orig_angles.push(robot_status[i]) }
         //set the angles in this robot's robot_status

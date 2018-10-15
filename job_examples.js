@@ -102,7 +102,7 @@ new Job({name: "ja", do_list: [moves_gen]})
 //_______Job Example 4b: Generator with for loop
 function* complex_gen(){
     for(var i = 0; i < 4; i++){
-        yield Dexter.move_all_joints(i * 10)
+        yield Dexter.move_all_joints([i * 10])
     }
 }
 new Job({name: "jb",
@@ -161,7 +161,7 @@ Job.job_a.start(); Job.job_b.start() //execute both at once.
 new Dexter({name: "my_dex", ip_address: "192.168.1.142", port: 50000})
 new Job({name: "j4", 
          robot: Robot.my_dex,
-         do_list: [Dexter.move_all_joints(0, 45, 90, -45, 0),
+         do_list: [Dexter.move_all_joints([0, 45, 90, -45, 0]),
                    Robot.suspend(), //j5 will unsuspend this
                    Robot.out("j4 sez goodbye.")]})
 Job.j4.start()
@@ -192,7 +192,7 @@ new Job({name: "j6", robot: new Dexter(), do_list: []})
 //Now for our requesting job:
 new Job({name: "j7",
          do_list: [Robot.send_to_job({
-                   do_list_item: Dexter.move_all_joints(0, 0, 135, 45, 0),
+                   do_list_item: Dexter.move_all_joints([0, 0, 135, 45, 0]),
                    where_to_insert: {job: "j6", offset: "program_counter"},
                    start: true, //starts j6
                    wait_until_done: true,

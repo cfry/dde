@@ -6,6 +6,187 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 2.5.5, Oct 14, 2018</summary>
+Highlights: move instructions extentions include handling joints 6 & 7,
+            NaN for "no change" and sending instructions to
+            any robot.<br/>
+            Documentation extensions include new Getting Started guide.<br/>
+            TestSuite extensions include the automaitc starting of Jobs
+            in tests with Job definitions.<br/>
+            Run Instruction dialog extensions include support for J6 & J7.<br/>
+            Robot Status dialog improvements.<br/>
+            gcode improvements.
+<ul>
+    <li> Fixed 3 pieces of code in the RefMan that failed in running the
+        ref man test suite.</li>
+
+    <li>inspect: for "short info" of an object instance var val, increased
+        the potential length for an array being displayed from 6 to 10.</li>
+
+    <li> Bug fixed in Jobs menu/Run Instruction/Show Dialog for move cmds.</li>
+
+    <li> Added
+       <ul><li><code>Dexter.J6_ANGLE_MIN</code> => <samp> 0 </samp></li>
+           <li><code>Dexter.J6_ANGLE_MAX</code> => <samp> 296 </samp></li>
+           <li><code>Dexter.J7_ANGLE_MIN</code> => <samp> 0 </samp></li>
+           <li><code>Dexter.J7_ANGLE_MAX</code> => <samp> 296 </samp></li>
+        </ul>
+        used only for Run Instruction dialog
+    </li>
+
+    <li> Run Instruction dialog added J6 and J7.
+
+    <li> Run Instruction dialog: the number spinner controls constrain the value
+        to be within the indicated range for the joint.
+        But you can type in other values in the input if you like.
+     </li>
+
+    <li> Run Instruction dialog: move_all_joints and move_to values can now be blank
+        signifying "no change" for that joint or x,y,z.
+        A tooltip on the input inputs explains this.</li>
+
+    <li> Run Instruction dialog now has a button in upper right named
+        "Insert Dexter Def" that inserts new Dexter
+        definition with its name and ip address.</li>
+
+    <li> For move_all_joints and "a" oplet instructions,
+        DDE converts the degrees given for J6 and J7 into
+        the dynamixel units of 0.29 of a degree
+        before sending that value to Dexter.</li>
+
+    <li> robot.status for J6_MEASURED_ANGLE and J7_MEASURED_ANGLE
+        are presumed to be in dynamixel units coming from Dexter.
+        These are converted to degrees for DDE's use in robot_status.</li>
+
+    <li><code>Job.prototype.gcode_to_instructions</code>
+        got rid of file_content call
+        with callback, which is no longer supported.</li>
+
+    <li> <code>Job.gobj_to_move_to</code>
+         extended to accept a line of gcode as a string.</li>
+
+    <li> The parameters to <code>Dexter.run_gcode</code> have been changed.
+        It used to take by_position arguments. Now it takes keyword arguments.
+        The scale parameter has been replaced with workspace_pose so that it
+        can perform scale, rotation and offset.
+        A new argument is gcode, used to pass in a string of gcode that
+        is prepended to the filepath arguments.
+        See Ref Man/Robot/Dexter/Dexter Instructions/run_gcode
+        for updated doc.</li>
+
+    <li> <code>Socket.send</code> Fixed bug in getting the JOB_ID out of the instruction array,
+        which prevented DDE from connecting to Dexter.</li>
+
+    <li> <code>Socket.close</code> 2nd argument now defaults to null
+        so that its default value
+        uses the value of the simulate radio button in DDE.
+        (This is obscure. Most users won't call this method directly.)</li>
+
+    <li> <button>Eval</button> button behavior w.r.t. selection has been improved.
+        When there's a selection in the cmd input, hitting ENTER will
+        eval just that selected source.</li>
+
+    <li> Doc: clarified the instructions to download DDE in the User Guide.</li>
+
+    <li> Extended User Guide/Configure Dexter/Data Connection
+        documentation about using an IP scanner to find and set a Dexter's IP address
+        in DDE.</li>
+
+    <li> Doc pane <b>Articles</b> moved down to below the Ref Man.</li>
+
+    <li> At hdrobotic.com/software
+        Now the documentation has twist-downs similar to the twist downs
+        in DDE doc pane for easier browsing</li>
+
+    <li> Doc: new <b>Getting Started</b> top level section in the Doc pane.</li>
+
+    <li> Fixed bug in User Guide/Data Connection near "Go to Start/Control Panel"</li>
+
+    <li> Simplified the Robot Status dialog to not let you choose a Job.
+        You can now only select a robot.</li>
+
+    <li> Fixed bug in Robot Status dialog whereby it did not automatically
+        update the displayed data as the selected robot's job is running.</li>
+
+    <li> Robot Status dialog now has a new button "run status job"
+        which runs a job to get the robot status.</li>
+
+    <li> Robot Status dialog now comes up even if no job has been run on
+        that robot. The data for the robot displays as "no status",
+        but you can click the new "run status job" button
+        to get data from the robot.</li>
+
+
+    <li> Fixed click help to scroll to doc for "Dexter.write_to_robot".</li>
+
+    <li> Fixed click help to display name of function being clicked on
+        when showing its source code.</li>
+
+    <li>Minor improvements to User Guide/Why Use DDE? and Installation.</li>
+
+    <li> Fixed Ref Man/Dexter.get_robot_status description.</li>
+
+    <li> Slight improvement to formatting in User Guide/Help System.</li>
+
+    <li> Clicking on a word in the cmd input now displays click help on it.</li>
+
+    <li> Test menu new item: <i>Run TestSuite File</i>
+        allows you to choose a file and run just the tests in that file.</li>
+
+    <li> Added make_html_testsuite.js to run all TestSuites.</li>
+
+    <li> Added move_all_joints_testsuite.js to run all TestSuites.</li>
+
+    <li> <i>Run all TestSuites</i> now displays a summary of
+           statistics at the end of its report.</li>
+
+    <li>A test in a TestSuite can now contain source code for
+        creating a Job. (i.e. <code>new Job({...})</code>.
+        When such a test is run, the Job is defined then
+        started. The Test suite is suspended until the
+        job is completed, then the test site is resumed.
+        This allows tests after the Job-defining test to
+        verify values in the Job that were created while
+        running the job.</li>
+
+    <li> Fixed bug in read_from_robot in getting its "payload".</li>
+
+    <li> Fixed bug in move_to_straight AND made it accept a robot subject
+        so that it can move a different robot than the default one for the job.</li>
+
+    <li> <code>Dexter.make_ins</code> is a synonym for shortcut make_ins.
+        This long cut is consistent with other dexter command and
+        more explicit.</li>
+
+    <li> <code>Robot.dexter0.make_ins</code>
+         syntax now works to send the instruction to another
+        Dexter instance.</li>
+
+    <li> Fixed bug in the simulator for recording of angles
+        for <code>Dexter.pid_move_all_joints</code> instructions.</li>
+
+    <li> Standardized examples of calls to move_all_joints to always take its
+        joint angles as an array.</li>
+
+    <li> <code>dexter0.pid_move_all_joints(...)</code> now works.
+        The joint angles passed can all be in an array.</li>
+
+    <li> <code>Dexter.move_all_joints</code>,<br/>
+         <code>Dexter.pid_move_all_joints</code>,<br/>
+         <code>Dexter.move_all_joints_relative</code><br/>
+    instructions can take 5, 6 or 7 angles.
+    Can take the angles passed in as one array or spread out as individual args.
+    Can take NaN angles (keep the same)
+    move_all_joints, pid_move_all_joints can take relative angles
+    (surrounded by square brackets).
+    if user specifies 5 or less items , send 5 to dexter.
+    if user specifies 6, send 6,
+    if user specifies 7, send 7.
+    When the degree values for joints 6 and 7 are sent to Dexter,
+    they are converted to Dynamixel units, each is worth 0.29 degrees.</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 2.5.4, Sep 6, 2018</summary>
     <ul>
         <li>Lots of new docmmentation in the Ref Man for the
@@ -60,7 +241,7 @@ release. For now, please make-do with the below.</b></i></li>
 
     <li>A job may now contain instructions for more than one Dexter.
         The "move" instructions can take a subject of an instance of a Dexter,<br/>
-        i.e. <code>Robot.dexter0.move_all_joints(1, 2, 3, 4, 5, 6, 7)</code><br/>
+        i.e. <code>Robot.dexter0.move_all_joints([1, 2, 3, 4, 5, 6, 7])</code><br/>
         These instructions don't incur an extra item added to the do_list like
         they use to so they will be faster.</li>
 
@@ -139,7 +320,7 @@ Dexter.J5_SLOPE    = 58
         then the first value of that array is considered to be "relative"
         and is added to the existing value to come up with the new value.<br/>
         Example: <br/>
-        <code>Robot.dexter0.move_all_joints(1, [2.5], 3, [4.5], 5, 6, 7)</code>
+        <code>Robot.dexter0.move_all_joints([1, [2.5], 3, [4.5], 5, 6, 7])</code>
         Above the values of 2.5 and 4.5 are <i>relative</i> to the previously
         commanded degrees for joints 2 and 4.</li>
 

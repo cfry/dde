@@ -207,7 +207,7 @@ function file_content(path, encoding="utf8"){
     }
 }
 
-function choose_file(show_dialog_options={}) { //todo document
+function choose_file(show_dialog_options={}) {
     const dialog    = app.dialog;
     const paths = dialog.showOpenDialog(app.getCurrentWindow(),
         //passing this first arg of the window

@@ -188,7 +188,7 @@ var Job = class Job{
                 if (options.hasOwnProperty(key)){
                     let new_val = options[key]
                     //if (key == "program_counter") { new_val = new_val - 1 } //don't do. You set the pc to the pos just before the first instr to execute.
-                    if      (key == "do_list")         { new_val = Job.flatten_do_list_array(new_val) }
+                    if      (key == "do_list")    { new_val = Job.flatten_do_list_array(new_val) }
                     else if (key == "user_data")  { new_val = shallow_copy_lit_obj(new_val) }
                     else if (key == "name")       {} //don't allow renaming of the job
                     else if ((key == "when_stopped") &&
@@ -250,7 +250,7 @@ var Job = class Job{
             }
             else if (this.program_counter >= this.do_list.length){ //note that maybe_symbolic_pc can be "end" which is length of do_list which is valid, though no instructions would be executed in that case so we error.
                 dde_error("While starting job: " + this.name +
-                    "<br/>the programer_counter is initialized to: " + this.program_counter +
+                    "<br/>the program_counter is initialized to: " + this.program_counter +
                     "<br/>but the highest instruction ID in the do_list is: " +  (this.do_list.length - 1))
             }
             Job.last_job           = this
@@ -744,8 +744,10 @@ var Job = class Job{
 
 }
 Job.status_codes = ["not_started", "starting", "running", "completed",
-                    "suspended", "waiting",   //(wait_until, sync_point)
-                    "errored", "interrupted" //(user stopped manually),
+                    "suspended",
+                    "waiting",   //(wait_until, sync_point)
+                    "errored",
+                    "interrupted" //(user stopped manually),
                     ]
 
 Job.global_user_data = {}
@@ -1399,215 +1401,7 @@ Job.prototype.send_to_job_receive_done = function(params){
     }
 }
 
-//right now I don't use this (a_job) but will need it in the future to get a_job.robot. its transformations
-/*Job.prototype.dxf_to_instructions = function (filepath, scale = 1, up_distance = 2000){
-    let  the_content
-    if((filepath.length <= 512) &&
-        (filepath.endsWith(".dxf") || filepath.endsWith(".DXF"))){
-        the_content = file_content(filepath)
-    }
-    else { the_content = filepath }
-    scale = scale_to_micron_factor(scale)
-    let parser = new DxfParser();
-    try {
-        let dxf_entities = parser.parseSync(the_content).entities
-        let prev_xyz = null
-        let ins = []
-        for(let i = 0; i < dxf_entities.length; i++){
-            ent = dxf_entities[i]
-            if (ent.type == "LINE"){
-                let a = point_object_to_array(ent.vertices[0])
-                let b = point_object_to_array(ent.vertices[1])
-                a = scale_point(a, scale)
-                b = scale_point(b, scale)
-                if (prev_xyz == null) {
-                    if ((dxf_entities.length > 1) &&
-                        (point_equal(a, point_object_to_array(dxf_entities[1].vertices[0])) ||
-                         point_equal(a, point_object_to_array(dxf_entities[1].vertices[1])))){
-                        let c = a; a = b; b = c //swap
-                    }
-                    ins.push(Dexter.move_to([a[0], a[1], a[2] + up_distance]))
-                    ins.push(Dexter.move_to(a))
-                    if (!point_equal(a, b)){
-                        ins.push(Dexter.move_to(b))
-                    }
-                    prev_xyz = b
-                }
-                else {
-                    if (point_equal(prev_xyz, b)){
-                        let c = a; a = b; b = c //swap
-                    }
-                    //Now if prev is equal to orig a or orig b, then
-                    //that orig equal point is in a, ie a and b are ordered correctly
-                    if (prev_xyz != a) {
-                        ins.push(Dexter.move_to([prev_xyz[0], prev_xyz[1], prev_xyz[2] + up_distance]))
-                        ins.push(Dexter.move_to([a[0], a[1], a[2] + up_distance]))
-                        ins.push(Dexter.move_to(a)) //pen down
-                    }
 
-                    if (!point_equal(a, b)){
-                        ins.push(Dexter.move_to(b))
-                    }
-                    prev_xyz = b
-                }
-            }
-        }//end for
-        return ins
-    }
-    catch(err) { out(err.message); }
-}*/
-
-//right now I don't use this (a_job) but will need it in the future to get a_job.robot. its transformations
-Job.prototype.gcode_to_instructions = function* (filepath, scale = 1){
-    let the_content = null
-    file_content(filepath, function(content){
-        the_content = content //closed over in outer context
-    })
-    while (the_content === null) { yield null }
-    scale = scale_to_micron_factor(scale)
-    let gcode_lines = the_content.split("\n")
-    for(let i = 0; i < gcode_lines.length; i++){
-        let gobj = Job.gcode_line_to_obj(gcode_lines[i])
-        if (gobj == null) { continue; }
-        else {
-            let result
-            switch(gobj.type){
-                case "G0":
-                    result = Job.gobj_to_move_to(gobj, scale)
-                    yield result
-                    break;
-                case "G1":
-                    result = Job.gobj_to_move_to(gobj, scale)
-                    yield result
-                    break;
-                case "G28": //home
-                    result = Job.gobj_to_move_to({X: 100, Y:100, Z:0}, scale) //needed to initialize out of the way
-                    yield result
-                case "VAR":
-                    break; //ignore. do next iteration
-                default:
-                    break; //ignore. do next iteration
-            }
-        }
-    }
-}
-//rekturns lit obj or null  if gstring is a comment or blank line
-Job.gcode_line_to_obj = function(gstring){
-    gstring = Job.gline_remove_comment(gstring)
-    if (gstring == "") { return null }
-    else if (gstring.startsWith(";")){ //semicolon on non first column starts end of line comment.
-        return Job.gcode_varline_to_obj(gstring)
-    }
-    else {
-        var litobj = {}
-        var garray = gstring.split(" ")
-        litobj.type = garray[0]
-        for(let arg of garray){
-            arg = arg.trim()
-            let letter = arg[0]  //typically M, G, X, Y, X, E, F
-            let num = arg.substring(1)
-            if (is_string_a_number(num)){
-                num = parseFloat(num)
-            }
-            litobj[letter] = num //allowed to be a string, just in case somethign wierd, but is
-               //usually a number
-        }
-        return litobj
-    }
-}
-//trims whitespace and comment. Careful: if line begins with semicolon, its not a comment
-Job.gline_remove_comment = function(gstring){
-    let comment_pos = gstring.lastIndexOf(";")
-    if      (comment_pos == -1) { return gstring.trim() }
-    else if (comment_pos == 0)  {
-         if (gstring.includes("=")) { return gstring.trim()} //not actually a comment, its a var
-         else { return "" } //a comment whose line starts with semicolon as in the top line of a file
-    }
-    else                        { return gstring.substring(0, comment_pos).trim() }
-}
-
-Job.gcode_varline_to_obj = function (gstring){
-    let litobj = {}
-    gstring = gstring.substring(1).trim() //cut off the semicolon
-    let var_val = gstring.split("=")
-    let var_name = var_val[0].trim()
-    litobj.type = "VAR"
-    litobj.name = var_name
-    let val = var_val[1].trim()
-    if (val.includes(",")){
-        let vals = val.split(",")
-        litobj.val = []
-        for(let subval of vals){
-            let processed_subval = Job.gcode_process_subval(subval) //probably won't be [12, "%"] but if it is, ok
-            litobj.val.push(processed_subval) //if our val is something like "0x0,2x3,4x5" then each subval will b [0, 0] etc and we'll have an array of arrays
-        }
-    }
-    else {
-        let processed_subval = Job.gcode_process_subval(val)
-        if (Array.isArray(processed_subval) &&
-            (processed_subval.length == 2)  &&
-            (typeof(processed_subval[1]) != "number")){
-            litobj.val   = processed_subval[0]
-            litobj.units = processed_subval[1]
-        }
-        else { litobj.val = processed_subval }
-    }
-    return litobj
-}
-
-//subval can be "123", "123.45",  "123%"    "#FFFFFF"  "0x0", "123x45",  "G28" "M104 S0", "12.3mm",     "1548.5mm (3.7cm3)", ""
-//return         a number,        [123, "%"] "#FFFFFF", [0, 0] [123, 45], "G28" "M104 S0", [12.3, "mm"], "1548.5mm (3.7cm3)", ""
-Job.gcode_process_subval = function(subval){
-    subval = subval.trim()
-    let x_pos = subval.indexOf("x")
-    if (subval.includes(" ")) { return subval } //just a string
-    else if ((x_pos != -1) &&
-             (x_pos != 0)  &&
-             (x_pos != (subval.length - 1))) { //we've probably got subval of format "12x34"
-        let subsubvals = subval.split("x")
-        let val = []
-        for(let subsubval of subsubvals){
-            if (is_string_a_number(subsubval)) { val.push(parseFloat(subsubval))}
-            else { return subval } //its just a string with an x in the middle of it.
-        }
-        return val
-    }
-    else if (is_string_a_number(subval)){
-        return parseFloat(subval)
-    }
-    else { //maybe have a number with units ie 12.3mm, but we don't have just a number, we might have just a string
-         for(let i = 0; i < subval.length; i++){
-             let char = subval[i]
-             if ("0123456789.-".includes(char)) {} //continue looping
-             else if (i == 0) { //first char not in a num so whole thing is a string
-                return subval
-             }
-             else if ((i == 1) && (subval[0] == "-")){ //example "-foo". Its not a num
-                return subval
-             }
-             else {
-                let num = parseFloat(subval.substring(0, i))
-                let units = subval.substring(i)
-                return [num, units]
-             }
-         }
-         //not expecting this to happen, but in case it does
-         return subval
-    }
-}
-
-//G0 or G1 code
-Job.gobj_to_move_to = function(gobj, scale){ //ok for say, gobj to not have Z. that will just return undefined, and
-    //move_to will get the existing Z value and use it.
-    let the_x = gobj.X
-    if (the_x){ the_x = the_x * scale }
-    let the_y = gobj.Y
-    if (the_y){ the_y = the_y * scale }
-    let the_z = gobj.Z
-    if (the_z){ the_z = the_z * scale }
-    let result = Dexter.move_to([the_x, the_y, the_z])
-    return result
-}
 
 //used in go_to, wait_until at least.
 Job.instruction_location_to_job = function (instruction_location, maybe_error=true){

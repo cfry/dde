@@ -683,9 +683,6 @@ Serial = class Serial extends Robot {
             if (job_instance.keep_history){
                 job_instance.rs_history.push(robot_status)
             }
-           // if (job_instance.name === Dexter.updating_robot_status_job_name) { //don't update the table if it isn't shown
-           //     Dexter.update_robot_status_table(robot_status)
-           // }
             var error_code = robot_status[Serial.ERROR_CODE]
             if (error_code != 0){ //we've got an error
                 job_instance.stop_for_reason("errored", "Robot status got error: " + error_code)
@@ -977,25 +974,27 @@ Dexter = class Dexter extends Robot {
     }
     */
     start(job_instance){
+        //out("robot start called with job: " + job_instance.name)
         let sim_actual = Robot.get_simulate_actual(this.simulate)
         let this_robot = this
+        let this_job   = job_instance
         if ([false, "both"].includes(sim_actual)) {
                 let ping = require('ping') //https://www.npmjs.com/package/ping
                 ping.sys.probe(this.ip_address,
                                 function(isAlive){
                                     if (isAlive) {
-                                        setTimeout(function(){this_robot.start_aux(job_instance)},
+                                        setTimeout(function(){this_robot.start_aux(this_job)},
                                                   500) //in case dexster is booting up, give it a chance to complete boot cycle
                                         //this_robot.use_ping_proxy(job_instance)
                                     }
                                     else {
-                                         job_instance.stop_for_reason("errored", "Could not connect to Dexter.\nIf it is because Dexter is initializing,\ntry again in a minute.")
+                                        this_job.stop_for_reason("errored", "Could not connect to Dexter.\nIf it is because Dexter is initializing,\ntry again in a minute.")
                                     }
                                 },
                                {timeout: 10}
                                )
         }
-        else { setTimeout(function(){this_robot.start_aux(job_instance)},
+        else { setTimeout(function(){this_robot.start_aux(this_job)},
                          500) } //no actual connection to Dexter needed as we're only simulating, BUT
                                  //to keep similation as much like non-sim. due the same timeout.
     }
@@ -1197,11 +1196,6 @@ Dexter = class Dexter extends Robot {
         //let op_let = String.fromCharCode(op_let_number)
         if (op_let == "h") { //we got heartbeat acknowledgement of reciept by phys or sim so now no longer waiting for that acknowledgement
             rob.waiting_for_heartbeat = false
-            //rob.robot_status = robot_status
-            //if (rob.name === Dexter.updating_robot_status_robot_name) { //don't update the table if it isn't shown
-            //    Dexter.update_robot_status_table(robot_status)
-            //}
-            //SimUtils.render_once(robot_status, "Robot: " + rob.name)
             return
         }
         else if (op_let == "F"){
@@ -1235,11 +1229,9 @@ Dexter = class Dexter extends Robot {
                     const full_inst = job_instance.do_list[ins_id]
                     rob.angles = [full_inst[Dexter.J1_ANGLE], full_inst[Dexter.J2_ANGLE], full_inst[Dexter.J3_ANGLE], full_inst[Dexter.J4_ANGLE], full_inst[Dexter.J5_ANGLE]]
                 }*/
-                if (job_instance.name === Dexter.updating_robot_status_job_name) { //don't update the table if it isn't shown
-                    Dexter.update_robot_status_table(robot_status)
-                }
                // if(rob.simulate) { SimUtils.render_once(robot_status, "Job: " + job_instance.name) } //now in dextersim where it really belongs
             }
+            Dexter.update_robot_status_table(robot_status) //if the dialog isn't up, this does nothing
             var error_code = robot_status[Dexter.ERROR_CODE]
             if (error_code != 0){ //we've got an error
                 job_instance.stop_for_reason("errored", "Robot status got error: " + error_code)
@@ -1404,17 +1396,7 @@ Dexter.capture_ad     = function(...args){ return make_ins("c", ...args) }
 Dexter.capture_points = function(...args){ return make_ins("i", ...args) }
 Dexter.cause_error    = function(error_code=1){ return make_ins("e", error_code) } //fry made up. useful for testing
 
-Dexter.draw_dxf       //= DXF.dxf_to_instructions //this must be done in ready.js because
-                      //DXF.dxf_to_instructions isn't defined when this file is loaded.
-                     /*function(dxf_filepath,
-                                 J_angles_A=[[0, 39.3299269794896, 87.73461599877282, -37.064542978262416, 0],
-                                             [0, 19.842581231816105, 122.12940522787682, -51.97198645969291, 0],
-                                             [29.74488129694223, 26.571085191624196, 110.86421721470252, -47.4353024063267, 0]],
-                                 lift_height=0.01, resolution=0.0005, cut_speed=0.0015,
-                                 scale=1, fill=false){
-                        return DXF.dxf_to_instructions(dxf_filepath, J_angles_A, lift_height, resolution, cut_speed,
-                                 scale, fill)
-                    }*/
+Dexter.draw_dxf   //set to DXF.dxf_to_instructions in ready.js
 
 Dexter.dummy_move = function(){
     let CMD = []
@@ -1427,9 +1409,23 @@ Dexter.dummy_move = function(){
     return CMD
 }
 
-Dexter.run_gcode      = function(filepath, scale=1){
+//Dexter.run_gcode_workspace_pose_default = Vector.make_pose([0, 0.5, 0.1], [0, 0, 0], _mm)
+
+Dexter.prototype.run_gcode = function({gcode = "",
+                                       filepath = null,
+                                       workspace_pose = Vector.make_pose([0, 0.5, 0.1], [0, 0, 0], _mm)}){
+    return Dexter.run_gcode({gcode: gcode,
+                             filepath:filepath,
+                             workspace_pose: workspace_pose,
+                             robot: this})
+}
+
+Dexter.run_gcode      = function({gcode = "", filepath = null, workspace_pose = Vector.make_pose([0, 0.5, 0.1], [0, 0, 0], _mm), robot=Dexter}){
                             return function(){
-                                return this.gcode_to_instructions(filepath, scale)
+                                return Gcode.gcode_to_instructions({gcode: gcode,
+                                                                    filepath: filepath,
+                                                                    workspace_pose: workspace_pose,
+                                                                    robot: robot})
                             }
                         }
 
@@ -1456,6 +1452,15 @@ Dexter.get_robot_status_immediately = function(){ return make_ins("G") }
 //EXCEPT if no args passed in, set to home position.
 Dexter.load_tables     = function(...args){ return make_ins("l", ...args) } //
 //loads the data created from calibration onto the SD card for persistent storage.
+
+Dexter.make_ins = make_ins
+
+Dexter.prototype.make_ins = function(instruction_type, ...args){
+    args = new Array(...args)
+    args.unshift(instruction_type)
+    args.push(this)
+    return make_ins.apply(null, args)
+}
 
 Dexter.move_home = function(){ //move straight up
     return Dexter.move_all_joints(Dexter.HOME_ANGLES)
@@ -1486,51 +1491,73 @@ Dexter.joints_out_of_range = function(J_angles){
     }
 }
 
-Dexter.prototype.move_all_joints = function(array_of_angles=[]) {
-    return Dexter.move_all_joints(array_of_angles, this)
+//take the actual args passed to maj (sans a possible robot at the end) and
+//convert them into an array for further processing
+//this always returns an array, and it is an array of angles (or nested array of 1 number for rel angle.
+//array will be between 1 and  7 long inclusive.
+//elts can be number or NaN
+Dexter.convert_maj_angles = function(args_array){
+      let result
+      if(args_array.length == 1){ //user is only setting J1.
+          let first_elt = args_array[0]
+          if(Array.isArray(first_elt)){ //This could POSSIBLY be user intending to pass one *relative* joint angle for j1
+                                        //but lets presume not.
+                                        //but if first_elt is a number or an array of 1 number,
+                                        //that's ok, return turn it
+              result = first_elt //user passed in an array, use it as the array for the angles.
+          }
+          else { //only one arg and its not an array, (probably a number) so stick it in an array and we're done.
+              result = [first_elt]
+          }
+      }
+      else { // > 1 elt, so all those elts are in an array
+          result =  args_array
+      }
+      //get rid of undefineds and NaN's on the end down to joint 5.
+      for(let i = result.length - 1; i > 4; i--){
+            let ang = result[i]
+            if ((ang === undefined) || Number.isNaN(ang)) {
+                result.pop()
+            }
+       }
+       return result
 }
 
-Dexter.move_all_joints = function(array_of_angles=[], robot){
-    if (Array.isArray(array_of_angles)){ array_of_angles = array_of_angles.slice(0) }//copy so we don't modify the input array
-    else { array_of_angles = Array.prototype.slice.call(arguments) }
-    let has_non_nulls = false
-    for(let ang of array_of_angles) { if (ang !== null) { has_non_nulls = true; break; } }
-    if (!has_non_nulls) { return null } //means no movement from where it is now so this should do nothing.
-    return new Instruction.Control.move_all_joints(array_of_angles, robot)
+Dexter.prototype.move_all_joints = function(...array_of_angles) {
+    let array_to_use = Dexter.convert_maj_angles(array_of_angles)
+    return new Instruction.Control.move_all_joints(array_to_use, this)
+}
+
+Dexter.move_all_joints = function(...array_of_angles){
+    let robot
+    if (last(array_of_angles) instanceof Dexter) {robot = pop(array_of_angles)}
+    let array_to_use = Dexter.convert_maj_angles(array_of_angles)
+    return new Instruction.Control.move_all_joints(array_to_use, robot)
 }
 
 //the same as move_all_joints but generates a "P" oplet
 
-Dexter.pid_move_all_joints = function(array_of_angles=[]){
-    if (Array.isArray(array_of_angles)){ array_of_angles = array_of_angles.slice(0) }//copy so we don't modify the input array
-    else { array_of_angles = Array.prototype.slice.call(arguments) }
-    let has_non_nulls = false
-    for(let ang of array_of_angles) { if (ang !== null) { has_non_nulls = true; break; } }
-    if (!has_non_nulls) { return null }
-    return new Instruction.Control.pid_move_all_joints(array_of_angles)
+Dexter.prototype.pid_move_all_joints = function(...array_of_angles) {
+    let array_to_use = Dexter.convert_maj_angles(array_of_angles)
+    return new Instruction.Control.pid_move_all_joints(array_to_use, this)
 }
 
-
-//beware, this can't do error checking for out of reach.
-//MAYBE this should be implemented like move_to_relative which can do the error checking.
-
-Dexter.prototype.move_all_joints_relative = function(array_of_angles=[]) {
-    return Dexter.move_all_joints(array_of_angles, this)
+Dexter.pid_move_all_joints = function(...array_of_angles){
+    let robot
+    if (last(array_of_angles) instanceof Dexter) {robot = pop(array_of_angles)}
+    let array_to_use = Dexter.convert_maj_angles(array_of_angles)
+    return new Instruction.Control.pid_move_all_joints(array_to_use, robot)
 }
-Dexter.move_all_joints_relative = function(delta_angles=[], robot){
-    if (Array.isArray(delta_angles)){ delta_angles = delta_angles.slice(0) }//copy so we don't modify the input array
-    else { delta_angles = Array.prototype.slice.call(arguments) }
-    let has_non_nulls = false
-    for (let i in delta_angles) {
-        const val = delta_angles[i]
-        if (val === null) { delta_angles[i] = 0 }
-    }
-    if (delta_angles.length < 5) {
-        while(delta_angles.length < 5) {
-            delta_angles.push(0)
-        }
-    }
-    return new Instruction.Control.move_all_joints_relative(delta_angles, robot)
+
+Dexter.prototype.move_all_joints_relative = function(...array_of_angles) {
+    let array_to_use = Dexter.convert_maj_angles(array_of_angles)
+    return new Instruction.Control.move_all_joints_realtive(array_to_use, this)
+}
+Dexter.move_all_joints_relative = function(...delta_angles){
+    let robot
+    if (last(delta_angles) instanceof Dexter) {robot = pop(delta_angles)}
+    let array_to_use = Dexter.convert_maj_angles(delta_angles)
+    return new Instruction.Control.move_all_joints_relative(array_to_use, robot)
 }
 
 
@@ -1661,23 +1688,23 @@ Dexter.move_to_straight = function({xyz          = "required",
 Dexter.record_movement = function(...args){ return make_ins("m", ...args) }
 Dexter.replay_movement = function(...args){ return make_ins("o", ...args) }
 Dexter.set_parameter   = function(name="Acceleration", value){
-                          if (name == "StartSpeed") {
-                              if (value < 0){
-                                  dde_error("Dexter.set_parameter called with StartSpeed of: " + value +
-                                            " but it must be greater than or equal to zero.")
+                              if (name == "StartSpeed") {
+                                  if (value < 0){
+                                      dde_error("Dexter.set_parameter called with StartSpeed of: " + value +
+                                                " but it must be greater than or equal to zero.")
+                                  }
                               }
-                          }
-                          else if (name == "MaxSpeed") {
-                              if (value <= 0){
-                                  dde_error("Dexter.set_parameter called with MaxSpeed of: " + value +
-                                            " but it must be greater than zero.")
+                              else if (name == "MaxSpeed") {
+                                  if (value <= 0){
+                                      dde_error("Dexter.set_parameter called with MaxSpeed of: " + value +
+                                                " but it must be greater than zero.")
+                                  }
+                                  else if (value < (1 / _nbits_cf)){
+                                      warning("Dexter.set_parameter called with MaxSpeed of: " + value +
+                                      " which is too low.<br/>MaxSpeed set to the minimum permissible speed of: " + (1 / _nbits_cf))
+                                  }
                               }
-                              else if (value < (1 / _nbits_cf)){
-                                  warning("Dexter.set_parameter called with MaxSpeed of: " + value +
-                                  " which is too low.<br/>MaxSpeed set to the minimum permissible speed of: " + (1 / _nbits_cf))
-                              }
-                          }
-                           return make_ins("S", name, value)
+                              return make_ins("S", name, value)
                          }
 Dexter.sleep           = function(seconds){ return make_ins("z", seconds) }
 Dexter.slow_move       = function(...args){ return make_ins("s", ...args) }
@@ -1905,6 +1932,10 @@ Dexter.J4_ANGLE_MIN = -130 //-100
 Dexter.J4_ANGLE_MAX = 130  //100
 Dexter.J5_ANGLE_MIN = -185
 Dexter.J5_ANGLE_MAX = 185
+Dexter.J6_ANGLE_MIN = 0
+Dexter.J6_ANGLE_MAX = 296
+Dexter.J7_ANGLE_MIN = 0
+Dexter.J7_ANGLE_MAX = 296
 
 Dexter.MAX_SPEED    = 30  //degrees per second. NOT the max speed tha robot,
                          //but rather for a givien instruction's envelope of speed,
@@ -2056,7 +2087,7 @@ Dexter.robot_status_labels = [
 "JOB_ID_OF_CURRENT_INSTRUCTION", //                   6 // depricated DMA_READ_DATA
 "CURRENT_INSTRUCTION_ID",                   //        7 // depricated READ_BLOCK_COUNT
 "RECORD_BLOCK_SIZE",   //same name                    8 //unused
-"END_EFFECTOR_IN",     //END_EFFECTOR_IO_IN           9 //0, 1, or 2 indicatingtype of io for end effector
+"END_EFFECTOR_IN",     //END_EFFECTOR_IO_IN           9 //0, 1, or 2 indicating type of io for end effector
 
 //J1 block
 "J1_ANGLE",            // BASE_POSITION_AT           10 //means commanded stepped angle, not commanded_angle and not current_angle
@@ -2231,100 +2262,63 @@ Dexter.robot_status_to_html_table = function(ds){
 }
 
 //_________updating robot status___________
-Dexter.update_time_string = function(){
-    let d = new Date()
-    return d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds()
+//called from UI from the menu item
+Dexter.show_robot_status = function(event){
+    let robot = (Job.last_job? Job.last_job.robot : Robot.dexter0)
+    let content = Dexter.update_robot_status_to_html_table(robot)
+    show_window({content: content,
+        title:  "<span style='font-size:16px;'>Robot Status of</span> " +
+        Dexter.update_robot_status_names_menu_html(robot) +
+        "<span style='font-size:12px;margin-left:10px;'> Updated: <span id='robot_status_window_time_id'>" + Dexter.update_time_string() + "</span></span>" +
+        " <button title='Defines and starts a Job&#13; that continually gets the robot status&#13;of the selected robot.&#13;Click again to stop that Job.'" +
+                " onclick='Dexter.robot_status_run_update_job()'>run update job</button>",
+        width:  800,
+        height: 380
+    })
+    setTimeout(Dexter.update_robot_status_init, 300)
 }
-//runs in  sandbox
-Dexter.update_robot_status_names_menu_html = function (){
+
+Dexter.update_robot_status_names_menu_html = function (robot){
     //broken chrome ignore's style on select and option, so sez stack overflow
     //but stack overflow sez use a style on optgroup. That doesn't work either.
     let result = "<select id='update_robot_status_names_select_id' " +
-                 "<optgroup style='font-size:18px;'>"
-    if (Dexter.updating_robot_status_job_name){
-        for(let name of Job.all_names){
-            let job_instance = Job[name]
-            if(job_instance.robot instanceof Dexter){
-                let sel = (name == Dexter.updating_robot_status_job_name ? " selected" : "" )
-                result += "<option" + sel + ">" + name + "</option>"
-            }
-        }
-    }
-    else {
-        for(let name of Dexter.all_names){
-            let sel = (name == Dexter.updating_robot_status_robot_name ? " selected" : "" )
-            result += "<option" + sel + ">" + name + "</option>"
-        }
+        "<optgroup style='font-size:18px;'>"
+    for(let name of Dexter.all_names){
+        let sel = ((name == robot.name) ? " selected" : "" )
+        result += "<option" + sel + ">" + name + "</option>"
     }
     return result + "</optgroup></select>"
 }
 
-Dexter.update_robot_status_job_or_robot_menu_html = function (){
-    //broken chrome ignore's style on select and option, so sez stack overflow
-    //but stack overflow sez use a style on optgroup. That doesn't work either.
-    let job_sel = ""
-    let rob_sel = ""
-    if (Dexter.updating_robot_status_job_name) { job_sel = " selected"}
-    else                                       { rob_sel = " selected"}
-    let result = "<select id='update_robot_status_job_or_robot_select_id' " +
-                "<optgroup style='font-size:18px;'>" +
-                "<option " + job_sel + ">Job</option>" +
-                "<option " + rob_sel + ">Robot</option>" +
-                "</optgroup></select>"
-    return result
+Dexter.update_time_string = function(){
+    let d = new Date()
+    return d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds()
 }
+
+Dexter.robot_status_run_update_job = function(){
+    let rob_name = update_robot_status_names_select_id.value
+    let rob = Robot[rob_name]
+    let existing_job = Job["rs_update"]
+    if(existing_job && existing_job.is_active()){
+        existing_job.stop_for_reason("interrupted", "user stopped job")
+    }
+    else {
+        new Job({name: "rs_update",
+            robot: rob,
+            do_list: [ Robot.loop(true,  Dexter.get_robot_status)]}).start()
+    }
+}
+
 //called iniitally from sandbox only when calling show_window
 //necessary because can't embed js in html in chrome apps
 Dexter.update_robot_status_init = function(){
     update_robot_status_names_select_id.oninput=Dexter.update_robot_status_table_name_changed
-    update_robot_status_job_or_robot_select_id.oninput=Dexter.update_robot_status_table_job_or_robot_changed
 }
 
-//called from UI from the menu item
-Dexter.show_robot_status = function(){
-    if(!Job.last_job){
-        warning('No Jobs have been run so there is no robot status to show.')
-    }
-    else {
-        if((Dexter.updating_robot_status_robot_name == null) &&
-           (Dexter.updating_robot_status_job_name == null)){
-            Dexter.updating_robot_status_job_name = Job.last_job.name
-        }
-        let job_robot_select_html = Dexter.update_robot_status_job_or_robot_menu_html()
-        let robot = (Dexter.updating_robot_status_job_name   ?
-                        Job[Dexter.updating_robot_status_job_name].robot :
-                        Dexter[Dexter.updating_robot_status_robot_name])
-        let robot_status = robot.robot_status
-        let content = Dexter.update_robot_status_to_html_table(robot)
-        show_window({content: content,
-                     title:  "<span style='font-size:16px;'>Robot Status of</span> " + job_robot_select_html + ": " +
-                             Dexter.update_robot_status_names_menu_html() +
-                             " <span id='updating_robot_status_info_id' style='font-size:12px'>" + Dexter.update_robot_status_info_html() + "</span>" +
-                             "<span style='font-size:12px;margin-left:10px;'> Updated: <span id='robot_status_window_time_id'>" + Dexter.update_time_string() + "</span></span>",
-                     width:  800,
-                     height: 380
-                    })
-        setTimeout(Dexter.update_robot_status_init, 300)
-    }
-}
-
-//only one of these should be non-null at a time
-Dexter.updating_robot_status_robot_name = null
-Dexter.updating_robot_status_job_name   = null
 
 //called after the table is created, to update it dynamically.  from robot_done_with_instruction when the actual robot_status is changed.
 Dexter.update_robot_status_table = function(robot_status){
-    if((Dexter.updating_robot_status_robot_name == null) &&
-        (Dexter.updating_robot_status_job_name  == null)) {
-        Dexter.updating_robot_status_job_name = Job.last_job.name
-    }
-    if (Dexter.updating_robot_status_job_name) {
-        robot_status = Job[Dexter.updating_robot_status_job_name].robot.robot_status
-    }
-    else {
-        robot_status = Dexter[Dexter.updating_robot_status_robot_name].robot_status
-    }
-    if (window["INSTRUCTION_ID_id"]) { //don't attempt to show if the window isn't up. this does repopulate window if its merely shrunken
+    if (window["update_robot_status_names_select_id"]) { //don't attempt to show if the window isn't up. this does repopulate window if its merely shrunken
         robot_status_window_time_id.innerHTML = Dexter.update_time_string()
         for (let i = 0; i < robot_status.length; i++){
            let label    = Dexter.robot_status_labels[i]
@@ -2347,71 +2341,15 @@ Dexter.update_robot_status_table = function(robot_status){
 Dexter.update_robot_status_table_name_changed = function(name){
     //when called from the UI, the "name" arg is bound to the event.
     if(typeof(name) != "string") {name = name.target.value}
-    let robot_status
-    if (Dexter.updating_robot_status_job_name){
-        Dexter.updating_robot_status_job_name   = name
-        Dexter.updating_robot_status_robot_name = null
-        robot_status = Job[Dexter.updating_robot_status_job_name].robot.robot_status
-    }
-    else {
-        Dexter.updating_robot_status_robot_name = name
-        Dexter.updating_robot_status_job_name   = null
-        robot_status = Dexter[Dexter.updating_robot_status_robot_name].robot_status
-    }
+    let rob = Robot[name]
+    let robot_status = rob.robot_status
     Dexter.update_robot_status_table(robot_status)
-    Dexter.update_robot_status_info()
 }
 
-Dexter.update_robot_status_table_job_or_robot_changed = function(name){
-    //when called from the UI, the "name" arg is bound to the evemt.
-    if(typeof(name) != "string") {name = name.target.value}
-    let robot_status
-    if (name == "Job"){
-        Dexter.updating_robot_status_job_name   = Job.last_job.name
-        Dexter.updating_robot_status_robot_name = null
-        robot_status = Job.last_job.robot.robot_status
-    }
-    else {
-        Dexter.updating_robot_status_robot_name = Dexter.last_robot.name
-        Dexter.updating_robot_status_job_name   = null
-        robot_status = Dexter.last_robot.robot.robot_status
-    }
-    //Dexter.show_robot_status() //easiest to change the entire table
-    let names_menu_html = Dexter.update_robot_status_names_menu_html()
-    Dexter.update_robot_status_replace_names_menu(names_menu_html)
-    Dexter.update_robot_status_table(robot_status)
-    Dexter.update_robot_status_info()
-    setTimeout(Dexter.update_robot_status_init, 100)
-}
+
 Dexter.update_robot_status_replace_names_menu = function(names_menu_html){
     $("#update_robot_status_names_select_id").replaceWith(names_menu_html)
     setTimeout(Dexter.update_robot_status_init, 100)
-}
-
-Dexter.update_robot_status_info = function(){
-    let the_html = Dexter.update_robot_status_info_html()
-    updating_robot_status_info_id.innerHTML = the_html
-}
-
-//in sandbox
-Dexter.update_robot_status_info_html = function(){
-    if (Dexter.updating_robot_status_job_name){
-       let job_instance = Job[Dexter.updating_robot_status_job_name]
-       let result = "(using robot: " + job_instance.robot.name + ")"
-       return result
-    }
-    else {
-        let the_robot = Robot[Dexter.updating_robot_status_robot_name]
-        let job_instances = the_robot.jobs_using_this_robot()
-        let result = "(used by jobs:"
-        for(let i = 0; i < job_instances.length; i++){
-            let j = job_instances[i]
-            if (i > 0) { result += "," }
-            result += " " + j.name
-        }
-        result += ")"
-        return result
-    }
 }
 
 Dexter.update_robot_status_to_html_table = function(robot){
@@ -2443,9 +2381,9 @@ Dexter.update_robot_status_to_html_table = function(robot){
 
         Dexter.make_rs_row(robot_status, "SENT",      "J1_SENT",      "J2_SENT",      "J3_SENT",      "J4_SENT",      "J5_SENT"     ) +
         //Dexter.make_rs_row(robot_status, "SLOPE",     "J1_SLOPE",     "J2_SLOPE",     "J3_SLOPE",     "J4_SLOPE",     "J5_SLOPE"    ) +
-        "<tr><th>MEASURED X</th><td>"   + to_fixed_smart(xyz[0], 3) + //xyz[0].toFixed(3) +
-        "m</td><th>MEASURED Y</th><td>" + to_fixed_smart(xyz[1], 3) + //xyz[1].toFixed(3) +
-        "m</td><th>MEASURED Z</th><td>" + to_fixed_smart(xyz[2], 3) + //xyz[2].toFixed(3) + "m</td></tr>" +
+          "<tr><th>MEASURED X</th><td>" + to_fixed_smart(xyz[0], 3) +
+        "m</td><th>MEASURED Y</th><td>" + to_fixed_smart(xyz[1], 3) +
+        "m</td><th>MEASURED Z</th><td>" + to_fixed_smart(xyz[2], 3) + "m</td></tr>" +
         "</table>"
     return result
 }

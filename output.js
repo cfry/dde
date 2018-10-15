@@ -870,7 +870,8 @@ window.out_eval_result = function(text, color="#000000", src){
         append_to_output(text)
     }
     //$('#js_textarea_id').focus() fails silently
-    myCodeMirror.focus()
+    if(Editor.get_cmd_selection().length > 0) { cmd_input_id.focus() }
+    else { myCodeMirror.focus() }
 }
 
 window.get_output = function(){ //rather uncommon op, used only in append_to_output
