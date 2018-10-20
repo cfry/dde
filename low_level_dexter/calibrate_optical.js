@@ -2,7 +2,7 @@ function init_calibrate_optical() {
   new Job({name: "CalEncoders",
   			show_instructions: false,
             robot: cal_get_robot(),
-            do_list: [
+            do_list: out([
               make_ins("w", 42,64),
     		  make_ins("w", 42,0),
               make_ins("w", 42,256),
@@ -28,6 +28,7 @@ function init_calibrate_optical() {
               make_ins("a", ...[-670000,0,0,0,0].arcsec()),
               make_ins("F"),
               make_ins("w", 42,0),
+              
               make_ins("a", ...[0,0,0,0,0].arcsec()),
               make_ins("a", ...[0,350000,0,0,0].arcsec()),
               make_ins("F"),
@@ -35,6 +36,7 @@ function init_calibrate_optical() {
               make_ins("a", ...[0,-350000,0,0,0].arcsec()),
               make_ins("F"),
               make_ins("w", 42,0),
+              
               make_ins("a", ...[0,0,0,0,0].arcsec()),
               make_ins("a", ...[0,0,570000,0,0].arcsec()),
               make_ins("F"),
@@ -42,6 +44,7 @@ function init_calibrate_optical() {
               make_ins("a", ...[0,0,-570000,0,0].arcsec()),
               make_ins("F"),
               make_ins("w", 42,0),
+              
               make_ins("a", ...[0,0,0,0,0].arcsec()),
               make_ins("S", "MaxSpeed", 80000 / _nbits_cf),
               make_ins("a", ...[0,0,0,370000,0].arcsec()),
@@ -83,5 +86,5 @@ function init_calibrate_optical() {
               
               Dexter.sleep(1),
               make_ins("w", 42,12960),
-            ]})
+            ])})
 }

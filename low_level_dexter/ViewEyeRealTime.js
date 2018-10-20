@@ -166,11 +166,21 @@ function centers_output(){
         content += "\r\n"
     }
     try{
-        var ip_address = Job.CalSensors.robot.ip_address
-        var path = "//" + ip_address + "/share/AdcCenters.txt"
-        write_file(path, content)
-        out("Saved: " + path)
-        return true
+        //var ip_address = Job.CalSensors.robot.ip_address
+        //var path = "//" + ip_address + "/share/AdcCenters.txt"
+        var path = "/srv/samba/share/AdcCenters.txt"
+        //write_file(path, content)
+        //out("Saved: " + path)
+        //return true
+        return function(){
+        	//debugger
+            
+        	return [
+            	function(){out("Writing to:</br>" + path + "</br>With content:</br>" + content)},
+            	Dexter.write_to_robot(content, path),
+                function(){out("Saved: " + path)},
+            ]
+        }
     }
     catch(err) {
         warning("DDE was unable to save the 'AdcCenters.txt' file directly to Dexter.<br>Please save the file manually.</br>")
@@ -253,8 +263,56 @@ function init_view_eye(){
                             cal_instructions_id.innerHTML =
                                      "Click in the center of the dot_pattern circle.<br/>"}
                         ]})
-	let ip_address = Job.CalSensors.robot.ip_address
-    let path = "//" + ip_address + "/share/AdcCenters.txt"
+    
+    /*
+    new Job({
+    	name: "job_00",
+        keep_history: false,
+        show_instructions: false,
+    	inter_do_item_dur: 0,
+        robot: cal_get_robot(),
+        user_data: {
+        	dex_filepath: "/srv/samba/share/AdcCenters.txt"
+        },
+        do_list: [
+        	
+        	function(){
+            	out("Attempting to read AdcCenters.txt from robot with IP: " + this.robot.ip_address + "...")
+        		
+                return [
+                	Dexter.read_from_robot(this.user_data.dex_filepath, "read_results"),
+                    make_ins("F")
+                ]
+        	},
+			function(){
+            	let original_content = this.user_data.read_results
+				let my_file_content = out(original_content)
+            	
+                let content_array = original_content.split("\r\n")
+        
+        
+    			centers_string = []
+    			for(let i = 0; i < 10; i++){
+            		centers_string.push(content_array[i])
+    			}
+        
+        		// Switched J2 and J3
+        		let temp_string = centers_string[4]
+    			centers_string[4] = centers_string[2]
+    			centers_string[2] = temp_string
+    			temp_string = centers_string[5]
+    			centers_string[5] = centers_string[3]
+    			centers_string[3] = temp_string
+            	
+			}
+        ]
+    })
+    
+    
+    Job.job_00.start()
+	*/
+    
+    
     /*
     //Old Code:
     try{
@@ -283,8 +341,8 @@ function init_view_eye(){
     */
     
     //console.log("Attempting to connect to " + robot_to_calibrate_id.value +"...")
-    out("Attempting to connect to " + robot_to_calibrate_id.value +"...", "blue")
-    
+    //out("Attempting to connect to " + robot_to_calibrate_id.value +"...", "blue")
+    /*
     let path_exists_state
     setTimeout(function(){
     	path_exists_state = file_exists(path)
@@ -292,8 +350,12 @@ function init_view_eye(){
     
     if(path_exists_state){
     	
+        
         let original_content = file_content(path)
+        
         let content_array = original_content.split("\r\n")
+        
+        
     	centers_string = []
     	for(let i = 0; i < 10; i++){
     		//centers_string.push(content_array[i], content_array[i+1])
@@ -312,5 +374,9 @@ function init_view_eye(){
         warning("DDE was unable to connect to Dexter's file system.<br/>A full calibration can still be completed without this connection.<br/>This occurs when running on a Mac OS, not being connected to Dexter, or a accessing a non-existent file.<br/>The calibration file is named:<br/><code title='unEVALable'> " + path)
         centers_string = ["0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000"]
     }
+    */
+    
+    
+    
     cal_init_view_eye_state = false
 }
