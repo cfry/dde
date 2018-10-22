@@ -353,7 +353,11 @@ function handle_cal(vals){
         */
         
         	let CMD = centers_output()
-            let save_job = new Job({name: "Cal_Save_Eye_Centers",
+            let save_job = new Job({
+            	name: "Cal_Save_Eye_Centers",
+				show_instructions: false,
+				inter_do_item_dur: 0,
+				robot: cal_get_robot(),
          		do_list: [CMD]
             })
             
@@ -481,8 +485,8 @@ function init_calibrate(){
     open_doc(calibrate_doc_id)
     setTimeout(cal_reset_ranges, 200)
     setTimeout(function(){
-    	debugger
         try{
+        	//this errors when the robot to calibrate hasn't been chosen yet
     		let robot_sim = Robot[robot_to_calibrate_id.value].simulate
         	let sim_actual = Robot.get_simulate_actual(robot_sim)
         	if(sim_actual === true){
