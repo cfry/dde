@@ -5935,10 +5935,10 @@ completes.
 If you'd like to send string instructions to more than one serial port,
 you can use an instance of a serial port as the subject of a string_instruction.<br/>
 Example:
-<pre><code title="unstartable in TestSuite">
+<pre><code title="not in TestSuite">
 new Serial({name: "S2",
-            path: "/dev/tty.usbmodem2822"})
-
+            path: "/dev/tty.usbmodem2822"
+           })
 new Job({name: "j1",
          robot: new Serial({name: "S1",
                             path: "/dev/tty.usbmodem1411"}),

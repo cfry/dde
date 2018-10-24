@@ -1000,7 +1000,7 @@ foo      //eval to see the latest values</pre>`,
         Editor.insert(content)
         open_doc("DXF.init_drawing_doc_id")
     }
-    calibrate_id.onclick = init_calibrate //defines 2 jobs and brings up calibrate dialog box
+    calibrate_id.onclick = function() { init_calibrate() }//defines 2 jobs and brings up calibrate dialog box
 
         //Output_ops menu
     ping_id.onclick          = function(){ rde.ping()}

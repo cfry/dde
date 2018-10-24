@@ -888,6 +888,9 @@ var TestSuite = class TestSuite{
                     src = "[" + src +"]" //now src won't eval to a job so it won't be started and trigger the suspend/resume mechanism,
                     //but below we will still EVAL the job so that we can at least test
                     //that the job gets defined without error.
+                    //beware though, if src contaiins > 1 top level expr. this
+                    //fails badly as no comma betweeen the top level elts now that its an array.
+                    //this is a very confusing bug to fix in the test suite.
                 }
                 if (!code_elt.title || (code_elt.title.startsWith("unstartable"))){  //(src[0] != " ")
                     var a_test = [src]

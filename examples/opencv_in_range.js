@@ -4,13 +4,15 @@ var cv = require("opencv.js")
 function handle_hello_opencv(vals){
     if(vals.clicked_button_value == "show images"){
         src_image_id.src = vals.file_input_id
-        let src_mat  = cv.imread("src_image_id");
-		let dst_mat  = new cv.Mat();
-		let low_mat  = new cv.Mat(src_mat.rows , src_mat.cols, src_mat.type(), [0, 0, 0, 0]);
-		let high_mat = new cv.Mat(src_mat.rows , src_mat.cols, src_mat.type(), [150, 150, 150, 255]);
-		cv.inRange(src_mat, low_mat, high_mat, dst_mat);
-		cv.imshow("output_canvas_id", dst_mat);
-		src_mat.delete(); dst_mat.delete(); low_mat.delete(); high_mat.delete();   
+        setTimeout(function(){
+            let src_mat  = cv.imread("src_image_id");
+            let dst_mat  = new cv.Mat();
+            let low_mat  = new cv.Mat(src_mat.rows , src_mat.cols, src_mat.type(), [0, 0, 0, 0]);
+            let high_mat = new cv.Mat(src_mat.rows , src_mat.cols, src_mat.type(), [150, 150, 150, 255]);
+            cv.inRange(src_mat, low_mat, high_mat, dst_mat);
+            cv.imshow("output_canvas_id", dst_mat);
+            src_mat.delete(); dst_mat.delete(); low_mat.delete(); high_mat.delete();
+            }, 100)
     }
 }
 

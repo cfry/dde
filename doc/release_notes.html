@@ -6,6 +6,36 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 2.5.8, Oct 23, 2018</summary>
+Highlights: Calibration dialog extended. Bug fixes.
+<ul>
+    <li> Jobs menu/Calibrate Dexter isolated init_calibrate fn
+    to make redefining it easier.</li>
+
+    <li> Jobs Menu Calibrate Dexter dialog box extended.<br/>
+         When you select a robot, it does "robot_cal_init".<br/>
+         If there is only one robot defined when the user
+         choose Jobs menu/calibrate dexter,
+         automatically run robot_cal_init
+         else, have the "default" robot that shows up in the select box be "choose robot",
+         then all the defined robots are on that select menu below "choose robot",
+         BUT make the top one be Dexter.last_robot<br/>
+         robot_cal_init:<br/>
+         pop up modal show_window dialog  (doesn't allow clicking outside of dialog)<br/>
+         Says "Please wait while initializing Robot for calibration".<br/>
+         Has button "Cancel".<br/>
+         Normal operation is that it creates a job with a
+         read_from_robot instruction,
+         and when the job completes, the show_window is automatically closed.</li>
+
+    <li> Fixed machine vision demos to load pictures with slight a delay,
+         so their data is accessible by subsequent code.
+         Reduced size of too-large show_windows.</li>
+
+    <li> Fixed the ref man, serial robot, testsuite, unknown failure.
+         Now all 1777 tests pass.</li>
+</details>
+
 <details class="doc_details"><summary>v 2.5.5, Oct 14, 2018</summary>
 Highlights: move instructions extentions include handling joints 6 & 7,
             NaN for "no change" and sending instructions to
