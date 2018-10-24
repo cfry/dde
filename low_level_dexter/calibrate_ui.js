@@ -1,13 +1,15 @@
-var Outer_J_Ranges = {J1BoundryLow: -187,
-			    J1BoundryHigh: 187,
-                J2BoundryLow: -92,
-			    J2BoundryHigh: 92,
-                J3BoundryLow: -153,
-			    J3BoundryHigh: 153,
-                J4BoundryLow: -103,
-                J4BoundryHigh: 103,
-                J5BoundryLow: -189,
-			    J5BoundryHigh: 189}
+var Outer_J_Ranges = {
+	J1BoundryLow: -187,
+	J1BoundryHigh: 187,
+	J2BoundryLow: -92,
+	J2BoundryHigh: 92,
+	J3BoundryLow: -153,
+	J3BoundryHigh: 153,
+	J4BoundryLow: -103,
+	J4BoundryHigh: 103,
+	J5BoundryLow: -189,
+	J5BoundryHigh: 189
+}
 
 var cal_saved_points = [
 	[[], []],
@@ -24,6 +26,74 @@ var cal_init_view_eye_state = true
 
 window.cal_svg_height = 410
 window.cal_working_axis = undefined //this is either undefined, 0, 1, 2, 3, 4 (ie zero based joint numbers)
+
+
+
+function cal_init_robot_show_window_cb(vals){
+   if(vals.clicked_button_value == "Cancel") {
+        Job.cal_init_job.stop_for_reason("interrupted", "user canceled the job")
+   		close_window(vals.window_index)
+   }
+}
+
+function cal_init_robot(){
+   let the_robot = cal_get_robot()
+   let show_dia = show_window(
+       {title: "Initializing a Dexter for calibration",
+        content: "Please wait for data from " + the_robot.name + "...<p/>" +
+                 "<center><input type='button' value='Cancel'/></center>",
+        width:  400,
+        height: 130,
+        callback: cal_init_robot_show_window_cb
+        })
+	let the_job = new Job({
+		name: "cal_init_job",
+		show_instructions: false,
+		inter_do_item_dur: 0,
+		robot: cal_get_robot(),
+		user_data: {
+			dex_filepath: "/srv/samba/share/AdcCenters.txt"
+		},
+		do_list: [
+			function(){
+            	out("Attempting to read AdcCenters.txt from robot with IP: " + this.robot.ip_address + "...")
+        		
+                return [
+                	Dexter.read_from_robot(this.user_data.dex_filepath, "read_results"),
+                    make_ins("F")
+                ]
+        	},
+            function(){
+            	let original_content = this.user_data.read_results
+				let my_file_content = out(original_content)
+            	
+                let content_array = original_content.split("\r\n")
+        
+        
+    			centers_string = []
+    			for(let i = 0; i < 10; i++){
+            		centers_string.push(content_array[i])
+    			}
+        
+        		// Switched J2 and J3
+        		let temp_string = centers_string[4]
+    			centers_string[4] = centers_string[2]
+    			centers_string[2] = temp_string
+    			temp_string = centers_string[5]
+    			centers_string[5] = centers_string[3]
+    			centers_string[3] = temp_string
+            	
+			}
+		],
+		when_stopped: function(){
+			close_window(show_dia)
+			let init_data = Job.cal_init_job.user_data.cal_init_data
+			//do stuff with init data
+		}
+	})
+   the_job.start()
+}
+
 
 function cal_is_loop_checked(J_num){
 	let cb_string = "cal_loop_joint_" + J_num + "_cb_id"
@@ -209,10 +279,12 @@ function handle_cal(vals){
         setTimeout(function(){Job.CalSensors.start({robot: the_robot})}, starting_timeout)
             
     }else if(vals.clicked_button_value === "svg_id") {
+    	/*
         if (window.cal_working_axis === undefined){
             cal_instructions_id.innerHTML = "<span style='color:red'>You must first press a Start J button to calibrate.<br/></span>"
         }
         else {
+        */
             //cal_instructions_id.innerHTML = "Check this joint's <b>Done</b> check box<br/>&nbsp;&nbsp;&nbsp;&nbsp;if you like the center you've chosen."
             cal_instructions_id.innerHTML = "If you like the center you've chosen, click the <b>Save</b> button to save it to Dexter<br/>or move onto the next joint."
             const y_val_to_save = flip_point_y(vals.offsetY)
@@ -242,7 +314,9 @@ function handle_cal(vals){
                 cy: vals.offsetY,
                 r: 3,
                 color: "red"}))
+        /*
         }
+        */
     }
     else if (vals.clicked_button_value == "Stop"){
     	if(cal_init_view_eye_state){
@@ -272,10 +346,27 @@ function handle_cal(vals){
         }
     }
     else if (vals.clicked_button_value === "Save"){
-    	if (window.cal_working_axis === undefined){
+    	/*
+        if (window.cal_working_axis === undefined){
             cal_instructions_id.innerHTML = "<span style='color:red'>You must first press a Start J button to calibrate.<br/></span>"
         }else{
-        	const file_write_worked = centers_output()
+        */
+        
+        	let CMD = centers_output()
+            let save_job = new Job({
+            	name: "Cal_Save_Eye_Centers",
+				show_instructions: false,
+				inter_do_item_dur: 0,
+				robot: cal_get_robot(),
+         		do_list: [CMD]
+            })
+            
+            save_job.start()
+			
+            
+            
+        	//const file_write_worked = centers_output()
+            /*
         	var message_prefix
         	if(file_write_worked) {
             	message_prefix = "Settings saved<br/>&nbsp;&nbsp;&nbsp;&nbsp;Now click"
@@ -285,9 +376,12 @@ function handle_cal(vals){
             	open_doc(dexters_file_system_doc_id)
         	}
         	cal_instructions_id.innerHTML = message_prefix + " <b>Calibrate Optical Encoders</b>"
+            */
+            
+        /*    
         }
-    }
-    else if (vals.clicked_button_value === "calibrate_optical_id"){
+        */
+    }else if (vals.clicked_button_value === "calibrate_optical_id"){
         if (the_robot.simulate === true) {
             warning("To calibrate a Dexter, it must have its simulate property set to false.<br/>" +
                 the_robot.name + " has simulate==true. <br/>" +
@@ -309,14 +403,21 @@ function handle_cal(vals){
     }
     else if (vals.clicked_button_value === "robot_to_calibrate_id"){
     	cal_init_view_eye_state = true
+        cal_init_robot()  //Fry added Oct 19, 2018
     }
     //else { shouldnt("handle_cal called with invalid vals.clicked_button_value of: " + vals.clicked_button_value) }
 }
 
 function make_dexter_robot_menu_html(){
     var result = "<select data-onchange='true' id='robot_to_calibrate_id' style='font-size:16px;' value='robot_to_calibrate'>\n"
+    if(Dexter.all_names.length > 1){
+    	result += "<option>Choose</option>\n" 
+    }
+    result += "<option>" + Dexter.last_robot.name + "</option>\n"
     for(let dex_name of Dexter.all_names){
-        result += "<option>" + dex_name + "</option>\n"
+        if (dex_name != Dexter.last_robot.name) {  
+           result += "<option>" + dex_name + "</option>\n"
+        }
     }
     return result + "</select>"
 }
@@ -361,22 +462,41 @@ function init_calibrate(){
             ]}) +
         "</td></tr><tr style='border-collapse:collapse;'><td style='border-collapse:collapse;'></td><td>&nbsp;&nbsp;&nbsp;&nbsp;Right potentiometer: &nbsp;Clockwise pot rotation &rarr;</td></tr>" +
         "</table></td></tr></table>" +
+        
+        /*
         "3. <input type='button' id='calibrate_optical_id' style='margin-top:10px;' title='Do each time you turn on Dexter.'" +
         "value='Calibrate optical encoders'/>" +
         `&nbsp&nbsp4. <input type='button' style='margin-top:10px;' title='Click to start FindHome Job'
               value='Start FindHome'>
       </button> &nbsp(Experimental)`,
+      */
+      	
+      	"3. <input type='button' id='find_home_id' style='margin-top:10px;' title='Do each time you turn on Dexter.'" +
+        "value='Calibrate optical encoders'/>" +
+      	"4. <input type='button' id='calibrate_optical_id' style='margin-top:10px;' title='Do each time you turn on Dexter.'" +
+        "value='Calibrate optical encoders'/>" +
+        `&nbsp&nbsp4. <input type='button' style='margin-top:10px;' title='Click to start FindHome Job'
+              value='Start FindHome'>
+      </button> &nbsp(Experimental)`,
+        
+      
         callback: handle_cal
     })
     open_doc(calibrate_doc_id)
     setTimeout(cal_reset_ranges, 200)
     setTimeout(function(){
-    	let robot_sim = Robot[robot_to_calibrate_id.value].simulate
-        let sim_actual = Robot.get_simulate_actual(robot_sim)
-        if(sim_actual === true){
-        	//show_window({content: "Don't Sim"})
-            open_doc(simulate_doc_id)
-            confirm("Warning: Simulate is set to true so calibration window will not work. \nTo set to false, choose Jobs menu/Simulate/false.")
+        try{
+        	//this errors when the robot to calibrate hasn't been chosen yet
+    		let robot_sim = Robot[robot_to_calibrate_id.value].simulate
+        	let sim_actual = Robot.get_simulate_actual(robot_sim)
+        	if(sim_actual === true){
+        		//show_window({content: "Don't Sim"})
+            	open_doc(simulate_doc_id)
+            	confirm("Warning: Simulate is set to true so calibration window will not work. \nTo set to false, choose Jobs menu/Simulate/false.")
+        	}
+        	else if (Dexter.all_names.length == 1) { cal_init_robot() } //Fry added Oct 19, 2018
+    	}catch(err){
+        	
         }
     }, 1000)
     
