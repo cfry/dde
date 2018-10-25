@@ -1,5 +1,31 @@
-DE.de_to_js("4 less than with 67.")
-DE.de_to_js("4 more than with 67.")
+new TestSuite("DE comparison",
+    ['DE.de_to_js("4 less than with 67.")', '"(4 < 67)"'],
+    ['DE.de_to_js("4 more than with 67.")', '"(4 > 67)"'],
+    ['DE.de_to_js("44 equals with 67.")', '"(44 == 67)"'],
+    ['DE.de_to_js("44 not equals with 67.")', '"(44 != 67)"'],
+    ['DE.de_to_js("44 less than or equals with 67.")', "(44 <= 67)"],
+    ['DE.de_to_js("47 more than or equals with 68.")', '"(47 >= 68)"'],
+    ['DE.de_to_js("45 same as with 46.")', '"(45 === 46)"'],
+    ['DE.de_to_js("45 not same as with 46.")', '"(45 !== 46)"']
+)
+
+new TestSuite("DE arithmetic",
+    ['DE.de_to_js("45 plus with 46.")', '"(45 + 46)"'],
+    ['DE.de_to_js("45 minus with 46, 47, 48.")', '"(45 + 46 + 47 + 48)"'],
+    ['DE.de_to_js("45 times with 46 and 47.")', '"(45 * 46 * 47)"'],
+	['DE.de_to_js("45 divide with 9.")', '"(45 / 9)"'],
+    ['DE.de_to_js("45 remainder with 10.")', '"(45 % 10)"'],
+    ['DE.de_to_js("2 to the power of with 3.")', '"(2 ** 3)"']
+)
+
+   new TestSuite("DE logic",
+    ['DE.de_to_js("all of with true, false.")', '"(true && true && false)"']
+)
+
+
+
+
+
 parser.parse("4 less than with 67, 78.")
 parser.parse("make Array with 4 and 5.")
 parser.parse("make Array with 4.")

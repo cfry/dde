@@ -1264,10 +1264,17 @@ Find Home is a part of Dexter Calibration. To use Find Home:
     For a video presentation of many of these concepts, please watch
     <a href="http://hdrobotic.com/webinar#debugging" target="_blank">Debugging</a>.<br/>
     Most programmers spend most of their time debugging.
+    Don't sweep this problem under the rug --- confront it with the following strategies:
+
+    <h4>Test Early and Often</h4>
     We recommend entering just a bit of code at a time; a line or less before testing it.
     That way, when a bug shows up, you'll know it was in the last bit that you added.
-    If you fail to do this, and have a large amount of code that has a bug, comment out
-    lines incrementally and test to isolate the bug.
+
+    <h4>Keep Backups</h4>
+    Before making a major change, copy the file your code is in and
+    name the copy something like "orig_name_the_date.js"
+    or "orig_name_before_implementing_foo.js".
+    Then at worst, you can go back to previously working code.
 
     <h4>Syntax Checker</h4>
     DDE uses an automatic syntax checker named <i>ESLint</i>. It
@@ -1371,6 +1378,15 @@ Find Home is a part of Dexter Calibration. To use Find Home:
     A good one is: <a href="https://www.w3schools.com/js/js_mistakes.asp">
         https://www.w3schools.com/js/js_mistakes.asp</a> , incomplete, but
         a good start.
+
+    <h4>Boot</h4>
+    Sometimes computers just get screwed up.
+    Booting often fixes such problems.
+    <ol>
+        <li>You can start with quiting and relaunching DDE.</li>
+        <li>If that fails, shut down your whole computer and restart it.</li>
+        <li>If that fails, shut off Dexter and restart it.</li>
+    </ol>
 </details>
 
 <details class="doc_details"><summary>Contact</summary>

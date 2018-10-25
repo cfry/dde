@@ -44,7 +44,7 @@ var Socket = class Socket{
         for(var i = 0; i < instruction_array.length; i++){
             var elt = instruction_array[i]
             if (Number.isNaN(elt)) { elt = "NaN" } //usually only for "a" instructions and only for elts > 4
-            result += elt
+            result += elt + " "
         }
         result += ";"
         var arr_buff = new Buffer(128) //dexter code expecting fixed length buf of 128

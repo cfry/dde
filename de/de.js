@@ -1,12 +1,20 @@
 /* https://pegjs.org/documentation
 npm install pegjs --save
+DE.make_verb_rule_expers()
 */
 var DE = class DE {
   static de_to_js(de_src) { return DE.parser.parse(de_src) }
-  static make_verb_rule{ 
+  
+  static make_verb_rule_expers() { 
   	let result = ""
-    for(let key of Object.keys(DE.ops)){
-    	else { result += key + " / "}
+    let the_keys = Object.keys(DE.ops)
+    the_keys.sort(function(a1, a2) { 
+    				if      (a1.length > a2.length)  { return -1 }
+                    else if (a1.length == a2.length) { return 0 }
+                    else                             { return 1 }
+                    })
+    for(let key of the_keys){
+    	result += '"' + key + '" / '
     }
     return result + "variable"
   }
@@ -20,27 +28,27 @@ var DE = class DE {
             let clean_args = []
             for(let arg of args_array) {clean_args.push(arg.trim()) }
             let op = DE.ops[vb]
-            if (!op) { return false }
-            else { let result = subj
-                   for(let clean_arg of clean_args) {
-                       result += " " + op + " " + clean_arg
-                   }
-                   return "(" + result + ")"
+            let result = ""
+            if      (subj == "all" && (vb == "of")) { op = "&&" }
+            else if (subj == "one" && (vb == "of")) { op = "||" }
+            else if (!op) { return false } //not an infix call, handle with normal call code
+            else { result = subj }
+            for(let clean_arg of clean_args) {
+              result += " " + op + " " + clean_arg
             }
+            return "(" + result + ")"
         }
   		else { return false }
 	}
 }
 
-DE.peg = require("pegjs")
-
 DE.ops = {"less than": "<",
-          "equal to":  "==",
+          "equals":    "==",
           "same as":   "===",
-          "less than or equal to": "<=",
+          "less than or equals": "<=",
           "more than": ">", 
-          "more than or equal to": ">=",
-          "not equal to": "!=",
+          "more than or equals": ">=",
+          "not equals": "!=",
           "not same as":  "!==",
 
           "plus": "+",
@@ -53,16 +61,18 @@ DE.ops = {"less than": "<",
           "all of": "&&",
           "one of": "||"
          }
-
-DE.parser = peg.generate(
-`start                = result:expr { return result }
-expr                 = before_com:comment* ws_or_not result:(maker / sentence / path / variable / undefined / number ) ws_or_not after_com:comment* { return before_com + result + after_com }
+DE.peg = require("pegjs")
+DE.parser = DE.peg.generate(
+`start               = result:expr { return result }
+expr                 = before_com:comment* ws_or_not result:(maker / sentence / path / variable / undefined / number ) ws_or_not after_com:comment* 
+                       { return before_com + result + after_com }
 maker                = "make" ws (("an" / "a") ws)? subj:subject ws "with" ws args:arguments? "." { return "new " + subj + args }
 
 sentence             = result:(sent_verb_args / sent_subj_verb_args / sent_subj_verb / sent_verb) { return result }
 sent_verb_args       = vb:verb ws "with" ws args:arguments "." { return vb + args }
 sent_subj_verb_args  = subj:subject ws vb:verb ws "with" ws args:arguments "." { 
-	                         let got_you = ((subj == "you") || (subj == "You"))
+	                         debugger;
+                             let got_you = ((subj == "you") || (subj == "You"))
                              let infix_result = DE.handle_infix_call(got_you, subj, vb, args)
                              if( infix_result) { return infix_result }
                              else {
@@ -71,10 +81,10 @@ sent_subj_verb_args  = subj:subject ws vb:verb ws "with" ws args:arguments "." {
                              }
                             }
 sent_subj_verb       = subj:subject ws vb:verb ws "with" (ws undefined)? "." { return subj + "." + vb + "()" }
-sent_verb            = vb:verb ws "with" (ws undefined)? "."                { return vb + "()"  }
+sent_verb            = vb:verb ws "with" (ws undefined)? "."                 { return vb + "()"  }
 
 subject              = result:(path / variable / number)            { return result }
-verb                 =  "less than" / variable              { return text() }
+verb                 =  ` + DE.make_verb_rule_expers()    +       ` { return text() }
 arguments            = var_num1:argument var_nums:(arg_sep argument)* { 
                        let args = var_num1
                        for(let i = 0; i < var_nums.length; i++){
@@ -94,7 +104,7 @@ arg_sep  "arg_sep"   = ws_or_not ("and" / ",") ws_or_not  { return ", " }
 
 path     "path"      = variable ("/" variable)+           { return replace_substrings(text(), "/", ".") }
 var_or_num           = variable / number                  { return text() }
-variable "variable"  = !reserved_word [a-z_]i [a-z0-9_]*    { return text() }
+variable "variable"  = !reserved_word [a-z_]i [a-z0-9_]*  { return text() }
 
 undefined            = "nothing"  { return "undefined" }
 reserved_word        = ( "with" / "and" / "nothing" ) ![A-Za-z_]
