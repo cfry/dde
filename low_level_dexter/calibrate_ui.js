@@ -198,6 +198,7 @@ function cal_draw_saved_center(){
 }
 
 function handle_cal(vals){
+	//debugger
     var the_robot = cal_get_robot()
     //out(vals.clicked_button_value)
     if(vals.clicked_button_value == "Start FindHome"){
@@ -401,8 +402,10 @@ function handle_cal(vals){
         }
     }
     else if (vals.clicked_button_value === "robot_to_calibrate_id"){
-    	cal_init_view_eye_state = true
-        cal_init_robot()  //Fry added Oct 19, 2018
+    	if(the_robot != undefined){
+        	cal_init_view_eye_state = true
+        	cal_init_robot()  //Fry added Oct 19, 2018
+        }
     }
     //else { shouldnt("handle_cal called with invalid vals.clicked_button_value of: " + vals.clicked_button_value) }
 }
