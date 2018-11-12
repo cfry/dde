@@ -251,10 +251,11 @@
     remove_id.onclick=function(){
         let files = persistent_get("files_menu_paths")
         let the_file_to_remove = file_name_id.value
-        if (the_file_to_remove.startsWith("dde_apps/")){
-            let prefix = dde_apps_dir.substring(0, dde_apps_dir.length - 8)
-            the_file_to_remove = prefix + the_file_to_remove
-        }
+        //if (the_file_to_remove.startsWith("dde_apps/")){
+        //    let prefix = dde_apps_dir.substring(0, dde_apps_dir.length - 8)
+        //    the_file_to_remove = prefix + the_file_to_remove
+        //}
+        the_file_to_remove = Editor.files_menu_path_to_path(the_file_to_remove)
         let i = files.indexOf(the_file_to_remove)
         if (i != -1) {
            files.splice(i, 1)
@@ -1000,8 +1001,8 @@ foo      //eval to see the latest values</pre>`,
         Editor.insert(content)
         open_doc("DXF.init_drawing_doc_id")
     }
-    calibrate_id.onclick = function() { init_calibrate() }//defines 2 jobs and brings up calibrate dialog box
-
+    calibrate_id.onclick   = function() { init_calibrate() }//defines 2 jobs and brings up calibrate dialog box
+    ping_dexter_id.onclick = function() { ping_a_dexter() }
         //Output_ops menu
     ping_id.onclick          = function(){ rde.ping()}
     cat_etc_hosts_id.onclick = function(){ rde.shell('cat /etc/hosts')}

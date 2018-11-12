@@ -6,6 +6,33 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 2.5.11, Nov 11, 2018</summary>
+Highlights: New "Ping" item on Jobs menu, bug fixes & tweaks.
+<ul>
+    <li> New item on Jobs menu: "Ping a Dexter..."
+        gives you a dialog box allowing you to choose a Dexter to ping,
+        or a network address (sans host number) to scan the 256 possible
+        host numbers and display those hosts that are connected.
+        User Guide documentation on "ping" extended to alert users
+        to this new menu item.</li>
+
+    <li> Chrome debugger window no longer pops up when you launch Dexter.</li>
+
+    <li> DDE files menu puts file name before file folder for each item.</li>
+
+    <li> Fixed minor bug in Socket instruction_array_to_array_buffer
+        so that instructions sent to Dexter would end in semicolon but
+        NOT have a space before that semicolon.</li>
+
+    <li> calibrate_ui.js fixed bug with selecting the "Choose" value for a robot.
+         Now selecting Choose does nothing rather than presuming "Choose" is the name of a Dexter.</li>
+
+    <li> run instruction dialog has been set back to its previous behavior that
+        defines job_00 each time an instruction is run rather than add to the already
+        running job_00.</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 2.5.10, Oct 29, 2018</summary>
     <ul>
         <li> Fixed bug with duplicate 'Calibrate optical encoder' buttons.</li>

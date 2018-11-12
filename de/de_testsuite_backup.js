@@ -19,14 +19,15 @@ new TestSuite("DE arithmetic",
 )
 
 new TestSuite("DE logic",
-    ['DE.de_to_js("true as well as with true, false.")', '"(true && true && false)"'],
+    ['DE.de_to_js("true also with true, false.")', '"(true && true && false)"'],
     ['DE.de_to_js("true or with true, false.")', '"(true || true || false)"']
 )
 
 new TestSuite("DE make",
-	    ['DE.de_to_js("make Array with 4 and 5.")', '"new Array(4, 5)"'],
-        ['DE.de_to_js("make Array with 4.")', '"new Array(4)"'],
-        ['DE.de_to_js("make array with.")', '"make.array()"']
+	    ['DE.de_to_js("make Array with 4 and 5.")', '"[4, 5]"'],
+        ['DE.de_to_js("make Array with 4.")', '"[4]"'],
+        ['DE.de_to_js("make array with.")', '"make.array()"'],
+        ['DE.de_to_js("make Date with.")', '"make.Date()"']
 )
 
 new TestSuite("DE call",              
@@ -46,7 +47,9 @@ new TestSuite("DE call",
    		['DE.de_to_js("launch with 123.")', '"launch(123)"'],
     	['DE.de_to_js("launch with nothing.")', '"launch()"'],
         ['DE.de_to_js("launch with  .")', '"launch()"'],
-    	['DE.de_to_js("launch with.")', '"launch()"']
+    	['DE.de_to_js("launch with.")', '"launch()"'],
+        ['DE.de_to_js("launch with .")', '"launch()"'],
+        ['DE.de_to_js("launch with . ")', '"launch()"']
 )
 
 new TestSuite("DE comment",
@@ -61,6 +64,8 @@ new TestSuite("DE token",
     ['DE.de_to_js("nothing")', '"undefined"'],
     ['DE.de_to_js("xy23")', '"xy23"'],
     ['DE.de_to_js("xy")', '"xy"'],
+    ['DE.de_to_js("foo_bar")', '"foo_bar"'],
+    ['DE.de_to_js("RIGHT")', '"RIGHT"'],
     ['DE.de_to_js("x")', '"x"'],
     ['DE.de_to_js("234")', '"234"'],
     ['DE.de_to_js("-234")', '"-234"'],
@@ -76,6 +81,8 @@ new TestSuite("DE string",
     [`DE.de_to_js("''")`, `"''"`]  
 )
 
+DE.de_to_js("foo means 2.")
+
                     
 
 new Job({name: "j2",
@@ -87,15 +94,24 @@ new Job({name: "j2",
 
 
 var de_job_test =
-`make Job with  "j2".` and 
+`make Job with  name of "j2" and 
                 do_list of make Array with Dexter move_all_joints 
-                                                 with make Array with 0, 0, 0, 0, 0.., (angles)
+                                                 with make Array with 0, 0, 0, 0, 0.
+                                                 ., (angles)
                                            Dexter move_to
                                                  with make Array with 0, 0,5, 0,075., (xyz)
                                                       make Array with 0, 0, -1.,      (J5_direction)
                                                       Dexter/RIGHT_UP_OUT (config)
                                                  .
-                                         .
-           .`
+                                      .
+          .`
  
  DE.de_to_js(de_job_test)
+ 
+ new Job({name: "j2", do_list: [Dexter.move_all_joints([0, 0, 0, 0, 0]), /*angles*/
+                                Dexter.move_to([0, 0, 5, 0, 075], /*xyz*/
+                                               [0, 0, -1], /*J5_direction*
+                                               /Dexter.RIGHT_UP_OUT/*config*/)]})
+
+ 
+ new Job({name: j2, do_list: new Array(Dexter.move_all_joints(new Array(0, 0, 0, 0, 0)))})

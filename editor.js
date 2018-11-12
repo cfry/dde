@@ -115,7 +115,7 @@ Editor.index_of_path_in_file_menu = function(path){
     }
     return null
 }
-
+/*
 Editor.path_to_files_menu_path = function(path){
     if (path.startsWith(dde_apps_dir)){
         return "dde_apps" + path.substring(dde_apps_dir.length)
@@ -128,6 +128,30 @@ Editor.files_menu_path_to_path = function(path){
         return dde_apps_dir + path.substring(8)
     }
     else { return path }
+}
+*/
+//menu path will look like: "foo.js /Users/Joe/Documents/dde_apps/"
+//note the space between the name and the folder.
+Editor.path_to_files_menu_path = function(path){
+    if (path.startsWith(dde_apps_dir)){
+        path = "dde_apps" + path.substring(dde_apps_dir.length)
+    }
+    let file_name_start_index = path.lastIndexOf("/") + 1
+    let file_name = path.substring(file_name_start_index)
+    let fold      = path.substring(0, file_name_start_index)
+    let menu_path = file_name + " " + fold
+    return menu_path
+}
+
+Editor.files_menu_path_to_path = function(menu_path){
+    let name_and_fold = menu_path.split(" ")
+    let name = name_and_fold[0]
+    let fold = name_and_fold[1]
+    if (fold.startsWith("dde_apps/")){
+        fold = dde_apps_dir + fold.substring(8)
+    }
+    let path = fold + name
+    return path
 }
 
 Editor.add_path_to_files_menu = function(path){

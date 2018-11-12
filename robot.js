@@ -1337,6 +1337,19 @@ Dexter = class Dexter extends Robot {
         job_00.start()
     }
     run_instruction_fn(instr){
+        const job_00 = new Job({name: "job_00",
+            robot: this,
+            do_list: [instr]
+        })
+        job_00.start()
+    }
+    /* The below is a smarter version of run_instruction_fn that just defines job_00 once,
+       leaves it running and just adds the instruction to it the 2nd through nth times
+       its called. BUT this screws up if you are togglein between
+       running an instruction and running a regular job because the job_oo uses up the robot.
+       So to avoid that interferance, I've gone back to just
+       defining job_00 each time this fn is called and starting the job as above.
+    run_instruction_fn(instr){
         let the_job = Job.job_00
         if (!the_job) { //job has yet to be defined in this session of dde, so define it
             the_job = new Job({name: "job_00",
@@ -1350,7 +1363,7 @@ Dexter = class Dexter extends Robot {
                                {job: "job_00",
                                 offset: "end"})
         //now job_00 is just waiting for another instruction to be passed to it.
-    }
+    }*/
 }
 Dexter.all_names = []
 Dexter.last_robot = null //last Dexter defined.

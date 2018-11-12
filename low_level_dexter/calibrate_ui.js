@@ -200,7 +200,6 @@ function cal_draw_saved_center(){
 function handle_cal(vals){
     var the_robot = cal_get_robot()
     //out(vals.clicked_button_value)
-    
     if(vals.clicked_button_value == "Start FindHome"){
     	open_doc("find_home_doc_id")
         //load_files(__dirname + "/user_tools/find_home_for_DDE_2.js")
@@ -470,14 +469,9 @@ function init_calibrate(){
               value='Start FindHome'>
       </button> &nbsp(Experimental)`,
       */
-      	
-      	"3. <input type='button' id='find_home_id' style='margin-top:10px;' title='Do each time you turn on Dexter.'" +
-        "value='Calibrate optical encoders'/>" +
-      	"4. <input type='button' id='calibrate_optical_id' style='margin-top:10px;' title='Do each time you turn on Dexter.'" +
-        "value='Calibrate optical encoders'/>" +
-        `&nbsp&nbsp4. <input type='button' style='margin-top:10px;' title='Click to start FindHome Job'
-              value='Start FindHome'>
-      </button> &nbsp(Experimental)`,
+
+      	"3. <input type='button' id='calibrate_optical_id' style='margin-top:10px;' title='Do each time you turn on Dexter.'" +
+        "value='Calibrate optical encoders'/>",
         
       
         callback: handle_cal

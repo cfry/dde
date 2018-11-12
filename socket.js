@@ -42,11 +42,11 @@ var Socket = class Socket{
     static instruction_array_to_array_buffer(instruction_array){
         let result = ""
         for(var i = 0; i < instruction_array.length; i++){
-            var elt = instruction_array[i]
+            let suffix = ((i == (instruction_array.length - 1))? ";": " ")
+            let elt = instruction_array[i] + suffix
             if (Number.isNaN(elt)) { elt = "NaN" } //usually only for "a" instructions and only for elts > 4
-            result += elt + " "
+            result += elt
         }
-        result += ";"
         var arr_buff = new Buffer(128) //dexter code expecting fixed length buf of 128
         //var view1    = new Uint8Array(arr_buff)
         for(var i = 0; i < result.length; i++){

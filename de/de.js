@@ -61,18 +61,55 @@ DE.ops = {"less than": "<",
           "remainder" : "%",
           "to the power of": "**",
 
-          "as well as": "&&",
+          "also": "&&",
           "or":   "||"
          }
 DE.peg = require("pegjs")
 DE.parser = DE.peg.generate(
 `start               = result:expr { return result }
-expr                 = before_com:comment* ws_or_not result:(maker / sentence / string / path / variable / undefined / number) ws_or_not after_com:comment* 
+expr                 = before_com:comment* ws_or_not result:(fn_def / assignment / string1 / maker / sentence / path / variable / undefined / number) ws_or_not after_com:comment* 
                        { return before_com + result + after_com }
-maker                = "make" ws (("an" / "a") ws)? subj:subject ws "with" ws args:arguments? sent_end { return "new " + subj + args }
+maker                = "make" ws (("an" / "a") ws)? subj:subject ws "with" ws args:arguments? sent_end 
+                        { if (subj == "Array") { 
+                            args = args.substring(1, args.length - 1)
+                            return "[" + args + "]" }
+                          else if (subj == "Object") {
+                             result = args.substring(1, args.length - 1) //cut off parens 
+                             return result
+                          }
+                          else return "new " + subj + args 
+                        }
+assignment           = scope:(("variable" / "local") ws)? loc:(path / variable) ws "means" ws val:expr sent_end { 
+                           let the_scope = ""
+                           if(scope){
+                           	if      (scope[0].startsWith("variable")) { the_scope = "var "}
+                           	else if (scope[0].startsWith("local"))    { the_scope = "let "}
+                           }
+                           return the_scope + loc + " = " + val 
+                        }
+                        
+fn_def               = "to" ws sentence ws_or_not eb:exprs_block
+                        {   let result = "function " + name + args + eb 
+                            console.log("got fn_def: " + result)
+                            return result
+                        }
+exprs_block          = "do" ws the_expers:(expr ws)* "!" {
+                           console.log("got expers_block with: " + the_expers)
+                           let result = "{"
+                           for(expr of the_expers){
+                           }
+                           result += "}"
+                       }
 
-sentence             = result:(sent_verb_args / sent_subj_verb_args / sent_subj_verb / sent_verb) { return result }
-sent_verb_args       = vb:verb ws "with" ws args:arguments sent_end { return vb + args }
+sentence             = result:(sent_subj_verb_args / sent_verb_args / sent_subj_verb / sent_verb) { 
+                          console.log("got sentence: " + result)
+                          return result 
+                      }
+sent_verb_args       = vb:verb ws "with" ws args:arguments sent_end { 
+                        let result = vb + args 
+                        console.log("got sent_verb args: " + result)
+                        return result
+                        }
 sent_subj_verb_args  = subj:subject ws vb:verb ws "with" ws args:arguments sent_end { 
 	                         //debugger;
                              let got_you = ((subj == "you") || (subj == "You"))
@@ -85,18 +122,22 @@ sent_subj_verb_args  = subj:subject ws vb:verb ws "with" ws args:arguments sent_
                             }
 sent_subj_verb       = subj:subject ws vb:verb ws "with" (ws undefined)? sent_end { return subj + "." + vb + "()" }
 sent_verb            = vb:verb ws "with" (ws undefined)? sent_end                 { return vb + "()"  }
-sent_end             = ws_or_not "."      { return "." }
+sent_end             = ws_or_not "."      { 
+                          console.log("got sent_end")
+                          return "." 
+                       }
 
 subject              = result:(path / variable / number)            { return result }
 verb                 =  ` + DE.make_verb_rule_expers()    +       ` { return text() }
 arguments            = var_num1:argument var_nums:(arg_sep argument)* { 
                        let args = var_num1
-                       //debugger
+                       debugger
+                       out("hi")
                        //get rid of trailing undefined args as would happen with DE "nothing"
                        for(let i = (var_nums.length - 1); i >= 0; i--){
-                           if(var_nums[i][0] == "undefined") { var_nums.pop() } 
+                           if(var_nums[i][0] === undefined) { var_nums.pop() } 
                        }
-                       if((var_nums.length == 0) && (var_num1 == "undefined")) {
+                       if((var_nums.length == 0) && (var_num1 === undefined)) {
                          args = ""
                        }
                        for(let i = 0; i < var_nums.length; i++){
@@ -105,27 +146,29 @@ arguments            = var_num1:argument var_nums:(arg_sep argument)* {
                           args += prefix + arr[1]
                        }
                        let keywords = args.includes(": ") //if there is one keyword arg, they better all be. We don't check this, however
-                       return "(" + (keywords? "{": "") + args + (keywords? "}": "") + ")" 
+                       let result = "(" + (keywords? "{": "") + args + (keywords? "}": "") + ")" 
+                       console.log("got args: " + result)
+                       return result
                      }
 argument             = arg_name:(variable ws "of" ws)? the_expr:expr {
                             let prefix = ""
                             if(arg_name) { prefix = arg_name[0] + ": " }
-                            return prefix + the_expr
+                            let result = prefix + the_expr
+                            console.log("got arg: " + result)
+                            return 
                        }
 arg_sep  "arg_sep"   = ws_or_not ("and" / ",") ws_or_not  { return ", " }
 
-string               = ('"' [^\\"]* '"') / ("'" [^\\']* "'") {
-                         debugger;
-                         let result = text()
-                         console.log(result)
-                         return result 
-                     }
+
                      
 path     "path"      = variable ("/" variable)+           { return replace_substrings(text(), "/", ".") }
-variable "variable"  = !reserved_word [a-z_]i [a-z0-9_]*  { return text() }
+variable "variable"  = !reserved_word [a-zA-Z_]i [a-zA-Z0-9_]*  { 
+                         console.log("got variable: " + text())
+                         return text() 
+                       }
 
 undefined            = "nothing"  { return "undefined" }
-reserved_word        = ( "with" / "and" / "nothing" ) ![A-Za-z_]
+reserved_word        = ("with" / "and" / "nothing" / "means" / "do" / "to") ![A-Za-z_]
 
 number   "number"    = float / integer                    { return text() }
 float    "float"     = integer "." integer_sans_sign      { return text() }
@@ -135,8 +178,11 @@ integer_sans_sign    = digits:[0-9]+  { return text() }
 ws       "ws"        = [ \\t\\r\\n]+
 ws_or_not            = [ \\t\\r\\n]*
 comment              = "(" result:[^\\)]* ")"  { return "/*" + result.join("") + "*/" }
-`,
-{trace: true}
+
+string1 = string_double_quote / string_single_quote
+string_single_quote = "'" chars:[^']* "'" { return "'" + chars.join("") + "'" }
+string_double_quote = '"' chars:[^"]* '"' { return '"' + chars.join("") + '"' }
+` ,{trace: true}
 )
 
 
@@ -154,6 +200,47 @@ variable "variable"  = [a-z]i [a-z0-9]*                   { return text() }
 
 `
 )
+
+string1               = ('"' [^"]* '"') / ("'" [^\\']* "'") {
+                         debugger;
+                         out("in string1 action")
+                         let result = text()
+                         console.log(result)
+                         return result 
+                     }
+                     
+                  
+// string1               = string_double_quote
+// string_double_quote "string_double_quote" = '"' chars:char* '"' { return chars.join(""); }
+
+// char
+//   = unescaped
+//   / escape
+//     sequence:(
+//         '"'
+//       / "\\"
+//       / "/"
+//       / "b" { return "\b"; }
+//      / "f" { return "\f"; }
+//       / "n" { return "\n"; }
+//       / "r" { return "\r"; }
+//       / "t" { return "\t"; }
+//       / "u" digits:$(HEXDIG HEXDIG HEXDIG HEXDIG) {
+//           return String.fromCharCode(parseInt(digits, 16));
+//         }
+//     )
+//     { return sequence; }
+
+// escape = "\\"
+
+// quotation_mark = '"'
+
+// unescaped = [^\0-\x1F\x22\x5C]
+// DIGIT  = [0-9]
+// HEXDIG = [0-9a-f]i
+
+"to" ws name:variable ws "with" ws args:arguments sent_end ws eb:exprs_block
+                       
 */
 
 

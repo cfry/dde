@@ -1157,6 +1157,23 @@ function string_to_literal(a_string){
         return '"' + a_string + '"'
     }
 }
+
+function is_first_letter_upper_case(a_string){
+    return ((a_string.length > 0) && (a_string[0] == a_string[0].toUpperCase()))
+}
+
+function is_first_letter_lower_case(a_string){
+    return ((a_string.length > 0) && (a_string[0] == a_string[0].toLowerCase()))
+}
+function make_first_char_upper_case(a_string){
+    if(a_string.length == 0) { return "" }
+    if (is_first_letter_upper_case(a_string)) { return a_string }
+    else {
+        let first_char = a_string[0].toUpperCase()
+        return first_char + a_string.substring(1)
+    }
+}
+
  //uses html to format newlines
 //use for printing ANY possible value from JS so that a human (usually a programmer) can make sense of it.
 //Use stringify_value_sans_html  for evalable string (but still not perfrect
