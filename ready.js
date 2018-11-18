@@ -192,7 +192,8 @@
 
     step_button_id.onclick = function(event){
                                 event.stopPropagation()
-                                ipc.sendSync('open_dev_tools')
+                                let dde_ipc     = require('electron').ipcRenderer
+                                dde_ipc.sendSync('open_dev_tools')
                                 setTimeout(function(){
                                                eval_button_action(true) //cause stepping
                                            }, 500)
@@ -895,7 +896,7 @@ foo      //eval to see the latest values</pre>`,
      units_system_help_id.onclick = function(){ open_doc(units_system_help_doc_id) }
 
      //jobs menu
-    show_robot_status_id.onclick   = Dexter.show_robot_status
+    show_robot_status_id.onclick   = RobotStatusDialog.show
     jobs_report_id.onclick         = function(){Job.report() }
     stop_all_jobs_id.onclick       = function(){Job.stop_all_jobs() }
     undefine_jobs_id.onclick       = function(){Job.clear_stopped_jobs() }

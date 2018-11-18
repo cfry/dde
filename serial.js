@@ -36,9 +36,10 @@ function serial_path_to_info(path){
     return serial_path_to_info_map[path]
 }
 
-const ipc     = require('electron').ipcRenderer
+
 function serial_devices(){
-    const reply = ipc.sendSync('serial_devices')
+    let dde_ipc     = require('electron').ipcRenderer //can't just use global const ipcRenderer here but I don't know why
+    const reply = dde_ipc.sendSync('serial_devices')
     return reply
 }
 

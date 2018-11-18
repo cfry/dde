@@ -246,7 +246,8 @@ var Job = class Job{
                 (this.do_list.length  == 0) &&
                 ((this.when_stopped   == "wait") || (typeof(this.when_stopped) == "function"))) {} //special case to allow an empty do_list if we are waiting for an instruction or have a callback.
             else if (this.do_list.length == 0) {
-                dde_error("While starting job: " + this.name + " the do_list is empty.")
+                warning("While starting job: " + this.name + ", the do_list is empty.<br/>" +
+                         "The job still requests the status of Dexter, but does not cause it to move.")
             }
             else if (this.program_counter >= this.do_list.length){ //note that maybe_symbolic_pc can be "end" which is length of do_list which is valid, though no instructions would be executed in that case so we error.
                 dde_error("While starting job: " + this.name +
@@ -927,18 +928,23 @@ Job.prototype.finish_job = function(perform_when_stopped=true){ //regardless of 
                           the_job.set_up_next_do(0)
                       }
                       else if (typeof(the_job.when_stopped) === "function"){
-                          setTimeout(function () { the_job.when_stopped.call(the_job) },
+                          setTimeout(function () { the_job.when_stopped.call(the_job)
+                                                   the_job.finish_job(false)
+                                    },
                                      100)
                       }
                       else if (Job.is_plausible_when_stopped_value(the_job.when_stopped)){
                           setTimeout(function(){
                                         const found_job = Job.instruction_location_to_job(the_job.when_stopped, false)
                                         if (found_job) { the_job = found_job }
-                                        the_job.start({program_counter: the_job.when_stopped})
+                                        the_job.finish_job(false)
+                                        setTimout(function(){ //give the first job the chance to finish so that it isn't taking up the socket, and only THEN start the 2nd job.
+                                             the_job.start({program_counter: the_job.when_stopped})
+                                        }, 200)
                                      }, 100)
                       }
                       else {
-                          shouldnt("Job: " + the_job.name + " has an invalid wnen_stopped value of: " + the_job.when_stopped)
+                          shouldnt("Job: " + the_job.name + " has an invalid when_stopped value of: " + the_job.when_stopped)
                       }
                    },
                    1)

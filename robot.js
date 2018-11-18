@@ -1231,7 +1231,7 @@ Dexter = class Dexter extends Robot {
                 }*/
                // if(rob.simulate) { SimUtils.render_once(robot_status, "Job: " + job_instance.name) } //now in dextersim where it really belongs
             }
-            Dexter.update_robot_status_table(robot_status) //if the dialog isn't up, this does nothing
+            RobotStatusDialog.update_robot_status_table_maybe(rob) //if the dialog isn't up, this does nothing
             var error_code = robot_status[Dexter.ERROR_CODE]
             if (error_code != 0){ //we've got an error
                 job_instance.stop_for_reason("errored", "Robot status got error: " + error_code)
@@ -1280,11 +1280,11 @@ Dexter = class Dexter extends Robot {
     //Robot status accessors (read only for users)
     joint_angle(joint_number=1){
         switch(joint_number){
-            case 1: return this.robot_status[Dexter.J1_ANGLE]
-            case 2: return this.robot_status[Dexter.J2_ANGLE]
-            case 3: return this.robot_status[Dexter.J3_ANGLE]
-            case 4: return this.robot_status[Dexter.J4_ANGLE]
-            case 5: return this.robot_status[Dexter.J5_ANGLE]
+            case 1: return this.robot_status[Dexter.J1_MEASURED_ANGLE]
+            case 2: return this.robot_status[Dexter.J2_MEASURED_ANGLE]
+            case 3: return this.robot_status[Dexter.J3_MEASURED_ANGLE]
+            case 4: return this.robot_status[Dexter.J4_MEASURED_ANGLE]
+            case 5: return this.robot_status[Dexter.J5_MEASURED_ANGLE]
             default:
                 dde_error("You called Robot." + this.name + ".joint_angle(" + joint_number + ")" +
                           " but joint_number must be 1, 2, 3, 4, or 5.")
@@ -1293,7 +1293,7 @@ Dexter = class Dexter extends Robot {
 
     joint_angles(){
         let rs = this.robot_status
-        return [rs[Dexter.J1_ANGLE], rs[Dexter.J2_ANGLE], rs[Dexter.J3_ANGLE], rs[Dexter.J4_ANGLE], rs[Dexter.J5_ANGLE]]
+        return [rs[Dexter.J1_MEASURED_ANGLE], rs[Dexter.J2_MEASURED_ANGLE], rs[Dexter.J3_MEASURED_ANGLE], rs[Dexter.J4_MEASURED_ANGLE], rs[Dexter.J5_MEASURED_ANGLE]]
     }
 
     joint_xyz(joint_number=5){
@@ -1415,8 +1415,8 @@ Dexter.dummy_move = function(){
     let CMD = []
     CMD.push(function(){return Dexter.get_robot_status()})
     CMD.push(function(){
-        let X = this.robot.robot_status //Dexter.my_dex.robot_status
-        let J_angles = [X[Dexter.J1_ANGLE], X[Dexter.J2_ANGLE], X[Dexter.J3_ANGLE], X[Dexter.J4_ANGLE], X[Dexter.J5_ANGLE]]
+        let rs = this.robot.robot_status //Dexter.my_dex.robot_status
+        let J_angles = [rs[Dexter.J1_MEASURED_ANGLE], rs[Dexter.J2_MEASURED_ANGLE], rs[Dexter.J3_MEASURED_ANGLE], rs[Dexter.J4_MEASURED_ANGLE], rs[Dexter.J5_MEASURED_ANGLE]]
         return Dexter.move_all_joints(J_angles)
     })
     return CMD
@@ -1564,7 +1564,7 @@ Dexter.pid_move_all_joints = function(...array_of_angles){
 
 Dexter.prototype.move_all_joints_relative = function(...array_of_angles) {
     let array_to_use = Dexter.convert_maj_angles(array_of_angles)
-    return new Instruction.Control.move_all_joints_realtive(array_to_use, this)
+    return new Instruction.Control.move_all_joints_relative(array_to_use, this)
 }
 Dexter.move_all_joints_relative = function(...delta_angles){
     let robot
@@ -2111,7 +2111,7 @@ null,                  // BASE_POSITION_FORCE_DELTA  13 //was J1_FORCE_CALC_ANGL
 "J1_A2D_COS",          // BASE_COS                   15
 "J1_MEASURED_ANGLE",   // PLAYBACK_BASE_POSITION     16 //depricated J1_PLAYBACK
 "J1_SENT",             // SENT_BASE_POSITION         17 //unused. angle sent in the commanded angle of INSTRUCTION_ID
-"J6_MEASURED_ANGLE",   // SLOPE_BASE_POSITION        18 //depricated J1_SLOPE
+"J7_MEASURED_ANGLE",   // SLOPE_BASE_POSITION        18 //depricated J1_SLOPE
  null,                 //                            19 //was J1_MEASURED_ANGLE. not used, get rid of, now don't compute on dde side,
 //J2 block of 10
 "J2_ANGLE",            // END_POSITION_AT            20
@@ -2133,7 +2133,7 @@ null,                  // PIVOT_POSITION_FORCE_DELTA  33  was "J3_FORCE_CALC_ANG
 "J3_A2D_COS",          // PIVOT_SIN                   35
 "J3_MEASURED_ANGLE",   // PLAYBACK_PIVOT_POSITION     36 //depricated J3_PLAYBACK
 "J3_SENT",             // SENT_PIVOT_POSITION         37 //unused
-"J7_MEASURED_ANGLE",    // SLOPE_PIVOT_POSITION       38 //depricated  J3_SLOPE
+"J6_MEASURED_ANGLE",   // SLOPE_PIVOT_POSITION        38 //depricated  J3_SLOPE
  null,                 // new field                   39 //was J3_MESURED_ANGLE not used get rid of
 //J4 block of 10
 "J4_ANGLE",            // ANGLE_POSITION_AT           40
@@ -2275,8 +2275,10 @@ Dexter.robot_status_to_html_table = function(ds){
 }
 
 //_________updating robot status___________
-//called from UI from the menu item
+//only called from the menu bar Jobs/show robot status item
+//Always makes a new window
 Dexter.show_robot_status = function(event){
+    debugger
     let robot = (Job.last_job? Job.last_job.robot : Robot.dexter0)
     let content = Dexter.update_robot_status_to_html_table(robot)
     show_window({content: content,
@@ -2285,17 +2287,32 @@ Dexter.show_robot_status = function(event){
         "<span style='font-size:12px;margin-left:10px;'> Updated: <span id='robot_status_window_time_id'>" + Dexter.update_time_string() + "</span></span>" +
         " <button title='Defines and starts a Job&#13; that continually gets the robot status&#13;of the selected robot.&#13;Click again to stop that Job.'" +
                 " onclick='Dexter.robot_status_run_update_job()'>run update job</button>",
-        width:  800,
+        width:  860,
         height: 380
     })
     setTimeout(Dexter.update_robot_status_init, 300)
+}
+
+Dexter.update_robot_status_window_up = function(){
+    return (update_robot_status_names_select_id ? true : false)
+}
+
+//returns null if no update_robot_status window up, or if it doesn't have a robot selectec
+Dexter.update_robot_status_robot = function(){
+    if (Dexter.update_robot_status_window_up()) {
+        let rob_name = update_robot_status_names_select_id.value //might be "Choose" so no real window.
+        let rob = Robot[rob_name] //rob will be undefined if rob_name is "Choose"
+        if (rob) { return rob }
+        else { return null }
+    }
+    else {return null}
 }
 
 Dexter.update_robot_status_names_menu_html = function (robot){
     //broken chrome ignore's style on select and option, so sez stack overflow
     //but stack overflow sez use a style on optgroup. That doesn't work either.
     let result = "<select id='update_robot_status_names_select_id' " +
-        "<optgroup style='font-size:18px;'>"
+                 "<optgroup style='font-size:18px;'>"
     for(let name of Dexter.all_names){
         let sel = ((name == robot.name) ? " selected" : "" )
         result += "<option" + sel + ">" + name + "</option>"
@@ -2322,14 +2339,13 @@ Dexter.robot_status_run_update_job = function(){
     }
 }
 
-//called iniitally from sandbox only when calling show_window
-//necessary because can't embed js in html in chrome apps
 Dexter.update_robot_status_init = function(){
     update_robot_status_names_select_id.oninput=Dexter.update_robot_status_table_name_changed
 }
 
 
-//called after the table is created, to update it dynamically.  from robot_done_with_instruction when the actual robot_status is changed.
+//called after the table is created, to update it dynamically.
+//also called from robot_done_with_instruction when the actual robot_status is changed.
 Dexter.update_robot_status_table = function(robot_status){
     if (window["update_robot_status_names_select_id"]) { //don't attempt to show if the window isn't up. this does repopulate window if its merely shrunken
         robot_status_window_time_id.innerHTML = Dexter.update_time_string()
@@ -2359,11 +2375,11 @@ Dexter.update_robot_status_table_name_changed = function(name){
     Dexter.update_robot_status_table(robot_status)
 }
 
-
+/* obsolete not called
 Dexter.update_robot_status_replace_names_menu = function(names_menu_html){
     $("#update_robot_status_names_select_id").replaceWith(names_menu_html)
     setTimeout(Dexter.update_robot_status_init, 100)
-}
+}*/
 
 Dexter.update_robot_status_to_html_table = function(robot){
     //setting table class and using css to set fonts in th and td cells fails
@@ -2394,11 +2410,17 @@ Dexter.update_robot_status_to_html_table = function(robot){
 
         Dexter.make_rs_row(robot_status, "SENT",      "J1_SENT",      "J2_SENT",      "J3_SENT",      "J4_SENT",      "J5_SENT"     ) +
         //Dexter.make_rs_row(robot_status, "SLOPE",     "J1_SLOPE",     "J2_SLOPE",     "J3_SLOPE",     "J4_SLOPE",     "J5_SLOPE"    ) +
-          "<tr><th>MEASURED X</th><td>" + to_fixed_smart(xyz[0], 3) +
-        "m</td><th>MEASURED Y</th><td>" + to_fixed_smart(xyz[1], 3) +
-        "m</td><th>MEASURED Z</th><td>" + to_fixed_smart(xyz[2], 3) + "m</td></tr>" +
+         "<tr><th>MEASURED X</th><td><span id='\" + field + \"_id' style='font-family:monospace;float:right;'>" + Dexter.format_measured_angle(xyz[0]) +
+        "</span></td><th>MEASURED Y</th><td><span id='\" + field + \"_id' style='font-family:monospace;float:right;'>" + Dexter.format_measured_angle(xyz[1]) +
+        "</span></td><th>MEASURED Z</th><td><span id='\" + field + \"_id' style='font-family:monospace;float:right;'>" + Dexter.format_measured_angle(xyz[2]) +
+        "</span></td></tr>" +
         "</table>"
     return result
+}
+
+Dexter.format_measured_angle = function(angle) {
+    if (angle == "no status") { return angle }
+    else { return to_fixed_smart(angle, 3) + "m" }
 }
 
 Dexter.make_rs_row = function(robot_status, ...fields){

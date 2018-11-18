@@ -126,6 +126,7 @@
     <script type="text/javascript" src="instruction.js"></script>
     <script type="text/javascript" src="robot.js"></script>
     <script type="text/javascript" src="robot_status.js"></script>
+    <script type="text/javascript" src="robot_status_dialog.js"></script>
     <script type="text/javascript" src="dextersim.js"></script>
 
     <script type="text/javascript" src="job.js"></script>
@@ -545,7 +546,7 @@
                                         <!--<li id="start_job_id" title="Eval job that cursor is in and start it.">Start Job
                                            <ul><li id="start_job_help_id">Start Job Help</li></ul>
                                         </li>-->
-                                        <li id="show_robot_status_id"   title="Pop up a dialog showing the robot status&#013;for a Dexter of your choosing.&#013;Display updates after each instruction.">Show robot status</li>
+                                        <li id="show_robot_status_id"   title="Pop up a dialog showing the robot status&#013;for a Dexter of your choosing.&#013;It displays updates as soon as they are available.">Show robot status</li>
                                         <li id="jobs_report_id"         title="Display a report of all Jobs in this session.">Show report</li>
                                         <!--<li id="stop_all_jobs_id"       title="Stop all of the currently running jobs.">Stop all jobs</li> -->
                                         <!-- <li id="clear_stopped_jobs_id"  title="Remove stopped jobs so they don't clutter the jobs report.">Clear stopped jobs</li> -->
@@ -706,7 +707,7 @@
                             </div>
                         </div>
                     </div>
-                    <div id="output_div_id" contentEditable="false" style="width:98%; height:calc(100% - 90px); font-size:16px;overflow:auto;white-space:nowrap;padding:5px;"></div> <!-- for height:calc(100% - 60px);  te60 is the height of the output pane header, This letsthe lower part of outpt pane take up 100% of the hieght of the lower split pane MINUS the outut pane header of 60px.-->
+                    <div id="output_div_id" contentEditable="false" style="width:98%; height:calc(100% - 100px); font-size:16px;overflow:auto;white-space:nowrap;padding:5px;"></div> <!-- for height:calc(100% - 60px);  te60 is the height of the output pane header, This letsthe lower part of outpt pane take up 100% of the hieght of the lower split pane MINUS the outut pane header of 60px.-->
                     <!-- contentEditable="false" means the text can't be edited BUT for chrome apps, this makes the content selectable and now I can copy and paste it whereas previoiusly I couldn't select and copy it. -->
                 </div>
             </div>

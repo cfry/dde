@@ -3024,9 +3024,15 @@ Webinar videos for Job:<br/>
 <a target="_blank" href="http://hdrobotic.com/webinar#advanced_jobs" target="_blank">Advanced Jobs</a><br/>
 
 <details id="new_job_parameters_doc_id" class="doc_details"><summary>new Job parameters</summary>
-The parameters used to define a new Job are:
-    <ol><li><b>name</b> You can use <code title="unEVALable code fragment"> Job.a_job_name</code> to get the instance programmatically.</li>
-        <li><b>robot</b> An instance of one of the subclasses of <code>Robot</code>, such as
+The parameters used to define a new Job all have defaults.<br/>
+<code> new Job() </code><br/>
+is a valid job to define and run, though it will give a warning message:<br/>
+    <span style="color:#e50;">Warning: While starting job: job_1, the do_list is empty.<br/>
+    The job still requests the status of Dexter but does not cause it to move.</span><br/>
+    You can customize a job with the parameters:
+    <ol><li><b>name</b> Default's to an unused name of the format: <code>"job_1"</code>, <code>"job_2"</code>, <code>"job_3"</code>, etc.
+         You can use <code title="unEVALable code fragment"> Job.a_job_name</code> to get the instance programmatically.</li>
+        <li><b>robot</b> Default: <code>Robot.dexter0</code> An instance of one of the subclasses of <code>Robot</code>, such as
             <code>Dexter</code>. This is the <i>default</i> robot to send the job's instructions to if
             the instruction itself doesn't designate a robot. The default for a Job's default robot is
             <code>Robot.dexter0</code>. For example, if we have:
@@ -3039,7 +3045,7 @@ The parameters used to define a new Job are:
             instruction so that you can have one job that feeds instructions to
             multiple serial robots as well as multiple Dexters.
          </li>
-        <li id="do_list_doc_id"><b>do_list</b> An array of instructions to be sent to the job's robot when the
+        <li id="do_list_doc_id"><b>do_list</b> Default: <code>[]</code> (an empty array). An array of instructions to be sent to the job's robot when the
              Job is run. There are a number of different kinds of instructions, including
              user-defined JavaScript functions that can call arbitrary JS code.
              <p></p>
@@ -3078,7 +3084,7 @@ new Job({name: "my_job",
         For a list of valid instructions, see
         <a href="#" onclick="open_doc(robot_instructions_doc_id)">Robot Instructions</a>
         </li>
-        <li><b>keep_history</b> true or false, default true. If true, the robot_status arrays
+        <li><b>keep_history</b> true or false, Default: <code>true</code>. If true, the robot_status arrays
             returned from running instructions on the robot
             are stored in <code title="unEVALable code fragment"> Job.the_job_name.rs_history</code>.
             This is useful for debugging, but uses memory, which can be
@@ -3098,13 +3104,13 @@ new Job({name: "my_job",
            </ul>
            See <a href="#" onclick="open_doc(print_statements_doc_id, event)">print statements</a>
          </li>
-        <li><b>inter_do_item_dur</b> A number indicating the number of seconds between
+        <li><b>inter_do_item_dur</b> Default: <code>0.01</code> A number indicating the number of seconds between
            when an instruction is completed by its robot, and when the next instruction is
            computed and sent to the robot of the job. This "taking a breath" gives other
            jobs a chance to run. Default 100.</li>
-        <li><b>user_data</b> A literal object of name-value pairs where arbitrary data created
+        <li><b>user_data</b> Default <code>{}</code> (an empty object). A literal object of name-value pairs where arbitrary data created
            at the beginning of a job or during the execution of an instruction can be stored
-           and retrieved. Default <code>{}</code> (an empty object).
+           and retrieved.
            It can be initialized in the call to new job like so:<br/>
            <code>new Job ({name:"j22", user_data:{color: "blue", weight: 123} })</code><br/>
            Within an instruction, you can get a user_data value via 
@@ -3162,23 +3168,23 @@ new Job({name: "my_job",
                                   ))]})
      </code></pre>
         </li>
-        <li><b>program_counter</b> Initialize the program_counter to an instruction id.
-        The default is 0. You can use any instruction_location here.
+        <li><b>program_counter</b> Default: <code>0</code> Initialize the program_counter to an instruction id.
+         This is most commonly a non-negative integer but
+         you can use any instruction_location here.
         See <a href="#" onclick="open_doc('Robot.go_to_doc_id', event)">Robot.go_to</a>
         for documentation on all the different kinds of instruction_locations.
         </li>
-        <li><b>ending_program_counter</b> Declare at the outset of a job that it
+        <li><b>ending_program_counter</b> Default: <code>"end"</code> Declare at the outset of a job that it
             will not execute the indicated instruction or beyond. This can be any
             valid instruction_location that does not include a job. It is evaluated
             at the start of each instruction, so if labels move as a result of
             dynamically added instructions, that's OK.
-            The default is "end".
             See <a href="#" onclick="open_doc('Robot.go_to_doc_id', event)">Robot.go_to</a>
             for documentation on all the different kinds of instruction_locations.
         </li>
-        <li><b>initial_instruction</b> Add an initial instruction to the do_list at
+        <li><b>initial_instruction</b> Default <code>null</code> (no instruction added).Add an initial instruction to the do_list at
         the location of program_counter. Thus this instruction will be executed
-        first when the job is run. Default null (no instruction added).
+        first when the job is run.
         </li>
         <li><b>when_stopped</b> controls what happens when a job stops normally.<br/>
              <i>Possible Values</i>:<br/>

@@ -3276,6 +3276,7 @@ Instruction.Control.read_from_robot = class read_from_robot extends Instruction.
             if(an_instruction instanceof Instruction.Control.read_from_robot){
                 read_from_robot_instance = an_instruction
                 read_from_robot_instance.processing_r_instruction = false
+                break;
             }
         }
         if(read_from_robot_instance === undefined) {

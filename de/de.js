@@ -3,7 +3,17 @@ npm install pegjs --save
 DE.make_verb_rule_expers()
 */
 var DE = class DE {
-  static de_to_js(de_src) { return DE.parser.parse(de_src) }
+  static de_to_js(de_src) { 
+     let tracer_instance = new DE.PegTracer(de_src,{
+                                              parent:null,
+                                              hiddenPaths:[],
+                                              useColor:false,
+                                              showTrace:true,
+                                              maxSourceLines:6,
+                                              maxPathLength:72,
+		})
+     return DE.parser.parse(de_src, {tracer: tracer_instance}) 
+  }
   
   static make_verb_rule_expers() { 
   	let result = ""
@@ -59,15 +69,17 @@ DE.ops = {"less than": "<",
           "times": "*",
           "divide": "/",
           "remainder" : "%",
-          "to the power of": "**",
+          "power": "**",
 
           "also": "&&",
           "or":   "||"
          }
 DE.peg = require("pegjs")
+DE.PegTracer = require('pegjs-backtrace');
+
 DE.parser = DE.peg.generate(
 `start               = result:expr { return result }
-expr                 = before_com:comment* ws_or_not result:(fn_def / assignment / string1 / maker / sentence / path / variable / undefined / number) ws_or_not after_com:comment* 
+expr                 = before_com:comment* ws_or_not result:(fn_def / assignment / maker / sentence / string1 / path / variable / undefined / number) ws_or_not after_com:comment* 
                        { return before_com + result + after_com }
 maker                = "make" ws (("an" / "a") ws)? subj:subject ws "with" ws args:arguments? sent_end 
                         { if (subj == "Array") { 
@@ -128,7 +140,11 @@ sent_end             = ws_or_not "."      {
                        }
 
 subject              = result:(path / variable / number)            { return result }
-verb                 =  ` + DE.make_verb_rule_expers()    +       ` { return text() }
+verb                 =  ` + DE.make_verb_rule_expers()    +       ` {
+                          let result = text()
+                          console.log("got verb: " + result)
+                          return text() 
+                     }
 arguments            = var_num1:argument var_nums:(arg_sep argument)* { 
                        let args = var_num1
                        debugger
@@ -157,7 +173,7 @@ argument             = arg_name:(variable ws "of" ws)? the_expr:expr {
                             console.log("got arg: " + result)
                             return 
                        }
-arg_sep  "arg_sep"   = ws_or_not ("and" / ",") ws_or_not  { return ", " }
+arg_sep  "arg_sep"   = (ws "and" ws) / (ws_or_not "," ws_or_not)  { return ", " }
 
 
                      

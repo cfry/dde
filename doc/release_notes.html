@@ -6,6 +6,60 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 2.5.12, Nov 18, 2018</summary>
+    Highlights: new Job() with no args now works. Many bug fixes.
+<ul>
+    <li>Now when a new job is started that is connected to a robot,
+        if that robot is connected to a socket,
+        that robot's socket connection is destroyed then a new one is created.</li>
+
+    <li> Output pane horizontal scroll bar at bottom is now visible when
+        the content of the output pane exceeds the output pane width.</li>
+
+    <li> Fixed typo in <code>move_all_joints_relative</code> implementation name.</li>
+
+    <li> robot_status dialog: Removed "m" at end of "no status" for measured angles.
+        Improved formatting of measured angle number.</li>
+
+    <li> robot status dialog: No longer displays scroll bars when empty of content.</li>
+
+    <li> robot status dialog: fixed <b>Measured X, Y, Z</b> displayed numbers.
+        Prefixed the header for these fields with "J5".</li>
+
+    <li> robot status dialog: When 2 robots are being used,
+        only the data from the selected robot in the robot status dialog is
+        shown. Previously, data from other robots could have been shown.</li>
+
+    <li> robot status dialog: At most, only one robot status dialog will be shown.
+        Attempting to show a 2nd one will result in a warning message.</li>
+
+    <li> Fixed socket.js <code>instruction_array_degrees_to_arcseconds_maybe</code> conversion to dynamixel
+        units for Joint 6 and 7.
+        Also corresponding change of subtracting 512 from
+        convert_robot_status_to_degrees' J6.</li>
+
+    <li> Swapped the positions of J6 and J7 measured angles in the robot status
+        array to conform to Dexrun.c's filling in of these values.
+        This fixes a bug in displaying those values in the robot status dialog box.</li>
+
+    <li> In making a new Job, the do_list arg is no longer required.
+        You can now let a defined's job do_list
+        default to the empty list. That will cause the warning message:
+        Warning: While starting job: job_1 the do_list is empty.
+        The job still requests the status of Dexter, but does not cause it to move.
+        Now <code>new Job()</code> is a valid Job that can be defined and run without error.</li>
+
+    <li> Ref Man: Improved <b>new Job parameters</b> documentation for default values.</li>
+
+    <li> <code>new Job when_stopped</code> arg: when this is a fn, the job is now stopped.
+        Only when the arg is <code>"wait"</code> is the job not stopped.</li>
+
+    <li> Fixed bug in <code>Dexter.read_from_robot</code> that prevented it from
+        being used twice in a job.
+    </li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 2.5.11, Nov 11, 2018</summary>
 Highlights: New "Ping" item on Jobs menu, bug fixes & tweaks.
 <ul>

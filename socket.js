@@ -7,6 +7,9 @@ var Socket = class Socket{
     static init(robot_name, simulate, ip_address, port=50000){
         //console.log("Creating Socket for ip_address: " + ip_address + " port: "   + port + " robot_name: " + robot_name)
         const sim_actual = Robot.get_simulate_actual(simulate)
+        if(Socket.robot_name_to_ws_instance_map[robot_name]){
+            this.close(robot_name, simulate)
+        }
         if ((sim_actual === true)  || (sim_actual == "both")) { DexterSim.create_or_just_init(robot_name, sim_actual) }
         if ((sim_actual === false) || (sim_actual == "both")) {
             try {
@@ -21,6 +24,7 @@ var Socket = class Socket{
             }
             catch(e){
                 dde_error("Error attempting to create socket: " + e.message)
+                this.close(robot_name, simulate)
             }
         }
     }
@@ -80,8 +84,11 @@ var Socket = class Socket{
                 let index = Instruction.INSTRUCTION_ARG0 + i
                 let arg_val = instruction_array_copy[index]
                 let converted_val
-                if ((i == 5) || (i == 6)) { //J6 and J7
-                   converted_val =  Math.round(arg_val / Socket.DEGREES_PER_DYNAMIXEL_UNIT) //convert degrees to dynamixel units to get dynamixel integer from 0 through 1023 going from 0 to 296 degrees
+                if (i == 5) { //J6 and J7
+                    converted_val = 512 + Math.round(arg_val / Socket.DEGREES_PER_DYNAMIXEL_UNIT) //convert degrees to dynamixel units to get dynamixel integer from 0 through 1023 going from 0 to 296 degrees
+                }
+                else if (i == 6) {
+                    converted_val = Math.round(arg_val / Socket.DEGREES_PER_DYNAMIXEL_UNIT) //convert degrees to dynamixel units to get dynamixel integer from 0 through 1023 going from 0 to 296 degrees
                 }
                 else { converted_val = Math.round(arg_val * 3600) } //still might be a NaN
                 instruction_array_copy[index] = converted_val
@@ -330,7 +337,7 @@ var Socket = class Socket{
             robot_status[Dexter.J3_MEASURED_ANGLE] *= 0.0002777777777777778
             robot_status[Dexter.J4_MEASURED_ANGLE] *= 0.0002777777777777778
             robot_status[Dexter.J5_MEASURED_ANGLE] *= 0.0002777777777777778
-            robot_status[Dexter.J6_MEASURED_ANGLE] *= Socket.DEGREES_PER_DYNAMIXEL_UNIT //0.0002777777777777778
+            robot_status[Dexter.J6_MEASURED_ANGLE] *= Socket.DEGREES_PER_DYNAMIXEL_UNIT - 512 //0.0002777777777777778
             robot_status[Dexter.J7_MEASURED_ANGLE] *= Socket.DEGREES_PER_DYNAMIXEL_UNIT //0.0002777777777777778
 
            /* deprecated
@@ -360,7 +367,10 @@ var Socket = class Socket{
         if ((sim_actual === false) || (sim_actual == "both")){
             const ws_inst = Socket.robot_name_to_ws_instance_map[robot_name]
             if(ws_inst){
-                ws_inst.destroy()}
+                ws_inst.removeAllListeners()
+                ws_inst.destroy()
+                Socket.robot_name_to_ws_instance_map[robot_name]
+            }
         }
     }
 

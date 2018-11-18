@@ -1,8 +1,8 @@
 {
   "name": "dexter_dev_env",
   "productName": "dexter_dev_env",
-  "version": "2.5.11",
-  "release_date": "Nov 11, 2018",
+  "version": "2.5.12",
+  "release_date": "Nov 18, 2018",
   "description": "Dexter Development Environment",
   "author": "Fry",
   "license": "GPL-3.0",
@@ -30,6 +30,7 @@
     "jquery": "^3.1.1",
     "opencv.js": "^1.2.1",
     "pegjs": "^0.10.0",
+    "pegjs-backtrace": "^0.1.2",
     "ping": "^0.2.2",
     "request": "^2.79.0",
     "rotating-calipers": "0.0.0",

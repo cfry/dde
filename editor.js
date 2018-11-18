@@ -17,8 +17,6 @@ require("codemirror/addon/fold/brace-fold.js")
 require("codemirror/addon/fold/comment-fold.js")
 */
 
-const ipcRenderer = require('electron').ipcRenderer
-
 var myCodeMirror
 
 function Editor(){} //just a namespace of *some* internal fns

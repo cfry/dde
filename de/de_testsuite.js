@@ -15,7 +15,7 @@ new TestSuite("DE arithmetic",
     ['DE.de_to_js("45 times with 46 and 47.")', '"(45 * 46 * 47)"'],
 	['DE.de_to_js("45 divide with 9.")', '"(45 / 9)"'],
     ['DE.de_to_js("45 remainder with 10.")', '"(45 % 10)"'],
-    ['DE.de_to_js("2 to the power of with 3.")', '"(2 ** 3)"']
+    ['DE.de_to_js("2 power with 3.")', '"(2 ** 3)"']
 )
 
 new TestSuite("DE logic",
