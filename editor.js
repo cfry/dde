@@ -22,7 +22,7 @@ var myCodeMirror
 function Editor(){} //just a namespace of *some* internal fns
 Editor.current_file_path = null //could be "new file" or "/Users/.../foo.fs"
 
-Editor.view = "text"
+Editor.view = "JS"
 
 Editor.init_editor = function(){
     myCodeMirror = CodeMirror.fromTextArea(js_textarea_id,
@@ -145,7 +145,8 @@ Editor.files_menu_path_to_path = function(menu_path){
     let name_and_fold = menu_path.split(" ")
     let name = name_and_fold[0]
     let fold = name_and_fold[1]
-    if (fold.startsWith("dde_apps/")){
+    if (!fold) { fold = dde_apps_dir + "/" }
+    else if (fold.startsWith("dde_apps/")){
         fold = dde_apps_dir + fold.substring(8)
     }
     let path = fold + name
@@ -219,10 +220,13 @@ Editor.get_any_selection = function(){
     }
     sel_text = Editor.get_cmd_selection()
     if(sel_text.length > 0 ) { return sel_text }
-    if (Editor.view == "text") {
+    if (Editor.view == "JS") {
         sel_text = myCodeMirror.doc.getValue().substring(Editor.selection_start(), Editor.selection_end())
     }
-    else { //blocks view
+    else if (Editor.view == "DefEng") {
+        sel_text = myCodeMirror.doc.getValue().substring(Editor.selection_start(), Editor.selection_end())
+    }
+    else { //Blocks view
         sel_text = Workspace.inst.get_javascript(use_selection=true)
     }
     if(sel_text.length > 0) { return sel_text }
@@ -251,7 +255,7 @@ Editor.get_javascript = function(use_selection=false){
     //if use_selection is true, return it.
     // if false, return whole buffer.
     // if "auto", then if sel, return it, else return whole buffer.
-    if(Editor.view == "text") {
+    if((Editor.view == "JS") || (Editor.view == "DefEng")) {
         let  full_src =  myCodeMirror.doc.getValue() //$("#js_textarea_id").val() //careful: js_textarea_id.value returns a string with an extra space on the end! A crhome bug that jquery fixes
         if (use_selection){
             let sel_text = full_src.substring(Editor.selection_start(), Editor.selection_end())
@@ -263,7 +267,7 @@ Editor.get_javascript = function(use_selection=false){
         }
         else { return full_src }
     }
-    else if (Editor.view == "blocks"){
+    else if (Editor.view == "Blocks"){
         return Workspace.inst.get_javascript(use_selection)
     }
     else { shouldnt("Editor.get_javascript found invalid Editor.view of: " + Editor.view) }
@@ -1308,7 +1312,7 @@ Editor.skip_forward_over_whitespace = function(full_src, cursor_pos){
    return full_src.length
 }
 
-//______literal stirngs ________
+//______literal strings ________
 Editor.is_quote = function(char){ return (`"'` + "`").includes(char) }
 
 // pos of the quote or null

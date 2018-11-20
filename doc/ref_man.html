@@ -1926,14 +1926,15 @@ Plays an electronic sound.<br/>
     Other options are: "sine", "square", "sawtooth".<br/>
 <b>callback</b> A function of no arguments that is called when the beep finishes playing.
                Default: null, meaning do nothing.<br/>
-<i>Example</i>: <pre><code title="not in TestSuite">
+<i>Examples</i>:<br/>
+    <code> beep() </code>
+<pre><code title="not in TestSuite">
 beep({dur: 0.125,
       frequency: 440,
       volume: 1,
       waveform: "triangle",
       callback: function(){beep({dur: 0.125, frequency: 493.88})}
-     })
-</code></pre>
+     })    </code></pre>
 </details>
 
 <details id="beeps_doc_id" class="doc_details"><summary>beeps</summary>

@@ -1,3 +1,4 @@
+
 new TestSuite("DE comparison",
     ['DE.de_to_js("4 less than with 67.")', '"(4 < 67)"'],
     ['DE.de_to_js("4 more than with 67.")', '"(4 > 67)"'],
@@ -89,9 +90,12 @@ new TestSuite("DE assignment",
     ['DE.de_to_js("variable bar means 6.")', '"var bar = 6"'],
     ['DE.de_to_js("local bar means 6.")', '"let bar = 6"']
 )
+new TestSuite("multiple expressions",
+    ['DE.de_to_js("foo means 2. bar with 123.")', '"foo = 2\\nbar(123)"']
+)
 
-DE.de_to_js("to double with num. do num1 plus with num2.!")
-DE.de_to_js("double with num.")
+DE.de_to_js("to double with num. do num plus with num.!")
+DE.de_to_js("double with 3.")
 
 
                     

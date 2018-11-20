@@ -84,10 +84,10 @@ var Socket = class Socket{
                 let index = Instruction.INSTRUCTION_ARG0 + i
                 let arg_val = instruction_array_copy[index]
                 let converted_val
-                if (i == 5) { //J6 and J7
+                if (i == 5) { //J6
                     converted_val = 512 + Math.round(arg_val / Socket.DEGREES_PER_DYNAMIXEL_UNIT) //convert degrees to dynamixel units to get dynamixel integer from 0 through 1023 going from 0 to 296 degrees
                 }
-                else if (i == 6) {
+                else if (i == 6) { //J7
                     converted_val = Math.round(arg_val / Socket.DEGREES_PER_DYNAMIXEL_UNIT) //convert degrees to dynamixel units to get dynamixel integer from 0 through 1023 going from 0 to 296 degrees
                 }
                 else { converted_val = Math.round(arg_val * 3600) } //still might be a NaN
@@ -239,9 +239,9 @@ var Socket = class Socket{
                         let timeout_dur = Math.pow(10, Socket.resend_count)
                         setTimeout(function(){
                             Socket.init(robot_name, //passed to send
-                                simulate,   //passed to send
-                                rob.ip_address, //get from ws_inst ???
-                                rob.port //50000   //port
+                                        simulate,   //passed to send
+                                        rob.ip_address, //get from ws_inst ???
+                                        rob.port //50000   //port
                             )
                         }, timeout_dur)
                         return
@@ -337,7 +337,7 @@ var Socket = class Socket{
             robot_status[Dexter.J3_MEASURED_ANGLE] *= 0.0002777777777777778
             robot_status[Dexter.J4_MEASURED_ANGLE] *= 0.0002777777777777778
             robot_status[Dexter.J5_MEASURED_ANGLE] *= 0.0002777777777777778
-            robot_status[Dexter.J6_MEASURED_ANGLE] *= Socket.DEGREES_PER_DYNAMIXEL_UNIT - 512 //0.0002777777777777778
+            robot_status[Dexter.J6_MEASURED_ANGLE] = (robot_status[Dexter.J6_MEASURED_ANGLE] - 512) * Socket.DEGREES_PER_DYNAMIXEL_UNIT //0.0002777777777777778
             robot_status[Dexter.J7_MEASURED_ANGLE] *= Socket.DEGREES_PER_DYNAMIXEL_UNIT //0.0002777777777777778
 
            /* deprecated

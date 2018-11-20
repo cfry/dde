@@ -11,7 +11,7 @@
 
 function blocks_init(){
    javascript_pane_header_wrapper_id.appendChild(
-   make_dom_elt("span",
+   /*make_dom_elt("span",
                 {id:"text_blocks_toggle_id",
                  title: "Toggle editor view between text and blocks.",
                  "font-size":"20px",
@@ -20,7 +20,16 @@ function blocks_init(){
                  margin:"0px",
                  "vertical-align":"20%",
                  onclick:"toggle_text_blocks_display()"},
-                " &boxbox; "))
+                " &boxbox; "))*/
+    make_dom_elt("select",
+                  {id:"code_view_kind_id",
+                  title:"Translate the Editor pane to a different syntax for viewing your code.",
+                  "background-color": "#4cc9fd",
+                  "vertical-align":"50%",
+                  onclick:"change_code_view_kind()"},
+                  "<option value='JS'>JS</option><option value='Blocks'>Blocks</option><option value='DefEng'>DefEng</option>"
+                  )
+   )
 }
 
 function make_blocksde_dom_elt(){
@@ -53,7 +62,7 @@ var blocksde_dom_elt   = null
 
 
 
-function toggle_text_blocks_display(){
+/*function toggle_text_blocks_display(){
   if (Editor.view == "text"){
       out("installing blocks")
       let src = Editor.get_javascript("auto") //must do before the switch
@@ -97,6 +106,93 @@ function toggle_text_blocks_display(){
       Editor.view = "text"
       myCodeMirror.focus()
   }
+}*/
+
+function change_code_view_kind(){
+    let new_view_kind = code_view_kind_id.value
+    if      (Editor.view == "JS"){ //old_view_kind
+            if      (new_view_kind == "Blocks"){ js_to_blocks() }
+            else if (new_view_kind == "DefEng"){ js_to_defeng() }
+    }
+    else if(Editor.view == "Blocks"){ //old_view_kind
+            if      (new_view_kind == "JS"){ blocks_to_js() }
+            else if (new_view_kind == "DefEng"){ blocks_to_defeng() }
+    }
+    else if(Editor.view == "DefEng") { //old_view_kind
+            if      (new_view_kind == "JS")    { defeng_to_js() }
+            else if (new_view_kind == "Blocks"){ defeng_to_blocks() }
+    }
+}
+
+function js_to_blocks(){
+        out("installing blocks")
+        let src = Editor.get_javascript() //must do before the switch
+        let block_to_install
+        try{
+            if (src.trim() != ""){block_to_install = JS2B.js_to_blocks(src.trim())} //do before switching views in case this errors, we want to stay in text view
+        }
+        catch(err){
+            warning("Could not convert JavaScript source to blocks due to error:<br/>" +
+                err.message +
+                "<br/> Make sure your JS text evals without errors before switching to blocks.")
+            return
+        }
+        if (!the_codemirror_elt) { //haven't used blocksde yet so initialize it
+            the_codemirror_elt = document.getElementsByClassName("CodeMirror")[0]
+            blocksde_dom_elt = make_blocksde_dom_elt()
+            let blocks_style_content = file_content(__dirname + "/blocksde/style2.css")
+            let style_elt = make_dom_elt("style", {}, blocks_style_content) //"* { background-color:blue;}")
+            blocksde_dom_elt.appendChild(style_elt)
+            replace_dom_elt(the_codemirror_elt, blocksde_dom_elt) //must occur before calling make_workspace_instance
+            //because that needs workspace_container_id to be installed in order to
+            //install workspace_id inside it
+            Workspace.make_workspace_instance(
+                //the_codemirror_elt.offsetWidth,  the_codemirror_elt.offsetHeight //this vals are always zero
+            )
+        }
+        else { replace_dom_elt(the_codemirror_elt, blocksde_dom_elt) }
+        Workspace.inst.clear_blocks()
+        if (block_to_install){ //we've got non empty src code so turn it into blocks.
+            install_top_left_block(block_to_install)
+        }
+        text_blocks_toggle_id.style["background-color"] = "#AAFFAA"
+        Editor.view = "Blocks"
+}
+
+function blocks_to_js(){
+    out("installing text")
+    let js = Workspace.inst.to_js()
+    replace_dom_elt(blocksde_dom_elt, the_codemirror_elt)
+    text_blocks_toggle_id.style["background-color"] = "#CCCCCC"
+    Editor.set_javascript(js)
+    Editor.view = "JS"
+    myCodeMirror.focus()
+}
+
+var old_source_defeng = "" //kludge to fake JS to defeng
+function js_to_defeng(){
+    let defeng = old_source_defeng //usualy wrong but ok for limited demos if you first do a defeng_to_js()
+    Editor.set_javascript(defeng)
+    Editor.view = "DefEng"
+}
+
+function defeng_to_js(){
+    let defeng = Editor.get_javascript()
+    old_source_defeng = defeng //kludge for js_to_defeng
+    let js = DE.de_to_js(defeng)
+    Editor.set_javascript(js)
+    Editor.view = "JS"
+}
+
+function blocks_to_defeng(){
+    blocks_to_js()
+    js_to_defeng()
+}
+
+function defeng_to_blocks(){
+    old_source_defeng = Editor.get_javascript("auto") //kludge
+    defeng_to_js()
+    js_to_blocks()
 }
              
              

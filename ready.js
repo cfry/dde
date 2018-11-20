@@ -18,17 +18,9 @@
     }
     //called by both the eval button and the step button
     function eval_button_action(step=false){ //used by both clicking on the eval button and Cmd-e
-        //debugger
-        let sel_text = selected_text_when_eval_button_clicked //Editor.get_any_selection() //must do before Edotor>save because now mysteriously that clears the selection
         if((Editor.current_file_path != "new file") && (save_on_eval_id.checked)) { Editor.save_current_file() }
-        if (sel_text.length > 0) { eval_js_part2((step? "debugger; " : "") + sel_text) }
-        /*else if (eval_previousActiveElement == cmd_input_id) { //document.activeElement == cmd_input_id //fails because clicking on the Eval button changes the activeElement
-            sel_text = cmd_input_id.value
-            if (sel_text.length > 0) { eval_js_part2((step? "debugger; " : "") + sel_text) }
-            else { warning("Cursor is in command line but it is empty so no JS to eval.", true) }
-        }*/
-        else {  eval_js_part1(step) }//gets whole editor buffer and if empty, prints warning.
-        if (Editor.view == "blocks") { eval_id.blur() } //to get rid of the Eval button being "selected" when we're evaling in blocks view
+        eval_js_part1(step)
+        if (Editor.view == "Blocks") { eval_id.blur() } //to get rid of the Eval button being "selected" when we're evaling in blocks view
     }
 
     function on_ready() {

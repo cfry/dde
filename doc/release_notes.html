@@ -6,6 +6,29 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 2.5.13, Nov 20, 2018</summary>
+    Highlights: bug fixes.
+<ul>
+    <li> J6_MEASURED_TORQUE swapped with J7_MEASURED_TORQUE
+        in robot_status table.</li>
+
+    <li> While reading robot status into DDE from Dexter, adjusted conversion for J6.</li>
+
+    <li> robot status window widened to accommodate long numbers.</li>
+
+
+    <li> Fixed bug in robot status dialog that when switching between
+        robots the table wasn't updated.
+        Also fixed bug that when switching to a defined robot that
+        never had a job run on it, it errored.</li>
+
+    <li> robot status dialog "Run Update Job" button now works.</li>
+
+    <li> Fixed bug when a file in DDE's menu of files has only a name and no folder.
+        It now defaults the folder to "dde_apps".</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 2.5.12, Nov 18, 2018</summary>
     Highlights: new Job() with no args now works. Many bug fixes.
 <ul>

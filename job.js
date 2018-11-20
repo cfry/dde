@@ -263,7 +263,7 @@ var Job = class Job{
             return this
         }
     }
-    //show_instruction in editor
+    //action for the Start Job button
     static start_job_menu_item_action () {
         var full_src   = Editor.get_javascript()
         var start_cursor_pos = Editor.selection_start()

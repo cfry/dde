@@ -43,7 +43,7 @@ var Series = class Series {
         for (var ser of Series.instances){
             let the_ser = ser; //must do this let so that each fn generated will use the ser of the for loop.
             var fn = function(){
-                if(Editor.view == "text"){
+                if(Editor.view == "JS"){
                     Editor.replace_selection(the_ser.get_menu_insertion_string(),
                                              the_ser.menu_sel_start,
                                              the_ser.menu_sel_end)

@@ -19,7 +19,7 @@ var RobotStatusDialog = class RobotStatusDialog{
                 "<span style='font-size:12px;margin-left:10px;'> Updated: <span id='robot_status_window_time_id'>" + RobotStatusDialog.update_time_string() + "</span></span>" +
                 " <button title='Defines and starts a Job&#13; that continually gets the robot status&#13;of the selected robot.&#13;Click again to stop that Job.'" +
                 " onclick='RobotStatusDialog.run_update_job()'>run update job</button>",
-                width:  860,
+                width:  890,
                 height: 380
             })
             setTimeout(function(){
@@ -76,7 +76,7 @@ var RobotStatusDialog = class RobotStatusDialog{
         let robot_status = robot.robot_status
         if (this.window_up()) { //don't attempt to show if the window isn't up. this does repopulate window if its merely shrunken
             robot_status_window_time_id.innerHTML = this.update_time_string()
-            for (let i = 0; i < robot_status.length; i++){
+            for (let i = 0; i < 60; i++){ //don't use robot_status.length as there might not BE a robot_status if it hasn't been run yet
                 let label    = Dexter.robot_status_labels[i]
                 if ((label != null) && !label.startsWith("UNUSED")){
                     let val      = (robot_status ? robot_status[i] : "no status") //its possible that a robot will have been defined, but never actually run when this fn is called.
@@ -87,15 +87,25 @@ var RobotStatusDialog = class RobotStatusDialog{
                     window[elt_name].innerHTML = val
                 }
             }
-            START_TIME_id.title = date_integer_to_long_string(robot_status[Dexter.START_TIME])
-            STOP_TIME_id.title  = date_integer_to_long_string(robot_status[Dexter.STOP_TIME])
-            INSTRUCTION_TYPE_id.title = Robot.instruction_type_to_function_name(robot_status[Dexter.INSTRUCTION_TYPE])
-            let xyz
-            try      { xyz = robot.joint_xyz() } //gets xyz array for joint 5
-            catch(e) { xyz = ["no status", "no status", "no status"] }
-            MEASURED_X_id.innerHTML = this.format_measured_angle(xyz[0])
-            MEASURED_Y_id.innerHTML = this.format_measured_angle(xyz[1])
-            MEASURED_Z_id.innerHTML = this.format_measured_angle(xyz[2])
+            if(robot_status){
+                START_TIME_id.title = date_integer_to_long_string(robot_status[Dexter.START_TIME])
+                STOP_TIME_id.title  = date_integer_to_long_string(robot_status[Dexter.STOP_TIME])
+                INSTRUCTION_TYPE_id.title = Robot.instruction_type_to_function_name(robot_status[Dexter.INSTRUCTION_TYPE])
+                let xyz
+                try      { xyz = robot.joint_xyz() } //gets xyz array for joint 5
+                catch(e) { xyz = ["no status", "no status", "no status"] }
+                MEASURED_X_id.innerHTML = this.format_measured_angle(xyz[0])
+                MEASURED_Y_id.innerHTML = this.format_measured_angle(xyz[1])
+                MEASURED_Z_id.innerHTML = this.format_measured_angle(xyz[2])
+            }
+            else {
+                START_TIME_id.title = "No jobs run on this robot yet."
+                STOP_TIME_id.title  = "No jobs run on this robot yet."
+                INSTRUCTION_TYPE_id.title = "No jobs run on this robot yet."
+                MEASURED_X_id.innerHTML = "no status"
+                MEASURED_Y_id.innerHTML = "no status"
+                MEASURED_Z_id.innerHTML = "no status"
+            }
         }
     }
 
@@ -104,7 +114,7 @@ var RobotStatusDialog = class RobotStatusDialog{
         //when called from the UI, the "name" arg is bound to the event.
         if(typeof(name) != "string") {name = name.target.value}
         let robot = Robot[name]
-        this.update_robot_status_table(robot)
+        RobotStatusDialog.update_robot_status_table(robot) //can't use "this" for subject because "this" is the select widget
     }
 
     static make_html_table(robot){
@@ -206,7 +216,7 @@ var RobotStatusDialog = class RobotStatusDialog{
             existing_job.stop_for_reason("interrupted", "user stopped job")
         }
         else {
-            let rob = selected_robot()
+            let rob = this.selected_robot()
             new Job({name: "rs_update",
                 robot: rob,
                 do_list: [ Robot.loop(true,  Dexter.get_robot_status)]}).start()

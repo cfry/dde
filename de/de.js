@@ -74,13 +74,21 @@ DE.ops = {"less than": "<",
           "also": "&&",
           "or":   "||"
          }
-DE.peg = require("pegjs")
+DE.peg       = require("pegjs")
 DE.PegTracer = require('pegjs-backtrace');
 
 DE.parser = DE.peg.generate(
-`start               = result:expr { return result }
-expr                 = before_com:comment* ws_or_not result:(fn_def / assignment / maker / sentence / string1 / path / variable / undefined / number) ws_or_not after_com:comment* 
-                       { return before_com + result + after_com }
+`start               = result:exprs { return result }
+exprs                = ws_or_not first_exper:expr rest_expers:(ws expr)* {
+                         let result = first_exper
+                         for(let ex of rest_expers) {
+                            result += "\\n" + ex[1]
+                         }
+                         return result
+                       }
+expr                 = result:(fn_def / assignment / maker / sentence / string1 / path / variable / undefined / number) {
+                       return result
+                       }
 maker                = "make" ws (("an" / "a") ws)? subj:subject ws "with" ws args:arguments? sent_end 
                         { if (subj == "Array") { 
                             args = args.substring(1, args.length - 1)
@@ -100,17 +108,17 @@ assignment           = scope:(("variable" / "local") ws)? loc:(path / variable) 
                            return the_scope + loc + " = " + val 
                         }
                         
-fn_def               = "to" ws sentence ws_or_not eb:exprs_block
-                        {   let result = "function " + name + args + eb 
+fn_def               = "to" ws name_and_args:sentence ws_or_not eb:exprs_block{
+                            debugger
+                            let result = "function " + name_and_args + eb 
                             console.log("got fn_def: " + result)
                             return result
                         }
-exprs_block          = "do" ws the_expers:(expr ws)* "!" {
-                           console.log("got expers_block with: " + the_expers)
-                           let result = "{"
-                           for(expr of the_expers){
-                           }
-                           result += "}"
+exprs_block          = "do" ws the_exprs:exprs ws_or_not "!" {
+                           debugger;
+                           console.log("got exprs_block with: " + the_exprs)
+                           let result = "{" + the_exprs + "}"
+                           return result
                        }
 
 sentence             = result:(sent_subj_verb_args / sent_verb_args / sent_subj_verb / sent_verb) { 
@@ -147,7 +155,6 @@ verb                 =  ` + DE.make_verb_rule_expers()    +       ` {
                      }
 arguments            = var_num1:argument var_nums:(arg_sep argument)* { 
                        let args = var_num1
-                       debugger
                        out("hi")
                        //get rid of trailing undefined args as would happen with DE "nothing"
                        for(let i = (var_nums.length - 1); i >= 0; i--){
@@ -171,9 +178,11 @@ argument             = arg_name:(variable ws "of" ws)? the_expr:expr {
                             if(arg_name) { prefix = arg_name[0] + ": " }
                             let result = prefix + the_expr
                             console.log("got arg: " + result)
-                            return 
+                            return result
                        }
-arg_sep  "arg_sep"   = (ws "and" ws) / (ws_or_not "," ws_or_not)  { return ", " }
+arg_sep  "arg_sep"   = (ws "and" ws) / (ws_or_not "," ws_or_not)  { 
+                        console.log("got arg_sep: " + text())
+                        return ", " }
 
 
                      
@@ -256,7 +265,6 @@ string1               = ('"' [^"]* '"') / ("'" [^\\']* "'") {
 // HEXDIG = [0-9a-f]i
 
 "to" ws name:variable ws "with" ws args:arguments sent_end ws eb:exprs_block
-                       
 */
 
 

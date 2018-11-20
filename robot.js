@@ -2122,7 +2122,7 @@ null, // END_POSITION_FORCE_DELTA   23
 "J2_A2D_COS",          // END_COS                    25
 "J2_MEASURED_ANGLE",   // PLAYBACK_END_POSITION      26 //depricated J2_PLAYBACK
 "J2_SENT",             // SENT_END_POSITION          27 //unused
-"J6_MEASURED_TORQUE",  // SLOPE_END_POSITION         28 //depricated J2_SLOPE
+"J7_MEASURED_TORQUE",  // SLOPE_END_POSITION         28 //depricated J2_SLOPE
  null,                 // new field                  29 //was J2_MEASURED_ANGLE, not used, get rid of,
 //J2 block of 10
 "J3_ANGLE",            // PIVOT_POSITION_AT           30
@@ -2144,7 +2144,7 @@ null,                  // ANGLE_POSITION_FORCE_DELTA  43 was "J4_FORCE_CALC_ANGL
 "J4_A2D_COS",          // ANGLE_SIN                   45
 "J4_MEASURED_ANGLE",   // PLAYBACK_ANGLE_POSITION     46 //depricated J4_PLAYBACK
 "J4_SENT",             // SENT_ANGLE_POSITION         47 //unused
-"J7_MEASURED_TORQUE",  // SLOPE_ANGLE_POSITION        48 //depricated J4_SLOPE
+"J6_MEASURED_TORQUE",  // SLOPE_ANGLE_POSITION        48 //depricated J4_SLOPE
 null,                  // new field                   49 //not used get rid of
 //J4 block of 10
 "J5_ANGLE",            // ROTATE_POSITION_AT          50

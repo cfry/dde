@@ -50,10 +50,17 @@ function fix_code_to_be_evaled(src){
 }
 
 //part 1 of 3.
+//Onlu called by eval_button_action
 //when this is called, there is no selection, so either we're evaling the whole editor buffer
 //or the whole cmd line.
 function eval_js_part1(step=false){
-    let src = Editor.get_javascript("auto") //if no selection get whole buffer, else get just the selection
+    //tricky: when button is clicked, Editor.get_any_selection() doesn't work,
+    //I guess because the button itself is now in focus,
+    //so we grab the selection on mousedown of the the Eval button.
+    //then use that here if its not "", otherwise, Editor.get_javascript("auto"), getting the whol editor buffer
+    let src = ((selected_text_when_eval_button_clicked.length > 0) ?
+                 selected_text_when_eval_button_clicked :
+                 Editor.get_javascript("auto"))
     //we do NOT want to pass to eval part 2 a trimmed string as getting its char
     //offsets into the editor buffer correct is important.
     if (src.trim() == ""){
@@ -62,6 +69,11 @@ function eval_js_part1(step=false){
             "in the Documentation pane for help.")
     }
     else{
+        if (Editor.view == "DefEng") {
+            src = DE.de_to_js(src)
+            //out("<code>" + src + "</code>") //don't need this as JS is printed in Output pane after "Eval result of"
+        }
+        //must add "debugger" after converting DefEng to JS.
         eval_js_part2((step? "debugger; ": "") + src)
     }
 }
@@ -202,7 +214,7 @@ function error_message_start_and_end_pos(err){
          //that I can't parse, so just bail.
     }
 }
-
+//action for the Eval&Start button
 function eval_and_start(){
      let sel_text = Editor.get_any_selection()
      if (sel_text.length == 0) {
