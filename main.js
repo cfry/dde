@@ -161,7 +161,6 @@ ipc.on('synchronous-message', function (event, arg) {
 
 ipc.on("open_dev_tools", function(event){
    console.log("top of open_dev_tools2")
-   //debugger; //doesn't work.
     if (mainWindow.isDevToolsOpened()) {
         mainWindow.devToolsWebContents.focus()
     }

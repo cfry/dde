@@ -37,7 +37,6 @@ function make_ping_a_dexter_select(){
 
 function ping_a_dexter_handler(vals){
     let menu_label = vals.ping_a_dexter_id_address_id
-    debugger
     if(!menu_label) { out("No ip_address selected.") }
     else {
         let split_menu_label = menu_label.trim().split(" ")

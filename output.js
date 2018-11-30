@@ -1210,7 +1210,6 @@ function get_page(url, callback=out, error_callback=get_page_error_callback){//i
         try{
             fetch(url)
                 .then(function(response) {
-                    debugger
                     if (response.ok) {  return response.text()  }
                     else {
                         cbr.perform_callback(error_callback, url, response.statusText)

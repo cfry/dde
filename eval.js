@@ -73,7 +73,7 @@ function eval_js_part1(step=false){
             src = DE.de_to_js(src)
             //out("<code>" + src + "</code>") //don't need this as JS is printed in Output pane after "Eval result of"
         }
-        //must add "debugger" after converting DefEng to JS.
+        //must add "debugge r" after converting DefEng to JS.
         eval_js_part2((step? "debugger; ": "") + src)
     }
 }

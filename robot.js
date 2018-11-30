@@ -2278,7 +2278,6 @@ Dexter.robot_status_to_html_table = function(ds){
 //only called from the menu bar Jobs/show robot status item
 //Always makes a new window
 Dexter.show_robot_status = function(event){
-    debugger
     let robot = (Job.last_job? Job.last_job.robot : Robot.dexter0)
     let content = Dexter.update_robot_status_to_html_table(robot)
     show_window({content: content,

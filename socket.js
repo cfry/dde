@@ -300,7 +300,6 @@ var Socket = class Socket{
         let payload_length = js_array[Socket.PAYLOAD_LENGTH]
         let data_start = Socket.PAYLOAD_START
         let data_end = data_start + payload_length
-        //debugger;
         let payload_string = (data.slice(data_start, data_end).toString())
         Socket.r_payload_grab_aux(payload_string, js_array)
     }

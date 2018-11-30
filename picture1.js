@@ -64,7 +64,6 @@ var Picture = class Picture{
           }
           let the_html
           the_html = '<canvas class="clickable" id="' + canvas_id + //'" width="'    + width + '" height="'   + height +
-                     //onclick=function(event){debugger}
                      '" style="padding:0px;"/>'
           let observer = new MutationObserver(function(mutations, observer) {
                let show_window_rendered = false
@@ -717,7 +716,6 @@ var Picture = class Picture{
         mar.slope_degrees = atand(line_obj[0][0]) //arc_tan_degrees, defined in James W code
         mar.slope = line_obj[0][0]
         mar.y_intercept = line_obj[1][0]
-        //debugger
         return mar
     }
 
