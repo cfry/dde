@@ -26,7 +26,7 @@ function blocks_init(){
                   title:"Translate the Editor pane to a different syntax for viewing your code.",
                   "background-color": "#4cc9fd",
                   "vertical-align":"50%",
-                  onclick:"change_code_view_kind()"},
+                  onchange:"change_code_view_kind(event)"},
                   "<option value='JS'>JS</option><option value='Blocks'>Blocks</option><option value='DefEng'>DefEng</option>"
                   )
    )
@@ -108,8 +108,9 @@ var blocksde_dom_elt   = null
   }
 }*/
 
-function change_code_view_kind(){
+function change_code_view_kind(event){
     let new_view_kind = code_view_kind_id.value
+    console.log("new_view_kind: " + new_view_kind)
     if      (Editor.view == "JS"){ //old_view_kind
             if      (new_view_kind == "Blocks"){ js_to_blocks() }
             else if (new_view_kind == "DefEng"){ js_to_defeng() }
@@ -174,14 +175,24 @@ function js_to_defeng(){
     let defeng = old_source_defeng //usualy wrong but ok for limited demos if you first do a defeng_to_js()
     Editor.set_javascript(defeng)
     Editor.view = "DefEng"
+    myCodeMirror.focus()
 }
 
 function defeng_to_js(){
     let defeng = Editor.get_javascript()
     old_source_defeng = defeng //kludge for js_to_defeng
-    let js = DE.de_to_js(defeng)
+    let js
+    try{js = DE.de_to_js(defeng)} //converts all whitespace to itself.
+    catch(e) { //backout
+        code_view_kind_id.value = "DefEng"
+        Editor.view = "DefEng"
+        myCodeMirror.focus()
+        dde_error("The DefEng has an error so cannot change it to JS.")
+        return
+    }
     Editor.set_javascript(js)
     Editor.view = "JS"
+    myCodeMirror.focus()
 }
 
 function blocks_to_defeng(){

@@ -4029,6 +4029,9 @@ a location to insert an instruction using <code>Robot.send_to_job</code>.<br/>
     If this arg is <code>[]</code> i.e. the empty array, this loop is a no-op
     just like a value of <code>false</code> or <code>0</code>.
     At each iteration, the iter_val will be a successive value in the array.
+    The iter_index will be the index of each successive value in the array,
+    taking on the values of 0 through array.length - 1.
+    iter_total will be the length of the array.
     <p></p>
     <i>object</i><br/> The number of own properties of the object is the number
     of times to loop. At each iteration, the iter_key will be a property name in the object,

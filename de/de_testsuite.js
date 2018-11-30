@@ -1,6 +1,6 @@
 
 new TestSuite("DE comparison",
-    ['DE.de_to_js("4 less than with 67.")', '"(4 < 67)"'],
+    ['DE.de_to_js("4 lessasdfsadf with 67.")', '"(4 < 67)"'],
     ['DE.de_to_js("4 more than with 67.")', '"(4 > 67)"'],
     ['DE.de_to_js("44 equals with 67.")', '"(44 == 67)"'],
     ['DE.de_to_js("44 not equals with 67.")', '"(44 != 67)"'],
@@ -21,7 +21,7 @@ new TestSuite("DE arithmetic",
 
 new TestSuite("DE logic",
     ['DE.de_to_js("true also with true, false.")', '"(true && true && false)"'],
-    ['DE.de_to_js("true or   with true, false.")', '"(true || true || false)"']
+    ['DE.de_to_js("true or   with true and false.")', '"(true || true || false)"']
 )
 
 new TestSuite("DE make",
@@ -94,8 +94,53 @@ new TestSuite("multiple expressions",
     ['DE.de_to_js("foo means 2. bar with 123.")', '"foo = 2\\nbar(123)"']
 )
 
-DE.de_to_js("to double with num. do num plus with num.!")
-DE.de_to_js("double with 3.")
+new Testsuite("fn def",
+    ['DE.de_to_js("to double with num. do num plus with num.!")', 
+     '"function double(num){(num + num)}"'],
+    ['DE.de_to_js("double with 3.")', '"double(3)"'],
+    ['DE.de_to_js("to double with num default 2. do num plus with num.!")', 
+     '"function double(num=2){(num + num)}"'],
+    ['DE.de_to_js("to double with num of 2. do num plus with num.!")', 
+     '"function double({num=2}={}){(num + num)}"']
+     )
+     
+new TestSuite("keyword_exprs_block",
+    ['DE.de_to_js("try do 3 plus with 4.!")', '"try{(3 + 4)}"'],
+    ['DE.de_to_js("otherwise do 3 plus with 4.!")', '"else{(3 + 4)}"'],
+    ['DE.de_to_js("finally do 3 plus with 4.!")', '"finally{(3 + 4)}"'],
+    ['DE.de_to_js("if error err do out with 234. 22 plus with 44.!")', '"catch(err){out(234)\\n(22 + 44)}"']
+)
+
+new TestSuite("if_but_if",
+    ['DE.de_to_js("if 3 less than with 4. do out with 123.!")', 
+     '"if(3 < 4){out(123)}"'],
+    ['DE.de_to_js("if true do out with 123.!")', '"if(true){out(123)}"'],
+    ['DE.de_to_js("but if false do out with 456.!")', '"else if(false){out(456)}"'],
+    ['DE.de_to_js("otherwise do out with 789.!")', '"else{out(789)}"'],
+    ['DE.de_to_js("if false do out with 123.! but if false do out with 456.! otherwise do out with 987.!")', 
+      '"if(false){out(123)}\\nelse if(false){out(456)}\\nelse{out(987)}"'],
+     ['DE.de_to_js("if true do !")', '"if(true){}"'],
+     ['DE.de_to_js("if true do!")', '"if(true){}"']
+)
+
+DE.eval("loop 5 do loop_result push with loop_value.!")
+DE.de_to_js("loop 5 do out with loop_value.!")
+
+loop make object with color of blue. do adfsdafds !
+loop_index
+loop_value
+loop_total
+loop_key
+on_first
+on_last
+
+loop(times_to_loop, fn_def)
+function foo(){
+for(let i ...){
+  return 23
+  }
+
+
 
 
                     
@@ -130,3 +175,15 @@ var de_job_test =
 
  
  new Job({name: j2, do_list: new Array(Dexter.move_all_joints(new Array(0, 0, 0, 0, 0)))})
+ 
+to double with num of 2. do return with num plus with num..!
+double with 3.
+
+function foo(num){ 
+      let closed_num = num
+      let fn = function(){ closed_num = num + 1 }
+      fn()
+      return closed_num}
+foo(3)
+
+(function(){return 333})()

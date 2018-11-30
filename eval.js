@@ -70,7 +70,8 @@ function eval_js_part1(step=false){
     }
     else{
         if (Editor.view == "DefEng") {
-            src = DE.de_to_js(src)
+            try {src = DE.de_to_js(src) }
+            catch(e) { dde_error("Error parsing DefEng: " + e.message) }
             //out("<code>" + src + "</code>") //don't need this as JS is printed in Output pane after "Eval result of"
         }
         //must add "debugger" after converting DefEng to JS.
@@ -112,7 +113,7 @@ function eval_js_part2 (command, calL_eval_part3_if_no_error=true){ //2nd arg pa
         }
         else if ((typeof(value) == "object") && value.error_type){
             result = value
-            //result.command = command
+            result.command = command
             result.starting_index = char_position(command, result.line_no, result.char_no)
             var command_starting_with_starting_index = command.substring(result.starting_index)
             result.ending_index = command_starting_with_starting_index.match(/\W|$/).index + result.starting_index
