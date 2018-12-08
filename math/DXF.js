@@ -979,6 +979,8 @@ this.dxf_to_instructions = function({
                       } = {}){
 	
     //correct link lengths for tool geometry:
+    DXF.orig_link4 = Dexter.LINK4
+    DXF.orig_link5 = Dexter.LINK5
     Dexter.LINK4 = tool_height
     Dexter.LINK5 = tool_length
         
@@ -1096,6 +1098,11 @@ this.dxf_to_instructions = function({
     if(tool_action){
     		movCMD.push(tool_action_off_function)
     }
+    movCMD.push(make_ins("F"))
+    movCMD.push(function(){
+    	Dexter.LINK4 = DXF.orig_link4
+        Dexter.LINK5 = DXF.orig_link5
+    })
     return movCMD
 }
 
