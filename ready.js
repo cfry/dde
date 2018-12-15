@@ -51,9 +51,10 @@
    // window.$ = require('jquery'); //Now done in index.html   after doing npm install --save jquery, we still need this
     //onload_fn()
     Dexter.draw_dxf = DXF.dxf_to_instructions //see Robot.js
-    Dexter.prototype.draw_dxf = function({}={}) {
-            arguments
-            let obj_args = arguments[0]
+    Dexter.prototype.draw_dxf = function({robot = null}={}) {
+            let obj_args
+            if (arguments.length == 0) { obj_args = {} } //when no args are passed, I must do this
+            else { obj_args = arguments[0] }
             obj_args.robot = this
             return Dexter.draw_dxf(obj_args)
     }

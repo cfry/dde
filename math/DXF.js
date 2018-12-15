@@ -1084,7 +1084,7 @@ new Job({name: "Draw",
             Dexter.LINK4 = DXF.orig_link4
             Dexter.LINK5 = DXF.orig_link5
         })
-        Instruction.add_robot_to_instructions(movCMD, robot)
+        if(robot){ Instruction.add_robot_to_instructions(movCMD, robot) }
         return movCMD
     }
 
