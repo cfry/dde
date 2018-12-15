@@ -140,6 +140,31 @@ var Instruction = class Instruction {
         else if (Array.isArray(ins)) { return stringify_value(ins) }
         else { shouldnt("Instruction.text_for_do_list_item_for_stepper got unknown instruction type: " + ins) }
     }
+
+    //side effects instr (if it can take a robot) and returns it.
+    static add_robot_to_instruction(instr, robot){
+        if (robot === undefined) {}
+        else if (instr instanceof Instruction){
+            if(instr.hasOwnProperty("robot")) { instr.robot = robot }
+            return instr
+        }
+        else if (Instruction.is_instruction_array(instr)) {
+            let last_elt = last(instr)
+            if (last_elt instanceof Robot) { instr[instr.length - 1] = robot }
+            else { instr.push(robot) }
+        }
+        else if (Array.isArray(instr)) { Instruction.add_robot_to_instructions(instr, robot)}
+        return instr
+    }
+
+    //instr is an array of any kind of job instruction.
+    //side effects each instr in instrs (if it can take a robot) and returns it.
+    static add_robot_to_instructions(instrs=[], robot){
+        for (let instr of instrs){
+            Instruction.add_robot_to_instruction(instr, robot)
+        }
+        return instrs
+    }
 }
 
 Instruction.labels = [
@@ -3215,7 +3240,8 @@ Instruction.Control.move_to_straight = class move_to_straight extends Instructio
 
 Instruction.Control.read_from_robot = class read_from_robot extends Instruction.Control{
     constructor (source        , //a file name path string
-                 destination   = "read_from_robot_content" //user data variable
+                 destination   = "read_from_robot_content", //user data variable
+                 robot         = null //null means use the default robot of the job.
     ){
         if (typeof(source) != "string") {
             dde_error("read_from_robot passed non-string for 'source' of: " + source)
@@ -3229,6 +3255,7 @@ Instruction.Control.read_from_robot = class read_from_robot extends Instruction.
         this.first_do_item_call = true
         this.is_done = false
         this.processing_r_instruction = false
+        this.robot = robot
     }
     do_item (job_instance){
         if (this.first_do_item_call) {
@@ -3243,6 +3270,7 @@ Instruction.Control.read_from_robot = class read_from_robot extends Instruction.
         //    return Robot.break()
         //}
         let read_from_robot_instance = this
+        let robot = this.robot //closed over
         Job.insert_instruction(Robot.loop(true, function(content_hunk_index){
             let job_instance = this
             if (read_from_robot_instance.is_done) {
@@ -3254,7 +3282,7 @@ Instruction.Control.read_from_robot = class read_from_robot extends Instruction.
             }
             else {
                 read_from_robot_instance.processing_r_instruction = true
-                return [make_ins("r", content_hunk_index, read_from_robot_instance.source),
+                return [make_ins("r", content_hunk_index, read_from_robot_instance.source, robot),
                         Robot.wait_until(function(){
                             return !read_from_robot_instance.processing_r_instruction
                         })

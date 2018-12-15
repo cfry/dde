@@ -92,7 +92,6 @@ function sr_on_data(data){
         case "SPEECH_EVENT_UNSPECIFIED":
             set_mic_and_instructions() //don't talk, turns off animation
             if(data && (data.results.length > 0)){
-                //debugger
                 recognize_speech_last_text       = data.results[0].transcript.trim() //the 2nd through nth recos start with sapce,
                 recognize_speech_last_confidence = data.results[0].confidence
                   //which would be good for continuous dictation, but bad for recognizing the ending phrase.

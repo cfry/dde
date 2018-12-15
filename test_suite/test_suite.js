@@ -1,6 +1,9 @@
 var TestSuite = class TestSuite{
     constructor(name, ...tests){
         this.name  = name
+        this.report = ""
+        this.known_failure_count   = 0
+        this.unknown_failure_count = 0
         this.tests = tests
         this.verify_tests_syntax() //causes tests defined in DDE source to be verified upon every start up.
                                    //if this gets to be too slow, move this call to top of run.
@@ -250,29 +253,34 @@ var TestSuite = class TestSuite{
     //the job's start method will call TestSuite.resume()
     static resume(){
         if (this.state){
+            if (this.state.started_job) { return } //can't resume until we finish the started_job
             for (let suite_index = this.state.current_suite_index;
                      suite_index < this.state.suites.length;
                      suite_index++){
-                this.state.current_suite_index = suite_index
+                if (this.state.started_job) { return } //IF the last test item we executed was starting a job,
+                                                       // then likely this.state.started_job will hold a job.
+                                                       //so we can't resume until that job is finished.
+                                                       // monitor_started_job will call resume when the job is finished.
                 let cur_suite = this.state.suites[suite_index]
                 if (typeof(cur_suite) == "string"){
                     cur_suite = window.eval(cur_suite)
                     this.state.suites[suite_index] = cur_suite
                 }
-                let report    = cur_suite.start(this.state.next_test_index)
-                if(report) {
-                    this.state.reports += report + "<br/>"
+                cur_suite.start(this.state.next_test_index) //try to get through all tests iin cur_suite,
+                if (this.state.started_job) { return }      //but if one is a job, we need to wait until its done
+                if(this.state.next_test_index == cur_suite.tests.length) { //done with cur_suite
+                    this.state.reports += cur_suite.report + "<br/>"
                     this.state.current_suite_index += 1 //mostly redundant with setting this above, but not if we're on the last suite.
                     this.state.next_test_index = 0 //don't do this above since we might be entering resume whule in the middle of some test suite
                 }
-                else { return } //suspend until TestSuite.resume() is called again.
+                //else { return } //suspend until TestSuite.resume() is called again.
             }
             this.state.end_time = Date.now()
             out(this.state.reports + this.summary())
             this.prev_state = this.state //allows for post-mortem examination.
             this.state = null
         }
-        else { dde_error("In TestSuite.resume, no state to resume from.") }
+        else { shouldnt("In TestSuite.resume, no state to resume from.") }
     }
 
     static summary(){
@@ -443,49 +451,81 @@ var TestSuite = class TestSuite{
         return TestSuite.run(this.name, starting_test_index)
     }
 
+    static monitor_started_job(){
+        if(this.state.started_job){
+            let job_status_code = this.state.started_job.status_code
+            if ((job_status_code == "errored") || (job_status_code == "interrupted")) {
+                let error_mess = this.state.started_job.status()
+
+                let suite_index = this.state.current_suite_index;
+                let cur_suite   = this.state.suites[suite_index]
+                cur_suite.unknown_failure_count += 1
+
+                cur_suite.report += "Test " + (this.state.next_test_index - 1) + " errored after starting Job: " + this.state.started_job.name + "<br/>"
+                clearInterval(this.state.started_job_monitor_set_interval)
+                this.state.started_job = null
+                this.resume()
+            }
+            else if (job_status_code == "completed"){
+                clearInterval(this.state.started_job_monitor_set_interval)
+                this.state.started_job = null
+                this.resume()
+            }
+        }
+    }
+
     //run a test suite
     static run(name, starting_test_index = 0){
-        console.log("Starting to run test suite: " + name)
+        console.log("Starting to run test suite: " + name + " at test: " + starting_test_index)
         var this_suite = TestSuite[name]
         if (!this_suite) {throw new Error("Attempted to run test suite: " + name + " but it isn't defined.")}
-        var report = ""
-        this_suite.unknown_failure_count = 0
-        this_suite.known_failure_count   = 0
         var start_time = Date.now()
         for(let test_number = starting_test_index; test_number < this_suite.tests.length; test_number++){
             var test     = this_suite.tests[test_number]
             //onsole.log("About to run test: " + test_number + " " + test)
-            let [status, error_message] = TestSuite.run_test_array(test, test_number, this_suite)
+            let [status, error_message] = TestSuite.run_test_array(test, test_number, this_suite) //does the core work of evaling one test in this_suite.
             this.state.next_test_index = test_number + 1
+            if (status == "suspend") {
+                let job_path_string = last(error_message.split(" "))
+                let job_instance = value_of_path(job_path_string)
+                try {
+                     this.state.started_job = job_instance
+                     this.state.started_job_monitor_set_interval = setInterval(function(){TestSuite.monitor_started_job()}, 100) //
+                        //we need the wrapper around TestSuite.monitor_started_job because otherwise it doesn't get called
+                        //with TestSuite as "this".
+                    job_instance.start(//{when_stopped: function() {TestSuite.resume()}}
+                    )
+                    return false //means we're suspending this TestSuite. No further action
+                    //in this TestSuite until the job finishes. thenTestSuite.resume is called
+                } //must be wrapped in a fn because
+                //this fun will be called when job finishes with a this of the job instance.
+                //but we want to call resume with a this of TestSuite
+                catch(err){
+                    status = "unknown"
+                    error_message = err.name + " Starting the job: " + job_instance.name + " errored. " +
+                                    err.message
+                }
+            }
             if (status == "known" ) {
-                report += error_message + "\n"
+                this_suite.report += error_message + "\n"
                 this_suite.known_failure_count   += 1
             }
             else if (status == "unknown") {
-                report += error_message + "\n"
+                this_suite.report += error_message + "\n"
                 this_suite.unknown_failure_count += 1
-            }
-            else if (status == "suspend") {
-                let job_path_string = last(error_message.split(" "))
-                let job_instance = value_of_path(job_path_string)
-                job_instance.start({when_stopped: function() {TestSuite.resume()}} ) //must be wraped in a fn because
-                //this fun will be called when job finishes with a this of the job instance.
-                //but we want to call resume with a this of TestSuite
-                return false //means we're suspending this TestSuite. No furterh action
-                //in this TestSuite until the job finishes. thenTestSuite.resume is called
             }
         }
         var stop_time = Date.now()
         var dur = stop_time - start_time
         var unknown_html = ((this_suite.unknown_failure_count == 0)? "0" :
             "<span style='color:red;'>" + this_suite.unknown_failure_count + "</span>")
-        report = "<b>Test Suite: " + this_suite.name + " Report</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style='font-size:14px;'>duration: " + dur + " ms</span><br/>" +
+        this_suite.report = "<b>Test Suite: " + this_suite.name + " Report</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style='font-size:14px;'>duration: " + dur + " ms</span><br/>" +
             "failures: unknown=" + unknown_html + ", known=" + this_suite.known_failure_count +
             " out of " + this_suite.tests.length +
             " tests. <i>(test numbering starts at 0)</i><br/>" +
-            report
-        this_suite.report = report
-        return report
+            this_suite.report //the details are stored in here until we do this last step of putting the
+                              //header on it.
+        return this_suite.report
     }
 
     //when called normally, suspend_jobs defaults to true.
@@ -520,9 +560,9 @@ var TestSuite = class TestSuite{
         catch(err) {
            status = "unknown"
            error_message = test_number_html + src + " errored with: " + err +
-                           "<br/> Test Source: " + src +
-                           "<br/> Prev Test Source: " + window.prev_src +
-                           "<br/> Prev-prev Test Source: " + window.prev_prev_src
+                           "<br/> &nbsp;&nbsp; Test Source: " + src +
+                           "<br/> &nbsp;&nbsp; Prev Test Source: " + window.prev_src +
+                           "<br/> &nbsp;&nbsp; Prev-prev Test Source: " + window.prev_prev_src + "<br/>"
             window.prev_prev_src  =   window.prev_src
             window.prev_src = src
            return [status, error_message]
@@ -533,8 +573,15 @@ var TestSuite = class TestSuite{
                 error_message =  test_number_html + " suspended until finish of Job." + src_result.name //this error message just end in " Job.foo" as that's used by run_test_array caller
             }
             else { //don't suspend, no error message
-               src_result.start() //don't add resume, jsut let the job run and user decides when its done
-                 //to manually go to the next item
+               try { src_result.start()} //don't add resume, justt let the job run and user decides when its done
+                                   //to manually go to the next item
+               catch(err) {
+                   TestSuite.last_expected_error_message = err.name + ' ' +
+                   " Starting the job: " + src_result.name + " errored. "
+                   err.message +
+                       " with expected source: " + expected + "<br/>"
+                   return ["unknown", TestSuite.last_expected_error_message]
+               }
             }
          }
         else if(test.length == 1) {
@@ -884,16 +931,25 @@ var TestSuite = class TestSuite{
             var a_test_suite_tests = []
             for (let code_elt of code_elts){
                 let src = code_elt.innerText
-                if (code_elt.title.startsWith("unstartable")) {
-                    src = "[" + src +"]" //now src won't eval to a job so it won't be started and trigger the suspend/resume mechanism,
+                let fixed_src = src
+                if (code_elt.title.startsWith("unstartable")) {//we expect src to have "new Job" in it, probably
+                    //at the beginning. But 7 of such src's  will have 2 "new Job" s in it for the ref man of Dec 2018.
+                    //so if we wrap it in square brackets, it will error unless we stick
+                    //commas in front of the non-initial "new Job"s. Bit of a kludge.
+                    src = src.trim()
+                    fixed_src = src
+                    for (let i = 0; i < src.length; i++) {
+                        if ((i != 0) && (src.startsWith("new Job(", i))) {
+                            fixed_src = src.substring(0, i) + " , " + src.substring(i)
+                            i = i + 10 //skip passed new inserted code and the found new Job substring
+                        }
+                    }
+                    fixed_src = "[" + fixed_src +"]" //now src won't eval to a job so it won't be started and trigger the suspend/resume mechanism,
                     //but below we will still EVAL the job so that we can at least test
                     //that the job gets defined without error.
-                    //beware though, if src contaiins > 1 top level expr. this
-                    //fails badly as no comma betweeen the top level elts now that its an array.
-                    //this is a very confusing bug to fix in the test suite.
                 }
-                if (!code_elt.title || (code_elt.title.startsWith("unstartable"))){  //(src[0] != " ")
-                    var a_test = [src]
+                if (!code_elt.title || (code_elt.title.startsWith("unstartable"))){
+                    var a_test = [fixed_src]
                     var next_elt = code_elt.nextElementSibling
                     if (next_elt && (next_elt.tagName == "SAMP")){
                         a_test.push(next_elt.innerText)

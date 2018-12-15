@@ -89,9 +89,16 @@
         and on the desktop.<br/>
         On Mac, <samp>Macintosh HD/Applications/dever_dev_env.app</samp>
         <p></p>
-        Double click on the file to launch DDE. If there is a file
+        Double click on the file to launch DDE.<br/>
+        The first time you launch, you will be told that you need to create a
+        dde_apps folder under your Documents folder.
+        The message you get should include the full path of this folder.
+        For instance, on MacOS it will be "/Users/your_name/Documents/dde_apps/".
+        <br/>
+        If there is a file
         <samp>Documents/dde_apps/dde_init.js</samp>, it will be
-        loaded automatically. Thus you can put any code in that file
+        loaded automatically. (If it does not exist in that folder, a new one
+        will be made.) Thus you can put any code in that file
         that you want to be evaled at start-up, such as libraries you've
         written, etc.
     </details>
@@ -125,7 +132,7 @@
     is typically <code>"50000"</code>.
 </details>
 
-<details class="doc_details"><summary>Configure Dexter</summary>
+<details id="configure_dexter_id" class="doc_details"><summary>Configure Dexter</summary>
     <details class="doc_details"><summary>Key Parts</summary>
      Dexter has 5 joints and 5 links between them. The two longest links
     are each about 32 centimeters long and made of square carbon fiber tubes.
@@ -203,11 +210,16 @@ Each indicates that a joint has power.
     <p></p>
     For connecting an Apple MacBook to Dexter, we recommend
     <a target="_blank" href="https://www.apple.com/shop/product/MC704LL/A/apple-usb-ethernet-adapter?afid=p238%7Cs6ZAsQ09l-dc_mtid_1870765e38482_pcrid_52243316890_&cid=aos-us-kwgo-pla-btb--slid--product-MC704LL/A">Apple USB Ethernet Adapter</a>.
-
-    <p></p>Instead of getting a USB to Ethernet adaptor, you can use a USB cable that
+    However, Apple does a great job of changing their connectors every year or two so that
+    your old peripherals won't work. For instance, on the 2018 MacBook Pro, the <i>only</i>
+    connector they have is USB-C. USB-C has a lot of functionality, but
+    the connector is physically different than previous USB connectors. Be careful
+    when getting an Ethernet adaptor that it matches the socket on your computer.
+    <p></p>
+    <!--Instead of getting a USB to Ethernet adaptor, you can use a USB cable that
     has a male micro USB and a regular (larger) USB male.
     The micro USB male plugs into the micro USB socket on Dexter's processor board.
-    See the <b>Key Parts</b> section above for how to find the micro USB socket.
+    See the <b>Key Parts</b> section above for how to find the micro USB socket. -->
     <p></p>
     The software setup for such direct-wire connectivity is a bit tricky.
         First, make sure your cable is plugged into and firmly seating in
@@ -245,8 +257,9 @@ Each indicates that a joint has power.
              all the possible connections. Apple cleverly made this column too
              narrow to be useful, so hover your mouse over each items to
              be able to read one in full. You're looking for a USB to Ethernet connection.
+             Look for one with the phrase "Connected" under it.
              For the dongle we recommend above, it will be labeled
-             "Apple USB Eithernet Adaptor"</li>
+             "Apple USB Ethernet Adaptor"</li>
          <li>Clicking on the connection changes the inputs to the right.<br/>
              For the <b>Configure IPV4</b> field, choose <code title="unEVALable">Manually</code><br/>
              Choosing Manually causes the inputs below it to change.<br/>
@@ -311,7 +324,7 @@ Each indicates that a joint has power.
         </ul>
         If you have just one Dexter, use the correct IP address to redefine
         dexter0 in your dde_apps/init_dde.js file like so:
-        <pre><code>
+        <pre><code title="not in TestSuite"> <!-- because that would be redefining dexter0 from what the user might have had with a different ip address -->
         new Dexter({name: "dexter0", ip_address: "192.168.1.142"})
         </code></pre>
         You can insert the definition of a Dexter in the Jobs menu/Run Instruction/Show Dialog.
@@ -701,7 +714,7 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
                 a do_list item, it will cause a JavaScript breakpoint and you
                 can step through that code using the Chrome dev tools.
                 See Documentation top level section <b>Debugging</b>.
-            </details> <!--end debugger-->
+            </details> <!--end d ebugger-->
         </details> <!--end stepping instructions -->
     </details>  <!-- end simulate pane -->
  </details> <!-- end user interface -->

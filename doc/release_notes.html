@@ -6,6 +6,78 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 3.0.1, Dec 14, 2018</summary>
+Note: DDE version 3.0.0 is the same code as DDE version 2.5.13.
+The "2" branch is the long term support version intended to be stable.
+We will fix bugs in the LTS branch but not add features.
+<p></p>
+The "3" branch is the "development branch" which has bug fixs as well as new features.<br/>
+3.0.1 is the first development release since creating the LTS branch.
+<p></p>
+Highlights: All Dexter instruction calls can now take a subject
+ of a dexter instance as well as their usual Dexter class.<br/>
+ ping improved.<br/>
+ TestSuite fixes for running test suites NOT under simulation.
+<ul>
+    <li>When you Eval some code in the editor, an error message is printed
+        in the output pane. But until now, the evaled code didn't appear
+        after "Eval result" in the output pane IF the code errored.
+        Now it does, clarifying which code produced the error.</li>
+
+    <li> Ref Man <code>Robot.loop</code> improved doc for an array first arg.</li>
+
+    <li> Removed calls to "debugger" esp in <code>ping</code> code.
+          Removed comments of "debugger" just to get rid of the noise when searching.</li>
+
+    <li> ping:  when pinging a single address and its true, you
+        can now click a link to insert the dexter def just like when pinging a range of numbers.</li>
+
+    <li> ping: You can have an address with a * in it
+        to ping 10 addresses. Now documented in the ping dialog box.</li>
+
+    <li> The mathjs npm package is now installed in DDE.<br/>
+        To try it:<br/>
+        var math = require('mathjs')<br/>
+        math.sqrt(-4)<br/>
+        Doc: http://mathjs.org/docs/index.html</li>
+
+    <li> TestSuite: TesSuite Menu/Insert Example now inserts an example
+        who's summary is consistent with the actual number of failed tests.</li>
+
+    <li> TestSuite: lots of fixes for starting Jobs in the test suite,
+        including both changes to the test running code as well as
+        some of the examples in the Ref Man.
+        This fixes cases of attempting to run all the test suites
+        not under simulation when dexter0 isn't at the default IP address.
+        Also, removed from testSuite, the code in User Guide that defines dexter0
+        so as not to impact a user that intentionally put dexter at a non-default
+        ip_address.</li>
+
+    <li> New function: <code>add_robot_to_instruction(inst, robot)</code>
+         New function: <code>add_robot_to_instructions(inst_array, robot)</code></li>
+
+    <li> Ref Man Dexter Utilities now has doc for add_robot_to_instruction
+        and add_robot_to_instructions.</li>
+
+    <li> There are now Dexter instance versions of ALL Dexter instructions
+         including:<br/>
+        <code>make_ins</code><br/>
+        <code>Dexter.draw_dxf</code>: fixed link lengths default args.
+            restored original link lengths at end of processing
+            added robot as a possible last arg.<br/>
+            The 4 set mode instructions have also been extended to accept a robot.</li>
+
+    <li> Ref Man Dexter Instructions and Dexter Modes extended to
+        describe the new optional Dexter instance subject.</li>
+
+    <li> Added file: DEXTER_logo.dxf, under the examples folder.
+         This contains the dxf for drawing the string "DEXTER".</li>
+
+    <li> Extended Getting Started and the User Guide/First Launch and
+    "On MacOS" to make connecting your computer to Dexter clearer. </li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 2.5.13, Nov 20, 2018</summary>
     Highlights: bug fixes.
 <ul>

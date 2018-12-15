@@ -4417,7 +4417,7 @@ The one argument can be:
     <i>Example</i>:<pre><code title="unstartable in TestSuite"> new Job({name: "my_job",
          do_list: [Robot.out("first instruction"),
                    Robot.wait_until("new_instruction")]})
-Job.my_job.start()</code></pre>
+    </code></pre>
         Evaling <code title="unEVALable code fragment"> Job.my_job.start()</code><br/>
         causes "first instruction" to be printed out, then the
         job pauses until an instruction is inserted into the do_list right after this "wait_until" instruction.<pre>
@@ -4528,7 +4528,18 @@ The parameters used to define an instance of Dexter are:
 </details> <!-- end new Dexter parameters -->
 
 <details class="doc_details"><summary>Dexter Instructions</summary>
-
+All of the Dexter instructions can take a Dexter instance i.e. <code>Robot.dexter0</code>
+as a subject to the call. That will direct the instruction to that Dexter.
+The subject in an instruction call can also be the Dexter class, i.e. <code>Dexter</code>
+in which case the instruction will go to the robot of the job. This is the
+normal case.<br/>
+This makes it easy for one job to control multiple robots and for
+one job to just use one <i>default</i> robot as is most common.<br/>
+<i>Examples</i> of instructions in a Job's do_list:
+<pre><code>
+  Dexter.move_all_joints([30, 40])
+  Robot.dexter0.move_all_joints([30, 40])
+</code></pre>
 
 <details id="Dexter.draw_dxf_doc_id" class="doc_details"><summary>draw_dxf</summary>
     <code>Dexter.draw_dxf</code> accepts the name of a file as input along with other information,
@@ -4556,8 +4567,8 @@ The parameters used to define an instance of Dexter are:
     pops up a choose file dialog to ask for the dxf file you want to draw.
     <p></p>
     You may CALL this function at Job definition time like so:<br/>
-    <pre><code title="unstartable in TestSuite">new Job({name: "Draw",
-    do_list: [Dexter.draw_dxf({dxf_filepath: "foo.dxf" ...})]})
+    <pre><code title="unEVALable">new Job({name: "Draw",
+    do_list: [Dexter.draw_dxf({dxf_filepath: "foo.dxf"})]})
     </code></pre>
     or call it at run instruction time like so:
     <pre><code title="unstartable in TestSuite">new Job({name: "Draw",
@@ -5070,9 +5081,13 @@ This is done by putting any one of the following Dexter instructions
 into a job. When the instruction is run, Dexter will go into that mode.
 <p></p>
 Dexter maintains the last mode it was set to even across jobs, across DDE launches,
-and across power cycling Dexter. <p></p>
-The default mode is <i>set_keep_position</i>.<br/>
-None of these instructions take arguments.
+and across power cycling Dexter.
+<p></p>
+The default mode is <i>set_keep_position</i>
+<p></p>
+All of these instructions take an optional Dexter instance argument.
+If it is not passed, the instruction will be sent to the Job's robot.
+If it is passed, the instruction will be sent to that robot.
     <details id="Dexter.set_follow_me_doc_id" class="doc_details"><summary>set_follow_me</summary>
         The joints are freed up and the user can drag Dexter's end-effector.
         Dexter's motion instructions (move_to, move_all_joints, etc.) will not work in this mode.
@@ -5246,6 +5261,42 @@ None of these instructions take arguments.
 
 
 <details  class="doc_details"><summary>Dexter Utilities</summary>
+<details id="Instruction.add_robot_to_instruction_id" class="doc_details"><summary>add_robot_to_instruction</summary>
+This static method on the Instructon class adds the given robot to the instruction.
+If the instruction already has a robot, it is replaced. If there is no robot,
+the instruction is given one.
+If the instruction cannot take a robot, nothing is done.<br/>
+<i>Parameters:</i><br/>
+<b>instruction</b> Required. Any kind of instruction that a job can accept can be passed.
+An array instruction and an Instruction instance of the "move" kind will be modified
+with the passed in robot.<br/>
+<b>robot</b> Default: <code>undefined</code> The given robot will be added to
+the instruction, if it accepts one. If robot is <code>undefined</code>, the
+instruction will not be modified.
+<p></p>
+The possibly modified instruction will be returned.<br/>
+<i>Example:</i>
+<code>Instruction.add_robot_to_instruction(Dexter.move_all_joints([30, 40]), Robot.dexter0)</code><br/>
+Note that a simpler way to accomplish the above is:<br/>
+<code>Robot.dexter0.move_all_joints([30, 40])</code><br/>
+This function is primarily used to implement <code>Instruction.add_robot_to_instructions</code>
+</details>
+
+<details id="Instruction.add_robot_to_instructions" class="doc_details"><summary>add_robot_to_instructions</summary>
+This static method on the Instruction class adds the given robot to each of the passed in instructions
+by calling <code>Instruction.add_robot_to_instruction</code>.<br/>
+<i>Parameters:</i><br/>
+<b>instructions</b> Default <code>[]</code>. An array of any kind of instruction
+that a job can accept can be passed.<br/>
+<b>robot</b> Default: <code>undefined</code>. The given robot will be added to
+each passed in instruction, if it accepts one. If robot is <code>undefined</code>, the
+instruction will not be modified.<br/>
+<i>Example:</i>
+<code>Instruction.add_robot_to_instructions([Dexter.move_all_joints([30, 40])], Robot.dexter0)</code>
+<p></p>
+See <a href="#" onclick="open_doc('Instruction.add_robot_to_instruction_id')">Instruction.add_robot_to_instruction</a>
+for details.
+</details>
 
 <details id="Robot.dexter0.joint_angle_doc_id" class="doc_details"><summary>joint_angle</summary>
 Returns the present angle of the joint indicated in the argument in arc_seconds.

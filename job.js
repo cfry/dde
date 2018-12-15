@@ -1228,10 +1228,6 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
         else if (Instruction.is_start_object(cur_do_item)){
             this.handle_start_object(cur_do_item)
         }
-        /*else if (cur_do_item == "debugger"){
-            Job.set_go_button_state(false)
-            this.set_up_next_do(1)
-        }*/
         else {
             this.stop_for_reason("errored", "Job: " + this.name + " got illegal do_item on do_list of: " +
                                             stringify_value(cur_do_item))

@@ -19,7 +19,7 @@ Js_info = class Js_info {
                         return "<span style='color:blue;'>" + fn_name[1] + "</span> is a " + Js_info.make_atag("let", "let") + " variable of function: " + fn_name[2]
                     case "fn_name":
                         return Js_info.get_info_string_aux(orig_input)
-                    default: //shouldn't but stick in for debugging
+                    default: //shouldn't but stick in for d ebugging
                         return "" + fn_name
                 }
             }

@@ -2,7 +2,7 @@
 //James Wigglesworth
 //Fry 
 
-function setFollowMe(){
+function setFollowMe(robot){
 	let pidXYZ  = 0x3e4ecccc //not set in this file
 	let pidRP   = 0x3cf5c28f
 	let pidBase = 0x3e4ecccc
@@ -13,7 +13,7 @@ function setFollowMe(){
 	let SPEED_FACTORA = 27
 	let DEF_SPEED_FACTOR_A    = 30
 	let DEF_SPEED_FACTOR_DIFF = 8
-	return [
+	let result = [
         make_ins("w", DIFF_FORCE_SPEED_FACTOR_ANGLE, DEF_SPEED_FACTOR_DIFF),
         make_ins("w", DIFF_FORCE_SPEED_FACTOR_ROT, DEF_SPEED_FACTOR_DIFF),
         make_ins("w", PID_P, 0),
@@ -41,9 +41,11 @@ function setFollowMe(){
         make_ins("w", 81, 50 ^ 200) ,
         make_ins("w", 42, 12448)
     ]
+    Instruction.add_robot_to_instructions(result)
+    return result
 }
 
-function setForceProtect(){
+function setForceProtect(robot){
 	let pidXYZ  = 0x3e4ecccc //not set in this file
 	let pidRP   = 0x3cf5c28f
 	let pidBase = 0x3e4ecccc
@@ -54,7 +56,7 @@ function setForceProtect(){
 	let SPEED_FACTORA = 27
 	let DEF_SPEED_FACTOR_A    = 30
 	let DEF_SPEED_FACTOR_DIFF = 8
-	return [
+	let result = [
         make_ins("w", DIFF_FORCE_SPEED_FACTOR_ANGLE, 3),
         make_ins("w", DIFF_FORCE_SPEED_FACTOR_ROT, 3),
         make_ins("w", SPEED_FACTORA, 10),
@@ -78,9 +80,11 @@ function setForceProtect(){
         make_ins("w", 71, 9000),
         make_ins("w", 42, 12448)
     ]
+    Instruction.add_robot_to_instructions(result)
+    return result
 }
 
-function setKeepPosition(){
+function setKeepPosition(robot){
 	let pidXYZ  = 0x3e4ecccc //not set in this file
 	let pidRP   = 0x3cf5c28f
 	let pidBase = 0x3e4ecccc
@@ -91,7 +95,7 @@ function setKeepPosition(){
 	let SPEED_FACTORA = 27
 	let DEF_SPEED_FACTOR_A    = 30
 	let DEF_SPEED_FACTOR_DIFF = 8
-	return [
+	let result = [
         make_ins("w", DIFF_FORCE_SPEED_FACTOR_ANGLE, 0),
         make_ins("w", DIFF_FORCE_SPEED_FACTOR_ROT, 0),
         make_ins("w", PID_ADDRESS, 0),
@@ -107,9 +111,11 @@ function setKeepPosition(){
   	    make_ins("w", SPEED_FACTORA, 0),
         make_ins("w", 42, 12960)
     ]
+    Instruction.add_robot_to_instructions(result)
+    return result
 }
 
-function setOpenLoop(){
+function setOpenLoop(robot){
 	let pidXYZ  = 0x3e4ecccc //not set in this file
 	let pidRP   = 0x3cf5c28f
 	let pidBase = 0x3e4ecccc
@@ -120,7 +126,7 @@ function setOpenLoop(){
 	let SPEED_FACTORA = 27
 	let DEF_SPEED_FACTOR_A    = 30
 	let DEF_SPEED_FACTOR_DIFF = 8
-	return [
+	let result = [
         make_ins("w", DIFF_FORCE_SPEED_FACTOR_ANGLE, 0),
         make_ins("w", DIFF_FORCE_SPEED_FACTOR_ROT, 0),
 	    make_ins("w", PID_ADDRESS, 0),
@@ -135,4 +141,6 @@ function setOpenLoop(){
   	    make_ins("w", SPEED_FACTORA, 0),
         make_ins("w", 42, 12960)
     ]
+    Instruction.add_robot_to_instructions(result)
+    return result
 }

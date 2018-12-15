@@ -19,7 +19,7 @@ new Job({name: "pic_sim",
                     task: "Click continue to snap the 2nd picture.",
                     x: 250, y: 60, height: 140, width: 330}),
         Robot.take_picture({callback: "foreground_pic"}),
-        function() {//debugger;
+        function() {
                     let sim = Picture.mats_similarity_by_color( //mats_similarity_by_average_color, mats_similarity_by_detect_blobs
                         {mat_in1: this.user_data.background_pic,
                          mat_in2: this.user_data.foreground_pic})

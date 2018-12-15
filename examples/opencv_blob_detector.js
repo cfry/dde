@@ -43,7 +43,6 @@ sbd_params.maxConvexity = 1;    //0 to 1. 1 means no concave parts of the perime
 var sbd_sort_by = "size"
 
 function handle_keypoints_opencv(vals){
-    //debugger
     if      (vals.clicked_button_value == "sort_by_x")    { sbd_sort_by = "x" }
     else if (vals.clicked_button_value == "sort_by_y")    { sbd_sort_by = "y" }
     else if (vals.clicked_button_value == "sort_by_size_id") { sbd_sort_by = "size" }
@@ -104,7 +103,6 @@ function display_keypoint_data(keypoints){
     let data_html = "<table>"
     let number_of_points = keypoints.size()
     let points_array = keypoints_to_array(keypoints)
-    //debugger
     if (sbd_sort_by == "pt") {}
     else if ((sbd_sort_by == "x") || (sbd_sort_by == "y")) {
        points_array.sort(function(a, b) { 

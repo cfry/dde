@@ -74,7 +74,7 @@ function eval_js_part1(step=false){
             catch(e) { dde_error("Error parsing DefEng: " + e.message) }
             //out("<code>" + src + "</code>") //don't need this as JS is printed in Output pane after "Eval result of"
         }
-        //must add "debugger" after converting DefEng to JS.
+        //must add "d ebugger" after converting DefEng to JS.
         eval_js_part2((step? "debugger; ": "") + src)
     }
 }

@@ -1406,10 +1406,16 @@ Dexter.OUT             = [null, null, 1]
 //called only for testing purposes. Goes all the way through to the simulate
 //or dexter, unlike Job.error
 Dexter.capture_ad     = function(...args){ return make_ins("c", ...args) }
-Dexter.capture_points = function(...args){ return make_ins("i", ...args) }
-Dexter.cause_error    = function(error_code=1){ return make_ins("e", error_code) } //fry made up. useful for testing
+Dexter.prototype.capture_ad = function(...args){ args.push(this); return Dexter.capture_ad(...args) }
+
+Dexter.capture_points           = function(...args){ return make_ins("i", ...args) }
+Dexter.prototype.capture_points = function(...args){ args.push(this); return Dexter.capture_points(...args) }
+
+Dexter.cause_error              = function(error_code=1){ return make_ins("e", error_code) } //fry made up. useful for testing
+Dexter.prototype.cause_error    = function(error_code=1){ return make_ins("e", error_code, this) }
 
 Dexter.draw_dxf   //set to DXF.dxf_to_instructions in ready.js
+Dexter.prototype.draw_dxf //set in ready.js
 
 Dexter.dummy_move = function(){
     let CMD = []
@@ -1418,6 +1424,18 @@ Dexter.dummy_move = function(){
         let rs = this.robot.robot_status //Dexter.my_dex.robot_status
         let J_angles = [rs[Dexter.J1_MEASURED_ANGLE], rs[Dexter.J2_MEASURED_ANGLE], rs[Dexter.J3_MEASURED_ANGLE], rs[Dexter.J4_MEASURED_ANGLE], rs[Dexter.J5_MEASURED_ANGLE]]
         return Dexter.move_all_joints(J_angles)
+    })
+    return CMD
+}
+
+Dexter.prototype.dummy_move = function(){
+    let robot = this
+    let CMD = []
+    CMD.push(function(){return robot.get_robot_status()})
+    CMD.push(function(){
+        let rs = robot.robot_status //Dexter.my_dex.robot_status
+        let J_angles = [rs[Dexter.J1_MEASURED_ANGLE], rs[Dexter.J2_MEASURED_ANGLE], rs[Dexter.J3_MEASURED_ANGLE], rs[Dexter.J4_MEASURED_ANGLE], rs[Dexter.J5_MEASURED_ANGLE]]
+        return robot.move_all_joints(J_angles)
     })
     return CMD
 }
@@ -1442,29 +1460,53 @@ Dexter.run_gcode      = function({gcode = "", filepath = null, workspace_pose = 
                             }
                         }
 
-Dexter.dma_read       = function(...args){ return make_ins("d", ...args) }
-Dexter.dma_write      = function(...args){ return make_ins("t", ...args) }
-Dexter.exit           = function(...args){ return make_ins("x", ...args) }
-Dexter.empty_instruction_queue_immediately = function() { return make_ins("E") }
-Dexter.empty_instruction_queue             = function() { return make_ins("F") }
+Dexter.dma_read           = function(...args){ return make_ins("d", ...args) }
+Dexter.prototype.dma_read = function(...args){ args.push(this); return Dexter.dma_read(...args) }
 
-Dexter.find_home      = function(...args){ return make_ins("f", ...args) }
-Dexter.find_home_rep  = function(...args){ return make_ins("p", ...args) }
-Dexter.find_index     = function(...args){ return make_ins("n", ...args) }
+Dexter.dma_write           = function(...args){ return make_ins("t", ...args) }
+Dexter.prototype.dma_write = function(...args){ args.push(this); return Dexter.dma_write(...args) }
+
+Dexter.exit           = function(...args){ return make_ins("x", ...args) }
+Dexter.prototype.exit = function(...args){ args.push(this); return Dexter.exit(...args) }
+
+
+Dexter.empty_instruction_queue_immediately           = function() { return make_ins("E") }
+Dexter.prototype.empty_instruction_queue_immediately = function(...args){ args.push(this); return Dexter.empty_instruction_queue_immediately(...args) }
+
+Dexter.empty_instruction_queue           = function() { return make_ins("F") }
+Dexter.prototype.empty_instruction_queue = function(...args){ args.push(this); return Dexter.empty_instruction_queue(...args) }
+
+
+Dexter.find_home           = function(...args){ return make_ins("f", ...args) }
+Dexter.prototype.find_home = function(...args){ args.push(this); return Dexter.find_home(...args) }
+
+Dexter.find_home_rep           = function(...args){ return make_ins("p", ...args) }
+Dexter.prototype.find_home_rep = function(...args){ args.push(this); return Dexter.find_home_rep(...args) }
+
+
+Dexter.find_index           = function(...args){ return make_ins("n", ...args) }
+Dexter.prototype.find_index = function(...args){ args.push(this); return Dexter.find_index(...args) }
+
+
 Dexter.get_robot_status = function(){ return make_ins("g") }
+Dexter.prototype.get_robot_status = function(){ return Dexter.get_robot_status(this) }
+
     //this forces do_next_item to wait until robot_status is
     //updated before it runs any more do list items.
-Dexter.get_robot_status_heartbeat   = function(){ return make_ins("h") }//never called by user do_list items. Only called by system
-Dexter.get_robot_status_immediately = function(){ return make_ins("G") }
+Dexter.get_robot_status_heartbeat           = function(){ return make_ins("h") }//never called by user do_list items. Only called by system
+Dexter.prototype.get_robot_status_heartbeat = function(){ return Dexter.get_robot_status_heartbeat(this) }
 
-
-
+Dexter.get_robot_status_immediately           = function(){ return make_ins("G") }
+Dexter.prototype.get_robot_status_immediately = function(){ return Dexter.get_robot_status_immediately(this) }
 
 //pass in an array of up to 5 elts OR up to 5 separate args.
 //If an arg is not present or null, keep the value now in dexer_status unchanged.
 //EXCEPT if no args passed in, set to home position.
 Dexter.load_tables     = function(...args){ return make_ins("l", ...args) } //
 //loads the data created from calibration onto the SD card for persistent storage.
+Dexter.prototype.load_tables = function(...args){ args.push(this); return Dexter.load_tables(...args) }
+
+
 
 Dexter.make_ins = make_ins
 
@@ -1477,6 +1519,9 @@ Dexter.prototype.make_ins = function(instruction_type, ...args){
 
 Dexter.move_home = function(){ //move straight up
     return Dexter.move_all_joints(Dexter.HOME_ANGLES)
+}
+Dexter.prototype.move_home = function(){
+    return this.move_all_joints(Dexter.HOME_ANGLES)
 }
 
 Dexter.check_joint_limits = false
@@ -1698,8 +1743,14 @@ Dexter.move_to_straight = function({xyz          = "required",
                                                     robot: robot})
 }
 
-Dexter.record_movement = function(...args){ return make_ins("m", ...args) }
-Dexter.replay_movement = function(...args){ return make_ins("o", ...args) }
+Dexter.record_movement           = function(...args){ return make_ins("m", ...args) }
+Dexter.prototype.record_movement = function(...args){ args.push(this); return Dexter.record_movement(...args) }
+
+
+Dexter.replay_movement           = function(...args){ return make_ins("o", ...args) }
+Dexter.prototype.replay_movement = function(...args){ args.push(this); return Dexter.replay_movement(...args) }
+
+
 Dexter.set_parameter   = function(name="Acceleration", value){
                               if (name == "StartSpeed") {
                                   if (value < 0){
@@ -1719,39 +1770,36 @@ Dexter.set_parameter   = function(name="Acceleration", value){
                               }
                               return make_ins("S", name, value)
                          }
-Dexter.sleep           = function(seconds){ return make_ins("z", seconds) }
-Dexter.slow_move       = function(...args){ return make_ins("s", ...args) }
-Dexter.write           = function(...args){ return make_ins("w", ...args) }
+Dexter.prototype.set_parameter = function(name="Acceleration", value){
+                                    if (name == "StartSpeed") {
+                                        if (value < 0){
+                                            dde_error("Dexter.set_parameter called with StartSpeed of: " + value +
+                                                " but it must be greater than or equal to zero.")
+                                        }
+                                    }
+                                    else if (name == "MaxSpeed") {
+                                        if (value <= 0){
+                                            dde_error("Dexter.set_parameter called with MaxSpeed of: " + value +
+                                                " but it must be greater than zero.")
+                                        }
+                                        else if (value < (1 / _nbits_cf)){
+                                            warning("Dexter.set_parameter called with MaxSpeed of: " + value +
+                                                " which is too low.<br/>MaxSpeed set to the minimum permissible speed of: " + (1 / _nbits_cf))
+                                        }
+                                    }
+                                    return make_ins("S", name, value, this)
+                                }
 
-/*Dexter.write_to_robot = function(a_string="", file_name=null){
-    let max_content_chars = 64 //244 //252 //ie 256 - 4 for (instruction_id, oplet, suboplet, length
-    let next_start_index = 0
-    let instrs = []
-    if (file_name){
-        instrs.push(make_ins("W", "f", 0, file_name))
-    }
-    else if (a_string.length <= max_content_chars){ //WHOLE string fits in 1 instruction
-        return make_ins("W", "w", a_string.length, a_string)
-    }
-    else {
-        instrs.push(make_ins("W", "s", max_content_chars, a_string.substring(next_start_index, max_content_chars)))
-        next_start_index += max_content_chars
-    }
-    while(next_start_index < a_string.length){
-        let chars_left = a_string.length - next_start_index
-        if (chars_left <= max_content_chars){
-            instrs.push(make_ins("W", "e", chars_left, a_string.substring(next_start_index, a_string.length)))
-            return instrs
-            //break; //while doesn't support break due to bad js design
-        }
-        else {
-            instrs.push(make_ins("W", "m", max_content_chars, a_string.substring(next_start_index, next_start_index + max_content_chars)))
-            next_start_index += max_content_chars
-        }
-    }
-    shouldnt("Dexter.write_to_robot didn't return out of its last while loop iteration.")
-}
-*/
+
+Dexter.sleep           = function(seconds){ return make_ins("z", seconds) }
+Dexter.prototype.sleep = function(seconds){ return make_ins("z", seconds, this) }
+
+Dexter.slow_move           = function(...args){ return make_ins("s", ...args) }
+Dexter.prototype.slow_move = function(...args){ args.push(this); return Dexter.slow_move(...args) }
+
+Dexter.write           = function(...args){ return make_ins("w", ...args) }
+Dexter.prototype.write = function(...args){ args.push(this); return Dexter.write(...args) }
+
 Dexter.socket_encode = function(char){
     let code = char.charCodeAt(0)
     if((0x00 == code) || (0x3B == code) || (0x25 == code)){
@@ -1778,6 +1826,25 @@ Dexter.write_to_robot = function(a_string="", file_name=null){
     instrs.push(make_ins("W", "e", payload.length, payload)) //close the file
     return instrs
 }
+
+Dexter.prototype.write_to_robot = function(a_string="", file_name=null){
+    let max_content_chars = 62 //244 //252 //ie 256 - 4 for (instruction_id, oplet, suboplet, length
+    //payload can be max_contect_chars + 2 long if last character is escaped
+    let payload = ""
+    let instrs = []
+    if (file_name){
+        instrs.push(make_ins("W", "f", 0, file_name, this))
+    }
+    for(let char of a_string) {
+        payload += Dexter.socket_encode(char)
+        if (payload.length >= max_content_chars) {
+            instrs.push(make_ins("W", "m", payload.length, payload, this))
+            payload = ""
+        }
+    }
+    instrs.push(make_ins("W", "e", payload.length, payload, this)) //close the file
+    return instrs
+}
 /*testing code
     var data = ""
 //for (var i = 255; i > 0; i--) { //top to bottom
@@ -1795,12 +1862,23 @@ new Job({name: "my_job",
 Dexter.read_from_robot = function (source, destination){
     return new Instruction.Control.read_from_robot(source, destination)
 }
+Dexter.prototype.read_from_robot = function (source, destination){
+    return new Instruction.Control.read_from_robot(source, destination, this)
+}
 
 //from Dexter_Modes.js (these are instructions. The fns return an array of instructions
-Dexter.set_follow_me          = function(){ return setFollowMe() }
-Dexter.set_force_protect      = function(){ return setForceProtect() }
-Dexter.set_keep_position      = function(){ return setKeepPosition() }
-Dexter.set_open_loop          = function(){ return setOpenLoop() }
+Dexter.set_follow_me                = function(){ return setFollowMe() }
+Dexter.prototype.set_follow_me      = function(){ return setFollowMe(this) }
+
+Dexter.set_force_protect            = function(){ return setForceProtect() }
+Dexter.prototype.set_force_protect  = function(){ return set_force_protect(this) }
+
+Dexter.set_keep_position            = function(){ return setKeepPosition() }
+Dexter.prototype.set_keep_position  = function(){ return set_keep_position(this) }
+
+Dexter.set_open_loop                = function(){ return setOpenLoop() }
+Dexter.prototype.set_open_loop      = function(){ return set_open_loop(this) }
+
 
 //End Dexter Instructions
 //____________Dexter Database______________
@@ -2274,206 +2352,6 @@ Dexter.robot_status_to_html_table = function(ds){
         return result
 }
 
-//_________updating robot status___________
-//only called from the menu bar Jobs/show robot status item
-//Always makes a new window
-Dexter.show_robot_status = function(event){
-    debugger
-    let robot = (Job.last_job? Job.last_job.robot : Robot.dexter0)
-    let content = Dexter.update_robot_status_to_html_table(robot)
-    show_window({content: content,
-        title:  "<span style='font-size:16px;'>Robot Status of</span> " +
-        Dexter.update_robot_status_names_menu_html(robot) +
-        "<span style='font-size:12px;margin-left:10px;'> Updated: <span id='robot_status_window_time_id'>" + Dexter.update_time_string() + "</span></span>" +
-        " <button title='Defines and starts a Job&#13; that continually gets the robot status&#13;of the selected robot.&#13;Click again to stop that Job.'" +
-                " onclick='Dexter.robot_status_run_update_job()'>run update job</button>",
-        width:  860,
-        height: 380
-    })
-    setTimeout(Dexter.update_robot_status_init, 300)
-}
-
-Dexter.update_robot_status_window_up = function(){
-    return (update_robot_status_names_select_id ? true : false)
-}
-
-//returns null if no update_robot_status window up, or if it doesn't have a robot selectec
-Dexter.update_robot_status_robot = function(){
-    if (Dexter.update_robot_status_window_up()) {
-        let rob_name = update_robot_status_names_select_id.value //might be "Choose" so no real window.
-        let rob = Robot[rob_name] //rob will be undefined if rob_name is "Choose"
-        if (rob) { return rob }
-        else { return null }
-    }
-    else {return null}
-}
-
-Dexter.update_robot_status_names_menu_html = function (robot){
-    //broken chrome ignore's style on select and option, so sez stack overflow
-    //but stack overflow sez use a style on optgroup. That doesn't work either.
-    let result = "<select id='update_robot_status_names_select_id' " +
-                 "<optgroup style='font-size:18px;'>"
-    for(let name of Dexter.all_names){
-        let sel = ((name == robot.name) ? " selected" : "" )
-        result += "<option" + sel + ">" + name + "</option>"
-    }
-    return result + "</optgroup></select>"
-}
-
-Dexter.update_time_string = function(){
-    let d = new Date()
-    return d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds()
-}
-
-Dexter.robot_status_run_update_job = function(){
-    let rob_name = update_robot_status_names_select_id.value
-    let rob = Robot[rob_name]
-    let existing_job = Job["rs_update"]
-    if(existing_job && existing_job.is_active()){
-        existing_job.stop_for_reason("interrupted", "user stopped job")
-    }
-    else {
-        new Job({name: "rs_update",
-            robot: rob,
-            do_list: [ Robot.loop(true,  Dexter.get_robot_status)]}).start()
-    }
-}
-
-Dexter.update_robot_status_init = function(){
-    update_robot_status_names_select_id.oninput=Dexter.update_robot_status_table_name_changed
-}
-
-
-//called after the table is created, to update it dynamically.
-//also called from robot_done_with_instruction when the actual robot_status is changed.
-Dexter.update_robot_status_table = function(robot_status){
-    if (window["update_robot_status_names_select_id"]) { //don't attempt to show if the window isn't up. this does repopulate window if its merely shrunken
-        robot_status_window_time_id.innerHTML = Dexter.update_time_string()
-        for (let i = 0; i < robot_status.length; i++){
-           let label    = Dexter.robot_status_labels[i]
-           if ((label != null) && !label.startsWith("UNUSED")){
-                let val      = (robot_status ? robot_status[i] : "no status") //its possible that a robot will have been defined, but never actually run when this fn is called.
-                if((typeof(val) == "number") && (i >= 10)) { //display as a real float
-                   val = to_fixed_smart(val, 3) //val.toFixed(3)
-                }
-                let elt_name = label + "_id"
-                window[elt_name].innerHTML = val
-           }
-        }
-        START_TIME_id.title = date_integer_to_long_string(robot_status[Dexter.START_TIME])
-        STOP_TIME_id.title  = date_integer_to_long_string(robot_status[Dexter.STOP_TIME])
-        INSTRUCTION_TYPE_id.title = Robot.instruction_type_to_function_name(robot_status[Dexter.INSTRUCTION_TYPE])
-    }
-}
-
-//called initially from UI
-Dexter.update_robot_status_table_name_changed = function(name){
-    //when called from the UI, the "name" arg is bound to the event.
-    if(typeof(name) != "string") {name = name.target.value}
-    let rob = Robot[name]
-    let robot_status = rob.robot_status
-    Dexter.update_robot_status_table(robot_status)
-}
-
-/* obsolete not called
-Dexter.update_robot_status_replace_names_menu = function(names_menu_html){
-    $("#update_robot_status_names_select_id").replaceWith(names_menu_html)
-    setTimeout(Dexter.update_robot_status_init, 100)
-}*/
-
-Dexter.update_robot_status_to_html_table = function(robot){
-    //setting table class and using css to set fonts in th and td cells fails
-    //let cs = " style='font-size:10pt;' " //cell style
-    //let oplet = ds[Dexter.INSTRUCTION_TYPE]
-    let robot_status = robot.robot_status
-    let xyz
-       try { xyz = robot.joint_xyz() }
-       catch(e) {xyz = ["no status", "no status", "no status"] }
-    let result =
-        "<table class='robot_status_table'>" +
-        "<tr><th></th>    <th>JOB_ID</th><th>INSTRUCTION_ID</th><th>START_TIME</th><th>STOP_TIME</th><th>INSTRUCTION_TYPE</th></tr>" +
-        Dexter.make_rs_row(robot_status, "", "JOB_ID",      "INSTRUCTION_ID",      "START_TIME",      "STOP_TIME",      "INSTRUCTION_TYPE") +
-
-        "<tr><th></th>    <th>ERROR_CODE</th><th>JOB_ID_OF_CI</th><th>CURRENT_INSTR</th><th>RECORD_BLOCK_SIZE</th><th>END_EFFECTOR_IN</th></tr>" +
-        Dexter.make_rs_row(robot_status, "", "ERROR_CODE",      "JOB_ID_OF_CURRENT_INSTRUCTION",      "CURRENT_INSTRUCTION_ID",      "RECORD_BLOCK_SIZE",      "END_EFFECTOR_IN") +
-
-            "<tr><th></th>         <th>Joint 1</th><th>Joint 2</th><th>Joint 3</th><th>Joint 4</th><th>Joint 5</th><th>Joint 6</th><th>Joint 7</th></tr>" +
-        Dexter.make_rs_row(robot_status, "ANGLE",     "J1_ANGLE",     "J2_ANGLE",     "J3_ANGLE",     "J4_ANGLE",     "J5_ANGLE"    ) +
-        Dexter.make_rs_row(robot_status, "DELTA",     "J1_DELTA",     "J2_DELTA",     "J3_DELTA",     "J4_DELTA",     "J5_DELTA"    ) +
-        Dexter.make_rs_row(robot_status, "PID_DELTA", "J1_PID_DELTA", "J2_PID_DELTA", "J3_PID_DELTA", "J4_PID_DELTA", "J5_PID_DELTA") +
-        //Dexter.make_rs_row(robot_status, "FORCE_CALC_ANGLE", "J1_FORCE_CALC_ANGLE", "J2_FORCE_CALC_ANGLE", "J3_FORCE_CALC_ANGLE", "J4_FORCE_CALC_ANGLE", "J5_FORCE_CALC_ANGLE") +
-        Dexter.make_rs_row(robot_status, "A2D_SIN",   "J1_A2D_SIN",   "J2_A2D_SIN",   "J3_A2D_SIN",   "J4_A2D_SIN",   "J5_A2D_SIN"  ) +
-        Dexter.make_rs_row(robot_status, "A2D_COS",   "J1_A2D_COS",   "J2_A2D_COS",   "J3_A2D_COS",   "J4_A2D_COS",   "J5_A2D_COS"  ) +
-        //Dexter.make_rs_row(robot_status, "PLAYBACK",  "J1_PLAYBACK",  "J2_PLAYBACK",  "J3_PLAYBACK",  "J4_PLAYBACK",  "J5_PLAYBACK" ) +
-        Dexter.make_rs_row(robot_status, "MEASURED_ANGLE",    "J1_MEASURED_ANGLE",   "J2_MEASURED_ANGLE",   "J3_MEASURED_ANGLE",   "J4_MEASURED_ANGLE", "J5_MEASURED_ANGLE", "J6_MEASURED_ANGLE", "J7_MEASURED_ANGLE") +
-        Dexter.make_rs_row(robot_status, "MEASURED_TORQUE",    null,                 null,                   null,                  null,                null,               "J6_MEASURED_TORQUE", "J7_MEASURED_TORQUE") +
-
-        Dexter.make_rs_row(robot_status, "SENT",      "J1_SENT",      "J2_SENT",      "J3_SENT",      "J4_SENT",      "J5_SENT"     ) +
-        //Dexter.make_rs_row(robot_status, "SLOPE",     "J1_SLOPE",     "J2_SLOPE",     "J3_SLOPE",     "J4_SLOPE",     "J5_SLOPE"    ) +
-         "<tr><th>MEASURED X</th><td><span id='\" + field + \"_id' style='font-family:monospace;float:right;'>" + Dexter.format_measured_angle(xyz[0]) +
-        "</span></td><th>MEASURED Y</th><td><span id='\" + field + \"_id' style='font-family:monospace;float:right;'>" + Dexter.format_measured_angle(xyz[1]) +
-        "</span></td><th>MEASURED Z</th><td><span id='\" + field + \"_id' style='font-family:monospace;float:right;'>" + Dexter.format_measured_angle(xyz[2]) +
-        "</span></td></tr>" +
-        "</table>"
-    return result
-}
-
-Dexter.format_measured_angle = function(angle) {
-    if (angle == "no status") { return angle }
-    else { return to_fixed_smart(angle, 3) + "m" }
-}
-
-Dexter.make_rs_row = function(robot_status, ...fields){
-    let result   = "<tr>"
-    let on_first = true
-    let row_header = fields[0]
-    let do_decimal_processing = row_header != ""
-    //let is_angle = fields[0].endsWith("ANGLE")
-    //let degree_html = (is_angle ? "&deg;" : "")
-    for(let field of fields){
-        let val = (robot_status ? robot_status[Dexter[field]] : "no status")
-        if(on_first) {
-           result += "<th>" + field + "</th>"
-           on_first = false
-        }
-        else if ((typeof(val) == "string") && (val.length == 1)) { //oplet
-            result += "<td title='" +
-                Robot.instruction_type_to_function_name(val) +
-                       "' id='" + field + "_id'>" +
-                       val + "</td>"
-        }
-        else if (field == "TIME"){
-            result += "<td title='" +
-                        date_integer_to_long_string(val) +
-                        "' id='" + field + "_id'>" +
-                        val + "</td>"
-        }
-        else if (row_header != "") { //body of table, expect floating point numbers, float right
-            val = to_fixed_smart(val, 3) //val.toFixed(3) //format_number(val)
-            result += "<td>" +
-                "<span id='" + field + "_id' style='font-family:monospace;float:right;'>" + val + "</span>" +
-                //degree_html + not playing nicely with float right so skip for now.
-                "</td>"
-
-        }
-        /*else if (is_integer(val)){
-            result += "<td style='font-family:monospace;' id='" + field + "_id'>" + val + degree_html + "</td>"
-        }
-        else if (typeof(val) == "number") { //it will be a float
-                val = val.toFixed(3) //format_number(val)
-                //val = val.substring(0, 12) //cut off precision because lots of prevision is
-                      //useless, AND it makes the columns wider and narrower dynamically
-                      //which is very distracting to read real time updates
-            result += "<td>" +
-                       "<span id='" + field + "_id' style='font-family:monospace;float:right;'>" + val + "</span>" +
-                           //degree_html + not playing nicely with float right so skip for now.
-                           "</td>"
-        }*/
-        else { result += "<td id='" + field + "_id'>" + val + "</td>" }
-    }
-    return result + "</tr>"
-}
-//_______end updating robot status________
 
 Dexter.sent_instructions_to_html = function(sent_ins){
     var result = "<table><tr>" +

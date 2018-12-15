@@ -58,8 +58,7 @@ var Start = class Start{
   
   static dialog_callback(text){
      out("Recognized: " + text)
-     //debugger
-     Start.parse(text, 
+     Start.parse(text,
        function(err, response, start_string){
           if(err) {
               out("Whoops! Can't access START website.")
@@ -156,7 +155,6 @@ var Structure = class Structure{
     }
   
     static tell_or_ask(start_string){
-      //debugger;
       //out("t_or_a: " + start_string)
       let struct = new Structure(start_string)
       Structure.conversation.push(struct)
@@ -206,7 +204,6 @@ var Structure = class Structure{
         return null
     }
     ask(){
-        //debugger;
         switch(this.question_type){
            case "what":   return this.ask_what();
            case "why":    return this.ask_why(); 
@@ -414,7 +411,6 @@ var Structure = class Structure{
     }
     
     ask_why(){
-      //debugger
       let result
       let matching_action_rules = this.rules_with_matching_actions()
       if (matching_action_rules.length == 0){
@@ -472,7 +468,6 @@ var Structure = class Structure{
     }
     
     rules_with_matching_actions(){
-       //debugger
        let all_rules   = Structure.rules()
        let this_struct = this
        let result      = all_rules.filter(function(a_struct){return this_struct.svo_match(a_struct.rule.action)} )
@@ -524,7 +519,6 @@ var Structure = class Structure{
                 "how": "Nohow."}[wh_word]
     }
     vo_match(struct){ //'this' is the question. subject is a wh word so ignore it for match purposes
-    	//debugger;
         return (this.verb   == struct.verb) &&
                (this.object == struct.object)
     }

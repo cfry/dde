@@ -51,6 +51,12 @@
    // window.$ = require('jquery'); //Now done in index.html   after doing npm install --save jquery, we still need this
     //onload_fn()
     Dexter.draw_dxf = DXF.dxf_to_instructions //see Robot.js
+    Dexter.prototype.draw_dxf = function({}={}) {
+            arguments
+            let obj_args = arguments[0]
+            obj_args.robot = this
+            return Dexter.draw_dxf(obj_args)
+    }
 
     $('#outer_splitter').jqxSplitter({
         width: '98%', height: '97%', //was 93%
@@ -75,7 +81,7 @@
     //$("#js_insert_menu").jqxMenu(  { width: '65px', height: '25px' });
     //$("#js_jobs_menu").jqxMenu(    { width: '55px', height: '25px' });
 
-    $("#ros_menu_id").jqxMenu({ width: '50px', height: '25px' });
+    $("#ros_menu_id").jqxMenu({ width: '50px', height: '25px', animationHideDelay: 1000, animationShowDelay: 1000, autoCloseInterval: 1000  });
     //$("#jqxwindow").jqxWindow({ height:400, width:400, showCloseButton: true});
     //$('#jqxwindow').jqxWindow('hide');
     $("#cmd_input_id").keyup(function(event){ //output pane  type in
@@ -731,8 +737,21 @@ get_page_async("http://www.ibm.com", function(err, response, body){ out(body.len
        }
     show_suite_statistics_id.onclick=TestSuite.statistics
     insert_test_suite_example_id.onclick=function(){
-                    Editor.insert(TestSuite.suites[0].to_source_code() + "\n", null, true)
-                    }
+                    Editor.insert( //below the same as the first test suite in the main test suites except that
+                                   //its name is different so that the "summary" doesn't subtract the
+                                   //usual 2 unknown failures and thus the summary of runnign this
+                                   //will be consistent with the errors it shows.
+`new TestSuite("example_test_suite",
+    ["2 + 3", "5", "1st elt (source) evals to same as 2nd elt (expected) and the test passes."],
+    ['similar(2.05, 2, 0.1)', "true", "tolerance of 0.1 permits 2.05 and 2 to be similar"],
+    ["var foo = 4 + 1"],
+    ["foo", "5", "The side effect of the above 'set up' test, sets foo. Foo's value is tested here."],
+    ['"hi" + " dexter"', '"hi dex"', "known failures are declared with this description string starting with 'known'."],
+    ['foo961', '123', "This is an 'unknown failure' for demo purposes"],
+    ['foo723', 'TestSuite.error', 'Tests with expected of TestSuite.error pass if the source errors.'],
+    ['out(TestSuite.run("similarX"))', 'TestSuite.dont_care', "Run another test suite. This one errors because its not defined."]
+)
+`, null, true)}
     //TestSuite.make_suites_menu_items() //because the ones that are defined from TestSuite.js can't make their menu items until dom is ready
 
     //Learn Javascript menu
@@ -749,8 +768,8 @@ get_page_async("http://www.ibm.com", function(err, response, body){ out(body.len
          title: "Debugging Help", width:430, height:270});
          open_doc(debugging_id)
           //WORKS! 800 is milliseconds for the animation to take.
-         //$('#doc_contents_id').animate({scrollTop: $('#debugging_id').offset().top}, 800); //jquery solution that fails.
-         //debugging_id.scrollIntoView(true) //does so instantaneously but it at least works.
+         //$('#doc_contents_id').animate({scrollTop: $('#d ebugging_id').offset().top}, 800); //jquery solution that fails.
+         //d ebugging_id.scrollIntoView(true) //does so instantaneously but it at least works.
          //However, it causes the DDE header to scroll off the top of the window
          //and a user can't get it back. If the user has not expanded any triangles
          //in the doc pane, then NOT calling scrollIntoView is fine, but if they have.
@@ -758,8 +777,8 @@ get_page_async("http://www.ibm.com", function(err, response, body){ out(body.len
          //this new HTML5 stuff and jqwidgets
         // the below fail.
                                       //poitions the top of the elt at the top of the pane, which is good.
-        //debugging_id.scrollIntoView({behavior:"smooth"});//doesn't  smooth scroll in chrome
-        //$("#debugging_id").parent().animate({scrollTop: $("#debugging_id").offset().top}, 1000) //doesn't work
+        //d ebugging_id.scrollIntoView({behavior:"smooth"});//doesn't  smooth scroll in chrome
+        //$("#d ebugging_id").parent().animate({scrollTop: $("#debugging_id").offset().top}, 1000) //doesn't work
          } //fails: window.open("chrome://inspect/#apps")
     console_log_id.onclick     = function(){Editor.wrap_around_selection("console.log(", ")", '"Hello"')}
     debugger_id.onclick        = function(){Editor.insert("debugger;nnll")}
@@ -984,11 +1003,11 @@ foo      //eval to see the latest values</pre>`,
                  tool_action: false,
                  tool_action_on_function: function(){
 					return [make_ins("w", 64, 2),
-							dummy_move()]
+							Dexter.dummy_move()]
 				 },
                  tool_action_off_function: function(){
                     return [make_ins("w", 64, 0),
-                            dummy_move()]
+                            Dexter.dummy_move()]
                  }})
 `
         Editor.insert(content)

@@ -3,20 +3,6 @@
 //Started: 2_10_2017
 //Updated: 6_21_2018
 
-//Remove this later:
-Dexter.dummy_move = function(job){
-	let CMD = []
-    CMD.push(function(){return Dexter.get_robot_status()})
-    CMD.push(function(){
-        let X = job.robot.robot_status
-        let J_angles = [X[Dexter.J1_ANGLE], X[Dexter.J2_ANGLE], X[Dexter.J3_ANGLE], X[Dexter.J4_ANGLE], X[Dexter.J5_ANGLE]]
-        return Dexter.move_all_joints(J_angles)
-        //return Dexter.move_all_joints([0, 0, 0, 0, 0])
-        //return make_ins("P", J_angles)
-    })
-    return CMD
-}
-
 var DXF = new function(){
 	
     this.content_to_entities = function(content){
@@ -676,20 +662,6 @@ function my_settings(speed = 20){
     ]
 }
 
-function dummy_move(job){
-    let CMD = []
-    CMD.push(function(){return Dexter.get_robot_status()})
-    CMD.push(function(){
-    			let robot = job.robot
-    			let X = robot.robot_status
-                let J_angles = [X[Dexter.J1_ANGLE], X[Dexter.J2_ANGLE], X[Dexter.J3_ANGLE], X[Dexter.J4_ANGLE], X[Dexter.J5_ANGLE]]
-                return Dexter.move_all_joints(J_angles)
-                //return Dexter.move_all_joints([0, 0, 0, 0, 0])
-                //return make_ins("P", J_angles)
-                })
-    return CMD
-}
-
 function scale_points(points, scale, J_angles){
 	let my_edit = [[0,0,0], 1]
     if(typeof(scale) == "number"){
@@ -955,149 +927,166 @@ new Job({name: "Draw",
 			    )
 */
 
-this.dxf_to_instructions = function({
-						dxf_filepath = "choose_file",
-						three_J_angles = [[0, 45, 90, -45, 0], [0, 30, 120, -60, 0], [-10, 30, 120, -60, 0]],
-                        tool_height = 5.08 * _cm,
-                        tool_length = 8.255 * _cm,
-                        DXF_units,
-                        draw_speed = 1 * _cm/_s,
-                        draw_res = 0.5 * _mm,
-                        lift_height = 1 * _cm,
-                        rapid_speed = 20,
-                        tool_action = false,
-                        tool_action_on_function = function(){
-							return [
-							make_ins("w", 64, 2),
-							dummy_move()]
-						},
-						tool_action_off_function = function(){
-							return [
-							make_ins("w", 64, 0),
-							dummy_move()]
-						}
-                      } = {}){
-	
-    //correct link lengths for tool geometry:
-    Dexter.LINK4 = tool_height
-    Dexter.LINK5 = tool_length
-        
-    let dxf_content
-    let my_entities
-    let my_points
-    if(dxf_filepath == "choose_file"){
-    	let title_string
-        if(tool_action){
-        	title_string = "Select File with '.dxf' Extension to Apply Tool Action to"
-        }else{
-        	title_string = "Select File with '.dxf' Extension to Draw"
+    this.dxf_to_instructions = function({
+                                            dxf_filepath = "choose_file",
+                                            three_J_angles = [[0, 45, 90, -45, 0], [0, 30, 120, -60, 0], [-10, 30, 120, -60, 0]],
+                                            tool_height = Dexter.LINK4,
+                                            tool_length = Dexter.LINK5,
+                                            DXF_units,
+                                            draw_speed = 1 * _cm/_s,
+                                            draw_res = 0.5 * _mm,
+                                            lift_height = 1 * _cm,
+                                            rapid_speed = 20,
+                                            tool_action = false,
+                                            tool_action_on_function  = undefined,
+                                            tool_action_off_function = undefined,
+                                            robot = undefined
+                                        } = {}){
+
+    	if (tool_action_on_function === undefined){
+    	  tool_action_on_function = function() {
+				  let instrs = [ make_ins("w", 64, 2), Dexter.dummy_move()]
+				  Instruction.add_robot_to_instructions(instrs, robot)
+				  return instrs
+		  }
         }
-		dxf_filepath = choose_file({title: title_string})
-        if(dxf_filepath == undefined){
-        	out("No file has been selected. Nothing will be drawn.", "blue")
-            return
-        }
-        if(!(dxf_filepath.endsWith(".dxf") || dxf_filepath.endsWith(".DXF"))){
-        	dde_error("Only DXF's are supported. The following file needs the extension '.dxf': " + dxf_filepath)
-        }
-	}
-    
-    if(typeof(dxf_filepath) == "string" && dxf_filepath.length < 512){
-    	dxf_content = file_content(dxf_filepath)
-        my_entities = DXF.content_to_entities(dxf_content)
-        my_points = DXF.entities_to_points(my_entities)
-    }else if(Array.isArray(dxf_filepath)){
-    	my_points = dxf_filepath
-    }else{
-    	dde_error("Input arg, file_path, to DXF.dxf_to_instructions is incorrect data type")
-    }
-    
-    /*
-	if(tool_action){
-		new Job({name: "Action_Off",
-         	 	do_list: [tool_action_off_function]}
-			    )
-        new Job({name: "Action_On",
-         	 	do_list: [tool_action_on_function]}
-			    )
-	}
-    */
-        
-    //let rapid_speed = 30
-    //let dxf_content = file_content(dxf_filepath)
-    
-    let J_angles_1 = three_J_angles[0]
-    let J_angles_2 = three_J_angles[1]
-    let J_angles_3 = three_J_angles[2]
-    
-    let my_pose = Kin.three_positions_to_pose(J_angles_1, J_angles_2, J_angles_3)
-    let J5_dir = Vector.multiply(-1, Vector.pull(my_pose, [0, 2], 2))
-    var work_plane = Table.create_child(my_pose, "work_plane")
-    let bounds = get_bounds_from_three_positions(J_angles_1, J_angles_2, J_angles_3)
-    
-    //let my_entities = DXF.content_to_entities(dxf_content)
-    /*
-    if(fill == false){
-    	my_points = DXF.entities_to_points(my_entities)
-        my_points = scale_points(my_points, scale, J_angles_A)
-    }else{
-    	let fill_obj = fill_DXF(dxf_file_name, scale, 30, 5)
-        my_points = object_to_points(fill_obj)
-    }
-    */
-    
-    my_points = scale_points(my_points, DXF_units, three_J_angles)
-    
-    let my_path = DXF.points_to_path(my_points, lift_height)
-    
-    let path_points = my_path[0]
-    let rapid = my_path[1]
-    path_points = Coor.move_points_to_coor(path_points, work_plane)
-    let dim = Vector.matrix_dimensions(path_points)
-    
-    let movCMD = []
-    let temp_mov
-    if(tool_action){movCMD.push(make_ins("w", 64, 0))}
-    movCMD.push(make_ins("S", "MaxSpeed", rapid_speed))
-    movCMD.push(make_ins("S", "StartSpeed", .5))
-    movCMD.push(Dexter.move_to(path_points[0], J5_dir))
-    if(tool_action){movCMD.push(tool_action_on_function)}
-    
-    for(let i = 1; i < dim[0]; i++){
-    	if(rapid[i] == 0){
-        	if(tool_action){movCMD.push(tool_action_on_function)}
-            temp_mov = move_straight(draw_speed, path_points[i-1], path_points[i], draw_res, J5_dir, Dexter.RIGHT_UP_OUT)
-            for(let j = 0; j < temp_mov.length; j++){
-            	movCMD.push(temp_mov[j])
+
+        if (tool_action_off_function === undefined){
+            tool_action_off_function = function() {
+                let instrs = [ make_ins("w", 64, 0), Dexter.dummy_move()]
+                Instruction.add_robot_to_instructions(instrs, robot)
+                return instrs
             }
+        }
+
+        //correct link lengths for tool geometry:
+        DXF.orig_link4 = Dexter.LINK4
+        DXF.orig_link5 = Dexter.LINK5
+        Dexter.LINK4 = tool_height
+        Dexter.LINK5 = tool_length
+
+        let dxf_content
+        let my_entities
+        let my_points
+        if(dxf_filepath == "choose_file"){
+            let title_string
+            if(tool_action){
+                title_string = "Select File with '.dxf' Extension to Apply Tool Action to"
+            }else{
+                title_string = "Select File with '.dxf' Extension to Draw"
+            }
+            dxf_filepath = choose_file({title: title_string})
+            if(dxf_filepath == undefined){
+                out("No file has been selected. Nothing will be drawn.", "blue")
+                return
+            }
+            if(!(dxf_filepath.endsWith(".dxf") || dxf_filepath.endsWith(".DXF"))){
+                dde_error("Only DXF's are supported. The following file needs the extension '.dxf': " + dxf_filepath)
+            }
+        }
+
+        if(typeof(dxf_filepath) == "string" && dxf_filepath.length < 512){
+            dxf_content = file_content(dxf_filepath)
+            my_entities = DXF.content_to_entities(dxf_content)
+            my_points = DXF.entities_to_points(my_entities)
+        }else if(Array.isArray(dxf_filepath)){
+            my_points = dxf_filepath
         }else{
-        	if(rapid[i+0] == 0){
-                if(tool_action){
-                	movCMD.push(tool_action_on_function)
-                }else{
-                	temp_mov = move_straight_to(path_points[i-1], path_points[i], draw_res, J5_dir)
-            		for(let j = 0; j < temp_mov.length; j++){
-            			movCMD.push(temp_mov[j])
-            		}
+            dde_error("Input arg, file_path, to DXF.dxf_to_instructions is incorrect data type")
+        }
+
+        /*
+        if(tool_action){
+            new Job({name: "Action_Off",
+                      do_list: [tool_action_off_function]}
+                    )
+            new Job({name: "Action_On",
+                      do_list: [tool_action_on_function]}
+                    )
+        }
+        */
+
+        //let rapid_speed = 30
+        //let dxf_content = file_content(dxf_filepath)
+
+        let J_angles_1 = three_J_angles[0]
+        let J_angles_2 = three_J_angles[1]
+        let J_angles_3 = three_J_angles[2]
+
+        let my_pose = Kin.three_positions_to_pose(J_angles_1, J_angles_2, J_angles_3)
+        let J5_dir = Vector.multiply(-1, Vector.pull(my_pose, [0, 2], 2))
+        var work_plane = Table.create_child(my_pose, "work_plane")
+        let bounds = get_bounds_from_three_positions(J_angles_1, J_angles_2, J_angles_3)
+
+        //let my_entities = DXF.content_to_entities(dxf_content)
+        /*
+        if(fill == false){
+            my_points = DXF.entities_to_points(my_entities)
+            my_points = scale_points(my_points, scale, J_angles_A)
+        }else{
+            let fill_obj = fill_DXF(dxf_file_name, scale, 30, 5)
+            my_points = object_to_points(fill_obj)
+        }
+        */
+
+        my_points = scale_points(my_points, DXF_units, three_J_angles)
+
+        let my_path = DXF.points_to_path(my_points, lift_height)
+
+        let path_points = my_path[0]
+        let rapid = my_path[1]
+        path_points = Coor.move_points_to_coor(path_points, work_plane)
+        let dim = Vector.matrix_dimensions(path_points)
+
+        let movCMD = []
+        let temp_mov
+        if(tool_action){movCMD.push(make_ins("w", 64, 0))}
+        movCMD.push(make_ins("S", "MaxSpeed", rapid_speed))
+        movCMD.push(make_ins("S", "StartSpeed", .5))
+        movCMD.push(Dexter.move_to(path_points[0], J5_dir))
+        if(tool_action){movCMD.push(tool_action_on_function)}
+
+        for(let i = 1; i < dim[0]; i++){
+            if(rapid[i] == 0){
+                if(tool_action){movCMD.push(tool_action_on_function)}
+                temp_mov = move_straight(draw_speed, path_points[i-1], path_points[i], draw_res, J5_dir, Dexter.RIGHT_UP_OUT)
+                for(let j = 0; j < temp_mov.length; j++){
+                    movCMD.push(temp_mov[j])
                 }
             }else{
-                movCMD.push(make_ins("S", "MaxSpeed", rapid_speed))
-    			movCMD.push(make_ins("S", "StartSpeed", .5))
-                if(tool_action){movCMD.push(make_ins("w", 64, 0))}
+                if(rapid[i+0] == 0){
+                    if(tool_action){
+                        movCMD.push(tool_action_on_function)
+                    }else{
+                        temp_mov = move_straight_to(path_points[i-1], path_points[i], draw_res, J5_dir)
+                        for(let j = 0; j < temp_mov.length; j++){
+                            movCMD.push(temp_mov[j])
+                        }
+                    }
+                }else{
+                    movCMD.push(make_ins("S", "MaxSpeed", rapid_speed))
+                    movCMD.push(make_ins("S", "StartSpeed", .5))
+                    if(tool_action){movCMD.push(make_ins("w", 64, 0))}
+                }
+
+                temp_mov = move_straight_to(path_points[i-1], path_points[i], .2, J5_dir)
+                for(let j = 0; j < temp_mov.length; j++){
+                    movCMD.push(temp_mov[j])
+                }
+
             }
-        	
-            temp_mov = move_straight_to(path_points[i-1], path_points[i], .2, J5_dir)
-            for(let j = 0; j < temp_mov.length; j++){
-            	movCMD.push(temp_mov[j])
-            }
-            
         }
+        if(tool_action){
+            movCMD.push(tool_action_off_function)
+        }
+        movCMD.push(make_ins("F"))
+        movCMD.push(function(){
+            Dexter.LINK4 = DXF.orig_link4
+            Dexter.LINK5 = DXF.orig_link5
+        })
+        Instruction.add_robot_to_instructions(movCMD, robot)
+        return movCMD
     }
-    if(tool_action){
-    		movCMD.push(tool_action_off_function)
-    }
-    return movCMD
-}
 
 
 /*General Setup (these can be done before or after the below instructions):
