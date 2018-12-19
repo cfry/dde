@@ -95,17 +95,17 @@
     </script>--> <!-- errors inside of fs-lock's index.js -->
     <script>window.fs = require('fs');</script>
 
-    <script type="text/javascript" src="utils.js"></script>
+    <script type="text/javascript" src="core/utils.js"></script>
     <script type="text/javascript" src="html_db.js"></script>
 
     <script type="text/javascript" src="to_source_code.js"></script>
     <script type="text/javascript" src="inspect.js"></script>
-    <script type="text/javascript" src="storage.js"></script>
-    <script type="text/javascript" src="object_system.js"></script>
+    <script type="text/javascript" src="core/storage.js"></script>
+    <script type="text/javascript" src="core/object_system.js"></script>
     <script type="text/javascript" src="js_info.js"></script>
     <script type="text/javascript" src="editor.js"></script>
     <script type="text/javascript" src="series.js"></script>
-    <script type="text/javascript" src="units.js"></script>
+    <script type="text/javascript" src="core/units.js"></script>
 
     <script type="text/javascript" src="simutils.js"></script>
     <script type="text/javascript" src="simulate.js"></script>
@@ -122,16 +122,16 @@
     <script type="text/javascript" src="svg.js"></script> <!--needed in ui only for series help -->
     <script type="text/javascript" src="eval.js"></script>
     <script type="text/javascript" src="dex.js"></script>
-    <script type="text/javascript" src="socket.js"></script>
-    <script type="text/javascript" src="instruction.js"></script>
-    <script type="text/javascript" src="robot.js"></script>
+    <script type="text/javascript" src="core/socket.js"></script>
+    <script type="text/javascript" src="core/instruction.js"></script>
+    <script type="text/javascript" src="core/robot.js"></script>
     <script type="text/javascript" src="robot_status.js"></script>
     <script type="text/javascript" src="robot_status_dialog.js"></script>
     <script type="text/javascript" src="dextersim.js"></script>
 
-    <script type="text/javascript" src="job.js"></script>
+    <script type="text/javascript" src="core/job.js"></script>
     <script type="text/javascript" src="job_examples.js"></script> <!--evals no Job code, just literal strings for insertion-->
-    <script type="text/javascript" src="gcode.js"></script> <!-- adds methods to the class Job used by run_gcode-->
+    <script type="text/javascript" src="core/gcode.js"></script> <!-- adds methods to the class Job used by run_gcode-->
     <script type="text/javascript" src="run_instruction.js"></script>
     <script type="text/javascript" src="robot_utilities.js"></script>
 
@@ -152,7 +152,7 @@
     <script type="text/javascript" src="math/txt.js"></script>
     <script type="text/javascript" src="math/Dexter_Modes.js"></script>
 
-    <script type="text/javascript" src="serial.js"></script>
+    <script type="text/javascript" src="core/serial.js"></script>
 
     <script type="text/javascript" src="low_level_dexter/ViewEye_Support_Functions.js"></script>
     <script type="text/javascript" src="low_level_dexter/ViewEyeRealTime.js"></script>
@@ -190,7 +190,7 @@
                                 <li style="display:inline-block;padding-left:3px;padding-right:0px;">File&#9660;
                                     <ul>
                                         <li id="new_id"     title="Make a new file.">New</li>
-                                        <li id="open_id"    title="Edit an exiting file.">Open... &nbsp;&nbsp;&nbsp;&nbsp; Ctrl/&#8984;o</li>
+                                        <li id="open_id"    title="Edit an exiting file.">Open... Ctrl/&#8984;o</li>
                                         <li id="load_file_id"    title="Evaluate the content of a JavaScript file.">Load...</li>
                                         <li id="insert_file_id"  title="Insert the content of a file&#013;into the editor at the cursor,&#013;replacing the selection if any.">Insert file...</li>
                                         <li id="save_id"    title="Save the current file.">Save &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ctrl/&#8984;s</li>
@@ -558,10 +558,10 @@
                                                 <li id="simulate_help_id" title="Documentation on simulate.">Help</li>
                                                 <li title="Simulate robots that have simulate=null.">
                                                     <input id="simulate_radio_true_id"  type="radio" name="simulate" value="true" checked="true"/>
-                                                    <label for="simulate_radio_true_id">true</label></li>
+                                                    <label for="simulate_radio_true_id">true (simulate)</label></li>
                                                 <li title="Send (hardware) instructions to robots that have simulate=null.">
                                                     <input id="simulate_radio_false_id" type="radio" name="simulate" value="false"/>
-                                                    <label for="simulate_radio_false_id">false</label></li>
+                                                    <label for="simulate_radio_false_id">false (real)</label></li>
                                                 <li title="Run both the simulator and the 'real' for robots that have simulate=null.">
                                                     <input id="simulate_radio_both_id"  type="radio" name="simulate" value="both"/>
                                                     <label for="simulate_radio_both_id">both</label></li>

@@ -5,6 +5,21 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+
+<details class="doc_details"><summary>v 3.0.3, Dec 19, 2018</summary>
+Highlights: Minor UI improvements, source code regorganization.
+<ul>
+    <li> Minor improvements to 3.0.1 release notes.</li>
+
+    <li> File/Open menu item is now File/Open...</li>
+
+    <li> Jobs menu/Simulate? subitems names extended:<br/>
+        true => true (simulate)<br/>
+        false => false (real)</li>
+
+    <li> Moved the 10 job engine files to new folder named "core".</li>
+</ul>
+</details>
 <details class="doc_details"><summary>v 3.0.2, Dec 14, 2018</summary>
 Just a fix for a release build glitch.
 </details>
@@ -41,11 +56,11 @@ Highlights: All Dexter instruction calls can now take a subject
 
     <li> The mathjs npm package is now installed in DDE.<br/>
         To try it:<br/>
-        var math = require('mathjs')<br/>
-        math.sqrt(-4)<br/>
+        <code>var math = require('mathjs')</code><br/>
+        <code>math.sqrt(-4)</code><br/>
         Doc: http://mathjs.org/docs/index.html</li>
 
-    <li> TestSuite: TesSuite Menu/Insert Example now inserts an example
+    <li> TestSuite: TestSuite Menu/Insert Example now inserts an example
         who's summary is consistent with the actual number of failed tests.</li>
 
     <li> TestSuite: lots of fixes for starting Jobs in the test suite,

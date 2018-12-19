@@ -223,7 +223,7 @@
                            }*/
 
     open_id.onclick=Editor.open
-    set_menu_string(open_id, "Open", "o")
+    set_menu_string(open_id, "Open...", "o")
 
     load_file_id.onclick=function(e) {
         const path = choose_file({title: "Choose a file to load"})
