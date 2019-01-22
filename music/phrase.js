@@ -377,6 +377,8 @@ Phrase.default_channel  = 1
 Phrase.default_velocity = 0.5
 Phrase.default_seconds_per_beat = 1
 
+var {trim_all} = require("./core/utils.js")
+
 
 
 

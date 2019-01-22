@@ -5,12 +5,15 @@ const net = require("net")
 //never create an instance
 var Socket = class Socket{
     static init(robot_name, simulate, ip_address, port=50000){
-        //console.log("Creating Socket for ip_address: " + ip_address + " port: "   + port + " robot_name: " + robot_name)
+        out("Creating Socket for ip_address: " + ip_address + " port: "   + port + " robot_name: " + robot_name)
         const sim_actual = Robot.get_simulate_actual(simulate)
         if(Socket.robot_name_to_ws_instance_map[robot_name]){
             this.close(robot_name, simulate)
         }
-        if ((sim_actual === true)  || (sim_actual == "both")) { DexterSim.create_or_just_init(robot_name, sim_actual) }
+        if ((sim_actual === true)  || (sim_actual == "both")) {
+            DexterSim.create_or_just_init(robot_name, sim_actual)
+            out("Socket.init Robot[" + robot_name + "].is_connected: " + Robot[robot_name].is_connected)
+        }
         if ((sim_actual === false) || (sim_actual == "both")) {
             try {
                 let ws_inst = new net.Socket()
@@ -35,7 +38,6 @@ var Socket = class Socket{
     }*/
 
     static new_socket_callback(robot_name){
-        //console.log("Socket.new_socket_callback passed: " + "robot_name: " + robot_name)
         Dexter.set_a_robot_instance_socket_id(robot_name)
         if (Socket.resend_instruction) {
             let rob = Robot[robot_name]
@@ -420,5 +422,13 @@ Socket.resend_count = null
 
 Socket.robot_name_to_ws_instance_map = {}
 Socket.DEGREES_PER_DYNAMIXEL_UNIT = 0.29
+
+module.exports = Socket
+var {Robot} = require('./robot.js')
+var {Instruction, make_ins} = require("./instruction.js")
+var DexterSim = require("./dextersim.js")
+var {out} = require("./out.js")
+
+
 
 //Socket.on_receive_added = false

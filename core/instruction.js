@@ -203,6 +203,7 @@ Instruction.args = function(ins_array){
 }
 
 //user might call this at top level in a do_list so make it's name short.
+module.exports.make_ins = make_ins
 function make_ins(instruction_type, ...args){
     if(!Dexter.instruction_type_to_function_name_map[instruction_type] &&
        !Serial.instruction_type_to_function_name_map[instruction_type]){
@@ -572,6 +573,7 @@ var human_task_handler = function(vals){
     job_instance.set_up_next_do(1) //even for the case where we're stopping the job,
      //this lets the do_next_item handle finishing the job properly
 }
+module.exports.human_task_handler = human_task_handler
 
 Instruction.Control.human_enter_choice = class human_enter_choice extends Instruction.Control{
     constructor ({task="", user_data_variable_name="choice", choices=[], dependent_job_names=[],
@@ -690,6 +692,8 @@ var human_enter_choice_handler = function(vals){
     job_instance.set_up_next_do(1) //even for the case where we're stopping the job,
     //this lets the do_next_item handle finishing the job properly
 }
+module.exports.human_enter_choice_handler = human_enter_choice_handler
+
 
 var human_enter_choice_set_var = function (job_instance, choice_string, choices_string, user_data_variable_name){
     let choices = JSON.parse(choices_string)
@@ -808,6 +812,8 @@ function human_enter_filepath_handler(vals){
     job_instance.set_up_next_do(1) //even for the case where we're stopping the job,
     //this lets the do_next_item handle finishing the job properly
 }
+module.exports.human_enter_filepath_handler = human_enter_filepath_handler
+
 
 Instruction.Control.human_enter_instruction = class human_enter_instruction extends Instruction.Control{
     constructor ({task = "Enter a next instruction for this Job.",
@@ -1042,6 +1048,8 @@ var human_enter_instruction_handler = function(vals){
     job_instance.set_up_next_do(1) //even for the case where we're stopping the job,
     //this lets the do_next_item handle finishing the job properly
 }
+module.exports.human_enter_instruction_handler = human_enter_instruction_handler
+
 
 var human_enter_instruction_job_source_to_save = function(job_instance){
     let instructions_src = ""
@@ -1198,6 +1206,8 @@ var human_enter_number_handler = function(vals){
         }
     }
 }
+module.exports.human_enter_number_handler = human_enter_number_handler
+
 
 //beware: Human.enter_position returns an array of Dexter.follow_me AND an instance of this class.
 Instruction.Control.human_enter_position = class human_enter_position extends Instruction.Control{
@@ -1293,6 +1303,8 @@ var human_enter_position_handler = function(vals){
         job_instance.set_up_next_do(1)
     }
 }
+module.exports.human_enter_position_handler = human_enter_position_handler
+
 
 Instruction.Control.human_enter_text = class human_enter_text extends Instruction.Control{
     constructor ({task="",
@@ -1396,6 +1408,8 @@ var human_enter_text_handler = function(vals){
     job_instance.set_up_next_do(1) //even for the case where we're stopping the job,
     //this lets the do_next_item handle finishing the job properly
 }
+module.exports.human_enter_text_handler = human_enter_text_handler
+
 
 Instruction.Control.human_notify = class human_notify extends Instruction.Control{
     constructor ({task="",
@@ -1524,6 +1538,8 @@ var human_show_window_handler = function(vals){
         the_job.set_up_next_do(1)
     }
 }
+module.exports.human_show_window_handler = human_show_window_handler
+
 
 Instruction.Control.if_any_errors = class if_any_errors extends Instruction.Control{
     constructor (job_names=[], instruction_if_error=null) {
@@ -2791,6 +2807,7 @@ Instruction.Control.move_to = class move_to extends Instruction.Control{
             xyz          = this.xyz[0]
             J5_direction = this.xyz[1]
             config       = this.xyz[2]
+
         }
         let [existing_xyz, existing_direction, existing_config] = Kin.J_angles_to_xyz(this.robot.angles, this.robot.pose) //just to get defaults.
         if(J5_direction === null) { J5_direction = existing_direction }
@@ -2812,8 +2829,8 @@ Instruction.Control.move_to = class move_to extends Instruction.Control{
             else if (new_x_y_or_z == null)        { xyz_copy[i] = existing_xyz[i]  } //does not hit if new_x_y_or_z is 0
             else if (Array.isArray(new_x_y_or_z)) { xyz_copy[i] = existing_xyz[i] + new_x_y_or_z[0] } //relative "new val"
         }
-
         if(pose == null) { pose = job_instance.default_workspace_pose }
+
         if (Object.isNewObject(pose)) { pose = pose.pose }
         if (Object.isNewObject(J5_direction)) {
             J5_direction = J5_direction.pose
@@ -3456,4 +3473,10 @@ Instruction.Control.take_picture = class take_picture extends Instruction.Contro
         else { job_instance.set_up_next_do(0) } //take_pciture has been called, but wait until video is up
     }
 }
-
+module.exports.Instruction = Instruction
+var {Robot, Brain, Dexter, Human, Serial} = require('./robot.js')
+var Job     = require('./job.js')
+var Kin     = require("../math/Kin.js")
+var {to_source_code} = require("./to_source_code.js") //for debugging only
+var {shouldnt, warning, dde_error, copy_missing_fields, Duration, is_generator_function, is_iterator, is_non_neg_integer, last,
+     prepend_file_message_maybe, stringify_value_aux, stringify_value_sans_html, value_of_path} = require("./utils")

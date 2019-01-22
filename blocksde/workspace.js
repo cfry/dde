@@ -215,84 +215,7 @@ var Workspace = class Workspace{
             out("Type in simple, short JavaScript like a number, string, or variable name.", undefined, true)
         }
     }
-    /* first version
-    floating_typein_done(event){
-        if (event.key == "Enter"){
-            let str = event.target.value
-            if (str == ""){ //don't make a new block, just hide the type in area.
-            }
-            else if (is_string_a_number(str)){
-                let block_type =
-                block.type.make_and_draw_block("block_number",
-                    Workspace.floating_typein_x,
-                    Workspace.floating_typein_y,
-                    [str])
-            }
-            else if (starts_with_one_of(str, ['"', "'", "`"])){
-                let new_val
-                if (str[0] === last(str)){
-                    new_val= str.substring(1, str.length - 1)
-                }
-                else { new_val= str.substring(1) }
-                make_and_draw_block_of_class("block_string",
-                    Workspace.floating_typein_x,
-                    Workspace.floating_typein_y,
-                    [new_val])
-            }
-            else {
-                let bt = Root.jsdb.find_block_type(str)
-                if(bt){
-                    bt.make_and_draw_block(Workspace.floating_typein_x, Workspace.floating_typein_y)
-                }
-                else { console.log("floating_typein_done couldn't find " + str)
-                }
-                workspace_floating_typein_id.style.visibility = "hidden"
-            }
-            event.stopPropagation()
-        }
-    }*/
-    /* 2nd version
-    floating_typein_done(event){
-        event.stopPropagation()
-        if (event.key == "Enter"){
-            let src = event.target.value
-            if (src == ""){ //don't make a new block, just hide the type in area.
-                workspace_floating_typein_id.style.visibility = "hidden"
-            }
-            else {
-                  let block
-                  let result = eval_js_part2(src, false) //eval(src) //eval_js_part2 needed since normal eval can't handle "{a:1}" embarrisngly.
-                  if ((typeof(result) == "string") && result.startsWith("Error: ")) {
-                      if(is_string_an_identifier(src)){
-                          block = Root.jsdb.identifier.identifiers.make_dom_elt(undefined, undefined, src)
-                      }
-                      else {
-                        warning(result) //result will be a string starting with "Error: "
-                        return  //don't hide the type_in, let user correct it
-                      }
-                  }
-                  else if (result.error_message){
-                      if(is_string_an_identifier(src)){
-                          block = Root.jsdb.identifier.identifiers.make_dom_elt(undefined, undefined, src)
-                      }
-                      else {
-                          warning(result.error_message) //result will be a string starting with "Error: "
-                          return  //don't hide the type_in, let user correct it
-                      }
-                  }
-                  else {
-                    let val = result.value
-                    block = Root.jsdb.value_to_block(val, src)
-                  }
-                  //we've made a valid block
-                  workspace_floating_typein_id.style.visibility = "hidden"
-                  block.style.position = "absolute"
-                  block.style.left = workspace_floating_typein_id.style.left //Workspace.floating_typein_x + "px"
-                  block.style.top  = workspace_floating_typein_id.style.top  //Workspace.floating_typein_y + "px"
-                  workspace_id.appendChild(block)
-            }
-        }
-    }*/
+
     shortcut_to_longcut(shortcut){
         let longcut = {"<"      : "foo < 0",
                        "less"   : "foo < 0",
@@ -425,3 +348,6 @@ var Workspace = class Workspace{
 Workspace.suck_left_margin = 20 //if a block is dropped with its x of <= this, then x will be set to 0
 Workspace.floating_typein_x = 0
 Workspace.floating_typein_y = 0
+
+var {shouldnt, warning, is_string_an_identifier, is_string_a_path, value_of_path} = require("./core/utils.js")
+

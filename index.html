@@ -95,17 +95,17 @@
     </script>--> <!-- errors inside of fs-lock's index.js -->
     <script>window.fs = require('fs');</script>
 
-    <script type="text/javascript" src="core/utils.js"></script>
+    <!--<script type="text/javascript" src="core/utils.js"></script>-->
     <script type="text/javascript" src="html_db.js"></script>
 
-    <script type="text/javascript" src="to_source_code.js"></script>
+    <!--<script type="text/javascript" src="core/to_source_code.js"></script>-->
     <script type="text/javascript" src="inspect.js"></script>
-    <script type="text/javascript" src="core/storage.js"></script>
-    <script type="text/javascript" src="core/object_system.js"></script>
+    <!--<script type="text/javascript" src="core/storage.js"></script>
+    <script type="text/javascript" src="core/object_system.js"></script>-->
     <script type="text/javascript" src="js_info.js"></script>
     <script type="text/javascript" src="editor.js"></script>
     <script type="text/javascript" src="series.js"></script>
-    <script type="text/javascript" src="core/units.js"></script>
+    <!--<script type="text/javascript" src="core/units.js"></script>-->
 
     <script type="text/javascript" src="simutils.js"></script>
     <script type="text/javascript" src="simulate.js"></script>
@@ -116,22 +116,25 @@
     <link rel="stylesheet" href="ui_widgets/awesomplete.css"/>
     <script src="ui_widgets/awesomplete.js"></script>
     <!--<script type="text/javascript" src="getusermedia.js"></script> -->
-    <script type="text/javascript"> require("./output.js") </script>
+    <!--<script type="text/javascript"> require("./core/out.js") </script>-->
+    <!--<script type="text/javascript"> require("./output.js") </script>-->
+    <script type="text/javascript" src="output.js"></script>
+
     <!-- <script type="text/javascript"> require("./speech_reco.js") </script> -->
     <script type="text/javascript" src="gamepad.js"></script>
     <script type="text/javascript" src="svg.js"></script> <!--needed in ui only for series help -->
     <script type="text/javascript" src="eval.js"></script>
     <script type="text/javascript" src="dex.js"></script>
-    <script type="text/javascript" src="core/socket.js"></script>
+    <!--<script type="text/javascript" src="core/socket.js"></script>
     <script type="text/javascript" src="core/instruction.js"></script>
-    <script type="text/javascript" src="core/robot.js"></script>
+    <script type="text/javascript" src="core/robot.js"></script>-->
     <script type="text/javascript" src="robot_status.js"></script>
     <script type="text/javascript" src="robot_status_dialog.js"></script>
-    <script type="text/javascript" src="dextersim.js"></script>
+    <!--<script type="text/javascript" src="core/dextersim.js"></script>-->
 
-    <script type="text/javascript" src="core/job.js"></script>
+    <!--<script type="text/javascript" src="core/job.js"></script>-->
     <script type="text/javascript" src="job_examples.js"></script> <!--evals no Job code, just literal strings for insertion-->
-    <script type="text/javascript" src="core/gcode.js"></script> <!-- adds methods to the class Job used by run_gcode-->
+    <!--<script type="text/javascript" src="core/gcode.js"></script>--> <!-- adds methods to the class Job used by run_gcode-->
     <script type="text/javascript" src="run_instruction.js"></script>
     <script type="text/javascript" src="robot_utilities.js"></script>
 
@@ -142,6 +145,7 @@
     <script type="text/javascript" src="test_suite/make_html_testsuite.js"></script>
 
     <!--loading order of this blcok specified by James -->
+    <!--
     <script type="text/javascript" src="math/Trig_in_Degrees.js"></script>
     <script type="text/javascript" src="math/Vector.js"></script>
     <script type="text/javascript" src="math/Convert.js"></script>
@@ -151,8 +155,9 @@
     <script type="text/javascript" src="math/DXF.js"></script>
     <script type="text/javascript" src="math/txt.js"></script>
     <script type="text/javascript" src="math/Dexter_Modes.js"></script>
+    -->
 
-    <script type="text/javascript" src="core/serial.js"></script>
+    <!--<script type="text/javascript" src="core/serial.js"></script>-->
 
     <script type="text/javascript" src="low_level_dexter/ViewEye_Support_Functions.js"></script>
     <script type="text/javascript" src="low_level_dexter/ViewEyeRealTime.js"></script>
@@ -171,6 +176,7 @@
     <script type="text/javascript" src="blocksde/js2b.js"></script>
     <script type="text/javascript" src="de/de.js"></script>
 
+    <script type="text/javascript" src="load_job_engine.js"></script>
 
     <script type="text/javascript" src="ready.js"></script>
     <link rel="stylesheet" href="styles.css" type="text/css"/>
@@ -738,7 +744,7 @@
                             <!--<option value='Simulate Dexter'>Simulate Dexter</option>-->
                             <option value='All'>All</option>
                             <option value='None'>None</option>
-                            <option value='http://hdrobotic.com/videos/'>Dexter Videos</option>
+                            <!-- <option value='http://hdrobotic.com/videos/'>Dexter Videos</option> can't show these in Sim pane, so forget it -->
                             <option value='http://static1.squarespace.com/static/55f1275ee4b0c65e2113baa5/563c04f5e4b0904f35c87cbb/563c0973e4b06c4bb72a5c89/1446775444596/HD+Robotics-8517.jpg'>Dexter Photo</option>
                             <option value='Reference Manual'>Reference Manual</option>
                             <option value='Choose File'>Choose File</option>

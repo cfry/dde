@@ -23,11 +23,6 @@ Js_info = class Js_info {
                         return "" + fn_name
                 }
             }
-            //else if (is_string_a_color_rgb(fn_name)){
-            //    let the_series = Series.id_to_series("series_color_rgb_id")
-            //    let info       = Js_info.getInfo_string_given_series(path, fn_name, the_series)
-            //    return Js_info.add_series_wrapper_to_info(the_series, info)
-            //}
             var info_and_url = Js_info.fn_name_to_info_map[fn_name] //miscelaneous stuff
             fn_name = Js_info.strip_path_prefix_maybe(fn_name)
             if (!info_and_url) { info_and_url = Js_info.fn_name_to_info_map[fn_name] } //try again without prefix, for cases where orign fn_name is "fn.call", for instance
@@ -501,23 +496,6 @@ Js_info = class Js_info {
         return false
     }
 
-    /*static wrap_fn_name(fn_name, the_doc_id){
-        let result = fn_name
-        if(!the_doc_id) { the_doc_id = fn_name + "_doc_id"}
-        if (window[the_doc_id]){
-            let onclick_val = "open_doc(" + the_doc_id + ")"
-            let click_id = fn_name + "_click_help_id"
-            //click_id = replace_substrings(click_id, ".", "_")
-            let the_html = "<a id='" + click_id + "' href='#'>" + fn_name + "</a>"
-            result = the_html
-            setTimeout(function(){
-                         window[click_id].onclick=function(){open_doc(window[the_doc_id])}
-                         },
-                       100)
-        }
-        else { result = "<span style='color:blue;'>" + fn_name + "</span>" }
-       return result
-    }*/
     //fn name might have dots in it like "Robot.go_to"
     static wrap_fn_name(fn_name, the_doc_id){
         let result = fn_name
@@ -703,3 +681,8 @@ Js_info.fn_name_to_info_map = {
     "yield":     ["function* foo(){yield 1; yield 2}",  "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/yield"],
     "yield*":    ["function* g4() {yield* [1, 2, 3];}", "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/yield*"]
 }
+
+var {function_name, function_params, function_params_for_keyword_call, is_class, is_whitespace,
+     last, starts_with_one_of, stringify_value, value_of_path} = require("./core/utils.js")
+
+var {pluralize_full_unit_name, series_name_to_unity_unit, unit_abbrev_to_full_name} = require("./core/units.js")

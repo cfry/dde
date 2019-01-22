@@ -686,3 +686,4 @@ rde.delete_param = function(name){
     obj.delete()
     return "Param: " + name + " deleted." //so output pane will show something when this is evaled
 }
+var {shouldnt, encode_quotes, line_starting_with, stringify_value} = require("./core/utils.js")

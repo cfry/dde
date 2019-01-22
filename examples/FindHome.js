@@ -228,7 +228,6 @@ return maxDeflection
 }
 
 function replayPointsitr(points, times){
-debugger;
   var rt =[]
   for (var j=0;j<times;j++){
   for (var i = 0;i < points.length;i++){
@@ -399,4 +398,6 @@ new Job({name: "j1", robot: Robot.my_dex, keep_history: false,
 
 Job.j1.start()
 Job.j1.inter_do_item_dur = 30
+
+var {dde_error} = require("../core/utils.js")
 

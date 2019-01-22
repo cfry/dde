@@ -1,21 +1,10 @@
 /**Created by Fry on 2/5/16. */
-var esprima = require('esprima')
-
-//used by Job.prototype.to_source_code. Keep in sync with Job.constructor!
-var job_default_params = {name: null, robot: Robot.dexter0, do_list: [],
-                          keep_history: true, show_instructions: true,
-                          inter_do_item_dur: 0.01, user_data:{},
-                          default_workspace_pose: null, //error on loading DDE if I use: Coor.Table, so we init this in Job.constructor
-                          program_counter:0, ending_program_counter:"end",
-                          initial_instruction: null, when_stopped: "stop", //also can be "wait" or a fn
-                          callback_param: "start_object_callback"}
-
 //for name param, both "" and null mean compute a job name a la "job_123"
-var Job = class Job{
+class Job{
     constructor({name="",
                  robot=Robot.dexter0, do_list=[], keep_history=true, show_instructions=true,
                  inter_do_item_dur=0.01, user_data={},
-                 default_workspace_pose=Coor.Table,
+                 default_workspace_pose=null, //Coor.Table,
                  program_counter=0, ending_program_counter="end",
                  initial_instruction=null, when_stopped = "stop",
                  callback_param = "start_object_callback"} = {}){
@@ -28,6 +17,10 @@ var Job = class Job{
     //with the job. -2 means we want to execute the last instruction of the
     //job next, etc.
     //save the args
+    if (default_workspace_pose == null) {
+          //console.log("default_workspace_pose is null, Job.job_default_params: " + Job.job_default_params)
+          default_workspace_pose=Job.job_default_params.default_workspace_pose
+    }
     if (!Array.isArray(do_list)){
         open_doc(do_list_doc_id)
         dde_error("While defining Job." + name +
@@ -40,9 +33,6 @@ var Job = class Job{
         open_doc(do_list_doc_id)
         dde_error("While defining Job." + name + "<br/>" + err.message)
         return
-    }
-    if (job_default_params.default_workspace_pose == null) { //really an init DDE action,but keep it local
-        job_default_params.default_workspace_pose = Coor.Table
     }
     if (Job[name] && Job[name].is_active()) { //we're redefining the job so we want to make sure the
        //previous version is stopped.
@@ -71,7 +61,7 @@ var Job = class Job{
         if ((this.name == null) || (this.name == "")){ this.name = "job_" + this.job_id }
         if (!(robot instanceof Robot)){
             if (!Robot.dexter0){
-                dde_error("Attempt to created Job: " + this.name + " with no valid robot instance.<br/>" +
+                dde_error("Attempt to create Job: " + this.name + " with no valid robot instance.<br/>" +
                           " Note that Robot.dexter0 is not defined<br/> " +
                           " but should be in your file: Documents/dde_apps/dde_init.js <br/>" +
                           " after setting the default ip_address and port.<br/> " +
@@ -79,7 +69,7 @@ var Job = class Job{
                           " rename your existing one and relaunch DDE.")
             }
             else {
-                dde_error("Attempt to created Job: " + this.name + " with no valid robot instance.<br/>" +
+                dde_error("Attempt to create Job: " + this.name + " with no valid robot instance.<br/>" +
                           "You can let the robot param to new Job default to get a correct Robot.dexter.0")
             }
         }
@@ -95,6 +85,17 @@ var Job = class Job{
         this.color_job_button()
     }
     } //end constructor
+
+    static init(){ //inits the class as a whole. called by ready
+        this.job_default_params =
+            {name: null, robot: Robot.dexter0, do_list: [],
+                keep_history: true, show_instructions: true,
+                inter_do_item_dur: 0.01, user_data:{},
+                default_workspace_pose: Coor.Table, //null, //error on loading DDE if I use: Coor.Table, so we init this in Job.constructor
+                program_counter:0, ending_program_counter:"end",
+                initial_instruction: null, when_stopped: "stop", //also can be "wait" or a fn
+                callback_param: "start_object_callback"}
+    }
 
     toString() { return "Job." + this.name }
     show_progress_maybe(){
@@ -143,6 +144,22 @@ var Job = class Job{
         }
         if(!has_user_data) { content += "<i>No user data in this job.</i>" }
         out(content, "#5808ff", html_id)
+    }
+
+    static define_and_start_job(job_file_path){
+        let starting_job_id_base = Job.job_id_base
+        try { load_files(job_file_path)}
+        catch(err){
+            console.log("Could not find Job file: " + job_file_path + "  " + err.message)
+            return
+        }
+        if(starting_job_id_base == Job.job_id_base){
+            console.log("apparently there is no job definition in " + job_file_path)
+        }
+        else {
+            let latest_job = Job.job_id_to_job_instance(Job.job_id_base)
+            latest_job.start()
+        }
     }
 
 
@@ -199,7 +216,7 @@ var Job = class Job{
                     }
                     this[key] = new_val
                 }
-                else if (!job_default_params.hasOwnProperty(key)){
+                else if (!Job.job_default_params.hasOwnProperty(key)){
                     warning("Job.start passed an option: " + key + " that is unknown. This is probably a mistake.")
                 }
             }
@@ -260,6 +277,7 @@ var Job = class Job{
             //out("Starting job: " + this.name + " ...")
             this.show_progress_maybe()
             this.robot.start(this) //the only call to robot.start
+            //console.log("end of Job.start")
             return this
         }
     }
@@ -410,12 +428,18 @@ var Job = class Job{
     }
 
     add_job_button_maybe(){
-        var but_elt = this.get_job_button()
+      if(window.platform == "dde") {
+        let but_elt = this.get_job_button()
         if (!but_elt){
             const job_name = this.name
             const the_id = this.get_job_button_id()
+
             const the_html = '<button style="margin-left:10px; margin-botton:0px; padding-bottom:0px; vertical-align:top;" id="' + the_id + '">'+ job_name + '</button>'
-            $("#jobs_button_bar_id").append(the_html)
+            //$("#jobs_button_bar_id").append(the_html)
+            let wrapper= document.createElement('div');
+            wrapper.innerHTML = the_html
+            jobs_button_bar_id.append(wrapper.firstChild)
+
             but_elt = window[the_id]
             but_elt.onclick = function(){
                 const the_job = Job[job_name]
@@ -432,11 +456,15 @@ var Job = class Job{
             }
             this.color_job_button()
         }
+      }
     }
 
     remove_job_button(){
         var but_elt = this.get_job_button()
-        if(but_elt){  $(but_elt).remove()  }
+        if(but_elt){
+            //$(but_elt).remove()
+            but_elt.remove()
+        }
     }
 
     set_status_code(status_code){
@@ -453,77 +481,79 @@ var Job = class Job{
     }
 
     color_job_button(){
-        let bg_color = null
-        let tooltip  = ""
-        switch(this.status_code){
-            case "not_started":
-                bg_color = "rgb(204, 204, 204)";
-                tooltip  = "This job has not been started since it was defined.\nClick to start this job."
-                break; //defined but never started.
-            case "starting":
-                bg_color = "rgb(210, 255, 190)";
-                tooltip  = "This job is in the process of starting.\nClick to stop it."
-                break;
-            case "running":
-                if((this.when_stopped    == "wait") &&
-                   (this.program_counter == this.instruction_location_to_id(this.ending_program_counter))) {
-                    bg_color = "rgb(255, 255, 102)"; //pale yellow
-                    tooltip  = 'This job is waiting for a new last instruction\nbecause it has when_stopped="wait".\nClick to stop this job.'
-                }
-                else {
-                    const cur_ins = this.do_list[this.program_counter]
-                    if (Instruction.is_instruction_array(cur_ins)){
-                        const oplet   = cur_ins[Dexter.INSTRUCTION_TYPE]
-                        if(oplet == "z") {
-                            bg_color = "rgb(255, 255, 102)"; //pale yellow
-                            tooltip  = "Now running 'sleep' instruction " + this.program_counter + "."
-                            break;
-                        }
+        if(window.platform == "dde"){
+            let bg_color = null
+            let tooltip  = ""
+            switch(this.status_code){
+                case "not_started":
+                    bg_color = "rgb(204, 204, 204)";
+                    tooltip  = "This job has not been started since it was defined.\nClick to start this job."
+                    break; //defined but never started.
+                case "starting":
+                    bg_color = "rgb(210, 255, 190)";
+                    tooltip  = "This job is in the process of starting.\nClick to stop it."
+                    break;
+                case "running":
+                    if((this.when_stopped    == "wait") &&
+                       (this.program_counter == this.instruction_location_to_id(this.ending_program_counter))) {
+                        bg_color = "rgb(255, 255, 102)"; //pale yellow
+                        tooltip  = 'This job is waiting for a new last instruction\nbecause it has when_stopped="wait".\nClick to stop this job.'
                     }
-                    bg_color = "rgb(136, 255, 136)";
-                    tooltip  = "This job is running instruction " + this.program_counter +
-                               ".\nClick to stop this job."
-                }
-                break;
-            case "suspended":
-                bg_color = "rgb(255, 255, 17)"; //bright yellow
-                tooltip  = "This job is suspended at instruction: " + this.program_counter +
-                            "because\n" +
-                            this.wait_reason + "\n" +
-                            "Click to unsuspend it.\nAfter it is running, you can click to stop it."
-                break; //yellow
-            case "waiting":
-                bg_color = "rgb(255, 255, 102)"; //pale yellow
-                tooltip  = "This job is at instruction " + this.program_counter +
-                            " waiting for:\n" + this.wait_reason + "\nClick to stop this job."
-                break; //yellow
-            case "completed":
-                if((this.program_counter === this.do_list.length) &&
-                    (this.when_stopped === "wait")){
+                    else {
+                        const cur_ins = this.do_list[this.program_counter]
+                        if (Instruction.is_instruction_array(cur_ins)){
+                            const oplet   = cur_ins[Dexter.INSTRUCTION_TYPE]
+                            if(oplet == "z") {
+                                bg_color = "rgb(255, 255, 102)"; //pale yellow
+                                tooltip  = "Now running 'sleep' instruction " + this.program_counter + "."
+                                break;
+                            }
+                        }
+                        bg_color = "rgb(136, 255, 136)";
+                        tooltip  = "This job is running instruction " + this.program_counter +
+                                   ".\nClick to stop this job."
+                    }
+                    break;
+                case "suspended":
+                    bg_color = "rgb(255, 255, 17)"; //bright yellow
+                    tooltip  = "This job is suspended at instruction: " + this.program_counter +
+                                "because\n" +
+                                this.wait_reason + "\n" +
+                                "Click to unsuspend it.\nAfter it is running, you can click to stop it."
+                    break; //yellow
+                case "waiting":
                     bg_color = "rgb(255, 255, 102)"; //pale yellow
-                    tooltip  = 'This job is waiting for a new last instruction\nbecause it has when_stopped="wait".\nClick to stop this job.'
-                }
-                else {
-                    bg_color = "rgb(230, 179, 255)" // purple. blues best:"#66ccff"  "#33bbff" too dark  //"#99d3ff" too light
-                    tooltip  = "This job has successfully completed.\nClick to restart it."
-                }
-                break;
-            case "errored":
-                bg_color = "rgb(255, 68, 68)";
-                tooltip  = "This job errored at instruction: " + this.program_counter +
-                " with:\n" + this.stop_reason + "\nClick to restart this job."
-                break;
-            case "interrupted":
-                bg_color = "rgb(255, 123, 0)"; //orange
-                tooltip  = "This job was interrupted at instruction " + this.program_counter +
-                " by:\n" + this.stop_reason + "\nClick to restart this job."
-                break;
+                    tooltip  = "This job is at instruction " + this.program_counter +
+                                " waiting for:\n" + this.wait_reason + "\nClick to stop this job."
+                    break; //yellow
+                case "completed":
+                    if((this.program_counter === this.do_list.length) &&
+                        (this.when_stopped === "wait")){
+                        bg_color = "rgb(255, 255, 102)"; //pale yellow
+                        tooltip  = 'This job is waiting for a new last instruction\nbecause it has when_stopped="wait".\nClick to stop this job.'
+                    }
+                    else {
+                        bg_color = "rgb(230, 179, 255)" // purple. blues best:"#66ccff"  "#33bbff" too dark  //"#99d3ff" too light
+                        tooltip  = "This job has successfully completed.\nClick to restart it."
+                    }
+                    break;
+                case "errored":
+                    bg_color = "rgb(255, 68, 68)";
+                    tooltip  = "This job errored at instruction: " + this.program_counter +
+                    " with:\n" + this.stop_reason + "\nClick to restart this job."
+                    break;
+                case "interrupted":
+                    bg_color = "rgb(255, 123, 0)"; //orange
+                    tooltip  = "This job was interrupted at instruction " + this.program_counter +
+                    " by:\n" + this.stop_reason + "\nClick to restart this job."
+                    break;
+            }
+            const but_elt = this.get_job_button()
+            if (but_elt.style.backgroundColor !== bg_color) { //cut down the "jitter" in the culor, don't set unnecessarily
+                but_elt.style.backgroundColor = bg_color
+            }
+            but_elt.title = tooltip
         }
-        const but_elt = this.get_job_button()
-        if (but_elt.style.backgroundColor !== bg_color) { //cut down the "jitter" in the culor, don't set unnecessarily
-            but_elt.style.backgroundColor = bg_color
-        }
-        but_elt.title = tooltip
     }
     //end of jobs buttons
 
@@ -548,12 +578,14 @@ var Job = class Job{
     }
 
     static do_list_to_html_set_up_onclick(){
-        setTimeout(function(){
-            let elts = document.getElementsByClassName("do_list_item")
-            for (let i = 0; i < elts.length; i++) { //more clever looping using let elt of elts breaks but only on windows deployed DDE
-                let elt = elts[i]
-                elt.onclick = Job.do_list_item_present_robot_status }
-        }, 500)
+        if(window.platform == "dde"){
+            setTimeout(function(){
+                let elts = document.getElementsByClassName("do_list_item")
+                for (let i = 0; i < elts.length; i++) { //more clever looping using let elt of elts breaks but only on windows deployed DDE
+                    let elt = elts[i]
+                    elt.onclick = Job.do_list_item_present_robot_status }
+            }, 500)
+        }
     }
     //runs in UI
     static do_list_item_present_robot_status(event){
@@ -729,21 +761,11 @@ var Job = class Job{
                      " but couldn't find an instruction with that id in Job." + this.name + ".sent_instructions")
         }
     }
-
-    xyz_for_rs_history(){
-        let result = []
-        let rob = this.robot
-        for(let rs of this.rs_history){
-            let angles = [rs[Dexter.J1_ANGLE], rs[Dexter.J2_ANGLE], rs[Dexter.J3_ANGLE], rs[Dexter.J4_ANGLE], rs[Dexter.J5_ANGLE]]
-            let a_xyz  = Kin.J_angles_to_xyz(angles, rob.pose)[0]
-            result.push(a_xyz)
-        }
-        return result
-    }
-
-
-
 }
+
+//used by Job.prototype.to_source_code. Keep in sync with Job.constructor!
+Job.job_default_params = null
+
 Job.status_codes = ["not_started", "starting", "running", "completed",
                     "suspended",
                     "waiting",   //(wait_until, sync_point)
@@ -762,7 +784,12 @@ Job.all_names = [] //maintained in both UI and sandbox/ used by replacement seri
 Job.remember_job_name = function(job_name){
     if (!Job.all_names.includes(job_name)){
         Job.all_names.push(job_name)
-        $("#videos_id").prepend("<option>Job: " + job_name + "</option>")
+        if(window.platform == "dde"){
+            //$("#videos_id").prepend("<option>Job: " + job_name + "</option>")
+            let a_option = document.createElement("option");
+            a_option.innerText = "Job: " + job_name
+            videos_id.prepend(a_option)
+        }
     }
 }
 
@@ -938,7 +965,7 @@ Job.prototype.finish_job = function(perform_when_stopped=true){ //regardless of 
                                         const found_job = Job.instruction_location_to_job(the_job.when_stopped, false)
                                         if (found_job) { the_job = found_job }
                                         the_job.finish_job(false)
-                                        setTimout(function(){ //give the first job the chance to finish so that it isn't taking up the socket, and only THEN start the 2nd job.
+                                        setTimeout(function(){ //give the first job the chance to finish so that it isn't taking up the socket, and only THEN start the 2nd job.
                                              the_job.start({program_counter: the_job.when_stopped})
                                         }, 200)
                                      }, 100)
@@ -954,7 +981,7 @@ Job.prototype.finish_job = function(perform_when_stopped=true){ //regardless of 
         this.color_job_button()
         this.show_progress_maybe()
         //this.print_out()
-        //out("Done with job: " + this.name +
+        out("Done with job: " + this.name)
         //    "&nbsp;&nbsp;<button onclick='function(){inspect_out(Job." + this.name + ")}'>Inspect</button>")
         //inspect_out(this, null, null, null, true) //collapse inspector
     }
@@ -1051,6 +1078,7 @@ Job.prototype.set_up_next_do = function(program_counter_increment = 1, allow_onc
 Job.prototype.stop_for_reason = function(status_code, //"errored", "interrupted", "completed"
                                          reason_string,
                                          perform_when_stopped = false){
+    out("top of Job.stop_for_reason with reason: " + reason_string)
     this.stop_reason  = reason_string //put before set_status_code because set_status_code calls color_job_button
     this.set_status_code(status_code)
     if (this.robot.heartbeat_timeout_obj) { clearTimeout(this.robot.heartbeat_timeout_obj) }
@@ -1062,6 +1090,7 @@ Job.prototype.stop_for_reason = function(status_code, //"errored", "interrupted"
 Job.prototype.do_next_item = function(){ //user calls this when they want the job to start, then this fn calls itself until done
     //this.program_counter += 1 now done in set_up_next_do
     //if (this.show_instructions){ console.log("Top of do_next_item in job: " + this.name + " with PC: " + this.program_counter)}
+    //console.log("top of do_next_item with pc: " + this.program_counter)
     let ending_pc = this.instruction_location_to_id(this.ending_program_counter) //we end BEFORE executing the ending_pcm we don't execute the instr at the ending pc if any
     if (["completed", "interrupted", "errored"].includes(this.status_code)){//put before the wait until instruction_id because interrupted is the user wanting to halt, regardless of pending instructions.
         this.finish_job()
@@ -1117,6 +1146,7 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
         //have been just inserted by the above).
       try {
         var cur_do_item = this.current_instruction()
+        //console.log("do_next_item cur_do_item: " + cur_do_item)
         this.show_progress_maybe()
         this.select_instruction_maybe(cur_do_item)
         if (this.program_counter >= this.added_items_count.length) { this.added_items_count.push(0)} //might be overwritten further down in this method
@@ -1215,6 +1245,7 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
         else if (typeof(cur_do_item) == "function"){
             try{
                 var do_items = cur_do_item.call(this) //the fn is called with "this" of this job
+                //console.log("do_next_item with function that returned: " + do_items)
                 this.handle_function_call_or_gen_next_result(cur_do_item, do_items) //take the result of the fn call and put it on the do_list
             }
             catch(err){
@@ -1293,59 +1324,67 @@ Job.prototype.handle_function_call_or_gen_next_result = function(cur_do_item, do
     }
 }
 
-//cur_do_item guraenteed to have a start method whenthis fn is called.
+//cur_do_item guarenteed to have a start method when this fn is called.
 Job.prototype.handle_start_object = function(cur_do_item){
-    let user_data_variable = cur_do_item.user_data_variable
-    let job_instance = this
-    let cb_fn = null
-    let the_inst_this = cur_do_item.start_this
-    if (!the_inst_this) { the_inst_this = cur_do_item }
-    else if (the_inst_this == "job_instance") { the_inst_this = job_instance }
-    let start_args = cur_do_item.start_args
-    let cb_param = cur_do_item.callback_param
-    if(cb_param) {
-        job_instance.wait_until_this_prop_is_false = "waiting for start object callback to run"
-        let cb_fn = function(...args) {
-            if (user_data_variable){
-                job_instance.user_data[user_data_variable] =  args
-            }
-            job_instance.wait_until_this_prop_is_false = false
+        //the below gets around having to require("test_suite.js") because that would
+        //violate what the job_engine code has access too, but still allows
+        //including a test suite instance in a job that is run in DDE.
+        if(cur_do_item.constructor && (cur_do_item.constructor.name == "TestSuite")){
+            cur_do_item.constructor.set_state_and_resume({suites: [cur_do_item]})
         }
-        if(typeof(cb_param) === "number") { //must be a non-neg int
-            if ((start_args === undefined) || (start_args === null)) {start_args = []}
-            if (Array.isArray(start_args)) {
-                 start_args = start_args.slice() //copy
-                 start_args[cb_param] = cb_fn
-            }
-            else { dde_error("For Job: " + job_instance.name +
-                " pc: " +  job_instance.program_counter +
-                "<br/>got data structure instruction: " + cur_do_item +
-                "<br/> which has a cb_param of a number but the start_args " +
-                "is not an array.")
-            }
-        }
-        else if (typeof(cb_param) === "string") {
-            if ((start_args === undefined) || (start_args === null)) { start_args = {} }
-            if (typeof(start_args) == "object") {
-               start_args =  jQuery.extend({}, start_args) //shallow copy
-               start_args[cb_param] = cb_fn
-            }
-            else {
-               dde_error("For Job: " + job_instance.name +
+        else {
+            let user_data_variable = cur_do_item.user_data_variable
+            let job_instance = this
+            let cb_fn = null
+            let the_inst_this = cur_do_item.start_this
+            if (!the_inst_this) { the_inst_this = cur_do_item }
+            else if (the_inst_this == "job_instance") { the_inst_this = job_instance }
+            let start_args = cur_do_item.start_args
+            let cb_param = cur_do_item.callback_param
+            if(cb_param) {
+                job_instance.wait_until_this_prop_is_false = "waiting for start object callback to run"
+                let cb_fn = function(...args) {
+                    if (user_data_variable){
+                        job_instance.user_data[user_data_variable] =  args
+                    }
+                    job_instance.wait_until_this_prop_is_false = false
+                }
+                if(typeof(cb_param) === "number") { //must be a non-neg int
+                    if ((start_args === undefined) || (start_args === null)) {start_args = []}
+                    if (Array.isArray(start_args)) {
+                         start_args = start_args.slice() //copy
+                         start_args[cb_param] = cb_fn
+                    }
+                    else { dde_error("For Job: " + job_instance.name +
                         " pc: " +  job_instance.program_counter +
                         "<br/>got data structure instruction: " + cur_do_item +
-                        '<br/> which has a cb_param of a string, "' + cb_param + '", but the start_args ' +
-                        "is not an object.")
+                        "<br/> which has a cb_param of a number but the start_args " +
+                        "is not an array.")
+                    }
+                }
+                else if (typeof(cb_param) === "string") {
+                    if ((start_args === undefined) || (start_args === null)) { start_args = {} }
+                    if (typeof(start_args) == "object") {
+                       start_args =  jQuery.extend({}, start_args) //shallow copy
+                       start_args[cb_param] = cb_fn
+                    }
+                    else {
+                       dde_error("For Job: " + job_instance.name +
+                                " pc: " +  job_instance.program_counter +
+                                "<br/>got data structure instruction: " + cur_do_item +
+                                '<br/> which has a cb_param of a string, "' + cb_param + '", but the start_args ' +
+                                "is not an object.")
+                    }
+                }
             }
+            else if(cur_do_item.dur) {
+                this.insert_single_instruction(Robot.wait_until(cur_do_item.dur))
+            }
+            if (!start_args)                    { cur_do_item.start.apply(the_inst_this) }
+            else if (Array.isArray(start_args)) { cur_do_item.start.apply(the_inst_this, start_args) }
+            else                                { cur_do_item.start.call(the_inst_this, start_args) }
         }
-    }
-    else if(cur_do_item.dur) {
-        this.insert_single_instruction(Robot.wait_until(cur_do_item.dur))
-    }
-    if (!start_args)                    { cur_do_item.start.apply(the_inst_this) }
-    else if (Array.isArray(start_args)) { cur_do_item.start.apply(the_inst_this, start_args) }
-    else                                { cur_do_item.start.call(the_inst_this, start_args) }
-    this.set_up_next_do(1)
+        this.set_up_next_do(1)
 }
 
 Job.prototype.send = function(instruction_array, robot){ //if remember is false, its a heartbeat
@@ -1874,7 +1913,7 @@ Job.prototype.to_source_code = function(args={}){
     for(let prop_name of prop_names){ //if job has never been run, do_list will be undefined,
                                       //in which case use orig_args even if orig_args arg is false
        let prop_val = props_container[prop_name]
-       if (!similar(prop_val, job_default_params[prop_name])){ //I could *almost* use == instead pf similar but doesn't work for user_data of an empty lit obj
+       if (!similar(prop_val, Job.job_default_params[prop_name])){ //I could *almost* use == instead pf similar but doesn't work for user_data of an empty lit obj
             let prop_args = jQuery.extend({}, args)
             prop_args.value = prop_val
             let user_data_val_prefix = ""
@@ -1912,7 +1951,16 @@ Job.prototype.to_source_code = function(args={}){
     return result
 }
 
-
+module.exports = Job
+var esprima = require('esprima')
+var {serial_disconnect_all} = require("./serial.js")
+var {Robot, Brain, Dexter, Human, Serial} = require('./robot.js')
+var Coor  = require('../math/Coor.js')
+var {Instruction, make_ins} = require("./instruction.js")
+var {load_files} = require("./storage.js")
+var {shouldnt, warning, dde_error, milliseconds_to_human_string, is_iterator, last, prepend_file_message_maybe, shallow_copy_lit_obj, stringify_value_sans_html} = require("./utils")
+var {out} = require("./out.js")
+//var TestSuite = require("../test_suite/test_suite.js")
 
 
 

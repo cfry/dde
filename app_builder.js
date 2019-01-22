@@ -760,5 +760,7 @@ ab.launch = function(){ //happens in ui env, called from Insert menu item when u
     setTimeout(function(){ab.post_creation_window_init()}, 100) //needed to init the combo box for actions
 }
 
+var {spaces} = require("./core/utils.js")
+
 
 

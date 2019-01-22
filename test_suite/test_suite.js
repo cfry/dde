@@ -20,7 +20,8 @@ var TestSuite = class TestSuite{
         for(let suite of TestSuite.suites){
             test_count += suite.tests.length
         }
-        out("There are " + TestSuite.suites.length + " test suites containing a total of " + test_count + " tests.")
+        out("There are " + TestSuite.suites.length + " defined test suites containing a total of " + test_count + " tests,<br/>" +
+            "ignoring the tests derived from the documentation.")
     }
 
     verify_tests_syntax(){
@@ -56,7 +57,7 @@ var TestSuite = class TestSuite{
         TestSuite.suites.push(a_suite)
     }
     static make_suite_menu_items(suite_name){
-        console.log("top of make_suite_menu_items")
+        //console.log("top of make_suite_menu_items")
         var fn = function(){
                    TestSuite.run(suite_name)
                 }
@@ -205,23 +206,23 @@ var TestSuite = class TestSuite{
         let sel_text  = Editor.get_javascript(true)
 
         if (TestSuite.are_multiple_test_suites_selected(sel_text)){
-            console.log("got multiple test suites")
+            //console.log("got multiple test suites")
             TestSuite.eval_and_run_selected_test_suites(sel_text, arrow_key_orientation, arrow_key_direction, run_item)
             return true
         }
         else if (TestSuite.is_one_test_suite_selected(sel_text)){
-            console.log("got one test suite")
+            //console.log("got one test suite")
             TestSuite.eval_and_run_selected_test_suite(sel_text, arrow_key_orientation, arrow_key_direction, run_item)
             return true
         }
         else if (TestSuite.in_test_suite_def()){
             if (is_string_a_literal_array(sel_text)){ //we have a test
-                console.log("got lit array")
+                //console.log("got lit array")
                 TestSuite.eval_and_run_selected_test(sel_text, arrow_key_orientation, arrow_key_direction, run_item)
                 return true
             }
             else if (is_string_a_literal_string(sel_text)){ //we have a test src or expected val
-                console.log("got lit string")
+                //console.log("got lit string")
                 TestSuite.eval_and_run_selected_string(sel_text, arrow_key_orientation, arrow_key_direction, run_item)
                 return true
             }
@@ -230,7 +231,18 @@ var TestSuite = class TestSuite{
         else { return false }
     }
 
+    static set_state_and_resume({reports = "", suites = []}){
+        this.state =   {reports:             reports,
+                        start_time:          Date.now(),
+                        suites:              suites,
+                        current_suite_index: 0,
+                        next_test_index:     0
+                       }
+        this.resume()
+    }
+
     static run_all(){
+        load_files(__dirname + "/test_suite/math_testsuite.js")
         load_files(__dirname + "/test_suite/move_all_joints_testsuite.js")
         load_files(__dirname + "/music/note_testsuite.js")
         load_files(__dirname + "/music/phrase_testsuite.js")
@@ -240,13 +252,14 @@ var TestSuite = class TestSuite{
         if (!TestSuite["reference_manual_id"]) { TestSuite.make_test_suites_from_doc(reference_manual_id) }
         let report_prefix = '<b style="font-size:20px;">All Test Suites Report</b><br/>' +
             '<span style="color:magenta;">test_suite_reporting *should* indicate<br/>"failures: unknown=2, known=1"</span><br/>'
-        this.state = {reports:             report_prefix,
-                      start_time:          Date.now(),
-                      suites:              TestSuite.suites,
-                      current_suite_index: 0,
-                      next_test_index:     0
-                     }
-        this.resume()
+        //this.state = {reports:             report_prefix,
+         //             start_time:          Date.now(),
+         //             suites:              TestSuite.suites,
+         //             current_suite_index: 0,
+         //             next_test_index:     0
+         //            }
+        //this.resume()
+        this.set_state_and_resume({reports: report_prefix, suites: TestSuite.suites})
     }
     //called from run_all before run_all actually runs any tests, and
     //when a job finishes because its when_stopped method as set by
@@ -317,19 +330,25 @@ var TestSuite = class TestSuite{
 
     static run_ts_in_file(path){
         let ts_src = file_content(path).trim()
+        //because there is sometimes a comment at top of a testsuite file (like for the
+        //math tests, we have to be careful about deleting that initial comma.
+        //ts_src = ts_src.substring(1) //cut off initial comma
         ts_src = replace_substrings(ts_src, "new TestSuite", ", new TestSuite") //don't stick in tthe open paren after new TestSuite because regexp will think its a group cmd.
-        ts_src = ts_src.substring(1) //cut off initial comma
+        let initial_comma_pos = ts_src.indexOf(", new TestSuite")
+        ts_src = ts_src.substring(0, initial_comma_pos) +
+                 ts_src.substring(initial_comma_pos + 1)
         ts_src = "[\n" + ts_src + "\n]" //need the newlines in case last line in ts_src has a // comment in it
         let ts_array = eval(ts_src)
         let report_prefix = '<b style="font-size:20px;">Test Suites Report for ' + path + '</b><br/>'
-        this.state = {
-            reports:             report_prefix,
-            start_time:          Date.now(),
-            suites:              ts_array,
-            current_suite_index: 0,
-            next_test_index:     0
-        }
-        this.resume()
+        //this.state = {
+        //    reports:             report_prefix,
+        //    start_time:          Date.now(),
+        //    suites:              ts_array,
+        //    current_suite_index: 0,
+        //    next_test_index:     0
+        //}
+        //this.resume()
+        this.set_state_and_resume({reports: report_prefix, suites: ts_array})
     }
 
     //can't just return the value and have it seen, has to output to out.
@@ -392,14 +411,16 @@ var TestSuite = class TestSuite{
                         //    return false
                         //}
                     }
-                    this.state = {
-                        reports:             "",
-                        start_time:          Date.now(),
-                        suites:              ts_array_clean_strings, //each will be evled when its time to run it
-                        current_suite_index: 0,
-                        next_test_index:     0
-                    }
-                    this.resume()
+                    //this.state = {
+                    //    reports:             "",
+                    //    start_time:          Date.now(),
+                    //    suites:              ts_array_clean_strings, //each will be evaled when its time to run it
+                    //    current_suite_index: 0,
+                     //   next_test_index:     0
+                    //}
+                    //this.resume()
+                    this.set_state_and_resume({reports: "", suites: ts_array_clean_strings})
+
                 }
             }
         }
@@ -412,14 +433,15 @@ var TestSuite = class TestSuite{
             if (run_item){
                 let ts  = window.eval(sel_text)
                 if (ts instanceof TestSuite) {
-                        this.state = {
-                        reports:             "",
-                        start_time:          Date.now(),
-                        suites:              [ts],
-                        current_suite_index: 0,
-                        next_test_index:     0
-                    }
-                    this.resume()
+                   //     this.state = {
+                   //     reports:             "",
+                   //     start_time:          Date.now(),
+                   //     suites:              [ts],
+                   //     current_suite_index: 0,
+                   //     next_test_index:     0
+                   // }
+                   // this.resume()
+                   this.set_state_and_resume({reports: "", suites: [ts]})
                 }
                 else {
                     out("The source code for test suite: " + ts_string.split("\n")[0] + " isn't proper.")
@@ -447,6 +469,10 @@ var TestSuite = class TestSuite{
     }
 
     //run a test suite. returns a string of the report OR false, meaning, suspend
+    //Can be called by job.js when this is a job's do_list item.
+    //we need not to have job.js require test_suite.js but if it just
+    //calls the start method here, it doesn't have to.
+    //This situation is a hack, but needed because job.js can't require a file in DDE outside of job_engine code
     start(starting_test_index){ //the instance version of run
         return TestSuite.run(this.name, starting_test_index)
     }
@@ -480,6 +506,14 @@ var TestSuite = class TestSuite{
         var this_suite = TestSuite[name]
         if (!this_suite) {throw new Error("Attempted to run test suite: " + name + " but it isn't defined.")}
         var start_time = Date.now()
+        //if(!this.state) { //could be due to a ts being an item in a Job
+        //    this.state = {
+         //       reports:             "",
+         //       start_time:          start_time,
+         //       suites:              [this_suite],
+         //       current_suite_index: 0,
+         //       next_test_index:     starting_test_index }
+        //}
         for(let test_number = starting_test_index; test_number < this_suite.tests.length; test_number++){
             var test     = this_suite.tests[test_number]
             //onsole.log("About to run test: " + test_number + " " + test)
@@ -536,6 +570,8 @@ var TestSuite = class TestSuite{
         var error_message = ""
          //first elt: false means everything ok,  or "known"  or "unknown" for a bug
         var src      = test[0]
+        //console.log("About to run test test_number: " + test_number + " src: " + src + " " + test)
+
         var test_number_html = ((test_number || (test_number === 0)) ? "Test " + test_number + ". ": "")
         //permit 'let' but warn
         if (src.startsWith("let ") || src.startsWith("\nlet ")) {
@@ -969,6 +1005,10 @@ TestSuite.error = {name:"used for an expected value of an error."}
 TestSuite.dont_care = {name:"used for an expected value when anything the source returns is ok, except if it errors."}
 TestSuite.suites = []
 TestSuite.state  = null //used to hold state to implement resume.
+
+module.exports = TestSuite
+var {is_string_a_literal_array, is_string_a_literal_string, last,
+    replace_substrings, similar, string_to_literal, stringify_value_sans_html, spaces, value_of_path} = require("./core/utils.js")
 
 new TestSuite("test_suite_reporting",
     ["2 + 3", "5", "1st elt (source) evals to same as 2nd elt (expected) and the test passes."],

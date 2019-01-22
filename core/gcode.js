@@ -1,4 +1,4 @@
-var Gcode = class Gcode{
+class Gcode{
   static init(){ //called from ready.js
       Gcode.gcode_to_instructions_workspace_pose_default =
           Vector.make_pose([0, 0.5, 0.1], [0, 0, 0], _mm)
@@ -158,3 +158,7 @@ Gcode.gcode_to_instructions = function* ({gcode = "",
         }
     }
 }
+
+module.exports = Gcode
+var Vector = require("../math/Vector.js")
+var {is_string_a_number} = require("./utils.js")

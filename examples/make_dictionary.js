@@ -105,3 +105,5 @@ recognize_speech(
         finish_phrase: "finish",        //Say this to end speech reco when only_once=false.
         finish_callback: out, //Passed array of arrays of text and confidence when user says "finish". Default null. Only called if only_once=false
         x: 290, y: 100, height: 350})
+
+var {replace_substrings} = require("../core/utils.js")

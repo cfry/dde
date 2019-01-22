@@ -1120,3 +1120,5 @@ function show_window_callback_for_canvas_click(vals){
            "background:rgb(" + pix[0] + "," + pix[1] + "," + pix[2] + ")';></div>"
     )
 }
+
+var {is_integer, number_similarity, value_of_path} = require("./core/utils.js")

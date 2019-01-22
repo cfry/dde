@@ -74,10 +74,14 @@
             })
             stl_render()
         }
-        else if (select_val.startsWith("http")){
-            //play_youtube_video(select_val)
-            show_page(select_val)
-        }
+       // else if (select_val.startsWith("http")){
+            ////play_youtube_video(select_val)
+            //show_page(select_val) //this doesn't show the page in the SIm pane,
+            //so I decided to remove it
+            //the below fails
+        //    let content = get_page(select_val)
+        //    sim_graphics_pane_id.innerHTML = content
+        //}
         else if (select_val == "Reference Manual"){
             let div_html = `<div contenteditable='false' 
                                 style='height:300px; width:300px; padding:5%; background-color:#DDDDDD; overflow:scroll;'>` +
@@ -107,10 +111,5 @@
             sim_graphics_pane_id.innerHTML = div_html + content + "</div>"
         }
     }
-    //function show_url(url){
-    //    /*sim_graphics_pane_id.style.display = "none";
-    //   video_player_id.style.display         = "inline";
-    //    video_player.loadVideoById(youtube_id)
-    //    */
-    //    window.open(url) //"https://youtu.be/6o0gkU9SgdQ"
-    //} */
+
+var {replace_substrings} = require("./core/utils.js")

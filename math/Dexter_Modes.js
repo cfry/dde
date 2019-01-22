@@ -44,6 +44,7 @@ function setFollowMe(robot){
     Instruction.add_robot_to_instructions(result)
     return result
 }
+module.exports.setFollowMe = setFollowMe
 
 function setForceProtect(robot){
 	let pidXYZ  = 0x3e4ecccc //not set in this file
@@ -83,6 +84,8 @@ function setForceProtect(robot){
     Instruction.add_robot_to_instructions(result)
     return result
 }
+module.exports.setForceProtect = setForceProtect
+
 
 function setKeepPosition(robot){
 	let pidXYZ  = 0x3e4ecccc //not set in this file
@@ -114,6 +117,8 @@ function setKeepPosition(robot){
     Instruction.add_robot_to_instructions(result)
     return result
 }
+module.exports.setKeepPosition = setKeepPosition
+
 
 function setOpenLoop(robot){
 	let pidXYZ  = 0x3e4ecccc //not set in this file
@@ -144,3 +149,5 @@ function setOpenLoop(robot){
     Instruction.add_robot_to_instructions(result)
     return result
 }
+module.exports.setOpenLoop = setOpenLoop
+var {Instruction, make_ins} = require("../core/instruction.js")

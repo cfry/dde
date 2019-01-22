@@ -804,7 +804,7 @@ new Job({name: "my_job",
 //the TestSuite report is output and the job stops early.
 
 new TestSuite("ts_in_job",
-    ["2 + 3", "15"]
+    ["2 + 3", "5"]
 )
 
 new Job({name: "my_job",

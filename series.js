@@ -910,3 +910,11 @@ Series.instances = [
 ]
 }
 
+var {copy_missing_fields, is_string_a_integer, is_string_a_float, is_string_a_number, is_string_a_literal_string,
+    is_hour_colon_minute, is_hour_colon_minute_colon_second, is_valid_new_date_arg,
+    is_string_a_color_rgb, rgb_string_to_integer_array} = require("./core/utils.js")
+
+var {init_units, unit_abbrev_to_full_name} = require("./core/units.js")
+var {Robot, Brain, Dexter, Human, Serial} = require('./core/robot.js')
+
+

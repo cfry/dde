@@ -31,10 +31,12 @@ temboo IOT js connectivity requires setting up a local js server to use.
 const SerialPort = require('serialport')
 
 var serial_path_to_info_map = {}
+module.exports.serial_path_to_info_map = serial_path_to_info_map
 
 function serial_path_to_info(path){
     return serial_path_to_info_map[path]
 }
+
 
 
 function serial_devices(){
@@ -42,6 +44,8 @@ function serial_devices(){
     const reply = dde_ipc.sendSync('serial_devices')
     return reply
 }
+module.exports.serial_devices = serial_devices
+
 
 //only used for testing.
 function serial_connect_low_level(path, options, capture_n_items=1, item_delimiter="\n",
@@ -70,6 +74,8 @@ function serial_connect_low_level(path, options, capture_n_items=1, item_delimit
         }
     })
 }
+module.exports.serial_connect_low_level = serial_connect_low_level
+
 
 //not used by DDE robots
 function serial_send_low_level(path, content){
@@ -91,6 +97,8 @@ function serial_send_low_level(path, content){
             " which doesn't have info.")
     }
 }
+module.exports.serial_send_low_level = serial_send_low_level
+
 
 //called by serial_connect AND Serial.send
 function serial_init_one_info_map_item(path, options, simulate=null, capture_n_items=1, item_delimiter="\n",
@@ -431,6 +439,8 @@ function serial_flush(path){
         warning("Attempt to serial_flush path: " + path + " but that path doesn't have info.")
     }
 }
+module.exports.serial_flush = serial_flush
+
 
 //with an arduino connected, this disconnects but then immdiately afterwards,
 //a new connection is automatically made with 1 higher port number and same path.
@@ -443,9 +453,15 @@ function serial_disconnect(path){
         delete serial_path_to_info_map[path]
     }
 }
+module.exports.serial_disconnect = serial_disconnect
+
 
 function serial_disconnect_all(){
   for(let path of Object.keys(serial_path_to_info_map)){
       serial_disconnect(path)
   }
 }
+module.exports.serial_disconnect_all = serial_disconnect_all
+
+
+var {dde_error} = require("./utils.js")

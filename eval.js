@@ -1,4 +1,6 @@
- var char_position = function(src, line_number, col_number){
+var prefix_to_evaled_src = "try{" //referenced in eval code AND in error handler way below
+
+function char_position(src, line_number, col_number){
 // line_number is 1 based. as are chrome error messages
 // col_number is 1 based.  as are chrome error messages
 // result is 0 based.
@@ -24,21 +26,6 @@
     }
     return false
 }
-
-
-
-
-//var in_ui = function(){ return true }
-
-/*function post_to_sandbox(message_obj){
-    sandbox_iframe_id.contentWindow.postMessage(message_obj, '*');
-}*/
-
-/*function post_to_ui(message_obj){
-    window.parent.postMessage(message_obj, "*")
-}*/
-
-var prefix_to_evaled_src = "try{" //referenced in eval code AND in error handler way below
 
 function fix_code_to_be_evaled(src){
     let slash_slash_pos = src.lastIndexOf("//")
@@ -81,8 +68,6 @@ function eval_js_part1(step=false){
 
 //part 2 of 3 is in eval.js,  window.addEventListener('message'  under the message name of "eval"
 function eval_js_part2 (command, calL_eval_part3_if_no_error=true){ //2nd arg passed in as false for eval_and_paly
-    //var command = event.data.command; //might be whole editor buffer or just the selection.
-    //command = trim_string_for_eval(command) //cuts trailing whitespace and // comments only. but buggy
     command = fix_code_to_be_evaled(command)
     var suffix_to_evaled_src = ""
     if (command.startsWith("{")) { prefix_to_evaled_src = "try{("; suffix_to_evaled_src = ")" } //parens fixes broken js eval of src like "{a:2, b:3}"
@@ -261,3 +246,9 @@ function eval_and_start(){
          }
     }
 }
+
+var {out, out_eval_result} = require("./core/out.js")
+var {dde_error, warning, replace_substrings, starts_with_one_of, stringify_value} = require("./core/utils.js")
+var {Robot, Brain, Dexter, Human, Serial} = require('./core/robot.js')
+
+

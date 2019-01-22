@@ -23,6 +23,14 @@
         if (Editor.view == "Blocks") { eval_id.blur() } //to get rid of the Eval button being "selected" when we're evaling in blocks view
     }
 
+    function play_simulation(){
+        sim.enable_rendering = true;
+        render();
+        //out("Demo just moves Dexter randomly.")
+    }
+
+    // document.body.addEventListener('onload', on_ready)
+
     function on_ready() {
         const os = require('os');
         operating_system = os.platform().toLowerCase() //for Ubuntu, ths returns "linux"
@@ -43,6 +51,10 @@
         var pckg         = require('./package.json');
         dde_version      = pckg.version
         dde_release_date = pckg.release_date
+        platform         = "dde"
+        //window.Root      = Root //should work but doesn't jan 13, 2019
+        Coor.init()
+        Job.init()
         setTimeout(function(){
             window.document.title = "Dexter Development Environment " + dde_version
             dde_version_id.innerHTML      = dde_version
@@ -701,9 +713,6 @@ get_page_async("http://www.ibm.com", function(err, response, body){ out(body.len
 
    eval_and_start_button_id.onclick = eval_and_start
 
-
-   //inspect_rootObject_id.onclick=function(){ inspect_new_object("Root") }
-    //train_id.onclick=dex.train //obsolete
     make_dictionary_id.onclick=function(){
         const code = file_content(__dirname + "/examples/make_dictionary.js")
         Editor.insert(code)
@@ -1168,11 +1177,14 @@ function email_bug_report(){
     window.open("mailto:cfry@media.mit.edu?subject=DDE Suggestion&body=" + bod);
 }
 
-play_simulation = function(){
-    sim.enable_rendering = true;
-    render();
-    //out("Demo just moves Dexter randomly.")
-}
+var {out, get_output, clear_output} = require("./core/out.js")
+//var {Root} = require("./core/object_system.js") //should work but doesn't jan 13, 2019
+var {convert_backslashes_to_slashes} = require("./core/storage.js")
+var Coor  = require("./math/Coor.js")
+var Job   = require("./core/job.js")
+var Gcode = require("./core/gcode.js")
+var DXF   = require("./math/DXF.js")
+var {dde_error, warning, date_to_mmm_dd_yyyy, is_digit} = require("./core/utils.js")
 
 
 

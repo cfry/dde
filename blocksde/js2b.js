@@ -166,41 +166,7 @@ var JS2B = class JS2B{
      not just the ones passed. BUT
     doesn't handle keyworded fns properly.
  */
- /* static CallExpression(st){
-      let callee   = st.callee //could be a single Identifier or could be MemberExpression when its a path
-      let meth_src = JS2B.get_src(callee)
-      let meth     = value_of_path(meth_src)
-      let param_names_and_defaults
-      if (meth) { param_names_and_defaults = function_param_names_and_defaults(meth) } //defaults are all strings of src code
-      let meth_block = JS2B[callee.type].call(undefined, callee)
-      let arg_blocks = {}
-      let iterations
-      if(param_names_and_defaults) {
-             iterations = Math.max(param_names_and_defaults.length, st.arguments.length)
-      }
-      else { iterations = st.arguments.length }
-      for(let i = 0; i < iterations;  i++){
-         let arg_val_block
-         if (i < st.arguments.length) {
-            let arg_st = st.arguments[i]
-            arg_val_block = JS2B[arg_st.type].call(undefined, arg_st)
-         }
-         else if (param_names_and_defaults && (i < param_names_and_defaults.length)){
-            let arg_src = param_names_and_defaults[i][1]
-            let arg_st = JS2B.string_to_ast(arg_src)
-             arg_val_block = JS2B[arg_st.type].call(undefined, arg_st)
-         }
-         else { arg_val_block = Root.jsdb.one_of.null_undefined.make_dom_elt(undefined, undefined, "undefined") }
-         let param_name
-         if(param_names_and_defaults && (i < param_names_and_defaults.length)) {
-              param_name = param_names_and_defaults[i][0] }
-         else { param_name = "arg" + i }
-         arg_blocks[param_name] = arg_val_block
-      }
-      let call_block = Root.jsdb.method_call.make_dom_elt(undefined, undefined, meth_block, arg_blocks)
-      return call_block
-  }
- */
+
   //this does not add non passed args with their default vals
   // the new def
    static CallExpression(st){
@@ -509,3 +475,4 @@ var JS2B = class JS2B{
       return lit_obj_block
   }
 }
+var {dde_error, shouldnt, warning, function_param_names_and_defaults_array, value_of_path} = require("./core/utils.js")

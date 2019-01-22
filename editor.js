@@ -90,7 +90,7 @@ Editor.init_editor = function(){
                          //I could just call Editor.show_identifier_info directly
                          //but in Electron when I do that, you have to click twice
                          //to get the right click help to show up.
-                         //Wrapping the setTimout fixes that bug.
+                         //Wrapping the setTimeout fixes that bug.
                         setTimeout(function() {Editor.show_identifier_info()}, 1)
                         myCodeMirror.focus()
                         cmd_input_clicked_on_last = false
@@ -709,7 +709,7 @@ Editor.run_unfinished_app_builder_window = function (task_name, opening_code, cl
             var new_x_code = ""
             var new_y_code = ""
             if ((temp_wins.length > 0) && temp_wins.jqxWindow("isOpen")){
-                var old_win_pos = temp_wins.position() //temp_wins.jqxWindow("position") warning: crap jqWin position returns that last pos programmatically set NOT the pos dragged to by the user, which is what I want.
+                var old_win_pos = temp_wins.position() //temp_wins.jqxWindow("position") beware: crap jqWin position returns that last pos programmatically set NOT the pos dragged to by the user, which is what I want.
                 temp_wins.jqxWindow('close')
                 if (old_win_pos && ((old_win_pos.top != 200) || (old_win_pos.left != 200))){
                     //hack fn_partial_source to have the old_win_pos
@@ -1789,3 +1789,7 @@ Editor.show_identifier_info = function(full_src=null, pos=null){
         }
     }
 }
+
+var {persistent_initialize, persistent_get, persistent_set, load_files, file_exists, write_file, dde_init_dot_js_initialize} = require('./core/storage.js')
+var {warning, decode_quotes, is_alphanumeric, is_digit, is_letter, is_letter_or_underscore,
+     is_whitespace, reverse_string} = require("./core/utils.js")

@@ -1,3 +1,4 @@
+function blocks_category_init() {
 newObject({name: "BlockCategory",
            color: "gray",
            block_types: [], //only non-empty for the lowest level of the category hierarchy
@@ -95,4 +96,6 @@ newObject({prototype: Root.BlockCategory,
             color: "#4cecff", //green
             block_types: []
 })
+}
+var {newObject, Root} = require("./core/object_system.js")
 

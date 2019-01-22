@@ -1,4 +1,6 @@
 /* Created by Fry on 3/29/16. */
+
+
 var Robot = class Robot {
     constructor (){
     }
@@ -33,8 +35,11 @@ var Robot = class Robot {
         let i = Robot.all_names.indexOf(name)
         if (i != -1){ Robot.all_names.splice(i, 1) }
         Robot.all_names.push(name)
-        if (i == -1) {
-            $("#videos_id").prepend("<option>Robot: " + name + "</option>")
+        if ((i == -1) && (window.platform == "dde")) {
+            //$("#videos_id").prepend("<option>Robot: " + name + "</option>")
+            let a_option = document.createElement("option");
+            a_option.innerText = "Robot: " + name
+            videos_id.prepend(a_option)
         }
     }
     static get_simulate_actual(simulate_val){
@@ -446,7 +451,7 @@ Serial = class Serial extends Robot {
                  sim_fun = return_first_arg, path = "required", connect_options={},
                  capture_n_items = 1, item_delimiter="\n", trim_whitespace=true,
                  parse_items = true, capture_extras = "error", /*"ignore", "capture", "error"*/
-                 instruction_callback = Job.prototype.set_up_next_do }={}){
+                 instruction_callback = set_up_next_do }={}){
         super()
         let keyword_args = {name: name, simulate: simulate, sim_fun: sim_fun, path: path, connect_options: connect_options,
                             capture_n_items: capture_n_items, item_delimiter: item_delimiter, trim_whitespace: trim_whitespace,
@@ -826,10 +831,13 @@ Serial.prototype.string_instruction = function(instruction_string){
 * */
 Dexter = class Dexter extends Robot {
     constructor({name = "dex1", simulate = null,
-                 ip_address = null, port = null,
+                 ip_address = null,
+                 port = null,
                  pose = Vector.identity_matrix(4),
                  enable_heartbeat=true,
-                 instruction_callback=Job.prototype.set_up_next_do }={}){  //"192.168.1.144"
+                 instruction_callback = Job.prototype.set_up_next_do}={}){
+        //console.log("top of Dexter constructure with instruction_callback: " + instruction_callback)
+        //if (instruction_callback == null) {instruction_callback = set_up_next_do  } //Job.prototype.set_up_next_do won't work due to broken require system
         //because arguments[0] doesn't work like it does for fns, I have to resort to this redundancy
         if(!ip_address) { ip_address = persistent_get("default_dexter_ip_address") }
         if(!port)       { port       = persistent_get("default_dexter_port") }
@@ -974,7 +982,6 @@ Dexter = class Dexter extends Robot {
     }
     */
     start(job_instance){
-        //out("robot start called with job: " + job_instance.name)
         let sim_actual = Robot.get_simulate_actual(this.simulate)
         let this_robot = this
         let this_job   = job_instance
@@ -994,15 +1001,15 @@ Dexter = class Dexter extends Robot {
                                {timeout: 10}
                                )
         }
-        else { setTimeout(function(){this_robot.start_aux(this_job)},
-                         500) } //no actual connection to Dexter needed as we're only simulating, BUT
+        else {
+           setTimeout(function(){this_robot.start_aux(this_job)},
+                         500)
+        } //no actual connection to Dexter needed as we're only simulating, BUT
                                  //to keep similation as much like non-sim. due the same timeout.
     }
 
     start_aux(job_instance) { //fill in initial robot_status
-        //if (!this.is_initialized()) {
-            Socket.init(this.name, this.simulate, this.ip_address, this.port)
-        //}
+        Socket.init(this.name, this.simulate, this.ip_address, this.port)
         this.processing_flush = false
         let this_robot = this
         let this_job   = job_instance
@@ -1152,11 +1159,13 @@ Dexter = class Dexter extends Robot {
             out("Succeeded connection to Dexter: " + robot_name + " at ip_address: " + rob.ip_address + " port: " + rob.port, "green")
         }
         rob.is_connected = true
+        //out("bottom of set_a_robot_instance_socket_id with rob.name: " + rob.name + " rob.is_connected: " + rob.is_connected)
     }
 
     //is_initialized(){ return ((this.socket_id || (this.socket_id === 0)) ? true : false ) }
 
     is_initialized(){
+        //out("is_initialized() returning: " + this.is_connected)
        return this.is_connected
     }
 
@@ -1217,8 +1226,9 @@ Dexter = class Dexter extends Robot {
             if (!got_ack){
                 //job_instance.robot_status = robot_status
                 rob.robot_status          = robot_status //thus rob.robot_status always has the latest rs we got from Dexter.
-                rob.rs = new RobotStatus({robot_status: robot_status})
-
+                if(window.platform == "dde"){
+                    rob.rs = new RobotStatus({robot_status: robot_status})
+                }
                 if (job_instance.keep_history && (op_let == "g")){ //don't do it for oplet "G", get_robot_status_immediate
                     job_instance.rs_history.push(robot_status)
                 }
@@ -1231,7 +1241,9 @@ Dexter = class Dexter extends Robot {
                 }*/
                // if(rob.simulate) { SimUtils.render_once(robot_status, "Job: " + job_instance.name) } //now in dextersim where it really belongs
             }
-            RobotStatusDialog.update_robot_status_table_maybe(rob) //if the dialog isn't up, this does nothing
+            if(window.platform == "dde"){
+                RobotStatusDialog.update_robot_status_table_maybe(rob) //if the dialog isn't up, this does nothing
+            }
             var error_code = robot_status[Dexter.ERROR_CODE]
             if (error_code != 0){ //we've got an error
                 job_instance.stop_for_reason("errored", "Robot status got error: " + error_code)
@@ -1508,7 +1520,7 @@ Dexter.prototype.load_tables = function(...args){ args.push(this); return Dexter
 
 
 
-Dexter.make_ins = make_ins
+//Dexter.make_ins = make_ins this is below due to loading order issues
 
 Dexter.prototype.make_ins = function(instruction_type, ...args){
     args = new Array(...args)
@@ -2554,3 +2566,15 @@ A bunch of the 10 above fns should be moved to Job or maybe Robot.
 Some could be Job instance fns or Robot instance fns.
 */
 
+module.exports = {Robot, Brain, Dexter, Human, Serial}
+var Job = require("./job.js")
+var {Instruction, make_ins} = require("./instruction.js")
+Dexter.make_ins = make_ins
+var {shouldnt, warning, dde_error, date_integer_to_long_string, is_iterator, last,
+      prepend_file_message_maybe, return_first_arg, starts_with_one_of} = require("./utils")
+var Vector = require("../math/Vector")
+var Kin = require("../math/Kin.js")
+var {persistent_get} = require("./storage")
+var Socket = require("./socket.js")
+var {out} = require("./out.js")
+var {setFollowMe, setForceProtect, setKeepPosition, setOpenLoop} = require("../math/Dexter_Modes.js")

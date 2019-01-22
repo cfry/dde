@@ -325,3 +325,6 @@ function show_configurations_image(){
         x:0, y:0, width:830, height:670
     })
 }
+
+var {file_content} = require("./core/storage.js")
+var {warning, last, replace_substrings, value_of_path} = require("./core/utils.js")

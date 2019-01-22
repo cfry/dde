@@ -26,7 +26,7 @@ var html_db = class html_db{
        else { return valid_tags.includes(tag) }
    }
    static properties_for_tag(tag){ //the properties specific to this tag. Does not grab "global properties"
-       result = []
+       let result = []
        for(let prop_name in html_db.html_property_tag_map){
            let tags_for_this_prop_name = html_db.html_property_tag_map[prop_name]
            if(tags_for_this_prop_name.includes(tag)) { result.push(prop_name) }
@@ -413,42 +413,6 @@ html_db.css_properties = [
     "z-index"
 ]
 
-/* obslete version that takes bot attributes and style objects
-function make_html(tagName, attributes={}, style={}, innerHTML="", ending="auto") {
-    let result = "<" + tagName
-    for (let attr in attributes){
-        result += " " + attr + '="' + attributes[attr] + '"'
-    }
-    let has_style = false
-    for(let attr in style){
-        if (!has_style) { result += ' style="' }
-        result += (has_style ? " ": "") + attr + ":" + style[attr] + ";" //avoid extra space at end
-        has_style = true
-    }
-    if (ending != "none") {
-        if (has_style) { result += '"' }
-    }
-    if      (ending == "none") {}
-    else if (ending == "close_quote") {} //already done above in ending != "none"
-    else if (ending == "end_attributes_only") {
-        if (innerHTML != "") { dde_error('make_html called with ending="end_attributes_only" but with a non-empty innerHTML.') }
-        else { result += ">" }
-    }
-    else if (ending == "short") {
-        if (innerHTML != "") { dde_error('make_html called with ending="short" but with a non-empty innerHTML.') }
-        else { result += "/>" }
-    }
-    else if (ending == "long") { //works whether or not innerHTML exists
-        result += ">" + innerHTML + "</" + tagName + ">"
-    }
-    else if (ending == "auto") { //long or short depending on innerHTML presence.
-        if (innerHTML == "") { result += "/>" }
-        else { result += ">" + innerHTML + "</" + tagName + ">"}
-    }
-    else { shouldnt("make_html got invalid ending: " + ending) }
-    return result
-}
-*/
 
 function make_html(tag, properties, innerHTML="", ending="auto", error=false){
     let tag_is_valid
@@ -653,7 +617,7 @@ function dom_elt_child_of_class(elt, a_class){
 }
 
 function dom_elt_children_of_class(elt, a_class){
-    result = []
+    let result = []
     for(let kid of elt.children){
         if (kid.classList.contains(a_class)) { result.push(kid) }
     }
@@ -706,3 +670,4 @@ function ancestors_of_class(elt, a_class){
     }
     return result
 }
+var {dde_error, shouldnt, warning, warning_or_error, intersection, replace_substrings} = require("./core/utils.js")

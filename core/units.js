@@ -141,6 +141,8 @@ function pluralize_full_unit_name(unit_name){
     else if (unit_name.includes(" ")) { return unit_name }
     else                              { return unit_name + "s" }
 }
+module.exports.pluralize_full_unit_name = pluralize_full_unit_name
+
 
 function init_units(){
     for(let series_name_core in units_data) {
@@ -153,6 +155,8 @@ function init_units(){
       //it is used for converting S params: MaxSpeec StartSpeed, Accelleration
       //before sending this to Dexter hardware.
 }
+
+module.exports.init_units = init_units
 
 function units_to_series(name, units_for_one_series){
     var the_keys = Object.keys(units_for_one_series)
@@ -187,6 +191,9 @@ function unit_abbrev_to_full_name(series_name, abbrev){
    return data[abbrev][1]
 }
 
+module.exports.unit_abbrev_to_full_name = unit_abbrev_to_full_name
+
+
 //returns an array of the abbrev and the full name of the unit
 function series_name_to_unity_unit(series_name){
     let core_name = series_name_to_core_name(series_name)
@@ -198,6 +205,8 @@ function series_name_to_unity_unit(series_name){
         }
     }
 }
+module.exports.series_name_to_unity_unit = series_name_to_unity_unit
+
 
 //[123, 456].micron() => [0.000123, 0.000456]
 //assumes input array has numbers in microns, and converts
@@ -243,12 +252,19 @@ Array.prototype.arcsec = function(){
 
 //TEMPERATURE
 function deg_c_to_c(deg_c){ return deg_c }
+module.exports.deg_c_to_c = deg_c_to_c
 function deg_f_to_c(deg_f){ return (deg_f-32)*5/9 }
+module.exports.deg_f_to_c = deg_f_to_c
 function deg_c_to_f(deg_c){ return deg_c*9/5+32 }
+module.exports.deg_c_to_f = deg_c_to_f
 function deg_k_to_c(deg_k){ return deg_k-273.15 }
+module.exports.deg_k_to_c = deg_k_to_c
 function deg_c_to_k(deg_c){ return deg_c+273.15 }
+module.exports.deg_c_to_k = deg_c_to_k
 function deg_f_to_k(deg_f){ return deg_c_to_k(deg_f_to_c(deg_f)) }
+module.exports.deg_f_to_k = deg_f_to_k
 function deg_k_to_f(deg_k){ return deg_c_to_f(deg_k_to_c(deg_k)) }
+module.exports.deg_k_to_f = deg_k_to_f
 
 function make_temperature_series(){
     return new Series({id:"series_temperature_id",  array: ["deg_c_to_c", "deg_f_to_c", "deg_c_to_f",
@@ -265,3 +281,6 @@ function es_lint_names_of_units(){
     }
     return result
 }
+
+var {replace_substrings} = require("./utils.js")
+var {Instruction} = require("./instruction.js")

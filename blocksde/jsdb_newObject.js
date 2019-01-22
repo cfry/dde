@@ -6,6 +6,7 @@
    thatrepresents the block_type.
 */
 
+function blocks_jsdb_init(){
 newObject({
     name: "jsdb",
     constructor: function(){
@@ -151,7 +152,7 @@ newObject({
         }
         //maybe this clause is never called
         else { //assume params_obj is a lit obj with name-val pairs
-            let keys = Object.keys(params_obj) //warning: if params_obj_is_array == true, keys loks like: ["0", "1"...]
+            let keys = Object.keys(params_obj) //beware: if params_obj_is_array == true, keys loks like: ["0", "1"...]
             for(let param_name of keys){
                 let param_default_src = params_obj[param_name]
                 //let param_default_value = ((param_default_src == "{}") ? {} : eval(param_default_src)) //bug in js eval
@@ -2930,6 +2931,14 @@ newObject({prototype: Root.jsdb.method_call,
     return_type: "Array",
     params: {array_of_5_angles: Root.jsdb.literal.array.array5}
 })
+}
+var {dde_error, shouldnt, warning, compute_string_size, function_param_names_and_defaults,
+     is_literal_object, is_string_an_identifier, is_string_a_number,
+     replace_substrings, value_of_path} = require("./core/utils.js")
+
+var {newObject, Root} = require("./core/object_system.js")
+
+
 
 
 

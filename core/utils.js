@@ -5,6 +5,7 @@ function prepend_file_message_maybe(message){
     }
     else { return message }
 }
+module.exports.prepend_file_message_maybe = prepend_file_message_maybe
 
 function shouldnt(message){
     console.log(message)
@@ -14,6 +15,7 @@ function shouldnt(message){
                     "Include this whole message.<br/>" +
                      prepend_file_message_maybe(message))
 }
+module.exports.shouldnt = shouldnt
 
 function warning(message, temp=false){
     var err = new Error();
@@ -22,6 +24,7 @@ function warning(message, temp=false){
                  "</span></summary>" + stack_trace + "</details>"
     out(out_string, "black", temp) //#ff751a e61
 }
+module.exports.warning = warning
 
 function dde_error(message){
     let out_string = prepend_file_message_maybe(message)
@@ -33,28 +36,31 @@ function dde_error(message){
     out(out_string, "red") //I shouldn't have to do this but sometimes with setTimeouts and/or
     throw new Error(message)
 }
+module.exports.dde_error = dde_error
 
 function warning_or_error(message, error=false){
     if(error) { dde_error(message) }
     else      { warning(message) }
 }
-
-let semver = require("semver")
+module.exports.warning_or_error = warning_or_error
 
 function version_equal(version_string1, version_string2=dde_version){
-    //let semver = require("semver")
     return semver.eq(version_string1, version_string2)
 }
+module.exports.version_equal = version_equal
+
 
 function version_less_than(version_string1, version_string2=dde_version){
-    //let semver = require("semver")
     return semver.lt(version_string1, version_string2)
 }
+module.exports.version_less_than = version_less_than
+
 
 function version_more_than(version_string1, version_string2=dde_version){
-    //let semver = require("semver")
     return semver.gt(version_string1, version_string2)
 }
+module.exports.version_more_than = version_more_than
+
 
 function dde_version_between(min=null, max=null, action="error"){ //"error", "warn", "boolean"
     if (!["error", "warn", "boolean"].includes(action)) {
@@ -108,6 +114,8 @@ function dde_version_between(min=null, max=null, action="error"){ //"error", "wa
     }
     else { return false }
 }
+module.exports.dde_version_between = dde_version_between
+
 
 function patch_until(before_source=null, version, equal_and_after_source=null){
     if(version_less_than(version, dde_version)) {
@@ -117,6 +125,8 @@ function patch_until(before_source=null, version, equal_and_after_source=null){
         if (equal_and_after_source) { return eval(equal_and_after_source) }
     }
 }
+module.exports.patch_until = patch_until
+
 
 var primitive_types = ["undefined", "boolean", "string", "number"] //beware; leave out null because
   //for some strange reason, null is of type "object"
@@ -125,18 +135,23 @@ function is_primitive(data){
     if (data === null) { return true }
     return primitive_types.includes(typeof(data))
 }
+module.exports.is_primitive = is_primitive
+
 
 //only checks first char
 function is_digit(char){
     if(char.match(/^[0-9]/)) {  return true; }
     else { return false; } 
 }
+module.exports.is_digit = is_digit
+
 
 function is_alphanumeric(char) {
     var letterNumber = /^[0-9a-zA-Z]+$/;
     if(char.match(letterNumber)) {  return true; }
     else { return false; }
 }
+module.exports.is_alphanumeric = is_alphanumeric
 
 
 function is_letter(char) {
@@ -144,39 +159,52 @@ function is_letter(char) {
     if(char.match(letter)) {  return true; }
     else { return false; }
 }
+module.exports.is_letter = is_letter
+
 function is_letter_or_underscore(char) {
     var letter = /^[a-zA-Z_]+$/;
     if(char.match(letter)) {  return true; }
     else { return false; }
 }
+module.exports.is_letter_or_underscore = is_letter_or_underscore
+
 
 function is_integer(num) {
     return (typeof num === 'number') && (num % 1 === 0);
 }
+module.exports.is_integer = is_integer
 
 function is_non_neg_integer(anything){
     return Number.isInteger(anything) && (anything > -1)
 }
+module.exports.is_non_neg_integer = is_non_neg_integer
 
 function is_string_a_integer(a_string){
     var pat = /^-?[0-9]+$/;
     if(a_string.match(pat)) {  return true; }
     else { return false; }
 }
+module.exports.is_string_a_integer = is_string_a_integer
 
 function is_string_a_float(a_string){
     var pat = /^-?[0-9]+\.[0-9]+$/;
     if(a_string.match(pat)) {  return true; }
     else { return false; }
 }
+module.exports.is_string_a_float = is_string_a_float
+
 function is_string_a_number(a_string){
     return is_string_a_integer(a_string) || is_string_a_float(a_string)
 }
+module.exports.is_string_a_number = is_string_a_number
+
 
 //returns true for strings of the format "rgb(0, 100, 255)" ie the css color specifier
 function is_string_a_color_rgb(a_string){
     return a_string.startsWith("rgb(") && a_string.endsWith(")") && a_string.includes(",") //not perfect but quick and pretty good
 }
+module.exports.is_string_a_color_rgb = is_string_a_color_rgb
+
 
 //this will count reserved words (ie "break" as an identifier, which
 //isn't what JS thinks of as a valid user variable or fn name identifier
@@ -184,6 +212,7 @@ function is_string_an_identifier(a_string){
   let the_regex = /^[_$a-zA-Z\xA0-\uFFFF][_$a-zA-Z0-9\xA0-\uFFFF]*$/
   return the_regex.test(a_string)
 }
+module.exports.is_string_an_identifier = is_string_an_identifier
 
 //not perfect as could be escape sequences, internal quotes, but pretty good
 function is_string_a_literal_string(a_string){
@@ -193,6 +222,7 @@ function is_string_a_literal_string(a_string){
     else if (a_string.startsWith("`") && a_string.endsWith("`")) { return true }
     else { return false }
 }
+module.exports.is_string_a_literal_string = is_string_a_literal_string
 
 function is_string_a_path(path_string_maybe){
    if(typeof(path_string_maybe) !== "string") { return false }
@@ -204,30 +234,40 @@ function is_string_a_path(path_string_maybe){
        return true
    }
 }
+module.exports.is_string_a_path = is_string_a_path
+
 
 //needs work
 function is_literal_object(value){
     return (Object.getPrototypeOf(value) === Object.getPrototypeOf({}))
     //return ((typeof(value) == "object") && (value !== null) && !Array.isArray(params[0]))
 }
+module.exports.is_literal_object = is_literal_object
+
 //not perfect as could be escape sequences, internal quotes, but pretty good
 function is_string_a_literal_array(a_string){
     if (a_string.startsWith('[') && a_string.endsWith(']')) { return true }
     else { return false }
 }
+module.exports.is_string_a_literal_array = is_string_a_literal_array
 
 function is_whitespace(a_string){
     return a_string.trim().length == 0
 }
 
+module.exports.is_whitespace = is_whitespace
+
 function is_generator_function(obj){
     return obj.constructor && obj.constructor.name == "GeneratorFunction"
 }
+module.exports.is_generator_function = is_generator_function
+
 
 //Beware: this *might* only catch iterators made by generator functions.
 function is_iterator(obj){
     return obj.constructor && is_generator_function(obj.constructor)
 }
+module.exports.is_iterator = is_iterator
 
 //very kludgey but apparently no good way to tell.
 // you can also do obj.next and if its not undefined
@@ -255,6 +295,8 @@ function is_iterator(obj){
 function is_class(obj){
     return ((typeof(obj) == "function") && obj.toString().startsWith("class "))
 }
+module.exports.is_class = is_class
+
 
 //returns string or null if no class name
 function get_class_name(a_class){
@@ -272,9 +314,12 @@ function get_class_name(a_class){
     }
     return null
 }
+module.exports.get_class_name = get_class_name
+
 
 //______color_______
 function rgb(r, g, b){return "rgb("+r+", "+g+", "+b+")"} //this string used in css
+module.exports.rgb = rgb
 
 // "rgb(2, 3, 123)" => [2, 3, 123]
 function rgb_string_to_integer_array(str){
@@ -285,7 +330,9 @@ function rgb_string_to_integer_array(str){
     result[2] = parseInt(result[2])
     return result
 }
+module.exports.rgb_string_to_integer_array = rgb_string_to_integer_array
 
+//not used jan 2019
 function integer_array_to_rgb_string(arr3){
     return "rgb(" + arr3[0] + ", " + arr3[1] + ", " + arr3[2] + ")"
 }
@@ -295,14 +342,20 @@ function is_valid_new_date_arg(string_or_int){
     if (Number.isNaN(timestamp)) { return false }
     else { return true }
 }
+module.exports.is_valid_new_date_arg = is_valid_new_date_arg
+
 
 function is_hour_colon_minute(a_string){
     return a_string.match(/^\d\d:\d\d$/)
 }
+module.exports.is_hour_colon_minute = is_hour_colon_minute
+
 
 function is_hour_colon_minute_colon_second(a_string){
     return a_string.match(/^\d\d:\d\d:\d\d$/)
 }
+module.exports.is_hour_colon_minute_colon_second = is_hour_colon_minute_colon_second
+
 
 //date_int is ms from jan 1, 1970 as returned by Date.now()
 function date_integer_to_long_string(date_int=Date.now()){
@@ -312,6 +365,8 @@ function date_integer_to_long_string(date_int=Date.now()){
     result +=  " " + ms + "ms"
     return result
 }
+module.exports.date_integer_to_long_string = date_integer_to_long_string
+
 
 //integer millisecons in, output "0:59:59:999"
 function milliseconds_to_human_string(total_ms){
@@ -328,6 +383,8 @@ function milliseconds_to_human_string(total_ms){
           pad_integer(remain_secs, 2) + ":" +
           pad_integer(remain_ms, 3)
 }
+module.exports.milliseconds_to_human_string = milliseconds_to_human_string
+
 
 //pad_integer(123, 5, "x") => "xx123"
 function pad_integer(int, places=3, pad_char="0"){
@@ -335,6 +392,8 @@ function pad_integer(int, places=3, pad_char="0"){
     if (result.length < places) { result = pad_char.repeat(places - result.length) + result}
     return result
 }
+module.exports.pad_integer = pad_integer
+
 
 //used in computing numbers to display in the robot_status dialog
 function to_fixed_smart(num, digits=0){
@@ -345,7 +404,9 @@ function to_fixed_smart(num, digits=0){
         return "" + num
     }
 }
+module.exports.to_fixed_smart = to_fixed_smart
 
+/* unused jan 2019
 function is_json_date(a_string){
     if((a_string.length > 19) && (a_string.length < 30)) {//impresise
         return (is_string_a_integer(a_string.substring(0, 4)) &&
@@ -356,6 +417,8 @@ function is_json_date(a_string){
     }
     else return false
 }
+module.exports.is_json_date = is_json_date
+*/
 
 //lots of inputs, returns "Mar 23, 2017" format
 function date_to_mmm_dd_yyyy(date){
@@ -364,38 +427,9 @@ function date_to_mmm_dd_yyyy(date){
     const mmm = d_string.substring(4, 8)
     return mmm + " " + date.getDate() + ", " + date.getFullYear()
 }
+module.exports.date_to_mmm_dd_yyyy = date_to_mmm_dd_yyyy
+
 //_____end Date_______
-
-//returns a primitiate that can be posted like a string, nuumber, boolean
-function convert_to_postable(val){
-    switch (typeof(val)){
-        case "string": break;
-        case "number": break;
-        case "boolean": break;
-        case "undefined": break;
-        case "object":
-            if      (val === null) break;
-            else if (Array.isArray(val))  break;  //hope that its an array of primitives
-            else if (val instanceof Date) { val = val.toJSON() }
-            else { val = JSON.stringify(val) } //hopefully a literal object
-            break;
-        default:
-            dde_error("Attempt convert: " + val + " to a postable value, but this can't be done.")
-    }
-    return val
-}
-
-function convert_from_postable(val){
-    switch (typeof(val)){
-        case "string":
-            if(val.startsWith("{"))     val = JSON.parse(val)
-            else if (is_json_date(val)) val = new Date(val)
-            //else leave as a string
-            break;
-        //default: leave as is
-    }
-    return val
-}
 
 function starts_with_one_of(a_string, possible_starting_strings){
     for (let str of possible_starting_strings){
@@ -403,10 +437,12 @@ function starts_with_one_of(a_string, possible_starting_strings){
     }
     return false
 }
+module.exports.starts_with_one_of = starts_with_one_of
 
 
 //the default for Robot Serial.sim_fun
 function return_first_arg(arg){ return arg }
+module.exports.return_first_arg = return_first_arg
 
 function typed_array_name(item){
     if(Array.isArray(item)) { return "Array" }
@@ -421,6 +457,7 @@ function typed_array_name(item){
     else if (item instanceof Float64Array)      { return "Float64Array" }
     else { return null } //not an array of any type
 }
+module.exports.typed_array_name = typed_array_name
 
 //returns null or the last elt of an array or a string
 function last(arg){
@@ -432,6 +469,7 @@ function last(arg){
     else if (arg instanceof HTMLCollection) { return arg[len - 1] }
     else                              { dde_error("last passed unhandled type of arg: " + arg) }
 }
+module.exports.last = last
 
 function flatten(arr, result=[]){
     if (Array.isArray(arr)){
@@ -442,6 +480,7 @@ function flatten(arr, result=[]){
     else { result.push(arr) }
     return result
 }
+module.exports.flatten = flatten
 
 //used by inspector for printing 2D arrays
 function is_array_of_same_lengthed_arrays(array){
@@ -454,6 +493,7 @@ function is_array_of_same_lengthed_arrays(array){
   }
   return true
 }
+module.exports.is_array_of_same_lengthed_arrays = is_array_of_same_lengthed_arrays
 
 function intersection(arr1, arr2){
     let result = []
@@ -462,6 +502,7 @@ function intersection(arr1, arr2){
     }
     return result
 }
+module.exports.intersection = intersection
 
 function similar(arg1, arg2, tolerance=0, tolerance_is_percent=false, arg1_already_seen=[], arg2_already_seen=[]){
     //I started to do a infinite circularity test but its trick to do quickly and maybe unnecessary because
@@ -527,6 +568,7 @@ function similar(arg1, arg2, tolerance=0, tolerance_is_percent=false, arg1_alrea
         return true
     }
 }
+module.exports.similar = similar
 
 //return 0 if very dissimilar, 1 if the same (or very similar)
 //now working only for num1 and num2, min, max being non neg
@@ -537,27 +579,14 @@ function number_similarity(num1, num2, min=null, max=null){
         num1 = num2;
         num2 = temp
     }
-    /*if (min === null)
-        if (num1 >= 0) { min = 0 }
-        else { //num1 is negative, so if we set min to 0, num1 wold be out of bounds.
-               //but we want the defautl case when you pass just num1 and num2 to basically work.
-
-          min = num1
-        }
-    if (max === null) { max = num2 }
-    if(min > num1) { dde_error("In number_similarity, num: " + num1 + " is less than min: " + min) }
-    if(max < num2) { dde_error("In number_similarity, num: " + num2 + " is more than min: " + max) }
-    */
-    //strategy: if either or both of num1 and numb 2 are neg, adjust them plus
-    //min and max so that num1 and num2 are non-neg
     if(num1 >= 0){ //means num2 will be > 0
-       if(min === null)  { min = 0 }
-       if(max === null)  { max = num2 }
+        if(min === null)  { min = 0 }
+        if(max === null)  { max = num2 }
     }
     else if (num2 <= 0) { //means num1 is also less than 0 }
-       if (max === null) { max = 0 }
-       if (min === null) { min = num1 }
-       //now we've defaulted min and max. so now shift all 4 numbers to positive
+        if (max === null) { max = 0 }
+        if (min === null) { min = num1 }
+        //now we've defaulted min and max. so now shift all 4 numbers to positive
         num1 = Math.abs(num1)
         num2 = Math.abs(num2)
         let temp = num1;
@@ -585,6 +614,8 @@ function number_similarity(num1, num2, min=null, max=null){
     let raw_score = Math.abs(num1_ratio - num2_ratio)
     return 1 - raw_score
 }
+module.exports.number_similarity = number_similarity
+
 
 //arrays can be arrays, or can be a random objects.
 //all must be of the same type and have elts of the same names with the same values
@@ -618,6 +649,7 @@ function same_elts(...arrays){
         }
     }
 }
+module.exports.same_elts = same_elts
 
 function line_starting_with(text, starting_with, include_starting_with){
     var lines = text.split("\n")
@@ -633,6 +665,7 @@ function line_starting_with(text, starting_with, include_starting_with){
     }
     return null //didn't find a line.
 }
+module.exports.line_starting_with = line_starting_with
 
 function encode_quotes(text){
     text = text.split("'").join("ssqq")
@@ -640,6 +673,7 @@ function encode_quotes(text){
     text = text.split('\n').join("nnll")
     return text
 }
+module.exports.encode_quotes = encode_quotes
 
 function decode_quotes(text){
     text = text.split("ssqq").join("'")
@@ -647,11 +681,13 @@ function decode_quotes(text){
     text = text.split('nnll').join('\n')
     return text
 }
+module.exports.decode_quotes = decode_quotes
 
 var contant_spaces = "                                                                              "
 function spaces(number_of_spaces_desired){
     return contant_spaces.substring(0, number_of_spaces_desired)
 }
+module.exports.spaces = spaces
 
 //from http://eddmann.com/posts/ten-ways-to-reverse-a-string-in-javascript/ which tests this to be fastest
 function reverse_string(s) {
@@ -660,6 +696,7 @@ function reverse_string(s) {
         o += s[i];
     return o;
 }
+module.exports.reverse_string = reverse_string
 
 //returns an array of width an height of a_string with the given font_size
 //font size is either a number or a string with a px suffix
@@ -670,11 +707,7 @@ function compute_string_size(a_string, font_size=12, extra_width = 0){
     compute_string_size_id.innerText = a_string
     return [compute_string_size_id.clientWidth + extra_width, compute_string_size_id.clientHeight]
 }
-
-function px_suffix_string_to_number(str){
-    str = str.substring(0, str.length - 2)
-    return parseFloat(str)
-}
+module.exports.compute_string_size = compute_string_size
 
 //avoids calling eval. If he path_ isn't defined, this fn returns undefined.
 //arg can either be a string with dots or an array of strings that are path elts.
@@ -692,7 +725,7 @@ function value_of_path(path_string){
     }
     return result
 }
-
+module.exports.value_of_path = value_of_path
 
 //returns null if fn_src doesn't look like a fn def.
 //returns "" if its an anonymous fn
@@ -723,6 +756,8 @@ function function_name(fn_or_src){
     }
     else { return null }
 }
+module.exports.function_name = function_name
+
 //returns a string
 function function_params(fn, include_parens=true){
     let src = fn.toString()
@@ -745,6 +780,7 @@ function function_params(fn, include_parens=true){
     if (include_parens){ result = "(" + result + ")" }
     return result
 }
+module.exports.function_params = function_params
 
 function function_params_for_keyword_call(fn, include_parens=true){
     let result = function_params(fn, include_parens)
@@ -759,6 +795,8 @@ function function_params_for_keyword_call(fn, include_parens=true){
     result = replace_substrings(result, "=", ":")
     return result
 }
+module.exports.function_params_for_keyword_call = function_params_for_keyword_call
+
 //fn can be a constructor or other method who's src string doesn't have to start with "function".
 //we really only care about the text between the first paren and the first ")}", exclusive
 //returns an array of strings, the names of the params
@@ -767,7 +805,10 @@ function function_param_names(fn){
     var params_full_string = function_params(fn, false)
     return params_string_to_param_names(params_full_string)
 }
+module.exports.function_param_names = function_param_names
 
+
+//used only by this file
 //params_full_string can either be wrapped in parens or not
 function params_string_to_param_names(params_full_string){
     if (params_full_string.startsWith("(")) {params_full_string = params_full_string.substring(1)}
@@ -830,6 +871,8 @@ function function_param_names_and_defaults(fn){
     }
     else { return params_string_to_param_names_and_defaults(params_full_string) }
 }
+module.exports.function_param_names_and_defaults = function_param_names_and_defaults
+
 
 //returns an array of arrays. Each param is representated an a array of
 //1 or 2 elements. THe first elt is the param name and
@@ -837,32 +880,6 @@ function function_param_names_and_defaults(fn){
 //if you have a fn of function foo(a, b=2 {c=3, d=4}, {e=5, f=6}={}) {} then this fnunction returns
 //the param names and the SOURCE CODE of the default values.
 //[["a", "undefined"], ["b","2"], ["", {c="3", d="4"}], ["", {e:"5", f:"6"}] }
-/*function function_param_names_and_defaults_array(fn){
-    let params_full_string = function_params(fn, false)
-    let params_string = params_full_string
-    if (params_full_string.startsWith("{")){
-        if (params_full_string.endsWith("= {}") ||
-            params_full_string.endsWith("={}")){
-            let closing_equal = params_full_string.lastIndexOf("=")
-            params_string = params_full_string.substring(0, closing_equal).trim()
-        }
-        params_string = replace_substrings(params_string, "\\n", " ")
-        var inner_params_and_defaults = params_string.substring(1, params_string.length -1) //cut off { and }
-        var inner_params_and_defaults_array = inner_params_and_defaults.split(",")
-        var param_names = []
-        for(let inner_param_and_default of inner_params_and_defaults_array){
-            inner_param_and_default = inner_param_and_default.trim()
-            let the_param_default_array = inner_param_and_default.split("=")
-            the_param_default_array[0] = the_param_default_array[0].trim()
-            the_param_default_array[1] = the_param_default_array[1].trim()
-            param_names.push(the_param_default_array)
-            //obj[the_param_default_array[0]] = the_param_default_array[1]
-        }
-        return [param_names, "{}"]
-    }
-    else { return params_string_to_param_names_and_defaults(params_full_string) }
-}*/
-
 function function_param_names_and_defaults_array(fn){
     let param_string = "function foo(" + function_params(fn, false) + "){}"
     let ast = esprima.parse(param_string, {range: true, raw: true})
@@ -906,13 +923,18 @@ function function_param_names_and_defaults_array(fn){
     }//end for
     return result
 }
+module.exports.function_param_names_and_defaults_array = function_param_names_and_defaults_array
 
+
+//only called in this file.
 function param_names_get_default_val_src(full_string, ast){
     let offset = 0 //"function foo(".length + 1
     return full_string.substring(ast.range[0] + offset,
         ast.range[1] + offset)
 }
 
+
+//only called in this file.
 //params_full_string can either be wrapped in parens or not
 //returns an array of 2 elt arrays, name and default val.
 function params_string_to_param_names_and_defaults(params_full_string){
@@ -985,6 +1007,8 @@ function function_param_names_and_defaults_lit_obj(fn){
     }
 }
 
+module.exports.function_param_names_and_defaults_lit_obj = function_param_names_and_defaults_lit_obj
+
 //not general purpose
 function shallow_copy(obj){ //copies only enumerable, own properites. Used in
                             //copying Job's user_data at start
@@ -1001,6 +1025,7 @@ function shallow_copy(obj){ //copies only enumerable, own properites. Used in
     }
     return result //might be a Date, I hope that's not mungable
 }
+module.exports.shallow_copy = shallow_copy
 
 function shallow_copy_lit_obj(obj){ //copies only enumerable, own properites. Used in
     //copying Job's user_data at start
@@ -1010,6 +1035,7 @@ function shallow_copy_lit_obj(obj){ //copies only enumerable, own properites. Us
     }
     return result
 }
+module.exports.shallow_copy_lit_obj = shallow_copy_lit_obj
 
 //used to fix broken ES6 not allowing a keyword obj with destructuring.
                              //defaults   keyword_args
@@ -1025,6 +1051,8 @@ function copy_missing_fields(source_arg, target_obj){
         }
     }
 }
+module.exports.copy_missing_fields = copy_missing_fields
+
 /* not called as of apr 17, 2016. unfortunately won't work for class constructors that use the ES6 keyword default params
 function process_constructor_keyword_args(defaults, args, the_this){
     //verify that keyword_args doesn't have any illegal arg in it.
@@ -1057,31 +1085,11 @@ function process_constructor_keyword_args(defaults, args, the_this){
  }
  */
 
-//does not trim the beginning of the string. Usd by trim_string_for_eval
+//called in this file only
+//does not trim the beginning of the string. Used by trim_string_for_eval
 //note regex "s" matches spaces, newlines, tab at least, ie all whitespace
 function trim_end(str){
     return str.replace(/\s+$/g, "")
-}
-
-//only needs to get rid of a trailing // comment,
-//not ones at beginning or end of str, and not /* .. */
-//in order for eval to work on str
-//we keep leading whitespace so that the char position of errors can be accurate.
-//buggy when // is inside quotes.
-function trim_string_for_eval(str){
-    str = trim_end(str)
-    let double_slash_pos = str.lastIndexOf("//")
-    if (double_slash_pos == -1) { return str }
-    let newline_pos = str.lastIndexOf("\n")
-    if (newline_pos < double_slash_pos) { //we've got "bar //junk" or "foo \n bar //junk"
-          //this clause hits if newline_pos == -1 which is fine.
-        let result = str.substring(0, double_slash_pos)
-        //but might have "foo \n \\ junk \n \\more junk
-        return trim_string_for_eval(result)
-    }
-    else {  //we've got "foo //junk \n bar" ie a non-last line of \\comment so that's ok for eval
-        return str
-    }
 }
 
 //removes prefix, & suffix whitespace AND replaces multiple
@@ -1090,6 +1098,7 @@ function trim_all(str){
     str = str.trim()
     return str.replace(/\s+/g,' ')
 }
+module.exports.trim_all = trim_all
 
 function trim_string_quotes(a_string){
     if(a_string.length < 2) {return a_string}
@@ -1101,10 +1110,14 @@ function trim_string_quotes(a_string){
     }
     return a_string
 }
+module.exports.trim_string_quotes = trim_string_quotes
 
+
+//only used in this file
 function regexp_escape_special_chars(str){
     return strr.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')
 }
+
 
 //the first arg to new RegExp is a regexp pattern that treats
 //lots of punctuation chars like parans specially.
@@ -1115,7 +1128,10 @@ function replace_substrings(orig_string, substring_to_replace, replacement, subs
     }
     return orig_string.replace(new RegExp(substring_to_replace, 'g'), replacement);
 }
+module.exports.replace_substrings = replace_substrings
 
+
+//not used Jan 2019 except in testsuite
 //the use of this fn is to left pad a number with spaces so tha the
 //decimal point comes at the same char position in a set of
 //numbers passed to this fn with the same non-first args.
@@ -1142,9 +1158,11 @@ function format_number(num, digits_before_point=6, digits_after_point=3, allow_f
     }
     return result
 }
+module.exports.format_number = format_number
 
 //used by users in calling  DXF.init_drawing for its dxf_filepath arg
 function text_to_lines(text) { return txt.text_to_lines(text) }
+module.exports.text_to_lines = text_to_lines
 
 //fry's get a js string into literal source code. Used in printout out a TestSuite test
 function string_to_literal(a_string){
@@ -1157,14 +1175,19 @@ function string_to_literal(a_string){
         return '"' + a_string + '"'
     }
 }
+module.exports.string_to_literal = string_to_literal
 
+//not used jan 2019
 function is_first_letter_upper_case(a_string){
     return ((a_string.length > 0) && (a_string[0] == a_string[0].toUpperCase()))
 }
 
+//not used jan 2019
 function is_first_letter_lower_case(a_string){
     return ((a_string.length > 0) && (a_string[0] == a_string[0].toLowerCase()))
 }
+
+//not used jan 2019
 function make_first_char_upper_case(a_string){
     if(a_string.length == 0) { return "" }
     if (is_first_letter_upper_case(a_string)) { return a_string }
@@ -1190,8 +1213,10 @@ function stringify_value(value){
         return result
     //}
 }
+module.exports.stringify_value = stringify_value
 
-function stringify_value_aux (value, job, depth=0){
+
+function stringify_value_aux(value, job, depth=0){
     if (depth > 2) { return "***" } //stops infinite recustion in circular structures.
     var result
     if      (value === undefined)       { return "undefined" }
@@ -1354,6 +1379,7 @@ function stringify_value_aux (value, job, depth=0){
     }
     return result
 }
+module.exports.stringify_value_aux = stringify_value_aux //used in instruction.js
 
 //crude but guarentees fidelity with stringify_value, but that might not be what I really want.
 function stringify_value_sans_html(value){
@@ -1366,8 +1392,10 @@ function stringify_value_sans_html(value){
     result = result.replace(/&nbsp;/g,   " ")
     return result
 }
+module.exports.stringify_value_sans_html = stringify_value_sans_html
 
 /////// CSV ///////
+//documented but not called jan 2019
 function array_to_csv(an_array){
     let result = ""
     for(let i = 0; i < an_array.length; i++){
@@ -1381,7 +1409,9 @@ function array_to_csv(an_array){
     }
     return result
 }
+module.exports.array_to_csv = array_to_csv
 
+//documented but not called jan 2019
 function csv_to_array(a_string){
     let result = []
     let row_strings = a_string.split("\n")
@@ -1398,6 +1428,7 @@ function csv_to_array(a_string){
     }
     return result
 }
+module.exports.csv_to_array = csv_to_array
 ///// End CSV //////
 
 function inspect_new_object(new_object_or_path, add_to_stack=true){ //called from Insert menu item and stringify_value
@@ -1447,6 +1478,7 @@ function inspect_new_object(new_object_or_path, add_to_stack=true){ //called fro
       //but beware, after the browser html is renderend, we need to set the onclicks,
       //which has a timeout too that must be longer than this timeout.
 }
+
 var inspect_stack = []
 var inspect_stack_pos = -1
 function inspect_previous_value(){
@@ -1506,6 +1538,7 @@ function inspect_set_new_object_onclick(id_string, path){
     }, 1000)
 }
 
+//not called jan 2019
 function scale_to_micron_factor(scale){
     if (typeof(scale) == "number") { return scale }
     else {
@@ -1528,32 +1561,25 @@ function limit_to_range(value, min=null, max=null){
     if (max){ result = Math.min(result, max) }
     return result
 }
+module.exports.limit_to_range = limit_to_range
 
 //dxf uses objects but dde standardizes on arrays
 function point_object_to_array(xyz_obj){
     return [xyz_obj.x, xyz_obj.y, xyz_obj.z]
 }
-
+module.exports.point_object_to_array = point_object_to_array
 
 function scale_point(xyz, scale) {
     return [Math.round(xyz[0] * scale),
             Math.round(xyz[1] * scale),
             Math.round(xyz[2] * scale)]
 }
+module.exports.scale_point = scale_point
 
+//not called jan 2019
 function point_equal(a, b) { return (a[0] == b[0]) && (a[1] == b[1]) && (a[2] == b[2]) }
 
-//not called. Same as js: Object.getOwnPropertyNames(an_object)
-/*function own_properties(an_object) {
-    let result = []
-    for(let name in an_object){
-        if (an_object.hasOwnProperty(name)) { result.push(name) }
-    }
-    return result
-}*/
-
-
-var Duration = class Duration {
+class Duration {
     //DO NOT default minutes to anything as we need null there so that the first arg will be interprested as ms
     constructor(string_or_hours=0, minutes=0, seconds=0, milliseconds=0){ //First arg can be "12:34" for hours:mins,
                                                                          // "12:34:56" for hours:mins:secs,
@@ -1590,15 +1616,10 @@ var Duration = class Duration {
 
     to_seconds(){ return this.milliseconds / 1000 }
 }
+module.exports.Duration = Duration
 
-/*function make_ins_arrays(ins){
-    let result = []
-    for(let instr of ins) {
-        result.push(make_ins(...instr))
-    }
-    return result
-}*/
 
+//user fn but not called in dde, jan 2019
 function make_ins_arrays(default_oplet, instruction_arrays=[]){
     let result = []
     for(let instr of instruction_arrays) {
@@ -1616,3 +1637,8 @@ function make_ins_arrays(default_oplet, instruction_arrays=[]){
     }
     return result
 }
+module.exports.make_ins_arrays = make_ins_arrays
+var semver = require("semver")
+var {out} = require("./out.js")
+var {Instruction} = require("./instruction.js")
+var {Robot, Brain, Dexter, Human, Serial} = require('./robot.js')

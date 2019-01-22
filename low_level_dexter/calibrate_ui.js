@@ -407,7 +407,6 @@ function handle_cal(vals){
         	cal_init_robot()  //Fry added Oct 19, 2018
         }
     }
-    //else { shouldnt("handle_cal called with invalid vals.clicked_button_value of: " + vals.clicked_button_value) }
 }
 
 function make_dexter_robot_menu_html(){

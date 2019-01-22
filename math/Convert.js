@@ -4,10 +4,10 @@
 //Updated: 3_27_17
 
 
-var Convert = new function(){
+class Convert{
 	//Private
     //This is used to prevent functions from altering outside arrays
-    this.deep_copy = function(arg){
+    static deep_copy(arg){
     	if (typeof(arg) == "number"){
         	return arg
         }else{
@@ -26,8 +26,8 @@ var Convert = new function(){
 
     //*******************************************
     //Rotation representation conversions:
-    
-    this.angles_to_DCM = function(angles = [0, 0, 0], sequence = "XYZ"){
+
+    static angles_to_DCM(angles = [0, 0, 0], sequence = "XYZ"){
     	//default could be ZX'Z'
         
         var result = []
@@ -49,8 +49,7 @@ var Convert = new function(){
         if((elt != "'") && (elt.length == 1)){
         	result.push(elt)
         }
-          
-        
+
     	let DCM = Vector.identity_matrix(3)
         if(result.length == 3){
         	for(var i = 0; i < 3; i++){
@@ -60,12 +59,12 @@ var Convert = new function(){
         return Vector.transpose(DCM)
     }
     //Convert.angles_to_DCM([Convert.degrees_to_arcseconds(45), Convert.degrees_to_arcseconds(45), 0])
-      
-    this.DCM_to_angles = function(DCM, sequence = "XYZ"){
+
+    static DCM_to_angles(DCM, sequence = "XYZ"){
     	
     }
-    
-    this.quat_to_DCM = function(quaternion = [1, 0, 0, 0]){
+
+    static quat_to_DCM(quaternion = [1, 0, 0, 0]){
     	//Algorithm was found here:
         //http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToMatrix/
     	let w = quaternion[0]
@@ -86,8 +85,8 @@ var Convert = new function(){
         return DCM
     }
 
-    
-    this.DCM_to_quat = function(DCM){
+
+    static DCM_to_quat(DCM){
     	//Algorithm was found here:
         //http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/
     	let trace = DCM[0][0] + DCM[1][1] + DCM[2][2]
@@ -122,3 +121,6 @@ var Convert = new function(){
     }
     
 }
+
+module.exports = Convert
+var Vector = require("./Vector.js")

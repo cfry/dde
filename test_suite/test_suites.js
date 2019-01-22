@@ -333,6 +333,3 @@ new TestSuite("patch_until",
     ['patch_until("1 + 2", "1000", "4 + 5")', "TestSuite.error"],
     ['patch_until("1 + 2", 1000, "4 + 5")', "TestSuite.error"]
     )
-
-
-

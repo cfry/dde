@@ -3201,7 +3201,7 @@ new Job({name: "my_job",
              Any valid instruction location can be used
              (see doc in <a href="#" onclick="open_doc('Robot.go_to_doc_id', event)">Robot.go_to</a>) except
              that it must have no job or indicate the current job. Using <code>0</code>
-             set's the job's program counte to instruction 0, causing the job to loop.
+             set's the job's program_counter to instruction 0, causing the job to loop.
              Using an instruction location 'offset' of greater than 0, such as a label,
              will cause the initial running of the job to execute its top instructions,
              but then subsequent iterations will start somewhere in the middle.<br/>

@@ -1015,7 +1015,7 @@ new Job({name: "Draw",
 
         let my_pose = Kin.three_positions_to_pose(J_angles_1, J_angles_2, J_angles_3)
         let J5_dir = Vector.multiply(-1, Vector.pull(my_pose, [0, 2], 2))
-        var work_plane = Table.create_child(my_pose, "work_plane")
+        var work_plane = Coor.Table.create_child(my_pose, "work_plane")
         let bounds = get_bounds_from_three_positions(J_angles_1, J_angles_2, J_angles_3)
 
         //let my_entities = DXF.content_to_entities(dxf_content)
@@ -1393,3 +1393,19 @@ this.dxf_to_instructions = function({
    
 } // closes DXF.init_drawing
 } // closes DXF class
+
+module.exports = DXF
+var {DxfParser} = require("./dxf-parser.js")
+var {setKeepPosition, setOpenLoop} = require("./Dexter_Modes.js")
+var Coor = require("./Coor.js")
+var Vector = require("./Vector.js")
+var Kin = require("./Kin.js")
+
+var {dde_error, warning, point_object_to_array, scale_point} = require("../core/utils.js")
+var {file_content} = require("../core/storage.js")
+var {out} = require("../core/out.js")
+var {Instruction, make_ins} = require("../core/instruction.js")
+var {Dexter} = require("../core/robot.js")
+var Job = require("../core/job.js")
+
+

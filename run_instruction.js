@@ -347,3 +347,5 @@ make_robots_select_html() +
   if (sel_text.length > 0) { run_src_id.value = sel_text }
 }
 
+var {warning, function_params, trim_all, value_of_path} = require("./core/utils.js")
+

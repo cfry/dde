@@ -97,7 +97,7 @@ var Kin = new function(){
         	xyz_trans = Vector.transpose(Vector.matrix_multiply(workspace_pose, Vector.properly_define_point(xyz))).slice(0,3)
         	normal_trans = Vector.transpose(Vector.matrix_multiply(workspace_pose, Vector.properly_define_vector(normal))).slice(0,3)
         }else{
-        	dde_error("Unsupported workspace_pose datatype")
+        	dde_error("Unsupported workspace_pose datatype: " + workspace_pose)
         }
         
         
@@ -1473,7 +1473,7 @@ var Kin = new function(){
     	}else{
         	let a = L[3]
             let b = L[2]
-            let c = Math.sqrt(a**2 + b**2 -2*a*b*cosd(180-args.similar_J_angles[3])) //Law of Cosines
+            let c = Math.sqrt(Math.pow(a, 2) + Math.pow(b, 2) -2*a*b*cosd(180-args.similar_J_angles[3])) //Law of Cosines
             
             let Gamma = acosd((-Math.pow(a, 2) + Math.pow(c, 2) + Math.pow(b, 2)) / (2 * c * b)) // Law of Cosines
             
@@ -1607,18 +1607,14 @@ var Kin = new function(){
     	}
     
     	return [J, U, P]
-    } 
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    }
+}
+module.exports = Kin
+var {sind, cosd, tand, asind, acosd, atand, atan2d} = require("./Trig_in_Degrees.js")
+var Vector      = require("./Vector.js")
+var Convert     = require("./Convert.js")
+var {dde_error} = require("../core/utils.js")
+var {Dexter}    = require("../core/robot.js")
     
     /*
     
@@ -1636,8 +1632,6 @@ var Kin = new function(){
         }
         return CMD
     }*/
-    
-}
 
 /*
 var point_1 = [0, .3, .4]
@@ -1674,20 +1668,5 @@ Kin.J_angles_to_xyz(Kin.xyz_to_J_angles([0.1, .5, .3]))
 
 
 */
-
-
-
-new TestSuite("Inverse to Forward Kinematics and Back",
-	["Kin.J_angles_to_xyz(Kin.xyz_to_J_angles([.1, .2, .3]))", "[[0.09999999999999998, 0.20000000000000004, 0.29999999999999993],[-1.6811372268703155e-16, -3.362274453740631e-16, -1],[1, 1, 1]]"],
-    ["Kin.J_angles_to_xyz(Kin.xyz_to_J_angles([.1, .2, .3], [0, .1, -1]))", "[[0.10000000000000013, 0.19999999999999996, 0.30000000000000016],[5.043411680610948e-16, 0.09950371902099911, -0.995037190209989],[1, 1, 1]]"],
-	["Kin.J_angles_to_xyz(Kin.xyz_to_J_angles([.1, .2, .3], [0, 0, -1], [1, 0, 1]))", "[[0.09999999999999994, 0.20000000000000004, 0.29999999999999993],[-1.6811372268703155e-16, -3.362274453740631e-16, -1],[1, 0, 0]]"],
-    ["Kin.J_angles_to_xyz(Kin.xyz_to_J_angles([.1, .2, .3], [0, 0, -1], [1, 0, 0]))", "[[0.09999999999999994, 0.2, 0.29999999999999993],[0, 0, -1],[1, 0, 0]]"],
-    ["Kin.xyz_to_J_angles(Kin.J_angles_to_xyz([0, 45, 45, 30, 0]))", "[0, 44.99999999999997, 45.00000000000003, 29.999999999999996, 0]"]
-)
-
-new TestSuite("Checking xyz",
-    ["Kin.check_J_ranges([0, 0, 0, 0, 0])", "true"],
-    ["Kin.check_J_ranges([0, 0, 0, 181, 0])", "false"]
-)
 
 

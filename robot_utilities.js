@@ -218,6 +218,8 @@ function ping_a_dexter(){
                  callback: ping_a_dexter_handler
                 })
 }
+var {warning, last} = require("./core/utils.js")
+
 
 /*
 ping.sys.probe(host, function(isAlive){

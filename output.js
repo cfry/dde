@@ -1,8 +1,8 @@
 /**
  * Created by Fry on 4/17/16.
  */
-const ipcRenderer = require('electron').ipcRenderer
-const request = require('request')
+var ipcRenderer = require('electron').ipcRenderer
+var request = require('request')
 
 ipcRenderer.on('record_dde_window_size', function(event){
     //onsole.log("top of on record_window_size")
@@ -749,153 +749,6 @@ function latest_window_of_title(title){
     else { return null }
 }
 
-//__________out  and helper fns_______
-window.out_item_index = 0
-function out(val="", color="black", temp=false, code=null){
-    let text = val
-    if (typeof(text) != "string"){ //if its not a string, its some daeta structure so make it fixed width to demostrate code. Plus the json =retty printing doesn't work unless if its not fixed width.
-        text = stringify_value(text)
-    }
-    text = format_text_for_code(text, code)
-    if ((color != "black") && (color != "#000000")){
-        text = "<span style='color:" + color + "';>" + text + "</span>"
-    }
-    let temp_str_id = ((typeof(temp) == "string") ? temp : "temp")
-    let existing_temp_elts = $("#" + temp_str_id)
-    if (temp){
-        if (existing_temp_elts.length == 0){
-            text = '<div id="' + temp_str_id + '" style="border-style:solid;border-width:1px;border-color:#0000FF;margin:5px 5px 5px 15px;padding:4px;">' + text + '</div>'
-            append_to_output(text)
-        }
-        else {
-            existing_temp_elts.html(text)
-        }
-        return "dont_print"
-    }
-    else {
-        if ((existing_temp_elts.length > 0) && (temp_str_id == "temp")){ //don't remove if temp is another string. This is used in Job.show_progress
-            existing_temp_elts.remove()
-        }
-        var out_item_id = "out_" + out_item_index
-        out_item_index += 1
-        text = '<div id="' + out_item_id + '" style="border-style:solid;border-width:1px;border-color:#AA00AA;margin:5px 5px 5px 15px;padding:4px;">' + text + '</div>'
-        append_to_output(text)
-    }
-    myCodeMirror.focus()
-        /* This fails because the "position" of the call to show_output is the position in THIS source code,
-         not the code being evaled.
-         StackTrace.get(function(sf){
-         return true //sf.functionName == show_output
-         }).then(function(sf){
-         var lineno = sf.lineNumber
-         var colno  = sf.columnNumber
-         window[out_item_id].onclick = function(){
-         var src = Editor.get_javascript(true) //true means grab sel text if any, else grab the whole thing, just like EVAL button does
-         var start_pos_of_out_call = char_position(src, lineno, colno)
-         Editor.select_javascript(start_pos_of_out_call, start_pos_of_out_call + 3) //select "out"
-         }
-         }).catch(function(err){ console.log("Error in show_output stacktrace error. " + err.message)})
-         */
-    if (temp){
-        return "dont_print"
-    }
-    else {
-        return val //so value can be used by the caller of show_output
-    }
-}
-window.out = out
-
-function format_text_for_code(text, code=null){
-    if (code === null) {
-        code = persistent_get("default_out_code")
-        if ((code === undefined) || (code === null)) { code = false }
-    }
-    if (code) { //cut off timing info: too confusing to see it.
-        let timing_index = text.indexOf(" <span style='padding-left:50px;font-size:10px;'>")
-        if (timing_index !== -1) { text = text.substring(0, timing_index) }
-        text = replace_substrings(text, "<",   "&lt;")
-        text = replace_substrings(text, ">",   "&gt;")
-        //text = replace_substrings(text, "\n",  "<br/>")
-        text = replace_substrings(text, "\\\\n", "\n")
-        text = "<pre><code>" + text + "</code></pre>"
-    }
-    return text
-}
-
-/*
- StackTrace.get(function(sf){
- return sf.functionName == show_output
- })then(function(sf){
- var lineno = sf.lineNumber
- var colno  = sf.columnNumber
- }catch("errorcb")
- out_aux = function(text, color){
- */
-
-//text is a string that represents a result from eval.
-// It has been trimmed, and stringified, with <code> </code> wrapped around it probably.
-//never passed 'dont_print, always prints <hr/> at end whereas regular output never does
-//ui only
-window.out_eval_result = function(text, color="#000000", src){
-    if (text != '"dont_print"'){
-        var existing_temp = $("#temp")
-        if (existing_temp.length > 0){
-            existing_temp.remove()
-        }
-        if (starts_with_one_of(text, ['"<svg ', '"<circle ', '"<ellipse ', '"<foreignObject ', '"<line ', '"<polygon ', '"<polyline ', '"<rect ', '"<text '])) {
-            text = text.replace(/\</g, "&lt;") //so I can debug calls to svg_svg, svg_cirle ettc
-        }
-        if (color && (color != "#000000")){
-            text = "<span style='color:" + color + "';>" + text + "</span>"
-        }
-        text = format_text_for_code(text)
-        let src_formatted = ""
-        let src_formatted_suffix = "" //but could be "..."
-        if(src) {
-            src_formatted = src
-            let src_first_newline = src_formatted.indexOf("\n")
-            if (src_first_newline != -1) {
-                src_formatted = src_formatted.substring(0, src_first_newline)
-                src_formatted_suffix = "..."
-            }
-            if (src_formatted.length > 55) {
-                src_formatted = src_formatted.substring(0, 55)
-                src_formatted_suffix = "..."
-                }
-            src_formatted = replace_substrings(src_formatted, ">", "&lt;")
-            src = replace_substrings(src, "'", "&apos;")
-            src_formatted = " of <code title='" + src + "'>&nbsp;" + src_formatted + src_formatted_suffix + "&nbsp;</code>"
-        }
-        text = "<fieldset><legend><i>Eval result</i>" + src_formatted + "</legend>" +  text + "</fieldset>"
-        append_to_output(text)
-    }
-    //$('#js_textarea_id').focus() fails silently
-    if(Editor.get_cmd_selection().length > 0) { cmd_input_id.focus() }
-    else { myCodeMirror.focus() }
-}
-
-window.get_output = function(){ //rather uncommon op, used only in append_to_output
-    return $("#output_div_id").html()
-
-}
-
-window.clear_output = function(){
-    output_div_id.innerText = ""
-    init_inspect();
-    return "dont_print"
-}
-
-
-//now literally never useful as if its called from js pane, then the return val from this fn will replace the output
-window.append_to_output = function(text){
-    var out_height = output_div_id.scrollHeight
-    //var orig = get_output()
-    text += "\n"
-    $("#output_div_id").append(text)
-    output_div_id.scrollTop = out_height
-    install_onclick_via_data_fns()
-}
-
 //___________SOUND__________
 //note Series is not defined in sandbox
 window.month_names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September','October', 'November', 'December']
@@ -1439,3 +1292,6 @@ window.prompt = function(title, val){
                                  window_frame_background_color: window_frame_bg,
                                  button_background_color: button_bg})
 }
+var {persistent_get, persistent_set} = require("./core/storage")
+var {warning, function_name, is_string_a_integer, is_string_a_number, starts_with_one_of,
+    stringify_value, value_of_path} = require("./core/utils.js")

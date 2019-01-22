@@ -255,50 +255,7 @@ Note = class Note{
             return WebMidi.guessNoteNumber(pitch_name)
         }
     }
-    /* previous diatonic transpose. didn't andle octaves or fracitonal intervals well
-    static pitch_class_in_c_to_diatonic_index(pitch_class_in_c){
-        for(var i = 0; i < Note.diatonic_intervals.length; i++){
-            var dia_val = Note.diatonic_intervals[i]
-            if (dia_val == pitch_class_in_c) { return i }
-            else if (dia_val > pitch_class_in_c) { return i + 0.5 }
-        }
-        shouldnt("pitch_class_in_c_to_diatonic_index passed: " + pitch_class_in_c + " but couldn't find its index.")
-    }
 
-    static diatonic_index_to_pitch_in_c(dia_index){
-        var dia_index0_6
-        if (dia_index >= 0) { dia_index0_6 = dia_index % 7}
-        else {
-            dia_index0_6 = dia_index
-            while(dia_index0_6 < 0) { dia_index0_6 += 7 }
-        }
-        var dia_index_octaves = Math.floor(dia_index / 7)
-        var pitch_class_num = Note.diatonic_intervals[dia_index0_6]
-        var result = (dia_index_octaves * 12) + pitch_class_num
-        return result
-    }
-
-
-
-     //high level fn
-    static diatonic_transpose_old(pitch, key, diatonic_interval){
-        pitch = Note.pitch_name_to_number(pitch)       //ok if pitch is already a number
-        key   = Note.pitch_to_pitch_class_number(key)  //ok if key   is already a number
-        let zero_based_diatonic_interval = Note.convert_diatonic_interval_to_0_based(diatonic_interval)
-                                //so that input of 1 will mean "unison, 3 will mean the interval of a 3rd, etc.
-                                //note 3 is not major or minor 3rd its whichever one is diatonic witk key
-                                //but from hear on, diatonic_interval is 0 based.
-        var simple_oct = Math.floor(pitch / 12)
-        var pitch_in_c = pitch - key
-        var pitch_class_num_in_c = Note.pitch_to_pitch_class_number(pitch_in_c) // in key of C
-        var index_into_dia = Note.pitch_class_in_c_to_diatonic_index(pitch_class_num_in_c)
-        var new_index_into_dia = index_into_dia + zero_based_diatonic_interval
-        var new_pitch_in_c = Note.diatonic_index_to_pitch_in_c(new_index_into_dia)
-        var pitch_in_key = new_pitch_in_c + key
-        return pitch_in_key + (simple_oct * 12)
-    }
-    */
-    ////
     static diatonic_transpose(pitch, key, diatonic_interval){
         pitch = Note.pitch_name_to_number(pitch)       //ok if pitch is already a number
         key   = Note.pitch_to_pitch_class_number(key)  //ok if key   is already a number
@@ -640,16 +597,9 @@ Note = class Note{
         }
         return note_copy
     }
-
-
-
-
-
-
-
-
-
 } //end Note class
 Note.pitch_class_names       = ["C", "C#", "D","D#","E","F","F#","G","G#","A","A#","B"]
 Note.pitch_class_names_flat  = ["C", "Db", "D","Eb","E","F","Gb","G","Ab","A","Bb","B"]
 Note.diatonic_intervals      = [0, 2, 4, 5, 7, 9, 11]
+
+var {warning, is_digit, limit_to_range} = require("./core/utils.js")

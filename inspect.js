@@ -434,19 +434,6 @@ function inspect_prop_val_string_exceptions(container_object, prop_name, prop_va
     else { return prop_val_string }
 }
 
-/*function inspect_previous_value(){
-    if(inspect_stack_pos > 0) {
-        inspect_stack_pos -= 1
-        inspect(inspect_stack[inspect_stack_pos], false)
-    }
-}
-
-function inspect_next_value(){
-    if(inspect_stack_pos < (inspect_stack.length - 1)) {
-        inspect_stack_pos += 1
-        inspect(inspect_stack[inspect_stack_pos], false)
-    }
-}*/
 
 //called for the parts of a inspector display that are themselves inspectable
 function inspect_clickable_path(item, stack_number, in_stack_position, prop_name){
@@ -486,18 +473,6 @@ function inspect_set_onclick(item, stack_number, in_stack_position, id_string){
             }
         }
         else { elts.onclick = fn } //only one
-        /*if(window.inspect_previous_value_id){
-            inspect_previous_value_id.onclick = inspect_previous_value
-        }
-        else {
-            console.log("inspect_previous_value_id not bound in inspect_set_new_object_onclick.")
-        }
-        if(window.inspect_next_value_id) {
-            inspect_next_value_id.onclick     = inspect_next_value
-        }
-        else {
-            console.log("inspect_next_value_id not bound in inspect_set_new_object_onclick.")
-        }*/
     }, 1000)
 }
 
@@ -566,3 +541,6 @@ function inspect_set_refresh_onclick(stack_number, in_stack_position, id_string)
     }
     setTimeout(set_onclick_fn_fn, 1000)
 }
+
+var {out_eval_result} = require("./core/out.js")
+var {shouldnt, is_class, is_array_of_same_lengthed_arrays, get_class_name, replace_substrings, typed_array_name} = require("./core/utils.js")

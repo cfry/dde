@@ -12,8 +12,10 @@ function ob_sys_is_class(obj){
     return ((typeof(obj) == "function") && obj.toString().startsWith("class "))
 }
 
-const Root = {name: "Root"} //"root" is an old node,js global that's been depricated but still defined. I decidd to steer clear of it by using capitalied Root.
-window.Root = Root //if I don't to this, value_of_path fails since window["rootObjject"] fails
+var Root = {name: "Root"} //"root" is an old node,js global that's been depricated but still defined. I decidd to steer clear of it by using capitalied Root.
+module.exports.Root = Root
+
+//window.Root = Root //if I don't to this, value_of_path fails since window["rootObjject"] fails
 //rootObject.name = "rootObject" //errors if I do this. the error happens in Jquery on something
                                //that looks very unlrelated, in ready, when seting the operating_system variable.
                                //mysterious. try again once electron is up.
@@ -117,6 +119,7 @@ function newObject(...property_objects){
         return result
     }
 }
+module.exports.newObject = newObject
 
 Object.defineProperty(Object, 'isNewObject',{
     enumerable : false,
@@ -567,3 +570,5 @@ Object.defineProperty(Object.prototype, 'sourceCode',{
     } ,
     enumerable : false
 })
+var {shouldnt, warning, dde_error, function_param_names, is_iterator, last, prepend_file_message_maybe,
+     starts_with_one_of, stringify_value_sans_html, value_of_path} = require("./utils")

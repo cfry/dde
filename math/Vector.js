@@ -4,9 +4,9 @@
 //Started: 6_18_16
 //Updated: 8_8_18
 
-
 var dde_github_issues = "https://github.com/cfry/dde/issues"
-var Vector = new function(){
+
+class Vector{
 //The Vector Class contains functions for manipulating the following:
 /*
 
@@ -18,7 +18,7 @@ var Vector = new function(){
  
 */
 
-    this.size = function(a){
+    static size (a){
     	
     	if (a === undefined){
         	out("Error: input to function 'size()' is undefined", "red")
@@ -52,7 +52,7 @@ var Vector = new function(){
         }
     }
     
-    this.max = function(array){
+    static max (array){
     	let dim = Vector.matrix_dimensions(array)
         let max = -Infinity
         for(let i = 0; i < dim[0]; i++){
@@ -64,8 +64,8 @@ var Vector = new function(){
         }
         return max
     }
-    
-    this.min = function(array){
+
+    static min (array){
     	let dim = Vector.matrix_dimensions(array)
         let min = Infinity
         for(let i = 0; i < dim[0]; i++){
@@ -84,7 +84,7 @@ var Vector = new function(){
     //Public
     //Returns the unit vector of the input
     //Works for both 2D and 3D vectors
-    this.normalize = function(vector){
+    static normalize(vector){
     	let magnitude = Vector.magnitude(vector)
         return Vector.divide(vector, magnitude)
     }
@@ -93,7 +93,7 @@ var Vector = new function(){
     //Public
     //Returns the dot product of two arrays
     //Will work for arrays of any equal length
-    this.dot = function(vector_A, vector_B){
+    static dot (vector_A, vector_B){
     	var A_size = Vector.size(vector_A)
         var B_size = Vector.size(vector_B)
         var point, plane
@@ -148,7 +148,7 @@ var Vector = new function(){
     //Public
     //Returns the cross product of two vectors
     //Vectors must be equal lengths
-    this.cross = function(vector_A, vector_B){
+    static cross (vector_A, vector_B){
 		var A_size = vector_A.length
     	var B_size = vector_B.length
     	var mat_size = Math.min(A_size, B_size)
@@ -166,7 +166,7 @@ var Vector = new function(){
     //This is used to add vectors of equal length
     //Can also add scalars to each element in vector
     //unlimited number of inputs args
-    this.add = function(...args){
+    static add(...args){
         let temp_args = Convert.deep_copy(args)
         var sum = temp_args[0]
         
@@ -223,7 +223,7 @@ var Vector = new function(){
     //This is used to subtract vectors of equal length
     //Can also add scalars to each element in vector
     //unlimited number of inputs args
-    this.subtract = function(){
+    static subtract (){
         let temp_args = Convert.deep_copy(arguments)
         var sum = temp_args[0]
         
@@ -260,7 +260,7 @@ var Vector = new function(){
         
     //Public
     //This should be re-written in a more clever way....
-    this.multiply = function(...args){
+    static multiply(...args){
         if (args === undefined){
         	out("Error: the function 'Vector.multiply' has undefined inputs")
         }
@@ -348,7 +348,7 @@ var Vector = new function(){
     */
     
     //Public
-    this.divide = function(...args){
+    static divide (...args){
         if (args === undefined){
         	out("Error: the function 'Vector.divide' has undefined inputs")
         }
@@ -439,9 +439,9 @@ var Vector = new function(){
     debugger
     Vector.average([1, 2, 3])
     */
-    
-    
-    this.average = function(...args){
+
+
+    static average(...args){
     	let temp_args = Convert.deep_copy(args)
         let sum
         if(temp_args.length == 1){
@@ -485,28 +485,12 @@ var Vector = new function(){
     }
     //Vector.average([2, 2], [4, 4])
     
-    //Private
-    function dist_point_to_plane(point, plane){
-    	if (Vector.size(plane) !== 4){
-        	out("Error: Complete the plane by using the function 'Vector.complete_plane(vector, point)'")
-            return null
-        }
-    	return -Vector.dot(point, plane)
-    }
-    
-	//Private
-    function dist_point_to_line(point, line_point_A, line_point_B){
-		var term1 = Vector.subtract(point, line_point_A)
-    	var term2 = Vector.subtract(point, line_point_B)
-    	var term3 = Vector.subtract(line_point_B, line_point_A)
-    	var d = Vector.distance(Vector.cross(term1, term2)) / Vector.distance(term3)
-    	return d
-	}
+   //private fns here
     
 	
     
     //Public
-	this.distance = function() {
+	static distance() {
     	/*SYNTAX:
         	Kin.distance(POINT)        -> distance between point and origin / magnitude of VECTOR
             Kin.distance(POINT, POINT) -> distance between points
@@ -585,7 +569,7 @@ var Vector = new function(){
 
     }
     
-    this.magnitude = function(vector){
+    static magnitude(vector){
     	if(vector.length == undefined){
         	return vector
         }
@@ -597,7 +581,7 @@ var Vector = new function(){
     }
     
     //Public
-    this.complete_plane = function(plane, point){
+    static complete_plane(plane, point){
     	if (Vector.size(plane) === 3){
         	var vector = Vector.normalize(plane)
         	var d = Vector.dot(vector, point)
@@ -609,21 +593,23 @@ var Vector = new function(){
     }
     
     //Public
-    this.project_vector_onto_plane = function(vector, plane){
+    static project_vector_onto_plane(vector, plane){
 		var short_plane = [plane[0], plane[1], plane[2]]
 		var term1 = Vector.dot(vector, short_plane)
     	var term2 = Math.pow(Vector.distance(short_plane), 2)
 		return Vector.subtract(vector, Vector.multiply(term1 / term2, short_plane))
 	}
-    
-    this.project_point_onto_line = function(point, line_point_1, line_point_2){
+
+    static project_point_onto_linepoint(line_point_1, line_point_2){
     	let U1a = line_point_1
         let U1b = point
         let U2a = line_point_1
         let U2b = line_point_2
         let U1ba = Vector.subtract(U1b, U1a)
         let U2ba = Vector.subtract(U2b, U2a)
-        let proj = Vector.add(Vector.multiply(Vector.dot(U2ba, U1ba) / Vector.magnitude(U2ba)**2, U2ba), U2a)
+        let proj = Vector.add(Vector.multiply(Vector.dot(U2ba, U1ba) /
+                                 Math.pow(Vector.magnitude(U2ba), 2),
+                                 U2ba), U2a)
         return proj
     }
     
@@ -631,7 +617,7 @@ var Vector = new function(){
     debugger
     Vector.sign(0)
     */
-    this.sign = function(array){
+    static sign(array){
 		let dim = Vector.matrix_dimensions(array)
         let sign_array
         if(dim[1] == 0){
@@ -665,7 +651,7 @@ var Vector = new function(){
 	}
     
     //Public
-    this.points_to_plane = function(Ua, Ub, Uc){
+    static points_to_plane(Ua, Ub, Uc){
     	var Uba = Vector.subtract(Ub, Ua)
         var Uca = Vector.subtract(Uc, Ua)
         var Uba_norm = Vector.round(Vector.normalize(Uba),10)
@@ -681,7 +667,7 @@ var Vector = new function(){
 	
     
     //Public 
-    this.round = function(number_or_array, digits = 1){
+    static round(number_or_array, digits = 1){
     	let mulitplier = Math.pow(10, digits)
     	let temp_args = Convert.deep_copy(arguments)
         if(typeof(number_or_array) == "number"){
@@ -707,7 +693,7 @@ var Vector = new function(){
     
     
     //Public
-    this.is_equal = function(array1, array2, tolerance = 14, tolerance_type = "decimal_places"){
+    static is_equal(array1, array2, tolerance = 14, tolerance_type = "decimal_places"){
         
         let result = true
         if (array1.length !== array2.length){
@@ -774,13 +760,13 @@ var Vector = new function(){
     
     
     //Public
-    this.shorten = function(matrix){
+    static shorten(matrix){
     	return [matrix[0], matrix[1], matrix[2]]
     }
     
     //Public
     //Returns the smallest angle between two vectors with range 0-180 degrees
-    this.angle = function(vector_A, vector_B){
+    static angle(vector_A, vector_B){
     	//in case one of the vectors is a complete plane
     	var short_A = Vector.shorten(vector_A)
         var short_B = Vector.shorten(vector_B)
@@ -799,7 +785,7 @@ var Vector = new function(){
     
     //Public
     //Returns angle between two vectors with range -180 to 180
-    this.signed_angle = function(vector_A, vector_B, plane){
+    static signed_angle(vector_A, vector_B, plane){
     	let epsilon = 1e-14
     	//checks if vectors lie in plane
         var cross_product = Vector.normalize(Vector.cross(Vector.shorten(vector_A), Vector.shorten(vector_B)))
@@ -826,7 +812,7 @@ var Vector = new function(){
     
     //Public
     //returns intersection of two planes, a plane and a line, and two lines
-    this.intersection = function(){
+    static intersection(){
     	switch (Vector.size(arguments)){
         	case 2:
         		//Assumes intersection between two planes
@@ -885,7 +871,7 @@ var Vector = new function(){
     //Public
     //rotates a vector in 3D space on a plane by angle theta
     //will also rotate a point about a line by substituting the line's vector in plane and its point in point
-    this.rotate = function(vector, plane, theta, point = [0, 0, 0]){
+    static rotate(vector, plane, theta, point = [0, 0, 0]){
     	plane =  Vector.normalize(Vector.shorten(plane))
         let dim = Vector.matrix_dimensions(vector)
         let result, short_vector, term_1, term_2, term_3
@@ -912,9 +898,9 @@ var Vector = new function(){
         }
         return result
     }
-    
-    
-    this.three_points_to_transformation = function(point_list, pointA = [0, 0, 0], pointB = [1, 0, 0], pointC = [0, 1, 0], U4){
+
+
+    static three_points_to_transformation(point_list, pointA = [0, 0, 0], pointB = [1, 0, 0], pointC = [0, 1, 0], U4){
 		
         let points_plane = Vector.points_to_plane(pointA, pointB, pointC)
         let dist = Vector.distance(U4, points_plane)
@@ -963,8 +949,8 @@ var Vector = new function(){
     	return [new_point_list, Vector.shorten(points_plane)]
     	//[x*cos(theta)+dx, y*cos(theta)+dy, (Py*y + Pz*x)*sin(theta)+dz]
 	}
-    
-    this.max = function(vector){
+
+    static max(vector){
     	let dim = Vector.matrix_dimensions(vector)
         let temp_max
         
@@ -995,8 +981,8 @@ var Vector = new function(){
     var result = Vector.max([[1, 2, 10], [4, 5, 6]])
     var result = Vector.max([1, 2, 10])
     */
-    
-    this.min = function(vector){
+
+    static min(vector){
     	let dim = Vector.matrix_dimensions(vector)
         let temp_min
         if(dim[0] == 1){
@@ -1025,8 +1011,8 @@ var Vector = new function(){
     var result = Vector.min([[1, 2, 10], [4, 5, 6]])
     var result = Vector.min([1, 2, 10])
     */
-    
-    this.is_NaN = function(vector){
+
+    static is_NaN(vector){
     	let dim = Vector.matrix_dimensions(vector)
         if(dim[0] == 1 && dim[1] == 0){return isNaN(vector)}
         if(dim[0] == 1){
@@ -1042,8 +1028,8 @@ var Vector = new function(){
         }
         return false
     }
-    
-    this.sum = function(array){
+
+    static sum (array){
     	let dim = Vector.matrix_dimensions(array)
         let sum = 0
         if(dim[0] == 1){
@@ -1059,7 +1045,7 @@ var Vector = new function(){
     Vector.abs([[-10, 9], [-8, -6],[-1, -5]])
     Vector.abs([[-10, 9], [-8, -6]])
     */
-    this.abs = function(array){
+    static abs(array){
     	let dim = Vector.matrix_dimensions(array)
         let array_copy = Convert.deep_copy(array)
         
@@ -1085,8 +1071,8 @@ var Vector = new function(){
     Vector.abs(myvec)
     out(myvec)
     */
-    
-    this.pow = function(array, power){
+
+    static pow(array, power){
     	let dim = Vector.matrix_dimensions(array)
         let array_copy = Convert.deep_copy(array)
         
@@ -1113,7 +1099,7 @@ var Vector = new function(){
     /*
     Vector.is_greater([4, 4, 5], [4, 3, 5])
     */
-    this.is_greater = function(vector_1, vector_2){
+    static is_greater(vector_1, vector_2){
         let state = false
         for(let i = 0; i < vector_1.length; i++){
         	if(vector_1[i] > vector_2[i]){
@@ -1123,8 +1109,8 @@ var Vector = new function(){
         }
         return state
     }
-    
-    this.is_less = function(vector_1, vector_2){
+
+    static is_less(vector_1, vector_2){
         let state = false
         for(let i = 0; i < vector_1.length; i++){
         	if(vector_1[i] < vector_2[i]){
@@ -1134,16 +1120,16 @@ var Vector = new function(){
         }
         return state
     }
-    
-    this.quadratic_formula = function(a, b, c){
-    	let det = Math.sqrt(b**2-4*a*c)
+
+    static quadratic_formula(a, b, c){
+    	let det = Math.sqrt(Math.pow(b, 2) -4*a*c)
         if(isNaN(det)){
         	dde_error("Vector.quadratic_formula does not support imaginery roots yet")
         }
         return [(-b+det)/(2*a), (-b-det)/(2*a)]
     }
-    
-    this.root_mean_square = function(vector){
+
+    static root_mean_square(vector){
     	if(vector.length){
         	let sum = 0
         	for(let i = 0; i < vector.length; i++){
@@ -1159,12 +1145,12 @@ var Vector = new function(){
     
 	//Cubic Formula by Alexander Shtuchkin
 	//https://stackoverflow.com/questions/27176423/function-to-solve-cubic-equation-analytically
-    this.cuberoot = function(x){
+    static cuberoot(x){
     	let y = Math.pow(Math.abs(x), 1/3);
     	return x < 0 ? -y : y;
 	}
-    
-    this.solveCubic = function(a, b, c, d) {
+
+    static solveCubic(a, b, c, d) {
     	if (Math.abs(a) < 1e-8) { // Quadratic case, ax^2+bx+c=0
         	a = b; b = c; c = d;
         	if (Math.abs(a) < 1e-8) { // Linear case, ax+b=0
@@ -1212,8 +1198,8 @@ var Vector = new function(){
 
     	return roots;
 	}
-    
-    this.linspace = function(start, end, n){
+
+    static linspace(start, end, n){
 		let result = Vector.make_matrix(1, n)
     	let step = (end-start)/(n-1)
     	for(let i = 0; i < n; i++){
@@ -1226,7 +1212,7 @@ var Vector = new function(){
 
 	//Private
     //This is used to prevent functions from altering outside arrays
-    this.deep_copy = function(arg){
+    static deep_copy(arg){
     	if (typeof(arg) == "number"){
         	return arg
         }else{
@@ -1245,8 +1231,8 @@ var Vector = new function(){
 
     //*******************************************
     //Orientation representation conversions:
-    
-    this.euler_angles_to_DCM = function(euler_angles = [0, 0, 0], euler_sequence = "ZYX"){
+
+    static euler_angles_to_DCM(euler_angles = [0, 0, 0], euler_sequence = "ZYX"){
     	//default could be ZX'Z'
         let dim = Vector.matrix_dimensions(euler_angles)
         if(dim[0] == 2 && dim[1] == 3){
@@ -1289,8 +1275,8 @@ var Vector = new function(){
     debugger
     Vector.DCM_to_euler_angles(Vector.transpose(Vector.euler_angles_to_DCM([30, 0, 0])))
     */
-      
-    this.DCM_to_euler_angles = function(DCM, euler_sequence = "ZYX"){
+
+    static DCM_to_euler_angles(DCM, euler_sequence = "ZYX"){
     	let euler_angles = [0, 0, 0]
         switch(euler_sequence){
         	
@@ -1340,8 +1326,8 @@ var Vector = new function(){
         
         return euler_angles
     }
-    
-    this.quaternion_to_DCM = function(quaternion = [1, 0, 0, 0]){
+
+    static quaternion_to_DCM(quaternion = [1, 0, 0, 0]){
     	//Algorithm was found here:
         //http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToMatrix/
     	let w = quaternion[0]
@@ -1362,8 +1348,8 @@ var Vector = new function(){
         return DCM
     }
 
-    
-    this.DCM_to_quaternion = function(DCM = Vector.make_DCM()){
+
+    static DCM_to_quaternion(DCM = Vector.make_DCM()){
     	//Algorithm was found here:
         //http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/
     	let trace = DCM[0][0] + DCM[1][1] + DCM[2][2]
@@ -1396,16 +1382,16 @@ var Vector = new function(){
     	quaternion = [w, x, y, z]
         return quaternion
     }
-    
-    this.euler_angles_to_quaternion = function(euler_angles = [0, 0, 0], euler_sequence = "XYZ"){
+
+    static euler_angles_to_quaternion(euler_angles = [0, 0, 0], euler_sequence = "XYZ"){
         return Vector.DCM_to_quaternion(Vector.euler_angles_to_DCM(euler_angles, euler_sequence))
     }
-    
-    this.quaternion_to_euler_angles = function(quaternion = [1, 0, 0, 0], euler_sequence = "XYZ"){
+
+    static quaternion_to_euler_angles(quaternion = [1, 0, 0, 0], euler_sequence = "XYZ"){
         return Vector.DCM_to_euler_angles(Vector.quaternion_to_DCM(quaternion), euler_sequence)
     }
-    
-    this.get_orientation_format = function(orientation){
+
+    static get_orientation_format(orientation){
     	let result
         let dim = Vector.matrix_dimensions(orientation)
         if(dim[0] == 1 && dim[1] == 3){
@@ -1423,7 +1409,7 @@ var Vector = new function(){
     }
     
     //Euler_angles Utilities:
-    this.make_euler_angles = function(orientation = [0, 0, 0], euler_sequence = "XYZ"){
+    static make_euler_angles(orientation = [0, 0, 0], euler_sequence = "XYZ"){
     	let format = Vector.get_orientation_format(orientation)
         let angles
         switch(format){
@@ -1439,8 +1425,8 @@ var Vector = new function(){
         }
         return angles
     }
-    
-    this.make_quaternion = function(orientation = [1, 0, 0, 0]){
+
+    static make_quaternion(orientation = [1, 0, 0, 0]){
     	let format = Vector.get_orientation_format(orientation)
         let quat
         switch(format){
@@ -1458,7 +1444,7 @@ var Vector = new function(){
     }
     
     //DCM Utilities:
-    this.make_DCM = function(orientation = [0, 0, 0]){
+    static make_DCM (orientation = [0, 0, 0]){
     	let type = Vector.get_orientation_format(orientation)
         let DCM
         switch(type){
@@ -1475,36 +1461,36 @@ var Vector = new function(){
         return DCM
     }
     
-    this.get_x_vector_from_DCM = function(DCM = Vector.make_DCM()){
+    static get_x_vector_from_DCM(DCM = Vector.make_DCM()){
     	return Vector.transpose(Vector.pull(DCM, [0, 2], [0, 0]))
     }
-    
-    this.get_y_vector_from_DCM = function(DCM = Vector.make_DCM()){
+
+    static get_y_vector_from_DCM(DCM = Vector.make_DCM()){
     	return Vector.transpose(Vector.pull(DCM, [0, 2], [1, 1]))
     }
-    
-    this.get_z_vector_from_DCM = function(DCM = Vector.make_DCM()){
+
+    static get_z_vector_from_DCM(DCM = Vector.make_DCM()){
     	return Vector.transpose(Vector.pull(DCM, [0, 2], [2, 2]))
     }
     
     //Pose Utilities:
-    this.get_x_vector_from_pose = function(pose = Vector.make_pose()){
+    static get_x_vector_from_pose(pose = Vector.make_pose()){
     	return Vector.transpose(Vector.pull(pose, [0, 2], [0, 0]))
     }
-    
-    this.get_y_vector_from_pose = function(pose = Vector.make_pose()){
+
+    static get_y_vector_from_pose(pose = Vector.make_pose()){
     	return Vector.transpose(Vector.pull(pose, [0, 2], [1, 1]))
     }
-    
-    this.get_z_vector_from_pose = function(pose = Vector.make_pose()){
+
+    static get_z_vector_from_pose(pose = Vector.make_pose()){
     	return Vector.transpose(Vector.pull(pose, [0, 2], [2, 2]))
     }
-    
-    this.get_xyz_from_pose = function(pose = Vector.make_pose()){
+
+    static get_xyz_from_pose(pose = Vector.make_pose()){
     	return Vector.transpose(Vector.pull(pose, [0, 2], [3, 3]))
     }
-    
-    this.get_DCM_from_pose = function(pose = Vector.make_pose()){
+
+    static get_DCM_from_pose(pose = Vector.make_pose()){
     	return Vector.transpose(Vector.pull(pose, [0, 2], [0, 2]))
     }
     
@@ -1516,8 +1502,8 @@ var Vector = new function(){
     debugger
     Vector.make_matrix(1,0)
     */
-    
-    this.make_matrix = function(nRows, nColumns, value = 0){
+
+    static make_matrix(nRows, nColumns, value = 0){
     	let result = []
         if(nColumns === undefined){
         	if(Vector.matrix_dimensions(nRows)[1] == 2){
@@ -1553,54 +1539,9 @@ var Vector = new function(){
     //Vector.make_matrix(3, 2, 1)
     //Vector.make_matrix([2,3])
     
-    function multiply_two_matrices(matrix_A, matrix_B){
-    	let A_height, B_height, A_width, B_width, A_dim, B_dim
-        A_dim = Vector.matrix_dimensions(matrix_A)
-        B_dim = Vector.matrix_dimensions(matrix_B)
-        A_height = A_dim[0]
-        A_width = A_dim[1]
-        B_height = B_dim[0]
-        B_width = B_dim[1]
-        
-        /*
-    	let A_height = matrix_A.length
-        let B_height = matrix_B.length
-        let A_width  = matrix_A[0].length
-        let B_width  = matrix_B[0].length
-        */
-        if(A_width == undefined){
-        	A_width = A_height
-        	A_height = 1
-        }
-        if(B_width == undefined){
-        	B_width = B_height
-        	B_height = 1
-        }
-        if(A_width != B_height){
-        	dde_error("Inner matrix dimension must match")
-        }
-        let result = Vector.make_matrix(A_height, B_width)
-        for(var i = 0; i < A_height; i++){
-        	for(var j = 0; j < B_width; j++){
-            	let verticle = Vector.make_matrix(1, B_height)[0]
-                if(B_height == 1){
-                	verticle = matrix_B[j]
-                }else{
-                	for(var k = 0; k < B_height; k++){
-                		verticle[k] = matrix_B[k][j]
-                	}
-                }
-                if(A_height == 1){
-                	result[i][j] = Vector.dot(matrix_A, verticle)
-                }else{
-        			result[i][j] = Vector.dot(matrix_A[i], verticle)
-                }
-        	}
-        }
-    	return result
-	}
 
-	this.transpose = function(matrix){
+
+	static transpose(matrix){
     	let height = matrix.length
         let width  = matrix[0].length
         if(width == undefined){
@@ -1626,7 +1567,7 @@ var Vector = new function(){
     var v2 = Vector.transpose(v)
     */
     
-    this.matrix_multiply = function(...args){
+    static matrix_multiply(...args){
     	if (args === undefined){
         	out("Error: the function 'Vector.matrix_multiply' has undefined inputs")
         }
@@ -1639,16 +1580,7 @@ var Vector = new function(){
         return matrix_A
     }
     
-    function divide_two_matrices(matrix_numerator, matrix_denominator){
-    	let dim_num = Vector.matrix_dimensions(matrix_numerator)
-        let dim_den = Vector.matrix_dimensions(matrix_denominator)
-        if (!((dim_num[0] == dim_den[0]) && (dim_num[1] == dim_den[1]))){
-        	dde_error("matrix dimensions must match in Vector.matrix_divide")
-        }
-        return Vector.matrix_multiply(matrix_numerator, Vector.inverse(matrix_denominator))
-    }
-    
-    this.matrix_divide = function(...args){
+    static matrix_divide(...args){
     	if (args === undefined){
         	out("Error: the function 'Vector.matrix_multiply' has undefined inputs")
         }
@@ -1662,7 +1594,7 @@ var Vector = new function(){
     }
     
     
-    this.determinant = function(matrix){
+    static determinant(matrix){
     	let result
     	let dim = Vector.matrix_dimensions(matrix)
         if (dim[0] == 2 && dim[1] == 2){
@@ -1725,102 +1657,9 @@ var Vector = new function(){
     */
     
     /////////////////////////////////////////////////////////////////////////////////////
-	//16 Nov 2013 by Andrew Ippoliti
-    //http://blog.acipo.com/matrix-inversion-in-javascript/
-    // Returns the inverse of matrix `M`.
-	function matrix_invert(M){
-    	// I use Guassian Elimination to calculate the inverse:
-    	// (1) 'augment' the matrix (left) by the identity (on the right)
-    	// (2) Turn the matrix on the left into the identity by elemetry row ops
-    	// (3) The matrix on the right is the inverse (was the identity matrix)
-    	// There are 3 elemtary row ops: (I combine b and c in my code)
-    	// (a) Swap 2 rows
-    	// (b) Multiply a row by a scalar
-    	// (c) Add 2 rows
+
     
-    	//if the matrix isn't square: exit (error)
-    	if(M.length !== M[0].length){return;}
-    
-    	//create the identity matrix (I), and a copy (C) of the original
-    	var i=0, ii=0, j=0, dim=M.length, e=0, t=0;
-    	var I = [], C = [];
-    	for(i=0; i<dim; i+=1){
-        	// Create the row
-        	I[I.length]=[];
-        	C[C.length]=[];
-        	for(j=0; j<dim; j+=1){
-            	//if we're on the diagonal, put a 1 (for identity)
-            	if(i==j){ I[i][j] = 1; }
-            	else{ I[i][j] = 0; }
-            	// Also, make the copy of the original
-            	C[i][j] = M[i][j];
-        	}
-    	}
-    
-    	// Perform elementary row operations
-    	for(i=0; i<dim; i+=1){
-        	// get the element e on the diagonal
-        	e = C[i][i];
-        
-        	// if we have a 0 on the diagonal (we'll need to swap with a lower row)
-        	if(e==0){
-            	//look through every row below the i'th row
-            	for(ii=i+1; ii<dim; ii+=1){
-                	//if the ii'th row has a non-0 in the i'th col
-                	if(C[ii][i] != 0){
-                    	//it would make the diagonal have a non-0 so swap it
-                    	for(j=0; j<dim; j++){
-                        	e = C[i][j];       //temp store i'th row
-                        	C[i][j] = C[ii][j];//replace i'th row by ii'th
-                        	C[ii][j] = e;      //repace ii'th by temp
-                        	e = I[i][j];       //temp store i'th row
-                        	I[i][j] = I[ii][j];//replace i'th row by ii'th
-                        	I[ii][j] = e;      //repace ii'th by temp
-                    	}
-                    	//don't bother checking other rows since we've swapped
-                    	break;
-                	}
-            	}
-            	//get the new diagonal
-            	e = C[i][i];
-            	//if it's still 0, not invertable (error)
-            	if(e==0){return}
-        	}
-        
-        	// Scale this row down by e (so we have a 1 on the diagonal)
-        	for(j=0; j<dim; j++){
-            	C[i][j] = C[i][j]/e; //apply to original matrix
-            	I[i][j] = I[i][j]/e; //apply to identity
-        	}
-        
-        	// Subtract this row (scaled appropriately for each row) from ALL of
-        	// the other rows so that there will be 0's in this column in the
-        	// rows above and below this one
-        	for(ii=0; ii<dim; ii++){
-            	// Only apply to other rows (we want a 1 on the diagonal)
-            	if(ii==i){continue;}
-            
-            	// We want to change this element to 0
-            	e = C[ii][i];
-            
-            	// Subtract (the row above(or below) scaled by e) from (the
-            	// current row) but start at the i'th column and assume all the
-            	// stuff left of diagonal is 0 (which it should be if we made this
-            	// algorithm correctly)
-            	for(j=0; j<dim; j++){
-                	C[ii][j] -= e*C[i][j]; //apply to original matrix
-                	I[ii][j] -= e*I[i][j]; //apply to identity
-            	}
-        	}
-    	}
-    
-    	//we've done all operations, C should be the identity
-    	//matrix I should be the inverse:
-    	return I;
-	}
-    /////////////////////////////////////////////////////////////////////////////////////
-    
-    this.inverse = function(matrix){
+    static inverse(matrix){
     	let result
     	let dim = Vector.matrix_dimensions(matrix)
         if (dim[0] == 2 && dim[1] == 2){
@@ -1919,7 +1758,7 @@ var Vector = new function(){
     Vector.matrix_dimensions(3)
     */
     
-    this.matrix_dimensions = function(matrix){
+    static matrix_dimensions(matrix){
     	let width
         let height = matrix.length
         if(height == undefined){
@@ -1940,7 +1779,7 @@ var Vector = new function(){
     //Vector.matrix_dimensions([10, 20, 30])
     //Vector.matrix_dimensions([[10], [20], [30]])
     
-    this.properly_define_point = function(points){
+    static properly_define_point(points){
     	//a proper point takes the following form: [[x], [y], [z], [1]]
         //for points: [[x1, x2, ..., xn], [y1, y2, ..., yn], [z1, z2, ..., zm=n] [1, 1, ..., 1]]
     	let dim = Vector.matrix_dimensions(points)
@@ -1972,7 +1811,7 @@ var Vector = new function(){
     Vector.properly_define_point([[10, 20, 30], [10, 20, 30], [10, 20, 30]])
     */
 	
-    this.properly_define_vector = function(vectors){
+    static properly_define_vector(vectors){
     	//a proper point takes the following form: [[x], [y], [z], [1]]
         //for points: [[x1, x2, ..., xn], [y1, y2, ..., yn], [z1, z2, ..., zm=n] [1, 1, ..., 1]]
     	let dim = Vector.matrix_dimensions(vectors)
@@ -2000,7 +1839,7 @@ var Vector = new function(){
         }
     }
     
-    this.make_dcm = function(x_vector, y_vector, z_vector){
+    static make_dcm(x_vector, y_vector, z_vector){
     	warning("This function is being depricated.</br>Please replace with Vector.make_dcm_from_3_vectors, Vector.euler_angles_to_DCM, or Vector.quaternion_to_DCM")
         let dcm = Vector.identity_matrix(3)
         
@@ -2026,7 +1865,7 @@ var Vector = new function(){
     }
     
     
-    this.make_DCM_from_3_vectors = function(x_vector, y_vector, z_vector){
+    static make_DCM_from_3_vectors(x_vector, y_vector, z_vector){
         let dcm = Vector.identity_matrix(3)
         
         if(x_vector == undefined && y_vector == undefined && z_vector == undefined){
@@ -2050,7 +1889,7 @@ var Vector = new function(){
         return dcm
     }
     
-	this.make_pose = function(position = [0, 0, 0], orientation = [0, 0, 0], scale_factor = 1, sequence = "ZYX"){
+	static make_pose(position = [0, 0, 0], orientation = [0, 0, 0], scale_factor = 1, sequence = "ZYX"){
 		let dim = Vector.matrix_dimensions(orientation)
         let DCM
         let s = scale_factor
@@ -2076,7 +1915,7 @@ var Vector = new function(){
 	}
 
     
-    this.identity_matrix = function(size){
+    static identity_matrix(size){
     	let result = Vector.make_matrix(size, size)
         for(var i = 0; i < size; i++){
         	result[i][i] = 1
@@ -2086,7 +1925,7 @@ var Vector = new function(){
     //var im = Vector.identity_matrix(4)
     //var det = Vector.determinant(im)
     
-    this.rotate_DCM = function(DCM = [[1, 0, 0],[0, 1, 0],[0, 0, 1]], axis_of_rotation, angle){
+    static rotate_DCM(DCM = [[1, 0, 0],[0, 1, 0],[0, 0, 1]], axis_of_rotation, angle){
     	let trans_matrix = Vector.identity_matrix(3)
         let x_vector, y_vector, z_vector
     	switch(axis_of_rotation){
@@ -2136,7 +1975,7 @@ var Vector = new function(){
     var mat = Vector.rotate_DCM(Vector.identity_matrix(3), [1, 0, 0], Convert.degrees_to_arcseconds(90))
     var det = Vector.determinant(mat)
     */
-    this.rotate_pose = function(pose, axis_of_rotation, angle, point_of_rotation = [0, 0, 0]){
+    static rotate_pose(pose, axis_of_rotation, angle, point_of_rotation = [0, 0, 0]){
     	if(Vector.is_pose(pose) == false){
         	dde_error("pose is not properly formatted")
         }
@@ -2171,13 +2010,13 @@ var Vector = new function(){
     }
 
 	/*
-	this.quaternion_interpolation = function(quaternion){
+	static quaternion_interpolation(quaternion){
     	THREE.QuaternionLinearInterpolant()
         THREE.Quaternion
     }
     */
 
-    this.is_pose = function(pose){
+    static is_pose(pose){
     	let dim = Vector.matrix_dimensions(pose)
         if (!(dim[0] == 4 && dim[1] == 4)){
         	return false
@@ -2225,7 +2064,7 @@ var Vector = new function(){
     
     
     /*
-    this.place = function(matrix, row, column){
+    static place(matrix, row, column){
     	let dim = Vector.matrix_dimensions(matrix)
         let row_lower, row_upper, col_lower, col_upper
         if (Vector.size(row) == 1){
@@ -2261,7 +2100,7 @@ var Vector = new function(){
     */
     
     
-    this.pull = function(matrix, row, column){
+    static pull(matrix, row, column){
     	let dim = Vector.matrix_dimensions(matrix)
         if(dim[0] == 1){
         	matrix = [matrix]
@@ -2303,7 +2142,7 @@ var Vector = new function(){
     //Vector.pull([[1, 2, 3], [4, 5, 6], [7, 8, 9]], [1, 2], [1, 2])
     
     
-    this.insert = function(big_matrix, small_matrix, location = [0, 0]){
+    static insert(big_matrix, small_matrix, location = [0, 0]){
     	let big_dim = Vector.matrix_dimensions(big_matrix)
         let small_dim = Vector.matrix_dimensions(small_matrix)
         let result = big_matrix
@@ -2325,7 +2164,7 @@ var Vector = new function(){
     var result = Vector.insert(my_big, my_small, [3, 4])
     */
     
-    this.concatinate = function(direction = 0, matrix_1, matrix_2){
+    static concatinate(direction = 0, matrix_1, matrix_2){
 
         let result, dim_1, dim_2
         if(matrix_1.length == 0){
@@ -2420,7 +2259,7 @@ var Vector = new function(){
     var ans = Vector.concatinate(1, matrix_1, matrix_2)
     */
     
-    this.data_to_file = function(...args){
+    static data_to_file(...args){
     //debugger
     
     	let temp_args = Convert.deep_copy(args)
@@ -2497,7 +2336,7 @@ var Vector = new function(){
 	var solution = Vector.poly_fit(x_data, y_data, 4)
 */
     
-    this.poly_fit = function(x_data, y_data, order = 1){
+    static poly_fit(x_data, y_data, order = 1){
 		let dim_x = Vector.matrix_dimensions(x_data)
     	let dim_y = Vector.matrix_dimensions(y_data)
     	if((dim_x[0]!=1) || (dim_y[0]!=1) || (dim_x[1]!=dim_y[1])){
@@ -2556,7 +2395,7 @@ var Vector = new function(){
     var e = Vector.ellipse_fit(data_x, data_y)
     */
     
-    this.ellipse_fit = function(x, y){
+    static ellipse_fit(x, y){
 		//Code adapted from Nikolai Chernov
     	//https://www.mathworks.com/matlabcentral/fileexchange/22684-ellipse-fit-direct-method
     	if(x.length < 5 || y.length < 5){
@@ -2672,7 +2511,7 @@ var Vector = new function(){
 
     	let x_center = mean_x - d/2/a
     	let y_center = mean_y - e/2/c
-    	let F = 1 + (d**2)/(4*a) + (e**2)/(4*c)
+    	let F = 1 + Math.pow(d, 2)/(4*a) + Math.pow(e, 2)/(4*c)
     	let radius_a = Math.sqrt( F/a )
     	let radius_b = Math.sqrt( F/c )
     	results.major_radius = Math.max(radius_a, radius_b)
@@ -2704,71 +2543,177 @@ var Vector = new function(){
         
     	return results
 	}
-    
-    
+} //end class
+
+
+//Private
+function dist_point_to_plane(point, plane){
+    if (Vector.size(plane) !== 4){
+        out("Error: Complete the plane by using the function 'Vector.complete_plane(vector, point)'")
+        return null
+    }
+    return -Vector.dot(point, plane)
 }
 
+//Private
+function dist_point_to_line(point, line_point_A, line_point_B){
+    var term1 = Vector.subtract(point, line_point_A)
+    var term2 = Vector.subtract(point, line_point_B)
+    var term3 = Vector.subtract(line_point_B, line_point_A)
+    var d = Vector.distance(Vector.cross(term1, term2)) / Vector.distance(term3)
+    return d
+}
 
+function multiply_two_matrices(matrix_A, matrix_B){
+    let A_height, B_height, A_width, B_width, A_dim, B_dim
+    A_dim = Vector.matrix_dimensions(matrix_A)
+    B_dim = Vector.matrix_dimensions(matrix_B)
+    A_height = A_dim[0]
+    A_width = A_dim[1]
+    B_height = B_dim[0]
+    B_width = B_dim[1]
 
-new TestSuite("Vector Library",
-    ["Vector.add([1, 2, 3], [4, 5, 6])", "[5, 7, 9]"],
-    ["Vector.add([1, 2, 3], [4, 5, 6], 10, 50)", "[65, 67, 69]"],
-    ["Vector.subtract([4, 5, 6], [1, 2, 3])", "[3, 3, 3]"],
-	["Vector.subtract([4, 5, 6], 1, [1, 2, 3])", "[2, 2, 2]"],
-	["Vector.multiply([1, 2, 3], [4, 5, 6])", "[4, 10, 18]"],
-	["Vector.multiply([1, 2, 3], [4, 5, 6], 10, 50)", "[2000, 5000, 9000]"],
-	["Vector.size([1, 2, 3])", "3"],
-	["Vector.size([10])", "1"],
-	["Vector.size(10)", "1"],
-	["Vector.normalize([1, 1, 0])", "[0.7071067811865475, 0.7071067811865475, 0]"],
-	["Vector.dot([1, 2, 3], [4, 5, 6])", "32"],
-	["Vector.cross([1, 2, 3], [4, 5, 6])", "[-3, 6, -3]"],
-    ["Vector.transpose(Vector.transpose([1, 2, 3, 4, 5]))", "[1, 2, 3, 4, 5]"],
-    ["Vector.is_equal([1, 2, 3], [1, 2, 3.01])", "false"],
-    ['Vector.is_equal([1, 2, 3], [1, 2, 3.01], 1, "decimal_places")', "true"],
-    ['Vector.is_equal([1, 2, 3], [1, 2, 3.01], .005, "absolute")', "false"],
-    ['Vector.is_equal([1, 2, 3], [1, 2, 3.01], .1, "absolute")', "true"],
-    ['Vector.is_equal([1, 2, 3], [1, 2, 3], .1, "percent_difference")', "true"],
-    ['Vector.is_equal([1, 2, 3], [1, 2, 3.01], .1, "percent_difference")', "true"],
-    ['Vector.is_equal([1, 2, 3], [1, 2, 3.01], .001, "percent_difference")', "false"],
-    ['Vector.is_equal([1, 1, 1], [2, 2, 2], 1, "absolute")', "true"],
-    ['Vector.is_equal([1, 1, 1], [2, 2, 2], 1, "magnitude")', "false"]
-)
+    /*
+    let A_height = matrix_A.length
+    let B_height = matrix_B.length
+    let A_width  = matrix_A[0].length
+    let B_width  = matrix_B[0].length
+    */
+    if(A_width == undefined){
+        A_width = A_height
+        A_height = 1
+    }
+    if(B_width == undefined){
+        B_width = B_height
+        B_height = 1
+    }
+    if(A_width != B_height){
+        dde_error("Inner matrix dimension must match")
+    }
+    let result = Vector.make_matrix(A_height, B_width)
+    for(var i = 0; i < A_height; i++){
+        for(var j = 0; j < B_width; j++){
+            let verticle = Vector.make_matrix(1, B_height)[0]
+            if(B_height == 1){
+                verticle = matrix_B[j]
+            }else{
+                for(var k = 0; k < B_height; k++){
+                    verticle[k] = matrix_B[k][j]
+                }
+            }
+            if(A_height == 1){
+                result[i][j] = Vector.dot(matrix_A, verticle)
+            }else{
+                result[i][j] = Vector.dot(matrix_A[i], verticle)
+            }
+        }
+    }
+    return result
+}
 
+function divide_two_matrices(matrix_numerator, matrix_denominator){
+    let dim_num = Vector.matrix_dimensions(matrix_numerator)
+    let dim_den = Vector.matrix_dimensions(matrix_denominator)
+    if (!((dim_num[0] == dim_den[0]) && (dim_num[1] == dim_den[1]))){
+        dde_error("matrix dimensions must match in Vector.matrix_divide")
+    }
+    return Vector.matrix_multiply(matrix_numerator, Vector.inverse(matrix_denominator))
+}
 
-new TestSuite("Vector Library - Matrix Math",
-    ["Vector.matrix_divide([[1, 0, 0, 10], [0, 1, 0, 20], [0, 0, 1, 30], [0, 0, 0,  1]], [[1, 0, 0, 100], [0, 1, 0, 200], [0, 0, 1, 300], [0, 0, 0,  1]])", "[[1, 0, 0, -90], [0, 1, 0, -180], [0, 0, 1, -270], [0, 0, 0, 1]]"],	
-    ["Vector.matrix_divide([[1, 0, 0, 100], [0, 1, 0, 200], [0, 0, 1, 300], [0, 0, 0,  1]], [[1, 0, 0, 10], [0, 1, 0, 20], [0, 0, 1, 30], [0, 0, 0,  1]])", "[[1, 0, 0, 90], [0, 1, 0, 180], [0, 0, 1, 270], [0, 0, 0, 1]]"],
-	["Vector.make_matrix(10, 7)", "[[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]]"],
-    ["Vector.make_matrix(3)", "[[0, 0, 0], [0, 0, 0], [0, 0, 0]]"],
-	["Vector.make_matrix(3, 2, 1)", "[[1, 1], [1, 1], [1, 1]]"],
-    ["Vector.transpose(Vector.transpose([1, 2, 3]))", "[1, 2, 3]"],
-    ["Vector.matrix_multiply([1, 2, 3], [[1], [2], [3]])", "[[14]]"],
-	["Vector.matrix_multiply([[1], [2], [3]], [1, 2, 3])", "[[1, 2, 3], [2, 4, 6], [3, 6, 9]]"],
-	["Vector.matrix_multiply([[1, 2, 3], [4, 5, 6]], [[7, 8], [9, 10], [11, 12]])", "[[58, 64], [139, 154]]"],
-	["Vector.matrix_multiply([[1, 0, 0, 10], [0, 1, 0, 20], [0, 0, 1, 30], [0, 0, 0,  1]], [[1], [2], [3], [1]])", "[[11], [22], [33], [1]]"],
-    ["Vector.transpose([1, 2, 3])", "[[1], [2], [3]]"],
-    ["Vector.transpose([[1, 2, 3], [4, 5, 6]])", "[[1, 4], [2, 5], [3, 6]]"],
-    ["Vector.determinant([[1, 0, 0], [0, 1, 0], [0, 0, 1]])", "1"],
-	["Vector.determinant([[0, 0, 0], [0, 1, 0], [0, 0, 1]])", "0"],
-    ["Vector.determinant([[Math.sqrt(2)/2, Math.sqrt(2)/2, 0], [-Math.sqrt(2)/2, Math.sqrt(2)/2, 0], [0, 0, 1]])", "1.0000000000000002"],	
-    ["Vector.inverse([[1, 0, 0], [0, 1, 0], [0, 0, 1]])", "[[1, 0, 0], [0, 1, 0], [0, 0, 1]]"],
-    ["Vector.inverse([[3, 2, 1.7, 1.5], [4.5, 5, 4.1, 1.9], [1.1, 8.5, 9, 8], [3, 9, 9, 10]])", "[ [ 0.7319863743922018, -0.18592193878878188, 0.10453233481551132, -0.1580986556413699], [ -2.6473723899420833, 1.3118547988663025, -1.2270847960059614, 1.1295212835114843], [ 2.4406479964636474, -1.081727643862005, 1.5172790389266348, -1.374392178277074], [ -0.03354395818706807, -0.1513378578672326, -0.29253451907325856, 0.3678134019814442]]"],
-    ["Vector.matrix_divide([[1, 0, 0, 10], [0, 1, 0, 20], [0, 0, 1, 30], [0, 0, 0,  1]], [[1, 0, 0, 100], [0, 1, 0, 200], [0, 0, 1, 300], [0, 0, 0,  1]])", "[[1, 0, 0, -90], [0, 1, 0, -180], [0, 0, 1, -270], [0, 0, 0, 1]]"],
-    ["Vector.matrix_dimensions([10, 20, 30])", "[1, 3]"],
-    ["Vector.matrix_dimensions([[10], [20], [30]])", "[3, 1]"],
-    ["Vector.properly_define_point([10, 20, 30])", "[[10], [20], [30], [1]]"],
-    ["Vector.properly_define_point([[10], [20], [30]])", "[[10], [20], [30], [1]]"],
-    ["Vector.properly_define_point([[10, 20, 30], [10, 20, 30], [10, 20, 30]])", "[[10, 10, 10], [20, 20, 20], [30, 30, 30], [1, 1, 1]]"],
-    ["Vector.make_pose()", "[[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]"],
-    ["Vector.make_pose([10, 20, 30], [45, 0, 0])", "[ [0.7071067811865476, 0.7071067811865475, 0, 10], [-0.7071067811865475, 0.7071067811865476, 0, 20], [0, 0, 1, 30], [0, 0, 0, 1]]"],
-	["Vector.identity_matrix(4)", "[[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]"],
-    ["Vector.identity_matrix(2)", "[[1, 0], [0, 1]]"],
-    ["Vector.rotate_DCM(Vector.identity_matrix(3), [1, 0, 0], 90)", "[[1, 0, 0], [0, 0, -1], [0, 1, 0]]"],
-    ['Vector.rotate_pose(Vector.make_pose(), "Z", 90, [10, 0, 0])', "[ [0, -1, 0, 10], [1, 0, 0, -10], [0, 0, 1, 0], [0, 0, 0, 1]]"],
-    ["Vector.is_pose(Vector.make_pose())", "true"],
-    ["Vector.pull([[1, 2, 3], [4, 5, 6], [7, 8, 9]], [1, 2], [1, 2])", "[[5, 6], [8, 9]]"],
-    ["Vector.concatinate(0, [1, 2, 3], [4, 5, 6])", "[[1, 2, 3], [4, 5, 6]]"],
-    ["Vector.concatinate(1, [1, 2, 3], [4, 5, 6])", "[1, 2, 3, 4, 5, 6]"],
-    ["Vector.concatinate(1, [[1, 1], [2, 2], [3, 2]], [[4], [5], [6]])", "[[1, 1, 4], [2, 2, 5], [3, 2, 6]]"]
-)
+//16 Nov 2013 by Andrew Ippoliti
+//http://blog.acipo.com/matrix-inversion-in-javascript/
+// Returns the inverse of matrix `M`.
+function matrix_invert(M){
+    // I use Guassian Elimination to calculate the inverse:
+    // (1) 'augment' the matrix (left) by the identity (on the right)
+    // (2) Turn the matrix on the left into the identity by elemetry row ops
+    // (3) The matrix on the right is the inverse (was the identity matrix)
+    // There are 3 elemtary row ops: (I combine b and c in my code)
+    // (a) Swap 2 rows
+    // (b) Multiply a row by a scalar
+    // (c) Add 2 rows
+
+    //if the matrix isn't square: exit (error)
+    if(M.length !== M[0].length){return;}
+
+    //create the identity matrix (I), and a copy (C) of the original
+    var i=0, ii=0, j=0, dim=M.length, e=0, t=0;
+    var I = [], C = [];
+    for(i=0; i<dim; i+=1){
+        // Create the row
+        I[I.length]=[];
+        C[C.length]=[];
+        for(j=0; j<dim; j+=1){
+            //if we're on the diagonal, put a 1 (for identity)
+            if(i==j){ I[i][j] = 1; }
+            else{ I[i][j] = 0; }
+            // Also, make the copy of the original
+            C[i][j] = M[i][j];
+        }
+    }
+
+    // Perform elementary row operations
+    for(i=0; i<dim; i+=1){
+        // get the element e on the diagonal
+        e = C[i][i];
+
+        // if we have a 0 on the diagonal (we'll need to swap with a lower row)
+        if(e==0){
+            //look through every row below the i'th row
+            for(ii=i+1; ii<dim; ii+=1){
+                //if the ii'th row has a non-0 in the i'th col
+                if(C[ii][i] != 0){
+                    //it would make the diagonal have a non-0 so swap it
+                    for(j=0; j<dim; j++){
+                        e = C[i][j];       //temp store i'th row
+                        C[i][j] = C[ii][j];//replace i'th row by ii'th
+                        C[ii][j] = e;      //repace ii'th by temp
+                        e = I[i][j];       //temp store i'th row
+                        I[i][j] = I[ii][j];//replace i'th row by ii'th
+                        I[ii][j] = e;      //repace ii'th by temp
+                    }
+                    //don't bother checking other rows since we've swapped
+                    break;
+                }
+            }
+            //get the new diagonal
+            e = C[i][i];
+            //if it's still 0, not invertable (error)
+            if(e==0){return}
+        }
+
+        // Scale this row down by e (so we have a 1 on the diagonal)
+        for(j=0; j<dim; j++){
+            C[i][j] = C[i][j]/e; //apply to original matrix
+            I[i][j] = I[i][j]/e; //apply to identity
+        }
+
+        // Subtract this row (scaled appropriately for each row) from ALL of
+        // the other rows so that there will be 0's in this column in the
+        // rows above and below this one
+        for(ii=0; ii<dim; ii++){
+            // Only apply to other rows (we want a 1 on the diagonal)
+            if(ii==i){continue;}
+
+            // We want to change this element to 0
+            e = C[ii][i];
+
+            // Subtract (the row above(or below) scaled by e) from (the
+            // current row) but start at the i'th column and assume all the
+            // stuff left of diagonal is 0 (which it should be if we made this
+            // algorithm correctly)
+            for(j=0; j<dim; j++){
+                C[ii][j] -= e*C[i][j]; //apply to original matrix
+                I[ii][j] -= e*I[i][j]; //apply to identity
+            }
+        }
+    }
+
+    //we've done all operations, C should be the identity
+    //matrix I should be the inverse:
+    return I;
+}
+
+module.exports = Vector
+var Convert = require("./Convert.js")
+var {sind, cosd, tand, asind, acosd, atand, atan2d} = require("./Trig_in_Degrees.js")

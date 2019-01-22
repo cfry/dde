@@ -1,6 +1,4 @@
 /*Created by Fry on 7/4/16.*/
-//const fs = require('fs'); //errors because require is undefined.
-const app       = require('electron').remote;  //in the electon book, "app" is spelled "remote"
 
 function add_default_file_prefix_maybe(path){
     if (is_root_path(path)) { return path }
@@ -9,8 +7,7 @@ function add_default_file_prefix_maybe(path){
 
 //_______PERSISTENT: store name-value pairs in a file. Keep a copy of hte file in JS env, persistent_values
 //and write it out every time its changed.
-//require("url")
-//const path_pkg = require('path')
+
 persistent_values = {}
 
 //used by both persistent_initialize and dde_init_dot_js_initialize
@@ -69,6 +66,8 @@ function persistent_initialize(keep_existing=true) {
     }
 }
 
+module.exports.persistent_initialize = persistent_initialize
+
 function persistent_save(){
     //we need this because on windows 10, if you minimize the DDE window, then
     //quit DDE, the below saved values will be0, then launching dde
@@ -83,6 +82,8 @@ function persistent_save(){
     content = "//Upon DDE launch, this file is loaded before dde_apps/dde_init.js\n//Use persistent_get(key) and persistent_set(key, new_value)\n//to access each of the below variables.\n\n" + content
     write_file(path, content)
 }
+module.exports.persistent_save = persistent_save
+
 
 function persistent_load(){
     const path = add_default_file_prefix_maybe("dde_persistent.json")
@@ -98,6 +99,7 @@ function persistent_set(key, value){
     persistent_values[key] = value
     persistent_save()
  }
+module.exports.persistent_set = persistent_set
 
 //returns undefined if key doesn't exist
 function persistent_get(key="get_all", callback=out){
@@ -105,10 +107,14 @@ function persistent_get(key="get_all", callback=out){
     else { return persistent_values[key] }
 }
 
+module.exports.persistent_get = persistent_get
+
 function persistent_remove(key, callback=function() { out("Removed " + key + " from persistent db.")}) {
     delete persistent_values[key]
     persistent_save()
 }
+module.exports.persistent_remove = persistent_remove
+
 
 var default_default_ROS_URL           = "localhost:9090"
 var default_default_dexter_ip_address = "192.168.1.142"
@@ -121,11 +127,16 @@ function dde_init_dot_js_initialize() {
        //reported to user in persistent_initialize
     }
     else if (file_exists("dde_init.js")){ //we don't want to error if the file doesn't exist.
+        if (global.platform == "node") {
+            global.persistent_set = persistent_set
+        }
         try{
             load_files("dde_init.js")
         }
         catch(err0){
-            Editor.edit_file(add_default_file_prefix_maybe("dde_init.js"))
+            if(window.Editor) { //will not hit in node platform
+                Editor.edit_file(add_default_file_prefix_maybe("dde_init.js"))
+            }
             dde_error("The file: Documents/dde_apps/dde_init.js has invalid JavaScript in it.<br/>" +
                       "Please fix this and relaunch DDE.")
             return
@@ -187,6 +198,8 @@ function dde_init_dot_js_initialize() {
     }
 }
 
+module.exports.dde_init_dot_js_initialize = dde_init_dot_js_initialize
+
 
 //FILE SYSTEM
 
@@ -206,6 +219,8 @@ function file_content(path, encoding="utf8"){
         }
     }
 }
+
+module.exports.file_content = file_content
 
 function choose_file(show_dialog_options={}) {
     const dialog    = app.dialog;
@@ -233,6 +248,8 @@ function choose_file(show_dialog_options={}) {
     }
     else { return paths }
 }
+module.exports.choose_file = choose_file
+
 
 function choose_file_and_get_content(show_dialog_options={}, encoding="utf8") {
     var path = choose_file(show_dialog_options)
@@ -241,11 +258,14 @@ function choose_file_and_get_content(show_dialog_options={}, encoding="utf8") {
         return file_content(path, encoding)
     }
 }
+module.exports.choose_file_and_get_content = choose_file_and_get_content
+
 
 function choose_save_file(show_dialog_options={}) { //todo document
     const dialog    = app.dialog;  //use {defaultPath: '~/foo.xml'} to set default file name
     return dialog.showSaveDialog(app.getCurrentWindow(), show_dialog_options)
 }
+module.exports.choose_save_file = choose_save_file
 
 function write_file(path, content, encoding="utf8"){
     if (path === undefined){
@@ -272,11 +292,17 @@ function write_file(path, content, encoding="utf8"){
     }
 }
 
+module.exports.write_file = write_file
+
+
 function file_exists(path){
     path = add_default_file_prefix_maybe(path)
     path = adjust_path_to_os(path)
     return fs.existsSync(path)
-} //fs-lock does not error on this. file_exists will return true for
+}
+module.exports.file_exists = file_exists
+
+//fs-lock does not error on this. file_exists will return true for
   //files that exist, but would get access denied if you tried to
   //read or write them. That's bad. should return false if
   //you can't read or write them. I could read it, and if error,
@@ -323,6 +349,8 @@ function add_folder_separator_prefix_maybe(filepath){
 function convert_backslashes_to_slashes(a_string){
     return a_string.replace(/\\/g, "/")
 }
+
+module.exports.convert_backslashes_to_slashes = convert_backslashes_to_slashes
 
 function adjust_path_to_os(path){
     if (path.includes("://")) { //looks like a url so leave it alone
@@ -399,9 +427,11 @@ function is_root_path(path){
 }*/
 //simplied from above. ending in slash resets the default "prefix".
 function load_files(...paths) {
+    console.log("load_files called with: " + paths)
     let prefix = dde_apps_dir + "/" //prefix always starts with slash and ends with slash
     let resolved_paths = []
     for (let path of paths){
+        //console.log("working on " + path)
         path = convert_backslashes_to_slashes(path) //use slashes throughout.
         if (path === "/"){ //just reset prefix to the default
             prefix = dde_apps_dir + "/"
@@ -427,7 +457,9 @@ function load_files(...paths) {
     //now make sure we can get all the contents before actually loading any
     let contents = []
     for (let path of resolved_paths){
+        //console.log("getting content for: " + path)
         let content = file_content(path) //might error
+        //onsole.log("got content: " + content)
         contents.push(content)
     }
     //finally if we get to this point, we've got all the contents so time to eval
@@ -440,6 +472,7 @@ function load_files(...paths) {
         out("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;loading file: " + resolved_path, "green")
         try{let prev_loading_file =  window["loading_file"]
             window["loading_file"] = resolved_path
+            window.Job = Job //needed if content has "Job" in it.
             result = window.eval(content)
             window["loading_file"] = prev_loading_file
         }
@@ -458,8 +491,15 @@ function load_files(...paths) {
         }
         out("Done loading file: " + resolved_path, "green")
     }
-    return result
 }
+module.exports.load_files = load_files
+var fs        = require('fs'); //errors because require is undefined.
+var app       = require('electron').remote;  //in the electron book, "app" is spelled "remote"
+var {Robot, Brain, Dexter, Human, Serial}  = require("./robot.js")
+var {shouldnt, warning, dde_error, starts_with_one_of, prepend_file_message_maybe, replace_substrings} = require("./utils")
+var {out}     = require("./out.js")
+var Job     = require("./job.js") //because loading a file with new Job in it needs this.
+
 /*
 function folder_listing(folder="/", include_folders=true, include_files=true, callback=out){
     if (!folder.startsWith("/")) { folder = "/" + folder }

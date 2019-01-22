@@ -2,10 +2,21 @@
 //James Wigglesworth
 //Started: 1_19_17
 //Updated: 7_6_18
+const {newObject, Root} = require("../core/object_system.js")
+
+var Coor = newObject({prototype: Root, name: "Coor"}) //, pose: Vector.make_pose()})
 
 
-var Coor = newObject({prototype: Root, name: "Coor", pose: Vector.make_pose()})
-
+Coor.init = function(){
+    Coor.pose = Vector.make_pose()
+    var Table = Coor.create_child(Vector.make_pose(), "Table")
+    var L0 = Table.create_child(Vector.make_pose(), "L0")
+    var L1 = L0.create_child(Vector.make_pose(), "L1")
+    var L2 = L1.create_child(Vector.make_pose(), "L2")
+    var L3 = L2.create_child(Vector.make_pose(), "L3")
+    var L4 = L3.create_child(Vector.make_pose(), "L4")
+    var L5 = L4.create_child(Vector.make_pose(), "L5")
+}
 
 Coor.create_child = function(pose, name){
 	if(pose === undefined){
@@ -25,16 +36,6 @@ Coor.create_child = function(pose, name){
     }
 	
 }
-
-
-var Table = Coor.create_child(Vector.make_pose(), "Table")
-var L0 = Table.create_child(Vector.make_pose(), "L0")
-var L1 = L0.create_child(Vector.make_pose(), "L1")
-var L2 = L1.create_child(Vector.make_pose(), "L2")
-var L3 = L2.create_child(Vector.make_pose(), "L3")
-var L4 = L3.create_child(Vector.make_pose(), "L4")
-var L5 = L4.create_child(Vector.make_pose(), "L5")
-
 
 
 Coor.get_pose = function(reference_coordinate_system){
@@ -187,7 +188,7 @@ Coor.move_points_to_coor = function(points, destination_coordinate_system, refer
     let ref = reference_coordinate_system
     
     if(ref === undefined){
-    	ref = Table
+    	ref = Coor.Table
     }else if(dest === undefined){
     	dest = Coor.Table
     }
@@ -264,32 +265,8 @@ Coor.rotate = function(axis_of_rotation, angle, point_of_rotation, reference_coo
     return result
 }
 
-new TestSuite("Coordinate Object System",
-    ['table = Coor.create_child(Vector.make_pose(), "table")', "Coor.table"],
-	['J0 = table.create_child(Vector.make_pose(), "J0")', "Coor.table.J0"],
-    ['J1 = J0.create_child(Vector.make_pose([10, 0, 0]), "J1")', "Coor.table.J0.J1"],
-    ['J2 = J1.create_child(Vector.make_pose([0, 0, 20]), "J2")', "Coor.table.J0.J1.J2"],
-    ['J3 = J2.create_child(Vector.make_pose([0, 0, 20]), "J3")', "Coor.table.J0.J1.J2.J3"],
-    ['cube = table.create_child(Vector.make_pose([15, 10, 5], [0, 0, 0]), "cube")', "Coor.table.cube"],
-	["J3.get_pose()", "[[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 20], [0, 0, 0, 1]]"],
-    ["J3.get_pose(table)", "[[1, 0, 0, 10], [0, 1, 0, 0], [0, 0, 1, 40], [0, 0, 0, 1]]"],
-    ["cube.get_pose()", "[[1, 0, 0, 15], [0, 1, 0, 10], [0, 0, 1, 5], [0, 0, 0, 1]]"],
-    ["J3.get_pose(cube)", "[[1, 0, 0, -5], [0, 1, 0, -10], [0, 0, 1, 35], [0, 0, 0, 1]]"],
-    ["cube.get_pose(J3)", "[[1, 0, 0, 5], [0, 1, 0, 10], [0, 0, 1, -35], [0, 0, 0, 1]]"],
-    
-    ['cube = table.create_child(Vector.make_pose([15, 10, 5], [0, 0, 45]), "cube")', "Coor.table.cube"],
-
-    ["J3.get_position()", "[0, 0, 20]"],
-    ["J3.get_orientation()", "[[1, 0, 0], [0, 1, 0], [0, 0, 1]]"],
-    ["J3.get_orientation(cube)", "[ [1, 0, 0], [0, 0.7071067811865476, -0.7071067811865475], [0, 0.7071067811865475, 0.7071067811865476]]"],
-    
-    ["J3.set_pose([[1, 0, 0, 10], [0, 1, 0, 10],[0, 0, 1, 10],[0, 0, 0, 1]])", "[[1, 0, 0, 10], [0, 1, 0, 10], [0, 0, 1, 10], [0, 0, 0, 1]]"],
-    ["J3.set_pose([[1, 0, 0, 10], [0, 1, 0, 10],[0, 0, 1, 10],[0, 0, 0, 1]], table)   ", "[[1, 0, 0, 0], [0, 1, 0, 10], [0, 0, 1, -10], [0, 0, 0, 1]]"],    
-    ["J3.set_position([10, 10, 10])", "[[1, 0, 0, 10], [0, 1, 0, 10], [0, 0, 1, 10], [0, 0, 0, 1]]"],
-    ["J3.set_position([10, 10, 10], table)", "[[1, 0, 0, 0], [0, 1, 0, 10], [0, 0, 1, -10], [0, 0, 0, 1]]"],
-    ["J3.set_orientation([[-1, 0, 0], [0, 0, 1], [0, 0, 1]])", "[[-1, 0, 0, 0], [0, 0, 1, 10], [0, 0, 1, -10], [0, 0, 0, 1]]"],
-	["J3.set_orientation([[-1, 0, 0], [0, 0, 1], [0, 0, 1]], cube)", "[ [-1, 0, 0, 0], [0, 0, 1.414213562373095, 10], [0, 0, 1.1102230246251565e-16, -10], [0, 0, 0, 1]]"]
-)
+module.exports = Coor
+var Vector   = require("./Vector")
 
 
 
