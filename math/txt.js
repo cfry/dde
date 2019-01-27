@@ -1,7 +1,7 @@
 //txt class
 //James Wigglesworth
 //Started: 5_16_17
-//Updated: 4_8_18
+//Updated: 1_26_19
 
 
 /*
@@ -412,6 +412,8 @@ var txt = new function(){
                 	result.push(elt[j])
                 }
         	}
+        }else{
+        	result = lines[0]
         }
         return result
     }
