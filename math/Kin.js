@@ -2,7 +2,7 @@
 //Inverse Kinematics + Forward Kinematics + supporting functions
 //James Wigglesworth
 //Started: 6_18_16
-//Updated: 8_10_18
+//Updated: 1_26_19
 
 
 /*
@@ -911,6 +911,16 @@ var Kin = new function(){
         let max_theta = Vector.max(delta)
         return max_theta/time
     }
+    
+    this.delta_time_to_angle_speed = function(J_angles_original, J_angles_destination, delta_time){
+		let delta = Vector.subtract(J_angles_destination, J_angles_original)
+    	for(let i = 0; i < delta.length; i++){
+    		delta[i] = Math.abs(delta[i])
+    	}
+    	let max_theta = Vector.max(delta)
+    	return max_theta/delta_time
+	}
+    
     /*
     Kin.tip_speed_to_angle_speed([0, 90, 0, 0, 0], [1, 90, 0, 0, 0], 5*_mm/_s)
     */
