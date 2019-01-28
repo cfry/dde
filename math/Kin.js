@@ -2,8 +2,9 @@
 //Inverse Kinematics + Forward Kinematics + supporting functions
 //James Wigglesworth
 //Started: 6_18_16
-//Updated: 1_26_19
+//Updated: 1_27_19
 
+var job_engine = true
 
 /*
 debugger
@@ -234,7 +235,7 @@ var Kin = new function(){
     		J[1] = -Vector.signed_angle(V21, V10, P[1])
     		J[2] = -Vector.signed_angle(V32, V21, P[1])
     		J[3] = -Vector.signed_angle(V43, V32, P[1])
-    		J[4] = -Vector.signed_angle(P[2], P[1], V43)
+    		J[4] = Vector.signed_angle(P[2], P[1], V43) + 180
     	}
     
     	if(Vector.is_NaN(J[2])){
@@ -1209,7 +1210,7 @@ var Kin = new function(){
      
      
      this.context_inverse_kinematics = function(args){
-
+	
 		//Input arg management:
         
         if(args.xyz_dir_config && (args.xyz || args.dir || args.config)){
@@ -1575,6 +1576,7 @@ var Kin = new function(){
         		dde_error("Unknown plane singularity at: " + xyz + ", " + direction + ", " + config + ". Please copy this message and report it as a bug.")
         	}
             
+            
             //Solving for joint angles
     		let V21 = Vector.normalize(Vector.subtract(U[2], U[1]))
     		V32 = Vector.normalize(Vector.subtract(U[3], U[2]))
@@ -1619,12 +1621,15 @@ var Kin = new function(){
     	return [J, U, P]
     }
 }
-module.exports = Kin
-var {sind, cosd, tand, asind, acosd, atand, atan2d} = require("./Trig_in_Degrees.js")
-var Vector      = require("./Vector.js")
-var Convert     = require("./Convert.js")
-var {dde_error} = require("../core/utils.js")
-var {Dexter}    = require("../core/robot.js")
+
+if(job_engine){
+	module.exports = Kin
+	var {sind, cosd, tand, asind, acosd, atand, atan2d} = require("./Trig_in_Degrees.js")
+	var Vector      = require("./Vector.js")
+	var Convert     = require("./Convert.js")
+	var {dde_error} = require("../core/utils.js")
+	var {Dexter}    = require("../core/robot.js")
+}
     
     /*
     
