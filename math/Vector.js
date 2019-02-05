@@ -2719,6 +2719,7 @@ if("dde" !== platform){
 	module.exports = Vector
 	var Convert = require("./Convert.js")
 	var {sind, cosd, tand, asind, acosd, atand, atan2d} = require("./Trig_in_Degrees.js")
+    var {warning} = require("../core/utils.js")
 }
 
 
