@@ -2,9 +2,8 @@
 //Inverse Kinematics + Forward Kinematics + supporting functions
 //James Wigglesworth
 //Started: 6_18_16
-//Updated: 1_27_19
+//Updated: 1_29_19
 
-var job_engine = true
 
 /*
 debugger
@@ -1622,7 +1621,7 @@ var Kin = new function(){
     }
 }
 
-if(job_engine){
+if("dde" !== platform){
 	module.exports = Kin
 	var {sind, cosd, tand, asind, acosd, atand, atan2d} = require("./Trig_in_Degrees.js")
 	var Vector      = require("./Vector.js")
@@ -1630,6 +1629,7 @@ if(job_engine){
 	var {dde_error} = require("../core/utils.js")
 	var {Dexter}    = require("../core/robot.js")
 }
+
     
     /*
     
