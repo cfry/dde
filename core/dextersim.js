@@ -29,6 +29,7 @@ DexterSim = class DexterSim{
         }
     }
 
+    //sim_actual passed in is either true or "both"
     static create_or_just_init(robot_name, sim_actual = "required"){
         if (!DexterSim.robot_name_to_dextersim_instance_map){
             DexterSim.init_all()
@@ -264,7 +265,7 @@ DexterSim = class DexterSim{
         //    ds_copy[0] = instruction_array[0] //instruction id
                 //}
         if(window.platform == "dde") {
-            if (!$("#real_time_sim_checkbox_id").val()){
+            if (!real_time_sim_checkbox_id.checked){
              dur = 0
             }
         }
@@ -272,11 +273,13 @@ DexterSim = class DexterSim{
         const job_id       = robot_status[Dexter.JOB_ID]
         const job_instance = Job.job_id_to_job_instance(job_id)
         if (job_instance){
-            if(window.platform == "dde"){
-                SimUtils.render_once(robot_status, "Job: " + job_instance.name) //renders after dur, ie when the dexter move is completed.
+            let job_name = "Job." + job_instance.name
+            let rob_name = "Dexter." + this.robot_name
+            if(window["sim_graphics_pane_id"]) { //window.platform == "dde") //even if we're inn dde, unless the sim pane is up, don't attempt to render
+                SimUtils.render_once(robot_status, job_name, rob_name) //renders after dur, ie when the dexter move is completed.
             }
             else {
-                DexterSim.render_once_node(robot_status, "Job: " + job_instance.name) //renders after dur, ie when the dexter move is completed.
+                DexterSim.render_once_node(robot_status, job_name, rob_name) //renders after dur, ie when the dexter move is completed.
             }
         }
         else {
@@ -288,30 +291,18 @@ DexterSim = class DexterSim{
     }
 
     //when we're running the simulator on Dexter
-    static render_once_node(j1, j2, j3, j4, j5, job_or_robot_name, force_render=true){ //inputs in arc_seconds
+    static render_once_node(robot_status, job_name, robot_name, force_render=true){ //inputs in arc_seconds
          //note that SimUtils.render_once has force_render=false, but
          //due to other changes, its best if render_once_node default to true
-        if (Array.isArray(j1)) { job_or_robot_name = j2; force_render = ((j3 === undefined) ? true : j3); }
         if (force_render){
-            if (Array.isArray(j1)){
-                if (j1.length == 5){
-                    j2 = j1[1]
-                    j3 = j1[3]
-                    j4 = j1[4]
-                    j5 = j1[5]
-                    j1 = j1[0] //last so we can use the array in J1
-                }
-                else if (j1.length == Dexter.robot_status_labels.length){
-                    j2 = j1[Dexter.J2_MEASURED_ANGLE]
-                    j3 = j1[Dexter.J3_MEASURED_ANGLE]
-                    j4 = j1[Dexter.J4_MEASURED_ANGLE]
-                    j5 = j1[Dexter.J5_MEASURED_ANGLE]
-                    j1 = j1[Dexter.J1_MEASURED_ANGLE] //last so we can use the array in J1
-                }
-            }
+            let j1 = robot_status[Dexter.J1_MEASURED_ANGLE]
+            let j2 = robot_status[Dexter.J2_MEASURED_ANGLE]
+            let j3 = robot_status[Dexter.J3_MEASURED_ANGLE]
+            let j4 = robot_status[Dexter.J4_MEASURED_ANGLE]
+            let j5 = robot_status[Dexter.J5_MEASURED_ANGLE]
             j1 = j1 * -1 //fix for j1 wrong sign
             j5 = j5 * -1 //fix for j5 wrong sign
-            out("DexterSim " + job_or_robot_name + ", moving J1: " + j1 + ", J2: " + j2 + ", J3: " + j3 + ", J4: " + j4 + ", J5: " + j5)
+            out("DexterSim " + job_name + " " + robot_name + " J1: " + j1 + ", J2: " + j2 + ", J3: " + j3 + ", J4: " + j4 + ", J5: " + j5)
         }
     }
 

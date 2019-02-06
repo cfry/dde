@@ -41,27 +41,24 @@ SimUtils = class SimUtils{
         return Math.hypot(xyz1[0] - xyz2[0], xyz1[1] - xyz2[1], xyz1[2] - xyz2[2])
     }
 
-    //job_or_robot name format is really "Job: j1"  or "Robot: dex1", ie same as the menu item in the Simulate pane
+    //job_or_robot name format is really "Job.j1"  or "Dexter.dex1", ie same as the menu item in the Simulate pane
     //input angles are in arcseconds
-    static render_once(j1, j2, j3, j4, j5, job_or_robot_name, force_render=false){ //inputs in arc_seconds
-        if (Array.isArray(j1)) { job_or_robot_name = j2; force_render = j3; }
-        if (force_render || (videos_id.value == job_or_robot_name) || (videos_id.value == "All")){
-            if (Array.isArray(j1)){
-                if (j1.length == 5){
-                    j2 = j1[1]
-                    j3 = j1[3]
-                    j4 = j1[4]
-                    j5 = j1[5]
-                    j1 = j1[0] //last so we can use the array in J1
-                }
-                else if (j1.length == Dexter.robot_status_labels.length){
-                    j2 = j1[Dexter.J2_MEASURED_ANGLE]
-                    j3 = j1[Dexter.J3_MEASURED_ANGLE]
-                    j4 = j1[Dexter.J4_MEASURED_ANGLE]
-                    j5 = j1[Dexter.J5_MEASURED_ANGLE]
-                    j1 = j1[Dexter.J1_MEASURED_ANGLE] //last so we can use the array in J1
-                }
-            }
+    static render_once(robot_status, job_name, robot_name, force_render=false){ //inputs in arc_seconds
+        if (force_render ||
+           (job_or_robot_to_simulate_id.value == job_name) ||
+           (job_or_robot_to_simulate_id.value == robot_name) ||
+           (job_or_robot_to_simulate_id.value == "All")){
+
+            //used by render_once_but_only_if_have_prev_args
+            SimUtils.prev_robot_status = robot_status
+            SimUtils.prev_job_name     = job_name
+            SimUtils.prev_robot_name   = robot_name
+
+            let j1 = robot_status[Dexter.J1_MEASURED_ANGLE]
+            let j2 = robot_status[Dexter.J2_MEASURED_ANGLE]
+            let j3 = robot_status[Dexter.J3_MEASURED_ANGLE]
+            let j4 = robot_status[Dexter.J4_MEASURED_ANGLE]
+            let j5 = robot_status[Dexter.J5_MEASURED_ANGLE]
             j1 = j1 * -1 //fix for j1 wrong sign
             j5 = j5 * -1 //fix for j5 wrong sign
             sim.J1.rotation.y = arc_seconds_to_radians(j1)
@@ -69,8 +66,29 @@ SimUtils = class SimUtils{
             sim.J3.rotation.z = arc_seconds_to_radians(j3)
             sim.J4.rotation.z = arc_seconds_to_radians(j4)
             sim.J5.rotation.y = arc_seconds_to_radians(j5)
-            sim.renderer.render(sim.scene, sim.camera);
+            sim.renderer.render(sim.scene, sim.camera)
         }
     }
+
+    //called by video.js misc_pane_menu_changed
+    static render_once_with_prev_args_maybe(){
+        if(this.prev_robot_status){
+            this.render_once(SimUtils.prev_robot_status,
+                             SimUtils.prev_job_name,
+                             SimUtils.prev_robot_name)
+        }
+        else { sim.renderer.render(sim.scene, sim.camera) } //just the initial condition, dex straight up
+    }
+
+    static is_shown(){
+        if(window["sim_graphics_pane_id"]) { return true }
+        else { return false }
+    }
 }
+
+SimUtils.prev_robot_status = null
+SimUtils.prev_job_name = null
+SimUtils.prev_robot_name = null
+
+
 

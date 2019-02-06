@@ -278,7 +278,8 @@ function show_window_values(vals){
 }
 window.show_window_values = show_window_values
 
-window.show_window = function({content = "", title = "DDE Information", width = 400, height = 400, x = 200, y = 200,
+window.show_window = function({content = `<input type="submit" value="Done"/>`,
+                        title = "DDE Information", width = 400, height = 400, x = 200, y = 200,
                         resizable = true,
                         background_color = "rgb(238, 238, 238)",
                         is_modal = false, show_close_button = true, show_collapse_button = true,

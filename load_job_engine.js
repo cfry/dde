@@ -6,7 +6,7 @@ var Coor = require("./math/Coor.js")
 var Kin = require("./math/Kin.js")
 var Vector = require("./math/Vector.js")
 
-var {dde_error, warning, shouldnt, array_to_csv, csv_to_array, Duration, flatten, format_number, make_ins_arrays, same_elts,
+var {dde_error, warning, shouldnt, array_to_csv, csv_to_array, Duration, flatten, fn_is_keyword_fn, format_number, make_ins_arrays, same_elts,
     patch_until, version_equal, version_less_than, version_more_than, dde_version_between} = require("./core/utils.js")
 
 var {choose_file, choose_save_file, choose_file_and_get_content, load_files, persistent_get, persistent_remove, persistent_save} = require("./core/storage.js")

@@ -730,7 +730,7 @@ class Vector{
                 case "percent_difference":
                 if(tolerance > 1){
                 	
-                	dde_warning("Percent difference tolerance should be within 0 and 1.</br>Input of " 
+                	warning("Percent difference tolerance should be within 0 and 1.</br>Input of "
                     + tolerance + " changed to " + (tolerance/100) + ".")
                     tolerance = tolerance/100
                 }
@@ -2717,3 +2717,4 @@ function matrix_invert(M){
 module.exports = Vector
 var Convert = require("./Convert.js")
 var {sind, cosd, tand, asind, acosd, atand, atan2d} = require("./Trig_in_Degrees.js")
+var {warning} = require("../core/utils.js")

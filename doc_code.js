@@ -46,6 +46,9 @@ var doc_pane_elt_id_history_cur_index = -1
 //the below fn does "if its a string. then look it up in "window".
 function open_doc(details_elt, record=true){
     if(typeof(details_elt) == "string"){
+        if(details_elt == "Dexter.make_ins_doc_id") { //a synonym
+           details_elt = "make_ins_doc_id"
+        }
         details_elt = window[details_elt]
     }
     //details_elt.open = true;
@@ -65,7 +68,12 @@ function open_doc(details_elt, record=true){
         doc_pane_elt_id_history_cur_index = doc_pane_elt_id_history.length - 1
     }
     open_doc_arrow_set_opacity()
-    $('#doc_pane_content_id').animate({scrollTop: details_elt.offsetTop - 40}, 800); //WORKS! 800 is milliseconds for the animation to take.
+    if(persistent_get("animate_ui")) {
+        $('#doc_pane_content_id').animate({scrollTop: details_elt.offsetTop - 40}, 800) //WORKS! 800 is milliseconds for the animation to take.
+    }
+    else {
+        $('#doc_pane_content_id').animate({scrollTop: details_elt.offsetTop - 40}, 0)
+    }
     myCodeMirror.focus()
 }
 

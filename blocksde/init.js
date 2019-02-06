@@ -24,7 +24,7 @@ function blocks_init(){
     make_dom_elt("select",
                   {id:"code_view_kind_id",
                   title:"Translate the Editor pane to a different syntax for viewing your code.",
-                  "background-color": "#4cc9fd",
+                  "background-color": "#93dfff",
                   "vertical-align":"50%",
                   onchange:"change_code_view_kind(event)"},
                   "<option value='JS'>JS</option><option value='Blocks'>Blocks</option><option value='DefEng'>DefEng</option>"

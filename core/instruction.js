@@ -203,7 +203,6 @@ Instruction.args = function(ins_array){
 }
 
 //user might call this at top level in a do_list so make it's name short.
-module.exports.make_ins = make_ins
 function make_ins(instruction_type, ...args){
     if(!Dexter.instruction_type_to_function_name_map[instruction_type] &&
        !Serial.instruction_type_to_function_name_map[instruction_type]){
@@ -215,6 +214,8 @@ function make_ins(instruction_type, ...args){
     if (args.length === 0) { return result } //avoids generating the garbage that concat with an arg of an empty list would for this common case, ie for "g" ahd "h" instructions
     else                   { return result.concat(args) }
 }
+module.exports.make_ins = make_ins
+
 //to_source_code_insruction_array(isntr_array) //inplemented in to_source_code.js
 
 //now Instruction.INSTRUCTION_TYPE == 4, and some_ins_array[Instruction.INSTRUCTION_TYPE] will return the oplet
@@ -235,7 +236,7 @@ Instruction.Control.break = class Break extends Instruction.Control{ //class nam
     do_item (job_instance){ //shouldnt("Instruction.Control.break do_item called but should be handled in do_next_item directly.")
         let loop_pc = Instruction.Control.loop.pc_of_enclosing_loop(job_instance)
         if (loop_pc === null) {
-            dde_warning("Job " + job_instance.name + ' has a Robot.break instruction at pc: ' + job_instance.program_counter +
+            warning("Job " + job_instance.name + ' has a Robot.break instruction at pc: ' + job_instance.program_counter +
                 "<br/> but there is no Robot.loop instruction above it.")
             job_instance.set_up_next_do(1)
         }
@@ -257,7 +258,7 @@ Instruction.Control.debugger = class Debugger extends Instruction.Control{ //cla
     constructor () { super() }
     do_item (job_instance){ //shouldnt("Instruction.Control.break do_item called but should be handled in do_next_item directly.")
         Job.set_go_button_state(false)
-        job_instance.set_up_next_do(1)
+        job_instance.set_up_next_do(1, true)
     }
     toString(){ return "debugger" }
     to_source_code(args={indent:""}){ return args.indent + "Robot.debugger()" }
@@ -1211,7 +1212,7 @@ module.exports.human_enter_number_handler = human_enter_number_handler
 
 //beware: Human.enter_position returns an array of Dexter.follow_me AND an instance of this class.
 Instruction.Control.human_enter_position = class human_enter_position extends Instruction.Control{
-    constructor (  {task="Position Dexter's end effector<br/>to the position that you want to record,<br/>and click 'Continue Job'.",
+    constructor (  {task="Position Dexter&apos;s end effector<br/>to the position that you want to record,<br/>and click <b>Continue Job</b>.",
                     user_data_variable_name="a_position",
                     add_stop_button = true,
                     dependent_job_names=[],
@@ -1799,7 +1800,7 @@ Instruction.Control.send_to_job = class send_to_job extends Instruction.Control{
         let params = arguments[0]
         if (!params.where_to_insert || (params.where_to_insert == "required")) { //the defaults listed above don't actually work
             //params.where_to_insert = "next_top_level"
-            dde.error("Instruction send_to_job ws not supplied with a 'where_to_send' instruction location.")
+            dde_error("Instruction send_to_job was not supplied with a 'where_to_insert' instruction location.")
         }
         copy_missing_fields(params, this)
     }
@@ -1974,7 +1975,14 @@ Instruction.Control.start_job = class start_job extends Instruction.Control{
                        '<br/>Valid values are: "ignore", "error", "restart"')
         }
         super()
+        if(job_name === undefined){
+            dde_error("start_job was not passed a <b>job_name</b> which is required.")
+        }
         if (job_name instanceof Job) { job_name = job_name.name }
+        if(typeof(job_name) != "string"){
+            dde_error("start_job was passed an invalid <b>job_name</b> of: " + job_name + "<br/>" +
+                      "It must be a Job instance or the string of a Job name.")
+        }
         this.job_name      = job_name
         this.start_options = start_options
         this.if_started    = if_started
@@ -2190,7 +2198,7 @@ Instruction.Control.unsuspend = class unsuspend extends Instruction.Control{
     constructor (job_name = "required") {
         super()
         if(job_name == "required"){
-            dde_error("unsuspend not given a job name to uuspend. A job cannot unsuspend itself.")
+            dde_error("unsuspend not given a job name to unsuspend. A job cannot unsuspend itself.")
         }
         if (job_name instanceof Job) { job_name = job_name.name }
         this.job_name = job_name

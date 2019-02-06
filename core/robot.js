@@ -35,11 +35,15 @@ var Robot = class Robot {
         let i = Robot.all_names.indexOf(name)
         if (i != -1){ Robot.all_names.splice(i, 1) }
         Robot.all_names.push(name)
-        if ((i == -1) && (window.platform == "dde")) {
-            //$("#videos_id").prepend("<option>Robot: " + name + "</option>")
+        if ((i == -1) && (robot_instance instanceof Dexter) && window["job_or_robot_to_simulate_id"]) {
             let a_option = document.createElement("option");
-            a_option.innerText = "Robot: " + name
-            videos_id.prepend(a_option)
+            a_option.innerText = "Robot." + name
+            job_or_robot_to_simulate_id.prepend(a_option)
+        }
+        if ((i == -1) && (robot_instance instanceof Dexter) && window["mi_robot_name_id"]) {
+            let a_option = document.createElement("option");
+            a_option.innerText = name
+            mi_robot_name_id.prepend(a_option)
         }
     }
     static get_simulate_actual(simulate_val){
@@ -131,15 +135,15 @@ var Robot = class Robot {
     static if_any_errors(job_names=[], instruction_if_error=null){
         return new Instruction.Control.if_any_errors(job_names, instruction_if_error)
     }
-    static label(name){
+    static label(name="my_label"){
         return new Instruction.Control.label(name)
     }
 
-    static loop(boolean_int_array_fn, body_fn){
+    static loop(boolean_int_array_fn=2, body_fn){
         return new Instruction.Control.loop(boolean_int_array_fn, body_fn)
     }
 
-    static out(val, color="black", temp){
+    static out(val="", color="black", temp){
         return new Instruction.Control.out(val, color, temp)
     }
 
@@ -200,7 +204,7 @@ var Robot = class Robot {
         return new Instruction.Control.sync_point(name, job_names)
     }
 
-    static wait_until(fn_date_dur){
+    static wait_until(fn_date_dur=1){
         return new Instruction.Control.wait_until(fn_date_dur)
     }
 
@@ -209,6 +213,10 @@ var Robot = class Robot {
     //and that's the order I have for get_page (headers on end) which very often
     //default to undefined.
     static get_page(url_or_options, response_variable_name="http_response"){
+        if(url_or_options === undefined){
+            dde_error("Robot.get_page called with no <b>url_or_options</b> argument<br/>" +
+                      "which is typically the string of a url.")
+        }
         return new Instruction.Control.Get_page(url_or_options, response_variable_name)
     }
     //static play(note_or_phrase){
@@ -358,10 +366,10 @@ var Human = class Human extends Brain { /*no associated hardware */
         return new Instruction.Control.human_task(arguments[0])
     }
 
-    static enter_choice({task = "", choices=[],
+    static enter_choice({task = "", choices=[["Yes", true], ["No", false]],
         show_choices_as_buttons=false,
         one_button_per_line=false,
-        user_data_variable_name="choice", dependent_job_names=[],
+        user_data_variable_name="a_choice", dependent_job_names=[],
         title, x=200, y=200, width=400, height=400,  background_color = "rgb(238, 238, 238)"} = {}){
         return new Instruction.Control.human_enter_choice(arguments[0])
     }
@@ -391,7 +399,7 @@ var Human = class Human extends Brain { /*no associated hardware */
         return new Instruction.Control.human_enter_number(arguments[0])
     }
 
-    static enter_position({task="Position Dexter's end effector<br/>to the position that you want to record,<br/>and click 'Continue Job'.",
+    static enter_position({task="Position Dexter&apos;s end effector<br/>to the position that you want to record,<br/>and click <b>Continue Job</b>.",
                            user_data_variable_name="a_position",
                            dependent_job_names=[],
                            title, x=200, y=200, width=400, height=400,  background_color = "rgb(238, 238, 238)"}={}) {
@@ -419,7 +427,8 @@ var Human = class Human extends Brain { /*no associated hardware */
     }={}){
         return new Instruction.Control.human_notify(arguments[0])
     }
-    static show_window({content="", title="DDE Information",
+    static show_window({content=`<input type="submit" value="Done"/>`,
+                        title="DDE Information",
                         x=200, y=200, width=400, height=400,
                         background_color = "rgb(238, 238, 238)",
                         is_modal = false,
@@ -1239,7 +1248,6 @@ Dexter = class Dexter extends Robot {
                     const full_inst = job_instance.do_list[ins_id]
                     rob.angles = [full_inst[Dexter.J1_ANGLE], full_inst[Dexter.J2_ANGLE], full_inst[Dexter.J3_ANGLE], full_inst[Dexter.J4_ANGLE], full_inst[Dexter.J5_ANGLE]]
                 }*/
-               // if(rob.simulate) { SimUtils.render_once(robot_status, "Job: " + job_instance.name) } //now in dextersim where it really belongs
             }
             if(window.platform == "dde"){
                 RobotStatusDialog.update_robot_status_table_maybe(rob) //if the dialog isn't up, this does nothing
@@ -1665,10 +1673,12 @@ Dexter.prototype.move_to = function(xyz            = [],
                          j7_angle,
                          this)
 }
+
+//note that a workspace_pose = null, will default to the job's default workspace_pose
 Dexter.move_to = function(xyz            = [],
                           J5_direction   = [0, 0, -1],
                           config         = Dexter.RIGHT_UP_OUT,
-                          workspace_pose = null, //will default to the job's default workspace_pose
+                          workspace_pose = null,
                           j6_angle       = [0],
                           j7_angle       = [0],
                           robot

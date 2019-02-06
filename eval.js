@@ -67,7 +67,7 @@ function eval_js_part1(step=false){
 }
 
 //part 2 of 3 is in eval.js,  window.addEventListener('message'  under the message name of "eval"
-function eval_js_part2 (command, calL_eval_part3_if_no_error=true){ //2nd arg passed in as false for eval_and_paly
+function eval_js_part2(command, calL_eval_part3_if_no_error=true){ //2nd arg passed in as false for eval_and_play
     command = fix_code_to_be_evaled(command)
     var suffix_to_evaled_src = ""
     if (command.startsWith("{")) { prefix_to_evaled_src = "try{("; suffix_to_evaled_src = ")" } //parens fixes broken js eval of src like "{a:2, b:3}"

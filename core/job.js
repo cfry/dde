@@ -784,11 +784,10 @@ Job.all_names = [] //maintained in both UI and sandbox/ used by replacement seri
 Job.remember_job_name = function(job_name){
     if (!Job.all_names.includes(job_name)){
         Job.all_names.push(job_name)
-        if(window.platform == "dde"){
-            //$("#videos_id").prepend("<option>Job: " + job_name + "</option>")
+        if(window["job_or_robot_to_simulate_id"]){
             let a_option = document.createElement("option");
-            a_option.innerText = "Job: " + job_name
-            videos_id.prepend(a_option)
+            a_option.innerText = "Job." + job_name
+            job_or_robot_to_simulate_id.prepend(a_option)
         }
     }
 }
@@ -989,7 +988,7 @@ Job.prototype.finish_job = function(perform_when_stopped=true){ //regardless of 
 
 Job.go_button_state = true
 
-Job.set_go_button_state = function(bool){ //called initially from sandbox
+Job.set_go_button_state = function(bool){
     pause_id.checked = !bool
     Job.go_button_state = bool
 }
@@ -1002,7 +1001,7 @@ Job.go = function(){
                 any_active_jobs = true
                 if (a_job.go_state) {} //user hit go button with go_button_state true  and a_job go true. let it run
                     //a_job.set_up_next_do(a_job.pause_next_program_counter_increment, false)
-                else { //go_button state is true but  a_job go is false so turn it on an run
+                else { //go_button state is true but a_job go_state is false so turn it on an run
                     a_job.go_state = true
                     a_job.set_up_next_do(a_job.pause_next_program_counter_increment, false)
                 }
@@ -1176,7 +1175,7 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
           else if (cur_do_item == "break") { //we're in a loop. skip over rest of items under the cur loop iteration (including any go_to at its end) and go to next instr after the whole loop
             let loop_pc = Instruction.Control.loop.pc_of_enclosing_loop(this)
             if (loop_pc === null) {
-                dde_warning("Job " + this.name + ' has a "break" instruction at pc: ' + this.program_counter +
+                warning("Job " + this.name + ' has a "break" instruction at pc: ' + this.program_counter +
                             "<br/> but there is no Robot.loop instruction above it.")
                 this.set_up_next_do(1)
             }

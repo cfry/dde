@@ -6,7 +6,7 @@ const net = require("net")
 var Socket = class Socket{
     static init(robot_name, simulate, ip_address, port=50000){
         out("Creating Socket for ip_address: " + ip_address + " port: "   + port + " robot_name: " + robot_name)
-        const sim_actual = Robot.get_simulate_actual(simulate)
+        const sim_actual = Robot.get_simulate_actual(simulate) //true, false, or "both"
         if(Socket.robot_name_to_ws_instance_map[robot_name]){
             this.close(robot_name, simulate)
         }

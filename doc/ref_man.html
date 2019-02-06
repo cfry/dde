@@ -887,7 +887,7 @@ that is included in DDE. You can also show pictures stored in your dde_apps fold
 by using their name (without a prefix).
 Content can also be a url or OpenCV.js's "mat" object.<br/>
 
-<b>title</b> Default: null. If null, and a new widnow is
+<b>title</b> Default: <code>undefined</code>. If undefined or null, and a new window is
 created for showing this picture, a title for the window will be made up
 based on the <i>content</i> arg. If its a string, that string will be shown in the title.<br/>
 
@@ -3721,7 +3721,7 @@ Arrays may be nested to any depth.<br/>
     to end a JavaScript <code title="unEVALable">for</code> loop.
 </details>
 
-
+<!-- the real doc for Robot.debugger is in the user guide -->
 <details  class="doc_details"><summary>debugger</summary>
     <code>Robot.debugger()</code> allows you to pause and step through the rest of the instructions.
     See <a href="#" onclick="open_doc('Robot.debugger_doc_id')">Robot.debugger</a>
@@ -3980,14 +3980,14 @@ of <code>Robot</code> like so:<br/>
 See Job Example: <i>Serial Port</i> for an extended example.
 </details> <!-- end grab_robot_status -->
 
-<details id="Robot.if_any_errors_doc_id" class="doc_details"><summary>if_any_error</summary>
-    <code>Robot.if_any_error</code> checks to see if any of the supplied jobs have errored.
+<details id="Robot.if_any_errors_doc_id" class="doc_details"><summary>if_any_errors</summary>
+    <code>Robot.if_any_errors</code> checks to see if any of the supplied jobs have errored.
     If so, it inserts the supplied instruction into the do_list on the job
-    that this instruction is on. In either case, <code>Robot.if_any_error</code> continues
+    that this instruction is on. In either case, <code>Robot.if_any_errors</code> continues
     the job that its on.
     <i>Parameters</i><br/>
     <b>job_names</b> An array of strings of job names. If a named job doesn't exist, error.<br/>
-    <b>instruction_if_error</b> An instruction that will be inserted into the do_list
+    <b>instruction_if_error</b> Default: <code>Robot.error()</code> An instruction that will be inserted into the do_list
     immediately after this instruction IF one of the named jobs has errored.
     The default for <code title="unEVALable code fragment"> instruction_if_error</code> is a function that
     inserts an instance of Robot.error into the do_list of this job, causing it to error.
@@ -4011,7 +4011,7 @@ a location to insert an instruction using <code>Robot.send_to_job</code>.<br/>
     This instruction is one of the most powerful and complex
     in DDE, providing a wide range of looping behavior.<br/>
     <i>Parameters</i> (2)<br/>
-    <b>times_to_loop</b> Required. Determines the number of times that the body_fn is called,
+    <b>times_to_loop</b> Default: <code>2</code>. Determines the number of times that the body_fn is called,
     i.e. the iteration count of the loop. It can be one of five types:
     <p></p>
     <i>boolean</i><br/> If <code>false</code>, loop no times. This loop becomes a no-op.<br/>
@@ -4242,7 +4242,7 @@ new Job({name: "job2",
 <details id="Robot.stop_job_doc_id" class="doc_details"><summary>stop_job</summary>
   Causes the indicated job to stop just before executing a particular instruction.<br/>
   <i>Parameters</i>:<br/>
-  <b>instruction_location</b> Determines the job to stop and the instruction within that
+  <b>instruction_location</b> Optional. Determines the job to stop and the instruction within that
   job that it should stop before executing. If <code title="unEVALable code fragment"> instruction_location</code> does
   not indicate a job, then the job that this instruction is in will be stopped.
   If <code title="unEVALable code fragment"> instruction_location</code> is not given, then
@@ -4393,10 +4393,11 @@ you call start with no argument.
 <details id="Robot.wait_until_doc_id" class="doc_details"><summary>wait_until</summary>
 This instruction causes a job to pause until the supplied condition is met.<br/>
 Example:<code>Robot.wait_until(2)</code><br/>
-The one argument can be:
+<i>Parameter:</i><br/>
+<b>fn_date_dur</b> Default: <code>1</code> This argument can be one of:
 <ul><li><b>an integer</b> The number of seconds for the wait. </li>
-    li><b>a Duration</b> The amount of time for the wait. </li>
-    <li><b>an instance of Date</b> Causes a wait until the JavaScript date occurs. 
+    <li><b>a Duration instance</b> The amount of time for the wait. </li>
+    <li><b>a Date instance</b> Causes a wait until the JavaScript date occurs.
          Careful, you can easily cause a job to wait for years!</li>
     <li><b>a function</b> The function is called at each do_loop iteration.
           The function's return value is used in a JavaScript <code title="unEVALable code fragment"> if</code> statement.
@@ -4486,7 +4487,7 @@ Set dexter0's <code title="unEVALable code fragment"> ip_address</code> and
 We recommend allowing dexter0's simulate param to default to <code>null</code> so that
 it can take advantage of the Job menu's Simulate? item.
 <p></p>
-If you are using DDE to control zero or one Dexter, jsut use dexter0. No need
+If you are using DDE to control zero or one Dexter, just use dexter0. No need
 to create your own Robot instance.
 
 <details class="doc_details"><summary>new Dexter parameters</summary>
@@ -5092,6 +5093,7 @@ If it is passed, the instruction will be sent to that robot.
         The joints are freed up and the user can drag Dexter's end-effector.
         Dexter's motion instructions (move_to, move_all_joints, etc.) will not work in this mode.
         <p></p>
+        <i>Parameters:</i> None<br/>
         <i>Example</i>: (as an instruction in a job's do_list.) <br/>
         <code>Dexter.set_follow_me()</code>
     </details>
@@ -5102,6 +5104,7 @@ If it is passed, the instruction will be sent to that robot.
         However, if a <i>slow</i> force is applied, even if that force is large,
         Dexter will counter that force and attempt to maintain its position.
         <p></p>
+        <i>Parameters:</i> None<br/>
         <i>Example</i>: (as an instruction in a job's do_list.) <br/>
         <code>Dexter.set_force_protect()</code>
     </details>
@@ -5111,6 +5114,7 @@ If it is passed, the instruction will be sent to that robot.
         This mode creates the most accurate joint angles and paths.
         This is the default mode.
         <p></p>
+        <i>Parameters:</i> None<br/>
         <i>Example</i>: (as an instruction in a job's do_list.) <br/>
         <code>Dexter.set_keep_position()</code>
     </details>
@@ -5121,6 +5125,7 @@ If it is passed, the instruction will be sent to that robot.
         This mode can be useful for accurately measuring torque.<br/>
         <i>Example</i>: (as an instruction in a job's do_list.)
         <p></p>
+        <i>Parameters:</i> None<br/>
         <code>Dexter.set_open_loop()</code>
     </details>
 </details> <!--End Dexter Modes-->
@@ -5510,13 +5515,14 @@ is a video describing most of the Human instructions.
   See <a href="#" onclick="open_doc('Human.task_doc_id', event)">Human.task</a>
   for behavior common to all Human instructions.<p></p>
   <i>Uncommon Parameters:</i><br/>
-  <b>choices</b> Default: <code>[]</code>. An array of strings.
+  <b>choices</b> Default: <code>[["Yes", true], ["No", false]]</code>. An array of choices.
       The user is allowed to select one of the given choices.<br/>
       Their are several different formats for a choice.
       <ul><li>A string. The string is displayed as the choice, and used as the value
               for the user_data_variable.</li>
           <li>An array of one string. Same as using just a string.</li>
           <li>An array of a string and a value.
+              The first element of the array (must be a string) is displayed.
               If the value is a string, it is considered to be JS source code and
               is evaluated when the user clicks the button. The resultant value
               becomes the value of the user_data_variable.
@@ -5786,7 +5792,7 @@ Ref Man/Window System/show_window</a>
 <p></p>
 The second is as a Human robot instruction. It is documented here but
 you will need the function-equivalent documentation to understand the show_window instruction.
-<samp>Human.show_window</samp> is very similar to  <samp>show_window</samp>,
+<code>Human.show_window</code> is very similar to  <code>show_window</code>,
 but intended to be an instruction in a job. When the show_window instruction
 is run, a dialog box pops up containing its content, just like the function,
 except that it pauses the job that it is in.
@@ -7114,9 +7120,9 @@ document.addEventListener("click", function(e){
         in the examples below.
         <ul>
             <li><code id="set_window_frame_background_color_doc_id" title="not in TestSuite">set_window_frame_background_color("#b8bbff")</code></li>
-            <li><code id="set_pane_header_background_color_doc_id"  title="not in TestSuite">set_pane_header_background_color("#93dfff")</code></li>
-            <li><code id="set_menu_background_color_doc_id"         title="not in TestSuite">set_menu_background_color("#4cc9fd")</code></li>
-            <li><code id="set_button_background_color_doc_id"       title="not in TestSuite">set_button_background_color("#4cc9fd")</code></li>
+            <li><code id="set_pane_header_background_color_doc_id"  title="not in TestSuite">set_pane_header_background_color("#bae5fe")</code></li>
+            <li><code id="set_menu_background_color_doc_id"         title="not in TestSuite">set_menu_background_color("#93dfff")</code></li>
+            <li><code id="set_button_background_color_doc_id"       title="not in TestSuite">set_button_background_color("#93dfff")</code></li>
         </ul>
     </details>
 

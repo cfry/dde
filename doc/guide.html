@@ -298,7 +298,7 @@ Each indicates that a joint has power.
         <p></p>
         To stop the output of ping, type Cottrol_c.
         <p></p>
-        Use Jobs menu/simulate submenu, and select <b>false</b>
+        Select the Misc pane's <b>simulate</b> radio button.
         <p></p>
         You should now be able to move Dexter from DDE.
         For instance, choose Jobs menu/Run Insruction/NEUTRAL_ANGLES
@@ -415,11 +415,11 @@ large white square plot area on the right of the dialog.
 If you don't see points drawn, you probably have your robot set to <i>simulate</i>
 i.e. <code title="not in TestSuite">new Dexter({simulate: true})</code> or
 have that simulate init param set to <code>null</code> which causes it
-to look at the Jobs menu/Simulate? radio buttons for a value,
+to look at the Misc pane's Simulate radio buttons for a value,
 or there is a discontinuity in your wiring.
 If the robot has its <i>simulate</i> init parameter
 set to <code>null</code> (the default
-and the case for dexter0), choose Jobs menu/Simulate?/ of <code>false</code>.
+and the case for dexter0), choose the Misc pane's <b>real</b> radio button.
 <p></p>
 For each Joint, you are tyring to get the drawn points to form a near-circle.
 Twist the two trim pots on the small printed circuit board
@@ -667,56 +667,116 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
         <b>Release Notes</b> section of the documentation.
         Details about programming Dexter are in the <b>Reference Manual</b> section.
     </details>
-    <details id="simulate_pane_doc_id" class="doc_details"><summary>Simulate Pane</summary>
-        <div style="padding-left:20px">
-            The simulate pane shows a graphical simulation of Dexter with
-            joint angles of the last heartbeat robot status returned.
-            (By default, heartbeats happen every 100ms.)
-            <p></p>
-            Use the mouse in the <i>Simulate</i> pane to:
-            <ul style="padding:0px;margin-left:20px;display:inline-block;" >
-                <li><b>Rotate table</b>: mouse-down then drag.</li>
-                <li><b>Zoom</b>: shift-down then mouse-down then <br/>
-                                 drag right to make bigger, drag left to make smaller</li>
-                <li><b>Pan</b>: alt or option down, then mouse-down, then drag.</li>
-            </ul>
-            <p></p>
-            <button>Demo</button> shows Dexter randomly flailing around, not
-            correlated to a connected Dexter.
-            <p></p>
-            The menu in the Simulate pane header let's you browse several videos showing
-            off Dexter's capabilities.
-        </div>
-        <details class="doc_details"><summary>Stepping Instructions</summary>
-            To understand a Job's behavior, its useful to <i>step</i> through each instruction.
-            Checking the <b>pause</b> checkbox will cause running jobs to pause
-            when they have completed their current instruction. Jobs started when
-            the pause button is checked will pause right before the first user instruction
-            on the do_list is run.<p></p>
-            When a job is paused, clicking the <button>Go</button> button will cause
-            it to execute the next instruction, print out useful information in the Output
-            pane, and pause. If a job is paused, and you uncheck the pause checkbox,
-            then click the <button>Go</button> button, the job will begin running normally.
-            <p></p>
-            <details id="Robot.debugger_doc_id" class="doc_details"><summary>debugger</summary>
-                The instruction of <code>Robot.debugger()</code> in a do_list will cause
-                the <b>pause</b> checkbox to be checked and the job to pause.
-                A function that returns the result of <code>Robot.debugger()</code> or
-                even an array that has an element of the result of <code>Robot.debugger()</code>
-                will cause a pause.
+    <details id="misc_pane_doc_id" class="doc_details"><summary>Misc Pane</summary>
+        The header of this pane displays <a href="#" onclick="open_doc(stepping_instructions_doc_id)">
+        stepping controls</a>.
+        <p></p>
+        The Misc pane's body displays content dependent on the select box in its header.
+        <details id="make_instruction_pane_doc_id" class="doc_details"><summary>Make Instruction</summary>
+           This dialog box allows you to create, edit & debug instructions as well
+           as incorporate them into Jobs.
+           <ol><li><b>Create</b> an instruction by choosing it from <button>Instruction&#9660;</button></li>
+               <li><b>Edit</b> both the instruction name and the argument type-in fields.
+                              If you edit the instruction name and hit the ENTER key, it
+                              will recompute the arguments for the new instruction name.</li>
+               <li><b>Debug</b> those values by clicking <button>Eval Instr</button>.
+                   This evaluates each argument and highlights the first one that errors.
+                   This will catch syntactic bugs and a few others.
+                   If all arguments seem to be ok,
+                    the entire instruction's source is evaluated and the resulting
+                   object is displayed in the output pane so that you can Inspect it.</li>
+               <li><b>Run</b> the instruction by clicking <button>Run</button>.
+                   This wraps the instruction in a Job and runs that Job on the
+                   Robot selected at the top of the dialog.</li>
+               <li><b>Insert a Job</b></li> Once you're satisfied with the instruction,
+                   you can insert the source code for a job containing that one instruction
+                   into the editor by clicking <button>Insert Job</button>.</li>
+               <li><b>Insert Instruction</b> After you've tested another instruction for
+                   your inserted Job, you can insert that new instruction into the Job
+                   by clicking <button>Insert</button>. If there is a selection,
+                   that selection will be replaced by the new instruction.
+                   Otherwise, the instruction's source code will just be inserted
+                   at the editor's cursor.
+                   <p></p>
+                   The Insert instruction tries to
+                   insert a comma after an instruction to prepare the Job
+                   for the <i>next</i> insertion, but this sometimes gets screwed up,
+                   so be careful that all the instructions in a Job's do_list are
+                   separated by one comma.</li>
+               <li><b>Copy</b> an instruction whose source is in the editor into
+                   the <i>Make Instruction</i> dialog, <br/>
+                   option-click the name of the instruction in the editor.
+                   This will highlight the whole instruction, preparing it
+                   to be replaced when you click <button>Insert</button>.</li>
+               <li><b>Run entire Job</b> by selecting it in the Editor pane
+                    (option-click on <code title="unEVALable">new Job</code>)
+                    then click <button>Eval</button> to define the job.
+                    Then click the button with the Job's name in it that's
+                    now in the Output pane header to run it.</li>
+               <li><b>Debug entire Job</b> by:
+                  <ul><li>Looking at its output in the Output pane from
+                           error messages and <a href="#" onclick="open_doc('Robot.out_doc_id')">Robot.out</a> instructions.</li>
+                      <li>Looking at the <i>Simulate Dexter</i> pane
+                           (select from the Misc pane header menu).</li>
+                      <li>Inspect the Job's data structure
+                           (click on its <button>Inspect</button> in the Output pane and
+                      examine at least its <code title="unEVALable">do_list</code> and
+                      <code title="unEVALable">user_data</code> fields).
+                  </ul>
+           </ol>
+           Make Instruction is useful for demoing the functionality of instructions.
+           Most can be run using their default arguments. Those that can't will
+           display an error message in the Output pane.
+        </details>
+        <details id="simulate_pane_doc_id" class="doc_details"><summary>Simulate Dexter</summary>
+            <div style="padding-left:20px">
+                The simulate pane shows a graphical simulation of Dexter with
+                joint angles from the last robot status returned.
                 <p></p>
-                You can insert this instruction using the Learn JS menu/Debugging etc/Robot.debugger().
+                Use the mouse in the <i>Simulate</i> pane to:
+                <ul style="padding:0px;margin-left:20px;display:inline-block;" >
+                    <li><b>Rotate table</b>: mouse-down then drag.</li>
+                    <li><b>Zoom</b>: shift-down then mouse-down then <br/>
+                                     drag right to make bigger, drag left to make smaller</li>
+                    <li><b>Pan</b>: alt or option down, then mouse-down, then drag.</li>
+                </ul>
                 <p></p>
-                Note that using <code>Robot.debugger()</code>
-                is intentionally similar to using the JavaScript constant <code title="not in TestSuite">debugger</code>.
-                If you have the constant <code title="not in TestSuite">debugger</code>
-                in the body of a function that is a do_list item, or is called by
-                a do_list item, it will cause a JavaScript breakpoint and you
-                can step through that code using the Chrome dev tools.
-                See Documentation top level section <b>Debugging</b>.
-            </details> <!--end d ebugger-->
-        </details> <!--end stepping instructions -->
-    </details>  <!-- end simulate pane -->
+                <button>Demo</button> shows Dexter randomly flailing around, not
+                correlated to a connected Dexter.
+            </div>
+            <details id="stepping_instructions_doc_id" class="doc_details"><summary>Stepping Instructions</summary>
+                To understand a Job's behavior, its useful to <i>step</i> through each instruction.
+                Checking the <b>pause</b> checkbox will cause running jobs to pause
+                when they have completed their current instruction. Jobs started when
+                the pause button is checked will pause right before the first user instruction
+                on the do_list is run. If the running Job executes a <code>Robot.debugger</code>
+                instruction, that will also cause the job to pause.
+                <p></p>
+                When a job is paused, clicking the <button>Go</button> button will cause
+                it to execute the next instruction, print out useful information in the Output
+                pane, and pause. If a job is paused, and you uncheck the pause checkbox,
+                then click the <button>Go</button> button, the job will begin running normally.
+                <p></p>
+                <details id="Robot.debugger_doc_id" class="doc_details"><summary>debugger</summary>
+                    The instruction of <code>Robot.debugger()</code> in a do_list will cause
+                    the <b>pause</b> checkbox to be checked and the job to pause.
+                    A function that returns the result of <code>Robot.debugger()</code> or
+                    even an array that has an element of the result of <code>Robot.debugger()</code>
+                    will cause a pause.
+                    <p></p>
+                    You can insert this instruction using the Learn JS menu/Debugging etc/Robot.debugger().
+                    <p></p>
+                    Note that using <code>Robot.debugger()</code>
+                    is intentionally similar to using the JavaScript constant <code title="not in TestSuite">debugger</code>.
+                    If you have the constant <code title="not in TestSuite">debugger</code>
+                    in the body of a function that is a do_list item, or is called by
+                    a do_list item, it will cause a JavaScript breakpoint and you
+                    can step through that code using the Chrome dev tools.
+                    See Documentation top level section <b>Debugging</b>.
+                </details> <!--end d ebugger-->
+            </details> <!--end stepping instructions -->
+        </details>  <!-- end simulate pane -->
+    </details> <!--end misc_pane -->
  </details> <!-- end user interface -->
 
 <details class="doc_details"><summary>JavaScript</summary>

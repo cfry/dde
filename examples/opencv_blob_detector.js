@@ -155,4 +155,4 @@ show_window({
     init_elt_id: "sort_by_size_id"
 })
 
-var {dde_version_between} = require("../core/utis.js")
+var {dde_version_between} = require("../core/utils.js")

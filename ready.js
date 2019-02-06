@@ -29,6 +29,13 @@
         //out("Demo just moves Dexter randomly.")
     }
 
+    //call this on startup after peristent loaded AND after user clicks the menu item checkbox
+    function adjust_animation(){
+        let animate_dur = (persistent_get("animate_ui") ? 300 : 0)
+        $('#js_menubar_id').jqxMenu({ animationShowDuration: animate_dur })
+        $('#js_menubar_id').jqxMenu({ animationHideDuration: animate_dur })
+    }
+
     // document.body.addEventListener('onload', on_ready)
 
     function on_ready() {
@@ -51,7 +58,7 @@
         var pckg         = require('./package.json');
         dde_version      = pckg.version
         dde_release_date = pckg.release_date
-        platform         = "dde"
+        platform         = "dde" //"node" is the other possibility
         //window.Root      = Root //should work but doesn't jan 13, 2019
         Coor.init()
         Job.init()
@@ -78,17 +85,43 @@
                   { size: '30%', min: "0%"}]
     })
 
+    $('#outer_splitter').on('resize',
+        function (event) {
+            let new_size = event.args.panels[0].size
+            persistent_set("left_panel_width", new_size)
+            event.stopPropagation()
+        })
+
     $('#left_splitter').jqxSplitter({orientation: 'horizontal', width: "100%", height: "100%",
         panels: [{ size: "60%", min: "5%", collapsible: false },
                  { size: '40%', min: "5%"}]
     })
 
+    $('#left_splitter').on('resize',
+        function (event) {
+            let new_size = event.args.panels[0].size
+            persistent_set("top_left_panel_height", new_size)
+            event.stopPropagation() //must have or outer_splitter on resize is called
+        })
+
+
     $('#right_splitter').jqxSplitter({ orientation: 'horizontal', width: "100%", height: "100%",
         panels: [{ size: "50%"}, { size: "50%"}]
     })
-    //TestSuite.make_suites_menu_items() //doesn't work
+
+    $('#right_splitter').on('resize',
+        function (event) {
+            let new_size = event.args.panels[0].size
+            persistent_set("top_right_panel_height", new_size)
+            event.stopPropagation() //must have or outer_splitter on resize is called
+        })
+
+        //TestSuite.make_suites_menu_items() //doesn't work
+
+        //see near bottom for animation.
     $("#js_menubar_id").jqxMenu({autoOpen: false, clickToOpen: false, height: '25px' }) //autoOpen: false, clickToOpen: true,
-    //to open a menu, click. Once it is open, if you slide to another menu, it DOESN'T open it. oh well.
+
+        //to open a menu, click. Once it is open, if you slide to another menu, it DOESN'T open it. oh well.
     //$("#js_edit_menu").jqxMenu(    { width: '50px', height: '25px' });
     //$("#js_learn_js_menu").jqxMenu({ width: '90px', height: '25px' });
     //$("#js_insert_menu").jqxMenu(  { width: '65px', height: '25px' });
@@ -149,7 +182,7 @@
     js_radio_button_id.onclick  = function() { ros_menu_id.style.display = "none"}
     ros_radio_button_id.onclick = function() { ros_menu_id.style.display = "inline-block"}
 
-    init_simulation()
+    //init_simulation() now in video.js misc_pane_menu_changed
 
     init_doc()
 
@@ -922,8 +955,7 @@ foo      //eval to see the latest values</pre>`,
     stop_all_jobs_id.onclick       = function(){Job.stop_all_jobs() }
     undefine_jobs_id.onclick       = function(){Job.clear_stopped_jobs() }
 
-    $("#real_time_sim_checkbox_id").jqxCheckBox({ checked: true })
-
+    /*$("#real_time_sim_checkbox_id").jqxCheckBox({ checked: true })
     real_time_sim_checkbox_id.onclick = function(event) {
         if ($("#real_time_sim_checkbox_id").val()){
             $("#real_time_sim_checkbox_id").jqxCheckBox({ checked: true })
@@ -933,7 +965,7 @@ foo      //eval to see the latest values</pre>`,
         }
         event.stopPropagation() //causes menu to not shrink up, so you can see the effect of your click
                             //AND causes the onclick for simulate_id to NOT be run.
-    }
+    }*/
     insert_job_example0_id.onclick = function(){Editor.insert(job_examples[0])}
     insert_job_example1_id.onclick = function(){Editor.insert(job_examples[1])}
     insert_job_example2_id.onclick = function(){Editor.insert(job_examples[2])}
@@ -1045,18 +1077,20 @@ foo      //eval to see the latest values</pre>`,
     javascript_pane_help_id.onclick    = function(){ open_doc(javascript_pane_doc_id)  }
     output_pane_help_id.onclick        = function(){ open_doc(output_pane_doc_id)  }
     documentation_pane_help_id.onclick = function(){ open_doc(documentation_pane_doc_id)  }
-    simulate_pane_help_id.onclick      = function(){ open_doc(simulate_pane_doc_id)  }
+    misc_pane_help_id.onclick      = function(){ open_doc(misc_pane_doc_id)  }
 
     <!-- simulate pane -->
     //init_video()
-    demo_id.onclick          = function() { if (demo_id.innerHTML == "Demo") {
-                                                demo_id.innerHTML = "Stop"
-                                                play_simulation()
-                                            }
-                                            else {
-                                                  sim.enable_rendering = false;
-                                                  demo_id.innerHTML = "Demo"
-                                            }
+    demo_id.onclick          = function() {
+                                    if (demo_id.innerHTML == "Demo") {
+                                        demo_id.innerHTML = "Stop"
+                                        misc_pane_menu_changed("Simulate Dexter")
+                                        play_simulation()
+                                    }
+                                    else {
+                                          sim.enable_rendering = false;
+                                          demo_id.innerHTML = "Demo"
+                                    }
                                }
     pause_id.onclick         = function (){
                                     if (pause_id.checked) { //it just got checked
@@ -1066,7 +1100,7 @@ foo      //eval to see the latest values</pre>`,
                                  }
     go_id.onclick                 = Job.go
 
-    videos_id.onchange            = video_changed
+    misc_pane_menu_id.onchange            = misc_pane_menu_changed
 
 
     font_size_id.onclick = function(){
@@ -1104,6 +1138,19 @@ foo      //eval to see the latest values</pre>`,
     }
     dde_init_dot_js_initialize()//must occcur after persistent_initialize
 
+    //initialize the checkbox state
+    $("#animate_ui_checkbox_id").jqxCheckBox({ checked: persistent_get("animate_ui")})
+
+    animate_ui_checkbox_id.onclick = function(event) {
+        let val = $("#animate_ui_checkbox_id").val()
+        persistent_set("animate_ui", val)
+        //$("#animate_ui_id").jqxCheckBox({ checked: true })
+        event.stopPropagation() //causes menu to not shrink up, so you can see the effect of your click
+        //AND causes the onclick for simulate_id to NOT be run.
+        adjust_animation()
+    }
+    adjust_animation() //to the peristent flag
+
     const editor_font_size = persistent_get("editor_font_size")
     $(".CodeMirror").css("font-size", editor_font_size + "px")
     font_size_id.value = editor_font_size
@@ -1113,7 +1160,7 @@ foo      //eval to see the latest values</pre>`,
     } //must occur after dde_init_doc_js_initialize  init_ros_service($("#dexter_url").val())
     // rde.ping() //rde.shell("date") //will show an error message
     Editor.restore_files_menu_paths_and_last_file()
-     simulate_help_id.onclick=function(){ open_doc(simulate_doc_id) }
+     //simulate_help_id.onclick=function(){ open_doc(simulate_doc_id) }
      simulate_radio_true_id.onclick  = function(){
           persistent_set("default_dexter_simulate", true);   event.stopPropagation()
      }
@@ -1125,11 +1172,28 @@ foo      //eval to see the latest values</pre>`,
      else if (sim_val === false)  { simulate_radio_false_id.checked = true }
      else if (sim_val === "both") { simulate_radio_both_id.checked  = true }
 
+     set_left_panel_width(persistent_get("left_panel_width"))
+     set_top_left_panel_height(persistent_get("top_left_panel_height"))
+     set_top_right_panel_height(persistent_get("top_right_panel_height"))
+
      help_system_id.onclick = function(){ open_doc(help_system_doc_id) }
-
-
-        setTimeout(check_for_latest_release, 100)
+     MakeInstruction.show(undefined, false) //needs to be after loading dde_init.js so that we'll have dexter0 defined, at least.
+                                            //undefined lets
+     setTimeout(check_for_latest_release, 100)
 }
+function set_left_panel_width(width=700){
+    $('#outer_splitter').jqxSplitter({ panels: [{ size: width }] })
+}
+
+function set_top_left_panel_height(height=600){
+    $('#left_splitter').jqxSplitter({ panels: [{ size: height }] })
+}
+
+function set_top_right_panel_height(height=600){
+    out("set top right:" + height)
+    $('#right_splitter').jqxSplitter({ panels: [{ size: height }] })
+}
+
 function check_for_latest_release(){
     latest_release_version_and_date(function(err, response, body){
         if(err){

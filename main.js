@@ -10,6 +10,8 @@ Then the below console.log prinouts appear in that terminal window.
  */
 
 const electron = require('electron')
+const SerialPort = require("serialport")
+
 // Module to control application life.
 const app = electron.app
 const globalShortcut = electron.globalShortcut
@@ -28,6 +30,7 @@ const fs = require('fs');
 //Because MS screwed up the relationhip between OneDrive and Documents in Windows 10,
 //we do a lot of work to work around their bug.
 let documents_dir = app.getPath("documents")
+if (!documents_dir.endsWith("Documents")) { documents_dir += "/Documents" } //needed on Unbuntu OS for Dexter running DDE, all of whcih have a Documents dir
 console.log("First try getting 'documents' yielded: " + documents_dir)
 let the_dde_apps_dir = documents_dir + "/dde_apps"
 let exists = fs.existsSync(the_dde_apps_dir)
@@ -178,7 +181,6 @@ ipc.on("open_dev_tools", function(event){
 
 //called from serial.js serial_devices to get sychronous return value
 ipc.on('serial_devices', function(event){
-    const SerialPort = require("serialport")
     //console.log("in main sd")
     SerialPort.list(function(err, ports) {
         //console.log("in main sd ports: " + ports)
@@ -249,7 +251,7 @@ ipc.on('prompt', function(eventRet, arg) {
                        arg.title +
                        '</div>\
     <input style="backgound-color:white;margin:10px;width:360px;font-size:14px;" id="val" value="' + arg.val + '" autofocus />\
-    <button onclick="require(\'electron\').ipcRenderer.send(\'prompt-response\', document.getElementById(\'val\').value);window.close()">Ok</button>\
+    <button onclick="electron.ipcRenderer.send(\'prompt-response\', document.getElementById(\'val\').value);window.close()">Ok</button>\
     <button onclick="window.close()">Cancel</button>\
     <style>body        {font-family: sans-serif; background-color:#DDD; margin:0px; padding:0px; border:8px solid ' +
                        arg.window_frame_background_color + '} \

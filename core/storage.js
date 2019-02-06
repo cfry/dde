@@ -19,7 +19,11 @@ function get_persistent_values_defaults() {
             "dde_window_width":  1000,
             "dde_window_height":  600,
             "dde_window_x":       100,
-            "dde_window_y":       100
+            "dde_window_y":       100,
+            "left_panel_width":   750,
+            "top_left_panel_height": 500,
+            "top_right_panel_height": 500,
+            "animate_ui": true
            }
 }
 //if keep_existing is true, don't delete any existing values.
@@ -178,9 +182,9 @@ function dde_init_dot_js_initialize() {
                   '// 4. After inserting the new color, eval the "set_" call.\n' +
                   '// 5. To get the default color, just comment out the line and relaunch DDE.\n' +
                   '// set_window_frame_background_color("#b8bbff")\n' +
-                  '// set_pane_header_background_color("#93dfff")\n' +
-                  '// set_menu_background_color("#4cc9fd")\n' +
-                  '// set_button_background_color("#4cc9fd")\n' +
+                  '// set_pane_header_background_color("#bae5fe")\n' +
+                  '// set_menu_background_color("#93dfff")\n' +
+                  '// set_button_background_color("#93dfff")\n' +
                   '\n' +
                   'persistent_set("ROS_URL", "' + default_default_ROS_URL + '") //required property, but you can edit the value.\n' +
                   'persistent_set("default_dexter_ip_address", "'    +

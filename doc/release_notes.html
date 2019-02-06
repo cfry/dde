@@ -5,6 +5,123 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 3.0.8, Feb 5, 2019</summary>
+Highlights: New Make Instruction dialog,
+Lots of little bug fixes
+and default value additions to instructions to make them easier to try out,
+Ubuntu install fix.
+<ul>
+    <li>The Sim pane has been renamed to "Misc" to reflect its increased functionality.</li>
+
+    <li> On the Misc pane header, the menu now contains just sub-panes for the
+        Misc pane content. The Robots and Jobs formerly on this menu have
+        been moved to the "Sim" sub-pane.
+        New items on the Misc pane menu are "Make Instruction" and "Simulate Dexter"</li>
+
+    <li> The Jobs menu, Simulate? submenu's items and
+         the Jobs Menu "real time sim" checkbox have been moved
+         to the header of the Misc pane.</li>
+
+    <li> The new Make Instruction dialog is intended as a replacement for
+    the Job's menu/Run instruction/show dialog. When Make Instruction becomes
+    a superset of the older dialog, we'll cut the older dialog.
+    Make Instruction Dialog facilitates a new, easier way to create instructions and their Jobs.
+    This process is detailed in the User Guide. Click the new "Misc" pane
+    header title to see that doc.</li>
+
+    <li> Fixed bug in blob detector software. (misspelling of require("..core/utils.js") )</li>
+
+    <li> Removed "End" from series: series_set_parameter_name_id</li>
+
+    <li> Added "Robot.loop" to series_robot_instruction_id</li>
+
+    <li> Now doc scrolls when you want doc on Dexter.make_ins (as opposed to just make_ins,
+          which always worked). Dexter.make_ins and make_ins are synonyms.</li>
+
+    <li> When a new robot is defined, it is added to the MakeInstruction robot menu.</li>
+
+    <li> Selecting Misc pane menu to 'Simulate Dexter' now shows dexter
+         as it was last simulated, not always straight up like it used to.
+         Make Instruction dialog is similarly preserved when switching between
+         Misc menu sub-panes.</li>
+
+    <li> When running DDE on Dexter's processor board,
+        dde_apps folder is now created under
+        root/Documents (instead of root/) to
+        be compatible with WinOS and MacOS platforms.</li>
+
+    <li> The default colors for DDE have been changed to a lighter blue
+        to make it easier to read black text on top of those colors.
+        You can set these new colors in your dde_init.js like so:
+        <pre><code>
+        set_pane_header_background_color("#bae5fe") //was: #93dfff
+        set_menu_background_color("#93dfff")        //was: #4cc9fd
+        set_button_background_color("#93dfff")      //was: #4cc9fd
+        </code></pre></li>
+
+    <li> The splitter bar locations now persist across DDE launches.</li>
+
+    <li> New checkbox on the Edit menu: "Animate UI"
+        controls the speed of menu pull downs and doc pane scrolling.
+        Unchecked is fastest. The value of this checkbox persistents
+        across DDE launches.</li>
+
+    <li> <code>Human.enter_choice</code>: changed the default value for choices
+        from <code>[]</code>
+        which errored, to <code>[["Yes", true], ["No", false]]</code>
+        which displays a menu of "Yes" or "No" and
+        sets the user_data variable to true or false.
+        Ref man documentation for <code>Human.enter_choice</code> extended and improved slightly.</li>
+
+    <li> <code>show_window</code> and <code>Human.show_window</code> default value for the content
+    param changed from "" to `<input type="submit" value="Done"/>`
+    This let's users who call either of these, close the window
+    when they just use all the defaults. It's also documentation by example,
+    easily visable when editing Human.show_window instrutions in the Make Instruction
+    dialog.</li>
+
+    <li> Output pane: changed "Eval result of" to the less ambiguous "Result of evaling"
+        for the header to showing the result of an evaluation.</li>
+
+    <li> Changed calls to <code>dde_warning</code> to the
+         correct spelling <code>warning</code>
+        in Job.js and Vector.js
+        Added require statement for <code>warning</code> in Vector.js</li>
+
+    <li> <code>Robot.loop</code> the first arg of "times_to_loop" used to be
+        required or the instruction would error.
+        Now there's a default of <code>2</code> indicating times to repeat.
+        The 2nd arg is still required.</li>
+
+    <li> <code>Robot.label</code> takes one arg. It used to be required,
+        Now it has a default of <code>"my_label"</code></li>
+
+    <li> Improved error message for <code>Robot.unsuspend</code>.</li>
+
+    <li> <code>Robot.wait_until</code> takes one arg. It used to be required meaning
+        that a call to it without that arg would error.
+        Now it has a default of <code>1</code>,  meaning wait for one second.
+        wait_until ref man doc slightly improved.</li>
+
+    <li> <code>Robot.out</code> first arg use to not have a default value which
+        didn't error but caused a confusing output.
+        Now that first arg has a default value of <code>""</code>
+        making a prettier default output for this instruction.</li>
+
+    <li> <code>Robot.send_to_job</code> fixed bug in an error call.
+        The function still errors where it use to, but now
+        you can see a meaningful error message.</li>
+
+    <li> <code>Robot.start_job</code> improved error messages that catch some
+        errors at Job definition time rather than later at Job run time.</li>
+
+    <li> <code>Robot.debugger</code> instruction: fixed a stepping problem of not
+        advancing program_counter when clicking the Go button.
+        Doc slightly improved.</li>
+
+    <li> <code> Robot.if_any_errors</code> ref man doc improved.</li>
+</ul>
+</details>
 
 <details class="doc_details"><summary>v 3.0.5, Jan 22, 2019</summary>
 Highlights: Preparations for new Job Engine using require.

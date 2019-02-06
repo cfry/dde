@@ -12,11 +12,11 @@ html, body {  width: 100%;  height: 100%; font-family: sans-serif; overflow:hidd
 
 .window_frame { background-color: #b8bbff; } /*used for main window AND for show_window header background color */
 .menubar_menu { display:inline-block; padding-left:3px; padding-right:0px; }
-.dde_menu     { background-color: #4cc9fd; }
+.dde_menu     { background-color: #93dfff; }
 
 .pane_header_wrapper {
     padding:5px;
-    background-color: #93dfff; /* for orig color, this was orange #ffbe3c;*/
+    background-color: #bae5fe; /* for orig color, this was orange #ffbe3c;*/
     min-height:30px;} /*the Editor pan header, files menu might go on right if dispay is wide enough
                         but if not, it should go on 2nd row, thus the height of the header changes
                         based on allwoable width */
@@ -27,8 +27,8 @@ html, body {  width: 100%;  height: 100%; font-family: sans-serif; overflow:hidd
 
 input[type=button] {background-color:#ddd3ff; font-size:14px;}
 
-button             {background-color:#4cc9fd; font-size:14px;} /*same color as input-submit. see output.js set_button_background_color*/
-input[type=submit] {background-color:#4cc9fd; font-size:14px;} /*background-color: #ffb6c0; pink */
+button             {background-color:#93dfff; font-size:14px;} /*same color as input-submit. see output.js set_button_background_color*/
+input[type=submit] {background-color:#93dfff; font-size:14px;} /*background-color: #ffb6c0; pink */
 /*so input type submits and buttons are coral colored and input type button will be default white background
   dde dialogs shouldn't use buttons, they should just use input type submit and  input type button.
   which will then be the different colors signifying whether they are submits or not, ie whether
@@ -50,6 +50,8 @@ th, td { text-align:left; }
     font-size:12px;
 }
 .jqx-fill-state-hover{ background: #EECCFF;}
+/* #mi_instruction_menu_id > .jqx-menu-item { padding:2px 4px 2px 4px;} doesn't work */
+
 .robot_status_table TD, .robot_status_table TH {
     font-family:sans-serif;
     font-size:9pt;

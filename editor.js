@@ -83,7 +83,9 @@ Editor.init_editor = function(){
                              var line_char = myCodeMirror.coordsChar({left: mouse_event.x, top: mouse_event.y})
                              myCodeMirror.getDoc().setCursor(line_char)
                              if (Editor.select_expr()){
-                                 mouse_event.preventDefault()
+                                let sel = Editor.get_any_selection()
+                                if(sel != "") { MakeInstruction.show(sel) }
+                                mouse_event.preventDefault()
                              }
                          }
                          //I didn't need this setTimeout in ChromeApps,
@@ -348,7 +350,7 @@ Editor.replace_selection = function(new_text, select_new_text=false, end_pos_of_
     else if (typeof(select_new_text) == "number"){
         var editor_start_pos = Editor.selection_start()
         var start_sel
-        if (select_new_text < 0){ //menas fron the end of the new_text
+        if (select_new_text < 0){ //means fron the end of the new_text
             start_sel = editor_start_pos + new_text.length + select_new_text
         }
         else {

@@ -439,6 +439,14 @@ function starts_with_one_of(a_string, possible_starting_strings){
 }
 module.exports.starts_with_one_of = starts_with_one_of
 
+function ends_with_one_of(a_string, possible_ending_strings){
+    for (let str of possible_ending_strings){
+        if (a_string.endsWith(str)) return true
+    }
+    return false
+}
+module.exports.ends_with_one_of = ends_with_one_of
+
 
 //the default for Robot Serial.sim_fun
 function return_first_arg(arg){ return arg }
@@ -782,6 +790,26 @@ function function_params(fn, include_parens=true){
 }
 module.exports.function_params = function_params
 
+//keyword calls & fns have just one block of {} in the params
+//with no space between the ( and the {.
+//ie foo({a:2})
+function call_src_is_keyword_call(a_string){
+  let open_pos = a_string.indexOf("(")
+  if (open_pos == -1) { return false }
+  let brace_pos = a_string.indexOf("{")
+  return (open_pos + 1) == brace_pos
+}
+
+function fn_is_keyword_fn(fn){
+    let a_string = fn.toString()
+    let open_pos = a_string.indexOf("(")
+    if (open_pos == -1) { return false }
+    let brace_pos = a_string.indexOf("{")
+    return (open_pos + 1) == brace_pos
+}
+module.exports.fn_is_keyword_fn = fn_is_keyword_fn
+
+//returns a string
 function function_params_for_keyword_call(fn, include_parens=true){
     let result = function_params(fn, include_parens)
     if (result.endsWith("={})")) {
@@ -874,13 +902,17 @@ function function_param_names_and_defaults(fn){
 module.exports.function_param_names_and_defaults = function_param_names_and_defaults
 
 
-//returns an array of arrays. Each param is representated an a array of
-//1 or 2 elements. THe first elt is the param name and
-// the 2nd elt is the defualt value (which might be the symbol undefined
-//if you have a fn of function foo(a, b=2 {c=3, d=4}, {e=5, f=6}={}) {} then this fnunction returns
+//returns an array of arrays. Each param is represented as an a array of
+//1 or 2 elements. The first elt is the param name and
+// the 2nd elt is the default value (which might be the symbol undefined
+//if you have a fn of function foo(a, b=2 {c=3, d=4}, {e=5, f=6}={}) {} then this function returns
 //the param names and the SOURCE CODE of the default values.
 //[["a", "undefined"], ["b","2"], ["", {c="3", d="4"}], ["", {e:"5", f:"6"}] }
-function function_param_names_and_defaults_array(fn){
+//if grab_key_vals is false, the keyword name will be "" and
+// the arg will be a string, ie "{a=3, b=4}"
+//but if its true we have an arg for each of the actual keywords and
+//the values will be the defaults for that keyword
+function function_param_names_and_defaults_array(fn, grab_key_vals=false){
     let param_string = "function foo(" + function_params(fn, false) + "){}"
     let ast = esprima.parse(param_string, {range: true, raw: true})
     let params_ast = ast.body[0].params
@@ -895,27 +927,61 @@ function function_param_names_and_defaults_array(fn){
             case "AssignmentPattern": //ie has an equal sign
                 if (param_ast.left.type == "Identifier"){ //ie a = 2
                     name = param_ast.left.name
-                    val_src = param_names_get_default_val_src(param_string,
-                        param_ast.right)
+                    val_src = param_names_get_default_val_src(param_string, param_ast.right)
+                    result.push([name, val_src])
                 }
                 else if (param_ast.left.type == "ObjectPattern"){  //ie {a:2} = {}
-                    name = "" //no real param name
-                    val_src = param_names_get_default_val_src(param_string,
-                        param_ast.left)
+                    if(grab_key_vals){
+                        for(let prop of param_ast.left.properties){
+                            let ass_pat_ast = prop.value
+                            let name
+                            let val_src
+                            if(ass_pat_ast.type == "Identifier"){ //there's no default value
+                                name = ass_pat_ast.name
+                                val_src = "undefined"
+                            }
+                            else{ //should be ass_pat_ast.type == "AssignmentPattern"
+                                name = ass_pat_ast.left.name
+                                val_src = param_names_get_default_val_src(param_string,
+                                    ass_pat_ast.right)
+                            }
+                            result.push([name, val_src])
+                        }
+                    }
+                    else {
+                        name = "" //no real param name
+                        val_src = param_names_get_default_val_src(param_string, param_ast.left)
+                        result.push([name, val_src])
+                    }
                 }
-                result.push([name, val_src])
                 break;
             case "ObjectPattern": //ie {a:2, b:3}
-                name = "" //no real param name
-                val_src = param_names_get_default_val_src(param_string,
-                    param_ast)
-                //for(let prop of param_ast.properties){
-                //	let ass_pat_ast = prop.value
-                //  let name = ass_pat_ast.left.name
-                //  let val_src = param_names_get_default_val_src(param_string,
-                //                                                ass_pat_ast.right)
-                result.push([name, val_src])
-                //}
+                if(grab_key_vals){
+                    for(let prop of param_ast.properties){
+                    	let ass_pat_ast = prop.value
+                        let name
+                        let val_src
+                    	if(ass_pat_ast.type == "Identifier"){ //there's no default value
+                            name = ass_pat_ast.name
+                            val_src = param_names_get_default_val_src(param_string, ass_pat_ast)
+                        }
+                        else{ //should be ass_pat_ast.type == "AssignmentPattern"
+                            name = ass_pat_ast.left.name
+                            val_src = param_names_get_default_val_src(param_string,
+                                                                          ass_pat_ast.right)
+                        }
+                        result.push([name, val_src])
+                    }
+                }
+                else {
+                    name = "" //no real param name
+                    val_src = param_names_get_default_val_src(param_string,
+                                                              param_ast)
+                    result.push([name, val_src])
+                }
+                break;
+            case "RestElement": //rest elts can't take a default value
+                result.push([param_ast.argument.name, undefined])
                 break;
             default:
                 shouldnt("in param_names_and_defaults_array for fn: " + fn)
@@ -928,9 +994,7 @@ module.exports.function_param_names_and_defaults_array = function_param_names_an
 
 //only called in this file.
 function param_names_get_default_val_src(full_string, ast){
-    let offset = 0 //"function foo(".length + 1
-    return full_string.substring(ast.range[0] + offset,
-        ast.range[1] + offset)
+    return full_string.substring(ast.range[0], ast.range[1])
 }
 
 
@@ -974,6 +1038,8 @@ function params_string_to_param_names_and_defaults(params_full_string){
 
 //fn can be either function foo({a:2}={}) style or function foo(a, b=3) style params
 //returns {param_name: "default_val", ...} ie the values are src, not actual js vals
+//with the returned value, you can call Object.keys(returned_lit_obj)
+//and get back the names of the args in their proper order.
 function function_param_names_and_defaults_lit_obj(fn){
     let params_full_string = function_params(fn, false)
     let params_string = params_full_string

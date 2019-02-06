@@ -136,6 +136,7 @@
     <script type="text/javascript" src="job_examples.js"></script> <!--evals no Job code, just literal strings for insertion-->
     <!--<script type="text/javascript" src="core/gcode.js"></script>--> <!-- adds methods to the class Job used by run_gcode-->
     <script type="text/javascript" src="run_instruction.js"></script>
+    <script type="text/javascript" src="make_instruction.js"></script>
     <script type="text/javascript" src="robot_utilities.js"></script>
 
     <script type="text/javascript" src="app_builder.js"></script>
@@ -219,6 +220,10 @@
                                         <li id="unfold_all_id" title="Uncompress all compressed statements.">Unfold All</li>
                                         <li id="select_expr_id" title="Select JS expressions, by&#013;Alt-clicking on their&#013;start, middle or end.&#013;On Mac: Option-click">Select expr alt-click</li>
                                         <li id="select_all_id" title="Select all the text in the Editor.">Select All Ctrl/&#8984;A</li>
+                                        <li id="animate_ui_id" title="If checked, some user interface operations&#013will change the display incrementally.&#013Unchecked is faster.">
+                                            <div style='float: left; margin-right: 5px;' id='animate_ui_checkbox_id'></div>
+                                            Animate UI
+                                        </li>
                                         <li>Right click menu in JS pane has more operations.</li>
                                     </ul>
                                 </li>
@@ -558,9 +563,9 @@
                                         <li id="jobs_report_id"         title="Display a report of all Jobs in this session.">Show report</li>
                                         <!--<li id="stop_all_jobs_id"       title="Stop all of the currently running jobs.">Stop all jobs</li> -->
                                         <!-- <li id="clear_stopped_jobs_id"  title="Remove stopped jobs so they don't clutter the jobs report.">Clear stopped jobs</li> -->
-                                        <li id="simulate_id"            title='Dexter instances with a simulate value of null,&#013;such as the default Dexter: "dexter0",&#013;get their simulate value from the selected radio button.'>
+                                        <!-- <li id="simulate_id"            title='Dexter instances with a simulate value of null,&#013;such as the default Dexter: "dexter0",&#013;get their simulate value from the selected radio button.'>
                                             Simulate?
-                                            <ul>
+                                           <ul>
                                                 <li id="simulate_help_id" title="Documentation on simulate.">Help</li>
                                                 <li title="Simulate robots that have simulate=null.">
                                                     <input id="simulate_radio_true_id"  type="radio" name="simulate" value="true" checked="true"/>
@@ -572,13 +577,13 @@
                                                     <input id="simulate_radio_both_id"  type="radio" name="simulate" value="both"/>
                                                     <label for="simulate_radio_both_id">both</label></li>
                                             </ul>
-                                        </li>
+                                        </li>-->
 
 
-                                        <li id="real_time_sim_id"       title="If unchecked, simulation&#013;will run as fast as it can.&#013;No pauses for sleep or motion.">
+                                        <!--<li id="real_time_sim_id"       title="If unchecked, simulation&#013;will run as fast as it can.&#013;No pauses for sleep or motion.">
                                             <div style='float: left; margin-right: 5px;' id='real_time_sim_checkbox_id'></div>
                                             Real time sim
-                                        </li>
+                                        </li>-->
                                         <li> Insert Example
                                             <ul>
                                                 <li id="insert_job_example0_id" title="Insert into the editor a 1 instruction Job definition.">0. Simplest</li>
@@ -737,14 +742,13 @@
                     <div id="doc_pane_content_id" contentEditable="false" style="width:97%; height:90%;padding:5px;overflow:scroll;">
                     </div>
                 </div> <!--doc_pane -->
-                <div id="simulate_pane" style="background-color:black">
+                <div id="misc_pane_id" style="background-color:black">
                     <div class="pane_header_wrapper" style="white-space:nowrap;">
-                        <span id="simulate_pane_help_id" class="pane_header" title="Click for help."><u>Sim</u></span>
-                        <select id='videos_id'>
-                            <!--<option value='Simulate Dexter'>Simulate Dexter</option>-->
-                            <option value='All'>All</option>
-                            <option value='None'>None</option>
+                        <span id="misc_pane_help_id" class="pane_header" title="Click for help."><u>Misc</u></span>
+                        <select id='misc_pane_menu_id'>
                             <!-- <option value='http://hdrobotic.com/videos/'>Dexter Videos</option> can't show these in Sim pane, so forget it -->
+                            <option value='Make Instruction'>Make Instruction</option>
+                            <option value='Simulate Dexter'>Simulate Dexter</option>
                             <option value='http://static1.squarespace.com/static/55f1275ee4b0c65e2113baa5/563c04f5e4b0904f35c87cbb/563c0973e4b06c4bb72a5c89/1446775444596/HD+Robotics-8517.jpg'>Dexter Photo</option>
                             <option value='Reference Manual'>Reference Manual</option>
                             <option value='Choose File'>Choose File</option>
@@ -752,11 +756,13 @@
                         </select>
                         <button id="demo_id" title="Moves graphical depiction of Dexter randomly." style="padding:2px">Demo</button>
                         <span title="Pause job execution."><input  id="pause_id" type="checkbox"/>Pause</span>
-                        <button id="go_id"   title="Continue paused job execution." style="padding:2px">Go</button>
+                        <button id="go_id"   title="Continue paused job execution." style="padding:2px">Go</button><br/>
+                        <input id="simulate_radio_true_id"  type="radio" name="simulate" value="true" checked="true" title="Dexter instances with a 'simulate' value of null,&#013;such as the default Dexter: 'dexter0',&#013;get their simulate value from the selected radio button.">simulate</input>
+                        <input id="simulate_radio_false_id" type="radio" name="simulate" value="false" title="When this button is selected,&#013;Dexter instances with a 'simulate' value of null&#013;will have their instructions sent to a real Dexter.">real</input>
+                        <input id="simulate_radio_both_id"  type="radio" name="simulate" value="both" title="Both simulate and real will be run for Dexter's with a 'simulate' value of null.">both</input> &nbsp; &nbsp;
+                        <input style="display:inline-block; vertical-align:bottom;" id="real_time_sim_checkbox_id" type="checkbox" checked="true" title="If unchecked, simulation&#013;will run as fast as it can.&#013;No pauses for sleep or motion.">real-time-sim</input>
                     </div>
-                    <div id='sim_pane_content_wrapper'>
-                       <div id="sim_graphics_pane_id"></div>
-                       <div id="video_player_id" style="display:none;"></div>
+                    <div id='sim_pane_content_id' contentEditable="false" style="background-color:#EEEEEE; width:97%; height:90%;padding:5px;overflow:scroll;>
                     </div>
                 </div>
             </div>
