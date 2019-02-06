@@ -149,5 +149,8 @@ function setOpenLoop(robot){
     Instruction.add_robot_to_instructions(result)
     return result
 }
-module.exports.setOpenLoop = setOpenLoop
-var {Instruction, make_ins} = require("../core/instruction.js")
+
+if("dde" !== platform){
+	module.exports.setOpenLoop = setOpenLoop
+	var {Instruction, make_ins} = require("../core/instruction.js")
+}

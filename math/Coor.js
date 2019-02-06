@@ -1,7 +1,8 @@
 //Coordinate System 
 //James Wigglesworth
 //Started: 1_19_17
-//Updated: 7_6_18
+//Updated: 1_26_19
+
 const {newObject, Root} = require("../core/object_system.js")
 
 var Coor = newObject({prototype: Root, name: "Coor"}) //, pose: Vector.make_pose()})
@@ -265,9 +266,10 @@ Coor.rotate = function(axis_of_rotation, angle, point_of_rotation, reference_coo
     return result
 }
 
-module.exports = Coor
-var Vector   = require("./Vector")
-
+if("dde" !== platform){
+	module.exports = Coor
+	var Vector   = require("./Vector")
+}
 
 
 

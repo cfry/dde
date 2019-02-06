@@ -1,7 +1,7 @@
 //Convert Class
 //James Wigglesworth
 //Started: 6_18_16
-//Updated: 3_27_17
+//Updated: 1_26_17
 
 
 class Convert{
@@ -122,5 +122,7 @@ class Convert{
     
 }
 
-module.exports = Convert
-var Vector = require("./Vector.js")
+if("dde" !== platform){
+	module.exports = Convert
+	var Vector = require("./Vector.js")
+}

@@ -1,7 +1,7 @@
 //DXF class
 //James Wigglesworth
 //Started: 2_10_2017
-//Updated: 6_21_2018
+//Updated: 1_26_19
 
 var DXF = new function(){
 	
@@ -1390,22 +1390,32 @@ this.dxf_to_instructions = function({
                         laser_cut = false
                       } = {}){
 */
-   
+ 
+ 
+ 
+ 
+
+	this.string_to_lines = txt.string_to_lines
+
+ 
+ 
 } // closes DXF.init_drawing
 } // closes DXF class
 
-module.exports = DXF
-var {DxfParser} = require("./dxf-parser.js")
-var {setKeepPosition, setOpenLoop} = require("./Dexter_Modes.js")
-var Coor = require("./Coor.js")
-var Vector = require("./Vector.js")
-var Kin = require("./Kin.js")
 
-var {dde_error, warning, point_object_to_array, scale_point} = require("../core/utils.js")
-var {file_content} = require("../core/storage.js")
-var {out} = require("../core/out.js")
-var {Instruction, make_ins} = require("../core/instruction.js")
-var {Dexter} = require("../core/robot.js")
-var Job = require("../core/job.js")
+if("dde" !== platform){
+	module.exports = DXF
+	var {DxfParser} = require("./dxf-parser.js")
+	var {setKeepPosition, setOpenLoop} = require("./Dexter_Modes.js")
+	var Coor = require("./Coor.js")
+	var Vector = require("./Vector.js")
+	var Kin = require("./Kin.js")
 
+	var {dde_error, warning, point_object_to_array, scale_point} = require("../core/utils.js")
+	var {file_content} = require("../core/storage.js")
+	var {out} = require("../core/out.js")
+	var {Instruction, make_ins} = require("../core/instruction.js")
+	var {Dexter} = require("../core/robot.js")
+	var Job = require("../core/job.js")
+}
 
