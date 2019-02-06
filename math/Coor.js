@@ -266,10 +266,8 @@ Coor.rotate = function(axis_of_rotation, angle, point_of_rotation, reference_coo
     return result
 }
 
-if("dde" !== platform){
 	module.exports = Coor
 	var Vector   = require("./Vector")
-}
 
 
 

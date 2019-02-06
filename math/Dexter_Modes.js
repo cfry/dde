@@ -150,7 +150,5 @@ function setOpenLoop(robot){
     return result
 }
 
-if("dde" !== platform){
 	module.exports.setOpenLoop = setOpenLoop
 	var {Instruction, make_ins} = require("../core/instruction.js")
-}

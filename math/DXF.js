@@ -1403,7 +1403,6 @@ this.dxf_to_instructions = function({
 } // closes DXF class
 
 
-if("dde" !== platform){
 	module.exports = DXF
 	var {DxfParser} = require("./dxf-parser.js")
 	var {setKeepPosition, setOpenLoop} = require("./Dexter_Modes.js")
@@ -1417,5 +1416,4 @@ if("dde" !== platform){
 	var {Instruction, make_ins} = require("../core/instruction.js")
 	var {Dexter} = require("../core/robot.js")
 	var Job = require("../core/job.js")
-}
 

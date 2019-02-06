@@ -1621,14 +1621,12 @@ var Kin = new function(){
     }
 }
 
-if("dde" !== platform){
 	module.exports = Kin
 	var {sind, cosd, tand, asind, acosd, atand, atan2d} = require("./Trig_in_Degrees.js")
 	var Vector      = require("./Vector.js")
 	var Convert     = require("./Convert.js")
 	var {dde_error} = require("../core/utils.js")
 	var {Dexter}    = require("../core/robot.js")
-}
 
     
     /*

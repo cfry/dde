@@ -2457,3 +2457,4 @@ var txt = new function(){
     
     
 }
+module.exports.txt = txt

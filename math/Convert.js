@@ -122,7 +122,5 @@ class Convert{
     
 }
 
-if("dde" !== platform){
 	module.exports = Convert
 	var Vector = require("./Vector.js")
-}
