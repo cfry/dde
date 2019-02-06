@@ -729,12 +729,7 @@ class Vector{
                 
                 case "percent_difference":
                 if(tolerance > 1){
-                	
-<<<<<<< HEAD
                 	warning("Percent difference tolerance should be within 0 and 1.</br>Input of "
-=======
-                	warning("Percent difference tolerance should be within 0 and 1.</br>Input of " 
->>>>>>> origin/master
                     + tolerance + " changed to " + (tolerance/100) + ".")
                     tolerance = tolerance/100
                 }
