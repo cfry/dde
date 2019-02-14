@@ -5,14 +5,14 @@ const net = require("net")
 //never create an instance
 var Socket = class Socket{
     static init(robot_name, simulate, ip_address, port=50000){
-        out("Creating Socket for ip_address: " + ip_address + " port: "   + port + " robot_name: " + robot_name)
+        //out("Creating Socket for ip_address: " + ip_address + " port: "   + port + " robot_name: " + robot_name)
         const sim_actual = Robot.get_simulate_actual(simulate) //true, false, or "both"
         if(Socket.robot_name_to_ws_instance_map[robot_name]){
             this.close(robot_name, simulate)
         }
         if ((sim_actual === true)  || (sim_actual == "both")) {
             DexterSim.create_or_just_init(robot_name, sim_actual)
-            out("Socket.init Robot[" + robot_name + "].is_connected: " + Robot[robot_name].is_connected)
+            out("Simulating socket for Robot." + robot_name + ". is_connected? " + Robot[robot_name].is_connected)
         }
         if ((sim_actual === false) || (sim_actual == "both")) {
             try {
@@ -310,7 +310,7 @@ var Socket = class Socket{
     static r_payload_grab_aux(payload_string, js_array){
         let job_id = js_array[Dexter.JOB_ID]
         let ins_id = js_array[Dexter.INSTRUCTION_ID]
-        Instruction.Control.read_from_robot.got_content_hunk(job_id, ins_id, payload_string)
+        Instruction.read_from_robot.got_content_hunk(job_id, ins_id, payload_string)
     }
 
     static convert_robot_status_to_degrees(robot_status){

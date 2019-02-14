@@ -29,16 +29,6 @@ var Instruction = class Instruction {
         }
         return false
     }
-    //not a good name. really it means, obj is a non-empty array that isn't an instruction array.
-    //so could have an array of fns or other elts that might go on a do list.
-    //static is_instructions_array(obj){
-    //    return Array.isArray(obj) &&
-    //        (obj.length > 0)   &&
-    //        !Instruction.is_instruction_array(obj)
-        //Instruction.is_instruction_array(obj[0]) ||
-        // Instruction.is_control_instruction(obj[0]) //permit a control instruction in here. thus "is_instructions_array" no longer a good name
-        //)
-    //}
 
     static is_instructions_array(obj){
         if(Array.isArray(obj) &&
@@ -51,19 +41,17 @@ var Instruction = class Instruction {
         }
         else { return false }
     }
-    
-    static is_control_instruction(obj){
-        return obj instanceof Instruction.Control
-    }
 
     static is_start_object(obj){
-        return (typeof(obj) == "object") && (typeof(obj.start) == "function")
+        return ((typeof(obj) == "object") &&
+                (typeof(obj.start) == "function") &&
+                 !(obj instanceof Robot))
     }
     //a valid item to put on a do_list
     //mirrors Job.do_next_item ordering
     static is_do_list_item(item) {
         return ( (item === null) ||
-                 Instruction.is_control_instruction(item) ||
+                 (item instanceof Instruction) ||
                  Instruction.is_instruction_array(item) ||
                  is_iterator(item) ||
                  (typeof(item) === "function") ||
@@ -74,10 +62,10 @@ var Instruction = class Instruction {
     }
     static instruction_color(ins){
         if(Instruction.is_instruction_array(ins)) { return "#FFFFFF" }        //white
-        else if (Instruction.is_control_instruction(ins)) {
+        else if (ins instanceof Instruction) {
             if(ins.constructor.name.startsWith("human")) { return "#ffb3d1" } //pink
-            else if (ins instanceof Instruction.Control.break)    { return "red" }
-            else if (ins instanceof Instruction.Control.debugger) { return "red" }
+            else if (ins instanceof Instruction.break)    { return "red" }
+            else if (ins instanceof Instruction.debugger) { return "red" }
             else                                         { return "#e6b3ff" } //lavender
         }
         else if (is_generator_function(ins)) { return "#ccffcc" }             //green
@@ -93,7 +81,7 @@ var Instruction = class Instruction {
             let text = JSON.stringify(ins) //we want 1 line here, not the multi-lines that stringify_value(ins) puts out
             return "<span title='" + Robot.instruction_type_to_function_name(ins[Instruction.INSTRUCTION_TYPE]) + "'>" + text + "</span>"
          }
-        else if (Instruction.is_control_instruction(ins)) {
+        else if (ins instanceof Instruction) {
             let name = ins.constructor.name
             let props = ""
             for(let prop_name of Object.keys(ins)){
@@ -121,7 +109,7 @@ var Instruction = class Instruction {
             let text = JSON.stringify(ins.slice(4)) //we want 1 line here, not the multi-lines that stringify_value(ins) puts out
             return "<span title='" + Robot.instruction_type_to_function_name(ins[Instruction.INSTRUCTION_TYPE]) + "'>" + text + "</span>"
         }
-        else if (Instruction.is_control_instruction(ins)) {
+        else if (ins instanceof Instruction) {
             let name = ins.constructor.name
             let props = ""
             for(let prop_name of Object.keys(ins)){
@@ -165,6 +153,32 @@ var Instruction = class Instruction {
         }
         return instrs
     }
+
+    //this helps catch mismatches of instruction robot and job robot quickly with
+    //a good error message.
+    set_instruction_robot_from_job(job_instance){
+        let error_mess_or_true = this.can_instruction_run_on_robot(job_instance.robot)
+        if (typeof(error_mess_or_true) == "string") {
+            dde_error(error_mess_or_true)
+        }
+        else { this.robot = job_instance.robot }
+    }
+    //returns true or a string of an error message
+    can_instruction_run_on_robot(robot_instance){
+        let job_robot_class_name  = robot_instance.constructor.name
+        let instruction_class_name = Object.getPrototypeOf(this).constructor.name
+        if(instruction_class_name == "Instruction") { return true } //can run on any robot
+        let instruction_superclass_name = Object.getPrototypeOf(Object.getPrototypeOf(this)).constructor.name; //often "Control"
+        if(instruction_superclass_name == job_robot_class_name) { //ie "Dexter", "Serial"
+            return true
+        }
+        else {
+            return "In Job: " + job_instance.name + ",<br/>" +
+                "attempt to run instruction: " + instruction_superclass_name + "." + instruction_class_name + "<br/>" +
+                "on Robot of class: " + job_robot_class_name + "<br/>" +
+                "but that Robot can't handle instructions of class: " + instruction_superclass_name
+        }
+    }
 }
 
 Instruction.labels = [
@@ -203,6 +217,8 @@ Instruction.args = function(ins_array){
 }
 
 //user might call this at top level in a do_list so make it's name short.
+//the last arg can be a Dexter robot, but if not, the robot comes from the
+//default robot for the job that this instruction is in.
 function make_ins(instruction_type, ...args){
     if(!Dexter.instruction_type_to_function_name_map[instruction_type] &&
        !Serial.instruction_type_to_function_name_map[instruction_type]){
@@ -222,19 +238,10 @@ module.exports.make_ins = make_ins
 //make_ins("a", 1, 2, 3, 4, 5) works
 //make_ins("a", ...[1, 2, 3, 4, 5]) works
 
-Instruction.Control = class Control extends Instruction{
-    do_item(job_instance){
-        job_instance.stop_for_reason("errored",
-                                      "do_next_item got unrecognized control instruction: " +
-                                      this)
-        job_instance.do_next_item()
-    }
-}
-
-Instruction.Control.break = class Break extends Instruction.Control{ //class name must be upper case because lower case conflicts with js break
+Instruction.break = class Break extends Instruction{ //class name must be upper case because lower case conflicts with js break
     constructor () { super() }
-    do_item (job_instance){ //shouldnt("Instruction.Control.break do_item called but should be handled in do_next_item directly.")
-        let loop_pc = Instruction.Control.loop.pc_of_enclosing_loop(job_instance)
+    do_item (job_instance){
+        let loop_pc = Instruction.loop.pc_of_enclosing_loop(job_instance)
         if (loop_pc === null) {
             warning("Job " + job_instance.name + ' has a Robot.break instruction at pc: ' + job_instance.program_counter +
                 "<br/> but there is no Robot.loop instruction above it.")
@@ -254,9 +261,9 @@ Instruction.Control.break = class Break extends Instruction.Control{ //class nam
     to_source_code(args={indent:""}){ return args.indent + "Robot.break()" }
 }
 
-Instruction.Control.debugger = class Debugger extends Instruction.Control{ //class name must be upper case because lower case conflicts with js debugger
+Instruction.debugger = class Debugger extends Instruction{ //class name must be upper case because lower case conflicts with js debugger
     constructor () { super() }
-    do_item (job_instance){ //shouldnt("Instruction.Control.break do_item called but should be handled in do_next_item directly.")
+    do_item (job_instance){
         Job.set_go_button_state(false)
         job_instance.set_up_next_do(1, true)
     }
@@ -264,7 +271,7 @@ Instruction.Control.debugger = class Debugger extends Instruction.Control{ //cla
     to_source_code(args={indent:""}){ return args.indent + "Robot.debugger()" }
 }
 
-Instruction.Control.error = class error extends Instruction.Control{
+Instruction.error = class error extends Instruction{
     constructor (reason) {
         super()
         this.reason = reason
@@ -287,7 +294,7 @@ Instruction.Control.error = class error extends Instruction.Control{
 }
 
 //upper case G to avoid a conflict, but the user instruction is spelled Robot.get_page
-Instruction.Control.Get_page = class Get_page extends Instruction.Control{
+Instruction.Get_page = class Get_page extends Instruction{
     constructor (url_or_options, response_variable_name="http_response") {
         super()
         this.url_or_options = url_or_options
@@ -335,7 +342,7 @@ Instruction.Control.Get_page = class Get_page extends Instruction.Control{
     }
 }
 
-Instruction.Control.go_to = class go_to extends Instruction.Control{
+Instruction.go_to = class go_to extends Instruction{
     constructor (instruction_location) {
         super()
         if (instruction_location === undefined){
@@ -370,7 +377,7 @@ Instruction.Control.go_to = class go_to extends Instruction.Control{
     }
 }
 
-Instruction.Control.grab_robot_status = class grab_robot_status extends Instruction.Control{
+Instruction.grab_robot_status = class grab_robot_status extends Instruction{
     constructor (user_data_variable = "grabbed_robot_status", //a string
                  start_index = Serial.DATA0, //integer, but can also be "all"
                  end_index=null,  //if integer and same as start_index,
@@ -432,7 +439,7 @@ Instruction.Control.grab_robot_status = class grab_robot_status extends Instruct
     }
 }
 
-Instruction.Control.human_recognize_speech = class human_recognize_speech extends Instruction.Control{
+Instruction.human_recognize_speech = class human_recognize_speech extends Instruction{
     constructor (args){
         super()
         this.args = args
@@ -462,7 +469,7 @@ Instruction.Control.human_recognize_speech = class human_recognize_speech extend
     }
 }
 
-Instruction.Control.human_speak = class human_speak extends Instruction.Control{
+Instruction.human_speak = class human_speak extends Instruction{
     constructor (args){
         super()
         this.args = args
@@ -497,7 +504,7 @@ Instruction.Control.human_speak = class human_speak extends Instruction.Control{
     }
 }
 
-Instruction.Control.human_task = class human_task extends Instruction.Control{
+Instruction.human_task = class human_task extends Instruction{
     constructor ({task="",
                   title, //don't give this default of "" because we reserve that for when you want NO title.
                          //without passing this, or passing "undefined", you get a smart default including the job name and "Human Task"
@@ -576,7 +583,7 @@ var human_task_handler = function(vals){
 }
 module.exports.human_task_handler = human_task_handler
 
-Instruction.Control.human_enter_choice = class human_enter_choice extends Instruction.Control{
+Instruction.human_enter_choice = class human_enter_choice extends Instruction{
     constructor ({task="", user_data_variable_name="choice", choices=[], dependent_job_names=[],
                   show_choices_as_buttons=false, one_button_per_line=false,
                   add_stop_button=true,
@@ -725,7 +732,7 @@ var human_enter_choice_set_var = function (job_instance, choice_string, choices_
     }
 }
 
-Instruction.Control.human_enter_filepath = class human_filepath extends Instruction.Control{
+Instruction.human_enter_filepath = class human_filepath extends Instruction{
     constructor ({task="",
                   user_data_variable_name="a_filepath",
                   initial_value="",
@@ -816,7 +823,7 @@ function human_enter_filepath_handler(vals){
 module.exports.human_enter_filepath_handler = human_enter_filepath_handler
 
 
-Instruction.Control.human_enter_instruction = class human_enter_instruction extends Instruction.Control{
+Instruction.human_enter_instruction = class human_enter_instruction extends Instruction{
     constructor ({task = "Enter a next instruction for this Job.",
                   instruction_type = "Dexter.move_all_joints",
                   instruction_args = "0, 0, 0, 0, 0",
@@ -1076,7 +1083,7 @@ var human_enter_instruction_job_source_to_save = function(job_instance){
     return result + "Job." + new_job_name + ".start()\n"
 }
 
-Instruction.Control.human_enter_number = class human_enter_number extends Instruction.Control{
+Instruction.human_enter_number = class human_enter_number extends Instruction{
     constructor (  {task="",
                     user_data_variable_name="a_number",
                     initial_value=0,
@@ -1211,7 +1218,7 @@ module.exports.human_enter_number_handler = human_enter_number_handler
 
 
 //beware: Human.enter_position returns an array of Dexter.follow_me AND an instance of this class.
-Instruction.Control.human_enter_position = class human_enter_position extends Instruction.Control{
+Instruction.human_enter_position = class human_enter_position extends Instruction{
     constructor (  {task="Position Dexter&apos;s end effector<br/>to the position that you want to record,<br/>and click <b>Continue Job</b>.",
                     user_data_variable_name="a_position",
                     add_stop_button = true,
@@ -1307,7 +1314,7 @@ var human_enter_position_handler = function(vals){
 module.exports.human_enter_position_handler = human_enter_position_handler
 
 
-Instruction.Control.human_enter_text = class human_enter_text extends Instruction.Control{
+Instruction.human_enter_text = class human_enter_text extends Instruction{
     constructor ({task="",
                     user_data_variable_name="a_text",
                     initial_value="",
@@ -1412,7 +1419,7 @@ var human_enter_text_handler = function(vals){
 module.exports.human_enter_text_handler = human_enter_text_handler
 
 
-Instruction.Control.human_notify = class human_notify extends Instruction.Control{
+Instruction.human_notify = class human_notify extends Instruction{
     constructor ({task="",
                   window=true,
                   output_pane=true,
@@ -1495,10 +1502,10 @@ Instruction.Control.human_notify = class human_notify extends Instruction.Contro
     }
 }
 
-Instruction.Control.human_notify.window_x = 0
-Instruction.Control.human_notify.window_y = 0
+Instruction.human_notify.window_x = 0
+Instruction.human_notify.window_y = 0
 
-Instruction.Control.human_show_window = class human_show_window extends Instruction.Control{
+Instruction.human_show_window = class human_show_window extends Instruction{
     constructor (sw_lit_obj_args = {}) {
         super()
         this.win_index = null
@@ -1542,7 +1549,7 @@ var human_show_window_handler = function(vals){
 module.exports.human_show_window_handler = human_show_window_handler
 
 
-Instruction.Control.if_any_errors = class if_any_errors extends Instruction.Control{
+Instruction.if_any_errors = class if_any_errors extends Instruction{
     constructor (job_names=[], instruction_if_error=null) {
         super()
         this.job_names = job_names
@@ -1582,7 +1589,7 @@ Instruction.Control.if_any_errors = class if_any_errors extends Instruction.Cont
     }
 }
 
-Instruction.Control.label = class label extends Instruction.Control{
+Instruction.label = class label extends Instruction{
     //also job_names may or may not contain the name of the current job. It doesn't matter.
     constructor (name) {
         super()
@@ -1601,7 +1608,7 @@ Instruction.Control.label = class label extends Instruction.Control{
     }
 }
 
-Instruction.Control.loop = class Loop extends Instruction.Control{
+Instruction.loop = class Loop extends Instruction{
     constructor (times_to_loop, body_fn) {
         super()
         this.times_to_loop   = times_to_loop
@@ -1712,7 +1719,7 @@ Instruction.Control.loop = class Loop extends Instruction.Control{
            }
            //body_fn_result can legitimately be the empty array at this point.
            //it might also contain a Robot.break instruction.
-           let go_to_ins = new Instruction.Control.go_to(job_instance.program_counter)
+           let go_to_ins = new Instruction.go_to(job_instance.program_counter)
            body_fn_result.push(go_to_ins)
            return body_fn_result
        }
@@ -1724,7 +1731,7 @@ Instruction.Control.loop = class Loop extends Instruction.Control{
     static pc_of_enclosing_loop(job_instance){
         for(let a_pc  = job_instance.program_counter; a_pc >=0; a_pc--){
             let a_ins = job_instance.do_list[a_pc]
-            if(a_ins instanceof Instruction.Control.loop) { return a_pc }
+            if(a_ins instanceof Instruction.loop) { return a_pc }
         }
         return null // not good. we didn't find an enclosing loop. this will become a warning.
     }
@@ -1736,8 +1743,8 @@ Instruction.Control.loop = class Loop extends Instruction.Control{
     }
 }
 
-Instruction.Control.out = class Out extends Instruction.Control{
-    constructor (val, color, temp) {
+Instruction.out = class Out extends Instruction{
+    constructor (val="", color="black", temp=false) {
         super()
         this.val   = val
         this.color = color
@@ -1759,7 +1766,7 @@ Instruction.Control.out = class Out extends Instruction.Control{
 }
 
 /*Obsoleted by just putting a phrase directly on the do_list
-Instruction.Control.play_notes = class play_notes extends Instruction.Control{
+Instruction.play_notes = class play_notes extends Instruction{
     constructor (note_or_phrase) {
         super()
         if (typeof(note_or_phrase) == "string"){
@@ -1781,7 +1788,7 @@ Instruction.Control.play_notes = class play_notes extends Instruction.Control{
     }
 }*/
 
-Instruction.Control.send_to_job = class send_to_job extends Instruction.Control{
+Instruction.send_to_job = class send_to_job extends Instruction{
     constructor ({//to_job_name     = "required",
                   do_list_item    = null, //can be null, a single instruction, or an array of instructions
                   where_to_insert = "required", //"next_top_level",
@@ -1855,7 +1862,7 @@ Instruction.Control.send_to_job = class send_to_job extends Instruction.Control{
             //                     from_instruction_id:  params.from_instruction_id,
             //                     status_variable_name: params.status_variable_name
             //                    }
-            var notify_item = new Instruction.Control.destination_send_to_job_is_done(params)
+            var notify_item = new Instruction.destination_send_to_job_is_done(params)
             //notify_item is appeneded to the end of do_items, and the whole array of instructions
             //stuck into the destination job's do_list
             if (do_items == null){
@@ -1878,7 +1885,7 @@ Instruction.Control.send_to_job = class send_to_job extends Instruction.Control{
             }
         }
         // next, bundle do_items into a sent_from_job instruction and stick it on the to_job
-        let sfj_ins = new Instruction.Control.sent_from_job({do_list_item: do_items,
+        let sfj_ins = new Instruction.sent_from_job({do_list_item: do_items,
                                                      from_job_name: from_job_instance.name,
                                                      from_instruction_id: from_job_instance.program_counter,
                                                      where_to_insert: params.where_to_insert, //just for debugging
@@ -1904,7 +1911,7 @@ Instruction.Control.send_to_job = class send_to_job extends Instruction.Control{
     }
 }
 
-Instruction.Control.send_to_job.param_names = ["do_list_item",    "where_to_insert",
+Instruction.send_to_job.param_names = ["do_list_item",    "where_to_insert",
                                                "wait_until_done", "start",
                                                "unsuspend",       "status_variable_name",
                                                "from_job_name",   "from_instruction_id",
@@ -1912,7 +1919,7 @@ Instruction.Control.send_to_job.param_names = ["do_list_item",    "where_to_inse
 
 //user's never create this directly, but an instance of this is created by destination_do_send_to_job
 //and stuck on the to_job do_list.
-Instruction.Control.destination_send_to_job_is_done = class destination_send_to_job_is_done extends Instruction.Control{
+Instruction.destination_send_to_job_is_done = class destination_send_to_job_is_done extends Instruction{
     constructor (params){
         super()
         this.params = params
@@ -1920,7 +1927,7 @@ Instruction.Control.destination_send_to_job_is_done = class destination_send_to_
     do_item(job_instance){ //job_instance is the "to" job
         var from_job_instance = Job[this.params.from_job_name]
         for (var user_var of Object.getOwnPropertyNames(this.params)){ //we can have multiple user_data vars that we set. The vars arae set in the sending job
-            if(Instruction.Control.send_to_job.param_names.indexOf(user_var) == -1){ //if its not one of the regular paranms. that means its the name of a user_data var to set in the from_job_instance
+            if(Instruction.send_to_job.param_names.indexOf(user_var) == -1){ //if its not one of the regular paranms. that means its the name of a user_data var to set in the from_job_instance
                 var fn = this.params[user_var]
                 if (typeof(fn) == "function"){
                     var val = fn.call(job_instance)
@@ -1928,7 +1935,7 @@ Instruction.Control.destination_send_to_job_is_done = class destination_send_to_
                 }
                 else {
                     job_instance.stop_for_reason("errored", "In job: " + job_instance.name +
-                        " Instruction.Control.destination_send_to_job_is_done.do_item got user var: " + user_var +
+                        " Instruction.destination_send_to_job_is_done.do_item got user var: " + user_var +
                         " whose value: " + fn + " is not a function.")
                     return
                 }
@@ -1940,7 +1947,7 @@ Instruction.Control.destination_send_to_job_is_done = class destination_send_to_
 }
 
 //an instance of this instr is stuck on the to_job by instr send_to_job
-Instruction.Control.sent_from_job = class sent_from_job extends Instruction.Control{
+Instruction.sent_from_job = class sent_from_job extends Instruction{
     constructor ({do_list_item       = null, //can be null, a single instruction, or an array of instructions
                  from_job_name       = "required",
                  from_instruction_id = "required",
@@ -1967,7 +1974,7 @@ Instruction.Control.sent_from_job = class sent_from_job extends Instruction.Cont
     }
 }
 
-Instruction.Control.start_job = class start_job extends Instruction.Control{
+Instruction.start_job = class start_job extends Instruction{
     constructor (job_name, start_options={}, if_started="ignore", wait_until_job_done=false) {
         if(!["ignore", "error", "restart"].includes(if_started)){
             dde_error("Robot.start_job has invalid value for if_started of: " +
@@ -2099,7 +2106,7 @@ Instruction.Control.start_job = class start_job extends Instruction.Control{
     }
 }
 
-Instruction.Control.stop_job = class stop_job extends Instruction.Control{
+Instruction.stop_job = class stop_job extends Instruction{
     constructor (instruction_location="program_counter", stop_reason=null, perform_when_stopped=false) {
         super()
         this.instruction_location = instruction_location
@@ -2144,27 +2151,7 @@ Instruction.Control.stop_job = class stop_job extends Instruction.Control{
     }
 }
 
-//for Serial.string_instruction when we have a Robot.Serial instance
-Instruction.Control.string_instruction = class string_instruction extends Instruction.Control{
-    constructor (instruction_string, robot = null //this is a robot instance. spelling of this prop name is important. Used by other methods & classes
-                ) {
-        super()
-        this.inst_array = Serial.string_instruction(instruction_string)
-        this.robot = robot
-    }
-    do_item (job_instance){
-        if (!this.robot) { this.robot = job_instance.robot }
-        //job_instance.wait_until_instruction_id_has_run = job_instance.program_counter// dont
-        //do this here because in the case that we have a robot, we might still be
-        //in the "connecting" state, ie initing the robot, in which case,
-        //we don't want to be waiting for this instruction because that
-        //will preclude processing of the instruction by the lower part of do_next_item.
-        job_instance.send(this.inst_array, this.robot)
-        //don't set up next do. That's handled by the wait_until_instruction_id_has_run code
-    }
-}
-
-Instruction.Control.suspend = class suspend extends Instruction.Control{
+Instruction.suspend = class suspend extends Instruction{
     constructor (job_name = null, reason = "") {
         super()
         if (job_name instanceof Job) { job_name = job_name.name }
@@ -2194,7 +2181,7 @@ Instruction.Control.suspend = class suspend extends Instruction.Control{
     }
 }
 
-Instruction.Control.unsuspend = class unsuspend extends Instruction.Control{
+Instruction.unsuspend = class unsuspend extends Instruction{
     constructor (job_name = "required") {
         super()
         if(job_name == "required"){
@@ -2224,7 +2211,7 @@ Instruction.Control.unsuspend = class unsuspend extends Instruction.Control{
     }
 }
 
-Instruction.Control.sync_point = class sync_point extends Instruction.Control{
+Instruction.sync_point = class sync_point extends Instruction{
         //permit an empty array for job_names. We might be getting such an array from some computation
         //that legitimately has no items. Allow it. Then when this instruction's do_item is called,
         //it will always be in_sync and proceed. Empty job_names also useful for send_to_job
@@ -2239,88 +2226,6 @@ Instruction.Control.sync_point = class sync_point extends Instruction.Control{
             this.job_names = job_names
             this.inserted_empty_instruction_queue = false
         }
-    /*The  below started from my old arch (pre aug 2016) in which when a sync point was encoutered,
-      and its other jobs hadn't reach their sync points yet, this job simly didn't have
-      its set_up_next_do called so it just was frozen.
-      Then the last job of the sync job group, got to here, it could "unfreeze" all the
-      other jobs. The great thing about this arch is that the 'frozen jobs' took up zreo compute time.
-      BUT when we want to move to the new arch of allowing job_a to wait for job_b but NOT have
-       job_b wait for job_a, this is no longer any good, because we would start out with Job_a
-       waiting for job_b. Then Job b comes along and jsut breezes though its sync point
-       since it doesn't wait for any job, and now job_a is hanging with no one to start it up again,
-       even though the sync point it was waiting for in job b had been achieved.
-       So job_a has to call set_up_next_do(0) while its waiting, just to see
-       if job_b has made it through its sync point. This is slower but will work,
-       however that means we have to get rid of the code wherein the last
-       job to reach its sync point unfreezes all the other jobs because we
-       really don't want to have a job get set_up_next_do called twice when
-       it is unfrozen. So in the new implementaiton (after this comment)
-       each job unfreezes itself. Slower, but gives us the
-       increased funtionality of the one_sided dependency with no extra args to sync_point.
-       If the slowdown becomes important we could re-implement the old sync point,
-       and have a different instruction to do the one_sides algorithm which is slower.
-
-    do_item (job_instance){
-        for(let job_name of this.job_names){
-            if (job_name != job_instance.name){ //ignore self
-                var j_inst = Job[job_name]
-                if(!j_inst){
-                    job_instance.stop_for_reason("errored",
-                                                 "Job." + job_instance.name +
-                                                 " has a sync_point instruction that has a job-to-sync-with named: " + job_name +
-                                                 " which is not defined.")
-                    return;
-                }
-                // j_inst might have stopped, and perhaps completed fine so don't halt syn_point
-                //   just because a job is stopped.
-                // else if (j_inst.stop_reason){
-                //    job_instance.stop_for_reason("errored", "sync_point has a job-to-sync-with named: Job." + job_name +
-                //                                 " that has already stopped.")
-                //    return;
-                //}
-                else if (j_inst.program_counter < 0) {//j_inst hasn't started yet. That's ok, it just hasn't reached the sync point.
-                        job_instance.wait_reason = "for Job." + j_inst.name + " to get to sync_point named: " + this.name + " but that Job hasn't started yet.."
-                        //job_instance.status_code = "waiting" //don't change this from "not_started"
-                        return
-                }
-                else {
-                    var cur_instruction = j_inst.do_list[j_inst.program_counter]
-                    if (j_inst.at_or_past_sync_point(this.name)){ continue; } //good. j_inst is at the sync point.
-                          //beware that j_inst *could* be at a sync point of a different name, and if so,
-                          //let's hope there's a 3rd job that it will sync with to get it passed that sync point.
-                    else { //j_inst didn't get to sync point yet
-                        job_instance.wait_reason = "for Job." + j_inst.name + " to get to sync_point named: " + this.name
-                        job_instance.status_code = "waiting"
-                        return; //we have not acheived sync, so just pause job_instance, in hopes
-                                //that another job will be the last job to reach sync and force job_instance
-                                //to proceed.
-                    }
-                }
-            }
-        }
-        //made it through all job_names, so everybody's in sync
-        for(let job_name of this.job_names){
-            let j_inst = Job[job_name]
-            let cur_ins = j_inst.current_instruction()
-            if ((cur_ins instanceof Instruction.Control.sync_point) &&
-                (cur_ins.name == this.name) &&
-                (j_inst.status_code == "waiting")){ //beware that j_inst *might* already be past the
-                //sync point, or even stopped from completion, so above makes sure its merely AT the sync point, thus we can
-                //get it going again (but not attempt to do that if its already past the sync point).
-                j_inst.wait_reason = null
-                j_inst.status_code = "running"
-                j_inst.set_up_next_do(1)
-            }
-        }
-        //note that the above does NOT process job_instance because job_instance.status_code
-        //will be "running". If we get this far, job_instance will be the last
-        //sync_point job to reach its sync_point, and it will still be running,
-        //so just tell it to keep going with the below call to set_up.
-        //We put the below code AFTER the above loop so that the other jobs
-        //that reached their sync point first will be allowed to go ahead before job_instance.
-        job_instance.set_up_next_do(1)
-    }
-    */
     do_item (job_instance){
         if ((job_instance.robot instanceof Dexter) &&
             (this.inserted_empty_instruction_queue == false) &&
@@ -2381,7 +2286,7 @@ Instruction.Control.sync_point = class sync_point extends Instruction.Control{
     }
 }
 
-Instruction.Control.wait_until = class wait_until extends Instruction.Control{
+Instruction.wait_until = class wait_until extends Instruction{
     constructor (fn_date_dur) {
         super()
         this.fn_date_dur = fn_date_dur
@@ -2604,750 +2509,9 @@ function adjust_angle_args(array_of_angles){
     return result
 }
 
-Instruction.Control.move_all_joints = class move_all_joints extends Instruction.Control{
-    constructor (array_of_angles, robot) {
-        super()
-        this.array_of_angles = array_of_angles //keep for orig 5 angles so to_source_code can use them. May contain nulls
-        this.robot = robot //if this is undefined, we will use the default robot of the job.
-    }
-    do_item (job_instance){
-        if(!this.robot) { this.robot = job_instance.robot }
-        let angles = []
-        for (let i = 0; i < 5; i++){
-            let ang = this.array_of_angles[i]
-            if ((ang === undefined) || //happens when array is less than 5 long
-                Number.isNaN(ang)) {
-                angles.push(this.robot.angles[i]) //this.robot_status[Dexter.ds_j0_angle_index + i] //ie don't change angle
-            }
-            else if (Array.isArray(ang)) {  //relative move by the first elt of the array
-                angles.push(this.robot.angles[i] + ang[0])
-            }
-            else { angles.push(ang) }
-        }
-        //angles is now 5 long
-        for(let i = 5; i < this.array_of_angles.length; i++) {
-            let ang = this.array_of_angles[i]
-            if ((ang === undefined) ||
-                Number.isNaN(ang)) {
-                angles.push(NaN) //this.robot_status[Dexter.ds_j0_angle_index + i] //ie don't change angle
-            }
-            else if (Array.isArray(ang)) {  //relative move by the first elt of the array
-                angles.push(this.robot.angles[i] + ang[0])
-            }
-            else { angles.push(ang) }
-        }
-        //angles is at least 5 long, could be 6 or 7
-        let error_mess = Dexter.joints_out_of_range(angles)
-        if (error_mess){ // a string like "Joint 1 with angle: 0.01 is less than the minimum: 30
-            job_instance.stop_for_reason("errored",
-                error_mess + "\nin Job." + job_instance.name + " at PC: " + job_instance.program_counter +
-                "\nin Robot.move_all_joints([" + angles + "])")
-            job_instance.set_up_next_do(0)
-        }
-        else  {
-            //this.robot.angles = angles
-            for(let i = 0; i < angles.length; i++) { this.robot.angles[i] = angles[i] }
-            //job_instance.insert_single_instruction(make_ins("a", ...angles))
-            job_instance.wait_until_instruction_id_has_run = job_instance.program_counter
-            job_instance.send(make_ins("a", ...angles), this.robot)
-            //job_instance.set_up_next_do(1) //effectively done in robot_done_with_instruction
-        }
-    }
-    toString(){
-        return "{instanceof: move_all_joints " + this.array_of_angles + "}"
-    }
-    to_source_code(args={indent:""}){
-        args = jQuery.extend({}, args)
-        args.value = this.array_of_angles
-        args.indent = ""
-        return args.indent + "Dexter.move_all_joints(" + to_source_code(args) + ")"
-    }
-}
 
-Instruction.Control.pid_move_all_joints = class pid_move_all_joints extends Instruction.Control{
-    constructor (array_of_angles, robot) {
-        super()
-        this.array_of_angles = array_of_angles //keep for orig 5 angles so to_source_code can use them. May contain nulls
-        this.robot = robot
-    }
-    do_item (job_instance){
-        if(!this.robot) { this.robot = job_instance.robot }
-        let angles = []
-        for (let i = 0; i < 5; i++){
-            let ang = this.array_of_angles[i]
-            if ((ang === undefined) || //happens when array is less than 5 long
-                Number.isNaN(ang)) {
-                angles.push(this.robot.pid_angles[i]) //this.robot_status[Dexter.ds_j0_angle_index + i] //ie don't change angle
-            }
-            else if (Array.isArray(ang)) {  //relative move by the first elt of the array
-                angles.push(this.robot.pid_angles[i] + ang[0])
-            }
-            else { angles.push(ang) }
-        }
-        //angles is now 5 long
-        for(let i = 5; i < this.array_of_angles.length; i++) {
-            let ang = this.array_of_angles[i]
-            if ((ang === undefined) ||
-                Number.isNaN(ang)) {
-                angles.push(NaN) //this.robot_status[Dexter.ds_j0_angle_index + i] //ie don't change angle
-            }
-            else if (Array.isArray(ang)) {  //relative move by the first elt of the array
-                angles.push(this.robot.pid_angles[i] + ang[0])
-            }
-            else { angles.push(ang) }
-        }
-        let error_mess = Dexter.joints_out_of_range(angles)
-        if (error_mess){ // a string like "Joint 1 with angle: 0.01 is less than the minimum: 30
-            job_instance.stop_for_reason("errored",
-                error_mess + "\nin Job." + job_instance.name + " at PC: " + job_instance.program_counter +
-                "\nin Robot.pid_move_all_joints([" + angles + "])")
-            job_instance.set_up_next_do(0)
-        }
-        else  {
-            for(let i = 0; i < angles.length; i++) { this.robot.pid_angles[i] = angles[i] }
-            //job_instance.insert_single_instruction(make_ins("P", ...angles))
-            job_instance.wait_until_instruction_id_has_run = job_instance.program_counter
-            job_instance.send(make_ins("P", ...angles), this.robot)
-            // job_instance.set_up_next_do(1) //called by robot_done_with_instruction
-        }
-    }
-    toString(){
-        return "{instanceof: pid_move_all_joints " + this.array_of_angles + "}"
-    }
-    to_source_code(args={indent:""}){
-        args        = jQuery.extend({}, args)
-        args.value  = this.array_of_angles
-        args.indent = ""
-        return args.indent + "Dexter.pid_move_all_joints(" + to_source_code(args) + ")"
-    }
-}
-
-Instruction.Control.move_all_joints_relative = class move_all_joints_relative extends Instruction.Control{
-    constructor (delta_angles, robot) {
-        super()
-        this.delta_angles = delta_angles //keep for orig 5 angles so to_source_code can use them. May contain nulls
-        this.robot = robot
-    }
-    do_item (job_instance){
-        if(!this.robot) { this.robot = job_instance.robot }
-        let angles = [] //the absolute angles after the rel has been added in
-        for (let i = 0; i < 5; i++){
-            let ang = this.delta_angles[i]
-            if ((ang === undefined) || //happens when array is less than 5 long
-                Number.isNaN(ang)) {
-                angles.push(this.robot.angles[i]) //this.robot_status[Dexter.ds_j0_angle_index + i] //ie don't change angle
-            }
-            else if (Array.isArray(ang)) {  //relative move by the first elt of the array
-                //angles.push(this.robot.angles[i] + ang[0])
-                dde_error("move_all_joints_relative passed an array: " + ang +
-                          " but can only accept numbers as these are already relative.")
-            }
-            else { angles.push(this.robot.angles[i] + ang) }
-        }
-        //angles is now 5 long
-        for(let i = 5; i < this.delta_angles.length; i++) {
-            let ang = this.delta_angles[i]
-            if ((ang === undefined) ||
-                Number.isNaN(ang)) {
-                angles.push(NaN) //this.robot_status[Dexter.ds_j0_angle_index + i] //ie don't change angle
-            }
-            else if (Array.isArray(ang)) {
-                dde_error("move_all_joints_relative passed an array: " + ang +
-                    " but can only accept numbers as these are already relative.")
-
-            }
-            else { angles.push(this.robot.angles[i] + ang) }
-        }
-        //angles is at least 5 long, could be 6 or 7
-        let error_mess = Dexter.joints_out_of_range(angles)
-        if (error_mess){ // a string like "Joint 1 with angle: 0.01 is less than the minimum: 30
-            job_instance.stop_for_reason("errored",
-                error_mess + "\nin Job." + job_instance.name + " at PC: " + job_instance.program_counter +
-                "\nin Robot.move_all_joints_relative([" + angles + "])")
-            job_instance.set_up_next_do(0)
-        }
-        else  {
-            //this.robot.angles = angles
-            for(let i = 0; i < angles.length; i++) { this.robot.angles[i] = angles[i] }
-            //job_instance.insert_single_instruction(make_ins("a", ...angles))
-            job_instance.wait_until_instruction_id_has_run = job_instance.program_counter
-            job_instance.send(make_ins("a", ...angles), this.robot)
-            //job_instance.set_up_next_do(1) //effectively done in robot_done_with_instruction
-        }
-    }
-    toString(){
-        return "{instanceof: move_all_joints_relative " + this.delta_angles + "}"
-    }
-    to_source_code(args={indent:""}){
-        args        = jQuery.extend({}, args)
-        args.value  = this.delta_angles
-        args.indent = ""
-        return args.indent + "Dexter.move_all_joints_relative(" + to_source_code(args) + ")"
-    }
-}
-
-Instruction.Control.move_to = class move_to extends Instruction.Control{
-    constructor (xyz           = [],
-                 J5_direction  = [0, 0, -1],
-                 config        = Dexter.RIGHT_UP_OUT,
-                 workspace_pose = null, //default's to the job's default_workspace_pose
-                 j6_angle = [0], //default is to move relatively 0, ie don't change
-                 j7_angle = [0],
-                 robot
-                 ){
-        super()
-        this.xyz            = xyz
-        this.J5_direction   = J5_direction
-        this.config         = config
-        this.workspace_pose = ((workspace_pose === null) ? undefined : workspace_pose)
-        this.j6_angle       = j6_angle
-        this.j7_angle       = j7_angle
-        this.robot          = robot
-       }
-    do_item (job_instance){
-        if(!this.robot) { this.robot = job_instance.robot }
-        let xyz          = this.xyz
-        let J5_direction = this.J5_direction
-        let config       = this.config
-        let pose         = this.workspace_pose
-        if(Dexter.is_position(this.xyz)){
-            pose         = J5_direction
-            xyz          = this.xyz[0]
-            J5_direction = this.xyz[1]
-            config       = this.xyz[2]
-
-        }
-        let [existing_xyz, existing_direction, existing_config] = Kin.J_angles_to_xyz(this.robot.angles, this.robot.pose) //just to get defaults.
-        if(J5_direction === null) { J5_direction = existing_direction }
-        if(config       === null) { config       = existing_config }
-        if(Array.isArray(J5_direction) &&
-            (J5_direction.length == 2) &&
-            (Math.abs(J5_direction[0]) == 90) &&
-            (Math.abs(J5_direction[1]) == 90)){
-            job_instance.stop_for_reason("errored",
-                "In Job." + job_instance.name + " at PC: " + job_instance.program_counter +
-                "\nDexter.move_to([" + xyz + "], [" + J5_direction + "])\n" +
-                "was passed an invalid J5_direction." +
-                "\n[90, 90], [-90, 90], [90, -90] and [-90, -90]\n are all invalid.")
-        }
-        let xyz_copy = xyz.slice(0)
-        for(let i = 0; i < 3; i++){
-            let new_x_y_or_z = xyz_copy[i]
-            if (xyz_copy.length <= i)             { xyz_copy.push(existing_xyz[i]) }
-            else if (new_x_y_or_z == null)        { xyz_copy[i] = existing_xyz[i]  } //does not hit if new_x_y_or_z is 0
-            else if (Array.isArray(new_x_y_or_z)) { xyz_copy[i] = existing_xyz[i] + new_x_y_or_z[0] } //relative "new val"
-        }
-        if(pose == null) { pose = job_instance.default_workspace_pose }
-
-        if (Object.isNewObject(pose)) { pose = pose.pose }
-        if (Object.isNewObject(J5_direction)) {
-            J5_direction = J5_direction.pose
-            config       = undefined
-            pose         = undefined
-        }
-        else if (Array.isArray(J5_direction)) {
-            if (Array.isArray(J5_direction[0])) { //J5_direciton is a 2d array
-                config = undefined
-                pose   = undefined
-            }
-            //else its a 1D array, so use config and pose as they are
-        }
-        else {
-            dde_error("Dexter.move_to passed invalid 5_direction of: " + J5_direction)
-        }
-        let angles
-        try {
-            angles = Kin.xyz_to_J_angles(xyz_copy, J5_direction, config, pose) //was: job_instance.robot.pose
-            //angles is now 5 long
-        }
-        catch(err){
-            job_instance.stop_for_reason("errored",
-                "In Job." + job_instance.name + " at PC: " + job_instance.program_counter +
-                "\nDexter.move_to([" + xyz + "], [" + J5_direction + "])" +
-                "\nwas passed invalid xyz.\n " +
-                err.message)
-            job_instance.set_up_next_do(0)
-            return
-        }
-        let error_mess = Dexter.joints_out_of_range(angles)
-        if (error_mess){ // a string like "Joint 1 with angle: 0.01 is less than the minimum: 30
-            job_instance.stop_for_reason("errored",
-                error_mess + "\nin Job." + job_instance.name + " at PC: " +
-                job_instance.program_counter +
-                "\nin Dexter.move_to([" + xyz + "])" +
-                "\nout of range xyz.")
-            job_instance.set_up_next_do(0)
-        }
-        else {
-            if(Array.isArray(this.j6_angle)) {
-                angles.push(this.robot.angles[5] + this.j6_angle[0])
-            }
-            else { angles.push(this.j6_angle) }
-            if(Array.isArray(this.j7_angle)) {
-                angles.push(this.robot.angles[6] + this.j7_angle[0])
-            }
-            else { angles.push(this.j7_angle) }
-            this.robot.angles       = angles
-            //Job.insert_instruction(make_ins("a", ...angles), {job: job_instance, offset: "after_program_counter"})
-            //job_instance.insert_single_instruction(make_ins("a", ...angles))
-            job_instance.wait_until_instruction_id_has_run = job_instance.program_counter
-            job_instance.send(make_ins("a", ...angles), this.robot)
-            //job_instance.set_up_next_do(1) //effectively done in robot_done_with_instruction
-        }
-    }
-
-    toString(){ return "{instanceof: move_to " + this.xyz + "}" }
-
-    to_source_code(args={indent:""}){
-        args        = jQuery.extend({}, args)
-        args.indent = ""
-
-        args.value  = this.xyz
-        let xyx_src = to_source_code(args)
-
-        args.value  = this.J5_direction
-        let J5_direction_src = to_source_code(args)
-
-        args.value  = this.config
-        let config_src = to_source_code(args)
-
-        return args.indent + "Dexter.move_to(" +
-            xyx_src          + ", " +
-            J5_direction_src + ", " +
-            config_src       +
-            ")"
-    }
-}
-
-Instruction.Control.pid_move_to = class pid_move_to extends Instruction.Control{
-    constructor (xyz           = [],
-                 J5_direction  = [0, 0, -1],
-                 config        = Dexter.RIGHT_UP_OUT,
-                 workspace_pose = undefined, //default's to the job's default_workspace_pos
-                 j6_angle = [0], //default is to move relatively 0, ie don't change
-                 j7_angle = [0],
-                 robot
-                 ){
-        super()
-        this.xyz            = xyz
-        this.J5_direction   = J5_direction
-        this.config         = config
-        this.workspace_pose = ((workspace_pose === null) ? undefined : workspace_pose)
-        this.j6_angle       = j6_angle
-        this.j7_angle       = j7_angle
-    }
-    do_item (job_instance){
-        if(!this.robot) { this.robot = job_instance.robot }
-        let xyz          = this.xyz
-        let J5_direction = this.J5_direction
-        let config       = this.config
-        let pose         = this.workspace_pose
-        if(Dexter.is_position(this.xyz)){
-            pose         = J5_direction
-            xyz          = this.xyz[0]
-            J5_direction = this.xyz[1]
-            config       = this.xyz[2]
-        }
-        let [existing_xyz, existing_direction, existing_config] = Kin.J_angles_to_xyz(this.robot.pid_angles, this.robot.pose) //just to get defaults.
-        if(J5_direction === null) { J5_direction = existing_direction }
-        if(config       === null) { config       = existing_config }
-        if(Array.isArray(J5_direction) &&
-            (J5_direction.length == 2) &&
-            (Math.abs(J5_direction[0]) == 90) &&
-            (Math.abs(J5_direction[1]) == 90)){
-            job_instance.stop_for_reason("errored",
-                "In Job." + job_instance.name + " at PC: " + job_instance.program_counter +
-                "\nDexter.pid_move_to([" + xyz + "], [" + J5_direction + "])\n" +
-                "was passed an invalid J5_direction." +
-                "\n[90, 90], [-90, 90], [90, -90] and [-90, -90]\n are all invalid.")
-        }
-        let xyz_copy = xyz.slice(0)
-        for(let i = 0; i < 3; i++){
-            let new_x_y_or_z = xyz_copy[i]
-            if      (xyz_copy.length <= i)        { xyz_copy.push(existing_xyz[i]) }
-            else if (xyz_copy[i] == null)         { xyz_copy[i] = existing_xyz[i]  }
-            else if (Array.isArray(new_x_y_or_z)) { xyz_copy[i] = existing_xyz[i] + new_x_y_or_z[0] } //relative "new val"
-        }
-        if(pose == null) { pose = job_instance.default_workspace_pose }
-        if (Object.isNewObject(pose)) { pose = pose.pose }
-        if (Object.isNewObject(J5_direction)) {
-            J5_direction = J5_direction.pose
-            config       = undefined
-            pose         = undefined
-        }
-        else if (Array.isArray(J5_direction)) {
-            if (Array.isArray(J5_direction[0])) { //J5_direciton is a 2d array
-                config = undefined
-                pose   = undefined
-            }
-            //else its a 1D array, so use config and pose as they are
-        }
-        else {
-            dde_error("Dexter.move_to passed invalid 5_direction of: " + J5_direction)
-        }
-        let angles
-        try {
-            angles = Kin.xyz_to_J_angles(xyz_copy, J5_direction, config, pose) //job_instance.robot.pose
-            //angles is now 5 long
-        }
-        catch(err){
-            //job_instance.stop_for_reason("errored",
-            //    "In Job." + job_instance.name + " at PC: " + job_instance.program_counter +
-            //    "\nDexter.pid_move_to([" + xyz + "], [" + J5_direction + "])" +
-            //    "\nwas passed invalid xyz.\n " +
-            // err.message)
-            //job_instance.set_up_next_do(0)
-            //return
-            throw new Error("in pid_move_to do_item method. Call to Kin.xyz_to_J_angles has errored")
-        }
-        let error_mess = Dexter.joints_out_of_range(angles)
-        if (error_mess){ // a string like "Joint 1 with angle: 0.01 is less than the minimum: 30
-            job_instance.stop_for_reason("errored",
-                error_mess + "\nin Job." + job_instance.name + " at PC: " + job_instance.program_counter +
-                "\nin Dexter.pid_move_to([" + xyz + "])")
-            job_instance.set_up_next_do(0)
-        }
-        else{
-            if(Array.isArray(this.j6_angle)) {
-                angles.push(this.robot.pid_angles[5] + this.j6_angle[0])
-            }
-            else { angles.push(this.j6_angle) }
-            if(Array.isArray(this.j7_angle)) {
-                angles.push(this.robot.pid_angles[6] + this.j7_angle[0])
-            }
-            else { angles.push(this.j7_angle) }
-            this.robot.pid_angles       = angles  //angles is 7 long
-            //Job.insert_instruction(make_ins("P", ...angles), {job: job_instance, offset: "after_program_counter"})
-            //job_instance.insert_single_instruction(make_ins("P", ...angles))
-            job_instance.wait_until_instruction_id_has_run = job_instance.program_counter
-            job_instance.send(make_ins("P", ...angles), this.robot)
-            //job_instance.set_up_next_do(1) //called by robot_done_with_instruction
-        }
-    }
-
-    toString(){ return "{instanceof: pid_move_to " + this.xyz + "}" }
-
-    to_source_code(args={indent:""}){
-        args        = jQuery.extend({}, args)
-        args.indent = ""
-
-        args.value  = this.xyz
-        let xyx_src = to_source_code(args)
-
-        args.value  = this.J5_direction
-        let J5_direction_src = to_source_code(args)
-
-        args.value  = this.config
-        let config_src = to_source_code(args)
-
-        return args.indent + "Dexter.pid_move_to(" +
-            xyx_src          + ", " +
-            J5_direction_src + ", " +
-            config_src       +
-            ")"
-    }
-}
-Instruction.Control.move_to_relative = class move_to_relative extends Instruction.Control{
-    constructor (delta_xyz = [0, 0, 0], workspace_pose=undefined, j6_delta_angle=0, j7_delta_angle=0, robot){
-        super()
-        if (delta_xyz.length == 1) {
-            delta_xyz.push(0)
-            delta_xyz.push(0)
-        }
-        else if (delta_xyz.length == 2) {  delta_xyz.push(0) }
-        this.delta_xyz      = delta_xyz
-        this.workspace_pose = ((workspace_pose === null)? undefined : workspace_pose)
-        this.j6_delta_angle = j6_delta_angle
-        this.j7_delta_angle = j7_delta_angle
-        this.robot          = robot
-    }
-    do_item(job_instance){
-        if(!this.robot) { this.robot = job_instance.robot }
-        let [old_xyz, J5_direction, config] = Kin.J_angles_to_xyz(this.robot.angles, this.workspace_pose) //job_instance.robot.pose
-        let new_xyz = Vector.add(old_xyz, this.delta_xyz) //makes a new array
-        let angles
-        try {
-            angles = Kin.xyz_to_J_angles(new_xyz, J5_direction, config, this.workspace_pose) //job_instance.robot.pose)
-            //now of length 5
-        }
-        catch(err){
-            job_instance.stop_for_reason("errored",
-                "In Job." + job_instance.name + " at PC: " + job_instance.program_counter +
-                "\nDexter.move_to_relative([" + this.delta_xyz + "])" +
-                "\ncalled with out of range delta_xyz\n" +
-                err.message)
-            job_instance.set_up_next_do(0)
-            return
-        }
-        angles.push(this.robot.angles[5] + this.j6_delta_angle)
-        angles.push(this.robot.angles[6] + this.j7_delta_angle)
-
-        let error_mess = Dexter.joints_out_of_range(angles)
-        if (error_mess){ // a string like "Joint 1 with angle: 0.01 is less than the minimum: 30
-            job_instance.stop_for_reason("errored",
-                error_mess + "\nin Job." + job_instance.name + " at PC: " + job_instance.program_counter +
-                "\nin Dexter.move_to_relative([" + this.delta_xyz + "])")
-            job_instance.set_up_next_do(0)
-        }
-        else{
-            this.robot.angles = angles
-            //return make_ins("a", ...angles) // Dexter.move_all_joints(angles)
-            //job_instance.insert_single_instruction(make_ins("a", ...angles))
-            job_instance.wait_until_instruction_id_has_run = job_instance.program_counter
-            job_instance.send(make_ins("a", ...angles), this.robot)
-            //job_instance.set_up_next_do(1) //called by robot_done_with_instruction
-        }
-    }
-    toString(){
-        return "{instanceof: move_to_relative " + this.delta_xyz + "}"
-    }
-    to_source_code(args={indent:""}){
-        let prop_args        = jQuery.extend({}, args)
-        prop_args.indent     = ""
-        prop_args.value      = this.delta_xyz
-        return args.indent + "Dexter.move_to_relative(" + to_source_code(prop_args) + ")"
-    }
-}
-
-Instruction.Control.move_to_straight = class move_to_straight extends Instruction.Control{
-    constructor ({xyz           = [],
-                 J5_direction   = [0, 0, -1],
-                 config         = Dexter.RIGHT_UP_OUT,
-                 workspace_pose = undefined,
-                 tool_speed     = 5*_mm / _s,
-                 resolution     = 0.5*_mm,
-                 j6_angle       = [0],
-                 j7_angle       = [0],
-                 single_instruction = false, //false means make up all the make_ins for this here in DDE,
-                                             //true means create just 1 make_ins "T" instruction
-                 robot}) {
-        super()
-        this.xyz            = xyz
-        this.J5_direction   = J5_direction
-        this.config         = config
-        this.workspace_pos  = ((workspace_pose === null) ? undefined : workspace_pose)
-        this.tool_speed     = tool_speed
-        this.resolution     = resolution
-        this.j6_angle       = j6_angle
-        this.j7_angle       = j7_angle
-        this.single_instruction = single_instruction
-        this.robot          = robot
-    }
-    do_item (job_instance){
-        if(!this.robot) { this.robot = job_instance.robot }
-        let [existing_xyz, existing_J5_direction, existing_config] =
-             Kin.J_angles_to_xyz(this.robot.angles, this.robot.pose)
-        let xyz_copy = this.xyz.slice(0)
-        for(let i = 0; i < 3; i++){
-            let new_x_y_or_z = xyz_copy[i]
-            if (xyz_copy.length <= i)             { xyz_copy.push(existing_xyz[i]) }
-            else if (new_x_y_or_z == null)        { xyz_copy[i] = existing_xyz[i]  } //does not hit if new_x_y_or_z is 0
-            else if (Array.isArray(new_x_y_or_z)) { xyz_copy[i] = existing_xyz[i] + new_x_y_or_z[0] } //relative "new val"
-        }
-        let angles
-        try { angles = Kin.xyz_to_J_angles(xyz_copy, this.J5_direction, this.config, this.robot.pose)} //job_instance.robot.pose ?
-        catch(err){
-            job_instance.stop_for_reason("errored",
-                "In Job." + job_instance.name + " at PC: " + job_instance.program_counter +
-                "\nDexter.move_to_straight([" + this.xyz + "])" +
-                "\ncalled with out of range xyz\n" +
-                err.message)
-            job_instance.set_up_next_do(0)
-            return
-        }
-        let new_j6_angle
-        if(Array.isArray(this.j6_angle)) {
-            new_j6_angle = this.robot.angles[5] + this.j6_angle[0]
-        }
-        else {  new_j6_angle = this.j6_angle }
-        angles.push(new_j6_angle)
-
-        let new_j7_angle
-        if(Array.isArray(this.j7_angle)) {
-            new_j7_angle =  this.robot.angles[6] + this.j7_angle[0]
-        }
-        else { new_j7_angle = this.j7_angle }
-        angles.push(new_j7_angle)
-
-        this.robot.angles = angles
-        if(this.single_instruction) {
-            let ins = make_ins("T",
-                                xyz_copy[0], xyz_copy[1], xyz_copy[2], //args 0, 1, 2
-                                this.J5_direction[0], this.J5_direction[1], this.J5_direction[2],
-                                this.config[0], this.config[1], this.config[2],
-                                this.tool_speed, this.resolution,
-                                new_j6_angle, new_j7_angle) //args 11, 12
-            job_instance.wait_until_instruction_id_has_run = job_instance.program_counter
-            job_instance.send(ins, this.robot)
-            //job_instance.set_up_next_do(1) //will be called by robot_done_with_instruction
-        }
-        else {
-            try {
-                let instrs = this.move_to_straight_aux(existing_xyz,
-                                                        xyz_copy,
-                                                        this.J5_direction,
-                                                        this.config,
-                                                        this.robot.pose,
-                                                        this.tool_speed,
-                                                        this.resolution,
-                                                        this.robot)
-                //Job.insert_instruction(instrs, {job: job_instance, offset: "after_program_counter"})
-                job_instance.insert_instructions(instrs)
-                job_instance.set_up_next_do(1)
-            }
-            catch(err){
-                job_instance.stop_for_reason("errored",
-                "In Job." + job_instance.name + " at PC: " + job_instance.program_counter +
-                "Dexter.move_to_straight({xyz: [" + this.xyz + "]})\n" +
-                "passed invalid xyz.\n" +
-                err.message)
-            }
-        }
-    }
-    move_to_straight_aux (xyz_1, xyz_2, J5_direction, config,  robot_pose, tool_speed = 5*_mm / _s, resolution = .5*_mm, robot){
-        let movCMD = []
-        let U1 = xyz_1
-        let U2 = xyz_2
-        let U21 = Vector.subtract(U2, U1)
-        let v21 = Vector.normalize(U21)
-        let mag = Vector.magnitude(U21)
-        let div = 1
-        let step = Infinity
-        while(resolution < step){
-            div++
-            step = mag / div
-        }
-        let angular_velocity
-        let Ui, new_J_angles
-        let old_J_angles = Kin.xyz_to_J_angles(U1, J5_direction, config, robot_pose)
-        for(let i = 1; i < div+1; i++){
-            Ui = Vector.add(U1, Vector.multiply(i*step, v21))
-            new_J_angles = Kin.xyz_to_J_angles(Ui, J5_direction, config, robot_pose)
-            angular_velocity = Kin.tip_speed_to_angle_speed(old_J_angles, new_J_angles, tool_speed)
-            old_J_angles = new_J_angles
-            movCMD.push(robot.make_ins("S", "MaxSpeed", angular_velocity))
-            movCMD.push(robot.make_ins("S", "StartSpeed", angular_velocity))
-            movCMD.push(robot.move_to(Ui, J5_direction, config, robot_pose))
-        }
-        return movCMD
-    }
-    toString(){
-        return "{instanceof: move_to_straignt " + this.xyz + "}"
-    }
-    to_source_code(args={indent:""}){
-        args        = jQuery.extend({}, args)
-        args.indent = ""
-
-        args.value  = this.xyz
-        let xyx_src = to_source_code(args)
-
-        args.value  = this.J5_direction
-        let J5_direction_src = to_source_code(args)
-
-        args.value  = this.config
-        let config_src = to_source_code(args)
-
-        args.value  = this.tool_speed
-        let tool_speed_src = to_source_code(args)
-
-        args.value  = this.resolution
-        let resolution_src = to_source_code(args)
-
-        return args.indent + "Dexter.move_to_straight(" +
-            xyx_src          + ", " +
-            J5_direction_src + ", " +
-            config_src       + ", " +
-            tool_speed_src   + ", " +
-            resolution_src   +
-            ")"
-    }
-}
-
-Instruction.Control.read_from_robot = class read_from_robot extends Instruction.Control{
-    constructor (source        , //a file name path string
-                 destination   = "read_from_robot_content", //user data variable
-                 robot         = null //null means use the default robot of the job.
-    ){
-        if (typeof(source) != "string") {
-            dde_error("read_from_robot passed non-string for 'source' of: " + source)
-        }
-        if (typeof(destination) != "string") {
-             dde_error("read_from_robot passed non-string for 'destination' of: " + destination)
-        }
-        super()
-        this.source = source
-        this.destination = destination
-        this.first_do_item_call = true
-        this.is_done = false
-        this.processing_r_instruction = false
-        this.robot = robot
-    }
-    do_item (job_instance){
-        if (this.first_do_item_call) {
-            job_instance.user_data[this.destination] = ""
-            this.first_do_item_call = false
-            this.is_done = false
-            this.processing_r_instruction = false
-        }
-        //the below can never happen
-        //if (this.is_done) {
-        //    this.processing_r_instruction = false
-        //    return Robot.break()
-        //}
-        let read_from_robot_instance = this
-        let robot = this.robot //closed over
-        Job.insert_instruction(Robot.loop(true, function(content_hunk_index){
-            let job_instance = this
-            if (read_from_robot_instance.is_done) {
-                 //init this inst just in case it gets used again
-                read_from_robot_instance.is_done = false
-                read_from_robot_instance.first_do_item_call = true
-                read_from_robot_instance.processing_r_instruction = false
-                return Robot.break()
-            }
-            else {
-                read_from_robot_instance.processing_r_instruction = true
-                return [make_ins("r", content_hunk_index, read_from_robot_instance.source, robot),
-                        Robot.wait_until(function(){
-                            return !read_from_robot_instance.processing_r_instruction
-                        })
-                       ]
-            }
-        }), {job: job_instance, offset: "after_program_counter"}
-        )
-        job_instance.set_up_next_do(1)
-    }
-    static got_content_hunk(job_id, ins_id, payload_string){
-        let job_instance = Job.job_id_to_job_instance(job_id)
-        if (job_instance == null){
-            throw new Error("Dexter.robot_done_with_instruction passed job_id: " + job_id +
-                " but couldn't find a Job instance with that job_id.")
-        }
-        let read_from_robot_instance
-        for (let i = ins_id; i >= 0; i--){
-            let an_instruction = job_instance.do_list[i]
-            if(an_instruction instanceof Instruction.Control.read_from_robot){
-                read_from_robot_instance = an_instruction
-                read_from_robot_instance.processing_r_instruction = false
-                break;
-            }
-        }
-        if(read_from_robot_instance === undefined) {
-            throw new Error("Dexter.robot_done_with_instruction passed job: " + job_instance.name +
-                            " and ins_id: " + ins_id +
-                            "but could not find the read_from_robot instance.")
-        }
-        else {
-            job_instance.user_data[read_from_robot_instance.destination] += payload_string
-            if (payload_string.length < Instruction.Control.read_from_robot.payload_max_chars){
-                read_from_robot_instance.is_done = true
-            }
-        }
-    }
-}
-Instruction.Control.read_from_robot.payload_max_chars = 62
-
-Instruction.Control.show_picture = class show_picture extends Instruction.Control{
+//______Picture Instructions
+Instruction.show_picture = class show_picture extends Instruction{
     constructor ({canvas_id="canvas_id", //string of a canvas_id or canvasId dom elt
                   content=null, //mat or file_path
                   title=undefined,
@@ -3395,7 +2559,7 @@ Instruction.Control.show_picture = class show_picture extends Instruction.Contro
     }
 }
 
-Instruction.Control.show_video = class show_video extends Instruction.Control{
+Instruction.show_video = class show_video extends Instruction{
     constructor ({video_id="video_id", //string of a canvas_id or canvasId dom elt
                      content="webcam", //file_path or "webcam"
                      title=undefined,
@@ -3438,7 +2602,7 @@ Instruction.Control.show_video = class show_video extends Instruction.Control{
     }
 }
 
-Instruction.Control.take_picture = class take_picture extends Instruction.Control{
+Instruction.take_picture = class take_picture extends Instruction{
     constructor ({video_id="video_id", //string of a canvas_id or canvasId dom elt
                   callback=Picture.show_picture_of_mat}={}){
         super()
@@ -3481,10 +2645,36 @@ Instruction.Control.take_picture = class take_picture extends Instruction.Contro
         else { job_instance.set_up_next_do(0) } //take_pciture has been called, but wait until video is up
     }
 }
+//______________________________________________________
+Instruction.Serial = class Serial extends Instruction{}
+
+//for Serial.string_instruction when we have a Robot.Serial instance
+Instruction.Serial.string_instruction = class string_instruction extends Instruction.Serial{
+    constructor (instruction_string, robot = null //this is a robot instance. spelling of this prop name is important. Used by other methods & classes
+    ) {
+        super()
+        this.inst_array = Serial.string_instruction(instruction_string)
+        this.robot = robot
+    }
+    do_item (job_instance){
+        if (!this.robot) { //this.robot = job_instance.robot
+            this.set_instruction_robot_from_job(job_instance) //might error which is good
+        }
+        //job_instance.wait_until_instruction_id_has_run = job_instance.program_counter// dont
+        //do this here because in the case that we have a robot, we might still be
+        //in the "connecting" state, ie initing the robot, in which case,
+        //we don't want to be waiting for this instruction because that
+        //will preclude processing of the instruction by the lower part of do_next_item.
+        job_instance.send(this.inst_array, this.robot)
+        //don't set up next do. That's handled by the wait_until_instruction_id_has_run code
+    }
+}
+
 module.exports.Instruction = Instruction
+require('./instruction_dexter.js')
 var {Robot, Brain, Dexter, Human, Serial} = require('./robot.js')
 var Job     = require('./job.js')
 var Kin     = require("../math/Kin.js")
 var {to_source_code} = require("./to_source_code.js") //for debugging only
 var {shouldnt, warning, dde_error, copy_missing_fields, Duration, is_generator_function, is_iterator, is_non_neg_integer, last,
-     prepend_file_message_maybe, stringify_value_aux, stringify_value_sans_html, value_of_path} = require("./utils")
+     prepend_file_message_maybe, return_first_arg, stringify_value_aux, stringify_value_sans_html, value_of_path} = require("./utils")

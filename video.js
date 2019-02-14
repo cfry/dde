@@ -39,7 +39,9 @@
 
     var prev_make_instruction_src = undefined
     function misc_pane_menu_changed(select_val){
-        if(MakeInstruction.is_shown()) { prev_make_instruction_src = MakeInstruction.dialog_to_instruction_src() }
+        if(MakeInstruction.is_shown()) {
+            prev_make_instruction_src = MakeInstruction.dialog_to_instruction_src()
+        }
         if(select_val instanceof Event) { select_val = misc_pane_menu_id.value }
         else {misc_pane_menu_id.value = select_val } //used when user clicks the demo button.
         if (select_val == "Choose File") {

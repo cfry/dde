@@ -800,8 +800,14 @@ function call_src_is_keyword_call(a_string){
   return (open_pos + 1) == brace_pos
 }
 
+//if fn is a class, look at the args of its constructor. If no constructor, return false
 function fn_is_keyword_fn(fn){
     let a_string = fn.toString()
+    if(a_string.startsWith("class ")){
+        let constructor_pos = a_string.indexOf("constructor")
+        if(constructor_pos == -1) { return false }
+        a_string = a_string.substring(constructor_pos) //this *could* fail if there is no class constructor (you have to explicitly make one) and the "constructor" word is somewhere in the class body.
+    }
     let open_pos = a_string.indexOf("(")
     if (open_pos == -1) { return false }
     let brace_pos = a_string.indexOf("{")
@@ -913,6 +919,7 @@ module.exports.function_param_names_and_defaults = function_param_names_and_defa
 //but if its true we have an arg for each of the actual keywords and
 //the values will be the defaults for that keyword
 function function_param_names_and_defaults_array(fn, grab_key_vals=false){
+    if(fn.name == "Array") { return [["...elts", undefined]]}
     let param_string = "function foo(" + function_params(fn, false) + "){}"
     let ast = esprima.parse(param_string, {range: true, raw: true})
     let params_ast = ast.body[0].params
@@ -981,7 +988,7 @@ function function_param_names_and_defaults_array(fn, grab_key_vals=false){
                 }
                 break;
             case "RestElement": //rest elts can't take a default value
-                result.push([param_ast.argument.name, undefined])
+                result.push(["..." + param_ast.argument.name, undefined])
                 break;
             default:
                 shouldnt("in param_names_and_defaults_array for fn: " + fn)
@@ -1151,12 +1158,13 @@ function process_constructor_keyword_args(defaults, args, the_this){
  }
  */
 
-//called in this file only
+
 //does not trim the beginning of the string. Used by trim_string_for_eval
 //note regex "s" matches spaces, newlines, tab at least, ie all whitespace
 function trim_end(str){
     return str.replace(/\s+$/g, "")
 }
+module.exports.trim_end = trim_end
 
 //removes prefix, & suffix whitespace AND replaces multiple
 //redundant interior whtiespace with a single space.

@@ -374,7 +374,7 @@ Note = class Note{
             setTimeout(function() { the_note.start(seconds_per_beat) }, 1000)
         }
         else if (WebMidi.outputs.length == 0) {
-            dde_error("There are no WebMidi outputs to play into.")
+            dde_error("There are no WebMidi outputs to play a Note on. <a href='#' onclick='open_doc(MIDI_doc_id)'>Help</a>")
         }
         else if (this.is_rest()) { return this } //skip playing the "Rest" as it would error
         else {

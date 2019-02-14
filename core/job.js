@@ -255,7 +255,6 @@ class Job{
                                                   //where_to_insert="next_top_level", or when this job has yet to be starter. (see above comment.)
             this.sent_from_job_instruction_location = null
             if (this.initial_instruction) { //do AFTER the sent_from_job_instruction_queue insertion.
-                //Instruction.Control.send_to_job.insert_sent_from_job(this, sent_from_job)
                 Job.insert_instruction(this.initial_instruction, {job: this, offset: "program_counter"})
             }
             //must be after insert queue and init_instr processing
@@ -615,7 +614,7 @@ class Job{
 
     at_sync_point(sync_point_name){
         let ins = this.current_instruction()
-        return ((ins instanceof Instruction.Control.sync_point) &&
+        return ((ins instanceof Instruction.sync_point) &&
                 (ins.name == sync_point_name))
     }
 
@@ -623,7 +622,7 @@ class Job{
         if(!this.do_list) { return false} //before this job has started so its definately not past any of its sync points.
         for(let a_pc = this.program_counter; a_pc >= 0; a_pc--){
             let ins = this.do_list[a_pc]
-            if ((ins instanceof Instruction.Control.sync_point) &&
+            if ((ins instanceof Instruction.sync_point) &&
                 (ins.name == sync_point_name)) { return true }
         }
         return false
@@ -729,7 +728,7 @@ class Job{
                                                              Job.flatten_do_list_array(elt, result)
            }
            else if (elt == null)                             {} //includes undefined
-           else if (Instruction.is_control_instruction(elt)) { result.push(elt) }
+           else if (elt instanceof Instruction)              { result.push(elt) }
            else if (typeof(elt) === "function")              { result.push(elt) }
            else if (is_iterator(elt))                        { result.push(elt) }
            else if ((typeof(elt) === "object") && (typeof(elt.start) == "function")) { result.push(elt) }
@@ -821,6 +820,13 @@ Job.job_id_to_job_instance = function(job_id){
     return null
 }
 
+/*Job.job_id_to_job_instance = function(job_id){
+    let str = job_id.toString()
+    let str_of_int = str.substring(0, str.indexOf("."))
+    if(str_of_int == -1) { str_of_int = str}
+    let the_int = parseInt(str_of_int)
+    return Job.job_id_to_job_instance_aux(the_int)
+}*/
 Job.last_job = null
 
 //does not perform when_stopped action on purpose. This is a drastic stop.
@@ -980,7 +986,7 @@ Job.prototype.finish_job = function(perform_when_stopped=true){ //regardless of 
         this.color_job_button()
         this.show_progress_maybe()
         //this.print_out()
-        out("Done with job: " + this.name)
+        out("Done with job: " + this.name + " for reason: " + this.stop_reason)
         //    "&nbsp;&nbsp;<button onclick='function(){inspect_out(Job." + this.name + ")}'>Inspect</button>")
         //inspect_out(this, null, null, null, true) //collapse inspector
     }
@@ -1077,7 +1083,7 @@ Job.prototype.set_up_next_do = function(program_counter_increment = 1, allow_onc
 Job.prototype.stop_for_reason = function(status_code, //"errored", "interrupted", "completed"
                                          reason_string,
                                          perform_when_stopped = false){
-    out("top of Job.stop_for_reason with reason: " + reason_string)
+    //out("top of Job.stop_for_reason with reason: " + reason_string)
     this.stop_reason  = reason_string //put before set_status_code because set_status_code calls color_job_button
     this.set_status_code(status_code)
     if (this.robot.heartbeat_timeout_obj) { clearTimeout(this.robot.heartbeat_timeout_obj) }
@@ -1171,9 +1177,9 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
             this.sent_from_job_instruction_queue = []
             this.set_up_next_do(0)
         }
-        /* now in Instruction.Control.break.do_item
+        /* now in Instruction.break.do_item
           else if (cur_do_item == "break") { //we're in a loop. skip over rest of items under the cur loop iteration (including any go_to at its end) and go to next instr after the whole loop
-            let loop_pc = Instruction.Control.loop.pc_of_enclosing_loop(this)
+            let loop_pc = Instruction.loop.pc_of_enclosing_loop(this)
             if (loop_pc === null) {
                 warning("Job " + this.name + ' has a "break" instruction at pc: ' + this.program_counter +
                             "<br/> but there is no Robot.loop instruction above it.")
@@ -1189,7 +1195,7 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
                 this.set_up_next_do(1) //skip past the last inst in the loop iteration, as we're done with the loop
             }
         }*/
-        else if (cur_do_item instanceof Instruction.Control.loop){
+        else if (cur_do_item instanceof Instruction.loop){
             let ins = cur_do_item.get_instructions_for_one_iteration(this)
             if (ins === null) { } //done with loop
             else {
@@ -1198,7 +1204,7 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
             }
             this.set_up_next_do(1)
         }
-        else if (Instruction.is_control_instruction(cur_do_item)){
+        else if (cur_do_item instanceof Instruction){
             cur_do_item.do_item(this)
         }
         else if (Instruction.is_instruction_array(cur_do_item)){
@@ -1297,7 +1303,7 @@ Job.prototype.handle_function_call_or_gen_next_result = function(cur_do_item, do
         //does the real work. such as beep({callback: function(){job_instance.set_up_next_do() } )
     }
     else if (Instruction.is_instruction_array(do_items)   ||
-             Instruction.is_control_instruction(do_items) ||
+             (do_items instanceof Instruction) ||
              (typeof(do_items) == "function") //ok if this includes generator functions
              ) {
         this.insert_single_instruction(do_items)
@@ -1411,7 +1417,7 @@ Job.prototype.send = function(instruction_array, robot){ //if remember is false,
     //if there's both a passed in robot, and one in the instruction_array, prefer
     //the one in the instruction array
     if (last(instruction_array) instanceof Robot) { robot = instruction_array.pop() }
-    else if (!robot)                              { robot = this.robot }
+    else if (!robot)                              { robot = this.robot } //use the job's default robot
     robot.send(instruction_array)
 }
 
@@ -1424,9 +1430,9 @@ Job.prototype.send_to_job_receive_done = function(params){
     if (this.wait_until_instruction_id_has_run == params.from_instruction_id){
         this.highest_completed_instruction_id  = params.from_instruction_id
         this.wait_until_instruction_id_has_run = null
-        //below is done in Instruction.Control.destination_send_to_job_is_done.do_item
+        //below is done in Instruction.destination_send_to_job_is_done.do_item
         //for (var user_var in params){
-        //    if (Instruction.Control.send_to_job.param_names.indexOf(user_var) == -1){
+        //    if (Instruction.send_to_job.param_names.indexOf(user_var) == -1){
         //        var val = params[user_var]
         //        this.user_data[user_var] = val
         //    }
@@ -1832,7 +1838,7 @@ Job.prototype.increment_added_items_count_for_parent_instruction_of = function(i
     else {
         let par_id_maybe = instr_id - 1
         let par_instr = this.do_list[par_id_maybe]
-        if(par_instr instanceof Instruction.Control.go_to) { //below code is hairy but very rarely if ever called
+        if(par_instr instanceof Instruction.go_to) { //below code is hairy but very rarely if ever called
             let location = par_instr.instruction_location
             let par_loc_job_inst = Job.instruction_location_to_job(location)
             let par_loc_index = this.instruction_location_to_id(location)

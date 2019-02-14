@@ -40,11 +40,20 @@ var Robot = class Robot {
             a_option.innerText = "Robot." + name
             job_or_robot_to_simulate_id.prepend(a_option)
         }
-        if ((i == -1) && (robot_instance instanceof Dexter) && window["mi_robot_name_id"]) {
+        //for Make Instance dialog
+        if ((i == -1)  && window["mi_job_wrapper_robot_name_id"]) {
+            let class_name = robot_instance.constructor.name
+            let full_name = class_name + "." + name
             let a_option = document.createElement("option");
-            a_option.innerText = name
-            mi_robot_name_id.prepend(a_option)
+            a_option.innerText = full_name
+            mi_job_wrapper_robot_name_id.prepend(a_option)
         }
+        //obsolete Make Instance dialog
+        //if ((i == -1) && (robot_instance instanceof Dexter) && window["mi_job_wrapper_robot_name_id"]) {
+        //    let a_option = document.createElement("option");
+        //    a_option.innerText = name
+        //    mi_job_wrapper_robot_name_id.prepend(a_option)
+        //}
     }
     static get_simulate_actual(simulate_val){
         if      (simulate_val === true)   { return true   }
@@ -52,6 +61,11 @@ var Robot = class Robot {
         else if (simulate_val === "both") { return "both" }
         else if (simulate_val === null)   { return persistent_get("default_dexter_simulate") }
         else { shouldnt("get_simulate_actual passed illegal value: " + simulate_val) }
+    }
+
+    static simulate_or_both_selected(){
+        if(persistent_get("default_dexter_simulate")) { return true} //persistent_get call returns true or "both"
+        else { return false } //persistent_get call returns false
     }
 
     to_path(){ return "Robot." + this.name }
@@ -102,23 +116,23 @@ var Robot = class Robot {
 
     //Control Instructions
     static break(){ //stop a Robot.loop
-        return new Instruction.Control.break()
+        return new Instruction.break()
     }
     static debugger(){ //stop a Robot.loop
-        return new Instruction.Control.debugger()
+        return new Instruction.debugger()
     }
     static error(reason){ //declare that an error happened. This will cause the job to stop.
-        return new Instruction.Control.error(reason) //["error", reason]
+        return new Instruction.error(reason) //["error", reason]
     }
 
     static go_to(instruction_location){
-        return new Instruction.Control.go_to(instruction_location)
+        return new Instruction.go_to(instruction_location)
     }
 
     static grab_robot_status(user_data_variable = "grabbed_robot_status",
                              starting_index = Serial.DATA0,
                              ending_index=null){
-        return new Instruction.Control.grab_robot_status(user_data_variable,
+        return new Instruction.grab_robot_status(user_data_variable,
                                                          starting_index,
                                                          ending_index)
     }
@@ -126,25 +140,25 @@ var Robot = class Robot {
     grab_robot_status(user_data_variable = "grabbed_robot_status",
                       starting_index = Serial.DATA0,
                       ending_index=null){
-        return new Instruction.Control.grab_robot_status(user_data_variable,
+        return new Instruction.grab_robot_status(user_data_variable,
                                                          starting_index,
                                                          ending_index,
                                                          this)
     }
 
     static if_any_errors(job_names=[], instruction_if_error=null){
-        return new Instruction.Control.if_any_errors(job_names, instruction_if_error)
+        return new Instruction.if_any_errors(job_names, instruction_if_error)
     }
     static label(name="my_label"){
-        return new Instruction.Control.label(name)
+        return new Instruction.label(name)
     }
 
     static loop(boolean_int_array_fn=2, body_fn){
-        return new Instruction.Control.loop(boolean_int_array_fn, body_fn)
+        return new Instruction.loop(boolean_int_array_fn, body_fn)
     }
 
-    static out(val="", color="black", temp){
-        return new Instruction.Control.out(val, color, temp)
+    static out(val="", color="black", temp=false){
+        return new Instruction.out(val, color, temp)
     }
 
     /* Warning the below is at least somewhat obsolete as of new arch Aug 25, 2016
@@ -156,7 +170,7 @@ var Robot = class Robot {
      do_list_item onto the destination job's do list,
      and, if the source job is going to wait for the instruction to be done,
      an additonal control instruction of type
-     Instruction.Control.destination_send_to_job_is_done is stuck on the do_list
+     Instruction.destination_send_to_job_is_done is stuck on the do_list
      of the desitination job.
      Then the destination job runs those items
      and when the instruction destination_send_to_job_is_done is run,
@@ -172,7 +186,7 @@ var Robot = class Robot {
                         start           = false,
                         unsuspend       = false,
                         status_variable_name = null} = {}){
-        return new Instruction.Control.send_to_job(arguments[0])
+        return new Instruction.send_to_job(arguments[0])
     }
 
     //rarely used, but can be used to customize a job with additional do_list items at the start.
@@ -181,31 +195,31 @@ var Robot = class Robot {
                            from_instruction_id = null,
                            where_to_insert     = "next_top_level", //just for debugging
                            wait_until_done     = false} = {}){
-        return new Instruction.Control.sent_from_job(arguments[0])
+        return new Instruction.sent_from_job(arguments[0])
     }
 
     static start_job(job_name, start_options={}, if_started="ignore", wait_until_job_done=false){
-        return new Instruction.Control.start_job(job_name, start_options, if_started, wait_until_job_done)
+        return new Instruction.start_job(job_name, start_options, if_started, wait_until_job_done)
     }
 
     static stop_job(instruction_location, reason, perform_when_stopped = false){
-        return new Instruction.Control.stop_job(instruction_location, reason, perform_when_stopped)
+        return new Instruction.stop_job(instruction_location, reason, perform_when_stopped)
     }
 
     static suspend(job_name = null, reason = ""){
-        return new Instruction.Control.suspend(job_name, reason)
+        return new Instruction.suspend(job_name, reason)
     }
     //unsuspend is also instance meth on Job and should be!
     static unsuspend(job_name = "required"){
-        return new Instruction.Control.unsuspend(job_name)
+        return new Instruction.unsuspend(job_name)
     }
 
     static sync_point(name, job_names=[]){
-        return new Instruction.Control.sync_point(name, job_names)
+        return new Instruction.sync_point(name, job_names)
     }
 
     static wait_until(fn_date_dur=1){
-        return new Instruction.Control.wait_until(fn_date_dur)
+        return new Instruction.wait_until(fn_date_dur)
     }
 
     //arg order is a bit odd because the headers come after the response_variable_name.
@@ -217,10 +231,10 @@ var Robot = class Robot {
             dde_error("Robot.get_page called with no <b>url_or_options</b> argument<br/>" +
                       "which is typically the string of a url.")
         }
-        return new Instruction.Control.Get_page(url_or_options, response_variable_name)
+        return new Instruction.Get_page(url_or_options, response_variable_name)
     }
     //static play(note_or_phrase){
-    //    return new Instruction.Control.play_notes(note_or_phrase)
+    //    return new Instruction.play_notes(note_or_phrase)
     //}
     close_robot(){ //overridden in Serial and Dexter
     }
@@ -230,7 +244,7 @@ var Robot = class Robot {
                             title=undefined,
                             x=200, y=40, width=320, height=240,
                             rect_to_draw=null}={}) {
-        return new Instruction.Control.show_picture({canvas_id: canvas_id, //string of a canvas_id or canvas dom elt
+        return new Instruction.show_picture({canvas_id: canvas_id, //string of a canvas_id or canvas dom elt
                                                      content: content, //mat or file_path
                                                      title: title,
                                                      x: x,
@@ -245,7 +259,7 @@ var Robot = class Robot {
                         title=undefined,
                         x=200, y=40, width=320, height=240,
                         play=true}={}) {
-        return new Instruction.Control.show_video({video_id: video_id, //string of a video_id or video dom elt
+        return new Instruction.show_video({video_id: video_id, //string of a video_id or video dom elt
                                                     content: content, //mat or file_path
                                                     title: title,
                                                     x: x,
@@ -256,7 +270,7 @@ var Robot = class Robot {
     }
     static take_picture({video_id="video_id", //string of a video_id or video dom elt
                          callback=Picture.show_picture_of_mat}={}) {
-        return new Instruction.Control.take_picture({video_id: video_id, //string of a video_id or video dom elt
+        return new Instruction.take_picture({video_id: video_id, //string of a video_id or video dom elt
                                                      callback: callback})
     }
 }
@@ -349,7 +363,7 @@ var Human = class Human extends Brain { /*no associated hardware */
                     finish_phrase:"finish",
                     finish_callback: finish_callback,
                     user_data_variable_name: user_data_variable_name}
-        return new Instruction.Control.human_recognize_speech(args)
+        return new Instruction.human_recognize_speech(args)
     }
 
     static speak ({speak_data = "hello", volume = 1.0, rate = 1.0, pitch = 1.0,
@@ -357,13 +371,13 @@ var Human = class Human extends Brain { /*no associated hardware */
         if (arguments[0].length > 0){ speak_data = arguments[0] }
         let args = {speak_data: speak_data, volume: volume, rate: rate, pitch: pitch,
                     lang: lang, voice: voice, wait: wait}
-        return new Instruction.Control.human_speak(args)
+        return new Instruction.human_speak(args)
     }
 
 
     static task({task = "", dependent_job_names=[],
                  title, x=200, y=200, width=400, height=400,  background_color = "rgb(238, 238, 238)"} = {}){
-        return new Instruction.Control.human_task(arguments[0])
+        return new Instruction.human_task(arguments[0])
     }
 
     static enter_choice({task = "", choices=[["Yes", true], ["No", false]],
@@ -371,13 +385,13 @@ var Human = class Human extends Brain { /*no associated hardware */
         one_button_per_line=false,
         user_data_variable_name="a_choice", dependent_job_names=[],
         title, x=200, y=200, width=400, height=400,  background_color = "rgb(238, 238, 238)"} = {}){
-        return new Instruction.Control.human_enter_choice(arguments[0])
+        return new Instruction.human_enter_choice(arguments[0])
     }
 
     static enter_filepath({task = "",
                            user_data_variable_name="a_filepath", dependent_job_names=[],
                            title, x=200, y=200, width=400, height=400,  background_color = "rgb(238, 238, 238)"} = {}){
-        return new Instruction.Control.human_enter_filepath(arguments[0])
+        return new Instruction.human_enter_filepath(arguments[0])
     }
 
     static enter_instruction({task = "Enter a next instruction for this Job.",
@@ -385,7 +399,7 @@ var Human = class Human extends Brain { /*no associated hardware */
         instruction_args = "5000, 5000, 5000, 5000, 5000",
         dependent_job_names = [],
         title, x=200, y=200, width=400, height=400,  background_color = "rgb(238, 238, 238)"}={}){
-        return new Instruction.Control.human_enter_instruction(arguments[0])
+        return new Instruction.human_enter_instruction(arguments[0])
     }
 
     static enter_number({task="",
@@ -396,7 +410,7 @@ var Human = class Human extends Brain { /*no associated hardware */
         step=1,
         dependent_job_names=[],
         title, x=200, y=200, width=400, height=400,  background_color = "rgb(238, 238, 238)"}={}) {
-        return new Instruction.Control.human_enter_number(arguments[0])
+        return new Instruction.human_enter_number(arguments[0])
     }
 
     static enter_position({task="Position Dexter&apos;s end effector<br/>to the position that you want to record,<br/>and click <b>Continue Job</b>.",
@@ -405,7 +419,7 @@ var Human = class Human extends Brain { /*no associated hardware */
                            title, x=200, y=200, width=400, height=400,  background_color = "rgb(238, 238, 238)"}={}) {
         return[Dexter.empty_instruction_queue,
                Dexter.set_follow_me,
-               new Instruction.Control.human_enter_position(arguments[0])
+               new Instruction.human_enter_position(arguments[0])
               ]
     }
 
@@ -415,7 +429,7 @@ var Human = class Human extends Brain { /*no associated hardware */
         line_count=1, //if 1, makes an input type=text. If > 1 makes a resizeable text area.
         dependent_job_names=[],
         title, x=200, y=200, width=400, height=400,  background_color = "rgb(238, 238, 238)"}={}){
-        return new Instruction.Control.human_enter_text(arguments[0])
+        return new Instruction.human_enter_text(arguments[0])
     }
 
     static notify({task="",
@@ -425,7 +439,7 @@ var Human = class Human extends Brain { /*no associated hardware */
         speak=false,
         title, x=200, y=200, width=400, height=400,  background_color = "rgb(238, 238, 238)"
     }={}){
-        return new Instruction.Control.human_notify(arguments[0])
+        return new Instruction.human_notify(arguments[0])
     }
     static show_window({content=`<input type="submit" value="Done"/>`,
                         title="DDE Information",
@@ -438,7 +452,7 @@ var Human = class Human extends Brain { /*no associated hardware */
                         callback = window.show_window_values,
                         user_data_variable_name="show_window_vals"
     }={}){
-        return new Instruction.Control.human_show_window({
+        return new Instruction.human_show_window({
             content: content,
             title: title,
             x: x, y: y, width: width, height: height,
@@ -460,7 +474,7 @@ Serial = class Serial extends Robot {
                  sim_fun = return_first_arg, path = "required", connect_options={},
                  capture_n_items = 1, item_delimiter="\n", trim_whitespace=true,
                  parse_items = true, capture_extras = "error", /*"ignore", "capture", "error"*/
-                 instruction_callback = set_up_next_do }={}){
+                 instruction_callback = Job.prototype.set_up_next_do }={}){
         super()
         let keyword_args = {name: name, simulate: simulate, sim_fun: sim_fun, path: path, connect_options: connect_options,
                             capture_n_items: capture_n_items, item_delimiter: item_delimiter, trim_whitespace: trim_whitespace,
@@ -474,7 +488,7 @@ Serial = class Serial extends Robot {
                 if(Serial.robots_equivalent(old_same_named_robot, this)){
                     warning("There's already a robot with the name: " + name +
                             ",<br/>that is a serial robot that has an active job " +
-                            "<br/>so that's being used instead of a new Robot.serial instance.<br/>" +
+                            "<br/>so that's being used instead of a new Robot.Serial instance.<br/>" +
                             "Stop a job by clicking on its button in the Output pane's header.")
                     return old_same_named_robot
                 }
@@ -832,7 +846,7 @@ Serial.string_instruction = function(instruction_string){
 }
 
 Serial.prototype.string_instruction = function(instruction_string){
-    return new Instruction.Control.string_instruction(instruction_string, this)
+    return new Instruction.Serial.string_instruction(instruction_string, this)
 }
 
 /*anticipate classes for Dexter2, etc.
@@ -1603,39 +1617,39 @@ Dexter.convert_maj_angles = function(args_array){
 
 Dexter.prototype.move_all_joints = function(...array_of_angles) {
     let array_to_use = Dexter.convert_maj_angles(array_of_angles)
-    return new Instruction.Control.move_all_joints(array_to_use, this)
+    return new Instruction.Dexter.move_all_joints(array_to_use, this)
 }
 
 Dexter.move_all_joints = function(...array_of_angles){
     let robot
     if (last(array_of_angles) instanceof Dexter) {robot = pop(array_of_angles)}
     let array_to_use = Dexter.convert_maj_angles(array_of_angles)
-    return new Instruction.Control.move_all_joints(array_to_use, robot)
+    return new Instruction.Dexter.move_all_joints(array_to_use, robot)
 }
 
 //the same as move_all_joints but generates a "P" oplet
 
 Dexter.prototype.pid_move_all_joints = function(...array_of_angles) {
     let array_to_use = Dexter.convert_maj_angles(array_of_angles)
-    return new Instruction.Control.pid_move_all_joints(array_to_use, this)
+    return new Instruction.Dexter.pid_move_all_joints(array_to_use, this)
 }
 
 Dexter.pid_move_all_joints = function(...array_of_angles){
     let robot
     if (last(array_of_angles) instanceof Dexter) {robot = pop(array_of_angles)}
     let array_to_use = Dexter.convert_maj_angles(array_of_angles)
-    return new Instruction.Control.pid_move_all_joints(array_to_use, robot)
+    return new Instruction.Dexter.pid_move_all_joints(array_to_use, robot)
 }
 
 Dexter.prototype.move_all_joints_relative = function(...array_of_angles) {
     let array_to_use = Dexter.convert_maj_angles(array_of_angles)
-    return new Instruction.Control.move_all_joints_relative(array_to_use, this)
+    return new Instruction.Dexter.move_all_joints_relative(array_to_use, this)
 }
 Dexter.move_all_joints_relative = function(...delta_angles){
     let robot
     if (last(delta_angles) instanceof Dexter) {robot = pop(delta_angles)}
     let array_to_use = Dexter.convert_maj_angles(delta_angles)
-    return new Instruction.Control.move_all_joints_relative(array_to_use, robot)
+    return new Instruction.Dexter.move_all_joints_relative(array_to_use, robot)
 }
 
 
@@ -1683,7 +1697,7 @@ Dexter.move_to = function(xyz            = [],
                           j7_angle       = [0],
                           robot
                          ){
-       return new Instruction.Control.move_to(xyz, J5_direction, config, workspace_pose, j6_angle, j7_angle, robot)
+       return new Instruction.Dexter.move_to(xyz, J5_direction, config, workspace_pose, j6_angle, j7_angle, robot)
 }
 
 //the same as move_to but generates a "P" oplet
@@ -1710,7 +1724,7 @@ Dexter.pid_move_to = function(xyz            = [],
                               j7_angle       = [0],
                               robot
                               ){
-    return new Instruction.Control.pid_move_to(xyz, J5_direction, config, workspace_pose, j6_angle, j7_angle, robot)
+    return new Instruction.Dexter.pid_move_to(xyz, J5_direction, config, workspace_pose, j6_angle, j7_angle, robot)
 }
 
 Dexter.prototype.move_to_relative = function(delta_xyz = [0, 0, 0], workspace_pose=null,
@@ -1718,7 +1732,7 @@ Dexter.prototype.move_to_relative = function(delta_xyz = [0, 0, 0], workspace_po
     return Dexter.move_to_relative(delta_xyz, workspace_pose, j6_delta_angle, j7_delta_angle, this)
 }
 Dexter.move_to_relative = function(delta_xyz = [0, 0, 0], workspace_pose=null, j6_delta_angle=0, j7_delta_angle=0, robot){
-    return new Instruction.Control.move_to_relative(delta_xyz, workspace_pose, j6_delta_angle, j7_delta_angle,  robot)
+    return new Instruction.Dexter.move_to_relative(delta_xyz, workspace_pose, j6_delta_angle, j7_delta_angle,  robot)
 }
 
 Dexter.prototype.move_to_straight = function({xyz           = "required",
@@ -1753,7 +1767,7 @@ Dexter.move_to_straight = function({xyz          = "required",
                                    single_instruction = false,
                                    robot}){
     if(xyz == "required") { dde_error("Dexter.move_to_straight was not passed the required 'xyz' arg.<br/>move_to_straight takes keyword args.") }
-    return new Instruction.Control.move_to_straight({xyz: xyz,
+    return new Instruction.Dexter.move_to_straight({xyz: xyz,
                                                     J5_direction: J5_direction,
                                                     config: config,
                                                     workspace_pose: workspace_pose,
@@ -1882,10 +1896,10 @@ new Job({name: "my_job",
 */
 
 Dexter.read_from_robot = function (source, destination){
-    return new Instruction.Control.read_from_robot(source, destination)
+    return new Instruction.Dexter.read_from_robot(source, destination)
 }
 Dexter.prototype.read_from_robot = function (source, destination){
-    return new Instruction.Control.read_from_robot(source, destination, this)
+    return new Instruction.Dexter.read_from_robot(source, destination, this)
 }
 
 //from Dexter_Modes.js (these are instructions. The fns return an array of instructions
@@ -2582,9 +2596,11 @@ var {Instruction, make_ins} = require("./instruction.js")
 Dexter.make_ins = make_ins
 var {shouldnt, warning, dde_error, date_integer_to_long_string, is_iterator, last,
       prepend_file_message_maybe, return_first_arg, starts_with_one_of} = require("./utils")
-var Vector = require("../math/Vector")
-var Kin = require("../math/Kin.js")
 var {persistent_get} = require("./storage")
 var Socket = require("./socket.js")
 var {out} = require("./out.js")
+var {serial_connect, serial_disconnect, serial_send} = require("./serial.js")
+
+var Vector = require("../math/Vector")
+var Kin = require("../math/Kin.js")
 var {setFollowMe, setForceProtect, setKeepPosition, setOpenLoop} = require("../math/Dexter_Modes.js")

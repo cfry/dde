@@ -57,6 +57,7 @@
         "recognize_speech": false,
         "remove_in_ui":   false,
         "replace_in_ui":  false,
+        "return_first_arg": false,
         "Robot":          false,
         "Root":           false,
         "setTimeout":     false,

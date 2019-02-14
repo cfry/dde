@@ -5,6 +5,89 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+
+<details class="doc_details"><summary>v 3.1.0, Feb 14, 2019</summary>
+Highlights: Major extensions & fixes to Make Instruction.
+  Bug fixes to serial port, error message improvements.
+<ul>
+    <li> Fixed some bugs in the serial port interface.
+        Lots of internal code clean up for this and other instructions.</li>
+
+    <li> Better error messages when the robot that an instruction needs, and
+         the robot for its Job, are not compatible.</li>
+
+    <li> When attempting to play a Note or a Phrase with no connected MIDI
+        synthesizer, you always got an error message. Now that message
+        includes a link to the documentation for how to set up a synthesizer.</li>
+
+    <li> Now running a job with a Robot on the do_list errors, like it should.</li>
+
+    <li> <code>Robot.out</code>'s 3rd arg (temp) now has a proper default value of
+          <code>false</code>.
+          this does not change its behavior, it just makes click help better.</li>
+
+    <li> <code>new TestSuite</code> now has a default value for its name parameter,
+        <code>"rename_me"</code>.
+         You always saw this when auto-creating a test suite from
+         the Test Menu/selection to test, but now
+         its displayed in click help and Make Instruction dialog to
+         give the user a sense of what a name should be (a string).</li>
+
+    <li> Make Instruction has a new "Misc" submenu under the Instruction menu
+         with 9 new items. These complete the possible kinds of instructions
+         you can put on a do_list (including function defs and arrays).<br/>
+         From this menu, you can also create
+         instances for Dexter, Serial and Job. All of these you
+         can insert into the editor as well as read them back into
+         the Make Instruction menu by option_clicking on their beginning
+         i.e. "new Job", "[", etc.</li>
+
+    <li> Make Instruction doc in the User Guide about simulate and real extended.</li>
+
+    <li> When a new robot is defined, it is
+         added to the Make Instruction robot menu automatically.
+         This is used by the RUN button and the Insert Job button.</li>
+
+    <li> Make Instructions now supports rest args.</li>
+
+    <li> The User's Guide's <b>Help System</b> section now refers to
+         <i>Make Instruction</i> instead of <i>Run Instruction</i>.
+         Run Instruction is still available on the Job's menu since
+         Make Instruction is not yet a superset of its functionality.</li>
+
+    <li> Make Instruction <button>Run</button> behavies better
+        when you have a Job as an instruction and its not
+        allowed to run due to a conflict with another job
+        using the same Robot. An explicit warning is
+        printed in the Output pane.</li>
+
+
+    <li> Make Instruction dialog has a new checkbox for "insert defaults" (or not)
+         of arguments to the instruction. This is especially useful for
+          move_all_joints and Jobs, wherein there's likely to be
+          lots of args that just have their default values,
+          and would take up a lot of code if you inserted them.
+          BUT you might want to anyway, so check the box!</li>
+
+
+    <li> Make Instruction: fixed bug that inserted extra
+         code for a robot of a Job instance when the robot is not the default robot.</li>
+
+    <li> Now when you click Make Instruction's <button>Run</button>,
+         the simulator pane no longer pops up and animates when the
+         'real' radio button is selected.</li>
+
+
+    <li> Now when you click Make Instruction's <button>Run</button>
+        and simulate is selected, and the simulator is shown,
+        then when the Make Instruction dialog is restored,
+        the Job's robot menu is correctly restored to its previously selected value.</li>
+
+    <li> Make Instruction <button>Insert</button> now formats
+         keyword arguments better, esp important for Job.</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.0.8, Feb 5, 2019</summary>
 Highlights: New Make Instruction dialog,
 Lots of little bug fixes
@@ -3900,7 +3983,7 @@ Please read Known Issues.
     but keep it the same, and go and grab the id of the
     instruction that errored and use it.</li>
 
-    <li>  Instruction.Control.send_to_job no longer takes a "to_job_name"
+    <li>  Instruction.send_to_job no longer takes a "to_job_name"
     as an explicit parameter, however,
     the where_to_start param can be any instruction_location
     used by Robot.go_to, or program_counter setting.

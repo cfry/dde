@@ -145,6 +145,8 @@ function serial_connect(path, options, simulate=null, capture_n_items=1, item_de
     }
 }
 
+module.exports.serial_connect = serial_connect
+
 function serial_new_socket_callback(path){
     console.log("serial_new_socket_callback passed: " + "path: " + path)
     Serial.set_a_robot_instance_socket_id(path)
@@ -213,6 +215,8 @@ function serial_send(instruction_array, path, simulate=null, sim_fun) {
         }
     }
 }
+
+module.exports.serial_send = serial_send
 
 function serial_send_simulate(ins_str, sim_fun, path, sim_actual){
     let result = sim_fun.call(null, ins_str)

@@ -1,5 +1,5 @@
 var TestSuite = class TestSuite{
-    constructor(name, ...tests){
+    constructor(name="rename_me", ...tests){
         this.name  = name
         this.report = ""
         this.known_failure_count   = 0

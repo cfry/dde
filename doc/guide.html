@@ -327,7 +327,7 @@ Each indicates that a joint has power.
         <pre><code title="not in TestSuite"> <!-- because that would be redefining dexter0 from what the user might have had with a different ip address -->
         new Dexter({name: "dexter0", ip_address: "192.168.1.142"})
         </code></pre>
-        You can insert the definition of a Dexter in the Jobs menu/Run Instruction/Show Dialog.
+        You can insert the definition of a Dexter using the Misc pane's Make Instruction dialog.
     </details> <!-- end Data Connectivity -->
 
     <details class="doc_details"><summary>Verify Joint Wiring</summary>
@@ -602,17 +602,14 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
                This allows you to navigate complex data strutures (including circular ones)
                expanding just those parts you're interesting in, giving you control
                over the visualization of any data that can be produced by Eval.</li>
-            <li><b>Run Instruction</b> The Run Instruction dialog let's you trivally created
-                instructions and run them. Open it by choosing Jobs/Run Instruction.
-                Clicking on any of the
-                buttons or the instruction SELECT menu let's you
-                see the parameters of the instruction.
-                The "Insert Job" button will wrap the instruction
-                source in a Job and insert it into the editor
-                buffer at the cursor. This is an easy way to get
-                started on defining a Job. Use the "Insert" button
-                to insert just the source for an instruction.
-                Position the cursor in the Job's do_list first.
+            <li><b>Make Instruction</b> The
+                <a href="#" onclick="open_doc(make_instruction_pane_doc_id)">Make Instruction</a>
+                dialog let's you trivally create instructions and run them.
+                Open it by choosing the Misc pane's menu item of Make Instruction.
+                This dialog also let's you create Jobs and instances of Robots too.
+                In the editor, option-clicking on a call throws it into the
+                Make Instruction dialog which let's you manipulate code in a more
+                constrained fashion that's easier for some purposes.
             </li>
             <!-- <li><b></b> </li>-->
         </ul>
@@ -685,9 +682,16 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
                    If all arguments seem to be ok,
                     the entire instruction's source is evaluated and the resulting
                    object is displayed in the output pane so that you can Inspect it.</li>
+               <li><b>Simualte</b>  Click <span style="background-color:#bae5fe;">&nbsp;<input type="radio"/> simulate </span>&nbsp;
+                   in the Misc pane header.
+                   We want to first test our instruction without complications from
+                   the physical robot or its connectivity.</li>
                <li><b>Run</b> the instruction by clicking <button>Run</button>.
                    This wraps the instruction in a Job and runs that Job on the
                    Robot selected at the top of the dialog.</li>
+               <li><b>Real</b> Now that we're confident that our software works by itself,
+                   click <span style="background-color:#bae5fe;">&nbsp;<input type="radio"/> real </span>&nbsp; in the the Misc pane header
+                   and click the <button>Run</button> again to try it on Dexter.</li>
                <li><b>Insert a Job</b></li> Once you're satisfied with the instruction,
                    you can insert the source code for a job containing that one instruction
                    into the editor by clicking <button>Insert Job</button>.</li>
@@ -698,7 +702,7 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
                    Otherwise, the instruction's source code will just be inserted
                    at the editor's cursor.
                    <p></p>
-                   The Insert instruction tries to
+                   The Insert button tries to
                    insert a comma after an instruction to prepare the Job
                    for the <i>next</i> insertion, but this sometimes gets screwed up,
                    so be careful that all the instructions in a Job's do_list are
