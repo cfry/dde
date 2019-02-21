@@ -56,8 +56,15 @@
         "dmg"
       ]
     },
-    "nsis": {
-      "perMachine": true
+    "win": {
+      "target": [
+          {
+            "target": 'nsis',
+            "arch": [
+              'x64', 'ia32'
+            ]
+          }
+        ]
     },
     "linux": {
       "target": [
