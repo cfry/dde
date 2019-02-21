@@ -59,9 +59,9 @@
     "win": {
       "target": [
           {
-            "target": 'nsis',
+            "target": "nsis",
             "arch": [
-              'x64', 'ia32'
+              "x64", "ia32"
             ]
           }
         ]
