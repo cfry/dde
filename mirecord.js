@@ -32,7 +32,9 @@ var MiRecord = class MiRecord {
                                 let angles = rs_obj.measured_angles(7)
                                 MiRecord.array_of_joint_sets.push(angles)
                                 MiRecord.set_playback_loc(MiRecord.array_of_joint_sets.length - 1)
-                                out(angles)
+                                out("Recording Dexter joint angles: " + angles,
+                                     "#95444a", //brown,
+                                     true)
                             })
             ]}).start()
         this.set_record_state("active")
@@ -109,11 +111,13 @@ var MiRecord = class MiRecord {
 `\nnew Job({
         name: "mi_play_1",
         do_list: [Dexter.set_keep_position(),
-            Dexter.loop(mi_recorded_angles,
-                function(iter_index, iter_value){
-                    let ins = Dexter.pid_move_all_joints(iter_value)
-                    return ins
-                })
+                  Dexter.loop(true,
+                    function(iter_index){
+                        if (iter_index >= mi_recorded_angles.length){
+                             return Robot.break()
+                        }
+                        else { return Dexter.pid_move_all_joints(mi_recorded_angles[iter_index]) }
+                    })
         ]})` +
         "\n\nvar mi_recorded_angles =\n" +
         this.make_big_array_string()
@@ -126,7 +130,7 @@ var MiRecord = class MiRecord {
             result += "["
             let arr = MiRecord.array_of_joint_sets[i]
             result += arr.join(", ")
-            let suffix = ((i == MiRecord.array_of_joint_sets.length - 1) ? "" : ",")
+            let suffix = ((i == MiRecord.array_of_joint_sets.length - 1) ? " " : ",")
             result += "]" + suffix + " // " + i + "\n"
         }
         result += "]\n"

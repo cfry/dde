@@ -793,7 +793,7 @@ var MakeInstruction = class MakeInstruction{
                     "<code style='padding:3px;'>" + short_arg_val_src + "</code><br/>" +
                     "errored because <span style='color:red;'>" + err.message +
                     "</span><br/>Correct errors and try again.")
-                return null
+                return false
             }
             let body0_expression_ast = ast.body[0].expression
             if(body0_expression_ast.type == "ArrayExpression"){
@@ -813,7 +813,7 @@ var MakeInstruction = class MakeInstruction{
                                 "and <span style='color:red;'> that is not a valid do_list item." +
                                 "</span><br/>Correct errors and try again.")
                             open_doc(do_list_doc_id)
-                            return null
+                            return false
                         }
                     }
                     catch(err){
@@ -824,7 +824,7 @@ var MakeInstruction = class MakeInstruction{
                             "<code style='padding:3px;'>" + elt_src + "</code><br/>" +
                             "errored because:" + "<span style='color:red;'> " + err.message +
                             "</span><br/>Correct errors and try again.")
-                        return null
+                        return false
                     }
                 }
             }
@@ -841,10 +841,10 @@ var MakeInstruction = class MakeInstruction{
                     "<code style='padding:3px;'>" + arg_val_src + "</code><br/>errored because:" +
                     "<span style='color:red;'> " + err.message +
                     "</span><br/>Correct errors and try again.")
-                return null
+                return false
             }
         }
-
+        return true //everything ok
     }
 
     //instruction_name is either "function" or "function*"

@@ -302,7 +302,9 @@ DexterSim = class DexterSim{
             let j5 = robot_status[Dexter.J5_MEASURED_ANGLE]
             j1 = j1 * -1 //fix for j1 wrong sign
             j5 = j5 * -1 //fix for j5 wrong sign
-            out("DexterSim " + job_name + " " + robot_name + " J1: " + j1 + ", J2: " + j2 + ", J3: " + j3 + ", J4: " + j4 + ", J5: " + j5)
+            out("DexterSim " + job_name + " " + robot_name + " J1: " + j1 + ", J2: " + j2 + ", J3: " + j3 + ", J4: " + j4 + ", J5: " + j5,
+                "#95444a", //brown,
+                true) //temp output
         }
     }
 
