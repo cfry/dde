@@ -355,12 +355,11 @@ DexterSim = class DexterSim{
         let hunk_index = instruction_array[Instruction.INSTRUCTION_ARG0]
         let source     = instruction_array[Instruction.INSTRUCTION_ARG1]
         let whole_content = file_content(source) //errors if path in "source" doesn't exist
-        let start_index = hunk_index * Instruction.read_from_robot.payload_max_chars
-        let end_index = start_index + Instruction.read_from_robot.payload_max_chars
+        let start_index = hunk_index * Instruction.Dexter.read_from_robot.payload_max_chars
+        let end_index = start_index + Instruction.Dexter.read_from_robot.payload_max_chars
         let payload_string = whole_content.substring(start_index, end_index) //ok if end_index is > whole_cotnent.length, it just gets how much it can, no error
         //out("some content from " + source + " hunk: " + hunk_index + " payload: " + payload_string)
         Socket.r_payload_grab_aux(payload_string, instruction_array)
-        //Instruction.read_from_robot.got_content_hunk(job_id, ins_id, payload_string)
     }
 
     static close(robot_name){

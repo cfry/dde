@@ -143,6 +143,8 @@ app.on("browser-window-blur",  function(){ globalShortcut.unregisterAll() })
 // code. You can also put them in separate files and require them here.
 const accel_key = ((os.platform() == "darwin")? "cmd" : "ctrl")
 
+//const MenuItem = require('menu-item') //fails
+
 require('electron-context-menu')({
         //prepend: (params, browserWindow) => [{
         // only show it when right-clicking images
@@ -152,7 +154,13 @@ require('electron-context-menu')({
         labels:  {cut:   'Cut   ' + accel_key + ' x',
                   copy:  'Copy  ' + accel_key + ' c',
                   paste: 'Paste ' + accel_key + ' v'
-        }
+                 }
+        /* //fails because I cant find how to load/require MenuItem
+          append: function(){
+            return [new MenuItem({label: "Select Call",
+                           click: function(){console.log("clicked select call")}
+                           })
+                   ] } */
 });
 
 

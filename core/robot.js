@@ -19,6 +19,17 @@ var Robot = class Robot {
         for(let robot_name of Robot.all_names) { result.push(Robot[robot_name]) }
         return result
     }
+    //superclass can be a string name like "Dexter" or "Serial", OR it can be the class object.
+    //returns true or false
+    static is_valid_robot_class_name(robot_class_name) {
+        return ["Brain", "Dexter", "Human", "Serial"].includes(robot_class_name)
+    }
+    static robot_instances_exist_for_running_instructions_of_superclass(superclass){
+        let rob_class = ((typeof(superclass) == "string") ? value_of_path(superclass) : superclass)
+        if ([Robot, Human].includes(rob_class)) { return true } //Robot and Human instructions can be run on any class of robot
+        else { return rob_class.all_names.length > 0 }
+    }
+
     static default_robot_name(){
         if (Robot.all_names.length > 0){
             return Robot.all_names[Robot.all_names.length - 1]
@@ -2595,7 +2606,7 @@ var Job = require("./job.js")
 var {Instruction, make_ins} = require("./instruction.js")
 Dexter.make_ins = make_ins
 var {shouldnt, warning, dde_error, date_integer_to_long_string, is_iterator, last,
-      prepend_file_message_maybe, return_first_arg, starts_with_one_of} = require("./utils")
+      prepend_file_message_maybe, return_first_arg, starts_with_one_of, value_of_path} = require("./utils")
 var {persistent_get} = require("./storage")
 var Socket = require("./socket.js")
 var {out} = require("./out.js")

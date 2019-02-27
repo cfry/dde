@@ -14,8 +14,8 @@ var MakeInstruction = class MakeInstruction{
     }
 
     static dialog_contains_move_all_joints_with_joints(){
-        let instruction_name = mi_instruction_name_id.value
-        if(this.in_move_all_joints_family(instruction_name)){
+        let instruction_name = this.get_instruction_name_from_ui()
+        if(MiIns.instruction_name_in_family_class(instruction_name, MiIns.move_all_joints_family)){
             let id = this.arg_name_to_dom_elt_id("joint1")
             let elt = window[id]
             if(elt) { return true }
@@ -24,8 +24,8 @@ var MakeInstruction = class MakeInstruction{
         else { return false }
     }
     static dialog_contains_move_to_with_separate_xyzs(){
-        let instruction_name = mi_instruction_name_id.value
-        if(this.in_move_to_family(instruction_name)){
+        let instruction_name = this.get_instruction_name_from_ui()
+        if(MiIns.instruction_name_in_family_class(instruction_name, MiIns.move_to_family)){
             let id = this.arg_name_to_dom_elt_id("x")
             let elt = window[id]
             if(elt) { return true }
@@ -40,26 +40,18 @@ var MakeInstruction = class MakeInstruction{
         }
         dde_error("call_obj_arg_obj_with_name couldn't find: " + arg_name + " in: " + call_obj)
     }
-    //var the_move_all_joints_family = ["Dexter.move_all_joints", "Dexter.move_all_joints_relative", "Dexter.pid_move_all_joints"]
-    //beware, we might have an instruction name like "dex3.move_all_joints" which
-    //doesn't have a "Dexter" prefix
-    static in_move_all_joints_family(instruction_name){
-        return ends_with_one_of(instruction_name, [".move_all_joints", ".move_all_joints_relative", ".pid_move_all_joints"])
-    }
 
-    static in_move_to_family(instruction_name){
-        return ends_with_one_of(instruction_name, [".move_to", ".move_to_relative", ".move_to_straight", ".pid_move_to"])
-    }
-
-    static in_function_family(instruction_name){
-        return ["function", "function*"].includes(instruction_name)
-    }
 
     //you can pass "instruction_name" even though its not really an "arg"
     static arg_name_to_dom_elt_id(arg_name){
-        if(arg_name == "instruction_name") { return "mi_instruction_name_id" }
-        else if(arg_name.startsWith("...")){ arg_name = arg_name.substring(3) }
+        if(arg_name.startsWith("mi_arg_")) { return arg_name }
+        //if(arg_name.startsWith("...")){ arg_name = arg_name.substring(3) }
         return "mi_arg_" + arg_name + "_id"
+    }
+
+    static dom_elt_id_to_arg_name(dom_elt_id){
+        let end_pos = dom_elt_id.length - 3
+        return dom_elt_id.substring(7, end_pos)
     }
 
     //the default color is transparent
@@ -79,356 +71,50 @@ var MakeInstruction = class MakeInstruction{
     }
     //end utilities
 
-    //stolen from js2b.js
-    static string_to_ast(src){
-        if (src[0] == "{") { //esprima doesn't like so hack it
-            let new_src = "var foo947 = " + src
-            let st = esprima.parse(new_src, {range: true, loc: true})
-            let new_st = st.body[0].declarations[0].init
-            return new_st
-        }
-        else {
-            return esprima.parse(src, {range: true, loc: true})
-        }
-    }
-
-    //called by option_click on source in the editor
-    //always returns a lit obj but it might be empty
-    static instruction_src_to_call_obj(src=""){
-        let call_obj = {name: "", args:[]}
-        if ((src == null) || (src == "")) {return call_obj} //nothing there so return empty obj
-        let ast = null
-        src = src.trim()
-        try{ast = this.string_to_ast(src)}
-        catch(err){
-           let first_paren_index = src.indexOf("(")
-           if(first_paren_index == -1) { //can't find anything in this src so punt
-               return call_obj
-           }
-           else {
-               let full_name = src.substring(0, first_paren_index).trim()
-               if (full_name.length == 0) { return call_obj } //can't find anything in this src so punt
-               else {
-                   call_obj.name = full_name
-                   return call_obj
-               }
-           }
-        }
-        let instruction_name = this.extract_name_from_ast(ast)
-        if (instruction_name) { call_obj.name = instruction_name }
-        let args = this.extract_args_from_ast(ast, instruction_name, src)
-        if (args) { call_obj.args = args }
-        return call_obj
-    }
-    static extract_name_from_ast(ast){
-        try{
-            let body0_ast = ast.body[0]
-            if(body0_ast.type == "FunctionDeclaration"){
-                if(body0_ast.generator) { return "function*" }
-                else                    { return "function"  }
-            }
-            let call_ast = body0_ast.expression
-            if (call_ast.type == "ArrayExpression") { return "new Array" }
-            let the_called_fn_ast = call_ast.callee
-            let instruction_name
-            let name
-            let prop
-            if(the_called_fn_ast.type == "Identifier") { instruction_name = the_called_fn_ast.name }
-            else {
-                let name = (the_called_fn_ast.object && the_called_fn_ast.object.name)  //ie "Dexter"
-                let prop = (the_called_fn_ast.property && the_called_fn_ast.property.name)
-                if(name){
-                    if (prop) { instruction_name =  name + "." + prop }
-                    else { instruction_name = name }
-                }
-                else if (prop) { instruction_name = prop }
-            }
-            if(call_ast.type == "NewExpression"){
-                instruction_name = "new " + instruction_name
-            }
-            return instruction_name
-        }
-        catch(err) {return null}
-    }
-
-    //makes an array of objs of each arg in ast. If there isn't an arg in the ast,
-    //we get its default value from the fn_name's default value.
-    //so we populate the returned val with either the actual arg_src in the ast,
-    //or the default arg src from fn_name
-    //if returns null, that means we couldn't parse the args so have to get the
-    //default args from the instructions' def.
-    static extract_args_from_ast(ast, instruction_name, src){
-        if(this.in_move_all_joints_family(instruction_name)){
-            return this.extract_args_from_ast_maj(ast, instruction_name, src)
-        }
-        else if (this.in_move_to_family(instruction_name)){
-            return this.extract_args_from_ast_mt(ast, instruction_name, src)
-        }
-        else if (this.in_function_family(instruction_name)){
-            return this.extract_args_from_ast_fn(ast, instruction_name, src)
-        }
-        else if (instruction_name == "new Array") {
-            return this.extract_args_from_ast_array(ast, instruction_name, src)
-        }
-        else{
-            instruction_name = this.clean_instruction_name(instruction_name) //removes "new " prefix, if any
-            return this.extract_args_from_ast_normal(ast, instruction_name, src)
-        }
-    }
-
-    //return string of src code for arg_name in prop_array (from ast) OR returnn undefined meaning couldn't find it
-    static find_arg_val_src_in_prop_array(arg_name, prop_array, src){
-        for(let prop_ast of prop_array){
-            if(prop_ast.key.name == arg_name){
-                return src.substring(prop_ast.value.range[0], prop_ast.value.range[1])
-            }
-        }
-    }
     static find_arg_val_src_in_arg_name_val_src_pairs(arg_name, arg_name_src_pairs){
         for(let pair of arg_name_src_pairs) { if(arg_name == pair[0]) { return pair[1] } }
         return undefined
     }
 
-    static extract_args_from_ast_normal(ast, instruction_name, src){
-        let fn = value_of_path(instruction_name)
-        let default_arg_name_val_src_pairs = function_param_names_and_defaults_array(fn, true)
-        let args_array = []
-        if(starts_with_one_of(instruction_name, ["Dexter.", "Serial."]) &&
-            (default_arg_name_val_src_pairs.length > 0) &&
-            (last(default_arg_name_val_src_pairs)[0] == "robot")){
-            default_arg_name_val_src_pairs.pop() //get rid of "robot"
-        }
-        //arg_name_val_src_pairs holds all the arg names and their default values.
-        //only use those defaults if no value from ast/src
-        try{
-            let src_args_array = ast.body[0].expression.arguments
-            for(let i = 0; i <  default_arg_name_val_src_pairs.length; i++){
-                let default_arg_pair = default_arg_name_val_src_pairs[i]
-                let arg_name = default_arg_pair[0]
-                let src_arg_ast = src_args_array[i]
-                let arg_val_src
-                if(src_arg_ast){
-                    if(src_arg_ast.type == "ObjectExpression"){
-                        let prop_array = src_arg_ast.properties
-                        for(let default_arg_pair of default_arg_name_val_src_pairs){
-                            arg_name = default_arg_pair[0]
-                            arg_val_src = this.find_arg_val_src_in_prop_array(arg_name, prop_array, src)
-                            if(arg_val_src === undefined) { arg_val_src = default_arg_pair[1]}
-                            if(arg_val_src === undefined) { arg_val_src = "" } //its supposed to be src, so it should be a string
-                            args_array.push({name: arg_name, arg_val_src: arg_val_src})
-                        }
-                        break;
-                    }
-                    else if (arg_name.startsWith("...")){
-                        let start_pos
-                        if(i == 0) { start_pos = src_arg_ast.range[0] }
-                        else { //get whitespace before first arg
-                                     start_pos = src_args_array[i - 1].range[1]
-                        }
-                        let end_pos   = last(src_args_array).range[1] //to end of last arg
-                        arg_val_src = src.substring(start_pos, end_pos)
-                        if(arg_val_src === undefined) { arg_val_src = "" } //its supposed to be src, so it should be a string
 
-                        //exclude the comma before this rest arg src, but include
-                        //the whitespace (maybe even newline) after the comma but before
-                        //the first char of the firset arg src so that sucking in
-                        //the src from editor then printing out again will look the same.
-                        let trimmed_arg_val_src = arg_val_src.trim()
-                        if(trimmed_arg_val_src.startsWith(",")){
-                            let comma_pos = arg_val_src.indexOf(",")
-                            arg_val_src = arg_val_src.substring(comma_pos + 1)
-                        }
-                        args_array.push({name: arg_name, arg_val_src: arg_val_src})
-                    }
-                    else {
-                        arg_val_src = src.substring(src_arg_ast.range[0], src_arg_ast.range[1])
-                        if(arg_val_src === undefined) { arg_val_src = "" } //its supposed to be src, so it should be a string
-                        args_array.push({name: arg_name, arg_val_src: arg_val_src})
-                    }
-                }
-                else {
-                    arg_val_src = default_arg_pair[1]
-                    if(arg_val_src === undefined) { arg_val_src = "" } //its supposed to be src, so it should be a string
-                    args_array.push({name: arg_name, arg_val_src: arg_val_src})
-                }
-            }
-        }
-        catch(err) {}
-        return args_array
-    }
-
-    static extract_args_from_ast_maj(ast, instruction_name, src){
-        let args_array = []
-        let call_ast = ast.body[0].expression
-        let the_args_ast = (call_ast && call_ast.arguments)
-        let arg0_ast = the_args_ast[0]
-        if ((the_args_ast.length == 1) && (arg0_ast.type != "ArrayExpression")) { //1 arg dialog
-              let arg_name = "...array_of_angles"
-              let arg_val_src = src.substring(arg0_ast.range[0], arg0_ast.range[1])
-              args_array.push({name: arg_name, arg_val_src: arg_val_src})
-        }
-        else { //7 arg dialog. this hits if there are no args as well as > 1 arg, or if the 1 arg is a lit array
-            if ((the_args_ast.length == 1) && (arg0_ast.type == "ArrayExpression")) { //got a lit array in that 1 arg
-                the_args_ast = the_args_ast[0].elements
-            }
-            //now the_args_ast is an array of the individual args.
-            let fn = value_of_path(instruction_name)
-            let arg_name_val_src_pairs = function_param_names_and_defaults_array(fn)
-            for(let j = 1; j < 8; j++){
-                let arg_name = "joint" + j
-                let arg_ast = the_args_ast[j - 1]
-                let arg_val_src = ""
-                if (arg_ast){
-                    let range = arg_ast.range
-                    if(!range) { arg_val_src = "parsing_error" }
-                    else { arg_val_src = src.substring(range[0], range[1]) }
-                }
-                else { //no arg so use default val
-                    arg_val_src = "0"
-                }
-                args_array.push({name: arg_name, arg_val_src: arg_val_src})
-            }
-            return args_array
-        }
-        return args_array
-    }
-    //for parsing move_to family calls
-    static extract_args_from_ast_mt(ast, instruction_name, src){
-        let args_array = []
-        let call_ast = ast.body[0].expression
-        let the_args_ast = (call_ast && call_ast.arguments)
-        let arg0_ast = the_args_ast[0] //the xyz arg
-        if (!arg0_ast) { //rare case where there's no args at all in the src
-            for(let arg_name of ["x", "y", "z"]){
-                let arg_val_src = "0"
-                args_array.push({name: arg_name, arg_val_src: arg_val_src})
-            }
-        }
-        else if (arg0_ast.type == "ArrayExpression") {
-             let elts_ast = arg0_ast.elements
-             for(let i = 0; i < 3; i++) {
-                 let arg_name = ["x", "y", "z"][i]
-                 let elt_ast = elts_ast[i]
-                 let arg_val_src = "0"
-                 if(elt_ast){ arg_val_src = src.substring(elt_ast.range[0], elt_ast.range[1]) }
-                 args_array.push({name: arg_name, arg_val_src: arg_val_src})
-             }
-        }
-        else if (arg0_ast.type == "ObjectExpression") { //happens just for move_to_straight
-              let props_array = arg0_ast.properties
-              for(let prop of props_array){
-                  let arg_name     = prop.key.name
-                  if(arg_name == "xyz"){
-                      let prop_val_ast = prop.value
-                      if(prop_val_ast.type == "ArrayExpression"){
-                          let arg_vals_array = prop_val_ast.elements
-                          for(let i = 0; i < 3; i++) {
-                              let arg_name = ["x", "y", "z"][i]
-                              let elt_ast = arg_vals_array[i]
-                              let arg_val_src = "0"
-                              if(elt_ast){ arg_val_src = src.substring(elt_ast.range[0], elt_ast.range[1]) }
-                              args_array.push({name: arg_name, arg_val_src: arg_val_src})
-                          }
-                      }
-                      else {
-                          let arg_val_src  = src.substring(prop_val_ast.range[0], prop_val_ast.range[1])
-                          args_array.push({name: arg_name, arg_val_src: arg_val_src})
-                      }
-                  }
-                  else {
-                      let arg_val_src  = src.substring(prop.value.range[0], prop.value.range[1])
-                      args_array.push({name: arg_name, arg_val_src: arg_val_src})
-                  }
-              }
-        }
-        else { return this.extract_args_from_ast_normal(ast, instruction_name, src) }
-        //now args_array is an array of the individual args & vals from the src
-        let fn = value_of_path(instruction_name)
-        let arg_name_val_src_pairs = function_param_names_and_defaults_array(fn, true)
-        arg_name_val_src_pairs.shift() //get rid of the first "xyz" param
-        arg_name_val_src_pairs.pop()  //get rid of "robot" last arg
-        try{
-            the_args_ast.shift() //get rid of first elt (xyz)
-            for(let i = 0; i <  arg_name_val_src_pairs.length; i++){
-                let arg_pair = arg_name_val_src_pairs[i]
-                let arg_name = arg_pair[0]
-                let the_arg_ast = the_args_ast[i]
-                let arg_val_src = src.substring(the_arg_ast.range[0], the_arg_ast.range[1])
-                if(arg_val_src === undefined) { arg_val_src = arg_pair[1] }
-                if(arg_val_src === undefined) { arg_val_src = "" } //its supposed to be src, so it should be a string
-                args_array.push({name: arg_name, arg_val_src: arg_val_src})
-            }
-        }
-        catch(err) {}
-        return args_array
-    }
-
-    static extract_args_from_ast_fn(ast, instruction_name, src){ //for generators too
-        let args_array = []
-        let body0_ast = ast.body[0]
-        let arg_name, arg_val_src
-
-        arg_name = "name"
-        let id_ast  = body0_ast.id
-        arg_val_src = id_ast.name
-        args_array.push({name: arg_name, arg_val_src: arg_val_src})
-
-        arg_name = "...params"
-        let params_array = body0_ast.params
-        if (params_array.length == 0) { arg_val_src = "" }
-        else { arg_val_src = src.substring(params_array[0].range[0], last(params_array).range[1])} //excludes surrounding parans
-        args_array.push({name: arg_name, arg_val_src: arg_val_src})
-
-        arg_name = "body"
-        let body_array = body0_ast.body.body
-        if (body_array.length == 0) { arg_val_src = "" }
-        else { arg_val_src = src.substring(body_array[0].range[0], last(body_array).range[1])} //excludes curley braces
-        arg_val_src = arg_val_src.trim() //we don't know what whitesapce is at beginning. This gets rid of it
-        arg_val_src = replace_substrings(arg_val_src, "\n    ", "\n") //so the body text area lines will start with the most outdented  code normally
-        args_array.push({name: arg_name, arg_val_src: arg_val_src})
-        return args_array
-    }
-
-    static extract_args_from_ast_array(ast, instruction_name, src){ //for generators too
-        let arg_name = "...elts"
-        let args_array = []
-        let body0_ast = ast.body[0]
-        let call_ast = body0_ast.expression
-        let elements_array = call_ast.elements
-        let arg_val_src
-        if(elements_array.length == 0) { arg_val_src = "" }
-        else {
-            arg_val_src = src.substring(elements_array[0].range[0], last(elements_array).range[1])
-        }
-        args_array.push({name: arg_name, arg_val_src: arg_val_src})
-        return args_array
-    }
     //top level fn, called when user option-clicks in editor, passed the selected src.
-    static show(instruction_call_src="Dexter.move_all_joints()", show_doc=true, selected_robot_full_name=""){
+    //first arg can be a string of js src, or a call obj (used by MakeInstruction.run
+    static show(instruction_call_src=null, selected_robot_full_name="", show_doc=true){
         misc_pane_menu_id.value = "Make Instruction"
-        let call_obj = this.instruction_src_to_call_obj(instruction_call_src)
-        //if(!call_obj.name) { call_obj.name = "Dexter.move_all_joints" }
-        //if(!call_obj.args) { this.fill_in_call_obj_args_from_name(call_obj) }
-        let instruction_name = call_obj.name
-        //style='height:300px; width:300px; padding:5px; background-color:#EEEEEE; overflow:scroll;'
-        //sim_graphics_pane_id.innerHTML =
+        let call_obj
+        if(typeof(instruction_call_src) == "string"){ //don't use pipeline because we don't want to merge in prev_vals when coming from the editor, just instrudtion def defaults overlayed with src values
+            call_obj = MiIns.make_from_instruction_source_no_args(instruction_call_src). //just fill in instruction name
+                       merge_in_from_instruction_def().
+                       merge_in_src(instruction_call_src)  //do not merge in special_defaults nor prev_values
+        }
+        else if (instruction_call_src == null){
+            call_obj = MiIns.make_from_instruction_name_no_args("Dexter.move_all_joints")
+            for(let i = 1; i < 8; i++) {  //not quite the same as merge_in_special_defaults
+                let arg_name = "joint" + i
+                call_obj.args_obj[arg_name] = "0"
+            }
+        }
+        else {call_obj = instruction_call_src }
+
         sim_pane_content_id.innerHTML =
-          `<div style="background-color:#EEEEEE;">
-           <div style="font-size:14px;font-weight:700;margin-left:50px;">Make Instruction</div>` +
-           this.make_robots_select_html(selected_robot_full_name) +
-           "<div style='white-space:nowrap;'>" +  //white-space:nowrap;
-            this.make_instruction_menu_html() +
-           ":<input id='mi_instruction_name_id' onchange='MakeInstruction.set_instruction_name_and_args()' style='width:300px;margin-left:5px;vertical-align:25%;font-size:14px;'/></div>" +
-           "<div id='mi_args_id'> </div>" +
-            this.replace_args_html(call_obj) + "<br/>" +
-            "<input id='mi_insert_default_args_id' type='checkbox'> Insert default args</input><br/>" +
-            this.bottom_buttons_html() +
-           "</div>"
+            "<div style='background-color:#EEEEEE;margin-bottom:10px;'>" +
+                "<div style='font-size:14px;font-weight:700;margin-left:50px;'>Make Instruction</div>" +
+                this.make_job_robots_select_html(selected_robot_full_name) +
+                "<div style='white-space:nowrap;'>" +  //white-space:nowrap;
+                    this.make_instruction_menu_html() +
+                    this.make_instruction_name_html() +
+                "</div>" +
+                "<div id='mi_args_id'></div>" +
+                this.replace_args_wrapper_html(call_obj) + "<br/>" +
+                "<input id='mi_insert_default_args_id' type='checkbox'> Insert default args</input><br/>" +
+                this.bottom_buttons_html() +
+                MiRecord.make_html() +
+            "</div>"
         $("#mi_instruction_menu_id").jqxMenu({autoOpen: false, clickToOpen: false, height: '25px' })
         $("#mi_instruction_menu_id").jqxMenu('setItemOpenDirection', 'mi_instruction_id', 'right', 'up');
-
-        this.set_instruction_name_and_args(call_obj, show_doc)
-        $("#mi_replace_args_id").jqxMenu({autoOpen: false, clickToOpen: false, height: '25px' })
+        $("#mi_instruction_instance_name_id").jqxComboBox({width: '90px', height: '20px'})
+        MiRecord.set_initial_states()
+        this.update_instruction_name_and_args(call_obj, show_doc)
     }
 
     static is_shown(){
@@ -436,8 +122,12 @@ var MakeInstruction = class MakeInstruction{
         else { return false }
     }
 
-    static make_robots_select_html(selected_robot_full_name=""){
-        var result = "<div style='margin-top:5px;'>Job default robot: <select id='mi_job_wrapper_robot_name_id' style='font-size:14px;width:130px;'>"
+    static make_job_robots_select_html(selected_robot_full_name=""){
+        var result = "<div style='margin-top:5px;'>Job default robot: " +
+                     "<select id='mi_job_wrapper_robot_name_id' style='font-size:14px;width:130px;'" +
+                     " title='Supplies the robot for instructions prefixed\n" +
+                             "with a robot class (like Dexter or Serial)\n" +
+                             "but no robot instance.')>"
         for(let robot_class_name of ["Brain", "Dexter", "Human", "Serial"]){
             for(let name of window[robot_class_name].all_names){
                 let full_name = robot_class_name + "." + name
@@ -453,14 +143,17 @@ var MakeInstruction = class MakeInstruction{
       let result = "<li>" + label_array[0] + "<ul>"
       for(let i = 1; i < label_array.length; i++){
          let label = label_array[i]  //setting the width below fails. usingn title lets you see long menu items
-         let title = ((label == "function*") ? "generator" : label)
+         let title
+         if (label == "function*") { title = "generator"}
+         else if (["new Dexter", "new Serial"].includes(label)) { title = "A Robot instance is not a valid do_list item." }
+         else { title = label}
          result += "<li style='width:300px;' title='" + title + "' onclick='MakeInstruction.instruction_menu_click(event)'>" + label + "</li>"
       }
       result += "</ul></li>"
       return result
     }
     static make_instruction_menu_html(){
-       let result = `<div title='Choose the type of instruction to make.' id='mi_instruction_menu_id' class='dde_menu' style="display:inline-block;height:15px;padding:0px;margin-top:5px;">
+       let result = `<div title='Choose the class of instruction to make.' id='mi_instruction_menu_id' class='dde_menu' style="display:inline-block;height:15px;padding:0px;margin-top:5px;">
                       <ul style="display:inline-block;padding:0;margin-top:0px;">
                         <li id="mi_instruction_id" style="display:inline-block;padding-left:3px;padding-right:0px;">Instruction&#9660;<ul>`
        for(let labels of this.menu_hierarchy){
@@ -484,117 +177,250 @@ var MakeInstruction = class MakeInstruction{
     }
 
     static instruction_menu_click(event){
-        let label = event.target.innerText
-        let prefix = this.instruction_menu_item_prefix(label)
-        this.set_instruction_name_and_args(prefix + label)
+        let instruction_class_name = event.target.innerText // ie "move_all_joints"
+        let instruction_superclass_name = this.instruction_menu_item_prefix(instruction_class_name) //ie "Dexter."
+        let superclass_dot_class_name = instruction_superclass_name + instruction_class_name
+        this.update_instruction_name_and_args(superclass_dot_class_name)
+    }
+
+    static make_instruction_name_html() {
+        let instruction_superclass_html = "<input id='mi_instruction_superclass_name_id' title='Instruction Robot superclass'               onchange='MakeInstruction.update_instruction_name_and_args()' style='width:50px;margin-left:5px;vertical-align:25%;font-size:14px;'/>"
+        let instruction_instance_html   = "<div   id='mi_instruction_instance_name_id'   title='Instruction Robot instance\nUsually empty.' onchange='MakeInstruction.update_instruction_name_and_args()' style='margin-left:0px;vertical-align:0%;font-size:14px;display:inline-block;'></div>" //set width in "show" method in jqxComboBox init
+        let instruction_class_html      = "<input id='mi_instruction_class_name_id'      title='Instruction Robot class'                    onchange='MakeInstruction.update_instruction_name_and_args()' style='width:200px;margin-left:0px;vertical-align:25%;font-size:14px;'/>"
+        return instruction_superclass_html + " <span style='font-size:25px;'>.</span>\n" +
+               instruction_instance_html   + " <span style='font-size:25px;'>.</span>\n" +
+               instruction_class_html + "\n"
+    }
+
+    static disable_instruction_name_onchange(){
+        mi_instruction_superclass_name_id.onchange = ""
+        mi_instruction_instance_name_id.onchange = ""
+        mi_instruction_class_name_id.onchange = ""
+    }
+    static enable_instruction_name_onchange(){
+        mi_instruction_superclass_name_id.onchange = 'MakeInstruction.update_instruction_name_and_args()'
+        mi_instruction_instance_name_id.onchange   = 'MakeInstruction.update_instruction_name_and_args()'
+        mi_instruction_class_name_id.onchange      = 'MakeInstruction.update_instruction_name_and_args()'
+    }
+    static update_instruction_name_ui(instruction_name=""){ //instruction_name looks like "Dexter.move_all_joints" or "Dexter.dexter0.move_all_joints"
+        this.disable_instruction_name_onchange() //if I don't do this, I get an infinite loop
+        let arr = MiIns.instruction_name_to_array_of_3(instruction_name)
+        if(instruction_name == "") {
+            mi_instruction_superclass_name_id.value = ""
+            mi_instruction_class_name_id.value = ""
+        }
+        else {
+            mi_instruction_superclass_name_id.value = arr[0]
+            mi_instruction_class_name_id.value = arr[2]
+        }
+        this.update_instruction_name_robot_instance_choices(arr[1])
+        this.enable_instruction_name_onchange()
+    }
+
+    static update_instruction_name_robot_instance_choices(instance_name = ""){
+        $("#mi_instruction_instance_name_id").jqxComboBox('clear')
+        $("#mi_instruction_instance_name_id").jqxComboBox('addItem', "")
+        let superclass_name = this.get_superclass_name_from_ui()
+        let rob_superclass = value_of_path(superclass_name)
+        if((rob_superclass) && (Array.isArray(rob_superclass.all_names))){
+            for(let rob_instance_name of rob_superclass.all_names){
+                $("#mi_instruction_instance_name_id").jqxComboBox('addItem', rob_instance_name)
+            }
+        }
+        $("#mi_instruction_instance_name_id").jqxComboBox('selectItem', instance_name)
+    }
+    //returns true or false. If false, it also prints an error message.
+    static validate_instruction_name_ui(instruction_name="get_from_ui"){
+        if(instruction_name == "get_from_ui") { instruction_name = this.get_instruction_name_from_ui() }
+        let superclass_name  = this.get_superclass_name_from_ui()
+        let instance_name    = this.get_instance_name_from_ui() //usually ""
+        let class_name       = this.get_class_name_from_ui()
+        let is_valid_instruction_name = MiIns.valid_instruction_name(instruction_name)
+        if(superclass_name != ""){
+            if (!window[superclass_name]){
+                this.set_border_color_of_arg("mi_instruction_superclass_name_id", "red")
+                out("<span style='color:red'>Error: </span>" +
+                    "The instruction superclass name: <code>" + superclass_name + "</code> can't be evaluated.<br/>" +
+                    "Please correct errors and try again.")
+                return false
+            }
+            else { //superclass is present and ok
+                if (Robot.is_valid_robot_class_name(superclass_name) &&
+                    !Robot.robot_instances_exist_for_running_instructions_of_superclass(superclass_name)){
+                    warning("No instance of Robot class: <code style='color:black;'>" + superclass_name + "</code> exists.<br/>" +
+                            "You'll have to create one before running instructions on it.<br/>" +
+                            "The <button>Instruction&#9660;</button> menu, <b style='color:black;'>Misc</b> submenu<br/>" +
+                            "contains items to create Robot instances.")
+                }
+                if (instance_name != "")
+                    if(!value_of_path(superclass_name + "." + instance_name)){
+                        this.set_border_color_of_arg("mi_instruction_instance_name_id", "red")
+                        out("<span style='color:red'>Error: </span>" +
+                            "The instruction instance name: <code>" + instance_name + "</code> isn't in " + superclass_name + ".<br/>" +
+                            "Please correct errors and try again.")
+                        return false
+                    }
+                    else {
+                        if(class_name != "") { //got all 3, first 2 ok
+                           if(!is_valid_instruction_name){
+                                this.error_for_class_name(class_name)
+                                return false
+                            }
+                        }
+                    }
+                else { //superclass_name present and ok, no instance_name
+                    if(class_name != "") {
+                        if(!is_valid_instruction_name){
+                            this.error_for_class_name(class_name)
+                            return false
+                        }
+                    }
+                }
+            }
+        }
+        else{ //no superclass, presumably no instance_name
+            if(class_name != "") {
+                if(!is_valid_instruction_name) {
+                    this.error_for_class_name(class_name)
+                    return false
+                }
+            }
+        }
+        //if we haven't returned by now, all is good
+        this.set_border_color_of_arg("mi_instruction_superclass_name_id")
+        this.set_border_color_of_arg("mi_instruction_instance_name_id")
+        this.set_border_color_of_arg("mi_instruction_class_name_id")
+        return true
+    }
+
+    static error_for_class_name(class_name){
+        this.set_border_color_of_arg("mi_instruction_class_name_id", "red")
+        out("<span style='color:red'>Error: </span>" +
+            "The class name: <code>" + class_name +
+            "</code> is not valid.<br/>" +
+            "Correct errors and try again.")
+    }
+
+   //returns format of "Dexter.dexter0.move_all_joints",
+   //"Dexter.move_all_joints"
+   //"some_fn"
+    static get_instruction_name_from_ui(){
+        let superclass_name = this.get_superclass_name_from_ui()
+        let instance_name   = this.get_instance_name_from_ui()
+        let class_name      = this.get_class_name_from_ui()
+        return MiIns.make_instruction_name(superclass_name, instance_name, class_name)
+    }
+
+    static get_superclass_name_from_ui(){
+        return mi_instruction_superclass_name_id.value
+    }
+
+    static get_instance_name_from_ui(){
+        let result = $("#mi_instruction_instance_name_id").jqxComboBox("getSelectedItem")
+        if ((result === null) || (result === undefined)) { return "" }
+        else { return result.label }
+    }
+
+    static get_class_name_from_ui(){
+        return mi_instruction_class_name_id.value
     }
 
     // call_obj can be just a string of the fn name,
-    // or a call_obj
-    // or undefined (as when user types ENTER wehn in the instruction name field
-    //called when the instruction name type in is changed.
+    // or a call_obj with an instruction_name
+    // or undefined (as when user types ENTER when in the instruction name field
+    //called when the instruction name is changed.
     //beware sometimes happens automagically.
-    static set_instruction_name_and_args(call_obj, show_doc=true){
-        let instruction_name
-        if (call_obj === undefined) { call_obj = mi_instruction_name_id.value }
-        if (typeof(call_obj) == "string"){
-            if(this.in_function_family(call_obj)) {
-                this.set_instruction_name_and_args_for_function(call_obj)
-                return
+    static update_instruction_name_and_args(call_obj_or_instruction_name, show_doc=true){
+        let old_call_object = this.make_call_obj_from_ui() //beware, this might have new instruction name, but we're just using this for its args
+        MiIns.prev_defaults.merge_in(old_call_object)
+        let instruction_name, call_obj
+        if (call_obj_or_instruction_name === undefined) {
+            instruction_name = this.get_instruction_name_from_ui()
+            if(!this.validate_instruction_name_ui(instruction_name)) {  //shows error messages, displays red ret
+                return false
             }
-            else {
-                instruction_name = call_obj
-                call_obj = {name: instruction_name}
-            }
+            call_obj = MiIns.make_from_instruction_name_no_args(instruction_name).
+                       merge_in_pipeline()
         }
-        else if (call_obj) { instruction_name = call_obj.name }
-        else if (window.mi_instruction_name_id) {
-            instruction_name = mi_instruction_name_id.value
-            call_obj = {name: instruction_name}
-        }
-        else {
-            instruction_name = "" //don't default here to "Dexter.move_all_joints", default to "" as that's
-                                  //what we might get from option click from editor, ie nothing.
-                                  //so don't pretend that we got a move_all_joints, force the user to pick
-            call_obj = {name: instruction_name}
-        }
-        if (instruction_name == "") { call_obj.args = [] }
-        else if (!call_obj.args) {
-            let fn = value_of_path(this.clean_instruction_name(instruction_name))
-            if(fn === undefined) {
-                this.set_border_color_of_arg("instruction_name", "red")
-                out("<span style='color:red'>Error: </span>" +
-                    "The instruction name: <code>" + instruction_name + "</code> can't be evaluated.<br/>" +
-                    "Please correct errors and try again.")
-                return null
+        else if (typeof(call_obj_or_instruction_name) == "string"){
+            instruction_name = call_obj_or_instruction_name
+            if(!this.validate_instruction_name_ui(instruction_name)) {  //shows error messages, displays red ret
+                return false
             }
-            else if (typeof(fn) != "function"){
-                this.set_border_color_of_arg("instruction_name", "red")
-                out("<span style='color:red'>Error: </span>" +
-                    "The instruction name: <code>instruction_name</code> is not a function.<br/>" +
-                    "Correct errors and try again.")
-                return null
-            }
-            else { this.set_border_color_of_arg("instruction_name")
-                   this.fill_in_call_obj_args_from_name(call_obj)
-                   //proceed to rest of fn
+            call_obj = MiIns.make_from_instruction_name_no_args(instruction_name).
+                       merge_in_pipeline()
+        }
+        else if (typeof(call_obj_or_instruction_name) == "object"){
+            call_obj = call_obj_or_instruction_name
+            instruction_name = call_obj.get_instruction_name()
+            if(!this.validate_instruction_name_ui(instruction_name)) {  //shows error messages, displays red ret
+                return false
             }
         }
-        mi_instruction_name_id.value = instruction_name
-        this.set_instruction_args(call_obj)
-        if(show_doc) {
-            try{ open_doc(instruction_name + "_doc_id") }
-            catch(err) {} //ignore. might be trying to get doc on Math.pow or something not in the doc so, just don't do it
+        else { shouldnt("in update_instruction_name_and_args passed invalid: " + call_obj_or_instruction_name) }
+        //now instruction_name and call_obj set with call_obj having a name and all its args.
+        this.update_instruction_name_ui(instruction_name)
+        //this.validate_instruction_name_ui() //alread done above
+        //this.update_instruction_name_robot_instance_choices(call_obj.instance_name) //needs to be after update & validate instruction_name
+        //this probably never happens:  if (!call_obj.args_obj) { this.fill_in_call_obj_args_from_name(call_obj) }
+        this.update_instruction_args(call_obj)
+        this.install_replace_args_menu_items()
+        if(show_doc){
+            let id = instruction_name + "_doc_id"
+            if(window[id]) { open_doc(id) }
         }
-    }
-    static set_instruction_name_and_args_for_function(instruction_name="function"){
-        let call_obj = {name: instruction_name} //might be "function*"
-        mi_instruction_name_id.value = instruction_name
-        let id = this.arg_name_to_dom_elt_id("name")
-        let name_html = "<div style='margin:5px;white-space:nowrap;'>name: <input placeholder='do_list functions don&apos;t need names.' style='width:300px;font-size:13px;' id='" + id + "' value=''/></div>"
-        id = this.arg_name_to_dom_elt_id("...params")
-        let params_html = "<div style='margin:5px;white-space:nowrap;'><span style='vertical-align:top;'>...params:</span>\n" +
-                           "<textarea rows='2' placeholder='do_list functions aren&apos;t passed arguments.\nEx: arg_name1, arg_name2=default_value' style='width:300px;font-size:13px;' id='" +
-                           id + "'></textarea>\n" +
-                           "</div>"
-        id = this.arg_name_to_dom_elt_id("body")
-        let body_html = "<div style='margin:5px;white-space:nowrap;'><span style='vertical-align:top;'>body:</span>\n" +
-                         `<textarea rows='4' placeholder='When a function definition in a do_list is called,\nthe "this" variable is bound to the job.' style='width:300px;font-size:13px;' id='` +
-                          id + "'></textarea>\n" +
-                         "</div>"
-        let args_html = name_html + params_html + body_html
-        mi_args_id.innerHTML =  args_html
     }
 
-    static set_instruction_args(call_obj){
+    static update_instruction_args_for_function_html(call_obj){
+        let id = this.arg_name_to_dom_elt_id("name")
+        let name_src  = call_obj.args_obj.name
+        let name_html = "<div style='margin:5px;white-space:nowrap;'>name: <input class='mi_arg_val_src' placeholder='do_list functions don&apos;t need names.' style='width:300px;font-size:13px;' id='" + id + "' value='" + name_src + "'/></div>"
+        id = this.arg_name_to_dom_elt_id("...params")
+        let params_src  = call_obj.args_obj["...params"]
+        let params_html = "<div style='margin:5px;white-space:nowrap;'><span style='vertical-align:top;'>...params:</span>\n" +
+            "<textarea class='mi_arg_val_src' rows='2' placeholder='Ex: arg_name1, arg_name2=default_value\nbut do_list functions aren&apos;t passed arguments.' style='width:300px;font-size:13px;' id='" +
+            id + "'>" + params_src + "</textarea>\n" +
+            "</div>"
+        id = this.arg_name_to_dom_elt_id("body")
+        let body_src  = call_obj.args_obj.body
+        let body_html = "<div style='margin:5px;white-space:nowrap;'><span style='vertical-align:top;'>body:</span>\n" +
+            `<textarea class='mi_arg_val_src' rows='4' placeholder='When a function definition in a do_list is called,\nthe "this" variable is bound to the job.' style='width:300px;font-size:13px;' id='` +
+            id + "'>" + body_src + "</textarea>\n" +
+            "</div>"
+        let args_html = name_html + params_html + body_html
+        return  args_html
+    }
+
+    static update_instruction_args(call_obj){
         let args_html = ""
-        let instruction_name = call_obj.name
-        if(this.in_move_all_joints_family(instruction_name) && call_obj.args[0].joint1){
+        let instruction_name = call_obj.get_instruction_name()
+        let family_class = MiIns.instruction_name_to_family_class(instruction_name)
+        if (family_class == MiIns.function_family){
+            args_html = this.update_instruction_args_for_function_html(call_obj)
+        }
+        else if((family_class == MiIns.move_all_joints_family) &&
+                 call_obj.args_obj.hasOwnProperty("joint1")){
             for(let j=1; j < 8; j++){
                 let arg_name = "joint" + j
-                let arg_obj = this.call_obj_arg_obj_with_name(call_obj, arg_name)
-                let arg_val_src = arg_obj.arg_val_src
+                let arg_val_src = call_obj.args_obj[arg_name]
                 if(arg_val_src === undefined) { arg_val_src = "0" }
                 args_html += this.make_arg_html(arg_name, arg_val_src)
             }
         }
         else { //handles the 1 arg case of move_all_joints and most other instructions
-            for(let arg_obj of call_obj.args){
-                //let arg_obj = this.call_obj_arg_obj_with_name(call_obj, arg_name)
-                let arg_name = arg_obj.name
+            for(let arg_name of Object.getOwnPropertyNames(call_obj.args_obj)){
                 //handles xyz arg of move_to family
                 if(((arg_name == "xyz") || (arg_name == "delta_xyz")) &&
-                    call_obj.args[0] == "x") {
+                    call_obj.args_obj.hasOwnProperty("x")) {
                     for(let arg_name of ["x", "y", "z"]){
-                        let arg_obj = this.call_obj_arg_obj_with_name(call_obj, arg_name)
-                        let arg_val_src = arg_obj.arg_val_src
+                        let arg_val_src = call_obj.args_obj[arg_name]
                         if(arg_val_src === undefined) { arg_val_src = "0" }
                         args_html += this.make_arg_html(arg_name, arg_val_src)
                     }
                 }
                 //handles most args
                 else {
-                    let arg_val_src = arg_obj.arg_val_src
+                    let arg_val_src = call_obj.args_obj[arg_name]
                     if(arg_val_src === undefined) { arg_val_src = "" }
                     args_html += this.make_arg_html(arg_name, arg_val_src)
                 }
@@ -613,240 +439,242 @@ var MakeInstruction = class MakeInstruction{
            let rows = 4
            if(arg_name == "...params") { rows = 2 }
             let result = "<div style='margin:5px;white-space:nowrap;'><span style='vertical-align:top;'>" + arg_name + ":</span>\n" +
-                         "<textarea rows='" + rows + "' placeholder='" + placeholder + "' style='width:300px;font-size:13px;' id='" + id + "'>" + arg_val_src + "</textarea>\n" +
+                         "<textarea class='mi_arg_val_src' rows='" + rows + "' placeholder='" + placeholder + "' style='width:300px;font-size:13px;' id='" + id + "'>" + arg_val_src + "</textarea>\n" +
                           "</div>"
             return result
         }
         else {
-            return "<div style='margin:5px;white-space:nowrap;'>" + arg_name + ": <input style='width:300px;font-size:13px;' id='" + id + "' value='" + arg_val_src + "'/></div>"
+            return "<div style='margin:5px;white-space:nowrap;'>" + arg_name + ": <input class='mi_arg_val_src' style='width:300px;font-size:13px;' id='" + id + "' value='" + arg_val_src + "'/></div>"
         }
     }
 
-    static fill_in_call_obj_args_from_name(call_obj){
-        let args_array = []
-        let instruction_name = call_obj.name
-        let fn = value_of_path(this.clean_instruction_name(instruction_name))
-        if(!fn) {
-          dde_error("instruction_name: <code style='color:black;'>" + instruction_name + "</code> is not defined.")
-        }
-        let arg_name_val_src_pairs = function_param_names_and_defaults_array(fn, true) //grab_key_vals
-        for(let arg_name_val_src_pair of arg_name_val_src_pairs){ //Object.keys(para_names_and_defaults_lit_obj)){
-            let arg_name = arg_name_val_src_pair[0]
-            let arg_val_src = arg_name_val_src_pair[1]
-            if(this.in_move_all_joints_family(instruction_name) &&
-               ["robot", "...array_of_angles", "delta_angles"].includes(arg_name)) {} //skip putting this arg in dialog. User should use robot instance as a subject to the call
-            else if(starts_with_one_of(instruction_name, ["Dexter.", "Serial."]) &&
-                    ["robot"].includes(arg_name)) {} //skip
-            else if(arg_name == "xyz"){
-                for(let arg_name of ["x", "y", "z"]){
-                    args_array.push({name: arg_name, arg_val_src: "0"})
-                }
-            }
-            else {
-                args_array.push({name: arg_name, arg_val_src: arg_val_src}) //para_names_and_defaults_lit_obj[arg_name]})
-            }
-        }
-        if(this.in_move_all_joints_family(instruction_name)){
-            for(let j=1; j < 8; j++){
-                let arg_name = "joint" + j
-                args_array.push({name: arg_name,
-                                 arg_val_src: "0"})
-            }
-        }
-        return call_obj.args = args_array
+    //_______replace args_________
+    static replace_args_wrapper_html(call_obj){
+        return "<div id='mi_replace_args_wrapper_id'></div>"
     }
 
-    static replace_args_html(){
-        let result = "<div id='mi_replace_args_id' class='dde_menu' style='display:inline-block;height:10px;padding:0px;margin-top:5px;'><ul style='display:inline-block;padding:0;margin-top:0px;'>" +
-                     "<li>Replace Arg Values With ...&#9660;<ul><li onclick='MakeInstruction.replace_arg_vals_with_defaults()'>Defaults</li>"
-        result += "</ul></li></ul></div>"
-        return result
+    static install_replace_args_menu_items(){
+        let instruction_name = this.get_instruction_name_from_ui()
+        let family_class = MiIns.instruction_name_to_family_class(instruction_name)
+        let the_html = this.make_menu_item_html("Defaults",         "MakeInstruction.replace_arg_vals_with_defaults()", "Values from the insruction's defaults.")
+        if(family_class == MiIns.move_all_joints_family){
+            the_html += this.make_menu_item_html("HOME",            "MakeInstruction.replace_arg_vals_maj_angles(Dexter.HOME_ANGLES)",    "Straight up.")
+            the_html += this.make_menu_item_html("NEUTRAL",         "MakeInstruction.replace_arg_vals_maj_angles(Dexter.NEUTRAL_ANGLES)", "Between HOME and PARKED.")
+            the_html += this.make_menu_item_html("PARKED",          "MakeInstruction.replace_arg_vals_maj_angles(Dexter.PARKED_ANGLES)",  "Folded compactly.")
+
+            the_html += this.make_menu_item_html("convert to move_to", "MakeInstruction.replace_arg_vals_maj_convert_to_mt()", "make a move_to instruction\nwith args that cause Dexter\nto move to the same position\nthat this move_all_joints specifies.")
+            the_html += this.make_menu_item_html("get from Dexter", "MakeInstruction.replace_arg_vals_maj_get_from_dexter()", "Joint angles from Dexter's current position.")
+        }
+        else if(family_class == MiIns.move_to_family){
+            the_html += this.make_menu_item_html("HOME",            "MakeInstruction.replace_arg_vals_mt_angles(Dexter.HOME_ANGLES)",    "Straight up.")
+            the_html += this.make_menu_item_html("NEUTRAL",         "MakeInstruction.replace_arg_vals_mt_angles(Dexter.NEUTRAL_ANGLES)", "Between HOME and PARKED.")
+            the_html += this.make_menu_item_html("PARKED",          "MakeInstruction.replace_arg_vals_mt_angles(Dexter.PARKED_ANGLES)",  "Folded compactly.")
+
+            the_html += this.make_menu_item_html("convert to move_all_joints", "MakeInstruction.replace_arg_vals_mt_convert_to_maj()", "make a move_all_joints instruction\nwith args that cause Dexter\nto move to the same position\nthat this move_to specifies.")
+            the_html += this.make_menu_item_html("get from Dexter", "MakeInstruction.replace_arg_vals_mt_get_from_dexter()")
+        }
+        //replace_args_menu_items_id.innerHTML = the_html //fails
+        let html_wrapper =  "<div id='mi_replace_args_id' " +
+                                 "class='dde_menu' " +
+                                 "style='display:inline-block;height:10px;padding:0px;margin-top:5px;'>" +
+                                 "<ul style='display:inline-block;padding:0;margin-top:0px;'>" +
+                                                        "<li id='mi_replace_args_label_id'>Replace Arg Values With ...&#9660;" +
+                                                            "<ul id='replace_args_menu_items_id'>" +
+                                                            the_html +
+                            "</ul></li></ul></div>"
+        mi_replace_args_wrapper_id.innerHTML = html_wrapper
+
+        setTimeout(function(){
+                    $("#mi_replace_args_id").jqxMenu({autoOpen: false, clickToOpen: false, height: '25px' })
+                    $("#mi_replace_args_id").jqxMenu('setItemOpenDirection', 'mi_replace_args_label_id', 'right', 'up')
+                   },
+                   200)
     }
 
+    //if action_string has inner quotes, they must be single quotes
+    static make_menu_item_html(label_string, action_string, tooltip=""){
+        return `<li title="` + tooltip + `" onclick="` + action_string + `">` + label_string + "</li>"
+    }
+
+    //______All the replace menu items that go on all families_______
+    //the action for the "Defaults" menu item.
     static replace_arg_vals_with_defaults(){
-        let instruction_name = mi_instruction_name_id.value
-        if (this.in_function_family(instruction_name)) {
-            this.replace_arg_vals_with_defaults_for_function()
-            return
-        }
-        instruction_name = this.clean_instruction_name(instruction_name) //removes "new " prefix if any
-        let fn = value_of_path(instruction_name)
-        let arg_name_val_src_pairs = function_param_names_and_defaults_array(fn, true)
-        if(this.dialog_contains_move_all_joints_with_joints()){
-            for(let i = 1; i < 8; i++){
-                let arg_name = "joint" + i
-                let id = this.arg_name_to_dom_elt_id(arg_name)
-                let elt = window[id]
-                let arg_val_src = "0"
-                elt.value = arg_val_src
-            }
-        }
-        else if(this.dialog_contains_move_to_with_separate_xyzs()){
-            for(let arg_name of ["x", "y", "z"]){
-                let id = this.arg_name_to_dom_elt_id(arg_name)
-                let elt = window[id]
-                let arg_val_src = "0"
-                elt.value = arg_val_src
-            }
-            for(let arg_name_val_pair of arg_name_val_src_pairs){
-                let arg_name = arg_name_val_pair[0]
-                if(!["xyz", "robot"].includes(arg_name)){
-                    let id = this.arg_name_to_dom_elt_id(arg_name)
-                    let elt = window[id]
-                    let arg_val = arg_name_val_pair[1]
-                    if(!arg_val) { arg_val = "" }
-                    elt.value = arg_val
-                }
-            }
-        }
-        else {
-            for(let arg_name_val_pair of arg_name_val_src_pairs){
-                let arg_name = arg_name_val_pair[0]
-                let id = this.arg_name_to_dom_elt_id(arg_name)
-                let elt = window[id]
-                let arg_val = arg_name_val_pair[1]
-                if(!arg_val) { arg_val = "" }
-                elt.value = arg_val
-            }
-        }
+        let instruction_name = this.get_instruction_name_from_ui()
+        let call_obj = MiIns.make_from_instruction_name_no_args(instruction_name).
+                       merge_in_from_instruction_def()
+        this.update_instruction_args(call_obj)
     }
 
-    static replace_arg_vals_with_defaults_for_function(){
-        let arg_name, id, elt
-        let arg_val_src = ""
+    //______All the replace menu items that go on move_all_joints_family_______
+    static replace_arg_vals_maj_angles(angles){
+        let instruction_name = this.get_instruction_name_from_ui()
+        let call_obj = MiIns.move_all_joints_family.make_from_instruction_name_and_angles(instruction_name, angles)
+        MakeInstruction.update_instruction_args(call_obj)
+    }
+    static replace_arg_vals_maj_get_from_dexter(){
+        let job_wrapper_robot = value_of_path(mi_job_wrapper_robot_name_id.value)
+        new Job({name: "get_from_dexter",
+                 robot: job_wrapper_robot,
+                 when_stopped: function(){
+                                 let instruction_name = MakeInstruction.get_instruction_name_from_ui()
+                                 let angles = new RobotStatus({robot_status: last(this.rs_history)}).measured_angles(7)
+                                 let call_obj = MiIns.move_all_joints_family.make_from_instruction_name_and_angles(instruction_name, angles)
+                                 MakeInstruction.update_instruction_args(call_obj)
+                 }
+        }).start()
+    }
+    static replace_arg_vals_maj_convert_to_mt(){
+        let new_instruction_name = "Dexter.move_to"
+        let old_call_obj = this.make_call_obj_from_ui()
+        let angles = old_call_obj.get_angle_array()
+        let job_wrapper_robot = value_of_path(mi_job_wrapper_robot_name_id.value)
+        let call_obj = MiIns.move_to_family.make_from_instruction_name_and_angles(new_instruction_name, angles, job_wrapper_robot)
+        MakeInstruction.update_instruction_name_and_args(call_obj)
+    }
 
-        arg_name = "name"
-        id = this.arg_name_to_dom_elt_id(arg_name)
-        elt = window[id]
-        elt.value = arg_val_src
+    //______All the replace menu items that go on move_to_family_______
+    static replace_arg_vals_mt_angles(angles){
+        let instruction_name = this.get_instruction_name_from_ui()
+        let job_wrapper_robot = value_of_path(mi_job_wrapper_robot_name_id.value)
+        let call_obj = MiIns.move_to_family.make_from_instruction_name_and_angles(instruction_name, angles, job_wrapper_robot)
+       /* let call_obj = MiIns.make_from_instruction_name_no_args(instruction_name)
+        let [xyz, J5_direction, config] =
+            Kin.J_angles_to_xyz(angles, job_wrapper_robot.pose)
+        call_obj.args_obj.xyz            = to_source_code({value: xyz})
+        call_obj.args_obj.J5_direction   = to_source_code({value: J5_direction})
+        call_obj.args_obj.config         = to_source_code({value: config})
+        call_obj.args_obj.workspace_pose = to_source_code({value: job_wrapper_robot.pose})
+        call_obj.args_obj.j6_angle       = to_source_code({value: angles[6 - 1]})
+        call_obj.args_obj.j7_angle       = to_source_code({value: angles[7 - 1]})
+        */
+        MakeInstruction.update_instruction_args(call_obj)
+    }
+    static replace_arg_vals_mt_get_from_dexter(){
+        let job_wrapper_robot = value_of_path(mi_job_wrapper_robot_name_id.value)
+        new Job({name: "get_from_dexter",
+            robot: job_wrapper_robot,
+            when_stopped: function(){
+                let instruction_name = MakeInstruction.get_instruction_name_from_ui()
+                let angles = new RobotStatus({robot_status: last(this.rs_history)}).measured_angles(7)
+                let call_obj = MiIns.move_to_family.make_from_instruction_name_and_angles(instruction_name, angles, job_wrapper_robot)
+                MakeInstruction.update_instruction_args(call_obj)
+            }
+        }).start()
+    }
 
-        arg_name = "...params"
-        id = this.arg_name_to_dom_elt_id(arg_name)
-        elt = window[id]
-        elt.value = arg_val_src
+    static replace_arg_vals_mt_convert_to_maj(){
+        let new_instruction_name = "Dexter.move_all_joints"
+        let old_call_obj = this.make_call_obj_from_ui().merge_in_from_instruction_def_only_if_empty() //a move_to family
+        if(old_call_obj.args_obj.j6_angle == "[0]") { old_call_obj.args_obj.j6_angle = "" } //both mean the same thing bug empty looks simpler in the dialog.
+        if(old_call_obj.args_obj.j7_angle == "[0]") { old_call_obj.args_obj.j7_angle = "" }
 
-        arg_name = "body"
-        id = this.arg_name_to_dom_elt_id(arg_name)
-        elt = window[id]
-        elt.value = arg_val_src
+        let xyz_src = old_call_obj.args_obj.xyz
+        if(!xyz_src) {
+            xyz_src = "[" + old_call_obj.args_obj.x + ", " +
+                            old_call_obj.args_obj.y + ", " +
+                            old_call_obj.args_obj.z +
+                      "]"
+        }
+        let xyz
+        try{ xyz = window.eval(xyz_src)}
+        catch(err) { dde_error("While converting move_to to move_all_joints, evaling xyz source of: " +
+                     xyz_src + " errored with: " + err.message) }
+        if(!Array.isArray(xyz)) {
+            dde_error("While converting move_to to move_all_joints, evaling xyz source of: " +
+                       xyz_src + " returned a non-array of: " + xyz)
+        }
+
+        let j5_direction_src = old_call_obj.args_obj.J5_direction
+        let j5_direction
+        try{ j5_direction = window.eval(j5_direction_src)}
+        catch(err) { dde_error("While converting move_to to move_all_joints, evaling J5_direction source of: " +
+                                j5_direction_src + " errored with: " + err.message) }
+        if(!Array.isArray(j5_direction)) {
+            dde_error("While converting move_to to move_all_joints, evaling J5_direction source of: " +
+                      j5_direction_src + " returned a non-array of: " + j5_direction)
+        }
+
+        let config_src = old_call_obj.args_obj.config
+        let config
+        try{ config = window.eval(config_src)}
+        catch(err) { dde_error("While converting move_to to move_all_joints, evaling config source of: " +
+                                config_src + " errored with: " + err.message) }
+        if(!Array.isArray(config)) {
+            dde_error("While converting move_to to move_all_joints, evaling config_src source of: " +
+                config_src + " returned a non-array of: " + config)
+        }
+
+        let angles = Kin.xyz_to_J_angles(xyz, j5_direction, config)
+
+        let j6_angle_src = old_call_obj.args_obj.j6_angle
+        let j6_angle
+        if(j6_angle_src != "") { try{ j6_angle = window.eval(j6_angle_src)}
+                            catch(err) { dde_error("While converting move_to to move_all_joints, evaling j6_angle source of: " +
+                                j6_angle_src + " errored with: " + err.message) }
+                         }
+         else j6_angle = undefined
+        angles.push(j6_angle)
+
+        let j7_angle_src = old_call_obj.args_obj.j7_angle
+        let j7_angle
+        if(j7_angle_src != "") { try{ j7_angle = window.eval(j7_angle_src)}
+        catch(err) { dde_error("While converting move_to to move_all_joints, evaling j7_angle source of: " +
+                                j7_angle_src + " errored with: " + err.message) }
+        }
+        else j7_angle = undefined
+        angles.push(j7_angle)
+
+        angles.push(old_call_obj.args_obj.j6_angle)
+        let job_wrapper_robot = value_of_path(mi_job_wrapper_robot_name_id.value)
+        let call_obj = MiIns.move_all_joints_family.make_from_instruction_name_and_angles(new_instruction_name, angles, job_wrapper_robot)
+        MakeInstruction.update_instruction_name_and_args(call_obj)
     }
 
     static bottom_buttons_html(){
-       return  "<div><button style='margin:3px;' onclick='MakeInstruction.eval_instruction()' " +
-                     "title='Eval the instruction.&#013;This is a good (but incomplete) test&#013;of the validity of the arguments.'>Eval Instr</button>" +
+        return  "<div style='white-space:nowrap;' ><button style='margin:3px;' onclick='MakeInstruction.eval_instruction()' " +
+            "title='Eval the instruction.&#013;This is a good (but incomplete) test&#013;of the validity of the arguments.'>Eval Instr</button>" +
 
-                     "<button style='margin:3px;' onclick='MakeInstruction.run()' " +
-                     "title='Make a job with the instruction in it&#013;and start the job.'>Run</button>" +
+            "<button style='margin:3px;' onclick='MakeInstruction.run()' " +
+            "title='Make a job with the instruction in it&#013;and start the job.'>Run</button>" +
 
-                    "<button style='margin:3px;' onclick='MakeInstruction.insert_job()' " +
-                     "title='Into the Editor,&#013;insert the definition of a job&#013;with the instruction in it.'>Insert Job</button>" +
+            "<button style='margin:3px;' onclick='MakeInstruction.insert_job()' " +
+            "title='Into the Editor,&#013;insert the definition of a job&#013;with the instruction in it.'>Insert Job</button>" +
 
-                    "<button style='margin:3px;' onclick='MakeInstruction.insert_instruction()' " +
-                    "title='If there is a selection in the Editor,&#013;replace it,&#013;otherwise just insert the instruction.'>Insert</button>" +
-           "</div>"
+            "<button style='margin:3px;' onclick='MakeInstruction.insert_instruction()' " +
+            "title='If there is a selection in the Editor,&#013;replace it,&#013;otherwise just insert the instruction.'>Insert</button>" +
+            "</div>"
     }
 
-   /* static dialog_to_instruction_src(){
-        let result = ""
-        let instruction_name = mi_instruction_name_id.value
-        result += instruction_name + "("
-        let fn = value_of_path(instruction_name)
-        let arg_name_val_src_pairs = function_param_names_and_defaults_array(fn, true)
-        let param_names = []
-        for(let pair of arg_name_val_src_pairs) { param_names.push(pair[0]) }
-        let fn_is_keyword = fn_is_keyword_fn(fn)
-        if(fn_is_keyword) { result += "{" }
-        let mt_separate_xyzs = this.dialog_contains_move_to_with_separate_xyzs()
-        if(this.dialog_contains_move_all_joints_with_joints()){
-            result += "["
-            param_names = ["joint1", "joint2", "joint3","joint4","joint5","joint6","joint7"]
-        }
-        else if (mt_separate_xyzs){
-            if(param_names[0] == "xyz") { param_names.shift() }
-            else { shouldnt("no first 'xyz' param in dialog_to_instruction_src with instruction: " + instruction_name +
-                             " and param_names: " + param_names) }
-            param_names.unshift("z")
-            param_names.unshift("y")
-            param_names.unshift("x")
-
-        }
-        if(starts_with_one_of(instruction_name, ["Dexter.", "Serial."]) && (last(param_names) == "robot")) {
-            param_names.pop() //user should be using robot instance as subject, not as last arg
-            //else { shouldnt("no last 'robot' param_name in dialog_to_instruction_src with instruction: " + instruction_name +
-            //                " and param_names: " + param_names)  }
-        }
-        //now param_names is good
-        let on_first = true
-        let src_before_undefined = result
-        for(let param_name of param_names){
+    static make_call_obj_from_ui(){
+        let instruction_name = this.get_instruction_name_from_ui()
+        let call_obj = MiIns.make_from_instruction_name_no_args(instruction_name)
+        /*let param_names = this.param_names_from_ui(instruction_name)
+        for(let param_name of param_names){ //fails when we call this method from after instructio_name\
+            //is channged in the UI, but before the args are set as we need to when grabbing prev values
             let id = this.arg_name_to_dom_elt_id(param_name)
             let elt = window[id]
-            let val = elt.value.trim()
-            if(val === "") { val = "undefined" }
-            if (!on_first) { result += ", " }
-            if (mt_separate_xyzs && (param_name == "x")) {
-               if(fn_is_keyword) { result += "xyz:[" + val }
-               else              { result += "[" + val }
-            }
-            else if(mt_separate_xyzs && (param_name == "y")) { result +=           val }
-            else if(mt_separate_xyzs && (param_name == "z")) { result +=           val + "]"}
-            else if (fn_is_keyword)                          { result += param_name + ":" + val }
-            else                                             { result += val }
-            if(val !== "undefined") { src_before_undefined = result } //don't include in src trailing undefineds
-            on_first = false
+            let arg_val_src = elt.value //.trim() //bad, esp for textareas and preserivng initial whitespace on rest args
+            call_obj.args_obj[param_name] = arg_val_src
         }
-        if(this.dialog_contains_move_all_joints_with_joints()) {
-            src_before_undefined += "]"
+        */
+        for(let elt of mi_args_id.getElementsByClassName('mi_arg_val_src')){
+            let arg_name = this.dom_elt_id_to_arg_name(elt.id)
+            let arg_val_src = elt.value //.trim() //bad, esp for textareas and preserivng initial whitespace on rest args
+            call_obj.args_obj[arg_name] = arg_val_src
         }
-        if(fn_is_keyword) { src_before_undefined += "}" }
-        result = src_before_undefined + ")"
-        return result
-    }*/
+        return call_obj
+    }
 
-    //if eval_args is true, test the instruction name and arg src.
-    //by evaling it. If it errors, print a good error message,
-    //highlight the approirate field in the dialog,
-    //and return null, otherwise return a string.
-    static dialog_to_instruction_src(eval_args=false){
-        let instruction_name = mi_instruction_name_id.value
-        if(this.in_function_family(instruction_name)) {
-          return this.dialog_to_instruction_src_for_function(instruction_name)
+    //obsolete feb 21, 2019
+    static param_names_from_ui(instruction_name){
+        if(this.dialog_contains_move_all_joints_with_joints()){
+            return ["joint1", "joint2", "joint3","joint4","joint5","joint6","joint7"]
         }
-        else if(instruction_name == "new Array"){
-            return this.dialog_to_instruction_src_for_array(eval_args)
-        }
-        let result = ""
-        let fn = value_of_path(this.clean_instruction_name(instruction_name))
-        if(eval_args){
-            if(fn === undefined) {
-                this.set_border_color_of_arg("instruction_name", "red")
-                out("<span style='color:red'>Error: </span>" +
-                    "The instruction name: <code>" + instruction_name + "</code> can't be evaluated.<br/>" +
-                    "Correct errors and try again.")
-                return null
-            }
-            else if (typeof(fn) != "function"){
-                this.set_border_color_of_arg("instruction_name", "red")
-                out("<span style='color:red'>Error: </span>" +
-                    "The instruction name: <code>instruction_name</code> is not a function.<br/>" +
-                    "Correct errors and try again.")
-                return null
-            }
-            else { this.set_border_color_of_arg("instruction_name") } //everything ok, undo any possible red
-        }
-        result += instruction_name + "("
-
-        let arg_name_val_src_pairs = function_param_names_and_defaults_array(fn, true)
+        let arg_name_val_src_pairs = function_param_names_and_defaults_array(instruction_name, true)
         let param_names = []
         for(let pair of arg_name_val_src_pairs) { param_names.push(pair[0]) }
-        let fn_is_keyword = fn_is_keyword_fn(fn)
-        if(fn_is_keyword) { result += "{\n" }
         let mt_separate_xyzs = this.dialog_contains_move_to_with_separate_xyzs()
-        if(this.dialog_contains_move_all_joints_with_joints()){
-            result += "["
-            param_names = ["joint1", "joint2", "joint3","joint4","joint5","joint6","joint7"]
-        }
-        else if (mt_separate_xyzs){
+        if (mt_separate_xyzs){
             if(param_names[0] == "xyz") { param_names.shift() }
             else { shouldnt("no first 'xyz' param in dialog_to_instruction_src with instruction: " + instruction_name +
                 " and param_names: " + param_names) }
@@ -860,32 +688,50 @@ var MakeInstruction = class MakeInstruction{
             //else { shouldnt("no last 'robot' param_name in dialog_to_instruction_src with instruction: " + instruction_name +
             //                " and param_names: " + param_names)  }
         }
-        //now param_names is good, fil in the args
+        return param_names
+    }
+
+    //if eval_args is true, test the instruction name and arg src.
+    //by evaling it. If it errors, print a good error message,
+    //highlight the approirate field in the dialog,
+    //and return null, otherwise return a string.
+    static dialog_to_instruction_src(eval_args=false){
+        if(!this.validate_instruction_name_ui()) { return false } //error messages are printed by this
+        let call_obj = this.make_call_obj_from_ui()
+        let family_class = call_obj.get_family_class()
+        if(family_class == MiIns.function_family) {
+          return this.dialog_to_instruction_src_for_function(eval_args, call_obj)
+        }
+        else if(family_class == MiIns.array_family){
+            return this.dialog_to_instruction_src_for_array(eval_args, call_obj)
+        }
+        else { return this.dialog_to_instruction_src_for_normal(eval_args, call_obj) }
+    }
+
+    static dialog_to_instruction_src_for_normal(eval_args=false, call_obj){
+        let family_of_instruction = call_obj.get_family_class()
+        let instruction_name = call_obj.get_instruction_name()
+        let result = instruction_name + "("
+        let maj_with_joints  = this.dialog_contains_move_all_joints_with_joints()
+        if(maj_with_joints) { result += "[" }
+        let fn = call_obj.get_instruction_class()
+        let fn_is_keyword = fn_is_keyword_fn(fn)
+        if(fn_is_keyword) { result += "{\n" }
+        let arg_name_val_src_pairs = function_param_names_and_defaults_array(instruction_name, true)
+        let param_names = Object.getOwnPropertyNames(call_obj.args_obj)
         let src_before_undefined = result
         for(let param_name of param_names){
             let arg_default_val_src = this.find_arg_val_src_in_arg_name_val_src_pairs(param_name, arg_name_val_src_pairs)
-            if(instruction_name.endsWith(".move_all_joints") &&
+            if((family_of_instruction == MiIns.move_all_joints_family) &&
                param_name.startsWith("joint") &&
                (arg_default_val_src == undefined)) {
-                arg_default_val_src = "0"
+                arg_default_val_src = ""
             }
             let id = this.arg_name_to_dom_elt_id(param_name)
             let elt = window[id]
             let arg_val_src = elt.value //.trim() //bad, esp for textareas and preserivng initial whitespace on rest args
             if(eval_args){
-                try{
-                    window.eval(arg_val_src)
-                    this.set_border_color_of_arg(param_name)
-                }
-                catch(err){
-                    this.set_border_color_of_arg(param_name, "red")
-                    out("<span style='color:red'>Error: </span>" +
-                        "In <i>Make Instruction</i>, evaling the <b>" + param_name + "</b> source of:<br/>" +
-                        "<code style='padding:3px;'>" + arg_val_src + "</code><br/>errored because:" +
-                        "<span style='color:red;'> " + err.message +
-                        "</span><br/>Correct errors and try again.")
-                    return null
-                }
+                if(!this.validate_arg_ui(instruction_name, param_name, arg_val_src)) { return null }
             }
             let arg_val_is_default = false
             if (arg_val_src === "") { //typein is empty so use the default val
@@ -895,13 +741,14 @@ var MakeInstruction = class MakeInstruction{
             else if(arg_val_src == arg_default_val_src) { arg_val_is_default = true }
             else if(arg_val_src == "undefined")         { arg_val_is_default = true }
 
-            let did_insert_arg = true
+            let did_insert_arg   = true
+            let mt_separate_xyzs = this.dialog_contains_move_to_with_separate_xyzs()
             if (mt_separate_xyzs && (param_name == "x")) {
-                if(fn_is_keyword)                                 { result += "xyz: [" + arg_val_src }
-                else                                              { result += "[" + arg_val_src }
+                if(fn_is_keyword)                            { result += "xyz: [" + arg_val_src }
+                else                                         { result += "[" + arg_val_src }
             }
-            else if     (mt_separate_xyzs && (param_name == "y")) { result += arg_val_src }
-            else if(mt_separate_xyzs && (param_name == "z"))      { result += arg_val_src + "]"}
+            else if(mt_separate_xyzs && (param_name == "y")) { result += arg_val_src }
+            else if(mt_separate_xyzs && (param_name == "z")) { result += arg_val_src + "]"}
             else if(fn_is_keyword){
                     if(!arg_val_is_default || mi_insert_default_args_id.checked)  {
                        if(param_name == "do_list"){
@@ -912,7 +759,6 @@ var MakeInstruction = class MakeInstruction{
                     else { did_insert_arg = false }                                         //insert nothing
             }
             else  {                                                 result += arg_val_src }
-
             if (!(last(param_names) == param_name) && did_insert_arg) {
                 if(fn_is_keyword) { result += ",\n" }
                 else              { result += ", " }
@@ -926,7 +772,7 @@ var MakeInstruction = class MakeInstruction{
         if(src_before_undefined.endsWith(",")) {
             src_before_undefined = src_before_undefined.substring(0, src_before_undefined.length - 1)
         }
-        if(this.dialog_contains_move_all_joints_with_joints()) {
+        if(maj_with_joints) {
             src_before_undefined += "]"
         }
         if(fn_is_keyword) { src_before_undefined += "}" }
@@ -934,8 +780,78 @@ var MakeInstruction = class MakeInstruction{
         return result
     }
 
+    static validate_arg_ui(instruction_name, param_name, arg_val_src){
+        if ((instruction_name == "new Job") && (param_name == "do_list")){
+            let ast
+            try{ ast = MiParser.string_to_ast(arg_val_src)}
+            catch(err){
+                this.set_border_color_of_arg(param_name, "red")
+                let short_arg_val_src = ((arg_val_src.length > 60) ? arg_val_src.substring(0, 60) + "..." : arg_val_src)
+                out("<span style='color:red'>Error: </span>" +
+                    "In <i>Make Instruction</i>, while evaling the <b>" + param_name + ",</b><br/>" +
+                    "with source of: " +
+                    "<code style='padding:3px;'>" + short_arg_val_src + "</code><br/>" +
+                    "errored because <span style='color:red;'>" + err.message +
+                    "</span><br/>Correct errors and try again.")
+                return null
+            }
+            let body0_expression_ast = ast.body[0].expression
+            if(body0_expression_ast.type == "ArrayExpression"){
+                let elts_array = body0_expression_ast.elements
+                for(let i = 0; i < elts_array.length; i++){
+                    let elt_ast = elts_array[i]
+                    let elt_src = arg_val_src.substring(elt_ast.range[0], elt_ast.range[1])
+                    try{
+                        let do_list_item = window.eval(elt_src)
+                        if(!Instruction.is_do_list_item(do_list_item)){
+                            this.set_border_color_of_arg(param_name, "red")
+                            out("<span style='color:red'>Error: </span>" +
+                                "In <i>Make Instruction</i>, while evaling the <b>" + param_name + ",</b><br/>" +
+                                "element " + i + " (zero based) of " + elts_array.length + " with source of:<br/>" +
+                                "<code style='padding:3px;'>" + elt_src + "</code><br/>" +
+                                "errored because it evaled to: " + do_list_item + "<br/>" +
+                                "and <span style='color:red;'> that is not a valid do_list item." +
+                                "</span><br/>Correct errors and try again.")
+                            open_doc(do_list_doc_id)
+                            return null
+                        }
+                    }
+                    catch(err){
+                        this.set_border_color_of_arg(param_name, "red")
+                        out("<span style='color:red'>Error: </span>" +
+                            "In <i>Make Instruction</i>, while evaling the <b>" + param_name + ",</b><br/>" +
+                            "element " + i + " (zero based) of " + elts_array.length + " with source of:<br/>" +
+                            "<code style='padding:3px;'>" + elt_src + "</code><br/>" +
+                            "errored because:" + "<span style='color:red;'> " + err.message +
+                            "</span><br/>Correct errors and try again.")
+                        return null
+                    }
+                }
+            }
+        }
+        else {
+            try{
+                window.eval(arg_val_src)
+                this.set_border_color_of_arg(param_name)
+            }
+            catch(err){
+                this.set_border_color_of_arg(param_name, "red")
+                out("<span style='color:red'>Error: </span>" +
+                    "In <i>Make Instruction</i>, evaling the <b>" + param_name + "</b> source of:<br/>" +
+                    "<code style='padding:3px;'>" + arg_val_src + "</code><br/>errored because:" +
+                    "<span style='color:red;'> " + err.message +
+                    "</span><br/>Correct errors and try again.")
+                return null
+            }
+        }
+
+    }
+
     //instruction_name is either "function" or "function*"
-    static dialog_to_instruction_src_for_function(instruction_name){
+    //note that this method ignores eval_args because
+    //none of the "args" are really evalable.
+    static dialog_to_instruction_src_for_function(eval_args=false){
+        let instruction_name = this.get_instruction_name_from_ui()
         let id
         let elt
         id = this.arg_name_to_dom_elt_id("name")
@@ -982,7 +898,29 @@ var MakeInstruction = class MakeInstruction{
         return "[" + args_val_src + "]"
     }
 
+    static eval_instruction(){
+        let src = this.dialog_to_instruction_src(true)
+        if(src !== null) {
+            src = this.fix_src_of_function_maybe(src)
+            eval_js_part2(src)
+        }
+    }
+
+    static fix_src_of_function_maybe(src) {
+        let instruction_name = this.get_instruction_name_from_ui()
+        if (MiIns.instruction_name_in_family_class(instruction_name, MiIns.function_family)) {
+            src = "(" + src + ")" //due to js design mistake,
+                                  //anonymous fn defs can't be evaled without
+                                  //wrapping them in parens.
+                                  //we might have a NAMED fn here, but the parens
+                                  //are harmless for that.
+        }
+        return src
+    }
+
     static run(){
+        let call_obj = this.make_call_obj_from_ui() //don't reshow th inst_src becasue that goes through te pipelinne
+           //which merges in prev values, etc. which we don't want.
         let inst_src = this.dialog_to_instruction_src()
         if(!this.src_looks_like_valid_instruction(inst_src)){
             if(starts_with_one_of(inst_src, "new Dexter(", "new Serial(")){
@@ -996,10 +934,11 @@ var MakeInstruction = class MakeInstruction{
             }
             return
         }
+        inst_src = this.fix_src_of_function_maybe(inst_src)
         let the_inst = eval(inst_src)
         let robot_of_wrapper = value_of_path(mi_job_wrapper_robot_name_id.value)
         let job_00
-        if((mi_instruction_name_id.value == "new Job") &&
+        if((this.get_instruction_name_from_ui() == "new Job") &&
             robot_of_wrapper == the_inst.robot) {
             warning("When using a Job as an instruction (to start it),<br/>" +
                     "its robot must be different than the Job its in.<br/>" +
@@ -1008,16 +947,21 @@ var MakeInstruction = class MakeInstruction{
             job_00 = the_inst
         }
         else {
-            let selected_robot_full_name = mi_job_wrapper_robot_name_id.value
+            let job_wrapper_robot_name = mi_job_wrapper_robot_name_id.value
             job_00 = new Job({name: "job_00",
-            robot: value_of_path(mi_job_wrapper_robot_name_id.value),
-            do_list: [the_inst],
-            when_stopped: function(){
-                             setTimeout(function() { MakeInstruction.show(inst_src, false, selected_robot_full_name) },
-                                        2000)
-                          }
-        })}
-        if(Robot.simulate_or_both_selected()){
+                              robot: value_of_path(job_wrapper_robot_name),
+                              do_list: [the_inst],
+                              when_stopped: function(){
+                                               setTimeout(function() { MakeInstruction.show(call_obj, job_wrapper_robot_name, false) },
+                                                          2000)
+                                            }
+                     })
+        }
+        let true_or_error_mess = Instruction.can_instruction_run_on_robot(the_inst, robot_of_wrapper)
+        if(typeof(true_or_error_mess) == "string") {
+            dde_error(true_or_error_mess)
+        }
+        else if(Robot.simulate_or_both_selected()){
             misc_pane_menu_changed("Simulate Dexter")
             //to give user time to adjust to the sim pane
             setTimeout(function() { job_00.start() },
@@ -1069,14 +1013,8 @@ var MakeInstruction = class MakeInstruction{
         '\n    ]})\n'
         Editor.insert(job_src)
     }
-
-    static eval_instruction(){
-        let src = this.dialog_to_instruction_src(true)
-        if(src !== null) {
-            eval_js_part2(src)
-        }
-    }
 } //end class
+
 
 
 MakeInstruction.menu_hierarchy = [
@@ -1104,11 +1042,11 @@ MakeInstruction.menu_hierarchy = [
     ["Serial",     "string_instruction"],
     ["Misc"      , "function", "function*",
                    //"null", don't have null on menu. its a valid instruction but does nothing, hard to support, and you wouldn't explicitly put one in a job's do_list
-                   "new Job", "new Note", "new Phrase", "new TestSuite",
-                   "new Dexter", "new Serial",
-                    "new Array" //need general way to deal with rest args. a textarea?
+                    "new Array", "new Job", "new Note", "new Phrase", "new TestSuite",
+                   "new Dexter", "new Serial"
                    ]
 ]
 
 var esprima = require('esprima')
 var {ends_with_one_of, fn_is_keyword_fn, replace_substrings, starts_with_one_of, trim_end} = require("./core/utils.js")
+var {to_source_code} = require("./core/to_source_code.js")

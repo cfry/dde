@@ -20,9 +20,18 @@ var RobotStatus = class RobotStatus{
     end_effector_in()               { return this.robot_status[Dexter.END_EFFECTOR_IN]}
 
     angle(joint_number){
-        let result = this.robot_status["J" + joint_number + "_ANGLE"]
+        let label = "Dexter.J" + joint_number + "_ANGLE"
+        let index = value_of_path(label)
+        let result = this.robot_status[index]
         if(typeof(result) == "number") { return result}
-        else { dde_error("RobotStatus.angle passed joint_number: " + joint_number + " which isn't valid.") }
+        else {
+              inspect(this.robot_status)
+              dde_error("RobotStatus.angle passed joint_number: " + joint_number +
+                         "<br/> but the value of that is: " + result +
+                         "<br/> when it should be a number." +
+                         "<br/>The whole robot status is: " + this.robot_status)
+
+             }
     }
 
     angles(joint_count=5){
@@ -34,7 +43,9 @@ var RobotStatus = class RobotStatus{
     }
 
     delta(joint_number){
-        let result = this.robot_status["J" + joint_number + "__DELTA"]
+        let label = "Dexter.J" + joint_number + "_DELTA"
+        let index = value_of_path(label)
+        let result = this.robot_status[index]
         if(typeof(result) == "number") { return result}
         else { dde_error("RobotStatus.delta passed joint_number: " + joint_number + " which isn't valid.") }
     }
@@ -48,7 +59,9 @@ var RobotStatus = class RobotStatus{
     }
 
     pid_delta(joint_number){
-        let result = this.robot_status["J" + joint_number + "_PID_DELTA"]
+        let label = "Dexter.J" + joint_number + "_PID_DELTA"
+        let index = value_of_path(label)
+        let result = this.robot_status[index]
         if(typeof(result) == "number") { return result}
         else { dde_error("RobotStatus.pid_delta passed joint_number: " + joint_number + " which isn't valid.") }
     }
@@ -76,7 +89,9 @@ var RobotStatus = class RobotStatus{
     }*/
 
     a2d_sin(joint_number){
-        let result = this.robot_status["J" + joint_number + "_A2D_SIN"]
+        let label = "Dexter.J" + joint_number + "_A2D_SIN"
+        let index = value_of_path(label)
+        let result = this.robot_status[index]
         if(typeof(result) == "number") { return result}
         else { dde_error("RobotStatus.a2d_sin passed joint_number: " + joint_number + " which isn't valid.") }
     }
@@ -90,7 +105,9 @@ var RobotStatus = class RobotStatus{
     }
 
     a2d_cos(joint_number){
-        let result = this.robot_status["J" + joint_number + "_A2D_COS"]
+        let label = "Dexter.J" + joint_number + "_A2D_COS"
+        let index = value_of_path(label)
+        let result = this.robot_status[index]
         if(typeof(result) == "number") { return result}
         else { dde_error("RobotStatus.a2d_cos passed joint_number: " + joint_number + " which isn't valid.") }
     }
@@ -122,7 +139,9 @@ var RobotStatus = class RobotStatus{
     }
 
     sent(joint_number){
-        let result = this.robot_status["J" + joint_number + "_SENT"]
+        let label = "Dexter.J" + joint_number + "_SENT"
+        let index = value_of_path(label)
+        let result = this.robot_status[index]
         if(typeof(result) == "number") { return result}
         else { dde_error("RobotStatus.sent passed joint_number: " + joint_number + " which isn't valid.") }
     }

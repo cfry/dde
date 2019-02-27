@@ -50,7 +50,8 @@ var Instruction = class Instruction {
     //a valid item to put on a do_list
     //mirrors Job.do_next_item ordering
     static is_do_list_item(item) {
-        return ( (item === null) ||
+        return ( (item === undefined) ||
+                 (item === null) ||
                  (item instanceof Instruction) ||
                  Instruction.is_instruction_array(item) ||
                  is_iterator(item) ||
@@ -157,27 +158,34 @@ var Instruction = class Instruction {
     //this helps catch mismatches of instruction robot and job robot quickly with
     //a good error message.
     set_instruction_robot_from_job(job_instance){
-        let error_mess_or_true = this.can_instruction_run_on_robot(job_instance.robot)
+        let error_mess_or_true = Instruction.can_instruction_run_on_robot(this, job_instance.robot)
         if (typeof(error_mess_or_true) == "string") {
+            error_mess_or_true = "In Job: " + job_instance.name + ",<br/>" + error_mess_or_true
             dde_error(error_mess_or_true)
         }
         else { this.robot = job_instance.robot }
     }
     //returns true or a string of an error message
-    can_instruction_run_on_robot(robot_instance){
-        let job_robot_class_name  = robot_instance.constructor.name
-        let instruction_class_name = Object.getPrototypeOf(this).constructor.name
-        if(instruction_class_name == "Instruction") { return true } //can run on any robot
-        let instruction_superclass_name = Object.getPrototypeOf(Object.getPrototypeOf(this)).constructor.name; //often "Control"
-        if(instruction_superclass_name == job_robot_class_name) { //ie "Dexter", "Serial"
-            return true
+    static can_instruction_run_on_robot(instruction, robot_instance){
+        if(!this.is_do_list_item(instruction)) {
+           return instruction + " is not a valid instruction.<br/>It can't run on any robot."
         }
-        else {
-            return "In Job: " + job_instance.name + ",<br/>" +
-                "attempt to run instruction: " + instruction_superclass_name + "." + instruction_class_name + "<br/>" +
-                "on Robot of class: " + job_robot_class_name + "<br/>" +
-                "but that Robot can't handle instructions of class: " + instruction_superclass_name
+        else if((instruction == null) || (instruction == undefined)) { return true }
+        else if (instruction instanceof Instruction){
+            let job_robot_class_name  = robot_instance.constructor.name
+            let instruction_class_name = Object.getPrototypeOf(instruction).constructor.name
+            if(instruction_class_name == "Instruction") { return true } //can run on any robot
+            let instruction_superclass_name = Object.getPrototypeOf(Object.getPrototypeOf(instruction)).constructor.name; //often "Control"
+            if(instruction_superclass_name == job_robot_class_name) { //ie "Dexter", "Serial"
+                return true
+            }
+            else {
+                return "attempt to run instruction: " + instruction_superclass_name + "." + instruction_class_name + "<br/>" +
+                       "on Robot of class: " + job_robot_class_name + "<br/>" +
+                       "but that Robot can't handle instructions of class: " + instruction_superclass_name
+            }
         }
+        else { return true }
     }
 }
 

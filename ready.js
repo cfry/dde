@@ -18,6 +18,7 @@
     }
     //called by both the eval button and the step button
     function eval_button_action(step=false){ //used by both clicking on the eval button and Cmd-e
+        if(step instanceof CodeMirror) { step = false } //means Cmd E was typed in the editor and we don't want to step in this case
         if((Editor.current_file_path != "new file") && (save_on_eval_id.checked)) { Editor.save_current_file() }
         eval_js_part1(step)
         if (Editor.view == "Blocks") { eval_id.blur() } //to get rid of the Eval button being "selected" when we're evaling in blocks view
@@ -1177,7 +1178,7 @@ foo      //eval to see the latest values</pre>`,
      set_top_right_panel_height(persistent_get("top_right_panel_height"))
 
      help_system_id.onclick = function(){ open_doc(help_system_doc_id) }
-     MakeInstruction.show(undefined, false) //needs to be after loading dde_init.js so that we'll have dexter0 defined, at least.
+     MakeInstruction.show(undefined, undefined, false) //needs to be after loading dde_init.js so that we'll have dexter0 defined, at least.
                                             //undefined lets
      setTimeout(check_for_latest_release, 100)
 }

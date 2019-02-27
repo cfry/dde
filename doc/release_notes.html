@@ -5,6 +5,85 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 3.1.1, Feb 26, 2019</summary>
+Highlights: Extensions to Make Itruction dialog and bug fixes.
+<ul>
+    <li> MakeInstruction moved "new Dexter" and "new Serial" to the bottom of the
+     Instruction/Misc menu and gave them a tooltip of:
+     "A Robot instance is not a valid do_list item."</li>
+
+    <li> MakeInstruction fixed bugs processing function definitions.</li>
+
+    <li> MakeInstruction fixed bug in editor, option click on Dexter.move_to([0, 0, 0])
+         and the other args besides x,y,z don't get fields made from them in MI Dialog.</li>
+
+    <li> MakeInstruction improved error message for all "move" instructions when
+        they use their Job's default robot and that robot isn't a Dexter.
+        Also, made this error happen early when you click Make Instructions's
+        <button>Run</button>.</li>
+
+    <li> MakeInstruction: when user chooses move_to from the menu,
+        don't insert its code defaults, but rather:
+        Change defaults to move_to to Dexter.move_to([0, 0.3, 0.4], [0, 0, -1],
+        Dexter.RIGHT_UP_OUT, Vector.make_pose(0, 0, 0), [0], [0])</li>
+
+    <li> MakeInstruction: When clicking <button>Eval Instr</button>, for new Job instructions,
+        much better error messages for bad do_list items.</li>
+
+    <li> MakeInstruction: Choosing an instruction of a robot for which no instances exist
+        now gives an explicit, helpful error message.</li>
+
+    <li> MakeInstruction: if the user chooses an instruction superclass that
+        is incompatible with the robot for the job,
+        auto select the first instance of that robot in the
+        instruction_instance_name field.</li>
+
+    <li> MakeInstruction: when switching instructions, the previous values for those
+        new arg names are displayed in the UI.
+        To get the instruction defaults (the previous version's behavior),
+        choose Replace arg values with .../Defaults</li>
+
+    <li> MakeInstruction: Bug fixed: if you grab a cmd from the editor into MI, then it
+        gets the prev values for defaults,
+        then save it out (withut editing in the MakeInstruction dialog)
+        and you insert that instrution,
+        you get something that was NOT in the original instruction.</li>
+
+    <li> MakeInstruction: several items added to "replace arg values" menu customized
+        for move_all_joints and move_to families:
+        <ul><li>convert to move_to/move_all_joints</li>
+            <li>get from Dexter.</li>
+            <li>HOME, NEUTRAL, PARKED</li>
+        </ul>
+    </li>
+
+    <li> MakeInstruction bug fix:  In move_all_joints you can run
+           [0, 30, 0, 0, 0, 0, 0] and it moves the physical robot
+            but when you try to go back to [0, 0, 0, 0, 0, 0, 0] it doesn't move.</li>
+
+    <li> MakeInstruction Job Robot: select menu: added
+            tooltip: Supplies the robot for instructions prefixed
+            with a robot class (like Dexter or Serial)
+            but no robot class.</li>
+
+    <li> MakeInstruction new "Record" facility. See tooltips for docmentation
+         on the buttons at the bottom of the MakeInstruction dialog.</li>
+
+    <li> Calibration bug fixed: When starting the calibration window it
+         tries to do a read_from_robot to get the Eye Centers.
+         There was a bug in read_from_robot.</li>
+
+    <li> Improved the error message for file_content when a file's content
+         can't be retrieved.</li>
+
+    <li> Fixed Bug: Editor Cmd-e isn't doing EVAL but is designed to.</li>
+
+     <li> The WindowsOS build for DDE now includes code for 32 bit computers.
+          (previously it was only for 64 bit computers which are more common now days.)
+          To install just download the one .exe file regardless of whether you have win32 or win64
+          and installation should do the right thing.</li>
+</ul>
+</details>
 
 <details class="doc_details"><summary>v 3.1.0, Feb 14, 2019</summary>
 Highlights: Major extensions & fixes to Make Instruction.

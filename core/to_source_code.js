@@ -44,6 +44,7 @@ function to_source_code({value, indent="", function_names=false, newObject_paths
         else { shouldnt("to_source_code passed: " + value + " which is not a handled type.") }
 }
 
+module.exports.to_source_code = to_source_code
 
 function to_source_code_array(args){
     let value = args.value

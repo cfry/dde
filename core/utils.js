@@ -309,12 +309,18 @@ function get_class_name(a_class){
                 let name_split = result.split(" ")
                 result = name_split[2] + "." + name_split[0]
             }
-            return result
+            return result.trim()
         }
     }
     return null
 }
 module.exports.get_class_name = get_class_name
+
+function get_class_of_instance(instance){
+    return instance.constructor
+}
+
+module.exports.get_class_of_instance = get_class_of_instance
 
 
 //______color_______
@@ -909,8 +915,8 @@ module.exports.function_param_names_and_defaults = function_param_names_and_defa
 
 
 //returns an array of arrays. Each param is represented as an a array of
-//1 or 2 elements. The first elt is the param name and
-// the 2nd elt is the default value (which might be the symbol undefined
+//1 or 2 elements. The first elt is the param name (string) and
+// the 2nd elt is the default value src (which might be the symbol undefined or its a string of src
 //if you have a fn of function foo(a, b=2 {c=3, d=4}, {e=5, f=6}={}) {} then this function returns
 //the param names and the SOURCE CODE of the default values.
 //[["a", "undefined"], ["b","2"], ["", {c="3", d="4"}], ["", {e:"5", f:"6"}] }
@@ -919,7 +925,27 @@ module.exports.function_param_names_and_defaults = function_param_names_and_defa
 //but if its true we have an arg for each of the actual keywords and
 //the values will be the defaults for that keyword
 function function_param_names_and_defaults_array(fn, grab_key_vals=false){
-    if(fn.name == "Array") { return [["...elts", undefined]]}
+    if(typeof(fn) == "string") {
+        if(["function", "function*"].includes(fn)){
+            return [["name", ""], ["...params", ""], ["body", ""]]
+        }
+        else if(fn == "new Array") { return [["...elts", ""]] }
+        else if(fn.startsWith("new ")) {
+            fn_val = value_of_path(fn.substring(4))
+            if (typeof(fn_val) != "function") {
+                dde_error("function_param_names_and_defaults_array called with non function: " + fn)
+            }
+            else { fn = fn_val }
+        }
+        else {
+            fn_val = value_of_path(fn)
+            if (typeof(fn_val) != "function") {
+                dde_error("function_param_names_and_defaults_array called with non function: " + fn)
+            }
+            else { fn = fn_val }
+        }
+    }
+    if(fn.name == "Array") { return [["...elts", ""]]}
     let param_string = "function foo(" + function_params(fn, false) + "){}"
     let ast = esprima.parse(param_string, {range: true, raw: true})
     let params_ast = ast.body[0].params

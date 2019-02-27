@@ -23,9 +23,9 @@ class Job{
     }
     if (!Array.isArray(do_list)){
         open_doc(do_list_doc_id)
-        dde_error("While defining Job." + name +
-                   "<br/> the do_list must be an array, but instead is: <br/>" +
-                   do_list)
+        dde_error("While defining <code style='color:black;'>Job." + name + "</code><br/>" +
+                  "the <b style='color:black;'>do_list</b> must be an array, but instead is: <br/>" +
+                  "<code style='color:black;'>" + do_list + "</code>")
         return
     }
     try { do_list = Job.flatten_do_list_array(do_list) }
@@ -538,8 +538,10 @@ class Job{
                     break;
                 case "errored":
                     bg_color = "rgb(255, 68, 68)";
+                    let reason = this.stop_reason
+                    reason = replace_substrings(reason, "<br/>", "\n")
                     tooltip  = "This job errored at instruction: " + this.program_counter +
-                    " with:\n" + this.stop_reason + "\nClick to restart this job."
+                    " with:\n" + reason + "\nClick to restart this job."
                     break;
                 case "interrupted":
                     bg_color = "rgb(255, 123, 0)"; //orange

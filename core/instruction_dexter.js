@@ -71,7 +71,7 @@ Instruction.Dexter.pid_move_all_joints = class pid_move_all_joints extends Instr
         this.robot = robot
     }
     do_item (job_instance){
-        if(!this.robot) { this.robot = job_instance.robot }
+        if(!this.robot) { this.set_instruction_robot_from_job(job_instance) }
         let angles = []
         for (let i = 0; i < 5; i++){
             let ang = this.array_of_angles[i]
@@ -129,7 +129,7 @@ Instruction.Dexter.move_all_joints_relative = class move_all_joints_relative ext
         this.robot = robot
     }
     do_item (job_instance){
-        if(!this.robot) { this.robot = job_instance.robot }
+        if(!this.robot) { this.set_instruction_robot_from_job(job_instance)}
         let angles = [] //the absolute angles after the rel has been added in
         for (let i = 0; i < 5; i++){
             let ang = this.delta_angles[i]
@@ -205,7 +205,7 @@ Instruction.Dexter.move_to = class move_to extends Instruction.Dexter{
         this.robot          = robot
     }
     do_item (job_instance){
-        if(!this.robot) { this.robot = job_instance.robot }
+        if(!this.robot) { this.set_instruction_robot_from_job(job_instance) }
         let xyz          = this.xyz
         let J5_direction = this.J5_direction
         let config       = this.config
@@ -337,7 +337,7 @@ Instruction.Dexter.pid_move_to = class pid_move_to extends Instruction.Dexter{
         this.j7_angle       = j7_angle
     }
     do_item (job_instance){
-        if(!this.robot) { this.robot = job_instance.robot }
+        if(!this.robot) { this.set_instruction_robot_from_job(job_instance) }
         let xyz          = this.xyz
         let J5_direction = this.J5_direction
         let config       = this.config
@@ -462,7 +462,7 @@ Instruction.Dexter.move_to_relative = class move_to_relative extends Instruction
         this.robot          = robot
     }
     do_item(job_instance){
-        if(!this.robot) { this.robot = job_instance.robot }
+        if(!this.robot) { this.set_instruction_robot_from_job(job_instance) }
         let [old_xyz, J5_direction, config] = Kin.J_angles_to_xyz(this.robot.angles, this.workspace_pose) //job_instance.robot.pose
         let new_xyz = Vector.add(old_xyz, this.delta_xyz) //makes a new array
         let angles
@@ -511,16 +511,16 @@ Instruction.Dexter.move_to_relative = class move_to_relative extends Instruction
 
 Instruction.Dexter.move_to_straight = class move_to_straight extends Instruction.Dexter{
     constructor ({xyz           = [],
-                     J5_direction   = [0, 0, -1],
-                     config         = Dexter.RIGHT_UP_OUT,
-                     workspace_pose = undefined,
-                     tool_speed     = 5*_mm / _s,
-                     resolution     = 0.5*_mm,
-                     j6_angle       = [0],
-                     j7_angle       = [0],
-                     single_instruction = false, //false means make up all the make_ins for this here in DDE,
+                  J5_direction   = [0, 0, -1],
+                  config         = Dexter.RIGHT_UP_OUT,
+                  workspace_pose = undefined,
+                  tool_speed     = 5*_mm / _s,
+                  resolution     = 0.5*_mm,
+                  j6_angle       = [0],
+                  j7_angle       = [0],
+                  single_instruction = false, //false means make up all the make_ins for this here in DDE,
                                                  //true means create just 1 make_ins "T" instruction
-                     robot}) {
+                  robot}) {
         super()
         this.xyz            = xyz
         this.J5_direction   = J5_direction
@@ -534,7 +534,7 @@ Instruction.Dexter.move_to_straight = class move_to_straight extends Instruction
         this.robot          = robot
     }
     do_item (job_instance){
-        if(!this.robot) { this.robot = job_instance.robot }
+        if(!this.robot) { this.set_instruction_robot_from_job(job_instance) }
         let [existing_xyz, existing_J5_direction, existing_config] =
             Kin.J_angles_to_xyz(this.robot.angles, this.robot.pose)
         let xyz_copy = this.xyz.slice(0)
@@ -683,6 +683,7 @@ Instruction.Dexter.read_from_robot = class read_from_robot extends Instruction.D
         this.robot = robot
     }
     do_item (job_instance){
+        if(!this.robot) { this.set_instruction_robot_from_job(job_instance) }
         if (this.first_do_item_call) {
             job_instance.user_data[this.destination] = ""
             this.first_do_item_call = false

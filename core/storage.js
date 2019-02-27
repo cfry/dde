@@ -219,7 +219,7 @@ function file_content(path, encoding="utf8"){
                       path)
         }
         else {
-            dde_error("Error getting content for:<br/><code title='unEVALable'>" + path + "</code>")
+            dde_error("file_content could not get the content of:<br/><code title='unEVALable'>" + path + "</code>")
         }
     }
 }

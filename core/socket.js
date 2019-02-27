@@ -310,7 +310,7 @@ var Socket = class Socket{
     static r_payload_grab_aux(payload_string, js_array){
         let job_id = js_array[Dexter.JOB_ID]
         let ins_id = js_array[Dexter.INSTRUCTION_ID]
-        Instruction.read_from_robot.got_content_hunk(job_id, ins_id, payload_string)
+        Instruction.Dexter.read_from_robot.got_content_hunk(job_id, ins_id, payload_string)
     }
 
     static convert_robot_status_to_degrees(robot_status){
