@@ -11,7 +11,7 @@ install:
   - npm install
 
 build_script:
-  - npm run appveyor
+  - echo 'skip'
 
 environment:
   GH_TOKEN:

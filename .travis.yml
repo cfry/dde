@@ -1,11 +1,11 @@
 language: node_js
 node_js:
   - lts/*
-dist: trusty
-sudo: false
+dist: xenial
 os:
   - osx
   - linux
+  - windows
 cache:
   directories:
     - node_modules
