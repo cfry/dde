@@ -5,7 +5,6 @@ dist: xenial
 os:
   - osx
   - linux
-  - windows
 cache:
   directories:
     - node_modules
