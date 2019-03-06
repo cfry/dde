@@ -68,7 +68,12 @@
     },
     "linux": {
       "target": [
-        "AppImage"
+        {
+          "target": "AppImage",
+          "arch": [
+            "all"
+          ]
+        }
       ],
       "category": "Development;Education;Robotics"
     }
