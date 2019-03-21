@@ -1,7 +1,4 @@
-//To test, in Terminal, cd to electron_dde (DDE's main code dir) and enter:
-// node core define_and_start_job /Users/Fry/Documents/dde_apps/node_test_job.js
-//where the file is one that contains new Job ...
-//this should define and start the job.
+console.log("Read electron_dde/core/job_engine_doc.txt for how to use the Job Engine.")
 
 console.log("in file: " + module.filename)
 function node_on_ready() {

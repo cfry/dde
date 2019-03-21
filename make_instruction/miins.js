@@ -318,7 +318,32 @@ var MiIns = class MiIns {
         let miins_instance_arg_holder = MiIns.args_array_from_parser_to_miins_instance(args_array) //not used for instance_name
         this.merge_in(miins_instance_arg_holder)
         //this.merge_in(src_call_obj)
+        this.format_do_list_maybe()
         return this
+    }
+
+    format_do_list_maybe() {
+        if(this.class_name == "new Job"){
+            let orig_do_list_src = this.args_obj.do_list
+            let result_do_list_src = ""
+            let in_whitespace_after_newline = false
+            for(let i = 0; i < orig_do_list_src.length; i++){
+                let char = orig_do_list_src[i]
+                if(char == "\n") {
+                    result_do_list_src += "\n " //indent one space for the outer square brackets
+                    in_whitespace_after_newline = true
+                }
+                else if (/\s/.test(char)){ //got whitespace that isn't a newline
+                    if(in_whitespace_after_newline) {} //throw it out
+                    else { result_do_list_src += char }
+                }
+                else { //got non-whitespace char
+                    in_whitespace_after_newline = false
+                    result_do_list_src += char
+                }
+            }
+            this.args_obj.do_list = result_do_list_src
+        }
     }
 
     static args_array_from_parser_to_miins_instance(args_array){

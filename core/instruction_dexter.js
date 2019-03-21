@@ -56,7 +56,7 @@ Instruction.Dexter.move_all_joints = class move_all_joints extends Instruction.D
     toString(){
         return "{instanceof: move_all_joints " + this.array_of_angles + "}"
     }
-    to_source_code(args={indent:""}){
+    to_source_code(args){
         args = jQuery.extend({}, args)
         args.value = this.array_of_angles
         args.indent = ""
@@ -114,7 +114,7 @@ Instruction.Dexter.pid_move_all_joints = class pid_move_all_joints extends Instr
     toString(){
         return "{instanceof: pid_move_all_joints " + this.array_of_angles + "}"
     }
-    to_source_code(args={indent:""}){
+    to_source_code(args){
         args        = jQuery.extend({}, args)
         args.value  = this.array_of_angles
         args.indent = ""
@@ -178,7 +178,7 @@ Instruction.Dexter.move_all_joints_relative = class move_all_joints_relative ext
     toString(){
         return "{instanceof: move_all_joints_relative " + this.delta_angles + "}"
     }
-    to_source_code(args={indent:""}){
+    to_source_code(args){
         args        = jQuery.extend({}, args)
         args.value  = this.delta_angles
         args.indent = ""
@@ -298,7 +298,7 @@ Instruction.Dexter.move_to = class move_to extends Instruction.Dexter{
 
     toString(){ return "{instanceof: move_to " + this.xyz + "}" }
 
-    to_source_code(args={indent:""}){
+    to_source_code(args){
         args        = jQuery.extend({}, args)
         args.indent = ""
 
@@ -427,7 +427,7 @@ Instruction.Dexter.pid_move_to = class pid_move_to extends Instruction.Dexter{
 
     toString(){ return "{instanceof: pid_move_to " + this.xyz + "}" }
 
-    to_source_code(args={indent:""}){
+    to_source_code(args){
         args        = jQuery.extend({}, args)
         args.indent = ""
 
@@ -501,7 +501,7 @@ Instruction.Dexter.move_to_relative = class move_to_relative extends Instruction
     toString(){
         return "{instanceof: move_to_relative " + this.delta_xyz + "}"
     }
-    to_source_code(args={indent:""}){
+    to_source_code(args){
         let prop_args        = jQuery.extend({}, args)
         prop_args.indent     = ""
         prop_args.value      = this.delta_xyz
@@ -532,6 +532,7 @@ Instruction.Dexter.move_to_straight = class move_to_straight extends Instruction
         this.j7_angle       = j7_angle
         this.single_instruction = single_instruction
         this.robot          = robot
+        if(!single_instruction) { this.inserting_instruction = true }
     }
     do_item (job_instance){
         if(!this.robot) { this.set_instruction_robot_from_job(job_instance) }
@@ -634,7 +635,7 @@ Instruction.Dexter.move_to_straight = class move_to_straight extends Instruction
     toString(){
         return "{instanceof: move_to_straignt " + this.xyz + "}"
     }
-    to_source_code(args={indent:""}){
+    to_source_code(args){
         args        = jQuery.extend({}, args)
         args.indent = ""
 
@@ -681,6 +682,7 @@ Instruction.Dexter.read_from_robot = class read_from_robot extends Instruction.D
         this.is_done = false
         this.processing_r_instruction = false
         this.robot = robot
+        this.inserting_instruction = true
     }
     do_item (job_instance){
         if(!this.robot) { this.set_instruction_robot_from_job(job_instance) }
@@ -744,6 +746,17 @@ Instruction.Dexter.read_from_robot = class read_from_robot extends Instruction.D
                 read_from_robot_instance.is_done = true
             }
         }
+    }
+
+    to_source_code(args){
+        let result = "Dexter."
+        if(this.robot) { result += this.robot.name + "." }
+        result += args.indent +
+                  "read_from_robot(" +
+                  to_source_code({value: this.source}) + ", " +
+                  to_source_code({value: this.destination}) +
+                  ")"
+        return result
     }
 }
 Instruction.Dexter.read_from_robot.payload_max_chars = 62

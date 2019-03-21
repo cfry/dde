@@ -14,6 +14,7 @@ const SerialPort = require("serialport")
 
 // Module to control application life.
 const app = electron.app
+
 const globalShortcut = electron.globalShortcut
 const os = require('os')
 const user_homedir = os.homedir()
@@ -241,41 +242,55 @@ ipc.on('show_page', function(event, url, options={width: 800, height: 600}){
 // prompt normally not supported by Electron, but this clever implementation works
 var promptResponse
 ipc.on('prompt', function(eventRet, arg) {
+    console.log("top of main on prompt")
+    console.log(arg)
     promptResponse = null
     var promptWindow = new BrowserWindow({
-        width:  400,
-        height: 200,
+         x: arg.x,
+         y: arg.y,
+         width:  arg.width,
+         height: arg.height,
         show: false,
         resizable: false,
         movable: false,
         alwaysOnTop: true,
         frame: false
     })
-    //coral #ff8c96, orange #ffbe3c
-    arg.val   = arg.val   || ''
-    arg.title = arg.title || ''
-    const promptHtml = '<div margin:0px;padding:0px; style="background-color:' + arg.window_frame_background_color +
-                       ';font-size:21px;">DDE Prompt</div><div style="padding:10px;">' +
-                       arg.title +
-                       '</div>\
-    <input style="backgound-color:white;margin:10px;width:360px;font-size:14px;" id="val" value="' + arg.val + '" autofocus />\
-    <button onclick="electron.ipcRenderer.send(\'prompt-response\', document.getElementById(\'val\').value);window.close()">Ok</button>\
-    <button onclick="window.close()">Cancel</button>\
-    <style>body        {font-family: sans-serif; background-color:#DDD; margin:0px; padding:0px; border:8px solid ' +
-                       arg.window_frame_background_color + '} \
-           button      {float:right; margin-left: 10px; margin-right: 10px; background-color:' +
-                       arg.button_background_color +
-                       '} \
-           label,input {margin-bottom: 10px; width: 100%; display:block;}\
-    </style>'
-    promptWindow.loadURL('data:text/html,' + promptHtml)
-    promptWindow.show()
-    promptWindow.on('closed', function() {
-        eventRet.returnValue = promptResponse
+    const title_html = '<div style="margin:3px;padding:0px;background-color:' + arg.window_frame_background_color +
+                       ';font-size:21px;">' + arg.title + '</div><div style="padding:10px;">' +
+                       arg.description +
+                       '</div>'
+     const body_html =  ' <input style="background-color:white;margin:10px;width:360px;font-size:14px;" id="val_id" value="' + arg.default_value + '" autofocus /> ' +
+                        `<button onclick="electron.ipcRenderer.send('prompt-response', document.getElementById('val_id')).value; window.close();">Ok</button>` +
+                        '<button onclick="window.close();">Cancel</button>'
+    const style_html  = ' <style>body {font-family: sans-serif; background-color:' + arg.background_color + '; margin:0px; padding:0px; border:8px solid }' +
+                        '\nbutton {float:right; margin-left: 10px; margin-right: 10px; background-color:' +
+                         arg.button_background_color +
+                         '} ' +
+                       '\nlabel,input {margin-bottom: 10px; width: 100%; display:block;}' +
+                       '</style>'
+    console.log("\ntitle_html")
+    console.log(title_html)
+    console.log("\nbody_html")
+
+    console.log(body_html)
+    console.log("\nstyle_html")
+    console.log(style_html)
+    promptWindow.on('closed', function(some_arg) {
+        console.log("promptWindow.on closed called.")
+        console.log(some_arg)
+        console.log("Got val_id: " + val_id)
+       // eventRet.returnValue = "stuff"// setting this causes DDE to hang. //val_id.value //promptResponse
         promptWindow = null
     })
+    const prompt_html =  title_html + body_html + style_html
+    promptWindow.loadURL('data:text/html,' + prompt_html)
+    promptWindow.show()
+    //console.log("the typein val: " + document.getElementById('val').value) errors document not defined
+
 })
 ipc.on('prompt-response', function(event, arg) {
+    console.log("on prompt-reponse called with event: " + event + " arg: " + arg)
     if (arg === ''){ arg = null }
     promptResponse = arg
 })

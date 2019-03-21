@@ -1,13 +1,13 @@
 function to_source_code({value, indent="", function_names=false, newObject_paths=false,
                         job_names=false, robot_names=false,
                         depth_limit=Infinity, depth=0, job_orig_args=false} = {}){
-        console.log("top of to_source_code with value: " + value + " arguments: " + arguments)
+        //console.log("top of to_source_code with value: " + value + " arguments: " + arguments)
         //console.log("Object.isNewObject: " + Object.isNewObject)
         if (!((typeof(arguments[0]) == "object") && arguments[0].hasOwnProperty("value"))){
             value = arguments[0] //so we can just do calls of to_source_code("stuf")
         }
         if (depth > depth_limit) { return "***" } //stops infinite recursion in circular structures.
-        console.log("to_source_code before big if")
+        //console.log("to_source_code before big if")
         if      (value === undefined)       { return "undefined" }
         else if (value === null)            { return "null" } //since typeof(null) == "object", this must be before the typeof(value) == "object" clause
         else if (value === true)            { return "true"}
@@ -26,16 +26,19 @@ function to_source_code({value, indent="", function_names=false, newObject_paths
              return to_source_code_function(new_args)
         }
         else if (Object.isNewObject(value)) {
-            console.log("in to_source_code isNewObject")
+            //console.log("in to_source_code isNewObject")
             if (newObject_paths) { return value.objectPath }
             else                 { return value.sourceCode() }
         }
         else if (typed_array_name(value)){ //any type of array
-            console.log("calling to_source_code_array")
+            //console.log("calling to_source_code_array")
             return to_source_code_array(arguments[0])
         }
         //Job. Robot, Instruction, Duration
-        else if (value.to_source_code) { return value.to_source_code(arguments[0]) }
+        else if (value.to_source_code){
+            let new_args = {value: value, indent: indent}
+            return value.to_source_code(new_args)
+        }
         else if (value === window)     { return "window"  } //too many weird values in there and too slow so punt.
         else if (typeof(value) == "object"){//beware if we didn't catch arrays above this would hit
                                             //assumes at this point we just have a lit obj.

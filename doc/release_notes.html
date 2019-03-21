@@ -5,6 +5,84 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 3.2.0, Mar 21, 2019</summary>
+Highlights: Major improvement to Make Instruction recording and playing jobs.
+            Job Engine improvements. New instruction type: strings.
+            New Instruction: Robot.include_job.
+            New doc for: short instruction, at_sign instruction, string,
+                     and include_job instructions.
+<ul>
+    <li> Make Instruction: Replaced "Insert Job" button with "Wrap in Job"</li>
+
+    <li> Make Instruction: Fixed doc scrolling to right place when an instruction name
+        starts with "new ", i.e. "new Job".</li>
+
+    <li> Make Instruction: New step forwards and backwards buttons.</li>
+
+    <li> Make Instruction: new double-knobbed slider to restrict which
+        instructions to play.</li>
+
+    <li> Make Instruction: new dialog for saving source code to editor.</li>
+
+    <li> Ref Man for new Job parameters of program_counter and ending_program counter
+        extended for clarity.</li>
+
+    <li> Ref Man for stopping jobs: Fixed and extended in  Ref Man/Jobs documentation.</li>
+
+    <li> Ref Man for Robot.suspend: improved formatting.</li>
+
+    <li> Sped up Instruction.sync_point by sending its Dexter.empty_instruction_queue()
+     directly to Dexter rather than putting it on the do_list and incurinng
+     another instruction cycle.</li>
+
+
+    <li> Bug fixed: Dexter.prototype.get_robot_status now properly handles
+     sending the instruction to the "this" robot.</li>
+
+    <li> Bugs fixed in <code>to_source_code</code> for many Instructions
+     that used to print out a prefix of "undefined".</li>
+
+    <li> to_source_code for Dexter.read_from_robot  defined.</li>
+
+    <li> New instruction type. A string.
+        just prints itself out, with instruction id ie
+        Job.my_job, instruction 123:  "hi dexter"
+        Fast way to make print statements.
+        Any function that returns a string will also be placed on the do_list.
+        Thus you can construct such "print statements" dynamically at
+        instruction-run time.
+        See Ref Man/Robot/Robot Instructions/Any String</li>
+
+    <li> New instruction Robot.include_job. See Ref Man/Robot/Robot Instructions/include_job</li>
+
+    <li> New documentation Ref Man/Robot/Dexter/Dexter Instructions/short instruction</li>
+
+    <li> New documentation Ref Man/Robot/Dexter/Dexter Instructions/at_sign instruction</li>
+
+    <li> New documentation Ref Man/Job/new Job parameters/at_sign_function.</li>
+
+    <li> Extended test suite to include a string, a short instruction,
+     and an at_sign instruction.</li>
+
+    <li> Extended inspect of do_list to accomodate
+     short_instructions, at_sign instructions and strings.</li>
+
+    <li> Fixed bug in the Step button action that wasn't grabbing the
+         full selected source code to step over.</li>
+
+    <li> Job Engine: doc improved.<br/>
+        - There's a new file electron_dde/core/job_engine_doc.txt.<br/>
+        - When you run the job engine, it prints out in the console:<br/>
+        "Read electron_dde/core/job_engine_doc.txt for how to use the Job Engine."</li>
+
+    <li> Job Engine: improved the error messages for define_and_start_job, used
+    when using the job_engine.</li>
+
+    <li> Job Engine: serial.js now set up to not error when job engine is
+    loaded on Dexter, but still doesn't give you serial port access :-( .</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.1.2, Feb 27, 2019</summary>
 Highlights: bug fixes.
 <ul>

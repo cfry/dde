@@ -310,11 +310,12 @@ new TestSuite("make_ins_arrays",
 
 new TestSuite("Instruction.is_do_list_item",
     ["Instruction.is_do_list_item(4)", "false"],
-    ['Instruction.is_do_list_item("abc")', "false"],
+    ['Instruction.is_do_list_item("abc")', "true"],
     ["Instruction.is_do_list_item(true)", "false"],
     ["Instruction.is_do_list_item({a: 1})", "false"],
     ["Instruction.is_do_list_item([5, 6])", "false"],
     ["Instruction.is_do_list_item(null)", "true"],
+    ["Instruction.is_do_list_item(undefined)", "true"],
     ["Instruction.is_do_list_item(Robot.loop())", "true"],
     ['Instruction.is_do_list_item(make_ins("g"))', "true"],
     ["function* my_genxx(){ yield 5 }"],
@@ -323,7 +324,9 @@ new TestSuite("Instruction.is_do_list_item",
     ['Instruction.is_do_list_item(new Job({name: "job_4235"}))', "true"],
     ["Instruction.is_do_list_item([])", "true"],
     ["Instruction.is_do_list_item([null, null])", "true"],
-    ["Instruction.is_do_list_item([null, [null, []]])", "true"]
+    ["Instruction.is_do_list_item([null, [null, []]])", "true"],
+    ["Instruction.is_do_list_item(['a', 10, 20, 30])", "true"],
+    ["Instruction.is_do_list_item(['@', 90, 20, 30])", "true"]
 )
 
 new TestSuite("patch_until",

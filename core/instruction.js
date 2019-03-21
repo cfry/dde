@@ -15,6 +15,35 @@ var Instruction = class Instruction {
     toString(){
         return "{instanceof: " + stringify_value_aux(this.constructor) + "}"
     }
+
+    //excludes at_sign instructions but includes "a" and "a!
+    //if first elt is a 2 char string , the 2nd char must be !
+    static is_short_instruction(obj) {
+        if(!Array.isArray(obj))     { return false }
+        if (obj.length == 0)        { return false }
+        return Instruction.is_short_instruction_name(obj[0])
+    }
+
+    //used by Job def to verify at_sign_function
+    static is_short_instruction_name(a_string){
+        if(this.is_short_instruction_name_no_convert(a_string)) { return true } //the only permissible 2 char string
+        if(typeof(a_string) != "string")  { return false }
+        if(a_string.length != 1)          { return false }
+        if(a_string == "@")               { return false }
+        else                              { return true  }
+    }
+
+    //called from socket.js
+    static is_short_instruction_name_no_convert(a_string){
+        if(typeof(a_string) != "string")  { return false }
+        else if(a_string.length != 2)     { return false }
+        else                              { return a_string[1] == "!" }
+    }
+
+    static is_at_sign_instruction(item) {
+        return (Array.isArray(item) && (item[0] == "@"))
+    }
+
     static is_instruction_array(obj){
         //since we're making the instruction arrays by our fn calls, ie Job.move,
         //the user isn't making up the arrays, so we assume all arrays that start
@@ -47,41 +76,141 @@ var Instruction = class Instruction {
                 (typeof(obj.start) == "function") &&
                  !(obj instanceof Robot))
     }
+
+    //If the instruction *could* insert into the do_list, return true.
+    //else return false
+    //the following instructions insert as of Mar 6, 2019
+    //Instruction.Dexter.read_from_robot
+    //Instruction.human_enter_choice
+    //Instruction.human_enter_instruction
+    //Instruction.human_enter_position
+    //Instruction.if_any_errors
+    //Instruction.include_job
+    //Instruction.loop
+    //Instruction.send_to_job
+    //Instruction.sent_from_job
+    //SOMETIMES:
+    //   Instruction.Dexter.move_to_straight
+    //   Instruction.wait_for
+    static is_inserting_instruction(item, job_instance){
+       if(item == undefined)  {return false}
+       else if (item == null) {return false}
+       else if (typeof(item) === "string") {return false}
+       else if (Array.isArray(item) && (item.length == 0)) { return false }
+       else if (Instruction.is_short_instruction(item))    { return false }
+       else if (Instruction.is_at_sign_instruction(item)){
+           if(!job_instance) { return true } //we can't resolve the @ so be conservative as it *might* return an inserting instruction dependding on the job at_sign_function
+           else {
+               let fn = job_instance.at_sign_fn
+               if(Instruction.is_short_instruction_name(fn)) { return false }
+               else if (Instruction.is_inserting_instruction(fn)) { return true }
+               else { return false }
+           }
+       }
+       else if (typeof(item) === "function") {return true }
+       else if (Array.isArray(item)) { return true }
+       else if(Instruction.is_instruction_array(item)) { return false }
+       else if (is_iterator(item)) { return true }
+       else if (item instanceof Instruction){
+           if(item.inserting_instruction) { return true }
+           else { return false }
+           if (item instanceof Instruction.move_to_straight) {
+               if (item.single_instruction) { return false}
+               else { return true }
+           }
+           else {
+                for(let instr_class of [Instruction.Dexter.read_from_robot]){
+                    if(iteml instanceof instr_class) { return true }
+                }
+               return false
+           }
+       }
+       else { shouldnt("Instruction.is_inserting_instruction passed unnhandled instruction: " + item) }
+    }
+
+    static array_has_only_non_inserting_instructions(a_do_list, job_instance){
+        for(let item of a_do_list){
+            if(this.is_inserting_instruction(item, job_instance)) {return false}
+        }
+        return true
+    }
+
+    //used by do_next_item to determine if the return value of
+    //calling the at_sign_function can be directly sent.
+    //We don't count Instruction.is_at_sign_instruction(item) as sendable
+    //even though it *might* resolve to something that is.
+    //static sendable_instruction(item){
+    //    Instruction.is_instruction_array(item)
+    //    //Instruction.is_short_instruction(item)
+    //}
+
+    static is_no_op_instruction(item){
+       return ((item === undefined) ||
+               (item === null)      ||
+               (Array.isArray(item) && (item.length == 0))
+       )
+    }
+
     //a valid item to put on a do_list
     //mirrors Job.do_next_item ordering
     static is_do_list_item(item) {
-        return ( (item === undefined) ||
-                 (item === null) ||
+        return ( Instruction.is_no_op_instruction(item) ||
                  (item instanceof Instruction) ||
                  Instruction.is_instruction_array(item) ||
+                 Instruction.is_short_instruction(item) ||
+                 Instruction.is_at_sign_instruction(item) ||
                  is_iterator(item) ||
+                 (typeof(item) === "string") ||
                  (typeof(item) === "function") ||
                  Instruction.is_start_object(item) ||
-                 (Array.isArray(item) && item.length == 0) ||
                  Instruction.is_instructions_array(item)
         )
     }
+
     static instruction_color(ins){
-        if(Instruction.is_instruction_array(ins)) { return "#FFFFFF" }        //white
+        if(Instruction.is_instruction_array(ins))        { return "#FFFFFF" } //white
+        else if(Instruction.is_short_instruction(ins))   { return "#FFFFFF" } //white
+        else if(Instruction.is_at_sign_instruction(ins)) { return "#FFFFFF" } //white
+        else if(typeof(ins) == "string")                 { return "#DDEEFF" } //light blue
         else if (ins instanceof Instruction) {
-            if(ins.constructor.name.startsWith("human")) { return "#ffb3d1" } //pink
-            else if (ins instanceof Instruction.break)    { return "red" }
-            else if (ins instanceof Instruction.debugger) { return "red" }
-            else                                         { return "#e6b3ff" } //lavender
+            if(ins.constructor.name.startsWith("human"))  { return "#ffb3d1" }//pink
+            else if (ins instanceof Instruction.break)    { return "red" }    //red
+            else if (ins instanceof Instruction.debugger) { return "red" }    //red
+            else                                          { return "#e6b3ff" }//lavender
         }
-        else if (is_generator_function(ins)) { return "#ccffcc" }             //green
-        else if (is_iterator(ins))           { return "#aaffaa" }             //lighter green
-        else if (typeof(ins) == "function")  { return "#b3e6ff" }             //blue
-        else if (Instruction.is_start_object(ins)) { return "#ffd492"}        //tan
-        else if (ins == null) { return "#aaaaaa" }
-        else if (Array.isArray(ins)) { return "#aaaaaa" }                     //gray
+        else if (is_generator_function(ins))              { return "#ccffcc" } //green
+        else if (is_iterator(ins))                        { return "#aaffaa" } //lighter green
+        else if (typeof(ins) == "function")               { return "#b3e6ff" } //blue
+        else if (Instruction.is_start_object(ins))        { return "#ffd492"}  //tan
+        else if (ins === null)                            { return "#aaaaaa" } //gray
+        else if (ins ===undefined)                        { return "#aaaaaa" } //gray
+
+        else if (Array.isArray(ins))                      { return "#aaaaaa" } //gray
         else { shouldnt("Instruction.instruction_color got unknown instruction type: " + ins) }
     }
     static text_for_do_list_item(ins){
-        if(Instruction.is_instruction_array(ins)) {
+        if (ins === undefined)            { return 'undefined' }
+        else if (ins == null)             { return 'null' }
+        else if (typeof(ins) == "string") { return '"' + ins + '"' }
+        else if (Instruction.is_short_instruction(ins)){
+            let text = JSON.stringify(ins)
+            let oplet = ins[0]
+            let title = ""
+            if(Instruction.is_short_instruction_name_no_convert(oplet)){
+                title = Robot.instruction_type_to_function_name(oplet[0]) + " but does not convert args."
+            }
+            else { title = Robot.instruction_type_to_function_name(oplet) }
+            return "<span title='" + title + "'>" + text + "</span>"
+        }
+        else if (Instruction.is_at_sign_instruction(ins)){
+            let text = JSON.stringify(ins)
+            let title = "at_sign instructions use\ntheir Job's at_sign_function for functionality,\nby default: Dexter.pid_move_all_joints"
+            return "<span title='" + title + "'>" + text + "</span>"
+        }
+        else if(Instruction.is_instruction_array(ins)) {
             let text = JSON.stringify(ins) //we want 1 line here, not the multi-lines that stringify_value(ins) puts out
             return "<span title='" + Robot.instruction_type_to_function_name(ins[Instruction.INSTRUCTION_TYPE]) + "'>" + text + "</span>"
-         }
+        }
         else if (ins instanceof Instruction) {
             let name = ins.constructor.name
             let props = ""
@@ -101,7 +230,7 @@ var Instruction = class Instruction {
             if(ins.to_source_code) { return ins.to_source_code() } //hits for Note and Phrase
             else { return ins.toString().substring(0, 80)  }
         }
-        else if (ins == null)               { return 'null' }
+
         else if (Array.isArray(ins))        { return stringify_value(ins) }
         else { shouldnt("Instruction.text_for_do_list_item got unknown instruction type: " + ins) }
     }
@@ -266,7 +395,7 @@ Instruction.break = class Break extends Instruction{ //class name must be upper 
         }
     }
     toString(){ return "break" }
-    to_source_code(args={indent:""}){ return args.indent + "Robot.break()" }
+    to_source_code(args){ return args.indent + "Robot.break()" }
 }
 
 Instruction.debugger = class Debugger extends Instruction{ //class name must be upper case because lower case conflicts with js debugger
@@ -276,7 +405,7 @@ Instruction.debugger = class Debugger extends Instruction{ //class name must be 
         job_instance.set_up_next_do(1, true)
     }
     toString(){ return "debugger" }
-    to_source_code(args={indent:""}){ return args.indent + "Robot.debugger()" }
+    to_source_code(args){ return args.indent + "Robot.debugger()" }
 }
 
 Instruction.error = class error extends Instruction{
@@ -292,7 +421,7 @@ Instruction.error = class error extends Instruction{
     toString(){
         return "error: " + this.reason
     }
-    to_source_code(args={indent:""}){
+    to_source_code(args){
         let this_indent = args.indent
         args        = jQuery.extend({}, arguments[0])
         args.value  = this.reason
@@ -342,7 +471,7 @@ Instruction.Get_page = class Get_page extends Instruction{
         }
         else { job_instance.set_up_next_do(1)} //got the response, move to next instruction
     }
-    to_source_code(args={indent:""}){
+    to_source_code(args){
         return args.indent + "Robot.get_page(" +
             to_source_code({value: this.url_or_options}) +
             ((this.response_variable_name == "http_response") ? "" : (", " + to_source_code({value: this.response_variable_name})))  +
@@ -376,7 +505,7 @@ Instruction.go_to = class go_to extends Instruction{
     }
     toString(){ return "Robot.go_to instruction_location: " + this.instruction_location }
 
-    to_source_code(args={indent:""}){
+    to_source_code(args){
         let this_indent = args.indent
         args        = jQuery.extend({}, arguments[0])
         args.value  = this.instruction_location
@@ -428,7 +557,7 @@ Instruction.grab_robot_status = class grab_robot_status extends Instruction{
     toString(){
         return "grab_robot_status: " + this.user_data_variable
     }
-    to_source_code(args={indent:""}){
+    to_source_code(args){
         let this_indent = args.indent
         args        = jQuery.extend({}, args)
         args.value  = this.user_data_variable
@@ -468,7 +597,7 @@ Instruction.human_recognize_speech = class human_recognize_speech extends Instru
         inspect(reco)
         job_instance.set_up_next_do(1)
     }
-    to_source_code(args={indent:""}){
+    to_source_code(args){
         let this_indent = args.indent
         args        = jQuery.extend({}, arguments[0])
         args.indent = ""
@@ -497,7 +626,7 @@ Instruction.human_speak = class human_speak extends Instruction{
            job_instance.set_up_next_do(1)
        }
     }
-    to_source_code(args={indent:""}){
+    to_source_code(args){
         return args.indent + "Human.task({"  +
             ((this.task == "") ? "" : ("task: " + to_source_code({value: this.task}) + ", ")) +
             ((this.title === undefined) ? "" : ("title: " + to_source_code({value: this.title})  + ", ")) +
@@ -554,7 +683,7 @@ Instruction.human_task = class human_task extends Instruction{
                     height: this.height,
                     background_color: this.background_color})
     }
-    to_source_code(args={indent:""}){
+    to_source_code(args){
         return args.indent + "Human.task({"  +
                ((this.task == "") ? "" : ("task: " + to_source_code({value: this.task}) + ", ")) +
                ((this.title === undefined) ? "" : ("title: " + to_source_code({value: this.title})  + ", ")) +
@@ -616,6 +745,7 @@ Instruction.human_enter_choice = class human_enter_choice extends Instruction{
             if (Array.isArray(choice)) {  this.choices.push(choice) }
             else {dde_error("Human.enter_choice passed a choice that is not a string and not an array: " + choice)}
         }
+        this.inserting_instruction = true
     }
     do_item (job_instance){
         var hidden  = "<input type='hidden' name='job_name' value='" + job_instance.name                                   + "'/>\n" +
@@ -660,7 +790,7 @@ Instruction.human_enter_choice = class human_enter_choice extends Instruction{
                     background_color: this.background_color})
     }
 
-    to_source_code(args={indent:""}){
+    to_source_code(args){
         return args.indent + "Human.enter_choice({" +
             ((this.task == "")                               ? "" : ("task: "                    + to_source_code({value: this.task})                    + ", ")) +
             ((this.title === undefined)                      ? "" : ("title: "                   + to_source_code({value: this.title})                   + ", ")) +
@@ -788,7 +918,7 @@ Instruction.human_enter_filepath = class human_filepath extends Instruction{
             background_color: this.background_color}
         )
     }
-    to_source_code(args={indent:""}){
+    to_source_code(args){
         return args.indent + "Human.enter_text({" +
             ((this.task == "")                               ? "" : ("task: "                    + to_source_code({value: this.task})                    + ", ")) +
             ((this.title === undefined)                      ? "" : ("title: "                   + to_source_code({value: this.title})                   + ", ")) +
@@ -850,6 +980,7 @@ Instruction.human_enter_instruction = class human_enter_instruction extends Inst
         this.width   = width
         this.height  = height
         this.background_color = background_color
+        this.inserting_instruction = true
     }
 
     make_instruction_options(){
@@ -939,7 +1070,7 @@ Instruction.human_enter_instruction = class human_enter_instruction extends Inst
         immediate_do_id.focus()
     }
 
-    to_source_code(args={indent:""}){
+    to_source_code(args){
         return args.indent + "Human.enter_instruction({" +
             ((this.task == "")                               ? "" : ("task: "                    + to_source_code({value: this.task})                    + ", ")) +
             ((this.title === undefined)                      ? "" : ("title: "                   + to_source_code({value: this.title})                   + ", ")) +
@@ -1165,7 +1296,7 @@ Instruction.human_enter_number = class human_enter_number extends Instruction{
                     height: this.height,
                     background_color: this.background_color})
     }
-    to_source_code(args={indent:""}){
+    to_source_code(args){
         return args.indent + "Human.enter_number({" +
             ((this.task == "")                               ? "" : ("task: "                    + to_source_code({value: this.task})                    + ", ")) +
             ((this.title === undefined)                      ? "" : ("title: "                   + to_source_code({value: this.title})                   + ", ")) +
@@ -1244,6 +1375,7 @@ Instruction.human_enter_position = class human_enter_position extends Instructio
             this.height  = height
             this.background_color = background_color
             this.status = "not started"
+            this.inserting_instruction = true
     }
 
     do_item (job_instance){
@@ -1272,7 +1404,7 @@ Instruction.human_enter_position = class human_enter_position extends Instructio
             height: this.height,
             background_color: this.background_color})
     }
-    to_source_code(args={indent:""}){
+    to_source_code(args){
         return args.indent + "Human.enter_position({" +
             ((this.task == "")                               ? "" : ("task: "                    + to_source_code({value: this.task})                    + ", ")) +
             ((this.title === undefined)                      ? "" : ("title: "                   + to_source_code({value: this.title})                   + ", ")) +
@@ -1383,7 +1515,7 @@ Instruction.human_enter_text = class human_enter_text extends Instruction{
                     background_color: this.background_color}
                     )
     }
-    to_source_code(args={indent:""}){
+    to_source_code(args){
         return args.indent + "Human.enter_text({" +
             ((this.task == "")                               ? "" : ("task: "                    + to_source_code({value: this.task})                    + ", ")) +
             ((this.title === undefined)                      ? "" : ("title: "                   + to_source_code({value: this.title})                   + ", ")) +
@@ -1493,7 +1625,7 @@ Instruction.human_notify = class human_notify extends Instruction{
         }
         return human_notify.window_y
     }
-    to_source_code(args={indent:""}){
+    to_source_code(args){
         return args.indent + "Human.notify({" +
             ((this.task == "")                               ? "" : ("task: "                    + to_source_code({value: this.task})                    + ", ")) +
             ((this.title === undefined)                      ? "" : ("title: "                   + to_source_code({value: this.title})                   + ", ")) +
@@ -1534,7 +1666,7 @@ Instruction.human_show_window = class human_show_window extends Instruction{
         this.sw_lit_obj_args.callback = human_show_window_handler
         this.win_index = show_window(this.sw_lit_obj_args)
     }
-    to_source_code(args={indent:""}){
+    to_source_code(args){
         let extra_indent = ' '.repeat(37)
         return args.indent + "Human.show_window(\n" +
                to_source_code({indent: args.indent + extra_indent, value: this.sw_lit_obj_args}) + ")"
@@ -1562,6 +1694,7 @@ Instruction.if_any_errors = class if_any_errors extends Instruction{
         super()
         this.job_names = job_names
         this.instruction_if_error = instruction_if_error
+        this.inserting_instruction = true
     }
     do_item (job_instance){
         for(let job_name of this.job_names){
@@ -1590,10 +1723,58 @@ Instruction.if_any_errors = class if_any_errors extends Instruction{
         }
         job_instance.set_up_next_do(1)
     }
-    to_source_code(args={indent:""}){
+    to_source_code(args){
         return args.indent + "Robot.if_any_errors(" +
                               to_source_code({value: this.job_names}) + ", " +
                               to_source_code({value: this.instruction_if_error}) + ")"
+    }
+}
+
+Instruction.include_job = class include_job extends Instruction{
+    constructor (job_name, start_loc, end_loc) {
+        super()
+        if(job_name === undefined){
+            dde_error("include_job was not passed a <b>job_name</b> which is required.")
+        }
+        this.job_name = job_name
+        //It *might* be good to permit job_name to be a job obj, but
+        //usually better to have it be a string and evaled at instruction executing time
+        //to permit order of job defs in file to not matter.
+        //MakeInstruction insertion of jobs depends on instruction executing time
+        //for resolving of job_name
+        //if (job_name instanceof Job) { job_name = job_name.name }
+        //if(typeof(job_name) != "string"){
+        //    dde_error("start_job was passed an invalid <b>job_name</b> of: " + job_name + "<br/>" +
+        //        "It must be a Job instance or the string of a Job name.")
+        //
+        this.start_loc = start_loc
+        this.end_loc = end_loc
+        this.inserting_instruction = true
+        }
+
+    do_item (job_instance){
+        let name_of_job_to_include = this.job_name
+        if(!name_of_job_to_include.startsWith("Job.")) { name_of_job_to_include = "Job." + name_of_job_to_include }
+        let job_to_include = value_of_path(name_of_job_to_include)
+        if(!(job_to_include instanceof Job)) {
+           dde_error("Robot.include_job passed a job_name: " + this.job_name +
+                     "<br/>that is not bound to a Job, but rather: " + job_to_include)
+        }
+        let the_start_loc = ((this.start_loc === null) ? job_to_include.orig_args.program_counter : this.start_loc)
+        let the_end_loc   = ((this.end_loc   === null) ? job_to_include.orig_args.ending_program_counter : this.end_loc)
+
+        let first_instr_id = job_to_include.instruction_location_to_id(
+                               the_start_loc, undefined, undefined, true) //use orig do_list
+        let one_beyond_last_id = job_to_include.instruction_location_to_id(
+                               the_end_loc,   undefined, undefined, true) //use orig do_list
+        let instrs_to_insert = job_to_include.orig_args.do_list.slice(first_instr_id, one_beyond_last_id)
+        job_instance.insert_instructions(instrs_to_insert)
+        job_instance.set_up_next_do(1)
+    }
+
+    to_source_code(args){
+        return args.indent + "Robot.include_job(" +
+            to_source_code({value: this.job_name}) + ")"
     }
 }
 
@@ -1610,7 +1791,7 @@ Instruction.label = class label extends Instruction{
         job_instance.set_up_next_do(1)
     }
     toString(){ return this.name }
-    to_source_code(args={indent:""}){
+    to_source_code(args){
         return args.indent + "Robot.label(" +
               to_source_code({value: this.name})  + ")"
     }
@@ -1631,6 +1812,7 @@ Instruction.loop = class Loop extends Instruction{
                                            //and index into it to get the cur prop name
                                            //which we then use to llok up in times_to_loop_object
                                            //for the iter_val
+        this.inserting_instruction = true
     }
     //there is no do_items for loop. But this is similar. It does not call set_up_next_do,
     //which is done only in the Job.prototype.do_next_item section that handles loop
@@ -1743,7 +1925,7 @@ Instruction.loop = class Loop extends Instruction{
         }
         return null // not good. we didn't find an enclosing loop. this will become a warning.
     }
-    to_source_code(args={indent:""}){
+    to_source_code(args){
         return args.indent + "Robot.loop(" +
             to_source_code({value: this.times_to_loop})  + ",\n" +
             to_source_code({value: this.body_fn}) +
@@ -1764,7 +1946,7 @@ Instruction.out = class Out extends Instruction{
         job_instance.set_up_next_do(1)
     }
     toString() { return "Robot.out of: " + this.val }
-    to_source_code(args={indent:""}){
+    to_source_code(args){
         return args.indent + "Robot.out(" +
                 to_source_code({value: this.val})  +
                 ((this.color == "black") ? "" : (", " + to_source_code({value: this.color}))) +
@@ -1818,6 +2000,7 @@ Instruction.send_to_job = class send_to_job extends Instruction{
             dde_error("Instruction send_to_job was not supplied with a 'where_to_insert' instruction location.")
         }
         copy_missing_fields(params, this)
+        this.inserting_instruction = true
     }
 
     do_item (job_instance){ //job_instance is the "from" job
@@ -1842,7 +2025,7 @@ Instruction.send_to_job = class send_to_job extends Instruction{
             job_instance.set_up_next_do(1)
         }
     }
-    to_source_code(args={indent:""}){
+    to_source_code(args){
         return args.indent + "Robot.send_to_job({" +
             ((this.do_list_item == null)          ? "" :  ("do_list_item: "         + to_source_code({value: this.do_list_item})                 + ", ")) +
             ((this.where_to_insert === undefined) ? "" :  ("where_to_insert: "      + to_source_code({value: this.where_to_insert})      + ", ")) +
@@ -1968,6 +2151,7 @@ Instruction.sent_from_job = class sent_from_job extends Instruction{
             params.where_to_insert = "next_top_level"
         }
         copy_missing_fields(params, this)
+        this.inserting_instruction = true
     }
 
     do_item (job_instance){
@@ -2105,7 +2289,7 @@ Instruction.start_job = class start_job extends Instruction{
     toString(){
         return "start_job: " + this.job_name
     }
-    to_source_code(args={indent:""}){
+    to_source_code(args){
         return args.indent + "Robot.start_job(" +
             to_source_code({value: this.job_name})  +
             (similar(this.start_options, {}) ? "" : (", " + to_source_code({value: this.start_options}))) +
@@ -2139,7 +2323,7 @@ Instruction.stop_job = class stop_job extends Instruction{
         else              { job_to_stop = ": Job." + job_to_stop.name }
         return "stop_job" + job_to_stop + " because: " + this.stop_reason
     }
-    to_source_code(args={indent:""}){
+    to_source_code(args){
         let indent = ((args && args.indent) ? args.indent : "")
         let props_args = args        = jQuery.extend({}, arguments[0])
         props_args.indent = ""
@@ -2176,12 +2360,12 @@ Instruction.suspend = class suspend extends Instruction{
            return
         }
         else {
-            job_to_suspend.wait_reason = this.reason //must be before set_status_code or it won't happen
-            job_to_suspend.set_status_code("suspended")
+            job_to_suspend.suspend(this.reason)
             if (job_to_suspend !== job_instance) { job_instance.set_up_next_do(1) }
+            //else, it doesn't send a set_up_next_do which causes the job to  be suspended.
         }
     }
-    to_source_code(args={indent:""}){
+    to_source_code(args){
         return args.indent + "Robot.suspend(" +
             to_source_code({value: this.job_name}) +
             ((this.reason == "") ? "" : (", " + to_source_code({value: this.reason})))  +
@@ -2190,13 +2374,14 @@ Instruction.suspend = class suspend extends Instruction{
 }
 
 Instruction.unsuspend = class unsuspend extends Instruction{
-    constructor (job_name = "required") {
+    constructor (job_name = "required", stop_reason=false) {
         super()
         if(job_name == "required"){
             dde_error("unsuspend not given a job name to unsuspend. A job cannot unsuspend itself.")
         }
         if (job_name instanceof Job) { job_name = job_name.name }
         this.job_name = job_name
+        this.stop_reason = stop_reason
     }
     do_item (job_instance){
         let job_to_unsuspend = this.job_name
@@ -2206,13 +2391,13 @@ Instruction.unsuspend = class unsuspend extends Instruction{
         }
         else if (job_to_unsuspend == job_instance) { shouldnt("unsuspend instruction attempting to unsuspend itself.: " + this.job_name) }
         else if (job_to_unsuspend.status_code == "suspended"){
-            job_to_unsuspend.unsuspend()
+            job_to_unsuspend.unsuspend(this.stop_reason)
         }
         else {} //if job_to_unsuspend is not suspended, do nothing
         job_instance.set_up_next_do(1)
 
     }
-    to_source_code(args={indent:""}){
+    to_source_code(args){
         return args.indent + "Robot.unsuspend(" +
             to_source_code({value: this.job_name}) +
             ")"
@@ -2244,7 +2429,8 @@ Instruction.sync_point = class sync_point extends Instruction{
             //   job_instance.do_list.splice(job_instance.program_counter, 0, instruction_array); //before really testing th sync point, first empty the queue. We only need to do this the first time this do_item is called.
             //   job_instance.added_items_count.splice(this.program_counter, 0, 0);
             //job_instance.insert_single_instruction(instruction_array) //don't call because this inserts AFTER PC, not at it.
-            Job.insert_instruction(instruction_array, {job: job_instance, offset: "program_counter"})
+            //Job.insert_instruction(instruction_array, {job: job_instance, offset: "program_counter"})
+            this.send(instruction_array)
             this.inserted_empty_instruction_queue = true
             job_instance.set_up_next_do(0) //go and do this empty_instruction_queue instruction, and when it finally returns, do the sync_point proper that is the next instruction
         }
@@ -2286,7 +2472,7 @@ Instruction.sync_point = class sync_point extends Instruction{
             job_instance.set_up_next_do(1)
         }
     }
-    to_source_code(args={indent:""}){
+    to_source_code(args){
         return args.indent + "Robot.sync_point("   +
             to_source_code({value: this.name})     + ", " +
             to_source_code({value: this.job_names}) +
@@ -2320,6 +2506,9 @@ Instruction.wait_until = class wait_until extends Instruction{
                       '"new_instruction" or instruction location array.')
         }
         this.start_time_in_ms = null
+        if((typeof(fn_date_dur) == "number") && (fn_date_dur >= 1)) {
+            this.inserting_instruction = true
+        }
     }
     do_item (job_instance){
         if (typeof(this.fn_date_dur) == "function"){
@@ -2459,7 +2648,7 @@ Instruction.wait_until = class wait_until extends Instruction{
                       ' It should be a function, a date, a number, or "new_instruction".')
         }
     }
-    to_source_code(args={indent:""}){
+    to_source_code(args){
         return args.indent + "Robot.wait_until("       +
             to_source_code({value: this.fn_date_dur, function_names: true})  +
             ")"

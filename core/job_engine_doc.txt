@@ -1,0 +1,65 @@
+JOB ENGINE
+The Job Engine is a way to run Jobs created by DDE
+without the development environment.
+It lacks editing, debugging and help facilities,
+but is *much* smaller and requires much fewer
+computer resources and libraries.
+
+IMPLEMENTATION
+The Job Engine is comprised of the DDE folders:
+core and math. It has one extra file not used by DDE:
+core/index.js
+The code in that file is used to initialize the Job Engine
+and start a job.
+
+TO RUN A JOB:
+ In a Terminal/Shell window:
+ - cd to electron_dde (DDE's main code dir, contains the dir 'core') and enter:
+ - node core define_and_start_job /Users/Fry/Documents/dde_apps/node_test_job.js
+ where the file is one that contains:
+ new Job(...)
+ Use DDE to learn how to define Jobs.
+
+ This should:
+ - define the job
+ - start that job
+ - run it to completion
+ - exit node
+ During this, you should see in the terminal window lots of printouts telling you
+ of progress.
+
+SIMULATION
+ Doing the above the first time will run Jobs with:
+ simulate=true
+ meaning that Dexter won't move when a move instruction is run.
+ to get Dexter to move, the Dexter robot instance must have
+ its simulate arg set to false, i.e. in dde_init.js:
+ new Dexter({name: "dexter0", simulate: false})
+
+ To make simulate=false be the default for all
+ subsequently defined DEXTER'S, add to dde_init.js:
+ persistent_set("default_dexter_simulate", false)
+ You'd have to stick this line in dde_init before
+ the definition of any Dexter's for it to affect them.
+ Once this is done, each time you boot DDE or the job_engine,
+ the default for simulate will be false.
+
+CUSTOMIZING JOB ENGINE JOBS
+When you 'run a job' as defined above,
+it sets window.platform to "node".
+If you are in dde, window.platform == "dde".
+That means you can customize any code written
+based on this "platform" i.e.
+if(window.platform == "node")      { console.log("hey I'm in node.") }
+else if (window.platform == "dde") { console.log("we're in dde!") }
+
+The system software takes advantage of this.
+One important case is that the "out" function is defined as:
+function out(val="", color="black", temp=false, code=null){
+    if(window.platform == "node") { console.log(val) }
+    else { //do formatting and print to DDE's Output pane
+    }
+}
+Thus when running on node, 'out' only pays attention to its
+first arg. It sends the first arg directly to the console.
+

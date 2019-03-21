@@ -67,7 +67,11 @@ var Socket = class Socket{
     //and  the z oplet. Note that instruction start and end times are always in milliseconds
     static instruction_array_degrees_to_arcseconds_maybe(instruction_array, rob){
         const oplet = instruction_array[Dexter.INSTRUCTION_TYPE]
-        if ((oplet == "a") || (oplet == "P")){
+        if(Instruction.is_short_instruction_name_no_convert(oplet)){
+             instruction_array[Dexter.INSTRUCTION_TYPE] = oplet[0] //strip off the ! and from here on it looks like a singe char normal oplet
+             return instruction_array
+        }
+        else if ((oplet == "a") || (oplet == "P")){
             let instruction_array_copy = instruction_array.slice()
             /*instruction_array_copy[Instruction.INSTRUCTION_ARG0] =
                 Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG0] * 3600)

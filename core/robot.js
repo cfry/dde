@@ -52,19 +52,7 @@ var Robot = class Robot {
             job_or_robot_to_simulate_id.prepend(a_option)
         }
         //for Make Instance dialog
-        if ((i == -1)  && window["mi_job_wrapper_robot_name_id"]) {
-            let class_name = robot_instance.constructor.name
-            let full_name = class_name + "." + name
-            let a_option = document.createElement("option");
-            a_option.innerText = full_name
-            mi_job_wrapper_robot_name_id.prepend(a_option)
-        }
-        //obsolete Make Instance dialog
-        //if ((i == -1) && (robot_instance instanceof Dexter) && window["mi_job_wrapper_robot_name_id"]) {
-        //    let a_option = document.createElement("option");
-        //    a_option.innerText = name
-        //    mi_job_wrapper_robot_name_id.prepend(a_option)
-        //}
+        if (i == -1){ MakeInstruction.add_robot_to_job_wrapper_robot_menu_maybe(robot_instance) }
     }
     static get_simulate_actual(simulate_val){
         if      (simulate_val === true)   { return true   }
@@ -217,12 +205,16 @@ var Robot = class Robot {
         return new Instruction.stop_job(instruction_location, reason, perform_when_stopped)
     }
 
+    static include_job(job_name, start_loc=null, end_loc=null){
+        return new Instruction.include_job(job_name, start_loc, end_loc)
+    }
+
     static suspend(job_name = null, reason = ""){
         return new Instruction.suspend(job_name, reason)
     }
     //unsuspend is also instance meth on Job and should be!
-    static unsuspend(job_name = "required"){
-        return new Instruction.unsuspend(job_name)
+    static unsuspend(job_name = "required", stop_reason=false){
+        return new Instruction.unsuspend(job_name, stop_reason)
     }
 
     static sync_point(name, job_names=[]){
@@ -1288,7 +1280,10 @@ Dexter = class Dexter extends Robot {
             else if (job_instance.status_code === "starting") { //at least usually ins_id is -1
                 job_instance.set_status_code("running")
                 //rob.perform_instruction_callback(job_instance)
-                job_instance.set_up_next_do(0) //we've just done the initial g instr, so now do the first real instr. PC is already pointing at it, so don't increment it.
+                //if(job_instance.dont_proceed_after_initial_g) {//used by MakeInstruction
+                //    MiRecord.start_is_done_with_initial_g_and_paused(job_instance)
+                //}
+                job_instance.set_up_next_do(0)//we've just done the initial g instr, so now do the first real instr. PC is already pointing at it, so don't increment it.
             }
             else { //the normal, no error, not initial case
                 if (job_instance.wait_until_instruction_id_has_run == ins_id){ //we've done it!
@@ -1533,7 +1528,10 @@ Dexter.find_index           = function(...args){ return make_ins("n", ...args) }
 Dexter.prototype.find_index = function(...args){ args.push(this); return Dexter.find_index(...args) }
 
 
-Dexter.get_robot_status = function(){ return make_ins("g") }
+Dexter.get_robot_status = function(robot){
+                                if(robot) { return make_ins("g", robot)  }
+                                else      { return make_ins("g")  }
+    }
 Dexter.prototype.get_robot_status = function(){ return Dexter.get_robot_status(this) }
 
     //this forces do_next_item to wait until robot_status is

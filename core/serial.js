@@ -28,7 +28,13 @@ temboo IOT js connectivity requires setting up a local js server to use.
 //keep map between them on the UI side
 */
 
-const SerialPort = require('serialport')
+var SerialPort = "SerialPort not yet implemented for this platform."
+
+//caled fron ready.js. Prevents error when loading job _engine (and this file)
+//on Dexter hardware
+function serial_port_init() { SerialPort = require('serialport') }
+module.exports.serial_port_init = serial_port_init
+
 
 var serial_path_to_info_map = {}
 module.exports.serial_path_to_info_map = serial_path_to_info_map

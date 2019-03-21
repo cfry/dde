@@ -7,15 +7,16 @@ var Kin = require("./math/Kin.js")
 var Vector = require("./math/Vector.js")
 var txt = require("./math/txt.js")
 
+var {serial_port_init, serial_path_to_info_map, serial_devices, serial_connect_low_level,
+    serial_send_low_level, serial_connect, serial_send, serial_flush, serial_disconnect,
+    serial_disconnect_all} = require("./core/serial.js")
+
 
 var {dde_error, warning, shouldnt, array_to_csv, csv_to_array, Duration, flatten, fn_is_keyword_fn, format_number, make_ins_arrays, same_elts,
     patch_until, return_first_arg, version_equal, version_less_than, version_more_than, dde_version_between} = require("./core/utils.js")
 
 var {choose_file, choose_save_file, choose_file_and_get_content, load_files, persistent_get, persistent_remove, persistent_save} = require("./core/storage.js")
 
-var {serial_devices, serial_path_to_info_map,
-     serial_connect_low_level, serial_send_low_level,
-    serial_disconnect, serial_flush} = require("./core/serial.js")
 
 var {deg_c_to_c, deg_c_to_f, deg_f_to_c,
      deg_c_to_k, deg_k_to_c,

@@ -1285,14 +1285,34 @@ window.insert_color = insert_color
 
 
 //fixes broken Electron prompt See main.js for more code and doc
-window.prompt = function(title, val){
-    let window_frame_bg = window_frame_background_color()
-    let button_bg       = button_background_color()
-    return ipcRenderer.sendSync('prompt',
-                                 {title, val,
-                                 window_frame_background_color: window_frame_bg,
-                                 button_background_color: button_bg})
+window.prompt = function(description="", default_value=""){
+    let obj
+    if(typeof(description) == "string"){
+        obj = {description: description,
+               default_value: default_value,
+              }
+    }
+    else { obj = description }
+    if(!obj.hasOwnProperty("title"))                         { obj.title = "DDE Prompt" }
+    if(!obj.hasOwnProperty("description"))                   { obj.description = "" }
+    if(!obj.hasOwnProperty("default_value"))                 { obj.default_value = "" }
+    if(!obj.hasOwnProperty("x"))                             { obj.x = 200 }
+    if(!obj.hasOwnProperty("y"))                             { obj.y = 200 }
+    if(!obj.hasOwnProperty("width"))                         { obj.width =  400 }
+    if(!obj.hasOwnProperty("height"))                        { obj.height = 200 }
+    if(!obj.hasOwnProperty("color"))                         { obj.color = "black" }
+    if(!obj.hasOwnProperty("background_color"))              { obj.background_color = "#DDDDDD" }
+    if(!obj.hasOwnProperty("window_frame_background_color")) { obj.window_frame_background_color = window_frame_background_color() }
+    if(!obj.hasOwnProperty("button_background_color"))       { obj.button_background_color = button_background_color() }
+    obj.x = obj.x + persistent_get("dde_window_x") //make x and y relative to the dde window.
+    obj.y = obj.y + persistent_get("dde_window_y")
+    console.log(obj)
+    let return_val = ipcRenderer.sendSync('prompt', obj)
+    console.log("return_val")
+    console.log(return_val)
+    return return_val
 }
+
 var {persistent_get, persistent_set} = require("./core/storage")
 var {warning, function_name, is_string_a_integer, is_string_a_number, starts_with_one_of,
     stringify_value, value_of_path} = require("./core/utils.js")

@@ -31,7 +31,7 @@ function dde_error(message){
     console.log("dde_error: " + out_string)
     var err = new Error();
     var stack_trace = err.stack
-    out_string = "<details><summary><span style='color:red;'>" + out_string +
+    out_string = "<details><summary><span style='color:red;'>Error: " + out_string +
                       "</span></summary>" + stack_trace + "</details>"
     out(out_string, "red") //I shouldn't have to do this but sometimes with setTimeouts and/or
     throw new Error(message)
@@ -1222,8 +1222,8 @@ function regexp_escape_special_chars(str){
 //the first arg to new RegExp is a regexp pattern that treats
 //lots of punctuation chars like parans specially.
 //To turn off that special treatment, pass in a 3rd arg of false
-function replace_substrings(orig_string, substring_to_replace, replacement, substring_to_replace_treated_speically=true){
-    if(!substring_to_replace_treated_speically) {
+function replace_substrings(orig_string, substring_to_replace, replacement, substring_to_replace_treated_specially=true){
+    if(!substring_to_replace_treated_specially) {
         substring_to_replace = regexp_escape_special_chars(substring_to_replace)
     }
     return orig_string.replace(new RegExp(substring_to_replace, 'g'), replacement);

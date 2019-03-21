@@ -60,6 +60,7 @@
         dde_version      = pckg.version
         dde_release_date = pckg.release_date
         platform         = "dde" //"node" is the other possibility
+        serial_port_init()
         //window.Root      = Root //should work but doesn't jan 13, 2019
         Coor.init()
         Job.init()
@@ -243,6 +244,10 @@
                                                eval_button_action(true) //cause stepping
                                            }, 500)
                              }
+
+    step_button_id.onmousedown = function() {
+            selected_text_when_eval_button_clicked = Editor.get_any_selection()
+    };
 
     email_bug_report_id.onclick=email_bug_report
 
@@ -1191,7 +1196,7 @@ function set_top_left_panel_height(height=600){
 }
 
 function set_top_right_panel_height(height=600){
-    out("set top right:" + height)
+    //out("set top right:" + height)
     $('#right_splitter').jqxSplitter({ panels: [{ size: height }] })
 }
 

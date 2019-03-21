@@ -3014,8 +3014,19 @@ The syntax of defining a job is:
 Defined jobs remain inert until they are started like so:<br/>
 <code title="not in TestSuite"> Job.j1.start()</code><br/>
 <code title="unEVALable code fragment"> start</code> initializes the job and feeds the instructions in its do_list to
-the job's robot, which executes the instructions. Jobs either run to completion,
-error, or are stopped by the user via <button>Jobs&#9660;</button> menu <b>Stop all jobs</b>.
+the job's robot, which executes the instructions.
+Jobs either run to completion, error, or are stopped by the user via:
+<ul><li>Clicking on a running Job's button, i.e. <button>my_job</button> in the Output pane</li>
+    <li>Calling <code title="not in TestSuite">Job.my_job.stop_for_reason("interrupted", "why you want it stopped")</code></li>
+    <li>In a running Job, executing the instruction:
+         <a href="#" onclick='open_doc("Robot.stop_job_doc_id")'><code>Robot.stop_job()</code></a></li>
+ </ul>
+ You can stop all jobs by:
+ <ul>
+   <li>Clicking the the stop sign icon <img src='stop_sign.png'/>in the output pane</li>
+   <li>Calling <code>Job.stop_all_jobs()</code></li>
+</ul>
+
 Stopped jobs may be restarted by calling <code title="not in TestSuite"> Job.j1.start()</code> again.
 This reinitializes the job with the original arguments passed to <code title="unEVALable code fragment"> new Job</code>
 and runs the do_list instructions again.
@@ -3170,6 +3181,9 @@ new Job({name: "my_job",
      </code></pre>
         </li>
         <li><b>program_counter</b> Default: <code>0</code> Initialize the program_counter to an instruction id.
+         Use this when you want  a job to start with an instruction other than
+         the first instruction in the do_list. Thus you can skip performing some of
+         the initial instructions when running the job.
          This is most commonly a non-negative integer but
          you can use any instruction_location here.
         See <a href="#" onclick="open_doc('Robot.go_to_doc_id', event)">Robot.go_to</a>
@@ -3182,10 +3196,16 @@ new Job({name: "my_job",
             dynamically added instructions, that's OK.
             See <a href="#" onclick="open_doc('Robot.go_to_doc_id', event)">Robot.go_to</a>
             for documentation on all the different kinds of instruction_locations.
+            <p></p>
+            Use program_counter and ending_program_counter to "play" just a segment
+            of a Job's do_list.
         </li>
         <li><b>initial_instruction</b> Default <code>null</code> (no instruction added).Add an initial instruction to the do_list at
         the location of program_counter. Thus this instruction will be executed
         first when the job is run.
+        </li>
+        <li><b>at_sign_function</b> Default <code>Dexter.pid_move_all_joints</code><br/>
+            Transforms <a href="#" onclick="open_doc(at_sign_instruction_doc_id)">at_sign instructions</a>
         </li>
         <li><b>when_stopped</b> controls what happens when a job stops normally.<br/>
              <i>Possible Values</i>:<br/>
@@ -3273,6 +3293,54 @@ on how to continually add and execute a new instruction in a running job.
 <details id="robot_instructions_doc_id" class="doc_details" ><summary>Robot Instructions</summary>
 These instructions can be used for any robot, as can the instructions for
 the Human robot.
+
+    <details  class="doc_details"><summary>Any Array of Instructions</summary>
+        Any valid instruction can be wrapped in an array of any length
+        and put on a do_list. This is often useful when you have a function
+        that makes a number of instuctions. The instructions need not be of the same type.
+        <p></p>
+        An empty array is valid but will have no effect.<br/>
+        Arrays may be nested to any depth.<br/>
+        <i>Example:</i><br/>
+        <pre><code>new Job({name: "Job1",
+         do_list: [[Dexter.move_all_joints([10, 20, 0, 0, 0]), Robot.out("did it")],
+                    function(){
+                        let result = []
+                        for(let ang = 0; ang <= 90; ang += 15){
+                             result.push(Dexter.move_all_joints([ang, 0,0,0,0,]))
+                        }
+                        return result
+                    }
+                   ]})
+     </code></pre>
+        The first insruction above puts 1 array with two instructions on the do_list.
+        Both will be run in order.
+        The second instruction, an anonymous function definition,
+        creates an array of <code>Dexter.move_all_joints</code> instructions.
+        Those instructions have Joint 1 increasing in angles from 0 through 90,
+        incrementing by 15 degrees.
+        <p></p>
+        If we have a function (fun1) which returns an array of instructions, and a second
+        function (fun2) that returns a different array of instructions,
+        and we wanted to return them all, we could write:
+        <pre><code title="unstartable in TestSuite">new Job({name: "Job1",
+         do_list: [function(){ return [fun1(), fun2()] }
+        ]})
+        </code></pre>
+        We could also write:
+        <pre><code title="unstartable in TestSuite">new Job({name: "Job1",
+         do_list: [function(){ return [fun1, fun2] }
+        ]})
+         </code></pre>
+        as long as those functions take no arguments.<br/>
+        We could also just put both at top level on the do_list,
+        i.e. <pre><code title="unEVALable"/>new Job({name: "Job1",
+         do_list: [fun1, fun2]
+        })
+            </code></pre>
+        DDE gives you lots of options!
+</details>
+
 <details class="doc_details"><summary>Any JS Function Def</summary>
 Any function definition can be put on the do_list as an instruction.
 When it is run, the function is called with <code>this</code>
@@ -3651,52 +3719,21 @@ new Job({name: "my_job",
     they already were.
 </details>
 
-<details  class="doc_details"><summary>Any Array of Instructions</summary>
-Any valid instruction can be wrapped in an array of any length
-and put on a do_list. This is often useful when you have a function
-that makes a number of instuctions. The instructions need not be of the same type.
-<p></p>
-An empty array is valid but will have no effect.<br/>
-Arrays may be nested to any depth.<br/>
+<details id="Robot.any_string_id" class="doc_details"><summary>Any String</summary>
+A string just prints itself out in the Output pane with a short prefix.
+This is handy for debugging "print statements".<br/>
 <i>Example:</i><br/>
-<pre><code>new Job({name: "Job1",
-         do_list: [[Dexter.move_all_joints([10, 20, 0, 0, 0]), Robot.out("did it")],
-                    function(){
-                        let result = []
-                        for(let ang = 0; ang <= 90; ang += 15){
-                             result.push(Dexter.move_all_joints([ang, 0,0,0,0,]))
-                        }
-                        return result
-                    }
-                   ]})
-     </code></pre>
-  The first insruction above puts 1 array with two instructions on the do_list.
-  Both will be run in order.
-  The second instruction, an anonymous function definition,
-  creates an array of <code>Dexter.move_all_joints</code> instructions.
-  Those instructions have Joint 1 increasing in angles from 0 through 90,
-  incrementing by 15 degrees.
-  <p></p>
-  If we have a function (fun1) which returns an array of instructions, and a second
-  function (fun2) that returns a different array of instructions,
-  and we wanted to return them all, we could write:
-    <pre><code title="unstartable in TestSuite">new Job({name: "Job1",
-         do_list: [function(){ return [fun1(), fun2()] }
-        ]})
-        </code></pre>
-  We could also write:
-    <pre><code title="unstartable in TestSuite">new Job({name: "Job1",
-         do_list: [function(){ return [fun1, fun2] }
-        ]})
-         </code></pre>
-  as long as those functions take no arguments.<br/>
-  We could also just put both at top level on the do_list,
-  i.e. <pre><code title="unEVALable"/>new Job({name: "Job1",
-         do_list: [fun1, fun2]
-        })
-        </code></pre>
-    DDE gives you lots of options!
+<code>"hello world"</code><br/>
+prints into the Output pane:<br/>
+<samp><i>Job.my_job, Instruction N:</i> hello world</samp><br/>
+where N is the instruction number (ie its index in the job's do_list).
+<p></p>
+Note that if a function on the do_list returns a string or an array of strings,
+those will get printed too, just as when a function returns <i>any</i> valid do_list item.
+<p></p>
+See also <a href="#" onclick="open_doc('Robot.out_doc_id')">Robot.out</a>
 </details>
+
 
 <details id="Robot.break_doc_id" class="doc_details"><summary>break</summary>
     The Robot.break() instruction, when in the body of a
@@ -3999,6 +4036,34 @@ See Job Example: <i>Serial Port</i> for an extended example.
     current job for "this") so that some arbitrary compensation can be made for the error.
 </details>
 
+<details id="Robot.iinclude_job_doc_id" class="doc_details"><summary>include_job</summary>
+Inserts the original do_list of another job into this job right below this instruction.<br/>
+<i>Parameters</i><br/>
+<b>job_name</b> Required. A string representing the name of the job to include.
+                It may or may not start with "Job.".<br/>
+                If a Job of that name is not defined when this instruction is run,
+                error. It doesn't matter if the included job has been run or not.<br/>
+<b>start_loc</b> Grab the instructions from the job_to_include starting with start_loc.
+                 Default: <code>null</code>, meaning
+                 <samp>job_to_include.orig_args.program_counter</samp>, which is usually 0.<br/>
+                 <i>start_loc</i> can be any 'instruction_location'.<br/>
+                 See <a href="#" onclick="open_doc('Robot.go_to_doc_id', event)">Robot.go_to</a> for details
+                 on the <code title="unEVALable code fragment"> instruction_location</code> format.<br/>
+<b>end_loc</b> Grab the instructions from the job_to_include ending with, but not including, end_loc.
+    Default: <code>null</code>, meaning
+    <samp>job_to_include.orig_args.ending_program_counter</samp>, which is usually "end".<br/>
+    <i>end_loc</i> can be any 'instruction_location'.<br/>
+    See <a href="#" onclick="open_doc('Robot.go_to_doc_id', event)">Robot.go_to</a> for details
+    on the <code title="unEVALable code fragment"> instruction_location</code> format.<br/>
+<i>Example:</i><br/>
+   <code>Robot.include("my_job")</code><br/>
+   Inserts all the original instructions that are normally run when running "my_job",
+   into the current job, right below this instruction.
+   <p></p>
+   <i>Robot.include_job</i> makes it easy to build up jobs hierarchically, effectively
+      treating a low level Job as a single instruction in a higher level Job.
+</details>
+
 <details id="Robot.label_doc_id" class="doc_details"><summary>label</summary>
 This instruction is a no-op. However, it provides a target location
 for <a href="#" onclick="open_doc('Robot.go_to_doc_id', event)">Robot.go_to</a>, initializing the program_counter of a job, and
@@ -4268,22 +4333,30 @@ new Job({name: "job2",
   The job to be suspended. <code>null</code> means suspend the job that
   this instruction is in. A string means suspend the job with that name.
   May also be a job_instance to suspend.<br/>
-  <b>reason</b> Default: <code>""</code>. A string of why the job is suspended.
-  Example:<code>Robot.suspend()</code>. Suspends the current job for no reason.
+  <b>reason</b> Default: <code>""</code>. A string of why the job is suspended.<br/>
+  <i>Example:</i>
+  <code>Robot.suspend()</code>.<br/>
+  Suspends the current job for no reason.
 </details>
 
 <details id="Robot.unsuspend_doc_id" class="doc_details"><summary>unsuspend</summary>
-Unsuspend a suspended job. If the job to be suspended is not suspended,
+Unsuspends a suspended job. If the job to be suspended is not suspended,
 no action will be taken. Note that a job cannot unsuspend itself,
 because it is not running.
 <i>Parameters:</i> <br/>
 <b>job_name</b> Default: <code>"required"</code>
 The job name or job instance to be unsuspended.
+<b>stop_reason</b> Default: <code>false</code> If false, the job is unsuspended.
+   If a string, the job is stopped, with the reason of this stop_reason.
 <p></p>
+<i>Example:</i><br/>
+<code>Robot.suspend("my_job")</code> <p></p>
 <b>unsuspend</b> is also a method on a job.<br/>
-Example:<code title="unEVALable code fragment"> Job.my_job.unsuspend()</code>.
+<i>Example:</i><br/>
+<code title="unEVALable code fragment"> Job.my_job.unsuspend()</code>.<br/>
 This causes the job to resume from a suspension. You can call it
 from any JavaScript code such as in a function that's a do_list item.
+The method takes 1 arg, "stop_reason" that behaves as documented above.
 </details>
 
 
@@ -4541,6 +4614,61 @@ one job to just use one <i>default</i> robot as is most common.<br/>
   Dexter.move_all_joints([30, 40])
   Robot.dexter0.move_all_joints([30, 40])
 </code></pre>
+
+<details id="short_instruction_doc_id" class="doc_details"><summary>short instruction</summary>
+Short instructions are a concise way to specify Dexter instructions that
+you can use <a href="#" onclick="open_doc(make_ins_doc_id)">make_ins</a> for.
+Short instructions are an array that
+starts with an oplet and have all the arguments you'd like to pass after that.<br/>
+<i>Example:</i><br/>
+<code>["a", 10, 20, 30]</code><br/>
+This is equivalent to <code>make_ins("a", 10, 20, 30)</code>
+<p></p>
+If the oplet has a suffix of exclamation point, then the arguments
+will NOT be converted as they normally are, but passed straight to Dexter.<br/>
+<i>Example:</i><br/>
+<code>["a!", 10, 20, 30]</code><br/>
+Here, the argument 10 is not considered to be in degrees as it normally is,
+but rather in arcseconds. In normal processing,
+when DDE sends such a command to Dexter, its arguments are converted
+to arcseconds before passing it to Dexter. With the exclamation point,
+there is no conversion. Most users won't use this "no_conversion" feature,
+but it can be useful for low-level control of Dexter.
+</details>
+
+<details id="at_sign_instruction_doc_id" class="doc_details"><summary>at_sign instruction</summary>
+At_sign instructions are syntactically similar to short instructions
+except that the first element of the array is always an at_sign.<br/>
+When an at_sign instruction is run, its arguments are passed
+to the Job's at_sign_function. That function can return:
+<ul><li>another instruction (with perhaps different arguments)</li>
+    <li>an array of other instructions, or</li>
+    <li><code>null</code> meaning do nothing</li>
+</ul>
+Those returned values
+will be inserted into the do_list and run right after the
+at_sign instruction.<br/>
+By returning <code>null</code>, the at_sign function effectively filters out
+the at_sign instruction.
+<p></p>
+A Job's default at_sign_function is <code>Dexter.pid_move_all_joints</code> .
+This is used by Make Instrution because when recording a Job, the
+joint angles are encoded as at_sign instructions.
+A user can change all those at_sign instructions into move_all_joints
+by setting the Job's at_sign_function to <code>Dexter.move_all_joints</code>.
+<p></p>
+An at_sign_function can also be the string of an oplet, in which case,
+that "at_sign_function" effectively returns a short instruction with that oplet
+and the same remaning values as were in the original at_sign instruction.<br/>
+<i>Example:</i><br/>
+<code>["@", 10, 20, 30]</code><br/>
+By default, this is transformed into
+<code>Dexter.pid_move_all_joints</code><br/>
+If the Job's at_sign function is "a",
+the at_sign instruction is transformed into<br/>
+<code>make_ins("a", 10, 20, 30)</code>
+</details>
+
 
 <details id="Dexter.draw_dxf_doc_id" class="doc_details"><summary>draw_dxf</summary>
     <code>Dexter.draw_dxf</code> accepts the name of a file as input along with other information,
