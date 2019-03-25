@@ -72,7 +72,12 @@
     },
     "linux": {
       "target": [
-        "AppImage"
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64", "ia32", "armv7l", "arm64"
+          ]
+        }
       ],
       "category": "Development;Education;Robotics"
     }
