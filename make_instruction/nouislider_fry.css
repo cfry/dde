@@ -1,3 +1,13 @@
+.noUi-connect {
+    background: #a8ff94; /*green*/ /*the default: dark green #3FB8AF; color of the "included" track*/
+}
+
+.noUi-connects {
+    background: #BBBBBB;  /*color of the "excluded" track*/
+}
+
+
+
 .noUi-horizontal .noUi-handle {
     width:8px;
     height:25px;

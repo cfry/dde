@@ -987,7 +987,7 @@ var TestSuite = class TestSuite{
                 if (!code_elt.title || (code_elt.title.startsWith("unstartable"))){
                     var a_test = [fixed_src]
                     var next_elt = code_elt.nextElementSibling
-                    if (next_elt && (next_elt.tagName == "SAMP")){
+                    if (next_elt && (next_elt.tagName == "SAMP") && (!next_elt.title || next_elt.title.startsWith("unstartable"))){
                         a_test.push(next_elt.innerText)
                     }
                     a_test_suite_tests.push(a_test)

@@ -62,7 +62,9 @@ var Instruction = class Instruction {
     static is_instructions_array(obj){
         if(Array.isArray(obj) &&
            (obj.length > 0)   &&
-           !Instruction.is_instruction_array(obj)){
+           !Instruction.is_instruction_array(obj) &&
+           !Instruction.is_short_instruction(obj) &&
+           !Instruction.is_at_sign_instruction(obj)){
            for(let elt of obj) {
                if (!Instruction.is_do_list_item(elt)) { return false }
            }
@@ -1904,8 +1906,12 @@ Instruction.loop = class Loop extends Instruction{
        else {//ok, finally compute instructions for this iteration
            let body_fn_result = this.body_fn.call(job_instance, this.iter_index, iter_val, this.iter_total, iter_key)
            if(!Array.isArray(body_fn_result) ||
-              Instruction.is_instruction_array(body_fn_result)){
-               body_fn_result = [body_fn_result]
+              Instruction.is_instruction_array(body_fn_result) ||
+              Instruction.is_short_instruction(body_fn_result) ||
+              Instruction.is_at_sign_instruction(body_fn_result)
+              ){
+               body_fn_result = [body_fn_result] //we must return a real array of instructions from this fn.
+                                                 //below we add the go_to at the end.
            }
            //body_fn_result can legitimately be the empty array at this point.
            //it might also contain a Robot.break instruction.

@@ -5,6 +5,42 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 3.2.1, Mar 24, 2019</summary>
+Highlights: bug fixes, refinements to Make Instruction UI & functionality.
+<ul>
+    <li> Fixed bugs in documentation tests suite of include_job examples.</li>
+
+    <li> Extended TestsSuite running software to allow SAMP tags to
+        not eval their innerHTML.</li>
+
+    <li> Improved the error message for attempting to run a job  with
+        a robot that's already in use.</li>
+
+    <li> Fixed Instruction.is_instructions_array to account
+         for short_instruction and at_sign_instruction  Arrays.</li>
+
+    <li> Robot.loop: Extended to accomodate short_instruction and at_sign_instruction</li>
+
+    <li> Make Instruction: Now clicking on a job button that was suspended by Make Instruction
+        causes the job to stop.</li>
+
+    <li> Make Instruction: When you click Record and the robot it wants to use is already
+        in use by an active job, that job is automatically stopped,
+        and the recording is allowed to proceed.</li>
+
+    <li> Make Instruction: change the play middle checkbox to radio buttons:<br/>
+        include only:  o middle   o ends</li>
+
+    <li> Make Instruction: now the "reset" functionality has its own proper button.</li>
+
+    <li> Make Instruction: now the end mark is "exclusive" when "middle" is selected.</li>
+
+    <li> Make Instruction: Top level and "excluded" icon now placed next
+         to play, begin mark, and end mark locations.</li>
+
+    <li> Make Instruction: color refinement of sliders.</li>
+</details>
+
 <details class="doc_details"><summary>v 3.2.0, Mar 21, 2019</summary>
 Highlights: Major improvement to Make Instruction recording and playing jobs.
             Job Engine improvements. New instruction type: strings.

@@ -4045,18 +4045,18 @@ Inserts the original do_list of another job into this job right below this instr
                 error. It doesn't matter if the included job has been run or not.<br/>
 <b>start_loc</b> Grab the instructions from the job_to_include starting with start_loc.
                  Default: <code>null</code>, meaning
-                 <samp>job_to_include.orig_args.program_counter</samp>, which is usually 0.<br/>
+                 <samp title="unEVALable code fragment">job_to_include.orig_args.program_counter</samp>, which is usually 0.<br/>
                  <i>start_loc</i> can be any 'instruction_location'.<br/>
                  See <a href="#" onclick="open_doc('Robot.go_to_doc_id', event)">Robot.go_to</a> for details
                  on the <code title="unEVALable code fragment"> instruction_location</code> format.<br/>
 <b>end_loc</b> Grab the instructions from the job_to_include ending with, but not including, end_loc.
     Default: <code>null</code>, meaning
-    <samp>job_to_include.orig_args.ending_program_counter</samp>, which is usually "end".<br/>
+    <samp title="unEVALable code fragment">job_to_include.orig_args.ending_program_counter</samp>, which is usually "end".<br/>
     <i>end_loc</i> can be any 'instruction_location'.<br/>
     See <a href="#" onclick="open_doc('Robot.go_to_doc_id', event)">Robot.go_to</a> for details
     on the <code title="unEVALable code fragment"> instruction_location</code> format.<br/>
 <i>Example:</i><br/>
-   <code>Robot.include("my_job")</code><br/>
+   <code>Robot.include_job("my_job")</code><br/>
    Inserts all the original instructions that are normally run when running "my_job",
    into the current job, right below this instruction.
    <p></p>

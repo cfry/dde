@@ -82,13 +82,7 @@ th, td { text-align:left; }
 
 /*Make Instruction Sliders */
 #mi_record_slider_id::-webkit-slider-runnable-track {
-    background-color: #a8ff94; /*green*/
-}
-#mi_begin_mark_slider_id::-webkit-slider-runnable-track {
-    background-color: #97efff; /*blue*/
-}
-#mi_end_mark_slider_id::-webkit-slider-runnable-track {
-    background-color: #cbbeff; /*purple*/
+    background-color: #b8bbff;/*purple */ /* #a8ff94 is green*/
 }
 
 /* fails to do anything. */

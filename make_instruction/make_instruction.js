@@ -1088,18 +1088,17 @@ var MakeInstruction = class MakeInstruction{
         show_window({title: "Insert Job(s)",
             y: 180,
             width:  340,
-            height: 340,
+            height: 300,
             background_color: "#E0E0E0",
             content:
-            "<fieldset><legend>Insert Job reference at editor cursor</legend>" +
-                "<i>Insertion goes after selection,<br/>not in place of it.</i><br/>" +
+            "<fieldset><legend>Job Reference</legend>" +
                 "<input id='mi_job_insert_ref_none_radio_id' type='radio' name='mi_job_ref_radio' checked/> None<br/>" +
                 "<input id='mi_job_insert_ref_refs_radio_id' type='radio' name='mi_job_ref_radio'        /> Reference only<br/>" +
                 "<input id='mi_job_insert_ref_job_radio_id'  type='radio' name='mi_job_ref_radio'        /> Job containing reference<br/>" +
                 "<i style='margin-left:30px'>Job name</i>: <input id='mi_job_insert_ref_job_name_id'     style='width:175px;' value='" + job_name + "_refs'    /><br/>" +
             "</fieldset><br/>" +
 
-            "<fieldset><legend>Insert Job instructions at end of editor</legend>" +
+            "<fieldset><legend>Job Instructions</legend>" +
                 "<input id='mi_job_insert_seg_jobs_checkbox_id' type='checkbox' checked/> " +
                 "<i style='margin-left:3px'>Job name</i>: <input id='mi_job_insert_def_job_name_id' style='width:175px;' value='" + job_name + "'/><br/>" +
             "</fieldset><br/>" +
@@ -1116,27 +1115,31 @@ var MakeInstruction = class MakeInstruction{
         let seg_jobs_code = this.segment_job_code()
         if (seg_jobs_code == "") { seg_jobs_code = "<i style='color:red;'>nothing to insert</i>" }
 
-        let content = "<div style='font-size:16px;'><b>Job Reference</b></div>" +
-            "<i>To be inserted at the editor's cursor.</i><br/><pre><code>" +
-            seg_refs_code +
-            "</code></pre><p/>" +
-            "<div style='font-size:16px;'><b>Job Definition</b></div>" +
-            "<i>To be inserted at the end of the editor.</i><br/><pre><code>" +
-            seg_jobs_code +
-            "</code></pre>"
-        show_window({title: "Insert Jobs Preview",
-            content: content,
-            x:10, y:40, width:600, height:500,
-            background_color: "#E0E0E0"
+        let content =   "<i>Only top level instructions will be inserted.</i>" +
+                        "<div style='font-size:16px;'><b>Job Reference</b></div>" +
+                        "<i>To be inserted after selection or at the editor's cursor.</i><br/><pre><code>" +
+                        seg_refs_code +
+                        "</code></pre><p/>" +
+                        "<div style='font-size:16px;'><b>Job Instructions</b></div>" +
+                        "<i>To be inserted at the end of the editor.</i><br/><pre><code>" +
+                        seg_jobs_code +
+                        "</code></pre>"
+        show_window({title: "Insert Job(s) Preview",
+                    content: content,
+                    x:10, y:40, width:600, height:500,
+                    background_color: "#E0E0E0"
         })
     }
     static insert_jobs(){
         let seg_ref_code = this.segment_reference_code()
-        if (seg_ref_code != "") { Editor.insert(seg_ref_code, "selection_end") }
         let seg_job_code = this.segment_job_code()
-        if (seg_job_code != "") { Editor.insert(seg_job_code, "end") }
-        if((seg_ref_code == "") && (seg_job_code == "")) {
-            warning("No code chosen for insertion.")
+        if(Array.is_array(seg_job_code)) { } //got an error, already been printed.
+        else { //everything ok to insert
+            if (seg_ref_code != "") { Editor.insert(seg_ref_code, "selection_end") }
+            if (seg_job_code != "") { Editor.insert(seg_job_code, "end") }
+            if((seg_ref_code == "") && (seg_job_code == "")) {
+                warning("No code chosen for insertion.")
+            }
         }
     }
 
@@ -1158,8 +1161,83 @@ var MakeInstruction = class MakeInstruction{
         return result
     }
 
-    //return "" if no instructions selected, else return src code for a job with the proper do_list
+    //returns a string (which could be empty, if everything ok. Else retruns an array with
+    //one elt, an error message
     static segment_job_code(){
+        if(!mi_job_insert_seg_jobs_checkbox_id.checked) { return "" }
+        else {
+            let target_job_name = mi_job_insert_def_job_name_id.value
+            let src_job_name = window.eval(MakeInstruction.arg_name_to_src_in_mi_dialog("name")) //might not just be a literal, could be an expression!
+            let job_instance = Job[src_job_name]
+            let do_list_to_mine = []
+            let result_do_list  = []
+            let begin_loc = MiRecord.get_begin_mark_loc()
+            let end_loc   = MiRecord.get_end_mark_loc()
+            let begin_top_loc
+            let end_top_loc
+            let has_non_top_levels
+            if(!job_instance || (job_instance != MiState.job_instance) || !MiState.job_instance.do_list){ //not in sync so prefer the def in the dialog
+                let src = this.dialog_to_instruction_src(true)
+                if (src == null) { return [] } //we errored, the errors already printed and the MI dialog box highlighted.
+                else {
+                    do_list_to_mine = window.eval(MakeInstruction.arg_name_to_src_in_mi_dialog("do_list"))
+                    warning("Since the Job in the Make Instruction dialog hasn't been played,<br/>we're using its full original do_list.")
+                }
+                has_non_top_levels = false
+                begin_top_loc = begin_loc //there aren't any non-top levels generated
+                end_top_loc   = end_loc
+            }
+            else {
+                do_list_to_mine = job_instance.do_list
+                has_non_top_levels = true
+                begin_top_loc  = job_instance.find_top_level_instruction_id_for_id(begin_loc)
+                end_top_loc    = job_instance.find_top_level_instruction_id_for_id(end_loc)
+            }
+            if((begin_loc != begin_top_loc) || (end_loc != end_top_loc)){
+                warning("Because your begin mark and/or end mark are not set to top level instructions,<br/>" +
+                        "what is inserted will not match what is played perfectly.")
+            }
+            //the below IF-ELSE  computes do_list_to_use. After that, make its src code.
+            if(MiRecord.get_play_middle()){ //includes begin_loc (if its top level), excludes end_loc.
+                //the big dilemma: should I sue begin_top_loc or begin_loc to initialize "i" to?
+                //If I use begin_top_loc, then playing the ends may play some instrs that are also played
+                //by middle. But using begin_loc, we may skip some instrs that are inside the middle
+                //at its beginning but not top level.
+                //Can't win here in giving the user and easy model.
+                //If they set their begin and end marks to top level, the model is easy,
+                //but not if they don't.
+                for(let i = begin_loc; i < end_loc; i++){ //don't use end_top_loc because we are already filtering in the body of the for for top level so for end we get all the top leve linstrs up to bet not including end_loc
+                    if(job_instance.is_top_level_do_list_item(i)) {
+                        result_do_list.push(do_list_to_mine[i])
+                    }
+                }
+            }
+            else { //concatenate the ends together, leaving out the middle.
+                   //excludes begin_top_loc, includes end top loc.
+                //grab the head seg.
+                for(let i = 0; i < begin_loc; i++){
+                    if(job_instance.is_top_level_do_list_item(i)) {
+                        result_do_list.push(do_list_to_mine[i])
+                    }
+                }
+                //grab the tail seg
+                for(let i = end_loc; i < job_instance.do_list.length; i++){
+                    if(job_instance.is_top_level_do_list_item(i)) {
+                        result_do_list.push(do_list_to_mine[i])
+                    }
+                }
+            }
+            let do_list_src = to_source_code({value: result_do_list, one_line_per_array_elt:true})
+            do_list_src = replace_substrings(do_list_src, "\n", "\n                   ") //indent 2nd thru nth lines
+            do_list_src = do_list_src.trim() //get rid of extra whitespace at end
+            return 'new Job({name: "' + target_job_name + '",\n' +
+                '         do_list: '  + do_list_src + "\n" +
+                '        })\n'
+        }
+    }
+
+    //return "" if no instructions selected, else return src code for a job with the proper do_list
+    /*static segment_job_code(){
        if(!mi_job_insert_seg_jobs_checkbox_id.checked) { return "" }
        else {
         let target_job_name = mi_job_insert_def_job_name_id.value
@@ -1173,7 +1251,7 @@ var MakeInstruction = class MakeInstruction{
         else {
             let [begin1, end1, begin2, end2] = MiRecord.get_play_instruction_locs()
             if(begin1 === undefined) { return "" } //no instructions.
-            else if(mi_play_middle_checkbox_id.checked){
+            else if(MiRecord.get_play_middle()){
                 let begin_id_into_do_list = job_instance.find_top_level_instruction_id_for_id(begin1)
                 let end_id_into_do_list   = job_instance.find_top_level_instruction_id_for_id(end1)
                 for(let i = begin_id_into_do_list; i <= end_id_into_do_list; i++){
@@ -1213,7 +1291,7 @@ var MakeInstruction = class MakeInstruction{
                '         do_list: ' + do_list_src + "\n" +
                '        })\n'
        }
-    }
+    }*/
 
     /*
     static show_insert_job_dialog(){

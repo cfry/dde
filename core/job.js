@@ -192,8 +192,18 @@ class Job{
             let other_jobs = this.robot.active_jobs_using_this_robot()
             for(let other_job of other_jobs){
                 if (other_job.robot instanceof Dexter){ //can 2 jobs use a Robot.Serial? I assume so for now.
-                    dde_error("Job." + this.name + " attempted to use: Dexter." + this.robot.name +
-                               " but that robot is in use by Job." + other_job.name)
+                    let but_elt = window[other_job.name + "_job_button_id"]
+                    if(but_elt){
+                        let bg = but_elt.style["background-color"]
+                        dde_error("Job." + this.name + " attempted to use: Dexter." + this.robot.name +
+                                   "<br/>but that robot is in use by Job." + other_job.name +
+                                   "<br/>Click the <span style='color:black; background-color:" + bg + ";'> &nbsp;" +
+                                          other_job.name + " </span>&nbsp; Job button to stop it.")
+                    }
+                    else {
+                         dde_error("Job." + this.name + " attempted to use: Dexter." + this.robot.name +
+                                   "<br/>but that robot is in use by Job." + other_job.name)
+                        }
                     return
                 }
             }
@@ -223,7 +233,7 @@ class Job{
                 if (options.hasOwnProperty(key)){
                     let new_val = options[key]
                     //if (key == "program_counter") { new_val = new_val - 1 } //don't do. You set the pc to the pos just before the first instr to execute.
-                    if      (key == "do_list")    { new_val = Job.flatten_do_list_array(new_val) }
+                    if      (key == "do_list")    { continue; } //flattening & setting already done by init_do_list new_val = Job.flatten_do_list_array(new_val)
                     else if (key == "user_data")  { new_val = shallow_copy_lit_obj(new_val) }
                     else if (key == "name")       {} //don't allow renaming of the job
                     else if ((key == "when_stopped") &&
@@ -461,7 +471,8 @@ class Job{
             but_elt.onclick = function(){
                 const the_job = Job[job_name]
                 if (the_job.status_code == "suspended"){
-                    the_job.unsuspend()
+                    if(but_elt.title.includes("Make Instruction")) { the_job.stop_for_reason("interrupted", "User stopped job.") }
+                    else { the_job.unsuspend() }
                 }
                 else if(the_job.is_active()){
                     if (the_job.robot instanceof Dexter) { the_job.robot.empty_instruction_queue_now() }
@@ -537,7 +548,7 @@ class Job{
                         tooltip  = "This Job is suspended at instruction: " + this.program_counter +
                                    " because\n" +
                                    this.wait_reason + "\n" +
-                                   "To stop this Job, click the button after\n'highest_completed_instruction'\nin the Make Instruction dialog."
+                                   "To stop this Job, click this button."
                     }
                     else {
                         tooltip  = "This Job is suspended at instruction: " + this.program_counter +
@@ -1094,9 +1105,11 @@ Job.prototype.set_up_next_do = function(program_counter_increment = 1, allow_onc
             program_counter_increment = 0 //don't increment because we want pc and highest_completed_instruction_id
                                           // to be the instruction that errored when the job finishes.
         }
-        if ((program_counter_increment > 0) &&
-            (job_instance.program_counter > job_instance.highest_completed_instruction_id))  { //if we are reversing and "re-executing the do_list, we will
-            //set back the pc, but we don't want to set back the highest_completed_instruction_id
+        if ((program_counter_increment > 0) && //if this is 0, it means we hanven't completed its associated (PC) instr yet.
+                                               //if this is < 0, we're backing up so don't change highest_completed_instruction_id
+            (job_instance.program_counter > job_instance.highest_completed_instruction_id) && //if these were the same, setting highest_completed_instruction_id would just bre to its same value
+            (job_instance.program_counter < job_instance.do_list.length))   //NEW mar 23, 2019: in case pc goes off the end, we don't want to set highest_completed_instruction_id off the end
+            {
             job_instance.highest_completed_instruction_id = job_instance.program_counter
         }
         if(this.modify_program_counter_increment_fn) { //needs to be after we've set highest_completed_instruction_id for the prev instruction
@@ -1806,6 +1819,8 @@ Job.prototype.init_do_list = function(new_do_list=undefined){
     this.added_items_count.fill(0) //stores the number of items "added" by each do_list item beneath it
     //if the initial pc is > 0, we need to have a place holder for all the instructions before it
     //see total_sub_instruction_count_aux for explanation of added_items_count
+    this.is_do_list_item_top_level_array = new Array(this.do_list.length)
+    this.is_do_list_item_top_level_array.fill(true)
 }
 
 Job.prototype.remove_sub_instructions_from_do_list = function(instr_id){
@@ -1814,6 +1829,7 @@ Job.prototype.remove_sub_instructions_from_do_list = function(instr_id){
         this.do_list.splice(instr_id + 1, sub_items_count) //cut out all the sub-instructions under instr_id
         this.added_items_count.splice(instr_id + 1, sub_items_count)
         this.added_items_count[instr_id] = 0 //because we just deleted all of ites subitems and their descendents
+        this.is_do_list_item_top_level_array.splice(instr_id + 1, sub_items_count)
     }
 }
 
@@ -1907,6 +1923,7 @@ Job.prototype.decache_top_level_instruction_id_array = function(){
 //and inserting each elt of an array into the do_list at top level.
 //See also comment at: Job.prototype.insert_instructions
 
+/*Obslete with new makae as you go Job.prototyp.is_do_list_item_top_level_array
 Job.prototype.make_top_level_instruction_id_array = function(){
     let result = []
     let prev_top_level_accum = 0
@@ -1922,21 +1939,24 @@ Job.prototype.make_top_level_instruction_id_array = function(){
         }
     }
     this.top_level_instruction_id_array = result
-}
+}*/
 
 Job.prototype.is_top_level_do_list_item = function (id) {
-   if(this.top_level_instruction_id_array == null){
-       this.make_top_level_instruction_id_array()
-   }
-   return this.top_level_instruction_id_array[id]
+   //if(this.top_level_instruction_id_array == null){
+   //    this.make_top_level_instruction_id_array()
+  // }
+  if(this.is_do_list_item_top_level_array) {
+    return this.is_do_list_item_top_level_array[id] //this.top_level_instruction_id_array[id]
+  }
+  else { return true } //because we're working off orig_args.do_list, all of whose items are top level
 }
 
 //returns id itself if id is top level, if not, returns an id less than the passed in id.
 //works only on the job's do_list, NOT its orig_args.do_list
 Job.prototype.find_top_level_instruction_id_for_id = function(id){
-    if(this.top_level_instruction_id_array == null){
-        this.make_top_level_instruction_id_array()
-    }
+    //if(this.top_level_instruction_id_array == null){
+    //    this.make_top_level_instruction_id_array()
+    //}
     for(let i = id; i >= 0; i--){
         if(this.is_top_level_do_list_item(i)) { return i }
     }
@@ -1949,9 +1969,9 @@ Job.prototype.find_top_level_instruction_id_for_id = function(id){
 //If id refers to the last instruction in the do_list, returns null,
 // i.e. there is no next top level item.
 Job.prototype.find_next_top_level_instruction_id_for_id = function(id){
-    if(this.top_level_instruction_id_array == null){
-        this.make_top_level_instruction_id_array()
-    }
+    //if(this.top_level_instruction_id_array == null){
+    //    this.make_top_level_instruction_id_array()
+    //}
     for(let i = id + 1; i < this.do_list.length; i--){
         if(this.is_top_level_do_list_item(i)) { return i }
     }
@@ -1970,6 +1990,10 @@ Job.prototype.insert_single_instruction = function(instruction_array, is_sub_ins
         this.added_items_count.splice(this.program_counter + 1, 0, 0); //added oct 31, 2017
         if (is_sub_instruction) {
             this.added_items_count[this.program_counter] += 1
+            this.is_do_list_item_top_level_array.splice(this.program_counter + 1, 0, false) //false for is NOT top_level
+        }
+        else {
+            this.is_do_list_item_top_level_array.splice(this.program_counter + 1, 0, true) //true for is_top_level
         }
     }
 }
@@ -1978,7 +2002,7 @@ Job.prototype.insert_single_instruction = function(instruction_array, is_sub_ins
 //of the pc by array_of_do_items.length. If we did that,
 //it would work, and we'd have the hierarchical modularity that would
 //help in debugging. BUT, it would add a round_trip to the do_next_item loop,
-//and it means that when we're grabbing the "top level" items for job defs to isnert for MakeInstruction,
+//and it means that when we're grabbing the "top level" items for job defs to insert for MakeInstruction,
 //we would have reduced granularity in what we capture so the "snipets" grbbed would be
 //"lower resolution and not as good.
 //See also Job.protptype.make_top_level_instruction_id_array()
@@ -1988,9 +2012,15 @@ Job.prototype.insert_instructions = function(array_of_do_items, are_sub_instruct
         let added_items_to_insert = new Array(array_of_do_items.length)
         added_items_to_insert.fill(0)
         this.added_items_count.splice(this.program_counter + 1, 0, ...added_items_to_insert)
+        let is_top_array = new Array(array_of_do_items.length)
         if(are_sub_instructions) {
             this.added_items_count[this.program_counter] += added_items_to_insert.length
+            is_top_array.fill(false)
         }
+        else { //top level
+            is_top_array.fill(true)
+        }
+        this.is_do_list_item_top_level_array.splice(this.program_counter + 1, 0, ...is_top_array)
     }
 }
 
@@ -2010,13 +2040,13 @@ Job.insert_instruction = function(instruction, location){
             }
             else { job_instance.do_list.splice(index, 0, instruction)
                    job_instance.added_items_count.splice(index, 0, 0) //added oct 31, 2017
-                   if(index > 0) { //unlike the instance method cousins of this static method,
+                   //unlike the instance method cousins of this static method,
                         //this meth must do the added_items_count increment because
                         //the caller of this meth doesn't know the index of the instr to increment
                         //the added_items_count of.
                         //job_instance.added_items_count[this.program_counter] += 1 //isn't right that pc has its added_items count incremented. Maybe should be something else, or no increment at all
-                       job_instance.increment_added_items_count_for_parent_instruction_of(index)
-                   }
+                   let did_increment = job_instance.increment_added_items_count_for_parent_instruction_of(index) //false means we're at top level
+                   this.is_do_list_item_top_level_array.splice(index, 0, !did_increment)
             }
         }
     }
@@ -2027,8 +2057,11 @@ Job.insert_instruction = function(instruction, location){
     }
 }
 
+//returns true if it did do an increment, false if it didn't
+//it doesn't do an increment only if the item inserted is at top level,
+//so returning false means the inserted item is inserted at top level.
 Job.prototype.increment_added_items_count_for_parent_instruction_of = function(instr_id){
-    if(instr_id == 0) { } //must be at top level, so no parent aic to increment. This is ok
+    if(instr_id <= 0) { return false } //must be at top level, so there is no parent to increment. This is ok
     else {
         let par_id_maybe = instr_id - 1
         let par_instr = this.do_list[par_id_maybe]
@@ -2048,13 +2081,13 @@ Job.prototype.increment_added_items_count_for_parent_instruction_of = function(i
                        if(this.added_items_count[maybe_par_id] > 0) {
                            let sub_items_count = this.total_sub_instruction_count(maybe_par_id)
                            let last_instruction_id_under_maybe_par = maybe_par_id + sub_items_count
-                           if (instr_id <= (last_instruction_id_under_maybe_par + 1)){ //even if our new instr is one beyond the current scope of our maybe_par_id, consider that we're adding to the end of that maybe_par's sub_instructions. The laternative is to keep going up but this is good enough.
+                           if (instr_id <= (last_instruction_id_under_maybe_par + 1)){ //even if our new instr is one beyond the current scope of our maybe_par_id, consider that we're adding to the end of that maybe_par's sub_instructions. The alternative is to keep going up but this is good enough.
                                this.added_items_count[maybe_par_id] += 1
-                               return
+                               return true
                            }
                        }
                    }
-                   return //didn't find a parent that included instr_id so it must be at top level,
+                   return false //didn't find a parent that included instr_id so it must be at top level,
                           //in which case, no need to increment any par instr aic
                }
             }
@@ -2062,6 +2095,7 @@ Job.prototype.increment_added_items_count_for_parent_instruction_of = function(i
         //the case that applies nearly all of the time
         //do not make this an else as the inner if's above need to fall through to here.
         this.added_items_count[instr_id - 1] += 1 //fairly dumb but usually right. Just make it the sub_instruction of the instruction above it.
+        return true
     }
 }
 

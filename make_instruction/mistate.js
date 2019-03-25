@@ -8,13 +8,12 @@ var MiState = class MiState {
         }
         MiRecord.set_highest_completed_instruction_ui() //this is incremented in set_up_next_do, but do the MI UI here.
         if(MiState.status == null) { //happens when previous instr was a forward or reverse step.
-            MiRecord.pause("Job stepped and paused\nwhile playing from Make Instruction.")
+            MiRecord.pause("Job paused while playing from Make Instruction.")
             return  null
         }
         else if (MiState.status == "playing") {
             if(!job_instance.disable_modify_do_list) { //running the last instr might have increased the length of the do_list
                 MiRecord.set_max_loc()
-                //MiRecord.set_end_mark_loc("extend_maybe")
                 MiState.set_end_mark_to_do_list_length_maybe()
             }
             let inc = program_counter_increment
@@ -24,10 +23,10 @@ var MiState = class MiState {
             //if((new_loc == null) && (job_instance.program_counter == 0) && (program_counter_increment == 0)){ //special case at beginning, program_counter_increment passed in is going to be 0
             //    new_loc = 0
             //}
-            if(typeof(new_loc) == "number"){ //beware, new_loc can be 0. //MiState.ok_to_play_loc(new_loc))
+            if(typeof(new_loc) == "number"){ //beware, new_loc can be 0.
                 MiRecord.set_play_loc(new_loc)
                 if(new_loc == job_instance.do_list.length) { //its over jim, but don't continue on which will call finish_job, disconnecting Dexter, and making it hard to backup etc, so ...
-                    MiRecord.pause() //suspend job
+                    MiRecord.pause("Job played to end by Make Instruction.") //suspend job
                     return null
                 }
                 else { //keep going.
@@ -47,7 +46,7 @@ var MiState = class MiState {
             job_instance.disable_modify_do_list = true
             let inc = -1 //run the istr that was a the pc before we started reverse stepping
             let new_loc = MiState.next_loc_to_play(inc)
-            if(typeof(new_loc) == "number") { //beware, new_loc can be 0. //MiState.ok_to_play_loc(new_loc))
+            if(typeof(new_loc) == "number") { //beware, new_loc can be 0.
                 inc = new_loc - job_instance.program_counter
                 job_instance.disable_modify_do_list = true
                 MiRecord.set_play_loc(new_loc)
@@ -72,7 +71,7 @@ var MiState = class MiState {
             //out("pc: " + job_instance.program_counter + " do length: " + job_instance.do_list.length +
             //" next_loc_to_pay passed: (" + inc + ", " + ") => " + new_loc)
             job_instance.disable_modify_do_list = (new_loc <= job_instance.highest_completed_instruction_id)
-            MiRecord.set_play_loc(new_loc)
+            //MiRecord.set_play_loc(new_loc) //no change from previous. but did_stepping captures new loc
             if (new_loc >= job_instance.do_list.length) {
                 MiRecord.pause("Job completed its last instruction\nwhile playing from Make Instruction.")
                 return null
@@ -107,7 +106,7 @@ var MiState = class MiState {
         else if (MiState.status === "did_reverse_stepping") {
             //job_instance.program_counter -= 1 //leave pc alone. The next reverse will back it up one.
             MiRecord.pause("Job stepped backward\nwhile playing from Make Instruction.")
-            MiRecord.set_play_loc(job_instance.program_counter)
+            //MiRecord.set_play_loc(job_instance.program_counter) redundant with reverse_stepping
             MiState.status = null
             return null
         }
@@ -125,19 +124,34 @@ var MiState = class MiState {
        }
     }*/
 
-    static ok_to_play_loc(loc){
+   /* obsolete static ok_to_play_loc(loc){
         let [begin1, end1, begin2, end2] = MiRecord.get_play_instruction_locs() //this.play_intervals
         if(begin1 === undefined)                  { return false }
         else if((loc >= begin1) && (loc <= end1)) { return true }
         else if(begin2 === undefined)             { return false }
         else if((loc >= begin2) && (loc <= end2)) { return true }
         else                                      { return false }
+    } */
+
+    //return boolean
+    static ok_to_play_loc(loc){
+        let begin_loc = MiRecord.get_begin_mark_loc()
+        let end_loc   = MiRecord.get_end_mark_loc()
+        let do_list_length = MiState.get_do_list_smart().length
+        if(loc < 0) { return null }
+        else if (loc >= do_list_length) { return null }
+        else if(MiRecord.get_play_middle()){ //excludes end_loc
+            return ((loc >= begin_loc) && (loc < end_loc))
+        }
+        else { //ends
+            return ((loc < begin_loc) || (loc >= end_loc))
+        }
     }
 
     //returns null if shouldn't play inc + pc
     //pc is pointing at the prev instruction. We're computing the next instruction id
     //inc is neg when going in reverse
-    static next_loc_to_play(inc) {
+    /*static next_loc_to_play(inc) {
         let pc = this.job_instance.program_counter
         let loc = pc + inc
         let [begin1, end1, begin2, end2] =
@@ -168,6 +182,48 @@ var MiState = class MiState {
                else if ((loc >= begin1) && (loc <= end1)) { return loc }
                else { return null }
            }
+        }
+    }*/
+
+    //inc is usually 1 or -1
+    static next_loc_to_play(inc){
+        let pc        = this.job_instance.program_counter
+        let loc       = pc + inc //the proposed loc, but modified if outside what the marks indicate.
+        let begin_loc = MiRecord.get_begin_mark_loc()
+        let end_loc   = MiRecord.get_end_mark_loc()
+        let fwd       = (inc >= 0)
+        let do_list_length = MiState.get_do_list_smart().length
+        if(loc < 0) { return null }
+        else if (loc >= do_list_length) { return null }
+        else if(MiRecord.get_play_middle()){ //excludes end_loc
+            if(fwd){
+              if(loc < begin_loc) { return begin_loc } //zoom ahead
+              else if ((loc >= begin_loc) && (loc < end_loc)) { return loc } //normal, between marks
+              else { return null } //loc >= end_loc
+            }
+            else { //backward
+               if((loc == 0) && (end_loc == 0)) { return null } //end_loc is excluded, so we have to
+                                                                //return end_loc - 1 but that would result in -1
+                                                                //so return null
+               if(loc >= end_loc) { return end_loc - 1 } //zoom backwards
+               else if ((loc < end_loc) && (loc >= begin_loc)) { return loc } //normal
+               else { return null } //loc is < begin_loc
+            }
+        }
+        else { //playing the ends
+            if(fwd) {
+               if(loc < begin_loc) { return loc } //normal
+               else if((loc >= begin_loc) && (loc <= end_loc)) { return end_loc } //zoom ahead
+               else  { return loc } //normal (loc  must be < do_list_length here
+            }
+            else { //backward ends. include end_loc
+               if(loc >= end_loc) { return loc }
+               else if (loc >= begin_loc) {
+                    if((loc == 0) && (begin_loc == 0)) { return null }
+                    else {  return begin_loc - 1 } //zoom back
+               }
+               else { return loc } //normal. loc is < begin_loc and more than or equal to 0
+            }
         }
     }
 
