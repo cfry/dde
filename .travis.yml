@@ -1,8 +1,7 @@
 language: node_js
 node_js:
-  - lts/*
-dist: trusty
-sudo: false
+  - node
+dist: xenial
 os:
   - osx
   - linux
