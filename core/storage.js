@@ -1,10 +1,5 @@
 /*Created by Fry on 7/4/16.*/
 
-function add_default_file_prefix_maybe(path){
-    if (is_root_path(path)) { return path }
-    else return dde_apps_dir + "/" + path
-}
-
 //_______PERSISTENT: store name-value pairs in a file. Keep a copy of hte file in JS env, persistent_values
 //and write it out every time its changed.
 
@@ -208,8 +203,7 @@ module.exports.dde_init_dot_js_initialize = dde_init_dot_js_initialize
 //FILE SYSTEM
 
 function file_content(path, encoding="utf8"){
-    path = add_default_file_prefix_maybe(path)
-    path = adjust_path_to_os(path)
+    path = make_full_path(path)
     //console.log("file_content ultimately using path: " + path)
     try{ return fs.readFileSync(path, encoding) }
     catch(err){
@@ -278,11 +272,11 @@ function write_file(path, content, encoding="utf8"){
         }
         else { path = Editor.current_file_path }
     }
-    path = add_default_file_prefix_maybe(path)
+    path = make_full_path(path)
     if (content === undefined) {
         content = Editor.get_javascript()
     }
-    path = adjust_path_to_os(path)
+
     try{ fs.writeFileSync(path, content, {encoding: encoding}) }
     catch(err){
         if(err.message.startsWith("Access denied")){
@@ -300,11 +294,30 @@ module.exports.write_file = write_file
 
 
 function file_exists(path){
-    path = add_default_file_prefix_maybe(path)
-    path = adjust_path_to_os(path)
+    path = make_full_path(path)
     return fs.existsSync(path)
 }
 module.exports.file_exists = file_exists
+
+function make_folder(path){
+    path = make_full_path(path)
+    let path_array = path.split("/")
+    let path_being_built = ""
+    for(let path_part of path_array){
+        path_being_built += ("/" + path_part)
+        if(!file_exists(path_being_built)){
+           try{
+                fs.mkdirSync(path_being_built)
+           }
+           catch(err){
+               dde_error("In make_folder, could not make: " + path + "<br/>" +
+                         err.message)
+           }
+        }
+    }
+    return true
+}
+module.exports.make_folder = make_folder
 
 //fs-lock does not error on this. file_exists will return true for
   //files that exist, but would get access denied if you tried to
@@ -356,6 +369,11 @@ function convert_backslashes_to_slashes(a_string){
 
 module.exports.convert_backslashes_to_slashes = convert_backslashes_to_slashes
 
+function add_default_file_prefix_maybe(path){
+    if (is_root_path(path)) { return path }
+    else return dde_apps_dir + "/" + path
+}
+
 function adjust_path_to_os(path){
     if (path.includes("://")) { //looks like a url so leave it alone
        return path
@@ -371,11 +389,16 @@ function adjust_path_to_os(path){
     }
 }
 
+function make_full_path(path){
+    return add_default_file_prefix_maybe(adjust_path_to_os(path))
+}
+module.exports.make_full_path = make_full_path
+
 function is_root_path(path){
     return starts_with_one_of(path, ["/", "C:", "D:", "E:", "F:", "G:"]) //C: etc. is for Windows OS.
 }
 
-//______new load_files syncchronous______
+//______new load_files synchronous______
 //verify all paths first before loading any of them because we want to error early.
 /*function load_files(...paths) {
    let prefix = dde_apps_dir + "/"
@@ -474,6 +497,8 @@ function load_files(...paths) {
         let resolved_path = resolved_paths[resolved_paths_index]
         let content = contents[resolved_paths_index]
         out("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;loading file: " + resolved_path, "green")
+        /* the commented out code below uses window.eval(content), which returns the value of the
+           last epxression in the file much less often than eval_js_part2, so use eval_js_part2 instead.
         try{let prev_loading_file =  window["loading_file"]
             window["loading_file"] = resolved_path
             window.Job = Job //needed if content has "Job" in it.
@@ -485,16 +510,25 @@ function load_files(...paths) {
             window["loading_file"] = undefined //must do before calling dde_error or
                                                //it won't get done BUT need dde_error to print out the loading file message.
             dde_error(file_mess)
-           // window["loading_file"] = undefined //never gets called. must to after calling dde_error
-            //let  out_string = "<details><summary><span style='color:red;'>\n" +
-            //                  "loading file: " + resolved_path +
-            //                  "<br/>\n&nbsp;&nbsp;&nbsp;&nbsp;got error: " + err.message + "</span></summary>" +
-            //                   replace_substrings(err.stack, "\n", "<br/>") + "</details>"
-            //out(out_string)
-            //throw new Error("dde_error: " + err.message)
         }
-        out("Done loading file: " + resolved_path, "green")
+        */
+        let prev_loading_file  =  window["loading_file"]
+        window["loading_file"] = resolved_path
+        let result_obj = eval_js_part2(content, false) // warning: calling straight eval often
+                          //doesn't return the value of the last expr in the src, but my eval_js_part2 usually does.
+                          //window.eval(file_src)
+        window["loading_file"] = prev_loading_file //when nested file loading, we need to "pop the stack"
+        if(result_obj.error_message){
+            dde_error("Robot.include_job's first argument: " + first_arg +
+                "<br/>refers to an existing file but<br/>" +
+                "that file contains the JavaScript error of:<br/>" +
+                err.message)
+        }
+        else { result = result_obj.value
+               out("Done loading file: " + resolved_path, "green")
+        }
     }
+    return result
 }
 module.exports.load_files = load_files
 var fs        = require('fs'); //errors because require is undefined.

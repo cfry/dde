@@ -13,12 +13,14 @@ var RobotStatusDialog = class RobotStatusDialog{
         else {
             let robot = (Job.last_job? Job.last_job.robot : Robot.dexter0)
             let content = RobotStatusDialog.make_html_table(robot)
+            let is_cal_display = ((robot.is_calibrated === null) ? "unknown" : robot.is_calibrated)
             show_window({content: content,
                 title:  "<span style='font-size:16px;'>Robot Status of</span> " +
                 RobotStatusDialog.make_names_menu_html(robot) +
                 "<span style='font-size:12px;margin-left:10px;'> Updated: <span id='robot_status_window_time_id'>" + RobotStatusDialog.update_time_string() + "</span></span>" +
-                " <button title='Defines and starts a Job&#13; that continually gets the robot status&#13;of the selected robot.&#13;Click again to stop that Job.'" +
-                " onclick='RobotStatusDialog.run_update_job()'>run update job</button>",
+                " <button id='robot_status_run_update_job_button_id' title='Defines and starts a Job&#13; that continually gets the robot status&#13;of the selected robot.&#13;Click again to stop that Job.'" +
+                " onclick='RobotStatusDialog.run_update_job()'>run update job</button> " +
+                "<span style='font-size:14px;'> is_calibrated: <span id='robot_status_is_calibrated_id'>" + is_cal_display + "</span></span>",
                 width:  890,
                 height: 380
             })
@@ -198,15 +200,24 @@ var RobotStatusDialog = class RobotStatusDialog{
     }
 
     static run_update_job(){
-        let existing_job = Job["rs_update"]
+        let existing_job = Job.rs_update
         if(existing_job && existing_job.is_active()){
+            robot_status_run_update_job_button_id.style.backgroundColor = "#93dfff"
             existing_job.stop_for_reason("interrupted", "user stopped job")
         }
         else {
             let rob = this.selected_robot()
+            robot_status_run_update_job_button_id.style.backgroundColor = "#AAFFAA"
             new Job({name: "rs_update",
                 robot: rob,
-                do_list: [ Robot.loop(true,  Dexter.get_robot_status)]}).start()
+                do_list: [ Robot.loop(true,
+                           function() {
+                              rob.set_is_calibrated()
+                              let cal = rob.is_calibrated
+                              if (cal == null) { cal = "unknown" }
+                              robot_status_is_calibrated_id.innerHTML = cal
+                              return Dexter.get_robot_status()
+                           })]}).start()
         }
     }
 }

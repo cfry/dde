@@ -231,8 +231,7 @@ Editor.get_any_selection = function(){
     else { //Blocks view
         sel_text = Workspace.inst.get_javascript(use_selection=true)
     }
-    if(sel_text.length > 0) { return sel_text }
-    else { return "" }
+    return sel_text //wil be "" if no selection
 }
 
 //return editor sel or if none, cmd input, or if none, ""
@@ -259,7 +258,7 @@ Editor.get_javascript = function(use_selection=false){
     // if "auto", then if sel, return it, else return whole buffer.
     if((Editor.view == "JS") || (Editor.view == "DefEng")) {
         let  full_src =  myCodeMirror.doc.getValue() //$("#js_textarea_id").val() //careful: js_textarea_id.value returns a string with an extra space on the end! A crhome bug that jquery fixes
-        if (use_selection){
+        if (use_selection){ //true or "auto"
             let sel_text = full_src.substring(Editor.selection_start(), Editor.selection_end())
             if (use_selection === true) { return sel_text}
             else if (use_selection == "auto") {

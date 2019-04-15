@@ -5,8 +5,138 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+
+<details class="doc_details"><summary>v 3.3.0, Apr 15, 2019</summary>
+Highlights: MakeInstruction lots of improvements, esp Insert.<br/>
+            New Jobs menu item: "Run Job on Dexter".<br/>
+            Simulator fidelity increased.<br/>
+            New Instruction type: Strings on do_list are sent to Dexter as is, except
+            for the prefix of job id, instruction, id, start time, stop time.<br/>
+            New instruction type: data_array<br/>
+            More than 1 Job can send instructions to a particular Dexter.<br/>
+            New Dexter property: is_calibrated
+<ul>
+    <li>Make Instruction: Improvement to start_record error message.</li></li>
+
+    <li>Make Instruction:  Fixed INSERT button with lots of improvements to its dialog box,
+        including adding of the new "data" instruction type,
+        default name for high level job is now "high_level",
+        overwrites selection when inserting high_level reference or job.</li></li>
+
+    <li>Make Instruction:  Inserting a Job's  instructions now inserts the
+    other properties of the job, observing the defaults checkbox.</li></li>
+
+    <li>Make Instruction: When recording a new job, computes the inter_item_dur for the whole do_list
+        by usisng the average dur for a do_list item
+        and set the inter_item_dur of the recording job to that value.</li>
+
+    <li>Make Instruction:  When printing out the source of a job,
+         the do_list is printed as the LAST job prop.</li>
+
+    <li>Make Instruction: When a recording is done, its job button is removed.</li>
+
+    <li> In socket.js changed new Buffer(128) to Buffer.alloc(128)
+    to get rid of Node deprication warning when running the Job Engine.</li></li></li>
+
+    <li>Simulator now accepts the exact array buffer sent to Dexter,
+    to make higher fidelity simulation from that pure data transmission
+    standpoint.</li>
+
+    <li>Simulator now supports the "W" oplet for <code>Dexter.write_to_robot</code>.</li>
+
+    <li>Simulator <code>Dexter.read_from_robot</code> simulation now much better.
+         Also handles file_not_found condition well.
+        See improved doc Ref Man/Robot/Dexter/Dexter Instructions/read_from_robot</li>
+
+    <li>Simulator now more consistent in handling the data from Dexter and
+        the data from the Simulator.</li>
+
+    <li>Simulator now more accurately returns "robot status" for all the instructions
+        that Dexter does.</li>
+
+    <li> Strings on do_list are sent to Dexter as is, except
+    for the prefix of job id, instruction, id, start time, stop time.
+    No conversion of degrees to arc_seconds or any other data conversion.
+    See Ref Man/Robot/Dexter/Dexter Instruction/Instruction String.</li>
+
+    <li> New Job property: <code>sent_instructions_strings</code> which
+    is like sent_instructions, BUT, its that raw string that
+    actually goes to dexter.
+    So twisting down  "sent_instructions_strings"  would show something like
+    <pre><code>"1, 0, 123456789, undefined, a, 23456, 43433234, 55443323455;"
+"1, 1, 123456999, undefined, a 23456, 43433234, 55443323455;"</code></pre>
+    Useful for debugging low level.
+    Only recorded if keep_history is true to avoid big build up of data
+    when you don't want it.</li>
+
+    <li>Renamed internal method: is_instruction_array to is_oplet_array.</li>
+
+    <li> New instruction type: data_array.
+      See Ref Man/Job/new Job parameters/data_array_transformer
+      and Ref Man/Robot/Dexter/Dexter Instructions/Data Array.</li>
+
+    <li> Multi jobs on same robot:
+    If Job param: start_if_robot_busy is true (default false),
+    more than one job having the same default robot can be started.
+    See Ref Man/Job/new Job parameters/start_if_robot_busy.</li>
+
+    <li> Fixed bug in Robot.start_job when attempting to
+    start a job with status_code "completed".</li>
+
+    <li>Job.finish_job big clean up and bug fix when
+    when_stopped is an instruction location w.r.t the instruction_location's job.</li>
+
+    <li> <code>Robot.start_job</code> now accepts as its job_name arg:
+    A job instance, a string "Job.job_name",
+    the job name, i.e. "my_job" (like it use to) and
+    a file pathname
+     (wherein it gets the FIRST job defined in the file).</li>
+
+    <li> <code>Robot.include_job</code> Now gets the FIRST job defined in the file
+       when a file is specified as the place to get the do_list.</li>
+
+    <li> New Jobs menu item: "Run Job on Dexter".
+        Takes the selected source and writes it to Dexter's file system,
+        then starts the first Job defined in that selection.
+        The new Job button in the Output pane header for that Job
+        is customized to behave well with stopping the remote Job.</li>
+
+    <li> <code>load_files</code> partial bug fix:
+        Now load_files is more likely to return the value of the last top-level expression
+        in the file than before, but its still not perfect.
+        See extended doc in Ref Man/IO/File Access/load_files.</li>
+
+    <li> <code>Job.define_and_start_job</code> changed to use FIRST job in file, not last.</li>
+
+    <li>Job.start now properly handles a do_list passed in.</li>
+
+    <li> New file utility: make_folder  makes nested folders.
+    See Ref Man/IO/File Access/make_folder.</li>
+
+
+    <li> Each Dexter instance now has a property <code>is_calibrated</code>.
+    See Ref Man/Robot/Dexter/Dexter Utilities
+    This value is displayed by Jobs menu/show robot status.
+    Recording is prevented on non-calibrated Dexters.</li>
+
+
+    <li>Improved ping error message when Dexter is not connected.
+    It is now printed in orange and scrolls to the Data Connection
+    section of the User Guide./li>
+
+    <li> User Guide Configure Dexter/Data Connection and Test Connectivity tweaked.</li>
+
+    <li> Extended User Guide/Configure Dexter/Test Connectivity/Troubleshooting
+        with a link to the "Dexter Networking" Github page.</li>
+
+    <li> <code>Robot.loop</code>
+        Slight optimization to having the array of instructions to
+        execute upon each iteration not include undefined or null.</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.2.2, Mar 25, 2019</summary>
-Highlights: Fixed build problem for Mac by updating npm packages.
+    Highlights: Fixed build problem for Mac by updating npm packages.
 </details>
 
 <details class="doc_details"><summary>v 3.2.1, Mar 24, 2019</summary>

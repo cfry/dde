@@ -7,6 +7,8 @@ DexterSim = class DexterSim{
         this.robot_status_in_arcseconds = Dexter.make_default_status_array()
         this.parameters = {}
         this.write_array = new Array(128)
+        this.write_to_robot_file_name = null
+        this.write_to_robot_file_content = "" //grows as "m" instructions come in
         DexterSim.robot_name_to_dextersim_instance_map[robot_name] = this
     }
 
@@ -49,9 +51,48 @@ DexterSim = class DexterSim{
         this.status = "closed"
     }
 
+    static array_buffer_to_string(arr_buff, terminating_char=";"){
+        let str = arr_buff.toString()
+        let end_index = str.indexOf(terminating_char)
+        return str.substring(0, end_index)
+    }
+
+
+    static array_buffer_to_oplet_array(arr_buff){
+        let str = this.array_buffer_to_string(arr_buff)
+        let split_str = str.split(" ")
+        let oplet_array = []
+        let oplet
+        for(let i = 0; i <  split_str.length; i++) {
+            let substr = split_str[i]
+            if(i == Instruction.INSTRUCTION_TYPE) { oplet = substr}
+            else if ((oplet == "W") && (i == Instruction.INSTRUCTION_ARG2)) { //this is the payload of write_to_robot
+                let raw_string = arr_buff.toString() //can't use str because that ends at first semicolon, and payload might have semicolons in it.
+                let ending_semicolon_pos = raw_string.lastIndexOf(";") //note that the payload might have semicolons in it so don't choose those by using LASTindexOf
+                let W_pos = raw_string.indexOf(" W ")
+                let start_payload_length_pos = W_pos + 5 //5 skips over the "W f " (oplet and write_kind letter and spaces)
+                //but now we must skip over the payload length, which is an int of variable length
+                let start_payload_pos = raw_string.indexOf(" ", start_payload_length_pos) + 1 //skip over palyoad length and the space after it
+                let payload = raw_string.substring(start_payload_pos, ending_semicolon_pos) //excludes final semicolon
+                oplet_array.push(payload)
+                break;
+            }
+            if(substr == "")               {} //ignore. this is having more than one whitespace together. Just throw out
+            else if(substr == "undefined") { oplet_array.push(undefined) }
+            else if (substr == "NaN")      { oplet_array.push(NaN) }
+            else {
+                let num_maybe = parseFloat(substr) //most are ints but some are floats
+                if(Number.isNaN(num_maybe)) { oplet_array.push(substr) } //its a string
+                else                        { oplet_array.push(num_maybe) } //its an actual number
+            }
+        }
+        return oplet_array
+    }
+
     //typically adds instruction to sim_inst.instruction_queue
-    static send(robot_name, instruction_array){ //instruction_array is in arcseconds
+    static send(robot_name, arr_buff){ //instruction_array is in arcseconds
         //out("Sim.send passed instruction_array: " + instruction_array + " robot_name: " + robot_name)
+        let instruction_array = this.array_buffer_to_oplet_array(arr_buff)
         let sim_inst = DexterSim.robot_name_to_dextersim_instance_map[robot_name]
         sim_inst.sent_instructions_count += 1
         if (sim_inst.status == "closing"){
@@ -79,6 +120,10 @@ DexterSim = class DexterSim{
             case "h": //doesn't go on instruction queue, just immediate ack
                 sim_inst.ack_reply(instruction_array)
                 break;
+            case "r": //read_from_robot. does not go on queue
+                let payload_string_maybe = sim_inst.process_next_instruction_r(instruction_array)
+                sim_inst.ack_reply(instruction_array, payload_string_maybe)
+                break;
             default:
                 sim_inst.add_instruction_to_queue(instruction_array)
                 sim_inst.ack_reply(instruction_array)
@@ -86,21 +131,38 @@ DexterSim = class DexterSim{
         }
     }
 
-    ack_reply(instruction_array){
-        let ack_array = new Array(Dexter.robot_ack_labels.length)
-        ack_array[Dexter.JOB_ID]            = instruction_array[Instruction.JOB_ID]
-        ack_array[Dexter.INSTRUCTION_ID]    = instruction_array[Instruction.INSTRUCTION_ID]
-        ack_array[Dexter.START_TIME]        = Date.now()
-        ack_array[Dexter.STOP_TIME]         = Date.now()
-        ack_array[Dexter.INSTRUCTION_TYPE]  = instruction_array[Instruction.INSTRUCTION_TYPE] //leave this as a 1 char string for now. helpful for debugging
-        ack_array[Dexter.ERROR_CODE]        = 0
+    //hacked to now create and pass to on_receive a full robot status
+    //payload_string_maybe might be undefined, a string payload or an error number positive int.
+    ack_reply(instruction_array, payload_string_maybe){
+        let rs_copy = this.robot_status_in_arcseconds.slice()
+        rs_copy[Dexter.JOB_ID]            = instruction_array[Instruction.JOB_ID]
+        rs_copy[Dexter.INSTRUCTION_ID]    = instruction_array[Instruction.INSTRUCTION_ID]
+        rs_copy[Dexter.START_TIME]        = Date.now()
+        rs_copy[Dexter.STOP_TIME]         = Date.now()
+        rs_copy[Dexter.INSTRUCTION_TYPE]  = instruction_array[Instruction.INSTRUCTION_TYPE] //leave this as a 1 char string for now. helpful for debugging
+        //rs_copy[Dexter.ERROR_CODE]        = 0 //instruction_array[Dexter.ERROR_CODE] //will be 0 if no error
+       //above use to be in BUT instruction_array was never supposed to have an error code,
+       //annd the only thing setting robot_status error code to toehr than 0 is the "e" instruction,
+       //so just leave that as it is--apr 2019
         if (this.sim_actual === true){
             let rob = this.robot
             setTimeout(function(){
-                        //rob.robot_done_with_instruction(ack_array)
-                        Socket.on_receive_sim(ack_array, rob.name)
+                        Socket.on_receive(rs_copy, rob.name, payload_string_maybe)
                         }, 1)
         }
+    }
+
+    // convert a robot_status 60 elt array into the Uint8 data array length 240
+    //that Socket.onreive wants for its first (data) arg.
+    robot_status_to_data(robot_status){
+
+    }
+    //from https://stackoverflow.com/questions/15761790/convert-a-32bit-integer-into-4-bytes-of-data-in-javascript/24947000
+    toBytesInt32 (num) {
+        arr = new ArrayBuffer(4); // an Int32 takes 4 bytes
+        view = new DataView(arr);
+        view.setUint32(0, num, false); // byteOffset = 0; litteEndian = false
+        return arr;
     }
 
     //this is the method that moves an instrucction from the "DDE side"
@@ -127,13 +189,11 @@ DexterSim = class DexterSim{
             //hits when just ending an instruction
             if (sim_inst.now_processing_instruction &&
                 (sim_inst.ending_time_of_cur_instruction <= the_now)) { //end the cur instruction and move to the next
-                let rs_copy = sim_inst.robot_status_in_arcseconds.slice() //make a copy to return as some subseqent call to this meth will modify the one "model of dexter" that we're saving in the instance
-                rs_copy[Dexter.STOP_TIME] = Date.now() //in milliseconds
                 const oplet = sim_inst.now_processing_instruction[Dexter.INSTRUCTION_TYPE]
                 if ((sim_inst.sim_actual === true) && ["F", "G", "g"].includes(oplet)) { //dont do when sim == "both"
-                    //Socket.convert_robot_status_to_degrees(rs_copy)
-                    //sim_inst.robot.robot_done_with_instruction(rs_copy)
-                    Socket.on_receive_sim(rs_copy, sim_inst.robot.name)
+                    let rs_copy = sim_inst.robot_status_in_arcseconds.slice() //make a copy to return as some subseqent call to this meth will modify the one "model of dexter" that we're saving in the instance
+                    rs_copy[Dexter.STOP_TIME] = Date.now() //in milliseconds
+                    Socket.on_receive(rs_copy, sim_inst.robot.name)
                 }
                 sim_inst.completed_instructions.push(sim_inst.now_processing_instruction)
                 sim_inst.now_processing_instruction = null     //Done with cur ins,
@@ -164,8 +224,8 @@ DexterSim = class DexterSim{
         let dur = 10 // in ms
         this.now_processing_instruction = this.instruction_queue.shift() //pop off next inst from front of the list
         let instruction_array = this.now_processing_instruction
-        var robot_status = this.robot_status_in_arcseconds
-        var oplet  = instruction_array[Dexter.INSTRUCTION_TYPE]
+        let robot_status = this.robot_status_in_arcseconds
+        let oplet  = instruction_array[Dexter.INSTRUCTION_TYPE]
         robot_status[Dexter.JOB_ID]            = instruction_array[Instruction.JOB_ID]
         robot_status[Dexter.INSTRUCTION_ID]    = instruction_array[Instruction.INSTRUCTION_ID]
         robot_status[Dexter.START_TIME]        = Date.now() //in ms
@@ -196,7 +256,7 @@ DexterSim = class DexterSim{
                 DexterSim.fill_in_robot_status_joint_angles(robot_status)*/
              //   break;
             case "e": //cause an error. Used for testing only
-                robot_status[Dexter.ERROR_CODE] = instruction_array[2]
+                robot_status[Dexter.ERROR_CODE] = instruction_array[Instruction.INSTRUCTION_ARG0]
                 break;
             case "F":
                 dur = 0
@@ -229,9 +289,9 @@ DexterSim = class DexterSim{
                 if (!isNaN(angle)){ robot_status[Dexter.J5_ANGLE] += angle}
                 //DexterSim.fill_in_robot_status_xyzs(robot_status)
                 break;
-            case "r":
-                this.process_next_instruction_r(instruction_array)
-                break;
+            //case "r": //handled in send.
+            //    this.process_next_instruction_r(instruction_array)
+            //    break;
             case "S": //set_parameter
                 this.parameters[ins_args[0]] = ins_args[1]
                 dur = 0
@@ -248,6 +308,9 @@ DexterSim = class DexterSim{
                 else { shouldnt('DexterSim.write_array is too short to accommodate "w" instruction<br/> with write_location of: ' +
                                  write_location + " and value of: " + ins_args[1]) }
                 break
+            case "W": //write_to_robot
+                dur = this.process_next_instruction_W(ins_args) //Vector.add(ins_args))
+                break;
             case "z": //sleep
                 dur = Math.round(ins_args[0] / 1000) //ins_args z sleep time is in microseconds,
                                                //converted from secs to to usecs in in socket.js
@@ -286,7 +349,7 @@ DexterSim = class DexterSim{
             this.instruction_queue = []
             this.now_processing_instruction = null
             DexterSim.close(this.name)
-            dde_error("in Dexter Simulation, could not find a job with job_id: " + job_id)
+            dde_error("In DexterSim.process_next_instruction, could not find a job with job_id: " + job_id)
         }
     }
 
@@ -310,7 +373,7 @@ DexterSim = class DexterSim{
 
     // also called by process_next_instruction_T(
     process_next_instruction_a(ins_args){ //ins_args in arcseconds
-        var robot_status = this.robot_status_in_arcseconds
+        let robot_status = this.robot_status_in_arcseconds
         let idxs = [Dexter.J1_MEASURED_ANGLE, Dexter.J2_MEASURED_ANGLE, Dexter.J3_MEASURED_ANGLE,
             Dexter.J4_MEASURED_ANGLE, Dexter.J5_MEASURED_ANGLE, Dexter.J6_MEASURED_ANGLE, Dexter.J7_MEASURED_ANGLE]
         //idxs is 7 long. But we don't want to get more than ins_args because those
@@ -356,12 +419,58 @@ DexterSim = class DexterSim{
     process_next_instruction_r(instruction_array) {
         let hunk_index = instruction_array[Instruction.INSTRUCTION_ARG0]
         let source     = instruction_array[Instruction.INSTRUCTION_ARG1]
-        let whole_content = file_content(source) //errors if path in "source" doesn't exist
+        let whole_content
+        try { whole_content = file_content(source) }//errors if path in "source" doesn't exist
+        catch(err){
+            return 1 //return the error code
+        }
         let start_index = hunk_index * Instruction.Dexter.read_from_robot.payload_max_chars
         let end_index = start_index + Instruction.Dexter.read_from_robot.payload_max_chars
         let payload_string = whole_content.substring(start_index, end_index) //ok if end_index is > whole_cotnent.length, it just gets how much it can, no error
         //out("some content from " + source + " hunk: " + hunk_index + " payload: " + payload_string)
-        Socket.r_payload_grab_aux(payload_string, instruction_array)
+        //Socket.r_payload_grab_aux(instruction_array, payload_string)
+        return payload_string
+    }
+    //write_to_robot
+    process_next_instruction_W(ins_args, rob){
+        let kind_of_write  = ins_args[0]
+        let payload_length = ins_args[1]
+        let payload        = ins_args[2]
+        let robot_name     = this.robot_name
+        let dde_computer_file_system_start = "dexter_file_systems/" + robot_name + "/"
+        switch(kind_of_write){
+            case "f": //payload is file name to write to. Just one of these to start with
+                this.write_to_robot_file_name = payload
+                this.write_to_robot_file_content = ""
+                break;
+            case "m": //middle, ie a content instruction, many of these
+                this.write_to_robot_file_content += payload
+                break;
+            case "e":   //end, just one of these
+                this.write_to_robot_file_content += payload
+                let last_slash_pos = this.write_to_robot_file_name.lastIndexOf("/")
+                let folders_string = ""
+                if(last_slash_pos != -1) { folders_string = this.write_to_robot_file_name.substring(0, last_slash_pos + 1) }
+                let folder_path
+                if(folders_string.startsWith("/")) {
+                    folder_path = folders_string
+                }
+                else {
+                    folder_path = dde_computer_file_system_start + folders_string //ends with slash
+                }
+                folder_path = make_full_path(folder_path)
+                make_folder(folder_path)
+                let full_path = dde_computer_file_system_start + this.write_to_robot_file_name
+                full_path = make_full_path(full_path)
+                //fs.mkdirSync(path, options-recursive???)
+                write_file(full_path, this.write_to_robot_file_content)
+                break;
+            default:
+              dde_error('The "W" write_to_robot instruction recieved<br/>' +
+                        'a "kind_of-write" letter of "' + kind_of_write + "<br/>" +
+                        'but the only valid letters are "f", "m" and "e".')
+        }
+        return 0 //dur
     }
 
     static close(robot_name){
@@ -396,11 +505,13 @@ DexterSim.robot_name_to_dextersim_instance_map = null
 DexterSim.set_interval_id      = null
 
 module.exports = DexterSim
+
 var {Robot, Dexter} = require("./robot.js")
-var {out} = require("./out.js")
-var Socket = require("./socket.js")
-var {Instruction} = require("./instruction.js")
-var {shouldnt} = require("./utils.js")
+var {out}           = require("./out.js")
+var Socket          = require("./socket.js")
+var {Instruction}   = require("./instruction.js")
+var {shouldnt}      = require("./utils.js")
+var {make_folder, make_full_path}   = require("./storage")
 
 var Kin = require("../math/Kin.js")
 var Vector = require("../math/Vector.js")

@@ -121,7 +121,7 @@ var Robot = class Robot {
         return new Instruction.debugger()
     }
     static error(reason){ //declare that an error happened. This will cause the job to stop.
-        return new Instruction.error(reason) //["error", reason]
+        return new Instruction.error(reason)
     }
 
     static go_to(instruction_location){
@@ -663,7 +663,6 @@ Serial = class Serial extends Robot {
 
     robot_done_with_instruction(robot_status){ //called from UI sockets
         let stop_time    = Date.now() //the DDE stop time for the instruction, NOT Dexter's stop time for the rs.
-
         let job_id       = robot_status[Serial.JOB_ID]
         let job_instance = Job.job_id_to_job_instance(job_id)
         if (job_instance == null){
@@ -936,6 +935,7 @@ Dexter = class Dexter extends Robot {
     }
 
     make_new_robot(keyword_args){
+        this.is_calibrated = null //null means calibration status is unknown.
         this.name                  = keyword_args.name
         this.ip_address            = keyword_args.ip_address
         this.port                  = keyword_args.port
@@ -953,17 +953,17 @@ Dexter = class Dexter extends Robot {
         this.angles     = [0, 0, 0, 0, 0, 0, 0] //used by move_to_relative, set by move_all_joints, move_to, and move_to_relative
         this.pid_angles = [0, 0, 0, 0, 0, 0, 0]
         this.processing_flush = false //primarily used as a check. a_robot.send shouldn't get called while this var is true
+        this.busy_job_array = []
         Robot.set_robot_name(this.name, this)
          //ensures the last name on the list is the latest with no redundancy
         let i = Dexter.all_names.indexOf(this.name)
         if (i != -1) {  Dexter.all_names.splice(i, 1) }
         Dexter.all_names.push(this.name)
         Dexter.last_robot = this
-        //Socket.init(this.name, this.ip_address, this.port)
         return this
     }
 
-    /*  ping-rpoxy doesn't seem to work or at least  doesn't have a timeout so it
+    /*  ping-proxy doesn't seem to work or at least  doesn't have a timeout so it
        waits forever if there is nothing at the ip address
     start(job_instance){
 
@@ -1035,7 +1035,7 @@ Dexter = class Dexter extends Robot {
     }
 
     start_aux(job_instance) { //fill in initial robot_status
-        Socket.init(this.name, this.simulate, this.ip_address, this.port)
+        Socket.init(this.name)
         this.processing_flush = false
         let this_robot = this
         let this_job   = job_instance
@@ -1090,6 +1090,23 @@ Dexter = class Dexter extends Robot {
         return null
     }
 
+    //returns undefined. Only if is_calibrate is not null (hasn't been set),
+    //and robut is not simulate only and we have a robot_status do we set is_calibrated on the dexter instance
+    set_is_calibrated(){
+        if(this.is_calibrated !== null) {} //means it is already set to true or false.
+        else if (Robot.get_simulate_actual(this.simulate) == true) {} //since we aren't sending in structions to the Dextr5er, we can't set the value
+        else {
+            let rs_line = last(this.robot_status)
+            for(let measured_angle of this.joint_angles()) {
+                if(measured_angle != 0){
+                    this.is_calibrated = true
+                    return
+                }
+            }
+            this.is_calibrated = false
+        }
+    }
+
     run_heartbeat(){
         let this_dex = this
         this.heartbeat_timeout_obj =
@@ -1139,19 +1156,20 @@ Dexter = class Dexter extends Robot {
         this.waiting_for_heartbeat = false
         this.heartbeat_timeout_obj = null
         this.is_connected          = false
-        Socket.close(this.name, this.simulate) //must be before setting socket_id to null
+        Socket.close(this.name, false) //must be before setting socket_id to null
         // delete Dexter[this.name] //don't do this. If the robot is still part of a Job,
         //and that job is inactive, then we can still "restart" the job,
         //and as such we want that binding of Robot.this_name to still be around.
     }
 
     empty_instruction_queue_now(){
-        Socket.empty_instruction_queue_now(this.name, this.simulate)
+        Socket.empty_instruction_queue_now(this.name)
     }
 
-    send(ins_array){
+    //ins_array can be an oplet array or a raw string
+    send(oplet_array_or_string){
         //var is_heartbeat = ins_array[Instruction.INSTRUCTION_TYPE] == "h"
-        let oplet = ins_array[Instruction.INSTRUCTION_TYPE]
+        let oplet = Instruction.extract_instruction_type(oplet_array_or_string)
         if (oplet == "F") { this.processing_flush = true } //ok even if flush is already true. We can send 2 flushes in a row if we like, that's ok. essentially only 1 matters
         if (this.processing_flush && (oplet != "F")) {
             shouldnt(this.name + ".send called with oplet: " + oplet +
@@ -1164,7 +1182,7 @@ Dexter = class Dexter extends Robot {
             ins_array[Dexter.INSTRUCTION_TYPE + 1] = sleep_in_ns //because Dexter expects nanoseconds
         }*/
         //note: we send F instructions through the below.
-        Socket.send(this.name, ins_array, this.simulate)
+        Socket.send(this.name, oplet_array_or_string)
     }
 
     perform_instruction_callback(job_instance){
@@ -1195,20 +1213,35 @@ Dexter = class Dexter extends Robot {
        return this.is_connected
     }
 
-    //beware, robot_status could be an ack, can could be called by sim or real AND
-    //will be called twice if simulate == "both"
+    //Class: Dexter
+    //beware, robot_status could be an ack, can could be called by sim or real
+    //but if sim is "both", will only be called by real (from socket)
     robot_done_with_instruction(robot_status){ //called from UI sockets
         if (!(Array.isArray(robot_status))) {
             throw(TypeError("Dexter.robot_done_with_instruction recieved a robot_status array: " +
                 robot_status + " that is not an array."))
         }
-        else if (robot_status[Dexter.ERROR_CODE] !== 0){
-            let job_id       = robot_status[Dexter.JOB_ID]
-            let job_instance = Job.job_id_to_job_instance(job_id)
-            if (job_instance) {
-                let ins_id = robot_status[Dexter.INSTRUCTION_ID]
-                job_instance.stop_for_reason("errored", "got error code: " + Dexter.ERROR_CODE + " back from Dexter for instruction id: " + ins_id)
+        let job_id       = robot_status[Dexter.JOB_ID]
+        let job_instance = Job.job_id_to_job_instance(job_id)
+        if (job_instance == null){
+            throw new Error("Dexter.robot_done_with_instruction passed job_id: " + job_id +
+                            " but couldn't find a Job instance with that job_id.")
+        }
+        if(this instanceof Dexter) { this.remove_from_busy_job_array(job_instance) }
+        if (robot_status[Dexter.ERROR_CODE] !== 0){
+            let ins_id = robot_status[Dexter.INSTRUCTION_ID]
+            let ins    = job_instance.do_list[ins_id]
+            let oplet  = ins[Instruction.INSTRUCTION_TYPE]
+            if(oplet == "r") {  //read from robot errored, assuming its "file not found" so end the rfr loop nd set the "content read" as null, meaninng file not found
+                //the below setting of the user data already done by got_content_hunk
+                //let rfr_instance = Instruction.Dexter.read_from_robot.find_read_from_robot_instance_on_do_list(job_instance, ins_id)
+                // job_instance.user_data[ins.destination] = null //usually means "file not found"
+                //rfr_instance.is_done = true
+                this.perform_instruction_callback(job_instance) //calls set_up_next_do(1) but we want 0, becuase we want to give the read_from_robot instance code a chance to clean up before ending its loop
+                //job_instance.set_up_next_do(0)
+                return
             }
+            job_instance.stop_for_reason("errored", "got error code: " + Dexter.ERROR_CODE + " back from Dexter for instruction id: " + ins_id)
         }
         else if ((robot_status.length != Dexter.robot_status_labels.length) &&
                  (robot_status.length != Dexter.robot_ack_labels.length)){
@@ -1218,16 +1251,9 @@ Dexter = class Dexter extends Robot {
                 " or: " + Dexter.robot_ack_labels.length))
         }
         let got_ack = (robot_status.length == Dexter.robot_ack_labels.length) //if we have an "acknowledgent, it means we DON"T have in robot_status all we need to render the joint positions
-        let stop_time    = Date.now() //the DDE stop time for the instruction, NOT Dexter's stop time for the rs.
-        let job_id       = robot_status[Dexter.JOB_ID]
-        let job_instance = Job.job_id_to_job_instance(job_id)
-        if (job_instance == null){
-            throw new Error("Dexter.robot_done_with_instruction passed job_id: " + job_id +
-                " but couldn't find a Job instance with that job_id.")
-        }
-        let rob    = this //job_instance.robot
-        let ins_id = robot_status[Dexter.INSTRUCTION_ID] //-1 means the initiating status get, before the first od_list instruction
-        let op_let = robot_status[Dexter.INSTRUCTION_TYPE]
+        let rob     = this //job_instance.robot
+        let ins_id  = robot_status[Dexter.INSTRUCTION_ID] //-1 means the initiating status get, before the first od_list instruction
+        let op_let  = robot_status[Dexter.INSTRUCTION_TYPE]
         //let op_let = String.fromCharCode(op_let_number)
         if (op_let == "h") { //we got heartbeat acknowledgement of reciept by phys or sim so now no longer waiting for that acknowledgement
             rob.waiting_for_heartbeat = false
@@ -1240,6 +1266,7 @@ Dexter = class Dexter extends Robot {
                             "It should be true if we get an F oplet.")
             }
         }
+        let stop_time    = Date.now() //the DDE stop time for the instruction, NOT Dexter's stop time for the rs.
         job_instance.record_sent_instruction_stop_time(ins_id, stop_time)
         if (!rob.is_connected) {} //ignore any residual stuff coming back from dexter
         //we don't want to change robot_status for instance because that will confuse
@@ -1279,6 +1306,8 @@ Dexter = class Dexter extends Robot {
             }
             else if (job_instance.status_code === "starting") { //at least usually ins_id is -1
                 job_instance.set_status_code("running")
+                this.set_is_calibrated() //only sets if not in pure sim mode.
+                //pass robot_status because we *might* not be keeping it in the history
                 //rob.perform_instruction_callback(job_instance)
                 //if(job_instance.dont_proceed_after_initial_g) {//used by MakeInstruction
                 //    MiRecord.start_is_done_with_initial_g_and_paused(job_instance)
@@ -1316,7 +1345,38 @@ Dexter = class Dexter extends Robot {
             }
         }
     }
-    
+
+    //Dexter busy
+    clean_up_busy_job_array(){
+       let result = []
+       for(let a_job of this.busy_job_array){
+            if(a_job.is_active()) { //remove inactive jobs
+                if(!result.includes(a_job)) { //remove duplicates
+                    result.push(a_job)
+                }
+            }
+       }
+       this.busy_job_array = result
+    }
+
+    //returns true or false
+    is_busy(){
+        this.clean_up_busy_job_array()
+        return (this.busy_job_array.length > 0)
+    }
+
+    add_to_busy_job_array(a_job){
+        if(!this.busy_job_array.includes(a_job)){
+            this.busy_job_array.push(a_job)
+        }
+    }
+
+    remove_from_busy_job_array(a_job){
+        let i = this.busy_job_array.indexOf(a_job)
+        if(i >= 0) { this.busy_job_array.splice(i, 1) }
+    }
+    //end robot_busy
+
     //Robot status accessors (read only for users)
     joint_angle(joint_number=1){
         switch(joint_number){
@@ -1330,7 +1390,7 @@ Dexter = class Dexter extends Robot {
                           " but joint_number must be 1, 2, 3, 4, or 5.")
         }
     }
-
+    //used by is_calibrated and maybe others
     joint_angles(){
         let rs = this.robot_status
         return [rs[Dexter.J1_MEASURED_ANGLE], rs[Dexter.J2_MEASURED_ANGLE], rs[Dexter.J3_MEASURED_ANGLE], rs[Dexter.J4_MEASURED_ANGLE], rs[Dexter.J5_MEASURED_ANGLE]]
@@ -2407,9 +2467,14 @@ Dexter.sent_instructions_to_html = function(sent_ins){
         "<th>INSTRUCTION_TYPE</th>" +
         "<th>Instruction arguments</th></tr>"
     for(var ins of sent_ins){
-        var instruction_type = ins[Instruction.INSTRUCTION_TYPE]
+        var instruction_type = Instruction.extract_instruction_type(ins)
         var instruction_name = " (" + Robot.instruction_type_to_function_name(instruction_type) + ")"
-        result +=  "<tr><td>" + ins[Instruction.JOB_ID] + "</td><td>" + ins[Instruction.INSTRUCTION_ID] + "</td><td>" + ins[Instruction.START_TIME] + "</td><td>" + ins[Instruction.STOP_TIME] + "</td><td>" + instruction_type + instruction_name + "</td><td>" + Instruction.args(ins) + "</td></tr>"
+        result +=  "<tr><td>" + Instruction.extract_job_id(ins)          + "</td><td>" +
+                                Instruction.extract_instruction_id(ins)  + "</td><td>" +
+                                Instruction.extract_start_time(ins)      + "</td><td>" +
+                                Instruction.extract_stop_time(ins)       + "</td><td>" +
+                                instruction_type + instruction_name      + "</td><td>" +
+                                Instruction.extract_args(ins)            + "</td></tr>"
     }
     result += "</table>"
     return "<details style='display:inline-block;'><summary></summary>" + result + "</details>"

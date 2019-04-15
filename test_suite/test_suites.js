@@ -1,3 +1,15 @@
+new TestSuite("test_suite_reporting",
+    ["2 + 3", "5", "1st elt (source) evals to same as 2nd elt (expected) and the test passes."],
+    ['similar(2.05, 2, 0.1)', "true", "tolerance of 0.1 permits 2.05 and 2 to be similar"],
+    ["var foo = 4 + 1"],
+    ["foo", "5", "The side effect of the above 'set up' test, sets foo. Foo's value is tested here."],
+    ["foo = undefined", "undefined"],
+    ['"hi" + " dexter"', '"hi dex"', "known failures are declared with this description string starting with 'known'."],
+    ['foo961', '123', "This is an 'unknown failure' for demo purposes"],
+    ['foo723', 'TestSuite.error', 'Tests with expected of TestSuite.error pass if the source errors.'],
+    ['out(TestSuite.run("similarX"))', 'TestSuite.dont_care', "Run another test suite. This one errors because its not defined."]
+)
+
 new TestSuite("similar",
 	["undefined", "undefined"],
     ["null", "null"],
@@ -313,7 +325,7 @@ new TestSuite("Instruction.is_do_list_item",
     ['Instruction.is_do_list_item("abc")', "true"],
     ["Instruction.is_do_list_item(true)", "false"],
     ["Instruction.is_do_list_item({a: 1})", "false"],
-    ["Instruction.is_do_list_item([5, 6])", "false"],
+    ["Instruction.is_do_list_item([5, 6])", "true"],
     ["Instruction.is_do_list_item(null)", "true"],
     ["Instruction.is_do_list_item(undefined)", "true"],
     ["Instruction.is_do_list_item(Robot.loop())", "true"],
@@ -329,6 +341,25 @@ new TestSuite("Instruction.is_do_list_item",
     ["Instruction.is_do_list_item(['@', 90, 20, 30])", "true"]
 )
 
+new TestSuite("Instruction.is_empty_nested_array",
+    ["Instruction.is_empty_nested_array(123)", "false"],
+    ['Instruction.is_empty_nested_array("junk")', "false"],
+    ["Instruction.is_empty_nested_array([])", "true"],
+    ["Instruction.is_empty_nested_array([123])", "false"],
+    ["Instruction.is_empty_nested_array([[], []])", "true"],
+    ["Instruction.is_empty_nested_array([[], [[[], []]]])", "true"],
+    ["Instruction.is_empty_nested_array([[], [[[], [321]]]])", "false"]
+)
+
+new TestSuite("Instruction.is_no_op_instruction",
+    ["Instruction.is_no_op_instruction(undefined)", "true"],
+    ["Instruction.is_no_op_instruction(null)", "true"],
+    ["Instruction.is_no_op_instruction([])", "true"],
+    ["Instruction.is_no_op_instruction([[], [[]]])", "true"],
+    ["Instruction.is_no_op_instruction(123)", "false"],
+    ["Instruction.is_no_op_instruction([[], [[true]]])", "false"],
+)
+
 new TestSuite("patch_until",
     ['patch_until("1 + 2", "0.0.0", "4 + 5")', "3"],
     ['patch_until("1 + 2", dde_version, "4 + 5")', "9"],    
@@ -336,3 +367,13 @@ new TestSuite("patch_until",
     ['patch_until("1 + 2", "1000", "4 + 5")', "TestSuite.error"],
     ['patch_until("1 + 2", 1000, "4 + 5")', "TestSuite.error"]
     )
+
+new TestSuite("trim_comments_from_front",
+    ['trim_comments_from_front("abc")', '"abc"'],
+    ['trim_comments_from_front("  def")', '"def"'],
+    ['trim_comments_from_front("  //comment\\ndef")', '"def"'],
+    ['trim_comments_from_front("  //comment\\n  ghi ")', '"ghi "'],
+    ['trim_comments_from_front("  //comment\\n  //2nd com\\njkl")', '"jkl"'],
+    ['trim_comments_from_front("/*com1*/mno")', '"mno"'],
+    ['trim_comments_from_front("/*com1*/  //com2\\n /*com3*/pqr")', '"pqr"']
+)

@@ -745,6 +745,7 @@ var MakeInstruction = class MakeInstruction{
         return this.call_obj_to_instruction_src(eval_args, call_obj)
     }
     //called by insert job code as well
+    ////return null if there's an error, else a string
     static call_obj_to_instruction_src(eval_args=false, call_obj){
         let family_class = call_obj.get_family_class()
         if(family_class == MiIns.function_family) {
@@ -756,6 +757,7 @@ var MakeInstruction = class MakeInstruction{
         else { return this.call_obj_to_instruction_src_for_normal(eval_args, call_obj) }
     }
 
+    //return null if there's an error, else a string
     static call_obj_to_instruction_src_for_normal(eval_args=false, call_obj){
         let family_of_instruction = call_obj.get_family_class()
         let instruction_name = call_obj.get_instruction_name()
@@ -768,6 +770,12 @@ var MakeInstruction = class MakeInstruction{
         let arg_name_val_src_pairs = function_param_names_and_defaults_array(instruction_name, true)
         let param_names = Object.getOwnPropertyNames(call_obj.args_obj)
         let src_before_undefined = result
+        //we want do_list to go at the end, so, if present, move it to the end of param_names.
+        let do_list_index = param_names.indexOf("do_list")
+        if(do_list_index != -1) {
+            param_names.splice(do_list_index, 1)
+            param_names.push("do_list")
+        }
         for(let param_name of param_names){
             let arg_default_val_src = this.find_arg_val_src_in_arg_name_val_src_pairs(param_name, arg_name_val_src_pairs)
             if((family_of_instruction == MiIns.move_all_joints_family) &&
@@ -850,6 +858,9 @@ var MakeInstruction = class MakeInstruction{
                     let elt_ast = elts_array[i]
                     let elt_src = arg_val_src.substring(elt_ast.range[0], elt_ast.range[1])
                     try{
+                        if(starts_with_one_of(elt_src, ["function(", "function (", "function*"])){
+                            elt_src = "(" + elt_src + ")" //fixes JS design bug
+                        }
                         let do_list_item = window.eval(elt_src)
                         if(!Instruction.is_do_list_item(do_list_item)){
                             this.set_border_color_of_arg(param_name, "red")
@@ -1083,25 +1094,42 @@ var MakeInstruction = class MakeInstruction{
     }
     static show_insert_job_dialog(){
         let job_name = window[this.arg_name_to_dom_elt_id("name")].value
+        if(!is_string_a_literal_string(job_name) || (job_name.length <= 2)) {
+            this.set_border_color_of_arg("name", "red")
+            dde_error("The job name in the Make Instruction dialog<br/>must be a non-empty string.<br/>" +
+                      'Example: <code>"my_job"</code>')
+        }
         if (job_name == '""') { job_name = "recording" }
         else { job_name = job_name.substring(1, job_name.length - 1) }
         show_window({title: "Insert Job(s)",
-            y: 180,
-            width:  340,
-            height: 300,
+            y:      180,
+            width:  485,
+            height: 325,
             background_color: "#E0E0E0",
             content:
-            "<fieldset><legend>Job Reference</legend>" +
+            "<fieldset><legend>High Level Job</legend>" +
                 "<input id='mi_job_insert_ref_none_radio_id' type='radio' name='mi_job_ref_radio' checked/> None<br/>" +
-                "<input id='mi_job_insert_ref_refs_radio_id' type='radio' name='mi_job_ref_radio'        /> Reference only<br/>" +
-                "<input id='mi_job_insert_ref_job_radio_id'  type='radio' name='mi_job_ref_radio'        /> Job containing reference<br/>" +
-                "<i style='margin-left:30px'>Job name</i>: <input id='mi_job_insert_ref_job_name_id'     style='width:175px;' value='" + job_name + "_refs'    /><br/>" +
+                "<input id='mi_job_insert_ref_refs_radio_id' type='radio' name='mi_job_ref_radio'        /> Reference to low-level Job only<br/>" +
+                "<input id='mi_job_insert_ref_job_radio_id'  type='radio' name='mi_job_ref_radio'        /> Job containing reference " +
+                "<i style='margin-left:23px'>name</i>: <input id='mi_job_insert_ref_job_name_id'  value='high_level'/><br/>" +
             "</fieldset><br/>" +
 
-            "<fieldset><legend>Job Instructions</legend>" +
-                "<input id='mi_job_insert_seg_jobs_checkbox_id' type='checkbox' checked/> " +
-                "<i style='margin-left:3px'>Job name</i>: <input id='mi_job_insert_def_job_name_id' style='width:175px;' value='" + job_name + "'/><br/>" +
-            "</fieldset><br/>" +
+            "<fieldset><legend>Low Level Job</legend>" +
+               "What: " +
+                  "<input style='margin-left:27px;' id='mi_job_instrs_what_all_id'    type='radio' name='mi_job_instrs_what' checked/>all instructions &nbsp;&nbsp;" +
+                  "<input                           id='mi_job_instrs_what_string_id' type='radio' name='mi_job_instrs_what'        />string instructions &nbsp;&nbsp;" +
+                  "<input                           id='mi_job_instrs_what_none_id'   type='radio' name='mi_job_instrs_what'        />none " +
+               "<br/>Wrapper: " +
+                  "<input id='mi_job_instrs_wrapper_job_id'  type='radio' name='mi_job_instrs_wrapper' checked/>Job &nbsp;&nbsp;" +
+                  "<input id='mi_job_instrs_wrapper_var_id'  type='radio' name='mi_job_instrs_wrapper' />var &nbsp;&nbsp;" +
+                  "<input id='mi_job_instrs_wrapper_data_id' type='radio' name='mi_job_instrs_wrapper' />data " +
+
+               "<i style='margin-left:10px;'>name</i>: <input id='mi_job_instrs_wrapper_name_id' value='" + job_name + "'/>" +
+               "<br/>Where: " +
+                  "<input style='margin-left:18px;' id='mi_job_instrs_where_editor_id' type='radio' name='mi_job_instrs_where' checked/>end of editor &nbsp;&nbsp;" +
+                  "<input style='margin-left:16px;' id='mi_job_instrs_where_file_id'   type='radio' name='mi_job_instrs_where'        />file " +
+               "<br/><i>Leave <b>name</b> blank to bring up a choose file dialog.</i>" +
+        "</fieldset><br/>" +
 
             "<center><button onclick='MakeInstruction.insert_jobs_preview()' title='Show the code to be inserted\nwhen you click Insert.'>Preview...</button> &nbsp;" +
                     "<button onclick='MakeInstruction.insert_jobs()' title='Insert selected code into editor.'>Insert</button>" +
@@ -1109,64 +1137,124 @@ var MakeInstruction = class MakeInstruction{
         })
     }
     static insert_jobs_preview(){
-        let seg_refs_code = this.segment_reference_code()
+        let seg_refs_code = this.high_level_code().substring(1) //cut off initial newline
         if (seg_refs_code == "") { seg_refs_code = "<i style='color:red;'>nothing to insert</i>" }
 
-        let seg_jobs_code = this.segment_job_code()
+        let seg_jobs_code = this.low_level_code().substring(1) //cut off initial newline
         if (seg_jobs_code == "") { seg_jobs_code = "<i style='color:red;'>nothing to insert</i>" }
-
-        let content =   "<i>Only top level instructions will be inserted.</i>" +
-                        "<div style='font-size:16px;'><b>Job Reference</b></div>" +
-                        "<i>To be inserted after selection or at the editor's cursor.</i><br/><pre><code>" +
+        else if (Array.isArray(seg_jobs_code)) { //got an error.
+            seg_jobs_code = seg_jobs_code[0]
+        }
+        let where_description
+        if(this.path_to_write_to()) {
+            let prefix = (mi_job_instrs_wrapper_job_id.checked ? "The below Job definition" : "The below instructions")
+            where_description = "<i>" + prefix + " will be written to file: " + this.path_to_write_to() + "</i>"
+        }
+        else {
+            where_description = "<i>To be inserted at the end of the editor.</i>"
+        }
+        let additional_help = (mi_job_insert_ref_refs_radio_id.checked ?
+                               "<br/><i>Position cursor in left column of empty line.<br/>Should be an instruction in a high-level Job's do_list.</i>" :
+                               "")
+        let content =   "<div style='font-size:16px; display:inline-block'><b>High Level Job</b><br/>" +
+                        "<i>Replaces selection or inserted at the editor's cursor.</i>" +
+                         additional_help +
+                         "<pre><code>" +
                         seg_refs_code +
-                        "</code></pre><p/>" +
-                        "<div style='font-size:16px;'><b>Job Instructions</b></div>" +
-                        "<i>To be inserted at the end of the editor.</i><br/><pre><code>" +
+                        "</code></pre></div>" +
+                        "<div style='font-size:16px;'><b>Low Level Job</b><br/>" +
+                        where_description + "<br/>" +
+                        "<i>Only top level instructions are included.</i><pre><code>" +
                         seg_jobs_code +
-                        "</code></pre>"
+                        "</code></pre></div>"
         show_window({title: "Insert Job(s) Preview",
                     content: content,
                     x:10, y:40, width:600, height:500,
                     background_color: "#E0E0E0"
         })
     }
+
+    static path_to_write_to() {
+        if(mi_job_instrs_where_file_id.checked) {
+            return make_full_path(mi_job_instrs_wrapper_name_id.value + ".dde")
+        }
+        else { return null }
+    }
     static insert_jobs(){
-        let seg_ref_code = this.segment_reference_code()
-        let seg_job_code = this.segment_job_code()
-        if(Array.is_array(seg_job_code)) { } //got an error, already been printed.
+        let pos_after_top_insertion =  null
+        let seg_ref_code = this.high_level_code()
+        let seg_job_code = this.low_level_code()
+        if(Array.isArray(seg_job_code)) { } //got an error, already been printed.
         else { //everything ok to insert
-            if (seg_ref_code != "") { Editor.insert(seg_ref_code, "selection_end") }
-            if (seg_job_code != "") { Editor.insert(seg_job_code, "end") }
+            if (seg_ref_code != "") {
+                Editor.replace_selection(seg_ref_code)
+                pos_after_top_insertion = Editor.selection_start() // still at where it was before insertion
+                pos_after_top_insertion += seg_ref_code.length //now at end of insertion
+                if(mi_job_insert_ref_job_radio_id.checked){ //backup so good for next ref insertion into the do_list
+                    let last_newline = seg_ref_code.lastIndexOf("\n", seg_ref_code.length - 2)
+                    let back_up_by = pos_after_top_insertion - last_newline - 1
+                    pos_after_top_insertion -= back_up_by
+                }
+            }
+            if (seg_job_code != "") {
+                let path = this.path_to_write_to()
+                if(path){
+                    write_file(path, seg_job_code)
+                    out(mi_job_instrs_wrapper_name_id.value  + " definition written to: " + path)
+                }
+                else { Editor.insert(seg_job_code, "end") }
+            }
             if((seg_ref_code == "") && (seg_job_code == "")) {
                 warning("No code chosen for insertion.")
+            }
+            else if(pos_after_top_insertion) {
+                Editor.select_javascript(pos_after_top_insertion, pos_after_top_insertion + 1)
             }
         }
     }
 
-    static segment_reference_code(){
+    static high_level_code(){
         //let selected_radio_button = document.querySelector('input[name="mi_job_ref_radio"]:checked').id
         let result = ""
         if(mi_job_insert_ref_none_radio_id.checked) { return "" }
+        else  {
+            let do_list_ref_string
+            if      (mi_job_instrs_where_file_id.checked)  { do_list_ref_string =          mi_job_instrs_wrapper_name_id.value + ".dde" } //don't use full path_to_write_to() becasue we want the shorter vrsion AND allows the high level job to move to a different computer and run if the low level file is in dde_apps dir
+            else if (mi_job_instrs_wrapper_job_id.checked) { do_list_ref_string = "Job." + mi_job_instrs_wrapper_name_id.value }
+            else if (mi_job_instrs_wrapper_var_id.checked) { do_list_ref_string =          mi_job_instrs_wrapper_name_id.value }
+            else if (mi_job_instrs_wrapper_data_id.checked){ do_list_ref_string =         "//data has no way to be referenced.\n                  //Consider using wrapper 'var'." }
+            let ref
+            if(mi_job_instrs_wrapper_job_id.checked){
+                let options = '{start_if_robot_busy: true}'
+                    ref= '                   Robot.start_job("' + do_list_ref_string + '", ' + options + ', "error", true),\n'
+            }
+            else if (mi_job_instrs_wrapper_var_id.checked ||
+                     (mi_job_instrs_wrapper_data_id.checked &&
+                      mi_job_instrs_where_file_id.checked)){
+                    ref= '                   Robot.include_job("' + do_list_ref_string + '"),\n'
+            }
+            else if (mi_job_instrs_wrapper_data_id.checked){
+                    ref= '                   ' + do_list_ref_string + '\n'
+            }
+            else { shouldnt("In MakeInstruction.high_level_code no wrapper radio button checked.") }
 
-        else if(mi_job_insert_ref_refs_radio_id.checked) {
-            return 'Robot.include_job("' + mi_job_insert_def_job_name_id.value  + '")'
-        }
-        if(mi_job_insert_ref_job_radio_id.checked) {
-            return '\n//A high-level Job that includes other jobs.\n' +
-                   'new Job({name: "' + mi_job_insert_ref_job_name_id.value + '",\n' +
-                   '         do_list: [\n' +
-                   '                   Robot.include_job("' + mi_job_insert_def_job_name_id.value  + '")\n' +
-                   '                  ]})\n'
+            if     (mi_job_insert_ref_refs_radio_id.checked){ return ref }
+            else if(mi_job_insert_ref_job_radio_id.checked) {
+                return '\n//A high-level Job that includes other jobs.\n' +
+                     'new Job({name: "' + mi_job_insert_ref_job_name_id.value + '",\n' +
+                     '         do_list: [\n' + ref +
+                     '                  ]})\n'
+            }
         }
         return result
     }
 
     //returns a string (which could be empty, if everything ok. Else retruns an array with
     //one elt, an error message
-    static segment_job_code(){
-        if(!mi_job_insert_seg_jobs_checkbox_id.checked) { return "" }
+    static low_level_code(){
+        if(mi_job_instrs_what_none_id.checked) { return "" }
         else {
-            let target_job_name = mi_job_insert_def_job_name_id.value
+            let target_job_name = mi_job_instrs_wrapper_name_id.value
             let src_job_name = window.eval(MakeInstruction.arg_name_to_src_in_mi_dialog("name")) //might not just be a literal, could be an expression!
             let job_instance = Job[src_job_name]
             let do_list_to_mine = []
@@ -1176,19 +1264,21 @@ var MakeInstruction = class MakeInstruction{
             let begin_top_loc
             let end_top_loc
             let has_non_top_levels
+            let use_str_instrs = mi_job_instrs_what_string_id.checked
             if(!job_instance || (job_instance != MiState.job_instance) || !MiState.job_instance.do_list){ //not in sync so prefer the def in the dialog
-                let src = this.dialog_to_instruction_src(true)
-                if (src == null) { return [] } //we errored, the errors already printed and the MI dialog box highlighted.
-                else {
-                    do_list_to_mine = window.eval(MakeInstruction.arg_name_to_src_in_mi_dialog("do_list"))
-                    warning("Since the Job in the Make Instruction dialog hasn't been played,<br/>we're using its full original do_list.")
-                }
+                let do_list_src = MakeInstruction.arg_name_to_src_in_mi_dialog("do_list")
+                do_list_to_mine = window.eval(do_list_src)
+                if(use_str_instrs) { do_list_to_mine = this.make_string_do_list_from_orig(do_list_to_mine, job_instance) }
+                warning("Since the Job in the Make Instruction dialog hasn't been played,<br/>we're using its full original do_list.")
                 has_non_top_levels = false
                 begin_top_loc = begin_loc //there aren't any non-top levels generated
                 end_top_loc   = end_loc
             }
-            else {
-                do_list_to_mine = job_instance.do_list
+            else { //use the already run do_list or job_instance.sent_instructions_strings
+                if(use_str_instrs){
+                       do_list_to_mine = this.make_string_do_list_from_sent_instr_strings(job_instance.sent_instructions_strings, job_instance)
+                }
+                else { do_list_to_mine = job_instance.do_list  }
                 has_non_top_levels = true
                 begin_top_loc  = job_instance.find_top_level_instruction_id_for_id(begin_loc)
                 end_top_loc    = job_instance.find_top_level_instruction_id_for_id(end_loc)
@@ -1199,7 +1289,7 @@ var MakeInstruction = class MakeInstruction{
             }
             //the below IF-ELSE  computes do_list_to_use. After that, make its src code.
             if(MiRecord.get_play_middle()){ //includes begin_loc (if its top level), excludes end_loc.
-                //the big dilemma: should I sue begin_top_loc or begin_loc to initialize "i" to?
+                //the big dilemma: should I use begin_top_loc or begin_loc to initialize "i" to?
                 //If I use begin_top_loc, then playing the ends may play some instrs that are also played
                 //by middle. But using begin_loc, we may skip some instrs that are inside the middle
                 //at its beginning but not top level.
@@ -1207,8 +1297,15 @@ var MakeInstruction = class MakeInstruction{
                 //If they set their begin and end marks to top level, the model is easy,
                 //but not if they don't.
                 for(let i = begin_loc; i < end_loc; i++){ //don't use end_top_loc because we are already filtering in the body of the for for top level so for end we get all the top leve linstrs up to bet not including end_loc
-                    if(job_instance.is_top_level_do_list_item(i)) {
-                        result_do_list.push(do_list_to_mine[i])
+                    if(use_str_instrs || !has_non_top_levels || job_instance.is_top_level_do_list_item(i)) {
+                        let instr_to_include = do_list_to_mine[i]
+                        if(!Instruction.is_no_op_instruction(instr_to_include)){ //besides the usual no_ops on the do_list,
+                                    //there can be undefined's because if we are just grapping the inserted strigs.
+                                    //the do_list_to_mine will have lots of undefines on it
+                                    //since that's what make_string_do_list_from_sent_instr_strings produces
+                                    //by design
+                            result_do_list.push(do_list_to_mine[i])
+                        }
                     }
                 }
             }
@@ -1216,206 +1313,106 @@ var MakeInstruction = class MakeInstruction{
                    //excludes begin_top_loc, includes end top loc.
                 //grab the head seg.
                 for(let i = 0; i < begin_loc; i++){
-                    if(job_instance.is_top_level_do_list_item(i)) {
-                        result_do_list.push(do_list_to_mine[i])
+                    if(use_str_instrs || job_instance.is_top_level_do_list_item(i)) {
+                        let instr_to_include = do_list_to_mine[i]
+                        if(!Instruction.is_no_op_instruction(instr_to_include)){
+                            result_do_list.push(do_list_to_mine[i])
+                        }
                     }
                 }
                 //grab the tail seg
-                for(let i = end_loc; i < job_instance.do_list.length; i++){
-                    if(job_instance.is_top_level_do_list_item(i)) {
-                        result_do_list.push(do_list_to_mine[i])
-                    }
-                }
-            }
-            let do_list_src = to_source_code({value: result_do_list, one_line_per_array_elt:true})
-            do_list_src = replace_substrings(do_list_src, "\n", "\n                   ") //indent 2nd thru nth lines
-            do_list_src = do_list_src.trim() //get rid of extra whitespace at end
-            return 'new Job({name: "' + target_job_name + '",\n' +
-                '         do_list: '  + do_list_src + "\n" +
-                '        })\n'
-        }
-    }
-
-    //return "" if no instructions selected, else return src code for a job with the proper do_list
-    /*static segment_job_code(){
-       if(!mi_job_insert_seg_jobs_checkbox_id.checked) { return "" }
-       else {
-        let target_job_name = mi_job_insert_def_job_name_id.value
-        let src_job_name = window.eval(MakeInstruction.arg_name_to_src_in_mi_dialog("name")) //might not just be a literal, could be an expression!
-        let job_instance = Job[src_job_name]
-        //the below IF-ELSE  computes do_list_to_use. After that, make its src code.
-        let do_list_to_use = []
-        if(!job_instance || (job_instance != MiState.job_instance) || !MiState.job_instance.do_list){ //not in sync so prefer the def in the dialog
-            do_list_to_use = window.eval(MakeInstruction.arg_name_to_src_in_mi_dialog("do_list"))
-        }
-        else {
-            let [begin1, end1, begin2, end2] = MiRecord.get_play_instruction_locs()
-            if(begin1 === undefined) { return "" } //no instructions.
-            else if(MiRecord.get_play_middle()){
-                let begin_id_into_do_list = job_instance.find_top_level_instruction_id_for_id(begin1)
-                let end_id_into_do_list   = job_instance.find_top_level_instruction_id_for_id(end1)
-                for(let i = begin_id_into_do_list; i <= end_id_into_do_list; i++){
-                    if(job_instance.is_top_level_do_list_item(i)) {
-                        do_list_to_use.push(job_instance.do_list[i])
-                    }
-                }
-            }
-            else { //concatenate the ends together, leaving out the middle
-                let begin_id_into_do_list = job_instance.find_top_level_instruction_id_for_id(end1) //end1 is *included* in this first seg
-                //grab the first, head seg.
-                for(let i = 0; i <= begin_id_into_do_list; i++){
-                    if(job_instance.is_top_level_do_list_item(i)) {
-                        do_list_to_use.push(job_instance.do_list[i])
-                    }
-                }
-                if(begin2 === undefined) {} //no "tail" to include
-                else { //grab the tail seg
-                    let first_id_of_end_segment
-                    //begin2 is in the tail (its not the end marker pos, its one higher.
-                    //if begin2 is  top level item, great, use it.
-                    //else back up in the do_list and find its top level item, and use that,
-                    //even though that will be in the "middle" seg.
-                    first_id_of_end_segment = job_instance.find_top_level_instruction_id_for_id(begin2)
-                    for(let i = first_id_of_end_segment; i < job_instance.do_list.length; i++){
-                        if(job_instance.is_top_level_do_list_item(i)) {
-                            do_list_to_use.push(job_instance.do_list[i])
+                for(let i = end_loc; i < do_list_to_mine.length; i++){
+                    if(use_str_instrs || job_instance.is_top_level_do_list_item(i)) {
+                        let instr_to_include = do_list_to_mine[i]
+                        if(!Instruction.is_no_op_instruction(instr_to_include)){
+                            result_do_list.push(do_list_to_mine[i])
                         }
                     }
                 }
             }
+            let do_list_src = to_source_code({value: result_do_list, one_line_per_array_elt:true})
+            if(mi_job_instrs_wrapper_data_id.checked){
+                do_list_src = replace_substrings(do_list_src, "\n", "\n ") //indent 2nd thru nth lines just one space for the outer close square bracket
+            }
+            else {
+                do_list_src = replace_substrings(do_list_src, "\n", "\n         ") //indent 2nd thru nth lines
+            }
+            do_list_src = do_list_src.trim() //get rid of extra whitespace at end
+
+            let result
+            if(mi_job_instrs_wrapper_job_id.checked) {
+                if(!this.validate_instruction_name_ui()) { return ["Invalid Job source code in Make Instruction dialog."]} //error messages are printed by this
+                let call_obj = this.make_call_obj_from_ui()
+                call_obj.args_obj.name = '"' + target_job_name + '"'
+                call_obj.args_obj.do_list = do_list_src
+                result = this.call_obj_to_instruction_src(true, call_obj) //returns null if there's an error
+            }
+            else if(mi_job_instrs_wrapper_var_id.checked){ //var
+                result = "var " + mi_job_instrs_wrapper_name_id.value + " = " + do_list_src
+            }
+            else if (mi_job_instrs_wrapper_data_id.checked){
+                result = do_list_src
+            }
+            else {
+                shouldnt("Im MakeInstruction.low_level_code, when inserting, didn't find a wrapper radio button checked.")
+            }
+            if (result == null) { return ["There's an error in the Job definition."] }
+            else return "\n" + result
         }
-        let do_list_src = to_source_code({value: do_list_to_use, one_line_per_array_elt:true})
-        do_list_src = replace_substrings(do_list_src, "\n", "\n                   ") //indent 2nd thru nth lines
-        do_list_src = do_list_src.trim() //get rid of extra whitespace at end
-        return 'new Job({name: "' + target_job_name + '",\n' +
-               '         do_list: ' + do_list_src + "\n" +
-               '        })\n'
-       }
-    }*/
-
-    /*
-    static show_insert_job_dialog(){
-       let job_name = window[this.arg_name_to_dom_elt_id("name")].value
-       if (job_name == '""') { job_name = "recording" }
-       else { job_name = job_name.substring(1, job_name.length - 1) }
-       show_window({title: "Insert Job(s)",
-                    y: 180, height: 470,
-                    background_color: "#E0E0E0",
-                    content:
-        "<fieldset><legend>Segments to include</legend>" +
-        "<input id='mi_job_insert_begin_checkbox_id'  type='checkbox' " + (mi_play_seg_begin_id.checked  ? "checked" : "") + " />begin" +
-        "<i style='margin-left:30px'>name</i>: <input id='mi_job_insert_begin_name_id'  value='" + job_name + "_begin' /><br/>" +
-        "<input id='mi_job_insert_middle_checkbox_id' type='checkbox' " + (mi_play_seg_middle_id.checked ? "checked" : "") + " />middle" +
-        "<i style='margin-left:20px'>name</i>: <input id='mi_job_insert_middle_name_id' value='" + job_name + "_middle'/><br/>" +
-        "<input id='mi_job_insert_end_checkbox_id'    type='checkbox' " + (mi_play_seg_end_id.checked    ? "checked" : "") + " />end" +
-        "<i style='margin-left:43px'>name</i>: <input id='mi_job_insert_end_name_id'    value='" + job_name + "_end'    /><br/>" +
-        "</fieldset>" +
-        "<fieldset><legend>Insert Selected Segment References</legend>" +
-        "<input id='mi_job_insert_ref_none_radio_id' type='radio' name='mi_job_ref_radio' checked/> None<br/>" +
-        "<input id='mi_job_insert_ref_refs_radio_id' type='radio' name='mi_job_ref_radio'        /> References only<br/>" +
-        "<input id='mi_job_insert_ref_job_radio_id'  type='radio' name='mi_job_ref_radio'        /> Job containing references<br/>" +
-        "<i style='margin-left:95px'>name</i>: <input id='mi_job_insert_ref_job_name_id' value='" + job_name + "_refs'/><br/>" +
-
-        "<i>References will be inserted at editor cursor.</i>" +
-        "</fieldset>" +
-        "<fieldset style='margin-bottom:5px;'><legend>Insert Selected Segment Jobs</legend>" +
-        "<input id='mi_job_insert_seg_jobs_none_radio_id'    type='radio' name='mi_job_insert_seg_radio'        /> None<br/>" +
-        "<input id='mi_job_insert_seg_jobs_one_per_radio_id' type='radio' name='mi_job_insert_seg_radio'        /> One Job per selected segment<br/>" +
-        "<input id='mi_job_insert_seg_jobs_one_all_radio_id' type='radio' name='mi_job_insert_seg_radio' checked/> One Job of all selected segments<br/>" +
-        "<i style='margin-left:95px'>name</i>: <input id='mi_job_insert_seg_jobs_name_id' value='" + job_name + "'/><br/>" +
-        "<input id='mi_job_insert_seg_jobs_checkbox_id' type='checkbox'/>Include excluded tails<br/>" +
-        "<i>These Jobs inserted at end of editor.</i>" +
-        "</fieldset>" +
-        "<center><button onclick='MakeInstruction.insert_jobs_preview()'>Preview</button> &nbsp;" +
-        "<button>Insert</button></center>"
-       })
-    }
-    static insert_jobs_preview(){
-        let seg_refs_code = this.segment_references_code()
-        if (seg_refs_code == "") { seg_refs_code = "<i style='color:red;'>nothing to insert</i>" }
-
-        let seg_jobs_code = this.segment_jobs_code()
-        if (seg_jobs_code == "") { seg_jobs_code = "<i style='color:red;'>nothing to insert</i>" }
-
-        let content = "<div style='font-size:16px;'><b>Selected Segment References</b></div>" +
-                    "<i>To be inserted at the editor's cursor.</i><br/><pre><code>" +
-                     seg_refs_code +
-                    "</code></pre><p/><div style='font-size:16px;'><b>Selected Segment Jobs</b></div>" +
-                    "<i>To be inserted at the end of the editor.</i><br/><pre><code>" +
-                    seg_jobs_code +
-                    "</code></pre>"
-        show_window({title: "Insert Jobs Preview",
-                    content: content,
-                    x:10, y:40, width:600, height:500
-        })
     }
 
-    static segment_references_code(){
-        let selected_id = document.querySelector('input[name="mi_job_ref_radio"]:checked').id
-        let result = ""
-        if     (selected_id == "mi_job_insert_ref_none_radio_id") { result = "" }
-        else if(selected_id == "mi_job_insert_ref_refs_radio_id") {
-            result += this.segment_references_code_refs()
-        }
-        else if(selected_id == "mi_job_insert_ref_job_radio_id") {
-            let call_obj = MakeInstruction.make_call_obj_from_ui()
-            let refs     = "[" + this.segment_references_code_refs().trim() + "]"
-            call_obj.args_obj.do_list = refs
-            result = MakeInstruction.call_obj_to_instruction_src(true, call_obj)
-        }
-        else { shouldnt("in MakeInstruction.segment_references_code") }
-        return result
-    }
-
-    static segment_references_code_refs(){
-        let result = ""
-        if(mi_job_insert_begin_checkbox_id.checked) {
-            result += '        Robot.include_job("' + mi_job_insert_begin_name_id.value  + '")'
-        }
-        if(mi_job_insert_middle_checkbox_id.checked) {
-            if(result != "") { result += ",\n" }
-            result += '        Robot.include_job("' + mi_job_insert_middle_name_id.value  + '")'
-        }
-        if(mi_job_insert_end_checkbox_id.checked) {
-            if(result != "") { result += ",\n" }
-            result += '        Robot.include_job("' + mi_job_insert_end_name_id.value  + '")'
+    static make_string_do_list_from_orig(orig_do_list, job_instance){
+        let result = new Array(orig_do_list.length)
+        for(let i = 0; i < orig_do_list.length; i++){
+            let orig_instr = orig_do_list[i]
+            if(job_instance && Instruction.is_data_array(orig_instr)) { //worth a shot and necessary for recording jobs which haven't been started
+                orig_instr = job_instance.transform_data_array(orig_instr)
+            }
+            if((typeof(orig_instr) == "string") || Instruction.is_oplet_array(orig_instr)){
+                let str = Socket.oplet_array_or_string_to_string(orig_instr)
+                str = this.trim_prefix_off_instr_string(str)
+                result[i] = str
+            }
+            //else can't convert it to a string so forget it.
         }
         return result
     }
 
-    static segment_jobs_code(){
-       let selected_id = document.querySelector('input[name="mi_job_insert_seg_radio"]:checked').id
-       let result = ""
-       if(selected_id == "mi_job_insert_seg_jobs_none_radio_id") { result = "" }
-       else if(selected_id == 'mi_job_insert_seg_jobs_one_per_radio_id') {
-           if(mi_job_insert_begin_checkbox_id.checked) {
-               let call_obj = MakeInstruction.make_call_obj_from_ui()
-               call_obj.args_obj.name = '"' + mi_job_insert_begin_name_id.value + '"'
-               let new_src = MakeInstruction.call_obj_to_instruction_src(true, call_obj)
-               result += new_src + "\n"
-           }
-           if(mi_job_insert_middle_checkbox_id.checked) {
-               let call_obj = MakeInstruction.make_call_obj_from_ui()
-               call_obj.args_obj.name = '"' + mi_job_insert_middle_name_id.value + '"'
-               let new_src = MakeInstruction.call_obj_to_instruction_src(true, call_obj)
-               result += new_src + "\n"
-           }
-           if(mi_job_insert_end_checkbox_id.checked) {
-               let call_obj = MakeInstruction.make_call_obj_from_ui()
-               call_obj.args_obj.name = '"' + mi_job_insert_end_name_id.value + '"'
-               let new_src = MakeInstruction.call_obj_to_instruction_src(true, call_obj)
-               result += new_src + "\n"
-           }
+    static make_string_do_list_from_sent_instr_strings(sent_instr_strings_array, job_instance){
+       let result = new Array(job_instance.do_list.length)
+       for(let instr_str of sent_instr_strings_array){
+           let instr_id = Instruction.extract_instruction_id(instr_str)
+           let trimmed_str = this.trim_prefix_off_instr_string(instr_str)
+           result[instr_id] = trimmed_str
        }
-       else if(mi_job_insert_seg_jobs_one_all_radio_id){
-           result = "mi_job_insert_seg_jobs_one_all_radio_id needs work"
-       }
-       else { shouldnt("in MakeInstruction.segment_jobs_code, can't handle selected id: " + selected_id) }
-
        return result
-    }*/
+    }
 
-} //end class
+   // MakeInstruction.trim_prefix_off_instr_string("1  2  3333 undefined a 200 300;") =>
+   // a 200 300;"
+    //allows > 1 space between parts.
+    static trim_prefix_off_instr_string(full_instr_string){
+       let split_arr = full_instr_string.split(" ")
+       let on_field = 0
+       let last_char_was_space = false
+       for(let i = 0; i < full_instr_string.length; i++) {
+           let char = full_instr_string[i]
+           if(char == " ") {
+               if(last_char_was_space) {}
+               else { last_char_was_space = true }
+           }
+           else if (last_char_was_space) {
+               last_char_was_space = false
+               on_field += 1
+               if(on_field == Dexter.INSTRUCTION_TYPE){
+                   let result = full_instr_string.substring(i)
+                   return result
+               }
+           }
+       }
+    }
+
+} //end MakeInstruction class
 
 
 
@@ -1449,6 +1446,8 @@ MakeInstruction.menu_hierarchy = [
                    ]
 ]
 
+var Socket = require("./core/socket.js") //used for string instruction processing
 var esprima = require('esprima')
 var {ends_with_one_of, fn_is_keyword_fn, replace_substrings, starts_with_one_of, trim_end} = require("./core/utils.js")
 var {to_source_code} = require("./core/to_source_code.js")
+var {file_exists, write_file, make_full_path} = require("./core/storage.js")

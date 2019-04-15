@@ -194,7 +194,7 @@ The base of the motor controller board has 3
 Each indicates that a joint has power.
     </details> <!-- end Power Up -->
 
-    <details class="doc_details" ><summary>Data Connection</summary>
+    <details id="data_connection_doc_id" class="doc_details" ><summary>Data Connection</summary>
     <b>Ethernet Cable</b><br/>
     Use an Ethernet cable (with RJ45 male connectors) to go between
     Dexter and your computer. Available at Staples, Home Depot, Best Buy, Amazon, etc.
@@ -245,9 +245,7 @@ Each indicates that a joint has power.
      <p></p>
       For an older Mac with an Ethernet socket, or one you manage to get working
       with a dongle:
-     <ol><li>Disconnect your WiFi (sorry, its necessary) by clicking on the
-             "Radio waves" icon in the upper right of the screen.
-             Choose "Turn WiFi Off".</li>
+     <ol>
          <li>Select Apple Menu/System Preferences</li>
          <li>If your OS version is Sierra, a mostly useless dialog will come up.
              You have to click the left arrow in the upper left of this dialog
@@ -354,8 +352,14 @@ Each indicates that a joint has power.
         Dexter and/or your computer. <br/>
         If you are using an Ethernet cable, there are two LEDs on top of the RJ45 socket.
         When the amber one is lit, it shows connectivity. The green LED indicates
-        data transfer.
+        data transfer.<br/>
+        Usually you can leave your WIFI running, but sometimes
+        it interferes with a wired connection.<br/>
+        On Macs, click on the "Radio waves" icon in the upper right of the screen.<br/>
+        Choose "Turn WiFi Off".
         <p></p>
+        <a  target="_blank" href="https://github.com/HaddingtonDynamics/Dexter/wiki/Dexter-Networking">
+        Dexter Networking details.</a><br/>
         <b>Using DDE</b><br/>
         On the Jobs menu/Simulate? submenu, choose "false".
         Now choose Jobs menu/Run Instruction/NEUTRAL_ANGLES,
@@ -495,7 +499,8 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
     Calibrate the optical encoders by clicking the bottom button in the dialog.
  This will take about a minute.
  When the directions line in Step 2 says that calibration is complete, you
- can close this dialog by clicking the <b>x</b> in its upper right corner.
+ can close this dialog by clicking the <b>x</b> in its upper right corner.<br/>
+ See also <a href="#" onclick="open_doc('Dexter.is_calibrated_doc_id')">is_calibrated</a>
 </details>
 
 <details class="doc_details"><summary>User Interface</summary>

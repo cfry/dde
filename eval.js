@@ -69,10 +69,15 @@ function eval_js_part1(step=false){
 //part 2 of 3 is in eval.js,  window.addEventListener('message'  under the message name of "eval"
 function eval_js_part2(command, calL_eval_part3_if_no_error=true){ //2nd arg passed in as false for eval_and_play
     command = fix_code_to_be_evaled(command)
-    var suffix_to_evaled_src = ""
-    if (command.startsWith("{")) { prefix_to_evaled_src = "try{("; suffix_to_evaled_src = ")" } //parens fixes broken js eval of src like "{a:2, b:3}"
-    else { prefix_to_evaled_src = "try{" //no parens, normal case
-        suffix_to_evaled_src = ""
+    let suffix_to_evaled_src
+    let prefix_to_evaled_src
+    if (command.startsWith("{")) {
+        prefix_to_evaled_src = "try{(";
+        suffix_to_evaled_src = ")}"
+    } //parens fixes broken js eval of src like "{a:2, b:3}"
+    else {
+        prefix_to_evaled_src = "try{" //no parens, normal case
+        suffix_to_evaled_src = "}"
     }
     //full_dexter_url = event.data.full_dexter_url
     var result = {command: command}
@@ -80,9 +85,9 @@ function eval_js_part2(command, calL_eval_part3_if_no_error=true){ //2nd arg pas
     try {//note doing try_command = "var val927; try{val927 = " + command ...fails because  evaling
         //"var f1 = function f2(){...}" will bind f1 to the fn but NOT f2!!! what a piece of shit js is.
         //AND wrapping parens around src of  "{a:2, b:3}" works but wrapping parens around a "function f1()..." doesn't get f1 bound to the fn.
-        var try_command = prefix_to_evaled_src + command + suffix_to_evaled_src + "} catch(err){error_message_start_and_end_pos(err)}"
+        var try_command = prefix_to_evaled_src + command + suffix_to_evaled_src + " catch(err){error_message_start_and_end_pos(err)}"
         //if try succeeds, it returns its last val, else catch hits and it returns its last val
-        //if I dont' do this trick with val927, I get an error when evaling "{a:2, b:3}
+        //if I don't do this trick with val927, I get an error when evaling "{a:2, b:3}
         //I can't figure out whether try is supposed to return the val of its last exp or not from the js spec.
         let start_time = Date.now()
         var value = window.eval(try_command) //window.eval evals in "global scope" meaning that, unlike plain eval,

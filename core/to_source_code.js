@@ -51,7 +51,7 @@ module.exports.to_source_code = to_source_code
 
 function to_source_code_array(args){
     let value = args.value
-    if (Instruction.is_instruction_array(value)) {
+    if (Instruction.is_oplet_array(value)) {
         return to_source_code_instruction_array(args)
     }
     let chars_added_since_last_newline = 0

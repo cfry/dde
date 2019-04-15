@@ -1063,6 +1063,14 @@ foo      //eval to see the latest values</pre>`,
     }
     calibrate_id.onclick   = function() { init_calibrate() }//defines 2 jobs and brings up calibrate dialog box
     ping_dexter_id.onclick = function() { ping_a_dexter() }
+    run_job_on_dexter_id.onclick = function() {
+        let job_src = Editor.get_any_selection() //we want to be able to select a Job def in
+            //the doc pane and send it to Dexter.
+        if(job_src == "") {
+            job_src = Editor.get_javascript("auto") //the normal case, get the whole editor buffer
+        }
+        Job.start_and_monitor_dexter_job(job_src)
+    }
         //Output_ops menu
     ping_id.onclick          = function(){ rde.ping()}
     cat_etc_hosts_id.onclick = function(){ rde.shell('cat /etc/hosts')}

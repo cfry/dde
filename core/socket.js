@@ -4,30 +4,34 @@ const net = require("net")
 
 //never create an instance
 var Socket = class Socket{
-    static init(robot_name, simulate, ip_address, port=50000){
+    static init(robot_name //, simulate, ip_address, port=50000
+            ){
         //out("Creating Socket for ip_address: " + ip_address + " port: "   + port + " robot_name: " + robot_name)
-        const sim_actual = Robot.get_simulate_actual(simulate) //true, false, or "both"
-        if(Socket.robot_name_to_ws_instance_map[robot_name]){
-            this.close(robot_name, simulate)
-        }
+        let rob = Robot[robot_name]
+        const sim_actual = Robot.get_simulate_actual(rob.simulate) //true, false, or "both"
+        //if(Socket.robot_name_to_ws_instance_map[robot_name]){
+        //    this.close(robot_name)
+        //}
         if ((sim_actual === true)  || (sim_actual == "both")) {
             DexterSim.create_or_just_init(robot_name, sim_actual)
             out("Simulating socket for Robot." + robot_name + ". is_connected? " + Robot[robot_name].is_connected)
         }
         if ((sim_actual === false) || (sim_actual == "both")) {
-            try {
-                let ws_inst = new net.Socket()
-                Socket.robot_name_to_ws_instance_map[robot_name] = ws_inst
-                ws_inst.on("data", function(data) { Socket.on_receive(data, robot_name) })
-                out("Now attempting to connect to Dexter: " + robot_name + " at ip_address: " + ip_address + " port: " + port + " ...", "brown")
-                ws_inst.connect(port, ip_address, function(){
-                    Socket.new_socket_callback(robot_name)
-                })
+            if(!Socket.robot_name_to_ws_instance_map[robot_name]){
+                try {
+                    let ws_inst = new net.Socket()
+                    Socket.robot_name_to_ws_instance_map[robot_name] = ws_inst
+                    ws_inst.on("data", function(data) { Socket.on_receive(data, robot_name) })
+                    out("Now attempting to connect to Dexter: " + robot_name + " at ip_address: " + rob.ip_address + " port: " + rob.port + " ...", "brown")
+                    ws_inst.connect(rob.port, rob.ip_address, function(){
+                        Socket.new_socket_callback(robot_name)
+                    })
 
-            }
-            catch(e){
-                dde_error("Error attempting to create socket: " + e.message)
-                this.close(robot_name, simulate)
+                }
+                catch(e){
+                    dde_error("Error attempting to create socket: " + e.message)
+                    this.close(robot_name, true)
+                }
             }
         }
     }
@@ -41,22 +45,36 @@ var Socket = class Socket{
         Dexter.set_a_robot_instance_socket_id(robot_name)
         if (Socket.resend_instruction) {
             let rob = Robot[robot_name]
-            Socket.send(robot_name, Socket.resend_instruction, rob.simulate)
+            Socket.send(robot_name, Socket.resend_instruction)
         }
     }
 
-    static instruction_array_to_array_buffer(instruction_array){
-        let result = ""
-        for(var i = 0; i < instruction_array.length; i++){
-            let suffix = ((i == (instruction_array.length - 1))? ";": " ")
-            let elt = instruction_array[i] + suffix
-            if (Number.isNaN(elt)) { elt = "NaN" } //usually only for "a" instructions and only for elts > 4
-            result += elt
+    static oplet_array_or_string_to_array_buffer(oplet_array_or_string){
+        let str = this.oplet_array_or_string_to_string(oplet_array_or_string)
+        return this.string_to_array_buffer(str)
+    }
+
+    static oplet_array_or_string_to_string(oplet_array_or_string) {
+        if (typeof(oplet_array_or_string) == "string") { return oplet_array_or_string }
+        else {
+            let str = ""
+            for(var i = 0; i < oplet_array_or_string.length; i++){
+                let suffix = ((i == (oplet_array_or_string.length - 1))? ";": " ")
+                //let elt = oplet_array_or_string[i] + suffix
+                let elt = oplet_array_or_string[i]
+                if (Number.isNaN(elt)) { elt = "NaN" } //usually only for "a" instructions and only for elts > 4
+                elt = elt + suffix
+                str += elt
+            }
+            return str
         }
-        var arr_buff = new Buffer(128) //dexter code expecting fixed length buf of 128
+    }
+
+    static string_to_array_buffer(str){
+        var arr_buff = Buffer.alloc(128) //dexter code expecting fixed length buf of 128
         //var view1    = new Uint8Array(arr_buff)
-        for(var i = 0; i < result.length; i++){
-            let char = result[i]
+        for(var i = 0; i < str.length; i++){
+            let char = str[i]
             let code = char.charCodeAt(0)
             arr_buff[i] = code
         }
@@ -66,12 +84,9 @@ var Socket = class Socket{
     //also converts S params: "MaxSpeed", "StartSpeed", "Acceleration", S params of  boundry
     //and  the z oplet. Note that instruction start and end times are always in milliseconds
     static instruction_array_degrees_to_arcseconds_maybe(instruction_array, rob){
+        if(typeof(instruction_array) == "string") { return instruction_array} //no conversion needed.
         const oplet = instruction_array[Dexter.INSTRUCTION_TYPE]
-        if(Instruction.is_short_instruction_name_no_convert(oplet)){
-             instruction_array[Dexter.INSTRUCTION_TYPE] = oplet[0] //strip off the ! and from here on it looks like a singe char normal oplet
-             return instruction_array
-        }
-        else if ((oplet == "a") || (oplet == "P")){
+        if ((oplet == "a") || (oplet == "P")){
             let instruction_array_copy = instruction_array.slice()
             /*instruction_array_copy[Instruction.INSTRUCTION_ARG0] =
                 Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG0] * 3600)
@@ -150,170 +165,150 @@ var Socket = class Socket{
         else { return instruction_array }
     }
 
-    /* not called, and not up to date with oplet "T"
-    static instruction_array_arcseconds_to_degrees_maybe(instruction_array){
-        const oplet = instruction_array[Dexter.INSTRUCTION_TYPE]
-        if (oplet == "a"){
-            //var instruction_array_copy = instruction_array.slice()
-            //instruction_array_copy[Instruction.INSTRUCTION_ARG0] /= 3600
-            //instruction_array_copy[Instruction.INSTRUCTION_ARG1] /= 3600
-            //instruction_array_copy[Instruction.INSTRUCTION_ARG2] /= 3600
-            //instruction_array_copy[Instruction.INSTRUCTION_ARG3] /= 3600
-            //instruction_array_copy[Instruction.INSTRUCTION_ARG4] /= 3600
-            let angle_args_count = instruction_array.length - Instruction.INSTRUCTION_ARG0
-            let instruction_array_copy = instruction_array.slice()
-            for(let i = 0; i < angle_args_count; i++) {
-                let index = Instruction.INSTRUCTION_ARG0 + i
-                let arg_val = instruction_array[index]
-                instruction_array_copy[index] = arg_val / 3600
-            }
-            return instruction_array_copy
-        }
-        else if (oplet == "S"){
-            const name = instruction_array[Instruction.INSTRUCTION_ARG0]
-            if(["MaxSpeed", "StartSpeed", "Acceleration"].includes(name)){
-                var instruction_array_copy = instruction_array.slice()
-                instruction_array_copy[Instruction.INSTRUCTION_ARG1] =
-                    instruction_array_copy[Instruction.INSTRUCTION_ARG1] / _nbits_cf
-                return instruction_array_copy
-            }
-            else if (name.includes("Boundry")) {
-                var instruction_array_copy = instruction_array.slice()
-                instruction_array_copy[Instruction.INSTRUCTION_ARG1] =
-                    instruction_array_copy[Instruction.INSTRUCTION_ARG1] / 3600 //arcseconds to deg
-                return instruction_array_copy
-            }
-            else { return instruction_array }
-        }
-        else if (oplet == "z") {
-            var instruction_array_copy = instruction_array.slice()
-            instruction_array_copy[Instruction.INSTRUCTION_ARG0] =
-                instruction_array_copy[Instruction.INSTRUCTION_ARG0] / 1000 //milliseocnds to seconds
-            return instruction_array_copy
-        }
-        else { return instruction_array }
-    }*/
-
-    //static robot_done_with_instruction_convert()
-
-    /*static send(robot_name, instruction_array, simulate){ //can't name a class method and instance method the same thing
-        instruction_array = Socket.instruction_array_degrees_to_arcseconds_maybe(instruction_array)
-        const sim_actual = Robot.get_simulate_actual(simulate)
-        if((sim_actual === true) || (sim_actual === "both")){
-            DexterSim.send(robot_name, instruction_array)
-        }
-        if ((sim_actual === false) || (sim_actual === "both")) {
-            const array = Socket.instruction_array_to_array_buffer(instruction_array)
-            let ws_inst = Socket.robot_name_to_ws_instance_map[robot_name]
-            ws_inst.write(array);
-        }
-    }*/
-    static send(robot_name, instruction_array, simulate){ //can't name a class method and instance method the same thing
+    static send(robot_name, oplet_array_or_string){ //can't name a class method and instance method the same thing
         let rob = Robot[robot_name]
-       	if(instruction_array !== Socket.resend_instruction){ //we don't want to convert an array more than once as that would have degreees * 3600 * 3600 ...
+       	if(oplet_array_or_string !== Socket.resend_instruction){ //we don't want to convert an array more than once as that would have degreees * 3600 * 3600 ...
        	                                                     //so only to the convert on the first attempt.
-        	instruction_array = Socket.instruction_array_degrees_to_arcseconds_maybe(instruction_array, rob)
+            oplet_array_or_string = Socket.instruction_array_degrees_to_arcseconds_maybe(oplet_array_or_string, rob)
         }
-        const sim_actual = Robot.get_simulate_actual(simulate)
+        let job_id = Instruction.extract_job_id(oplet_array_or_string)
+        let job_instance = Job.job_id_to_job_instance(job_id)
+        const str =  Socket.oplet_array_or_string_to_string(oplet_array_or_string)
+        if(job_instance.keep_history) {
+            job_instance.sent_instructions_strings.push(str)
+        }
+        const arr_buff = Socket.string_to_array_buffer(str)
+        const sim_actual = Robot.get_simulate_actual(rob.simulate)
         if((sim_actual === true) || (sim_actual === "both")){
-            DexterSim.send(robot_name, instruction_array)
+            DexterSim.send(robot_name, arr_buff)
         }
-
         if ((sim_actual === false) || (sim_actual === "both")) {
-            const array = Socket.instruction_array_to_array_buffer(instruction_array)
             let ws_inst = Socket.robot_name_to_ws_instance_map[robot_name]
-            let job_id = instruction_array[Instruction.JOB_ID]
-            try {
-                ws_inst.write(array) //if doesn't error, success and we're done with send
-                Socket.resend_instruction = null
-                Socket.resend_count       = null
-                //this.stop_job_if_socket_dead(job_id, robot_name)
-                return
-            }
-            catch(err) {
-                if(instruction_array === Socket.resend_instruction) {
-                    if (Socket.resend_count >= 4) {  //we're done
-                        let job_instance = Job.id_to_job(job_id)
-                        job_instance.stop_for_reason("errored", "can't connect to Dexter")
-                        //job_instance.color_job_button() //automatically done by job.prototype.finish
-                        job_instance.set_up_next_do(0)  //necessary?
-                        return
+            if(ws_inst) {
+                try {
+                    ws_inst.write(arr_buff) //if doesn't error, success and we're done with send
+                    Socket.resend_instruction = null
+                    Socket.resend_count       = null
+                    //this.stop_job_if_socket_dead(job_id, robot_name)
+                    return
+                }
+                catch(err) {
+                    if(oplet_array_or_string === Socket.resend_instruction) {
+                        if (Socket.resend_count >= 4) {  //we're done
+                            job_instance.stop_for_reason("errored", "can't connect to Dexter")
+                            //job_instance.color_job_button() //automatically done by job.prototype.finish
+                            job_instance.set_up_next_do(0)  //necessary?
+                            return
+                        }
+                        else { //keep trying
+                            Socket.resend_count += 1
+                            Socket.close(robot_name, true) //both are send args
+                            let timeout_dur = Math.pow(10, Socket.resend_count)
+                            setTimeout(function(){
+                                Socket.init(robot_name)
+                            }, timeout_dur)
+                            return
+                        }
                     }
-                    else { //keep trying
-                        Socket.resend_count += 1
-                        Socket.close(robot_name, simulate) //both are send args
+                    else { //first attempt failed so initiate retrys
+                        Socket.resend_instruction =  oplet_array_or_string
+                        Socket.resend_count = 0
+                        Socket.close(robot_name, true) //both are send args
                         let timeout_dur = Math.pow(10, Socket.resend_count)
                         setTimeout(function(){
-                            Socket.init(robot_name, //passed to send
-                                        simulate,   //passed to send
-                                        rob.ip_address, //get from ws_inst ???
-                                        rob.port //50000   //port
-                            )
+                            Socket.init(robot_name)
                         }, timeout_dur)
                         return
                     }
                 }
-                else { //first attempt failed so initiate retrys
-                    Socket.resend_instruction =  instruction_array
-                    Socket.resend_count = 0
-                    Socket.close(robot_name, simulate) //both are send args
-                    let timeout_dur = Math.pow(10, Socket.resend_count)
-                    setTimeout(function(){
-                        Socket.init(robot_name, //passed to send
-                            simulate,   //passed to send
-                            rob.ip_address, //get from ws_inst ???
-                            rob.port       //port
-                        )
-                    }, timeout_dur)
-                    return
-                }
+            }
+            else {
+                Socket.close(robot_name, true) //both are send args
+                setTimeout(function(){
+                    Socket.init(robot_name)
+                }, 100)
+                return
             }
         }
     } //end of send method
-
+    /* apr 2019: sim calls on_receive now
     static on_receive_sim(robot_status_in_arcseconds, robot_name){ //robot_status_in_arcseconds might also be an ack_array, wbich doens't have any degrees, and won't be converted. or modified.
-        Socket.convert_robot_status_to_degrees(robot_status_in_arcseconds) //modifies its input
         let rob = Robot[robot_name]
-        rob.robot_done_with_instruction(robot_status_in_arcseconds) //now robot_status_in_arcseconds is really in degrees
-    }
+        let sim_actual = Robot.get_simulate_actual(rob.simulate)
+        if(sim_actual === true) { //don't include "both"
+            Socket.convert_robot_status_to_degrees(robot_status_in_arcseconds) //modifies its input
+            rob.robot_done_with_instruction(robot_status_in_arcseconds) //now robot_status_in_arcseconds is really in degrees
+        }
+        //else {} rob.simulate will be "both", so let the real Dexter supply the call to
+        //rob.robot_done_with_instruction and the rs_status from Dexter, not the simulated one.
+    }*/
 
-    static on_receive(data, robot_name){ //only called by ws, not by simulator
-        var js_array = []
-        var view1 = new Int32Array(data.buffer) //array_buff1.bytelength / 4); //weird google syntax for getting length of a array_buff1
-        for(var i = 0; i < view1.length; i++){
-            var elt_int32 = view1[i]
-            js_array.push(elt_int32)
+    //data should be a Buffer object. https://nodejs.org/api/buffer.html#buffer_buffer
+    //payload_string_maybe is undefined when called from the robot,
+    //and if called from sim is either a string (everything ok)
+    //or an integer (1) when sim get file-not-found.
+    //
+    static on_receive(data, robot_name, payload_string_maybe){
+        //data.length == 240 data is of type: Uint8Array, all values between 0 and 255 inclusive
+        let robot_status
+        let oplet
+        if(Array.isArray(data)) {  //a status array passed in from the simulator
+            robot_status = data
+            oplet = robot_status[Dexter.INSTRUCTION_TYPE]
+        }
+        else { //a Uint8Array when called from the robot.
+            let view1 = new Int32Array(data.buffer) //array_buff1.bytelength / 4); //weird google syntax for getting length of a array_buff1
+            robot_status = []
+            for(var i = 0; i < view1.length; i++){
+                var elt_int32 = view1[i]
+                robot_status.push(elt_int32)
+            }
+            let opcode = robot_status[Dexter.INSTRUCTION_TYPE]
+            oplet  = String.fromCharCode(opcode)
         }
         //the simulator automatically does this so we have to do it here in non-simulation
-        let op_code = js_array[Dexter.INSTRUCTION_TYPE]
-        let op_let  = String.fromCharCode(op_code)
-        js_array[Dexter.INSTRUCTION_TYPE] = op_let
-        if(op_let == "r"){
-            Socket.r_payload_grab(data, js_array)
+
+        robot_status[Dexter.INSTRUCTION_TYPE] = oplet
+        if(oplet == "r"){ //read_from_robot
+            if(typeof(payload_string_maybe) == "number") { //should be 1
+                robot_status[Dexter.ERROR_CODE] = 0 //even though we got an error from file_not_found,
+                //don't set the error in the robot status. Just let that error
+                //be used in r_payload_grab_aux which passes it to got_content_hunk
+                //which sets the user data to the error code and
+                // read_from_robot_instance.is_done = true
+                //so the loop in read_from_robot_instance terminates normally.
+            }
+            Socket.r_payload_grab(data, robot_status, payload_string_maybe)
         }
         else {
-            Socket.convert_robot_status_to_degrees(js_array)
+            Socket.convert_robot_status_to_degrees(robot_status)
         }
-        //let job_id       = js_array[Dexter.INSTRUCTION_JOB_ID]
+        //let job_id       = robot_status[Dexter.INSTRUCTION_JOB_ID]
         //let job_instance = Job.id_to_job(job_id)
         //let robot_name   = job_instance.robot.name
         let rob = Dexter[robot_name]
         //Socket.robot_is_waiting_for_reply[robot_name] = false
-        rob.robot_done_with_instruction(js_array) //this is called directly by simulator
+        rob.robot_done_with_instruction(robot_status) //robot_status ERROR_CODE *might* be 1
     }
 
-    static r_payload_grab(data, js_array) {
-        let payload_length = js_array[Socket.PAYLOAD_LENGTH]
-        let data_start = Socket.PAYLOAD_START
-        let data_end = data_start + payload_length
-        let payload_string = (data.slice(data_start, data_end).toString())
-        Socket.r_payload_grab_aux(payload_string, js_array)
+    static r_payload_grab(data, robot_status, payload_string_maybe) {
+        let payload_string
+        if(payload_string_maybe === undefined) {
+            let payload_length = robot_status[Socket.PAYLOAD_LENGTH]
+            let data_start = Socket.PAYLOAD_START
+            let data_end = data_start + payload_length
+            payload_string = (data.slice(data_start, data_end).toString())
+        }
+        else {
+            payload_string =  payload_string_maybe
+        }
+        Socket.r_payload_grab_aux(robot_status, payload_string)
     }
 
     //called by both Socket.r_payload_grab AND DexterSim.process_next_instruction_r
-    static r_payload_grab_aux(payload_string, js_array){
-        let job_id = js_array[Dexter.JOB_ID]
-        let ins_id = js_array[Dexter.INSTRUCTION_ID]
+    static r_payload_grab_aux(robot_status, payload_string){
+        let job_id = robot_status[Dexter.JOB_ID]
+        let ins_id = robot_status[Dexter.INSTRUCTION_ID]
         Instruction.Dexter.read_from_robot.got_content_hunk(job_id, ins_id, payload_string)
     }
 
@@ -364,32 +359,36 @@ var Socket = class Socket{
         robot_status[Dexter.J5_MEASURED_ANGLE] = robot_status[Dexter.J5_ANGLE] + robot_status[Dexter.J5_DELTA] - robot_status[Dexter.J5_PID_DELTA] + robot_status[Dexter.J5_FORCE_CALC_ANGLE]
     }
 
-    static close(robot_name, simulate=null){
-        const sim_actual = Robot.get_simulate_actual(simulate)
+    static close(robot_name, force_close=false){
+        let rob = Robot[robot_name]
+        const sim_actual = Robot.get_simulate_actual(rob.simulate)
         if ((sim_actual === true) || (sim_actual === "both")){ //simulation
             DexterSim.close(robot_name)
         }
         if ((sim_actual === false) || (sim_actual == "both")){
-            const ws_inst = Socket.robot_name_to_ws_instance_map[robot_name]
-            if(ws_inst){
-                ws_inst.removeAllListeners()
-                ws_inst.destroy()
-                Socket.robot_name_to_ws_instance_map[robot_name]
+            if((rob.active_jobs_using_this_robot().length == 0) || force_close){
+                const ws_inst = Socket.robot_name_to_ws_instance_map[robot_name]
+                if(ws_inst){
+                    ws_inst.removeAllListeners()
+                    ws_inst.destroy()
+                    delete Socket.robot_name_to_ws_instance_map[robot_name]
+                }
             }
         }
     }
 
-    static empty_instruction_queue_now(robot_name, simulate){
-        const sim_actual = Robot.get_simulate_actual(simulate)
+    static empty_instruction_queue_now(robot_name){
+        let rob = Robot[robot_name]
+        const sim_actual = Robot.get_simulate_actual(rob.simulate)
         if ((sim_actual === true) || (sim_actual === "both")){ //simulation
             DexterSim.empty_instruction_queue_now(robot_name)
         }
         if ((sim_actual === false) || (sim_actual == "both")){
             const ws_inst = Socket.robot_name_to_ws_instance_map[robot_name]
             if(ws_inst && !ws_inst.destroyed){
-                const instruction_array = make_ins("E") //don't expect to hear anything back from this.
-                const array = Socket.instruction_array_to_array_buffer(instruction_array)
-                try { ws_inst.write(array) } //band-aid for not knowing what in Dexter's queue.
+                const oplet_array = make_ins("E") //don't expect to hear anything back from this.
+                const arr_buff = this.oplet_array_or_string_to_array_buffer(oplet_array)
+                try { ws_inst.write(arr_buff) } //band-aid for not knowing what's in Dexter's queue.
                                               //if the queue is empty we shouldn't do.
                                               //we should empty the queue whenever DDE detects an error,
                                               //but before closing the socket.
@@ -400,19 +399,6 @@ var Socket = class Socket{
             }
         }
     }
-    /*static stop_job_if_socket_dead(job_id, robot_name){
-        Socket.robot_is_waiting_for_reply[robot_name] = true
-        setTimeout(function(){
-                    if (Socket.robot_is_waiting_for_reply[robot_name]){
-                        let job_instance = Job.id_to_job(job_id)
-                        job_instance.stop_for_reason("errored", "can't connect to Dexter")
-                        //Socket.close(robot_name, false) //don't do here. stop_for_reason will
-                        //cause job.finish(), which will close the robot and close the socket.
-                        job_instance.set_up_next_do(0)
-                    }
-                   },
-                   Socket.max_dur_to_wait_for_reply_ms)
-    }*/
 }
 
 //Socket.robot_is_waiting_for_reply = {} //robot_name to boolean map.

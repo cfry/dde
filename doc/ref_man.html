@@ -177,7 +177,10 @@
 )
 </code></pre>
             <p></p>
-            load_files returns the result of evaluating the last expression in the last file loaded.
+            load_files <i>tries</i> to return the result of evaluating the last top level expression in the last file loaded.
+            <span style="color:red;">Warning</span>: Sometimes the last expression
+            is NOT returned, so if you really want a returned value,
+            its safer if the file contains only ONE top level expression.
             <p></p>
             It is conventional to use a file extension of ".js" for files containing JavaScript,
             but not strictly necessary.
@@ -191,20 +194,33 @@
         of the file being loaded. If no file is being loaded, it is <code>undefined</code>
         </details>
 
-            <details id="write_file_doc_id" style="margin-left:40px;"><summary>write_file</summary>
-            Arguments:<br/>
-            <b>filepath</b> The location to save to. It will overwrite the current content.
-            Defaults to the file currently in the
-            editor.<br/>
-            <b>content</b> A string of the content you wish to be in the written file.
-            Defaults to the text currently in the editor.<br/>
-            Examples: <br/>
-            <code>write_file("no_exist.js", "stuff")</code> Creates the named file and gives it a content of "stuff".<br/>
-            <code>write_file("junk.js")</code> Gives foo.js the content now in the editor.
-            This is the <i>save_as</i> functionality.<br/>
-            <code>write_file("junk.js", "new content")</code> Replaces the existing content
-            of the given file with "new content".<br/>
+        <details id="make_folder_doc_id" style="margin-left:40px;"><summary>make_folder</summary>
+        Creates potentially nested folders in the file system.<br/>
+        <i>Parameter:</i><br/>
+        <b>path</b> Required. Similar to other DDE file utilities, if the
+        path doesn't start with "/", the top level folder name in path
+        is created under the Documents/dde_apps folder. If specified folders already exist,
+        they are ignored, but subsequent folder names in the path are created under
+        the existing folders.<br/>
+        <i>Example:</i><br/>
+        <code title="not in TestSuite">make_folder("foo/bar/baz")</code>
+        Makes the folder dde_apps/foo. Inside of it is placed
+        a folder named "bar", and inside of that is placed a folder "baz".
         </details>
+        <details id="write_file_doc_id" style="margin-left:40px;"><summary>write_file</summary>
+        Arguments:<br/>
+        <b>filepath</b> The location to save to. It will overwrite the current content.
+        Defaults to the file currently in the
+        editor.<br/>
+        <b>content</b> A string of the content you wish to be in the written file.
+        Defaults to the text currently in the editor.<br/>
+        Examples: <br/>
+        <code>write_file("no_exist.js", "stuff")</code> Creates the named file and gives it a content of "stuff".<br/>
+        <code>write_file("junk.js")</code> Gives foo.js the content now in the editor.
+        This is the <i>save_as</i> functionality.<br/>
+        <code>write_file("junk.js", "new content")</code> Replaces the existing content
+        of the given file with "new content".<br/>
+    </details>
 
         <!-- removed for security reasons
         <details id="folder_listing_doc_id" style="margin-left:40px;"><summary>folder_listing</summary>
@@ -3204,9 +3220,19 @@ new Job({name: "my_job",
         the location of program_counter. Thus this instruction will be executed
         first when the job is run.
         </li>
-        <li><b>at_sign_function</b> Default <code>Dexter.pid_move_all_joints</code><br/>
-            Transforms <a href="#" onclick="open_doc(at_sign_instruction_doc_id)">at_sign instructions</a>
+        <li><b>data_array_transformer</b> Default <code>"P"</code> .<br/>
+            Transforms data array instructions
+            into other instructions. Usually the result of the transform are Dexter instructions,
+            but needn't be. See <a href="#" onclick="open_doc(data_array_doc_id)">data array instructions</a>
+            for more about data arrays.
         </li>
+        <li><b>start_if_robot_busy</b> A Boolean. Default: <code>false</code><br/>
+            Normally if a Job is started with a Dexter robot and there is
+            another active Job with that same Dexter robot, the 2nd job will error.
+            But if start_if_robot_busy: true, then the 2nd Job is allowed to proceed.<br/>
+            <span style="color:red;">Warning</span>: When there is more than one Job running on a robot,
+             a Job can't expect Dexter to be where it told it to go, as another Job
+             might have changed its position.</li>
         <li><b>when_stopped</b> controls what happens when a job stops normally.<br/>
              <i>Possible Values</i>:<br/>
              <code>"stop"</code> The default. The job stops.<br/>
@@ -3719,22 +3745,6 @@ new Job({name: "my_job",
     they already were.
 </details>
 
-<details id="Robot.any_string_id" class="doc_details"><summary>Any String</summary>
-A string just prints itself out in the Output pane with a short prefix.
-This is handy for debugging "print statements".<br/>
-<i>Example:</i><br/>
-<code>"hello world"</code><br/>
-prints into the Output pane:<br/>
-<samp><i>Job.my_job, Instruction N:</i> hello world</samp><br/>
-where N is the instruction number (ie its index in the job's do_list).
-<p></p>
-Note that if a function on the do_list returns a string or an array of strings,
-those will get printed too, just as when a function returns <i>any</i> valid do_list item.
-<p></p>
-See also <a href="#" onclick="open_doc('Robot.out_doc_id')">Robot.out</a>
-</details>
-
-
 <details id="Robot.break_doc_id" class="doc_details"><summary>break</summary>
     The Robot.break() instruction, when in the body of a
     <a href="#" onclick="open_doc('Robot.loop_doc_id', event)">Robot.loop</a>,
@@ -3930,7 +3940,7 @@ where within the job to insert the given instruction as does the method
                           <code title="unEVALable code fragment"> Job.my_job.user_data.my_var</code>
                           But inside another instruction that is defined as a function,
                           <code>this</code> will be bound to the current job instance so:
-                          <code title="unEVALable code fragment"> this.user_data.my_var</code> will access the grabbed data.
+                          <code title="unEVALable code fragment"> this.user_data.my_var</code> will access the grabbed data.<br/>
 
    <b>start_index</b> A non-negative integer signifying the
                  first data item to extract from the robot_status array.
@@ -3938,7 +3948,8 @@ where within the job to insert the given instruction as does the method
                  Another normal value would be <code>Dexter.J1_ANGLE</code>
                  See below for a comprehensive list.
                  <br/>
-                 <i>Special values:</i> <code>"all"</code> The entire 60 element robot_status
+                 <i>Special values:</i><br/>
+                 <code>"all"</code> The entire 60 element robot_status
                  array is used. The value of end_index is ignored.<br/>
                  <code>"data_array"</code> The part of the robot_status array after 
                   the header information is used. For Serial robots, this will be just
@@ -4036,32 +4047,97 @@ See Job Example: <i>Serial Port</i> for an extended example.
     current job for "this") so that some arbitrary compensation can be made for the error.
 </details>
 
-<details id="Robot.iinclude_job_doc_id" class="doc_details"><summary>include_job</summary>
-Inserts the original do_list of another job into this job right below this instruction.<br/>
-<i>Parameters</i><br/>
-<b>job_name</b> Required. A string representing the name of the job to include.
-                It may or may not start with "Job.".<br/>
-                If a Job of that name is not defined when this instruction is run,
-                error. It doesn't matter if the included job has been run or not.<br/>
-<b>start_loc</b> Grab the instructions from the job_to_include starting with start_loc.
-                 Default: <code>null</code>, meaning
-                 <samp title="unEVALable code fragment">job_to_include.orig_args.program_counter</samp>, which is usually 0.<br/>
-                 <i>start_loc</i> can be any 'instruction_location'.<br/>
+<details id="Robot.include_job_doc_id" class="doc_details"><summary>include_job</summary>
+Inserts a do_list or a portion thereof into the current Job, right after this instruction.<br/>
+The job_name parameter takes a wide variety of data to specify where to get a do_list from.
+Most of those data formats are not actual Job names, but
+they perform a similar role to a Job name in referencing a do_list to include.
+<p></p>
+Robot.include_job has a large number of very specific error messages to help you correct mistakes.<br/>
+<i>Parameters:</i><br/>
+<b>job_name</b> Required. Indicates a do_list, which will be "clipped" by start_loc and end_loc.
+    Formats:
+    <ol><li><b>A Job instance</b>. <i>Example:</i> <code>Job.my_job</code><br/>
+        The Job's orig_args.do_list is used. It doesn't matter if the included job has been run or not.</li>
+        <li><b>An Array</b>.<br/>
+         <i>Example:</i> <code>[[36000, 72000], [37000, 73000]]</code><br/>
+            This can be an instructions array or a data array.
+            It cannot be an oplet array.<br/>
+             See <a href="#" onclick="open_doc(data_array_doc_id)">Data Array</a>.
+        </li>
+        <li><b>A String</b>. A variety of strings can be used. One advantage of using strings
+            instead of Jobs or Arrays is that the string is resolved at instruction run-time
+            whereas Job and Array are resolved at Job definition time. By delaying the
+            resolution, you can place the definition that the string refers to
+            AFTER the Job definition containing the <code>Robot.include_job</code> instruction.
+            String formats:
+            <ul><li><b>Job.a_job_name</b> <i>Example:</i> <code>"Job.my_job"</code><br/>
+                     This is the prefered way to reference a Job.
+                     If a Job of that name is not defined when this instruction is run, error.
+                </li>
+                <li><b>a_job_name</b> <i>Example:</i> <code>"my_job"</code><br/>
+                    A shortcut way to reference a job. More ambiguous than using the "Job." prefix.
+                    If there is both a Job name and a variable of that same name, the Job name is used.
+                </li>
+                <li><b>a_variable_name</b> <i>Example:</i> <code>"foo"</code><br/>
+                      The variable is expected to be bound to an array
+                      of instructions. If a_variable_name is both a Job name and a global variable,
+                      the Job name will be used.
+                </li>
+                <li><b>file_path</b></li> <i>Example:</i> <code>"my_job.dde"</code><br/>
+                    Any string that isn't prefixed by "Job." but has a dot in it,
+                    is considered to be a file_path.<br/>
+                     A file path that doesn't start with a slash refers to a job in your "dde_apps" folder under
+                    your "Documents" folder.<br/>
+                    The file is evaluated. The result of the evaluation can be:<br/>
+                    <ul><li><b>A Job</b> The Job used will be the <i>first</i> Job definition in the file.</li>
+                        <li><b>A variable assignment</b> The first JavaScript code in the file should be<br/>
+                            <code title="unEvalable">var some_name = [instr1, instr2, ...]</code><br/>
+                             preceeded only by comments and whitespace, if any.
+                        <br/>
+                         <i>Example:</i><br/>
+                          <code>var my_do_items = [[36000, 72000], [37000, 73000]]</code>
+                        </li>
+                        <li><b>An instructions array</b><br/><i>Example:</i>
+                            <code>[[36000, 72000], [37000, 73000]]</code><br/>
+                            The instructions array should be the <i>last</i> top-level expression in the file.
+                            <span style="color:red;">Warning</span>: Sometimes the last top-level expression
+                            is NOT returned, so its safer if the file contains only ONE top-level
+                            expression.
+                            </li>
+                    </ul>
+                </li>
+            </ul>
+        </li>
+    </ol>
+
+<b>start_loc</b> Grab the instructions from the indicated do_list, starting with start_loc.
+                 If <i>job_name</i> refers to an instructions array, the default for start_loc is
+                 <code>0</code>.<br/>
+                 If <i>job_name</i> refers to a Job, the default is the Job's orig_args.program_counter,
+                 whose default is, in turn, <code>0</code>
+                 When <i>job_name</i> refers to a job, <i>start_loc</i> can be any 'instruction_location'.<br/>
                  See <a href="#" onclick="open_doc('Robot.go_to_doc_id', event)">Robot.go_to</a> for details
-                 on the <code title="unEVALable code fragment"> instruction_location</code> format.<br/>
-<b>end_loc</b> Grab the instructions from the job_to_include ending with, but not including, end_loc.
-    Default: <code>null</code>, meaning
-    <samp title="unEVALable code fragment">job_to_include.orig_args.ending_program_counter</samp>, which is usually "end".<br/>
-    <i>end_loc</i> can be any 'instruction_location'.<br/>
+                 on the <code title="unEVALable code fragment">instruction_location</code> format.<br/>
+<b>end_loc</b>   Grab the instructions from the indicated do_list, up to, but not including, end_loc.
+                 If <i>job_name</i> refers to an instructions array, the default for end_loc is
+                 the length of the array.
+                 If <i>job_name</i> refers to a Job, the default is the Job's orig_args.ending_program_counter,
+                 whose default is, in turn, the length of the Job's orig_args.do_list.
+                 When <i>job_name</i> refers to a job, <i>end_loc</i> can be any 'instruction_location',
+                 and its default is the ending_program_counter for the job, which is, by default, "end".
+    <p></p>
     See <a href="#" onclick="open_doc('Robot.go_to_doc_id', event)">Robot.go_to</a> for details
-    on the <code title="unEVALable code fragment"> instruction_location</code> format.<br/>
+    on the <code title="unEVALable code fragment"> instruction_location</code> format.
+    <p></p>
 <i>Example:</i><br/>
-   <code>Robot.include_job("my_job")</code><br/>
+   <code>Robot.include_job("Job.my_job")</code><br/>
    Inserts all the original instructions that are normally run when running "my_job",
    into the current job, right below this instruction.
    <p></p>
    <i>Robot.include_job</i> makes it easy to build up jobs hierarchically, effectively
-      treating a low level Job as a single instruction in a higher level Job.
+      treating a low level Job as a single instruction in a higher level Job.<br/>
+      See also: <a href="#" onclick="open_doc('Robot.start_job_doc_id')">Robot.start_job</a>
 </details>
 
 <details id="Robot.label_doc_id" class="doc_details"><summary>label</summary>
@@ -4223,9 +4299,14 @@ a location to insert an instruction using <code>Robot.send_to_job</code>.<br/>
 <details id="Robot.start_job_doc_id" class="doc_details"><summary>start_job</summary>
  <code>Robot.start_job</code> starts another job.<br/>
  <i>Parameters:</i><br/>
- <b>job_name</b> A String. The name of the job to start.<br/>
+ <b>job_name</b> Required. Can be:
+ <ul><li>An instance of the Job to start.</li>
+    <li>A string starting with "Job." followed by the Job's name.</li>
+    <li>A string of the Job's name.</li>
+ </ul>
  <b>start_options</b> A literal object. Name-value pairs that can
- be passed when creating a new Job and to a job's <i>start</i> method<br/>
+ be passed when creating a new Job can also be passed to a job's <i>start</i> method and
+ are done so when a Job starts another Job.<br/>
  <i>Example</i>: <code>{program_counter: 2}</code> <br/>
     causes the job to be started, executing its 3rd do_list item first.<br/>
  <b>if_started</b> A string. Says what to do if the job that
@@ -4244,7 +4325,7 @@ If the status of the job to be started is:
         <li><code>"running"</code> or <code>"waiting"</code>, then what happens depends on the
                 value of the <b>if_started</b> argument.</li>
     </ul>
-    <b>wait_until_job_done</b> Default: <code>false</code>
+    <b>wait_until_job_done</b> Boolean. Default: <code>false</code>
     If the value of this argument is <code>false</code>, start_job behaves
     as documented above. However if it is <code>true</code>,
     generally this instruction will wait until the Job named in job_name
@@ -4257,51 +4338,55 @@ If the status of the job to be started is:
     <i>The Details</i><br/>
     When wait_until_job_done=true, the <b>if_started</b> argument is ignored.<br/>
     The exact behavior of wait_until_job_done=true depends on the
-    status of the job_name job. If it is:<br/>
-    <b>not_started</b> Start the job_name job and wait for it to complete.<br/>
-    <b>starting, running, waiting</b> wait for the job_name job to complete.<br/>
-    <b>suspended</b> Unsuspend the job_name job and wait for it to complete.<br/>
-    <b>completed</b> Continue on with this job.<br/>
-    <b>errored</b> This job errors and stops.<br/>
-    <b>interrupted</b> This job is interrupted and stops.<br/>
-    <i>Examples:</i>
-    Have job2 start job1. job2 does not wait for job1 to complete. job1 completes first.
+    status of the job_name job. If it is:
+    <ul>
+        <li><b>not_started</b> Start the job_name job and wait for it to complete.</li>
+        <li><b>starting, running, waiting</b> wait for the job_name job to complete.</li>
+        <li><b>suspended</b> Unsuspend the job_name job and wait for it to complete.</li>
+        <li><b>completed</b> Continue on with this job.</li>
+        <li><b>errored</b> This job errors and stops.</li>
+        <li><b>interrupted</b> This job is interrupted and stops.</li>
+    </ul>
+    <i>Examples:</i><br/>
+    job2 starts job1. job2 does not wait for job1 to complete before running its next instruction,
+    if any.
+    <!-- the below works in isolation, but not with TestSuite auto-starting of jobs. -->
     <pre><code title="unstartable in TestSuite">
 new Job({name: "job1",
          do_list: [Robot.out("in job 1"),
                    Robot.wait_until(5)]})
 new Job({name: "job2",
          robot: new Brain({name: "b1"}),
-          do_list: [Robot.start_job("job1")]
+          do_list: [Robot.start_job("Job.job1"),
+                    Robot.out("last instruction")
+                    ]
 })    </code></pre>
-    job2 starts job1 and waits for it to complete before continuing,
-    because the last arg to start_job is true.
-    Running job2 a second time completes quickly because job1 has
-    already completed.
+    job2 starts job1 and waits for job1 to complete before continuing,
+    because the last arg to start_job is <code>true</code>.
+    <pre><code title="unstartable in TestSuite">
+new Job({name: "job1",
+         do_list: [Robot.out("in job 1"),
+                   Robot.wait_until(5)]})
+new Job({name: "job2",
+          do_list: [Robot.start_job("job1", undefined, undefined, true),
+                    Robot.out("last instruction")]
+})    </code></pre>
+    job2 starts job1 and waits for job1 to complete before continuing,
+    because the last arg to start_job is <code>true</code>.
+    job2 can start job1 even though they both are using the default <code>Robot.dexter0</code>
+    because job2's 2nd argument explicitly allows this.<br/>
+    <span style="color:red">Caution</span>: 2 jobs sending instructions to one Dexter means
+    neither can rely on the Dexter being where they last told it to go.
     <pre><code title="unstartable in TestSuite">
 new Job({name: "job1",
          do_list: [Robot.out("in job 1"),
                    Robot.wait_until(5)]})
 new Job({name: "job2",
          robot: new Brain({name: "b1"}),
-          do_list: [Robot.start_job("job1", undefined, undefined, true)]
+          do_list: [Robot.start_job("job1", {start_if_robot_busy: true}, undefined, true),
+                    Robot.out("last instruction")]
 })    </code></pre>
-    Similar to above but
-    note the call to <code title="unEvalable">set_status_code</code> which will cause job1
-    to run even it had previously completed.
-    <pre><code title="unstartable in TestSuite">
-new Job({name: "job1",
-    do_list: [Robot.out("starting job 1"),
-              Robot.wait_until(5),
-              Robot.out("ending job 1")
-]})
-new Job({name: "job2",
-         robot: new Brain({name: "b1"}),
-         do_list: [function(){Job.job1.set_status_code("not_started")
-                              out(Job.job1.status_code)
-                   },
-                   Robot.start_job("job1", {}, undefined, true)
-]})    </code></pre>
+    See also <a href="#" onclick="open_doc('Robot.include_job_doc_id')">Robot.include_job</a>
 </details>
 
 <details id="Robot.stop_job_doc_id" class="doc_details"><summary>stop_job</summary>
@@ -4615,60 +4700,72 @@ one job to just use one <i>default</i> robot as is most common.<br/>
   Robot.dexter0.move_all_joints([30, 40])
 </code></pre>
 
-<details id="short_instruction_doc_id" class="doc_details"><summary>short instruction</summary>
-Short instructions are a concise way to specify Dexter instructions that
-you can use <a href="#" onclick="open_doc(make_ins_doc_id)">make_ins</a> for.
-Short instructions are an array that
-starts with an oplet and have all the arguments you'd like to pass after that.<br/>
-<i>Example:</i><br/>
-<code>["a", 10, 20, 30]</code><br/>
-This is equivalent to <code>make_ins("a", 10, 20, 30)</code>
+<details id="data_array_doc_id" class="doc_details"><summary>Data Array</summary>
+Do_lists for Jobs with a Dexter Robot can be of 4 different kinds.
+<ol>
+<li><b>oplet array</b> An array containing a prefix of meta-information, an oplet,
+and arguments for that oplet.
+</li>
+<li><b>empty array</b> An array containing potentially other arrays of any nested depth,
+but with no "leaf" values. Such arrays are "no-ops" meaning they are just thrown out.
+Sometimes they are accidently automatically generated by filtering code that
+filters out all useful instructions. Throwing out empty arrays simplifies
+writing functions that create instructions arrays.
+</li>
+<li><b>instructions array</b> An array of instructions nested to any depth.
+Such arrays are usually "automatically flattened" before their leaf instructions
+are added to the do_list.
+</li>
+<li><b>data array</b> An array that is not one of the above types.
+The "running" of a data array instruction consists of its elements
+being passed as arguments to their Job's <i>data_array_transformer</i> function.
+Whatever this function returns is put on the do_list.
+It may return null or an empty array, thus "filtering out" that
+data array instruction.
 <p></p>
-If the oplet has a suffix of exclamation point, then the arguments
-will NOT be converted as they normally are, but passed straight to Dexter.<br/>
+A data_array_transformer may also be an oplet, in which case
+that oplet and the elements of the data array are passed to
+<a href="#" onclick="open_doc(make_ins_doc_id)">make_ins</a>,
+whose return value is placed on the do_list.
+The default data_array_transformer is <code>"P"</code>,
+creating effectively a pid_move_all_joints instruction.
+</li>
+</ol>
 <i>Example:</i><br/>
-<code>["a!", 10, 20, 30]</code><br/>
-Here, the argument 10 is not considered to be in degrees as it normally is,
-but rather in arcseconds. In normal processing,
-when DDE sends such a command to Dexter, its arguments are converted
-to arcseconds before passing it to Dexter. With the exclamation point,
-there is no conversion. Most users won't use this "no_conversion" feature,
-but it can be useful for low-level control of Dexter.
+<pre><code>
+new Job({name: "my_t_job",
+         data_array_transformer: "a",
+         do_list: [
+                    [0, 0, 0, 0, 0],
+                    [10, 20, 30, 40, 50]
+                  ]})
+    </code></pre>
+This Job has an effective do_list of:<br/>
+<code>[Dexter.move_all_joints(0, 0, 0, 0, 0),
+ Dexter.move_all_joints(10, 20, 30, 40, 50)]
+</code><br/>
+because <code>"a"</code> is the oplet for Dexter.move_all_joints.
 </details>
 
-<details id="at_sign_instruction_doc_id" class="doc_details"><summary>at_sign instruction</summary>
-At_sign instructions are syntactically similar to short instructions
-except that the first element of the array is always an at_sign.<br/>
-When an at_sign instruction is run, its arguments are passed
-to the Job's at_sign_function. That function can return:
-<ul><li>another instruction (with perhaps different arguments)</li>
-    <li>an array of other instructions, or</li>
-    <li><code>null</code> meaning do nothing</li>
-</ul>
-Those returned values
-will be inserted into the do_list and run right after the
-at_sign instruction.<br/>
-By returning <code>null</code>, the at_sign function effectively filters out
-the at_sign instruction.
+<details id="Dexter_instruction_string_doc_id" class="doc_details"><summary>Instruction String</summary>
+A string on the do_list is interpreted as a string to be sent to Dexter.
+The first character of the string should be a Dexter "oplet", such as
+"a" for Dexter.move_all_joints, or "P" for Dexter.pid_move_all_joints.
+Following that should be a space, and the arguments to that oplet,
+separated by a space.
+The string should end in a semicolon.
 <p></p>
-A Job's default at_sign_function is <code>Dexter.pid_move_all_joints</code> .
-This is used by Make Instrution because when recording a Job, the
-joint angles are encoded as at_sign instructions.
-A user can change all those at_sign instructions into move_all_joints
-by setting the Job's at_sign_function to <code>Dexter.move_all_joints</code>.
+Before the string is sent to Dexter, it is given a prefix of values for:<br/>
+<code title="unEVALable">job_id instruction_id start_time stop_time </code>.<br/>
+Example of the whole string sent to Dexter for move_all_joints functionality:<br/>
+<samp>1 37 1554079143946 undefined a 0 36000 72000;</samp>
+If the original string supplied in the do_list does not end in a semicolon, it is given one
+before being sent to Dexter.
 <p></p>
-An at_sign_function can also be the string of an oplet, in which case,
-that "at_sign_function" effectively returns a short instruction with that oplet
-and the same remaning values as were in the original at_sign instruction.<br/>
-<i>Example:</i><br/>
-<code>["@", 10, 20, 30]</code><br/>
-By default, this is transformed into
-<code>Dexter.pid_move_all_joints</code><br/>
-If the Job's at_sign function is "a",
-the at_sign instruction is transformed into<br/>
-<code>make_ins("a", 10, 20, 30)</code>
+Note that this is similar to a
+<a href="#" onclick="open_doc(make_ins_doc_id)">make_ins</a> instruction,
+except that the arguments are not converted, but passed as indicated in the string.
 </details>
-
 
 <details id="Dexter.draw_dxf_doc_id" class="doc_details"><summary>draw_dxf</summary>
     <code>Dexter.draw_dxf</code> accepts the name of a file as input along with other information,
@@ -5058,21 +5155,41 @@ proportional–integral–derivative controller</a>.
     This instruction allows you to transfer the content of a file on Dexter into
     a user_data variable in the enclosing Job.
     <p></p>
-    If you are using the simulator, this can move the contents of a file on
-    the computer running DDE, into a user_data variable.
-    Note that you can use <code>file_content</code> to get the content of such files.
-    This instruction isn't particularly useful to simulate Dexter operation,
-    but at least you can use it to test overall Job architecture.
+    If you are using the simulator, this can move the contents of a file meant to
+    simulate a file on Dexter (but is really on
+    the computer running DDE) into a user_data variable.
     <br/>
     <i>Parameters:</i><br/>
-    <b>source</b> A string. The path of a file on Dexter's file system who's
+    <b>source</b> A string. Required. The path of a file on Dexter's file system who's
     contents you want to get.<br/>
-    <b>destination</b> A string. The name of a user data variable on the running
+    If the file does not start with a slash, then, for example,<br/>
+    <code>"foo.txt"</code> resolves to:<br/>
+    When not simulating: <code>"/srv/samba/share/foo.txt"</code><br/>
+    When simulating: <code>"Documents/dde_apps/dexter_file_systems/{robot_name}/foo.txt"</code><br/>
+    <b>destination</b> A string. Default: <code>"read_from_robot_content"</code><br/>
+     The name of a user data variable on the running
     job that will be written (or over-written) with the contents
-    of the file indicated in "source".
+    of the file indicated in "source".<br/>
+    If the file does not exist, the value of the_job_instance.user_data.{destination}
+    will be set to a positive integer error code, usually 1. <br/>
+    An error message will be printed in the output pane telling you that the file content
+    could not be retrieved, but the Job itself does not error.
+    Subsequent instructions can test for the validity of the content with
+    <code title="unEVALable">typeof(this.user_data.{destination}) == "string")</code><br/>
+    Thus <i>read_from_robot</i> can be used to test for the existence of the file,
+    not just get its content.
     <p></p>
     <i>Example:</i>
-    <pre><code>Dexter.read_from_robot("/srv/samba/share/AdcCenters.txt" , "my_AdcCenters")</code></pre>
+    <pre><code>new Job({name: "job_rfr",
+         do_list: [
+                   Dexter.read_from_robot("aa.dde", "aa_content"),
+                   function(){
+                     if(typeof(this.user_data.aa_content) == "string"){
+                        out("got the aa content!")
+                     }
+                     else { out("can't find file: aa.dde") }
+                   }
+               ]})</code></pre>
 </details>
 
 <details id="Dexter.run_gcode_doc_id" class="doc_details"><summary>run_gcode</summary>
@@ -5430,6 +5547,23 @@ instruction will not be modified.<br/>
 See <a href="#" onclick="open_doc('Instruction.add_robot_to_instruction_id')">Instruction.add_robot_to_instruction</a>
 for details.
 </details>
+
+<details id="Dexter.is_calibrated_doc_id" class="doc_details"><summary>is_calibrated</summary>
+is_calibrated is an instance variable on a Dexter instance.
+It is set by system code. It is not intended to be set by users.
+<i>Possible Values</i><br/>
+<ul><li><code>null</code> When a Dexter instance is created, is_calibrated is set to null,
+meaning that it is not known if it is calibrated or not.
+We must run a job on that robot (not simulated) to determine calibration.</li>
+    <li><code>false</code> The robot is not calibrated. Use Job's menu/Calibrate Dexter.</li>
+    <li><code>true</code> The robot is calibrated.</li>
+</ul>
+<i>Example:</i><br/>
+<code>Dexter.dexter0.is_calibrated</code><br/>
+You cannot set the robot to follow_me mode without it being calibrated, nor can you record.
+Uncalibrated robots will not accurately position themselves.
+</details>
+
 
 <details id="Robot.dexter0.joint_angle_doc_id" class="doc_details"><summary>joint_angle</summary>
 Returns the present angle of the joint indicated in the argument in arc_seconds.

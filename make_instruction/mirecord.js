@@ -242,10 +242,11 @@ var MiRecord = class MiRecord {
         else {
             sim_pane_content_id.scrollTop = 0
             MakeInstruction.set_border_color_of_arg("name", "red")
-            id = MakeInstruction.arg_name_to_dom_elt_id("name")
-            elt = window[id]
+            let id = MakeInstruction.arg_name_to_dom_elt_id("name")
+            let elt = window[id]
             elt.focus()
-            dde_error("The name in the Job field is not a literal string.<br/>" +
+            MakeInstruction.set_border_color_of_arg("name", "red")
+            dde_error("The name in the Job field, <code>&nbsp;" + elt.value + "&nbsp;</code>, is not a literal string.<br/>" +
                       "A literal string is surrounded with single or double quotes.<br/>" +
                       "To record, we must have a valid Job name.<br/>" +
                       'Please edit the Job name and click "Record" again.')
@@ -263,6 +264,27 @@ var MiRecord = class MiRecord {
             }
         }
         MiState.job_instance = job_instance
+        let rob = job_instance.robot
+        let sim_actual = Robot.get_simulate_actual(rob.simulate)
+        //should we stop recording?
+        if((sim_actual !== true) && //everything ok if we are simulating
+           (rob.is_calibrated !== true)){ //if we get to this line, not simulated, and if not calibrated, halt recording as Dexter put into follow_me mode without being calibrated is bad.
+           if(rob.is_calibrated === null) {
+                dde_error("Dexter." + rob.name + " is not known to be calibrated.<br/>" +
+                        "You can't record on a robot that isn't calibrated.<br/>" +
+                        "To determine calibration status,<br/>" +
+                        "choose Jobs menu/show robot status and click 'run update job'<br/>" +
+                        "If the Dexter is not calibrated, use Jobs menu/Calibrate Dexter.")
+           }
+           else if (rob.is_calibrated === false){
+               dde_error("Dexter." + rob.name + " is not calibrated.<br/>" +
+                   "You can't record on a robot that isn't calibrated.<br/>" +
+                   "To calibrate, use Jobs menu/Calibrate Dexter ")
+           }
+           else { shouldnt("in MiRecord.start_record, Dexter." + rob.name +
+                           "has invalid is_calibrated value of: " + rob.is_calibrated)
+           }
+        }
         let job_wrapper_robot = value_of_path(mi_job_wrapper_robot_name_id.value)
         let active_jobs = job_wrapper_robot.active_jobs_using_this_robot()
         if(active_jobs.length > 0) {
@@ -298,6 +320,7 @@ var MiRecord = class MiRecord {
         MiRecord.set_insert_recording_state("disabled")
         let job_wrapper_robot = value_of_path(mi_job_wrapper_robot_name_id.value) //we want to use the
         //same robot for doing the recording as we will for running the job that is recorded.
+        MiRecord.start_time_in_ms = Date.now()
         new Job({
             name: "mi_record",
             robot: job_wrapper_robot,
@@ -308,7 +331,7 @@ var MiRecord = class MiRecord {
                                 let rs_array = last(this.rs_history)
                                 let rs_obj = new RobotStatus({robot_status: rs_array})
                                 let angles = rs_obj.measured_angles(7)
-                                angles.unshift("@")
+                                //angles.unshift("@")
                                 job_instance.orig_args.do_list.push(angles)
                                 let loc_of_new_instr = job_instance.orig_args.do_list.length - 1 //will be at least 0 due to the above push
                                 MiRecord.set_max_loc(loc_of_new_instr + 1)
@@ -317,15 +340,19 @@ var MiRecord = class MiRecord {
                                      "#95444a", //brown,
                                      true)
                                 return job_instance.robot.get_robot_status() //immediately()
-                            })
+                            }),
+                Dexter.empty_instruction_queue(), // needed so record can get the timing
+                //of the final g cmd to set inter_do_item_dur correctly.
+                Dexter.get_robot_status() //get the start time of this for the end of the recording,.
             ]}).start()
 
     }
 
     static stop_record(){
+        MiRecord.stop_time_in_ms = Date.now()
         Job.mi_record.stop_for_reason("interrupted", "User stopped the recording.")
         setTimeout(MiRecord.stop_record_aux,  //give job a chance to stop properly since its still recording
-                   (MiState.job_instance.inter_do_item_dur * 1000) + 100)
+                   (MiState.job_instance.inter_do_item_dur * 1000) + 300) //timeout needed for letting recordinng job to finish before calling Job.mi_record.undefine_job
     }
     //can't use 'this' because its not bound when called from the timeout above
     static stop_record_aux(){
@@ -347,12 +374,13 @@ var MiRecord = class MiRecord {
         MiRecord.set_step_play_state("enabled")
         MiRecord.set_play_state("enabled")
         MiRecord.set_insert_recording_state("enabled")
+        //Job.mi_record.undefine_job() //causes problems in sim, so just do:
+        Job.mi_record.robot.remove_from_busy_job_array(Job.mi_record)
+        Job.mi_record.remove_job_button()
     }
 
+    //this fn side-effects the MI dialog items: do_list and inter_do_item_dur
     static stick_recording_in_ui(){
-        //if(MakeInstruction.get_instruction_name_from_ui() != "new Job"){
-        //    MakeInstruction.update_instruction_name_and_args("new Job")
-        //}
         let job_instance = this.job_in_mi_dialog()
         let do_list_src = "["
         let recorded_do_list = job_instance.orig_args.do_list
@@ -371,6 +399,32 @@ var MiRecord = class MiRecord {
         do_list_src += "]"
         let do_list_elt_id = MakeInstruction.arg_name_to_dom_elt_id("do_list")
         window[do_list_elt_id].value = do_list_src
+        let dur_in_sec = (MiRecord.stop_time_in_ms - MiRecord.start_time_in_ms) / 1000
+        let inter_do_item_dur_elt = window[MakeInstruction.arg_name_to_dom_elt_id("inter_do_item_dur")]
+
+        //now set inter_do_item_dur in the job that represents this recording.
+        let sent_inst_array = Job.mi_record.sent_instructions
+        //grab start time of first non-initial "g" instruction.
+        let start_time_in_ms
+        for(let i = 1; //skip first g instr
+            i < sent_inst_array.length;
+            i++){
+            let instr = sent_inst_array[i]
+            if(instr[Instruction.INSTRUCTION_TYPE] == "g"){ //skip past the set mode ad loop instructions
+                start_time_in_ms = instr[Instruction.START_TIME]
+                break;
+            }
+        }
+        if(!start_time_in_ms) {  out("No instructions recorded.") }
+        else {
+             let last_inst =  last(sent_inst_array) //should be the final "g"
+             let stop_time_in_ms = last_inst[Instruction.START_TIME]
+             let total_dur_in_ms = stop_time_in_ms - start_time_in_ms
+             let number_of_recorded_items = recorded_do_list.length
+             let inter_do_item_dur = (total_dur_in_ms / number_of_recorded_items) / 1000
+             inter_do_item_dur_elt.value = inter_do_item_dur
+             out("Your recording has duration: " + dur_in_sec + " seconds.")
+        }
     }
 
     static start_reverse(step = false){
@@ -605,7 +659,8 @@ var MiRecord = class MiRecord {
     }*/
     //________buttons_________
     static make_html(){
-        let result = "<div style='white-space:nowrap;'>" +
+        let result = "<hr/>" +
+                       "<div style='white-space:nowrap;'>" +
                          "<input id='mi_record_id'       style='vertical-align:25%;cursor:pointer;' type='button' value='Record'/>" +
                          "<span  id='mi_reverse_id'      style='font-size:25px;margin-left:5px;cursor:pointer;'>&#9664;</span>" +
                          "<span  id='mi_step_reverse_id' style='font-size:15px;margin-left:5px;cursor:pointer;vertical-align:20%;'>&#9664;</span>" +
@@ -647,6 +702,7 @@ var MiRecord = class MiRecord {
                     "</div>" +
                     "<div id='mi_begin_marks_slider_pos_id' style='white-space:nowrap;'></div>" +
                     "<div id='mi_end_marks_slider_pos_id'   style='white-space:nowrap;'></div>"
+
         return result
     } //&VerticalSeparator;  document.getElementById("myBtn").disabled = true;
 
@@ -754,22 +810,55 @@ var MiRecord = class MiRecord {
         }
     }
 
-     //called by show, with no job in the dialog
+     //ultimately called by show when there's a job in the dialog
     static init(){
        MiState.init(MiState.job_instance) //so that we don't set MiState.job_instance to null IFF MiState.job_instance is not null
+       let max_loc = 0 //also used for end_loc
+       //try to get a non-zero max_loc. This shows the user the do_list length
+       //and, if we attempt to insert without playing, gives us a real do_list
+       if(MiState.job_instance) {
+           let do_list = MiState.get_do_list_smart()
+           max_loc = do_list.length
+       }
+       else if(this.is_job_in_mi_dialog()){  //similar to MiRecord.prepare_for_play, but gets us a non-zero max_loc quicker
+           let job_name = MakeInstruction.arg_name_to_src_in_mi_dialog("name")
+           if (!is_string_a_literal_string(job_name) || (job_name.length < 3)) {
+               warning("The name field of the Job has invalid syntax.<br/>" +
+                   'It should look like <code>"my_job"</code> (including the quotes.)')
+               return false
+           }
+           job_name = job_name.substring(1, job_name.length - 1)
+           let job_instance = Job[job_name]
+           if(!(job_instance instanceof Job) || !job_instance.do_list || (job_instance !== MiState.job_instance)) {
+               let do_list_src = MakeInstruction.arg_name_to_src_in_mi_dialog("do_list")
+               try {
+                    let do_list = window.eval(do_list_src)
+                    max_loc = do_list.length
+               }
+               catch(err){ //this should rarely happen because dialog_to_instruction_src catches most bad args.
+                   warning("The job in the dialog has an invalid do_list<br/>" + err.message)
+                   MakeInstruction.set_border_color_of_arg("do_list", "red")
+               }
+           }
+           else {
+               let do_list = get_do_list_smart()
+               max_loc = do_list.length
+           }
+       }
        if(mi_marks_slider_id && mi_marks_slider_id.noUiSlider) { mi_marks_slider_id.noUiSlider.destroy() }
        noUiSlider.create(mi_marks_slider_id, {
             start: [0, 0],
             connect: [false, true, false],
             range: {
                 'min': -0.01,
-                'max': 0
+                'max': max_loc
             }
         })
-        this.set_max_loc(0)
-        this.set_end_mark_loc(0)
+        this.set_max_loc(max_loc)
+        this.set_end_mark_loc(max_loc)
         this.set_begin_mark_loc(0)
         this.set_play_loc(0)
+        mi_marks_slider_max_id.innerHTML = max_loc
         mi_marks_slider_id.noUiSlider.on("slide", this.marks_slider_onslide)
         mi_marks_slider_id.noUiSlider.on("change", this.marks_slider_onchange)
 
@@ -777,7 +866,7 @@ var MiRecord = class MiRecord {
         //MiRecord.play_middle_onchange() //don't do as screws up if no job_instance or do_list
         delete_instructions_id.innerHTML = "Delete ends"
         mi_highest_completed_instruction_id.onclick = function(){ MiRecord.reset_job() }
-        MiState.set_end_mark_to_do_list_length_maybe()
+       // MiState.set_end_mark_to_do_list_length_maybe() //no, we already take care of this above.
         this.set_record_state("enabled")
         this.set_reverse_state("disabled")
         this.set_step_reverse_state("disabled")
@@ -980,3 +1069,5 @@ var MiRecord = class MiRecord {
         //don't do this. prepare_for_play prints a more accuurate message. else { warning("There's no job_instance that Make Instruction is now managing.") }
     }
 }
+
+MiRecord.start_time_in_ms = null

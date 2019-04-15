@@ -291,6 +291,7 @@ Instruction.Dexter.move_to = class move_to extends Instruction.Dexter{
             //Job.insert_instruction(make_ins("a", ...angles), {job: job_instance, offset: "after_program_counter"})
             //job_instance.insert_single_instruction(make_ins("a", ...angles))
             job_instance.wait_until_instruction_id_has_run = job_instance.program_counter
+            this.computed_angles = angles //for debugging purposes
             job_instance.send(make_ins("a", ...angles), this.robot)
             //job_instance.set_up_next_do(1) //effectively done in robot_done_with_instruction
         }
@@ -687,6 +688,13 @@ Instruction.Dexter.read_from_robot = class read_from_robot extends Instruction.D
     do_item (job_instance){
         if(!this.robot) { this.set_instruction_robot_from_job(job_instance) }
         if (this.first_do_item_call) {
+            const sim_actual = Robot.get_simulate_actual(this.robot.simulate)
+            //have to check for dexter_file_systems or else the 2nd time I rn the job, it will
+            //have a double length path with 2 dexter_file_systems parts
+            if (!this.source.startsWith("/") && (sim_actual === true) && !this.source.startsWith("dexter_file_systems")) {
+                this.fuller_source = "dexter_file_systems/" + this.robot.name + "/" + this.source
+            }
+            else { this.fuller_source = this.source }
             job_instance.user_data[this.destination] = ""
             this.first_do_item_call = false
             this.is_done = false
@@ -699,7 +707,7 @@ Instruction.Dexter.read_from_robot = class read_from_robot extends Instruction.D
         //}
         let read_from_robot_instance = this
         let robot = this.robot //closed over
-        Job.insert_instruction(Robot.loop(true, function(content_hunk_index){
+        job_instance.insert_single_instruction(Robot.loop(true, function(content_hunk_index){
                 let job_instance = this
                 if (read_from_robot_instance.is_done) {
                     //init this inst just in case it gets used again
@@ -710,41 +718,62 @@ Instruction.Dexter.read_from_robot = class read_from_robot extends Instruction.D
                 }
                 else {
                     read_from_robot_instance.processing_r_instruction = true
-                    return [make_ins("r", content_hunk_index, read_from_robot_instance.source, robot),
-                        Robot.wait_until(function(){
-                            return !read_from_robot_instance.processing_r_instruction
-                        })
-                    ]
+                    return [make_ins("r", content_hunk_index, read_from_robot_instance.fuller_source, robot),
+                            Robot.wait_until(function(){
+                                return !read_from_robot_instance.processing_r_instruction
+                             })
+                           ]
                 }
-            }), {job: job_instance, offset: "after_program_counter"}
+            })
         )
         job_instance.set_up_next_do(1)
     }
-    static got_content_hunk(job_id, ins_id, payload_string){
+
+    //back up over dolist and return the first Instruction.Dexter.read_from_robot found
+    //called from got_content_hunk AND Dexter.done_with_instruction
+    static find_read_from_robot_instance_on_do_list(job_instance, starting_ins_id){
+        for (let i = starting_ins_id; i >= 0; i--){
+            let an_instruction = job_instance.do_list[i]
+            if(an_instruction instanceof Instruction.Dexter.read_from_robot){
+                    return an_instruction
+            }
+        }
+        shouldnt("find_read_from_robot_instance_on_do_list failed to find<br/>" +
+            "an instance of read_from_robot on Job." + job_instance.name + ".do_list<br/>" +
+            "at or before instruction: " + starting_ins_id)
+    }
+
+    //called from socket.js
+    static got_content_hunk(job_id, ins_id, payload_string_maybe){
         let job_instance = Job.job_id_to_job_instance(job_id)
         if (job_instance == null){
             throw new Error("Dexter.robot_done_with_instruction passed job_id: " + job_id +
                 " but couldn't find a Job instance with that job_id.")
         }
-        let read_from_robot_instance
-        for (let i = ins_id; i >= 0; i--){
-            let an_instruction = job_instance.do_list[i]
-            if(an_instruction instanceof Instruction.Dexter.read_from_robot){
-                read_from_robot_instance = an_instruction
-                read_from_robot_instance.processing_r_instruction = false
-                break;
-            }
-        }
-        if(read_from_robot_instance === undefined) {
-            throw new Error("Dexter.robot_done_with_instruction passed job: " + job_instance.name +
-                " and ins_id: " + ins_id +
-                "but could not find the read_from_robot instance.")
-        }
-        else {
-            job_instance.user_data[read_from_robot_instance.destination] += payload_string
-            if (payload_string.length < Instruction.Dexter.read_from_robot.payload_max_chars){
+        let read_from_robot_instance = this.find_read_from_robot_instance_on_do_list(job_instance, ins_id)
+        //for (let i = ins_id; i >= 0; i--){
+        //    let an_instruction = job_instance.do_list[i]
+        //    if(an_instruction instanceof Instruction.Dexter.read_from_robot){
+        //        read_from_robot_instance = an_instruction
+        //        read_from_robot_instance.processing_r_instruction = false
+        //        break;
+        //    }
+        //}
+        //if(read_from_robot_instance === undefined) {
+        //    throw new Error("Dexter.robot_done_with_instruction passed job: " + job_instance.name +
+        //        " and ins_id: " + ins_id +
+        //        "but could not find the read_from_robot instance.")
+        //}
+        read_from_robot_instance.processing_r_instruction = false
+        if(typeof(payload_string_maybe) == "string"){ //do the usual
+            job_instance.user_data[read_from_robot_instance.destination] += payload_string_maybe
+            if(payload_string_maybe.length < Instruction.Dexter.read_from_robot.payload_max_chars){
                 read_from_robot_instance.is_done = true
             }
+        }
+        else if(typeof(payload_string_maybe) == "number"){
+            job_instance.user_data[read_from_robot_instance.destination] = payload_string_maybe //set, don't append
+            read_from_robot_instance.is_done = true
         }
     }
 

@@ -224,7 +224,7 @@ Array.prototype.micron = function(){
 
 //input array is in arcseconds, converts its angles to degrees.
 Array.prototype.arcsec = function(){
-    if(//Instruction.is_instruction_array(this) && //unnecessary.
+    if(//Instruction.is_oplet_array(this) && //unnecessary.
     // we know its an array or this method wouldn't be called.
     //and if array is too short, a lookup returns undefined
         ["a", "P"].includes(this[Instruction.INSTRUCTION_TYPE])){

@@ -1,6 +1,11 @@
 //https://www.npmjs.com/package/ping
 var ping = require('ping');
 
+function output_is_not_connected_message(ip_address){
+    open_doc(data_connection_doc_id)
+    warning(ip_address + " is not connected.")
+}
+
 function ping_host(ip_address = "127.0.0.1", display_non_connected_hosts_temporarily=false){
     ping.sys.probe(ip_address, function(isAlive){
         if (isAlive) {
@@ -10,7 +15,8 @@ function ping_host(ip_address = "127.0.0.1", display_non_connected_hosts_tempora
             return true
         }
         else {
-            out(ip_address + " is not connected.", "purple", display_non_connected_hosts_temporarily)
+            //out(ip_address + " is not connected.", "purple", display_non_connected_hosts_temporarily)
+            output_is_not_connected_message(ip_address)
             return false
         }
     },
@@ -120,7 +126,10 @@ function ping_a_dexter_wildcard_aux(ip_address_with_wildcard, host = 0, connecte
                     `')"> Insert Dexter definition </a>`)
             }
             //else if ((host % 32) == 0) { out("<br/>.") }
-            else { out(ip_address + " is not connected.", "purple", true) }
+            else {
+                //out(ip_address + " is not connected.", "purple", true)
+                output_is_not_connected_message(ip_address)
+            }
             if(host == 9) {
                 out("ping scan complete. " + connected_count + " connected host(s) found.")
                 ping_a_dexter_ongoing = false
@@ -146,7 +155,10 @@ function ping_a_dexter_scan_aux(net_address, host = 0, connected_count=0){
                     `')"> Insert Dexter definition </a>`)
             }
             //else if ((host % 32) == 0) { out("<br/>.") }
-            else { out(ip_address + " is not connected.", "purple", true) }
+            else {
+                //out(ip_address + " is not connected.", "purple", true)
+                output_is_not_connected_message(ip_address)
+            }
             if(host == 255) {
                 out("ping scan complete. " + connected_count + " connected host(s) found.")
                 ping_a_dexter_ongoing = false
@@ -180,7 +192,10 @@ function ping_a_dexter_scan_aux(net_address, host = 0, connected_count=0){
                     `')"> Insert Dexter definition </a>`)
             }
             //else if ((host % 32) == 0) { out("<br/>.") }
-            else { out(ip_address + " is not connected.", "purple", true) }
+            else {
+                //out(ip_address + " is not connected.", "purple", true)
+                output_is_not_connected_message(ip_address)
+            }
             if(host == 255) {
                 out("ping scan complete. " + connected_count + " connected host(s) found.")
                 ping_a_dexter_ongoing = false

@@ -3,7 +3,7 @@
 var Instruction = class Instruction {
     static to_string(instr){
        if(instr instanceof Instruction) { return instr.toString() }
-       else if (Instruction.is_instruction_array(instr)) {
+       else if (Instruction.is_oplet_array(instr)) {
            var oplet = instr[Dexter.INSTRUCTION_TYPE]
            var fn_name = Dexter.instruction_type_to_function_name(oplet)
            var args = instr.slice(Instruction.INSTRUCTION_ARG0)
@@ -18,6 +18,7 @@ var Instruction = class Instruction {
 
     //excludes at_sign instructions but includes "a" and "a!
     //if first elt is a 2 char string , the 2nd char must be !
+    /*
     static is_short_instruction(obj) {
         if(!Array.isArray(obj))     { return false }
         if (obj.length == 0)        { return false }
@@ -43,34 +44,39 @@ var Instruction = class Instruction {
     static is_at_sign_instruction(item) {
         return (Array.isArray(item) && (item[0] == "@"))
     }
+    */
 
-    static is_instruction_array(obj){
+    static is_oplet_array(obj){
         //since we're making the instruction arrays by our fn calls, ie Job.move,
         //the user isn't making up the arrays, so we assume all arrays that start
         //with a first elt of a string or length 1 are legitimate. But
         //we COULD check that the first char is legal and
         //the length and types of the rest of the elts matched what that op-let needs.
         if (Array.isArray(obj) && (obj.length > 0)){
-            var first_elt = obj[Instruction.INSTRUCTION_TYPE]
-            if ((typeof(first_elt) == "string") && (first_elt.length == 1)){
-                return true
-            }
+            var oplet_maybe = obj[Instruction.INSTRUCTION_TYPE]
+            return Robot.is_oplet(oplet_maybe) //true for any 1 char strings. There's an arg for is_oplet to make it more restrictive=, but Kent likes the flexibility for creating new oplets
         }
         return false
     }
 
     static is_instructions_array(obj){
-        if(Array.isArray(obj) &&
-           (obj.length > 0)   &&
-           !Instruction.is_instruction_array(obj) &&
-           !Instruction.is_short_instruction(obj) &&
-           !Instruction.is_at_sign_instruction(obj)){
-           for(let elt of obj) {
-               if (!Instruction.is_do_list_item(elt)) { return false }
-           }
-           return true
+        if(!Array.isArray(obj))                                  { return false }
+        else if (Instruction.is_oplet_array(obj))                { return false }
+        else if (Instruction.is_empty_nested_array(obj))         { return false }
+        else {
+            for(let elt of obj) {
+                if(Instruction.is_non_instructions_array_do_list_item(elt)) {} //ok, might still be an instructions array
+                else if(!Instruction.is_instructions_array(elt)) { return false }
+            }
+            return true
         }
-        else { return false }
+    }
+
+    static is_data_array(obj){
+        if(!Array.isArray(obj))                   { return false }
+        else if (Instruction.is_oplet_array(obj)) { return false }
+        else if (this.is_instructions_array(obj)) { return false }
+        else                                      { return true }
     }
 
     static is_start_object(obj){
@@ -99,25 +105,24 @@ var Instruction = class Instruction {
        else if (item == null) {return false}
        else if (typeof(item) === "string") {return false}
        else if (Array.isArray(item) && (item.length == 0)) { return false }
-       else if (Instruction.is_short_instruction(item))    { return false }
-       else if (Instruction.is_at_sign_instruction(item)){
-           if(!job_instance) { return true } //we can't resolve the @ so be conservative as it *might* return an inserting instruction dependding on the job at_sign_function
+       else if (Instruction.is_data_array(item)){
+           if(!job_instance) { return true } //we can't resolve the data_array so be conservative as it *might* return an inserting instruction depending on the job data_array_transformer
            else {
-               let fn = job_instance.at_sign_fn
-               if(Instruction.is_short_instruction_name(fn)) { return false }
+               let fn = job_instance.data_array_transformer
+               if(Robot.oplet(fn)) { return false }
                else if (Instruction.is_inserting_instruction(fn)) { return true }
-               else { return false }
+               else { return false } //don't know what it is so be conservative and return false
            }
        }
-       else if (typeof(item) === "function") {return true }
-       else if (Array.isArray(item)) { return true }
-       else if(Instruction.is_instruction_array(item)) { return false }
-       else if (is_iterator(item)) { return true }
+       else if (typeof(item) === "function")     {return true }
+       else if (Array.isArray(item))             { return true }
+       else if(Instruction.is_oplet_array(item)) { return false }
+       else if (is_iterator(item))               { return true }
        else if (item instanceof Instruction){
-           if(item.inserting_instruction) { return true }
+           if(item.inserting_instruction)        { return true }
            else { return false }
            if (item instanceof Instruction.move_to_straight) {
-               if (item.single_instruction) { return false}
+               if (item.single_instruction)      { return false}
                else { return true }
            }
            else {
@@ -127,7 +132,7 @@ var Instruction = class Instruction {
                return false
            }
        }
-       else { shouldnt("Instruction.is_inserting_instruction passed unnhandled instruction: " + item) }
+       else { shouldnt("Instruction.is_inserting_instruction passed unhandled instruction: " + item) }
     }
 
     static array_has_only_non_inserting_instructions(a_do_list, job_instance){
@@ -138,41 +143,117 @@ var Instruction = class Instruction {
     }
 
     //used by do_next_item to determine if the return value of
-    //calling the at_sign_function can be directly sent.
-    //We don't count Instruction.is_at_sign_instruction(item) as sendable
-    //even though it *might* resolve to something that is.
-    //static sendable_instruction(item){
-    //    Instruction.is_instruction_array(item)
-    //    //Instruction.is_short_instruction(item)
-    //}
+    //calling the data_array_transformer can be directly sent.
+    //a data_array is not sendable because it has to be transformed first.
+    static is_sendable_instruction(item){
+        return (Instruction.is_oplet_array(item) ||
+                (typeof(item) == "string"))
+    }
 
     static is_no_op_instruction(item){
        return ((item === undefined) ||
                (item === null)      ||
-               (Array.isArray(item) && (item.length == 0))
+                Instruction.is_empty_nested_array(item)
        )
+    }
+
+    static is_empty_nested_array(array_maybe){
+        if(!Array.isArray(array_maybe)) { return false }
+        else {
+            for(let elt of array_maybe) {
+                if(!Instruction.is_empty_nested_array(elt)) {
+                    return false
+                }
+
+            }
+            return true
+        }
+    }
+
+    static is_non_instructions_array_do_list_item(item){
+       return ( Instruction.is_no_op_instruction(item) ||
+                (item instanceof Instruction) ||
+                Instruction.is_oplet_array(item) ||
+                is_iterator(item) ||
+                (typeof(item) === "string") ||
+                (typeof(item) === "function") ||
+                Instruction.is_start_object(item)
+                )
     }
 
     //a valid item to put on a do_list
     //mirrors Job.do_next_item ordering
-    static is_do_list_item(item) {
-        return ( Instruction.is_no_op_instruction(item) ||
-                 (item instanceof Instruction) ||
-                 Instruction.is_instruction_array(item) ||
-                 Instruction.is_short_instruction(item) ||
-                 Instruction.is_at_sign_instruction(item) ||
-                 is_iterator(item) ||
-                 (typeof(item) === "string") ||
-                 (typeof(item) === "function") ||
-                 Instruction.is_start_object(item) ||
-                 Instruction.is_instructions_array(item)
-        )
+    static is_do_list_item(item){
+        return ( Array.isArray(item) ||   //accept data_arrays too. //Instruction.is_instructions_array(item)
+                 Instruction.is_non_instructions_array_do_list_item(item)
+               )
+    }
+
+    static extract_job_id(oplet_array_or_string){
+        if(typeof(oplet_array_or_string) == "string") { oplet_array_or_string = oplet_array_or_string.split(" ") }
+        let str= oplet_array_or_string[Instruction.JOB_ID]
+        return parseInt(str)
+    }
+
+    static extract_instruction_id(oplet_array_or_string){
+        if(typeof(oplet_array_or_string) == "string") { oplet_array_or_string = oplet_array_or_string.split(" ") }
+        let str= oplet_array_or_string[Instruction.INSTRUCTION_ID]
+        return parseInt(str)
+    }
+
+    static extract_start_time(oplet_array_or_string){
+        if(typeof(oplet_array_or_string) == "string") { oplet_array_or_string = oplet_array_or_string.split(" ") }
+        let str= oplet_array_or_string[Instruction.START_TIME]
+        if (str == "undefined") { return undefined } //probably should never happen
+        else { return parseInt(str) }
+    }
+
+    static extract_stop_time(oplet_array_or_string){
+        if(typeof(oplet_array_or_string) == "string") { oplet_array_or_string = oplet_array_or_string.split(" ") }
+        let str = oplet_array_or_string[Instruction.STOP_TIME]
+        if (str == "undefined") { return undefined } //will happen for all string instructions
+        else { return parseInt(str) }
+    }
+
+    static extract_instruction_type(oplet_array_or_string){
+        if(typeof(oplet_array_or_string) == "string") {
+            oplet_array_or_string = oplet_array_or_string.substring(0, oplet_array_or_string.length - 1) //cut the ending semicolon
+            oplet_array_or_string = oplet_array_or_string.split(" ")
+        }
+        return oplet_array_or_string[Instruction.INSTRUCTION_TYPE]
+    }
+
+    static extract_args(oplet_array_or_string){
+        if(typeof(oplet_array_or_string) == "string") {
+            oplet_array_or_string = oplet_array_or_string.substring(0, oplet_array_or_string.length - 1) //cut the ending semicolon
+            oplet_array_or_string = oplet_array_or_string.split(" ")
+            let arg_strings = oplet_array_or_string.slice(Instruction.INSTRUCTION_ARG0)
+            let result = []
+            for(let substr of arg_strings) {
+                let num_maybe = parseFloat(substr) //on the last arg, it probably ends with semicolon. that's ok
+                if(Number.isNaN(num_maybe)) { result.push(substr) } //assume its just a string
+                else { result.push(num_maybe) }
+            }
+            return result
+        }
+        else {
+            return oplet_array_or_string.slice(Instruction.INSTRUCTION_ARG0)
+        }
+    }
+
+    //return an array of the instruction args
+    static args(ins_array){
+        return ins_array.slice(Instruction.INSTRUCTION_ARG0)
+    }
+
+    static job_of_instruction_array(ins_array){
+        var job_id = ins_array[Instruction.JOB_ID]
+        return Job.job_id_to_job_instance(job_id)
     }
 
     static instruction_color(ins){
-        if(Instruction.is_instruction_array(ins))        { return "#FFFFFF" } //white
-        else if(Instruction.is_short_instruction(ins))   { return "#FFFFFF" } //white
-        else if(Instruction.is_at_sign_instruction(ins)) { return "#FFFFFF" } //white
+        if(Instruction.is_oplet_array(ins))              { return "#FFFFFF" } //white
+        else if(Instruction.is_data_array(ins))          { return "#FFFFFF" } //white
         else if(typeof(ins) == "string")                 { return "#DDEEFF" } //light blue
         else if (ins instanceof Instruction) {
             if(ins.constructor.name.startsWith("human"))  { return "#ffb3d1" }//pink
@@ -194,22 +275,12 @@ var Instruction = class Instruction {
         if (ins === undefined)            { return 'undefined' }
         else if (ins == null)             { return 'null' }
         else if (typeof(ins) == "string") { return '"' + ins + '"' }
-        else if (Instruction.is_short_instruction(ins)){
+        else if (Instruction.is_data_array(ins)){
             let text = JSON.stringify(ins)
-            let oplet = ins[0]
-            let title = ""
-            if(Instruction.is_short_instruction_name_no_convert(oplet)){
-                title = Robot.instruction_type_to_function_name(oplet[0]) + " but does not convert args."
-            }
-            else { title = Robot.instruction_type_to_function_name(oplet) }
+            let title = "data_array instructions use\ntheir Job's data_array_transformer for functionality,\n which is, by default: Dexter.pid_move_all_joints"
             return "<span title='" + title + "'>" + text + "</span>"
         }
-        else if (Instruction.is_at_sign_instruction(ins)){
-            let text = JSON.stringify(ins)
-            let title = "at_sign instructions use\ntheir Job's at_sign_function for functionality,\nby default: Dexter.pid_move_all_joints"
-            return "<span title='" + title + "'>" + text + "</span>"
-        }
-        else if(Instruction.is_instruction_array(ins)) {
+        else if(Instruction.is_oplet_array(ins)) {
             let text = JSON.stringify(ins) //we want 1 line here, not the multi-lines that stringify_value(ins) puts out
             return "<span title='" + Robot.instruction_type_to_function_name(ins[Instruction.INSTRUCTION_TYPE]) + "'>" + text + "</span>"
         }
@@ -237,7 +308,7 @@ var Instruction = class Instruction {
         else { shouldnt("Instruction.text_for_do_list_item got unknown instruction type: " + ins) }
     }
     static text_for_do_list_item_for_stepper(ins){
-        if(Instruction.is_instruction_array(ins)) {
+        if(Instruction.is_oplet_array(ins)) {
             let text = JSON.stringify(ins.slice(4)) //we want 1 line here, not the multi-lines that stringify_value(ins) puts out
             return "<span title='" + Robot.instruction_type_to_function_name(ins[Instruction.INSTRUCTION_TYPE]) + "'>" + text + "</span>"
         }
@@ -268,7 +339,7 @@ var Instruction = class Instruction {
             if(instr.hasOwnProperty("robot")) { instr.robot = robot }
             return instr
         }
-        else if (Instruction.is_instruction_array(instr)) {
+        else if (Instruction.is_oplet_array(instr)) {
             let last_elt = last(instr)
             if (last_elt instanceof Robot) { instr[instr.length - 1] = robot }
             else { instr.push(robot) }
@@ -343,16 +414,6 @@ Instruction.labels = [
 
 for (let i = 0; i < Instruction.labels.length; i++){
     Instruction[Instruction.labels[i]] = i
-}
-
-Instruction.job_of_instruction_array = function(ins_array){
-    var job_id = ins_array[Instruction.JOB_ID]
-    return Job.job_id_to_job_instance(job_id)
-}
-
-//return an array of the instruction args
-Instruction.args = function(ins_array){
-    return ins_array.slice(Instruction.INSTRUCTION_ARG0)
 }
 
 //user might call this at top level in a do_list so make it's name short.
@@ -1736,7 +1797,7 @@ Instruction.include_job = class include_job extends Instruction{
     constructor (job_name, start_loc, end_loc) {
         super()
         if(job_name === undefined){
-            dde_error("include_job was not passed a <b>job_name</b> which is required.")
+            dde_error("Robot.include_job was not passed a <b>job_name</b> which is required.")
         }
         this.job_name = job_name
         //It *might* be good to permit job_name to be a job obj, but
@@ -1744,17 +1805,12 @@ Instruction.include_job = class include_job extends Instruction{
         //to permit order of job defs in file to not matter.
         //MakeInstruction insertion of jobs depends on instruction executing time
         //for resolving of job_name
-        //if (job_name instanceof Job) { job_name = job_name.name }
-        //if(typeof(job_name) != "string"){
-        //    dde_error("start_job was passed an invalid <b>job_name</b> of: " + job_name + "<br/>" +
-        //        "It must be a Job instance or the string of a Job name.")
-        //
         this.start_loc = start_loc
         this.end_loc = end_loc
         this.inserting_instruction = true
         }
 
-    do_item (job_instance){
+    /*do_item (job_instance){
         let name_of_job_to_include = this.job_name
         if(!name_of_job_to_include.startsWith("Job.")) { name_of_job_to_include = "Job." + name_of_job_to_include }
         let job_to_include = value_of_path(name_of_job_to_include)
@@ -1772,6 +1828,147 @@ Instruction.include_job = class include_job extends Instruction{
         let instrs_to_insert = job_to_include.orig_args.do_list.slice(first_instr_id, one_beyond_last_id)
         job_instance.insert_instructions(instrs_to_insert)
         job_instance.set_up_next_do(1)
+    }*/
+    do_item (job_instance){
+        let first_arg = this.job_name
+        let resolved_first_arg //could be a job or an array of instructions
+        let do_list_array_to_use
+        if(first_arg instanceof Job) {
+            resolved_first_arg   = first_arg
+            do_list_array_to_use = first_arg.orig_args.do_list
+        }
+        else if (Array.isArray(first_arg)) {
+            resolved_first_arg   = first_arg
+            do_list_array_to_use = first_arg
+        }
+        else if (typeof(first_arg == "string")){  // "Job.job_name"
+            if(first_arg.startsWith("Job.")) {
+                resolved_first_arg   = value_of_path(first_arg)
+                if(!(resolved_first_arg instanceof Job)){
+                    dde_error("Robot.include_job's first argument: " + first_arg +
+                              "<br/>resolved to: " + resolved_first_arg +
+                              "<br/>but was expected to resolve to a Job instance.")
+                }
+                do_list_array_to_use = resolved_first_arg.orig_args.do_list
+            }
+            else if (Job[first_arg]) { // "job name"
+                resolved_first_arg   = Job[first_arg]
+                do_list_array_to_use = resolved_first_arg.orig_args.do_list
+            }
+            else if (first_arg.includes(".")){ //got a file path with an extension.
+                if(file_exists(first_arg)){
+                    let job_instances_in_file = Job.instances_in_file(first_arg)
+                    if(job_instances_in_file.length > 0) {
+                        resolved_first_arg   = job_instances_in_file[0]
+                        do_list_array_to_use = resolved_first_arg.orig_args.do_list
+                    }
+                    else { //maybe file src starts with var foo = an_array_of_instructions
+                        let file_src = file_content(first_arg)
+                        let result_obj = eval_js_part2(file_src, false) // warning: calling straight eval often doesn't return the value of the last expr in the src, but my eval_js_part2 usually does. //window.eval(file_src)
+                        if(result_obj.error_message){
+                           dde_error("Robot.include_job's first argument: " + first_arg +
+                                     "<br/>refers to an existing file but<br/>" +
+                                     "that file contains the JavaScript error of:<br/>" +
+                                     err.message)
+                        }
+                        let file_value = result_obj.value
+                        if (Array.isArray(file_value)) {
+                            resolved_first_arg   = file_value
+                            do_list_array_to_use = file_value
+                        }
+                        else if (file_value === undefined){ // if first expr in file is var foo = arrayof_instructions, use that
+                            file_src = trim_comments_from_front(file_src)
+                            if(file_src.startsWith("var ")){
+                                let equal_sign_pos = file_src.indexOf("=")
+                                if(equal_sign_pos == -1){
+                                    dde_error("Robot.include_job's first argument: " + first_arg +
+                                              "<br/>refers to an existing file containing variable: " + var_name + ".<br/>" +
+                                             "However, their is no equal sign after 'var'")
+                                }
+                                let var_name = file_src.substring(4, equal_sign_pos).trim()
+                                let var_val = window[var_name]
+                                if(Array.isArray(var_val)){
+                                    resolved_first_arg   = var_val
+                                    do_list_array_to_use = var_val
+                                }
+                                else {
+                                    dde_error("Robot.include_job's first argument: " + first_arg +
+                                            "<br/>refers to an existing file containing variable: " + var_name + ".<br/>" +
+                                            "However, the value is not an array of instructions, but rather:<br/>" +
+                                            var_val)
+                                }
+                            }
+                        }
+                    }
+                }
+                else {
+                    dde_error("Robot.include_job's first argument: " + first_arg + " has a dot in it<br/>" +
+                               "so it is presumed to be a file path<br/>" +
+                               "but no such file exists.")
+                }
+            }
+            else if (window[first_arg]) {
+                resolved_first_arg = window[first_arg]
+                if(!Array.isArray(resolved_first_arg)) {
+                    dde_error("Robot.include_job's first argument: " + first_arg + " is a variable<br/>" +
+                              "but the value of the variable is not an array:<br/>" +
+                               resolved_first_arg)
+                }
+                else {
+                    do_list_array_to_use = resolved_first_arg
+                }
+            }
+            else {
+                dde_error("Robot.include_job, got a first argument of: " + first_arg +
+                          "<br/>which is invalid because, although it is a string,<br/>" +
+                          "it isn't a Job name, file name, nor variable name.")
+            }
+        } //end of first_arg is a string processing
+        else {
+            dde_error("Robot.include_job, got a first argument of: " + first_arg +
+                      "<br/>which is invalid because its not a Job, array, or string.")
+        }
+        //at this point either the above code errored, or we have
+        //resolved_first_arg   set to a Job or a do_list array and
+        //do_list_array_to_use set to an array
+        if(Instruction.is_oplet_array(do_list_array_to_use)){
+            dde_error("Robot.include_job, got a first argument of: " + first_arg +
+                      "<br/>but that resolved to an oplet array: " + do_list_array_to_use +
+                      "<br/>which is not a valid array of instruction.<br/>" +
+                      "If you wrap this oplet array in an outer array, it will be valid.")
+        }
+        else {//the base do list instructions to use are ready to go!
+            let the_start_loc
+            let the_end_loc
+            if(resolved_first_arg instanceof Job){
+                the_start_loc = ((this.start_loc === null) ? resolved_first_arg.orig_args.program_counter        : this.start_loc)
+                the_end_loc   = ((this.end_loc   === null) ? resolved_first_arg.orig_args.ending_program_counter : this.end_loc)
+
+                the_start_loc = resolved_first_arg.instruction_location_to_id(
+                                         the_start_loc, undefined, undefined, true) //use orig do_list
+                the_end_loc = resolved_first_arg.instruction_location_to_id(
+                                         the_end_loc,   undefined, undefined, true) //use orig do_list
+            }
+            else {
+                if(the_start_loc == null) { the_start_loc = 0 }
+                if(the_end_loc   == null) { the_end_loc   = do_list_array_to_use.length }
+            }
+            if(!is_non_neg_integer(the_start_loc)){
+                dde_error("Robot.include_job passed start_loc of: " + this.start_loc +
+                          "<br/>but that resolved to: " +  the_start_loc +
+                          "<br/>which is not a non-negative integer.")
+            }
+            else if(!is_non_neg_integer(the_end_loc)){
+                dde_error("Robot.include_job passed end_loc of: " + this.end_loc +
+                          "<br/>but that resolved to: " +  the_end_loc +
+                          "<br/>which is not a non-negative integer.")
+            }
+            else { //finally ready to do the actual work
+                let instrs_to_insert = do_list_array_to_use.slice(the_start_loc, the_end_loc) //excludes the_end_loc
+                job_instance.insert_instructions(instrs_to_insert)
+                job_instance.set_up_next_do(1)
+            }
+        }
     }
 
     to_source_code(args){
@@ -1820,7 +2017,7 @@ Instruction.loop = class Loop extends Instruction{
     //which is done only in the Job.prototype.do_next_item section that handles loop
     //Returns an array of instructions to do for one iteration.
     //If on a normal iteration with more to come, the last inst returned will be a
-    //go_to to this loop instruction.
+    //go_to to this loop instruction. (and that go_to might be the ONLY instruction in the returned array)
     //else if null is returned, we're done with this loop.
     //the returned instruction array may contain a Robot.break instruction that
     //ends this loop. That ending is handled in Job.prototype.do_next_item section that handles loop
@@ -1905,10 +2102,12 @@ Instruction.loop = class Loop extends Instruction{
        }
        else {//ok, finally compute instructions for this iteration
            let body_fn_result = this.body_fn.call(job_instance, this.iter_index, iter_val, this.iter_total, iter_key)
-           if(!Array.isArray(body_fn_result) ||
-              Instruction.is_instruction_array(body_fn_result) ||
-              Instruction.is_short_instruction(body_fn_result) ||
-              Instruction.is_at_sign_instruction(body_fn_result)
+           if((body_fn_result === undefined) ||  (body_fn_result === null)){ //slight optimization
+               body_fn_result = []
+           }
+           else if(!Array.isArray(body_fn_result) ||
+              Instruction.is_oplet_array(body_fn_result) ||
+              Instruction.is_data_array(body_fn_result)
               ){
                body_fn_result = [body_fn_result] //we must return a real array of instructions from this fn.
                                                  //below we add the go_to at the end.
@@ -2065,7 +2264,7 @@ Instruction.send_to_job = class send_to_job extends Instruction{
             if (do_items == null){
                 do_items = notify_item
             }
-            else if (Instruction.is_instruction_array(do_items)){
+            else if (Instruction.is_oplet_array(do_items)){
                 if(notify_item){
                     do_items = [do_items,  notify_item]
                 }
@@ -2161,7 +2360,7 @@ Instruction.sent_from_job = class sent_from_job extends Instruction{
     }
 
     do_item (job_instance){
-        if (Instruction.is_instruction_array(this.do_list_item) ||
+        if (Instruction.is_oplet_array(this.do_list_item) ||
             !Array.isArray(this.do_list_item)){
             job_instance.insert_single_instruction(this.do_list_item)
         }
@@ -2179,11 +2378,15 @@ Instruction.start_job = class start_job extends Instruction{
                        if_started +
                        '<br/>Valid values are: "ignore", "error", "restart"')
         }
+        if(![true, false].includes(wait_until_job_done)){
+            dde_error("Robot.start_job has invalid value for wait_until_job_done of: " +
+                if_started +
+                '<br/>Valid values are: true and false')
+        }
         super()
         if(job_name === undefined){
             dde_error("start_job was not passed a <b>job_name</b> which is required.")
         }
-        if (job_name instanceof Job) { job_name = job_name.name }
         if(typeof(job_name) != "string"){
             dde_error("start_job was passed an invalid <b>job_name</b> of: " + job_name + "<br/>" +
                       "It must be a Job instance or the string of a Job name.")
@@ -2192,105 +2395,130 @@ Instruction.start_job = class start_job extends Instruction{
         this.start_options = start_options
         this.if_started    = if_started
         this.wait_until_job_done = wait_until_job_done
+        this.job_to_start = null
+        this.on_first_call_to_do_item = true
     }
     do_item (job_instance){
-        const new_job = Job[this.job_name]
-        if (new_job){
-            const stat = new_job.status_code
-            if (this.wait_until_job_done) {
-                 if (stat == "not_started")   {
-                    job_instance.wait_reason = "This job waiting for new_job.name to complete."
-                    job_instance.set_status_code("waiting")
-                    new_job.start(this.start_options)
-                    job_instance.set_up_next_do(0)
-                    return
+        if(!this.job_to_start) {
+            if (this.job_name instanceof Job) { this.job_to_start = this.job_name }
+            else if(typeof(this.job_name) == "string") {
+                if (this.job_name.startsWith("Job.")) { this.job_to_start = value_of_path(this.job_name) }
+                else if (Job[this.job_name]) {  this.job_to_start = Job[this.job_name] }
+                else if(file_exists(this.job_name)) {
+                    let jobs_in_file = Job.instances_in_file(this.job_name)
+                    if(jobs_in_file.length > 0) { this.job_to_start = jobs_in_file[0] }
+                    else {
+                        dde_error("Robot.start_job has a job_name that's a path to an existing file: " + this.job_name + "<br/>" +
+                                  "but that file doesn't define any jobs.")
+                    }
                 }
-                else if(["starting", "running"].includes(stat)) {
-                    job_instance.wait_reason = "Robot.start_job waiting at instruction " +
-                                              job_instance.program_counter + " for " + new_job.name + " to complete."
-                    job_instance.set_status_code("waiting")
-                    job_instance.set_up_next_do(0)
-                    return
-                }
-                else if(stat == "waiting") {
-                     job_instance.wait_reason = "Robot.start_job waiting at instruction " +
-                         job_instance.program_counter + " for " + new_job.name + " to complete,\n" +
-                          "but its now waiting for: " + new_job.wait_reason
-                     job_instance.set_status_code("waiting")
-                     job_instance.set_up_next_do(0)
-                     return
-                }
-                else if (stat == "suspended")   {
-                        new_job.unsuspend()
-                        job_instance.wait_reason = "Robot.start_job waiting at instruction " +
-                            job_instance.program_counter + " for " + new_job.name + " to complete."
-                        job_instance.set_status_code("waiting")
-                        job_instance.set_up_next_do(0)
-                        return
-                }
-                else if (stat == "completed")   {
-                     job_instance.wait_reason = null
-                     job_instance.stop_reason = null
-                     job_instance.set_status_code("running")
-                     job_instance.set_up_next_do(1)
-                     return
-                }
-                else if (stat == "errored")   {
-                    job_instance.wait_reason = null
-                    job_instance.stop_reason = "This job stopped because the job it is waiting for, " +
-                                                new_job.name + " has errored with: " +
-                                                new_job.stop_reason
-                    job_instance.set_status_code("errored")
-                    job_instance.set_up_next_do(1)
-                    return
-                }
-                else if (stat == "interrupted")   {
-                    job_instance.wait_reason = null
-                    job_instance.stop_reason = "This job stopped because the job it is waiting for, " +
-                        new_job.name + " was interrupted with: " +
-                        new_job.stop_reason
-                    job_instance.set_status_code("interrupted")
-                    job_instance.set_up_next_do(1)
-                    return
+                else {
+                    dde_error("Robot.start_job has a job_name of: " + this.job_name +
+                              "<br/>but it doesn't resolve to a Job or a file containing one.")
                 }
             }
-            else if (stat == "starting")    { job_instance.set_up_next_do(1) } //just let continue starting
-            else if (stat == "suspended")   {
-                new_job.unsuspend()
-                job_instance.set_up_next_do(1)
-            }
-            else if (["running", "waiting"].includes(stat)){
-               if     (this.if_started == "ignore") {job_instance.set_up_next_do(1)}
-               else if(this.if_started == "error") {
-                   job_instance.stop_for_reason("errored",
-                        "Robot_start_job tried to start job: " + this.job_name +
-                        " but it was already started.")
-                   job_instance.set_up_next_do(0)
-                   return
-               }
-               else if (this.if_started == "restart"){
-                   new_job.stop_for_reason("interrupted",
-                      "interrupted by start_job instruction in " + job_instance.name)
-                   setTimeout(function(){ new_job.start(this.start_options)   },
-                              new_job.inter_do_item_dur * 2)
-                   job_instance.set_up_next_do(1)
-               }
-               else { //if_started is tested for validity in the constructor, but just in case...
-                   shouldnt("Job." + job_instance.name +
-                     " has a Robot.start_job instruction with an invalid " +
-                     "<br/> if_started value of: " + this.if_started)
-               }
-            }
-            else if (["not_started", "completed", "errored", "interrupted"].includes(stat)) {
-               new_job.start(this.start_options)
-                job_instance.set_up_next_do(1)
-            }
-            else {
-                shouldnt("Robot.start_job got a status_code from Job." +
-                          new_job.name + " that it doesn't understand.")
+            if(!(this.job_to_start instanceof Job)){
+                job_instance.stop_for_reason("errored", "Robot.start_job attempted to start non-existent Job." + this.job_name)
+                job_instance.set_up_next_do(0)
             }
         }
-        else { job_instance.stop_for_reason("errored", "Robot.start_job attempted to start non-existent Job." + this.job_name) }
+        //this.job_to_start has a valid job instance in it
+        const stat = this.job_to_start.status_code
+        if (this.wait_until_job_done) {
+             if ((stat == "not_started") || ((stat == "completed") && this.on_first_call_to_do_item))   {
+                 this.on_first_call_to_do_item = false
+                job_instance.wait_reason = "This job waiting for " + this.job_to_start.name + " to complete."
+                job_instance.set_status_code("waiting")
+                this.job_to_start.start(this.start_options)
+                job_instance.set_up_next_do(0)
+                return
+             }
+             else if (stat == "completed"){ //all done with successful runnning of job_to_start
+                 job_instance.wait_reason = null
+                 job_instance.stop_reason = null
+                 this.on_first_call_to_do_item = true //in case this job is inside a loop, prepare for next iteration
+                 job_instance.set_status_code("running")
+                 job_instance.set_up_next_do(1)
+                 return
+             }
+             else if(["starting", "running"].includes(stat)) {
+                job_instance.wait_reason = "Robot.start_job waiting at instruction " +
+                                          job_instance.program_counter + " for " + this.job_to_start.name + " to complete."
+                job_instance.set_status_code("waiting")
+                job_instance.set_up_next_do(0)
+                return
+             }
+             else if(stat == "waiting") {
+                 job_instance.wait_reason = "Robot.start_job waiting at instruction " +
+                     job_instance.program_counter + " for " + this.job_to_start.name + " to complete,\n" +
+                      "but its now waiting for: " + this.job_to_start.wait_reason
+                 job_instance.set_status_code("waiting")
+                 job_instance.set_up_next_do(0)
+                 return
+             }
+             else if (stat == "suspended")   {
+                    this.job_to_start.unsuspend()
+                    job_instance.wait_reason = "Robot.start_job waiting at instruction " +
+                        job_instance.program_counter + " for " + this.job_to_start.name + " to complete."
+                    job_instance.set_status_code("waiting")
+                    job_instance.set_up_next_do(0)
+                    return
+             }
+             else if (stat == "errored")   {
+                job_instance.wait_reason = null
+                job_instance.stop_reason = "This job stopped because the job it is waiting for, " +
+                                            this.job_to_start.name + " has errored with: " +
+                                            this.job_to_start.stop_reason
+                job_instance.set_status_code("errored")
+                job_instance.set_up_next_do(1)
+                return
+             }
+             else if (stat == "interrupted")   {
+                job_instance.wait_reason = null
+                job_instance.stop_reason = "This job stopped because the job it is waiting for, " +
+                    this.job_to_start.name + " was interrupted with: " +
+                    this.job_to_start.stop_reason
+                job_instance.set_status_code("interrupted")
+                job_instance.set_up_next_do(1)
+                return
+             }
+        }
+        //below here. we're not waiting until this.job_to_start is done.
+        else if (stat == "starting")    { job_instance.set_up_next_do(1) } //just let continue starting
+        else if (stat == "suspended")   {
+            this.job_to_start.unsuspend()
+            job_instance.set_up_next_do(1)
+        }
+        else if (["running", "waiting"].includes(stat)){
+           if     (this.if_started == "ignore") {job_instance.set_up_next_do(1)}
+           else if(this.if_started == "error") {
+               job_instance.stop_for_reason("errored",
+                    "Robot_start_job tried to start job: " + this.job_name +
+                    " but it was already started.")
+               job_instance.set_up_next_do(0)
+               return
+           }
+           else if (this.if_started == "restart"){
+               this.job_to_start.stop_for_reason("interrupted",
+                  "interrupted by start_job instruction in " + job_instance.name)
+               setTimeout(function(){ this.job_to_start.start(this.start_options)   },
+                          this.job_to_start.inter_do_item_dur * 2)
+               job_instance.set_up_next_do(1)
+           }
+           else { //if_started is tested for validity in the constructor, but just in case...
+               shouldnt("Job." + job_instance.name +
+                 " has a Robot.start_job instruction with an invalid " +
+                 "<br/> if_started value of: " + this.if_started)
+           }
+        }
+        else if (["not_started", "completed", "errored", "interrupted"].includes(stat)) {
+           this.job_to_start.start(this.start_options)
+            job_instance.set_up_next_do(1)
+        }
+        else {
+            shouldnt("Robot.start_job got a status_code from Job." +
+                      this.job_to_start.name + " that it doesn't understand.")
+        }
     }
     toString(){
         return "start_job: " + this.job_name
@@ -2880,4 +3108,5 @@ var Job     = require('./job.js')
 var Kin     = require("../math/Kin.js")
 var {to_source_code} = require("./to_source_code.js") //for debugging only
 var {shouldnt, warning, dde_error, copy_missing_fields, Duration, is_generator_function, is_iterator, is_non_neg_integer, last,
-     prepend_file_message_maybe, return_first_arg, stringify_value_aux, stringify_value_sans_html, value_of_path} = require("./utils")
+     prepend_file_message_maybe, return_first_arg, starts_with_one_of, stringify_value_aux, stringify_value_sans_html,
+     trim_comments_from_front, value_of_path} = require("./utils")

@@ -2,14 +2,20 @@
 //for name param, both "" and null mean compute a job name a la "job_123"
 class Job{
     constructor({name="",
-                 robot=Robot.dexter0, do_list=[], keep_history=true, show_instructions=true,
+                 robot=Robot.dexter0, do_list=[],
+                 keep_history=true, show_instructions=true,
                  inter_do_item_dur=0.01, user_data={},
-                 default_workspace_pose=null, //Coor.Table,
+                 default_workspace_pose=null,
                  program_counter=0, ending_program_counter="end",
                  initial_instruction=null,
-                 at_sign_function = Dexter.pid_move_all_joints,
+                 data_array_transformer="P",
+                 start_if_robot_busy=false,
                  when_stopped = "stop",
                  callback_param = "start_object_callback"} = {}){
+
+    //default_workspace_pose=null, //Coor.Table,
+    //data_array_transformer="P", //"P" is more efficient than Dexter.pid_move_all_joints, as uses make_ins & 1/2 the do_list items
+    //start_if_robot_busy=false,  //if false and robot.is_busy() is true, Job.start is halted early
     //program_counter is the counter of the next instruction that should be executed.
     //so since we're currently "executing" 1 instruction, and after its done,
     //we'll be incrementing the pc, then internally we decriment the
@@ -20,7 +26,6 @@ class Job{
     //job next, etc.
     //save the args
     if (default_workspace_pose == null) {
-          //console.log("default_workspace_pose is null, Job.job_default_params: " + Job.job_default_params)
           default_workspace_pose=Job.job_default_params.default_workspace_pose
     }
     if (!Array.isArray(do_list)){
@@ -36,12 +41,12 @@ class Job{
         dde_error("While defining Job." + name + "<br/>" + err.message)
         return
     }
-    if((typeof(at_sign_function) == "function") ||
-       Instruction.is_short_instruction_name(at_sign_function)) {} //ok
-    else { //"@" is not valid
-        dde_error("Attempt to define a Job with an at_sign_function of:<br/>" +
-                   at_sign_function +
-                   "<br/>which not a function or a short_instruction name.")
+    if((typeof(data_array_transformer) == "function") ||
+        Robot.is_oplet(data_array_transformer)) {} //ok
+    else {
+        dde_error("Attempt to define Job." + name + " with a data_array_transformer of:<br/>" +
+            data_array_transformer +
+            "<br/>which not a function or an oplet.")
     }
     if (Job[name] && Job[name].is_active()) { //we're redefining the job so we want to make sure the
        //previous version is stopped.
@@ -55,39 +60,43 @@ class Job{
         if (!Job.is_plausible_when_stopped_value(when_stopped)) {
             dde_error("new Job passed: " + when_stopped + " but that isn't a valid value.")
         }
-        this.orig_args = {do_list: do_list, keep_history: keep_history, show_instructions: show_instructions,
+        this.orig_args =   {do_list: do_list, robot: robot,
+                            keep_history: keep_history, show_instructions: show_instructions,
                             inter_do_item_dur: inter_do_item_dur, user_data: user_data,
                             default_workspace_pose: default_workspace_pose,
                             program_counter: program_counter, ending_program_counter: ending_program_counter,
                             initial_instruction: initial_instruction,
-                            at_sign_function: at_sign_function,
+                            data_array_transformer: data_array_transformer,
+                            start_if_robot_busy: start_if_robot_busy,
                             when_stopped: when_stopped,
                             callback_param: callback_param}
-        this.name              = name
-        this.robot             = robot
-        this.user_data         = user_data //needed in case we call to_source_code before first start of the job
         //setup name
         Job.job_id_base       += 1
         this.job_id            = Job.job_id_base
-        if ((this.name == null) || (this.name == "")){ this.name = "job_" + this.job_id }
+        if ((name == null) || (name == "")){ this.name = "job_" + this.job_id }
+        else                               { this.name = name }
+        //setup robot
         if (!(robot instanceof Robot)){
             if (!Robot.dexter0){
                 dde_error("Attempt to create Job: " + this.name + " with no valid robot instance.<br/>" +
                           " Note that Robot.dexter0 is not defined<br/> " +
                           " but should be in your file: Documents/dde_apps/dde_init.js <br/>" +
                           " after setting the default ip_address and port.<br/> " +
-                          "To generate the default dde_init.js file,<br/>" +
+                          " To generate the default dde_init.js file,<br/>" +
                           " rename your existing one and relaunch DDE.")
             }
             else {
                 dde_error("Attempt to create Job: " + this.name + " with no valid robot instance.<br/>" +
-                          "You can let the robot param to new Job default to get a correct Robot.dexter.0")
+                          "You can let the robot param to new Job default, to get a correct Robot.dexter.0")
             }
         }
+        else { this.robot = robot }
+
+        this.user_data       = user_data //needed in case we call to_source_code before first start of the job
         this.program_counter = program_counter //this is set in start BUT, if we have an unstarted job, and
                              //instruction_location_to_id needs access to program_counter, this needs to be set
         this.highest_completed_instruction_id = -1 //same comment as for program_counter above.
-        this.sent_from_job_instruction_queue = [] //will be re-inited by start, but needed here
+        this.sent_from_job_instruction_queue  = [] //will be re-inited by start, but needed here
           //just in case some instructions are to be inserted before this job starts.
         Job[this.name]         = this //beware: if we create this job twice, the 2nd version will be bound to the name, not the first.
         Job.remember_job_name(this.name)
@@ -99,17 +108,37 @@ class Job{
 
     static init(){ //inits the Job class as a whole. called by ready
         this.job_default_params =
-            {name: null, robot: Robot.dexter0, do_list: [],
+               {name: null, robot: Robot.dexter0, do_list: [],
                 keep_history: true, show_instructions: true,
                 inter_do_item_dur: 0.01, user_data:{},
                 default_workspace_pose: Coor.Table, //null, //error on loading DDE if I use: Coor.Table, so we init this in Job.constructor
                 program_counter:0, ending_program_counter:"end",
                 initial_instruction: null, when_stopped: "stop", //also can be "wait" or a fn
-                at_sign_function: Dexter.pid_move_all_joints,
+                data_array_transformer: "P",
+                start_if_robot_busy: false,
                 callback_param: "start_object_callback"}
     }
 
+    //return an array of job instances that are defined in path_name.
+    //warning might be a empty array
+    static instances_in_file(path_name){
+        let base_id_before_new_defs = Job.job_id_base
+        let result = []
+        try{ load_files(path_name) }
+        catch(err) {
+            dde_error("In Job.instances_in_file, evaling the content of path name: " + path_name +
+                      " errored with: " + err.message)
+        }
+        for(let i = base_id_before_new_defs + 1; true; i++){
+            let inst_maybe = Job.job_id_to_job_instance(i)  //returns null if no exist
+            if(inst_maybe) { result.push(inst_maybe) }
+            else { break; }
+        }
+        return result
+    }
+
     toString() { return "Job." + this.name }
+
     show_progress_maybe(){
         if(this.show_instructions === true) { this.show_progress() }
         else if(typeof(this.show_instructions) === "function") {
@@ -117,7 +146,6 @@ class Job{
         }
         //else do nothing
     }
-
 
     show_progress(){
         var html_id = this.name + this.start_time.getTime()
@@ -158,7 +186,9 @@ class Job{
         out(content, "#5808ff", html_id)
     }
 
-    static define_and_start_job(job_file_path){
+    /*obsolete version coded before Job.instances_in_file, and
+       it starts the LAST job defined in the file, not the first
+     static define_and_start_job(job_file_path){
         let starting_job_id_base = Job.job_id_base
         try { load_files(job_file_path)}
         catch(err){
@@ -177,44 +207,115 @@ class Job{
                 console.log(job_file_path + " appears to contain a valid job definition.")
             }
         }
+    }*/
+
+    //starts the first job defined in the file, if any
+    static define_and_start_job(job_file_path){
+        let job_instances = Job.instances_in_file(path_name)
+        if(job_instances.length == 0) {
+            console.log("Could not find Job file: " + job_file_path + "  " + err.message)
+            return
+        }
+        job_instances[0].start()
     }
 
+    static start_and_monitor_dexter_job(job_src){
+        let base_id_before_new_def = Job.job_id_base
+        try { window.eval(job_src) }
+        catch(err) {dde_error("While evaling the job definition to send to Dexter,<br/>" +
+                              "got error: " + err.message)
+        }
+        if(Job.job_id_base == base_id_before_new_def) {
+            dde_error("Before transfering Job file to Dexter,<br/>" +
+                      "could not find a Job definition in the selected source.")
+        }
+        else {
+            let dde_monitor_job_instance = Job.job_id_to_job_instance(base_id_before_new_def + 1)
+            //we "hollow out" this job that is being sent to dexter by
+            //replacing its do_list with something that monitors the
+            //running of the job on Dexter.
+            //we use the same name for that dexter-running job as this
+            //monitoring job running in DDE.
+            //by using start with do_list, we preserve orig_args.do_list
+            //in the DDE job instance
+            //which will be useful for user to inspect.
+            //user_data:job_src set so that RESTARTING this job by clicking its button will use the orig selected src to restart the job
+            dde_monitor_job_instance.start({
+                user_data: {stop_job_running_on_dexter: false, already_handled_stop_job:false, dexter_log:undefined, job_src:job_src}, //the presence of this user data prop is how we tell that this job is a dde_shadow_job_instance.
+                inter_do_item_dur: 0.005, //we don't need to have fast communication with Dexter. Minimize traffic
+                do_list:[
+                        Dexter.write_to_robot(job_src, "job/run/" + dde_monitor_job_instance.name + ".dde"),
+                        Robot.loop(true,
+                            function(){
+                                if(this.user_data.dexter_log !== undefined) { //got a dexter log meaning the monitored job is over.
+                                    return Robot.break()
+                                }
+                                else if ((this.user_data.stop_job_running_on_dexter) &&
+                                         (!this.user_data.already_handled_stop_job))  { //set by clicking the job button
+                                         this.user_data.already_handled_stop_job = true
+                                        Dexter.write_to_robot("", "job/run/killjobs")
+                                        //now next time in this loop, the first clause should hit
+                                }
+                                else { Dexter.read_from_robot("job/logs/" + dde_monitor_job_instance.name + ".dde.log", "dexter_log")} //the
+                                       //log file is only present once the job has stopped
+                            }),
+                        function(){
+                           let content
+                           if(typeof(this.user_data.dexter_log) == "string") { content = this.user_data.dexter_log }
+                           else { content = "Sorry, no log." }
+                           out("Running Job." + this.name + " on Dexter." + this.robot.name + " produced the log of:<br/><pre><code>" +
+                                content + "</code></pre>")
+                        }
+                        ]
+            })
+        }
+    }
 
     //Called by user to start the job and "reinitialize" a stopped job
     start(options={}){  //sent_from_job = null
+        //if(this.name == "my_t_job") { debugger; }
         if(this.wait_until_this_prop_is_false) { this.wait_until_this_prop_is_false = false } //just in case previous running errored before it could set this to false, used by start_objects
-        if (["starting", "running", "suspended"].includes(this.status_code)){
+        if (["starting", "running", "suspended", "waiting"].includes(this.status_code)){
             dde_error("Attempt to restart job: "  + this.name +
                       " but it has status code: " + this.status_code +
                       " which doesn't permit restarting.")
         }
-        else{//init from orig_args
-            let other_jobs = this.robot.active_jobs_using_this_robot()
-            for(let other_job of other_jobs){
-                if (other_job.robot instanceof Dexter){ //can 2 jobs use a Robot.Serial? I assume so for now.
-                    let but_elt = window[other_job.name + "_job_button_id"]
-                    if(but_elt){
-                        let bg = but_elt.style["background-color"]
-                        dde_error("Job." + this.name + " attempted to use: Dexter." + this.robot.name +
-                                   "<br/>but that robot is in use by Job." + other_job.name +
-                                   "<br/>Click the <span style='color:black; background-color:" + bg + ";'> &nbsp;" +
-                                          other_job.name + " </span>&nbsp; Job button to stop it.")
-                    }
-                    else {
-                         dde_error("Job." + this.name + " attempted to use: Dexter." + this.robot.name +
-                                   "<br/>but that robot is in use by Job." + other_job.name)
-                        }
-                    return
+        else if (["not_started", "completed", "errored", "interrupted"].includes(this.status_code)){
+            let early_robot = this.orig_args.robot
+            if(options.hasOwnProperty("robot")) { early_robot = options.early_robot }
+            if(early_robot instanceof Dexter)   { early_robot.remove_from_busy_job_array(this) }
+        }
+        //active jobs & is_busy checking
+        let early_start_if_robot_busy = this.orig_args.start_if_robot_busy
+        if (options && options.hasOwnProperty("start_if_robot_busy")) { early_start_if_robot_busy = options.start_if_robot_busy }
+        if((this.robot instanceof Dexter) &&  //can 2 jobs use a Robot.Serial? I assume so for now.
+           !early_start_if_robot_busy &&
+           this.robot.is_busy()) {
+                let one_active_job = this.robot.busy_job_array[0]
+                let but_elt = window[one_active_job.name + "_job_button_id"]
+                this.stop_for_reason("errored", "Another job: " + one_active_job.name +
+                                      " is using robot: " + this.robot.name)
+                if(but_elt){
+                    let bg = but_elt.style["background-color"]
+                    dde_error("Job." + this.name + " attempted to use: Dexter." + this.robot.name +
+                        "<br/>but that robot is in use by Job." + one_active_job.name +
+                        "<br/>Click the <span style='color:black; background-color:" + bg + ";'> &nbsp;" +
+                        one_active_job.name + " </span>&nbsp; Job button to stop it, or<br/>" +
+                        "create Job." + this.name + " with <code>start_if_robot_busy=true</code><br/>" +
+                        "to permit it to be started.")
                 }
-            }
+                else {
+                    dde_error("Job." + this.name + " attempted to use: Dexter." + this.robot.name +
+                        "<br/>but that robot is in use by Job." + one_active_job.name + "<br/>" +
+                        "Create Job." + this.name + " with <code>start_if_robot_busy=true</code><br/>" +
+                        "to permit it to be started.")
+                }
+                return
+        }
+        //init from orig_args
             this.status_code       = "starting" //before setting it here, it should be "not_started"
             this.color_job_button()
-           // this.do_list           = Job.flatten_do_list_array(this.orig_args.do_list) //make a copy in case the user passes in an array that they will use elsewhere, which we wouldn't want to mung
-           // this.added_items_count = new Array(this.do_list.length) //This array parallels and should be the same length as the run items on the do_list.
-           // this.added_items_count.fill(0) //stores the number of items "added" by each do_list item beneath it
-            //if the initial pc is > 0, we need to have a place holder for all the instructions before it
-            //see total_sub_instruction_count_aux for explanation of added_items_count
-            this.init_do_list()
+            this.init_do_list(options.do_list)
             this.callback_param         = this.orig_args.callback_param
             this.keep_history           = this.orig_args.keep_history
             this.show_instructions      = this.orig_args.show_instructions
@@ -222,10 +323,11 @@ class Job{
             this.user_data              = shallow_copy_lit_obj(this.orig_args.user_data)
             this.default_workspace_pose = this.orig_args.default_workspace_pose
             this.program_counter        = this.orig_args.program_counter //see robot_done_with_instruction as to why this isn't 0,
-                                     //its because the robot.start effectively calls set_up_next_do(1), incremening the PC
+                                     //its because the robot.start effectively calls set_up_next_do(1), incrementing the PC
             this.ending_program_counter = this.orig_args.ending_program_counter
             this.initial_instruction    = this.orig_args.initial_instruction
-            this.at_sign_function       = this.orig_args.at_sign_function
+            this.data_array_transformer = this.orig_args.data_array_transformer
+            this.start_if_robot_busy    = this.orig_args.start_if_robot_busy
             this.when_stopped           = this.orig_args.when_stopped
 
             //first we set all the orig (above), then we over-ride them with the passed in ones
@@ -233,7 +335,7 @@ class Job{
                 if (options.hasOwnProperty(key)){
                     let new_val = options[key]
                     //if (key == "program_counter") { new_val = new_val - 1 } //don't do. You set the pc to the pos just before the first instr to execute.
-                    if      (key == "do_list")    { continue; } //flattening & setting already done by init_do_list new_val = Job.flatten_do_list_array(new_val)
+                    if      (key == "do_list")    { continue; } //flattening & setting already done by init_do_list
                     else if (key == "user_data")  { new_val = shallow_copy_lit_obj(new_val) }
                     else if (key == "name")       {} //don't allow renaming of the job
                     else if ((key == "when_stopped") &&
@@ -248,6 +350,7 @@ class Job{
                     warning("Job.start passed an option: " + key + " that is unknown. This is probably a mistake.")
                 }
             }
+
             let maybe_symbolic_pc = this.program_counter
             this.program_counter = 0 //just temporarily so that instruction_location_to_id can start from 0
             const job_in_pc = Job.instruction_location_to_job(maybe_symbolic_pc, false)
@@ -261,6 +364,7 @@ class Job{
             //this.robot_status      = []  use this.robot.robot_status instead //only filled in when we have a Dexter robot by Dexter.robot_done_with_instruction or a Serial robot
             this.rs_history        = [] //only filled in when we have a Dexter robot by Dexter.robot_done_with_instruction or a Serial robot
             this.sent_instructions = []
+            this.sent_instructions_strings = []
 
             this.start_time        = new Date()
             this.stop_time         = null
@@ -269,6 +373,8 @@ class Job{
             this.wait_reason       = null //not used when waiting for instruction, but used when status_code is "waiting"
             this.wait_until_instruction_id_has_run = null
             this.highest_completed_instruction_id  = -1
+
+
 
             //this.iterator_stack    = []
             if (this.sent_from_job_instruction_queue.length > 0) { //if this job hasn't been started when another job
@@ -306,13 +412,12 @@ class Job{
             this.robot.start(this) //the only call to robot.start
             //console.log("end of Job.start")
             return this
-        }
     }
     //action for the Start Job button
     static start_job_menu_item_action () {
-        var full_src   = Editor.get_javascript()
-        var start_cursor_pos = Editor.selection_start()
-        var end_cursor_pos   = Editor.selection_end()
+        var full_src               = Editor.get_javascript()
+        var start_cursor_pos       = Editor.selection_start()
+        var end_cursor_pos         = Editor.selection_end()
         var text_just_after_cursor = full_src.substring(start_cursor_pos, start_cursor_pos + 7)
         var start_of_job = -1
         if (text_just_after_cursor == "new Job") { start_of_job = start_cursor_pos }
@@ -469,17 +574,31 @@ class Job{
 
             but_elt = window[the_id]
             but_elt.onclick = function(){
-                const the_job = Job[job_name]
-                if (the_job.status_code == "suspended"){
-                    if(but_elt.title.includes("Make Instruction")) { the_job.stop_for_reason("interrupted", "User stopped job.") }
-                    else { the_job.unsuspend() }
+                const job_instance = Job[job_name]
+                if (job_instance.status_code == "suspended"){
+                    if(but_elt.title.includes("Make Instruction")) { job_instance.stop_for_reason("interrupted", "User stopped job.") }
+                    else { job_instance.unsuspend() }
                 }
-                else if(the_job.is_active()){
-                    if (the_job.robot instanceof Dexter) { the_job.robot.empty_instruction_queue_now() }
-                    the_job.stop_for_reason("interrupted", "User stopped job", false)
+                else if (job_instance.user_data.stop_job_running_on_dexter !== undefined) { //ie this job is MONINTORING a job running on Dexter
+                    if (job_instance.user_data.stop_job_running_on_dexter === false){
+                        job_instance.user_data.stop_job_running_on_dexter = true
+                        job_instance.color_job_button()
+                    }
+                    else if(job_instance.is_active()){
+                        if (job_instance.robot instanceof Dexter) { job_instance.robot.empty_instruction_queue_now() }
+                        job_instance.stop_for_reason("interrupted", "User stopped job", false)
+                    }
+                    else { //restart this job on Dexter
+                        Job.start_and_monitor_dexter_job(job_instance.user_data.job_src)
+                        return //let the start color the job button as race condition between that and the below color_job_button
+                    }
+                }
+                else if(job_instance.is_active()){
+                    if (job_instance.robot instanceof Dexter) { job_instance.robot.empty_instruction_queue_now() }
+                    job_instance.stop_for_reason("interrupted", "User stopped job", false)
                 }
                 else {
-                    the_job.start()
+                    job_instance.start()
                 }
             }
             this.color_job_button()
@@ -495,21 +614,10 @@ class Job{
         }
     }
 
-    set_status_code(status_code){
-        if (Job.status_codes.includes(status_code)){
-            this.status_code = status_code
-            this.color_job_button()
-            if (status_code != "waiting") { this.wait_reason = null }
-        }
-        else {
-            shouldnt("set_status_code passed illegal status_code of: " + status_code +
-                     "<br/>The legal codes are:</br/>" +
-                     Job.status_codes)
-        }
-    }
-
     color_job_button(){
         if(window.platform == "dde"){
+            const but_elt = this.get_job_button()
+            if(!but_elt){ return }
             let bg_color = null
             let tooltip  = ""
             switch(this.status_code){
@@ -527,9 +635,13 @@ class Job{
                         bg_color = "rgb(255, 255, 102)"; //pale yellow
                         tooltip  = 'This Job is waiting for a new last instruction\nbecause it has when_stopped="wait".\nClick to stop this job.'
                     }
+                    else if(this.user_data.stop_job_running_on_dexter === true) {
+                        bg_color = "#ffcdb7" //pale orange
+                        tooltip  = "This job is in the process of stopping"
+                    }
                     else {
                         const cur_ins = this.do_list[this.program_counter]
-                        if (Instruction.is_instruction_array(cur_ins)){
+                        if (Instruction.is_oplet_array(cur_ins)){
                             const oplet   = cur_ins[Dexter.INSTRUCTION_TYPE]
                             if(oplet == "z") {
                                 bg_color = "rgb(255, 255, 102)"; //pale yellow
@@ -586,14 +698,29 @@ class Job{
                     " by:\n" + this.stop_reason + "\nClick to restart this Job."
                     break;
             }
-            const but_elt = this.get_job_button()
             if (but_elt.style.backgroundColor !== bg_color) { //cut down the "jitter" in the culor, don't set unnecessarily
                 but_elt.style.backgroundColor = bg_color
+            }
+            if(this.user_data.stop_job_running_on_dexter !== undefined) {
+                tooltip  += "\nThis job montiors a job running on Dexter."
             }
             but_elt.title = tooltip
         }
     }
     //end of jobs buttons
+
+    set_status_code(status_code){
+        if (Job.status_codes.includes(status_code)){
+            this.status_code = status_code
+            this.color_job_button()
+            if (status_code != "waiting") { this.wait_reason = null }
+        }
+        else {
+            shouldnt("set_status_code passed illegal status_code of: " + status_code +
+                "<br/>The valid status codes are:</br/>" +
+                Job.status_codes)
+        }
+    }
 
     is_active(){ return ((this.status_code != "not_started") && (this.stop_reason == null)) }
 
@@ -702,7 +829,7 @@ class Job{
             let new_sub_item_count = this.added_items_count[id]
             let class_html = "class='do_list_item' "
             let rs_button = ""
-            if (Instruction.is_instruction_array(item)) { rs_button = " <button data-do_list_item='" + this.name + " " + id + "' + title='Show the robot status as it was immediately after this instruction was run.'" + class_html + ">RS</button> "}
+            if (Instruction.is_oplet_array(item)) { rs_button = " <button data-do_list_item='" + this.name + " " + id + "' + title='Show the robot status as it was immediately after this instruction was run.'" + class_html + ">RS</button> "}
             let item_text =  ((id == this.program_counter) ? "<span style='border-style:solid; border-width:2px;'> ": "") +
                              "<span title='instruction_id'>id=" + id +
                              "</span>&nbsp;<span title='Number of sub_instructions&#13;added by this instruction below it.'> si=" + new_sub_item_count + "</span>" +
@@ -760,26 +887,21 @@ class Job{
     }
 
     //takes nested items in array and makes flattened list where the elts are
-    //a dexter instrution array, a fn, or something else that can be a do_item.
-    //could possibly return [] which will be ignored by do_next_item
+    //a dexter instruction array, a fn, or something else that can be a do_item.
+    //removes no_op instructions from the returned array.
     static flatten_do_list_array(arr, result=[]){
        for(let i = 0; i < arr.length; i++){
            let elt = arr[i]
-           if      (Instruction.is_instruction_array(elt))   { result.push(elt) }
-           else if (Instruction.is_short_instruction(elt))   { result.push(elt) }
-           else if (Instruction.is_at_sign_instruction(elt)) { result.push(elt) }
-           else if (Array.isArray(elt)) { //if elt is empty array, tbis works fine too.
-                                                             Job.flatten_do_list_array(elt, result)
-           }
-           else if (elt == null)                             {} //includes undefined
+           if      (Instruction.is_no_op_instruction(elt))   {} //get rid of it, including empty nested arrays
+           else if (Instruction.is_oplet_array(elt))         { result.push(elt) }
+           else if (Instruction.is_data_array(elt))          { result.push(elt) } //do not flatten!
+           else if (Array.isArray(elt))                      { Job.flatten_do_list_array(elt, result) }
            else if (elt instanceof Instruction)              { result.push(elt) }
            else if (typeof(elt) === "string")                { result.push(elt) }
            else if (typeof(elt) === "function")              { result.push(elt) }
            else if (is_iterator(elt))                        { result.push(elt) }
-           else if ((typeof(elt) === "object") && (typeof(elt.start) == "function")) { result.push(elt) }
-           else {
-                throw(TypeError("Invalid do_list item at index: " + i + "<br/>of: " + elt))
-           }
+           else if (Instruction.is_start_object(elt))        { result.push(elt) }
+           else { throw(TypeError("Invalid do_list item at index: " + i + "<br/>of: " + elt)) }
        }
        return result
     }
@@ -806,16 +928,21 @@ class Job{
             }
         }
     }
+
+    //returns true if success, false if not, undefined if this.keep_history is false,
+    //but no callers care.
     record_sent_instruction_stop_time(ins_id, stop_time){
         if (this.keep_history){
             for(let ins of this.sent_instructions){
-                if (ins[Instruction.INSTRUCTION_ID] === ins_id){
-                    ins[Instruction.STOP_TIME] = stop_time
-                    return
+                if (typeof(ins) == "string") {} //forget about it. can't store a stop time
+                else if(ins[Instruction.INSTRUCTION_ID] === ins_id){
+                     ins[Instruction.STOP_TIME] = stop_time
+                     return true
                 }
             }
-            shouldnt("a_job.record_sent_instruction_stop_time  passed ins_id: " + ins_id +
-                     " but couldn't find an instruction with that id in Job." + this.name + ".sent_instructions")
+            return false //would happen if the instruction is a string, OR if there's a shouldn't type error, but can't distinguish between the tow so just let it go
+                   //shouldnt("a_job.record_sent_instruction_stop_time  passed ins_id: " + ins_id +
+                    // " but couldn't find an instruction with that id in Job." + this.name + ".sent_instructions")
         }
     }
 }
@@ -823,11 +950,14 @@ class Job{
 //used by Job.prototype.to_source_code. Keep in sync with Job.constructor!
 Job.job_default_params = null
 
-Job.status_codes = ["not_started", "starting", "running", "completed",
-                    "suspended",
-                    "waiting",   //(wait_until, sync_point)
+Job.status_codes = [//normal starting up
+                    "not_started", "starting", "running",
+                    //paused while running
+                    "suspended", "waiting",   //(wait_until, sync_point)
+                    //below mean how runnning the job was stopped.
                     "errored",
-                    "interrupted" //(user stopped manually),
+                    "interrupted", //user stopped manually,
+                    "completed"    //normal OK completion
                     ]
 
 Job.global_user_data = {}
@@ -911,16 +1041,20 @@ Job.stop_all_jobs = function(){
     }
 }
 
+Job.prototype.undefine_job = function(){
+    if(this.robot instanceof Dexter) { this.robot.remove_from_busy_job_array(this) }
+    delete Job[this.name]
+    Job.forget_job_name(this.name)
+    this.remove_job_button()
+}
+
 Job.clear_stopped_jobs = function(){
     var cleared_job_names = []
     for(var j of Job.all_jobs()){
         if ((j.stop_reason != null) || (j.status_code == "not_started")){
-            delete Job[j.name]
-            Job.forget_job_name(j.name)
+            j.undefine_job()
             cleared_job_names.push(j.name)
-            j.remove_job_button()
             if (j == Job.last_job) { Job.last_job = null }
-
         }
     }
     if ((Job.last_job === null) && (Job.all_names.length > 0)){
@@ -1005,48 +1139,43 @@ Job.prototype.status = function (){
 }
 
 Job.prototype.finish_job = function(perform_when_stopped=true){ //regardless of more to_do items or waiting for instruction, its over.
-    if(perform_when_stopped && (this.when_stopped !== "stop")){
-        let the_job = this //for closure
-        setTimeout(function(){
-                      if(the_job.when_stopped == "wait") { //even if we somehow stopped in the middle of the do_list,
-                           // we are going to wait for a new instruction to be added
-                           //beware, maybe race condition here with adding a new instruction.
-                          the_job.status_code = "running"
-                          the_job.stop_reason = null
-                          the_job.program_counter = the_job.do_list.length
-                          the_job.color_job_button()
-                          the_job.set_up_next_do(0)
-                      }
-                      else if (typeof(the_job.when_stopped) === "function"){
-                          setTimeout(function () { the_job.when_stopped.call(the_job)
-                                                   the_job.finish_job(false)
-                                    },
-                                     100)
-                      }
-                      else if (Job.is_plausible_when_stopped_value(the_job.when_stopped)){
-                          setTimeout(function(){
-                                        const found_job = Job.instruction_location_to_job(the_job.when_stopped, false)
-                                        if (found_job) { the_job = found_job }
-                                        the_job.finish_job(false)
-                                        setTimeout(function(){ //give the first job the chance to finish so that it isn't taking up the socket, and only THEN start the 2nd job.
-                                             the_job.start({program_counter: the_job.when_stopped})
-                                        }, 200)
-                                     }, 100)
-                      }
-                      else {
-                          shouldnt("Job: " + the_job.name + " has an invalid when_stopped value of: " + the_job.when_stopped)
-                      }
-                   },
-                   1)
-    }
-    else {
-        this.robot.finish_job()
-        this.color_job_button()
-        this.show_progress_maybe()
-        //this.print_out()
-        out("Done with job: " + this.name + " for reason: " + this.stop_reason)
-        //    "&nbsp;&nbsp;<button onclick='function(){inspect_out(Job." + this.name + ")}'>Inspect</button>")
-        //inspect_out(this, null, null, null, true) //collapse inspector
+      if ((this.when_stopped == "stop") || !perform_when_stopped){
+          this.robot.finish_job()
+          if(this.robot instanceof Dexter) { this.robot.remove_from_busy_job_array(this)} //sometimes a job might be busy and the user clicks its stop button. Let's clean up after that!
+          this.color_job_button()
+          this.show_progress_maybe()
+          out("Done with job: " + this.name + " for reason: " + this.stop_reason)
+      }
+      else{ //we don't have "stop" and we are performming the when_stopped action
+          let job_instance = this //for closure
+          if(job_instance.when_stopped == "wait") { //even if we somehow stopped in the middle of the do_list,
+               // we are going to wait for a new instruction to be added
+               //beware, maybe race condition here with adding a new instruction.
+              job_instance.status_code = "running"
+              job_instance.stop_reason = null
+              job_instance.program_counter = job_instance.do_list.length
+              job_instance.color_job_button()
+              job_instance.set_up_next_do(0)
+          }
+          else if (typeof(job_instance.when_stopped) === "function"){
+              job_instance.when_stopped.call(job_instance)
+              job_instance.finish_job(false)
+          }
+          else if (Job.is_plausible_instruction_location(job_instance.when_stopped)){
+              job_instance.finish_job(false)
+              let maybe_other_job = Job.instruction_location_to_job(job_instance.when_stopped, false)
+              if(maybe_other_job == null) { maybe_other_job = job_instance } //no new job in the instruction location so use our original one
+              setTimeout(function(){ //give job_instance a chance to finish so that it isn't taking up the socket, and only THEN start the 2nd job.
+                                maybe_other_job.start({program_counter: job_instance.when_stopped}) //job_instance.when_stopped is
+                                //an  instruction location and that *might* have a job in it, We really only want
+                                //the instruction_loaction_id out of the instruction location,
+                                //but better to extract that in Job.start rather than here.
+                                //job.start will error if the job in instruction location is not maybe_other_job
+                            }, 200)
+          }
+          else {
+              shouldnt("Job: " + job_instance.name + " has an invalid when_stopped value of: " + job_instance.when_stopped)
+          }
     }
 }
 
@@ -1187,6 +1316,14 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
     } //must be before the below since if we've
     //already got a stop reason, we don't want to keep waiting for another instruction.
     else if (this.wait_until_this_prop_is_false) { this.set_up_next_do(0) }
+    else if (this.instr_and_robot_to_send_when_robot_unbusy) {
+        let [inst, robot] = this.instr_and_robot_to_send_when_robot_unbusy
+        if(robot.is_busy) { } //loop around again
+        else {
+            this.robot_and_instr_to_send_when_robot_unbusy = null
+            this.send(inst, robot)
+        }
+    }
     else if (this.program_counter >= ending_pc) {  //this.do_list.length
              //the normal stop case
         if (this.when_stopped == "wait") { //we're in a loop waiting for the next instruction.
@@ -1217,7 +1354,7 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
         }*/
         else if (!this.stop_reason){
             var stat = "completed"
-            var reas = "Finished all do_list items."
+            var reas = "Finished all " + this.do_list.length + " do_list items."
             if(this.stop_job_instruction_reason){
                 stat = "interrupted"
                 reas = this.stop_job_instruction_reason
@@ -1232,7 +1369,7 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
         //regardless of whether we're in an iter or not, do the item at pc. (might or might not
         //have been just inserted by the above).
       try {
-        var cur_do_item = this.current_instruction()
+        let cur_do_item = this.current_instruction()
         //console.log("do_next_item cur_do_item: " + cur_do_item)
         this.show_progress_maybe()
         this.select_instruction_maybe(cur_do_item)
@@ -1258,11 +1395,15 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
             //note we're inserting sent_from_job instructions, not the REAL instruction we want to execute.
             //that's because in the hierarchical do_list display, we want to see where those REAL instructions came from for debugging purposes.
             this.sent_from_job_instruction_queue = []
+
+            let is_top_array = new Array(this.sent_from_job_instruction_queue.length)
+            is_top_array.fill(true)
+            this.is_do_list_item_top_level_array.splice(this.program_counter, 0, ...is_top_array)
             this.set_up_next_do(0)
         }
         else if (typeof(cur_do_item) === "string"){
-            out("<i>Job." + this.name + ", Instruction " + this.program_counter + ":</i> " + cur_do_item)
-            this.set_up_next_do(1)
+            //out("<i>Job." + this.name + ", Instruction " + this.program_counter + ":</i> " + cur_do_item)
+            this.send(cur_do_item)
         }
         else if (cur_do_item instanceof Instruction.loop){
             let ins = cur_do_item.get_instructions_for_one_iteration(this)
@@ -1276,50 +1417,29 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
         else if (cur_do_item instanceof Instruction){
             cur_do_item.do_item(this)
         }
-        else if (Instruction.is_instruction_array(cur_do_item)){
+        else if (Instruction.is_oplet_array(cur_do_item)){
             this.wait_until_instruction_id_has_run = this.program_counter
             this.send(cur_do_item)
         }
-        else if (Instruction.is_short_instruction(cur_do_item)){
-            let new_do_item = make_ins.apply(null, cur_do_item)
-            this.wait_until_instruction_id_has_run = this.program_counter
-            this.send(new_do_item)
-        }
-        else if (Instruction.is_at_sign_instruction(cur_do_item)){
-            let fn_or_short_instruction_name = this.at_sign_function
-            if(typeof(fn_or_short_instruction_name) == "string") { //vaildity of the string is checked at Job def time
-                let args = cur_do_item.slice(1)
-                args.unshift(fn_or_short_instruction_name)
-                let new_do_item = make_ins.apply(null, args)
+        else if (Instruction.is_data_array(cur_do_item)){
+            let new_do_item = this.transform_data_array(cur_do_item)
+            if(Instruction.is_no_op_instruction(new_do_item)) { this.set_up_next_do(1) }
+            else if(Instruction.is_sendable_instruction(new_do_item)){
                 this.wait_until_instruction_id_has_run = this.program_counter
-                this.send(new_do_item)
+                this.send(new_do_item) //we know we have a sendable, so send it.
             }
-            else {
-                let new_instr = fn_or_short_instruction_name.apply(this, cur_do_item.slice(1))
-                if(Instruction.is_no_op_instruction(new_instr)) { this.set_up_next_do(1) }
-                else if(Instruction.is_at_sign_instruction(new_instr)){
-                    this.stop_for_reason("error", "The instruction: " + cur_do_item +
-                    "<br/>resolved to: " + new_instr +
-                    "<br/>but that would lead to infinite recursion." +
-                    "<br/>Fix Job." + this.name + ".at_sign_function" +
-                    "<br/>to not return another at_sign instruction.")
+            else if(Instruction.is_data_array(new_do_item)){
+                    this.stop_for_reason("errored", "The instruction: " + cur_do_item +
+                    "<br/>resolved to: " + new_do_item +
+                    "<br/>which is a data_array but we've already performed data_array transformation." +
+                    "<br/>Fix Job." + this.name + ".data_array_transformer" +
+                    "<br/>to not return another data_array or" +
+                    "<br/>change: " + JSON.stringify(cur_do_item))
                     this.set_up_next_do(0)
-                }
-                else if(Instruction.is_short_instruction(new_instr)){
-                    let new_new_instr = make_ins.apply(null, new_instr)
-                    this.send(new_instr)
+            }
+            else if(Instruction.is_do_list_item(new_do_item)){
+                    this.insert_single_instruction(new_do_item)
                     this.set_up_next_do(1)
-                }
-                else if (Instruction.is_instruction_array(new_instr)) {
-                    this.wait_until_instruction_id_has_run = this.program_counter
-                    this.send(new_instr)
-                    this.set_up_next_do(1)
-                }
-                else {
-                    this.insert_single_instruction(new_instr)
-                    this.set_up_next_do(1)
-                }
-
             }
         }
         else if (Array.isArray(cur_do_item)){
@@ -1342,7 +1462,7 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
                     this.set_up_next_do(1)
                 }
                 else  { //not done so we must insert the cur_do_item
-                    if (Instruction.is_instruction_array(do_items) || !Array.isArray(do_items)) {
+                    if (Instruction.is_oplet_array(do_items) || !Array.isArray(do_items)) {
                        do_items = [do_items, cur_do_item] }
                     else  { //do_items is already an array
                         do_items = do_items.slice(0) //copy the do_items just in case user is hanging on to that array, we don't want to mung it.
@@ -1388,7 +1508,27 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
        this.stop_for_reason("errored", err.message) //let do_next_item loop around and stop normally
     }
   }
+}
     //this.color_job_button() //todo needs to work for Dexter.sleep (z) instruction and to undo its yellow.
+
+///also called by Make Instruction for creating string to save.
+Job.prototype.transform_data_array = function(data_array){
+        let transformer = this.data_array_transformer
+        if(transformer === undefined) {  //this meth may be called after the job_innstance is defined,
+                                         //but before start is called, so it wouldn't have this
+                                         //copied over to the instance yet.
+            transformer = this.orig_args.data_array_transformer
+        }
+        if(Robot.is_oplet(transformer)) { //ie "P"
+            let args = data_array.slice() //make a copy of the data array
+            args.unshift(transformer)  //push the oplet on the front of the array
+            return make_ins.apply(null, args)  //do the "tranformation" to make a oplet_array
+            //this.wait_until_instruction_id_has_run = this.program_counter
+            //this.send(new_do_item) //we know we have a sendable, so send it.
+        }
+        else {
+            return transformer.apply(this, data_array)
+        }
 }
 
 
@@ -1414,13 +1554,12 @@ Job.prototype.handle_function_call_or_gen_next_result = function(cur_do_item, do
         this.set_up_next_do(1)
     }
     else if (Array.isArray(do_items)){
-        if(Instruction.is_instruction_array(do_items) ||
-           Instruction.is_short_instruction(do_items) ||
-           Instruction.is_at_sign_instruction(do_items)){
+        if(Instruction.is_oplet_array(do_items) ||
+           Instruction.is_data_array(do_items)){
            this.insert_single_instruction(do_items)
            this.set_up_next_do(1)
         }
-        else {
+        else { //must be an instructions_array
             let flatarr = Job.flatten_do_list_array(do_items)
             this.insert_instructions(do_items)
             this.set_up_next_do(1)
@@ -1502,11 +1641,28 @@ Job.prototype.handle_start_object = function(cur_do_item){
         this.set_up_next_do(1)
 }
 
-//only ever passed an instrution_array
-Job.prototype.send = function(instruction_array, robot){ //if remember is false, its a heartbeat
-    var instruction_id
-    const oplet = instruction_array[Instruction.INSTRUCTION_TYPE]
-    if(oplet == "h") { //op_let is first elt UNTIL we stick in the instuction id
+//only ever passed an instrution_array or a "raw" string to send directly to dexter.
+//if a raw string, it starts with the oplet and has to have
+//the prefix added to it.
+Job.prototype.send = function(oplet_array_or_string, robot){ //if remember is false, its a heartbeat
+    if(typeof(oplet_array_or_string) == "string") {
+        //a string can't contain the robot so just use what is passed in to SEND, or the job's robot.
+        if(!robot) { robot = this.robot } //use the job's default robot
+    }
+    else { //oplet_array_or_string is an oplet_array
+        //if there's both a passed in robot, and one in the oplet_array, prefer
+        //the one in the oplet array
+        if (last(oplet_array_or_string) instanceof Robot) { robot = oplet_array_or_string.pop() }
+        else if (!robot)                                  { robot = this.robot } //use the job's default robot
+    }
+    if (robot.is_busy()){
+        this.instr_and_robot_to_send_when_robot_unbusy = [oplet_array_or_string, robot]
+        return
+    }
+    robot.add_to_busy_job_array(this)
+    let instruction_id
+    const oplet = Instruction.extract_instruction_type(oplet_array_or_string)
+    if(oplet == "h") { //op_let is first elt UNTIL we stick in the instruction id
         //instruction_id = -1 //heartbeat always has instruction id of -1
         shouldnt('Job.send passed "h" instruction (heartbeat) but that shouldnt happen as heartbeat is handled lower level by Dexter robot')
     }
@@ -1519,17 +1675,22 @@ Job.prototype.send = function(instruction_array, robot){ //if remember is false,
     else{
         instruction_id = this.program_counter
     }
-    instruction_array[Instruction.JOB_ID]         = this.job_id
-    instruction_array[Instruction.INSTRUCTION_ID] = instruction_id
-    instruction_array[Instruction.START_TIME]     = Date.now()
-    if (this.keep_history){
-        this.sent_instructions.push(instruction_array) //for debugging mainly
+    if(typeof(oplet_array_or_string) == "string") {
+        let prefix = this.job_id + " " + instruction_id + " " + Date.now() + " undefined "
+        oplet_array_or_string = prefix + oplet_array_or_string
+        if(last(oplet_array_or_string) != ";") { oplet_array_or_string += ";" }
+
     }
-    //if there's both a passed in robot, and one in the instruction_array, prefer
-    //the one in the instruction array
-    if (last(instruction_array) instanceof Robot) { robot = instruction_array.pop() }
-    else if (!robot)                              { robot = this.robot } //use the job's default robot
-    robot.send(instruction_array)
+    else {
+        oplet_array_or_string[Instruction.JOB_ID]         = this.job_id
+        oplet_array_or_string[Instruction.INSTRUCTION_ID] = instruction_id
+        oplet_array_or_string[Instruction.START_TIME]     = Date.now()
+    }
+
+    if (this.keep_history){
+        this.sent_instructions.push(oplet_array_or_string) //for debugging mainly
+    }
+    robot.send(oplet_array_or_string)
 }
 
 //"this" is the from_job
@@ -1576,7 +1737,7 @@ Job.instruction_location_to_job = function (instruction_location, maybe_error=tr
     }
     if (the_job_elt){
         if (the_job_elt.job) {
-            var the_job = the_job_elt.job
+            let the_job = the_job_elt.job
             if (typeof(the_job) == "string"){
                 const the_job_name = the_job
                 the_job = Job[the_job]
@@ -1731,7 +1892,7 @@ Job.prototype.ilti_forward_then_backward = function(inst_loc, starting_id, orig_
         else if (ins instanceof Instruction){
             if (ins.constructor.name === inst_loc) { return id }
         }
-        else if (Instruction.is_instruction_array(ins)){
+        else if (Instruction.is_oplet_array(ins)){
             if (ins[Instruction.INSTRUCTION_TYPE] ===  inst_loc) { return id }
         }
     }
@@ -1741,7 +1902,7 @@ Job.prototype.ilti_forward_then_backward = function(inst_loc, starting_id, orig_
         else if (ins instanceof Instruction){
             if (ins.constructor.name === inst_loc) { return id }
         }
-        else if (Instruction.is_instruction_array(ins)){
+        else if (Instruction.is_oplet_array(ins)){
             if (ins[Instruction.INSTRUCTION_TYPE] ===  inst_loc) { return id }
         }
     }
@@ -1757,7 +1918,7 @@ Job.prototype.ilti_backward_then_forward = function(inst_loc, starting_id, use_o
         else if (ins instanceof Instruction){
             if (ins.constructor.name === inst_loc) { return id }
         }
-        else if (Instruction.is_instruction_array(ins)){
+        else if (Instruction.is_oplet_array(ins)){
             if (ins[Instruction.INSTRUCTION_TYPE] ===  inst_loc) { return id }
         }
     }
@@ -1767,7 +1928,7 @@ Job.prototype.ilti_backward_then_forward = function(inst_loc, starting_id, use_o
         else if (ins instanceof Instruction){
             if (ins.constructor.name === inst_loc) { return id }
         }
-        else if (Instruction.is_instruction_array(ins)){
+        else if (Instruction.is_oplet_array(ins)){
             if (ins[Instruction.INSTRUCTION_TYPE] ===  inst_loc) { return id }
         }
     }
@@ -1783,7 +1944,7 @@ Job.prototype.ilti_forward = function(inst_loc, starting_id, use_orig_do_list=fa
         else if (ins instanceof Instruction){
             if (ins.constructor.name === inst_loc) { return id }
         }
-        else if (Instruction.is_instruction_array(ins)){
+        else if (Instruction.is_oplet_array(ins)){
             if (ins[Instruction.INSTRUCTION_TYPE] ===  inst_loc) { return id }
         }
     }
@@ -1799,7 +1960,7 @@ Job.prototype.ilti_backward = function(inst_loc, starting_id, use_orig_do_list=f
         else if (ins instanceof Instruction){
             if (ins.constructor.name === inst_loc) { return id }
         }
-        else if (Instruction.is_instruction_array(ins)){
+        else if (Instruction.is_oplet_array(ins)){
             if (ins[Instruction.INSTRUCTION_TYPE] ===  inst_loc) { return id }
         }
     }
@@ -1813,7 +1974,7 @@ Job.prototype.ilti_backward = function(inst_loc, starting_id, use_orig_do_list=f
 
 //called by Job.start
 Job.prototype.init_do_list = function(new_do_list=undefined){
-    if(new_do_list === undefined) { new_do_list = this.orig_args.do_list }
+    if(!new_do_list) { new_do_list = this.orig_args.do_list }
     this.do_list           = Job.flatten_do_list_array(new_do_list) //make a copy in case the user passes in an array that they will use elsewhere, which we wouldn't want to mung
     this.added_items_count = new Array(this.do_list.length) //This array parallels and should be the same length as the run items on the do_list.
     this.added_items_count.fill(0) //stores the number of items "added" by each do_list item beneath it
@@ -1984,19 +2145,6 @@ Job.prototype.find_next_top_level_instruction_id_for_id = function(id){
 //slots for the new items they are inserting
 //Both of these fns always insert right after the pc
 //force_allow is only true when we are adding the final "g" instruction to a job
-Job.prototype.insert_single_instruction = function(instruction_array, is_sub_instruction=true, force_allow=false){
-    if(force_allow || !this.disable_modify_do_list) {
-        this.do_list.splice(this.program_counter + 1, 0, instruction_array);
-        this.added_items_count.splice(this.program_counter + 1, 0, 0); //added oct 31, 2017
-        if (is_sub_instruction) {
-            this.added_items_count[this.program_counter] += 1
-            this.is_do_list_item_top_level_array.splice(this.program_counter + 1, 0, false) //false for is NOT top_level
-        }
-        else {
-            this.is_do_list_item_top_level_array.splice(this.program_counter + 1, 0, true) //true for is_top_level
-        }
-    }
-}
 
 //note this DOESN'T insert each new item "below" the pc, and boost the added_items_count
 //of the pc by array_of_do_items.length. If we did that,
@@ -2024,7 +2172,21 @@ Job.prototype.insert_instructions = function(array_of_do_items, are_sub_instruct
     }
 }
 
+Job.prototype.insert_single_instruction = function(instruction_array, is_sub_instruction=true, force_allow=false){
+    if(force_allow || !this.disable_modify_do_list) {
+        this.do_list.splice(this.program_counter + 1, 0, instruction_array);
+        this.added_items_count.splice(this.program_counter + 1, 0, 0); //added oct 31, 2017
+        if (is_sub_instruction) {
+            this.added_items_count[this.program_counter] += 1
+            this.is_do_list_item_top_level_array.splice(this.program_counter + 1, 0, false) //false for is NOT top_level
+        }
+        else {
+            this.is_do_list_item_top_level_array.splice(this.program_counter + 1, 0, true) //true for is_top_level
+        }
+    }
+}
 
+//rarely called. ususally cal insert_single_instruction
 Job.insert_instruction = function(instruction, location){
     const job_instance = Job.instruction_location_to_job(location)
     if (job_instance){
@@ -2143,7 +2305,7 @@ Job.prototype.to_source_code = function(args={}){
                        "program_counter",
                        "ending_program_counter",
                        "initial_instruction",
-                       "at_sign_function",
+                       "data_array_transformer",
                        "when_stopped",
                        "callback_param"
                        ]
@@ -2171,7 +2333,7 @@ Job.prototype.to_source_code = function(args={}){
     let do_list_val = props_container.do_list
     if (!args.job_orig_args){
         let last_instr  = last(do_list_val)
-        if (Instruction.is_instruction_array(last_instr) &&
+        if (Instruction.is_oplet_array(last_instr) &&
             last_instr[Instruction.INSTRUCTION_TYPE] == "g") { //don't print the auto_added g instr at end of a run job
             do_list_val = do_list_val.slice(0, (do_list_val.length - 1))
         }

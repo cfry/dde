@@ -1193,7 +1193,7 @@ function trim_end(str){
 module.exports.trim_end = trim_end
 
 //removes prefix, & suffix whitespace AND replaces multiple
-//redundant interior whtiespace with a single space.
+//redundant interior whitespace with a single space.
 function trim_all(str){
     str = str.trim()
     return str.replace(/\s+/g,' ')
@@ -1212,6 +1212,32 @@ function trim_string_quotes(a_string){
 }
 module.exports.trim_string_quotes = trim_string_quotes
 
+//returns a string that starts with the first char of src
+//by trimming whitespace and comments from the front of src
+//used by Robot.include_job
+function trim_comments_from_front(src){
+    src = src.trimLeft()
+    if(src.startsWith("//")) {
+        let end = src.indexOf("\n")
+        if(end == -1){ return "" } //src was a one-liner comment
+        else {
+            src = src.substring(end + 1)
+            return trim_comments_from_front(src)
+        }
+    }
+    else if(src.startsWith("/*")) {
+        let end = src.indexOf("*/")
+        if(end == -1) { //crap, we've got a faulty multi-line comment.
+            return ""
+        }
+        else {
+            src = src.substring(end + 2)
+            return trim_comments_from_front(src)
+        }
+    }
+    else { return src }
+}
+module.exports.trim_comments_from_front = trim_comments_from_front
 
 //only used in this file
 function regexp_escape_special_chars(str){

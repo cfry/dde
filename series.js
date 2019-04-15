@@ -758,7 +758,7 @@ Series.instances = [
         menu_insertion_string: 'show_window({content: "hi"})',
         menu_sel_start:0, menu_sel_end:11, sample: "show_window"}),
 
-    new Series({id:"series_file_id",       array:['dde_apps_dir', 'load_files', 'file_content', "file_exists", 'choose_file_and_get_content', 'Editor.edit_file', 'write_file',
+    new Series({id:"series_file_id",       array:['dde_apps_dir', 'load_files', 'file_content', "file_exists", 'choose_file_and_get_content', 'Editor.edit_file', 'make_folder', 'write_file',
                                                   //'folder_listing',
                                                   'operating_system', 'folder_separator',
                                                   'persistent_set', 'persistent_get', 'persistent_remove', 'persistent_clear'],

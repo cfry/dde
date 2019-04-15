@@ -242,6 +242,9 @@ var TestSuite = class TestSuite{
     }
 
     static run_all(){
+        //just in case we previously called run_all in this session do:
+        //this.suites = [] //bad: causes ref man tests not to run, //warning, wipes out any user defined test suites. Maybe not good.
+
         load_files(__dirname + "/test_suite/math_testsuite.js")
         load_files(__dirname + "/test_suite/move_all_joints_testsuite.js")
         load_files(__dirname + "/music/note_testsuite.js")
@@ -478,7 +481,7 @@ var TestSuite = class TestSuite{
     }
 
     static monitor_started_job(){
-        if(this.state.started_job){
+        if(this.state && this.state.started_job){
             let job_status_code = this.state.started_job.status_code
             if ((job_status_code == "errored") || (job_status_code == "interrupted")) {
                 let error_mess = this.state.started_job.status()
@@ -497,6 +500,9 @@ var TestSuite = class TestSuite{
                 this.state.started_job = null
                 this.resume()
             }
+            else {} //all other states like "starting", "running", "suspended" "waiting". just do nothing
+                    //and monitor_started_job will be called again by setInterval and
+                    //maybe the job status_code will change to completed by then
         }
     }
 
@@ -1010,16 +1016,6 @@ module.exports = TestSuite
 var {is_string_a_literal_array, is_string_a_literal_string, last,
     replace_substrings, similar, string_to_literal, stringify_value_sans_html, spaces, value_of_path} = require("./core/utils.js")
 
-new TestSuite("test_suite_reporting",
-    ["2 + 3", "5", "1st elt (source) evals to same as 2nd elt (expected) and the test passes."],
-    ['similar(2.05, 2, 0.1)', "true", "tolerance of 0.1 permits 2.05 and 2 to be similar"],
-    ["var foo = 4 + 1"],
-    ["foo", "5", "The side effect of the above 'set up' test, sets foo. Foo's value is tested here."],
-    ['"hi" + " dexter"', '"hi dex"', "known failures are declared with this description string starting with 'known'."],
-    ['foo961', '123', "This is an 'unknown failure' for demo purposes"],
-    ['foo723', 'TestSuite.error', 'Tests with expected of TestSuite.error pass if the source errors.'],
-    ['out(TestSuite.run("similarX"))', 'TestSuite.dont_care', "Run another test suite. This one errors because its not defined."]
-)
 //TestSuite.run("test_system")
 //TestSuite.show("test_system")
 //TestSuite.run_all()
