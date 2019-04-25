@@ -184,7 +184,7 @@
         "no-undef-init": 2,
         "no-undefined": 0,
         "no-underscore-dangle": 2,
-        "no-unreachable": 2,
+        //"no-unreachable": 2, //causes error when loading eslint version 5.
         "no-unused-expressions": 2,
         "no-unused-vars": [2, {"vars": "all", "args": "after-used"}],
         "no-use-before-define": 2,
@@ -340,10 +340,14 @@
         //"of": false doesn't work for getting rid of the warning
     }
   }
+
+  var eslint = require("eslint") //fry for eslint version 5
+  var linter_inst = new eslint.Linter() //fry for eslint version 5
   
   function validator(text, options) {
 	var result = [], config = defaultConfig;
-	var errors = eslint.verify(text, config);
+	var errors = linter_inst.verify(text, config); //fry for eslint version 5
+	             //eslint.verify(text, config);
 	for (var i = 0; i < errors.length; i++) {
 	  var error = errors[i];
 	  result.push({message: error.message,

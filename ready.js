@@ -9,7 +9,7 @@
     var selected_text_when_eval_button_clicked = ""
 
     operating_system = "not inited" //on MAC this is "mac", on windows its "win".  bound in both ui and sandbox by ready
-    dde_apps_dir  = null
+    dde_apps_folder  = null
 
     function set_menu_string(elt, label, key){
         let modifier = ((operating_system === "win") ? "Ctrl" : "&#8984")
@@ -19,7 +19,7 @@
     //called by both the eval button and the step button
     function eval_button_action(step=false){ //used by both clicking on the eval button and Cmd-e
         if(step instanceof CodeMirror) { step = false } //means Cmd E was typed in the editor and we don't want to step in this case
-        if((Editor.current_file_path != "new file") && (save_on_eval_id.checked)) { Editor.save_current_file() }
+        if((Editor.current_file_path != "new buffer") && (save_on_eval_id.checked)) { Editor.save_current_file() }
         eval_js_part1(step)
         if (Editor.view == "Blocks") { eval_id.blur() } //to get rid of the Eval button being "selected" when we're evaling in blocks view
     }
@@ -46,12 +46,12 @@
         if      (operating_system == "darwin")       { operating_system = "mac" }
         else if (operating_system.startsWith("win")) { operating_system = "win" }
         const remote = require("electron").remote
-        window.dde_apps_dir = convert_backslashes_to_slashes(remote.getGlobal("dde_apps_dir"))
-        console.log("In renderer dde_apps_dir: " + window.dde_apps_dir)
+        window.dde_apps_folder = convert_backslashes_to_slashes(remote.getGlobal("dde_apps_folder"))
+        console.log("In renderer dde_apps_folder: " + window.dde_apps_folder)
         console.log("In renderer appPath: "      + remote.app.getAppPath())
         console.log("In renderer __dirname: "    + __dirname)
         //require('fs-lock')({
-         //   'file_accessdir': [__dirname, dde_apps_dir], //for readFile, etc. but must include __dirname since Electron needs it.
+         //   'file_accessdir': [__dirname, dde_apps_folder], //for readFile, etc. but must include __dirname since Electron needs it.
         //    'open_basedir':   [__dirname ] //__direname is the folder this app is installed in. //valid folders to get require's from. /usr/local/share/node_modules',
          //}) //restrict file access
         //window.fs = require('fs')
@@ -63,6 +63,19 @@
         serial_port_init()
         //window.Root      = Root //should work but doesn't jan 13, 2019
         Coor.init()
+        //see also ./core/index.js that has this same code
+        Dexter.calibrate_build_tables  = calibrate_build_tables
+        window.calibrate_build_tables = undefined
+        Dexter.prototype.calibrate_build_tables = function() {
+            let result = Dexter.calibrate_build_tables()
+            for(let oplet_array of result){
+                if(Array.isArray(oplet_array)){
+                    oplet_array.push(this)
+                }
+            }
+            return result
+        }
+
         Job.init()
         setTimeout(function(){
             window.document.title = "Dexter Development Environment " + dde_version
@@ -257,7 +270,7 @@
     set_menu_string(new_id, "New", "n")
 
     file_name_id.onchange = function(e){ //similar to open
-        const inner_path = e.target.value //could be "new file" or an actual file
+        const inner_path = e.target.value //could be "new buffer" or an actual file
         const path = Editor.files_menu_path_to_path(inner_path)
         Editor.edit_file(path)
     }
@@ -279,9 +292,6 @@
     load_file_id.onclick=function(e) {
         const path = choose_file({title: "Choose a file to load"})
         if (path){
-            //const content = file_content(path)
-            //Editor.set_javascript(content)
-            //Editor.add_path_to_files_menu(path)
             out(load_files(path))
         }
     }
@@ -294,30 +304,14 @@
         }
     }
 
-    save_id.onclick =    Editor.save
+    save_id.onclick = Editor.save
     set_menu_string(save_id, "Save", "s")
 
     save_as_id.onclick = Editor.save_as
-
-    remove_id.onclick=function(){
-        let files = persistent_get("files_menu_paths")
-        let the_file_to_remove = file_name_id.value
-        //if (the_file_to_remove.startsWith("dde_apps/")){
-        //    let prefix = dde_apps_dir.substring(0, dde_apps_dir.length - 8)
-        //    the_file_to_remove = prefix + the_file_to_remove
-        //}
-        the_file_to_remove = Editor.files_menu_path_to_path(the_file_to_remove)
-        let i = files.indexOf(the_file_to_remove)
-        if (i != -1) {
-           files.splice(i, 1)
-           persistent_set("files_menu_paths", files)
-           Editor.restore_files_menu_paths_and_last_file()
-        }
-    }
-
+    remove_id.onclick  = Editor.remove
     update_id.onclick = function (){check_for_latest_release()}
 
-        //Edit menu
+    //Edit menu  (see editor.js for the Edit menu items
     Editor.init_editor()
 
     //Insert menu
@@ -1061,8 +1055,8 @@ foo      //eval to see the latest values</pre>`,
         Editor.insert(content)
         open_doc("DXF.init_drawing_doc_id")
     }
-    calibrate_id.onclick   = function() { init_calibrate() }//defines 2 jobs and brings up calibrate dialog box
-    ping_dexter_id.onclick = function() { ping_a_dexter() }
+    calibrate_id.onclick         = function() { init_calibrate() }//defines 2 jobs and brings up calibrate dialog box
+    ping_dexter_id.onclick       = function() { ping_a_dexter() }
     run_job_on_dexter_id.onclick = function() {
         let job_src = Editor.get_any_selection() //we want to be able to select a Job def in
             //the doc pane and send it to Dexter.
@@ -1091,7 +1085,7 @@ foo      //eval to see the latest values</pre>`,
     javascript_pane_help_id.onclick    = function(){ open_doc(javascript_pane_doc_id)  }
     output_pane_help_id.onclick        = function(){ open_doc(output_pane_doc_id)  }
     documentation_pane_help_id.onclick = function(){ open_doc(documentation_pane_doc_id)  }
-    misc_pane_help_id.onclick      = function(){ open_doc(misc_pane_doc_id)  }
+    misc_pane_help_id.onclick          = function(){ open_doc(misc_pane_doc_id)  }
 
     <!-- simulate pane -->
     //init_video()
@@ -1146,9 +1140,9 @@ foo      //eval to see the latest values</pre>`,
     if(val) { //have to do this because, unlike the DOM doc, chrome/electron checks the box if you set it to false.
         format_as_code_id.setAttribute("checked", val)
     }
-        format_as_code_id.onclick = function(event) {
-        let val = format_as_code_id.checked
-        persistent_set("default_out_code", val)
+    format_as_code_id.onclick = function(event) {
+                                    let val = format_as_code_id.checked
+                                    persistent_set("default_out_code", val)
     }
     dde_init_dot_js_initialize()//must occcur after persistent_initialize
 
@@ -1259,6 +1253,7 @@ var {out, get_output, clear_output} = require("./core/out.js")
 //var {Root} = require("./core/object_system.js") //should work but doesn't jan 13, 2019
 var {convert_backslashes_to_slashes} = require("./core/storage.js")
 var Coor  = require("./math/Coor.js")
+var calibrate_build_tables = require("./low_level_dexter/calibrate_build_tables.js")
 var Job   = require("./core/job.js")
 var Gcode = require("./core/gcode.js")
 var DXF   = require("./math/DXF.js")

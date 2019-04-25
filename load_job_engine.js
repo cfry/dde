@@ -6,6 +6,7 @@ var Coor    = require("./math/Coor.js")
 var Kin     = require("./math/Kin.js")
 var Vector  = require("./math/Vector.js")
 var txt     = require("./math/txt.js")
+var calibrate_build_tables = require("./low_level_dexter/calibrate_build_tables.js")
 
 var {serial_port_init, serial_path_to_info_map, serial_devices, serial_connect_low_level,
     serial_send_low_level, serial_connect, serial_send, serial_flush, serial_disconnect,
@@ -16,9 +17,11 @@ var {dde_error, warning, shouldnt, array_to_csv, csv_to_array, Duration, flatten
     patch_until, return_first_arg, trim_comments_from_front,
     version_equal, version_less_than, version_more_than, dde_version_between} = require("./core/utils.js")
 
-var {choose_file, choose_save_file, choose_file_and_get_content, file_content, file_exists, load_files,
+var {choose_file, choose_save_file, choose_file_and_get_content,
+     file_content, file_content_async, file_exists, load_files,
      make_folder, make_full_path,
-     persistent_get, persistent_remove, persistent_save, write_file} = require("./core/storage.js")
+     persistent_get, persistent_remove, persistent_save,
+     write_file, write_file_async} = require("./core/storage.js")
 
 
 var {deg_c_to_c, deg_c_to_f, deg_f_to_c,

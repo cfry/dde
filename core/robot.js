@@ -861,10 +861,11 @@ Dexter = class Dexter extends Robot {
                  pose = Vector.identity_matrix(4),
                  enable_heartbeat=true,
                  instruction_callback = Job.prototype.set_up_next_do}={}){
-        //console.log("top of Dexter constructure with instruction_callback: " + instruction_callback)
-        //if (instruction_callback == null) {instruction_callback = set_up_next_do  } //Job.prototype.set_up_next_do won't work due to broken require system
-        //because arguments[0] doesn't work like it does for fns, I have to resort to this redundancy
-        if(!ip_address) { ip_address = persistent_get("default_dexter_ip_address") }
+       if((name.length == 1) && (name >= "A") && (name <= "Z")){
+           dde_error("While construction a Dexter robot named: " + name +
+                     "<br/>Sorry, you can't name a Dexter with a single upper case letter.")
+       }
+       if(!ip_address) { ip_address = persistent_get("default_dexter_ip_address") }
         if(!port)       { port       = persistent_get("default_dexter_port") }
 
         let keyword_args = {name: name, simulate: simulate, ip_address: ip_address, port: port,
@@ -1021,7 +1022,9 @@ Dexter = class Dexter extends Robot {
                                         //this_robot.use_ping_proxy(job_instance)
                                     }
                                     else {
-                                        this_job.stop_for_reason("errored", "Could not connect to Dexter.\nIf it is because Dexter is initializing,\ntry again in a minute.")
+                                        this_job.stop_for_reason("errored", "Could not connect to Dexter.\nIf it is because Dexter is initializing,\ntry again in a minute.", true)
+                                        //3rd arg is true so that we will run the stop method for dex_read_file job,
+                                        //so that this error of "not connected" will reset the orig editor files menu item.
                                     }
                                 },
                                {timeout: 10}
@@ -1913,7 +1916,7 @@ Dexter.socket_encode = function(char){
     else { return char }
 }
 
-Dexter.write_to_robot = function(a_string="", file_name=null){
+Dexter.write_to_robot = function(content="", file_name=null){
     let max_content_chars = 62 //244 //252 //ie 256 - 4 for (instruction_id, oplet, suboplet, length
     //payload can be max_contect_chars + 2 long if last character is escaped
     let payload = ""
@@ -1921,7 +1924,7 @@ Dexter.write_to_robot = function(a_string="", file_name=null){
     if (file_name){
         instrs.push(make_ins("W", "f", 0, file_name))
     }
-    for(let char of a_string) {
+    for(let char of content) {
         payload += Dexter.socket_encode(char)
         if (payload.length >= max_content_chars) {
             instrs.push(make_ins("W", "m", payload.length, payload))
@@ -1932,7 +1935,7 @@ Dexter.write_to_robot = function(a_string="", file_name=null){
     return instrs
 }
 
-Dexter.prototype.write_to_robot = function(a_string="", file_name=null){
+Dexter.prototype.write_to_robot = function(content="", file_name=null){
     let max_content_chars = 62 //244 //252 //ie 256 - 4 for (instruction_id, oplet, suboplet, length
     //payload can be max_contect_chars + 2 long if last character is escaped
     let payload = ""
@@ -1940,7 +1943,7 @@ Dexter.prototype.write_to_robot = function(a_string="", file_name=null){
     if (file_name){
         instrs.push(make_ins("W", "f", 0, file_name, this))
     }
-    for(let char of a_string) {
+    for(let char of content) {
         payload += Dexter.socket_encode(char)
         if (payload.length >= max_content_chars) {
             instrs.push(make_ins("W", "m", payload.length, payload, this))

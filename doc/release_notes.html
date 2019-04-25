@@ -6,6 +6,72 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 3.3.1, Apr 25, 2019</summary>
+Highlights: Numerous bug fixes. Prototype of access to Dexter file system from
+             within DDE ... a work in progress.
+<ul>
+    <li> Click-help now recognizes defined Job and Robots names
+      and existing File names when they are in
+      literal strings. Click just in front of the first quote or double quote
+      mark to inspect the value of the object.</li>
+
+    <li> <code>txt</code> class for drawing now fixed. Work is ongoing
+    on string_to_lines. Expect improvements soon.</li>
+
+    <li> Extended the doc for Ref Man show_window about its callback function</li>
+
+    <li> Dexter.write_to_robot respelled first arg from "a_string" to "content".</li>
+
+    <li> Jobs menu/Run Job on Dexter bug fixed.</li>
+
+    <li> Root pathnames are now recognized to be
+        starting with slash or "A:" through "Z:" as is WindowsOS convention.
+        Formerly they were just starting with slash or "C:" through "G:".</li>
+
+    <li> Dexter instances can no longer be created with a single upper case letter
+        because this conflicts with the file system and new file paths such as dexter0:foo.js</li>
+
+    <li> Fix for the bad dir that installing DDE windows exe went into in 3.3.0 and
+        a few other recent releases.</li>
+
+    <li> Fixed bug in replace_substrings utility.</li>
+
+    <li> When you choose file menu items of open, save, save_as.
+         you now get the option of getting and saving the file to Dexter,
+         as well as the computer that DDE is on.
+        This is a work in progress. Expect improvements soon.
+         </li>
+
+    <li>Renaming of "new file" to "new buffer" and a new policy:
+         It is never saved to the file system. If you move to a new buffer
+         and "auto save" is checked, you'll be prompted to save the buffer
+          to an actual file.
+    </li>
+
+    <li> New instruction <code>Dexter.calibrate_build_tables</code>.
+        See Ref Man/Robot/Dexter/Dexter_instructions</li>
+
+    <li> Inspector <button>more</button> now increases the number of
+        lines shown from times 2 to times 4.
+        This means, for example, a single more click will now display all the
+        properties of Job.</li>
+
+    <li> MakeInstrution dialog,  insert button sub-dialog,
+         when no name for the job given, it now pops up a
+         choose file dialog to let the user choose a place from a menu
+         to save the job to.</li>
+
+    <li> The underlying software for implementing the text editor, CodeMirror,
+         and the JS syntax checker (eslint) have been updated to
+         their latest version. This will hopefully fix some
+         intermittent bugs on WindowsOS and some "new Javascript" false warnings.</li>
+
+    <li> The global constant: <code>dde_apps_dir</code>
+         has been respelled to <code>dde_apps_folder</code>
+         to make it more consistent with other uses of "folder" in DDE.</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.3.0, Apr 15, 2019</summary>
 Highlights: MakeInstruction lots of improvements, esp Insert.<br/>
             New Jobs menu item: "Run Job on Dexter".<br/>

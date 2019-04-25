@@ -771,7 +771,7 @@ Instruction.Dexter.read_from_robot = class read_from_robot extends Instruction.D
                 read_from_robot_instance.is_done = true
             }
         }
-        else if(typeof(payload_string_maybe) == "number"){
+        else if(typeof(payload_string_maybe) == "number"){ //an error number.
             job_instance.user_data[read_from_robot_instance.destination] = payload_string_maybe //set, don't append
             read_from_robot_instance.is_done = true
         }

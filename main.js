@@ -33,26 +33,26 @@ const fs = require('fs');
 let documents_dir = app.getPath("documents")
 if (!documents_dir.endsWith("Documents")) { documents_dir += "/Documents" } //needed on Unbuntu OS for Dexter running DDE, all of whcih have a Documents dir
 console.log("First try getting 'documents' yielded: " + documents_dir)
-let the_dde_apps_dir = documents_dir + "/dde_apps"
-let exists = fs.existsSync(the_dde_apps_dir)
-console.log(the_dde_apps_dir + " exists=" + exists)
+let the_dde_apps_folder = documents_dir + "/dde_apps"
+let exists = fs.existsSync(the_dde_apps_folder)
+console.log(the_dde_apps_folder + " exists=" + exists)
 if(!exists) { //probably on windows
     let last_backslash_index = documents_dir.lastIndexOf("\\")
     let before_docs_path = documents_dir.substring(0, last_backslash_index)
-    the_dde_apps_dir = before_docs_path + "\\OneDrive\\Documents\\dde_apps"
-    exists = fs.existsSync(the_dde_apps_dir)
-    console.log(the_dde_apps_dir + " exists=" + exists)
+    the_dde_apps_folder = before_docs_path + "\\OneDrive\\Documents\\dde_apps"
+    exists = fs.existsSync(the_dde_apps_folder)
+    console.log(the_dde_apps_folder + " exists=" + exists)
     if (!exists) {
         console.log('DDE cannot find the folder "Documents/apps_dir/" . You must create it.')
-        the_dde_apps_dir = documents_dir + "/dde_apps" //user will need to create it
+        the_dde_apps_folder = documents_dir + "/dde_apps" //user will need to create it
     }
 }
 //let init_file_one_drive = app.getPath("OneDrive/documents") + "/dde_apps"
 //exists = fs.existsSync(init_file_one_drive)
 //console.log(init_file_one_drive + " exists 2: " + exists)
 //console.log("documents_dir = " + documents_dir)
-global.dde_apps_dir = the_dde_apps_dir //documents_dir + "/dde_apps"
-console.log("in main.js with dde_apps_dir: " + global.dde_apps_dir)
+global.dde_apps_folder = the_dde_apps_folder //documents_dir + "/dde_apps"
+console.log("in main.js with dde_apps_folder: " + global.dde_apps_folder)
 const BrowserWindow = electron.BrowserWindow
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -280,7 +280,6 @@ ipc.on('prompt', function(eventRet, arg) {
         console.log("promptWindow.on closed called.")
         console.log(some_arg)
         console.log("Got val_id: " + val_id)
-       // eventRet.returnValue = "stuff"// setting this causes DDE to hang. //val_id.value //promptResponse
         promptWindow = null
     })
     const prompt_html =  title_html + body_html + style_html

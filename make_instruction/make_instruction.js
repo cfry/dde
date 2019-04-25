@@ -1175,10 +1175,17 @@ var MakeInstruction = class MakeInstruction{
     }
 
     static path_to_write_to() {
-        if(mi_job_instrs_where_file_id.checked) {
-            return make_full_path(mi_job_instrs_wrapper_name_id.value + ".dde")
+        if(mi_job_instrs_where_file_id.checked) { //writing to a file, even if we haven't chosen it yet
+            let path = mi_job_instrs_wrapper_name_id.value
+            if(path == "") { return "" }
+            else {
+                if (!path.includes(".")) {
+                    path = path + ".dde"
+                }
+                return make_full_path(path)
+            }
         }
-        else { return null }
+        else { return null } //writing to end of buffer.
     }
     static insert_jobs(){
         let pos_after_top_insertion =  null
@@ -1197,7 +1204,13 @@ var MakeInstruction = class MakeInstruction{
                 }
             }
             if (seg_job_code != "") {
-                let path = this.path_to_write_to()
+                let path = this.path_to_write_to() //empty string means pop up choose file diaog,
+                                                   //valid string means write file to it.
+                                                   //null means insert code at end of buffer
+                if(path == ""){
+                    path = choose_save_file({title: "Choose file to save Job to",
+                                             defaultPath: dde_apps_folder})
+                }
                 if(path){
                     write_file(path, seg_job_code)
                     out(mi_job_instrs_wrapper_name_id.value  + " definition written to: " + path)
@@ -1425,7 +1438,7 @@ MakeInstruction.menu_hierarchy = [
     ["Dexter common", "draw_dxf", "empty_instruction_queue_immediately", "empty_instruction_queue",
                       "get_robot_status", "get_robot_status_immediately", "make_ins", "read_from_robot",
                       "run_gcode", "set_parameter", "write_to_robot"],
-    ["Dexter rare", "capture_ad", "capture_points", "cause_error", "dma_read", "dma_write", "exit",
+    ["Dexter rare", "calibrate_build_tables", "capture_ad", "capture_points", "cause_error", "dma_read", "dma_write", "exit",
                     "find_home", "find_home_rep", "find_index", "load_tables",
                     "record_movement", "replay_movement",
                     "sleep",  "slow_move", "write"],
@@ -1435,7 +1448,7 @@ MakeInstruction.menu_hierarchy = [
                       "suspend", "unsuspend", "sync_point", "wait_until"],
     ["Robot I/O",  "get_page", "grab_robot_status",  "out",
                    "show_picture", "show_video", "take_picture"],
-    ["Robot Jobs", "send_to_job", /*"sent_from_job" don't let user use this*/
+    ["Robot Jobs", "include_job", "send_to_job", /*"sent_from_job" don't let user use this*/
                    "start_job", "stop_job"],
     ["Robot bugs", "debugger", "error", "if_any_errors"],
     ["Serial",     "string_instruction"],

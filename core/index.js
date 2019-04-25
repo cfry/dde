@@ -8,9 +8,9 @@ function node_on_ready() {
 
     if      (operating_system == "darwin")       { operating_system = "mac" }
     else if (operating_system.startsWith("win")) { operating_system = "win" }
-    try{dde_apps_dir}
+    try{dde_apps_folder}
     catch(err){
-        global.dde_apps_dir = process.env.HOME //ie  /Users/Fry
+        global.dde_apps_folder = process.env.HOME //ie  /Users/Fry
             + "/Documents/dde_apps"
     }
     //not needed for node version
@@ -20,8 +20,20 @@ function node_on_ready() {
     global.platform  = "node"
     global.Root      = Root
     global.window = global //window is needed in storage.js and elsewhere
-    console.log("operating_system: " + operating_system + "\ndde_apps_dir: " + dde_apps_dir)
+    console.log("operating_system: " + operating_system + "\ndde_apps_folder: " + dde_apps_folder)
     Coor.init()
+    //see also ready.js that has this same code
+    Dexter.calibrate_build_tables  = calibrate_build_tables
+    window.calibrate_build_tables = undefined
+    Dexter.prototype.calibrate_build_tables = function() {
+        let result = Dexter.calibrate_build_tables()
+        for(let oplet_array of result){
+            if(Array.isArray(oplet_array)){
+                oplet_array.push(this)
+            }
+        }
+        return result
+    }
     //new Dexter({name: "dexter0"})
 
     persistent_initialize()
@@ -90,8 +102,9 @@ function run_shell_cmd(cmd_string, options={}, cb=run_shell_cmd_default_cb){
 }
 var {load_files, persistent_initialize, dde_init_dot_js_initialize} = require('./storage.js')
 var {Root} = require("./object_system.js")
-var Coor = require("../math/Coor.js")
-var Job = require('./job.js')
+var Coor   = require("../math/Coor.js")
+var Job    = require("./job.js")
+var calibrate_build_tables = require("./low_level_dexter/calibrate_build_tables.js")
 
 
 run_node_command(process.argv)

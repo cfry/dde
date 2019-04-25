@@ -1241,7 +1241,7 @@ module.exports.trim_comments_from_front = trim_comments_from_front
 
 //only used in this file
 function regexp_escape_special_chars(str){
-    return strr.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')
+    return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')
 }
 
 

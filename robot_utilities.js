@@ -228,6 +228,7 @@ function ping_a_dexter(){
                             "<p/><center><input type='button' value='Ping' title='Start pinging indicated ip address(es).'/> " +
                             " <input type='button' value='Cancel' title='Stop an ongoing scan of ip addresses.'/>" +
                             " <input type='button' value='Insert Robot Definition' title='Insert a definiton&#013;for a Dexter robot&#013;with the selected IP address.'/></center>",
+                 x:      50,
                  height: 375,
                  width:  400,
                  callback: ping_a_dexter_handler

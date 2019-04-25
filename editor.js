@@ -20,7 +20,7 @@ require("codemirror/addon/fold/comment-fold.js")
 var myCodeMirror
 
 function Editor(){} //just a namespace of *some* internal fns
-Editor.current_file_path = null //could be "new file" or "/Users/.../foo.fs"
+Editor.current_file_path = null //could be "new buffer" or "/Users/.../foo.fs"
 
 Editor.view = "JS"
 
@@ -115,44 +115,89 @@ Editor.index_of_path_in_file_menu = function(path){
     }
     return null
 }
-/*
-Editor.path_to_files_menu_path = function(path){
-    if (path.startsWith(dde_apps_dir)){
-        return "dde_apps" + path.substring(dde_apps_dir.length)
+
+//returns false if path is not in menu, true if it is. path expected to be a full path,
+Editor.set_files_menu_to_path = function(path) {
+    if(!path) { path = Editor.current_file_path }
+    let i = Editor.index_of_path_in_file_menu(path)
+    if (i === null) { return false }
+    else {
+        file_name_id.selectedIndex = i
+        return true
     }
-    else { return path }
+}
+/* not called. use Editor.set_files_menu_to_path
+Editor.select_file_in_file_menu = function(path){
+    let inner_path = Editor.path_to_files_menu_path(path)
+    var the_opt_elts = file_name_id.children
+    for (var index = 0; index < the_opt_elts.length; index++){
+        var elt = the_opt_elts[index]
+        if (elt.innerText == inner_path){
+            file_name_id.selectedIndex = index
+            return true
+        }
+    }
+    return false //no such path in file menu
+} */
+
+Editor.files_menu_path_separator = " --- "//this fails due to auto converstion ot &lt; somewhere" <> " //" " //works but confusing with program dots. " . . . " //sticking in HTML shows html src, not rendered "<span style='margin-right:20px;'/>" //" " //attempt to stick in non-breaking space fails. String.fromCharCode(160) + String.fromCharCode(160) + String.fromCharCode(160) + String.fromCharCode(160) + String.fromCharCode(160) //"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
+
+//below a folder always ends with a slash or a colon (as in "dexter0:")
+
+Editor.files_menu_path_to_folder_and_name = function(path){
+    let [name, fold] = path.split(Editor.files_menu_path_separator)
+    if(fold == "dde_apps/") { fold = dde_apps_folder + "/" }
+    return [fold, name]
 }
 
-Editor.files_menu_path_to_path = function(path){
-    if (path.startsWith("dde_apps/")){
-        return dde_apps_dir + path.substring(8)
+Editor.make_files_menu_path = function(folder, name) {
+    if (folder.startsWith(dde_apps_folder)){
+        folder = "dde_apps" + folder.substring(dde_apps_folder.length)
     }
-    else { return path }
+    return name + Editor.files_menu_path_separator + folder
 }
-*/
+
+
+//returns an array of folder and file name. The folder always ends with slash or colon.
+Editor.path_to_folder_and_name = function(path){
+    let file_name_start_index = path.lastIndexOf("/")
+    if(file_name_start_index == -1) { file_name_start_index = path.lastIndexOf(":") } //happens with dexter0:foo.js
+    if(file_name_start_index == -1) { //happens with "foo.js"
+        return[dde_apps_folder + "/", path]
+    }
+    else {
+        return [path.substring(0, file_name_start_index + 1),  path.substring(file_name_start_index + 1)]
+    }
+}
+
+
 //menu path will look like: "foo.js /Users/Joe/Documents/dde_apps/"
 //note the space between the name and the folder.
-Editor.path_to_files_menu_path = function(path){
-    if (path.startsWith(dde_apps_dir)){
-        path = "dde_apps" + path.substring(dde_apps_dir.length)
+/*Editor.path_to_files_menu_path = function(path){
+    if (path.startsWith(dde_apps_folder)){
+        path = "dde_apps" + path.substring(dde_apps_folder.length)
     }
     let file_name_start_index = path.lastIndexOf("/") + 1
     let file_name = path.substring(file_name_start_index)
     let fold      = path.substring(0, file_name_start_index)
-    let menu_path = file_name + " " + fold
+    let menu_path = file_name + Editor.files_menu_path_separator + fold
     return menu_path
+}*/
+Editor.path_to_files_menu_path = function(path){
+    if(path == "new buffer") { return path }
+    else if (path.startsWith(dde_apps_folder)){
+        path = "dde_apps" + path.substring(dde_apps_folder.length)
+    }
+    let [fold, name] = Editor.path_to_folder_and_name(path)
+    return Editor.make_files_menu_path(fold, name)
 }
 
 Editor.files_menu_path_to_path = function(menu_path){
-    let name_and_fold = menu_path.split(" ")
-    let name = name_and_fold[0]
-    let fold = name_and_fold[1]
-    if (!fold) { fold = dde_apps_dir + "/" }
-    else if (fold.startsWith("dde_apps/")){
-        fold = dde_apps_dir + fold.substring(8)
+    if(menu_path == "new buffer") { return menu_path }
+    else {
+        let [fold, name] = Editor.files_menu_path_to_folder_and_name(menu_path)
+        return fold + name
     }
-    let path = fold + name
-    return path
 }
 
 Editor.add_path_to_files_menu = function(path){
@@ -170,17 +215,17 @@ Editor.add_path_to_files_menu = function(path){
                 file_name_id.add(opt)
             }
             file_name_id.selectedIndex = new_index
-            let paths = persistent_get("files_menu_paths")
-            paths.unshift(path)
-            if (paths.length > 20) { paths = paths.slice(0, 20) }
-            persistent_set("files_menu_paths", paths)
+            if(path != "new buffer"){
+                let paths = persistent_get("files_menu_paths")
+                paths.unshift(path)
+                if (paths.length > 20) { paths = paths.slice(0, 20) }
+                persistent_set("files_menu_paths", paths)
+            }
         }
         else {
             new_index = existing_index
             file_name_id.selectedIndex = new_index
         }
-         Editor.current_file_path = path
-
 }
 
 Editor.restore_files_menu_paths_and_last_file = function(){ //called by on ready
@@ -194,7 +239,7 @@ Editor.restore_files_menu_paths_and_last_file = function(){ //called by on ready
         file_name_id.innerHTML = html
         if (paths.length > 0) {
             try {
-                Editor.edit_file(paths[0]) //sometimes paths[0] will be 'new file' and that's fine
+                Editor.edit_file(paths[0]) //sometimes paths[0] will be 'new buffer' and that's fine
             }
             catch(err) {
                 warning("Could not find the last edited file:<br/><code title='unEVALable'>" + paths[0] +
@@ -385,56 +430,225 @@ Editor.restore_selection_from_map = function(){
 }
 
 Editor.open = function(){
+    let cont = '<input type="submit" value="DDE computer"/>\n'
+    for(let dex_name of Dexter.all_names){
+        if(Dexter[dex_name]) {//should hit every time, but just a check
+            cont +=
+            `<br/><input style="margin-top:5px" type="submit" value="` + dex_name + `"/>\n`
+        }
+    }
+    show_window({title: "Choose computer<br/>to open file from",
+                 content: cont,
+                 width: 220,
+                 x: 50,
+                 y: 50,
+                 callback: function(vals) {
+                     if(vals.clicked_button_value == "DDE computer") {
+                         setTimeout(Editor.open_on_dde_computer, 10)
+                     }
+                     else {
+                         let dex_name = vals.clicked_button_value
+                         setTimeout(function() {Editor.open_on_dexter_computer(dex_name)}, 10)
+                     }
+                 }
+                }
+                )
+}
+
+Editor.open_on_dde_computer = function(){
     const path = choose_file({title: "Choose a file to edit", properties: ['openFile']})
-       //note that no title is shown, at least on a mac.
     if (path){
-        //const content = file_content(path)
-        //Editor.set_javascript(content)
-        //Editor.add_path_to_files_menu(path)
         Editor.edit_file(path)
     }
 }
 
-Editor.edit_new_file = function(){ Editor.edit_file("new file") }
+//can't be a closure, can't be in a class'es namespace. yuck.
+function open_on_dexter_computer_show_window_cb(vals) {
+    let file_path = vals.open_on_dexter_computer_file_path_id
+    persistent_set("last_open_dexter_file_path", file_path) //does not include "dexter:" in it.
+    file_path = vals.dexter_name + ":" + file_path //we cannot close over dexter_name because show_window can't take a closure for a callback
+    Editor.edit_file(file_path)
+}
 
-Editor.edit_file = function(path){ //path could be "new file"
-    path = convert_backslashes_to_slashes(path) //must store only slashes in files menu
-    if(Editor.current_file_path){ //false when we first boot up.
-        Editor.store_selection_in_map()
-        if ((Editor.current_file_path != "new file") &&
-             persistent_get("save_on_eval")){
-            Editor.save_current_file()
+Editor.open_on_dexter_computer = function(dex_name){
+    show_window({title: "Enter file on: " + dex_name + " to open",
+                 content: '<i>Opening Dexter files considers simulation state<br/>' +
+                          'when determining where to get the file content.<br/>' +
+                          'If you want content from Dexter, usually select<br/>' +
+                          'the <b>real</b> button in the Misc pane header.</i><br/>' +
+                          '<input id="open_on_dexter_computer_file_path_id" value="' + persistent_get("last_open_dexter_file_path") + '" style="width:350px;font-size:16px;margin-top:10px;"/>\n' +
+                          '<p></p><center><input type="submit" value="Open"/></center>\n' +
+                          '<input name="dexter_name" style="display:none;" value="' + dex_name + '"/>',
+
+                 width: 390,
+                 height: 200,
+                 x: 50,
+                 y: 50,
+                 callback: open_on_dexter_computer_show_window_cb
+                })
+    setTimeout(function() {open_on_dexter_computer_file_path_id.focus()}, 100)
+}
+
+Editor.remove = function(path_to_remove=Editor.current_file_path){
+    if(path_to_remove == "new buffer") {
+        let index = Editor.index_of_path_in_file_menu("new buffer") //returns null if none
+        if(typeof(index) == "number") {
+            file_name_id.removeChild(file_name_id.childNodes[index])
+            if (Editor.current_file_path == path_to_remove){
+                let files_menu_path = file_name_id.childNodes[0].innerHTML
+                let path = Editor.files_menu_path_to_path(files_menu_path)
+                Editor.current_file_path = path //if I don't do this the next call to edit_file will think we're on new buffer and pop up the 3 choices dialog again.
+                Editor.edit_file(path)
+            }
+        }
+        else {} //if there is no new buffer, silently do nothing as I call Editor.remove("new buffer") sometimes legitimately when there is no new buffer
+    }
+    else {
+        let files = persistent_get("files_menu_paths")
+        //let the_file_to_remove = file_name_id.value
+        //the_file_to_remove = Editor.files_menu_path_to_path(the_file_to_remove)
+        let i = files.indexOf(path_to_remove)
+        if (i != -1) {
+            files.splice(i, 1)
+            persistent_set("files_menu_paths", files)
+            Editor.restore_files_menu_paths_and_last_file()
         }
     }
-    const path_already_in_menu = Editor.select_file_in_file_menu(path)
-    if (!path_already_in_menu) { Editor.add_path_to_files_menu(path) }
-    var content
-    if (path == "new file"){ content = "" }
-    else                   { content = file_content(path) } //file_content will conver to windows format if needed
-    Editor.set_javascript(content)
-    Editor.current_file_path = path
-    Editor.restore_selection_from_map()
-    file_name_id.title = path
-    myCodeMirror.focus()
+}
 
-    let files = persistent_get("files_menu_paths")
-    let i = files.indexOf(path) //Editor.current_file_path
-    if (i != -1) { files.splice(i, 1) } //remove the file (temporarily)
-    files.unshift(path) //push path onto the front of the array
-    persistent_set("files_menu_paths", files)
-        //Editor.restore_files_menu_paths_and_last_file() //don't do so we don't change the order
-        //in the current menu BUT next time user launches DDE,
-        //the last file they were editing when they quit should
-        //show up in the editor.
+handle_show_when_new_buffer_choices = function(vals){
+    if(vals.clicked_button_value == "Save new buffer"){
+        Editor.save_as()
+        myCodeMirror.focus()
+    }
+    else if (vals.clicked_button_value == "Delete new buffer"){
+        Editor.remove()
+        myCodeMirror.focus()
+    }
+}
+
+Editor.show_when_new_buffer_choices = function(){
+    show_window({title: "New Buffer Choices",
+                 content:
+`You can only have one <b>new buffer</b>.<br/>
+It is never saved without renaming it.
+<p></p>
+<input type="submit" value="Cancel"/> 
+<input type="submit" value="Save new buffer"/>  
+<input type="submit" value="Delete new buffer"/>`,
+                x: 100, y: 80,
+                width: 370,
+                height: 130,
+                callback: handle_show_when_new_buffer_choices
+                })
+}
+
+/*there is at most 1 "new buffer" buffer.
+if it exists, it is always the Editor.current_file_path
+whose value will be "new buffer".
+It is never saved to the file system.
+If you attempt to open another file or choose another file from the files menu.
+you must choose to delete it, clear it, or save it to a real file
+ */
+
+handle_show_clear_new_buffer_choice = function(vals){
+    if(vals.clicked_button_value == "Yes"){
+        Editor.set_javascript("")
+    }
+    myCodeMirror.focus()
+}
+
+Editor.show_clear_new_buffer_choice = function(){
+    show_window({title: "New Buffer Choice",
+                 content:
+`You're already editing the one new buffer.<br/>
+Clear its content?
+<p></p>
+<input type="submit" value="Yes"/>  
+<input type="submit" value="No"/>`,
+                x: 100, y: 80,
+                width: 330,
+                height: 140,
+                callback: handle_show_clear_new_buffer_choice
+})
+}
+
+Editor.edit_new_file = function(){
+    Editor.edit_file("new buffer")
+}
+
+Editor.edit_file = function(path){ //path could be "new buffer"
+    if(Editor.current_file_path == "new buffer"){
+        Editor.set_files_menu_to_path() //set the files menu BACK to its previously selected file cause we can't get the new one
+        if (path == "new buffer"){
+            Editor.show_clear_new_buffer_choice()
+        }
+        else { Editor.show_when_new_buffer_choices() }
+    }
+    else {
+        path = convert_backslashes_to_slashes(path) //must store only slashes in files menu
+        if(Editor.current_file_path){ //false when we first boot up.
+            Editor.store_selection_in_map()
+            if ((Editor.current_file_path != "new buffer") &&
+                 persistent_get("save_on_eval") &&
+                (Editor.current_file_path != path)){  //when we were orig on a new buffer, and user chose to delete it,
+                                 //the remove method sets Editor.current_file_path to path,
+                                 //and then we DON'T want to save_current_file because in the
+                                 //actual editor content now is the old content from the orig new buffer.
+                                 //so don't do the save in that condition.
+                Editor.save_current_file()
+            }
+        }
+        if (path == "new buffer"){ Editor.edit_file_aux(path, "")  }
+        else {
+            const path_already_in_menu = Editor.set_files_menu_to_path(path)
+            if (!path_already_in_menu) { Editor.add_path_to_files_menu(path) }
+            let the_path = path
+            file_content_async(path, undefined, function(err, content) { //file_content will conver to windows format if needed
+                                        if(err) {
+                                            Editor.set_files_menu_to_path() //set the files menu BACK to its previously selected file cause we can't get the new one
+                                            dde_error(err.message)
+                                        }
+                                        else {
+                                            Editor.edit_file_aux(the_path, content)
+                                        }
+            })
+        }
+    }
+}
+
+Editor.edit_file_aux = function(path, content){
+        Editor.set_javascript(content)
+        Editor.current_file_path = path
+        file_name_id.title = path
+        myCodeMirror.focus()
+        if(path == "new buffer"){
+            Editor.add_path_to_files_menu(path)
+        }
+        else {
+            Editor.restore_selection_from_map()
+
+            let files = persistent_get("files_menu_paths")
+            let i = files.indexOf(path) //Editor.current_file_path
+            if (i != -1) { files.splice(i, 1) } //remove the file (temporarily)
+            files.unshift(path) //push path onto the front of the array
+            persistent_set("files_menu_paths", files)
+                //Editor.restore_files_menu_paths_and_last_file() //don't do so we don't change the order
+                //in the current menu BUT next time user launches DDE,
+                //the last file they were editing when they quit should
+                //show up in the editor.
+            //Editor.current_file_path = path
+        }
 }
 
 Editor.save_current_file = function(){
-        out("Saved: " + Editor.current_file_path)
-        write_file(Editor.current_file_path, Editor.get_javascript())
+        //out("Saved: " + Editor.current_file_path)
+        write_file_async(Editor.current_file_path, Editor.get_javascript())
 }
 
 window.onbeforeunload = function(event){
-    if ((Editor.current_file_path != "new file") &&
+    if (Editor.current_file_path  &&
+       (Editor.current_file_path != "new buffer") &&
         persistent_get("save_on_eval")){
         Editor.save_current_file()
     }
@@ -442,7 +656,7 @@ window.onbeforeunload = function(event){
 
 //called by the File menu "Save" item and Cmd-s keystroke
 Editor.save = function() {
-    if (Editor.current_file_path == "new file"){ Editor.save_as() }
+    if (Editor.current_file_path == "new buffer"){ Editor.save_as() }
     else {
         Editor.save_current_file();
         myCodeMirror.focus()
@@ -450,27 +664,76 @@ Editor.save = function() {
 }
 
 Editor.save_as = function(){ //also called by onclick save
+    let cont = '<input type="submit" value="DDE computer"/>\n'
+    for(let dex_name of Dexter.all_names){
+        if(Dexter[dex_name]) {//should hit every time, but just a check
+            cont +=
+                `<br/><input style="margin-top:5px" type="submit" value="` + dex_name + `"/>\n`
+        }
+    }
+    show_window({title: "Choose computer<br/>to save file to",
+            content: cont,
+            width: 220,
+            x: 50,
+            y: 50,
+            callback: function(vals) {
+                if(vals.clicked_button_value == "DDE computer") {
+                    setTimeout(Editor.save_on_dde_computer, 10)
+                }
+                else {
+                    let dex_name = vals.clicked_button_value
+                    setTimeout(function() {Editor.save_on_dexter_computer(dex_name)}, 10)
+                }
+            }
+        }
+    )
+}
+
+Editor.save_on_dde_computer = function(){
     const title     = 'save "' + Editor.current_file_path + '" as'
-    const default_path = ((Editor.current_file_path == "new file") ? dde_apps_dir : Editor.current_file_path)
+    const default_path = ((Editor.current_file_path == "new buffer") ? dde_apps_folder : Editor.current_file_path)
     const path = choose_save_file({title: title, defaultPath: default_path}) //sychronous! good
     if(path) { //path will be undefined IF user canceled the dialog
         let content = Editor.get_javascript()
-        write_file(path, content)
+        write_file_async(path, content)
         Editor.add_path_to_files_menu(path)
+        Editor.current_file_path = path
+        Editor.remove("new buffer") //if any
+        myCodeMirror.focus()
     }
 }
 
-Editor.select_file_in_file_menu = function(path){
-    let inner_path = Editor.path_to_files_menu_path(path)
-    var the_opt_elts = file_name_id.children
-    for (var index = 0; index < the_opt_elts.length; index++){
-        var elt = the_opt_elts[index]
-        if (elt.innerText == inner_path){
-            file_name_id.selectedIndex = index
-            return true
-        }
-    }
-    return false //no such path in file menu
+//can't be a closure, can't be in a class'es namespace. yuck.
+function save_on_dexter_computer_show_window_cb(vals) {
+    let path = vals.open_on_dexter_computer_file_path_id
+    persistent_set("last_open_dexter_file_path", path)
+    path = vals.dexter_name + ":" + path //we cannot close over dexter_name because show_window can't take a closure for a callback
+    let content = Editor.get_javascript()
+    write_file_async(path, content)
+    Editor.add_path_to_files_menu(path)
+    Editor.current_file_path = path
+    Editor.remove("new buffer") //if any
+    myCodeMirror.focus()
+}
+
+Editor.save_on_dexter_computer = function(dex_name){
+    show_window({title: "Enter file on: " + dex_name + " to save",
+        content: '<i>Saving Dexter files considers simulation state<br/>' +
+        'when determining where to get the file content.<br/>' +
+        'If you want content for Dexter, usually select<br/>' +
+        'the <b>real</b> button in the Misc pane header.</i><br/>' +
+        '<input id="open_on_dexter_computer_file_path_id" value="' + persistent_get("last_open_dexter_file_path") + '" style="width:350px;font-size:16px;margin-top:10px;"/>\n' +
+        '<p></p><center><input type="submit" value="Save"/></center>\n' +
+        '<input name="dexter_name" style="display:none;" value="' + dex_name + '"/>',
+
+        width: 390,
+        height: 200,
+        x: 50,
+        y: 50,
+        callback: save_on_dexter_computer_show_window_cb
+    })
+    setTimeout(function() {open_on_dexter_computer_file_path_id.focus()}, 100)
+
 }
 
 
@@ -1704,20 +1967,22 @@ Editor.identifier_or_operator = function(full_src=null, pos=null){
         }
         else { return identifier }
     }
-    bounds = Editor.bounds_of_operator(full_src, pos)
-    if (bounds){return full_src.slice(bounds[0], bounds[1])}
-    bounds = Editor.bounds_of_string_literal(full_src, pos)
-    if (bounds){return full_src.slice(bounds[0], bounds[1])}
-    bounds = Editor.bounds_of_object_literal(full_src, pos)
-    if (bounds){return full_src.slice(bounds[0], bounds[1])}
-    bounds = Editor.bounds_of_array_literal(full_src, pos)
-    if (bounds){return full_src.slice(bounds[0], bounds[1])}
-    if (pos >= full_src.length) { return "_the_eof_token" } //never happens now that  I back up 1 char if user clicks at end
-    if (Editor.in_whitespace(full_src, pos)){
-        return "  "  //note this won't likely be the actual string of whitespace but for our purposes, we 
-                     //only really care if its any whitespace
+    else {
+        bounds = Editor.bounds_of_operator(full_src, pos)
+        if (bounds){return full_src.slice(bounds[0], bounds[1])}
+        bounds = Editor.bounds_of_string_literal(full_src, pos)
+        if (bounds){return full_src.slice(bounds[0], bounds[1])}
+        bounds = Editor.bounds_of_object_literal(full_src, pos)
+        if (bounds){return full_src.slice(bounds[0], bounds[1])}
+        bounds = Editor.bounds_of_array_literal(full_src, pos)
+        if (bounds){return full_src.slice(bounds[0], bounds[1])}
+        if (pos >= full_src.length) { return "_the_eof_token" } //never happens now that  I back up 1 char if user clicks at end
+        if (Editor.in_whitespace(full_src, pos)){
+            return "  "  //note this won't likely be the actual string of whitespace but for our purposes, we
+                         //only really care if its any whitespace
+        }
+        return null
     }
-    return null
 }
 
 //not now called apr 2016. functionalty taken over by  identifier_or_operator

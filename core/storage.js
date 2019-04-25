@@ -8,6 +8,7 @@ persistent_values = {}
 //used by both persistent_initialize and dde_init_dot_js_initialize
 function get_persistent_values_defaults() {
     return {"save_on_eval":     false,
+            "default_out_code": false,
             "files_menu_paths": [add_default_file_prefix_maybe("dde_init.js")],
             "default_dexter_simulate": true,
             "editor_font_size":    17,
@@ -18,7 +19,8 @@ function get_persistent_values_defaults() {
             "left_panel_width":   750,
             "top_left_panel_height": 500,
             "top_right_panel_height": 500,
-            "animate_ui": true
+            "animate_ui": true,
+            "last_open_dexter_file_path": "" //doesn't have a dexter: prefix,not robot specific.
            }
 }
 //if keep_existing is true, don't delete any existing values.
@@ -58,7 +60,7 @@ function persistent_initialize(keep_existing=true) {
     }
     else {
         dde_error("Please create a folder in your <code>" +
-                   dde_apps_dir.substring(0, dde_apps_dir.length - 8) + "</code> folder<br/>" +
+                   dde_apps_folder.substring(0, dde_apps_folder.length - 8) + "</code> folder<br/>" +
                   "named: <code>dde_apps</code> to hold the code that you will write,<br/>" +
                   "then relaunch DDE."
                   )
@@ -101,14 +103,14 @@ function persistent_set(key, value){
 module.exports.persistent_set = persistent_set
 
 //returns undefined if key doesn't exist
-function persistent_get(key="get_all", callback=out){
+function persistent_get(key="get_all"){
     if (key == "get_all") { return persistent_values }
     else { return persistent_values[key] }
 }
 
 module.exports.persistent_get = persistent_get
 
-function persistent_remove(key, callback=function() { out("Removed " + key + " from persistent db.")}) {
+function persistent_remove(key) {
     delete persistent_values[key]
     persistent_save()
 }
@@ -220,6 +222,54 @@ function file_content(path, encoding="utf8"){
 
 module.exports.file_content = file_content
 
+//callback passed err, and data.
+//If error is non-null, its an error object or a string error message.
+//if it is null, data is a string of the file content.
+function file_content_async(path, encoding="utf8", callback){
+    let colon_pos = path.indexOf(":")
+    if(colon_pos == -1) {
+        path = make_full_path(path)
+        fs.readFile(path, encoding, callback)
+    }
+    else {
+        let dex_name_maybe = path.substring(0, colon_pos)
+        let dex = Dexter[dex_name_maybe]
+        if(dex){
+           let dex_file_path = path.substring(colon_pos + 1)
+           let the_callback = callback
+           let the_path = path
+           new Job({name: "dex_file_read",
+                    do_list: [
+                        dex.read_from_robot(dex_file_path, "file_content"),
+                        function(){
+                           let cont = this.user_data.file_content
+                           if(typeof(cont) == "string"){
+                               the_callback(null, cont)
+                           }
+                           else {
+                               let err = new Error("Error getting file content for: " + the_path + " with error number: " + cont, the_path)
+                               the_callback(err, cont)
+                           }
+                        }
+                    ],
+                    when_stopped: function(){ //this code OUGHT to be called but as of apr 2019, if we error due to dexter not connected, then Job,.finish is never called so we don't call this method. Handle it in Job.stop_for_reason
+                        if(this.status_code == "errored"){
+                            if(window.Editor) { //won't hit in node, bu won't error either
+                                Editor.set_files_menu_to_path() //restore files menu to what it was before we tried to get the file off of dexter.
+                            }
+                        }
+                    }
+            }).start()
+        }
+        else {
+            path = make_full_path(path)
+            fs.readFile(path, callback)
+        }
+   }
+}
+
+module.exports.file_content_async = file_content_async
+
 function choose_file(show_dialog_options={}) {
     const dialog    = app.dialog;
     const paths = dialog.showOpenDialog(app.getCurrentWindow(),
@@ -267,7 +317,7 @@ module.exports.choose_save_file = choose_save_file
 
 function write_file(path, content, encoding="utf8"){
     if (path === undefined){
-        if (Editor.current_file_path == "new file"){
+        if (Editor.current_file_path == "new buffer"){
             dde_error("Attempt to write file but no filepath given.")
         }
         else { path = Editor.current_file_path }
@@ -292,13 +342,75 @@ function write_file(path, content, encoding="utf8"){
 
 module.exports.write_file = write_file
 
+//callback takes one are, err. If it is null, there's no error
+function write_file_async(path, content, encoding="utf8", callback){
+    if (path === undefined){
+        if (Editor.current_file_path == "new buffer"){
+            dde_error("Attempt to write file but no filepath given.")
+        }
+        else { path = Editor.current_file_path }
+    }
+    if (content === undefined) {
+        content = Editor.get_javascript()
+    }
+    let colon_pos = path.indexOf(":")
+    if(colon_pos == -1) {
+        path = make_full_path(path)
+        if(!callback) {
+            let the_path = path
+            callback = function(err){
+                 if(err){
+                     dde_error("write_file_async passed: " + the_path +
+                                "<br/>Got error: " + err.message)
+                 }
+                 else { out("saved: " + the_path, undefined, true) }
+            }
+        }
+        fs.writeFile(path, content, encoding, callback)
+    }
+    else {
+        let dex_name_maybe = path.substring(0, colon_pos)
+        let dex = Dexter[dex_name_maybe]
+        if(!callback) {
+            let the_path = path
+            callback = function(err){
+                if(err){
+                    dde_error("write_file_async passed: " + the_path +
+                        "<br/>Got error: " + err.message)
+                }
+                else { out("Saved: " + the_path, undefined, true) }
+            }
+        }
+        if(dex){
+            let dex_file_path = path.substring(colon_pos + 1)
+            let the_callback = callback
+            let the_path = path
+            new Job({name: "dex_file_read",
+                do_list: [
+                    dex.write_to_robot(content, dex_file_path),
+                    callback //but never passes an error object. not good, but robot_status should contain an error, and error if there is one, else callback should be called with no error so it does what it should do when no error
+                ]
+            }).start()
+        }
+        else {
+            path = make_full_path(path)
+            fs.writeFile(path, content, encoding, callback)
+        }
+    }
+}
 
+module.exports.write_file_async = write_file_async
+
+//for paths starting with "dexter0:" and other dexters, this will always return false.
+//you have to use file_content_async for that and pass it a callback that
+//handles the err when the file doesn't exist.
 function file_exists(path){
     path = make_full_path(path)
     return fs.existsSync(path)
 }
 module.exports.file_exists = file_exists
 
+//only works for dde computer, not dexter computer paths.
 function make_folder(path){
     path = make_full_path(path)
     let path_array = path.split("/")
@@ -371,7 +483,13 @@ module.exports.convert_backslashes_to_slashes = convert_backslashes_to_slashes
 
 function add_default_file_prefix_maybe(path){
     if (is_root_path(path)) { return path }
-    else return dde_apps_dir + "/" + path
+    //else if (path.startsWith(dde_apps_folder)) { return path } //redundant with the above
+    else if (path.includes(":")) { return path }
+    else if (path.startsWith("dde_apps/")) {
+        path = path.substring(8)
+        return dde_apps_folder + path
+    }
+    else return dde_apps_folder + "/" + path
 }
 
 function adjust_path_to_os(path){
@@ -395,13 +513,19 @@ function make_full_path(path){
 module.exports.make_full_path = make_full_path
 
 function is_root_path(path){
-    return starts_with_one_of(path, ["/", "C:", "D:", "E:", "F:", "G:"]) //C: etc. is for Windows OS.
+    if(path.startsWith("/")) { return true }
+    else if ((path.length > 1) && (path[1] == ":")){
+        let first_char = path[0]
+        return ((first_char >= "A") && (first_char <= "Z"))
+    }
+    else { return false }
+    //return starts_with_one_of(path, ["/", "C:", "D:", "E:", "F:", "G:"]) //C: etc. is for Windows OS.
 }
 
 //______new load_files synchronous______
 //verify all paths first before loading any of them because we want to error early.
 /*function load_files(...paths) {
-   let prefix = dde_apps_dir + "/"
+   let prefix = dde_apps_folder + "/"
    let resolved_paths = []
    for (let path of paths){
        path = convert_backslashes_to_slashes(path) //use slashes throughout.
@@ -455,20 +579,20 @@ function is_root_path(path){
 //simplied from above. ending in slash resets the default "prefix".
 function load_files(...paths) {
     console.log("load_files called with: " + paths)
-    let prefix = dde_apps_dir + "/" //prefix always starts with slash and ends with slash
+    let prefix = dde_apps_folder + "/" //prefix always starts with slash and ends with slash
     let resolved_paths = []
     for (let path of paths){
         //console.log("working on " + path)
         path = convert_backslashes_to_slashes(path) //use slashes throughout.
         if (path === "/"){ //just reset prefix to the default
-            prefix = dde_apps_dir + "/"
+            prefix = dde_apps_folder + "/"
         }
         else if (is_root_path(path)){  //path.startsWith("/")
             if (path.endsWith("/")) { prefix = path }
             else { resolved_paths.push(path) }
         }
         else if (path.endsWith("/")) { //path does not start with slash.
-            prefix = dde_apps_dir + "/" + path //assumes path is intended to be under dde_apps/
+            prefix = dde_apps_folder + "/" + path //assumes path is intended to be under dde_apps/
         }
         /*kent doesn't like restriction. Sending filesin email need not tto have the .js extension
                and some pure data files maybe shouldn't have .js extnsions.
@@ -519,9 +643,8 @@ function load_files(...paths) {
                           //window.eval(file_src)
         window["loading_file"] = prev_loading_file //when nested file loading, we need to "pop the stack"
         if(result_obj.error_message){
-            dde_error("Robot.include_job's first argument: " + first_arg +
-                "<br/>refers to an existing file but<br/>" +
-                "that file contains the JavaScript error of:<br/>" +
+            dde_error("While loading the file: " + resolved_pathresolved_path +
+                "<br/>the file exists, but contains the JavaScript error of:<br/>" +
                 err.message)
         }
         else { result = result_obj.value

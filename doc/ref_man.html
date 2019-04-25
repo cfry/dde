@@ -96,8 +96,8 @@
             <code title="not in TestSuite"> choose_save_file({buttonLabel: "save the best"})</code>
         </details>
 
-        <details id="dde_apps_dir_doc_id" style="margin-left:40px;"><summary>dde_apps_dir</summary>
-            <code>dde_apps_dir</code> is a global constant whose value is a string
+        <details id="dde_apps_folder_doc_id" style="margin-left:40px;"><summary>dde_apps_folder</summary>
+            <code>dde_apps_folder</code> is a global constant whose value is a string
             of the name of the folder beneath which DDE has programmatic access.
             You cannot set this constant. It will have a value something like:
             <code>"/Users/Fry/Documents/dde_apps"</code> on the Mac.
@@ -153,7 +153,7 @@
             <p></p>
             File paths that start with slash are absolute and have no prefix prepended to them.
             File paths that don't start with slash have a prefix appended to them.
-            The default prefix is the value of <code>dde_apps_dir + "/"</code>
+            The default prefix is the value of <code>dde_apps_folder + "/"</code>
             A file path that is exactly <code>"/"</code> sets the prefix
             to the default.
             <p></p>
@@ -161,7 +161,7 @@
             prepended for files in later args.
             If such a file path starts with slash, it becomes the prefix
             (other than <code>"/"</code> , see above).
-            If not, the new prefix is <code title="unEVALABLE">dde_apps_dir + "/" + path</code>
+            If not, the new prefix is <code title="unEVALABLE">dde_apps_folder + "/" + path</code>
             This saves repetition of long folder names.
             <p></p>
             <i>Examples</i>:<br/>
@@ -1771,7 +1771,7 @@ More xml files are under: https://github.com/opencv/opencv/tree/master/data
 <p></p>
 You can't use a url for the path argument. You must first download
 the file to your local machine. The simplest place to put it is in your
-<code>dde_apps_dir</code> folder because then you can just use the file's name and extension
+<code>dde_apps_folder</code> folder because then you can just use the file's name and extension
 (without a folder name) as the path argument to <i>make_classifier</i>.
 <br/>
 <i>Examples:</i><br/>
@@ -4767,6 +4767,40 @@ Note that this is similar to a
 except that the arguments are not converted, but passed as indicated in the string.
 </details>
 
+<details id="Dexter.calibrate_build_tables_doc_id" class="doc_details"><summary>calibrate_build_tables</summary>
+This instruction sets lots of parameters on Dexter and causes it to move twice,
+which calibrates the optical encoders of each joint.
+Unlike the Jobs menu/Calibrate Dexter, no user interface is required.
+When this instruction is complete, it sets the
+Dexter's <i>is_calibrated</i> property to <code>true</code>.<br/>
+<i>Parameters:</i> passed by keyword: <br/>
+<b>J_move_max</b> Default: <code>[180, 100, 165, 110, 180]</code>
+    The maximum angles in degrees that Dexter will move to
+    during calibration<br/>
+<b>J_move_min</b> Default:<code>[-180, -100, -165, -110, -180]</code>
+    The minimum angles in degrees that Dexter will move to
+    during calibration<br/>
+<b>inner_factor</b> Default:<code>1</code>
+    <br/>
+<b>outer_factor</b> Default:<code>1.1</code>
+    <br/>
+<b>diff_beta</b> Default:<code>5</code>
+    <br/>
+<b>ixyz_beta</b> Default:<code>5</code>
+    <br/>
+<b>move_speed</b> Default:<code>35</code>
+    <br/>
+<b>cal_speed</b> Default:<code>30</code>
+<p></p>
+<i>Examples:</i><br/>
+Calibrate the default Dexter of the job its in:<br/>
+<code>Dexter.calibrate_build_tables({outer_factor: 1.2})</code>
+<p></p>
+Calibrate a particular Dexter:<br/>
+<code>Dexter.dexter0.calibrate_build_tables()</code><br/>
+See also: <a href="#" onclick="open_doc(calibrate_dexter_doc_id)">Calibrate Dexter</a>
+</details>
+
 <details id="Dexter.draw_dxf_doc_id" class="doc_details"><summary>draw_dxf</summary>
     <code>Dexter.draw_dxf</code> accepts the name of a file as input along with other information,
     and returns instructions (which will automatically be placed on the job's do_list)
@@ -5307,7 +5341,7 @@ set parameter values.
    DDE's socket interface to the Linux OS runnning on Dexter's processor
    board.<br/>
    <i>Parameters:</i><br/>
-   <b>a_string</b> Default: <code>""</code>
+   <b>content</b> A string. Default: <code>""</code>
     The content to be written. This function automatically escapes
     null, semicolon and percent (the escape character) in a_string
     for transmission.
@@ -6082,7 +6116,7 @@ The vast majority of the parameters to the show_window instruction are the same
 as to the show_window function. Here we only document differences.<br/>
 <b>callback</b> Very similar to the function-equivalent except that
 when it is called, <code title="unEVALable JS fragment">this</code> is bound
-to the job that the instruction is in. You can use this to, for instance, stop the job,
+to the job that the instruction is in. You can use <code>this</code> to, for instance, stop the job,
 by calling (within the callback)
 <code title="unEVALable JS fragment">this.stop_for_reason("interrupted", "your explanation.")</code>
 <br/>It is common in using this instruction to not have a callback function, since the
@@ -7520,6 +7554,9 @@ button: &lt;input type="button" value="Show settings"/>&lt;br/>
 submit: &lt;input type="submit" value="OK"/>&#96;,
     width:380, height:450, title:"Printer Config", x:100, y:100,
     callback: show_vals})  </code></pre>
+    <span style="color:red;">Beware</span>: The callback function cannot be a closure.
+    It can be an annonymous function, but its really better if it has a top level name.
+    This restriction is due to implementation complexities with show_window.<br/>
 
     <b>init_elt_id</b> Default: <code>null</code>
     If this is a string, it is expected to be the id of an html input element

@@ -540,6 +540,8 @@ var Series = class Series {
         out(info_string, null, true)
     }
 }
+
+
 //used multiple places
 Series.month_names_3_letters = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 Series.month_names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September','October', 'November', 'December']
@@ -758,7 +760,7 @@ Series.instances = [
         menu_insertion_string: 'show_window({content: "hi"})',
         menu_sel_start:0, menu_sel_end:11, sample: "show_window"}),
 
-    new Series({id:"series_file_id",       array:['dde_apps_dir', 'load_files', 'file_content', "file_exists", 'choose_file_and_get_content', 'Editor.edit_file', 'make_folder', 'write_file',
+    new Series({id:"series_file_id",       array:['dde_apps_folder', 'load_files', 'file_content', "file_exists", 'choose_file_and_get_content', 'Editor.edit_file', 'make_folder', 'write_file',
                                                   //'folder_listing',
                                                   'operating_system', 'folder_separator',
                                                   'persistent_set', 'persistent_get', 'persistent_remove', 'persistent_clear'],
@@ -788,7 +790,8 @@ Series.instances = [
         array: ["Job.insert_instruction","j1.start"],
         menu_insertion_string: "Job.insert_instruction()", menu_sel_start:0, menu_sel_end:-2, sample:"Job.insert_instruction()"}),
 
-    new Series({id:"series_robot_instruction_id", array: ["Dexter.capture_ad", "Dexter.capture_points", "Dexter.cause_error",
+    new Series({id:"series_robot_instruction_id", array: ["Dexter.calibrate_build_tables",
+                                                          "Dexter.capture_ad", "Dexter.capture_points", "Dexter.cause_error",
                                                           "Dexter.dma_read", "Dexter.dma_write", "Dexter.draw_dxf", "Dexter.exit",
                                                           "Dexter.empty_instruction_queue_immediately", "Dexter.empty_instruction_queue",
                                                           "Dexter.find_home", "Dexter.find_home_rep", "Dexter.find_index",
@@ -809,7 +812,7 @@ Series.instances = [
                                                           "Robot.break", "Robot.debugger","Robot.error",
                                                           "Robot.get_page", "Robot.go_to", "Robot.grab_robot_status",
                                                           "Robot.if_any_errors", "Robot.label", "Robot.loop", "Robot.out",
-                                                          "Robot.show_picture", "Robot.show_video", "Robot.take_picture",
+                                                          "Robot.show_picture", "Robot.include_job", "Robot.show_video", "Robot.take_picture",
                                                           "Robot.send_to_job", "Robot.sent_from_job", "Robot.start_job", "Robot.stop_job", "Robot.suspend", "Robot.sync_point",
                                                           "Robot.unsuspend",
                                                           "Robot.wait_until"],

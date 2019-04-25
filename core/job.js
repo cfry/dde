@@ -253,10 +253,10 @@ class Job{
                                 else if ((this.user_data.stop_job_running_on_dexter) &&
                                          (!this.user_data.already_handled_stop_job))  { //set by clicking the job button
                                          this.user_data.already_handled_stop_job = true
-                                        Dexter.write_to_robot("", "job/run/killjobs")
+                                        return Dexter.write_to_robot("", "job/run/killjobs")
                                         //now next time in this loop, the first clause should hit
                                 }
-                                else { Dexter.read_from_robot("job/logs/" + dde_monitor_job_instance.name + ".dde.log", "dexter_log")} //the
+                                else { return Dexter.read_from_robot("job/logs/" + dde_monitor_job_instance.name + ".dde.log", "dexter_log")} //the
                                        //log file is only present once the job has stopped
                             }),
                         function(){
@@ -273,7 +273,6 @@ class Job{
 
     //Called by user to start the job and "reinitialize" a stopped job
     start(options={}){  //sent_from_job = null
-        //if(this.name == "my_t_job") { debugger; }
         if(this.wait_until_this_prop_is_false) { this.wait_until_this_prop_is_false = false } //just in case previous running errored before it could set this to false, used by start_objects
         if (["starting", "running", "suspended", "waiting"].includes(this.status_code)){
             dde_error("Attempt to restart job: "  + this.name +
@@ -1294,6 +1293,13 @@ Job.prototype.stop_for_reason = function(status_code, //"errored", "interrupted"
     if (this.robot.heartbeat_timeout_obj) { clearTimeout(this.robot.heartbeat_timeout_obj) }
     this.stop_time    = new Date()
     if(!perform_when_stopped) { this.when_stopped = "stop"}
+    if((this.name == "dex_file_read") && (this.status_code == "errored") && window.Editor){
+     //this special case needed because if we attempt to read_from_robot with sim= real and
+     // we're not connected to the Dexter, we get a connection error, which
+     // will call stop_for_reason but not finish.
+     // window.Editor will be undefined in Node, so ok to have this code when running job engine on dexter.
+        Editor.set_files_menu_to_path() //restore files menu to what it was before we tried to get the file off of dexter.
+    }
 }
 
 //run the instruction at the pc. The pc has been adjusted by set_up_next_do to normally increment the pc.

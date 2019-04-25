@@ -97,11 +97,18 @@ function inspect_out(item, stack_number, in_stack_position, html_elt_to_replace,
     return item
 }
 
+function looks_like_an_existing_file_path(item){
+    return ((typeof(item) == "string") &&
+            (item.length > 1) &&
+            (file_exists(item)))
+}
+
 function inspect_aux(item, stack_number, in_stack_position, increase_max_display_length=false){
     // still causes jquery infinite error if the below is commented in.
     //if (typeof(new_object_or_path) == "string")  { return new_object_or_path }
     //else { return value_of_path(new_object_or_path) }
     const the_type = typeof(item)
+    if(looks_like_an_existing_file_path(item)) { return inspect_one_liner_existing_file_path(item) }
     if (inspect_is_primitive(item)) { return inspect_one_liner(item) }
     else if ((the_type == "function") && !is_class(item) && (item !== Number)) {
          return inspect_one_liner_regular_fn(item) //just a twistdown with no links in it. So inspecting top level fn won't have the fwd and back arrows. that's ok
@@ -111,7 +118,7 @@ function inspect_aux(item, stack_number, in_stack_position, increase_max_display
         let title = ""
         let array_type = typed_array_name(item) //"Array", "Int8Array" ... or null
         let div_id = make_inspector_id_string(stack_number, in_stack_position)
-        let max_display_factor = (increase_max_display_length ? 2 : 1)
+        let max_display_factor = (increase_max_display_length ? 4 : 1)
         if (array_type){ //return "Array of " + item.length
             if ((item.length > 0) && is_array_of_same_lengthed_arrays(item)) { //2D arrays can't be "typed arrays"
                   //all elts of item are arrays, but they might be of different lengths.
@@ -121,7 +128,7 @@ function inspect_aux(item, stack_number, in_stack_position, increase_max_display
             else {
                 title = "A " + array_type + " of " + item.length
                 result = "["
-                let max_display_factor = (increase_max_display_length? 2 : 1)
+                //let max_display_factor = (increase_max_display_length? 2 : 1)
                 let orig_array_max_display_length = inspect_stack_max_display_length[stack_number][in_stack_position]
                 let new_array_max_display_length  = (orig_array_max_display_length ? orig_array_max_display_length * max_display_factor : 10)
                 inspect_stack_max_display_length[stack_number][in_stack_position] = new_array_max_display_length
@@ -340,7 +347,7 @@ function inspect_one_liner_regular_fn(item){
     //result = replace_substrings(result, "\n", "<br/>")
     //result = replace_substrings(result, " ", "&nbsp;")
     let result = item.toString()
-    result = replace_substrings(result, "<", "&lt;") //if I don't do this, fns with odies containing tags
+    result = replace_substrings(result, "<", "&lt;") //if I don't do this, fns with bodies containing tags
     //get rendered and that's wrong for viewing source code.
     var pos_of_br = result.indexOf("\n")
     if (pos_of_br == -1) { //the fn params and body all are on one line, no need for a twistdown
@@ -363,6 +370,24 @@ function inspect_one_liner_regular_fn(item){
      }
      else{ result = result.substring(0, bod_pos) + "{...}"  }//just show "function foo(a, b){...}"
      */
+}
+
+function inspect_one_liner_existing_file_path(item){
+    item = make_full_path(item)
+    let the_file_content = file_content(item)
+    the_file_content = replace_substrings(the_file_content, "<", "&lt;") //if I don't do this, fns with bodies containing tags
+    let file_length = the_file_content.length
+    if(file_length > 100000){
+        the_file_content = "<i>length: " + file_length + " truncated for display to: " + 100000 + "</i><br/>" +
+                     the_file_content.substring(the_file_content)
+    }
+    let insert_button_html = "<button title='Insert the content of this file&#013;at the editor cursor.' onclick='Editor.insert(`" + the_file_content + "`)'>Insert</button>"
+    let first_part = "File: " + item + " length: " + file_length + " "  + insert_button_html
+    result = "<details style='display:inline-block;'><summary><code style='background-color:transparent;'>" +
+            //"<i>String of " + item.length + "</i>: " +
+            //can't get rid of the blank line beteeen the first part and the body so best to make the background color same as the inspector
+            first_part + "</code></summary><pre style='margin:0;'><code style='background-color:transparent;'>" + the_file_content + "</code></pre></details>"
+    return result
 }
 
 function inspect_extra_info(item){
@@ -544,3 +569,4 @@ function inspect_set_refresh_onclick(stack_number, in_stack_position, id_string)
 
 var {out_eval_result} = require("./core/out.js")
 var {shouldnt, is_class, is_array_of_same_lengthed_arrays, get_class_name, replace_substrings, typed_array_name} = require("./core/utils.js")
+var {make_full_path, file_content, file_exists} = require("./core/storage.js")

@@ -49,7 +49,22 @@ Js_info = class Js_info {
                 else { return new_info }
             }
             if(series){
-                var info = Js_info.getInfo_string_given_series(path, fn_name, series)
+                let obj_to_inspect = this.object_to_inspect_maybe(fn_name, series)
+                if(typeof(obj_to_inspect) == "string"){
+                    if(file_exists(obj_to_inspect)) {
+                        inspect(obj_to_inspect)
+                        return null
+
+                    }
+                    else {
+                        return Js_info.add_series_wrapper_to_info(series, obj_to_inspect)
+                    }
+                }
+                else if(obj_to_inspect) {
+                    inspect(obj_to_inspect)
+                    return null
+                }
+                let info = Js_info.getInfo_string_given_series(path, fn_name, series)
                 if (info) { return Js_info.add_series_wrapper_to_info(series, info) }
             }
             else if (!Number.isNaN(parseFloat(fn_name))){ //hits on both floats and ints, //must do before we split on dot
@@ -223,7 +238,10 @@ Js_info = class Js_info {
     }
 
     static strip_path_prefix_maybe(fn_name){
-        if (!fn_name.includes(".")) { return fn_name }
+        let lit_str_delimiters = ['"', "'", "`"]
+        let first_char = ((fn_name.length > 1) ? fn_name[0] : null)
+        if(is_string_a_literal_string(fn_name)) { return fn_name }
+        else if (!fn_name.includes(".")) { return fn_name }
         else if (starts_with_one_of(fn_name, ["Dexter.", "Job.", "Math.", "Number.", "Object.", "Series.",
                                               "Brain.", "Human.", "Robot.", "Serial."
                                               ])) {
@@ -632,6 +650,22 @@ Js_info = class Js_info {
         else if (url.endsWith("_doc_id")) { open_doc(window[url]); return true; }
         else                              { show_page(url); return true; } //window.open(url, "js_doc")
     }
+    static object_to_inspect_maybe(fn_name, series){
+        if(series.id == "series_literal_string_id"){
+            fn_name = fn_name.substring(1, fn_name.length - 1)
+            if (Robot.is_oplet(fn_name)) {
+                const oplet_full_name = Dexter.instruction_type_to_function_name(fn_name)
+                const full_name_tag = Js_info.wrap_fn_name(oplet_full_name)
+                return "<code style='color:blue;'>" + fn_name + "</code> means Dexter instruction: " + full_name_tag
+            } //handled elsewhere
+            else if(Robot[fn_name])  { return Robot[fn_name] }
+            else if (Job[fn_name])   { return Job[fn_name] }
+            else if(value_of_path(fn_name)) { return value_of_path(fn_name) }
+            else if(file_exists(fn_name))   { return fn_name }
+            else {return null}
+        }
+        else { return null }
+    }
 }
 
 // see http://www.w3schools.com/js/js_reserved.asp. I only did those that are most useful to DDE users
@@ -682,7 +716,10 @@ Js_info.fn_name_to_info_map = {
     "yield*":    ["function* g4() {yield* [1, 2, 3];}", "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/yield*"]
 }
 
-var {function_name, function_params, function_params_for_keyword_call, is_class, is_whitespace,
+var {function_name, function_params, function_params_for_keyword_call,
+     is_class, is_string_a_literal_string, is_whitespace,
      last, starts_with_one_of, stringify_value, value_of_path} = require("./core/utils.js")
 
 var {pluralize_full_unit_name, series_name_to_unity_unit, unit_abbrev_to_full_name} = require("./core/units.js")
+
+var {file_exists} = require("./core/storage.js")
