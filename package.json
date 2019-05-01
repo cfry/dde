@@ -60,16 +60,12 @@
       ]
     },
     "win": {
-      "perMachine": true,
-      "target": [
-        {
           "target": "nsis",
+          "perMachine": true,
           "arch": [
             "x64",
             "ia32"
           ]
-        }
-      ]
     },
     "linux": {
       "target": [
