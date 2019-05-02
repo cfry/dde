@@ -54,7 +54,7 @@
                 Note that the numbers in the csv are converted to JS numbers,
                 and the other values are left as strings.
                 <p></p>
-                You can use DDE's <a href="#" onclick="open_doc(file_content_doc_id)">file_content</a>
+                You can use DDE's <a href="#" onclick="open_doc(read_file_doc_id)">read_file</a>
                 to get the content of a csv file, then pass it to <code>csv_to_array</code> to
                 turn it into an array.
             </details>
@@ -103,8 +103,8 @@
             <code>"/Users/Fry/Documents/dde_apps"</code> on the Mac.
         </details>
 
-        <details id="file_content_doc_id" style="margin-left:40px;"><summary>file_content</summary>
-            <code>file_content</code> takes an argument of a file path,
+        <details id="read_file_doc_id" style="margin-left:40px;"><summary>read_file</summary>
+            <code>read_file</code> takes an argument of a file path,
             and returns a string of the content of the file.<br/>
             <i>Parameters:</i><br/>
             <b>path</b> A string of a path to the file. Usually this will not start with a slash,
@@ -115,11 +115,11 @@
             <b>encoding</b> A string indicating the encoding of the file. Default: "utf8".
             The default works fine for most plain text files, including .js files.
             <p></p>
-            <b>Example:</b> <code>file_content("dde_init.js")</code>
+            <b>Example:</b> <code>read_file("dde_init.js")</code>
             <p></p>
             See <a href="#" onclick="open_doc(load_files_doc_id)">load_files</a>
             for grabbing the file contents, then evaling it.
-        </details> <!-- end file_content -->
+        </details> <!-- end read_file -->
 
         <details id="Editor.edit_file_doc_id" style="margin-left:40px;"><summary>Editor.edit_file</summary>
             <code>Editor.edit_file</code> takes an argument of a filepath, similar to <code>load_files</code>,
@@ -130,7 +130,7 @@
             <b>Example:</b> <code>Editor.edit_file("dde_init.js")</code> edits the
             file Documents/dde_apps/dde_init.js<br/>
             You can also edit docs in subfolders, ie <code>"my_fold/junk.js"</code>
-        </details> <!-- end file_content -->
+        </details> <!-- end edit_file -->
 
         <details id="file_exists_doc_id" style="margin-left:40px;"><summary>file_exists</summary>
         Returns true if the file path in the first argument exists.<br/>
@@ -185,7 +185,7 @@
             It is conventional to use a file extension of ".js" for files containing JavaScript,
             but not strictly necessary.
             <p></p>
-            See <a href="#" onclick="open_doc(file_content_doc_id)">file_content</a>
+            See <a href="#" onclick="open_doc(read_file_doc_id)">read_file</a>
             for getting the file contents as a string but not evaling it.
         </details> <!-- end load_files  -->
 
@@ -4643,12 +4643,12 @@ The default robot is <code>Robot.dexter0</code>. This is created in your dde_app
 Set dexter0's <code title="unEVALable code fragment"> ip_address</code> and
 <code title="unEVALable code fragment"> port</code> in that file.
 We recommend allowing dexter0's simulate param to default to <code>null</code> so that
-it can take advantage of the Job menu's Simulate? item.
+it can take advantage of the Misc pane header's  simulate radio buttons.
 <p></p>
 If you are using DDE to control zero or one Dexter, just use dexter0. No need
 to create your own Robot instance.
 
-<details class="doc_details"><summary>new Dexter parameters</summary>
+<details id="new_dexter_parameters_doc_id" class="doc_details"><summary>new Dexter parameters</summary>
 The parameters used to define an instance of Dexter are:
 <ul>
     <li><b>name</b> Any string, but must be unique across all robots.
@@ -4664,7 +4664,7 @@ The parameters used to define an instance of Dexter are:
                  Note DDE's simulation might not be perfectly in sync with the position
                  of the actual robot.</li>
              <li><b>null</b> (the default). The value for simulate will be taken from
-                 the Jobs menu Simulate? item. The value you choose from the menu
+                 the Misc pane header's simulate radio buttons. The value you choose
                  will be persistent accross DDE launches.</li>
           </ul>
     </li>
@@ -5185,7 +5185,7 @@ proportional–integral–derivative controller</a>.
         proportional–integral–derivative controller</a>.
 </details>
 
-<details id="Dexter.read_from_robot_doc_id" class="doc_details"><summary>read_from_robot</summary>
+<details id="Dexter.read_file_doc_id" class="doc_details"><summary>read_file</summary>
     This instruction allows you to transfer the content of a file on Dexter into
     a user_data variable in the enclosing Job.
     <p></p>
@@ -5200,7 +5200,7 @@ proportional–integral–derivative controller</a>.
     <code>"foo.txt"</code> resolves to:<br/>
     When not simulating: <code>"/srv/samba/share/foo.txt"</code><br/>
     When simulating: <code>"Documents/dde_apps/dexter_file_systems/{robot_name}/foo.txt"</code><br/>
-    <b>destination</b> A string. Default: <code>"read_from_robot_content"</code><br/>
+    <b>destination</b> A string. Default: <code>"read_file_content"</code><br/>
      The name of a user data variable on the running
     job that will be written (or over-written) with the contents
     of the file indicated in "source".<br/>
@@ -5210,13 +5210,13 @@ proportional–integral–derivative controller</a>.
     could not be retrieved, but the Job itself does not error.
     Subsequent instructions can test for the validity of the content with
     <code title="unEVALable">typeof(this.user_data.{destination}) == "string")</code><br/>
-    Thus <i>read_from_robot</i> can be used to test for the existence of the file,
+    Thus <i>read_file</i> can be used to test for the existence of the file,
     not just get its content.
     <p></p>
     <i>Example:</i>
     <pre><code>new Job({name: "job_rfr",
          do_list: [
-                   Dexter.read_from_robot("aa.dde", "aa_content"),
+                   Dexter.read_file("aa.dde", "aa_content"),
                    function(){
                      if(typeof(this.user_data.aa_content) == "string"){
                         out("got the aa content!")
@@ -5336,7 +5336,7 @@ set parameter values.
   you can use a do_list_item of <code>Dexter.wait_until(2)</code>
   to wait for 2 seconds.
 </details>
-<details id="Dexter.write_to_robot_doc_id" class="doc_details"><summary>write_to_robot</summary>
+<details id="Dexter.write_file_doc_id" class="doc_details"><summary>write_file</summary>
    Writes a file on Dexter's file system. The file is transmitted through
    DDE's socket interface to the Linux OS runnning on Dexter's processor
    board.<br/>
@@ -5350,7 +5350,7 @@ set parameter values.
     Example: <code>"/srv/samba/share/AdcCenters.txt"</code> is
     where calibration data is written.<br/>
     <i>Example:</i><br/>
-    <code>Dexter.write_to_robot("hello world", "/srv/samba/share/greeting.txt")</code><br/>
+    <code>Dexter.write_file("/srv/samba/share/greeting.txt", "hello world")</code><br/>
     This instruction requires an upgrade to Dexter's software available May, 2018.
 </details>
 </details> <!-- end dexter_instructions -->
@@ -6199,8 +6199,8 @@ Create an instance of Serial similar to the other robots. Example: <br/>
 
 <b>simulate</b> <code>true</code>, <code>false</code> or <code>null</code>. Default <code>null</code>.
 If <code>true</code>, no data is sent or recieved over the actual serial port.<br/>
-If <code>null</code>, the actual value for simulate comes from the Jobs menu/Simulate?
-setting, just like for Dexter robots.<br/>
+If <code>null</code>, the actual value for simulate comes from the Misc pane header simulate radio buttons,
+just like for Dexter robots.<br/>
 
 <b>sim_fun</b> A function. Default <code title="unEVALable code fragment"> return_first_arg</code>.
 Used only when <code title="unEVALable code fragment"> simulate: true</code><br/>
@@ -6404,7 +6404,7 @@ Though strictly unnecessary, we recommend:
 <ol>
     <li>supplying a <i>sim_fun</i> to your Serial robot definition</li>
     <li>setting its <i>simulate</i> arg to null</li>
-    <li>using the Jobs menu/Simulate? submenu to toggle between
+    <li>using the Misc pane header simulate radio buttons to toggle between
         using simulation and not</li>
 </ol>
 while debugging.<br/>

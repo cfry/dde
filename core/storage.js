@@ -89,7 +89,7 @@ module.exports.persistent_save = persistent_save
 function persistent_load(){
     const path = add_default_file_prefix_maybe("dde_persistent.json")
     if(file_exists(path)){
-        var content = file_content(path)
+        var content = read_file(path)
         const start_of_content = content.indexOf("{")
         if (start_of_content != -1) { content = content.substring(start_of_content) } //get rid of comment at top of file
         persistent_values = JSON.parse(content)
@@ -161,7 +161,7 @@ function dde_init_dot_js_initialize() {
           //is bad too since all the "system" code is not at the beginning, before user code.
           //So in our "weird case" laoding dde_init will error. Not so terrimbe
         if (add_to_dde_init_js != ""){
-            var di_content = file_content("dde_init.js")
+            var di_content = read_file("dde_init.js")
             di_content = add_to_dde_init_js + di_content
             write_file("dde_init.js", di_content)
             eval(add_to_dde_init_js)
@@ -204,9 +204,8 @@ module.exports.dde_init_dot_js_initialize = dde_init_dot_js_initialize
 
 //FILE SYSTEM
 
-function file_content(path, encoding="utf8"){
+function read_file(path, encoding="utf8"){
     path = make_full_path(path)
-    //console.log("file_content ultimately using path: " + path)
     try{ return fs.readFileSync(path, encoding) }
     catch(err){
         if(err.message.startsWith("Access denied")){
@@ -215,17 +214,20 @@ function file_content(path, encoding="utf8"){
                       path)
         }
         else {
-            dde_error("file_content could not get the content of:<br/><code title='unEVALable'>" + path + "</code>")
+            dde_error("read_file could not get the content of:<br/><code title='unEVALable'>" + path + "</code>")
         }
     }
 }
+module.exports.read_file = read_file
 
-module.exports.file_content = file_content
+var file_content = read_file
+
+module.exports.file_content = file_content //depricated
 
 //callback passed err, and data.
 //If error is non-null, its an error object or a string error message.
 //if it is null, data is a string of the file content.
-function file_content_async(path, encoding="utf8", callback){
+function read_file_async(path, encoding="utf8", callback){
     let colon_pos = path.indexOf(":")
     if(colon_pos == -1) {
         path = make_full_path(path)
@@ -240,7 +242,7 @@ function file_content_async(path, encoding="utf8", callback){
            let the_path = path
            new Job({name: "dex_file_read",
                     do_list: [
-                        dex.read_from_robot(dex_file_path, "file_content"),
+                        dex.read_file(dex_file_path, "file_content"),
                         function(){
                            let cont = this.user_data.file_content
                            if(typeof(cont) == "string"){
@@ -268,7 +270,7 @@ function file_content_async(path, encoding="utf8", callback){
    }
 }
 
-module.exports.file_content_async = file_content_async
+module.exports.read_file_async = read_file_async
 
 function choose_file(show_dialog_options={}) {
     const dialog    = app.dialog;
@@ -303,7 +305,7 @@ function choose_file_and_get_content(show_dialog_options={}, encoding="utf8") {
     var path = choose_file(show_dialog_options)
     if (path){
         if (Array.isArray(path)) { path = path[0] }
-        return file_content(path, encoding)
+        return read_file(path, encoding)
     }
 }
 module.exports.choose_file_and_get_content = choose_file_and_get_content
@@ -387,7 +389,7 @@ function write_file_async(path, content, encoding="utf8", callback){
             let the_path = path
             new Job({name: "dex_file_read",
                 do_list: [
-                    dex.write_to_robot(content, dex_file_path),
+                    dex.write_file(dex_file_path, content),
                     callback //but never passes an error object. not good, but robot_status should contain an error, and error if there is one, else callback should be called with no error so it does what it should do when no error
                 ]
             }).start()
@@ -402,7 +404,7 @@ function write_file_async(path, content, encoding="utf8", callback){
 module.exports.write_file_async = write_file_async
 
 //for paths starting with "dexter0:" and other dexters, this will always return false.
-//you have to use file_content_async for that and pass it a callback that
+//you have to use read_file_async for that and pass it a callback that
 //handles the err when the file doesn't exist.
 function file_exists(path){
     path = make_full_path(path)
@@ -498,7 +500,7 @@ function adjust_path_to_os(path){
     }
     else {//dde standard is to use / between separators and that's what users should use
           // But for windows compatibility we need backslash,. This fn called by dde utils like
-          //file_content. Note if user passes in a path with backslashes,
+          //read_file. Note if user passes in a path with backslashes,
           //this will do nothing. So on a windows machine, that's ok,
           //but on a mac or linux, that's bad. But this is unlikely to
           //happen on a mac or linus, esp since dde standard is slash.
@@ -561,7 +563,7 @@ function is_root_path(path){
    //now make sure we can get all the contents before actually loading any
    let contents = []
    for (let path of resolved_paths){
-        let content = file_content(path) //might error
+        let content = read_file(path) //might error
         contents.push(content)
    }
    //finally if we get to this point, we've got all the contents so time to load
@@ -609,7 +611,7 @@ function load_files(...paths) {
     let contents = []
     for (let path of resolved_paths){
         //console.log("getting content for: " + path)
-        let content = file_content(path) //might error
+        let content = read_file(path) //might error
         //onsole.log("got content: " + content)
         contents.push(content)
     }

@@ -665,16 +665,16 @@ Instruction.Dexter.move_to_straight = class move_to_straight extends Instruction
     }
 }
 
-Instruction.Dexter.read_from_robot = class read_from_robot extends Instruction.Dexter{
+Instruction.Dexter.read_file = class read_file extends Instruction.Dexter{
     constructor (source        , //a file name path string
-                 destination   = "read_from_robot_content", //user data variable
+                 destination   = "read_file_content", //user data variable
                  robot         = null //null means use the default robot of the job.
     ){
         if (typeof(source) != "string") {
-            dde_error("read_from_robot passed non-string for 'source' of: " + source)
+            dde_error("Dexter.read_file passed non-string for 'source' of: " + source)
         }
         if (typeof(destination) != "string") {
-            dde_error("read_from_robot passed non-string for 'destination' of: " + destination)
+            dde_error("Dexter.read_file passed non-string for 'destination' of: " + destination)
         }
         super()
         this.source = source
@@ -705,22 +705,22 @@ Instruction.Dexter.read_from_robot = class read_from_robot extends Instruction.D
         //    this.processing_r_instruction = false
         //    return Robot.break()
         //}
-        let read_from_robot_instance = this
+        let read_file_instance = this
         let robot = this.robot //closed over
         job_instance.insert_single_instruction(Robot.loop(true, function(content_hunk_index){
                 let job_instance = this
-                if (read_from_robot_instance.is_done) {
+                if (read_file_instance.is_done) {
                     //init this inst just in case it gets used again
-                    read_from_robot_instance.is_done = false
-                    read_from_robot_instance.first_do_item_call = true
-                    read_from_robot_instance.processing_r_instruction = false
+                    read_file_instance.is_done = false
+                    read_file_instance.first_do_item_call = true
+                    read_file_instance.processing_r_instruction = false
                     return Robot.break()
                 }
                 else {
-                    read_from_robot_instance.processing_r_instruction = true
-                    return [make_ins("r", content_hunk_index, read_from_robot_instance.fuller_source, robot),
+                    read_file_instance.processing_r_instruction = true
+                    return [make_ins("r", content_hunk_index, read_file_instance.fuller_source, robot),
                             Robot.wait_until(function(){
-                                return !read_from_robot_instance.processing_r_instruction
+                                return !read_file_instance.processing_r_instruction
                              })
                            ]
                 }
@@ -729,17 +729,17 @@ Instruction.Dexter.read_from_robot = class read_from_robot extends Instruction.D
         job_instance.set_up_next_do(1)
     }
 
-    //back up over dolist and return the first Instruction.Dexter.read_from_robot found
+    //back up over dolist and return the first Instruction.Dexter.read_file found
     //called from got_content_hunk AND Dexter.done_with_instruction
-    static find_read_from_robot_instance_on_do_list(job_instance, starting_ins_id){
+    static find_read_file_instance_on_do_list(job_instance, starting_ins_id){
         for (let i = starting_ins_id; i >= 0; i--){
             let an_instruction = job_instance.do_list[i]
-            if(an_instruction instanceof Instruction.Dexter.read_from_robot){
+            if(an_instruction instanceof Instruction.Dexter.read_file){
                     return an_instruction
             }
         }
-        shouldnt("find_read_from_robot_instance_on_do_list failed to find<br/>" +
-            "an instance of read_from_robot on Job." + job_instance.name + ".do_list<br/>" +
+        shouldnt("find_read_file_instance_on_do_list failed to find<br/>" +
+            "an instance of Dexter.read_file on Job." + job_instance.name + ".do_list<br/>" +
             "at or before instruction: " + starting_ins_id)
     }
 
@@ -750,30 +750,17 @@ Instruction.Dexter.read_from_robot = class read_from_robot extends Instruction.D
             throw new Error("Dexter.robot_done_with_instruction passed job_id: " + job_id +
                 " but couldn't find a Job instance with that job_id.")
         }
-        let read_from_robot_instance = this.find_read_from_robot_instance_on_do_list(job_instance, ins_id)
-        //for (let i = ins_id; i >= 0; i--){
-        //    let an_instruction = job_instance.do_list[i]
-        //    if(an_instruction instanceof Instruction.Dexter.read_from_robot){
-        //        read_from_robot_instance = an_instruction
-        //        read_from_robot_instance.processing_r_instruction = false
-        //        break;
-        //    }
-        //}
-        //if(read_from_robot_instance === undefined) {
-        //    throw new Error("Dexter.robot_done_with_instruction passed job: " + job_instance.name +
-        //        " and ins_id: " + ins_id +
-        //        "but could not find the read_from_robot instance.")
-        //}
-        read_from_robot_instance.processing_r_instruction = false
+        let read_file_instance = this.find_read_file_instance_on_do_list(job_instance, ins_id)
+        read_file_instance.processing_r_instruction = false
         if(typeof(payload_string_maybe) == "string"){ //do the usual
-            job_instance.user_data[read_from_robot_instance.destination] += payload_string_maybe
-            if(payload_string_maybe.length < Instruction.Dexter.read_from_robot.payload_max_chars){
-                read_from_robot_instance.is_done = true
+            job_instance.user_data[read_file_instance.destination] += payload_string_maybe
+            if(payload_string_maybe.length < Instruction.Dexter.read_file.payload_max_chars){
+                read_file_instance.is_done = true
             }
         }
         else if(typeof(payload_string_maybe) == "number"){ //an error number.
-            job_instance.user_data[read_from_robot_instance.destination] = payload_string_maybe //set, don't append
-            read_from_robot_instance.is_done = true
+            job_instance.user_data[read_file_instance.destination] = payload_string_maybe //set, don't append
+            read_file_instance.is_done = true
         }
     }
 
@@ -781,11 +768,11 @@ Instruction.Dexter.read_from_robot = class read_from_robot extends Instruction.D
         let result = "Dexter."
         if(this.robot) { result += this.robot.name + "." }
         result += args.indent +
-                  "read_from_robot(" +
+                  "read_file(" +
                   to_source_code({value: this.source}) + ", " +
                   to_source_code({value: this.destination}) +
                   ")"
         return result
     }
 }
-Instruction.Dexter.read_from_robot.payload_max_chars = 62
+Instruction.Dexter.read_file.payload_max_chars = 62

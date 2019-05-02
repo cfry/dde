@@ -600,7 +600,7 @@ function Init_Run(){
     		return Robot.stop_job
     	}
     }
-    let content = file_content(points_filepath)
+    let content = read_file(points_filepath)
     let parsed_content = JSON.parse(content)
     eval(parsed_content.coor_source_string)
     let old_data = parsed_content.old_user_data

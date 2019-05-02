@@ -20,7 +20,7 @@ Vector.add(txt.a(), [3, 0, 100])
 
 clear_output()
 var file_path = choose_file()
-var content = file_content(file_path)
+var content = read_file(file_path)
 var entities = DXF.content_to_entities(content)
 var points = DXF.entities_to_points(entities)
 var noprint = out(points)

@@ -259,67 +259,47 @@ function undecorate_doc_details(unmark_options){
    // $("mark").unmark();
 }
 
-/*function init_guide(){
-    const path = __dirname + "/doc/guide.html"
-    console.log("init_guide using path: " + path)
-    doc_pane_content_id.innerHTML = file_content(path)
-}
-
-function init_ref_man(){
-    ref_man_doc_id.innerHTML =
-        "<summary>Reference Manual</summary>" +
-        file_content(__dirname + "/doc/ref_man.html")
-}
-
-function init_release_notes(){
-    release_notes_id.innerHTML =
-        "<summary>Release Notes</summary>" +
-        file_content(__dirname + "/doc/known_issues.html") +
-        "<i>Note: some releases have no notes because they contain only internal changes.</i>" +
-        file_content(__dirname + "/doc/release_notes.html")
-}*/
-
 function init_doc(){
     let content =
         '<details id="getting_started_id"><summary class="doc_top_level_summary">Getting Started</summary>\n' +
-        file_content(__dirname + "/doc/getting_started.html") +
+        read_file(__dirname + "/doc/getting_started.html") +
         "</details>\n" +
         '<details id="user_guide_id"><summary class="doc_top_level_summary">User Guide</summary>\n' +
-        file_content(__dirname + "/doc/guide.html") +
+        read_file(__dirname + "/doc/guide.html") +
         "</details>\n" +
         '<details id="reference_manual_id"><summary class="doc_top_level_summary">Reference Manual</summary>\n' +
-        file_content(__dirname + "/doc/ref_man.html") +
+        read_file(__dirname + "/doc/ref_man.html") +
         "</details>\n" +
 
         '<details><summary class="doc_top_level_summary">Articles</summary>\n' +
         '<details class="doc_details"><summary class="doc_articles_level_summary">Overview</summary>\n' +
-        file_content(__dirname + "/doc/dde_overview/Dexter_Development_Environment.html") +
+        read_file(__dirname + "/doc/dde_overview/Dexter_Development_Environment.html") +
         "</details>\n" +
         '<details class="doc_details"><summary class="doc_articles_level_summary">Browser vs. DDE</summary>\n' +
-        file_content(__dirname + "/doc/browser_vs_dde.html") +
+        read_file(__dirname + "/doc/browser_vs_dde.html") +
         "</details>\n" +
         '<details class="doc_details"><summary class="doc_articles_level_summary">A Mental Model of Memory</summary>\n' +
-        file_content(__dirname + "/doc/mental_model_of_memory.html") +
+        read_file(__dirname + "/doc/mental_model_of_memory.html") +
         "</details>\n" +
         '<details class="doc_details"><summary class="doc_articles_level_summary">How to Think Like a Computer</summary>\n' +
-        file_content(__dirname + "/doc/eval.html") +
+        read_file(__dirname + "/doc/eval.html") +
         "</details>\n" +
         '<details class="doc_details" id="music_article_doc_id"><summary class="doc_articles_level_summary">The Language of Music</summary>\n' +
-        file_content(__dirname + "/doc/music.html") +
+        read_file(__dirname + "/doc/music.html") +
         "</details>\n" +
         '<details class="doc_details"><summary class="doc_articles_level_summary">Dexter Kinematics</summary>\n' +
-        file_content(__dirname + "/doc/dexter_kinematics.html") +
+        read_file(__dirname + "/doc/dexter_kinematics.html") +
         "</details>\n" +
         '<details class="doc_details"><summary class="doc_articles_level_summary">Glossary</summary>\n' +
-        file_content(__dirname + "/doc/glossary.html") +
+        read_file(__dirname + "/doc/glossary.html") +
         "</details>\n" +
         '</details>\n' +
 
         '<details><summary class="doc_top_level_summary">Release Notes</summary>\n' +
-        file_content(__dirname + "/doc/release_notes.html") +
+        read_file(__dirname + "/doc/release_notes.html") +
         "</details>\n" +
         '<details><summary class="doc_top_level_summary">Known Issues</summary>\n' +
-        file_content(__dirname + "/doc/known_issues.html") +
+        read_file(__dirname + "/doc/known_issues.html") +
         "</details>\n"
     doc_pane_content_id.innerHTML = content
 }
@@ -334,5 +314,5 @@ function show_configurations_image(){
     })
 }
 
-var {file_content} = require("./core/storage.js")
+var {read_file} = require("./core/storage.js")
 var {warning, last, replace_substrings, value_of_path} = require("./core/utils.js")

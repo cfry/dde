@@ -131,7 +131,7 @@ Gcode.gcode_to_instructions = function* ({gcode = "",
                                           workspace_pose = Gcode.gcode_to_instructions_workspace_pose_default,
                                           robot=Dexter}){
     let the_content = gcode
-    if (filepath) { the_content += file_content(filepath) }
+    if (filepath) { the_content += read_file(filepath) }
     let gcode_lines = the_content.split("\n")
     for(let i = 0; i < gcode_lines.length; i++){
         let gobj = Gcode.gcode_line_to_obj(gcode_lines[i])

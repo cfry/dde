@@ -6,6 +6,49 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 3.3.2, May 2, 2019</summary>
+Hightlights: File menu extensions. read_file & write_file names
+             now more consistent. Eval button functionality improved.
+<ul>
+    <li> Improved handing of what code the EVAL button executes.
+    You can now execute code in textareas and text inputs.
+    Less conflict between the command input and the text editor.</li>
+
+    <li> Documentation on simulate: User Guide/Misc Pane/Simulate Dexter,
+        added a link to the Ref Man/Robot/Dexter/new Dexter parameters
+        that discusses the Dexter simulate param.
+        Updated ref man doc here to refer to the new location of the
+        simulate UI from the Jobs menu to the Misc Pane header.</li>
+
+    <li> THREEjs updated from version 83 to 104.</li>
+
+    <li> eslint updated to version 5.  This is an attempt to fix
+        an apparent bug in the linter that froze DDE under
+        certain (rare) conditions.</li>
+
+    <li> Fixed bug in Files menu/remove</li>
+
+    <li> <code>DXF.string_to_lines</code> is now bound to <code>txt.string_to_lines</code>.
+         The full set of visible ascii chars now supported
+         (lots of pnctuation chars added).
+         string_to_lines is not yet documented, but will be soon.</li>
+
+    <li>  <code>file_content</code> deprecatred and replaced by <code>read_file</code>.<br/>
+          <code>file_content_async</code> deprecated and replace by <code>read_file_async</code><br/>
+        <code>Dexter.read_from_robot</code> deprecated and replaced by <code>Dexter.read_file</code>.<br/>
+            <code>Dexter.write_to_robot</code> deprecated and replaced by <code>Dexter.write_file</code>.
+        Note that write_file has a different arg order than write_to_robot.
+        Dexter.write_file has args of (path, content) like the other write_file methods.</li>
+
+    <li> File menu items : <i>Open</i> and <i>Save as...</i>,
+         only save files to DDE's computer as they long have.<br/>
+         New items: <i>Open from Dexter...</i> and<br/>
+         <i>Save to Dexter as...</i>
+        deal only with Dexter files.<br/>
+        <i>Save as...</i> now allows you to save to Dexter or to DDE's computer.</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.3.1, Apr 25, 2019</summary>
 Highlights: Numerous bug fixes. Prototype of access to Dexter file system from
              within DDE ... a work in progress.
@@ -20,7 +63,7 @@ Highlights: Numerous bug fixes. Prototype of access to Dexter file system from
 
     <li> Extended the doc for Ref Man show_window about its callback function</li>
 
-    <li> Dexter.write_to_robot respelled first arg from "a_string" to "content".</li>
+    <li> Dexter.write_file respelled first arg from "a_string" to "content".</li>
 
     <li> Jobs menu/Run Job on Dexter bug fixed.</li>
 
@@ -110,7 +153,7 @@ Highlights: MakeInstruction lots of improvements, esp Insert.<br/>
 
     <li>Simulator now supports the "W" oplet for <code>Dexter.write_to_robot</code>.</li>
 
-    <li>Simulator <code>Dexter.read_from_robot</code> simulation now much better.
+    <li>Simulator <code>Dexter.read_file</code> simulation now much better.
          Also handles file_not_found condition well.
         See improved doc Ref Man/Robot/Dexter/Dexter Instructions/read_from_robot</li>
 

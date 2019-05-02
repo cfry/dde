@@ -1048,7 +1048,7 @@ var Picture = class Picture{
 
    static make_classifier(path=null){
         if(!path) { path = __dirname + "/vision/lbpcascade_frontalface.xml"}
-        let body = file_content(path)
+        let body = read_file(path)
         let model_name = "model" + ++Picture.model_index + ".xml"
         cv.FS_createDataFile('/', model_name, body, true, true, false)
         let classifier = new cv.CascadeClassifier();

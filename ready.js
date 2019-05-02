@@ -6,6 +6,7 @@
     var js_cmds_array = []
     var js_cmds_index = -1
 
+    var previous_active_element = null
     var selected_text_when_eval_button_clicked = ""
 
     operating_system = "not inited" //on MAC this is "mac", on windows its "win".  bound in both ui and sandbox by ready
@@ -37,6 +38,13 @@
         $('#js_menubar_id').jqxMenu({ animationHideDuration: animate_dur })
     }
 
+    //from https://stackoverflow.com/questions/6562727/is-there-a-function-to-deselect-all-text-using-javascript
+    //pretty useless as doesn't clear selection in cmd input.
+    function clearSelection(){
+        if (window.getSelection) {window.getSelection().removeAllRanges();}
+        else if (document.selection) {document.selection.empty();}
+    }
+
     // document.body.addEventListener('onload', on_ready)
 
     function on_ready() {
@@ -64,7 +72,7 @@
         //window.Root      = Root //should work but doesn't jan 13, 2019
         Coor.init()
         //see also ./core/index.js that has this same code
-        Dexter.calibrate_build_tables  = calibrate_build_tables
+        Dexter.calibrate_build_tables = calibrate_build_tables
         window.calibrate_build_tables = undefined
         Dexter.prototype.calibrate_build_tables = function() {
             let result = Dexter.calibrate_build_tables()
@@ -186,6 +194,9 @@
         }
         cmd_input_id.focus()
     })
+    //cmd_input_id.onblur = function(){
+    //        window.getSelection().collapse(cmd_input_id)
+    //}
 
     //cmd_input_clicked_on_last = false //global var. Also set below and by Editor.init_editor
 
@@ -231,63 +242,79 @@
                     })
         //for results of code examples.
     $('samp').click(function(event) {
+                        const full_src = window.getSelection().focusNode.data
+                        const pos      = window.getSelection().focusOffset
+                        Editor.show_identifier_info(full_src, pos)
+    })
+
+    /*catches all clicks,  but then if you click on an input elt it defocuses it so
+     //you can't type in it.
+      document.addEventListener("click",
+                               function(event){
+                                    out(document.activeElement.id)
+                                    clearSelection()
+                                    onclick_for_click_help(event)
+                                    setTimeout(function(){ out(document.activeElement.id), event.target.focus(), out(document.activeElement.id)}, 1000)
+                                }
+    )*/
+    /* does not get called when user clicks on an input when those inputs are dynamically
+       generated AFTER onready is called.
+       $('input').click(function(event) {
         const full_src = window.getSelection().focusNode.data
         const pos      = window.getSelection().focusOffset
         Editor.show_identifier_info(full_src, pos)
-    })
+    }) */
+    /* does not get called when user clicks on an input
+        $('textarea').click(function(event) {
+            const full_src = window.getSelection().focusNode.data
+            const pos      = window.getSelection().focusOffset
+            Editor.show_identifier_info(full_src, pos)
+        })
+    */
+        output_div_id.onclick = onclick_for_click_help
 
-    output_div_id.onclick = onclick_for_click_help
+        //handles the button clicks and menu selects that chrome Apps prevent in HTML where they belong
 
-    //handles the button clicks and menu selects that chrome Apps prevent in HTML where they belong
+        eval_id.onmousedown = function() {
+                previous_active_element = document.activeElement
+                selected_text_when_eval_button_clicked = Editor.get_any_selection()
+         };
 
-    eval_id.onmousedown = function() {
-            selected_text_when_eval_button_clicked = Editor.get_any_selection()
-     };
+        eval_id.onclick = function(event){
+                            event.stopPropagation()
+                            eval_button_action()
+                          }
 
-    eval_id.onclick = function(event){
-                        event.stopPropagation()
-                        eval_button_action()
-                      }
+        step_button_id.onclick = function(event){
+                                    event.stopPropagation()
+                                    let dde_ipc     = require('electron').ipcRenderer
+                                    dde_ipc.sendSync('open_dev_tools')
+                                    setTimeout(function(){
+                                                   eval_button_action(true) //cause stepping
+                                               }, 500)
+                                 }
 
-    step_button_id.onclick = function(event){
-                                event.stopPropagation()
-                                let dde_ipc     = require('electron').ipcRenderer
-                                dde_ipc.sendSync('open_dev_tools')
-                                setTimeout(function(){
-                                               eval_button_action(true) //cause stepping
-                                           }, 500)
-                             }
+        step_button_id.onmousedown = function() {
+                selected_text_when_eval_button_clicked = Editor.get_any_selection()
+        };
 
-    step_button_id.onmousedown = function() {
-            selected_text_when_eval_button_clicked = Editor.get_any_selection()
-    };
+        email_bug_report_id.onclick=email_bug_report
 
-    email_bug_report_id.onclick=email_bug_report
+        //File Menu
 
-    //File Menu
+        new_id.onclick = Editor.edit_new_file
+        set_menu_string(new_id, "New", "n")
 
-    new_id.onclick = Editor.edit_new_file
-    set_menu_string(new_id, "New", "n")
+        file_name_id.onchange = function(e){ //similar to open
+            const inner_path = e.target.value //could be "new buffer" or an actual file
+            const path = Editor.files_menu_path_to_path(inner_path)
+            Editor.edit_file(path)
+        }
 
-    file_name_id.onchange = function(e){ //similar to open
-        const inner_path = e.target.value //could be "new buffer" or an actual file
-        const path = Editor.files_menu_path_to_path(inner_path)
-        Editor.edit_file(path)
-    }
-    /*dde_overview_id.onclick = function() {
-                          //window.open("here is text") //dde_paper_text)
-                           //show_page('Dexter Development Environment.html')
-                           //my_dialog_id.innerHTML = "<iframe>" + dde_paper_text + "</iframe>"
-                           //my_dialog_id.showModal()
-                           //window.open("doc/Dexter_Development_Environment.html") //permissions error
-                           const the_text = file_content(__dirname + "/doc/dde_overview/Dexter_Development_Environment.html")
-                           show_window({content:the_text, //dde_paper_text,
-                                        x:50, y:50, width:700, height:550,
-                                        title:"DDE Overview"})
-                           }*/
-
-    open_id.onclick=Editor.open
+    open_id.onclick = Editor.open_on_dde_computer //Editor.open
     set_menu_string(open_id, "Open...", "o")
+
+    open_from_dexter_id.onclick = Editor.open_from_dexter_computer
 
     load_file_id.onclick=function(e) {
         const path = choose_file({title: "Choose a file to load"})
@@ -299,7 +326,7 @@
     insert_file_id.onclick=function(e) {
         const path = choose_file({title: "Choose a file to insert into DDE's editor"})
         if (path){
-            const content = file_content(path)
+            const content = read_file(path)
             Editor.insert(content)
         }
     }
@@ -308,8 +335,11 @@
     set_menu_string(save_id, "Save", "s")
 
     save_as_id.onclick = Editor.save_as
-    remove_id.onclick  = Editor.remove
-    update_id.onclick = function (){check_for_latest_release()}
+
+    save_to_dexter_as_id.onclick = Editor.save_to_dexter_as
+
+    remove_id.onclick = function(){ Editor.remove() } //don't simply use Editor.remove as ther value  for onclick because we want to default its arg as the Editor.remove method does
+    update_id.onclick = function(){ check_for_latest_release() }
 
     //Edit menu  (see editor.js for the Edit menu items
     Editor.init_editor()
@@ -630,43 +660,43 @@ show_window({
     build_window_id.onclick=ab.launch
 
     opencv_gray_id.onclick=function(){
-        const code = file_content(__dirname + "/examples/opencv_gray.js")
+        const code = read_file(__dirname + "/examples/opencv_gray.js")
         Editor.insert(code)
     }
     opencv_blur_id.onclick=function(){
-        const code = file_content(__dirname + "/examples/opencv_blur.js")
+        const code = read_file(__dirname + "/examples/opencv_blur.js")
         Editor.insert(code)
     }
 
     opencv_in_range_id.onclick=function(){
-        const code = file_content(__dirname + "/examples/opencv_in_range.js")
+        const code = read_file(__dirname + "/examples/opencv_in_range.js")
         Editor.insert(code)
     }
 
     opencv_blob_detector_id.onclick=function(){
-        const code = file_content(__dirname + "/examples/opencv_blob_detector.js")
+        const code = read_file(__dirname + "/examples/opencv_blob_detector.js")
         Editor.insert(code)
         open_doc("Picture.detect_blobs_doc_id")
     }
 
     opencv_process_webcam_id.onclick=function(){
-        const code = file_content(__dirname + "/examples/opencv_process_webcam.js")
+        const code = read_file(__dirname + "/examples/opencv_process_webcam.js")
         Editor.insert(code)
     }
 
     opencv_face_reco_id.onclick=function(){
-        const code = file_content(__dirname + "/examples/opencv_face_reco.js")
+        const code = read_file(__dirname + "/examples/opencv_face_reco.js")
         Editor.insert(code)
     }
 
     opencv_locate_object_id.onclick=function(){
-        const code = file_content(__dirname + "/examples/opencv_locate_object.js")
+        const code = read_file(__dirname + "/examples/opencv_locate_object.js")
         Editor.insert(code)
         open_doc("Picture.locate_object_doc_id")
     }
 
     opencv_picture_similarity_id.onclick=function(){
-        const code = file_content(__dirname + "/examples/opencv_picture_similarity.js")
+        const code = read_file(__dirname + "/examples/opencv_picture_similarity.js")
         Editor.insert(code)
         open_doc("Picture.mats_similarity_by_color_doc_id")
     }
@@ -739,7 +769,7 @@ get_page_async("http://www.ibm.com", function(err, response, body){ out(body.len
 
     music_help_id.onclick=function(){ open_doc(music_with_midi_doc_id) }
     phrase_examples_id.onclick=function(){
-        const code = file_content(__dirname + "/music/phrase_examples.js")
+        const code = read_file(__dirname + "/music/phrase_examples.js")
         Editor.insert(code)
     }
     midi_init_id.onclick = Midi.init
@@ -747,18 +777,18 @@ get_page_async("http://www.ibm.com", function(err, response, body){ out(body.len
    eval_and_start_button_id.onclick = eval_and_start
 
     make_dictionary_id.onclick=function(){
-        const code = file_content(__dirname + "/examples/make_dictionary.js")
+        const code = read_file(__dirname + "/examples/make_dictionary.js")
         Editor.insert(code)
     }
     nat_lang_reasoning_id.onclick=function(){
-        const code = file_content(__dirname + "/examples/nat_lang_reasoning.js")
+        const code = read_file(__dirname + "/examples/nat_lang_reasoning.js")
         Editor.insert(code)
     }
 
 
     ez_teach_id.onclick=function(){
         Editor.edit_new_file()
-        Editor.insert(file_content(__dirname + "/user_tools/ezTeach_template.js"))
+        Editor.insert(read_file(__dirname + "/user_tools/ezTeach_template.js"))
         open_doc(ez_teach_doc_id)
     }
 
@@ -990,7 +1020,7 @@ foo      //eval to see the latest values</pre>`,
     move_to_neutral_id.onclick = function(){ Robot.dexter0.move_all_joints_fn(Dexter.NEUTRAL_ANGLES) }
     move_to_parked_id.onclick  = function(){ Robot.dexter0.move_all_joints_fn(Dexter.PARKED_ANGLES) }
     move_to_selection_id.onclick = function(){
-         var sel = Editor.get_selection_or_cmd_input().trim()
+         var sel = Editor.get_any_selection().trim()
          if (sel === "") {
             warning("There is no selection for a dexter0 instruction.")
             return

@@ -33,7 +33,6 @@
         "DXF":        false,
         "editor":     false,
         //"function*:   false,   doesn't work in getting rid of warning.
-        "file_content": false,
         "get_in_ui":  false,
         "get_page":   false,
         "get_page_async": false,
@@ -54,6 +53,7 @@
         "Phrase":     false,
         "Picture":    false,
         "rde":        false,
+        "read_file": false,
         "recognize_speech": false,
         "remove_in_ui":   false,
         "replace_in_ui":  false,

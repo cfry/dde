@@ -5,6 +5,7 @@ var out_item_index   = 0 //used by the "out" code
 function out(val="", color="black", temp=false, code=null){
     if(window.platform == "node") { console.log(val) }
     else {
+        let orig_focus_elt = document.activeElement
         let text = val
         if (typeof(text) != "string"){ //if its not a string, its some daeta structure so make it fixed width to demostrate code. Plus the json =retty printing doesn't work unless if its not fixed width.
             text = stringify_value(text)
@@ -34,7 +35,7 @@ function out(val="", color="black", temp=false, code=null){
             text = '<div id="' + out_item_id + '" style="border-style:solid;border-width:1px;border-color:#AA00AA;margin:5px 5px 5px 15px;padding:4px;">' + text + '</div>'
             append_to_output(text)
         }
-        myCodeMirror.focus()
+        orig_focus_elt.focus()
         if (temp){
             return "dont_print"
         }
@@ -77,6 +78,7 @@ function format_text_for_code(text, code=null){
 //never passed 'dont_print, always prints <hr/> at end whereas regular output never does
 //ui only
 function out_eval_result(text, color="#000000", src){
+    let orig_focus_elt = document.activeElement
     if (text != '"dont_print"'){
         var existing_temp = $("#temp")
         if (existing_temp.length > 0){
@@ -110,8 +112,9 @@ function out_eval_result(text, color="#000000", src){
         append_to_output(text)
     }
     //$('#js_textarea_id').focus() fails silently
-    if(Editor.get_cmd_selection().length > 0) { cmd_input_id.focus() }
-    else { myCodeMirror.focus() }
+    orig_focus_elt.focus()
+    //if(Editor.get_cmd_selection().length > 0) { cmd_input_id.focus() }
+    //else { myCodeMirror.focus() }
 }
 module.exports.out_eval_result = out_eval_result
 

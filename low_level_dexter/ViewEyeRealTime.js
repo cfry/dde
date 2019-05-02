@@ -176,7 +176,7 @@ function centers_output(){
             
         	return [
             	function(){out("Writing to:</br>" + path + "</br></br>With content:</br>" + content)},
-            	Dexter.write_to_robot(content, path),
+            	Dexter.write_file(path, content),
                 function(){out("Saved: " + path)},
             ]
         }

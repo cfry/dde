@@ -332,7 +332,7 @@ var TestSuite = class TestSuite{
     }
 
     static run_ts_in_file(path){
-        let ts_src = file_content(path).trim()
+        let ts_src = read_file(path).trim()
         //because there is sometimes a comment at top of a testsuite file (like for the
         //math tests, we have to be careful about deleting that initial comma.
         //ts_src = ts_src.substring(1) //cut off initial comma

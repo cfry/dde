@@ -91,7 +91,7 @@
             let div_html = `<div contenteditable='false' 
                                 style='height:300px; width:300px; padding:5%; background-color:#DDDDDD; overflow:scroll;'>` +
                              "<div style='font-size:18px; font-weight:700;'>Reference Manual</div>"
-            let content = file_content(__dirname + "/doc/ref_man.html")
+            let content = read_file(__dirname + "/doc/ref_man.html")
             //sim_graphics_pane_id.style = "width:97%; height:90%; padding:5%; background-color:white; overflow:scroll !important;"
             sim_pane_content_id.innerHTML = div_html + content + "</div>"
         }
@@ -103,7 +103,7 @@
                             select_val + "</div>" +
               "<div contenteditable='false' style='height:300px; width:800px; padding:5%; background-color:white; overflow:scroll;'>"
 
-            let content = file_content(select_val)
+            let content = read_file(select_val)
             content = replace_substrings(content, "<", "&lt;")
             //sim_graphics_pane_id.style = "width:97%; height:90%; padding:5%; background-color:white; overflow:scroll !important;"
             sim_pane_content_id.innerHTML = div_html + "<pre>" + content + "</pre></div>"
@@ -115,7 +115,7 @@
         else //if (select_val.endsWith(".html") || select_val.endsWith(".htm"))
              {
             let div_html = "<div contenteditable='false' style='height:300px; width:300px; padding:5%; background-color:white; overflow:scroll;'>"
-            let content = file_content(select_val)
+            let content = read_file(select_val)
             //sim_graphics_pane_id.style = "width:97%; height:90%; padding:5%; background-color:white; overflow:scroll !important;"
             sim_pane_content_id.innerHTML = div_html + content + "</div>"
         }

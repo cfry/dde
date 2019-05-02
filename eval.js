@@ -37,7 +37,7 @@ function fix_code_to_be_evaled(src){
 }
 
 //part 1 of 3.
-//Onlu called by eval_button_action
+//Only called by eval_button_action
 //when this is called, there is no selection, so either we're evaling the whole editor buffer
 //or the whole cmd line.
 function eval_js_part1(step=false){
@@ -45,9 +45,29 @@ function eval_js_part1(step=false){
     //I guess because the button itself is now in focus,
     //so we grab the selection on mousedown of the the Eval button.
     //then use that here if its not "", otherwise, Editor.get_javascript("auto"), getting the whol editor buffer
-    let src = ((selected_text_when_eval_button_clicked.length > 0) ?
-                 selected_text_when_eval_button_clicked :
-                 Editor.get_javascript("auto"))
+    let src
+    if(previous_active_element &&
+       previous_active_element.parentNode &&
+       previous_active_element.parentNode.parentNode &&
+       previous_active_element.parentNode.parentNode.CodeMirror){
+        src = Editor.get_javascript("auto") //if sel in editor, get it, else get whole editor
+    }
+    //let sel_obj = window.getSelection()
+    else if (selected_text_when_eval_button_clicked.length > 0) {
+        src = selected_text_when_eval_button_clicked
+    }
+    else if (previous_active_element &&
+             previous_active_element.tagName == "TEXTAREA"){
+        src = previous_active_element.value
+    }
+    else if (previous_active_element &&
+             (previous_active_element.tagName == "INPUT") &&
+             (previous_active_element.type == "text")){
+        src = previous_active_element.value
+    }
+    else {
+        src = Editor.get_javascript("auto")
+    }
     //we do NOT want to pass to eval part 2 a trimmed string as getting its char
     //offsets into the editor buffer correct is important.
     if (src.trim() == ""){

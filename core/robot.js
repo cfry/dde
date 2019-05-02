@@ -861,11 +861,11 @@ Dexter = class Dexter extends Robot {
                  pose = Vector.identity_matrix(4),
                  enable_heartbeat=true,
                  instruction_callback = Job.prototype.set_up_next_do}={}){
-       if((name.length == 1) && (name >= "A") && (name <= "Z")){
+        if((name.length == 1) && (name >= "A") && (name <= "Z")){
            dde_error("While construction a Dexter robot named: " + name +
                      "<br/>Sorry, you can't name a Dexter with a single upper case letter.")
-       }
-       if(!ip_address) { ip_address = persistent_get("default_dexter_ip_address") }
+        }
+        if(!ip_address) { ip_address = persistent_get("default_dexter_ip_address") }
         if(!port)       { port       = persistent_get("default_dexter_port") }
 
         let keyword_args = {name: name, simulate: simulate, ip_address: ip_address, port: port,
@@ -878,7 +878,7 @@ Dexter = class Dexter extends Robot {
                if (old_same_named_robot.active_jobs_using_this_robot().length > 0){
                     warning("There's already a robot with the name: " + name +
                         ", with same ip_address and port that has active jobs " +
-                        " so that's being used instead of a new Robot.Dexter instance.")
+                        " so that's being used instead of a new Dexter instance.")
                     return old_same_named_robot
                }
                else {
@@ -1235,12 +1235,12 @@ Dexter = class Dexter extends Robot {
             let ins_id = robot_status[Dexter.INSTRUCTION_ID]
             let ins    = job_instance.do_list[ins_id]
             let oplet  = ins[Instruction.INSTRUCTION_TYPE]
-            if(oplet == "r") {  //read from robot errored, assuming its "file not found" so end the rfr loop nd set the "content read" as null, meaninng file not found
+            if(oplet == "r") {  //Dexter.read_file errored, assuming its "file not found" so end the rfr loop nd set the "content read" as null, meaninng file not found
                 //the below setting of the user data already done by got_content_hunk
-                //let rfr_instance = Instruction.Dexter.read_from_robot.find_read_from_robot_instance_on_do_list(job_instance, ins_id)
+                //let rfr_instance = Instruction.Dexter.read_file.find_read_file_instance_on_do_list(job_instance, ins_id)
                 // job_instance.user_data[ins.destination] = null //usually means "file not found"
                 //rfr_instance.is_done = true
-                this.perform_instruction_callback(job_instance) //calls set_up_next_do(1) but we want 0, becuase we want to give the read_from_robot instance code a chance to clean up before ending its loop
+                this.perform_instruction_callback(job_instance) //calls set_up_next_do(1) but we want 0, becuase we want to give the Dexter.read_file instance code a chance to clean up before ending its loop
                 //job_instance.set_up_next_do(0)
                 return
             }
@@ -1916,7 +1916,7 @@ Dexter.socket_encode = function(char){
     else { return char }
 }
 
-Dexter.write_to_robot = function(content="", file_name=null){
+Dexter.write_file = function(file_name=null, content=""){
     let max_content_chars = 62 //244 //252 //ie 256 - 4 for (instruction_id, oplet, suboplet, length
     //payload can be max_contect_chars + 2 long if last character is escaped
     let payload = ""
@@ -1935,7 +1935,12 @@ Dexter.write_to_robot = function(content="", file_name=null){
     return instrs
 }
 
-Dexter.prototype.write_to_robot = function(content="", file_name=null){
+//depricated. Note reversed args from Dexter.write_file
+Dexter.write_to_robot = function(content="", file_name=null){
+    return Dexter.write_file(file_name, content)
+}
+
+Dexter.prototype.write_file = function(file_name=null, content=""){
     let max_content_chars = 62 //244 //252 //ie 256 - 4 for (instruction_id, oplet, suboplet, length
     //payload can be max_contect_chars + 2 long if last character is escaped
     let payload = ""
@@ -1953,6 +1958,12 @@ Dexter.prototype.write_to_robot = function(content="", file_name=null){
     instrs.push(make_ins("W", "e", payload.length, payload, this)) //close the file
     return instrs
 }
+
+//depricated. Note reversed args from Dexter.write_file
+Dexter.prototype.write_to_robot = function(content="", file_name=null){
+    return this.write_file(file_name, content)
+}
+
 /*testing code
     var data = ""
 //for (var i = 255; i > 0; i--) { //top to bottom
@@ -1964,15 +1975,19 @@ for (var i = 0; i < 256; i++) {  //bottom to top
 out(data.length)
 
 new Job({name: "my_job",
-    do_list: [out(Dexter.write_to_robot(data, "/srv/samba/share/test.txt"))]})
+    do_list: [out(Dexter.write_file(data, "/srv/samba/share/test.txt"))]})
 */
 
-Dexter.read_from_robot = function (source, destination){
-    return new Instruction.Dexter.read_from_robot(source, destination)
+Dexter.read_file = function (source, destination){
+    return new Instruction.Dexter.read_file(source, destination)
 }
-Dexter.prototype.read_from_robot = function (source, destination){
-    return new Instruction.Dexter.read_from_robot(source, destination, this)
+Dexter.read_from_robot = Dexter.read_file //depricated
+
+Dexter.prototype.read_file = function (source, destination){
+    return new Instruction.Dexter.read_file(source, destination, this)
 }
+
+Dexter.prototype.read_from_robot = Dexter.prototype.read_file
 
 //from Dexter_Modes.js (these are instructions. The fns return an array of instructions
 Dexter.set_follow_me                = function(){ return setFollowMe() }
@@ -2012,13 +2027,13 @@ Dexter.instruction_type_to_function_name_map = {
     P:"pid_move_all_joints",
     p:"find_home_rep",
     R:"move_all_joints_relative",
-    r:"read_from_robot",
+    r:"read_file",
     s:"slow_move",
     S:"set_parameter",
     t:"dma_write",
     T:"move_to_straight",
     w:"write",
-    W:"write_to_robot",
+    W:"write_file",
     x:"exit",
     z:"sleep"
 }
@@ -2028,7 +2043,7 @@ Dexter.prototype.props = function(){
     let file_name  = "dde_" + this.name + "_props.json"
     let result = {}
     if(file_exists(file_name)){
-        let content = file_content(file_name)
+        let content = read_file(file_name)
         try {result = JSON.parse(content) }
         catch(err) {
            dde_error("The file: " + __dirname + "/" + file_name +
@@ -2052,7 +2067,7 @@ var cache_of_dexter_instance_files = {}
 Dexter.prototype.get_dexter_props_file_object = function(){
     let file_path  = "//" + this.ip_address + "/share/robot_props.json" //todo needs verificatin
     if (file_exists(file_path)) {
-        let content = file_content(file_path)
+        let content = read_file(file_path)
         try {
             const result = JSON.parse(content)
             return result

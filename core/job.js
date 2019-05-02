@@ -244,7 +244,7 @@ class Job{
                 user_data: {stop_job_running_on_dexter: false, already_handled_stop_job:false, dexter_log:undefined, job_src:job_src}, //the presence of this user data prop is how we tell that this job is a dde_shadow_job_instance.
                 inter_do_item_dur: 0.005, //we don't need to have fast communication with Dexter. Minimize traffic
                 do_list:[
-                        Dexter.write_to_robot(job_src, "job/run/" + dde_monitor_job_instance.name + ".dde"),
+                        Dexter.write_file("job/run/" + dde_monitor_job_instance.name + ".dde", job_src),
                         Robot.loop(true,
                             function(){
                                 if(this.user_data.dexter_log !== undefined) { //got a dexter log meaning the monitored job is over.
@@ -253,10 +253,10 @@ class Job{
                                 else if ((this.user_data.stop_job_running_on_dexter) &&
                                          (!this.user_data.already_handled_stop_job))  { //set by clicking the job button
                                          this.user_data.already_handled_stop_job = true
-                                        return Dexter.write_to_robot("", "job/run/killjobs")
+                                        return Dexter.write_file("job/run/killjobs", "")
                                         //now next time in this loop, the first clause should hit
                                 }
-                                else { return Dexter.read_from_robot("job/logs/" + dde_monitor_job_instance.name + ".dde.log", "dexter_log")} //the
+                                else { return Dexter.read_file("job/logs/" + dde_monitor_job_instance.name + ".dde.log", "dexter_log")} //the
                                        //log file is only present once the job has stopped
                             }),
                         function(){
@@ -1294,7 +1294,7 @@ Job.prototype.stop_for_reason = function(status_code, //"errored", "interrupted"
     this.stop_time    = new Date()
     if(!perform_when_stopped) { this.when_stopped = "stop"}
     if((this.name == "dex_file_read") && (this.status_code == "errored") && window.Editor){
-     //this special case needed because if we attempt to read_from_robot with sim= real and
+     //this special case needed because if we attempt to Dexter.read_file with sim= real and
      // we're not connected to the Dexter, we get a connection error, which
      // will call stop_for_reason but not finish.
      // window.Editor will be undefined in Node, so ok to have this code when running job engine on dexter.

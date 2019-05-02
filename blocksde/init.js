@@ -64,51 +64,6 @@ var blocksde_dom_elt   = null
 
 
 
-/*function toggle_text_blocks_display(){
-  if (Editor.view == "text"){
-      out("installing blocks")
-      let src = Editor.get_javascript("auto") //must do before the switch
-      let block_to_install
-      try{
-          if (src.trim() != ""){block_to_install = JS2B.js_to_blocks(src.trim())} //do before switching views in case this errors, we want to stay in text view
-      }
-      catch(err){
-          warning("Could not convert JavaScript source to blocks due to error:<br/>" +
-              err.message +
-              "<br/> Make sure your JS text evals without errors before switching to blocks.")
-          return
-      }
-      if (!the_codemirror_elt) { //haven't used blocksde yet so initialize it
-         the_codemirror_elt = document.getElementsByClassName("CodeMirror")[0]
-         blocksde_dom_elt = make_blocksde_dom_elt()
-         let blocks_style_content = file_content(__dirname + "/blocksde/style2.css")
-         let style_elt = make_dom_elt("style", {}, blocks_style_content) //"* { background-color:blue;}")
-         blocksde_dom_elt.appendChild(style_elt)
-         replace_dom_elt(the_codemirror_elt, blocksde_dom_elt) //must occur before calling make_workspace_instance
-           //because that needs workspace_container_id to be installed in order to
-           //install workspace_id inside it
-         Workspace.make_workspace_instance(
-         //the_codemirror_elt.offsetWidth,  the_codemirror_elt.offsetHeight //this vals are always zero
-         )
-      }
-      else { replace_dom_elt(the_codemirror_elt, blocksde_dom_elt) }
-      Workspace.inst.clear_blocks()
-      if (block_to_install){ //we've got non empty src code so turn it into blocks.
-          install_top_left_block(block_to_install)
-      }
-      text_blocks_toggle_id.style["background-color"] = "#AAFFAA"
-      Editor.view = "blocks"
-  }
-  else { 
-      out("installing text")
-      let js = Workspace.inst.to_js()
-      replace_dom_elt(blocksde_dom_elt, the_codemirror_elt)
-      text_blocks_toggle_id.style["background-color"] = "#CCCCCC"
-      Editor.set_javascript(js)
-      Editor.view = "text"
-      myCodeMirror.focus()
-  }
-}*/
 
 function change_code_view_kind(event){
     let new_view_kind = code_view_kind_id.value
@@ -143,7 +98,7 @@ function js_to_blocks(){
         if (!the_codemirror_elt) { //haven't used blocksde yet so initialize it
             the_codemirror_elt = document.getElementsByClassName("CodeMirror")[0]
             blocksde_dom_elt = make_blocksde_dom_elt()
-            let blocks_style_content = file_content(__dirname + "/blocksde/style2.css")
+            let blocks_style_content = read_file(__dirname + "/blocksde/style2.css")
             let style_elt = make_dom_elt("style", {}, blocks_style_content) //"* { background-color:blue;}")
             blocksde_dom_elt.appendChild(style_elt)
             replace_dom_elt(the_codemirror_elt, blocksde_dom_elt) //must occur before calling make_workspace_instance

@@ -560,7 +560,7 @@ serial_path_to_info_map     //now this will return {}
 //https://forum.arduino.cc/index.php?topic=131655.0 tells you how to do it
 //for Windows, but not the Mac.
 //Move that file to under your dde_apps folder and use:
-serial_send_low_level(file_content("some_arduino_file.ino.hex"), ard_path)
+serial_send_low_level(read_file("some_arduino_file.ino.hex"), ard_path)
 //please let us know if this works, esp. if you're on a Mac.
 //If you can't get programmatic file upload into your Arduino,
 //just use the Arduion app, paste the code into the editor,

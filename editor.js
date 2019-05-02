@@ -261,12 +261,21 @@ Editor.get_any_selection = function(){
     //so if ther are other selections, it means you made the AFTER you made
     //the editor window sel, and therefore your attention is on that non-editor selection.
     var sel_text = ""
+    //this clause catches html selection inside code and samp tags.
     if (!window.getSelection().isCollapsed) { //got sel in doc or output pane
          let sel_text = window.getSelection().getRangeAt(0).toString()
          return sel_text
     }
-    sel_text = Editor.get_cmd_selection()
-    if(sel_text.length > 0 ) { return sel_text }
+    //this clause catches cmd_input as well as the codemirror text area.
+    //if both are selected, codemirror wins.
+    else if (document.activeElement &&
+             ["INPUT", "TEXTAREA"].includes(document.activeElement.tagName) &&
+             document.activeElement.selectionStart != document.activeElement.selectionEnd) {
+        let full_src = document.activeElement.value
+        return full_src.substring(document.activeElement.selectionStart, document.activeElement.selectionEnd)
+    }
+    //sel_text = Editor.get_cmd_selection() //this is caught by the above clause
+    //if(sel_text.length > 0 ) { return sel_text }
     if (Editor.view == "JS") {
         sel_text = myCodeMirror.doc.getValue().substring(Editor.selection_start(), Editor.selection_end())
     }
@@ -280,11 +289,12 @@ Editor.get_any_selection = function(){
 }
 
 //return editor sel or if none, cmd input, or if none, ""
+/*Not used. Use Editor.get_any_selection instead
 Editor.get_selection_or_cmd_input = function(){
     var sel_text = myCodeMirror.doc.getValue().substring(Editor.selection_start(), Editor.selection_end())
     if (sel_text.length == 0) { sel_text = cmd_input_id.value }
     return sel_text
-}
+}*/
 
 //if there is no selecion in the cmd input ,return "", else return the selected text.
 Editor.get_cmd_selection = function(){
@@ -429,7 +439,7 @@ Editor.restore_selection_from_map = function(){
     }
 }
 
-Editor.open = function(){
+/*Editor.open = function(){
     let cont = '<input type="submit" value="DDE computer"/>\n'
     for(let dex_name of Dexter.all_names){
         if(Dexter[dex_name]) {//should hit every time, but just a check
@@ -453,7 +463,34 @@ Editor.open = function(){
                  }
                 }
                 )
+}*/
+
+Editor.open_from_dexter_computer = function(){
+    if(Dexter.all_names.length == 1){ //no need for a dialog to choose which dexter
+        Editor.open_on_dexter_computer(Dexter.all_names[0])
+    }
+    else {
+        let cont = "" //'<input type="submit" value="DDE computer"/>\n'
+        for(let dex_name of Dexter.all_names){
+            if(Dexter[dex_name]) {//should hit every time, but just a check
+                cont += `<input style="margin-top:5px" type="submit" value="` + dex_name + `"/><br/>\n`
+            }
+        }
+        show_window({title: "Choose computer<br/>to open file from",
+                content: cont,
+                width: 220,
+                x: 50,
+                y: 50,
+                callback: function(vals) {
+                        let dex_name = vals.clicked_button_value
+                        setTimeout(function() {Editor.open_on_dexter_computer(dex_name)}, 10)
+                    }
+                }
+        )
+    }
 }
+
+
 
 Editor.open_on_dde_computer = function(){
     const path = choose_file({title: "Choose a file to edit", properties: ['openFile']})
@@ -471,10 +508,10 @@ function open_on_dexter_computer_show_window_cb(vals) {
 }
 
 Editor.open_on_dexter_computer = function(dex_name){
-    show_window({title: "Enter file on: " + dex_name + " to open",
+    show_window({title: "Enter file on <i>" + dex_name + "</i> to open",
                  content: '<i>Opening Dexter files considers simulation state<br/>' +
                           'when determining where to get the file content.<br/>' +
-                          'If you want content from Dexter, usually select<br/>' +
+                          'If you want content from Dexter, select<br/>' +
                           'the <b>real</b> button in the Misc pane header.</i><br/>' +
                           '<input id="open_on_dexter_computer_file_path_id" value="' + persistent_get("last_open_dexter_file_path") + '" style="width:350px;font-size:16px;margin-top:10px;"/>\n' +
                           '<p></p><center><input type="submit" value="Open"/></center>\n' +
@@ -604,7 +641,7 @@ Editor.edit_file = function(path){ //path could be "new buffer"
             const path_already_in_menu = Editor.set_files_menu_to_path(path)
             if (!path_already_in_menu) { Editor.add_path_to_files_menu(path) }
             let the_path = path
-            file_content_async(path, undefined, function(err, content) { //file_content will conver to windows format if needed
+            read_file_async(path, undefined, function(err, content) { //file_content will conver to windows format if needed
                                         if(err) {
                                             Editor.set_files_menu_to_path() //set the files menu BACK to its previously selected file cause we can't get the new one
                                             dde_error(err.message)
@@ -717,10 +754,10 @@ function save_on_dexter_computer_show_window_cb(vals) {
 }
 
 Editor.save_on_dexter_computer = function(dex_name){
-    show_window({title: "Enter file on: " + dex_name + " to save",
+    show_window({title: "Enter file on <i>" + dex_name + "</i> to save",
         content: '<i>Saving Dexter files considers simulation state<br/>' +
-        'when determining where to get the file content.<br/>' +
-        'If you want content for Dexter, usually select<br/>' +
+        'when determining where to save the file to.<br/>' +
+        'If you want to save to a Dexter, select<br/>' +
         'the <b>real</b> button in the Misc pane header.</i><br/>' +
         '<input id="open_on_dexter_computer_file_path_id" value="' + persistent_get("last_open_dexter_file_path") + '" style="width:350px;font-size:16px;margin-top:10px;"/>\n' +
         '<p></p><center><input type="submit" value="Save"/></center>\n' +
@@ -734,6 +771,31 @@ Editor.save_on_dexter_computer = function(dex_name){
     })
     setTimeout(function() {open_on_dexter_computer_file_path_id.focus()}, 100)
 
+}
+
+Editor.save_to_dexter_as = function(){
+    if(Dexter.all_names.length == 1){ //no need for a dialog to choose which dexter
+        Editor.save_on_dexter_computer(Dexter.all_names[0])
+    }
+    else {
+        let cont = ''
+        for(let dex_name of Dexter.all_names){
+            if(Dexter[dex_name]) {//should hit every time, but just a check
+                cont += `<input style="margin-top:5px" type="submit" value="` + dex_name + `"/><br/>\n`
+            }
+        }
+        show_window({title: "Choose computer<br/>to save file to",
+                content: cont,
+                width: 220,
+                x: 50,
+                y: 50,
+                callback: function(vals) {
+                        let dex_name = vals.clicked_button_value
+                        setTimeout(function() {Editor.save_on_dexter_computer(dex_name)}, 10)
+                    }
+            }
+        )
+    }
 }
 
 

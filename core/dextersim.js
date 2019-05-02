@@ -7,8 +7,8 @@ DexterSim = class DexterSim{
         this.robot_status_in_arcseconds = Dexter.make_default_status_array()
         this.parameters = {}
         this.write_array = new Array(128)
-        this.write_to_robot_file_name = null
-        this.write_to_robot_file_content = "" //grows as "m" instructions come in
+        this.write_file_file_name = null
+        this.write_file_file_content = "" //grows as "m" instructions come in
         DexterSim.robot_name_to_dextersim_instance_map[robot_name] = this
     }
 
@@ -66,7 +66,7 @@ DexterSim = class DexterSim{
         for(let i = 0; i <  split_str.length; i++) {
             let substr = split_str[i]
             if(i == Instruction.INSTRUCTION_TYPE) { oplet = substr}
-            else if ((oplet == "W") && (i == Instruction.INSTRUCTION_ARG2)) { //this is the payload of write_to_robot
+            else if ((oplet == "W") && (i == Instruction.INSTRUCTION_ARG2)) { //this is the payload of Dexter.write_file
                 let raw_string = arr_buff.toString() //can't use str because that ends at first semicolon, and payload might have semicolons in it.
                 let ending_semicolon_pos = raw_string.lastIndexOf(";") //note that the payload might have semicolons in it so don't choose those by using LASTindexOf
                 let W_pos = raw_string.indexOf(" W ")
@@ -120,7 +120,7 @@ DexterSim = class DexterSim{
             case "h": //doesn't go on instruction queue, just immediate ack
                 sim_inst.ack_reply(instruction_array)
                 break;
-            case "r": //read_from_robot. does not go on queue
+            case "r": //Dexter.read_file. does not go on queue
                 let payload_string_maybe = sim_inst.process_next_instruction_r(instruction_array)
                 sim_inst.ack_reply(instruction_array, payload_string_maybe)
                 break;
@@ -308,7 +308,7 @@ DexterSim = class DexterSim{
                 else { shouldnt('DexterSim.write_array is too short to accommodate "w" instruction<br/> with write_location of: ' +
                                  write_location + " and value of: " + ins_args[1]) }
                 break
-            case "W": //write_to_robot
+            case "W": //Dexter.write_file
                 dur = this.process_next_instruction_W(ins_args) //Vector.add(ins_args))
                 break;
             case "z": //sleep
@@ -420,18 +420,18 @@ DexterSim = class DexterSim{
         let hunk_index = instruction_array[Instruction.INSTRUCTION_ARG0]
         let source     = instruction_array[Instruction.INSTRUCTION_ARG1]
         let whole_content
-        try { whole_content = file_content(source) }//errors if path in "source" doesn't exist
+        try { whole_content = read_file(source) }//errors if path in "source" doesn't exist
         catch(err){
             return 1 //return the error code
         }
-        let start_index = hunk_index * Instruction.Dexter.read_from_robot.payload_max_chars
-        let end_index = start_index + Instruction.Dexter.read_from_robot.payload_max_chars
+        let start_index = hunk_index * Instruction.Dexter.read_file.payload_max_chars
+        let end_index = start_index + Instruction.Dexter.read_file.payload_max_chars
         let payload_string = whole_content.substring(start_index, end_index) //ok if end_index is > whole_cotnent.length, it just gets how much it can, no error
         //out("some content from " + source + " hunk: " + hunk_index + " payload: " + payload_string)
         //Socket.r_payload_grab_aux(instruction_array, payload_string)
         return payload_string
     }
-    //write_to_robot
+    //Dexter.write_file
     process_next_instruction_W(ins_args, rob){
         let kind_of_write  = ins_args[0]
         let payload_length = ins_args[1]
@@ -440,17 +440,17 @@ DexterSim = class DexterSim{
         let dde_computer_file_system_start = "dexter_file_systems/" + robot_name + "/"
         switch(kind_of_write){
             case "f": //payload is file name to write to. Just one of these to start with
-                this.write_to_robot_file_name = payload
-                this.write_to_robot_file_content = ""
+                this.write_file_file_name = payload
+                this.write_file_file_content = ""
                 break;
             case "m": //middle, ie a content instruction, many of these
-                this.write_to_robot_file_content += payload
+                this.write_file_file_content += payload
                 break;
             case "e":   //end, just one of these
-                this.write_to_robot_file_content += payload
-                let last_slash_pos = this.write_to_robot_file_name.lastIndexOf("/")
+                this.write_file_file_content += payload
+                let last_slash_pos = this.write_file_file_name.lastIndexOf("/")
                 let folders_string = ""
-                if(last_slash_pos != -1) { folders_string = this.write_to_robot_file_name.substring(0, last_slash_pos + 1) }
+                if(last_slash_pos != -1) { folders_string = this.write_file_file_name.substring(0, last_slash_pos + 1) }
                 let folder_path
                 if(folders_string.startsWith("/")) {
                     folder_path = folders_string
@@ -460,13 +460,13 @@ DexterSim = class DexterSim{
                 }
                 folder_path = make_full_path(folder_path)
                 make_folder(folder_path)
-                let full_path = dde_computer_file_system_start + this.write_to_robot_file_name
+                let full_path = dde_computer_file_system_start + this.write_file_file_name
                 full_path = make_full_path(full_path)
                 //fs.mkdirSync(path, options-recursive???)
-                write_file(full_path, this.write_to_robot_file_content)
+                write_file(full_path, this.write_file_file_content)
                 break;
             default:
-              dde_error('The "W" write_to_robot instruction recieved<br/>' +
+              dde_error('The "W" write_file instruction recieved<br/>' +
                         'a "kind_of-write" letter of "' + kind_of_write + "<br/>" +
                         'but the only valid letters are "f", "m" and "e".')
         }

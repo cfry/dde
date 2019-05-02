@@ -760,7 +760,7 @@ Series.instances = [
         menu_insertion_string: 'show_window({content: "hi"})',
         menu_sel_start:0, menu_sel_end:11, sample: "show_window"}),
 
-    new Series({id:"series_file_id",       array:['dde_apps_folder', 'load_files', 'file_content', "file_exists", 'choose_file_and_get_content', 'Editor.edit_file', 'make_folder', 'write_file',
+    new Series({id:"series_file_id",       array:['dde_apps_folder', 'load_files', 'read_file', "file_exists", 'choose_file_and_get_content', 'Editor.edit_file', 'make_folder', 'write_file',
                                                   //'folder_listing',
                                                   'operating_system', 'folder_separator',
                                                   'persistent_set', 'persistent_get', 'persistent_remove', 'persistent_clear'],
@@ -800,10 +800,10 @@ Series.instances = [
                                                             "Dexter.move_home",
                                                           "Dexter.move_to", "Dexter.move_to_relative", "Dexter.move_to_straight",
                                                           "Dexter.pid_move_all_joints", "Dexter.pid_move_to",
-                                                          "Dexter.read_from_robot", "Dexter.run_gcode", "Dexter.record_movement", "Dexter.replay_movement",
+                                                          "Dexter.read_file", "Dexter.run_gcode", "Dexter.record_movement", "Dexter.replay_movement",
                                                           "Dexter.set_follow_me", "Dexter.set_force_protect", "Dexter.set_keep_position", "Dexter.set_open_loop",
                                                           "Dexter.set_parameter", "Dexter.sleep",  "Dexter.slow_move",
-                                                          "Dexter.write", "Dexter.write_to_robot",
+                                                          "Dexter.write", "Dexter.write_file",
                                                           //"Dexter.prototype.joint_angle", "Dexter.prototype.joint_angles", "Dexter.prototype.joint_xyz", "Dexter.prototype.joint_xyzs",  //beware: these are NOT instructions but 'utility fns.' they are documented.
                                                            "make_ins",
                                                           "Human.enter_choice", "Human.enter_instruction", "Human.enter_number",

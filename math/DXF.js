@@ -159,7 +159,7 @@ var DXF = new function(){
 	}
     
 	this.fill_DXF = function(filename, scale, theta, tool_diameter = 5000, overlap_ratio = .1, toggle_fill = false, J_angles){
-		let dxf_content = file_content(filename)
+		let dxf_content = read_file(filename)
 		let my_entities = DXF.content_to_entities(dxf_content)
 		let perimeter_points = DXF.entities_to_points(my_entities)
     	perimeter_points = scale_points(perimeter_points, scale, J_angles)
@@ -706,7 +706,7 @@ function scale_points(points, scale, J_angles){
 //Fill DXF code
 ////////////////////////////////////////
 function fill_DXF(filename, scale, theta, tool_diameter = 5000, overlap_ratio = .1, toggle_fill = false, J_angles){
-	let dxf_content = file_content(filename)
+	let dxf_content = read_file(filename)
 	let my_entities = DXF.content_to_entities(dxf_content)
 	let perimeter_points = DXF.entities_to_points(my_entities)
     perimeter_points = scale_points(perimeter_points, scale, J_angles)
@@ -986,7 +986,7 @@ new Job({name: "Draw",
         }
 
         if(typeof(dxf_filepath) == "string" && dxf_filepath.length < 512){
-            dxf_content = file_content(dxf_filepath)
+            dxf_content = read_file(dxf_filepath)
             my_entities = DXF.content_to_entities(dxf_content)
             my_points = DXF.entities_to_points(my_entities)
         }else if(Array.isArray(dxf_filepath)){
@@ -1007,7 +1007,7 @@ new Job({name: "Draw",
         */
 
         //let rapid_speed = 30
-        //let dxf_content = file_content(dxf_filepath)
+        //let dxf_content = read_file(dxf_filepath)
 
         let J_angles_1 = three_J_angles[0]
         let J_angles_2 = three_J_angles[1]
@@ -1395,11 +1395,12 @@ this.dxf_to_instructions = function({
  
  
 
-	this.string_to_lines = txt.string_to_lines
+
 
  
  
 } // closes DXF.init_drawing
+    this.string_to_lines = txt.string_to_lines
 } // closes DXF class
 
 
@@ -1411,7 +1412,7 @@ this.dxf_to_instructions = function({
 	var Kin = require("./Kin.js")
 
 	var {dde_error, warning, point_object_to_array, scale_point} = require("../core/utils.js")
-	var {file_content} = require("../core/storage.js")
+	var {read_file} = require("../core/storage.js")
 	var {out} = require("../core/out.js")
 	var {Instruction, make_ins} = require("../core/instruction.js")
 	var {Dexter} = require("../core/robot.js")

@@ -88,7 +88,7 @@ var Instruction = class Instruction {
     //If the instruction *could* insert into the do_list, return true.
     //else return false
     //the following instructions insert as of Mar 6, 2019
-    //Instruction.Dexter.read_from_robot
+    //Instruction.Dexter.read_file
     //Instruction.human_enter_choice
     //Instruction.human_enter_instruction
     //Instruction.human_enter_position
@@ -126,7 +126,7 @@ var Instruction = class Instruction {
                else { return true }
            }
            else {
-                for(let instr_class of [Instruction.Dexter.read_from_robot]){
+                for(let instr_class of [Instruction.Dexter.read_file]){
                     if(iteml instanceof instr_class) { return true }
                 }
                return false
@@ -1863,7 +1863,7 @@ Instruction.include_job = class include_job extends Instruction{
                         do_list_array_to_use = resolved_first_arg.orig_args.do_list
                     }
                     else { //maybe file src starts with var foo = an_array_of_instructions
-                        let file_src = file_content(first_arg)
+                        let file_src = read_file(first_arg)
                         let result_obj = eval_js_part2(file_src, false) // warning: calling straight eval often doesn't return the value of the last expr in the src, but my eval_js_part2 usually does. //window.eval(file_src)
                         if(result_obj.error_message){
                            dde_error("Robot.include_job's first argument: " + first_arg +

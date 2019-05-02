@@ -374,7 +374,7 @@ function inspect_one_liner_regular_fn(item){
 
 function inspect_one_liner_existing_file_path(item){
     item = make_full_path(item)
-    let the_file_content = file_content(item)
+    let the_file_content = read_file(item)
     the_file_content = replace_substrings(the_file_content, "<", "&lt;") //if I don't do this, fns with bodies containing tags
     let file_length = the_file_content.length
     if(file_length > 100000){
@@ -569,4 +569,4 @@ function inspect_set_refresh_onclick(stack_number, in_stack_position, id_string)
 
 var {out_eval_result} = require("./core/out.js")
 var {shouldnt, is_class, is_array_of_same_lengthed_arrays, get_class_name, replace_substrings, typed_array_name} = require("./core/utils.js")
-var {make_full_path, file_content, file_exists} = require("./core/storage.js")
+var {make_full_path, read_file, file_exists} = require("./core/storage.js")

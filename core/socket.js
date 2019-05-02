@@ -269,14 +269,14 @@ var Socket = class Socket{
         //the simulator automatically does this so we have to do it here in non-simulation
 
         robot_status[Dexter.INSTRUCTION_TYPE] = oplet
-        if(oplet == "r"){ //read_from_robot
+        if(oplet == "r"){ //Dexter.read_file
             if(typeof(payload_string_maybe) == "number") { //should be 1
                 robot_status[Dexter.ERROR_CODE] = 0 //even though we got an error from file_not_found,
                 //don't set the error in the robot status. Just let that error
                 //be used in r_payload_grab_aux which passes it to got_content_hunk
                 //which sets the user data to the error code and
-                // read_from_robot_instance.is_done = true
-                //so the loop in read_from_robot_instance terminates normally.
+                // read_file_instance.is_done = true
+                //so the loop in read_file_instance terminates normally.
             }
             Socket.r_payload_grab(data, robot_status, payload_string_maybe)
         }
@@ -309,7 +309,7 @@ var Socket = class Socket{
     static r_payload_grab_aux(robot_status, payload_string){
         let job_id = robot_status[Dexter.JOB_ID]
         let ins_id = robot_status[Dexter.INSTRUCTION_ID]
-        Instruction.Dexter.read_from_robot.got_content_hunk(job_id, ins_id, payload_string)
+        Instruction.Dexter.read_file.got_content_hunk(job_id, ins_id, payload_string)
     }
 
     static convert_robot_status_to_degrees(robot_status){

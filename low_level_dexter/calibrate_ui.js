@@ -59,7 +59,7 @@ function cal_init_robot(){
             	out("Attempting to read AdcCenters.txt from robot with IP: " + this.robot.ip_address + "...")
         		
                 return [
-                	Dexter.read_from_robot(this.user_data.dex_filepath, "read_results"),
+                	Dexter.read_file(this.user_data.dex_filepath, "read_results"),
                     make_ins("F")
                 ]
         	},

@@ -20,7 +20,7 @@ var faceClassifier
 
 function init_face_classifier(){
     if(!faceClassifier) { //calling the below code twice in a dde session will error
-        let body = file_content(__dirname + "/vision/lbpcascade_frontalface.xml")
+        let body = read_file(__dirname + "/vision/lbpcascade_frontalface.xml")
         cv.FS_createDataFile('/', "model.xml", body, true, true, false)
         faceClassifier = new cv.CascadeClassifier();
         faceClassifier.load("model.xml");
