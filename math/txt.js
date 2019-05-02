@@ -1,7 +1,7 @@
 //txt class
 //James Wigglesworth
 //Started: 5_16_17
-//Updated: 4_23_19
+//Updated: 5_1_19
 
 
 /*
@@ -28,252 +28,254 @@ var noprint = out(points)
 Vector.max(Vector.transpose(Vector.pull(txt.vertical_bar(), [0, txt.vertical_bar().length-1], [0,0])))
 
 txt.string_to_lines("#%()@[]_{}~^><|\\\`\n")
+txt.string_to_lines("Hello\nWorld!\b\b\b\b\b\b______", undefined, undefined, true)
 */
 
-
 var txt = new function(){
-	this.string_to_lines = function(string = "Hello World", horizontal_spacing = 0.15, vertical_spacing = 0.15){
+	this.string_to_lines = function(string = "Hello World", horizontal_spacing = 0.15, vertical_spacing = 0.15, fixed_width = false){
     	let lines = []
         let spacing = horizontal_spacing
         let vert_spacing = 1 + vertical_spacing
         let max_width = 0
         let line_num = 0
+        let width = 0
+        
         for(let i = 0; i < string.length; i++){
         	switch(string[i]){
             	case "a":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.a()))
-                    max_width += txt.a_max()+spacing
+                    width = txt.a_max()+spacing
                 	break
                 case "b":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.b()))
-                    max_width += txt.b_max()+spacing
+                    width = txt.b_max()+spacing
                 	break
                 case "c":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.c()))
-                    max_width += txt.c_max()+spacing
+                    width = txt.c_max()+spacing
                 	break
                 case "d":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.d()))
-                    max_width += txt.d_max()+spacing
+                    width = txt.d_max()+spacing
                 	break
                 case "e":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.e()))
-                    max_width += txt.e_max()+spacing
+                    width = txt.e_max()+spacing
                 	break
                 case "f":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.f()))
-                    max_width += txt.f_max()+spacing
+                    width = txt.f_max()+spacing
                 	break
                 case "g":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.g()))
-                    max_width += txt.g_max()+spacing
+                    width = txt.g_max()+spacing
                 	break
                 case "h":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.h()))
-                    max_width += txt.h_max()+spacing
+                    width = txt.h_max()+spacing
                 	break
                 case "i":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.i()))
-                    max_width += txt.i_max()+spacing
+                    width = txt.i_max()+spacing
                 	break
                 case "j":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.j()))
-                    max_width += txt.j_max()+spacing
+                    width = txt.j_max()+spacing
                 	break
                 case "k":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.k()))
-                    max_width += txt.k_max()+spacing
+                    width = txt.k_max()+spacing
                 	break
                 case "l":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.l()))
-                    max_width += txt.l_max()+spacing
+                    width = txt.l_max()+spacing
                 	break
                 case "m":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.m()))
-                    max_width += txt.m_max()+spacing
+                    width = txt.m_max()+spacing
                 	break
                 case "n":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.n()))
-                    max_width += txt.n_max()+spacing
+                    width = txt.n_max()+spacing
                 	break
                 case "o":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.o()))
-                    max_width += txt.o_max()+spacing
+                    width = txt.o_max()+spacing
                 	break
                 case "p":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.p()))
-                    max_width += txt.p_max()+spacing
+                    width = txt.p_max()+spacing
                 	break
                 case "q":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.q()))
-                    max_width += txt.q_max()+spacing
+                    width = txt.q_max()+spacing
                 	break
                 case "r":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.r()))
-                    max_width += txt.r_max()+spacing
+                    width = txt.r_max()+spacing
                 	break
                 case "s":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.s()))
-                    max_width += txt.s_max()+spacing
+                    width = txt.s_max()+spacing
                 	break
                 case "t":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.t()))
-                    max_width += txt.t_max()+spacing
+                    width = txt.t_max()+spacing
                 	break
                 case "u":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.u()))
-                    max_width += txt.u_max()+spacing
+                    width = txt.u_max()+spacing
                 	break
                 case "v":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.v()))
-                    max_width += txt.v_max()+spacing
+                    width = txt.v_max()+spacing
                 	break
                 case "w":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.w()))
-                    max_width += txt.w_max()+spacing
+                    width = txt.w_max()+spacing
                 	break
                 case "x":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.x()))
-                    max_width += txt.x_max()+spacing
+                    width = txt.x_max()+spacing
                 	break
                 case "y":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.y()))
-                    max_width += txt.y_max()+spacing
+                    width = txt.y_max()+spacing
                 	break
                 case "z":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.z()))
-                    max_width += txt.z_max()+spacing
+                    width = txt.z_max()+spacing
                 	break
                 
                 //Capital Letters
                 case "A":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.A()))
-                    max_width += txt.A_max()+spacing
+                    width = txt.A_max()+spacing
                 	break
                     
                case "B":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.B()))
-                    max_width += txt.V_max()+spacing
+                    width = txt.V_max()+spacing
                 	break
                     
                case "C":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.C()))
-                    max_width += txt.C_max()+spacing
+                    width = txt.C_max()+spacing
                 	break
                     
                case "D":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.D()))
-                    max_width += txt.D_max()+spacing
+                    width = txt.D_max()+spacing
                 	break
                     
                case "E":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.E()))
-                    max_width += txt.E_max()+spacing
+                    width = txt.E_max()+spacing
                 	break
                     
                case "F":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.F()))
-                    max_width += txt.F_max()+spacing
+                    width = txt.F_max()+spacing
                 	break
                     
                case "G":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.G()))
-                    max_width += txt.G_max()+spacing
+                    width = txt.G_max()+spacing
                 	break
                     
                case "H":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.H()))
-                    max_width += txt.H_max()+spacing
+                    width = txt.H_max()+spacing
                 	break
                     
                case "I":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.I()))
-                    max_width += txt.I_max()+spacing
+                    width = txt.I_max()+spacing
                 	break
                     
                case "J":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.J()))
-                    max_width += txt.J_max()+spacing
+                    width = txt.J_max()+spacing
                 	break
                     
                case "K":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.K()))
-                    max_width += txt.K_max()+spacing
+                    width = txt.K_max()+spacing
                 	break
                     
                case "L":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.L()))
-                    max_width += txt.L_max()+spacing
+                    width = txt.L_max()+spacing
                 	break
                     
                case "M":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.M()))
-                    max_width += txt.M_max()+spacing
+                    width = txt.M_max()+spacing
                 	break
                     
                case "N":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.N()))
-                    max_width += txt.N_max()+spacing
+                    width = txt.N_max()+spacing
                 	break
                     
                case "O":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.O()))
-                    max_width += txt.O_max()+spacing
+                    width = txt.O_max()+spacing
                 	break
                     
                case "P":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.P()))
-                    max_width += txt.P_max()+spacing
+                    width = txt.P_max()+spacing
                 	break
                     
                case "Q":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.Q()))
-                    max_width += txt.Q_max()+spacing
+                    width = txt.Q_max()+spacing
                 	break
                     
                case "R":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.R()))
-                    max_width += txt.R_max()+spacing
+                    width = txt.R_max()+spacing
                 	break
                     
                case "S":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.S()))
-                    max_width += txt.S_max()+spacing
+                    width = txt.S_max()+spacing
                 	break
                     
                case "T":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.T()))
-                    max_width += txt.T_max()+spacing
+                    width = txt.T_max()+spacing
                 	break
                     
                case "U":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.U()))
-                    max_width += txt.U_max()+spacing
+                    width = txt.U_max()+spacing
                 	break
                     
                case "V":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.V()))
-                    max_width += txt.V_max()+spacing
+                    width = txt.V_max()+spacing
                 	break
                     
                case "W":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.W()))
-                    max_width += txt.W_max()+spacing
+                    width = txt.W_max()+spacing
                 	break
                     
                case "X":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.X()))
-                    max_width += txt.X_max()+spacing
+                    width = txt.X_max()+spacing
                 	break
                     
                case "Y":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.Y()))
-                    max_width += txt.Y_max()+spacing
+                    width = txt.Y_max()+spacing
                 	break
                     
                case "Z":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.Z()))
-                    max_width += txt.Z_max()+spacing
+                    width = txt.Z_max()+spacing
                 	break
                 
                 
@@ -281,52 +283,52 @@ var txt = new function(){
                 //Numbers
                 case "0":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt._0()))
-                    max_width += txt._0_max()+spacing
+                    width = txt._0_max()+spacing
                 	break
                     
                 case "1":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt._1()))
-                    max_width += txt._1_max()+spacing
+                    width = txt._1_max()+spacing
                 	break
                     
                 case "2":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt._2()))
-                    max_width += txt._2_max()+spacing
+                    width = txt._2_max()+spacing
                 	break
                     
                 case "3":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt._3()))
-                    max_width += txt._3_max()+spacing
+                    width = txt._3_max()+spacing
                 	break
                     
                 case "4":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt._4()))
-                    max_width += txt._4_max()+spacing
+                    width = txt._4_max()+spacing
                 	break
                     
                 case "5":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt._5()))
-                    max_width += txt._5_max()+spacing
+                    width = txt._5_max()+spacing
                 	break
                     
                 case "6":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt._6()))
-                    max_width += txt._6_max()+spacing
+                    width = txt._6_max()+spacing
                 	break
                     
                 case "7":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt._7()))
-                    max_width += txt._7_max()+spacing
+                    width = txt._7_max()+spacing
                 	break
                     
                 case "8":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt._8()))
-                    max_width += txt._8_max()+spacing
+                    width = txt._8_max()+spacing
                 	break
                     
                 case "9":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt._9()))
-                    max_width += txt._9_max()+spacing
+                    width = txt._9_max()+spacing
                 	break
                 
                 
@@ -335,179 +337,202 @@ var txt = new function(){
                 //Symbols
                 case ".":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.period()))
-                    max_width += txt.exclamation_max()+spacing
+                    width = txt.exclamation_max()+spacing
                 	break
                 
                 case ",":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.comma()))
-                    max_width += txt.exclamation_max()+spacing
+                    width = txt.exclamation_max()+spacing
                 	break
                 
                 case "!":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.exclamation()))
-                    max_width += txt.exclamation_max()+spacing
+                    width = txt.exclamation_max()+spacing
                 	break
                     
                 case "'":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.single_quote()))
-                    max_width += txt.single_quote_max()+spacing
+                    width = txt.single_quote_max()+spacing
                 	break
                     
                 case "-":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.minus()))
-                    max_width += txt.minus_max()+spacing
+                    width = txt.minus_max()+spacing
                 	break
                     
                 case "+":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.plus()))
-                    max_width += txt.plus_max()+spacing
+                    width = txt.plus_max()+spacing
                 	break
                     
                 case "=":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.equals()))
-                    max_width += txt.equals_max()+spacing
+                    width = txt.equals_max()+spacing
                 	break
                     
                 case "?":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.question()))
-                    max_width += txt.question_max()+spacing
+                    width = txt.question_max()+spacing
                 	break
                     
                 case '"':
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.double_quote()))
-                    max_width += txt.double_quote_max()+spacing
+                    width = txt.double_quote_max()+spacing
                 	break
                     
                 case "*":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.star()))
-                    max_width += txt.star_max()+spacing
+                    width = txt.star_max()+spacing
                 	break
                     
                 case "/":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.forward_slash()))
-                    max_width += txt.forward_slash_max()+spacing
+                    width = txt.forward_slash_max()+spacing
                 	break
                     
                 case "$":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.dollar()))
-                    max_width += txt.dollar_max()+spacing
+                    width = txt.dollar_max()+spacing
                 	break
                     
                 case ":":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.colon()))
-                    max_width += txt.colon_max()+spacing
+                    width = txt.colon_max()+spacing
                 	break
                     
                 //New Caracters (4_23_19):
                 case "#":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.hashtag()))
-                    max_width += txt.hashtag_max()+spacing
+                    width = txt.hashtag_max()+spacing
                 	break
                 
                 case "%":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.percent()))
-                    max_width += txt.percent_max()+spacing
+                    width = txt.percent_max()+spacing
                 	break
                     
                 case "&":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.ampersand()))
-                    max_width += txt.ampersand_max()+spacing
+                    width = txt.ampersand_max()+spacing
                 	break
                     
                 case "(":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.open_paren()))
-                    max_width += txt.open_paren_max()+spacing
+                    width = txt.open_paren_max()+spacing
                 	break
                     
                 case ")":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.close_paren()))
-                    max_width += txt.close_paren_max()+spacing
+                    width = txt.close_paren_max()+spacing
                 	break
                     
                 case "@":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.at_sign()))
-                    max_width += txt.at_sign_max()+spacing
+                    width = txt.at_sign_max()+spacing
                 	break
                     
                 case "[":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.open_square_bracket()))
-                    max_width += txt.open_square_bracket_max()+spacing
+                    width = txt.open_square_bracket_max()+spacing
                 	break
                     
                 case "]":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.close_square_bracket()))
-                    max_width += txt.close_square_bracket_max()+spacing
+                    width = txt.close_square_bracket_max()+spacing
                 	break
                     
                 case "_":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.underscore()))
-                    max_width += txt.underscore_max()+spacing
+                    width = txt.underscore_max()+spacing
                 	break
                     
                 case "{":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.open_curly_brace()))
-                    max_width += txt.open_curly_brace_max()+spacing
+                    width = txt.open_curly_brace_max()+spacing
                 	break
                     
                 case "}":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.close_curly_brace()))
-                    max_width += txt.close_curly_brace_max()+spacing
+                    width = txt.close_curly_brace_max()+spacing
                 	break
                     
                 case "~":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.tilde()))
-                    max_width += txt.tilde_max()+spacing
+                    width = txt.tilde_max()+spacing
                 	break
                     
                 case "^":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.caret()))
-                    max_width += txt.caret_max()+spacing
+                    width = txt.caret_max()+spacing
                 	break
                     
                 case ">":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.greater_than()))
-                    max_width += txt.greater_than_max()+spacing
+                    width = txt.greater_than_max()+spacing
                 	break
                     
                 case "<":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.less_than()))
-                    max_width += txt.less_than_max()+spacing
+                    width = txt.less_than_max()+spacing
                 	break
                     
                 case "|":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.vertical_bar()))
-                    max_width += txt.vertical_bar_max()+spacing
+                    width = txt.vertical_bar_max()+spacing
                 	break
                     
                 case "\\":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.backslash()))
-                    max_width += txt.backslash_max()+spacing
+                    width = txt.backslash_max()+spacing
                 	break
                 
                 case "\`":
                 	lines.push(Vector.add([max_width, -line_num*vert_spacing, 0], txt.backtick()))
-                    max_width += txt.backtick_max()+spacing
+                    width = txt.backtick_max()+spacing
                 	break
                     
                 //Special Characters
                 case "\n":
                     line_num++
                     max_width = 0
+                    width = 0
                 	break
                     
                 case " ":
-                    max_width += 1+spacing
+                    width = 1+spacing
                 	break
                 
                 case "\t":
-                    max_width += 4*(1+spacing)
+                    width = 4*(1+spacing)
+                	break
+                
+                case "\b":
+                    width = -(1+spacing)
                 	break
                 
                 default:
                 	warning('The character "' + string[i] + '" is not supported by DXF.string_to_lines()<br>A space was used in its place.')
-            		max_width += 1+spacing
+            		width = 1+spacing
             }
         }
+        if(fixed_width){
+        	if(fixed_width == true){
+            	width = 1 + spacing
+            }else{
+            	width = fixed_width + spacing
+            }
+            
+            //overwrite with special char cases if needed:
+            if(string[i] == "\n"){
+            	width = 0
+            }else if(string[i] == "\t"){
+            	width = 4*width
+            }else if(string[i] == "\b"){
+            	width = -width
+            }
+        }
+        max_width += width
+        
         let elt
         let result = []
         if(lines.length != 1){
@@ -3092,5 +3117,5 @@ var txt = new function(){
     }
     
 }
+module.exports.txt = txt
 
-module.exports = txt
