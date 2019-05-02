@@ -2,6 +2,7 @@
 //James Wigglesworth
 //Started: 2_10_2017
 //Updated: 1_26_19
+var txt = require("./txt.js") //doesn't work if its  at the bottom so put it at top
 
 var DXF = new function(){
 	
@@ -1410,6 +1411,8 @@ this.dxf_to_instructions = function({
 	var Coor = require("./Coor.js")
 	var Vector = require("./Vector.js")
 	var Kin = require("./Kin.js")
+	//var txt = require("./txt.js") //doesn't work if its at the bottom, so put it at top
+
 
 	var {dde_error, warning, point_object_to_array, scale_point} = require("../core/utils.js")
 	var {read_file} = require("../core/storage.js")

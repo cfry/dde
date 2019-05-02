@@ -104,7 +104,7 @@
         </details>
 
         <details id="read_file_doc_id" style="margin-left:40px;"><summary>read_file</summary>
-            <code>read_file</code> takes an argument of a file path,
+            <code>read_file</code> is a function that takes an argument of a file path,
             and returns a string of the content of the file.<br/>
             <i>Parameters:</i><br/>
             <b>path</b> A string of a path to the file. Usually this will not start with a slash,
@@ -119,6 +119,11 @@
             <p></p>
             See <a href="#" onclick="open_doc(load_files_doc_id)">load_files</a>
             for grabbing the file contents, then evaling it.
+            <p/></p>
+            See also Dexter instruction: <a href="#" onclick="open_doc('Dexter.read_file_doc_id')">Dexter.read_file</a>
+            <p></p>
+            <span style="color:red;">file_content</span> has been deprecated.
+            Please use <code>read_file</code> instead.
         </details> <!-- end read_file -->
 
         <details id="Editor.edit_file_doc_id" style="margin-left:40px;"><summary>Editor.edit_file</summary>
@@ -207,7 +212,10 @@
         Makes the folder dde_apps/foo. Inside of it is placed
         a folder named "bar", and inside of that is placed a folder "baz".
         </details>
-        <details id="write_file_doc_id" style="margin-left:40px;"><summary>write_file</summary>
+
+     <details id="write_file_doc_id" style="margin-left:40px;"><summary>write_file</summary>
+        <code>write_file</code> is a function that takes an argument of a file path
+        and a new content string. It sets the content of that file.<br/>
         Arguments:<br/>
         <b>filepath</b> The location to save to. It will overwrite the current content.
         Defaults to the file currently in the
@@ -219,7 +227,9 @@
         <code>write_file("junk.js")</code> Gives foo.js the content now in the editor.
         This is the <i>save_as</i> functionality.<br/>
         <code>write_file("junk.js", "new content")</code> Replaces the existing content
-        of the given file with "new content".<br/>
+        of the given file with "new content".
+        <p></p>
+        See also Dexter instruction: <a href="#" onclick="open_doc('Dexter.write_file_doc_id')">Dexter.write_file</a>
     </details>
 
         <!-- removed for security reasons
@@ -5210,7 +5220,7 @@ proportional–integral–derivative controller</a>.
     could not be retrieved, but the Job itself does not error.
     Subsequent instructions can test for the validity of the content with
     <code title="unEVALable">typeof(this.user_data.{destination}) == "string")</code><br/>
-    Thus <i>read_file</i> can be used to test for the existence of the file,
+    Thus <i>Dexter.read_file</i> can be used to test for the existence of the file,
     not just get its content.
     <p></p>
     <i>Example:</i>
@@ -5224,6 +5234,8 @@ proportional–integral–derivative controller</a>.
                      else { out("can't find file: aa.dde") }
                    }
                ]})</code></pre>
+    See also <a href="#" onclick="open_doc(read_file_doc_id)">read_file</a>
+
 </details>
 
 <details id="Dexter.run_gcode_doc_id" class="doc_details"><summary>run_gcode</summary>
@@ -5337,7 +5349,8 @@ set parameter values.
   to wait for 2 seconds.
 </details>
 <details id="Dexter.write_file_doc_id" class="doc_details"><summary>write_file</summary>
-   Writes a file on Dexter's file system. The file is transmitted through
+    A Dexter instruction that Writes a file on Dexter's file system.
+    The file is transmitted through
    DDE's socket interface to the Linux OS runnning on Dexter's processor
    board.<br/>
    <i>Parameters:</i><br/>
@@ -5352,6 +5365,8 @@ set parameter values.
     <i>Example:</i><br/>
     <code>Dexter.write_file("/srv/samba/share/greeting.txt", "hello world")</code><br/>
     This instruction requires an upgrade to Dexter's software available May, 2018.
+    <p></p>
+    See also <a href="#" onclick="open_doc('write_file_doc_id')">write_file</a>
 </details>
 </details> <!-- end dexter_instructions -->
 

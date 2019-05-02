@@ -302,7 +302,7 @@ var Socket = class Socket{
         else {
             payload_string =  payload_string_maybe
         }
-        Socket.r_payload_grab_aux(robot_status, payload_string)
+        Socket.r_payload_grab_aux(robot_status, payload_string.toString()) //beware, sometimes payload_string is a buffer. This converts it to a string.
     }
 
     //called by both Socket.r_payload_grab AND DexterSim.process_next_instruction_r

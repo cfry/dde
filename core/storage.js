@@ -227,47 +227,41 @@ module.exports.file_content = file_content //depricated
 //callback passed err, and data.
 //If error is non-null, its an error object or a string error message.
 //if it is null, data is a string of the file content.
+//but beware, sometimes data is a BUFFER not a string.
+// data.toString() will convert a buffer to a string,
+//and just returns the string if data happens to be a string
 function read_file_async(path, encoding="utf8", callback){
-    let colon_pos = path.indexOf(":")
-    if(colon_pos == -1) {
-        path = make_full_path(path)
-        fs.readFile(path, encoding, callback)
-    }
-    else {
-        let dex_name_maybe = path.substring(0, colon_pos)
-        let dex = Dexter[dex_name_maybe]
-        if(dex){
-           let dex_file_path = path.substring(colon_pos + 1)
-           let the_callback = callback
-           let the_path = path
-           new Job({name: "dex_file_read",
-                    do_list: [
-                        dex.read_file(dex_file_path, "file_content"),
-                        function(){
-                           let cont = this.user_data.file_content
-                           if(typeof(cont) == "string"){
-                               the_callback(null, cont)
-                           }
-                           else {
-                               let err = new Error("Error getting file content for: " + the_path + " with error number: " + cont, the_path)
-                               the_callback(err, cont)
-                           }
-                        }
-                    ],
-                    when_stopped: function(){ //this code OUGHT to be called but as of apr 2019, if we error due to dexter not connected, then Job,.finish is never called so we don't call this method. Handle it in Job.stop_for_reason
-                        if(this.status_code == "errored"){
-                            if(window.Editor) { //won't hit in node, bu won't error either
-                                Editor.set_files_menu_to_path() //restore files menu to what it was before we tried to get the file off of dexter.
-                            }
+    if(is_dexter_path(path)){
+       let dex_file_path = path.substring(colon_pos + 1)
+       let the_callback = callback
+       let the_path = path
+       new Job({name: "dex_file_read",
+                do_list: [
+                    dex.read_file(dex_file_path, "file_content"),
+                    function(){
+                       let cont = this.user_data.file_content
+                       if(typeof(cont) == "string"){
+                           the_callback(null, cont)
+                       }
+                       else {
+                           let err = new Error("Error getting file content for: " + the_path + " with error number: " + cont, the_path)
+                           the_callback(err, cont)
+                       }
+                    }
+                ],
+                when_stopped: function(){ //this code OUGHT to be called but as of apr 2019, if we error due to dexter not connected, then Job,.finish is never called so we don't call this method. Handle it in Job.stop_for_reason
+                    if(this.status_code == "errored"){
+                        if(window.Editor) { //won't hit in node, bu won't error either
+                            Editor.set_files_menu_to_path() //restore files menu to what it was before we tried to get the file off of dexter.
                         }
                     }
-            }).start()
-        }
-        else {
-            path = make_full_path(path)
-            fs.readFile(path, callback)
-        }
-   }
+                }
+        }).start()
+    }
+    else {
+        path = make_full_path(path)
+        fs.readFile(path, callback)
+    }
 }
 
 module.exports.read_file_async = read_file_async
@@ -355,49 +349,33 @@ function write_file_async(path, content, encoding="utf8", callback){
     if (content === undefined) {
         content = Editor.get_javascript()
     }
-    let colon_pos = path.indexOf(":")
-    if(colon_pos == -1) {
-        path = make_full_path(path)
-        if(!callback) {
-            let the_path = path
-            callback = function(err){
-                 if(err){
-                     dde_error("write_file_async passed: " + the_path +
-                                "<br/>Got error: " + err.message)
-                 }
-                 else { out("saved: " + the_path, undefined, true) }
+    if(!callback) {
+        let the_path = path
+        callback = function(err){
+            if(err){
+                dde_error("write_file_async passed: " + the_path +
+                    "<br/>Got error: " + err.message)
             }
+            else { out("saved: " + the_path, undefined, true) }
         }
-        fs.writeFile(path, content, encoding, callback)
+    }
+    if(is_dexter_path(path)){
+        let colon_pos = path.indexOf(":") //will not return -1
+        let dex_name_maybe = path.substring(0, colon_pos)
+        let dex = Dexter[dex_name_maybe] // will be a real robot
+        let dex_file_path = path.substring(colon_pos + 1)
+        let the_callback = callback
+        let the_path = path
+        new Job({name: "dex_file_read",
+            do_list: [
+                dex.write_file(dex_file_path, content),
+                callback //but never passes an error object. not good, but robot_status should contain an error, and error if there is one, else callback should be called with no error so it does what it should do when no error
+            ]
+        }).start()
     }
     else {
-        let dex_name_maybe = path.substring(0, colon_pos)
-        let dex = Dexter[dex_name_maybe]
-        if(!callback) {
-            let the_path = path
-            callback = function(err){
-                if(err){
-                    dde_error("write_file_async passed: " + the_path +
-                        "<br/>Got error: " + err.message)
-                }
-                else { out("Saved: " + the_path, undefined, true) }
-            }
-        }
-        if(dex){
-            let dex_file_path = path.substring(colon_pos + 1)
-            let the_callback = callback
-            let the_path = path
-            new Job({name: "dex_file_read",
-                do_list: [
-                    dex.write_file(dex_file_path, content),
-                    callback //but never passes an error object. not good, but robot_status should contain an error, and error if there is one, else callback should be called with no error so it does what it should do when no error
-                ]
-            }).start()
-        }
-        else {
-            path = make_full_path(path)
-            fs.writeFile(path, content, encoding, callback)
-        }
+        path = make_full_path(path)
+        fs.writeFile(path, content, encoding, callback)
     }
 }
 
@@ -522,6 +500,21 @@ function is_root_path(path){
     }
     else { return false }
     //return starts_with_one_of(path, ["/", "C:", "D:", "E:", "F:", "G:"]) //C: etc. is for Windows OS.
+}
+//returns true if its a path that isn't a top level, has a colon and the
+//substring between the beginning of the path and the colon names a defined dexter.
+//Beware that if the dexter is not defined YET, then this will return false.
+function is_dexter_path(path){
+    if(is_root_path(path)) { return false }
+    else {
+        let colon_pos = path.indexOf(":")
+        if(colon_pos == -1) { return false }
+        else {
+            let dex_name_maybe = path.substring(0, colon_pos)
+            if(Dexter[dex_name_maybe]) { return true }
+            else { return false}
+        }
+    }
 }
 
 //______new load_files synchronous______

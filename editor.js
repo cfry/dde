@@ -158,7 +158,8 @@ Editor.make_files_menu_path = function(folder, name) {
 }
 
 
-//returns an array of folder and file name. The folder always ends with slash or colon.
+//returns an array of folder and file name.
+// The returned folder always ends with slash or colon.
 Editor.path_to_folder_and_name = function(path){
     let file_name_start_index = path.lastIndexOf("/")
     if(file_name_start_index == -1) { file_name_start_index = path.lastIndexOf(":") } //happens with dexter0:foo.js
@@ -647,6 +648,7 @@ Editor.edit_file = function(path){ //path could be "new buffer"
                                             dde_error(err.message)
                                         }
                                         else {
+                                            content = content.toString() //because sometimes the content passed in is  buffer, not a string. This handles both.
                                             Editor.edit_file_aux(the_path, content)
                                         }
             })
