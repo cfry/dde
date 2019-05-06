@@ -160,8 +160,24 @@ Js_info = class Js_info {
             }
             else if (fn_name == "Job"){
                 let val = value_of_path(fn_name)
-                return "new " + Js_info.wrap_fn_name(fn_name) +
-                    function_params_for_keyword_call(val)
+                //return "new " + Js_info.wrap_fn_name(fn_name) +
+                //    function_params_for_keyword_call(val)
+                let result = "new " + Js_info.wrap_fn_name(fn_name) + "({"
+                let arg_index = 0
+                for(let key in Job.job_default_params) {
+                    let val = Job.job_default_params[key]
+                    let src
+                    if(key == "default_workspace_pose") { src = "null" }
+                    else { src = to_source_code({value: val, function_names: true, newObject_paths: true}) }
+                    let key_html = '<a href="#" onclick="open_doc(job_param_' + key + '_doc_id)">' + key + '</a>'
+                    result += key_html + ": " + src + ((key == "callback_param") ? "" : ", &nbsp;")
+                    if(((arg_index % 3) == 0) && (arg_index !== 0)) {
+                        result += "<br/> <span style='margin-left:83px;'> </span>"
+                    }
+                    arg_index += 1
+                }
+                result += "})"
+                return result
             }
             else if (fn_name == "start"){
                 let val = Job.prototype.start

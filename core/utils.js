@@ -1455,7 +1455,7 @@ function stringify_value_aux(value, job, depth=0){
                 if (value instanceof Robot) { where_from = " on robot: " + value.name }
                 result += Dexter.robot_status_to_html(prop_val, where_from)
             }
-            else if (prop_name == "do_list"){
+            else if ((prop_name == "do_list") && job) { //must check to insure job is defined or this errors as happens when inspecting Job.job_default_params
                 result += job.do_list_to_html() //Job.do_list_to_html(value[prop])
             }
             else if (prop_name == "original_do_list"){

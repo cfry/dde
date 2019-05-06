@@ -677,7 +677,7 @@ Instruction.Dexter.read_file = class read_file extends Instruction.Dexter{
             dde_error("Dexter.read_file passed non-string for 'destination' of: " + destination)
         }
         super()
-        this.source = source
+        this.source = Instruction.Dexter.read_file.add_default_file_prefix_maybe(source)
         this.destination = destination
         this.first_do_item_call = true
         this.is_done = false
@@ -762,6 +762,14 @@ Instruction.Dexter.read_file = class read_file extends Instruction.Dexter{
             job_instance.user_data[read_file_instance.destination] = payload_string_maybe //set, don't append
             read_file_instance.is_done = true
         }
+    }
+
+    //used by Dexter.write_file too
+    static add_default_file_prefix_maybe(path){
+        if(path.startsWith("/"))         { return path }
+        else if (path.startsWith("./"))  { return "dde_apps/" + path.substring(2) }
+        else if (path.startsWith("../")) { return path.substring(3) } //will go to dexrun's default foler, ie /srv/samba/share/
+        else                             { return "dde_apps/" + path }
     }
 
     to_source_code(args){

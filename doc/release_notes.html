@@ -6,6 +6,61 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 3.3.4, May 6, 2019</summary>
+Highlights: Googleapis now accessible (sorry, no doc yet).
+     Improvements to Find, click_help, Job buttons, file system I/O
+<ul>
+    <li>Minor improvements to the definition of Job in Ref Man/Job</li>
+
+    <li><code>file_content</code> now defined. Note that this is deprecated.
+       New uses should use <code>read_file</code> instead.</li>
+
+    <li><code>DXF</code> available for job_engine jobs.</li>
+
+    <li>The default folder that <code>Dexter.read_file</code> and
+         <code>Dexter.write_file</code> uses is<br/>
+         /srv/samba/share/dde_apps/</li>
+
+    <li> <code>Dexter.read_file</code> and
+    <code>Dexter.write_file</code> now support file paths beginning with<br/>
+        <code>./</code> meaning /srv/samba/share/dde_apps/ and<br/>
+        <code>../</code> meaning  /srv/samba/share/<br/>
+        <code>/</code> just passed through to Dexter as is to access root and below.</li>
+
+    <li> File menu save as... now just allows saving on dde's computer.
+         Use File menu item "Save to Dexter as..." to save to Dexter.</li>
+
+    <li> <code>read_file_async</code> and <code>write_file_async</code> bugs fixed.</li>
+
+    <li> File menu save to dexter as..." If there is only one Dexter instance defined,
+        it now doesn't  ask the user to choose a computer, it just uses the
+        one defined Dexter instance.</li>
+
+    <li> Now if you have a selection in a textarea or a text input and
+         you click the eval button, just that selected text will be evaled.</li>
+
+    <li> If you click the Find button when the find type in is empty and
+         there is a selection, that selection will be treated as the text to find.</li>
+
+    <li> Fixed inspection of <code>Job.job_default_params</code>.</li>
+
+    <li> For both Job and Dexter defining:
+        If you give a keyword arg that is invalid, DDE errors.</li>
+
+    <li> click help on <code>Job</code> now displays in 5 different lines
+        so you can read all params without scrolling.
+        Each param name is a link to its documentation.</li>
+
+    <li> Output pane Header: reduced height to save space.</li>
+
+    <li> Jobs buttons now have a "close" box (X) and an "inspect button (I).
+        Removed the "Undef" button in the Output pane as is now
+        redundant with a Job button's close box.</li>
+
+    <li> googleapis now available under the global variable <code>google</code></li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.3.3, May 2, 2019</summary>
 Highlights: bug fixes.
 <ul>

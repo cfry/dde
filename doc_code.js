@@ -174,6 +174,41 @@ function close_all_details(){
     }
 }
 
+//returns the selection or the empty string. never gets the full editor or full input or full text area text
+function selection_for_find_button(){
+    let src
+    if(previous_active_element &&
+        previous_active_element.parentNode &&
+        previous_active_element.parentNode.parentNode &&
+        previous_active_element.parentNode.parentNode.CodeMirror){
+        src = Editor.get_javascript(true) //if sel in editor, get it, else return empty string
+    }
+    //let sel_obj = window.getSelection()
+    else if (selected_text_when_eval_button_clicked.length > 0) {
+        src = selected_text_when_eval_button_clicked
+    }
+    else if (previous_active_element &&
+        previous_active_element.tagName == "TEXTAREA"){
+        let start = previous_active_element.selectionStart
+        let end  = previous_active_element.selectionEnd
+        if (start != end) { src = previous_active_element.value.substring(start, end) }
+        else              { src = "" }
+    }
+    else if (previous_active_element &&
+        (previous_active_element.tagName == "INPUT") &&
+        (previous_active_element.type == "text")){
+        let start = previous_active_element.selectionStart
+        let end  = previous_active_element.selectionEnd
+        if (start != end) { src = previous_active_element.value.substring(start, end) }
+        else              { src = "" }
+        src = ""
+    }
+    else {
+        src = ""
+    }
+    return src
+}
+
 function find_doc(record=true){
     undecorate_doc_details({done: function(){find_doc_aux(record)}})
 }
@@ -181,7 +216,7 @@ function find_doc(record=true){
 function find_doc_aux(record){
     close_all_details()
     let search_string = find_doc_input_id.value
-    if (search_string.length == 0) { search_string = Editor.get_any_selection() } //doc & output panes
+    if (search_string.length == 0) { search_string = selection_for_find_button() } //Editor.get_any_selection()  //doc & output panes
     if (search_string.length == 0) {
         warning("There is no text in the Find type-in nor selection anywhere to search for.")
         return

@@ -58,11 +58,18 @@ function eval_js_part1(step=false){
     }
     else if (previous_active_element &&
              previous_active_element.tagName == "TEXTAREA"){
-        src = previous_active_element.value
+         let start = previous_active_element.selectionStart
+         let end  = previous_active_element.selectionEnd
+         if (start != end) { src = previous_active_element.value.substring(start, end) }
+         else              { src = previous_active_element.value }
     }
     else if (previous_active_element &&
              (previous_active_element.tagName == "INPUT") &&
              (previous_active_element.type == "text")){
+        let start = previous_active_element.selectionStart
+        let end  = previous_active_element.selectionEnd
+        if (start != end) { src = previous_active_element.value.substring(start, end) }
+        else              { src = previous_active_element.value }
         src = previous_active_element.value
     }
     else {

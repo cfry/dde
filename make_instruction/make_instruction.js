@@ -871,7 +871,7 @@ var MakeInstruction = class MakeInstruction{
                                 "errored because it evaled to: " + do_list_item + "<br/>" +
                                 "and <span style='color:red;'> that is not a valid do_list item." +
                                 "</span><br/>Correct errors and try again.")
-                            open_doc(do_list_doc_id)
+                            open_doc(job_param_do_list_doc_id)
                             return false
                         }
                     }

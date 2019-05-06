@@ -13,6 +13,13 @@ class Job{
                  when_stopped = "stop",
                  callback_param = "start_object_callback"} = {}){
 
+    for(let key in arguments[0]){
+        if(!Job.job_default_params.hasOwnProperty(key)) {
+            dde_error("Attempt to create a job with an invalid key of: " + key + "<br/>" +
+                      "Click on 'Job' to see its valid argument names.")
+        }
+    }
+
     //default_workspace_pose=null, //Coor.Table,
     //data_array_transformer="P", //"P" is more efficient than Dexter.pid_move_all_joints, as uses make_ins & 1/2 the do_list items
     //start_if_robot_busy=false,  //if false and robot.is_busy() is true, Job.start is halted early
@@ -29,7 +36,7 @@ class Job{
           default_workspace_pose=Job.job_default_params.default_workspace_pose
     }
     if (!Array.isArray(do_list)){
-        open_doc(do_list_doc_id)
+        open_doc(job_param_do_list_doc_id)
         dde_error("While defining <code style='color:black;'>Job." + name + "</code><br/>" +
                   "the <b style='color:black;'>do_list</b> must be an array, but instead is: <br/>" +
                   "<code style='color:black;'>" + do_list + "</code>")
@@ -37,7 +44,7 @@ class Job{
     }
     try { do_list = Job.flatten_do_list_array(do_list) }
     catch(err){
-        open_doc(do_list_doc_id)
+        open_doc(job_param_do_list_doc_id)
         dde_error("While defining Job." + name + "<br/>" + err.message)
         return
     }
@@ -113,9 +120,10 @@ class Job{
                 inter_do_item_dur: 0.01, user_data:{},
                 default_workspace_pose: Coor.Table, //null, //error on loading DDE if I use: Coor.Table, so we init this in Job.constructor
                 program_counter:0, ending_program_counter:"end",
-                initial_instruction: null, when_stopped: "stop", //also can be "wait" or a fn
+                initial_instruction: null,
                 data_array_transformer: "P",
                 start_if_robot_busy: false,
+                when_stopped: "stop", //also can be "wait" or a fn
                 callback_param: "start_object_callback"}
     }
 
@@ -552,8 +560,16 @@ class Job{
     //Job BUTTONS______
     get_job_button_id(){ return this.name + "_job_button_id"}
 
+    get_job_button_wrapper_id(){ return this.name + "_job_wrapper_button_id"}
+
     get_job_button(){
         const the_id = this.get_job_button_id()
+        var but_elt = window[the_id]
+        return but_elt
+    }
+
+    get_job_button_wrapper(){
+        const the_id = this.get_job_button_wrapper_id()
         var but_elt = window[the_id]
         return but_elt
     }
@@ -565,11 +581,16 @@ class Job{
             const job_name = this.name
             const the_id = this.get_job_button_id()
 
-            const the_html = '<button style="margin-left:10px; margin-botton:0px; padding-bottom:0px; vertical-align:top;" id="' + the_id + '">'+ job_name + '</button>'
+            const the_button_html = '<button style="margin-left:10px; vertical-align:50%;" id="' + the_id + '">'+ job_name + '</button>'
             //$("#jobs_button_bar_id").append(the_html)
-            let wrapper= document.createElement('div');
-            wrapper.innerHTML = the_html
-            jobs_button_bar_id.append(wrapper.firstChild)
+            let wrapper = document.createElement('div');
+            wrapper.id = this.get_job_button_wrapper_id()
+            wrapper.style.display = "inline-block"
+            let the_job = this
+            let close_on_click_fn_src = "Job." + job_name + ".undefine_job()"
+            let inspect_on_click_fn_src =  "inspect(Job." + job_name + ")"
+            wrapper.innerHTML = the_button_html + "<div style='display:inline-block;'><span style='cursor:pointer;' onclick='" + close_on_click_fn_src + "' title='Undefine this job'>X</span><br/><span style='cursor:pointer; padding-left:2px;' onclick='" + inspect_on_click_fn_src + "' title='Inspect this job'>I</span></div>"
+            jobs_button_bar_id.append(wrapper) //.firstChild)
 
             but_elt = window[the_id]
             but_elt.onclick = function(){
@@ -606,10 +627,9 @@ class Job{
     }
 
     remove_job_button(){
-        var but_elt = this.get_job_button()
-        if(but_elt){
-            //$(but_elt).remove()
-            but_elt.remove()
+        var elt = this.get_job_button_wrapper() //this.get_job_button()
+        if(elt){
+            elt.remove()
         }
     }
 
@@ -1293,7 +1313,7 @@ Job.prototype.stop_for_reason = function(status_code, //"errored", "interrupted"
     if (this.robot.heartbeat_timeout_obj) { clearTimeout(this.robot.heartbeat_timeout_obj) }
     this.stop_time    = new Date()
     if(!perform_when_stopped) { this.when_stopped = "stop"}
-    if((this.name == "dex_file_read") && (this.status_code == "errored") && window.Editor){
+    if((this.name == "dex_read_file") && (this.status_code == "errored") && window.Editor){
      //this special case needed because if we attempt to Dexter.read_file with sim= real and
      // we're not connected to the Dexter, we get a connection error, which
      // will call stop_for_reason but not finish.

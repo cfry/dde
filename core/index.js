@@ -100,11 +100,14 @@ function run_shell_cmd_default_cb (error, stdout, stderr){
 function run_shell_cmd(cmd_string, options={}, cb=run_shell_cmd_default_cb){
     exec(cmd_string, options, cb)
 }
-var {load_files, persistent_initialize, dde_init_dot_js_initialize} = require('./storage.js')
+var {load_files, persistent_initialize, read_file, write_file, dde_init_dot_js_initialize} = require('./storage.js')
+var file_content = read_file //file_content is deprecated
 var {Root} = require("./object_system.js")
 var Coor   = require("../math/Coor.js")
 var Job    = require("./job.js")
 var calibrate_build_tables = require("./low_level_dexter/calibrate_build_tables.js")
+var DXF    = require("..math/DXF.js")
+
 
 
 run_node_command(process.argv)

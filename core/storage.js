@@ -232,31 +232,41 @@ module.exports.file_content = file_content //depricated
 //and just returns the string if data happens to be a string
 function read_file_async(path, encoding="utf8", callback){
     if(is_dexter_path(path)){
-       let dex_file_path = path.substring(colon_pos + 1)
-       let the_callback = callback
-       let the_path = path
-       new Job({name: "dex_file_read",
-                do_list: [
-                    dex.read_file(dex_file_path, "file_content"),
-                    function(){
-                       let cont = this.user_data.file_content
-                       if(typeof(cont) == "string"){
-                           the_callback(null, cont)
-                       }
-                       else {
-                           let err = new Error("Error getting file content for: " + the_path + " with error number: " + cont, the_path)
-                           the_callback(err, cont)
-                       }
-                    }
-                ],
-                when_stopped: function(){ //this code OUGHT to be called but as of apr 2019, if we error due to dexter not connected, then Job,.finish is never called so we don't call this method. Handle it in Job.stop_for_reason
-                    if(this.status_code == "errored"){
-                        if(window.Editor) { //won't hit in node, bu won't error either
-                            Editor.set_files_menu_to_path() //restore files menu to what it was before we tried to get the file off of dexter.
+       let colon_pos = path.indexOf(":")
+       let dex_name = path.substring(0, colon_pos)
+       let dex_instance = Dexter[dex_name]
+       if (!dex_instance) {
+           dde_error("In read_file_async of path: " + path +
+                     "<br/>there is no Dexter instance defined named: " + dex_name)
+       }
+       else {
+           let dex_file_path = path.substring(colon_pos + 1)
+           let the_callback = callback
+           let the_path = path
+           new Job({name: "dex_read_file",
+                    robot: dex_instance,
+                    do_list: [
+                        Dexter.read_file(dex_file_path, "file_content"),
+                        function(){
+                           let cont = this.user_data.file_content
+                           if(typeof(cont) == "string"){
+                               the_callback(null, cont)
+                           }
+                           else {
+                               let err = new Error("Error getting file content for: " + the_path + " with error number: " + cont, the_path)
+                               the_callback(err, cont)
+                           }
+                        }
+                    ],
+                    when_stopped: function(){ //this code OUGHT to be called but as of apr 2019, if we error due to dexter not connected, then Job,.finish is never called so we don't call this method. Handle it in Job.stop_for_reason
+                        if(this.status_code == "errored"){
+                            if(window.Editor) { //won't hit in node, bu won't error either
+                                Editor.set_files_menu_to_path() //restore files menu to what it was before we tried to get the file off of dexter.
+                            }
                         }
                     }
-                }
-        }).start()
+            }).start()
+       }
     }
     else {
         path = make_full_path(path)
@@ -361,17 +371,24 @@ function write_file_async(path, content, encoding="utf8", callback){
     }
     if(is_dexter_path(path)){
         let colon_pos = path.indexOf(":") //will not return -1
-        let dex_name_maybe = path.substring(0, colon_pos)
-        let dex = Dexter[dex_name_maybe] // will be a real robot
-        let dex_file_path = path.substring(colon_pos + 1)
-        let the_callback = callback
-        let the_path = path
-        new Job({name: "dex_file_read",
-            do_list: [
-                dex.write_file(dex_file_path, content),
-                callback //but never passes an error object. not good, but robot_status should contain an error, and error if there is one, else callback should be called with no error so it does what it should do when no error
-            ]
-        }).start()
+        let dex_name = path.substring(0, colon_pos)
+        let dex_instance = Dexter[dex_name] // will be a real robot
+        if (!dex_instance) {
+            dde_error("In write_file_async of path: " + path +
+                "<br/>there is no Dexter instance defined named: " + dex_name)
+        }
+        else {
+            let dex_file_path = path.substring(colon_pos + 1)
+            let the_callback = callback
+            let the_path = path
+            new Job({name: "dex_write_file",
+                     robot: dex_instance,
+                     do_list: [
+                        Dexter.write_file(dex_file_path, content),
+                        callback //but never passes an error object. not good, but robot_status should contain an error, and error if there is one, else callback should be called with no error so it does what it should do when no error
+                     ]
+            }).start()
+        }
     }
     else {
         path = make_full_path(path)

@@ -861,6 +861,12 @@ Dexter = class Dexter extends Robot {
                  pose = Vector.identity_matrix(4),
                  enable_heartbeat=true,
                  instruction_callback = Job.prototype.set_up_next_do}={}){
+        for(let key in arguments[0]){
+            if(!["name", "ip_address", "port", "pose", "enable_heartbeat", "instruction_callback"].includes(key)){
+                dde_error("Attempt to create a Dexter with an invalid argument of: " + key +
+                          "<br/>Click on 'Dexter' to see its valid argument names.")
+            }
+        }
         if((name.length == 1) && (name >= "A") && (name <= "Z")){
            dde_error("While construction a Dexter robot named: " + name +
                      "<br/>Sorry, you can't name a Dexter with a single upper case letter.")
@@ -1917,6 +1923,7 @@ Dexter.socket_encode = function(char){
 }
 
 Dexter.write_file = function(file_name=null, content=""){
+    file_name = Instruction.Dexter.read_file.add_default_file_prefix_maybe(file_name)
     let max_content_chars = 62 //244 //252 //ie 256 - 4 for (instruction_id, oplet, suboplet, length
     //payload can be max_contect_chars + 2 long if last character is escaped
     let payload = ""
@@ -1941,6 +1948,7 @@ Dexter.write_to_robot = function(content="", file_name=null){
 }
 
 Dexter.prototype.write_file = function(file_name=null, content=""){
+    file_name = Instruction.Dexter.read_file.add_default_file_prefix_maybe(file_name)
     let max_content_chars = 62 //244 //252 //ie 256 - 4 for (instruction_id, oplet, suboplet, length
     //payload can be max_contect_chars + 2 long if last character is escaped
     let payload = ""

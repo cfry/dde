@@ -222,6 +222,10 @@
 
     doc_prev_id.onclick        = open_doc_prev
     doc_next_id.onclick        = open_doc_next
+    find_doc_button_id.onmousedown = function() {
+        previous_active_element = document.activeElement
+        selected_text_when_eval_button_clicked = Editor.get_any_selection()
+    };
     find_doc_button_id.onclick = find_doc
     find_doc_input_id.onchange = find_doc
     $("#find_doc_input_id").jqxComboBox({ source: [], width: '150px', height: '25px',}); //create
@@ -295,7 +299,8 @@
                                  }
 
         step_button_id.onmousedown = function() {
-                selected_text_when_eval_button_clicked = Editor.get_any_selection()
+            previous_active_element = document.activeElement
+            selected_text_when_eval_button_clicked = Editor.get_any_selection()
         };
 
         email_bug_report_id.onclick=email_bug_report
@@ -334,7 +339,7 @@
     save_id.onclick = Editor.save
     set_menu_string(save_id, "Save", "s")
 
-    save_as_id.onclick = Editor.save_as
+    save_as_id.onclick = Editor.save_on_dde_computer //only for saving on dde computer  was: Editor.save_as
 
     save_to_dexter_as_id.onclick = Editor.save_to_dexter_as
 
@@ -983,7 +988,7 @@ foo      //eval to see the latest values</pre>`,
     show_robot_status_id.onclick   = RobotStatusDialog.show
     jobs_report_id.onclick         = function(){Job.report() }
     stop_all_jobs_id.onclick       = function(){Job.stop_all_jobs() }
-    undefine_jobs_id.onclick       = function(){Job.clear_stopped_jobs() }
+    //undefine_jobs_id.onclick     = function(){Job.clear_stopped_jobs() } //use individual X (close) marks instead
 
     /*$("#real_time_sim_checkbox_id").jqxCheckBox({ checked: true })
     real_time_sim_checkbox_id.onclick = function(event) {
@@ -1278,6 +1283,7 @@ function email_bug_report(){
     bod = encodeURIComponent(bod)
     window.open("mailto:cfry@media.mit.edu?subject=DDE Suggestion&body=" + bod);
 }
+const {google} = require('googleapis');
 
 var {out, get_output, clear_output} = require("./core/out.js")
 //var {Root} = require("./core/object_system.js") //should work but doesn't jan 13, 2019

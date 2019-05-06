@@ -23,6 +23,7 @@ var {choose_file, choose_save_file, choose_file_and_get_content,
      persistent_get, persistent_remove, persistent_save,
      write_file, write_file_async} = require("./core/storage.js")
 
+var file_content = read_file //file_content is deprecated
 
 var {deg_c_to_c, deg_c_to_f, deg_f_to_c,
      deg_c_to_k, deg_k_to_c,
@@ -31,6 +32,7 @@ var {deg_c_to_c, deg_c_to_f, deg_f_to_c,
 var {out} = require("./core/out.js")
 
 var {DXF} = require("./math/DXF.js")
+
 
 var {Instruction, make_ins, human_task_handler, human_enter_choice_handler,
     human_enter_filepath_handler, human_enter_number_handler, human_enter_position_handler,

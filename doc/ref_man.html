@@ -3028,17 +3028,19 @@ Example:<pre><code title="not in TestSuite"> speak({speak_data: [true, "It is", 
 </details> <!-- end i/o -->
 
 <details id='Job_doc_id' class="doc_details"><summary>Job</summary>
-A job contains a do_list of instructions that it feeds to a robot to make things.
+A job contains a do_list of instructions that it feeds one at a time, in order,
+to a robot, to make things.
 The syntax of defining a job is:
-<pre><code>new Job({name: "j1", 
+<pre><code>new Job({name: "my_job",
          robot: Robot.dexter0,
          do_list: [ Dexter.move_to([0, 0.5, 0.075]),
                     Robot.wait_until(2)
                     //...
                    ]
         })</code></pre>
-Defined jobs remain inert until they are started like so:<br/>
-<code title="not in TestSuite"> Job.j1.start()</code><br/>
+Defined jobs remain inert until they are started by clicking their button in the Output pane header
+or evaling:<br/>
+<code title="not in TestSuite"> Job.my_job.start()</code><br/>
 <code title="unEVALable code fragment"> start</code> initializes the job and feeds the instructions in its do_list to
 the job's robot, which executes the instructions.
 Jobs either run to completion, error, or are stopped by the user via:
@@ -3053,7 +3055,7 @@ Jobs either run to completion, error, or are stopped by the user via:
    <li>Calling <code>Job.stop_all_jobs()</code></li>
 </ul>
 
-Stopped jobs may be restarted by calling <code title="not in TestSuite"> Job.j1.start()</code> again.
+Stopped jobs may be restarted by calling <code title="not in TestSuite"> Job.my_job.start()</code> again.
 This reinitializes the job with the original arguments passed to <code title="unEVALable code fragment"> new Job</code>
 and runs the do_list instructions again.
 <p></p>
@@ -3068,9 +3070,9 @@ is a valid job to define and run, though it will give a warning message:<br/>
     <span style="color:#e50;">Warning: While starting job: job_1, the do_list is empty.<br/>
     The job still requests the status of Dexter but does not cause it to move.</span><br/>
     You can customize a job with the parameters:
-    <ol><li><b>name</b> Default's to an unused name of the format: <code>"job_1"</code>, <code>"job_2"</code>, <code>"job_3"</code>, etc.
+    <ol><li id="job_param_name_doc_id"><b>name</b> Default's to an unused name of the format: <code>"job_1"</code>, <code>"job_2"</code>, <code>"job_3"</code>, etc.
          You can use <code title="unEVALable code fragment"> Job.a_job_name</code> to get the instance programmatically.</li>
-        <li><b>robot</b> Default: <code>Robot.dexter0</code> An instance of one of the subclasses of <code>Robot</code>, such as
+        <li id="job_param_robot_doc_id"><b>robot</b> Default: <code>Robot.dexter0</code> An instance of one of the subclasses of <code>Robot</code>, such as
             <code>Dexter</code>. This is the <i>default</i> robot to send the job's instructions to if
             the instruction itself doesn't designate a robot. The default for a Job's default robot is
             <code>Robot.dexter0</code>. For example, if we have:
@@ -3083,7 +3085,7 @@ is a valid job to define and run, though it will give a warning message:<br/>
             instruction so that you can have one job that feeds instructions to
             multiple serial robots as well as multiple Dexters.
          </li>
-        <li id="do_list_doc_id"><b>do_list</b> Default: <code>[]</code> (an empty array). An array of instructions to be sent to the job's robot when the
+        <li id="job_param_do_list_doc_id"><b>do_list</b> Default: <code>[]</code> (an empty array). An array of instructions to be sent to the job's robot when the
              Job is run. There are a number of different kinds of instructions, including
              user-defined JavaScript functions that can call arbitrary JS code.
              <p></p>
@@ -3122,12 +3124,12 @@ new Job({name: "my_job",
         For a list of valid instructions, see
         <a href="#" onclick="open_doc(robot_instructions_doc_id)">Robot Instructions</a>
         </li>
-        <li><b>keep_history</b> true or false, Default: <code>true</code>. If true, the robot_status arrays
+        <li id="job_param_keep_history_doc_id"><b>keep_history</b> true or false, Default: <code>true</code>. If true, the robot_status arrays
             returned from running instructions on the robot
             are stored in <code title="unEVALable code fragment"> Job.the_job_name.rs_history</code>.
             This is useful for debugging, but uses memory, which can be
             saved by setting keep_history to <code>false</code>.</li>
-        <li><b>show_instructions</b> Possible values:
+        <li id="job_param_show_instructions_doc_id"><b>show_instructions</b> Possible values:
            <ul><li><code>true</code> The default. Each time Dexter begins the execution of an instruction, it
                is printed in the Output pane, refreshing that section of the output pane as
                each new instruction is run. The method used is <code>Job.prototype.show_progress</code>.
@@ -3142,11 +3144,11 @@ new Job({name: "my_job",
            </ul>
            See <a href="#" onclick="open_doc(print_statements_doc_id, event)">print statements</a>
          </li>
-        <li><b>inter_do_item_dur</b> Default: <code>0.01</code> A number indicating the number of seconds between
+        <li id="job_param_inter_do_item_dur_doc_id"><b>inter_do_item_dur</b> Default: <code>0.01</code> A number indicating the number of seconds between
            when an instruction is completed by its robot, and when the next instruction is
            computed and sent to the robot of the job. This "taking a breath" gives other
            jobs a chance to run. Default 100.</li>
-        <li><b>user_data</b> Default <code>{}</code> (an empty object). A literal object of name-value pairs where arbitrary data created
+        <li id="job_param_user_data_doc_id"><b>user_data</b> Default <code>{}</code> (an empty object). A literal object of name-value pairs where arbitrary data created
            at the beginning of a job or during the execution of an instruction can be stored
            and retrieved.
            It can be initialized in the call to new job like so:<br/>
@@ -3184,7 +3186,7 @@ new Job({name: "my_job",
            If you want data to persist across launches, see 
            <b>Reference Manual/IO/Persistent Database</b>.         
            </li>
-        <li><b id="job_default_workspace_pose_doc_id">default_workspace_pose</b>
+        <li id="job_param_default_workspace_pose_doc_id"><b>default_workspace_pose</b>
             Default: <code>Coor.Table</code> .
             <p/>
             <code>Dexter.move_to</code>
@@ -3206,7 +3208,7 @@ new Job({name: "my_job",
                                   ))]})
      </code></pre>
         </li>
-        <li><b>program_counter</b> Default: <code>0</code> Initialize the program_counter to an instruction id.
+        <li id="job_param_program_counter_doc_id"><b>program_counter</b> Default: <code>0</code> Initialize the program_counter to an instruction id.
          Use this when you want  a job to start with an instruction other than
          the first instruction in the do_list. Thus you can skip performing some of
          the initial instructions when running the job.
@@ -3215,7 +3217,7 @@ new Job({name: "my_job",
         See <a href="#" onclick="open_doc('Robot.go_to_doc_id', event)">Robot.go_to</a>
         for documentation on all the different kinds of instruction_locations.
         </li>
-        <li><b>ending_program_counter</b> Default: <code>"end"</code> Declare at the outset of a job that it
+        <li id="job_param_ending_program_counter_doc_id"><b>ending_program_counter</b> Default: <code>"end"</code> Declare at the outset of a job that it
             will not execute the indicated instruction or beyond. This can be any
             valid instruction_location that does not include a job. It is evaluated
             at the start of each instruction, so if labels move as a result of
@@ -3226,24 +3228,24 @@ new Job({name: "my_job",
             Use program_counter and ending_program_counter to "play" just a segment
             of a Job's do_list.
         </li>
-        <li><b>initial_instruction</b> Default <code>null</code> (no instruction added).Add an initial instruction to the do_list at
+        <li id="job_param_initial_instruction_doc_id"><b>initial_instruction</b> Default <code>null</code> (no instruction added).Add an initial instruction to the do_list at
         the location of program_counter. Thus this instruction will be executed
         first when the job is run.
         </li>
-        <li><b>data_array_transformer</b> Default <code>"P"</code> .<br/>
+        <li id="job_param_data_array_transformer_doc_id"><b>data_array_transformer</b> Default <code>"P"</code> .<br/>
             Transforms data array instructions
             into other instructions. Usually the result of the transform are Dexter instructions,
             but needn't be. See <a href="#" onclick="open_doc(data_array_doc_id)">data array instructions</a>
             for more about data arrays.
         </li>
-        <li><b>start_if_robot_busy</b> A Boolean. Default: <code>false</code><br/>
+        <li id="job_param_start_if_robot_busy_doc_id"><b>start_if_robot_busy</b> A Boolean. Default: <code>false</code><br/>
             Normally if a Job is started with a Dexter robot and there is
             another active Job with that same Dexter robot, the 2nd job will error.
             But if start_if_robot_busy: true, then the 2nd Job is allowed to proceed.<br/>
             <span style="color:red;">Warning</span>: When there is more than one Job running on a robot,
              a Job can't expect Dexter to be where it told it to go, as another Job
              might have changed its position.</li>
-        <li><b>when_stopped</b> controls what happens when a job stops normally.<br/>
+        <li id="job_param_when_stopped_doc_id"><b>when_stopped</b> controls what happens when a job stops normally.<br/>
              <i>Possible Values</i>:<br/>
              <code>"stop"</code> The default. The job stops.<br/>
              <code>"wait"</code> The job waits for another instruction to be added
@@ -3265,6 +3267,7 @@ new Job({name: "my_job",
              <p></p>
              See the menu item: Jobs/Insert Example/when_stopped
         </li>
+        <li id="job_param_callback_param_doc_id"><b>callback_param</b> An advanced feature of <a href="#" onclick="open_doc(start_object_doc_id)">start_object</a>, not normally used.
     </ol>
 </details> <!-- end new Job parameters -->
 
@@ -5088,7 +5091,7 @@ Example: <code>Dexter.move_home()</code>
     <p></p>
     <b>workspace_pose</b> If not passed in or <code>null</code>, this
     defaults to the containing Job's
-    <a href="#" onclick="open_doc('job_default_workspace_pose_doc_id', event)">default_workspace_pose</a>
+    <a href="#" onclick="open_doc('job_param_default_workspace_pose_doc_id', event)">default_workspace_pose</a>
     which itself defaults to <code>Coor.Table</code> .
     Determines the "offset" of the xyz arg.
     <b>j6_angle</b>  Default: <code>[0]</code> The angle to move Joint 6 to.
@@ -5112,7 +5115,7 @@ Example: <code>Dexter.move_home()</code>
      the position that its been told to go by previous instructions.
     <b>workspace_pose</b> If not passed in or <code>null</code>, this
     defaults to the containing Job's
-    <a href="#" onclick="open_doc('job_default_workspace_pose_doc_id', event)">default_workspace_pose</a>
+    <a href="#" onclick="open_doc('job_param_default_workspace_pose_doc_id', event)">default_workspace_pose</a>
     which itself defaults to <code>Coor.Table</code> .
     Determines the "offset" of the xyz arg.<br/>
     <b>j6_delta_angle</b>  Default: <code>0</code> The relative amount to move Joint 6 to.<br/>
