@@ -14,7 +14,8 @@
     "build": "build --dir",
     "dist": "build",
     "appveyor": "build.cmd",
-    "clean": "rimraf dist"
+    "clean": "rimraf dist",
+    "depgraph": "depcruise --exclude '^node_modules' --output-type dot core/index.js | dot -T svg > dependencygraph.svg"
   },
   "keywords": [
     "robot",
@@ -48,6 +49,7 @@
   "devDependencies": {
     "dependency-check": "^2.8.0",
     "electron": "^1.4.13",
+    "dependency-cruiser": "^3.1.0",
     "electron-builder": "^20.40.2",
     "electron-rebuild": "^1.8.4",
     "rimraf": "^2.6.1"
