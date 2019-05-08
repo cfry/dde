@@ -22,6 +22,7 @@ function node_on_ready() {
     global.window = global //window is needed in storage.js and elsewhere
     console.log("operating_system: " + operating_system + "\ndde_apps_folder: " + dde_apps_folder)
     Coor.init()
+    init_units()
     //see also ready.js that has this same code
     Dexter.calibrate_build_tables  = calibrate_build_tables
     window.calibrate_build_tables = undefined
@@ -104,13 +105,22 @@ var {load_files, persistent_initialize, read_file, write_file, dde_init_dot_js_i
 var file_content = read_file //file_content is deprecated
 var {Root} = require("./object_system.js")
 var Coor   = require("../math/Coor.js")
+var Kin    = require("../math/Kin.js")
+var Vector = require("../math/Vector.js")
 var Job    = require("./job.js")
-var calibrate_build_tables = require("./low_level_dexter/calibrate_build_tables.js")
-var DXF    = require("..math/DXF.js")
+var {Robot, Brain, Dexter, Human, Serial}  = require("./robot.js")
+var calibrate_build_tables = require("../low_level_dexter/calibrate_build_tables.js")
+var DXF    = require("../math/DXF.js")
+var {init_units} = require("./units.js")
+
+global.Dexter = Dexter
+global.Robot = Robot
+global.Job = Job
+global.Vector = Vector
+global.Kin = Kin
 
 
-
-run_node_command(process.argv)
+    run_node_command(process.argv)
 /*
 node core start_job myjob
 node core define_and_start_job /Users/Fry/Documents/dde_apps/node_test_job.js

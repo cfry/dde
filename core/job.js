@@ -2387,6 +2387,7 @@ var {Instruction, make_ins} = require("./instruction.js")
 var {load_files} = require("./storage.js")
 var {shouldnt, warning, dde_error, milliseconds_to_human_string, is_iterator, last, prepend_file_message_maybe, shallow_copy_lit_obj, stringify_value_sans_html} = require("./utils")
 var {out} = require("./out.js")
+var {_nbits_cf, _arcsec, _um} = require("./units.js")
 //var TestSuite = require("../test_suite/test_suite.js")
 
 

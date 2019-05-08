@@ -146,34 +146,43 @@ module.exports.pluralize_full_unit_name = pluralize_full_unit_name
 
 function init_units(){
     for(let series_name_core in units_data) {
-        let ser = units_to_series(series_name_core, units_data[series_name_core])
-        Series.instances.push(ser)
+        let one_series_units = units_data[series_name_core]
+        var the_keys = Object.keys(one_series_units)
+        for(let a_unit_abrev of the_keys) {
+            if(a_unit_abrev != "base") {
+                let val = one_series_units[a_unit_abrev][0]
+                define_global_constant(a_unit_abrev, val)
+            }
+        }
     }
-    Series.instances.push(make_temperature_series())
     define_global_constant("_nbits_cf", 7754.73550222) //(nbits*seconds/degree)
-      //don't put _nbits_cf into a series. Not for use by users.
-      //it is used for converting S params: MaxSpeec StartSpeed, Accelleration
-      //before sending this to Dexter hardware.
+    //don't put _nbits_cf into a series. Not for use by users.
+    //it is used for converting S params: MaxSpeec StartSpeed, Accelleration
+    //before sending this to Dexter hardware.
+    module.exports._nbits_cf = _nbits_cf
+    module.exports._arcsec   = _arcsec
+    module.exports._um       = _um
+    if(window.platform == "dde") {
+        for(let series_name_core in units_data) {
+            let ser = units_to_series(series_name_core, units_data[series_name_core])
+            Series.instances.push(ser)
+        }
+        Series.instances.push(make_temperature_series())
+    }
 }
 
 module.exports.init_units = init_units
 
-function units_to_series(name, units_for_one_series){
-    var the_keys = Object.keys(units_for_one_series)
-    for(let a_unit_abrev of the_keys) {
-        if(a_unit_abrev != "base") {
-            let val = units_for_one_series[a_unit_abrev][0]
-            define_global_constant(a_unit_abrev, val)
-        }
-    }
-    return new Series({ id: "series_" + name + "_id",
-                        array: the_keys,
-                        menu_insertion_string: the_keys[0],
-                        menu_sel_start: true,
-                        menu_sel_end: null,
-                        sample: the_keys[0],
-                        base: units_for_one_series.base
-                        })
+function units_to_series(name, series_name_core){
+        var the_keys = Object.keys(series_name_core)
+        return new Series({ id: "series_" + name + "_id",
+                            array: the_keys,
+                            menu_insertion_string: the_keys[0],
+                            menu_sel_start: true,
+                            menu_sel_end: null,
+                            sample: the_keys[0],
+                            base: series_name_core.base
+                            })
 }
 
 function series_name_to_core_name(series_name){

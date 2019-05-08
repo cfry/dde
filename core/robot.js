@@ -855,14 +855,15 @@ Serial.prototype.string_instruction = function(instruction_string){
 //the pose matrix includes info on position and orientation
 * */
 Dexter = class Dexter extends Robot {
-    constructor({name = "dex1", simulate = null,
+    constructor({name = "dex1",
+                 simulate = null,
                  ip_address = null,
                  port = null,
                  pose = Vector.identity_matrix(4),
                  enable_heartbeat=true,
                  instruction_callback = Job.prototype.set_up_next_do}={}){
         for(let key in arguments[0]){
-            if(!["name", "ip_address", "port", "pose", "enable_heartbeat", "instruction_callback"].includes(key)){
+            if(!["name", "simulate", "ip_address", "port", "pose", "enable_heartbeat", "instruction_callback"].includes(key)){
                 dde_error("Attempt to create a Dexter with an invalid argument of: " + key +
                           "<br/>Click on 'Dexter' to see its valid argument names.")
             }
@@ -2690,7 +2691,12 @@ A bunch of the 10 above fns should be moved to Job or maybe Robot.
 Some could be Job instance fns or Robot instance fns.
 */
 
-module.exports = {Robot, Brain, Dexter, Human, Serial}
+module.exports.Robot  = Robot
+module.exports.Brain  = Brain
+module.exports.Dexter = Dexter
+module.exports.Human  = Human
+module.exports.Serial = Serial
+
 var Job = require("./job.js")
 var {Instruction, make_ins} = require("./instruction.js")
 Dexter.make_ins = make_ins

@@ -6,6 +6,35 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 3.3.5, May 8, 2019</summary>
+Highlights: Bug fixes for Job Engine, etc.
+<ul>
+    <li> Changed Robot.js to export differently.</li>
+
+    <li> Output pane <button>Undef</button> button: back by popular demand.</li>
+
+    <li> Make OutPane Header taller because there could be a scroll bar
+         when you have a lot of Job buttons.</li>
+
+    <li> job_engine improvements:
+        <ul>
+            <li>made global variables of Robot, Dexter, Job, Kin, Vector</li>
+            <li>fixed require statements for calibrate_built_tables and DXF.</li>
+            <li>load_files fixed to permit loading in the job_engine.</li>
+            <li>required init_units and called call it. </li>
+            <li>Globals bound: Dexter, Job, Robot, Vector, Kin  </li>
+        </ul>
+    </li>
+    
+    <li> If you have dde new buffer in the editor and it is empty,
+        then when you choose open (to get an exiting file)
+        you now don't DON'T get a up dialog asking to delete the new buffer,
+        it just automatically deletes it.</li>
+
+    <li> new Dexter now properly checks for a "simulate" argument.</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.3.4, May 6, 2019</summary>
 Highlights: Googleapis now accessible (sorry, no doc yet).
      Improvements to Find, click_help, Job buttons, file system I/O

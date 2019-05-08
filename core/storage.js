@@ -633,8 +633,10 @@ function load_files(...paths) {
         let resolved_path = resolved_paths[resolved_paths_index]
         let content = contents[resolved_paths_index]
         out("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;loading file: " + resolved_path, "green")
-        /* the commented out code below uses window.eval(content), which returns the value of the
-           last epxression in the file much less often than eval_js_part2, so use eval_js_part2 instead.
+          //the commented out code below uses window.eval(content), which returns the value of the
+          // last epxression in the file much less often than eval_js_part2, so use eval_js_part2 instead.
+          //I must use eval and not eval_js_part2 because the later is not in core/job engine s
+          //so that prevents loadiing files in job engine, which is a show stopper.
         try{let prev_loading_file =  window["loading_file"]
             window["loading_file"] = resolved_path
             window.Job = Job //needed if content has "Job" in it.
@@ -647,12 +649,14 @@ function load_files(...paths) {
                                                //it won't get done BUT need dde_error to print out the loading file message.
             dde_error(file_mess)
         }
-        */
+        /*
         let prev_loading_file  =  window["loading_file"]
         window["loading_file"] = resolved_path
-        let result_obj = eval_js_part2(content, false) // warning: calling straight eval often
+        let result_obj = eval_js_part2 is not part of core/job engine so
+                          // we can't use it here.
+                          // eval_js_part2(content, false) // warning: calling straight eval often
                           //doesn't return the value of the last expr in the src, but my eval_js_part2 usually does.
-                          //window.eval(file_src)
+                          //window.eval(content)
         window["loading_file"] = prev_loading_file //when nested file loading, we need to "pop the stack"
         if(result_obj.error_message){
             dde_error("While loading the file: " + resolved_pathresolved_path +
@@ -661,7 +665,8 @@ function load_files(...paths) {
         }
         else { result = result_obj.value
                out("Done loading file: " + resolved_path, "green")
-        }
+        }*/
+        out("Done loading file: " + resolved_path, "green")
     }
     return result
 }

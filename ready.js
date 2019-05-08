@@ -988,7 +988,7 @@ foo      //eval to see the latest values</pre>`,
     show_robot_status_id.onclick   = RobotStatusDialog.show
     jobs_report_id.onclick         = function(){Job.report() }
     stop_all_jobs_id.onclick       = function(){Job.stop_all_jobs() }
-    //undefine_jobs_id.onclick     = function(){Job.clear_stopped_jobs() } //use individual X (close) marks instead
+    undefine_jobs_id.onclick     = function(){Job.clear_stopped_jobs() } //use individual X (close) marks instead
 
     /*$("#real_time_sim_checkbox_id").jqxCheckBox({ checked: true })
     real_time_sim_checkbox_id.onclick = function(event) {

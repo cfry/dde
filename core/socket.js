@@ -414,10 +414,11 @@ Socket.robot_name_to_ws_instance_map = {}
 Socket.DEGREES_PER_DYNAMIXEL_UNIT = 0.29
 
 module.exports = Socket
-var {Robot} = require('./robot.js')
+var {Robot} = require("./robot.js")
 var {Instruction, make_ins} = require("./instruction.js")
 var DexterSim = require("./dextersim.js")
 var {out} = require("./out.js")
+var {_nbits_cf, _arcsec, _um} = require("./units.js")
 
 
 

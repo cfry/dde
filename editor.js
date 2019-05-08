@@ -616,10 +616,27 @@ Editor.edit_new_file = function(){
 }
 
 Editor.edit_file = function(path){ //path could be "new buffer"
-    if(Editor.current_file_path == "new buffer"){
+    if(Editor.current_file_path == "new buffer") {
         Editor.set_files_menu_to_path() //set the files menu BACK to its previously selected file cause we can't get the new one
         if (path == "new buffer"){
             Editor.show_clear_new_buffer_choice()
+        }
+        else if (Editor.get_javascript().trim().length == 0) { //don't ask about deleting the new buf, just do it;
+            Editor.remove() //get rid of the current "new buffer"
+            const path_already_in_menu = Editor.set_files_menu_to_path(path)
+            if (!path_already_in_menu) { Editor.add_path_to_files_menu(path) }
+            let the_path = path
+            read_file_async(path, undefined, function(err, content) { //file_content will conver to windows format if needed
+                if(err) {
+                    Editor.set_files_menu_to_path() //set the files menu BACK to its previously selected file cause we can't get the new one
+                    dde_error(err.message)
+                }
+                else {
+                    content = content.toString() //because sometimes the content passed in is  buffer, not a string. This handles both.
+                    Editor.edit_file_aux(the_path, content)
+                }
+            })
+
         }
         else { Editor.show_when_new_buffer_choices() }
     }
