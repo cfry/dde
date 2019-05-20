@@ -100,7 +100,7 @@ function persistent_load(){
             file = convert_backslashes_to_slashes(file)
             slashified_files.push(file)
         }
-        persistent_values.files_menu_paths = files
+        persistent_values.files_menu_paths = slashified_files
     }
 }
 
