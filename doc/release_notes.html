@@ -6,6 +6,72 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 3.3.6, May 19, 2019</summary>
+Highlights: Fixed bugs in: Linter/Editor, saving files, and
+            Dexter.set_parameter sending "NaN"s to Dexter.<br/>
+            Help for Dexter.set_parameter and Dexter.move_to improved.
+<ul>
+    <li>Fixed numerous problems with the linter, including
+        cases where it was:
+        <ul><li>causing an error in the Editor</li>
+            <li>warning about removed older options</li>
+            <li>some non-helpful warnings</li>
+        </ul>
+    </li>
+    <li> Fixed bug in <code>Dexter.set_parameter</code> that sent "NaN" instead of a number,
+          for the params of:<br/>
+           <code>"MaxSpeed"</code>,
+          <code>"StartSpeed"</code>,
+          <code>"Acceleration"</code><br/>
+        This also fixed the setting of ultra-low speeds inadvertently.
+    </li>
+
+    <li> Renamed Job.init to Job.class_init to make it less ambiguous.
+         Also consistent with the new Dexter.class_init</li>
+
+    <li> <code>new Dexter</code> params click help improved with links for each param,
+         just like was recently done for new Job.</li>
+
+
+    <li> MakeInstruction insert for new Dexter, and new Job always prints out the name property.</li>
+
+    <li> MakeInstruction insert for new Job, always prints out the do_list property, even if its the default.</li>
+
+    <li> MakeInstruction for <code>Dexter.set_parameter</code>  dialog,
+         has a menu of all the parameter names.</li>
+
+    <li> Ping dialog box now selects by default, Dexter0 in the select widget
+            at the bottom of the dialog automatically.</li>
+
+    <li> Ref Man/Robot/Dexter/Dexter Instruction for
+         <code>Dexter.move_to</code> and
+         <code>Dexter.move_to_straight</code> :
+         formatting improved.</li>
+
+    <li> <code>persistent_load</code> improved to convert backslashed file paths to slashed file paths.
+         Related: <code>choose_save_file</code>  now converts any backslashes to slashes.
+         These fix a bug with the Edit menu/Save as ... menu item.</li>
+
+    <li> <code>Dexter.move_to</code> instruction,
+         config param values of <code>Dexter.RIGHT_UP_OUT</code> and friends:
+         when you click on them in the editor, the doc pane scrolls to
+         Ref Man/Robot/Dexter/Dexter Instructions/move_to</li>
+
+    <li> <code>Dexter.move_to</code>, <code>Dexter.move_to_straight</code> <code>Dexter.pid_move_to</code>
+          instructions,  <i>config</i> param now has a combo box for the 18 possible
+          named values ( <code>Dexter.RIGHT_UP_OUT</code> and friends) as well as a type-in for
+          explicit values like <code>[1, 1, 1]</code></li>
+
+    <li> Dexter.move_to instruction now has the default for its config param
+    documented as: <code>Dexter.RIGHT_UP_OUT</code></li>
+
+
+    <li> New testsuite file named "file_system_testsuite.js"
+          minimally tests <code>Dexter.write_file</code> and <code>Dexter.read_file</code>
+    </li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.3.5, May 8, 2019</summary>
 Highlights: Bug fixes for Job Engine, etc.
 <ul>
@@ -25,7 +91,7 @@ Highlights: Bug fixes for Job Engine, etc.
             <li>Globals bound: Dexter, Job, Robot, Vector, Kin  </li>
         </ul>
     </li>
-    
+
     <li> If you have dde new buffer in the editor and it is empty,
         then when you choose open (to get an exiting file)
         you now don't DON'T get a up dialog asking to delete the new buffer,

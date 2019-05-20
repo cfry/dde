@@ -846,10 +846,11 @@ Series.instances = [
         menu_insertion_string:"Dexter.LINK1", menu_sel_start:true, menu_sel_end:null, sample:"Dexter.LINK1"}),
 
     new Series({id:"series_set_parameter_name_id",
-          array: ["J1Force","J2Force","J3Force", "J4Force","J5Force",
+          array: ["Acceleration", "EERoll","EESpan", "GripperMotor",
+                  "J1Force","J2Force","J3Force", "J4Force","J5Force",
                   "J1Friction","J2Friction","J3Friction","J4Friction","J5Friction",
                   "J1BoundryHigh","J1BoundryLow","J2BoundryHigh","J2BoundryLow","J3BoundryHigh","J3BoundryLow","J4BoundryHigh","J4BoundryLow","J5BoundryHigh","J5BoundryLow",
-                  "Acceleration", "EERoll","EESpan", "GripperMotor", "MaxSpeed","StartSpeed"],
+                  "MaxSpeed","StartSpeed"],
         menu_insertion_string:"J1Force", menu_sel_start:true, menu_sel_end:null, sample:"J1Force"
     }),
     new Series({id:"series_robot_status_label_id", array: function(){ return Dexter.robot_status_index_labels},

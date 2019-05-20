@@ -446,7 +446,7 @@ var MakeInstruction = class MakeInstruction{
                 let arg_name = "joint" + j
                 let arg_val_src = call_obj.args_obj[arg_name]
                 if(arg_val_src === undefined) { arg_val_src = "0" }
-                args_html += this.make_arg_html(arg_name, arg_val_src)
+                args_html += this.make_arg_html(instruction_name, arg_name, arg_val_src)
             }
         }
         else { //handles the 1 arg case of move_all_joints and most other instructions
@@ -457,21 +457,21 @@ var MakeInstruction = class MakeInstruction{
                     for(let arg_name of ["x", "y", "z"]){
                         let arg_val_src = call_obj.args_obj[arg_name]
                         if(arg_val_src === undefined) { arg_val_src = "0" }
-                        args_html += this.make_arg_html(arg_name, arg_val_src)
+                        args_html += this.make_arg_html(instruction_name, arg_name, arg_val_src)
                     }
                 }
                 //handles most args
                 else {
                     let arg_val_src = call_obj.args_obj[arg_name]
                     if(arg_val_src === undefined) { arg_val_src = "" }
-                    args_html += this.make_arg_html(arg_name, arg_val_src)
+                    args_html += this.make_arg_html(instruction_name, arg_name, arg_val_src)
                 }
             }
         }
         mi_args_id.innerHTML = args_html
     }
 
-    static make_arg_html(arg_name, arg_val_src){
+    static make_arg_html(instruction_name, arg_name, arg_val_src){
         let id = this.arg_name_to_dom_elt_id(arg_name)
         if(arg_name.startsWith("...") ||
            ["do_list", "body"].includes(arg_name) ||
@@ -484,6 +484,39 @@ var MakeInstruction = class MakeInstruction{
                          "<textarea class='mi_arg_val_src' rows='" + rows + "' placeholder='" + placeholder + "' oninput='MiState.invalidate_job_instance()' style='width:300px;font-size:13px;' id='" + id + "'>" + arg_val_src + "</textarea>\n" +
                           "</div>"
             return result
+        }
+        else if((instruction_name == "Dexter.set_parameter") &&
+                 arg_name == "name"){
+            let result = "<div style='margin:5px;white-space:nowrap;'>" + arg_name + ": <select class='mi_arg_val_src' id='" + id + "'>\n"
+            for(let name of Series.id_to_series("series_set_parameter_name_id").array){
+                let sel_html = ""
+                if(name == arg_val_src.substring(1, arg_val_src.length - 1)) { //strip the extra quotes off of arg_val_src for the comparision
+                    sel_html = " selected='selected' "
+                }
+                let val_html = ` value='"` + name + `"' `
+                let opt_html = "<option " + val_html + sel_html + " >" + name + "</option>\n"
+                result += opt_html
+            }
+            result += "</select></div>"
+            return result
+        }
+        else if(["Dexter.move_to", "Dexter.move_to_straight", "Dexter.pid_move_to"].includes(instruction_name) &&
+                 (arg_name == "config")){ //got a combobox
+            let array_of_possible_values = Series.id_to_series("series_robot_config_id").array
+            let sel_index = array_of_possible_values.indexOf(arg_val_src) ////might return -1 but that's ok, will just be blank type in
+            let the_arg_val_src = arg_val_src
+            out("arg_val_src: " + arg_val_src + " sel_index: " + sel_index)
+            setTimeout(function() {
+                        $(window[id]).jqxComboBox({ source: array_of_possible_values,
+                                                    width: '210px',
+                                                    height: '16px',
+                                                    selectedIndex: sel_index})  //default Dexter.RIGHT_UP_OUT
+                        if(sel_index == -1){
+                            $(window[id]).jqxComboBox("val", the_arg_val_src)
+                        }
+                      },
+                      200)
+            return  "<div style='margin:5px;white-space:nowrap;'>" + arg_name + ": <div style='display:inline-block' id='" + id + "' class='mi_arg_val_src combo_box'/></div>"
         }
         else {
             return "<div style='margin:5px;white-space:nowrap;'>" + arg_name + ": <input class='mi_arg_val_src' oninput='MiState.invalidate_job_instance()' style='width:300px;font-size:13px;' id='" + id + "' value='" + arg_val_src + "'/></div>"
@@ -694,7 +727,7 @@ var MakeInstruction = class MakeInstruction{
         let call_obj = MiIns.make_from_instruction_name_no_args(instruction_name)
         /*let param_names = this.param_names_from_ui(instruction_name)
         for(let param_name of param_names){ //fails when we call this method from after instructio_name\
-            //is channged in the UI, but before the args are set as we need to when grabbing prev values
+            //is changed in the UI, but before the args are set as we need to when grabbing prev values
             let id = this.arg_name_to_dom_elt_id(param_name)
             let elt = window[id]
             let arg_val_src = elt.value //.trim() //bad, esp for textareas and preserivng initial whitespace on rest args
@@ -704,6 +737,9 @@ var MakeInstruction = class MakeInstruction{
         for(let elt of mi_args_id.getElementsByClassName('mi_arg_val_src')){
             let arg_name = this.dom_elt_id_to_arg_name(elt.id)
             let arg_val_src = elt.value //.trim() //bad, esp for textareas and preserivng initial whitespace on rest args
+            if((arg_val_src === undefined) && (arg_name == "config")){ //might be a jqxcombobox
+                arg_val_src = $(elt).val()
+            }
             call_obj.args_obj[arg_name] = arg_val_src
         }
         return call_obj
@@ -796,7 +832,7 @@ var MakeInstruction = class MakeInstruction{
             }
             else if(arg_val_src == arg_default_val_src) { arg_val_is_default = true }
             else if(arg_val_src == "undefined")         { arg_val_is_default = true }
-
+            if(["name", "do_list"].includes(param_name)) { arg_val_is_default = false } //we always want to print out these
             let did_insert_arg   = true
             let mt_separate_xyzs = this.dialog_contains_move_to_with_separate_xyzs()
             if (mt_separate_xyzs && (param_name == "x")) {
@@ -1454,8 +1490,7 @@ MakeInstruction.menu_hierarchy = [
     ["Serial",     "string_instruction"],
     ["Misc"      , "function", "function*",
                    //"null", don't have null on menu. its a valid instruction but does nothing, hard to support, and you wouldn't explicitly put one in a job's do_list
-                    "new Array", "new Job", "new Note", "new Phrase", "new TestSuite",
-                   "new Dexter", "new Serial"
+                    "new Array", "new Dexter", "new Job", "new Note", "new Phrase", "new Serial", "new TestSuite"
                    ]
 ]
 

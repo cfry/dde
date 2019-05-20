@@ -39,7 +39,8 @@ function node_on_ready() {
 
     persistent_initialize()
     dde_init_dot_js_initialize()
-    Job.init()
+    Job.class_init()
+    Dexter.class_init()
 }
 
 function run_node_command(args){

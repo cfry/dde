@@ -48,7 +48,48 @@ Js_info = class Js_info {
                 if (series) { return Js_info.add_series_wrapper_to_info(series, new_info) }
                 else { return new_info }
             }
-            if(series){
+            if (fn_name == "Job"){
+                let val = value_of_path(fn_name)
+                //return "new " + Js_info.wrap_fn_name(fn_name) +
+                //    function_params_for_keyword_call(val)
+                let result = "new " + Js_info.wrap_fn_name(fn_name) + "({"
+                let arg_index = 0
+                for(let key in Job.job_default_params) {
+                    let val = Job.job_default_params[key]
+                    let src
+                    if(key == "default_workspace_pose") { src = "null" }
+                    else { src = to_source_code({value: val, function_names: true, newObject_paths: true}) }
+                    let key_html = '<a href="#" onclick="open_doc(job_param_' + key + '_doc_id)">' + key + '</a>'
+                    result += key_html + ": " + src + ((key == "callback_param") ? "" : ", &nbsp;")
+                    if(((arg_index % 3) == 0) && (arg_index !== 0)) {
+                        result += "<br/> <span style='margin-left:83px;'> </span>"
+                    }
+                    arg_index += 1
+                }
+                result += "})"
+                return result
+            }
+            else if (fn_name == "Dexter"){
+                let val = value_of_path(fn_name)
+                let result = "new " + Js_info.wrap_fn_name(fn_name) + "({"
+                let arg_index = 0
+                for(let key in Dexter.dexter_default_params) {
+                    if(key != "instruction_callback") { //don't document this
+                        let val = Dexter.dexter_default_params[key]
+                        let src
+                        src = ((key == "instruction_callback") ? "Job.prototype.set_up_next_do" : to_source_code({value: val, function_names: true, newObject_paths: true}))
+                        let key_html = '<a href="#" onclick="open_doc(dexter_param_' + key + '_doc_id)">' + key + '</a>'
+                        result += key_html + ": " + src + ", &nbsp;"
+                        if(((arg_index % 3) == 0) && (arg_index !== 0)) {
+                            result += "<br/> <span style='margin-left:110px;'> </span>"
+                        }
+                        arg_index += 1
+                    }
+                }
+                result += "})"
+                return result
+            }
+            else if(series){
                 let obj_to_inspect = this.object_to_inspect_maybe(fn_name, series)
                 if(typeof(obj_to_inspect) == "string"){
                     if(file_exists(obj_to_inspect)) {
@@ -80,7 +121,7 @@ Js_info = class Js_info {
                 }
             }
             //put after series because some series items ie Object.foo have dots in them.
-            if (fn_name.startsWith("[")) {
+            else if (fn_name.startsWith("[")) {
                 if (fn_name.includes(",")){
                     return "<span style='color:blue;'>" + fn_name + "</span> is an " + Js_info.make_atag("array_literal", "array_literal")
                 }
@@ -158,27 +199,7 @@ Js_info = class Js_info {
             else if (is_whitespace(fn_name)){
                 return "<span style='color:blue;'>whitespace</span> (contiguous spaces, tabs, newlines) separates code fragments."
             }
-            else if (fn_name == "Job"){
-                let val = value_of_path(fn_name)
-                //return "new " + Js_info.wrap_fn_name(fn_name) +
-                //    function_params_for_keyword_call(val)
-                let result = "new " + Js_info.wrap_fn_name(fn_name) + "({"
-                let arg_index = 0
-                for(let key in Job.job_default_params) {
-                    let val = Job.job_default_params[key]
-                    let src
-                    if(key == "default_workspace_pose") { src = "null" }
-                    else { src = to_source_code({value: val, function_names: true, newObject_paths: true}) }
-                    let key_html = '<a href="#" onclick="open_doc(job_param_' + key + '_doc_id)">' + key + '</a>'
-                    result += key_html + ": " + src + ((key == "callback_param") ? "" : ", &nbsp;")
-                    if(((arg_index % 3) == 0) && (arg_index !== 0)) {
-                        result += "<br/> <span style='margin-left:83px;'> </span>"
-                    }
-                    arg_index += 1
-                }
-                result += "})"
-                return result
-            }
+
             else if (fn_name == "start"){
                 let val = Job.prototype.start
                 return "new " + Js_info.wrap_fn_name(fn_name)  + //"</span>" +
@@ -511,6 +532,9 @@ Js_info = class Js_info {
             case "series_css_property_id":
                 return "<a target='_blank' href='https://developer.mozilla.org/en-US/docs/Web/CSS/" + fn_name + "'>" +
                         fn_name + "</a>"
+            case "series_robot_config_id":
+                open_doc("Dexter.move_to.config_doc_id")
+                return false //actual click help handled later on
         }
         if (["series_hours_minutes_seconds_id", "series_time_id", "series_3_letter_month_id",
              "series_full_month_id", "series_date_id"].indexOf(series.id) != -1){

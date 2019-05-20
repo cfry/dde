@@ -487,7 +487,7 @@ function init_calibrate(){
         	let sim_actual = Robot.get_simulate_actual(robot_sim)
         	if(sim_actual === true){
         		//show_window({content: "Don't Sim"})
-            	open_doc(simulate_doc_id)
+            	open_doc(dexter_param_simulate_doc_id)
             	confirm("Warning: Simulate is set to true so calibration window will not work. \nTo set to false, choose Jobs menu/Simulate/false.")
         	}
         	else if (Dexter.all_names.length == 1) { cal_init_robot() } //Fry added Oct 19, 2018

@@ -32,6 +32,7 @@ function make_ping_a_dexter_select(){
     let net_addresses = new Set([])  //each item will look like "123.456.78." WE don't want dplicates on the list,
                             //each one will become an item on the combo box menu to select.
     let wildcard_base_addresses = []
+    let select_html = ' selected="selected" ' //select the first one of the names with an ip address
     for(let a_dex_name of Dexter.all_names){
         let a_dex = Dexter[a_dex_name]
         let ip_address = a_dex.ip_address
@@ -48,7 +49,8 @@ function make_ping_a_dexter_select(){
                 wildcard_base_addresses.push(new_wildcard_maybe)
             }
             let label = a_dex_name + ": " + ip_address
-            result += "<option>" + label + "</option> "
+            result += "<option " + select_html + ">" + label + "</option> "
+            select_html = ""
         }
     }
     result += "</div>"

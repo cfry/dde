@@ -928,6 +928,18 @@ Dexter = class Dexter extends Robot {
         }
     }
 
+    static class_init(){  //inits Dexter class as a whole. called by ready
+        this.dexter_default_params =
+            {name: "dex1",
+             simulate: null,
+             ip_address: null,
+             port: null,
+             pose: Vector.identity_matrix(4),
+             enable_heartbeat: true,
+             instruction_callback: Job.prototype.set_up_next_do
+        }
+    }
+
     toString(){ return "Dexter." + this.name }
 
     dexter_filepath(){
@@ -1247,7 +1259,7 @@ Dexter = class Dexter extends Robot {
                 //let rfr_instance = Instruction.Dexter.read_file.find_read_file_instance_on_do_list(job_instance, ins_id)
                 // job_instance.user_data[ins.destination] = null //usually means "file not found"
                 //rfr_instance.is_done = true
-                this.perform_instruction_callback(job_instance) //calls set_up_next_do(1) but we want 0, becuase we want to give the Dexter.read_file instance code a chance to clean up before ending its loop
+                this.perform_instruction_callback(job_instance) //calls set_up_next_do(1) but we want 0, because we want to give the Dexter.read_file instance code a chance to clean up before ending its loop
                 //job_instance.set_up_next_do(0)
                 return
             }

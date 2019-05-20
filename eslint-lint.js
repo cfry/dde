@@ -105,7 +105,7 @@
         "no-bitwise": 0,
         "no-caller": 2,
         "no-catch-shadow": 2,
-        "no-comma-dangle": 2,
+        //"no-comma-dangle": 2, //cfry replaced by undocumented "comma-dangle"
         "no-cond-assign": 2,
         "no-console": 0,  //cfry default is 2, but that causes warnings when using it.
         "no-constant-condition": 2,
@@ -115,21 +115,22 @@
         "no-div-regex": 0,
         "no-dupe-keys": 2,
         "no-else-return": 0,
-        "no-empty": 2,
-        "no-empty-class": 2,
-        "no-empty-label": 2,
+        "no-empty": 0, //cfry default is 2, but that disallows empty for, if ,etc statements.
+        //"no-empty-class": 2,  //replaced by no-empty-character-class
+        //"no-empty-label": 2, //cfry replaced  by undocumnted "no-labels"
         "no-eq-null": 0,
-        "no-eval": 2,
+        "no-eval": 0, //cfry default is 2, but we want to allow eval calls.
         "no-ex-assign": 2,
         "no-extend-native": 2,
         "no-extra-bind": 2,
         "no-extra-boolean-cast": 2,
         "no-extra-parens": 0,
-        "no-extra-semi": 2,
-        "no-extra-strict": 2,
+        "no-extra-semi": 0, //cfry default is 2, but causes bad linter bug when you have a fn def that ends with its normal close curley brace followed by a semicolon.
+        //"no-extra-strict": 2,  //replaced by "strict"
         "no-fallthrough": 2,
         "no-floating-decimal": 0,
         "no-func-assign": 2,
+        "no-global-assign": 0, //cfry default is 2 but that causes lots of wrong errors.
         "no-implied-eval": 2,
         "no-inline-comments": 0,
         "no-inner-declarations": [2, "functions"],
@@ -174,7 +175,7 @@
         "no-sequences": 2,
         "no-shadow": 2,
         "no-shadow-restricted-names": 2,
-        "no-space-before-semi": 2,
+        //"no-space-before-semi": 2, //replaced by undocumented semi-spacing
         "no-spaced-func": 2,
         "no-sparse-arrays": 2,
         "no-sync": 0,
@@ -192,7 +193,7 @@
         "no-var": 0,
         "no-warning-comments": [0, { "terms": ["todo", "fixme", "xxx"], "location": "start" }],
         "no-with": 2,
-        "no-wrap-func": 2,
+        //"no-wrap-func": 2, //replaced by no-extra-parens
         "block-scoped-var": 0,
         "brace-style": [0, "1tbs"],
         "camelcase": 0, //cfry default of 2 requires fn names to be camel cased. yuck
@@ -209,7 +210,7 @@
         "func-names": 0,
         "func-style": [0, "declaration"],
         "generator-star": 0,
-        "global-strict": [2, "never"],
+       // "global-strict": [2, "never"], old rule, replaced by "strict", see below
         "guard-for-in": 0,
         "handle-callback-err": 0,
         "key-spacing": [2, { "beforeColon": false, "afterColon": true }],
@@ -234,7 +235,7 @@
         "space-in-brackets": [0, "never"],
         "space-in-parens": [0, "never"],
         "space-infix-ops": 2,
-        "space-return-throw-case": 2,
+       // "space-return-throw-case": 2, no longer a rule. It was replaced by "keyword-spacing" which is fundanemtally undocumented
         "space-unary-ops": [2, { "words": true, "nonwords": false }],
         "spaced-line-comment": [0, "always"],
         "strict": 0, //default 2, cfry changed to 0 because if I have "forOf": true as above to not warn on forOf, then if strict: 2, every line in programis underlined in red.

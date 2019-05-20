@@ -159,9 +159,9 @@ function init_units(){
     //don't put _nbits_cf into a series. Not for use by users.
     //it is used for converting S params: MaxSpeec StartSpeed, Accelleration
     //before sending this to Dexter hardware.
-    module.exports._nbits_cf = _nbits_cf
-    module.exports._arcsec   = _arcsec
-    module.exports._um       = _um
+   // module.exports._nbits_cf = _nbits_cf
+   // module.exports._arcsec   = _arcsec
+   // module.exports._um       = _um
     if(window.platform == "dde") {
         for(let series_name_core in units_data) {
             let ser = units_to_series(series_name_core, units_data[series_name_core])

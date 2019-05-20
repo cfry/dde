@@ -4664,10 +4664,10 @@ to create your own Robot instance.
 <details id="new_dexter_parameters_doc_id" class="doc_details"><summary>new Dexter parameters</summary>
 The parameters used to define an instance of Dexter are:
 <ul>
-    <li><b>name</b> Any string, but must be unique across all robots.
+    <li id="dexter_param_name_doc_id"><b>name</b> Any string, but must be unique across all robots.
     The instance of the robot is stored in
     <code title="unEVALable code fragment"> Robot.the_name</code></li>
-    <li id="simulate_doc_id"><b>simulate</b> Possible values:
+    <li id="dexter_param_simulate_doc_id"><b>simulate</b> Possible values:
          <ul>
              <li><b>true</b> Instructions will not be sent to the Dexter robot but rather
                to DDE's Dexter simulator, showing an image of Dexter in DDE's "Sim" pane.</li>
@@ -4681,14 +4681,14 @@ The parameters used to define an instance of Dexter are:
                  will be persistent accross DDE launches.</li>
           </ul>
     </li>
-    <li><b>ip_address</b> A string of an ip_address such as: <code>"192.168.1.1"</code>
+    <li id="dexter_param_ip_address_doc_id"><b>ip_address</b> A string of an ip_address such as: <code>"192.168.1.1"</code>
         Default null. You can use a Dexter without an ip_address, but only with
         <code title="unEVALable code fragment"> simulate: true</code></li>
-    <li><b>port</b> An integer. Default 50000. </li>
-    <li><b>pose</b> Indicates the position and orientation of a Dexter as a
+    <li id="dexter_param_port_doc_id"><b>port</b> An integer. Default 50000. </li>
+    <li id="dexter_param_pose_doc_id"><b>pose</b> Indicates the position and orientation of a Dexter as a
         4 x 4 matrix of numbers.
      </li>
-    <li><b>enable_heartbeat</b> A Dexter instance sends a "heartbeat" to a Dexter robot to
+    <li id="dexter_param_enable_heartbeat_doc_id"><b>enable_heartbeat</b> A Dexter instance sends a "heartbeat" to a Dexter robot to
       keep the connection alive. If true, the default, that heartbeat will be sent.</li>
 </ul>
      <i>Example:</i>
@@ -5028,7 +5028,7 @@ Example: <code>Dexter.move_home()</code>
         J5_direction, then the config and workspace_pose arguments
         are ignored.
         <p></p>
-        <b>config</b> For most points within the reachability of Dexter, there are multiple
+        <b id="Dexter.move_to.config_doc_id">config</b> Default: <code>Dexter.RIGHT_UP_OUT</code> For most points within the reachability of Dexter, there are multiple
         ways in which Dexter can get there. config helps you specify your preference
         as to <i>how</i> Dexter configures its joints to get to the indicated x, y, z.
         There are 3 independent boolean values to determining this configuration.
@@ -5093,7 +5093,7 @@ Example: <code>Dexter.move_home()</code>
     defaults to the containing Job's
     <a href="#" onclick="open_doc('job_param_default_workspace_pose_doc_id', event)">default_workspace_pose</a>
     which itself defaults to <code>Coor.Table</code> .
-    Determines the "offset" of the xyz arg.
+    Determines the "offset" of the xyz arg.<br/>
     <b>j6_angle</b>  Default: <code>[0]</code> The angle to move Joint 6 to.
     Wrapping it in an array makes the movement relative.
     The default of <code>[0]</code> causes Joint 6 not to move.<br/>
@@ -5150,16 +5150,16 @@ a straight line between the starting and ending locations.
            move to. Same as move_to.<br/>
 <b>J5_direction</b> The ending direction that LINK5 will be pointing when
     the move is complete. Same as move_to.<br/>
-<b>config</b> The configuration of the joints at the end of the move.
+<b>config</b>  Default: <code>Dexter.RIGHT_UP_OUT</code> The configuration of the joints at the end of the move.
     Same as move_to.<br/>
 <b>tool_speed</b> The maximum speed that Dexter's end effector will move.
                   Default: 5 millimeters per second. Not in move_to.<br/>
 <b>resolution</b> How short to make the straight lines that connect the
 starting xyz to the ending xyz. Default: 0.5 millimeters.<br/>
 <b>j6_angle</b>  Default <code>[0]</code> The degrees move move Joint 6 to.
-If it is wrapped in an array, move relative by that amount.
+If it is wrapped in an array, move relative by that amount.<br/>
 <b>j7_angle</b>  Default <code>[0]</code> The degrees move move Joint 7 to.
-    If it is wrapped in an array, move relative by that amount.
+    If it is wrapped in an array, move relative by that amount.<br/>
 <b>single_instruction</b> Default: <code>false</code> False means generate
 many instructions within DDE to send to Dexter to cause it to
 move in a straight line.

@@ -79,12 +79,14 @@ Editor.init_editor = function(){
 
     myCodeMirror.on("mousedown",
                     function(cm, mouse_event){
-                         if(mouse_event.altKey) {
+                         if(mouse_event.altKey){
                              var line_char = myCodeMirror.coordsChar({left: mouse_event.x, top: mouse_event.y})
                              myCodeMirror.getDoc().setCursor(line_char)
                              if (Editor.select_expr()){
-                                let sel = Editor.get_any_selection()
-                                if(sel != "") { MakeInstruction.show(sel) }
+                                setTimeout(function(){  //without setTimeout, the sel isn't really selected by the tme we call MakeInstruction.show
+                                            let sel = Editor.get_any_selection()
+                                            if(sel != "") { MakeInstruction.show(sel) }
+                                }, 200)
                                 mouse_event.preventDefault()
                              }
                          }
@@ -108,10 +110,10 @@ Editor.undo = function(){ myCodeMirror.getDoc().undo() }
 //returns null if path is not in menu. path expected to be a full path,
 //even the menu has partial paths.
 Editor.index_of_path_in_file_menu = function(path){
-    let inner_path = Editor.path_to_files_menu_path(path)
-    for(let i in file_name_id.children){
+    let files_menu_path = Editor.path_to_files_menu_path(path)
+    for(let i = 0; i < file_name_id.children.length; i++){
         let a_path = file_name_id.children[i].innerHTML
-        if (a_path == inner_path) { return parseInt(i) }
+        if (a_path == files_menu_path) { return i }
     }
     return null
 }
@@ -162,7 +164,7 @@ Editor.make_files_menu_path = function(folder, name) {
 // The returned folder always ends with slash or colon.
 Editor.path_to_folder_and_name = function(path){
     let file_name_start_index = path.lastIndexOf("/")
-    if(file_name_start_index == -1) { file_name_start_index = path.lastIndexOf(":") } //happens with dexter0:foo.js
+    if(file_name_start_index == -1) { file_name_start_index = path.lastIndexOf(":") } //happens with dexter0:foo.js and C:foo.js
     if(file_name_start_index == -1) { //happens with "foo.js"
         return[dde_apps_folder + "/", path]
     }
@@ -203,7 +205,6 @@ Editor.files_menu_path_to_path = function(menu_path){
 
 Editor.add_path_to_files_menu = function(path){
         let existing_index = Editor.index_of_path_in_file_menu(path)
-        let new_index = 0
         if (existing_index === null) {
             var opt     = document.createElement("OPTION")
             let inner_path = Editor.path_to_files_menu_path(path)
@@ -215,7 +216,7 @@ Editor.add_path_to_files_menu = function(path){
             else{
                 file_name_id.add(opt)
             }
-            file_name_id.selectedIndex = new_index
+            file_name_id.selectedIndex = 0
             if(path != "new buffer"){
                 let paths = persistent_get("files_menu_paths")
                 paths.unshift(path)
@@ -224,8 +225,7 @@ Editor.add_path_to_files_menu = function(path){
             }
         }
         else {
-            new_index = existing_index
-            file_name_id.selectedIndex = new_index
+            file_name_id.selectedIndex = existing_index
         }
 }
 

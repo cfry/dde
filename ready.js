@@ -84,7 +84,8 @@
             return result
         }
 
-        Job.init()
+        Job.class_init()
+        Dexter.class_init()
         setTimeout(function(){
             window.document.title = "Dexter Development Environment " + dde_version
             dde_version_id.innerHTML      = dde_version

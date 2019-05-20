@@ -93,6 +93,14 @@ function persistent_load(){
         const start_of_content = content.indexOf("{")
         if (start_of_content != -1) { content = content.substring(start_of_content) } //get rid of comment at top of file
         persistent_values = JSON.parse(content)
+        //just in case files got saved out with backslashes, change to only slashes.
+        let files = persistent_values.files_menu_paths
+        let slashified_files = []
+        for(let file of files){
+            file = convert_backslashes_to_slashes(file)
+            slashified_files.push(file)
+        }
+        persistent_values.files_menu_paths = files
     }
 }
 
@@ -317,7 +325,8 @@ module.exports.choose_file_and_get_content = choose_file_and_get_content
 
 function choose_save_file(show_dialog_options={}) { //todo document
     const dialog    = app.dialog;  //use {defaultPath: '~/foo.xml'} to set default file name
-    return dialog.showSaveDialog(app.getCurrentWindow(), show_dialog_options)
+    let result =  dialog.showSaveDialog(app.getCurrentWindow(), show_dialog_options)
+    return convert_backslashes_to_slashes(result)
 }
 module.exports.choose_save_file = choose_save_file
 

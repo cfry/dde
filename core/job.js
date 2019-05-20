@@ -113,7 +113,7 @@ class Job{
     }
     } //end constructor
 
-    static init(){ //inits the Job class as a whole. called by ready
+    static class_init(){ //inits the Job class as a whole. called by ready
         this.job_default_params =
                {name: null, robot: Robot.dexter0, do_list: [],
                 keep_history: true, show_instructions: true,
