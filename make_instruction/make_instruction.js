@@ -485,7 +485,7 @@ var MakeInstruction = class MakeInstruction{
                           "</div>"
             return result
         }
-        else if((instruction_name == "Dexter.set_parameter") &&
+        /*else if((instruction_name == "Dexter.set_parameter") &&
                  arg_name == "name"){
             let result = "<div style='margin:5px;white-space:nowrap;'>" + arg_name + ": <select class='mi_arg_val_src' id='" + id + "'>\n"
             for(let name of Series.id_to_series("series_set_parameter_name_id").array){
@@ -499,6 +499,28 @@ var MakeInstruction = class MakeInstruction{
             }
             result += "</select></div>"
             return result
+        }*/
+        else if((instruction_name == "Dexter.set_parameter") &&
+                 (arg_name == "name")){ //got a combobox
+            let array_of_possible_values_raw = Series.id_to_series("series_set_parameter_name_id").array
+            let array_of_possible_values = []
+            for(let name of array_of_possible_values_raw) {
+                array_of_possible_values.push('"' + name + '"')
+            }
+            let sel_index = array_of_possible_values.indexOf(arg_val_src) ////might return -1 but that's ok, it will just be blank type in
+            let the_arg_val_src = arg_val_src
+            out("arg_val_src: " + arg_val_src + " sel_index: " + sel_index)
+            setTimeout(function() {
+                    $(window[id]).jqxComboBox({ source: array_of_possible_values,
+                        width: '210px',
+                        height: '16px',
+                        selectedIndex: sel_index})  //default
+                    if(sel_index == -1){
+                        $(window[id]).jqxComboBox("val", the_arg_val_src)
+                    }
+                },
+                200)
+            return  "<div style='margin:5px;white-space:nowrap;'>" + arg_name + ": <div style='display:inline-block' id='" + id + "' class='mi_arg_val_src combo_box'/></div>"
         }
         else if(["Dexter.move_to", "Dexter.move_to_straight", "Dexter.pid_move_to"].includes(instruction_name) &&
                  (arg_name == "config")){ //got a combobox
@@ -736,10 +758,14 @@ var MakeInstruction = class MakeInstruction{
         */
         for(let elt of mi_args_id.getElementsByClassName('mi_arg_val_src')){
             let arg_name = this.dom_elt_id_to_arg_name(elt.id)
-            let arg_val_src = elt.value //.trim() //bad, esp for textareas and preserivng initial whitespace on rest args
-            if((arg_val_src === undefined) && (arg_name == "config")){ //might be a jqxcombobox
-                arg_val_src = $(elt).val()
+            let arg_val_src
+            if(elt.classList.contains("combo_box")) {
+                   arg_val_src = $(elt).val()
             }
+            else { arg_val_src = elt.value }//.trim() //bad, esp for textareas and preserivng initial whitespace on rest args
+            //if((arg_val_src === undefined) && (arg_name == "config")){ //might be a jqxcombobox
+            //    arg_val_src = $(elt).val()
+            //}
             call_obj.args_obj[arg_name] = arg_val_src
         }
         return call_obj

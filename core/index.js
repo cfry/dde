@@ -110,18 +110,21 @@ var Kin    = require("../math/Kin.js")
 var Vector = require("../math/Vector.js")
 var Job    = require("./job.js")
 var {Robot, Brain, Dexter, Human, Serial}  = require("./robot.js")
+var {out}  = require("./out.js")
 var calibrate_build_tables = require("../low_level_dexter/calibrate_build_tables.js")
 var DXF    = require("../math/DXF.js")
 var {init_units} = require("./units.js")
 
-global.Dexter = Dexter
-global.Robot = Robot
-global.Job = Job
-global.Vector = Vector
-global.Kin = Kin
+global.Dexter   = Dexter
+global.make_ins = Dexter.make_ins
+global.out      = out
+global.Robot    = Robot
+global.Job      = Job
+global.Vector   = Vector
+global.Kin      = Kin
 
 
-    run_node_command(process.argv)
+run_node_command(process.argv)
 /*
 node core start_job myjob
 node core define_and_start_job /Users/Fry/Documents/dde_apps/node_test_job.js

@@ -37,7 +37,7 @@ Instruction.Dexter.move_all_joints = class move_all_joints extends Instruction.D
             else { angles.push(ang) }
         }
         //angles is at least 5 long, could be 6 or 7
-        let error_mess = Dexter.joints_out_of_range(angles)
+        let error_mess = Dexter.joints_out_of_range(angles, this.robot)
         if (error_mess){ // a string like "Joint 1 with angle: 0.01 is less than the minimum: 30
             job_instance.stop_for_reason("errored",
                 error_mess + "\nin Job." + job_instance.name + " at PC: " + job_instance.program_counter +
@@ -96,7 +96,7 @@ Instruction.Dexter.pid_move_all_joints = class pid_move_all_joints extends Instr
             }
             else { angles.push(ang) }
         }
-        let error_mess = Dexter.joints_out_of_range(angles)
+        let error_mess = Dexter.joints_out_of_range(angles, this.robot)
         if (error_mess){ // a string like "Joint 1 with angle: 0.01 is less than the minimum: 30
             job_instance.stop_for_reason("errored",
                 error_mess + "\nin Job." + job_instance.name + " at PC: " + job_instance.program_counter +
@@ -159,7 +159,7 @@ Instruction.Dexter.move_all_joints_relative = class move_all_joints_relative ext
             else { angles.push(this.robot.angles[i] + ang) }
         }
         //angles is at least 5 long, could be 6 or 7
-        let error_mess = Dexter.joints_out_of_range(angles)
+        let error_mess = Dexter.joints_out_of_range(angles, this.robot)
         if (error_mess){ // a string like "Joint 1 with angle: 0.01 is less than the minimum: 30
             job_instance.stop_for_reason("errored",
                 error_mess + "\nin Job." + job_instance.name + " at PC: " + job_instance.program_counter +
@@ -269,7 +269,7 @@ Instruction.Dexter.move_to = class move_to extends Instruction.Dexter{
             job_instance.set_up_next_do(0)
             return
         }
-        let error_mess = Dexter.joints_out_of_range(angles)
+        let error_mess = Dexter.joints_out_of_range(angles, this.robot)
         if (error_mess){ // a string like "Joint 1 with angle: 0.01 is less than the minimum: 30
             job_instance.stop_for_reason("errored",
                 error_mess + "\nin Job." + job_instance.name + " at PC: " +
@@ -401,7 +401,7 @@ Instruction.Dexter.pid_move_to = class pid_move_to extends Instruction.Dexter{
             //return
             throw new Error("in pid_move_to do_item method. Call to Kin.xyz_to_J_angles has errored")
         }
-        let error_mess = Dexter.joints_out_of_range(angles)
+        let error_mess = Dexter.joints_out_of_range(angles, this.robot)
         if (error_mess){ // a string like "Joint 1 with angle: 0.01 is less than the minimum: 30
             job_instance.stop_for_reason("errored",
                 error_mess + "\nin Job." + job_instance.name + " at PC: " + job_instance.program_counter +
@@ -483,7 +483,7 @@ Instruction.Dexter.move_to_relative = class move_to_relative extends Instruction
         angles.push(this.robot.angles[5] + this.j6_delta_angle)
         angles.push(this.robot.angles[6] + this.j7_delta_angle)
 
-        let error_mess = Dexter.joints_out_of_range(angles)
+        let error_mess = Dexter.joints_out_of_range(angles, this.robot)
         if (error_mess){ // a string like "Joint 1 with angle: 0.01 is less than the minimum: 30
             job_instance.stop_for_reason("errored",
                 error_mess + "\nin Job." + job_instance.name + " at PC: " + job_instance.program_counter +

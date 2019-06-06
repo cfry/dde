@@ -495,8 +495,12 @@ DexterSim = class DexterSim{
     }
 
     static empty_instruction_queue_now(robot_name){
-        let sim_inst = DexterSim.robot_name_to_dextersim_instance_map[robot_name]
-        sim_inst.instruction_queue = []
+        if(DexterSim.robot_name_to_dextersim_instance_map) {
+            let sim_inst = DexterSim.robot_name_to_dextersim_instance_map[robot_name]
+            if(sim_inst) {
+                sim_inst.instruction_queue = []
+            }
+        }
     }
     
 }

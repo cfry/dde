@@ -1031,17 +1031,17 @@ Dexter = class Dexter extends Robot {
         let sim_actual = Robot.get_simulate_actual(this.simulate)
         let this_robot = this
         let this_job   = job_instance
-        if ([false, "both"].includes(sim_actual)) {
+        if ([false, "both"].includes(sim_actual)){
                 let ping = require('ping') //https://www.npmjs.com/package/ping
                 ping.sys.probe(this.ip_address,
                                 function(isAlive){
                                     if (isAlive) {
-                                        setTimeout(function(){this_robot.start_aux(this_job)},
+                                        setTimeout(function(){this_robot.set_link_lengths(this_job)},
                                                   500) //in case dexster is booting up, give it a chance to complete boot cycle
                                         //this_robot.use_ping_proxy(job_instance)
                                     }
                                     else {
-                                        this_job.stop_for_reason("errored", "Could not connect to Dexter.\nIf it is because Dexter is initializing,\ntry again in a minute.", true)
+                                        this_job.stop_for_reason("errored", "Could not connect to Dexter.\nIf it is because Dexter is initializing,\ntry again in a minute,\nor click Misc pane 'simulate' button.", true)
                                         //3rd arg is true so that we will run the stop method for dex_read_file job,
                                         //so that this error of "not connected" will reset the orig editor files menu item.
                                     }
@@ -1050,7 +1050,7 @@ Dexter = class Dexter extends Robot {
                                )
         }
         else {
-           setTimeout(function(){this_robot.start_aux(this_job)},
+           setTimeout(function(){this_robot.set_link_lengths(this_job)},
                          500)
         } //no actual connection to Dexter needed as we're only simulating, BUT
                                  //to keep similation as much like non-sim. due the same timeout.
@@ -1654,14 +1654,21 @@ Dexter.check_joint_limits = false
 //similar to Kin.check_J_ranges except returns string if out of range,
 //and false if in range whereas Kin.check_J_ranges returns true if
 //in range and false otherwise.
-Dexter.joints_out_of_range = function(J_angles){
+Dexter.joints_out_of_range = function(J_angles, dexter_inst){
     if (!Dexter.check_joint_limits) { return false }
     else {
-        let lower_limit = [Dexter.J1_ANGLE_MIN, Dexter.J2_ANGLE_MIN, Dexter.J3_ANGLE_MIN, Dexter.J4_ANGLE_MIN, Dexter.J5_ANGLE_MIN]
-        let upper_limit = [Dexter.J1_ANGLE_MAX, Dexter.J2_ANGLE_MAX, Dexter.J3_ANGLE_MAX, Dexter.J4_ANGLE_MAX, Dexter.J5_ANGLE_MAX]
-        let angle
+        let lower_limit
+        let upper_limit
+        if(dexter_inst instanceof Dexter) {
+            lower_limit = [dexter_inst.J1_angle_min, dexter_inst.J2_angle_min, dexter_inst.J3_angle_min, dexter_inst.J4_angle_min, dexter_inst.J5_angle_min]
+            upper_limit = [dexter_inst.J1_angle_max, dexter_inst.J2_angle_max, dexter_inst.J3_angle_max, dexter_inst.J4_angle_max, dexter_inst.J5_angle_max]
+        }
+        else {
+            lower_limit = [Dexter.J1_ANGLE_MIN, Dexter.J2_ANGLE_MIN, Dexter.J3_ANGLE_MIN, Dexter.J4_ANGLE_MIN, Dexter.J5_ANGLE_MIN]
+            upper_limit = [Dexter.J1_ANGLE_MAX, Dexter.J2_ANGLE_MAX, Dexter.J3_ANGLE_MAX, Dexter.J4_ANGLE_MAX, Dexter.J5_ANGLE_MAX]
+        }
         for(var i = 0; i < J_angles.length; i++){
-            angle = J_angles[i]
+            let angle = J_angles[i]
             if(angle == null) {}
             else if (angle < lower_limit[i]){
                 return "Joint " + (i + 1) + " with angle: " + angle + "\nis less than the minimum: " + lower_limit[i]
@@ -1878,43 +1885,45 @@ Dexter.replay_movement           = function(...args){ return make_ins("o", ...ar
 Dexter.prototype.replay_movement = function(...args){ args.push(this); return Dexter.replay_movement(...args) }
 
 
-Dexter.set_parameter   = function(name="Acceleration", value){
+Dexter.set_parameter   = function(name="Acceleration", ...values){
+                              let first_arg = values[0]
                               if (name == "StartSpeed") {
-                                  if (value < 0){
-                                      dde_error("Dexter.set_parameter called with StartSpeed of: " + value +
+                                  if (first_arg < 0){
+                                      dde_error("Dexter.set_parameter called with StartSpeed of: " + first_arg +
                                                 " but it must be greater than or equal to zero.")
                                   }
                               }
                               else if (name == "MaxSpeed") {
-                                  if (value <= 0){
-                                      dde_error("Dexter.set_parameter called with MaxSpeed of: " + value +
+                                  if (first_arg <= 0){
+                                      dde_error("Dexter.set_parameter called with MaxSpeed of: " + first_arg +
                                                 " but it must be greater than zero.")
                                   }
-                                  else if (value < (1 / _nbits_cf)){
-                                      warning("Dexter.set_parameter called with MaxSpeed of: " + value +
+                                  else if (first_arg < (1 / _nbits_cf)){
+                                      warning("Dexter.set_parameter called with MaxSpeed of: " + first_arg +
                                       " which is too low.<br/>MaxSpeed set to the minimum permissible speed of: " + (1 / _nbits_cf))
                                   }
                               }
-                              return make_ins("S", name, value)
+                              return make_ins("S", name, ...values)
                          }
-Dexter.prototype.set_parameter = function(name="Acceleration", value){
+Dexter.prototype.set_parameter = function(name="Acceleration", ...values){
+                                    let first_arg = values[0]
                                     if (name == "StartSpeed") {
-                                        if (value < 0){
-                                            dde_error("Dexter.set_parameter called with StartSpeed of: " + value +
+                                        if (first_arg < 0){
+                                            dde_error("Dexter.set_parameter called with StartSpeed of: " + first_arg +
                                                 " but it must be greater than or equal to zero.")
                                         }
                                     }
                                     else if (name == "MaxSpeed") {
-                                        if (value <= 0){
-                                            dde_error("Dexter.set_parameter called with MaxSpeed of: " + value +
+                                        if (first_arg <= 0){
+                                            dde_error("Dexter.set_parameter called with MaxSpeed of: " + first_arg +
                                                 " but it must be greater than zero.")
                                         }
-                                        else if (value < (1 / _nbits_cf)){
-                                            warning("Dexter.set_parameter called with MaxSpeed of: " + value +
+                                        else if (first_arg < (1 / _nbits_cf)){
+                                            warning("Dexter.set_parameter called with MaxSpeed of: " + first_arg +
                                                 " which is too low.<br/>MaxSpeed set to the minimum permissible speed of: " + (1 / _nbits_cf))
                                         }
                                     }
-                                    return make_ins("S", name, value, this)
+                                    return make_ins("S", name, ...value, this)
                                 }
 
 
@@ -1924,8 +1933,9 @@ Dexter.prototype.sleep = function(seconds){ return make_ins("z", seconds, this) 
 Dexter.slow_move           = function(...args){ return make_ins("s", ...args) }
 Dexter.prototype.slow_move = function(...args){ args.push(this); return Dexter.slow_move(...args) }
 
-Dexter.write           = function(...args){ return make_ins("w", ...args) }
-Dexter.prototype.write = function(...args){ args.push(this); return Dexter.write(...args) }
+//address is a non-neg integer, probably below 82, value is an integer
+Dexter.write_fpga           = function(address, value){ return make_ins("w", address, value) }
+Dexter.prototype.write_fpga = function(address, value){ return make_ins("w", address, value, this) }
 
 Dexter.socket_encode = function(char){
     let code = char.charCodeAt(0)
@@ -2060,24 +2070,6 @@ Dexter.instruction_type_to_function_name_map = {
 }
 
 /*
-Dexter.prototype.props = function(){
-    let file_name  = "dde_" + this.name + "_props.json"
-    let result = {}
-    if(file_exists(file_name)){
-        let content = read_file(file_name)
-        try {result = JSON.parse(content) }
-        catch(err) {
-           dde_error("The file: " + __dirname + "/" + file_name +
-                     "<br/>is not valid jason format: " + err.message)
-        }
-    }
-    if (!result.LINKS) {
-        result.LINKS = Dexter.LINKS
-    }
-    return result
-}
-*/
-
 var cache_of_dexter_instance_files = {}
 
 //returns undefined or value of prop_name
@@ -2130,16 +2122,17 @@ Dexter.prototype.prop = function(prop_name, get_from_dexter=false){
         return Dexter[prop_name]  //get the typical "class value" of the prop
     }
 }
+*/
 
 //Dexter constants
 //values in microns, pivot point to pivot point, not actual link length.
 //Dexter manufacturing tolerance is about 5 microns for these link lengths.
 //
-Dexter.LINK1 = 0.165100   //meters   6.5 inches,
-Dexter.LINK2 = 0.320675   //meters  12 5/8 inches
-Dexter.LINK3 = 0.330200   //meters  13 inches
-Dexter.LINK4 = 0.050800   //meters  2 inches
-Dexter.LINK5 = 0.082550   //meters  3.25 inches  // from pivot point to tip of the end-effector
+Dexter.LINK1 = 0.228600   //meters   6.5 inches,
+Dexter.LINK2 = 0.320676   //meters  12 5/8 inches
+Dexter.LINK3 = 0.330201   //meters  13 inches
+Dexter.LINK4 = 0.050801   //meters  2 inches
+Dexter.LINK5 = 0.082551   //meters  3.25 inches  // from pivot point to tip of the end-effector
 //Dexter.LINKS = [0, Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5]
 
 Dexter.LINK1_v1 = Dexter.LINK1 * 1000000 //in microns
@@ -2154,11 +2147,135 @@ Dexter.LINK3_AVERAGE_DIAMETER =  0.050000 //meters
 Dexter.LINK4_AVERAGE_DIAMETER =  0.035000 //meters
 Dexter.LINK5_AVERAGE_DIAMETER =  0.030000 //meters
 
+//gets called regardless of whether simulate = true or not because
+//even if we're simulating, we like to get that actual link lengths from
+//the dexter IF its available
+Dexter.prototype.set_link_lengths = function(job_to_start_when_done = null){
+    let job_to_start = job_to_start_when_done //for closure
+    let the_robot  = this //for closure
+    let sim_actual = Robot.get_simulate_actual(this.simulate)
+    if(this.Link1 &&
+      (sim_actual !== true) && //ie "real"
+      (this.link_lengths_set_from_dde_computer == true)){
+        this.Link1 = undefined  //we want to get vals from Dexter.
+        this.Link2 = undefined
+        this.Link3 = undefined
+        this.Link4 = undefined
+        this.Link5 = undefined
+    }
+    if(!this.Link1 &&
+       (!job_to_start || (job_to_start.name != "set_link_lengths"))){
+       //we're going to set link lengths.
+        let callback = function() {
+            the_robot.start_aux(job_to_start)
+        }
+        if(sim_actual !== true) { //get link lengths from Dexter
+            new Job({name: "set_link_lengths",
+                 robot: this,
+                 when_stopped: (job_to_start ? callback : "stop"),
+                 do_list: [
+                    Dexter.read_file("../Defaults.make_ins", "default_content"),
+                    function() {
+                       if(typeof(this.user_data.default_content) == "string"){
+                           this.robot.set_link_lengths_from_file_content(this.user_data.default_content)
+                       }
+                       else { //no file because we got an error code integer in his.user_data.default_content
+                           the_robot.Link1 = Dexter.LINK1
+                           the_robot.Link2 = Dexter.LINK2
+                           the_robot.Link3 = Dexter.LINK3
+                           the_robot.Link4 = Dexter.LINK4
+                           the_robot.Link5 = Dexter.LINK5
+                       }
+                    }
+                 ]}).start()
+            delete the_robot.link_lengths_set_from_dde_computer //just in case it was previously set from dde computer
+        }
+        else { //get link lengths from dde computer
+            let path = dde_apps_folder + "/dexter_file_systems/"  + the_robot.name + "/Defaults.make_ins"
+            if(file_exists(path)) {
+                let content = read_file(path)
+                this.set_link_lengths_from_file_content(content)
+            }
+            else {
+                the_robot.Link1 = Dexter.LINK1
+                the_robot.Link2 = Dexter.LINK2
+                the_robot.Link3 = Dexter.LINK3
+                the_robot.Link4 = Dexter.LINK4
+                the_robot.Link5 = Dexter.LINK5
+
+                the_robot.J1_angle_min = Dexter.J1_ANGLE_MIN
+                the_robot.J2_angle_min = Dexter.J2_ANGLE_MIN
+                the_robot.J3_angle_min = Dexter.J3_ANGLE_MIN
+                the_robot.J4_angle_min = Dexter.J4_ANGLE_MIN
+                the_robot.J5_angle_min = Dexter.J5_ANGLE_MIN
+
+                the_robot.J1_angle_max = Dexter.J1_ANGLE_MAX
+                the_robot.J2_angle_max = Dexter.J2_ANGLE_MAX
+                the_robot.J3_angle_max = Dexter.J3_ANGLE_MAX
+                the_robot.J4_angle_max = Dexter.J4_ANGLE_MAX
+                the_robot.J5_angle_max = Dexter.J5_ANGLE_MAX
+            }
+            the_robot.link_lengths_set_from_dde_computer = true
+            the_robot.start_aux(job_to_start)
+        }
+    }
+    else {
+        this.start_aux(job_to_start)
+    }
+}
+
+//content is the content of a Defaults.make_ins file
+//sets link lengths as well as any other params in the file.
+Dexter.prototype.set_link_lengths_from_file_content = function(content){
+    for(let line of content.split("\n")){
+        //first get rid of comment, if any, at line end.
+        let semi_pos = line.indexOf(";")
+        if (semi_pos > -1) { line = line.substring(0, semi_pos) }
+        line = line.trim()
+        if(line.length > 0) {
+            let line_elts = line.split(",")
+            let oplet = line_elts[0].trim()
+            if(oplet == "S"){
+                let param_name = line_elts[1].trim()
+                if(line_elts.length == 3){
+                    let val = parseFloat(line_elts[2].trim())
+                    let new_param_name = param_name
+                    if(param_name.includes("Boundry")) {
+                        val = val * _arcsec
+                        new_param_name = "J"
+                        new_param_name += param_name[1]
+                        new_param_name = new_param_name + "_angle_" //+= fails here. JS bug
+                        if(param_name.endsWith("Low")) {new_param_name += "min"}
+                        else                           {new_param_name += "max"}
+                    }
+                    this[new_param_name] = val
+                }
+                //the rest have more than one val
+                else if (param_name == "LinkLengths") { //link5 length is in the array first. }
+                    for(let i = 2; i < line_elts.length; i++){
+                        let i_val = parseFloat(line_elts[i].trim()) * _um  //convert from string of microns to meters.
+                        if     (i == 2) { this.Link5 = i_val }
+                        else if(i == 3) { this.Link4 = i_val }
+                        else if(i == 4) { this.Link3 = i_val }
+                        else if(i == 5) { this.Link2 = i_val }
+                        else if(i == 6) { this.Link1 = i_val }
+                        else { shouldnt("set_parameter of: " + param_name + " got more than 5 link lengths.") }
+                    }
+                }
+                else {
+                    val = line_elts.slice(2, line_elts.length - 1)
+                    this[param_name] = val
+                }
+            }
+        }
+    }
+}
+
 Dexter.LEG_LENGTH = 0.152400 //meters  6 inches
 
 //values in degrees
-Dexter.J1_ANGLE_MIN = -Infinity
-Dexter.J1_ANGLE_MAX = Infinity
+Dexter.J1_ANGLE_MIN = -150
+Dexter.J1_ANGLE_MAX = 150
 Dexter.J2_ANGLE_MIN = -90
 Dexter.J2_ANGLE_MAX = 90
 Dexter.J3_ANGLE_MIN = -150

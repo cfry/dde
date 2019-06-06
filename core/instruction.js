@@ -449,9 +449,9 @@ Instruction.break = class Break extends Instruction{ //class name must be upper 
         }
         else {
             let loop_ins = job_instance.do_list[loop_pc]
-            loop_ins.resolved_boolean_int_array_fn = null //just in case this loop is nested in another loop
+            loop_ins.resolved_times_to_loop = null //just in case this loop is nested in another loop
             //or we "go_to backwards" to it, we want its next "first_call" to initialize
-            //the loop so set resolved_boolean_int_array_fn to null
+            //the loop so set this prop to null
             let items_within_loop = job_instance.total_sub_instruction_count(loop_pc) //job_instance.added_items_count[loop_pc]
             job_instance.program_counter = loop_pc + items_within_loop //now pc is pointing at last inst of loop iteration instrs
             job_instance.set_up_next_do(1) //skip past the last inst in the loop iteration, as we're done with the loop
@@ -2023,10 +2023,10 @@ Instruction.loop = class Loop extends Instruction{
     //ends this loop. That ending is handled in Job.prototype.do_next_item section that handles loop
     get_instructions_for_one_iteration(job_instance){ //strategy: compute:
         //1. iter_index, 2. iter_total,3. iter_val & iter_key, 4. instructions for this iteration & return them
-        this.iter_index++ //First compute iter_index. no changes to iter_index after this.
         let fn_result = null
-        //compute  this.iter_total 7 this.resolved_time_to_loop
-        if(this.resolved_times_to_loop === null){ //first time
+        //compute  this.iter_total and this.resolved_time_to_loop
+        if(this.resolved_times_to_loop === null){ //first time only
+            this.iter_index = -1
             if      (typeof(this.times_to_loop) == "boolean")  { this.resolved_times_to_loop = this.times_to_loop} //leave iter_total at Infinity
             else if (is_non_neg_integer(this.times_to_loop))   { this.resolved_times_to_loop = this.times_to_loop; this.iter_total = this.resolved_times_to_loop}
             else if (Array.isArray(this.times_to_loop))        { this.resolved_times_to_loop = this.times_to_loop; this.iter_total = this.resolved_times_to_loop.length}
@@ -2066,10 +2066,12 @@ Instruction.loop = class Loop extends Instruction{
            }
         } //end of special processing for first iteration.
           // the below code is run for all iterations including the first iteration.
-          //compute iter_val & iter_key.  iter_index is computed at the top of this fn, iter_total computed just above
+        this.iter_index++ //First compute iter_index. no changes to iter_index after this.
+        //compute iter_val & iter_key.  iter_index is computed at the top of this fn, iter_total computed just above
         let iter_val = undefined
         let iter_key = this.iter_index //valid for all times_to_loop types except object.
         if (this.resolved_times_to_loop === false) { //no iterations of this loop will happen
+            this.resolved_times_to_loop = null //ready for next start of this job
             return null
         }
         else if (this.resolved_times_to_loop === true){ iter_val = true } //loop forever or until body_fn returns Robot.break instruction
@@ -2085,7 +2087,10 @@ Instruction.loop = class Loop extends Instruction{
         }
         else if (typeof(this.resolved_times_to_loop) == "function"){
            if      (this.iter_index > 0) { fn_result = this.resolved_times_to_loop.call(job_instance, this.iter_index, this.iter_index, this.iter_total)}
-           if      (fn_result === false) { return null } //looping is over, Jim
+           if      (fn_result === false) { //looping is over, Jim
+               this.resolved_times_to_loop = null //ready for next start of this job
+               return null
+           }
            else if (fn_result === true)  { iter_val = true }
            else {
                job_instance.stop_for_reason("errored", "Robot.loop passed a function to call to determine if another iteration should occur" +
@@ -2096,8 +2101,7 @@ Instruction.loop = class Loop extends Instruction{
        }
        else { shouldnt("Robot.loop has an invalid this.resolved_times_to_loop of: " + this.resolved_times_to_loop)}
        if(this.iter_index >= this.iter_total) { //done looping but initialize so if the job is restrted, the loop will restart
-            this.resolved_times_to_loop === null
-            this.iter_index             = -1
+            this.resolved_times_to_loop = null
             return null
        }
        else {//ok, finally compute instructions for this iteration

@@ -55,11 +55,14 @@ new Job({name: "move_all_joints",
 
 */
 
-var Kin = new function(){
-    this.inverse_kinematics = function (xyz, direction = [0, 0, -1], config = [1, 1, 1], workspace_pose = Vector.make_pose()){
+class Kin{
+    static inverse_kinematics(xyz, direction = [0, 0, -1], config = [1, 1, 1], dexter_inst_or_workspace_pose = Vector.make_pose()){
         if(xyz == undefined){
         	dde_error("xyz must be defined. To prevent unpredictable movement a default is not used.")
         }
+        let dexter_inst, workspace_pose
+        if(Array.isArray(dexter_inst_or_workspace_pose)) { workspace_pose = dexter_inst_or_workspace_pose}
+        else { dexter_inst = dexter_inst_or_workspace_pose; workspace_pose = dexter_inst_or_workspace_pose.pose}
         let xyz_dim = Vector.matrix_dimensions(xyz)
         if(xyz_dim[0] == 3 && xyz_dim[1] == 3){
         	workspace_pose = direction
@@ -73,7 +76,9 @@ var Kin = new function(){
         let J = Vector.make_matrix(1, 5)[0] // Joint Angles
         let U = Vector.make_matrix(5, 3)
         let P = [0, 0, 0, 0]
-        let L = [Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5] //Link Lengths
+        let L
+        if(dexter_inst) { L = [dexter_inst.Link1, dexter_inst.Link2, dexter_inst.Link3, dexter_inst.Link4, dexter_inst.Link5] } //Link Lengths
+		else            { L = [Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5] }
 		let normal = direction
     	let right_arm = config[0]
     	let elbow_up = config[1]
@@ -107,7 +112,7 @@ var Kin = new function(){
         U[0] = [0, 0, 0]
         let V10 = [0, 0, 1]
     	U[1] = Vector.multiply(L[0], V10)
-        U[4] = Vector.add(xyz_trans, Vector.multiply(Dexter.LINK5, V54))
+        U[4] = Vector.add(xyz_trans, Vector.multiply(L[4], V54))
         U[5] = xyz_trans
         
     	
@@ -175,13 +180,13 @@ var Kin = new function(){
 		
     	//Solving for U2
     	var D3 = Vector.distance(U[3], U[1])
-        if(Vector.is_equal(D3, Dexter.LINK2 + Dexter.LINK3, 9)){
-        	D3 = Dexter.LINK2 + Dexter.LINK3
+        if(Vector.is_equal(D3, L[1] + L[3], 9)){
+        	D3 = L[1] + L[2]
         }
         
         //Checking if in reach
-        if (D3 > Dexter.LINK2 + Dexter.LINK3){
-        	let out_of_reach_dist = Vector.round(D3 - (Dexter.LINK2 + Dexter.LINK3), 4)
+        if (D3 > L[1] + L[2]){
+        	let out_of_reach_dist = Vector.round(D3 - (L[1] + L[2]), 4)
         	dde_error("Point [" + Vector.round(xyz, 3)+"], [" + Vector.round(V54,3) + '] is ' + out_of_reach_dist + 'm out of reach')
         }
         
@@ -239,13 +244,13 @@ var Kin = new function(){
     
     	if(Vector.is_NaN(J[2])){
         	let thres = 100
-        	if(Dexter.LINK1 > thres || Dexter.LINK2 > thres || Dexter.LINK3 > thres || Dexter.LINK4 > thres || Dexter.LINK5 > thres){
+        	if(L[0] > thres || L[1] > thres || L[2] > thres || L[3] > thres || L[4] > thres){
             	dde_error("Link lengths are non properly defined: "  
-                + "</br>Dexter.LINK1: " + Dexter.LINK1 + " (meters)"
-                + "</br>Dexter.LINK2: " + Dexter.LINK2 + " (meters)"
-                + "</br>Dexter.LINK3: " + Dexter.LINK3 + " (meters)"
-                + "</br>Dexter.LINK4: " + Dexter.LINK4 + " (meters)"
-                + "</br>Dexter.LINK5: " + Dexter.LINK5 + " (meters)")
+                + "</br>LINK1: " + L[0] + " (meters)"
+                + "</br>LINK2: " + L[1] + " (meters)"
+                + "</br>LINK3: " + L[2] + " (meters)"
+                + "</br>LINK4: " + L[3] + " (meters)"
+                + "</br>LINK5: " + L[4] + " (meters)")
             }
         	dde_error("Singularity at: " + xyz + ", " + direction + ", " + config + ".</br>Please copy this message and report it as a bug.")
     	}
@@ -253,11 +258,18 @@ var Kin = new function(){
     	return [J, U, P]
     } 
     
-    this.forward_kinematics = function(joint_angles, workspace_pose = Vector.make_pose()){
+    static forward_kinematics (joint_angles, dexter_inst_or_workspace_pose = Vector.make_pose()){
         let J = Convert.deep_copy(joint_angles) //Joint Angles
         let U = new Array(5).fill(new Array(3)) //Point Locations
-        let L = [Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5] //Link Lengths
-    	let P = new Array(3).fill(new Array(4)) //Planes
+
+        let dexter_inst, workspace_pose
+        if(Array.isArray(dexter_inst_or_workspace_pose))  { workspace_pose = dexter_inst_or_workspace_pose}
+        else { dexter_inst = dexter_inst_or_workspace_pose; workspace_pose = dexter_inst_or_workspace_pose.pose}
+        let L
+        if(dexter_inst) { L = [dexter_inst.Link1, dexter_inst.Link2, dexter_inst.Link3, dexter_inst.Link4, dexter_inst.Link5] } //Link Lengths
+        else            { L = [Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5] }
+
+        let P = new Array(3).fill(new Array(4)) //Planes
         
         let U21, U32, U43, U54, V21, V32, V43, V54
         //Knowns:
@@ -306,12 +318,16 @@ var Kin = new function(){
         return [U, V, P]
     }
 
-    this.is_in_reach = function(xyz, J5_direction = [0, 0, -1], config = [1, 1, 1], workspace_pose){
+    /*static is_in_reach(xyz, J5_direction = [0, 0, -1], config = [1, 1, 1], dexter_inst){
     	let base_xyz = [0, 0, 0] // Come back to this and pull it from robot_pose
         let base_plane = [0, 0, 1]
         let U3
-        let U1 = Vector.add(base_xyz, Vector.multiply(base_plane, Dexter.LINK1))
-    	let U4 = Vector.add(xyz, Vector.multiply(-Dexter.LINK5, Vector.normalize(J5_direction)))
+        let L
+        if(dexter_inst) { L = [dexter_inst.Link1, dexter_inst.Link2, dexter_inst.Link3, dexter_inst.Link4, dexter_inst.Link5] } //Link Lengths
+        else            { L = [Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5] }
+
+        let U1 = Vector.add(base_xyz, Vector.multiply(base_plane, L[0]))
+    	let U4 = Vector.add(xyz, Vector.multiply(-L[4], Vector.normalize(J5_direction)))
 
 		//Solving for P1
     	let P1 = Vector.points_to_plane(U1, base_xyz, U4)
@@ -321,78 +337,93 @@ var Kin = new function(){
         		return false
             }
         }
-        
-        
-    	//Solving for U3
-        let V54 = Vector.subtract(xyz, U4)
-    	var U54_Proj = Vector.project_vector_onto_plane(V54, P1)
-    	var U3_a = Vector.add(U4, Vector.multiply(Dexter.LINK3, Vector.rotate(Vector.normalize(U54_Proj), P1, 90)))
-        var U3_b = Vector.add(U4, Vector.multiply(Dexter.LINK3, Vector.rotate(Vector.normalize(U54_Proj), P1, -90)))
-        var dist_a = Vector.distance(U3_a, U1, base_xyz)
-    	var dist_b = Vector.distance(U3_b, U1, base_xyz)
-    	if (config[2] == 1){
-    		if (dist_a < dist_b){
-        		U3 = U3_a
-        	}else{
-        		U3 = U3_b
-        	}
-    	}else{
-    		if (dist_a > dist_b){
-        		U3 = U3_a
-        	}else{
-        		U3 = U3_b
-        	}
-    	}
-        
-        
-		if (Vector.distance(U1, U3) <= Dexter.LINK2 + Dexter.LINK3){
-        	return true
-        }else{
-        	return false
-        }
+    }*/
+
+
+
+    static is_in_reach (xyz, J5_direction = [0, 0, -1], config = [1, 1, 1], dexter_inst_or_workspace_pose){
+            let base_xyz = [0, 0, 0] // Come back to this and pull it from robot_pose
+            let base_plane = [0, 0, 1]
+            let U3
+            let U1 = Vector.add(base_xyz, Vector.multiply(base_plane, Dexter.LINK1))
+            let dexter_inst, workspace_pose;
+            if(Array.isArray(dexter_inst_or_workspace_pose)) { workspace_pose = dexter_inst_or_workspace_pose}
+            else if (dexter_inst_or_workspace_pose) { dexter_inst = dexter_inst_or_workspace_pose; workspace_pose = dexter_inst_or_workspace_pose.pose}
+            let L
+            if(dexter_inst) { L = [dexter_inst.Link1, dexter_inst.Link2, dexter_inst.Link3, dexter_inst.Link4, dexter_inst.Link5] } //Link Lengths
+            else            { L = [Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5] }
+
+            let xyz_trans
+            let normal_trans
+            if(workspace_pose == undefined){
+                workspace_pose = Vector.identity_matrix(4)
+                xyz_trans = xyz.slice()
+                normal_trans = J5_direction.slice()
+            }else if(Vector.is_equal([4,4], Vector.matrix_dimensions(workspace_pose))){
+                xyz_trans = Vector.transpose(Vector.matrix_multiply(workspace_pose, Vector.properly_define_point(xyz))).slice(0,3)
+                normal_trans = Vector.transpose(Vector.matrix_multiply(workspace_pose, Vector.properly_define_vector(J5_direction))).slice(0,3)
+            }else{
+                dde_error("Unsupported workspace_pose datatype: " + workspace_pose)
+            }
+            let U5 = xyz_trans
+            let U4 = Vector.add(U5, Vector.multiply(-L[4], Vector.normalize(normal_trans)))
+
+
+            //Solving for P1
+            let P1 = Vector.points_to_plane(U1, base_xyz, U4)
+            if(Vector.is_NaN(P1)){
+                P1 = Vector.points_to_plane(U1, base_xyz, U3)
+                if(Vector.is_NaN(P1)){
+                    return false
+                }
+            }
+
+
+            //Solving for U3
+            let V54 = Vector.subtract(U5, U4)
+            var U54_Proj = Vector.project_vector_onto_plane(V54, P1)
+            var U3_a = Vector.add(U4, Vector.multiply(L[2], Vector.rotate(Vector.normalize(U54_Proj), P1, 90)))
+            var U3_b = Vector.add(U4, Vector.multiply(L[2], Vector.rotate(Vector.normalize(U54_Proj), P1, -90)))
+            var dist_a = Vector.distance(U3_a, U1, base_xyz)
+            var dist_b = Vector.distance(U3_b, U1, base_xyz)
+            if (config[2] == 1){
+                if (dist_a < dist_b){
+                    U3 = U3_a
+                }else{
+                    U3 = U3_b
+                }
+            }else{
+                if (dist_a > dist_b){
+                    U3 = U3_a
+                }else{
+                    U3 = U3_b
+                }
+            }
+
+
+            if (Vector.distance(U1, U3) <= L[1] + L[2]){
+                return true
+            }else{
+                return false
+            }
     }
     
-    
-	
-    //Private 
-    //converts keywords in config to array
-    //example: parse_config("right_down_in") returns [1, 0, 0]
-    function parse_config(config){
-    		var state = [1, 1, 1]
-        	var config_words = config.split("_")
-            
-            if (config_words.includes("right")){
-            	state[0] = 1
-            }else{
-            	if (config_words.includes("left")){
-            		state[0] = 0
-            	}
-            }
-            if (config_words.includes("up")){
-            	state[1] = 1
-            }else{
-            	if (config_words.includes("down")){
-            		state[1] = 0
-            	}
-            }
-            if (config_words.includes("out")){
-            	state[2] = 1
-            }else{
-            	if (config_words.includes("in")){
-            		state[2] = 0
-            	}
-            }
-            return state
-    }	
-    
     //Public
-    this.J_angles_to_config = function(joint_angles){
+    static J_angles_to_config (joint_angles, dexter_inst_or_workspace_pose){
     	let U54_Proj, U3_a, U3_b, dist_a, dist_b
     	let J = Convert.deep_copy(joint_angles)
-        let fk = Kin.forward_kinematics(J)
+        let fk = Kin.forward_kinematics(J, dexter_inst_or_workspace_pose)
         let U = fk[0]
         let V = fk[1]
-        let L = [Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5] //Link Lengths
+        let dexter_inst, workspace_pose
+        if(Array.isArray(dexter_inst_or_workspace_pose)) { workspace_pose = dexter_inst_or_workspace_pose}
+        else if (dexter_inst_or_workspace_pose) { dexter_inst = dexter_inst_or_workspace_pose; workspace_pose = dexter_inst_or_workspace_pose.pose}
+        //note that dexter_inst_or_workspace_pose might be undefined.
+        //we don't actually need workspace_pose in this method, but I'm following a pattern here.
+        let L
+        if(dexter_inst) { L = [dexter_inst.Link1, dexter_inst.Link2, dexter_inst.Link3, dexter_inst.Link4, dexter_inst.Link5] } //Link Lengths
+        else            { L = [Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5] }
+
         let right_arm, elbow_up, wrist_out
         let P = fk[2]
         
@@ -574,13 +605,20 @@ var Kin = new function(){
     }*/
     
  
-    
-    this.check_J_ranges = function(J_angles){
-    	let lower_limit = [Dexter.J1_ANGLE_MIN, Dexter.J2_ANGLE_MIN, Dexter.J3_ANGLE_MIN, Dexter.J4_ANGLE_MIN, Dexter.J5_ANGLE_MIN]
-        let upper_limit = [Dexter.J1_ANGLE_MAX, Dexter.J2_ANGLE_MAX, Dexter.J3_ANGLE_MAX, Dexter.J4_ANGLE_MAX, Dexter.J5_ANGLE_MAX]
-        let angle
+    //similar to Dexter.joints_out_of_range, but returns different values
+    static check_J_ranges(J_angles, dexter_inst){
+        let lower_limit
+        let upper_limit
+        if(dexter_inst instanceof Dexter) {
+            lower_limit = [dexter_inst.J1_angle_min, dexter_inst.J2_angle_min, dexter_inst.J3_angle_min, dexter_inst.J4_angle_min, dexter_inst.J5_angle_min]
+            upper_limit = [dexter_inst.J1_angle_max, dexter_inst.J2_angle_max, dexter_inst.J3_angle_max, dexter_inst.J4_angle_max, dexter_inst.J5_angle_max]
+        }
+        else {
+    	    lower_limit = [Dexter.J1_ANGLE_MIN, Dexter.J2_ANGLE_MIN, Dexter.J3_ANGLE_MIN, Dexter.J4_ANGLE_MIN, Dexter.J5_ANGLE_MIN]
+            upper_limit = [Dexter.J1_ANGLE_MAX, Dexter.J2_ANGLE_MAX, Dexter.J3_ANGLE_MAX, Dexter.J4_ANGLE_MAX, Dexter.J5_ANGLE_MAX]
+        }
         for(var i = 0; i < J_angles.length; i++){
-        	angle = J_angles[i]
+        	let angle = J_angles[i]
         	if((angle != null) && ((lower_limit[i] > angle) || (upper_limit[i] < angle))){
             	return false
             }
@@ -596,34 +634,18 @@ var Kin = new function(){
     //Returns joint angles
     
     //Depricated wrapper functions:
-    this.xyz_to_J_angles = function(xyz, J5_direction = [0, 0, -1], config = Dexter.RIGHT_UP_OUT, workspace_pose = Vector.make_pose()){
-        return Kin.inverse_kinematics(xyz, J5_direction, config, workspace_pose)[0]
+    static xyz_to_J_angles(xyz, J5_direction = [0, 0, -1], config = Dexter.RIGHT_UP_OUT, dexter_inst_or_workspace_pose = Vector.make_pose()){
+        return Kin.inverse_kinematics(xyz, J5_direction, config, dexter_inst_or_workspace_pose)[0]
     }
 
-    this.xyz_to_J_points = function(xyz, J5_direction = [0, 0, -1], config = Dexter.RIGHT_UP_OUT, workspace_pose = Vector.make_pose()){
-        return Kin.inverse_kinematics(xyz, J5_direction, config, workspace_pose)[1]
+    static xyz_to_J_points(xyz, J5_direction = [0, 0, -1], config = Dexter.RIGHT_UP_OUT, dexter_inst_or_workspace_pose = Vector.make_pose()){
+        return Kin.inverse_kinematics(xyz, J5_direction, config, dexter_inst_or_workspace_pose)[1]
     }
     
-    this.xyz_to_J_planes = function(xyz, J5_direction = [0, 0, -1], config = Dexter.RIGHT_UP_OUT, workspace_pose = Vector.make_pose()){
-        return Kin.inverse_kinematics(xyz, J5_direction, config, workspace_pose)[2]
+    static xyz_to_J_planes(xyz, J5_direction = [0, 0, -1], config = Dexter.RIGHT_UP_OUT, dexter_inst_or_workspace_pose = Vector.make_pose()){
+        return Kin.inverse_kinematics(xyz, J5_direction, config, dexter_inst_or_workspace_pose)[2]
     }
-    
-    
-    //New wrapper functions:
-    this.xyz_dir_config_to_J_angles = function(xyz = [0, 0.5, 0.1], dir = [0, 0, -1], config = [1, 1, 1], workspace_pose = Vector.make_pose()){
-        let dim = Vector.matrix_dimensions(xyz)
-        if(dim[0] == 3 && dim[1] == 3){
-        	workspace_pose = dir
-            
-            config = xyz[2]
-            dir = xyz[1]
-            xyz = xyz[0]
-        }
-        return Kin.inverse_kinematics(xyz, dir, config, workspace_pose)[0]
-    }
-    
-    
-    
+
     
     /*
     var EE_pose = Vector.make_pose([-0.4, 0.4, 0.2], [90, 0, 0])
@@ -633,10 +655,10 @@ var Kin = new function(){
     
     
     */
-    this.xyz_to_J_angles_6_axes = function(EE_pose, config = Dexter.RIGHT_UP_OUT, workspace_pose = Vector.make_pose()){
+    static xyz_to_J_angles_6_axes(EE_pose, config = Dexter.RIGHT_UP_OUT, dexter_inst_or_workspace_pose = Vector.make_pose()){
         let direction = Vector.transpose(Vector.pull(EE_pose, [0,2], [1,1]))
         let xyz = Vector.transpose(Vector.pull(EE_pose, [0,2], [3,3]))
-        let kin_res = Kin.inverse_kinematics(xyz, direction, config, workspace_pose)
+        let kin_res = Kin.inverse_kinematics(xyz, direction, config, dexter_inst_or_workspace_pose)
         let x_vector = kin_res[2][2].slice(0,3)
         //let y_vector = direction
         //let z_vector = Vector.cross(x_vector, y_vector)
@@ -648,16 +670,17 @@ var Kin = new function(){
     
 	
     //Wrapper function for forward kinematics
-    this.J_angles_to_xyz = function(joint_angles, workspace_pose = Vector.make_pose()){
+    static J_angles_to_xyz(joint_angles, dexter_inst_or_workspace_pose = Vector.make_pose()){
         let temp_angles = Convert.deep_copy(joint_angles)
-        let xyzs = Kin.forward_kinematics(temp_angles, workspace_pose)[0]
+        let xyzs = Kin.forward_kinematics(temp_angles, dexter_inst_or_workspace_pose)[0]
         //out(xyzs)
         let direction = Vector.normalize(Vector.subtract(xyzs[5], xyzs[4]))
-        let config = Kin.J_angles_to_config(temp_angles)
+        let config = Kin.J_angles_to_config(temp_angles, dexter_inst_or_workspace_pose)
         return [xyzs[5], direction, config]
     }
     
-    this.J_angles_to_coor = function(joint_angles, L0_pose){
+    static J_angles_to_coor(joint_angles, L0_pose, dexter_inst){
+        let L0
         if(Object.isNewObject(L0_pose)){
             L0 = L0_pose
         }else if(Vector.is_pose(L0_pose)){
@@ -667,15 +690,17 @@ var Kin = new function(){
         }else{
         	dde_error("L0_pose input arg must be a Coordinate System Object, a pose, or undefined")
         }
-        let L = [Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5]
+        let L = ((dexter_inst instanceof Dexter) ?
+                   [dexter_inst.Link1, dexter_inst.Link2, dexter_inst.Link3, dexter_inst.Link4, dexter_inst.Link5] :
+                   [Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5])
         let J = joint_angles
         
         
-		L1 = L0.create_child(Vector.make_pose([0, 0, L[0]]), "L1")
-		L2 = L1.create_child(Vector.make_pose([0, 0, L[1]]), "L2")
-		L3 = L2.create_child(Vector.make_pose([0, 0, L[2]]), "L3")
-        L4 = L3.create_child(Vector.make_pose([0, 0, L[3]]), "L4")
-        L5 = L4.create_child(Vector.make_pose([0, 0,    0]), "L5")
+		let L1 = L0.create_child(Vector.make_pose([0, 0, L[0]]), "L1")
+		let L2 = L1.create_child(Vector.make_pose([0, 0, L[1]]), "L2")
+		let L3 = L2.create_child(Vector.make_pose([0, 0, L[2]]), "L3")
+        let L4 = L3.create_child(Vector.make_pose([0, 0, L[3]]), "L4")
+        let L5 = L4.create_child(Vector.make_pose([0, 0,    0]), "L5")
 		
         L1.rotate("Z", J[0], [0, 0, 0])
         L2.rotate("X", J[1], [0, 0, 0])
@@ -686,13 +711,13 @@ var Kin = new function(){
         return [L0.get_pose(Table), L1.get_pose(Table), L2.get_pose(Table), L3.get_pose(Table), L4.get_pose(Table), L5.get_pose(Table)]
     }
     
-    this.three_positions_to_pose = function(J_angles_1, J_angles_2, J_angles_3, scale_factor){
+    static three_positions_to_pose(J_angles_1, J_angles_2, J_angles_3, scale_factor, dexter_inst){
     	let points_A, points_B, points_C, UA5, UA4, UB5, UB4, UC5, UC4, U5_ave, U4_ave, U45
         let point, x_vector, y_vector, z_vector, pose, angleA, angleB, angleC, vector_1, vector_2
         
-        points_A = Kin.forward_kinematics(J_angles_1)[0]
-        points_B = Kin.forward_kinematics(J_angles_2)[0]
-        points_C = Kin.forward_kinematics(J_angles_3)[0]
+        points_A = Kin.forward_kinematics(J_angles_1, dexter_inst)[0]
+        points_B = Kin.forward_kinematics(J_angles_2, dexter_inst)[0]
+        points_C = Kin.forward_kinematics(J_angles_3, dexter_inst)[0]
         
         UA5 = points_A[5]
         UA4 = points_A[4]
@@ -769,7 +794,7 @@ var Kin = new function(){
     
     */
 
-    this.three_torques_to_force = function(J_angles, torques = [0, 0, 0]){
+    static three_torques_to_force(J_angles, torques = [0, 0, 0], dexter_inst){
     	if(torques.length != 3){dde_error("Only the first three torques are required for this function")}
         
         let U, V, P, L2, L3, P1_offset, torque_vectors, U_contact, base_rot
@@ -785,8 +810,8 @@ var Kin = new function(){
         U = fk[0]
         V = fk[1]
         P = fk[2]
-        L2 = Dexter.LINK2
-        L3 = Dexter.LINK3
+        L2 = (dexter_inst ? dexter_inst.Link2 : Dexter.LINK2)
+        L3 = (dexter_inst ? dexter_inst.Link3 : Dexter.LINK3)
         
         U_contact = U[5]
         
@@ -880,11 +905,11 @@ var Kin = new function(){
     }
     */
     
-    this.make_xyz_dir_config = function(xyz = [0, 0.5, 0.1], dir = [0, 0, -1], config = [1, 1, 1]){
+    static make_xyz_dir_config(xyz = [0, 0.5, 0.1], dir = [0, 0, -1], config = [1, 1, 1]){
     	return [xyz, dir, config]
     }
     
-	this.predict_move_dur = function(J_angles_original, J_angles_destination, robot /*returns time in milliseconds*/){
+	static predict_move_dur(J_angles_original, J_angles_destination, robot /*returns time in milliseconds*/){
         
         //let speed = robot.prop("MAX_SPEED")
         let speed = 30
@@ -894,11 +919,11 @@ var Kin = new function(){
         }
         return Vector.max(delta)/speed
     }
-    
-    this.tip_speed_to_angle_speed = function(J_angles_original, J_angles_destination, tip_speed){
+
+    static tip_speed_to_angle_speed(J_angles_original, J_angles_destination, tip_speed, dexter_inst_or_workspace_pose){
         let U1, U2
-        let EE_point_1 = Kin.J_angles_to_xyz(J_angles_destination)[0]
-        let EE_point_2 = Kin.J_angles_to_xyz(J_angles_original)[0]
+        let EE_point_1 = Kin.J_angles_to_xyz(J_angles_destination, dexter_inst_or_workspace_pose)[0]
+        let EE_point_2 = Kin.J_angles_to_xyz(J_angles_original, dexter_inst_or_workspace_pose)[0]
         let delta = Vector.subtract(J_angles_destination, J_angles_original)
         let data = []
         let temp_dist
@@ -912,7 +937,7 @@ var Kin = new function(){
         return max_theta/time
     }
     
-    this.delta_time_to_angle_speed = function(J_angles_original, J_angles_destination, delta_time){
+    static delta_time_to_angle_speed(J_angles_original, J_angles_destination, delta_time){
 		let delta = Vector.subtract(J_angles_destination, J_angles_original)
     	for(let i = 0; i < delta.length; i++){
     		delta[i] = Math.abs(delta[i])
@@ -925,7 +950,7 @@ var Kin = new function(){
     Kin.tip_speed_to_angle_speed([0, 90, 0, 0, 0], [1, 90, 0, 0, 0], 5*_mm/_s)
     */
     
-    this.angles_to_dir_xyz = function(x_angle = 0, y_angle = 0){
+    static angles_to_dir_xyz (x_angle = 0, y_angle = 0){
         if(x_angle.length == 2){
         	y_angle = x_angle[1]
             x_angle = x_angle[0]
@@ -938,7 +963,7 @@ var Kin = new function(){
 		return Vector.round(Vector.normalize(Vector.cross(ZX_plane, ZY_plane)), 15)
     }
     
-    this.dir_xyz_to_angles = function(dir_xyz = [0, 0, -1]){
+    static dir_xyz_to_angles(dir_xyz = [0, 0, -1]){
     	let x_angle, y_angle
         if(dir_xyz[2] == 0){
         	dde_error("The direction " + dir_xyz + " cannot be converted to angles")
@@ -983,7 +1008,7 @@ var Kin = new function(){
     
     */
     
-    this.dir_xyz_to_percent = function(dir_xyz = [0, 0, -1]){
+    static dir_xyz_to_percent(dir_xyz = [0, 0, -1]){
     	let total = Vector.sum(Vector.abs(dir_xyz))
 		return Vector.multiply(100, Vector.divide(dir_xyz, total))
     }
@@ -992,7 +1017,7 @@ var Kin = new function(){
     debugger
     Kin.interp_movement([0, 0, 0, 0, 0], [44, 45, 0, 0, 0], 30)
     */
-    this.interp_movement = function(J_angles_original, J_angles_destination, resolution = 5*_deg){
+    static interp_movement(J_angles_original, J_angles_destination, resolution = 5*_deg){
     	let delta = Vector.subtract(J_angles_destination, J_angles_original)
         let abs_delta = [0, 0, 0, 0, 0]
         for(let i = 0; i < delta.length; i++){
@@ -1016,7 +1041,7 @@ var Kin = new function(){
     out(Kin.angles_to_direction(0, 45))
     */
     
-    this.move_to_straight = function(xyz_1, xyz_2, J5_direction, config, tool_speed = 5*_mm / _s, resolution = .5*_mm, workspace_pose, no_error = false){
+    static move_to_straight(xyz_1, xyz_2, J5_direction, config, tool_speed = 5*_mm / _s, resolution = .5*_mm, dexter_inst_or_workspace_pose, no_error = false){
     	let movCMD = []
     	let U1 = xyz_1
     	let U2 = xyz_2
@@ -1031,16 +1056,16 @@ var Kin = new function(){
     	}
     	let angular_velocity
     	let Ui, new_J_angles
-    	let old_J_angles = Kin.xyz_to_J_angles(U1, J5_direction, config, workspace_pose)
+    	let old_J_angles = Kin.xyz_to_J_angles(U1, J5_direction, config, dexter_inst_or_workspace_pose)
         let xyzs = []
         let speeds = []
     	for(let i = 0; i < div+1; i++){
     		Ui = Vector.add(U1, Vector.multiply(i*step, v21))
-            if(!Kin.is_in_reach(Ui, J5_direction, config, workspace_pose) && no_error){
+            if(!Kin.is_in_reach(Ui, J5_direction, config, dexter_inst_or_workspace_pose) && no_error){
         		return xyzs
             }
-            new_J_angles = Kin.xyz_to_J_angles(Ui, J5_direction, config, workspace_pose)
-        	angular_velocity = Kin.tip_speed_to_angle_speed(old_J_angles, new_J_angles, tool_speed)
+            new_J_angles = Kin.xyz_to_J_angles(Ui, J5_direction, config, dexter_inst_or_workspace_pose)
+        	angular_velocity = Kin.tip_speed_to_angle_speed(old_J_angles, new_J_angles, tool_speed, dexter_inst_or_workspace_pose)
         	old_J_angles = new_J_angles
             
             xyzs.push(Ui)
@@ -1189,8 +1214,9 @@ var Kin = new function(){
         
       	Kin.context_inverse_kinematics()
      */
-     
-     function signed_angle_test(vector_A, vector_B, plane){
+
+     /*not called may 30, 2019 and James W said ok to comment out. --fry
+     static signed_angle_test(vector_A, vector_B, plane){
     	let epsilon = 1e-14
     	//checks if vectors lie in plane
         let cross_product = Vector.normalize(Vector.cross(Vector.shorten(vector_A), Vector.shorten(vector_B)))
@@ -1204,10 +1230,10 @@ var Kin = new function(){
         }else{
         	dde_error("Error: input vectors do not lie in plane")
         }
-    }
+    }*/
     
      
-     
+     /* not called. May be used some day. Has the pre-may 2019 use of global vars for Dexter.LINK1 nd firends.
      this.context_inverse_kinematics = function(args){
 	
 		//Input arg management:
@@ -1281,11 +1307,11 @@ var Kin = new function(){
         if(Vector.is_NaN(P[1])){
         	P[1] = Vector.points_to_plane(U[1], U[0], U[3])
             if(Vector.is_NaN(P[1])){
-            /*
-        		dde_error(`Singularity: Toolpoint xyz is on Base axis. [0, 0, z] divides by 0.
-            	Try [0, 1e-10, z] if it works use the ouputted joint angles for a move_all_joints() instead.
-            	The first joint angle can be changed to any value without affecting the tool point`)
-                */
+
+        		//dde_error(`Singularity: Toolpoint xyz is on Base axis. [0, 0, z] divides by 0.
+            	//Try [0, 1e-10, z] if it works use the ouputted joint angles for a move_all_joints() instead.
+            	//The first joint angle can be changed to any value without affecting the tool point`)
+
                 
                 P[1] = Vector.rotate([1, 0, 0], [0, 0, -1], args.similar_J_angles[0])
                 
@@ -1306,21 +1332,21 @@ var Kin = new function(){
         	//This is proven to work for directions of approx. [0, 1, 0] but has potentially not been tested enough
         	dist_a = Vector.distance(U3_a, [0, 0, 0])
     		dist_b = Vector.distance(U3_b, [0, 0, 0])
-            /*
-        	if (wrist_out){
-    			if (dist_a < dist_b){
-        			U[3] = U3_a
-        		}else{
-        			U[3] = U3_b
-        		}
-    		}else{
-    			if (dist_a > dist_b){
-        			U[3] = U3_a
-        		}else{
-        			U[3] = U3_b
-        		}
-    		}
-            */
+
+        	//if (wrist_out){
+    		//	if (dist_a < dist_b){
+        	//		U[3] = U3_a
+        	//	}else{
+        	//		U[3] = U3_b
+        	//	}
+    		//}else{
+    		//	if (dist_a > dist_b){
+        	//		U[3] = U3_a
+        	//	}else{
+        	//		U[3] = U3_b
+        	//	}
+    		//}
+
             
             //Solving for P2
     		//P[2] = Vector.points_to_plane(U[5], U[4], U[3])
@@ -1540,30 +1566,29 @@ var Kin = new function(){
         		}
     		}
             
+
+    		//if (elbow_up){
+    		//	if(Vector.dot(Vector.cross(V2a1, V32a), P[1]) < 0){
+        	//		U[2] = U2_a
+            //        rot_sign = 1
+        	//	}else{
+        	//		U[2] = U2_b
+        	//	}
+    		//}else{
+      		//	if(Vector.dot(Vector.cross(V2a1, V32a), P[1]) > 0){
+        	//		U[2] = U2_a
+        	//	}else{
+        	//		U[2] = U2_b
+            //        rot_sign = 1
+        	//	}
+    		//}
+
             
-            /*
-    		if (elbow_up){
-    			if(Vector.dot(Vector.cross(V2a1, V32a), P[1]) < 0){
-        			U[2] = U2_a
-                    rot_sign = 1
-        		}else{
-        			U[2] = U2_b
-        		}
-    		}else{
-      			if(Vector.dot(Vector.cross(V2a1, V32a), P[1]) > 0){
-        			U[2] = U2_a
-        		}else{
-        			U[2] = U2_b
-                    rot_sign = 1
-        		}
-    		}
-            */
-            
-            /*
-            V21 = Vector.normalize(Vector.subtract(U[2], U[1]))
-            V31 = Vector.rotate(V21, P[1], rot_sign*Gamma)
-            U[3] = Vector.add(U[2], Vector.multiply(L[2], V31))
-            */
+
+           // V21 = Vector.normalize(Vector.subtract(U[2], U[1]))
+           // V31 = Vector.rotate(V21, P[1], rot_sign*Gamma)
+           // U[3] = Vector.add(U[2], Vector.multiply(L[2], V31))
+
             
             let V42 = Vector.normalize(Vector.subtract(U[4], U[2]))
             let V32 = Vector.rotate(V42, P[1], Math.sign(args.similar_J_angles[3])*Gamma)
@@ -1618,7 +1643,7 @@ var Kin = new function(){
     	}
     
     	return [J, U, P]
-    }
+    } end of context_inverse_kinematics */
 }
 
 	module.exports = Kin

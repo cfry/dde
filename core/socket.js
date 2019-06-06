@@ -86,22 +86,12 @@ var Socket = class Socket{
     static instruction_array_degrees_to_arcseconds_maybe(instruction_array, rob){
         if(typeof(instruction_array) == "string") { return instruction_array} //no conversion needed.
         const oplet = instruction_array[Dexter.INSTRUCTION_TYPE]
+        let number_of_args = instruction_array.length - Instruction.INSTRUCTION_ARG0
         if ((oplet == "a") || (oplet == "P")){
-            let instruction_array_copy = instruction_array.slice()
-            /*instruction_array_copy[Instruction.INSTRUCTION_ARG0] =
-                Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG0] * 3600)
-            instruction_array_copy[Instruction.INSTRUCTION_ARG1] =
-                Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG1] * 3600)
-            instruction_array_copy[Instruction.INSTRUCTION_ARG2] =
-                Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG2] * 3600)
-            instruction_array_copy[Instruction.INSTRUCTION_ARG3] =
-                Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG3] * 3600)
-            instruction_array_copy[Instruction.INSTRUCTION_ARG4] =
-                Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG4] * 3600)
-            */
             //take any number of angle args
+            let instruction_array_copy = instruction_array.slice()
             let angle_args_count = instruction_array_copy.length - Instruction.INSTRUCTION_ARG0
-            for(let i = 0; i < angle_args_count; i++) {
+            for(let i = 0; i < number_of_args; i++) {
                 let index = Instruction.INSTRUCTION_ARG0 + i
                 let arg_val = instruction_array_copy[index]
                 let converted_val
@@ -118,27 +108,41 @@ var Socket = class Socket{
         }
         else if (oplet == "S") {
             const name = instruction_array[Instruction.INSTRUCTION_ARG0]
-            const val  = instruction_array[Instruction.INSTRUCTION_ARG1]
+            const args = instruction_array.slice(Instruction.INSTRUCTION_ARG1, instruction_array.length)
+            const first_arg = args[0]
             if(["MaxSpeed", "StartSpeed", "Acceleration"].includes(name)){
-                var instruction_array_copy = instruction_array.slice()
-                instruction_array_copy[Instruction.INSTRUCTION_ARG1] = Math.round(val * _nbits_cf)
+                let instruction_array_copy = instruction_array.slice()
+                instruction_array_copy[Instruction.INSTRUCTION_ARG1] = Math.round(first_arg * _nbits_cf)
                 return instruction_array_copy
             }
             else if (name.includes("Boundry")) {
                 let instruction_array_copy = instruction_array.slice()
-                instruction_array_copy[Instruction.INSTRUCTION_ARG1] = Math.round(val * 3600) //deg to arcseconds
+                instruction_array_copy[Instruction.INSTRUCTION_ARG1] = Math.round(first_arg * 3600) //deg to arcseconds
                 return instruction_array_copy
             }
-            else if (name == "EERoll"){ //J6 no actual conversion here, but this is a conveneitn place
+            else if (name == "EERoll"){ //J6 no actual conversion here, but this is a convenient place
                         //to put the setting of robot.angles and is also the same fn where we convert
                         // the degrees to dynamixel units of 0.20 degrees
                         //val is in dynamixel units
-                rob.angles[5] = val * Socket.DEGREES_PER_DYNAMIXEL_UNIT //convert dynamixel units to degrees then shove that into rob.angles for use by subsequent relative move instructions
+                rob.angles[5] = first_arg * Socket.DEGREES_PER_DYNAMIXEL_UNIT //convert dynamixel units to degrees then shove that into rob.angles for use by subsequent relative move instructions
                 return instruction_array
             }
             else if (name == "EESpan") { //J7
-                rob.angles[6] = val * Socket.DEGREES_PER_DYNAMIXEL_UNIT
+                rob.angles[6] = first_arg * Socket.DEGREES_PER_DYNAMIXEL_UNIT
                 return instruction_array
+            }
+            else if (name == "CommandedAngles"){
+                let instruction_array_copy = instruction_array.slice()
+                for(let i = Instruction.INSTRUCTION_ARG1; i <  instruction_array.length; i++){
+                    let orig_arg = instruction_array_copy[1]
+                    instruction_array_copy[i] = Math.round(orig_arg * 3600)
+                }
+                return instruction_array_copy
+            }
+            else if ((name.length == 5) && name.startsWith("Link")){
+                let instruction_array_copy = instruction_array.slice()
+                let new_val = Math.round(first_arg / _um) //convert from meters to microns
+                instruction_array_copy[Instruction.INSTRUCTION_ARG1] = new_val
             }
             else { return instruction_array }
         }
@@ -299,17 +303,21 @@ var Socket = class Socket{
             let data_end = data_start + payload_length
             payload_string = (data.slice(data_start, data_end).toString())
         }
-        else {
-            payload_string =  payload_string_maybe
+        else if (payload_string_maybe instanceof Buffer) { //beware, sometimes payload_string_maybe is a buffer. This converts it to a string.
+            payload_string =  payload_string_maybe.toString()
         }
-        Socket.r_payload_grab_aux(robot_status, payload_string.toString()) //beware, sometimes payload_string is a buffer. This converts it to a string.
+        else {
+            payload_string =  payload_string_maybe  //normally a string, but is an integer if file not found
+        }
+        Socket.r_payload_grab_aux(robot_status, payload_string)  //payload_string still might be an integer error code, ie 1 when file not found
     }
 
     //called by both Socket.r_payload_grab AND DexterSim.process_next_instruction_r
-    static r_payload_grab_aux(robot_status, payload_string){
+    //payload_string_maybe could be a string or an integer error code like 1 when no file found
+    static r_payload_grab_aux(robot_status, payload_string_maybe){
         let job_id = robot_status[Dexter.JOB_ID]
         let ins_id = robot_status[Dexter.INSTRUCTION_ID]
-        Instruction.Dexter.read_file.got_content_hunk(job_id, ins_id, payload_string)
+        Instruction.Dexter.read_file.got_content_hunk(job_id, ins_id, payload_string_maybe)
     }
 
     static convert_robot_status_to_degrees(robot_status){

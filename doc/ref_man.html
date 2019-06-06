@@ -4459,7 +4459,7 @@ The method takes 1 arg, "stop_reason" that behaves as documented above.
 
 
 <details id="Robot.sync_point_doc_id" class="doc_details"><summary>sync_point</summary>
-  A sync_point instruction cases all running jobs with the same-named sync_point
+  A sync_point instruction causes all running jobs with the same-named sync_point
   to pause until they all reach the sync_point. Once that happens, they
   are all allowed to proceed executing their instructions.<br/>
   <i>Parameters</i><br/>
@@ -4926,7 +4926,7 @@ before any of the instructions on its <i>instruction queue</i> are executed.
 move_all_joints is a lower level instruction than move_to, giving you the ability to dicate
 the angle of each of Dexter's 5 main joints, J1 through J5
 as well as the two "end effector" joints J6 and J7. A joint's angle is specified in degrees.
-The min and max angles of each joint are in constants: >br/>
+The min and max angles of each joint are in constants: <br/>
     <code>Dexter.J1_ANGLE_MIN</code> and
     <code>Dexter.J1_ANGLE_MAX</code><br/>
 through <code>Dexter.J5_ANGLE_MIN</code>
@@ -5297,14 +5297,16 @@ the instructions created are <code>Dexter.move_to</code> instructions.
 </details> <!-- end run_gcode -->
 
 <details id="Dexter.set_parameter_doc_id" class="doc_details"><summary>set_parameter</summary>
-This instruction sets a parameter within the Dexter robot in the current Job.
+This instruction sets a parameter within a Dexter robot.
 The parameter will remain set to that value after the job is done,
 and across DDE launches. Power cycling of the Dexter does not keep
-set parameter values.
-<p></p>
-<i>Parameters:</i><br/>
-<b>name</b> A string. The name of the parameter. The valid names are:
-   <table>
+set parameter values.<br/>
+<b>subject</b> <code>Dexter</code> or a specific Dexter such as <code>Dexter.dexter0</code>.<br/>
+<b>name</b> The name of the parameter to be set as a string, such as <code>"Acceleration"</code>.<br/>
+<b>values</b> These are numbers. Most of the "names" take a single numerical
+              value but a few take more than one. (separate them by commas).
+              Numbers can be either integers or floats, depending on the name.
+<!--<table>
    <tr><th>Name</th><th>Default Value</th></tr>
     <tr><td>J1Force</td><td>0</td></tr>
     <tr><td>J2Force</td><td>0</td></tr>
@@ -5333,13 +5335,13 @@ set parameter values.
     <tr><td>GripperMotor</td><td>512</td></tr>
     <tr><td>MaxSpeed</td><td></td></tr>
     <tr><td>StartSpeed</td><td></td></tr>
-    </table>
-    <b>value</b> A number (integer or floating point).
-    <p></p>
-    <i>Example Job Instruction:</i>
-    <code>Dexter.set_parameter("J1BoundryHigh", 188)</code>
+    </table>-->
+<p></p>
+<i>Example Job Instruction:</i><br/>
+<code>Dexter.set_parameter("J1BoundryHigh", 188)</code><br/>
+For a complete list of parameter names, their ranges, and their default values,
+see: <a  target="_blank" href="https://github.com/HaddingtonDynamics/Dexter/wiki/set-parameter-oplet">set_parameter</a>
 </details>
-
 
 <details id="Dexter.sleep_doc_id" class="doc_details"><summary>sleep</summary>
   Causes Dexter to "go to sleep" for the number of seconds in the one argument.
@@ -5651,6 +5653,7 @@ Example:<br/><code title="unEVALable code fragment"> Robot.dexter0.joint_xyzs()<
 ]</samp></pre>
 </details>
 
+<!--
 <details id="Robot.dexter0.prop_doc_id" class="doc_details"><summary>prop</summary>
 <b>prop</b> is a Dexter instance method that takes a string
 naming a property and returns it's value.
@@ -5688,15 +5691,49 @@ just stick<br/>
 <code title="unEVALable code fragment"> Robot.dexter0.my_val = 123</code><br/>
 in the file "dde_apps/dde_init.js"
 </details>
+end Dexter prop-->
 </details> <!-- end Dexter Utilities -->
+
+<details class="doc_details"><summary>Dexter Instance Properties</summary>
+  Each instance of the Dexter class has quite a few properties.
+  Inspect the Dexter instance to see them all.
+  This section just documents a few of them.<br/>
+  <b>Link Lengths</b> <code>Dexter.dexter0.Link1</code>,
+                      <code>Dexter.dexter0.Link2</code>,
+                      <code>Dexter.dexter0.Link3</code>,
+                      <code>Dexter.dexter0.Link4</code>,
+                      <code>Dexter.dexter0.Link5</code>
+    contain the length in meters of each link. These are all between
+    <code>0.34</code> and <code>0.08</code> for normal Dexters, but vary depending on hte particular Dexter.
+    Note that <code>Dexter.LINK1</code> (through 5) are constants for the typical Dexter,
+    but Dexter.dexter0.Link1 are likely to be more accurate for the particular Dexter.<br/>
+  <b>J1_angle_max</b> thru <b>J5_angle_max</b>
+     These properties contain the maximum angle in degrees for a given Joint.
+     Values range from 90 to 150 degrees.
+     Rarely are these changed, but you <i>can</i> set them using an instruction like:<br/>
+     <code>Dexter.set_parameter("J1BoundryHigh", 95)</code><br/>
+  <b>J1_angle_min</b> thru <b>J5_angle_min</b>.
+    These properties contain the minimum angle in degrees for a given Joint.
+    Values range from -150 to -90 degrees.<br/>
+    Rarely are these changed, but you <i>can</i> set them using an instruction like:<br/>
+    <code>Dexter.set_parameter("J1BoundryLow", -95)</code><br/>
+    <i>Example:</i><br/>
+    <code>Dexter.dexter0.J2_angle_max</code><br/>
+    These parameters are initialized at the start of the first job that uses the given robot.
+    If values for a specific robot are not found on the robot,
+    values are set from constants such as:<br/>
+     <code>Dexter.LINK3</code><br/>
+     <code>Dexter.J4_ANGLE_MIN</code><br/>
+     <code>Dexter.J5_ANGLE_MAX</code>
+</details>
 
 <details class="doc_details"><summary>Dexter Constants</summary>
 values in meters<br/>
-<code>Dexter.LINK1</code> => <samp>0.165100</samp><br/>
-<code>Dexter.LINK2</code> => <samp>0.320675</samp><br/>
-<code>Dexter.LINK3</code> => <samp>0.330200</samp><br/>
-<code>Dexter.LINK4</code> => <samp>0.050800</samp><br/>
-<code>Dexter.LINK5</code> => <samp>0.082550</samp><br/>
+<code>Dexter.LINK1</code> => <samp>0.2286</samp><br/>
+<code>Dexter.LINK2</code> => <samp>0.320676</samp><br/>
+<code>Dexter.LINK3</code> => <samp>0.330201</samp><br/>
+<code>Dexter.LINK4</code> => <samp>0.050801</samp><br/>
+<code>Dexter.LINK5</code> => <samp>0.082551</samp><br/>
 <p></p>
 <code>Dexter.LINK1_AVERAGE_DIAMETER</code> => <samp>0.090000</samp><br/>
 <code>Dexter.LINK2_AVERAGE_DIAMETER</code> => <samp>0.120000</samp><br/>
@@ -5707,8 +5744,8 @@ values in meters<br/>
 <code>Dexter.LEG_LENGTH</code> => <samp>0.152400</samp><br/>
 <p></p>
 values in degrees<br/>
-<code>Dexter.J1_ANGLE_MIN</code> => <samp>-Infinity</samp><br/>
-<code>Dexter.J1_ANGLE_MAX</code> => <samp>Infinity</samp><br/>
+<code>Dexter.J1_ANGLE_MIN</code> => <samp>-150</samp><br/>
+<code>Dexter.J1_ANGLE_MAX</code> => <samp>150</samp><br/>
 <code>Dexter.J2_ANGLE_MIN</code> => <samp>-90</samp><br/>
 <code>Dexter.J2_ANGLE_MAX</code> => <samp>90</samp><br/>
 <code>Dexter.J3_ANGLE_MIN</code> => <samp>-150</samp><br/>

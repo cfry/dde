@@ -6,6 +6,142 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 3.3.8, Jun 5, 2019</summary>
+Highlight: Improvements to Job Engine, Dexter.set_parameter, Kin.js and
+getting dexter-specific link lengths.
+<ul>
+    <li> <code>make_folder</code> fixed to adjust to OS file path conventions.
+         needs testing on WindowsOS since it changes slashes to backslashes.</li>
+
+    <li> Renamed <code>Dexter.write</code> =>  <code>Dexter.write_fpga</code></li>
+
+    <li> Dexter.write_fpga now has params: address, value
+         instead of the less helpful ...args
+         (Note this this instruction is still not documented.)</li>
+
+    <li>  Job engine, <code>make_ins(...)</code>  made into a global variable.</li>
+
+    <li>  Job engine, <code>out(...)</code>  made into a global variable.</li>
+
+    <li> Dexter default link lengths (<code>Dexter.LINK1</code> thru 5)
+          updated to have values: 228600, 320676, 330201, 50801, 82551</li>
+
+    <li> Fix to <code>Dexter.read_file</code> instruction: when file not found,
+         now handled properly and
+         the user_data.destination is filled with an integer error code, typically 1.</li>
+
+    <li> Fixed bugs in <code>Robot.loop</code> that caused it not to initialize correctly
+         when restarting a job with a loop instruction in it.</li>
+
+    <li> new testsuite file: loop_testsuite.js</li>
+
+    <li> <code>make_full_path</code> now handles prefixes of ./ and ../</li>
+
+    <li> Make Instruction dialog for <code>Dexter.set_parameter</code>
+         "name" arg is now a combo-box, not a select.
+          This allows you to type in as well as select a string from a menu.
+         You can type in illegal values, or even integers here (as is sometimes valid),
+         so be careful.
+        The menu of set_parameter names now has all the names
+          in https://github.com/HaddingtonDynamics/Dexter/wiki/set-parameter-oplet </li>
+
+    <li> <code>Dexter.set_parameter</code>  "CommandedAngles"
+         now converting the degrees arguments
+         to arcseconds before sending to Dexter.</li>
+
+    <li> Ref Man for <code>Dexter.set_parameter</code>  updated to have more accurate info and
+          a link to the githb page describing set_parameter.</li>
+
+    <li> Commented out obsolete code in robot.js for:
+         <code>cache_of_dexter_instance_files</code>,<br/>
+         <code>get_dexter_props_file_object</code>, <br/>
+         <code>prop</code>.
+    </li>
+
+    <li> Improved robustness of <code>DexterSim.empty_instruction_queue_now</code> when there's
+         a faulty job, making it easier to properly stop the job.</li>
+
+    <li> TestSuite: minor improvement to error reporting by
+         replacing "=>" with "returned" to
+         distinguish the result of an evaluation from its expected result more clearly.</li>
+
+    <li>  Error message for running a job in real mode when no Dexter connected now tells
+          users about the "simulate" button.</li>
+
+    <li> The default default for the <i>simulate</i> radio button
+         has been changed to false ("real").
+         Affects first use of DDE, but since the value of this button is preserved
+         across DDE sessions, if you change it, it will stay changed until
+         you change it back.</li>
+
+
+    <li> Dexter instance properties now initialized at start of the first job that
+         uses a given Dexter, i.e.
+         <code>Dexter.dexter0.j1_angle_min</code> set from J1BoundryLow.
+         j1_angle_min is in degrees.
+         Same true for Joints 1 through 5. min/Low and max/High.
+         Here'e the new properties on each Dexter instance with their default values:<br/>
+         J1_angle_max: 150<br/>
+         J1_angle_min: -150<br/>
+         J2_angle_max: 90<br/>
+         J2_angle_min: -90<br/>
+         J3_angle_max: 150<br/>
+         J3_angle_min: -150<br/>
+         J4_angle_max: 90<br/>
+         J4_angle_min: -90<br/>
+         J5_angle_max: 140<br/>
+         J5_angle_min: -140<br/>
+         Link1: 0.2286<br/>
+         Link2: 0.32067599999999996<br/>
+         Link3: 0.33020099999999997<br/>
+         Link4: 0.050801<br/>
+         Link5: 0.082551<br/>
+         Documented in Ref Man/Robot/Dexter/Dexter Instance Properties
+    </li>
+
+    <li> <code>Dexter.J1_ANGLE_MIN</code> changed from -Infinity to -150<br/>
+         <code>J1_ANGLE_MAX</code> changed from  Infinity to 150</li>
+
+    <li> made <code>Dexter.set_parameter("Link1", 22)</code> ... thru Link5.</li>
+
+    <li> <code>Vector.is_equal</code> bug fixed for recursive comparisons of arrays.</li>
+
+    <li> TestSuite("Inverse to Forward Kinematics and Back" now calls
+         <code>Vector.is_equal</code> so that it can be more tolerant of small differences.</li>
+
+    <li> kin.js improvements:
+         <ul>
+             <li>Deleted <code>Kin.xyz_dir_config_to_J_angles</code> as no longer needed.</li>
+             <li><code>Kin.signed_angle_test</code> commented out as no longer used.</li>
+             <li>All methods that use "L" for link lengths now initialize L and
+                use ONLY L to refer to link lengths.</li>
+             <li>Kin.js methods that can now be passed a dexter_instance to
+                 extract link lengths and pose:
+                 <ul>
+                     <li><code>Kin.inverse_kinematics forward_kinematics</code></li>
+                     <li><code>Kin.is_in_reach</code></li>
+                     <li><code>Kin.check_J_ranges</code></li>
+                     <li><code>Kin.J_angles_to_config</code></li>
+                     <li><code>Kin.J_angles_to_coor</code></li>
+                     <li><code>Kin.three_positions_to_pose</code></li>
+                     <li><code>Kin.three_torques_to_force</code></li>
+                     <li><code>Kin.tip_speed_to_angle_speed</code></li>
+                     <li><code>Kin.xyz_to_J_angles</code></li>
+                     <li><code>Kin.xyz_to_J_points</code></li>
+                     <li><code>Kin.xyz_to_J_planes</code></li>
+                     <li><code>Kin.xyz_to_J_angles_6_axes</code></li>
+                     <li><code>Kin.J_angles_to_xyz</code></li>
+                     <li><code>Kin.move_to_straight</code></li>
+                 </ul>
+             </li>
+         </ul>
+    </li>
+
+    <li> <code>Dexter.joints_out_of_range</code> now takes 2nd arg of a dexter instance
+         so that it can compare based on actual robot instance values.</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.3.7, May 20, 2019</summary>
 <ul>
     <li>Fixed bug in persistent_load to get rid of backslashes on the files-menu files.</li>

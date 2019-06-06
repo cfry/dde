@@ -252,6 +252,7 @@ var TestSuite = class TestSuite{
         load_files(__dirname + "/test_suite/picture_testsuite.js")
         load_files(__dirname + "/test_suite/make_html_testsuite.js")
         load_files(__dirname + "/test_suite/file_system_testsuite.js")
+        load_files(__dirname + "/test_suite/loop_testsuite.js")
         if (!TestSuite["user_guide_id"])       { TestSuite.make_test_suites_from_doc(user_guide_id) }
         if (!TestSuite["reference_manual_id"]) { TestSuite.make_test_suites_from_doc(reference_manual_id) }
         let report_prefix = '<b style="font-size:20px;">All Test Suites Report</b><br/>' +
@@ -667,7 +668,7 @@ var TestSuite = class TestSuite{
                     let src_result_html = "<span style='color:red;'>" + src_result_str + "</span>"
                     error_message = test_number_html +
                         "&nbsp;<code>" + src +
-                        "</code> => "                    + ((src_result_str.length > 20) ? "<br/>" : "") + "<code>" + src_result_html  +
+                        "</code> <i>returned</i>: "                    + ((src_result_str.length > 20) ? "<br/>" : "") + "<code>" + src_result_html  +
                         "</code>, <i>but expected</i>: " + ((src_result_str.length > 20) ? "<br/>" : "") + "<code>" + stringify_value(expected_result) +
                         "</code> " + desc_html + "<br/>"
                 }

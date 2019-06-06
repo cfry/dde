@@ -10,7 +10,7 @@ function get_persistent_values_defaults() {
     return {"save_on_eval":     false,
             "default_out_code": false,
             "files_menu_paths": [add_default_file_prefix_maybe("dde_init.js")],
-            "default_dexter_simulate": true,
+            "default_dexter_simulate": false,
             "editor_font_size":    17,
             "dde_window_width":  1000,
             "dde_window_height":  600,
@@ -423,12 +423,14 @@ function make_folder(path){
     let path_being_built = ""
     for(let path_part of path_array){
         path_being_built += ("/" + path_part)
-        if(!file_exists(path_being_built)){
+        let path_to_use = adjust_path_to_os(path_being_built)
+
+        if(!file_exists(path_to_use)){
            try{
-                fs.mkdirSync(path_being_built)
+                fs.mkdirSync(path_to_use)
            }
            catch(err){
-               dde_error("In make_folder, could not make: " + path + "<br/>" +
+               dde_error("In make_folder, could not make: " + path_to_use + "<br/>" +
                          err.message)
            }
         }
@@ -495,8 +497,18 @@ function add_default_file_prefix_maybe(path){
         path = path.substring(8)
         return dde_apps_folder + path
     }
-    else return dde_apps_folder + "/" + path
+    else if(path.startsWith("./")) { return "dde_apps/" + path.substring(2) }
+    else if (path.startsWith("../")) {
+        let core_path = path.substring(3)
+        let last_slash_pos = dde_apps_folder.lastIndexOf("/")
+
+        let up_from_dde_apps = dde_apps_folder.substring(0, last_slash_pos + 1)
+        new_path = up_from_dde_apps + core_path
+        return new_path
+    }
+    else { return dde_apps_folder + "/" + path }
 }
+
 
 function adjust_path_to_os(path){
     if (path.includes("://")) { //looks like a url so leave it alone
@@ -513,8 +525,10 @@ function adjust_path_to_os(path){
     }
 }
 
-function make_full_path(path){
-    return add_default_file_prefix_maybe(adjust_path_to_os(path))
+function make_full_path(path, adjust_to_os=true){
+    path = add_default_file_prefix_maybe(path)
+    if (adjust_to_os) { path = adjust_path_to_os(path) }
+    return path
 }
 module.exports.make_full_path = make_full_path
 
