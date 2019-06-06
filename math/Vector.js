@@ -2,7 +2,7 @@
 //Vector and Matrix math functions
 //James Wigglesworth
 //Started: 6_18_16
-//Updated: 8_8_18
+//Updated: 6_1_19
 
 var dde_github_issues = "https://github.com/cfry/dde/issues"
 
@@ -715,7 +715,7 @@ class Vector{
             	}
         		result = true
         		for(var i = 0; i < array1_temp.length; i++){
-            		if (array1_temp[i] != array2_temp[i]){
+            		if (JSON.stringify(array1_temp[i]) != JSON.stringify(array2_temp[i])){
                     	return false
                 	}
             	}
@@ -729,7 +729,8 @@ class Vector{
                 
                 case "percent_difference":
                 if(tolerance > 1){
-                	warning("Percent difference tolerance should be within 0 and 1.</br>Input of "
+                	
+                	warning("Percent difference tolerance should be within 0 and 1.</br>Input of " 
                     + tolerance + " changed to " + (tolerance/100) + ".")
                     tolerance = tolerance/100
                 }
@@ -2717,3 +2718,11 @@ module.exports = Vector
 var Convert = require("./Convert.js")
 var {sind, cosd, tand, asind, acosd, atand, atan2d} = require("./Trig_in_Degrees.js")
 var {warning} = require("../core/utils.js")
+/*
+if("dde" !== platform){
+	module.exports = Vector
+	var Convert = require("./Convert.js")
+	var {sind, cosd, tand, asind, acosd, atand, atan2d} = require("./Trig_in_Degrees.js")
+    var {warning} = require("../core/utils.js")
+}
+*/
