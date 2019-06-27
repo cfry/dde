@@ -330,12 +330,10 @@ Each indicates that a joint has power.
 
     <details class="doc_details"><summary>Verify Joint Wiring</summary>
     To verify that all 5 joints are wired correctly:
-    <ol><li>Verify that the Jumpers on processor board are configured like in this picture.<br/>
-             <img src="doc/processor_board_jumpers.png" alt="processor board jumpers picture."/><br/>
-             This is a picture of the lower half of Dexter's processor board.
-             The 3 jumpers that must be in the right position are the horizontal
-             black rectangles on the lower left part of the board.
-             </li>
+    <ol><li>Verify that the jumpers on Dexter's processor board are configured correctly.
+            See <a href="https://github.com/HaddingtonDynamics/Dexter/wiki/Troubleshooting" target="_blank">Troubleshooting</a>
+            for details.
+        </li>
         <li>Choose DDE's Jobs menu/Run Instruction/Show Dialog..."</li>
         <li>for J1 through J5, make each Joint's 30 degrees with the others at 0,
             and click on move_all_joints and observe that that joint should move by 30 degrees.
@@ -358,7 +356,7 @@ Each indicates that a joint has power.
         On Macs, click on the "Radio waves" icon in the upper right of the screen.<br/>
         Choose "Turn WiFi Off".
         <p></p>
-        <a  target="_blank" href="https://github.com/HaddingtonDynamics/Dexter/wiki/Dexter-Networking">
+        <a target="_blank" href="https://github.com/HaddingtonDynamics/Dexter/wiki/Dexter-Networking">
         Dexter Networking details.</a><br/>
         <b>Using DDE</b><br/>
         In the Misc pane header simulate radion buttons, choose "real".
@@ -724,7 +722,7 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
                     now in the Output pane header to run it.</li>
                <li><b>Debug entire Job</b> by:
                   <ul><li>Looking at its output in the Output pane from
-                           error messages and <a href="#" onclick="open_doc('Robot.out_doc_id')">Robot.out</a> instructions.</li>
+                           error messages and <a href="#" onclick="open_doc('IO.out_doc_id')">IO.out</a> instructions.</li>
                       <li>Looking at the <i>Simulate Dexter</i> pane
                            (select from the Misc pane header menu).</li>
                       <li>Inspect the Job's data structure
@@ -760,7 +758,7 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
                 Checking the <b>pause</b> checkbox will cause running jobs to pause
                 when they have completed their current instruction. Jobs started when
                 the pause button is checked will pause right before the first user instruction
-                on the do_list is run. If the running Job executes a <code>Robot.debugger</code>
+                on the do_list is run. If the running Job executes a <code>Control.debugger</code>
                 instruction, that will also cause the job to pause.
                 <p></p>
                 When a job is paused, clicking the <button>Go</button> button will cause
@@ -768,16 +766,16 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
                 pane, and pause. If a job is paused, and you uncheck the pause checkbox,
                 then click the <button>Go</button> button, the job will begin running normally.
                 <p></p>
-                <details id="Robot.debugger_doc_id" class="doc_details"><summary>debugger</summary>
-                    The instruction of <code>Robot.debugger()</code> in a do_list will cause
+                <details id="Control.debugger_doc_id" class="doc_details"><summary>debugger</summary>
+                    The instruction of <code>Control.debugger()</code> in a do_list will cause
                     the <b>pause</b> checkbox to be checked and the job to pause.
-                    A function that returns the result of <code>Robot.debugger()</code> or
-                    even an array that has an element of the result of <code>Robot.debugger()</code>
+                    A function that returns the result of <code>Control.debugger()</code> or
+                    even an array that has an element of the result of <code>Control.debugger()</code>
                     will cause a pause.
                     <p></p>
-                    You can insert this instruction using the Learn JS menu/Debugging etc/Robot.debugger().
+                    You can insert this instruction using the Learn JS menu/Debugging etc/Control.debugger().
                     <p></p>
-                    Note that using <code>Robot.debugger()</code>
+                    Note that using <code>Control.debugger()</code>
                     is intentionally similar to using the JavaScript constant <code title="not in TestSuite">debugger</code>.
                     If you have the constant <code title="not in TestSuite">debugger</code>
                     in the body of a function that is a do_list item, or is called by
@@ -1073,7 +1071,7 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
         can run on all robots. These are <i>control</i> instructions because they help
         manage the flow of instructions in a job. Examples include: <code>Robot.stop</code>
         to end a job immediately without processing the insructions after the stop instruction,
-        and <code>Robot.wait_until</code> which pauses execution of the job's instructions until
+        and <code>Control.wait_until</code> which pauses execution of the job's instructions until
         the calling of the given JS function returns true.
     <p></p>
     See <button>Series&#9660;</button> submenu "robot" for details about robots as
@@ -1413,10 +1411,10 @@ Find Home is a part of Dexter Calibration. To use Find Home:
     so that you can distinquish some outputs from others in a complex debugging session.
     See <a href="#" onclick="open_doc(out_doc_id, event)">out</a>.</li>
 
-    <li><b>Robot.out</b> <code>Robot.out("some data")</code> creates an
+    <li><b>IO.out</b> <code>IO.out("some data")</code> creates an
     instruction in a Job's do_list to print content to the output console
     with similar functionality to <code>out</code>
-    See <a href="#" onclick="open_doc('Robot.out_doc_id', event)">Robot.out</a>.</li>
+    See <a href="#" onclick="open_doc('IO.out_doc_id', event)">IO.out</a>.</li>
 
     <li><b>show_instructions</b> <code title="unEVALable">new Job({show_instructions=some_fn})</code>
     lets you call an arbitrary function (with clever defaults) before each

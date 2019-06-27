@@ -322,6 +322,8 @@
 
     open_from_dexter_id.onclick = Editor.open_from_dexter_computer
 
+    open_system_file_id.onclick = Editor.open_system_file
+
     load_file_id.onclick=function(e) {
         const path = choose_file({title: "Choose a file to load"})
         if (path){
@@ -869,7 +871,7 @@ get_page_async("http://www.ibm.com", function(err, response, body){ out(body.len
              if (Editor.selection_start() == 0)     {prefix = ""}
              else if ("[, \n]".includes(prev_char)) {prefix = ""}
              else                                   {prefix = ","}
-             Editor.insert(prefix + 'Robot.debugger(),nnll') //ok if have comma after last list item in new JS.
+             Editor.insert(prefix + 'Control.debugger(),nnll') //ok if have comma after last list item in new JS.
     }
     comment_out_id.onclick     = function(){Editor.wrap_around_selection("/*", "*/")}
     comment_eol_id.onclick     = function(){Editor.insert("//")}
@@ -969,7 +971,7 @@ foo      //eval to see the latest values</pre>`,
     // Control Flow menu
     if_single_armed_id.onclick = function(){Editor.wrap_around_selection('if (1 + 1 == 2) {\n    ', '\n}')}
     if_multi_armed_id.onclick  = function(){Editor.wrap_around_selection('if (1 + 1 == 2) {\n    ', '\n}\nelse if (2 + 2 == 4){\n    \n}\nelse {\n    \n}\n')}
-    for_number_of_times_id.onclick  = function(){Editor.wrap_around_selection('for(let i = 0; i < 10; i++){\n', '\n}\n')}
+    for_number_of_times_id.onclick    = function(){Editor.wrap_around_selection('for(let i = 0; i < 10; i++){\n', '\n}\n')}
     for_through_array_elts_id.onclick = function(){Editor.wrap_around_selection('for(let x of [7, 4, 6]){\n', '\n}\n')}
     try_id.onclick             = function(){Editor.wrap_around_selection('try{\n', '\n} catch(err){handle errors here}')}
     dde_error_id.onclick       = function(){Editor.wrap_around_selection('dde_error(', ')', '"busted!"')}
@@ -989,7 +991,7 @@ foo      //eval to see the latest values</pre>`,
     show_robot_status_id.onclick   = RobotStatusDialog.show
     jobs_report_id.onclick         = function(){Job.report() }
     stop_all_jobs_id.onclick       = function(){Job.stop_all_jobs() }
-    undefine_jobs_id.onclick     = function(){Job.clear_stopped_jobs() } //use individual X (close) marks instead
+    undefine_jobs_id.onclick       = function(){Job.clear_stopped_jobs() } //use individual X (close) marks instead
 
     /*$("#real_time_sim_checkbox_id").jqxCheckBox({ checked: true })
     real_time_sim_checkbox_id.onclick = function(event) {
@@ -1002,6 +1004,9 @@ foo      //eval to see the latest values</pre>`,
         event.stopPropagation() //causes menu to not shrink up, so you can see the effect of your click
                             //AND causes the onclick for simulate_id to NOT be run.
     }*/
+    insert_new_job_id.onclick = Editor.insert_new_job
+    set_menu_string(insert_new_job_id, "New Job", "j")
+
     insert_job_example0_id.onclick = function(){Editor.insert(job_examples[0])}
     insert_job_example1_id.onclick = function(){Editor.insert(job_examples[1])}
     insert_job_example2_id.onclick = function(){Editor.insert(job_examples[2])}
@@ -1017,7 +1022,7 @@ foo      //eval to see the latest values</pre>`,
     insert_job_example12_id.onclick = function(){Editor.insert(job_examples[12])}
     insert_job_example13_id.onclick = function(){
                                          Editor.insert(job_examples[13])
-                                         open_doc("Robot.loop_doc_id")
+                                         open_doc("Control.loop_doc_id")
     }
     insert_job_example14_id.onclick = function(){Editor.insert(job_examples[14])}
 

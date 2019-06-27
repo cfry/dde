@@ -1,6 +1,6 @@
 
 new TestSuite("DE comparison",
-    ['DE.de_to_js("4 lessasdfsadf with 67.")', '"(4 < 67)"'],
+    ['DE.de_to_js("4 less with 67.")', '"(4 < 67)"'],
     ['DE.de_to_js("4 more than with 67.")', '"(4 > 67)"'],
     ['DE.de_to_js("44 equals with 67.")', '"(44 == 67)"'],
     ['DE.de_to_js("44 not equals with 67.")', '"(44 != 67)"'],
@@ -51,7 +51,10 @@ new TestSuite("DE call",
         ['DE.de_to_js("launch with  .")', '"launch()"'],
     	['DE.de_to_js("launch with.")', '"launch()"'],
         ['DE.de_to_js("launch with .")', '"launch()"'],
-        ['DE.de_to_js("launch with . ")', '"launch()"']
+        ['DE.de_to_js("launch with . ")', '"launch()"'],
+        ['DE.de_to_js("man/Joe launch with 123, 456.")', "man.Joe.launch(123, 456)"]
+
+
 )
 
 new TestSuite("DE comment",
@@ -101,7 +104,9 @@ new Testsuite("fn def",
     ['DE.de_to_js("to double with num default 2. do num plus with num.!")', 
      '"function double(num=2){(num + num)}"'],
     ['DE.de_to_js("to double with num of 2. do num plus with num.!")', 
-     '"function double({num=2}={}){(num + num)}"']
+     '"function double({num=2}={}){(num + num)}"'],
+    ['DE.de_to_js("to unnamed with num of 2. do num plus with num.!"', //not implemented
+    '"function({num=2}={}){(num + num)}"']
      )
      
 new TestSuite("keyword_exprs_block",
@@ -109,6 +114,7 @@ new TestSuite("keyword_exprs_block",
     ['DE.de_to_js("otherwise do 3 plus with 4.!")', '"else{(3 + 4)}"'],
     ['DE.de_to_js("finally do 3 plus with 4.!")', '"finally{(3 + 4)}"'],
     ['DE.de_to_js("if error err do out with 234. 22 plus with 44.!")', '"catch(err){out(234)\\n(22 + 44)}"']
+
 )
 
 new TestSuite("if_but_if",
@@ -122,6 +128,10 @@ new TestSuite("if_but_if",
      ['DE.de_to_js("if true do !")', '"if(true){}"'],
      ['DE.de_to_js("if true do!")', '"if(true){}"']
 )
+
+
+
+
 
 DE.eval("loop 5 do loop_result push with loop_value.!")
 DE.de_to_js("loop 5 do out with loop_value.!")

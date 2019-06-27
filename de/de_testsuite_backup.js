@@ -49,7 +49,8 @@ new TestSuite("DE call",
         ['DE.de_to_js("launch with  .")', '"launch()"'],
     	['DE.de_to_js("launch with.")', '"launch()"'],
         ['DE.de_to_js("launch with .")', '"launch()"'],
-        ['DE.de_to_js("launch with . ")', '"launch()"']
+        ['DE.de_to_js("launch with . ")', '"launch()"'],
+        ['DE.de_to_js("man/Joe launch with 123, 456.")', "man.Joe.launch(123, 456)"]
 )
 
 new TestSuite("DE comment",

@@ -210,7 +210,7 @@ var RobotStatusDialog = class RobotStatusDialog{
             robot_status_run_update_job_button_id.style.backgroundColor = "#AAFFAA"
             new Job({name: "rs_update",
                 robot: rob,
-                do_list: [ Robot.loop(true,
+                do_list: [ Control.loop(true,
                            function() {
                               rob.set_is_calibrated()
                               let cal = rob.is_calibrated

@@ -326,7 +326,7 @@ var MiRecord = class MiRecord {
             robot: job_wrapper_robot,
             do_list: [
                 Dexter.set_follow_me(),
-                Robot.loop(true,
+                Control.loop(true,
                             function(){
                                 let rs_array = last(this.rs_history)
                                 let rs_obj = new RobotStatus({robot_status: rs_array})
@@ -633,7 +633,7 @@ var MiRecord = class MiRecord {
                   Dexter.loop(true,
                     function(iter_index){
                         if (iter_index >= mi_recorded_angles.length){
-                             return Robot.break()
+                             return Control.break()
                         }
                         else { return Dexter.pid_move_all_joints(mi_recorded_angles[iter_index]) }
                     })

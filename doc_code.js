@@ -78,7 +78,7 @@ function open_doc(details_elt, record=true){
 }
 
 //fn_name can be the actual fn or a string of its name or a path to the fn, or a class
-//fn name might have dots in it like "Robot.go_to"
+//fn name might have dots in it like "Control.go_to"
 function open_doc_show_fn_def(details_elt, fn_name){
     if(typeof(details_elt) == "string"){
         details_elt = window[details_elt]

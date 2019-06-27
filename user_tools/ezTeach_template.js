@@ -152,7 +152,7 @@ function ez_stop_run(info){
     CMD = [
     	function(){info.job.inter_do_item_dur = .5 * _ms},
     	make_ins("S", "GripperMotor", 0),
-        Robot.stop_job,
+        Control.stop_job,
     ]
 }
 

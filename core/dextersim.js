@@ -146,6 +146,11 @@ DexterSim = class DexterSim{
        //so just leave that as it is--apr 2019
         if (this.sim_actual === true){
             let rob = this.robot
+            if((rs_copy[Dexter.INSTRUCTION_TYPE] == "r")   &&
+                (typeof(payload_string_maybe) == "number") &&
+                (payload_string_maybe > 0)){
+                rs_copy[Dexter.ERROR_CODE] = payload_string_maybe
+            }
             setTimeout(function(){
                         Socket.on_receive(rs_copy, rob.name, payload_string_maybe)
                         }, 1)
@@ -422,13 +427,11 @@ DexterSim = class DexterSim{
         let whole_content
         try { whole_content = read_file(source) }//errors if path in "source" doesn't exist
         catch(err){
-            return 1 //return the error code
+            return 2 //return the error code
         }
         let start_index = hunk_index * Instruction.Dexter.read_file.payload_max_chars
         let end_index = start_index + Instruction.Dexter.read_file.payload_max_chars
         let payload_string = whole_content.substring(start_index, end_index) //ok if end_index is > whole_cotnent.length, it just gets how much it can, no error
-        //out("some content from " + source + " hunk: " + hunk_index + " payload: " + payload_string)
-        //Socket.r_payload_grab_aux(instruction_array, payload_string)
         return payload_string
     }
     //Dexter.write_file

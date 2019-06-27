@@ -1,12 +1,12 @@
 //Created by Fry on 3/22/16.
 
 Js_info = class Js_info {
-    static get_info_string(fn_name, series=null){
-            var orig_input = fn_name
-            var fn
-            var param_count
-            var param_string = ""
-            var path = null
+    static get_info_string(fn_name, series=null, full_src=null, pos=null){
+            let orig_input = fn_name
+            let fn
+            let param_count
+            let param_string = ""
+            let path = null
             if (fn_name == "_the_editor_is_empty") { return "The Editor is empty. Type to insert text." }
             else if (fn_name == "_the_eof_token")  { return "You clicked beyond the last character in the Editor." }
             else if (Array.isArray(fn_name)){
@@ -18,12 +18,14 @@ Js_info = class Js_info {
                     case "let_name":
                         return "<span style='color:blue;'>" + fn_name[1] + "</span> is a " + Js_info.make_atag("let", "let") + " variable of function: " + fn_name[2]
                     case "fn_name":
-                        return Js_info.get_info_string_aux(orig_input)
+                        return Js_info.get_info_string_aux(orig_input, full_src, pos)
                     default: //shouldn't but stick in for d ebugging
                         return "" + fn_name
                 }
             }
-            var info_and_url = Js_info.fn_name_to_info_map[fn_name] //miscelaneous stuff
+            let is_identifier = ((typeof(fn_name) == "string") && is_string_an_identifier(fn_name))
+            let bounds_of_identifier = (is_identifier ? Editor.bounds_of_identifier(full_src, pos) : null )
+            let info_and_url = Js_info.fn_name_to_info_map[fn_name] //miscelaneous stuff
             fn_name = Js_info.strip_path_prefix_maybe(fn_name)
             if (!info_and_url) { info_and_url = Js_info.fn_name_to_info_map[fn_name] } //try again without prefix, for cases where orign fn_name is "fn.call", for instance
             if (!series){ series = Series.find_series(fn_name) }
@@ -48,7 +50,7 @@ Js_info = class Js_info {
                 if (series) { return Js_info.add_series_wrapper_to_info(series, new_info) }
                 else { return new_info }
             }
-            if (fn_name == "Job"){
+            else if (fn_name == "Job"){
                 let val = value_of_path(fn_name)
                 //return "new " + Js_info.wrap_fn_name(fn_name) +
                 //    function_params_for_keyword_call(val)
@@ -89,6 +91,10 @@ Js_info = class Js_info {
                 result += "})"
                 return result
             }
+            //do this before series because we may have a keword of "name:" and name is in the HTML series
+            else if(bounds_of_identifier && (full_src[bounds_of_identifier[1]] == ":")) { //got keyword
+                return '<span style="color: blue;">' + fn_name + ":</span> looks like a keyword for making an object or a function call."
+            }
             else if(series){
                 let obj_to_inspect = this.object_to_inspect_maybe(fn_name, series)
                 if(typeof(obj_to_inspect) == "string"){
@@ -105,18 +111,18 @@ Js_info = class Js_info {
                     inspect(obj_to_inspect)
                     return null
                 }
-                let info = Js_info.getInfo_string_given_series(path, fn_name, series)
+                let info = Js_info.getInfo_string_given_series(fn_name, series)
                 if (info) { return Js_info.add_series_wrapper_to_info(series, info) }
             }
             else if (!Number.isNaN(parseFloat(fn_name))){ //hits on both floats and ints, //must do before we split on dot
                 if (fn_name.includes(".")){ //got a float
                     let the_series = Series.id_to_series("series_float_id")
-                    let info       = Js_info.getInfo_string_given_series(path, fn_name, the_series)
+                    let info       = Js_info.getInfo_string_given_series(fn_name, the_series)
                     return Js_info.add_series_wrapper_to_info(the_series, info)
                 }
                 else { //got an int
                     let the_series = Series.id_to_series("series_integer_id")
-                    let info       = Js_info.getInfo_string_given_series(path, fn_name, the_series)
+                    let info       = Js_info.getInfo_string_given_series(fn_name, the_series)
                     return Js_info.add_series_wrapper_to_info(the_series, info)
                 }
             }
@@ -211,12 +217,12 @@ Js_info = class Js_info {
                     let url = "https://developer.mozilla.org/en-US/docs/Web/API/Window/" + fn_name
                     return Js_info.make_atag("window", fn_name, url) + "(" + Js_info.get_param_string(fn) + ")"
                 }
-                else { return Js_info.get_info_string_aux(orig_input) }
+                else { return Js_info.get_info_string_aux(orig_input, full_src, pos) }
             }
             else if (Editor.in_a_comment(Editor.get_javascript(), Editor.selection_start())){
                 return 'You clicked in a <a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Basics">comment</a>.'
             }
-            else { return Js_info.get_info_string_aux(orig_input) }
+            else { return Js_info.get_info_string_aux(orig_input, full_src, pos) }
     }
 
     //args that probably will return false from this: "title", "body", "activeElement"
@@ -224,7 +230,7 @@ Js_info = class Js_info {
         try{ return Document.prototype[fn_name] } //if null or undefined, or some other data, return that!
         catch (err) { return false }
     }
-    static get_info_string_aux(fn_name){
+    static get_info_string_aux(fn_name, full_src=null, pos=null){
             var val
             if (Array.isArray(fn_name)){
                 if(fn_name[0] == "fn_name"){ //user clicked on the name of the function in a function def
@@ -246,7 +252,16 @@ Js_info = class Js_info {
                 let doc_id_string = fn_name + "_doc_id"
                 let doc_id_elt = window[doc_id_string]
                 if ((val === undefined) && (doc_id_elt === undefined)){
-                    return "Sorry, DDE doesn't know what " + '<span style="color:blue">' + fn_name + "</span> is."
+                    let lit_string_info_maybe = Js_info.get_lit_string_info_maybe(fn_name, full_src, pos)
+                    if(lit_string_info_maybe) { return lit_string_info_maybe }
+                    else {
+                        let is_identifier = ((typeof(fn_name) == "string") && is_string_an_identifier(fn_name))
+                        let bounds_of_identifier = (is_identifier ? Editor.bounds_of_identifier(full_src, pos) : null )
+                        if(bounds_of_identifier && (full_src[bounds_of_identifier[1]] == "(")) {
+                            return "<span style='color:blue;'>" + fn_name + "</span> looks like the name of a function in a call, but it is undefined."
+                        }
+                        else { return "Sorry, DDE doesn't know what " + '<span style="color:blue">' + fn_name + "</span> is." }
+                    }
                 }
                 else if (typeof(val) == "function"){
                     if (is_class(val)){
@@ -274,6 +289,100 @@ Js_info = class Js_info {
             }
     }
 
+    //last ditch effort. Does not attempt to find backquote lit strings since those can
+    //span multi_lines, so are harder to be definitinve about finding,
+    // AND they are not so common.
+    /*static get_lit_string_info_maybe(fn_name, full_src, pos){
+        let prev_newline      = full_src.lastIndexOf("\n", pos)
+        let next_newline      = full_src.indexOf("\n", pos)
+        let prev_double_quote = full_src.lastIndexOf('"', pos)
+        let prev_single_quote = full_src.lastIndexOf("'", pos)
+        let next_double_quote = full_src.indexOf('"', pos)
+        let next_single_quote = full_src.indexOf("'", pos)
+        let double_quote_possible = true
+        let single_quote_possible = true
+        if((prev_double_quote == -1) ||
+           (next_double_quote == -1) ||
+           ((prev_newline != -1) && (prev_double_quote < prev_newline)) ||
+           ((next_newline != -1) && (next_double_quote > next_newline))) {
+            double_quote_possible = false
+        }
+        if((prev_single_quote == -1) ||
+            (next_single_quote == -1) ||
+            ((prev_newline != -1) && (prev_single_quote < prev_newline)) ||
+            ((next_newline != -1) && (next_single_quote > next_newline))) {
+            single_quote_possible = false
+        }
+        if(double_quote_possible && single_quote_possible) {
+            if((prev_double_quote < prev_single_quote) &&
+                (next_double_quote > next_single_quote)) { //look like "  '   '  " with curosr in the middle, ie nested single quote
+                single_quote_possible = false //choose the OUTER string
+            }
+            else if ((prev_single_quote < prev_double_quote) &&
+                    (next_single_quote > next_double_quote)) { //look like '  "   "  ' with curosr in the middle, ie nested single quote
+                double_quote_possible = false //choose the OUTER string
+            }
+            else if (prev_double_quote > prev_single_quote) {
+                   single_quote_possible = false //choose the closer string
+            }
+            else { double_quote_possible = false } //choose the closer string
+        }
+        //either we have just double_quote_possible, just single_quote_possible or neigther
+        if(double_quote_possible) {
+            let lit_str = full_src.substring(prev_double_quote, next_double_quote + 1)
+            return this.getInfo_string_given_series(lit_str, series_literal_string_id)
+        }
+        else if(single_quote_possible) {
+            let lit_str = full_src.substring(prev_single_quote, next_single_quote + 1)
+            return this.getInfo_string_given_series(lit_str, series_literal_string_id)
+        }
+        else { return null } //can't find lit string.
+    }*/
+
+    //return null or a html string of help
+    static get_lit_string_info_maybe(fn_name, full_src, pos){
+        let prev_newline      = full_src.lastIndexOf("\n", pos)
+        let next_newline      = full_src.indexOf("\n", pos)
+        full_src = full_src.substring(prev_newline + 1, next_newline)
+        pos -= (prev_newline + 1)
+        let start_search = 0
+        for(let i = 0; i < 20; i++){
+            let begin_double_quote = full_src.indexOf('"', start_search)
+            let end_double_quote   = ((begin_double_quote == -1) ? -1 :  full_src.indexOf('"', begin_double_quote + 1))
+            let begin_single_quote = full_src.indexOf("'", start_search)
+            let end_single_quote   = ((begin_single_quote == -1) ? -1 :  full_src.indexOf("'", begin_single_quote + 1))
+
+            if((begin_double_quote == -1) || (end_double_quote == -1)) { //double not possible, try single
+                if((begin_single_quote == -1) || (end_single_quote == -1)) { return null }
+                else if((begin_single_quote <= pos) && (end_single_quote >= pos)) {
+                    let lit_str = full_src.substring(begin_single_quote, end_single_quote + 1)
+                    return this.getInfo_string_given_series(lit_str, series_literal_string_id)
+                }
+                else { start_search = end_single_quote + 1 } //loop around again
+            }
+            //double is possible
+            else if((begin_single_quote == -1) ||
+                    (end_single_quote == -1) ||
+                    (begin_double_quote < begin_single_quote)) { //double is possible
+               if((begin_double_quote <= pos) && (end_double_quote >= pos)) {
+                    let lit_str = full_src.substring(begin_double_quote, end_double_quote + 1)
+                    return this.getInfo_string_given_series(lit_str, series_literal_string_id)
+               }
+               else { start_search = end_double_quote + 1 } //loop around again
+            }
+            else { //only single possible
+                if((begin_single_quote <= pos) && (end_single_quote >= pos)) {
+                        let lit_str = full_src.substring(begin_single_quote, end_single_quote + 1)
+                        return this.getInfo_string_given_series(lit_str, series_literal_string_id)
+                }
+                else {
+                    start_search = end_single_quote + 1  //loop around again
+                }
+            }
+        }
+        return null //too many loop iterations, so quit.
+    }
+
     static strip_path_prefix_maybe(fn_name){
         let lit_str_delimiters = ['"', "'", "`"]
         let first_char = ((fn_name.length > 1) ? fn_name[0] : null)
@@ -297,7 +406,7 @@ Js_info = class Js_info {
         return "<i>Series: " + the_series.get_name() + "</i>&nbsp;&nbsp;" + info
     }
     
-    static getInfo_string_given_series(path, fn_name, series){
+    static getInfo_string_given_series(fn_name, series){
         let fn, class_name, new_fn_name, class_fn_name_array, param_string  //more than 1 series uses this local var
         switch(series.id){
             case "series_punctuation_id":
@@ -554,7 +663,7 @@ Js_info = class Js_info {
         return false
     }
 
-    //fn name might have dots in it like "Robot.go_to"
+    //fn name might have dots in it like "Control.go_to"
     static wrap_fn_name(fn_name, the_doc_id){
         let result = fn_name
         if(!the_doc_id) { the_doc_id = fn_name + "_doc_id"}
@@ -740,7 +849,7 @@ Js_info.fn_name_to_info_map = {
     "JSON.parse": ["JSON.parse(a_string)",                        "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse"],
     "instanceof":["new Date() instanceof Date => true", "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/instanceof"],
     "let":       ["let foo = 2;",                       "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/let"],
-    "new":       ['new Date("Apr 1 2016")',             "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/new"],
+    "new":       ['new creates an object such as a Job or a Dexter', "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/new"],
     "null":      ["null",                               "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/null"],
     "return":    ["function foo(){return 7}",           "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/return"],
     "Root":      ["Root is the common ancestor<br/>of all objects made with newObject."],

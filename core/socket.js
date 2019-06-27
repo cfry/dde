@@ -110,7 +110,11 @@ var Socket = class Socket{
             const name = instruction_array[Instruction.INSTRUCTION_ARG0]
             const args = instruction_array.slice(Instruction.INSTRUCTION_ARG1, instruction_array.length)
             const first_arg = args[0]
-            if(["MaxSpeed", "StartSpeed", "Acceleration"].includes(name)){
+            //first convert degress to arcseconds
+            if(["MaxSpeed", "StartSpeed", "Acceleration",
+                "AngularSpeed", "AngularSpeedStartAndEnd", "AngularAcceleration",
+                "CartesianPivotSpeed", "CartesianPivotSpeedStart", "CartesianPivotSpeedEnd",
+                "CartesianPivotAcceleration", "CartesianPivotStepSize" ].includes(name)){
                 let instruction_array_copy = instruction_array.slice()
                 instruction_array_copy[Instruction.INSTRUCTION_ARG1] = Math.round(first_arg * _nbits_cf)
                 return instruction_array_copy
@@ -120,6 +124,15 @@ var Socket = class Socket{
                 instruction_array_copy[Instruction.INSTRUCTION_ARG1] = Math.round(first_arg * 3600) //deg to arcseconds
                 return instruction_array_copy
             }
+            else if (["CommandedAngles", "RawEncoderErrorLimits", "RawVelocityLimits"].includes(name)){
+                let instruction_array_copy = instruction_array.slice()
+                for(let i = Instruction.INSTRUCTION_ARG1; i <  instruction_array.length; i++){
+                    let orig_arg = instruction_array_copy[1]
+                    instruction_array_copy[i] = Math.round(orig_arg * 3600)
+                }
+                return instruction_array_copy
+            }
+            //dynamixel conversion
             else if (name == "EERoll"){ //J6 no actual conversion here, but this is a convenient place
                         //to put the setting of robot.angles and is also the same fn where we convert
                         // the degrees to dynamixel units of 0.20 degrees
@@ -131,15 +144,22 @@ var Socket = class Socket{
                 rob.angles[6] = first_arg * Socket.DEGREES_PER_DYNAMIXEL_UNIT
                 return instruction_array
             }
-            else if (name == "CommandedAngles"){
+            //convert meters to microns
+            else if ((name.length == 5) && name.startsWith("Link")){
                 let instruction_array_copy = instruction_array.slice()
-                for(let i = Instruction.INSTRUCTION_ARG1; i <  instruction_array.length; i++){
+                let new_val = Math.round(first_arg / _um) //convert from meters to microns
+                instruction_array_copy[Instruction.INSTRUCTION_ARG1] = new_val
+            }
+            else if ("LinkLengths" == "name"){
+                let instruction_array_copy = instruction_array.slice()
+                for(let i = Instruction.INSTRUCTION_ARG1; i < instruction_array.length; i++){
                     let orig_arg = instruction_array_copy[1]
-                    instruction_array_copy[i] = Math.round(orig_arg * 3600)
+                    instruction_array_copy[i] = Math.round(orig_arg / _um)
                 }
                 return instruction_array_copy
             }
-            else if ((name.length == 5) && name.startsWith("Link")){
+            else if (["CartesianSpeed", "CartesianSpeedStart", "CartesianSpeedEnd", "CartesianAcceleration",
+                      "CartesianStepSize", ].includes(name)){
                 let instruction_array_copy = instruction_array.slice()
                 let new_val = Math.round(first_arg / _um) //convert from meters to microns
                 instruction_array_copy[Instruction.INSTRUCTION_ARG1] = new_val
@@ -247,9 +267,10 @@ var Socket = class Socket{
         //rob.robot_done_with_instruction and the rs_status from Dexter, not the simulated one.
     }*/
 
+    //called both from Dexter returning, and from Sim.
     //data should be a Buffer object. https://nodejs.org/api/buffer.html#buffer_buffer
     //payload_string_maybe is undefined when called from the robot,
-    //and if called from sim is either a string (everything ok)
+    //and if called from sim and we have an "r" oplet, it is either a string (everything ok)
     //or an integer (1) when sim get file-not-found.
     //
     static on_receive(data, robot_name, payload_string_maybe){
@@ -274,7 +295,7 @@ var Socket = class Socket{
 
         robot_status[Dexter.INSTRUCTION_TYPE] = oplet
         if(oplet == "r"){ //Dexter.read_file
-            if(typeof(payload_string_maybe) == "number") { //should be 1
+            if(typeof(payload_string_maybe) == "number") { //only can hit im sim.// should be 2 if it hits
                 robot_status[Dexter.ERROR_CODE] = 0 //even though we got an error from file_not_found,
                 //don't set the error in the robot status. Just let that error
                 //be used in r_payload_grab_aux which passes it to got_content_hunk
@@ -282,37 +303,38 @@ var Socket = class Socket{
                 // read_file_instance.is_done = true
                 //so the loop in read_file_instance terminates normally.
             }
+            else if ((payload_string_maybe === undefined) && //real. not simulated
+                     (robot_status[Dexter.ERROR_CODE] > 0)) { //got an error, probably file not found
+                payload_string_maybe = robot_status[Dexter.ERROR_CODE]
+                robot_status[Dexter.ERROR_CODE] = 0
+            }
+            //now robot_status does NOT have an error code, but if there is an error,
+            //payload_string_maybe is an int > 0
+            //but if no error, payload_string_maybe is a string
             Socket.r_payload_grab(data, robot_status, payload_string_maybe)
         }
         else {
             Socket.convert_robot_status_to_degrees(robot_status)
         }
-        //let job_id       = robot_status[Dexter.INSTRUCTION_JOB_ID]
-        //let job_instance = Job.id_to_job(job_id)
-        //let robot_name   = job_instance.robot.name
         let rob = Dexter[robot_name]
         //Socket.robot_is_waiting_for_reply[robot_name] = false
         rob.robot_done_with_instruction(robot_status) //robot_status ERROR_CODE *might* be 1
     }
 
     static r_payload_grab(data, robot_status, payload_string_maybe) {
-        let payload_string
-        if(payload_string_maybe === undefined) {
+        if(payload_string_maybe === undefined) { //only in real, not in sim
             let payload_length = robot_status[Socket.PAYLOAD_LENGTH]
             let data_start = Socket.PAYLOAD_START
             let data_end = data_start + payload_length
-            payload_string = (data.slice(data_start, data_end).toString())
+            payload_string_maybe = (data.slice(data_start, data_end).toString())
         }
         else if (payload_string_maybe instanceof Buffer) { //beware, sometimes payload_string_maybe is a buffer. This converts it to a string.
-            payload_string =  payload_string_maybe.toString()
+            payload_string_maybe = payload_string_maybe.toString()
         }
-        else {
-            payload_string =  payload_string_maybe  //normally a string, but is an integer if file not found
-        }
-        Socket.r_payload_grab_aux(robot_status, payload_string)  //payload_string still might be an integer error code, ie 1 when file not found
+        //else { payload_string_maybe is normally a string, but could be an integer of > 0 if there's an error }
+        Socket.r_payload_grab_aux(robot_status, payload_string_maybe)  //payload_string still might be an integer error code, ie 1 when file not found
     }
 
-    //called by both Socket.r_payload_grab AND DexterSim.process_next_instruction_r
     //payload_string_maybe could be a string or an integer error code like 1 when no file found
     static r_payload_grab_aux(robot_status, payload_string_maybe){
         let job_id = robot_status[Dexter.JOB_ID]

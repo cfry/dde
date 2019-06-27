@@ -1,7 +1,9 @@
 /* Created by Fry on 3/11/16.*/
 var job_examples = [
-`new Job({name: "my_job",
-         do_list: [Dexter.move_all_joints([30, 45, 60, 90, 120])]})
+`new Job({
+    name: "my_job",
+    do_list: [
+        Dexter.move_all_joints([30, 45, 60, 90, 120])]})
 `,
 
 `//////// Job Example 1
@@ -13,9 +15,12 @@ var job_examples = [
 //holding down the 'alt' key and clicking on 'new'.
 //This will select the Job definition.
 //With that selected, click the Eval button.
-new Job({name: "my_job",
-         do_list: [Robot.out("first instruction"), //will cause 'first instruction' to be printed in output pane when run
-                   function(){out("2nd instruction")}]}) //This function will be called
+new Job({
+    name: "my_job",
+    do_list: [
+        IO.out("first instruction"),  //will cause 'first instruction' to be printed in output pane when run
+        function(){out("2nd instruction")} //This function will be called
+    ]}) 
    
 //Now click the Output pane's Clear button.
 //Hold down the 'alt' key and click on 'my_job'
@@ -37,12 +42,15 @@ Beware, the 2nd and 3rd args to move_to determine the ending
 J5_direction and which way the joints go. 
 These are tricky to get right.
 */
-new Job({name: "j2",
-        do_list: [Dexter.move_all_joints([0, 0, 0, 0, 0]), //angles
-                  Dexter.move_to([0, 0.5, 0.075],     //xyz
-                                 [0, 0, -1],          //J5_direction
-                                 Dexter.RIGHT_UP_OUT) //config
-                 ]})
+new Job({
+    name: "j2",
+    do_list: [
+        Dexter.move_all_joints([0, 0, 0, 0, 0]), //angles
+        Dexter.move_to(
+            [0, 0.5, 0.075],     //xyz
+            [0, 0, -1],          //J5_direction
+            Dexter.RIGHT_UP_OUT) //config
+    ]})
 //After defining this Job by clicking the EVAL button,
 //click this job's button in the Output pane's header to start it.
 `,
@@ -59,18 +67,21 @@ function move_once(){
     return Dexter.move_all_joints([0, 45, 90, -45, 0]) //also try: Dexter.move_to([100000, 200000, 300000])
 }
 function sleep_and_move(){
-    return [Dexter.move_all_joints([0, 0, 135, 45, 0]),
-            Dexter.sleep(2),
-            Dexter.move_to([0, 0.5, 0.075], [0, 0, -1], Dexter.RIGHT_UP_OUT)
-           ]
+    return [
+        Dexter.move_all_joints([0, 0, 135, 45, 0]),
+        Dexter.sleep(2),
+        Dexter.move_to([0, 0.5, 0.075], [0, 0, -1], Dexter.RIGHT_UP_OUT)
+    ]
 }
-new Dexter({name: "my_dex",
-            simulate: null //simulate is null by default, giving control to the Jobs menu item 'Simulate?'
-           })
-new Job({name: "j3",
-         robot: Robot.my_dex, //assigns a robot to this job
-         do_list: [move_once, sleep_and_move]} //use the above function definitions as do_list items
-)
+new Dexter({
+    name: "my_dex",
+    simulate: null //simulate is null by default, giving control to the Jobs menu item 'Simulate?'
+})
+new Job({
+    name: "j3",
+    robot: Robot.my_dex, //assigns a robot to this job
+    do_list: [move_once, sleep_and_move] //use the above function definitions as do_list items
+})
 /* Job.j3                    //the newly created Job instance
  Job.j3.status_code
  Job.j3.robot.joint_angles() //array of 5 angles, each in arcseconds
@@ -105,8 +116,10 @@ function* complex_gen(){
         yield Dexter.move_all_joints([i * 10])
     }
 }
-new Job({name: "jb",
-         do_list: [complex_gen]})
+new Job({
+    name: "jb",
+    do_list: [complex_gen]
+})
 
 //________Job Example 4c: Nested Generators
 function* nested_gen(){
@@ -116,15 +129,16 @@ function* nested_gen(){
     }
     yield Dexter.sleep(1)
 }
-new Job({name: "jc", 
-         do_list: [nested_gen]})
-         
+new Job({
+    name: "jc", 
+    do_list: [nested_gen]
+})        
 //________Job Example 4d: yield and return examples
 function* yield_and_return_gen(){
     yield  //don't execute any new instruction but keep generator alive
     yield  null //don't execute any new instruction but keep generator alive
-    yield  Robot.out("gen still alive") //run Robot.out and keep generator alive
-    return Robot.out("last gen instruction") //run Robot.out and kill generator
+    yield  IO.out("gen still alive") //run IO.out and keep generator alive
+    return IO.out("last gen instruction") //run IO.out and kill generator
     return //don't execute any new instruction and kill generator. 
            //note this line will not actually be executed in this context
            //because the preceeding 'return' kills the generator.
@@ -137,17 +151,23 @@ new Job({name: "jd", do_list: [yield_and_return_gen]})
 //The sync_point control instruction causes a job
 //to wait until all the other jobs with the same
 //sync_point name (i.e. "midway") reach that sync point.
-new Job({name: "job_a",
-         do_list: [Robot.out("hello"),
-                   Robot.sync_point("midway", ["job_a", "job_b"]),
-                   Robot.out("goodbye")]})
+new Job({
+    name: "job_a",
+    do_list: [
+        IO.out("hello"),
+        Control.sync_point("midway", ["job_a", "job_b"]),
+        IO.out("goodbye")
+    ]})
 
-new Job({name: "job_b",
-         robot: new Brain({name: "brain1"}),
-         do_list: [Robot.out("hello"),
-                   Robot.wait_until(10),
-                   Robot.sync_point("midway", ["job_a", "job_b"]),
-                   Robot.out("goodbye")]})
+new Job({
+    name: "job_b",
+    robot: new Brain({name: "brain1"}),
+    do_list: [
+        IO.out("hello"),
+        Control.wait_until(10),
+        Control.sync_point("midway", ["job_a", "job_b"]),
+        IO.out("goodbye")
+    ]})
 Job.job_a.start(); Job.job_b.start() //execute both at once.
 //job_a will wait at its "midway" point until job_b gets to 
 //its "midway" point, then they both proceed.
@@ -159,22 +179,28 @@ Job.job_a.start(); Job.job_b.start() //execute both at once.
 // as well as pause (suspend) and resume (unsuspend) jobs.
 
 new Dexter({name: "my_dex", ip_address: "192.168.1.142", port: 50000})
-new Job({name: "j4", 
-         robot: Robot.my_dex,
-         do_list: [Dexter.move_all_joints([0, 45, 90, -45, 0]),
-                   Robot.suspend(), //j5 will unsuspend this
-                   Robot.out("j4 sez goodbye.")]})
+new Job({
+    name: "j4", 
+    robot: Robot.my_dex,
+    do_list: [
+        Dexter.move_all_joints([0, 45, 90, -45, 0]),
+        Control.suspend(), //j5 will unsuspend this
+        IO.out("j4 sez goodbye.")
+    ]})
 Job.j4.start()
 
 new Dexter({name: "my_dex2", ip_address: "192.168.1.143", port: 50000})
-new Job({name: "j5", 
-         robot: Robot.my_dex2,
-         do_list: [Robot.send_to_job(
-                     {do_list_item: Dexter.move_to([0.1, 0.2, 0.3]),
-                      where_to_insert: {job: "j4", offset: "after_program_counter"},
-                      unsuspend: true,
-                      wait_until_done: true}),
-                   Robot.out("j5 sez goodbye.")]})
+new Job({
+    name: "j5", 
+    robot: Robot.my_dex2,
+    do_list: [
+        Control.send_to_job(
+            do_list_item: Dexter.move_to([0.1, 0.2, 0.3]),
+            where_to_insert: {job: "j4", offset: "after_program_counter"},
+            unsuspend: true,
+            wait_until_done: true}),
+            IO.out("j5 sez goodbye.")
+    ]})
 Job.j5.start()
 
 ////////Job Example 5c: Instructing another job and getting its data
@@ -190,34 +216,43 @@ new Job({name: "j6", robot: new Dexter(), do_list: []})
 //we'll let j7 start j6
 
 //Now for our requesting job:
-new Job({name: "j7",
-         do_list: [Robot.send_to_job({
-                   do_list_item: Dexter.move_all_joints([0, 0, 135, 45, 0]),
-                   where_to_insert: {job: "j6", offset: "program_counter"},
-                   start: true, //starts j6
-                   wait_until_done: true,
-                   status_variable_name: "that_j6_task",
-                   //and any number of values you want to get from j6
-                   j6_joint_5_pos: function(){return this.robot.joint_xyz(5)},
-                   j6_angle_number_2: function(){return this.robot.joint_angle(2)}
-                   })]})
+new Job({
+    name: "j7",
+    do_list: [
+        Control.send_to_job({
+            do_list_item: Dexter.move_all_joints([0, 0, 135, 45, 0]),
+            where_to_insert: {job: "j6", offset: "program_counter"},
+            start: true, //starts j6
+            wait_until_done: true,
+            status_variable_name: "that_j6_task",
+            //and any number of values you want to get from j6
+            j6_joint_5_pos: function(){return this.robot.joint_xyz(5)},
+            j6_angle_number_2: function(){return this.robot.joint_angle(2)}
+        })]})
 Job.j7.start()
 /* Job.j7.user_data.j6_joint_5_pos and
    Job.j7.user_data.j6_angle_number_2 both
    contain info snatched from job j6.
-If you use Robot.send_to_job({where_to_insert: {job: "to_job", offset: "end"},
-                              wait_until_done: true, ...}
+If you use 
+Control.send_to_job({
+    where_to_insert: {job: "to_job", offset: "end"},
+    wait_until_done: true, 
+    ...
+}
 then the job with the sent_to_job instruction will wait until
 the whole of the to_job is done before proceeding                           
 */
 
 ////// Job Example 5d: Prepending to the do_list when calling start.
 
-new Job({name: "j8",
-          do_list: [Robot.out("first instruction"),
-                    Robot.out("2nd instruction")]})
+new Job({
+    name: "j8",
+    do_list: [
+        IO.out("first instruction"),
+        IO.out("2nd instruction")
+    ]})
                 
-Job.j8.start({initial_instruction: Robot.out("special insert")})            
+Job.j8.start({initial_instruction: IO.out("special insert")})            
 `,
 
 
@@ -256,16 +291,17 @@ function print_job_1_dialog(){
 }
 
 new Job({name: "print_job_1", robot: new Dexter(),
-    do_list:
-    [Dexter.move_all_joints([0, 45, 90, -45, 0]),
-     function(){print_job_1_dialog()},
-     Robot.wait_until(function(){return this.user_data.color_status != undefined}),
-     function(){if (this.user_data.color_status == "cancel"){
-                    return Robot.error("ran out of filament.")
-                   }
-                else {return null}
-               },
-     Dexter.move_all_joints( [0, 0, 135, 45, 0 ])
+    do_list:[
+        Dexter.move_all_joints([0, 45, 90, -45, 0]),
+        function(){print_job_1_dialog()},
+        Control.wait_until(function(){return this.user_data.color_status != undefined}),
+        function(){
+            if (this.user_data.color_status == "cancel"){
+                return Control.error("ran out of filament.")
+            }
+            else {return null}
+        },
+        Dexter.move_all_joints([0, 0, 135, 45, 0 ])
     ]})
 Job.print_job_1.start()
 // Job.print_job_1.user_data  //data set by the dialog
@@ -275,91 +311,115 @@ Job.print_job_1.start()
 `//////// Job Example 7a: Using a human 'robot' cooperating with a Brain robot
 //Jobs may contain instructions for human operators as well as robots,
 //facilitating well-coordinated human-machine processes.
-new Job({name: "lots_of_options_task",
-         robot: new Dexter(),
-         do_list: [Human.task({task: "Load more filament.",
-                               title: "Pay Attention!!!",
-                               x: 0,
-                               y: 0,
-                               width: 600,
-                               height: 150,
-                               background_color: "rgb(230, 200, 250)"
-                             }), //waits until user clicks 'Done'.
-                    Dexter.move_to([0, 0.5, 0.075])
-                ]})                           
+new Job({
+    name: "lots_of_options_task",
+    robot: new Dexter(),
+    do_list: [
+        Human.task({
+            task: "Load more filament.",
+            title: "Pay Attention!!!",
+            x: 0,
+            y: 0,
+            width: 600,
+            height: 150,
+            background_color: "rgb(230, 200, 250)"
+        }), //waits until user clicks 'Done'.
+        Dexter.move_to([0, 0.5, 0.075])
+    ]})                           
 Job.lots_of_options_task.start()
 
 //////// Job Example 7b: Dependent Jobs
-new Job({name: "dependent_job", //robot type defaults to Brain
-    do_list: [Robot.sync_point("load_filament", ["my_job"]),
-              Robot.out("dependent_job last instruction")]})
+new Job({
+    name: "dependent_job", //robot type defaults to Brain
+    do_list: [
+        Control.sync_point("load_filament", ["my_job"]),
+        IO.out("dependent_job last instruction")
+    ]})
 
-new Job({name: "my_job", robot: new Human({name: "Joe Jones"}),
-    do_list: [Human.task({task: "Load more filament.",
-                          height: 150,
-                          dependent_job_names: ["dependent_job"]}), //this optional arg
-                    //lists jobs to be stopped if user clicks
-                    //"Stop Job" button.
-              Robot.sync_point("load_filament"),
-              Robot.out("my_job last instruction")]})
+new Job({
+    name: "my_job", robot: new Human({name: "Joe Jones"}),
+    do_list: [
+        Human.task({
+            task: "Load more filament.",
+            height: 150,
+            dependent_job_names: ["dependent_job"]
+        }), //this optional arg
+            //lists jobs to be stopped if user clicks
+            //"Stop Job" button.
+        Control.sync_point("load_filament"),
+        IO.out("my_job last instruction")
+    ]})
 
 Job.dependent_job.start(); Job.my_job.start() //start both at once
 
 
 //////// Job Example 7c: human chooses material from list
-new Job({name: "material_job", robot: new Human({name: "Joe Jones"}),
-    do_list: [Human.enter_choice({
-                 task: "Which material should we use?",
-                 user_data_variable_name: "material_choice", // user_data variable to store choice
-                 choices: ["copper", "silver", "gold"],
-                 show_choices_as_buttons: false, // the default, which shows choices as menu items
-                 one_button_per_line: false,     // the default. relevant when showing buttons only
-                 dependent_job_names: []}),      // [] means no dependent jobs.
-              Robot.out("material_job last instruction")
-              ]})
+new Job({
+    name: "material_job", robot: new Human({name: "Joe Jones"}),
+    do_list: [
+        Human.enter_choice({
+            task: "Which material should we use?",
+            user_data_variable_name: "material_choice", // user_data variable to store choice
+            choices: ["copper", "silver", "gold"],
+            show_choices_as_buttons: false, // the default, which shows choices as menu items
+            one_button_per_line: false,     // the default. relevant when showing buttons only
+            dependent_job_names: []
+        }),      // [] means no dependent jobs.
+        IO.out("material_job last instruction")
+    ]})
 Job.material_job.start()
 // Job.material_job.user_data
 
 //////// Job Example 7d: human enters a number
-new Job({name: "number_job",
+new Job({
+    name: "number_job",
     robot: new Human({name: "Joe Jones"}),
-    do_list: [Human.enter_number({
-        task: "How many millimeters long should we make the pipe?",
-        user_data_variable_name: "pipe_length", // user_data variable to store the number
-        initial_value: 15,
-        min: 10,
-        max: 1000,
-        step: 1,
-        dependent_job_names: []}), // [] means no dependent jobs.
-        Robot.out("number_job last instruction")]})
+    do_list: [
+        Human.enter_number({
+            task: "How many millimeters long should we make the pipe?",
+            user_data_variable_name: "pipe_length", // user_data variable to store the number
+            initial_value: 15,
+            min: 10,
+            max: 1000,
+            step: 1,
+            dependent_job_names: [] // [] means no dependent jobs.
+        }), 
+        IO.out("number_job last instruction")
+    ]})
 Job.number_job.start()
 // Job.number_job.user_data
 
 //////// Job Example 7e: human enters text
-new Job({name: "text_job",
+new Job({
+    name: "text_job",
     robot: new Human({name: "Joe Jones"}),
-    do_list: [Human.enter_text({
+    do_list: [
+        Human.enter_text({
         task: "Describe how this job is going.",
         user_data_variable_name: "job_description", // user_data variable to store the text
         initial_value: "OK",
         line_count: 3,
         dependent_job_names: []}), // [] means no dependent jobs.
-        Robot.out("text_job last instruction")]})
+        IO.out("text_job last instruction")
+    ]})
 Job.text_job.start()
 // Job.text_job.user_data
 
 //////// Job Example 7f: Notify
 //Tell human something without pausing execution.
-new Job({name: "notify_job",
+new Job({
+    name: "notify_job",
     robot: new Human({name: "Joe Jones"}),
-    do_list: [Human.notify({
-        task: "Take off work early today!",
-        window: true,      //the default
-        output_pane: true, //the default
-        beep_count: 0,     //the default
-        speak: false       //the default
+    do_list: [
+        Human.notify({
+            task: "Take off work early today!",
+            window: true,      //the default
+            output_pane: true, //the default
+            beep_count: 0,     //the default
+            speak: false       //the default
         }),
-        Robot.out("text_job last instruction")]})
+        IO.out("text_job last instruction")
+    ]})
 Job.notify_job.start()
 `,
 
@@ -372,12 +432,14 @@ Job.notify_job.start()
 //go as in 'training'.
 new Dexter({name: "my_dex", ip_address: "192.168.1.142", port: 50000})
 
-new Job({name: "my_job",
+new Job({
+    name: "my_job",
     robot: Robot.my_dex,
-    do_list: [function(){out("first instruction")}, //will cause 'first instruction' to be printed in output pane when run
+    do_list: [
+        function(){out("first instruction")}, //will cause 'first instruction' to be printed in output pane when run
         Human.enter_instruction(), // Pops up a dialog requesting user input of an instruction.
-        Robot.out("last instruction")]})
-
+        IO.out("last instruction")
+    ]})
 Job.my_job.start()
 `,
 
@@ -451,8 +513,10 @@ function my_waiting_beeper(){
  my_waiting_beeper function as regular do_list items, 
  without the hair of the sequencing
  callback code buried in my_waiting_beeper */
-new Job({name: "my_job",
-    do_list: [my_waiting_beeper, my_waiting_beeper]})
+new Job({
+    name: "my_job",
+    do_list: [my_waiting_beeper, my_waiting_beeper]
+})
 Job.my_job.start()
 /* In our do_list we can have as many calls to my_waiting_beeper
  as we like, and they don't have to be contigous.
@@ -466,7 +530,8 @@ function my_waiting_chording_beeper(){
     return "dont_call_set_up_next_do"
 }
 
-new Job({name: "my_job",
+new Job({
+    name: "my_job",
     do_list: [my_waiting_chording_beeper,
         my_waiting_chording_beeper,
         my_waiting_beeper,
@@ -506,27 +571,26 @@ var ard_path = last(serial_devices()).comName // something like:
 /*
 #define LED 13
 void setup() {
-  Serial.begin(9600);
-  pinMode(LED, OUTPUT);
-  digitalWrite(LED, LOW);  // Turn LED off
+    Serial.begin(9600);
+    pinMode(LED, OUTPUT);
+    digitalWrite(LED, LOW);  // Turn LED off
 }
 //from http://www.fabiobiondi.com/blog/2014/02/html5-chrome-packaged-apps-and-arduino-bidirectional-communication-via-serial/
 int incomingByte = 0;
 void loop() {
-  // Check if there's a serial message waiting.
-  if (Serial.available() > 0) { //read the incoming byte.
-    incomingByte = Serial.read();
-
-    if (incomingByte == 'y') {
-      digitalWrite(LED, HIGH); //turn on LED
-      Serial.println("LED on");  //return this string to DDE
-    } 
-    else if (incomingByte == 'n') { //trun off LED
-      digitalWrite(LED, LOW);
-      Serial.println("LED off");
+    // Check if there's a serial message waiting.
+    if (Serial.available() > 0) { //read the incoming byte.
+        incomingByte = Serial.read();
+        if (incomingByte == 'y') {
+            digitalWrite(LED, HIGH); //turn on LED
+            Serial.println("LED on");  //return this string to DDE
+        } 
+        else if (incomingByte == 'n') { //trun off LED
+            digitalWrite(LED, LOW);
+            Serial.println("LED off");
+        }
     }
-  }
-  delay(1000);
+    delay(1000);
 }
 */
 //Save this as an Arduino Sketch in led_y_or_n.ino  
@@ -567,25 +631,28 @@ serial_send_low_level(read_file("some_arduino_file.ino.hex"), ard_path)
 //and click the right arrow to upload your Arduino code manually.
 
 //_________serial job_______  
-new Serial({name: "S1", simulate: null, 
-			sim_fun: function(input){ 
-                        return "got: " + input + "\\n"
-                     },
-            path: ard_path, 
-            connect_options: {baudRate: 300},
-            capture_n_items: 1, 
-            parse_items: true}
-)
+new Serial({
+    name: "S1", simulate: null, 
+	sim_fun: function(input){ 
+        return "got: " + input + "\\n"
+    },
+    path: ard_path, 
+    connect_options: {baudRate: 300},
+    capture_n_items: 1, 
+    parse_items: true
+})
 
 //with the default robot being a serial robot.
-new Job({name: "j10a",
-         robot: Robot.S1,
-         do_list: [Serial.string_instruction("y"),
-                   Robot.grab_robot_status("yes_result"),
-                   Robot.wait_until(2),
-                   Serial.string_instruction("n"),
-                   Robot.grab_robot_status("no_result", Serial.DATA0)
-                   ]}
+new Job({
+    name: "j10a",
+    robot: Robot.S1,
+    do_list: [
+        Serial.string_instruction("y"),
+        Control.grab_robot_status("yes_result"),
+        Control.wait_until(2),
+        Serial.string_instruction("n"),
+        Control.grab_robot_status("no_result", Serial.DATA0)
+    ]}
 )
 Job.j10a.start()
 
@@ -593,14 +660,16 @@ Job.j10a.user_data //all the user data
 Job.j10a.user_data.yes_result //just our yes_result
 
 //with each serial and grab robot_status instruction having a robot.
-new Job({name: "j10b",
-         robot: new Brain(), //Robot.S1,
-         do_list: [Robot.S1.string_instruction("y"),
-                   Robot.S1.grab_robot_status("yes_result"),
-                   Robot.wait_until(2),
-                   Robot.S1.string_instruction("n"),
-                   Robot.S1.grab_robot_status("no_result", Serial.DATA0)
-                   ]}
+new Job({
+    name: "j10b",
+    robot: new Brain(), //Robot.S1,
+    do_list: [
+        Serial.S1.string_instruction("y"),
+        Serial.S1.grab_robot_status("yes_result"),
+        Control.wait_until(2),
+        Serial.S1.string_instruction("n"),
+        Serial.S1.grab_robot_status("no_result", Serial.DATA0)
+    ]}
 )
 `,
 
@@ -615,188 +684,250 @@ wait for another instruction, loop, or call a callback function.
 //Click the Job's button in the Output pane header to stop it.
 new Job({name: "job_ws1", 
          when_stopped: "wait",
-         do_list: [Robot.out("hey")]})
+         do_list: [IO.out("hey")]})
 Job.job_ws1.start()
 //Select and eval the below to add an instruction to the started job_ws1
-Job.insert_instruction(Robot.out("you2"), {job: "job_ws1", offset: "end"})
+Job.insert_instruction(IO.out("you2"), {job: "job_ws1", offset: "end"})
 //You can do this as many times as you like.
 //Click the Job's button to stop it or Eval:
-Job.insert_instruction(Robot.stop_job(), {job: "job_ws1", offset: "end"})
+Job.insert_instruction(Control.stop_job(), {job: "job_ws1", offset: "end"})
          
 //______job_ws2_____You can even avoid a do_list completely.
-new Job({name: "job_ws2", 
-         when_stopped: "wait"})
+new Job({
+    name: "job_ws2", 
+    when_stopped: "wait"
+})
 Job.job_ws2.start()
 //Eval the below to add and run an instruction:
-Job.insert_instruction(Robot.out("joe1"), {job: "job_ws2", offset: "end"})
+Job.insert_instruction(IO.out("joe1"), {job: "job_ws2", offset: "end"})
 
 
 //______job_ws3______Call a callback function when the job finishes
-new Job({name: "job_ws3", 
-         when_stopped: function(){out("I've had it.")},
-         do_list: [Robot.out("I'm running.")]})
+new Job({
+    name: "job_ws3", 
+    when_stopped: function(){out("I've had it.")},
+    do_list: [IO.out("I'm running.")]
+})
 
 //______job_ws4______Call a callback function when the job finishes
 //but also perform the when_stopped action due to stop_job's 3rd (true) arg.
-new Job({name: "job_ws4", 
-         when_stopped: function(){out("I'm dead.")},
-         do_list: [Robot.out("I'm alive."),
-                   Robot.stop_job("program_counter", "because I said so", true),
-                   Robot.out("I'm not run.") //not reached
-                 ]})
+new Job({
+    name: "job_ws4", 
+    when_stopped: function(){out("I'm dead.")},
+    do_list: [
+        IO.out("I'm alive."),
+        Control.stop_job("program_counter", "because I said so", true),
+        IO.out("I'm not run.") //not reached
+    ]})
          
 //______job_ws5______Infinite Loop
-new Job({name: "job_ws5", 
-         when_stopped: 0, //when its done, restart job at instruction 0 
-         do_list: [function(){
-                      if(Job.global_user_data.counter) {
-                          Job.global_user_data.counter += 1
-                      }
-                      else { Job.global_user_data.counter = 1 }
-                      out("counter = " + Job.global_user_data.counter)
-                    },
-                    Robot.wait_until(2)]}) //sleep for 2 seconds
+new Job({
+    name: "job_ws5", 
+    when_stopped: 0, //when its done, restart job at instruction 0 
+    do_list: [
+        function(){
+            if(Job.global_user_data.counter) {
+                Job.global_user_data.counter += 1
+            }
+            else { 
+                Job.global_user_data.counter = 1
+            }
+            out("counter = " + Job.global_user_data.counter)
+        },
+        Control.wait_until(2)
+    ]}) //sleep for 2 seconds
 `,
 
 `////Job Example 12: go_to
 //12a: initialize user data and display it
-new Job({name: "my_job",
+new Job({
+    name: "my_job",
     user_data: {some_val: 0},
     do_list: [function() { out("val: " + this.user_data.some_val)}
     ]})
 
 //12b: set user data from user input
-new Job({name: "my_job",
+new Job({
+    name: "my_job",
     user_data: {some_val: 0},
-    do_list: [Human.enter_number({user_data_variable_name: "some_val"}),
+    do_list: [
+        Human.enter_number({user_data_variable_name: "some_val"}),
         function() { out("val: " + this.user_data.some_val)},
     ]})
 
 //12c: go_to instruction 0, infinite loop
-new Job({name: "my_job",
+new Job({
+    name: "my_job",
     user_data: {some_val: 0},
-    do_list: [Human.enter_number({user_data_variable_name: "some_val"}),
+    do_list: [
+        Human.enter_number({user_data_variable_name: "some_val"}),
         function(){ out("val: " + this.user_data.some_val)},
-        Robot.go_to(0)
+        Control.go_to(0)
     ]})
 
 //12d: stop if user enters zero
-new Job({name: "my_job",
+new Job({
+    name: "my_job",
     user_data: {some_val: 0},
-    do_list: [Human.enter_number({user_data_variable_name: "some_val"}),
+    do_list: [
+        Human.enter_number({user_data_variable_name: "some_val"}),
         function(){ out("val: " + this.user_data.some_val)},
-        function(){ if(this.user_data.some_val == 0){
-            return Robot.stop_job()
-        }
+        function(){ 
+            if(this.user_data.some_val == 0){
+                return Control.stop_job()
+            }
         },
-        Robot.go_to(0)
+        Control.go_to(0)
     ]})
 
 //12e go_to a label ("lab1").
-new Job({name: "my_job",
+new Job({
+    name: "my_job",
     user_data: {some_val: 0},
-    do_list: [Robot.label("lab1"),
+    do_list: [
+        Control.label("lab1"),
         Human.enter_number({user_data_variable_name: "some_val"}),
         function(){ out("val: " + this.user_data.some_val)},
-        function(){ if(this.user_data.some_val === 0){
-            return Robot.stop_job()
-        }
+        function(){ 
+            if(this.user_data.some_val === 0){
+                return Control.stop_job()
+            }
         },
-        Robot.go_to("lab1")
+        Control.go_to("lab1")
     ]})
 `,
 `//Job Example 13: loop
-//13a: loop with times_to_loop = true (infinite) & Robot.break
-new Job({name: "my_job",
-         do_list: [Robot.out("start of job"),
-                   Robot.loop(true, 
-                              function(iter_index, iter_val, iter_total){
-                                  if(iter_index < 3) {
-                                     return Robot.out("index: "       + iter_index + 
-                                                      " iter_val: "   + iter_val +
-                                                      " iter_total: " + iter_total)}
-                                  else { return Robot.break() } }),
-                   Robot.out("end of job")
-                   ]})
+//13a: loop with times_to_loop = true (infinite) & Control.break
+new Job({
+    name: "my_job",
+    do_list: [
+        IO.out("start of job"),
+        Control.loop(
+            true, 
+            function(iter_index, iter_val, iter_total){
+                if(iter_index < 3) {
+                    return IO.out(
+                        "index: "       + iter_index + 
+                        " iter_val: "   + iter_val +
+                        " iter_total: " + iter_total)
+                }
+                else { return Control.break() } 
+            }),
+        IO.out("end of job")
+    ]})
 
 ////13b: loop with times_to_loop = 3
-new Job({name: "my_job",
-         do_list: [Robot.out("start of job"),
-                   Robot.loop(2 + 3, 
-                              function(iter_index, iter_val, iter_total){
-                                  return Robot.out("index: "       + iter_index + 
-                                                   " iter_val: "   + iter_val +
-                                                   " iter_total: " + iter_total)}),
-                   Robot.out("end of job")
-                   ]})
+new Job({
+    name: "my_job",
+    do_list: [
+        IO.out("start of job"),
+        Control.loop(
+            2 + 3, 
+            function(iter_index, iter_val, iter_total){
+                return IO.out(
+                    "index: "       + iter_index + 
+                    " iter_val: "   + iter_val +
+                    " iter_total: " + iter_total
+                )}),
+            IO.out("end of job")
+    ]})
                    
 
 ////13c: loop with times_to_loop = array                                     
-new Job({name: "my_job",
-         do_list: [Robot.out("start of job"),
-                   Robot.loop([100, 101, 102], 
-                              function(iter_index, iter_val, iter_total){
-                                  return Robot.out("index: "       + iter_index + 
-                                                   " iter_val: "   + iter_val +
-                                                   " iter_total: " + iter_total)}
-                             ),
-                   Robot.out("end of job"),
-                   ]})
+new Job({
+    name: "my_job",
+    do_list: [
+        IO.out("start of job"),
+        Control.loop(
+            [100, 101, 102], 
+            function(iter_index, iter_val, iter_total){
+                return IO.out(
+                    "index: "       + iter_index + 
+                    " iter_val: "   + iter_val +
+                    " iter_total: " + iter_total)}
+                ),
+            IO.out("end of job"),
+        ]})
                    
 ////13d: loop with times_to_loop = array  & multiple instructions per iteration                                   
-new Job({name: "my_job",
-         do_list: [Robot.out("start of job"),
-                   Robot.loop([100, 101, 102], 
-                              function(iter_index, iter_val, iter_total){
-                                  return [Robot.out("index: "       + iter_index + 
-                                                   " iter_val: "   + iter_val +
-                                                   " iter_total: " + iter_total),
-                                          Robot.out("another instruction" + iter_index)        
-                                         ]}
-                             ),
-                   Robot.out("end of job")
-                   ]})                  
+new Job({
+    name: "my_job",
+    do_list: [
+        IO.out("start of job"),
+        Control.loop(
+            [100, 101, 102], 
+            function(iter_index, iter_val, iter_total){
+                return [
+                    IO.out("index: "       + iter_index + 
+                    " iter_val: "   + iter_val +
+                    " iter_total: " + iter_total),
+                    IO.out("another instruction" + iter_index)        
+                ]}
+        ),
+        IO.out("end of job")
+    ]})                  
  
 ////13e: loop with times_to_loop = function (dynamically decide how many iterations)
-new Job({name: "my_job",
-         do_list: [Robot.out("start of job"),
-                   Robot.loop(function(iter_index, iter_val, iter_total){ return (iter_index < 3)}, 
-                              function(iter_index, iter_val, iter_total){
-                                  return Robot.out("index: "       + iter_index + 
-                                                      " iter_val: "   + iter_val +
-                                                      " iter_total: " + iter_total)}),
-                   Robot.out("end of job")
-                   ]}) 
+new Job({
+    name: "my_job",
+    do_list: [
+        IO.out("start of job"),
+        Control.loop(
+            function(iter_index, iter_val, iter_total){ return (iter_index < 3)}, 
+            function(iter_index, iter_val, iter_total){
+                return IO.out(
+                    "index: "       + iter_index + 
+                    " iter_val: "   + iter_val +
+                    " iter_total: " + iter_total
+                )}),
+        IO.out("end of job")
+    ]}) 
 ////13f: loop with times_to_loop a function returning an object to
 ////    loop through the properties of the object.                
-new Job({name: "my_job",
-         user_data: {foo: 100, bar: 101},
-         do_list: [function(){ this.user_data.baz = 102 },
-                   function(){ return Robot.loop(this.user_data,
-                              function(iter_index, iter_val, iter_total, iter_key){
-                                  return [Robot.out("index: "       + iter_index + 
-                                                    " iter_val: "   + iter_val +
-                                                    " iter_total: " + iter_total +
-                                                    " iter_key: "   + iter_key)
-                                         ]}) },             
-                   function(){ inspect(this.user_data) }
-                   ]})                
+new Job({
+    name: "my_job",
+    user_data: {foo: 100, bar: 101},
+    do_list: [
+        function(){ this.user_data.baz = 102 },
+        function(){ 
+            return Control.loop(
+                this.user_data,
+                function(iter_index, iter_val, iter_total, iter_key){
+                    return [
+                        IO.out(
+                            "index: "       + iter_index + 
+                            " iter_val: "   + iter_val +
+                            " iter_total: " + iter_total +
+                            " iter_key: "   + iter_key
+                        )
+                    ]}) },             
+        function(){ inspect(this.user_data) }
+    ]})                
                    
 ////13g: nested loops.  Note inner loop can reference outer loop vars.               
-new Job({name: "my_job",
-         do_list: [Robot.out("start of job"),
-                   Robot.loop(3,
-                              function(iter_index, iter_val, iter_total){
-                                  return [Robot.out("index: "       + iter_index + 
-                                                      " iter_val: "   + iter_val +
-                                                      " iter_total: " + iter_total),
-                                          Robot.loop(2, function(inner_iter_index) { 
-                                                           return Robot.out("inner" + iter_index + 
-                                                                            "." + inner_iter_index)
-                                                        })
-                                         ]}),             
-                   Robot.out("end of job")
-                   ]})
+new Job({
+    name: "my_job",
+    do_list: [
+        IO.out("start of job"),
+        Control.loop(
+            3,
+            function(iter_index, iter_val, iter_total){
+                return [
+                    IO.out("index: "       + iter_index + 
+                                " iter_val: "   + iter_val +
+                                " iter_total: " + iter_total
+                    ),
+                    Control.loop(
+                        2, 
+                        function(inner_iter_index) { 
+                            return IO.out(
+                                "inner" + iter_index + 
+                                "." + inner_iter_index
+                            )
+                        })
+                   ]}),             
+        IO.out("end of job")
+    ]})
 `,
 
 `//Job Example 14: TestSuite in Job
@@ -807,16 +938,18 @@ new TestSuite("ts_in_job",
     ["2 + 3", "5"]
 )
 
-new Job({name: "my_job",
-         do_list: [TestSuite.ts_in_job,
-                   function(){
-                     if((TestSuite.ts_in_job.known_failure_count > 0) ||
-                        (TestSuite.ts_in_job.unknown_failure_count > 0)){
-                        out(TestSuite.ts_in_job.report)
-                        return Robot.stop_job()
-                     }
-                   },
-                   Robot.out("last instruction")
-                   ]})
+new Job({
+    name: "my_job",
+    do_list: [
+        TestSuite.ts_in_job,
+        function(){
+            if((TestSuite.ts_in_job.known_failure_count > 0) ||
+               (TestSuite.ts_in_job.unknown_failure_count > 0)){
+                out(TestSuite.ts_in_job.report)
+                return Control.stop_job()
+            }
+        },
+        IO.out("last instruction")
+    ]})
 `
 ]

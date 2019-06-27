@@ -114,10 +114,10 @@ var Robot = class Robot {
     }
 
     //Control Instructions
-    static break(){ //stop a Robot.loop
+    static break(){ //stop a Control.loop
         return new Instruction.break()
     }
-    static debugger(){ //stop a Robot.loop
+    static debugger(){ //stop a Control.loop
         return new Instruction.debugger()
     }
     static error(reason){ //declare that an error happened. This will cause the job to stop.
@@ -231,7 +231,7 @@ var Robot = class Robot {
     //default to undefined.
     static get_page(url_or_options, response_variable_name="http_response"){
         if(url_or_options === undefined){
-            dde_error("Robot.get_page called with no <b>url_or_options</b> argument<br/>" +
+            dde_error("Control.get_page called with no <b>url_or_options</b> argument<br/>" +
                       "which is typically the string of a url.")
         }
         return new Instruction.Get_page(url_or_options, response_variable_name)
@@ -1071,16 +1071,16 @@ Dexter = class Dexter extends Robot {
                             }
                             else if ((this_robot.simulate === false) || (this_robot.simulate === "both")){
                                 this_job.stop_for_reason("errored", "The job: " + this_job.name + " is using robot: " + this_robot.name +
-                                "<br/>\nbut could not connect with a Dexter robot at: " +
+                                "<br/>but could not connect with a Dexter robot at: " +
                                 this_robot.ip_address + " port: " + this_robot.port +
-                                "<br/>\nYou can change this robot to <code>simulate=true</code> and run it.")
+                                "<br/>You can change this robot to <code>simulate=true</code> and run it.")
                             }
                             else if (this_robot.simulate === null){
                                 if ((sim_actual === false) || (sim_actual === "both")){
                                     this_job.stop_for_reason("errored", "The job: " + this_job.name + " is using robot: " + this_robot.name +
-                                    '<br/>\nwith the Jobs menu "Simulate?" item being: ' + sim_actual  +
-                                    "<br/>\nbut could not connect with Dexter." +
-                                    "<br/>\nYou can use the simulator by switching the menu item to 'true'. ")
+                                    '<br/>with the Jobs menu "Simulate?" item being: ' + sim_actual  +
+                                    "<br/>but could not connect with Dexter." +
+                                    "<br/>You can use the simulator by switching the menu item to 'true'. ")
                                     out("Could not connect to Dexter.", "red")
                                 }
                                 else {
@@ -1965,8 +1965,9 @@ Dexter.write_file = function(file_name=null, content=""){
     return instrs
 }
 
-//depricated. Note reversed args from Dexter.write_file
+//depricated. Note reversed args from Dexter.write_file and default path adjustment
 Dexter.write_to_robot = function(content="", file_name=null){
+    file_name = Dexter.srv_samba_share_default_to_absolute_path(file_name)
     return Dexter.write_file(file_name, content)
 }
 
@@ -2009,12 +2010,27 @@ new Job({name: "my_job",
     do_list: [out(Dexter.write_file(data, "/srv/samba/share/test.txt"))]})
 */
 
-Dexter.read_file = function (source, destination){
+Dexter.read_file = function(source, destination="read_file_content"){
     return new Instruction.Dexter.read_file(source, destination)
 }
-Dexter.read_from_robot = Dexter.read_file //depricated
+//examples pf path input:
+//  ./foo.txt =>  /srv/samba/share/foo.txt
+// ../foo.txt =>  /srv/samba/foo.txt
+//    foo.txt => /srv/samba/share/foo.txt
+Dexter.srv_samba_share_default_to_absolute_path = function(path){
+    if      (path.startsWith("/"))   { return path }
+    else if (path.startsWith("#"))   { return path }
+    else if (path.startsWith("./"))  { return "/srv/samba/share/" + path.substring(2) }
+    else if (path.startsWith("../")) { return "/srv/samba/"       + path.substring(3) }
+    else                             { return "/srv/samba/share/" + path }
+}
 
-Dexter.prototype.read_file = function (source, destination){
+Dexter.read_from_robot =  function (source, destination="read_file_content"){ //depricated. simlar to read_file but differs in that srv_sama_share is the default folder
+    source = Dexter.srv_samba_share_default_to_absolute_path(source)
+    return Dexter.read_file(source, destination)
+}
+
+Dexter.prototype.read_file = function (source, destination="read_file_content"){
     return new Instruction.Dexter.read_file(source, destination, this)
 }
 

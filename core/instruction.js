@@ -443,8 +443,8 @@ Instruction.break = class Break extends Instruction{ //class name must be upper 
     do_item (job_instance){
         let loop_pc = Instruction.loop.pc_of_enclosing_loop(job_instance)
         if (loop_pc === null) {
-            warning("Job " + job_instance.name + ' has a Robot.break instruction at pc: ' + job_instance.program_counter +
-                "<br/> but there is no Robot.loop instruction above it.")
+            warning("Job " + job_instance.name + ' has a Control.break instruction at pc: ' + job_instance.program_counter +
+                "<br/> but there is no Control.loop instruction above it.")
             job_instance.set_up_next_do(1)
         }
         else {
@@ -458,7 +458,7 @@ Instruction.break = class Break extends Instruction{ //class name must be upper 
         }
     }
     toString(){ return "break" }
-    to_source_code(args){ return args.indent + "Robot.break()" }
+    to_source_code(args){ return args.indent + "Control.break()" }
 }
 
 Instruction.debugger = class Debugger extends Instruction{ //class name must be upper case because lower case conflicts with js debugger
@@ -468,7 +468,7 @@ Instruction.debugger = class Debugger extends Instruction{ //class name must be 
         job_instance.set_up_next_do(1, true)
     }
     toString(){ return "debugger" }
-    to_source_code(args){ return args.indent + "Robot.debugger()" }
+    to_source_code(args){ return args.indent + "Control.debugger()" }
 }
 
 Instruction.error = class error extends Instruction{
@@ -489,11 +489,11 @@ Instruction.error = class error extends Instruction{
         args        = jQuery.extend({}, arguments[0])
         args.value  = this.reason
         args.indent = ""
-        return this_indent + "Robot.error(" + to_source_code(args) + ")"
+        return this_indent + "Control.error(" + to_source_code(args) + ")"
     }
 }
 
-//upper case G to avoid a conflict, but the user instruction is spelled Robot.get_page
+//upper case G to avoid a conflict, but the user instruction is spelled Control.get_page
 Instruction.Get_page = class Get_page extends Instruction{
     constructor (url_or_options, response_variable_name="http_response") {
         super()
@@ -535,7 +535,7 @@ Instruction.Get_page = class Get_page extends Instruction{
         else { job_instance.set_up_next_do(1)} //got the response, move to next instruction
     }
     to_source_code(args){
-        return args.indent + "Robot.get_page(" +
+        return args.indent + "Control.get_page(" +
             to_source_code({value: this.url_or_options}) +
             ((this.response_variable_name == "http_response") ? "" : (", " + to_source_code({value: this.response_variable_name})))  +
             ")"
@@ -566,14 +566,14 @@ Instruction.go_to = class go_to extends Instruction{
             job_instance.set_up_next_do(0)
         }
     }
-    toString(){ return "Robot.go_to instruction_location: " + this.instruction_location }
+    toString(){ return "Control.go_to instruction_location: " + this.instruction_location }
 
     to_source_code(args){
         let this_indent = args.indent
         args        = jQuery.extend({}, arguments[0])
         args.value  = this.instruction_location
         args.indent = ""
-        return this_indent + "Robot.go_to(" + to_source_code(args) + ")"
+        return this_indent + "Control.go_to(" + to_source_code(args) + ")"
     }
 }
 
@@ -634,7 +634,7 @@ Instruction.grab_robot_status = class grab_robot_status extends Instruction{
         args.value  = this.end_index
         args.indent = ""
         let ei_src  = to_source_code(args)
-        return this_indent + "Robot.grab_robot_status(" +
+        return this_indent + "Control.grab_robot_status(" +
                ud_src + ", " + si_src + ", " + ei_src + ")"
     }
 }
@@ -1768,9 +1768,9 @@ Instruction.if_any_errors = class if_any_errors extends Instruction{
                     let the_error_ins = this.instruction_if_error
                     if (the_error_ins == null){
                         let message = "In job: " + job_instance.name +
-                                      ", an instruction of type: Robot.if_any_errors, " +
+                                      ", an instruction of type: Control.if_any_errors, " +
                                       "discovered that job: " + job_name + " has errored."
-                        the_error_ins =  Robot.error(message)
+                        the_error_ins =  Control.error(message)
                     }
                     job_instance.insert_single_instruction(the_error_ins)
                     break;
@@ -1778,7 +1778,7 @@ Instruction.if_any_errors = class if_any_errors extends Instruction{
             }
             else {
                 job_instance.stop_for_reason("errored", "In job: " + job_instance.name +
-                             ", an instruction of type: Robot.if_any_errors<br/> " +
+                             ", an instruction of type: Control.if_any_errors<br/> " +
                              "was passed a job name of:  " + job_name + "<br/> that doesn't exist.")
                 job_instance.set_up_next_do(0)
                 return
@@ -1787,7 +1787,7 @@ Instruction.if_any_errors = class if_any_errors extends Instruction{
         job_instance.set_up_next_do(1)
     }
     to_source_code(args){
-        return args.indent + "Robot.if_any_errors(" +
+        return args.indent + "Control.if_any_errors(" +
                               to_source_code({value: this.job_names}) + ", " +
                               to_source_code({value: this.instruction_if_error}) + ")"
     }
@@ -1797,7 +1797,7 @@ Instruction.include_job = class include_job extends Instruction{
     constructor (job_name, start_loc, end_loc) {
         super()
         if(job_name === undefined){
-            dde_error("Robot.include_job was not passed a <b>job_name</b> which is required.")
+            dde_error("Control.include_job was not passed a <b>job_name</b> which is required.")
         }
         this.job_name = job_name
         //It *might* be good to permit job_name to be a job obj, but
@@ -1815,7 +1815,7 @@ Instruction.include_job = class include_job extends Instruction{
         if(!name_of_job_to_include.startsWith("Job.")) { name_of_job_to_include = "Job." + name_of_job_to_include }
         let job_to_include = value_of_path(name_of_job_to_include)
         if(!(job_to_include instanceof Job)) {
-           dde_error("Robot.include_job passed a job_name: " + this.job_name +
+           dde_error("Control.include_job passed a job_name: " + this.job_name +
                      "<br/>that is not bound to a Job, but rather: " + job_to_include)
         }
         let the_start_loc = ((this.start_loc === null) ? job_to_include.orig_args.program_counter : this.start_loc)
@@ -1845,7 +1845,7 @@ Instruction.include_job = class include_job extends Instruction{
             if(first_arg.startsWith("Job.")) {
                 resolved_first_arg   = value_of_path(first_arg)
                 if(!(resolved_first_arg instanceof Job)){
-                    dde_error("Robot.include_job's first argument: " + first_arg +
+                    dde_error("Control.include_job's first argument: " + first_arg +
                               "<br/>resolved to: " + resolved_first_arg +
                               "<br/>but was expected to resolve to a Job instance.")
                 }
@@ -1866,7 +1866,7 @@ Instruction.include_job = class include_job extends Instruction{
                         let file_src = read_file(first_arg)
                         let result_obj = eval_js_part2(file_src, false) // warning: calling straight eval often doesn't return the value of the last expr in the src, but my eval_js_part2 usually does. //window.eval(file_src)
                         if(result_obj.error_message){
-                           dde_error("Robot.include_job's first argument: " + first_arg +
+                           dde_error("Control.include_job's first argument: " + first_arg +
                                      "<br/>refers to an existing file but<br/>" +
                                      "that file contains the JavaScript error of:<br/>" +
                                      err.message)
@@ -1881,7 +1881,7 @@ Instruction.include_job = class include_job extends Instruction{
                             if(file_src.startsWith("var ")){
                                 let equal_sign_pos = file_src.indexOf("=")
                                 if(equal_sign_pos == -1){
-                                    dde_error("Robot.include_job's first argument: " + first_arg +
+                                    dde_error("Control.include_job's first argument: " + first_arg +
                                               "<br/>refers to an existing file containing variable: " + var_name + ".<br/>" +
                                              "However, their is no equal sign after 'var'")
                                 }
@@ -1892,7 +1892,7 @@ Instruction.include_job = class include_job extends Instruction{
                                     do_list_array_to_use = var_val
                                 }
                                 else {
-                                    dde_error("Robot.include_job's first argument: " + first_arg +
+                                    dde_error("Control.include_job's first argument: " + first_arg +
                                             "<br/>refers to an existing file containing variable: " + var_name + ".<br/>" +
                                             "However, the value is not an array of instructions, but rather:<br/>" +
                                             var_val)
@@ -1902,7 +1902,7 @@ Instruction.include_job = class include_job extends Instruction{
                     }
                 }
                 else {
-                    dde_error("Robot.include_job's first argument: " + first_arg + " has a dot in it<br/>" +
+                    dde_error("Control.include_job's first argument: " + first_arg + " has a dot in it<br/>" +
                                "so it is presumed to be a file path<br/>" +
                                "but no such file exists.")
                 }
@@ -1910,7 +1910,7 @@ Instruction.include_job = class include_job extends Instruction{
             else if (window[first_arg]) {
                 resolved_first_arg = window[first_arg]
                 if(!Array.isArray(resolved_first_arg)) {
-                    dde_error("Robot.include_job's first argument: " + first_arg + " is a variable<br/>" +
+                    dde_error("Control.include_job's first argument: " + first_arg + " is a variable<br/>" +
                               "but the value of the variable is not an array:<br/>" +
                                resolved_first_arg)
                 }
@@ -1919,20 +1919,20 @@ Instruction.include_job = class include_job extends Instruction{
                 }
             }
             else {
-                dde_error("Robot.include_job, got a first argument of: " + first_arg +
+                dde_error("Control.include_job, got a first argument of: " + first_arg +
                           "<br/>which is invalid because, although it is a string,<br/>" +
                           "it isn't a Job name, file name, nor variable name.")
             }
         } //end of first_arg is a string processing
         else {
-            dde_error("Robot.include_job, got a first argument of: " + first_arg +
+            dde_error("Control.include_job, got a first argument of: " + first_arg +
                       "<br/>which is invalid because its not a Job, array, or string.")
         }
         //at this point either the above code errored, or we have
         //resolved_first_arg   set to a Job or a do_list array and
         //do_list_array_to_use set to an array
         if(Instruction.is_oplet_array(do_list_array_to_use)){
-            dde_error("Robot.include_job, got a first argument of: " + first_arg +
+            dde_error("Control.include_job, got a first argument of: " + first_arg +
                       "<br/>but that resolved to an oplet array: " + do_list_array_to_use +
                       "<br/>which is not a valid array of instruction.<br/>" +
                       "If you wrap this oplet array in an outer array, it will be valid.")
@@ -1954,12 +1954,12 @@ Instruction.include_job = class include_job extends Instruction{
                 if(the_end_loc   == null) { the_end_loc   = do_list_array_to_use.length }
             }
             if(!is_non_neg_integer(the_start_loc)){
-                dde_error("Robot.include_job passed start_loc of: " + this.start_loc +
+                dde_error("Control.include_job passed start_loc of: " + this.start_loc +
                           "<br/>but that resolved to: " +  the_start_loc +
                           "<br/>which is not a non-negative integer.")
             }
             else if(!is_non_neg_integer(the_end_loc)){
-                dde_error("Robot.include_job passed end_loc of: " + this.end_loc +
+                dde_error("Control.include_job passed end_loc of: " + this.end_loc +
                           "<br/>but that resolved to: " +  the_end_loc +
                           "<br/>which is not a non-negative integer.")
             }
@@ -1972,7 +1972,7 @@ Instruction.include_job = class include_job extends Instruction{
     }
 
     to_source_code(args){
-        return args.indent + "Robot.include_job(" +
+        return args.indent + "Control.include_job(" +
             to_source_code({value: this.job_name}) + ")"
     }
 }
@@ -1991,7 +1991,7 @@ Instruction.label = class label extends Instruction{
     }
     toString(){ return this.name }
     to_source_code(args){
-        return args.indent + "Robot.label(" +
+        return args.indent + "Control.label(" +
               to_source_code({value: this.name})  + ")"
     }
 }
@@ -2019,7 +2019,7 @@ Instruction.loop = class Loop extends Instruction{
     //If on a normal iteration with more to come, the last inst returned will be a
     //go_to to this loop instruction. (and that go_to might be the ONLY instruction in the returned array)
     //else if null is returned, we're done with this loop.
-    //the returned instruction array may contain a Robot.break instruction that
+    //the returned instruction array may contain a Control.break instruction that
     //ends this loop. That ending is handled in Job.prototype.do_next_item section that handles loop
     get_instructions_for_one_iteration(job_instance){ //strategy: compute:
         //1. iter_index, 2. iter_total,3. iter_val & iter_key, 4. instructions for this iteration & return them
@@ -2041,7 +2041,7 @@ Instruction.loop = class Loop extends Instruction{
                else if (typeof(fn_result) == "number"){
                    if(is_non_neg_integer(fn_result))           { this.resolved_times_to_loop = fn_result; this.iter_total = this.resolved_times_to_loop}
                    else {
-                       job_instance.stop_for_reason("errored", "Robot.loop passed times_to_loop that returned a number: " +  fn_result +
+                       job_instance.stop_for_reason("errored", "Control.loop passed times_to_loop that returned a number: " +  fn_result +
                                                        "\n but it isn't a non-negative integer.")
                        return null
                    }
@@ -2053,13 +2053,13 @@ Instruction.loop = class Loop extends Instruction{
                    this.iter_total = this.resolved_times_to_loop.length
                }
                else if (typeof(fn_result) == "function")       { this.resolved_times_to_loop = fn_result} //rare but possible. //leave iter_total at Infinity
-               else { job_instance.stop_for_reason("errored", "Robot.loop passed function for boolean_int_array_number but that function" +
+               else { job_instance.stop_for_reason("errored", "Control.loop passed function for boolean_int_array_number but that function" +
                                 "\n returned an invalid type: " + fn_result +
                                 "\n It must return a boolean, non-negative integer, array, or function")
                       return null
                }
            }
-           else { job_instance.stop_for_reason("errored", "Robot.loop passed times_to_loop of:\n " +
+           else { job_instance.stop_for_reason("errored", "Control.loop passed times_to_loop of:\n " +
                   this.times_to_loop +
                 "\n but that is not one of the valid types of:\n boolean, non-negative integer, array, or function.")
                 return null
@@ -2074,7 +2074,7 @@ Instruction.loop = class Loop extends Instruction{
             this.resolved_times_to_loop = null //ready for next start of this job
             return null
         }
-        else if (this.resolved_times_to_loop === true){ iter_val = true } //loop forever or until body_fn returns Robot.break instruction
+        else if (this.resolved_times_to_loop === true){ iter_val = true } //loop forever or until body_fn returns Control.break instruction
         else if(is_non_neg_integer(this.resolved_times_to_loop)){
             iter_val = this.iter_index
         }
@@ -2093,13 +2093,13 @@ Instruction.loop = class Loop extends Instruction{
            }
            else if (fn_result === true)  { iter_val = true }
            else {
-               job_instance.stop_for_reason("errored", "Robot.loop passed a function to call to determine if another iteration should occur" +
+               job_instance.stop_for_reason("errored", "Control.loop passed a function to call to determine if another iteration should occur" +
                          "\n but that function returned: " + fn_result +
                          "\n however, only true and false are valid results.")
                return null
            }
        }
-       else { shouldnt("Robot.loop has an invalid this.resolved_times_to_loop of: " + this.resolved_times_to_loop)}
+       else { shouldnt("Control.loop has an invalid this.resolved_times_to_loop of: " + this.resolved_times_to_loop)}
        if(this.iter_index >= this.iter_total) { //done looping but initialize so if the job is restrted, the loop will restart
             this.resolved_times_to_loop = null
             return null
@@ -2117,13 +2117,13 @@ Instruction.loop = class Loop extends Instruction{
                                                  //below we add the go_to at the end.
            }
            //body_fn_result can legitimately be the empty array at this point.
-           //it might also contain a Robot.break instruction.
+           //it might also contain a Control.break instruction.
            let go_to_ins = new Instruction.go_to(job_instance.program_counter)
            body_fn_result.push(go_to_ins)
            return body_fn_result
        }
     }
-    //when called, pc of job_instance will (as of Jun 11 ) be to a Robot.break instruction
+    //when called, pc of job_instance will (as of Jun 11 ) be to a Control.break instruction
     //Just search backwards for the first loop instruction and return its pc.
     //If job_instance.program_counter happens to be pointing at a loop,
     //its just returned.
@@ -2135,7 +2135,7 @@ Instruction.loop = class Loop extends Instruction{
         return null // not good. we didn't find an enclosing loop. this will become a warning.
     }
     to_source_code(args){
-        return args.indent + "Robot.loop(" +
+        return args.indent + "Control.loop(" +
             to_source_code({value: this.times_to_loop})  + ",\n" +
             to_source_code({value: this.body_fn}) +
             ")"
@@ -2150,13 +2150,13 @@ Instruction.out = class Out extends Instruction{
         this.temp  = temp
     }
     do_item (job_instance){
-        let message = "Job: " + job_instance.name + ", instruction ID: " + job_instance.program_counter + ", Instruction type: Robot.out<br/>" + this.val
+        let message = "Job: " + job_instance.name + ", instruction ID: " + job_instance.program_counter + ", Instruction type: IO.out<br/>" + this.val
         out(message, this.color, this.temp)
         job_instance.set_up_next_do(1)
     }
-    toString() { return "Robot.out of: " + this.val }
+    toString() { return "IO.out of: " + this.val }
     to_source_code(args){
-        return args.indent + "Robot.out(" +
+        return args.indent + "IO.out(" +
                 to_source_code({value: this.val})  +
                 ((this.color == "black") ? "" : (", " + to_source_code({value: this.color}))) +
                 (this.temp ? (", " + to_source_code({value: this.temp})) : "") +
@@ -2235,7 +2235,7 @@ Instruction.send_to_job = class send_to_job extends Instruction{
         }
     }
     to_source_code(args){
-        return args.indent + "Robot.send_to_job({" +
+        return args.indent + "Control.send_to_job({" +
             ((this.do_list_item == null)          ? "" :  ("do_list_item: "         + to_source_code({value: this.do_list_item})                 + ", ")) +
             ((this.where_to_insert === undefined) ? "" :  ("where_to_insert: "      + to_source_code({value: this.where_to_insert})      + ", ")) +
             ((this.wait_until_done === false)     ? "" :  ("wait_until_done: "      + to_source_code({value: this.wait_until_done})      + ", ")) +
@@ -2378,12 +2378,12 @@ Instruction.sent_from_job = class sent_from_job extends Instruction{
 Instruction.start_job = class start_job extends Instruction{
     constructor (job_name, start_options={}, if_started="ignore", wait_until_job_done=false) {
         if(!["ignore", "error", "restart"].includes(if_started)){
-            dde_error("Robot.start_job has invalid value for if_started of: " +
+            dde_error("Control.start_job has invalid value for if_started of: " +
                        if_started +
                        '<br/>Valid values are: "ignore", "error", "restart"')
         }
         if(![true, false].includes(wait_until_job_done)){
-            dde_error("Robot.start_job has invalid value for wait_until_job_done of: " +
+            dde_error("Control.start_job has invalid value for wait_until_job_done of: " +
                 if_started +
                 '<br/>Valid values are: true and false')
         }
@@ -2412,17 +2412,17 @@ Instruction.start_job = class start_job extends Instruction{
                     let jobs_in_file = Job.instances_in_file(this.job_name)
                     if(jobs_in_file.length > 0) { this.job_to_start = jobs_in_file[0] }
                     else {
-                        dde_error("Robot.start_job has a job_name that's a path to an existing file: " + this.job_name + "<br/>" +
+                        dde_error("Control.start_job has a job_name that's a path to an existing file: " + this.job_name + "<br/>" +
                                   "but that file doesn't define any jobs.")
                     }
                 }
                 else {
-                    dde_error("Robot.start_job has a job_name of: " + this.job_name +
+                    dde_error("Control.start_job has a job_name of: " + this.job_name +
                               "<br/>but it doesn't resolve to a Job or a file containing one.")
                 }
             }
             if(!(this.job_to_start instanceof Job)){
-                job_instance.stop_for_reason("errored", "Robot.start_job attempted to start non-existent Job." + this.job_name)
+                job_instance.stop_for_reason("errored", "Control.start_job attempted to start non-existent Job." + this.job_name)
                 job_instance.set_up_next_do(0)
             }
         }
@@ -2446,14 +2446,14 @@ Instruction.start_job = class start_job extends Instruction{
                  return
              }
              else if(["starting", "running"].includes(stat)) {
-                job_instance.wait_reason = "Robot.start_job waiting at instruction " +
+                job_instance.wait_reason = "Control.start_job waiting at instruction " +
                                           job_instance.program_counter + " for " + this.job_to_start.name + " to complete."
                 job_instance.set_status_code("waiting")
                 job_instance.set_up_next_do(0)
                 return
              }
              else if(stat == "waiting") {
-                 job_instance.wait_reason = "Robot.start_job waiting at instruction " +
+                 job_instance.wait_reason = "Control.start_job waiting at instruction " +
                      job_instance.program_counter + " for " + this.job_to_start.name + " to complete,\n" +
                       "but its now waiting for: " + this.job_to_start.wait_reason
                  job_instance.set_status_code("waiting")
@@ -2462,7 +2462,7 @@ Instruction.start_job = class start_job extends Instruction{
              }
              else if (stat == "suspended")   {
                     this.job_to_start.unsuspend()
-                    job_instance.wait_reason = "Robot.start_job waiting at instruction " +
+                    job_instance.wait_reason = "Control.start_job waiting at instruction " +
                         job_instance.program_counter + " for " + this.job_to_start.name + " to complete."
                     job_instance.set_status_code("waiting")
                     job_instance.set_up_next_do(0)
@@ -2511,7 +2511,7 @@ Instruction.start_job = class start_job extends Instruction{
            }
            else { //if_started is tested for validity in the constructor, but just in case...
                shouldnt("Job." + job_instance.name +
-                 " has a Robot.start_job instruction with an invalid " +
+                 " has a Control.start_job instruction with an invalid " +
                  "<br/> if_started value of: " + this.if_started)
            }
         }
@@ -2520,7 +2520,7 @@ Instruction.start_job = class start_job extends Instruction{
             job_instance.set_up_next_do(1)
         }
         else {
-            shouldnt("Robot.start_job got a status_code from Job." +
+            shouldnt("Control.start_job got a status_code from Job." +
                       this.job_to_start.name + " that it doesn't understand.")
         }
     }
@@ -2528,7 +2528,7 @@ Instruction.start_job = class start_job extends Instruction{
         return "start_job: " + this.job_name
     }
     to_source_code(args){
-        return args.indent + "Robot.start_job(" +
+        return args.indent + "Control.start_job(" +
             to_source_code({value: this.job_name})  +
             (similar(this.start_options, {}) ? "" : (", " + to_source_code({value: this.start_options}))) +
             ((this.if_started == "ignore")   ? "" : (", " + to_source_code({value: this.if_started}))) +
@@ -2549,7 +2549,7 @@ Instruction.stop_job = class stop_job extends Instruction{
         if (!job_to_stop) { job_to_stop = job_instance }
         job_to_stop.ending_program_counter = this.instruction_location
         if (!this.stop_reason){
-            this.stop_reason = "Stopped by Job." + job_instance.name + " instruction: Robot.stop_job."
+            this.stop_reason = "Stopped by Job." + job_instance.name + " instruction: Control.stop_job."
         }
         job_to_stop.stop_for_reason("completed", this.stop_reason, this.perform_when_stopped)
           //this is not an error or interrupted, its a normal stoppage of the job.
@@ -2572,7 +2572,7 @@ Instruction.stop_job = class stop_job extends Instruction{
         props_args.value = this.perform_when_stopped
         let pws_src = to_source_code(props_args)
         let result = indent +
-                     "Robot.stop_job(" +
+                     "Control.stop_job(" +
                      loc_src + ", " +
                      sr_src          + ", " +
                      pws_src +
@@ -2604,7 +2604,7 @@ Instruction.suspend = class suspend extends Instruction{
         }
     }
     to_source_code(args){
-        return args.indent + "Robot.suspend(" +
+        return args.indent + "Control.suspend(" +
             to_source_code({value: this.job_name}) +
             ((this.reason == "") ? "" : (", " + to_source_code({value: this.reason})))  +
             ")"
@@ -2636,7 +2636,7 @@ Instruction.unsuspend = class unsuspend extends Instruction{
 
     }
     to_source_code(args){
-        return args.indent + "Robot.unsuspend(" +
+        return args.indent + "Control.unsuspend(" +
             to_source_code({value: this.job_name}) +
             ")"
     }
@@ -2711,7 +2711,7 @@ Instruction.sync_point = class sync_point extends Instruction{
         }
     }
     to_source_code(args){
-        return args.indent + "Robot.sync_point("   +
+        return args.indent + "Control.sync_point("   +
             to_source_code({value: this.name})     + ", " +
             to_source_code({value: this.job_names}) +
             ")"
@@ -2730,7 +2730,7 @@ Instruction.wait_until = class wait_until extends Instruction{
         else if (Array.isArray(this.fn_date_dur) ||
                  (typeof(this.fn_date_dur) == "object")){
                  if(!Job.instruction_location_to_job(this.fn_date_dur, false)){
-                     warning("Robot.wait_until passed an array or literal object<br/>" +
+                     warning("Control.wait_until passed an array or literal object<br/>" +
                              "for an instruction location but<br/>" +
                              "it does not contain a job.<br/>" +
                              "That implies this job will wait for itself, and thus forever.<br/>" +
@@ -2739,7 +2739,7 @@ Instruction.wait_until = class wait_until extends Instruction{
         }
         else if (fn_data_dur instanceof Job) {}
         else {
-            dde_error("Robot.wait_until instruction passed: " + this.fn_date_dur +
+            dde_error("Control.wait_until instruction passed: " + this.fn_date_dur +
                       '<br/> which is not a number, date, function,<br/>' +
                       '"new_instruction" or instruction location array.')
         }
@@ -2787,7 +2787,7 @@ Instruction.wait_until = class wait_until extends Instruction{
                 //so that we can keep the tcp connection alive, send a virtual heartbeat
                 let new_wait_dur_in_sec = this.fn_date_dur - (dur_from_start_in_ms / 1000)
                 let new_instructions = [make_ins("g"), //just a do nothing to get a round trip to Dexter.
-                                       Robot.wait_until(new_wait_dur_in_sec)] //create new wait_until to wait for the remaining time
+                                       Control.wait_until(new_wait_dur_in_sec)] //create new wait_until to wait for the remaining time
                 job_instance.insert_instructions(new_instructions)
                 //job_instance.added_items_count[job_instance.program_counter] += 2 this is done automatically by insert_instructions
                 this.start_time_in_ms = null //essential for the 2nd thru nth call to start() for this job.
@@ -2865,7 +2865,7 @@ Instruction.wait_until = class wait_until extends Instruction{
             var loc_pc = loc_job_instance.instruction_location_to_id(this.fn_date_dur)
             if(loc_pc > loc_job_instance.program_counter){ //wait until loc_job_instance advances
                 if(loc_job_instance.stop_reason){
-                    warning("Robot.wait_until is waiting for job: " + loc_job_instance.name +
+                    warning("Control.wait_until is waiting for job: " + loc_job_instance.name +
                             "<br/>but that job is stopped, so it will probably wait forever.")
                 }
                 job_instance.wait_reason = "a wait_until instruction_location is reached."
@@ -2887,7 +2887,7 @@ Instruction.wait_until = class wait_until extends Instruction{
         }
     }
     to_source_code(args){
-        return args.indent + "Robot.wait_until("       +
+        return args.indent + "Control.wait_until("       +
             to_source_code({value: this.fn_date_dur, function_names: true})  +
             ")"
     }

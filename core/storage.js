@@ -80,7 +80,13 @@ function persistent_save(){
     const path = add_default_file_prefix_maybe("dde_persistent.json")
     var content = JSON.stringify(persistent_values)
     content = replace_substrings(content, ",", ",\n") //easier to read & edit
-    content = "//Upon DDE launch, this file is loaded before dde_apps/dde_init.js\n//Use persistent_get(key) and persistent_set(key, new_value)\n//to access each of the below variables.\n\n" + content
+    content = "//This file content must live in Documents/dde_apps/dde_persistent.json\n" +
+              "//Upon DDE launch, this file is loaded before Documents/dde_apps/dde_init.js\n" +
+              "//Because this file is automatically saved while running DDE, only edit it with DDE closed.\n" +
+              "//It must be syntactically perfect, so edit it with care.\n" +
+              "//Within DDE, use persistent_get(key) and persistent_set(key, new_value)\n" +
+              "//to access each of the below variables.\n\n"
+              + content
     write_file(path, content)
 }
 module.exports.persistent_save = persistent_save
@@ -95,12 +101,14 @@ function persistent_load(){
         persistent_values = JSON.parse(content)
         //just in case files got saved out with backslashes, change to only slashes.
         let files = persistent_values.files_menu_paths
-        let slashified_files = []
-        for(let file of files){
-            file = convert_backslashes_to_slashes(file)
-            slashified_files.push(file)
+        if(files){
+            let slashified_files = []
+            for(let file of files){
+                file = convert_backslashes_to_slashes(file)
+                slashified_files.push(file)
+            }
+            persistent_values.files_menu_paths = slashified_files
         }
-        persistent_values.files_menu_paths = slashified_files
     }
 }
 
@@ -177,6 +185,7 @@ function dde_init_dot_js_initialize() {
     }
     else { //the folder exists, but no dde_init.js file
         const initial_dde_init_content =
+                  '//This file content must live in Documents/dde_apps/dde_init.js\n' +
                   '//This file is loaded when you launch DDE.\n'     +
                   '//Add whatever JavaScript you like to the end.\n' +
                   '\n' +
@@ -418,11 +427,11 @@ module.exports.file_exists = file_exists
 
 //only works for dde computer, not dexter computer paths.
 function make_folder(path){
-    path = make_full_path(path)
-    let path_array = path.split("/")
+    path = make_full_path(path) //now parh is os_specific
+    let path_array = path.split(folder_separator())
     let path_being_built = ""
     for(let path_part of path_array){
-        path_being_built += ("/" + path_part)
+        path_being_built += (folder_separator() + path_part)
         let path_to_use = adjust_path_to_os(path_being_built)
 
         if(!file_exists(path_to_use)){

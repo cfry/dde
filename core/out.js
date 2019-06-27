@@ -108,6 +108,7 @@ function out_eval_result(text, color="#000000", src){
             src = replace_substrings(src, "'", "&apos;")
             src_formatted = " <code title='" + src + "'>&nbsp;" + src_formatted + src_formatted_suffix + "&nbsp;</code>"
         }
+        //if (src_formatted == "") { console.log("_____out_eval_result passed src: " + src + " with empty string for src_formatted and text: " + text)}
         text = "<fieldset><legend><i>Result of evaling </i>" + src_formatted + "</legend>" +  text + "</fieldset>"
         append_to_output(text)
     }

@@ -86,7 +86,8 @@ function to_source_code_array(args){
 
 function to_source_code_instruction_array(args){
     let inst_array = args.value
-    let result = args.indent + "make_ins("
+    let the_indent = ((args.indent === undefined) ? "" : args.indent)
+    let result = the_indent + "make_ins("
     let prop_args = Object.assign({}, args) //jQuery.extend({}, args)
     prop_args.indent = ""
     for(let prop_index in inst_array) {

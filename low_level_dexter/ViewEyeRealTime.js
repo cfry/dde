@@ -221,7 +221,7 @@ function init_view_eye(){
     		inter_do_item_dur: .5 * _ms,
             robot: cal_get_robot(),
             do_list: [ Dexter.move_all_joints(0, 0, 0, 0, 0),
-             			Robot.label("loop_start"),
+             			Control.label("loop_start"),
                         make_ins("w", 42, 64),
                         make_ins("S", "J1BoundryHigh",648000*_arcsec),
                         make_ins("S", "J1BoundryLow",-648000*_arcsec),

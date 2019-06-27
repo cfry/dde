@@ -253,10 +253,10 @@ class Job{
                 inter_do_item_dur: 0.005, //we don't need to have fast communication with Dexter. Minimize traffic
                 do_list:[
                         Dexter.write_file("job/run/" + dde_monitor_job_instance.name + ".dde", job_src),
-                        Robot.loop(true,
+                        Control.loop(true,
                             function(){
                                 if(this.user_data.dexter_log !== undefined) { //got a dexter log meaning the monitored job is over.
-                                    return Robot.break()
+                                    return Control.break()
                                 }
                                 else if ((this.user_data.stop_job_running_on_dexter) &&
                                          (!this.user_data.already_handled_stop_job))  { //set by clicking the job button
@@ -1658,7 +1658,7 @@ Job.prototype.handle_start_object = function(cur_do_item){
                 }
             }
             else if(cur_do_item.dur) {
-                this.insert_single_instruction(Robot.wait_until(cur_do_item.dur))
+                this.insert_single_instruction(Control.wait_until(cur_do_item.dur))
             }
             if (!start_args)                    { cur_do_item.start.apply(the_inst_this) }
             else if (Array.isArray(start_args)) { cur_do_item.start.apply(the_inst_this, start_args) }
@@ -2261,7 +2261,7 @@ Job.prototype.increment_added_items_count_for_parent_instruction_of = function(i
                (type_of(par_loc_index) == "number") &&
                (par_loc_index < this.program_counter)) { //backwards goto in same job
                let loop_inst_maybe = this.do_list[par_loc_index]
-               if(loop_inst_maybe instanceof Robot.loop){ //shoot, we can't make the inserted instruction a sub_object of a loop's go_to
+               if(loop_inst_maybe instanceof Control.loop){ //shoot, we can't make the inserted instruction a sub_object of a loop's go_to
                     //so we've got to climb up the tree and increment the next instr that has a positive added_items_count
                     //but that aic must "contain" the instr_id of the added instruction
                    for(let maybe_par_id = par_loc_index - 1; maybe_par_id >= 0; maybe_par_id--){

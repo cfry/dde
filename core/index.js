@@ -109,7 +109,11 @@ var Coor   = require("../math/Coor.js")
 var Kin    = require("../math/Kin.js")
 var Vector = require("../math/Vector.js")
 var Job    = require("./job.js")
+
 var {Robot, Brain, Dexter, Human, Serial}  = require("./robot.js")
+var {Control} = require("./instruction_control.js")
+var {IO}      = require("./instruction_io.js")
+
 var {out}  = require("./out.js")
 var calibrate_build_tables = require("../low_level_dexter/calibrate_build_tables.js")
 var DXF    = require("../math/DXF.js")
@@ -119,6 +123,8 @@ global.Dexter   = Dexter
 global.make_ins = Dexter.make_ins
 global.out      = out
 global.Robot    = Robot
+global.Control  = Control
+global.IO       = IO
 global.Job      = Job
 global.Vector   = Vector
 global.Kin      = Kin

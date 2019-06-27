@@ -36,6 +36,7 @@ Editor.init_editor = function(){
          lint: true,
          smartIndent: false, //default is true but that screws up a lot. false is suppose to
                                //indent each line to the line above it when you hit Return
+         indentUnit: 4, //default is 2. Using 4 makes it same size as tab, then cmd(mac or ctrl(PC) open square will unindent by this amount.
          extraKeys: //undo z and select_all (a) work automaticaly with proper ctrl and cmd bindings for win and  mac
              ((operating_system === "win") ?
                     {"Alt-Left":  Series.ts_or_replace_sel_left,
@@ -44,19 +45,22 @@ Editor.init_editor = function(){
                     "Alt-Up":     Series.ts_or_replace_sel_up,
                     "Alt-Down":   Series.ts_or_replace_sel_down,
                     "Ctrl-E": eval_button_action, //the correct Cmd-e doesn't work
+                    "Ctrl-J": Editor.insert_new_job,
                     "Ctrl-O": Editor.open,
                     "Ctrl-N": Editor.edit_new_file,
                     "Ctrl-S": Editor.save //windows
-                    } :
+                    } : //Mac
                     {"Alt-Left":  Series.ts_or_replace_sel_left,
                      "Alt-Right": Series.ts_or_replace_sel_right,
                      "Shift-Alt-Right": Series.ts_sel_shift_right, //no non ts semantics see above for why cuttong this
                      "Alt-Up":    Series.ts_or_replace_sel_up,
                      "Alt-Down":  Series.ts_or_replace_sel_down,
                      "Cmd-E": eval_button_action, //the correct Cmd-e doesn't work
+                     "Cmd-J": Editor.insert_new_job,
                      "Cmd-N": Editor.edit_new_file,
                      "Cmd-O": Editor.open,
                      "Cmd-S": Editor.save, //mac
+
                     })
 
 
@@ -75,6 +79,7 @@ Editor.init_editor = function(){
     unfold_all_id.onclick  = function(){CodeMirror.commands.unfoldAll(myCodeMirror)}
     select_expr_id.onclick = function(){Editor.select_expr()}
     select_all_id.onclick  = function(){CodeMirror.commands.selectAll(myCodeMirror); myCodeMirror.focus()}
+    indent_selection_id.onclick = function(){CodeMirror.commands.indentAuto(myCodeMirror)}
     set_menu_string(select_all_id, "Select All", "a")
 
     myCodeMirror.on("mousedown",
@@ -120,7 +125,12 @@ Editor.index_of_path_in_file_menu = function(path){
 
 //returns false if path is not in menu, true if it is. path expected to be a full path,
 Editor.set_files_menu_to_path = function(path) {
-    if(!path) { path = Editor.current_file_path }
+    if(!path) {
+        if(Editor.current_file_path){
+            path = Editor.current_file_path
+        }
+        else { return false }
+    }
     let i = Editor.index_of_path_in_file_menu(path)
     if (i === null) { return false }
     else {
@@ -527,6 +537,72 @@ Editor.open_on_dexter_computer = function(dex_name){
     setTimeout(function() {open_on_dexter_computer_file_path_id.focus()}, 100)
 }
 
+handle_open_system_file = function(vals){
+    if(vals.clicked_button_value == "edit dde_init.js"){
+        Editor.edit_file("dde_init.js")
+    }
+    else if (vals.clicked_button_value == "show dde_persistent.json"){
+        let content = read_file("dde_persistent.json")
+        content = replace_substrings(content, "\n", "<br/>")
+        if(sim_actual === true) {
+            warning("You are getting the content of " + path +
+                "<br/>from the DDE computer because the simulate radio button " +
+                "<br/>in the Misc pane is selected." +
+                "<br/>To get the file content from Dexter," +
+                "<br/>select the 'real' radio button.")
+        }
+        out(content)
+    }
+    else if (vals.clicked_button_value.endsWith("Defaults.make_ins")){
+        let path = vals.clicked_button_value.split(" ")[1]
+        let rob_name = path.split(":")[0]
+        let rob = Dexter[rob_name]
+        const sim_actual = Robot.get_simulate_actual(rob.simulate)
+        if(sim_actual === true) {
+            warning("You are getting the content of " + path +
+                    "<br/>from the DDE computer because the simulate radio button " +
+                    "<br/>in the Misc pane is selected." +
+                    "<br/>To get the file content from Dexter," +
+                    "<br/>select the 'real' radio button.")
+        }
+        Editor.edit_file(path)
+    }
+    else if (vals.clicked_button_value.endsWith("errors.log")){
+        let path = vals.clicked_button_value.split(" ")[1]
+        let rob_name = path.split(":")[0]
+        read_file_async(path,
+                        undefined,
+                        function(err, content){
+                          if(err) {
+                             warning("Could not get " + path + "<br/>Error: " + err)
+                          }
+                          else {
+                              content = replace_substrings(content, "\n", "<br/>")
+                              out("<b>" + rob_name + ":/srv/samba/share/errors.log</b> content:<br/>" + content)
+                          }
+                        })
+    }
+}
+
+Editor.open_system_file = function(){
+    let cont = "<fieldset><legend>on DDE Computer</legend>\n" +
+                "<input type='submit' value='edit dde_init.js'/><br/>" +
+                "<input type='submit' value='show dde_persistent.json'/>" +
+                "</fieldset>"
+    for(let dex_name of Dexter.all_names){
+         cont += "<fieldset><legend>on " + dex_name + "</legend>\n" +
+                 "<input type='submit' value='edit " + dex_name + ":../Defaults.make_ins'/><br/>" +
+                 "<input type='submit' value='show " + dex_name + ":../errors.log'/>" +
+                 "</fieldset>"
+    }
+    show_window({title: "Open System File",
+                 content: cont,
+                 width: 275,
+                 height: 450,
+                 callback: handle_open_system_file
+    })
+}
+
 Editor.remove = function(path_to_remove=Editor.current_file_path){
     if(path_to_remove == "new buffer") {
         let index = Editor.index_of_path_in_file_menu("new buffer") //returns null if none
@@ -535,7 +611,7 @@ Editor.remove = function(path_to_remove=Editor.current_file_path){
             if (Editor.current_file_path == path_to_remove){
                 let files_menu_path = file_name_id.childNodes[0].innerHTML
                 let path = Editor.files_menu_path_to_path(files_menu_path)
-                Editor.current_file_path = path //if I don't do this the next call to edit_file will think we're on new buffer and pop up the 3 choices dialog again.
+                Editor.current_file_path = false //path //if I don't do this the next call to edit_file will think we're on new buffer and pop up the 3 choices dialog again.
                 Editor.edit_file(path)
             }
         }
@@ -652,6 +728,14 @@ Editor.edit_file = function(path){ //path could be "new buffer"
                                  //actual editor content now is the old content from the orig new buffer.
                                  //so don't do the save in that condition.
                 Editor.save_current_file()
+            }
+            else if(!persistent_get("save_on_eval")){
+                let cur_content = Editor.get_javascript()
+                let prev_content = read_file(Editor.current_file_path)
+                if(cur_content != prev_content) {
+                    let save_it = confirm("Before editing:\n" + path + "\nSave:\n" + Editor.current_file_path + " ?")
+                    if(save_it) { Editor.save_current_file() }
+                }
             }
         }
         if (path == "new buffer"){ Editor.edit_file_aux(path, "")  }
@@ -817,6 +901,11 @@ Editor.save_to_dexter_as = function(){
     }
 }
 
+//on Jobs menu/insert_new_job
+Editor.insert_new_job = function(){
+    Editor.wrap_around_selection('new Job({\n    name: "my_job",\n    do_list: [\n        ',
+        '\n    ]\n})\n')
+}
 
 //replace selected text with new text.
 Editor.insert = function(text, insertion_pos="replace_selection", select_new_text=false){ //insertion_pos defaults to the current editor selection start.
@@ -1206,12 +1295,20 @@ Editor.select_call = function(full_src = Editor.get_javascript(), cursor_pos = E
         var fwd_nearest_delim_pos = Editor.find_forward_delimiter(full_src, cursor_pos)
         var delim_char = full_src[fwd_nearest_delim_pos]
         if (Editor.is_close_delimiter(delim_char)){
+            if((delim_char == "}") && (full_src[fwd_nearest_delim_pos + 1] == ")")) { //looks like the end of a keyword call, ie })
+                //so advance the delim char to the close paren
+                delim_char = ")"
+                fwd_nearest_delim_pos += 1
+            }
             start_and_end = Editor.find_call_start_end_from_end(full_src, fwd_nearest_delim_pos + 1)
         }
         else {
             var bwd_nearest_delim_pos = Editor.find_backward_delimiter(full_src, cursor_pos)
             var delim_char = full_src[bwd_nearest_delim_pos]
             if (Editor.is_open_delimiter(delim_char)){
+                if((delim_char == "{") && (full_src[bwd_nearest_delim_pos - 1] == "(")) { //looks like keyword call
+                    bwd_nearest_delim_pos -= 1
+                }
                 var close_delim = Editor.find_matching_delimiter(full_src, bwd_nearest_delim_pos)
                 if (close_delim == null) {return false}
                 else { start_and_end = Editor.find_call_start_end_from_end(full_src, close_delim + 1)}
@@ -1358,10 +1455,19 @@ Editor.find_call_start_end_from_end = function(full_src, cursor_pos){
                         var last_char_before_whitespace_pos = Editor.backup_over_whitespace(full_src, temp_cur - 1)
                         if (last_char_before_whitespace_pos &&
                             (last_char_before_whitespace_pos > 0)){
-                           var identifier_bounds = Editor.bounds_of_identifier(full_src, last_char_before_whitespace_pos)
-                           var id = full_src.substring(identifier_bounds[0], identifier_bounds[1])
-                           if (["else", "try"].indexOf(id) != -1){
-                               return [identifier_bounds[0], cursor_pos]
+                           let identifier_bounds = Editor.bounds_of_identifier(full_src, last_char_before_whitespace_pos)
+                           if(identifier_bounds){
+                            let id = full_src.substring(identifier_bounds[0], identifier_bounds[1])
+                            if (["else", "try"].indexOf(id) != -1){
+                                 return [identifier_bounds[0], cursor_pos]
+                            }
+                           }
+                           else {
+                              let last_char_before_whitespace = full_src[last_char_before_whitespace_pos]
+                              if(last_char_before_whitespace == "(") { //looks like we got the ({ of a keyword fn call
+                                 let end_paren_pos = Editor.find_matching_close(full_src, last_char_before_whitespace_pos)
+                                 return Editor.find_call_start_end_from_end(full_src, end_paren_pos + 1)
+                              }
                            }
                         }
                     }
@@ -1537,6 +1643,15 @@ Editor.find_backward_delimiter = function(full_src, cursor_pos){
     return result
 }
 
+//returns non-neg integer or null
+Editor.find_backward_open_delimiter = function(full_src, cursor_pos){
+    full_src = full_src.substring(0, cursor_pos)
+    full_src = reverse_string(full_src)
+    let result = Editor.find_forward_open_delimiter(full_src, 0) //could be null
+    if(typeof(result) == "number") { result = full_src.length - result - 1 }
+    return result
+}
+
 
 //does not bypass // comments.
 Editor.find_forward_open_delimiter = function(full_src, cursor_pos=0){
@@ -1635,7 +1750,7 @@ Editor.find_backwards_string = function(full_src, cursor_pos, string_to_find){
 
 //finds starting pos of occurance of string_to_find that's close to, but before cursor_pos.
 //skips over // comments
-//returns -1 if can't find string_to_find
+//returns null if can't find string_to_find
 Editor.find_backwards = function(full_src, cursor_pos, string_to_find){
     var pos = full_src.lastIndexOf(string_to_find, cursor_pos)
     if (pos == -1) { return null }
@@ -2122,20 +2237,200 @@ Editor.variable_info = function(identifier){
     return null
 }
 
-Editor.show_identifier_info = function(full_src=null, pos=null){
+//this is the potential 2nd line output for click_help saying what arg in what fn
+//was clicked on.
+//returns a string or undefined meaning no help.
+Editor.context_help = function(full_src, cursor_pos, identifier){
+    if(identifier == "new"){
+        let next_identifier_pos = Editor.skip_forward_over_whitespace(full_src, cursor_pos + 3)
+        let next_identifier_bounds = Editor.bounds_of_identifier(full_src, next_identifier_pos)
+        if(next_identifier_bounds) {
+            let next_identifier = full_src.substring(next_identifier_bounds[0], next_identifier_bounds[1])
+            let fn = value_of_path(next_identifier)
+            let next_identifier_html
+            if(fn) {
+                next_identifier_html = Editor.get_atag_for_fn_name(next_identifier, full_src, cursor_pos)
+            }
+            else { next_identifier_html = "<span style='color:blue;'>" + next_identifier +
+                                          "</span>, which is undefined."
+            }
+            return "<span style='color:blue;'>new " + next_identifier +
+                      "</span> makes an instance of the class " + next_identifier_html + "</span>"
+        }
+        else { return } //can't find any context help
+    }
+    else {
+        let [fn_name, arg_index] = Editor.find_arg_index(full_src, cursor_pos)
+        if(fn_name){
+            let result = "This is the " // "Context: "
+            let prefix
+            if(typeof(arg_index) == "number"){
+                result += ordinal_string(arg_index + 1)
+            }
+            else { result += "keyword" }
+            result += " argument"
+            let fn
+            if(fn_name.startsWith("new ")){
+                fn = value_of_path(fn_name.substring(4).trim())
+            }
+            else {
+                fn = value_of_path(fn_name)
+            }
+            if(fn){
+                let lit_obj = function_param_names_and_defaults_lit_obj(fn)
+                if(lit_obj){
+                    let fn_param_names = Object.keys(lit_obj)
+                    let param_name = ((typeof(arg_index) == "number") ?
+                        fn_param_names[arg_index] :
+                        arg_index)
+                    result += " (name: " + '"' + param_name + '"'
+                    let default_val_src = lit_obj[param_name]
+                    if(default_val_src) {
+                        result += ", default_value: " + default_val_src
+                    }
+                    else {result += ", default_value: undefined"}
+                    result += ")"
+                }
+            }
+            let outer_type = ""
+            if(fn_name.startsWith("new ")) { outer_type = "constructor: "}
+            else if(fn_name.includes(".")) { outer_type = "method: "}
+            else if(fn_name)               { outer_type = "function: "}
+            let suffix = ""
+            if(!fn) { suffix = ", which is undefined" }
+            let fn_name_html
+            let fn_name_prefix = ""
+            /* this screws up for "Job" and "Dexter" because get_atag_for_fn_name returns
+              their full args, not just a link to "Job" or "Dexter". so
+              for now, just print out Job and Dexter in plain text.
+              if(fn_name.startsWith("new ")){
+                fn_name_prefix = "new "
+                let short_fn_name = fn_name.substring(4).trim()
+                fn_name_html = Editor.get_atag_for_fn_name(short_fn_name, full_src, cursor_pos)
+            }*/
+            fn_name_html = Editor.get_atag_for_fn_name(fn_name, full_src, cursor_pos)
+            return result + " to " + outer_type + fn_name_prefix + fn_name_html + suffix + "."
+        }
+    }
+}
+
+
+// return array of fn_name, and
+// either the zero_based_arg_index non-neg_int, or string of the param name
+Editor.find_arg_index = function(full_src, cursor_pos){
+    let call_start_end = Editor.select_call(full_src, cursor_pos)
+    if(!call_start_end){ return [null, null] }
+    let open_delim_pos = Editor.find_forward_delimiter(full_src, call_start_end[0])
+    if(cursor_pos < open_delim_pos){ //user clicked on fn name, not between parens
+        let bwd_open_pos = Editor.find_backward_open_delimiter(full_src, call_start_end[0])
+        if((bwd_open_pos == null) || (bwd_open_pos < 0)) { return [null, null] }
+        else {
+            call_start_end = Editor.select_call(full_src, bwd_open_pos)
+            if(!call_start_end){ return [null, null] }
+            else if (call_start_end[1] < cursor_pos) { //the previous call ends before we get to cursor_pos, so we aren't in an OBVIOUS fn call, but neees work to fund unobvious ones
+                return [null, null]
+            }
+            else {
+                open_delim_pos = Editor.find_forward_delimiter(full_src, call_start_end[0])
+            }
+        }
+    }
+    let fn_name = full_src.substring(call_start_end[0], open_delim_pos).trim()
+    let char_after_open_paren = full_src[open_delim_pos + 1]
+    if(char_after_open_paren == "{") { //we've got a keyword call ie foo({bar: 12, baz:34})
+        let colon_pos
+        let identifier_at_cursor_bounds = Editor.bounds_of_identifier(full_src, cursor_pos)
+        if(identifier_at_cursor_bounds && (full_src[identifier_at_cursor_bounds[1]] == ":")) {
+            //user clicked IN a keyword
+            colon_pos = identifier_at_cursor_bounds[1] + 1
+        }
+        else { colon_pos = Editor.find_backwards(full_src, cursor_pos, ":") }
+        if(colon_pos){
+            let arg_name_bounds = Editor.bounds_of_identifier(full_src, colon_pos - 2)
+            if(arg_name_bounds) {
+                let arg_name = full_src.substring(arg_name_bounds[0], arg_name_bounds[1])
+                return [fn_name, arg_name]
+            }
+        }
+        else { return [null, null] }
+    }
+    else if(cursor_pos < open_delim_pos){ //user clicked on fn name, not between parens, so not on an arg
+        return [fn_name, null]
+    }
+    else {
+        let comma_pos = open_delim_pos
+        for(let i = 0; i < 1000; i++) {
+            comma_pos = Editor.find_forward_comma_at_level(full_src, comma_pos + 1)
+            if(!comma_pos) {
+                if(cursor_pos <= call_start_end[1]) { return [fn_name, i] }
+                else { return [null, null] } //shouldn't if full src is correct sytnax, but just in case it isn't
+            }
+            else if(comma_pos > cursor_pos) { return [fn_name, i] }
+        }
+    }
+    return [null, null]
+}
+
+//search forwards from pos for a comma, but ignore
+//commas inside of nested fn calls.
+Editor.find_forward_comma_at_level = function(full_src, cursor_pos){
+    for(let i = cursor_pos; i < full_src.length; i++){
+        let char = full_src[i]
+        if(char == ",") { return i }
+        else if("[({".includes(char)) {
+            let close_pos = Editor.find_matching_close(full_src, i)
+            if(close_pos) { i = close_pos }
+            else { return null }
+        }
+    }
+    return null
+}
+
+//return fn_name, or an atag wrapper arond fn_name to click on for more help
+Editor.get_atag_for_fn_name = function(fn_name, full_src, cursor_pos) {
+   let html_string = Js_info.get_info_string(fn_name, undefined, full_src, cursor_pos)
+   let pos_of_fn_name = html_string.indexOf(fn_name)
+   if (pos_of_fn_name == -1) { return fn_name } //no atag info so just return fn_name
+   else {
+       let atag_start = Editor.find_backwards(html_string,  html_string.length, "<a ")
+       if(typeof(atag_start) != "number") { return fn_name }
+       else {
+           let atag_end = html_string.indexOf("</a>")
+           if (atag_end == -1) { //shouldnt but just in case
+               return fn_name
+           }
+           else {
+               let tag_str = html_string.substring(atag_start, atag_end + 4)
+               return tag_str
+           }
+       }
+   }
+}
+//for click help on textarea's and input type ins. Used in Make Instruction textareas.
+Editor.show_identifier_info_for_type_in = function(event){
+    let full_src = event.target.value
+    let pos = event.target.selectionStart
+    Editor.show_identifier_info(full_src, pos)
+}
+
+Editor.show_identifier_info = function(full_src=Editor.get_javascript(), pos=Editor.selection_start()){
     var identifier = Editor.identifier_or_operator(full_src, pos)
     if (identifier){
-        var info = Js_info.get_info_string(identifier)
+        var info = Js_info.get_info_string(identifier, undefined, full_src, pos)
         /* this is now implemented in identifier_or_operator that returns a potential array with var, let and param into in it.
          if (!info){
             info = Editor.variable_info(identifier)
             if (info){ info = "<b>" + identifier + "</b> is " + info }
         }*/
         if (info){
+            let context_info = Editor.context_help(full_src, pos, identifier)
+            if(context_info)
+                info = info + "<br/>" + context_info
             out(info, null, true)
         }
     }
 }
+
 
 var {persistent_initialize, persistent_get, persistent_set, load_files, file_exists, write_file, dde_init_dot_js_initialize} = require('./core/storage.js')
 var {warning, decode_quotes, is_alphanumeric, is_digit, is_letter, is_letter_or_underscore,

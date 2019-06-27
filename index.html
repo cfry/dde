@@ -207,6 +207,7 @@
                                     <ul>
                                         <li id="new_id"     title="Make a new editor buffer.">New</li>
                                         <li id="open_id"    title="Edit an exiting file.">Open... Ctrl/&#8984;o</li>
+                                        <li id="open_system_file_id" title="Edit or show a special DDE/Dexter system file.">Open system file...</li>
                                         <li id="load_file_id"    title="Evaluate the content of a JavaScript file.">Load...</li>
                                         <li id="insert_file_id"  title="Insert the content of a file&#013;into the editor at the cursor,&#013;replacing the selection if any.">Insert file...</li>
                                         <li id="save_id"    title="Save the current file.">Save &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ctrl/&#8984;s</li>
@@ -231,6 +232,8 @@
                                         <li id="unfold_all_id" title="Uncompress all compressed statements.">Unfold All</li>
                                         <li id="select_expr_id" title="Select JS expressions, by&#013;Alt-clicking on their&#013;start, middle or end.&#013;On Mac: Option-click">Select expr alt-click</li>
                                         <li id="select_all_id" title="Select all the text in the Editor.">Select All Ctrl/&#8984;A</li>
+                                        <li id="indent_selection_id" title="Indent the selected code in the Editor.">Indent Sel shift-tab</li>
+
                                         <li id="animate_ui_id" title="If checked, some user interface operations&#013will change the display incrementally.&#013Unchecked is faster.">
                                             <div style='float: left; margin-right: 5px;' id='animate_ui_checkbox_id'></div>
                                             Animate UI
@@ -242,20 +245,24 @@
                                     <ul>
                                        <li id="learn_js_help_id">Help</li>
                                         <li id="js_example_1_id" title="Example of a small JavaScript program.&#013;Good for a refresher course or quick learners.">JavaScript Example</li>
-                                        <li>User Interaction
-                                            <ul><li id="alert_id"   title="Pause JS and show user a dialog with a message.">alert("Hi.")</li>
-                                                <li id="confirm_id" title="Pause JS and show user a message to OK.">confirm("Do it?")</li>
-                                                <li id="prompt_id"  title="Pause JS and show user a dialog to get a string.">prompt("Price?", "$1")</li>
+                                        <li  title="">Comments
+                                            <ul>
+                                                <li id="comment_out_id"  title="Place the selected text in a comment&#013;so it won't be evaled.">Comment out selection</li>
+                                                <li id="comment_eol_id"  title="Comment out from cursor to end of line&#013;so it won't be evaled.">Comment to end of line</li>
                                             </ul>
                                         </li>
-                                        <li                      title="">Debugging, etc.
+                                        <li title="">Debugging
                                             <ul>
                                                 <li id="dev_tools_id"    title="Show instructions for&#013;seeing console.log output and&#013;using debugger; breakpoints.">Help</li>
                                                 <li id="console_log_id"  title="Prints complex data into the Chrome console. Click right anywhere in DDE and &#013;choose 'Inspect' to see it.&#013;out(...) prints to Output pane.">console.log(...)</li>
                                                 <li id="debugger_id"     title="Inserts a breakpoint in any JS code&#013;Click right and choose 'Inspect Element' &#013;to enable stepping.">debugger;</li>
-                                                <li id="debugger_instruction_id" title="Insert a Robot.debugger()&#013;instruction in a do list&#013;which pauses a job&#013;and allows you to step through its instructions.">Robot.debugger()</li>
-                                                <li id="comment_out_id"  title="Place the selected text in a comment&#013;so it won't be evaled.">Comment out selection</li>
-                                                <li id="comment_eol_id"  title="Comment out from cursor to end of line&#013;so it won't be evaled.">Comment to end of line</li>
+                                                <li id="debugger_instruction_id" title="Insert a Control.debugger()&#013;instruction in a do list&#013;which pauses a job&#013;and allows you to step through its instructions.">Control.debugger()</li>
+                                            </ul>
+                                        </li>
+                                        <li>User Interaction
+                                            <ul><li id="alert_id"   title="Pause JS and show user a dialog with a message.">alert("Hi.")</li>
+                                                <li id="confirm_id" title="Pause JS and show user a message to OK.">confirm("Do it?")</li>
+                                                <li id="prompt_id"  title="Pause JS and show user a dialog to get a string.">prompt("Price?", "$1")</li>
                                             </ul>
                                         </li>
                                         <li             title="boolean logic">true &amp; false
@@ -595,24 +602,25 @@
                                             <div style='float: left; margin-right: 5px;' id='real_time_sim_checkbox_id'></div>
                                             Real time sim
                                         </li>-->
+                                        <li id="insert_new_job_id" title="Insert into the editor, an empty new Job.">New Job Ctrl/&#8984;j</li>
                                         <li> Insert Example
                                             <ul>
-                                                <li id="insert_job_example0_id" title="Insert into the editor a 1 instruction Job definition.">0. Simplest</li>
-                                                <li id="insert_job_example1_id" title="Insert into the editor an example of defining a simple job.">1. Simple</li>
-                                                <li id="insert_job_example2_id" title="Insert into the editor a simple Dexter-moving Job.">2. Dexter-moving</li>
+                                                <li id="insert_job_example0_id" title="Insert into the editor, a 1 instruction Job definition.">0. Simplest</li>
+                                                <li id="insert_job_example1_id" title="Insert into the editor, an example of defining a simple job.">1. Simple</li>
+                                                <li id="insert_job_example2_id" title="Insert into the editor, a simple Dexter-moving Job.">2. Dexter-moving</li>
 
-                                                <li id="insert_job_example3_id" title="Insert into the editor a job with function call instructions.">3. Dexter & Fns</li>
-                                                <li id="insert_job_example4_id" title="Insert into the editor examples of defining 3 complex jobs using generators.">4. Generators</li>
-                                                <li id="insert_job_example5_id" title="Insert into the editor examples of defining jobs that interact with other jobs.">5. Sync Jobs</li>
-                                                <li id="insert_job_example6_id" title="Insert into the editor examples of defining a job that gets user input while running.">6. User Input</li>
-                                                <li id="insert_job_example7_id" title="Insert into the editor examples of using a human 'robot'.">7. Human Instrs</li>
-                                                <li id="insert_job_example8_id" title="Insert into the editor a job containing&#013;Human.enter_instruction.">8. Enter Instruction</li>
-                                                <li id="insert_job_example9_id" title="Insert into the editor a tutorial on using Asynchronous Functions.">9. Async Fns</li>
-                                                <li id="insert_job_example10_id" title="Insert into the editor a tutorial on using Serial Port.">10. Serial Port</li>
-                                                <li id="insert_job_example11_id" title="Insert into the editor a tutorial on using&#013;when_stopped for looping a job, etc.">11. when_stopped</li>
-                                                <li id="insert_job_example12_id" title="Insert into the editor a tutorial on using&#013;Robot.go_to instruction for looping a job.">12. Robot.go_to</li>
-                                                <li id="insert_job_example13_id" title="Insert into the editor a tutorial on using&#013;loops in a job.">13. Robot.loop</li>
-                                                <li id="insert_job_example14_id" title="Insert into the editor a tutorial on using&#013;A TestSuite in a job.">14. TestSuite in Job</li>
+                                                <li id="insert_job_example3_id" title="Insert into the editor, a job with function call instructions.">3. Dexter & Fns</li>
+                                                <li id="insert_job_example4_id" title="Insert into the editor, examples of defining 3 complex jobs using generators.">4. Generators</li>
+                                                <li id="insert_job_example5_id" title="Insert into the editor, examples of defining jobs that interact with other jobs.">5. Sync Jobs</li>
+                                                <li id="insert_job_example6_id" title="Insert into the editor, examples of defining a job that gets user input while running.">6. User Input</li>
+                                                <li id="insert_job_example7_id" title="Insert into the editor, examples of using a human 'robot'.">7. Human Instrs</li>
+                                                <li id="insert_job_example8_id" title="Insert into the editor, a job containing&#013;Human.enter_instruction.">8. Enter Instruction</li>
+                                                <li id="insert_job_example9_id" title="Insert into the editor, a tutorial on using Asynchronous Functions.">9. Async Fns</li>
+                                                <li id="insert_job_example10_id" title="Insert into the editor, a tutorial on using Serial Port.">10. Serial Port</li>
+                                                <li id="insert_job_example11_id" title="Insert into the editor, a tutorial on using&#013;when_stopped for looping a job, etc.">11. when_stopped</li>
+                                                <li id="insert_job_example12_id" title="Insert into the editor, a tutorial on using&#013;Control.go_to instruction for looping a job.">12. Control.go_to</li>
+                                                <li id="insert_job_example13_id" title="Insert into the editor, a tutorial on using&#013;loops in a job.">13. Control.loop</li>
+                                                <li id="insert_job_example14_id" title="Insert into the editor, a tutorial on using&#013;A TestSuite in a job.">14. TestSuite in Job</li>
 
                                             </ul>
                                         </li>

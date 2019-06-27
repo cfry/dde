@@ -647,7 +647,7 @@ and reliability.
      is useful for learning and when you don't need to
      extend a Job's do_list.
      <p></p>
-     If the function arg to <code>Robot.wait_until</code> returns false when it is called
+     If the function arg to <code>Control.wait_until</code> returns false when it is called
      by the job running process, the Job continues
      waiting. Hit the ESC key on the keyboard to end the wait_until.
      Because <code title="not in TestSuite">Gamepad.down_keys()</code>
@@ -657,8 +657,8 @@ and reliability.
      <!-- not in TestSuite because it runs jobs and this job waits for user interaction -->
     <pre><code title="not in TestSuite">new Job({
   name: "gamepad_job1",
-  do_list: [Robot.out("Press RIGHT arrow or ESC to exit."),
-            Robot.wait_until(function(){
+  do_list: [IO.out("Press RIGHT arrow or ESC to exit."),
+            Control.wait_until(function(){
               let dks = Gamepad.down_keys() //returns array of down key objects
               if (dks.length == 0){ return false }  //keep waiting
               else if (dks[0].keyname == "ESCAPE"){ //end the "wait_until"
@@ -674,7 +674,7 @@ and reliability.
                 return false //keep waiting
               }
             }),
-            Robot.out("done")
+            IO.out("done")
            ]})</code></pre>
 
     </details>
@@ -956,13 +956,7 @@ A picture file in DDE.<p><p/>
     "https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png"})</code></pre>
   Another picture displayed in "mycan".
   <p></p>
-  <i id="Robot.show_picture_doc_id">Robot Instruction</i><br/>
-  There is a robot instruction with the same arguments and functionality as the above
-  method that you can stick directly on the do_list of a job.<br/>
-  <i>Example:</i>
-  <pre><code>new Job({name: "my_job",
-         do_list: [Robot.show_picture()]})
-      </code></pre>
+  There is a corresponding instruction, <a href="#" onclick="open_doc('IO.show_picture_doc_id')">IO.show_picture</a>
 </details>
 
 <details id="Picture.show_video_cameras_doc_id"class="doc_details">
@@ -1015,7 +1009,7 @@ all with string values.<br/>
         </code></pre>
 </details>
 
-<details  id="show_video_doc_id" class="doc_details"><summary>show_video</summary>
+<details  id="Picture.show_video_doc_id" class="doc_details"><summary>show_video</summary>
 In order to take a picture for machine vision, you need to set up a video
 stream and take a snapshot of it. This is quite difficult using web-based
 sofware so we've made a wrapper for it.<br/>
@@ -1074,13 +1068,7 @@ with any show_video or take_picture calls in the test suite. -->
   "https://youtu.be/JAiHGA_I-P4"})
     </code></pre>
 
-<i id="Robot.show_video_doc_id">Robot Instruction</i><br/>
-There is a robot instruction with the same arguments and functionality as the above
-method that you can stick directly on the do_list of a job.<br/>
-<i>Example:</i>
-<pre><code>new Job({name: "my_job",
-     do_list: [Robot.show_video()]})
-      </code></pre>
+There is a corresponding instruction <a href="#" onclick="open_doc('IO.show_video_doc_id')">IO.show_video</a>
 </details>
 
 <details id="Picture.take_picture_doc_id" class="doc_details"><summary>take_picture</summary>
@@ -1100,23 +1088,8 @@ Called with an argument of the OpenCV.js mat made from this snapshot.<br/>
 <pre><code title="not in testsuite"> Picture.take_picture() </code></pre>
 <pre><code title="not in testsuite"> Picture.take_picture({callback: inspect}) </code></pre>
 
-<i id="Robot.take_picture_doc_id">Robot Instruction</i><br/>
-There is a robot instruction with the same arguments and functionality as the above
-method that you can stick directly on the do_list of a job.
-<p></p>
-The callback is called with <code>this</code> bound to the job
-this instruction is running in.<br/>
-If the callback is a string, it is considered to be the name of
-a user_data variable that you want to set to the mat created
-with take_picture. You can then use this mat in further instructions.
-<br/>
-<i>Example:</i>
-<pre><code>new Job({name: "my_job",
- do_list: [Robot.take_picture({
-             callback: "my_pic"})]})
-  </code></pre>
-  <code>Job.my_job.user_data.my_pic</code><br/>
-  returns the mat.
+
+There is a corresponding instruction <a href="#" onclick="open_doc('IO.take_picture_doc_id')">IO.take_picture</a>
 </details>
 </details> <!-- Camera I/O -->
 <details class="doc_details"><summary>Low Level</summary>
@@ -2043,14 +2016,17 @@ Also check that the volume control on your computer is up.
 <p></p>
 <b id="Midi.init_doc_id">Midi.init</b> initializes Midi.
 This is automatically done when you attempt to play a note
-and Midi has not been inited, but there will be a slight delay in that case.
+and Midi has not been inited, but there will be a slight delay in that case.<br/>
+<i>Example:</i><br/>
+<code title="not in TestSuite">Midi.init()</code><br/>
+
 If Midi has previously been inited, this calls <code>Midi.all_notes_off</code>.
-This can also be called by choosing Insert menu/Sound/Midi.init().
+This can also be called by choosing Insert menu/Sound/Midi.init().<br/>
 <i>Parameters:</i> None.
 <p></p>
 <b id="Midi.all_notes_off_doc_id">Midi.all_notes_off</b> Turns off
 all curently on notes on all channels. Does not work when using
-GarageBand for a synthesizer.
+GarageBand for a synthesizer.<br/>
 <i>Parameters:</i> None.
 <p></p>
 <b id="Midi.describe_midi_event_doc_id">Midi.describe_midi_event</b>
@@ -2945,9 +2921,14 @@ Example:<pre><code title="not in TestSuite"> speak({speak_data: [true, "It is", 
 
 <details class="doc_details"><summary>Web</summary>
     <details id="get_page_doc_id" class="doc_details"><summary>get_page</summary>
-        <code>get_page</code> retrieves the contents of a web page.
-        You pass in a url and get_page returns the contents as a string.
-        The argument can either be a string of a url, or a literal JS object.<br/>
+        <code>get_page</code> retrieves the contents of a web page.<br/>
+        <i>Parameter:</i><br/>
+        <b>url_or_options</b> The url whose contents this instruction gets.<br/>
+        Instead of a url as the argument, you can pass a literal JS object with lots of options, described at:
+        <a target="_blank" href="https://www.npmjs.com/package/request">options</a>
+        These include the HTTP methods of: GET (the default), POST, PUT, PATCH, DELETE, HEAD, OPTIONS,
+        plus a zillion other options for authentication, etc.
+        <p></p>
         <i>Example:</i><br/>
          <code title="not in TestSuite"> get_page("http://ibm.com")</code><br/>
         If there is an error, the returned string will start with "Error:"
@@ -2969,8 +2950,17 @@ Example:<pre><code title="not in TestSuite"> speak({speak_data: [true, "It is", 
         a callback is called and passed an error object, a response object, and the body string
         of the page.
         <p></p>
-        It will not eval scripts on the page
-        so you may see an error when retriving a page containing JavaScript.
+        <i>Parameters:</i><br/>
+        <b>url_or_options</b> The url whose contents this instruction gets.<br/>
+        Instead of a url as the argument, you can pass a literal JS object with lots of options, described at:
+        <a target="_blank" href="https://www.npmjs.com/package/request">options</a>
+        These include the HTTP methods of: GET (the default), POST, PUT, PATCH, DELETE, HEAD, OPTIONS,
+        plus a zillion other options for authentication, etc.<br/>
+        <b>callback</b> When the content of the web page is retrieved,
+        this callback is called, passing an error (or not), the response object,
+        and the string of the content of the page.
+        JavaScript on the page will not be evaled, but if the page is not found,
+        there will be an error.
         <p></p>
         Example: <pre><code title="not in TestSuite"> get_page_async("http://ibm.com",
   function(err, response, body){
@@ -3034,7 +3024,7 @@ The syntax of defining a job is:
 <pre><code>new Job({name: "my_job",
          robot: Robot.dexter0,
          do_list: [ Dexter.move_to([0, 0.5, 0.075]),
-                    Robot.wait_until(2)
+                    Control.wait_until(2)
                     //...
                    ]
         })</code></pre>
@@ -3047,7 +3037,7 @@ Jobs either run to completion, error, or are stopped by the user via:
 <ul><li>Clicking on a running Job's button, i.e. <button>my_job</button> in the Output pane</li>
     <li>Calling <code title="not in TestSuite">Job.my_job.stop_for_reason("interrupted", "why you want it stopped")</code></li>
     <li>In a running Job, executing the instruction:
-         <a href="#" onclick='open_doc("Robot.stop_job_doc_id")'><code>Robot.stop_job()</code></a></li>
+         <a href="#" onclick='open_doc("Control.stop_job_doc_id")'><code>Control.stop_job()</code></a></li>
  </ul>
  You can stop all jobs by:
  <ul>
@@ -3058,17 +3048,175 @@ Jobs either run to completion, error, or are stopped by the user via:
 Stopped jobs may be restarted by calling <code title="not in TestSuite"> Job.my_job.start()</code> again.
 This reinitializes the job with the original arguments passed to <code title="unEVALable code fragment"> new Job</code>
 and runs the do_list instructions again.
+
 <p></p>
 Webinar videos for Job:<br/>
 <a target="_blank" href="http://hdrobotic.com/webinar#making_jobs"   target="_blank">Making Jobs</a><br/>
 <a target="_blank" href="http://hdrobotic.com/webinar#advanced_jobs" target="_blank">Advanced Jobs</a><br/>
+
+<details class="doc_details"><summary>Definition Time vs Run Time</summary>
+    To fully understand how a job operates, you must understand the difference
+    between <i>Job Definition Time</i> and <i>Job Run Time</i>.
+    <p></p>
+    <b>Job Definition Time</b></br/>
+    When you select and evaluate the source code of a job, you are
+    <i>defining</i> the Job. This simply uses JavaScript's <code>eval</code>
+    function to evaluate the source code, just like evaling any source code.
+    The result of evaling<br/>
+    <code title="unEVALable">new Job({name: "my_job" ...})</code><br/>
+    is an instance of the
+    class Job. Once done, you can access the Job instance via
+    <code title="unEVALable">Job.my_job</code><br/>
+    Many properties of the job are accessible via, for example,
+    <code>Job.my_job.name</code> , which returns the string of the Job's name.<br/>
+    Of particular import is the do_list. In the case of:
+    <pre><code>var ang1 = 90
+new Job({name: "my_job",
+         do_list: [Dexter.move_all_joints(ang1)]
+         })</code></pre>
+    , evaluation sets the global variable <code>ang1</code> to 90.<br/>
+    Then it sets Job.my_job to the new Job instance.
+    Within this instance, the property Job.my_job.do_list will
+    be effectively set to an array of instructions.
+    We say "effectively" because the actual do_list isn't bound
+    until the job is started. It is cached away so that it
+    can be copied afresh for each starting of the job.
+    But in any case, the do_list will now be an array containing
+    just one instance of the move_all_joints instruction.
+    This instance will have its joint1 angle set to 90 because <code>ang1</code>
+    is evaled when the Job definition is evaluated, and <code>ang1</code> evals
+    to 90. If you simply eval <code>Dexter.move_all_joints(90)</code>,
+    you can inspect the returned object and see that it has an
+    <i>array_of_angles</i> property storing where the Dexter's angles will
+    be commanded to go when the Job is actually run.
+    <p></p>
+    <b>Job Run time</b></br/>
+    Now let's walk through <i>Job Run Time</i>. You run a Job
+    by clicking its <button>job name</button> button or by calling
+    <code title="unEVALable">Job.my_job.start()</code><br/>
+    One way to think of starting a job is that it is a <i>second</i> evaluation
+    of the Job. Only this time, it is not using JavaScript's eval, it is using
+    Job's special evaluator. Instead of taking an input of JavaScript source code,
+    its taking input of the items on the do_list (created via JS eval when defining the Job)
+    which can be of many different types.
+    Each instruction is "evaluated" by the Job differently, depending on its type.
+    (similar to JavaScript's eval!)
+    In the case of an instance of the move_all_joints instruction,
+    that instance is transformed to a lower level instruction
+    that is very similar to what you get when evaluating
+    <code>make_ins("a", 90)</code>, then the 90 is convertered from
+    degrees into arcseconds, and sent to the Job's default robot, which better be a Dexter.
+    <p></p>
+    <b>Re-Running a Job</b></br/>
+    After a job has finished, you can rerun it by clicking its
+    <button>job name</button> button or calling its start method again.
+    This does not redefine the job.
+    So for instance, if between two runnings of a Job, we set our
+    global variable of <code title="unEVALable">ang1</code> to 45,
+    that will have no effect on
+    the 2nd running of our job, because we are not re-evaluating
+    <code title="unEVALable">ang1</code> or even
+    <code title="unEVALable">Dexter.move_all_joints(ang1)</code>.
+    Nor are we re-defining my_job.
+    That Joint1 inside the instance of move_all_joints is still 90,
+    so our 2nd running of my_job should behave the same, even
+    if we modify the value of <code title="unEVALable">ang1</code>.
+    Actually if you do re_run my_job, it won't be exactly the same
+    because the Dexter robot will now be at a pose with Joint 1 equal to 90,
+    so in our 2nd running, the robot won't move. But besides this initial
+    "set up move", following moves would be the same between the two runnings.
+    <p></p>
+    <b>Functions on the do_list</b></br/>
+    The most flexible of instruction types is a JavaScript function.
+    This allows you to execute arbritary JavaScript at Job Run Time.
+    You might need to do this because you want to use the current environment
+    to help determine what instruction to run next. That current environment
+    may not be knowable at Job Definition Time. Perhaps you want to
+    verify that Dexter really is where you told it to go, or
+    you want to check on the status of some other Job before
+    proceeding with this one.
+    <p></p>
+    To run arbitrary JS code during the running of a Job, wrap that code
+    in a function definition like so:
+    <pre><code>new Job({name: "my_job",
+        do_list: [function(){return Dexter.move_all_joints(ang1)}]
+        })</code></pre>
+    We could also do:
+    <pre><code>function move_it_buddy(){return Dexter.move_all_joints(ang1)}
+new Job({name: "my_job",
+         do_list: [move_it_buddy]
+        })</code></pre>
+    particulary helpful for long functions or functions we want to
+    call multiple times.
+    <p></p>
+    We are not doing:
+    <code title="unEVALable">do_list: [move_it_buddy()]</code> because
+    we don't want to CALL <code title="unEVALable">move_it_buddy</code>, as that would put its result on
+    the do_list at define time. We just want to eval the global variable
+    <code title="unEVALable">move_it_buddy</code> to put its value, a function definition, onto the do_list
+    at define time.
+    <p></p>
+    When a JavaScript function is called,
+    including when a running Job calls a function definition on its do_list,
+    it sets local variables of the function's parameters to the values passed in,
+    and evaluates the code in the body of the function.
+    <p></p>
+    In the cases above, <code title="unEVALable">ang1</code> <i>will</i> be evaled at Job Run Time,
+    as will the code that creates the instance of move_all_joints.
+    Anything returned by a function definition on the do_list will be
+    dynamically added to the do_list right below the function definition.
+    Our do_list started out with just one item, but after running
+    that one item, our do_list is extended by an instance of move_all_joints.
+    That instance of move_all_joints is inserted into the do_list immediately after
+    the function that generated it, making it run immediately after the function.
+    So now, if we change the value of ang1 between two runnings of my_job,
+    we won't have to redefine the whole job in order to get the effect
+    of changing the value of ang1.
+    <p></p>
+    A function definition on a do_list doesn't
+    have to return anything. It may just have side effects like calling <code>out</code>
+    for a print statement. But if it returns something that is not a valid instruction,
+    the Job will error.
+    <p></p>
+    <b>Job Instance Access</b><br/>
+    If you want to access the running Job Instance at run time, use a
+    function definition on the do_list, and reference <code>this</code> in
+    the body of that function definition.<br/>
+    <i>Example:</i><br/>
+    <pre><code>new Job({name: "my_job",
+         do_list:[function(){ this.user_data.foo = 2},
+                 function(){ out("foo: " + this.user_data.foo +
+                                 ", robot: " + this.robot.name) }
+                 ]})
+    </code></pre>
+    Note that using <code title="unEVALable">user_data</code> is a convenient way to pass values from one
+    instruction to another, without cluttering the global variable space.<br/>
+    <b>Flexibility and Complexity</b><br/>
+    Jobs have a great deal of flexibility. We can use the full power of
+    a general purpose programming language plus DDE's libraries
+    to define them. During their
+    running, Jobs can also use the the full power of
+    a general purpose programming language plus DDE's libraries, or any
+    that you import or create.
+    <p></p>
+    Though powerful, this flexibility comes
+    at the cost of complexity. Using JavaScript's function defining
+    capability, you can hide (but not eliminate) many details.
+    Also, DDE attempts to make writing JavaScript and Jobs as simple as
+    possible, but it is still not simple, especially if you want
+    to understand what's going on beneath the surface. The goal of Dexter
+    is to enable you to make as many things as possible. This is why DDE needs to be so flexible.
+    <p></p>
+    For a more complete understanding of JavaScript eval, see the DDE article:
+    <a href="#" onclick="open_doc('how_to_think_like_a_computer_doc_id')">How to Think like a Computer</a>
+</details>
 
 <details id="new_job_parameters_doc_id" class="doc_details"><summary>new Job parameters</summary>
 The parameters used to define a new Job all have defaults.<br/>
 <code> new Job() </code><br/>
 is a valid job to define and run, though it will give a warning message:<br/>
     <span style="color:#e50;">Warning: While starting job: job_1, the do_list is empty.<br/>
-    The job still requests the status of Dexter but does not cause it to move.</span><br/>
+    The job still requests the status of Dexter, but does not cause it to move.</span><br/>
     You can customize a job with the parameters:
     <ol><li id="job_param_name_doc_id"><b>name</b> Default's to an unused name of the format: <code>"job_1"</code>, <code>"job_2"</code>, <code>"job_3"</code>, etc.
          You can use <code title="unEVALable code fragment"> Job.a_job_name</code> to get the instance programmatically.</li>
@@ -3098,15 +3246,15 @@ is a valid job to define and run, though it will give a warning message:<br/>
              Normally a Job definition will look something like:
              <pre><code>
 new Job({name: "my_job",
-      do_list: [Robot.out("hi")]})
+      do_list: [IO.out("hi")]})
       </code></pre>
-            The call to <code>Robot.out</code> is evaled when the call to new Job is evaled.
-            <code title="unEvalable">Robot.out("hi")</code> evals to an instruction object.
-            (Go ahead and select the call to Robot.out and click
+            The call to <code>IO.out</code> is evaled when the call to new Job is evaled.
+            <code title="unEvalable">IO.out("hi")</code> evals to an instruction object.
+            (Go ahead and select the call to IO.out and click
             <button>Eval</button> .)
             It is that object which is put on the do_list.
-            If that call to Robot.out was inside a function and returned,
-            and that function was on the do_list, the result of the Robot.out
+            If that call to IO.out was inside a function and returned,
+            and that function was on the do_list, the result of the IO.out
             would be put on the do_list.
             If instead we had put on our do_list:
 <pre><code title="unEVALable">
@@ -3214,7 +3362,7 @@ new Job({name: "my_job",
          the initial instructions when running the job.
          This is most commonly a non-negative integer but
          you can use any instruction_location here.
-        See <a href="#" onclick="open_doc('Robot.go_to_doc_id', event)">Robot.go_to</a>
+        See <a href="#" onclick="open_doc('Control.go_to_doc_id', event)">Control.go_to</a>
         for documentation on all the different kinds of instruction_locations.
         </li>
         <li id="job_param_ending_program_counter_doc_id"><b>ending_program_counter</b> Default: <code>"end"</code> Declare at the outset of a job that it
@@ -3222,7 +3370,7 @@ new Job({name: "my_job",
             valid instruction_location that does not include a job. It is evaluated
             at the start of each instruction, so if labels move as a result of
             dynamically added instructions, that's OK.
-            See <a href="#" onclick="open_doc('Robot.go_to_doc_id', event)">Robot.go_to</a>
+            See <a href="#" onclick="open_doc('Control.go_to_doc_id', event)">Control.go_to</a>
             for documentation on all the different kinds of instruction_locations.
             <p></p>
             Use program_counter and ending_program_counter to "play" just a segment
@@ -3254,21 +3402,32 @@ new Job({name: "my_job",
              <code title="unEVALable code fragment"> A function</code> When the job reaches its normal stopping point,
              the function is called with a 'this' of the job instance and no arguments.
              This is effectively a callback when the job is done.<br/>
-             <code title="unEVALable code fragment"> An instruction location</code> This is similar to Robot.go_to
+             <code title="unEVALable code fragment"> An instruction location</code> This is similar to Control.go_to
              except that the job is re-initialized with its original (as defined) do_list.
              Any valid instruction location can be used
-             (see doc in <a href="#" onclick="open_doc('Robot.go_to_doc_id', event)">Robot.go_to</a>) except
+             (see doc in <a href="#" onclick="open_doc('Control.go_to_doc_id', event)">Control.go_to</a>) except
              that it must have no job or indicate the current job. Using <code>0</code>
              set's the job's program_counter to instruction 0, causing the job to loop.
              Using an instruction location 'offset' of greater than 0, such as a label,
              will cause the initial running of the job to execute its top instructions,
              but then subsequent iterations will start somewhere in the middle.<br/>
-             A Robot.stop_job instruction can be used to end a loop.
+             A Control.stop_job instruction can be used to end a loop.
              <p></p>
              See the menu item: Jobs/Insert Example/when_stopped
         </li>
         <li id="job_param_callback_param_doc_id"><b>callback_param</b> An advanced feature of <a href="#" onclick="open_doc(start_object_doc_id)">start_object</a>, not normally used.
     </ol>
+    All of these parameters are accessible as properties from the job instance that they help create.<br/>
+    <i>Example:</i><br/>
+    <code title="unEVALable">Job.my_job.robot</code> gets the default robot for the job.<br/>
+    To access these properties from an instruction in a running job, use a function definition
+    on the do_list. When a running job encounters a function definition on its do_list,
+    it calls that function with no arguments, but with a <code>this</code> of
+    the job instance. From that you can get the Job's properties like so:<br/>
+    <pre><code>new Job ({name: "my_job",
+          do_list: [function(){out(this.robot.name)}]})</code></pre>
+    where <code>this</code> refers to <code title="unEVALable">Job.my_job</code>.
+    When run, my_job prints its default robot's name to the Output pane.
 </details> <!-- end new Job parameters -->
 
 <details id="start_doc_id" class="doc_details"><summary>start</summary>
@@ -3285,7 +3444,7 @@ new Job({name: "my_job",
    <ul>
     <li><b>program_counter</b> Initialize the program_counter to an instruction id.
         The default is 0. You can use any instruction_location here.
-        See <a href="#" onclick="open_doc('Robot.go_to_doc_id', event)">Robot.go_to</a>
+        See <a href="#" onclick="open_doc('Control.go_to_doc_id', event)">Control.go_to</a>
         for documentation on all the different kinds of instruction_locations.
     </li>
     <li><b>initial_instruction</b> Add an initial instruction to the do_list at
@@ -3308,15 +3467,15 @@ Insert an instruction into a Job's do_list at a particular location.<br/>
 <b>instruction</b> The instruction to insert. This can be an array of instructions
 if you effectively want to insert more than one.<br/>
 <b>location</b> Any instruction_location documented under
-              <a href="#" onclick="open_doc('Robot.go_to_literal_doc_id', event)">Robot.go_to literal</a> can be used
+              <a href="#" onclick="open_doc('Control.go_to_literal_doc_id', event)">Control.go_to literal</a> can be used
 including integers, names of labels, etc. <br/>
-<i>Example</i>: <pre><code title="unEVALable code fragment"> Job.insert_instruction(Robot.out("the end"),
+<i>Example</i>: <pre><code title="unEVALable code fragment"> Job.insert_instruction(IO.out("the end"),
                        {job: "my_job",
                         offset: "end"})</code></pre><br/>
 Adds an instruction that prints "the end" at the end of <code title="unEVALable code fragment"> Job.my_job.do_list</code>.<br/>
-The instruction <code>Robot.send_to_job</code> performs the core of this functionality
+The instruction <code>Control.send_to_job</code> performs the core of this functionality
 in an instruction format.<br/>
-See <code>Robot.wait_until</code> documentation for its "new_instruction" argument
+See <code>Control.wait_until</code> documentation for its "new_instruction" argument
 on how to continually add and execute a new instruction in a running job.
 </details>
 
@@ -3328,6 +3487,15 @@ on how to continually add and execute a new instruction in a running job.
   A robot is a machine that can execute the instructions in its instruction set. In general,
   each kind of robot will have its own instruction set. The primary
   difference between robots is the difference in their instruction sets.
+  <p></p>
+  All Jobs have a default <i>robot</i> property. You can access the robot property
+  from a running job like so:<br/>
+  <pre><code>new Job ({name: "my_job",
+          do_list: [function(){ this.robot }]})</code></pre>
+    where <code>this</code> refers to <code title="unEVALable">Job.my_job</code>.<br/>
+    You might use this to print out the current robot's name, by replacing<br/>
+    <code title="unEVALable">this.robot</code> with:<br/>
+    <code title="unEVALable">out(this.robot.name)</code>
   
 <details id="robot_instructions_doc_id" class="doc_details" ><summary>Robot Instructions</summary>
 These instructions can be used for any robot, as can the instructions for
@@ -3342,7 +3510,7 @@ the Human robot.
         Arrays may be nested to any depth.<br/>
         <i>Example:</i><br/>
         <pre><code>new Job({name: "Job1",
-         do_list: [[Dexter.move_all_joints([10, 20, 0, 0, 0]), Robot.out("did it")],
+         do_list: [[Dexter.move_all_joints([10, 20, 0, 0, 0]), IO.out("did it")],
                     function(){
                         let result = []
                         for(let ang = 0; ang <= 90; ang += 15){
@@ -3427,14 +3595,14 @@ branch of an <code title="unEVALable code fragment"> if</code> may be taken that
 }
 </code></pre>
 The above example could better be implemented using
-<code>Robot.wait_until</code>, but there are
+<code>Control.wait_until</code>, but there are
 cases where the increased flexibility of the above is convenient.
 <p></p>
 You can put both named and anonymous functions on a do_list.
 A named instruction allows you to add a bit of "documentation" to
 the function. You can also use the name of a function like a
 label and "go to"
-that name using a <a href="#" onclick="open_doc('Robot.go_to_doc_id', event)">Robot.go_to</a> instruction,
+that name using a <a href="#" onclick="open_doc('Control.go_to_doc_id', event)">Control.go_to</a> instruction,
 or use the function's name in
 any uses of an instruction_location.
 <p></p>
@@ -3449,9 +3617,9 @@ only have to define it once.
 If you have some JavaScript code that you want to go between 2
 other instructions on a Job's do_list, your first inclination
 might be to just stick it on the do_list like so
-<pre><code title="unEVALable code fragment"> do_list: [Robot.out("hi"),
+<pre><code title="unEVALable code fragment"> do_list: [IO.out("hi"),
           my_fn(12, 34),
-          Robot.out("bye")
+          IO.out("bye")
           ]
 </code></pre>
 What happens here is that when the <i>definition</i> of the job is evaled,
@@ -3463,7 +3631,7 @@ does not depend on anything that happens while running the instructions of the j
 then you're all set.
 <br/>
 <b>BUT</b> if what you want is for the eval of <code title="unEVALable code fragment"> my_fn(12, 34)</code>
-to occur after the instruction returned by <code>Robot.out("hi")</code> is run,
+to occur after the instruction returned by <code>IO.out("hi")</code> is run,
 then you'll want to wrap your code in a function, and put the definition
 of that wrapper function on the do_list like so:<br/>
 <code>function(){ my_fn(12, 34) }</code><br/>
@@ -3519,9 +3687,9 @@ an instruction.<br/>
 function* my_gen(){
   while(true){
     if(Math.random() > 0.2) {
-        yield Robot.out("my_gen still alive")
+        yield IO.out("my_gen still alive")
     }
-    else { return Robot.out("gotta go") }
+    else { return IO.out("gotta go") }
   }
 }
 new Job({name: "my_job",
@@ -3531,7 +3699,7 @@ See DDE menu bar/Jobs/Insert Example/Generators<br/>
 for code examples. Related Job facilities are:
 <ul><li>
  using instruction
-<code>Robot.wait_until("new_instruction")</code></li>
+<code>Control.wait_until("new_instruction")</code></li>
 <li>Job parameter: <code title="unEVALable code fragment"> when_stopped</code></li>
 </ul>
 </details>
@@ -3557,7 +3725,7 @@ A DDE Job and its do_list is another way to carefully control
 when "instructions" on the do_list are started.
 DDE has a number of instruction types that help you control
 when the next instruction is run. A primary one is called
-<a href="#" onclick="open_doc('Robot.wait_until_doc_id', event)">wait_until</a>
+<a href="#" onclick="open_doc('Control.wait_until_doc_id', event)">wait_until</a>
 that blocks the processing of the following instruction.
 <p></p>
 In order to provide a more general mechanism to handle such methods
@@ -3627,7 +3795,7 @@ call will look like: <br/>
 <pre><code>new Job({name: "Job1",
       do_list: [{start: function(){out("wait a sec or 3")},
                  dur: 3},
-                 Robot.out("done")]})
+                 IO.out("done")]})
       </code></pre></li>
 <li><b>user_data_variable</b> Default: <code>null</code> If present and non-null,
  the automatically synthesized callback
@@ -3640,7 +3808,7 @@ then after this instruction has completed,<br/>
 </ul>
 <i>Examples:</i>
 <pre><code title="unstartable in TestSuite">new Job({name: "my_job1",
-         do_list: [Robot.out("hey from my_job1")]})
+         do_list: [IO.out("hey from my_job1")]})
 new Job({name: "my_job2",
          robot: new Brain({name: "brain2"}),
          do_list: [Job.my_job1]})
@@ -3673,7 +3841,7 @@ See <a href="#" onclick="open_doc('music_with_midi_doc_id', event)">Music with M
 new Job({name: "my_job",
          do_list: [{start: function(){out("wait a sec or 3")},
                     dur: 3},
-                   Robot.out("done waiting")]})
+                   IO.out("done waiting")]})
     </code></pre>
     Above when the job starts, the first instruction's start method is
     called, which prints in the Output pane, "wait a sec or 3".
@@ -3683,7 +3851,7 @@ new Job({name: "my_job",
     and prints out "done waiting".
 
 <pre><code>new Job({name: "my_job",
-    do_list: [Robot.out("hey"),
+    do_list: [IO.out("hey"),
     {start: speak,
      start_args: {speak_data: "Clean my work space.", rate:0.8},
      callback_param: "callback",
@@ -3694,7 +3862,7 @@ new Job({name: "my_job",
      callback_param: "callback",
      user_data_variable: "the_text2"
     },
-    Robot.out("you")
+    IO.out("you")
     ]})
     </code></pre>
     The above job first prints out "hey", then speaks
@@ -3718,7 +3886,7 @@ new Job({name: "my_job",
     callback(b, a, 123)
     }
 new Job({name: "my_job",
-    do_list: [Robot.out("hey"),
+    do_list: [IO.out("hey"),
     {start: test_cb,
     start_args: [11, 22],
     callback_param: 2,
@@ -3758,65 +3926,45 @@ new Job({name: "my_job",
     they already were.
 </details>
 
-<details id="Robot.break_doc_id" class="doc_details"><summary>break</summary>
-    The Robot.break() instruction, when in the body of a
-    <a href="#" onclick="open_doc('Robot.loop_doc_id', event)">Robot.loop</a>,
+<details class="doc_details"><summary>Control</summary>
+    Control instructions can be used in any Job regardless of its default robot.
+<details id="Control.break_doc_id" class="doc_details"><summary>break</summary>
+    The Control.break() instruction, when in the body of a
+    <a href="#" onclick="open_doc('Control.loop_doc_id', event)">Control.loop</a>,
     instruction, ends the loop.
     <p></p>
     <i>Parameters:</i> None.<br/>
     <i>Example:</i> <pre><code>new Job({name: "my_job",
-     do_list: [Robot.out("start of job"),
-               Robot.loop(true,
+     do_list: [IO.out("start of job"),
+               Control.loop(true,
                           function(iter_index, iter_val, iter_total){
                               if(iter_index < 3) {
-                                 return Robot.out("index: "       + iter_index +
+                                 return IO.out("index: "       + iter_index +
                                                   " iter_val: "   + iter_val +
                                                   " iter_total: " + iter_total)}
-                              else { return Robot.break() } }),
-               Robot.out("end of job")
+                              else { return Control.break() } }),
+               IO.out("end of job")
                ]})    </code></pre>
-    If you have nested loops, Robot.break ends the inner loop only.
-    If Robot.break is not in a loop, a warning will be printed in the Output pane.
+    If you have nested loops, Control.break ends the inner loop only.
+    If Control.break is not in a loop, a warning will be printed in the Output pane.
     <p></p> Note that Javascript also uses the symbol <code title="unEVALable">break</code>
     to end a JavaScript <code title="unEVALable">for</code> loop.
 </details>
 
-<!-- the real doc for Robot.debugger is in the user guide -->
+<!-- the real doc for Control.debugger is in the user guide -->
 <details  class="doc_details"><summary>debugger</summary>
-    <code>Robot.debugger()</code> allows you to pause and step through the rest of the instructions.
-    See <a href="#" onclick="open_doc('Robot.debugger_doc_id')">Robot.debugger</a>
+    <code>Control.debugger()</code> allows you to pause and step through the rest of the instructions.
+    See <a href="#" onclick="open_doc('Control.debugger_doc_id')">Control.debugger</a>
 </details>
-<details id="Robot.error_doc_id" class="doc_details"><summary>error</summary>
+<details id="Control.error_doc_id" class="doc_details"><summary>error</summary>
   Causes the job to error, immediately stopping it.
   The one argument is a string of a reason for the error which
-  will aid in debugging. Example:<pre><code>Robot.error("fubar")</code></pre>
+  will aid in debugging. Example:<pre><code>Control.error("fubar")</code></pre>
 </details>
 
-<details id="Robot.get_page_doc_id" class="doc_details"><summary>get_page</summary>
-  Similar to the function <code>get_page</code>, only made into an instruction.
-  This instruction gets the content of a url and places it in a given user_data variable
-  on the job instance before allowing the next instruction in the do_list to run.<br/>
-  Example:<pre><code>new Job({name: "j1",
-         do_list: [Robot.get_page("http://www.nactem.ac.uk/software/acromine/dictionary.py?sf=BMI"),
-                   function(){out("got response of: " + 
-                                    this.user_data.http_response)}
-         ]}) </code></pre>
-  <i>Parameters:</i><br/>
-  <b>url_or_options</b>: The url whose contents this instruction gets.<br/>
-    Instead of a url as the argument, you can pass a literal JS object with lots of options, described at:
-    <a target="_blank" href="https://www.npmjs.com/package/request">options</a>
-    <p></p>
-  <b>response_variable_name</b>: Default: <code>"http_response"</code>. The name
-     of the property in the job instance's user_data object to set to the
-     content of the url.
-  <p></p>
-Using <code>make_url</code> can help make constructing calls to <code>get_page</code> a bit easier.
-Example:<pre><code title="not in TestSuite"> Robot.get_page(make_url("www.nactem.ac.uk/software/acromine/dictionary.py",
-                         {sf: "BMI"}))</code></pre>
-<code>make_url</code> is documented in the reference manual under "I/O".
-</details> <!-- end get_page -->
 
-<details id="Robot.go_to_doc_id" class="doc_details"><summary>go_to</summary>
+
+<details id="Control.go_to_doc_id" class="doc_details"><summary>go_to</summary>
 In the 1960's programs were usually characterized by a list of instructions.
 As more flexible control was needed, the "goto" instruction was added to
 cause the program_counter that was pointing at the executing instruction to jump to
@@ -3881,7 +4029,7 @@ executed instruction will be the first instruction in the do_list.
 Generally <code>"highest_completed_instruction_or_zero"</code> is more useful than
     <code>"highest_completed_instruction"</code>.
 <br/>
-<b id="Robot.go_to_literal_doc_id">A literal object</b> The literal object can have up to three properites.
+<b id="Control.go_to_literal_doc_id">A literal object</b> The literal object can have up to three properites.
 <ul><li><b>offset</b> Can be any one of the above instruction_locations.<br/>
     <i>Example</i>: <code>{offset: 12}</code>
     </li>
@@ -3922,136 +4070,27 @@ Generally <code>"highest_completed_instruction_or_zero"</code> is more useful th
 </ul>
 Instruction_locations are also used in
 initializing a Job's <code title="unEVALable code fragment"> program_counter</code> in defining the job, as well as
-in calling a job's start method. The <code>Robot.send_to_job</code> instruction
+in calling a job's start method. The <code>Control.send_to_job</code> instruction
 uses an instruction_location for identifying
 where within the job to insert the given instruction as does the method
 <code>Job.insert_instruction</code>.
 <p></p>
     Much of the time that you'd be tempted to use a backwards
-    Robot.go_to,
-    <a href="#" onclick="open_doc('Robot.loop_doc_id')">Robot.loop</a> is better.
+    Control.go_to,
+    <a href="#" onclick="open_doc('Control.loop_doc_id')">Control.loop</a> is better.
 </details>
 
-
-<details id="Robot.grab_robot_status_doc_id" class="doc_details"><summary>grab_robot_status</summary>
-   robot_status is an array that holds data from the robot, along with aspects of the instruction
-   that was sent to the robot to capture that data. This array is the value of the robot
-   instance field <code title="unEVALable code fragment"> robot_status</code>. <p></p>
-   The instruction: <code>Robot.grab_robot_status()</code> provides an easy way to get values out of that array
-   and made available for other instructions to use.<br/>
-   <i>Parameters</i><br/>
-   <b>user_data_variable</b> Default: <code>"grabbed_robot_status"</code> A string (required) of the name of the job's
-                          <code title="unEVALable code fragment"> user_data</code> variable to shove the grabbed
-                          robot_status data into. If there is already such a variable,
-                          its value is over-written. If not, it is created and intialized
-                          with the new value.
-                          <p></p>
-                          After this instruction is run, the grabbed value
-                          is available globally Job.the_job_name.user_data.the_val_of_this_arg.<br/>
-                          For instance, if this job is named "my_job" and the value of
-                          user_data_variable is "my_var" then:
-                          <code title="unEVALable code fragment"> Job.my_job.user_data.my_var</code>
-                          But inside another instruction that is defined as a function,
-                          <code>this</code> will be bound to the current job instance so:
-                          <code title="unEVALable code fragment"> this.user_data.my_var</code> will access the grabbed data.<br/>
-
-   <b>start_index</b> A non-negative integer signifying the
-                 first data item to extract from the robot_status array.
-                 Its default value is the value of <code>Serial.DATA0</code>
-                 Another normal value would be <code>Dexter.J1_ANGLE</code>
-                 See below for a comprehensive list.
-                 <br/>
-                 <i>Special values:</i><br/>
-                 <code>"all"</code> The entire 60 element robot_status
-                 array is used. The value of end_index is ignored.<br/>
-                 <code>"data_array"</code> The part of the robot_status array after 
-                  the header information is used. For Serial robots, this will be just
-                  the data returned by the serial port. For Dexter robots, this
-                  will be the data about Dexter's joint angles, etc. 
-                  The value of end_index is ignored.<br/>
-    <b>end_index</b> A non-negative integer signifying the last element of the
-                  robot_status array to extract. The default value is <code>null</code>.
-                  If this value is null or not passed, only the data at the start_index
-                  is used. The value stored in the user_data variable will NOT be an array,
-                  just that one element.<br/>
-                  <i>Special value</i> <code>"end"</code> The portion of the robot_status
-                  from start_index through the end of the robot_status array is extracted.
-                  <p></p>
-                  If both the start_index and end_index are not passed,
-                  then the value will be: For a Serial robot, the first "item"
-                  returned from the serial port in response to a send.
-                  For Dexter, it will be DMA_READ_DATA.
-                  <p></p>                     
-    You can use some constants for the values of start_index and end_index.<br/>
-    For a Dexter robot these are: <br/>
-    <code>Dexter.JOB_ID</code><br/>
-    <code>Dexter.INSTRUCTION_ID</code><br/>
-    <code>Dexter.START_TIME</code> //ms since jan 1, 1970 from Dexter's clock<br/>
-    <code>Dexter.STOP_TIME</code><br/>
-    <code>Dexter.INSTRUCTION_TYPE</code> //a letter signifying the instruction type.<br/>
-    <br/>
-    <code>Dexter.ERROR_CODE</code> //0 means no error.<br/>
-    <code>Dexter.DMA_READ_DATA</code><br/>
-    <code>Dexter.READ_BLOCK_COUNT</code><br/>
-    <code>Dexter.RECORD_BLOCK_SIZE</code><br/>
-    <code>Dexter.END_EFFECTOR_IN</code><br/>
-    <br/>
-    <code>Dexter.J1_ANGLE</code><br/>
-    <code>Dexter.J1_DELTA</code><br/>
-    <code>Dexter.J1_PID_DELTA</code><br/>
-    <code>Dexter.J1_FORCE_CALC_ANGLE</code><br/>
-    <code>Dexter.J1_A2D_SIN</code><br/>
-    <code>Dexter.J1_A2D_COS</code><br/>
-    <code>Dexter.J1_PLAYBACK</code><br/>
-    <code>Dexter.J1_SENT</code><br/>
-    <code>Dexter.J1_SLOPE</code><br/>
-and a similar set of names beginning with J2, J3, J4 and J5.
-<p></p>
-For a Serial robot these are:<br/>
-    <code>Serial.JOB_ID</code><br/>
-    <code>Serial.INSTRUCTION_ID</code><br/>
-    <code>Serial.START_TIME</code>          // ms since jan 1, 1970 from Dexter's clock<br/>
-    <code>Serial.STOP_TIME</code>          // ms since jan 1, 1970 from Dexter's clock<br/>
-    <code>Serial.INSTRUCTION_TYPE</code>   // A letter indicating the instruction type<br/>
-
-    <code>Serial.ERROR_CODE</code>          // means no error.<br/>
-    <code>Serial.DATA0</code>               // data coming back from the board<br/>
-    <code>Serial.DATA1</code><br/>
-    <code>Serial.DATA2</code><br/>
-    <code>Serial.DATA3</code><br/>
-    <code>Serial.DATA4</code><br/>
-    <code>Serial.DATA5</code><br/>
-    <code>Serial.DATA6</code><br/>
-    <code>Serial.DATA7</code><br/>
-    <code>Serial.DATA8</code><br/>
-    <code>Serial.DATA9</code><br/>
-<br/>
-
-In order to insure that the Dexter robot_status array is up to date,
-you should place <code>Dexter.get_robot_status()</code> in your do_list before
-the grab_robot_status instruction.<br/>
-<i>Examples of 2 adjacent instructions on a job's do_list:</i><br/>
-
-    <code>Dexter.get_robot_status()</code><br/>
-    <code>Robot.grab_robot_status("my_zero_data", Serial.DATA0) </code><br/>
-grab_robot_status can be called with a subject of a job instance in place
-of <code>Robot</code> like so:<br/>
-<code> Robot.dexter0.grab_robot_status("my_user_data_var")</code>
-<p></p>
-See Job Example: <i>Serial Port</i> for an extended example.
-</details> <!-- end grab_robot_status -->
-
-<details id="Robot.if_any_errors_doc_id" class="doc_details"><summary>if_any_errors</summary>
-    <code>Robot.if_any_errors</code> checks to see if any of the supplied jobs have errored.
+<details id="Control.if_any_errors_doc_id" class="doc_details"><summary>if_any_errors</summary>
+    <code>Control.if_any_errors</code> checks to see if any of the supplied jobs have errored.
     If so, it inserts the supplied instruction into the do_list on the job
-    that this instruction is on. In either case, <code>Robot.if_any_errors</code> continues
+    that this instruction is on. In either case, <code>Control.if_any_errors</code> continues
     the job that its on.
     <i>Parameters</i><br/>
     <b>job_names</b> An array of strings of job names. If a named job doesn't exist, error.<br/>
-    <b>instruction_if_error</b> Default: <code>Robot.error()</code> An instruction that will be inserted into the do_list
+    <b>instruction_if_error</b> Default: <code>Control.error()</code> An instruction that will be inserted into the do_list
     immediately after this instruction IF one of the named jobs has errored.
     The default for <code title="unEVALable code fragment"> instruction_if_error</code> is a function that
-    inserts an instance of Robot.error into the do_list of this job, causing it to error.
+    inserts an instance of Control.error into the do_list of this job, causing it to error.
     The "reason" for that error instruction is explicit about the cause of the error.
     <p></p>
     Generally a job should be stopped quickly if there is an error.
@@ -4060,13 +4099,13 @@ See Job Example: <i>Serial Port</i> for an extended example.
     current job for "this") so that some arbitrary compensation can be made for the error.
 </details>
 
-<details id="Robot.include_job_doc_id" class="doc_details"><summary>include_job</summary>
+<details id="Control.include_job_doc_id" class="doc_details"><summary>include_job</summary>
 Inserts a do_list or a portion thereof into the current Job, right after this instruction.<br/>
 The job_name parameter takes a wide variety of data to specify where to get a do_list from.
 Most of those data formats are not actual Job names, but
 they perform a similar role to a Job name in referencing a do_list to include.
 <p></p>
-Robot.include_job has a large number of very specific error messages to help you correct mistakes.<br/>
+Control.include_job has a large number of very specific error messages to help you correct mistakes.<br/>
 <i>Parameters:</i><br/>
 <b>job_name</b> Required. Indicates a do_list, which will be "clipped" by start_loc and end_loc.
     Formats:
@@ -4082,7 +4121,7 @@ Robot.include_job has a large number of very specific error messages to help you
             instead of Jobs or Arrays is that the string is resolved at instruction run-time
             whereas Job and Array are resolved at Job definition time. By delaying the
             resolution, you can place the definition that the string refers to
-            AFTER the Job definition containing the <code>Robot.include_job</code> instruction.
+            AFTER the Job definition containing the <code>Control.include_job</code> instruction.
             String formats:
             <ul><li><b>Job.a_job_name</b> <i>Example:</i> <code>"Job.my_job"</code><br/>
                      This is the prefered way to reference a Job.
@@ -4130,7 +4169,7 @@ Robot.include_job has a large number of very specific error messages to help you
                  If <i>job_name</i> refers to a Job, the default is the Job's orig_args.program_counter,
                  whose default is, in turn, <code>0</code>
                  When <i>job_name</i> refers to a job, <i>start_loc</i> can be any 'instruction_location'.<br/>
-                 See <a href="#" onclick="open_doc('Robot.go_to_doc_id', event)">Robot.go_to</a> for details
+                 See <a href="#" onclick="open_doc('Control.go_to_doc_id', event)">Control.go_to</a> for details
                  on the <code title="unEVALable code fragment">instruction_location</code> format.<br/>
 <b>end_loc</b>   Grab the instructions from the indicated do_list, up to, but not including, end_loc.
                  If <i>job_name</i> refers to an instructions array, the default for end_loc is
@@ -4140,28 +4179,28 @@ Robot.include_job has a large number of very specific error messages to help you
                  When <i>job_name</i> refers to a job, <i>end_loc</i> can be any 'instruction_location',
                  and its default is the ending_program_counter for the job, which is, by default, "end".
     <p></p>
-    See <a href="#" onclick="open_doc('Robot.go_to_doc_id', event)">Robot.go_to</a> for details
+    See <a href="#" onclick="open_doc('Control.go_to_doc_id', event)">Control.go_to</a> for details
     on the <code title="unEVALable code fragment"> instruction_location</code> format.
     <p></p>
 <i>Example:</i><br/>
-   <code>Robot.include_job("Job.my_job")</code><br/>
+   <code>Control.include_job("Job.my_job")</code><br/>
    Inserts all the original instructions that are normally run when running "my_job",
    into the current job, right below this instruction.
    <p></p>
-   <i>Robot.include_job</i> makes it easy to build up jobs hierarchically, effectively
+   <i>Control.include_job</i> makes it easy to build up jobs hierarchically, effectively
       treating a low level Job as a single instruction in a higher level Job.<br/>
-      See also: <a href="#" onclick="open_doc('Robot.start_job_doc_id')">Robot.start_job</a>
+      See also: <a href="#" onclick="open_doc('Control.start_job_doc_id')">Control.start_job</a>
 </details>
 
-<details id="Robot.label_doc_id" class="doc_details"><summary>label</summary>
+<details id="Control.label_doc_id" class="doc_details"><summary>label</summary>
 This instruction is a no-op. However, it provides a target location
-for <a href="#" onclick="open_doc('Robot.go_to_doc_id', event)">Robot.go_to</a>, initializing the program_counter of a job, and
-a location to insert an instruction using <code>Robot.send_to_job</code>.<br/>
-<i>Example</i>: <code>Robot.label("lab2")</code>
+for <a href="#" onclick="open_doc('Control.go_to_doc_id', event)">Control.go_to</a>, initializing the program_counter of a job, and
+a location to insert an instruction using <code>Control.send_to_job</code>.<br/>
+<i>Example</i>: <code>Control.label("lab2")</code>
 </details>
 
-<details id="Robot.loop_doc_id" class="doc_details"><summary>loop</summary>
-    <code>Robot.loop</code> lets a Job repeat a sequence of instructions a number of times.
+<details id="Control.loop_doc_id" class="doc_details"><summary>loop</summary>
+    <code>Control.loop</code> lets a Job repeat a sequence of instructions a number of times.
     This instruction is one of the most powerful and complex
     in DDE, providing a wide range of looping behavior.<br/>
     <i>Parameters</i> (2)<br/>
@@ -4169,14 +4208,14 @@ a location to insert an instruction using <code>Robot.send_to_job</code>.<br/>
     i.e. the iteration count of the loop. It can be one of five types:
     <p></p>
     <i>boolean</i><br/> If <code>false</code>, loop no times. This loop becomes a no-op.<br/>
-    If <code>true</code>, loop forever, or until a <a href="#" onclick="open_doc('Robot.break_doc_id')">Robot.break</a> instruction in the body_fn
+    If <code>true</code>, loop forever, or until a <a href="#" onclick="open_doc('Control.break_doc_id')">Control.break</a> instruction in the body_fn
     is executed. Like all arguments, this is evaluated at Job definition time to
     supply a value of a boolean (true or false).
     <p></p>
     <i>non-negative integer</i><br/> Number of times to call the body_fn. If <code>0</code>,
     the loop becomes a no-op, just like when this arg is <code>false</code>.
     This can be <code>Infinity</code> such that looping would only
-    be limited by a <code>Robot.break</code> instruction in the body_fn or
+    be limited by a <code>Control.break</code> instruction in the body_fn or
     stopping the Job.
     <p></p>
     <i>array</i><br/> The length of the array is the number of times to loop.
@@ -4209,11 +4248,11 @@ a location to insert an instruction using <code>Robot.send_to_job</code>.<br/>
     no looping occurs, this loop is a no-op. If <code>true</code> is returned,
     that "true" is used for the first iteration, and the function is called
     at the beginning of every subsequent iteration until <code>false</code>
-    is returned or the body_fn executes a <code>Robot.break</code> instruction.</li>
+    is returned or the body_fn executes a <code>Control.break</code> instruction.</li>
     </ul>
     You want to use a function here instead of directly using a boolean, non-neg-integer,
     or array, when you want those values to be computed at the time
-    the Robot.loop instruction is executed as opposed to Job definition time.
+    the Control.loop instruction is executed as opposed to Job definition time.
     <p></p>
     <b>body_fn</b> This function is called with basically the same args as
     are used to call times_to_loop when it is a function.<br/>
@@ -4248,69 +4287,32 @@ a location to insert an instruction using <code>Robot.send_to_job</code>.<br/>
             a number <code>6</code> and generally appear before normal string-named keys.
             Its best if you don't depend on an ordering of the properties.</li>
     </ol>
-    Loop instructions may be nested. <code>Robot.break</code> instructions will
-    end the inner-most loop that contains the <code>Robot.break</code>.
+    Loop instructions may be nested. <code>Control.break</code> instructions will
+    end the inner-most loop that contains the <code>Control.break</code>.
     <p></p>
     Much of the time that you'd be tempted to use a backwards
-    <a href="#" onclick="open_doc('Robot.go_to_doc_id')">Robot.go_to</a>,
+    <a href="#" onclick="open_doc('Control.go_to_doc_id')">Control.go_to</a>,
     loops are better.
     <p></p>
     <i>Example</i>
     <pre><code>new Job({name: "my_job",
-    do_list: [Robot.out("start of job"),
-              Robot.loop([100, 101, 102, 103, 104],
+    do_list: [IO.out("start of job"),
+              Control.loop([100, 101, 102, 103, 104],
                          function(iter_index, iter_val, iter_total){
                              if(iter_index < 3) {
-                                return Robot.out("index: "       + iter_index +
+                                return IO.out("index: "       + iter_index +
                                                  " iter_val: "   + iter_val +
                                                  " iter_total: " + iter_total)}
-                             else { return Robot.break() }
+                             else { return Control.break() }
                          }
                         ),
-               Robot.out("end of job"),
+               IO.out("end of job"),
 ]})     </code></pre>
-   See Jobs menu/Insert Example/Robot.loop for more examples.
+   See Jobs menu/Insert Example/Control.loop for more examples.
 </details>
 
-<details id="Robot.out_doc_id" class="doc_details"><summary>out</summary>
-  Very similar to the function <code>out</code> but made for use as a robot instruction.
-  Prints a message to the Output pane in the color of your choice.
-  This is the "print statement" as an instruction, so useful in debugging.<p></p>
-  <i>Example:</i><br/>
-  <code>Robot.out("hey " + 345, "green")</code><p></p>
-  <i>Parameters:</i><br/>
-  <b>val</b> Any JavaScript data. Most commonly this is a string, but
-             can be a number, an array etc.<br/>
-  <b>color</b> A string representing a color. Default "black". Can
-             be any string in the <b>color</b> series, or have the format:<br/>
-             <code>"rgb(255, 100, 0)"</code>.<br/>
-  <b>temp</b> Default: <code>false</code>. With the default, printed output stays in the
-    Output pane until DDE is relaunched.
-    <p></p>
-    If temp is <code>true</code>,
-    then <b>val</b> is still printed in the Output pane, but is over-ridden
-    by subsequence calls to out with temp == true. Calls to out with temp == false
-    will erase any "temp" output.
-    <p></p>
-    If temp is a string, then out prints <b>val</b> similarly to temp == true in that
-    the previous call to out with that temp string will be over-ridden in place.
-    However, when another call to out with a different value for temp occurs,
-    the output of out with a temp string will <i>not</i> be erased.
-    Thus the last call to out with a given temp string remains in the Output pane,
-    in its place, regardless of other out calls.
-  <p></p>
-  This is the most basic debugging tool, often used to let you know that 
-  the job its in has reached this instruction. Unlike an instruction such as:<br/>
-  <code>function(){out("The status is: " + this.status_code)}</code><br/>
-  Robot.out cannot access its job instance, but it does print out
-  its job name and instruction ID right before printing <code title="unEVALable code fragment"> val</code>.
-  <p></p>
-  See also <a href="#" onclick="open_doc(print_statements_doc_id, event)">print statements</a>
-</details>
-
-
-<details id="Robot.start_job_doc_id" class="doc_details"><summary>start_job</summary>
- <code>Robot.start_job</code> starts another job.<br/>
+<details id="Control.start_job_doc_id" class="doc_details"><summary>start_job</summary>
+ <code>Control.start_job</code> starts another job.<br/>
  <i>Parameters:</i><br/>
  <b>job_name</b> Required. Can be:
  <ul><li>An instance of the Job to start.</li>
@@ -4366,23 +4368,23 @@ If the status of the job to be started is:
     <!-- the below works in isolation, but not with TestSuite auto-starting of jobs. -->
     <pre><code title="unstartable in TestSuite">
 new Job({name: "job1",
-         do_list: [Robot.out("in job 1"),
-                   Robot.wait_until(5)]})
+         do_list: [IO.out("in job 1"),
+                   Control.wait_until(5)]})
 new Job({name: "job2",
          robot: new Brain({name: "b1"}),
-          do_list: [Robot.start_job("Job.job1"),
-                    Robot.out("last instruction")
+          do_list: [Control.start_job("Job.job1"),
+                    IO.out("last instruction")
                     ]
 })    </code></pre>
     job2 starts job1 and waits for job1 to complete before continuing,
     because the last arg to start_job is <code>true</code>.
     <pre><code title="unstartable in TestSuite">
 new Job({name: "job1",
-         do_list: [Robot.out("in job 1"),
-                   Robot.wait_until(5)]})
+         do_list: [IO.out("in job 1"),
+                   Control.wait_until(5)]})
 new Job({name: "job2",
-          do_list: [Robot.start_job("job1", undefined, undefined, true),
-                    Robot.out("last instruction")]
+          do_list: [Control.start_job("job1", undefined, undefined, true),
+                    IO.out("last instruction")]
 })    </code></pre>
     job2 starts job1 and waits for job1 to complete before continuing,
     because the last arg to start_job is <code>true</code>.
@@ -4392,17 +4394,17 @@ new Job({name: "job2",
     neither can rely on the Dexter being where they last told it to go.
     <pre><code title="unstartable in TestSuite">
 new Job({name: "job1",
-         do_list: [Robot.out("in job 1"),
-                   Robot.wait_until(5)]})
+         do_list: [IO.out("in job 1"),
+                   Control.wait_until(5)]})
 new Job({name: "job2",
          robot: new Brain({name: "b1"}),
-          do_list: [Robot.start_job("job1", {start_if_robot_busy: true}, undefined, true),
-                    Robot.out("last instruction")]
+          do_list: [Control.start_job("job1", {start_if_robot_busy: true}, undefined, true),
+                    IO.out("last instruction")]
 })    </code></pre>
-    See also <a href="#" onclick="open_doc('Robot.include_job_doc_id')">Robot.include_job</a>
+    See also <a href="#" onclick="open_doc('Control.include_job_doc_id')">Control.include_job</a>
 </details>
 
-<details id="Robot.stop_job_doc_id" class="doc_details"><summary>stop_job</summary>
+<details id="Control.stop_job_doc_id" class="doc_details"><summary>stop_job</summary>
   Causes the indicated job to stop just before executing a particular instruction.<br/>
   <i>Parameters</i>:<br/>
   <b>instruction_location</b> Optional. Determines the job to stop and the instruction within that
@@ -4412,18 +4414,18 @@ new Job({name: "job2",
   the offset will be <code>"program_counter"</code>, i.e. the job will
   stop before executing its next instruction. Thus the default is that
   the current job will be stopped immediately.
-  See <a href="#" onclick="open_doc('Robot.go_to_doc_id', event)">Robot.go_to</a> for details
+  See <a href="#" onclick="open_doc('Control.go_to_doc_id', event)">Control.go_to</a> for details
   on the <code title="unEVALable code fragment"> instruction_location</code> format.<br/>
   <b>reason</b> A string. The reason that the job is being told to stop.<br/>
   <b>perform_when_stopped</b> A boolean. When <code>false</code> (the default)
   the job will behave as if its 'when_stopped' parameter is <code>"stop"</code>,
   i.e. the job will end. When <code>true</code>, the job's when_stopped action will
   be performed.<br/>
-  Example:<code>Robot.stop_job({job: "my_job", offset: "label1"})</code>
+  Example:<code>Control.stop_job({job: "my_job", offset: "label1"})</code>
   <code title="unEVALable code fragment"> Job.my_job</code> will stop when it reaches the instruction named "label1".
 </details>
 
-<details id="Robot.suspend_doc_id" class="doc_details"><summary>suspend</summary>
+<details id="Control.suspend_doc_id" class="doc_details"><summary>suspend</summary>
   Causes the indicated job to pause. It will not execute any more of its instructions
   until it is unsuspended. <br/>
   <i>Parameters:</i> <br/>
@@ -4433,11 +4435,11 @@ new Job({name: "job2",
   May also be a job_instance to suspend.<br/>
   <b>reason</b> Default: <code>""</code>. A string of why the job is suspended.<br/>
   <i>Example:</i>
-  <code>Robot.suspend()</code>.<br/>
+  <code>Control.suspend()</code>.<br/>
   Suspends the current job for no reason.
 </details>
 
-<details id="Robot.unsuspend_doc_id" class="doc_details"><summary>unsuspend</summary>
+<details id="Control.unsuspend_doc_id" class="doc_details"><summary>unsuspend</summary>
 Unsuspends a suspended job. If the job to be suspended is not suspended,
 no action will be taken. Note that a job cannot unsuspend itself,
 because it is not running.
@@ -4448,7 +4450,7 @@ The job name or job instance to be unsuspended.
    If a string, the job is stopped, with the reason of this stop_reason.
 <p></p>
 <i>Example:</i><br/>
-<code>Robot.suspend("my_job")</code> <p></p>
+<code>Control.suspend("my_job")</code> <p></p>
 <b>unsuspend</b> is also a method on a job.<br/>
 <i>Example:</i><br/>
 <code title="unEVALable code fragment"> Job.my_job.unsuspend()</code>.<br/>
@@ -4458,7 +4460,7 @@ The method takes 1 arg, "stop_reason" that behaves as documented above.
 </details>
 
 
-<details id="Robot.sync_point_doc_id" class="doc_details"><summary>sync_point</summary>
+<details id="Control.sync_point_doc_id" class="doc_details"><summary>sync_point</summary>
   A sync_point instruction causes all running jobs with the same-named sync_point
   to pause until they all reach the sync_point. Once that happens, they
   are all allowed to proceed executing their instructions.<br/>
@@ -4470,7 +4472,7 @@ The method takes 1 arg, "stop_reason" that behaves as documented above.
     you want to all pause at the same place. A sync_point instruction may
     contain the name of the job its in. Effectly that doesn't matter,
     but does allow all the same-named sync points to have the same list of job_names.<br/>
-    Example: <code>Robot.sync_point("midway", ["job_one", "job_two"])</code><br/>
+    Example: <code>Control.sync_point("midway", ["job_one", "job_two"])</code><br/>
    <p></p>
    If a sync point instruction has no job names, or only its own job name,
    it will not wait but rather breeze right through its sync_point.
@@ -4484,11 +4486,11 @@ The method takes 1 arg, "stop_reason" that behaves as documented above.
    because it allows those jobs that <i>can</i> proceed to do so.
 </details>
 
-<details id="Robot.send_to_job_doc_id" class="doc_details"><summary>send_to_job</summary>
-<code>Robot.send_to_job</code> inserts instructions into another job's do_list. It can also
-start, unsuspend and grab data from another job. <code>Robot.send_to_job</code> is complex, powerful,
+<details id="Control.send_to_job_doc_id" class="doc_details"><summary>send_to_job</summary>
+<code>Control.send_to_job</code> inserts instructions into another job's do_list. It can also
+start, unsuspend and grab data from another job. <code>Control.send_to_job</code> is complex, powerful,
 and rarely used. Example: <pre>
-Robot.send_to_job({do_list_item: Dexter.move_to([0, 0.5, 0.075]),
+Control.send_to_job({do_list_item: Dexter.move_to([0, 0.5, 0.075]),
                    where_to_insert: "end",
                    unsuspend: true,
                    wait_until_done: true})</pre>
@@ -4497,7 +4499,7 @@ Robot.send_to_job({do_list_item: Dexter.move_to([0, 0.5, 0.075]),
 <li><b>where_to_insert</b> The location in the do_list of the to_job to insert the do_list_item.
   The full list of instruction_locations for <code title="unEVALable code fragment"> where_to_insert</code>
   can be seen in the documentation for the
-  <a href="#" onclick="open_doc('Robot.go_to_doc_id', event)">Robot.go_to</a> instruction.
+  <a href="#" onclick="open_doc('Control.go_to_doc_id', event)">Control.go_to</a> instruction.
   Particularly useful ones for send_to_job are:<br/>
   <ul><li><code>{job: "other_job", offset: "next_top_level"}</code> Inserts the do_list_item
   after the program_counter and just before the next original (top level) do_list item
@@ -4545,13 +4547,13 @@ Robot.send_to_job({do_list_item: Dexter.move_to([0, 0.5, 0.075]),
     <code>Job.insert_instruction</code>.
 </details> <!-- end send_to_job -->
 
-<!-- obsoleted by initial_instruction and insert_instruction <details id="Robot.sent_from_job_doc_id" class="doc_details"><summary>sent_from_job</summary>
+<!-- obsoleted by initial_instruction and insert_instruction <details id="Control.sent_from_job_doc_id" class="doc_details"><summary>sent_from_job</summary>
 This instruction is typically not created by users directly. send_to_job creates
 such an instruction and places it on the to_job as a container for the newly inserted
 instructions. However, if you want to extend the do_list of a job when starting it,
 you can pass an instance of <code>sent_from_job</code> as an option
 of start. This will insert the new instruction(s) just before the job is started.
-Example:<pre>Job.j8.start({sent_from_job: Robot.sent_from_job(
+Example:<pre>Job.j8.start({sent_from_job: Control.sent_from_job(
           {do_list_item: function(){out("special insert")},
            where_to_insert: "sp1"})})
 </pre>
@@ -4561,9 +4563,9 @@ The inserted instructions will not be present if, after running the job,
 you call start with no argument.
 </details> --> <!-- end sent_from_job -->
 
-<details id="Robot.wait_until_doc_id" class="doc_details"><summary>wait_until</summary>
+<details id="Control.wait_until_doc_id" class="doc_details"><summary>wait_until</summary>
 This instruction causes a job to pause until the supplied condition is met.<br/>
-Example:<code>Robot.wait_until(2)</code><br/>
+Example:<code>Control.wait_until(2)</code><br/>
 <i>Parameter:</i><br/>
 <b>fn_date_dur</b> Default: <code>1</code> This argument can be one of:
 <ul><li><b>an integer</b> The number of seconds for the wait. </li>
@@ -4587,19 +4589,19 @@ Example:<code>Robot.wait_until(2)</code><br/>
     on the do_list, then this job waits until a new instruction is added on the
     end of a do list.<br/>
     <i>Example</i>:<pre><code title="unstartable in TestSuite"> new Job({name: "my_job",
-         do_list: [Robot.out("first instruction"),
-                   Robot.wait_until("new_instruction")]})
+         do_list: [IO.out("first instruction"),
+                   Control.wait_until("new_instruction")]})
     </code></pre>
         Evaling <code title="unEVALable code fragment"> Job.my_job.start()</code><br/>
         causes "first instruction" to be printed out, then the
         job pauses until an instruction is inserted into the do_list right after this "wait_until" instruction.<pre>
-<code title="unEVALable code fragment"> Job.insert_instruction(Robot.out("the end"),
+<code title="unEVALable code fragment"> Job.insert_instruction(IO.out("the end"),
                        {job: "my_job",
                         offset: "after_program_counter"})</code></pre>
         Causes wait_until to stop waiting, "the end" is printed and the job completes successfully.<br/>
         If instead of that argument to <code>Job.insert_instruction</code>, we had instead used:<pre>
-<code title="unEVALable code fragment"> Job.insert_instruction([Robot.out("the middle"),
-                        Robot.wait_until("new_instruction")],
+<code title="unEVALable code fragment"> Job.insert_instruction([IO.out("the middle"),
+                        Control.wait_until("new_instruction")],
                         {job: "my_job",
                          offset: "after_program_counter"})</code></pre>
         then each time we eval that code, it prints "the middle" and
@@ -4613,26 +4615,240 @@ Example:<code>Robot.wait_until(2)</code><br/>
          to refer to a program_counter that is less than or equal to
          the program_counter in the job referenced by the instruction_location.
          This instruction waits until a job gets to a certain instruction.
-         This performs like a one_sided <code>Robot.sync_point</code> instruction
+         This performs like a one_sided <code>Control.sync_point</code> instruction
          where the job this instruction is in will wait for the job
          specified in the instruction_location, but not the other way around.
-         Its advantage over <code>Robot.sync_point</code> is that you don't have
-         to have a Robot.sync_point instruction in the job you're waiting for.
+         Its advantage over <code>Control.sync_point</code> is that you don't have
+         to have a Control.sync_point instruction in the job you're waiting for.
          Thus you can wait for a job reaching one of its instructions
          that never expected it to be waited for.<br/>
          Warning: If the instruction_location specifies the job
-         that this <code>Robot.wait_until</code> instruction is in, or lets the instruction_location
+         that this <code>Control.wait_until</code> instruction is in, or lets the instruction_location
          default to that, this job could wait for itself and thus forever.</li>
 
 </ul>
 </details> <!-- end wait_until -->
+</details> <!-- end Control -->
+<details class="doc_details"><summary>IO</summary>
+    IO instructions can be used in any Job, regardless of its default robot.
+    <details id="IO.get_page_doc_id" class="doc_details"><summary>get_page</summary>
+        Similar to the function <code>get_page</code>, only made into an instruction.
+        This instruction gets the content of a url and places it in a given user_data variable
+        on the job instance before allowing the next instruction in the do_list to run.<br/>
+        Example:<pre><code>new Job({name: "j1",
+         do_list: [IO.get_page("http://www.nactem.ac.uk/software/acromine/dictionary.py?sf=BMI"),
+                   function(){out("got response of: " +
+                                    this.user_data.http_response)}
+         ]}) </code></pre>
+        <i>Parameters:</i><br/>
+        <b>url_or_options</b>: The url whose contents this instruction gets.<br/>
+        Instead of a url as the argument, you can pass a literal JS object with lots of options, described at:
+        <a target="_blank" href="https://www.npmjs.com/package/request">options</a>
+        These include the HTTP methods of: GET (the default), POST, PUT, PATCH, DELETE, HEAD, OPTIONS,
+        plus a zillion other options for authentication, etc.
+        <p></p>
+        <b>response_variable_name</b>: Default: <code>"http_response"</code>. The name
+        of the property in the job instance's user_data object to set to the
+        content of the url.
+        <p></p>
+        Using <code>make_url</code> can help make constructing calls to <code>get_page</code> a bit easier.
+        Example:<pre><code title="not in TestSuite"> Control.get_page(make_url("www.nactem.ac.uk/software/acromine/dictionary.py",
+                         {sf: "BMI"}))</code></pre>
+        <code>make_url</code> is documented in the reference manual under "I/O".
+    </details> <!-- end get_page -->
 
+    <details id="IO.grab_robot_status_doc_id" class="doc_details"><summary>grab_robot_status</summary>
+        robot_status is an array that holds data from the robot, along with aspects of the instruction
+        that was sent to the robot to capture that data. This array is the value of the robot
+        instance field <code title="unEVALable code fragment"> robot_status</code>. <p></p>
+        The instruction: <code>IO.grab_robot_status()</code> provides an easy way to get values out of that array
+        and made available for other instructions to use.<br/>
+        <i>Parameters</i><br/>
+        <b>user_data_variable</b> Default: <code>"grabbed_robot_status"</code> A string (required) of the name of the job's
+        <code title="unEVALable code fragment"> user_data</code> variable to shove the grabbed
+        robot_status data into. If there is already such a variable,
+        its value is over-written. If not, it is created and intialized
+        with the new value.
+        <p></p>
+        After this instruction is run, the grabbed value
+        is available globally Job.the_job_name.user_data.the_val_of_this_arg.<br/>
+        For instance, if this job is named "my_job" and the value of
+        user_data_variable is "my_var" then:
+        <code title="unEVALable code fragment"> Job.my_job.user_data.my_var</code>
+        But inside another instruction that is defined as a function,
+        <code>this</code> will be bound to the current job instance so:
+        <code title="unEVALable code fragment"> this.user_data.my_var</code> will access the grabbed data.<br/>
+
+        <b>start_index</b> A non-negative integer signifying the
+        first data item to extract from the robot_status array.
+        Its default value is the value of <code>Serial.DATA0</code>
+        Another normal value would be <code>Dexter.J1_ANGLE</code>
+        See below for a comprehensive list.
+        <br/>
+        <i>Special values:</i><br/>
+        <code>"all"</code> The entire 60 element robot_status
+        array is used. The value of end_index is ignored.<br/>
+        <code>"data_array"</code> The part of the robot_status array after
+        the header information is used. For Serial robots, this will be just
+        the data returned by the serial port. For Dexter robots, this
+        will be the data about Dexter's joint angles, etc.
+        The value of end_index is ignored.<br/>
+        <b>end_index</b> A non-negative integer signifying the last element of the
+        robot_status array to extract. The default value is <code>null</code>.
+        If this value is null or not passed, only the data at the start_index
+        is used. The value stored in the user_data variable will NOT be an array,
+        just that one element.<br/>
+        <i>Special value</i> <code>"end"</code> The portion of the robot_status
+        from start_index through the end of the robot_status array is extracted.
+        <p></p>
+        If both the start_index and end_index are not passed,
+        then the value will be: For a Serial robot, the first "item"
+        returned from the serial port in response to a send.
+        For Dexter, it will be DMA_READ_DATA.
+        <p></p>
+        You can use some constants for the values of start_index and end_index.<br/>
+        For a Dexter robot these are: <br/>
+        <code>Dexter.JOB_ID</code><br/>
+        <code>Dexter.INSTRUCTION_ID</code><br/>
+        <code>Dexter.START_TIME</code> //ms since jan 1, 1970 from Dexter's clock<br/>
+        <code>Dexter.STOP_TIME</code><br/>
+        <code>Dexter.INSTRUCTION_TYPE</code> //a letter signifying the instruction type.<br/>
+        <br/>
+        <code>Dexter.ERROR_CODE</code> //0 means no error.<br/>
+        <code>Dexter.RECORD_BLOCK_SIZE</code><br/>
+        <code>Dexter.END_EFFECTOR_IN</code><br/>
+        <br/>
+        <code>Dexter.J6_MEASURED_ANGLE</code><br/>
+        <code>Dexter.J6_MEASURED_TORQUE</code><br/>
+        <code>Dexter.J7_MEASURED_ANGLE</code><br/>
+        <code>Dexter.J7_MEASURED_TORQUE</code><br/>
+        and, for J1 through J5,
+        <br/>
+        <code>Dexter.J1_ANGLE</code><br/>
+        <code>Dexter.J1_DELTA</code><br/>
+        <code>Dexter.J1_PID_DELTA</code><br/>
+        <code>Dexter.J1_A2D_SIN</code><br/>
+        <code>Dexter.J1_A2D_COS</code><br/>
+        <code>Dexter.J1_MEASURED_ANGLE</code><br/>
+        <code>Dexter.J1_SENT</code><br/>
+
+        <p></p>
+        For a Serial robot these are:<br/>
+        <code>Serial.JOB_ID</code><br/>
+        <code>Serial.INSTRUCTION_ID</code><br/>
+        <code>Serial.START_TIME</code>          // ms since jan 1, 1970 from Dexter's clock<br/>
+        <code>Serial.STOP_TIME</code>          // ms since jan 1, 1970 from Dexter's clock<br/>
+        <code>Serial.INSTRUCTION_TYPE</code>   // A letter indicating the instruction type<br/>
+
+        <code>Serial.ERROR_CODE</code>          // means no error.<br/>
+        <code>Serial.DATA0</code>               // data coming back from the board<br/>
+        <code>Serial.DATA1</code><br/>
+        <code>Serial.DATA2</code><br/>
+        <code>Serial.DATA3</code><br/>
+        <code>Serial.DATA4</code><br/>
+        <code>Serial.DATA5</code><br/>
+        <code>Serial.DATA6</code><br/>
+        <code>Serial.DATA7</code><br/>
+        <code>Serial.DATA8</code><br/>
+        <code>Serial.DATA9</code><br/>
+        <br/>
+
+        In order to insure that the Dexter robot_status array is up to date,
+        you should place <code>Dexter.get_robot_status()</code> in your do_list before
+        the grab_robot_status instruction.<br/>
+        <i>Examples of 2 adjacent instructions on a job's do_list:</i><br/>
+
+        <code>Dexter.get_robot_status()</code><br/>
+        <code>IO.grab_robot_status("my_zero_data", Serial.DATA0) </code><br/>
+        grab_robot_status can be called with a subject of a job instance in place
+        of <code>Robot</code> like so:<br/>
+        <code> Robot.dexter0.grab_robot_status("my_user_data_var")</code>
+        <p></p>
+        See Job Example: <i>Serial Port</i> for an extended example.
+    </details> <!-- end grab_robot_status -->
+
+    <details id="IO.out_doc_id" class="doc_details"><summary>out</summary>
+        Very similar to the function <code>out</code> but made for use as a robot instruction.
+        Prints a message to the Output pane in the color of your choice.
+        This is the "print statement" as an instruction, so useful in debugging.<p></p>
+        <i>Example:</i><br/>
+        <code>IO.out("hey " + 345, "green")</code><p></p>
+        <i>Parameters:</i><br/>
+        <b>val</b> Any JavaScript data. Most commonly this is a string, but
+        can be a number, an array etc.<br/>
+        <b>color</b> A string representing a color. Default "black". Can
+        be any string in the <b>color</b> series, or have the format:<br/>
+        <code>"rgb(255, 100, 0)"</code>.<br/>
+        <b>temp</b> Default: <code>false</code>. With the default, printed output stays in the
+        Output pane until DDE is relaunched.
+        <p></p>
+        If temp is <code>true</code>,
+        then <b>val</b> is still printed in the Output pane, but is over-ridden
+        by subsequence calls to out with temp == true. Calls to out with temp == false
+        will erase any "temp" output.
+        <p></p>
+        If temp is a string, then out prints <b>val</b> similarly to temp == true in that
+        the previous call to out with that temp string will be over-ridden in place.
+        However, when another call to out with a different value for temp occurs,
+        the output of out with a temp string will <i>not</i> be erased.
+        Thus the last call to out with a given temp string remains in the Output pane,
+        in its place, regardless of other out calls.
+        <p></p>
+        Unlike an instruction such as:<br/>
+        <code>function(){out("The status is: " + this.status_code)}</code><br/>
+        IO.out cannot access its job instance, but it does print out
+        its job name and instruction ID right before printing <code title="unEVALable code fragment"> val</code>.
+        <p></p>
+        See also <a href="#" onclick="open_doc(print_statements_doc_id, event)">print statements</a>
+    </details> <!--end out -->
+    <details id="IO.show_picture_doc_id" class="doc_details"><summary>show_picture</summary>
+    This instruction takes the same arguments and has the same functionality as the method
+    <a href="#" onclick="open_doc('Picture.show_picture_doc_id')">Picture.show_picture</a>
+    except that it doesn't take a callback argument.<br/>
+    <i>Example:</i>
+        <pre><code>new Job({name: "my_job",
+         do_list: [IO.show_picture()]})
+      </code></pre>
+    </details>
+    <details id="IO.show_video_doc_id" class="doc_details"><summary>show_video</summary>
+        This instruction takes the same arguments and has the same functionality as the method
+        <a href="#" onclick="open_doc('Picture.show_video_doc_id')">Picture.show_video</a>
+        except that it doesn't take a callback argument.<br/>
+        <i>Example:</i>
+        <pre><code>new Job({name: "my_job",
+     do_list: [IO.show_video()]})
+      </code></pre>
+    </details>
+    <details id="IO.take_picture_doc_id" class="doc_details"><summary>take_picture</summary>
+        This instruction takes the same arguments and has similar functionality as the method
+        <a href="#" onclick="open_doc('Picture.take_picture_doc_id')">Picture.take_picture</a>
+        except that it doesn't take a <b>camera_id</b> argument.
+        It does take a callback argument.
+        The next instruction is run after the callback returns, providing
+        the callback doesn't take too long, so keep callback computation fairly short
+        if your next instruction depends on the callback being completed.
+        <p></p>
+        The callback is called with <code>this</code> bound to the job
+        that this instruction is running in.<br/>
+        If the callback is a string, it is considered to be the name of
+        a user_data variable that you want to set to the mat created
+        with take_picture. You can then use this mat in further instructions.
+        <br/>
+        <i>Example:</i>
+        <pre><code>new Job({name: "my_job",
+         do_list: [IO.take_picture({callback: "my_pic"})]})
+  </code></pre>
+        <code>Job.my_job.user_data.my_pic</code><br/>
+        returns the mat.
+    </details>
+    </details> <!--end IO -->
 </details> <!-- end Robot Instructions -->
 
 <details id="Brain_doc_id" class="doc_details"><summary>Brain</summary>
 <b>Brain</b> is a virtual robot used to manage other robots or do purely software tasks.
-It has no special instructions of its own, but inherits Robot's instructions, just
-like all the other robots.
+It has no special instructions of its own, but can use Control, Human, IO and the
+miscellaneous Robot instructions (function definitions, etc),
+just like all the other robots.
 <p></p>
 </details> <!-- End Brain -->
 
@@ -4889,7 +5105,7 @@ job's <code title="unEVALable code fragment"> rs_history</code> array.
 This instruction blocks further processing of the job's do_list instructions until
 all of the instructions on Dexter's instruction_queue are executed.
 <p></p>
-See also the instruction: <code>Robot.grab_robot_status</code>
+See also the instruction: <code>Control.grab_robot_status</code>
 </details>
 
 <details id="Dexter.get_robot_status_immediately_doc_id" class="doc_details"><summary>get_robot_status_immediately</summary>
@@ -4941,7 +5157,7 @@ last instruction run in a Job set it to.
 <p></p>
 If a joint angle is passed in as an array of one number, that number will
 be used as the "relative" degrees to add to the current joint angle.
-So for instance, if the preious move_all_joints instruction
+So for instance, if the previous move_all_joints instruction
 for j1 indicated <code>30</code>,
 and the next move_all_joints command for j1 indicated <code>[5]</code>, then
 j1 would be moved to 35 degrees. The syntax of using a number wrapped in an array
@@ -5238,7 +5454,12 @@ proportional–integral–derivative controller</a>.
                    }
                ]})</code></pre>
     See also <a href="#" onclick="open_doc(read_file_doc_id)">read_file</a>
-
+    <p></p>
+    <code id="Dexter.read_from_robot_doc_id">Dexter.read_from_robot</code> is a similar instruction, except that the default folder
+    for the <i>source</i> is "/srv/samba/share/" and not
+    "/srv/samba/share/dde_apps" as it is for <code>Dexter.read_file</code>.
+    <code>Dexter.read_from_robot</code> is maintained for backwards compatibility.
+    Most users are expected to use <code>Dexter.read_file</code>
 </details>
 
 <details id="Dexter.run_gcode_doc_id" class="doc_details"><summary>run_gcode</summary>
@@ -5359,19 +5580,27 @@ see: <a  target="_blank" href="https://github.com/HaddingtonDynamics/Dexter/wiki
    DDE's socket interface to the Linux OS runnning on Dexter's processor
    board.<br/>
    <i>Parameters:</i><br/>
+    <b>file_name</b> The name of the file to be written on Dexter.
+    Example: <code>"/srv/samba/share/AdcCenters.txt"</code> is
+    where calibration data is written.<br/>
    <b>content</b> A string. Default: <code>""</code>
     The content to be written. This function automatically escapes
     null, semicolon and percent (the escape character) in a_string
     for transmission.
     <br/>
-    <b>file_name</b> The name of the file to be written on Dexter.
-    Example: <code>"/srv/samba/share/AdcCenters.txt"</code> is
-    where calibration data is written.<br/>
     <i>Example:</i><br/>
     <code>Dexter.write_file("/srv/samba/share/greeting.txt", "hello world")</code><br/>
     This instruction requires an upgrade to Dexter's software available May, 2018.
     <p></p>
     See also <a href="#" onclick="open_doc('write_file_doc_id')">write_file</a>
+    <p></p>
+    <code id="Dexter.write_to_robot_doc_id">Dexter.write_to_robot</code> is a similar instruction,
+    except that the default folder
+    for the <i>file_name</i> is "/srv/samba/share/" and not
+    "/srv/samba/share/dde_apps" as it is for <code>Dexter.write_file</code>.
+    Also write_to_robot has its content argument 1st, and its file_name argument 2nd.
+    <code>Dexter.write_to_robot</code> is maintained for backwards compatibility.
+    Most users are expected to use <code>Dexter.write_file</code>
 </details>
 </details> <!-- end dexter_instructions -->
 
@@ -5430,15 +5659,34 @@ If it is passed, the instruction will be sent to that robot.
 </details> <!--End Dexter Modes-->
 
 <details class="doc_details"  id="RobotStatus_doc_id"><summary>RobotStatus</summary>
+    When an instruction is sent to Dexter from DDE, Dexter sends back to DDE
+    an array of 60 numbers containing robot status information. The DDE menu
+    item <b>Jobs/Show robot status</b> presents this array in a chart labeling
+    each number so you can make sense of it.
+    <p></p>
+    The Robot status array is stored on each Dexter instance under, for example:<br/>
+    <code>Dexter.dexter0.robot_status</code><br/>
+    You can use constants bound to index
+    values to extract particular values like so:
+    <code>Dexter.dexter0.robot_status[Dexter.J1_MEASURED_ANGLE]</code><br/>
+    See the full list of such constants in the documentation for
+    <a href="#" onclick="open_doc('Control.grab_robot_status_doc_id')">Control.grab_robot_status</a>
+    <p></p>
     <code>RobotStatus</code> is a class whose instances store information about
-    a Dexter robot. Each Dexter robot instance has a field named <code title="unEVALable">robot_status</code>
-    i.e. <code>Robot.dexter0.robot_status</code>
+    a Dexter robot. Each Dexter robot instance has a field named <code title="unEVALable">rs</code>
+    i.e. <code>Dexter.dexter0.rs</code>
     whose value is an instance of <code>RobotStatus</code>.
     <p></p>
-    The following are instance methods on <code>RobotStatus</code>.
+    The following are instance methods on <code>RobotStatus</code> that make it easy
+    to access various robot status values.<br/>
+    <i>Examples:</i><br/>
+    <code>Dexter.dexter0.rs.job_id()</code><br/>
+    <pre><code>new Job({name: "my_job",
+         do_list:[function(){out(this.robot.rs.measured_angle(1))}]
+         })     </code></pre>
     <details id="RobotStatus.job_id_doc_id" class="doc_details"><summary>job_id</summary>
         Returns the job_id of the job corresponding to the instruction of this robot_status.
-        This is usually the last instruciton sent to Dexter.<br/>
+        This is usually the last instruction sent to Dexter.<br/>
         Takes no parameters.
     </details>
     <details id="RobotStatus.instruction_id_doc_id" class="doc_details"><summary>instruction_id</summary>
@@ -5534,9 +5782,6 @@ If it is passed, the instruction will be sent to that robot.
         <b>joint_count</b> Default: <code>5</code>
         An integer from 0 through 7 indicating the number of joints to return their angles on.
     </details>
-
-
-
     <details id="RobotStatus.measured_angle_doc_id" class="doc_details"><summary>measured_angle</summary>
         Returns the a2d_cos of a joint.  <br/>
         <i>Parameter</i><br/>
@@ -5809,7 +6054,7 @@ is a video describing most of the Human instructions.
            Human.speak({speak_data: "hi there folks",
                         rate: 0.25,
                         wait: true}),
-           Robot.out("done")
+           IO.out("done")
          ]})</code></pre>
    This job doesn't print "done" until after "hi there folks" has been spoken.
 </details>
@@ -5844,7 +6089,7 @@ is a video describing most of the Human instructions.
     <i>Examples:</i>
     <pre><code title="unstartable in TestSuite"> new Job({name: "my_job",
     do_list: [Human.task({task: "Load filament now."}),
-              Robot.out("We're done.")]})
+              IO.out("We're done.")]})
               </code></pre>
     <pre><code title="unstartable in TestSuite"> new Job({name: "my_job",
     do_list: [Human.task({title: "&lt;b>Attention&lt;/b> Operator!",
@@ -5855,7 +6100,7 @@ is a video describing most of the Human instructions.
                           width:  300,
                           height: 120,
                           background_color: "rgb(200, 255, 200)"}),
-    Robot.out("We're done.")]})
+    IO.out("We're done.")]})
     </code></pre>
 </details> <!-- end task -->
 
@@ -5951,7 +6196,7 @@ is a video describing most of the Human instructions.
                   ["dd", '"joe"'],
                   ["ee", 'this.name + " is cool"'],
                   ["ff", 'myfn.call(this)'],
-                  ["gg", 'Robot.out("hey")', true]
+                  ["gg", 'IO.out("hey")', true]
                  ],
            show_choices_as_buttons: true,
            add_stop_button: false,
@@ -5999,7 +6244,7 @@ If no file is chosen, the variable is bound to <code>null</code>
                       user_data_variable_name: "my_file",
                       height: 150}),
                    function(){
-                     return Robot.out("You chose: " +
+                     return IO.out("You chose: " +
                                        this.user_data.my_file)
                    }]})    </code></pre>
 </details>
@@ -6054,9 +6299,9 @@ If no file is chosen, the variable is bound to <code>null</code>
                         this.user_data.a_number)}]})
             </code></pre>
     In the above example, the 2nd instruction couldn't be simply
-    <code title="unEVALable">Robot.out("Amount: " this.user_data.a_number)</code><br/>
+    <code title="unEVALable">IO.out("Amount: " this.user_data.a_number)</code><br/>
     nor even:<br/>
-    <code title="unEVALable">Robot.out("Amount: " Job.my_job.user_data.a_number)</code><br/>
+    <code title="unEVALable">IO.out("Amount: " Job.my_job.user_data.a_number)</code><br/>
     because each of those would be evaluated during the call to<br/>
     <code title="unEVALable">new Job(...)</code> and thus
     the new job would not yet be defined, much less have the
@@ -6368,7 +6613,7 @@ The second goes to Serial robot "S2".<br/>
 See Jobs menu/Insert Example/Serial Port for an extended example.
 </details>
 
-<details  class="doc_details"><summary>Robot.grab_robot_status</summary>
+<details  class="doc_details"><summary>Control.grab_robot_status</summary>
 This is not a <i>Serial</i> instruction, but one that can be used
 with any robot. It captures the robot_status, or some portion of it,
 and saves it away in a user_data variable on the Job instance for
@@ -6376,10 +6621,10 @@ use by subsequent instructions.
 <p></p>
 When a Serial.string_instruction is run and the device retruns a value,
 that string is placed in the robot_status. You can then use
-Robot.grab_robot_status to extract it from the robot status
+Control.grab_robot_status to extract it from the robot status
 and stick it in a user_data variable.
-See <a href="#" onclick="open_doc('Robot.grab_robot_status_doc_id')">
-        Robot.grab_robot_status</a>
+See <a href="#" onclick="open_doc('Control.grab_robot_status_doc_id')">
+        Control.grab_robot_status</a>
 </details>
 
 
@@ -6395,7 +6640,7 @@ ports in one job. The job will pause until each completes.
 In other words, the serial string_instructions run <i>in serial</i>,
 not parallel.
 <p></p>
-You can also call <code>Robot.grab_robot_status</code> with a subject of
+You can also call <code>Control.grab_robot_status</code> with a subject of
 a robot instance (instead of <code>Robot</code>) so that
 you can be sure to get the correct return value from
 a given string_instruction instruction.<br/>
@@ -6414,7 +6659,7 @@ new Job({name: "j10b",
          robot: new Brain(), //not used, but prevents the default Robot.dexter0 from being used
          do_list: [Robot.S1.string_instruction("y"),
                    Robot.S1.grab_robot_status("yes_result"),
-                   Robot.wait_until(2),
+                   Control.wait_until(2),
                    Robot.S1.string_instruction("n"),
                    Robot.S1.grab_robot_status("no_result", Serial.DATA0)
                    ]}

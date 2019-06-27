@@ -277,7 +277,7 @@ function handleWindowUI(vals){ //vals contains name-value pairs for each
        // persistent_get(vals.macro_name,function(val){db_fetch = val})
         /*Job.j1.user_data.choicemade = function ()
          							  { var rt = []
-                                        rt.push(Robot.wait_until(function(){return db_fetch}))
+                                        rt.push(Control.wait_until(function(){return db_fetch}))
                                         rt.push(function(){return replayPointsitr(db_fetch,1)})
                                         return rt                                        
                                       }*/

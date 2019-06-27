@@ -320,7 +320,7 @@ function Main_Create(){
             this.user_data.old_buttons = gp.buttons
     		//CMD.push(make_ins("F"))
     		CMD.push(make_ins("g"))
-    		CMD.push(Robot.go_to("Main_Create"))
+    		CMD.push(Control.go_to("Main_Create"))
     		return CMD
             
         }// end prev state
@@ -428,7 +428,7 @@ function Main_Create(){
     }
     
     if(!gp.buttons[map.finish].pressed && this.user_data.finish){
-    	CMD.push(Robot.go_to("Finish_Create"))
+    	CMD.push(Control.go_to("Finish_Create"))
         this.user_data.finish = false
     }
     
@@ -497,7 +497,7 @@ function Main_Create(){
     this.user_data.old_buttons = gp.buttons
     //CMD.push(make_ins("F"))
     CMD.push(make_ins("g"))
-    CMD.push(Robot.go_to("Main_Create"))
+    CMD.push(Control.go_to("Main_Create"))
     return CMD
 }
 
@@ -597,7 +597,7 @@ function Init_Run(){
     if(points_filepath == "choose_file"){
 		points_filepath = choose_file({buttonLabel: "Open"})
     	if(points_filepath === undefined){
-    		return Robot.stop_job
+    		return Control.stop_job
     	}
     }
     let content = read_file(points_filepath)
@@ -859,7 +859,7 @@ function Edit_Coors_Run(){
             this.user_data.old_buttons = gp.buttons
     		//CMD.push(make_ins("F"))
     		CMD.push(make_ins("g"))
-    		CMD.push(Robot.go_to("Edit_Coors_Run"))
+    		CMD.push(Control.go_to("Edit_Coors_Run"))
     		return CMD
             
         }// end prev state
@@ -970,7 +970,7 @@ function Edit_Coors_Run(){
     
     if(!gp.buttons[map.finish].pressed && this.user_data.finish){
     	out("Now starting Run...")
-        CMD.push(Robot.go_to("Main_Run"))
+        CMD.push(Control.go_to("Main_Run"))
         this.user_data.finish = false
     }
     
@@ -1039,7 +1039,7 @@ function Edit_Coors_Run(){
     this.user_data.old_buttons = gp.buttons
     //CMD.push(make_ins("F"))
     CMD.push(make_ins("g"))
-    CMD.push(Robot.go_to("Edit_Coors_Run"))
+    CMD.push(Control.go_to("Edit_Coors_Run"))
     return CMD
 }
 
@@ -1054,7 +1054,7 @@ function Main_Run(){
     	this.user_data.finish = true
     }
     if(!gp.buttons[map.finish].pressed && this.user_data.finish){
-    	CMD.push(Robot.go_to("Finish_Run"))
+    	CMD.push(Control.go_to("Finish_Run"))
     }
     
     let position_object
@@ -1088,7 +1088,7 @@ function Finish_Run(){
     if(inputs.loop && this.user_data.loop_idx < inputs.loop_iterations){
     	CMD.push(Dexter.sleep(inputs.inter_loop_dur))
         CMD.push(make_ins("F"))
-        CMD.push(Robot.go_to("Main_Run"))
+        CMD.push(Control.go_to("Main_Run"))
         this.user_data.loop_idx++
     }else{
         let ready_position = this.user_data.inputs.start_position

@@ -197,7 +197,7 @@ beep()
 beep.start()
 beep.dur
 new Job({name: "my_job",
-         do_list: [beep, Robot.out("aa")]})
+         do_list: [beep, IO.out("aa")]})
 */
 
    

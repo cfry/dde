@@ -13,8 +13,8 @@ var {serial_port_init, serial_path_to_info_map, serial_devices, serial_connect_l
     serial_disconnect_all} = require("./core/serial.js")
 
 
-var {dde_error, warning, shouldnt, array_to_csv, csv_to_array, Duration, flatten, fn_is_keyword_fn, format_number, make_ins_arrays, same_elts,
-    patch_until, return_first_arg, trim_comments_from_front,
+var {dde_error, warning, shouldnt, array_to_csv, csv_to_array, Duration, flatten, fn_is_keyword_fn, format_number, make_ins_arrays,
+    ordinal_string, patch_until, return_first_arg, same_elts, trim_comments_from_front,
     version_equal, version_less_than, version_more_than, dde_version_between} = require("./core/utils.js")
 
 var {choose_file, choose_save_file, choose_file_and_get_content,
@@ -40,7 +40,9 @@ var {Instruction, make_ins, human_task_handler, human_enter_choice_handler,
     human_enter_text_handler, human_show_window_handler} = require("./core/instruction.js")
 
 var {Robot, Brain, Dexter, Human, Serial} = require('./core/robot.js')
-var Job = require('./core/job.js')
+var {Control} = require('./core/instruction_control.js')
+var {IO} = require('./core/instruction_io.js')
+var Job  = require('./core/job.js')
 
 
 

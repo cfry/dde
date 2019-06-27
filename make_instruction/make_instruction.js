@@ -480,10 +480,13 @@ var MakeInstruction = class MakeInstruction{
            if (arg_name == "body") { placeholder = "separate statements with newline or semicolon."}
            let rows = 4
            if(arg_name == "...params") { rows = 2 }
-            let result = "<div style='margin:5px;white-space:nowrap;'><span style='vertical-align:top;'>" + arg_name + ":</span>\n" +
-                         "<textarea class='mi_arg_val_src' rows='" + rows + "' placeholder='" + placeholder + "' oninput='MiState.invalidate_job_instance()' style='width:300px;font-size:13px;' id='" + id + "'>" + arg_val_src + "</textarea>\n" +
+           let result = "<div style='margin:5px;white-space:nowrap;'><span style='vertical-align:top;'>" + arg_name + ":</span>\n" +
+                         "<textarea class='mi_arg_val_src' rows='" + rows + "' placeholder='" + placeholder + "' oninput='MiState.invalidate_job_instance()'" +
+                            " onclick='Editor.show_identifier_info_for_type_in(event)' " +
+                            " style='width:300px;font-size:13px;' id='" + id + "'>" +
+                             arg_val_src + "</textarea>\n" +
                           "</div>"
-            return result
+           return result
         }
         /*else if((instruction_name == "Dexter.set_parameter") &&
                  arg_name == "name"){
@@ -508,16 +511,17 @@ var MakeInstruction = class MakeInstruction{
                 array_of_possible_values.push('"' + name + '"')
             }
             let sel_index = array_of_possible_values.indexOf(arg_val_src) ////might return -1 but that's ok, it will just be blank type in
-            let the_arg_val_src = arg_val_src
-            out("arg_val_src: " + arg_val_src + " sel_index: " + sel_index)
+            //let the_arg_val_src = ((sel_index == -1) ? "" : arg_val_src)
+            //out("arg_val_src: " + arg_val_src + " sel_index: " + sel_index)
+            if(sel_index == -1) { sel_index = 0 } //sill get the default set_parameter nname of "Acceleration"
             setTimeout(function() {
                     $(window[id]).jqxComboBox({ source: array_of_possible_values,
                         width: '210px',
                         height: '16px',
                         selectedIndex: sel_index})  //default
-                    if(sel_index == -1){
-                        $(window[id]).jqxComboBox("val", the_arg_val_src)
-                    }
+                    //if(sel_index == -1){
+                    //    $(window[id]).jqxComboBox("val", the_arg_val_src)
+                    //}
                 },
                 200)
             return  "<div style='margin:5px;white-space:nowrap;'>" + arg_name + ": <div style='display:inline-block' id='" + id + "' class='mi_arg_val_src combo_box'/></div>"
@@ -1122,7 +1126,7 @@ var MakeInstruction = class MakeInstruction{
             else {
                 warning("For this new Job to work, the embedded job<br/>" +
                         "must be saved and defined before running this new Job.")
-                old_instr_src = 'Robot.include_job(' + old_job_name + ')'
+                old_instr_src = 'Control.include_job(' + old_job_name + ')'
             }
         }
         else { //a non "new job" old instruction
@@ -1301,12 +1305,12 @@ var MakeInstruction = class MakeInstruction{
             let ref
             if(mi_job_instrs_wrapper_job_id.checked){
                 let options = '{start_if_robot_busy: true}'
-                    ref= '                   Robot.start_job("' + do_list_ref_string + '", ' + options + ', "error", true),\n'
+                    ref= '                   Control.start_job("' + do_list_ref_string + '", ' + options + ', "error", true),\n'
             }
             else if (mi_job_instrs_wrapper_var_id.checked ||
                      (mi_job_instrs_wrapper_data_id.checked &&
                       mi_job_instrs_where_file_id.checked)){
-                    ref= '                   Robot.include_job("' + do_list_ref_string + '"),\n'
+                    ref= '                   Control.include_job("' + do_list_ref_string + '"),\n'
             }
             else if (mi_job_instrs_wrapper_data_id.checked){
                     ref= '                   ' + do_list_ref_string + '\n'
@@ -1324,7 +1328,7 @@ var MakeInstruction = class MakeInstruction{
         return result
     }
 
-    //returns a string (which could be empty, if everything ok. Else retruns an array with
+    //returns a string (which could be empty), if everything ok. Else retruns an array with
     //one elt, an error message
     static low_level_code(){
         if(mi_job_instrs_what_none_id.checked) { return "" }
@@ -1332,6 +1336,7 @@ var MakeInstruction = class MakeInstruction{
             let target_job_name = mi_job_instrs_wrapper_name_id.value
             let src_job_name = window.eval(MakeInstruction.arg_name_to_src_in_mi_dialog("name")) //might not just be a literal, could be an expression!
             let job_instance = Job[src_job_name]
+            let do_list_src = MakeInstruction.arg_name_to_src_in_mi_dialog("do_list")
             let do_list_to_mine = []
             let result_do_list  = []
             let begin_loc = MiRecord.get_begin_mark_loc()
@@ -1341,7 +1346,6 @@ var MakeInstruction = class MakeInstruction{
             let has_non_top_levels
             let use_str_instrs = mi_job_instrs_what_string_id.checked
             if(!job_instance || (job_instance != MiState.job_instance) || !MiState.job_instance.do_list){ //not in sync so prefer the def in the dialog
-                let do_list_src = MakeInstruction.arg_name_to_src_in_mi_dialog("do_list")
                 do_list_to_mine = window.eval(do_list_src)
                 if(use_str_instrs) { do_list_to_mine = this.make_string_do_list_from_orig(do_list_to_mine, job_instance) }
                 warning("Since the Job in the Make Instruction dialog hasn't been played,<br/>we're using its full original do_list.")
@@ -1405,7 +1409,14 @@ var MakeInstruction = class MakeInstruction{
                     }
                 }
             }
-            let do_list_src = to_source_code({value: result_do_list, one_line_per_array_elt:true})
+            if(MiRecord.get_play_middle() && (begin_top_loc == 0) &&
+                ((end_top_loc == 0) || (end_top_loc == do_list_to_mine.length))) {} //we've never played the job, or at least we're not attempting to get just a segment of the do_list, so use the orig src.
+                //note that if the src has something like Dexter.set_parameter(...), then that
+                //will eval to an oplet array, and so attempting to get the evaled array
+                //do_list_to_mine (or result_do_list) and doing to_source_code on it is NOT going to
+                //return "Dexter.set_parameter(...)" but rather make_ins("S"...) which is not what we want,
+                //so just use the orig src.
+            else { do_list_src = to_source_code({value: result_do_list, one_line_per_array_elt:true})}
             if(mi_job_instrs_wrapper_data_id.checked){
                 do_list_src = replace_substrings(do_list_src, "\n", "\n ") //indent 2nd thru nth lines just one space for the outer close square bracket
             }
@@ -1506,13 +1517,14 @@ MakeInstruction.menu_hierarchy = [
                     "sleep",  "slow_move", "write"],
     ["Human",       "enter_choice", "enter_filepath", "enter_instruction", "enter_number",
                     "enter_position", "enter_text", "notify", "show_window", "speak", "task"],
-    ["Robot control", "break", "go_to", "loop","label",
+    ["Control",     "break", "go_to", "loop","label",
                       "suspend", "unsuspend", "sync_point", "wait_until"],
-    ["Robot I/O",  "get_page", "grab_robot_status",  "out",
+    ["Control Jobs", "include_job", "send_to_job", /*"sent_from_job" don't let user use this*/
+                     "start_job", "stop_job"],
+    ["Control bugs", "debugger", "error", "if_any_errors"],
+    ["IO",  "get_page", "grab_robot_status",  "out",
                    "show_picture", "show_video", "take_picture"],
-    ["Robot Jobs", "include_job", "send_to_job", /*"sent_from_job" don't let user use this*/
-                   "start_job", "stop_job"],
-    ["Robot bugs", "debugger", "error", "if_any_errors"],
+
     ["Serial",     "string_instruction"],
     ["Misc"      , "function", "function*",
                    //"null", don't have null on menu. its a valid instruction but does nothing, hard to support, and you wouldn't explicitly put one in a job's do_list

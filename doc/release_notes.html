@@ -5,9 +5,173 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 3.4.0, Jun 27, 2019</summary>
+Higlights: read_file and write_file, both instructions and functions improved.<br/>
+           Click help: new 2nd line decribing "context".<br/>
+           New Ref Man/Job/Definition Time Vs Run Time section.<br/>
+           set_parameter improved.<br/>
+           Robot.instructions deprecated and are now divided into
+           Control.instructions & IO.instructions.<br/>
+           Editor improvements.
+<ul>
+    <li> Removed the "ws" package from the "dependencies" list in package.json.
+        This was not being used. Github called it a security risk.</li>
+
+    <li> Click help handles literal strings better.</li>
+
+    <li> Click help improvements for string, "new" calls, keywords.</li>
+
+    <li> New click help printed on a new line just below regular click help
+         that shows the "context" of what you clicked on.
+         If you click on the argument of a fn call, it
+         tells you which argument and the name of the function.
+         This context help is not implemented for all JS syntactic constructs,
+         but does supply useful help for many common situations.</li>
+
+    <li> <code>make_folder</code> now works for WindowsOS too.
+        This fixes a bug in write_file on WindowsOS when hte dir is none-existent.</li>
+
+    <li> Extended Ref Man for how to get the current default robot from a running job
+         under both Job and Robot.</li>
+
+    <li> Major new Ref Man/Job/Definition Time Vs Run Time section
+         to help the user's model of how a Job operates.</li>
+
+    <li> <code>to_source_code_instruction_array</code>
+         fixed bug when the "indent" property doesn't exist on arg.</li>
+
+    <li> Make Instruction fixed bug in inserting a low level Job that has never been
+         run and we're not attempting to segment its do_list, just print its source
+         as is in the dialog's do_list item.</li>
+
+    <li> Make Instruction, if you switch instructions to set_parameter, and
+         the previous instruction had a name field, and that previous value
+         for "name" isn't a valid set_parameter name, the new name is set to "Acceleration",
+         i.e. the default set_parameter name.</li>
+
+    <li> Click help now works on textareas presented in the Make Instruction dialog.</li>
+
+    <li> Editor tab has indented to 4 spaces. Now you can "unindent" 4 spaces by typing
+         ctrl [  (on the PC, or cmd [ (on the mac)</li>
+
+    <li> Slight reorg of DDE's Learn JS menu:
+         Now "Comments" has its own submenu and its close to the top.
+         "Debugging, etc" submenu renamed to "Debugging" and
+         doesn't contain the comment menu items.</li>
+
+    <li> Editor: when you switch to another file, and your current file has not been saved,
+         and the "Save" checkbox in the output pane is not checked,
+         You will be prompted as to whether the current file should be saved.
+         If the "Save" checkbox is checked, the current file will automatically
+         be saved as always.</li>
+
+    <li> Big fix to Dexter.read_file for real, as well as making Simulator more
+         compatible with real.</li>
+
+    <li> Ref Man/Robot/Robot Instructions/grab_robot_status
+         the set of robot_status index constants has been updated.</li>
+
+    <li> Ref Man/Robot/Dexter/RobotStatus doc corrected and extended
+         with explanation and examples.</li>
+
+    <li> For <code>Dexter.read_file</code> and <code>Dexter.write_file</code>,
+         if the path starts with a #,
+         don't modify it by adding "dde_apps", just leave it alone.</li>
+
+    <li> Conversion of <code>Dexter.set_parameter</code> args
+         from DDE high level (degrees, meters) to
+        what is actually sent to Dexter (arcseconds, microns)
+        updated to match https://github.com/HaddingtonDynamics/Dexter/wiki/set-parameter-oplet
+        which included fixing:<br/>
+        AngularSpeed<br/>
+        AngularSpeedStartAndEnd<br/>
+        AngularAcceleration<br/>
+        all the Cartesian parameters<br/>
+        RawEncoderErrorLimits<br/>
+        RawVelocityLimits.</li>
+
+    <li> User Guide/Configure Dexter/Verify Joint Wiring,
+        now refers the user to
+        https://github.com/HaddingtonDynamics/Dexter/wiki/Troubleshooting
+        for verifying jumper wires.</li>
+
+    <li> Ref Man/Robot/Robot Instructions/get_page, and the functions
+         <code>get_page</code> & <code>get_page_async</code> extended with:
+        (Permissible options) include the HTTP methods of:<br/>
+        GET (the default)<br/>
+        POST<br/>
+        PUT<br/>
+        PATCH<br/>
+        DELETE<br/> HEAD<br/>
+        OPTIONS<br/>
+        plus a zillion other options for authentication, etc.</li>
+
+    <li> Reorg of instructions.
+        The <code>Robot</code> instructions have been moved to
+        <code>Control</code> and <code>IO</code> classes.
+        Control now has:<br/>
+        "break", "go_to", "loop","label", "suspend", "unsuspend", "sync_point", "wait_until"
+        "include_job", "send_to_job", "sent_from_job" "start_job", "stop_job"
+        "debugger", "error", "if_any_errors"<br/>
+        IO now has:<br/>
+         "get_page", "grab_robot_status", "out",
+        "show_picture", "show_video", "take_picture"<br/>
+        So the preferred way to reference these is:
+        <code>Control.loop</code>, <code>IO.get_page</code>, etc.<br/>
+       <code>Robot.loop</code> and <code>Robot.get_page</code>, etc.
+       are deprecated but still available.
+       Ref Man for Robot instructions moved into new sections for Control and IO.
+       All examples updated.</li>
+
+    <li> <code>IO.show_picture</code>, <code>IO.show_video</code>, <code>IO.take_picture</code>
+     are now formally documented under Ref Man/Robot/Robot Instructions/IO</li>
+
+    <li> The Jobs examples are better formatted with insert 4 spaces for every indent.</li>
+
+    <li> new Jobs menu item: "New Job", inserts
+<pre><code>new Job({
+    name: "my_job",
+    do_list: [
+        |   (vert vbar is whare cursor is left)
+    ]
+})</code></pre>
+    into the editor. If there is a select, it assumes its one or more do_list items
+    and wraps the new Job around the selection.
+    Keystroke Ctrl-j</li>
+
+    <li> New menu item: Editor/Indent Sel(ection)
+        Indents the selected code, being clever about JS code.
+        Preserves existing number of lines,
+        but does a pretty good job at intending semantically.
+        Keystroke shift-tab</li>
+
+    <li> With save checkbox unchecked, and new buffer that has new content in it,
+        attempt to switch to a new buffer, you get a dialog of cancel, save, delete.
+        If you choose delete, it *should* just delete the buffer,
+        But instead you get the confirm dialog:<br/>
+         "before editing ____ save _____ ?</li>
+
+    <li> <code>read_file</code>, <code>write_file</code> both instructions and functions:
+        their default folder is dde_apps, including on Dexter, srv/samba/share/dde_apps
+        BUT the "r" and "W" oplets and the older instructions
+        <code>Dexter.read_from_robot</code>, <code>Dexter.write_to_robot</code> (deprecated)
+        instructions use srv/samba/share as their default folders.
+        Ref Man/Robot/Dexter/Dexter Instructions/read_file and write_file documentation updated.</li>
+
+    <li> Instructions <code>Dexter.read_file</code> and
+        <code>Dexter.read_from_robot</code> given default value
+        for "destination" param of: "read_file_content".</li>
+
+    <li> New menu on File menu "open special..." shows dialog
+         for editing or showing DDE and Dexter system files:<br/>
+         dde_init.js,<br/> dde_persistent.json,<br/> error.logs,<br/> Defaults.make_ins</li>
+
+    <li> Slight improvement to Ref Man/IO/Sound/Music with MIDI/Synthesizers/Midi.init</li>
+</ul>
+</details>
 
 <details class="doc_details"><summary>v 3.3.8, Jun 5, 2019</summary>
-Highlight: Improvements to Job Engine, Dexter.set_parameter, Kin.js and
+Highlights: Improvements to Job Engine, Dexter.set_parameter, Kin.js and
 getting dexter-specific link lengths.
 <ul>
     <li> <code>make_folder</code> fixed to adjust to OS file path conventions.
@@ -30,7 +194,7 @@ getting dexter-specific link lengths.
          now handled properly and
          the user_data.destination is filled with an integer error code, typically 1.</li>
 
-    <li> Fixed bugs in <code>Robot.loop</code> that caused it not to initialize correctly
+    <li> Fixed bugs in <code>Control.loop</code> that caused it not to initialize correctly
          when restarting a job with a loop instruction in it.</li>
 
     <li> new testsuite file: loop_testsuite.js</li>
@@ -960,7 +1124,7 @@ Ubuntu install fix.
         advancing program_counter when clicking the Go button.
         Doc slightly improved.</li>
 
-    <li> <code> Robot.if_any_errors</code> ref man doc improved.</li>
+    <li> <code> Control.if_any_errors</code> ref man doc improved.</li>
 </ul>
 </details>
 
@@ -1871,7 +2035,7 @@ Still a work in progress.</li>
     <li> Fixed <code>Robot.break</code> instruction to properly handle skipping past end of loop
         when the loop body has nested instructions.</li>
 
-    <li> Improved doc for <code>Robot.go_to</code></li>
+    <li> Improved doc for <code>Control.go_to</code></li>
 
     <li> Improved doc for <code>Job.insert_instruction</code></li>
 
@@ -2896,7 +3060,7 @@ Highlights: Fixed backwards go_to bug. dde_version_between, to_source_code
 
     <li> bug fixed in inserting instructions into do list that was not properly updating
         the hierarchical added_items_count array.
-        This caused some instructions to be skipped when a <code>Robot.go_to</code>
+        This caused some instructions to be skipped when a <code>Control.go_to</code>
         backwards instruction was executed.</li>
 </ul>
 </details>
@@ -2963,7 +3127,7 @@ Highlights: to_source_code implemented but not complete.
     <li> Slight improvement to Generator Job Example 4b and Job Example 4c, the job definitions.</li>
 
     <li> Jobs menu/Insert Example/  added new item:
-         Robot.go_to with several jobs using the Robot.go_to instruction</li>
+         Control.go_to with several jobs using the Control.go_to instruction</li>
 
     <li> dde_version_equal, dde_version_less_than dde_version_more_than renamed to not start with "dde_".
          doc and click_help improved.</li>
@@ -3329,7 +3493,7 @@ Highlights: Video capture & processing example with OpenCV.<br/>
     <li> In doc pane, if there is no selection and no text in the find input,
         the colored sections are removed and the find pane is collapsed.</li>
 
-    <li> More intra-Ref-Man clickble links esp for Robot.go_to,
+    <li> More intra-Ref-Man clickble links esp for Control.go_to,
          and uman.task references.</li>
 
     <li> <code>Kin.is_in_reach()</code> has been updated.</li>
@@ -4168,7 +4332,7 @@ after you relaunch.</li>
 
 <li> New Reference manual section Object System/Calling Methods</li>
 
-<li> Ref Man documentation for Robot.go_to now has the word
+<li> Ref Man documentation for Control.go_to now has the word
 "goto" in it so that users can "find" such a string
 if they type in it.</li>
 

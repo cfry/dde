@@ -3,7 +3,7 @@ This demo is an incomplete work-in-progress.
 If you want to use a different camera than your computer's built in default,
 1. Eval Picture.show_video_cameras()
 2. Copy the ID of the camera you want to use.
-3. Paste it in place of "webcam" in the below call to Robot.show_video
+3. Paste it in place of "webcam" in the below call to IO.show_video
    The pasted ID should be wrapped in quotes.
 */
 function locate_obj(){
@@ -31,7 +31,7 @@ function pick_up_obj(){
     out("moving dexter to: " + dex_x + ", " + dex_y)
     return [Dexter.move_to([dex_x, dex_y, this.user_data.take_pic_point[2]]), //move above obj
             Dexter.move_to([dex_x, dex_y, this.user_data.dexter_down_z]),     //move down to obj
-            Robot.wait_until(1),   //todo grab obj
+            Control.wait_until(1),   //todo grab obj
             Dexter.move_to([dex_x, dex_y, this.user_data.take_pic_point[2]]), //move up
             Dexter.move_to([0.5, dex_y, this.user_data.take_pic_point[2]])    //move away
             //todo drop object
@@ -42,16 +42,16 @@ new Job({name: "loc_obj",
     user_data: {dex_y_offset: 0.15,
                 take_pic_point: [0, (0.747 / 2) + 0.15, 0.3],
                 dexter_down_z: 0.05},
-    do_list: [Robot.show_video({content: "webcam", x: 600, y: 60}),
+    do_list: [IO.show_video({content: "webcam", x: 600, y: 60}),
               function() {return Dexter.move_to(this.user_data.take_pic_point)},
               Human.task({title: "Clear the Scene",
                     task: 'Take a "background" picture.',
                     x: 250, y: 60, height: 120, width: 330}),
-              Robot.take_picture({callback: "background_pic"}),
+              IO.take_picture({callback: "background_pic"}),
               Human.task({title: "Set the Scene",
                     task: "Place an object in view of the camera<br/>and take a foreground picture.",
                     x: 250, y: 60, height: 140, width: 330}),
-              Robot.take_picture({callback: "foreground_pic"}),
+              IO.take_picture({callback: "foreground_pic"}),
               locate_obj,
               function(){inspect(this.user_data.loc_obj)},
               pick_up_obj

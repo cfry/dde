@@ -689,7 +689,7 @@ Instruction.Dexter.read_file = class read_file extends Instruction.Dexter{
         if(!this.robot) { this.set_instruction_robot_from_job(job_instance) }
         if (this.first_do_item_call) {
             const sim_actual = Robot.get_simulate_actual(this.robot.simulate)
-            //have to check for dexter_file_systems or else the 2nd time I rn the job, it will
+            //have to check for dexter_file_systems or else the 2nd time I run the job, it will
             //have a double length path with 2 dexter_file_systems parts
             if (!this.source.startsWith("/") && (sim_actual === true) && !this.source.startsWith("dexter_file_systems")) {
                 this.fuller_source = "dexter_file_systems/" + this.robot.name + "/" + this.source
@@ -703,23 +703,23 @@ Instruction.Dexter.read_file = class read_file extends Instruction.Dexter{
         //the below can never happen
         //if (this.is_done) {
         //    this.processing_r_instruction = false
-        //    return Robot.break()
+        //    return Control.break()
         //}
         let read_file_instance = this
         let robot = this.robot //closed over
-        job_instance.insert_single_instruction(Robot.loop(true, function(content_hunk_index){
+        job_instance.insert_single_instruction(Control.loop(true, function(content_hunk_index){
                 let job_instance = this
                 if (read_file_instance.is_done) {
                     //init this inst just in case it gets used again
                     read_file_instance.is_done = false
                     read_file_instance.first_do_item_call = true
                     read_file_instance.processing_r_instruction = false
-                    return Robot.break()
+                    return Control.break()
                 }
                 else {
                     read_file_instance.processing_r_instruction = true
                     return [make_ins("r", content_hunk_index, read_file_instance.fuller_source, robot),
-                            Robot.wait_until(function(){
+                            Control.wait_until(function(){
                                 return !read_file_instance.processing_r_instruction
                              })
                            ]
@@ -744,6 +744,7 @@ Instruction.Dexter.read_file = class read_file extends Instruction.Dexter{
     }
 
     //called from socket.js
+    //payload_string_maybe is a string or an error code (an int > 0)
     static got_content_hunk(job_id, ins_id, payload_string_maybe){
         let job_instance = Job.job_id_to_job_instance(job_id)
         if (job_instance == null){
@@ -764,9 +765,13 @@ Instruction.Dexter.read_file = class read_file extends Instruction.Dexter{
         }
     }
 
-    //used by Dexter.write_file too
+    //used by Dexter.write_file to prepare path for passing it to make_ins("W" ...)
+    //because the path used for write_file defaults to "srv/samba/share/dde_apps",
+    //whereas the path for make_ins("W" ...) defaults to srv/samba/share
+    //see Dexter.srv_samba_share_default_to_absolute_path to do the opposite
     static add_default_file_prefix_maybe(path){
-        if(path.startsWith("/"))         { return path }
+        if      (path.startsWith("/"))   { return path }
+        else if (path.startsWith("#"))   { return path }
         else if (path.startsWith("./"))  { return "dde_apps/" + path.substring(2) }
         else if (path.startsWith("../")) { return path.substring(3) } //will go to dexrun's default foler, ie /srv/samba/share/
         else                             { return "dde_apps/" + path }

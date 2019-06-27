@@ -1214,7 +1214,7 @@ module.exports.trim_string_quotes = trim_string_quotes
 
 //returns a string that starts with the first char of src
 //by trimming whitespace and comments from the front of src
-//used by Robot.include_job
+//used by Control.include_job
 function trim_comments_from_front(src){
     src = src.trimLeft()
     if(src.startsWith("//")) {
@@ -1285,6 +1285,14 @@ function format_number(num, digits_before_point=6, digits_after_point=3, allow_f
     return result
 }
 module.exports.format_number = format_number
+
+// ordinal_string(0) => "0th"   ordinal_string(1) => "1st"
+// ordinal_string(11) => "11th" ordinal_string(21) => "21st"
+function ordinal_string(n){
+    let suffix = ["st","nd","rd"][((n+90)%100-10)%10-1]||"th"
+    return n + suffix
+}
+module.exports.ordinal_string = ordinal_string
 
 //used by users in calling  DXF.init_drawing for its dxf_filepath arg
 function text_to_lines(text) { return txt.text_to_lines(text) }
