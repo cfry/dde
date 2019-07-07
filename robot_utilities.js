@@ -236,6 +236,59 @@ function ping_a_dexter(){
                  callback: ping_a_dexter_handler
                 })
 }
+//_______default robot_______
+function make_default_robot_menu_html(selected_robot_full_name=""){
+    var result = "<span style='font-size:10px;'>default robot</span><br/>" +
+        "<select id='mi_job_wrapper_robot_name_id' onchange='MakeInstruction.onchange_job_robot()' style='font-size:14px;width:130px;'" +
+        " title='Supplies the robot for instructions prefixed\n" +
+        "with a robot class (like Dexter or Serial)\n" +
+        "but no robot instance.')>"
+    for(let robot_class_name of ["Brain", "Dexter", "Human", "Serial"]){
+        for(let name of window[robot_class_name].all_names){
+            let full_name = robot_class_name + "." + name
+            let sel_attr = ((full_name == selected_robot_full_name) ? " selected='selected' " : "")
+            result += "<option " + sel_attr + ">" + full_name + "</option>"
+        }
+    }
+    result += "</select>"
+    return result
+}
+
+//example return: "Dexter.dexter0"
+function default_robot_name(){
+    if(mi_job_wrapper_robot_name_id){
+        return mi_job_wrapper_robot_name_id.value
+    }
+    else { return "Dexter.dexter0" }
+}
+
+function default_robot(){
+    return value_of_path(default_robot_name())
+}
+
+function default_dexter(){
+    let default_robot = value_of_path(default_robot_name())
+    if (default_robot instanceof Dexter){
+        return default_robot
+    }
+    else {
+        return Dexter.dexter0
+    }
+}
+
+function default_dexter_name(){
+    return "Dexter" + "." + default_dexter().name
+}
+
+function add_robot_to_default_menu(robot_or_name){
+    if (typeof(robot_or_name) != "string") { //must be a robot instance
+        robot_or_name = robot_or_name.constructor.name + "." + robot_or_name.name
+    }
+    let a_option = document.createElement("option")
+    a_option.innerText = robot_or_name
+    mi_job_wrapper_robot_name_id.prepend(a_option)
+}
+
 var {warning, last} = require("./core/utils.js")
 
 

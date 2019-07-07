@@ -44,10 +44,11 @@ SimUtils = class SimUtils{
     //job_or_robot name format is really "Job.j1"  or "Dexter.dex1", ie same as the menu item in the Simulate pane
     //input angles are in arcseconds
     static render_once(robot_status, job_name, robot_name, force_render=false){ //inputs in arc_seconds
+        let job_or_robot_to_sim = job_or_robot_to_simulate_name()
         if (force_render ||
-           (job_or_robot_to_simulate_id.value == job_name) ||
-           (job_or_robot_to_simulate_id.value == robot_name) ||
-           (job_or_robot_to_simulate_id.value == "All")){
+           (job_or_robot_to_sim == job_name) ||
+           (job_or_robot_to_sim == robot_name) ||
+           (job_or_robot_to_sim == "All")){
 
             //used by render_once_but_only_if_have_prev_args
             SimUtils.prev_robot_status = robot_status

@@ -330,7 +330,7 @@ function init_doc(){
         "</details>\n" +
         '</details>\n' +
 
-        '<details><summary class="doc_top_level_summary">Release Notes</summary>\n' +
+        '<details id="release_notes_doc_id"><summary class="doc_top_level_summary">Release Notes</summary>\n' +
         read_file(__dirname + "/doc/release_notes.html") +
         "</details>\n" +
         '<details><summary class="doc_top_level_summary">Known Issues</summary>\n' +

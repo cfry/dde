@@ -1,6 +1,7 @@
 function to_source_code({value, indent="", function_names=false, newObject_paths=false,
                         job_names=false, robot_names=false,
-                        depth_limit=Infinity, depth=0, job_orig_args=false} = {}){
+                        depth_limit=Infinity, depth=0, job_orig_args=false,
+                        one_line_per_array_elt=false, array_elt_max_chars=60} = {}){
         //console.log("top of to_source_code with value: " + value + " arguments: " + arguments)
         //console.log("Object.isNewObject: " + Object.isNewObject)
         if (!((typeof(arguments[0]) == "object") && arguments[0].hasOwnProperty("value"))){
@@ -57,22 +58,23 @@ function to_source_code_array(args){
     let chars_added_since_last_newline = 0
     let result = "["
     let len = value.length
+    let max_chars = (args.array_elt_max_chars ? args.array_elt_max_chars : 60)
     for (let i = 0; i < len; i++){ //don't use "for ... in here as it gets some wrong stuff
         let prefix = ""
         let val = value[i]
-        let val_str = to_source_code({value: val})
+        let val_str = to_source_code({value: val, array_elt_max_chars: max_chars})
         let comma_maybe = ((i < (len - 1)) ? "," : "")
         let newline_or_space_suffix = ((i == (len - 1))? "" : " ")
         let str_and_suffix_len = val_str.length
         if (args.one_line_per_array_elt) { newline_or_space_suffix = "\n" }
-        else if (chars_added_since_last_newline > 60) {
+        else if (chars_added_since_last_newline > max_chars) {
             prefix = "\n"
             chars_added_since_last_newline = str_and_suffix_len
         }
-        else if ((chars_added_since_last_newline == 0) && (val_str.length > 60)) {
+        else if ((chars_added_since_last_newline == 0) && (val_str.length > max_chars)) {
             chars_added_since_last_newline = str_and_suffix_len //add it in the usual way
         }
-        else if ((chars_added_since_last_newline + str_and_suffix_len) > 60) {
+        else if ((chars_added_since_last_newline + str_and_suffix_len) > args.array_elt_max_chars) {
             prefix = "\n"
             chars_added_since_last_newline = str_and_suffix_len
         }

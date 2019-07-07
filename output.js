@@ -660,7 +660,7 @@ window.submit_window = function(event){
         if (typeof(err) == "string") { err_string = err } //weiredly this DOES happen sometimes
         else if (err.message) { err_string = err.message }
         else { err_string = err.toString() }
-        dde_error("While calling the show_window handler function of: " + cb.name + ",<br/>" + err_string)
+        dde_error("While calling the show_window handler function of<code>: " + cb.name + "</code>,<br/>" + err_string)
     }
     event.preventDefault()
     event.stopPropagation()

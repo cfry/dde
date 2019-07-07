@@ -5,15 +5,19 @@ var MiRecord = class MiRecord {
     static instruction_suffix_html(loc){
         let the_do_list = MiState.get_do_list_smart()
         let top_or_not = ""
-        let instr = ""
+        let instr_html = ""
         if (the_do_list){
-            if(loc < the_do_list.length) {
+            if(loc < the_do_list.length){
                 top_or_not = this.instruction_props_html(loc)
-                instr = to_source_code({value: the_do_list[loc]}).substr(0, 60)
+                let instr  = the_do_list[loc]
+                if (is_array_of_numbers(instr)){
+                    instr = Vector.round(instr, 3)
+                }
+                instr_html = to_source_code({value: instr}).substr(0, 60)
             }
-            else { instr = " beyond final instruction" }
+            else { instr_html = " beyond final instruction" }
         }
-        let result = " at " + loc + " " + top_or_not + "&nbsp;is " + instr
+        let result = " at " + loc + " " + top_or_not + "&nbsp;is " + instr_html
         return result
     }
 
@@ -74,12 +78,14 @@ var MiRecord = class MiRecord {
     static set_play_loc(event_or_loc=null){ //event_or_loc, if not passed, defaults to
         //the current slider play_loc slider position. We do this when when want to
         //refresh the instruction_suffix_html because user has dragged and end or begin mark.
+        //out("set_play_loc passed: " + event_or_loc)
         let job_instance = this.job_in_mi_dialog()
         let the_do_list  = MiState.get_do_list_smart()
         let loc
         if(event_or_loc === null)                  { loc = MiRecord.get_play_loc() }
         else if (typeof(event_or_loc) == "number") { loc = event_or_loc }
         else {                                       loc = parseInt(event_or_loc.value) }
+        out("set_play_loc passed: " + loc)
         if (loc < 0) { loc = 0 }
         if(job_instance){
             if(job_instance.highest_completed_instruction === undefined) {} //probably at beginning of running job_instance
@@ -168,12 +174,6 @@ var MiRecord = class MiRecord {
                 "Move the begin mark further left first.")
         }
         loc = Math.round(loc) //the slider callback onslide returns a float
-        let instr = ""
-        if(the_do_list) {
-            instr = the_do_list[loc]
-            instr = to_source_code({value: instr}).substr(0, 60)
-            if (instr == "undefined") { instr = "beyond final instruction." }
-        }
         mi_marks_slider_id.noUiSlider.setHandle(1, loc)
         let suffix = this.instruction_suffix_html(loc)
         mi_end_marks_slider_pos_id.innerHTML = "end &nbsp;&nbsp;&nbsp;mark " + suffix //loc + " is " + instr
@@ -238,6 +238,9 @@ var MiRecord = class MiRecord {
                            "red")
                 return
             }
+            else { //keep pane scrolled to bottom so that user can click on "record" button to stop
+                sim_pane_content_id.scrollTop = 500
+            }
         }
         else {
             sim_pane_content_id.scrollTop = 0
@@ -269,12 +272,23 @@ var MiRecord = class MiRecord {
         //should we stop recording?
         if((sim_actual !== true) && //everything ok if we are simulating
            (rob.is_calibrated !== true)){ //if we get to this line, not simulated, and if not calibrated, halt recording as Dexter put into follow_me mode without being calibrated is bad.
-           if(rob.is_calibrated === null) {
-                dde_error("Dexter." + rob.name + " is not known to be calibrated.<br/>" +
-                        "You can't record on a robot that isn't calibrated.<br/>" +
-                        "To determine calibration status,<br/>" +
-                        "choose Jobs menu/show robot status and click 'run update job'<br/>" +
-                        "If the Dexter is not calibrated, use Jobs menu/Calibrate Dexter.")
+           if(rob.is_calibrated === null){
+                //dde_error("Dexter." + rob.name + " is not known to be calibrated.<br/>" +
+                //        "You can't record on a robot that isn't calibrated.<br/>" +
+                //        "To determine calibration status,<br/>" +
+                //        "choose Jobs menu/show robot status and click 'run update job'<br/>" +
+                //        "If the Dexter is not calibrated, use Jobs menu/Calibrate Dexter.")
+               this.calibrate(rob,
+                                function(){
+                                    if(this instanceof Job){
+                                        if(confirm("Calibration done. Start Recording?")){
+                                            MiRecord.start_record_pre_aux()
+                                        }
+                                        else { out("Recording stopped.") }
+                                    }
+                                    else { out("Recording canceled.") }
+                                }
+               )
            }
            else if (rob.is_calibrated === false){
                dde_error("Dexter." + rob.name + " is not calibrated.<br/>" +
@@ -285,14 +299,34 @@ var MiRecord = class MiRecord {
                            "has invalid is_calibrated value of: " + rob.is_calibrated)
            }
         }
-        let job_wrapper_robot = value_of_path(mi_job_wrapper_robot_name_id.value)
+        else {
+            this.start_record_pre_aux()
+        }
+    }
+
+    static calibrate(a_dexter, callback){
+        if (confirm("To record, you must first calibrate " + a_dexter.name + ".\n" +
+                     "Clear the hemisphere around Dexter and\n" +
+                     "click OK (about 2 minutes) or\n" +
+                     "click Cancel.")){
+            out("Now calibrating...")
+            init_calibrate_optical(a_dexter)
+            Job.CalEncoders.start({when_stopped: callback})
+        }
+        else {
+            callback()
+        }
+    }
+
+    static start_record_pre_aux() {
+        let job_wrapper_robot = default_robot()
         let active_jobs = job_wrapper_robot.active_jobs_using_this_robot()
         if(active_jobs.length > 0) {
             for(let a_job of active_jobs){
                 a_job.stop_for_reason("interrupted", "Make Instruction stopped this job to do a recording using this Job's robot.") //just kill it, even if suspended
                 a_job.set_up_next_do(0)
             }
-            setTimeout(MiRecord.start_record_aux, job_instance.inter_do_item_dur + 100)
+            setTimeout(MiRecord.start_record_aux, MiState.job_instance.inter_do_item_dur + 100)
         }
         //if(job_instance.status_code == "suspended") {
         //    job_instance.unsuspend()
@@ -318,12 +352,13 @@ var MiRecord = class MiRecord {
         MiRecord.set_step_play_state("disabled")
         MiRecord.set_play_state("disabled")
         MiRecord.set_insert_recording_state("disabled")
-        let job_wrapper_robot = value_of_path(mi_job_wrapper_robot_name_id.value) //we want to use the
+        let job_wrapper_robot = default_robot() //we want to use the
         //same robot for doing the recording as we will for running the job that is recorded.
         MiRecord.start_time_in_ms = Date.now()
         new Job({
             name: "mi_record",
             robot: job_wrapper_robot,
+            show_instructions: false,
             do_list: [
                 Dexter.set_follow_me(),
                 Control.loop(true,
@@ -377,6 +412,10 @@ var MiRecord = class MiRecord {
         //Job.mi_record.undefine_job() //causes problems in sim, so just do:
         Job.mi_record.robot.remove_from_busy_job_array(Job.mi_record)
         Job.mi_record.remove_job_button()
+        new Job({
+            name: "mi_set_keep_position",
+            robot: Job.mi_record.robot,
+            do_list: [Dexter.set_keep_position()]}).start()
     }
 
     //this fn side-effects the MI dialog items: do_list and inter_do_item_dur
@@ -903,7 +942,7 @@ var MiRecord = class MiRecord {
             mi_record_id.value    = "recording"
             mi_record_id.onclick  = function(){MiRecord.stop_record()}
             mi_record_id.title    = "Click to stop recording."
-            mi_record_id.style["background-color"] = "#ff2839"
+            mi_record_id.style["background-color"] = "rgb(136, 255, 136)" //green,   "#ff2839" bright red
         }
         else {shouldnt("MiRecord.set_record_state passed invalid state: " + state) }
     }
@@ -933,7 +972,7 @@ var MiRecord = class MiRecord {
         if(state == "disabled") {
             mi_step_reverse_id.disabled = true
             mi_step_reverse_id.onclick     = function(){MiRecord.step_reverse()}
-            mi_step_reverse_id.title       = "Play is disabled when no recording and\nduring recording."
+            mi_step_reverse_id.title       = "Play is disabled when there is no recording and\nduring recording."
             mi_step_reverse_id.style["color"] = "#bebcc0"
         }
         else if(state == "enabled") {
@@ -975,7 +1014,7 @@ var MiRecord = class MiRecord {
         if(state == "disabled") {
             mi_step_play_id.disabled = true
             mi_step_play_id.onclick     = function(){MiRecord.step_play()}
-            mi_step_play_id.title       = "Play is disabled when no recording and\nduring recording."
+            mi_step_play_id.title       = "Play is disabled when there is no recording and\nduring recording."
             mi_step_play_id.style["color"] = "#bebcc0"
         }
         else if(state == "enabled") {
@@ -997,7 +1036,7 @@ var MiRecord = class MiRecord {
         if(state == "disabled") {
             mi_play_id.disabled = true
             mi_play_id.onclick     = function(){MiRecord.start_play()}
-            mi_play_id.title       = "Play is disabled when no recording and\nduring recording."
+            mi_play_id.title       = "Play is disabled when there is no recording and\nduring recording."
             mi_play_id.style["color"] = "#bebcc0"
         }
         else if(state == "enabled") {

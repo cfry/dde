@@ -56,7 +56,7 @@
           which would be really good.
      <script src="codemirror/addon/tern/worker.js"></script>
      -->
-    <style> .CodeMirror {width:98%; height:84%; font-size:17px; font-weight:600} <!--500 and 550 are the same and both too light, but 600 is too dark-->
+    <style> .CodeMirror {width:98%; height:84%; font-size:17px; font-weight:600} /* 500 and 550 are the same and both too light, but 600 is too dark */
             .CodeMirror-cursor {
                 border-left: 2px solid black;
                 border-right: none;
@@ -220,7 +220,7 @@
                                 </li>
                                 <li style="display:inline-block;padding-left:3px;padding-right:0px;">Edit&#9660;
                                     <ul>
-                                        <li id="undo_id"       title="Redo the last text change in the JS Editor.">Undo &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ctrl/&#8984;z</li>
+                                        <li id="undo_id"       title="Redo the last text change in the JS Editor.">Undo &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/&#8984;z</li>
                                         <li id="redo_id"       title="Redo the last Undo text change in the JS Editor.">Redo</li>
 
                                         <li id="find_id"       title="After clicking,&#013;type in seaarch term,&#013;then hit Enter to select all instances&#013;of the search term.">Find...Ctrl/&#8984;f</li>
@@ -763,7 +763,7 @@
                     </div>
                 </div> <!--doc_pane -->
                 <div id="misc_pane_id" style="background-color:black">
-                    <div class="pane_header_wrapper" style="white-space:nowrap;">
+                    <div class="pane_header_wrapper" style="white-space:nowrap; margin-top:0px; padding-top:0px;">
                         <span id="misc_pane_help_id" class="pane_header" title="Click for help."><u>Misc</u></span>
                         <select id='misc_pane_menu_id'>
                             <!-- <option value='http://hdrobotic.com/videos/'>Dexter Videos</option> can't show these in Sim pane, so forget it -->
@@ -774,15 +774,16 @@
                             <option value='Choose File'>Choose File</option>
                             <!--<option value=''>Measurements Video</option>-->
                         </select>
-                        <button id="demo_id" title="Moves graphical depiction of Dexter randomly." style="padding:2px">Demo</button>
+                        <div id="default_robot_name_menu_container_id" style="margin-top:0px; padding:0px; display:inline-block"></div>
                         <span title="Pause job execution."><input  id="pause_id" type="checkbox"/>Pause</span>
-                        <button id="go_id"   title="Continue paused job execution." style="padding:2px">Go</button><br/>
+                        <button id="go_id"   title="Continue paused job execution." style="padding:2px">Go</button>
+                        <button id="demo_id" title="Moves graphical depiction of Dexter randomly." style="padding:2px">Demo</button><br/>
                         <input id="simulate_radio_true_id"  type="radio" name="simulate" value="true" checked="true" title="Dexter instances with a 'simulate' value of null,&#013;such as the default Dexter: 'dexter0',&#013;get their simulate value from the selected radio button.">simulate</input>
                         <input id="simulate_radio_false_id" type="radio" name="simulate" value="false" title="When this button is selected,&#013;Dexter instances with a 'simulate' value of null&#013;will have their instructions sent to a real Dexter.">real</input>
                         <input id="simulate_radio_both_id"  type="radio" name="simulate" value="both" title="Both simulate and real will be run for Dexter's with a 'simulate' value of null.">both</input> &nbsp; &nbsp;
                         <input style="display:inline-block; vertical-align:bottom;" id="real_time_sim_checkbox_id" type="checkbox" checked="true" title="If unchecked, simulation&#013;will run as fast as it can.&#013;No pauses for sleep or motion.">real-time-sim</input>
                     </div>
-                    <div id='sim_pane_content_id' contentEditable="false" style="background-color:#EEEEEE; width:97%; height:90%;padding:5px;overflow:scroll;>
+                    <div id='sim_pane_content_id' contentEditable="false" style="background-color:#EEEEEE; width:97%; height:90%;padding:5px;overflow:scroll;">
                     </div>
                 </div>
             </div>
@@ -790,7 +791,6 @@
     </div>
 <!-- used by compute_string_size utility -->
 <div id="compute_string_size_id"
-     style="position:absolute;visibility: hidden;height: auto;width: auto;white-space: nowrap;"
-</div>
+     style="position:absolute;visibility: hidden;height: auto;width: auto;white-space: nowrap;"></div>
 </body>
 </html>

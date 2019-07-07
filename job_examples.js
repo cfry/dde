@@ -3,7 +3,8 @@ var job_examples = [
 `new Job({
     name: "my_job",
     do_list: [
-        Dexter.move_all_joints([30, 45, 60, 90, 120])]})
+        Dexter.move_all_joints([30, 45, 60, 90, 120])
+    ]})
 `,
 
 `//////// Job Example 1
@@ -80,7 +81,10 @@ new Dexter({
 new Job({
     name: "j3",
     robot: Robot.my_dex, //assigns a robot to this job
-    do_list: [move_once, sleep_and_move] //use the above function definitions as do_list items
+    do_list: [ //use the below function definitions as do_list items
+        move_once, 
+        sleep_and_move
+    ] 
 })
 /* Job.j3                    //the newly created Job instance
  Job.j3.status_code
@@ -228,7 +232,8 @@ new Job({
             //and any number of values you want to get from j6
             j6_joint_5_pos: function(){return this.robot.joint_xyz(5)},
             j6_angle_number_2: function(){return this.robot.joint_angle(2)}
-        })]})
+        })
+    ]})
 Job.j7.start()
 /* Job.j7.user_data.j6_joint_5_pos and
    Job.j7.user_data.j6_angle_number_2 both
@@ -652,8 +657,7 @@ new Job({
         Control.wait_until(2),
         Serial.string_instruction("n"),
         Control.grab_robot_status("no_result", Serial.DATA0)
-    ]}
-)
+    ]})
 Job.j10a.start()
 
 Job.j10a.user_data //all the user data
@@ -669,8 +673,7 @@ new Job({
         Control.wait_until(2),
         Serial.S1.string_instruction("n"),
         Serial.S1.grab_robot_status("no_result", Serial.DATA0)
-    ]}
-)
+    ]})
 `,
 
 `/*Job Example 11 when_stopped

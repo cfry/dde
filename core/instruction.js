@@ -2391,9 +2391,10 @@ Instruction.start_job = class start_job extends Instruction{
         if(job_name === undefined){
             dde_error("start_job was not passed a <b>job_name</b> which is required.")
         }
-        if(typeof(job_name) != "string"){
+        if((typeof(job_name) != "string") && !(job_name instanceof Job)){
             dde_error("start_job was passed an invalid <b>job_name</b> of: " + job_name + "<br/>" +
-                      "It must be a Job instance or the string of a Job name.")
+                      "It must be a Job instance,<br/>the string of a Job name<br/>" +
+                      "or the string of a file containing a Job definition.")
         }
         this.job_name      = job_name
         this.start_options = start_options

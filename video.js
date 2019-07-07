@@ -120,23 +120,26 @@
             sim_pane_content_id.innerHTML = div_html + content + "</div>"
         }
     }
-    //user changed the selected menu item. Must capture this in a global var so
-    //dexSim can read it even when the sim dialog is not up.
-    function job_or_robot_to_simulate_changed(){
-        let new_val = job_or_robot_to_simulate_id.value
-        out(new_val)
-    }
+
     function refresh_job_or_robot_to_simulate_id(){
         if(window["job_or_robot_to_simulate_id"]){
-            let options_html = "<option>All</option>\n"
+            let options_html = "<option>All</option>\n<option>default dexter</option>"
             for(let job of Job.all_jobs()){
                 options_html += "<option>Job." + job.name + "</option>\n"
             }
-            for(let robot_name of Dexter.all_names){
-                options_html += "<option>Dexter." + robot_name + "</option>\n"
-            }
+            //for(let robot_name of Dexter.all_names){
+            //    options_html += "<option>Dexter." + robot_name + "</option>\n"
+            //}
             job_or_robot_to_simulate_id.innerHTML = options_html
         }
+    }
+    //returns a string
+    function job_or_robot_to_simulate_name(){
+        let result = job_or_robot_to_simulate_id.value
+        if(result == "default dexter") {
+            return default_dexter_name()
+        }
+        else { return result }
     }
 
 var {replace_substrings} = require("./core/utils.js")

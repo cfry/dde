@@ -1,7 +1,10 @@
-function init_calibrate_optical() {
+function init_calibrate_optical(a_dexter=null) {
+  if(!a_dexter){
+      a_dexter = cal_get_robot()
+  }
   new Job({name: "CalEncoders",
   			show_instructions: false,
-            robot: cal_get_robot(),
+            robot: a_dexter,
             do_list: out([
               make_ins("w", 42,64),
     		  make_ins("w", 42,0),

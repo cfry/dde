@@ -496,6 +496,19 @@ function flatten(arr, result=[]){
 }
 module.exports.flatten = flatten
 
+function is_array_of_numbers(a_array){
+    if(!Array.isArray(a_array)) { return false }
+    else {
+        for(let num of a_array){
+            if(typeof(num) != "number") {
+                return false
+            }
+        }
+        return true
+    }
+}
+module.exports.is_array_of_numbers = is_array_of_numbers
+
 //used by inspector for printing 2D arrays
 function is_array_of_same_lengthed_arrays(array){
   if (array.length === 0) { return false }
@@ -1075,14 +1088,18 @@ function params_string_to_param_names_and_defaults(params_full_string){
 //and get back the names of the args in their proper order.
 function function_param_names_and_defaults_lit_obj(fn){
     let params_full_string = function_params(fn, false)
-    let params_string = params_full_string
+    //let params_string = params_full_string
     if (params_full_string.startsWith("{")){
         if (params_full_string.endsWith("= {}") ||
             params_full_string.endsWith("={}")){
             let closing_equal = params_full_string.lastIndexOf("=")
-            params_string = params_full_string.substring(0, closing_equal).trim()
+            params_full_string = params_full_string.substring(0, closing_equal).trim()
         }
-        params_string = replace_substrings(params_string, "\\n", " ")
+        //cut off both open and close brace
+        if(params_full_string.endsWith("}")) { params_full_string = params_full_string.substring(0, params_full_string.length - 1) }
+        params_full_string = params_full_string.substring(1)
+    }
+    /*    params_string = replace_substrings(params_string, "\\n", " ")
         var inner_params_and_defaults = params_string.substring(1, params_string.length -1) //cut off { and }
         var inner_params_and_defaults_array = inner_params_and_defaults.split(",")
         var param_names = []
@@ -1090,20 +1107,22 @@ function function_param_names_and_defaults_lit_obj(fn){
             inner_param_and_default = inner_param_and_default.trim()
             let the_param_default_array = inner_param_and_default.split("=")
             the_param_default_array[0] = the_param_default_array[0].trim()
-            the_param_default_array[1] = the_param_default_array[1].trim()
+            if(typeof(the_param_default_array[1]) == "string") { //ie there is a default
+                the_param_default_array[1] = the_param_default_array[1].trim()
+            }
             param_names.push(the_param_default_array)
             //obj[the_param_default_array[0]] = the_param_default_array[1]
         }
         return [param_names, "{}"]
     }
-    else {
+    else {*/
         let array_of_arrays = params_string_to_param_names_and_defaults(params_full_string)
         let result = {}
         for (let name_val of array_of_arrays) {
             result[name_val[0]] = name_val[1]
         }
         return result
-    }
+    //}
 }
 
 module.exports.function_param_names_and_defaults_lit_obj = function_param_names_and_defaults_lit_obj

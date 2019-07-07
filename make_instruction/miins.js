@@ -84,7 +84,8 @@ var MiIns = class MiIns {
     }
 
     get_family_class(){
-        return get_class_of_instance(this)
+        let the_class = get_class_of_instance(this)
+        return the_class
     }
 
     static instruction_name_to_family_class(instruction_name){
@@ -143,12 +144,25 @@ var MiIns = class MiIns {
     //Beware, calling this fn may reach into the UI.
     get_robot(){
         if((this.superclass_name == "") || (this.instance_name == "")) {
-            return value_of_path(mi_job_wrapper_robot_name_id.value)
+            return default_robot()
         }
         else {
             let fullname = this.superclass_name + "." + this.instance_name
             return value_of_path(fullname)
         }
+    }
+
+    static save_prev_call_obj_of_name(call_obj){
+        let ins_name = call_obj.get_instruction_name()
+        //use MiIns. not this. because we want to be sure we get the
+        //non-family based, just straight, this ins_name to a call_obj
+        MiIns.prev_ins_name_to_call_obj[ins_name] = call_obj
+    }
+
+    static get_prev_call_obj_of_name(ins_name){
+        //use MiIns. not this. because we want to be sure we get the
+        //non-family based, just straight, this ins_name to a call_obj
+        return MiIns.prev_ins_name_to_call_obj[ins_name]
     }
 
     //_______Make instances of MiIns
@@ -244,7 +258,7 @@ var MiIns = class MiIns {
         return this
     }
     //for all prop names that are common between this and miins_instance,
-    //and those vals from miins_instance that are not equasl to "",
+    //and those vals from miins_instance that are not equal to "",
     //set the values in this to those from miins_instance
     //used when miins_instance is special_defaults
     merge_in_only_if_already_present(miins_instance){
@@ -305,7 +319,11 @@ var MiIns = class MiIns {
     }
 
     merge_in_prev_defaults(){
-        this.merge_in_only_if_already_present(MiIns.prev_defaults)
+        let ins_name = this.get_instruction_name()
+        let prev_call_obj = MiIns.get_prev_call_obj_of_name(ins_name)
+        if(prev_call_obj){
+            this.merge_in_only_if_already_present(prev_call_obj)
+        }
         return this
     }
 
@@ -363,10 +381,12 @@ var MiIns = class MiIns {
                     merge_in_prev_defaults()
     }
 }
+//obsolete
 MiIns.special_defaults = new MiIns() //empty here but specialized for each subclass maybe
 
 
 MiIns.prev_defaults     = new MiIns()   //no subclass versions of this. Only one per session. Initially all arg empty. intruction_name ignored
+MiIns.prev_ins_name_to_call_obj = {}
 MiIns.instruction_names = null //only is an array of real names for (most) subfamilies
 
 
@@ -407,6 +427,24 @@ MiIns.move_all_joints_family = class move_all_joints_family extends MiIns{
             this.merge_in(miins_instance_arg_holder)
         }
         return this
+    }
+
+    merge_in_prev_defaults(){
+        let ins_name = this.get_instruction_name()
+        let prev_call_obj = MiIns.get_prev_call_obj_of_name(ins_name)
+        if(prev_call_obj){ //do the most specific thing
+            this.merge_in_only_if_already_present(prev_call_obj)
+        }
+        else { //since no exact match on ins_name, get default from other ins_names in the same family
+            this.merge_in_only_if_already_present(MiIns.move_all_joints_family.prev_default_props)
+        }
+        return this
+    }
+    static save_prev_call_obj_of_name(call_obj){
+        MiIns.save_prev_call_obj_of_name(call_obj) //might as well save the exact item
+        for(let prop_name of Object.getOwnPropertyNames(call_obj.args_obj)){
+            this.prev_default_props.args_obj[prop_name] = call_obj.args_obj[prop_name]
+        }
     }
     //errors or returns an array of 7 angles.
     get_angle_array(){
@@ -461,7 +499,9 @@ MiIns.move_all_joints_family = class move_all_joints_family extends MiIns{
         call_obj.args_obj.j7_angle       = to_source_code({value: angles[7 - 1]})
     }*/
 }
+
 MiIns.move_all_joints_family.instruction_names = ["Dexter.move_all_joints", "Dexter.move_all_joints_relative", "Dexter.pid_move_all_joints"]
+MiIns.move_all_joints_family.prev_default_props = {args_obj: {}}
 
 /* often not good to have this. let user explicitly set home position. Startup gets all zeros, but is handled specially
 MiIns.move_all_joints_family.special_defaults.args_obj =
@@ -500,6 +540,18 @@ MiIns.move_to_family = class move_to_family extends MiIns{
         return this
     }
 
+    merge_in_prev_defaults(){
+        let ins_name = this.get_instruction_name()
+        let prev_call_obj = MiIns.get_prev_call_obj_of_name(ins_name)
+        if(prev_call_obj){ //do the most specific thing
+            this.merge_in_only_if_already_present(prev_call_obj)
+        }
+        else { //since no exact match on ins_name, get default from other ins_names in the same family
+            this.merge_in_only_if_already_present(MiIns.move_to_family.prev_default_props)
+        }
+        return this
+    }
+
     //instruction_name is expected to be in the move_to family
     static make_from_instruction_name_and_angles(instruction_name="Dexter.move_to", angles, robot){
         //let robot = this.get_robot() //takes the instruction instance name and job wrapper robot into account
@@ -516,6 +568,13 @@ MiIns.move_to_family = class move_to_family extends MiIns{
         call_obj.args_obj.j7_angle       = ((j7_angle === undefined) ? "" : to_source_code({value: j7_angle}))
         return call_obj
     }
+
+    static save_prev_call_obj_of_name(call_obj){
+        MiIns.save_prev_call_obj_of_name(call_obj) //might as well save the exact item
+        for(let prop_name of Object.getOwnPropertyNames(call_obj.args_obj)){
+            this.prev_default_props.args_obj[prop_name] = call_obj.args_obj[prop_name]
+        }
+    }
 }
 MiIns.move_to_family.instruction_names = ["Dexter.move_to", "Dexter.move_to_relative", "Dexter.move_to_straight", "Dexter.pid_move_to"]
 MiIns.move_to_family.special_defaults  = new MiIns()
@@ -527,6 +586,8 @@ MiIns.move_to_family.special_defaults.args_obj =
                                     j6_angle: "[0]",
                                     j7_angle: "[0]"}
 
+MiIns.move_to_family.prev_default_props = {args_obj: {}}
+
 MiIns.function_family = class function_family extends MiIns{
 
 }
@@ -535,8 +596,26 @@ MiIns.function_family.instruction_names = ["function", "function*"]
 
 
 MiIns.human_family = class human_family extends MiIns{
+    merge_in_prev_defaults(){
+        let ins_name = this.get_instruction_name()
+        let prev_call_obj = MiIns.get_prev_call_obj_of_name(ins_name)
+        if(prev_call_obj){ //do the most specific thing
+            this.merge_in_only_if_already_present(prev_call_obj)
+        }
+        else { //since no exact match on ins_name, get default from other ins_names in the same family
+            this.merge_in_only_if_already_present(MiIns.human_family.prev_default_props)
+        }
+        return this
+    }
+    static save_prev_call_obj_of_name(call_obj){
+        MiIns.save_prev_call_obj_of_name(call_obj) //might as well save the exact item
+        for(let prop_name of Object.getOwnPropertyNames(call_obj.args_obj)){
+            this.prev_default_props.args_obj[prop_name] = call_obj.args_obj[prop_name]
+        }
+    }
 
 }
+MiIns.human_family.prev_default_props = {args_obj: {}}
 MiIns.human_family.instruction_names = ["Human.enter_choice", "Human.enter_filepath",
     "Human.enter_instruction", "Human.enter_number", "Human.enter_position",
     "Human.enter_text", "Human.notify", "Human.show_window", "Human.speak", "Human.task",

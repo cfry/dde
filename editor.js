@@ -544,13 +544,6 @@ handle_open_system_file = function(vals){
     else if (vals.clicked_button_value == "show dde_persistent.json"){
         let content = read_file("dde_persistent.json")
         content = replace_substrings(content, "\n", "<br/>")
-        if(sim_actual === true) {
-            warning("You are getting the content of " + path +
-                "<br/>from the DDE computer because the simulate radio button " +
-                "<br/>in the Misc pane is selected." +
-                "<br/>To get the file content from Dexter," +
-                "<br/>select the 'real' radio button.")
-        }
         out(content)
     }
     else if (vals.clicked_button_value.endsWith("Defaults.make_ins")){

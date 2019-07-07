@@ -389,8 +389,8 @@ function handle_cal(vals){
                 "to define your Dexter.")
         }
         else if (Robot.get_simulate_actual(the_robot.simulate) == true){
-            cal_instructions_id.innerHTML = "<span style='color:red'>To calibrate " + the_robot.name + ", the Jobs menu/Simulate? radio button <br/>" +
-                "&nbsp;&nbsp;&nbsp;&nbsp;should be set to false.</span>"
+            cal_instructions_id.innerHTML = "<span style='color:red'>To calibrate " + the_robot.name + ", the Misc Pane's <b>real</b> radio button <br/>" +
+                "&nbsp;&nbsp;&nbsp;&nbsp;should be selected.</span>"
         }
         else if (confirm("Caution! Clear the hemisphere that the fully extended Dexter can reach.")){
             init_calibrate_optical()

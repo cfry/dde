@@ -3207,7 +3207,7 @@ new Job({name: "my_job",
     to understand what's going on beneath the surface. The goal of Dexter
     is to enable you to make as many things as possible. This is why DDE needs to be so flexible.
     <p></p>
-    For a more complete understanding of JavaScript eval, see the DDE article:
+    For a more complete understanding of JavaScript <code>eval</code>, see the DDE article:
     <a href="#" onclick="open_doc('how_to_think_like_a_computer_doc_id')">How to Think like a Computer</a>
 </details>
 
@@ -4318,6 +4318,8 @@ a location to insert an instruction using <code>Control.send_to_job</code>.<br/>
  <ul><li>An instance of the Job to start.</li>
     <li>A string starting with "Job." followed by the Job's name.</li>
     <li>A string of the Job's name.</li>
+    <li>A string of a path (file name) to a file that contains a defintion of the
+        Job to start. The first Job definition in the file will be used.</li>
  </ul>
  <b>start_options</b> A literal object. Name-value pairs that can
  be passed when creating a new Job can also be passed to a job's <i>start</i> method and
@@ -4906,6 +4908,11 @@ The parameters used to define an instance of Dexter are:
      </li>
     <li id="dexter_param_enable_heartbeat_doc_id"><b>enable_heartbeat</b> A Dexter instance sends a "heartbeat" to a Dexter robot to
       keep the connection alive. If true, the default, that heartbeat will be sent.</li>
+    <li id="dexter_param_is_calibrated_doc_id"><b>is_calibrated</b> Default: <code>null</code>
+       means that it is not known if the robot is calibrated.<br/>
+       <code>true</code> means that the robot IS calibrated.<br/>
+       <code>false</code> means that the robot is NOT calibrated.<br/>
+    </li>
 </ul>
      <i>Example:</i>
     <pre><code title="not in TestSuite"> new Dexter({name: "my_dex",

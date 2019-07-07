@@ -67,11 +67,15 @@ class Job{
         if (!Job.is_plausible_when_stopped_value(when_stopped)) {
             dde_error("new Job passed: " + when_stopped + " but that isn't a valid value.")
         }
-        this.orig_args =   {do_list: do_list, robot: robot,
-                            keep_history: keep_history, show_instructions: show_instructions,
-                            inter_do_item_dur: inter_do_item_dur, user_data: user_data,
+        this.orig_args =   {do_list: do_list,
+                            robot: robot,
+                            keep_history: keep_history,
+                            show_instructions: show_instructions,
+                            inter_do_item_dur: inter_do_item_dur,
+                            user_data: user_data,
                             default_workspace_pose: default_workspace_pose,
-                            program_counter: program_counter, ending_program_counter: ending_program_counter,
+                            program_counter: program_counter,
+                            ending_program_counter: ending_program_counter,
                             initial_instruction: initial_instruction,
                             data_array_transformer: data_array_transformer,
                             start_if_robot_busy: start_if_robot_busy,
@@ -80,7 +84,7 @@ class Job{
         //setup name
         Job.job_id_base       += 1
         this.job_id            = Job.job_id_base
-        if ((name == null) || (name == "")){ this.name = "job_" + this.job_id }
+        if ((name == null) || (name == "")){ this.name = Job.generate_default_name() }//"job_" + this.job_id }
         else                               { this.name = name }
         //setup robot
         if (!(robot instanceof Robot)){
@@ -112,6 +116,14 @@ class Job{
         this.color_job_button()
     }
     } //end constructor
+
+    static generate_default_name(){
+        for(let i = 2; i < 1000000; i++){
+            let candidate = "job" + i
+            if (!Job[candidate])  { return candidate }
+        }
+        dde_error("Job.generate_default_name has found a million job names in use. Seems unlikely.")
+    }
 
     static class_init(){ //inits the Job class as a whole. called by ready
         this.job_default_params =
@@ -277,6 +289,12 @@ class Job{
                         ]
             })
         }
+    }
+
+    //a job that, when passed to start_and_monitor_dexter_job, will start the job
+    //in "path" (on Dexter). The job specified by the path will be run on Dexter
+    generate_run_dexter_job(path){
+
     }
 
     //Called by user to start the job and "reinitialize" a stopped job
@@ -991,9 +1009,10 @@ Job.remember_job_name = function(job_name){
     if (!Job.all_names.includes(job_name)){
         Job.all_names.push(job_name)
         if(window["job_or_robot_to_simulate_id"]){
-            let a_option = document.createElement("option");
-            a_option.innerText = "Job." + job_name
-            job_or_robot_to_simulate_id.prepend(a_option)
+            refresh_job_or_robot_to_simulate_id()
+            //let a_option = document.createElement("option");
+            //a_option.innerText = "Job." + job_name
+            //job_or_robot_to_simulate_id.prepend(a_option)
         }
     }
 }
@@ -1157,6 +1176,35 @@ Job.prototype.status = function (){
     }
 }
 
+
+//if the job errored, the robot is a dexter, and the error code is in the 600's,
+//and we're not simulating, then try to show the user the Dexter's errors.log file
+//in the output pane.
+Job.prototype.show_error_log_maybe = function(){
+    let rob = this.robot
+    if(rob instanceof Dexter){
+        const sim_actual = Robot.get_simulate_actual(rob.simulate)
+        if ((sim_actual === false) || (sim_actual === "both")) {
+            if((this.status_code == "errored") &&
+                (rob.rs.error_code() >= 600) &&
+                (rob.rs.error_code() < 700)){
+            let path = rob.name + ":" + "../errors.log"
+            read_file_async(path,
+                undefined,
+                function(err, content){
+                    if(err) {
+                        warning("Could not get " + path + "<br/>Error: " + err)
+                    }
+                    else {
+                        content = replace_substrings(content, "\n", "<br/>")
+                        out("<b>" + rob_name + ":/srv/samba/share/errors.log</b> content:<br/>" + content)
+                    }
+                })
+            }
+        }
+    }
+}
+
 Job.prototype.finish_job = function(perform_when_stopped=true){ //regardless of more to_do items or waiting for instruction, its over.
       if ((this.when_stopped == "stop") || !perform_when_stopped){
           this.robot.finish_job()
@@ -1164,6 +1212,7 @@ Job.prototype.finish_job = function(perform_when_stopped=true){ //regardless of 
           this.color_job_button()
           this.show_progress_maybe()
           out("Done with job: " + this.name + " for reason: " + this.stop_reason)
+          this.show_error_log_maybe()
       }
       else{ //we don't have "stop" and we are performming the when_stopped action
           let job_instance = this //for closure

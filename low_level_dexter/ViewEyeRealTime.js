@@ -71,7 +71,7 @@ function smLinex(run_backwards = false){
             xydata.push([x*10, y*10])
 			
             if(xydata.length%20 == 0){
-            	let J_angle = cal_get_robot().joint_angle(J_num)
+            	let J_angle = cal_get_robot().rs.angle(J_num)    //joint_angle(J_num)
                 let angle_string = J_angle.toString().substring(0, 7)
             	window["cal_angle_" + J_num + "_id"].innerHTML = angle_string
             }

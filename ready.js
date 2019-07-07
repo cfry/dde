@@ -13,8 +13,17 @@
     dde_apps_folder  = null
 
     function set_menu_string(elt, label, key){
-        let modifier = ((operating_system === "win") ? "Ctrl" : "&#8984")
-        let needed_spaces = Math.max(18 - label.length, 1)
+        let modifier
+        let max_spaces
+        if(operating_system === "win") {
+            modifier = "Ctrl "
+            max_spaces = 14
+        }
+        else { //Mac
+            modifier = "&#8984"
+            max_spaces = 18 //more because we don't need the "Ctrl " of WinOS, just one char
+        }
+        let needed_spaces = Math.max(max_spaces - label.length, 1)
         elt.innerHTML = label + "&nbsp;".repeat(needed_spaces) + modifier + key
     }
     //called by both the eval button and the step button
@@ -379,9 +388,10 @@ foo("hello", [7, 10, 20, -3.2]) //call function foo with 2 args
     out_brown_id.onclick =function(){Editor.wrap_around_selection("out(", ', "rgb(255, 100, 0)")', '"Hello"')}
 
     editor_insert_id.onclick = function(){Editor.insert(
-`Editor.insert("text to insert",
-               "replace_selection", //insertion_pos.   "replace_selection" is the default. Other options: "start", "end", "selection_start", "selection_end", "whole", an integer
-               false)               //select_new_text. false is the default.
+`Editor.insert(
+    "text to insert",
+    "replace_selection", //insertion_pos.   "replace_selection" is the default. Other options: "start", "end", "selection_start", "selection_end", "whole", an integer
+    false)               //select_new_text. false is the default.
 `)}
 
 
@@ -427,11 +437,12 @@ function count_up(vals){ //vals contains name-value pairs for each
         out("outta here at: " + window.demo_counter) // Last thing printed to the Output pane.
     }
 }\n` +
-'show_window({content:\n' +
+'show_window({\n' +
+'    content:\n' +
 '`<input type="button" value="Count"/> <!-- Regular button. Does not close window.-->\n' +
 ' <span  name="count_display" id="count_id">6</span><br/><br/>\n' +
 ' <input type="submit" value="Done"/>`, // submit button closes window\n' +
-'             callback: count_up})      // This function called when either button is clicked.\n'
+'    callback: count_up})      // This function called when either button is clicked.\n'
 )}
 
     let show_window_menu_body =
@@ -510,32 +521,32 @@ submit: <input type="submit" value="OK"/>` + "`" +
 //______window_onchange_____________________
     var window_onchange_top_comments =
 `/* show_window   onchange calls
-   In most uses of show_window, its callback is called only
-   when an input of type 'submit' or 'button' is clicked. 
-   But you CAN have the callback called whenever the value
-   of an input element changes. 
+    In most uses of show_window, its callback is called only
+    when an input of type 'submit' or 'button' is clicked. 
+    But you CAN have the callback called whenever the value
+    of an input element changes. 
    
-   An HTML property of data-onchange='true' will cause the 
-   callback method to be called for an element when
-   you change its value and select another elememt.
+    An HTML property of data-onchange='true' will cause the 
+    callback method to be called for an element when
+    you change its value and select another elememt.
    
-   An HTML property of data-oninput='true' causes the
-   callback to be called as soon as a new value is entered.
-   For input type="text" this is upon each character entered.
-   For input type="radio" this is when any radio button in
-   the group is clicked on.
-   For select menus, this is when the value is changed.
-   For input type="range" (sliders) this is upon every
-   little move of the slider.
+    An HTML property of data-oninput='true' causes the
+    callback to be called as soon as a new value is entered.
+    For input type="text" this is upon each character entered.
+    For input type="radio" this is when any radio button in
+    the group is clicked on.
+    For select menus, this is when the value is changed.
+    For input type="range" (sliders) this is upon every
+    little move of the slider.
    
-   The value of the "clicked_button_value" property of the
-   object passed to the callback will be the 'name' of the
-   changed input element, even though "clicked_button_value" 
-   implies the 'value' of a 'button'.
+    The value of the "clicked_button_value" property of the
+    object passed to the callback will be the 'name' of the
+    changed input element, even though "clicked_button_value" 
+    implies the 'value' of a 'button'.
    
-   To see all this behavior, click the Eval button and play 
-   with the controls in the window that pops up.
-   Carefully observe the values printed in the output pane.
+    To see all this behavior, click the Eval button and play 
+    with the controls in the window that pops up.
+    Carefully observe the values printed in the output pane.
 */
 `
      var window_onchange_content =
@@ -582,16 +593,16 @@ show_window({content:
     window_svg_id.onclick=function(){Editor.insert(
 `//SVG Example 1: lots of shapes
 function handle1(arg) { 
-  if((arg.clicked_button_value === "background_id") ||
-     (arg.clicked_button_value === "svg_id")) {
-    append_in_ui("svg_id", svg_circle({cx: arg.offsetX, cy: arg.offsetY, r: 7}))    
-  }
-  else if (arg.clicked_button_value === "circ_id") {
-     out("clicked on circ_id")
-  }
-  else if (arg.clicked_button_value === "ellip_id") {
-     out("The user clicked on ellip_id")
-  }
+    if((arg.clicked_button_value === "background_id") ||
+       (arg.clicked_button_value === "svg_id")) {
+        append_in_ui("svg_id", svg_circle({cx: arg.offsetX, cy: arg.offsetY, r: 7}))    
+    }
+    else if (arg.clicked_button_value === "circ_id") {
+        out("clicked on circ_id")
+    }
+    else if (arg.clicked_button_value === "ellip_id") {
+        out("The user clicked on ellip_id")
+    }
 }
 
 show_window({
@@ -616,53 +627,56 @@ show_window({
 
 //SVG Example 2: draw circle then move it to clicked position.
 function handle2 (vals){ 
-   if(window.c_id) {
-      set_in_ui("c_id.cx", vals.offsetX)
-      set_in_ui("c_id.cy", vals.offsetY)
-   }
-   else {
-      append_in_ui("s2_id", 
-         svg_circle({id: "c_id", cx: vals.offsetX, cy: vals.offsetY, 
-                     r: 15, color: "blue"}))
+    if(window.c_id) {
+        set_in_ui("c_id.cx", vals.offsetX)
+        set_in_ui("c_id.cy", vals.offsetY)
+    }
+    else {
+        append_in_ui(
+            "s2_id", 
+            svg_circle({id: "c_id", cx: vals.offsetX, cy: vals.offsetY, 
+                        r: 15, color: "blue"}))
   }
 }
 
 show_window({
-   title: "SVG Example 2: Click to draw and move circle",
-   content: svg_svg({id: "s2_id", width: 600, height: 200, html_class: "clickable"}),
-   x: 0,
-   y: 330,
-   width: 600,
-   height: 200,
-   callback: handle2
+    title: "SVG Example 2: Click to draw and move circle",
+    content: svg_svg({id: "s2_id", width: 600, height: 200, html_class: "clickable"}),
+    x: 0,
+    y: 330,
+    width: 600,
+    height: 200,
+    callback: handle2
 })
 
 //SVG Example 3: draw line segments
 var linex = null
 var liney = null
 function handle3 (vals){ 
-   if(linex) {
-      append_in_ui("s3_id", 
-         svg_line({x1: linex, y1: liney, x2: vals.offsetX, y2: vals.offsetY}))
-   }
+    if(linex) {
+        append_in_ui(
+            "s3_id", 
+            svg_line({x1: linex, y1: liney, x2: vals.offsetX, y2: vals.offsetY}))
+    }
    else {
-      append_in_ui("s3_id", 
-         svg_circle({cx: vals.offsetX, cy: vals.offsetY, 
-                     r: 5, color: "blue"})) 
-  }
-  linex = vals.offsetX
-  liney = vals.offsetY
+       append_in_ui(
+           "s3_id", 
+           svg_circle({cx: vals.offsetX, cy: vals.offsetY, 
+                       r: 5, color: "blue"})) 
+   }
+   linex = vals.offsetX
+   liney = vals.offsetY
 }
 
 show_window({
-   title: "SVG Example 3: Click to draw lines",
-   content: svg_svg({id: "s3_id", width: 400, height: 400, html_class: "clickable",
-           child_elements: [
-             svg_rect({x: 100, y: 100, width: 200, height: 50, color: "yellow"})
+    title: "SVG Example 3: Click to draw lines",
+    content: svg_svg({id: "s3_id", width: 400, height: 400, html_class: "clickable",
+                      child_elements: [
+                          svg_rect({x: 100, y: 100, width: 200, height: 50, color: "yellow"})
            ]}),
-   x: 620,
-   y: 100,
-   callback: handle3
+    x: 620,
+    y: 100,
+    callback: handle3
 })
 `)}
     build_window_id.onclick=ab.launch
@@ -742,12 +756,13 @@ get_page_async("http://www.ibm.com", function(err, response, body){ out(body.len
 
     beep_id.onclick = function(){Editor.insert("beep()\n")}
     beep_options_id.onclick = function(){Editor.insert(
-`beep({dur: 0.5,  //the default,, 
-      frequency: 440, //the default, in Hertz. This is A above middle C.    
-      volume: 1,      //the default, 0 to 1
-      waveform: "triangle", //the default, other choices: "sine", "square", "sawtooth"
-      callback: function(){beep({frequency: 493.88})} //default=null, run at end of the beep
-     })
+`beep({
+    dur: 0.5,  //the default,, 
+    frequency: 440, //the default, in Hertz. This is A above middle C.    
+    volume: 1,      //the default, 0 to 1
+    waveform: "triangle", //the default, other choices: "sine", "square", "sawtooth"
+    callback: function(){beep({frequency: 493.88})} //default=null, run at end of the beep
+    })
 `
     )}
     beeps_id.onclick = function(){Editor.insert(
@@ -757,14 +772,15 @@ get_page_async("http://www.ibm.com", function(err, response, body){ out(body.len
     speak_id.onclick=function(){Editor.wrap_around_selection(
         "speak({speak_data: ", "})\n", '"Hello Dexter"')}
     speak_options_id.onclick=function(){Editor.wrap_around_selection(
-        'speak({speak_data: ', `,//default="hello"  can be a string, number, boolean, date, array, etc.
-           volume: 1.0,   //default=1.0   0 to 1.0,
-           rate: 1.0,     //default=1.0   0.1 to 10,
-           pitch: 1.0,    //default=1.0   0 to 2,
-           lang: "en-US", //default="en-US"
-           voice: 0,      //default=0     0, 1, 2, or 3
-           callback: function(event) {out('Dur in nsecs: ' + event.elapsedTime)}  //default=null  called when speech is done.
-          })\n`, '[true, "It is", new Date()]')}
+`speak({
+    speak_data: ` , //default="hello"  can be a string, number, boolean, date, array, etc.
+`,\n    volume: 1.0,   //default=1.0   0 to 1.0,
+    rate: 1.0,     //default=1.0   0.1 to 10,
+    pitch: 1.0,    //default=1.0   0 to 2,
+    lang: "en-US", //default="en-US"
+    voice: 0,      //default=0     0, 1, 2, or 3
+    callback: function(event) {out('Dur in nsecs: ' + event.elapsedTime)}  //default=null  called when speech is done.
+})\n`, '[true, "It is", new Date()]')}
     /*recognize_speech_id.onclick = function(){Editor.insert(
 `recognize_speech(
     {prompt: "Say something funny.", //Instructions shown to the speaker. Default "".
@@ -822,7 +838,8 @@ get_page_async("http://www.ibm.com", function(err, response, body){ out(body.len
                                    //its name is different so that the "summary" doesn't subtract the
                                    //usual 2 unknown failures and thus the summary of runnign this
                                    //will be consistent with the errors it shows.
-`new TestSuite("example_test_suite",
+`new TestSuite(
+    "example_test_suite",
     ["2 + 3", "5", "1st elt (source) evals to same as 2nd elt (expected) and the test passes."],
     ['similar(2.05, 2, 0.1)', "true", "tolerance of 0.1 permits 2.05 and 2 to be similar"],
     ["var foo = 4 + 1"],
@@ -1070,28 +1087,32 @@ foo      //eval to see the latest values</pre>`,
 
     init_dxf_drawing_id.onclick = function(){
         var content =
-`DXF.init_drawing({dxf_filepath: "choose_file",    //image to draw
-                 three_points: [[0,  .55, 0.05],  //Point1 locates the drawing plane
-                                [0,   .4, 0.05],  //Point2
-                                [.15, .4, 0.05]], //Point3
-                 plane_normal_guess: [0, 0, 1],
-                 calc_plane_normal: false,
-                 tool_height: 5.08 * _cm,
-                 tool_length: 8.255 * _cm,
-                 DXF_units: undefined, //0.001 means each DXF distance unit is worth 1mm
-                                       //undefined means scale drawing to fit the three_points
-                 draw_speed:  1 * _cm/_s,
-                 draw_res:  0.5 * _mm, //Max step size of straight line
-                 lift_height: 1 * _cm, //distance above surface when pen is not drawing
-                 tool_action: false,
-                 tool_action_on_function: function(){
-					return [make_ins("w", 64, 2),
-							Dexter.dummy_move()]
-				 },
-                 tool_action_off_function: function(){
-                    return [make_ins("w", 64, 0),
-                            Dexter.dummy_move()]
-                 }})
+`DXF.init_drawing({
+    dxf_filepath: "choose_file",    //image to draw
+    three_points: 
+        [[0,  .55, 0.05],  //Point1 locates the drawing plane
+         [0,   .4, 0.05],  //Point2
+         [.15, .4, 0.05]], //Point3
+    plane_normal_guess: [0, 0, 1],
+    calc_plane_normal: false,
+    tool_height: 5.08 * _cm,
+    tool_length: 8.255 * _cm,
+    DXF_units: undefined, //0.001 means each DXF distance unit is worth 1mm
+                          //undefined means scale drawing to fit the three_points
+    draw_speed:  1 * _cm/_s,
+    draw_res:  0.5 * _mm, //Max step size of straight line
+    lift_height: 1 * _cm, //distance above surface when pen is not drawing
+    tool_action: false,
+    tool_action_on_function: 
+        function(){
+		    return [make_ins("w", 64, 2),
+					Dexter.dummy_move()]
+		},
+        tool_action_off_function: 
+            function(){
+                return [make_ins("w", 64, 0),
+                        Dexter.dummy_move()]
+        }})
 `
         Editor.insert(content)
         open_doc("DXF.init_drawing_doc_id")
@@ -1185,6 +1206,10 @@ foo      //eval to see the latest values</pre>`,
                                     let val = format_as_code_id.checked
                                     persistent_set("default_out_code", val)
     }
+
+    //this must be before dde_init_dot_js_initialize() so that when a robot is defined, it can go on the menu
+    default_robot_name_menu_container_id.innerHTML = make_default_robot_menu_html()
+
     dde_init_dot_js_initialize()//must occcur after persistent_initialize
 
     //initialize the checkbox state
@@ -1226,7 +1251,7 @@ foo      //eval to see the latest values</pre>`,
      set_top_right_panel_height(persistent_get("top_right_panel_height"))
 
      help_system_id.onclick = function(){ open_doc(help_system_doc_id) }
-     MakeInstruction.show(undefined, undefined, false) //needs to be after loading dde_init.js so that we'll have dexter0 defined, at least.
+     MakeInstruction.show(undefined, false) //needs to be after loading dde_init.js so that we'll have dexter0 defined, at least.
                                             //undefined lets
      setTimeout(check_for_latest_release, 100)
 }
@@ -1244,9 +1269,12 @@ function set_top_right_panel_height(height=600){
 }
 
 function check_for_latest_release(){
+    let dde_version_html = "<a href='#' onclick='open_doc(release_notes_doc_id)'>" +
+                            dde_version +
+                            "</a>"
     latest_release_version_and_date(function(err, response, body){
         if(err){
-            out("You're running DDE version: " + dde_version +
+            out("You're running DDE version: " + dde_version_html +
                 " released: " + dde_release_date +
                 "<br/>DDE can't reach the web to check for the latest release.")
         }
@@ -1258,12 +1286,12 @@ function check_for_latest_release(){
                 ver_date       = date_to_mmm_dd_yyyy(ver_date) //ver_date.substring(0, ver_date.indexOf("T"))
                 warning("The latest version of DDE is: " + ver +
                         " released: " + ver_date +
-                        "<br/>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp;&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbspbut you're running version: " + dde_version +
+                        "<br/>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp;&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbspbut you're running version: " + dde_version_html +
                         " released: " + dde_release_date +
-                        "<br/>See the Doc pane for how to update.")
+                        "<br/><a href='#' onclick='open_doc(update_doc_id)'>How to update.</a>")
                 open_doc(update_doc_id)
             }
-            else { out("DDE is up to date with version: " + dde_version +
+            else { out("DDE is up to date with version: " + dde_version_html +
                         " released: " + dde_release_date)
             }
         }

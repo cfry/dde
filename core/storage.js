@@ -529,7 +529,13 @@ function adjust_path_to_os(path){
           //this will do nothing. So on a windows machine, that's ok,
           //but on a mac or linux, that's bad. But this is unlikely to
           //happen on a mac or linus, esp since dde standard is slash.
-        const result = path.replace(/\//g, folder_separator())
+        let result = path.replace(/\//g, folder_separator())
+        //we might have  a path like \C:\foo.txt in which case, take off the initial backslash
+        if(result.startsWith("\\") &&
+            (result.length == 3) &&
+            (result[2] == ":")) {
+            result = result.substring(1)
+        }
         return result
     }
 }

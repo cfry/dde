@@ -63,6 +63,8 @@ var Socket = class Socket{
                 //let elt = oplet_array_or_string[i] + suffix
                 let elt = oplet_array_or_string[i]
                 if (Number.isNaN(elt)) { elt = "NaN" } //usually only for "a" instructions and only for elts > 4
+                  //looks like this is never used now because I convert from NaN to the prev val
+                  //in the the higher level code so only numbers get passed to DexRun.
                 elt = elt + suffix
                 str += elt
             }

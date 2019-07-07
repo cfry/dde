@@ -678,7 +678,15 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
            <ol><li><b>Create</b> an instruction by choosing it from <button>Instruction&#9660;</button></li>
                <li><b>Edit</b> both the instruction name and the argument type-in fields.
                               If you edit the instruction name and hit the ENTER key, it
-                              will recompute the arguments for the new instruction name.</li>
+                              will recompute the arguments for the new instruction name.
+                              <p></p>
+                   Values for instruction properties can be JS source code.
+                   For example, a distance that is normally in meters can
+                   be entered in as inches via: <code> 6 * _in </code> &nbsp;
+                   This source will appear when you insert the instruction in the editor
+                   buffer. You can also select property values and click the <button>Eval</button>
+                   button to see the result.
+               </li>
                <li><b>Debug</b> those values by clicking <button>Eval Instr</button>.
                    This evaluates each argument and highlights the first one that errors.
                    This will catch syntactic bugs and a few others.

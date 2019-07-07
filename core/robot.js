@@ -30,14 +30,14 @@ var Robot = class Robot {
         else { return rob_class.all_names.length > 0 }
     }
 
-    static default_robot_name(){
+    /*never called July 6, 2019 static default_robot_name(){
         if (Robot.all_names.length > 0){
             return Robot.all_names[Robot.all_names.length - 1]
         }
         else {
             return "r1"
         }
-    }
+    }*/
     //put the new item on the end, even if ypu have to remove it from the middle,
     //because we want the latest on the end for default_robot_name
     static set_robot_name(name, robot_instance){
@@ -52,7 +52,9 @@ var Robot = class Robot {
             job_or_robot_to_simulate_id.prepend(a_option)
         }
         //for Make Instance dialog
-        if (i == -1){ MakeInstruction.add_robot_to_job_wrapper_robot_menu_maybe(robot_instance) }
+        if ((i == -1) && window["add_robot_to_default_menu"]) {
+            add_robot_to_default_menu(robot_instance)
+        }
     }
     static get_simulate_actual(simulate_val){
         if      (simulate_val === true)   { return true   }
@@ -855,18 +857,22 @@ Serial.prototype.string_instruction = function(instruction_string){
 //the pose matrix includes info on position and orientation
 * */
 Dexter = class Dexter extends Robot {
-    constructor({name = "dex1",
+    constructor({name = null,
                  simulate = null,
                  ip_address = null,
                  port = null,
                  pose = Vector.identity_matrix(4),
                  enable_heartbeat=true,
+                 is_calibrated=null, //means calibration status is unknown.
                  instruction_callback = Job.prototype.set_up_next_do}={}){
         for(let key in arguments[0]){
             if(!["name", "simulate", "ip_address", "port", "pose", "enable_heartbeat", "instruction_callback"].includes(key)){
                 dde_error("Attempt to create a Dexter with an invalid argument of: " + key +
                           "<br/>Click on 'Dexter' to see its valid argument names.")
             }
+        }
+        if(!name) {
+            name = Dexter.generate_default_name()
         }
         if((name.length == 1) && (name >= "A") && (name <= "Z")){
            dde_error("While construction a Dexter robot named: " + name +
@@ -875,9 +881,14 @@ Dexter = class Dexter extends Robot {
         if(!ip_address) { ip_address = persistent_get("default_dexter_ip_address") }
         if(!port)       { port       = persistent_get("default_dexter_port") }
 
-        let keyword_args = {name: name, simulate: simulate, ip_address: ip_address, port: port,
+        let keyword_args = {name: name,
+                            simulate: simulate,
+                            ip_address: ip_address,
+                            port: port,
                             pose: pose,
-                            enable_heartbeat: enable_heartbeat, instruction_callback: instruction_callback }
+                            enable_heartbeat: enable_heartbeat,
+                            is_calibrated: is_calibrated,
+                            instruction_callback: instruction_callback }
         let old_same_named_robot = Robot[name]
         if (old_same_named_robot){
            if ((old_same_named_robot.ip_address === ip_address) &&
@@ -928,6 +939,16 @@ Dexter = class Dexter extends Robot {
         }
     }
 
+    static generate_default_name(){
+        for(let i = 1; i < 1000000; i++) {
+           let candidate_name = "dexter" + i
+           if(!Dexter[candidate_name]) {
+                return candidate_name
+           }
+        }
+        dde_error("When making an instance of Dexter,<br/>the first million default names are used.<br/> Probably something wrong.")
+    }
+
     static class_init(){  //inits Dexter class as a whole. called by ready
         this.dexter_default_params =
             {name: "dex1",
@@ -955,7 +976,7 @@ Dexter = class Dexter extends Robot {
     }
 
     make_new_robot(keyword_args){
-        this.is_calibrated = null //null means calibration status is unknown.
+        this.is_calibrated         = keyword_args.is_calibrated //null means calibration status is unknown.
         this.name                  = keyword_args.name
         this.ip_address            = keyword_args.ip_address
         this.port                  = keyword_args.port
@@ -1115,8 +1136,8 @@ Dexter = class Dexter extends Robot {
     //returns undefined. Only if is_calibrate is not null (hasn't been set),
     //and robut is not simulate only and we have a robot_status do we set is_calibrated on the dexter instance
     set_is_calibrated(){
-        if(this.is_calibrated !== null) {} //means it is already set to true or false.
-        else if (Robot.get_simulate_actual(this.simulate) == true) {} //since we aren't sending in structions to the Dextr5er, we can't set the value
+        //if(this.is_calibrated !== null) {} //means it is already set to true or false.
+        if (Robot.get_simulate_actual(this.simulate) == true) {} //since we aren't sending in structions to the Dexter, we can't set the value
         else {
             let rs_line = last(this.robot_status)
             for(let measured_angle of this.joint_angles()) {
@@ -1125,6 +1146,7 @@ Dexter = class Dexter extends Robot {
                     return
                 }
             }
+            //all 5 meansured angles are 0
             this.is_calibrated = false
         }
     }

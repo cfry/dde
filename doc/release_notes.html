@@ -5,6 +5,131 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 3.4.2, Jul 7, 2019</summary>
+Highlights: Record improvements, tweaks to calibration inferface including
+            interaction with Record, and a zillion little things.
+<ul>
+    <li>Minor fix to Ref Man/Job/Definition Time vs Run Time.</li>
+
+    <li> Minor fix to "While calling the show_window handler function ..." error message.</li>
+
+    <li> Bug fix in File menu/open special/show dde_persistent.json</li>
+
+    <li> Make Instruction -  improved tooltip on play button
+         "Play is disabled when ..."</li>
+
+    <li> Changed background color of record button to green
+         When recording keep the "recording" text when recording.</li>
+
+    <li> Make instruction smarter defaulting of args:
+        If there was a previous Make Instruction dialog
+        with exactly the same instruction name,
+        use the values of that for the defaults.
+        else if there was a previous dialog from the
+        same FAMILY of instruction ie move_all_joints, move_to or human,
+        then use values from that (when they exist)
+        else default values from the actual instruction named class
+        itself.</li>
+
+    <li> New Job name defaulting algorithim.
+        First default job name is "job2" IFF there is no defined job
+        of that name, else moves to "job3" , etc.
+        With this change, default job names don't contain the job_id number.</li>
+
+    <li> In Make Instruction, use the above default job name to populate
+        a job.</li>
+
+    <li> Make Instruction Insert Dialog made bigger to accomodate the content
+        without scrolling for WinOS.</li>
+
+    <li> Make Instruction Fixed bug in make_folder on WinOS.</li>
+
+    <li> Make Instruction dialog:
+        When recording is stopped, the Dexter is set to keep_position mode.</li>
+
+    <li> Calibrate dialog box, warning message for Calibrate optical encoders updated.</li>
+
+    <li> Dexter.is_calibrated is now a formal init param when
+        creating a new Dexter. Default value null, meaning
+        calibration status unknown.
+        See new Doc in Ref Man/Robot/Dexter/new Dexter parameters/is_calibrated</li>
+
+    <li> When a job is started, and we are in "real" mode (not simulated)
+        its robot's "is_calibrated" property
+        is set to false if all 5 measured_angles are 0,
+        otherwise is_calibrated is set to true.</li>
+
+    <li> Extended init_calibrate_optical to take a dexter instance as an arg.
+        If not passed, it gets it from the calibrate dialog box
+        as it has always done.</li>
+
+    <li> make instruction record:
+        User is promoted to calibrate the robot
+        and allowed to continue recording when its done.</li>
+
+    <li> Make Instruction dialog, recording section, the numbers in instructions
+        that are an array of numbers are rounding to 3 decimal places.</li>
+
+    <li> Make Instruction: The job that performs recording now has show_instructions=false.</li>
+
+    <li> Fixed bug in Control.start_job when error checking the job_name argument.</li>
+
+    <li> Fix for DDE menu items taking up 2 lines when they should be taking up just one.</li>
+
+    <li> A Dexter instance's default name has been changed from "dex1" to
+        the next undefined dexter in the series "dexter1", "dexter2", dexter3" etc.
+        This new dynamic default is used in Make Instruction when
+        making a new Dexter.</li>
+
+
+    <li> Fixed click help bug when clicking on keywords of function calls
+        that have default values.</li>
+
+    <li>  Make Instruction dialog, inserting arrays,
+        now each inner instruction array takes up just one line.</li>
+
+    <li>  If there is an error in an instruction sent to Dexter,
+        and the error is in the 600's,
+        Dexter's errors.log file content is shown in the Output pane.</li>
+
+
+    <li> Improved formatting of inserted code on the LearnJS menu, the Insert menu,
+        and DXF.init_drawing() on the Jobs menu.</li>
+
+    <li> Improved formatting for the JS inserted by Make Instruction "insert" button.</li>
+
+    <li> Slight improvements to Control.start_job in error checking the job_name
+        argument for validity.
+        Extension of the documentation to indicate that job_name can also
+        be a file path.</li>
+
+    <li> fixed Calibrate dialog displayed angle for each joint being calibrated.</li>
+
+    <li> New "default robot" select box in the Misc Pane header.
+         Now no longer a robot select box in the Make Instruction dialog
+        as Make Instruction just uses this new "default robot" select box.</li>
+
+    <li> Make Instruction dialog for new Job now allows you to hide most of the params,
+        giving more space for the Record functionality and remove rarely used "clutter".</li>
+
+    <li> In MI dialog, the title Make Instruction is underlined in blue.
+        Clicking on it scrolls to its doc.</li>
+
+    <li> User guide for Make Instruction, "edit" extended to let users
+        know that they can enter JS code for instruction argument values
+        as well as select them and hit the <button>Eval</button> button.</li>
+
+    <li> In the Output pane on start up it, tells you what
+        release you're running. Now that release number is underlined in blue and
+        you can click on  it to scroll to the release notes in the Doc pane.</li>
+
+    <li>In the Output pane on start up it, "How to update" is now
+        underlined in blue. Clicking on it scrolls the Doc pane to the section of
+        the User Guide that tell you how to update.
+    </li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.4.1, Jun 27, 2019</summary>
 Higlights: read_file and write_file, both instructions and functions improved.<br/>
            Click help: new 2nd line describing "context".<br/>
