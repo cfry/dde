@@ -3307,8 +3307,9 @@ new Job({name: "my_job",
            <code title="unEVALable code fragment"> this.user_data.color = "green"</code><br/>
            You can set existing user_data names or create new ones by setting them.
            <p></p>
-           user_data is persistent only while a job is executing. If you restart the
-           job, its user_data is lost. For data that you want to persist across restarts,
+           If you restart a
+           job, the user_data from its previous runnng is lost.
+           For data that you want to persist across restarts,
            or for user_data that doesn't really belong with any one job but is used
            by mulitple ones, use the <i>class</i> property <code>Job.global_user_data</code>.
            This can be written to like so: <code>Job.global_user_data.my_count = 123</code>.
@@ -7746,6 +7747,8 @@ document.addEventListener("click", function(e){
          to see a little arrow pop up indicating that you can press the mouse down and drag
          to resize the window.
          Dragging any corner corner is possible but even harder.<br/>
+        <b>draggable</b> Boolean, default: <code>true</code>. When false, you can't
+        reposition the window by dragging its title bar as usual.<br/>
         <b>x</b> The number of pixels that the left edge of the window will be from the left edge of the DDE window.
         Default: 200 . Minimum: 0 positions window at left of DDE window.<br/>
         <b>y</b> The number of pixels that the top edge of the window will be from the top edge of the DDE window.
@@ -7829,9 +7832,12 @@ document.addEventListener("click", function(e){
                    //will close the show_window window.
  clicked_button_value: "my_in_id", //the 'name' or 'id' attribute of the clicked on element.
  trim_strings: true}</code></pre>
-        <i>Example callback that is called when a button is clicked:</i>
-<pre><code>function show_vals(vals){out(vals)} //this is, effectively, the default callback
-show_window({
+        <i>Example callback that is called when a button is clicked:</i><br/>
+<code>function show_vals(vals){out(vals)}</code><br/>
+ (This is, effectively, the default callback.)
+ <p></p>
+<i>Example show_window call with many input types.</i>
+<pre><code>show_window({
     content:
 &#96;text: &lt;input type="text" name="my_text" value="Dexter"/>&lt;br/>
 textarea: &lt;textarea name="my_textarea">Hi Rez&lt;/textarea>&lt;br/>
@@ -7860,7 +7866,8 @@ combo_box: &lt;div name="my_combo_box" class="combo_box" style="display:inline-b
 button: &lt;input type="button" value="Show settings"/>&lt;br/>
 submit: &lt;input type="submit" value="OK"/>&#96;,
     width:380, height:450, title:"Printer Config", x:100, y:100,
-    callback: show_vals})  </code></pre>
+    callback: show_vals})
+</code></pre>
     <span style="color:red;">Beware</span>: The callback function cannot be a closure.
     It can be an annonymous function, but its really better if it has a top level name.
     This restriction is due to implementation complexities with show_window.<br/>
@@ -7879,6 +7886,7 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
     <pre><code title="not in testsuite"/>function handle_my_win(vals){
     if(vals.clicked_button_value == "init_my_win_id"){
         out("initing my_win")
+        close_window(vals.window_index)
     }
 }
 show_window({
@@ -7922,7 +7930,9 @@ show_window({
     For more examples of calling <code>show_window</code> see the DDE menubar/Insert/show_window.
     See also:<br/>
     <a href="#" onclick="open_doc('Human.show_window_doc_id', event)">
-                Ref Man/Robot/Human/show_window</a>
+                Ref Man/Robot/Human/show_window</a><br/>
+    <a href="#" onclick="open_doc('close_window_doc_id', event)">
+                close_window</a>
     </details> <!-- end show_window -->
 
     <details id="show_page_doc_id" class="doc_details"><summary>show_page</summary>
@@ -7989,13 +7999,15 @@ show_window({
 
         <details id="get_in_ui_doc_id" class="doc_details"><summary>get_in_ui</summary>
             Gets the value of an attribute of an HTML tag (usually from a <code>show_window</code> window). <br/>
-            <i>Parameters:</i><br/>
+            <i>Parameter:</i><br/>
             <b>path_string</b> The path to a shown html element. This is often
             the id of an element followed by a dot, follwed by an attribute name.<br/>
-            <b>callback</b> A function that is called by get_in_ui with the value
-            of the attribute indicated in the path_string.
+            Note that for svg objects, this is a bit tricky, but will get the value
+            of the given attribute.<br/>
+            If the actual value is the string of a number, the number,
+            rather than the string will be returned.
 
-            <i>Example</i>: <code title="unEVALable code fragment"> get_in_ui("my_in_id.value", function(val){out("got val: " + val)})</code><br/>
+            <i>Example</i>: <code title="unEVALable code fragment"> get_in_ui("my_in_id.id")</code> <samp>"my_in_id"</samp><br/>
         </details>
 
         <details id="remove_in_ui_doc_id" class="doc_details"><summary>remove_in_ui</summary>

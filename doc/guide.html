@@ -668,10 +668,15 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
         Details about programming Dexter are in the <b>Reference Manual</b> section.
     </details>
     <details id="misc_pane_doc_id" class="doc_details"><summary>Misc Pane</summary>
-        The header of this pane displays <a href="#" onclick="open_doc(stepping_instructions_doc_id)">
-        stepping controls</a>.
-        <p></p>
-        The Misc pane's body displays content dependent on the select box in its header.
+        The header of this pane displays:
+        <ul>
+        <li> A select menu of possible contents for the Misc pane.</li>
+        <li> A select menu of robots for setting the default robot used in various other operations.</li>
+        <li> <a href="#" onclick="open_doc(stepping_instructions_doc_id)">
+        stepping controls</a> for Job instructions (not JavaScript stepping).</li>
+        <li>Radio buttons for determining whether a Job with a robot who's <i>simulate</i>
+            property is <code>null</code> will be simulated or run on the real robot.</li>
+        </ul>
         <details id="make_instruction_pane_doc_id" class="doc_details"><summary>Make Instruction</summary>
            This dialog box allows you to create, edit & debug instructions as well
            as incorporate them into Jobs.
@@ -693,7 +698,7 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
                    If all arguments seem to be ok,
                     the entire instruction's source is evaluated and the resulting
                    object is displayed in the output pane so that you can Inspect it.</li>
-               <li><b>Simualte</b>  Click <span style="background-color:#bae5fe;">&nbsp;<input type="radio"/> simulate </span>&nbsp;
+               <li><b>Simulate</b>  Click <span style="background-color:#bae5fe;">&nbsp;<input type="radio"/> simulate </span>&nbsp;
                    in the Misc pane header.
                    We want to first test our instruction without complications from
                    the physical robot or its connectivity.</li>
@@ -742,8 +747,275 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
            Make Instruction is useful for demoing & learning the functionality of instructions.
            Most can be run using their default arguments. Those that can't will
            display an error message in the Output pane.
-        </details>
-        <details id="simulate_pane_doc_id" class="doc_details"><summary>Simulate Dexter</summary>
+        </details> <!-- end make instruction -->
+
+        <details id="recording_doc_id" class="doc_details"><summary>Recording</summary>
+        <i>Programming by example</i> is an end-user programming techique used to
+        decrease the complexity and time of entering explicit instructions.
+        The simplest kind of programming by example is making a "recording" (program)
+        of what you want the robot to do, then simply "play back" that recording
+        to run the program.
+        <p></p>
+        On Dexter, you can create a Job who's do_list contains instructions for moving the
+        robot through the same path that you manually move the robot.
+        This is done by setting the robot to <i>follow_me</i> mode, and
+        recording the positions of all the joints into a Job as they are moved.
+        <p></p>
+        The controls in the Record section let you start, pause, and stop recording.
+        You can play the recording forwards and backwards, including single stepping forwards
+        and backwards. You can select a starting position for playing and limit
+        playing to a particular portion of the total recording.
+        You can pause and resume the playing of a Job.
+        You can also play a segment of a job by dragging the
+        "playback head" of a recording. This is analogous to the "jog wheel" of
+        audio recorders, video recorders, or a turntable that DJ's manually move to
+        have fine control over the playing of a portion of a record.
+        You can delete portions of the recording by preserving a middle portion,
+        or by splicing out a middle portion and keeping just the ends.
+        <p></p>
+        When you are satisfied with a recording, you can insert the definition
+        of a Job that, when run, will <i>play</i> your recording.
+        Inserting a job has lots of flexibility. After the Job is inserted into
+        the editor buffer, you can edit and run it just like other Jobs.
+        Inserting contains a special facility to make the building up
+        of a higher level Job that concatenates lower level recording Jobs.
+        This is analogous to piecing together a movie from snippets of film,
+        only in the context with all the programmatic control that Jobs have.
+        <p></p>
+        The user interface for recording provides a lot of flexibility
+        in a small space with (hopefully) obvious controls.
+        Each control has an informative tool tip.
+        Most of the controls can manipulate Job do_lists <i>not</i> derived from a recording,
+        but the controls are optimized for recordings.
+        <p></p>
+        Below is one of an infinite variety of scenarios for you to use this recording facility.
+        <ol>
+            <li>In the Misc Pane header, select <select><option>Make Instruction</option></select>
+            </li>
+            <li>In the Misc Pane header, select <input type="radio" checked="checked"/>real .<br/>
+                You can record in <i>simulate</i> mode, but it just records a bunch of static positions.
+            </li>
+            <li>Click the <input style='background-color:#ff8899;' type='button' value='Record'/> button.
+                If the Make Instruction being edited is <i>not</i> a Job, a new Job will be
+                inserted there. This is the Job that the recording will be recorded into.
+                If there is already a Job there, its do_list will be replaced by the recording.
+                The recording button changes to:
+                <input style='background-color:rgb(136, 255, 136);' type='button' value='recording'/> ,
+                green, signifying that a recording is in progress.
+            </li>
+            <li> Grab the robot. In newer Dexters, put one hand on the "handle" at Joint 3, and
+                 the other hand on the end effector. If you have a parallel gripper with finger
+                 holes, stick your index finger and thumb into the holes so you can move
+                 the gripper opening and closing. This will be recorded as Joint 7,
+                 with gripper <i>twist</i> as Joint 6.
+            </li>
+            <li> Move the robot slowly and purposefully to one or more destinations.
+                 If you want Dexter to pick up an object, open the gripper, move the
+                 gripper over the object and close the gripper on the object then
+                 move the end effector (while holding the object in the gripper
+                 to the desired location and open the gripper to let the object go.
+            </li>
+            <li> While recording, you can pause the recording by clicking
+                <b style='font-size:28px;'>&#8545</b> , the pause button.
+                It will change to <b style='font-size:28px;background-color:#FFF019'>&#8545</b> , yellow,
+                signifying that recording is temporarily paused.
+                While paused you can move objects on the workspace or even Dexter without
+                its path being recorded.
+            </li>
+            <li> Click the pause button again to resume recording.
+                 It will change back to <b style='font-size:28px;'>&#8545</b> .
+                 You can also click the
+                 <input style='background-color:rgb(136, 255, 136);' type='button' value='recording'/>
+                 to stop recording. Note that it will help to have a
+                 second person to start/pause/stop recording while
+                 the first person is moving the robot.
+            </li>
+            <li> Click <input style='background-color:rgb(136, 255, 136);' type='button' value='recording'/>
+                to stop recording. The button will change back to
+                <input style='background-color:#ff8899;' type='button' value='Record'/> .
+                The do_list field of the Job edited in the Make Instruction dialog
+                will be populated with the joint angles pf the recording.
+                <p></p>
+                Observe that each instruction is just an array of 7 numbers.
+                Such "data arrays" in the do_list are used as arguments
+                to the instruction type indicated in the Job's
+                <i>data_array_transformer</i> parameter.
+                (Twist down "more args..." to see it.)
+                If the value of that parameter is a string of a single character,
+                that character represents a Dexter oplet. In the case of a recording,
+                that value is <code>"P"</code> , indicating <code>Dexter.pid_move_all_joints</code>.
+            </li>
+            <li> You can edit the values in the Make Instruction properties for the new Job,
+                 including for do_list. You can tweak values, or even put
+                 in a computation such as <code>6 * _arcsec</code> for a joint value.
+            </li>
+            <li>If your recording is beyond repair, just click
+                <input style='background-color:#ff8899;' type='button' value='Record'/>
+                and record over the top of your previous recording.
+            </li>
+            <li> To play the recording, click
+                <span style='font-size:25px;'>&#9654;</span> .
+                That big right arrow will change to <span style='font-size:25px;color:#00f036;'>&#9654;</span> ,
+                green.
+                The "playback head" will move along the horizontal track
+                representing the position of each instruction as it is being run.
+                That instruction and its location in the do_list is shown in the interface.
+                Your Dexter should move along the path that you recorded.
+            </li>
+            <li> While playing, click <b style='font-size:28px;'>&#8545</b> or
+                <span style='font-size:25px;color:#00f036;'>&#9654;</span> to pause playing.
+                Click <span style='font-size:25px;'>&#9654;</span> to resume playing.
+            </li>
+            <li> You can drag the playback head (left or right) to move the Dexter and to change
+                 the starting instruction for the next time you click
+                 <span style='font-size:25px;'>&#9654;</span>.
+            </li>
+            <li> <span style='font-size:25px;'>&#9664;</span> plays backwards.<br/>
+                 <span style='font-size:15px;'>&#9654;</span> single steps forwards.<br/>
+                 <span style='font-size:15px;'>&#9664;</span> single steps backwards.
+            </li>
+            <li> The two vertical black rectangles on the green horizontal bar indicate
+                 begin and end <i>marks</i> on your tape recording. These effectively
+                 divide your recording into a middle, and "ends".
+                 Drag the left (begin) mark right. Drag the right (end) mark left.
+                 Notice that only the portion of the bar between the two marks is green,
+                 while the part of the bar outside the marks is gray.
+                 This is useful for trimming off the beginning and end of a recording.
+            </li>
+            <li> Click <span style='font-size:25px;'>&#9654;</span>. Only the
+                 green portion of your recording will play.
+            </li>
+            <li> Select the <input type="radio" checked="checked">ends</input> radio button.
+                 Notice that the middle portion on the marker bar is now gray
+                 and the ends are green.
+            </li>
+            <li> Click <span style='font-size:25px;'>&#9654;</span>. Only the
+                green portions (ends) of your recording will play.
+                This is useful for splicing out a bad section of a recording.
+            </li>
+            <li> The <input type="button" value="Delete ends"/> button
+                 will elminate the gray portions of the recording.
+                 Once you click it, the recording becomes shorter, getting rid
+                 of the parts of the recording that the markers exclude.
+            </li>
+            <li> When you change from <input type="radio" checked="checked">middle</input> to
+                <input type="radio" checked="checked">ends</input> , the delete button changes from
+                <button>Delete ends</button> to
+                <button>Delete middle</button> .
+                You can use the delete button(s) multiple times in any order on a recording,
+                each time removing more unnecessary instructions until you're left with
+                just what you want.
+            </li>
+            <li> Once you have the recording the way you want it, its time to save it
+                 for future use. For all types of instructions, the <button>Insert</button> button
+                 inserts the JavaScript for the Make Instruction dialog's instruction
+                 into the editor pane. When you are editing a Job, there are lots of
+                 options so a dialog box pops up to let you choose them.
+            </li>
+            <li> Click the <button>Insert</button> button. If you just want your Job
+                 inserted with nothing fancy, click this dialog's <button>Insert</button>
+                 button and the source code for the Job will be inserted into the editor.
+            </li>
+            <li> Now let's look at the options. The dialog is divided into two parts,
+                a "High Level Job" and a "Low Level Job". <b>Insert</b> makes it easy to create
+                a library of low level recordings, and refer to each of them
+                in a higher level job that starts the lower level Jobs in sequence.
+                That sequence can be reordered just by editing the sequence of
+                instructions in the higher level Job. You can play a lower level Job
+                zero or more times. You can programmatically select them using
+                <code title="unEVALable">function</code> definitions and JavaScript's <code title="unEVALable">if</code> or
+                have them returned from the body of a loop to play them again and again.
+                The <code>Control.start_job</code> instruction turns an entire recording
+                into just another instruction that can be mixed and matched just like
+                any instructions.
+            </li>
+            <li> Click the <input type="radio" checked="checked">Job containing reference</input>
+                 radio button.
+                 This will create a high level Job with one <code>Control.start_job</code> instruction
+                 that, when run, will "play" our recording.
+            </li>
+            <li> Because inserting a Job produces a fair amount of code, we provide a
+                 <i>preview</i> to let you see just what will be inserted
+                 before screwing up your editor buffer with unwanted code.
+                 Click the <button>Preview...</button> button now.
+            </li>
+            <li> The Preview dialog, like the Insert Job dialog, has a
+                 <i>high level</i> and a <i>low level</i>,
+                 one for each Job to be inserted. First take a look at the low level
+                 Job definition. This is just your original recording.
+                <p></p>
+                The high level job definition looks like:
+                <pre><code title="not in Testsuite">new Job({
+    name: "high_level",
+    do_list: [
+        Control.start_job("Job.job2", {start_if_robot_busy: true}, "error", true),
+    ]})</code></pre>
+            When the high level job is run, it will start the low level job indicated
+            by its first argument (here it's <code>"Job.job2"</code>), wait
+            for it to complete, and then proceed to the next instruction.
+            In this case, since there is no next instruction, the high level Job just finishes.
+            In fact, with just one <code>Control.start_job</code> instruction, running the high level
+            Job has the same effect as just running the low level Job by itself.
+            </li>
+            <li> Click the "X" in the upper right corner of the Preview dialog to close it.
+            </li>
+            <li> Before we insert the code, we recommend you start a new Editor buffer
+                 by choosing the File menu's "new" item.
+            </li>
+            <li> Now click the <button>Insert</button> button in the Insert Job dialog box.
+            </li>
+            <li> The Editor pane now contains the code. Click the <button>Eval</button> button
+                 and you'll see two new Job buttons on the Job bar. You can start
+                 either one by clicking on it, just like if you had defined the
+                 Jobs from scratch. This will play your recording. By saving the file,
+                 you can open it at a later time and play the recording, or send
+                 the file to someone else to play, just like for any Job.
+            </li>
+            <li> We can edit the code for either Job. Copy the instruction in the
+               high level Job and paste it below the original.
+               Make sure there's a comma between the two instrutions.
+               Define the new Job by selecting it can clicking the <button>Eval</button>.
+               Clicking its Job button in the Output pane header will now play
+               our recording twice.
+            </li>
+            <li> Now let's extend our high level Job with a new recording.
+                 Click on the <input style='background-color:#ff8899;' type='button' value='Record'/>
+                 button and move the robot.
+                 Click the <input style='background-color:rgb(136, 255, 136);' type='button' value='recording'/>
+                 button to stop recording.
+                 This will replace the do_list in the Make Insrtuction pane
+                 with a new do_list of your new robot path. The Job will also have a new default
+                 name, which you can edit if you like.
+            </li>
+            <li> Cut out parts of the recording if you like as described above
+                and click the <button>Insert</button> button.
+            </li>
+            <li>In the upper portion of the Insert dialog, select the<br/>
+                <input type="radio" checked="checked">Reference to low-level Job only</input><br/>
+                radio button. This will cause just the reference to the
+                recording to be inserted for the High Level, not the whole
+                High Level Job definition, i.e.
+                <code>Control.start_job("Job.job2")</code>.
+                That reference will be inserted into the editor buffer
+                at the place of its cursor, so
+                make sure your editor cursor is in the do_list of
+                the high level job. Also, verify that all the instructions
+                in the do_list are separated by commas.
+            </li>
+            <li>The low level Job will be inserted at the bottom of the buffer.
+                It will have the same Job name as the call to start_job's first argument.</li>
+            <li>The Insert Job dialog box has lots of options for the low level (recording)
+                Job as to
+                <ul> <li>what instructions are to be inserted</li>
+                     <li>how they are wrapped up</li>
+                     <li>where they are inserted.</li>
+                </ul>
+                Please experiment with them!
+            </li>
+        </ol>
+        </details> <!-- end Recording -->
+
+            <details id="simulate_pane_doc_id" class="doc_details"><summary>Simulate Dexter</summary>
             <div style="padding-left:20px">
                 The simulate pane shows a graphical simulation of Dexter with
                 joint angles from the last robot status returned.
@@ -1280,30 +1552,6 @@ the points defined in ez_create.
     <li>See gamepad picture in pop-up window for functionality.</li>
 </ul>
 </details>
-
-<details class="doc_details" id='find_home_doc_id'><summary>Find Home</summary>
-Find Home is a tool that you use to help Dexter locate its true home position.
-It requires having a "dock" that Dexter parks in a known location.
-<p></p>
-Find Home is a part of Dexter Calibration. To use Find Home:
-<ol>
-<li>Choose Jobs menu/Calibrate Dexter</li>
-<li>Select the Dexter you want to calibrate (default dexter0)
-<li>If you have just built your Dexter from a kit, calibrate
-    each of the 5 joint's optical sensors. Dexter's bought
-    pre-built will have had this done at the factory.</li>
-<li>If you have never chosen the button <input type="button" value="Calibrate Optical Encoders"/>, do so.
-<li>Click the <input type="button" value="Start Find Home"/> button. This will start the FindHome job
-    and pop up the FindHome dialog box.</li>
-<li>With one hand grab Dexter's last link (so it wont fall), then
-    in the FindHome dialog box, click the button <input type="button" value="Follow"/></li>
-<li>Move Dexter into the parked position in the doc near the bottom of the robot.</li>
-<li>Let go of Dexter.</li>
-<li>Click the button <input type="button" value="Record Park"/></li>
-<li>Click the button <input type="button" value="Home"/></li>
-</ol>
-</details>
-
 
 <details class="doc_details" id='TestSuite_doc_id'><summary>TestSuite</summary>
     For a video presentation of the Test System, please watch

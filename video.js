@@ -123,7 +123,7 @@
 
     function refresh_job_or_robot_to_simulate_id(){
         if(window["job_or_robot_to_simulate_id"]){
-            let options_html = "<option>All</option>\n<option>default dexter</option>"
+            let options_html = "<option>All</option>\n<option>Dexter.default</option>"
             for(let job of Job.all_jobs()){
                 options_html += "<option>Job." + job.name + "</option>\n"
             }
@@ -135,11 +135,10 @@
     }
     //returns a string
     function job_or_robot_to_simulate_name(){
-        let result = job_or_robot_to_simulate_id.value
-        if(result == "default dexter") {
-            return default_dexter_name()
+        if(job_or_robot_to_simulate_id.value) {
+            return job_or_robot_to_simulate_id.value
         }
-        else { return result }
+        else { return "Dexter.default" }
     }
 
 var {replace_substrings} = require("./core/utils.js")

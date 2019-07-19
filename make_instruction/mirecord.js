@@ -85,7 +85,7 @@ var MiRecord = class MiRecord {
         if(event_or_loc === null)                  { loc = MiRecord.get_play_loc() }
         else if (typeof(event_or_loc) == "number") { loc = event_or_loc }
         else {                                       loc = parseInt(event_or_loc.value) }
-        out("set_play_loc passed: " + loc)
+        //out("set_play_loc passed: " + loc)
         if (loc < 0) { loc = 0 }
         if(job_instance){
             if(job_instance.highest_completed_instruction === undefined) {} //probably at beginning of running job_instance
@@ -102,7 +102,88 @@ var MiRecord = class MiRecord {
         //else { new_text  = "next instr fwd at " + loc + " is " + instr } //show small forward arrow?
         mi_record_slider_pos_id.innerHTML = new_text
     }
+    static record_slider_on_input(event){
+        this.set_play_loc(event)
+        let job_instance = this.job_in_mi_dialog()
+        if(this.looks_like_recording(job_instance)){
+            let loc
+            if(event === null)                  { loc = MiRecord.get_play_loc() }
+            else if (typeof(event_or_loc) == "number") { loc = event }
+            else {                                       loc = parseInt(event.value) }
+            if(this.play_enabled_for_loc(loc)){
+                this.run_one_instruction(loc)
+            }
+        }
+    }
 
+    static looks_like_recording(a_job){
+        let the_do_list = MiState.get_do_list_smart()
+        if((a_job instanceof Job) &&
+            ((a_job.data_array_transformer == "P") ||
+             (a_job.orig_args.data_array_transformer == "P"))){
+           for(let inst of the_do_list){ //warning: expensive if its a long job
+               if(!is_array_of_numbers(inst)) { return false }
+           }
+           return true
+        }
+        else { return false }
+    }
+
+    static run_one_instruction(loc){
+        let rob = Dexter.default
+        if(!Job.run_one){
+            MiRecord.run_one_instruction_make_new_job(loc)
+        }
+        else if (Job.run_one.robot != rob){
+            if(["starting", "running", "suspended", "waiting"].includes(Job.run_one.status_code)){
+                Job.run_one.stop_for_reason("interrupted", "run_one Job needs a different robot of: " + rob.name)
+                setTimeout(function(){MiRecord.run_one_instruction_make_new_job(loc)},
+                           100)
+            }
+            else {
+                MiRecord.run_one_instruction_make_new_job(loc)
+            }
+        }
+        else if(Job.run_one.status_code == "starting") {} //just forget about the instruction in loc.
+        // when it finishes starting, it will run the first loc handed it,
+        // and then start running subsequent dragged instructions. It may skip 2nd plus a few more insructions,
+        // but not so bad.
+        else if (Job.run_one.status_code == "running") {
+            MiRecord.run_one_instruction_job_ready(loc)
+        }
+        else if (["not_started", "errored", "interrupted", "completed"].includes(Job.run_one.status_code)) { //job exists but is stopped.
+            Job.run_one.start()
+            setTimeout(function () { //give Job.run_one a chance to start up before
+                                     //adding  the instruction as it has to
+                                     //first copy its empty orig do list,
+                                     //then it will be ready to get the new instr added.
+                            MiRecord.run_one_instruction_job_ready(loc)
+                        },
+                        100)
+        }
+    }
+
+    static run_one_instruction_make_new_job(loc){
+        let rob = Dexter.default
+        new Job({name: "run_one",
+                 robot: rob,
+                 show_instructions: false,
+                 inter_do_item_dur: 0,
+                 when_stopped: "wait"}).start()
+        this.run_one_instruction_job_ready(loc)
+    }
+
+    static run_one_instruction_job_ready(loc){
+        let job_instance = this.job_in_mi_dialog()
+        let the_do_list  = MiState.get_do_list_smart()
+        if(loc < the_do_list.length){
+            let inst = the_do_list[loc]
+            Job.run_one.insert_single_instruction(inst, false)
+        }
+        else {
+            warning("run_one_instruction beyond final instruction: " + loc)
+        }
+    }
 
     static get_max_loc(){
       let the_do_list = MiState.get_do_list_smart()
@@ -220,6 +301,9 @@ var MiRecord = class MiRecord {
     static start_record(){
         if(!this.is_job_in_mi_dialog()){
             MakeInstruction.update_instruction_name_and_args("new Job")
+            let si_elt = MakeInstruction.arg_name_to_dom_elt_id("show_instructions")
+            si_elt = window[si_elt]
+            si_elt.value = "false"
         }
         let job_name = MakeInstruction.arg_name_to_src_in_mi_dialog("name")
         job_name = job_name.trim()
@@ -267,55 +351,7 @@ var MiRecord = class MiRecord {
             }
         }
         MiState.job_instance = job_instance
-        let rob = job_instance.robot
-        let sim_actual = Robot.get_simulate_actual(rob.simulate)
-        //should we stop recording?
-        if((sim_actual !== true) && //everything ok if we are simulating
-           (rob.is_calibrated !== true)){ //if we get to this line, not simulated, and if not calibrated, halt recording as Dexter put into follow_me mode without being calibrated is bad.
-           if(rob.is_calibrated === null){
-                //dde_error("Dexter." + rob.name + " is not known to be calibrated.<br/>" +
-                //        "You can't record on a robot that isn't calibrated.<br/>" +
-                //        "To determine calibration status,<br/>" +
-                //        "choose Jobs menu/show robot status and click 'run update job'<br/>" +
-                //        "If the Dexter is not calibrated, use Jobs menu/Calibrate Dexter.")
-               this.calibrate(rob,
-                                function(){
-                                    if(this instanceof Job){
-                                        if(confirm("Calibration done. Start Recording?")){
-                                            MiRecord.start_record_pre_aux()
-                                        }
-                                        else { out("Recording stopped.") }
-                                    }
-                                    else { out("Recording canceled.") }
-                                }
-               )
-           }
-           else if (rob.is_calibrated === false){
-               dde_error("Dexter." + rob.name + " is not calibrated.<br/>" +
-                   "You can't record on a robot that isn't calibrated.<br/>" +
-                   "To calibrate, use Jobs menu/Calibrate Dexter ")
-           }
-           else { shouldnt("in MiRecord.start_record, Dexter." + rob.name +
-                           "has invalid is_calibrated value of: " + rob.is_calibrated)
-           }
-        }
-        else {
-            this.start_record_pre_aux()
-        }
-    }
-
-    static calibrate(a_dexter, callback){
-        if (confirm("To record, you must first calibrate " + a_dexter.name + ".\n" +
-                     "Clear the hemisphere around Dexter and\n" +
-                     "click OK (about 2 minutes) or\n" +
-                     "click Cancel.")){
-            out("Now calibrating...")
-            init_calibrate_optical(a_dexter)
-            Job.CalEncoders.start({when_stopped: callback})
-        }
-        else {
-            callback()
-        }
+        this.start_record_pre_aux()
     }
 
     static start_record_pre_aux() {
@@ -347,6 +383,7 @@ var MiRecord = class MiRecord {
         MiRecord.set_play_loc(0)
 
         MiRecord.set_record_state("active")
+        MiRecord.set_pause_state("enabled")
         MiRecord.set_step_reverse_state("disabled")
         MiRecord.set_reverse_state("disabled")
         MiRecord.set_step_play_state("disabled")
@@ -360,22 +397,57 @@ var MiRecord = class MiRecord {
             robot: job_wrapper_robot,
             show_instructions: false,
             do_list: [
+                function() {
+                    if(this.robot.is_calibrated()) { return } //ok, proceed with recording
+                    else if(confirm("To record, you must first calibrate " + this.robot.name + ".\n" +
+                            "Clear the hemisphere around Dexter and\n" +
+                            "click OK (takes 3 to 4 minutes) or\n" +
+                            "click Cancel.")){
+                            out("Now calibrating...")
+                                return [ Dexter.set_parameter("RunFile", "Cal.make_ins"), //does calibration.
+                                         Dexter.empty_instruction_queue(), //"F"
+                                         function(){
+                                             out("Calibration done.")
+                                             if(!this.robot.is_calibrated()) {
+                                                 warning(this.robot.name + " failed to calibrate correctly so recording is being stopped.")
+                                                 MiRecord.stop_record(false) //false means: did not complete Job ok
+                                             }
+                                             else if(confirm(this.robot.name + " has been calibrated.\n" +
+                                                       "Click OK to start recording.\n" +
+                                                       "Click Cancel to not record.")){
+                                                       return
+                                             }
+                                             else {
+                                                 MiRecord.stop_record(false) //false means: did not complete Job ok. This stops the job
+                                                 return //Control.stop_job(undefined, "User stopped Job after calibration.")
+                                             }
+                                         }
+                                       ]
+                    }
+                    else {
+                        MiRecord.stop_record(false) //false means did not complete Job ok. This stops the job
+                        return //Control.stop_job(undefined, "User stopped Job rather than calibrating robot.")
+                    }
+                },
                 Dexter.set_follow_me(),
                 Control.loop(true,
-                            function(){
-                                let rs_array = last(this.rs_history)
-                                let rs_obj = new RobotStatus({robot_status: rs_array})
-                                let angles = rs_obj.measured_angles(7)
-                                //angles.unshift("@")
-                                job_instance.orig_args.do_list.push(angles)
-                                let loc_of_new_instr = job_instance.orig_args.do_list.length - 1 //will be at least 0 due to the above push
-                                MiRecord.set_max_loc(loc_of_new_instr + 1)
-                                MiRecord.set_play_loc(loc_of_new_instr) //because we want to SEE the instr just recorded, not one beyond it
-                                out("Recording Dexter joint angles: " + angles,
-                                     "#95444a", //brown,
-                                     true)
-                                return job_instance.robot.get_robot_status() //immediately()
-                            }),
+                             function(){
+                                if(MiState.status == "recording_paused") {} //loop around
+                                else {
+                                    let rs_array = last(this.rs_history)
+                                    let rs_obj = new RobotStatus({robot_status: rs_array})
+                                    let angles = rs_obj.measured_angles(7)
+                                    //angles.unshift("@")
+                                    job_instance.orig_args.do_list.push(angles)
+                                    let loc_of_new_instr = job_instance.orig_args.do_list.length - 1 //will be at least 0 due to the above push
+                                    MiRecord.set_max_loc()
+                                    MiRecord.set_play_loc(loc_of_new_instr) //because we want to SEE the instr just recorded, not one beyond it
+                                    out("Recording Dexter joint angles: " + angles,
+                                         "#95444a", //brown,
+                                         true)
+                                    return job_instance.robot.get_robot_status() //immediately()
+                                }
+                             }),
                 Dexter.empty_instruction_queue(), // needed so record can get the timing
                 //of the final g cmd to set inter_do_item_dur correctly.
                 Dexter.get_robot_status() //get the start time of this for the end of the recording,.
@@ -383,25 +455,26 @@ var MiRecord = class MiRecord {
 
     }
 
-    static stop_record(){
+    static stop_record(completed_ok=true){
         MiRecord.stop_time_in_ms = Date.now()
         Job.mi_record.stop_for_reason("interrupted", "User stopped the recording.")
-        setTimeout(MiRecord.stop_record_aux,  //give job a chance to stop properly since its still recording
+        setTimeout(function(){MiRecord.stop_record_aux(completed_ok)},  //give job a chance to stop properly since its still recording
                    (MiState.job_instance.inter_do_item_dur * 1000) + 300) //timeout needed for letting recordinng job to finish before calling Job.mi_record.undefine_job
     }
     //can't use 'this' because its not bound when called from the timeout above
-    static stop_record_aux(){
+    static stop_record_aux(completed_ok=true){
         MiState.status           = null //"recording", "playing" "reverse_playing", "stepping", "reverse_stepping"
-        //MiRecord.play_intervals      = null
-        MiRecord.stick_recording_in_ui()
-        MiRecord.set_max_loc() //grabs smart do_list, must be done before setting end mark or end mark will truncate to old max
-        let the_do_list = MiState.get_do_list_smart() //this will always get the orig do_list length right after a record.
-        MiRecord.set_end_mark_loc(the_do_list.length) //do before calling play_middle_onchange
-        MiRecord.set_play_middle(true) //do before calling play_middle_onchange
-        MiRecord.set_begin_mark_loc(0) //needs to be after end mark setting.
-        MiRecord.play_middle_onchange() //just sets ui of highlighted segments and delete button
+        if(completed_ok){
+            MiRecord.stick_recording_in_ui()
+            MiRecord.set_max_loc() //grabs smart do_list, must be done before setting end mark or end mark will truncate to old max
+            let the_do_list = MiState.get_do_list_smart() //this will always get the orig do_list length right after a record.
+            MiRecord.set_end_mark_loc(the_do_list.length) //do before calling play_middle_onchange
+            MiRecord.set_play_middle(true) //do before calling play_middle_onchange
+            MiRecord.set_begin_mark_loc(0) //needs to be after end mark setting.
+            MiRecord.play_middle_onchange() //just sets ui of highlighted segments and delete button
 
-        MiRecord.set_play_loc(0)
+            MiRecord.set_play_loc(0)
+        }
         MiRecord.set_record_state("enabled")
         MiRecord.set_step_reverse_state("enabled")
         MiRecord.set_reverse_state("enabled")
@@ -412,10 +485,12 @@ var MiRecord = class MiRecord {
         //Job.mi_record.undefine_job() //causes problems in sim, so just do:
         Job.mi_record.robot.remove_from_busy_job_array(Job.mi_record)
         Job.mi_record.remove_job_button()
-        new Job({
-            name: "mi_set_keep_position",
-            robot: Job.mi_record.robot,
-            do_list: [Dexter.set_keep_position()]}).start()
+        if(completed_ok){
+            new Job({
+                name: "mi_set_keep_position",
+                robot: Job.mi_record.robot,
+                do_list: [Dexter.set_keep_position()]}).start()
+        }
     }
 
     //this fn side-effects the MI dialog items: do_list and inter_do_item_dur
@@ -561,7 +636,7 @@ var MiRecord = class MiRecord {
                 this.set_play_state((step ? "disabled" : "active"))
                 this.set_insert_recording_state("disabled")
                 if(!job_instance.do_list) { //must START the job
-                    let begin1 = 0 //since no do_list, we haven't run any instructions, so only makes sense to start at the beginning, regardless of what the user has set for the begin slider. highest_completed)nsruction here is none.
+                    let begin1 = 0 //since no do_list, we haven't run any instructions, so only makes sense to start at the beginning, regardless of what the user has set for the begin slider. highest_completed_instruction here is none.
                     MiRecord.set_play_loc(begin1)
                     let end_pc = ((begin2 === undefined) ? end1 : end2) //beware, in the end2 case, there's a gap in the middle of instructions not to play
                     end_pc += 1
@@ -601,7 +676,18 @@ var MiRecord = class MiRecord {
     }
 
     static pause(reason="Make Instruction suspended this Job."){
-        if(MiState.status == "recording") { MiRecord.stop_record() }
+        if(MiState.status == "recording") {
+            //MiRecord.stop_record()
+            MiState.status = "recording_paused"
+            this.set_pause_state("active")
+            out("Recording paused. Click the pause button to resume recording.", "brown")
+        }
+        else if(MiState.status == "recording_paused") {
+            //MiRecord.stop_record()
+            MiState.status = "recording"
+            this.set_pause_state("enabled")
+            out("Recording resumed. Click the pause button to pause recording.", "brown")
+        }
         else {
             MiState.status = null
             let job_instance = MiRecord.job_in_mi_dialog()
@@ -697,8 +783,13 @@ var MiRecord = class MiRecord {
         return result
     }*/
     //________buttons_________
+    static on_record_twistdown(event){
+        if(event.target.open){
+            open_doc(recording_doc_id)
+        }
+    }
     static make_html(){
-        let result = "<hr/>" +
+        let result = "<details ontoggle='MiRecord.on_record_twistdown(event)'><summary>Recording</summary>" +
                        "<div style='white-space:nowrap;'>" +
                          "<input id='mi_record_id'       style='vertical-align:25%;cursor:pointer;' type='button' value='Record'/>" +
                          "<span  id='mi_reverse_id'      style='font-size:25px;margin-left:5px;cursor:pointer;'>&#9664;</span>" +
@@ -706,15 +797,8 @@ var MiRecord = class MiRecord {
                          "<b     id='mi_pause_id'        style='font-size:28px;margin-left:5px;cursor:pointer;'>&#8545</b>" +
                          "<span  id='mi_step_play_id'    style='font-size:15px;margin-left:5px;cursor:pointer;vertical-align:20%;'>&#9654;</span>" +
                          "<span  id='mi_play_id'         style='font-size:25px;margin-left:5px;cursor:pointer;'>&#9654;</span>" +
-                         //"<input id='mi_insert_recording_id' style='margin-left:5px;vertical-align:25%;' type='button' value='Insert Recording'/>" +
-                            /*"<div style='display:inline-block;margin-left:10px;'>" +
-                                "<div><input type='checkbox' checked id='mi_play_seg_begin_id'  style='margin-left:12px;cursor:pointer;'/>" +
-                                     "<input type='checkbox' checked id='mi_play_seg_middle_id' style='margin-left:30px;cursor:pointer;'/>" +
-                                     "<input type='checkbox' checked id='mi_play_seg_end_id'    style='margin-left:22px;cursor:pointer;'/>" +
-                                "</div>" +
-                                "<div>begin middle end</div>" +
-                           "</div>" + */
-                         "<div style='display:inline-block;margin-left:10px;vertical-align:50%'>" +
+
+                        /* "<div style='display:inline-block;margin-left:10px;vertical-align:50%'>" +
                               "Include only:<br/>" +
                               "<input name='middle_ends' type='radio' checked id='mi_play_middle_checkbox_id' onchange='MiRecord.play_middle_onchange()' style='margin-left:0px;cursor:pointer;' " +
                                       "title='When checked, Play, and Backwards Play\nwill only run the instructions between\n(inclusive) the knobs on the double slider below.\nUnchecked plays those instructions NOT between the two knobs.'/>" +
@@ -723,6 +807,7 @@ var MiRecord = class MiRecord {
                                "title='When checked, Play, and Backwards Play\nwill only run the instructions between\n(inclusive) the knobs on the double slider below.\nUnchecked plays those instructions NOT between the two knobs.'/>" +
                                "ends" +
                          "</div>" +
+                        */
                      "</div>" +
                      "<div style='white-space:nowrap;'>highest_completed_instruction: " +
                            "<span id='mi_highest_completed_instruction_id'>None</span> " +
@@ -730,17 +815,25 @@ var MiRecord = class MiRecord {
                      "</div>" +
                      "<div id='mi_record_slider_pos_id' style='white-space:nowrap;'></div>" +
                      "<div style='white-space:nowrap;'>0" +
-                       "<input id='mi_record_slider_id' oninput='MiRecord.set_play_loc(this)' type='range' value='0' min='0' max='100' style='width:270px;cursor:pointer;'" +
+                       "<input id='mi_record_slider_id' oninput='MiRecord.record_slider_on_input(this)' type='range' value='0' min='0' max='100' style='width:270px;cursor:pointer;'" +
                              " title='Drag the knob to set\nthe starting play location.'/>" +
                        "&nbsp;<span id='mi_record_slider_max_id'>0</span>" +
                      "</div>" +
                     "<div style='white-space:nowrap;'> 0 <div id='mi_marks_slider_id' style='display:inline-block; width:270px;height:10px;' " +
                           `title='Designates which instructions will be used\nwhen you click play, backwards play or insert.\nGoverned by the "play middle" checkbox.'></div>` +
                         "&nbsp;<span id='mi_marks_slider_max_id'>0</span> &nbsp; " +
-                        "<button title='Sorry, not yet implemented.' id='delete_instructions_id'>Delete ends</button>" +
+                        "<button title='Removes the grayed-out instructions&#13;from the do_list.' id='delete_instructions_id'>Delete ends</button>" +
                     "</div>" +
+                    "&nbsp;&nbsp;Include only: " +
+                    "<input name='middle_ends' type='radio' checked id='mi_play_middle_checkbox_id' onchange='MiRecord.play_middle_onchange()' style='margin-left:0px;cursor:pointer;' " +
+                    "title='When checked, Play, and Backwards Play\nwill only run the instructions between\n(inclusive) the knobs on the double slider below.\nUnchecked plays those instructions NOT between the two knobs.'/>" +
+                    "middle" +
+                    "<input name='middle_ends' type='radio' onchange='MiRecord.play_middle_onchange()' style='margin-left:12px;cursor:pointer;' " +
+                    "title='When checked, Play, and Backwards Play\nwill only run the instructions between\n(inclusive) the knobs on the double slider below.\nUnchecked plays those instructions NOT between the two knobs.'/>" +
+                    "ends" +
                     "<div id='mi_begin_marks_slider_pos_id' style='white-space:nowrap;'></div>" +
-                    "<div id='mi_end_marks_slider_pos_id'   style='white-space:nowrap;'></div>"
+                    "<div id='mi_end_marks_slider_pos_id'   style='white-space:nowrap;'></div>" +
+                    "</details>"
 
         return result
     } //&VerticalSeparator;  document.getElementById("myBtn").disabled = true;
@@ -775,6 +868,17 @@ var MiRecord = class MiRecord {
         }
         let locs = [begin1, end1, begin2, end2]
         return locs
+     }
+
+     static play_enabled_for_loc(loc){
+         let begin = this.get_begin_mark_loc()
+         let end   = this.get_end_mark_loc()
+         if(MiRecord.get_play_middle()) {
+             return ((loc >= begin) && (loc < end))
+         }
+         else { //only play ends
+             return ((loc < begin) || (loc >= end))
+         }
      }
 
     //cases: parens define the 2 segments, vertical bar is MiRecord.play_loc
@@ -893,7 +997,7 @@ var MiRecord = class MiRecord {
                 'max': max_loc
             }
         })
-        this.set_max_loc(max_loc)
+        this.set_max_loc()
         this.set_end_mark_loc(max_loc)
         this.set_begin_mark_loc(0)
         this.set_play_loc(0)
@@ -904,6 +1008,7 @@ var MiRecord = class MiRecord {
         MiRecord.set_play_middle(true) //makes sense with no do_list. do before calling play_middle_onchange
         //MiRecord.play_middle_onchange() //don't do as screws up if no job_instance or do_list
         delete_instructions_id.innerHTML = "Delete ends"
+        delete_instructions_id.onclick = MiRecord.delete_instructions
         mi_highest_completed_instruction_id.onclick = function(){ MiRecord.reset_job() }
        // MiState.set_end_mark_to_do_list_length_maybe() //no, we already take care of this above.
         this.set_record_state("enabled")
@@ -995,18 +1100,21 @@ var MiRecord = class MiRecord {
             mi_pause_id.onclick  = function(){MiRecord.pause("Job paused by Make Instruction.")}
             mi_pause_id.title    = "Pause is disabled when not playing."
             mi_pause_id.style["color"] = "#bebcc0"
+            mi_pause_id.style["background-color"] = "#EEEEEE"
         }
         else if(state == "enabled") {
             mi_pause_id.disabled = false
             mi_pause_id.onclick  = function(){MiRecord.pause("Job paused by Make Instruction.")}
             mi_pause_id.title    = "Stop playing."
             mi_pause_id.style["color"] = "#000000"
+            mi_pause_id.style["background-color"] = "#EEEEEE"
         }
-        else if(state == "active") { //this is never active. Just here for completeness
+        else if(state == "active") { //only active when we are recording and paused during the recording
             mi_pause_id.disabled = false
-            mi_pause_id.onclick  = function(){MiRecord.pause("Job paused by Make Instruction.")}
-            mi_pause_id.title    = "Stop playing."
+            mi_pause_id.onclick  = function(){MiRecord.pause("Recording paused by Make Instruction.")}
+            mi_pause_id.title    = "Resume recording."
             mi_pause_id.style["color"] = "#000000"
+            mi_pause_id.style["background-color"] = "#FFF019" //"#FFD711" //"#FFF019" //rgb(255, 255, 50)" //102"#FFEE00" //yellow
         }
         else {shouldnt("MiRecord.set_reverse_state passed invalid state: " + state) }
     }
@@ -1080,7 +1188,7 @@ var MiRecord = class MiRecord {
         else {shouldnt("MiRecord.set_insert_recording_state passed invalid state: " + state) }
     }*/
 
-    //alsocalled from make_instruction.js
+    //also called from make_instruction.js
     static set_prepare_for_play_ui(){
         MiRecord.set_record_state("enabled")
         MiRecord.set_reverse_state("disabled")
@@ -1090,6 +1198,67 @@ var MiRecord = class MiRecord {
         MiRecord.set_play_state("enabled")
         MiRecord.set_insert_recording_state("disabled")
         MiRecord.set_highest_completed_instruction_ui()
+    }
+
+    static delete_instructions(){
+        let do_list = MiState.get_do_list_smart()
+        if(!do_list || (do_list.length == 0)) {
+            let do_list_elt_id = MakeInstruction.arg_name_to_dom_elt_id("do_list")
+            if(!do_list_elt_id) {
+                warning("There are no instructions in the do_list to delete.")
+                return
+            }
+            let do_list_src = window[do_list_elt_id].value.trim()
+            if(do_list_src == "") {
+                warning("There are no instructions in the do_list to delete.")
+                return
+            }
+            try {
+                do_list = eval(do_list_src)
+                if(Array.isArray(do_list)){
+                }
+                else {
+                    MakeInstruction.set_border_color_of_arg("do_list", "red")
+                    dde_error("The do_list in the Make Instruction dialog is not an array: " + err.message)
+                }
+            }
+            catch(err) {
+                MakeInstruction.set_border_color_of_arg("do_list", "red")
+                dde_error("The do_list in the Make Instruction dialog is invalid: " + err.message)
+            }
+            if(do_list.length == 0) {
+                warning("There are no instructions in the do_list to delete.")
+                return
+            }
+        }
+        MakeInstruction.set_border_color_of_arg("do_list") //eval is ok
+        let begin   = MiRecord.get_begin_mark_loc()
+        let end     = MiRecord.get_end_mark_loc()
+        if(MiRecord.get_play_middle()) { //delete the ends
+            out("delete the ends")
+            do_list = do_list.slice(begin, end) //get rid of the ends
+        }
+        else { //delete the middle
+            out("delete the middle")
+            do_list.splice(begin, end - begin) //splice modifies the array
+        }
+        if(!MiState.job_instance){
+            let ji = MiRecord.job_in_mi_dialog()
+            if(!(ji instanceof Job)) {
+                warning("No job to delete do_list items of.")
+                return
+            }
+            else {
+                MiState.job_instance = ji
+            }
+        }
+        MiState.job_instance.do_list = undefined //since we've never played this particular do_list before, we effectively have a new job
+        MiState.job_instance.orig_args.do_list = do_list
+        MiRecord.stick_recording_in_ui() //uses orig_args.do_list, also adjusts inter_do_item_dur
+        MiRecord.set_play_loc(0)
+        MiRecord.set_begin_mark_loc(0)
+        MiRecord.set_end_mark_loc(do_list.length)
+        MiRecord.set_max_loc()
     }
 
     static reset_job(){

@@ -1211,7 +1211,7 @@ foo      //eval to see the latest values</pre>`,
     default_robot_name_menu_container_id.innerHTML = make_default_robot_menu_html()
 
     dde_init_dot_js_initialize()//must occcur after persistent_initialize
-
+    Dexter.default = (Dexter.dexter0 ?  Dexter.dexter0 : null )
     //initialize the checkbox state
     $("#animate_ui_checkbox_id").jqxCheckBox({ checked: persistent_get("animate_ui")})
 

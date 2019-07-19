@@ -48,7 +48,7 @@ var Series = class Series {
                                              the_ser.menu_sel_start,
                                              the_ser.menu_sel_end)
                     var sel_text = Editor.get_javascript(true)
-                    var info = Js_info.get_info_string(sel_text, the_ser)
+                    var info = Js_info.get_info_string(sel_text, the_ser, sel_text, 0)
                     out(info, null, false)
                     if (the_ser.id.endsWith("_units_id")){
                         let [unity_abbrev, unity_full_name] = series_name_to_unity_unit(the_ser.id)
@@ -536,7 +536,7 @@ var Series = class Series {
     }
     
     output_info(new_text){
-        var info_string = Js_info.get_info_string(new_text)
+        var info_string = Js_info.get_info_string(new_text, null, new_text, 0)
         out(info_string, null, true)
     }
 }
@@ -794,7 +794,7 @@ Series.instances = [
                                                           "Dexter.capture_ad", "Dexter.capture_points", "Dexter.cause_error",
                                                           "Dexter.dma_read", "Dexter.dma_write", "Dexter.draw_dxf", "Dexter.exit",
                                                           "Dexter.empty_instruction_queue_immediately", "Dexter.empty_instruction_queue",
-                                                          "Dexter.find_home", "Dexter.find_home_rep", "Dexter.find_index",
+                                                          "Dexter.find_index",
                                                           "Dexter.get_robot_status", "Dexter.get_robot_status_immediately",
                                                           "Dexter.load_tables",  "Dexter.move_all_joints", "Dexter.move_all_joints_relative",
                                                             "Dexter.move_home",

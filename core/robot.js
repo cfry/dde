@@ -30,14 +30,6 @@ var Robot = class Robot {
         else { return rob_class.all_names.length > 0 }
     }
 
-    /*never called July 6, 2019 static default_robot_name(){
-        if (Robot.all_names.length > 0){
-            return Robot.all_names[Robot.all_names.length - 1]
-        }
-        else {
-            return "r1"
-        }
-    }*/
     //put the new item on the end, even if ypu have to remove it from the middle,
     //because we want the latest on the end for default_robot_name
     static set_robot_name(name, robot_instance){
@@ -863,7 +855,6 @@ Dexter = class Dexter extends Robot {
                  port = null,
                  pose = Vector.identity_matrix(4),
                  enable_heartbeat=true,
-                 is_calibrated=null, //means calibration status is unknown.
                  instruction_callback = Job.prototype.set_up_next_do}={}){
         for(let key in arguments[0]){
             if(!["name", "simulate", "ip_address", "port", "pose", "enable_heartbeat", "instruction_callback"].includes(key)){
@@ -887,7 +878,6 @@ Dexter = class Dexter extends Robot {
                             port: port,
                             pose: pose,
                             enable_heartbeat: enable_heartbeat,
-                            is_calibrated: is_calibrated,
                             instruction_callback: instruction_callback }
         let old_same_named_robot = Robot[name]
         if (old_same_named_robot){
@@ -976,7 +966,6 @@ Dexter = class Dexter extends Robot {
     }
 
     make_new_robot(keyword_args){
-        this.is_calibrated         = keyword_args.is_calibrated //null means calibration status is unknown.
         this.name                  = keyword_args.name
         this.ip_address            = keyword_args.ip_address
         this.port                  = keyword_args.port
@@ -1133,21 +1122,15 @@ Dexter = class Dexter extends Robot {
         return null
     }
 
-    //returns undefined. Only if is_calibrate is not null (hasn't been set),
-    //and robut is not simulate only and we have a robot_status do we set is_calibrated on the dexter instance
-    set_is_calibrated(){
-        //if(this.is_calibrated !== null) {} //means it is already set to true or false.
-        if (Robot.get_simulate_actual(this.simulate) == true) {} //since we aren't sending in structions to the Dexter, we can't set the value
+    is_calibrated(){
+        let sim_actual = Robot.get_simulate_actual(this.simulate)
+        if(sim_actual === true) { return true } //simulation is always calibrated
+        else if(this.rs === undefined) { return null } //calbration unknown
         else {
-            let rs_line = last(this.robot_status)
-            for(let measured_angle of this.joint_angles()) {
-                if(measured_angle != 0){
-                    this.is_calibrated = true
-                    return
-                }
+            for(let j_deg of this.rs.measured_angles()){ //gets joint angles 1 through 5
+                if(j_deg != 0) { return true } //is calibrated
             }
-            //all 5 meansured angles are 0
-            this.is_calibrated = false
+            return false //not calibrated
         }
     }
 
@@ -1350,7 +1333,6 @@ Dexter = class Dexter extends Robot {
             }
             else if (job_instance.status_code === "starting") { //at least usually ins_id is -1
                 job_instance.set_status_code("running")
-                this.set_is_calibrated() //only sets if not in pure sim mode.
                 //pass robot_status because we *might* not be keeping it in the history
                 //rob.perform_instruction_callback(job_instance)
                 //if(job_instance.dont_proceed_after_initial_g) {//used by MakeInstruction
@@ -1434,7 +1416,7 @@ Dexter = class Dexter extends Robot {
                           " but joint_number must be 1, 2, 3, 4, or 5.")
         }
     }
-    //used by is_calibrated and maybe others
+
     joint_angles(){
         let rs = this.robot_status
         return [rs[Dexter.J1_MEASURED_ANGLE], rs[Dexter.J2_MEASURED_ANGLE], rs[Dexter.J3_MEASURED_ANGLE], rs[Dexter.J4_MEASURED_ANGLE], rs[Dexter.J5_MEASURED_ANGLE]]
@@ -1619,14 +1601,6 @@ Dexter.prototype.empty_instruction_queue_immediately = function(...args){ args.p
 
 Dexter.empty_instruction_queue           = function() { return make_ins("F") }
 Dexter.prototype.empty_instruction_queue = function(...args){ args.push(this); return Dexter.empty_instruction_queue(...args) }
-
-
-Dexter.find_home           = function(...args){ return make_ins("f", ...args) }
-Dexter.prototype.find_home = function(...args){ args.push(this); return Dexter.find_home(...args) }
-
-Dexter.find_home_rep           = function(...args){ return make_ins("p", ...args) }
-Dexter.prototype.find_home_rep = function(...args){ args.push(this); return Dexter.find_home_rep(...args) }
-
 
 Dexter.find_index           = function(...args){ return make_ins("n", ...args) }
 Dexter.prototype.find_index = function(...args){ args.push(this); return Dexter.find_index(...args) }
@@ -2084,7 +2058,6 @@ Dexter.instruction_type_to_function_name_map = {
     e:"cause_dexter_error", //fry
     E:"empty_instruction_queue_immediately", //new Sept 1, 2016
     F:"empty_instruction_queue",   //new Sept 1, 2016
-    f:"find_home",
     G:"get_robot_status_immediately",        //new Sept 1, 2016
     g:"get_robot_status",   //fry
     h:"get_robot_status_heartbeat", //fry
@@ -2094,7 +2067,6 @@ Dexter.instruction_type_to_function_name_map = {
     n:"find_index",
     o:"replay_movement",
     P:"pid_move_all_joints",
-    p:"find_home_rep",
     R:"move_all_joints_relative",
     r:"read_file",
     s:"slow_move",

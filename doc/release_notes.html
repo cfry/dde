@@ -5,6 +5,119 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 3.4.3, Jul 19, 2019</summary>
+Highlights: Improvements to Recording, including UI and extensive documentation.
+             show_window minor improvements.
+<ul>
+    <li> Fixed bug in <code>append_in_ui</code> when the html to be appended has content.
+        This also fixes bug in <code>svg_text</code></li>
+
+    <li> <code>get_in_ui</code> fixed.
+        It now no longer takes a callback, it just
+        returns the value. If the value is
+        going to be a string of a number,
+        the number is returned instead.</li>
+
+    <li> <code>show_window</code> added "draggable" param, default=true.
+        When false, you can't move the window by dragging
+        the title bar as usual. This helps "lock down" the user interface
+        to protect specialized interfaces from casual users.</li>
+
+    <li> <code>show_window</code> documentation example code better formatted.
+        Added "see also" for <code>close_window</code>.</li>
+
+    <li> Documentation: Improved the description of user_data in
+        RefMan/Job/new Job parameters/user_data</li>
+
+    <li> Fixed bug in series when replacing values of
+        a selected series element via option-right-arrow.</li>
+
+    <li> Make Instruction clickable pane header now in black (instead of blue).</li>
+
+    <li> Recording: removed print statement about "set_play_loc"
+        while recording.</li>
+
+    <li> Recording: dragging playback circle moves robot to the instruction at that location,
+        but only if the new Job being built looks like a recording.
+        because there can be other jobs besides recordings, and
+        you might want to skip over some instructions, or
+        never play it backwards, etc.</li>
+
+    <li> Recording: Fixed Bugs in dragging the playback
+          head to move the robot.</li>
+
+    <li> Recording: the
+        "Delete" button has been implemented to
+        delete either instructions from the middle,
+        or instructions on the end of the do_list, adding
+        significant editing capability to recordings.</li>
+
+    <li> Recording: Now when recording,
+        the pause button is enabled. Clicking on it
+        pauses recording and turns the button yellow.
+        Clicking it again resumes recording and
+        turns the button black.
+        while recording is paused, you can also
+        click the Record button to stop recording.</li>
+
+    <li> Updated the documentation for the Misc Pane header
+        at the top of the section:
+        User Guide/User Interface/Misc Pane</li>
+
+    <li> Documented how to use the recording facility at
+        User Guide/User Interface/Misc Pane/Recording
+        Long and detailed. Includes 36 step self-guided tutorial.</li>
+
+    <li> The Dexter instanance variable of <code>is_calibrated</code>
+        has been replace by a method of the same name that checks
+        Dexter's measured angles.</li>
+
+    <li> Recording: extensive improvements to testing and running
+         calibration before recording. Now at the top of
+         the Recording job, we check measured angles
+         (no longer dexter's "is_calibrated" instance variable)
+         and use Dexter's local calibration instruction.
+         Now after calibration, verification of it is
+         made and if it fails, the Recording is stopped
+          before causing Dexter to flail.</li>
+
+    <li> Recording section now hidden by a twistdown.
+        Twisting down scrolls to the Recording doc.</li>
+
+    <li> Recording: the "middle" & "ends" radio buttons moved closer
+        to the "marks" bar.</li>
+
+    <li> The Record Job now has show_instructions=false.
+        Jobs created by clicking the Record button
+        will have show_instructions=false
+        to speed up playback.</li>
+
+    <li> Recording insert: fixed high-level job source code
+        when "Reference to low-level Job only" radio
+        button is selected.</li>
+
+    <li> In Recording Insert Job dialog,
+        when the Insert button is clicked, the window is closed.</li>
+
+    <li> The "Find Home" functionality has never worked.
+        Now a completely different mechanism is being developed,
+        so "find home" has been removed from:
+        <ul>
+            <li>the code</li>
+            <li>the instructions: Dexter.find_home, Dexter.find_home_rep
+                and support for corresponding oplets "f" and "p".</li>
+            <li>the user guide documentation</li>
+            <li>Removed files in example folder of:
+                FindHome.js, FindHomeDocA.stl, FindHomeDocB.stl</li>
+        </ul>
+    </li>
+    <li> When the user changes the default robot in the Misc pane header,
+        <code>Dexter.default</code> is set to the indicated robot.
+         Transitioning to this new mechanism for defaulting the robot
+         is a work in progress.</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.4.2, Jul 7, 2019</summary>
 Highlights: Record improvements, tweaks to calibration inferface including
             interaction with Record, and a zillion little things.

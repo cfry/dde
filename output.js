@@ -24,6 +24,40 @@ window.set_dde_window_size_to_persistent_values = function(){
 }
 
 //_________show_window and helper fns__________
+//get the value of the path in the UI.
+window.get_in_ui = function(path_string){
+    //return value_of_path(path_string) //fails on getting svg attributes,
+    //and returns strings for numbers.
+    let path_elts = path_string.split(".")
+    let the_loc = window
+    for (var i = 0; i < path_elts.length; i++){
+        var path_elt = path_elts[i]
+        if (i == (path_elts.length - 1)){ //on last elt so set it
+            if( // the_loc.hasOwnProperty("attributes") /doesn't work
+                the_loc.hasAttributes() &&
+                the_loc.attributes.hasOwnProperty(path_elt)) {
+                let result = the_loc.getAttribute(path_elt)
+                if (is_string_a_number(result)) {
+                    return parseFloat(result)
+                }
+                else { return result }
+
+            } //necessary for "active" attributes like cx in svg ellipse, in order to actually get the real value of  "cx" property
+            else {
+                let result = the_loc.getAttribute(path_elt)
+                if (is_string_a_number(result)) {
+                    return parseFloat(result)
+                }
+                else { return result }
+             }
+        }
+        else {
+            the_loc = the_loc[path_elt]
+        }
+    }
+}
+
+
 window.set_in_ui = function(path_string, value){
     let path_elts = path_string.split(".")
     let the_loc = window
@@ -34,7 +68,7 @@ window.set_in_ui = function(path_string, value){
                the_loc.hasAttributes() &&
                the_loc.attributes.hasOwnProperty(path_elt)) {
                     the_loc.setAttribute(path_elt, value)
-            } //necewssary for "active" attributes like cx in svg ellipse, in order to actually change the visible appearance of the ellipse
+            } //necessary for "active" attributes like cx in svg ellipse, in order to actually change the visible appearance of the ellipse
             else { the_loc[path_elt] = value }
         }
         else {
@@ -69,6 +103,9 @@ function html_to_tag_name(html){
 
 window.html_to_tag_name = html_to_tag_name
 
+//returns an array of arrays.
+// the Inner array has 2 elts, a string of the attribute name
+//and a string of the attributer value
 function html_attributes_and_values(html){
     html = html.trim()
     if (html.length < 3) { return null }
@@ -147,42 +184,36 @@ function html_attributes_and_values(html){
 
 window.html_attributes_and_values = html_attributes_and_values
 
+//input" '<foo a="3"> bar </foo>'  output: " bar "
+function html_content(html){
+    html = html.trim()
+    let close_angle_pos = html.indexOf(">")
+    if(close_angle_pos == html.length - 1) { return "" }
+    else {
+        let open_angle_pos = html.indexOf("<", 1)
+        if(open_angle_pos == -1) { return "" } //actually this means the html is invalid syntax
+        else { return html.substring(close_angle_pos + 1, open_angle_pos) }
+    }
+}
+window.html_content = html_content
+
 //inserts the new_html as the new last child of the element indicated by path_string
 window.append_in_ui = function(path_string, new_html){
         let elt = value_of_path(path_string)
-        //$(elt).append(new_html) //doesn't refresh svg
-        //elt.addChild(jquery.parseHTML(new_html)) //doesn't refresh svg
         let ancestor_svg = $(elt).closest("svg")
         if (ancestor_svg.length > 0) {
             ancestor_svg = ancestor_svg[0]
-            //"refreshes" the rendered html. If I don't do this, you don't see the new svg elt added
-            //$(ancestor_svg).html($(ancestor_svg).html()); //from http://stackoverflow.com/questions/3642035/jquerys-append-not-working-with-svg-element
-                                        //not the most popular answer, but one that works better for my purposes
-              //however doing this html refresh gets rid of all the onclick methods on the svg tags so clicking
-              //only works once, then no more onclick metnods so clicking fails
-            //ancestor_svg.forceRedraw() //preserves the onclick methods but doesn't do what its name sez.
-            //ancestor_svg.style.webkitTransform = ancestor_svg.style.webkitTransform //fails
-            //ancestor_svg.style.display='none';
-            //ancestor_svg.offsetHeight; // no need to store this anywhere, the reference is enough
-            //ancestor_svg.style.display='';
-           // $(ancestor_svg).css('display', 'none').height();
-           // $(ancestor_svg).css('display', 'block');
-           let new_tag     = html_to_tag_name(new_html)
+            let new_tag     = html_to_tag_name(new_html)
            let attr_vals   = html_attributes_and_values(new_html)
            let new_svg_elt = document.createElementNS("http://www.w3.org/2000/svg", new_tag);
            for (let pair of attr_vals){
             new_svg_elt.setAttribute(pair[0], pair[1])
            }
+           let content = html_content(new_html)
+            new_svg_elt.innerHTML = content
            ancestor_svg.appendChild(new_svg_elt);
         }
-        else{
-            $(elt).append(new_html)
-        }
-}
-
-//get the value of the path in the UI.
-window.get_in_ui = function(path_string){
-        return value_of_path(path_string)
+        else{ $(elt).append(new_html) }
 }
 
 window.window_index = 0
@@ -281,9 +312,14 @@ window.show_window_values = show_window_values
 window.show_window = function({content = `<input type="submit" value="Done"/>`,
                         title = "DDE Information", width = 400, height = 400, x = 200, y = 200,
                         resizable = true,
+                        draggable = true,
                         background_color = "rgb(238, 238, 238)",
-                        is_modal = false, show_close_button = true, show_collapse_button = true,
-                        trim_strings = true, window_class, callback = show_window_values,
+                        is_modal = false,
+                        show_close_button = true,
+                        show_collapse_button = true,
+                        trim_strings = true,
+                        window_class,
+                        callback = show_window_values,
                         close_same_titled_windows = true,
                         init_elt_id = null} = {}){
       //callback should be a string of the fn name or anonymous source.
@@ -350,7 +386,8 @@ window.show_window = function({content = `<input type="submit" value="Done"/>`,
                                                 collapseAnimationDuration:500,
                                                 maxHeight: 2000,
                                                 maxWidth: 2000,
-                                                resizable: resizable
+                                                resizable: resizable,
+                                                draggable: draggable
                                                 }) //default maxWidth = 800, default maxHeight=600
         if (window_class){jqxw_jq.addClass(window_class)} //used by app_builder
         let the_window_index = set_window_index(jqxw_jq, title)
@@ -469,15 +506,15 @@ window.submit_window = function(event){
      // descriptions of x & y's: http://stackoverflow.com/questions/6073505/what-is-the-difference-between-screenx-y-clientx-y-and-pagex-y
     event.stopPropagation();
     let result = {offsetX:event.offsetX,  offsetY:event.offsetY, //relative to the elt clocked on
-              x:event.x,              y:event.y, //relative to the parent of the elt clicked on
-              clientX:event.clientX,  clientY:event.clientY, //Relative to the upper left edge of the content area (the viewport) of the browser window. This point does not move even if the user moves a scrollbar from within the browser.
-              pageX:event.pageX,      pageY:event.pageY, //Relative to the top left of the fully rendered content area in the browser.
-              screenX:event.screenX,  screenY:event.screenY, //Relative to the top left of the physical screen/monitor
-              altKey:event.altKey,    //on mac, the option key.
-              ctrlKey:event.ctrlKey,
-              metaKey:event.metaKey, //on WindowsOS, the windows key, on Mac, the Command key.
-              shiftKey:event.shiftKey,
-              tagName:this.tagName}
+                  x:event.x,              y:event.y, //relative to the parent of the elt clicked on
+                  clientX:event.clientX,  clientY:event.clientY, //Relative to the upper left edge of the content area (the viewport) of the browser window. This point does not move even if the user moves a scrollbar from within the browser.
+                  pageX:event.pageX,      pageY:event.pageY, //Relative to the top left of the fully rendered content area in the browser.
+                  screenX:event.screenX,  screenY:event.screenY, //Relative to the top left of the physical screen/monitor
+                  altKey:event.altKey,    //on mac, the option key.
+                  ctrlKey:event.ctrlKey,
+                  metaKey:event.metaKey, //on WindowsOS, the windows key, on Mac, the Command key.
+                  shiftKey:event.shiftKey,
+                  tagName:this.tagName}
     result.window_index = get_window_index_containing_elt(this)//get_index_of_window(jsxw_jq)
     //var jsxw_jq                 = get_jqxw_jq_of_window_containing_elt(this)
     if (this.tagName == "LI"){ //user clicked on a menu item
@@ -537,7 +574,7 @@ window.submit_window = function(event){
     var trim_strings = trim_strings_elt[0].value
     if (trim_strings == "false") { trim_strings = false}
     else {trim_strings = true}
-    var inputs = $(window_content_elt).find("input") //finds all the descentents of the outer div that are "input" tags
+    var inputs = $(window_content_elt).find("input") //finds all the descendents of the outer div that are "input" tags
     var window_callback_string = null
     for (var i = 0; i < inputs.length; i++){
         var inp = inputs[i]

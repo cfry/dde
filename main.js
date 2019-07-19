@@ -62,6 +62,7 @@ var mainWindow
 function createWindow () {
   // Create the browser window.
   mainWindow = new BrowserWindow({width: 1000, height: 600, show: false,
+                   //kiosk: true, //makes DDE window be FULL SCREEN, ie no os title bar, etc. locks down app.
                    title: "Dexter Development Environment" //not obvious that this actually shows up anywhere.
                    })
   //mainWindow.focus() //doesn't do anything.

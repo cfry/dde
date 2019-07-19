@@ -13,7 +13,7 @@ var RobotStatusDialog = class RobotStatusDialog{
         else {
             let robot = (Job.last_job? Job.last_job.robot : Robot.dexter0)
             let content = RobotStatusDialog.make_html_table(robot)
-            let is_cal_display = ((robot.is_calibrated === null) ? "unknown" : robot.is_calibrated)
+            let is_cal_display = ((robot.is_calibrated() === null) ? "unknown" : robot.is_calibrated)
             show_window({content: content,
                 title:  "<span style='font-size:16px;'>Robot Status of</span> " +
                 RobotStatusDialog.make_names_menu_html(robot) +
@@ -212,8 +212,7 @@ var RobotStatusDialog = class RobotStatusDialog{
                 robot: rob,
                 do_list: [ Control.loop(true,
                            function() {
-                              rob.set_is_calibrated()
-                              let cal = rob.is_calibrated
+                              let cal = rob.is_calibrated()
                               if (cal == null) { cal = "unknown" }
                               robot_status_is_calibrated_id.innerHTML = cal
                               return Dexter.get_robot_status()

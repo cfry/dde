@@ -125,10 +125,7 @@ function calibrate_build_tables({
         make_ins("w", 42, 12960),
         
         //Set calibration state
-        make_ins("F"),
-        function(){
-        	this.robot.is_calibrated = true
-        }
+        make_ins("F")
     ]
 }
 

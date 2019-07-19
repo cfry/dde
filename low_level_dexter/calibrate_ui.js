@@ -201,11 +201,7 @@ function handle_cal(vals){
 	//debugger
     var the_robot = cal_get_robot()
     //out(vals.clicked_button_value)
-    if(vals.clicked_button_value == "Start FindHome"){
-    	open_doc("find_home_doc_id")
-        //load_files(__dirname + "/user_tools/find_home_for_DDE_2.js")
-        load_files(__dirname + "/low_level_dexter/find_home_for_DDE_2.js")
-    }else if(vals.clicked_button_value == "Reset Ranges") {
+    if(vals.clicked_button_value == "Reset Ranges") {
     	if(cal_init_view_eye_state){
         	out("Attempting to connect to " + robot_to_calibrate_id.value +"...", "blue")
         	init_view_eye()

@@ -230,7 +230,7 @@ var MiState = class MiState {
     static init(job_instance = null){
         if(this.job_instance && this.job_instance.is_active()) { this.job_instance.stop_for_reason("interrupted", "stopped due to initing Make Instance") }
         this.job_instance        = job_instance
-        this.status              = null //null, "recording", "playing", "reverse_playing", "stepping", "reverse_stepping"
+        this.status              = null //null, "recording", "recording_paused", "playing", "reverse_playing", "stepping", "reverse_stepping"
         this.end_mark_is_do_list_length = true
         //this.set_end_mark_to_do_list_length_maybe() //errors due to html not in place yet, but will get called by other inits
     }

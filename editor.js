@@ -1924,11 +1924,11 @@ Editor.function_params_and_locals = function(full_src, cursor_pos){
 
 //returns null if pos_of_char_in_identifier does not point at an identifier char,
 //or returns [start_pos_of_identifier, identifier_last_char_pos_plus_1]
-Editor.bounds_of_identifier = function(full_src, pos_of_char_in_indentifier, identifier_regex=/[a-zA-Z0-9\-\._]/){
+Editor.bounds_of_identifier = function(full_src, pos_of_char_in_identifier, identifier_regex=/[a-zA-Z0-9\-\._]/){
     //var identifier_regex = /[a-zA-Z0-9\-\._]/
-    if (!identifier_regex.test(full_src[pos_of_char_in_indentifier])){ return null}
+    if (!identifier_regex.test(full_src[pos_of_char_in_identifier])){ return null}
     var start_pos = null
-    for(var i = pos_of_char_in_indentifier; i >= 0; i--) {
+    for(var i = pos_of_char_in_identifier; i >= 0; i--) {
         var char = full_src[i]
         if (!identifier_regex.test(char)) {
             start_pos = i + 1;
@@ -1937,7 +1937,7 @@ Editor.bounds_of_identifier = function(full_src, pos_of_char_in_indentifier, ide
         else if (i == 0) { start_pos = 0 }
     }
     var end_pos = null
-    for(var i = pos_of_char_in_indentifier; i < full_src.length; i++) {
+    for(var i = pos_of_char_in_identifier; i < full_src.length; i++) {
         var char = full_src[i]
         if (!identifier_regex.test(char)) {
             end_pos = i;
