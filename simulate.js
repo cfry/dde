@@ -119,9 +119,9 @@ function init_simulation(){
     }
 }
 
-var render = function () {
+var render_demo = function () {
     if (sim.enable_rendering){
-        requestAnimationFrame( render );
+        requestAnimationFrame( render_demo );
         sim.J1.rotation.y += 0.001 //twisting the base.
         //ossolate arm0 bending
         if (LINK2_bending == "+") {

@@ -7,6 +7,15 @@ so I'm doing this.
 */
 ::selection { background: #9ac4ff; }
 
+/* clicking on a button puts a blue rec around it in Chrome,
+and its annoying because it remains after the click.
+The below is a new standard, but not yet in chrome.
+https://nelo.is/writing/styling-better-focus-states/
+*:focus:not(.focus-visible) {
+    outline: none;
+}
+*/
+
 
 html, body {  width: 100%;  height: 100%; font-family: sans-serif; overflow:hidden;}
 

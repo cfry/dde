@@ -21,11 +21,11 @@ class Vector{
     static size (a){
     	
     	if (a === undefined){
-        	out("Error: input to function 'size()' is undefined", "red")
+        	dde_error("input to function 'size()' is undefined", "red")
             return
         }
         if (a === null){
-        	out("Error: input to function 'size()' is null:")
+        	dde_error("input to function 'size()' is null:")
             return
         }
         
@@ -130,7 +130,7 @@ class Vector{
         							product += vector_A[i] * vector_B[0][i]
         						}
                             }else{
-                				out("Error: Reconsider the input size in the function 'Vector.dot()'", "red")
+                				dde_error("Reconsider the input size in the function 'Vector.dot()'", "red")
                     			return null
                             }
                         }
@@ -167,47 +167,47 @@ class Vector{
     //Can also add scalars to each element in vector
     //unlimited number of inputs args
     static add(...args){
-        let temp_args = Convert.deep_copy(args)
+        let temp_args = Vector.deep_copy(args)
         var sum = temp_args[0]
         
-    	for(let i = 1; i < Vector.size(arguments); i++){
-        	if (Vector.size(arguments[i]) === Vector.size(sum)){
+    	for(let i = 1; i < Vector.size(args); i++){
+        	if (Vector.size(args[i]) === Vector.size(sum)){
 				if (Vector.size(sum) === 1){
-                	sum += arguments[i]
+                	sum += args[i]
                 }else{
                 	for(let j = 0; j < Vector.size(sum); j++){
-                		sum[j] += arguments[i][j]
+                		sum[j] += args[i][j]
                 	}
                 }
             	
             }else{
-            	if (Vector.size(arguments[i]) === 1){
+            	if (Vector.size(args[i]) === 1){
                 	for(let j = 0; j < Vector.size(sum); j++){
-                		sum[j] += arguments[i]
+                		sum[j] += args[i]
                 	}
                 }else{
                 	if (Vector.size(sum) === 1){
                     var temp = sum
-                    sum = arguments[i]
+                    sum = args[i]
                 		for(var j = 0; j < Vector.size(sum); j++){
                 			sum[j] += temp
                         }
                 	}else{
                     	let dim_1 = Vector.matrix_dimensions(sum)
-                        let dim_2 = Vector.matrix_dimensions(arguments[i])
+                        let dim_2 = Vector.matrix_dimensions(args[i])
                         if(dim_1[0] == 1 && dim_1[1] == dim_2[1]){
                         	let shift_vector = sum
-                            sum = arguments[i]
+                            sum = args[i]
                             for(let m = 0; m < dim_2[0]; m++){
                             	sum[m] = Vector.add(sum[m], shift_vector)
                             }
                         }else if(dim_2[0] == 1 && dim_2[1] == dim_1[1]){
-                        	let shift_vector = arguments[i]
+                        	let shift_vector = args[i]
                             for(let m = 0; m < dim_1[0]; m++){
                             	sum[m] = Vector.add(sum[m], shift_vector)
                             }
                         }else{
-                    		dde_error("Error: inputs to function 'add()' are not correct sizes", "red")
+                    		dde_error("Error: inputs to function 'add()' are not correct sizes:<br/>" + JSON.stringify(args), "red")
                         }
                     }
                 }
@@ -223,8 +223,8 @@ class Vector{
     //This is used to subtract vectors of equal length
     //Can also add scalars to each element in vector
     //unlimited number of inputs args
-    static subtract (){
-        let temp_args = Convert.deep_copy(arguments)
+    static subtract (...args){
+        let temp_args = Vector.deep_copy(args)
         var sum = temp_args[0]
         
     	for(var i = 1; i < Vector.size(temp_args); i++){
@@ -250,7 +250,7 @@ class Vector{
                 			sum[j] -= temp
                         }
                 	}else{
-                    	out("Error: inputs to function 'add()' are not correct sizes", "red")
+                    	dde_error("inputs to function 'subtract()' are not correct sizes:<br/>" + JSON.stringify(args), "red")
                     }
                 }
             }
@@ -262,14 +262,17 @@ class Vector{
     //This should be re-written in a more clever way....
     static multiply(...args){
         if (args === undefined){
-        	out("Error: the function 'Vector.multiply' has undefined inputs")
+        	dde_error("Error: the function 'Vector.multiply' has undefined inputs")
         }
         
-        let temp_args = Convert.deep_copy(args)
+        let temp_args = Vector.deep_copy(args)
         var product = temp_args[0]
 
     	for(var i = 1; i < Vector.size(args); i++){
         	let temp_arg = args[i]
+            if(temp_arg === undefined) {
+                dde_error("Vector.multiply passed an arg that was undefined in: " + args)
+			}
         	var temp_arg_size = Vector.size(temp_arg)
         	var product_size = Vector.size(product)
         	if (product_size === 1 && temp_arg_size === 1){
@@ -326,7 +329,7 @@ class Vector{
                         		}
                     		}
                 		}else{
-                    		out("Error: inputs to function 'add()' are not correct sizes", "red")
+                    		dde_error("inputs to function 'multiply()' are not correct sizes:<br/>" + JSON.stringify(args), "red")
                     	}
                 	}
             	}
@@ -350,10 +353,10 @@ class Vector{
     //Public
     static divide (...args){
         if (args === undefined){
-        	out("Error: the function 'Vector.divide' has undefined inputs")
+        	dde_error("the function 'Vector.divide' has undefined inputs")
         }
         
-        let temp_args = Convert.deep_copy(args)
+        let temp_args = Vector.deep_copy(args)
         var quotient = temp_args[0]
 
     	for(var i = 1; i < Vector.size(args); i++){
@@ -414,7 +417,7 @@ class Vector{
                         		}
                     		}
                 		}else{
-                    		out("Error: inputs to function 'add()' are not correct sizes", "red")
+                    		dde_error("inputs to function 'divide()' are not correct sizes:<br/>" + JSON.stringify(args), "red")
                     	}
                 	}
             	}
@@ -442,7 +445,7 @@ class Vector{
 
 
     static average(...args){
-    	let temp_args = Convert.deep_copy(args)
+    	let temp_args = Vector.deep_copy(args)
         let sum
         if(temp_args.length == 1){
         	sum = temp_args[0][0]
@@ -453,30 +456,29 @@ class Vector{
         }
         
         sum = temp_args[0]
-    	for(var i = 1; i < Vector.size(arguments); i++){
-        	if (Vector.size(arguments[i]) === Vector.size(sum)){
+    	for(var i = 1; i < Vector.size(args); i++){
+        	if (Vector.size(args[i]) === Vector.size(sum)){
 				if (Vector.size(sum) === 1){
-                	sum += arguments[i]
+                	sum += args[i]
                 }else{
                 	for(var j = 0; j < Vector.size(sum); j++){
-                		sum[j] += arguments[i][j]
+                		sum[j] += args[i][j]
                 	}
                 }
             	
             }else{
-            	if (Vector.size(arguments[i]) === 1){
+            	if (Vector.size(args[i]) === 1){
                 	for(var j = 0; j < Vector.size(sum); j++){
-                		sum[j] += arguments[i]
+                		sum[j] += args[i]
                 	}
                 }else{
                 	if (Vector.size(sum) === 1){
                     var temp = sum
-                    sum = arguments[i]
+                    sum = args[i]
                 		for(var j = 0; j < Vector.size(sum); j++){
                 			sum[j] += temp
                         }
                 	}else{
-                    	out("Error: inputs to function 'add()' are not correct sizes", "red")
                     }
                 }
             }
@@ -490,17 +492,17 @@ class Vector{
 	
     
     //Public
-	static distance() {
+	static distance(...args) {
     	/*SYNTAX:
         	Kin.distance(POINT)        -> distance between point and origin / magnitude of VECTOR
             Kin.distance(POINT, POINT) -> distance between points
             Kin.distance(PLANE, POINT) -> distance between plane and point
             Kin.distance(POINT, PLANE) -> distance between point and point
         */
-        var temp_args = Convert.deep_copy(arguments)
+        var temp_args = Vector.deep_copy(args)
         
         
-        switch(Vector.size(arguments)){
+        switch(Vector.size(args)){
             
         	case 1:
             	var a = temp_args[0]
@@ -515,15 +517,15 @@ class Vector{
 						//distance between plane and origin
 						return a[4]
 					default:
-						out("Error: single vector input to function 'distance()' must have a size of 2, 3, or 4", "red")
+						dde_error("single vector input to function 'distance()' must have a size of 2, 3, or 4", "red")
 						return null
              	}
 				break
                 
                 
             case 2:
-            	var a = arguments[0].slice(0)
-                var b = arguments[1].slice(0)
+            	var a = args[0].slice(0)
+                var b = args[1].slice(0)
             	var aL = Vector.size(a)
                 var bL = Vector.size(b)
                 var point
@@ -542,7 +544,7 @@ class Vector{
                         	plane = a
                             point = b
                         }else{
-                        	out("Error: inputs for function 'distance()' must be a point, plane, or vector", "red")
+                        	dde_error("inputs for function 'distance()' must be a point, plane, or vector", "red")
                             return null
                         }
                     }
@@ -551,9 +553,9 @@ class Vector{
                 break
                 
             case 3:
-                point = arguments[0].slice(0)
-                var line_point_A = arguments[1].slice(0)
-                var line_point_B = arguments[2].slice(0)
+                point = args[0].slice(0)
+                var line_point_A = args[1].slice(0)
+                var line_point_B = args[2].slice(0)
                 if (Vector.size(point) === 3 && Vector.size(line_point_A) === 3 && Vector.size(line_point_B) === 3){
             		return dist_point_to_line(point, line_point_A, line_point_B)
                 }
@@ -668,21 +670,27 @@ class Vector{
     
     //Public 
     static round(number_or_array, digits = 1){
+    	if(number_or_array == null) {return null}
     	let mulitplier = Math.pow(10, digits)
-    	let temp_args = Convert.deep_copy(arguments)
         if(typeof(number_or_array) == "number"){
         	return Math.round(mulitplier * number_or_array) / mulitplier
         }else{
-        	let temp_array = Convert.deep_copy(number_or_array)
+        	let temp_array = Vector.deep_copy(number_or_array)
             let dim = Vector.matrix_dimensions(number_or_array)
             if(dim[0] == 1){
             	for(var i = 0; i < number_or_array.length; i++){
-                	temp_array[i] = Math.round(mulitplier * temp_array[i]) / mulitplier
+                    let elt = temp_array[i]
+                    if(elt != null) {
+                		temp_array[i] = Math.round(mulitplier * elt) / mulitplier
+					}
                 }
             }else{
         		for(var i = 0; i < dim[0]; i++){
             		for(var j = 0; j < dim[1]; j++){
-            			temp_array[i][j] = Math.round(mulitplier * temp_array[i][j]) / mulitplier
+                        let elt = temp_array[i][j]
+                        if(elt != null) {
+            				temp_array[i][j] = Math.round(mulitplier * elt) / mulitplier
+						}
             		}
             	}
             }
@@ -694,62 +702,63 @@ class Vector{
     
     //Public
     static is_equal(array1, array2, tolerance = 14, tolerance_type = "decimal_places"){
-        
         let result = true
-        if (array1.length !== array2.length){
+        if(array1 == null) {
+            if(array2 == null) { return true }
+            else { return false }
+        }
+        else if (array2 == null) { return false }
+        else if (array1.length !== array2.length){
         	return false
         }else{
-        	let array1_temp = Convert.deep_copy(array1)
-            let array2_temp = Convert.deep_copy(array2)
-        	
+        	let array1_temp = Vector.deep_copy(array1)
+            let array2_temp = Vector.deep_copy(array2)
         	switch(tolerance_type){
             	case "decimal_places":
-        		array1_temp = Vector.round(array1_temp, tolerance)
-        		array2_temp = Vector.round(array2_temp, tolerance)
-            	if(array1_temp.length == undefined){
-            		if(array1_temp == array2_temp){
-                		return true
-                	}else{
-                		return false
-                	}
-            	}
-        		result = true
-        		for(var i = 0; i < array1_temp.length; i++){
-            		if (JSON.stringify(array1_temp[i]) != JSON.stringify(array2_temp[i])){
-                    	return false
-                	}
-            	}
-                break
-                
+        			array1_temp = Vector.round(array1_temp, tolerance)
+                	array2_temp = Vector.round(array2_temp, tolerance)
+					if(array1_temp.length == undefined){
+						if(array1_temp == array2_temp){
+							return true
+						}else{
+							return false
+						}
+					}
+					for(var i = 0; i < array1_temp.length; i++){
+						if (JSON.stringify(array1_temp[i]) != JSON.stringify(array2_temp[i])){
+							return false
+						}
+					}
+					break
                 case "absolute":
-				if (Vector.max(Vector.abs(Vector.subtract(array1_temp, array2_temp))) > tolerance){
-                	return false
-                }
-                break
+					if (Vector.max(Vector.abs(Vector.subtract(array1_temp, array2_temp))) > tolerance){
+						return false
+					}
+					break
                 
                 case "percent_difference":
-                if(tolerance > 1){
-                	
-                	warning("Percent difference tolerance should be within 0 and 1.</br>Input of " 
-                    + tolerance + " changed to " + (tolerance/100) + ".")
-                    tolerance = tolerance/100
-                }
-                
-                let avg = Vector.average(array1_temp, array2_temp)
-				if (Vector.max(Vector.divide(Vector.abs(Vector.subtract(array1_temp, array2_temp)), avg)) > tolerance){
-                	return false
-                }
-                break
+					if(tolerance > 1){
+
+						warning("Percent difference tolerance should be within 0 and 1.</br>Input of "
+						+ tolerance + " changed to " + (tolerance/100) + ".")
+						tolerance = tolerance/100
+					}
+
+					let avg = Vector.average(array1_temp, array2_temp)
+					if (Vector.max(Vector.divide(Vector.abs(Vector.subtract(array1_temp, array2_temp)), avg)) > tolerance){
+						return false
+					}
+					break
                 
                 case "magnitude":
-                if (Vector.max(Vector.magnitude(Vector.subtract(array1_temp, array2_temp))) > tolerance){
-                	return false
-                }
-                break
+					if (Vector.max(Vector.magnitude(Vector.subtract(array1_temp, array2_temp))) > tolerance){
+						return false
+					}
+					break
                 
                 default:
-                dde_error("Vector.is_equal does not support input of \"" + tolerance_type
-                + "\".</br>Supported tolerance types: \"decimal_places\", \"absolute\", \"percent_difference\", and \"magnitude\"")
+					dde_error("Vector.is_equal does not support input of \"" + tolerance_type
+					+ "\".</br>Supported tolerance types: \"decimal_places\", \"absolute\", \"percent_difference\", and \"magnitude\"")
                 
             }
                 
@@ -791,8 +800,13 @@ class Vector{
         var cross_product = Vector.normalize(Vector.cross(Vector.shorten(vector_A), Vector.shorten(vector_B)))
         var short_plane = Vector.shorten(plane)
         
-        if (!(Vector.is_equal(cross_product, short_plane) || Vector.is_equal(Vector.multiply(-1, cross_product), short_plane)) && cross_product[0] === NaN){
-            out("Error: input vectors do not lie in plane")
+        if (!(Vector.is_equal(cross_product, short_plane) ||
+             Vector.is_equal(
+                             Vector.multiply(-1, cross_product),
+                             short_plane))
+			&&
+			(cross_product[0] === NaN)){
+            dde_error("input vectors do not lie in plane")
         }
     	
     	var guess_angle = Vector.angle(vector_A, vector_B)
@@ -812,28 +826,28 @@ class Vector{
     
     //Public
     //returns intersection of two planes, a plane and a line, and two lines
-    static intersection(){
-    	switch (Vector.size(arguments)){
+    static intersection(...args){
+    	switch (Vector.size(args)){
         	case 2:
         		//Assumes intersection between two planes
-                return Vector.normalize(Vector.cross(arguments[1], arguments[2]))
+                return Vector.normalize(Vector.cross(args[1], args[2]))
         	case 3:
             	//Assumes intersection between plane and line
             	var line_vector, complete_point, alpha, intersection_point
             	
             	for(var i = 0; i < 3; i++){
-                	if (Vector.size(arguments[i]) === 4){
-                    	var plane = arguments[i].slice(0)
-                        var point_A = arguments[(i + 1) % 3].slice(0)
-                        var point_B = arguments[(i + 2) % 3].slice(0)
+                	if (Vector.size(args[i]) === 4){
+                    	var plane = args[i].slice(0)
+                        var point_A = args[(i + 1) % 3].slice(0)
+                        var point_B = args[(i + 2) % 3].slice(0)
                     }
                     
                 }
                 if (plane === undefined){
-                    out("Error: inputs to the function 'Vector.intersection' must be a plane and two points or two planes")
+                    dde_error("inputs to the function 'Vector.intersection' must be a plane and two points or two planes")
                 }
                 if (Vector.size(point_A) !== 3 || Vector.size(point_B) !== 3){
-                	out("Error: inputs to the function 'Vector.intersection' must be a plane and two points or two planes")
+                	dde_error("inputs to the function 'Vector.intersection' must be a plane and two points or two planes")
                 }
                 
                 //Assumes plane is passed in along with a line defined by a point and unit vector
@@ -1029,6 +1043,23 @@ class Vector{
         return false
     }
 
+    static is_NaN_null_or_undefined(vector){
+        let dim = Vector.matrix_dimensions(vector)
+        if(dim[0] == 1 && dim[1] == 0){return is_NaN_null_or_undefined(vector)}
+        if(dim[0] == 1){
+            for(let i = 0; i < dim[1]; i++){
+                if(is_NaN_null_or_undefined(vector[i])){return true}
+            }
+        }else{
+            for(let i = 0; i < dim[0]; i++){
+                for(let j = 0; j < dim[1]; j++){
+                    if(is_NaN_null_or_undefined(vector[i][j])){return true}
+                }
+            }
+        }
+        return false
+    }
+
     static sum (array){
     	let dim = Vector.matrix_dimensions(array)
         let sum = 0
@@ -1047,7 +1078,7 @@ class Vector{
     */
     static abs(array){
     	let dim = Vector.matrix_dimensions(array)
-        let array_copy = Convert.deep_copy(array)
+        let array_copy = Vector.deep_copy(array)
         
         if(dim[1] == 0){
         	return Math.abs(array)
@@ -1074,7 +1105,7 @@ class Vector{
 
     static pow(array, power){
     	let dim = Vector.matrix_dimensions(array)
-        let array_copy = Convert.deep_copy(array)
+        let array_copy = Vector.deep_copy(array)
         
         if(dim[1] == 0){
         	return Math.pow(array, power)
@@ -1213,7 +1244,8 @@ class Vector{
 	//Private
     //This is used to prevent functions from altering outside arrays
     static deep_copy(arg){
-    	if (typeof(arg) == "number"){
+        return JSON.parse(JSON.stringify(arg))
+    	/*if (typeof(arg) == "number"){
         	return arg
         }else{
         	let result = []
@@ -1225,7 +1257,7 @@ class Vector{
                 result.push(elt)
             }
             return result
-        }
+        }*/
     }
 
 
@@ -1569,9 +1601,9 @@ class Vector{
     
     static matrix_multiply(...args){
     	if (args === undefined){
-        	out("Error: the function 'Vector.matrix_multiply' has undefined inputs")
+        	dde_error("the function 'Vector.matrix_multiply' has undefined inputs")
         }
-        let temp_args = Convert.deep_copy(args)
+        let temp_args = Vector.deep_copy(args)
         let matrix_A = temp_args[0]
         for(let i = 1; i < temp_args.length; i++){
             let matrix_B = temp_args[i]
@@ -1582,9 +1614,9 @@ class Vector{
     
     static matrix_divide(...args){
     	if (args === undefined){
-        	out("Error: the function 'Vector.matrix_multiply' has undefined inputs")
+        	dde_error("the function 'Vector.matrix_multiply' has undefined inputs")
         }
-        let temp_args = Convert.deep_copy(args)
+        let temp_args = Vector.deep_copy(args)
         let matrix_A = temp_args[0]
         for(var i = 1; i < temp_args.length; i++){
             let matrix_B = temp_args[i]
@@ -1759,8 +1791,11 @@ class Vector{
     */
     
     static matrix_dimensions(matrix){
-    	let width
-        let height = matrix.length
+        let width
+        let height
+        if(matrix != null) {
+            height = matrix.length
+        }
         if(height == undefined){
         	return [1, 0]
         }
@@ -1769,11 +1804,14 @@ class Vector{
         	height = 0
             return [height, width]
         }
-        width  = matrix[0].length
-        if(width == undefined){
-        	width = height
-        	height = 1
-        }
+        let mat0 = matrix[0]
+        if(mat0 != null) {
+        	width  = mat0.length
+		}
+		if(width == undefined){
+			width = height
+			height = 1
+		}
         return [height, width]
     }
     //Vector.matrix_dimensions([10, 20, 30])
@@ -1783,7 +1821,7 @@ class Vector{
     	//a proper point takes the following form: [[x], [y], [z], [1]]
         //for points: [[x1, x2, ..., xn], [y1, y2, ..., yn], [z1, z2, ..., zm=n] [1, 1, ..., 1]]
     	let dim = Vector.matrix_dimensions(points)
-        let proper_points = Convert.deep_copy(points)
+        let proper_points = Vector.deep_copy(points)
         if(dim[0] == 1){
         	proper_points = Vector.transpose(proper_points)
             proper_points.push([1])
@@ -1815,7 +1853,7 @@ class Vector{
     	//a proper point takes the following form: [[x], [y], [z], [1]]
         //for points: [[x1, x2, ..., xn], [y1, y2, ..., yn], [z1, z2, ..., zm=n] [1, 1, ..., 1]]
     	let dim = Vector.matrix_dimensions(vectors)
-        let proper_vectors = Convert.deep_copy(vectors)
+        let proper_vectors = Vector.deep_copy(vectors)
         if(dim[0] == 1){
         	proper_vectors = Vector.transpose(proper_vectors)
             if(dim[1] == 3){
@@ -1888,7 +1926,8 @@ class Vector{
         
         return dcm
     }
-    
+
+    /* obsolete because it uses Convert.
 	static make_pose(position = [0, 0, 0], orientation = [0, 0, 0], scale_factor = 1, sequence = "ZYX"){
 		let dim = Vector.matrix_dimensions(orientation)
         let DCM
@@ -1912,7 +1951,32 @@ class Vector{
                     [s*DCM[2][0], s*DCM[2][1], s*DCM[2][2], position[2]],
                     [0, 0, 0, 1]]
         return pose
-	}
+	}*/
+
+    static make_pose(position = [0, 0, 0], orientation = [0, 0, 0], scale_factor = 1, sequence = "ZYX"){
+        let dim = Vector.matrix_dimensions(orientation)
+        let DCM
+        let s = scale_factor
+        if(dim[0] == 1 && dim[1] == 3){
+            //Euler Angle
+            DCM = Vector.euler_angles_to_DCM(orientation, sequence)
+        }else if(dim[0] == 1 && dim[1] == 4){
+            //Quaternion
+            DCM = Vector.quaternion_to_DCM(orientation)
+        }else if(dim[0] == 3 && dim[1] == 3){
+            //DCM
+            DCM = orientation
+        }else{
+            dde_error("orientation is improperly formatted")
+        }
+
+        //Please tell me there's a better way to do this:
+        let pose = [[s*DCM[0][0], s*DCM[0][1], s*DCM[0][2], position[0]],
+            [s*DCM[1][0], s*DCM[1][1], s*DCM[1][2], position[1]],
+            [s*DCM[2][0], s*DCM[2][1], s*DCM[2][2], position[2]],
+            [0, 0, 0, 1]]
+        return pose
+    }
 
     
     static identity_matrix(size){
@@ -2164,7 +2228,7 @@ class Vector{
     var result = Vector.insert(my_big, my_small, [3, 4])
     */
     
-    static concatinate(direction = 0, matrix_1, matrix_2){
+    static concatinate(direction = 0, matrix_1, matrix_2, ...args){
 
         let result, dim_1, dim_2
         if(matrix_1.length == 0){
@@ -2230,10 +2294,10 @@ class Vector{
             dde_error("In Vector.concatinate, direction must 0 or 1")
         }
         
-        let n_matrices = arguments.length-1
+        let n_matrices = args.length + 2
         if(n_matrices > 2){
         	for(let i = 0; i < n_matrices-2; i++){
-            	result = Vector.concatinate(direction, result, arguments[i+3])
+            	result = Vector.concatinate(direction, result, args[i])
             }
         }
         
@@ -2262,7 +2326,7 @@ class Vector{
     static data_to_file(...args){
     //debugger
     
-    	let temp_args = Convert.deep_copy(args)
+    	let temp_args = Vector.deep_copy(args)
         let file_name, elt, file_string, data_array, table_titles
         let data = []
         for(let i = 0; i < temp_args.length; i++){
@@ -2549,7 +2613,7 @@ class Vector{
 //Private
 function dist_point_to_plane(point, plane){
     if (Vector.size(plane) !== 4){
-        out("Error: Complete the plane by using the function 'Vector.complete_plane(vector, point)'")
+        dde_error("Complete the plane by using the function 'Vector.complete_plane(vector, point)'")
         return null
     }
     return -Vector.dot(point, plane)
@@ -2717,7 +2781,7 @@ function matrix_invert(M){
 module.exports = Vector
 var Convert = require("./Convert.js")
 var {sind, cosd, tand, asind, acosd, atand, atan2d} = require("./Trig_in_Degrees.js")
-var {warning} = require("../core/utils.js")
+var {dde_error, warning, is_NaN_null_or_undefined} = require("../core/utils.js")
 /*
 if("dde" !== platform){
 	module.exports = Vector

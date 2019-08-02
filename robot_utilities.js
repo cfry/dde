@@ -27,8 +27,9 @@ function make_ping_a_dexter_select(){
     //let result = '<select id="ping_a_dexter_id_address_id" style="font-size:16px;"> <option>Localhost: 127.0.0.1</option>'
     let result =  '<div name="ping_a_dexter_id_address_id" class="combo_box" style="display:inline-block;vertical-align:middle;width:240px;">' +
                    '<option></option> ' +
-                   '<option>All_hosts_in: 127.0.0.</option> ' +
-                   '<option>Localhost: 127.0.0.1</option> '
+                   '<option>Localhost: 127.0.0.1</option> ' +
+                   '<option>All_hosts_in: 127.0.0.</option> '
+
     let net_addresses = new Set([])  //each item will look like "123.456.78." WE don't want dplicates on the list,
                             //each one will become an item on the combo box menu to select.
     let wildcard_base_addresses = []
@@ -37,20 +38,28 @@ function make_ping_a_dexter_select(){
         let a_dex = Dexter[a_dex_name]
         let ip_address = a_dex.ip_address
         if(ip_address){
+            let label = a_dex_name + ": " + ip_address
+            result += "<option " + select_html + ">" + label + "</option> "
+            select_html = ""
+
+            let new_wildcard_maybe = ip_address.substring(0, ip_address.length - 1) + "*"
+            if(!wildcard_base_addresses.includes(new_wildcard_maybe)){
+                result += "<option>" + "All_hosts_in: " + new_wildcard_maybe + "</option> "
+                wildcard_base_addresses.push(new_wildcard_maybe)
+            }
+
+            let new_double_wildcard_maybe = ip_address.substring(0, ip_address.length - 2) + "**"
+            if(!wildcard_base_addresses.includes(new_double_wildcard_maybe)){
+                result += "<option>" + "All_hosts_in: " + new_double_wildcard_maybe + "</option> "
+                wildcard_base_addresses.push(new_double_wildcard_maybe)
+            }
+
             let last_dot_index = ip_address.lastIndexOf(".")
             let net_address_portion = ip_address.substring(0, last_dot_index + 1) //looks like "123.45.67."
             if(!net_addresses.has(net_address_portion)){
                 result += "<option>" + "All_hosts_in: " + net_address_portion + "</option> "
                 net_addresses.add(net_address_portion)
             }
-            let new_wildcard_maybe = ip_address.substring(0, ip_address.length - 1) + "*"
-            if(!wildcard_base_addresses.includes(new_wildcard_maybe)){
-                result += "<option>" + "All_hosts_in: " + new_wildcard_maybe + "</option> "
-                wildcard_base_addresses.push(new_wildcard_maybe)
-            }
-            let label = a_dex_name + ": " + ip_address
-            result += "<option " + select_html + ">" + label + "</option> "
-            select_html = ""
         }
     }
     result += "</div>"
@@ -111,13 +120,21 @@ function ping_a_dexter_make_dex_def(ip_address){
 var ping_a_dexter_ongoing = false
 
 function ping_a_dexter_wildcard(ip_address_with_wildcard){
-    let wildcard_index = ip_address_with_wildcard.indexOf("*")
-    out("Pinging addresses from " + ip_address_with_wildcard.replace("*", "0") + " through " +  ip_address_with_wildcard.replace("*", "9") + " ...")
-    ping_a_dexter_ongoing = true
-    ping_a_dexter_wildcard_aux(ip_address_with_wildcard, 0, 0)
+    if(ip_address_with_wildcard.endsWith("**")) {
+        let base_address = ip_address_with_wildcard.substring(0, ip_address_with_wildcard.length - 2)
+        out("Pinging addresses from " + base_address + "00" + " through " +  base_address + "99" + " ...")
+        ping_a_dexter_ongoing = true
+        ping_a_dexter_double_wildcard_aux(ip_address_with_wildcard, 0, 0)
+    }
+    else {
+        let wildcard_index = ip_address_with_wildcard.indexOf("*")
+        out("Pinging addresses from " + ip_address_with_wildcard.replace("*", "0") + " through " +  ip_address_with_wildcard.replace("*", "9") + " ...")
+        ping_a_dexter_ongoing = true
+        ping_a_dexter_wildcard_aux(ip_address_with_wildcard, 0, 0)
+    }
 }
 
-function ping_a_dexter_wildcard_aux(ip_address_with_wildcard, host = 0, connected_count=0){
+function ping_a_dexter_wildcard_aux(ip_address_with_wildcard, host = 0, connected_count=0, stop_after_nine=true){
     if (host < 10) {
         let ip_address = ip_address_with_wildcard.replace("*", host)
         ping.sys.probe(ip_address, function(isAlive){
@@ -132,12 +149,44 @@ function ping_a_dexter_wildcard_aux(ip_address_with_wildcard, host = 0, connecte
                 //out(ip_address + " is not connected.", "purple", true)
                 output_is_not_connected_message(ip_address)
             }
-            if(host == 9) {
+            if(stop_after_nine && (host == 9)) {
                 out("ping scan complete. " + connected_count + " connected host(s) found.")
                 ping_a_dexter_ongoing = false
             }
             else if(ping_a_dexter_ongoing){
                 ping_a_dexter_wildcard_aux(ip_address_with_wildcard, host + 1, connected_count)
+            }
+            else {
+                out("ping scan stopped after: " + ip_address + "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + connected_count + " connected host(s) found.")
+            }
+        })
+    }
+}
+
+function ping_a_dexter_double_wildcard_aux(ip_address_with_wildcard, host = 0, connected_count=0, stop_after_nine=true){
+    if (host < 100) {
+        let base_address = ip_address_with_wildcard.substring(0, ip_address_with_wildcard.length - 2)
+        let ip_address
+        if (host < 10) { ip_address = base_address + "0" + host }
+        else           { ip_address = base_address + host }
+        ping.sys.probe(ip_address, function(isAlive){
+            if (isAlive) {
+                connected_count += 1
+                out(ip_address + " is connected. " +
+                    `<a href="#" title="Insert into the editor,&#013;a definition for the Dexter&#013;at this ip address." onclick="ping_a_dexter_make_dex_def('` + ip_address +
+                    `')"> Insert Dexter definition </a>`)
+            }
+            //else if ((host % 32) == 0) { out("<br/>.") }
+            else {
+                //out(ip_address + " is not connected.", "purple", true)
+                output_is_not_connected_message(ip_address)
+            }
+            if(host == 99) {
+                out("ping scan complete. " + connected_count + " connected host(s) found.")
+                ping_a_dexter_ongoing = false
+            }
+            else if(ping_a_dexter_ongoing){
+                ping_a_dexter_double_wildcard_aux(ip_address_with_wildcard, host + 1, connected_count)
             }
             else {
                 out("ping scan stopped after: " + ip_address + "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + connected_count + " connected host(s) found.")
@@ -217,22 +266,19 @@ function ping_a_dexter(){
     show_window({title: "Ping a Dexter",
                  content: `Test to see if a Dexter or other ip_address<br/>
                            is connected to this computer.<p/>` +
-                           "<i>Type in or select an ip address.</i><br/>" +
-                               "If the address is of the format:<br/>" +
-                               "<b>123.45.6.</b> then addresses <br/>" +
-                               "123.45.6.0 through 123.45.6.255<br/>" +
-                               "will be checked.<p/>" +
-                             "If the address is of the format:<br/>" +
-                             "<b>123.45.6.12*</b> then addresses <br/>" +
-                             "123.45.6.120 through 123.45.6.129<br/>" +
-                             "will be checked." +
+                           "<i>Type in, or select, an ip address.</i><br/>" +
+                             "<b>123.45.6.12*</b> checks 123.45.6.120 => 123.45.6.129<br/>" +
+                             "<b>123.45.6.1**</b> checks 123.45.6.100 => 123.45.6.199<br/>" +
+                             "<b>123.45.6.</b>  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; checks 123.45.6.000 => 123.45.6.255<br/>" +
+                             "<p/>" +
                             make_ping_a_dexter_select() +
                             "<p/><center><input type='button' value='Ping' title='Start pinging indicated ip address(es).'/> " +
                             " <input type='button' value='Cancel' title='Stop an ongoing scan of ip addresses.'/>" +
                             " <input type='button' value='Insert Robot Definition' title='Insert a definiton&#013;for a Dexter robot&#013;with the selected IP address.'/></center>",
                  x:      50,
-                 height: 375,
-                 width:  400,
+                 y:      100, //high enough to show the ip menu in the dialog
+                 height: 275,
+                 width:  480,
                  callback: ping_a_dexter_handler
                 })
 }

@@ -118,9 +118,9 @@ class Kin{
     	
     	//Solving for P1
     	P[1] = Vector.points_to_plane(U[1], U[0], U[4])
-        if(Vector.is_NaN(P[1])){
+        if(Vector.is_NaN_null_or_undefined(P[1])){
         	P[1] = Vector.points_to_plane(U[1], U[0], U[3])
-            if(Vector.is_NaN(P[1])){
+            if(Vector.is_NaN_null_or_undefined(P[1])){
         		dde_error(`Singularity: Toolpoint xyz is on Base axis. [0, 0, z] divides by 0.
             	Try [0, 1e-10, z] if it works use the ouputted joint angles for a move_all_joints() instead.
             	The first joint angle can be changed to any value without affecting the tool point`)
@@ -174,7 +174,7 @@ class Kin{
         
     	//Solving for P2
     	P[2] = Vector.points_to_plane(U[5], U[4], U[3])
-        if(Vector.is_NaN(P[2])){
+        if(Vector.is_NaN_null_or_undefined(P[2])){
         	dde_error("Unknown plane singularity at: " + xyz + ", " + direction + ", " + config + ". Please copy this message and report it as a bug.")
         }
 		
@@ -242,7 +242,7 @@ class Kin{
     		J[4] = Vector.signed_angle(P[2], P[1], V43) + 180
     	}
     
-    	if(Vector.is_NaN(J[2])){
+    	if(Vector.is_NaN_null_or_undefined(J[2])){
         	let thres = 100
         	if(L[0] > thres || L[1] > thres || L[2] > thres || L[3] > thres || L[4] > thres){
             	dde_error("Link lengths are non properly defined: "  
@@ -259,7 +259,7 @@ class Kin{
     } 
     
     static forward_kinematics (joint_angles, dexter_inst_or_workspace_pose = Vector.make_pose()){
-        let J = Convert.deep_copy(joint_angles) //Joint Angles
+        let J = Vector.deep_copy(joint_angles) //Joint Angles
         let U = new Array(5).fill(new Array(3)) //Point Locations
 
         let dexter_inst, workspace_pose
@@ -371,9 +371,9 @@ class Kin{
 
             //Solving for P1
             let P1 = Vector.points_to_plane(U1, base_xyz, U4)
-            if(Vector.is_NaN(P1)){
+            if(Vector.is_NaN_null_or_undefined(P1)){
                 P1 = Vector.points_to_plane(U1, base_xyz, U3)
-                if(Vector.is_NaN(P1)){
+                if(Vector.is_NaN_null_or_undefined(P1)){
                     return false
                 }
             }
@@ -411,7 +411,7 @@ class Kin{
     //Public
     static J_angles_to_config (joint_angles, dexter_inst_or_workspace_pose){
     	let U54_Proj, U3_a, U3_b, dist_a, dist_b
-    	let J = Convert.deep_copy(joint_angles)
+    	let J = Vector.deep_copy(joint_angles)
         let fk = Kin.forward_kinematics(J, dexter_inst_or_workspace_pose)
         let U = fk[0]
         let V = fk[1]
@@ -671,7 +671,7 @@ class Kin{
 	
     //Wrapper function for forward kinematics
     static J_angles_to_xyz(joint_angles, dexter_inst_or_workspace_pose = Vector.make_pose()){
-        let temp_angles = Convert.deep_copy(joint_angles)
+        let temp_angles = Vector.deep_copy(joint_angles)
         let xyzs = Kin.forward_kinematics(temp_angles, dexter_inst_or_workspace_pose)[0]
         //out(xyzs)
         let direction = Vector.normalize(Vector.subtract(xyzs[5], xyzs[4]))
@@ -803,7 +803,7 @@ class Kin{
         let D = [0, 0, 0]
         let T = [0, 0, 0]
         let F = [0, 0, 0]
-        let temp_J_angles = Convert.deep_copy(J_angles)
+        let temp_J_angles = Vector.deep_copy(J_angles)
         base_rot = temp_J_angles[0]
         temp_J_angles[0] = 0
         let fk = Kin.forward_kinematics(temp_J_angles)
@@ -908,14 +908,31 @@ class Kin{
     static make_xyz_dir_config(xyz = [0, 0.5, 0.1], dir = [0, 0, -1], config = [1, 1, 1]){
     	return [xyz, dir, config]
     }
-    
-	static predict_move_dur(J_angles_original, J_angles_destination, robot /*returns time in milliseconds*/){
+
+    /*returns time in milliseconds*/
+    /* this errors if the 2 args are of different length.
+       It also counts joints beyond joint 5, which it shouldn't
+	static predict_move_dur(J_angles_original, J_angles_destination, robot){
         
         //let speed = robot.prop("MAX_SPEED")
         let speed = 30
         let delta = Vector.subtract(J_angles_destination, J_angles_original)
         for(let i = 0; i < delta.length; i++){
         	delta[i] = Math.abs(delta[i])
+        }
+        return Vector.max(delta)/speed
+    }*/
+
+    /*returns time in milliseconds*/
+    static predict_move_dur(J_angles_original, J_angles_destination, robot){
+        //let speed = robot.prop("MAX_SPEED")
+        let speed = 30
+        let angle_length = Math.min(J_angles_original.length, J_angles_destination.length)
+        angle_length = Math.min(angle_length, 5)
+        let delta = []
+        for(let i = 0; i < angle_length; i++){
+            let delta_val = J_angles_destination[i] - J_angles_original[i]
+            delta.push(Math.abs(delta_val))
         }
         return Vector.max(delta)/speed
     }

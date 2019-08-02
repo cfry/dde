@@ -13,14 +13,15 @@ var RobotStatusDialog = class RobotStatusDialog{
         else {
             let robot = (Job.last_job? Job.last_job.robot : Robot.dexter0)
             let content = RobotStatusDialog.make_html_table(robot)
-            let is_cal_display = ((robot.is_calibrated() === null) ? "unknown" : robot.is_calibrated)
+            let cal = robot.is_calibrated()
+            cal = ((cal === null) ? "unknown" : cal)
             show_window({content: content,
                 title:  "<span style='font-size:16px;'>Robot Status of</span> " +
                 RobotStatusDialog.make_names_menu_html(robot) +
                 "<span style='font-size:12px;margin-left:10px;'> Updated: <span id='robot_status_window_time_id'>" + RobotStatusDialog.update_time_string() + "</span></span>" +
                 " <button id='robot_status_run_update_job_button_id' title='Defines and starts a Job&#13; that continually gets the robot status&#13;of the selected robot.&#13;Click again to stop that Job.'" +
                 " onclick='RobotStatusDialog.run_update_job()'>run update job</button> " +
-                "<span style='font-size:14px;'> is_calibrated: <span id='robot_status_is_calibrated_id'>" + is_cal_display + "</span></span>",
+                "<span style='font-size:14px;'> is_calibrated: <span id='robot_status_is_calibrated_id'>" + cal + "</span></span>",
                 width:  890,
                 height: 380
             })

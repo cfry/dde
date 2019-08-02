@@ -179,6 +179,12 @@ function is_non_neg_integer(anything){
 }
 module.exports.is_non_neg_integer = is_non_neg_integer
 
+function is_NaN_null_or_undefined(arg) {
+    return (isNaN(arg) || (arg === null) || (arg === undefined) )
+}
+
+module.exports.is_NaN_null_or_undefined = is_NaN_null_or_undefined
+
 function is_string_a_integer(a_string){
     var pat = /^-?[0-9]+$/;
     if(a_string.match(pat)) {  return true; }
@@ -539,6 +545,7 @@ function similar(arg1, arg2, tolerance=0, tolerance_is_percent=false, arg1_alrea
     //we should be able to conclude that the 2 arrays are similar.
     //All very tricky!
     if(arg1 === arg2) {return true} //handles null case
+    else if (Number.isNaN(arg1) && Number.isNaN(arg2)) { return true } //because undesigned JS has NaN != NaN
     let arg1_type = typeof(arg1)
     if (arg1_type !== typeof(arg2)) { return false }
     //ok now we know their js "types" are the same but beware, null is of type "object"

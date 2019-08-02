@@ -410,7 +410,7 @@ Instruction.labels = [
 "INSTRUCTION_ARG10",  // 15
 "INSTRUCTION_ARG11",  // 16
 "INSTRUCTION_ARG12"   // 17 //used in Socket.js instruction_array_degrees_to_arcseconds_maybe for "T"
-] // and after those come the arguments to the instruction.
+] // and after those come the args to the instruction.
 
 for (let i = 0; i < Instruction.labels.length; i++){
     Instruction[Instruction.labels[i]] = i
@@ -1633,7 +1633,6 @@ Instruction.human_notify = class human_notify extends Instruction{
                   title, width=400, height=400,  background_color="rgb(238, 238, 238)"}={}) {
 
         super()
-        //copy_missing_fields(arguments[0], this) //BUG! doesn't get the default values from above
         this.task=task,
         this.window=window,
         this.output_pane=output_pane,

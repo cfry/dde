@@ -78,7 +78,6 @@ function format_text_for_code(text, code=null){
 //never passed 'dont_print, always prints <hr/> at end whereas regular output never does
 //ui only
 function out_eval_result(text, color="#000000", src){
-    let orig_focus_elt = document.activeElement
     if (text != '"dont_print"'){
         var existing_temp = $("#temp")
         if (existing_temp.length > 0){
@@ -113,7 +112,13 @@ function out_eval_result(text, color="#000000", src){
         append_to_output(text)
     }
     //$('#js_textarea_id').focus() fails silently
-    orig_focus_elt.focus()
+    let orig_focus_elt = document.activeElement
+    if(orig_focus_elt.tagName != "BUTTON"){ //if user clicks eval button, it will be BUTTON
+       //calling focus on a button draws a rect around it, not good.
+       //if user hits return in cmd line, it will be INPUT,
+       //Its not clear that this is worth doing at all.
+        orig_focus_elt.focus()
+    }
     //if(Editor.get_cmd_selection().length > 0) { cmd_input_id.focus() }
     //else { myCodeMirror.focus() }
 }

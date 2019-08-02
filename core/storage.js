@@ -20,7 +20,8 @@ function get_persistent_values_defaults() {
             "top_left_panel_height": 500,
             "top_right_panel_height": 500,
             "animate_ui": true,
-            "last_open_dexter_file_path": "" //doesn't have a dexter: prefix,not robot specific.
+            "last_open_dexter_file_path": "", //doesn't have a dexter: prefix,not robot specific.
+            "kiosk": false
            }
 }
 //if keep_existing is true, don't delete any existing values.

@@ -192,6 +192,7 @@ var Socket = class Socket{
     }
 
     static send(robot_name, oplet_array_or_string){ //can't name a class method and instance method the same thing
+        //onsole.log("Socket.send passed oplet_array_or_string: " + oplet_array_or_string)
         let rob = Robot[robot_name]
        	if(oplet_array_or_string !== Socket.resend_instruction){ //we don't want to convert an array more than once as that would have degreees * 3600 * 3600 ...
        	                                                     //so only to the convert on the first attempt.
@@ -277,6 +278,7 @@ var Socket = class Socket{
     //
     static on_receive(data, robot_name, payload_string_maybe){
         //data.length == 240 data is of type: Uint8Array, all values between 0 and 255 inclusive
+        //onsole.log("Socket.on_receive passed data: " + data)
         let robot_status
         let oplet
         if(Array.isArray(data)) {  //a status array passed in from the simulator

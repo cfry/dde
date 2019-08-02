@@ -5,6 +5,143 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+
+<details class="doc_details"><summary>v 3.4.4, Aug 1, 2019</summary>
+Highlights: Improvements to Vector methods, ping dialog box.
+    New kiosk mode for making end user applications.
+    Tweaks to Recording.
+    Streamline of Output pane header. (See new menu items
+    File/Auto Save and Jobs/Eval&Start Job.)
+    Simulation of Dexter now moves in an animation fashion.
+    Some relevant numbers displayed in the Simulation pane.
+
+<ul>
+    <li> New "kiosk" boolean property in dde_persistent.json.
+        controls DDE kiosk mode.</li>
+
+    <li> New RefMan/Window System/Making Applications
+        describes show_window restrictions and kiosk mode
+        for making and running focused apps in DDE.</li>
+
+    <li> During recording, the printing of the angles
+        to the output pane has been removed to speed up processing.</li>
+
+    <li> Recording: When clicking on the "delete" button,
+        if there is no job, prints a warning in the output pane.
+        If there is a job that is starting, running, waiting or or
+        suspended, it is stopped, before being given its
+        new do_list.
+        This prevents an error when attempting to play a job
+        right after deleting some instructions from it.</li>
+
+
+    <li> Recording: When playing back, if
+        <code>Job.run_one</code> is running, stop it to avoid conflict.</li>
+
+    <li> Ping dialog box can now accept
+        ip addresses of the format 123.456.789.1**
+        i.e. two stars on the end to check
+        123.456.789.100 through  123.456.789.199</li>
+
+    <li> Ping dialog box help and possible ip address menu options improved.</li>
+
+    <li> Fixed 2 misspellings of technique in the User Guide.</li>
+
+    <li> The <button>Eval&Start</button> button in the Output pane header has been removed.
+        The core functionality of this is now available
+        in the new Job Menu item "Eval&Start Job".</li>
+
+    <li> The <button>Start Job</button> button in the Output pane header has
+        been replace by the new Job Menu item "Eval&Start Job".
+        The functionality is similar to, but slightly improved from,
+        the old "Start Job" button.</li>
+
+    <li> The "Start Job" section in the User Guide has been
+        modified to match the new Job Menu item "Eval&Start Job".
+        Choosing that menu item causes the doc pane to scroll to
+        this new documentation.</li>
+
+    <li> The JS & ROS radio buttons have been removed from the
+        output pane header. Now the command line input
+        is exclusively for JS.
+        We may provide better support for ROS at a later date.</li>
+
+    <li> The save checkbox in the Output pane header has been
+        moved to the File menu.</li>
+
+    <li> Fixed bug when Output pane header checkbox "code" is checked
+        and you eval a Job definition.</li>
+
+    <li> Eliminated the annoying blue rect around buttons:
+        <button>Eval</button>, <button>Undef</button>, <button>Find</button>, when you click on them.</li>
+
+    <li> Fixed "is_calibrated" displayed value in the robot_status dialog box.</li>
+
+    <li> Improved File menu "select expr" item tooltip.</li>
+
+    <li> Simulation of Dexter now moves in an animation fashion,
+        not just immediately to new position.
+        New "number line" in sim pane shows
+        x,y,z and J1 through 5 at animation rate of 30 frames per second.</li>
+
+    <li> <code>Vector.multiply</code> robustified implementation with
+        better arg checking and eariler erroring.'</li>
+
+    <li> <code>Vector</code> methods replaced <code>arguments</code>
+         with <code>...args</code></li>
+
+    <li> <code>Vector</code> methods  replaced out("Error...") with dde_error("...")</li>
+
+    <li> <code>Vector.concatinate</code>  now takes a 4th arg of ...args
+        and body adjustments so that it uses args instead of arguments.
+        We decided to leave in the misspelling of
+        "concatinate" (properly "concatenate")
+        for backwards compatibility.
+        This won't be called by high-level users.</li>
+
+    <li> <code>Convert.deep_copy</code> has been removed.
+        Use Vector.deep_copy instead.</li>
+
+    <li> <code>Vector.deep_copy</code> has a new implementation of
+        return JSON.parse(JSON.stringify(arg))
+        This allows us to copy to much deeper depths
+        and more data types.
+        But it converts <code>undefined</code> and <code>NaN</code> to null.</li>
+
+    <li> Extended <code>Vector.is_equal</code>,
+        <code>Vector.round</code> and <code>Vector.matrix_dimensions</code>
+        to be able to accept null and arrays of null.
+        New utility method <code>Vector.is_NaN_null_or_undefined</code>
+        and utils.js global function <code>is_NaN_null_or_undefined</code>
+        play supporting roles.
+        This fixed a bug in <code>Kin.xyz_to_J_angles</code>.</li>
+
+    <li> new TestSuites for <code>Vector.is_equal</code>,
+        <code>Vector.matrix_dimensions</code>, <code>Vector.round</code></li>
+
+    <li> Improved error messages for
+        <code>Vector.subtract</code>, <code>Vector.multiply</code>,
+        <code>Vector.divide</code>, <code>Vector.average</code>.</li>
+
+    <li> <code>Vector.make_pose</code> now doesn't rely on <code>Convert</code> methods.</li>
+
+    <li> If you attempt to make a <code>Dexter.move_all_joints</code> (or friends)
+        instruction with more than 7 angles, you get a warning.</li>
+
+    <li> <code>similar(NaN, NaN)</code> now returns true.
+        This is useful because in JS, <code>NaN != NaN</code>.
+        (I don't understand why.)
+        This extension to similar also makes it
+        possible to test for <code>NaN</code> in TestSuites.</li>
+
+    <li> <code>Kin.predict_move_dur</code> new implementation protects against
+        2 args of different lengths and
+        only counts at most 5 joints.
+        New small TestSuite for Kin.predict_move_dur</li>
+
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.4.3, Jul 19, 2019</summary>
 Highlights: Improvements to Recording, including UI and extensive documentation.
              show_window minor improvements.

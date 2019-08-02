@@ -2,7 +2,6 @@ function to_source_code({value, indent="", function_names=false, newObject_paths
                         job_names=false, robot_names=false,
                         depth_limit=Infinity, depth=0, job_orig_args=false,
                         one_line_per_array_elt=false, array_elt_max_chars=60} = {}){
-        //console.log("top of to_source_code with value: " + value + " arguments: " + arguments)
         //console.log("Object.isNewObject: " + Object.isNewObject)
         if (!((typeof(arguments[0]) == "object") && arguments[0].hasOwnProperty("value"))){
             value = arguments[0] //so we can just do calls of to_source_code("stuf")

@@ -212,6 +212,10 @@
                                         <li id="insert_file_id"  title="Insert the content of a file&#013;into the editor at the cursor,&#013;replacing the selection if any.">Insert file...</li>
                                         <li id="save_id"    title="Save the current file.">Save &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ctrl/&#8984;s</li>
                                         <li id="save_as_id" title="Save the current editor content under a new name.&#013;The old file remains unchanged.&#013;It will remain on the list of files.">Save As...</li>
+                                        <li title="Automatically save the edited file&#013;when you click 'Eval',&#013;and when you edit another file.">
+                                            <div style='float: left; margin-right: 5px;' id='save_on_eval_id'></div>
+                                            Auto Save
+                                        </li>
                                         <li id="remove_id"  title="Remove the edited file from the file list and editor.&#013;Does not delete the file from disk.">Remove</li>
                                         <li id="open_from_dexter_id"  style="width:200px;" title="Edit a file on a Dexter.">Open from Dexter...</li>
                                         <li id="save_to_dexter_as_id" style="width:200px;" title="Save the current editor content&#013;under a new name on a Dexter.&#013;The old file remains unchanged.&#013;It will remain on the list of files.">Save to Dexter as...</li>
@@ -230,15 +234,15 @@
 
                                         <li id="fold_all_id"   title="Compresses each multi-line statement into just its top line.">Fold All</li>
                                         <li id="unfold_all_id" title="Uncompress all compressed statements.">Unfold All</li>
-                                        <li id="select_expr_id" title="Select JS expressions, by&#013;Alt-clicking on their&#013;start, middle or end.&#013;On Mac: Option-click">Select expr alt-click</li>
+                                        <li id="select_expr_id" title="Select the JS expression containing cursor and &#013;put it in the Make Instruction dialog box.&#013;Shortcut: Alt-click (on Mac: Option-click)&#013;on expression start, middle or end.">Select expr alt-click</li>
                                         <li id="select_all_id" title="Select all the text in the Editor.">Select All Ctrl/&#8984;A</li>
                                         <li id="indent_selection_id" title="Indent the selected code in the Editor.">Indent Sel shift-tab</li>
 
-                                        <li id="animate_ui_id" title="If checked, some user interface operations&#013will change the display incrementally.&#013Unchecked is faster.">
+                                        <li title="If checked, some user interface operations&#013will change the display incrementally.&#013Unchecked is faster.">
                                             <div style='float: left; margin-right: 5px;' id='animate_ui_checkbox_id'></div>
                                             Animate UI
                                         </li>
-                                        <li>Right click menu in JS pane has more operations.</li>
+                                        <li>Right click menu in Editor pane has more operations.</li>
                                     </ul>
                                 </li>
                                 <li title="Choose these items to learn JavaScript.&#013;Using menu item order recommended." style="display:inline-block;padding-left:3px;padding-right:0px;">Learn JS&#9660;
@@ -603,6 +607,8 @@
                                             Real time sim
                                         </li>-->
                                         <li id="insert_new_job_id" title="Insert into the editor, an empty new Job.">New Job Ctrl/&#8984;j</li>
+                                        <li id="eval_and_start_job_id" title="Run instructions based on selection and cursor position.&#013;Choosing this item scrolls to documentation on it.">Eval&Start Job</li>
+
                                         <li> Insert Example
                                             <ul>
                                                 <li id="insert_job_example0_id" title="Insert into the editor, a 1 instruction Job definition.">0. Simplest</li>
@@ -682,12 +688,15 @@
                         <span id="output_pane_help_id" class='pane_header' title="Click for help."><u>Output</u></span>
                         <button id="eval_id" style="vertical-align:middle;" title="Evaluate (run) the selected JS in any pane&#013;or, if none, all the JavaScript in the Editor pane.&#013;Can also be invoked by typing &#8984;e">Eval</button>
                         <button id="step_button_id" style="vertical-align:middle;" title="Step through the evaluation of the selected code.">Step</button>
-                        <div style="vertical-align:middle;display:inline-block;margin:0px;padding:0px;">
-                            <div title="Automatically save the edited file&#013;when you click 'Eval',&#013;and when you edit another file.">                               <input id="save_on_eval_id" type="checkbox" style="padding_bottom:15px;"/> <div style="padding:0px;margin:0px;display:inline-block;font-size:10px; vertical-align:0%;">Save</div></div>
-                            <div title="When checked, 'out' function calls, by default, format the output string as code." style="vertical-align:middle;display:inline-block;"><input id="format_as_code_id" type="checkbox" style="padding_bottom:15px;"/> <div style="padding:0px;margin:0px;display:inline-block;font-size:10px; line-height:10px;">Code</div></div>
-                        </div>
+                        <!--<div style="vertical-align:middle;display:inline-block;margin:0px;padding:0px;"> -->
+                            <!--<div title="Automatically save the edited file&#013;when you click 'Eval',&#013;and when you edit another file.">                               <input id="save_on_eval_id" type="checkbox" style="padding_bottom:15px;"/> <div style="padding:0px;margin:0px;display:inline-block;font-size:10px; vertical-align:0%;">Save</div></div>-->
+                            <div title="When checked, 'out' function calls, by default, format the output string as code." style="vertical-align:middle;display:inline-block;">
+                                <div style="padding:0px;margin:0px;font-size:10px; line-height:10px;">Code</div>
+                                <input id="format_as_code_id" type="checkbox" style="padding_bottom:15px;"/>
+                            </div>
+                        <!--</div> -->
                         <button id="clear_output_id" title="Remove all previously output text.">Clear</button>
-                        <div id="ros_menu_id" class="dde_menu" style="display:none;margin-left:10px;vertical-align: middle;">
+                        <!--<div id="ros_menu_id" class="dde_menu" style="display:none;margin-left:10px;vertical-align: middle;">
                             <ul style="display:inline-block;padding:0;margin-top:0px;">
                                 <li style="display:inline-block;">ROS&#9660;
                                     <ul>
@@ -719,23 +728,27 @@
                                     </ul>
                                 </li>
                             </ul>
-                        </div>
-                        <div style="display:inline-block;font-size:10px;margin:0px;padding:0px;height:16px;vertical-align:top;">
+                        </div>-->
+                        <!--<div style="display:inline-block;font-size:10px;margin:0px;padding:0px;height:16px;vertical-align:top;">
                               <input id="js_radio_button_id"  type="radio" name="js_or_ros" value="js" checked="checked" style="margin-top:0px;padding-top:0px;"/>JS<br/>
                               <input id="ros_radio_button_id" type="radio" name="js_or_ros" value="ros"/>ROS
-                        </div>
+                        </div>-->
                         <input id="cmd_input_id"
                                placeholder="Type in code & hit Enter key to eval"
                                title="Type in code & hit Enter key to eval.&#13;Up arrow for previous cmd.&#13;Down arrow for next cmd&#13;or, at end, clear cmd line."
                                style="font-size:14px;width:500px;"/>
                         <br/>
                         <div style="display:inline-block;width:100%;">
-                            <button id="eval_and_start_button_id" style="vertical-align:top;" title="Eval the selected JS.&#013;With the result, call its 'start' method or, &#013;if its a do_list item, run it in a Job on dexter0.">Eval&Start</button>
+                            <!--<button id="eval_and_start_button_id" style="vertical-align:top;" title="Eval the selected JS.&#013;With the result, call its 'start' method or, &#013;if its a do_list item, run it in a Job on dexter0.">Eval&Start</button>
                             <button id="start_job_id" style="vertical-align:top;" title='Eval job that cursor is in and start it.&#13;Click on "Output" pane title for doc.'>Start Job</button>&nbsp;
+                            -->
                             <!-- <button id="stop_all_jobs_id" title="Stop all of the currently running jobs."><b>X</b></button></span> -->
                             <img id="stop_all_jobs_id" src="stop_sign.png" title="Stop all of the currently running jobs." style="vertical-align:top;"/>
                             <button id="undefine_jobs_id" style="vertical-align:top;" title="Undefine all jobs that are not running.">Undef</button>
-                            <span style="vertical-align:top; margin-right:0px; padding-right:0px;">Jobs:</span>
+                            <!--<div style="display:inline-block;vertical-align:top;">J<br/>o<br/>b<br/>s</div>-->
+                            <div style="display:inline-block;margin:0px;padding:0px;font-size:11px;vertical-align:46px;transform:rotate(-90deg);">Jobs</div>
+                            <!--<span style="vertical-align:top; margin-right:0px; padding-right:0px;">Jobs:</span>-->
+
                             <div id="jobs_button_bar_id" style="display:inline-block; vertical-align:100%; height: 50px; width:calc(100% - 320px); overflow-x:auto; padding:0px;margin:0px;">
                             </div>
                         </div>

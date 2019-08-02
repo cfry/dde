@@ -442,9 +442,8 @@ var MiRecord = class MiRecord {
                                     let loc_of_new_instr = job_instance.orig_args.do_list.length - 1 //will be at least 0 due to the above push
                                     MiRecord.set_max_loc()
                                     MiRecord.set_play_loc(loc_of_new_instr) //because we want to SEE the instr just recorded, not one beyond it
-                                    out("Recording Dexter joint angles: " + angles,
-                                         "#95444a", //brown,
-                                         true)
+                                    //out("Recording Dexter joint angles: " + angles, "#95444a", //brown,
+                                    //     true)
                                     return job_instance.robot.get_robot_status() //immediately()
                                 }
                              }),
@@ -584,6 +583,11 @@ var MiRecord = class MiRecord {
     //new semantics: sets MiState.job_instance to the job indicated in the MI dialog, and returns true,
     //else prints warnings on what to do and returns false
     static prepare_for_play(){
+        if(Job.run_one && ["starting", "running", "suspended", "waiting"].includes(Job.run_one.status_code)){
+            Job.run_one.stop_for_reason("interrupted", "Play button pressed so stop run_one job first.")
+            setTimeout(function() { MiRecord.prepare_for_play()},  //MiRecord.prepare_for_play has to be wrapped in a fn because otherwise it gets called not with MiRecord as "this".
+                       100)
+        }
         if(!this.is_job_in_mi_dialog()) {
             warning("There is no Job in the Make Instruction dialog to play.<br/>" +
                 "Pick one on the 'Replace Arg Values' menu,<br/>" +
@@ -1201,7 +1205,17 @@ var MiRecord = class MiRecord {
     }
 
     static delete_instructions(){
-        let do_list = MiState.get_do_list_smart()
+        if(!MiState.job_instance) {
+            warning("No job defined to delete instructions from.")
+            return
+        }
+        if(["starting", "running", "suspended", "waiting"].includes(MiState.job_instance.status_code)){
+            MiState.job_instance.stop_for_reason("interrupted", "Delete button pressed to change do_list.")
+            MiState.job_instance.do_list = undefined
+            setTimeout(function() {MiRecord.delete_instructions()} //must wrap MiRecord.delete_instructions in a fn to have "this" be correct when its called.
+                      , 200)
+        }
+        let do_list = MiState.job_instance.orig_args.do_list //get_do_list_smart()
         if(!do_list || (do_list.length == 0)) {
             let do_list_elt_id = MakeInstruction.arg_name_to_dom_elt_id("do_list")
             if(!do_list_elt_id) {

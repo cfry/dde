@@ -8,6 +8,7 @@ class Convert{
 	//Private
     //This is used to prevent functions from altering outside arrays
     static deep_copy(arg){
+        //return JSON.parse(JSON.stringify(arg))
     	if (typeof(arg) == "number"){
         	return arg
         }else{

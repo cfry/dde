@@ -18,14 +18,14 @@ new TestSuite("Coordinate Object System",
 
     ["J3.get_position()", "[0, 0, 20]"],
     ["J3.get_orientation()", "[[1, 0, 0], [0, 1, 0], [0, 0, 1]]"],
-    ["J3.get_orientation(cube)", "[ [1, 0, 0], [0, 0.7071067811865476, -0.7071067811865475], [0, 0.7071067811865475, 0.7071067811865476]]"],
+    ["J3.get_orientation(cube)", "[ [1, 0, 0], [0, 0.7071067811865476, 0.7071067811865475], [0, -0.7071067811865475, 0.7071067811865476]]"],
 
     ["J3.set_pose([[1, 0, 0, 10], [0, 1, 0, 10],[0, 0, 1, 10],[0, 0, 0, 1]])", "[[1, 0, 0, 10], [0, 1, 0, 10], [0, 0, 1, 10], [0, 0, 0, 1]]"],
     ["J3.set_pose([[1, 0, 0, 10], [0, 1, 0, 10],[0, 0, 1, 10],[0, 0, 0, 1]], table)   ", "[[1, 0, 0, 0], [0, 1, 0, 10], [0, 0, 1, -10], [0, 0, 0, 1]]"],
     ["J3.set_position([10, 10, 10])", "[[1, 0, 0, 10], [0, 1, 0, 10], [0, 0, 1, 10], [0, 0, 0, 1]]"],
     ["J3.set_position([10, 10, 10], table)", "[[1, 0, 0, 0], [0, 1, 0, 10], [0, 0, 1, -10], [0, 0, 0, 1]]"],
     ["J3.set_orientation([[-1, 0, 0], [0, 0, 1], [0, 0, 1]])", "[[-1, 0, 0, 0], [0, 0, 1, 10], [0, 0, 1, -10], [0, 0, 0, 1]]"],
-    ["J3.set_orientation([[-1, 0, 0], [0, 0, 1], [0, 0, 1]], cube)", "[ [-1, 0, 0, 0], [0, 0, 1.414213562373095, 10], [0, 0, 1.1102230246251565e-16, -10], [0, 0, 0, 1]]"]
+    ["J3.set_orientation([[-1, 0, 0], [0, 0, 1], [0, 0, 1]], cube)", "[ [-1, 0, 0, 0], [0, 0, 1.1102230246251565e-16, 10], [0, 0,  1.414213562373095, -10], [0, 0, 0, 1]]"]
 )
 
 //From Kin.js
@@ -79,7 +79,9 @@ new TestSuite("Vector Library",
     ["Vector.normalize([1, 1, 0])", "[0.7071067811865475, 0.7071067811865475, 0]"],
     ["Vector.dot([1, 2, 3], [4, 5, 6])", "32"],
     ["Vector.cross([1, 2, 3], [4, 5, 6])", "[-3, 6, -3]"],
-    ["Vector.transpose(Vector.transpose([1, 2, 3, 4, 5]))", "[1, 2, 3, 4, 5]"],
+    ["Vector.transpose(Vector.transpose([1, 2, 3, 4, 5]))", "[1, 2, 3, 4, 5]"]
+)
+new TestSuite("Vector.is_equal",
     ["Vector.is_equal([1, 2, 3], [1, 2, 3.01])", "false"],
     ['Vector.is_equal([1, 2, 3], [1, 2, 3.01], 1, "decimal_places")', "true"],
     ['Vector.is_equal([1, 2, 3], [1, 2, 3.01], .005, "absolute")', "false"],
@@ -88,10 +90,36 @@ new TestSuite("Vector Library",
     ['Vector.is_equal([1, 2, 3], [1, 2, 3.01], .1, "percent_difference")', "true"],
     ['Vector.is_equal([1, 2, 3], [1, 2, 3.01], .001, "percent_difference")', "false"],
     ['Vector.is_equal([1, 1, 1], [2, 2, 2], 1, "absolute")', "true"],
-    ['Vector.is_equal([1, 1, 1], [2, 2, 2], 1, "magnitude")', "false"]
+    ['Vector.is_equal([1, 1, 1], [2, 2, 2], 1, "magnitude")', "false"],
+    ['Vector.is_equal(null, null)', "true"],
+    ['Vector.is_equal(null, 123)',  "false"],
+    ['Vector.is_equal(undefined, null)', "true"],
+    ['Vector.is_equal([null], [null])',  "true"]
 )
 
+new TestSuite("Vector.round",
+    ["Vector.round(7)", "7"],
+    ["Vector.round(5.4)", "5.4"],
+    ["Vector.round(6.66)", "6.7"],
+    ["Vector.round(8.44)", "8.4"],
+    ["Vector.round([2.22, 7.77])", "[2.2, 7.8]"],
+    ["Vector.round(6.666, 2)", "6.67"],
+    ["Vector.round(NaN)", "NaN"],
+    ["Vector.round([NaN])", "[null]"],
+    ["Vector.round([NaN, null, undefined, 82])", "[null, null, null, 82]"],
+    ["Vector.round([-143.99, -132.44])", "[-144, -132.4]"]
+)
 
+new TestSuite("Vector.matrix_dimensions",
+    ["Vector.matrix_dimensions(3)", "[1, 0]"],
+    ["Vector.matrix_dimensions([3])", "[1, 1]"],
+    ["Vector.matrix_dimensions(null)", "[1, 0]"],
+    ["Vector.matrix_dimensions([4])", "[1, 1]"],
+    ["Vector.matrix_dimensions([null])", "[1, 1]"],
+    ["Vector.matrix_dimensions([null, null])", "[1, 2]"],
+    ["Vector.matrix_dimensions([5, 6])", "[1, 2]"],
+    ["Vector.matrix_dimensions([[null, null]])", "[1, 2]"]
+)
 
 new TestSuite("Vector Library - Matrix Math",
     ["Vector.matrix_divide([[1, 0, 0, 10], [0, 1, 0, 20], [0, 0, 1, 30], [0, 0, 0,  1]], [[1, 0, 0, 100], [0, 1, 0, 200], [0, 0, 1, 300], [0, 0, 0,  1]])", "[[1, 0, 0, -90], [0, 1, 0, -180], [0, 0, 1, -270], [0, 0, 0, 1]]"],
@@ -118,7 +146,7 @@ new TestSuite("Vector Library - Matrix Math",
     ["Vector.properly_define_point([[10], [20], [30]])", "[[10], [20], [30], [1]]"],
     ["Vector.properly_define_point([[10, 20, 30], [10, 20, 30], [10, 20, 30]])", "[[10, 10, 10], [20, 20, 20], [30, 30, 30], [1, 1, 1]]"],
     ["Vector.make_pose()", "[[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]"],
-    ["Vector.make_pose([10, 20, 30], [45, 0, 0])", "[ [0.7071067811865476, 0.7071067811865475, 0, 10], [-0.7071067811865475, 0.7071067811865476, 0, 20], [0, 0, 1, 30], [0, 0, 0, 1]]"],
+    ["Vector.make_pose([10, 20, 30], [45, 0, 0])", "[ [0.7071067811865476, -0.7071067811865475, 0, 10], [0.7071067811865475, 0.7071067811865476, 0, 20], [0, 0, 1, 30], [0, 0, 0, 1]]"],
     ["Vector.identity_matrix(4)", "[[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]"],
     ["Vector.identity_matrix(2)", "[[1, 0], [0, 1]]"],
     ["Vector.rotate_DCM(Vector.identity_matrix(3), [1, 0, 0], 90)", "[[1, 0, 0], [0, 0, -1], [0, 1, 0]]"],

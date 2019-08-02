@@ -441,6 +441,7 @@ class Job{
     //action for the Start Job button
     static start_job_menu_item_action () {
         var full_src               = Editor.get_javascript()
+        var selected_src           = Editor.get_javascript(true)
         var start_cursor_pos       = Editor.selection_start()
         var end_cursor_pos         = Editor.selection_end()
         var text_just_after_cursor = full_src.substring(start_cursor_pos, start_cursor_pos + 7)
@@ -454,23 +455,27 @@ class Job{
                //so the user is after the selection, not the preceding job.
         }
         if (start_of_job == null) {
-            warning("There's no Job definition surrounding the cursor.")
+            //warning("There's no Job definition surrounding the cursor.")
             var selection = Editor.get_javascript(true).trim()
             //if (selection.endsWith(",")) { selection = selection.substring(0, selection.length - 1) } //ok to have trailing commas in array new JS
             if (selection.length > 0){
-                if (selection.startsWith("[") && selection.endsWith("]")) {}
-                else {
+                //if (selection.startsWith("[") && selection.endsWith("]")) {} //perhaps user selected the whole do_list. but
+                //bue we can also have a single instr that can be an array.
+                //since it's ok for a job to have an extra set of parens wrapped around its do_list,
+                //just go ahead and do it.
+                //else {
+                //plus
                     selection = "[" + selection + "]"
                     start_cursor_pos = start_cursor_pos - 1
-                }
+                //}
                 var eval2_result = eval_js_part2(selection)
                 if (eval2_result.error_type) {} //got an error but error message should be displayed in output pane automatmically
                 else if (Array.isArray(eval2_result.value)){ //got a do_list!
                    if (Job.j0 && Job.j0.is_active()) {
                         Job.j0.stop_for_reason("interrupted", "Start Job menu action stopped job.")
                         setTimeout(function() {
-                                       Job.init_show_instructions_for_insts_only_and_start(start_cursor_pos, end_cursor_pos, eval2_result.value, selection)}
-                        (Job.j0.inter_do_item_dur * 1000 * 2) + 10) //convert from seconds to milliseconds
+                                       Job.init_show_instructions_for_insts_only_and_start(start_cursor_pos, end_cursor_pos, eval2_result.value, selection)},
+                                    (Job.j0.inter_do_item_dur * 1000 * 2) + 10) //convert from seconds to milliseconds
                     }
                     else {
                         Job.init_show_instructions_for_insts_only_and_start(start_cursor_pos, end_cursor_pos, eval2_result.value, selection)
@@ -481,22 +486,31 @@ class Job{
                 }
             }
             else {
-                warning("When choosing the Start menu item with no surrounding Job definition<br/>" +
+                warning("When choosing the Eval&Start Job menu item<br/>" +
+                        "with no surrounding Job definition,<br/>" +
                         "you must select exactly those instructions you want to run.")
             }
         }
-        else {
+        else { //cursor is in a job def.
             Editor.select_javascript(start_of_job)
-            let [start_pos, end_pos] = Editor.select_call()
-            if (end_pos){ //returns true if it manages to select the call.
+            let [job_start_pos, job_end_pos] = Editor.select_call()
+            if (job_end_pos){ //returns true if it manages to select the call.
                 //eval_button_action()
-                var job_src =  full_src.substring(start_pos, end_pos)    //Editor.get_javascript(true)
+                var job_src = full_src.substring(job_start_pos, job_end_pos)    //Editor.get_javascript(true)
                 const eval2_result = eval_js_part2(job_src)
                 if (eval2_result.error_type) { } //got an error but error message should be displayed in Output pane automatically
                 else {
-                    const job_instance = eval2_result.value
-                    const [pc, ending_pc]  = job_instance.init_show_instructions(start_cursor_pos, end_cursor_pos, start_of_job, job_src)
-                    job_instance.start({show_instructions: true, program_counter: pc, ending_program_counter: ending_pc})
+                    let job_instance    = eval2_result.value
+                    if(selected_src.length > 0) {
+                        let do_list = eval_js_part2("[" + selected_src + "]") //even if we only have one instr, this is still correct, esp if that one starts with "function().
+                           //if this wraps an extra layer of array around the selected_src, that will still work pretty well.
+                        if (eval2_result.error_type) { } //got an error but error message should already be displayed
+                        job_instance.start({do_list: do_list.value})
+                    }
+                    else { //no seletection, so just start job at do_lisrt item where the cursor is.
+                        const [pc, ending_pc]  = job_instance.init_show_instructions(start_cursor_pos, end_cursor_pos, start_of_job, job_src)
+                        job_instance.start({show_instructions: true, program_counter: pc, ending_program_counter: ending_pc})
+                    }
                 }
             }
             else { warning("Ill-formed Job definition surrounding the cursor.") }
@@ -599,7 +613,7 @@ class Job{
             const job_name = this.name
             const the_id = this.get_job_button_id()
 
-            const the_button_html = '<button style="margin-left:10px; vertical-align:50%;" id="' + the_id + '">'+ job_name + '</button>'
+            const the_button_html = '<button style="margin-left:0px; vertical-align:50%;" id="' + the_id + '">'+ job_name + '</button>'
             //$("#jobs_button_bar_id").append(the_html)
             let wrapper = document.createElement('div');
             wrapper.id = this.get_job_button_wrapper_id()
@@ -607,7 +621,7 @@ class Job{
             let the_job = this
             let close_on_click_fn_src = "Job." + job_name + ".undefine_job()"
             let inspect_on_click_fn_src =  "inspect(Job." + job_name + ")"
-            wrapper.innerHTML = the_button_html + "<div style='display:inline-block;'><span style='cursor:pointer;' onclick='" + close_on_click_fn_src + "' title='Undefine this job'>X</span><br/><span style='cursor:pointer; padding-left:2px;' onclick='" + inspect_on_click_fn_src + "' title='Inspect this job'>I</span></div>"
+            wrapper.innerHTML = the_button_html + "<div style='display:inline-block;margin-right:10px;'><span style='cursor:pointer;' onclick='" + close_on_click_fn_src + "' title='Undefine this job'>X</span><br/><span style='cursor:pointer; padding-left:2px;' onclick='" + inspect_on_click_fn_src + "' title='Inspect this job'>I</span></div>"
             jobs_button_bar_id.append(wrapper) //.firstChild)
 
             but_elt = window[the_id]
@@ -1405,7 +1419,7 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
             this.color_job_button()
             this.set_up_next_do(0)
         }
-        else if (ending_pc < this.do_list.length) { //we're ending in the middle of the ob. Don't do the final g cmd, as tt confusing
+        else if (ending_pc < this.do_list.length) { //we're ending in the middle of the ob. Don't do the final g cmd, as too confusing
             this.stop_reason = "Stopped early due to ending_program_counter of: " + this.ending_program_counter
             this.status_code = "completed"
             this.set_up_next_do(0)

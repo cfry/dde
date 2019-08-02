@@ -1682,7 +1682,7 @@ Dexter.joints_out_of_range = function(J_angles, dexter_inst){
 //this always returns an array, and it is an array of angles (or nested array of 1 number for rel angle.
 //array will be between 1 and  7 long inclusive.
 //elts can be number or NaN
-Dexter.convert_maj_angles = function(args_array){
+Dexter.convert_maj_angles = function(args_array, instruction_name=""){
       let result
       if(args_array.length == 1){ //user is only setting J1.
           let first_elt = args_array[0]
@@ -1706,43 +1706,48 @@ Dexter.convert_maj_angles = function(args_array){
                 result.pop()
             }
        }
+       if (result.length > 7){
+          warning("You are creating a " + instruction_name + " instruction with more than 7 angles:<br/>" +
+                   args_array + "<br/>" +
+                  "Usually 7 is the maximum.")
+       }
        return result
 }
 
 Dexter.prototype.move_all_joints = function(...array_of_angles) {
-    let array_to_use = Dexter.convert_maj_angles(array_of_angles)
+    let array_to_use = Dexter.convert_maj_angles(array_of_angles, "move_all_joints")
     return new Instruction.Dexter.move_all_joints(array_to_use, this)
 }
 
 Dexter.move_all_joints = function(...array_of_angles){
     let robot
     if (last(array_of_angles) instanceof Dexter) {robot = pop(array_of_angles)}
-    let array_to_use = Dexter.convert_maj_angles(array_of_angles)
+    let array_to_use = Dexter.convert_maj_angles(array_of_angles, "move_all_joints")
     return new Instruction.Dexter.move_all_joints(array_to_use, robot)
 }
 
 //the same as move_all_joints but generates a "P" oplet
 
 Dexter.prototype.pid_move_all_joints = function(...array_of_angles) {
-    let array_to_use = Dexter.convert_maj_angles(array_of_angles)
+    let array_to_use = Dexter.convert_maj_angles(array_of_angles, "pid_move_all_joints")
     return new Instruction.Dexter.pid_move_all_joints(array_to_use, this)
 }
 
 Dexter.pid_move_all_joints = function(...array_of_angles){
     let robot
     if (last(array_of_angles) instanceof Dexter) {robot = pop(array_of_angles)}
-    let array_to_use = Dexter.convert_maj_angles(array_of_angles)
+    let array_to_use = Dexter.convert_maj_angles(array_of_angles, "pid_move_all_joints")
     return new Instruction.Dexter.pid_move_all_joints(array_to_use, robot)
 }
 
 Dexter.prototype.move_all_joints_relative = function(...array_of_angles) {
-    let array_to_use = Dexter.convert_maj_angles(array_of_angles)
+    let array_to_use = Dexter.convert_maj_angles(array_of_angles, "move_all_joints_relative")
     return new Instruction.Dexter.move_all_joints_relative(array_to_use, this)
 }
 Dexter.move_all_joints_relative = function(...delta_angles){
     let robot
     if (last(delta_angles) instanceof Dexter) {robot = pop(delta_angles)}
-    let array_to_use = Dexter.convert_maj_angles(delta_angles)
+    let array_to_use = Dexter.convert_maj_angles(delta_angles, "move_all_joints_relative")
     return new Instruction.Dexter.move_all_joints_relative(array_to_use, robot)
 }
 

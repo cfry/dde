@@ -265,9 +265,9 @@ var DXF = new function(){
 	this.connect_fill = function(fill_obj, perimeter_obj, tool_diameter){
 		let perim = perimeter_obj
     	let fill = fill_obj
-    	let line_list = Convert.deep_copy(fill_obj.lines)
-    	let perim_idxs_list = Convert.deep_copy(fill_obj.perim_idxs)
-    	let fill_idxs_list = Convert.deep_copy(fill_obj.fill_idxs)
+    	let line_list = Vector.deep_copy(fill_obj.lines)
+    	let perim_idxs_list = Vector.deep_copy(fill_obj.perim_idxs)
+    	let fill_idxs_list = Vector.deep_copy(fill_obj.fill_idxs)
     	let new_lines = []
     	let new_perim_idxs = []
     	let new_fill_idxs = []
@@ -809,9 +809,9 @@ function find_intersections(object, point_1, point_2){
 function connect_fill(fill_obj, perimeter_obj, tool_diameter){
 	let perim = perimeter_obj
     let fill = fill_obj
-    let line_list = Convert.deep_copy(fill_obj.lines)
-    let perim_idxs_list = Convert.deep_copy(fill_obj.perim_idxs)
-    let fill_idxs_list = Convert.deep_copy(fill_obj.fill_idxs)
+    let line_list = Vector.deep_copy(fill_obj.lines)
+    let perim_idxs_list = Vector.deep_copy(fill_obj.perim_idxs)
+    let fill_idxs_list = Vector.deep_copy(fill_obj.fill_idxs)
     let new_lines = []
     let new_perim_idxs = []
     let new_fill_idxs = []

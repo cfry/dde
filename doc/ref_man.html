@@ -7715,20 +7715,111 @@ document.addEventListener("click", function(e){
             Additional details</a>
     </details>
 
+    <details class="doc_details"><summary>Making Applications</summary>
+    DDE is a <i>development</i> environment tailored to making it easy
+    to write Dexter Jobs. But it can also <i>run</i> those Jobs
+    as well as provide Graphical User Interfaces (GUIs) to those Jobs
+    (or other JavaScript code) so that complex operations need
+    not be invoked or controlled with code, but rather can be
+    done with mouse clicks like more conventional apps.
+    <p></p>
+    <a href="#" onclick="open_doc(show_window_doc_id)">show_window</a>
+    lets you build complex dialog boxes with lots
+    of different widgets, and makes it easy to extract
+    user settings from the dialog boxes and execute arbitrary JavaScript
+    based on those settings. Jobs can contain Human instructions,
+    most of which use <code>show_window</code> underneath,
+    enabling them to interact with humans to give users control
+    and to allow humans to be part of compound processes that
+    are too complex to implement in pure code.
+    <p></p>
+    DDE has lots of GUI operations to simplfy programming.
+    With <code>show_window</code>, DDE users can develop their own GUIs for
+    interaction in situations where GUIs, in combination with
+    code, can enable a wide variety of interactivity. But what
+    if we want to <i>prevent</i> users from using the normal DDE programming
+    operations?
 
-        <details class="doc_details"><summary>Set DDE Colors</summary>
-        Users can customize the DDE colors by calling the below functions.
-        Calls to these functions appear in the default <code title="unEVALable code fragment"> dde_init.js</code> file
-        commented out. By commenting them in, the DDE colors will be
-        modified when DDE launches. Their default color values are given
-        in the examples below.
-        <ul>
-            <li><code id="set_window_frame_background_color_doc_id" title="not in TestSuite">set_window_frame_background_color("#b8bbff")</code></li>
-            <li><code id="set_pane_header_background_color_doc_id"  title="not in TestSuite">set_pane_header_background_color("#bae5fe")</code></li>
-            <li><code id="set_menu_background_color_doc_id"         title="not in TestSuite">set_menu_background_color("#93dfff")</code></li>
-            <li><code id="set_button_background_color_doc_id"       title="not in TestSuite">set_button_background_color("#93dfff")</code></li>
-        </ul>
+    <details class="doc_details"><summary>show_window restrictions</summary>
+    Normally, when a show_window is up, the user can:
+    <ul><li>move the window around (draggable)</li>
+        <li>interact with DDE that is <i>behind</i> the show_window (not modal)</li>
+        <li>resize it</li>
+        <li>close it</li>
+        <li>minimize (colllapse) it</li>
+    </ul>
+    The following code allows you to turn off
+    these capabilites to "lock down" the interface to just what the
+    application author wants the end user to focus on.
+    <pre><code title="Not in TestSuite">
+show_window({draggable: false,
+             is_modal: true,
+             resizable: false,
+             show_close_button: false,
+             show_collapse_button: false,
+             content: "You can't get rid of me."
+             })
+    </code></pre>
+    If you eval the above code, you have to quit DDE to gain back control.
+    Type on:
+    <ul><li>WinOS: Alt+F4</li>
+        <li>MacOS: Cmd+Q</li>
+        <li>Linux: Ctrl+Alt+Esc</li>
+    </ul>
+    See <a href="#" onclick="open_doc(show_window_doc_id)">show_window</a>
+    for a more complete description of these and other show_window parameters.
     </details>
+    <details class="doc_details"><summary>kiosk mode</summary>
+      Using the tricks under show_window restrictions, we still have
+      the DDE window title bar and perhaps other OS menus peaking through.
+      We can prevent the user seeing or interacting with them by
+      setting DDE into "kiosk mode", which gives the content of
+      DDE maximum screen real estate. Then we can cover DDE's
+      main window up with a show_window as described in show_window restrictions
+      and have a pretty focused end user application.
+      <p></p>
+      When DDE launches, it looks in the file<br/>
+      Documents/dde_apps/dde_persistent.json<br/>
+      for a boolean property named <code title="unEVALable">kiosk</code>.
+      If this is <code>true</code>, DDE will come up in kiosk mode.
+      If it is <code>false</code> or non-existent, DDE will come up in non-kiosk mode.
+      <code>false</code> is the default.
+      <p></p>
+      You can set this by editing Documents/dde_apps/dde_persistent.json when
+      DDE is not running. From within DDE, you can call<br/>
+      <code>persistent_set("kiosk", true)</code> or<br/>
+      <code>persistent_set("kiosk", false)</code>
+      to set kiosk mode.
+      Next time you launch DDE, this new mode will take effect.
+      <p></p>
+      You can call <code>persistent_get("kiosk")</code>
+      to tell programmatically, which mode you're in.
+      <p></p>
+      If you are in kiosk mode with a restricted show_window covering up DDE,
+      you must quit DDE via
+        <ul><li>WinOS: Alt+F4</li>
+            <li>MacOS: Cmd+Q</li>
+            <li>Linux: Ctrl+Alt+Esc</li>
+        </ul>
+      and edit Documents/dde_apps/dde_persistent.json
+      to get DDE to come up in non-kiosk mode the next time you launch it.
+    </details>
+
+    </details> <!-- end Making Applications -->
+
+    <details class="doc_details"><summary>Set DDE Colors</summary>
+    Users can customize the DDE colors by calling the below functions.
+    Calls to these functions appear in the default <code title="unEVALable code fragment"> dde_init.js</code> file
+    commented out. By commenting them in, the DDE colors will be
+    modified when DDE launches. Their default color values are given
+    in the examples below.
+    <ul>
+        <li><code id="set_window_frame_background_color_doc_id" title="not in TestSuite">set_window_frame_background_color("#b8bbff")</code></li>
+        <li><code id="set_pane_header_background_color_doc_id"  title="not in TestSuite">set_pane_header_background_color("#bae5fe")</code></li>
+        <li><code id="set_menu_background_color_doc_id"         title="not in TestSuite">set_menu_background_color("#93dfff")</code></li>
+        <li><code id="set_button_background_color_doc_id"       title="not in TestSuite">set_button_background_color("#93dfff")</code></li>
+    </ul>
+</details>
 
         <details id="show_window_doc_id" class="doc_details"><summary>show_window</summary>
         A call to <code>show_window</code> creates a dialog box using HTML and JavaScript.<br/>

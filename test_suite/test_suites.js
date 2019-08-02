@@ -13,6 +13,7 @@ new TestSuite("test_suite_reporting",
 new TestSuite("similar",
 	["undefined", "undefined"],
     ["null", "null"],
+    ["NaN",  "NaN"],
     ["similar(undefined, null)", "false"],
     ["true", "true"],
     ["false", "false"],
@@ -24,6 +25,7 @@ new TestSuite("similar",
     ["2 + 3", "5"],
     ['similar("aa", "aab")', 'false'],
     ['similar(Math.max, Math.max)', "true"],
+    ["similar(NaN, NaN)", "true"],
     ["similar(2, 3)", "false"],
     ["similar(2.0, 2)", "true"],
     ["similar(2.1, 2)", "false"],
@@ -376,4 +378,9 @@ new TestSuite("trim_comments_from_front",
     ['trim_comments_from_front("  //comment\\n  //2nd com\\njkl")', '"jkl"'],
     ['trim_comments_from_front("/*com1*/mno")', '"mno"'],
     ['trim_comments_from_front("/*com1*/  //com2\\n /*com3*/pqr")', '"pqr"']
+)
+
+new TestSuite("Kin.predict_move_dur",
+    ["Kin.predict_move_dur([0,0,0,0,0], [20,30,40,0,0])", "1.3333333333333333"],
+    ["Kin.predict_move_dur([-10,0,0,0,0], [-60,30,40,0,0])", "1.6666666666666667"]
 )

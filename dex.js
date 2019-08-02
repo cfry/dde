@@ -207,12 +207,12 @@ function dex_handle_train(vals){ //not dex.handle_train because then I can't use
     else if (vals.clicked_button_value == "Do task"){
         var do_task_name = vals.task_names
         if (do_task_name == clean_action_or_task_name(vals.task_name)){
-            out("Error: Do not specify to 'Do task' of<br/>" +
+            dde_error("Do not specify to 'Do task' of<br/>" +
                 "the current task you're creating because<br/>" +
                 "that would cause infinite recursion.<br/>", "red")
         }
         else if (do_task_name == ""){
-            out("Error: You did not specify a task name to do.<br/>", "red")
+            dde_error("You did not specify a task name to do.<br/>", "red")
         }
         else{
             var pure_code = "    " + do_task_name + "()"

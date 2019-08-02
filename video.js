@@ -52,7 +52,19 @@
             //video_player_id.style.display      = "none";
             sim_pane_content_id.innerHTML =
                'Simulate Job/Robot: <select id="job_or_robot_to_simulate_id">' +
-                '</select> <div id="sim_graphics_pane_id"></div>'
+
+                '</select> <b>Move Dur: </b><span id="sim_pane_move_dur_id"></span><br/>' +
+                 '<b>X,Y,Z:</b> ' +
+                '<span id="sim_pane_x_id" style="min-width:50px; text-align:left; display:inline-block"></span>,' +  //"margin-left:5px;
+                '<span id="sim_pane_y_id" style="min-width:50px; text-align:left; display:inline-block"></span>,' +  //"margin-left:5px;
+                '<span id="sim_pane_z_id" style="min-width:50px; text-align:left; display:inline-block"></span>' +  //"margin-left:5px;
+                ' <b> J1-5: </b>' +
+                '<span id="sim_pane_j1_id" style="min-width:30px; text-align:right; display:inline-block"></span>,' +  //"margin-left:5px;
+                '<span id="sim_pane_j2_id" style="min-width:30px; text-align:right; display:inline-block"></span>,' +
+                '<span id="sim_pane_j3_id" style="min-width:30px; text-align:right; display:inline-block"></span>,' +
+                '<span id="sim_pane_j4_id" style="min-width:30px; text-align:right; display:inline-block"></span>,' +
+                '<span id="sim_pane_j5_id" style="min-width:30px; text-align:right; display:inline-block"></span>' +
+                '<div id="sim_graphics_pane_id"></div>'
             refresh_job_or_robot_to_simulate_id()
             open_doc(simulate_pane_doc_id)
             init_simulation()

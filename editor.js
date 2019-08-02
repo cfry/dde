@@ -1047,7 +1047,7 @@ Editor.train_for_loop_insert = function (task_name, repeat_from_action_name, rep
             return
         }
         if (start_loop_body > end_loop_body){
-            out("Error: the start_action_name of: " + repeat_from_action_name +
+            dde_error("the start_action_name of: " + repeat_from_action_name +
                             "<br/>occurs after the end_action_name of: " + repeat_through_action_name + "<br/>", "red")
             return
         }
@@ -1128,7 +1128,7 @@ Editor.run_unfinished_app_builder_window = function (task_name, opening_code, cl
         var cursor_pos    = Editor.selection_start()
         var fn_start_pos  = Editor.find_task_start(orig_doc_text, cursor_pos, task_name)
         if (typeof(fn_start_pos) == "string") { //error message
-            out("Error: " + fn_start_pos, "red")
+            dde_error("" + fn_start_pos, "red")
         }
         else{
             var fn_partial_source = orig_doc_text.slice(fn_start_pos, cursor_pos)
@@ -1171,7 +1171,7 @@ Editor.run_unfinished_task = function (task_name){
         var cursor_pos    = Editor.selection_start()
         var fn_start_pos  = Editor.find_task_start(orig_doc_text, cursor_pos, task_name)
         if (typeof(fn_start_pos) == "string") { //error message
-            out("Error: " + fn_start_pos, "red")
+            dde_error("" + fn_start_pos, "red")
         }
         else{
             var fn_partial_source = orig_doc_text.slice(fn_start_pos, cursor_pos)

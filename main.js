@@ -59,10 +59,42 @@ const BrowserWindow = electron.BrowserWindow
 // be closed automatically when the JavaScript object is garbage collected.
 var mainWindow
 
-function createWindow () {
+function is_kiosk_mode() {
+  let kiosk_mode = false
+  let init_path = the_dde_apps_folder + "/dde_persistent.json"
+  if(fs.existsSync(init_path)){
+      let content = fs.readFileSync(init_path, "utf8")
+      if(typeof(content) == "string"){
+          const start_of_content = content.indexOf("{")
+          if (start_of_content != -1) { content = content.substring(start_of_content) } //get rid of comment at top of file that isn't official JSON.
+          try {
+                let obj = JSON.parse(content)
+                if(obj.kiosk){
+                    console.log("DDE set to kiosk mode. Quit by typing:\n" +
+                                 "WinOS: Alt+F4\n" +
+                                 "MacOS: Cmd+Q\n" +
+                                 "Linux: Ctrl+Alt+Esc")
+                    kiosk_mode = true
+                }
+                else { console.log("DDE is not in kiosk mode.") }
+          }
+          catch(err) {
+              console.log(init_path + " does not have valid JSON.")
+          }
+      }
+      else {
+        console.log(init_path + " exists but could not be read.")
+      }
+  }
+  else {console.log("There is no file: " + init_path)}
+  return kiosk_mode
+}
+
+function createWindow() {
+  let kiosk_mode = is_kiosk_mode()
   // Create the browser window.
   mainWindow = new BrowserWindow({width: 1000, height: 600, show: false,
-                   //kiosk: true, //makes DDE window be FULL SCREEN, ie no os title bar, etc. locks down app.
+                   kiosk: kiosk_mode, //makes DDE window be FULL SCREEN, ie no os title bar, etc. locks down app.
                    title: "Dexter Development Environment" //not obvious that this actually shows up anywhere.
                    })
   //mainWindow.focus() //doesn't do anything.

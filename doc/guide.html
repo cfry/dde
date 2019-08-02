@@ -633,8 +633,9 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
         Example:<br/>
         <code>out("hi <i>world</i>", "blue")</code><br/>
         <code>out</code> accepts any valid HTML as its first argument. It will be rendered in the Output pane.
-        <details id="start_job_help_doc_id" class="doc_details"><summary>Start Job Button</summary>
-            Clicking this button evals and starts the job that the cursor is in.
+        <details id="eval_and_start_job_doc_id" class="doc_details"><summary>Eval&Start Job menu item</summary>
+            This defines and starts a job with instructions determined by the
+            selection or cursor position within the Editor.
             <p></p>
             If the cursor is in a job's source code but not in the do_list,
             then the job source will be evaled, and the job started.
@@ -643,19 +644,13 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
             the job will be evaled and started with the first instruction run being
             the one the cursor is on.
             <p></p>
-            If there is a selection within the do_list, then the first instruction
-            run will be the one that contains the start of the selection,
-            and the last instruction run will be the one that contains the
-            end of the selection. This works by setting the job's
-            <code title="unEVALable code fragment"> program_counter</code>
-            and <code title="unEVALable code fragment"> ending_program_counter</code> properties.
+            If there is a selection within the do_list, then the selected instructions
+            and any instruction that they produce will be run.
             <p></p>
             If you have selected the source code for one or more instructions
             (with comma's between them) and there is no <code  title="not in TestSuite"> new Job()</code> wrapper
             around the instructions, then a Job wrapper will be automatically made
             behind the scenes, the job will be defined, and started.
-            <p></p>
-            Just before an instruction is run, it will be selected in the editor.
         </details>
 
     </details>
@@ -750,7 +745,7 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
         </details> <!-- end make instruction -->
 
         <details id="recording_doc_id" class="doc_details"><summary>Recording</summary>
-        <i>Programming by example</i> is an end-user programming techique used to
+        <i>Programming by example</i> is an end-user programming technique used to
         decrease the complexity and time of entering explicit instructions.
         The simplest kind of programming by example is making a "recording" (program)
         of what you want the robot to do, then simply "play back" that recording
@@ -1649,7 +1644,7 @@ the points defined in ez_create.
     See the Editor pane's <button>Learn JS&#9660;</button> <i>debugging</i> menu items.
 
     <h4 id="print_statements_doc_id">Print Statements</h4>
-    The oldest and crudest debugging techique is embedding print statements
+    The oldest and crudest debugging technique is embedding print statements
     in your code. DDE supports a number of these to make debugging easier.
     <ul><li><b>console.log</b> Wrapping <code>console.log()</code> around a complex data structure will print it
     out in the Chrome Developer Tools console with arrows to allow you to expand

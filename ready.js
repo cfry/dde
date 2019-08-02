@@ -31,12 +31,14 @@
         if(step instanceof CodeMirror) { step = false } //means Cmd E was typed in the editor and we don't want to step in this case
         if((Editor.current_file_path != "new buffer") && (save_on_eval_id.checked)) { Editor.save_current_file() }
         eval_js_part1(step)
-        if (Editor.view == "Blocks") { eval_id.blur() } //to get rid of the Eval button being "selected" when we're evaling in blocks view
+        //if (Editor.view == "Blocks") {
+            eval_id.blur()
+        //} //to get rid of the Eval button being "selected" when we're evaling in blocks view
     }
 
-    function play_simulation(){
+    function play_simulation_demo(){
         sim.enable_rendering = true;
-        render();
+        render_demo();
         //out("Demo just moves Dexter randomly.")
     }
 
@@ -160,7 +162,7 @@
     //$("#js_insert_menu").jqxMenu(  { width: '65px', height: '25px' });
     //$("#js_jobs_menu").jqxMenu(    { width: '55px', height: '25px' });
 
-    $("#ros_menu_id").jqxMenu({ width: '50px', height: '25px', animationHideDelay: 1000, animationShowDelay: 1000, autoCloseInterval: 1000  });
+   // $("#ros_menu_id").jqxMenu({ width: '50px', height: '25px', animationHideDelay: 1000, animationShowDelay: 1000, autoCloseInterval: 1000  });
     //$("#jqxwindow").jqxWindow({ height:400, width:400, showCloseButton: true});
     //$('#jqxwindow').jqxWindow('hide');
     $("#cmd_input_id").keyup(function(event){ //output pane  type in
@@ -168,15 +170,15 @@
             let src = Editor.get_cmd_selection() //will return "" if no selection
             if(src.length == 0) { src = cmd_input_id.value} //get full src if no selection
             src = src.trim()
-            if(js_radio_button_id.checked){
+            //if(js_radio_button_id.checked){
                 if (src.length == 0) { warning("no JavaScript to eval.")}
                 else {
                     js_cmds_array.push(src)
                     js_cmds_index = js_cmds_array.length - 1
                   eval_js_part2(src)
                 }
-            }
-            else { call_cmd_service_custom(src) } //ROS selected
+           // }
+            //else { call_cmd_service_custom(src) } //ROS selected
         }
         else if(event.keyCode == 38){ //up arrow
            if      (js_cmds_index == -1 ) { out("No JavaScript commands in history") }
@@ -215,8 +217,8 @@
         onclick_for_click_help(event)
     }
 
-    js_radio_button_id.onclick  = function() { ros_menu_id.style.display = "none"}
-    ros_radio_button_id.onclick = function() { ros_menu_id.style.display = "inline-block"}
+    //js_radio_button_id.onclick  = function() { ros_menu_id.style.display = "none"}
+    //ros_radio_button_id.onclick = function() { ros_menu_id.style.display = "inline-block"}
 
     //init_simulation() now in video.js misc_pane_menu_changed
 
@@ -236,7 +238,10 @@
         previous_active_element = document.activeElement
         selected_text_when_eval_button_clicked = Editor.get_any_selection()
     };
-    find_doc_button_id.onclick = find_doc
+    find_doc_button_id.onclick = function(event) {
+            find_doc()
+            event.target.blur()
+    }
     find_doc_input_id.onchange = find_doc
     $("#find_doc_input_id").jqxComboBox({ source: [], width: '150px', height: '25px',}); //create
 
@@ -798,7 +803,7 @@ get_page_async("http://www.ibm.com", function(err, response, body){ out(body.len
     }
     midi_init_id.onclick = Midi.init
 
-   eval_and_start_button_id.onclick = eval_and_start
+   //eval_and_start_button_id.onclick = eval_and_start
 
     make_dictionary_id.onclick=function(){
         const code = read_file(__dirname + "/examples/make_dictionary.js")
@@ -817,7 +822,7 @@ get_page_async("http://www.ibm.com", function(err, response, body){ out(body.len
     }
 
     jobs_help_id.onclick          = function(){ open_doc(Job_doc_id) }
-    start_job_id.onclick          = Job.start_job_menu_item_action
+    //start_job_id.onclick        = Job.start_job_menu_item_action
     //start_job_help_id.onclick = function(){ open_doc(start_job_help_doc_id) } //nw help is simply under theh Output pane help, and users see it by clicking on the "Output" pane title.
 
     test_suites_help_id.onclick = function(){ open_doc(TestSuite_doc_id) }
@@ -1008,7 +1013,10 @@ foo      //eval to see the latest values</pre>`,
     show_robot_status_id.onclick   = RobotStatusDialog.show
     jobs_report_id.onclick         = function(){Job.report() }
     stop_all_jobs_id.onclick       = function(){Job.stop_all_jobs() }
-    undefine_jobs_id.onclick       = function(){Job.clear_stopped_jobs() } //use individual X (close) marks instead
+    undefine_jobs_id.onclick       = function(event){
+        Job.clear_stopped_jobs()
+        event.target.blur()
+    } //use individual X (close) marks instead
 
     /*$("#real_time_sim_checkbox_id").jqxCheckBox({ checked: true })
     real_time_sim_checkbox_id.onclick = function(event) {
@@ -1022,6 +1030,10 @@ foo      //eval to see the latest values</pre>`,
                             //AND causes the onclick for simulate_id to NOT be run.
     }*/
     insert_new_job_id.onclick = Editor.insert_new_job
+    eval_and_start_job_id.onclick = function(){
+           open_doc(eval_and_start_job_doc_id)
+           Job.start_job_menu_item_action()
+    }
     set_menu_string(insert_new_job_id, "New Job", "j")
 
     insert_job_example0_id.onclick = function(){Editor.insert(job_examples[0])}
@@ -1128,7 +1140,7 @@ foo      //eval to see the latest values</pre>`,
         Job.start_and_monitor_dexter_job(job_src)
     }
         //Output_ops menu
-    ping_id.onclick          = function(){ rde.ping()}
+    /*ping_id.onclick          = function(){ rde.ping()}
     cat_etc_hosts_id.onclick = function(){ rde.shell('cat /etc/hosts')}
     rosversion_id.onclick    = function(){ rde.shell('rosversion -d')}
     roswtf_id.onclick        = function(){ rde.shell('roswtf')}
@@ -1141,7 +1153,7 @@ foo      //eval to see the latest values</pre>`,
     rosparam_id.onclick      = function(){rde.shell('rosparam list')}
     rosservice_is.onclick    = function(){rde.shell('rosservice list')}
     rostopic_id.onclick      = function(){rde.shell('rostopic list')}
-
+    */
     clear_output_id.onclick  = function(){clear_output(); myCodeMirror.focus()}
 
     javascript_pane_help_id.onclick    = function(){ open_doc(javascript_pane_doc_id)  }
@@ -1155,7 +1167,7 @@ foo      //eval to see the latest values</pre>`,
                                     if (demo_id.innerHTML == "Demo") {
                                         demo_id.innerHTML = "Stop"
                                         misc_pane_menu_changed("Simulate Dexter")
-                                        play_simulation()
+                                        play_simulation_demo()
                                     }
                                     else {
                                           sim.enable_rendering = false;
@@ -1190,12 +1202,16 @@ foo      //eval to see the latest values</pre>`,
     set_dde_window_size_to_persistent_values()
 
     let val = persistent_get("save_on_eval")
-    if(val) { //have to do this because, unlike the DOM doc, chrome/electron checks the box if you set it to false.
-        save_on_eval_id.setAttribute("checked", val)
-    }
-    save_on_eval_id.onclick = function(event) {
-        let val = save_on_eval_id.checked
+    $("#save_on_eval_id").jqxCheckBox({ checked: val})
+    //if(val) { //have to do this because, unlike the DOM doc, chrome/electron checks the box if you set it to false.
+    //    save_on_eval_id.setAttribute("checked", val)
+    //}
+    //similar to animate ui
+    save_on_eval_id.onclick = function(event){
+        //let val = save_on_eval_id.checked
+        let val = $("#save_on_eval_id").val()
         persistent_set("save_on_eval", val)
+        event.stopPropagation() //causes menu to not shrink up, so you can see the effect of your click
     }
 
     val = persistent_get("default_out_code")
@@ -1218,20 +1234,20 @@ foo      //eval to see the latest values</pre>`,
     animate_ui_checkbox_id.onclick = function(event) {
         let val = $("#animate_ui_checkbox_id").val()
         persistent_set("animate_ui", val)
-        //$("#animate_ui_id").jqxCheckBox({ checked: true })
         event.stopPropagation() //causes menu to not shrink up, so you can see the effect of your click
         //AND causes the onclick for simulate_id to NOT be run.
         adjust_animation()
     }
     adjust_animation() //to the peristent flag
 
-    const editor_font_size = persistent_get("editor_font_size")
+
+        const editor_font_size = persistent_get("editor_font_size")
     $(".CodeMirror").css("font-size", editor_font_size + "px")
     font_size_id.value = editor_font_size
 
-    init_ros_id.onclick = function(){
-             init_ros_service_if_url_changed()
-    } //must occur after dde_init_doc_js_initialize  init_ros_service($("#dexter_url").val())
+    //init_ros_id.onclick = function(){
+    //         init_ros_service_if_url_changed()
+    //} //must occur after dde_init_doc_js_initialize  init_ros_service($("#dexter_url").val())
     // rde.ping() //rde.shell("date") //will show an error message
     Editor.restore_files_menu_paths_and_last_file()
      //simulate_help_id.onclick=function(){ open_doc(simulate_doc_id) }

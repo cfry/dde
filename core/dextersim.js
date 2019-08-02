@@ -142,7 +142,7 @@ DexterSim = class DexterSim{
         rs_copy[Dexter.INSTRUCTION_TYPE]  = instruction_array[Instruction.INSTRUCTION_TYPE] //leave this as a 1 char string for now. helpful for debugging
         //rs_copy[Dexter.ERROR_CODE]        = 0 //instruction_array[Dexter.ERROR_CODE] //will be 0 if no error
        //above use to be in BUT instruction_array was never supposed to have an error code,
-       //annd the only thing setting robot_status error code to toehr than 0 is the "e" instruction,
+       //and the only thing setting robot_status error code to other than 0 is the "e" instruction,
        //so just leave that as it is--apr 2019
         if (this.sim_actual === true){
             let rob = this.robot
@@ -344,7 +344,8 @@ DexterSim = class DexterSim{
             let job_name = "Job." + job_instance.name
             let rob_name = "Dexter." + this.robot_name
             if(window["sim_graphics_pane_id"]) { //window.platform == "dde") //even if we're inn dde, unless the sim pane is up, don't attempt to render
-                SimUtils.render_once(robot_status, job_name, rob_name) //renders after dur, ie when the dexter move is completed.
+                //SimUtils.render_once(robot_status, job_name, rob_name) //renders after dur, ie when the dexter move is completed.
+                SimUtils.render_multi(robot_status, job_name, rob_name, undefined, dur)
             }
             else {
                 DexterSim.render_once_node(robot_status, job_name, rob_name) //renders after dur, ie when the dexter move is completed.
@@ -389,7 +390,7 @@ DexterSim = class DexterSim{
         for(let i of idxs) { orig_angles.push(robot_status[i]) }
         //set the angles in this robot's robot_status
         for(let i = 0; i < ins_args.length; i++){
-            let angle = ins_args[i]
+            let angle = ins_args[i] //in arcseconds
             if (!isNaN(angle)){
                 robot_status[idxs[i]] = angle
             }

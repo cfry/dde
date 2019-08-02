@@ -554,8 +554,8 @@ function inspect_set_refresh_onclick(stack_number, in_stack_position, id_string)
             }
             let elts = window[id_string] //beware, if there's more than one elt with this id, we get an HTMlCollection of the etls.
             // this is a very broken data structure that I can't even test for except with length
-            if (elts == undefined) {
-                shouldnt("In inspect_set_refresh_onclick, didn't find: " +  id_string)
+            if (elts == undefined) { //could legitimately happen if user has out put "code" checked, so just do nothing
+                //shouldnt("In inspect_set_refresh_onclick, didn't find: " +  id_string)
             }
             else if (elts.length){
                 for(let i = 0; i < elts.length; i++) {
