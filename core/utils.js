@@ -9,7 +9,7 @@ module.exports.prepend_file_message_maybe = prepend_file_message_maybe
 
 function shouldnt(message){
     console.log(message)
-    throw new Error("The function: shouldnt has been called.<br/>" +
+    dde_error("The function: shouldnt has been called.<br/>" +
                     "This means there is a bug in DDE.<br/>" +
                     "Please send a bug report. See User_Guide/Contact.<br/>" +
                     "Include this whole message.<br/>" +
@@ -1265,9 +1265,17 @@ function trim_comments_from_front(src){
 }
 module.exports.trim_comments_from_front = trim_comments_from_front
 
+function show_string_char_codes(a_string){
+    console.log(a_string + " has " + a_string.length + " chars of:")
+    for(let char of a_string){
+        console.log(char + "=>" + char.charCodeAt())
+    }
+}
+module.exports.show_string_char_codes = show_string_char_codes
+
 //only used in this file
 function regexp_escape_special_chars(str){
-    return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')
+    return str.replace(/[-\/\\^$*+?.()|\[\]{}]/g, '\\$&')
 }
 
 

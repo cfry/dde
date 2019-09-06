@@ -6,6 +6,101 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 3.4.5, Sep 5, 2019</summary>
+Highlights: Command line now has SSH option.<br/>
+            Vextor/Convert deep_copy reverted back to old version to fix bug.<br/>
+            Job speed up via inter_do_item_dur.<br/>
+            Misc bug fixes including for Job Engine.
+
+<ul><li>Doc Improvements to:
+    <ul>
+        <li>Ref Man/Job</li>
+        <li>Ref Man/Job/Definition Time vs Run Time</li>
+        <li>Ref Man/Robot/Robot Instructions/Any JS Function Def</li>
+        <li>Ref Man/Window System/Making Applications/show_window restrictions
+            and "kiosk mode".</li>
+    </ul></li>
+
+    <li> Reverted the change in Vector.js back to using Convert.deep_copy
+        because the Vector.deep_copy causes some problems when
+        J_angles_to_xyz is called and has to call deep_copy.
+        Convert.deep_copy is better for that use case.</li>
+
+    <li> For all Control instructions, fn defs, and set_parameter instructions,
+        automatically have them take a zero inter_do_item_dur.</li>
+
+    <li> Improved clarity of Output pane output section header.</li>
+
+    <li> Fixed bug in show_window handler for combo boxes
+        that now enables the correct getting of the value of the combo box.</li>
+
+    <li> Bug fix: check_for_latest_release now I trim off the "v" prefix
+        for the version from github (if any) before comparing to dde_version,
+        which never contains a "v" prefix.
+        Also, new tooltip on the version "A" tag so you know what
+        you get if you click it. (the release notes)</li>
+
+    <li> The internal function "shouldn't" now prints its error to
+        the Output pane. Previously it only printed it to the console,
+        hiding it from users.</li>
+
+    <li> Bug fix: added var {Instruction} = require('./instruction.js')
+         to instruction_control.js to fix job engine loading bug.</li>
+
+    <li> Job Engine bug fixed: Job.define_and_start_job fixed variable misspelling bug,
+        fixed bad error message that causes another bug itself.</li>
+
+    <li> Bug fixed in Job Engine for robot.js by requiring file_exists, read_file.</li>
+
+    <li> Command Line now has a language menu for switching between
+         JS and SSH allowing you to type in any bash command and
+         run it on any computer that has an SSH server running.
+         (all Dexter's do, documentation tells how
+         to set this up for DDE's computer so you can easily SSH to it as well).
+         <p></p>
+         From DDE you can now do normal
+         linux maintenace operations on Dexters.
+         A few commands are handled specially (pwd;ls -l)
+         being the main one to present a "dialog like" interface
+         in the output pane. With links in that, you can navigate
+         the file hierarchy, and do the most common operations
+         on files including edit them in dde and run job
+         files (that are on Dexter) on the job engine.
+         With the new "Cmds" menu and the per-file menus,
+         many common operations can be done without typing,
+         while preserving the ability TO TYPE.
+         Inserting of paths into the DDE editor and
+         the ability to run selected bash script in the editor
+         facilitate interoperation of DDE with linux.
+         This tool helps you "learn by doing" bash,
+         reminisent of how DDE proper helps you learn JavaScript.
+         <p></p>
+         Choosing "SSH" from the command line lang menu
+         scrolls the doc pane to the User Guide new section on SSH
+         which tells you about the general capabilities and how
+         to set up SSH on your DDE computer. The details of
+         the actual bash commands are conveyed with long
+         menu item titles, tooltips for "just in place" help,
+         and the "dialog" for directory browsing.
+         Clicking on a bash cmd name gives the "man page"
+         for that command in the Output pane.</li>
+
+
+    <li> JS prompt is not supported in Electron,
+        and so DDE can't support it.
+        Now, calling <code>prompt()</code>
+        prints out an explicit error message rather than
+        crashing DDE.</li>
+
+
+    <li> Fixed lack of default value for Human.enter_choice "choices"
+        and added add_stop_button to the method arguments.
+        Improved consistency of args to the Human methods
+        and the underlying classes and their default values.
+    </li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.4.4, Aug 1, 2019</summary>
 Highlights: Improvements to Vector methods, ping dialog box.
     New kiosk mode for making end user applications.

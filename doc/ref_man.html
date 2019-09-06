@@ -3025,16 +3025,22 @@ The syntax of defining a job is:
          robot: Robot.dexter0,
          do_list: [ Dexter.move_to([0, 0.5, 0.075]),
                     Control.wait_until(2)
-                    //...
+                    //more instructions here
                    ]
         })</code></pre>
+Select such source code in the editor pane and click the <button>Eval</button> button to define the job.
+This will cause a button for the Job to be placed in the Output Pane header, such as
+    <button>my_job</button>.
+<p></p>
+<b>Starting and Stopping Jobs</b></br/>
 Defined jobs remain inert until they are started by clicking their button in the Output pane header
-or evaling:<br/>
+    i.e. <button>my_job</button>
+    or evaling:<br/>
 <code title="not in TestSuite"> Job.my_job.start()</code><br/>
-<code title="unEVALable code fragment"> start</code> initializes the job and feeds the instructions in its do_list to
+The method <code title="unEVALable code fragment"> start</code> initializes the job and feeds the instructions in its do_list to
 the job's robot, which executes the instructions.
 Jobs either run to completion, error, or are stopped by the user via:
-<ul><li>Clicking on a running Job's button, i.e. <button>my_job</button> in the Output pane</li>
+<ul><li>Clicking on a running Job's button in the Output pane header</li>
     <li>Calling <code title="not in TestSuite">Job.my_job.stop_for_reason("interrupted", "why you want it stopped")</code></li>
     <li>In a running Job, executing the instruction:
          <a href="#" onclick='open_doc("Control.stop_job_doc_id")'><code>Control.stop_job()</code></a></li>
@@ -3127,6 +3133,20 @@ new Job({name: "my_job",
     "set up move", following moves would be the same between the two runnings.
     <p></p>
     <b>Functions on the do_list</b></br/>
+    A Job definition can look like it contains random old JS code.
+    But like calling any constructor or function in JS
+    (or any popular general purpose programming language), it can't be random old JS code.
+    Constructors or function arguments must be code that, when evaluated,
+    return data that the constructor or function was designed to take.
+    If the source code for an argument evals to data that the function
+    wasn't designed to take, the function call will error or cause unexpected behavior.
+    <p></p>
+    Jobs are no different. In particular, the array that becomes the do_list for
+    a Job can only contain certain types of elements. For instance, if a do_list
+    item is a number or a boolean, that is invalid and will cause running the Job
+    to error. For more about do_lists, see <a href="#" onclick="open_doc(job_param_do_list_doc_id)">do_lists</a>
+    and the kinds of instructions they can take  <a href="#" onclick="open_doc(Robot_doc_id)">Robot</a>.
+    <p></p>
     The most flexible of instruction types is a JavaScript function.
     This allows you to execute arbritary JavaScript at Job Run Time.
     You might need to do this because you want to use the current environment
@@ -3141,7 +3161,7 @@ new Job({name: "my_job",
     <pre><code>new Job({name: "my_job",
         do_list: [function(){return Dexter.move_all_joints(ang1)}]
         })</code></pre>
-    We could also do:
+    To achieve the same result, we could also do:
     <pre><code>function move_it_buddy(){return Dexter.move_all_joints(ang1)}
 new Job({name: "my_job",
          do_list: [move_it_buddy]
@@ -3193,10 +3213,9 @@ new Job({name: "my_job",
     instruction to another, without cluttering the global variable space.<br/>
     <b>Flexibility and Complexity</b><br/>
     Jobs have a great deal of flexibility. We can use the full power of
-    a general purpose programming language plus DDE's libraries
+    a general purpose programming language (JS) plus DDE's libraries
     to define them. During their
-    running, Jobs can also use the the full power of
-    a general purpose programming language plus DDE's libraries, or any
+    running, Jobs can also use the the full power of JavaScript plus DDE's libraries, or any
     that you import or create.
     <p></p>
     Though powerful, this flexibility comes
@@ -3557,11 +3576,15 @@ JavaScript inside a function definition, you can have an instruction
 execute any JS whatsoever.
 <p></p>
 Often you'll make functions that have no returned value.
-If so, after the function is called, then the next instruction
+(Such functions actually return <code>undefined</code>, which is
+OK.) If so, after the function is called, then the next instruction
 on the do_list will be run. But if the function returns
 another instruction, or an array of instructions, then those
 will be inserted into the do_list immediately below the
-function def, and they will be run next.
+function def, and they will be run next.<br/>
+<i style="color:red;">Warning: if the function returns something that is not a valid instruction,
+the Job will error.</i><br/>
+Keep reading to understand what are valid instructions.
 <p></p>
 <i>The below functionality is advanced use of DDE.</i><br/>
 The function
@@ -7740,7 +7763,7 @@ document.addEventListener("click", function(e){
     if we want to <i>prevent</i> users from using the normal DDE programming
     operations?
 
-    <details class="doc_details"><summary>show_window restrictions</summary>
+    <details id="show_window_restrictions_id" class="doc_details"><summary>show_window restrictions</summary>
     Normally, when a show_window is up, the user can:
     <ul><li>move the window around (draggable)</li>
         <li>interact with DDE that is <i>behind</i> the show_window (not modal)</li>
@@ -7760,7 +7783,22 @@ show_window({draggable: false,
              content: "You can't get rid of me."
              })
     </code></pre>
-    If you eval the above code, you have to quit DDE to gain back control.
+    If you'd like to cover the whole screen with your custom window,
+    initializing show_window's x, y, width, height can do the trick.
+    <pre><code title="Not in TestSuite">
+show_window({draggable: false,
+             is_modal: true,
+             resizable: false,
+             show_close_button: false,
+             show_collapse_button: false,
+             content: "You can't get rid of me.",
+             x: 0,
+             y: 0,
+             width:  window.outerWidth,
+             height: window.outerHeight})
+     </code></pre>
+    If you eval either of the above code examples,
+    you have to quit DDE to gain back control.
     Type on:
     <ul><li>WinOS: Alt+F4</li>
         <li>MacOS: Cmd+Q</li>
@@ -7770,7 +7808,8 @@ show_window({draggable: false,
     for a more complete description of these and other show_window parameters.
     </details>
     <details class="doc_details"><summary>kiosk mode</summary>
-      Using the tricks under show_window restrictions, we still have
+      Using the technique under <a href="#" onclick="open_doc(show_window_restrictions_id)">show_window restrictions</a>,
+      we still have
       the DDE window title bar and perhaps other OS menus peaking through.
       We can prevent the user seeing or interacting with them by
       setting DDE into "kiosk mode", which gives the content of
@@ -7894,7 +7933,7 @@ show_window({draggable: false,
         <p></p>
         Others of its properties will be names and the corresponding values of input elements
         designated in the <i>content</i> argument. The actual "name" used for such an element
-        is: <br/>If the element has a "name" properties, use the value of that.<br/>
+        is: <br/>If the element has a "name" property, use the value of that.<br/>
         else if the element has an "id" property, use that. Note that "id" properties
         become global variables bound to the element, which can be useful
         if you want to programatically change them.<br/>

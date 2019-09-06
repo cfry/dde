@@ -231,9 +231,9 @@ class Job{
 
     //starts the first job defined in the file, if any
     static define_and_start_job(job_file_path){
-        let job_instances = Job.instances_in_file(path_name)
+        let job_instances = Job.instances_in_file(job_file_path)
         if(job_instances.length == 0) {
-            console.log("Could not find Job file: " + job_file_path + "  " + err.message)
+            console.log("Could not find a Job definition in the file: " + job_file_path)
             return
         }
         job_instances[0].start()
@@ -1337,6 +1337,14 @@ Job.prototype.set_up_next_do = function(program_counter_increment = 1, allow_onc
             }
         }
         job_instance.program_counter += program_counter_increment
+        if(job_instance.do_list.length > job_instance.program_counter){ //there are more instructions
+            let next_item = job_instance.do_list[job_instance.program_counter]
+            if(Instruction.is_oplet_array(next_item, "S") ||
+                (typeof(next_item) == "function") ||
+               Control.is_control_instruction(next_item)) {
+                inter_do_item_dur = 0
+            }
+        }
         setTimeout(function(){
                         job_instance.do_next_item()
                     },

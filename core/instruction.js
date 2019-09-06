@@ -46,7 +46,9 @@ var Instruction = class Instruction {
     }
     */
 
-    static is_oplet_array(obj){
+    //if oplet is null, returns true for any oplet. if its a one char string.
+    //only returns true if the oplet in obj is that one char string
+    static is_oplet_array(obj, oplet=null){
         //since we're making the instruction arrays by our fn calls, ie Job.move,
         //the user isn't making up the arrays, so we assume all arrays that start
         //with a first elt of a string or length 1 are legitimate. But
@@ -54,7 +56,12 @@ var Instruction = class Instruction {
         //the length and types of the rest of the elts matched what that op-let needs.
         if (Array.isArray(obj) && (obj.length > 0)){
             var oplet_maybe = obj[Instruction.INSTRUCTION_TYPE]
-            return Robot.is_oplet(oplet_maybe) //true for any 1 char strings. There's an arg for is_oplet to make it more restrictive=, but Kent likes the flexibility for creating new oplets
+            if(typeof(oplet) === "string") {
+                return oplet_maybe === oplet
+            }
+            else {
+                return Robot.is_oplet(oplet_maybe)//true for any 1 char strings. There's an arg for is_oplet to make it more restrictive=, but Kent likes the flexibility for creating new oplets
+            }
         }
         return false
     }
@@ -461,6 +468,7 @@ Instruction.break = class Break extends Instruction{ //class name must be upper 
     to_source_code(args){ return args.indent + "Control.break()" }
 }
 
+
 Instruction.debugger = class Debugger extends Instruction{ //class name must be upper case because lower case conflicts with js debugger
     constructor () { super() }
     do_item (job_instance){
@@ -784,10 +792,15 @@ var human_task_handler = function(vals){
 module.exports.human_task_handler = human_task_handler
 
 Instruction.human_enter_choice = class human_enter_choice extends Instruction{
-    constructor ({task="", user_data_variable_name="choice", choices=[], dependent_job_names=[],
-                  show_choices_as_buttons=false, one_button_per_line=false,
+    constructor ({task="",
+                  choices=[["Yes", true], ["No", false]],
+                  show_choices_as_buttons=false,
+                  one_button_per_line=false,
+                  user_data_variable_name="choice",
+                  dependent_job_names=[],
                   add_stop_button=true,
-                  title, x=200, y=200, width=400, height=400,  background_color="rgb(238, 238, 238)"}={}) {
+                  title, x=200, y=200, width=400, height=400,
+                  background_color="rgb(238, 238, 238)"}={}) {
         super()
         this.task        = task
         this.user_data_variable_name = user_data_variable_name
@@ -1995,7 +2008,7 @@ Instruction.label = class label extends Instruction{
     }
 }
 
-Instruction.loop = class Loop extends Instruction{
+Instruction.loop = class loop extends Instruction{
     constructor (times_to_loop, body_fn) {
         super()
         this.times_to_loop   = times_to_loop

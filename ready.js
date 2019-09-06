@@ -163,22 +163,30 @@
     //$("#js_jobs_menu").jqxMenu(    { width: '55px', height: '25px' });
 
    // $("#ros_menu_id").jqxMenu({ width: '50px', height: '25px', animationHideDelay: 1000, animationShowDelay: 1000, autoCloseInterval: 1000  });
-    //$("#jqxwindow").jqxWindow({ height:400, width:400, showCloseButton: true});
+   $("#cmd_menu_id").jqxMenu({ width: '50px', height: '25px', animationHideDelay: 1000, animationShowDelay: 1000, autoCloseInterval: 1000  });
+
+        //$("#jqxwindow").jqxWindow({ height:400, width:400, showCloseButton: true});
     //$('#jqxwindow').jqxWindow('hide');
     $("#cmd_input_id").keyup(function(event){ //output pane  type in
         if(event.keyCode == 13){ //ENTER key
             let src = Editor.get_cmd_selection() //will return "" if no selection
             if(src.length == 0) { src = cmd_input_id.value} //get full src if no selection
             src = src.trim()
-            //if(js_radio_button_id.checked){
-                if (src.length == 0) { warning("no JavaScript to eval.")}
-                else {
-                    js_cmds_array.push(src)
-                    js_cmds_index = js_cmds_array.length - 1
-                  eval_js_part2(src)
-                }
-           // }
-            //else { call_cmd_service_custom(src) } //ROS selected
+            if (src.length == 0) { warning("no code to eval.")}
+            else if(cmd_lang_id.value == "JS"){
+                js_cmds_array.push(src)
+                js_cmds_index = js_cmds_array.length - 1
+                eval_js_part2(src)
+            }
+            else if (cmd_lang_id.value == "SSH"){
+                cmd_input_id.placeholder = "Type in a shell 'bash' command & hit the Enter key to run."
+                //but the above probably never get's seen because the src of the actual default cmd gets shown instead
+                SSH.run_command({command: src})  //use defaults which makes formatted dir listing
+               //call_cmd_service_custom(src) /ROS selected
+            }
+            //else if (cmd_lang_id.value == "ROS"){
+            //    /call_cmd_service_custom(src) /ROS selected
+            //}
         }
         else if(event.keyCode == 38){ //up arrow
            if      (js_cmds_index == -1 ) { out("No JavaScript commands in history") }
@@ -213,12 +221,38 @@
     //cmd_input_clicked_on_last = false //global var. Also set below and by Editor.init_editor
 
     cmd_input_id.onclick = function(event) {
-        //cmd_input_clicked_on_last = true
-        onclick_for_click_help(event)
+        var full_src = event.target.value
+        if (full_src) {
+            if(full_src.length > 0){
+                let pos = event.target.selectionStart
+                if(pos < (full_src.length - 1)){
+                    onclick_for_click_help(event)
+                }
+                //else don't give help if clicking at very end.
+                //because often that is to edit the cmd and if
+                //we're in SSH, printout out a long man page is
+                //disruptive
+            }
+        }
     }
 
     //js_radio_button_id.onclick  = function() { ros_menu_id.style.display = "none"}
     //ros_radio_button_id.onclick = function() { ros_menu_id.style.display = "inline-block"}
+
+    cmd_lang_id.onchange = function(){
+            if(cmd_lang_id.value == "JS"){
+                SSH.close_connection()  //if no connection. that's ok
+                cmd_menu_id.style.display = "none"
+                cmd_input_id.placeholder = "Type in JS & hit the Enter key to eval"
+            }
+            else if(cmd_lang_id.value == "SSH"){
+                open_doc(ssh_doc_id)
+                SSH.show_config_dialog()
+                //cmd_menu_id.style.display = "inline-block"
+                //cmd_input_id.value = SSH.show_dir_cmd
+                //SSH.init_maybe_and_write("cd /srv/samba/share;" + SSH.show_dir_cmd, false)
+            }
+    }
 
     //init_simulation() now in video.js misc_pane_menu_changed
 
@@ -1139,7 +1173,53 @@ foo      //eval to see the latest values</pre>`,
         }
         Job.start_and_monitor_dexter_job(job_src)
     }
-        //Output_ops menu
+
+
+    //cmd menu
+    cd_up_id.onclick = function(){
+        cmd_input_id.value = "cd .."
+        SSH.run_command({command:"cd ..;echo 'The new current directory is: ';pwd"})
+    }
+    date_id.onclick = function(){
+        cmd_input_id.value = "date"
+        SSH.run_command({command:"date"})
+    }
+    make_directory_id.onclick = function(){
+        cmd_input_id.value = "mkdir " + SSH.dir_for_ls + "/[new dir name]"
+    }
+    make_file_id.onclick = function(){
+            cmd_input_id.value = "touch " + SSH.dir_for_ls + "/[new file name]"
+    }
+    man_id.onclick = function(){
+        cmd_input_id.value = "man -P cat [cmd name]"
+    }
+    pwd_id.onclick = function(){
+        cmd_input_id.value = "pwd"
+        SSH.run_command({command:"pwd"})
+    }
+    show_directory_id.onclick = function(){
+        cmd_input_id.value = SSH.show_dir_cmd
+        SSH.run_command({command:SSH.show_dir_cmd})
+    }
+    run_selected_cmd_id.onclick = function(){
+        let cmds = Editor.get_javascript("auto").trim()
+        if(cmds == ""){
+            warning("There are no commands selected.")
+        }
+        else {
+            let end_pos = cmds.indexOf(";")
+            if (end_pos == -1) { end_pos = cmds.indexOf("\n") }
+            else { end_pos = cmds.length }
+            let cmd_to_show = cmds.substring(0, end_pos)
+            cmd_input_id.value = cmd_to_show
+            SSH.run_command({command:cmds})
+        }
+    }
+    whoami_id.onclick = function(){
+        cmd_input_id.value = "whoami"
+        SSH.run_command({command:"whoami"})
+    }
+
     /*ping_id.onclick          = function(){ rde.ping()}
     cat_etc_hosts_id.onclick = function(){ rde.shell('cat /etc/hosts')}
     rosversion_id.onclick    = function(){ rde.shell('rosversion -d')}
@@ -1285,7 +1365,7 @@ function set_top_right_panel_height(height=600){
 }
 
 function check_for_latest_release(){
-    let dde_version_html = "<a href='#' onclick='open_doc(release_notes_doc_id)'>" +
+    let dde_version_html = "<a href='#' title='Click to scroll the doc pane to the release notes.' onclick='open_doc(release_notes_doc_id)'>" +
                             dde_version +
                             "</a>"
     latest_release_version_and_date(function(err, response, body){
@@ -1296,7 +1376,8 @@ function check_for_latest_release(){
         }
         else {
             const the_obj = JSON.parse(body)
-            const ver     = the_obj.name
+            let ver       = the_obj.name
+            if (ver.startsWith("v")) { ver = ver.substring(1) }
             var ver_date  = the_obj.published_at
             if (ver != dde_version){
                 ver_date       = date_to_mmm_dd_yyyy(ver_date) //ver_date.substring(0, ver_date.indexOf("T"))

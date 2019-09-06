@@ -150,6 +150,7 @@ SimUtils = class SimUtils{
                         break;
                 }
             }
+
             let xyz = Kin.J_angles_to_xyz(new_angles, rob.pose)[0]
             let x = ("" + xyz[0]).substring(0, 5)
             sim_pane_x_id.innerHTML = x

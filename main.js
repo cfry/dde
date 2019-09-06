@@ -9,7 +9,7 @@ enter dde_dev_env  to launch.
 Then the below console.log prinouts appear in that terminal window.
  */
 
-const electron = require('electron')
+var electron = require('electron')
 const SerialPort = require("serialport")
 
 // Module to control application life.
@@ -69,6 +69,7 @@ function is_kiosk_mode() {
           if (start_of_content != -1) { content = content.substring(start_of_content) } //get rid of comment at top of file that isn't official JSON.
           try {
                 let obj = JSON.parse(content)
+                console.log(JSON.stringify(obj))
                 if(obj.kiosk){
                     console.log("DDE set to kiosk mode. Quit by typing:\n" +
                                  "WinOS: Alt+F4\n" +
@@ -76,7 +77,10 @@ function is_kiosk_mode() {
                                  "Linux: Ctrl+Alt+Esc")
                     kiosk_mode = true
                 }
-                else { console.log("DDE is not in kiosk mode.") }
+                else {
+                    console.log("DDE is not in kiosk mode.")
+                    kiosk_mode = false
+                }
           }
           catch(err) {
               console.log(init_path + " does not have valid JSON.")
@@ -93,6 +97,7 @@ function is_kiosk_mode() {
 function createWindow() {
   let kiosk_mode = is_kiosk_mode()
   // Create the browser window.
+  console.log("kiosk mode? " + kiosk_mode)
   mainWindow = new BrowserWindow({width: 1000, height: 600, show: false,
                    kiosk: kiosk_mode, //makes DDE window be FULL SCREEN, ie no os title bar, etc. locks down app.
                    title: "Dexter Development Environment" //not obvious that this actually shows up anywhere.
@@ -294,7 +299,7 @@ ipc.on('prompt', function(eventRet, arg) {
                        arg.description +
                        '</div>'
      const body_html =  ' <input style="background-color:white;margin:10px;width:360px;font-size:14px;" id="val_id" value="' + arg.default_value + '" autofocus /> ' +
-                        `<button onclick="electron.ipcRenderer.send('prompt-response', document.getElementById('val_id')).value; window.close();">Ok</button>` +
+                        `<button onclick="require(\'electron\').ipcRenderer.send('prompt-response', val_id.value); window.close();">Ok</button>` +
                         '<button onclick="window.close();">Cancel</button>'
     const style_html  = ' <style>body {font-family: sans-serif; background-color:' + arg.background_color + '; margin:0px; padding:0px; border:8px solid }' +
                         '\nbutton {float:right; margin-left: 10px; margin-right: 10px; background-color:' +

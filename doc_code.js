@@ -1,5 +1,6 @@
 //called for cmd input AND run instruction dialog run_src type in
 function onclick_for_click_help(event) {
+    if(event.target.tagName == "SELECT") { return } //happens with SSH dir listing, when clicking on the dir or file menu in the output pane
     if($(event.target).closest(".inspector").length > 0){ //don't do regular on_click if inside an inspector
         //var elt = event.target  //; the click just go to the underlined item in the inspector
         return
@@ -16,7 +17,7 @@ function onclick_for_click_help(event) {
     if (full_src) {
         if(full_src.length > 0){
             var pos = event.target.selectionStart
-            Editor.show_identifier_info(full_src, pos)
+            Editor.show_identifier_info(full_src, pos, event.target)
         }
     }
     else {
@@ -27,7 +28,7 @@ function onclick_for_click_help(event) {
         if (full_src && (full_src.length > 0)){
             var pos      = window.getSelection().focusOffset
             if ((pos == 0) || pos) {
-                Editor.show_identifier_info(full_src, pos)
+                Editor.show_identifier_info(full_src, pos, event.target)
             }
         }
     }

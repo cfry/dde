@@ -392,6 +392,7 @@ var MiRecord = class MiRecord {
         let job_wrapper_robot = default_robot() //we want to use the
         //same robot for doing the recording as we will for running the job that is recorded.
         MiRecord.start_time_in_ms = Date.now()
+        console.log("just before starting record job")
         new Job({
             name: "mi_record",
             robot: job_wrapper_robot,
@@ -432,6 +433,7 @@ var MiRecord = class MiRecord {
                 Dexter.set_follow_me(),
                 Control.loop(true,
                              function(){
+                                console.log("top of record job's loop")
                                 if(MiState.status == "recording_paused") {} //loop around
                                 else {
                                     let rs_array = last(this.rs_history)

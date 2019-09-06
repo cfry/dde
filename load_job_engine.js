@@ -15,7 +15,7 @@ var {serial_port_init, serial_path_to_info_map, serial_devices, serial_connect_l
 
 var {dde_error, warning, shouldnt, array_to_csv, csv_to_array, Duration, flatten, fn_is_keyword_fn, format_number,
     is_array_of_numbers, make_ins_arrays,
-    ordinal_string, patch_until, return_first_arg, same_elts, trim_comments_from_front,
+    ordinal_string, patch_until, return_first_arg, same_elts, show_string_char_codes, trim_comments_from_front,
     version_equal, version_less_than, version_more_than, dde_version_between} = require("./core/utils.js")
 
 var {choose_file, choose_save_file, choose_file_and_get_content,

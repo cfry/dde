@@ -21,7 +21,8 @@ function get_persistent_values_defaults() {
             "top_right_panel_height": 500,
             "animate_ui": true,
             "last_open_dexter_file_path": "", //doesn't have a dexter: prefix,not robot specific.
-            "kiosk": false
+            "kiosk": false,
+            "ssh_show_password": false
            }
 }
 //if keep_existing is true, don't delete any existing values.
@@ -249,15 +250,9 @@ module.exports.file_content = file_content //depricated
 // data.toString() will convert a buffer to a string,
 //and just returns the string if data happens to be a string
 function read_file_async(path, encoding="utf8", callback){
-    if(is_dexter_path(path)){
-       let colon_pos = path.indexOf(":")
-       let dex_name = path.substring(0, colon_pos)
-       let dex_instance = Dexter[dex_name]
-       if (!dex_instance) {
-           dde_error("In read_file_async of path: " + path +
-                     "<br/>there is no Dexter instance defined named: " + dex_name)
-       }
-       else {
+    let dex_instance = path_to_dexter_instance(path)
+    if(dex_instance){
+           let colon_pos = path.indexOf(":")
            let dex_file_path = path.substring(colon_pos + 1)
            let the_callback = callback
            let the_path = path
@@ -284,7 +279,10 @@ function read_file_async(path, encoding="utf8", callback){
                         }
                     }
             }).start()
-       }
+    }
+    else if (is_dexter_path(path)){
+        dde_error("In read_file_async of path: " + path +
+                  "<br/>there is no Dexter instance defined of that Dexter name.")
     }
     else {
         path = make_full_path(path)
@@ -388,26 +386,23 @@ function write_file_async(path, content, encoding="utf8", callback){
             else { out("saved: " + the_path, undefined, true) }
         }
     }
-    if(is_dexter_path(path)){
+    let dex_instance = path_to_dexter_instance(path)
+    if(dex_instance){
         let colon_pos = path.indexOf(":") //will not return -1
-        let dex_name = path.substring(0, colon_pos)
-        let dex_instance = Dexter[dex_name] // will be a real robot
-        if (!dex_instance) {
-            dde_error("In write_file_async of path: " + path +
-                "<br/>there is no Dexter instance defined named: " + dex_name)
-        }
-        else {
-            let dex_file_path = path.substring(colon_pos + 1)
-            let the_callback = callback
-            let the_path = path
-            new Job({name: "dex_write_file",
-                     robot: dex_instance,
-                     do_list: [
-                        Dexter.write_file(dex_file_path, content),
-                        callback //but never passes an error object. not good, but robot_status should contain an error, and error if there is one, else callback should be called with no error so it does what it should do when no error
-                     ]
-            }).start()
-        }
+        let dex_file_path = path.substring(colon_pos + 1)
+        let the_callback = callback
+        let the_path = path
+        new Job({name: "dex_write_file",
+                 robot: dex_instance,
+                 do_list: [
+                    Dexter.write_file(dex_file_path, content),
+                    callback //but never passes an error object. not good, but robot_status should contain an error, and error if there is one, else callback should be called with no error so it does what it should do when no error
+                 ]
+        }).start()
+    }
+    else if (is_dexter_path(path)){
+        dde_error("In write_file_async of path: " + path +
+            "<br/>there is no Dexter instance defined of that Dexter name.")
     }
     else {
         path = make_full_path(path)
@@ -557,10 +552,23 @@ function is_root_path(path){
     else { return false }
     //return starts_with_one_of(path, ["/", "C:", "D:", "E:", "F:", "G:"]) //C: etc. is for Windows OS.
 }
+
+//returns instance of Dexter or null if path is not a dexter path or if no defined dexter at that path
+function path_to_dexter_instance(path){
+    let dot_pos = path.indexOf(".")
+    let colon_pos = path.indexOf(":")
+    if(dot_pos == -1) { return false }
+    else if (colon_pos == -1) { return false }
+    else if (colon_pos < dot_pos) { return false }
+    let path_computer_string = path.substring(0, colon_pos)
+    let rob = value_of_path( path_computer_string)
+    if(rob && rob instanceof Dexter) { return rob }
+    else { return null }
+}
 //returns true if its a path that isn't a top level, has a colon and the
 //substring between the beginning of the path and the colon names a defined dexter.
 //Beware that if the dexter is not defined YET, then this will return false.
-function is_dexter_path(path){
+/*function is_dexter_path(path){
     if(is_root_path(path)) { return false }
     else {
         let colon_pos = path.indexOf(":")
@@ -571,7 +579,23 @@ function is_dexter_path(path){
             else { return false}
         }
     }
+}*/
+//new version: path looks like "Dexter.dexter0:more_text"
+//the dexter does not have to be defined for the path to
+//be a dexter path.
+function is_dexter_path(path){
+    if(!path.startsWith("Dexter.")) { return false }
+    else {
+        let dot_pos = path.indexOf(".")
+        let colon_pos = path.indexOf(":")
+        if(dot_pos == -1) { return false }
+        else if (colon_pos == -1) { return false }
+        else if (colon_pos < dot_pos) { return false }
+        else { return true }
+    }
 }
+
+
 
 //______new load_files synchronous______
 //verify all paths first before loading any of them because we want to error early.

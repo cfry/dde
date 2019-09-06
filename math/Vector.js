@@ -167,7 +167,7 @@ class Vector{
     //Can also add scalars to each element in vector
     //unlimited number of inputs args
     static add(...args){
-        let temp_args = Vector.deep_copy(args)
+        let temp_args = Convert.deep_copy(args)
         var sum = temp_args[0]
         
     	for(let i = 1; i < Vector.size(args); i++){
@@ -224,7 +224,7 @@ class Vector{
     //Can also add scalars to each element in vector
     //unlimited number of inputs args
     static subtract (...args){
-        let temp_args = Vector.deep_copy(args)
+        let temp_args = Convert.deep_copy(args)
         var sum = temp_args[0]
         
     	for(var i = 1; i < Vector.size(temp_args); i++){
@@ -265,7 +265,7 @@ class Vector{
         	dde_error("Error: the function 'Vector.multiply' has undefined inputs")
         }
         
-        let temp_args = Vector.deep_copy(args)
+        let temp_args = Convert.deep_copy(args)
         var product = temp_args[0]
 
     	for(var i = 1; i < Vector.size(args); i++){
@@ -356,7 +356,7 @@ class Vector{
         	dde_error("the function 'Vector.divide' has undefined inputs")
         }
         
-        let temp_args = Vector.deep_copy(args)
+        let temp_args = Convert.deep_copy(args)
         var quotient = temp_args[0]
 
     	for(var i = 1; i < Vector.size(args); i++){
@@ -445,7 +445,7 @@ class Vector{
 
 
     static average(...args){
-    	let temp_args = Vector.deep_copy(args)
+    	let temp_args = Convert.deep_copy(args)
         let sum
         if(temp_args.length == 1){
         	sum = temp_args[0][0]
@@ -499,7 +499,7 @@ class Vector{
             Kin.distance(PLANE, POINT) -> distance between plane and point
             Kin.distance(POINT, PLANE) -> distance between point and point
         */
-        var temp_args = Vector.deep_copy(args)
+        var temp_args = Convert.deep_copy(args)
         
         
         switch(Vector.size(args)){
@@ -675,7 +675,7 @@ class Vector{
         if(typeof(number_or_array) == "number"){
         	return Math.round(mulitplier * number_or_array) / mulitplier
         }else{
-        	let temp_array = Vector.deep_copy(number_or_array)
+        	let temp_array = Convert.deep_copy(number_or_array)
             let dim = Vector.matrix_dimensions(number_or_array)
             if(dim[0] == 1){
             	for(var i = 0; i < number_or_array.length; i++){
@@ -711,8 +711,8 @@ class Vector{
         else if (array1.length !== array2.length){
         	return false
         }else{
-        	let array1_temp = Vector.deep_copy(array1)
-            let array2_temp = Vector.deep_copy(array2)
+        	let array1_temp = Convert.deep_copy(array1)
+            let array2_temp = Convert.deep_copy(array2)
         	switch(tolerance_type){
             	case "decimal_places":
         			array1_temp = Vector.round(array1_temp, tolerance)
@@ -1078,7 +1078,7 @@ class Vector{
     */
     static abs(array){
     	let dim = Vector.matrix_dimensions(array)
-        let array_copy = Vector.deep_copy(array)
+        let array_copy = Convert.deep_copy(array)
         
         if(dim[1] == 0){
         	return Math.abs(array)
@@ -1105,7 +1105,7 @@ class Vector{
 
     static pow(array, power){
     	let dim = Vector.matrix_dimensions(array)
-        let array_copy = Vector.deep_copy(array)
+        let array_copy = Convert.deep_copy(array)
         
         if(dim[1] == 0){
         	return Math.pow(array, power)
@@ -1603,7 +1603,7 @@ class Vector{
     	if (args === undefined){
         	dde_error("the function 'Vector.matrix_multiply' has undefined inputs")
         }
-        let temp_args = Vector.deep_copy(args)
+        let temp_args = Convert.deep_copy(args)
         let matrix_A = temp_args[0]
         for(let i = 1; i < temp_args.length; i++){
             let matrix_B = temp_args[i]
@@ -1616,7 +1616,7 @@ class Vector{
     	if (args === undefined){
         	dde_error("the function 'Vector.matrix_multiply' has undefined inputs")
         }
-        let temp_args = Vector.deep_copy(args)
+        let temp_args = Convert.deep_copy(args)
         let matrix_A = temp_args[0]
         for(var i = 1; i < temp_args.length; i++){
             let matrix_B = temp_args[i]
@@ -1821,7 +1821,7 @@ class Vector{
     	//a proper point takes the following form: [[x], [y], [z], [1]]
         //for points: [[x1, x2, ..., xn], [y1, y2, ..., yn], [z1, z2, ..., zm=n] [1, 1, ..., 1]]
     	let dim = Vector.matrix_dimensions(points)
-        let proper_points = Vector.deep_copy(points)
+        let proper_points = Convert.deep_copy(points)
         if(dim[0] == 1){
         	proper_points = Vector.transpose(proper_points)
             proper_points.push([1])
@@ -1853,7 +1853,7 @@ class Vector{
     	//a proper point takes the following form: [[x], [y], [z], [1]]
         //for points: [[x1, x2, ..., xn], [y1, y2, ..., yn], [z1, z2, ..., zm=n] [1, 1, ..., 1]]
     	let dim = Vector.matrix_dimensions(vectors)
-        let proper_vectors = Vector.deep_copy(vectors)
+        let proper_vectors = Convert.deep_copy(vectors)
         if(dim[0] == 1){
         	proper_vectors = Vector.transpose(proper_vectors)
             if(dim[1] == 3){
@@ -2326,7 +2326,7 @@ class Vector{
     static data_to_file(...args){
     //debugger
     
-    	let temp_args = Vector.deep_copy(args)
+    	let temp_args = Convert.deep_copy(args)
         let file_name, elt, file_string, data_array, table_titles
         let data = []
         for(let i = 0; i < temp_args.length; i++){

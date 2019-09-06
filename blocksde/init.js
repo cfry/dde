@@ -1,5 +1,7 @@
-// to load blocks:  load_files(__dirname + "/blocksde/init.js")
-
+// to load blocks and get editor view menu in editor header.
+// load_files(__dirname + "/blocksde/init.js")
+// blocks_init()
+//
 /*load_files(__dirname + "/blocksde/",
            "workspace.js",
            "category_newObject.js",
@@ -113,7 +115,6 @@ function js_to_blocks(){
         if (block_to_install){ //we've got non empty src code so turn it into blocks.
             install_top_left_block(block_to_install)
         }
-        text_blocks_toggle_id.style["background-color"] = "#AAFFAA"
         Editor.view = "Blocks"
 }
 
@@ -121,7 +122,6 @@ function blocks_to_js(){
     out("installing text")
     let js = Workspace.inst.to_js()
     replace_dom_elt(blocksde_dom_elt, the_codemirror_elt)
-    text_blocks_toggle_id.style["background-color"] = "#CCCCCC"
     Editor.set_javascript(js)
     Editor.view = "JS"
     myCodeMirror.focus()

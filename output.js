@@ -411,7 +411,7 @@ window.show_window = function({content = `<input type="submit" value="Done"/>`,
 
 function install_onclick_via_data_fns(){
     var elts = document.getElementsByClassName("onclick_via_data")
-    for (var index = 0; index  < elts.length; index++){ //bug in js chrome: for (var elt in elts) doesn't work here.
+    for (var index = 0; index < elts.length; index++){ //bug in js chrome: for (var elt in elts) doesn't work here.
         var elt = elts[index]
         elt.onclick = onclick_via_data_fn
     }
@@ -660,9 +660,10 @@ window.submit_window = function(event){
     var combo_boxes = $(window_content_elt).find(".combo_box")  //should be a div tag a la <div class="combo_box><option>one</option><option selected="selected">two</option></div>
     for (var i = 0; i < combo_boxes.length; i++){
         let outer_cb = combo_boxes[i]
-        let inner_cb = outer_cb.children[1]
+        //let inner_cb = outer_cb.children[1] //not needed but this is a INPUT tag of type "text" whose value prop is the combo box prop
         let val = $(outer_cb).val() //inner_cb.value
-        result[inner_cb.name] = val
+        var in_name = (outer_cb.name ? outer_cb.name : outer_cb.id)
+        result[in_name] = val
     }
     if (this.type == "submit"){
         //$('#jqxwindow').jqxWindow('close');
@@ -1163,8 +1164,8 @@ window.latest_release_version_and_date = function(callback){
     //unless you have a header of the below usr agent.
     const browser_user_agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36'
     get_page_async({url: "https://api.github.com/repos/cfry/dde/releases/latest",
-                        headers: {"user-agent": browser_user_agent}},
-                        callback)
+                    headers: {"user-agent": browser_user_agent}},
+                   callback)
 }
 
 function make_url(url, arguments) {
@@ -1322,7 +1323,9 @@ window.insert_color = insert_color
 
 
 //fixes broken Electron prompt See main.js for more code and doc
-window.prompt = function(description="", default_value=""){
+//ue to work.
+// https://github.com/konsumer/electron-prompt claims to work, but I can't get its tricks to sep 4, 2019
+/*window.prompt = function(description="", default_value=""){
     let obj
     if(typeof(description) == "string"){
         obj = {description: description,
@@ -1348,7 +1351,7 @@ window.prompt = function(description="", default_value=""){
     console.log("return_val")
     console.log(return_val)
     return return_val
-}
+}*/
 
 var {persistent_get, persistent_set} = require("./core/storage")
 var {warning, function_name, is_string_a_integer, is_string_a_number, starts_with_one_of,

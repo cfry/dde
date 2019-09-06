@@ -1727,6 +1727,94 @@ the points defined in ez_create.
     </ol>
 </details>
 
+<details id="ssh_doc_id" class="doc_details"><summary>Secure Shell (SSH)</summary>
+Most of your interaction with Dexter from DDE can be done via JavaScript.
+But there are times you need to get lower level information or control
+to Dexter's computer.
+To do this, from within DDE, you can issue shell commands to Dexter (or DDE's computer),
+and see the results in DDE's Output pane.
+<p></p>
+    When Dexter is started,
+    it automatically launches an SSH server listening for commands
+    from a remote client like DDE.
+    If an SSH connection is not established, choose DDE menu bar/Jobs/Ping a Dexter...
+    to verify, in a lower level way, that you have basic connectivity to
+    the Dexter of your choice.
+    <p></p>
+    <b>Using SSH From DDE</b><br/>
+    The Output Pane Header has a <i>select</i> widget<br/>
+    <select><option>JS    </option></select>
+    This lets you choose the <i>language</i> of the code you write in the
+    command line. The default is "JS" for JavaScript.
+    <p></p>
+    To SSH to Dexter, choose "SSH", allowing you to use the 'bash' shell script.
+    This will bring up a dialog box allowing you to choose the computer, user name,
+    and password to connect to.
+    Upon initialization, a command is sent to get the contents of a useful directory
+    on that computer. From the returned table, you can:
+    <ul>
+        <li>Click on file names to edit them in DDE's editor (provided they are plain text files).</li>
+        <li>Click on subdirectories to browse them.</li>
+        <li>Click on the components of the displayed directory to "go up" the
+            file hierarchy and browse them.</li>
+        <li>Click on the menu to the left of the file or directory name in the table
+            to invoke common commands on that file or directory.
+            Menu items that have ... in them don't execute commands, but
+            insert those commands into the command line and let you edit them
+            before hitting ENTER to run them.
+    </ul>
+    When you choose "SSH", an additional <button>Cmds&#9660;</button> menu appears near the
+    language selector. This lets you enter a few common commands without typing.
+    You can edit those commands in the command line and hit ENTER to re-run them,
+    or type in whole new commands of your choosing.
+    <p></p>
+    <b>SSH to DDE's computer</b><br/>
+    It is also occassionally useful to interact with DDE's computer via a command
+    line terminal. Your computer supports such an application,
+    but sometimes its more convenient to do that from within DDE.
+    You can accomplish that by selecting "dde_computer" when switching the
+    language to SSH.
+    <p></p>
+    To use SSH to DDE's computer, you must launch an SSH Server on DDE's
+    computer first.
+
+    <details class="doc_details"><summary>Launch SSH server on WinOS</summary>
+        To launch openSSH server on Windows 10,<br/>
+        see:
+        <a href="https://winscp.net/eng/docs/guide_windows_openssh_server"
+           target="_blank">Windows 10 openSSH</a><br/>
+        Roughly, the steps are:
+        <ol><li>Go to Control Panel > System and Security > Administrative Tools and open Services.</li>
+            <li>Locate OpenSSH SSH Server service.</li>
+            <li>If you want the server to start automatically when your machine is started:
+                Go to Action > Properties.
+            </li>
+        </ol>
+    </details>
+
+    <details class="doc_details"><summary>Launch SSH server on MacOS</summary>
+        To launch openSSH server on MacOS,<br/>
+        see:
+        <a href="http://osxdaily.com/2011/09/30/remote-login-ssh-server-mac-os-x/"
+           target="_blank">Mac SSH Server</a><br/>
+        Roughly, the steps are:
+        <ol><li>Choose AppleMenu/System Preferences/Sharing</li>
+            <li>Check "Remote Login"</li>
+            <li>For tighter security.
+                We recommend selecting Remote Login: "only for these users".
+                When that is selected , only Administrators
+                will be able to log in
+            </li>
+        </ol>
+    </details>
+
+    SSHing to DDE's computer operates very similarly to SSHing to Dexter, except that you
+    must give your user name and password.
+    This is the same user name and password you must give when you
+    restart your computer and login.
+</details> <!-- end ssh_doc_id -->
+
+
 <details class="doc_details"><summary>Contact</summary>
     Please help us by emailing a bug report or suggestion to
     <a id="email_bug_report_id" href="#">cfry@hdrobotic.com</a> Take a look at the

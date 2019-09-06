@@ -12,7 +12,7 @@ function out(val="", color="black", temp=false, code=null){
         }
         text = format_text_for_code(text, code)
         if ((color != "black") && (color != "#000000")){
-            text = "<span style='color:" + color + "';>" + text + "</span>"
+            text = "<span style='color:" + color + ";'>" + text + "</span>"
         }
         let temp_str_id = ((typeof(temp) == "string") ? temp : "temp")
         let existing_temp_elts = $("#" + temp_str_id)
@@ -49,7 +49,7 @@ module.exports.out = out
 function format_text_for_code(text, code=null){
     if (code === null) {
         code = persistent_get("default_out_code")
-        if ((code === undefined) || (code === null)) { code = false }
+        if ((code === undefined) || (code === null) || (code == false)) { code = false }
     }
     if (code) { //cut off timing info: too confusing to see it.
         let timing_index = text.indexOf(" <span style='padding-left:50px;font-size:10px;'>")
@@ -77,7 +77,7 @@ function format_text_for_code(text, code=null){
 // It has been trimmed, and stringified, with <code> </code> wrapped around it probably.
 //never passed 'dont_print, always prints <hr/> at end whereas regular output never does
 //ui only
-function out_eval_result(text, color="#000000", src){
+function out_eval_result(text, color="#000000", src, src_label="The result of evaling JS"){
     if (text != '"dont_print"'){
         var existing_temp = $("#temp")
         if (existing_temp.length > 0){
@@ -87,7 +87,7 @@ function out_eval_result(text, color="#000000", src){
             text = text.replace(/\</g, "&lt;") //so I can debug calls to svg_svg, svg_cirle ettc
         }
         if (color && (color != "#000000")){
-            text = "<span style='color:" + color + "';>" + text + "</span>"
+            text = "<span style='color:" + color + ";'>" + text + "</span>"
         }
         text = format_text_for_code(text)
         let src_formatted = ""
@@ -108,7 +108,7 @@ function out_eval_result(text, color="#000000", src){
             src_formatted = " <code title='" + src + "'>&nbsp;" + src_formatted + src_formatted_suffix + "&nbsp;</code>"
         }
         //if (src_formatted == "") { console.log("_____out_eval_result passed src: " + src + " with empty string for src_formatted and text: " + text)}
-        text = "<fieldset><legend><i>Result of evaling </i>" + src_formatted + "</legend>" +  text + "</fieldset>"
+        text = "<fieldset><legend><i>" + src_label  + " </i>" + src_formatted + " <i>is...</i></legend>" +  text + "</fieldset>"
         append_to_output(text)
     }
     //$('#js_textarea_id').focus() fails silently

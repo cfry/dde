@@ -684,7 +684,8 @@ Editor.edit_new_file = function(){
     Editor.edit_file("new buffer")
 }
 
-Editor.edit_file = function(path){ //path could be "new buffer"
+//content is passed when we're editing a file by clicking on SSH dir listing file
+Editor.edit_file = function(path, content){ //path could be "new buffer"
     if(Editor.current_file_path == "new buffer") {
         Editor.set_files_menu_to_path() //set the files menu BACK to its previously selected file cause we can't get the new one
         if (path == "new buffer"){
@@ -695,17 +696,20 @@ Editor.edit_file = function(path){ //path could be "new buffer"
             const path_already_in_menu = Editor.set_files_menu_to_path(path)
             if (!path_already_in_menu) { Editor.add_path_to_files_menu(path) }
             let the_path = path
-            read_file_async(path, undefined, function(err, content) { //file_content will conver to windows format if needed
-                if(err) {
-                    Editor.set_files_menu_to_path() //set the files menu BACK to its previously selected file cause we can't get the new one
-                    dde_error(err.message)
-                }
-                else {
-                    content = content.toString() //because sometimes the content passed in is  buffer, not a string. This handles both.
-                    Editor.edit_file_aux(the_path, content)
-                }
-            })
-
+            if(content) {
+                Editor.edit_file_aux(the_path, content)
+            }
+            else {
+                read_file_async(path, undefined, function(err, content) { //file_content will conver to windows format if needed
+                    if(err) {
+                        Editor.set_files_menu_to_path() //set the files menu BACK to its previously selected file cause we can't get the new one
+                        dde_error(err.message)
+                    }
+                    else {
+                        content = content.toString() //because sometimes the content passed in is  buffer, not a string. This handles both.
+                        Editor.edit_file_aux(the_path, content)
+                    }
+                })}
         }
         else { Editor.show_when_new_buffer_choices() }
     }
@@ -731,21 +735,28 @@ Editor.edit_file = function(path){ //path could be "new buffer"
                 }
             }
         }
-        if (path == "new buffer"){ Editor.edit_file_aux(path, "")  }
+        if (path == "new buffer"){
+            Editor.edit_file_aux(path, (content? content: ""))
+        }
         else {
             const path_already_in_menu = Editor.set_files_menu_to_path(path)
             if (!path_already_in_menu) { Editor.add_path_to_files_menu(path) }
-            let the_path = path
-            read_file_async(path, undefined, function(err, content) { //file_content will conver to windows format if needed
-                                        if(err) {
-                                            Editor.set_files_menu_to_path() //set the files menu BACK to its previously selected file cause we can't get the new one
-                                            dde_error(err.message)
-                                        }
-                                        else {
-                                            content = content.toString() //because sometimes the content passed in is  buffer, not a string. This handles both.
-                                            Editor.edit_file_aux(the_path, content)
-                                        }
-            })
+            if(content) {
+                Editor.edit_file_aux(path, content)
+            }
+            else {
+                let the_path = path
+                read_file_async(path, undefined, function(err, content) { //file_content will conver to windows format if needed
+                                            if(err) {
+                                                Editor.set_files_menu_to_path() //set the files menu BACK to its previously selected file cause we can't get the new one
+                                                dde_error(err.message)
+                                            }
+                                            else {
+                                                content = content.toString() //because sometimes the content passed in is  buffer, not a string. This handles both.
+                                                Editor.edit_file_aux(the_path, content)
+                                            }
+                })
+            }
         }
     }
 }
@@ -2406,20 +2417,36 @@ Editor.show_identifier_info_for_type_in = function(event){
     Editor.show_identifier_info(full_src, pos)
 }
 
-Editor.show_identifier_info = function(full_src=Editor.get_javascript(), pos=Editor.selection_start()){
+Editor.show_identifier_info = function(full_src=Editor.get_javascript(), pos=Editor.selection_start(), html_elt){
     var identifier = Editor.identifier_or_operator(full_src, pos)
     if (identifier){
-        var info = Js_info.get_info_string(identifier, undefined, full_src, pos)
-        /* this is now implemented in identifier_or_operator that returns a potential array with var, let and param into in it.
-         if (!info){
-            info = Editor.variable_info(identifier)
-            if (info){ info = "<b>" + identifier + "</b> is " + info }
-        }*/
-        if (info){
-            let context_info = Editor.context_help(full_src, pos, identifier)
-            if(context_info)
-                info = info + "<br/>" + context_info
-            out(info, null, true)
+        let lang = cmd_lang_id.value
+        if((html_elt == cmd_input_id) &&
+           (lang != "JS")) {
+           if(cmd_input_id.selectionStart == cmd_input_id.selectionEnd) { //ie there's no selection.
+           // If there is a selection, this is often NOT what we want to fire a click help on
+           //because, for intance, when choosing Cmds menu/Command Help inserts
+           // man -P cat <cmd name here>
+           //and if you try to select that open angle trhu close angle to delete it
+           //you don't want just that selection firing off "man -P cat <cmd name here>"
+           //as that will error.
+                let cmd = "man -P cat " + identifier
+                SSH.run_command({command: cmd})
+           }
+        }
+        else {
+            let info = Js_info.get_info_string(identifier, undefined, full_src, pos)
+            /* this is now implemented in identifier_or_operator that returns a potential array with var, let and param into in it.
+             if (!info){
+                info = Editor.variable_info(identifier)
+                if (info){ info = "<b>" + identifier + "</b> is " + info }
+            }*/
+            if (info){
+                let context_info = Editor.context_help(full_src, pos, identifier)
+                if(context_info)
+                    info = info + "<br/>" + context_info
+                out(info, null, true)
+            }
         }
     }
 }

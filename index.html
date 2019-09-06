@@ -109,6 +109,8 @@
     <script type="text/javascript" src="video.js"></script>
     <script type="text/javascript" src="picture1.js"></script>
     <script type="text/javascript" src="ros_interface.js"></script>
+    <script type="text/javascript" src="ssh.js"></script>
+
 
     <link rel="stylesheet" href="ui_widgets/awesomplete.css"/>
     <script src="ui_widgets/awesomplete.js"></script>
@@ -730,11 +732,32 @@
                             </ul>
                         </div>-->
                         <!--<div style="display:inline-block;font-size:10px;margin:0px;padding:0px;height:16px;vertical-align:top;">
-                              <input id="js_radio_button_id"  type="radio" name="js_or_ros" value="js" checked="checked" style="margin-top:0px;padding-top:0px;"/>JS<br/>
-                              <input id="ros_radio_button_id" type="radio" name="js_or_ros" value="ros"/>ROS
+                              <input id="js_radio_button_id"  type="radio" name="js_or_ssh" value="js" checked="checked" style="margin-top:0px;padding-top:0px;"/>JS<br/>
+                              <input id="ssh_radio_button_id" type="radio" name="js_or_ssh" value="ssh"/>SSH
                         </div>-->
+                        <select     title="Select the language used in the Command line." id="cmd_lang_id">
+                            <option title="Type JavaScript&#13;into the Command Line type in.&#13;It will be evaled when you hit ENTER.&#13;The result is printed in the Output pane.">JS</option>
+                            <option title="Type Unix Shell commands&#13;into the Command Line type in.&#13;Commands go to the SSH computer,&#13;set in the dialog shown&#13;when you choose this item.">SSH</option>
+                        </select>
+                        <div id="cmd_menu_id" class="dde_menu" style="display:none;margin-left:10px;vertical-align: middle;">
+                            <ul style="display:inline-block;padding:0;margin-top:0px;">
+                                <li style="display:inline-block;padding:0px;">Cmds&#9660;
+                                    <ul>
+                                        <li id="cd_up_id" title="Change the current directory&#13;to the current directory's parent.">Change Dir Up</li>
+                                        <li id="date_id"  title="Show the current date & time.">Current Date</li>
+                                        <li id="make_directory_id" title="Make a new directory.">Make Directory...</li>
+                                        <li id="make_file_id" title="Make a new file.&#13;If the file already exists,&#13;change its modification and access times to now.">Make File...</li>
+                                        <li id="man_id"   title="Show documentation on a command.">Command Help...</li>
+                                        <li id="pwd_id"   title="Show the current directory name.">Current Dir Name</li>
+                                        <li id="show_directory_id"   title="Show the content of the current directory.">Current Dir Content</li>
+                                        <li id="run_selected_cmd_id" title="Run the command(s) selected in the editor,&#13;or, if none, the whole editor content.">Run Selected Cmd</li>
+                                        <li id="whoami_id" title="Show the logged in user name.">User Name</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
                         <input id="cmd_input_id"
-                               placeholder="Type in code & hit Enter key to eval"
+                               placeholder="Type in JS & hit the Enter key to eval"
                                title="Type in code & hit Enter key to eval.&#13;Up arrow for previous cmd.&#13;Down arrow for next cmd&#13;or, at end, clear cmd line."
                                style="font-size:14px;width:500px;"/>
                         <br/>

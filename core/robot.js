@@ -377,16 +377,25 @@ var Human = class Human extends Brain { /*no associated hardware */
         return new Instruction.human_task(arguments[0])
     }
 
-    static enter_choice({task = "", choices=[["Yes", true], ["No", false]],
+    static enter_choice({
+        task = "",
+        choices=[["Yes", true], ["No", false]],
         show_choices_as_buttons=false,
         one_button_per_line=false,
-        user_data_variable_name="a_choice", dependent_job_names=[],
-        title, x=200, y=200, width=400, height=400,  background_color = "rgb(238, 238, 238)"} = {}){
+        user_data_variable_name="a_choice",
+        dependent_job_names=[],
+        add_stop_button=true,
+        title,
+        x=200, y=200, width=400, height=400,
+        background_color = "rgb(238, 238, 238)"} = {}){
         return new Instruction.human_enter_choice(arguments[0])
     }
 
     static enter_filepath({task = "",
-                           user_data_variable_name="a_filepath", dependent_job_names=[],
+                           user_data_variable_name="a_filepath",
+                           initial_value="",
+                           add_stop_button = true,
+                           dependent_job_names=[],
                            title, x=200, y=200, width=400, height=400,  background_color = "rgb(238, 238, 238)"} = {}){
         return new Instruction.human_enter_filepath(arguments[0])
     }
@@ -405,6 +414,7 @@ var Human = class Human extends Brain { /*no associated hardware */
         min=0,
         max=100,
         step=1,
+        add_stop_button = true,
         dependent_job_names=[],
         title, x=200, y=200, width=400, height=400,  background_color = "rgb(238, 238, 238)"}={}) {
         return new Instruction.human_enter_number(arguments[0])
@@ -412,6 +422,7 @@ var Human = class Human extends Brain { /*no associated hardware */
 
     static enter_position({task="Position Dexter&apos;s end effector<br/>to the position that you want to record,<br/>and click <b>Continue Job</b>.",
                            user_data_variable_name="a_position",
+                           add_stop_button = true,
                            dependent_job_names=[],
                            title, x=200, y=200, width=400, height=400,  background_color = "rgb(238, 238, 238)"}={}) {
         return[Dexter.empty_instruction_queue,
@@ -422,6 +433,7 @@ var Human = class Human extends Brain { /*no associated hardware */
 
     static enter_text({task="",
         user_data_variable_name="a_text",
+        add_stop_button = true,
         initial_value="OK",
         line_count=1, //if 1, makes an input type=text. If > 1 makes a resizeable text area.
         dependent_job_names=[],
@@ -2846,7 +2858,7 @@ var {Instruction, make_ins} = require("./instruction.js")
 Dexter.make_ins = make_ins
 var {shouldnt, warning, dde_error, date_integer_to_long_string, is_iterator, last,
       prepend_file_message_maybe, return_first_arg, starts_with_one_of, value_of_path} = require("./utils")
-var {persistent_get} = require("./storage")
+var {file_exists, persistent_get, read_file} = require("./storage")
 var Socket = require("./socket.js")
 var {out} = require("./out.js")
 var {serial_connect, serial_disconnect, serial_send} = require("./serial.js")
