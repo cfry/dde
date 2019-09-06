@@ -6,6 +6,23 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 3.4.6, Sep 6, 2019</summary>
+Highlights: Minor bug fixes to release: 3.4.5 for file system and SSH.
+<ul>
+    <li> File System: adjust_path_to_os generalized to change \C:\foo\bar to C:\foo\bar
+     for WindowsOS pathnames.</li>
+
+    <li> File System: Bug fix to make_folder, particularly relevant to WindowsOS.</li>
+
+    <li> Bug fix for SSH when changing between dde_conputer and dexter0 computer,
+          the right default directory wasn't being used for the new computer.</li>
+
+    <li> Bug fix for SSH on Dexter computer:
+         In some cases, //srv/samba/share was accidentally made.
+         Changed to /srv/samba/share</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.4.5, Sep 5, 2019</summary>
 Highlights: Command line now has SSH option.<br/>
             Vextor/Convert deep_copy reverted back to old version to fix bug.<br/>

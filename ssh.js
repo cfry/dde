@@ -56,6 +56,13 @@ var SSH = class SSH {
             }
             else { this.dir_for_ls = "/" }
         }
+        if(this.config.the_host_name &&
+           this.config.the_host_name.startsWith("Dexter.") &&
+            simulate_radio_false_id.checked === false){
+            simulate_radio_false_id.checked = true
+            persistent_set("default_dexter_simulate", false) //must do!
+            warning("In order to use SSH to a dexter computer,<br/>the 'real' button in the Misc pane header must be checked.<br/>It has been switched to checked.")
+        }
         if (!command){
             command = "cd " + this.dir_for_ls + ";" + SSH.show_dir_cmd
         }
@@ -172,6 +179,7 @@ var SSH = class SSH {
        this.conn   = null  //automatically set to null by close, but to be safe.
        this.stream = null //automatically set to null by close, but to be safe.
        this.out_str = ""
+       this.dir_for_ls = null
    }
    static wait_or_write(command, tries=0){
        if(this.stream && this.stream.writable) {
@@ -688,10 +696,12 @@ function ssh_show_config_dialog_handler(vals){
                     return
                 }
             }
+            SSH.close_connection() //prepare for init for the new computer.
             //cleared for take-off
             cmd_menu_id.style.display = "inline-block"
             cmd_input_id.value = SSH.show_dir_cmd
-            SSH.run_command({computer: comp, username: un, password: pa}) //let the command default to SSH.show_dir_cmd
+            setTimeout(function() {SSH.run_command({computer: comp, username: un, password: pa})}, //let the command default to SSH.show_dir_cmd
+                       300) //give the close_connection above a chance to complete.
         }
         else {
             warning("SSH not started because no username and/or password was provided.")

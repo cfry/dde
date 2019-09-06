@@ -428,14 +428,14 @@ function make_folder(path){
     let path_being_built = ""
     for(let path_part of path_array){
         path_being_built += (folder_separator() + path_part)
-        let path_to_use = adjust_path_to_os(path_being_built)
+        path_being_built = adjust_path_to_os(path_being_built)
 
-        if(!file_exists(path_to_use)){
+        if(!file_exists(path_being_built)){
            try{
-                fs.mkdirSync(path_to_use)
+                fs.mkdirSync(path_being_built)
            }
            catch(err){
-               dde_error("In make_folder, could not make: " + path_to_use + "<br/>" +
+               dde_error("In make_folder, could not make: " + path_being_built + "<br/>" +
                          err.message)
            }
         }
@@ -527,8 +527,8 @@ function adjust_path_to_os(path){
           //happen on a mac or linus, esp since dde standard is slash.
         let result = path.replace(/\//g, folder_separator())
         //we might have  a path like \C:\foo.txt in which case, take off the initial backslash
-        if(result.startsWith("\\") &&
-            (result.length == 3) &&
+        if(result.startsWith("\\") && //looks like we've got WindowsOS path
+            //(result.length == 3) && //unnecessarily restrictive
             (result[2] == ":")) {
             result = result.substring(1)
         }
