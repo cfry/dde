@@ -1,6 +1,5 @@
 /* Created by Fry on 3/29/16. */
 
-
 var Robot = class Robot {
     constructor (){
     }
@@ -81,6 +80,13 @@ var Robot = class Robot {
         }
         return result
     }
+
+    //this is shadowed by Dexter, but all other robots are never busy.
+    is_busy(){ return false }
+
+    add_to_busy_job_array(a_job){ } //no-op. shadowed by Dexter.
+
+    remove_from_busy_job_array(a_job){} //no-op. shadowed by Dexter.
 
     is_initialized(){ return true }
 
@@ -595,16 +601,18 @@ Serial = class Serial extends Robot {
 
     start(job_instance) { //fill in initial robot_status
         if (this.is_initialized()) {
-            Serial.set_a_robot_instance_socket_id(this.path) //we don't now actually use socket_id outside of serial.js
+            //unlike the other set_a_robot_instance_socket_id methods, we must pass job_instance
+            //as a 2nd arg.
+            Serial.set_a_robot_instance_socket_id(this.path, job_instance) //we don't now actually use socket_id outside of serial.js
         }
         else {
-            serial_connect(this.path, this.connect_options, this.simulate, this.capture_n_items, this.item_delimiter, this.parse_items, this.capture_extras)
+            serial_connect(this.path, this.connect_options, this.simulate, this.capture_n_items, this.item_delimiter, this.trim_whitespace, this.parse_items, this.capture_extras, job_instance)
         }
     }
 
-    init(){
-        this.connecting = true
-        serial_connect(this.path, this.connect_options, this.simulate, this.capture_n_items, this.item_delimiter, this.parse_items, this.capture_extras)
+    init(job_instance){
+            this.connecting = true
+            serial_connect(this.path, this.connect_options, this.simulate, this.capture_n_items, this.item_delimiter, this.trim_whitespace, this.parse_items, this.capture_extras, job_instance)
         /*serial_init_one_info_map_item(this.path,
                                         this.options,
                                         this.simulate,
@@ -616,14 +624,14 @@ Serial = class Serial extends Robot {
         //this.is_connected = true //do this only in set_a_robot_instance_socket_id
     }
 
-    ///called from serial_new_socket_callback
-    static set_a_robot_instance_socket_id(path){ //do I really need the socket_id of a serial?
+    ///called from Serial.start
+    static set_a_robot_instance_socket_id(path, job_instance){ //do I really need the socket_id of a serial?
         let rob          = Serial.get_robot_with_path(path)
         //rob.socket_id    = socket_id
         rob.connecting   = false //connection and is_connected will never both be true
         rob.is_connected = true
         out("Connected to serial port at: " + rob.path, undefined, true)
-        let job_instance = Serial.get_job_with_robot_path(path) //beware, this means only 1 job can use this robot!
+        //let job_instance = Serial.get_job_with_robot_path(path) //beware, this means only 1 job can use this robot!
         if(job_instance) {
             if (job_instance.status_code === "starting") {
                 job_instance.set_status_code("running")
@@ -647,7 +655,7 @@ Serial = class Serial extends Robot {
         else if (!this.is_connected){
             //this.start(job_instance)
             out("Initializing serial port at: " + this.path, undefined, true)
-            this.init()
+            this.init(job_instance)
             job_instance.set_up_next_do(0)
         }
         else if (this.is_connected) { // || (sim_actual === true) || (sim_actual === "both"))  {
@@ -1388,7 +1396,7 @@ Dexter = class Dexter extends Robot {
     clean_up_busy_job_array(){
        let result = []
        for(let a_job of this.busy_job_array){
-            if(a_job.is_active()) { //remove inactive jobs
+            if(a_job.is_active()) { //remove inactive jobs from busy_job_array by preserviong the still active ones
                 if(!result.includes(a_job)) { //remove duplicates
                     result.push(a_job)
                 }
@@ -2050,17 +2058,17 @@ Dexter.prototype.read_file = function (source, destination="read_file_content"){
 Dexter.prototype.read_from_robot = Dexter.prototype.read_file
 
 //from Dexter_Modes.js (these are instructions. The fns return an array of instructions
-Dexter.set_follow_me                = function(){ return setFollowMe() }
-Dexter.prototype.set_follow_me      = function(){ return setFollowMe(this) }
+Dexter.set_follow_me                = function(){ return make_ins("S", "RunFile", "setFollowMeMode.make_ins")} //function(){ return setFollowMe() }
+Dexter.prototype.set_follow_me      = function(){ return make_ins("S", "RunFile", "setFollowMeMode.make_ins", this)} //function(){ return setFollowMe(this) }
 
-Dexter.set_force_protect            = function(){ return setForceProtect() }
-Dexter.prototype.set_force_protect  = function(){ return set_force_protect(this) }
+Dexter.set_force_protect            = function(){ return make_ins("S", "RunFile", "setForceProtectMode.make_ins")} //function(){ return setForceProtect() }
+Dexter.prototype.set_force_protect  = function(){ return make_ins("S", "RunFile", "setForceProtectMode.make_ins", this)} //function(){ return set_force_protect(this) }
 
-Dexter.set_keep_position            = function(){ return setKeepPosition() }
-Dexter.prototype.set_keep_position  = function(){ return set_keep_position(this) }
+Dexter.set_keep_position            = function(){ return make_ins("S", "RunFile", "setKeepPositionMode.make_ins")} //function(){ return setKeepPosition() }
+Dexter.prototype.set_keep_position  = function(){ return make_ins("S", "RunFile", "setKeepPositionMode.make_ins", this)} //function(){ return set_keep_position(this) }
 
-Dexter.set_open_loop                = function(){ return setOpenLoop() }
-Dexter.prototype.set_open_loop      = function(){ return set_open_loop(this) }
+Dexter.set_open_loop                = function(){ return make_ins("S", "RunFile", "setOpenLoopMode.make_ins")} //function(){ return setOpenLoop() }
+Dexter.prototype.set_open_loop      = function(){ return make_ins("S", "RunFile", "setOpenLoopMode.make_ins", this)} //function(){ return set_open_loop(this) }
 
 
 //End Dexter Instructions
@@ -2842,10 +2850,7 @@ Dexter.rs_history_populate_window = function(sent_instructions, rs_history, rs_l
             columns: Dexter.make_rs_history_columns(rs_labels, sent_instructions)
         });
 }
-/* To Do
-A bunch of the 10 above fns should be moved to Job or maybe Robot.
-Some could be Job instance fns or Robot instance fns.
-*/
+
 
 module.exports.Robot  = Robot
 module.exports.Brain  = Brain
@@ -2865,4 +2870,4 @@ var {serial_connect, serial_disconnect, serial_send} = require("./serial.js")
 
 var Vector = require("../math/Vector")
 var Kin = require("../math/Kin.js")
-var {setFollowMe, setForceProtect, setKeepPosition, setOpenLoop} = require("../math/Dexter_Modes.js")
+//var {setFollowMe, setForceProtect, setKeepPosition, setOpenLoop} = require("../math/Dexter_Modes.js")

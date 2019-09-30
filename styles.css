@@ -97,6 +97,14 @@ th, td { text-align:left; }
     background-color: #000000;
 }
 
+.dde_error_css_class {
+    color:red;
+}
+
+.warning_css_class {
+    color:#e50;  /*orange*/
+}
+
 /*
 .vsplitbar {
     width: 10px;

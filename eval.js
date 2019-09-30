@@ -169,7 +169,7 @@ function eval_js_part3(result){
         var first_newline = stack_trace.indexOf("\n")
         if (first_newline != -1) { stack_trace = stack_trace.substring(first_newline + 1) }
         stack_trace = replace_substrings(stack_trace, "\n", "<br/>")
-        string_to_print = "<details><summary><span style='color:red;'>" + string_to_print +
+        string_to_print = "<details><summary><span class='dde_error_css_class'>" + string_to_print +
                           "</span></summary>" + stack_trace + "</details>"
         out_eval_result(string_to_print, undefined, result.command)
     }

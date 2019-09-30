@@ -2,10 +2,14 @@
 
 var Gamepad = class Gamepad {
    //////keyboard specific code
+
+    static clear_down_keys(){
+        Gamepad.the_down_keys = new Array(256).fill(false)
+    }
     static remember_keydown(event){
         Gamepad.the_down_keys[event.keyCode] = true
-        //event.stopPropagation() //doens't work in stopping keystokes going to the editor.
-                                  //so just clock mouse on another pane first.
+        //event.stopPropagation() //doesn't work in stopping keystokes going to the editor.
+                                  //so just click mouse on another pane first.
     }
     static remember_keyup(event){
         Gamepad.the_down_keys[event.keyCode] = false
@@ -15,18 +19,35 @@ var Gamepad = class Gamepad {
     //or whenever a key is "stuck down" and you want to clear
     //all "down" keys. Don't do it in the middle of a loop
     //as it will undo any legit down keys
-    static start_remembering_keydown(){
-        Gamepad.the_down_keys = new Array(256).fill(false) //always init
+    static start_remembering_keydown(sticky=false){
+        this.clear_down_keys() //always "init" when starting to remember keydown
         if(!Gamepad.is_remembering_keydown){
             window.addEventListener("keydown", Gamepad.remember_keydown)
-            window.addEventListener("keyup",   Gamepad.remember_keyup)
+            if(!sticky) { window.addEventListener("keyup",  Gamepad.remember_keyup) }
             Gamepad.is_remembering_keydown = true
+        }
+        else if (!sticky){
+            window.removeEventListener("keyup",   Gamepad.remember_keyup)
         }
     }
     static stop_remembering_keydown(){
         window.removeEventListener("keydown", Gamepad.remember_keydown)
-        window.removeEventListener("keyup",   Gamepad.remember_keydown)
+        window.removeEventListener("keyup",   Gamepad.remember_keyup)
         Gamepad.is_remembering_keydown = false
+    }
+    //used for testing
+    //from https://stackoverflow.com/questions/596481/is-it-possible-to-simulate-key-press-events-programmatically
+    //but modified.
+    static simulate_keydown(keycode_or_keyname, isShift=false, isCtrl=false, isAlt=false, isMeta=false){
+        let keycode = keycode_or_keyname
+        if(typeof(keycode) == "string") { //keycode = keycode.charCodeAt(keycode)
+            keycode = Gamepad.keycode_to_keyname_map.indexOf(keycode)
+        }
+        var e = new KeyboardEvent( "keydown", { bubbles:true, cancelable:true, keyCode: keycode, //char:String.fromCharCode(keycode), key:String.fromCharCode(keycode),
+                                                shiftKey:isShift, ctrlKey:isCtrl, altKey:isAlt, metaKey:isMeta} );
+        Object.defineProperty(e, 'keyCode', {get : function() { return this.keyCodeVal; } });
+        e.keyCodeVal = keycode;
+        document.dispatchEvent(e);
     }
     static keycode_to_keyname(keycode){ //keycode is NOT the ascii integer. keyname is the char, ie "a" or "3"
         return Gamepad.keycode_to_keyname_map[keycode]
@@ -178,6 +199,14 @@ var Gamepad = class Gamepad {
         }
         return result
     }
+    static is_key_down(keycode_or_keyname){
+        let down_keys = this.down_keys()
+        for(let obj of down_keys){
+            if     (obj.keycode == keycode_or_keyname) { return true }
+            else if(obj.keyname == keycode_or_keyname) { return true }
+        }
+        return false
+    }
 }
 
 Gamepad.is_remembering_keydown = false
@@ -189,7 +218,7 @@ Gamepad.is_remembering_keydown = false
 //is the "name" of the key. Note that there's
 //just 1 set of letters (upper case) because
 //there's just one set of letters on a keyboard.
-//the "name" is generally the name printed on the key thouse these vary slightly.
+//the "name" is generally the name printed on the key though these vary slightly.
 //this has nothing to do with ascii codes.
 //this maps keycode (0 to 255)  to keyname (a string)
 //speical keys:

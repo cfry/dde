@@ -43,8 +43,6 @@ function serial_path_to_info(path){
     return serial_path_to_info_map[path]
 }
 
-
-
 function serial_devices(){
     let dde_ipc     = require('electron').ipcRenderer //can't just use global const ipcRenderer here but I don't know why
     const reply = dde_ipc.sendSync('serial_devices')
@@ -56,7 +54,9 @@ module.exports.serial_devices = serial_devices
 //only used for testing.
 function serial_connect_low_level(path, options, capture_n_items=1, item_delimiter="\n",
                                   trim_whitespace = true,
-                                  parse_items=true, capture_extras=false){
+                                  parse_items=true, capture_extras=false,
+                                  callback=onReceiveCallback_low_level,
+                                  error_callback=onReceiveErrorCallback_low_level){
     const port = new SerialPort(path, options)
     serial_path_to_info_map[path] =
             {path: path, //Needed because sometinmes we get the info without having the path thru serial_path_to_connection_idsimulate: simulate,
@@ -74,8 +74,8 @@ function serial_connect_low_level(path, options, capture_n_items=1, item_delimit
         }
         else {
             out("Serial connection made to: " + path)
-            port.on('data',  function(data) { onReceiveCallback_low_level(data, path) } )
-            port.on('error', function(data) { onReceiveErrorCallback(data, path) } )
+            port.on('data',  function(data) { callback.call(null, data, path) } )
+            port.on('error', function(data) { error_callback.call(null, data, path) } )
             out(stringify_value(serial_path_to_info_map[path]))
         }
     })
@@ -87,7 +87,8 @@ module.exports.serial_connect_low_level = serial_connect_low_level
 function serial_send_low_level(path, content){
     let info = serial_path_to_info_map[path]
     if (info){
-        info.port.write(convertStringToArrayBuffer(content),
+        let arr =
+        info.port.write(content, //convertStringToArrayBuffer(content),
             function(error){ //can't rely on this getting called before onReceived so mostly pretend like its not called, except in error cases
                 if (error){
                     dde_error("In serial_send callback to path: " + path +
@@ -126,12 +127,12 @@ function serial_init_one_info_map_item(path, options, simulate=null, capture_n_i
 //called from robot.js
 function serial_connect(path, options, simulate=null, capture_n_items=1, item_delimiter="\n",
                         trim_whitespace=true,
-                        parse_items=true, capture_extras="error"){ //"ignore", "capture", "error"
+                        parse_items=true, capture_extras="error", job_instance){ //"ignore", "capture", "error"
     const sim_actual = Robot.get_simulate_actual(simulate)
     serial_init_one_info_map_item(path, options, simulate, capture_n_items, item_delimiter,
         trim_whitespace, parse_items, capture_extras)
     if(sim_actual === true){ //if its "both" we let the below handle it. Don't want to call serial_new_socket_callback twice when sim is "both"
-        serial_new_socket_callback(path) //don't need to simulate socket_id for now
+        serial_new_socket_callback(path, job_instance) //don't need to simulate socket_id for now
     }
     if ((sim_actual === false) || (sim_actual == "both")){
         const port = new SerialPort(path, options)
@@ -142,7 +143,7 @@ function serial_connect(path, options, simulate=null, capture_n_items=1, item_de
             else {
                 out("Serial connection made to: " + path)
                 serial_path_to_info_map[path].port = port
-                serial_new_socket_callback(path)
+                serial_new_socket_callback(path, job_instance)
                 let the_path = path //needed for closed over var below
                 port.on('data',  function(data) { serial_onReceiveCallback(data, the_path) } )
                 port.on('error', function(data) { onReceiveErrorCallback(data, the_path) } )
@@ -153,9 +154,9 @@ function serial_connect(path, options, simulate=null, capture_n_items=1, item_de
 
 module.exports.serial_connect = serial_connect
 
-function serial_new_socket_callback(path){
+function serial_new_socket_callback(path, job_instance){
     console.log("serial_new_socket_callback passed: " + "path: " + path)
-    Serial.set_a_robot_instance_socket_id(path)
+    Serial.set_a_robot_instance_socket_id(path, job_instance)
 }
 
 //_______send data to serial_______
@@ -199,7 +200,7 @@ function serial_send(instruction_array, path, simulate=null, sim_fun) {
     if ((sim_actual === false) || (sim_actual === "both")){
         if (info.port){
             //out("just before serial send of: " + ins_str)
-            info.port.write(convertStringToArrayBuffer(ins_str),
+            info.port.write(ins_str, //convertStringToArrayBuffer(ins_str),
                 function(error){ //can't rely on this getting called before onReceived so mostly pretend like its not called, except in error cases
                     if (error){
                         dde_error("In serial_send callback to path: " + the_path +
@@ -259,19 +260,37 @@ If it returns an array that starts or ends with "" , that means their was a deli
 on the start or end respectively.
 */
 
-function onReceiveCallback_low_level(info_from_board) { //if there's an error, onReceiveErrorCallback will be called instead
+function onReceiveCallback_low_level(info_from_board, path){ //if there's an error, onReceiveErrorCallback will be called instead
     if (info_from_board.buffer) { //info.connectionId == expectedConnectionId &&
-        //let id = info_from_board.connectionId
-        let str = convertArrayBufferToString(info_from_board.buffer); //note that if aruino program
-        //has Serial.println("turned off1"); int foo = 2 + 3; Serial.println("turned off2");
-        //then this is ONE call to serial_onReceiveCallback with a string "turned off1\r\nturned off2\t\n"
-        //so that 1 string should count for 2 items from the board from the dde standpoint.
-        //maybe the board software batches up the 2 strings and maybe crhome recieve does.
-        //whichever, I need to handle it.
-        out("onReceiveCallback_low_level got data str: " + str)
+        let number_of_new_chars_on_end = info_from_board.length //length in chars.
+        let total_str = convertArrayBufferToString(info_from_board.buffer);
+        //note that if an arduino program has:
+        // Serial.println("hello");
+        // Serial.println("world");
+        //with no time delay between the two calls to println,
+        //then this is ONE call to serial_onReceiveCallback_low_level with a "new" string of "hello1\r\nworld\r\n"
+        //so that 1 string contains two calls to println worth of chars.
+        let new_str   = info_from_board.toString() //gets the "new" chars. the resulting sring is the proper length for the new chars.
+        let new_array = [...info_from_board] //array of integers
+        let total_str_formatted = replace_substrings(total_str, "\n", "<br/>")
+        out("onReceiveCallback_low_level got data str:<br/>" + total_str_formatted)
     }
     else {
         out("onReceiveCallback_low_level got no data.")
+    }
+}
+
+function serial_make_default_robot_status_maybe(info){
+    if(info.robot_status) { return }
+    else {
+        let job_instance = Job.last_job
+        info.robot_status = []
+        info.robot_status[Serial.JOB_ID] = job_instance.program_counter     // 0
+        info.robot_status[Serial.INSTRUCTION_ID = job_instance.job_id]      // 1
+        info.robot_status[Serial.START_TIME] = Date.now()  // 2   ms since jan 1, 1970? From Dexter's clock
+        info.robot_status[Serial.STOP_TIME]  = Date.now()  // 3   ms since jan 1, 1970? From Dexter's clock
+        info.robot_status[Serial.INSTRUCTION_TYPE] = "I"   // 4   "oplet"
+        info.robot_status[Serial.ERROR_CODE] = 0           // 5   0 means no error
     }
 }
 
@@ -404,6 +423,20 @@ function serial_store_str_in_rs(str, info){
     info.robot_status.push(str)
 }
 
+function onReceiveErrorCallback_low_level(info_from_board, path) {
+    //let id = info_from_board.connectionId
+    let errnum = info_from_board.error
+    let error_codes = ["disconnected", "timeout", "device_lost", "break", "frame_error", "overrun",
+        "buffer_overflow", "parity_error", "system_error"] //beware,
+    //it wouldn't surprise me if "disconnected" was really error_code 1 instead of 0.
+    //but this is what https://developer.chrome.com/apps/serial#event-onReceive sez.
+    let info = serial_path_to_info_map[path]
+    let rs = info.robot_status
+    out("onReceiveErrorCallback called with path: " + info.path, "red")
+    rs[Serial.ERROR_CODE] = error_codes[errnum]
+    serial_on_done_with_sending(rs, info.path)
+}
+
 function onReceiveErrorCallback(info_from_board, path) {
     //let id = info_from_board.connectionId
     let errnum = info_from_board.error
@@ -424,6 +457,7 @@ function serial_on_done_with_sending(robot_status, path){
     out("serial_on_done_with_sending with rs: " + robot_status)
     let job_id       = robot_status[Serial.JOB_ID]
     let job_instance = Job.job_id_to_job_instance(job_id)
+    let ins_id = robot_status[Serial.INSTRUCTION_ID]
     let ins = ((ins_id >= 0) ? job_instance.do_list[ins_id] : null)
     let rob
     if (ins && ins.robot) { rob = ins.robot } //used when instruction src code has a subject of a robot isntance
@@ -444,7 +478,9 @@ function serial_send_extra_item_to_job(string_from_robot, path, is_error=false, 
 
 function serial_flush(path){
     let info = serial_path_to_info(path)
-    if (info && ((info.simulate === false) || (info.simulate === "both"))) { info.port.flush(function(){ out("Serial path: " + path + " flushed.") }) }
+    if (info && ((info.simulate === false) || (info.simulate === "both"))) {
+        info.port.flush(function(){ out("Serial path: " + path + " flushed.") })
+    }
     else {
         warning("Attempt to serial_flush path: " + path + " but that path doesn't have info.")
     }
@@ -459,6 +495,7 @@ function serial_disconnect(path){
     if (info){
         if((info.simulate === false) || (info.simulate === "both")) {
             info.port.close(out)
+            serial_flush(path) //perhaps unnecessary
         }
         delete serial_path_to_info_map[path]
     }

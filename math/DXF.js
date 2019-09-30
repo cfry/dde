@@ -1302,7 +1302,6 @@ new Job({
 
 new Job({name: "Out_Rectangle",
 		 robot: robot,
-		 simulate: true,
 		 show_instructions: false,
          do_list: [function(){out("Width: " + Vector.round(Vector.multiply(100, get_bounds_from_three_positions(J_angles_A[0], J_angles_A[1], J_angles_A[2])[0]), 3) + " (cm)   Height: " + Vector.round(Vector.multiply(100, get_bounds_from_three_positions(J_angles_A[0], J_angles_A[1], J_angles_A[2])[1]), 3) + "  (cm)", "blue")}
          		  ]}

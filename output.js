@@ -789,73 +789,7 @@ function latest_window_of_title(title){
 }
 
 //___________SOUND__________
-//note Series is not defined in sandbox
-window.month_names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September','October', 'November', 'December']
-
-//value can either be some single random js type, or a literal object
-//with a field of speak_data, in which case we use that.
-function stringify_for_speak(value, recursing=false){
-    var result
-    if ((typeof(value) == "object") && (value !== null) && value.hasOwnProperty("speak_data")){
-        if (recursing) {
-            dde_error('speak passed an invalid argument that is a literal object<br/>' +
-                      'that has a property of "speak_data" (normally valid)<br/>' +
-                      'but whose value itself is a literal object with a "speak_data" property<br/>' +
-                      'which can cause infinite recursion.')
-        }
-        else { return stringify_for_speak(value.speak_data, true) }
-    }
-    else if (typeof(value) == "string") { result = value }
-    else if (value === undefined)  { result = "undefined"}
-    else if (value instanceof Date){
-        var mon   = value.getMonth()
-        var day   = value.getDate()
-        var year  = value.getFullYear()
-        var hours = value.getHours()
-        var mins  = value.getMinutes()
-        if (mins == 0) { mins = "oclock, exactly" }
-        else if(mins < 10) { mins = "oh " + mins }
-        result    = month_names[mon] + ", " + day + ", " + year + ", " + hours + ", " + mins
-        //don't say seconds because this is speech after all.
-    }
-    else if (Array.isArray(value)){
-        result = ""
-        for (var elt of value){
-            result += stringify_for_speak(elt) + ", "
-        }
-    }
-    else {
-        result = JSON.stringify(value, null, 2)
-        if (result == undefined){ //as happens at least for functions
-            result = value.toString()
-        }
-    }
-    return result
-}
-
-window.stringify_for_speak = stringify_for_speak
-
-function speak({speak_data = "hello", volume = 1.0, rate = 1.0, pitch = 1.0, lang = "en_US", voice = 0, callback = null} = {}){
-    if (arguments.length > 0){
-        var speak_data = arguments[0] //, volume = 1.0, rate = 1.0, pitch = 1.0, lang = "en_US", voice = 0, callback = null
-    }
-    var text = stringify_for_speak(speak_data)
-    var msg = new SpeechSynthesisUtterance();
-    //var voices = window.speechSynthesis.getVoices();
-    //msg.voice = voices[10]; // Note: some voices don't support altering params
-    //msg.voiceURI = 'native';
-    msg.text   = text
-    msg.volume = volume; // 0 to 1
-    msg.rate   = rate;   // 0.1 to 10
-    msg.pitch  = pitch;  // 0 to 2
-    msg.lang   = lang;
-    var voices = window.speechSynthesis.getVoices();
-    msg.voice  = voices[voice]; // voice is just an index into the voices array, 0 thru 3
-    msg.onend  = callback
-    speechSynthesis.speak(msg);
-    return speak_data
-}
-window.speak = speak
+//speak now in out.js (sep 10, 2019)
 //________recognize_speech_____________
 //all these vars meaningful in ui only.
 /*
@@ -1233,6 +1167,13 @@ function set_css_property(selector, property_name, new_value){
             }
         }
     }
+}
+
+function set_css_properties(css_string){
+    let head = document.getElementsByTagName('head')[0]
+    let sty  = document.createElement('style');
+    sty.innerHTML = css_string
+    head.append(sty);
 }
 
 function set_window_frame_background_color(new_color){

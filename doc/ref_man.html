@@ -282,7 +282,17 @@ and reliability.
         If DDE is not detecting key presses, try unplugging and replugging
         the gamepad USB connector and pressing a key again.
     </details>
-    <details class="doc_details"><summary>down_keys</summary>
+
+    <details id="Gamepad.clear_down_keys_doc_id" class="doc_details"><summary>clear_down_keys</summary>
+       If a key is down, either because you have called
+       <code title="not in TestSuite">Gamepad.start_remembering_down_keys(true)</code>
+       and you've processed that action,
+       or a key is just "stuck" down, call<br/>
+       <code>Gamepad.clear_down_keys()</code><br/>
+       so that no keys will be considered to be down.
+    </details>
+
+        <details id="Gamepad.down_keys_doc_id" class="doc_details"><summary>down_keys method</summary>
         <code>Gamepad.down_keys</code> is the primary interface
         to both gamepads and keyboards. It returns an array of literal objects
         that represent the keys on the keyboard and/or gamepad that
@@ -347,6 +357,33 @@ and reliability.
     value: 1
     }]</samp></pre>
     </details> <!-- end down_keys -->
+
+    <details id="Gamepad.is_key_down_doc_id"class="doc_details"><summary>is_key_down</summary>
+       This method returns true if the given key is down and false otherwise.<br/>
+       <i>Parameter:</i><br/>
+       <b>keycode_or_keyname</b> If the given keycode (a non-negative integer)
+        or keyname (a string) is down when this function is called,
+        the function returns true, otherwise it returns false.<br/>
+        <i>Example:</i><br/>
+        <pre><code title="not in TestSuite">
+new Job({
+    name: "is_key_down_job",
+    do_list: [function() {Gamepad.start_remembering_keydown(true)},
+              Robot.wait_until(function(){
+                 return Gamepad.is_key_down("Q") }),
+              function(){Gamepad.stop_remembering_keydown()
+                         Gamepad.clear_down_keys()
+              },
+              Robot.out("game over")
+    ]
+}) </code></pre>
+<!-- doesnt' work <code>Gamepad.simulate_keydown("Q")</code><br/> -->
+   When this Job is started, it waits for the "Q" key on the keyboard to be pressed
+   (no need to also hold down the shift key), then proceeds to the next
+   instruction.
+    </details>
+
+
     <details class="doc_details"><summary>Gamepad names &amp; codes</summary>
     <table>
      <tr><th>keycode</th><th>keyname</th><th>gamecode</th><th>gamename</th><th>description</th></tr>
@@ -408,7 +445,7 @@ and reliability.
             <tr><td>29</td><td>NONCONVERT</td><td></td></tr>
             <tr><td>30</td><td>ACCEPT</td><td></td></tr>
             <tr><td>31</td><td>MODECHANGE</td><td></td></tr>
-            <tr><td>32</td><td> </td><td></td></tr>
+            <tr><td>32</td><td>" "</td><td>space</td></tr>
             <tr><td>33</td><td>PAGE_UP</td><td></td></tr>
             <tr><td>34</td><td>PAGE_DOWN</td><td></td></tr>
             <tr><td>35</td><td>END</td><td></td></tr>
@@ -635,12 +672,45 @@ and reliability.
         </table>
     </details>
 
-        <details class="doc_details"><summary>stop_remembering_keydown</summary>
+    <details id="Gamepad.start_remembering_keydown_doc_id" class="doc_details"><summary>start_remembering_keydown</summary>
+       When you want to start noticing that keyboard keys are down,
+       call this method.<br/>
+       <i>Parameters:</i><br/>
+       <b>sticky</b> Boolean. default: <code>false</code>
+       With a false value, when a key is pressed down,
+       it is now considered to be a "down key".
+       When the key is released, (key up) it is no longer
+       considered to be a down key.
+       However, with a <code>true</code> value,
+       once the key goes down, it is considered down even after
+       the key comes up. To consider it "up", call
+       <code>Gamepad.clear_down_keys()</code><br/>
+       This "sticky=true" is useful when there might be
+       a time delay between when the key is down and when
+       you can check to see if the key is down.
+       If the user just "tapped" the key very quickly,
+       your code might not notice that it was ever down.
+       This is where "sticky=true" is valuable.
+       Make sure to call <code>Gamepad.clear_down_keys()</code> after
+       your code discovers that the key is down.
+       <p></p>
+       <i>Example:</i><br/>
+        <code title="not in TestSuite">Gamepad.start_remembering_keydown(true)</code><br/>
+       The methods, <code>Gamepad.is_key_down</code> and <code>Gamepad.down_keys</code>
+       automatically call<br/>
+       <code title="not in TestSuite">Gamepad.start_remembering_keydown()</code><br/>
+       (that is, with sticky=false).
+    </details>
+
+    <details id="Gamepad.stop_remembering_keydown_doc_id" class="doc_details"><summary>stop_remembering_keydown</summary>
         <code>Gamepad.stop_remembering_keydown</code> is used to
         end the handling of keyboard down keys. Call this when
         the part of your program that uses keyboard keys for
-        real-time apps is done. It takes no arguments.
+        real-time apps is done. It takes no arguments.<br/>
+        <i>Example:</i><br/>
+        <code>Gamepad.stop_remembering_keydown()</code>
     </details>
+
     <details class="doc_details"><summary>Job with wait_until</summary>
      This simple example of wrapping <code>Gamepad.down_keys</code>
      in a Job is not good for constructing instructions, but
@@ -678,6 +748,7 @@ and reliability.
            ]})</code></pre>
 
     </details>
+
     <details class="doc_details"><summary>Job with generator</summary>
     Using a generator makes it relatively easy to add instructions
     to the Job based on keystrokes. The <code>Dexter.move_all_joints_relative</code>
@@ -2883,17 +2954,58 @@ new Phrase({notes: [new Note({time: 0, dur: 1, pitch: 60, velocity: 0.25, channe
 
 <details id="speak_doc_id" class="doc_details"><summary>speak</summary>
 <code>speak</code> uses text to speech technology.<br/>
-<i>Parameter:</i><br/>
-<b>speak_data</b> Default: "hello". If the argument is a literal object
-with a field of "speak_data", then the value of "speak_data" is spoken
-with vocal characteristics indiated by the other properties of
-the literal object. Otherwise, the argument is the data to be spoken
-directly.<br/>
-<b>voice</b> Integer 0 through 3. Default: <code>0</code>
+When there is just one by-position argument, speak will
+treat that argument as the "speak_data" argument (see below) and say it.<br/>
+<i>Example:</i><br/>
+<code>speak("hello world")</code><br/>
+If you want to have more control over how it is said, pass in keyword arguments
+of the following:<br/>
+<i>Parameters:</i><br/>
+<b>speak_data</b> Default: <code>"hello"</code>. If the argument is a string it will
+just be said. If it is some other data type (undefined, boolean, number, date, array, etc.)
+<code>speak</code> will do its best to convert it to a string, which can be said.<br/>
+<b>volume</b> Float 0 through 1. Default: <code>1.0</code> .
+    <code>0</code> means silent, <code>1.0</code> means the loudest it can talk.<br/>
+<b>rate</b> Float 0.1 through 1. Default: <code>1.0</code> The speed of the speech.
+The further away from 1 this value is, the funnier it is.<br/>
+<b>pitch</b> Float 0 through 2. Default: <code>1.0</code> The lower the value,
+the lower the frequency of the voice. Low pitches sound older and more male,
+high pitches sound younger and more female.<br/>
+<b>lang</b> A string. Default: <code>"en_US"</code> The language that
+the text to be spoken is in. The syntax for "lang"
+ is a country code followed by an underscore (or maybe a hyphen) followed by
+ a "region" which is often a country code. The W3C, Wikipedia, various standards
+ organizations and the web in general, has done a great job of hiding an actual
+ list of valid "lang" values. You can get a start at
+    <a target="_blank" href="https://www.w3.org/International/articles/language-tags/">lang codes</a> and
+    searching for "BCP 47". We don't notice a difference between "en_US", "en_GB" and "fr_CA",
+    so maybe this argument is, in practice, useless.
+    <br/>
+<b>voice</b> An integer from 0 through 3. Default: <code>0</code>
     Though the underlying software claims to support different "voices", we've
     noticed that changing the voice parameter from 0 through 3 does not change the
     actualy quality of the voice. Perhaps some day this will work.<br/>
-
+<b>callback</b> A function that is called when the speaking is done.
+When in DDE, the callback is called with one argument, "event".
+Within the body of that callback function, you can get:
+<ul>
+    <li><code title="unEVALable">event.utterance.text</code> The spoken text.</li>
+    <li><code title="unEVALable">event.utterance.volume</code> The spoken loudness.</li>
+    <li><code title="unEVALable">event.utterance.rate</code> The spoken speed.</li>
+    <li><code title="unEVALable">event.utterance.pitch</code> The spoken frequency.</li>
+    <li><code title="unEVALable">event.utterance.lang</code> The designated language of the spoken text.</li>
+    <li><code title="unEVALable">event.utterance.voice</code> An object with fields of "name" (i.e. "Alex"), "lang" and a few others.</li>
+</ul>
+    When calling <code>speak</code> in the Job Engine (running purely on Dexter),
+    you need a speaker conneceted to a sound card, which is connected to Dexter's micro USB port.
+    We've tested the <a target="_blank" href="https://www.amazon.com/dp/B01J7P0OGI">
+         TechRise USB External Stereo Sound Adapter</a>
+    You get an, ahem, more robotic voice than when running in DDE.
+    <p></p>
+    The callback is called with two arguments: an error object and the
+    string of the result of running a command in Linux that implements
+    the speaking on Dexter.
+<p></p>
 <i>Examples:</i><br/>
 <code>speak("testing 1, 2, 3")</code><br/>
 <code title="not in TestSuite">speak(123)</code><br/>
@@ -2915,6 +3027,10 @@ Example:<pre><code title="not in TestSuite"> speak({speak_data: [true, "It is", 
 </code></pre>
 <code title="errors">speak(null)</code> errors but<br/>
 <code title="not in TestSuite">speak({speak_data: null})</code> will work.
+<p></p>
+When speaking from a Job in DDE, we recommend using the Job instruction:
+<a href="#" onclick="open_doc('Human.speak_doc_id')"><code>Human.speak</code></a>
+This will not work for Jobs run on the Job Engine on Dexter.
 </details> <!-- end of speak -->
 
 </details> <!-- end of Sound -->
@@ -4690,7 +4806,7 @@ Example:<code>Control.wait_until(2)</code><br/>
         The instruction: <code>IO.grab_robot_status()</code> provides an easy way to get values out of that array
         and made available for other instructions to use.<br/>
         <i>Parameters</i><br/>
-        <b>user_data_variable</b> Default: <code>"grabbed_robot_status"</code> A string (required) of the name of the job's
+        <b>user_data_variable</b> Default: <code>"grabbed_robot_status"</code> A string of the name of the job's
         <code title="unEVALable code fragment"> user_data</code> variable to shove the grabbed
         robot_status data into. If there is already such a variable,
         its value is over-written. If not, it is created and intialized
@@ -5136,7 +5252,7 @@ job's <code title="unEVALable code fragment"> rs_history</code> array.
 This instruction blocks further processing of the job's do_list instructions until
 all of the instructions on Dexter's instruction_queue are executed.
 <p></p>
-See also the instruction: <code>Control.grab_robot_status</code>
+See also the instruction: <code>IO.grab_robot_status</code>
 </details>
 
 <details id="Dexter.get_robot_status_immediately_doc_id" class="doc_details"><summary>get_robot_status_immediately</summary>
@@ -5167,6 +5283,100 @@ before any of the instructions on its <i>instruction queue</i> are executed.
     <p></p>
     The returned value is an array that has its first several fields empty. DDE uses them
     for storing the job_id, instruction_id and some timing information.
+    <p></p>
+    The make_ins "w" command writes a register in the FPGA. Following the
+    "w" is an address and a value. <br/>
+    <i>Example:</i><br/>
+    <code>make_ins("w", FPGA.ACCELERATION_MAXSPEED, 12)</code><br/>
+    There are 82 such addresses or "registers".
+    You can use integers 0 through 81 to indicate the address, or the following
+    constants:
+    <details class="doc_details"><summary>FPGA registers</summary>
+    <pre><code>
+    FPGA.BASE_POSITION = 0
+    FPGA.END_POSITION = 1
+    FPGA.PIVOT_POSITION = 2
+    FPGA.ANGLE_POSITION = 3
+    FPGA.ROT_POSITION = 4
+    FPGA.ACCELERATION_MAXSPEED = 5
+    FPGA.BASE_SIN_CENTER = 6
+    FPGA.BASE_COS_CENTER = 7
+    FPGA.END_SIN_CENTER = 8
+    FPGA.END_COS_CENTER = 9
+    FPGA.PIVOT_SIN_CENTER = 10
+    FPGA.PIVOT_COS_CENTER = 11
+    FPGA.ANGLE_SIN_CENTER = 12
+    FPGA.ANGLE_COS_CENTER = 13
+    FPGA.ROT_SIN_CENTER = 14
+    FPGA.ROT_COS_CENTER = 15
+    FPGA.PID_DELTATNOT = 16
+    FPGA.PID_DELTAT = 17
+    FPGA.PID_D = 18
+    FPGA.PID_I = 19
+    FPGA.PID_P = 20
+    FPGA.PID_ADDRESS = 21
+    FPGA.BOUNDRY_BASE = 22
+    FPGA.BOUNDRY_END = 23
+    FPGA.BOUNDRY_PIVOT = 24
+    FPGA.BOUNDRY_ANGLE = 25
+    FPGA.BOUNDRY_ROT = 26
+    FPGA.SPEED_FACTORA = 27
+    FPGA.SPEED_FACTORB = 28
+    FPGA.FRICTION_BASE = 29
+    FPGA.FRICTION_END = 30
+    FPGA.FRICTION_PIVOT = 31
+    FPGA.FRICTION_ANGLE = 32
+    FPGA.FRICTION_ROT = 33
+    FPGA.MOVE_TRHESHOLD = 34
+    FPGA.F_FACTOR = 35
+    FPGA.MAX_ERROR = 36
+    FPGA.FORCE_BIAS_BASE = 37
+    FPGA.FORCE_BIAS_END = 38
+    FPGA.FORCE_BIAS_PIVOT = 39
+    FPGA.FORCE_BIAS_ANGLE = 40
+    FPGA.FORCE_BIAS_ROT = 41
+    FPGA.COMMAND_REG = 42
+    FPGA.DMA_CONTROL = 43
+    FPGA.DMA_WRITE_DATA = 44
+    FPGA.DMA_WRITE_PARAMS = 45
+    FPGA.DMA_WRITE_ADDRESS = 46
+    FPGA.DMA_READ_PARAMS = 47
+    FPGA.DMA_READ_ADDRESS = 48
+    FPGA.REC_PLAY_CMD = 49
+    FPGA.REC_PLAY_TIMEBASE = 50
+    FPGA.MAXSPEED_XYZ = 51
+    FPGA.DIFF_FORCE_BETA = 52
+    FPGA.DIFF_FORCE_MOVE_THRESHOLD = 53
+    FPGA.DIFF_FORCE_MAX_SPEED = 54
+    FPGA.DIFF_FORCE_SPEED_FACTOR_ANGLE = 55
+    FPGA.DIFF_FORCE_SPEED_FACTOR_ROT = 56
+    FPGA.DIFF_FORCE_ANGLE_COMPENSATE = 57
+    FPGA.FINE_ADJUST_BASE = 58
+    FPGA.FINE_ADJUST_END = 59
+    FPGA.FINE_ADJUST_PIVOT = 60
+    FPGA.FINE_ADJUST_ANGLE = 61
+    FPGA.FINE_ADJUST_ROT = 62
+    FPGA.RECORD_LENGTH = 63
+    FPGA.END_EFFECTOR_IO = 64
+    FPGA.SERVO_SETPOINT_A = 65
+    FPGA.SERVO_SETPOINT_B = 66
+    FPGA.BASE_FORCE_DECAY = 67
+    FPGA.END_FORCE_DECAY = 68
+    FPGA.PIVOT_FORCE_DECAY = 69
+    FPGA.ANGLE_FORCE_DECAY = 70
+    FPGA.ROTATE_FORCE_DECAY = 71
+    FPGA.PID_SCHEDULE_INDEX = 72
+    FPGA.GRIPPER_MOTOR_CONTROL = 73
+    FPGA.GRIPPER_MOTOR_OFF_WIDTH = 74
+    FPGA.GRIPPER_MOTOR_ON_WIDTH = 75
+    FPGA.START_SPEED = 76
+    FPGA.ANGLE_END_RATIO = 77
+    FPGA.RESET_PID_AND_FLUSH_QUEUE = 78
+    FPGA.XYZ_FORCE_TIMEBASE = 79
+    FPGA.DIFFERENTIAL_FORCE_TIMEBASE = 80
+    FPGA.PID_TIMEBASE = 81 </code></pre>
+    </details>
+
 </details> <!-- end make_ins -->
 
 <details id="Dexter.move_all_joints_doc_id" class="doc_details"><summary>move_all_joints</summary>
@@ -5548,6 +5758,50 @@ the instructions created are <code>Dexter.move_to</code> instructions.
     <code>Dexter.run_gcode</code> needs lots of work to handle more gcodes.
 </details> <!-- end run_gcode -->
 
+<details id="Dexter.set_fpga_command_reg_doc_id" class="doc_details"><summary>set_fpga_command_reg</summary>
+This instruction allows you to set the value of the
+FPGA command register on Dexter. The value will be an integer of 14 bits.
+Each bit can be set to true(1) or false(0) by passing in keywords of the
+name of the parameter and a value of true or false. All parameters default to <code>false</code>.<br/>
+<i>Parameters:</i><br/>
+    <b>CapCalibrateBase</b><br/>
+    <b>CapCalibrateEnd</b><br/>
+    <b>CapCalibratePivot</b><br/>
+    <b>MoveEnable</b><br/>
+    <b>GoMove</b><br/>
+    <b>EnableLoop</b><br/>
+    <b>AClrLoop</b><br/>
+    <b>CalRun</b><br/>
+    <b>ResetMotorPosition</b><br/>
+    <b>ResetForce</b><br/>
+    <b>CapCalAngle</b><br/>
+    <b>CapCalRot</b><br/>
+    <b>AngleEnable</b><br/>
+    <b>RotEnable</b>
+<p></p>
+<i>Example:</i><br/>
+<pre><code>Dexter.set_fpga_command_reg({CapCalibrateBase: true,
+                             CapCalibrateEnd: true})</code></pre>
+The above is equivalent to:<br/>
+    <code>make_ins("w", FPGA.COMMAND_REG, 3)</code><br/>
+    and<br/>
+    <code>make_ins("w", 42, 3)</code>
+    <p></p>
+    <b id="FPGA.command_reg_val_doc_id">FPGA.command_reg_val</b> is a utility function to help construct the value in a make_ins "w" call.
+    It is called with the same keyword arguments
+    as <code>Dexter.set_fpga_command_reg</code>.<br/>
+    <i>Examples:</i>
+    <pre><code>
+FPGA.command_reg_val({CapCalibrateBase: true,
+                      CapCalibratePivot: true})</code></pre>
+    => <samp> 5 </samp>
+    <pre><code>
+make_ins("w",
+         FPGA.COMMAND_REG,
+         FPGA.command_reg_val({CapCalibrateBase: true,
+                           CapCalibratePivot: true}))</code></pre>
+</details> <!-- end set_fpga_command_reg -->
+
 <details id="Dexter.set_parameter_doc_id" class="doc_details"><summary>set_parameter</summary>
 This instruction sets a parameter within a Dexter robot.
 The parameter will remain set to that value after the job is done,
@@ -5701,7 +5955,7 @@ If it is passed, the instruction will be sent to that robot.
     values to extract particular values like so:
     <code>Dexter.dexter0.robot_status[Dexter.J1_MEASURED_ANGLE]</code><br/>
     See the full list of such constants in the documentation for
-    <a href="#" onclick="open_doc('Control.grab_robot_status_doc_id')">Control.grab_robot_status</a>
+    <a href="#" onclick="open_doc('IO.grab_robot_status_doc_id')">IO.grab_robot_status</a>
     <p></p>
     <code>RobotStatus</code> is a class whose instances store information about
     a Dexter robot. Each Dexter robot instance has a field named <code title="unEVALable">rs</code>
@@ -6644,7 +6898,7 @@ The second goes to Serial robot "S2".<br/>
 See Jobs menu/Insert Example/Serial Port for an extended example.
 </details>
 
-<details  class="doc_details"><summary>Control.grab_robot_status</summary>
+<details  class="doc_details"><summary>IO.grab_robot_status</summary>
 This is not a <i>Serial</i> instruction, but one that can be used
 with any robot. It captures the robot_status, or some portion of it,
 and saves it away in a user_data variable on the Job instance for
@@ -6652,10 +6906,10 @@ use by subsequent instructions.
 <p></p>
 When a Serial.string_instruction is run and the device retruns a value,
 that string is placed in the robot_status. You can then use
-Control.grab_robot_status to extract it from the robot status
+IO.grab_robot_status to extract it from the robot status
 and stick it in a user_data variable.
-See <a href="#" onclick="open_doc('Control.grab_robot_status_doc_id')">
-        Control.grab_robot_status</a>
+See <a href="#" onclick="open_doc('IO.grab_robot_status_doc_id')">
+        IO.grab_robot_status</a>
 </details>
 
 
@@ -6671,7 +6925,7 @@ ports in one job. The job will pause until each completes.
 In other words, the serial string_instructions run <i>in serial</i>,
 not parallel.
 <p></p>
-You can also call <code>Control.grab_robot_status</code> with a subject of
+You can also call <code>IO.grab_robot_status</code> with a subject of
 a robot instance (instead of <code>Robot</code>) so that
 you can be sure to get the correct return value from
 a given string_instruction instruction.<br/>
@@ -6698,15 +6952,17 @@ new Job({name: "j10b",
     </code></pre>
 </details>
 
-<details class="doc_details"><summary>Debugging Serial</summary>
+<details class="doc_details"><summary>Low Level Serial</summary>
 Due to the interplay between two different computers (the one running DDE and the Serial device)
 and their entirely different software protocols, debugging Serial robot interfaces is challenging.
 DDE provides a number of low level functions that can be invoked without interacting with a job
-to help you verify connectivity.<p></p>
+to help you verify connectivity and may be useful in some applications.<p></p>
 
-<b id="serial_devices_doc_id"><code>serial_devices()</code></b> Returns an array of objects representing
+<b id="serial_devices_doc_id"><code>serial_devices</code></b> Returns an array of objects representing
 the available devices on serial ports. the <code title="unEVALable code fragment"> comName</code> field holds the path to the serial
-port that you can use to connect to that device. 
+port that you can use to connect to that device. <br/>
+<i>Example:</i><br/>
+<code title="not in TestSuite"> serial_devices()[0].comName </code> => <samp> "/dev/tty.Bluetooth-Incoming-Port" </samp>
 <p></p>
 
 <b id="serial_path_to_info_map_doc_id"><code>serial_path_to_info_map</code></b> Holds the mapping between the
@@ -6714,12 +6970,14 @@ path of a serial device and lots of properties about it, most of which come from
 the associated Serial robot. The value of this global variable is a JS literal object with
 keys of each path to which there is a serial connection, and values of
 another JS literal object holding useful properties of that connection, i.e. its "info".<p></p>
-You can get the info for a path via <br/>
-<code title="unEVALable code fragment"> serial_path_to_info_map[path]</code>
+<i>Example:</i><br/>
+<code title="unEVALable code fragment"> serial_path_to_info_map[spath]</code>
 <p></p>
 
-<b id="serial_connect_low_level_doc_id"><code title="unEVALable code fragment"> serial_connect_low_level("/dev/tty.some_device")</code></b>
-Allows you to create a software connection between a serial device and DDE software NOT in a job.
+<b id="serial_connect_low_level_doc_id"><code>serial_connect_low_level</code></b>
+Allows you to create a software connection between a serial device and DDE software NOT in a job.<br/>
+<i>Example:</i><br/>
+<code title="unEVALable code fragment"> serial_connect_low_level(spath)</code>
 <p></p>
 
 <b id="serial_send_low_level_doc_id"><code title="unEVALable code fragment"> serial_send_low_level( "some_path", "some_string")</code></b>
@@ -7860,7 +8118,75 @@ show_window({draggable: false,
     </ul>
 </details>
 
-        <details id="show_window_doc_id" class="doc_details"><summary>show_window</summary>
+<details id="set_css_properties_doc_id" class="doc_details"><summary>set_css_properties</summary>
+You can dynamically set <i>any</i> CSS properties with this function by including
+the selector and the properties in the argument with the same syntax as in
+a css style sheet. This will immediately change all the existing HTML that matches
+the selector as well as future HTML that matches the selector.
+<p></p>
+If you make two calls to <code>set_css_properties</code>, the second will override the
+first. To keep such modifications accross DDE sessions,
+put calls to <code>set_css_properties</code> in
+your dde_apps/dde_init.js file.
+<p></p>
+<i>Parameter:</i><br/>
+<b>css_string</b> A string. Required. Change the values of the CSS properties in the
+HTML tags matching the selectors. You can have multiple selector-properties pairs
+in the string. Separate them with a newline.
+<p></p>
+<i>Examples:</i>
+<pre><code title="Not in TestSuite">set_css_properties(".dde_error_css_class {font-style: italic;}")
+set_css_properties(".warning_css_class   {font-weight: bold;}")
+set_css_properties('div.CodeMirror span.CodeMirror-matchingbracket { color:#0000FF; }' +
+                   '\n.cm-keyword {color:#666666;}' +
+                   '\n.CodeMirror { background:#CCCCCC;}')
+    </code></pre>
+In that last example, we set colors of DDE's editor for:
+<ol>
+ <li>matching parens</li>
+ <li>JavaScript keywords like "function" and "var"</li>
+ <li>the background color of the whole text editor.</li>
+</ol>
+Here's the CSS for a bunch more editor properties.
+<pre><code title="unEVALable">.cm-s-default .cm-header {color: blue;}
+.cm-s-default .cm-quote {color: #090;}
+.cm-negative {color: #d44;}
+.cm-positive {color: #292;}
+.cm-header, .cm-strong {font-weight: bold;}
+.cm-em {font-style: italic;}
+.cm-link {text-decoration: underline;}
+.cm-strikethrough {text-decoration: line-through;}
+
+.cm-s-default .cm-keyword {font-weight: bold;} /*orig "color: #708"  font-weight: bold; doesn't make keywords bolc*/
+.cm-s-default .cm-atom {color: #219;}
+.cm-s-default .cm-number {color: #164;}
+.cm-s-default .cm-def {color: #00f;}
+.cm-s-default .cm-variable,
+.cm-s-default .cm-punctuation,
+.cm-s-default .cm-property,
+.cm-s-default .cm-operator {}
+.cm-s-default .cm-variable-2 {color: #05a;}
+.cm-s-default .cm-variable-3, .cm-s-default .cm-type {color: #085;}
+.cm-s-default .cm-comment {color: #a50;}
+.cm-s-default .cm-string {color: #a11;}
+.cm-s-default .cm-string-2 {color: #f50;}
+.cm-s-default .cm-meta {color: #555;}
+.cm-s-default .cm-qualifier {color: #555;}
+.cm-s-default .cm-builtin {color: #30a;}
+.cm-s-default .cm-bracket {color: #997;}
+.cm-s-default .cm-tag {color: #170;}
+.cm-s-default .cm-attribute {color: #00c;}
+.cm-s-default .cm-hr {color: #999;}
+.cm-s-default .cm-link {color: #00c;}
+
+.cm-s-default .cm-error {color: #f00;}
+.cm-invalidchar {color: #f00;}
+
+.CodeMirror-composing { border-bottom: 2px solid; }
+    </code></pre>
+</details>
+
+<details id="show_window_doc_id" class="doc_details"><summary>show_window</summary>
         A call to <code>show_window</code> creates a dialog box using HTML and JavaScript.<br/>
         For a video presentation of much of this content, please watch
         <a href="http://hdrobotic.com/webinar#show_window" target="_blank">show_window (and friends)</a><br/>

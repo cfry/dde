@@ -435,7 +435,6 @@ class Job{
             //out("Starting job: " + this.name + " ...")
             this.show_progress_maybe()
             this.robot.start(this) //the only call to robot.start
-            //console.log("end of Job.start")
             return this
     }
     //action for the Start Job button
@@ -625,7 +624,10 @@ class Job{
             jobs_button_bar_id.append(wrapper) //.firstChild)
 
             but_elt = window[the_id]
-            but_elt.onclick = function(){
+            but_elt.onclick = function(event){
+                event.target.blur() //gets rid of dark border around button and because its
+                //not focused, pressing the space or ENTER key doesn't do something strange
+                //like an extra button click.
                 const job_instance = Job[job_name]
                 if (job_instance.status_code == "suspended"){
                     if(but_elt.title.includes("Make Instruction")) { job_instance.stop_for_reason("interrupted", "User stopped job.") }
@@ -1415,7 +1417,7 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
     else if (this.wait_until_this_prop_is_false) { this.set_up_next_do(0) }
     else if (this.instr_and_robot_to_send_when_robot_unbusy) {
         let [inst, robot] = this.instr_and_robot_to_send_when_robot_unbusy
-        if(robot.is_busy) { } //loop around again
+        if(robot.is_busy()) { } //loop around again
         else {
             this.robot_and_instr_to_send_when_robot_unbusy = null
             this.send(inst, robot)
@@ -2457,7 +2459,7 @@ var Coor  = require('../math/Coor.js')
 var {Instruction, make_ins} = require("./instruction.js")
 var {load_files} = require("./storage.js")
 var {shouldnt, warning, dde_error, milliseconds_to_human_string, is_iterator, last, prepend_file_message_maybe, shallow_copy_lit_obj, stringify_value_sans_html} = require("./utils")
-var {out} = require("./out.js")
+var {out, speak} = require("./out.js")
 var {_nbits_cf, _arcsec, _um} = require("./units.js")
 //var TestSuite = require("../test_suite/test_suite.js")
 

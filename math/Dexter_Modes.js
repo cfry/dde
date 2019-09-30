@@ -33,7 +33,7 @@ function setFollowMe(robot){
         make_ins("w", 69, 0),
         make_ins("w", 70, 0),
         make_ins("w", 71, 0),
-        make_ins("w", 51, 140000),
+        make_ins("w", 51, 140000), //51 is an obsolete address:
         make_ins("w", 54, 200000),
 
 	    make_ins("w", 79, 50 ^ 200) ,

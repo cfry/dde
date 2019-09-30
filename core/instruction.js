@@ -423,6 +423,14 @@ for (let i = 0; i < Instruction.labels.length; i++){
     Instruction[Instruction.labels[i]] = i
 }
 
+Instruction.valid_w_addresses = [5,
+                                20, 21, 26, 27, 28,
+                                31, 32, 33, 34, 35, 36, 39,
+                                40, 41, 42, 43, 44, 45, 46, 47, 48, 49,
+                                50, 51, 52, 53, 54, 55, 56,
+                                61, 62, 66, 67, 68, 69,
+                                70, 71, 74, 75, 78, 79,
+                                80, 81]
 //user might call this at top level in a do_list so make it's name short.
 //the last arg can be a Dexter robot, but if not, the robot comes from the
 //default robot for the job that this instruction is in.
@@ -431,6 +439,12 @@ function make_ins(instruction_type, ...args){
        !Serial.instruction_type_to_function_name_map[instruction_type]){
         warning("make_ins called with an invalid instruction_type: " + instruction_type +
                 "<br/>make_ins still returning an array using: " + instruction_type)
+    }
+    let first_arg = args[0]
+    if((instruction_type == "w") && (!Instruction.valid_w_addresses.includes(first_arg))){
+        dde_error('make_ins("w" ...) does not support an address of ' + first_arg +
+                  '.<br/>Valid addresses are:<br/>' + Instruction.valid_w_addresses.toString() +
+                  '.<br/>See <a target="_blank" href="https://github.com/HaddingtonDynamics/Dexter/wiki/oplet-write">oplet_write doc</a>. for details.')
     }
     let result = new Array(Instruction.INSTRUCTION_TYPE)
     result.push(instruction_type)
@@ -642,7 +656,7 @@ Instruction.grab_robot_status = class grab_robot_status extends Instruction{
         args.value  = this.end_index
         args.indent = ""
         let ei_src  = to_source_code(args)
-        return this_indent + "Control.grab_robot_status(" +
+        return this_indent + "IO.grab_robot_status(" +
                ud_src + ", " + si_src + ", " + ei_src + ")"
     }
 }

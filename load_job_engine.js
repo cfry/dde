@@ -30,7 +30,8 @@ var {deg_c_to_c, deg_c_to_f, deg_f_to_c,
      deg_c_to_k, deg_k_to_c,
      deg_k_to_f, deg_f_to_k, } = require("./core/units.js")
 
-var {out} = require("./core/out.js")
+
+var {out, speak} = require("./core/out.js")
 
 var {DXF} = require("./math/DXF.js")
 
@@ -40,6 +41,7 @@ var {Instruction, make_ins, human_task_handler, human_enter_choice_handler,
     human_enter_instruction_handler,
     human_enter_text_handler, human_show_window_handler} = require("./core/instruction.js")
 
+var {FPGA} = require('./core/fpga.js')
 var {Robot, Brain, Dexter, Human, Serial} = require('./core/robot.js')
 var {Control} = require('./core/instruction_control.js')
 var {IO} = require('./core/instruction_io.js')

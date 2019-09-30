@@ -1,11 +1,14 @@
-function init_calibrate_optical(a_dexter=null) {
+function init_calibrate_optical(a_dexter=null, make_ins_file_name="Cal.make_ins") {
   if(!a_dexter){
       a_dexter = cal_get_robot()
   }
   new Job({name: "CalEncoders",
   			show_instructions: false,
             robot: a_dexter,
-            do_list: out([
+            do_list: [ make_ins("S", "RunFile", make_ins_file_name) ]
+  })
+}
+  /*
               make_ins("w", 42,64),
     		  make_ins("w", 42,0),
               make_ins("w", 42,256),
@@ -91,3 +94,4 @@ function init_calibrate_optical(a_dexter=null) {
               make_ins("w", 42,12960),
             ])})
 }
+*/

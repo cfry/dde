@@ -191,7 +191,7 @@ function selection_for_find_button(){
     else if (previous_active_element &&
         previous_active_element.tagName == "TEXTAREA"){
         let start = previous_active_element.selectionStart
-        let end  = previous_active_element.selectionEnd
+        let end   = previous_active_element.selectionEnd
         if (start != end) { src = previous_active_element.value.substring(start, end) }
         else              { src = "" }
     }

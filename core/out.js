@@ -93,7 +93,7 @@ function out_eval_result(text, color="#000000", src, src_label="The result of ev
         let src_formatted = ""
         let src_formatted_suffix = "" //but could be "..."
         if(src) {
-            src_formatted = src
+            src_formatted = src.trim()
             let src_first_newline = src_formatted.indexOf("\n")
             if (src_first_newline != -1) {
                 src_formatted = src_formatted.substring(0, src_first_newline)
@@ -145,5 +145,77 @@ function append_to_output(text){
     install_onclick_via_data_fns()
 }
 
+//value can either be some single random js type, or a literal object
+//with a field of speak_data, in which case we use that.
+function stringify_for_speak(value, recursing=false){
+    var result
+    if ((typeof(value) == "object") && (value !== null) && value.hasOwnProperty("speak_data")){
+        if (recursing) {
+            dde_error('speak passed an invalid argument that is a literal object<br/>' +
+                'that has a property of "speak_data" (normally valid)<br/>' +
+                'but whose value itself is a literal object with a "speak_data" property<br/>' +
+                'which can cause infinite recursion.')
+        }
+        else { return stringify_for_speak(value.speak_data, true) }
+    }
+    else if (typeof(value) == "string") { result = value }
+    else if (value === undefined)       { result = "undefined" }
+    else if (value instanceof Date){
+        var mon   = value.getMonth()
+        var day   = value.getDate()
+        var year  = value.getFullYear()
+        var hours = value.getHours()
+        var mins  = value.getMinutes()
+        if (mins == 0) { mins = "oclock, exactly" }
+        else if(mins < 10) { mins = "oh " + mins }
+        result    = month_names[mon] + ", " + day + ", " + year + ", " + hours + ", " + mins
+        //don't say seconds because this is speech after all.
+    }
+    else if (Array.isArray(value)){
+        result = ""
+        for (var elt of value){
+            result += stringify_for_speak(elt) + ", "
+        }
+    }
+    else {
+        result = JSON.stringify(value, null, 2)
+        if (result == undefined){ //as happens at least for functions
+            result = value.toString()
+        }
+    }
+    return result
+}
+
+function speak({speak_data = "hello", volume = 1.0, rate = 1.0, pitch = 1.0, lang = "en_US", voice = 0, callback = null} = {}){
+    if (arguments.length > 0){
+        var speak_data = arguments[0] //, volume = 1.0, rate = 1.0, pitch = 1.0, lang = "en_US", voice = 0, callback = null
+    }
+    var text = stringify_for_speak(speak_data)
+    if(window.platform == "node"){
+        exec("espeak \"" + text + "\" -a "+ (volume*200) + " -p " + (pitch * 50) + " -s " + (rate * 37 + 130),
+             callback );//this callback takes 2 args, an err object and a string of the shell output
+                        //of calling the command.
+    }
+    else {
+        var msg = new SpeechSynthesisUtterance();
+        //var voices = window.speechSynthesis.getVoices();
+        //msg.voice = voices[10]; // Note: some voices don't support altering params
+        //msg.voiceURI = 'native';
+        msg.text   = text
+        msg.volume = volume; // 0 to 1
+        msg.rate   = rate;   // 0.1 to 10
+        msg.pitch  = pitch;  // 0 to 2
+        msg.lang   = lang;
+        var voices = window.speechSynthesis.getVoices();
+        msg.voice  = voices[voice]; // voice is just an index into the voices array, 0 thru 3
+        msg.onend  = callback //this callback takes 1 arg, an event.
+        speechSynthesis.speak(msg);
+        }
+    return speak_data
+}
+module.exports.speak = speak
+
 var {persistent_get} = require("./storage")
-var {replace_substrings, starts_with_one_of} = require("./utils.js")
+var {replace_substrings, starts_with_one_of, dde_error} = require("./utils.js")
+var {exec} = require("child_process")
+var {month_names} = require("./utils")

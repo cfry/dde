@@ -20,9 +20,9 @@ module.exports.shouldnt = shouldnt
 function warning(message, temp=false){
     var err = new Error();
     var stack_trace = replace_substrings(err.stack, "\n", "<br/>")
-    out_string = "<details><summary><span style='color:#e50;'>Warning: " + prepend_file_message_maybe(message) +
+    out_string = "<details><summary><span class='warning_css_class'>Warning: " + prepend_file_message_maybe(message) +
                  "</span></summary>" + stack_trace + "</details>"
-    out(out_string, "black", temp) //#ff751a e61
+    out(out_string, undefined, temp) //#ff751a e61
 }
 module.exports.warning = warning
 
@@ -31,9 +31,9 @@ function dde_error(message){
     console.log("dde_error: " + out_string)
     var err = new Error();
     var stack_trace = err.stack
-    out_string = "<details><summary><span style='color:red;'>Error: " + out_string +
+    out_string = "<details><summary><span class='dde_error_css_class'>Error: " + out_string +
                       "</span></summary>" + stack_trace + "</details>"
-    out(out_string, "red") //I shouldn't have to do this but sometimes with setTimeouts and/or
+    out(out_string)
     throw new Error(message)
 }
 module.exports.dde_error = dde_error
@@ -1806,6 +1806,9 @@ function make_ins_arrays(default_oplet, instruction_arrays=[]){
     return result
 }
 module.exports.make_ins_arrays = make_ins_arrays
+
+module.exports.month_names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September','October', 'November', 'December']
+
 var semver = require("semver")
 var {out} = require("./out.js")
 var {Instruction} = require("./instruction.js")

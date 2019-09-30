@@ -182,7 +182,14 @@ var SSH = class SSH {
        this.dir_for_ls = null
    }
    static wait_or_write(command, tries=0){
-       if(this.stream && this.stream.writable) {
+       if (command.includes("copy_local_to_remote")){ //we won't get here unless current ssh conn is to remote (dexter) host
+           //https://ourcodeworld.com/articles/read/133/how-to-create-a-sftp-client-with-node-js-ssh2-in-electron-framework
+           this.copy_local_to_remote(command)
+       }
+       else if (command.includes("copy_remote_to_local")){
+           this.copy_remote_to_local(command)
+       }
+       else if(this.stream && this.stream.writable) {
            setTimeout(function() { SSH.write(command) }, 200) //give a little extra time for
            //init of the connection as well as for previous cmd output to be sent to the stream
        }
@@ -196,9 +203,167 @@ var SSH = class SSH {
            setTimeout(function(){ SSH.wait_or_write(command, tries + 1)}, 200)
        }
    }
-    static write(command){
+   //full_command looks like 'junk cmd_name "first arg" second_arg;junk'
+   //where each arg might or might not have surrounding double quotes,
+   //and if it does, that arg is allowed to have spaces in it, otherwise
+   //space delimits args.
+   //semicolon is an optional end of full_command. If not present, end of string is end of full_command.
+   static extract_cmd_args(cmd_name, full_command){
+       let end_of_cmd_name_pos = full_command.indexOf(cmd_name) + cmd_name.length
+       let cmd_args_str = full_command.substring(end_of_cmd_name_pos)
+       let semicolon_pos = cmd_args_str.indexOf(";")
+       if(semicolon_pos != -1) {
+           cmd_args_str = cmd_args_str.substring(0, semicolon_pos)
+       }
+       cmd_args_str = cmd_args_str.trim()
+       let args = []
+       let cur_arg = ""
+       let in_arg = false
+       let cur_arg_delimiter = " "
+       for(let char of cmd_args_str){
+         if(char == '"'){
+             if(in_arg){
+                if(cur_arg_delimiter == char) { //found end of cur arg
+                    args.push(cur_arg)
+                    cur_arg_delimiter = " "
+                    in_arg = false
+                    cur_arg = ""
+                }
+                else {
+                    dde_error("While parsing command input args, got a double_quote where it wasn't expected:<br/>" +
+                               cmd_args_str)
+                }
+             }
+             else { //beginning of a double quoted arg
+                 cur_arg_delimiter = char
+                 cur_arg = ""
+                 in_arg = true
+             }
+         }
+         else if (char == " ") {
+             if(in_arg){
+                 if(cur_arg_delimiter == char) { //found end of cur arg
+                     args.push(cur_arg)
+                     cur_arg_delimiter = " "
+                     in_arg = false
+                     cur_arg = ""
+                 }
+                 else {
+                     dde_error("While parsing command input args, got a space where it wasn't expected:<br/>" +
+                         cmd_args_str)
+                 }
+             }
+             else { //beginning of a new space-delimited arg
+                 in_arg = true
+                 cur_arg_delimiter = " "
+                 cur_arg = ""
+             }
+         }
+         else {
+             in_arg = true //could be the first char of a space-delimited arg.
+             cur_arg += char
+         }
+       }
+       if (in_arg && (cur_arg.length > 0)){
+           if (cur_arg_delimiter == " ") { args.push(cur_arg) }
+           else {dde_error("While parsing command input args, got end of command without a closing double quote:<br/>" +
+                            cmd_args_str)}
+       }
+       return args
+   }
+
+   static copy_local_to_remote (command){
+       if(this.logged_in_to_localhost()){
+           warning("Your SSH session is logged in to the localhost (dde_computer).<br/>" +
+                   "To copy files between a local and a remote (Dexter) computer,<br/>" +
+                   "you must first SSH log in to the remote computer by:<br/>" +
+                   "clicking the underlined text after 'Directory Listing for:' or<br/>" +
+                   "choosing the cmd line lang menu item of 'JS', then choose 'SSH'.")
+       }
+       else {
+           let args = this.extract_cmd_args("copy_local_to_remote", command)
+           let moveFrom = args[0] //local path
+           let moveTo   = args[1] //remote path
+           let semicolon_pos = moveTo.indexOf(";")
+           if(semicolon_pos != -1) {
+               moveTo = moveTo.substring(0, semicolon_pos)
+           }
+           this.conn.sftp(function(err, sftp) {
+               if (err){
+                   dde_error("Copying dde_computer:" + moveFrom + " to " + SSH.config.the_host_name + ":" + moveTo + "<br/>" +
+                       "errored with: " + err.message)
+               }
+               else {
+                    try{
+                       let fs = require("fs"); // Use node filesystem
+                       let readStream = fs.createReadStream(moveFrom);
+                       let writeStream = sftp.createWriteStream(moveTo);
+                       writeStream.on('close',function () {
+                           out("dde_computer:" + moveFrom + "<br/>copied to<br/>" + SSH.config.the_host_name + ":" + moveTo)
+                       });
+                       writeStream.on('end', function () {
+                           console.log( "sftp done" );
+                           //conn.close();
+                       });
+                       // initiate transfer of file
+                       readStream.pipe(writeStream)
+                    }
+                    catch(err){
+                        dde_error("Copying dde_computer:" + moveFrom + "<br/>to<br/> " + SSH.config.the_host_name + ":" + moveTo + "<br/>" +
+                                  "errored with: " + err.message)
+                    }
+               }
+           })
+       }
+   }
+   static copy_remote_to_local(command){
+        if(this.logged_in_to_localhost()){
+            warning("Your SSH session is logged in to the localhost (dde_computer).<br/>" +
+                "To copy files between a remote (Dexter) and a local computer,<br/>" +
+                "you must first SSH log in to the remote computer by:<br/>" +
+                "clicking the underlined text after 'Directory Listing for:' or<br/>" +
+                "choosing the cmd line lang menu item of 'JS', then choose 'SSH'.")
+        }
+        else {
+            let args = this.extract_cmd_args("copy_remote_to_local", command)
+            let moveFrom = args[0] //remote path
+            let moveTo   = args[1] //local path
+            let semicolon_pos = moveTo.indexOf(";")
+            if(semicolon_pos != -1) {
+                moveTo = moveTo.substring(0, semicolon_pos)
+            }
+            this.conn.sftp(function(err, sftp) {
+                if (err) {
+                    dde_error("Copying " + SSH.config.the_host_name + ":" + moveFrom + " to dde_computer:" + moveTo + "<br/>" +
+                        "errored with: " + err.message)
+                }
+                else {
+                    try{
+                        let fs = require("fs"); // Use node filesystem
+                        let readStream = sftp.createReadStream(moveFrom);
+                        let writeStream = fs.createWriteStream(moveTo);
+                        writeStream.on('close',function () {
+                            out(SSH.config.the_host_name + ":" + moveFrom + "<br/>copied to<br/>dde_computer:" + moveTo)
+
+                        });
+                        writeStream.on('end', function () {
+                            console.log( "sftp done" );
+                            //conn.close();
+                        });
+                        // initiate transfer of file
+                        readStream.pipe(writeStream)
+                    }
+                    catch(err){
+                       dde_error("Copying " + SSH.config.the_host_name + ":" + moveFrom + "<br/>to<br/>dde_computer:" + moveTo + "<br/>" +
+                                 "errored with: " + err.message)
+                    }
+                }
+            })
+        }
+   }
+   static write(command){
         this.stream.write(command)
-    }
+   }
    static dir_list_id(){
        return "DirectoryListing" + replace_substrings(SSH.config.host, "\\.", "_")
    }
@@ -510,7 +675,6 @@ var SSH = class SSH {
                      ` onchange="SSH.handle_dir_menu(event)" title="operations on this directory." style="width:15px;margin-right:10px;">
                       <option>Directory Operations</option>
                       <option title="Change the permissions 'mode' of the directory.&#13;777 means all user groups can&#13;read, write & execute.&#13;Edit and hit ENTER on cmd line to run.">Change directory permissions...</option>
-                      <option>Copy directory to new location...</option>
                       <option>Copy path to clipboard</option>
                       <option title="Inserts path of this directory&#13;at the end of the cmd line,&#13;but if there's [some text], replace it.">Insert path in cmd line</option>
                       <option>Insert path in editor</option>
@@ -525,13 +689,14 @@ var SSH = class SSH {
                     ` onchange="SSH.handle_file_menu(event)" title="operations on this file." style="width:15px;margin-right:10px;">
                       <option>File Operations</option>
                       <option title="Change the permissions 'mode' of the file.&#13;777 means all user groups can&#13;read, write & execute.&#13;Edit and hit ENTER on cmd line to run.">Change file permissions...</option>
-                      <option>Copy file to new location...</option>
+                      <option title="Only works if you are SSH logged in&#13;to a remote (Dexter) computer.">Copy file: local to remote...</option>
+                      <option title="Only works if you are SSH logged in&#13;to a remote (Dexter) computer.">Copy file: remote to local...</option>
                       <option>Copy path to clipboard</option>
                       <option title="Inserts path of this file&#13;at the end of the cmd line,&#13;but if there's [some text], replace it.">Insert path in cmd line</option>
                       <option>Insert path in editor</option>
                       <option>Move/rename file...</option>
                       <option title="Deletes the file.">Remove file...</option>
-                      <option title="Run this job in the Job Engine.">Run & start Job</option>
+                      <option title="Run the first Job defined in this file&#13;in the Job Engine.">Run & start Job</option>
                       <option title="Prints the file's content in the output pane.">Show file content</option>                           
                </select>`
     }
@@ -542,13 +707,14 @@ var SSH = class SSH {
         let dir  = elt.dataset.dir
         let file = elt.dataset.file
         let path = dir + ((dir == "/") ? "" : "/") + file
-        if     (op == "Change directory permissions...")   { cmd_input_id.value = "chmod 777 " + path + ";stat " + path}
-        else if(op == "Copy directory to new location...") { cmd_input_id.value = "cp -R " + path + " " + dir + "/[new dir name]" }
-        else if(op == "Copy path to clipboard")            { clipboard.writeText(path)}
-        else if(op == "Insert path in cmd line")           { this.insert_path_in_command_line(path) }
-        else if(op == "Insert path in editor")             { Editor.insert(path) }
-        else if(op == "Move/rename directory...")          { cmd_input_id.value = "mv " + path + " " + dir + "/[new dir name]" }
-        else if(op == "Remove directory...")               {
+        if     (op == "Change directory permissions...")       { cmd_input_id.value = "chmod 777 " + path + ";stat " + path}
+        //else if(op == "Copy directory to local directory...")  { cmd_input_id.value = "cp -R " + path + " " + dir + "/[new dir name]" }
+        //else if(op == "Copy directory to remote directory...") { cmd_input_id.value = "scp -r " + path + " root@" + Dexter.dexter0.ip_address + ":/[new dir name]" }
+        else if(op == "Copy path to clipboard")                { clipboard.writeText(path)}
+        else if(op == "Insert path in cmd line")               { this.insert_path_in_command_line(path) }
+        else if(op == "Insert path in editor")                 { Editor.insert(path) }
+        else if(op == "Move/rename directory...")              { cmd_input_id.value = "mv " + path + " " + dir + "/[new dir name]" }
+        else if(op == "Remove directory...")                   {
             let mess = "On " + (this.config.the_host_name ? this.config.the_host_name : this.config.host) +
                        ",\ndelete  " + path + "  ?"
             if(confirm(mess)){ SSH.run_command({command: "rm -rf " + path}) }
@@ -564,7 +730,20 @@ var SSH = class SSH {
        let path =  dir + ((dir == "/") ? "" : "/") + file
        out(op)
         if     (op == "Change file permissions...")   { cmd_input_id.value = "chmod 777 " + path + ";stat " + path}
-        else if(op == "Copy file to new location...") { cmd_input_id.value = "cp " + path + " " + dir + "/[new file name]" }
+        else if(op == "Copy file: local to remote..."){
+            open_doc(ssh_copying_files_doc_id)
+            cmd_input_id.value = "copy_local_to_remote /[file to copy]" + " " + path
+            cmd_input_id.setSelectionRange(21, 36)
+            cmd_input_id.focus()
+        }
+        else if(op == "Copy file: remote to local..."){
+            open_doc(ssh_copying_files_doc_id)
+            cmd_input_id.value = "copy_remote_to_local " + path + " " + "/[new file name]"
+            let val_len = cmd_input_id.value.length
+            let sel_start = val_len - 16
+            cmd_input_id.setSelectionRange(sel_start, val_len)
+            cmd_input_id.focus()
+        }
         else if(op == "Copy path to clipboard")       { clipboard.writeText(path)}
         else if(op == "Insert path in cmd line")      { this.insert_path_in_command_line(path) }
         else if(op == "Insert path in editor")        { Editor.insert(path) }
@@ -601,6 +780,10 @@ var SSH = class SSH {
         let elt = event.target
         this.dir_list_close_action(elt)
         this.show_config_dialog()
+    }
+    static logged_in_to_localhost(){
+        if(SSH.config){ return SSH.config.host == "127.0.0.1" }
+        else          { return false }
     }
     static show_config_dialog(){
         if(!this.is_config_complete()) {
@@ -639,7 +822,7 @@ Show password? <input type="checkbox"  id="ssh_auth_dialog_show_pas_id" ` +
         setTimeout(function(){
             //$("#ssh_computer_id").jqxComboBox({source: computer_choices, width: '200px', height: '25px'})
             let host_combo_box_string = (SSH.config.the_host_name ? SSH.config.the_host_name : SSH.config.host)
-            if (SSH.config.host == "127.0.0.1") {
+            if (SSH.logged_in_to_localhost()) {
                 host_combo_box_string = "dde_computer"
             }
             $("#ssh_computer_id").jqxComboBox('val', host_combo_box_string);

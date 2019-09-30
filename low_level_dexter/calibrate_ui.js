@@ -389,7 +389,7 @@ function handle_cal(vals){
                 "&nbsp;&nbsp;&nbsp;&nbsp;should be selected.</span>"
         }
         else if (confirm("Caution! Clear the hemisphere that the fully extended Dexter can reach.")){
-            init_calibrate_optical()
+            init_calibrate_optical(null, vals.cal_dialog_make_ins_file_id)
             Job.CalEncoders.start({robot: cal_get_robot()})
             cal_instructions_id.innerHTML = "Now calibrating optical encoders...<br/>&nbsp;&nbsp;&nbsp;&nbsp;<i>This takes about a minute.</i>"
         }
@@ -469,7 +469,12 @@ function init_calibrate(){
       */
 
       	"3. <input type='button' id='calibrate_optical_id' style='margin-top:10px;' title='Do each time you turn on Dexter.'" +
-        "value='Calibrate optical encoders'/>",
+        "value='Calibrate optical encoders'/>" +
+
+        ` Calibration process: <div name="cal_dialog_make_ins_file_id" class="combo_box" style="display:inline-block;vertical-align:middle;">
+        <option selected="selected">Cal.make_ins</option>
+        <option>FastCal.make_ins</option>
+        </div>`,
         
       
         callback: handle_cal

@@ -653,10 +653,10 @@ new Job({
     robot: Robot.S1,
     do_list: [
         Serial.string_instruction("y"),
-        Control.grab_robot_status("yes_result"),
+        IO.grab_robot_status("yes_result"),
         Control.wait_until(2),
         Serial.string_instruction("n"),
-        Control.grab_robot_status("no_result", Serial.DATA0)
+        IO.grab_robot_status("no_result", Serial.DATA0)
     ]})
 Job.j10a.start()
 

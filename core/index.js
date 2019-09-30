@@ -17,7 +17,7 @@ function node_on_ready() {
     //var pckg         = require('../package.json');
     //global.dde_version      = pckg.version
     //global.dde_release_date = pckg.release_date
-    global.platform  = "node"
+    global.platform  = "node" //"node" means we're in the job_engine, "dde" would mean we're not.
     global.Root      = Root
     global.window = global //window is needed in storage.js and elsewhere
     console.log("operating_system: " + operating_system + "\ndde_apps_folder: " + dde_apps_folder)
@@ -45,7 +45,7 @@ function node_on_ready() {
 
 function run_node_command(args){
     console.log("top of run_node_command with: " + args)
-   node_on_ready()
+    node_on_ready()
 
     let cmd_name = args[2]
     let fn = eval(cmd_name)
@@ -108,26 +108,38 @@ var {Root} = require("./object_system.js")
 var Coor   = require("../math/Coor.js")
 var Kin    = require("../math/Kin.js")
 var Vector = require("../math/Vector.js")
+var {sind, cosd, tand, asind, acosd, atand, atan2d} = require("../math/Trig_in_Degrees.js")
 var Job    = require("./job.js")
 
 var {Robot, Brain, Dexter, Human, Serial}  = require("./robot.js")
 var {Control} = require("./instruction_control.js")
 var {IO}      = require("./instruction_io.js")
 
-var {out}  = require("./out.js")
+var {out, speak}  = require("./out.js")
 var calibrate_build_tables = require("../low_level_dexter/calibrate_build_tables.js")
 var DXF    = require("../math/DXF.js")
 var {init_units} = require("./units.js")
+var {FPGA} = require("./fpga.js")
 
 global.Dexter   = Dexter
 global.make_ins = Dexter.make_ins
 global.out      = out
+global.speak    = speak
 global.Robot    = Robot
 global.Control  = Control
 global.IO       = IO
 global.Job      = Job
 global.Vector   = Vector
 global.Kin      = Kin
+global.FPGA     = FPGA
+
+global.sind     = sind
+global.cosd     = cosd
+global.tand     = tand
+global.asind    = asind
+global.acosd    = acosd
+global.atand    = atand
+global.atan2d   = atan2d
 
 
 run_node_command(process.argv)

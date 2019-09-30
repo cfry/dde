@@ -6,6 +6,138 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 3.4.7, Sep 30, 2019</summary>
+Highlights: Bug fixes to Job Engine.<br/>
+    Gamepad, serial port, SSH improvements.<br/>
+    New capability to customize more colors in DDE, esp for the editor.<br/>
+    FPGA support.<br/>
+    Calibration improvements.<br/>
+    New definitions for Dexter.set_follow_me and friends.
+<ul>
+    <li>Improved documentation for <code>speak</code> in the Ref Man, including the callback args.</li>
+
+    <li> Made the exporting/importing for speak and utilities that it uses consistent.
+     Speak is now in the Job engine code, since it now supports not just
+     the normal text to speech but a "Robotic" voice on Dexter as well.
+     (you need extra hardware to hear it.)</li>
+
+    <li> After you click a Job button, or the Step button, it is automatically defocused so that
+        pressing the SPACE or ENTER key isn't interpreted as a button click.</li>
+
+    <li> When you are inserting a recorded job, a dialog pops up.
+        If you click on the "Preview" button, that first dialog no longer
+        is automatically closed, so that when you close the "preview" dialog, you
+        see the orig dialog.</li>
+
+    <li> Tweaked the version number message in the Output pane upon dde launch to say "beta" version.</li>
+
+    <li> Respelled obsolete doc from <code>Control.grab_robot_status</code> to
+         <code>IO.grab_robot_status</code>.
+        Tweaks to the ref man for IO.grab_robot_status.</li>
+
+    <li> New function: <code>set_css_properties</code>. See Ref Man/Window System/set_css_properties
+        which includes examples for DDE's editor words color changes and error message
+        customization.</li>
+
+    <li> Fixed bugs in Job Engine by adding the importing and globalization of:
+        <code>sind, cosd, tand, asind, acosd, atand, atan2d</code></li>
+
+    <li> <code>_nbits_cf</code>  and <code>_arcsec</code> now availible for Job engine Jobs.</li>
+
+    <li> Job engine: fixes to require/importing to get the correct modules loaded.</li>
+
+    <li> new instruction: <code>Dexter.set_fpga_command_reg</code>
+        See Ref Man/Robot/Dexter/Dexter_instructions/set_fpga_command_reg</li>
+
+    <li> The 81 registers that you can set with calls to (make_ins "w" register, value)
+        are now defined as constants. Example: <code>FPGA.BASE_POSITION</code>
+        See Ref Man/Robot/Dexter/Dexter Instructions/Dexter.make_ins/FPGA registers
+        Tests in test_suite/testsuite_fpgs.js, now part of the standard tests.
+        However, not all are useful. When calling make_ins("w", 1, 123) and others that are non-functional,
+        you will get an error.</li>
+
+    <li> Changed calibrate_optical.js to call<br/>
+        <code>make_ins("S", "RunFile", "Cal.make_ins")</code><br/>
+       to make customization of calibration easier.
+    </li>
+
+    <li> The calibrate dialog has a new combo box to the right of the
+        "Calibrate optical encoders"  button for selecting the "Calibration process".
+        The pre-populated choices are <code>"Cal.make_ins"</code> and <code>"FastCal.make_ins"</code> but
+        you can type in your own make_ins file name if you like.</li>
+
+    <li> The SSH table listing for a directory now includes the items<br/>
+        <b>Copy file: local to remote</b>  and<br/>
+        <b>Copy file: remote to local</b><br/>
+        See user Guide/Secure Shell(SSH)/Copying Files.
+        This doc automatically is scrolled to when you choose either of those menu items.</li>
+
+    <li> Removed Learn Js menu/User Interaction/prompt (because <code>prompt</code>
+         can no longer be used in Electron.)</li>
+
+    <li> New File menu item: "Insert file path" with options for inserting into the editor or the cmd input.
+         Particularly useful for SSH copy commands.</li>
+
+    <li> <code>Job.prototype.do_next_item</code>  fixed robot.is_busy to robot.is_busy()<br/>
+        Defined Robot.prototype.is_busy() to always return false
+        which fixes bug in Serial robots.<br/>
+        Also, defined Robot.add_to_busy_job_array(a_job){ } //no-op. shadowed by Dexter.<br/>
+        Robot.remove_from_busy_job_array(a_job){}<br/>
+        Also Serial.start, now calling set_a_robot_instance_socket_id with a 2nd arg of job_instance
+        because set_a_robot_instance_socket_id really needs it, and can't fake it my just getting
+        passed the path, as there might be > 1 job a serial robot with that path, including
+        both active and inactive ones.<br/>
+        Changed call in start of Serial.set_a_robot_instance_socket_id(...)
+        to this.set_a_robot_instance_socket_id(...)<br/>
+        Serial.prototype.init now takes job_instance arg.<br/>
+        Serial.prototype.init now passes the trim_whitespace arg to serial_connect<br/>
+        Serial.prototype.send now passes job_instance to init(...)
+    </li>
+
+    <li> In the Output pane, when you have a selection and click the Eval button,
+         there is no longer a spurious "..." at end of showing the source code that was evaled.</li>
+
+    <li> Serial port access upgraded to accomodate recent DDE changes.</li>
+
+    <li> <code>serial_connect_low_level</code> now takes 2 new last args: callback and error_callback.
+        Each takes 2 args. It is called with "this" of null.</li>
+
+    <li> <code>serial_on_done_with_sending</code> fixed unbound variable bug for ins_id.</li>
+
+    <li> low_level serial port improvements:
+        <ul>
+            <li>Respelled "Debugging Serial" to "Low Level Serial"</li>
+            <li>Fixed example call in the serial.js source code to <code>onReceiveCallback_low_level</code>
+                with better comments.
+            </li>
+        </ul>
+    </li>
+
+    <li> Added <code>serial_flush(path)</code> call to <code>serial_disconnect</code> to enforce the stopping
+        of serial callbacks.</li>
+
+    <li> Bug fix for <code>DXF.init_drawing()</code> (removed a "simulate" arg to a Job definition.)</li>
+
+    <li> Ref Man/IO/Gamepad and Keyboard/keycodes and names:  improved key 32  "space" description.</li>
+
+    <li> New method: <code>Gamepad.is_key_down</code>. See Ref Man/IO/Gamepad and Keyboard/is_key_down</li>
+
+    <li> Gamepad: Function now documented with increased functionality:
+        <code>Gamepad.start_remembering_keydown</code> now with a "sticky" parameter.</li>
+
+    <li> new method: <code>Gamepad.clear_down_keys</code>.
+         See Ref Man/Gamepad & Keyboard/clear_down_keys</li>
+
+    <li> <code>Dexter.set_follow_me</code><br/>
+         <code>Dexter.set_force_protect</code><br/>
+         <code>Dexter.set_open_loop</code><br/>
+         <code>Dexter.set_keep_position</code><br/>
+    now are defined using make_ins("S", "RunFile", "setFollowMeMode.make_ins")
+    and friends to get their instructions directly from Dexter,
+    instead of from the definitions in Dexter_Modes.js of setFollowMe and friends.</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.4.6, Sep 6, 2019</summary>
 Highlights: Minor bug fixes to release: 3.4.5 for file system and SSH.
 <ul>
@@ -25,7 +157,7 @@ Highlights: Minor bug fixes to release: 3.4.5 for file system and SSH.
 
 <details class="doc_details"><summary>v 3.4.5, Sep 5, 2019</summary>
 Highlights: Command line now has SSH option.<br/>
-            Vextor/Convert deep_copy reverted back to old version to fix bug.<br/>
+            Vector/Convert deep_copy reverted back to old version to fix bug.<br/>
             Job speed up via inter_do_item_dur.<br/>
             Misc bug fixes including for Job Engine.
 
@@ -76,7 +208,7 @@ Highlights: Command line now has SSH option.<br/>
          to set this up for DDE's computer so you can easily SSH to it as well).
          <p></p>
          From DDE you can now do normal
-         linux maintenace operations on Dexters.
+         linux maintenance operations on Dexters.
          A few commands are handled specially (pwd;ls -l)
          being the main one to present a "dialog like" interface
          in the output pane. With links in that, you can navigate
@@ -90,7 +222,7 @@ Highlights: Command line now has SSH option.<br/>
          the ability to run selected bash script in the editor
          facilitate interoperation of DDE with linux.
          This tool helps you "learn by doing" bash,
-         reminisent of how DDE proper helps you learn JavaScript.
+         reminiscent of how DDE proper helps you learn JavaScript.
          <p></p>
          Choosing "SSH" from the command line lang menu
          scrolls the doc pane to the User Guide new section on SSH

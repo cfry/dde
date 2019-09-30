@@ -32,7 +32,7 @@
         if((Editor.current_file_path != "new buffer") && (save_on_eval_id.checked)) { Editor.save_current_file() }
         eval_js_part1(step)
         //if (Editor.view == "Blocks") {
-            eval_id.blur()
+        eval_id.blur()
         //} //to get rid of the Eval button being "selected" when we're evaling in blocks view
     }
 
@@ -78,7 +78,7 @@
         var pckg         = require('./package.json');
         dde_version      = pckg.version
         dde_release_date = pckg.release_date
-        platform         = "dde" //"node" is the other possibility
+        platform         = "dde" //"node" is the other possibility, which happens when we're in the job_engine
         serial_port_init()
         //window.Root      = Root //should work but doesn't jan 13, 2019
         Coor.init()
@@ -345,6 +345,7 @@
                                     setTimeout(function(){
                                                    eval_button_action(true) //cause stepping
                                                }, 500)
+                                    step_button_id.blur()
                                  }
 
         step_button_id.onmousedown = function() {
@@ -379,13 +380,25 @@
         }
     }
 
-    insert_file_id.onclick=function(e) {
+    insert_file_content_id.onclick=function(e) {
         const path = choose_file({title: "Choose a file to insert into DDE's editor"})
         if (path){
             const content = read_file(path)
             Editor.insert(content)
         }
     }
+    insert_file_path_into_editor_id.onclick=function(e){
+        const path = choose_file({title: "Choose a file to insert into DDE's editor"})
+        if (path){
+            Editor.insert('"' + path + '"')
+        }
+    }
+    insert_file_path_into_cmd_input_id.onclick=function(e){
+    const path = choose_file({title: "Choose a file to insert into DDE's editor"})
+    if (path){
+        Editor.insert_into_cmd_input('"' + path + '"')
+    }
+}
 
     save_id.onclick = Editor.save
     set_menu_string(save_id, "Save", "s")
@@ -420,7 +433,7 @@ foo("hello", [7, 10, 20, -3.2]) //call function foo with 2 args
 
     alert_id.onclick   = function(){Editor.wrap_around_selection("alert(", ')',        '"Hi."')}
     confirm_id.onclick = function(){Editor.wrap_around_selection("confirm(", ')',      '"Do it?"')}
-    prompt_id.onclick  = function(){Editor.wrap_around_selection("prompt(", ', "$1")', '"Price?"')}
+    <!--prompt_id.onclick  = function(){Editor.wrap_around_selection("prompt(", ', "$1")', '"Price?"')} -->
 
     out_black_id.onclick =function(){Editor.wrap_around_selection("out(", ')', '"Hello"')}
     out_purple_id.onclick=function(){Editor.wrap_around_selection("out(", ', "blue")', '"Hello"')}
@@ -1381,11 +1394,11 @@ function check_for_latest_release(){
             var ver_date  = the_obj.published_at
             if (ver != dde_version){
                 ver_date       = date_to_mmm_dd_yyyy(ver_date) //ver_date.substring(0, ver_date.indexOf("T"))
-                warning("The latest version of DDE is: " + ver +
+                warning("The latest beta version of DDE is: " + ver +
                         " released: " + ver_date +
-                        "<br/>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp;&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbspbut you're running version: " + dde_version_html +
+                        "<div style='margin-left:180px;'>You're running version: " + dde_version_html +
                         " released: " + dde_release_date +
-                        "<br/><a href='#' onclick='open_doc(update_doc_id)'>How to update.</a>")
+                        "</div><a href='#' onclick='open_doc(update_doc_id)'>How to update.</a>")
                 open_doc(update_doc_id)
             }
             else { out("DDE is up to date with version: " + dde_version_html +

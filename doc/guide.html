@@ -1730,7 +1730,7 @@ the points defined in ez_create.
 <details id="ssh_doc_id" class="doc_details"><summary>Secure Shell (SSH)</summary>
 Most of your interaction with Dexter from DDE can be done via JavaScript.
 But there are times you need to get lower level information or control
-to Dexter's computer.
+to Dexter's computer, which runs the Linux OS.
 To do this, from within DDE, you can issue shell commands to Dexter (or DDE's computer),
 and see the results in DDE's Output pane.
 <p></p>
@@ -1812,7 +1812,50 @@ and see the results in DDE's Output pane.
     must give your user name and password.
     This is the same user name and password you must give when you
     restart your computer and login.
-</details> <!-- end ssh_doc_id -->
+
+    <details id="ssh_copying_files_doc_id" class="doc_details"><summary>Copying Files</summary>
+    When you get an SSH directory listing table in the output pane, each file
+    will have a menu to the left of its name.
+    The menu item <br/>
+    <b>Copy file: local to remote</b><br/>
+    allows you to copy a file from DDE's computer (the localhost)
+    to a Dexter's file system. To use this facility,
+    you must SSH log in to the Dexter computer.
+    Choosing <b>Copy file: local to remote</b> simply sets the
+    command line type-in to something like:<br/>
+    <code title="unEVALable">copy_local_to_remote /[file to copy] /buildjunk.js</code><br/>
+    "copy_local_to_remote" is a special DDE command that takes two
+    arguments, a local file to be copied, and a remote destination file path
+    to copy into. You'll have to edit each of these to get what you want,
+    then hit ENTER to run the command.
+    <p></p>
+    The menu item
+    <br/><b>Copy file: remote to local</b><br/>
+     is similar
+    but has its first argument of the remote file to copy and
+    a 2nd argument of a DDE computer file path to copy into.
+    <p></p>
+    All the arguments to these two commands are just straight paths
+    with no "computer" designation in them. Don't prepend them
+    with "host:path", just use the path.
+    <p></p>
+    When you choose <b>Copy file: local to remote</b> or <b>Copy file: remote to local</b>,
+    the string inserted into the cmd input will have its placeholder "local" argument selected.
+    You can now use the DDE File menu item <i>Insert file path/into cmd input</i>
+    to replace the placeholder "local" path. Beware, you may have to edit either argument
+    after doing this, but at least you'll get long directories correct.
+    <p></p>
+    Note that in the Macintosh's finder, you'll typically see something like<br/>
+    Macintosh HD/Users/Fry/...<br/>
+    Don't including the "Macintosh HD" part, just start with "/Users..."
+    <p></p>
+    <i>Warning:</i> There can be errors in the copying process that
+    don't show up in the DDE output pane. We recommend keeping an
+    eye on the Chrome console while copying.
+    (Click right in DDE and choose "Inspect Element".)
+    </details>
+
+    </details> <!-- end ssh_doc_id -->
 
 
 <details class="doc_details"><summary>Contact</summary>

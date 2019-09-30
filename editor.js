@@ -269,7 +269,7 @@ Editor.restore_files_menu_paths_and_last_file = function(){ //called by on ready
 
 Editor.get_any_selection = function(){
     //do in this order because clicking in editor window makes other selections go away.
-    //so if ther are other selections, it means you made the AFTER you made
+    //so if there are other selections, it means you made them AFTER you made
     //the editor window sel, and therefore your attention is on that non-editor selection.
     var sel_text = ""
     //this clause catches html selection inside code and samp tags.
@@ -909,6 +909,42 @@ Editor.save_to_dexter_as = function(){
 Editor.insert_new_job = function(){
     Editor.wrap_around_selection('new Job({\n    name: "my_job",\n    do_list: [\n        ',
         '\n    ]\n})\n')
+}
+
+//very similar to Editor.insert
+//When the person chooses the File menu item to invoke this,
+//I can't programmatically tell that the user's cursor was previously in the cmd input
+//as opposed to the editor, so just let the user choose the menu item that fits their goal.
+Editor.insert_into_cmd_input = function(text, insertion_pos="replace_selection", select_new_text=false){
+    if (insertion_pos == null) { insertion_pos = "replace_selection" }
+    let orig_text                = cmd_input_id.value
+    let orig_cursor_start        = cmd_input_id.selectionStart
+    let orig_sel_end             = cmd_input_id.selectionEnd
+    let s, e
+    if     ((insertion_pos == "replace_selection") || (insertion_pos == null))
+            { s = orig_cursor_start; e = orig_sel_end }
+    else if (insertion_pos == "selection_start"){ s = orig_cursor_start; e = s }
+    else if (insertion_pos == "selection_end")  { s = orig_sel_end; e = s }
+    else if (insertion_pos == "start")          { s = 0; e = s }
+    else if (insertion_pos == "end")            { s = orig_text.length; e = s }
+    else if (insertion_pos == "whole")          { s = 0; e = orig_text.length}
+    else if (typeof(insertion_pos) == "number") { s = insertion_pos; e = s }
+    //the below shouldn't happen because the real checking is done in the sandbox part of this fn.
+    else{ throw(TypeError("Editor.insert_in_cmd_line_maybe passed insertion_pos of: " + insertion_pos +
+        " but the only legal values are: 'start', 'end', 'selection_start', 'selection_end'," +
+        " an integer, 'whole' (meaning replace the whole editor content) and " +
+        " 'replace_selection' -- the default (meaning replace the selection)."))
+    }
+    var new_text  = orig_text.substr(0, s) + text + orig_text.substr(e)
+    cmd_input_id.value = new_text
+    var new_sel_end = e + text.length
+    if (insertion_pos !== undefined) {new_sel_end = orig_cursor_start + text.length} //so cursor will be semantically where it started
+    if (select_new_text){
+        cmd_input_id.setSelectionRange(s, s + text.length)
+    }
+    else {
+        cmd_input_id.setSelectionRange(new_sel_end, new_sel_end)
+    }
 }
 
 //replace selected text with new text.

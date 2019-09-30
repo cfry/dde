@@ -252,6 +252,7 @@ var TestSuite = class TestSuite{
         load_files(__dirname + "/test_suite/picture_testsuite.js")
         load_files(__dirname + "/test_suite/make_html_testsuite.js")
         load_files(__dirname + "/test_suite/file_system_testsuite.js")
+        load_files(__dirname + "/test_suite/fpga_testsuite.js")
         load_files(__dirname + "/test_suite/loop_testsuite.js")
         if (!TestSuite["user_guide_id"])       { TestSuite.make_test_suites_from_doc(user_guide_id) }
         if (!TestSuite["reference_manual_id"]) { TestSuite.make_test_suites_from_doc(reference_manual_id) }
