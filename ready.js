@@ -1114,11 +1114,11 @@ function check_for_latest_release(){
             var ver_date  = the_obj.published_at
             if (ver != dde_version){
                 ver_date       = date_to_mmm_dd_yyyy(ver_date) //ver_date.substring(0, ver_date.indexOf("T"))
-                warning("The latest version of DDE is: " + ver +
+                warning("The latest <span style='color:black; font-weight:600;'>beta</span> version of DDE is: " + ver +
                         " released: " + ver_date +
-                        "<br/>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp;&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbspbut you're running version: " + dde_version +
+                        "<br/><span style='margin-left:45px;'>You're running Long Term Stable version: " + dde_version +
                         " released: " + dde_release_date +
-                        "<br/>See the Doc pane for how to update.")
+                        "</span><br/>See the Doc pane if you'd like to update.")
                 open_doc(update_doc_id)
             }
             else { out("DDE is up to date with version: " + dde_version +
