@@ -17,7 +17,7 @@ persistent_values = {}
 function get_persistent_values_defaults() {
     return {"save_on_eval":     false,
             "files_menu_paths": [add_default_file_prefix_maybe("dde_init.js")],
-            "default_dexter_simulate": true,
+            "default_dexter_simulate": false,
             "editor_font_size":    17,
             "dde_window_width":  1000,
             "dde_window_height":  600,
