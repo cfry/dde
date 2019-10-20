@@ -6,6 +6,65 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 3.4.9, Oct 20, 2019</summary>
+Highlight: Improved file handling between DDE and Dexter.<br/>
+Added user control over how a job handles errors from Dexter.<br/>
+Minor improvements to Calibration, Job Engine,  MakeInstruction, Simulator, SSH.
+
+<ul>
+    <li> <code>load_files</code>, <code>file_content</code>, <code>write_file</code>
+         are now all available in Job engine code.</li>
+
+    <li> Verifed: <code>_ms</code> is in the Job engine.</li>
+
+    <li> Calibration: Updated <code>init_view_eye</code> def to contain a new faster def of
+        <code>AxisTable</code>.</li>
+
+    <li> SSH: improved error message when you enter a bad user name or password.</li>
+
+    <li> SSH cmds menu now has "Reboot..." on it to shut down and restart Dexter.</li>
+
+    <li> new Jobs menu item "Browse a Dexter".</li>
+
+    <li> new Jobs menu item "Show errors.log".</li>
+
+    <li> Jobs menu now has new submenu <b>Dexter Tools</b> that has under it
+          the previous items:<br/> Calibrate Dexter, Ping a Dexter<br/>
+           and the new items:<br/>
+           Browse a Dexter,
+           Show errors.log</li>
+
+    <li> <code>read_file_async</code> added the "encoding" arg to the low level call to
+        <code>fs.readFile</code></li>
+
+    <li> Fixed bug when the currently edited file is a Dexter file and you attempt
+        to change to another file.</li>
+
+    <li> Fixed bug when saving a file from the editor to Dexter.</li>
+
+    <li> Fixed MakeInstruction: picking Instruction menu items under
+        "Control" and "IO" submenus now works.</li>
+
+    <li> Simulation: fixed the "last frame" problem of it not going all the way
+        to the target joint angles.</li>
+
+    <li> Simulation: improved formatting of:<br/>
+         Move Duration, X, Y, X, J1, J2, J3, J4, J5.</li>
+
+    <li> Simulation: now displays values for J6 and J7 (but doesn't graphically render these joints.)</li>
+
+    <li> Move the File menu item<br/>"Save to Dexter as..." to immediately under
+        <br/>"Save as..." to make its existence more obvious.</li>
+
+    <li> new init parameter for <code>Job</code> : <b>if_error</b>,
+        giving the Job author control when a Dexter error occurs.<br/>
+        Improved error reporting for Dexter bugs.<br/>
+        See Ref Man/Job/new Job parameters/if_error
+    </li>
+
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.4.8, Sep 30, 2019</summary>
     Highlights: Updated DDE's npm packages to fix deployment bug.
 </details>

@@ -10,6 +10,7 @@ class Job{
                  initial_instruction=null,
                  data_array_transformer="P",
                  start_if_robot_busy=false,
+                 if_error     = Job.prototype.if_error_default,
                  when_stopped = "stop",
                  callback_param = "start_object_callback"} = {}){
 
@@ -1190,6 +1191,32 @@ Job.prototype.status = function (){
        if (this.program_counter) { pc = this.program_counter }
        return this.status_code + ", pc: " + pc + " of " + len
     }
+}
+
+Job.prototype.if_error_default = function(robot_status){
+    let msg = this.rs_to_error_message(robot_status)
+    out("Dexter error: " + msg, "red")
+    return false //returning false will end the job,
+                // which will automatically cause show_error_log_maybe to be called
+}
+
+//from James N
+Job.prototype.rs_to_error_message = function(robot_status){
+    let error_code = robot_status[Dexter.ERROR_CODE]
+    let msg = ""
+    let oplet = robot_status[Dexter.INSTRUCTION_TYPE]
+    if (error_code > 0) {
+        let linux_msg = linux_error_message(error_code)
+        if(oplet == "r") { msg += "Error on oplet 'r' (read_file) with Linux error of: " + linux_msg}
+        else {
+            if(error_code & 0xFF)+" on oplet:"+op
+            if(error_code & (1 << 10)) {msg+=" Firmware - Gateware Mismatch. Update system. Fatal error."}
+            if(error_code & (1 << 27)) {msg+=" SPAN Servo, Joint 7. r 0 errors.log"}
+            if(error_code & (1 << 28)) {msg+=" ROLL Servo, Joint 6. r 0 errors.log"}
+            if(error_code & (1 << 30)) {msg+=" Joint Monitor. r 0 errors.log"}
+        }
+    }
+    return msg
 }
 
 
@@ -2461,6 +2488,7 @@ var {load_files} = require("./storage.js")
 var {shouldnt, warning, dde_error, milliseconds_to_human_string, is_iterator, last, prepend_file_message_maybe, shallow_copy_lit_obj, stringify_value_sans_html} = require("./utils")
 var {out, speak} = require("./out.js")
 var {_nbits_cf, _arcsec, _um} = require("./units.js")
+var {linux_error_message} = require("./linux_error_message.js")
 //var TestSuite = require("../test_suite/test_suite.js")
 
 

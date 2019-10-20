@@ -52,18 +52,17 @@
             //video_player_id.style.display      = "none";
             sim_pane_content_id.innerHTML =
                'Simulate Job/Robot: <select id="job_or_robot_to_simulate_id">' +
-
-                '</select> <b>Move Dur: </b><span id="sim_pane_move_dur_id"></span><br/>' +
-                 '<b>X,Y,Z:</b> ' +
-                '<span id="sim_pane_x_id" style="min-width:50px; text-align:left; display:inline-block"></span>,' +  //"margin-left:5px;
-                '<span id="sim_pane_y_id" style="min-width:50px; text-align:left; display:inline-block"></span>,' +  //"margin-left:5px;
-                '<span id="sim_pane_z_id" style="min-width:50px; text-align:left; display:inline-block"></span>' +  //"margin-left:5px;
-                ' <b> J1-5: </b>' +
-                '<span id="sim_pane_j1_id" style="min-width:30px; text-align:right; display:inline-block"></span>,' +  //"margin-left:5px;
-                '<span id="sim_pane_j2_id" style="min-width:30px; text-align:right; display:inline-block"></span>,' +
-                '<span id="sim_pane_j3_id" style="min-width:30px; text-align:right; display:inline-block"></span>,' +
-                '<span id="sim_pane_j4_id" style="min-width:30px; text-align:right; display:inline-block"></span>,' +
-                '<span id="sim_pane_j5_id" style="min-width:30px; text-align:right; display:inline-block"></span>' +
+                '</select><br/><b>Move Duration: </b><span id="sim_pane_move_dur_id"></span> seconds<br/>' +
+                '<b>X: </b><span id="sim_pane_x_id" style="min-width:50px; text-align:left; display:inline-block"></span>' +  //"margin-left:5px;
+                '<b> Y: </b><span id="sim_pane_y_id" style="min-width:50px; text-align:left; display:inline-block"></span>' +  //"margin-left:5px;
+                '<b> Z: </b><span id="sim_pane_z_id" style="min-width:50px; text-align:left; display:inline-block"></span> meters' +  //"margin-left:5px;
+                '<div style="white-space:nowrap;"><b> J1: </b><span id="sim_pane_j1_id" style="min-width:30px; text-align:right; display:inline-block"></span>' +  //"margin-left:5px;
+                '<b> J2: </b><span id="sim_pane_j2_id" style="min-width:30px; text-align:right; display:inline-block"></span>' +
+                '<b> J3: </b><span id="sim_pane_j3_id" style="min-width:30px; text-align:right; display:inline-block"></span>' +
+                '<b> J4: </b><span id="sim_pane_j4_id" style="min-width:30px; text-align:right; display:inline-block"></span>' +
+                '<b> J5: </b><span id="sim_pane_j5_id" style="min-width:30px; text-align:right; display:inline-block"></span>' +
+                '<b> J6: </b><span id="sim_pane_j6_id" style="min-width:30px; text-align:right; display:inline-block"></span>' +
+                '<b> J7: </b><span id="sim_pane_j7_id" style="min-width:30px; text-align:right; display:inline-block"></span> degrees</div>' +
                 '<div id="sim_graphics_pane_id"></div>'
             refresh_job_or_robot_to_simulate_id()
             open_doc(simulate_pane_doc_id)

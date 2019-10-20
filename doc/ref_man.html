@@ -3529,6 +3529,20 @@ new Job({name: "my_job",
             <span style="color:red;">Warning</span>: When there is more than one Job running on a robot,
              a Job can't expect Dexter to be where it told it to go, as another Job
              might have changed its position.</li>
+        <li id="job_param_if_error_doc_id"><b>if_error</b> is a Job instance method that
+            is automatically called when a Dexter robot_status comes back to DDE with an error
+            (i.e. a non-zero error code.)<br/>
+            <i>Parameter</i><br/>
+            <b>robot_status</b> The robot_status array containing the non-zero error code.
+            <p></p>
+            If the method returns <code>false</code>, the Job is stopped.
+            If the method returns <code>true</code>, the job is allowed to continue.<br/>
+            The default value for <i>if_error</i> is <code>Job.prototype.if_error_default</code> .
+            It prints an error message to the Output pane and returns <code>false</code>, stopping the job.
+            <p></p>
+            If you want a Job to do custom error handling, including permit the
+            Job to continue even though there has been an error, use <i>if_error</i>.
+        </li>
         <li id="job_param_when_stopped_doc_id"><b>when_stopped</b> controls what happens when a job stops normally.<br/>
              <i>Possible Values</i>:<br/>
              <code>"stop"</code> The default. The job stops.<br/>

@@ -84,7 +84,7 @@ SimUtils = class SimUtils{
                 dur_to_show = dur_to_show_secs + "." + last(dur_to_show)
             }
             else { dur_to_show = "0." + dur_to_show }
-            sim_pane_move_dur_id.innerHTML = dur_to_show + "s"
+            sim_pane_move_dur_id.innerHTML = dur_to_show
             let ms_per_frame = 33
             let total_frames = Math.ceil(dur_in_ms / ms_per_frame)
             total_frames = Math.max(total_frames, 1) //when dur_in_ms == 0, total_frames can be zero, as happens on "g" instructions, like at beginning of a job
@@ -98,15 +98,16 @@ SimUtils = class SimUtils{
             }
             */
             let new_RobotStatus_instance = new RobotStatus({robot_status: robot_status})
-            let new_js = new_RobotStatus_instance.measured_angles()
+            let new_js = new_RobotStatus_instance.measured_angles(7)
             let js_inc_per_frame = []
-            for(let joint = 0; joint <= 4; joint++){
+            for(let joint = 0; joint < new_js.length; joint++){
                 let j_diff = new_js[joint] - this.prev_joint_angles[joint]
                 js_inc_per_frame.push(j_diff / total_frames)
             }
             let prev_js = this.prev_joint_angles.slice(0)
             let rob = value_of_path(robot_name)
-            SimUtils.render_multi_frame(prev_js, js_inc_per_frame, ms_per_frame, total_frames, 0, rob)
+            SimUtils.render_multi_frame(new_js, prev_js, js_inc_per_frame, ms_per_frame, total_frames, 0, rob, false) //beginning an all but last rendering
+
             //used by render_once_but_only_if_have_prev_args\
             this.prev_joint_angles     = new_js
             SimUtils.prev_robot_status = robot_status
@@ -114,19 +115,23 @@ SimUtils = class SimUtils{
             SimUtils.prev_robot_name   = robot_name
         }
     }
-
-    static render_multi_frame(prev_js, js_inc_per_frame, ms_per_frame, total_frames, frame=0, rob){
+    //new_js is the array of target joint angles, only used for the "last" frame.
+    static render_multi_frame(new_js, prev_js, js_inc_per_frame, ms_per_frame, total_frames, frame=0, rob, did_last_frame=false){
         if(frame >= total_frames) {} //we're done
         else{
             let new_angles = []
-            for(let joint = 0; joint <= 4; joint++){
+            for(let joint = 0; joint < prev_js.length; joint++){
                 let prev_j = prev_js[joint]
                 let j_inc_per_frame = js_inc_per_frame[joint]
                 let inc_to_prev_j = frame * j_inc_per_frame
                 let j_angle = prev_j + inc_to_prev_j
                 new_angles.push(j_angle)
                 let rads = arc_seconds_to_radians(j_angle)
-                let j_angle_degrees_rounded = Math.round(j_angle / 3600)
+                let angle_degrees
+                if      (joint == 5) { angle_degrees = (j_angle - 512) * Socket.DEGREES_PER_DYNAMIXEL_UNIT }
+                else if (joint == 6) { angle_degrees = j_angle * Socket.DEGREES_PER_DYNAMIXEL_UNIT }
+                else                 { angle_degrees = j_angle / 3600 }
+                let j_angle_degrees_rounded = Math.round(angle_degrees)
                 switch(joint) {
                     case 0:
                         sim.J1.rotation.y = rads
@@ -148,6 +153,12 @@ SimUtils = class SimUtils{
                         sim.J5.rotation.y = rads
                         sim_pane_j5_id.innerHTML = j_angle_degrees_rounded
                         break;
+                    case 5:
+                        sim_pane_j6_id.innerHTML = j_angle_degrees_rounded
+                        break;
+                    case 6:
+                        sim_pane_j7_id.innerHTML = j_angle_degrees_rounded
+                        break;
                 }
             }
 
@@ -162,8 +173,23 @@ SimUtils = class SimUtils{
             sim.renderer.render(sim.scene, sim.camera)
             if(frame < (total_frames - 1)){
                 setTimeout(function() {
-                    SimUtils.render_multi_frame(prev_js, js_inc_per_frame, ms_per_frame, total_frames, frame + 1, rob)
+                    SimUtils.render_multi_frame(new_js, prev_js, js_inc_per_frame, ms_per_frame, total_frames, frame + 1, rob, false)
                    }, ms_per_frame)
+            }
+            else if ((frame == (total_frames - 1)) && !did_last_frame){//for the last time
+                setTimeout(function() {
+                    SimUtils.render_multi_frame(new_js, new_js, [0,0,0,0,0,0,0], ms_per_frame, 1, 0, rob, true)
+                    //the only real use of "new_js" is for it to be the 2nd arg in the above call.
+                    //then adding an increment of 0 to all its joints, makes whatever is in that
+                    //2nd arg BE the place to move the sim to, which will be the target angles.
+                    //we must have the did_last_frame be true so we don't keep having
+                    //the above else_if hit after the "first" use of this "last frame".
+                }, ms_per_frame) //since the correct "dur" for the final frame is really
+                                 //only a partial frame, the real ms_per_frame should
+                                 //be less than a full frame. But its set to a constant
+                                 //above to 33msec (for 30 frames per sec) so
+                                 //its small in any case. Thus we have an inaccuracy of the
+                                 //sim, but, its minor and really just at the "animation frame rate".
             }
         }
     }
@@ -183,7 +209,7 @@ SimUtils = class SimUtils{
         else { return false }
     }
 }
-SimUtils.prev_joint_angles = [0, 0, 0, 0, 0]
+SimUtils.prev_joint_angles = [0, 0, 0, 0, 0, 0, 0]
 SimUtils.prev_robot_status = null
 SimUtils.prev_job_name     = null
 SimUtils.prev_robot_name   = null

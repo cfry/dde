@@ -1275,7 +1275,14 @@ Dexter = class Dexter extends Robot {
                             " but couldn't find a Job instance with that job_id.")
         }
         if(this instanceof Dexter) { this.remove_from_busy_job_array(job_instance) }
-        if (robot_status[Dexter.ERROR_CODE] !== 0){
+        if ((robot_status.length != Dexter.robot_status_labels.length) &&
+            (robot_status.length != Dexter.robot_ack_labels.length)){
+            throw(TypeError("Dexter.robot_done_with_instruction recieved a robot_status array: " +
+                robot_status + "<br/> of length: " + robot_status.length +
+                " that is not the proper length of: " + Dexter.robot_status_labels.length +
+                " or: " + Dexter.robot_ack_labels.length))
+        }
+        else if (robot_status[Dexter.ERROR_CODE] !== 0){
             let ins_id = robot_status[Dexter.INSTRUCTION_ID]
             let ins    = job_instance.do_list[ins_id]
             let oplet  = ins[Instruction.INSTRUCTION_TYPE]
@@ -1288,15 +1295,12 @@ Dexter = class Dexter extends Robot {
                 //job_instance.set_up_next_do(0)
                 return
             }
-            job_instance.stop_for_reason("errored", "got error code: " + Dexter.ERROR_CODE + " back from Dexter for instruction id: " + ins_id)
+            if(!job_instance.if_error(robot_status)) {
+                job_instance.stop_for_reason("errored", "got error code: " + Dexter.ERROR_CODE + " back from Dexter for instruction id: " + ins_id)
+            }
+            //else just continue on with the job.
         }
-        else if ((robot_status.length != Dexter.robot_status_labels.length) &&
-                 (robot_status.length != Dexter.robot_ack_labels.length)){
-            throw(TypeError("Dexter.robot_done_with_instruction recieved a robot_status array: " +
-                robot_status + "<br/> of length: " + robot_status.length +
-                " that is not the proper length of: " + Dexter.robot_status_labels.length +
-                " or: " + Dexter.robot_ack_labels.length))
-        }
+
         let got_ack = (robot_status.length == Dexter.robot_ack_labels.length) //if we have an "acknowledgent, it means we DON"T have in robot_status all we need to render the joint positions
         let rob     = this //job_instance.robot
         let ins_id  = robot_status[Dexter.INSTRUCTION_ID] //-1 means the initiating status get, before the first od_list instruction

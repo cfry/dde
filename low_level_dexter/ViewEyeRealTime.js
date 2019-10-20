@@ -201,6 +201,21 @@ function display_center_guess(){
     append_in_ui("svg_id", thehtml)
 }
 
+//new def oct, 2019
+function init_view_eye(){
+    //this table has to be here rather than top level in the file even though it is static,
+    //because _nbits_cf and the other units cause errors if referenced at top level.
+    AxisTable =
+       [[[800/_nbits_cf, 0, 0, 0, 0], Dexter.J1_A2D_SIN, Dexter.J1_A2D_COS, [-648000*_arcsec, 0, 0, 0, 0], 1240 / 2, [0, 0, 0, 0, 0]],
+        [[0, 800/_nbits_cf, 0, 0, 0], Dexter.J2_A2D_SIN, Dexter.J2_A2D_COS, [0, -324000*_arcsec, 0, 0, 0], 1900 / 2, [0, 0, 0, 0, 0]],
+        [[0, 0, 800/_nbits_cf, 0, 0], Dexter.J3_A2D_SIN, Dexter.J3_A2D_COS, [0, 0, -500000*_arcsec, 0, 0], 1500 / 2, [0, 0, 0, 0, 0]],
+        [[0, 0, 0, 800/_nbits_cf, 0], Dexter.J4_A2D_SIN, Dexter.J4_A2D_COS, [0, 0, 0, -190000*_arcsec, 0], 1800 / 2, [0, 0, 0, 0, 0]],
+        [[0, 0, 0, 0, 800/_nbits_cf], Dexter.J5_A2D_SIN, Dexter.J5_A2D_COS, [0, 0, 0, 0, -148000*_arcsec], 4240 / 2, [0, 0, 0, 0, 0]]]
+
+    window.cal_working_axis = undefined //global needed by calibrate_ui.js
+}
+
+/* obsolete, slower def
 function init_view_eye(){
     //this table has to be here rather than top level in the file even though it is static,
     //because _nbits_cf and the other units cause errors if referenced at top level.
@@ -263,119 +278,10 @@ function init_view_eye(){
                                      "Click in the center of the dot_pattern circle.<br/>"}
                         ]})
     
-    /*
-    new Job({
-    	name: "job_00",
-        keep_history: false,
-        show_instructions: false,
-    	inter_do_item_dur: 0,
-        robot: cal_get_robot(),
-        user_data: {
-        	dex_filepath: "/srv/samba/share/AdcCenters.txt"
-        },
-        do_list: [
-        	
-        	function(){
-            	out("Attempting to read AdcCenters.txt from robot with IP: " + this.robot.ip_address + "...")
-        		
-                return [
-                	Dexter.read_from_robot(this.user_data.dex_filepath, "read_results"),
-                    make_ins("F")
-                ]
-        	},
-			function(){
-            	let original_content = this.user_data.read_results
-				let my_file_content = out(original_content)
-            	
-                let content_array = original_content.split("\r\n")
-        
-        
-    			centers_string = []
-    			for(let i = 0; i < 10; i++){
-            		centers_string.push(content_array[i])
-    			}
-        
-        		// Switched J2 and J3
-        		let temp_string = centers_string[4]
-    			centers_string[4] = centers_string[2]
-    			centers_string[2] = temp_string
-    			temp_string = centers_string[5]
-    			centers_string[5] = centers_string[3]
-    			centers_string[3] = temp_string
-            	
-			}
-        ]
-    })
-    
-    
-    Job.job_00.start()
-	*/
-    
-    
-    /*
-    //Old Code:
-    try{
-    	//debugger
-        let original_content = file_content(path)
-        let content_array = original_content.split("\r\n")
-    	centers_string = []
-    	for(let i = 0; i < 10; i++){
-    		//centers_string.push(content_array[i], content_array[i+1])
-            centers_string.push(content_array[i])
-    	}
-        
-        // Switched J2 and J3
-        let temp_string = centers_string[4]
-    	centers_string[4] = centers_string[2]
-    	centers_string[2] = temp_string
-    	temp_string = centers_string[5]
-    	centers_string[5] = centers_string[3]
-    	centers_string[3] = temp_string
-        
-    }
-    catch(err) {
-        warning("DDE was unable to connect to Dexter's file system.<br/>A full calibration can still be completed without this connection.<br/>This occurs when running on a Mac OS, not being connected to Dexter, or a accessing a non-existent file.<br/>The calibration file is named:<br/><code title='unEVALable'> " + path)
-        centers_string = ["0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000"]
-    }
-    */
-    
-    //console.log("Attempting to connect to " + robot_to_calibrate_id.value +"...")
-    //out("Attempting to connect to " + robot_to_calibrate_id.value +"...", "blue")
-    /*
-    let path_exists_state
-    setTimeout(function(){
-    	path_exists_state = file_exists(path)
-    }, 100)
-    
-    if(path_exists_state){
-    	
-        
-        let original_content = file_content(path)
-        
-        let content_array = original_content.split("\r\n")
-        
-        
-    	centers_string = []
-    	for(let i = 0; i < 10; i++){
-    		//centers_string.push(content_array[i], content_array[i+1])
-            centers_string.push(content_array[i])
-    	}
-        
-        // Switched J2 and J3
-        let temp_string = centers_string[4]
-    	centers_string[4] = centers_string[2]
-    	centers_string[2] = temp_string
-    	temp_string = centers_string[5]
-    	centers_string[5] = centers_string[3]
-    	centers_string[3] = temp_string
-        
-    }else{
-        warning("DDE was unable to connect to Dexter's file system.<br/>A full calibration can still be completed without this connection.<br/>This occurs when running on a Mac OS, not being connected to Dexter, or a accessing a non-existent file.<br/>The calibration file is named:<br/><code title='unEVALable'> " + path)
-        centers_string = ["0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000", "0x0000000"]
-    }
-    */
+
     
     
     
     cal_init_view_eye_state = false
 }
+*/

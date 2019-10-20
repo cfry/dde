@@ -1,5 +1,5 @@
 /* Created by Fry on 3/30/16.*/
-//whole file loaded in ui env only as is tcp
+//whole file loaded in  env only as is tcp
 DexterSim = class DexterSim{
     constructor(robot_name){ //called once per DDE session per robot_name by create_or_just_init
         this.robot_name = robot_name

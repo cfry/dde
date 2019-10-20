@@ -185,8 +185,10 @@ var MakeInstruction = class MakeInstruction{
     }
     static instruction_menu_item_prefix(label){
         let parent_label = this.instruction_menu_item_parent(label)
-        if      (parent_label.startsWith("Dexter")) { return "Dexter."}
+        if      (parent_label.startsWith("Control")){ return "Control."}
+        else if (parent_label.startsWith("Dexter")) { return "Dexter."}
         else if (parent_label.startsWith("Human"))  { return "Human."}
+        else if (parent_label.startsWith("IO"))     { return "IO."}
         else if (parent_label.startsWith("Robot"))  { return "Robot."}
         else if (parent_label.startsWith("Serial")) { return "Serial."}
         else { return "" }

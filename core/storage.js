@@ -286,7 +286,7 @@ function read_file_async(path, encoding="utf8", callback){
     }
     else {
         path = make_full_path(path)
-        fs.readFile(path, callback)
+        fs.readFile(path, encoding, callback)
     }
 }
 

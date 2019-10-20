@@ -728,11 +728,16 @@ Editor.edit_file = function(path, content){ //path could be "new buffer"
             }
             else if(!persistent_get("save_on_eval")){
                 let cur_content = Editor.get_javascript()
-                let prev_content = read_file(Editor.current_file_path)
-                if(cur_content != prev_content) {
-                    let save_it = confirm("Before editing:\n" + path + "\nSave:\n" + Editor.current_file_path + " ?")
-                    if(save_it) { Editor.save_current_file() }
-                }
+                read_file_async(Editor.current_file_path,  //can't use read_file here as the current_file_path might
+                                                           //be a dexter file that needs saving
+                                undefined,
+                                function(err, data){
+                                    let prev_content = data.toString()
+                                    if(cur_content != prev_content) {
+                                        let save_it = confirm("Before editing:\n" + path + "\nSave:\n" + Editor.current_file_path + " ?")
+                                        if(save_it) { Editor.save_current_file() }
+                                    }
+                                })
             }
         }
         if (path == "new buffer"){
@@ -851,7 +856,7 @@ Editor.save_on_dde_computer = function(){
 function save_on_dexter_computer_show_window_cb(vals) {
     let path = vals.open_on_dexter_computer_file_path_id
     persistent_set("last_open_dexter_file_path", path)
-    path = vals.dexter_name + ":" + path //we cannot close over dexter_name because show_window can't take a closure for a callback
+    path = "Dexter." + vals.dexter_name + ":" + path //we cannot close over dexter_name because show_window can't take a closure for a callback
     let content = Editor.get_javascript()
     write_file_async(path, content)
     Editor.add_path_to_files_menu(path)

@@ -218,15 +218,17 @@
                                                 <li title="Insert the path of a file&#013;into the command input at the cursor,&#013;replacing the selection if any." id="insert_file_path_into_cmd_input_id">into cmd input...</li>
                                             </ul>
                                         </li>
+
                                         <li id="save_id"    title="Save the current file.">Save &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ctrl/&#8984;s</li>
                                         <li id="save_as_id" title="Save the current editor content under a new name.&#013;The old file remains unchanged.&#013;It will remain on the list of files.">Save As...</li>
+                                        <li id="save_to_dexter_as_id" style="width:200px;" title="Save the current editor content&#013;under a new name on a Dexter.&#013;The old file remains unchanged.&#013;It will remain on the list of files.">Save to Dexter as...</li>
+
                                         <li title="Automatically save the edited file&#013;when you click 'Eval',&#013;and when you edit another file.">
                                             <div style='float: left; margin-right: 5px;' id='save_on_eval_id'></div>
                                             Auto Save
                                         </li>
                                         <li id="remove_id"  title="Remove the edited file from the file list and editor.&#013;Does not delete the file from disk.">Remove</li>
                                         <li id="open_from_dexter_id"  style="width:200px;" title="Edit a file on a Dexter.">Open from Dexter...</li>
-                                        <li id="save_to_dexter_as_id" style="width:200px;" title="Save the current editor content&#013;under a new name on a Dexter.&#013;The old file remains unchanged.&#013;It will remain on the list of files.">Save to Dexter as...</li>
                                         <li id="update_id"  title="Shows doc on how to get&#013;the latest version of DDE.">Update DDE...</li>
                                     </ul>
                                 </li>
@@ -647,9 +649,15 @@
                                                 <li id="run_instruction_dialog_id" title="Show a dialog box for running an instruction on Dexter.">Show Dialog...</li>
                                             </ul>
                                         </li>
-                                        <li id="init_dxf_drawing_id" title="Insert a call to DXF.init_drawing&#13;into the editor.">DXF.init_drawing()</li>
-                                        <li id="calibrate_id"        title="Calibrate one or more Dexters.&#13;Needed each time you power on a Dexter.">Calibrate Dexter...</li>
-                                        <li id="ping_dexter_id"      title="Find out if a Dexter&#13;or other ip_address&#13;is connected to this computer .&#13;">Ping a Dexter...</li>
+                                        <li id="init_dxf_drawing_id" title="Insert a call to DXF.init_drawing&#13;into the editor.&#13;Also scrolls Doc pane to doc.">DXF.init_drawing()</li>
+                                        <li>Dexter Tools
+                                           <ul>
+                                                <li id="calibrate_id"        title="Calibrate one or more Dexters.&#13;Needed each time you power on a Dexter.">Calibrate Dexter...</li>
+                                                <li id="ping_dexter_id"      title="Find out if a Dexter&#13;or other ip_address&#13;is connected to this computer .&#13;">Ping a Dexter...</li>
+                                                <li id="browse_dexter_id"    title="Browse the web page of&#13;the default Dexter&#13;(selected in the Misc Pane header).">Browse a Dexter...</li>
+                                                <li id="show_errors_log_id"  title="Show the content of the file errors.log&#13;on the default Dexter.">Show errors.log</li>
+                                            </ul>
+                                        </li>
                                         <li id="run_job_on_dexter_id" title="Run the Job defined in the selection,&#13;or, if none, the whole editor,&#13;on Dexter.">Run Job on Dexter</li>
 
                                     </ul>
@@ -756,6 +764,7 @@
                                         <li id="man_id"   title="Show documentation on a command.">Command Help...</li>
                                         <li id="pwd_id"   title="Show the current directory name.">Current Dir Name</li>
                                         <li id="show_directory_id"   title="Show the content of the current directory.">Current Dir Content</li>
+                                        <li id="reboot_id" title="Shut down the computer and restart it.&#13;Use only as last resort when Dexter is unresponsive.">Reboot...</li>
                                         <li id="run_selected_cmd_id" title="Run the command(s) selected in the editor,&#13;or, if none, the whole editor content.">Run Selected Cmd</li>
                                         <li id="whoami_id" title="Show the logged in user name.">User Name</li>
                                     </ul>

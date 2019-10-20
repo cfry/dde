@@ -1005,6 +1005,15 @@ window.beep = beep
  }
  */
 //________show_page__________
+/* The opened window does not show the URL and does not have back/forward buttons.
+ You can get that with
+ var {shell} = require("electron")
+shell.openExternal("http://192.168.1.142")
+that opened window shows the url, has back/forward buttons.
+But it opens in the default browser for the computer.
+(on Mac this is Apple's browser, not chrome.)
+ */
+
 function show_page(url, options={x:0, y:0, width: 800, height: 600}){
     if (url.indexOf("://") == -1){
         url = "http://" + url

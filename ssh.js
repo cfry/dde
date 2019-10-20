@@ -108,7 +108,10 @@ var SSH = class SSH {
                let the_callback = callback
                //out("top of conn.on ready")
                SSH.conn.shell(function(err, stream) {
-                   if (err) throw err;
+                   if (err) {
+                      //throw err;
+                      dde_error("Unable to connect SSH to host: " + SSH.config.host + ", with username: " + SSH.config.username + "<br/>because: " + err.message)
+                   }
                    stream.on('close', function() {
                        out('Stream :: close');
                        SSH.close_connection()
@@ -144,6 +147,9 @@ var SSH = class SSH {
                    //stream.end('ls -l \nexit\n');
                })
                SSH.wait_or_write(command)
+           })
+           this.conn.on('error', function(err) {
+               dde_error("Unable to connect SSH to <br/>host: " + SSH.config.host + "<br/>with username: " + SSH.config.username + "<br/>because: " + err.message)
            })
        }
        if(this.stream) {

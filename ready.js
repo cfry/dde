@@ -1178,6 +1178,32 @@ foo      //eval to see the latest values</pre>`,
     }
     calibrate_id.onclick         = function() { init_calibrate() }//defines 2 jobs and brings up calibrate dialog box
     ping_dexter_id.onclick       = function() { ping_a_dexter() }
+    browse_dexter_id.onclick     = function() {
+        let url = "http://" + Dexter.default.ip_address
+        /* the below opened window doesn't show url or back/forrward buffons
+         let win = open("http://" + Dexter.default.ip_address,
+
+                       "_blank", //creates a new window each time.
+                       "location=yes, status=yes, menubar=yes, toolbar=yes" //none of these work in Electron
+                       )
+        win.setTitle("hey") //errors but is doecumented in https://electronjs.org/docs/api/browser-window
+                            //but see https://electronjs.org/docs/api/browser-window-proxy
+       */
+        var {shell} = require("electron")
+        shell.openExternal("http://192.168.1.142") //shows url, back/forward buttons. Allows resizing.
+    }
+    show_errors_log_id.onclick = function(){
+        let path = "Dexter." + Dexter.default.name + ":/srv/samba/share/errors.log"
+        read_file_async(path, undefined, function(err, data){
+            if(err){
+                dde_error("While attempting to get the content of " + path + "<br>" + err.message)
+            }
+            else {
+                let content = data.toString()
+                out("The content of " + path + " is:<pre>" + content + "</pre>")
+            }
+        })
+    }
     run_job_on_dexter_id.onclick = function() {
         let job_src = Editor.get_any_selection() //we want to be able to select a Job def in
             //the doc pane and send it to Dexter.
@@ -1214,6 +1240,7 @@ foo      //eval to see the latest values</pre>`,
         cmd_input_id.value = SSH.show_dir_cmd
         SSH.run_command({command:SSH.show_dir_cmd})
     }
+    reboot_id.onclick = function() { cmd_input_id.value = "shutdown -r now" }
     run_selected_cmd_id.onclick = function(){
         let cmds = Editor.get_javascript("auto").trim()
         if(cmds == ""){
