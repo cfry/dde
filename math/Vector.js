@@ -2781,12 +2781,4 @@ function matrix_invert(M){
 module.exports = Vector
 var Convert = require("./Convert.js")
 var {sind, cosd, tand, asind, acosd, atand, atan2d} = require("./Trig_in_Degrees.js")
-var {dde_error, warning, is_NaN_null_or_undefined} = require("../core/utils.js")
-/*
-if("dde" !== platform){
-	module.exports = Vector
-	var Convert = require("./Convert.js")
-	var {sind, cosd, tand, asind, acosd, atand, atan2d} = require("./Trig_in_Degrees.js")
-    var {warning} = require("../core/utils.js")
-}
-*/
+var {is_NaN_null_or_undefined} = require("../core/utils.js")

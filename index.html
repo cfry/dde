@@ -82,7 +82,6 @@
    <!-- <script> bizzarely this did not bind dde_apps_folder so this is now done in ready.js
         const remote = require("electron").remote
         dde_apps_folder = remote.getGlobal("dde_apps_folder")
-        console.log("in index.html with: " + window.dde_apps_folder)
     </script> -->
     <!--<script>
         require('fs-lock')({
@@ -93,6 +92,8 @@
     <script>window.fs = require('fs');</script>
 
     <!--<script type="text/javascript" src="core/utils.js"></script>-->
+    <script type="text/javascript" src="core/je_and_browser_code.js"></script> <!-- special file, defines SW -->
+
     <script type="text/javascript" src="html_db.js"></script>
 
     <!--<script type="text/javascript" src="core/to_source_code.js"></script>-->
@@ -193,7 +194,7 @@
     <script type="text/javascript" src="ready.js"></script>
     <link rel="stylesheet" href="styles.css" type="text/css"/>
 </head>
-<body id="body_id" class="window_frame" onload="on_ready()" style=" padding:0px"><!--<datalist id="dl_id"><option>one</option><option>another one</option></datalist>
+<body id="body_id" class="window_frame" onload="on_ready()"  style=" padding:0px"><!--<datalist id="dl_id"><option>one</option><option>another one</option></datalist>
 <input class="awesomplete" list="dl_id"/>--><!--<span style="font-size:30px;">Dexte<img src="dexter_128.png" width="20" alt="r"/> Development Environment</span>
 <i style="font-size:20px;padding-left:20px;">Create software to control the Dexter robot</i><br/>-->
 <!--<div style="width: 100%; height: 100%;margin:0px; padding:0px;">--> <!--height of 99% allows a tiny pink bottom border which is good.-->
@@ -210,6 +211,7 @@
                                         <li id="new_id"     title="Make a new editor buffer.">New</li>
                                         <li id="open_id"    title="Edit an exiting file.">Open... Ctrl/&#8984;o</li>
                                         <li id="open_system_file_id" title="Edit or show a special DDE/Dexter system file.">Open system file...</li>
+                                        <li id="open_from_dexter_id"  style="width:200px;" title="Edit a file on the Dexter&#013;that is selected in the Misc Pane header.">Open from Dexter...</li>
                                         <li id="load_file_id"    title="Evaluate the content of a JavaScript file.">Load...</li>
                                         <li id="insert_file_content_id"  title="Insert the content of a file&#013;into the editor at the cursor,&#013;replacing the selection if any.">Insert file...</li>
                                         <li>Insert file path
@@ -221,14 +223,13 @@
 
                                         <li id="save_id"    title="Save the current file.">Save &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ctrl/&#8984;s</li>
                                         <li id="save_as_id" title="Save the current editor content under a new name.&#013;The old file remains unchanged.&#013;It will remain on the list of files.">Save As...</li>
-                                        <li id="save_to_dexter_as_id" style="width:200px;" title="Save the current editor content&#013;under a new name on a Dexter.&#013;The old file remains unchanged.&#013;It will remain on the list of files.">Save to Dexter as...</li>
+                                        <li id="save_to_dexter_as_id" style="width:200px;" title="Save the current editor content&#013;under a new name on the default Dexter.&#013;(in the Misc Pane Header menu)&#013;The old file remains unchanged.&#013;It will remain on the list of files.">Save to Dexter as...</li>
 
                                         <li title="Automatically save the edited file&#013;when you click 'Eval',&#013;and when you edit another file.">
                                             <div style='float: left; margin-right: 5px;' id='save_on_eval_id'></div>
                                             Auto Save
                                         </li>
                                         <li id="remove_id"  title="Remove the edited file from the file list and editor.&#013;Does not delete the file from disk.">Remove</li>
-                                        <li id="open_from_dexter_id"  style="width:200px;" title="Edit a file on a Dexter.">Open from Dexter...</li>
                                         <li id="update_id"  title="Shows doc on how to get&#013;the latest version of DDE.">Update DDE...</li>
                                     </ul>
                                 </li>
@@ -409,7 +410,7 @@
                                                 <li id="window_onchange_id"       title="Examples of using onchange and oninput&#013;to call the callback as soon as&#013;there's a change in an input.">onchange calls</li>
                                                 <li id="window_svg_id"            title="Examples of using svg&#013;to dynamically add and reposition&#013;shapes in a window.">svg (2D drawing)</li>
                                                 <li id="build_window_id"          title="Create a show_window call via a dialog box.">Build Window</li>
-                                                <li id="window_close_all_id"      title="Closes all open 'show_windows'.&#013;Does not insert code into Editor.">Close all</li>
+                                                <li id="window_close_all_id"      title="Closes all open 'show_windows'.&#013;Does not insert code into Editor.">Close all windows</li>
                                             </ul>
                                         </li>
                                         <li title="Image processing using OpenCV.">Machine Vision
@@ -652,9 +653,9 @@
                                         <li id="init_dxf_drawing_id" title="Insert a call to DXF.init_drawing&#13;into the editor.&#13;Also scrolls Doc pane to doc.">DXF.init_drawing()</li>
                                         <li>Dexter Tools
                                            <ul>
+                                                <li id="browse_dexter_id"    title="Browse the web page of&#13;the default Dexter&#13;(selected in the Misc Pane header).">Browse a Dexter...</li>
                                                 <li id="calibrate_id"        title="Calibrate one or more Dexters.&#13;Needed each time you power on a Dexter.">Calibrate Dexter...</li>
                                                 <li id="ping_dexter_id"      title="Find out if a Dexter&#13;or other ip_address&#13;is connected to this computer .&#13;">Ping a Dexter...</li>
-                                                <li id="browse_dexter_id"    title="Browse the web page of&#13;the default Dexter&#13;(selected in the Misc Pane header).">Browse a Dexter...</li>
                                                 <li id="show_errors_log_id"  title="Show the content of the file errors.log&#13;on the default Dexter.">Show errors.log</li>
                                             </ul>
                                         </li>
@@ -702,7 +703,7 @@
                 <div style="background-color:#dddddd;">
                     <div class='pane_header_wrapper' style="white-space:nowrap;height:85px;min-height:85px;max-height:85px;">
                         <span id="output_pane_help_id" class='pane_header' title="Click for help."><u>Output</u></span>
-                        <button id="eval_id" style="vertical-align:middle;" title="Evaluate (run) the selected JS in any pane&#013;or, if none, all the JavaScript in the Editor pane.&#013;Can also be invoked by typing &#8984;e">Eval</button>
+                        <button id="eval_id" style="vertical-align:middle;" title="Evaluate (run) the selected JS in any pane&#013;or, if none, all the JavaScript in the Editor pane.&#013;HTML is rendered in the Output pane.&#013;Can also be invoked by typing &#8984;e">Eval</button>
                         <button id="step_button_id" style="vertical-align:middle;" title="Step through the evaluation of the selected code.">Step</button>
                         <!--<div style="vertical-align:middle;display:inline-block;margin:0px;padding:0px;"> -->
                             <!--<div title="Automatically save the edited file&#013;when you click 'Eval',&#013;and when you edit another file.">                               <input id="save_on_eval_id" type="checkbox" style="padding_bottom:15px;"/> <div style="padding:0px;margin:0px;display:inline-block;font-size:10px; vertical-align:0%;">Save</div></div>-->
@@ -759,12 +760,13 @@
                                     <ul>
                                         <li id="cd_up_id" title="Change the current directory&#13;to the current directory's parent.">Change Dir Up</li>
                                         <li id="date_id"  title="Show the current date & time.">Current Date</li>
+                                        <li id="ssh_find_id" title="Find a file or directory.&#13;Results printed in output pane.">Find file...</li>
                                         <li id="make_directory_id" title="Make a new directory.">Make Directory...</li>
                                         <li id="make_file_id" title="Make a new file.&#13;If the file already exists,&#13;change its modification and access times to now.">Make File...</li>
                                         <li id="man_id"   title="Show documentation on a command.">Command Help...</li>
                                         <li id="pwd_id"   title="Show the current directory name.">Current Dir Name</li>
                                         <li id="show_directory_id"   title="Show the content of the current directory.">Current Dir Content</li>
-                                        <li id="reboot_id" title="Shut down the computer and restart it.&#13;Use only as last resort when Dexter is unresponsive.">Reboot...</li>
+                                        <li id="reboot_id" title="Shut down Dexter's computer and restart it.&#13;Use only as last resort when Dexter is unresponsive.">Reboot...</li>
                                         <li id="run_selected_cmd_id" title="Run the command(s) selected in the editor,&#13;or, if none, the whole editor content.">Run Selected Cmd</li>
                                         <li id="whoami_id" title="Show the logged in user name.">User Name</li>
                                     </ul>
@@ -787,11 +789,11 @@
                             <div style="display:inline-block;margin:0px;padding:0px;font-size:11px;vertical-align:46px;transform:rotate(-90deg);">Jobs</div>
                             <!--<span style="vertical-align:top; margin-right:0px; padding-right:0px;">Jobs:</span>-->
 
-                            <div id="jobs_button_bar_id" style="display:inline-block; vertical-align:100%; height: 50px; width:calc(100% - 320px); overflow-x:auto; padding:0px;margin:0px;">
+                            <div id="jobs_button_bar_id" style="display:inline-block; vertical-align:100%; height: 50px; width:calc(100% - 120px); overflow-x:auto; padding:0px;margin:0px;">
                             </div>
                         </div>
                     </div>
-                    <div id="output_div_id" contentEditable="false" style="width:98%; height:calc(100% - 100px); font-size:16px;overflow:auto;white-space:nowrap;padding:5px;"></div> <!-- for height:calc(100% - 60px);  te60 is the height of the output pane header, This letsthe lower part of outpt pane take up 100% of the hieght of the lower split pane MINUS the outut pane header of 60px.-->
+                    <div id="output_div_id" contentEditable="false" style="width:98%; height:calc(100% - 100px); font-size:16px;overflow:auto;white-space:nowrap;padding:5px;"></div> <!-- for height:calc(100% - 60px);  te60 is the height of the output pane header, This lets the lower part of output pane take up 100% of the height of the lower split pane MINUS the outut pane header of 60px.-->
                     <!-- contentEditable="false" means the text can't be edited BUT for chrome apps, this makes the content selectable and now I can copy and paste it whereas previoiusly I couldn't select and copy it. -->
                 </div>
             </div>

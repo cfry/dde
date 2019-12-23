@@ -32,7 +32,7 @@ window.cal_working_axis = undefined //this is either undefined, 0, 1, 2, 3, 4 (i
 function cal_init_robot_show_window_cb(vals){
    if(vals.clicked_button_value == "Cancel") {
         Job.cal_init_job.stop_for_reason("interrupted", "user canceled the job")
-   		close_window(vals.window_index)
+   		SW.close_window(vals.window_index)
    }
 }
 
@@ -86,7 +86,7 @@ function cal_init_robot(){
 			}
 		],
 		when_stopped: function(){
-			close_window(show_dia)
+			SW.close_window(show_dia)
 			let init_data = Job.cal_init_job.user_data.cal_init_data
 			//do stuff with init data
 		}
@@ -471,7 +471,7 @@ function init_calibrate(){
       	"3. <input type='button' id='calibrate_optical_id' style='margin-top:10px;' title='Do each time you turn on Dexter.'" +
         "value='Calibrate optical encoders'/>" +
 
-        ` Calibration process: <div name="cal_dialog_make_ins_file_id" class="combo_box" style="display:inline-block;vertical-align:middle;">
+        ` Calibration process: <div id="cal_dialog_make_ins_file_id" class="combo_box" style="display:inline-block;vertical-align:middle;">
         <option selected="selected">Cal.make_ins</option>
         <option>FastCal.make_ins</option>
         </div>`,

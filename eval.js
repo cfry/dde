@@ -89,8 +89,24 @@ function eval_js_part1(step=false){
             //out("<code>" + src + "</code>") //don't need this as JS is printed in Output pane after "Eval result of"
         }
         //must add "d ebugger" after converting DefEng to JS.
-        eval_js_part2((step? "debugger; ": "") + src)
+        if(html_db.string_looks_like_html(src)){
+            render_html(src)
+        }
+        else {
+            eval_js_part2((step? "debugger; ": "") + src)
+        }
     }
+}
+
+function render_html(str){
+    let title_suffix = str.substring(0, 50) //14
+    if(str.length > title_suffix.length) { title_suffix += "..." }
+    title_suffix = replace_substrings(title_suffix, "<", "&lt;")
+    title_suffix = replace_substrings(title_suffix, '"', "&quot;")
+    let str_for_title = replace_substrings(str, '"', "&quot;")
+    //let title = 'Rendering HTML: <span title="' + str_for_title + '">' + title_suffix + '</span>'
+    //show_window({title: title, content: str})
+    out_eval_result(str, color="#000000", str_for_title, src_label="The result of rendering HTML")
 }
 
 //part 2 of 3 is in eval.js,  window.addEventListener('message'  under the message name of "eval"
@@ -279,8 +295,8 @@ function eval_and_start(){
     }
 }
 
-var {out, out_eval_result} = require("./core/out.js")
-var {dde_error, warning, replace_substrings, starts_with_one_of, stringify_value} = require("./core/utils.js")
+var {out_eval_result} = require("./core/out.js")
+var {replace_substrings, starts_with_one_of, stringify_value} = require("./core/utils.js")
 var {Robot, Brain, Dexter, Human, Serial} = require('./core/robot.js')
 
 

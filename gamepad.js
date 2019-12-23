@@ -532,4 +532,4 @@ Gamepad.gamecode_to_keycode_map = [
      91   //16  OS_KEY  OS_KEY
 ]
 
-var {dde_error, is_string_a_integer} = require("./core/utils.js")
+var {is_string_a_integer} = require("./core/utils.js")

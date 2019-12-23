@@ -2,6 +2,25 @@ var html_db = class html_db{
    static is_html_tag(tag){
        return html_db.tags.includes(tag)
    }
+   static string_looks_like_html(str){
+       str = str.trim()
+       if(str.length == 0) { return false } //because we normally want to let th empty string be considered JS
+       else if (str[0] !== "<") { return false }
+       else if (!str.includes(">")) { return false }
+       else {
+           let length_to_examine = Math.min(15, str.length) //"blockquote.length == 10
+           for(let i = 1; i < length_to_examine; i++){
+               let char = str[i]
+               if(!is_letter(char)){
+                 let tag = str.substring(1, i)
+                 tag = tag.toLowerCase()
+                 if(this.is_html_tag(tag)) { return true }
+                 else { return false }
+               }
+           }
+           return false
+       }
+   }
    static compute_html_properties(){
      let result = []
      for(let prop in html_db.html_property_tag_map){
@@ -433,7 +452,6 @@ function make_html(tag, properties, innerHTML="", ending="auto", error=false){
         else if (prop_name == "style")           { direct_css_props  = properties["style"] }
         else if(tag_is_valid) {
             if(html_db.is_html_property(prop_name)) { //this clause checks for css overlap
-                //console.log(prop_name + " is html")
                 let tag_has_prop = html_db.tag_has_property(tag, prop_name)
                 if(html_db.is_css_property(prop_name)) { //uh-oh, valid html and css prop but ...
                    if(tag_has_prop) { //double uh-oh, this prop is good for this tag
@@ -454,7 +472,6 @@ function make_html(tag, properties, innerHTML="", ending="auto", error=false){
                 else { html_props[prop_name] = properties[prop_name] } //no conflict with css
             }
             else if(html_db.is_css_property(prop_name)) {
-                //console.log(prop_name + " is css")
                 css_props[prop_name] = properties[prop_name]
             }
             else {
@@ -571,9 +588,7 @@ function htmlToElement(html) {
 
 function make_dom_elt(tag, properties, innerHTML="", ending="auto", error=false){
     let html_string = make_html(tag, properties, "", ending, error)
-    //console.log(html_string)
     let result = html_to_dom_elt(html_string)
-    //console.log(result)
     if(typeof(innerHTML) == "string")   { result.innerHTML = innerHTML  }
     else if (innerHTML instanceof Node) { result.appendChild(innerHTML) }
     else if (Array.isArray(innerHTML)) {
@@ -670,4 +685,4 @@ function ancestors_of_class(elt, a_class){
     }
     return result
 }
-var {dde_error, shouldnt, warning, warning_or_error, intersection, replace_substrings} = require("./core/utils.js")
+var {shouldnt, warning_or_error, intersection, replace_substrings} = require("./core/utils.js")

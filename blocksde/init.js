@@ -10,6 +10,7 @@
            "js2b.js"
            )
 */
+
 //called from dde_init.js IFF we're in dde platform.
 function blocks_init(){
    javascript_pane_header_wrapper_id.appendChild(
@@ -162,7 +163,7 @@ function defeng_to_blocks(){
     defeng_to_js()
     js_to_blocks()
 }
-var {dde_error, warning} = require("./core/utils.js")
+
 
              
              

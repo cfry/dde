@@ -201,6 +201,67 @@ function display_center_guess(){
     append_in_ui("svg_id", thehtml)
 }
 
+function init_view_eye(){
+    //this table has to be here rather than top level in the file even though it is static,
+    //because _nbits_cf and the other units cause errors if referenced at top level.
+    AxisTable = [[[800/_nbits_cf, 0, 0, 0, 0], Dexter.J1_A2D_SIN, Dexter.J1_A2D_COS, [-648000*_arcsec, 0, 0, 0, 0], 1240 / 2, [0, 0, 0, 0, 0]],
+        [[0, 800/_nbits_cf, 0, 0, 0], Dexter.J2_A2D_SIN, Dexter.J2_A2D_COS, [0, -324000*_arcsec, 0, 0, 0], 1900 / 2, [0, 0, 0, 0, 0]],
+        [[0, 0, 800/_nbits_cf, 0, 0], Dexter.J3_A2D_SIN, Dexter.J3_A2D_COS, [0, 0, -500000*_arcsec, 0, 0], 1500 / 2, [0, 0, 0, 0, 0]],
+        [[0, 0, 0, 800/_nbits_cf, 0], Dexter.J4_A2D_SIN, Dexter.J4_A2D_COS, [0, 0, 0, -190000*_arcsec, 0], 1800 / 2, [0, 0, 0, 0, 0]],
+        [[0, 0, 0, 0, 800/_nbits_cf], Dexter.J5_A2D_SIN, Dexter.J5_A2D_COS, [0, 0, 0, 0, -148000*_arcsec], 4240 / 2, [0, 0, 0, 0, 0]]]
+
+    window.cal_working_axis = undefined //global needed by calibrate_ui.js
+
+    new Job({name: "CalSensors", keep_history: true, show_instructions: false,
+        inter_do_item_dur: .5 * _ms,
+        robot: cal_get_robot(),
+        do_list: [ Dexter.move_all_joints(0, 0, 0, 0, 0),
+            Robot.label("loop_start"),
+            make_ins("w", 42, 64),
+            make_ins("S", "J1BoundryHigh",648000*_arcsec),
+            make_ins("S", "J1BoundryLow",-648000*_arcsec),
+            make_ins("S", "J2BoundryLow",-350000*_arcsec),
+            make_ins("S", "J2BoundryHigh",350000*_arcsec),
+            make_ins("S", "J3BoundryLow",-570000*_arcsec),
+            make_ins("S", "J3BoundryHigh",570000*_arcsec),
+            make_ins("S", "J4BoundryLow",-490000*_arcsec),
+            make_ins("S", "J4BoundryHigh",490000*_arcsec),
+            make_ins("S", "J5BoundryLow",-648000*_arcsec),
+            make_ins("S", "J5BoundryHigh",648000*_arcsec),
+
+            make_ins("S", "MaxSpeed", 25*_deg/_s),
+            make_ins("S", "Acceleration",0.00129),
+            make_ins("S", "StartSpeed",5),
+            //scan_axis(),
+            smLinex,
+            display_center_guess,
+            make_ins("S", "MaxSpeed",40),
+            make_ins("S", "Acceleration",0.00129),
+            make_ins("S", "StartSpeed",5),
+            function(){
+                if(cal_is_loop_checked(window.cal_working_axis+1)){ //if looping
+                    return [
+                        function(){cal_clear_points()},
+                        function(){return smLinex(true)},
+                        function(){cal_clear_points()},
+                        Dexter.go_to("loop_start")
+                    ]
+                }
+            },
+            Dexter.move_all_joints(0, 0, 0, 0, 0),
+            Dexter.empty_instruction_queue,
+            function() {
+                let J_num = window.cal_working_axis+1
+                let start_button_dom_elt = window["Start_J_" + J_num + "_id"]
+                start_button_dom_elt.style.backgroundColor = "rgb(230, 179, 255)"
+                cal_instructions_id.innerHTML =
+                    "Click in the center of the dot_pattern circle.<br/>"}
+        ]})
+    cal_init_view_eye_state = false
+}
+
+
+/* obsolete, slower def
 //new def oct, 2019
 function init_view_eye(){
     //this table has to be here rather than top level in the file even though it is static,

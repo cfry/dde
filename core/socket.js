@@ -451,7 +451,6 @@ module.exports = Socket
 var {Robot} = require("./robot.js")
 var {Instruction, make_ins} = require("./instruction.js")
 var DexterSim = require("./dextersim.js")
-var {out} = require("./out.js")
 //var {_nbits_cf, _arcsec, _um} = require("./units.js") //don't do this. These units and all the rest are
 //already global vars.
 

@@ -1117,10 +1117,6 @@ clear_output()
 
 } //End of ezTeach_init()
 
-var {out, clear_output} = require("./core/out.js") //even though ezTeach_base.js is
-    //under user_tools folder, when I put two dots in front of its path,
-    // I get an error message of unresolved path for "../core/out.js"
-    //but don't when I have one dot.
-    //This is because require itself is WRONG.
+
 
 var {replace_substrings} = require("./core/utils.js")

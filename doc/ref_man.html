@@ -960,11 +960,46 @@ It takes a few seconds because it loads in OpenCV.js and other libraries.
 The 2nd through nth times it is called, it does nothing and
 returns very quickly so no harm in calling it multiple times a session.
 <p></p>
+<i>Parameters:</i><br/>
+<b>width</b> Default: <code>320</code>. Picture width of what you're going to be using<br/>
+<b>height</b> Default: <code>240</code>. Picture height of what you're going to be using<br/>
+<i>Example:</i><br/>
+<code>Picture.init({width:640, height:480})</code><br/>
+Note: If you use an aspect ratio that does not match your camera,
+your pictures will be distorted.
+Many (but probably not all) computer cameras have an aspect ratio matching
+the default width/height of: 320 x 240 (1/4 VGA).
+This would include:<br/>
+648 x 480 (VGA) and<br/>
+1440 x 1080 (the height of 1080p. 1080p width is 1920, which nakes
+ a different aspect ratio than VGA.  But 1440 x 1080 is VGA aspect ratio.)
+<p></p>
 Picture.init need not be called for the Robot instructions
-that correspond to the Picture methods.
+that correspond to the Picture methods, though it might
+be a good idea to make sure that Picture is "inited" in time
+for its first use, as not doing that might result in taking some "blank" pictures.
 </details>
 
 <details class="doc_details"><summary>Camera I/O</summary>
+
+<details id="Picture.save_picture_doc_id" class="doc_details"><summary>save_picture</summary>
+<code>Picture.save_picture</code> saves a picture to a file.<br/>
+<i>Parameters:</i><br/>
+<b>canvas_id_or_mat</b> Default: <code>"canvas_id"</code>
+This is the source of the picture to save.
+Can be a canvas HTML element, the string of that element's id, or an OpenCV mat.<br/>
+<b>path</b> Default: <code>"my_pic.png"</code>
+The string of the file to save the picture to.
+If the string does not begin with slash, the file is saved under your
+dde_apps folder.<br/>
+<i>Example:</i><br/>
+Try this out when you have evaled the DDE menu example:<br/> Insert/Machine Vision/Process Webcam,<br/>
+clicked on "init" and clicked on "snap photo".
+<code title="not in TestSuite">  Picture.save_picture({canvas_id_or_mat: "canvas_id", path: "mypic2.png"})
+  Picture.show_picture({canvas_id: "out1_canvas_id", content: "mypic2.png"})
+</code>
+
+</details>
 
 <details id="Picture.show_picture_doc_id" class="doc_details"><summary>show_picture</summary>
 <code>Picture.show_picture()</code><br/>
@@ -1153,6 +1188,8 @@ one is created in a new show_window.<br/>
 <b>camera_id</b> Default: <code>undefined</code> If there is already
 a DOM element in, or pointed to, by video_id, this argument is ignored.
 Otherwise its the ID of the camera to take the picture with.<br/>
+<b>width</b> Default: <code>320</code>. Picture width in pixels.<br/>
+<b>height</b> Default: <code>240</code>. Picture height in pixels.<br/>
 <b>callback</b> Default: <code>Picture.show_picture_of_mat</code>
 Called with an argument of the OpenCV.js mat made from this snapshot.<br/>
 <i>Examples:</i><br/>
@@ -3274,12 +3311,12 @@ new Job({name: "my_job",
     <p></p>
     To run arbitrary JS code during the running of a Job, wrap that code
     in a function definition like so:
-    <pre><code>new Job({name: "my_job",
-        do_list: [function(){return Dexter.move_all_joints(ang1)}]
+    <pre><code>new Job({name: "my_job1",
+        do_list: [function(){return Dexter.move_all_joints(30)}]
         })</code></pre>
     To achieve the same result, we could also do:
-    <pre><code>function move_it_buddy(){return Dexter.move_all_joints(ang1)}
-new Job({name: "my_job",
+    <pre><code>function move_it_buddy(){return Dexter.move_all_joints(30)}
+new Job({name: "my_job1",
          do_list: [move_it_buddy]
         })</code></pre>
     particulary helpful for long functions or functions we want to
@@ -3319,7 +3356,7 @@ new Job({name: "my_job",
     function definition on the do_list, and reference <code>this</code> in
     the body of that function definition.<br/>
     <i>Example:</i><br/>
-    <pre><code>new Job({name: "my_job",
+    <pre><code>new Job({name: "my_job3",
          do_list:[function(){ this.user_data.foo = 2},
                  function(){ out("foo: " + this.user_data.foo +
                                  ", robot: " + this.robot.name) }
@@ -3535,13 +3572,45 @@ new Job({name: "my_job",
             <i>Parameter</i><br/>
             <b>robot_status</b> The robot_status array containing the non-zero error code.
             <p></p>
-            If the method returns <code>false</code>, the Job is stopped.
-            If the method returns <code>true</code>, the job is allowed to continue.<br/>
+            If the method returns <code>undefined</code> or <code>null</code>, the Job icontinues
+            as if there was no error.
+            But if the method returns an instruction or array of instructions,
+            those instructions are placed on the do_list immediately after the
+            instruction that errored, and will subsequently be run.
+            Should you wish the job to stop after the error,<br/>
+            return <code>Control.stop_job(undefined, "an optional error message")</code>
+            <p></p>
             The default value for <i>if_error</i> is <code>Job.prototype.if_error_default</code> .
             It prints an error message to the Output pane and returns <code>false</code>, stopping the job.
-            <p></p>
-            If you want a Job to do custom error handling, including permit the
-            Job to continue even though there has been an error, use <i>if_error</i>.
+            Roughly, its source code is:
+            <pre><code title="unEVALable">
+function(robot_status){
+    let msg = this.rs_to_error_message(robot_status)
+    out("Dexter error: " + msg, "red")
+    return Control.stop_job(undefined, msg)
+}    </code></pre>
+ The actual source code is more complex because it includes, in the error message, the content of
+ the robot's "srv/samba/share/error.log" file.
+ Also, if that file is present, its content is set to the empty string, so that
+ it won't continually build up to a huge size.
+ <p></p>
+  If you want a Job to do custom error handling, including permit the
+  Job to continue even though there has been an error, use a custom if_error function.<br/>
+  <i>Example:</i>
+<pre><code title="unEVALable">
+function(robot_status){
+    out("we got an error")
+    if(robot_status[Dexter.ERROR_CODE] == 7){
+       out("so we're stopping the job.")
+       return Control.stop_job(undefined, "bad error")
+    }
+    else if(robot_status[Dexter.ERROR_CODE] == 8){
+        out("But its minor so we allow the job to continue.")
+    }
+    else { return this.if_error_default(robot_status) }
+}    </code></pre>
+  You can see the possible
+   <a target="_blank" href="https://github.com/HaddingtonDynamics/Dexter/wiki/status-errors">error codes</a>.
         </li>
         <li id="job_param_when_stopped_doc_id"><b>when_stopped</b> controls what happens when a job stops normally.<br/>
              <i>Possible Values</i>:<br/>
@@ -4004,7 +4073,7 @@ new Job({name: "my_job",
     Finally the Job's 2nd instruction is run
     and prints out "done waiting".
 
-<pre><code>new Job({name: "my_job",
+<pre><code>new Job({name: "my_job4",
     do_list: [IO.out("hey"),
     {start: speak,
      start_args: {speak_data: "Clean my work space.", rate:0.8},
@@ -4039,7 +4108,7 @@ new Job({name: "my_job",
     out("got: " + a + " " + b)
     callback(b, a, 123)
     }
-new Job({name: "my_job",
+new Job({name: "my_job5",
     do_list: [IO.out("hey"),
     {start: test_cb,
     start_args: [11, 22],
@@ -4088,7 +4157,7 @@ new Job({name: "my_job",
     instruction, ends the loop.
     <p></p>
     <i>Parameters:</i> None.<br/>
-    <i>Example:</i> <pre><code>new Job({name: "my_job",
+    <i>Example:</i> <pre><code>new Job({name: "my_job6",
      do_list: [IO.out("start of job"),
                Control.loop(true,
                           function(iter_index, iter_val, iter_total){
@@ -4449,7 +4518,7 @@ a location to insert an instruction using <code>Control.send_to_job</code>.<br/>
     loops are better.
     <p></p>
     <i>Example</i>
-    <pre><code>new Job({name: "my_job",
+    <pre><code>new Job({name: "my_job7",
     do_list: [IO.out("start of job"),
               Control.loop([100, 101, 102, 103, 104],
                          function(iter_index, iter_val, iter_total){
@@ -4957,6 +5026,23 @@ Example:<code>Control.wait_until(2)</code><br/>
         <p></p>
         See also <a href="#" onclick="open_doc(print_statements_doc_id, event)">print statements</a>
     </details> <!--end out -->
+    <details id="IO.save_picture_doc_id" class="doc_details"><summary>save_picture</summary>
+        This instruction takes the same arguments and has the same functionality as the method
+        <a href="#" onclick="open_doc('Picture.save_picture_doc_id')">Picture.save_picture</a>.<br/>
+        <i>Example:</i>
+        <pre><code>new Job({name: "my_job8",
+         do_list: [IO.take_picture({callback: "the_mat"}),
+                   function(){return IO.save_picture({canvas_id_or_mat: this.user_data.the_mat, path: "mypic.png"})}
+            ]})
+      </code></pre>
+      Above, the instruction <code>IO.take_picture</code> stores an open cv value of type mat (for matrix), representing
+      the picture taken in <code title="unEVALED">Job.my_job.user_data.the_mat</code>.
+      Then the IO.save_picture instruction grabs that value out of
+      <code title="unEVALED">Job.my_job.user_data.the_mat</code> and saves it out into the file dde_apps/mypic.png.
+      Note that IO.save_picture needs to be wrapped in a function definition because
+      we don't want <code title="unEVALED">this.user_data.the_mat</code> to be evaluated
+      before the <code>IO.take_picture</code> instruction has completed.
+    </details>
     <details id="IO.show_picture_doc_id" class="doc_details"><summary>show_picture</summary>
     This instruction takes the same arguments and has the same functionality as the method
     <a href="#" onclick="open_doc('Picture.show_picture_doc_id')">Picture.show_picture</a>
@@ -4977,17 +5063,15 @@ Example:<code>Control.wait_until(2)</code><br/>
     </details>
     <details id="IO.take_picture_doc_id" class="doc_details"><summary>take_picture</summary>
         This instruction takes the same arguments and has similar functionality as the method
-        <a href="#" onclick="open_doc('Picture.take_picture_doc_id')">Picture.take_picture</a>
-        except that it doesn't take a <b>camera_id</b> argument.
-        It does take a callback argument.
-        The next instruction is run after the callback returns, providing
-        the callback doesn't take too long, so keep callback computation fairly short
-        if your next instruction depends on the callback being completed.
+        <a href="#" onclick="open_doc('Picture.take_picture_doc_id')">Picture.take_picture</a>.
         <p></p>
-        The callback is called with <code>this</code> bound to the job
+        When the callback is a function definition, as in Picture.take_picture,
+        the callback is called with <code>this</code> bound to the job
         that this instruction is running in.<br/>
-        If the callback is a string, it is considered to be the name of
-        a user_data variable that you want to set to the mat created
+        If the callback is a string instead of a function definition,
+        there is added funtionality from Picture.take_picture_doc_id.
+        The string is considered to be the name of
+        a user_data variable that is set to the mat created
         with take_picture. You can then use this mat in further instructions.
         <br/>
         <i>Example:</i>
@@ -5698,7 +5782,7 @@ proportional–integral–derivative controller</a>.
     not just get its content.
     <p></p>
     <i>Example:</i>
-    <pre><code>new Job({name: "job_rfr",
+    <pre><code title="not in TestSuite">new Job({name: "job_rfr",
          do_list: [
                    Dexter.read_file("aa.dde", "aa_content"),
                    function(){
@@ -6631,8 +6715,8 @@ If no file is chosen, the variable is bound to <code>null</code>
      If this is more than 1, a user will be able to drag the lower right corner of the text field
      to increase the visible lines.<br/>
   <b>user_data_variable_name</b> Default: <code title="unEVALable">"a_text"</code>
-    See <a href="#" onclick="open_doc('Human.enter_choice_doc_id', event)">Human.enter_choice</a> f
-    or more documentation on this.
+    See <a href="#" onclick="open_doc('Human.enter_choice_doc_id', event)">Human.enter_choice</a>
+    for more documentation on this.
     <p></p>
     <i>Examples:</i><br/>
     <pre><code title="unstartable in TestSuite"> new Job({name: "my_job",
@@ -6694,7 +6778,7 @@ except that it pauses the job that it is in.
 Clicking on buttons, etc, calls the callback function, just like the function.
 But when a "submit" button is clicked or something else in the
 callback function that also closes the window, such as a call to
-<code title="unEVALable code fragment.">close_window(vals.window_index)</code>,
+<code title="unEVALable code fragment.">SW.close_window(vals.window_index)</code>,
 here's what happens:
 <ol><li>The dialog box is closed.</li>
     <li>The argument to the callback function that contains all the values
@@ -8264,7 +8348,7 @@ Here's the CSS for a bunch more editor properties.
         <a href="#" onclick="open_doc(make_html_doc_id)">make_html</a> has a lot of advantages for creating HTML,
         many of which are not apparent from this simple example:
 <pre><code>show_window({
-    content: make_html("p", {"font-size": Math.pow(6, 2) + "px"}, "some para")
+    content: make_html("p", {"font-size": Math.pow(6, 2) + "px"}, "some other para")
             })    </code></pre>
         <b>callback</b> A function of one argument. Any returned value will be ignored.
         It will be called when the user clicks a button in
@@ -8298,7 +8382,7 @@ Here's the CSS for a bunch more editor properties.
  shiftKey: false,
  tagName: "input",  //html element tag clicked on.
  window_index: "1", //a show_window instance identifier.
-                   //close_window(window_index)
+                   //SW.close_window(window_index)
                    //will close the show_window window.
  clicked_button_value: "my_in_id", //the 'name' or 'id' attribute of the clicked on element.
  trim_strings: true}</code></pre>
@@ -8329,7 +8413,7 @@ select: &lt;select name="size">
             &lt;option>Gilossal&lt;/option>
         &lt;/select>&lt;br/>
 file: &lt;input type="file" name="my_file"/>No dir info. &lt;br/>
-combo_box: &lt;div name="my_combo_box" class="combo_box" style="display:inline-block;vertical-align:middle;">
+combo_box: &lt;div id="my_combo_box" class="combo_box" style="display:inline-block;vertical-align:middle;"> <!-- Can't use attribute 'name'. Must use 'id'. -->
                 &lt;option>one&lt;/option>
                 &lt;option selected="selected">two&lt;/option>
            &lt;/div>&lt;br/>
@@ -8356,7 +8440,7 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
     <pre><code title="not in testsuite"/>function handle_my_win(vals){
     if(vals.clicked_button_value == "init_my_win_id"){
         out("initing my_win")
-        close_window(vals.window_index)
+        SW.close_window(vals.window_index)
     }
 }
 show_window({
@@ -8439,19 +8523,19 @@ show_window({
             When a show_window callback function is called, it will be passed a literal object
             with a property of <code title="unEVALable code fragment"> window_index</code>.
             These window_indexes can be passed
-            to <code>close_window</code> to close the window. This is a non-negative integer.<p></p>
+            to <code>SW.close_window</code> to close the window. This is a non-negative integer.<p></p>
             <i>Example:</i> (from within a show_window callback function) <br/>
-            <code title="unEVALable code fragment"> close_window(vals.window_index)</code><br/>
+            <code title="unEVALable code fragment"> SW.close_window(vals.window_index)</code><br/>
             Note that when a user clicks on an input of type "submit", that
-            will automatically close the window with no need to call close_window explicitly.<br/>
+            will automatically close the window with no need to call SW.close_window explicitly.<br/>
             Also note that when show_window's close_same_titled_windows init arg is true
             (the default), same titled windows will automatically be cloaed.
             <p></p>
             If no argument is passed, the latest show_window is closed.<br/>
             <i>Example:</i> (from within a show_window callback function) <br/>
-            <code title="not in test suite">close_window()</code>
+            <code title="not in test suite">SW.close_window()</code>
             <p></p>
-            If close_window is unable to find an open window specified in the argument,
+            If SW.close_window is unable to find an open window specified in the argument,
             it prints a warning, but does not error.
         </details>
 

@@ -195,6 +195,9 @@ var SSH = class SSH {
        else if (command.includes("copy_remote_to_local")){
            this.copy_remote_to_local(command)
        }
+       else if (command.includes("save_editor_to_remote")){
+           this.save_editor_to_remote(command)
+       }
        else if(this.stream && this.stream.writable) {
            setTimeout(function() { SSH.write(command) }, 200) //give a little extra time for
            //init of the connection as well as for previous cmd output to be sent to the stream
@@ -367,12 +370,83 @@ var SSH = class SSH {
             })
         }
    }
+   //very similar to copy_local_to_remote
+   static save_editor_to_remote (command){
+        if(this.logged_in_to_localhost()){
+            warning("Your SSH session is logged in to the localhost (dde_computer).<br/>" +
+                "To copy files between a local and a remote (Dexter) computer,<br/>" +
+                "you must first SSH log in to the remote computer by:<br/>" +
+                "clicking the underlined text after 'Directory Listing for:' or<br/>" +
+                "choosing the cmd line lang menu item of 'JS', then choose 'SSH'.")
+        }
+        else {
+            let args = this.extract_cmd_args("save_editor_to_remote", command)
+            let moveTo   = args[0] //remote path
+            let semicolon_pos = moveTo.indexOf(";")
+            if(semicolon_pos != -1) {
+                moveTo = moveTo.substring(0, semicolon_pos)
+            }
+            this.conn.sftp(function(err, sftp) {
+                if (err){
+                    dde_error("Saving editor content to " + SSH.config.the_host_name + ":" + moveTo + "<br/>" +
+                        "errored with: " + err.message)
+                }
+                else {
+                    try{ //from https://stackoverflow.com/questions/12755997/how-to-create-streams-from-string-in-node-js
+                        let Readable = require('stream').Readable //node stream
+                        let readStream = new Readable();
+                        readStream._read = () => {}; // redundant? see update below
+                        let editor_content = Editor.get_javascript()
+                        readStream.push(editor_content);
+                        readStream.push(null); //must do to signify end of stream
+                        let writeStream = sftp.createWriteStream(moveTo);
+                        writeStream.on('close',function () {
+                            out("Saved editor content to: " + SSH.config.the_host_name + ":" + moveTo)
+                        });
+                        writeStream.on('end', function () {
+                            console.log( "sftp done" ); //doesn't come to dde computer
+                            //conn.close();
+                        });
+                        // initiate transfer of file
+                        readStream.pipe(writeStream)
+                    }
+                    catch(err){
+                        dde_error("Saving editor content to<br/> " + SSH.config.the_host_name + ":" + moveTo + "<br/>" +
+                            "errored with: " + err.message)
+                    }
+                }
+            })
+        }
+    }
    static write(command){
         this.stream.write(command)
    }
    static dir_list_id(){
        return "DirectoryListing" + replace_substrings(SSH.config.host, "\\.", "_")
    }
+
+   //warning: clears only the text below the LAST dir listing, not necessarily
+   //below the dir listing that the button "clear below output" is in.
+   //hard to do otherwise.
+   /*static clear_below_outout(event){
+       let full_innerHTML =  output_div_id.innerHTML
+       let last_pos = full_innerHTML.lastIndexOf("Directory Listing for")
+       let fieldset_pos = full_innerHTML.indexOf("</fieldset>", last_pos)
+       let next_div_pos = full_innerHTML.indexOf("<div", fieldset_pos)
+       let new_out_HTML = full_innerHTML.substring(0, next_div_pos)
+       output_div_id.innerHTML = new_out_HTML
+   }*/
+   //clears output below the selected dir listing regardless of if its the first or not.
+    static clear_below_outout(event){
+        let fieldset_elt = event.target.parentElement.parentElement.parentElement
+        let output_div_children = new Array(...output_div_id.childNodes)
+        let after_fieldset_elt = false
+        for(let child_elt of output_div_children){
+            if(child_elt === fieldset_elt) { after_fieldset_elt = true }
+            else if(after_fieldset_elt) { output_div_id.removeChild(child_elt) }
+        }
+    }
+
     //called by close button AND by the "computer A tag action, SSH.close_and_show_config_dialog
    static dir_list_close_action(elt){
        //let the_id = this.inner_dir_list_id()
@@ -566,7 +640,8 @@ var SSH = class SSH {
                result = "" //"<button style='float:right;' onclick='" + this.dir_list_close_action() + "'>close</button><br/>"
                let computer_html = "<a href='#' title='Choose a different computer for SSH.' onclick='SSH.close_and_show_config_dialog(event)'>" + (this.config.the_host_name ? this.config.the_host_name : this.config.host) + "</a>"
                result += "Directory Listing for: " + computer_html + ":" + dir_for_html + ""
-               result += "<button style='float:right;padding:0px;' onclick='SSH.dir_list_close_action(this)'>close</button>"
+               result += "<button style='float:right;padding:2px;' onclick='SSH.dir_list_close_action(this)'>close</button>"
+               result += "<button style='float:right;padding:2px;margin-right:10px;' onclick='SSH.clear_below_outout(event)' title='Remove the text below this directory listing.'>clear below output</button>"
                result += "<br/><table style='margin-top:5px'>"
                result += "<tr><th>Permissions</th><th>Links</th><th>Owner</th><th>Group</th><th>Size</th><th>Month</th><th>Day</th><th>Year</th><th>FileName</th></tr>"
                continue
@@ -680,12 +755,12 @@ var SSH = class SSH {
                      ` data-file="` + file + '" ' +
                      ` onchange="SSH.handle_dir_menu(event)" title="operations on this directory." style="width:15px;margin-right:10px;">
                       <option>Directory Operations</option>
-                      <option title="Change the permissions 'mode' of the directory.&#13;777 means all user groups can&#13;read, write & execute.&#13;Edit and hit ENTER on cmd line to run.">Change directory permissions...</option>
+                      <option title="Change the permissions 'mode' of the directory.&#13;chmod 777 foo&#13;means all user groups can&#13;read, write & access files in foo&#13;Edit and hit ENTER on cmd line to run.">Change directory permissions...</option>
                       <option>Copy path to clipboard</option>
                       <option title="Inserts path of this directory&#13;at the end of the cmd line,&#13;but if there's [some text], replace it.">Insert path in cmd line</option>
-                      <option>Insert path in editor</option>
-                      <option>Move/rename directory...</option>
-                      <option title="Deletes the directory and its contents,&#13;including all its sub-directories.">Remove directory...</option>          
+                      <option title="Inserts just the path of&#13;this file into the editor,&#13;not its contents.">>Insert path in editor</option>
+                      <option title="Puts the 'mv' cmd in the command line&#13;and permits you to edit it&#13;before pressing ENTER.">Move or rename directory...</option>
+                      <option title="Deletes the directory and its contents,&#13;including all its sub-directories.&#13;Press ENTER to permanently remove the directory.">Remove directory...</option>          
                </select>`
     }
 
@@ -694,15 +769,17 @@ var SSH = class SSH {
                     ` data-file="` + file + '" ' +
                     ` onchange="SSH.handle_file_menu(event)" title="operations on this file." style="width:15px;margin-right:10px;">
                       <option>File Operations</option>
-                      <option title="Change the permissions 'mode' of the file.&#13;777 means all user groups can&#13;read, write & execute.&#13;Edit and hit ENTER on cmd line to run.">Change file permissions...</option>
+                      <option title="Change the permissions 'mode' of the file.&#13;chmod 777 foo.txt means all user groups can&#13;read, write & execute foo.txt&#13;Edit and hit ENTER on cmd line to run.">Change file permissions...</option>
                       <option title="Only works if you are SSH logged in&#13;to a remote (Dexter) computer.">Copy file: local to remote...</option>
                       <option title="Only works if you are SSH logged in&#13;to a remote (Dexter) computer.">Copy file: remote to local...</option>
                       <option>Copy path to clipboard</option>
                       <option title="Inserts path of this file&#13;at the end of the cmd line,&#13;but if there's [some text], replace it.">Insert path in cmd line</option>
-                      <option>Insert path in editor</option>
-                      <option>Move/rename file...</option>
-                      <option title="Deletes the file.">Remove file...</option>
-                      <option title="Run the first Job defined in this file&#13;in the Job Engine.">Run & start Job</option>
+                      <option title="Inserts just the path of&#13;this file into the editor,&#13;not its contents.">Insert path in editor</option>
+                      <option title="Puts the 'mv' cmd in the command line&#13;and permits you to edit it&#13;before pressing ENTER.">Move or rename file...</option>
+                      <option title="Puts the cmd for deleting a file in the Cmd Line.&#13;Press ENTER to permanently remove the file.">Remove file...</option>
+                      <option title="Run the first Job defined in this file&#13;in the Job Engine on Dexter.">Run & start Job</option>
+                      <option title="Save the content of the editor&#13;into a file on Dexter.">Save editor to remote...</option>                           
+
                       <option title="Prints the file's content in the output pane.">Show file content</option>                           
                </select>`
     }
@@ -713,13 +790,17 @@ var SSH = class SSH {
         let dir  = elt.dataset.dir
         let file = elt.dataset.file
         let path = dir + ((dir == "/") ? "" : "/") + file
-        if     (op == "Change directory permissions...")       { cmd_input_id.value = "chmod 777 " + path + ";stat " + path}
-        //else if(op == "Copy directory to local directory...")  { cmd_input_id.value = "cp -R " + path + " " + dir + "/[new dir name]" }
-        //else if(op == "Copy directory to remote directory...") { cmd_input_id.value = "scp -r " + path + " root@" + Dexter.dexter0.ip_address + ":/[new dir name]" }
+        if     (op == "Change directory permissions...")       { cmd_input_id.value = "chmod 777 " + path + ";stat " + path
+                                                                 cmd_input_id.focus()
+                                                               }
+        //else if(op == "Copy directory to local directory..."){ cmd_input_id.value = "cp -R " + path + " " + dir + "/[new dir name]" }
+        //else if(op == "Copy directory to remote directory..."){ cmd_input_id.value = "scp -r " + path + " root@" + Dexter.dexter0.ip_address + ":/[new dir name]" }
         else if(op == "Copy path to clipboard")                { clipboard.writeText(path)}
         else if(op == "Insert path in cmd line")               { this.insert_path_in_command_line(path) }
         else if(op == "Insert path in editor")                 { Editor.insert(path) }
-        else if(op == "Move/rename directory...")              { cmd_input_id.value = "mv " + path + " " + dir + "/[new dir name]" }
+        else if(op == "Move or rename directory...")           { cmd_input_id.value = "mv " + path + " " + path
+                                                                 cmd_input_id.focus()
+                                                               }
         else if(op == "Remove directory...")                   {
             let mess = "On " + (this.config.the_host_name ? this.config.the_host_name : this.config.host) +
                        ",\ndelete  " + path + "  ?"
@@ -753,7 +834,9 @@ var SSH = class SSH {
         else if(op == "Copy path to clipboard")       { clipboard.writeText(path)}
         else if(op == "Insert path in cmd line")      { this.insert_path_in_command_line(path) }
         else if(op == "Insert path in editor")        { Editor.insert(path) }
-        else if(op == "Move/rename file...")          { cmd_input_id.value = "mv " + path + " " + dir + "/[new dir name]" }
+        else if(op == "Move or rename file...")       { cmd_input_id.value = "mv " + path + " " + path
+                                                        cmd_input_id.focus()
+                                                      }
         else if(op == "Remove file...")               {
             let mess = "On " + (this.config.the_host_name ? this.config.the_host_name : this.config.host) +
                 ",\ndelete  " + path + "  ?"
@@ -765,6 +848,10 @@ var SSH = class SSH {
            let cmd = "node " + path_of_core + " define_and_start_job " + path
            cmd_input_id.value = cmd
            SSH.run_command({command: cmd})
+       }
+       else if (op == "Save editor to remote..."){
+            cmd_input_id.value = "save_editor_to_remote " + path
+            cmd_input_id.focus()
        }
        else if (op == "Show file content"){ SSH.run_command({command: "cat " + path}) }
        elt.options[0].selected = true //select the "header" for the menu

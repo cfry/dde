@@ -275,7 +275,7 @@ function handle_ab(vals){ //not dex.handle_train because then I can't use the na
         }
         else if (vals.format_kind == "combo box"){
             var lines = vals.format_text.split("\n")
-            text  = '<div class="combo_box" name="' + vals.input_name +
+            text  = '<div class="combo_box" id="' + vals.input_name +
                         '" style="display:inline-block;vertical-align:middle;width:' + vals.format_text_width + ";"  +
                         '">\n'
             for (var line of lines){
@@ -645,7 +645,7 @@ dex.code_to_finish_window = function(vals){
 
 //var index_for_window_default_name = 0 //must be here for ui env, can't use length of tasks becaue that's in snadvox
 
-ab.launch = function(){ //happens in ui env, called from Insert menu item when user chooses "build applicaiton" item
+ab.launch = function(){ //happens in ui env, called from Insert menu item when user chooses "build window" item
     ab.init()
     //index_for_window_default_name += 1
     var window_name = "window_" //+ index_for_window_default_name //this is inited by ab.post_creation_window_init
@@ -660,7 +660,7 @@ ab.launch = function(){ //happens in ui env, called from Insert menu item when u
     <input title="Insert horizontal space\nso that the next insertion\nwill be to the right\nby the given pixels." type="button" value="Horizontal space"/>
         <input name="horizontal_space_pixels" type="number" min-value="0" value="20" style="width:32px;"/> pixels<br/>
     <input type="button" value="Button" style="margin-right:20px;margin-bottom:10px;" title="Create a button.\nThe selected action will be run\nwhen the button is clicked."/>
-    Action: <div name="actions" class="combo_box" style="display:inline-block;vertical-align:middle;"> </div>
+    Action: <div id="actions" class="combo_box" style="display:inline-block;vertical-align:middle;"> </div>
       <select name="button_kind">
         <option title="When the button is clicked,\nthe window closes and\nthe action is run.">close window</option>
         <option title="When the button is clicked,\nthe action is run.\nThe window does not close.">don't close</option>' +
@@ -708,7 +708,6 @@ ab.launch = function(){ //happens in ui env, called from Insert menu item when u
                                               <option>bold</option>
                                                <option>italic</option>
                     </select></td>
-                <!--<td> <div name="format_action" class="combo_box" style="display:inline-block;vertical-align:middle;"> </div></td>-->
             </tr>
             </table>
      <input title="Insert a control for entering a number\nthat is not less than 'Min',\nnot more than 'Max',\nwith a resolution of 'Step'."

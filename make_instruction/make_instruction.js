@@ -1163,7 +1163,7 @@ var MakeInstruction = class MakeInstruction{
         }
         else if (vals.clicked_button_value == "Preview..."){
             MakeInstruction.insert_jobs_preview()
-            //close_window(vals.window_index) //don't close as we want to see the
+            //SW.close_window(vals.window_index) //don't close as we want to see the
             //main insert dialog after we close the preview dialog
         }
     }

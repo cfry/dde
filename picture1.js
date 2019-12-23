@@ -8,18 +8,48 @@ var RotatingCalipers = "RotatingCalipers is not initialized. Call Picture.init()
 var Picture = class Picture{
    //the width and height are for the show_window made (if any)
    //iF the picture pixels are more than the window dimensions, the window will scroll.
-   static init(){
-       if(typeof(cv) == "string") { //calling int a 2nd time some times screws up do to timing,
-                                    //robably due to hte show_video call.
+   static init({width=320, height=240}={}){
+       if(typeof(cv) == "string") { //calling init a 2nd time some times screws up do to timing,
+                                    //probably due to the show_video call.
             cv = require("./node_modules/opencv.js/opencv")
             RotatingCalipers = require("rotating-calipers/rotating-calipers.js")
        //load_files(__dirname + "/node_modules/rotating-calipers/rotating-calipers.js")
-        Picture.show_video({callback: close_window})
+        Picture.show_video({width: width, height: height, callback: SW.close_window})
       //Picture.take_picture({callback: null}) //the first time I call take_picture,
                 //it doesn't work due to timing/async. So this "inits" the video
        //so that take_picture will work the first time.
        }
    }
+   //see https://stackoverflow.com/questions/5867534/how-to-save-canvas-data-to-file
+    static save_picture({canvas_id_or_mat="canvas_id", path="my_pic.png"}){
+        let sw_index = null
+        let canvas_elt
+        if(canvas_id_or_mat instanceof HTMLElement){
+            canvas_elt = canvas_id_or_mat
+        }
+        else if(typeof(canvas_id_or_mat) == "string"){
+            canvas_elt = value_of_path(canvas_id_or_mat)
+        }
+        else { //must be a mat
+            let mat = canvas_id_or_mat
+            let width = mat.cols
+            let height = mat.rows
+            //canvas_elt = document.createElement("CANVAS")
+            //canvas_elt.id = "canvas_id" //canvas_elt must have an id for render_canvas_content to work
+            sw_index = show_window({title: "storage for save_picture",
+                                    content: '<canvas id="canvas_for_save_picture_id"' +
+                                                      ' width="' + width +
+                                                      'px" height="'  + height +
+                                                      'px"/>'})
+            canvas_elt = canvas_for_save_picture_id
+            Picture.render_canvas_content(canvas_elt, mat)
+        }
+        let img = canvas_elt.toDataURL()
+        let data = img.replace(/^data:image\/\w+;base64,/, "")
+        let buf = Buffer.from(data, 'base64')
+        write_file(path, data, 'base64')
+        if(sw_index !== null) { SW.close_window(sw_index) }
+    }
 
    static show_video_cameras(callback){
        navigator.mediaDevices.enumerateDevices()
@@ -44,6 +74,17 @@ var Picture = class Picture{
                         rect_to_draw=null,
                         show_window_callback=show_window_callback_for_canvas_click}={}){
       if (!content) { content = __dirname + "/examples/snickerdoodle_board.png" }
+      if(!title) {
+           let title_suffix
+           if(typeof(content) == "string") {  title_suffix = content }
+           else { title_suffix = Picture.mat_type(content) +
+               " mat (" + Picture.mat_width(content) +
+               " x " +  Picture.mat_height(content) + ")"}
+           title = "Picture from: " + title_suffix
+      }
+      if (typeof(content) === "string"){
+          content = make_full_path(content)
+      }
       let canvas_elt
       if(is_dom_elt(canvas_id)) {
          canvas_elt = canvas_id
@@ -54,17 +95,13 @@ var Picture = class Picture{
       }
       if(canvas_elt) { Picture.render_canvas_content(canvas_elt, content, rect_to_draw) }
       else {
-          if(!title) {
-            let title_suffix
-            if(typeof(content) == "string") {  title_suffix = content }
-            else { title_suffix = Picture.mat_type(content) +
-                                  " mat (" + Picture.mat_width(content) +
-                                  " x " +  Picture.mat_height(content) + ")"}
-            title = "Picture from: " + title_suffix
-          }
+          let width_html = ' width="' + width + 'px" '
+          let height_html = ' height="' + height + 'px" '
           let the_html
-          the_html = '<canvas class="clickable" id="' + canvas_id + //'" width="'    + width + '" height="'   + height +
-                     '" style="padding:0px;"/>'
+          the_html = '<canvas class="clickable" id="' + canvas_id + '" ' +
+                        width_html +
+                        height_html +
+                        'style="padding:0px;"/>'
           let observer = new MutationObserver(function(mutations, observer) {
                let show_window_rendered = false
                let canvas_elt = value_of_path(canvas_id)
@@ -82,7 +119,7 @@ var Picture = class Picture{
                   }
                }
           })
-          let observerConfig = { childList: true, subtree: true } //but even with subtree we don't get the canvas elt in our obserser callback, probably because the show-window is consructed with jqwidgets and we can't look inside them.
+          let observerConfig = { childList: true, subtree: true } //but even with subtree we don't get the canvas elt in our obserser callback, OBSOLETE: probably because the show-window is constructed with jqwidgets and we can't look inside them.
           observer.observe(document, observerConfig)
           show_window({title: title,
                        x: x, y: y, width: width + 10, height: height + 50,
@@ -98,11 +135,11 @@ var Picture = class Picture{
       //            Picture.render_canvas_content(canvas_elt, content, rect_to_draw)
 	//}, 100)
     }
-
+    //content can be the string name of file with an image in it, or a Mat.
     //rect_to_draw can be an array of [x,y,width,height]  a cv.Rect or a cv.Point
     static render_canvas_content(canvas_elt, content, rect_to_draw=null) {
         if(typeof(content) == "string") { //got a file path
-            let img = new Image() //img_id //make_dom_elt("img") //new Image()
+            let img = new Image() //Don't pass in width and height because we want the width and height to come from the content  file name. canvas_elt.width, canvas_elt.height) //img_id //make_dom_elt("img") //new Image()
             let ctx = canvas_elt.getContext("2d")
             img.onload = function(){
                 let imgWidth      = img.width
@@ -216,7 +253,7 @@ var Picture = class Picture{
     
     //used as the default callback for take_picture
     static show_picture_of_mat(mat){
-       Picture.show_picture({content: mat})
+       Picture.show_picture({content: mat, width: mat.cols, height: mat.rows})
     }
     
     static show_video({video_id="video_id",
@@ -235,7 +272,7 @@ var Picture = class Picture{
       else if(typeof(video_id) == "string") { 
       	  video_elt = value_of_path(video_id) 
           if(video_elt == undefined){
-              if(!title) { title = "Video from: " + content}
+              if(!title) { title = "Video from: " + content + "(" + width + " x " + height + ")" }
               let the_html
               if (content.includes("youtu.be")) {
                  let last_slash_pos = content.lastIndexOf("/")
@@ -319,7 +356,10 @@ var Picture = class Picture{
                 150)
     }
     //beware, must have a valid video elt THAT IS RENDERED in video_id or this will error.
-    static take_picture({video_id="video_id", camera_id=undefined, callback=Picture.show_picture_of_mat}={}){
+    static take_picture({video_id="video_id", camera_id=undefined,
+                         width=320, height=240,
+                         callback=Picture.show_picture_of_mat}={}){
+        Picture.init(width, height)
         let video_elt 
         if(is_dom_elt(video_id)){ 
               video_elt = video_id
@@ -328,12 +368,11 @@ var Picture = class Picture{
         else if(typeof(video_id) == "string") { 
       	  	video_elt = value_of_path(video_id) 
           	if(video_elt == undefined){
-               //dde_error("Picture.take got a video_id: " + video_id + " that is not the id of, or domElt of a video.")
-               let vid_callback = function() {
-               		Picture.take_picture({video_id: video_id, callback: callback}) //let take_picture callback default to show_picture_of_mat
-               }
-               Picture.show_video({video_id: video_id, camera_id: camera_id, callback: vid_callback}) //if take_picture is called before anything else,
-               return
+                let vid_callback = function() {
+               		                    Picture.take_picture({video_id: video_id, width: width, height: height, callback: callback})
+                                   }
+                Picture.show_video({video_id: video_id, camera_id: camera_id, width: width, height: height, callback: vid_callback})
+                return
               //a video show window will pop up but the below code won't be able to return its mat.
              /*let the_html = '<video id="' + video_id + 
                            '" width="'    + 320 + //width +
@@ -348,8 +387,8 @@ var Picture = class Picture{
                     "that is not the id of, or domElt of a video.")
         }
         let offScreenCanvas    = document.createElement('canvas');
-        offScreenCanvas.width  = video_elt.width
-        offScreenCanvas.height = video_elt.height
+        offScreenCanvas.width  = width //video_elt.width
+        offScreenCanvas.height = height //video_elt.height
         let context = offScreenCanvas.getContext("2d");
 
         //video_elt.addEventListener('canplay', function(ev){ //fails
@@ -363,7 +402,7 @@ var Picture = class Picture{
         //})
         //context.drawImage(video_elt, 0, 0, video_elt.width, video_elt.height)
         //let mat                = cv.imread(offScreenCanvas)
-        let mat = Picture.video_to_mat(video_elt)
+        let mat = Picture.video_to_mat(video_elt, width, height)
         //out("is mat: " + Picture.is_mat(mat))
         if (callback) {
         	//callback(mat) 
@@ -376,13 +415,16 @@ var Picture = class Picture{
         // with a mat so it errors. Better to just return undefined
     }
     
-    static video_to_mat(video_id) {
+    static video_to_mat(video_id, width, height) {
         if (typeof(video_id) == "string") { video_id = value_of_path(video_id) }
+        let width_to_use = (width ? width : video_id.width)
+        let height_to_use = (height ? height : video_id.height)
+
         let offScreenCanvas    = document.createElement('canvas');
-        offScreenCanvas.width  = video_id.width
-        offScreenCanvas.height = video_id.height
+        offScreenCanvas.width  = width_to_use
+        offScreenCanvas.height = height_to_use
         let context = offScreenCanvas.getContext("2d");
-        context.drawImage(video_id, 0, 0, video_id.width, video_id.height)
+        context.drawImage(video_id, 0, 0, width_to_use, height_to_use)
         let mat                = cv.imread(offScreenCanvas)
         return mat
     }
@@ -571,7 +613,7 @@ var Picture = class Picture{
        let result = cv.mean(mat)
        if (return_integer) { result = Math.round((result[0] + result[1] +result[2]) / 3) }
        return result
-       }
+    }
     static mat_to_gray(mat_in, mat_out=null) {
         if(Picture.is_mat(mat_in, "gray")) { return mat_in }
         if(!mat_out) { mat_out = Picture.make_similar_mat(mat_in) }
@@ -607,7 +649,6 @@ var Picture = class Picture{
         let sum_y = height
         let point_count = 0
         for(let y = 0; y < height; y++) {
-            //console.log("y " + y)
             for(let x = 0; x < width; x++){
                 let val = Picture.mat_gray(mat_in, x, y)
                 if(val > 0) { //because opencv threshold doesn't reliably filter out low value pixels.
@@ -637,7 +678,6 @@ var Picture = class Picture{
         let height = Picture.mat_height(mat_in)
         let result = []
         for(let y = 0; y < height; y++) {
-            //console.log("y " + y)
             for(let x = 0; x < width; x++){
                 let val = Picture.mat_gray(mat_in, x, y)
                 if(val >= threshold) { //because opencv threshold doesn't reliably filter out low value pixels.
@@ -658,7 +698,6 @@ var Picture = class Picture{
         let max_x = 0
         let max_y = 0
         for(let y = 0; y < height; y++) {
-            //console.log("y " + y)
             for(let x = 0; x < width; x++){
                 let val = Picture.mat_gray(mat_in, x, y)
                 if(val > 0) { //because opencv threshold doesn't reliably filter out low value pixels.
@@ -666,9 +705,7 @@ var Picture = class Picture{
                     max_x = Math.max(max_x, x)
                     min_y = Math.min(min_y, y)
                     max_y = Math.max(max_y, y)
-                    //console.log("got " + ("" + x).padStart(3) + " and " + ("" + y).padStart(3) + " of: " + ("" + val).padStart(3) +
-                    //            " new: " + ("" + min_x).padStart(3) + "-" + ("" + max_x).padStart(3) + ", " + ("" + min_y).padStart(3) + "-" + ("" + max_y).padStart(3))
-                }
+                    }
             }
         }
         return new cv.Rect(min_x, min_y, max_x - min_x, max_y - min_y)

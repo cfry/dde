@@ -242,6 +242,12 @@ var Robot = class Robot {
     close_robot(){ //overridden in Serial and Dexter
     }
 
+    static save_picture({canvas_id_or_mat="canvas_id",
+                         path="my_pic.png"}={}) {
+        return new Instruction.save_picture({canvas_id_or_mat: canvas_id_or_mat,
+                                             path: path})
+    }
+
     static show_picture({canvas_id="canvas_id", //string of a canvas_id or canvasId dom elt
                             content=null, //mat or file_path
                             title=undefined,
@@ -272,9 +278,14 @@ var Robot = class Robot {
                                                     play: true})
     }
     static take_picture({video_id="video_id", //string of a video_id or video dom elt
+                         camera_id=undefined,
+                         width=320, height=240,
                          callback=Picture.show_picture_of_mat}={}) {
         return new Instruction.take_picture({video_id: video_id, //string of a video_id or video dom elt
-                                                     callback: callback})
+                                             camera_id: camera_id,
+                                             width: width,
+                                             height: height,
+                                             callback: callback})
     }
 }
 Robot.all_names = []
@@ -1064,11 +1075,19 @@ Dexter = class Dexter extends Robot {
         if ([false, "both"].includes(sim_actual)){
                 let ping = require('ping') //https://www.npmjs.com/package/ping
                 ping.sys.probe(this.ip_address,
-                                function(isAlive){
+                                function(isAlive, err){
                                     if (isAlive) {
-                                        setTimeout(function(){this_robot.set_link_lengths(this_job)},
-                                                  500) //in case dexster is booting up, give it a chance to complete boot cycle
+                                        if(job_instance.name == "set_link_lengths") { //don't attempt to set link lengths again!
+                                            this_robot.start_aux(job_instance)
+                                        }
+                                        else { setTimeout(function(){
+                                                            this_robot.set_link_lengths(this_job)
+                                                          },
+                                                          500)} //in case dexster is booting up, give it a chance to complete boot cycle
                                         //this_robot.use_ping_proxy(job_instance)
+                                    }
+                                    else if (err){
+                                        this_job.stop_for_reason("errored", "Ping on robot: " + this_robot.name + " errored with: " + err.message)
                                     }
                                     else {
                                         this_job.stop_for_reason("errored", "Could not connect to Dexter.\nIf it is because Dexter is initializing,\ntry again in a minute,\nor click Misc pane 'simulate' button.", true)
@@ -1080,8 +1099,14 @@ Dexter = class Dexter extends Robot {
                                )
         }
         else {
-           setTimeout(function(){this_robot.set_link_lengths(this_job)},
-                         500)
+            if(job_instance.name == "set_link_lengths") { //don't attempt to set link lengths again!
+                this_robot.start_aux(job_instance)
+            }
+            else { setTimeout(function(){
+                                    this_robot.set_link_lengths(this_job)
+                                },
+                              500)
+            }
         } //no actual connection to Dexter needed as we're only simulating, BUT
                                  //to keep similation as much like non-sim. due the same timeout.
     }
@@ -1108,9 +1133,9 @@ Dexter = class Dexter extends Robot {
                             else if (this_robot.simulate === null){
                                 if ((sim_actual === false) || (sim_actual === "both")){
                                     this_job.stop_for_reason("errored", "The job: " + this_job.name + " is using robot: " + this_robot.name +
-                                    '<br/>with the Jobs menu "Simulate?" item being: ' + sim_actual  +
+                                    '<br/>with the Misc Pane "Simulate?" radio button being: ' + sim_actual  +
                                     "<br/>but could not connect with Dexter." +
-                                    "<br/>You can use the simulator by switching the menu item to 'true'. ")
+                                    "<br/>You can use the simulator by clicking 'simulate' in the Misc Pane header. ")
                                     out("Could not connect to Dexter.", "red")
                                 }
                                 else {
@@ -1286,7 +1311,7 @@ Dexter = class Dexter extends Robot {
             let ins_id = robot_status[Dexter.INSTRUCTION_ID]
             let ins    = job_instance.do_list[ins_id]
             let oplet  = ins[Instruction.INSTRUCTION_TYPE]
-            if(oplet == "r") {  //Dexter.read_file errored, assuming its "file not found" so end the rfr loop nd set the "content read" as null, meaninng file not found
+            if(oplet == "r") {  //Dexter.read_file errored, assuming its "file not found" so end the rfr loop and set the "content read" as null, meaninng file not found
                 //the below setting of the user data already done by got_content_hunk
                 //let rfr_instance = Instruction.Dexter.read_file.find_read_file_instance_on_do_list(job_instance, ins_id)
                 // job_instance.user_data[ins.destination] = null //usually means "file not found"
@@ -1295,9 +1320,9 @@ Dexter = class Dexter extends Robot {
                 //job_instance.set_up_next_do(0)
                 return
             }
-            if(!job_instance.if_error(robot_status)) {
-                job_instance.stop_for_reason("errored", "got error code: " + Dexter.ERROR_CODE + " back from Dexter for instruction id: " + ins_id)
-            }
+            //if(!job_instance.if_error(robot_status)) {
+            //    job_instance.stop_for_reason("errored", "got error code: " + Dexter.ERROR_CODE + " back from Dexter for instruction id: " + ins_id)
+            //}
             //else just continue on with the job.
         }
 
@@ -1349,9 +1374,16 @@ Dexter = class Dexter extends Robot {
             }
             var error_code = robot_status[Dexter.ERROR_CODE]
             if (error_code != 0){ //we've got an error
-                job_instance.stop_for_reason("errored", "Robot status got error: " + error_code)
+                //job_instance.stop_for_reason("errored", "Robot status got error: " + error_code)
                 if (job_instance.wait_until_instruction_id_has_run == ins_id){ //we've done it!
                     job_instance.wait_until_instruction_id_has_run = null //but don't increment PC
+                }
+                let instruction_to_run_when_error = job_instance.if_error.call(job_instance, robot_status)
+                if(instruction_to_run_when_error){
+                    //note instruction_to_run_when_error can be a single instruction or an array
+                    //of instructions. If its an array, we insert it as just one instruction,
+                    //and that will cause all to be run.
+                    job_instance.insert_single_instruction(instruction_to_run_when_error)
                 }
                 rob.perform_instruction_callback(job_instance) //job_instance.set_up_next_do()
             }
@@ -2209,8 +2241,9 @@ Dexter.prototype.set_link_lengths = function(job_to_start_when_done = null){
             the_robot.start_aux(job_to_start)
         }
         if(sim_actual !== true) { //get link lengths from Dexter
-            new Job({name: "set_link_lengths",
+            let ssl_job = new Job({name: "set_link_lengths",
                  robot: this,
+                 show_instructions: false,
                  when_stopped: (job_to_start ? callback : "stop"),
                  do_list: [
                     Dexter.read_file("../Defaults.make_ins", "default_content"),
@@ -2218,7 +2251,7 @@ Dexter.prototype.set_link_lengths = function(job_to_start_when_done = null){
                        if(typeof(this.user_data.default_content) == "string"){
                            this.robot.set_link_lengths_from_file_content(this.user_data.default_content)
                        }
-                       else { //no file because we got an error code integer in his.user_data.default_content
+                       else { //no file because we got an error code integer in this.user_data.default_content
                            the_robot.Link1 = Dexter.LINK1
                            the_robot.Link2 = Dexter.LINK2
                            the_robot.Link3 = Dexter.LINK3
@@ -2226,7 +2259,11 @@ Dexter.prototype.set_link_lengths = function(job_to_start_when_done = null){
                            the_robot.Link5 = Dexter.LINK5
                        }
                     }
-                 ]}).start()
+                 ]})
+            setTimeout(function(){
+                        ssl_job.start()
+                      },
+                           500)
             delete the_robot.link_lengths_set_from_dde_computer //just in case it was previously set from dde computer
         }
         else { //get link lengths from dde computer
@@ -2702,7 +2739,7 @@ Dexter.show_rs_history_get_rs_history = function(job_id){
          let new_rs_history = []
          for (let i = 0; i < rs_history.length; i++){
             let rs = rs_history[i]
-            let angles = [rs[Dexter.J1_ANGLE], rs[Dexter.J2_ANGLE], rs[Dexter.J3_ANGLE], rs[Dexter.J4_ANGLE], rs[Dexter.J5_ANGLE]]
+            let angles = [rs[Dexter.J1_MEASURED_ANGLE], rs[Dexter.J2_MEASURED_ANGLE], rs[Dexter.J3_MEASURED_ANGLE], rs[Dexter.J4_MEASURED_ANGLE], rs[Dexter.J5_MEASURED_ANGLE]]
             let a_xyz  = Kin.J_angles_to_xyz(angles, rob.pose)[0]
             new_rs_history.push(rs.concat(a_xyz))
         }
@@ -2750,13 +2787,14 @@ Dexter.make_rs_history_columns = function(rs_labels, sent_instructions){
         label  = rs_labels[i]
         width=90
         cells_renderer = null
-        if      (label == "JOB_ID")   {
+        if      (label === null) { label = "unused" }
+        else if (label == "JOB_ID")   {
             label = "<span title='The Job this instruction is in.'>JOB_ID</span>" //doesn't work. tooltip doesn't show up
-            width=60
-        }
-        else if      (label == "INSTRUCTION_ID")   {
-            label = "<div title='instruction_id'>INS_ID</div>" //doesn't work. tooltip doesn't show up
             width=70
+        }
+        else if (label == "INSTRUCTION_ID")   {
+            label = "<span title='instruction_id in the Job of JOB_ID.'>INS_ID</span>" //doesn't work. tooltip doesn't show up
+            width=80
             cells_renderer = function (row, column, value, rowData) {
                     let ins_id = parseInt(value)
                     let ins = Dexter.get_instruction_from_sent_instructions(sent_instructions, ins_id)
@@ -2774,30 +2812,34 @@ Dexter.make_rs_history_columns = function(rs_labels, sent_instructions){
                     }
         }
         else if (label == "START_TIME") {
+            label = "<span title='In milliseconds since Jan 1, 1970.'>START_TIME</span>"
             width=120
         }
         else if (label == "STOP_TIME") {
+            label = "<span title='In milliseconds since Jan 1, 1970.'>STOP_TIME</span>"
             width=120
         }
-        else if (label == "INSTRUCTION_TYPE") {
-            label = "<span title='instruction_type'>Type</span>" // setting title doesn't give tooltip
-            width=40
+        else if (label == "INSTRUCTION_TYPE") { //beware, usually this tooltip doesn't show. Maybe a jqxwidget bug?
+            label = "<span title='instruction_type, a.k.a oplet.'>Type</span>" // setting title doesn't give tooltip
+            width=54
             cells_renderer = function (row, column, value, rowData) {
                 let fn_name = Robot.instruction_type_to_function_name(value[1]) //value will be a string of 3 chars, an oplet surounded by double quots.
                 return "<div title='" + fn_name + "' style='width:100%;color:blue;'>" + value + "</div>"
             }
         }
-        else if (label == "ERROR_CODE") {
-            label = "<span title='error_code'>Error</span>" // setting title doesn't give tooltip
-            width=40
+        else if (label == "ERROR_CODE") {  //beware, usually this tooltip doesn't show. Maybe a jqxwidget bug?
+            label = "<span title='error_code. Zero means no error.'>Error</span>" // setting title doesn't give tooltip
+            width=60
         }
         else if (label.startsWith("End_Effector")) {
             width = 170
         }
         else { //other labels
-           width = Math.max(label.length, 8) * 10
+           width = (Math.max(label.length, 8) * 10)
+           if(i < 60) { width += 15 } //room for the array index number.
         }
         var pinned = (i < 3)
+        if(i < 60) { label = i + ". " + label }
         let col_obj = {text: label, dataField: i, width: width, pinned: pinned,
                         draggable: true, cellsRenderer: cells_renderer } //draggable is supposed to make the column draggable but it doesn't
         result.push(col_obj)
@@ -2865,11 +2907,10 @@ module.exports.Serial = Serial
 var Job = require("./job.js")
 var {Instruction, make_ins} = require("./instruction.js")
 Dexter.make_ins = make_ins
-var {shouldnt, warning, dde_error, date_integer_to_long_string, is_iterator, last,
-      prepend_file_message_maybe, return_first_arg, starts_with_one_of, value_of_path} = require("./utils")
+var {shouldnt, date_integer_to_long_string, is_iterator, last,
+    return_first_arg, starts_with_one_of, value_of_path} = require("./utils")
 var {file_exists, persistent_get, read_file} = require("./storage")
 var Socket = require("./socket.js")
-var {out} = require("./out.js")
 var {serial_connect, serial_disconnect, serial_send} = require("./serial.js")
 
 var Vector = require("../math/Vector")

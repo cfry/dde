@@ -2932,7 +2932,7 @@ newObject({prototype: Root.jsdb.method_call,
     params: {array_of_5_angles: Root.jsdb.literal.array.array5}
 })
 }
-var {dde_error, shouldnt, warning, compute_string_size, function_param_names_and_defaults,
+var {shouldnt, compute_string_size, function_param_names_and_defaults,
      is_literal_object, is_string_an_identifier, is_string_a_number,
      replace_substrings, value_of_path} = require("./core/utils.js")
 

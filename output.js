@@ -13,9 +13,6 @@ ipcRenderer.on('record_dde_window_size', function(event){
 });
 
 window.set_dde_window_size_to_persistent_values = function(){
-    console.log("top of set_dde_window_size_to_persistent_values " +
-                  persistent_get("dde_window_width") + " " +
-                  persistent_get("dde_window_height"))
     ipcRenderer.send('set_dde_window_size',
                         persistent_get("dde_window_x"),
                         persistent_get("dde_window_y"),
@@ -105,7 +102,7 @@ window.html_to_tag_name = html_to_tag_name
 
 //returns an array of arrays.
 // the Inner array has 2 elts, a string of the attribute name
-//and a string of the attributer value
+//and a string of the attribute value
 function html_attributes_and_values(html){
     html = html.trim()
     if (html.length < 3) { return null }
@@ -216,577 +213,6 @@ window.append_in_ui = function(path_string, new_html){
         else{ $(elt).append(new_html) }
 }
 
-window.window_index = 0
-
-window.latest_window_index = function () {
-    if(window_index === 0) { return null } //no windows have been created
-    else { return window_index - 1 }
-}
-
-var show_window_titles_to_window_index_map = {} //used by close_window, stores an array of all window_indexes for that title
-
-function set_window_index(jqxw_jq, title){
-    let the_window_index = window_index
-    jqxw_jq.attr('data-window_index', the_window_index)
-    //console.log ("setting window to index: " + the_window_index)
-    let index_arr = show_window_titles_to_window_index_map[title]
-    if (!index_arr) {
-       index_arr = [the_window_index]
-        show_window_titles_to_window_index_map[title] = index_arr
-    }
-    else { index_arr.push(the_window_index) }
-    window_index += 1
-    return the_window_index
-}
-
-
-window.set_window_index = set_window_index
-
-function is_window_shown(index){
-    let win = $('[data-window_index=' + index + ']')
-    return win.length != 0
-}
-window.is_window_shown = is_window_shown
-
-//index can be an int or a string
-function get_window_of_index(index){
-    if (index == undefined){ //risky to just get the latest created, but a good trick when I need to call some init  for a window as in combo box for app builder from ab.fill_in_action_names
-        index = window_index - 1
-    }
-    //onsole.log ("getting window of index: " + index + " with next window_index: " + window_index)
-    let win = $('[data-window_index=' + index + ']')
-    //onsole.log("get_window_of_index got win: " + win)
-    return win
-}
-window.get_window_of_index = get_window_of_index
-
-function get_index_of_window(jqxw_jq){
-    return jqxw_jq.attr('data-window_index')
-}
-window.get_index_of_window = get_index_of_window
-
-function get_jqxw_jq_of_window_containing_elt(elt){ //elt is usually a button that's inside the window
-    if (elt.tagName == "LI"){
-        var window_index = $(elt).attr("data-window_index")
-        return get_window_of_index(window_index)
-    }
-    else {
-        var window_elt = elt.closest(".show_window")
-        return $(window_elt)
-    }
-}
-window.get_jqxw_jq_of_window_containing_elt = get_jqxw_jq_of_window_containing_elt
-
-function get_window_content_of_elt(elt){
-    if (elt.tagName == "LI"){
-        var window_index = $(elt).attr("data-window_index")
-        var jqxw_jq = get_window_of_index(window_index)
-        return jqxw_jq.find(".show_window_content")
-    }
-    else {
-        return $(elt).closest(".show_window_content")
-    }
-}
-window.get_jqxw_jq_of_window_containing_elt
-
-function get_window_index_containing_elt(elt){
-    var jqxw_jq = get_jqxw_jq_of_window_containing_elt(elt)
-    return get_index_of_window(jqxw_jq)
-}
-window.get_window_index_containing_elt
-
-//esp good for a zillion human_notify show windows
-function close_all_show_windows(){
-    var wins = $('[data-window_index]')
-    if (wins.length > 0){ //note: if we try to close when there are no wins, we get an error.
-        wins.closest(".show_window").jqxWindow("close")
-    }
-}
-window.close_all_show_windows = close_all_show_windows
-
-function show_window_values(vals){
-    inspect(vals)
-}
-window.show_window_values = show_window_values
-
-window.show_window = function({content = `<input type="submit" value="Done"/>`,
-                        title = "DDE Information", width = 400, height = 400, x = 200, y = 200,
-                        resizable = true,
-                        draggable = true,
-                        background_color = "rgb(238, 238, 238)",
-                        is_modal = false,
-                        show_close_button = true,
-                        show_collapse_button = true,
-                        trim_strings = true,
-                        window_class,
-                        callback = show_window_values,
-                        close_same_titled_windows = true,
-                        init_elt_id = null} = {}){
-      //callback should be a string of the fn name or anonymous source.
-       if (close_same_titled_windows){
-           let latest_win = latest_window_of_title(title)
-           if(latest_win && latest_win.offset()){
-               x = latest_win.offset().left //user might have repositioned the old window. let's preserve that
-               y = latest_win.offset().top
-               width = latest_win.width()   //user might have resized the old window. let's preserve that
-               height = latest_win.height()
-               close_window(title)
-           }
-       }
-       if ((arguments.length > 0) && (typeof(arguments[0]) == "string")){
-         var content = arguments[0] //all the rest of the args will be bound to their defaults by the js calling method.
-       }
-       if (typeof(content) !== "string"){
-                content = stringify_value(content)
-       }
-       if (typeof(callback) == "function"){
-           let fn_name = callback.name
-           if (fn_name && (fn_name != "")) {
-                if(fn_name == "callback") { //careful, might be just JS being clever and not the ctual name in the fn def
-                    fn_name = function_name(callback.toString()) //extracts real name if any
-                    if (fn_name == "") { //nope, no actual name in fn
-                        callback = callback.toString() //get the src of the anonymous fn
-                    }
-                    else { callback = fn_name }
-                }
-                else { callback = fn_name }
-            }
-           else { callback = callback.toString() } //using the src of an annonymous fn.
-       }
-       //var the_instruction_id = null
-       //if(arguments[0]) {the_instruction_id =  arguments[0].the_instruction_id}
-        content = "<div class='show_window_content' contentEditable='false' style='font-size:15px;'>\n" +
-            "<input name='window_callback_string' type='hidden' value='" + callback + "'/>\n" +
-            "<input name='trim_strings' type='hidden' value='" + trim_strings + "'/>\n" +
-            //the next 2 are only for Human.show_window
-            (((arguments.length > 0) && (arguments[0].the_job_name)) ?
-            "<input name='the_job_name' type='hidden' value='" + arguments[0].the_job_name + "'/>\n": "") +
-            //((the_instruction_id || (the_instruction_id == 0)) ?
-            //"<input name='the_instruction_id' type='hidden' value='" + the_instruction_id + "'/>\n": "") +
-            content + "</div>" //to allow selection and copying of window content
-        //kludge but that's dom reality
-        var holder_div = document.createElement("div"); // a throw away elt
-        holder_div.innerHTML ='<div class="show_window" style="display:none;">' +
-            '<div class="window_frame" style="font-size:20px;">' + title + '</div>' + //coral #ff8c96
-            '<div style="overflow:auto; background-color:' + background_color + ';">' + content + '</div>' +
-            '</div>'
-        var window_elt = holder_div.firstElementChild
-        //body_id.appendChild(window_elt) //this is automatically done when I call jqxw_jq.jqxWindow({width:width below
-        var jqxw_jq = $(window_elt).jqxWindow({width: width,
-                                                height: height,
-                                                position: {x: x, y: y},
-                                                //autoOpen: true, //open window upon creation, always
-                                                isModal: is_modal, //default false
-                                                showCloseButton: show_close_button, //default true but may want to turn off
-                                                // IFF you want to always close the window with your own submit button and do some action whenever window closes.
-                                                //otherwise, user could click the close button and it wouldn't run user code assocaited with their own submit button.
-                                                showCollapseButton: show_collapse_button, //default true
-                                                showAnimationDuration: 500,
-                                                closeAnimationDuration: 500, //doesn't work. its always 0
-                                                collapseAnimationDuration:500,
-                                                maxHeight: 2000,
-                                                maxWidth: 2000,
-                                                resizable: resizable,
-                                                draggable: draggable
-                                                }) //default maxWidth = 800, default maxHeight=600
-        if (window_class){jqxw_jq.addClass(window_class)} //used by app_builder
-        let the_window_index = set_window_index(jqxw_jq, title)
-        jqxw_jq.on('close', function (event) { jqxw_jq.remove() }); //handles both the removal from a submit button AND the removal from usre hitting the upper right close box.
-        //jqxw_jq.find(".jqx-window-content").css("background-color", "#eeeeee")
-        jqxw_jq.css("border", "5px solid #666666") //dark gray border so that shows up against black of simulation pane
-        //jqxw_jq.children().css("background-color", "#dddddd")
-        //jqxw_jq.jqxWindow({width:width, height:height, position:{x: x, y: y}, showCloseButton: true})
-        //jqxw_jq.jqxWindow('setTitle', title);
-        //jqxw_jq.jqxWindow('setContent', content);
-        //jqxw_jq.on('created', function (event) { out("made window") });
-        jqxw_jq.jqxWindow('show'); //this is performed with creation option: autoOpen:true
-        jqxw_jq.jqxWindow('focus');
-        setTimeout(install_onclick_via_data_fns, 10) //todo probably shouldn't have both of these!
-        setTimeout(function(){install_submit_window_fns(jqxw_jq)}, 10)
-        if (init_elt_id){
-            setTimeout(function(){window[init_elt_id].click()} , 100)
-        }
-        return the_window_index //used by dex.train
-}
-
-function install_onclick_via_data_fns(){
-    var elts = document.getElementsByClassName("onclick_via_data")
-    for (var index = 0; index < elts.length; index++){ //bug in js chrome: for (var elt in elts) doesn't work here.
-        var elt = elts[index]
-        elt.onclick = onclick_via_data_fn
-    }
-}
-window.install_onclick_via_data_fns = install_onclick_via_data_fns
-
-function install_submit_window_fns(jqxw_jq){
-    var info_win_div = jqxw_jq.find(".show_window_content")
-    var ins = info_win_div.find(".clickable")
-    for (var index = 0; index < ins.length; index++){ //bug in js chrome: for (var elt in elts) doesn't work here.
-        var inp = ins[index]
-        inp.onclick = submit_window
-    }
-    var ins = info_win_div.find("input")
-    for (var index = 0; index < ins.length; index++){ //bug in js chrome: for (var elt in elts) doesn't work here.
-        var inp = ins[index]
-        if ((inp.type == "submit") || (inp.type == "button")){
-            inp.onclick = submit_window
-        }
-        else{
-            if (inp.dataset.onchange == "true") { inp.onchange = submit_window }
-            if (inp.dataset.oninput  == "true") { inp.oninput  = submit_window }
-        }
-    }
-    var ins = info_win_div.find("select")
-    for (var index = 0; index < ins.length; index++){ //bug in js chrome: for (var elt in elts) doesn't work here.
-        var inp = ins[index]
-        if (inp.dataset.onchange == "true") { inp.onchange = submit_window }
-        if (inp.dataset.oninput  == "true") { inp.oninput  = submit_window }
-    }
-    var ins = info_win_div.find("a")
-    for (var index = 0; index  < ins.length; index++){ //bug in js chrome: for (var elt in elts) doesn't work here.
-        var inp = ins[index]
-        inp.onclick = submit_window
-    }
-    var combo_boxes = jqxw_jq.find(".combo_box")  //should be a div tag a la <div class="combo_box><option>one</option><option>two</option></div>
-    for (var i = 0; i < combo_boxes.length; i++){
-        var cb = $(combo_boxes[i])
-        var kids = cb.children()
-        var choices = []
-        var sel_index = 0
-        for (var j=0; j < kids.length; j++){
-            var kid = kids[j] //could be nearly any html elt but option is a good choice.
-            choices.push(kid.innerHTML)
-            if (kid.selected) {sel_index = j}
-        }
-        if (cb[0].style && cb[0].style.width) {
-            var cb_width = cb[0].style.width
-            cb.jqxComboBox({height: '16px', source: choices, selectedIndex: sel_index, width: cb_width})
-        }
-        else{
-            cb.jqxComboBox({height: '16px', source: choices, selectedIndex: sel_index})
-        }
-    }
-    //don't do this. Just give the canvas tag (or any tag  you want to be clickable,  prop:
-    // class="clickable"
-    //let canvases = info_win_div.find("canvas")
-    //for(let canvas_elt of canvases) {
-    //  canvas_elt.onclick = submit_window
-    //}
-    var window_index = get_index_of_window(jqxw_jq)
-    var menus = jqxw_jq.find(".menu")
-    for (var i = 0; i < menus.length; i++){
-        var menu = $(menus[i])
-        var outer_lis = menu[0].children[0].children
-        if (outer_lis && outer_lis[0] && outer_lis[0].children && outer_lis[0].children[0]){
-            var inner_lis = outer_lis[0].children[0].children
-            install_menus_and_recurse(inner_lis, window_index)
-        }
-        // else we've got a menu with zero items, but for dev purposes its nice to
-        //be able to show the menu's name, and its down arrow, even if nothing under it.
-        $(menu).jqxMenu({ width: '100px', height: '25px' })
-    }
-}
-
-window.install_submit_window_fns = install_submit_window_fns
-
-function install_menus_and_recurse(inner_lis, window_index){ //the arg is li elts that *might* not be leaves
-    for(var j = 0; j < inner_lis.length; j++){
-        var inner_li = inner_lis[j]
-        inner_li.onclick = submit_window
-        $(inner_li).attr('data-window_index', window_index)//because jqx sticks these LIs outside the dom so it screws uo the normal way of looking up the dom to find it.
-        if (inner_li.children.length > 0){
-            install_menus_and_recurse(inner_li.children[0].children, window_index)
-        }
-    }
-}
-window.install_menus_and_recurse = install_menus_and_recurse
-
-
-window.submit_window = function(event){
-     // descriptions of x & y's: http://stackoverflow.com/questions/6073505/what-is-the-difference-between-screenx-y-clientx-y-and-pagex-y
-    event.stopPropagation();
-    let result = {offsetX:event.offsetX,  offsetY:event.offsetY, //relative to the elt clocked on
-                  x:event.x,              y:event.y, //relative to the parent of the elt clicked on
-                  clientX:event.clientX,  clientY:event.clientY, //Relative to the upper left edge of the content area (the viewport) of the browser window. This point does not move even if the user moves a scrollbar from within the browser.
-                  pageX:event.pageX,      pageY:event.pageY, //Relative to the top left of the fully rendered content area in the browser.
-                  screenX:event.screenX,  screenY:event.screenY, //Relative to the top left of the physical screen/monitor
-                  altKey:event.altKey,    //on mac, the option key.
-                  ctrlKey:event.ctrlKey,
-                  metaKey:event.metaKey, //on WindowsOS, the windows key, on Mac, the Command key.
-                  shiftKey:event.shiftKey,
-                  tagName:this.tagName}
-    result.window_index = get_window_index_containing_elt(this)//get_index_of_window(jsxw_jq)
-    //var jsxw_jq                 = get_jqxw_jq_of_window_containing_elt(this)
-    if (this.tagName == "LI"){ //user clicked on a menu item
-        if ($(this).attr("data-name")) {result.clicked_button_value = $(this).attr("data-name")}
-        else {result.clicked_button_value = this.innerHTML}
-    }
-    else if (this.tagName == "A"){
-        if (this.href.endsWith("#")){
-            result.clicked_button_value = this.innerHTML
-        }
-        else { //we've got a real url. The only thing to do with it is open a window, so
-            //don't even go through the handler fn, just do it.
-            var url = this.href
-            var double_slash_pos = url.indexOf("//")
-            url = url.substring(double_slash_pos + 2, url.length)
-            var single_slash_pos =  url.indexOf("/")
-            url = url.substring(single_slash_pos + 1, url.length)
-            if (!url.startsWith("http")){
-                url = "http://" + url
-            }
-            window.open(url)
-            return
-        }
-    }
-    /*else if (this.tagName == "INPUT") {
-        if ((this.type == "button") || (this.type == "submit")) { //used by the callback to chose the appropriate action
-            if(this.name)     { result.clicked_button_value = this.name   }
-            elsce if (this.id) { result.clicked_button_value = this.id     }
-            else              { result.clicked_button_value = this.value  } //this is the disolayed text in the button.
-                //but note that we *might* have 2 buttons with the same label but want them to have different actions
-                //so check name and id first because we can give them different values even if
-                //the label (value) is the same for 2 different buttons.
-                //but if we WANT the action to be the same for 2 same-valued buttons, fine
-                //give the buttons values but no name or id.
-        }
-        else { //for sliders, etc. if they have data-onchange='true' or data-onclick='true'
-            // if (this.oninput) { this.focus() } //because at least for input type="text", when
-                                               //the oninput fires, it unfocues the input elt.
-            result.clicked_button_value = this.name
-        }
-    }*/
-    else if (this.tagName == "INPUT") {
-        if(this.name)     { result.clicked_button_value = this.name   }
-        else if (this.id) { result.clicked_button_value = this.id     }
-        else              { result.clicked_button_value = this.value  } //this is the disolayed text in the button.
-        //but note that we *might* have 2 buttons with the same label but want them to have different actions
-        //so check name and id first because we can give them different values even if
-        //the label (value) is the same for 2 different buttons.
-        //but if we WANT the action to be the same for 2 same-valued buttons, fine
-        //give the buttons values but no name or id.
-    }
-    else if (this.name) { result.clicked_button_value = this.name }
-    else if (this.id)   { result.clicked_button_value = this.id }
-
-    var window_content_elt = get_window_content_of_elt(this)
-    var trim_strings_elt = window_content_elt.find("input[name|='trim_strings']")
-    var trim_strings = trim_strings_elt[0].value
-    if (trim_strings == "false") { trim_strings = false}
-    else {trim_strings = true}
-    var inputs = $(window_content_elt).find("input") //finds all the descendents of the outer div that are "input" tags
-    var window_callback_string = null
-    for (var i = 0; i < inputs.length; i++){
-        var inp = inputs[i]
-        var in_name = inp.name
-        if      (!in_name) { in_name = inp.id }
-        else if (!in_name) { in_name = inp.value }
-        var in_type      = inp.type    //text (one-liner), submit, button, radio, checkbox, etc.
-        if (in_type == "radio"){
-            if (inp.checked){
-                result[in_name] = inp.value
-            }
-            else if (result[in_name] === undefined){ //first time we've seen a radio button from this grou.
-                //make sure is val is null instead of not setting
-                //it at call because if no button was set on init,
-                //and user didn't click on one, we STILL
-                //want a field for it in the result (unlike most
-                //stupid web programming that would pretend it didn't exist.
-                //we want to see this field when debugging, etc.
-                result[in_name] = null
-            }
-        }
-        else if (in_type == "checkbox"){
-            if (in_name){
-                var val = inp.checked
-                result[in_name] = val
-            }
-        }
-        else if (in_type == "file") { result[in_name] = ((inp.files.length > 0) ?
-                                                          inp.files[0].path :
-                                                          null) }
-        else if (in_type == "submit"){}
-        else if (in_type == "button"){} //button click still causes the callback to be called, but leaves window open
-        else if (in_type == "hidden") { //trim_strings, window_callback_string, and for Human.show_instruction: the_job_name
-            var val = inp.value
-            if      (val == "false") {val = false}
-            else if (val == "true")  {val = true}
-            else if (val == "null")  {val = null}
-            else if (is_string_a_number(val)) { val = parseFloat(val) } //for "123", this will return an int
-            result[in_name] = val
-        }
-        else if (in_type == "text"){
-            if (in_name){
-                var val = inp.value
-                if (trim_strings) { val = val.trim() }
-                result[in_name] = val
-            }
-        }
-        else if ((in_type == "number") || (in_type == "range")){
-            if (in_name){
-                var val = parseFloat(inp.value.trim()) //comes in as a string. Gee why would an input of type number return a number? It would be too logical
-                if (isNaN(val)) { val = null }
-                result[in_name] = val
-            }
-        }
-        else { //all the other inputs.
-            if (in_name){
-                var val = inp.value
-                result[in_name] = val
-            }
-        }
-    }
-    var textareas = $(window_content_elt).find("textarea") //finds all the descentents of teh outer div that are "input" tags
-    for (var i = 0; i < textareas.length; i++){
-        var inp = textareas[i]
-        var in_name = inp.name
-        if (in_name){
-            var val = inp.value
-            if (trim_strings) { val = val.trim() }
-            result[in_name] = val
-            result[in_name + "_width"]  = inp.style.width //usesd by app builder to get size of input and text areas being made by the user
-            result[in_name + "_height"] = inp.style.height
-        }
-    }
-    var selects = $(window_content_elt).find("select") //finds all the descentents of teh outer div that are "input" tags
-    for (var i = 0; i < selects.length; i++){
-        var inp = selects[i]
-        var in_name = (inp.name ? inp.name : inp.id)
-        if (in_name){
-            var val = inp.value
-            result[in_name] = val
-        }
-    }
-    var combo_boxes = $(window_content_elt).find(".combo_box")  //should be a div tag a la <div class="combo_box><option>one</option><option selected="selected">two</option></div>
-    for (var i = 0; i < combo_boxes.length; i++){
-        let outer_cb = combo_boxes[i]
-        //let inner_cb = outer_cb.children[1] //not needed but this is a INPUT tag of type "text" whose value prop is the combo box prop
-        let val = $(outer_cb).val() //inner_cb.value
-        var in_name = (outer_cb.name ? outer_cb.name : outer_cb.id)
-        result[in_name] = val
-    }
-    if (this.type == "submit"){
-        //$('#jqxwindow').jqxWindow('close');
-        close_window(this)
-    }
-
-    //widget_values: result,
-    let callback_fn_string = result["window_callback_string"]
-    let cb = value_of_path(callback_fn_string)
-    if (!cb) { try { cb = window.eval("(" + callback_fn_string + ")") } //probably have an anonymous fn. Evaling it without the parent wrappers errors.
-               catch(err){ dde_error("During show_window handler, could not find: " + callback_fn_string) } //just ignore
-    }
-     //cb is probably "function () ..." ie a string of a fn src code
-    if (!cb) { //cb could have been a named fn such that wehn evaled didn't return the fn due to bad js design
-       if(callback_fn_string.startsWith("function ")){
-           let fn_name = function_name(callback_fn_string)
-           if ((typeof(fn_name) == "string") && (fn_name.length > 0)) { cb = window.fn_name }
-           else { //we've got an anonyous function source cde def
-                cb = eval("(" + callback_fn_string + ")") //need extra parens are veal will error becuase JS is wrong
-                if(typeof(cb) != "function"){
-                    dde_error("show_window got a callback that doesn't look like a function.")
-                }
-           }
-       }
-       else {
-           dde_error("In submit_window with bad format for the callback function of: " + callback_fn_string)
-       }
-    }
-    try { cb.call(null, result) }
-    catch(err){
-        let err_string
-        if (typeof(err) == "string") { err_string = err } //weiredly this DOES happen sometimes
-        else if (err.message) { err_string = err.message }
-        else { err_string = err.toString() }
-        dde_error("While calling the show_window handler function of<code>: " + cb.name + "</code>,<br/>" + err_string)
-    }
-    event.preventDefault()
-    event.stopPropagation()
-    if (this.oninput) { //work around bug in Chrome 51 June 8 2016 wherein when you have
-                        //input of type text, and using my oninput techique, the
-                        // upon a keystroke entering a char, the focus changes from the
-                        //input elt (and out of the show_window window itself back to the codemirror editor)
-                        //just setting the focus in this method doesn't do the trick, I have to
-                        //do the setTimeout below to get the focus back to the orig input elt.
-        let the_this = this;
-        setTimeout(function(){
-            if ((the_this) && the_this.ownerDocument.body.contains(the_this)){ //its possible that the win that the_this is in will be closed by the time this code is run.
-                           //happens in the case of Human.enter_instruction with immediate_do
-                the_this.focus()
-            }
-        }, 10)
-    }
-}
-
-
-//rde.hide_window = function() { $('#jqxwindow').jqxWindow('hide') }
-//called from the ui, window_title_index_or_elt can be either a window_index, window title, or elt
-//in the window
-window.close_window = function(window_title_index_or_elt){ //elt can be a window_index int
-    //var window_elt = elt.closest(".show_window")
-    //$(window_elt).jqxWindow("close")
-    // $(window_elt).remove() //done about near jqx window constructor see .on
-    if((window_title_index_or_elt === undefined) ||
-       (window_title_index_or_elt === null)){
-       window_title_index_or_elt = latest_window_index()
-    }
-    try {
-        if ((typeof(window_title_index_or_elt) == "string") &&
-             is_string_a_integer(window_title_index_or_elt)) {
-            window_title_index_or_elt = parseInt(window_title_index_or_elt)
-        }
-        if (typeof(window_title_index_or_elt) == "string") {
-            close_windows_of_title(window_title_index_or_elt)
-        }
-        else if (typeof(window_title_index_or_elt) == "number"){ //ie a window_index
-            let win = get_window_of_index(window_title_index_or_elt)
-            win.jqxWindow("close")
-            remove_window_index_from_show_window_titles_to_window_index_map(window_title_index_or_elt)
-        }
-        else {
-            let win_ind = get_window_index_containing_elt(window_title_index_or_elt)
-            remove_window_index_from_show_window_titles_to_window_index_map(win_ind)
-            get_jqxw_jq_of_window_containing_elt(window_title_index_or_elt).jqxWindow("close")
-        }
-    }
-    catch(err) { warning("DDE unable to close the window specified in: " + window_title_index_or_elt +
-                         "<br/>Perhaps its already closed.")
-    }
-}
-
-function remove_window_index_from_show_window_titles_to_window_index_map(win_ind){
-    for(let title in show_window_titles_to_window_index_map){
-        let arr = show_window_titles_to_window_index_map[title]
-        let arr_ind = arr.indexOf(win_ind)
-        if (arr_ind >= 0) {
-            if (arr.length == 1) {
-                delete show_window_titles_to_window_index_map[title]
-            }
-            else { delete arr[arr_ind] }
-            return
-        }
-    }
-}
-
-function close_windows_of_title(title){
-    let win_inds = show_window_titles_to_window_index_map[title]
-    for (let win_ind of win_inds){
-        let win = get_window_of_index(win_ind)
-        if (win) { try { win.jqxWindow("close") }
-                   catch(err) {} //might have already been closed
-        }
-    }
-    delete show_window_titles_to_window_index_map[title]
-}
-
-function latest_window_of_title(title){
-    let win_inds = show_window_titles_to_window_index_map[title]
-    if(win_inds) {
-       let last_win_ind = last(win_inds)
-       return get_window_of_index(last_win_ind)
-    }
-    else { return null }
-}
 
 //___________SOUND__________
 //speak now in out.js (sep 10, 2019)
@@ -842,9 +268,9 @@ function init_recognize_speech(){
     
     recognition.onend    = function(event) {
         //out('recognize_speech top of onend');
-        if (recognize_speech_only_once) { close_window(recognize_speech_window_index) }
+        if (recognize_speech_only_once) { SW.close_window(recognize_speech_window_index) }
         else if (recognize_speech_last_text == recognize_speech_finish_phrase){
-            close_window(recognize_speech_window_index)
+            Sw.close_window(recognize_speech_window_index)
             if (recognize_speech_finish_callback){
                 recognize_speech_finish_callback(recognize_speech_finish_array)
             }
@@ -930,8 +356,6 @@ window.start_recognition = start_recognition
     const Speech = require('@google-cloud/speech'); // Imports the Google Cloud client library
     //const speech = Speech() // Instantiates a client
     const my_path = adjust_path_to_os(__dirname + '/dexter-dev-env-code.json')
-    console.log("my_path is" +
-        ":" + my_path)
     const speech = Speech({
         projectId: 'dexter-dev-env',
         keyFilename: my_path
@@ -958,43 +382,12 @@ window.start_recognition = start_recognition
         sampleRate: 16000,
         threshold: 0
     }).pipe(recognizeStream);
-    console.log('Listening, press Ctrl+C to stop.');
 }
 
 window.streamingMicRecognize = streamingMicRecognize
 */
 
-function beeps(times=1, callback){
-    if (times == 0){
-        if (callback){
-            callback.call()
-        }
-    }
-    else if (times > 0){
-        beep()
-        setTimeout(function(){beeps(times -1, callback)}, 1000)
-    }
-}
-window.beeps = beeps
 
-window.audioCtx = new window.AudioContext()
-
-function beep({dur = 0.5, frequency = 440, volume = 1, waveform = "triangle", callback = null}={}){
-    var oscillator = audioCtx.createOscillator();
-    var gainNode = audioCtx.createGain();
-
-    oscillator.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
-
-    if (volume){gainNode.gain.value = volume;};
-    if (frequency){oscillator.frequency.value = frequency;}
-    if (waveform){oscillator.type = waveform;}
-    if (callback){oscillator.onended = callback;}
-
-    oscillator.start();
-    setTimeout(function(){oscillator.stop()}, dur * 1000);
-}
-window.beep = beep
 
 /* a too low volume beep but has a nice tone and "echo" effect.
  //from: http://stackoverflow.com/questions/879152/how-do-i-make-javascript-beep
@@ -1051,7 +444,6 @@ function get_page(url, callback=out, error_callback=get_page_error_callback){//i
 
                     }
                 }).then(function(text){
-                //console.log("in 2nd then")
                 //out("in 2nd then")
                 //out(text)
                 cbr.perform_callback(callback, text)
@@ -1079,7 +471,6 @@ function get_page_async(url_or_options, callback){
         //https://www.npmjs.com/package/request documents reqeust
         //as taking args of (options, cb) but the actual
         //fn itself has params(uri, options, cb)
-        //request(url_or_options, callback) //function(error, response, body){console.log(body)}
         var the_url
         var the_options
         request(url_or_options, callback)
@@ -1298,11 +689,11 @@ window.insert_color = insert_color
     obj.y = obj.y + persistent_get("dde_window_y")
     console.log(obj)
     let return_val = ipcRenderer.sendSync('prompt', obj)
-    console.log("return_val")
-    console.log(return_val)
+
     return return_val
 }*/
 
 var {persistent_get, persistent_set} = require("./core/storage")
-var {warning, function_name, is_string_a_integer, is_string_a_number, starts_with_one_of,
+var {function_name, is_string_a_integer, is_string_a_number, starts_with_one_of,
     stringify_value, value_of_path} = require("./core/utils.js")
+var {write_to_stdout} = require("./core/stdio.js")

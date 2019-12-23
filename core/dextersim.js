@@ -515,7 +515,6 @@ DexterSim.set_interval_id      = null
 module.exports = DexterSim
 
 var {Robot, Dexter} = require("./robot.js")
-var {out}           = require("./out.js")
 var Socket          = require("./socket.js")
 var {Instruction}   = require("./instruction.js")
 var {shouldnt}      = require("./utils.js")

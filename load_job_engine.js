@@ -13,7 +13,7 @@ var {serial_port_init, serial_path_to_info_map, serial_devices, serial_connect_l
     serial_disconnect_all} = require("./core/serial.js")
 
 
-var {dde_error, warning, shouldnt, array_to_csv, csv_to_array, Duration, flatten, fn_is_keyword_fn, format_number,
+var {shouldnt, array_to_csv, csv_to_array, Duration, flatten, fn_is_keyword_fn, format_number,
     is_array_of_numbers, make_ins_arrays,
     ordinal_string, patch_until, return_first_arg, same_elts, show_string_char_codes, trim_comments_from_front,
     version_equal, version_less_than, version_more_than, dde_version_between} = require("./core/utils.js")
@@ -30,8 +30,9 @@ var {deg_c_to_c, deg_c_to_f, deg_f_to_c,
      deg_c_to_k, deg_k_to_c,
      deg_k_to_f, deg_f_to_k, } = require("./core/units.js")
 
-
-var {out, speak} = require("./core/out.js")
+//require('./core/je_and_browser_code.js') //don't set SW, just load
+//load_files(__dirname + "/core/je_and_browser_code.js") //must be before loading out.js
+var {speak, show_window, beeps, beep} = require("./core/out.js")
 
 var {DXF} = require("./math/DXF.js")
 
@@ -47,6 +48,10 @@ var {Control} = require('./core/instruction_control.js')
 var {IO} = require('./core/instruction_io.js')
 var Job  = require('./core/job.js')
 var {linux_error_message} = require('./core/linux_error_message.js')
+
+var keep_alive_value = true //only really used by node-browser,
+   //but effectively, dde, always has keep_alive_value true.
+   //this should never actually be read by dde.
 
 
 

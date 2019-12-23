@@ -226,7 +226,17 @@
             if(full_src.length > 0){
                 let pos = event.target.selectionStart
                 if(pos < (full_src.length - 1)){
-                    onclick_for_click_help(event)
+                    if(cmd_lang_id.value == "SSH"){
+                        let space_pos = full_src.indexOf(" ")
+                        if((space_pos == -1) || (pos < space_pos)){
+                            onclick_for_click_help(event)
+                        }
+                        //else don't do click help because clicking on the args of a bash cmd
+                        //doesn't yield meaningful man help
+                    }
+                    else { //JS
+                        onclick_for_click_help(event)
+                    }
                 }
                 //else don't give help if clicking at very end.
                 //because often that is to edit the cmd and if
@@ -460,39 +470,39 @@ window_options_id.onclick=function(){Editor.insert('//show_window  Window Option
                                                      'show_window({\n' +
                                                               '    content: "hi",      // Any HTML OK here.\n' +
                                                               '    title: "Greetings", // Appears above the content. Any HTML OK.\n' +
-                                                              '    width: 150, // 100 to window.outerWidth\n' +
+                                                              '    width: 180, // 100 to window.outerWidth\n' +
                                                               '    height: 70, //  50 to window.outerHeight\n' +
                                                               "    x: 0,       // Distance from left of DDE window to this window's left\n" +
                                                               "    y: 100,     // Distance from top  of DDE window to this window's top\n" +
                                                               '    is_modal: false, // If true, prevents you from interacting with other windows. Default false.\n' +
                                                               '    show_close_button: true,    // Default true.\n' +
                                                               '    show_collapse_button: true, // Allow quick shrink of window. Default true.\n' +
+                                                              '    resizable: true,            // Drag lower right corner to change dialog size.\n' +
+                                                              '    draggable: true,            // Mouse down and drag on title bar to move dialog.\n' +
                                                               '    trim_strings: true,         // Remove whitespace from beginning and end of values from inputs of type text and texareas. Default true.\n' +
                                                               '    background_color: "ivory"   // Default is "rgb(238, 238, 238)" (light gray). White is "rgb(255, 255, 255)"\n' +
                                                               '})\n')}
     window_buttons_id.onclick=function(){Editor.insert(
-`//show_window  Buttons  
-//Called when a button is clicked in the shown window.
+`//show_window  Buttons  Example
+//The below function is called when a button is clicked in the shown window.
 function count_up(vals){ //vals contains name-value pairs for each
                          //html elt in show_window's content with a name.
     if(vals.clicked_button_value == "Count"){ // Clicked button value holds the name of the clicked button.
         if(window.demo_counter == undefined) { 
-            window.demo_counter = 6           // Initialize the demo_counter global variable.
+            window.demo_counter = 10           // Initialize the demo_counter global variable.
         }
         window.demo_counter = window.demo_counter + 1 // Increment demo_counter upon each button click.
-        dex.set_in_window(vals.window_index, "count_display", "innerHTML",       window.demo_counter + "")   // Display counter. Doesn't need count_id
-        dex.set_in_window(vals.window_index, "count_display", "style.font-size", window.demo_counter + "px") // Increments font size.
-        //Below, a more general alterative to the above line. Uses id, not name
-        //set_in_ui("count_id.style.font-size", window.demo_counter + "px")
+        count_id.innerHTML = window.demo_counter
+        count_id.style["font-size"] = demo_counter + "px"
     }
-    else if (vals.clicked_button_value == "Done"){   // When a 'submit' button is clicked, its 'value' is used as its name.
+    else if (vals.clicked_button_value == "Done"){   // When a 'submit' button is clicked, its 'value' can be used as its name.
         out("outta here at: " + window.demo_counter) // Last thing printed to the Output pane.
     }
 }\n` +
 'show_window({\n' +
 '    content:\n' +
 '`<input type="button" value="Count"/> <!-- Regular button. Does not close window.-->\n' +
-' <span  name="count_display" id="count_id">6</span><br/><br/>\n' +
+' <span  name="count_display" id="count_id">10</span><br/><br/>\n' +
 ' <input type="submit" value="Done"/>`, // submit button closes window\n' +
 '    callback: count_up})      // This function called when either button is clicked.\n'
 )}
@@ -535,8 +545,8 @@ show_window({content: ` + "`" + show_window_menu_body + "`," +
 `)}
 
     window_many_inputs_id.onclick=function(){Editor.insert(
-`//show_window   Many Inputs
-//Called only when a button is clicked.
+`//show_window   Many Inputs Example.
+//show_vals called only when a button is clicked.
 function show_vals(vals){ inspect(vals) }
 
 show_window(
@@ -561,7 +571,7 @@ select: <select name="size">
     <option selected="selected">Ginormace</option> <!--the inital value-->
     <option>Gilossal</option>
 </select><br/>
-combo_box: <div name="my_combo_box" class="combo_box" style="display:inline-block;vertical-align:middle;">
+combo_box: <div id="my_combo_box" class="combo_box" style="display:inline-block;vertical-align:middle;"> <!-- Can't use 'name' attribute. Must use 'id'. -->
         <option>one</option>
         <option selected="selected">two</option>
 </div><br/>
@@ -602,30 +612,30 @@ submit: <input type="submit" value="OK"/>` + "`" +
 */
 `
      var window_onchange_content =
-`Text input with <samp>data-onchange='true'</samp>
-        calls the callback when user clicks on another input.<br/>
+`Text input with <samp>data-onchange='true'</samp> calls the callback<br/>
+    when user clicks on another input.<br/>
     <input type="text"  name="my_onchange_text"  value="33"  min="0" max="100"
     data-onchange='true'/>
         <hr/>
-        Text input with <samp>data-oninput='true'</samp>
-        calls the callback after each keystroke entering text.<br/>
+        Text input with <samp>data-oninput='true'</samp> calls the callback<br/>
+        after each keystroke entering text.<br/>
     <input type="text" name="my_oninput_text" value="33"  min="0" max="100"
     data-oninput='true'/>
         <hr/>
 
-        Range "slider" with <samp>data-onchange='true'</samp>
-        calls the callback after user stops moving the slider.<br/>
+        Range "slider" with <samp>data-onchange='true'</samp> calls the callback<br/>
+        after user stops moving the slider.<br/>
     <input type="range"  name="my_onchange_range"  value="33"  min="0" max="100"
     data-onchange='true'/><br/>
         <hr/>
-        Range "slider" with <samp>data-oninput='true'</samp>
-        calls the callback often as user moves the slider.<br/>
+        Range "slider" with <samp>data-oninput='true'</samp> calls the callback<br/>
+        often as user moves the slider.<br/>
     <input type="range"  name="my_oninput_range"  value="33"  min="0" max="100"
     data-oninput='true'/>
-        <hr/>
-        
-        Radio button group input with each input having <samp>data-onchange='true'</samp>
-        calls the callback once whenever one radio button is clicked.<br/>
+        <hr/>      
+        Radio button group input with each input having<br/>
+        <samp>data-onchange='true'</samp> calls the callback<br/>
+        whenever a radio button is clicked.<br/>
     <input type="radio" name="my_radio_group" value="abs"    data-onchange="true"/>ABS
         <input type="radio" name="my_radio_group" value="carbon" data-onchange="true"/>Carbon Fiber
     <input type="radio" name="my_radio_group" value="pla"    data-onchange="true" checked="checked"/>PLA
@@ -640,7 +650,8 @@ show_window({content:
 `       + "`" +
         window_onchange_content + "`" +
 `,           title: "show_window onchange & oninput",
-             height: 440, x: 500, y: 100, callback: the_cb})
+             width: 440, height: 440, x: 500, y: 100, 
+             callback: the_cb})
 ` )}
     window_svg_id.onclick=function(){Editor.insert(
 `//SVG Example 1: lots of shapes
@@ -659,7 +670,7 @@ function handle1(arg) {
 
 show_window({
     title: "SVG Example 1: Lots of shapes. Click to interact",
-    content: svg_svg({id: "svg_id", height: 500, width: 500, html_class: "clickable", child_elements: 
+    content: svg_svg({id: "svg_id", height: 300, width: 500, html_class: "clickable", child_elements: 
        [//svg_rect({id: "background_id", html_class: "clickable", style:"position: relative; top: 0; right: 0; x: 0, y: 0, width: 500, height: 500, color: "white", border_width: 3, border_color: "yellow"}),
         svg_circle({id: "circ_id", html_class: "clickable", cx: 20, cy: 20, r: 30, color: "purple"}),  
         svg_ellipse({id: "ellip_id", html_class: "clickable", cx: 270, cy: 50, rx: 60, ry: 30, color: "orange"}),
@@ -670,7 +681,7 @@ show_window({
         svg_text({text: "this is a really long string", x: 50, y: 50, size: 30, color: "red", border_width: 2, border_color: "black", style: 'font-weight:bold;'}),
         svg_html({html: "<i style='font-size:30px;'>yikes</i>", x: 60, y: 100})
                       ]}),
-    width: 600, // window width
+    width: 610,  // window width
     height: 200, // window height
     x: 0,        // Distance from left of DDE window to this window's left
     y: 100,      // Distance from top  of DDE window to this window's top
@@ -722,12 +733,11 @@ function handle3 (vals){
 
 show_window({
     title: "SVG Example 3: Click to draw lines",
-    content: svg_svg({id: "s3_id", width: 400, height: 400, html_class: "clickable",
+    content: svg_svg({id: "s3_id", width: 400, height: 350, html_class: "clickable",
                       child_elements: [
                           svg_rect({x: 100, y: 100, width: 200, height: 50, color: "yellow"})
            ]}),
-    x: 620,
-    y: 100,
+    width: 470, x: 620, y: 100,
     callback: handle3
 })
 `)}
@@ -775,7 +785,7 @@ show_window({
         open_doc("Picture.mats_similarity_by_color_doc_id")
     }
 
-    window_close_all_id.onclick=close_all_show_windows
+    window_close_all_id.onclick=function(){ SW.close_all_show_windows() }
 
     machine_vision_help_id.onclick = function(){open_doc(machine_vision_doc_id)}
 
@@ -1223,14 +1233,24 @@ foo      //eval to see the latest values</pre>`,
         cmd_input_id.value = "date"
         SSH.run_command({command:"date"})
     }
+    ssh_find_id.onclick = function(){
+        out("<i>SSH <b>find</b> from / takes about 10 seconds.<br/>" +
+            "The <b>-iname</b> option makes <b>find</b> case-insensitive,<br/>" +
+            "whereas <b>-name</b> makes it case-sensitive.</i>")
+        cmd_input_id.value = 'find / -iname "*partial_file_name_here*" -print'
+        cmd_input_id.focus()
+    }
     make_directory_id.onclick = function(){
         cmd_input_id.value = "mkdir " + SSH.dir_for_ls + "/[new dir name]"
+        cmd_input_id.focus()
     }
     make_file_id.onclick = function(){
             cmd_input_id.value = "touch " + SSH.dir_for_ls + "/[new file name]"
+        cmd_input_id.focus()
     }
     man_id.onclick = function(){
         cmd_input_id.value = "man -P cat [cmd name]"
+        cmd_input_id.focus()
     }
     pwd_id.onclick = function(){
         cmd_input_id.value = "pwd"
@@ -1240,7 +1260,10 @@ foo      //eval to see the latest values</pre>`,
         cmd_input_id.value = SSH.show_dir_cmd
         SSH.run_command({command:SSH.show_dir_cmd})
     }
-    reboot_id.onclick = function() { cmd_input_id.value = "shutdown -r now" }
+    reboot_id.onclick = function() {
+        cmd_input_id.value = "shutdown -r now"
+        cmd_input_id.focus()
+    }
     run_selected_cmd_id.onclick = function(){
         let cmds = Editor.get_javascript("auto").trim()
         if(cmds == ""){
@@ -1302,7 +1325,7 @@ foo      //eval to see the latest values</pre>`,
                                  }
     go_id.onclick                 = Job.go
 
-    misc_pane_menu_id.onchange            = misc_pane_menu_changed
+    misc_pane_menu_id.oninput            = misc_pane_menu_changed
 
 
     font_size_id.onclick = function(){
@@ -1389,7 +1412,7 @@ foo      //eval to see the latest values</pre>`,
      help_system_id.onclick = function(){ open_doc(help_system_doc_id) }
      MakeInstruction.show(undefined, false) //needs to be after loading dde_init.js so that we'll have dexter0 defined, at least.
                                             //undefined lets
-     setTimeout(check_for_latest_release, 100)
+     setTimeout(check_for_latest_release, 200)
 }
 function set_left_panel_width(width=700){
     $('#outer_splitter').jqxSplitter({ panels: [{ size: width }] })
@@ -1456,7 +1479,7 @@ function email_bug_report(){
 }
 const {google} = require('googleapis');
 
-var {out, get_output, clear_output} = require("./core/out.js")
+var {get_output} = require("./core/out.js")
 //var {Root} = require("./core/object_system.js") //should work but doesn't jan 13, 2019
 var {convert_backslashes_to_slashes} = require("./core/storage.js")
 var Coor  = require("./math/Coor.js")
@@ -1464,7 +1487,7 @@ var calibrate_build_tables = require("./low_level_dexter/calibrate_build_tables.
 var Job   = require("./core/job.js")
 var Gcode = require("./core/gcode.js")
 var DXF   = require("./math/DXF.js")
-var {dde_error, warning, date_to_mmm_dd_yyyy, is_digit} = require("./core/utils.js")
+var {date_to_mmm_dd_yyyy, is_digit} = require("./core/utils.js")
 
 
 

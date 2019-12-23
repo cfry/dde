@@ -1,3 +1,4 @@
+
 function run_instruction_move_all_joints_args_string(vals, relative=false){
     let result = ""
     for(let j = 1; j <= 7; j++){
@@ -59,7 +60,7 @@ function handle_run_instruction(vals){
         instr_src = "Dexter.move_all_joints_relative(" + arg + ")"
     }
     else if (vals.clicked_button_value == "set_parameter"){
-        instr_src = 'Dexter.set_parameter("' + vals.set_param_name + '", ' + vals.set_param_value + ")"
+        instr_src = 'Dexter.set_parameter("' + vals.set_param_name_id + '", ' + vals.set_param_value + ")"
     }
     else if (vals.clicked_button_value == "dexter_instructions_id"){
         const sel_instr_name = vals.dexter_instructions_id
@@ -82,7 +83,7 @@ function handle_run_instruction(vals){
             instr_src = "Dexter.move_all_joints_relative(" + arg + ")"
         }
         else if(sel_instr_name == "Dexter.set_parameter"){
-            instr_src = 'Dexter.set_parameter("' + vals.set_param_name + '", ' + vals.set_param_value + ")"
+            instr_src = 'Dexter.set_parameter("' + vals.set_param_name_id + '", ' + vals.set_param_value + ")"
         }
         else {
             instr_src = vals.dexter_instructions_id + "(" + ")"
@@ -171,7 +172,7 @@ function make_modes_select_html(){
 }
 
 function make_set_parameter_name_html(){
-    let result = '<div name="set_param_name" class="combo_box" style="display:inline-block;vertical-align:middle;width:130px;">'
+    let result = '<div id="set_param_name_id" class="combo_box" style="display:inline-block;vertical-align:middle;width:130px;">'
     for(let param_name of Series.id_to_series("series_set_parameter_name_id").array){
         result += "<option>" + param_name + "</option>"
     }
@@ -347,5 +348,5 @@ make_robots_select_html() +
   if (sel_text.length > 0) { run_src_id.value = sel_text }
 }
 
-var {warning, function_params, trim_all, value_of_path} = require("./core/utils.js")
+var {function_params, trim_all, value_of_path} = require("./core/utils.js")
 

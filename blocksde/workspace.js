@@ -349,5 +349,5 @@ Workspace.suck_left_margin = 20 //if a block is dropped with its x of <= this, t
 Workspace.floating_typein_x = 0
 Workspace.floating_typein_y = 0
 
-var {shouldnt, warning, is_string_an_identifier, is_string_a_path, value_of_path} = require("./core/utils.js")
+var {shouldnt, is_string_an_identifier, is_string_a_path, value_of_path} = require("./core/utils.js")
 

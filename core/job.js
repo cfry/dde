@@ -80,6 +80,7 @@ class Job{
                             initial_instruction: initial_instruction,
                             data_array_transformer: data_array_transformer,
                             start_if_robot_busy: start_if_robot_busy,
+                            if_error: if_error,
                             when_stopped: when_stopped,
                             callback_param: callback_param}
         //setup name
@@ -114,7 +115,9 @@ class Job{
         Job.remember_job_name(this.name)
         this.status_code       = "not_started" //see Job.status_codes for the legal values
         this.add_job_button_maybe()
-        this.color_job_button()
+        if(window.platform == "dde"){
+             this.color_job_button()
+        }
     }
     } //end constructor
 
@@ -128,14 +131,20 @@ class Job{
 
     static class_init(){ //inits the Job class as a whole. called by ready
         this.job_default_params =
-               {name: null, robot: Robot.dexter0, do_list: [],
-                keep_history: true, show_instructions: true,
-                inter_do_item_dur: 0.01, user_data:{},
+               {name: null,
+                robot: Robot.dexter0,
+                do_list: [],
+                keep_history: true,
+                show_instructions: true,
+                inter_do_item_dur: 0.01,
+                user_data:{},
                 default_workspace_pose: Coor.Table, //null, //error on loading DDE if I use: Coor.Table, so we init this in Job.constructor
-                program_counter:0, ending_program_counter:"end",
+                program_counter:0,
+                ending_program_counter:"end",
                 initial_instruction: null,
                 data_array_transformer: "P",
                 start_if_robot_busy: false,
+                if_error: Job.prototype.if_error_default,
                 when_stopped: "stop", //also can be "wait" or a fn
                 callback_param: "start_object_callback"}
     }
@@ -161,6 +170,7 @@ class Job{
     toString() { return "Job." + this.name }
 
     show_progress_maybe(){
+        //out("top of show_progress_maybe for job: " + this.name + " of: " + this.show_instructions)
         if(this.show_instructions === true) { this.show_progress() }
         else if(typeof(this.show_instructions) === "function") {
             this.show_instructions.call(this)
@@ -169,6 +179,7 @@ class Job{
     }
 
     show_progress(){
+        //out("top of show_progress for job: " + this.name + " of: " + this.show_instructions)
         var html_id = this.name + this.start_time.getTime()
         var cur_instr = this.current_instruction()
         if (this.program_counter >= this.do_list.length) { cur_instr = "Done." }
@@ -184,6 +195,7 @@ class Job{
     }
 
     show_progress_and_user_data(){
+        //out("top of show_progress_and_user_data for job: " + this.name + " of: " + this.show_instructions)
         var html_id = this.name + this.start_time.getTime()
         var cur_instr = this.current_instruction()
         if (this.program_counter >= this.do_list.length) { cur_instr = "Done." }
@@ -234,10 +246,16 @@ class Job{
     static define_and_start_job(job_file_path){
         let job_instances = Job.instances_in_file(job_file_path)
         if(job_instances.length == 0) {
-            console.log("Could not find a Job definition in the file: " + job_file_path)
-            return
+            warning("Could not find a Job definition in the file: " + job_file_path)
+            if((platform === "node") && !window.keep_alive_value){
+                warning("Closing the process of loading: " + job_file_path +
+                        "<br/>If you want to keep the process up,<br/>check <b>keep_alive</b> before clicking the Job button.")
+                close_readline() //causes the process running this job to finish.
+            }
         }
-        job_instances[0].start()
+        else {
+            job_instances[0].start()
+        }
     }
 
     static start_and_monitor_dexter_job(job_src){
@@ -292,11 +310,6 @@ class Job{
         }
     }
 
-    //a job that, when passed to start_and_monitor_dexter_job, will start the job
-    //in "path" (on Dexter). The job specified by the path will be run on Dexter
-    generate_run_dexter_job(path){
-
-    }
 
     //Called by user to start the job and "reinitialize" a stopped job
     start(options={}){  //sent_from_job = null
@@ -432,8 +445,6 @@ class Job{
             }
             Job.last_job           = this
             this.go_state          = true
-            //this.init_show_instructions()
-            //out("Starting job: " + this.name + " ...")
             this.show_progress_maybe()
             this.robot.start(this) //the only call to robot.start
             return this
@@ -634,7 +645,7 @@ class Job{
                     if(but_elt.title.includes("Make Instruction")) { job_instance.stop_for_reason("interrupted", "User stopped job.") }
                     else { job_instance.unsuspend() }
                 }
-                else if (job_instance.user_data.stop_job_running_on_dexter !== undefined) { //ie this job is MONINTORING a job running on Dexter
+                else if (job_instance.user_data.stop_job_running_on_dexter !== undefined) { //ie this job is MONITORING a job running on Dexter
                     if (job_instance.user_data.stop_job_running_on_dexter === false){
                         job_instance.user_data.stop_job_running_on_dexter = true
                         job_instance.color_job_button()
@@ -659,6 +670,46 @@ class Job{
             this.color_job_button()
         }
       }
+      else { //node
+          this.color_job_button() //sends out the lit obj for a new button
+      }
+    }
+    static extract_job_name_from_file_path(file_path){
+        let job_name_start_pos = file_path.lastIndexOf("/")
+        if (job_name_start_pos == -1) { job_name_start_pos = 0 }
+        else { job_name_start_pos += 1 } //move to after the slash
+        let job_name_end_pos = file_path.lastIndexOf(".")
+        if(job_name_end_pos == -1) { job_name_end_pos = file_path.length }
+        let job_name = file_path.substring(job_name_start_pos, job_name_end_pos)
+        return job_name
+    }
+    //called by httpd.js when keep_alive_value == true
+        static maybe_define_and_server_job_button_click(job_file_path){
+        let job_name = Job.extract_job_name_from_file_path(job_file_path)
+        let job_instance = Job[job_name]
+        if(job_instance) {
+            job_instance.server_job_button_click() //might bre first time starting job, or stopping running job, or 2nd time starting
+        }
+        else { //no defined job of that name, so load its file and start it.
+           Job.define_and_start_job(job_file_path) //starts first Job in file,
+           //regardless of its name, but we still expect it to be named the job_name,
+           //otherwise, if the job is running, we load it again and redefine it while
+           //its running! Not good.
+        }
+    }
+    //similar to the add_job_button_maybe inner job button click function
+    server_job_button_click(){
+        let job_instance = this
+        if (job_instance.status_code == "suspended"){
+           job_instance.unsuspend()
+        }
+        else if(job_instance.is_active()){
+            if (job_instance.robot instanceof Dexter) { job_instance.robot.empty_instruction_queue_now() }
+            job_instance.stop_for_reason("interrupted", "User stopped job", false)
+        }
+        else {
+            job_instance.start()
+        }
     }
 
     remove_job_button(){
@@ -669,102 +720,107 @@ class Job{
     }
 
     color_job_button(){
+        let bg_color = null
+        let tooltip  = ""
+        switch(this.status_code){
+            case "not_started":
+                bg_color = "rgb(204, 204, 204)";
+                tooltip  = "This Job has not been started since it was defined.\nClick to start this Job."
+                break; //defined but never started.
+            case "starting":
+                bg_color = "rgb(210, 255, 190)";
+                tooltip  = "This Job is in the process of starting.\nClick to stop it."
+                break;
+            case "running":
+                if((this.when_stopped    == "wait") &&
+                   (this.program_counter == this.instruction_location_to_id(this.ending_program_counter))) {
+                    bg_color = "rgb(255, 255, 102)"; //pale yellow
+                    tooltip  = 'This Job is waiting for a new last instruction\nbecause it has when_stopped="wait".\nClick to stop this job.'
+                }
+                else if(this.user_data.stop_job_running_on_dexter === true) {
+                    bg_color = "#ffcdb7" //pale orange
+                    tooltip  = "This job is in the process of stopping"
+                }
+                else {
+                    const cur_ins = this.do_list[this.program_counter]
+                    if (Instruction.is_oplet_array(cur_ins)){
+                        const oplet   = cur_ins[Dexter.INSTRUCTION_TYPE]
+                        if(oplet == "z") {
+                            bg_color = "rgb(255, 255, 102)"; //pale yellow
+                            tooltip  = "Now running 'sleep' instruction " + this.program_counter + "."
+                            break;
+                        }
+                    }
+                    bg_color = "rgb(136, 255, 136)";
+                    tooltip  = "This Job is running instruction " + this.program_counter +
+                               ".\nClick to stop this job."
+                }
+                break;
+            case "suspended":
+                bg_color = "rgb(255, 255, 17)"; //bright yellow
+                if(this.wait_reason.includes("Make Instruction")){
+                    tooltip  = "This Job is suspended at instruction: " + this.program_counter +
+                               " because\n" +
+                               this.wait_reason + "\n" +
+                               "To stop this Job, click this button."
+                }
+                else {
+                    tooltip  = "This Job is suspended at instruction: " + this.program_counter +
+                               " because\n" +
+                               this.wait_reason + "\n" +
+                               "Click to unsuspend it.\nAfter it is running, you can click to stop it."
+                }
+                break; //yellow
+            case "waiting":
+                bg_color = "rgb(255, 255, 102)"; //pale yellow
+                tooltip  = "This Job is at instruction " + this.program_counter +
+                            " waiting for:\n" + this.wait_reason + "\nClick to stop this job."
+                break; //yellow
+            case "completed":
+                if((this.program_counter === this.do_list.length) &&
+                    (this.when_stopped === "wait")){
+                    bg_color = "rgb(255, 255, 102)"; //pale yellow
+                    tooltip  = 'This Job is waiting for a new last instruction\nbecause it has when_stopped="wait".\nClick to stop this job.'
+                }
+                else {
+                    bg_color = "rgb(230, 179, 255)" // purple. blues best:"#66ccff"  "#33bbff" too dark  //"#99d3ff" too light
+                    tooltip  = "This Job has successfully completed.\nClick to restart it."
+                }
+                break;
+            case "errored":
+                bg_color = "rgb(255, 68, 68)";
+                let reason = this.stop_reason
+                reason = replace_substrings(reason, "<br/>", "\n")
+                tooltip  = "This Job errored at instruction: " + this.program_counter +
+                " with:\n" + reason + "\nClick to restart this Job."
+                break;
+            case "interrupted":
+                bg_color = "rgb(255, 123, 0)"; //orange
+                tooltip  = "This Job was interrupted at instruction " + this.program_counter +
+                " by:\n" + this.stop_reason + "\nClick to restart this Job."
+                break;
+        }
         if(window.platform == "dde"){
             const but_elt = this.get_job_button()
             if(!but_elt){ return }
-            let bg_color = null
-            let tooltip  = ""
-            switch(this.status_code){
-                case "not_started":
-                    bg_color = "rgb(204, 204, 204)";
-                    tooltip  = "This Job has not been started since it was defined.\nClick to start this Job."
-                    break; //defined but never started.
-                case "starting":
-                    bg_color = "rgb(210, 255, 190)";
-                    tooltip  = "This Job is in the process of starting.\nClick to stop it."
-                    break;
-                case "running":
-                    if((this.when_stopped    == "wait") &&
-                       (this.program_counter == this.instruction_location_to_id(this.ending_program_counter))) {
-                        bg_color = "rgb(255, 255, 102)"; //pale yellow
-                        tooltip  = 'This Job is waiting for a new last instruction\nbecause it has when_stopped="wait".\nClick to stop this job.'
-                    }
-                    else if(this.user_data.stop_job_running_on_dexter === true) {
-                        bg_color = "#ffcdb7" //pale orange
-                        tooltip  = "This job is in the process of stopping"
-                    }
-                    else {
-                        const cur_ins = this.do_list[this.program_counter]
-                        if (Instruction.is_oplet_array(cur_ins)){
-                            const oplet   = cur_ins[Dexter.INSTRUCTION_TYPE]
-                            if(oplet == "z") {
-                                bg_color = "rgb(255, 255, 102)"; //pale yellow
-                                tooltip  = "Now running 'sleep' instruction " + this.program_counter + "."
-                                break;
-                            }
-                        }
-                        bg_color = "rgb(136, 255, 136)";
-                        tooltip  = "This Job is running instruction " + this.program_counter +
-                                   ".\nClick to stop this job."
-                    }
-                    break;
-                case "suspended":
-                    bg_color = "rgb(255, 255, 17)"; //bright yellow
-                    if(this.wait_reason.includes("Make Instruction")){
-                        tooltip  = "This Job is suspended at instruction: " + this.program_counter +
-                                   " because\n" +
-                                   this.wait_reason + "\n" +
-                                   "To stop this Job, click this button."
-                    }
-                    else {
-                        tooltip  = "This Job is suspended at instruction: " + this.program_counter +
-                                   " because\n" +
-                                   this.wait_reason + "\n" +
-                                   "Click to unsuspend it.\nAfter it is running, you can click to stop it."
-                    }
-                    break; //yellow
-                case "waiting":
-                    bg_color = "rgb(255, 255, 102)"; //pale yellow
-                    tooltip  = "This Job is at instruction " + this.program_counter +
-                                " waiting for:\n" + this.wait_reason + "\nClick to stop this job."
-                    break; //yellow
-                case "completed":
-                    if((this.program_counter === this.do_list.length) &&
-                        (this.when_stopped === "wait")){
-                        bg_color = "rgb(255, 255, 102)"; //pale yellow
-                        tooltip  = 'This Job is waiting for a new last instruction\nbecause it has when_stopped="wait".\nClick to stop this job.'
-                    }
-                    else {
-                        bg_color = "rgb(230, 179, 255)" // purple. blues best:"#66ccff"  "#33bbff" too dark  //"#99d3ff" too light
-                        tooltip  = "This Job has successfully completed.\nClick to restart it."
-                    }
-                    break;
-                case "errored":
-                    bg_color = "rgb(255, 68, 68)";
-                    let reason = this.stop_reason
-                    reason = replace_substrings(reason, "<br/>", "\n")
-                    tooltip  = "This Job errored at instruction: " + this.program_counter +
-                    " with:\n" + reason + "\nClick to restart this Job."
-                    break;
-                case "interrupted":
-                    bg_color = "rgb(255, 123, 0)"; //orange
-                    tooltip  = "This Job was interrupted at instruction " + this.program_counter +
-                    " by:\n" + this.stop_reason + "\nClick to restart this Job."
-                    break;
-            }
             if (but_elt.style.backgroundColor !== bg_color) { //cut down the "jitter" in the culor, don't set unnecessarily
                 but_elt.style.backgroundColor = bg_color
             }
             if(this.user_data.stop_job_running_on_dexter !== undefined) {
-                tooltip  += "\nThis job montiors a job running on Dexter."
+                tooltip  += "\nThis job monitors a job running on Dexter."
             }
             but_elt.title = tooltip
+        }
+        else { //job engine
+           let data = {kind: "show_job_button", job_name: this.name, status_code: this.status_code, button_color: bg_color, button_tooltip: tooltip}
+           write_to_stdout("<for_server>" + JSON.stringify(data) + "</for_server>")
         }
     }
     //end of jobs buttons
 
     set_status_code(status_code){
-        if (Job.status_codes.includes(status_code)){
+        if(status_code === this.status_code) {} //no change, do nothing
+        else if (Job.status_codes.includes(status_code)){
             this.status_code = status_code
             this.color_job_button()
             if (status_code != "waiting") { this.wait_reason = null }
@@ -777,6 +833,15 @@ class Job{
     }
 
     is_active(){ return ((this.status_code != "not_started") && (this.stop_reason == null)) }
+    static active_jobs(){
+        let result = []
+        for(let a_job of Job.all_jobs()){
+            if (a_job.is_active()){
+                result.push(a_job)
+            }
+        }
+        return result
+    }
 
     //called in utils stringify_value    used for original_do_list
     static non_hierarchical_do_list_to_html(a_do_list){
@@ -1196,25 +1261,52 @@ Job.prototype.status = function (){
 Job.prototype.if_error_default = function(robot_status){
     let msg = this.rs_to_error_message(robot_status)
     out("Dexter error: " + msg, "red")
-    return false //returning false will end the job,
-                // which will automatically cause show_error_log_maybe to be called
+    let rob = this.robot
+    if(rob instanceof Dexter){
+        try{ let path = "Dexter." + rob.name + ":/srv/samba/share/errors.log"
+             read_file_async(path, undefined, function(err, content){
+                     if(err) {warning("Could not find: " + path)}
+                     else {
+                        if((typeof(content) != "string") ||
+                            (content.length == 0)){
+                            content == "<i>errors.log is empty</i>"
+                        }
+                        else {
+                         content = replace_substrings(content, "\n", "<br/>")
+                         content = "Content of " + path + "<br/><code>" + content + "</code>"
+                         setTimeout(function(){write_file_async(path, "")},
+                                    400) //give the read_file job a chance to finish properly
+                        }
+                        out(content)
+                    }
+             })
+           }
+        catch(err) {shouldnt("In Job.prototype.if_error_default, errored trying to get the errors.log file<br/>" +
+                              " for " + "Dexter." + rob.name) }
+    }
+    return Dexter.stop_job(undefined, msg)
 }
 
 //from James N
 Job.prototype.rs_to_error_message = function(robot_status){
     let error_code = robot_status[Dexter.ERROR_CODE]
+    let oplet_error_code = error_code & 0xFF //lower 8 bits
     let msg = ""
     let oplet = robot_status[Dexter.INSTRUCTION_TYPE]
     if (error_code > 0) {
-        let linux_msg = linux_error_message(error_code)
-        if(oplet == "r") { msg += "Error on oplet 'r' (read_file) with Linux error of: " + linux_msg}
-        else {
-            if(error_code & 0xFF)+" on oplet:"+op
-            if(error_code & (1 << 10)) {msg+=" Firmware - Gateware Mismatch. Update system. Fatal error."}
-            if(error_code & (1 << 27)) {msg+=" SPAN Servo, Joint 7. r 0 errors.log"}
-            if(error_code & (1 << 28)) {msg+=" ROLL Servo, Joint 6. r 0 errors.log"}
-            if(error_code & (1 << 30)) {msg+=" Joint Monitor. r 0 errors.log"}
+        if((oplet == "r") || (oplet == "w")) {
+            let linux_msg = linux_error_message(oplet_error_code)
+            msg += "Error on oplet 'r' (read_file) with Linux error of: " + linux_msg
         }
+        else {
+            if      (oplet_error_code == 1)  {msg += " oplet:"    + oplet + " is unknown to Dexter. Please upgrade Dexter firmware and gateware.<br/>"}
+            else if (oplet_error_code == 2)  {msg += " on oplet:" + oplet + " communication error.<br/>"}
+            else                             {msg += " on oplet:" + oplet + " Unknown error.<br/>"}
+        }
+        if(error_code & (1 << 10)) {msg+=" Firmware - Gateware Mismatch. Update system. Fatal error.<br/>"}
+        if(error_code & (1 << 27)) {msg+=" SPAN Servo, Joint 7. r 0 errors.log <br/>"}
+        if(error_code & (1 << 28)) {msg+=" ROLL Servo, Joint 6. r 0 errors.log <br/>"}
+        if(error_code & (1 << 30)) {msg+=" Joint Monitor. r 0 errors.log <br/>"}
     }
     return msg
 }
@@ -1255,7 +1347,31 @@ Job.prototype.finish_job = function(perform_when_stopped=true){ //regardless of 
           this.color_job_button()
           this.show_progress_maybe()
           out("Done with job: " + this.name + " for reason: " + this.stop_reason)
-          this.show_error_log_maybe()
+          if(window.platform === "node") { //only calls close_readline to end process, or doesn't
+            if(window.keep_alive_value) {} //keep the process alive
+            else {
+                let the_active_jobs = Job.active_jobs()
+                //the below a bit tricky as the 'this' job is in the process of finishing
+                // and might or might not be "active".
+                console.log("In finish_job for job: " + this.name + " id: " + this.job_id)
+                console.log("active_jobs length: " + the_active_jobs.length)
+                if(the_active_jobs.length == 1) {
+                    console.log("just one active job with first job: " + the_active_jobs[0].name + " job_id: " + the_active_jobs[0].job_id)
+                }
+                if( (the_active_jobs.length == 0) ||
+                   ((the_active_jobs.length == 1) &&
+                    (the_active_jobs[0].job_id === this.job_id)
+                   )
+                ) { //don't close the readline if there's a job that still wants to use it.
+                    //as our orig job might have launched a 2nd job, so keep it open
+                    //until all are done.
+                    console.log("finish job calling close_readline")
+                    close_readline() //causes the process running this job to finish.
+                }
+            }
+          }
+          //this.show_error_log_maybe() //I'm already doing this when
+          //a robot_status comes back with a non-zero error code.
       }
       else{ //we don't have "stop" and we are performming the when_stopped action
           let job_instance = this //for closure
@@ -1269,8 +1385,11 @@ Job.prototype.finish_job = function(perform_when_stopped=true){ //regardless of 
               job_instance.set_up_next_do(0)
           }
           else if (typeof(job_instance.when_stopped) === "function"){
-              job_instance.when_stopped.call(job_instance)
               job_instance.finish_job(false)
+              setTimeout(function(){ job_instance.when_stopped.call(job_instance) },
+                         1000) //give job a chance to properly finish.
+                               //it closes the socket
+
           }
           else if (Job.is_plausible_instruction_location(job_instance.when_stopped)){
               job_instance.finish_job(false)
@@ -2485,10 +2604,11 @@ var {Robot, Brain, Dexter, Human, Serial} = require('./robot.js')
 var Coor  = require('../math/Coor.js')
 var {Instruction, make_ins} = require("./instruction.js")
 var {load_files} = require("./storage.js")
-var {shouldnt, warning, dde_error, milliseconds_to_human_string, is_iterator, last, prepend_file_message_maybe, shallow_copy_lit_obj, stringify_value_sans_html} = require("./utils")
-var {out, speak} = require("./out.js")
+var {shouldnt, milliseconds_to_human_string, is_iterator, last, replace_substrings, shallow_copy_lit_obj, stringify_value_sans_html} = require("./utils")
+var {speak} = require("./out.js")
 var {_nbits_cf, _arcsec, _um} = require("./units.js")
 var {linux_error_message} = require("./linux_error_message.js")
+var {write_to_stdout, close_readline} = require("./stdio.js")
 //var TestSuite = require("../test_suite/test_suite.js")
 
 

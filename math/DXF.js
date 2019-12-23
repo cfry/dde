@@ -1413,9 +1413,8 @@ this.dxf_to_instructions = function({
 	//var txt = require("./txt.js") //doesn't work if its at the bottom, so put it at top
 
 
-	var {dde_error, warning, point_object_to_array, scale_point} = require("../core/utils.js")
+	var {point_object_to_array, scale_point} = require("../core/utils.js")
 	var {read_file} = require("../core/storage.js")
-	var {out} = require("../core/out.js")
 	var {Instruction, make_ins} = require("../core/instruction.js")
 	var {Dexter} = require("../core/robot.js")
 	var Job = require("../core/job.js")

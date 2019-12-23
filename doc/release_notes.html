@@ -6,8 +6,214 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 3.5.0, Dec 22, 2019</summary>
+Highlights: SSH for DDE-Dexter communications improved.
+            New implementation of show_window enabling browser-based Job Engine Interface.
+            New save_picture instruction and method.
+            Picture taking now can have user-determined resolution.
+            Job Engine verified to work on PHUI2RCP and Find index eye Jobs.
+            Job parameter "if_error" improvements.
+            Clicking Eval button with selected HTML now renders that
+            HTML in the output pane for easier debugging of HTML.
+<ul>
+    <li> Inspecting a Job, click button "Show Robot Status History"
+         bug fix and
+    improvement of columns to show "unused" slots in the array,
+    to show correct values for end effector x, y, z,
+    to show the index numbers of the robot_status array.</li>
+
+    <li> When choosing the Misc Pane menu, fixed cases where it
+        errors with sim_graphics_pane_id is not defined.</li>
+
+    <li> File menu item "Open From Dexter" moved up next to the other "Open" items.
+        Improved the tooltip.</li>
+
+    <li> Updated "could not connect with Dexter" Job button tooltip error message.</li>
+
+    <li> Job Engine verified to work on PHUI2RCP and Find index eye Jobs</li>
+
+    <li>When an error happens, a new item is stuck on the do_list right below the
+    erroring instruction which is a new anonymous method that looks like:<br/>
+<pre><code>function() {
+        return this.if_error(rs) //this === job_instance, rs is closed over
+    }
+    </code></pre>
+    Now the user writes the if_error method, and it can return instructions,
+    that get added to the do_list,
+    one of which can be stop_job if you like,
+    or call <code>job_instance.if_error_default</code></li>
+
+    <li> Ref Man for if_error, has an example and
+        documents that "this" is the job_instance.</li>
+
+    <li>Job.prototype.rs_to_error_message now has extended clauses of:<br/>
+    <pre><code>
+    if(error_code & (1 << 27)) {msg+=" SPAN Servo, Joint 7. r 0 errors.log &lt;br/>"}
+    if(error_code & (1 << 28)) {msg+=" ROLL Servo, Joint 6. r 0 errors.log &lt;br/>"}
+    if(error_code & (1 << 30)) {msg+=" Joint Monitor. r 0 errors.log &lt;br/>"}
+</code></pre>
+    Now adds the content of errors.log into the content of the errors msg to return,
+    THEN clears the errors.log. but set to "" (but ok if we deleted the file.)</li>
+
+    <li> Fixed bug in saving file to Dexter using File menu/Save to Dexter as.</li>
+
+    <li> <b>File menu/Save to Dexter as</b>  now uses the default dexter in the Misc Pane header menu,
+        so it doesn't need to pop up a list of Dexters to choose from.</li>
+
+    <li> The SSH Cmds menu has a new item "Find file..." that prints
+        file names in the output pane matching the FIND criteria.
+        The syntax for FIND is a bit hard to remember, so this makes it easy.</li>
+
+    <li> Fixed bug in <code>write_file_async</code>, when writing to Dexter.</li>
+
+    <li> SSH file & dir menus: minor improvements for menu item naming, tooltip and cmd line insertion,
+        especially for "move or rename".</li>
+
+    <li> SSH for Directory Listing, a new button: "clear output below"
+        clears the text in the output pane below the directory listing.</li>
+
+    <li> The utility Job:  "set_link_lengths" which gets Dexter's link lengths from Dexter into DDE,
+        now has <code>show_instructions: false</code>
+        to cut down on noise in the output pane.</li>
+
+    <li> The utility Job:  "set_link_lengths" which gets Dexter's link lengths
+          from Dexter into DDE,
+        <code>Job.prototype.set_status_code</code>
+        If the status code being set is the same as the existing
+        status code, do nothing i.e. don't set the button color.
+        Helps cut down traffic for Dexter server.</li>
+
+    <li> Fixed minor bug in displaying result in output pane.</li>
+
+    <li> If you click EVAL with HTML selected, it is rendered in the output pane.</li>
+
+    <li> Fixed bug in creating a 2nd window of the show_window menu example.
+        Still doesn't properly get the previous top, left, width, height of the
+        previous same-titled window, but at least it still presents the window without erroring.</li>
+
+    <li> Minor improvements to show_window examples.</li>
+
+    <li> Minor fix to <code>show_window</code>'s capture of the name/id/value of a UI element.</li>
+
+    <li> <code>Window.window_index</code> is now: null to begin with, then
+        set to 0 and used for the first show window.
+        window_index is the index used in the LAST show_window made,
+        not for the NEXT window made (as it use to be).
+        So window_index is bound to the index of the last window made.</li>
+
+    <li> DDE menu item: Insert/show_window/buttons updated to get rid of dependency on the
+        "dex" object and use more obvious and common DOM functionality.</li>
+
+    <li> Fixed bug in <code>show_window</code> callback getting a textarea's width and height.
+        Now it works even before the user drags the textarea AND
+        my values in the callback are integers, not strings with suffix "px".
+        Much more useful.</li>
+
+    <li> show_window combo_box <span style="color:red">incompatibility</span>:
+        Previously you could use either the 'name' or 'id' attributes
+        in the DIV tag that creates a combo box. Now you must use 'id' only.
+        Beware that id attributes in HTML become global variables, so spell it
+        uniquely. DDE uses the convention of a suffix of "_id", that
+        is usually good enough.</li>
+
+    <li> Calls to <code>beep</code>, when running in the Job Engine,
+          now uses Dexter's text to speech to say "beep".</li>
+
+    <li> The functions <code>beep</code> and <code>beeps</code> are now part of the Job Engine.
+        They behave the same as always in DDE.
+        If you're running the job engine and you want to hear them,
+        you'll have to install a sound card.</li>
+
+    <li> Insert menu, <code>show_window</code>, onchange example, minor formatting improvements.</li>
+
+    <li> <code>Picture.show_picture</code> can now take a partial path for its "content" argument,
+        so if that's "my_pic.png", then it will grab the file in your dde_apps folder
+        of that name.</li>
+
+    <li> New Instruction <code>IO.save_picture</code> and new method:
+         <code>Picture.save_picture</code> for making it easy
+         to save pictures to a file.
+          Now only saves in .png format.
+          See Ref Man/IO/Picture/Camera IO/save_picture</li>
+
+    <li> Replaced jquery calls in out.js with JS DOM methods. We are slowly removing
+         calls to jquery to reduce dependencies on this library
+         and get rid of its confusing syntax.</li>
+
+    <li> Insert menu/Show Window, respelled item "Close all" to "Close all windows".</li>
+
+    <li> Instruction classes <code>Control</code>, <code>IO</code>  and the global variable
+         <code>dde_apps_folder</code> are now defined for JS lint purposes.</li>
+
+    <li> In Job Engine, <code>dde_apps_folder</code> now bound to: "/srv/samba/share/dde_apps".
+        (set in index.js)</li>
+
+    <li> <code>Human.show_window</code>  The handler function now:<br/>
+        - if the callback is null, it doesn't error, it just does nothing.<br/>
+        - If the user clicked on a submit button, the dialog box is closed
+            and the job is allowed to proceed.<br/>
+        Previously it checked for to see if its <code>show_window</code>
+        was closed to allow proceeding,
+        but that's not compatible with how the new browser code is implemented.
+        In most cases, this will have the same behavior as previously,
+        but now, if the show_window is closed in some other way than
+        a submit button, the job will hang at this human show window instruction
+        with no way to get it to proceed. To be fixed later.</li>
+
+    <li> Fixed bug in <code>Human.enter_file_path.to_source()</code>.</li>
+
+    <li> Browser Job Engine interface has "keep_alive" checkbox.
+         See "help" in Browser interface.
+         Allows Jobs to share state accross running them, like DDE.</li>
+
+    <li>The instruction <code>IO.take_picture</code> now takes a "camera_id"
+         argument just like
+        its function counterpart: <code>Picture.take_picture</code></li>
+
+    <li> A timing skew bug in <code>IO.take_picture</code> has been fixed.
+        This sometimes caused the instruction to not wait until the picture was taken
+        before allowing the next instruction to be run.</li>
+
+    <li> For the output pane cmd line,
+         when in SSH mode and clicking in the cmd line for click help,
+        if there is a space anywhere before the clicked char in the whole cmd line string,
+        it now doesn't perform click help, it just nothing BECAUSE
+        when click help is attempted on such click places, often bad ref man comes out
+        in bad format.</li>
+
+    <li> <code>show_picture_of_mat</code> extended to grab width and height
+        from mat and show that, not
+        the default width and height of <code>Picture.show_picture</code></li>
+
+    <li> <code>Picture.init</code>, <code>IO.take_picture</code>, <code>Picture.take_picture</code>,
+        <code>IO.show_picture</code>, <code>Picture.show_video</code>,
+        <code>IO.show_picture</code>, <code>Picture.show_picture</code>
+          now all have args: width=320, height=240</li>
+
+    <li> <code>Picture.show_video</code> default title now shows video resolution.</li>
+
+    <li> <code>Picture.take_picture()</code> automatically calls
+         <code>Picture.init()</code> if cv hasn't been inited.</li>
+
+    <li> <code>show_window</code> title font made smaller to 20px so more chars can be in the title.</li>
+
+    <li> Adjusted the Jobs button bar to use more of the available space for Job buttons.</li>
+
+    <li> Jobs menu/Dexter Tools/ submenu now has its items ordered alphabetically.</li>
+
+    <li> CALIBRATE: Copied the function def for <code>init_view_eye</code>
+          from the latest LTS release
+          and put it in this release, at the bottom of ViewEyeRealTime.js
+          This speeds up calibration and fixes a bug in clicking on the "Start Jx" buttons
+          in the Calbirate dialog.</li>
+
+    <li> CALIBRATE: In the dialog, when you click a "Start Jx" button,
+         the degrees shown updates to where the joint is while calibrating.</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.4.9, Oct 20, 2019</summary>
-Highlight: Improved file handling between DDE and Dexter.<br/>
+Highlights: Improved file handling between DDE and Dexter.<br/>
 Added user control over how a job handles errors from Dexter.<br/>
 Minor improvements to Calibration, Job Engine,  MakeInstruction, Simulator, SSH.
 

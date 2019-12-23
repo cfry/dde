@@ -1,8 +1,8 @@
-console.log("Read electron_dde/core/job_engine_doc.txt for how to use the Job Engine.")
+console.log("Read electron_dde/core/job_engine_doc.txt for how to use the Job Engine.\n")
 
 console.log("in file: " + module.filename)
 function node_on_ready() {
-    console.log("top of node_on_ready")
+    console.log("top of node_on_ready\n")
     const os = require('os');
     global.operating_system = os.platform().toLowerCase() //for Ubuntu, ths returns "linux"
 
@@ -10,8 +10,8 @@ function node_on_ready() {
     else if (operating_system.startsWith("win")) { operating_system = "win" }
     try{dde_apps_folder}
     catch(err){
-        global.dde_apps_folder = process.env.HOME //ie  /Users/Fry
-            + "/Documents/dde_apps"
+        global.dde_apps_folder = "/srv/samba/share/dde_apps" //process.env.HOME //ie  /Users/Fry
+                                                             //+ "/Documents/dde_apps"
     }
     //not needed for node version
     //var pckg         = require('../package.json');
@@ -84,7 +84,13 @@ function start_job(job_name){
 }
 */
 function define_and_start_job(job_file_path){
-    Job.define_and_start_job(job_file_path)
+    if(job_file_path.endsWith("/keep_alive")) {
+        global.keep_alive_value = true //set to false by stdio readline evaling "set_keep_alive_value(false)" made in httpd.js
+                                       //and sent to job engine process stdin.
+    }
+    else {
+        Job.define_and_start_job(job_file_path)
+    }
 }
 
 //____________
@@ -102,6 +108,7 @@ function run_shell_cmd_default_cb (error, stdout, stderr){
 function run_shell_cmd(cmd_string, options={}, cb=run_shell_cmd_default_cb){
     exec(cmd_string, options, cb)
 }
+
 var {load_files, persistent_initialize, read_file, file_content, write_file, dde_init_dot_js_initialize} = require('./storage.js')
       //file_content is deprecated
 var {Root} = require("./object_system.js")
@@ -112,20 +119,43 @@ var {sind, cosd, tand, asind, acosd, atand, atan2d} = require("../math/Trig_in_D
 var Job    = require("./job.js")
 
 var {Robot, Brain, Dexter, Human, Serial}  = require("./robot.js")
+var {Instruction, make_ins, human_task_handler, human_enter_choice_handler,
+    human_enter_filepath_handler, human_enter_number_handler, human_enter_position_handler,
+    human_enter_instruction_handler,
+    human_enter_text_handler, human_show_window_handler} = require("./instruction.js")
 var {Control} = require("./instruction_control.js")
 var {IO}      = require("./instruction_io.js")
-
-var {out, speak}  = require("./out.js")
+require("./je_and_browser_code.js") // must be before loading out.js as it defines SW used by out.js
+var {speak, show_window, beeps, beep}  = require("./out.js")
 var calibrate_build_tables = require("../low_level_dexter/calibrate_build_tables.js")
 var DXF    = require("../math/DXF.js")
 var {init_units} = require("./units.js")
 var {FPGA} = require("./fpga.js")
 
+var {close_readline, set_keep_alive_value, write_to_stdout} = require("./stdio.js")
+
+global.keep_alive_value = false
+global.Brain    = Brain
 global.Dexter   = Dexter
-global.make_ins = Dexter.make_ins
-global.out      = out
-global.speak    = speak
+global.Human    = Human
 global.Robot    = Robot
+
+global.make_ins = Dexter.make_ins
+global.speak    = speak
+global.show_window = show_window
+global.beeps    = beeps
+global.beep     = beep
+
+global.Instruction = Instruction
+global.human_task_handler = human_task_handler
+global.human_enter_choice_handler = human_enter_choice_handler
+global.human_enter_filepath_handler = human_enter_filepath_handler
+global.human_enter_number_handler = human_enter_number_handler
+global.human_enter_position_handler = human_enter_position_handler
+global.human_enter_instruction_handler = human_enter_instruction_handler
+global.human_enter_text_handler = human_enter_text_handler
+global.human_show_window_handler = human_show_window_handler
+
 global.Control  = Control
 global.IO       = IO
 global.Job      = Job
@@ -146,12 +176,14 @@ global.file_content = file_content
 global.write_file = write_file
 
 
+global.close_readline = close_readline
+global.set_keep_alive_value = set_keep_alive_value
+global.write_to_stdout = write_to_stdout
+
 
 
 run_node_command(process.argv)
 /*
 node core start_job myjob
 node core define_and_start_job /Users/Fry/Documents/dde_apps/node_test_job.js
-
-
  */

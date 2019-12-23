@@ -123,7 +123,7 @@ dex.fill_in_task_names = function(vals){ //just called by New task
 }
 
 
-dex.set_in_window = function(window_index, elt_name, elt_attr_name, new_value){
+/*dex.set_in_window = function(window_index, elt_name, elt_attr_name, new_value){
     var jqxw_jq = get_window_of_index(window_index)
     var elt_jq = jqxw_jq.find("[name='" + elt_name + "']")
     if  (elt_attr_name == "innerHTML") {elt_jq[0].innerHTML = new_value}
@@ -136,6 +136,22 @@ dex.set_in_window = function(window_index, elt_name, elt_attr_name, new_value){
         elt_jq.jqxComboBox({source: new_value, selectedIndex: 0})
     }
     else {elt_jq.attr(elt_attr_name, new_value)}
+}*/
+
+dex.set_in_window = function(window_index, elt_name, elt_attr_name, new_value){
+    var sw_elt = get_window_of_index(window_index)
+    var elt = sw_elt.querySelector("[name='" + elt_name + "']")
+    if  (elt_attr_name == "innerHTML") {elt.innerHTML = new_value}
+    else if (elt_attr_name == "value") {elt.value = new_value}
+    else if (elt_attr_name.startsWith("style.")){
+        var style_prop = elt_attr_name.split(".")[1]
+        elt.style[style_prop] = new_value
+    }
+    else if (elt_attr_name == "combo_box_options"){
+        //elt_jq.jqxComboBox({source: new_value, selectedIndex: 0})
+        set_combo_box_options(new_value)
+    }
+    else { elt.setAttribute(elt_attr_name, new_value) }
 }
 
 function clean_action_or_task_name(name){
@@ -293,7 +309,7 @@ dex.train = function(){ //happens in ui env, called from Insert menu item when u
 <input type="button" value="Do task" title="Tell Dexter to run\nany previously defined named task.\nDo not specify the current task."/>
         <!-- doesnt work <input name="task_names_old" list="task_names_datalist_id" style="width:100px;"/>
         <datalist id="task_names_datalist_id" name="task_names_datalist"></datalist><br/> --><!-- I needed this for combo box behavior -->
-<div name="task_names" class="combo_box" style="display:inline-block;vertical-align:middle;"></div><br/>
+<div id="task_names" class="combo_box" style="display:inline-block;vertical-align:middle;"></div><br/>
 <input type="button" value="Repeat" style="margin-bottom:15px;"
     title="Loop over the actions\nbetween 'from' and 'through'\nthe indicated number of times."/> from
         <select name="repeat_from_action_names"></select> through

@@ -25,7 +25,7 @@ function ping_host(ip_address = "127.0.0.1", display_non_connected_hosts_tempora
 
 function make_ping_a_dexter_select(){
     //let result = '<select id="ping_a_dexter_id_address_id" style="font-size:16px;"> <option>Localhost: 127.0.0.1</option>'
-    let result =  '<div name="ping_a_dexter_id_address_id" class="combo_box" style="display:inline-block;vertical-align:middle;width:240px;">' +
+    let result =  '<div id="ping_a_dexter_id_address_id" class="combo_box" style="display:inline-block;vertical-align:middle;width:240px;">' +
                    '<option></option> ' +
                    '<option>Localhost: 127.0.0.1</option> ' +
                    '<option>All_hosts_in: 127.0.0.</option> '
@@ -323,7 +323,7 @@ function add_robot_to_default_menu(robot_or_name){
     default_robot_name_id.prepend(a_option)
 }
 
-var {warning, last} = require("./core/utils.js")
+var {last} = require("./core/utils.js")
 
 
 /*

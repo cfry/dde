@@ -476,6 +476,11 @@ Editor.restore_selection_from_map = function(){
                 )
 }*/
 
+function open_from_dexter_computer_cb(vals) {
+    let dex_name = vals.clicked_button_value
+    setTimeout(function() {Editor.open_on_dexter_computer(dex_name)}, 10)
+}
+
 Editor.open_from_dexter_computer = function(){
     if(Dexter.all_names.length == 1){ //no need for a dialog to choose which dexter
         Editor.open_on_dexter_computer(Dexter.all_names[0])
@@ -492,10 +497,7 @@ Editor.open_from_dexter_computer = function(){
                 width: 220,
                 x: 50,
                 y: 50,
-                callback: function(vals) {
-                        let dex_name = vals.clicked_button_value
-                        setTimeout(function() {Editor.open_on_dexter_computer(dex_name)}, 10)
-                    }
+                callback: open_from_dexter_computer_cb
                 }
         )
     }
@@ -812,6 +814,19 @@ Editor.save = function() {
     }
 }
 
+
+//called from other places than just the below show_window callback fn.
+//igores its arg.
+function save_as_cb(vals){
+    if(vals.clicked_button_value == "DDE computer") {
+        setTimeout(Editor.save_on_dde_computer, 10)
+    }
+    else {
+        let dex_name = vals.clicked_button_value
+        setTimeout(function() {Editor.save_on_dexter_computer(dex_name)}, 10)
+    }
+}
+
 Editor.save_as = function(){ //also called by onclick save
     let cont = '<input type="submit" value="DDE computer"/>\n'
     for(let dex_name of Dexter.all_names){
@@ -821,19 +836,11 @@ Editor.save_as = function(){ //also called by onclick save
         }
     }
     show_window({title: "Choose computer<br/>to save file to",
-            content: cont,
-            width: 220,
-            x: 50,
-            y: 50,
-            callback: function(vals) {
-                if(vals.clicked_button_value == "DDE computer") {
-                    setTimeout(Editor.save_on_dde_computer, 10)
-                }
-                else {
-                    let dex_name = vals.clicked_button_value
-                    setTimeout(function() {Editor.save_on_dexter_computer(dex_name)}, 10)
-                }
-            }
+                content: cont,
+                width: 220,
+                x: 50,
+                y: 50,
+                callback: save_as_cb
         }
     )
 }
@@ -865,18 +872,27 @@ function save_on_dexter_computer_show_window_cb(vals) {
     myCodeMirror.focus()
 }
 
+//dex_name can be of format "dexter0"  or "Dexter.dexter0"
 Editor.save_on_dexter_computer = function(dex_name){
-    show_window({title: "Enter file on <i>" + dex_name + "</i> to save",
+    if(dex_name.startsWith("Dexter.")) {
+        dex_name = dex_name.substring(7) //cut off "Dexter."
+    }
+    show_window({title: "Enter file on <i>" + dex_name + "</i> to save to",
         content: '<i>Saving Dexter files considers simulation state<br/>' +
         'when determining where to save the file to.<br/>' +
         'If you want to save to a Dexter, select<br/>' +
-        'the <b>real</b> button in the Misc pane header.</i><br/>' +
+        'the <b>real</b> button in the Misc pane header.</i><p/>' +
+        '<span style="color:#e50;">Warning:</span> you may have to use<br/>' +
+        '<span style="font-family:monospace;background-color:white;">chmod</span> (change permissions)<br/>' +
+         'on the saved file to get<br/>' +
+         'read/write/execute the way you want it.<br/>' +
+         'Use the Output pane header <b>ssh</b> tool.<br/>' +
         '<input id="open_on_dexter_computer_file_path_id" value="' + persistent_get("last_open_dexter_file_path") + '" style="width:350px;font-size:16px;margin-top:10px;"/>\n' +
         '<p></p><center><input type="submit" value="Save"/></center>\n' +
         '<input name="dexter_name" style="display:none;" value="' + dex_name + '"/>',
 
-        width: 390,
-        height: 200,
+        width: 400,
+        height: 300,
         x: 50,
         y: 50,
         callback: save_on_dexter_computer_show_window_cb
@@ -886,6 +902,11 @@ Editor.save_on_dexter_computer = function(dex_name){
 }
 
 Editor.save_to_dexter_as = function(){
+    let dexter_name = default_robot_name()
+    Editor.save_on_dexter_computer(dexter_name)
+}
+/* below makes a dialog "menu" of all dexters. but that's unnecessary as
+we already have a menu in the Misc Pane header.
     if(Dexter.all_names.length == 1){ //no need for a dialog to choose which dexter
         Editor.save_on_dexter_computer(Dexter.all_names[0])
     }
@@ -908,7 +929,7 @@ Editor.save_to_dexter_as = function(){
             }
         )
     }
-}
+}*/
 
 //on Jobs menu/insert_new_job
 Editor.insert_new_job = function(){
@@ -2494,5 +2515,5 @@ Editor.show_identifier_info = function(full_src=Editor.get_javascript(), pos=Edi
 
 
 var {persistent_initialize, persistent_get, persistent_set, load_files, file_exists, write_file, dde_init_dot_js_initialize} = require('./core/storage.js')
-var {warning, decode_quotes, is_alphanumeric, is_digit, is_letter, is_letter_or_underscore,
+var {decode_quotes, is_alphanumeric, is_digit, is_letter, is_letter_or_underscore,
      is_whitespace, reverse_string} = require("./core/utils.js")

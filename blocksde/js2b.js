@@ -475,4 +475,4 @@ var JS2B = class JS2B{
       return lit_obj_block
   }
 }
-var {dde_error, shouldnt, warning, function_param_names_and_defaults_array, value_of_path} = require("./core/utils.js")
+var {shouldnt, function_param_names_and_defaults_array, value_of_path} = require("./core/utils.js")

@@ -570,5 +570,5 @@ Object.defineProperty(Object.prototype, 'sourceCode',{
     } ,
     enumerable : false
 })
-var {shouldnt, warning, dde_error, function_param_names, is_iterator, last, prepend_file_message_maybe,
+var {shouldnt, function_param_names, is_iterator, last,
      starts_with_one_of, stringify_value_sans_html, value_of_path} = require("./utils")

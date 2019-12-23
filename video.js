@@ -33,8 +33,10 @@
     //between dexter sim and stl view
     //https://stackoverflow.com/questions/9251837/how-to-remove-all-listeners-in-an-element
     function clear_out_sim_graphics_pane_id(){
-        var new_element = sim_graphics_pane_id.cloneNode(false);
-        sim_graphics_pane_id.parentNode.replaceChild(new_element, sim_graphics_pane_id);
+        if(window.sim_graphics_pane_id){
+            var new_element = sim_graphics_pane_id.cloneNode(false);
+            sim_graphics_pane_id.parentNode.replaceChild(new_element, sim_graphics_pane_id)
+        }
     }
 
     var prev_make_instruction_src = undefined
@@ -47,7 +49,6 @@
         if (select_val == "Choose File") {
             select_val = choose_file()
         }
-        console.log(select_val)
         if (select_val == "Simulate Dexter") {
             //video_player_id.style.display      = "none";
             sim_pane_content_id.innerHTML =

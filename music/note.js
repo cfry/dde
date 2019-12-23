@@ -602,4 +602,4 @@ Note.pitch_class_names       = ["C", "C#", "D","D#","E","F","F#","G","G#","A","A
 Note.pitch_class_names_flat  = ["C", "Db", "D","Eb","E","F","Gb","G","Ab","A","Bb","B"]
 Note.diatonic_intervals      = [0, 2, 4, 5, 7, 9, 11]
 
-var {warning, is_digit, limit_to_range} = require("./core/utils.js")
+var {is_digit, limit_to_range} = require("./core/utils.js")

@@ -249,6 +249,7 @@ module.exports.file_content = file_content //depricated
 //but beware, sometimes data is a BUFFER not a string.
 // data.toString() will convert a buffer to a string,
 //and just returns the string if data happens to be a string
+//for referencing a file on dexter, path example 'Dexter.dexter0:/srv/samba/share/errors.log'
 function read_file_async(path, encoding="utf8", callback){
     let dex_instance = path_to_dexter_instance(path)
     if(dex_instance){
@@ -365,7 +366,7 @@ function write_file(path, content, encoding="utf8"){
 
 module.exports.write_file = write_file
 
-//callback takes one are, err. If it is null, there's no error
+//callback takes one arg, err. If it is null, there's no error
 function write_file_async(path, content, encoding="utf8", callback){
     if (path === undefined){
         if (Editor.current_file_path == "new buffer"){
@@ -376,29 +377,33 @@ function write_file_async(path, content, encoding="utf8", callback){
     if (content === undefined) {
         content = Editor.get_javascript()
     }
-    if(!callback) {
-        let the_path = path
-        callback = function(err){
-            if(err){
-                dde_error("write_file_async passed: " + the_path +
-                    "<br/>Got error: " + err.message)
-            }
-            else { out("saved: " + the_path, undefined, true) }
-        }
-    }
+
     let dex_instance = path_to_dexter_instance(path)
     if(dex_instance){
+        if(!callback) {
+            let the_path = path
+            callback = function(err){
+                if(err){
+                    dde_error("write_file_async passed: " + the_path +
+                        "<br/>Got error: " + err.message)
+                }
+                else {
+                    out("saved: " + the_path, undefined, true)
+                }
+            }
+        }
         let colon_pos = path.indexOf(":") //will not return -1
         let dex_file_path = path.substring(colon_pos + 1)
         let the_callback = callback
         let the_path = path
-        new Job({name: "dex_write_file",
+        let the_job = new Job({name: "dex_write_file",
                  robot: dex_instance,
                  do_list: [
                     Dexter.write_file(dex_file_path, content),
                     callback //but never passes an error object. not good, but robot_status should contain an error, and error if there is one, else callback should be called with no error so it does what it should do when no error
                  ]
-        }).start()
+        })
+        the_job.start()
     }
     else if (is_dexter_path(path)){
         dde_error("In write_file_async of path: " + path +
@@ -406,6 +411,18 @@ function write_file_async(path, content, encoding="utf8", callback){
     }
     else {
         path = make_full_path(path)
+        if(!callback) {
+            let the_path = path
+            callback = function(err){
+                if(err){
+                    dde_error("write_file_async passed: " + the_path +
+                        "<br/>Got error: " + err.message)
+                }
+                else {
+                    out("saved: " + the_path, undefined, true)
+                }
+            }
+        }
         fs.writeFile(path, content, encoding, callback)
     }
 }
@@ -737,9 +754,9 @@ module.exports.load_files = load_files
 var fs        = require('fs'); //errors because require is undefined.
 var app       = require('electron').remote;  //in the electron book, "app" is spelled "remote"
 var {Robot, Brain, Dexter, Human, Serial}  = require("./robot.js")
-var {shouldnt, warning, dde_error, starts_with_one_of, prepend_file_message_maybe, replace_substrings} = require("./utils")
-var {out}     = require("./out.js")
-var Job     = require("./job.js") //because loading a file with new Job in it needs this.
+var {shouldnt, starts_with_one_of, replace_substrings} = require("./utils")
+var Job       = require("./job.js") //because loading a file with new Job in it needs this.
+
 
 /*
 function folder_listing(folder="/", include_folders=true, include_files=true, callback=out){

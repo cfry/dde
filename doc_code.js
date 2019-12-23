@@ -351,4 +351,4 @@ function show_configurations_image(){
 }
 
 var {read_file} = require("./core/storage.js")
-var {warning, last, replace_substrings, value_of_path} = require("./core/utils.js")
+var {last, replace_substrings, value_of_path} = require("./core/utils.js")

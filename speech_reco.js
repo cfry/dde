@@ -187,7 +187,7 @@ function sr_result(data) {
 
 //called only when this dialog is all over. no more reco will be done.
 function sr_end() {
-    close_window(recognize_speech_window_index)
+    SW.close_window(recognize_speech_window_index)
     s2t.stop() //this will cause an error to be printed in the console if we take too long,
                //but that seems to be harmless and we can keep going after that.
                //from web commentary before Dec 18, 2017, this loooks like a google bug.
@@ -198,7 +198,7 @@ function sr_end() {
 
 function sr_error(data) {
     set_mic_and_instructions() //don't talk
-    if (is_window_shown(recognize_speech_window_index)){ //don't show this error message if the user closed the window
+    if (SW.is_window_shown(recognize_speech_window_index)){ //don't show this error message if the user closed the window
         out("onerror called with: " + data, "red")
     }
     s2t.stop()

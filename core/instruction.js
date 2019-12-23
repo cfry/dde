@@ -712,7 +712,7 @@ Instruction.human_speak = class human_speak extends Instruction{
        }
     }
     to_source_code(args){
-        return args.indent + "Human.task({"  +
+        return args.indent + "Human.speak({"  +
             ((this.task == "") ? "" : ("task: " + to_source_code({value: this.task}) + ", ")) +
             ((this.title === undefined) ? "" : ("title: " + to_source_code({value: this.title})  + ", ")) +
             ((this.add_stop_button == true)         ? "" : ("add_stop_button: "     + this.add_stop_button  + ", ")) +
@@ -745,8 +745,7 @@ Instruction.human_task = class human_task extends Instruction{
         this.background_color = background_color
     }
     do_item (job_instance){
-        var hidden  = '<input type="hidden" name="job_name" value="' + job_instance.name        + '"/>' +
-                      "<input type='hidden' name='dependent_job_names' value='" + JSON.stringify(this.dependent_job_names) + "'/>"
+        var hidden  = "<input type='hidden' name='dependent_job_names' value='" + JSON.stringify(this.dependent_job_names) + "'/>"
         var buttons = '<center><input type="submit" value="Continue Job" title="Signify you are done with this task which\ncloses this dialog box and\ncontinues this job"/>&nbsp;'
         if (this.add_stop_button) { buttons += '<input type="submit" value="Stop Job" title="Close dialog box,\nstop this job and all dependent jobs."/>' }
         buttons += '</center>'
@@ -757,9 +756,10 @@ Instruction.human_task = class human_task extends Instruction{
             }
         }
         else if (this.title == "") { this.title = "<span style='height:25px;'>&nbsp;</span>" }
-        job_instance.wait_reason = "user on Human.show_window interaction." //do before set_status_code so the tooltip gets set with the wait_reason.
+        job_instance.wait_reason = "user on Human.task interaction." //do before set_status_code so the tooltip gets set with the wait_reason.
         job_instance.set_status_code("waiting")
-        show_window({content: this.task + "<p/>" + buttons + hidden,
+        show_window({job_name: job_instance.name,
+                    content: this.task + "<p/>" + buttons + hidden,
                     callback: human_task_handler,
                     title: this.title,
                     x: this.x,
@@ -838,8 +838,7 @@ Instruction.human_enter_choice = class human_enter_choice extends Instruction{
         this.inserting_instruction = true
     }
     do_item (job_instance){
-        var hidden  = "<input type='hidden' name='job_name' value='" + job_instance.name                                   + "'/>\n" +
-                      "<input type='hidden' name='dependent_job_names' value='" + JSON.stringify(this.dependent_job_names) + "'/>\n" +
+        var hidden  = "<input type='hidden' name='dependent_job_names' value='" + JSON.stringify(this.dependent_job_names) + "'/>\n" +
                       "<input type='hidden' name='user_data_variable_name' value='" + this.user_data_variable_name         + "'/>\n" +
                       "<input type='hidden' name='choices_string' value='" + JSON.stringify(this.choices)                  + "'/>\n"
         let select = ""
@@ -868,9 +867,10 @@ Instruction.human_enter_choice = class human_enter_choice extends Instruction{
             }
         }
         else if (this.title == "") { this.title = "<span style='height:25px;'>&nbsp;</span>" }
-        job_instance.wait_reason = "user on Human.show_window interaction." //do before set_status_code so the tooltip gets set with the wait_reason.
+        job_instance.wait_reason = "user on Human.enter_choice interaction." //do before set_status_code so the tooltip gets set with the wait_reason.
         job_instance.set_status_code("waiting")
-        show_window({content: this.task + "<br/>" + select + "<br/>" + (buttons ? buttons : "") + hidden,
+        show_window({job_name: job_instance.name,
+                    content: this.task + "<br/>" + select + "<br/>" + (buttons ? buttons : "") + hidden,
                     callback: human_enter_choice_handler,
                     title: this.title,
                     x: this.x,
@@ -982,10 +982,9 @@ Instruction.human_enter_filepath = class human_filepath extends Instruction{
     }
 
     do_item (job_instance){
-        var hidden  = "<input type='hidden' name='job_name' value='" + job_instance.name                                   + "'/>" +
-                      "<input type='hidden' name='dependent_job_names' value='" + JSON.stringify(this.dependent_job_names) + "'/>" +
+        var hidden  = "<input type='hidden' name='dependent_job_names' value='" + JSON.stringify(this.dependent_job_names) + "'/>" +
                       "<input type='hidden' name='user_data_variable_name' value='" + this.user_data_variable_name         + "'/>"
-        var text_html = "<input type='file' name='choice'/>"
+        var text_html = "<input type='file' name='choice' style='font-size:14px;'/>"
 
         var buttons = '<center><input type="submit" value="Continue Job" title="Close dialog box and\\ncontinue this job"/>&nbsp;'
         if (this.add_stop_button) buttons += '<input type="submit" value="Stop Job" title="Close dialog box,\nstop this job and all dependent jobs."/>'
@@ -998,18 +997,19 @@ Instruction.human_enter_filepath = class human_filepath extends Instruction{
         }
         job_instance.wait_reason = "user on Human.enter_filepath interaction." //do before set_status_code so the tooltip gets set with the wait_reason.
         job_instance.set_status_code("waiting")
-        show_window({content: this.task + "<br/>" + text_html + "<br/><br/>" + buttons + hidden,
-            callback: human_enter_filepath_handler,
-            title: this.title,
-            x: this.x,
-            y: this.y,
-            width: this.width,
-            height: this.height,
-            background_color: this.background_color}
+        show_window({ job_name: job_instance.name,
+                    content: this.task + "<br/>" + text_html + "<br/><br/>" + buttons + hidden,
+                    callback: human_enter_filepath_handler,
+                    title: this.title,
+                    x: this.x,
+                    y: this.y,
+                    width: this.width,
+                    height: this.height,
+                    background_color: this.background_color}
         )
     }
     to_source_code(args){
-        return args.indent + "Human.enter_text({" +
+        return args.indent + "Human.enter_file_path({" +
             ((this.task == "")                               ? "" : ("task: "                    + to_source_code({value: this.task})                    + ", ")) +
             ((this.title === undefined)                      ? "" : ("title: "                   + to_source_code({value: this.title})                   + ", ")) +
             ((this.initial_value == "")                      ? "" : ("initial_value: "           + to_source_code({value: this.initial_value})           + ", ")) +
@@ -1095,9 +1095,9 @@ Instruction.human_enter_instruction = class human_enter_instruction extends Inst
         if (!job_instance.enter_instruction_recording) { //don't always init as might have instructions from prev dialog in this set
              job_instance.enter_instruction_recording = []
         }
-        var hidden  = "<input type='hidden' name='dependent_job_names' value='" + JSON.stringify(this.dependent_job_names) + "'/>" +
-                      "<input type='hidden' name='job_name' value='" + job_instance.name + "'/>"
-        var type_html = '<span name="instruction_type" class="combo_box" style="display:inline-block;vertical-align:middle;width:235px;">' +
+        var hidden  = "<input type='hidden' name='dependent_job_names' value='" + JSON.stringify(this.dependent_job_names) + "'/>"
+
+        var type_html = '<span id="instruction_type" class="combo_box" style="display:inline-block;vertical-align:middle;width:235px;">' +
                         this.make_instruction_options() +
                         '</span>'
         let rs = job_instance.robot.robot_status
@@ -1138,9 +1138,10 @@ Instruction.human_enter_instruction = class human_enter_instruction extends Inst
         if(job_instance.robot instanceof Dexter){
             out(Dexter.robot_status_to_html(job_instance.robot.robot_status, "on job: " + job_instance.name), "black", true)
         }
-        job_instance.wait_reason = "user on Human.show_window interaction." //do before set_status_code so the tooltip gets set with the wait_reason.
+        job_instance.wait_reason = "user on Human.enter_instruction interaction." //do before set_status_code so the tooltip gets set with the wait_reason.
         job_instance.set_status_code("waiting")
-        show_window({content: "<div style='margin-bottom:10px;'><i>" + this.task + "</i></div>" +
+        show_window({job_name: job_instance.name,
+                    content: "<div style='margin-bottom:10px;'><i>" + this.task + "</i></div>" +
                               "Instruction type: " + type_html +
                               immediate_do +
                               "<div style='padding-left:95px;font-size:12px'><i>Separate args with a comma.</i></div>"  +
@@ -1180,7 +1181,7 @@ Instruction.human_enter_instruction = class human_enter_instruction extends Inst
 var human_enter_instruction_handler = function(vals){
     var job_instance = Job[vals.job_name]
     var hei_instance = job_instance.do_list[job_instance.program_counter]
-    if      (vals.clicked_button_value == "Stop Job"){
+    if(vals.clicked_button_value == "Stop Job"){
         job_instance.enter_instruction_recording = []
         job_instance.stop_for_reason("interrupted", "In human_enter_instruction, user stopped this job.")
         var dep_job_names = JSON.parse(vals.dependent_job_names) //If the user did not pass in a dependent_job_names arg when
@@ -1242,7 +1243,7 @@ var human_enter_instruction_handler = function(vals){
               oplet = last(vals.immediate_do)
           }
           ins_type = oplet //probably won't do any good as its hard to init the combo box to something other than one of its already named items.
-          close_window(vals.window_index)
+          SW.close_window(vals.window_index)
           //console.log("in human_enter_instruction_handler after close_window")
       }
       else { //user clicked a submit button so don't need to close the window.
@@ -1350,8 +1351,7 @@ Instruction.human_enter_number = class human_enter_number extends Instruction{
     }
     
     do_item (job_instance){
-        var hidden  = "<input type='hidden' name='job_name' value='" + job_instance.name                                   + "'/>" +
-                      "<input type='hidden' name='dependent_job_names' value='" + JSON.stringify(this.dependent_job_names) + "'/>" +
+        var hidden  = "<input type='hidden' name='dependent_job_names' value='" + JSON.stringify(this.dependent_job_names) + "'/>" +
                       "<input type='hidden' name='user_data_variable_name' value='" + this.user_data_variable_name         + "'/>"
 
         var number_html  = "<table  style='border:none';border-collapse:collapse;>" +
@@ -1375,9 +1375,10 @@ Instruction.human_enter_number = class human_enter_number extends Instruction{
             }
         }
         else if (this.title == "") { this.title = "<span style='height:25px;'>&nbsp;</span>" }
-        job_instance.wait_reason = "user on Human.show_window interaction." //do before set_status_code so the tooltip gets set with the wait_reason.
+        job_instance.wait_reason = "user on Human.enter_number interaction." //do before set_status_code so the tooltip gets set with the wait_reason.
         job_instance.set_status_code("waiting")
-        show_window({content: this.task + "<br/>" + number_html + "<br/>" + buttons + hidden,
+        show_window({job_name: job_instance.name,
+                    content: this.task + "<br/>" + number_html + "<br/>" + buttons + hidden,
                     callback: human_enter_number_handler,
                     title: this.title,
                     x: this.x,
@@ -1469,9 +1470,8 @@ Instruction.human_enter_position = class human_enter_position extends Instructio
     }
 
     do_item (job_instance){
-        var hidden  = "<input type='hidden' name='job_name' value='" + job_instance.name                                   + "'/>" +
-            "<input type='hidden' name='dependent_job_names' value='" + JSON.stringify(this.dependent_job_names) + "'/>" +
-            "<input type='hidden' name='user_data_variable_name' value='" + this.user_data_variable_name         + "'/>"
+        var hidden  = "<input type='hidden' name='dependent_job_names' value='" + JSON.stringify(this.dependent_job_names) + "'/>" +
+                      "<input type='hidden' name='user_data_variable_name' value='" + this.user_data_variable_name         + "'/>"
 
         var buttons = '<center><input type="submit" value="Continue Job" title="Capture position,\nclose dialog box and\ncontinue this job"/>&nbsp;'
         if (this.add_stop_button) { buttons += '<input type="submit" value="Stop Job" title="Close dialog box,\nstop this job and all dependent jobs."/>' }
@@ -1483,16 +1483,17 @@ Instruction.human_enter_position = class human_enter_position extends Instructio
             }
         }
         else if (this.title == "") { this.title = "<span style='height:25px;'>&nbsp;</span>" }
-        job_instance.wait_reason = "user on Human.show_window interaction." //do before set_status_code so the tooltip gets set with the wait_reason.
+        job_instance.wait_reason = "user on Human.enter_position interaction." //do before set_status_code so the tooltip gets set with the wait_reason.
         job_instance.set_status_code("waiting")
-        show_window({content: this.task + "<br/>" + buttons + hidden,
-            callback: human_enter_position_handler,
-            title: this.title,
-            x: this.x,
-            y: this.y,
-            width: this.width,
-            height: this.height,
-            background_color: this.background_color})
+        show_window({job_name: job_instance.name,
+                    content: this.task + "<br/>" + buttons + hidden,
+                    callback: human_enter_position_handler,
+                    title: this.title,
+                    x: this.x,
+                    y: this.y,
+                    width: this.width,
+                    height: this.height,
+                    background_color: this.background_color})
     }
     to_source_code(args){
         return args.indent + "Human.enter_position({" +
@@ -1568,21 +1569,22 @@ Instruction.human_enter_text = class human_enter_text extends Instruction{
     }
     
     do_item (job_instance){
-        var hidden  = "<input type='hidden' name='job_name' value='" + job_instance.name                                   + "'/>" +
-                      "<input type='hidden' name='dependent_job_names' value='" + JSON.stringify(this.dependent_job_names) + "'/>" +
+        var hidden  = "<input type='hidden' name='dependent_job_names' value='" + JSON.stringify(this.dependent_job_names) + "'/>" +
                       "<input type='hidden' name='user_data_variable_name' value='" + this.user_data_variable_name         + "'/>"
         var text_html
         if(this.line_count == 1){
-            text_html  = this.user_data_variable_name + " =<br/><input type='text' name='choice" +
-            "' size='50" +
-            "' value='" + this.initial_value +
-            "'/>"
+            text_html = "<br/><input type='text' name='choice" +
+                        "' size='50" +
+                        "' value='" + this.initial_value +
+                        "'style='font-size:14px;" +
+                        "'/>"
         }
         else {
-            text_html  = this.user_data_variable_name + " =<br/><textarea name='choice" +
-            "' rows='" + this.line_count +
-            "' cols='50'>" + this.initial_value +
-             "</textarea>"
+            text_html = "<br/><textarea name='choice" +
+                        "' rows='" + this.line_count +
+                        "' cols='50' style='font-size:14px;'>" +
+                         this.initial_value +
+                         "</textarea>"
         }
         var buttons = '<center><input type="submit" value="Continue Job"/>&nbsp;'
         if (this.add_stop_button) buttons += '<input type="submit" value="Stop Job" title="Close dialog box,\nstop this job and all dependent jobs."/>'
@@ -1593,9 +1595,10 @@ Instruction.human_enter_text = class human_enter_text extends Instruction{
                 this.title = job_instance.name + " task for: " +  job_instance.robot.name
             }
         }
-        job_instance.wait_reason = "user on Human.show_window interaction." //do before set_status_code so the tooltip gets set with the wait_reason.
+        job_instance.wait_reason = "user on Human.enter_text interaction." //do before set_status_code so the tooltip gets set with the wait_reason.
         job_instance.set_status_code("waiting")
-        show_window({content: this.task + "<br/>" + text_html + "<br/><br/>" + buttons + hidden,
+        show_window({job_name: job_instance.name,
+                    content: this.task + "<br/>" + text_html + "<br/><br/>" + buttons + hidden,
                     callback: human_enter_text_handler,
                     title: this.title,
                     x: this.x,
@@ -1683,7 +1686,8 @@ Instruction.human_notify = class human_notify extends Instruction{
             "Instruction " + job_instance.program_counter +
             " of " + job_instance.do_list.length + "</div>"
         if (this.window){
-            show_window({content: prefix + "<br/>" + this.task,
+            show_window({job_name: job_instance.name,
+                         content: prefix + "<br/>" + this.task,
                          y: human_notify.get_window_y(), //do y first since it might cause reset of positions
                          x: human_notify.get_window_x(),
                          title:  this.title,
@@ -1744,9 +1748,8 @@ Instruction.human_show_window = class human_show_window extends Instruction{
     }
 
     do_item (job_instance){ //only gets called once, the first time this instr is run
-        this.sw_lit_obj_args.the_job_name       = job_instance.name
         //this.sw_lit_obj_args.the_instruction_id = job_instance.do_list.indexOf(this)
-
+        this.sw_lit_obj_args.job_name = job_instance.name
         job_instance.wait_reason = "user on Human.show_window interaction." //do before set_status_code so the tooltip gets set with the wait_reason.
         job_instance.set_status_code("waiting")
         //can't use a closure here bevause if its an anonymous fn, then it gets src code
@@ -1763,13 +1766,18 @@ Instruction.human_show_window = class human_show_window extends Instruction{
 }
 
 var human_show_window_handler = function(vals){
-    const the_job  = Job[vals.the_job_name]
-    delete vals.the_job_name
+    console.log("top of human_show_window_handler with is_submit of: " + vals.is_submit)
+    const the_job  = Job[vals.job_name]
+    //delete vals.the_job_name
     const hsw_inst = the_job.current_instruction() //the_job.do_list[vals.the_instruction_id]
     const cb = hsw_inst.orig_callback
-    cb.call(the_job, vals)
-    if(!is_window_shown(vals.window_index)){
-        //if windows is not shown, that means time to save its values in the job an let the job got to its next instruction
+    if (cb) { cb.call(the_job, vals) }
+    if(vals.is_submit //|| //useful when running this job in the browser, and user clicks a submit button.
+      //!SW.is_window_shown(vals.window_index) //too hard to support right now for browser
+      //as requires finding out about browser state. todo  when more support for
+      //modifying and disovering  browser state is available.
+      ){
+        //if windows is not shown, that means time to save its values in the job an let the job go to its next instruction
         the_job.user_data[hsw_inst.sw_lit_obj_args.user_data_variable_name] = vals
         the_job.set_status_code("running")
         the_job.set_up_next_do(1)
@@ -2973,6 +2981,38 @@ function adjust_angle_args(array_of_angles){
 
 
 //______Picture Instructions
+Instruction.save_picture = class save_picture extends Instruction{
+    constructor({canvas_id_or_mat="canvas_id",
+                 path="my_pic.png"}){
+        super()
+        this.canvas_id_or_mat = canvas_id_or_mat
+        this.path = path
+        let width
+        let height
+        let canvas_elt
+        if(canvas_id_or_mat instanceof HTMLElement){
+            canvas_elt = canvas_id_or_mat
+        }
+        else if (typeof(canvas_id_or_mat) == "string"){
+            canvas_elt = value_of_path(canvas_id_or_mat)
+        }
+        if(canvas_elt) {
+            width = canvas_elt.width
+            height = canvas_elt.height
+        }
+        else { //its a mat
+           width = canvas_id_or_mat.cols
+           height = canvas_id_or_mat.rows
+        }
+        Picture.init({width: width, height: height}) //do at job def time
+    }
+    do_item (job_instance){
+        Picture.save_picture({canvas_id_or_mat: this.canvas_id_or_mat,
+                              path: this.path})
+        job_instance.set_up_next_do(1)
+    }
+}
+
 Instruction.show_picture = class show_picture extends Instruction{
     constructor ({canvas_id="canvas_id", //string of a canvas_id or canvasId dom elt
                   content=null, //mat or file_path
@@ -2989,7 +3029,7 @@ Instruction.show_picture = class show_picture extends Instruction{
         this.height = height
         this.rect_to_draw = rect_to_draw
         this.first_time = true
-        Picture.init()
+        Picture.init({width: width, height: height})
     }
     do_item (job_instance){
         if(this.first_time){
@@ -3037,7 +3077,7 @@ Instruction.show_video = class show_video extends Instruction{
         this.height = height
         this.play = play
         this.first_time = true
-        Picture.init() //do at job def time
+        Picture.init({width: width, height: height}) //do at job def time
     }
     do_item (job_instance){
         if(this.first_time){
@@ -3064,7 +3104,7 @@ Instruction.show_video = class show_video extends Instruction{
     }
 }
 
-Instruction.take_picture = class take_picture extends Instruction{
+/*Instruction.take_picture = class take_picture extends Instruction{
     constructor ({video_id="video_id", //string of a canvas_id or canvasId dom elt
                   callback=Picture.show_picture_of_mat}={}){
         super()
@@ -3089,7 +3129,6 @@ Instruction.take_picture = class take_picture extends Instruction{
             if(typeof(this.callback) == "string"){
               let user_data_var_name = this.callback
               cb = function(mat) {
-                   out("in cb with ud_var: " + user_data_var_name + " and mat: " + mat)
                    job_instance.user_data[user_data_var_name] = mat
                   }
             }
@@ -3105,6 +3144,54 @@ Instruction.take_picture = class take_picture extends Instruction{
             job_instance.set_up_next_do(0)
         }
         else { job_instance.set_up_next_do(0) } //take_pciture has been called, but wait until video is up
+    }
+}*/
+Instruction.take_picture = class take_picture extends Instruction{
+    constructor ({video_id="video_id", //string of a canvas_id or canvasId dom elt
+                  camera_id=undefined,
+                  width=320, height=240,
+                  callback=Picture.show_picture_of_mat}={}){
+        super()
+        this.video_id = video_id
+        this.camera_id = camera_id
+        this.width = width
+        this.height = height
+        this.callback = callback
+        this.first_time = true
+        this.pic_taken = false
+        Picture.init({width: width, height: height}) //do at fn def time, not at run time, else, grabbing the pic fails
+    }
+    do_item (job_instance){
+        if(this.first_time){
+            //prepare the callback passed to Picture.take_picture
+            let cb
+            let this_instruction = this
+            if(typeof(this.callback) == "string"){
+                let user_data_var_name = this.callback
+                cb = function(mat) {
+                        job_instance.user_data[user_data_var_name] = mat
+                        this_instruction.pic_taken = true
+                }
+            }
+            else {
+                cb = function(mat) {
+                        this_instruction.callback.call(job_instance, mat)
+                        this_instruction.pic_taken = true
+                     }
+            }
+            Picture.take_picture({video_id: this.video_id, //string of a canvas_id or canvas_id dom elt
+                                  camera_id: this.camera_id,
+                                  width: this.width, height: this.height,
+                                  callback: cb})
+            this.first_time = false
+            job_instance.set_up_next_do(0) //loop around.
+        }
+        else if(this.pic_taken) { //all done
+            this.first_time = true //get ready for next time this instuction may be called in a loop
+            this.pic_taken = false
+            job_instance.set_up_next_do(1)
+        }
+        else { job_instance.set_up_next_do(0) } //take_picture has been called, but its not done yet
     }
 }
 //______________________________________________________
@@ -3138,6 +3225,6 @@ var {Robot, Brain, Dexter, Human, Serial} = require('./robot.js')
 var Job     = require('./job.js')
 var Kin     = require("../math/Kin.js")
 var {to_source_code} = require("./to_source_code.js") //for debugging only
-var {shouldnt, warning, dde_error, copy_missing_fields, Duration, is_generator_function, is_iterator, is_non_neg_integer, last,
-     prepend_file_message_maybe, return_first_arg, starts_with_one_of, stringify_value_aux, stringify_value_sans_html,
+var {shouldnt, copy_missing_fields, Duration, is_generator_function, is_iterator, is_non_neg_integer, last,
+      return_first_arg, starts_with_one_of, stringify_value_aux, stringify_value_sans_html,
      trim_comments_from_front, value_of_path} = require("./utils")

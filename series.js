@@ -751,7 +751,7 @@ Series.instances = [
     new Series({id:"series_output_id",      array: ['beep', 'beeps', 'Editor.insert', 'get_page', 'get_page_async','make_url', 'out', 'show_page', 'speak', 'recognize_speech'],
         menu_insertion_string: "beep({dur: 1, frequency: 440, volume: 1})",
         menu_sel_start:0, menu_sel_end:4, sample: "beep"}),
-    new Series({id:"series_window_id",      array: ['clear_output', 'close_window', 'make_dom_elt', 'make_html', 'show_window',
+    new Series({id:"series_window_id",      array: ['clear_output', 'SW.close_window', 'make_dom_elt', 'make_html', 'show_window',
                                                     'append_in_ui', 'get_in_ui', 'remove_in_ui', 'replace_in_ui', 'set_in_ui',
                                                     'set_window_frame_background_color', 'set_pane_header_background_color',
                                                     'set_menu_background_color', 'set_button_background_color',

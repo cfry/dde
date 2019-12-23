@@ -1,11 +1,3 @@
-function prepend_file_message_maybe(message){
-    if (message.startsWith("while loading file:")) { return message }
-    else if (window["loading_file"]) {
-        return "while loading file: " + window["loading_file"] + "<br/>" + message
-    }
-    else { return message }
-}
-module.exports.prepend_file_message_maybe = prepend_file_message_maybe
 
 function shouldnt(message){
     console.log(message)
@@ -16,27 +8,6 @@ function shouldnt(message){
                      prepend_file_message_maybe(message))
 }
 module.exports.shouldnt = shouldnt
-
-function warning(message, temp=false){
-    var err = new Error();
-    var stack_trace = replace_substrings(err.stack, "\n", "<br/>")
-    out_string = "<details><summary><span class='warning_css_class'>Warning: " + prepend_file_message_maybe(message) +
-                 "</span></summary>" + stack_trace + "</details>"
-    out(out_string, undefined, temp) //#ff751a e61
-}
-module.exports.warning = warning
-
-function dde_error(message){
-    let out_string = prepend_file_message_maybe(message)
-    console.log("dde_error: " + out_string)
-    var err = new Error();
-    var stack_trace = err.stack
-    out_string = "<details><summary><span class='dde_error_css_class'>Error: " + out_string +
-                      "</span></summary>" + stack_trace + "</details>"
-    out(out_string)
-    throw new Error(message)
-}
-module.exports.dde_error = dde_error
 
 function warning_or_error(message, error=false){
     if(error) { dde_error(message) }
@@ -1810,6 +1781,5 @@ module.exports.make_ins_arrays = make_ins_arrays
 module.exports.month_names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September','October', 'November', 'December']
 
 var semver = require("semver")
-var {out} = require("./out.js")
 var {Instruction} = require("./instruction.js")
 var {Robot, Brain, Dexter, Human, Serial} = require('./robot.js')

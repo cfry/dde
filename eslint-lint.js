@@ -22,9 +22,10 @@
         "beeps":      false,
         "Brain":      false,
         "class":      false, //I still get a warning for class as a "reserved word"
-        "close_window":       false,
         "console":    false, //permit using "console" without warning, but don't permit the setting of it.
+        "Control":    false,
         "Coor":       false,
+        "dde_apps_folder": false,
         "dde_error":  false,
         "dde_version": false,
         "Dexter":     false,
@@ -37,6 +38,7 @@
         "get_page":   false,
         "get_page_async": false,
         "Human":      false,
+        "IO":         false,
         "inspect":    false,
         "Job":        false,
         "Kin":        false,
@@ -58,6 +60,7 @@
         "remove_in_ui":   false,
         "replace_in_ui":  false,
         "return_first_arg": false,
+        "require":        false,
         "Robot":          false,
         "Root":           false,
         "setTimeout":     false,
