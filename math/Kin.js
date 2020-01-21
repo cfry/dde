@@ -1095,8 +1095,43 @@ class Kin{
     	}
 		return [xyzs, speeds]
 	}
-    
-    
+
+    //this will probably be put into Kin at some point
+//will only work with configs of [1, 1, 1] or [1, 0, 1]
+    static point_down(J_angles){
+        let J = JSON.parse(JSON.stringify(J_angles)) //the new copy function we wrote doesn't exist in LTS
+        J[3] = 90 - J[2] - J[1]
+        J[4] = 0
+        return J
+    }
+
+
+    static xy_donut_slice_approx(Z, dir){
+        let inner_r, outer_r
+        let feet_r = 210 * _mm
+        let non_zero_r = 2 * _cm //5 * _mm
+        if(Z < Dexter.LINK1){
+            inner_r = feet_r
+        }else if(Z < Dexter.LINK1 + feet_r){
+            inner_r = Math.sqrt(Math.pow(feet_r, 2) - Math.pow(Z - Dexter.LINK1, 2))
+            if(inner_r < non_zero_r){
+                inner_r = non_zero_r
+            }
+        }else{
+            inner_r = non_zero_r
+        }
+
+        let v54 = Vector.multiply(-Dexter.LINK5, dir)
+        let v54_proj = [v54[0], 0, v54[2]]
+        let v43 = Vector.multiply(Dexter.LINK4, Vector.normalize(Vector.rotate(v54_proj, [0, 1, 0], 90)))
+        let v35 = Vector.add(v54, v43)
+
+        outer_r = v35[0] + Math.sqrt(Math.pow(Dexter.LINK2 + Dexter.LINK3, 2) - Math.pow((Z + v35[2] - Dexter.LINK1), 2))
+
+        let outer_xy = [0, 0]
+
+        return [inner_r, outer_r, outer_xy]
+    }
     
     
     

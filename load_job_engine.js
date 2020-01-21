@@ -40,10 +40,13 @@ var {DXF} = require("./math/DXF.js")
 var {Instruction, make_ins, human_task_handler, human_enter_choice_handler,
     human_enter_filepath_handler, human_enter_number_handler, human_enter_position_handler,
     human_enter_instruction_handler,
-    human_enter_text_handler, human_show_window_handler} = require("./core/instruction.js")
+    human_enter_text_handler,
+    human_notify_handler, human_show_window_handler} = require("./core/instruction.js")
 
 var {FPGA} = require('./core/fpga.js')
 var {Robot, Brain, Dexter, Human, Serial} = require('./core/robot.js')
+var {RobotStatus} = require('./core/robot_status.js')
+
 var {Control} = require('./core/instruction_control.js')
 var {IO} = require('./core/instruction_io.js')
 var Job  = require('./core/job.js')

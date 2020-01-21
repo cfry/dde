@@ -119,18 +119,18 @@ SimUtils = class SimUtils{
     static render_multi_frame(new_js, prev_js, js_inc_per_frame, ms_per_frame, total_frames, frame=0, rob, did_last_frame=false){
         if(frame >= total_frames) {} //we're done
         else{
-            let new_angles = []
+            let new_angles = [] //used only for computing xyz to set in sim pane header
             for(let joint = 0; joint < prev_js.length; joint++){
                 let prev_j = prev_js[joint]
                 let j_inc_per_frame = js_inc_per_frame[joint]
                 let inc_to_prev_j = frame * j_inc_per_frame
                 let j_angle = prev_j + inc_to_prev_j
-                new_angles.push(j_angle)
                 let rads = arc_seconds_to_radians(j_angle)
                 let angle_degrees
                 if      (joint == 5) { angle_degrees = (j_angle - 512) * Socket.DEGREES_PER_DYNAMIXEL_UNIT }
                 else if (joint == 6) { angle_degrees = j_angle * Socket.DEGREES_PER_DYNAMIXEL_UNIT }
                 else                 { angle_degrees = j_angle / 3600 }
+                new_angles.push(angle_degrees)
                 let j_angle_degrees_rounded = Math.round(angle_degrees)
                 switch(joint) {
                     case 0:
@@ -163,12 +163,22 @@ SimUtils = class SimUtils{
             }
 
             let xyz = Kin.J_angles_to_xyz(new_angles, rob.pose)[0]
-            let x = ("" + xyz[0]).substring(0, 5)
-            sim_pane_x_id.innerHTML = x
-            let y = ("" + xyz[1]).substring(0, 5)
-            sim_pane_y_id.innerHTML = y
-            let z = ("" + xyz[2]).substring(0, 5)
-            sim_pane_z_id.innerHTML = z
+            let str_length
+
+            let x = xyz[0]
+            if(x < 0) { str_length = 6} //so we get the minus sign plus 3 digits after decimal point, ie MM
+            else      { str_length = 5}
+            sim_pane_x_id.innerHTML = ("" + x).substring(0, str_length)
+
+            let y = xyz[1]
+            if(y < 0) { str_length = 6} //so we get the minus sign plus 3 digits after decimal point, ie MM
+            else      { str_length = 5}
+            sim_pane_y_id.innerHTML = ("" + y).substring(0, str_length)
+
+            let z = xyz[2]
+            if(z < 0) { str_length = 6} //so we get the minus sign plus 3 digits after decimal point, ie MM
+            else      { str_length = 5}
+            sim_pane_z_id.innerHTML = ("" + z).substring(0, str_length)
 
             sim.renderer.render(sim.scene, sim.camera)
             if(frame < (total_frames - 1)){

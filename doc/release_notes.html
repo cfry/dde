@@ -5,10 +5,133 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+
+<details class="doc_details"><summary>v 3.5.2, Jan 21, 2020</summary>
+Highlights: New function for dynamically setting show_window elements: selector_set_in_ui.
+            New Dexter User Interface dialog for operating Dexter via sliders.
+            Increased flexibility for show_video and take_picture.
+            Lots of Window System tweaks.
+<ul>
+    <li><code>show_window combo_box</code> now has a wider "down arrow".</li>
+
+    <li> For the Human instructions, if a dependent job doesn't exist and we're trying to stop
+        all the dependent jobs because the user is stopping the job of the human instruction,
+        don't error, just do nothing
+        as the dependent job already isn't running.</li>
+
+    <li> Control.wait_until(a_num) and Control.loop had a bug in that
+        if the job its in was stopped in the middle of one of these instructions,
+        then the NEXT time you ran the job, it would not be properly initialized.
+        Fixed.</li>
+
+    <li> For Human instructions, new init param: <code>add_stop_button=true</code>
+        (not for speak, recognize_speech, but for:
+        <ul>
+            <li> task</li>
+            <li> enter_choice</li>
+            <li> enter_instruction</li>
+            <li> notify </li>
+         </ul>
+         Other Human instructions where this button makes sense already have this option.
+    </li>
+
+    <li> Much more complete documentation under Ref Man/Robot/Human on the
+        parameters that are in common with most Human Instructions.</li>
+
+    <li> svg functions extended to be able to take NO args and not error.</li>
+
+    <li> Dragging svg elements in a show_window can now be enabled.
+        See Ref Man/Window System/SVG/html_class.</li>
+
+    <li> Fixed bug in Job.insert_instruction that caused an error message,
+        but often wouldn't affect job performance.</li>
+
+    <li> Drastically reduced calls to <code>color_job_button</code>
+         when a job is waiting for more instructions.
+        This reduces computation for waiting jobs esp.
+        more important for job engine browser interface.</li>
+
+    <li> Bug fixed in simulator pane header that was causing x,y,z values not to update properly.</li>
+
+    <li> Simulator pane header Joint degrees formatting improved.</li>
+
+    <li> New hidden input to a <code>show_window</code> content of "show_window_elt_id"
+         with the string value of the id,
+          so that the handler fn can easily find the show-window in order to modify it.</li>
+
+    <li> Sim pane header x,y,z display now shows millimeters, not just centimeters,
+         for negative number.</li>
+
+    <li> added to each Dexter instance, the properties:
+         J6_angle_min, J6_angle_max, J7_angle_min, J7_angle_max.</li>
+
+    <li> now SW.all_show_windows returns a proper array instead of a nodelist.</li>
+
+    <li> Fixed <code>SW.close_all_show_windows()</code> to not depend on its subject to work.</li>
+
+
+    <li> New Jobs menu/Dexter Tools/Dexter UI... item that brings up a show_window to
+        operate Dexter. Jas slider and number controls for J1 -> J7 and X,Y,Z.</li>
+
+    <li> SW.close_window, fixed internal bug.</li>
+
+    <li> <code>Picture.save_picture</code> and <code>IO.save_picture</code>
+        no longer display the picture that it is saving.
+        If you want that, you'll have to explicitly show_picture it.</li>
+
+
+    <li> Fixed bug in <code>Picture.show_video</code> for its "playing" state.</li>
+
+
+    <li> Add a visible=true init param to <code>show_video</code>.</li>
+
+    <li><code>take_picture</code> doesn't automatically <code>show_video now</code>.</li>
+
+    <li> Fixed  dragging a <code>show window</code> in Job Engine browser interface.</li>
+
+    <li> New function: <code>selector_set_in_ui</code>.
+         Uses CSS selector syntax to identify HTML elements which
+        can be removed, replaced, modified, or extended.
+        See Ref Man/ Window System/Window Utilities/selector_set_in_ui.</li>
+
+    <li> New Insert menu item: show_window/Modify Window
+        Inserts an example of using the new <code>selector_set_in_ui</code>
+        to change a button color
+        and insert HTML into a show_window.</li>
+
+    <li> New Example under Jobs menu/Insert Example/Human Instrs
+         for "Dexter User Interface" (the simple version with just 7 sliders, one for each joint).
+        This is far simpler than the Insert menu item: show_window/Modify Window,
+        and so much easier to understand as a code tutorial.</li>
+
+    <li> During the "progress" report on a job, if a function is encountered,
+        it prints out the NAME of the function, not its entire def.
+        This gets rid of what is usually unnecessary detail for certain
+        debugging situations.</li>
+
+    <li> The <code>RobotStatus</code> class is now part of the Job engine.</li>
+
+    <li> <code>Control.loop</code> documentation extended with a description to the loop example
+         and an additional loop example added.</li>
+
+    <li> <code>SW.close_window</code> extended to take a dom elt as its arg.
+         If that dom_elt is within a <code>show_window</code>, that show_wikndow is closed.</li>
+
+    <li> <code>Kin.point_down</code> and <code>Kin.xy_donut_slice_approx</code> added.
+        These are still experimental and so not yet documented.</li>
+
+    <li> <code>write_file</code>  Improved error message when the file to write is in a non-exisitent folder.</li>
+
+    <li> <code>make_folder</code> fixed for passing in an arg of the empty string and
+          some other cases.</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.5.1, Dec 23, 2019</summary>
 Updated npm packages only to get Mac version to build.
 
 </details>
+
 
 <details class="doc_details"><summary>v 3.5.0, Dec 22, 2019</summary>
 Highlights: SSH for DDE-Dexter communications improved.

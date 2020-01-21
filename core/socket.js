@@ -103,7 +103,10 @@ var Socket = class Socket{
                 else if (i == 6) { //J7
                     converted_val = Math.round(arg_val / Socket.DEGREES_PER_DYNAMIXEL_UNIT) //convert degrees to dynamixel units to get dynamixel integer from 0 through 1023 going from 0 to 296 degrees
                 }
-                else { converted_val = Math.round(arg_val * 3600) } //still might be a NaN
+                else {//J1 thru J5  for J1, i == 0
+                    converted_val = Math.round(arg_val * 3600) //still might be a NaN
+                    //if(i == 1) { out("soc J2: " + arg_val + " arcsec: " + converted_val) } //degugging statement only
+                }
                 instruction_array_copy[index] = converted_val
             }
             return instruction_array_copy

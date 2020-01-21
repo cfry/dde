@@ -14,7 +14,7 @@ var Picture = class Picture{
             cv = require("./node_modules/opencv.js/opencv")
             RotatingCalipers = require("rotating-calipers/rotating-calipers.js")
        //load_files(__dirname + "/node_modules/rotating-calipers/rotating-calipers.js")
-        Picture.show_video({width: width, height: height, callback: SW.close_window})
+       // Picture.show_video({width: width, height: height, callback: SW.close_window}) //immediately closes itself, but needs to open temporarily just to complete "initing".
       //Picture.take_picture({callback: null}) //the first time I call take_picture,
                 //it doesn't work due to timing/async. So this "inits" the video
        //so that take_picture will work the first time.
@@ -36,12 +36,21 @@ var Picture = class Picture{
             let height = mat.rows
             //canvas_elt = document.createElement("CANVAS")
             //canvas_elt.id = "canvas_id" //canvas_elt must have an id for render_canvas_content to work
-            sw_index = show_window({title: "storage for save_picture",
+
+           sw_index = show_window({title: "storage for save_picture",
                                     content: '<canvas id="canvas_for_save_picture_id"' +
                                                       ' width="' + width +
                                                       'px" height="'  + height +
                                                       'px"/>'})
             canvas_elt = canvas_for_save_picture_id
+            //canvas_elt.style.display = "none" //we still see the elt but it is at 240 x 320
+            canvas_elt.visibility = "hidden"
+            //the below fails to work for render_canvas_content's call to cv.imshow
+            //so we've gotta have a real elt connected to the dom.
+                //canvas_elt = document.createElement('canvas');
+                //canvas_elt.id  = "canvas_for_save_picture_id"
+                //canvas_elt.width  = width
+                //canvas_elt.height = height
             Picture.render_canvas_content(canvas_elt, mat)
         }
         let img = canvas_elt.toDataURL()
@@ -95,7 +104,7 @@ var Picture = class Picture{
       }
       if(canvas_elt) { Picture.render_canvas_content(canvas_elt, content, rect_to_draw) }
       else {
-          let width_html = ' width="' + width + 'px" '
+          let width_html  = ' width="'  + width  + 'px" '
           let height_html = ' height="' + height + 'px" '
           let the_html
           the_html = '<canvas class="clickable" id="' + canvas_id + '" ' +
@@ -262,6 +271,7 @@ var Picture = class Picture{
                         x=400, y=0, width=320, height=240,
                         play=true,
                         camera_id=undefined,
+                        visible=true,
                         callback=undefined}={}
                        ){
       let video_elt 
@@ -294,9 +304,15 @@ var Picture = class Picture{
                            '" preload="auto' +
                            '" controls></video>'
               }
-              show_window({title: title,
-                           x: x, y: y, width: width + 10, height: height + 50,    //stick "controls" in the video tag to get controls for when playing a file
+              let sw_index = show_window({title: title,
+                           x: x, y: y,
+                           width: width + 10,
+                           height: height + 50,    //stick "controls" in the video tag to get controls for when playing a file
                            content: the_html}) //there isn't a binding to video_id so safe to use it. the binding goes away when the user closes the window
+              if(!visible) {
+                  let sw_elt = SW.get_window_of_index(sw_index)
+                  sw_elt.style.visibility = "hidden"
+              }
              if(content.includes("youtu.be")){ return }
              //else { video_elt = html_to_dom_elt(the_html)}
          }             
@@ -331,12 +347,14 @@ var Picture = class Picture{
                                     //}
                                     //from https://stackoverflow.com/questions/36803176/how-to-prevent-the-play-request-was-interrupted-by-a-call-to-pause-error
                                     let isPlaying = video_elt.currentTime > 0 &&
-                                                    !video_elt.paused && !video.ended &&
-                                                    video.readyState > 2;
+                                                    !video_elt.paused &&
+                                                    !video_elt.ended &&
+                                                    video_elt.readyState > 2;
                                     if (isPlaying) {
                                         if(callback) {callback.call(this, video_elt)}
                                     }
                                     else {
+                                       //calling the  below with camera, sometimes errors if you close , reopen, play twice
                                        video_elt.play().then( () => {
                                        	      if(callback) {callback.call(this, video_elt)} //just in case "this" is a job instance, we want the callback to get it
                                        })
@@ -359,7 +377,7 @@ var Picture = class Picture{
     static take_picture({video_id="video_id", camera_id=undefined,
                          width=320, height=240,
                          callback=Picture.show_picture_of_mat}={}){
-        Picture.init(width, height)
+        Picture.init(width, height) //first time called, pops up show_window with video from camera in it, 2nd thr nth does nothing
         let video_elt 
         if(is_dom_elt(video_id)){ 
               video_elt = video_id
@@ -371,7 +389,7 @@ var Picture = class Picture{
                 let vid_callback = function() {
                		                    Picture.take_picture({video_id: video_id, width: width, height: height, callback: callback})
                                    }
-                Picture.show_video({video_id: video_id, camera_id: camera_id, width: width, height: height, callback: vid_callback})
+                Picture.show_video({video_id: video_id, camera_id: camera_id, width: width, height: height, visible: false, callback: vid_callback})
                 return
               //a video show window will pop up but the below code won't be able to return its mat.
              /*let the_html = '<video id="' + video_id + 
@@ -383,25 +401,9 @@ var Picture = class Picture{
           }
         }
         if(video_elt.tagName != "VIDEO"){
-      	  dde_error("Picture.take got a video_id: " + video_id +
+      	  dde_error("Picture.take_picture got a video_id: " + video_id +
                     "that is not the id of, or domElt of a video.")
         }
-        let offScreenCanvas    = document.createElement('canvas');
-        offScreenCanvas.width  = width //video_elt.width
-        offScreenCanvas.height = height //video_elt.height
-        let context = offScreenCanvas.getContext("2d");
-
-        //video_elt.addEventListener('canplay', function(ev){ //fails
-         //   out("in canplay")
-         //   ontext.drawImage(video_elt, 0, 0, video_elt.width, video_elt.height)
-        //    let mat                = cv.imread(offScreenCanvas)
-        //    if (callback) {
-                //callback(mat)
-        //        callback.call(this, mat) //just in case "this" is a job instance, we want the callback to get it
-        //    }
-        //})
-        //context.drawImage(video_elt, 0, 0, video_elt.width, video_elt.height)
-        //let mat                = cv.imread(offScreenCanvas)
         let mat = Picture.video_to_mat(video_elt, width, height)
         //out("is mat: " + Picture.is_mat(mat))
         if (callback) {

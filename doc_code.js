@@ -216,12 +216,16 @@ function find_doc(record=true){
 
 function find_doc_aux(record){
     close_all_details()
+    //ut("active elt for find: " + document.activeElement.tagName)
+    //ut("prev active elt for find: " + previous_active_element.tagName)
     let search_string = find_doc_input_id.value
     if (search_string.length == 0) { search_string = selection_for_find_button() } //Editor.get_any_selection()  //doc & output panes
     if (search_string.length == 0) {
         warning("There is no text in the Find type-in nor selection anywhere to search for.")
         return
     }
+    //find_doc_input_id.value = search_string
+
     //out(search_string) //for testing only
     if(record) {
         doc_pane_elt_id_history.push(search_string)

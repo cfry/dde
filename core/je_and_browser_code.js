@@ -208,13 +208,15 @@ static get_window_index_containing_elt(elt){
 }
 
 static all_show_windows(){
-    return document.querySelectorAll(".show_window")
+    let nodelist = document.querySelectorAll(".show_window")
+    let arr = Array.prototype.slice.call(nodelist)
+    return arr
 }
 
 //esp good for a zillion human_notify show windows
 static close_all_show_windows(){
-    for(let win of this.all_show_windows()){
-        this.sw_close(win)
+    for(let win of SW.all_show_windows()){
+        SW.sw_close(win)
     }
 }
 
@@ -266,9 +268,9 @@ static latest_window_of_title(title){
 static render_show_window(properties){
     //onsole.log("top of render_show_window")
     //kludge but that's dom reality
-    var holder_div = document.createElement("div"); // a throw away elt
+    let holder_div = document.createElement("div"); // a throw away elt
     holder_div.innerHTML = properties.html
-    var show_window_elt = holder_div.firstElementChild
+    let show_window_elt = holder_div.firstElementChild
     body_id.appendChild(show_window_elt) //this is automatically done when I call jqxw_jq.jqxWindow({width:width below
     if(properties.is_modal) {
         show_window_elt.showModal()
@@ -288,35 +290,134 @@ static render_show_window(properties){
     //onsole.log("render_show_window got title_elt: " + title_elt)
     let draggable_value = (properties.draggable? "true": "false")
     //onsole.log("render_show_window got draggable_value: " + draggable_value)
-    title_elt.onmousedown = function(e) {
-        e.target.parentNode.setAttribute('draggable', draggable_value) //set the whole sw window to now be draggable.
+    title_elt.onmousedown = function(event) {
+        event.target.parentNode.setAttribute('draggable', draggable_value) //set the whole sw window to now be draggable.
     }
-    title_elt.onmouseup = function(e) {
-        e.target.parentNode.setAttribute('draggable', 'false') //set the whole sw window to now be draggable.
+    title_elt.onmouseup = function(event) {
+        event.target.parentNode.setAttribute('draggable', 'false') //set the whole sw window to now be draggable.
     }
-    show_window_elt.ondragstart = function(e) {
+    show_window_elt.ondragstart = function(event) {
         let show_win_elt = event.target
         var style = window.getComputedStyle(show_win_elt, null)
         let left = parseInt(style.getPropertyValue("left"), 10) - event.clientX
         let top  = parseInt(style.getPropertyValue("top"),  10) - event.clientY
         //event.dataTransfer.setData("text/plain", (parseInt(style.getPropertyValue("left"), 10) - event.clientX) + ',' + (parseInt(style.getPropertyValue("top"), 10) - event.clientY) + ',' + event.target.getAttribute('data-item'));
         let data = show_window_elt.id + "," + left + "," + top
-        e.dataTransfer.setData("sw_id", data) //title_id) //don't use "text or "text/plain" here
+        event.dataTransfer.setData("sw_id", data) //title_id) //don't use "text or "text/plain" here
         //as that will cause the data to ALSO be inserted into the DDE editor.
     };
-    show_window_elt.ondragend = function(e) {
-        e.target.setAttribute('draggable', 'false')
+    show_window_elt.ondragend = function(event) {
+        event.target.setAttribute('draggable', 'false')
     };
 
     body_id.ondragenter = this.sw_ondragenter
     body_id.ondragover = this.sw_allow_drop
     body_id.ondrop = this.sw_drop
+    this.init_draggable_elements(show_window_elt) //not for dragging the whole win, just elts WITHIN the win
+
     setTimeout(SW.install_onclick_via_data_fns, 10) //don't need this at all for show_window in browser.
     setTimeout(function(){SW.install_submit_window_fns(show_window_elt)}, 10)
     if (properties.init_elt_id){
         setTimeout(function(){window[properties.init_elt_id].click()} , 100)
     }
 }
+
+static init_draggable_elements(show_window_elt){
+    var ins = show_window_elt.querySelectorAll(".draggable") //"[draggable='true']")
+    if(ins.length > 0) {
+        let first_ins = ins[0]
+        let par = first_ins.parentElement
+        this.makeDraggable(par)
+    }
+}
+    //for(var index = 0; index < ins.length; index++){ //bug in js chrome: for (var elt in elts) doesn't work here.
+    //    var inp = ins[index]
+    //    if (inp.class !== "show_window") {
+    //        inp.draggable = "true" //doesn't work in triggering ondragstart
+            //inp.onmousedown = function(e) {
+            //    e.target.setAttribute('draggable', 'true') //set the whole sw window to now be draggable.
+            //}
+            //inp.onmouseup = function(e) {
+            //    e.target.setAttribute('draggable', 'false') //set the whole sw window to now be draggable.
+            //}
+           /* inp.ondragstart = function(event) {
+                event.preventDefault();
+                event.stopPropagation()
+                let inp = event.target
+                var style = window.getComputedStyle(inp, null)
+                let left = parseInt(style.getPropertyValue("left"), 10) - event.clientX
+                let top  = parseInt(style.getPropertyValue("top"),  10) - event.clientY
+                //event.dataTransfer.setData("text/plain", (parseInt(style.getPropertyValue("left"), 10) - event.clientX) + ',' + (parseInt(style.getPropertyValue("top"), 10) - event.clientY) + ',' + event.target.getAttribute('data-item'));
+                let data = inp.id + "," + left + "," + top
+                event.dataTransfer.setData("sw_id", data) //title_id) //don't use "text or "text/plain" here
+            }
+            let inp_parent = inp.parentElement
+            inp_parent.ondragenter = this.sw_ondragenter
+            inp_parent.ondragover = this.sw_allow_drop
+            inp_parent.ondrop = this.sw_drop*/
+//}}}
+
+//http://www.petercollingridge.co.uk/tutorials/svg/interactive/dragging/
+//svg_elt is the PARENT of the elt to drag, ie an "SVG" tag elt.
+    static makeDraggable(svg_elt){
+        //var svg_elt = evt.target;  //was named "svg"
+        svg_elt.addEventListener('mousedown', startDrag, false);
+        svg_elt.addEventListener('mousemove', drag, false);
+        svg_elt.addEventListener('mouseup', endDrag, false);
+
+        function getMousePosition(evt){
+            let CTM = svg_elt.getScreenCTM();
+            return {
+                x: (evt.clientX - CTM.e) / CTM.a,
+                y: (evt.clientY - CTM.f) / CTM.d
+            };
+        }
+        var selectedElement, offset, transform;
+
+        function startDrag(evt) {
+            if (evt.target.classList.contains('draggable')) {
+                selectedElement = evt.target;
+                if(selectedElement.tagName == "circle") { //no need to transform this. mouse coords are the coord of the containing SVG elt, with 0,0 in upper left.
+                    return
+                }
+                offset = getMousePosition(evt);
+                out("in startDrag offset: " + offset)
+                // Make sure the first transform on the element is a translate transform
+                var transforms = selectedElement.transform.baseVal;
+
+                if (transforms.length === 0 || transforms.getItem(0).type !== SVGTransform.SVG_TRANSFORM_TRANSLATE) {
+                    // Create an transform that translates by (0, 0)
+                    var translate = svg_elt.createSVGTransform();
+                    translate.setTranslate(0, 0);
+                    selectedElement.transform.baseVal.insertItemBefore(translate, 0);
+                }
+                // Get initial translation
+                transform = transforms.getItem(0);
+                offset.x -= transform.matrix.e;
+                offset.y -= transform.matrix.f;
+            }
+        }
+        function drag(evt) {
+            if (selectedElement) {
+                let coord = getMousePosition(evt);
+                out("in drag x: " + coord.x + " y: " + coord.y)
+                if(selectedElement.tagName == "circle"){
+                    selectedElement.setAttribute("cx", coord.x)
+                    selectedElement.setAttribute("cy", coord.y)
+                }
+                else {
+                    transform.setTranslate(coord.x - offset.x, coord.y - offset.y);
+                }
+                let elt_being_dragged = evt.target
+                if(elt_being_dragged.dataset.oninput == "true"){
+                    SW.submit_window.call(elt_being_dragged, evt)
+                }
+            }
+        }
+        function endDrag(evt) {
+            selectedElement = null;
+        }
+    }
 
 //called with elt of the close button, a sw_window_content_elt, or a a sw_window_elt
 static sw_close(elt){
@@ -361,15 +462,15 @@ static sw_drop(event){
     //show_window_elt_being_dragged = show_window_elt_being_dragged.closest("DIALOG") ////in browser, this is the sw dialog. In DDE this is null
     let new_x = (event.clientX + parseInt(left, 10)) + 'px';
     let new_y = (event.clientY + parseInt(top,  10)) + 'px';
+    console.log("clientX: " + event.clientX + " clientY: " + event.clientY +
+                " new_x: " + new_x + " new_y: " + new_y)
     //let new_x = event.clientX + "px" //event.offsetX + "px"
     //show_window_elt_being_dragged.getBoundingClientRect().left + "px"
     //let new_y = event.clientY + "px" //event.offsetY + "px"
     //show_window_elt_being_dragged.getBoundingClientRect().top + "px"
     show_window_elt_being_dragged.style.left = new_x
     show_window_elt_being_dragged.style.top = new_y
-    //let data = event.dataTransfer.getData("text");
-    //let data_elt = document.getElementById(data)
-    //event.target.appendChild(document.getElementById(data));
+
 }
 
 static install_onclick_via_data_fns(){
@@ -389,32 +490,44 @@ static sw_combobox_select_oninput(event){
 }
 
 static install_submit_window_fns(show_window_elt){
-    var ins = show_window_elt.querySelectorAll(".clickable")
+    let ins = show_window_elt.querySelectorAll(".clickable")
     for (var index = 0; index < ins.length; index++){ //bug in js chrome: for (var elt in elts) doesn't work here.
         var inp = ins[index]
         inp.onclick = this.submit_window
     }
+    ins = show_window_elt.querySelectorAll("[data-onchange='true']")
+    for (var index = 0; index < ins.length; index++){ //bug in js chrome: for (var elt in elts) doesn't work here.
+        var inp = ins[index]
+        inp.onchange = this.submit_window
+    }
+    ins = show_window_elt.querySelectorAll("[data-oninput='true']")
+    for (var index = 0; index < ins.length; index++){ //bug in js chrome: for (var elt in elts) doesn't work here.
+        var inp = ins[index]
+        inp.oninput = this.submit_window
+    }
+
     //var ins = info_win_div.find("input")
-    var ins = show_window_elt.querySelectorAll("input")
+     ins = show_window_elt.querySelectorAll("input")
     for (var index = 0; index < ins.length; index++){ //bug in js chrome: for (var elt in elts) doesn't work here.
         var inp = ins[index]
         if ((inp.type == "submit") || (inp.type == "button")){
             inp.onclick = this.submit_window
         }
-        else{
-            if (inp.dataset.onchange == "true") { inp.onchange = this.submit_window }
-            if (inp.dataset.oninput  == "true") { inp.oninput  = this.submit_window }
-        }
+        //else{
+        //    if (inp.dataset.onchange == "true") { inp.onchange = this.submit_window }
+        //    if (inp.dataset.oninput  == "true") { inp.oninput  = this.submit_window }
+        //}
     }
     //var ins = info_win_div.find("select")
-    var ins = show_window_elt.querySelectorAll("select")
-    for (var index = 0; index < ins.length; index++){ //bug in js chrome: for (var elt in elts) doesn't work here.
-        var inp = ins[index]
-        if (inp.dataset.onchange == "true") { inp.onchange = this.submit_window }
-        if (inp.dataset.oninput  == "true") { inp.oninput  = this.submit_window }
-    }
+
+    // ins = show_window_elt.querySelectorAll("select")
+    //for (var index = 0; index < ins.length; index++){ //bug in js chrome: for (var elt in elts) doesn't work here.
+    //    var inp = ins[index]
+    //    if (inp.dataset.onchange == "true") { inp.onchange = this.submit_window }
+    //    if (inp.dataset.oninput  == "true") { inp.oninput  = this.submit_window }
+    //}
     //var ins = info_win_div.find("a")
-    var ins = show_window_elt.querySelectorAll("a")
+     ins = show_window_elt.querySelectorAll("a")
     for (var index = 0; index  < ins.length; index++){ //bug in js chrome: for (var elt in elts) doesn't work here.
         var inp = ins[index]
         inp.onclick = this.submit_window
@@ -433,7 +546,7 @@ static install_submit_window_fns(show_window_elt){
         let select_elt = document.createElement("SELECT")
         select_elt.oninput=this.sw_combobox_select_oninput
         select_elt.style["margin-left"] = "5px"
-        select_elt.style.width = "10px"
+        select_elt.style.width = "20px"
         //select_elt.children = kids
         for (let kid of kids){
             //let kid = kids[j] //could be nearly any html elt but option is a good choice.
@@ -659,6 +772,21 @@ static submit_window(event){
         var in_name = input_elt.id //(outer_cb.name ? outer_cb.name : outer_cb.id)
         result[in_name] = val
     }
+    let circles = window_content_elt.querySelectorAll("circle") //needed by 2d_slider
+    for(let i = 0; i < circles.length; i++){
+        let cir = circles[i]
+        if(cir.id) {
+            //let the_matrix = cir.transform.baseVal.getItem(0).matrix
+            let x = cir.getAttribute("cx") //the_matrix.e //rect.x //no, clientLeft doesn't change when dragging the cir. // cir.clientLeft //rect.left
+            let y = cir.getAttribute("cy") //the_matrix.f //rect.y //cir.clientTop  //rect.top
+            let val = {cx: x, //offsetX only works when dragging the cir, not when we are moving the Z slider and still want to get x & y. result.offsetX, //parseFloat(cir.getAttribute("cx")), //returns string. can't just do cir.cx due to bad svg design
+                       cy: y,//result.offsetY, //parseFloat(cir.getAttribute("cy")), //but this string is just what the cir cx and cy were ORIGNIALLY set to at creating not he dragged posoition which is in the event offsetX & Y.
+                       r: parseFloat(cir.getAttribute("r")),
+                       fill: cir.getAttribute("fill") //keep as a string. This is the color of the circle.
+                       }
+            result[cir.id] = val
+        }
+    }
     if (subject_elt.type == "submit"){
         result.is_submit = true  //used by Human.show_window, human_show_window_handler
         SW.sw_close(subject_elt)
@@ -748,14 +876,14 @@ static close_window(window_title_index_or_elt=SW.window_index){ //elt can be a w
             window_title_index_or_elt = parseInt(window_title_index_or_elt)
         }
         if (typeof(window_title_index_or_elt) == "string") {
-            this.close_windows_of_title(window_title_index_or_elt)
+            SW.close_windows_of_title(window_title_index_or_elt) //don't use "this", use SW because we may call this without its subject class
         }
         else if (typeof(window_title_index_or_elt) == "number"){ //ie a window_index
             let win = this.get_window_of_index(window_title_index_or_elt)
-            this.sw_close(win)
+            SW.sw_close(win) //don't use "this", use SW because we may call this without its subject class
         }
         else if (window_title_index_or_elt instanceof HTMLElement) {
-            this.sw_close(window_title_index_or_elt)
+            SW.sw_close(window_title_index_or_elt) //don't use "this", use SW because we may call this without its subject class
         }
         else {
             dde_error("close_window called with invalid window_title_index_or_elt: " + window_title_index_or_elt)
@@ -771,6 +899,93 @@ SW.window_index = null // The window_index of the last show_window made, or null
                        // This value is incremented in show_window fn, then that incremeted value is used in the window being made
                        // The first show_window made has window index of 0
 
+//path elts separated by space, and are CSS selector expressions.
+//The last one CAN BE a property name surrounded by square brackets
+//value is a string of the new value of the property in the last path elt.
+//a null value means remove the dom_elt or attribute specified in path_string
+//ex: selector_set_in_ui("#show_window_0_id foo [value]" , "blue")
+function selector_set_in_ui(path_string, value=null){
+    if(window.platform == "node") { //console.log(val)
+        let obj = {kind: "selector_set_in_ui_call", path_string: path_string, value: value}
+        write_to_stdout("<for_server>" + JSON.stringify(obj) + "</for_server>")
+    }
+    else {
+        if(value === -0) { value = 0 } //in some werid raoujnding situations, we get a negative zero.
+                                       //and maybe this cause problems in the below setAttrubute call
+                                       //so jsut to be safe. get rid of it.
+                                       //Note -0 === 0, but still, here we ensure either 0 or -0 is really 0
+        let path_string_elts = path_string.split(" ")
+        let last_elt_str = path_string_elts[path_string_elts.length - 1]
+        let path_string_references_style_attribute = false
+        let path_string_references_html_attribute = false
+        let path_string_references_dom_elt = false
+        //exactly one of the above 3 will be set to true in the next if...else
+        if((path_string_elts.length > 1) &&
+           (path_string_elts[path_string_elts.length - 2] == "[style]")) {
+            path_string_references_style_attribute = true
+        }
+        else if(last_elt_str.includes("=")) { path_string_references_dom_elt = true } // ie "[name=foo]"
+        else if((last_elt_str.length < 3) ||
+                (last_elt_str[0] !== "[")){
+            path_string_references_dom_elt = true
+        }
+        else { path_string_references_html_attribute = true }
+        //now path_string_references_dom_elt is true or false.
+        //if its false, exactly one of path_string_references_html_attribute or
+        // path_string_references_style_attribute should be true
+        if(path_string_references_dom_elt){
+            let dom_elt = document.querySelector(path_string)
+            if((dom_elt instanceof HTMLElement) || (dom_elt instanceof SVGElement)) {
+                if(value === null){
+                    dom_elt.remove()
+                }
+                else {
+                    dom_elt.outerHTML = value //replace the dom_elt
+                }
+            }
+            else {
+                dde_error("In selector_set_in_ui, path_string: " + path_string +
+                          " should be a referernece to an existing dom_elt, but isn't.")
+            }
+        }
+        else if (path_string_references_style_attribute) { //2nd to last path_string elt is "[style]"
+            let path_elts_before_style = path_string_elts.slice(0, path_string_elts.length - 2)
+            let dom_elt_string = path_elts_before_style.join(" ")
+            let dom_elt = document.querySelector(dom_elt_string)
+            let last_elt_attr_name = last_elt_str.substring(1, last_elt_str.length - 1) //strip off [ and ]
+            if(value == null) {
+                dom_elt.style.removeProperty(last_elt_attr_name)
+            }
+            else { dom_elt.style[last_elt_attr_name] = value }
+        }
+        else { //we're referencing an html or svg attribute, presume last_elt_str is surrounded by [] with a single attr name in it.
+            let last_elt_attr_name = last_elt_str.substring(1, last_elt_str.length - 1) //strip surrounding square brackets
+            let path_elts_for_dom_elt = path_string_elts.slice(0, path_string_elts.length - 1)
+            let dom_elt_string = path_elts_for_dom_elt.join(" ")
+            let dom_elt = document.querySelector(dom_elt_string)
+            if((dom_elt instanceof HTMLElement) || (dom_elt instanceof SVGElement)){
+                if(["value", "innerHTML", "innerText", "outerHTML", "outerText"].includes(last_elt_attr_name)){
+                    if(value === null) { dom_elt[last_elt_attr_name] = "" }
+                    else { dom_elt[last_elt_attr_name] = value }//some_input_of_type_range.setAttribute("value", "" + value)
+                                              // sets the internal value of the elt, but does not update the display to it.
+                                              //looks like a bug in chrome to me.
+                }
+
+                //https://developer.mozilla.org/en-US/docs/Web/API/Element/insertAdjacentHTML
+                else if (["beforebegin", "afterbegin", "beforeend", "afterend"].includes(last_elt_attr_name)){
+                   dom_elt.insertAdjacentHTML(last_elt_attr_name, value)
+                }
+                else {
+                    if(value === null) { dom_elt.removeAttribute(last_elt_attr_name)}
+                    else { dom_elt.setAttribute(last_elt_attr_name, "" + value) }
+                }
+            }
+            else {dde_error("selector_set_in_ui passed: " + path_string +
+                              " that didn't resolve to an HTML or SVG element.")
+            }
+        }
+    }
+}
  //ie we have a platform global var meaning we're runnningthis in node, not in the browser, which doesn't have module defined.
 // module.exports.SW = SW //"module" not available in browser
 //window.SW = SW
@@ -783,6 +998,7 @@ try { //if window is defined, we're in DDE or the browser
     window.warning = warning
     window.prepend_file_message_maybe = prepend_file_message_maybe
     window.out = out
+    window.selector_set_in_ui = selector_set_in_ui
 }
 catch(e){ //else we're in the job engine
     global.SW = SW
@@ -792,6 +1008,7 @@ catch(e){ //else we're in the job engine
     global.warning = warning
     global.prepend_file_message_maybe = prepend_file_message_maybe
     global.out = out
+    global.selector_set_in_ui = selector_set_in_ui
 }
 
 //global.SW = SW

@@ -1162,12 +1162,20 @@ video is played as soon as the display can handle it.<br/>
     onclick="open_doc('Picture.show_video_cameras_doc_id')">show_video_cameras</a>
     or click <button onclick="Picture.show_video_cameras()">show video cameras</button>
     for a list of attached cameras and their id's. <br/>
+<b>visible</b> Default: <code>true</code> A boolean.
+If true, a show_window will be displayed containing the video from <i>content</i>.
+If false, nothing will be shown. <code>false</code> is used when you want to use show_video to
+snap high resolution pictures, but you don't want to take up the huge area
+that showing a high resolution video would take up.
+In such a case, you can use a different call to show_video with smaller width and height
+to show what you're about to take a picture of, or none at all, if you prefer.<br/>
 <b>callback</b> Default: <code>undefined</code>
-Once the video display is up, this method is called. The default is to do nothing.
+Once the video display is up, this method is called with the created VIDEO dom element as its argument.
+The default is to do nothing.
 <p></p>
 <i>Examples:</i>
 <pre><code title="not in testsuite"> Picture.show_video() </code></pre>
-<!-- we should be able to do at least one of a show_video or tke_picture,
+<!-- we should be able to do at least one of a show_video or take_picture,
 but when runing all tests, I get error: "DomException: The play() request..."
 with any show_video or take_picture calls in the test suite. -->
 <pre><code title="not in testsuite"> Picture.show_video({content:
@@ -4233,7 +4241,7 @@ when the instruction_location is an array. <br/>
 before the program_counter.<br/>
 <b>"after_program_counter"</b> Set's the program_counter to the instruction just
     after the program_counter.<br/>
-<b>"end"</b> Sents the program counter to one greater than the last instruction id,
+<b>"end"</b> Sets the program counter to one greater than the last instruction id,
 effectively ending the job.<br/>
 <b>"next_top_level"</b> A top level instruction can cause multiple instructions to
 be inserted right beneath it. This sets the program counter to the next top level
@@ -4517,7 +4525,7 @@ a location to insert an instruction using <code>Control.send_to_job</code>.<br/>
     <a href="#" onclick="open_doc('Control.go_to_doc_id')">Control.go_to</a>,
     loops are better.
     <p></p>
-    <i>Example</i>
+    <i>Examples</i>
     <pre><code>new Job({name: "my_job7",
     do_list: [IO.out("start of job"),
               Control.loop([100, 101, 102, 103, 104],
@@ -4531,6 +4539,29 @@ a location to insert an instruction using <code>Control.send_to_job</code>.<br/>
                         ),
                IO.out("end of job"),
 ]})     </code></pre>
+    In the above example, the 2nd arg to the loop instruction (an anonymous function)
+    is called 5 times, one time for each of the numbers in the array
+    <code>[100, 101, 102, 103, 104]</code>
+    The 2nd arg passed to that function, iter_val, will be an element of the array.
+
+    <pre><code>
+new Job({
+    name: "my_job",
+    do_list: [
+        Control.loop(function() {return (Math.random() > 0.1)},
+                     function(iter) {return Robot.out(iter)}
+                     )
+    ]
+})</code></pre>
+  At each iteration, the function in the first argument to loop is called.
+  If it returns true, the function in the 2nd argument is called.
+  But if it returns false, the loop is stopped.
+  <code>Math.random()</code> returns a float between 0 and 1.
+  Most of the time it will return a number greater than 0.1, allowing
+  the loop to continue. But as soon as <code>Math.random()</code> returns
+  a number that is less than or equal to 0.1, the loop stops.
+  <p></p>
+
    See Jobs menu/Insert Example/Control.loop for more examples.
 </details>
 
@@ -6415,9 +6446,46 @@ that it can't know. The inclusion of human instructions in DDE permits the desig
 running of jobs that need coodination between humans and machines.
 <p></p>
 Although the "home" of human instructions is in the <i>Human</i> robot, you can use
-these instructions in a job with <i>any</i> robot. They do not attempt to
+these instructions in a job with <i>any</i> type of robot. They do not attempt to
 access robot hardware.
 <p></p>
+<i>Parameters:</i>
+Nearly all Human instructions take the following parameters.
+Note the overlap with <code>show_window</code> parameters, because
+Human Instructions that pop up a dialog are implemented with <code>show_window</code>.<br/>
+<b>task</b> Default: <code>""</code> Instructions to the user on how to perform this instruction.<br/>
+<b>user_data_variable_name</b> A string. Default: depends on what type of human instruction.
+For instance, enter_number's default is <code>"a_number"</code>.<br/>
+The <i>output</i> of most Human Instructions goes into the Job's user_data property
+with this name. Then a subsequent instruction can get that value and do something with it.<br/>
+<b>add_stop_button</b> Default: <code>true</code> If true, a button is added to
+ the bottom of the dialog named "Stop Job", that let's the user stop
+ the Job that this instruction is in.<br/>
+ All Human Instruction dialogs also have a "Continue" button
+ that the user should click when they're done filling in the requested information.<br/>
+<b>dependent_job_names</b> Default: <code>[]</code> Names of Jobs that will be stopped
+ if the user clicks the "Stop Job" button.<br/>
+<b>title</b> A string. Default: Includes the Job name and the type of the Human Instruction.<br/>
+ Text that appears in the title bar of the dialog.<br/>
+<b>x</b> Default: <code>200</code> The position of the left of the dialog.<br/>
+<b>y</b> Default: <code>200</code> The position of the top of the dialog.<br/>
+<b>width</b> Default: <code>400</code> The width in pixels of the dialog.<br/>
+<b>height</b> Default: <code>400</code> The height in pixels of the dialog.<br/>
+<b>background_color</b> Default: <code>"rgb(238, 238, 238)"</code>, a light gray.
+<p></p>
+<i>Example:</i>
+<pre><code title="unstartable in TestSuite"> new Job({name: "my_job",
+      do_list: [Human.enter_choice({task: "Please choose your favorite.",
+                                    choices: ["AAA", "BBB", "CCC"],
+                                    user_data_variable_name: "the_tla",
+                                    x: 50, y: 25,
+                                    title: "Pick a TLA",
+                                    width: 370, height: 150,
+                                    background_color: "rgb(220, 200, 250)"
+                                    }),
+                function(){out("You chose: " + this.user_data.the_tla)}
+]})     </code></pre>
+<br/>
 <a href="http://hdrobotic.com/webinar#human_instructions" target="_blank">Human Instructions</a>
 is a video describing most of the Human instructions.
 
@@ -6431,6 +6499,9 @@ is a video describing most of the Human instructions.
   <b>wait</b> Boolean, default: <code>true</code>. When true
   the job pauses while the speaking is occuring, then performs the
   next instruction when the speaking is done.
+  <p></p>
+  Human.speak does <i>not</i> take <b>add_stop_button</b> as
+  a parameter because it doesn't display a dialog box.
   <i>Example:</i>
   <pre><code>new Job({name: "j1",
          do_list: [
@@ -6531,7 +6602,7 @@ is a video describing most of the Human instructions.
 
   <b>show_choices_as_buttons</b> true or false, default: false. When false, the choices are 
     shown in a menu with the first choice selected.
-    When true, each choice has a button and there is no <button>Done</button> button.
+    When true, each choice has a button and there is no <button>Done</button> button.<br/>
   <b>one_button_per_line</b> true or false, default: false. If true, each button
    appears on its own line in a vertical stack. If true, the buttons are positioned
    left to right, taking up more than 1 line only when necessary to display the extra buttons.<br/>
@@ -6737,9 +6808,10 @@ If no file is chosen, the variable is bound to <code>null</code>
     <code>Human.notify</code> displays information for the user.
   See <a href="#" onclick="open_doc('Human.task_doc_id', event)">Human.task</a> for behavior common to all Human instructions,
   but unlike other Human instructions, <b>notify</b> does not have a
-  <code title="unEVALable">user_data_variable_name</code> parameter,
-  nor do its dialog boxes have buttons.
-  It also does not wait for a user action before allowing its job to continue to the next do_list item.<p></p>
+  <code title="unEVALable">user_data_variable_name</code> parameter because it
+  does not request any information from the user.
+  It also does not have a "Continue" button, because
+  it does not wait for a user action before allowing its job to continue to the next do_list item.<p></p>
   <i>Uncommon Parameters:</i><br/>
   <b>window</b> true or false. Default: <code>true</code>. Whether or not to present the information in a window.<br/>
   <b>output_pane</b> true or false. Default: <code>true</code>. Whether or not to present the task in the output pane.<br/>
@@ -8380,6 +8452,9 @@ Here's the CSS for a bunch more editor properties.
  ctrlKey: false,    //control key
  metaKey: false,    //Windows key on Windows OS, command key on Mac
  shiftKey: false,
+ show_window_elt_id: "show_window_0_id", //The id of the dialog that holds this show_window.
+                    //the integer is the show_window integer, incremented in each
+                    //call to show_window.
  tagName: "input",  //html element tag clicked on.
  window_index: "1", //a show_window instance identifier.
                    //SW.close_window(window_index)
@@ -8546,7 +8621,7 @@ show_window({
             an element in a <code>show_window</code> window. The new element will become
             the new last child of the path element.<br/>
             <b>new_html</b>: A string of HTML to create the new element.<p></p>
-            <i>Example</i>: <code>append_in_ui("my_in_id", "&lt;h1>hello&lt;/h1>")</code><br/>
+            <i>Example</i>: <code title="unEVALable">append_in_ui("my_in_id", "&lt;h1>hello&lt;/h1>")</code><br/>
             where "my_ui_id" is the id of a currently displayed html tag, usually in
             the content of a <code>show_window</code> window.
         </details>
@@ -8587,6 +8662,104 @@ show_window({
             <b>value</b>: The value of an HTML element's attribute. Usually this is a string.<p></p>
             <i>Example</i>: <code title="unEVALable code fragment"> set_in_ui("my_in_id.value", "aluminum")</code><br/>
         </details>
+
+        <details id="selector_set_in_ui_doc_id" class="doc_details"><summary>selector_set_in_ui</summary>
+        This function uses the CSS selector syntax, also used in JS DOM method <code title="unEVALABLE">querySelector</code>,
+        to identify an element on a page to change (with some extensions), and a new value. You can
+        replace, remove, modify, and extend show_window HTML elements dynamically (usually from their callback functions),
+        giving interactive feedback to the user.<br/>
+        <i>Parameters:</i><br/>
+        <b>path_string</b> A string using CSS selector syntax to identity one HTML element.
+        Selector syntax is admittedly horrible. But its one of the main standards on the web,
+        and it does offer a considerable degree of flexibility, allowing you to identify elements,
+        absolutely and relatively along with their HTML properties and style properties, if so desired.
+        <p></p>
+        Such strings often start with a  "#" to
+        indicate an element ID, followed by a space, then a reference to an element
+        within that first "element ID", and optionally followed by a space, then a reference
+        to a property that you want to modify.
+        <p></p>
+        Here's a list of the most useful, space-separated
+        selector parts:<br/>
+
+        <samp>#foo</samp>The ID of an element. Usually this is the first path part.
+        DDE uses the convention of element id's having a suffix of "_id". We recommend this
+        for your code too.<br/>
+        <samp>.bar</samp> The class of an element <i>within</i> the previously idendified element
+        in the path_string.<br/>
+        <samp>[baz]</samp> An HTML property of an element.
+        <p></p>
+        selector_set_in_ui has a few special properties:<br/>
+        <samp>[innerHTML]</samp> Used for replacing the innerHTML of an element. The value is expected
+        to be HTML and will be rendered.<br/>
+        <samp>[innerText]</samp> Used for replacing the innerText of an element. The value is expected
+            to be plain text and will not be rendered.<br/>
+        <samp>[outerHTML]</samp> Used for replacing the whole HTML of an element, including its tag name
+        and all its properties. It will be rendered.<br/>
+        <samp>[outerText]</samp> Used for replacing the outerHTML of an element. The value is expected
+            to be plain text and will not be rendered.
+        <p></p>
+        The next four are for adding content.<br/>
+        <samp>[beforebegin]</samp> Use to insert HTML before the previously idendified element
+            in the path_string.<br/>
+        <samp>[afterbegin]</samp> Use to insert HTML as the new first child of the previously idendified element
+            in the path_string.<br/>
+        <samp>[beforeend]</samp> Use to insert HTML after the last child of the previously identified element
+            in the path_string.<br/>
+        <samp>[afterend]</samp>  Use to insert HTML after the previously identified element
+            in the path_string.<br/>
+        <p></p>
+        <samp>[baz=val]</samp> Identifies an element <i>within</i> the previously idendified element
+            in the path_string that has the property "baz" with a value of "val".<br/>
+        <samp>[style]</samp>  Identifies the style property of an element.
+        If you want to set the entire style string (all the properties), tben use this
+        as the last element in your path_string.<br/>
+        <samp>[style] [baz]</samp> Used for referencing the <i>style</i> (not HTML) property
+        of an element.
+        <p></p>
+        <b>value</b> Default <code>null</code> If null, the <i>path_string</i> is expected to refer to
+        an HTML element, an HTML property, or a style property. It will be removed.
+        Otherwise <i>value</i> is expected to be a string.
+        If the <i>path_string</i> refers to an element, it will be replaced by
+        the HTML (or plain text) of the value. If the path_string refers to a property,
+        it should be a plain string of the new value of that property.<br/>
+        <p></p>
+        <i>Examples:</i><br/>
+        Remove the element within my_elt_id that has a name of "mydiv".<br/>
+        <code title="unEVALable">selector_set_in_ui("#my_elt_id [name=mydiv]", null)</code><br/>
+        Set the innerHTML of mydiv to <i>hey</i><br/>
+        <code title="unEVALable">selector_set_in_ui("#my_elt_id [name=mydiv] [innerHTML]", "<i>hey</i>")</code><br/>
+        Add <i>end</i> after mydiv.<br/>
+        <code title="unEVALable">selector_set_in_ui("#my_elt_id [name=mydiv] [afterend]", "<i>end</i>")</code><br/>
+        Set the title (tooltip) of mydiv to "new title".<br/>
+        <code title="unEVALable">selector_set_in_ui("#my_elt_id [name=mydiv] [title]", "new title")</code><br/>
+        Set the color of the text in mydiv to "red".<br/>
+        <code title="unEVALable">selector_set_in_ui("#my_elt_id [name=mydiv] [style] [color]", "red")</code>
+        <p></p>
+        Below we are popping up a show_window with just one button.
+        Clicking on the button calls <code title="not_in_tesetsuite">modify_window_cb</code>
+        which creates a new random color, then sets the button's "style" property of "background"
+        to that new color. Then the string used to indicate that new color is
+        added to the window just below the button.<pre><code>
+function modify_window_cb(vals){
+   let color = "rgb(" + Math.round(Math.random() * 255) + "," +
+                        Math.round(Math.random() * 255) + "," +
+                        Math.round(Math.random() * 255) + ")"
+   selector_set_in_ui("#" + vals.show_window_elt_id + " [name=the_button] [style] [background]",
+                      color
+                      )
+   selector_set_in_ui("#" + vals.show_window_elt_id + " [name=the_button] [afterend]",
+                      "&lt;br/>" + color)
+}
+show_window({title: "Modify Window",
+             x:300, y:20, width:300, height:200,
+             callback: modify_window_cb,
+             content: '&lt;input type="button" name="the_button" value="click to colorize"/>'
+  })</code></pre>
+
+        See <a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors">CSS Selectors</a>
+        Beware, not all selectors are supported by selector_set_in_ui.
+        </details>
     </details> <!-- end window Utilities -->
 
     <details class="doc_details"><summary>SVG</summary>
@@ -8601,9 +8774,17 @@ show_window({
         <i>Parameters for all svg functions</i>:<br/>
         <b>id</b> The html id of the element, useful in calls to window utility functions
         such as <code>append_in_ui</code>.<br/>
-        <b>html_class</b>: Used to set the <code title="unEVALable code fragment"> class</code> attrbute of the element.
+        <b>html_class</b>: Default: <code>""</code> Used to set the <code title="unEVALable code fragment"> class</code> attrbute of the element.
         Due to a name conflict with <code title="unEVALable code fragment"> class</code> in JavaScript, we had to name this
         <code title="unEVALable code fragment"> html_class</code>.<br/>
+        With a value of <code>"clickable"</code>, clicking this element will call the show_window
+        handler function when the user clicks the element.<br/>
+        With a value of <code>"draggable"</code>, dragging this element will call the show_window
+        handler function when the element is dropped.<br/>
+        You can use both via a value of <code>"clickable draggable"</code> just
+        like regular HTML elements with multiple classes. In that case,
+        use the HTML <code title="unEVALable">class</code> spelling of the class property.
+
         <b>style</b>: A string setting the css style of the element. Note that some
         arguments to svg functions are actually rendered as style attributes, such as
         <code title="unEVALable code fragment"> color</code>,

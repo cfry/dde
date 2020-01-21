@@ -1,6 +1,8 @@
 /** Created by Fry on 3/5/16. */
 
 var Instruction = class Instruction {
+    init_instruction(){} //shadowed by at least wait_until and loop,  called by stop_for_reason
+
     static to_string(instr){
        if(instr instanceof Instruction) { return instr.toString() }
        else if (Instruction.is_oplet_array(instr)) {
@@ -10,6 +12,11 @@ var Instruction = class Instruction {
            return fn_name + " " + args
        }
        else if (Array.isArray(instr)) { return "Array of " + instr.length + " instructions" }
+       else if (typeof(instr) == "function") {
+           let name = instr.name
+           if(name && name !== "") { return "function " + name }
+           else { return "anonymous function" }
+       }
        else { return instr.toString() }
     }
     toString(){
@@ -470,7 +477,7 @@ Instruction.break = class Break extends Instruction{ //class name must be upper 
         }
         else {
             let loop_ins = job_instance.do_list[loop_pc]
-            loop_ins.resolved_times_to_loop = null //just in case this loop is nested in another loop
+            loop_ins.init_instruction() //just in case this loop is nested in another loop
             //or we "go_to backwards" to it, we want its next "first_call" to initialize
             //the loop so set this prop to null
             let items_within_loop = job_instance.total_sub_instruction_count(loop_pc) //job_instance.added_items_count[loop_pc]
@@ -756,8 +763,7 @@ Instruction.human_task = class human_task extends Instruction{
             }
         }
         else if (this.title == "") { this.title = "<span style='height:25px;'>&nbsp;</span>" }
-        job_instance.wait_reason = "user on Human.task interaction." //do before set_status_code so the tooltip gets set with the wait_reason.
-        job_instance.set_status_code("waiting")
+        job_instance.set_status_code("waiting", "user on Human.task interaction.")
         show_window({job_name: job_instance.name,
                     content: this.task + "<p/>" + buttons + hidden,
                     callback: human_task_handler,
@@ -785,7 +791,8 @@ Instruction.human_task = class human_task extends Instruction{
 
 var human_task_handler = function(vals){
     var job_instance = Job[vals.job_name]
-    if (vals.clicked_button_value != "Continue Job"){
+    if(vals.clicked_button_value == "Continue Job") { } //the dialog closes automatically
+    else if (vals.clicked_button_value == "Stop Job"){
         job_instance.stop_for_reason("interrupted", "In human_task, user stopped this job.")
         var dep_job_names = JSON.parse(vals.dependent_job_names) //If the user did not pass in a dependent_job_names arg when
                     //creating the human_job, dep_job_names will now be [] so the below if hits but
@@ -793,7 +800,9 @@ var human_task_handler = function(vals){
         if (dep_job_names && Array.isArray(dep_job_names)){
             for (let j_name of dep_job_names){
                 var j_inst = Job[j_name]
-                if (!j_inst.stop_reason){ //if j_inst is still going, stop it.
+                if (j_inst && //if j_inst doesn't exist, just forget about it as it doesn't need to be stopped.
+                              //without this check we'd pointlessly error.
+                    !j_inst.stop_reason){ //if j_inst is still going, stop it.
                     j_inst.stop_for_reason("interrupted", "In human_task, user stopped this job which is dependent on job: " + job_instance.name)
                     j_inst.set_up_next_do(0)
                 }
@@ -816,7 +825,7 @@ Instruction.human_enter_choice = class human_enter_choice extends Instruction{
                   title, x=200, y=200, width=400, height=400,
                   background_color="rgb(238, 238, 238)"}={}) {
         super()
-        this.task        = task
+        this.task    = task
         this.user_data_variable_name = user_data_variable_name
         //this.choices                 = choices
         this.show_choices_as_buttons = show_choices_as_buttons
@@ -849,16 +858,18 @@ Instruction.human_enter_choice = class human_enter_choice extends Instruction{
                 if (this.one_button_per_line) { select += "<br/>" }
             }
             if(this.add_stop_button) {
-              buttons = '<center><input type="submit" value="Stop Job" title="Close dialog box,\nstop this job and all dependent jobs."/></center>'
+                buttons = ' <center> <input type="submit" value="Stop Job" title="Close dialog box,\nstop this job and all dependent jobs."/> </center>'
             }
         }
         else { //show as menu items,the default because we can have more of them.
             select  = "<center><select name='choice'>"
             for (var item of this.choices){ select += "<option>" + item[0] + "</option>" }
             select += "</select></center>"
+            buttons = '<center><input type="submit" value="Continue Job" title="Close dialog box and\ncontinue this job"/>&nbsp;'
             if(this.add_stop_button) {
-                buttons = '<center><input type="submit" value="Continue Job" title="Close dialog box and\ncontinue this job"/>&nbsp;<input type="submit" value="Stop Job" title="Close dialog box,\nstop this job and all dependent jobs."/></center>'
+                buttons += ' <input type="submit" value="Stop Job" title="Close dialog box,\nstop this job and all dependent jobs."/>'
             }
+            buttons += "</center>"
         }
         if (this.title === undefined){
             this.title = "Job: " + job_instance.name + ", Human Enter Choice"
@@ -867,10 +878,9 @@ Instruction.human_enter_choice = class human_enter_choice extends Instruction{
             }
         }
         else if (this.title == "") { this.title = "<span style='height:25px;'>&nbsp;</span>" }
-        job_instance.wait_reason = "user on Human.enter_choice interaction." //do before set_status_code so the tooltip gets set with the wait_reason.
-        job_instance.set_status_code("waiting")
+        job_instance.set_status_code("waiting", "user on Human.enter_choice interaction.")
         show_window({job_name: job_instance.name,
-                    content: this.task + "<br/>" + select + "<br/>" + (buttons ? buttons : "") + hidden,
+                    content: this.task + "<br/>" + select + "<br/>" + buttons  + hidden,
                     callback: human_enter_choice_handler,
                     title: this.title,
                     x: this.x,
@@ -913,8 +923,8 @@ var human_enter_choice_handler = function(vals){
         if (dep_job_names && Array.isArray(dep_job_names)){
             for (let j_name of dep_job_names){
                 var j_inst = Job[j_name]
-                if (!j_inst.stop_reason){ //if j_inst is still going, stop it.
-                    j_inst.stop_for_reason("interrupted", "In human_task, user stopped this job which is dependent on job: " + job_instance.name)
+                if (j_inst && !j_inst.stop_reason){ //if j_inst is still going, stop it.
+                    j_inst.stop_for_reason("interrupted", "In human_enter_choice, user stopped this job which is dependent on job: " + job_instance.name)
                     j_inst.set_up_next_do(0)
                     return
                 }
@@ -995,8 +1005,7 @@ Instruction.human_enter_filepath = class human_filepath extends Instruction{
                 this.title = job_instance.name + " task for: " +  job_instance.robot.name
             }
         }
-        job_instance.wait_reason = "user on Human.enter_filepath interaction." //do before set_status_code so the tooltip gets set with the wait_reason.
-        job_instance.set_status_code("waiting")
+        job_instance.set_status_code("waiting", "user on Human.enter_filepath interaction." )
         show_window({ job_name: job_instance.name,
                     content: this.task + "<br/>" + text_html + "<br/><br/>" + buttons + hidden,
                     callback: human_enter_filepath_handler,
@@ -1037,7 +1046,7 @@ function human_enter_filepath_handler(vals){
         if (dep_job_names && Array.isArray(dep_job_names)){
             for (let j_name of dep_job_names){
                 var j_inst = Job[j_name]
-                if (!j_inst.stop_reason){ //if j_inst is still going, stop it.
+                if (j_inst && !j_inst.stop_reason){ //if j_inst is still going, stop it.
                     j_inst.stop_for_reason("interrupted", "In human_task, user stopped this job which is dependent on job: " + job_instance.name)
                     j_inst.set_up_next_do(0)
                     return
@@ -1138,8 +1147,7 @@ Instruction.human_enter_instruction = class human_enter_instruction extends Inst
         if(job_instance.robot instanceof Dexter){
             out(Dexter.robot_status_to_html(job_instance.robot.robot_status, "on job: " + job_instance.name), "black", true)
         }
-        job_instance.wait_reason = "user on Human.enter_instruction interaction." //do before set_status_code so the tooltip gets set with the wait_reason.
-        job_instance.set_status_code("waiting")
+        job_instance.set_status_code("waiting", "user on Human.enter_instruction interaction.")
         show_window({job_name: job_instance.name,
                     content: "<div style='margin-bottom:10px;'><i>" + this.task + "</i></div>" +
                               "Instruction type: " + type_html +
@@ -1190,7 +1198,7 @@ var human_enter_instruction_handler = function(vals){
         if (dep_job_names && Array.isArray(dep_job_names)){
             for (let j_name of dep_job_names){
                 let j_inst = Job[j_name]
-                if (!j_inst.stop_reason){ //if j_inst is still going, stop it.
+                if (j_inst && !j_inst.stop_reason){ //if j_inst is still going, stop it.
                     j_inst.stop_for_reason("interrupted", "In human_enter_instruction, user stopped this job which is dependent on job: " + job_instance.name)
                     j_inst.set_up_next_do(0)
                     return
@@ -1375,8 +1383,7 @@ Instruction.human_enter_number = class human_enter_number extends Instruction{
             }
         }
         else if (this.title == "") { this.title = "<span style='height:25px;'>&nbsp;</span>" }
-        job_instance.wait_reason = "user on Human.enter_number interaction." //do before set_status_code so the tooltip gets set with the wait_reason.
-        job_instance.set_status_code("waiting")
+        job_instance.set_status_code("waiting", "user on Human.enter_number interaction." )
         show_window({job_name: job_instance.name,
                     content: this.task + "<br/>" + number_html + "<br/>" + buttons + hidden,
                     callback: human_enter_number_handler,
@@ -1416,7 +1423,7 @@ var human_enter_number_handler = function(vals){
         if (dep_job_names && Array.isArray(dep_job_names)){
             for (let j_name of dep_job_names){
                 var j_inst = Job[j_name]
-                if (!j_inst.stop_reason){ //if j_inst is still going, stop it.
+                if (j_inst && !j_inst.stop_reason){ //if j_inst is still going, stop it.
                     j_inst.stop_for_reason("interrupted", "In human_enter_number, user stopped this job which is dependent on job: " + job_instance.name)
                     j_inst.set_up_next_do(0)
                     return
@@ -1483,8 +1490,7 @@ Instruction.human_enter_position = class human_enter_position extends Instructio
             }
         }
         else if (this.title == "") { this.title = "<span style='height:25px;'>&nbsp;</span>" }
-        job_instance.wait_reason = "user on Human.enter_position interaction." //do before set_status_code so the tooltip gets set with the wait_reason.
-        job_instance.set_status_code("waiting")
+        job_instance.set_status_code("waiting", "user on Human.enter_position interaction.")
         show_window({job_name: job_instance.name,
                     content: this.task + "<br/>" + buttons + hidden,
                     callback: human_enter_position_handler,
@@ -1520,7 +1526,7 @@ var human_enter_position_handler = function(vals){
         if (dep_job_names && Array.isArray(dep_job_names)){
             for (let j_name of dep_job_names){
                 var j_inst = Job[j_name]
-                if (!j_inst.stop_reason){ //if j_inst is still going, stop it.
+                if (j_inst && !j_inst.stop_reason){ //if j_inst is still going, stop it.
                     j_inst.stop_for_reason("interrupted", "In human_enter_number, user stopped this job which is dependent on job: " + job_instance.name)
                     j_inst.set_up_next_do(0)
                     return
@@ -1595,8 +1601,7 @@ Instruction.human_enter_text = class human_enter_text extends Instruction{
                 this.title = job_instance.name + " task for: " +  job_instance.robot.name
             }
         }
-        job_instance.wait_reason = "user on Human.enter_text interaction." //do before set_status_code so the tooltip gets set with the wait_reason.
-        job_instance.set_status_code("waiting")
+        job_instance.set_status_code("waiting", "user on Human.enter_text interaction.")
         show_window({job_name: job_instance.name,
                     content: this.task + "<br/>" + text_html + "<br/><br/>" + buttons + hidden,
                     callback: human_enter_text_handler,
@@ -1635,7 +1640,7 @@ var human_enter_text_handler = function(vals){
         if (dep_job_names && Array.isArray(dep_job_names)){
             for (let j_name of dep_job_names){
                 var j_inst = Job[j_name]
-                if (!j_inst.stop_reason){ //if j_inst is still going, stop it.
+                if (j_inst && !j_inst.stop_reason){ //if j_inst is still going, stop it.
                     j_inst.stop_for_reason("interrupted", "In human_enter_text, user stopped this job which is dependent on job: " + job_instance.name)
                     j_inst.set_up_next_do(0)
                 }
@@ -1658,6 +1663,8 @@ Instruction.human_notify = class human_notify extends Instruction{
                   output_pane=true,
                   beep_count=0,
                   speak=false,
+                  add_stop_button=true,
+                  dependent_job_names = [],
                   //does not have x and y because those are automatically set to make
                   //multiple notify windows visible.
                   title, width=400, height=400,  background_color="rgb(238, 238, 238)"}={}) {
@@ -1667,6 +1674,8 @@ Instruction.human_notify = class human_notify extends Instruction{
         this.window=window,
         this.output_pane=output_pane,
         this.beep_count=beep_count,
+        this.add_stop_button = add_stop_button
+        this.dependent_job_names = dependent_job_names
         this.speak=speak
         this.title   = title
         this.width   = width
@@ -1675,6 +1684,7 @@ Instruction.human_notify = class human_notify extends Instruction{
     }
     
     do_item (job_instance){
+        var hidden  = "<input type='hidden' name='dependent_job_names' value='" + JSON.stringify(this.dependent_job_names) + "'/>"
         if (this.title === undefined){
             this.title = job_instance.name + ", Notification"
             if (job_instance.robot instanceof Human){
@@ -1685,15 +1695,20 @@ Instruction.human_notify = class human_notify extends Instruction{
         var prefix = "<div style='font-size:11px;'>Presented at: " + new Date() + "<br/>" +
             "Instruction " + job_instance.program_counter +
             " of " + job_instance.do_list.length + "</div>"
+        let buttons = ""
+        if(this.add_stop_button) {
+            buttons += '<center><input type="submit" value="Stop Job" title="Close dialog box,\nstop this job and all dependent jobs."/></center>'
+        }
         if (this.window){
             show_window({job_name: job_instance.name,
-                         content: prefix + "<br/>" + this.task,
+                         content: prefix + "<br/>" + this.task + "<p/>" + buttons + hidden,
                          y: human_notify.get_window_y(), //do y first since it might cause reset of positions
                          x: human_notify.get_window_x(),
                          title:  this.title,
                          width:  this.width,
                          height: this.height,
-                         background_color: this.background_color
+                         background_color: this.background_color,
+                         callback: human_notify_handler
             })
         }
         if (this.output_pane){
@@ -1735,6 +1750,28 @@ Instruction.human_notify = class human_notify extends Instruction{
     }
 }
 
+var human_notify_handler = function(vals){
+    let job_instance = Job[vals.job_name]
+    if ((vals.clicked_button_value === "Stop Job") && job_instance.is_active()){
+        job_instance.stop_for_reason("interrupted", "In human_notify, user stopped this job.")
+        var dep_job_names = JSON.parse(vals.dependent_job_names) //If the user did not pass in a dependent_job_names arg when
+        //creating the human_job, dep_job_names will now be [] so the below if hits but
+        //the for loop has nothing to loop over so nothing will be done.
+        if (dep_job_names && Array.isArray(dep_job_names)){
+            for (let j_name of dep_job_names){
+                var j_inst = Job[j_name]
+                if (j_inst && !j_inst.stop_reason){ //if j_inst is still going, stop it.
+                    j_inst.stop_for_reason("interrupted", "In human_notify, user stopped this job which is dependent on job: " + job_instance.name)
+                    j_inst.set_up_next_do(0)
+                }
+            }
+        }
+    }
+}
+
+
+module.exports.human_notify_handler = human_notify_handler
+
 Instruction.human_notify.window_x = 0
 Instruction.human_notify.window_y = 0
 
@@ -1750,11 +1787,17 @@ Instruction.human_show_window = class human_show_window extends Instruction{
     do_item (job_instance){ //only gets called once, the first time this instr is run
         //this.sw_lit_obj_args.the_instruction_id = job_instance.do_list.indexOf(this)
         this.sw_lit_obj_args.job_name = job_instance.name
-        job_instance.wait_reason = "user on Human.show_window interaction." //do before set_status_code so the tooltip gets set with the wait_reason.
-        job_instance.set_status_code("waiting")
+        let hidden  = "<input type='hidden' name='dependent_job_names' value='" + JSON.stringify(this.sw_lit_obj_args.dependent_job_names) + "'/>"
+        job_instance.set_status_code("waiting", "user on Human.show_window interaction.")
         //can't use a closure here bevause if its an anonymous fn, then it gets src code
         //saved in the show-window dom, and that has to get evaled in an env
         //that's not this one so closed over vars won't work.
+        let content = this.sw_lit_obj_args.content
+        let buttons = '<center><input type="submit" value="Continue Job"/>&nbsp;'
+        if (this.sw_lit_obj_args.add_stop_button) buttons += '<input type="submit" value="Stop Job" title="Close dialog box,\nstop this job and all dependent jobs."/>'
+        buttons += '</center>'
+        if(!content.includes("Continue Job")) { content += buttons + hidden } //if I don't check, we'll add the buttons each time the job is restarted
+        this.sw_lit_obj_args.content = content
         this.sw_lit_obj_args.callback = human_show_window_handler
         this.win_index = show_window(this.sw_lit_obj_args)
     }
@@ -1767,20 +1810,37 @@ Instruction.human_show_window = class human_show_window extends Instruction{
 
 var human_show_window_handler = function(vals){
     console.log("top of human_show_window_handler with is_submit of: " + vals.is_submit)
-    const the_job  = Job[vals.job_name]
+    const job_instance  = Job[vals.job_name]
     //delete vals.the_job_name
-    const hsw_inst = the_job.current_instruction() //the_job.do_list[vals.the_instruction_id]
+    const hsw_inst = job_instance.current_instruction() //job_instance.do_list[vals.the_instruction_id]
     const cb = hsw_inst.orig_callback
-    if (cb) { cb.call(the_job, vals) }
+    if (cb) { cb.call(job_instance, vals) }
     if(vals.is_submit //|| //useful when running this job in the browser, and user clicks a submit button.
       //!SW.is_window_shown(vals.window_index) //too hard to support right now for browser
       //as requires finding out about browser state. todo  when more support for
-      //modifying and disovering  browser state is available.
+      //modifying and discovering browser state is available.
       ){
-        //if windows is not shown, that means time to save its values in the job an let the job go to its next instruction
-        the_job.user_data[hsw_inst.sw_lit_obj_args.user_data_variable_name] = vals
-        the_job.set_status_code("running")
-        the_job.set_up_next_do(1)
+        if (vals.clicked_button_value === "Stop Job"){
+            job_instance.stop_for_reason("interrupted", "In human_show_window, user stopped this job.")
+            var dep_job_names = JSON.parse(vals.dependent_job_names) //If the user did not pass in a dependent_job_names arg when
+            //creating the human_job, dep_job_names will now be [] so the below if hits but
+            //the for loop has nothing to loop over so nothing will be done.
+            if (dep_job_names && Array.isArray(dep_job_names)){
+                for (let j_name of dep_job_names){
+                    var j_inst = Job[j_name]
+                    if (j_inst && !j_inst.stop_reason){ //if j_inst is still going, stop it.
+                        j_inst.stop_for_reason("interrupted", "In human_notify, user stopped this job which is dependent on job: " + job_instance.name)
+                        j_inst.set_up_next_do(0)
+                    }
+                }
+            }
+        }
+        else { //continue the job
+            //if windows is not shown, that means time to save its values in the job an let the job go to its next instruction
+            job_instance.user_data[hsw_inst.sw_lit_obj_args.user_data_variable_name] = vals
+            job_instance.set_status_code("running")
+            job_instance.set_up_next_do(1)
+        }
     }
 }
 module.exports.human_show_window_handler = human_show_window_handler
@@ -2035,7 +2095,6 @@ Instruction.loop = class loop extends Instruction{
         super()
         this.times_to_loop   = times_to_loop
         this.body_fn                = body_fn
-        this.resolved_times_to_loop = null
         this.iter_index             = -1
         this.iter_total             = Infinity
         this.times_to_loop_object   = null //only used when times_to_loop is an object.
@@ -2046,6 +2105,7 @@ Instruction.loop = class loop extends Instruction{
                                            //which we then use to llok up in times_to_loop_object
                                            //for the iter_val
         this.inserting_instruction = true
+        this.init_instruction()
     }
     //there is no do_items for loop. But this is similar. It does not call set_up_next_do,
     //which is done only in the Job.prototype.do_next_item section that handles loop
@@ -2105,7 +2165,7 @@ Instruction.loop = class loop extends Instruction{
         let iter_val = undefined
         let iter_key = this.iter_index //valid for all times_to_loop types except object.
         if (this.resolved_times_to_loop === false) { //no iterations of this loop will happen
-            this.resolved_times_to_loop = null //ready for next start of this job
+            this.init_instruction() //ready for next start of this job
             return null
         }
         else if (this.resolved_times_to_loop === true){ iter_val = true } //loop forever or until body_fn returns Control.break instruction
@@ -2122,7 +2182,7 @@ Instruction.loop = class loop extends Instruction{
         else if (typeof(this.resolved_times_to_loop) == "function"){
            if      (this.iter_index > 0) { fn_result = this.resolved_times_to_loop.call(job_instance, this.iter_index, this.iter_index, this.iter_total)}
            if      (fn_result === false) { //looping is over, Jim
-               this.resolved_times_to_loop = null //ready for next start of this job
+               this.init_instruction() //ready for next start of this job
                return null
            }
            else if (fn_result === true)  { iter_val = true }
@@ -2135,7 +2195,7 @@ Instruction.loop = class loop extends Instruction{
        }
        else { shouldnt("Control.loop has an invalid this.resolved_times_to_loop of: " + this.resolved_times_to_loop)}
        if(this.iter_index >= this.iter_total) { //done looping but initialize so if the job is restrted, the loop will restart
-            this.resolved_times_to_loop = null
+            this.init_instruction() //ready for next time this whole loop might be called.
             return null
        }
        else {//ok, finally compute instructions for this iteration
@@ -2156,6 +2216,9 @@ Instruction.loop = class loop extends Instruction{
            body_fn_result.push(go_to_ins)
            return body_fn_result
        }
+    }
+    init_instruction(){
+        this.resolved_times_to_loop = null
     }
     //when called, pc of job_instance will (as of Jun 11 ) be to a Control.break instruction
     //Just search backwards for the first loop instruction and return its pc.
@@ -2466,8 +2529,7 @@ Instruction.start_job = class start_job extends Instruction{
         if (this.wait_until_job_done) {
              if ((stat == "not_started") || ((stat == "completed") && this.on_first_call_to_do_item))   {
                  this.on_first_call_to_do_item = false
-                job_instance.wait_reason = "This job waiting for " + this.job_to_start.name + " to complete."
-                job_instance.set_status_code("waiting")
+                job_instance.set_status_code("waiting", "This job waiting for " + this.job_to_start.name + " to complete.")
                 this.job_to_start.start(this.start_options)
                 job_instance.set_up_next_do(0)
                 return
@@ -2481,43 +2543,41 @@ Instruction.start_job = class start_job extends Instruction{
                  return
              }
              else if(["starting", "running"].includes(stat)) {
-                job_instance.wait_reason = "Control.start_job waiting at instruction " +
+                let wait_reason = "Control.start_job waiting at instruction " +
                                           job_instance.program_counter + " for " + this.job_to_start.name + " to complete."
-                job_instance.set_status_code("waiting")
+                job_instance.set_status_code("waiting", wait_reason)
                 job_instance.set_up_next_do(0)
                 return
              }
              else if(stat == "waiting") {
-                 job_instance.wait_reason = "Control.start_job waiting at instruction " +
+                 let wait_reason = "Control.start_job waiting at instruction " +
                      job_instance.program_counter + " for " + this.job_to_start.name + " to complete,\n" +
                       "but its now waiting for: " + this.job_to_start.wait_reason
-                 job_instance.set_status_code("waiting")
+                 job_instance.set_status_code("waiting", wait_reason)
                  job_instance.set_up_next_do(0)
                  return
              }
              else if (stat == "suspended")   {
                     this.job_to_start.unsuspend()
-                    job_instance.wait_reason = "Control.start_job waiting at instruction " +
+                    let wait_reason = "Control.start_job waiting at instruction " +
                         job_instance.program_counter + " for " + this.job_to_start.name + " to complete."
-                    job_instance.set_status_code("waiting")
+                    job_instance.set_status_code("waiting", wait_reason)
                     job_instance.set_up_next_do(0)
                     return
              }
              else if (stat == "errored")   {
-                job_instance.wait_reason = null
-                job_instance.stop_reason = "This job stopped because the job it is waiting for, " +
+                let stop_reason = "This job stopped because the job it is waiting for, " +
                                             this.job_to_start.name + " has errored with: " +
                                             this.job_to_start.stop_reason
-                job_instance.set_status_code("errored")
+                job_instance.set_status_code("errored", stop_reason)
                 job_instance.set_up_next_do(1)
                 return
              }
              else if (stat == "interrupted")   {
-                job_instance.wait_reason = null
-                job_instance.stop_reason = "This job stopped because the job it is waiting for, " +
-                    this.job_to_start.name + " was interrupted with: " +
-                    this.job_to_start.stop_reason
-                job_instance.set_status_code("interrupted")
+                let stop_reason = "This job stopped because the job it is waiting for, " +
+                                  this.job_to_start.name + " was interrupted with: " +
+                                  this.job_to_start.stop_reason
+                job_instance.set_status_code("interrupted", stop_reason)
                 job_instance.set_up_next_do(1)
                 return
              }
@@ -2719,9 +2779,9 @@ Instruction.sync_point = class sync_point extends Instruction{
                         return;
                     }
                     else if(!j_inst.is_active()) { //perhaps not_started, perhaps done (but might be restarted).
-                        job_instance.wait_reason = "Job." + j_inst.name + " to get to sync_point named: " + this.name +
-                                                   "\nbut that Job has status: " + j_inst.status_code
-                        job_instance.set_status_code("waiting")
+                        let wait_reason = "Job." + j_inst.name + " to get to sync_point named: " + this.name +
+                                          "\nbut that Job has status: " + j_inst.status_code
+                        job_instance.set_status_code("waiting", wait_reason)
                         job_instance.set_up_next_do(0)
                         return
                     }
@@ -2730,8 +2790,8 @@ Instruction.sync_point = class sync_point extends Instruction{
                         //beware that j_inst *could* be at a sync point of a different name, and if so,
                         //let's hope there's a 3rd job that it will sync with to get it passed that sync point.
                         else { //j_inst didn't get to sync point yet
-                            job_instance.wait_reason = "Job." + j_inst.name + " to get to sync_point named: " + this.name
-                            job_instance.set_status_code("waiting")
+                            let wait_reason = "Job." + j_inst.name + " to get to sync_point named: " + this.name
+                            job_instance.set_status_code("waiting", wait_reason)
                             job_instance.set_up_next_do(0)
                             return; //we have not acheived sync, so just pause job_instance, in hopes
                                     //that another job will be the last job to reach sync and cause job_instance
@@ -2778,10 +2838,10 @@ Instruction.wait_until = class wait_until extends Instruction{
                       '<br/> which is not a number, date, function,<br/>' +
                       '"new_instruction" or instruction location array.')
         }
-        this.start_time_in_ms = null
         if((typeof(fn_date_dur) == "number") && (fn_date_dur >= 1)) {
             this.inserting_instruction = true
         }
+        this.init_instruction()
     }
     do_item (job_instance){
         if (typeof(this.fn_date_dur) == "function"){
@@ -2792,8 +2852,7 @@ Instruction.wait_until = class wait_until extends Instruction{
                 job_instance.set_up_next_do(1) //advance the PC
             }
             else {
-                job_instance.wait_reason = "a wait_until function returns true."
-                job_instance.set_status_code("waiting")
+                job_instance.set_status_code("waiting", "a wait_until function returns true.")
                 job_instance.set_up_next_do(0) //loop until its true
             }
         }
@@ -2804,8 +2863,7 @@ Instruction.wait_until = class wait_until extends Instruction{
                 job_instance.set_up_next_do(1)
             }
             else {
-                job_instance.wait_reason = "a wait_until Date of: " +  this.fn_date_dur
-                job_instance.set_status_code("waiting")
+                job_instance.set_status_code("waiting", "a wait_until Date of: " +  this.fn_date_dur)
                 job_instance.set_up_next_do(0)
             }
         }
@@ -2815,7 +2873,7 @@ Instruction.wait_until = class wait_until extends Instruction{
             if (dur_from_start_in_ms >= this.fn_date_dur * 1000){ //The wait is over. dur_from_start_in_ms is in ms, fn_date_dur is in seconds
                 job_instance.wait_reason = null
                 job_instance.set_status_code("running")
-                this.start_time_in_ms = null //essential for the 2nd thru nth call to start() for this job.
+                this.init_instruction() //essential for the 2nd thru nth call to start() for this job.
                 job_instance.set_up_next_do(1)
             }
             else if ((job_instance.robot instanceof Dexter) && (dur_from_start_in_ms > 1000)){
@@ -2831,8 +2889,7 @@ Instruction.wait_until = class wait_until extends Instruction{
                 job_instance.set_up_next_do(1)
             }
             else {
-                job_instance.wait_reason = "a wait_until duration of: " +  this.fn_date_dur + " seconds"
-                job_instance.set_status_code("waiting")
+                job_instance.set_status_code("waiting", "a wait_until duration of: " +  this.fn_date_dur + " seconds")
                 job_instance.set_up_next_do(0)
             }
         }
@@ -2843,8 +2900,7 @@ Instruction.wait_until = class wait_until extends Instruction{
                                        null : job_instance.do_list[pc + 1])
             if (this.old_instruction === undefined){ //first time through only
                 this.old_instruction = next_instruction
-                job_instance.wait_reason = 'a wait_until gets a "new_instruction"'
-                job_instance.set_status_code("waiting")
+                job_instance.set_status_code("waiting", 'a wait_until gets a "new_instruction"')
                 job_instance.set_up_next_do(0)
             }
             else if (this.old_instruction === null){ //started with this instr as the last one
@@ -2871,23 +2927,22 @@ Instruction.wait_until = class wait_until extends Instruction{
             }
             else if(status_code == "errored") {
                 job_instance.wait_reason = null
-                job_instance.stop_reason = "The job that this job was waiting for to complete, " +
-                                                this.fn_date_dur.name + ", errored with: " +
-                                                "\n " + this.fn_date_dur.stop_reason
-                job_instance.set_status_code("errored")
+                let stop_reason = "The job that this job was waiting for to complete, " +
+                                   this.fn_date_dur.name + ", errored with: " +
+                                   "\n " + this.fn_date_dur.stop_reason
+                job_instance.set_status_code("errored", stop_reason)
                 job_instance.set_up_next_do(1)
             }
             else if(status_code == "interrupted") {
                 job_instance.wait_reason = null
-                job_instance.stop_reason = "The job that this job was waiting for to complete, " +
+                let stop_reason = "The job that this job was waiting for to complete, " +
                                                 this.fn_date_dur.name + ", was interrupted with: " +
                                                 "\n " + this.fn_date_dur.stop_reason
-                job_instance.set_status_code("interrupted")
+                job_instance.set_status_code("interrupted", stop_reason)
                 job_instance.set_up_next_do(1)
             }
             else {
-               job_instance.wait_reason = "a wait_until for Job " + this.fn_date_dur.name + " completes."
-               job_instance.set_status_code("waiting")
+               job_instance.set_status_code("waiting", "a wait_until for Job " + this.fn_date_dur.name + " completes.")
                job_instance.set_up_next_do(0)
             }
         }
@@ -2903,8 +2958,7 @@ Instruction.wait_until = class wait_until extends Instruction{
                     warning("Control.wait_until is waiting for job: " + loc_job_instance.name +
                             "<br/>but that job is stopped, so it will probably wait forever.")
                 }
-                job_instance.wait_reason = "a wait_until instruction_location is reached."
-                job_instance.set_status_code("waiting")
+                job_instance.set_status_code("waiting", "a wait_until instruction_location is reached.")
                 job_instance.set_up_next_do(0)
             }
             else { //done waiting, loc_job_instance already at or passe loc_ps
@@ -2921,11 +2975,17 @@ Instruction.wait_until = class wait_until extends Instruction{
                       ' It should be a function, a date, a number, or "new_instruction".')
         }
     }
+    //called by stop_for_reason, in caswe user terminates job during a wait_until
+    init_instruction(){
+            this.start_time_in_ms = null //essential for the 2nd thru nth call to start() for this job.
+    }
+
     to_source_code(args){
         return args.indent + "Control.wait_until("       +
             to_source_code({value: this.fn_date_dur, function_names: true})  +
             ")"
     }
+
 }
 
 //the returned array will have only numbers and be at least 5 numbers long.
@@ -3033,21 +3093,21 @@ Instruction.show_picture = class show_picture extends Instruction{
     }
     do_item (job_instance){
         if(this.first_time){
-        let cont = this.content
-        if((typeof(this.content) == "string") &&
-            job_instance.user_data[this.content]){
-            cont = job_instance.user_data[this.content] //should be a mat
-        }
-        Picture.show_picture({canvas_id: this.canvas_id, //string of a canvas_id or canvasId dom elt
-                                content: cont, //mat or file_path
-                                title: this.title,
-                                x: this.x,
-                                y: this.y,
-                                width: this.width,
-                                height: this.height,
-                                rect_to_draw: this.rect_to_draw})
-        this.first_time = false
-        job_instance.set_up_next_do(0)
+            let cont = this.content
+            if((typeof(this.content) == "string") &&
+                job_instance.user_data[this.content]){
+                cont = job_instance.user_data[this.content] //should be a mat
+            }
+            Picture.show_picture({canvas_id: this.canvas_id, //string of a canvas_id or canvasId dom elt
+                                    content: cont, //mat or file_path
+                                    title: this.title,
+                                    x: this.x,
+                                    y: this.y,
+                                    width: this.width,
+                                    height: this.height,
+                                    rect_to_draw: this.rect_to_draw})
+            this.first_time = false
+            job_instance.set_up_next_do(0)
         }
         else if (is_dom_elt(this.canvas_id)) {
             this.first_time = true //in case we're in a loop, initialize for next time around
@@ -3066,7 +3126,8 @@ Instruction.show_video = class show_video extends Instruction{
                      content="webcam", //file_path or "webcam"
                      title=undefined,
                      x=200, y=40, width=320, height=240,
-                     play=true}){
+                     play=true,
+                     visible=true}){
         super()
         this.video_id = video_id
         this.content = content
@@ -3076,6 +3137,7 @@ Instruction.show_video = class show_video extends Instruction{
         this.width = width
         this.height = height
         this.play = play
+        this.visible = visible
         this.first_time = true
         Picture.init({width: width, height: height}) //do at job def time
     }
@@ -3088,7 +3150,8 @@ Instruction.show_video = class show_video extends Instruction{
                                 y: this.y,
                                 width: this.width,
                                 height: this.height,
-                                play: this.play})
+                                play: this.play,
+                                visible: this.visible})
             this.first_time = false
             job_instance.set_up_next_do(0)
         }
@@ -3175,7 +3238,9 @@ Instruction.take_picture = class take_picture extends Instruction{
             }
             else {
                 cb = function(mat) {
-                        this_instruction.callback.call(job_instance, mat)
+                        if (this_instruction.callback) {
+                            this_instruction.callback.call(job_instance, mat)
+                        }
                         this_instruction.pic_taken = true
                      }
             }

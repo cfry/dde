@@ -242,19 +242,22 @@ function show_window({content = `<input type="submit" value="Done"/>`,
     //if(arguments[0]) {the_instruction_id =  arguments[0].the_instruction_id}
     //Warning: do not put newlines in the html for show_window as that will result in <br/> tags that
     //replace the newlines and thus screw up the html for the show_window.
+    if(SW.window_index === null) { SW.window_index = 0 }
+    else { SW.window_index += 1 }
+    let the_sw_elt_id = 'show_window_' + SW.window_index + '_id'
     content = '<div class="show_window_content" contentEditable="false" draggable="false" style="font-size:15px; padding:5px;">' +
         '<input name="window_callback_string" type="hidden" value="' + callback + '"/>' +
         '<input name="trim_strings" type="hidden" value="' + trim_strings + '"/>' +
         '<input name="job_name" type="hidden" value="' + job_name + '"/>' +
+        '<input name="show_window_elt_id" type="hidden" value="' + the_sw_elt_id + '"/>' +
         content +
         '</div>' //to allow selection and copying of window content
 
-    if(SW.window_index === null) { SW.window_index = 0 }
-    else { SW.window_index += 1 }
+
     var show_window_html =
         '<dialog class="show_window"' +
         ' data-window_index="' + SW.window_index +
-        '" id="' + 'show_window_' + SW.window_index + '_id' +
+        '" id="' + the_sw_elt_id +
         //'" data-show_window_title="' + title +
         // '" ondragstart="sw_dragstart(event)' +
         '" style="padding:0px; right:none; margin:0px; position:fixed; z-index:100;' +
@@ -266,9 +269,10 @@ function show_window({content = `<input type="submit" value="Done"/>`,
         sw_make_title_html(title, show_close_button, show_collapse_button) +
         '<div draggable="false" style="overflow:auto; background-color:' + background_color + ';">' + content + '</div>' +
         '</dialog>'
-
+    //onsole.log("show_window produced html: " + show_window_html)
     let props = {job_name: job_name, kind: "show_window", html: show_window_html, draggable: draggable,
-                 is_modal: is_modal, init_elt_id: init_elt_id, window_index: SW.window_index, close_same_titled_windows: close_same_titled_windows}
+                 is_modal: is_modal, init_elt_id: init_elt_id, window_index: SW.window_index,
+                 close_same_titled_windows: close_same_titled_windows}
     //Warning: evaling the below will cause 2 copies of the the show_window code to go to the browser.
     //then we get TWO such elements in the browser (one invisible) but that screws up
     //getting the right one and breaks dropping a dragged show_window dialog. Yikes!

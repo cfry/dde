@@ -182,7 +182,10 @@ DexterSim = class DexterSim{
                 "<br/>from the queue. They will never be run.")
             this.instruction_queue = []
         }
-        else { this.instruction_queue.push(instruction_array) }
+        else {
+            this.instruction_queue.push(instruction_array)
+            //if(instruction_array[4] == "a"){ out("sim J2: " + instruction_array[6] / 3600 + "<br/>_____________")} //debugging statement only
+        }
     }
 
     //hardware side methods below
@@ -222,8 +225,6 @@ DexterSim = class DexterSim{
             clearInterval(DexterSim.set_interval_id) //so that nodejs will quit
         }
     }
-
-
 
     process_next_instruction(){
         let dur = 10 // in ms
@@ -343,7 +344,7 @@ DexterSim = class DexterSim{
         if (job_instance){
             let job_name = "Job." + job_instance.name
             let rob_name = "Dexter." + this.robot_name
-            if(window["sim_graphics_pane_id"]) { //window.platform == "dde") //even if we're inn dde, unless the sim pane is up, don't attempt to render
+            if(window["sim_graphics_pane_id"]) { //window.platform == "dde") //even if we're in dde, unless the sim pane is up, don't attempt to render
                 //SimUtils.render_once(robot_status, job_name, rob_name) //renders after dur, ie when the dexter move is completed.
                 SimUtils.render_multi(robot_status, job_name, rob_name, undefined, dur)
             }
@@ -369,9 +370,11 @@ DexterSim = class DexterSim{
             let j3 = robot_status[Dexter.J3_MEASURED_ANGLE]
             let j4 = robot_status[Dexter.J4_MEASURED_ANGLE]
             let j5 = robot_status[Dexter.J5_MEASURED_ANGLE]
+            let j6 = robot_status[Dexter.J6_MEASURED_ANGLE]
+            let j7 = robot_status[Dexter.J7_MEASURED_ANGLE]
             j1 = j1 * -1 //fix for j1 wrong sign
             j5 = j5 * -1 //fix for j5 wrong sign
-            out("DexterSim " + job_name + " " + robot_name + " J1: " + j1 + ", J2: " + j2 + ", J3: " + j3 + ", J4: " + j4 + ", J5: " + j5,
+            out("DexterSim " + job_name + " " + robot_name + " J1: " + j1 + ", J2: " + j2 + ", J3: " + j3 + ", J4: " + j4 + ", J5: " + j5 + ", J6: " + j6 + ", J7: " + j7,
                 "#95444a", //brown,
                 true) //temp output
         }
@@ -522,4 +525,3 @@ var {make_folder, make_full_path}   = require("./storage")
 
 var Kin = require("../math/Kin.js")
 var Vector = require("../math/Vector.js")
-

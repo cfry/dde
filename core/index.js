@@ -119,10 +119,14 @@ var {sind, cosd, tand, asind, acosd, atand, atan2d} = require("../math/Trig_in_D
 var Job    = require("./job.js")
 
 var {Robot, Brain, Dexter, Human, Serial}  = require("./robot.js")
+var {RobotStatus} = require("./robot_status.js")
 var {Instruction, make_ins, human_task_handler, human_enter_choice_handler,
     human_enter_filepath_handler, human_enter_number_handler, human_enter_position_handler,
     human_enter_instruction_handler,
-    human_enter_text_handler, human_show_window_handler} = require("./instruction.js")
+    human_enter_text_handler,
+    human_notify_handler,
+    human_show_window_handler,
+    } = require("./instruction.js")
 var {Control} = require("./instruction_control.js")
 var {IO}      = require("./instruction_io.js")
 require("./je_and_browser_code.js") // must be before loading out.js as it defines SW used by out.js
@@ -139,6 +143,7 @@ global.Brain    = Brain
 global.Dexter   = Dexter
 global.Human    = Human
 global.Robot    = Robot
+global.RobotStatus = RobotStatus
 
 global.make_ins = Dexter.make_ins
 global.speak    = speak
@@ -154,6 +159,8 @@ global.human_enter_number_handler = human_enter_number_handler
 global.human_enter_position_handler = human_enter_position_handler
 global.human_enter_instruction_handler = human_enter_instruction_handler
 global.human_enter_text_handler = human_enter_text_handler
+global.human_notify_handler = human_notify_handler
+
 global.human_show_window_handler = human_show_window_handler
 
 global.Control  = Control

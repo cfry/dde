@@ -1,8 +1,3 @@
-/*issues
-  measured_angles now returns array of 5. But might we want array of 6 or 7?
-     proposal takes 1 arg, # of angles to return. Default=5, but could be 6 or 7 (or 1 thru 4)
-*/
-
 //Robot Status Class (as distinguished from the robot_status 1D array of 60 elts.
 var RobotStatus = class RobotStatus{
     constructor({robot_status="required"}){
@@ -25,7 +20,6 @@ var RobotStatus = class RobotStatus{
         let result = this.robot_status[index]
         if(typeof(result) == "number") { return result}
         else {
-              inspect(this.robot_status)
               dde_error("RobotStatus.angle passed joint_number: " + joint_number +
                          "<br/> but the value of that is: " + result +
                          "<br/> when it should be a number." +
@@ -154,3 +148,6 @@ var RobotStatus = class RobotStatus{
         return result
     }
 }
+
+module.exports.RobotStatus = RobotStatus
+var {Dexter} = require('./robot.js')

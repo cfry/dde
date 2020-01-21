@@ -210,7 +210,9 @@ window.append_in_ui = function(path_string, new_html){
             new_svg_elt.innerHTML = content
            ancestor_svg.appendChild(new_svg_elt);
         }
-        else{ $(elt).append(new_html) }
+        else{
+            elt.insertAdjacentElement("beforeend", new_html) //$(elt).append(new_html)
+        }
 }
 
 

@@ -359,7 +359,7 @@ function write_file(path, content, encoding="utf8"){
                 path)
         }
         else {
-            dde_error("Error writing file: " + path)
+            dde_error("Error writing file: " + path + "<br/>" + err.message)
         }
     }
 }
@@ -444,17 +444,19 @@ function make_folder(path){
     let path_array = path.split(folder_separator())
     let path_being_built = ""
     for(let path_part of path_array){
-        path_being_built += (folder_separator() + path_part)
-        path_being_built = adjust_path_to_os(path_being_built)
+        if(path_part != ""){ //often the first and last path_part will be ""
+            path_being_built += (folder_separator() + path_part)
+            path_being_built = adjust_path_to_os(path_being_built)
 
-        if(!file_exists(path_being_built)){
-           try{
-                fs.mkdirSync(path_being_built)
-           }
-           catch(err){
-               dde_error("In make_folder, could not make: " + path_being_built + "<br/>" +
-                         err.message)
-           }
+            if(!file_exists(path_being_built)){
+               try{
+                    fs.mkdirSync(path_being_built)
+               }
+               catch(err){
+                   dde_error("In make_folder, could not make: " + path_being_built + "<br/>" +
+                             err.message)
+               }
+            }
         }
     }
     return true

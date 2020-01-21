@@ -267,7 +267,8 @@ var Robot = class Robot {
                         content="webcam", //"webcam" or file_path
                         title=undefined,
                         x=200, y=40, width=320, height=240,
-                        play=true}={}) {
+                        play=true,
+                        visible=true}={}) {
         return new Instruction.show_video({video_id: video_id, //string of a video_id or video dom elt
                                                     content: content, //mat or file_path
                                                     title: title,
@@ -275,7 +276,8 @@ var Robot = class Robot {
                                                     y: y,
                                                     width: width,
                                                     height: height,
-                                                    play: true})
+                                                    play: play,
+                                                    visible: visible})
     }
     static take_picture({video_id="video_id", //string of a video_id or video dom elt
                          camera_id=undefined,
@@ -390,7 +392,9 @@ var Human = class Human extends Brain { /*no associated hardware */
 
 
     static task({task = "", dependent_job_names=[],
-                 title, x=200, y=200, width=400, height=400,  background_color = "rgb(238, 238, 238)"} = {}){
+                 title, x=200, y=200, width=400, height=400,
+                 background_color = "rgb(238, 238, 238)",
+                 add_stop_button=true} = {}){
         return new Instruction.human_task(arguments[0])
     }
 
@@ -420,6 +424,7 @@ var Human = class Human extends Brain { /*no associated hardware */
     static enter_instruction({task = "Enter a next instruction for this Job.",
         instruction_type = "Dexter.move_all_joints",
         instruction_args = "5000, 5000, 5000, 5000, 5000",
+        add_stop_button=true,
         dependent_job_names = [],
         title, x=200, y=200, width=400, height=400,  background_color = "rgb(238, 238, 238)"}={}){
         return new Instruction.human_enter_instruction(arguments[0])
@@ -463,6 +468,8 @@ var Human = class Human extends Brain { /*no associated hardware */
         output_pane=true,
         beep_count=0,
         speak=false,
+        add_stop_button=true,
+        dependent_job_names=[],
         title, x=200, y=200, width=400, height=400,  background_color = "rgb(238, 238, 238)"
     }={}){
         return new Instruction.human_notify(arguments[0])
@@ -475,8 +482,10 @@ var Human = class Human extends Brain { /*no associated hardware */
                         show_close_button = true,
                         show_collapse_button = true,
                         trim_strings = true,
+                        add_stop_button=true,
                         callback = window.show_window_values,
-                        user_data_variable_name="show_window_vals"
+                        user_data_variable_name="show_window_vals",
+                        dependent_job_names=[]
     }={}){
         return new Instruction.human_show_window({
             content: content,
@@ -487,8 +496,10 @@ var Human = class Human extends Brain { /*no associated hardware */
             show_close_button:       show_close_button,
             show_collapse_button:    show_collapse_button,
             trim_strings:            trim_strings,
+            add_stop_button:         add_stop_button,
             callback:                callback,
-            user_data_variable_name: user_data_variable_name
+            user_data_variable_name: user_data_variable_name,
+            dependent_job_names:     dependent_job_names
     })
     }
 }
@@ -746,21 +757,6 @@ Serial = class Serial extends Robot {
                 }
                 rob.perform_instruction_callback(job_instance) //job_instance.set_up_next_do()
             }
-           /* just for dexter
-             else if (ins_id == -1) { //this is the get_robot_status always called at the very beginning
-                if (job_instance.status_code === "starting") {
-                    job_instance.status_code = "running"
-                   // if(rob.enable_heartbeat && (rob.heartbeat_timeout_obj == null)) { //enabled but not already running
-                        //beware multiple jobs could be using this robot, and we only want at most 1 heartbeat going
-                   //     rob.run_heartbeat()
-                   // }
-                }
-                //before setting it should be "starting"
-                if (job_instance.status_code === "running") {
-                    rob.perform_instruction_callback(job_instance) //job_instance.set_up_next_do() //initial pc value is -1. this is the first call to
-                    //set_up_next_do (and do_next_item) in this job's life.
-                }
-            } */
             else { //the normal, no error, not initial case
                 if (job_instance.wait_until_instruction_id_has_run == ins_id){ //we've done it!
                     job_instance.wait_until_instruction_id_has_run = null
@@ -2206,6 +2202,14 @@ Dexter.LINK4 = 0.050801   //meters  2 inches
 Dexter.LINK5 = 0.082551   //meters  3.25 inches  // from pivot point to tip of the end-effector
 //Dexter.LINKS = [0, Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5]
 
+/*These are the HDI Link Lengths as of Jan 1, 2020:
+Dexter.LINK1 = 0.2352
+Dexter.LINK2 = 0.339092
+Dexter.LINK3 = 0.3075
+Dexter.LINK4 = 0.0595
+Dexter.LINK5 = 0.08244
+*/
+
 Dexter.LINK1_v1 = Dexter.LINK1 * 1000000 //in microns
 Dexter.LINK2_v1 = Dexter.LINK2 * 1000000 //in microns
 Dexter.LINK3_v1 = Dexter.LINK3 * 1000000 //in microns
@@ -2284,12 +2288,16 @@ Dexter.prototype.set_link_lengths = function(job_to_start_when_done = null){
                 the_robot.J3_angle_min = Dexter.J3_ANGLE_MIN
                 the_robot.J4_angle_min = Dexter.J4_ANGLE_MIN
                 the_robot.J5_angle_min = Dexter.J5_ANGLE_MIN
+                the_robot.J6_angle_min = Dexter.J6_ANGLE_MIN
+                the_robot.J7_angle_min = Dexter.J7_ANGLE_MIN
 
                 the_robot.J1_angle_max = Dexter.J1_ANGLE_MAX
                 the_robot.J2_angle_max = Dexter.J2_ANGLE_MAX
                 the_robot.J3_angle_max = Dexter.J3_ANGLE_MAX
                 the_robot.J4_angle_max = Dexter.J4_ANGLE_MAX
                 the_robot.J5_angle_max = Dexter.J5_ANGLE_MAX
+                the_robot.J6_angle_min = Dexter.J6_ANGLE_MAX
+                the_robot.J7_angle_min = Dexter.J7_ANGLE_MAX
             }
             the_robot.link_lengths_set_from_dde_computer = true
             the_robot.start_aux(job_to_start)
@@ -2904,6 +2912,7 @@ module.exports.Dexter = Dexter
 module.exports.Human  = Human
 module.exports.Serial = Serial
 
+var {RobotStatus} = require("./robot_status")
 var Job = require("./job.js")
 var {Instruction, make_ins} = require("./instruction.js")
 Dexter.make_ins = make_ins

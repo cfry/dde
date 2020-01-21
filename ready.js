@@ -741,6 +741,27 @@ show_window({
     callback: handle3
 })
 `)}
+
+    window_modify_id.onclick=function(){Editor.insert(
+`function modify_window_cb(vals){
+   let color = "rgb(" + Math.round(Math.random() * 255) + "," +
+                        Math.round(Math.random() * 255) + "," +
+                        Math.round(Math.random() * 255) + ")"
+   selector_set_in_ui("#" + vals.show_window_elt_id + " [name=the_in] [style] [background]",
+                      color
+                      )
+   selector_set_in_ui("#" + vals.show_window_elt_id + " [name=the_in] [afterend]",
+                      "<br/>" + color)
+}
+
+show_window({title: "Modify Window",
+             x:300, y:20, width:300, height:200, 
+             callback: modify_window_cb,
+             content: '<input type="button" name="the_in" value="click to colorize"/>'
+  })
+`
+    )}
+
     build_window_id.onclick=ab.launch
 
     opencv_gray_id.onclick=function(){
@@ -1106,10 +1127,8 @@ foo      //eval to see the latest values</pre>`,
     insert_job_example10_id.onclick = function(){Editor.insert(job_examples[10])}
     insert_job_example11_id.onclick = function(){Editor.insert(job_examples[11])}
     insert_job_example12_id.onclick = function(){Editor.insert(job_examples[12])}
-    insert_job_example13_id.onclick = function(){
-                                         Editor.insert(job_examples[13])
-                                         open_doc("Control.loop_doc_id")
-    }
+    insert_job_example13_id.onclick = function(){Editor.insert(job_examples[13])
+                                                 open_doc("Control.loop_doc_id")}
     insert_job_example14_id.onclick = function(){Editor.insert(job_examples[14])}
 
         //RUN INSTRUCTION
@@ -1187,6 +1206,7 @@ foo      //eval to see the latest values</pre>`,
         open_doc("DXF.init_drawing_doc_id")
     }
     calibrate_id.onclick         = function() { init_calibrate() }//defines 2 jobs and brings up calibrate dialog box
+    dui2_id.onclick              = function() { Job.define_and_start_job(__dirname + "/user_tools/dexter_user_interface2.js") }
     ping_dexter_id.onclick       = function() { ping_a_dexter() }
     browse_dexter_id.onclick     = function() {
         let url = "http://" + Dexter.default.ip_address

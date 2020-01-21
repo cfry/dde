@@ -317,7 +317,7 @@ Job.print_job_1.start()
 //Jobs may contain instructions for human operators as well as robots,
 //facilitating well-coordinated human-machine processes.
 new Job({
-    name: "lots_of_options_task",
+    name: "human_task_test",
     robot: new Dexter(),
     do_list: [
         Human.task({
@@ -426,6 +426,40 @@ new Job({
         IO.out("text_job last instruction")
     ]})
 Job.notify_job.start()
+
+//////// Job Example 7g: Dexter User Interface
+//Interactivly control Dexter's joints.
+function dexter_user_interface_cb(vals){
+    debugger;
+    let maj_array = [vals.j1_range, vals.j2_range, vals.j3_range, vals.j4_range,
+                     vals.j5_range, vals.j6_range, vals.j7_range]
+    let instr = Dexter.move_all_joints(maj_array)
+    Job.insert_instruction(instr, {job: vals.job_name, offset: "end"})
+}
+function init_dui(){
+  show_window({title: "Dexter User Interface",
+               width: 300,
+               height: 220,
+               y: 20,
+               job_name: this.name, //important to sync the correct job.
+               callback: dexter_user_interface_cb,
+               content:\`
+Use the below controls to move Dexter.<br/>
+J1: <input type="range"  name="j1_range"  value="33"  min="0" max="100" data-oninput="true"/><br/>
+J2: <input type="range"  name="j2_range"  value="33"  min="0" max="100" data-oninput="true"/><br/>
+J3: <input type="range"  name="j3_range"  value="33"  min="0" max="100" data-oninput="true"/><br/>
+J4: <input type="range"  name="j4_range"  value="33"  min="0" max="100" data-oninput="true"/><br/>
+J5: <input type="range"  name="j5_range"  value="33"  min="0" max="100" data-oninput="true"/><br/>
+J6: <input type="range"  name="j6_range"  value="33"  min="0" max="100" data-oninput="true"/><br/>
+J7: <input type="range"  name="j7_range"  value="33"  min="0" max="100" data-oninput="true"/><br/>
+\`
+})}
+
+new Job({
+    name: "dexter_user_interface",
+    when_stopped: "wait",
+    do_list: [init_dui
+]})
 `,
 
 

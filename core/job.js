@@ -113,11 +113,9 @@ class Job{
           //just in case some instructions are to be inserted before this job starts.
         Job[this.name]         = this //beware: if we create this job twice, the 2nd version will be bound to the name, not the first.
         Job.remember_job_name(this.name)
-        this.status_code       = "not_started" //see Job.status_codes for the legal values
-        this.add_job_button_maybe()
-        if(window.platform == "dde"){
-             this.color_job_button()
-        }
+        this.set_status_code("not_started")//see Job.status_codes for the legal values
+                                           //if no button yet, this call doesn't errur
+        this.add_job_button_maybe() //always calls color_job_button, even if a button isn't added
     }
     } //end constructor
 
@@ -352,8 +350,7 @@ class Job{
                 return
         }
         //init from orig_args
-            this.status_code       = "starting" //before setting it here, it should be "not_started"
-            this.color_job_button()
+            this.set_status_code("starting") //before setting it here, it should be "not_started"
             this.init_do_list(options.do_list)
             this.callback_param         = this.orig_args.callback_param
             this.keep_history           = this.orig_args.keep_history
@@ -648,7 +645,7 @@ class Job{
                 else if (job_instance.user_data.stop_job_running_on_dexter !== undefined) { //ie this job is MONITORING a job running on Dexter
                     if (job_instance.user_data.stop_job_running_on_dexter === false){
                         job_instance.user_data.stop_job_running_on_dexter = true
-                        job_instance.color_job_button()
+                        job_instance.color_job_button() //keep this call
                     }
                     else if(job_instance.is_active()){
                         if (job_instance.robot instanceof Dexter) { job_instance.robot.empty_instruction_queue_now() }
@@ -667,12 +664,13 @@ class Job{
                     job_instance.start()
                 }
             }
-            this.color_job_button()
         }
       }
-      else { //node
-          this.color_job_button() //sends out the lit obj for a new button
-      }
+      this.color_job_button() //do regardless of dde or node and regardless of
+           //whether there's already a button or not becuase if we
+           //define a new job of the same name that already has a button,
+           //we want to change the buttons' color.
+           //add_job_button_maybe is ONLY called by Job constructor.
     }
     static extract_job_name_from_file_path(file_path){
         let job_name_start_pos = file_path.lastIndexOf("/")
@@ -718,7 +716,7 @@ class Job{
             elt.remove()
         }
     }
-
+    //if we're in dde and there's no button, then this does nothing and doesn't error.
     color_job_button(){
         let bg_color = null
         let tooltip  = ""
@@ -818,12 +816,31 @@ class Job{
     }
     //end of jobs buttons
 
-    set_status_code(status_code){
+    //not passing reason means don't change it.
+    //if status_code is "waiting"  or "suspeneded" then reason is for job_instance.wait_reason
+    //else if status_code is,"errored", "interrupted", "completed" then reason is for job_instance.stop_reason
+    set_status_code(status_code, reason){
         if(status_code === this.status_code) {} //no change, do nothing
-        else if (Job.status_codes.includes(status_code)){
+        else if (Job.status_codes.includes(status_code)){ //valid status code
             this.status_code = status_code
-            this.color_job_button()
-            if (status_code != "waiting") { this.wait_reason = null }
+            if (["waiting", "suspended"].includes(status_code)) {
+                if(reason !== undefined){
+                    this.wait_reason = reason
+                }
+                this.stop_reason = null
+            }
+            else if (["errored", "interrupted", "completed"].includes(status_code)) {
+                if(reason !== undefined){
+                    this.wait_reason = null
+                    this.stop_reason = reason
+                }
+            }
+            else { //"not_started", "starting", "running"
+                   //these status codes don't have reasons so any passed in reason is ignored.
+                this.wait_reason = null
+                this.stop_reason = null
+            }
+            this.color_job_button() //the main call to color_job_button
         }
         else {
             shouldnt("set_status_code passed illegal status_code of: " + status_code +
@@ -1025,10 +1042,8 @@ class Job{
        return result
     }
 
-    suspend(reason = "") {
-        this.wait_reason = reason
-        //must be before set_status_code or it won't happen
-        this.set_status_code("suspended") //makes job button yellow, causes set_up_next_do to just retrunn without calling do_next_item
+    suspend(reason = "suspended") {
+        this.set_status_code("suspended", reason) //makes job button yellow, causes set_up_next_do to just retrunn without calling do_next_item
     }
     //can't be an instruction, must be called from a method
     //unsuspend is like start, ie it calls start_after_connected which calls send get status
@@ -1041,7 +1056,6 @@ class Job{
                 this.set_up_next_do(0)
             }
             else {
-                this.wait_reason = ""
                 this.set_status_code("running")
                 this.set_up_next_do(1)
             }
@@ -1145,7 +1159,6 @@ Job.stop_all_jobs = function(){
         if ((j.stop_reason == null) && (j.status_code != "not_started")){
             j.stop_for_reason("interrupted", "User stopped all jobs.", false)
             stopped_job_names.push(j.name)
-            j.color_job_button()
         }
        // j.robot.close() //does not delete the name of the robot from Robot, ie Robot.mydex will still exist, but does disconnect serial robots
           //this almost is a good idea, but if there's a job that's stopped but for some reason,
@@ -1344,7 +1357,7 @@ Job.prototype.finish_job = function(perform_when_stopped=true){ //regardless of 
       if ((this.when_stopped == "stop") || !perform_when_stopped){
           this.robot.finish_job()
           if(this.robot instanceof Dexter) { this.robot.remove_from_busy_job_array(this)} //sometimes a job might be busy and the user clicks its stop button. Let's clean up after that!
-          this.color_job_button()
+          this.color_job_button() //possibly redundant but maybe not and just called on finishing job so leave it in
           this.show_progress_maybe()
           out("Done with job: " + this.name + " for reason: " + this.stop_reason)
           if(window.platform === "node") { //only calls close_readline to end process, or doesn't
@@ -1354,9 +1367,9 @@ Job.prototype.finish_job = function(perform_when_stopped=true){ //regardless of 
                 //the below a bit tricky as the 'this' job is in the process of finishing
                 // and might or might not be "active".
                 console.log("In finish_job for job: " + this.name + " id: " + this.job_id)
-                console.log("active_jobs length: " + the_active_jobs.length)
+                //onsole.log("active_jobs length: " + the_active_jobs.length)
                 if(the_active_jobs.length == 1) {
-                    console.log("just one active job with first job: " + the_active_jobs[0].name + " job_id: " + the_active_jobs[0].job_id)
+                    console.log("In finish_job just one active job with first job: " + the_active_jobs[0].name + " job_id: " + the_active_jobs[0].job_id)
                 }
                 if( (the_active_jobs.length == 0) ||
                    ((the_active_jobs.length == 1) &&
@@ -1378,10 +1391,8 @@ Job.prototype.finish_job = function(perform_when_stopped=true){ //regardless of 
           if(job_instance.when_stopped == "wait") { //even if we somehow stopped in the middle of the do_list,
                // we are going to wait for a new instruction to be added
                //beware, maybe race condition here with adding a new instruction.
-              job_instance.status_code = "running"
-              job_instance.stop_reason = null
+              job_instance.set_status_code("running")
               job_instance.program_counter = job_instance.do_list.length
-              job_instance.color_job_button()
               job_instance.set_up_next_do(0)
           }
           else if (typeof(job_instance.when_stopped) === "function"){
@@ -1524,13 +1535,12 @@ Job.prototype.set_up_next_do = function(program_counter_increment = 1, allow_onc
 }
 
 Job.prototype.stop_for_reason = function(status_code, //"errored", "interrupted", "completed"
-                                         reason_string,
+                                         reason, //a string
                                          perform_when_stopped = false){
-    //out("top of Job.stop_for_reason with reason: " + reason_string)
-    this.stop_reason  = reason_string //put before set_status_code because set_status_code calls color_job_button
-    this.set_status_code(status_code)
+    this.set_status_code(status_code, reason)
     if (this.robot.heartbeat_timeout_obj) { clearTimeout(this.robot.heartbeat_timeout_obj) }
     this.stop_time    = new Date()
+    //this.current_instruction().init_instruction() //needed by at least wait_until and loop. now done in Job.start
     if(!perform_when_stopped) { this.when_stopped = "stop"}
     if((this.name == "dex_read_file") && (this.status_code == "errored") && window.Editor){
      //this special case needed because if we attempt to Dexter.read_file with sim= real and
@@ -1545,8 +1555,8 @@ Job.prototype.stop_for_reason = function(status_code, //"errored", "interrupted"
 //with a bunch of exceptions for determining that the job is over at the top of this method.
 Job.prototype.do_next_item = function(){ //user calls this when they want the job to start, then this fn calls itself until done
     //this.program_counter += 1 now done in set_up_next_do
-    //if (this.show_instructions){ console.log("Top of do_next_item in job: " + this.name + " with PC: " + this.program_counter)}
-    //console.log("top of do_next_item with pc: " + this.program_counter)
+    //if (this.show_instructions){ onsole.log("Top of do_next_item in job: " + this.name + " with PC: " + this.program_counter)}
+    //onsole.log("top of do_next_item with pc: " + this.program_counter)
     let ending_pc = this.instruction_location_to_id(this.ending_program_counter) //we end BEFORE executing the ending_pcm we don't execute the instr at the ending pc if any
     if (["completed", "interrupted", "errored"].includes(this.status_code)){//put before the wait until instruction_id because interrupted is the user wanting to halt, regardless of pending instructions.
         this.finish_job()
@@ -1556,7 +1566,7 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
         //the waited for instruction coming back thru robot_done_with_instruction will call set_up_next_do(1)
         //so don't do it here. BUT still have this clause to block doing anything below if we're waiting.
     }
-    else if (this.stop_reason){
+    else if (this.stop_reason){ //maybe never hits as one of the above stTus_codes is pobably set
          this.finish_job()
     } //must be before the below since if we've
     //already got a stop reason, we don't want to keep waiting for another instruction.
@@ -1572,12 +1582,17 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
     else if (this.program_counter >= ending_pc) {  //this.do_list.length
              //the normal stop case
         if (this.when_stopped == "wait") { //we're in a loop waiting for the next instruction.
-            this.color_job_button()
+            //this.color_job_button() //too expensive
+            if((this.status_code === "waiting") &&
+               (this.wait_reason === "more instructions.")) {}
+            else {
+                this.set_status_code("waiting", "more instructions.") //do not call unnecessarily, wastes processor time in dde and really bad for job engine browser interface
+            }
             this.set_up_next_do(0)
         }
         else if (ending_pc < this.do_list.length) { //we're ending in the middle of the ob. Don't do the final g cmd, as too confusing
-            this.stop_reason = "Stopped early due to ending_program_counter of: " + this.ending_program_counter
-            this.status_code = "completed"
+            let stop_reason = "Stopped early due to ending_program_counter of: " + this.ending_program_counter
+            this.set_status_code("completed", stop_reason)
             this.set_up_next_do(0)
         }
         /* adds final "g" instruction but this is superfluous.
@@ -1613,9 +1628,15 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
     else{
         //regardless of whether we're in an iter or not, do the item at pc. (might or might not
         //have been just inserted by the above).
+      if((this.status_code === "waiting") &&
+          (this.wait_reason === "more instructions.")){ //we WERE waiting for more instructions, but
+            // we must have gotten more because (this.program_counter >= ending_pc)
+            //is not true (from "else if" above). So while we have more, set status to running
+          this.set_status_code("running")
+      }
       try {
         let cur_do_item = this.current_instruction()
-        //console.log("do_next_item cur_do_item: " + cur_do_item)
+        //onsole.log("do_next_item cur_do_item: " + cur_do_item)
         this.show_progress_maybe()
         this.select_instruction_maybe(cur_do_item)
         if (this.program_counter >= this.added_items_count.length) { this.added_items_count.push(0)} //might be overwritten further down in this method
@@ -1726,7 +1747,7 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
         else if (typeof(cur_do_item) == "function"){
             try{
                 var do_items = cur_do_item.call(this) //the fn is called with "this" of this job
-                //console.log("do_next_item with function that returned: " + do_items)
+                //onsole.log("do_next_item with function that returned: " + do_items)
                 this.handle_function_call_or_gen_next_result(cur_do_item, do_items) //take the result of the fn call and put it on the do_list
             }
             catch(err){
@@ -1935,6 +1956,7 @@ Job.prototype.send = function(oplet_array_or_string, robot){ //if remember is fa
     if (this.keep_history){
         this.sent_instructions.push(oplet_array_or_string) //for debugging mainly
     }
+    //if(oplet === "a") { out("snd J2: " + oplet_array_or_string[6]) } //debugging statement only
     robot.send(oplet_array_or_string)
 }
 
@@ -2221,6 +2243,11 @@ Job.prototype.ilti_backward = function(inst_loc, starting_id, use_orig_do_list=f
 Job.prototype.init_do_list = function(new_do_list=undefined){
     if(!new_do_list) { new_do_list = this.orig_args.do_list }
     this.do_list           = Job.flatten_do_list_array(new_do_list) //make a copy in case the user passes in an array that they will use elsewhere, which we wouldn't want to mung
+    for(let instr of this.do_list) {
+        if (instr instanceof Instruction) {
+            instr.init_instruction()   //needed for wait_until and loop at least
+        }
+    }
     this.added_items_count = new Array(this.do_list.length) //This array parallels and should be the same length as the run items on the do_list.
     this.added_items_count.fill(0) //stores the number of items "added" by each do_list item beneath it
     //if the initial pc is > 0, we need to have a place holder for all the instructions before it
@@ -2431,7 +2458,7 @@ Job.prototype.insert_single_instruction = function(instruction_array, is_sub_ins
     }
 }
 
-//rarely called. ususally cal insert_single_instruction
+//rarely called. usually call insert_single_instruction
 Job.insert_instruction = function(instruction, location){
     const job_instance = Job.instruction_location_to_job(location)
     if (job_instance){
@@ -2453,14 +2480,14 @@ Job.insert_instruction = function(instruction, location){
                         //the added_items_count of.
                         //job_instance.added_items_count[this.program_counter] += 1 //isn't right that pc has its added_items count incremented. Maybe should be something else, or no increment at all
                    let did_increment = job_instance.increment_added_items_count_for_parent_instruction_of(index) //false means we're at top level
-                   this.is_do_list_item_top_level_array.splice(index, 0, !did_increment)
+                   job_instance.is_do_list_item_top_level_array.splice(index, 0, !did_increment)
             }
         }
     }
     else {
         dde_error("insert_instruction passed location: " + insert_instruction +
                   " which doesn't specify a job. Location should be an array with" +
-            "a first element of a literal object of {job:'some-job'}")
+                  "a first element of a literal object of {job:'some-job'}")
     }
 }
 
@@ -2512,18 +2539,18 @@ Job.prototype.increment_added_items_count_for_parent_instruction_of = function(i
 ///instrudtion location. Note it might not actually BE an instruction location,
 //but at least it coforms to the bare minimum of a type
 //called from Job constructor for use in finish_job
-Job.is_plausible_instruction_location = function(instruction_locaction){
-    return Number.isInteger(instruction_locaction) ||
-           (typeof(instruction_locaction) === "string") ||
+Job.is_plausible_instruction_location = function(instruction_location){
+    return Number.isInteger(instruction_location) ||
+           (typeof(instruction_location) === "string") ||
             //array check must be before object check because typeof([]) => "object"
-            (Array.isArray(instruction_locaction) &&
-                (instruction_locaction.length > 0) &&
-                Job.is_plausible_instruction_location(instruction_locaction[0])
+            (Array.isArray(instruction_location) &&
+                (instruction_location.length > 0) &&
+                Job.is_plausible_instruction_location(instruction_location[0])
             ) ||
-           ((typeof(instruction_locaction) === "object") &&
-            (   instruction_locaction.offset ||
-                instruction_locaction.job    ||
-                instruction_locaction.process
+           ((typeof(instruction_location) === "object") &&
+            (   instruction_location.offset ||
+                instruction_location.job    ||
+                instruction_location.process
             ))
 }
 
