@@ -404,7 +404,7 @@ static init_draggable_elements(show_window_elt){
         function drag(evt) {
             if (selectedElement) {
                 let coord = getMousePosition(evt);
-                out("in drag x: " + coord.x + " y: " + coord.y)
+                //out("in drag x: " + coord.x + " y: " + coord.y)
                 if(selectedElement.tagName == "circle"){
                     selectedElement.setAttribute("cx", coord.x)
                     selectedElement.setAttribute("cy", coord.y)

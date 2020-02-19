@@ -373,7 +373,7 @@ static dexter_user_interface_cb_aux(vals){
     dui2_instance.update_all() // do update_all before move_all_joints because update_all may modify ui2_instance.maj_angles if the direction_checkbox is checked
     let instr = Dexter.pid_move_all_joints(dui2_instance.maj_angles)
     Job.insert_instruction(instr, {job: vals.job_name, offset: "end"})
-    out("inserted instr: " + instr)
+    //out("inserted instr: " + instr)
 }
 
 //_______update UI fns_______
