@@ -4,7 +4,7 @@
 /*
 from http://threejs.org/docs/index.html#Manual/Introduction/Creating_a_scene
     http://www.sitepoint.com/bringing-vr-to-web-google-cardboard-three-js/ //kinda complex weather app that uses the web but very good for tutorial info
-        http://complexity.zone/cardboard_solarsystem/ //augmentaed reality usjing threejs and your phone's camera to mix palents and your reality.
+        http://complexity.zone/cardboard_solarsystem/ //augmented reality usjing threejs and your phone's camera to mix palents and your reality.
             ttrhejs tutorial: http://content.udacity-data.com/cs291/notes/UdacityLesson6Lights.pdf
 
 */
@@ -12,6 +12,8 @@ from http://threejs.org/docs/index.html#Manual/Introduction/Creating_a_scene
 //canvas { width: 100%; height: 100% }
 
 var sim = {} //used to store sim "global" vars
+
+//var THREE_font_loader = new THREE.FontLoader();
 
 //called by ready
 function init_simulation(){
@@ -45,11 +47,11 @@ function init_simulation(){
     sim.table.position.y = 2 //2.47
     sim.table.position.z = -1 //0
 
-    sim.table.rotation.x = 0.53
-    sim.table.rotation.y = -0.44
+    sim.table.rotation.x = 1 //0 //0.53
+    sim.table.rotation.y = 1.8 //0 //-0.44
     sim.table.rotation.z = 0
 
-    draw_tool_rack(sim.table, 0.1, 0.3, 0.6)
+    //draw_tool_rack(sim.table, 0.1, 0.3, 0.6) //gets in the way of >>> +Y text
     draw_caption(sim.table, "Dexter 5-axis Robot Simulation")
     /*draw_help("To rotate table, mouse-down then drag.<br/>" +
               "To zoom, shift-down then mouse-down then drag.<br/>" +
@@ -83,6 +85,7 @@ function init_simulation(){
     sim.LINK2_height  = Dexter.LINK2 //m / 1000000 // 1.0
     sim.LINK2_width   = Dexter.LINK2_AVERAGE_DIAMETER //m / 1000000 //sim.LINK2_height / 4, //0.2,
     sim.LINK2         = draw_arm(sim.J2, sim.LINK2_width, sim.LINK2_height)
+    let circuit_board = draw_circuit_board(sim.LINK2, sim.LINK2_width, sim.LINK2_height)
     //LINK2.position.y += 0.12 //extra rise to arm0 to get it to appear to sit on top of the legs.
     sim.J3            = new THREE.Object3D();
     sim.J3.position.y = sim.LINK2_height / 2.0
@@ -255,7 +258,7 @@ function init_mouse(){
 
 function draw_table(parent, table_width, table_length, table_height){
     var geometryt    = new THREE.BoxGeometry(table_length, table_height, table_width);
-    var materialt    = new THREE.MeshBasicMaterial( { color: 0xFFFFFF} ); //normal material shows different color for each cube fface, easier to see the 3d shape.
+    var materialt    = new THREE.MeshBasicMaterial( { color: 0xFFFFFF} ); //normal material shows different color for each cube face, easier to see the 3d shape.
     sim.table        = new THREE.Mesh(geometryt, materialt)
     sim.table.position.y  = 0 //-0.9
     sim.table.position.x  = -2
@@ -280,9 +283,74 @@ function draw_table(parent, table_width, table_length, table_height){
     var line = new THREE.LineSegments( geometry, material ); //new THREE.Line( geometry, material, THREE.LinePieces);
     sim.table.add(line);
 
+    let x_text_mesh = new THREE_Text2D.MeshText2D(">>> +X", { align: THREE_Text2D.textAlign.left, font: '30px Arial', fillStyle: '#00FF00', antialias: false })
+    x_text_mesh.scale.set(0.01, 0.01, 0.01) // = THREE.Vector3(0.1, 0.1, 0.1)
+    x_text_mesh.position.set(0.15, 0.055, 0.2) //= THREE.Vector3(20, 8, -10)
+    //For the XYZ in THREE (not in dde & robot)
+    //Three +x is further away from the tool rack in the horiz plane
+    //Three +y is up on the screen. equiv to DDE Z
+    //+z is in horiz plane towards the camera, orthogonal to x
+    //text_mesh.position.y = 8 //0, -1
+    //text_mesh.position.z = -10
+    x_text_mesh.rotation.x = -1.5708 //90 degrees, now parallel to plane of table with the letters readable from the top
+    x_text_mesh.rotation.z = -1.5708
+    sim.table.add(x_text_mesh)
+
+    let y_text_mesh = new THREE_Text2D.MeshText2D(">>> +Y", { align: THREE_Text2D.textAlign.left, font: '30px Arial', fillStyle: '#00FF00', antialias: false })
+    y_text_mesh.scale.set(0.01, 0.01, 0.01) // = THREE.Vector3(0.1, 0.1, 0.1)
+    y_text_mesh.position.set(-0.2, 0.055, 0.15) //= THREE.Vector3(20, 8, -10)
+                        //For the XYZ in THREE (not in dde & robot)
+                        //Three +x is further away from the tool rack in the horiz plane
+                        // Three +y is up on the screen, DDE Z. the 0.05 val is just barely above the table surface
+                        //+z is in horiz plane towards the camera, orthogonal to x
+                        //dexter has +z pointing up
+    //text_mesh.position.y = 8 //0, -1
+    //text_mesh.position.z = -10
+    y_text_mesh.rotation.x = Math.PI / -2 //-1.5708 //90 degrees, now parallel to plane of table with the letters readable from the top
+    y_text_mesh.rotation.z = Math.PI
+    sim.table.add(y_text_mesh)
+
+    let z_text_mesh = new THREE_Text2D.MeshText2D(">>> +Z", { align: THREE_Text2D.textAlign.left, font: '30px Arial', fillStyle: '#00FF00', antialias: false })
+    z_text_mesh.scale.set(0.007, 0.007, 0.007) // = THREE.Vector3(0.1, 0.1, 0.1)
+    z_text_mesh.position.set(1, //-0.8,
+                             0.055,
+                             -0.3) //= THREE.Vector3(20, 8, -10)
+    //For the XYZ in THREE (not in dde & robot)
+    //+x is further away from the tool rack in the horiz plane
+    // y is up and down on the screen
+    //+z is in horiz plane towards the camera, orthogonal to x
+    //text_mesh.position.y = 8 //0, -1
+    //text_mesh.position.z = -10
+    z_text_mesh.rotation.x = Math.PI //0 //-1.5708 //90 degrees, now parallel to plane of table with the letters readable from the top
+    z_text_mesh.rotation.z = Math.PI / -2 //-1.5708
+    z_text_mesh.rotation.y = Math.PI / -2
+    sim.table.add(z_text_mesh)
+
+    /*THREE_font_loader.load( 'user_tools/helvetiker_regular.typeface.json', function ( font ) {
+        debugger;
+        let text_geometry = new THREE.TextGeometry( 'Hello three.js and something much longer to see!', {
+            font: font,
+            size: 80,
+            height: 5,
+            curveSegments: 12,
+            bevelEnabled: true,
+            bevelThickness: 10,
+            bevelSize: 8,
+            bevelOffset: 0,
+            bevelSegments: 5
+        } )
+        let text_materialt    = new THREE.MeshBasicMaterial( { color: 0xFFFFFF} );
+        let table_text_mesh  = new THREE.Mesh(text_geometry, text_materialt)
+        //sim.table.add(table_text);
+        table_text_mesh.position.y  = 0 //-0.4
+        table_text_mesh.position.x  = 0 //-0.8
+        parent.add(table_text_mesh);
+    } )*/
+
     return sim.table
 }
 
+//now not used
 function draw_tool_rack(parent, width, height, depth){
     var geometryt    = new THREE.BoxGeometry(width, height, depth);
     var materialt    = new THREE.MeshNormalMaterial({}); //normal material shows differnt color for each cube fface, easier to see the 3d shape.
@@ -327,6 +395,23 @@ function draw_arm (parent, width, height){
     parent.add(arm)
     return arm
 }
+
+//oarent in Link2
+function draw_circuit_board (parent, link2_width, link_2_height){
+    var geometry = new THREE.BoxGeometry(link2_width, link_2_height / 2, link2_width / 2);
+    var material = new THREE.MeshBasicMaterial( { color: 0x941100} ) //maroon color of the circuit board
+    //var material = THREE.MeshLambertMaterial( { color: 0xFF0000 } ); errors in threejs code :this.setValues is not a funciton"
+    //var material    = new THREE.MeshBasicMaterial( { color: 0xAAFFAA} ); //doesn't error but just shows 1 color for whole object and no change with directional lighting.
+
+    var circuit_board = new THREE.Mesh(geometry, material);
+    circuit_board.position.y = 0 //(link_2_height / 8.0) //- (link2_width / 2.0)
+    circuit_board.position.x = 0 //link2_width * 2  //this should probably be 0
+    circuit_board.position.z = link2_width * -0.7
+    parent.add(circuit_board)
+    return circuit_board
+}
+
+
 
 function draw_caption(parent, text){
     var text2 = document.createElement('div');
@@ -456,4 +541,5 @@ function stl_sim_handle_mouse_move(){
         stl_camera_angle += 0.01;
     }
 }
+
 

@@ -5020,7 +5020,7 @@ Example:<code>Control.wait_until(2)</code><br/>
         of <code>Robot</code> like so:<br/>
         <code> Robot.dexter0.grab_robot_status("my_user_data_var")</code>
         <p></p>
-        See Job Example: <i>Serial Port</i> for an extended example.
+        See Jobs menu/Insert Example/Serial Port for an extended example.
     </details> <!-- end grab_robot_status -->
 
     <details id="IO.out_doc_id" class="doc_details"><summary>out</summary>
@@ -8756,10 +8756,22 @@ show_window({title: "Modify Window",
              callback: modify_window_cb,
              content: '&lt;input type="button" name="the_button" value="click to colorize"/>'
   })</code></pre>
-
-        See <a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors">CSS Selectors</a>
-        Beware, not all selectors are supported by selector_set_in_ui.
-        </details>
+    <p></p>
+    <i>Beware</i>: The HTML checkbox input is exceedingly poorly designed, making
+    it very confusing to use. The "checked" attribute indicates whether the
+    checkbox is checked or not. Rather than have it just take values of <code>true</code>
+    or <code>false</code>, if it is <i>present</i> that indicated that the checkbox
+    is checked. If it is not present, the checkbox is not checked.
+    <p></p>
+    selector_set_in_ui corrects for this confusion by allowing its
+    2nd argument, "value", to be <code>false</code>, <code>"false"</code>, <code>null</code>
+    or <code>undefined</code> (not passed in at all)
+    to indicate unchecked. All other values mean checked.
+    <p></p>
+    <i>Beware</i>: Not all selectors are supported by selector_set_in_ui.
+     <p></p>
+     See <a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors">CSS Selectors</a><br/>
+    </details> <!-- end of selector_set_in_ui -->
     </details> <!-- end window Utilities -->
 
     <details class="doc_details"><summary>SVG</summary>

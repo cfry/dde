@@ -6,6 +6,105 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 3.5.3, Feb 18, 2020</summary>
+Highlights: User Interface 2 extended.
+            Simulator extended.
+            New Kin functions for Dexter control.
+            Experimental code for camera control.
+<ul>
+    <li> When defining a new Job, if your job name is invalid, such as starting with a digit,
+        it errors, telling you why and what to do about it.</li>
+
+    <li> When defining a new Robot, if your Robot name is invalid, such as starting with a digit,
+          it errors, telling you why and what to do about it.</li>
+
+    <li> <code>selector_set_in_ui</code>, when used to set the <code>checked</code> property of
+        an INPUT checkbox element,
+        the second arg to <code>selector_set_in_ui</code> can be:
+        <code>false</code>, <code>"false"</code>, <code>null</code> or <code>undefined</code>
+        (not passed) to indicate unchecked. All other values indicate checked.
+        See Ref Man/Window System/Window Utilities/selector_set_in_ui</li>
+    <li>Dexter UserInterface 2 improvements
+        <ul>
+            <li> Fixed bug in Dexter UserInterface 2 that caused a low-level warning
+                 upon initialization.</li>
+
+            <li> Dexter User Interface 2 now uses pid_move_all_joints to get smoother movement.</li>
+
+            <li> Dexter User Interface 2 window title bar now tells you the name of the
+                 Dexter its controlling.</li>
+
+            <li> Dexter User Interface 2 window title bar now tells you the name of the
+                 Dexter its controlling.</li>
+
+            <li> Dexter User Interface 2 now has a "Point Down" checkbox so that
+                regardless of other controls, Dexter tries to point the end effector down
+                towards the table.</li>
+
+            <li> Dexter User Interface 2, when point_down is checked, the sliders for sliders for j4 and j5
+                are disabled since user shouldn't be able to adjust those,
+                but they will be adjusted automatically.</li>
+
+            <li> Dexter User Interface 2, xy slider now has pink background
+                 with a white donut. The white area is valid territory for the
+                 green dot (end effector).
+                 That donut size will be affected by the Z position of the end effector.</li>
+
+            <li> Dexter User Interface 2, Z slider now has its height adjusted according
+                to the maximum Z that can be acheived with the given x, y position.
+                This maximum Z will be dynamically adjusted as you drag x & y green dot.</li>
+        </ul>
+    </li>
+
+    <li> Kin (kinematics) improvements:
+       <ul>
+            <li> Kin.xy_donut_slice_approx(a_z, a_dir) Now never returns a NaN.
+                If the outer_r was going to be a NaN, now it returns 0, and
+                in such cases the inner_r is made 0 as well.</li>
+
+            <li> New fn: <code>Kin.reach_extents()</code></li>
+
+            <li> New fn: <code>Kin.max_z()</code></li>
+
+            <li> New fn: <code>Kin.J_angles_to_dir(angles)</code> => direction of link 5.</li>
+
+            <li> Simplified <code>Kin.point_down</code> implementation.</li>
+
+            <li> None of these new Kin fns now take L (for Links). At a later date,
+                they will take a Dexter instance and get link lengths from that.</li>
+        </ul>
+    </li>
+
+    <li> Improved display of info in Output Pane from Picture.show_video_cameras.</li>
+
+    <li> Fixed console.log error about "Cannot find module './robot.js'
+         Despite this error message, DDE robots still worked,
+         but there was some inconsequential code causing this error message
+         that has been fixed.</li>
+
+    <li> DDE menu Insert/Color added suffix "..." to indicate that it causes a dialog to pop up.</li>
+
+    <li> Simulator improvements:
+        <ul>
+            <li>  got rid of the "tool rack".</li>
+            <li>  added bright green labels for x, y and z dimensions.</li>
+            <li>  added a maroon circuit board to one side of link 2 so that you
+                   can tell Dexter's orientation.</li>
+            <li> repositioned the virtual camera on the simulation so that when
+                 the simulator comes up,
+                 you see +x pointing to the right, and +y pointing towards you.</li>
+         </ul>
+    </li>
+
+    <li> Added  multicast-dns package to DDE
+        now var mdns = require('multicast-dns')()
+        is available as documented in https://www.npmjs.com/package/multicast-dns</li>
+
+    <li> Fix documentation so that the version of the User Guide that is on hdrobotic.com
+         has the correct version number and release date under About.</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.5.2, Jan 21, 2020</summary>
 Highlights: New function for dynamically setting show_window elements: selector_set_in_ui.
             New Dexter User Interface dialog for operating Dexter via sliders.

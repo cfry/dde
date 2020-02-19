@@ -188,7 +188,7 @@ Instruction.Dexter.move_all_joints_relative = class move_all_joints_relative ext
 
 Instruction.Dexter.move_to = class move_to extends Instruction.Dexter{
     constructor (xyz           = [],
-                 J5_direction  = [0, 0, -1],
+                 J5_direction  = [0, 0, -1], //pointing down
                  config        = Dexter.RIGHT_UP_OUT,
                  workspace_pose = null, //default's to the job's default_workspace_pose
                  j6_angle = [0], //default is to move relatively 0, ie don't change

@@ -128,7 +128,10 @@ function out(val="", color="black", temp=false, code=null){
     let temp_str_id = ((typeof(temp) == "string") ? temp : "temp")
     let existing_temp_elts = []
     if(window["document"]){
-        existing_temp_elts = document.querySelectorAll("#" + temp_str_id)
+         try{
+            existing_temp_elts = document.querySelectorAll("#" + temp_str_id)
+         }
+         catch(err) {} //ignore it. This happens when a Job name starts with a digit, and we call start on the job, near the bottom of the start fn.
     }
     if (temp){
         if (existing_temp_elts.length == 0){
@@ -272,6 +275,7 @@ static render_show_window(properties){
     holder_div.innerHTML = properties.html
     let show_window_elt = holder_div.firstElementChild
     body_id.appendChild(show_window_elt) //this is automatically done when I call jqxw_jq.jqxWindow({width:width below
+   // body_id.insertAdjacentHTML("beforeend", properties.html)  //more elegant EXCEPT I need show_window_elt below
     if(properties.is_modal) {
         show_window_elt.showModal()
     }
@@ -775,7 +779,8 @@ static submit_window(event){
     let circles = window_content_elt.querySelectorAll("circle") //needed by 2d_slider
     for(let i = 0; i < circles.length; i++){
         let cir = circles[i]
-        if(cir.id) {
+        if(cir.id) { //even if you give circle a "name" attr, it won't appear in the actual dom elt.
+                     //so use "id", but beware, it may not be unique!
             //let the_matrix = cir.transform.baseVal.getItem(0).matrix
             let x = cir.getAttribute("cx") //the_matrix.e //rect.x //no, clientLeft doesn't change when dragging the cir. // cir.clientLeft //rect.left
             let y = cir.getAttribute("cy") //the_matrix.f //rect.y //cir.clientTop  //rect.top
@@ -976,8 +981,14 @@ function selector_set_in_ui(path_string, value=null){
                    dom_elt.insertAdjacentHTML(last_elt_attr_name, value)
                 }
                 else {
+                    if((dom_elt.tagName === "INPUT") &&
+                        (dom_elt.type === "checkbox") &&
+                        (last_elt_attr_name === "checked")){
+                        if((value === false) || (value === "false")) { value = null } //remove the prop
+                        //everything else is considered true including "", "true", true, "on" etc.
+                    }
                     if(value === null) { dom_elt.removeAttribute(last_elt_attr_name)}
-                    else { dom_elt.setAttribute(last_elt_attr_name, "" + value) }
+                    else { dom_elt.setAttribute(last_elt_attr_name, value) } //setAttribute automatically converts value to a string, if it isn't one.
                 }
             }
             else {dde_error("selector_set_in_ui passed: " + path_string +

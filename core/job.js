@@ -56,6 +56,10 @@ class Job{
             data_array_transformer +
             "<br/>which not a function or an oplet.")
     }
+    if (name === "") { } //ok as a name, it will be computed.
+    else if(!is_string_an_identifier(name)){ //not ok as a name
+        dde_error('You have attempted to make a new Job with an invalid name of: "' + name + '".<br/>Job names should start with a letter and be followed by only letters, digits or underscores.')
+    }
     if (Job[name] && Job[name].is_active()) { //we're redefining the job so we want to make sure the
        //previous version is stopped.
         if (Job[name].robot instanceof Dexter) {Job[name].robot.empty_instruction_queue_now() }
@@ -2631,7 +2635,7 @@ var {Robot, Brain, Dexter, Human, Serial} = require('./robot.js')
 var Coor  = require('../math/Coor.js')
 var {Instruction, make_ins} = require("./instruction.js")
 var {load_files} = require("./storage.js")
-var {shouldnt, milliseconds_to_human_string, is_iterator, last, replace_substrings, shallow_copy_lit_obj, stringify_value_sans_html} = require("./utils")
+var {is_iterator, is_string_an_identifier, last, milliseconds_to_human_string, replace_substrings, shallow_copy_lit_obj, shouldnt, stringify_value_sans_html} = require("./utils")
 var {speak} = require("./out.js")
 var {_nbits_cf, _arcsec, _um} = require("./units.js")
 var {linux_error_message} = require("./linux_error_message.js")

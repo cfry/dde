@@ -1,8 +1,8 @@
 {
   "name": "dexter_dev_env",
   "productName": "dexter_dev_env",
-  "version": "3.5.2",
-  "release_date": "Jan 21, 2020",
+  "version": "3.5.3",
+  "release_date": "Feb 18, 2020",
   "description": "Dexter Development Environment",
   "author": "Fry",
   "license": "GPL-3.0",
@@ -31,9 +31,10 @@
     "jpeg-js": "^0.3.3",
     "jquery": "^3.4.0",
     "mathjs": "^5.3.1",
+    "multicast-dns": "^7.2.0",
     "nodejs-physijs": "^0.1.5",
     "nouislider": "^13.1.1",
-    "npm": "^6.13.4",
+    "npm": "^6.13.7",
     "opencv.js": "^1.2.1",
     "pegjs": "^0.10.0",
     "pegjs-backtrace": "^0.1.2",
@@ -44,6 +45,8 @@
     "serialport": "^7.0.2",
     "ssh2-promise": "^0.1.5",
     "three-stl-loader": "^1.0.6",
+    "three-text2d": "^0.6.0",
+    "uvc-control": "^1.0.2",
     "webmidi": "^2.2.0"
   },
   "devDependencies": {

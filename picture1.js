@@ -55,9 +55,47 @@ var Picture = class Picture{
         }
         let img = canvas_elt.toDataURL()
         let data = img.replace(/^data:image\/\w+;base64,/, "")
-        let buf = Buffer.from(data, 'base64')
+        //let buf = Buffer.from(data, 'base64')
         write_file(path, data, 'base64')
         if(sw_index !== null) { SW.close_window(sw_index) }
+    }
+
+    static snapshot_to_file({camera_id, path="my_pic.png"} = {}){
+        if(!camera_id){
+            Picture.show_video_cameras(function(devices) {
+                if(devices.length == 0) { dde_error("In snapshot_to_file, could not find any cameras connected to your computer.") }
+                else {
+                    Picture.snapshot_to_file({camera_id: devices[0].deviceId, path: path})
+                }
+            })
+        }
+        else{
+            navigator.mediaDevices.getUserMedia({ video: {deviceId: camera_id} }).then(function(stream){
+                //https://developers.google.com/web/updates/2016/12/imagecapture
+                const mediaStreamTrack = stream.getVideoTracks()[0];
+                const imageCapture = new ImageCapture(mediaStreamTrack);
+                imageCapture.takePhoto()
+                    .then(blob => {
+                        let img = document.createElement("img")
+                        img.src = URL.createObjectURL(blob);
+                        img.onload = () => { URL.revokeObjectURL(img.src); }
+                        //https://www.nashvail.me/blog/canvas-image
+                        const canvas_elt = document.createElement("canvas")
+
+                        canvas_elt.width = mediaStreamTrack.getSettings().width
+                        canvas_elt.height = mediaStreamTrack.getSettings().height
+                        const context = canvas_elt.getContext("2d")
+                        img.onload = () => {
+                            context.drawImage(img, 0, 0)
+                            let img_data = canvas_elt.toDataURL()
+                            let data = img_data.replace(/^data:image\/\w+;base64,/, "")
+                            //let buf = Buffer.from(data, 'base64')
+                            write_file(path, data, 'base64')
+                        }
+                    })
+                    .catch(error => console.error('takePhoto() error:', error));
+            })
+        }
     }
 
    static show_video_cameras(callback){
@@ -67,9 +105,12 @@ var Picture = class Picture{
                devices.forEach(function(device) {
                                    if(device.kind == "videoinput") {
                                        video_devices.push(device)
-                                       out("Device kind: " + device.kind +
-                                           ", label:     " + device.label +
-                                           ",<br/> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;id: " + device.deviceId)
+                                       out("<p/><b>MediaDeviceInfo</b>" +
+                                           "<br/>kind: "     + device.kind +
+                                           "<br/>label: "    + device.label +
+                                           "<br/>deviceId: " + device.deviceId +
+                                           "<br/>groupId: "  + device.groupId
+                                       )
                                    }
                                 })
                if(callback) { callback(video_devices) }

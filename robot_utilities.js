@@ -301,6 +301,7 @@ function make_default_robot_menu_html(selected_robot_full_name=""){
 }
 
 //example return: "Dexter.dexter0"
+//the id in the Misc Pane robot select widget.
 function default_robot_name(){
     if(default_robot_name_id){
         return default_robot_name_id.value

@@ -1097,12 +1097,17 @@ class Kin{
 	}
 
     //this will probably be put into Kin at some point
-//will only work with configs of [1, 1, 1] or [1, 0, 1]
+    //will only work with configs of [1, 1, 1] or [1, 0, 1]
     static point_down(J_angles){
-        let J = JSON.parse(JSON.stringify(J_angles)) //the new copy function we wrote doesn't exist in LTS
-        J[3] = 90 - J[2] - J[1]
-        J[4] = 0
-        return J
+        //let J = JSON.parse(JSON.stringify(J_angles)) //the new copy function we wrote doesn't exist in LTS
+        //J[3] = 90 - J[2] - J[1]
+        //J[4] = 0
+        //return J
+        return [J_angles[0],
+                J_angles[1],
+                J_angles[2],
+                90 - J_angles[2] - J_angles[1],
+                0 ]
     }
 
 
@@ -1129,16 +1134,105 @@ class Kin{
         outer_r = v35[0] + Math.sqrt(Math.pow(Dexter.LINK2 + Dexter.LINK3, 2) - Math.pow((Z + v35[2] - Dexter.LINK1), 2))
 
         let outer_xy = [0, 0]
-
+        if(Number.isNaN(outer_r)) {
+            inner_r = 0
+            outer_r = 0
+        }
         return [inner_r, outer_r, outer_xy]
     }
-    
-    
-    
-    
-    
-    
-    
+
+    //example of use:
+    //var my_angles = Kin.xyz_to_J_angles([0, 0.3, 0.3], [1, 1, -1])
+    //out(Kin.J_angles_to_dir(my_angles))
+    static J_angles_to_dir(J_angles){
+        let U = Kin.forward_kinematics(J_angles.slice(0, 5))
+        return Vector.normalize(Vector.subtract(U[0][5], U[0][4]))
+    }
+
+    //Returns one positive float in meters of how far Dexter can go from its origin, the table,
+    //to straight up. ie is maximun height.
+    //When the Kin fns are changed to using the actual link lengths from
+    //a particular Dexter, this fn will get passed a dexter instance
+    //and get its link lengths from that.
+    //ultimately needs to get the link lengths from the dexter instance,
+    //bot for now, all kin fns work off just the Dexter.LINK1 to 5 constants
+    //return Dexter.LINK1 + Dexter.LINK2 + Dexter.LINK3 - Dexter.LINK5
+    //returns the highest z value you can move Dexter to for a given xy position and direction
+    //returns NaN if xy is out of range or in singularity
+    static max_z( x, y, dir = [0, 0, -1],) {
+            let L = [Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5]
+            if(x == 0 && y == 0){
+                return NaN
+            }
+
+            let u54 = Vector.multiply(-L[4], dir)
+            let u54_xy_proj = [u54[0], u54[1], 0]
+            let u4 = Vector.add([x, y, 0], u54_xy_proj)
+
+            let u0 = [0, 0, 0]
+            let u1 = [0, 0, L[0]]
+
+            let p1 = Vector.points_to_plane(u1, u0, u4)
+
+            let v54_p1_proj = Vector.project_vector_onto_plane(u54, p1)
+            let u43_a = Vector.multiply(L[3], Vector.rotate(Vector.normalize(v54_p1_proj), p1, 90))
+            let u43_b = Vector.multiply(L[3], Vector.rotate(Vector.normalize(v54_p1_proj), p1, -90))
+
+            let u3_a = [u43_a[0], u43_a[1], 0]
+            let u3_b = [u43_b[0], u43_b[1], 0]
+            u3_a = Vector.add(u3_a, u4)
+            u3_b = Vector.add(u3_b, u4)
+
+            let dist_a = Vector.distance(u3_a, [0, 0, 0])
+            let dist_b = Vector.distance(u3_b, [0, 0, 0])
+
+            let u3, u34
+            if(dist_a < dist_b){
+                u3 = u3_a
+                u34 = Vector.multiply(-1, u43_a)
+            }else{
+                u3 = u3_b
+                u34 = Vector.multiply(-1, u43_b)
+            }
+            let xy_mag = Vector.magnitude(u3)
+            let R = L[1] + L[2]
+            u3[2] = Math.sqrt(Math.pow(R, 2) - Math.pow(xy_mag, 2))
+
+            let u45 = Vector.multiply(-1, u54)
+            let u5 = Vector.add(u3, u34, u45, u1)
+
+            return u5[2]
+        }
+//Examples:
+        /*
+        reach_extents()
+        */
+
+        /*
+        var my_x = 0
+        var my_y = 0.4
+        var my_dir = [0, 0, -1]
+
+        max_z(my_x, my_y, my_dir)
+        */
+
+        /*
+        //Brute force method of finding max z:
+        for(let z = 0; z < 1; z+=1*_mm){
+            Kin.xyz_to_J_angles([my_x, my_y, z], my_dir)
+            out(z)
+        }
+        */
+
+
+    //returns furthest possible reach in each axis
+    //format: [[x_min, x_max], [y_min, y_max], [z_min, z_max]]
+    //assumes obscure but maximized direction vector
+    static reach_extents(){
+        let L = [Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5]
+        let R = L[1] + L[2] + Math.hypot(L[3], L[4])
+        return [[-R, R], [-R, R], [L[0] - R, L[0] + R]]
+    }
     
     /*
 	Kin.inverse_kinematics([0, Dexter.LINK5, Dexter.LINK1+Dexter.LINK2+Dexter.LINK3+Dexter.LINK4], [0, 1, 0])

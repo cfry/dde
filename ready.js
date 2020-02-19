@@ -99,8 +99,8 @@
         Dexter.class_init()
         setTimeout(function(){
             window.document.title = "Dexter Development Environment " + dde_version
-            dde_version_id.innerHTML      = dde_version
-            dde_release_date_id.innerHTML = dde_release_date
+            //dde_version_id.innerHTML      = dde_version //do this by hand because these automatic values are NOT getting display in this doc's version on hdrobotic.com/software
+            //dde_release_date_id.innerHTML = dde_release_date
         }, 1000)
    // window.$ = require('jquery'); //Now done in index.html   after doing npm install --save jquery, we still need this
     //onload_fn()

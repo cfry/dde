@@ -1,7 +1,11 @@
 /* Created by Fry on 3/29/16. */
 
 var Robot = class Robot {
-    constructor (){
+    constructor (args){
+       if(!is_string_an_identifier(args.name)) {
+           dde_error('You have attempted to make a new Robot with an invalid name of: "' + args.name +
+                     '".<br/>Robot names should start with a letter and be followed only by letters, digits, or underscores.')
+       }
     }
     /*static robot_names(){
         var result = []
@@ -297,7 +301,7 @@ Robot.robot_status_labels = [] //overridden by Serial and Dexter, needed by Show
 /*simulate vs non-simulate makes no difference so set simulate to false */
 var Brain = class Brain extends Robot { /*no associated hardware */
     constructor({name = "b1"}={}){
-        super()
+        super(arguments[0])
         this.name = name
         Robot.set_robot_name(this.name, this)
         let i = Brain.all_names.indexOf(this.name)
@@ -332,7 +336,7 @@ Brain.all_names = []
 
 var Human = class Human extends Brain { /*no associated hardware */
     constructor({name = "h1"}={}){
-        super()
+        super(arguments[0])
         this.name = name
         Robot.set_robot_name(this.name, this)
         let i = Human.all_names.indexOf(this.name)
@@ -512,7 +516,7 @@ Serial = class Serial extends Robot {
                  capture_n_items = 1, item_delimiter="\n", trim_whitespace=true,
                  parse_items = true, capture_extras = "error", /*"ignore", "capture", "error"*/
                  instruction_callback = Job.prototype.set_up_next_do }={}){
-        super()
+        super(arguments[0])
         let keyword_args = {name: name, simulate: simulate, sim_fun: sim_fun, path: path, connect_options: connect_options,
                             capture_n_items: capture_n_items, item_delimiter: item_delimiter, trim_whitespace: trim_whitespace,
                             parse_items: parse_items, capture_extras: capture_extras,
@@ -918,7 +922,7 @@ Dexter = class Dexter extends Robot {
                }
                else {
                    old_same_named_robot.close_robot()
-                   super()
+                   super(arguments[0])
                    return this.make_new_robot(keyword_args)
                }
             }
@@ -930,7 +934,7 @@ Dexter = class Dexter extends Robot {
                }
                else {
                    old_same_named_robot.close_robot()
-                   super()
+                   super(arguments[0])
                    return this.make_new_robot(keyword_args)
                }
            }
@@ -945,12 +949,12 @@ Dexter = class Dexter extends Robot {
                 }
                 else {
                     old_same_ip_address_robot.close_robot()
-                    super()
+                    super(arguments[0])
                     return this.make_new_robot(keyword_args)
                 }
             }
             else {//different name, unused ip_address and port
-                super()
+                super(arguments[0])
                 return this.make_new_robot(keyword_args)
             }
         }
@@ -2916,7 +2920,7 @@ var {RobotStatus} = require("./robot_status")
 var Job = require("./job.js")
 var {Instruction, make_ins} = require("./instruction.js")
 Dexter.make_ins = make_ins
-var {shouldnt, date_integer_to_long_string, is_iterator, last,
+var {shouldnt, date_integer_to_long_string, is_iterator, is_string_an_identifier, last,
     return_first_arg, starts_with_one_of, value_of_path} = require("./utils")
 var {file_exists, persistent_get, read_file} = require("./storage")
 var Socket = require("./socket.js")
