@@ -284,21 +284,21 @@ function draw_table(parent, table_width, table_length, table_height){
     sim.table.add(line);
 
     let x_text_mesh = new THREE_Text2D.MeshText2D(">>> +X", { align: THREE_Text2D.textAlign.left, font: '30px Arial', fillStyle: '#00FF00', antialias: false })
-    x_text_mesh.scale.set(0.01, 0.01, 0.01) // = THREE.Vector3(0.1, 0.1, 0.1)
-    x_text_mesh.position.set(0.15, 0.055, 0.2) //= THREE.Vector3(20, 8, -10)
+    x_text_mesh.scale.set(0.007, 0.007, 0.007) // = THREE.Vector3(0.1, 0.1, 0.1)
+    x_text_mesh.position.set(0.11, 0.055, -0.2) //= THREE.Vector3(20, 8, -10)
     //For the XYZ in THREE (not in dde & robot)
     //Three +x is further away from the tool rack in the horiz plane
     //Three +y is up on the screen. equiv to DDE Z
     //+z is in horiz plane towards the camera, orthogonal to x
     //text_mesh.position.y = 8 //0, -1
     //text_mesh.position.z = -10
-    x_text_mesh.rotation.x = -1.5708 //90 degrees, now parallel to plane of table with the letters readable from the top
+    x_text_mesh.rotation.x = 1.5708 //90 degrees, now parallel to plane of table with the letters readable from the top
     x_text_mesh.rotation.z = -1.5708
     sim.table.add(x_text_mesh)
 
     let y_text_mesh = new THREE_Text2D.MeshText2D(">>> +Y", { align: THREE_Text2D.textAlign.left, font: '30px Arial', fillStyle: '#00FF00', antialias: false })
-    y_text_mesh.scale.set(0.01, 0.01, 0.01) // = THREE.Vector3(0.1, 0.1, 0.1)
-    y_text_mesh.position.set(-0.2, 0.055, 0.15) //= THREE.Vector3(20, 8, -10)
+    y_text_mesh.scale.set(0.007, 0.007, 0.007) // = THREE.Vector3(0.1, 0.1, 0.1)
+    y_text_mesh.position.set(-0.2, 0.055, 0.11) //= THREE.Vector3(20, 8, -10)
                         //For the XYZ in THREE (not in dde & robot)
                         //Three +x is further away from the tool rack in the horiz plane
                         // Three +y is up on the screen, DDE Z. the 0.05 val is just barely above the table surface

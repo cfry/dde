@@ -78,11 +78,11 @@ static init_dui(xy_width_in_px = 300){
     let max_x_range = max_x * 2
     let factor_to_multiply_x_px_by = max_x_range / xy_width_in_px
     dui2_instance.x_px_to_meters = //function(x_px) { return (x_px * factor_to_multiply_x_px_by) - max_x}
-        function(x_px) { return ((x_px - half_xy_width_in_px) * factor_to_multiply_x_px_by)}
+        function(x_px) { return ((x_px - half_xy_width_in_px) * factor_to_multiply_x_px_by  * -1)}
     dui2_instance.y_px_to_meters = //function(y_px) { return (x_px * factor_to_multiply_x_px_by) - max_x}
         function(y_px) { return ((y_px - half_xy_width_in_px) * factor_to_multiply_x_px_by * -1)}
     dui2_instance.meters_to_x_px = function(meters) {
-        let scaled = (meters / factor_to_multiply_x_px_by) + half_xy_width_in_px //0 to 300
+        let scaled = ((meters  * -1) / factor_to_multiply_x_px_by) + half_xy_width_in_px //0 to 300
         //out("scaled: " + scaled)
         //let reversed = xy_width_in_px - scaled
         //out("reversed: " + reversed)
@@ -277,6 +277,7 @@ cir1.setAttribute("cy", 42)
 static dexter_user_interface_cb_aux(vals){
     //out("dui_cb got clicked_button_value: " + vals.clicked_button_value +
     //    " which has val: " + vals[vals.clicked_button_value])
+    debugger;
     let dui2_instance = dui2.show_window_elt_id_to_dui2_instance(vals.show_window_elt_id)
     if(["xy_2d_slider", "z_slider"].includes(vals.clicked_button_value)){
         let cir_xy_obj = vals.xy_2d_slider
@@ -289,7 +290,10 @@ static dexter_user_interface_cb_aux(vals){
 
         let xyz = [x, y, vals.z_slider]
         try {
-            dui2_instance.set_maj_angles(Kin.xyz_to_J_angles(xyz, dui2_instance.direction))
+            let j_angles = Kin.xyz_to_J_angles(xyz, dui2_instance.direction) //returns just 5 angles
+            if(j_angles.length === 5) { j_angles.push(vals.j6_angle_num)   }
+            if(j_angles.length === 6) { j_angles.push(vals.j7_angle_num)   }
+            dui2_instance.set_maj_angles(j_angles)
         }
         catch(err) {
             if(vals.clicked_button_value === "z_slider"){
@@ -309,11 +313,14 @@ static dexter_user_interface_cb_aux(vals){
         //dui2.update_xyz_nums(vals.show_window_elt_id, xyz)
         //dui2.update_range_and_angle_nums(vals.show_window_elt_id, maj_angles)
     }
-    else if(vals.clicked_button_value.endsWith("_num") &&
+    else if(vals.clicked_button_value.endsWith("_num") &&  //x_num, y_num, z_num the typein boxes
         !vals.clicked_button_value.endsWith("_angle_num")){ //an x,y,or z number input
         let xyz = [vals.x_num, vals.y_num, vals.z_num]
         try {
-            dui2_instance.set_maj_angles(Kin.xyz_to_J_angles(xyz, dui2_instance.direction))
+            let j_angles = Kin.xyz_to_J_angles(xyz, dui2_instance.direction) //returns just 5 angles
+            if(j_angles.length === 5) { j_angles.push(vals.j6_angle_num)   }
+            if(j_angles.length === 6) { j_angles.push(vals.j7_angle_num)   }
+            dui2_instance.set_maj_angles(j_angles)
         }
         catch(err) {
             let x_y_or_z = vals.clicked_button_value[0]
