@@ -105,7 +105,7 @@ new Job({
 //of a generator until it is exhausted.
 
 //_______Job Example 4a: Simple Generator
-function* moves_gen(){
+var moves_gen = function* (){
     yield  Dexter.move_all_joints([0, 0, 135, 45, 0])
     yield  Dexter.sleep(1)
     yield* [Dexter.move_all_joints([0, 45, 90, -45, 0]),
@@ -115,7 +115,7 @@ function* moves_gen(){
 new Job({name: "ja", do_list: [moves_gen]})
 
 //_______Job Example 4b: Generator with for loop
-function* complex_gen(){
+var complex_gen = function* (){
     for(var i = 0; i < 4; i++){
         yield Dexter.move_all_joints([i * 10])
     }
@@ -126,7 +126,7 @@ new Job({
 })
 
 //________Job Example 4c: Nested Generators
-function* nested_gen(){
+var nexted_gen = function* (){
     var complex_iterator = complex_gen()
     for(var instru of complex_iterator){
         yield instru
@@ -138,7 +138,7 @@ new Job({
     do_list: [nested_gen]
 })        
 //________Job Example 4d: yield and return examples
-function* yield_and_return_gen(){
+var yield_and_return_gen = function* (){
     yield  //don't execute any new instruction but keep generator alive
     yield  null //don't execute any new instruction but keep generator alive
     yield  IO.out("gen still alive") //run IO.out and keep generator alive
@@ -445,13 +445,13 @@ function init_dui(){
                callback: dexter_user_interface_cb,
                content:\`
 Use the below controls to move Dexter.<br/>
-J1: <input type="range"  name="j1_range"  value="33"  min="0" max="100" data-oninput="true"/><br/>
-J2: <input type="range"  name="j2_range"  value="33"  min="0" max="100" data-oninput="true"/><br/>
-J3: <input type="range"  name="j3_range"  value="33"  min="0" max="100" data-oninput="true"/><br/>
-J4: <input type="range"  name="j4_range"  value="33"  min="0" max="100" data-oninput="true"/><br/>
-J5: <input type="range"  name="j5_range"  value="33"  min="0" max="100" data-oninput="true"/><br/>
-J6: <input type="range"  name="j6_range"  value="33"  min="0" max="100" data-oninput="true"/><br/>
-J7: <input type="range"  name="j7_range"  value="33"  min="0" max="100" data-oninput="true"/><br/>
+J1: <input type="range"  name="j1_range"  value="33"  min="-150" max="150" data-oninput="true"/><br/>
+J2: <input type="range"  name="j2_range"  value="33"  min="-90"  max="90"  data-oninput="true"/><br/>
+J3: <input type="range"  name="j3_range"  value="33"  min="-150" max="150" data-oninput="true"/><br/>
+J4: <input type="range"  name="j4_range"  value="33"  min="-130" max="130" data-oninput="true"/><br/>
+J5: <input type="range"  name="j5_range"  value="33"  min="-185" max="185" data-oninput="true"/><br/>
+J6: <input type="range"  name="j6_range"  value="33"  min="0"    max="296" data-oninput="true"/><br/>
+J7: <input type="range"  name="j7_range"  value="33"  min="0"    max="296" data-oninput="true"/><br/>
 \`
 })}
 
@@ -756,23 +756,6 @@ new Job({
         Control.stop_job("program_counter", "because I said so", true),
         IO.out("I'm not run.") //not reached
     ]})
-         
-//______job_ws5______Infinite Loop
-new Job({
-    name: "job_ws5", 
-    when_stopped: 0, //when its done, restart job at instruction 0 
-    do_list: [
-        function(){
-            if(Job.global_user_data.counter) {
-                Job.global_user_data.counter += 1
-            }
-            else { 
-                Job.global_user_data.counter = 1
-            }
-            out("counter = " + Job.global_user_data.counter)
-        },
-        Control.wait_until(2)
-    ]}) //sleep for 2 seconds
 `,
 
 `////Job Example 12: go_to

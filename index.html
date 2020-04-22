@@ -80,17 +80,21 @@
     <script type="text/javascript" src="eventemitter2.min.js"></script>
     <!-- from http://cdn.robotwebtools.org/roslibjs/current/roslib.min.js on Dec 18, 2015  for Chrome app -->
     <script type="text/javascript" src="roslib.min.js"></script>
-   <!-- <script type="text/javascript" src="async.js"></script>--> <!-- https://github.com/caolan/async -->
-   <!-- <script> bizzarely this did not bind dde_apps_folder so this is now done in ready.js
-        const remote = require("electron").remote
-        dde_apps_folder = remote.getGlobal("dde_apps_folder")
-    </script> -->
-    <!--<script>
-        require('fs-lock')({
-            'file_accessdir': [__dirname, dde_apps_folder], //for readFile, etc. but must include __dirname since Electron needs it.
-            'open_basedir':   [__dirname ] //__dirname is the folder this app is installed in. //valid folders to get require's from. /usr/local/share/node_modules',
-        })
-    </script>--> <!-- errors inside of fs-lock's index.js -->
+
+    <!--text messaging software from
+    https://github.com/jitsi/lib-jitsi-meet/blob/master/doc/example/index.html -->
+    <!--<script type="text/javascript" src="jitsi/strophe.js"></script>
+    <script type="text/javascript" src="jitsi/strophe.disco.min.js?v=1"></script>
+    <script type="text/javascript" src="jitsi/lib-jitsi-meet.min.js"></script>
+    -->
+    <!-- causes a pane of video camera to appear just below output pane
+         in dde, and some errors in js console, file not found.
+      <script type="text/javascript" src="jitsi/example.js"></script> -->
+
+      <!-- downloaded from: https://github.com/jitsi/jitsi-meet/blob/feb8fe9e342daafc32efd5149477c391ec8caff6/modules/API/external/external_api.js
+        doc for "api" at https://github.com/jitsi/jitsi-meet/blob/master/doc/api.md -->
+    <!--<script type="text/javascript" src="jitsi/external_api.js"></script>-->
+
     <script>window.fs = require('fs');</script>
 
     <!--<script type="text/javascript" src="core/utils.js"></script>-->
@@ -271,7 +275,7 @@
                                             <ul>
                                                 <li id="dev_tools_id"    title="Show instructions for&#013;seeing console.log output and&#013;using debugger; breakpoints.">Help</li>
                                                 <li id="console_log_id"  title="Prints complex data into the Chrome console. Click right anywhere in DDE and &#013;choose 'Inspect' to see it.&#013;out(...) prints to Output pane.">console.log(...)</li>
-                                                <li id="debugger_id"     title="Inserts a breakpoint in any JS code&#013;Click right and choose 'Inspect Element' &#013;to enable stepping.">debugger;</li>
+                                                <li id="debugger_id"     title="Inserts a breakpoint in any JS code&#013;Click right and choose 'Inspect Element' &#013;to enable stepping JavaScript.">debugger;</li>
                                                 <li id="debugger_instruction_id" title="Insert a Control.debugger()&#013;instruction in a do list&#013;which pauses a job&#013;and allows you to step through its instructions.">Control.debugger()</li>
                                             </ul>
                                         </li>
@@ -463,10 +467,10 @@
                                         <li id="series_help_id">Help</li>
                                         <li>Navigation
                                             <ul>
-                                                <li id="series_next_item_id" title="Replace the selection with the next item&#013;in the series of the selection.&#013;Numbers, colors, and various JS function names&#013;are in their own series.&#013;For speed, use the right arrow key.">Next item&nbsp; &rarr;</li>
-                                                <li id="series_prev_item_id" title="Replace the selection with the previous item&#013;in the series of the selection.&#013;Numbers, colors, and various JS function names&#013;are in their own series.&#013;For speed, use the left arrow key.">Prev item &nbsp; &larr;</li>
-                                                <li id="series_next_id"      title="Replace the selection with &#013;an item from the next series&#013;Numbers, colors, and various JS function names&#013;are in their own series.&#013;For speed, use the down arrow key.">Next series&nbsp; &darr;</li>
-                                                <li id="series_prev_id"      title="Replace the selection with &#013;an item from the previous series&#013;Numbers, colors, and various JS function names&#013;are in their own series.&#013;For speed, use the up arrow key.">Prev series&nbsp; &uarr;</li>
+                                                <li id="series_next_item_id" title="Replace the selection with the next item&#013;in the series of the selection.&#013;Numbers, colors, and various JS function names&#013;are in their own series.&#013;For speed, use &#013;WinOS: Alt-right arrow key&#013;MacOS: option-right arrow key.">Next item&nbsp; &rarr;</li>
+                                                <li id="series_prev_item_id" title="Replace the selection with the previous item&#013;in the series of the selection.&#013;Numbers, colors, and various JS function names&#013;are in their own series.&#013;For speed, use &#013;WinOS: Alt-left arrow key&#013;MacOS: option-left arrow key.">Prev item &nbsp; &larr;</li>
+                                                <li id="series_next_id"      title="Replace the selection with &#013;an item from the next series&#013;Numbers, colors, and various JS function names&#013;are in their own series.&#013;For speed, use &#013;WinOS: Alt-down arrow key&#013;MacOS: option-down arrow key.">Next series&nbsp; &darr;</li>
+                                                <li id="series_prev_id"      title="Replace the selection with &#013;an item from the previous series&#013;Numbers, colors, and various JS function names&#013;are in their own series.&#013;For speed, use &#013;WinOS: Alt-up arrow key&#013;MacOS: option-up arrow key.">Prev series&nbsp; &uarr;</li>
                                             </ul>
                                         </li>
                                         <li>JavaScript
@@ -574,6 +578,7 @@
                                                         <li id="series_dexter_utility_id"      title="Insert a call to a Dexter method.">Dexter utility</li>
                                                         <li id="series_dexter_constant_id"     title="Insert a Dexter joint angle min, max or link length.">Dexter constant</li>
                                                         <li id="series_oplet_id"               title="make_ins is a low_level way to make an instruction.&#013;Its first arg is an 'oplet' for 'type of instruction'.">oplet</li>
+                                                        <li id="series_w_oplet_address_id"     title='A "w" oplet address is a register in the FPGA.&#013;Its the 2nd arg in make_ins("w" ...) calls.'>w oplet address</li>
                                                         <li id="series_set_parameter_name_id"  title="Insert a set_parameter name (1st arg).">set_param name</li>
                                                     </ul>
                                                 </li>
@@ -591,34 +596,8 @@
                                 <li style="display:inline-block;padding-left:3px;padding-right:0px;">Jobs&#9660;
                                     <ul>
                                         <li id="jobs_help_id">Help</li>
-                                        <!--<li id="start_job_id" title="Eval job that cursor is in and start it.">Start Job
-                                           <ul><li id="start_job_help_id">Start Job Help</li></ul>
-                                        </li>-->
                                         <li id="show_robot_status_id"   title="Pop up a dialog showing the robot status&#013;for a Dexter of your choosing.&#013;It displays updates as soon as they are available.">Show robot status</li>
                                         <li id="jobs_report_id"         title="Display a report of all Jobs in this session.">Show report</li>
-                                        <!--<li id="stop_all_jobs_id"       title="Stop all of the currently running jobs.">Stop all jobs</li> -->
-                                        <!-- <li id="clear_stopped_jobs_id"  title="Remove stopped jobs so they don't clutter the jobs report.">Clear stopped jobs</li> -->
-                                        <!-- <li id="simulate_id"            title='Dexter instances with a simulate value of null,&#013;such as the default Dexter: "dexter0",&#013;get their simulate value from the selected radio button.'>
-                                            Simulate?
-                                           <ul>
-                                                <li id="simulate_help_id" title="Documentation on simulate.">Help</li>
-                                                <li title="Simulate robots that have simulate=null.">
-                                                    <input id="simulate_radio_true_id"  type="radio" name="simulate" value="true" checked="true"/>
-                                                    <label for="simulate_radio_true_id">true (simulate)</label></li>
-                                                <li title="Send (hardware) instructions to robots that have simulate=null.">
-                                                    <input id="simulate_radio_false_id" type="radio" name="simulate" value="false"/>
-                                                    <label for="simulate_radio_false_id">false (real)</label></li>
-                                                <li title="Run both the simulator and the 'real' for robots that have simulate=null.">
-                                                    <input id="simulate_radio_both_id"  type="radio" name="simulate" value="both"/>
-                                                    <label for="simulate_radio_both_id">both</label></li>
-                                            </ul>
-                                        </li>-->
-
-
-                                        <!--<li id="real_time_sim_id"       title="If unchecked, simulation&#013;will run as fast as it can.&#013;No pauses for sleep or motion.">
-                                            <div style='float: left; margin-right: 5px;' id='real_time_sim_checkbox_id'></div>
-                                            Real time sim
-                                        </li>-->
                                         <li id="insert_new_job_id" title="Insert into the editor, an empty new Job.">New Job Ctrl/&#8984;j</li>
                                         <li id="eval_and_start_job_id" title="Run instructions based on selection and cursor position.&#013;Choosing this item scrolls to documentation on it.">Eval&Start Job</li>
 
@@ -672,11 +651,11 @@
                                         <li id="insert_test_suite_example_id" title="Insert an example of the JS code for a test suite.">Insert Example</li>
                                         <li>Navigation
                                             <ul>
-                                                <li id="ts_run_sel_next_item_id" title="Run the selected test, test suite or test suites&#013;and select the next one.&#013;For speed, use Alt right arrow key.">Run&sel next Alt-&rarr;</li>
-                                                <li id="ts_sel_next_item_id"     title="Select the next without running the selected.&#013;For speed, use Alt Shift right arrow key.">Sel next&nbsp; Alt-Sh-&rarr;</li>
-                                                <li id="ts_sel_prev_id"          title="Select the previous item.&#013;For speed, use Alt left arrow key.">Prev item &nbsp; Alt-&larr;</li>
-                                                <li id="ts_sel_down_id"          title="Select the first contained item.&#013;For speed, use Alt down arrow key.">Down item&nbsp; Alt-&darr;</li>
-                                                <li id="ts_sel_up_id"            title="Select the containing item.&#013;For speed, use Alt up arrow key.">Up Item&nbsp; Alt-&uarr;</li>
+                                                <li id="ts_run_sel_next_item_id" title="Run the selected test, test suite or test suites&#013;and select the next one.&#013;For speed, use &#013;WinOS: Alt-right arrow key&#013;MacOS: option-right arrow key.">Run&sel next Alt-&rarr;</li>
+                                                <li id="ts_sel_next_item_id"     title="Select the next without running the selected.&#013;For speed, use &#013;WinOS: Alt-shift-right arrow key&#013;MacOS: option-shift-right arrow key.">Sel next&nbsp; Alt-Sh-&rarr;</li>
+                                                <li id="ts_sel_prev_id"          title="Select the previous item.&#013;For speed, use &#013;WinOS: Alt-left arrow key&#013;MacOS: option-left arrow key.">Prev item &nbsp; Alt-&larr;</li>
+                                                <li id="ts_sel_down_id"          title="Select the first contained item.&#013;For speed, use &#013;WinOS: Alt-down arrow key&#013;MacOS: option-down arrow key.">Down item&nbsp; Alt-&darr;</li>
+                                                <li id="ts_sel_up_id"            title="Select the containing item.&#013;For speed, use &#013;WinOS: Alt-up arrow key&#013;MacOS: option-up arrow key.">Up Item&nbsp; Alt-&uarr;</li>
                                             </ul>
                                         </li>
                                         <li id="show_suite_statistics_id"   title="Show number of suites and tests.">Show suite stats</li>
@@ -785,7 +764,6 @@
                             <!--<button id="eval_and_start_button_id" style="vertical-align:top;" title="Eval the selected JS.&#013;With the result, call its 'start' method or, &#013;if its a do_list item, run it in a Job on dexter0.">Eval&Start</button>
                             <button id="start_job_id" style="vertical-align:top;" title='Eval job that cursor is in and start it.&#13;Click on "Output" pane title for doc.'>Start Job</button>&nbsp;
                             -->
-                            <!-- <button id="stop_all_jobs_id" title="Stop all of the currently running jobs."><b>X</b></button></span> -->
                             <img id="stop_all_jobs_id" src="stop_sign.png" title="Stop all of the currently running jobs." style="vertical-align:top;"/>
                             <button id="undefine_jobs_id" style="vertical-align:top;" title="Undefine all jobs that are not running.">Undef</button>
                             <!--<div style="display:inline-block;vertical-align:top;">J<br/>o<br/>b<br/>s</div>-->

@@ -124,8 +124,8 @@ var Robot = class Robot {
     static debugger(){ //stop a Control.loop
         return new Instruction.debugger()
     }
-    static error(reason){ //declare that an error happened. This will cause the job to stop.
-        return new Instruction.error(reason)
+    static error(reason="", perform_when_stopped=true){ //declare that an error happened. This will cause the job to stop.
+        return new Instruction.error(reason, perform_when_stopped)
     }
 
     static go_to(instruction_location){
@@ -205,7 +205,7 @@ var Robot = class Robot {
         return new Instruction.start_job(job_name, start_options, if_started, wait_until_job_done)
     }
 
-    static stop_job(instruction_location, reason, perform_when_stopped = false){
+    static stop_job(instruction_location, reason, perform_when_stopped = true){
         return new Instruction.stop_job(instruction_location, reason, perform_when_stopped)
     }
 
@@ -1024,50 +1024,6 @@ Dexter = class Dexter extends Robot {
         return this
     }
 
-    /*  ping-proxy doesn't seem to work or at least  doesn't have a timeout so it
-       waits forever if there is nothing at the ip address
-    start(job_instance){
-
-        let sim_actual = Robot.get_simulate_actual(this.simulate)
-        if ([false, "both"].includes(sim_actual)) {
-            let pingProxy = require('ping-proxy')
-            pingProxy({proxyHost: this.ip_address,
-                       proxyPort: this.port},
-                    function(err, options, statusCode) {
-                        if (err) {
-                            job_instance.stop_for_reason("errored", "Could not coonect to Dexter. " + err.message)
-                        }
-                        else {
-                            this.start_aux(job_instance)
-                        }
-                    })
-        }
-        else { this.start_aux(job_instance) } //no actual connection to Dexter needed as we're only simulating
-    }
-    */
-   /* use_ping_proxy(job_instance, timeout_secs=0){ //couldn't ge tthis npm pkg to work.
-        let this_robot = this
-        let pingProxy = require('ping-proxy')
-        setTimeout(
-          function() {
-              pingProxy({proxyHost: this_robot.ip_address,
-                         proxyPort: this_robot.port},
-                  function(err, options, statusCode) {
-                      if (err) {
-                          if(timeout_secs >= 30){
-                                job_instance.stop_for_reason("errored", "Dexter port: " + this_robot.port + " is not open.\nIf it is because Dexter is initializing,\ntry again in a minute." + err.message)
-                          }
-                          else {
-                              this_robot.use_ping_proxy(job_instance, (timeout_secs + 10))
-                          }
-                      }
-                      else {
-                          this_robot.start_aux(job_instance)
-                      }
-                  })
-          }, timeout_secs * 1000)
-    }
-    */
     start(job_instance){
         let sim_actual = Robot.get_simulate_actual(this.simulate)
         let this_robot = this
@@ -1087,10 +1043,10 @@ Dexter = class Dexter extends Robot {
                                         //this_robot.use_ping_proxy(job_instance)
                                     }
                                     else if (err){
-                                        this_job.stop_for_reason("errored", "Ping on robot: " + this_robot.name + " errored with: " + err.message)
+                                        this_job.stop_for_reason("errored_from_dexter_connect", "Ping on robot: " + this_robot.name + " errored with: " + err.message)
                                     }
                                     else {
-                                        this_job.stop_for_reason("errored", "Could not connect to Dexter.\nIf it is because Dexter is initializing,\ntry again in a minute,\nor click Misc pane 'simulate' button.", true)
+                                        this_job.stop_for_reason("errored_from_dexter_connect", "Could not connect to Dexter.\nIf it is because Dexter is initializing,\ntry again in a minute,\nor click Misc pane 'simulate' button.", true)
                                         //3rd arg is true so that we will run the stop method for dex_read_file job,
                                         //so that this error of "not connected" will reset the orig editor files menu item.
                                     }
@@ -1121,25 +1077,25 @@ Dexter = class Dexter extends Robot {
                         const sim_actual = Robot.get_simulate_actual(this_robot.simulate)
                         if(!this_robot.is_initialized()){
                             if (this_robot.simulate === true){
-                                this_job.stop_for_reason("errored", "The job: " + this_job.name + " is using robot: " + this_robot.name +
+                                this_job.stop_for_reason("errored_from_dexter_connect", "The job: " + this_job.name + " is using robot: " + this_robot.name +
                                     "<br/>\nwith simulate=true, but could not connect with the Dexter simulator.")
                             }
                             else if ((this_robot.simulate === false) || (this_robot.simulate === "both")){
-                                this_job.stop_for_reason("errored", "The job: " + this_job.name + " is using robot: " + this_robot.name +
+                                this_job.stop_for_reason("errored_from_dexter_connect", "The job: " + this_job.name + " is using robot: " + this_robot.name +
                                 "<br/>but could not connect with a Dexter robot at: " +
                                 this_robot.ip_address + " port: " + this_robot.port +
                                 "<br/>You can change this robot to <code>simulate=true</code> and run it.")
                             }
                             else if (this_robot.simulate === null){
                                 if ((sim_actual === false) || (sim_actual === "both")){
-                                    this_job.stop_for_reason("errored", "The job: " + this_job.name + " is using robot: " + this_robot.name +
+                                    this_job.stop_for_reason("errored_from_dexter_connect", "The job: " + this_job.name + " is using robot: " + this_robot.name +
                                     '<br/>with the Misc Pane "Simulate?" radio button being: ' + sim_actual  +
                                     "<br/>but could not connect with Dexter." +
                                     "<br/>You can use the simulator by clicking 'simulate' in the Misc Pane header. ")
                                     out("Could not connect to Dexter.", "red")
                                 }
                                 else {
-                                    this_job.stop_for_reason("errored", "The job: " + this_job.name + " is using robot: " + this_robot.name +
+                                    this_job.stop_for_reason("errored_from_dexter_connect", "The job: " + this_job.name + " is using robot: " + this_robot.name +
                                               "<br/>\nwith a Jobs menu, 'Simulate?' value of 'true', " +
                                               "<br/>\nbut could not connect with the Dexter simulator.")
                                 }
@@ -1191,16 +1147,10 @@ Dexter = class Dexter extends Robot {
                 //this_dex.is_connected      = false //should be done by stop_for_reaason and next item
                 //this_dex.socket_id         = null  //should be done by stop_for_reaason and next item
                 for (let job_instance of this.active_jobs_using_this_robot()){
-                    job_instance.stop_for_reason("errored", "No heartbeat response from dexter hardware.")
+                    job_instance.stop_for_reason("errored_from_dexter", "No heartbeat response from dexter hardware.")
                     job_instance.do_next_item()
                 }
             }
-            // else if (!this_dex.socket_id) { //this should never hit because heartbeat isn't started until
-            // the initial "g" instruction returns with a status in Dexter.robot_done_with_instruction
-            // when this robot must already have a socket_id
-            //    let job_instance = Job.job_id_to_job_instance(this_dex.job_id)
-            //    job_instance.stop_for_reason("errored", "Dexter " + this_dex.name + " does not have a socket_id in heartbeat")
-            //}
             else if (this_dex.enable_heartbeat) { //everything ok. Note: user might disable heartbeat during a job so check here.
                 let h_ins = Dexter.get_robot_status_heartbeat()
                 let job_instance = this_dex.active_jobs_using_this_robot()[0]
@@ -1289,29 +1239,35 @@ Dexter = class Dexter extends Robot {
     //beware, robot_status could be an ack, can could be called by sim or real
     //but if sim is "both", will only be called by real (from socket)
     robot_done_with_instruction(robot_status){ //called from UI sockets
-        if (!(Array.isArray(robot_status))) {
+        if (!(Array.isArray(robot_status))) { //note: we have to error here because we can't get the job
+            //so we can't call stop_for_reason
             throw(TypeError("Dexter.robot_done_with_instruction recieved a robot_status array: " +
                 robot_status + " that is not an array."))
         }
         let job_id       = robot_status[Dexter.JOB_ID]
         let job_instance = Job.job_id_to_job_instance(job_id)
-        if (job_instance == null){
+        if (job_instance == null){ //note: we have to error here because we can't get the job
+            //so we can't call stop_for_reason
             throw new Error("Dexter.robot_done_with_instruction passed job_id: " + job_id +
                             " but couldn't find a Job instance with that job_id.")
         }
         if(this instanceof Dexter) { this.remove_from_busy_job_array(job_instance) }
         if ((robot_status.length != Dexter.robot_status_labels.length) &&
-            (robot_status.length != Dexter.robot_ack_labels.length)){
-            throw(TypeError("Dexter.robot_done_with_instruction recieved a robot_status array: " +
+            (robot_status.length != Dexter.robot_ack_labels.length)){ //allows when_stopped action to run if any
+            job_instance.condition_when_stopped = "errored_from_dexter"
+            job_instance.stop_for_reason("errored_from_dexter",
+               "Dexter.robot_done_with_instruction recieved a robot_status array: " +
                 robot_status + "<br/> of length: " + robot_status.length +
                 " that is not the proper length of: " + Dexter.robot_status_labels.length +
-                " or: " + Dexter.robot_ack_labels.length))
+                " or: " + Dexter.robot_ack_labels.length)
+            job_instance.set_up_next_do(0)
+            return
         }
         else if (robot_status[Dexter.ERROR_CODE] !== 0){
             let ins_id = robot_status[Dexter.INSTRUCTION_ID]
             let ins    = job_instance.do_list[ins_id]
             let oplet  = ins[Instruction.INSTRUCTION_TYPE]
-            if(oplet == "r") {  //Dexter.read_file errored, assuming its "file not found" so end the rfr loop and set the "content read" as null, meaninng file not found
+            if(oplet == "r") {  //Dexter.read_file errored, assuming its "file not found" so end the rfr loop and set the "content read" as null, meaning file not found
                 //the below setting of the user data already done by got_content_hunk
                 //let rfr_instance = Instruction.Dexter.read_file.find_read_file_instance_on_do_list(job_instance, ins_id)
                 // job_instance.user_data[ins.destination] = null //usually means "file not found"
@@ -1320,10 +1276,6 @@ Dexter = class Dexter extends Robot {
                 //job_instance.set_up_next_do(0)
                 return
             }
-            //if(!job_instance.if_error(robot_status)) {
-            //    job_instance.stop_for_reason("errored", "got error code: " + Dexter.ERROR_CODE + " back from Dexter for instruction id: " + ins_id)
-            //}
-            //else just continue on with the job.
         }
 
         let got_ack = (robot_status.length == Dexter.robot_ack_labels.length) //if we have an "acknowledgent, it means we DON"T have in robot_status all we need to render the joint positions
@@ -1378,7 +1330,7 @@ Dexter = class Dexter extends Robot {
                 if (job_instance.wait_until_instruction_id_has_run == ins_id){ //we've done it!
                     job_instance.wait_until_instruction_id_has_run = null //but don't increment PC
                 }
-                let instruction_to_run_when_error = job_instance.if_error.call(job_instance, robot_status)
+                let instruction_to_run_when_error = job_instance.if_robot_status_error.call(job_instance, robot_status)
                 if(instruction_to_run_when_error){
                     //note instruction_to_run_when_error can be a single instruction or an array
                     //of instructions. If its an array, we insert it as just one instruction,
@@ -2134,7 +2086,7 @@ Dexter.instruction_type_to_function_name_map = {
     S:"set_parameter",
     t:"dma_write",
     T:"move_to_straight",
-    w:"write",
+    w:"write_fpga",
     W:"write_file",
     x:"exit",
     z:"sleep"

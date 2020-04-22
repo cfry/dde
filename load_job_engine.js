@@ -8,7 +8,9 @@ var Vector  = require("./math/Vector.js")
 var txt     = require("./math/txt.js")
 var calibrate_build_tables = require("./low_level_dexter/calibrate_build_tables.js")
 
-var {serial_port_init, serial_path_to_info_map, serial_devices, serial_connect_low_level,
+var {SerialPort, serial_port_init, serial_path_to_info_map,
+    serial_devices, serial_devices_async,
+    serial_connect_low_level,
     serial_send_low_level, serial_connect, serial_send, serial_flush, serial_disconnect,
     serial_disconnect_all} = require("./core/serial.js")
 

@@ -21,6 +21,7 @@ function node_on_ready() {
     global.Root      = Root
     global.window = global //window is needed in storage.js and elsewhere
     console.log("operating_system: " + operating_system + "\ndde_apps_folder: " + dde_apps_folder)
+    FPGA.init() //does not depend on Series.
     Coor.init()
     init_units()
     //see also ready.js that has this same code
@@ -41,6 +42,7 @@ function node_on_ready() {
     dde_init_dot_js_initialize()
     Job.class_init()
     Dexter.class_init()
+    serial_port_init()
 }
 
 function run_node_command(args){
@@ -135,6 +137,10 @@ var calibrate_build_tables = require("../low_level_dexter/calibrate_build_tables
 var DXF    = require("../math/DXF.js")
 var {init_units} = require("./units.js")
 var {FPGA} = require("./fpga.js")
+var {SerialPort, serial_connect, serial_connect_low_level,
+     serial_devices, serial_devices_async,
+     serial_disconnect, serial_disconnect_all,  serial_flush,
+     serial_path_to_info_map, serial_port_init, serial_send, serial_send_low_level} = require("./serial.js")
 
 var {close_readline, set_keep_alive_value, write_to_stdout} = require("./stdio.js")
 
@@ -187,7 +193,18 @@ global.close_readline = close_readline
 global.set_keep_alive_value = set_keep_alive_value
 global.write_to_stdout = write_to_stdout
 
-
+global.SerialPort = SerialPort
+global.serial_connect = serial_connect
+global.serial_connect_low_level = serial_connect_low_level
+global.serial_devices = serial_devices
+global.serial_devices_async = serial_devices_async
+global.serial_disconnect = serial_disconnect
+global.serial_disconnect_all = serial_disconnect_all
+global.serial_flush = serial_flush
+global.serial_path_to_info_map = serial_path_to_info_map
+global.serial_port_init = serial_port_init
+global.serial_send = serial_send
+global.serial_send_low_level = serial_send_low_level
 
 run_node_command(process.argv)
 /*

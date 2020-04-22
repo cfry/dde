@@ -12,6 +12,11 @@
     operating_system = "not inited" //on MAC this is "mac", on windows its "win".  bound in both ui and sandbox by ready
     dde_apps_folder  = null
 
+    function open_dev_tools(){
+        let dde_ipc     = require('electron').ipcRenderer
+        dde_ipc.sendSync('open_dev_tools')
+    }
+
     function set_menu_string(elt, label, key){
         let modifier
         let max_spaces
@@ -29,7 +34,7 @@
     //called by both the eval button and the step button
     function eval_button_action(step=false){ //used by both clicking on the eval button and Cmd-e
         if(step instanceof CodeMirror) { step = false } //means Cmd E was typed in the editor and we don't want to step in this case
-        if((Editor.current_file_path != "new buffer") && (save_on_eval_id.checked)) { Editor.save_current_file() }
+        if((Editor.current_file_path != "new buffer") && persistent_get("save_on_eval")) { Editor.save_current_file() }
         eval_js_part1(step)
         //if (Editor.view == "Blocks") {
         eval_id.blur()
@@ -59,6 +64,8 @@
     // document.body.addEventListener('onload', on_ready)
 
     function on_ready() {
+        //open_dev_tools() //FAILS! dev_tools opens but too late. so that break points in on_ready calls will actually break
+        //console.log("just opened dev tools")
         const os = require('os');
         operating_system = os.platform().toLowerCase() //for Ubuntu, ths returns "linux"
 
@@ -272,6 +279,7 @@
     dde_release_date_id.innerHTML = dde_release_date
 
     Series.init_series()
+    FPGA.init() //does not depend on Series.
     Gcode.init() //must be after init_series which calls init_units()
 
     $('#js_textarea_id').focus() //same as myCodeMirror.focus()  but  myCodeMerror not inited yet
@@ -350,8 +358,7 @@
 
         step_button_id.onclick = function(event){
                                     event.stopPropagation()
-                                    let dde_ipc     = require('electron').ipcRenderer
-                                    dde_ipc.sendSync('open_dev_tools')
+                                    open_dev_tools()
                                     setTimeout(function(){
                                                    eval_button_action(true) //cause stepping
                                                }, 500)
@@ -1508,6 +1515,7 @@ var Job   = require("./core/job.js")
 var Gcode = require("./core/gcode.js")
 var DXF   = require("./math/DXF.js")
 var {date_to_mmm_dd_yyyy, is_digit} = require("./core/utils.js")
+var {FPGA} = require("./core/fpga.js")
 
 
 

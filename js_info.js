@@ -60,7 +60,8 @@ Js_info = class Js_info {
                     let val = Job.job_default_params[key]
                     let src
                     if      (key == "default_workspace_pose") { src = "null" }
-                    else if (key == "if_error")               { src = "function(robot_status){...}" }
+                    else if (key == "if_robot_status_error")  { src = "Job.prototype.if_robot_status_error" }
+                    else if (key == "if_instruction_error")   { src = "Job.prototype.if_instruction_error" }
                     else { src = to_source_code({value: val, function_names: true, newObject_paths: true}) }
                     let key_html = '<a href="#" onclick="open_doc(job_param_' + key + '_doc_id)">' + key + '</a>'
                     result += key_html + ": " + src + ((key == "callback_param") ? "" : ", &nbsp;")
@@ -92,7 +93,11 @@ Js_info = class Js_info {
                 result += "})"
                 return result
             }
-            //do this before series because we may have a keword of "name:" and name is in the HTML series
+            else if (bounds_of_identifier && Js_info.makeins_w_info(fn_name, full_src, bounds_of_identifier[0])) {
+                let the_msw_info =           Js_info.makeins_w_info(fn_name, full_src, bounds_of_identifier[0])
+                return the_msw_info
+            }
+            //do this before series because we may have a keyword of "name:" and name is in the HTML series
             else if(bounds_of_identifier && (full_src[bounds_of_identifier[1]] == ":")) { //got keyword
                 return '<span style="color: blue;">' + fn_name + ":</span> looks like a keyword for making an object or a function call."
             }
@@ -389,8 +394,8 @@ Js_info = class Js_info {
         let first_char = ((fn_name.length > 1) ? fn_name[0] : null)
         if(is_string_a_literal_string(fn_name)) { return fn_name }
         else if (!fn_name.includes(".")) { return fn_name }
-        else if (starts_with_one_of(fn_name, ["Dexter.", "Job.", "Math.", "Number.", "Object.", "Series.",
-                                              "Brain.", "Human.", "Robot.", "Serial."
+        else if (starts_with_one_of(fn_name, ["Brain.", "Dexter.", "FPGA.", "Human.", "Job.", "Math.",
+                                              "Number.", "Object.", "Series.", "Robot.", "Serial."
                                               ])) {
             return fn_name
         }
@@ -573,6 +578,11 @@ Js_info = class Js_info {
                 const oplet_full_name = Dexter.instruction_type_to_function_name(fn_name)
                 var full_name_tag = Js_info.wrap_fn_name(oplet_full_name)
                 return "<code style='color:blue;'>" + fn_name + "</code> means Dexter instruction: " + full_name_tag
+            case "series_w_oplet_address_id":
+                let w_oplet_address_num = Instruction.w_address_name_to_number(fn_name)
+                let w_oplet_html = "<a target='_blank' href='" + "https://github.com/HaddingtonDynamics/Dexter/wiki/oplet-write#" + w_oplet_address_num +
+                "'>" + fn_name + "</a>"
+                return "<code style='color:blue;'>" + w_oplet_html + "</code> is FPGA address " + w_oplet_address_num + "."
             case "series_robot_status_label_id":
                 return 'Job.a_job_name.robot.robot_status[<code style="color:blue;">' + fn_name + '</code>]'
             case "series_dexter_utility_id":
@@ -665,12 +675,12 @@ Js_info = class Js_info {
     }
 
     //fn name might have dots in it like "Control.go_to"
-    static wrap_fn_name(fn_name, the_doc_id){
+    static wrap_fn_name(fn_name, the_doc_id, title=""){
         let result = fn_name
         if(!the_doc_id) { the_doc_id = fn_name + "_doc_id"}
         if (!window[the_doc_id]){ the_doc_id = "" } //no doc
         let onclick_val = "open_doc_show_fn_def('" + the_doc_id + "', '" + fn_name + "')"
-        let the_html = make_html("a", {href: "#", onclick: onclick_val}, fn_name)
+        let the_html = make_html("a", {href: "#", onclick: onclick_val, title: title}, fn_name)
         return the_html
     }
 
@@ -866,8 +876,37 @@ Js_info.fn_name_to_info_map = {
     "yield*":    ["function* g4() {yield* [1, 2, 3];}", "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/yield*"]
 }
 
+//returns false if we don't have a mekeins "w" call of the proper format,
+//else returns a string to be displayed for clickhelp
+//pos is the index of  "m" in make_ins, not where the mouse was clicked.
+Js_info.makeins_w_info = function(fn_name, full_src=null, pos){
+  if(!full_src) { return false }
+  else if(!is_non_neg_integer(pos)) { return false }
+  else if(fn_name !== "make_ins") { return false }
+  else if (full_src.startsWith("make_ins('w',", pos) ||
+           full_src.startsWith('make_ins("w",', pos)) {
+      let first_comma_pos = pos + 'make_ins("w",'.length
+      let second_comma_pos = full_src.indexOf(",", first_comma_pos + 1)
+      if(second_comma_pos == -1) { return false }
+      let close_paren_pos = full_src.indexOf(")", second_comma_pos)
+      if (close_paren_pos == -1) { return false }
+      let first_arg_src = full_src.substring(first_comma_pos + 1, second_comma_pos).trim()
+      if(!is_string_a_integer(first_arg_src)) { return false }
+      let first_arg_num = parseInt(first_arg_src)
+      let first_arg_name = Instruction.w_address_number_to_name(first_arg_num)
+      let suffix = full_src.substring(second_comma_pos + 1, close_paren_pos + 1).trim()
+      let first_name_link =  "<a target='_blank' href='" + "https://github.com/HaddingtonDynamics/Dexter/wiki/oplet-write#" + first_arg_num +
+                             "'>" + first_arg_name + "</a>"
+      let fn_name_html = Js_info.wrap_fn_name(fn_name, undefined, "Make a low-level Dexter instruction.")
+      let w_html = "<a title='write value to FPGA address.' target='_blank' href='" + "https://github.com/HaddingtonDynamics/Dexter/wiki/oplet-write" +
+          "'>" + '"w"' + "</a>"
+      return fn_name_html + '(' + w_html + ', address=' + first_name_link + ", value=" + suffix
+  }
+  else { return false }
+}
+
 var {function_name, function_params, function_params_for_keyword_call,
-     is_class, is_string_a_literal_string, is_whitespace,
+     is_class, is_non_neg_integer, is_string_a_literal_string, is_whitespace,
      last, starts_with_one_of, stringify_value, value_of_path} = require("./core/utils.js")
 
 var {pluralize_full_unit_name, series_name_to_unity_unit, unit_abbrev_to_full_name} = require("./core/units.js")

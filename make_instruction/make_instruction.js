@@ -160,8 +160,10 @@ var MakeInstruction = class MakeInstruction{
       for(let i = 1; i < label_array.length; i++){
          let label = label_array[i]  //setting the width below fails. usingn title lets you see long menu items
          let title
-         if (label == "function*") { title = "generator"}
-         else if (["new Dexter", "new Serial"].includes(label)) { title = "A Robot instance is not a valid do_list item." }
+         if (label == "function") { title = "Make a new function definition." }
+         else if (label == "function*") { title = "Make a new generator definition."}
+         else if (label == "new Dexter") { title = "Make a new Dexter instance.&#013;Beware: this is not a valid do_list item." }
+         else if (label == "new Serial") { title = "Make a new Serial instance.&#013;Beware: this is not a valid do_list item." }
          else { title = label}
          result += "<li style='width:300px;' title='" + title + "' onclick='MakeInstruction.instruction_menu_click(event)'>" + label + "</li>"
       }
@@ -1187,7 +1189,7 @@ var MakeInstruction = class MakeInstruction{
             "<fieldset><legend>High Level Job</legend>" +
                 "<input id='mi_job_insert_ref_none_radio_id' type='radio' name='mi_job_ref_radio' checked/> None<br/>" +
                 "<input id='mi_job_insert_ref_refs_radio_id' type='radio' name='mi_job_ref_radio'        /> Reference to low-level Job only<br/>" +
-                "<input id='mi_job_insert_ref_job_radio_id'  type='radio' name='mi_job_ref_radio'        /> Job containing reference " +
+                "<input id='mi_job_insert_ref_job_radio_id'  type='radio' name='mi_job_ref_radio'        /> new Job def containing reference " +
                 "<i style='margin-left:23px'>name</i>: <input id='mi_job_insert_ref_job_name_id'  value='high_level'/><br/>" +
             "</fieldset><br/>" +
 

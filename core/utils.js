@@ -1263,18 +1263,18 @@ module.exports.replace_substrings = replace_substrings
 
 
 //not used Jan 2019 except in testsuite
-//the use of this fn is to left pad a number with spaces so tha the
+//the use of this fn is to left pad a number with spaces so that the
 //decimal point comes at the same char position in a set of
 //numbers passed to this fn with the same non-first args.
 //After the decimal point is padded with zeros if
 //there aren't enough regular post decimal point numbers.
 // the end is padded with zeros.
-//if digits are cut on the end, the last digit in teh result is rounded
+//if digits are cut on the end, the last digit in the result is rounded
 //to reflect the cut digits.
 //returns a string whose length is digits_before_point + digits_after_point
 // + 1 (for the decinmat point, plus 1 if allow_for_negative is true.
-//returned string will b longer than that if num is bigger than can fit in digits_before_point,
-//but it won't be shorter. So calls sould have the largest digits_before_point expected,
+//returned string will be longer than that if num is bigger than can fit in digits_before_point,
+//but it won't be shorter. So calls should have the largest digits_before_point expected,
 //and should only set allow_for_negative to false when they know the num args in
 // a displayed result set will never have a neg number.
 function format_number(num, digits_before_point=6, digits_after_point=3, allow_for_negative=true){
@@ -1335,6 +1335,23 @@ function make_first_char_upper_case(a_string){
         return first_char + a_string.substring(1)
     }
 }
+
+//retuns "a" or "an" depending on first letter of str
+function a_or_an(str="", capitalize=false){
+  if(str.length == 0) {
+       if(capitalize ) { return "A" }
+       else { return "a" }
+  }
+  else if ("aeiouAEIOU".includes(str[0])) {
+      if(capitalize ) { return "An" }
+      else { return "an" }
+  }
+  else {
+        if(capitalize ) { return "A" }
+        else { return "a" }}
+}
+
+module.exports.a_or_an = a_or_an
 
  //uses html to format newlines
 //use for printing ANY possible value from JS so that a human (usually a programmer) can make sense of it.

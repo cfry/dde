@@ -6,6 +6,124 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 3.5.7, Apr 21, 2020</summary>
+Highlights: Extensive Error handling improvements.<br/>
+    See Ref Man/Job/Error Handling for an overview.<br/>
+    Expanded click help & doc on make_ins("w" ...)<br/>
+    modbus-serial installed<br/>
+    serial port improvements for Job Engine.<br/>
+    Bug fix for Control.loop/Control.break with nested loops.
+<ul>
+    <li>Fix to ref man example in Object.entries_doc_id
+        for the function definition that screwed up the test suite.</li>
+
+    <li> Changed generator (function*) examples in the ref man and in
+        Jobs menu/Insert Example/Generators from
+        function* foo(){...} to
+        var foo function* (){...}
+        because JavaScript doesn't bind the "foo" in function* foo(){...}</li>
+
+
+    <li> Jobs menu/Insert Example/Human Instr/ Job Example 7g: Dexter User Interface
+          replace min & max of ranges on the
+          7 sliders with actual J1 thru j7 min and max.</li>
+
+    <li> inspect improvements:
+      <ul>
+          <li>when calling inspect(foo) the source of the arg is shown.</li>
+          <li>primitives (numbers, etc.) are shown in a proper inspect formatting
+              including their type, instead of just printing the primitive.</li>
+          <li>inspecting NaN improved with type information and NaN as
+              an array element.</li>
+          <li>Proper grammar in Inspect title w.r.t. "a" and "an", esp. with noun "array".</li>
+      </ul>
+    </li>
+
+    <li> Improved the stop reasons in many Human instructions.</li>
+
+    <li> Now npm modbus-serial package is installed in DDE.
+         See Ref Man/Robot/Serial/Modbus</li>
+
+    <li> Serial Port improvements:
+         <ul>
+            <li>serial_port_init() is now no longer necessary.
+                Calling it does nothing except print out a warning that it is no longer necessary.</li>
+             <li> Function: <code>serial_devices</code> can only work on the dde platform, not on the Job Engine.
+                  New method <code>serial_devices_async</code> works on both dde and Job Engine.
+                  See Ref Man/Robot Serial/Low Level Serial/serial_devices/async</li>
+             <li>Other serial port functions now available in the job engine.</li>
+         </ul>
+    </li>
+
+    <li> Improved documentation of User Guide/User Interface/Help System/Eval button</li>
+
+    <li> Fixed bug in "Save on eval" that was not saving the editor buffer every time
+         the eval button was clicked.</li>
+
+    <li> Improved doc and tooltip help for keystrokes that run test suites.</li>
+
+    <li>The Recording INSERT dialog  box: improved radio button label from
+        "Job containing reference" to  "new Job def containing reference"
+        to make it clearer what that radio button inserts.</li>
+
+    <li> In Make Instruction pane, Instructions menu, improved tooltips for
+         Misc/function, function*, new Dexter, new Serial.</li>
+
+    <li> Job.prototype.to_source_code now prints out the robot property
+         if the robot is NOT Dexter.dexter0</li>
+
+    <li>Error Handling
+       <ul>
+           <li> Control.error The reason for the Job ending made less redundant.</li>
+           <li> Improved error messages:
+               When a job's instruction errors, an error message with
+               the source code of that instruction is printed in the output pane.</li>
+           <li><b>if_error</b> Job Param replaced with Params:
+               <code>if_robot_status_error</code>,
+               </code>if_instruction_error</code>/>
+               See Ref Man/Job/New Job Parameters.
+            </li>
+           <li><code>if_dexter_connect_error</code> added to catch connection errors.
+               See Ref Man/Job/New Job Parameters.
+           </li>
+           <li><code>when_stopped</code> extended: See Ref Man/Job/New Job Parameters.</li>
+           <li><code>when_stopped_conditions</code>: See Ref Man/Job/New Job Parameters.</li>
+           <li>Instructions: <code>Control.stop_job</code> and <code>Control.error</code>
+               now both take a  perform_when_stopped argument
+               that defaults to <code>true</code>.
+            </li>
+           <li>New Job status_code:  <code>"running_when_stopped"</code> which is
+              used when the Job is performing the when_stopped instruction while
+              finishing a Job.</li>
+           <li>New testsuite files: when_stopped_testsuite.js, manual_testsuite.js</li>
+           <li>New doc Ref Man/Job/Error Handling</li>
+       </ul>
+    </li>
+    <li><code>Control.break</code> bug fix for when you had a
+        nested Control.loop, and a break instrution in the outer loop but
+        after the nested loop.
+    </li>
+
+    <li> Lots of improvements to: make_ins("w", ...)
+        <ul>
+           <li> click help including replace the numerical address with a symbolic one.</li>
+           <li> documentation including
+                new Ref Man doc for Dexter.write_fpga.</li>
+
+            <li>New series on Series menu/DDE/Dexter Robot/w oplet address.</li>
+
+            <li> make_ins now allows any non-neg integer to be a valid address (first arg after "w")</li>
+            <li> Links to https://github.com/HaddingtonDynamics/Dexter/wiki/oplet-write</li>
+         </ul>
+    </li>
+
+    <li> Ref Man Jobs slight reorganization for improved modularity with
+         Starting and Stopping Jobs, a job's <code>start</code> method,
+         as well as insert_instruction (with improved doc).
+    </li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.5.5, Feb 19, 2020</summary>
   Fix for build problems.
 </details>

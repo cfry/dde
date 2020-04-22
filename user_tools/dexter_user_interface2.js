@@ -277,7 +277,6 @@ cir1.setAttribute("cy", 42)
 static dexter_user_interface_cb_aux(vals){
     //out("dui_cb got clicked_button_value: " + vals.clicked_button_value +
     //    " which has val: " + vals[vals.clicked_button_value])
-    debugger;
     let dui2_instance = dui2.show_window_elt_id_to_dui2_instance(vals.show_window_elt_id)
     if(["xy_2d_slider", "z_slider"].includes(vals.clicked_button_value)){
         let cir_xy_obj = vals.xy_2d_slider

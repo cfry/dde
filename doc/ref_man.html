@@ -232,6 +232,7 @@
         See also Dexter instruction: <a href="#" onclick="open_doc('Dexter.write_file_doc_id')">Dexter.write_file</a>
     </details>
 
+
         <!-- removed for security reasons
         <details id="folder_listing_doc_id" style="margin-left:40px;"><summary>folder_listing</summary>
           <code>folder_listing</code> retrieves an array of filenames and/or folder names that are somewhere
@@ -3193,7 +3194,11 @@ Select such source code in the editor pane and click the <button>Eval</button> b
 This will cause a button for the Job to be placed in the Output Pane header, such as
     <button>my_job</button>.
 <p></p>
-<b>Starting and Stopping Jobs</b></br/>
+Webinar videos for Job:<br/>
+<a target="_blank" href="http://hdrobotic.com/webinar#making_jobs"   target="_blank">Making Jobs</a><br/>
+<a target="_blank" href="http://hdrobotic.com/webinar#advanced_jobs" target="_blank">Advanced Jobs</a><br/>
+
+<details class="doc_details"><summary>Starting and Stopping Jobs</summary>
 Defined jobs remain inert until they are started by clicking their button in the Output pane header
     i.e. <button>my_job</button>
     or evaling:<br/>
@@ -3212,14 +3217,43 @@ Jobs either run to completion, error, or are stopped by the user via:
    <li>Calling <code>Job.stop_all_jobs()</code></li>
 </ul>
 
-Stopped jobs may be restarted by calling <code title="not in TestSuite"> Job.my_job.start()</code> again.
-This reinitializes the job with the original arguments passed to <code title="unEVALable code fragment"> new Job</code>
-and runs the do_list instructions again.
+    <details id="start_doc_id" class="doc_details"><summary>start</summary>
+        In addition to clicking a Job's button, Jobs can be started programmatically
+        by calling the <code title="unEvalable  code fragment">start</code> method on a Job instance.
+        <code title="unEVALable code fragment"> start</code> is an instance method on <code>Job</code> that
+        causes the job instance to feed its do_list to the Job's robot instance.
+        After a job instance is done running, you can call <code title="unEVALable code fragment">start</code>
+        again to run it again.<p></p>
+        <i>Example</i> <code title="unEVALable code fragment"> Job.my_job.start()</code><p></p>
+        <i>Parameters</i><br/>
+        <code title="unEVALable code fragment">start</code> takes an object literal as its argument with the
+        same names and values as <code title="unEVALable code fragment"> new Job</code> except that it can't
+        take "name" as a property (i.e. you can't rename the job when you start it).
+        Below are two of the most useful properties you can use:
+        <ul>
+            <li><b>program_counter</b> Initialize the program_counter to an instruction id.
+                The default is 0. You can use any instruction_location here.
+                See <a href="#" onclick="open_doc('Control.go_to_doc_id', event)">Control.go_to</a>
+                for documentation on all the different kinds of instruction_locations.
+            </li>
+            <li><b>initial_instruction</b> Add an initial instruction to the do_list at
+                the location of program_counter. Thus this instruction will be executed
+                first when the job is run. Default null (no instruction added).
+            </li>
+        </ul>
+        Note that these parameters override the same-named properties used in making
+        a new job, but they are only used for this call to start. They
+        do not perminently affect the job definition.<br/>
+        <i>Examples</i>:<br/>
+        <code title="not in TestSuite"> Job.my_job.start()</code> which uses
+        all the original new Job parameters, or<br/>
+        <code title="unEVALable code fragment"> Job.my_job.start({program_counter: "highest_completed_instruction_or_zero"})</code><br/>
+        which over-rides some of those original new Job parameters.
+        If a job errored the last time it ran, you can use <code title="unEVALable code fragment">program_counter: "highest_completed_instruction_or_zero"</code>
+        to restart the job with the errored instruction being the first one run.
+    </details>
 
-<p></p>
-Webinar videos for Job:<br/>
-<a target="_blank" href="http://hdrobotic.com/webinar#making_jobs"   target="_blank">Making Jobs</a><br/>
-<a target="_blank" href="http://hdrobotic.com/webinar#advanced_jobs" target="_blank">Advanced Jobs</a><br/>
+</details>
 
 <details class="doc_details"><summary>Definition Time vs Run Time</summary>
     To fully understand how a job operates, you must understand the difference
@@ -3387,6 +3421,7 @@ new Job({name: "my_job1",
     to understand what's going on beneath the surface. The goal of Dexter
     is to enable you to make as many things as possible. This is why DDE needs to be so flexible.
     <p></p>
+
     For a more complete understanding of JavaScript <code>eval</code>, see the DDE article:
     <a href="#" onclick="open_doc('how_to_think_like_a_computer_doc_id')">How to Think like a Computer</a>
 </details>
@@ -3574,73 +3609,148 @@ new Job({name: "my_job",
             <span style="color:red;">Warning</span>: When there is more than one Job running on a robot,
              a Job can't expect Dexter to be where it told it to go, as another Job
              might have changed its position.</li>
-        <li id="job_param_if_error_doc_id"><b>if_error</b> is a Job instance method that
-            is automatically called when a Dexter robot_status comes back to DDE with an error
-            (i.e. a non-zero error code.)<br/>
-            <i>Parameter</i><br/>
-            <b>robot_status</b> The robot_status array containing the non-zero error code.
+        <li id="job_param_if_robot_status_error_doc_id"><b>if_robot_status_error</b> the value is a do_list item that
+            is automatically put on the do_list when a Dexter robot_status comes back to DDE with an error
+            (i.e. a non-zero error code.)
             <p></p>
-            If the method returns <code>undefined</code> or <code>null</code>, the Job icontinues
-            as if there was no error.
-            But if the method returns an instruction or array of instructions,
-            those instructions are placed on the do_list immediately after the
-            instruction that errored, and will subsequently be run.
-            Should you wish the job to stop after the error,<br/>
-            return <code>Control.stop_job(undefined, "an optional error message")</code>
+            The value of this Job param is placed on the do_list immediately after the program_counter
+            when a robot_status error is recieved back from Dexter.
+            It can be any valid do_list item including an annoymous function.
+            It behaves like a usual do_list item.
+            If an instance of a <code>Control.stop_job</code> or <code>Control.error</code>
+            instruction is the value, that will cause the job to stop but otherwise
+            the Job proceeds as usual.
             <p></p>
-            The default value for <i>if_error</i> is <code>Job.prototype.if_error_default</code> .
-            It prints an error message to the Output pane and returns <code>false</code>, stopping the job.
-            Roughly, its source code is:
-            <pre><code title="unEVALable">
-function(robot_status){
-    let msg = this.rs_to_error_message(robot_status)
-    out("Dexter error: " + msg, "red")
-    return Control.stop_job(undefined, msg)
-}    </code></pre>
- The actual source code is more complex because it includes, in the error message, the content of
- the robot's "srv/samba/share/error.log" file.
- Also, if that file is present, its content is set to the empty string, so that
- it won't continually build up to a huge size.
- <p></p>
-  If you want a Job to do custom error handling, including permit the
-  Job to continue even though there has been an error, use a custom if_error function.<br/>
-  <i>Example:</i>
-<pre><code title="unEVALable">
-function(robot_status){
-    out("we got an error")
-    if(robot_status[Dexter.ERROR_CODE] == 7){
-       out("so we're stopping the job.")
-       return Control.stop_job(undefined, "bad error")
-    }
-    else if(robot_status[Dexter.ERROR_CODE] == 8){
-        out("But its minor so we allow the job to continue.")
-    }
-    else { return this.if_error_default(robot_status) }
-}    </code></pre>
-  You can see the possible
-   <a target="_blank" href="https://github.com/HaddingtonDynamics/Dexter/wiki/status-errors">error codes</a>.
+            The default value for <i>if_robot_status_error</i> is <code>Job.prototype.if_robot_status_error_default</code> .
+            It prints a warning message to the Output pane and returns a Control.error instruction,
+            stopping the Job.
+            <p></p>
+            You can see the possible
+            <a target="_blank" href="https://github.com/HaddingtonDynamics/Dexter/wiki/status-errors">error codes</a>.
         </li>
-        <li id="job_param_when_stopped_doc_id"><b>when_stopped</b> controls what happens when a job stops normally.<br/>
+        <li id="job_param_if_instruction_error_doc_id"><b>if_instruction_error</b> The value is a do_list item that
+            is automatically put on the do_list when an instruction in the Job is attempted to
+            be run, and errors.
+            <p></p>
+            The value of this Job param is placed on the do_list immediately after the program_counter
+            when an error in running an instruction occurs.
+            It can be any valid do_list item including an annoymous function.
+            It behaves like a usual do_list item. If an instance of a <code>Control.stop_job</code> or <code>Control.error</code>
+            instruction is the value of if_instruction_error, that will cause the job to stop.
+            <p></p>
+            The default value for <i>if_instruction_error</i> is <code>Job.prototype.if_instruction_error_default</code> .
+            It prints a warning message to the Output pane and returns a Control.error instruction,
+            stopping the Job.
+        </li>
+        <li id="job_param_if_dexter_connect_error_doc_id"><b>if_dexter_connect_error</b> Unlike the other if...error
+            Job params, the value of if_dexter_connect_error is a function.
+            That funciton is <i>not</i> placed on the do_list, but rather called directly
+            when connection to the Job's Dexter robot fails. This param is ignored if
+            the Job doesn't have a Dexter robot.
+            <p></p>
+            The reason this is not put on the do_list is that connection errors happen at
+            the very initial stages of starting a Job, before any instructions on the do_list
+            are run. If there is a dexter_connect error, the Job will stop no matter what,
+            with a status_code of <code>"errored"</code>. After the Job is stopped,
+            this function will be called with a <code>this</code> of the Job and
+            one argument, <i>robot_name</i>, a string of the name of the Dexter of the attempted connection.
+            The function called can do anything that a JS function can do, including
+            restart this Job, start another Job, switch the robot of this Job or
+            even change the ip_address of the Dexter robot in this Job.
+            <p></p>
+            With great power comes great responsibility. We recommend that any such
+            complex actions be explained to the user by calling <code>out</code> to print
+            a message telling the user what's going on, or even popping up a <code>show_window</code>
+            dialog or a <code>confirm</code> dialog to permit the user to cancel a
+            perhaps-undesirable complex operation. Be careful to avoid infinite loops.
+            <p></p>
+            The default value for <i>if_dexter_connect_error</i> is <code>Job.prototype.if_dexter_connect_error_default</code> .
+            It prints an error message to the output pane after the Job has stopped.<br/>
+            <i>Example:</i><br/><pre><code title="not in Testsuite.">
+new Job({name: "my_job",
+         robot: new Dexter({name: "disconnected_dex",
+                            ip_address: "111.111.1.111",
+                            simulate: false}),
+         if_dexter_connect_error: function(robot_name) {
+              out("Failed to connect " + this.robot.name + " at ip_address: " + this.robot.ip_address)
+              let orig_ip_address = this.robot.ip_address
+              let old_last_digit = parseInt(last(orig_ip_address))
+              let new_last_digit = old_last_digit + 1
+              let new_ip_address = orig_ip_address.substring(0, orig_ip_address.length - 1) +
+                                   new_last_digit
+              if(confirm("try again with ip_address: " + new_ip_address + "?")){
+                  this.robot.ip_address = new_ip_address
+                  this.start()
+              }
+         },
+         do_list:[Robot.out("its working!")
+                 ]})  </code></pre>
+         Note that a Dexter connect error takes several seconds to trigger, so be patient.
+        </li>
+        <li id="job_param_when_stopped_doc_id"><b>when_stopped</b> controls what happens
+             when a job stops.<br/>
              <i>Possible Values</i>:<br/>
              <code>"stop"</code> The default. The job stops.<br/>
              <code>"wait"</code> The job waits for another instruction to be added
                at the end of the do_list. Call <code><a href="#" onclick="open_doc('Job.insert_instruction_doc_id')">Job.insert_instruction</a></code>
                from any JavaScript code to do this.<br/>
-             <code title="unEVALable code fragment"> A function</code> When the job reaches its normal stopping point,
-             the function is called with a 'this' of the job instance and no arguments.
-             This is effectively a callback when the job is done.<br/>
-             <code title="unEVALable code fragment"> An instruction location</code> This is similar to Control.go_to
-             except that the job is re-initialized with its original (as defined) do_list.
-             Any valid instruction location can be used
-             (see doc in <a href="#" onclick="open_doc('Control.go_to_doc_id', event)">Control.go_to</a>) except
-             that it must have no job or indicate the current job. Using <code>0</code>
-             set's the job's program_counter to instruction 0, causing the job to loop.
-             Using an instruction location 'offset' of greater than 0, such as a label,
-             will cause the initial running of the job to execute its top instructions,
-             but then subsequent iterations will start somewhere in the middle.<br/>
-             A Control.stop_job instruction can be used to end a loop.
+             <code title="unEVALable code fragment"> Any valid do_list item</code>
+             When the job reaches its normal stopping point, the value of <i>when_stopped</i>
+             is put on the do_list immediately after the program counter
+             and the Job is permitted to resume.
+             This causes that when_stopped instruction to run.
+             But when that instruction is completed, the Job will stop.
+             (It does not recursively add the when_stopped do_list item again.)
+             <span style="color:red">But</span> see Job param <i>when_stopped_conditions</i>.
+             <p></p>
+             A <code>Control.stop_job</code> or <code>Control.error</code> instruction can be used to end a loop.
              <p></p>
              See the menu item: Jobs/Insert Example/when_stopped
+        </li>
+        <li id="job_param_when_stopped_conditions_doc_id"><b>when_stopped_conditions</b>
+            allows you to selectively turn off running of the
+            when_stopped instruction for certain conditions.<br/>
+            <i>Possible Values</i><br/>
+            <code>true</code> The default. Allows the when_stopped instruction to run
+               regardless, of the condition, except errored_from_dexter_connect which
+               never runs the when_stopped instruction.<br/>
+            <code>false</code>  Disallows the  when_stopped instruction to run
+                regardless of the condition.<br/>
+            <code title="unEVALable">A JS Literal Object</code> An object with properties for
+              each condition. The values of a property can only be <code>true</code>
+               (the default)
+              to allow the when_stopped instruction to run, or <code>false</code>
+              to disallow the when_stopped instruction to run.
+              <p></p>
+              <b><i>when_stopped_condition Properties:</i></b><br/>
+              <b>completed</b> If the do_list of a Job is run successfully,
+                this is the when_stopped_condition. Usually you want
+                this to be true because we want the when_stopped instruction
+                (if any) to run. This can be the status_code of a finished Job.<br/>
+              <b>errored</b> A non-specific error has occured.
+                 This can be the status_code of a finished Job.<br/>
+              <b>errored_from_dexter</b> An error from Dexter, usually
+               reflected in the robot_status error slot.
+               The final status_code of the job will be <code>"errored"</code>.<br/>
+              <b>errored_from_dexter_connect</b> A connection to the Job's
+                Dexter robot. Note this isn't actually used to determine
+                if the when_stopped instruction is run because
+                the when_stopped instruction is never run when there's
+                a dexter connection failure. But the Job's if_dexter_connect_error
+                method is.
+              The final status_code of the job will be <code>"errored"</code><br/>
+              <b>interrupted</b> A normal interruption, often caused by
+              the user clicking on the Job's button while it is running.
+              This can be the status_code of a finished Job.<br/>
+              <b>interrupted_by_stop_button</b> An interruption caused
+              by the user clicking the <img src='stop_sign.png'/> button.
+              Often you want the same behavior here as clicking the Job's button,
+              but by making separate conditions, we allow for the possibility of
+              the Job button permitting the when_stopped instruction to run
+              but clicking the <img src='stop_sign.png'/> button
+              <i>not</i>
+              running the when_stopped instruction.
+              The final status_code of the job will be <code>"interrupted"</code>.<br/>
         </li>
         <li id="job_param_callback_param_doc_id"><b>callback_param</b> An advanced feature of <a href="#" onclick="open_doc(start_object_doc_id)">start_object</a>, not normally used.
     </ol>
@@ -3657,36 +3767,7 @@ function(robot_status){
     When run, my_job prints its default robot's name to the Output pane.
 </details> <!-- end new Job parameters -->
 
-<details id="start_doc_id" class="doc_details"><summary>start</summary>
-   <code title="unEVALable code fragment"> start</code> is an instance method on <code>Job</code> that
-   causes the job instance to feed its do_list to the Job's robot instance.
-   After a job instance is done running, you can call <code title="unEVALable code fragment"> start</code>
-   again to run it again.<p></p>
-   <i>Example</i> <code title="unEVALable code fragment"> Job.my_job.start()</code><p></p>
-   <i>Parameters</i><br/>
-   <code title="unEVALable code fragment"> start</code> takes an object literal as its argument with the
-   same names and values as <code title="unEVALable code fragment"> new Job</code> except that it can't
-   take "name" as a property (i.e. you can't rename the job when you start it).
-   Below are two of the most useful properties you can use:
-   <ul>
-    <li><b>program_counter</b> Initialize the program_counter to an instruction id.
-        The default is 0. You can use any instruction_location here.
-        See <a href="#" onclick="open_doc('Control.go_to_doc_id', event)">Control.go_to</a>
-        for documentation on all the different kinds of instruction_locations.
-    </li>
-    <li><b>initial_instruction</b> Add an initial instruction to the do_list at
-        the location of program_counter. Thus this instruction will be executed
-        first when the job is run. Default null (no instruction added).
-    </li>
-    </ul>
-    Note that these parameters override the same-named properties used in making
-    a new job, but they are only used for this call to start. They
-    do not perminently affect the job definition.<br/>
-    <i>Example</i>:<br/>
-    <code title="unEVALable code fragment"> Job.my_job.start({program_counter: "highest_completed_instruction_or_zero"})</code><br/>
-    If a job errored the last time it ran, you can use this to restart the job
-    with the errored instruction being the first one run.
-</details>
+
 
 <details id="Job.insert_instruction_doc_id" class="doc_details"><summary>insert_instruction</summary>
 Insert an instruction into a Job's do_list at a particular location.<br/>
@@ -3700,13 +3781,80 @@ including integers, names of labels, etc. <br/>
                        {job: "my_job",
                         offset: "end"})</code></pre><br/>
 Adds an instruction that prints "the end" at the end of <code title="unEVALable code fragment"> Job.my_job.do_list</code>.<br/>
-The instruction <code>Control.send_to_job</code> performs the core of this functionality
+<p></p>
+You can insert an instruction into a Job that's running.
+Be sure to insert it <i>after</i> the current program counter or the instruction
+won't run and even screw up the length of the do_list causing
+an instruction to be skipped.
+A Job can even insert an instruction into its own do_list. This is
+an example of self-modifying code.
+<p></p>
+The instruction <a href="#" onclick="open_doc('Control.send_to_job_doc_id')"><code>Control.send_to_job</code></a>
+ performs the core of this functionality
 in an instruction format.<br/>
-See <code>Control.wait_until</code> documentation for its "new_instruction" argument
+See <a href="#" onclick="open_doc('Control.wait_until_doc_id')"><code>Control.wait_until</code></a> documentation for its "new_instruction" argument
 on how to continually add and execute a new instruction in a running job.
 </details>
 
+<details  class="doc_details"><summary>Error Handling</summary>
+As Jobs become more complex, more critical and operatate with potentially
+dangerous tools or in dangerous situations, reliability becomes
+increasingly important. We recommend lots of testing, including
+capturing tests to automatically run via DDE's
+<a href="#" onclick="open_doc('TestSuite_doc_id')">TestSuite</a> facility.
+<p></p>
+None-the-less, you can still run into errors and other unexpected behavior.
+Job's have a number of mechanisms that allow a Job author to
+"expect the unexpected" and handle errors in a controlled manor,
+to turn a bad situation into a manageable one.
+<p></p>
+There are a number of new Job parameters that let you run some code,
+including put instructions on the do_list to be run when a Job
+errors but before it stops.<br/>
+<a href="#" onclick="open_doc('job_param_if_robot_status_error_doc_id')">if_robot_status_error</a>
+ and<br/>
+<a href="#" onclick="open_doc('job_param_if_instruction_error_doc_id')">if_instruction_error</a>
+allow you to specify
+any valid do_list item to place on the do_list right after the offending
+instruction. Since this includes a JS function definition,
+you can run arbitrary code giving you a wide range of possibilities.
+these possibilites include doing nothing, making print statements
+to warn you of the errors, popping up windows, moving a robot,
+all while either allowing the Job to continue or to stop.<br/>
+<a href="#" onclick="open_doc('job_param_if_dexter_connect_error_doc_id')">if_connect_error</a><br/>
+doens't let you specify an instruction to put on the do_list because these
+errors happen before the do_list processing begins, but
+do allow an arbitrary JS function that can peform clean-up or restart
+code from Dexter connection errors.
+<p></p>
+The <a href="#" onclick="open_doc('job_param_when_stopped_doc_id')">when_stopped</a>
+Job parameter allows the Job author to run any valid_do_list item
+when a Job stops for whatever reason, including errors.
+This comes in handy when you have to "take down" something that a Job has
+"set up" to run. One example is to turn off a laser that has been
+turned on by the Job. Regardless of how a job stops, we
+want to make sure anything dangerous is rendered harmless.<p/>
+The <a href="#" onclick="open_doc('job_param_when_stopped_doc_id')">when_stopped_conditions</a>
+Job parameter gives you fine grained control over just what stopping
+conditions will trigger the when_stopped instruction.
+<p></p>
+Some useful instructions when writing robust and safe Jobs.<br/>
+<a href="#" onclick="open_doc('Control.stop_job_doc_id')">stop_job</a> and
+<a href="#" onclick="open_doc('Control.error_doc_id')">error</a>
+both allow you to run the when_stopped instruction on a case-by-case basis.<br/>
+<a href="#" onclick="open_doc('Control.if_any_errors_doc_id')">if_any_errors</a>
+allows you to detect errors in <i>other</i> Jobs and run a
+do_list item of your choosing if such an error has occured.<br/>
+The <a href="#" onclick="open_doc('Control.debugger_doc_id')">debugger</a>
+instruction is handy to place on the do_list right before some
+erroring instruction to pause the job and allow you to step through
+the JavaScript code that implements Job instructions.
 
+
+
+
+
+</details>
 </details> <!-- end job -->
 
 
@@ -3915,7 +4063,7 @@ a clause (or more) that terminates the loop by calling <code title="unEVALable c
 and a clause (or more) that uses <code title="unEVALable code fragment"> yield</code> to produce
 an instruction.<br/>
 <i>Example:</i><pre><code>
-function* my_gen(){
+var my_gen = function* (){
   while(true){
     if(Math.random() > 0.2) {
         yield IO.out("my_gen still alive")
@@ -4188,9 +4336,17 @@ new Job({name: "my_job5",
     See <a href="#" onclick="open_doc('Control.debugger_doc_id')">Control.debugger</a>
 </details>
 <details id="Control.error_doc_id" class="doc_details"><summary>error</summary>
-  Causes the job to error, immediately stopping it.
-  The one argument is a string of a reason for the error which
-  will aid in debugging. Example:<pre><code>Control.error("fubar")</code></pre>
+  Causes the job to error, immediately stopping it.<br/>
+  <i>Parameters:</i><br/>
+  <b>reason</b> Default: <code>""</code> A string.
+      The string is automatically prefixed with<br/>
+      <code>"Instruction Control.error run with reason: "</code>
+      when printed out and setting the Job's stop_reason.<br/>
+  <b>perform_when_stopped</b> Default: <code>true</code>
+     If false, prevents the Job's normal when_stopped instruction from being run,
+     so that the Job stops immediately.<br/>
+  <i>Example:</i>
+  <pre><code>Control.error("FUBAR", false)</code></pre>
 </details>
 
 
@@ -5420,7 +5576,7 @@ before any of the instructions on its <i>instruction queue</i> are executed.
     There are 82 such addresses or "registers".
     You can use integers 0 through 81 to indicate the address, or the following
     constants:
-    <details class="doc_details"><summary>FPGA registers</summary>
+    <details id="fpga_addresses_doc_id" class="doc_details"><summary>FPGA addresses</summary>
     <pre><code>
     FPGA.BASE_POSITION = 0
     FPGA.END_POSITION = 1
@@ -5504,6 +5660,8 @@ before any of the instructions on its <i>instruction queue</i> are executed.
     FPGA.XYZ_FORCE_TIMEBASE = 79
     FPGA.DIFFERENTIAL_FORCE_TIMEBASE = 80
     FPGA.PID_TIMEBASE = 81 </code></pre>
+    <a target='_blank' href="https://github.com/HaddingtonDynamics/Dexter/wiki/oplet-write">
+        The latest on FPGA addresses</a>
     </details>
 
 </details> <!-- end make_ins -->
@@ -6015,6 +6173,25 @@ see: <a  target="_blank" href="https://github.com/HaddingtonDynamics/Dexter/wiki
     Also write_to_robot has its content argument 1st, and its file_name argument 2nd.
     <code>Dexter.write_to_robot</code> is maintained for backwards compatibility.
     Most users are expected to use <code>Dexter.write_file</code>
+</details>
+<details id="Dexter.write_fpga_doc_id" class="doc_details"><summary>write_fpga</summary>
+    Write a value into an address in Dexter's FPGA.<br/>
+    <i>Parameters:</i><br/>
+    <b>address</b> The register within the FPGA to be written.
+    This is a non-negative integer.
+    You can use the symbolic names for these integers
+    to make the code easier to read. All
+    the symbolic names start with "FPGA."
+    See <a href="#" onclick="open_doc('fpga_addresses_doc_id', event)">FPGA Addresses</a><br/>
+    and the Series menu/DDE/Dexter Robot/w oplet address.
+    <br/>
+    <b>value</b> The 32 bit integer to be written into the above address.
+    Any integer between -2147483648 and 2147483647 inclusive is valid.
+    Beware: Javascript uses 64 bit floats for all its numbers which can
+    represent integers higher or lower than the above.
+    <p></p>
+    <i>Example:</i><br/>
+    <code> Dexter.write_fpga(FPGA.ACCELERATION_MAXSPEED, 1) </code>
 </details>
 </details> <!-- end dexter_instructions -->
 
@@ -7132,9 +7309,18 @@ to help you verify connectivity and may be useful in some applications.<p></p>
 the available devices on serial ports. the <code title="unEVALable code fragment"> comName</code> field holds the path to the serial
 port that you can use to connect to that device. <br/>
 <i>Example:</i><br/>
-<code title="not in TestSuite"> serial_devices()[0].comName </code> => <samp> "/dev/tty.Bluetooth-Incoming-Port" </samp>
+<code title="not in TestSuite"> serial_devices()[0].comName </code> => <samp> "/dev/tty.Bluetooth-Incoming-Port" </samp><br/>
+serial_devices does not work on the Job Engine. Use instead ...
 <p></p>
-
+<b id="serial_devices_async_doc_id"><code>serial_devices_async</code></b><br/>
+<i>Parameter:</i><br/>
+<b>callback</b> is a function that is passed two arguments:<br/>
+<i>err</i> null, or, if there's an error, an error object.
+ <code title="unEVALable code fragment.">err.message</code>
+ gets an error message string<br/>
+ <i>ports</i> An array of serial ports objects.<br/>
+ <code title="unEVALable fragment">ports[0].comName</code> => <samp>"/dev/tty.Bluetooth-Incoming-Port"</samp>
+<p></p>
 <b id="serial_path_to_info_map_doc_id"><code>serial_path_to_info_map</code></b> Holds the mapping between the
 path of a serial device and lots of properties about it, most of which come from defining
 the associated Serial robot. The value of this global variable is a JS literal object with
@@ -7168,7 +7354,19 @@ Though strictly unnecessary, we recommend:
 </ol>
 while debugging.<br/>
 See Job Example <i>Serial Port</i> for examples.
-</details> <!-- End Debugging Serial -->
+</details> <!-- End Low Level Serial -->
+
+<details class="doc_details"><summary>Modbus</summary>
+Modbus is a serial communications prototcol used to share information
+between PLC (Programmable Logic Controller) devices and computers.
+It is commonly used in automating industrial machines.
+DDE has the npm package <b>modbus-serial</b> installed in it.<br/>
+<i>Example:</i><br/>
+<code>var ModbusRTU = require("modbus-serial")</code><br/>
+This loads the modbus-serial software into DDE.
+For documentation, see
+<a target="_blank" href="https://www.npmjs.com/package/modbus-serial">modbus_serial</a>.
+</details>
 </details> <!-- End Serial -->
 
 </details> <!-- end Robots -->
@@ -7704,7 +7902,7 @@ If include_this is true, the returned source, when evaled, will return a copy of
         ["weight", 2000],
         ["prototype", Root],
         ["boat", Root.vehicle.boat],
-        ["launch", function (){return "set sail"}]
+        ["launch", function(){return "set sail"}]
         ]</samp>
 </details>
 

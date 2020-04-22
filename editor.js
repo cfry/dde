@@ -399,6 +399,11 @@ Editor.select_javascript = function(start, end=start){
     myCodeMirror.focus()
 }
 
+Editor.replace_at_positions = function(new_text, start_pos, end_pos, select_new_text=false){
+    Editor.select_javascript(start_pos, end_pos)
+    Editor.replace_selection(new_text, select_new_text)
+}
+
 //2nd arg can be boolean or a number which is a position relative to the
 //actual editor start pos of the new_text to be inserted.
 //3rd arg (if any)  is also relative to the editor start pos.
@@ -688,7 +693,7 @@ Editor.edit_new_file = function(){
 
 //content is passed when we're editing a file by clicking on SSH dir listing file
 Editor.edit_file = function(path, content){ //path could be "new buffer"
-    if(Editor.current_file_path == "new buffer") {
+    if(Editor.current_file_path == "new buffer") { //Editor.current_file_path is null  when we first launch dde.
         Editor.set_files_menu_to_path() //set the files menu BACK to its previously selected file cause we can't get the new one
         if (path == "new buffer"){
             Editor.show_clear_new_buffer_choice()
@@ -717,7 +722,7 @@ Editor.edit_file = function(path, content){ //path could be "new buffer"
     }
     else {
         path = convert_backslashes_to_slashes(path) //must store only slashes in files menu
-        if(Editor.current_file_path){ //false when we first boot up.
+        if(Editor.current_file_path){ //Editor.current_file_path is null  when we first launch dde.
             Editor.store_selection_in_map()
             if ((Editor.current_file_path != "new buffer") &&
                  persistent_get("save_on_eval") &&
@@ -2375,10 +2380,64 @@ Editor.context_help = function(full_src, cursor_pos, identifier){
                 fn_name_html = Editor.get_atag_for_fn_name(short_fn_name, full_src, cursor_pos)
             }*/
             fn_name_html = Editor.get_atag_for_fn_name(fn_name, full_src, cursor_pos)
-            return result + " to " + outer_type + fn_name_prefix + fn_name_html + suffix + "."
+
+            //Both the below helps return a string but
+            // at most, only one of the below two helps will be a non-empty string
+            let w_oplet_help = Editor.context_help_for_make_ins_w(full_src, cursor_pos, identifier, fn_name, arg_index)
+            return result + "<br/> to " + outer_type + fn_name_prefix + fn_name_html + suffix + "." + w_oplet_help
         }
     }
 }
+
+/* unnecessary as this info already given in first line of click help
+Editor.context_help_for_make_ins_oplet = function(full_src, cursor_pos, identifier, fn_name, arg_index){
+    let oplet_help = ""
+    if((fn_name == "make_ins") &&
+        (arg_index === 0)) {
+        let oplet
+        if (is_string_a_literal_string(identifier) && (identifier.length == 3)) {oplet = identifier[1] }
+        else if ((typeof(identifier) == "string")  && (identifier.length == 1)) {
+               oplet = identifier
+            identifier = '"' + oplet + '"'
+        }
+        else { return oplet_help }
+        let oplet_name = Dexter.instruction_type_to_function_name_map[oplet]
+        if(oplet_name){
+            oplet_help = "<br/>The oplet " + identifier + " means: " + oplet_name
+        }
+    }
+    return oplet_help
+}
+*/
+
+Editor.context_help_for_make_ins_w = function(full_src, cursor_pos, identifier, fn_name, arg_index){
+    let w_oplet_help = ""
+    if((fn_name == "make_ins") && (arg_index === 1) && is_string_a_integer(identifier)){
+        let first_arg_end_pos = full_src.lastIndexOf("," , cursor_pos)
+        if(first_arg_end_pos >= 0) {
+            let first_arg_start_pos = full_src.lastIndexOf("(" , first_arg_end_pos) + 1
+            if(first_arg_start_pos >= 0) {
+                let first_arg_src = full_src.substring(first_arg_start_pos, first_arg_end_pos).trim()
+                if((first_arg_src == '"w"') || (first_arg_src == "'w'")){
+                    //we've got a make_ins("w", ...)
+                    let w_address_num = parseInt(identifier)
+                    let w_address_name = Instruction.w_address_number_to_name(w_address_num)
+                    if(w_address_name == "unknown") {
+                        w_oplet_help = "<br/>" + w_address_num + " is not a unknown FPGA address."
+                    }
+                    else {
+                        let bounds = Editor.bounds_of_identifier(full_src, cursor_pos)
+                        let action_src = 'Editor.replace_at_positions("' + w_address_name + '", ' + bounds[0] + ', ' + bounds[1]+ ', true)'
+                        w_oplet_help = "<br/><button onclick='" + action_src + "'>Replace</button> " + w_address_num +
+                            " with its symbolic equivalent: <code>" + w_address_name + "</code> ?"
+                    }
+                }
+            }
+        }
+    }
+    return w_oplet_help
+}
+
 
 
 // return array of fn_name, and

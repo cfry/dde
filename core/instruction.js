@@ -1,7 +1,7 @@
 /** Created by Fry on 3/5/16. */
 
 var Instruction = class Instruction {
-    init_instruction(){} //shadowed by at least wait_until and loop,  called by stop_for_reason
+    init_instruction(){} //shadowed by at least wait_until and loop
 
     static to_string(instr){
        if(instr instanceof Instruction) { return instr.toString() }
@@ -430,14 +430,118 @@ for (let i = 0; i < Instruction.labels.length; i++){
     Instruction[Instruction.labels[i]] = i
 }
 
+/* correct as of ap 2020 BUT we decidd to allow any non-neg integer
 Instruction.valid_w_addresses = [5,
                                 20, 21, 26, 27, 28,
                                 31, 32, 33, 34, 35, 36, 39,
                                 40, 41, 42, 43, 44, 45, 46, 47, 48, 49,
                                 50, 51, 52, 53, 54, 55, 56,
-                                61, 62, 66, 67, 68, 69,
-                                70, 71, 74, 75, 78, 79,
+                                61, 62, 64, 66, 67, 68, 69,
+                                70, 71, 73, 74, 75, 78, 79,
                                 80, 81]
+*/
+
+Instruction.is_valid_w_address = function(addr) {
+  return is_non_neg_integer(addr)
+}
+
+Instruction.w_address_names = [
+    "BASE_POSITION", //"0"
+    "END_POSITION", //"1"
+    "PIVOT_POSITION", //"2"
+    "ANGLE_POSITION", //"3"
+    "ROT_POSITION", //"4"
+    "ACCELERATION_MAXSPEED", //"5"
+    "BASE_SIN_CENTER", //"6"
+    "BASE_COS_CENTER", //"7"
+    "END_SIN_CENTER", //"8"
+    "END_COS_CENTER", //"9"
+    "PIVOT_SIN_CENTER", //"10"
+    "PIVOT_COS_CENTER", //"11"
+    "ANGLE_SIN_CENTER", //"12"
+    "ANGLE_COS_CENTER", //"13"
+    "ROT_SIN_CENTER", //"14"
+    "ROT_COS_CENTER", //"15"
+    "PID_DELTATNOT", //"16"
+    "PID_DELTAT", //"17"
+    "PID_D", //"18"
+    "PID_I", //"19"
+    "PID_P", //"20"
+    "PID_ADDRESS", //"21"
+    "BOUNDRY_BASE", //"22"
+    "BOUNDRY_END", //"23"
+    "BOUNDRY_PIVOT", //"24"
+    "BOUNDRY_ANGLE", //"25"
+    "BOUNDRY_ROT", //"26"
+    "SPEED_FACTORA", //"27"
+    "SPEED_FACTORB", //"28"
+    "FRICTION_BASE", //"29"
+    "FRICTION_END", //"30"
+    "FRICTION_PIVOT", //"31"
+    "FRICTION_ANGLE", //"32"
+    "FRICTION_ROT", //"33"
+    "MOVE_TRHESHOLD", //"34"
+    "F_FACTOR", //"35"
+    "MAX_ERROR", //"36"
+    "FORCE_BIAS_BASE", //"37"
+    "FORCE_BIAS_END", //"38"
+    "FORCE_BIAS_PIVOT", //"39"
+    "FORCE_BIAS_ANGLE", //"40"
+    "FORCE_BIAS_ROT", //"41"
+    "COMMAND_REG", //"42"
+    "DMA_CONTROL", //"43"
+    "DMA_WRITE_DATA", //"44"
+    "DMA_WRITE_PARAMS", //"45"
+    "DMA_WRITE_ADDRESS", //"46"
+    "DMA_READ_PARAMS", //"47"
+    "DMA_READ_ADDRESS", //"48"
+    "REC_PLAY_CMD", //"49"
+    "REC_PLAY_TIMEBASE", //"50"
+    "MAXSPEED_XYZ", //"51"
+    "DIFF_FORCE_BETA", //"52"
+    "DIFF_FORCE_MOVE_THRESHOLD", //"53"
+    "DIFF_FORCE_MAX_SPEED", //"54"
+    "DIFF_FORCE_SPEED_FACTOR_ANGLE", //"55"
+    "DIFF_FORCE_SPEED_FACTOR_ROT", //"56"
+    "DIFF_FORCE_ANGLE_COMPENSATE", //"57"
+    "FINE_ADJUST_BASE", //"58"
+    "FINE_ADJUST_END", //"59"
+    "FINE_ADJUST_PIVOT", //"60"
+    "FINE_ADJUST_ANGLE", //"61"
+    "FINE_ADJUST_ROT", //"62"
+    "RECORD_LENGTH", //"63"
+    "END_EFFECTOR_IO", //"64"
+    "SERVO_SETPOINT_A", //"65"
+    "SERVO_SETPOINT_B", //"66"
+    "BASE_FORCE_DECAY", //"67"
+    "END_FORCE_DECAY", //"68"
+    "PIVOT_FORCE_DECAY", //"69"
+    "ANGLE_FORCE_DECAY", //"70"
+    "ROTATE_FORCE_DECAY", //"71"
+    "PID_SCHEDULE_INDEX", //"72"
+    "GRIPPER_MOTOR_CONTROL", //"73"
+    "GRIPPER_MOTOR_OFF_WIDTH", //"74"
+    "GRIPPER_MOTOR_ON_WIDTH", //"75"
+    "START_SPEED", //"76"
+    "ANGLE_END_RATIO", //"77"
+    "RESET_PID_AND_FLUSH_QUEUE", //"78"
+    "XYZ_FORCE_TIMEBASE", //"79"
+    "DIFFERENTIAL_FORCE_TIMEBASE", //"80"
+    "PID_TIMEBASE" //"81"
+]
+Instruction.w_address_number_to_name = function(num){
+    if(!Instruction.is_valid_w_address(num)) { return "unknown" }
+    let w_address_names = Series.id_to_series("series_w_oplet_address_id").array
+    if (num >= w_address_names.length) { return "unknown" }
+    else { return w_address_names[num] }
+}
+
+//beware: will return -1 if name is invalid
+Instruction.w_address_name_to_number = function(name){
+    let w_address_names = Series.id_to_series("series_w_oplet_address_id").array
+    return w_address_names.indexOf(name)
+}
+
 //user might call this at top level in a do_list so make it's name short.
 //the last arg can be a Dexter robot, but if not, the robot comes from the
 //default robot for the job that this instruction is in.
@@ -448,9 +552,9 @@ function make_ins(instruction_type, ...args){
                 "<br/>make_ins still returning an array using: " + instruction_type)
     }
     let first_arg = args[0]
-    if((instruction_type == "w") && (!Instruction.valid_w_addresses.includes(first_arg))){
+    if((instruction_type == "w") && !Instruction.is_valid_w_address(first_arg)){
         dde_error('make_ins("w" ...) does not support an address of ' + first_arg +
-                  '.<br/>Valid addresses are:<br/>' + Instruction.valid_w_addresses.toString() +
+                  '.<br/>Valid addresses are non-negative integers. ' +
                   '.<br/>See <a target="_blank" href="https://github.com/HaddingtonDynamics/Dexter/wiki/oplet-write">oplet_write doc</a>. for details.')
     }
     let result = new Array(Instruction.INSTRUCTION_TYPE)
@@ -501,13 +605,18 @@ Instruction.debugger = class Debugger extends Instruction{ //class name must be 
 }
 
 Instruction.error = class error extends Instruction{
-    constructor (reason) {
+    constructor (reason="", perform_when_stopped=true) {
         super()
+        if(typeof(perform_when_stopped) !== "boolean") {
+          dde_error("Instruction Control.error passed perform_when_stopped of: " + perform_when_stopped +
+                    "<br/>but it should be true or false.")
+        }
         this.reason = reason
+        this.perform_when_stopped=perform_when_stopped
     }
     do_item (job_instance){
-        job_instance.stop_for_reason("errored", "Job: " + job_instance.name + " errored with: " + this.reason)
-        //job_instance.set_up_next_do(0) //no, get out faster, we errored.
+        job_instance.when_stopped_conditions = this.perform_when_stopped
+        job_instance.stop_for_reason("errored",  "Instruction Control.error run with reason: " + this.reason)
         job_instance.set_up_next_do(0)
     }
     toString(){
@@ -916,7 +1025,7 @@ var human_enter_choice_handler = function(vals){
         human_enter_choice_set_var(job_instance, vals.choice, vals.choices_string, vals.user_data_variable_name)
     }
     else if (vals.clicked_button_value == "Stop Job"){
-        job_instance.stop_for_reason("interrupted", "In human_task, user stopped this job.")
+        job_instance.stop_for_reason("interrupted", "In human_enter_choice, user stopped this job.")
         var dep_job_names = JSON.parse(vals.dependent_job_names) //If the user did not pass in a dependent_job_names arg when
         //creating the human_job, dep_job_names will now be [] so the below if hits but
         //the for loop has nothing to loop over so nothing will be done.
@@ -1047,7 +1156,7 @@ function human_enter_filepath_handler(vals){
             for (let j_name of dep_job_names){
                 var j_inst = Job[j_name]
                 if (j_inst && !j_inst.stop_reason){ //if j_inst is still going, stop it.
-                    j_inst.stop_for_reason("interrupted", "In human_task, user stopped this job which is dependent on job: " + job_instance.name)
+                    j_inst.stop_for_reason("interrupted", "In human_enter_filepath, user stopped this job which is dependent on job: " + job_instance.name)
                     j_inst.set_up_next_do(0)
                     return
                 }
@@ -1519,7 +1628,7 @@ Instruction.human_enter_position = class human_enter_position extends Instructio
 var human_enter_position_handler = function(vals){
     var job_instance = Job[vals.job_name]
     if (vals.clicked_button_value != "Continue Job"){
-        job_instance.stop_for_reason("interrupted", "In human_enter_number, user stopped this job.")
+        job_instance.stop_for_reason("interrupted", "In human_enter_position, user stopped this job.")
         var dep_job_names = JSON.parse(vals.dependent_job_names) //If the user did not pass in a dependent_job_names arg when
         //creating the human_job, dep_job_names will now be [] so the below if hits but
         //the for loop has nothing to loop over so nothing will be done.
@@ -1527,7 +1636,7 @@ var human_enter_position_handler = function(vals){
             for (let j_name of dep_job_names){
                 var j_inst = Job[j_name]
                 if (j_inst && !j_inst.stop_reason){ //if j_inst is still going, stop it.
-                    j_inst.stop_for_reason("interrupted", "In human_enter_number, user stopped this job which is dependent on job: " + job_instance.name)
+                    j_inst.stop_for_reason("interrupted", "In human_enter_position, user stopped this job which is dependent on job: " + job_instance.name)
                     j_inst.set_up_next_do(0)
                     return
                 }
@@ -1829,7 +1938,7 @@ var human_show_window_handler = function(vals){
                 for (let j_name of dep_job_names){
                     var j_inst = Job[j_name]
                     if (j_inst && !j_inst.stop_reason){ //if j_inst is still going, stop it.
-                        j_inst.stop_for_reason("interrupted", "In human_notify, user stopped this job which is dependent on job: " + job_instance.name)
+                        j_inst.stop_for_reason("interrupted", "In human_show_window, user stopped this job which is dependent on job: " + job_instance.name)
                         j_inst.set_up_next_do(0)
                     }
                 }
@@ -2220,14 +2329,22 @@ Instruction.loop = class loop extends Instruction{
     init_instruction(){
         this.resolved_times_to_loop = null
     }
-    //when called, pc of job_instance will (as of Jun 11 ) be to a Control.break instruction
+    //when called, pc of job_instance will (as of apr 2020 ) be to a Control.break instruction
     //Just search backwards for the first loop instruction and return its pc.
     //If job_instance.program_counter happens to be pointing at a loop,
     //its just returned.
     static pc_of_enclosing_loop(job_instance){
-        for(let a_pc  = job_instance.program_counter; a_pc >=0; a_pc--){
+        let break_instr_id = job_instance.program_counter
+        for(let a_pc = break_instr_id; a_pc >=0; a_pc--){
             let a_ins = job_instance.do_list[a_pc]
-            if(a_ins instanceof Instruction.loop) { return a_pc }
+            if(a_ins instanceof Instruction.loop) {
+                let sub_instructions_under_loop = job_instance.total_sub_instruction_count(a_pc)
+                let last_sub_instr_id = a_pc + sub_instructions_under_loop
+                if(break_instr_id <= last_sub_instr_id) { //then the break inst is a sub_ins of the loop at a_pc
+                    return a_pc
+                }
+                //else we keep searching back up for the next loop up the do_list
+            }
         }
         return null // not good. we didn't find an enclosing loop. this will become a warning.
     }
@@ -2632,23 +2749,30 @@ Instruction.start_job = class start_job extends Instruction{
 }
 
 Instruction.stop_job = class stop_job extends Instruction{
-    constructor (instruction_location="program_counter", stop_reason=null, perform_when_stopped=false) {
+    constructor (instruction_location="program_counter", //do not make this be able to be a job instance because we want the dynamic lookup of the jbo to stop by name that's in the instruction_location
+                 stop_reason=null,
+                 perform_when_stopped=true) {
         super()
         this.instruction_location = instruction_location
         this.stop_reason = stop_reason
         this.perform_when_stopped = perform_when_stopped
     }
     do_item (job_instance){
+        //this is not an error or interrupted, its a normal stoppage of the job.
         var job_to_stop = Job.instruction_location_to_job(this.instruction_location, false)
         //job_to_stop might or might not be the same as job_instance
         if (!job_to_stop) { job_to_stop = job_instance }
+        //don't set stop_reason here. Its set in do_next_item from the pc being equal to the ending_program_counter
+        //let the_stop_reason
+        //if(this.stop_reason) { the_stop_reason = this.stop_reason }
+        //else { the_stop_reason = "Stopped by Job." + job_instance.name + "the  instruction: Control.stop_job."s when_stopped instruction
+        //job_to_stop.stop_for_reason("completed", the_stop_reason) //don't do as we only want it to stop when it gets to location
+        job_to_stop.when_stopped_conditions = this.perform_when_stopped //the stop_job instruction overrules the job def's when_stopped_conditions
         job_to_stop.ending_program_counter = this.instruction_location
-        if (!this.stop_reason){
-            this.stop_reason = "Stopped by Job." + job_instance.name + " instruction: Control.stop_job."
-        }
-        job_to_stop.stop_for_reason("completed", this.stop_reason, this.perform_when_stopped)
-          //this is not an error or interrupted, its a normal stoppage of the job.
-        job_instance.set_up_next_do()
+        job_instance.set_up_next_do() //continue on with the current job.
+            //if the current job is the same as the job_to_stop, fine, it will stop
+            //else the job_to_stop will stop of its own accord now that it has a status of "completed",
+            // and the current job (job_instance) will continue on to its next instruction.
     }
     toString(){
         var job_to_stop = Job.instruction_location_to_job(this.instruction_location, false)
@@ -2975,7 +3099,7 @@ Instruction.wait_until = class wait_until extends Instruction{
                       ' It should be a function, a date, a number, or "new_instruction".')
         }
     }
-    //called by stop_for_reason, in caswe user terminates job during a wait_until
+    //called by stop_for_reason, in case user terminates job during a wait_until
     init_instruction(){
             this.start_time_in_ms = null //essential for the 2nd thru nth call to start() for this job.
     }

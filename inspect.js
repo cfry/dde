@@ -44,6 +44,7 @@ function make_inspector_id_string(stack_number, in_stack_position){
 }
 
 function inspect(item, src){
+    if(src === undefined) { src = to_source_code({value: item}) }
     inspect_out(item, undefined, undefined, undefined, undefined, undefined, src)
     return "dont_print"
 }
@@ -52,7 +53,9 @@ function inspect(item, src){
 //if in_stack_position is null, then use the length of inspect_stacks[stack_number]
 //as the stack_postion of the new item, ie push it on the end.
 function inspect_out(item, stack_number, in_stack_position, html_elt_to_replace, collapse=false, increase_max_display_length=false, src){
-    if(!item && (item != 0)) { item = inspect_stacks[stack_number][in_stack_position] }
+    if(!item && (item != 0) && (typeof(stack_number) == "number") && (typeof(in_stack_position) == "number")) {
+          item = inspect_stacks[stack_number][in_stack_position]
+    }
     else if (stack_number || (stack_number == 0)){
         if(!in_stack_position && (in_stack_position != 0)) {
             in_stack_position = inspect_stacks[stack_number].length
@@ -109,8 +112,8 @@ function inspect_aux(item, stack_number, in_stack_position, increase_max_display
     //else { return value_of_path(new_object_or_path) }
     const the_type = typeof(item)
     if(looks_like_an_existing_file_path(item)) { return inspect_one_liner_existing_file_path(item) }
-    if (inspect_is_primitive(item)) { return inspect_one_liner(item) }
-    else if ((the_type == "function") && !is_class(item) && (item !== Number)) {
+    //if (inspect_is_primitive(item)) { return inspect_one_liner(item) }
+    if ((the_type == "function") && !is_class(item) && (item !== Number)) {
          return inspect_one_liner_regular_fn(item) //just a twistdown with no links in it. So inspecting top level fn won't have the fwd and back arrows. that's ok
     }
     else { //we're making a full inspector with back arrow
@@ -119,14 +122,21 @@ function inspect_aux(item, stack_number, in_stack_position, increase_max_display
         let array_type = typed_array_name(item) //"Array", "Int8Array" ... or null
         let div_id = make_inspector_id_string(stack_number, in_stack_position)
         let max_display_factor = (increase_max_display_length ? 4 : 1)
-        if (array_type){ //return "Array of " + item.length
+        //each clause below sets title and result
+        if (inspect_is_primitive(item)) {
+            let type = typeof(item)
+            if (Number.isNaN(item)) { type = "(Not A Number) Number" }
+            title = a_or_an(type, true) + " " + type
+            result = inspect_one_liner(item)
+        }
+        else if (array_type){ //return "Array of " + item.length
             if ((item.length > 0) && is_array_of_same_lengthed_arrays(item)) { //2D arrays can't be "typed arrays"
                   //all elts of item are arrays, but they might be of different lengths.
                 title = "A 2D Array of " + item.length + "x" + item[0].length
                 result = inspect_format_2D_array(item)
             }
             else {
-                title = "A " + array_type + " of " + item.length
+                title = a_or_an(array_type, true) + " " + array_type + " of " + item.length
                 result = "["
                 //let max_display_factor = (increase_max_display_length? 2 : 1)
                 let orig_array_max_display_length = inspect_stack_max_display_length[stack_number][in_stack_position]
@@ -302,6 +312,7 @@ function inspect_one_liner(item, stack_number, in_stack_position, prop_name){
     //onsole.log("inspect_one_liner got: " + prop_name + ": " + item) //will hang DDE if item is a very long array
     if (item === undefined)            { return "undefined" }
     else if (item === null)            { return "null" }
+    else if (Number.isNaN(item))       { return "NaN" }
     else if (the_type == "boolean")    { return "" + item }
     else if (the_type == "number")     { return "" + item }
     else if (item instanceof Date)     { return item.toString() }
@@ -394,9 +405,24 @@ function inspect_extra_info(item){
     var info
     if (typed_array_name(item)){ //an array of some sort
        item = item.slice(0, 10) //just in case we have a really long array, don't want to have JSON.stringify try to make a super long string
+       info = "["
+       for(let i = 0; i < item.length; i++) {
+           let elt = item[i]
+           let elt_str
+           if(Number.isNaN(elt)) { elt_str = "NaN"} //because JSON.stringify prints NaN as "null"
+           else  {
+               try { elt_str = JSON.stringify(elt) }
+               catch { elt_str = "" }
+           }
+           if (i > 0) { info += ", " }
+           info += elt_str
+       }
+       info += "]"
     }
-    try{ info = JSON.stringify(item) } //might be a circular structure such as happens with newObjects
-    catch(err) { return "" }
+    else {
+        try{ info = JSON.stringify(item) } //might be a circular structure such as happens with newObjects
+        catch(err) { return "" }
+    }
     if (info.length > 50) {
         info = info.substring(0, 80) + " &nbsp;..."
         if      (info[0] == "{") { info += "}" }
@@ -428,7 +454,12 @@ function inspect_format_2D_array(item){
             else if(j == -1) { content = i  }
             else {
                let data = item[i][j]
-                content = (inspect_is_primitive(data) ? JSON.stringify(data) : ("" + data))
+                //content = (inspect_is_primitive(data) ? JSON.stringify(data) : ("" + data))
+               if(inspect_is_primitive(data)) {
+                   if(Number.isNaN(data)) { content = "NaN" }
+                   else { content = JSON.stringify(data)}
+               }
+               else { content = "" + data }
             }
             result += tag_start + content + tag_end
         }
@@ -568,5 +599,5 @@ function inspect_set_refresh_onclick(stack_number, in_stack_position, id_string)
 }
 
 var {out_eval_result} = require("./core/out.js")
-var {shouldnt, is_class, is_array_of_same_lengthed_arrays, get_class_name, replace_substrings, typed_array_name} = require("./core/utils.js")
-var {make_full_path, read_file, file_exists} = require("./core/storage.js")
+var {a_or_an, get_class_name, is_class, is_array_of_same_lengthed_arrays, replace_substrings, shouldnt, typed_array_name} = require("./core/utils.js")
+var {file_exists, make_full_path, read_file} = require("./core/storage.js")

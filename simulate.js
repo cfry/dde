@@ -327,7 +327,6 @@ function draw_table(parent, table_width, table_length, table_height){
     sim.table.add(z_text_mesh)
 
     /*THREE_font_loader.load( 'user_tools/helvetiker_regular.typeface.json', function ( font ) {
-        debugger;
         let text_geometry = new THREE.TextGeometry( 'Hello three.js and something much longer to see!', {
             font: font,
             size: 80,

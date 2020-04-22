@@ -102,7 +102,8 @@ function open_doc_show_fn_def(details_elt, fn_name){
     if (fn && (typeof(fn) == "function")){
         let src = fn.toString() //for actual functions, the result starts with "function ", For classes it starts with "class "
         if (src.startsWith("class ")) {}
-        else if (src.startsWith("function (")){ //anonymous fn but I've got the fn_name
+        else if (src.startsWith("function (") ||
+                 src.startsWith("function(")){ //anonymous fn but I've got the fn_name
             src = fn_name + "<br/>" + src
         }
         else if (src.startsWith("function ")){

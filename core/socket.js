@@ -225,7 +225,7 @@ var Socket = class Socket{
                 catch(err) {
                     if(oplet_array_or_string === Socket.resend_instruction) {
                         if (Socket.resend_count >= 4) {  //we're done
-                            job_instance.stop_for_reason("errored", "can't connect to Dexter")
+                            job_instance.stop_for_reason("errored_from_dexter", "can't connect to Dexter")
                             //job_instance.color_job_button() //automatically done by job.prototype.finish
                             job_instance.set_up_next_do(0)  //necessary?
                             return

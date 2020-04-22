@@ -60,7 +60,36 @@ new TestSuite("loop",
                                                         })
                                          })
                    ]})`],
-     ["Job.my_job.user_data.sum", "6"]
+     ["Job.my_job.user_data.sum", "6"],
+     [`new Job({
+	     name: "outer_loop_break_test",
+         user_data: {an_array: [10]},
+         do_list: [
+             function() { this.user_data.an_array.push(11)},
+    	     Robot.loop(2, function(){
+                 this.user_data.an_array.push(12)
+                 return Control.break()
+                 this.user_data.an_array.push(13)
+             }),
+             function() { this.user_data.an_array.push(14)}
+          ]})`],
+     ["Job.outer_loop_break_test.user_data.an_array", "[10,11,12,14]"],
+     [`new Job({
+	name: "inner_loop_break_test",
+    user_data: {an_array: [0]},
+    do_list: [
+        function() { this.user_data.an_array.push(1)},
+    	Robot.loop(true, function(){
+            this.user_data.an_array.push(2)
+        	return [
+                function(){this.user_data.an_array.push(3)},
+            	Robot.loop(1, function(){this.user_data.an_array.push(4) }),
+                Robot.break(),
+                function() {this.user_data.an_array.push(5) }
+            ]}),
+        function(){this.user_data.an_array.push(6)}
+            ]})`],
+        ["Job.inner_loop_break_test.user_data.an_array", "[0,1,2,3,4,6]"]
 )
           
                 

@@ -28,11 +28,19 @@ temboo IOT js connectivity requires setting up a local js server to use.
 //keep map between them on the UI side
 */
 
-var SerialPort = "SerialPort not yet implemented for this platform."
+var SerialPort = require('serialport') //"To use SerialPort, you must call serial_port_init() first."
+
+
+module.exports.SerialPort = SerialPort
 
 //caled fron ready.js. Prevents error when loading job _engine (and this file)
 //on Dexter hardware
-function serial_port_init() { SerialPort = require('serialport') }
+function serial_port_init() {
+    //SerialPort = require('serialport') //now this is always done.
+    warning("Calling serial_port_init() is no longer necessary to use the serial port capability.<br>" +
+            "It now does nothing.")
+
+}
 module.exports.serial_port_init = serial_port_init
 
 
@@ -44,11 +52,33 @@ function serial_path_to_info(path){
 }
 
 function serial_devices(){
-    let dde_ipc     = require('electron').ipcRenderer //can't just use global const ipcRenderer here but I don't know why
-    const reply = dde_ipc.sendSync('serial_devices')
-    return reply
+    if(platform === "dde") {
+        let dde_ipc     = require('electron').ipcRenderer //can't just use global const ipcRenderer here but I don't know why
+        const reply = dde_ipc.sendSync('serial_devices')
+        return reply
+    }
+    else {
+        dde_error("The function 'serial_devices' can only be used on dde proper,<br/>" +
+                  "not on the Job Engine.<br/>" +
+                  "You must use serial_devices_async on the Job Engine.")
+    }
 }
 module.exports.serial_devices = serial_devices
+
+function serial_devicies_async_callback_default(err, ports){
+    if(err) {
+        dde_error("serial_devices_async errored with: " + err.message)
+    }
+    else {
+        out("Available serial ports:<br/>" + JSON.stringify(ports))
+    }
+}
+
+function serial_devices_async(callback = serial_devicies_async_callback_default){
+    SerialPort.list(callback)
+}
+
+module.exports.serial_devices_async = serial_devices_async
 
 
 //only used for testing.

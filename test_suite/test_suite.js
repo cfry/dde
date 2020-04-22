@@ -254,6 +254,7 @@ var TestSuite = class TestSuite{
         load_files(__dirname + "/test_suite/file_system_testsuite.js")
         load_files(__dirname + "/test_suite/fpga_testsuite.js")
         load_files(__dirname + "/test_suite/loop_testsuite.js")
+        load_files(__dirname + "/test_suite/when_stopped_testsuite.js")
         if (!TestSuite["user_guide_id"])       { TestSuite.make_test_suites_from_doc(user_guide_id) }
         if (!TestSuite["reference_manual_id"]) { TestSuite.make_test_suites_from_doc(reference_manual_id) }
         let report_prefix = '<b style="font-size:20px;">All Test Suites Report</b><br/>' +
@@ -486,14 +487,19 @@ var TestSuite = class TestSuite{
     static monitor_started_job(){
         if(this.state && this.state.started_job){
             let job_status_code = this.state.started_job.status_code
-            if ((job_status_code == "errored") || (job_status_code == "interrupted")) {
-                let error_mess = this.state.started_job.status()
+            if ((job_status_code == "errored") || (job_status_code == "interrupted")){
+                let cur_ts = this.state.suites[this.state.current_suite_index]
+                let cur_test = cur_ts.tests[this.state.next_test_index - 1]
+                let expected_src = cur_test[1]
+                if(expected_src == "TestSuite.error"){ }//we were expecting an error and we got one so no tesrt failure
+                else {
+                    let error_mess = this.state.started_job.status()
 
-                let suite_index = this.state.current_suite_index;
-                let cur_suite   = this.state.suites[suite_index]
-                cur_suite.unknown_failure_count += 1
-
-                cur_suite.report += "Test " + (this.state.next_test_index - 1) + " errored after starting Job: " + this.state.started_job.name + "<br/>"
+                    let suite_index = this.state.current_suite_index;
+                    let cur_suite   = this.state.suites[suite_index]
+                    cur_suite.unknown_failure_count += 1
+                    cur_suite.report += "Test " + (this.state.next_test_index - 1) + " errored after starting Job: " + this.state.started_job.name + "<br/>"
+                }
                 clearInterval(this.state.started_job_monitor_set_interval)
                 this.state.started_job = null
                 this.resume()
@@ -503,7 +509,7 @@ var TestSuite = class TestSuite{
                 this.state.started_job = null
                 this.resume()
             }
-            else {} //all other states like "starting", "running", "suspended" "waiting". just do nothing
+            else {} //all other states like "starting", "running", "running_when_stopped", "suspended" "waiting". just do nothing
                     //and monitor_started_job will be called again by setInterval and
                     //maybe the job status_code will change to completed by then
         }

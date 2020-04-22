@@ -8,8 +8,8 @@
 
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version: <span id="dde_version_id">3.5.6</span><br/>
-    released: <span id="dde_release_date_id">Mar 10, 2020</span>
+    version: <span id="dde_version_id">3.5.7</span><br/>
+    released: <span id="dde_release_date_id">Apr 21, 2020</span>
     <p></p>
     DDE helps you create, debug, and send software to a Dexter robot.
     You can use any JavaScript augmented with DDE-specific functions to help find out about,
@@ -580,11 +580,12 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
                 in the output pane. Often this will have a blue, underlined
                 link that you can click on for more information.<p></p></li>
             <li><b>Eval button</b> The Eval button lets you run code pretty much
-                where ever you find it in DDE. The result of the evaluation
+                where ever you find it in DDE, including the Editor, Output, and Doc panes.
+                The result of the evaluation
                 will appear in the Output pane. While coding, we recommend
                 evaling little pieces of code often. This will prevent
-                hard-to-find bugs. This is a great way to learn
-                about functionality.
+                hard-to-find bugs by helping to localize bugs to a small amount
+                of code.  Its also a great way to learn about functionality.
                 <ul><li>If there is a selection in the Editor or other pane,
                     it will be evaled when you click the <button>Eval</button> button.
                     Triple click on a line in the editor to select
@@ -924,7 +925,7 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
                 into just another instruction that can be mixed and matched just like
                 any instructions.
             </li>
-            <li> Click the <input type="radio" checked="checked">Job containing reference</input>
+            <li> Click the <input type="radio" checked="checked">new Job def containing reference</input>
                  radio button.
                  This will create a high level Job with one <code>Control.start_job</code> instruction
                  that, when run, will "play" our recording.
@@ -1577,7 +1578,11 @@ the points defined in ez_create.
     </ol>
     Choose <button>Test&#9660;</button> <b>Insert Example</b> to see a demonstation
     Test Suite. <p></p>
-    You run a Test Suite by selecting it,holding down the Alt(option) key, and hitting the right arrow key or
+    You run a Test Suite by selecting it,<br/>
+    holding down:<br/>
+    &nbsp;&nbsp;On WinOS: Alt key<br/>
+    &nbsp;&nbsp;On MacOS: option key<br/>
+    and hitting the right arrow key or<br/>
     choosing the Editor pane's <b>Test/naviation/Run & sel next item</b> menu item.
     Use the Alt-down arrow key to select the next level down item such as a test or
     even a part of a test. In each case, the Alt-right arrow executes the item and
