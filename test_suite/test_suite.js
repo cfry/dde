@@ -1013,6 +1013,19 @@ var TestSuite = class TestSuite{
         return doc_test_suites
     }
 
+    static click_help_test(filename){
+        Editor.edit_file(filename)
+        let content = Editor.get_javascript()
+        let len = content.length
+        for(let i = 0; i <= len; i++){
+            let char = content[i]
+            let mess = i + " = " + char
+            console.log(mess) //this is not printing out every char, more like every 10th char. Bug in console.log?
+            //but does seem to be calling show_identifier_info on every integer.
+            Editor.show_identifier_info(content, i)
+        }
+    }
+
 } //end class TestSuite
 // make_test_suites_in_doc()
 

@@ -1,5 +1,12 @@
 /**Created by Fry on 2/5/16. */
 //for name param, both "" and null mean compute a job name a la "job_123"
+//calling new Job will: -
+// 1. error if bad arguments,
+// 2 if there's a same-named active job, that job will be stopped,
+//   then the re_def of this job will happend in a time out.
+//   meanwhile a string is returned saying what is happening.
+//   in this case new Job().start() will ungracefully error.
+// 3. The new Job instance is returned.
 class Job{
     constructor({name="",
                  robot=Robot.dexter0,
@@ -43,7 +50,7 @@ class Job{
     //so since we're currently "executing" 1 instruction, and after its done,
     //we'll be incrementing the pc, then internally we decriment the
     //passed in program_counter. If its negative, it means
-    //computer it from the end, ie -1 means when set_next_do is called,
+    //compute it from the end, ie -1 means when set_next_do is called,
     //it will set the pc to the length of the do_list, hence we'll be done
     //with the job. -2 means we want to execute the last instruction of the
     //job next, etc.
@@ -75,22 +82,41 @@ class Job{
     else if(!is_string_an_identifier(name)){ //not ok as a name
         dde_error('You have attempted to make a new Job with an invalid name of: "' + name + '".<br/>Job names should start with a letter and be followed by only letters, digits or underscores.')
     }
+    if (!Job.is_plausible_when_stopped_value(when_stopped)) {
+        dde_error("new Job passed: " + when_stopped + " but that isn't a valid value.")
+    }
     if(!Job.is_when_stopped_conditions_valid(when_stopped_conditions)){
         dde_error("While defining Job." + name + " when_stopped_conditions is not valid.<br/>" +
                    "Valid values are true, false, and a literal object containing one or more of the properties:<br/>" +
                    Job.when_stopped_conditions_property_names)
     }
+    if (!(robot instanceof Robot)){
+        if (!Robot.dexter0){
+            dde_error("Attempt to create Job: " + this.name + " with no valid robot instance.<br/>" +
+                " Note that Robot.dexter0 is not defined<br/> " +
+                " but should be in your file: Documents/dde_apps/dde_init.js <br/>" +
+                " after setting the default ip_address and port.<br/> " +
+                " To generate the default dde_init.js file,<br/>" +
+                " rename your existing one and relaunch DDE.")
+        }
+        else {
+            dde_error("Attempt to create Job: " + this.name + " with no valid robot instance.<br/>" +
+                "You can let the robot param to new Job default, to get a correct Robot.dexter.0")
+        }
+    }
     if (Job[name] && Job[name].is_active()) { //we're redefining the job so we want to make sure the
-   //previous version is stopped.
-    if (Job[name].robot instanceof Dexter) {Job[name].robot.empty_instruction_queue_now() }
-    Job[name].stop_for_reason("interrupted", "User is redefining this job.")
-    let orig_args = arguments[0]
-    setTimeout(function(){ new Job (orig_args) }, 200)
+                                              //previous version is stopped.
+        if (Job[name].robot instanceof Dexter) {Job[name].robot.empty_instruction_queue_now() }
+        Job[name].stop_for_reason("interrupted", "User is redefining this job.")
+        let orig_args = arguments[0]
+        setTimeout(function(){ new Job (orig_args) }, 200)
+        return ["While attempting to define Job." +  name + ", there already is a Job with that name running<br/>" +
+               "It is being stopped. Shortly the new Job will be defined."]
+        //note this string must be wrapped in an array, because if a non-object is returned
+        //from a JS constructor, it is ignored and an instance of the class is returned instead.
+        //horrible JS design. https://javascript.info/constructor-new
     }
     else {
-        if (!Job.is_plausible_when_stopped_value(when_stopped)) {
-            dde_error("new Job passed: " + when_stopped + " but that isn't a valid value.")
-        }
         this.orig_args =   {do_list: do_list,
                             robot: robot,
                             keep_history: keep_history,
@@ -114,23 +140,7 @@ class Job{
         this.job_id            = Job.job_id_base
         if ((name == null) || (name == "")){ this.name = Job.generate_default_name() }//"job_" + this.job_id }
         else                               { this.name = name }
-        //setup robot
-        if (!(robot instanceof Robot)){
-            if (!Robot.dexter0){
-                dde_error("Attempt to create Job: " + this.name + " with no valid robot instance.<br/>" +
-                          " Note that Robot.dexter0 is not defined<br/> " +
-                          " but should be in your file: Documents/dde_apps/dde_init.js <br/>" +
-                          " after setting the default ip_address and port.<br/> " +
-                          " To generate the default dde_init.js file,<br/>" +
-                          " rename your existing one and relaunch DDE.")
-            }
-            else {
-                dde_error("Attempt to create Job: " + this.name + " with no valid robot instance.<br/>" +
-                          "You can let the robot param to new Job default, to get a correct Robot.dexter.0")
-            }
-        }
-        else { this.robot = robot }
-
+        this.robot = robot
         this.user_data       = user_data //needed in case we call to_source_code before first start of the job
         this.program_counter = program_counter //this is set in start BUT, if we have an unstarted job, and
                              //instruction_location_to_id needs access to program_counter, this needs to be set
@@ -144,6 +154,8 @@ class Job{
         this.add_job_button_maybe() //always calls color_job_button, even if a button isn't added
     }
     } //end constructor
+
+
 
     static generate_default_name(){
         for(let i = 2; i < 1000000; i++){
@@ -1307,8 +1319,32 @@ Job.report = function(){
             }
             result += "</table>"
             out(result)
-            install_onclick_via_data_fns()
+            SW.install_onclick_via_data_fns()
         }
+}
+
+//called by make_dde_status_report for emails. Should not contain html.
+Job.active_jobs_report = function(){
+    let jobs = Job.active_jobs()
+    if(jobs.length == 0) { return "There are no active Jobs." }
+    else {
+        let result = ""
+        for(let job_instance of jobs) {
+            let cur_instr = job_instance.do_list[job_instance.program_counter]
+            let pc = job_instance.program_counter
+            let instr_src
+            if(pc < 0) { instr_src = "At beginning of job." }
+            else if (pc >= job_instance.do_list.length) {
+                         instr_src = "At end of job."
+            }
+            else {       instr_src = to_source_code({value: cur_instr}) }
+            result += "Name: Job." + job_instance.name +
+                      "\nStatus: " + job_instance.status_code +
+                      "\nProgram Counter: " + pc
+            result += "\nCurrent Instruction source: " + instr_src + "\n\n"
+        }
+        return result
+    }
 }
 
 Job.prototype.print_out = function(){
@@ -1545,7 +1581,7 @@ Job.prototype.finish_job = function(){
           if(this.robot instanceof Dexter) { this.robot.remove_from_busy_job_array(this)} //sometimes a job might be busy and the user clicks its stop button. Let's clean up after that!
           this.color_job_button() //possibly redundant but maybe not and just called on finishing job so leave it in
           this.show_progress_maybe()
-          out("Done with job: " + this.name + ", for reason: " + this.stop_reason)
+          out("Done with Job." + this.name + ", for reason: " + this.stop_reason)
           if(window.platform === "node") { //only calls close_readline to end process, or doesn't
             if(window.keep_alive_value) {} //keep the process alive
             else {
@@ -1731,6 +1767,13 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
     //this.program_counter += 1 now done in set_up_next_do
     //if (this.show_instructions){ onsole.log("Top of do_next_item in job: " + this.name + " with PC: " + this.program_counter)}
     //onsole.log("top of do_next_item with pc: " + this.program_counter)
+    if(window["js_debugger_checkbox_id"] && js_debugger_checkbox_id.checked) {
+        //the print help statements are here so that they get called both when
+        //the user checks the checkbox, AND when Control.debugger instruction is run.
+        out("To stop debugging, Eval: <code>undebug_job()</code> in Dev Tools console and click the big blue arrow.")
+        debugger; //LEAVE THIS IN RELEASED CODE
+        console.log("To stop debugging, Eval:   undebug_job()   and click the big blue arrow, ")
+    }
     let ending_pc = this.instruction_location_to_id(this.ending_program_counter) //we end BEFORE executing the ending_pcm we don't execute the instr at the ending pc if any
     if (["completed", "errored", "interrupted"].includes(this.status_code)){//put before the wait until instruction_id because interrupted is the user wanting to halt, regardless of pending instructions.
         this.finish_job()
@@ -2637,8 +2680,13 @@ Job.insert_instruction = function(instruction, location){
                         //the caller of this meth doesn't know the index of the instr to increment
                         //the added_items_count of.
                         //job_instance.added_items_count[this.program_counter] += 1 //isn't right that pc has its added_items count incremented. Maybe should be something else, or no increment at all
-                   let did_increment = job_instance.increment_added_items_count_for_parent_instruction_of(index) //false means we're at top level
-                   job_instance.is_do_list_item_top_level_array.splice(index, 0, !did_increment)
+                   if(location.offset == "end"){ //always at top level
+                       job_instance.is_do_list_item_top_level_array.splice(index, 0, true)
+                   }
+                   else {
+                        let did_increment = job_instance.increment_added_items_count_for_parent_instruction_of(index) //false means we're at top level
+                        job_instance.is_do_list_item_top_level_array.splice(index, 0, !did_increment)
+                   }
             }
         }
     }
@@ -2694,7 +2742,7 @@ Job.prototype.increment_added_items_count_for_parent_instruction_of = function(i
 //end do_list management fns
 
 //returns true if the argument is the right type to be an
-///instrudtion location. Note it might not actually BE an instruction location,
+///instruction location. Note it might not actually BE an instruction location,
 //but at least it coforms to the bare minimum of a type
 //called from Job constructor for use in finish_job
 Job.is_plausible_instruction_location = function(instruction_location){

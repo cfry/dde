@@ -133,6 +133,8 @@ function stringify_for_speak(value, recursing=false){
     return result
 }
 
+module.exports.stringify_for_speak = stringify_for_speak //also called in Messaging.speak
+
 function speak({speak_data = "hello", volume = 1.0, rate = 1.0, pitch = 1.0, lang = "en_US", voice = 0, callback = null} = {}){
     if (arguments.length > 0){
         var speak_data = arguments[0] //, volume = 1.0, rate = 1.0, pitch = 1.0, lang = "en_US", voice = 0, callback = null

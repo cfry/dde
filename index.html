@@ -94,6 +94,7 @@
       <!-- downloaded from: https://github.com/jitsi/jitsi-meet/blob/feb8fe9e342daafc32efd5149477c391ec8caff6/modules/API/external/external_api.js
         doc for "api" at https://github.com/jitsi/jitsi-meet/blob/master/doc/api.md -->
     <!--<script type="text/javascript" src="jitsi/external_api.js"></script>-->
+    <script type="text/javascript" src="messaging.js"></script>
 
     <script>window.fs = require('fs');</script>
 
@@ -276,7 +277,8 @@
                                                 <li id="dev_tools_id"    title="Show instructions for&#013;seeing console.log output and&#013;using debugger; breakpoints.">Help</li>
                                                 <li id="console_log_id"  title="Prints complex data into the Chrome console. Click right anywhere in DDE and &#013;choose 'Inspect' to see it.&#013;out(...) prints to Output pane.">console.log(...)</li>
                                                 <li id="debugger_id"     title="Inserts a breakpoint in any JS code&#013;Click right and choose 'Inspect Element' &#013;to enable stepping JavaScript.">debugger;</li>
-                                                <li id="debugger_instruction_id" title="Insert a Control.debugger()&#013;instruction in a do list&#013;which pauses a job&#013;and allows you to step through its instructions.">Control.debugger()</li>
+                                                <li id="step_instructions_id"    title="Insert a Control.step_instructions()&#013;instruction in a do list&#013;which pauses the job&#013;and allows you to step through its JS.&#013;This is high level.">Control.step_instructions()</li>
+                                                <li id="debugger_instruction_id" title="Insert a Control.debugger()&#013;instruction in a do list&#013;which pauses the job&#013;and allows you to step through its instructions.&#013;This is low level.">Control.debugger()</li>
                                             </ul>
                                         </li>
                                         <li>User Interaction
@@ -434,7 +436,7 @@
                                             </ul>
                                         </li>
                                         <li id="show_page_id"     title="Open a browser window on the given url.">show_page(...)</li>
-                                        <li id="get_page_id"          title="Retrieves the content of&#013;a web page or data service.">get_page</li>
+                                        <li id="get_page_id"      title="Retrieves the content of&#013;a web page or data service.">get_page</li>
                                         <li>Sound
                                             <ul>
                                                 <li id="beep_id"          title="Plays a simple beep.">beep()</li>
@@ -642,6 +644,7 @@
                                             </ul>
                                         </li>
                                         <li id="run_job_on_dexter_id" title="Run the Job defined in the selection,&#13;or, if none, the whole editor,&#13;on Dexter.">Run Job on Dexter</li>
+                                        <li id="send_message_id" title="Send the selection&#13;to the 'Messaging' Dexter&#13;to run.">Send Message</li>
 
                                     </ul>
                                 </li>
@@ -816,6 +819,7 @@
                         <input id="simulate_radio_false_id" type="radio" name="simulate" value="false" title="When this button is selected,&#013;Dexter instances with a 'simulate' value of null&#013;will have their instructions sent to a real Dexter.">real</input>
                         <input id="simulate_radio_both_id"  type="radio" name="simulate" value="both" title="Both simulate and real will be run for Dexter's with a 'simulate' value of null.">both</input> &nbsp; &nbsp;
                         <input style="display:inline-block; vertical-align:bottom;" id="real_time_sim_checkbox_id" type="checkbox" checked="true" title="If unchecked, simulation&#013;will run as fast as it can.&#013;No pauses for sleep or motion.">real-time-sim</input>
+                        <input style="display:inline-block; vertical-align:bottom;margin-left:35px;" id="js_debugger_checkbox_id" type="checkbox" title="If checked, it will cause stepping of the underlying JavaScript code.&#013;when running a job.">JS debugger</input>
                     </div>
                     <div id='sim_pane_content_id' contentEditable="false" style="background-color:#EEEEEE; width:97%; height:85%;padding:5px;overflow:scroll;">
                     </div>

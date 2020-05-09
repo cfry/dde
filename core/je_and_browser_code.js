@@ -109,7 +109,7 @@ function stringify_value_cheap(val){
 
 function out(val="", color="black", temp=false, code=null){
     let text = val
-    if (typeof(text) != "string"){ //if its not a string, its some daeta structure so make it fixed width to demostrate code. Plus the json =retty printing doesn't work unless if its not fixed width.
+    if (typeof(text) != "string"){ //if its not a string, its some data structure so make it fixed width to demonstrate code. Plus the json pretty printing doesn't work unless if its not fixed width.
         if(window["stringify_value"]) { text = stringify_value(text) }
         else { text = stringify_value_cheap(val) } //hits in browser
     }

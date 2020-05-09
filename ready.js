@@ -17,6 +17,15 @@
         dde_ipc.sendSync('open_dev_tools')
     }
 
+    function close_dev_tools(){
+        let dde_ipc     = require('electron').ipcRenderer
+        dde_ipc.sendSync('close_dev_tools')
+    }
+
+    function undebug_job() {
+        js_debugger_checkbox_id.checked = false
+    }
+
     function set_menu_string(elt, label, key){
         let modifier
         let max_spaces
@@ -86,7 +95,7 @@
         dde_version      = pckg.version
         dde_release_date = pckg.release_date
         platform         = "dde" //"node" is the other possibility, which happens when we're in the job_engine
-        serial_port_init()
+        //serial_port_init() //now does nothing, No longer necessary to use serial port.
         //window.Root      = Root //should work but doesn't jan 13, 2019
         Coor.init()
         //see also ./core/index.js that has this same code
@@ -369,6 +378,16 @@
             previous_active_element = document.activeElement
             selected_text_when_eval_button_clicked = Editor.get_any_selection()
         };
+
+        js_debugger_checkbox_id.onclick = function(event) {
+            event.stopPropagation()
+            if(event.target.checked) {
+                open_dev_tools()
+            }
+            else {
+                close_dev_tools()
+            }
+        }
 
         email_bug_report_id.onclick=email_bug_report
 
@@ -817,34 +836,18 @@ show_window({title: "Modify Window",
 
     machine_vision_help_id.onclick = function(){open_doc(machine_vision_doc_id)}
 
-    show_page_id.onclick=function(){Editor.wrap_around_selection('show_page(', ')\n', '"hdrobotic.com"')}
+    show_page_id.onclick=function(){
+        Editor.wrap_around_selection('show_page(', ')\n', '"hdrobotic.com"')
+        open_doc(show_page_doc_id)}
 
-    get_page_id.onclick=function(){Editor.insert(
-`//Return the content of the given URL.
-//Scripts on the page will not be run, forms and links
-//generally won't work, CSS styles won't be applied.
-get_page("http://www.ibm.com")
+    get_page_id.onclick=function(){
+             open_doc(get_page_doc_id)
+             Editor.insert('get_page("http://www.ibm.com")')
+    }
 
-//get_page is also useful for getting data on the web.
-//Most such date requires passwords or keys.
-//A couple that don't
-get_page("http://jsonip.com") //returns your IP address
-get_page("http://www.nactem.ac.uk/software/acromine/dictionary.py?sf=BMI") //Medical acronym defs. Takes 15 seconds or so.
-
-//If you're getting a string representing JSON, pass that string
-//as the first argument to the function JSON.parse to get an object.
-
-//Retrieve the html text of a url and pass it as
-//the first argument to a callback
-get_page_async("http://www.ibm.com", function(err, response, body){ out(body.length) })
-
-//The default for the 2nd arg is the DDE function 'out'.
-//out redenders its html string argument in the output pane
-//so you will see much of the actual text and markup
-//of a page, but not its images or other media.
-`)}
-
-    beep_id.onclick = function(){Editor.insert("beep()\n")}
+    beep_id.onclick = function(){
+          Editor.insert("beep()\n")
+          open_doc(beep_doc_id)}
     beep_options_id.onclick = function(){Editor.insert(
 `beep({
     dur: 0.5,  //the default,, 
@@ -855,12 +858,17 @@ get_page_async("http://www.ibm.com", function(err, response, body){ out(body.len
     })
 `
     )}
-    beeps_id.onclick = function(){Editor.insert(
+    beeps_id.onclick = function(){
+        open_doc(beeps_doc_id)
+       Editor.insert(
 `beeps(3, //default=1. number of times to beep using the default beep.
       function(){speak({speak_data: "Third Floor, home robots"})}) //default=null. callback when done
 `)}
-    speak_id.onclick=function(){Editor.wrap_around_selection(
+    speak_id.onclick=function(){
+        open_doc(speak_doc_id)
+        Editor.wrap_around_selection(
         "speak({speak_data: ", "})\n", '"Hello Dexter"')}
+
     speak_options_id.onclick=function(){Editor.wrap_around_selection(
 `speak({
     speak_data: ` , //default="hello"  can be a string, number, boolean, date, array, etc.
@@ -870,7 +878,9 @@ get_page_async("http://www.ibm.com", function(err, response, body){ out(body.len
     lang: "en-US", //default="en-US"
     voice: 0,      //default=0     0, 1, 2, or 3
     callback: function(event) {out('Dur in nsecs: ' + event.elapsedTime)}  //default=null  called when speech is done.
-})\n`, '[true, "It is", new Date()]')}
+})\n`, '[true, "It is", new Date()]'
+        )
+        open_doc(speak_doc_id)}
     /*recognize_speech_id.onclick = function(){Editor.insert(
 `recognize_speech(
     {prompt: "Say something funny.", //Instructions shown to the speaker. Default "".
@@ -969,17 +979,33 @@ get_page_async("http://www.ibm.com", function(err, response, body){ out(body.len
         //$("#d ebugging_id").parent().animate({scrollTop: $("#debugging_id").offset().top}, 1000) //doesn't work
          } //fails: window.open("chrome://inspect/#apps")
     console_log_id.onclick     = function(){Editor.wrap_around_selection("console.log(", ")", '"Hello"')}
-    debugger_id.onclick        = function(){Editor.insert("debugger;nnll")}
-    debugger_instruction_id.onclick = function(){
-             let cursor_pos = Editor.selection_start()
-             let src = Editor.get_javascript()
-             let prev_char = ((cursor_pos == 0) ? null : src[cursor_pos - 1])
-             let prefix
-             if (Editor.selection_start() == 0)     {prefix = ""}
-             else if ("[, \n]".includes(prev_char)) {prefix = ""}
-             else                                   {prefix = ","}
-             Editor.insert(prefix + 'Control.debugger(),nnll') //ok if have comma after last list item in new JS.
+
+    step_instructions_id.onclick = function(){
+        open_doc("Control.step_instructions_doc_id")
+        let cursor_pos = Editor.selection_start()
+        let src = Editor.get_javascript()
+        let prev_char = ((cursor_pos == 0) ? null : src[cursor_pos - 1])
+        let prefix
+        if (Editor.selection_start() == 0)     {prefix = ""}
+        else if ("[, \n]".includes(prev_char)) {prefix = ""}
+        else                                   {prefix = ","}
+        Editor.insert(prefix + 'Control.step_instructions(),nnll') //ok if have comma after last list item in new JS.
     }
+
+    debugger_id.onclick        = function(){Editor.insert("debugger;nnll")}
+
+    debugger_instruction_id.onclick = function(){
+         open_doc("Control.debugger_doc_id")
+         let cursor_pos = Editor.selection_start()
+         let src = Editor.get_javascript()
+         let prev_char = ((cursor_pos == 0) ? null : src[cursor_pos - 1])
+         let prefix
+         if (Editor.selection_start() == 0)     {prefix = ""}
+         else if ("[, \n]".includes(prev_char)) {prefix = ""}
+         else                                   {prefix = ","}
+         Editor.insert(prefix + 'Control.debugger(),nnll') //ok if have comma after last list item in new JS.
+    }
+
     comment_out_id.onclick     = function(){Editor.wrap_around_selection("/*", "*/")}
     comment_eol_id.onclick     = function(){Editor.insert("//")}
       //true & false menu
@@ -1250,6 +1276,15 @@ foo      //eval to see the latest values</pre>`,
         Job.start_and_monitor_dexter_job(job_src)
     }
 
+    send_message_id.onclick = function(){
+        let sel = Editor.get_javascript(true)
+        if(sel.length === 0) {
+            warning("There is no selection. You need to select some text for the message.")
+        }
+        else {
+            Messaging.send_text(sel, true) //sets define_job_if_necessary
+        }
+    }
 
     //cmd menu
     cd_up_id.onclick = function(){
@@ -1485,24 +1520,47 @@ function check_for_latest_release(){
     })
 }
 
-//misc fns called in ready.js
-function email_bug_report(){
-    var output = get_output()
+function make_dde_status_report(){
+    let top = "Please describe your issue with DDE here:\n\n\n" +
+              "__________________________________________________\n" +
+              "Below are the contents of your Editor and Output panes\n"+
+              "to help us with the context of your comment.\n" +
+              "We won't use any software you send us without your permission,\n" +
+              "but delete below whatever you want to protect or\n" +
+              "what you think is not relevant to the issue."
+    let jobs_report = Job.active_jobs_report() //ends with blank line
+    let latest_eval_src = latest_eval_button_click_source
+    if(!latest_eval_src) { latest_eval_src = "The Eval button hasn't been clicked since DDE was launched." }
+
+    let editor_pane_content = Editor.get_javascript()
+
+    let output = get_output()
     output = output.replace(/<br>/g, "\n")
     output = output.replace(/<p>/g,  "\n\n")
     output = output.replace(/<hr>/g, "_____________________________________\n")
-    var bod = "Please describe your issue with DDE v " + dde_version + " here:\n\n\n" +
-        "Below are the contents of your Editor and Output panes\n"+
-        "to help us with the context of your comment.\n" +
-        "We won't use any software you send us without your permission,\n" +
-        "but delete below whatever you want to protect or\n" +
-        "what you think is not relevant to the issue.\n\n" +
-        "________Editor Pane______________\n" +
-        Editor.get_javascript() +
-        "\n\n________Output Pane__________________\n" +
+
+
+    let result =
+        "Dexter Development Environment Status Report\n" +
+        "Date: " + date_to_human_string() + "\n" +
+        "DDE Version: " + dde_version + "\n" +
+        top +
+        "\n\n________Active Jobs______________________________\n" +
+        jobs_report +
+        "\n\n________Latest Eval Button Click Source______________\n" +
+        latest_eval_src +
+        "\n\n________Editor Pane______________________________\n" +
+        editor_pane_content +
+        "\n\n________Output Pane_______________________________\n" +
         output
-    bod = encodeURIComponent(bod)
-    window.open("mailto:cfry@media.mit.edu?subject=DDE Suggestion&body=" + bod);
+    return result
+}
+
+//misc fns called in ready.js
+function email_bug_report(){
+    subj = "DDE Suggestion " + date_to_human_string()
+    bod = encodeURIComponent(make_dde_status_report())
+    window.open("mailto:cfry@hdrobotic.com?subject=" + subj + "&body=" + bod)
 }
 const {google} = require('googleapis');
 
@@ -1514,7 +1572,7 @@ var calibrate_build_tables = require("./low_level_dexter/calibrate_build_tables.
 var Job   = require("./core/job.js")
 var Gcode = require("./core/gcode.js")
 var DXF   = require("./math/DXF.js")
-var {date_to_mmm_dd_yyyy, is_digit} = require("./core/utils.js")
+var {date_to_human_string, date_to_mmm_dd_yyyy, is_digit} = require("./core/utils.js")
 var {FPGA} = require("./core/fpga.js")
 
 

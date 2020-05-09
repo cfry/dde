@@ -124,6 +124,9 @@ var Robot = class Robot {
     static debugger(){ //stop a Control.loop
         return new Instruction.debugger()
     }
+    static step_instructions(){ //stop a Control.loop
+        return new Instruction.step_instructions()
+    }
     static error(reason="", perform_when_stopped=true){ //declare that an error happened. This will cause the job to stop.
         return new Instruction.error(reason, perform_when_stopped)
     }

@@ -1539,7 +1539,7 @@ MakeInstruction.menu_hierarchy = [
                       "suspend", "unsuspend", "sync_point", "wait_until"],
     ["Control Jobs", "include_job", "send_to_job", /*"sent_from_job" don't let user use this*/
                      "start_job", "stop_job"],
-    ["Control bugs", "debugger", "error", "if_any_errors"],
+    ["Control bugs", "debugger", "error", "if_any_errors", "step_instructions"],
     ["IO",  "get_page", "grab_robot_status",  "out",
                    "show_picture", "show_video", "take_picture"],
 

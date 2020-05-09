@@ -8,8 +8,8 @@
 
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version: <span id="dde_version_id">3.5.7</span><br/>
-    released: <span id="dde_release_date_id">Apr 21, 2020</span>
+    version: <span id="dde_version_id">3.5.8</span><br/>
+    released: <span id="dde_release_date_id">May 8, 2020</span>
     <p></p>
     DDE helps you create, debug, and send software to a Dexter robot.
     You can use any JavaScript augmented with DDE-specific functions to help find out about,
@@ -498,7 +498,7 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
  This will take about a minute.
  When the directions line in Step 2 says that calibration is complete, you
  can close this dialog by clicking the <b>x</b> in its upper right corner.<br/>
- See also <a href="#" onclick="open_doc('Dexter.is_calibrated_doc_id')">is_calibrated</a>
+ See also <a href="#" onclick="open_doc('Dexter.is_calibrated_doc_id', event)">is_calibrated</a>
 </details>
 
 <details class="doc_details"><summary>User Interface</summary>
@@ -607,7 +607,7 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
                expanding just those parts you're interesting in, giving you control
                over the visualization of any data that can be produced by Eval.</li>
             <li><b>Make Instruction</b> The
-                <a href="#" onclick="open_doc(make_instruction_pane_doc_id)">Make Instruction</a>
+                <a href="#" onclick="open_doc(make_instruction_pane_doc_id, event)">Make Instruction</a>
                 dialog let's you trivally create instructions and run them.
                 Open it by choosing the Misc pane's menu item of Make Instruction.
                 This dialog also let's you create Jobs and instances of Robots too.
@@ -668,7 +668,7 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
         <ul>
         <li> A select menu of possible contents for the Misc pane.</li>
         <li> A select menu of robots for setting the default robot used in various other operations.</li>
-        <li> <a href="#" onclick="open_doc(stepping_instructions_doc_id)">
+        <li> <a href="#" onclick="open_doc(stepping_instructions_doc_id, event)">
         stepping controls</a> for Job instructions (not JavaScript stepping).</li>
         <li>Radio buttons for determining whether a Job with a robot who's <i>simulate</i>
             property is <code>null</code> will be simulated or run on the real robot.</li>
@@ -731,7 +731,7 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
                     now in the Output pane header to run it.</li>
                <li><b>Debug entire Job</b> by:
                   <ul><li>Looking at its output in the Output pane from
-                           error messages and <a href="#" onclick="open_doc('IO.out_doc_id')">IO.out</a> instructions.</li>
+                           error messages and <a href="#" onclick="open_doc('IO.out_doc_id', event)">IO.out</a> instructions.</li>
                       <li>Looking at the <i>Simulate Dexter</i> pane
                            (select from the Misc pane header menu).</li>
                       <li>Inspect the Job's data structure
@@ -1023,43 +1023,13 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
                                      drag right to make bigger, drag left to make smaller</li>
                     <li><b>Pan</b>: alt or option down, then mouse-down, then drag.</li>
                 </ul><br/>
-                See also <a href="#" onclick="open_doc(new_dexter_parameters_doc_id)">
+                See also <a href="#" onclick="open_doc(new_dexter_parameters_doc_id, event)">
                     New Dexter Parameters</a>
                 <p></p>
                 <button>Demo</button> shows Dexter randomly flailing around, not
                 correlated to a connected Dexter.
             </div>
-            <details id="stepping_instructions_doc_id" class="doc_details"><summary>Stepping Instructions</summary>
-                To understand a Job's behavior, its useful to <i>step</i> through each instruction.
-                Checking the <b>pause</b> checkbox will cause running jobs to pause
-                when they have completed their current instruction. Jobs started when
-                the pause button is checked will pause right before the first user instruction
-                on the do_list is run. If the running Job executes a <code>Control.debugger</code>
-                instruction, that will also cause the job to pause.
-                <p></p>
-                When a job is paused, clicking the <button>Go</button> button will cause
-                it to execute the next instruction, print out useful information in the Output
-                pane, and pause. If a job is paused, and you uncheck the pause checkbox,
-                then click the <button>Go</button> button, the job will begin running normally.
-                <p></p>
-                <details id="Control.debugger_doc_id" class="doc_details"><summary>debugger</summary>
-                    The instruction of <code>Control.debugger()</code> in a do_list will cause
-                    the <b>pause</b> checkbox to be checked and the job to pause.
-                    A function that returns the result of <code>Control.debugger()</code> or
-                    even an array that has an element of the result of <code>Control.debugger()</code>
-                    will cause a pause.
-                    <p></p>
-                    You can insert this instruction using the Learn JS menu/Debugging etc/Control.debugger().
-                    <p></p>
-                    Note that using <code>Control.debugger()</code>
-                    is intentionally similar to using the JavaScript constant <code title="not in TestSuite">debugger</code>.
-                    If you have the constant <code title="not in TestSuite">debugger</code>
-                    in the body of a function that is a do_list item, or is called by
-                    a do_list item, it will cause a JavaScript breakpoint and you
-                    can step through that code using the Chrome dev tools.
-                    See Documentation top level section <b>Debugging</b>.
-                </details> <!--end d ebugger-->
-            </details> <!--end stepping instructions -->
+
         </details>  <!-- end simulate pane -->
     </details> <!--end misc_pane -->
  </details> <!-- end user interface -->
@@ -1600,7 +1570,7 @@ the points defined in ez_create.
     Other operations on the <button>Test&#9660;</button> menu are documented with tooltips.
     <p></p>
     A TestSuite instance is a
-    <a href="#" onclick="open_doc(start_object_doc_id)">Start Object</a>
+    <a href="#" onclick="open_doc(start_object_doc_id, event)">Start Object</a>
     and as such can be put directly on a Job's do_list.
 </details>
 <details class="doc_details" id='debugging_id'><summary>Debugging</summary>
@@ -1609,17 +1579,19 @@ the points defined in ez_create.
     Most programmers spend most of their time debugging.
     Don't sweep this problem under the rug --- confront it with the following strategies:
 
-    <h4>Test Early and Often</h4>
+    <details class="doc_details"><summary>Test Early and Often</summary>
     We recommend entering just a bit of code at a time; a line or less before testing it.
     That way, when a bug shows up, you'll know it was in the last bit that you added.
+    </details>
 
-    <h4>Keep Backups</h4>
+    <details class="doc_details"><summary>Keep Backups</summary>
     Before making a major change, copy the file your code is in and
     name the copy something like "orig_name_the_date.js"
     or "orig_name_before_implementing_foo.js".
     Then at worst, you can go back to previously working code.
+    </details>
 
-    <h4>Syntax Checker</h4>
+    <details class="doc_details"><summary>Syntax Checker</summary>
     DDE uses an automatic syntax checker named <i>ESLint</i>. It
     indicates syntax errors in the Editor pane as soon as you enter them.
     There are many different styles of JS coding and different versions
@@ -1629,26 +1601,30 @@ the points defined in ez_create.
     your code. Perhaps runtime errors will help you fix the bug,
     or perhaps it will run OK and you'll know to just ignore the JS Pane syntax
     bug indication.
+    </details>
 
-    <h4>Click on Delimiter</h4>
+    <details class="doc_details"><summary>Click on Delimiter</summary>
     Many syntax errors occur because of unmatched delimiters.
     Click on an open or closed paren, square bracket or curley brace.
     It should highlight in green, and highlight its corresponding
     delimiter in green as well.
+    </details>
 
-    <h4>Selective Eval</h4>
+    <details class="doc_details"><summary>Selective Eval</summary>
     Evaling just selected portions is another way to isolate bugs. If there is a selection
     of JavaScript code, only that code will be evaled when you click <button>Eval</button>
+    </details>
 
-    <h4>Comment Out Code</h4>
+    <details class="doc_details"><summary>Comment Out Code</summary>
     Another technique is to comment out code until your bug goes away.<br/>
     <b><code title="unEVALable code fragment"> // </code></b> comments out to the end of the line.<br/>
     <b><code title="unEVALable code fragment"> /* comment */</code></b> Wrap JavaScript in <br/>
     slash-star ... star-slash<br/> to comment
     out code in the middle of a line or multiple lines.
     See the Editor pane's <button>Learn JS&#9660;</button> <i>debugging</i> menu items.
+    </details>
 
-    <h4 id="print_statements_doc_id">Print Statements</h4>
+    <details id="print_statements_doc_id" class="doc_details"><summary>Print Statements</summary>
     The oldest and crudest debugging technique is embedding print statements
     in your code. DDE supports a number of these to make debugging easier.
     <ul><li><b>console.log</b> Wrapping <code>console.log()</code> around a complex data structure will print it
@@ -1697,8 +1673,9 @@ the points defined in ez_create.
            and give the user a message.
            See <a href="#" onclick="open_doc('Human.notify_doc_id', event)">Human.notify</a>.</li>
     </ul>
+    </details>
 
-    <h4>Stepping</h4>
+    <details class="doc_details"><summary>Stepping JavaScript</summary>
     Entering <code title="not in TestSuite"> debugger;</code> into the body of a JS function definition will set a breakpoint there.
     When <code  title="not in TestSuite"> debugger;</code> is evaluated (after you call the function) and the <i>Chrome Developer Tools</i>
     window is open, execution will pause and highlight the <code title="not in TestSuite"> debugger;</code> statement in a copy
@@ -1712,6 +1689,57 @@ the points defined in ez_create.
     its often easier to select the code you want to step through and click the
     <button>Step</button> button. This works just like the <button>Eval</button> button
     in that if there is no selection, all the code in the editor is stepped.
+    </details>
+
+    <details id="stepping_instructions_doc_id" class="doc_details"><summary>Stepping Instructions</summary>
+        To understand a Job's behavior, its useful to <i>step</i> through the code
+        of a running Job.
+        You can do this at two levels. The higher level is to step at the instruction
+        level, one instruction at a time. The lower level is to step through the
+        JavaScript that implements instructions. This can be done by inserting
+        instruction into the do_list, making effectively "break points".
+        Or you can check boxes in the Misc pane's header, while a job
+        is running to start stepping it at the place in the do_list where its currently at.
+        <details id="Control.step_instructions_doc_id" class="doc_details"><summary>step_instructions</summary>
+            The instruction of <code>Control.step_instructions()</code> in a do_list will cause
+            the Misc pane <b>pause</b> checkbox to be checked and the job to pause.
+            A function that returns the result of <code>Control.step_instructions()</code> or
+            even an array that has an element of the result of <code>Control.step_instructions()</code>
+            will cause a pause in the Job immediatly after the place of that instruction.
+            <p></p>
+            You can insert this instruction using the Learn JS menu/Debugging etc/Control.step_instructions().
+            <p></p>
+        Checking the <b>pause</b> checkbox will cause running jobs to pause
+        when they have completed their current instruction. Jobs started when
+        the pause button is checked will pause right before the first user instruction
+        on the do_list is run. If the running Job executes a <code>Control.debugger</code>
+        instruction, that will also cause the job to pause.
+        <p></p>
+        When a job is paused, clicking the <button>Go</button> button will cause
+        it to execute the next instruction, print out useful information in the Output
+        pane, and pause. If a job is paused, and you uncheck the pause checkbox,
+        then click the <button>Go</button> button, the job will begin running normally.
+        </details> <!--end step_instructions-->
+
+        <details id="Control.debugger_doc_id" class="doc_details"><summary>debugger</summary>
+            The debugger instruction is similar to the Control.step_instructions
+            instruction in that it pauses the job immediately after that instruction.
+            But it differs in that, rather than stepping instruction by instruction,
+            it allows you to step at a lower level, the JavaScript that implmements
+            the instructions in the do_list.
+            <p></p>
+            Note that using <code>Control.debugger()</code>
+            is intentionally similar to using the JavaScript constant <code title="not in TestSuite">debugger</code>.
+            If you have the constant <code title="not in TestSuite">debugger</code>
+            in the body of a function that is a do_list item, or is called by
+            a do_list item, it will cause a JavaScript breakpoint and you
+            can step through that code using the Chrome dev tools.
+            <p></p>
+            You can also cause JavaScript debugging in a running Job by
+            clicking the "JS debugger" checkbox in the Misc Pane header.
+        </details>
+
+    </details> <!--end stepping instructions -->
 
     <h4>JS Idiosyncracies</h4>
     Because JavaScript, like all popular textual programming languages, has not been
@@ -1863,9 +1891,16 @@ and see the results in DDE's Output pane.
     </details> <!-- end ssh_doc_id -->
 
 
-<details class="doc_details"><summary>Contact</summary>
+<details id="contact_doc_id" class="doc_details"><summary>Contact</summary>
     Please help us by emailing a bug report or suggestion to
-    <a id="email_bug_report_id" href="#">cfry@hdrobotic.com</a> Take a look at the
-    latest <i>Release Notes</i> and the <i>Known Issues</i> to avoid duplication.
+    <a id="email_bug_report_id" href="#">cfry@hdrobotic.com</a><br/>
+    If the above does not create an email or you want to send your bug report
+    from a different computer, please Eval: <br/>
+    <code> make_dde_status_report() </code><br/>
+    then copy and paste the output text into your email.<br/>
+    Take a look at the
+    latest <a href="#" onclick="open_doc(release_notes_doc_id)">Release Notes</a><br/>
+     and the <a href="#" onclick="open_doc(known_issues_doc_id)">Known Issues</a> to help hone your
+    suggestions.
 </details>
 </details>

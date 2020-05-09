@@ -6,6 +6,8 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+
+
 <details id="i/o_doc_id" class="doc_details"><summary>I/O</summary>
         <details class="doc_details"><summary>CSV</summary>
         CSV stands for "Comma Separated Value". It is a file format for spreadsheets
@@ -34,7 +36,7 @@
             "head one" and "head two" will be strings and the other values
             will be numbers.
             <p></p>
-            You can use DDE's <a href="#" onclick="open_doc(write_file_doc_id)">write_file</a>
+            You can use DDE's <a href="#" onclick="open_doc(write_file_doc_id, event)">write_file</a>
             to write the result of calling <code>array_to_csv</code> to a file.
             </details>
             <details class="doc_details"><summary>csv_to_array</summary>
@@ -54,7 +56,7 @@
                 Note that the numbers in the csv are converted to JS numbers,
                 and the other values are left as strings.
                 <p></p>
-                You can use DDE's <a href="#" onclick="open_doc(read_file_doc_id)">read_file</a>
+                You can use DDE's <a href="#" onclick="open_doc(read_file_doc_id, event)">read_file</a>
                 to get the content of a csv file, then pass it to <code>csv_to_array</code> to
                 turn it into an array.
             </details>
@@ -117,10 +119,10 @@
             <p></p>
             <b>Example:</b> <code>read_file("dde_init.js")</code>
             <p></p>
-            See <a href="#" onclick="open_doc(load_files_doc_id)">load_files</a>
+            See <a href="#" onclick="open_doc(load_files_doc_id, event)">load_files</a>
             for grabbing the file contents, then evaling it.
             <p/></p>
-            See also Dexter instruction: <a href="#" onclick="open_doc('Dexter.read_file_doc_id')">Dexter.read_file</a>
+            See also Dexter instruction: <a href="#" onclick="open_doc('Dexter.read_file_doc_id', event)">Dexter.read_file</a>
             <p></p>
             <span style="color:red;">file_content</span> has been deprecated.
             Please use <code>read_file</code> instead.
@@ -190,7 +192,7 @@
             It is conventional to use a file extension of ".js" for files containing JavaScript,
             but not strictly necessary.
             <p></p>
-            See <a href="#" onclick="open_doc(read_file_doc_id)">read_file</a>
+            See <a href="#" onclick="open_doc(read_file_doc_id, event)">read_file</a>
             for getting the file contents as a string but not evaling it.
         </details> <!-- end load_files  -->
 
@@ -229,7 +231,7 @@
         <code>write_file("junk.js", "new content")</code> Replaces the existing content
         of the given file with "new content".
         <p></p>
-        See also Dexter instruction: <a href="#" onclick="open_doc('Dexter.write_file_doc_id')">Dexter.write_file</a>
+        See also Dexter instruction: <a href="#" onclick="open_doc('Dexter.write_file_doc_id', event)">Dexter.write_file</a>
     </details>
 
 
@@ -952,7 +954,7 @@ that this is not nearly as easy as you can imagine and will
 no doubt have unexpected behavior. But we're doing the best we can
 from the perplexing foundation we're building upon.
 For lower level, but broader capabilities, see
- <a href="#" onclick="open_doc('machine_vision_doc_id')">Machine Vision with OpenCV</a>
+ <a href="#" onclick="open_doc('machine_vision_doc_id', event)">Machine Vision with OpenCV</a>
 
 <details id="Picture.init_doc_id" class="doc_details"><summary>init</summary>
 Before Picture methods can be used,<br/>
@@ -1063,7 +1065,7 @@ A picture file in DDE.<p><p/>
     "https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png"})</code></pre>
   Another picture displayed in "mycan".
   <p></p>
-  There is a corresponding instruction, <a href="#" onclick="open_doc('IO.show_picture_doc_id')">IO.show_picture</a>
+  There is a corresponding instruction, <a href="#" onclick="open_doc('IO.show_picture_doc_id', event)">IO.show_picture</a>
 </details>
 
 <details id="Picture.show_video_cameras_doc_id"class="doc_details">
@@ -1160,7 +1162,7 @@ video is played as soon as the display can handle it.<br/>
     for the video stream. If no such ID exists, or if you don't pass this argument,
     the default webcam for
     your computer will be used. See <a href="#"
-    onclick="open_doc('Picture.show_video_cameras_doc_id')">show_video_cameras</a>
+    onclick="open_doc('Picture.show_video_cameras_doc_id', event)">show_video_cameras</a>
     or click <button onclick="Picture.show_video_cameras()">show video cameras</button>
     for a list of attached cameras and their id's. <br/>
 <b>visible</b> Default: <code>true</code> A boolean.
@@ -1177,13 +1179,13 @@ The default is to do nothing.
 <i>Examples:</i>
 <pre><code title="not in testsuite"> Picture.show_video() </code></pre>
 <!-- we should be able to do at least one of a show_video or take_picture,
-but when runing all tests, I get error: "DomException: The play() request..."
+but when running all tests, I get error: "DomException: The play() request..."
 with any show_video or take_picture calls in the test suite. -->
 <pre><code title="not in testsuite"> Picture.show_video({content:
   "https://youtu.be/JAiHGA_I-P4"})
     </code></pre>
 
-There is a corresponding instruction <a href="#" onclick="open_doc('IO.show_video_doc_id')">IO.show_video</a>
+There is a corresponding instruction <a href="#" onclick="open_doc('IO.show_video_doc_id', event)">IO.show_video</a>
 </details>
 
 <details id="Picture.take_picture_doc_id" class="doc_details"><summary>take_picture</summary>
@@ -1206,7 +1208,7 @@ Called with an argument of the OpenCV.js mat made from this snapshot.<br/>
 <pre><code title="not in testsuite"> Picture.take_picture({callback: inspect}) </code></pre>
 
 
-There is a corresponding instruction <a href="#" onclick="open_doc('IO.take_picture_doc_id')">IO.take_picture</a>
+There is a corresponding instruction <a href="#" onclick="open_doc('IO.take_picture_doc_id', event)">IO.take_picture</a>
 </details>
 </details> <!-- Camera I/O -->
 <details class="doc_details"><summary>Low Level</summary>
@@ -1714,7 +1716,7 @@ If null, a new mat is created for the output. It will be of type "gray".<br/>
 Pixel values below or equal to the threshold will be converted to black.
 Those above it will be converted to white. Those white pixels will
 depict the object you want to locate.<br/>
-<b>noise_size</b> Default: <code>3</code>. See <a href="#" onclick="open_doc('Picture.remove_noise_doc_id')">noise_size</a>.<br/>
+<b>noise_size</b> Default: <code>3</code>. See <a href="#" onclick="open_doc('Picture.remove_noise_doc_id', event)">noise_size</a>.<br/>
 <b>out_format</b> Default: <code>"min_area_rect"</code>.
 Determines what kind of rectangle is computed to locate the object.<br/>
 <i style="color:darkorange;">The details of the object returned by locate_object depend on
@@ -1999,7 +2001,7 @@ the first blob from mat_in1 is compared to the first blob in mat_in2,
 then the second blob from each input mat is compared, etc. on up
 to point_count blobs. Thus the value of sort_by is crucial for determining
 the kind of similarity you will get.
-See <a href="#" onclick="open_doc('Picture.detect_blob_doc_id')">Picture.detect_blob</a>
+See <a href="#" onclick="open_doc('Picture.detect_blob_doc_id', event)">Picture.detect_blob</a>
 for sort_by details.
 <p></p> Each blob comparison contributes a score to the similarity returned value.
 Each attribute within each blob object is compared with its counterpart in
@@ -2014,7 +2016,7 @@ the similarity between 1 and 2 is much less than the similarity of 67 and 68
 even through their strict difference in both cases is just 1.
 <p></p>
 mats_similarity_by_detect_blobs takes all the arguments of
-<a href="#" onclick="open_doc('Picture.detect_blobs_doc_id')">Picture.detect_blob</a>
+<a href="#" onclick="open_doc('Picture.detect_blobs_doc_id', event)">Picture.detect_blob</a>
 except that Picture.detect_blobs' <i>mat_in</i> is replaced by
 Picture.mats_similarity_by_detect_blob's <i>mat_in1</i> and <i>mat_in2</i>.<br/>
 <i>Example:</i><br/>
@@ -2688,7 +2690,7 @@ new Phrase({notes: [new Note({time: 0, dur: 1, pitch: 60, velocity: 0.25, channe
     </details>
 
     <details id="Phrase.arpeggio_doc_id" class="doc_details"><summary>arpeggio</summary>
-    Very similar to <a href="#" onclick="open_doc('Note.arpeggio_doc_id')">Note.arpeggio</a>
+    Very similar to <a href="#" onclick="open_doc('Note.arpeggio_doc_id', event)">Note.arpeggio</a>
     Takes the same parameters and returns a phrase of arpeggios, one for
     each note in the "this" phrase.
     </details>
@@ -3075,7 +3077,7 @@ Example:<pre><code title="not in TestSuite"> speak({speak_data: [true, "It is", 
 <code title="not in TestSuite">speak({speak_data: null})</code> will work.
 <p></p>
 When speaking from a Job in DDE, we recommend using the Job instruction:
-<a href="#" onclick="open_doc('Human.speak_doc_id')"><code>Human.speak</code></a>
+<a href="#" onclick="open_doc('Human.speak_doc_id', event)"><code>Human.speak</code></a>
 This will not work for Jobs run on the Job Engine on Dexter.
 </details> <!-- end of speak -->
 
@@ -3098,10 +3100,18 @@ This will not work for Jobs run on the Job Engine on Dexter.
         <p></p>
         It will not eval scripts on the page
         so you may see an error when retriving a page containing JavaScript.
+        Also, pages that refer to another file for CSS won't have the required
+        CSS on them. With get_page you literally just get the string of the content
+        of that one page.
         <p></p>
-        Instead of a url as the argument, you can pass a literal JS object
-        with lots of options, described at:
-        <a target="_blank" href="https://www.npmjs.com/package/request">options</a>
+        <code>get_page</code> is also useful for getting data on the web.
+        Most such date requires passwords or keys.
+        A couple that don't:<br/>
+        <code>get_page("http://jsonip.com")</code> returns your IP address<br/>
+        <code>get_page("http://www.nactem.ac.uk/software/acromine/dictionary.py?sf=BMI")</code>
+        Medical acronym defs. Takes 15 seconds or so.<br/>
+        If you're getting a string representing JSON, pass that string
+        as the first argument to the function JSON.parse to get an object.
         <p></p>
         See also: <a href="#" onclick="open_doc(show_page_doc_id, event)">show_page</a>
     </details>
@@ -3209,7 +3219,7 @@ Jobs either run to completion, error, or are stopped by the user via:
 <ul><li>Clicking on a running Job's button in the Output pane header</li>
     <li>Calling <code title="not in TestSuite">Job.my_job.stop_for_reason("interrupted", "why you want it stopped")</code></li>
     <li>In a running Job, executing the instruction:
-         <a href="#" onclick='open_doc("Control.stop_job_doc_id")'><code>Control.stop_job()</code></a></li>
+         <a href="#" onclick='open_doc("Control.stop_job_doc_id", event)'><code>Control.stop_job()</code></a></li>
  </ul>
  You can stop all jobs by:
  <ul>
@@ -3339,8 +3349,8 @@ new Job({name: "my_job",
     Jobs are no different. In particular, the array that becomes the do_list for
     a Job can only contain certain types of elements. For instance, if a do_list
     item is a number or a boolean, that is invalid and will cause running the Job
-    to error. For more about do_lists, see <a href="#" onclick="open_doc(job_param_do_list_doc_id)">do_lists</a>
-    and the kinds of instructions they can take  <a href="#" onclick="open_doc(Robot_doc_id)">Robot</a>.
+    to error. For more about do_lists, see <a href="#" onclick="open_doc(job_param_do_list_doc_id, event)">do_lists</a>
+    and the kinds of instructions they can take  <a href="#" onclick="open_doc(Robot_doc_id, event)">Robot</a>.
     <p></p>
     The most flexible of instruction types is a JavaScript function.
     This allows you to execute arbritary JavaScript at Job Run Time.
@@ -3423,7 +3433,7 @@ new Job({name: "my_job1",
     <p></p>
 
     For a more complete understanding of JavaScript <code>eval</code>, see the DDE article:
-    <a href="#" onclick="open_doc('how_to_think_like_a_computer_doc_id')">How to Think like a Computer</a>
+    <a href="#" onclick="open_doc('how_to_think_like_a_computer_doc_id', event)">How to Think like a Computer</a>
 </details>
 
 <details id="new_job_parameters_doc_id" class="doc_details"><summary>new Job parameters</summary>
@@ -3485,7 +3495,7 @@ new Job({name: "my_job",
         <p></p>
         Instructions are documented with the kind of robot that they run on.
         For a list of valid instructions, see
-        <a href="#" onclick="open_doc(robot_instructions_doc_id)">Robot Instructions</a>
+        <a href="#" onclick="open_doc(robot_instructions_doc_id, event)">Robot Instructions</a>
         </li>
         <li id="job_param_keep_history_doc_id"><b>keep_history</b> true or false, Default: <code>true</code>. If true, the robot_status arrays
             returned from running instructions on the robot
@@ -3556,7 +3566,7 @@ new Job({name: "my_job",
             <code>Dexter.move_to</code>
             and <code>Dexter.pid_move_to</code>
             instructions take an argument of: workspace_pose.
-            (See <a href="#" onclick="open_doc('Dexter.move_to_doc_id')">Dexter.move_to</a>)<br/>
+            (See <a href="#" onclick="open_doc('Dexter.move_to_doc_id', event)">Dexter.move_to</a>)<br/>
           If you have a move_to instruction in a Job's do_list that is not passed
           a pose, it defaults to the value of the Job's default_workspace_pose.<br/>
           Below we show a Job with a move_to instruction that does <i>not</i>
@@ -3599,7 +3609,7 @@ new Job({name: "my_job",
         <li id="job_param_data_array_transformer_doc_id"><b>data_array_transformer</b> Default <code>"P"</code> .<br/>
             Transforms data array instructions
             into other instructions. Usually the result of the transform are Dexter instructions,
-            but needn't be. See <a href="#" onclick="open_doc(data_array_doc_id)">data array instructions</a>
+            but needn't be. See <a href="#" onclick="open_doc(data_array_doc_id, event)">data array instructions</a>
             for more about data arrays.
         </li>
         <li id="job_param_start_if_robot_busy_doc_id"><b>start_if_robot_busy</b> A Boolean. Default: <code>false</code><br/>
@@ -3692,7 +3702,8 @@ new Job({name: "my_job",
              <i>Possible Values</i>:<br/>
              <code>"stop"</code> The default. The job stops.<br/>
              <code>"wait"</code> The job waits for another instruction to be added
-               at the end of the do_list. Call <code><a href="#" onclick="open_doc('Job.insert_instruction_doc_id')">Job.insert_instruction</a></code>
+               at the end of the do_list. Call
+               <code><a href="#" onclick="open_doc('Job.insert_instruction_doc_id', event)">Job.insert_instruction</a></code>
                from any JavaScript code to do this.<br/>
              <code title="unEVALable code fragment"> Any valid do_list item</code>
              When the job reaches its normal stopping point, the value of <i>when_stopped</i>
@@ -3752,7 +3763,8 @@ new Job({name: "my_job",
               running the when_stopped instruction.
               The final status_code of the job will be <code>"interrupted"</code>.<br/>
         </li>
-        <li id="job_param_callback_param_doc_id"><b>callback_param</b> An advanced feature of <a href="#" onclick="open_doc(start_object_doc_id)">start_object</a>, not normally used.
+        <li id="job_param_callback_param_doc_id"><b>callback_param</b> An advanced feature of
+            <a href="#" onclick="open_doc(start_object_doc_id, event)">start_object</a>, not normally used.
     </ol>
     All of these parameters are accessible as properties from the job instance that they help create.<br/>
     <i>Example:</i><br/>
@@ -3789,10 +3801,10 @@ an instruction to be skipped.
 A Job can even insert an instruction into its own do_list. This is
 an example of self-modifying code.
 <p></p>
-The instruction <a href="#" onclick="open_doc('Control.send_to_job_doc_id')"><code>Control.send_to_job</code></a>
+The instruction <a href="#" onclick="open_doc('Control.send_to_job_doc_id', event)"><code>Control.send_to_job</code></a>
  performs the core of this functionality
 in an instruction format.<br/>
-See <a href="#" onclick="open_doc('Control.wait_until_doc_id')"><code>Control.wait_until</code></a> documentation for its "new_instruction" argument
+See <a href="#" onclick="open_doc('Control.wait_until_doc_id', event)"><code>Control.wait_until</code></a> documentation for its "new_instruction" argument
 on how to continually add and execute a new instruction in a running job.
 </details>
 
@@ -3801,7 +3813,7 @@ As Jobs become more complex, more critical and operatate with potentially
 dangerous tools or in dangerous situations, reliability becomes
 increasingly important. We recommend lots of testing, including
 capturing tests to automatically run via DDE's
-<a href="#" onclick="open_doc('TestSuite_doc_id')">TestSuite</a> facility.
+<a href="#" onclick="open_doc('TestSuite_doc_id', event)">TestSuite</a> facility.
 <p></p>
 None-the-less, you can still run into errors and other unexpected behavior.
 Job's have a number of mechanisms that allow a Job author to
@@ -3811,9 +3823,9 @@ to turn a bad situation into a manageable one.
 There are a number of new Job parameters that let you run some code,
 including put instructions on the do_list to be run when a Job
 errors but before it stops.<br/>
-<a href="#" onclick="open_doc('job_param_if_robot_status_error_doc_id')">if_robot_status_error</a>
+<a href="#" onclick="open_doc('job_param_if_robot_status_error_doc_id', event)">if_robot_status_error</a>
  and<br/>
-<a href="#" onclick="open_doc('job_param_if_instruction_error_doc_id')">if_instruction_error</a>
+<a href="#" onclick="open_doc('job_param_if_instruction_error_doc_id', event)">if_instruction_error</a>
 allow you to specify
 any valid do_list item to place on the do_list right after the offending
 instruction. Since this includes a JS function definition,
@@ -3821,31 +3833,31 @@ you can run arbitrary code giving you a wide range of possibilities.
 these possibilites include doing nothing, making print statements
 to warn you of the errors, popping up windows, moving a robot,
 all while either allowing the Job to continue or to stop.<br/>
-<a href="#" onclick="open_doc('job_param_if_dexter_connect_error_doc_id')">if_connect_error</a><br/>
+<a href="#" onclick="open_doc('job_param_if_dexter_connect_error_doc_id', event)">if_connect_error</a><br/>
 doens't let you specify an instruction to put on the do_list because these
 errors happen before the do_list processing begins, but
 do allow an arbitrary JS function that can peform clean-up or restart
 code from Dexter connection errors.
 <p></p>
-The <a href="#" onclick="open_doc('job_param_when_stopped_doc_id')">when_stopped</a>
+The <a href="#" onclick="open_doc('job_param_when_stopped_doc_id', event)">when_stopped</a>
 Job parameter allows the Job author to run any valid_do_list item
 when a Job stops for whatever reason, including errors.
 This comes in handy when you have to "take down" something that a Job has
 "set up" to run. One example is to turn off a laser that has been
 turned on by the Job. Regardless of how a job stops, we
 want to make sure anything dangerous is rendered harmless.<p/>
-The <a href="#" onclick="open_doc('job_param_when_stopped_doc_id')">when_stopped_conditions</a>
+The <a href="#" onclick="open_doc('job_param_when_stopped_doc_id', event)">when_stopped_conditions</a>
 Job parameter gives you fine grained control over just what stopping
 conditions will trigger the when_stopped instruction.
 <p></p>
 Some useful instructions when writing robust and safe Jobs.<br/>
-<a href="#" onclick="open_doc('Control.stop_job_doc_id')">stop_job</a> and
-<a href="#" onclick="open_doc('Control.error_doc_id')">error</a>
+<a href="#" onclick="open_doc('Control.stop_job_doc_id', event)">stop_job</a> and
+<a href="#" onclick="open_doc('Control.error_doc_id', event)">error</a>
 both allow you to run the when_stopped instruction on a case-by-case basis.<br/>
-<a href="#" onclick="open_doc('Control.if_any_errors_doc_id')">if_any_errors</a>
+<a href="#" onclick="open_doc('Control.if_any_errors_doc_id', event)">if_any_errors</a>
 allows you to detect errors in <i>other</i> Jobs and run a
 do_list item of your choosing if such an error has occured.<br/>
-The <a href="#" onclick="open_doc('Control.debugger_doc_id')">debugger</a>
+The <a href="#" onclick="open_doc('Control.debugger_doc_id', event)">debugger</a>
 instruction is handy to place on the do_list right before some
 erroring instruction to pause the job and allow you to step through
 the JavaScript code that implements Job instructions.
@@ -4330,11 +4342,21 @@ new Job({name: "my_job5",
     to end a JavaScript <code title="unEVALable">for</code> loop.
 </details>
 
+<!-- the real doc for Control.step_instructions is in the user guide -->
+<details  class="doc_details"><summary>step_instructions</summary>
+    <code>Control.step_instructions()</code> allows you to pause and step through the JavaScript
+    of DDE as it is executing instructions. This will pause the Job right after this
+    <code>Control.step_instructions()</code><br/>
+    See <a href="#" onclick="open_doc('Control.step_instructions_doc_id', event)">Control.step_instructions</a>
+</details>
+
 <!-- the real doc for Control.debugger is in the user guide -->
 <details  class="doc_details"><summary>debugger</summary>
-    <code>Control.debugger()</code> allows you to pause and step through the rest of the instructions.
-    See <a href="#" onclick="open_doc('Control.debugger_doc_id')">Control.debugger</a>
+    <code>Control.debugger()</code> allows you to pause and step through the
+    rest of the instructions in a running Job.<br/>
+    See <a href="#" onclick="open_doc('Control.debugger_doc_id', event)">Control.debugger</a>
 </details>
+
 <details id="Control.error_doc_id" class="doc_details"><summary>error</summary>
   Causes the job to error, immediately stopping it.<br/>
   <i>Parameters:</i><br/>
@@ -4464,7 +4486,7 @@ where within the job to insert the given instruction as does the method
 <p></p>
     Much of the time that you'd be tempted to use a backwards
     Control.go_to,
-    <a href="#" onclick="open_doc('Control.loop_doc_id')">Control.loop</a> is better.
+    <a href="#" onclick="open_doc('Control.loop_doc_id', event)">Control.loop</a> is better.
 </details>
 
 <details id="Control.if_any_errors_doc_id" class="doc_details"><summary>if_any_errors</summary>
@@ -4502,7 +4524,7 @@ Control.include_job has a large number of very specific error messages to help y
          <i>Example:</i> <code>[[36000, 72000], [37000, 73000]]</code><br/>
             This can be an instructions array or a data array.
             It cannot be an oplet array.<br/>
-             See <a href="#" onclick="open_doc(data_array_doc_id)">Data Array</a>.
+             See <a href="#" onclick="open_doc(data_array_doc_id, event)">Data Array</a>.
         </li>
         <li><b>A String</b>. A variety of strings can be used. One advantage of using strings
             instead of Jobs or Arrays is that the string is resolved at instruction run-time
@@ -4576,7 +4598,7 @@ Control.include_job has a large number of very specific error messages to help y
    <p></p>
    <i>Control.include_job</i> makes it easy to build up jobs hierarchically, effectively
       treating a low level Job as a single instruction in a higher level Job.<br/>
-      See also: <a href="#" onclick="open_doc('Control.start_job_doc_id')">Control.start_job</a>
+      See also: <a href="#" onclick="open_doc('Control.start_job_doc_id', event)">Control.start_job</a>
 </details>
 
 <details id="Control.label_doc_id" class="doc_details"><summary>label</summary>
@@ -4595,7 +4617,8 @@ a location to insert an instruction using <code>Control.send_to_job</code>.<br/>
     i.e. the iteration count of the loop. It can be one of five types:
     <p></p>
     <i>boolean</i><br/> If <code>false</code>, loop no times. This loop becomes a no-op.<br/>
-    If <code>true</code>, loop forever, or until a <a href="#" onclick="open_doc('Control.break_doc_id')">Control.break</a> instruction in the body_fn
+    If <code>true</code>, loop forever, or until a
+    <a href="#" onclick="open_doc('Control.break_doc_id', event)">Control.break</a> instruction in the body_fn
     is executed. Like all arguments, this is evaluated at Job definition time to
     supply a value of a boolean (true or false).
     <p></p>
@@ -4678,7 +4701,7 @@ a location to insert an instruction using <code>Control.send_to_job</code>.<br/>
     end the inner-most loop that contains the <code>Control.break</code>.
     <p></p>
     Much of the time that you'd be tempted to use a backwards
-    <a href="#" onclick="open_doc('Control.go_to_doc_id')">Control.go_to</a>,
+    <a href="#" onclick="open_doc('Control.go_to_doc_id', event)">Control.go_to</a>,
     loops are better.
     <p></p>
     <i>Examples</i>
@@ -4736,21 +4759,20 @@ new Job({
  are done so when a Job starts another Job.<br/>
  <i>Example</i>: <code>{program_counter: 2}</code> <br/>
     causes the job to be started, executing its 3rd do_list item first.<br/>
- <b>if_started</b> A string. Says what to do if the job that
- is to be started has a status of <code>"running"</code> or <code>"waiting"</code>.
- Valid values for this argument are:
- <ul><li><code>"ignore"</code> Don't start the job. Just do nothing. This is the default.</li>
-     <li><code>"error"</code> Stop the job running this instruction with an error.</li>
-     <li><code>"restart"</code> Stop and restart the job named by <b>job_name</b>.</li>
-</ul>
-
-If the status of the job to be started is:
-    <ul><li><code>"starting"</code>, this instruction is ignored.</li>
+ <b>if_started</b> A string. In combination with the status_code of the Job to be started,
+       the value of if_started determines the behavior.
+     If the status of the job to be started is:
+    <ul><li> <code>"running"</code> or <code>"waiting"</code>
+           and the value of if_started is:
+        <ul><li><code>"ignore"</code> Don't start the job. Just do nothing. This is the default.</li>
+            <li><code>"error"</code> Stop the job running this instruction with an error.</li>
+            <li><code>"restart"</code> Stop and restart the job named by <b>job_name</b>.</li>
+        </ul>
+        </li>
+        <li><code>"starting"</code>, this instruction is ignored.</li>
         <li><code>"suspended"</code> The job is unsuspended.</li>
         <li><code>"not_started"</code>, <code>"completed"</code>, <code>"errored"</code>, or <code>"interrupted"</code>,
                     the job is started.</li>
-        <li><code>"running"</code> or <code>"waiting"</code>, then what happens depends on the
-                value of the <b>if_started</b> argument.</li>
     </ul>
     <b>wait_until_job_done</b> Boolean. Default: <code>false</code>
     If the value of this argument is <code>false</code>, start_job behaves
@@ -4813,7 +4835,7 @@ new Job({name: "job2",
           do_list: [Control.start_job("job1", {start_if_robot_busy: true}, undefined, true),
                     IO.out("last instruction")]
 })    </code></pre>
-    See also <a href="#" onclick="open_doc('Control.include_job_doc_id')">Control.include_job</a>
+    See also <a href="#" onclick="open_doc('Control.include_job_doc_id', event)">Control.include_job</a>
 </details>
 
 <details id="Control.stop_job_doc_id" class="doc_details"><summary>stop_job</summary>
@@ -5215,7 +5237,7 @@ Example:<code>Control.wait_until(2)</code><br/>
     </details> <!--end out -->
     <details id="IO.save_picture_doc_id" class="doc_details"><summary>save_picture</summary>
         This instruction takes the same arguments and has the same functionality as the method
-        <a href="#" onclick="open_doc('Picture.save_picture_doc_id')">Picture.save_picture</a>.<br/>
+        <a href="#" onclick="open_doc('Picture.save_picture_doc_id', event)">Picture.save_picture</a>.<br/>
         <i>Example:</i>
         <pre><code>new Job({name: "my_job8",
          do_list: [IO.take_picture({callback: "the_mat"}),
@@ -5232,7 +5254,7 @@ Example:<code>Control.wait_until(2)</code><br/>
     </details>
     <details id="IO.show_picture_doc_id" class="doc_details"><summary>show_picture</summary>
     This instruction takes the same arguments and has the same functionality as the method
-    <a href="#" onclick="open_doc('Picture.show_picture_doc_id')">Picture.show_picture</a>
+    <a href="#" onclick="open_doc('Picture.show_picture_doc_id', event)">Picture.show_picture</a>
     except that it doesn't take a callback argument.<br/>
     <i>Example:</i>
         <pre><code>new Job({name: "my_job",
@@ -5241,7 +5263,7 @@ Example:<code>Control.wait_until(2)</code><br/>
     </details>
     <details id="IO.show_video_doc_id" class="doc_details"><summary>show_video</summary>
         This instruction takes the same arguments and has the same functionality as the method
-        <a href="#" onclick="open_doc('Picture.show_video_doc_id')">Picture.show_video</a>
+        <a href="#" onclick="open_doc('Picture.show_video_doc_id', event)">Picture.show_video</a>
         except that it doesn't take a callback argument.<br/>
         <i>Example:</i>
         <pre><code>new Job({name: "my_job",
@@ -5250,7 +5272,7 @@ Example:<code>Control.wait_until(2)</code><br/>
     </details>
     <details id="IO.take_picture_doc_id" class="doc_details"><summary>take_picture</summary>
         This instruction takes the same arguments and has similar functionality as the method
-        <a href="#" onclick="open_doc('Picture.take_picture_doc_id')">Picture.take_picture</a>.
+        <a href="#" onclick="open_doc('Picture.take_picture_doc_id', event)">Picture.take_picture</a>.
         <p></p>
         When the callback is a function definition, as in Picture.take_picture,
         the callback is called with <code>this</code> bound to the job
@@ -5386,7 +5408,7 @@ data array instruction.
 <p></p>
 A data_array_transformer may also be an oplet, in which case
 that oplet and the elements of the data array are passed to
-<a href="#" onclick="open_doc(make_ins_doc_id)">make_ins</a>,
+<a href="#" onclick="open_doc(make_ins_doc_id, event)">make_ins</a>,
 whose return value is placed on the do_list.
 The default data_array_transformer is <code>"P"</code>,
 creating effectively a pid_move_all_joints instruction.
@@ -5424,7 +5446,7 @@ If the original string supplied in the do_list does not end in a semicolon, it i
 before being sent to Dexter.
 <p></p>
 Note that this is similar to a
-<a href="#" onclick="open_doc(make_ins_doc_id)">make_ins</a> instruction,
+<a href="#" onclick="open_doc(make_ins_doc_id, event)">make_ins</a> instruction,
 except that the arguments are not converted, but passed as indicated in the string.
 </details>
 
@@ -5459,7 +5481,7 @@ Calibrate the default Dexter of the job its in:<br/>
 <p></p>
 Calibrate a particular Dexter:<br/>
 <code>Dexter.dexter0.calibrate_build_tables()</code><br/>
-See also: <a href="#" onclick="open_doc(calibrate_dexter_doc_id)">Calibrate Dexter</a>
+See also: <a href="#" onclick="open_doc(calibrate_dexter_doc_id, event)">Calibrate Dexter</a>
 </details>
 
 <details id="Dexter.draw_dxf_doc_id" class="doc_details"><summary>draw_dxf</summary>
@@ -5981,7 +6003,7 @@ proportional–integral–derivative controller</a>.
                      else { out("can't find file: aa.dde") }
                    }
                ]})</code></pre>
-    See also <a href="#" onclick="open_doc(read_file_doc_id)">read_file</a>
+    See also <a href="#" onclick="open_doc(read_file_doc_id, event)">read_file</a>
     <p></p>
     <code id="Dexter.read_from_robot_doc_id">Dexter.read_from_robot</code> is a similar instruction, except that the default folder
     for the <i>source</i> is "/srv/samba/share/" and not
@@ -6027,7 +6049,7 @@ the instructions created are <code>Dexter.move_to</code> instructions.
        Conversely, if you pass in <code>_m</code> (which is 1),
        your gcode position values are expeceted to be in meters.
        <p></p>
-       See <a href="#" onclick="open_doc(units_system_help_doc_id)">Units System</a>
+       See <a href="#" onclick="open_doc(units_system_help_doc_id, event)">Units System</a>
     </li>
 </ul>
     <i>Examples:</i><br/>
@@ -6164,7 +6186,7 @@ see: <a  target="_blank" href="https://github.com/HaddingtonDynamics/Dexter/wiki
     <code>Dexter.write_file("/srv/samba/share/greeting.txt", "hello world")</code><br/>
     This instruction requires an upgrade to Dexter's software available May, 2018.
     <p></p>
-    See also <a href="#" onclick="open_doc('write_file_doc_id')">write_file</a>
+    See also <a href="#" onclick="open_doc('write_file_doc_id', event)">write_file</a>
     <p></p>
     <code id="Dexter.write_to_robot_doc_id">Dexter.write_to_robot</code> is a similar instruction,
     except that the default folder
@@ -6261,7 +6283,7 @@ If it is passed, the instruction will be sent to that robot.
     values to extract particular values like so:
     <code>Dexter.dexter0.robot_status[Dexter.J1_MEASURED_ANGLE]</code><br/>
     See the full list of such constants in the documentation for
-    <a href="#" onclick="open_doc('IO.grab_robot_status_doc_id')">IO.grab_robot_status</a>
+    <a href="#" onclick="open_doc('IO.grab_robot_status_doc_id', event)">IO.grab_robot_status</a>
     <p></p>
     <code>RobotStatus</code> is a class whose instances store information about
     a Dexter robot. Each Dexter robot instance has a field named <code title="unEVALable">rs</code>
@@ -6434,7 +6456,7 @@ instruction will not be modified.<br/>
 <i>Example:</i>
 <code>Instruction.add_robot_to_instructions([Dexter.move_all_joints([30, 40])], Robot.dexter0)</code>
 <p></p>
-See <a href="#" onclick="open_doc('Instruction.add_robot_to_instruction_id')">Instruction.add_robot_to_instruction</a>
+See <a href="#" onclick="open_doc('Instruction.add_robot_to_instruction_id', event)">Instruction.add_robot_to_instruction</a>
 for details.
 </details>
 
@@ -6669,7 +6691,7 @@ is a video describing most of the Human instructions.
 <details class="doc_details"><summary>Human Instructions</summary>
 
 <details id="Human.speak_doc_id" class="doc_details"><summary>speak</summary>
-  Human.speak is an instruction that calls <a href="#" onclick="open_doc(speak_doc_id)">speak</a>.
+  Human.speak is an instruction that calls <a href="#" onclick="open_doc(speak_doc_id, event)">speak</a>.
   It takes all the same arguments except, it does not take a "callback" arg, and
   it takes one extra arg:<br/>
   <i>Parameter:</i><br/>
@@ -7255,7 +7277,7 @@ When a Serial.string_instruction is run and the device retruns a value,
 that string is placed in the robot_status. You can then use
 IO.grab_robot_status to extract it from the robot status
 and stick it in a user_data variable.
-See <a href="#" onclick="open_doc('IO.grab_robot_status_doc_id')">
+See <a href="#" onclick="open_doc('IO.grab_robot_status_doc_id', event)">
         IO.grab_robot_status</a>
 </details>
 
@@ -8198,7 +8220,7 @@ mat.delete()</code></pre>
          to robotics and makers everywhere.
          <p></p>
          For higher level calls to some of the simpler capabilities of OpenCV.js,
-         see <a href="#" onclick="open_doc('Picture_doc_id')">Picture</a>.
+         see <a href="#" onclick="open_doc('Picture_doc_id', event)">Picture</a>.
 
     </details>
 
@@ -8209,7 +8231,7 @@ mat.delete()</code></pre>
     different syntaxes for encoding name-value pairs. DDE primarily uses JavaScript, but
     programmers needing to create user interfaces in DDE must employ
     HTML and CSS for the content of
-    <a href="#" onclick="open_doc(show_window_doc_id)">show_window</a>.
+    <a href="#" onclick="open_doc(show_window_doc_id, event)">show_window</a>.
     <p></p>
     <code>make_html</code> relieves a programmer from having to know the
     ideosynracies of HMTL and CSS by providing a flexible way to create
@@ -8372,7 +8394,7 @@ document.addEventListener("click", function(e){
     not be invoked or controlled with code, but rather can be
     done with mouse clicks like more conventional apps.
     <p></p>
-    <a href="#" onclick="open_doc(show_window_doc_id)">show_window</a>
+    <a href="#" onclick="open_doc(show_window_doc_id, event)">show_window</a>
     lets you build complex dialog boxes with lots
     of different widgets, and makes it easy to extract
     user settings from the dialog boxes and execute arbitrary JavaScript
@@ -8430,11 +8452,11 @@ show_window({draggable: false,
         <li>MacOS: Cmd+Q</li>
         <li>Linux: Ctrl+Alt+Esc</li>
     </ul>
-    See <a href="#" onclick="open_doc(show_window_doc_id)">show_window</a>
+    See <a href="#" onclick="open_doc(show_window_doc_id, event)">show_window</a>
     for a more complete description of these and other show_window parameters.
     </details>
     <details class="doc_details"><summary>kiosk mode</summary>
-      Using the technique under <a href="#" onclick="open_doc(show_window_restrictions_id)">show_window restrictions</a>,
+      Using the technique under <a href="#" onclick="open_doc(show_window_restrictions_id, event)">show_window restrictions</a>,
       we still have
       the DDE window title bar and perhaps other OS menus peaking through.
       We can prevent the user seeing or interacting with them by
@@ -8615,7 +8637,7 @@ Here's the CSS for a bunch more editor properties.
     content:'&lt;p id="p_id" class="clickable">some para&lt;/p>',
     callback: function (vals){ append_in_ui("p_id", "&lt;h1>hey&lt;/h1>")}
 })    </code></pre>
-        <a href="#" onclick="open_doc(make_html_doc_id)">make_html</a> has a lot of advantages for creating HTML,
+        <a href="#" onclick="open_doc(make_html_doc_id, event)">make_html</a> has a lot of advantages for creating HTML,
         many of which are not apparent from this simple example:
 <pre><code>show_window({
     content: make_html("p", {"font-size": Math.pow(6, 2) + "px"}, "some other para")
@@ -8765,16 +8787,51 @@ show_window({
     <details id="show_page_doc_id" class="doc_details"><summary>show_page</summary>
        Creates a new browser window and shows a web page in it.<br/>
        <i>Parameters:</i><br/>
-       <b>url</b> The url to show in the new browser window.<br/>
-       <b>options</b> The options for the window that is created, which are the same as
-       Electron's BrowserWindow.
-       <a href="https://github.com/electron/electron/blob/master/docs/api/browser-window.md" target="_blank">Options Doc</a>
+       <b>url</b> A string. The url to show in the new browser window.<br/>
+       <b>options</b> A literal object. The most useful properties are:
+       <ul> <li><b>x</b> An integer. Default: <code>0</code>
+             which places the left edge of the window at the left edge of the screen.
+             </li>
+           <li><b>y</b> An integer. Default: <code>0</code>
+               which places the top edge of the window, at least close to,
+                the top edge of the screen.
+           </li>
+           <li><b>width</b> An integer. Default: <code>800</code>
+                 In pixels.
+           </li>
+           <li><b>height</b> An integer. Default: <code>600</code>
+           In pixels.
+           </li>
+       </ul>
        <p></p>
        <i>Example:</i>
-       <pre><code>show_page("http://hdrobotic.com",
+       <pre><code>var win = show_page("http://hdrobotic.com",
           {x:100, y:100,
            width:800, height:600})
            </code></pre>
+        The returned value is an instance of Electron's BrowserWindow.
+        The most useful methods on it are:<br/>
+        <b>getURL</b> A method of no args that returns the string representing
+                      the URL shown in the window.<br/>
+        <i>Example:</i> <code>win.getURL()</code><br/>
+        <br/>
+        <b>blur</b> A method of no args that buries the window
+                    (pushes it behind other windows).<br/>
+        <i>Example:</i> <code>win.blur()</code>
+        <br/>
+        <b>focus</b> A method of no args that brings the window to the top.
+           The opposite of blur<br>
+        <i>Example:</i> <code>win.focus()</code>
+        <br/>
+        <b>isDestroyed</b> A method of no args that returns <code>true</code>
+        if the window has been closed.<br/>
+        <i>Example:</i> <code>win.isDestroyed()</code> => <samp>false</samp>
+        <br/>
+        <b>close</b> A method of no args that closes the window. <br/>
+        <i>Example:</i> <code title="not in TestSuite">win.close()</code>
+        <p></p>
+        For other options and what else you can do with the returned value, see:<br>
+        <a href="https://github.com/electron/electron/blob/master/docs/api/browser-window.md" target="_blank">Options Doc</a><br/>
         See also: <a href="#" onclick="open_doc(get_page_doc_id, event)">get_page</a>
     </details>
 

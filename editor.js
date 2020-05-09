@@ -802,6 +802,17 @@ Editor.save_current_file = function(){
         write_file_async(Editor.current_file_path, Editor.get_javascript())
 }
 
+/* com mented out may 5, 2020 becuase I suspect that
+the current file is attempted to be saved and the process
+is started, but it just writes out an empty file,
+then starts to fill it up but before it even adds a char,
+DDE quits and the file is then empty.
+Seems to happen when stepping then I quit or
+something else that quits DDE.
+So better to have most of the file saved and perhaps
+missing a few of the latest chars vs the whole file being erased.
+Note that save_on_eval should save th file before
+every eval so that usually saves the latest edited code.
 window.onbeforeunload = function(event){
     if (Editor.current_file_path  &&
        (Editor.current_file_path != "new buffer") &&
@@ -809,6 +820,7 @@ window.onbeforeunload = function(event){
         Editor.save_current_file()
     }
 }
+*/
 
 //called by the File menu "Save" item and Cmd-s keystroke
 Editor.save = function() {
@@ -1747,8 +1759,9 @@ Editor.find_forward_close_delimiter = function(full_src, cursor_pos=0){
 //cursor_pos is pointing at a ()[]{}. Returns the pos of the matching one or null
 Editor.find_matching_delimiter = function(full_src, cursor_pos=0){
     var cursor_pos_delim    = full_src[cursor_pos]
-    if (Editor.is_open_delimiter(cursor_pos_delim)) { return Editor.find_matching_close(full_src, cursor_pos) } //looking for ),}, or ]
-    else                                            { return Editor.find_matching_open( full_src, cursor_pos) } //looking for (,{, or [
+    if      (Editor.is_open_delimiter(cursor_pos_delim))  { return Editor.find_matching_close(full_src, cursor_pos) } //looking for ),}, or ]
+    else if (Editor.is_close_delimiter(cursor_pos_delim)) { return Editor.find_matching_open( full_src, cursor_pos) } //looking for (,{, or [
+    else { return null }
 }
 
 
@@ -1796,7 +1809,8 @@ Editor.find_matching_close = function(full_src, cursor_pos=0){
             }
             else {} // weird situation. For now ignore it but not a good condition.
         }
-        else if ((char == "/") &&
+        else if ((char == "/") &&      //finds slash-slash end of line comments. but beware,
+                                       //could be "http://foo.com", which I don't handle.
                  (i < (full_src.length - 1)) &&
                  (full_src[i + 1] == "/")){
             var newline_pos = full_src.indexOf("\n", i)
@@ -2347,7 +2361,11 @@ Editor.context_help = function(full_src, cursor_pos, identifier){
             else {
                 fn = value_of_path(fn_name)
             }
-            if(fn){
+            if(fn === undefined) { return fn_name + " is undefined." }
+            else if (typeof(fn) !== "function") {
+                return fn_name + " is not a function."
+            }
+            else {
                 let lit_obj = function_param_names_and_defaults_lit_obj(fn)
                 if(lit_obj){
                     let fn_param_names = Object.keys(lit_obj)
@@ -2362,29 +2380,29 @@ Editor.context_help = function(full_src, cursor_pos, identifier){
                     else {result += ", default_value: undefined"}
                     result += ")"
                 }
-            }
-            let outer_type = ""
-            if(fn_name.startsWith("new ")) { outer_type = "constructor: "}
-            else if(fn_name.includes(".")) { outer_type = "method: "}
-            else if(fn_name)               { outer_type = "function: "}
-            let suffix = ""
-            if(!fn) { suffix = ", which is undefined" }
-            let fn_name_html
-            let fn_name_prefix = ""
-            /* this screws up for "Job" and "Dexter" because get_atag_for_fn_name returns
-              their full args, not just a link to "Job" or "Dexter". so
-              for now, just print out Job and Dexter in plain text.
-              if(fn_name.startsWith("new ")){
-                fn_name_prefix = "new "
-                let short_fn_name = fn_name.substring(4).trim()
-                fn_name_html = Editor.get_atag_for_fn_name(short_fn_name, full_src, cursor_pos)
-            }*/
-            fn_name_html = Editor.get_atag_for_fn_name(fn_name, full_src, cursor_pos)
+                let outer_type = ""
+                if(fn_name.startsWith("new ")) { outer_type = "constructor: "}
+                else if(fn_name.includes(".")) { outer_type = "method: "}
+                else if(fn_name)               { outer_type = "function: "}
+                let suffix = ""
+                if(!fn) { suffix = ", which is undefined" }
+                let fn_name_html
+                let fn_name_prefix = ""
+                /* this screws up for "Job" and "Dexter" because get_atag_for_fn_name returns
+                  their full args, not just a link to "Job" or "Dexter". so
+                  for now, just print out Job and Dexter in plain text.
+                  if(fn_name.startsWith("new ")){
+                    fn_name_prefix = "new "
+                    let short_fn_name = fn_name.substring(4).trim()
+                    fn_name_html = Editor.get_atag_for_fn_name(short_fn_name, full_src, cursor_pos)
+                }*/
+                fn_name_html = Editor.get_atag_for_fn_name(fn_name, full_src, cursor_pos)
 
-            //Both the below helps return a string but
-            // at most, only one of the below two helps will be a non-empty string
-            let w_oplet_help = Editor.context_help_for_make_ins_w(full_src, cursor_pos, identifier, fn_name, arg_index)
-            return result + "<br/> to " + outer_type + fn_name_prefix + fn_name_html + suffix + "." + w_oplet_help
+                //Both the below helps return a string but
+                // at most, only one of the below two helps will be a non-empty string
+                let w_oplet_help = Editor.context_help_for_make_ins_w(full_src, cursor_pos, identifier, fn_name, arg_index)
+                return result + "<br/> to " + outer_type + fn_name_prefix + fn_name_html + suffix + "." + w_oplet_help
+            }
         }
     }
 }

@@ -139,7 +139,7 @@ function default_cmd_service_callback(result){
     else { formatted = default_cmd_service_format_special(formatted) }
     formatted = in_formatted + "<br/>" + formatted
     out(formatted)
-    install_onclick_via_data_fns()
+    SW.install_onclick_via_data_fns()
     return result.output
 }
 

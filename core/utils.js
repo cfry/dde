@@ -1,6 +1,9 @@
 
 function shouldnt(message){
     console.log(message)
+    if(window.contact_doc_id) {
+        open_doc(contact_doc_id)
+    }
     dde_error("The function: shouldnt has been called.<br/>" +
                     "This means there is a bug in DDE.<br/>" +
                     "Please send a bug report. See User_Guide/Contact.<br/>" +
@@ -157,8 +160,11 @@ function is_NaN_null_or_undefined(arg) {
 module.exports.is_NaN_null_or_undefined = is_NaN_null_or_undefined
 
 function is_string_a_integer(a_string){
-    var pat = /^-?[0-9]+$/;
-    if(a_string.match(pat)) {  return true; }
+    if(typeof(a_string) == "string") {
+        var pat = /^-?[0-9]+$/;
+        if(a_string.match(pat)) {  return true; }
+        else { return false; }
+    }
     else { return false; }
 }
 module.exports.is_string_a_integer = is_string_a_integer
@@ -351,8 +357,9 @@ function date_integer_to_long_string(date_int=Date.now()){
 module.exports.date_integer_to_long_string = date_integer_to_long_string
 
 
-//integer millisecons in, output "0:59:59:999"
-function milliseconds_to_human_string(total_ms){
+//integer milliseconds in, output "123:23:59:59:999" ie
+// days:hours:minutes:seconds:milliseconds
+function milliseconds_to_human_string(total_ms=Date.now(), include_total_days=true){
    let remain_ms   = total_ms % 1000
    let total_secs  = (total_ms - remain_ms) / 1000
 
@@ -361,12 +368,34 @@ function milliseconds_to_human_string(total_ms){
 
    let remain_mins = total_mins % 60
    let total_hours = (total_mins - remain_mins) / 60
-   return total_hours                 + ":" +
+
+   let remain_hours = total_hours % 24
+   let total_days   = (total_hours - remain_hours) / 24
+   return (include_total_days ? total_days + ":" : "") +
+          pad_integer(remain_hours, 2) + ":" +
           pad_integer(remain_mins, 2) + ":" +
           pad_integer(remain_secs, 2) + ":" +
           pad_integer(remain_ms, 3)
 }
 module.exports.milliseconds_to_human_string = milliseconds_to_human_string
+
+//lots of inputs, returns "Mar 23, 2017" format
+function date_to_mmm_dd_yyyy(date){ //can't give the default value here because on DDE launch,
+//this method is called and for some weird reason, that call errors, but doesn't
+//if I set an empty date below.
+    if(!(date instanceof Date)) { date = new Date(date) }
+    const d_string = date.toString()
+    const mmm = d_string.substring(4, 8)
+    return mmm + " " + date.getDate() + ", " + date.getFullYear()
+}
+module.exports.date_to_mmm_dd_yyyy = date_to_mmm_dd_yyyy
+
+function date_to_human_string(date=new Date()){
+    let result = date_to_mmm_dd_yyyy(date)
+    return result +  " " + milliseconds_to_human_string(undefined, false)
+}
+
+module.exports.date_to_human_string = date_to_human_string
 
 
 //pad_integer(123, 5, "x") => "xx123"
@@ -402,15 +431,6 @@ function is_json_date(a_string){
 }
 module.exports.is_json_date = is_json_date
 */
-
-//lots of inputs, returns "Mar 23, 2017" format
-function date_to_mmm_dd_yyyy(date){
-    if(!(date instanceof Date)) { date = new Date(date) }
-    const d_string = date.toString()
-    const mmm = d_string.substring(4, 8)
-    return mmm + " " + date.getDate() + ", " + date.getFullYear()
-}
-module.exports.date_to_mmm_dd_yyyy = date_to_mmm_dd_yyyy
 
 //_____end Date_______
 
@@ -1478,7 +1498,8 @@ function stringify_value_aux(value, job, depth=0){
         for (var prop_index = 0; prop_index < Math.min(prop_names.length, 6); prop_index++) {
             let prop_name = prop_names[prop_index]
             let prop_val = value[prop_name]
-            if (prop_name == "robot_status"){
+            if(prop_name == "devToolsWebContents") {} //causes error so just ignore this rare item. occurs in electron BrowserWindow instances
+            else if (prop_name == "robot_status"){
                 if (!job && value.job_id) { job = Job.job_id_to_job_instance(value.job_id) }
                 let where_from = ""
                 if (value instanceof Job)   { where_from = " on job: "   + value.name }
@@ -1797,6 +1818,27 @@ module.exports.make_ins_arrays = make_ins_arrays
 
 module.exports.month_names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September','October', 'November', 'December']
 
+/*
+nn = performance.now(); parseInt(nano_time.micro()); performance.now() - nn;
+and
+nn = performance.now(); time_in_us(); performance.now() - nn;
+take very close to the same time, ie very clsoe to 0.1 ms normally,
+or very close to  0.2 ms. (its bi-modal)
+Note: nn = performance.now(); performance.now() - nn;
+usually measures as 0 ms but occassionally 0.1ms
+https://stackoverflow.com/questions/313893/how-to-measure-time-taken-by-a-function-to-execute/15641427
+Number.MAX_SAFE_INTEGER is
+9007199254740991
+whereas, time_in_us() returns (as of may3, 2020)
+1588518775923001
+so our JS integers are in good shape to handle this capacity.
+Conclusion: time_in_us gives us 0.1ms  or 0.2ms res, not consistently.
+*/
+
+function time_in_us() { return parseInt(nano_time.micro()) }
+module.exports.time_in_us = time_in_us
+
+var nano_time = require("nano-time")
 var semver = require("semver")
 var {Instruction} = require("./instruction.js")
 var {Robot, Brain, Dexter, Human, Serial} = require('./robot.js')

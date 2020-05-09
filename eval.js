@@ -36,6 +36,10 @@ function fix_code_to_be_evaled(src){
     else { return src }
 }
 
+//a string or null indicating eval button hasn't been clicked since dde launch.
+//used in make_dde_status_report
+var latest_eval_button_click_source = null
+
 //part 1 of 3.
 //Only called by eval_button_action
 //when this is called, there is no selection, so either we're evaling the whole editor buffer
@@ -77,6 +81,7 @@ function eval_js_part1(step=false){
     }
     //we do NOT want to pass to eval part 2 a trimmed string as getting its char
     //offsets into the editor buffer correct is important.
+    latest_eval_button_click_source = src
     if (src.trim() == ""){
         open_doc(learning_js_doc_id)
         warning("There is no JavaScript to execute.<br/>See <span style='color:black;'>Learning JavaScript</span> " +

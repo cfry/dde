@@ -6,6 +6,82 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 3.5.8, May 9, 2020</summary>
+Highlights: New Job debugging facility for stepping through JavaScript.<br/>
+            Improvements to the auto-generated email when you make a suggestion/bug report.<br/>
+            Signficant bugs fixed.
+<ul>
+    <li> Removed redundancy from Ref Man/IO/Web/get_page</li>
+
+    <li> Now when choosing from the Insert menu, the items:
+         beep, beeps, get_page, show_page, speak, speak with options,<br/>
+         the doc pane will scroll to their documentation.</li>
+
+    <li> show_page is now known by the linter and won't give you a warning.</li>
+
+    <li> show_page now returns a window instance that you can call
+         win.chose() on plus a variety of other methods.
+         See: Ref Man/Window System/show_page.</li>
+
+    <li> get_page: improved Ref Man doc, eliminated comments inserted
+         when choosing Insert menu, get_page because
+         they are now redundant with the Ref Man.</li>
+
+    <li> Fixed bug that the back and forward arrows in the Doc pane didn't work
+         for most of the time.</li>
+
+    <li> The former <code>Control.debugger</code> instruction has been renamed to
+         <code>Control.step_instructions</code> </li>
+
+    <li> <code>Control.debugger</code> now means an instruction that pauses a Job
+        and allows you to step through the JavaScript of a running job,
+        not just each instruction. This is a low-level but powerful tool.
+        See User Guide/Debugging/Stepping Instructions/step_instructions.</li>
+
+    <li> The Misc Pane header has a new checkbox, "Js debugger". This
+         allows you to start stepping the JavaScript of a running Job.</li>
+
+    <li> Improved the organization of the User Guide for debugging,
+        especially for stepping.</li>
+
+    <li> Fixed a click help bug that caused an error when clicking in the editor.</li>
+
+    <li> Calls to the function <code>shouldnt</code> improved by scrolling the
+         doc pane to user guide Contacts.</li>
+
+    <li> Improvements to the auto-generated email that is created when you
+        click on the email address to send bug reports to in User Guide/Contact.
+        Now the editor selection and a list of the running Jobs with
+        their status and currently executing instruction are shown.</li>
+
+    <li> Removed the "save file when DDE quits" functionality
+        because it looks like that was causing an empty file to be saved
+        for the current file, thus losing the whole contents of the file.
+        Now you may lose the contents of the buffer since you last saved it
+        if there is an unexpected quit of DDE.
+        Note that if you have the File menu item "Auto Save" checked,
+        saves will happen upon clicking the eval button and switching
+        editor buffers, so with this checked, if you eval via the
+        Eval button some horrible crashing code, your latest editor buffer
+        will still be saved (with the crashing code!)</li>
+
+    <li> robustified utils is_string_a_integer to return false if passed a non-string.</li>
+
+    <li> fixed bug in Job.report() of undefined fn now in SW class.</li>
+
+    <li> serial_port_init() is no longer called during startup, to
+        avoid the message:
+        "Warning: Calling serial_port_init() is no longer necessary to use the serial port
+        capability. It now does nothing."</li>
+
+    <li> tweaked Job.insert_instruction so that instructions inserted at location "end"
+        always are top level instructions on the do_list.
+        This improves inspecting the do_list hierarchy.</li>
+
+    <li> RefMan/Robot/Robot Instructions/Control/start_job  improved.</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.5.7, Apr 21, 2020</summary>
 Highlights: Extensive Error handling improvements.<br/>
     See Ref Man/Job/Error Handling for an overview.<br/>

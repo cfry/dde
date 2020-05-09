@@ -409,6 +409,11 @@ But it opens in the default browser for the computer.
 (on Mac this is Apple's browser, not chrome.)
  */
 
+/* uses Electron and main porcess. but not much advnatage to that,
+and js window.open is stanard js, plus returns an object
+that I can call win.closed(), win.focus(), win.blur(), win.print(), win.location, win.closed
+on
+
 function show_page(url, options={x:0, y:0, width: 800, height: 600}){
     if (url.indexOf("://") == -1){
         url = "http://" + url
@@ -427,10 +432,52 @@ function show_page(url, options={x:0, y:0, width: 800, height: 600}){
     if (!options.width)  { options.width  = 800 } //does not allow width to be 0. Is that good? a 0 width means the window is invisible
     if (!options.height) { options.height = 600 } //does not allow width to be 0. Is that good? a 0 width means the window is invisible
     if (!options.title)  { options.title = url }
-   // window.open(url) //show_url(url) //fails in electron
+   // window.open(url) //show_url(url) //fails in electron 1 but works in later versions
     ipcRenderer.sendSync('show_page', url, options) //see main.js "show_page"
     return url
+}*/
+/* window.open fails to use its options  correctly due to Google bugs
+ since 2012. https://bugs.chromium.org/p/chromium/issues/detail?id=137681
+ so switch back to electron solution but use it in rennder process,
+ not main process.
+
+function show_page(url, options={x:0, y:0, width: 800, height: 600}){
+    if (url.indexOf("://") == -1){
+        url = "http://" + url
+    }
+    if(!options) {
+        options = {x:0, y:0, width: 800, height: 600}
+    }
+    let options_str = "left="    + options.x +
+                      ",top="    + options.y +
+                      ",width="  + options.width +
+                      ",height=" + options.height
+    //window.open is documented to take a middle arg of "name" but that
+    //looks useless for our purposes at least.
+    return window.open(url, options_str)
+}*/
+/* return value good for:
+bw1.loadURL("http://hdrobotic.com")
+bw1.loadFile("somefilename")
+bw1.close()
+bw1.getURL()
+bw1.blur()
+bw1.focus()
+ */
+function show_page(url, options={x:0, y:0, width: 800, height: 600}){
+    if (url.indexOf("://") == -1){
+        url = "http://" + url
+    }
+    if(!options) {
+        options = {x:0, y:0, width: 800, height: 600}
+    }
+    var bw = new BrowserWindow(options)
+    bw.loadURL(url)
+    return bw
 }
+
+
+
 window.show_page = show_page
 
 
@@ -470,7 +517,7 @@ function get_page(url, callback=out, error_callback=get_page_error_callback){//i
 //if callback is passed, it takes 3 args, error, response_object, body
 //where 'body" is the contents of the url"
 function get_page_async(url_or_options, callback){
-        //https://www.npmjs.com/package/request documents reqeust
+        //https://www.npmjs.com/package/request documents request
         //as taking args of (options, cb) but the actual
         //fn itself has params(uri, options, cb)
         var the_url
@@ -699,3 +746,5 @@ var {persistent_get, persistent_set} = require("./core/storage")
 var {function_name, is_string_a_integer, is_string_a_number, starts_with_one_of,
     stringify_value, value_of_path} = require("./core/utils.js")
 var {write_to_stdout} = require("./core/stdio.js")
+var { BrowserWindow } = require('electron').remote
+

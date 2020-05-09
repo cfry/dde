@@ -595,13 +595,40 @@ Instruction.break = class Break extends Instruction{ //class name must be upper 
 
 
 Instruction.debugger = class Debugger extends Instruction{ //class name must be upper case because lower case conflicts with js debugger
+    constructor () {
+        super()
+        this.time_dev_tools_was_opened = null
+    }
+    do_item (job_instance){
+        if(this.time_dev_tools_was_opened === null){
+            open_dev_tools()
+            this.time_dev_tools_was_opened = Date.now() //in milliseconds
+            job_instance.set_up_next_do(0)
+        }
+        else if((Date.now() - this.time_dev_tools_was_opened) < 1000) {
+            job_instance.set_up_next_do(0) //give open_dev_tools() a chance to ipen up.
+                                           //otherwise it won't break when executing debugger;
+                                           //in do_next_item
+        }
+        else {
+            js_debugger_checkbox_id.checked = true //this is here and not in the first clause
+            //because we really don't want to waste time and pause during execution
+            //of the debugger instruction itself while looping in clause 2,
+            //we just want to skip ahead to the next instruction and debug from there.
+            job_instance.set_up_next_do(1) } //ready to move on and break in do_next_item
+    }
+    toString(){ return "debugger" }
+    to_source_code(args){ return args.indent + "Control.debugger()" }
+}
+
+Instruction.step_instructions = class step_instructions extends Instruction{ //class name must be upper case because lower case conflicts with js debugger
     constructor () { super() }
     do_item (job_instance){
         Job.set_go_button_state(false)
         job_instance.set_up_next_do(1, true)
     }
-    toString(){ return "debugger" }
-    to_source_code(args){ return args.indent + "Control.debugger()" }
+    toString(){ return "step_instructions" }
+    to_source_code(args){ return args.indent + "Control.step_instructions()" }
 }
 
 Instruction.error = class error extends Instruction{
@@ -2202,7 +2229,7 @@ Instruction.label = class label extends Instruction{
 Instruction.loop = class loop extends Instruction{
     constructor (times_to_loop, body_fn) {
         super()
-        this.times_to_loop   = times_to_loop
+        this.times_to_loop          = times_to_loop
         this.body_fn                = body_fn
         this.iter_index             = -1
         this.iter_total             = Infinity
@@ -2749,7 +2776,7 @@ Instruction.start_job = class start_job extends Instruction{
 }
 
 Instruction.stop_job = class stop_job extends Instruction{
-    constructor (instruction_location="program_counter", //do not make this be able to be a job instance because we want the dynamic lookup of the jbo to stop by name that's in the instruction_location
+    constructor (instruction_location="program_counter", //do not make this be able to be a job instance because we want the dynamic lookup of the job to stop by name that's in the instruction_location
                  stop_reason=null,
                  perform_when_stopped=true) {
         super()
@@ -3006,7 +3033,6 @@ Instruction.wait_until = class wait_until extends Instruction{
                 let new_instructions = [make_ins("g"), //just a do nothing to get a round trip to Dexter.
                                        Control.wait_until(new_wait_dur_in_sec)] //create new wait_until to wait for the remaining time
                 job_instance.insert_instructions(new_instructions)
-                //job_instance.added_items_count[job_instance.program_counter] += 2 this is done automatically by insert_instructions
                 this.start_time_in_ms = null //essential for the 2nd thru nth call to start() for this job.
                 job_instance.wait_reason = null
                 job_instance.set_status_code("running")

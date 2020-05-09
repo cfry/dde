@@ -35,6 +35,7 @@ class Control{
             Instruction.stop_job,
 
             Instruction.debugger,
+            Instruction.step_instructions,
             Instruction.error,
             Instruction.if_any_errors
         ]
@@ -59,6 +60,7 @@ Control.start_job = Robot.start_job
 Control.stop_job = Robot.stop_job
 
 Control.debugger = Robot.debugger
+Control.step_instructions = Robot.step_instructions
 Control.error = Robot.error
 Control.if_any_errors = Robot.if_any_errors
 
