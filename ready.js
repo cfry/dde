@@ -1276,14 +1276,16 @@ foo      //eval to see the latest values</pre>`,
         Job.start_and_monitor_dexter_job(job_src)
     }
 
-    send_message_id.onclick = function(){
-        let sel = Editor.get_javascript(true)
+    show_message_dialog_id.onclick = function(){
+        /*let sel = Editor.get_javascript(true)
         if(sel.length === 0) {
             warning("There is no selection. You need to select some text for the message.")
         }
         else {
             Messaging.send_text(sel, true) //sets define_job_if_necessary
         }
+        */
+        Messaging.show_dialog()
     }
 
     //cmd menu

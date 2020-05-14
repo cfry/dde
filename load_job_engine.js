@@ -54,6 +54,7 @@ var {RobotStatus} = require('./core/robot_status.js')
 var {Control} = require('./core/instruction_control.js')
 var {IO} = require('./core/instruction_io.js')
 var Job  = require('./core/job.js')
+var {Messaging} = require('./core/messaging.js')
 var {linux_error_message} = require('./core/linux_error_message.js')
 
 var keep_alive_value = true //only really used by node-browser,

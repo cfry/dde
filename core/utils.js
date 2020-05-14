@@ -869,7 +869,10 @@ function params_string_to_param_names(params_full_string){
     for(var param_and_default of params_and_defaults_array){
         param_and_default = param_and_default.trim()
         if (param_and_default.startsWith("{")){
-            var inner_params_and_defaults = param_and_default.substring(1, param_and_default.length -1) //cut off { and }
+            var inner_params_and_defaults = param_and_default.substring(1) //cut off {
+            if(inner_params_and_defaults.endsWith("}")) {
+                 inner_params_and_defaults = param_and_default.substring(0, param_and_default.length -1) //cut off }
+            }
             var inner_params_and_defaults_array = inner_params_and_defaults.split(",")
             for(var inner_param_and_default of inner_params_and_defaults_array){
                 inner_param_and_default = inner_param_and_default.trim()

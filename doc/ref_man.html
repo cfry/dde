@@ -7218,18 +7218,19 @@ default item_delimiter and we still win calling Arduino's
 <br/>
 
 <b>parse_items</b> true or false. Default true. If true, the returned items will be converted from strings to
-primitive JS data types: booleans, numbers, arrays, literal objects, strings, and aggrigates of such.
+primitive JS data types: booleans, numbers, arrays, literal objects, strings, and aggrigates of such using
+<code>JSON.parse</code>
 Example: In Arduino C, you could have a program that executes: 
 <br/><code title="unEVALable code fragment"> Serial.println("[1, 20, 300]");</code><br/>
 With <code title="unEVALable code fragment"> parse_items: true</code> that would result in DDE's robot_status array as an element of
-an array of three integers.
+an array of three integers.<br/>
 
-<b>capture_extras</b> One of "error", "ignore" or "capture". Default "error". 
-<ul><li><code>"error"</code> means that any extra data output by the board will cause an error, halting the current job.</li>
+<b>capture_extras</b> One of the following strings.
+<ul><li><code>"error"</code> (the default) means that any extra data output by the board will cause an error, halting the current job.</li>
     <li><code>"capture"</code> means that extra output will be appended onto the end of the robot_status associated
         with the last instruction sent. Beware that such data won't be available as soon as the expected
         data of capture_n_items has been received.</li> 
-     <li><code>"ignore"</code> means that any items after capture_n_items and before the next instruction sent will
+    <li><code>"ignore"</code> means that any items after capture_n_items and before the next instruction sent will
         be thrown away, but will not cause an error.</li>
 </ul>
 <b>instruction_callback</b> A function that is called when a valid return value is received
@@ -8765,7 +8766,7 @@ show_window({
     by adding the HTML attribute:<br/>
     <code title="unEVALable code fragment"> data-oninput='true'</code><br/>
     For text boxes, this activates on each character typed in.
-    For range sliders, this acticvates many times as you are dragging the slider.
+    For range sliders, this activates many times as you are dragging the slider.
 
     <h4>Cover DDE Window</h4>
     To have a show_window cover the entire DDE window:

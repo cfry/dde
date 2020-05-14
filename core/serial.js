@@ -327,11 +327,14 @@ function serial_make_default_robot_status_maybe(info){
 function serial_onReceiveCallback(info_from_board, path) { //if there's an error, onReceiveErrorCallback will be called instead
     //out("top of serial_onReceiveCallback")
     if (info_from_board.buffer) { //info.connectionId == expectedConnectionId &&
-        let str = convertArrayBufferToString(info_from_board.buffer, info_from_board.length); //note that if aruino program
+        //let str = convertArrayBufferToString(info_from_board.buffer, info_from_board.length); //note that if aruino program
+        let str = info_from_board.toString().substring(0, info_from_board.length)
+        //str should now have in it the NEW chars sent from the serial port.
+
         //has Serial.println("turned off1"); int foo = 2 + 3; Serial.println("turned off2");
         //then this is ONE call to serial_onReceiveCallback with a string "turned off1\r\nturned off2\t\n"
         //so that 1 string should count for 2 items from the board from the dde standpoint.
-        //maybe the board software batches up the 2 strings and maybe crhome recieve does.
+        //maybe the board software batches up the 2 strings and maybe chrome recieve does.
         //whichever, I need to handle it.
         //Note 2: when simulating, often info_from_board.length will return undefined.
         //this is ok as convertArrayBufferToString will just go with the length of the
@@ -364,44 +367,40 @@ function serial_onReceiveCallback(info_from_board, path) { //if there's an error
                 else { dde_error("serial_onReceiveCallback got invalid capture_extras value of: " + info.capture_extras) }
             }
             else if (typeof(delim) == "string"){
-                str = info.pending_input + str //pending_input will never contain a delim
-                info.pending_input = "" //we're using it, so makes this empty, just so there's no using pending twice.
-                if (str === "") { //we do have a real delimiter, but no delimiter in the input str and no chars so this is a no_op
-                }
+                if (str === "") {}//we do have a real delimiter, but no delimiter in the input str and no chars so this is a no_op
                 else {
-                    let split_str = str.split(delim)
-                    let last_str_item = split_str.pop() //if last str item is "", that means that their was a delim on the end of str,
-                         //so the 2nd to last item is complete, and we should put "" into pending.
-                         //but if last is not "", then it is an incomplete item and goes into pending.
-                         //either way last_str_item goes into pending and the 0th throu 2nd to last items are all complete items
-                         //even if only [""] or [] is left.
-                    info.pending_input = last_str_item
-                    for (let item of split_str){
-                        if (info.trim_whitespace) { item = item.trim() }
-                        if (left_to_capture(info) > 0) {
-                            serial_store_str_in_rs(item, info)
-                            if (left_to_capture(info) == 0){
-                                serial_on_done_with_sending(info.robot_status, info.path)
-                            }
-                            else { out("waiting for more strings from robot.") } //beware, the might never come in qhich case the job is just hanging.
+                    info.pending_input += str
+                    while(true) {
+                        let delim_index = info.pending_input.indexOf(delim);
+                        if(delim == -1) { break; } // no "full" items in the pending input so break now and wait for more data from the serial port
+                        else { //at least one more full item in pending_input. grab it!
+                            let item = info.pending_input.substring(0, delim_index)
+                            info.pending_input = info.pending_input.substring(delim_index + delim.length)
+                            if (info.trim_whitespace) { item = item.trim() }
+                            if (left_to_capture(info) > 0) {
+                                serial_store_str_in_rs(item, info)
+                                if (left_to_capture(info) == 0){
+                                    serial_on_done_with_sending(info.robot_status, info.path)
+                                }
+                                else { out("waiting for more strings from robot.") } //beware, the might never come in qhich case the job is just hanging.
                             //the job has status_code "running" but is really paused waiting for response.
+                            }
+                            else if (info.capture_extras == "capture"){
+                                serial_send_extra_item_to_job(item, info.path, false, info) //false means everything ok
+                            }
+                            else if (info.capture_extras == "error"){
+                                serial_send_extra_item_to_job(item, info.path, true, info) //true means job should error
+                            }
+                            else if (info.capture_extras == "ignore") {}
+                            else { dde_error("serial_onReceiveCallback got invalid capture_extras value of: " + info.capture_extras) }
                         }
-                        else if (info.capture_extras == "capture"){
-                            serial_send_extra_item_to_job(item, info.path, false, info) //false means everything ok
-                        }
-                        else if (info.capture_extras == "error"){
-                            serial_send_extra_item_to_job(item, info.path, true, info) //true means job should error
-                        }
-                        else if (info.capture_extras == "ignore") {}
-                        else { dde_error("serial_onReceiveCallback got invalid capture_extras value of: " + info.capture_extras) }
                     }
                 }
             }
             else if (typeof(delim) == "number"){
                 str = info.pending_input + str //pending_input will never contain a delim
                 info.pending_input = "" //we're using it, so makes this empty, just so there's no using pending twice.
-                if (str === "") { //we do have a real delimter, but no delimiter in the input str and no chars so this is a no_op
-                }
+                if (str === "") {}//we do have a real delimter, but no delimiter in the input str and no chars so this is a no_op
                 else {
                     while(true){
                         if (str.length >= delim){

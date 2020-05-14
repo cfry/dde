@@ -745,6 +745,8 @@ static submit_window(event){
     for (var i = 0; i < textareas.length; i++){
         var inp = textareas[i]
         var in_name = inp.name
+        if (!in_name) { in_name = inp.id }
+        //if (!in_name) { in_name = inp.value } //unlike input, textarea does not have a value attribute
         if (in_name){
             var val = inp.value
             if (trim_strings) { val = val.trim() }

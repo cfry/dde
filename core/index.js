@@ -144,6 +144,7 @@ var {SerialPort, serial_connect, serial_connect_low_level,
 
 var {close_readline, set_keep_alive_value, write_to_stdout} = require("./stdio.js")
 
+var {Messaging} =  require("./messaging.js")
 global.keep_alive_value = false
 global.Brain    = Brain
 global.Dexter   = Dexter

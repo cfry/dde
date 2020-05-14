@@ -571,7 +571,7 @@ The below works even though the topic "/junk2" has never been seen before.
 rde.publish = function(topic, message_type, message){
     //topic:        a string like '/cmd_vel'
     //message_type: a string like 'geometry_msgs/Twist'  or 'std_msgs/String'
-    //messsage:     usually js obj ie {x: 11, y: 12, z: 13}
+    //message:     usually js obj ie {x: 11, y: 12, z: 13}
     init_ros_service_if_url_changed()
     var pubcmd = new ROSLIB.Topic({
         ros : ros,
