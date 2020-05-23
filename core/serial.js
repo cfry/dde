@@ -325,7 +325,6 @@ function serial_make_default_robot_status_maybe(info){
 
 function serial_onReceiveCallback(info_from_board, path) { //if there's an error, onReceiveErrorCallback will be called instead
     //out("top of serial_onReceiveCallback")
-    debugger;
     if (info_from_board.length) { //info.connectionId == expectedConnectionId &&
         //let str = convertArrayBufferToString(info_from_board.buffer, info_from_board.length); //note that if aruino program
         let str = info_from_board.toString()
