@@ -602,7 +602,7 @@ class Vector{
 		return Vector.subtract(vector, Vector.multiply(term1 / term2, short_plane))
 	}
 
-    static project_point_onto_linepoint(line_point_1, line_point_2){
+    static project_point_onto_line(point, line_point_1, line_point_2){
     	let U1a = line_point_1
         let U1b = point
         let U2a = line_point_1

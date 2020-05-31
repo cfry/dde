@@ -2,7 +2,7 @@
 //Inverse Kinematics + Forward Kinematics + supporting functions
 //James Wigglesworth
 //Started: 6_18_16
-//Updated: 1_29_19
+//Updated: 5_25_20
 
 
 /*
@@ -863,6 +863,8 @@ class Kin{
         	ForceXYZ = Vector.project_point_onto_line(F[0], lineYZa, lineYZb)
         }
         
+        ForceXYZ[1] *= -1
+        ForceXYZ[2] *= -1
         return ForceXYZ
     }
     /*
@@ -1852,5 +1854,4 @@ Kin.J_angles_to_xyz(Kin.xyz_to_J_angles([0.1, .5, .3]))
 
 
 */
-
 
