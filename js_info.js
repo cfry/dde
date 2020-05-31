@@ -101,6 +101,11 @@ Js_info = class Js_info {
             else if(bounds_of_identifier && (full_src[bounds_of_identifier[1]] == ":")) { //got keyword
                 return '<span style="color: blue;">' + fn_name + ":</span> looks like a keyword for making an object or a function call."
             }
+            else if(orig_input.startsWith("Messaging.")) { //because lots of erms like Messaging.eval
+                //have the "eval" part in another series. So before doing the series test,
+                //to this test and work around it.
+                return Js_info.get_info_string_aux(orig_input, full_src, pos)
+            }
             else if(series){
                 let obj_to_inspect = this.object_to_inspect_maybe(fn_name, series)
                 if(typeof(obj_to_inspect) == "string"){

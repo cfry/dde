@@ -15,10 +15,13 @@ function onclick_for_click_help(event) {
     //normal click help
     var full_src = event.target.value
     if (full_src) {
-        if(full_src.length > 0){
-            var pos = event.target.selectionStart
-            Editor.show_identifier_info(full_src, pos, event.target)
+        if(typeof(full_src) == "string"){
+            if(full_src.length > 0){
+                var pos = event.target.selectionStart
+                Editor.show_identifier_info(full_src, pos, event.target)
+            }
         }
+        //else do nothing
     }
     else {
         full_src = window.getSelection().focusNode

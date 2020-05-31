@@ -8,8 +8,8 @@
 
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version: <span id="dde_version_id">3.5.9</span><br/>
-    released: <span id="dde_release_date_id">May 14, 2020</span>
+    version: <span id="dde_version_id">3.5.10</span><br/>
+    released: <span id="dde_release_date_id">May 30, 2020</span>
     <p></p>
     DDE helps you create, debug, and send software to a Dexter robot.
     You can use any JavaScript augmented with DDE-specific functions to help find out about,
@@ -627,6 +627,22 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
         Many of these are unnecessary or trivial formatting issues that will
         not affect running the code. If the code doesn't Eval, look at the red dots and their
         tooltips for clues.
+        <details class="doc_details"><summary>Click, Select, Drag</summary>
+        <ul>
+            <li>If you click anywhere in the editor, you'll get "click help" printed in the Output pane
+                about the code you clicked on.</li>
+            <li>If you double click, it will select the "word" under the mouse.</li>
+            <li>If you triple click, it will select the whole line under the mouse.</li>
+            <li>You can drag a selection of text to a new location.
+                On MacOS: mouse down on the selection and hold on that selected text.
+                Then drag it to a new location. A cursor shows you the new location.
+                When you release the mouse, the text will be moved from its original location
+                to the new location.<br/>
+                On WinOS: Mouse down then up then down and hold. Now you can drag the
+                text to a new location. Mouse up to "drop it off".
+            </li>
+        </ul>
+        </details>
     </details>
     <details id="output_pane_doc_id" class="doc_details"><summary>Output Pane</summary>
         DDE prints information in the Output pane that will be useful in your current context.

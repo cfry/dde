@@ -17,6 +17,7 @@ function format_text_for_code(text, code=null){
     }
     return text
 }
+module.exports.format_text_for_code = format_text_for_code
 
 /*
  StackTrace.get(function(sf){

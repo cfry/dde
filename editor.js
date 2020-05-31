@@ -46,7 +46,7 @@ Editor.init_editor = function(){
                     "Alt-Down":   Series.ts_or_replace_sel_down,
                     "Ctrl-E": eval_button_action, //the correct Cmd-e doesn't work
                     "Ctrl-J": Editor.insert_new_job,
-                    "Ctrl-O": Editor.open,
+                    "Ctrl-O": Editor.open_on_dde_computer,
                     "Ctrl-N": Editor.edit_new_file,
                     "Ctrl-S": Editor.save //windows
                     } : //Mac
@@ -58,7 +58,7 @@ Editor.init_editor = function(){
                      "Cmd-E": eval_button_action, //the correct Cmd-e doesn't work
                      "Cmd-J": Editor.insert_new_job,
                      "Cmd-N": Editor.edit_new_file,
-                     "Cmd-O": Editor.open,
+                     "Cmd-O": Editor.open_on_dde_computer,
                      "Cmd-S": Editor.save, //mac
 
                     })
@@ -104,7 +104,18 @@ Editor.init_editor = function(){
                         myCodeMirror.focus()
                         cmd_input_clicked_on_last = false
                     })
+    myCodeMirror.getDoc().on("change", Editor.mark_as_changed)
 }
+
+Editor.mark_as_changed = function(){
+    editor_needs_saving_id.innerHTML = "*"
+}
+Editor.unmark_as_changed = function(){
+    editor_needs_saving_id.innerHTML = "&nbsp;"
+}
+//var myCodeMirrorDoc = myCodeMirror.getDoc()
+
+//myCodeMirrorDoc.on("change", Editor.mark_as_changed)
 
 //used both from JS pane Edit menu undo item AND by App builder (called from sandbox))
 Editor.undo = function(){ myCodeMirror.getDoc().undo() }
@@ -795,14 +806,26 @@ Editor.edit_file_aux = function(path, content){
                 //show up in the editor.
             //Editor.current_file_path = path
         }
+        Editor.unmark_as_changed()
 }
 
-Editor.save_current_file = function(){
+//if callback is not passed in, then no callback will be called.
+//callback is used in ready.js in eval_button_action when we are saving the file
+//because save_on_eval is checked. In that case, if we
+//call eval and it gets into an infintite loop, the file will be
+//'initialize' ie emptyed, but usually no content it written.
+//then when we quit the inifitne loop by killing electron,
+//the file is empty and we lose when we reinit.
+//so by passing in a callback that doesn't start the actual eval
+//until after the file is properly saved, we can keep our content,
+//quit the infinite loop, relaunch DDE and have our old content, just as we want it.
+Editor.save_current_file = function(callback){
         //out("Saved: " + Editor.current_file_path)
-        write_file_async(Editor.current_file_path, Editor.get_javascript())
+        write_file_async(Editor.current_file_path, Editor.get_javascript(), undefined, callback)
+        Editor.unmark_as_changed()
 }
 
-/* com mented out may 5, 2020 becuase I suspect that
+/* commented out may 5, 2020 becuase I suspect that
 the current file is attempted to be saved and the process
 is started, but it just writes out an empty file,
 then starts to fill it up but before it even adds a char,
@@ -842,6 +865,7 @@ function save_as_cb(vals){
         let dex_name = vals.clicked_button_value
         setTimeout(function() {Editor.save_on_dexter_computer(dex_name)}, 10)
     }
+    Editor.unmark_as_changed()
 }
 
 Editor.save_as = function(){ //also called by onclick save
@@ -873,6 +897,7 @@ Editor.save_on_dde_computer = function(){
         Editor.current_file_path = path
         Editor.remove("new buffer") //if any
         myCodeMirror.focus()
+        Editor.unmark_as_changed()
     }
 }
 
@@ -887,6 +912,7 @@ function save_on_dexter_computer_show_window_cb(vals) {
     Editor.current_file_path = path
     Editor.remove("new buffer") //if any
     myCodeMirror.focus()
+    Editor.unmark_as_changed()
 }
 
 //dex_name can be of format "dexter0"  or "Dexter.dexter0"

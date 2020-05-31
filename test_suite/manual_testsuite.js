@@ -1,3 +1,12 @@
+
+
+Messaging.eval({source: "2 + 3",
+callback: function(aa){out(aa)}
+, to: "kb",
+ resend: true})
+
+
+
 These tests can't be performed by the automatic test system.
 Each is ideosyncratic in how "success" is measured.
 See the comments.
@@ -122,3 +131,38 @@ See the help about calling undebug_job() in the console and Out pane.
         IO.out("three"),
     ]
 })
+
+var foo = {a: 11}
+delete foo.a
+
+Messaging____
+Messaging.login_test_trials = 10  //constant
+Messaging.login_test_trials_done = 0
+Messaging.login_test_start_ms = 0
+Messaging.login_durs = []
+
+Messaging.login_user_callback = function(res){
+   let dur = Date.now() - Messaging.login_test_start_ms
+   Messaging.login_durs.push(dur)
+   out("Messaging.login_user_callback got statusCode: " + res.statusCode + ", dur_ms: " + dur)
+   if(Messaging.login_test_trials_done >= Messaging.login_test_trials){ //all done
+       let total_dur = Messaging.login_durs.reduce(function(acc, cur) { return acc + cur })
+       let avg_dur = total_dur / Messaging.login_test_trials
+       out("Messaging.login_test completed: " +
+           Messaging.login_test_trials_done + " trials." +
+           ", avg round trip dur: " + avg_dur)
+       //prepare for next set of trials  
+       Messaging.login_test_trials_done = 0 
+       Messaging.login_durs = []
+   }
+   else { Messaging.login_test() }
+}
+
+Messaging.login_test = function(){
+    out("Messaging.login_test starting test: " + Messaging.login_test_trials_done)
+	Messaging.is_logged_in = false
+    Messaging.login_test_start_ms = Date.now()
+	Messaging.login({user: "kb", pass: "Argh666"}) 
+    Messaging.login_test_trials_done += 1
+}
+Messaging.login_test() //run the tests

@@ -864,6 +864,7 @@ module.exports.function_param_names = function_param_names
 function params_string_to_param_names(params_full_string){
     if (params_full_string.startsWith("(")) {params_full_string = params_full_string.substring(1)}
     if (params_full_string.endsWith(")"))   {params_full_string = params_full_string.substring(0, params_full_string.length - 1)}
+    params_full_string = remove_comments(params_full_string)
     var params_and_defaults_array = params_full_string.split(",")
     var param_names = []
     for(var param_and_default of params_and_defaults_array){
@@ -1044,13 +1045,47 @@ function param_names_get_default_val_src(full_string, ast){
     return full_string.substring(ast.range[0], ast.range[1])
 }
 
-
+function remove_comments(a_string) {
+    while(true){
+        let start_index = a_string.indexOf("/*")
+        let end_index
+        if(start_index !== -1) {
+            end_index = a_string.indexOf("*/")
+            if(end_index !== -1){
+                a_string = a_string.substring(0, start_index) + a_string.substring(end_index + 2)
+            }
+            else {
+                a_string = a_string.substring(0, start_index) //nothing left in string so stop
+                break;
+            } //remove all the way to the end. Not always right, but the string is screwed up anyway.
+        }
+        else {
+            start_index = a_string.indexOf("//")
+            if(start_index !== -1) {
+                end_index = a_string.indexOf("\n", start_index)
+                if(end_index !== -1){
+                    a_string = a_string.substring(0, start_index) + a_string.substring(end_index + 1)
+                }
+                else {
+                    a_string = a_string.substring(0, start_index) //nothing left in string so stop
+                    break;
+                } //remove all the way to the end. Not always right, but the string is screwed up anyway.
+            }
+            else { break; } //no more comments to remove
+        }
+    }
+    return a_string
+}
 //only called in this file.
 //params_full_string can either be wrapped in parens or not
 //returns an array of 2 elt arrays, name and default val.
 function params_string_to_param_names_and_defaults(params_full_string){
     if (params_full_string.startsWith("(")) {params_full_string = params_full_string.substring(1)}
     if (params_full_string.endsWith(")"))   {params_full_string = params_full_string.substring(0, params_full_string.length - 1)}
+    params_full_string = remove_comments(params_full_string).trim()
+    if (params_full_string.startsWith("{")) {params_full_string = params_full_string.substring(1)}
+    if (params_full_string.endsWith("}"))   {params_full_string = params_full_string.substring(0, params_full_string.length - 1)}
+
     var params_and_defaults_array = params_full_string.split(",")
     var param_names = []
     for(var param_and_default of params_and_defaults_array){
@@ -1498,7 +1533,7 @@ function stringify_value_aux(value, job, depth=0){
         let constructor_name = value.constructor.name
         if (constructor_name != "Object") { result += "class: " + constructor_name + ",<br/>"}
         let prop_names = Object.getOwnPropertyNames(value) //long objects like cv cause problems
-        for (var prop_index = 0; prop_index < Math.min(prop_names.length, 6); prop_index++) {
+        for (var prop_index = 0; prop_index < Math.min(prop_names.length, 100); prop_index++) {
             let prop_name = prop_names[prop_index]
             let prop_val = value[prop_name]
             if(prop_name == "devToolsWebContents") {} //causes error so just ignore this rare item. occurs in electron BrowserWindow instances

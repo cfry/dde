@@ -43,7 +43,19 @@
     //called by both the eval button and the step button
     function eval_button_action(step=false){ //used by both clicking on the eval button and Cmd-e
         if(step instanceof CodeMirror) { step = false } //means Cmd E was typed in the editor and we don't want to step in this case
-        if((Editor.current_file_path != "new buffer") && persistent_get("save_on_eval")) { Editor.save_current_file() }
+        if((Editor.current_file_path != "new buffer") && persistent_get("save_on_eval")) {
+            Editor.save_current_file(function(err) {
+                if(err) {
+                    dde_error("In eval_button_action, got error while auto-saving file of: " + err.message)
+                }
+                else {
+                    eval_button_action_aux(step)
+                }
+            })
+        }
+        else { eval_button_action_aux(step) }
+    }
+    function eval_button_action_aux(step){
         eval_js_part1(step)
         //if (Editor.view == "Blocks") {
         eval_id.blur()
@@ -115,7 +127,7 @@
         Dexter.class_init()
         setTimeout(function(){
             window.document.title = "Dexter Development Environment " + dde_version
-            //dde_version_id.innerHTML      = dde_version //do this by hand because these automatic values are NOT getting display in this doc's version on hdrobotic.com/software
+            //dde_version_id.innerHTML      = dde_version //do this by hand because these matic values are NOT getting display in this doc's version on hdrobotic.com/software
             //dde_release_date_id.innerHTML = dde_release_date
         }, 1000)
    // window.$ = require('jquery'); //Now done in index.html   after doing npm install --save jquery, we still need this

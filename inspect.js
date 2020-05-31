@@ -151,7 +151,7 @@ function inspect_aux(item, stack_number, in_stack_position, increase_max_display
                         break;
                     }
                     else {
-                        var prefix = "&nbsp;"
+                        let prefix = "&nbsp;"
                         if (prop_name == 0) { prefix = "" }
                         let prop_val = item[prop_name]
                         let prop_val_string = inspect_one_liner(prop_val, stack_number, in_stack_position, prop_name)
@@ -161,6 +161,43 @@ function inspect_aux(item, stack_number, in_stack_position, increase_max_display
                 }
                 result += "]"
             }
+        }
+        else if (item instanceof HTMLElement) {
+            title = "An HTML DOM Element of " + item.tagName
+            result = "{"
+            //https://developer.mozilla.org/en-US/docs/Web/API/NamedNodeMap
+            let attrs = item.attributes
+            for(let i = 0; i <attrs.length; i++){
+                let attr = attrs[i]
+                let prefix = "&nbsp;"
+                if (i == 0) { prefix = "" }
+                let prop_name = attr.name
+                let prop_val  = attr.value
+                //like array elements above:
+                let prop_val_string = inspect_one_liner(prop_val, stack_number, in_stack_position, prop_name)
+                prop_val_string = inspect_prop_val_string_exceptions(item, prop_name, prop_val, prop_val_string)
+                result += prefix + "<i>" + prop_name + "</i>: " + prop_val_string + "<br/>\n"
+            }
+            /*var children_array = Array.prototype.slice.call( item.children ) //converts HTMLCollection into an array
+            let prop_name = "children"
+            let prop_val  = children_array
+            //like array elements above:
+            let prop_val_string = inspect_one_liner(prop_val, stack_number, in_stack_position, prop_name)
+            prop_val_string = inspect_prop_val_string_exceptions(item, prop_name, prop_val, prop_val_string)
+            result += "&nbsp;" + "<i>" + prop_name + "</i>: " + prop_val_string + "<br/>\n"
+            */
+            attrs = Array.prototype.slice.call( item.children ) //converts HTMLCollection into an array
+            for(let i = 0; i < attrs.length; i++){
+                let attr = attrs[i]
+                let prop_name = "child " + i //attr.name
+                let prefix = "&nbsp;"
+                let prop_val  = attr
+                //like array elements above:
+                let prop_val_string = inspect_one_liner(prop_val, stack_number, in_stack_position, prop_name)
+                prop_val_string = inspect_prop_val_string_exceptions(item, prop_name, prop_val, prop_val_string)
+                result += prefix + "<i>" + prop_name + "</i>: " + prop_val_string + "<br/>\n"
+            }
+            result += "}"
         }
         else if ((the_type == "function") &&
             out.constructor &&

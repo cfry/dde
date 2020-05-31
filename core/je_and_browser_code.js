@@ -226,25 +226,27 @@ static close_all_show_windows(){
 //if you change, this, also change sw_make_title_html
 static get_show_window_title(sw_elt){
     let title_elt = sw_elt.firstChild
-    let html = title_elt.innerHTML //warning: includes the buttons
-    let pos  = html.indexOf("sw_close(")
-    pos = html.lastIndexOf("<button", pos)
-    let title = html.substring(0, pos)
+    let title = title_elt.firstChild.textContent
+    //let html = title_elt.innerHTML //warning: includes the buttons
+    //let pos  = html.indexOf("sw_close(")
+    //pos = html.lastIndexOf("<button", pos)
+    //let title = html.substring(0, pos)
     return title
 }
 
-//might return an empty array
+//might return an empty array, or one containing show_window dom elements.
 static windows_of_title(title){
     //return document.querySelectorAll('[data-show_window_title="' + title + '"]') //fails if there's HTML in the title
     let result = []
     for(let sw_elt of this.all_show_windows()){
-        if(this.get_show_window_title(sw_elt) == title) { result.push(sw_elt) }
+        let a_title = this.get_show_window_title(sw_elt)
+        if(a_title == title) { result.push(sw_elt) }
     }
     return result
 }
 
 static close_windows_of_title(title){
-    sw_win_elts = this.windows_of_title(title)
+    let sw_win_elts = this.windows_of_title(title)
     for(let win_elt of sw_win_elts){
         this.sw_close(win_elt)
     }
@@ -256,7 +258,7 @@ static latest_window_of_title(title){
     let win_elts = this.windows_of_title(title)
     let max_index = -1
     let max_elt = null
-    for(win_elt of win_elts){
+    for(let win_elt of win_elts){
         let index = this.get_index_of_window(win_elt)
         if(index > max_index) {
             max_index = max_index
@@ -839,7 +841,12 @@ static submit_window(event){
         if (typeof(err) == "string") { err_string = err } //weiredly this DOES happen sometimes
         else if (err.message) { err_string = err.message }
         else { err_string = err.toString() }
-        dde_error("While calling the show_window handler function of<code>: " + cb.name + "</code>,<br/>" + err_string)
+        let fn_name = cb.name
+        if(fn_name == "") { fn_name = cb.toString() } //ie some anonymous fn
+        let arg_string = JSON.stringify(result)
+        arg_string = replace_substrings(arg_string, ",", "<br/>")
+        dde_error("While calling the show_window handler function of:<br/><code>" + fn_name + "</code>,<br/>" +
+                  "passed:<br/>" + arg_string + "<br/>" + err_string)
     }
     event.preventDefault()
     event.stopPropagation()

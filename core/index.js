@@ -1,4 +1,8 @@
-console.log("Read electron_dde/core/job_engine_doc.txt for how to use the Job Engine.\n")
+global.dde_version = "3.5.10"
+global.dde_release_date = "May 30, 2020"
+
+console.log("dde_version: " + global.dde_version + " dde_release_date: " + global.dde_release_date +
+            "\nRead electron_dde/core/job_engine_doc.txt for how to use the Job Engine.\n")
 
 console.log("in file: " + module.filename)
 function node_on_ready() {
@@ -132,7 +136,7 @@ var {Instruction, make_ins, human_task_handler, human_enter_choice_handler,
 var {Control} = require("./instruction_control.js")
 var {IO}      = require("./instruction_io.js")
 require("./je_and_browser_code.js") // must be before loading out.js as it defines SW used by out.js
-var {speak, show_window, beeps, beep}  = require("./out.js")
+var {beep, beeps, format_text_for_code, speak, show_window}  = require("./out.js")
 var calibrate_build_tables = require("../low_level_dexter/calibrate_build_tables.js")
 var DXF    = require("../math/DXF.js")
 var {init_units} = require("./units.js")
@@ -144,7 +148,7 @@ var {SerialPort, serial_connect, serial_connect_low_level,
 
 var {close_readline, set_keep_alive_value, write_to_stdout} = require("./stdio.js")
 
-var {Messaging} =  require("./messaging.js")
+var {Messaging, MessStat} =  require("./messaging.js")
 global.keep_alive_value = false
 global.Brain    = Brain
 global.Dexter   = Dexter
@@ -153,10 +157,12 @@ global.Robot    = Robot
 global.RobotStatus = RobotStatus
 
 global.make_ins = Dexter.make_ins
+
+global.beep     = beep
+global.beeps    = beeps
+global.format_text_for_code = format_text_for_code
 global.speak    = speak
 global.show_window = show_window
-global.beeps    = beeps
-global.beep     = beep
 
 global.Instruction = Instruction
 global.human_task_handler = human_task_handler

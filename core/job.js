@@ -142,6 +142,19 @@ class Job{
         else                               { this.name = name }
         this.robot = robot
         this.user_data       = user_data //needed in case we call to_source_code before first start of the job
+                                         //this also has the desirable property, that if we define the job,
+                                         //then set a user data variable in it ie Job.my_job.user_data.foo = 2,
+                                         //that that will get into the org_args.user_data.foo and then
+                                         //when we start the job, the "copying out of the user data from orig_args will
+                                         //have the user_data.foo2, and start will pick that up and set Job.my_job.user_data
+                                         //to the obj with foo = 2 at the start of the job.
+                                         //now if during the course of the job,we eval  Job.my_job.user_data.bar=3, ok
+                                         //that bar is in the user data for the rest of the job and when it ends.
+                                         //NOW if we restart that same job, it will have in user data ONLY foo=2,
+                                         //not bar=3. This is good as we want to reinit the job, but foo=2 is really
+                                         //"part of the def". (until we redefine the job from its source!
+                                         //Messaging.set_variable takes advantage of this if Job is not running when
+                                         //Messaging.set_variable is called.
         this.program_counter = program_counter //this is set in start BUT, if we have an unstarted job, and
                              //instruction_location_to_id needs access to program_counter, this needs to be set
         this.highest_completed_instruction_id = -1 //same comment as for program_counter above.
@@ -396,7 +409,8 @@ class Job{
         }
         //init from orig_args
             this.set_status_code("starting") //before setting it here, it should be "not_started"
-            this.init_do_list(options.do_list)
+            //this.init_do_list(options.do_list)
+            this.do_list                 = this.orig_args.do_list
             this.callback_param          = this.orig_args.callback_param
             this.keep_history            = this.orig_args.keep_history
             this.show_instructions       = this.orig_args.show_instructions
@@ -422,8 +436,8 @@ class Job{
                 if (options.hasOwnProperty(key)){
                     let new_val = options[key]
                     //if (key == "program_counter") { new_val = new_val - 1 } //don't do. You set the pc to the pos just before the first instr to execute.
-                    if      (key == "do_list")    { continue; } //flattening & setting already done by init_do_list
-                    else if (key == "user_data")  { new_val = shallow_copy_lit_obj(new_val) }
+                    //if      (key == "do_list")    { continue; } //flattening & setting already done by init_do_list
+                    if      (key == "user_data")  { new_val = shallow_copy_lit_obj(new_val) }
                     else if (key == "name")       {} //don't allow renaming of the job
                     else if ((key == "when_stopped") &&
                              !Job.is_plausible_when_stopped_value(new_val)) {
@@ -437,6 +451,7 @@ class Job{
                     warning("Job.start passed an option: " + key + " that is unknown. This is probably a mistake.")
                 }
             }
+            this.init_do_list()
 
             let maybe_symbolic_pc = this.program_counter
             this.program_counter = 0 //just temporarily so that instruction_location_to_id can start from 0
@@ -2461,9 +2476,8 @@ Job.prototype.ilti_backward = function(inst_loc, starting_id, use_orig_do_list=f
 //see also Job.insert_instruction and Job.prototype.do_list_to_html_aux
 
 //called by Job.start
-Job.prototype.init_do_list = function(new_do_list=undefined){
-    if(!new_do_list) { new_do_list = this.orig_args.do_list }
-    this.do_list           = Job.flatten_do_list_array(new_do_list) //make a copy in case the user passes in an array that they will use elsewhere, which we wouldn't want to mung
+Job.prototype.init_do_list = function(){
+    this.do_list           = Job.flatten_do_list_array(this.do_list) //make a copy in case the user passes in an array that they will use elsewhere, which we wouldn't want to mung
     for(let instr of this.do_list) {
         if (instr instanceof Instruction) {
             instr.init_instruction()   //needed for wait_until and loop at least

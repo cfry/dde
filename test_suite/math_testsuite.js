@@ -157,3 +157,16 @@ new TestSuite("Vector Library - Matrix Math",
     ["Vector.concatinate(1, [1, 2, 3], [4, 5, 6])", "[1, 2, 3, 4, 5, 6]"],
     ["Vector.concatinate(1, [[1, 1], [2, 2], [3, 2]], [[4], [5], [6]])", "[[1, 1, 4], [2, 2, 5], [3, 2, 6]]"]
 )
+
+new TestSuite("Vectorproject_point_onto_line",
+    ["Vector.project_point_onto_line([1, 2, 3], [0, 0, 0], [10, 0, 0])", "[1, 0, 0]"],
+    ["Vector.project_point_onto_line([1, 2, 3], [0, 0, 0], [0, 10, 0])", "[0, 2, 0]"],
+    ["Vector.project_point_onto_line([1, 2, 3], [0, 0, 0], [0, 0, 10])", "[0, 0, 3]"],
+    ["Vector.project_point_onto_line([1, 2, 3], [0, 0, 0], [10, 10, 0])", "[1.5, 1.5, 0]"]
+)
+
+new TestSuite("Kin.three_torques_to_force",
+    ["Kin.three_torques_to_force([0, 0, 90, 0, 0], [0, 0, 0])", "[0, 0, 0]"],
+    ["Kin.three_torques_to_force([0, 0, 90, 0, 0], [30*_N*_m, 0, 0])", "[81.74386920980926, 0, 0]"],
+    ["Kin.three_torques_to_force([0, 0, 90, 0, 0], [0, 30*_N*_m, 30*_N*_m])", "[0, -2.842170943040401e-14, -81.74386920980926]"]
+)

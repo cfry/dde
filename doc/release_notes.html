@@ -6,6 +6,80 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 3.5.10, May 30, 2020</summary>
+Highlights: Bugs fixed in serial port, the "out" function, Job.start,
+    show_window, click-help,
+    Vector.project_point_onto_line, Kin.three_torques_to_force,
+    Editor keystroke: ctrl-O (for open), Editor coloring JavaScript keywords.<br/>
+    Editor now displays "unsaved" state.<br/>
+    Inspector works on HTML DOM elements.
+<ul>
+    <li> serial.js fixed bugs in <code>serial_onReceiveCallback</code></li>
+
+    <li> Respelled serial_devicies_async_callback_default to
+         <code>serial_devices_async_callback_default</code></li>
+
+    <li> DDE buttons now look more like buttons: rounded corners, outset border shading,
+         hover border color to let you know you're really on the button.</li>
+
+    <li> Improved Job.start and Job.init_do_list to better handle a new do_list
+         passed in to <code>Job.start</code>'s options.</li>
+
+    <li> Fixed the <code>out</code> function argument of "code" to properly print in
+         the HTML <code>code</code> font.</li>
+
+    <li> Extended User Guide/Editor Pane with "Click, Select, Drag" section now containing:
+        <ul>
+            <li>If you click anywhere in the editor, you'll get "click help" printed in the Output pane
+                about the code you clicked on.</li>
+            <li>If you double click, it will select the "word" under the mouse.</li>
+            <li>If you triple click, it will select the whole line under the mouse.</li>
+            <li>You can drag a selection of text to a new location.
+                On MacOS: mouse down on the selection and hold on that selected text.
+                Then drag it to a new location. A cursor shows you the new location.
+                When you release the mouse, the text will be moved from its original location
+                to the new location.<br/>
+                On WinOS: Mouse down then up then down and hold. Now you can drag the
+                text to a new location. Mouse up to "drop it off".
+            </li>
+        </ul>
+    </li>
+
+    <li> Fixed bug in <code>Vector.project_point_onto_line</code>
+         of misspelling of Vector.project_point_onto_linepoint.</li>
+
+    <li> Fixed a bug in <code>Kin.three_torques_to_force</code> with
+         sign error in y and z.</li>
+
+    <li> new TestSuites for <code>Vector.project_point_onto_line</code> and
+         <code>Kin.three_torques_to_force</code>.</li>
+
+    <li> Vastly improved error message for when a show_window callback errors.</li>
+
+    <li> Fixed on Mac & windows ctrl-O (for open)</li>
+
+    <li> Now the editor pane colors JS keywords  such as
+        "return", "function", "debugger" purple like it use to in DDE version 2.</li>
+
+    <li> in dde editor, put a "*" to the left of the file name in the Editor Header
+    to indicate that the file needs savings.</li>
+
+    <li> show_window fixed bug in <code>SW.get_show_window_title</code> which also fixes a bug in
+         <code>SW.windows_of_title</code></li>
+
+    <li> inspector can now inspect HTML DOM Elements.</li>
+
+    <li> click_help onclick_for_click_help now protects against getting a "full_src" that isn't a string.</li>
+
+    <li> Fix for <code>params_string_to_param_names_and_defaults</code>
+         when clicking on certain fn calls with keyword args.</li>
+
+    <li> Job engine: now defines global vars: <code>dde_version</code> and <code>dde_release_date</code>.
+        Previously these vars were defined in DDE proper only.
+        They are printed to the console when index.js (the job_engine) is loaded.</li>
+    </ul>
+</details>
+
 <details class="doc_details"><summary>v 3.5.9, May 14, 2020</summary>
 Highlights: bug fixes.
 <ul>

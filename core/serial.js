@@ -65,7 +65,7 @@ function serial_devices(){
 }
 module.exports.serial_devices = serial_devices
 
-function serial_devicies_async_callback_default(err, ports){
+function serial_devices_async_callback_default(err, ports){
     if(err) {
         dde_error("serial_devices_async errored with: " + err.message)
     }
@@ -74,7 +74,7 @@ function serial_devicies_async_callback_default(err, ports){
     }
 }
 
-function serial_devices_async(callback = serial_devicies_async_callback_default){
+function serial_devices_async(callback = serial_devices_async_callback_default){
     SerialPort.list(callback)
 }
 
@@ -291,7 +291,7 @@ on the start or end respectively.
 */
 
 function onReceiveCallback_low_level(info_from_board, path){ //if there's an error, onReceiveErrorCallback will be called instead
-    if (info_from_board.buffer) { //info.connectionId == expectedConnectionId &&
+    if (info_from_board.buffer) {
         let number_of_new_chars_on_end = info_from_board.length //length in chars.
         let total_str = convertArrayBufferToString(info_from_board.buffer);
         //note that if an arduino program has:
@@ -326,9 +326,9 @@ function serial_make_default_robot_status_maybe(info){
 
 function serial_onReceiveCallback(info_from_board, path) { //if there's an error, onReceiveErrorCallback will be called instead
     //out("top of serial_onReceiveCallback")
-    if (info_from_board.buffer) { //info.connectionId == expectedConnectionId &&
+    if (info_from_board.length) { //info_from_board.buffer
         //let str = convertArrayBufferToString(info_from_board.buffer, info_from_board.length); //note that if aruino program
-        let str = info_from_board.toString().substring(0, info_from_board.length)
+        let str = info_from_board.toString() //.substring(0, info_from_board.length)
         //str should now have in it the NEW chars sent from the serial port.
 
         //has Serial.println("turned off1"); int foo = 2 + 3; Serial.println("turned off2");
@@ -372,7 +372,7 @@ function serial_onReceiveCallback(info_from_board, path) { //if there's an error
                     info.pending_input += str
                     while(true) {
                         let delim_index = info.pending_input.indexOf(delim);
-                        if(delim == -1) { break; } // no "full" items in the pending input so break now and wait for more data from the serial port
+                        if(delim_index == -1) { break; } // no "full" items in the pending input so break now and wait for more data from the serial port
                         else { //at least one more full item in pending_input. grab it!
                             let item = info.pending_input.substring(0, delim_index)
                             info.pending_input = info.pending_input.substring(delim_index + delim.length)
