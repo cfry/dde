@@ -6,6 +6,55 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 3.5.11, Jun 16, 2020</summary>
+Highlights: Inspector extended with 2D capability for arrays of objects.
+            WinOS: fix for tiny window on launch and workaround documentented for
+                 installation hang bug.
+            Serial port fix, and many others.
+<ul>
+    <li> Fixed bug in TestSuite for <code>Vectorproject_point_onto_line</code> </li>
+
+    <li> Documented <code>Control.start_job</code>'s if_started parameter's default.</li>
+
+    <li> <code>Control.start_job</code> added: "running_when_stopped" processing.</li>
+
+    <li> <code>Control.stop_job</code> fixed bug wherein a job that has
+         when_stopped="wait" and
+         a Control.stop_job didn't, in fact, stop.
+         New TestSuite test added for it.</li>
+
+    <li> Inspecting a array of literal objects now can be displayed as a 2D table.</li>
+
+    <li> Inspecting arrays now has a "2D" checkbox to toggle 2D vs 1D display formats.</li>
+
+    <li> When DDE is launched, the Output pane now includes:<br/>
+          "For help on using DDE, click ? in the upper right."</li>
+
+    <li> On DDE launch, changed the printout:
+         "The latest beta version" to "The latest public beta version"
+         as that's more accurate.</li>
+
+    <li> Test menu/Navigation/* fixed keystroke designations on MacOS from "Alt-" to "Opt-".</li>
+
+    <li> Fix for DDE coming up as a tiny window in WinOS.</li>
+
+    <li> The install bug for Windows 10 of ""Installing, please wait..." forever.
+         Documented workaround in User Guide/Installation/Windows OS Problems/Install Hang Bug
+        and Github DDE Issues.</li>
+
+    <li> <code>Human.notify</code> instruction has a new parameter:
+        close_same_titled_windows.
+       Like its same-named parameter in <code>show_window</code>
+        except that the default is <code>false</code>.</li>
+
+    <li> serial port:  Now caches the port object so that at most,
+         only one is created for a path in a given DDE session.</li>
+
+    <li> <code>serial_disconnect_all</code> now documented under Ref Man/Robot/Serial/Low Level Serial/
+    </li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.5.10, May 30, 2020</summary>
 Highlights: Bugs fixed in serial port, the "out" function, Job.start,
     show_window, click-help,

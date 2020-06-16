@@ -98,7 +98,7 @@ function eval_js_part1(step=false){
             render_html(src)
         }
         else {
-            eval_js_part2((step? "debugger; ": "") + src)
+            eval_js_part2((step? "debugger; ": "") + src) //LEAVE THIS IN RELEASED CODE
         }
     }
 }

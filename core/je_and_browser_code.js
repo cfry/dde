@@ -456,11 +456,11 @@ static sw_ondragenter(event) {
 
 //"this" is body_id
 static sw_drop(event){
-    console.log("got drop")
+    //onsole.log("got drop")
     event.preventDefault();
     event.stopPropagation()
     let data = event.dataTransfer.getData("sw_id")
-    console.log("sw_drop got data: " + data)
+    //onsole.log("sw_drop got data: " + data)
     let [sw_elt_id, left, top] = data.split(",")
     event.dataTransfer.clearData("sw_id") //doesn't prevent inserting of the data into the editor
     let show_window_elt_being_dragged = body_id.querySelector("#" + sw_elt_id) //window[sw_elt_id]
@@ -468,8 +468,8 @@ static sw_drop(event){
     //show_window_elt_being_dragged = show_window_elt_being_dragged.closest("DIALOG") ////in browser, this is the sw dialog. In DDE this is null
     let new_x = (event.clientX + parseInt(left, 10)) + 'px';
     let new_y = (event.clientY + parseInt(top,  10)) + 'px';
-    console.log("clientX: " + event.clientX + " clientY: " + event.clientY +
-                " new_x: " + new_x + " new_y: " + new_y)
+    //onsole.log("clientX: " + event.clientX + " clientY: " + event.clientY +
+     //           " new_x: " + new_x + " new_y: " + new_y)
     //let new_x = event.clientX + "px" //event.offsetX + "px"
     //show_window_elt_being_dragged.getBoundingClientRect().left + "px"
     //let new_y = event.clientY + "px" //event.offsetY + "px"

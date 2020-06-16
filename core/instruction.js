@@ -607,7 +607,7 @@ Instruction.debugger = class Debugger extends Instruction{ //class name must be 
         }
         else if((Date.now() - this.time_dev_tools_was_opened) < 1000) {
             job_instance.set_up_next_do(0) //give open_dev_tools() a chance to ipen up.
-                                           //otherwise it won't break when executing debugger;
+                                           //otherwise it won't break when executing debugger
                                            //in do_next_item
         }
         else {
@@ -1803,7 +1803,9 @@ Instruction.human_notify = class human_notify extends Instruction{
                   dependent_job_names = [],
                   //does not have x and y because those are automatically set to make
                   //multiple notify windows visible.
-                  title, width=400, height=400,  background_color="rgb(238, 238, 238)"}={}) {
+                  title,
+                  close_same_titled_windows = false,
+                  width=400, height=400,  background_color="rgb(238, 238, 238)"}={}) {
 
         super()
         this.task=task,
@@ -1814,6 +1816,7 @@ Instruction.human_notify = class human_notify extends Instruction{
         this.dependent_job_names = dependent_job_names
         this.speak=speak
         this.title   = title
+        this.close_same_titled_windows = close_same_titled_windows
         this.width   = width
         this.height  = height
         this.background_color = background_color
@@ -1844,6 +1847,7 @@ Instruction.human_notify = class human_notify extends Instruction{
                          width:  this.width,
                          height: this.height,
                          background_color: this.background_color,
+                         close_same_titled_windows: this.close_same_titled_windows,
                          callback: human_notify_handler
             })
         }
@@ -2686,7 +2690,7 @@ Instruction.start_job = class start_job extends Instruction{
                  job_instance.set_up_next_do(1)
                  return
              }
-             else if(["starting", "running"].includes(stat)) {
+             else if(["starting", "running", "running_when_stopped"].includes(stat)) {
                 let wait_reason = "Control.start_job waiting at instruction " +
                                           job_instance.program_counter + " for " + this.job_to_start.name + " to complete."
                 job_instance.set_status_code("waiting", wait_reason)
@@ -2732,7 +2736,7 @@ Instruction.start_job = class start_job extends Instruction{
             this.job_to_start.unsuspend()
             job_instance.set_up_next_do(1)
         }
-        else if (["running", "waiting"].includes(stat)){
+        else if (["running", "waiting", "running_when_stopped"].includes(stat)){
            if     (this.if_started == "ignore") {job_instance.set_up_next_do(1)}
            else if(this.if_started == "error") {
                job_instance.stop_for_reason("errored",
@@ -2796,6 +2800,9 @@ Instruction.stop_job = class stop_job extends Instruction{
         //job_to_stop.stop_for_reason("completed", the_stop_reason) //don't do as we only want it to stop when it gets to location
         job_to_stop.when_stopped_conditions = this.perform_when_stopped //the stop_job instruction overrules the job def's when_stopped_conditions
         job_to_stop.ending_program_counter = this.instruction_location
+        if(job_to_stop.when_stopped === "wait") {
+            job_to_stop.when_stopped = "stop" //if I don't do this the job will wait forever.
+        }
         job_instance.set_up_next_do() //continue on with the current job.
             //if the current job is the same as the job_to_stop, fine, it will stop
             //else the job_to_stop will stop of its own accord now that it has a status of "completed",
@@ -2968,7 +2975,7 @@ Instruction.wait_until = class wait_until extends Instruction{
     constructor (fn_date_dur) {
         super()
         this.fn_date_dur = fn_date_dur
-        if (typeof(this.fn_date_dur) == "function"){}
+        if      (typeof(this.fn_date_dur) == "function"){}
         else if (this.fn_date_dur instanceof Date) {}
         else if (typeof(fn_date_dur) == "number")  {}
         else if (fn_date_dur instanceof Duration)  { this.fn_date_dur = fn_date_dur.to_seconds() }

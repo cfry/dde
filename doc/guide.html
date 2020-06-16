@@ -8,8 +8,8 @@
 
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version: <span id="dde_version_id">3.5.10</span><br/>
-    released: <span id="dde_release_date_id">May 30, 2020</span>
+    version: <span id="dde_version_id">3.5.11</span><br/>
+    released: <span id="dde_release_date_id">Jun 16, 2020</span>
     <p></p>
     DDE helps you create, debug, and send software to a Dexter robot.
     You can use any JavaScript augmented with DDE-specific functions to help find out about,
@@ -102,7 +102,9 @@
         that you want to be evaled at start-up, such as libraries you've
         written, etc.
     </details>
-    <details class="doc_details"><summary>Windows 10 Problem</summary>
+    <details class="doc_details"><summary>Windows OS Problems</summary>
+        If you have additional useful information about these issue, please tell us!
+    <details class="doc_details"><summary>OneDrive on Windows 10</summary>
       We suspect Microsoft's change to the default setting for a OneDrive configuration
       checkbox in a Windows 10 update in Feb or Mar 2018 causes DDE
       to not launch correctly. The underlying cause is that
@@ -118,8 +120,31 @@
           <li> In the "Files on Demand" section, uncheck
                "Save space and download files as you use them"</li>
       </ol>
-      If you have additional useful information about this issue, please tell us!
     </details>
+    <details class="doc_details"><summary>Installation Hangs Bug</summary>
+        <b>Symptom:</b> While installing DDE on WinOS 7, 10, and maybe others,
+        you get a dialog box that says<br/>
+        "Installing, please wait..."<br/>
+        whose progress bar stops progressing and you have to wait for more than 1 minute.<br/>
+        <b>Work Around:</b>
+        <ol><li>Close the dialog box.</li>
+            <li>Win7:  choose Start menu/Control Panel/Programs and Features<br/>
+                Win10: choose Start menu/Windows System/Control Panel/Programs and Features</li>
+            <li>Click right on "dexter_dev_env".</li>
+            <li>Choose "uninstall"</li>
+            <li>You may get a dialog that says:<br/>
+                "An error occurred while trying to uninstall...
+                Would you like to remove ..."<br/>
+                Click the "Yes" button.</li>
+            <li>Double click on Downloads/dexter_dev_env-setup-(version number).exe  to reinstall.
+                DDE Should install in 1 minute or less.</li>
+        </ol>
+        <b>Why this happens:</b> If you rename or remove C:\Program Files\dexter_dev_env
+        it screws up the Windows registry, and the DDE installer program can't handle it.
+        Electron Apps (like DDE) use a program called NSIS for installation,
+        and it has this, ahem, feature.
+    </details>
+    </details> <!-- end Windows OS Problems -->
 </details>
 <details class="doc_details"><summary>Configure DDE</summary>
     DDE requires that you create a folder under your Documents folder named <samp> dde_apps</samp>.

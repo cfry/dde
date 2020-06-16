@@ -4751,7 +4751,7 @@ new Job({
  <ul><li>An instance of the Job to start.</li>
     <li>A string starting with "Job." followed by the Job's name.</li>
     <li>A string of the Job's name.</li>
-    <li>A string of a path (file name) to a file that contains a defintion of the
+    <li>A string of a path (file name) to a file that contains a definition of the
         Job to start. The first Job definition in the file will be used.</li>
  </ul>
  <b>start_options</b> A literal object. Name-value pairs that can
@@ -4759,7 +4759,7 @@ new Job({
  are done so when a Job starts another Job.<br/>
  <i>Example</i>: <code>{program_counter: 2}</code> <br/>
     causes the job to be started, executing its 3rd do_list item first.<br/>
- <b>if_started</b> A string. In combination with the status_code of the Job to be started,
+ <b>if_started</b> A string. Default: <code>"ignore"</code> . In combination with the status_code of the Job to be started,
        the value of if_started determines the behavior.
      If the status of the job to be started is:
     <ul><li> <code>"running"</code> or <code>"waiting"</code>
@@ -6587,11 +6587,11 @@ end Dexter prop-->
 
 <details class="doc_details"><summary>Dexter Constants</summary>
 values in meters<br/>
-<code>Dexter.LINK1</code> => <samp>0.2286</samp><br/>
-<code>Dexter.LINK2</code> => <samp>0.320676</samp><br/>
-<code>Dexter.LINK3</code> => <samp>0.330201</samp><br/>
-<code>Dexter.LINK4</code> => <samp>0.050801</samp><br/>
-<code>Dexter.LINK5</code> => <samp>0.082551</samp><br/>
+<code>Dexter.LINK1</code> => <samp>0.2352</samp><br/>
+<code>Dexter.LINK2</code> => <samp>0.339092</samp><br/>
+<code>Dexter.LINK3</code> => <samp>0.3075</samp><br/>
+<code>Dexter.LINK4</code> => <samp>0.0595</samp><br/>
+<code>Dexter.LINK5</code> => <samp>0.08244</samp><br/>
 <p></p>
 <code>Dexter.LINK1_AVERAGE_DIAMETER</code> => <samp>0.090000</samp><br/>
 <code>Dexter.LINK2_AVERAGE_DIAMETER</code> => <samp>0.120000</samp><br/>
@@ -7017,7 +7017,13 @@ If no file is chosen, the variable is bound to <code>null</code>
   <b>beep_count</b> Non-negative integer. Default: <code>0</code>. How many beep 'alerts' to sound when
                    this instruction is run.<br/>
   <b>speak</b> true or false. Default: <code>false</code>.
-         Whether or not to speak the title and task when this instruction is run.
+         Whether or not to speak the title and task when this instruction is run.<br/>
+  <b>close_same_titled_windows</b> Default: <code>false</code> This parameter
+     is also in <code>show_window</code> but there, it has a default of <code>true</code>.
+     Human.notify has a different default, as notifications, in general, should
+     all be read by a human and explictly closed. <i>But</i>, you might
+     just want the human to see the latest notification with the same title,
+     in which case you should pass in a close_same_titled_windows of <code>true</code>.
    <p></p>
    <i>Examples:</i>
     <pre><code> new Job({name: "my_job",
@@ -7364,6 +7370,9 @@ Allows you to send a string to a serial device from DDE but NOT in a job.
 <p></p>
 
 <b id="serial_disconnect_doc_id"><code title="unEVALable code fragment"> serial_disconnect("some_path")</code></b> Disconnects an existing connection.
+<p></p>
+
+<b id="serial_disconnect_all_doc_id"><code title="unEVALable code fragment"> serial_disconnect_all()</code></b> Disconnects all serial port connections.
 <p></p>
 
 <b id="serial_flush_doc_id"><code title="unEVALable code fragment"> serial_flush("some_path")</code></b> Removes all bytes in the given path's input and output buffers.
@@ -9220,4 +9229,508 @@ show_window({title: "Modify Window",
     </details> <!-- end SVG -->
 
 </details> <!-- end window_system -->
+
+<details id="Messaging_id" class="doc_details"><summary>Messaging</summary>
+   <div style="color: red;"> Warning: The Messaging facility
+      is now just internal prototype code, not available for public use.
+      We expect to make it available in a future release.
+   </div>
+   You can send messages to a DDE running on another computer on the Internet.
+   These messages allow you to chat with a remote DDE user, control Jobs, or even
+   run arbitrary JavaScript and get back results if permitted.
+   This gives you a powerful "remote control" capability of robot-to-robot,
+   human-to-human or human-to-robot communication.
+   <p></p>
+   The user operating the remote DDE must be logged in to Haddington's Messaging server.
+   To log in, Haddington must register you with a user name and password.
+   Please contact Haddington to register.
+   <p></p>
+   <details class="doc_details"><summary>Interactive Use</summary>
+   To use Messaging interactively, choose the Jobs menu/Messaging item.
+   It permits you to use the Messaging capabilities via a dialog box.
+   It is recommended that you try out the messaging methods via this dialog first.
+   Then, if you wish to "automate" them, use the dialog box to insert JavaScript code
+   into the DDE editor.
+   You can then embed this code into your application, including in Jobs.
+
+       <details class="doc_details"><summary>Help</summary>
+       The list of message types you can send are in the select menu in the "New Message"
+       portion of the DDE Messaging dialog box. Most messages have one main argument that is a string
+       and perhaps several others. The button right below the <b>type</b> select menu toggles the
+       textarea to its right from editing this one main argument to a JS literal object
+       containing all arguments. The name on the button will be "All args" when you're
+       editing all the arguments, and the name of the main argument for the selected message type when
+       you're editing just its main argument. When editing the main argument,
+       don't wrap quotes around it.
+       <p></p>
+       Click help works in the New Message and Sent Messages pane.
+       </details>
+       <details class="doc_details"><summary>Common Params and Responses</summary>
+       <b id="Messaging.to_doc_id">to</b> In addition to the message type and body,
+       each message must have a <b>to</b> user name (string) of a registered user to send the message to.
+       (This can be yourself for testing purposes.)<br/>
+       <b id="Messaging.get_result_doc_id">get_result</b> is <code>true</code> or <code>false</code>,
+       (checked or unchecked) depending on whether you
+       require a response from the receiving DDE. When you're sending rapid fire <i>job_instruction</i>
+       messages to a job on the remote DDE, as when you are having a remote Dexter follow the motions
+       that you manually move your local Dexter to, generally you want <i>get_result</i> to be <code>false</code>.
+       If the internet is slow, or intermittent, such messages will only be sent once, with
+       no retrys.
+       <p></p>
+       When get_result is <code>true</code>, the Messaging software tries harder
+       to get a message through to the receiver, retrying several times over the course of about a minute
+       before giving up. Messaging is much faster and more reliable if you have a solid, high-bandwidth
+       Internet connection. The default value for get_result depends on the message type.
+       <p></p>
+       <b><i>Response</i></b><br/>
+       When the response to a message comes back to the original sender, it has all of its original
+       fields plus:<br/>
+       <b>from:</b> A string. The user name that you originally sent the message to.<br/>
+       <b>to:</b> A string. Your user name. This is because the automatic response to
+         a message with get_result=true is really just anoother one-way message
+         that is send back to the original sender.<br/>
+       <b>result:</b> This is a string. It can be:
+        <ul><li>An error message, which starts with "Error:"</li>
+            <li>OK, meaning there's no specific result, just that the message peformed as intended.</li>
+            <li>A message containing the requested information.<br/>
+                Example: if
+                its a message of type <code>"eval"</code> and the source is <code>"2 + 3"</code>, then
+                the result will be <code>"5"</code>.</li>
+         </ul>
+       </details>
+       <details class="doc_details"><summary>Debugging</summary>
+           Network communications are inherently unreliable. Here's what helps.
+           <ul>
+               <li>DDE has lots of error messages. You can see them all by checking
+               "print_debug_info" in the Messasging dialog box or evaling:
+               <code>Messaging.print_debug_info = true </code> .</li>
+
+               <li>DDE's messaging facility
+                    tries to increase that reliability by automatic "retrys" when you set
+                     a message's get_result to <code>true</code>.</li>
+
+               <li>Send messages to yourself to test.</li>
+               <li>Use <a href="#" onclick=open_doc(Messaing.ping_doc_id)>Messaging.ping</a>
+                   to test connectivity to a message's "to" argument.</li>
+           </ul>
+       </details>
+
+       </details> <!--interactive use-->
+
+   <details class="doc_details"><summary>Messaging Misc</summary>
+       <details id="Messaging.login_doc_id" class="doc_details"><summary>login</summary>
+           To send or receive messages, you must log in.<br/>
+           <i>Parameters:</i><br/>
+           <b>user</b> A string. Required. Must be a registered user.<br/>
+           <b>pass</b> A string. Required. The password of the user.<br/>
+           <b>callback</b> Default <code>null</code> .
+           A function that is passed one argument, the "result" string
+           from the server if login in successful.<br/>
+           <i>Example:</i><br/>
+           <code>Messaging.login({user: "joe", pass:"bar"})</code>
+       </details>
+       <details id="Messaging.logout_doc_id" class="doc_details"><summary>logout</summary>
+           Log the user out.<br/>
+           <i>Example:</i><br/>
+           <code>Messaging.logout()</code>
+       </details>
+       <details id="Messaging.print_debug_info_doc_id" class="doc_details"><summary>print_debug_info_id</summary>
+       A variable that turns on or off detailed status messages to the output pane.
+       Useful in debugging. Default <code>false</code> .
+       </details>
+       <details id="Messaging.permit_doc_id" class="doc_details"><summary>permit</summary>
+       Messaging allows a remote user to perform potentially dangerous
+       operations on your DDE. The <code>Messaging.permit</code> method is automatically called
+       whenever another user sends you a message.<br/>
+       If the permit method returns:<br/>
+       <code>true</code> : the message is run.<br/>
+       <code>false</code> : the message is not run.<br/>
+       <code>"manual"</code> : a button is placed in your DDE Messaging dialog named "run".
+       You can then examine the message, and, if you like it, click the button to run it.
+       <p></p>
+       The permit method has a default implementation, but that is expected to be
+       over-written by a DDE user to customize permissions to the incoming message's
+       users and message types that the DDE user chooses.<br/>
+       <i>Parameter:</i><br/>
+       <b>mess_obj</b> Each message is encoded in a JS literal object. You can test the
+       properties of this object to decide if the permit method should return <code>true</code>
+       or <code>false</code>.
+       All messages will have the fields:<br/>
+           <b><i>from</i></b> A string of the user that is sending this message.<br/>
+           <b><i>type</i></b> A string of the type of the message.<br/>
+           <b><i>get_result</i></b> A boolean. <code>true</code> if the message is requesting that the
+         result of calling the type's "receive" method is to be returned to the "from" user.
+       <p></p> Other properties are type-specific.
+       </details>
+       <details id="Messaging.permit_default_doc_id" class="doc_details"><summary>permit_default</summary>
+       A method who's definition is set to <code>Messaging.permit</code> by default.
+       If you want to change the permit method definition,
+       it is recommened that you start with the definition of permit_default and
+       customize it to your liking.<pre><code>
+Messaging.permit_default = function(mess_obj){
+   if      (mess_obj.result !== undefined)    { return true } //when you've requested a result, this prop will be bound, so permit it because you asked for it.
+   else if (mess_obj.type == "eval")          { return "manual" } //the receiving user gets a "run" button that they can click on if they like, to run it
+   else if (mess_obj.from === Messaging.user) { return "manual" } //run anything you send to yourself
+   else if (["chat", "job_instruction", "out", "speak", "start_job"].includes(mess_obj.type)) {
+        return true
+   }
+   else if ((mess_obj.type == "get_variable") && mess_obj.job_name) { return true }
+   else { return "manual" }
+} </code></pre>
+   </details>
+   </details> <!--end Messaging Misc -->
+   <details class="doc_details"><summary>Communication</summary>
+   Messaging's communications methods do the real work of interacting
+   with remote DDEs.
+   All communications methods take "keyword" arguments.
+   They all accept <a href="#" onclick="open_doc('Messaging.to_doc_id')">to</a> and
+   <a href="#" onclick="open_doc('Messaging.get_result_doc_id')">get_result</a> arguments.
+
+   <details id="Messaging.chat_doc_id" class="doc_details"><summary>chat</summary>
+       Send a message to another logged in user. It will appear in the
+       "Sent & Received Messages" area of their DDE Messaging dialog box.
+       If that box is not up, it will automatically pop up when a chat message
+       is received.
+       <br/>
+       <i>Parameter:</i><br/>
+       <b>message</b> Default:  <code>"test message"</code>
+       <p></p>
+       By default, get_result is <code>false</code>, but
+       you can set it to true if you want to be confident that your message got through.<br/>
+       <i>Example:</i><pre><code title="not in TestSuite">Messaging.chat({
+       message: "hey Joe",
+       to: "Joe",
+       get_result: false
+       }) </code></pre>
+   </details>
+   <details id="Messaging.eval_doc_id" class="doc_details"><summary>eval</summary>
+       Evaluate JS source code on the remote DDE and return the result.
+       Warning: this is dangerous and is guarded against by
+       <a href="#" onclick="open_doc('Messaging.permit_default_doc_id')"><code>Messaging.permit_default</code></a>
+       which returns <code>"manual"</code>.
+       <br/>
+       <i>Parameters:</i><br/>
+       <b>source</b> Required. A string of JS source code to eval in the remote DDE.<br/>
+       <b>callback</b> Default: <code>"out"</code> A method that's passed one argument
+       in the original sender's DDE when the response comes back.<br/>
+       <b>pass_to_callback</b> Default: <code>"evaled_result"</code> Determines the
+       argument to pass to the callback. Possibilities:
+       <ul>
+           <li><code>"mess_obj"</code> The whole literal object of the message.</li>
+           <li><code>"unevaled_result"</code></li> JS source code representing the default.
+           <li><code>"evaled_result"</code></li> The result of evaling the 'result' property
+                in the original sender's DDE once the response comes back.
+           <li>Any property name in the mess_obj:
+               The value of that property will be passed to the callback.<br/>
+               Example: <code>"source"</code></li>
+       </ul>
+       <br/>
+       <b>get_result</b> Default: <code>true</code>. The result field will be the
+       source code of the result of evaling the "source" property in the
+       remote DDE.<br/>
+       <br/>
+       <i>Example:</i><pre><code title="not in TestSuite"> Messaging.eval({
+   source: "2 + 3",
+   to: "Joe",
+   get_result: true
+   }) </code></pre>
+   The result field will contain <code>"5"</code>.
+   </details>
+   <details id="Messaging.get_variable_doc_id" class="doc_details"><summary>get_variable</summary>
+       Get the value of a variable from a remote DDE.<br/>
+       <i>Parameters:</i><br/>
+       <b>variable_name</b> Required. A string. Can be a single identifier, ie "foo",
+         or a path, ie "foo.bar.baz" <br/>
+       <b>job_name</b> Default: <code>null</code>. If null, variable_name is a global variable
+        or at least its first path part is a global variable.
+        Otherwise, job_name should be the name of a defined Job in the receiver's DDE.
+        In that case, variable_name is the name of a user data variable or
+        the first path part is a top level user_data variable.
+        Thus a Job name of <code>"my_job"</code> with a variable_name of
+        <code>"foo.bar"</code> is equivalent to
+        a Job name of <code>null</code>  and a variable name of <code>"Job.my_job.user_data.foo.bar"</code><br/>
+       <b>eval_kind</b> Default: <code>"JSON"</code> Determines how the value of the
+       variable is converted to be transfered back to the original sender and used
+       to convert the value of the result (a string) back on the original sender
+       when the pass_to_callback="evaled_result". Options:
+       <ul>
+        <li><code>"JSON"</code> The default. In the receiving DDE, the variable value is passed to
+            <code>JSON.stringify</code> to convert it for transfer back to the original
+            sender.</li>
+       <li><code>"eval"</code>  In the receiving DDE, the variable value is passed to
+       <code>to_source_code</code> to convert it to a string for tranfer back to the original
+       sender.</li>
+       <b><code>null</code></b> No transformation is done on the variable value.</li>
+       </ul>
+       <b>callback</b> Default: <code>"out"</code> A function that is passed one argument when the message comes back
+       to the original sender. <br/>
+       <b>pass_to_callback</b> Default: <code>"evaled_result"</code>. The part of the message object
+         that is passed to the callback. Options:
+       <ul>
+           <li><code>"mess_obj"</code> The whole literal object of the message.</li>
+           <li><code>"unevaled_result"</code></li> JS source code representing the default.
+           <li><code>"evaled_result"</code></li> The result of evaling the 'result' property
+           in the original sender's DDE once the response comes back. The function used
+           to perform the evaluation is indicated in the <b>eval_kind</b> argument.
+           <li>Any property name in the mess_obj:
+               The value of that property will be passed to the callback.<br/>
+               Example: <code>"source"</code></li>
+       </ul>
+       <code>undefined</code> gets a bit of special processing as a variable value.
+       If the variable's value is <code>undefined</code>, the result of the
+       message sent back to the original sender is <code>"undefined"</code>.
+       If pass_to_callback is "evaled_result", then <code>undefined</code>
+       is passed to the callback if the eval_kind is "JSON" or "eval".
+       This makes it easy for the sender to test if a requested variable is undefined.<br/>
+       <b>get_result</b> Default: <code>true</code>.
+         The result field will be a string for transfer of the variable value to
+         the orginal sender.
+       <p></p>
+       <i>Example:</i><pre><code title="not in TestSuite"> Messaging.get_variable({
+       variable_name: "foo",
+       job_name: "my_job",
+       callback: "out",
+       eval_kind: "eval",
+       to: "Joe",
+       get_result: true
+   }) </code></pre>
+   </details>
+
+   <details id="Messaging.job_instruction_doc_id" class="doc_details"><summary>job_instruction</summary>
+       Add an instruction to the end of a Job running on a remote computer.
+       A Job such as:<pre><code title="not in TestSuite">
+new Job({
+    name: "wait_for_message",
+    when_stopped: "wait",
+    do_list: []
+}) </code></pre>
+      starts off with no instructions. Rather than just quit, the
+      <code  title="unEVALable">when_stopped: "wait"</code> tells it to just wait
+      and if an instruction is added to the end of the do_list, run it and wait for
+      the next one. You can use Messaging.job_instruction to add an instruction from
+      another DDE into that Job.<br/>
+       <i>Parameters:</i><br/>
+       <b>do_list_item</b> Required. The do_list item (usually an instruction) to be added
+       to th end of the job_name Job. <br/>
+       <b>job_name</b> Default: <code>"wait_for_message"</code> The name of the Job
+       in the "to" DDE to add the do_list_item to.<br/>
+       <b>if_no_job</b> Default: <code>"define_start"</code> Specifies what to do
+       if there is no job named "job_name" defined on the "to" DDE.
+       <ul><li><code>"define_start"</code> causes a Job named "job_name" to be
+            created in the "to" DDE with a definition of the above Job definition.
+            It will then have the do_list_item added to it, which will run and wait
+            for the next instruction to be sent to it.</li>
+           <li><code>"error"</code> Sets the result of the message to an error message.
+              if get_result is <code>true</code>, the message will be returned to
+              the original sender.</li>
+       </ul>
+       By default, get_result is <code>false</code>. When false, messages are sent just once
+       and forgotten. If they don't make it, too bad. No "result" message comes back. <br/>
+       <br/>
+       <i>Example:</i><pre><code title="not in TestSuite">
+Messaging.job_instruction({do_list_item: Dexter.move_all_joints(10, 20, 30, 40, 50),
+            job_name: "wait_for_message",
+            to: "Joe"
+}) </code></pre>
+   </details>
+
+   <details id="Messaging.out_doc_id" class="doc_details"><summary>out</summary>
+       Messaging.out renders HTML in the Output pane just like the function <code>out</code>
+       <br/>
+       <i>Parameters:</i><br/>
+       <b>val</b> Default: <code>"test message"</code> val is converted to a string
+       if it isn't already, and printed in the Output pane.<br/>
+       <b>color</b> Default: <code>"black"</code> The color of the text. Any HTML
+       description of a color is valid, like <code>"#AAF"</code> or <code>"rgb(0, 100, 255)"</code><br/>
+       <b>temp</b> Default: <code>false</code> Boolean. If <code>true</code>, the
+       printout will be replaced by the next call to out<br/>
+       <b>code</b> Default: <code>null</code> possible values:
+       <ul><li><code>true</code>  val is printed in fixed-width (code) font.</li>
+           <li><code>false</code> val is printed in variable-width (nomral) font.</li>
+           <li><code>null</code>  val is printed in a font depending on the
+           value of the "code" checkbox in the Output pane header.</li>
+       </ul>
+       By default, get_result is <code>false</code>
+       <br/>
+       <i>Example:</i><br/>
+       <code title="not in TestSuite"> Messaging.out({val: "hey", color: "blue", temp: false})</code>
+       See <a href="#" onclick="open_doc(out_doc_id)">out</a>
+   </details>
+
+   <details id="Messaging.ping_doc_id" class="doc_details"><summary>ping</summary>
+       Ping sends a message to the "to" DDE, captures the time when it reaches
+       that computer in its result property, and (to be useful) returns that result.
+       The default callback formats a message about how long it took.
+       <br/>
+       <i>Parameters:</i><br/>
+       <b>callback</b> Default: <code>Messaging.ping_callback</code> A function of one
+       argument, the message argument. It is called in the original sender's DDE when
+       the result message is returned. Timing details are displayed in the Output pane.
+       <p></p>
+       By default, get_result is <code>true</code>. The result field will be <br/>
+       <br/>
+       <i>Example:</i><code title="not in TestSuite"> Messaging.ping({to: "Joe"})</code>
+   </details>
+
+   <details id="Messaging.set_variable_doc_id" class="doc_details"><summary>set_variable</summary>
+       Set a variable on another DDE to a given value.
+       <br/>
+       <i>Parameters:</i><br/>
+       <b>variable_name</b> Required. A string of a variable name.
+       If the string has dots in it, its a path to the actual var set.
+       If there's a part of the path that doesn't exist, then it is
+       created with the value of {} so the the next part of the path
+       will be a property within that new value. <br/>
+       <b>new_value</b> Default: <code>undefined</code>
+       The new value to set the variable to.
+       If new_value is not passed in, or is passed in as "undefined",
+       then the value the variable is set to is undefined regardless
+       of the eval_kind.<br/>
+       <b>job_name</b> Default: <code>null</code>
+       If null, variable_name is a global variable.
+       Otherwise its a user_data variable in the indicated Job,
+       which must be running on the receiving DDE.<br/>
+       Using a Job name of <code>"foo"</code> and<br/>
+       a variable name of <code>"bar"</code> is the same as<br/>
+       using a Job name of <code>null</code> and
+       a variable name of <code>"Job.foo.user_data.bar"</code> <br/>
+       <b>eval_kind</b> Default: <code>"JSON"</code>  Possible values:
+       <ul>
+           <li><code>"JSON"</code> If the new_value is not a string, it is converted to a string
+               via JSON.stringify(new_value) for sending.
+               The receiver converts it back using JSON.parse(new_value)</li>
+           <li><code>null</code> The new_value is converted to a string via
+               <code title="unEvalable">new_val = "" + new_value</code>,
+                then that string is used as is for the new value of the variable.</li>
+           <li><code>"eval"</code>
+            If the new_value is not a string, it is converted to a string
+            via <code title="unEvalable">to_source_code({value: new_value"})</code> for sending.
+            The receiver converts it back using <code title="unEvalable">eval(new_value)</code>
+       </ul>
+       By default, get_result is <code>true</code>.<br/>
+       The result field will be <code>"OK"</code>
+       <br/>
+       <i>Example:</i><pre><code title="not in TestSuite">
+Messaging.set_variable({variable_name: "joint_angles",
+                        new_value: {joint1:10, joint2:20},
+                        job_name:"my_job",
+                        to: "Joe"})  </code></pre>
+   </details>
+
+   <details id="Messaging.speak_doc_id" class="doc_details"><summary>speak</summary>
+       Say a value on a remote DDE.<br/>
+       <i>Parameters:</i><br/>
+       <b>speak_data</b> Default: <code>"hello"</code> <br/>
+       <b>volume</b>     Default: <code>1.0</code>     <br/>
+       <b>rate</b>       Default: <code>1.0</code>     <br/>
+       <b>pitch</b>      Default: <code>1.0</code>     <br/>
+       <b>lang</b>       Default: <code>"en_US"</code> <br/>
+       <b>voice</b>      Default: <code>0</code>       <br/>
+       <br/>
+       By default, get_result is <code>false</code>.<br/>
+       <i>Example:</i><br/>
+       <code title="not in TestSuite"> Messaging.speak({speak_data:123, rate:1.5, to:"Joe"})</code>
+       <p></p>
+       See also <a href="#" onclick="open_doc(speak_doc_id)">speak</a>
+   </details>
+
+   <details id="Messaging.start_job_doc_id" class="doc_details"><summary>start_job</summary>
+       Start a Job on the "to" DDE after potentially defining it.<br/>
+       <i>Parameters:</i><br/>
+       <b>job_name</b> Required. If job_name is:
+       <ul>
+            <li><b>A string of an identifier</b> i.e. it looks like a Job name or variable name.
+                It is expected to be a Job already defined in the "to" DDE.</li>
+            <li><b>A Job instance</b> i.e. <code title="unEVALable">Job.my_job</code>
+               The Job definition is converted to a string, sent to the "to" DDE,
+               defined on the  "to" DDE then started.</li>
+            <li><b>A string of <code title="unEVALable">"new Job( ...)"</code></b>
+                The Job definition is sent to the "to" DDE,
+                defined on the "to" DDE, then started.</li>
+            <li><b>A string of an existing file (path) name</b>
+                 The definition of the Job is read in, sent to the "to" DDE,
+                defined on the  "to" DDE then started.</li>
+       </ul>
+        <b>start_options</b> Default: <code>{}</code> When the Job is started,
+           these options over-ride the arguments that originally defined the Job.
+           Any of the args passed into
+           the normal definition of a Job can be start_options except for "name". <br/>
+       <b>if_started</b> Default: <code>"ignore"</code> Determines the
+       behavior if the Job is already defined, in combination with the status_code
+       of the job. If the status code is:
+       <ul>
+           <li>"starting", the job is left to continue starting.</li>
+           <li>"suspended", the Job is unsuspended.</li>
+           <li>"running", "waiting", "running_when_stopped" then it depends on
+               the value of if_started:
+               <ul> <li>"ignore" The Job is left to run.</li>
+                    <li>"error" The Job is stopped with an error.
+                       The result of the returned message will start with "Error:"</li>
+                    <li>"restart" The Job is stopped, then restarted with the start_options.</li>
+               </ul>
+           </li>
+           <li>"not_started", "completed", "errored", "interrupted" The Job is started
+                with the start_options.
+           </li>
+       </ul>
+       <b>callback</b> Default: <code>null</code> A function that takes one agument,
+       a mess_obj literal object <br/>
+       <p></p>
+       By default, get_result is <code>true</code>.<br/>
+        If the Job was not able to start, the result field will start with <code>"Error:"</code>
+        otherwise it will start with something else, meaning the Job is running.<br/>
+       <br/>
+       <i>Example:</i><pre><code title="not in TestSuite">
+Messaging.start_job({job_name: "my_job",
+            to: "Joe",
+            get_result: true}) </code></pre>
+       You can also define and start a default Job that waits for Messaging.job_instructions
+       using <a href="#" onclick="open_doc('Messaging.job_instruction_doc_id')">Messaging.job_instruction</a><br/>
+       See also <a href="#" onclick="open_doc('Control.start_job')">Control.start_job</a>
+   </details>
+
+   <details id="Messaging.stop_job_doc_id" class="doc_details"><summary>stop_job</summary>
+       Stop a Job in the "to" DDE.<br/>
+       <i>Parameters:</i><br/>
+       <b>job_name</b> Required. A string. The name of the Job to stop. <br/>
+       <b>reason</b> Default: <code>null</code> Normally a string describing why the Job is to be stopped.<br/>
+       <b>perform_when_stopped</b> Default: <code>true</code> A boolean. When the Job is stopped,
+          determines whether the Job should perform its usual when_stopped behavior.<br/>
+       <b>callback</b> Default: <code>null</code> Optional. If this is a function,
+           it takes one argument, the mess_obj. If non-null, it is called
+           in the orginal sender when the result comes back from the receiver.
+           Only relavent when get_result == true. <br/>
+       <p></p>
+       By default, get_result is <code>true</code>. The result field will be
+       a string. If the Job could not be stopped successfully, the string starts with "Error:".
+       Otherwise the string indicates success.<br/>
+       <br/>
+       <i>Example:</i><pre><code title="not in TestSuite">
+Messaging.stop_job({job_name: "wait_for_message",
+                    callback: out,
+                    to: "Joe"}) </code></pre>
+       See also: <a href="#" onclick="open_doc('Control.stop_job_doc_id')">Control.stop_job</a>
+   </details>
+
+       <!-- templaete for Messaging fns
+           <details id="Messaging._doc_id" class="doc_details"><summary></summary>
+
+           <br/>
+           <i>Parameters:</i><br/>
+           <b></b> Default: <code></code> <br/>
+           <b></b> Default: <code></code> <br/>
+           <b></b> Default: <code></code> <br/>
+           <b></b> Default: <code></code> <br/>
+           <p></p>
+           By default, get_result is <code>true</code>. The result field will be <br/>
+           <br/>
+           <i>Example:</i><pre><code> Messaging.({
+       : "",
+       to: "Joe",
+       get_result: true
+       }) </code></pre>
+       </details> -->
+
+   </details><!--end Messaging Communication -->
+</details> <!-- end Messaging -->
 </details> <!-- end ref man -->

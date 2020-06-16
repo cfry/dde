@@ -466,7 +466,9 @@ var Human = class Human extends Brain { /*no associated hardware */
         initial_value="OK",
         line_count=1, //if 1, makes an input type=text. If > 1 makes a resizeable text area.
         dependent_job_names=[],
-        title, x=200, y=200, width=400, height=400,  background_color = "rgb(238, 238, 238)"}={}){
+        title,
+        close_same_titled_windows = false,
+        x=200, y=200, width=400, height=400,  background_color = "rgb(238, 238, 238)"}={}){
         return new Instruction.human_enter_text(arguments[0])
     }
 
@@ -477,7 +479,9 @@ var Human = class Human extends Brain { /*no associated hardware */
         speak=false,
         add_stop_button=true,
         dependent_job_names=[],
-        title, x=200, y=200, width=400, height=400,  background_color = "rgb(238, 238, 238)"
+        title,
+        close_same_titled_windows = false,
+        x=200, y=200, width=400, height=400,  background_color = "rgb(238, 238, 238)"
     }={}){
         return new Instruction.human_notify(arguments[0])
     }
@@ -2153,12 +2157,12 @@ Dexter.prototype.prop = function(prop_name, get_from_dexter=false){
 //Dexter constants
 //values in microns, pivot point to pivot point, not actual link length.
 //Dexter manufacturing tolerance is about 5 microns for these link lengths.
-//
-Dexter.LINK1 = 0.228600   //meters   6.5 inches,
-Dexter.LINK2 = 0.320676   //meters  12 5/8 inches
-Dexter.LINK3 = 0.330201   //meters  13 inches
-Dexter.LINK4 = 0.050801   //meters  2 inches
-Dexter.LINK5 = 0.082551   //meters  3.25 inches  // from pivot point to tip of the end-effector
+//             HDI         ORIG DEX              ORIG DEX
+Dexter.LINK1 = 0.2352    //0.228600   //meters   6.5 inches,
+Dexter.LINK2 = 0.339092  //0.320676   //meters  12 5/8 inches
+Dexter.LINK3 = 0.3075    //0.330201   //meters  13 inches
+Dexter.LINK4 = 0.0595    //0.050801   //meters  2 inches
+Dexter.LINK5 = 0.08244   //0.082551   //meters  3.25 inches  // from pivot point to tip of the end-effector
 //Dexter.LINKS = [0, Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5]
 
 /*These are the HDI Link Lengths as of Jan 1, 2020:

@@ -59,8 +59,8 @@ const BrowserWindow = electron.BrowserWindow
 // be closed automatically when the JavaScript object is garbage collected.
 var mainWindow
 
-function is_kiosk_mode() {
-  let kiosk_mode = false
+function get_persistent_values_from_file() {
+  let persistent_values = null
   let init_path = the_dde_apps_folder + "/dde_persistent.json"
   if(fs.existsSync(init_path)){
       let content = fs.readFileSync(init_path, "utf8")
@@ -68,18 +68,18 @@ function is_kiosk_mode() {
           const start_of_content = content.indexOf("{")
           if (start_of_content != -1) { content = content.substring(start_of_content) } //get rid of comment at top of file that isn't official JSON.
           try {
-                let obj = JSON.parse(content)
-                console.log(JSON.stringify(obj))
-                if(obj.kiosk){
-                    console.log("DDE set to kiosk mode. Quit by typing:\n" +
+                persistent_values = JSON.parse(content)
+                let obj_str = JSON.stringify(persistent_values)
+                obj_str = obj_str.replace(new RegExp("," , 'g'), ",\n")
+                console.log("\nPersistent values: \n" + obj_str + "\n")
+                if(persistent_values.kiosk){
+                    console.log("\nDDE set to kiosk mode. Quit by typing:\n" +
                                  "WinOS: Alt+F4\n" +
                                  "MacOS: Cmd+Q\n" +
-                                 "Linux: Ctrl+Alt+Esc")
-                    kiosk_mode = true
+                                 "Linux: Ctrl+Alt+Esc\n")
                 }
                 else {
                     console.log("DDE is not in kiosk mode.")
-                    kiosk_mode = false
                 }
           }
           catch(err) {
@@ -91,15 +91,35 @@ function is_kiosk_mode() {
       }
   }
   else {console.log("There is no file: " + init_path)}
-  return kiosk_mode
+  return persistent_values
 }
 
 function createWindow() {
-  let kiosk_mode = is_kiosk_mode()
+  //defaults from storage.js get_persistent_values_defaults()
+  let kiosk = false
+  let x = 100
+  let y = 100
+  let width  = 1000
+  let height = 600
+  let perisistent_values = get_persistent_values_from_file() //lit obj or null if file not found
+  if(perisistent_values) {
+      kiosk = perisistent_values.kiosk,
+      x = perisistent_values.dde_window_x
+      y = perisistent_values.dde_window_y
+      width  = perisistent_values.dde_window_width
+      height = perisistent_values.dde_window_height
+  }
   // Create the browser window.
-  console.log("kiosk mode? " + kiosk_mode)
-  mainWindow = new BrowserWindow({width: 1000, height: 600, show: false,
-                   kiosk: kiosk_mode, //makes DDE window be FULL SCREEN, ie no os title bar, etc. locks down app.
+  console.log("\ncreateWindow using:" +
+               "\nkiosk: "  + kiosk +
+               "\nx: "      + x +
+               "\ny: "      + y +
+               "\nwidth: "  + width +
+               "\nheight: " + height +
+               "\n")
+  mainWindow = new BrowserWindow({
+                   kiosk: kiosk,  //makes DDE window be FULL SCREEN, ie no os title bar, etc. locks down app.
+                   x: x, y: y, width: width, height: height, show: false,
                    title: "Dexter Development Environment" //not obvious that this actually shows up anywhere.
                    })
   //mainWindow.focus() //doesn't do anything.
@@ -138,15 +158,15 @@ function createWindow() {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', function() { 
-     createWindow();
-    //console.log("hi fry")
-    mainWindow.webContents.send("main_is_ready")
+app.on('ready', function() {
+    console.log("top of app.on 'ready'")
+    createWindow();
+    //mainWindow.webContents.send("main_is_ready") //looks like this does nothing
 })
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {
-    // On OS X it is common for applications and their menu bar
+    // On OSX it is common for applications and their menu bar
     // to stay active until the user quits explicitly with Cmd + Q
     //console.log("top of on window-all-closed")
     if (process.platform !== 'darwin') {
@@ -155,7 +175,7 @@ app.on('window-all-closed', function () {
 })
 
 app.on('activate', function () {
-    // On OS X it's common to re-create a window in the app when the
+    // On OSX it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
     if (mainWindow === null) {
         createWindow()

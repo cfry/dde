@@ -51,6 +51,27 @@ function serial_path_to_info(path){
     return serial_path_to_info_map[path]
 }
 
+//only cleared by relaunching DDE on purpose.
+//a given path only gets a port made for it once.
+var serial_path_to_port_map = {}
+module.exports.serial_path_to_port_map
+
+function serial_get_or_make_port(path, options){
+    let port = serial_path_to_port_map[path]
+    if(!port) {
+        port = new SerialPort(path, options)
+        serial_path_to_port_map[path] = port
+    }
+    else {
+        for(let key in options){
+           let val = options[key]
+           port.settings[key] = val
+        }
+    }
+    return port
+}
+module.exports.serial_get_or_make_port
+
 function serial_devices(){
     if(platform === "dde") {
         let dde_ipc     = require('electron').ipcRenderer //can't just use global const ipcRenderer here but I don't know why
@@ -87,7 +108,7 @@ function serial_connect_low_level(path, options, capture_n_items=1, item_delimit
                                   parse_items=true, capture_extras=false,
                                   callback=onReceiveCallback_low_level,
                                   error_callback=onReceiveErrorCallback_low_level){
-    const port = new SerialPort(path, options)
+    const port = serial_get_or_make_port(path, options) //new SerialPort(path, options)
     serial_path_to_info_map[path] =
             {path: path, //Needed because sometinmes we get the info without having the path thru serial_path_to_connection_idsimulate: simulate,
             simulate: false,
@@ -165,7 +186,7 @@ function serial_connect(path, options, simulate=null, capture_n_items=1, item_de
         serial_new_socket_callback(path, job_instance) //don't need to simulate socket_id for now
     }
     if ((sim_actual === false) || (sim_actual == "both")){
-        const port = new SerialPort(path, options)
+        const port = serial_get_or_make_port(path, options) //new SerialPort(path, options)
         port.on('open', function(err){
             if (err) {
                  dde_error("new SerialPort to path: " + path + " errored with; " + err)

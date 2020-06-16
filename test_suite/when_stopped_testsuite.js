@@ -129,7 +129,13 @@ new TestSuite("when_stopped_jobs",
         function(){ this.user_data.an_array.push(72)}
     ]
    })`],
-   ["Job.my_job.user_data.an_array", "[70,71,72]"]
+   ["Job.my_job.user_data.an_array", "[70,71,72]"],
+   [`new Job({
+    name: "my_job",
+    when_stopped: "wait",
+    do_list: [Control.stop_job(),
+              Robot.out("should not print")]})`],
+    ["Job.my_job.status_code", "'completed'"]
 )
    
 

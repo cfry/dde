@@ -30,6 +30,11 @@ var Series = class Series {
         ts_sel_prev_id.onclick          = Series.ts_sel_left
         ts_sel_down_id.onclick          = Series.ts_sel_down
         ts_sel_up_id.onclick            = Series.ts_sel_up
+        if(operating_system === "mac") {
+            for(let elt of [ts_run_sel_next_item_id, ts_sel_next_item_id, ts_sel_prev_id, ts_sel_down_id, ts_sel_up_id]) {
+                elt.innerHTML = elt.innerHTML.replace("Alt-", "Opt-")
+            }
+        }
 
         //robots_help_id.onclick = function() {
         //    robots_doc_id.open = true;
@@ -886,7 +891,7 @@ Series.instances = [
         menu_insertion_string: 'Robot.dexter0',
         menu_sel_start: 0, sample: Series.robot_dot_last_robot_name}),
     new Series({id:"series_serial_id", array: ['serial_devices', 'serial_path_to_info_map',
-                                               'serial_connect_low_level', 'serial_send_low_level', 'serial_flush', 'serial_disconnect'],
+                                               'serial_connect_low_level', 'serial_send_low_level', 'serial_flush', 'serial_disconnect', 'serial_disconnect_all'],
         menu_insertion_string: 'serial_devices()',
         menu_sel_start: 0,  menu_sel_end: -2, sample: "serial_devices"}),
 

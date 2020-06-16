@@ -10,16 +10,16 @@ var inspect_stacks = [] //Outer array has one array per inspector_display.
                         //in a compound object inspected.
                         // this just grows and grows as user inspects new objects. No gc until user
                         //clicks Output pane's Clear button.
-                        //2D array where the outer array is the set of itesm
+                        //2D array where the outer array is the set of items
                         //that are viewed in a particular inspector.
-                        //adn the inner are the whole lsit of items you can get
+                        //and the inner are the whole list of items you can get
                         //to with the forward and back arrows.
 var inspect_stacks_positions   = [] //NOT NOW USED should always be the same length as inspect_stacks.
                                   //holds the index of the currently inspected elt
                                   //within all the 2nd level arrays within insepct_stacks
 
 var inspect_stack_max_display_length = []  //a 2D array indexed by stack_number and in_stack_position
-                                           //the inner array may be sparse. use dfor interactive didpaly of
+                                           //the inner array may be sparse. used for interactive display of
                                            //long arrays and objects with many properties
 
 function init_inspect(){
@@ -106,6 +106,17 @@ function looks_like_an_existing_file_path(item){
             (file_exists(item)))
 }
 
+var inspect_2d = true //but changed by checking
+
+function inspect_toggle_2d_checkbox(stack_number, in_stack_position){
+    inspect_2d = event.target.checked //this will be the new, just clicked on, value  //!inspect_2d
+    let item = inspect_stacks[stack_number][in_stack_position]
+    inspect_out(undefined, //item will be looked up using stack_number, in_stack_position
+                stack_number, in_stack_position,
+                true // html_elt_to_replace, if true, computes the existing html elt and replaces it.
+    )
+}
+
 function inspect_aux(item, stack_number, in_stack_position, increase_max_display_length=false){
     // still causes jquery infinite error if the below is commented in.
     //if (typeof(new_object_or_path) == "string")  { return new_object_or_path }
@@ -120,6 +131,7 @@ function inspect_aux(item, stack_number, in_stack_position, increase_max_display
         let result
         let title = ""
         let array_type = typed_array_name(item) //"Array", "Int8Array" ... or null
+        let checkbox_2d_html_maybe =  ""
         let div_id = make_inspector_id_string(stack_number, in_stack_position)
         let max_display_factor = (increase_max_display_length ? 4 : 1)
         //each clause below sets title and result
@@ -130,10 +142,18 @@ function inspect_aux(item, stack_number, in_stack_position, increase_max_display
             result = inspect_one_liner(item)
         }
         else if (array_type){ //return "Array of " + item.length
-            if ((item.length > 0) && is_array_of_same_lengthed_arrays(item)) { //2D arrays can't be "typed arrays"
+            checkbox_2d_html_maybe =  ' &nbsp;<input id="inspect_2d_checkbox_id" type="checkbox" ' +
+                                      'onchange="inspect_toggle_2d_checkbox(' + stack_number + ', ' + in_stack_position + ')" ' +
+                                      (inspect_2d ? "checked" : "") +
+                                      '/>2D'
+            if (inspect_2d && (item.length > 0) && is_array_of_same_lengthed_arrays(item)) { //2D arrays can't be "typed arrays"
                   //all elts of item are arrays, but they might be of different lengths.
                 title = "A 2D Array of " + item.length + "x" + item[0].length
                 result = inspect_format_2D_array(item)
+            }
+            else if (inspect_2d && is_array_of_similar_objects(item)) {
+                title = "An Array of " + item.length + " Literal Objects"
+                result = inspect_format_array_of_similar_objects(item, stack_number, in_stack_position) //, prop_name)
             }
             else {
                 title = a_or_an(array_type, true) + " " + array_type + " of " + item.length
@@ -324,7 +344,7 @@ function inspect_aux(item, stack_number, in_stack_position, increase_max_display
             "&nbsp;&nbsp;&nbsp;<span id='" + next_id + "' title='Inspect next value.'     style='cursor:pointer;color:blue;font-weight:900; font-size:20px; opacity:"  + next_opacity + ";'>&gt;</span>\n" +
             //"<span id='" + refresh_id + "' style='cursor:pointer;padding-left:30px;font-size:20px;' title='refresh' >" + "&#10227;</span>\n" +
             "<button id='" + refresh_id + "' style='cursor:pointer;font-size:12px;padding:1px;height:20px;' title='refresh the data being inspected.' >Refresh</button>\n" +
-            "<b style='padding-left:10px;'>INSPECTing<i> &nbsp;" + title + "</i></b><br/>\n"  +
+            "<b style='padding-left:10px;'>INSPECTing<i> &nbsp;" + title + "</i></b> " + checkbox_2d_html_maybe + "<br/>\n"  +
             result + "</div>"
         inspect_set_prev_onclick(   stack_number, in_stack_position, prev_id)
         inspect_set_next_onclick(   stack_number, in_stack_position, next_id)
@@ -466,6 +486,71 @@ function inspect_extra_info(item){
         else if (info[0] == "[") { info += "]" }
     }
     return "&nbsp;&nbsp;" + info
+}
+
+function is_array_of_literal_objects(item) {
+    if(!Array.isArray(item)) { return false }
+    for(let elt of item) {
+        if(!is_literal_object(elt)) { return false }
+    }
+    return true
+}
+
+function is_array_of_similar_objects(item){
+    if(item.length < 2) { return false }
+    else if (item.length >= 100) {return false} //too long array
+    else if (!is_array_of_literal_objects(item)) { return false }
+    let item_0_keys = Object.keys(item[0])
+    if(item_0_keys.length > 20) { return false} // too wide of an object. cheap but probably mostly right.
+    for(let key of Object.keys(item[0])) {
+        if(item[1].hasOwnProperty(key)) { return true }//we have at least one key in item0 that is also in item 1 so good enough for our cheap similarlity test
+    }
+    return false
+}
+
+function inspect_format_array_of_similar_objects(item, stack_number, in_stack_position, prop_name){
+    //first build our array of keys and which index each belongs in
+    let key_to_index = {}
+    let index_to_key = [] //will become our in-order column headers
+    for(let obj of item){
+        for(let key in obj){
+            if(!key_to_index.hasOwnProperty(key)) {
+                key_to_index[key] = index_to_key.length
+                index_to_key.push(key)
+            }
+        }
+    }
+    //now build our data as a 2d array from all the objs in item
+    let array_of_rows = [] //outer array is rows, 1 row per object
+    for(let i = 0; i < item.length; i++){ // i is a row index
+        let obj = item[i]
+        let a_row = []
+        for(let key in obj){
+           let index_of_key = key_to_index[key]
+           a_row[index_of_key] = obj[key] //shove in the value of the key into a_row. a_row is a sparse array
+        }
+        array_of_rows.push(a_row)
+    }
+    //make the HTML table column headers
+    let the_html = "<table><tr><th></th>"
+    for(let key of index_to_key) {
+        the_html += "<th>" + key + "</th>"
+    }
+    the_html += "</tr>"
+    //finally the body of the table
+    for(let i = 0; i < array_of_rows.length; i++){
+        let a_row_array = array_of_rows[i]
+        let row_html = "<tr><td>" + i + "</td>"
+        for(let val of a_row_array){
+            row_html += "<td>" +
+                         inspect_one_liner(val, stack_number, in_stack_position, prop_name)//((val === undefined) ? "" :  val) +
+                        "</td>"
+        }
+        row_html += "</tr>"
+        the_html += row_html
+    }
+    the_html += "</table>"
+    return the_html
 }
 
 //item has at least 1 item in it which is an array.

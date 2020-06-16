@@ -162,7 +162,7 @@ new TestSuite("Vectorproject_point_onto_line",
     ["Vector.project_point_onto_line([1, 2, 3], [0, 0, 0], [10, 0, 0])", "[1, 0, 0]"],
     ["Vector.project_point_onto_line([1, 2, 3], [0, 0, 0], [0, 10, 0])", "[0, 2, 0]"],
     ["Vector.project_point_onto_line([1, 2, 3], [0, 0, 0], [0, 0, 10])", "[0, 0, 3]"],
-    ["Vector.project_point_onto_line([1, 2, 3], [0, 0, 0], [10, 10, 0])", "[1.5, 1.5, 0]"]
+    ["similar(Vector.project_point_onto_line([1, 2, 3], [0, 0, 0], [10, 10, 0]), [1.5, 1.5, 0], Number.EPSILON)", "true"]
 )
 
 new TestSuite("Kin.three_torques_to_force",

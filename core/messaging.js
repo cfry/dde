@@ -3,8 +3,7 @@ var querystring = require('querystring')
 var {function_param_names, replace_substrings, time_in_us} = require("./utils.js")
 
 var Messaging = class Messaging{}
-Messaging.hostname      = "api-project-5431220072.appspot.com"
-Messaging.base_url      = "https://api-project-5431220072.appspot.com"
+Messaging.hostname      = "not yet available in DDE"
 Messaging.login_path    = "/login.html"
 Messaging.auth_path     = "/auth"
 Messaging.send_path     = "/BOSCin"
@@ -21,18 +20,44 @@ Messaging.tentative_last_send_to  = null
 Messaging.successful_last_send_to = null
 Messaging.print_debug_info = false
 
-Messaging.get_result_fifo = [] //first in, first out. oldest elt is elt 0.
+//_______ get_result_fifo
+Messaging.get_result_fifo = [] //first in, first out. oldest elt is elt 0. Only on orig_sender side.
 Messaging.initial_send_delay_seconds = 0.25 //constant
 Messaging.current_send_delay_seconds = 0
 Messaging.max_send_delay_seconds = 70 //constant Ie before sending something this long, just give up,
                                       //and print an error by doubling from 0.25.
                                       //we top out at 64 seconds.
-//Messaging.time_in_us = function(){
-//    return Date.now() * 1000
-//}
 
-Messaging.mess_objs_that_made_round_trip = [] //only stores mess_objs and only ones with get_result == true
-Messaging.mess_objs_that_were_received = [] //and had their received processing done.
+
+Messaging.get_from_fifo = function(mess_obj_or_time){
+    let time
+    if(typeof(mess_obj_or_time) == "number"){ time = mess_obj_or_time }
+    else { time = mess_obj_or_time.send_time_us }
+    for(let mess_obj of Messaging.get_result_fifo) {
+       if(mess_obj.send_time_us === time) { return mess_obj }
+    }
+    return null //not in cache
+}
+
+//returns true if found and removed, false if not found in fifo
+Messaging.remove_from_fifo = function(mess_obj_or_time){
+    let time
+    if(typeof(mess_obj_or_time) == "number"){ time = mess_obj_or_time }
+    else { time = mess_obj_or_time.send_time_us }
+    for(let i = 0; i < Messaging.get_result_fifo.length; i++) {
+        let mess_obj = Messaging.get_result_fifo[i]
+        if(mess_obj.send_time_us === time) {
+            //delete puts an undefined in the array, doesn't remove the whole element. delete Messaging.get_result_fifo[i]
+            Messaging.get_result_fifo.splice(i, 1)
+            return true
+        }
+    }
+    return false
+}
+
+//________get_result caches (not the fifo)
+Messaging.mess_objs_that_made_round_trip = [] //get_result mess_objs on orig sender side. only stores mess_objs and only ones with get_result == true
+Messaging.mess_objs_that_were_received   = [] //get_result mess_objs on receiver    side. and had their received processing done.
 Messaging.delete_cached_mess_objs_older_than_us = 180 * 1000000
 
 /* Always use Messaging.get_from_cache instead.
@@ -63,6 +88,13 @@ Messaging.get_from_cache = function(mess_obj, cache_array){
     return result
 }
 
+//only add if not already present
+Messaging.add_to_cache_maybe = function(mess_obj, cache_array){
+    if(!Messaging.get_from_cache(mess_obj, cache_array)){
+        cache_array.push(mess_obj)
+    }
+}
+
 //depends on Messaging.mess_objs_that_made_round_trip ordered oldest first.
 //deletes all the elements at the beginning of the array that are too old.
 Messaging.clean_out_cached_mess_objs = function(cache_array){
@@ -83,11 +115,69 @@ Messaging.clean_out_cached_mess_objs = function(cache_array){
            return
         }
     }
-    //if we've gotten to hear it means (i_send_time_us > times_less_than_to_delete)
+    //if we've gotten to here it means (i_send_time_us > times_less_than_to_delete)
     //was never true (for any items)
     //that means none should be kept, ie all are too old
     cache_array.splice(0, cache_array.length) //delete them all.
 }
+
+Messaging.time_to_callback_map = {}
+Messaging.add_time_to_callback_maybe = function(mess_obj){
+    let cb = mess_obj.callback
+    if(cb){ //if cb is null or undefined, that's ok, but don't cache it.
+        if (typeof(cb) == "string") {
+            if(cb.startsWith("function")) { cb = "(" + cb + ")" }//fix JS's broken eval
+            let val_of_cb
+            try{ val_of_cb = eval(cb) } //might as well convert the string now before sending message,
+               //as we'll need it if message goes through, and this way we can verify its good
+               //before sending message.
+            catch(err){
+                dde_error("In Messaging." + mess_obj.type + ", the callback source of: " + mess_obj.callback +
+                    "<br/>is not valid JS. " + err.message)
+            }
+            if(typeof(val_of_cb) !== "function") {
+                dde_error('Messaging.eval, the callback: "' + callback + '" is a string (good), but its not the name or path to a function(bad):<br/>' +
+                    val_of_cb)
+            }
+            //else { cb = val_of_cb } //keep it as a string so that we can display it as the string in
+            //smart_append_to_messages
+
+        }
+        else if(typeof(cb) !== "function") {
+            dde_error("In Messaging." + mess_obj.type + ", the callback does not represent a function.<br/>" +
+                        mess_obj.callback)
+        }
+        //A OK
+        Messaging.time_to_callback_map[mess_obj.send_time_us] = cb
+        delete mess_obj.callback
+    }
+}
+
+//if the cb is stored as a string, it is returned as a string without converting to a fn.
+Messaging.get_time_to_callback = function(mess_obj){
+    return Messaging.time_to_callback_map[mess_obj.send_time_us]
+}
+
+//returns a fn even if this is stored as a string.
+Messaging.get_and_remove_time_to_callback = function(mess_obj){
+    let cb = Messaging.time_to_callback_map[mess_obj.send_time_us]
+    if(cb) { Messaging.remove_time_to_callback(mess_obj) }
+    if(typeof(cb) == "string") {
+        try {
+            eval("cb = " + cb)
+        }
+        catch(err){
+            shouldnt("Error: Messaging.get_and_remove_time_to_callback got string of the callback of:<br/>" +
+                     cb +
+                     "<br/> but that errored when evaling with:<br/>" + err.message)
+        }
+    }
+    return cb
+}
+Messaging.remove_time_to_callback = function(mess_obj){
+    delete Messaging.time_to_callback_map[mess_obj.send_time_us]
+}
+
 
 Messaging.debug = function(string){
     if(Messaging.print_debug_info){
@@ -126,7 +216,9 @@ Messaging.post =   function({hostname= Messaging.hostname,
 }
 
 //________login_______
-Messaging.login = function({user=Messaging.test_user, pass=Messaging.test_user_password}) {
+Messaging.login = function({user=Messaging.test_user,
+                            pass=Messaging.test_user_password,
+                            callback=null}) {
        /* Just always go thru login because if the Messaging.is_logged_in gets out of sync,
           logging in will fix it.
          if(Messaging.is_logged_in) {
@@ -152,6 +244,7 @@ Messaging.login = function({user=Messaging.test_user, pass=Messaging.test_user_p
             else if (key == "pass") { args_to_pass_on.post_data.pass = passed_in_args[key] }
             else { args_to_pass_on[key] = passed_in_args[key] }
         }
+         Messaging.login_user_callback = callback
          Messaging.post(args_to_pass_on)
 }
 
@@ -212,12 +305,44 @@ Messaging.logout = function(){
 }
 
 
+Messaging.is_user_logged_in_user_cb = null
+
+Messaging.is_user_logged_in_cb = function(res){
+    Messaging.debug("top of Messaging.send_callback statusCode: " + res.statusCode)
+    let data_string = ""
+    res.on('data', function(data){
+        data_string += data.toString() //the url encoding is automatically decoded
+    })
+    res.on('end', function() {
+        let get_result = ((data_string[0] == "t") ? true : false)
+        Messaging.is_user_logged_in_user_cb.call(Messaging, get_result)
+    })
+}
+
+Messaging.is_user_logged_in = function(user_name, callback=out){
+    Messaging.is_user_logged_in_user_cb = callback
+    let path_and_query =  "/BOSConline?to=" + user_name
+    let req = https.request({hostname: Messaging.hostname,
+                             port: 443,
+                             path: path_and_query,
+                             method: "GET"
+        },
+        this.is_user_logged_in_cb
+    )
+    // should result in the url a la:
+    // https://api-project-5431220072.appspot.com/BOSCin?msg=hi&to=cfry
+    req.setHeader('Cookie', Messaging.cookie) //['type=ninja', 'language=javascript'])
+    //Messaging.smart_append_to_sent_messages(mess_obj, true)
+    req.end()
+    req.on('error', function(err) {
+        let error_message = "Error: Messaging.is_user_logged_in error for: " + user_name + "<br/>of: " + err.message
+        //if(mess_obj.get_result) { Messaging.send_done_for_get_result(mess_obj, error_message) }
+        warning(error_message)
+    })
+}
+
 //_________send__________
-/* Messaging.get_result_fifo = [] //first in, first out. oldest elt is elt 0.
-   Messaging.initial_send_delay_seconds = 0.25
-   Messaging.current_send_delay_seconds = 0
-   Messaging.max_send_delay_seconds = 70
-*/
+
 Messaging.send = function(mess_obj){
        if(!Messaging.is_logged_in) { dde_error("Messaging.send attempt but your are not logged in.")}
        else if (typeof(mess_obj) === "string"){
@@ -231,16 +356,33 @@ Messaging.send = function(mess_obj){
        if(!mess_obj.send_time_us) { //only add sent_time_us once to mess_obj, ie the first time its used
           Messaging.last_send_time_us = time_in_us() //in microseconds  //Note: Date.now() is in miilliseconds
           mess_obj.send_time_us = Messaging.last_send_time_us
-          MessStat.record_send_time(mess_obj)
        }
-       if(mess_obj.get_result) {
+       if(mess_obj.get_result && !mess_obj.hasOwnProperty("result")) { //if it has a result, tht means
+        // we're on the receiver's side sending back a result. So don't put it on the fifo.
+            //so don't shove it on the fifo again. Includes does not work for a copy of mess_obj.
             if(!Messaging.get_result_fifo.includes(mess_obj)){
                 Messaging.get_result_fifo.push(mess_obj)
+                Messaging.add_time_to_callback_maybe(mess_obj)
+                //imagine that all the rest of the communications after this fail. The below will "give up"
+                //on this message. So it won't get through to the receiver and certainly won't come back to
+                //the orig sender. So we "pretend" that we got back an error message.
+                setTimeout(function() {
+                               if(mess_obj.hasOwnProperty("result")) { //we're on the sender's side receiving the results of a requested result
+                                      //very similar to key section of Messaging.user_receive_callback_permit
+                                    let error_message = "Error: Messaging.send failed to send message to: " + mess_obj.to +
+                                                        "<br/>after: " + Messaging.max_send_delay_seconds + " seconds, so giving up."
+                                    Messaging.send_done_for_get_result(mess_obj, error_message)
+                               }
+                            },
+                            Messaging.max_send_delay_seconds * 1000)
             }
             mess_obj = Messaging.get_result_fifo[0] //might or might not be the same as the passed in mess_obj
        }
-       //non_get_result mess_obj's are sent once and forgotten, No furthe aciton taken on them
-       else if (Messaging.get_result_fifo.length > 0) {
+       //non_get_result mess_obj's are sent once and forgotten, No further action taken on them
+       //BUT if there's any pending get_result messages in the fifo or
+       //it hasn't been enough time since the last send, then don't send the non-get_result message
+       else if (!mess_obj.get_result && Messaging.get_result_fifo.length > 0) {
+            MessStat.non_get_report_messages_not_used += 1
             Messaging.debug("Messaging.send, mess_obj type: " + mess_obj.type +
                              "<br/>has get_result: false and get_result_fifo has length: " +
                              Messaging.get_result_fifo.length +
@@ -248,10 +390,13 @@ Messaging.send = function(mess_obj){
             return
        }
        else if (!MessStat.should_send_non_get_result_message(mess_obj.send_time_us)){
+           MessStat.non_get_report_messages_not_used += 1
            Messaging.debug("Send rejected sending message of type: " + mess_obj.type +
                            "because its too soon to send another non_get_result message.")
            return
        }
+       //OK we're going to send the message be it get_result or non-get_result.
+       if(!mess_obj.get_result) { MessStat.record_send_time(mess_obj) } //must be after MessStat.should_send_non_get_result_message()
        let mess_obj_str = (mess_obj.msg ? mess_obj.msg : JSON.stringify(mess_obj))
        let outer_mess_obj = {to: mess_obj.to,
                              msg: mess_obj_str }
@@ -273,11 +418,43 @@ Messaging.send = function(mess_obj){
         Messaging.smart_append_to_sent_messages(mess_obj, true)
         req.end()
         req.on('error', function(err) {
-            warning("Messaging.send error for: " + JSON.stringify(mess_obj) + "<br/>of: " + err.message)
-            //todo resend
-            // if(mess_obj.resend == true)
+            let error_message = "Error: Messaging.send error for: " + JSON.stringify(mess_obj) + "<br/>of: " + err.message
+            if(mess_obj.get_result) { Messaging.send_done_for_get_result(mess_obj, error_message) }
+            else { warning(error_message) }
         })
+}
 
+//mess_obj is a get_result. We are on the orign sender's side.
+//called both by send and send_callback
+//if pass in result, it will be an error message, If result is null (default) don't change mess_obj resutl
+Messaging.send_done_for_get_result = function(mess_obj, result_error_message=null){
+    if(Messaging.get_from_cache(mess_obj, Messaging.mess_objs_that_made_round_trip)){
+        //since the mess_obj is in the cache, we've already gotten this mess back
+        //from the receiver before so we DON't want to call the callback again,
+        //just ignore this
+    }
+    else { //first time we're getting this mess back from the sender so call the callback
+        //display it and cache it so if there is a next time that we get this mess_obj
+        //we will ignore it.
+        let mess_obj_copy    = JSON.parse(JSON.stringify(mess_obj))
+        mess_obj_copy.from   = mess_obj.to
+        mess_obj_copy.to     = mess_obj.from //ie "me", the orig sender"
+        if(result_error_message) {
+            warning(result_error_message)
+            mess_obj_copy.result = result_error_message
+        }
+        Messaging.smart_append_to_sent_messages(mess_obj_copy, false)
+        Messaging.call_callback(mess_obj_copy) //might call dde_error so call smart_append_to_sent_messages first
+        Messaging.mess_objs_that_made_round_trip.push(mess_obj_copy)
+        Messaging.remove_from_fifo(mess_obj)
+        Messaging.current_send_delay_seconds = 0
+    }
+}
+
+Messaging.is_error = function(mess_obj){
+    return mess_obj.hasOwnProperty("result") &&
+           (typeof(mess_obj.result) === "string") &&
+           mess_obj.result.startsWith("Error:")
 }
 
 Messaging.send_callback = function(res){
@@ -287,57 +464,72 @@ Messaging.send_callback = function(res){
                 data_string += data.toString() //the url encoding is automatically decoded
         })
         res.on('end', function() {
+            let get_result = MessStat.extract_property_value(res, "get_result")
             //example of data_string when the user is an unknown user:
             //  BOSCin to:cfryx. Status:unknown
             let send_cb_good = !data_string.endsWith("Status:unknown")
-            MessStat.record_send_cb_time(res, send_cb_good)
-            if(Messaging.get_result_fifo.length === 0) {  //nothing to do.
-                //In "send" if there's something in the fifo and we are about to send a
-                //get_result==false message, we don't send it, we just throw it away.
-                //If there IS something in the fifo, we send that.
-                //so here, if fifo is empty then this send_callback must be called
-                //with a get_result==false message and therefore we can ignore it.
-                //BUT if there IS something in the fifo, then resend
-                 Messaging.debug("In Messaging.send_callback, the fifo is empty so nothing to do.")
-                 return
-            }
-            let pending_mess_obj = Messaging.get_result_fifo[0]
-            if (Messaging.get_from_cache(pending_mess_obj, Messaging.mess_objs_that_made_round_trip)){
-                Messaging.debug("Messaging.send_callback got mess_obj that already made round trip, so doing nothing.")
-                return
-            }
-
-            if(!send_cb_good){
-                if (Messaging.current_send_delay_seconds > (Messaging.max_send_delay_seconds / 2)){
-                    warning("Messaging.send_callback tried repeatedly to send message but failed: " +
-                             JSON.stringify(pending_mess_obj))
-                    Messaging.get_result_fifo.shift()
-                    Messaging.current_send_delay_seconds = 0
-                }
-                else { //resend, do not change fifo
-                    let user_name = data_string.substring(data_string.indexOf(":") + 1, data_string.indexOf("."))
-                    let extra_message = "Attempt to send to user: " + user_name + ",<br/>who is not known by the server. Now resending..."
-                    warning("Messaging.send_callback: " + extra_message)
-                    if(Messaging.current_send_delay_seconds == 0) {
-                        Messaging.current_send_delay_seconds = Messaging.initial_send_delay_seconds
-                    }
-                    else {
-                        Messaging.current_send_delay_seconds = Messaging.current_send_delay_seconds * 2
-                    }
-                    Messaging.debug("Messaging.send_callback resending with timeout of: " + Messaging.current_send_delay_seconds +
-                                    " seconds, fifo length: " + Messaging.get_result_fifo +
-                                    " " + JSON.stringify(pending_mess_obj))
-                    setTimeout(function(){
-                        Messaging.send(pending_mess_obj)
-                    }, Messaging.current_send_delay_seconds * 1000)
+            if(!get_result) {
+                MessStat.record_send_cb_time(res, send_cb_good)
+                if(!send_cb_good) {
+                    let to = MessStat.extract_property_value(res, "to")
+                    Messaging.debug("Messaging.send_callback got non-get_result message with unknown 'to' of: " + to)
                 }
             }
-            else { //A OK
-                Messaging.debug("Messaging.send_callback success with data: " + data_string)
-                Messaging.get_result_fifo.shift()
-                Messaging.current_send_delay_seconds = 0
-            }
-        })
+            else { //res is a get_result message
+                if(Messaging.get_result_fifo.length === 0) {
+                    //unusual because if its a get_result mess, it should be in the fifo
+                    //nothing to do.
+                    //In "send" if there's something in the fifo and we are about to send a
+                    //get_result==false message, we don't send it, we just throw it away.
+                    //If there IS something in the fifo, we send that.
+                    //so here, if fifo is empty then this send_callback must be called
+                    //with a get_result==false message and therefore we can ignore it.
+                    //BUT if there IS something in the fifo, then resend
+                     Messaging.debug("In Messaging.send_callback, the fifo is empty so nothing to do.")
+                     return
+                }
+                else { //message is get_result and fifo non-empty, so the mess must be first in the fifo
+                    let pending_mess_obj = Messaging.get_result_fifo[0]
+                    let send_time_us = MessStat.extract_property_value(res, "send_time_us")
+                    if(pending_mess_obj.send_time_us !== send_time_us){
+                        shouldnt("Messaging.send_callback got res send_time_us not the same as first_in_fifo send_time_us")
+                    }
+                    else if (Messaging.get_from_cache(pending_mess_obj, Messaging.mess_objs_that_made_round_trip)){
+                        Messaging.debug("Messaging.send_callback got mess_obj that already made round trip, so doing nothing.")
+                        return
+                    }
+                    else if(!send_cb_good){
+                        if (Messaging.current_send_delay_seconds > (Messaging.max_send_delay_seconds / 2)){
+                            let error_message = ("Error: Messaging.send_callback tried repeatedly to send message but failed: " +
+                                                  JSON.stringify(pending_mess_obj))
+                            Messaging.send_done_for_get_result(pending_mess_obj, error_message)
+                        }
+                        else { //resend, do not change fifo
+                            let user_name = data_string.substring(data_string.indexOf(":") + 1, data_string.indexOf("."))
+                            let extra_message = "Attempt to send to user: " + user_name + ",<br/>who is not known by the server. Now resending..."
+                            if(Messaging.current_send_delay_seconds == 0) {
+                                Messaging.current_send_delay_seconds = Messaging.initial_send_delay_seconds
+                            }
+                            else {
+                                Messaging.current_send_delay_seconds = Messaging.current_send_delay_seconds * 2
+                            }
+                            Messaging.debug("Messaging.send_callback resending with timeout of: " + Messaging.current_send_delay_seconds +
+                                            " seconds, fifo length: " + Messaging.get_result_fifo.length +
+                                            " " + JSON.stringify(pending_mess_obj))
+                            setTimeout(function(){
+                                Messaging.send(pending_mess_obj)
+                            }, Messaging.current_send_delay_seconds * 1000)
+                        }
+                    }
+                    else { //A OK. mess is a get_result=true, to: user is known by server, mess hasn't made round trip, just let it go and hope it makes it
+                        Messaging.debug("Messaging.send_callback with get_result=true message, success with data: " + data_string)
+                        //Messaging.get_result_fifo.shift()
+                        //Messaging.current_send_delay_seconds = 0
+                    }
+                }
+            } //end /res is a get_result message
+        } //res on end
+        )
 }
 
 //Called by DDE grabbing selected text and making it a mess_obj to send
@@ -366,17 +558,21 @@ Messaging.send_text = function(text, define_job=true){
     this.send(mess_obj)
 }
 
-//called from receive_callback or below sending back into to the orig sender
-Messaging.send_back_result = function(mess_obj){
-    if(!mess_obj.hasOwnProperty("result")) { shouldnt("Messaging.send_back_result passed mess_obj with no result property.")}
-    else if((typeof(mess_obj.result) == "string") && mess_obj.result.startsWith("Error:")) {
-        Messaging.debug("In Messaging.send_back_result, passed result of:<br/>" +
+//Normally called from the bottom of type_receive methods
+//If mess_obj.get_result is false, doesn't send back result.
+//if there is no mess_obj.result, it is set to "OK"
+Messaging.send_back_result_maybe = function(mess_obj){
+    if(Messaging.is_error(mess_obj)) {
+        Messaging.debug("In Messaging.send_back_result_maybe, passed result of:<br/>" +
                          mess_obj.result)
     }
-    let orig_to = mess_obj.to
-    mess_obj.to = mess_obj.from
-    mess_obj.from = orig_to
-    Messaging.send(mess_obj)
+    if(mess_obj.get_result) {
+        if(!mess_obj.hasOwnProperty("result")) { mess_obj.result = "OK" }
+        let orig_to = mess_obj.to
+        mess_obj.to = mess_obj.from
+        mess_obj.from = orig_to
+        Messaging.send(mess_obj)
+    }
 }
 
 //_______High level sends_______
@@ -416,7 +612,7 @@ Messaging.chat_receive_aux = function(mess_obj){
     messaging_dialog_to_id.value = mess_obj.from
 }
 
-Messaging.eval = function({source=null, callback=null, pass_to_callback="mess_obj",
+Messaging.eval = function({source=null, callback=out, pass_to_callback="evaled_result",
                            to=Messaging.successful_last_send_to, get_result=true}={}){
     let mess_obj = arguments[0]
     if (mess_obj === undefined) { mess_obj = {} }
@@ -428,36 +624,12 @@ Messaging.eval = function({source=null, callback=null, pass_to_callback="mess_ob
         dde_error("Attempt to send Messaging.eval but no source provided to run.")
     }
     if(!mess_obj.callback) {mess_obj.callback = callback}
-    if(mess_obj.callback == null) {} //ok
-    else if (typeof(mess_obj.callback) == "string") { //note: we do this checking here
-        //because the callback will have to be called when the mess is send back to the
-        //orig sender anyway, and the callback is used. So might as well
-        //do this earlier in the process. (we do it in Messaging.call_callback too,
-        //but catching it earlier is better.
-        if(mess_obj.callback.startsWith("function")) { mess_obj.callback = "(" + mess_obj.callback + ")" }//fix JS's broken eval
-        let val_of_cb
-        try{ val_of_cb = eval(mess_obj.callback) }
-        catch(err){
-            dde_error("In Messaging.eval, the callback source of: " + mess_obj.callback +
-                      "<br/>is not valid JS. " + err.message)
-        }
-        if(typeof(val_of_cb) !== "function") {
-            dde_error('Messaging.eval, the callback: "' + callback + '" is a string (good), but its not the name or path to a function(bad):<br/>' +
-                val_of_cb)
-        }
-        //if(mess_obj.callback.startsWith("function")) {
-        //    mess_obj.callback = "(" + mess_obj.callback + ")" //because JS eval is broken by design, we need to wrap these parens or eval of the callback errors when it comes back to the sender to call.
-        //}
-        //else OK
-    }
-    else if(typeof(mess_obj.callback == "function")){
-        mess_obj.callback = "(" + mess_obj.callback.toString() + ")"
-    }
-    else {
-        dde_error("Messaging.eval, the callback must be null or a string name  of a method<br/>" +
-            "but its: " + callback)
-    }
+    //all callback checking done in Messaging.add_time_to_callback_maybe
     if(!mess_obj.pass_to_callback) { mess_obj.pass_to_callback = pass_to_callback }
+    if(!["evaled_result", "unevaled_result", "mess_obj", "source", "callback", "pass_to_callback", "to", "from", "get_result"].includes(mess_obj.pass_to_callback)) {
+        dde_error("Messaging.eval, pass_to_callback is: " + mess_obj.pass_to_callback +
+                  "<br/>which is not one of the valid: " + ["evaled_result", "unevaled_result", "mess_obj"])
+    }
     //end type-specific
     mess_obj.type = "eval"
     if(!mess_obj.to)     { mess_obj.to = to }
@@ -562,7 +734,7 @@ Messaging.job_instruction = function({do_list_item,
 //only send a message back to the sender if there's an error
 Messaging.job_instruction_receive = function(mess_obj){
     let instr = Messaging.valid_instruction_or_error_string(mess_obj.do_list_item)
-    if(typeof(instr) == "string") {
+    if(typeof(instr) == "string") { //got an error
         mess_obj.result = instr
     }
     else { //instr is good, but is job_name?
@@ -598,14 +770,14 @@ Messaging.job_instruction_receive = function(mess_obj){
         }
         else { //job_name is not defined, and  mess_obj.if_no_job is "error"
             let result = "Error: Messaging.job_instruction_receive passed job_name of " + job_name +
-                         '<br/>That job is not active and if_no_job is "error".<br/>'
+                         '<br/>That job is not defined and if_no_job is "error".<br/>'
                          'so the job was not started.'
             mess_obj.result = result
         }
     }
 }
 
-Messaging.out = function({val="test message", color="black", temp=false, code=false, //todo should be null but query string screw up with null?
+Messaging.out = function({val="test message", color="black", temp=false, code=null,
                           to=Messaging.successful_last_send_to, get_result=false}={}){
     let mess_obj = arguments[0]
     if (mess_obj === undefined) { mess_obj = {} }
@@ -656,9 +828,12 @@ Messaging.ping_callback = function(mess_obj){
         "</table>")
 }
 
+//keep callback as a string so that it will display as such in the Messages pane.
 Messaging.ping = function({callback="Messaging.ping_callback",
                            to=Messaging.successful_last_send_to, get_result=true}={}){
     let mess_obj = arguments[0]
+    if(!mess_obj.callback) {mess_obj.callback = callback}
+    //all callback checking done in Messaging.add_time_to_callback_maybe
     mess_obj.type = "ping"
     Messaging.send(mess_obj)
 }
@@ -697,7 +872,8 @@ Messaging.speak_receive = function(mess_obj){
 
 
 
-Messaging.start_job = function({job_name=null, start_options={}, callback=null,
+Messaging.start_job = function({job_name=null, start_options={}, if_started="ignore",
+                                callback=null,
                                 to=Messaging.successful_last_send_to, get_result=true}={}){
     let mess_obj = arguments[0]
     if (mess_obj === undefined) { mess_obj = {} }
@@ -712,7 +888,6 @@ Messaging.start_job = function({job_name=null, start_options={}, callback=null,
         mess_obj.job_name = to_source_code({value: mess_obj.job_name})
     }
     else if(mess_obj.job_name.startsWith("new Job(")){} //ok job def is on sender
-    else if(mess_obj.job_name.startsWith("Job.")) {} //ok  job def is on receiver
     else if(file_exists(mess_obj.job_name)) { //job def is on sender
         let jobs_in_file = Job.instances_in_file(mess_obj.job_name)
         if(jobs_in_file.length > 0) { mess_obj.job_name = to_source_code({value: jobs_in_file[0]}) }
@@ -722,13 +897,13 @@ Messaging.start_job = function({job_name=null, start_options={}, callback=null,
         }
     }
     else if(is_string_an_identifier(mess_obj.job_name)){  //job def is on receiver
-         mess_obj.job_name = "Job." + job_name
+         mess_obj.job_name = job_name
     }
     else {
         dde_error("Messaging.start_job called with job_name: <br/>" + mess_obj.job_name +
-            "<br/>but the job_name does not define a Job.<br/>" +
-            'It should start with: "Job.foo", or "new Job({...})".' +
-            "<br/> so no action taken.")
+                  "<br/>but the job_name does not define a Job.<br/>" +
+                  'It should "new Job({...})" or a Job name like "my_job".' +
+                  "<br/> so no action taken.")
     }
     if(!mess_obj.start_options) { mess_obj.start_options = start_options}
     if(typeof(mess_obj.start_options) == "string") {} //ok
@@ -740,20 +915,14 @@ Messaging.start_job = function({job_name=null, start_options={}, callback=null,
                   "<br/>but the start_options are not a JS literal object like they should be:<br/>" +
                    JSON.stringify(mess_obj.start_options))
     }
-    if(callback == null) {} //ok
-    else if (typeof(callback == "string")) {
-        let val_of_cb = value_of_path(callback)
-        if(typeof(val_of_cb) != "function") {
-            dde_error('Messaging.start_job, the callback: "' + callback + '" is a string (good), but its not the name or path to a function(bad):<br/>' +
-                       val_of_cb)
-        }
-        //else OK
+    if(!mess_obj.if_started) {  mess_obj.if_started = if_started }
+    if(!["ignore", "error", "restart"].includes(mess_obj.if_started)) {
+        dde_error('Messaging.start_job passed if_started of: "' + mess_obj.if_started +
+                  '" which is not one of the valid values of: ' +
+                  '<br/>' + '"ignore", "error", "restart" .')
     }
-    else {
-        dde_error("Messaging.start_job, the callback must be null or a string name of a method<br/>" +
-                  "but its: " + callback)
-    }
-    //allow no callback
+    if(!mess_obj.callback) {mess_obj.callback = callback}
+    //all callback checking done in Messaging.add_time_to_callback_maybe
     //end type-specific
     mess_obj.type = "start_job"
     if(!mess_obj.to)     { mess_obj.to = to }
@@ -764,86 +933,152 @@ Messaging.start_job = function({job_name=null, start_options={}, callback=null,
 
 Messaging.start_job_receive = function(mess_obj){
     let job_name = mess_obj.job_name
-    if     (job_name.startsWith("new Job(")) {} //ok
-    else if(job_name.startsWith("Job.")) {} //ok
-    else if(is_string_an_identifier(job_name)) {}
-    else {
-        warning("Messaging.user_receive_callback passed:<br/>" + job_name +
-            "<br/>but the job_name does not define a Job.<br/>" +
-            'It should start with: "Job.foo", or "new Job({...})".' +
-            "<br/> so no action taken.")
-        let result = "Error: " + job_name + '<br/> was supposed to start with "Job." or "new Job(" <br/>'
-        Messaging.send(mess_obj)
-        mess_obj.result = result
+    let job_instance
+    if     (job_name.startsWith("new Job(")) {
+        try { job_instance = eval(job_name) }
+        catch(err){
+            mess_obj.result = "Error: Messaging.start_job_receive has job_name of: " + job_name +
+                          "<br/>but evaling that got error: " + err.message
+            return
+        }
     }
+    else if(is_string_an_identifier(job_name)) {
+        job_instance = Job[job_name]
+    }
+    else {
+        mess_obj.result = "Error: Messaging.start_job_receive has a job_name of: " + job_name +
+                          "<br/>that isn't Job source code or a Job name."
+        return
+    }
+    if(!(job_instance instanceof Job)) {
+        mess_obj.result = "Error: Messaging.start_job_receive has a job_name of: " + job_name +
+                          "<br/>but that doesn't refer to a job, rather: " + job_instance
+        return
+    }
+
     let start_options
     try { eval("start_options = " + mess_obj.start_options) }
     catch(err){
-        let err_mess = "Error: Messaging.start_job_receive error when evaling start_options of:<br/>" +
-                        mess_obj.start_options +
-                        err.message
-        mess_obj.result = err_mess
+        mess_obj.result = "Error: Messaging.start_job_receive error when evaling start_options of:<br/>" +
+            mess_obj.start_options +
+            err.message
         return
     }
+    //below here all the clauses set result
+    let status_code = job_instance.status_code
+    if      (status_code == "starting")  { mess_obj.result = "The Job was already starting."} //just let continue starting
+    else if (status_code == "suspended") {
+        job_instance.unsuspend()
+        mess_obj.result = "The Job was unsuspended."
+    }
+    else if (["running", "waiting", "running_when_stopped"].includes(status_code)){
+        if     (mess_obj.if_started == "ignore") { mess_obj.result = "The Job is already running."} //just let keep running
+        else if(mess_obj.if_started == "error")  {
+            let error_message = "Messaging.start_job_receive tried to start job: " +
+                                 job_instance.name + " but it was already started." +
+                                 '<br/>Because if_started == "error", the job was stopped with an error.'
+            job_instance.stop_for_reason("errored", error_message)
+            mess_obj.result = "Error: " + error_message
+        }
+        else if (mess_obj.if_started == "restart"){
+            job_instance.stop_for_reason("interrupted",
+                "interrupted by start_job instruction in " + job_instance.name)
+            mess_obj.dont_send_back_result = true //unusual. Read by user_receive_callback_permit to supress normal calling of send_back_result
+            mess_obj.result = "The Job was stopped and restarted."
+            setTimeout(function(){
+                         job_instance.start(start_options)
+                         Messaging.send_back_result_maybe(mess_obj)
+                       },
+                       Math.max(200, mess_obj.start_options.inter_do_item_dur * 2))
+            return
+        }
+        else { //if_started is tested for validity in the constructor, but just in case...
+            mess_obj.result = "Error: Messaging.start_job_receive for Job." + job_instance.name +
+                              " has an invalid " +
+                              "<br/> if_started value of: " + mess_obj.if_started +
+                              '<br/> use "ignore", "error" or "restart" instead.'
+        }
+    }
+    else if (["not_started", "completed", "errored", "interrupted"].includes(status_code)) {
+        job_instance.start(start_options)
+        mess_obj.result = "The stopped job is being started."
+    }
+    else {
+        mess_obj.result = "Error: Messaging.start_job_receive got a status_code from Job." +
+                           job_instance.name + " that it doesn't understand."
+    }
+}
+
+Messaging.stop_job = function({job_name,
+                               reason=null,
+                               perform_when_stopped=true,
+                               callback=null,
+                               to=Messaging.successful_last_send_to,
+                               get_result=true}={}){
+    let mess_obj = arguments[0]
+    if (mess_obj === undefined) { mess_obj = {} }
+    if(typeof(mess_obj) == "string"){ mess_obj = {job_name: mess_obj} }
+
+    //type-specific set-up
+    if(!mess_obj.job_name) {mess_obj.job_name == job_name}
+    if(!mess_obj.job_name) { //required.
+        dde_error("Attempt to send Messaging.start_job but no job_name provided for the Job.")
+    }
+    else if (!is_string_an_identifier(mess_obj.job_name)) {
+        dde_error("In Messaging.stop_job, " + mess_obj.job_name +
+                  "<br/>is not the right syntax for a Job name.")
+    }
+    if(!mess_obj.reason) { mess_obj.reason = reason }
+    if(!(mess_obj.reason === null) && !(typeof(mess_obj.reason) === "string")){
+        dde_error("Messaging.stop_job, reason is: " + mess_obj.reason +
+                  "<br/> but should be a string or null.")
+    }
+    if(!mess_obj.perform_when_stopped) { mess_obj.perform_when_stopped = perform_when_stopped }
+    if(typeof(mess_obj.perform_when_stopped) !== "boolean"){
+        dde_error("Messaging.stop_job, perform_when_stopped is: " + mess_obj.perform_when_stopped +
+            "<br/> but should be true or false.")
+    }
+    if(!mess_obj.callback) {mess_obj.callback = callback}
+    //all callback checking done in Messaging.add_time_to_callback_maybe
+    //allow no callback
+    //end type-specific
+    mess_obj.type = "stop_job"
+    if(!mess_obj.to)         { mess_obj.to = to }
+    if(!mess_obj.get_result) { mess_obj.get_result = get_result }
+    Messaging.send(mess_obj)
+}
+
+Messaging.stop_job_receive = function(mess_obj){
+    let job_name = mess_obj.job_name
     let job_instance
-    try { job_instance = eval(job_name)
-          if(job_instance instanceof Job) {
-            job_instance.start(start_options)
-            let result = "Job." + job_instance.name + " started in the DDE of: " + Messaging.user
-            mess_obj.result = result
+    if(is_string_an_identifier(job_name)){
+        job_instance = Job[job_name]
+        if(!(job_instance instanceof Job)) {
+            mess_obj.result  = "Error: Messaging.stop_job_receive passed job_name of: " + mess_obj.job_name +
+                "<br/>but that isn't the name of a Job."
             return
-          }
-          else if (Array.isArray(job_instance) &&
-                (job_instance.length == 1) &&
-                typeof(job_instance[0]) == "string"){ //there was an active job of this name,
-                //so that is being stopped and the new Job will be called again on
-                //the job name BUT that new job won't be started as usual with start job.
-                let path
-                if(job_name.startsWith("Job.")) { path = job_name }
-                else if (job_name.startsWith("new Job(")) {
-                    let name_pos = job_name.indexOf("name:")
-                    if(name_pos > 0) {
-                        let start_name_pos = name_pos + 5
-                        let end_name_pos = job_name.indexOf(",", start_name_pos)
-                        if(end_name_pos > 0) {
-                            let name = job_name.substring(start_name_pos, end_name_pos).trim()
-                            name = name.substring(1, name.length - 1) //strip off quotes around name
-                            path = "Job." + name
-                        }
-                    }
-                }
-                if(path) {
-                    mess_obj.result = result
-                    setTimeout(function() {
-                        let job_instance = value_of_path(path)
-                        job_instance.start(start_options)
-                    }, 500)
-                    return
-                }
-                else {
-                    let result = "Error: Could not restart Job: " + job_name + " because could not find its name."
-                    mess_obj.result = result
-                    return
-                }
-          }
-          else {
-              let result = "Error: Messaging.user_receive_callback could not define or start job: " + job_name
-              mess_obj.result = result
-              return
-          }
+        }
     }
-    catch(err) {
-            let result = "Error: Messaging.user_receive_callback: " + err.message
-            mess_obj.result = result
-            return
+    else {
+        mess_obj.result  = "Error: Messaging.stop_job_receive passed job_name of: " + mess_obj.job_name +
+                           "<br/>but that isn't valid syntax for the name of a Job."
+        return
     }
+    let instr = Control.stop_job(undefined,
+                                 "Stopped by Messaging.stop_job_receive from: " + mess_obj.from,
+                                 mess_obj.perform_when_stopped)
+    if (["starting", "running", "waiting", "running_when_stopped"].includes(job_instance.status_code)){
+        job_instance.insert_single_instruction(instr, false) //not a sub-instruction
+        mess_obj.result = "Stopping Job."
+    }
+    else {mess_obj.result = "The Job is already stopped."}
 }
 
 Messaging.get_variable = function({variable_name,
                                     job_name=null,
                                     eval_kind="JSON", //other options "null", "eval"
-                                    callback=null,
-                                    pass_to_callback="mess_obj",
+                                    callback="out",
+                                    pass_to_callback="evaled_result",
                                     to=Messaging.successful_last_send_to,
                                     get_result=true}) {
      let mess_obj = arguments[0]
@@ -870,37 +1105,8 @@ Messaging.get_variable = function({variable_name,
      else { dde_error("Messaging.get_variable passed eval_kind of: " + eval_kind +
          '<br/>but the only valid values are: "null", "JSON" and "eval".')
      }
-
     if(!mess_obj.callback) {mess_obj.callback = callback}
-    if(mess_obj.callback == null) {} //ok
-    else if (typeof(mess_obj.callback) == "string") { //note: we do this checking here
-        //because the callback will have to be called when the mess is send back to the
-        //orig sender anyway, and the callback is used. So might as well
-        //do this earlier in the process. (we do it in Messaging.call_callback too,
-        //but catching it earlier is better.
-        if(mess_obj.callback.startsWith("function")) { mess_obj.callback = "(" + mess_obj.callback + ")" }//fix JS's broken eval
-        let val_of_cb
-        try{ val_of_cb = eval(mess_obj.callback) }
-        catch(err){
-            dde_error("In Messaging.get_variable, the callback source of: " + mess_obj.callback +
-                "<br/>is not valid JS. " + err.message)
-        }
-        if(typeof(val_of_cb) !== "function") {
-            dde_error('Messaging.get_variable, the callback: "' + callback + '" is a string (good), but its not the name or path to a function(bad):<br/>' +
-                val_of_cb)
-        }
-        //if(mess_obj.callback.startsWith("function")) {
-        //    mess_obj.callback = "(" + mess_obj.callback + ")" //because JS eval is broken by design, we need to wrap these parens or eval of the callback errors when it comes back to the sender to call.
-        //}
-        //else OK
-    }
-    else if(typeof(mess_obj.callback == "function")){
-        mess_obj.callback = "(" + mess_obj.callback.toString() + ")"
-    }
-    else {
-        dde_error("Messaging.get_variable, the callback must be null or a string name  of a method<br/>" +
-            "but its: " + callback)
-    }
+    //all callback checking done in Messaging.add_time_to_callback_maybe
     if(!mess_obj.pass_to_callback) { mess_obj.pass_to_callback = pass_to_callback }
     if(!mess_obj.to)               { mess_obj.to = to }
     if(!mess_obj.get_result)       { mess_obj.get_result = get_result }
@@ -915,8 +1121,11 @@ Messaging.get_variable_receive = function(mess_obj){
     let full_path = path_prefix + mess_obj.variable_name
     let result_val = value_of_path(full_path)
     let result_str
-    if(mess_obj.eval_kind === "JSON") { result_str = JSON.stringify(result_val) }
-    else                              { result_str = to_source_code({value: result_val}) }
+    //Allow undefined to be the value received on the other end. Handle special case is if it was JSON because broken JSON can't handle undefined
+    if(result_val === undefined) { result_str = "undefined" } //"Error: Messaging.get_variable_receive attempted to get value of: " + full_path +
+                                                              // "<br/>but that is undefined."
+    else if(mess_obj.eval_kind === "JSON") { result_str = JSON.stringify(result_val) }
+    else                                   { result_str = to_source_code({value: result_val}) }
     mess_obj.result = result_str
 }
 
@@ -959,7 +1168,7 @@ Messaging.set_variable = function({variable_name,
        //if the new_value is undefined or "undefined", it doesn't matter what the
        //eval_kind is, the actual new value set is undefined.
     }
-    else if (typeof(new_value) === "string") { } //just leave it.
+    //else if (typeof(new_value) === "string") { } //just leave it. NO DON'T wrap extra set of quotes so it decodes properly
     else if (eval_kind === null)   { new_value = "" + new_value }
     else if (eval_kind === "JSON") { new_value = JSON.stringify(new_value) }
     else if (eval_kind === "eval") { new_value = to_source_code({value: new_value}) }
@@ -989,18 +1198,16 @@ Messaging.set_variable_receive = function(mess_obj){
     else if(mess_obj.eval_kind === "JSON") {
           try{new_val = JSON.parse(new_val_src)}
           catch(err){
-              let result = "Error: Messaging.set_variable_receive attempted to JSON.parse new_value of: " + new_val_src +
+              mess_obj.result = "Error: Messaging.set_variable_receive attempted to JSON.parse new_value of: " + new_val_src +
                            "<br/>but that errored with: " + err.message
-              mess_obj.result = result
               return
           }
     }
     else if(mess_obj.eval_kind === "eval") {
         try{ eval("new_val = " + new_val_src)}
         catch(err) {
-            let result = "Error: Messaging.set_variable_receive attempted to eval new_value of: " + new_val_src +
+            mess_obj.result = "Error: Messaging.set_variable_receive attempted to eval new_value of: " + new_val_src +
                          "<br/>but that errored with: " + err.message
-            mess_obj.result =  result
             return
         }
     }
@@ -1009,9 +1216,8 @@ Messaging.set_variable_receive = function(mess_obj){
     if(mess_obj.job_name) {
         obj_to_set = Job[mess_obj.job_name]
         if(!obj_to_set) {
-            let error_mess = "Error: In Messaging.set_variable_receive, Job." + mess_obj.job_name + " isn't defined."
-            warning(error_mess)
-            mess_obj.result = error_mess
+            mess_obj.result = "Error: In Messaging.set_variable_receive, Job." + mess_obj.job_name + " isn't defined."
+            warning(mess_obj.result)
             return
         }
         else { obj_to_set = obj_to_set.user_data }
@@ -1082,7 +1288,7 @@ Messaging.receive = function(){
     })
     if(window.mess_stat_request_indicator_id){
         mess_stat_request_indicator_id.style["background-color"] = "#0F0"
-        setTimeout(function(){
+        setTimeout(function(){ //turns off the green light after half  a sec.
                     if(window.mess_stat_request_indicator_id) {
                         mess_stat_request_indicator_id.style["background-color"] = "#DDD"
                     }
@@ -1097,13 +1303,12 @@ Messaging.receive_callback = function(res){
         data_string += data.toString()
     })
     res.on("end", function(){
-        let dur = time_in_us() - //parseInt(nano_time.micro())
-                  Messaging.last_send_time_us
+        let dur = time_in_us() - Messaging.last_send_time_us //only used in debugging
         if(Messaging.is_logged_in) {
             Messaging.debug("Messaging is auto_refreshing for: " + Messaging.user)
             Messaging.receive()
         }
-        //else  allow to logout
+        //else allow to logout
         if(res.statusCode === 408) { //timeout
             if(!Messaging.is_logged_in) {
                 out("Messaging user: " + Messaging.user + " is logged out.")
@@ -1112,7 +1317,7 @@ Messaging.receive_callback = function(res){
         else if(res.statusCode === 403){ //logged out
             if(Messaging.is_logged_in) {
                 Messaging.debug("Messaging.received_callback: server has logged out: " + Messaging.user +
-                              " now auto_logging in.")
+                                " now auto_logging in.")
                 Messaging.is_logged_in = false
                 Messaging.login({user: Messaging.user, pass: Messaging.password})
             }
@@ -1177,19 +1382,16 @@ Messaging.user_receive_callback = function(data_string, from){
     }
     else { //got an object
         let mess_obj  //have to do this due to broken JS eval in order to get the actual object.
-        eval("mess_obj = " + data_string) //JSON.parse(data_string) can't use JSON.parse at least due to embedding single AND double quotes for strings
+        //eval("mess_obj = " + data_string) //JSON.parse(data_string) can't use JSON.parse at least due to embedding single AND double quotes for strings
+        mess_obj = JSON.parse(data_string) //does JSON.parse handle all fields of all messages?
         mess_obj.from = from
         let do_permit = Messaging.permit(mess_obj)
         if      (do_permit === true)     { Messaging.user_receive_callback_permit(mess_obj, false) }
         else if (do_permit === "manual") { Messaging.smart_append_to_sent_messages(mess_obj, false, "manual")}
         else if (do_permit === false)    {
-            if(mess_obj.get_result) {
-                let result = "Error: Message of type: " + mess_obj.type +" from: " + mess_obj.from +
-                             "<br/>not permitted to run by receiver."
-                Messaging.debug(result)
-                mess_obj.result = result
-                Messaging.send_back_result(mess_obj)
-            }
+            mess_obj.result = "Error: Message of type: " + mess_obj.type +" from: " + mess_obj.from +
+                              "<br/>not permitted to run by receiver."
+            Messaging.send_back_result_maybe(mess_obj)
         }
     }
 }
@@ -1229,7 +1431,11 @@ Messaging.mess_type_to_mess_obj = function(mess_type, main_arg_string=null, incl
     let mess_obj = function_param_names_and_defaults_lit_obj(fn)
     let params = Object.keys(mess_obj)
     for(let param of params) {
-        mess_obj[param] = eval(mess_obj[param]) //reduces "null" to null, ""foo"" to "foo"
+        eval("mess_obj[param] = " + mess_obj[param]) //reduces "null" to null, ""foo"" to "foo"
+         //we need to set inside of the eval due to JS broken eval wherein if the
+         //mess_obj[param] evals to "{}"}, as it does in start_job for the start_options,
+         //eval would just return undefined, UNLESS we bind it to a var.
+         //this only ever evals built-in Messaging code, never user code.
     }
     if(main_arg_string && (main_arg_string != "")) {
         let main_arg_name = params[0]
@@ -1304,7 +1510,12 @@ Messaging.mess_obj_to_source = function(mess_obj,
     for(let i = 0; i < param_names.length; i++) {
             let param_name = param_names[i]
             let param_val = mess_obj[param_name]
-            param_val = to_source_code({value: param_val}) //good for converting strings to lead with single or double quote, fine for false, null, etc
+            if((typeof(param_val) == "function") && (param_val.name.length > 0)){
+                param_val = param_val.name
+            }
+            else {
+                param_val = to_source_code({value: param_val}) //good for converting strings to lead with single or double quote, fine for false, null, etc
+            }
             let sep = "," + separator
             let prefix
             if(i == 0) { prefix = "" }
@@ -1312,6 +1523,15 @@ Messaging.mess_obj_to_source = function(mess_obj,
             if(i == (param_names.length - 1)) { sep = "" } //on last
             result += prefix + param_name + ': ' + param_val +
                       ((i == (param_names.length - 1)) ? "" : sep)
+    }
+    if(!mess_obj.callback && Messaging.get_time_to_callback(mess_obj)){ //add in callback
+        let cb = Messaging.get_time_to_callback(mess_obj)
+        if(typeof(cb) == "string") { cb = '"' + cb + '"' }
+        else if(cb.name && (cb.name.length > 0)){
+            cb = cb.name
+        }
+        else { cb = '`' + cb.toString() + '`' }
+        result += "," +  separator + space + space + "callback: " + cb
     }
     result += "}"
     return result
@@ -1341,18 +1561,12 @@ Messaging.run_receive_button_action = function(mess_obj_index){
     }
 }
 
-// Called in the orign sender after getting the result mess_obj.
+// Called in the orig sender's DDE after getting the result mess_obj.
 // Most of the work below is for the eval mess type, but any mess with a result will have this called.
 // Contains a result field.
 Messaging.call_callback = function(mess_obj){
-    if(mess_obj.callback) {
-        let callback_fn
-        try { callback_fn = eval(mess_obj.callback) } //could be a fn name, fn_path, or function(result){ ...}
-        catch(err){
-            dde_error("In Messaging.call_callback, evaling the callback source of:<br/>" +
-                       mess_obj.callback +
-                       "<br/>errored with: " + err.message)
-        }
+    let callback_fn = Messaging.get_and_remove_time_to_callback(mess_obj)
+    if(callback_fn) {
         if(typeof(callback_fn) === "function"){
             let arg_processing = mess_obj.pass_to_callback
             let arg = mess_obj
@@ -1360,10 +1574,19 @@ Messaging.call_callback = function(mess_obj){
             else if (arg_processing === "mess_obj")           { arg = mess_obj }
             else if (arg_processing === "unevaled_result")    { arg = mess_obj.result }
             else if (arg_processing === "evaled_result")      {
-                try{ eval("arg = " + mess_obj.result) }
-                catch(err) {
-                    dde_error("Messaging.call_callback, evaling the result of: " + mess_obj.result +
-                              "<br/>errored with: " + err.message)
+                let eval_kind = mess_obj.eval_kind //only used by get_variable
+                if(eval_kind === undefined) { eval_kind = "eval" }
+                if      (eval_kind == "null") { arg = mess_obj.result }
+                else if (eval_kind == "JSON") { arg = (mess_obj.result == "undefined") ? undefined : JSON.parse(mess_obj.result) }
+                else if (eval_kind == "eval") {
+                    if(Messaging.is_error(mess_obj)) { arg = mess_obj.result }
+                    else {
+                        try{ eval("arg = " + mess_obj.result) }
+                        catch(err) {
+                            dde_error("Messaging.call_callback, evaling the result of: " + mess_obj.result +
+                                      "<br/>errored with: " + err.message)
+                        }
+                    }
                 }
             }
             else if (mess_obj.hasOwnProperty(arg_processing)) { arg = mess_obj[arg_processing] }
@@ -1397,18 +1620,7 @@ Messaging.user_receive_callback_permit = function(mess_obj, from_run_receive=fal
     //let this fall through to the end
     }
     else if(mess_obj.hasOwnProperty("result")) { //we're on the sender's side receiving the results of a requested result
-        if(Messaging.get_from_cache(mess_obj, Messaging.mess_objs_that_made_round_trip)){
-            //since the mess_obj is in the cache, we've already gotten this mess back
-            //from the receiver before so we DON't want to call the callback again,
-            //just ignore this
-        }
-        else { //first time we're getting this mess back from the sender so call the callback
-               //display it and cache it so if there is a next time that we get this mess_obj
-               //we will ignore it.
-            Messaging.smart_append_to_sent_messages(mess_obj, false)
-            Messaging.call_callback(mess_obj) //might call dde_error so call smart_append_to_sent_messages first
-            Messaging.mess_objs_that_made_round_trip.push(mess_obj)
-        }
+        Messaging.send_done_for_get_result(mess_obj)
         return
     }
     else { //we're on the receiver side.
@@ -1419,7 +1631,7 @@ Messaging.user_receive_callback_permit = function(mess_obj, from_run_receive=fal
               //but maybe it didn't make it all the way back to the sender yet, so this will be the
               //2nd thru nth sending
             if(mess_obj_from_receive_cache.hasOwnProperty("result")){
-                Messaging.send_back_result(mess_obj_from_receive_cache)
+                Messaging.send_back_result_maybe(mess_obj_from_receive_cache)
             }
             else {
                 shouldnt("In Messaging.user_receive_callback_permit, got mess_obj_from_receive_cache<br/>" +
@@ -1442,11 +1654,13 @@ Messaging.user_receive_callback_permit = function(mess_obj, from_run_receive=fal
                 "<br/> in mess_obj: " + to_source_code({value: mess_obj}))
     }
     else {
-        Messaging[meth_name].call(undefined, mess_obj)
+        Messaging[meth_name].call(undefined, mess_obj) //do the real work
         if(mess_obj.get_result) {
-            if(!mess_obj.hasOwnProperty("result")) { mess_obj.result = "OK" } //the default result
             Messaging.mess_objs_that_were_received.push(mess_obj)
-            Messaging.send_back_result(mess_obj) //calls send which calls smart_append_to_sent_messages
+            if(!mess_obj.dont_send_back_result) {
+                Messaging.send_back_result_maybe(mess_obj) //calls send which calls smart_append_to_sent_messages
+                //this is the main call to send_back_result_maybe
+            }
         }
         else { Messaging.smart_append_to_sent_messages(mess_obj, false ) }
     }
@@ -1490,10 +1704,12 @@ type: <select id="messaging_dialog_type_id" style="font-size:14px;" data-onchang
               <option value="set_variable" title="Set a JS variable&#13;in the 'to:' person's DDE.">set_variable</option>
               <option value="speak" title="Cause provided text&#13;to be spoken&#13;in the 'to:' person's DDE.">speak</option>
               <option value="start_job" title="Start a Job&#13;in the 'to:' person's DDE.">start_job</option>
+              <option value="stop_job" title="Stop a Job&#13;in the 'to:' person's DDE.">stop_job</option>
       </select> 
 to: <input id="messaging_dialog_to_id" type="text" style="width:100px; margin-bottom:5px; font-size:14px;"
            title="The person to send this message to."/>
-    <span title="If sending the message fails, checking this&#13;will automatically resend several times.&#13;The sender will also get back a result."><input id="get_result_id" type="checkbox" />get_result</span><br/>
+    <span title="If sending the message fails, checking this&#13;will automatically resend several times.&#13;The sender will also get back a result.">
+          <input id="get_result_id" type="checkbox" data-onchange="true"/>get_result</span><br/>
   <div style="display:inline-block;">
     <input type="button" id="messaging_dialog_main_arg_name_id" style="margin-top:0px;max-width:60px;font-size:12px;padding:2px;" value="message"
            title='Toggle the new message representation between&#13;"All args" (show all message arguments) and &#13;"Main argument name" (show first arg only).'/> :<br/>
@@ -1551,6 +1767,7 @@ Messaging.show_dialog_cb = function(vals){
         //but if we are showing the main arg, we're
         //goiogn to have to change the NAME of the main arg.
         let type = vals.messaging_dialog_type_id
+        open_doc("Messaging." + type + "_doc_id")
         let message = messaging_dialog_message_id.value.trim()
         if(!message.startsWith("{"))  { //just leave the message alone,
            //maybe it will be useful as is in the new type
@@ -1583,6 +1800,9 @@ Messaging.show_dialog_cb = function(vals){
          //but the greater danger is they choose a type that nearly always should
          //have one val or the other for get_result and they forget to change it
          //when they change the type
+    }
+    else if (vals.clicked_button_value == "get_result_id"){
+        open_doc("Messaging.get_result_doc_id")
     }
     else if (vals.clicked_button_value == "messaging_dialog_main_arg_name_id") {
         let main_arg_name = messaging_dialog_main_arg_name_id.value
@@ -1657,7 +1877,7 @@ Messaging.show_dialog_cb = function(vals){
 Messaging.make_run_button = function(mess_obj){
     Messaging.run_receive_mess_obj_history.push(mess_obj)
     let mess_obj_index = Messaging.run_receive_mess_obj_history.length - 1
-    let onclick_call = '"Messaging.run_receive_button_action(' + mess_obj_index + ')"'
+    let onclick_call = 'event.stopPropogation(); "Messaging.run_receive_button_action(' + mess_obj_index + ')"'
     let label = '<input type="button" value="run" title="Click to run this message." style="background-color:rgb(204, 204, 204); border-style:outset;border-width:2px;border-radius: 5px;"' +
         'onclick=' + onclick_call + '/>'
     return label
@@ -1699,6 +1919,9 @@ Messaging.smart_append_to_sent_messages = function(mess_obj,
                 else           { label = "<i>computing result</i>" } //or just don't even append the message
             }
         }
+        if(Messaging.is_error(mess_obj)) {
+            label += " <span style='color:red'>Error</span>"
+        }
         let details_open
         let code_tag_begin
         let code_tag_end
@@ -1730,7 +1953,7 @@ Messaging.smart_append_to_sent_messages = function(mess_obj,
         }
         let edit_but = `<input type="button" value="Edit" style="font-size:12px;padding:2px;"
                        title="Insert this message&#13;into the New Message area&#13;to edit and resend."
-                       onclick="Messaging.edit_button_action('` + type + `', ` + mess_obj.get_result + `)"/>`
+                       onclick="event.stopPropagation(); Messaging.edit_button_action('` + type + `', ` + mess_obj.get_result + `)"/>`
         let message_total_html = "<details" + details_open + ">" +
                                  summary_prefix + summary_suffix + "</summary>" +
                                  body_prefix + body_suffix + edit_but +
@@ -1771,14 +1994,42 @@ Messaging.edit_button_action = function(type, get_result){
     }
     else { src = event.srcElement.parentNode.firstElementChild.innerText }
     src = replace_substrings(src, "<br/>", "\n")
-    //cut out result prop if any.
+
     let result_pos = src.indexOf("result:")
     if(result_pos !== -1) {
+        //possibilities
+        // #1 {result: 2}  //result is only prop, cut no commas
+        // #2 {result: 3,   //cut this post comma
+        //     callback: "out"
+        //    }
+        // #3 {foo: 2,  //cut this pre_comma
+        //     result: 3}
+        // #4 {foo: 1,
+        //     result: 2,
+        //     bar: 3}
+        //strategy:
         let start_pos = result_pos
+        //let result_is_first = (src[start_pos - 1] == "{") //no initial comma to remove, leave start_pos as is
         let pre_comma_pos = src.lastIndexOf(",", result_pos)
-        if(pre_comma_pos != -1) { start_pos = pre_comma_pos }
-        let end_pos = src.indexOf(",", result_pos)
-        if(end_pos == -1) { end_pos = src.indexOf("}")}
+        let post_comma_pos = src.indexOf(",", start_pos)
+        let end_pos
+        if(pre_comma_pos == -1) { //result is first prop. leave start pos where it is
+           if(post_comma_pos == -1) { //#1  result is only prop.
+               end_pos = src.indexOf("}", start_pos)
+           }
+           else { //#2 result is first and has following prop, cut post_comma
+               end_pos = post_comma_pos + 1
+           }
+        }
+        else { //result is not first prop
+           start_pos = pre_comma_pos //cut the pre_comma
+           if(post_comma_pos == -1) { //#3 result is not first but is the last prop
+               end_pos = src.indexOf("}", start_pos)
+           }
+           else { //#4 result is not the first and not last prop (a middle prop
+               end_pos = post_comma_pos //leave in the post_comma, because we cut the pre_comma
+           }
+        }
         src = src.substring(0, start_pos) + src.substring(end_pos) //chop out ", result: foo"
     }
     if(src.startsWith("(")){
@@ -1787,6 +2038,9 @@ Messaging.edit_button_action = function(type, get_result){
     messaging_dialog_message_id.value = src
     messaging_dialog_type_id.value = type
     get_result_id.checked = get_result
+    if((type !== "chat") && !is_all) { //if we don't have chat, always edit the full message lit obj
+        messaging_dialog_main_arg_name_id.value = "All args"
+    }
 }
 
 
@@ -1841,6 +2095,7 @@ Messaging.show_login_cb = function(vals){
 module.exports.Messaging = Messaging
 //________stats_________
 //uses microseconds throughout
+
 var MessStat = class MessStat{}
 /* Use MessStat.extract_property_value instead as its more general. Same algorithm though.
 MessStat.extract_send_time = function(res){
@@ -1857,7 +2112,7 @@ MessStat.extract_send_time = function(res){
 }*/
 MessStat.extract_property_value = function(res, property_name){
     let path = decodeURIComponent(res.req.path)
-    let start_pos = path.indexOf(property_name)
+    let start_pos = path.indexOf(property_name + '":')
     start_pos = start_pos + property_name.length + 2 // the + 2 gets the ending double quote and colon before the start of the value
     let end_pos   = path.indexOf(",", start_pos)
     if(end_pos == -1) { end_pos = path.indexOf("}", start_pos) }
@@ -1866,10 +2121,11 @@ MessStat.extract_property_value = function(res, property_name){
     return val
 }
 
-
-MessStat.time_array = [] //an array of arrays. the inner array has send_time and the
-                         //corrsponding send_callback time associated with that send_time
-                         //and the "is_send_good" boolean
+//non_get_result messages
+MessStat.time_array = [] //an array of lit objs. the inner array has
+                         //send_time_us
+                         //send_cb_time //corrsponding send_callback time associated with that send_time
+                         //is_send_good   boolean
                          //latest first order.
                          //Note all inner arrays will have a send time, but not all
                          //will have an send_cb time or "is_send_good" boolean
@@ -1881,28 +2137,31 @@ MessStat.record_send_time = function(mess_obj){
         if(MessStat.time_array.length == MessStat.time_array_max_length) {
               MessStat.time_array.splice(MessStat.time_array_max_length - 1, 1)
         } //don't let array get to be more than 20 long
-        MessStat.time_array.unshift([mess_obj.send_time_us]) //push onto front new send_time_pair
+        let mess_data = {send_time_us: mess_obj.send_time_us}
+        MessStat.time_array.unshift(mess_data) //push onto front new send_time_pair
     }
 }
 MessStat.find_array_for_time = function(time) {
-  for(let time_pair of MessStat.time_array) {
-      if(time_pair[0] === time) { return time_pair }
+  for(let mess_data of MessStat.time_array) {
+      if(mess_data.send_time_us === time) { return mess_data }
   }
   return null
 }
-MessStat.record_send_cb_time = function(res, send_cb_good){
-    let get_result = MessStat.extract_property_value(res, "get_result")
-    if(!get_result){ //we're only recording non-get_result messages in the DB.
+
+//only called for non_get_result messages
+MessStat.record_send_cb_time = function(res, is_send_good){
+    //let get_result = MessStat.extract_property_value(res, "get_result")
+    //if(!get_result){ //we're only recording non-get_result messages in the DB.
         let send_time_us = MessStat.extract_property_value(res, "send_time_us")
-        let time_pair = MessStat.find_array_for_time(send_time_us)
-        if(time_pair) {
-            time_pair[1] = time_in_us()
-            time_pair[2] = send_cb_good
+        let mess_data = MessStat.find_array_for_time(send_time_us)
+        if(mess_data) {
+            mess_data.send_cb_time = time_in_us()
+            mess_data.is_send_good = is_send_good
         }
         else {
             shouldnt("MessStat.record_send_cb_time called with no corresponding time_pair in MessStat.time_array.")
         }
-    }
+    //}
 }
 
 //if there are ANY complete time_pairs, use them to compute the avg dur, but
@@ -1910,61 +2169,77 @@ MessStat.record_send_cb_time = function(res, send_cb_good){
 //if there are 0 complete time_pairs, return MessStat.default_avg_dur
 MessStat.default_avg_dur = 300000 //300ms
 MessStat.avg_dur = function(window_size = 5){
-    let number_of_time_pairs_found = 0
+    let number_of_mess_data_found = 0
     let accum_dur = 0
-    for(let time_pair of MessStat.time_array){
-        if(time_pair[1]) {
-            accum_dur += (time_pair[1] - time_pair[0])
-            number_of_time_pairs_found += 1
-            if(number_of_time_pairs_found == window_size) {break;}
+    for(let mess_data of MessStat.time_array){
+        if(mess_data.send_cb_time) {
+            accum_dur += (mess_data.send_cb_time - mess_data.send_time_us)
+            number_of_mess_data_found += 1
+            if(number_of_mess_data_found == window_size) {break;}
         }
     }
-    if(number_of_time_pairs_found == 0) { return MessStat.default_avg_dur }
-    else { return accum_dur / number_of_time_pairs_found }
+    if(number_of_mess_data_found == 0) { return MessStat.default_avg_dur }
+    else { return accum_dur / number_of_mess_data_found }
+}
+
+MessStat.avg_dur_fill_in_send_cb_time = function(now_in_us=time_in_us(), window_size = 5){
+    if(Math.min(MessStat.time_array.length == 0)) { return MessStat.default_avg_dur }
+    else {
+        let accum_dur = 0
+        let item_count = Math.min(MessStat.time_array.length, window_size)
+        for(let i = 0; i < item_count; i++) {
+           let mess_data = MessStat.time_array[i]
+           let send_cb_time = mess_data.send_cb_time
+           if(!send_cb_time) { send_cb_time = now_in_us }
+           let dur = send_cb_time - mess_data.send_time_us
+            accum_dur += dur
+        }
+        return accum_dur / item_count
+    }
 }
 
 
 //Stat Database access
-//a pair will not have a send_is_good unless it also has a send_cb_time
-//send_is_good is ignored if has_send_cb_time is false
+//a mess_data will not have a is_send_good unless it also has a send_cb_time
+//is_send_good is ignored if has_send_cb_time is false
 //time_pairs either are of length 1, with just the send time (in us)
-//or are of length 3 with also the send_cb time and true or false  for send_is_good.
+//or are of length 3 with also the send_cb time and true or false  for is_send_good.
 
-MessStat.index_of_latest_complete_time_pair = function(has_send_cb_time=true, send_is_good=true){
+MessStat.index_of_latest_complete_mess_data = function(has_send_cb_time=true, is_send_good=true){
     for(let i; i < MessStat.time_array.length; i++){
-        let time_pair = MessStat.time_array[i]
-        if(!has_send_cb_time && (time_pair.length == 1)) {return i}
-        else if (has_send_cb_time && (time_pair.length == 3)) {
-            if(send_is_good === time_pair[2]) { return i }
+        let mess_data = MessStat.time_array[i]
+        if(!has_send_cb_time && (!mess_data.send_cb_time)) {return i}
+        else if (has_send_cb_time && (mess_data.send_cb_time)) {
+            if(is_send_good === mess_data.is_send_good) { return i }
         }
     }
     return null
 }
-MessStat.latest_complete_time_pair = function(has_send_cb_time=true, send_is_good=true){
-    let index = MessStat.index_of_latest_complete_time_pair(has_send_cb_time, send_is_good)
+MessStat.latest_complete_time_pair = function(has_send_cb_time=true, is_send_good=true){
+    let index = MessStat.index_of_latest_complete_mess_data(has_send_cb_time, is_send_good)
     if(index === null) {return null}
     else { return MessStat.time_array[index] }
 }
 MessStat.no_send_cb_messages_count = function(){
     let count = 0
-    for(let time_pair of MessStat.time_array){
-        if(time_pair.length == 1) { count += 1 }
+    for(let mess_data of MessStat.time_array){
+        if(!mess_data.send_cb_time) { count += 1 }
     }
     return count
 }
-MessStat.to_not_logged_in = function(){
+MessStat.to_receiver_unknown = function(){
     let count = 0
-    for(let time_pair of MessStat.time_array){
-        if((time_pair.length == 3) && !time_pair[2]) {
+    for(let mess_data of MessStat.time_array){
+        if((mess_data.send_cb_time) && !mess_data.is_send_good) {
             count += 1
         }
     }
     return count
 }
 //called by Messaging.send to see if we should send out a non_get_result or not
-MessStat.should_send_non_get_result_message = function(now_in_us){
+/*MessStat.should_send_non_get_result_message = function(now_in_us){
     let avg_dur = MessStat.avg_dur()
-    let index_lctp = MessStat.index_of_latest_complete_time_pair()
+    let index_lctp = MessStat.index_of_latest_complete_mess_data()
     if(index_lctp === null) {//happens on first message sent, at least
         return true //give the net the benefit of the doubt
     }
@@ -1976,40 +2251,95 @@ MessStat.should_send_non_get_result_message = function(now_in_us){
     let lapsed_time_dur = avg_dur * time_factor
     if(now_to_lctp_dur >= lapsed_time_dur) { return true }
     else { return false }
+}*/
+
+MessStat.should_send_non_get_result_message = function(now_in_us){
+   if(MessStat.time_array.length === 0) { return true }
+   else {
+       let avg_dur = MessStat.avg_dur_fill_in_send_cb_time(now_in_us)
+       let latest_send_time_us = MessStat.time_array[0].send_time_us
+       if((now_in_us - latest_send_time_us) >= avg_dur) { return true }
+       else { return false }
+   }
 }
-MessStat.report_object = function(){
+
+MessStat.non_get_report_messages_not_used = 0
+
+MessStat.non_get_result_report_object = function(){
     let result = {
           max_database_entries: MessStat.time_array_max_length,
-          entries_in_database: MessStat.time_array.length,
-          no_send_cb_messages: MessStat.no_send_cb_messages_count(),
-          to_not_logged_in:    MessStat.to_not_logged_in(),
-          average_duration:    MessStat.avg_dur(MessStat.time_array.length),
-          avg_dur_latest_5:    MessStat.avg_dur(5)
+          entries_in_database:  MessStat.time_array.length,
+          no_send_cb_messages:  MessStat.no_send_cb_messages_count(),
+          to_receiver_unknown:  MessStat.to_receiver_unknown(),
+          average_duration:     Math.round(MessStat.avg_dur(MessStat.time_array.length)),
+          avg_dur_latest_5:     Math.round(MessStat.avg_dur_fill_in_send_cb_time()),
+          messages_not_used:    MessStat.non_get_report_messages_not_used
     }
     return result
 }
-MessStat.report_inner_data = function(){
-    let report_object_str = to_source_code({value: MessStat.report_object()})
+MessStat.non_get_result_report_inner_data = function(){
+    let report_object_str = to_source_code({value: MessStat.non_get_result_report_object()})
     report_object_str = replace_substrings(report_object_str, "\n", "<br/>")
     report_object_str = report_object_str.substring(1, report_object_str.length - 1)  //cut off { ... }
-    return report_object_str
+    return report_object_str + "<input name='non_get_result_inspect' type='button' value='inspect'/>"
+}
+
+MessStat.fill_in_non_get_result_durs = function(now_in_us=time_in_us()){
+    for(let mess_data of MessStat.time_array){
+        let send_cb_time = mess_data.send_cb_time
+        if(!send_cb_time) { send_db_time = now_in_us }
+        mess_data.duration = send_cb_time - mess_data.send_time_us
+    }
+}
+
+
+//______get_result report_________
+MessStat.get_result_report_inner_data = function(){
+    let result_html  = "<b><i>get_result messages.</i></b><br/>" +
+                       "get_result_fifo: " + Messaging.get_result_fifo.length +
+                       " &nbsp;<input name='get_result_fifo_inspect' type='button' value='inspect'/>" +
+                       "<br/>mess_objs_that_made_round_trip: " + Messaging.mess_objs_that_made_round_trip.length
+    return result_html
+}
+
+//_______Overall report
+MessStat.clear_db = function(){
+    Messaging.get_result_fifo = [] //first in, first out. oldest elt is elt 0.
+    Messaging.current_send_delay_seconds = 0
+    MessStat.time_array = []
+    MessStat.non_get_report_messages_not_used = 0
+    Messaging.successful_last_send_to = null
+    Messaging.mess_objs_that_made_round_trip = [] //only stores mess_objs and only ones with get_result == true
+    Messaging.mess_objs_that_were_received = []
+}
+
+MessStat.report_inner_data = function(){
+    let report_object_html = MessStat.non_get_result_report_inner_data() +
+                           "<hr/>" +
+                           MessStat.get_result_report_inner_data()
+
+
+    return report_object_html
 }
 
 MessStat.report_refresh = function(){
-    let report_object_str = MessStat.report_inner_data()
-    mess_stats_data_id.innerHTML = report_object_str
+    //mess_stat_data_id.innerHTML = MessStat.report_inner_data()
+    MessStat.show_report()
 }
 
 MessStat.show_report = function(){
-    let help = "<i>Statistics for non_get_result messages.<br/>Times in microseconds.</i>"
     let refresh_but = "<input type='button' name='refresh' value='refresh'/>"
-    let request_indicator = "<span id='mess_stat_request_indicator_id' style='background-color:#DDD;margin-left:100px;padding:3px;' " +
-                            "title='Blinks green when a request is send to the server.'>request_made</span>"
+    let clear_but   = "<input type='button' name='mess_stat_clear_db' value='clear db' style='margin-left:15px;' " +
+                              "title='Clear Messaging caches and Statistics database.' />"
+    let request_indicator = "<span id='mess_stat_request_indicator_id' style='background-color:#DDD;margin-left:15px;padding:3px;' " +
+                                   "title='Blinks green when a request is send to the server.'>request_made</span>"
+    let help = "Times in microseconds."
+    let non_get_head = "<i><b>non_get_result messages</b></i>"
     let report_object_str = MessStat.report_inner_data()
-    let content = help + "<br/>" + refresh_but + request_indicator +
-                 "<div id='mess_stats_data_id'>" + report_object_str + "</div>"
+    let content = refresh_but + " " + clear_but + request_indicator +  "<br/>" + help + "<hr/>" + non_get_head +
+                 "<div id='mess_stat_data_id'>" + report_object_str + "</div>"
     show_window({title: "DDE Messaging Statistics",
-                 x: 20, y: 20, width: 300, height: 220,
+                 x: 20, y: 20, width: 315, height: 360,
                  background_color: "#ffecdc",
                  content: content,
                  callback: "MessStat.show_report_cb"
@@ -2020,8 +2350,21 @@ MessStat.show_report_cb = function(vals){
     if(vals.clicked_button_value == "refresh") {
         MessStat.report_refresh()
     }
+    else if(vals.clicked_button_value == "mess_stat_clear_db"){
+        MessStat.clear_db()
+        MessStat.report_refresh()
+    }
+    else if (vals.clicked_button_value == "non_get_result_inspect"){
+        MessStat.fill_in_non_get_result_durs(time_in_us())
+        inspect(MessStat.time_array)
+    }
+    else if (vals.clicked_button_value == "get_result_fifo_inspect"){
+        inspect(Messaging.get_result_fifo)
+    }
+    else {
+       shouldnt("In MessStat.show_report_cb got unhandled clicked_button_value of: " + vals.clicked_button_value)
+    }
 }
-
 
 var {speak, stringify_for_speak} = require("./out.js")
 

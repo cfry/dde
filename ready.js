@@ -34,7 +34,7 @@
             max_spaces = 14
         }
         else { //Mac
-            modifier = "&#8984"
+            modifier = "&#8984" //the command (cloverleaf)
             max_spaces = 18 //more because we don't need the "Ctrl " of WinOS, just one char
         }
         let needed_spaces = Math.max(max_spaces - label.length, 1)
@@ -401,18 +401,18 @@
             }
         }
 
-        email_bug_report_id.onclick=email_bug_report
+    email_bug_report_id.onclick=email_bug_report
 
-        //File Menu
+    //File Menu
 
-        new_id.onclick = Editor.edit_new_file
-        set_menu_string(new_id, "New", "n")
+    new_id.onclick = Editor.edit_new_file
+    set_menu_string(new_id, "New", "n")
 
-        file_name_id.onchange = function(e){ //similar to open
-            const inner_path = e.target.value //could be "new buffer" or an actual file
-            const path = Editor.files_menu_path_to_path(inner_path)
-            Editor.edit_file(path)
-        }
+    file_name_id.onchange = function(e){ //similar to open
+        const inner_path = e.target.value //could be "new buffer" or an actual file
+        const path = Editor.files_menu_path_to_path(inner_path)
+        Editor.edit_file(path)
+    }
 
     open_id.onclick = Editor.open_on_dde_computer //Editor.open
     set_menu_string(open_id, "Open...", "o")
@@ -1004,7 +1004,7 @@ show_window({title: "Modify Window",
         Editor.insert(prefix + 'Control.step_instructions(),nnll') //ok if have comma after last list item in new JS.
     }
 
-    debugger_id.onclick        = function(){Editor.insert("debugger;nnll")}
+    debugger_id.onclick        = function(){Editor.insert("debugger;nnll")} ////LEAVE THIS IN RELEASED CODE
 
     debugger_instruction_id.onclick = function(){
          open_doc("Control.debugger_doc_id")
@@ -1288,16 +1288,9 @@ foo      //eval to see the latest values</pre>`,
         Job.start_and_monitor_dexter_job(job_src)
     }
 
-    show_message_dialog_id.onclick = function(){
-        /*let sel = Editor.get_javascript(true)
-        if(sel.length === 0) {
-            warning("There is no selection. You need to select some text for the message.")
-        }
-        else {
-            Messaging.send_text(sel, true) //sets define_job_if_necessary
-        }
-        */
+    show_messaging_dialog_id.onclick = function(){
         Messaging.show_dialog()
+        open_doc("Messaging_id")
     }
 
     //cmd menu
@@ -1415,13 +1408,13 @@ foo      //eval to see the latest values</pre>`,
             }
     })
 
-    //setTimeout(init_view_eye(), 1000) //todo now this file is loaded in sandbox.html. once I get rid of that and solve reuire issues, and on-ready for render process issues, revisit this.
     persistent_initialize() //called before loading dde_init.js by design.
 
-    set_dde_window_size_to_persistent_values()
+    //set_dde_window_size_to_persistent_values() //obsolete now that main.js does this
 
     let val = persistent_get("save_on_eval")
     $("#save_on_eval_id").jqxCheckBox({ checked: val})
+
     //if(val) { //have to do this because, unlike the DOM doc, chrome/electron checks the box if you set it to false.
     //    save_on_eval_id.setAttribute("checked", val)
     //}
@@ -1489,6 +1482,7 @@ foo      //eval to see the latest values</pre>`,
      MakeInstruction.show(undefined, false) //needs to be after loading dde_init.js so that we'll have dexter0 defined, at least.
                                             //undefined lets
      setTimeout(check_for_latest_release, 200)
+     setTimeout(function(){ out("For help on using DDE, click <b style='color:blue;font-size:20px;'>?</b> in the upper right <b style='font-size:24px;'>&#x279A;</b> .") }, 400)
 }
 function set_left_panel_width(width=700){
     $('#outer_splitter').jqxSplitter({ panels: [{ size: width }] })
@@ -1520,7 +1514,7 @@ function check_for_latest_release(){
             var ver_date  = the_obj.published_at
             if (ver != dde_version){
                 ver_date       = date_to_mmm_dd_yyyy(ver_date) //ver_date.substring(0, ver_date.indexOf("T"))
-                warning("The latest beta version of DDE is: " + ver +
+                warning("The latest public beta version of DDE is: " + ver +
                         " released: " + ver_date +
                         "<div style='margin-left:180px;'>You're running version: " + dde_version_html +
                         " released: " + dde_release_date +

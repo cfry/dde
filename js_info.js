@@ -855,7 +855,7 @@ Js_info.fn_name_to_info_map = {
     "console.log": ["console.log(foo)",                 "https://developer.mozilla.org/en-US/docs/Web/API/Console/log"],
     "continue":  ["while(true){continue;}",             "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/continue"],
     "cv":        ["cv",                                 "cv_doc_id"],
-    "debugger":  ["debugger; sets a breakpoint.",       "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/debugger"],
+    "debugger":  ["debugger; sets a breakpoint.",       "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/debugger"],//LEAVE THIS IN RELEASED CODE
     "delete":    ["delete foo.bar",                     "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/delete"],
     "for":       ["for(let i = 0; i < 3; i++){out(i)}", "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for"],
     "function":  ["function foo(a, b){ a + b}",         "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Functions"],

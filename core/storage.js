@@ -73,12 +73,13 @@ module.exports.persistent_initialize = persistent_initialize
 
 function persistent_save(){
     //we need this because on windows 10, if you minimize the DDE window, then
-    //quit DDE, the below saved values will be0, then launching dde
+    //quit DDE, the below saved values will be 0, then launching dde
     //makes the window invisible. So this protects against that.
+    let the_defaults = get_persistent_values_defaults()
     persistent_values.dde_window_x      = Math.max(persistent_values.dde_window_x, 0) //on WinOS, when minimizing, sometimes the x & y vals are negative, hiding the window.
     persistent_values.dde_window_y      = Math.max(persistent_values.dde_window_y, 0)
-    persistent_values.dde_window_width  = Math.max(persistent_values.dde_window_width, 60)
-    persistent_values.dde_window_height = Math.max(persistent_values.dde_window_height, 20)
+    if(persistent_values.dde_window_width  <= 60)  { persistent_values.dde_window_width  = the_defaults.dde_window_width  }
+    if(persistent_values.dde_window_height <= 20)  { persistent_values.dde_window_height = the_defaults.dde_window_height }
     const path = add_default_file_prefix_maybe("dde_persistent.json")
     var content = JSON.stringify(persistent_values)
     content = replace_substrings(content, ",", ",\n") //easier to read & edit
@@ -111,6 +112,10 @@ function persistent_load(){
             }
             persistent_values.files_menu_paths = slashified_files
         }
+        //protect against the tiny window bug.
+        let the_defaults = get_persistent_values_defaults()
+        if(persistent_values.dde_window_width  <= 60)  { persistent_values.dde_window_width  = the_defaults.dde_window_width  }
+        if(persistent_values.dde_window_height <= 20)  { persistent_values.dde_window_height = the_defaults.dde_window_height }
     }
 }
 

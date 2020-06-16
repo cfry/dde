@@ -1,5 +1,5 @@
-global.dde_version = "3.5.10"
-global.dde_release_date = "May 30, 2020"
+global.dde_version = "3.5.11"
+global.dde_release_date = "Jun 16, 2020"
 
 console.log("dde_version: " + global.dde_version + " dde_release_date: " + global.dde_release_date +
             "\nRead electron_dde/core/job_engine_doc.txt for how to use the Job Engine.\n")
@@ -144,6 +144,7 @@ var {FPGA} = require("./fpga.js")
 var {SerialPort, serial_connect, serial_connect_low_level,
      serial_devices, serial_devices_async,
      serial_disconnect, serial_disconnect_all,  serial_flush,
+     serial_get_or_make_port, serial_path_to_port_map,
      serial_path_to_info_map, serial_port_init, serial_send, serial_send_low_level} = require("./serial.js")
 
 var {close_readline, set_keep_alive_value, write_to_stdout} = require("./stdio.js")
@@ -155,6 +156,7 @@ global.Dexter   = Dexter
 global.Human    = Human
 global.Robot    = Robot
 global.RobotStatus = RobotStatus
+global.Serial   = Serial
 
 global.make_ins = Dexter.make_ins
 
@@ -208,6 +210,8 @@ global.serial_devices_async = serial_devices_async
 global.serial_disconnect = serial_disconnect
 global.serial_disconnect_all = serial_disconnect_all
 global.serial_flush = serial_flush
+global.serial_get_or_make_port = serial_get_or_make_port
+global.serial_path_to_port_map = serial_path_to_port_map
 global.serial_path_to_info_map = serial_path_to_info_map
 global.serial_port_init = serial_port_init
 global.serial_send = serial_send
