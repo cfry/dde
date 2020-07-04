@@ -1100,7 +1100,7 @@ class Kin{
 
     //this will probably be put into Kin at some point
     //will only work with configs of [1, 1, 1] or [1, 0, 1]
-    static point_down(J_angles){
+    /*static point_down(J_angles){
         //let J = JSON.parse(JSON.stringify(J_angles)) //the new copy function we wrote doesn't exist in LTS
         //J[3] = 90 - J[2] - J[1]
         //J[4] = 0
@@ -1110,8 +1110,16 @@ class Kin{
                 J_angles[2],
                 90 - J_angles[2] - J_angles[1],
                 0 ]
-    }
+    }*/
 
+    static point_down(J_angles){
+        let result = []
+        for(let i = 0; i < J_angles.length; i++){
+            if(i === 3) { result.push(90 - J_angles[2] - J_angles[1]) }
+            else { result.push(J_angles[i]) }
+        }
+        return result
+    }
 
     static xy_donut_slice_approx(Z, dir){
         let inner_r, outer_r

@@ -1,0 +1,2 @@
+jqwidgets-ver-9.1.6 downloaded Jun 25 2020
+For use in DDE 3.5.13 and later

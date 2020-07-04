@@ -765,6 +765,35 @@ var {shouldnt, starts_with_one_of, replace_substrings} = require("./utils")
 var Job       = require("./job.js") //because loading a file with new Job in it needs this.
 
 
+//returns true or false. Path is a full path.
+function is_folder(path=dde_apps_folder){
+    return fs.statSync(path).isDirectory()
+}
+module.exports.is_folder = is_folder
+
+function folder_listing(folder=dde_apps_folder, include_files=true, include_folders=true, include_folder_name=true){
+    folder = make_full_path(folder)
+    let result = []
+    let raw_paths = fs.readdirSync(folder);
+    for (let name of raw_paths){
+        let full_path  = folder + '/' + name
+        if(is_folder(full_path)) {
+            if(include_folders) {
+                if(include_folder_name) { result.push(full_path) }
+                else                    { result.push(name) }
+            }
+        }
+        else { //got a file not a folder
+             if(include_files) {
+                if(include_folder_name) { result.push(full_path) }
+                else                    { result.push(name) }
+             }
+        }
+    }
+    return result
+}
+module.exports.folder_listing = folder_listing
+
 /*
 function folder_listing(folder="/", include_folders=true, include_files=true, callback=out){
     if (!folder.startsWith("/")) { folder = "/" + folder }

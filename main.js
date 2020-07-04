@@ -120,7 +120,8 @@ function createWindow() {
   mainWindow = new BrowserWindow({
                    kiosk: kiosk,  //makes DDE window be FULL SCREEN, ie no os title bar, etc. locks down app.
                    x: x, y: y, width: width, height: height, show: false,
-                   title: "Dexter Development Environment" //not obvious that this actually shows up anywhere.
+                   title: "Dexter Development Environment", //not obvious that this actually shows up anywhere.
+                   webPreferences: { nodeIntegration: true } //new for Electron 5
                    })
   //mainWindow.focus() //doesn't do anything.
 
@@ -268,11 +269,22 @@ ipc.on("close_dev_tools", function(event){
 })
 
 //called from serial.js serial_devices to get sychronous return value
+/* used for electron 4 and serialPort version 7,
 ipc.on('serial_devices', function(event){
     //console.log("in main sd")
     SerialPort.list(function(err, ports) {
         //console.log("in main sd ports: " + ports)
            event.returnValue = ports
+    })
+})
+*/
+
+//for serial port version 8
+ipc.on('serial_devices', function(event){
+    //console.log("in main sd")
+    SerialPort.list().then(function(ports) {
+        //console.log("in main sd ports: " + ports)
+        event.returnValue = ports
     })
 })
 

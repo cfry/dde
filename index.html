@@ -20,8 +20,9 @@
     <script type="text/javascript" src="jqwidgets/jqxdata.js"></script>      <!--for the scrollarboe table display -->
     <script type="text/javascript" src="jqwidgets/jqxdatatable.js"></script> <!--for the scrollarboe table display -->
 
+    <!--now loaded via npm
     <script type="text/javascript" src="three.min.js"></script>
-    <script type="text/javascript" src="three-text2d.min.js"></script> <!-- https://github.com/gamestdio/three-text2d/tree/master/dist -->
+    <script type="text/javascript" src="three-text2d.min.js"></script>--> <!-- https://github.com/gamestdio/three-text2d/tree/master/dist -->
 
     <!--codemirror text editor -->
     <!--<link rel=stylesheet href="codemirror/doc/docs.css"> included in eslint example but not in my codemirror download -->
@@ -195,6 +196,8 @@
     <script type="text/javascript" src="blocksde/js2b.js"></script>
     <script type="text/javascript" src="de/de.js"></script>
 
+    <script type="text/javascript" src="inflow.js"></script>
+
     <script type="text/javascript" src="load_job_engine.js"></script>
 
     <script type="text/javascript" src="ready.js"></script>
@@ -262,7 +265,7 @@
                                         <li>Right click menu in Editor pane has more operations.</li>
                                     </ul>
                                 </li>
-                                <li title="Choose these items to learn JavaScript.&#013;Using menu item order recommended." style="display:inline-block;padding-left:3px;padding-right:0px;">Learn JS&#9660;
+                                <li title="Choose these items to learn JavaScript.&#013;Using the menu item order is recommended." style="display:inline-block;padding-left:3px;padding-right:0px;">Learn JS&#9660;
                                     <ul>
                                        <li id="learn_js_help_id">Help</li>
                                         <li id="js_example_1_id" title="Example of a small JavaScript program.&#013;Good for a refresher course or quick learners.">JavaScript Example</li>
@@ -395,7 +398,7 @@
                                         </li>
                                     </ul>
                                 </li>
-                                <li style="display:inline-block;padding-left:3px;padding-right:0px;">Insert&#9660;
+                                <li style="display:inline-block;padding-left:3px;padding-right:0px;" title="Insert useful DDE code into the editor.">Insert&#9660;
                                     <ul>
                                         <li id="show_output_id"  title="Prints its 1st argument to the output pane and returns it.">Print to output
                                             <ul>
@@ -464,7 +467,7 @@
                                         <li id="ez_teach_id" title="Insert a new ezTeach project in a new editor buffer.">ezTeach</li>
                                     </ul>
                                 </li>
-                                <li style="display:inline-block;padding-left:3px;padding-right:0px;">Series&#9660;
+                                <li style="display:inline-block;padding-left:3px;padding-right:0px;" title="DDE stores lists of useful functions and data in Series.&#013;This menu helps insert them into the editor.">Series&#9660;
                                     <ul>
                                         <li id="series_help_id">Help</li>
                                         <li>Navigation
@@ -595,7 +598,7 @@
                                         </li>
                                     </ul>
                                 </li>
-                                <li style="display:inline-block;padding-left:3px;padding-right:0px;">Jobs&#9660;
+                                <li style="display:inline-block;padding-left:3px;padding-right:0px;" title="Tools for managing Jobs and inserting examples.">Jobs&#9660;
                                     <ul>
                                         <li id="jobs_help_id">Help</li>
                                         <li id="show_robot_status_id"   title="Pop up a dialog showing the robot status&#013;for a Dexter of your choosing.&#013;It displays updates as soon as they are available.">Show robot status</li>
@@ -647,7 +650,7 @@
                                         <li id="show_messaging_dialog_id" title="Pop up a window of possibilities&#13;for communicating with other DDEs&#13;on the internet.">Messaging...</li>
                                     </ul>
                                 </li>
-                                <li style="display:inline-block;padding-left:3px;padding-right:0px;">Test&#9660;
+                                <li style="display:inline-block;padding-left:3px;padding-right:0px;" title="Tools for creating and running diagnostics.">Test&#9660;
                                     <ul>
                                         <li id="test_suites_help_id">Help</li>
                                         <li id="insert_test_suite_example_id" title="Insert an example of the JS code for a test suite.">Insert Example</li>
@@ -686,7 +689,7 @@
                               placeholder="Enter JavaScript code here."></textarea>
                 </div>
                 <div style="background-color:#dddddd;">
-                    <div class='pane_header_wrapper' style="white-space:nowrap;height:85px;min-height:85px;max-height:85px;">
+                    <div class='pane_header_wrapper' style="white-space:nowrap;height:75px;min-height:75px;max-height:85px;">
                         <span id="output_pane_help_id" class='pane_header' title="Click for help."><u>Output</u></span>
                         <button id="eval_id" style="vertical-align:middle;" title="Evaluate (run) the selected JS in any pane&#013;or, if none, all the JavaScript in the Editor pane.&#013;HTML is rendered in the Output pane.&#013;Can also be invoked by typing &#8984;e">Eval</button>
                         <button id="step_button_id" style="vertical-align:middle;" title="Step through the evaluation of the selected code.">Step</button>
@@ -763,17 +766,17 @@
                                title="Type in code & hit Enter key to eval.&#13;Up arrow for previous cmd. Down arrow for next cmd&#13;or, at end, clear cmd line."
                                style="font-size:14px;width:500px;"/>
                         <br/>
-                        <div style="display:inline-block;width:100%;">
+                        <div style="display:inline-block;width:100%;margin:0px;padding:0px;">
                             <!--<button id="eval_and_start_button_id" style="vertical-align:top;" title="Eval the selected JS.&#013;With the result, call its 'start' method or, &#013;if its a do_list item, run it in a Job on dexter0.">Eval&Start</button>
                             <button id="start_job_id" style="vertical-align:top;" title='Eval job that cursor is in and start it.&#13;Click on "Output" pane title for doc.'>Start Job</button>&nbsp;
                             -->
                             <img id="stop_all_jobs_id" src="stop_sign.png" title="Stop all of the currently running jobs." style="vertical-align:top;"/>
-                            <button id="undefine_jobs_id" style="vertical-align:top;" title="Undefine all jobs that are not running.">Undef</button>
+                            <button id="undefine_jobs_id" style="vertical-align:39px;" title="Undefine all jobs that are not running.">Undef</button>
                             <!--<div style="display:inline-block;vertical-align:top;">J<br/>o<br/>b<br/>s</div>-->
-                            <div style="display:inline-block;margin:0px;padding:0px;font-size:11px;vertical-align:46px;transform:rotate(-90deg);">Jobs</div>
+                            <div style="display:inline-block;margin:0px;padding:0px;font-size:11px;vertical-align:42px;transform:rotate(-90deg);">Jobs</div>
                             <!--<span style="vertical-align:top; margin-right:0px; padding-right:0px;">Jobs:</span>-->
 
-                            <div id="jobs_button_bar_id" style="display:inline-block; vertical-align:100%; height: 50px; width:calc(100% - 120px); overflow-x:auto; padding:0px;margin:0px;">
+                            <div id="jobs_button_bar_id" style="display:inline-block; vertical-align:100%; height: 45px; width:calc(100% - 120px); overflow-x:auto; padding:0px;margin:0px;">
                             </div>
                         </div>
                     </div>
@@ -793,7 +796,7 @@
                                style="width:150px; font-size:14px;"/>
                         <!--<div style='display:inline-block;' id="find_doc_input_id"/> -->
                         <button id="find_doc_button_id" title="Find documentation on text to the left&#013;or, if none, selected text anywhere.">Find</button>&nbsp;
-                        <a id="help_system_id" href="#" title="Help on DDE's Help System"><b style="font-size:20px;">?</b></a>
+                        <a id="help_system_id" href="#" title="Help on DDE's Help System&#013;New users, please click here!"><b style="font-size:20px;">?</b></a>
                        <!--  <button id="eval_doc_button_id" title="Evaluated the selected code&#013;in the Doc pane.&#013;Result goes in the Output pane.ƒ">Eval Doc</button> obsolete now that Out pane Eval button can do this-->
                     </div>
                     <div id="doc_pane_content_id" contentEditable="false" style="width:97%; height:90%;padding:5px;overflow:scroll;">

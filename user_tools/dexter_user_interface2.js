@@ -46,13 +46,27 @@ var dui2 = class dui2 {
         this.maj_angles = dui2.fix_angles(maj_angles)
     }
 
-    static make_job(){
+    static make_job(explicity_start_job=false){
         let dex = (window.default_robot ? default_robot() : Dexter.dexter0)
-        new Job({
-            name: "dui2_for_" + dex.name,
-            robot: dex,
-            when_stopped: "wait",
-            do_list: [dui2.init_dui]})
+        let name = ((platform === "dde") ? "dui2_for_" + dex.name : "dexter_user_interface2") //the job engine Job name must match the file name (sans .js")
+        if (Job[name] && Job[name].is_active()) { //we're redefining the job so we want to make sure the
+            //previous version is stopped first
+            if (Job[name].robot instanceof Dexter) {Job[name].robot.empty_instruction_queue_now() }
+            Job[name].stop_for_reason("interrupted", "User is redefining this job.")
+            let orig_args = arguments[0]
+            setTimeout(function(){ dui2.make_job(true) }, 200)
+        }
+        else {
+            let new_job = new Job({
+                            name: name,
+                            robot: dex,
+                            when_stopped: "wait",
+                            do_list: [dui2.init_dui]
+                        })
+            if(explicity_start_job) {
+                new_job.start()
+            }
+        }
     }
     static show_window_elt_id_to_dui2_instance(sw_elt_id){
         for(let inst of dui2.instances) {
@@ -64,10 +78,10 @@ var dui2 = class dui2 {
     }
 
 static init_dui(xy_width_in_px = 300){
-    out("top of init_dui")
+    if(platform == "dde") { misc_pane_menu_changed("Simulate Dexter") } //changes Misc pane to sim if not already. Preserves pose of Dexter.
     let dui2_instance = new dui2()
     dui2_instance.dexter_instance = this.robot
-    dui2_instance.should_point_down = false //the checkbox is in sync with this.
+    dui2_instance.should_point_down = true //the checkbox is in sync with this.
     dui2_instance.xy_width_in_px = xy_width_in_px
     //we want to map 0 to 300 into roughly -0.7 to 0.7   where 150 -> 0, 0 -> -0.7, 300 -> 0.7
     let half_xy_width_in_px = xy_width_in_px / 2
@@ -78,11 +92,15 @@ static init_dui(xy_width_in_px = 300){
     let max_x_range = max_x * 2
     let factor_to_multiply_x_px_by = max_x_range / xy_width_in_px
     dui2_instance.x_px_to_meters = //function(x_px) { return (x_px * factor_to_multiply_x_px_by) - max_x}
-        function(x_px) { return ((x_px - half_xy_width_in_px) * factor_to_multiply_x_px_by  * -1)}
+        function(x_px) {
+          return ((x_px - half_xy_width_in_px) * factor_to_multiply_x_px_by)//  * -1)
+        }
     dui2_instance.y_px_to_meters = //function(y_px) { return (x_px * factor_to_multiply_x_px_by) - max_x}
         function(y_px) { return ((y_px - half_xy_width_in_px) * factor_to_multiply_x_px_by * -1)}
     dui2_instance.meters_to_x_px = function(meters) {
-        let scaled = ((meters  * -1) / factor_to_multiply_x_px_by) + half_xy_width_in_px //0 to 300
+        let scaled = ((meters
+              //* -1
+              ) / factor_to_multiply_x_px_by) + half_xy_width_in_px //0 to 300
         //out("scaled: " + scaled)
         //let reversed = xy_width_in_px - scaled
         //out("reversed: " + reversed)
@@ -112,20 +130,12 @@ static init_dui(xy_width_in_px = 300){
 
     show_window({title: "Dexter." + dui2_instance.dexter_instance.name + " User Interface",
         width: xy_width_in_px + 80, //380,
-        height: xy_width_in_px + 290, //570,
-        y: 20,
+        height: xy_width_in_px + 310, //570,
+        y: 0,
         background_color: "#d5d5d5",
         job_name: this.name, //important to sync the correct job.
         callback: dexter_user_interface_cb,
         content:
-        /*Use the below controls to move Dexter.<br/>
-          <svg width="300px" height="300px" style="display:inline-block; border:2px solid black;background-color:white;">
-            <circle name="xy_slider" cx="59" cy="20" r="5" fill="#0F0" class="draggable" data-oninput="true"
-                    style="stroke:black; stroke-width:1;"/>
-          </svg>
-        <input type="range" name="z_slider" value="33" min="0" max="100" data-oninput="true"
-               style="width:300px; height:20px;margin:0px; transform-origin:150px; transform: translate(170px, -163px) rotate(-90deg);"/>
-        <br/> */
         '<span>Use the below controls to move Dexter.</span> <b style="margin-left:70px;">Z</b><br/>' +
         dui2_instance.make_xyz_sliders_html(xy_width_in_px,
             min_x, max_x,
@@ -133,13 +143,14 @@ static init_dui(xy_width_in_px = 300){
             min_z, max_z) +
         "<br/>" +
         dui2_instance.make_joint_sliders_html() +
-        dui2_instance.make_direction_html()
+        dui2_instance.make_direction_html() +
+        dui2_instance.make_insert_html()
     })
     setTimeout(function() {
             dui2_instance.show_window_elt_id = "show_window_" + SW.window_index + "_id"
             let RS_inst = dui2_instance.dexter_instance.rs //new RobotStatus(rs)
-            dui2_instance.set_maj_angles(RS_inst.measured_angles()) //returns a copy of the array so safe to change it.
-            dui2_instance.update_all(true) //true means IFF maj_angles is pointing down, set the checkbox to point down.
+            dui2_instance.set_maj_angles(RS_inst.measured_angles(7)) //returns a copy of the array so safe to change it.
+            dui2_instance.update_all(dui2_instance.should_point_down) //true means IFF maj_angles is pointing down, set the checkbox to point down.
         },
         300)
 }
@@ -199,8 +210,10 @@ cir1.setAttribute("cy", 42)
             svg_html +
             z_slider_html +
             //z_slider_restriction_html +
-            '<div style="display:inline; position:absolute; margin-top:0px;left:160px;top:365px;"><b>X</b></div><br/>' +
-            xyz_num_html
+            '<div style="display:inline; position:absolute; margin-top:0px;left:160px;top:365px;"><b>X</b>' +
+               '<input type="button" name="home" style="margin-left:110px;padding:2px;height:22px;"value="home"/>' +
+               '</div><br/>' +
+               xyz_num_html
         return the_html
     }
 
@@ -235,11 +248,22 @@ cir1.setAttribute("cy", 42)
 
     make_direction_html(){
         let dir = [0, 0, -1] //down, the default  //doesn't really matter as this will be reset in update_all
+        let checked_val = (this.should_point_down ? ' checked="checked" ' : "")
         let result =  '<div>Direction: <span class="direction">' +
                        JSON.stringify(dir) +
                        '</span> ' +
-                       '<input type="checkbox" name="direction_checkbox" data-onchange="true" style="margin-left:20px;"/> Point Down </div>' //unchecked by default
+                       '<input type="checkbox"' + checked_val + 'name="direction_checkbox" data-onchange="true" style="margin-left:20px;"/> Point Down </div>' //checked by default
         return result
+    }
+
+    make_insert_html(){
+        if(platform === "dde"){
+            let insert_html = ' <select name="instr_type" title="The type of instruction to insert."><option>move_all_joints</option><option>move_to</option></select>' +
+                '<input type="button" name="insert_job"         value="insert job"         style="margin-left:15px" title="Insert into the editor&#013;a Job definition with an instruction&#013;of the current location."/>' +
+                '<input type="button" name="insert_instruction" value="insert instruction" style="margin-left:15px" title="Insert into the editor&#013;an instruction of the current location."/>'
+            return insert_html
+        }
+        else { return "" }
     }
 
     //unnecessary, use the dui2_instance.direction
@@ -338,6 +362,9 @@ static dexter_user_interface_cb_aux(vals){
         //dui2.update_xyz_circle(vals.show_window_elt_id, xyz)
         //dui2.update_range_and_angle_nums(vals.show_window_elt_id, maj_angles)
     }
+    else if(vals.clicked_button_value == "home"){
+        dui2_instance.set_maj_angles([0, 0, 0, 0, 0, 0, 0])
+    }
     else if(vals.clicked_button_value.endsWith("_range")){ //a joint slider
         dui2_instance.set_maj_angles([vals.j1_range, vals.j2_range, vals.j3_range, vals.j4_range,
             vals.j5_range, vals.j6_range, vals.j7_range])
@@ -365,22 +392,51 @@ static dexter_user_interface_cb_aux(vals){
         */
         dui2_instance.set_maj_angles([vals.j1_angle_num, vals.j2_angle_num, vals.j3_angle_num, vals.j4_angle_num,
                                       vals.j5_angle_num, vals.j6_angle_num, vals.j7_angle_num])
-        out("computed maj_angles in _angle_numb of: " + maj_angles)
-        //let xyz = Kin.J_angles_to_xyz(maj_angles)[0]
-        //dui2.update_xyz_nums(vals.show_window_elt_id, xyz)
-        //dui2.update_xyz_circle(vals.show_window_elt_id, xyz)
-
     }
     else if(vals.clicked_button_value == "direction_checkbox"){
         dui2_instance.should_point_down = vals.direction_checkbox
         dui2_instance.set_maj_angles([vals.j1_angle_num, vals.j2_angle_num, vals.j3_angle_num, vals.j4_angle_num,
                                       vals.j5_angle_num, vals.j6_angle_num, vals.j7_angle_num])  //no actual change here, but just to ensure consistency
     }
-    dui2_instance.update_all() // do update_all before move_all_joints because update_all may modify ui2_instance.maj_angles if the direction_checkbox is checked
+    else if (vals.clicked_button_value == "insert_instruction"){
+        Editor.insert(dui2_instance.make_instruction_source(vals))
+        return
+    }
+    else if (vals.clicked_button_value == "insert_job"){
+        let instr_src = dui2_instance.make_instruction_source(vals)
+        let job_src =
+`\nnew Job({name: "my_job",
+         do_list: [` + instr_src +
+'\n]})\n'
+        Editor.insert(job_src)
+        let cur_pos = Editor.selection_start() //end of job def, now back up to start of where next instruction should be inserted.
+
+        Editor.select_javascript(cur_pos - 5)
+        return
+    }
+    dui2_instance.update_all(dui2_instance.should_point_down) // do update_all before move_all_joints because update_all may modify ui2_instance.maj_angles if the direction_checkbox is checked
     let instr = Dexter.pid_move_all_joints(dui2_instance.maj_angles)
     Job.insert_instruction(instr, {job: vals.job_name, offset: "end"})
     //out("inserted instr: " + instr)
 }
+
+   make_instruction_source(vals){
+       let instr_name = vals.instr_type
+       let instr_code = "Dexter." + instr_name + "("
+       let args
+       if(instr_name == "move_all_joints") {
+            args = this.maj_angles.join(", ")
+       }
+       else if (instr_name == "move_to"){
+            let xyz_src = "[" + this.xyz.join(", ") + "]"
+            let dir_src = "[" + this.direction.join(", ") + "]"
+            args = xyz_src + ", " + dir_src + ", undefined, undefined, " +
+                   this.maj_angles[5] + ", " + this.maj_angles[6]
+       }
+       else { shouldnt("in dui2.make_instruction_source got invalid instr_name of " + instr_name) }
+       instr_code += args + "),\n" + " ".repeat(19)
+       return instr_code
+   }
 
 //_______update UI fns_______
     //expects this.maj_angles to be set with the latest.
@@ -390,9 +446,13 @@ static dexter_user_interface_cb_aux(vals){
         if(this.should_point_down) {
             this.set_maj_angles(Kin.point_down(this.maj_angles))
         }
-        this.direction = Kin.J_angles_to_dir(this.maj_angles)
+        this.direction = Kin.J_angles_to_dir(this.maj_angles) //when this.should_point_down ==true.
+             // Kin.J_angles_to_dir will return an array of 3 numbers that is within epsilon
+             //of [0, 0, -1] but (at least often) not exactly [0, 0, -1],
+             //so the call to similar has to take this into account and consider epslilon close to
+             //[0, 0, -1] to be similar. Vector.is_equal can also handle this.
         if(check_box_if_direction_is_down) { //true only during init
-            this.should_point_down = similar(this.direction, [0, 0, -1])
+            this.should_point_down = similar(this.direction, [0, 0, -1], Number.EPSILON)
         }
         this.update_direction()
         this.update_range_and_angle_nums()
@@ -418,7 +478,7 @@ static dexter_user_interface_cb_aux(vals){
     dui2.update_xyz_circle(sw_elt_id, xyz)
 }*/
     update_range_and_angle_nums(){
-        for(let joint_number = 1; joint_number < 6; joint_number++){
+        for(let joint_number = 1; joint_number <= 7; joint_number++){
             let angle = this.maj_angles[joint_number - 1] //j1 thru 5 are in index 0 thru 4
             selector_set_in_ui("#" + this.show_window_elt_id + " [name=j" + joint_number + "_range] [value]",
                 angle)
@@ -497,9 +557,20 @@ static dexter_user_interface_cb_aux(vals){
         let new_val_str = "["
         for (let i=0; i < 3; i++) {
             let dir_item = this.direction[i]
-            dir_item = "" + dir_item
-            let len = ((dir_item[0] === "-") ? 6 : 5)
-            dir_item = dir_item.substring(0, len)
+            if(similar(0, dir_item, Number.EPSILON)) {
+                dir_item = "0"
+            }
+            else {
+                dir_item = "" + dir_item
+                let e_index = dir_item.indexOf("e")
+                if(e_index != -1) { //we've got a really big, or really small number.
+                    dir_item = dir_item.substring(e_index) //just show e17 or e-17 or something similar
+                }
+                else {
+                    let len = ((dir_item[0] === "-") ? 6 : 5)
+                    dir_item = dir_item.substring(0, len)
+                }
+            }
             new_val_str += dir_item
             if (i < 2) { new_val_str += ", " }
         }

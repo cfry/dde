@@ -212,7 +212,7 @@ Messaging.post =   function({hostname= Messaging.hostname,
     })
     req.write(post_data_string)
     req.end()
-    Messaging.tenative_user = post_data.user //becuase we aren't really logged in yet and the fully loggin in code doesn't have acesss to the user name
+    Messaging.tenative_user = post_data.user //because we aren't really logged in yet and the fully loggin in code doesn't have acesss to the user name
 }
 
 //________login_______

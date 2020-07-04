@@ -8,8 +8,8 @@
 
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version: <span id="dde_version_id">3.5.12</span><br/>
-    released: <span id="dde_release_date_id">Jun 16, 2020</span>
+    version: <span id="dde_version_id">3.6.0</span><br/>
+    released: <span id="dde_release_date_id">Jul 4, 2020</span>
     <p></p>
     DDE helps you create, debug, and send software to a Dexter robot.
     You can use any JavaScript augmented with DDE-specific functions to help find out about,
@@ -533,27 +533,49 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
         provide the documentation you need to create jobs. There are quite a number
         of ways to get "just in time & place" help within DDE. We've tried to
         make them easy to discover, but in such a sophisticated environment,
-        you might miss a few. So here's the list:
-        <ul><li><a href="http://hdrobotic.com/videos/" target="_blank">DDE videos</a>
-            This web page has videos on the overall mission, DDE, and the hardware.
-            The DDE video is 10 minutes long and covers the basics.<p></p></li>
-            <li><a href="http://hdrobotic.com/webinar/" target="_blank">Webinar videos</a> on DDE and Building Dexter</li>
-            More specifically, <a href="http://hdrobotic.com/webinar#intro_to_dde" target="_blank">Intro to DDE</a> is primarily about
-            the Help System itself.
+        you might miss a few.
+        <p></p>
+        The Dexter platform enables a wide variety of actions. This is necessarily complex.
+        So we provide multiple ways to learn about the availble capabilities, because people learn
+        in different ways. Below we supply numerous ways to understand and program Dexter.
+        They support different learning styles and different needs. We suggest that you
+        at least sample each of them, then loop back and concentrate on several that
+        are most appealing to you.
+        <ul>
+            <li><a href="https://www.hdrobotic.com/features" target="_blank">Dexter Features</a>
+                 Videos of some things Dexter is capable of plus an early overveiw of DDE.<p></p></li>
+            <li><a href="http://hdrobotic.com/videos/" target="_blank">Haddington videos</a>
+            Videos on Haddington's mission, and the hardware.<p></p></li>
+            <li><a href="https://www.hdrobotic.com/blog/programming-in-dexter-development-environment-archive" target="_blank">Webinar videos</a> on DDE</li>
+            Each of these 11 videos is 45 minutes to an hour long. Watching them in order, especially the first several, is recommended.
+            The first one, <b>Intro to DDE</b>, is primarily about the Help System itself.<p></p></li>
             <li><a href="http://hdrobotic.com/software" target="_blank">http://hdrobotic.com/software</a>
-                This url shows you the content
-                that is in DDE's documentation pane.
-                Usually its better to view this content
+                Download various versions of DDE.
+                Also shows DDE's latest documentation.
+                Its usually better to view this content
                 from within DDE, but there may be times when this web page is handy.
                 For instance, <b>User Guide/Installation</b> tells you how to install DDE.
                 You can also browse the <b>Release Notes</b> before installing a version.<p></p></li>
             <li><b>tooltips</b> Many menu items and buttons provide concise help. Place the
-                mouse over the item and don't move it for a couple of seconds.<p></p></li>
+                mouse over the item and don't move it for a couple of seconds to see the help.<p></p></li>
             <li><b>code examples</b> DDE's
-                <button>Learn JS&#9660;</button>, <button>Insert&#9660;</button>, <button>Series&#9660;</button> and <button>Jobs&#9660;</button> menus let you insert,
+                <button>Learn JS&#9660;</button>, <button>Insert&#9660;</button>, <button>Series&#9660;</button>, <button>Jobs&#9660;</button> and <button>Test&#9660;</button> menus let you insert,
                 into the editor buffer,
                 practical examples of JavaScript which you can then customize to your needs.
+                If you like to interact with code examples, use this.
+                <ol>
+                   <li>If you don't know JavaScript, try the "Learn JS" menu items in order to learn the JS
+                       most useful in programming Dexter.</li>
+                    <li> Next, try each menu item, in order, on the "Insert" menu, to learn useful
+                         utilities for programmming in DDE.</li>
+                    <li>Next, use the Jobs menu, "Insert Example" submenu items, in order, to
+                        learn how to program increasingly sophisticated Jobs.</li>
+                </ol>
                 <p></p></li>
+            <li><b>Step through code</b> One of the best ways to understand a programming
+                 language is to step through working code.
+                 <a href="#" onclick="open_doc(learning_js_doc_id)">Learning JavaScript</a> takes you
+                 through this process, step by step.</li>
             <li><b>TestSuite</b> DDE's test suite is used primarily to verify functionality.
                 But you can also use the Test/Insert All menu item to
                 see the source code of many of the tests. This will generally
@@ -561,7 +583,7 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
                 may come in handy for edge cases.
                 <p></p>
                 To find a relevant test suite:
-                <ul><li>Enter a string into the Find type-in or, with that typein-in empty,
+                <ul><li>Enter a string into the Find type-in or, with that type-in empty,
                         select a string in the editor (or Doc or Output pane)
                         that you want to search for.</li>
                     <li>Click "Find". The Output pane tells you not just where in the Documentation
@@ -569,19 +591,24 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
                         and allows you to browse those test suites.
                     </li>
                 </ul>
-            </li>
-            <li><b>Doc Pane</b> <br/>The <b>Articles</b> provide overall, abstract help.<br/>
-                The <b>User Guide</b> helps you with the DDE programming
-                environment.<br/>
-                The <b>Reference Manual</b> provides details of the <i>language</i>
-                that is used to create Jobs.<br/>
-                The <b>Release Notes</b> tell you what has changed between releases.
+                <p></p></li>
+            <li><b>Doc Pane</b> <br/>
+                <b>Getting Started</b> is the concise, bare-bones doc to get you running quickly.<br/>
+                <b>User Guide</b> helps you with the DDE programming environment.<br/>
+                <b>Reference Manual</b> provides details of the <i>language</i>
+                   that is used to create Jobs.<br/>
+                <b>Articles</b> provide abstract as well as concrete help. Code in
+                articles can be selected then evaled by clicking the <button> Eval </button> button.
+                Understanding how <code>eval</code> works is central to understanding not just JavaScript,
+                but programming languages in general. That's the topic of the article <i>How To Think Like A Computer</i><br/>
+                <b>Release Notes</b> tell you what has changed between releases.
                 The vast majority of this information is folded into the regular documentation
                 upon each release, but if you want to know what's changed,
-                browse the release notes. Recommended each time you update DDE.<br/>
-                The <b>Known Issues</b> tells you about large omissions and problems within DDE.
+                browse the release notes, which is recommended each time you update DDE.<br/>
+                <b>Known Issues</b> tell you about large omissions and problems within DDE.
                 Please don't send us any bug reports about things documented here.<p></p></li>
-            <li><a href="https://github.com/cfry/dde" target="_blank">https://github.com/cfry/dde</a> Rarely should you need to examine
+            <li><a href="https://github.com/cfry/dde" target="_blank">https://github.com/cfry/dde</a>
+                Rarely should you need to examine
                 DDE's source code to figure out how something works, but its all
                 available on github, including the documentation. <p></p>
                 <a href="https://github.com/cfry/dde/releases" target="_blank"> https://github.com/cfry/dde/releases</a> has download instructions.</li>
@@ -595,7 +622,7 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
                 that you may not care about, such as Release Notes.
                 <p></p>
                 If the text type-in is blank, the Find button will grab
-                a selection and search for that text in the documentation.
+                the selected text and search for that text in the documentation.
                 You can select text in the Editor, Output, and Doc panes.
                 You can also select text in the Command type-in (Output pane
                 header) and the Run Instruction dialog box's source code type-in.<p></p></li>
@@ -640,6 +667,11 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
                 Make Instruction dialog which let's you manipulate code in a more
                 constrained fashion that's easier for some purposes.
             </li>
+            <li>Jobs menu/Dexter Tools/<b>Dexter UI2</b> brings up a dialog box that allows you
+                to interactively control a Dexter (or the simulator of Dexter, depending on the
+                <i>simulate</i> radio buttons in the Misc Pane header). This tools is
+                a great way to learn the relationship between joint angles and xyz (Cartesian)
+                coordinates, a.k.a kinematics.</li>
             <!-- <li><b></b> </li>-->
         </ul>
     </details>
@@ -786,7 +818,7 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
            display an error message in the Output pane.
         </details> <!-- end make instruction -->
 
-        <details id="recording_doc_id" class="doc_details"><summary>Recording</summary>
+        <details  class="doc_details" id="recording_doc_id" class="doc_details"><summary>Recording</summary>
         <i>Programming by example</i> is an end-user programming technique used to
         decrease the complexity and time of entering explicit instructions.
         The simplest kind of programming by example is making a "recording" (program)
@@ -1052,7 +1084,7 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
         </ol>
         </details> <!-- end Recording -->
 
-            <details id="simulate_pane_doc_id" class="doc_details"><summary>Simulate Dexter</summary>
+        <details  class="doc_details" id="simulate_pane_doc_id" class="doc_details"><summary>Simulate Dexter</summary>
             <div style="padding-left:20px">
                 The simulate pane shows a graphical simulation of Dexter with
                 joint angles from the last robot status returned.
@@ -1077,13 +1109,14 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
 
 <details class="doc_details"><summary>JavaScript</summary>
     DDE let's you control a Dexter robot with Javascript. You can execute all of JS.
-    DDE extends JavaScript with a library of functions that control Dexter, allow access to Unix commands
-    on Dexter's computer, Window system extensions, as well as ROS specific function calls allowing you to find out about
-    and control Dexter.<p></p>
+    DDE extends JavaScript with libraries of functions that control Dexter, allow access to Unix commands
+    on Dexter's computer, allows access to HTML and the DOM, has a convenient window system
+    and a variety of other facilities for general purpose programming.<p></p>
     In DDE, <code>console.log</code> sends its output
     to the (usually hidden) Chrome console.
     Use <code>out</code> (on the <button>Insert&#9660;</button> menu) to see output in the Output pane.
-</details>
+    Click right on the DDE window and choose "Inspect Element" to see the Chrome console.
+
 <details class="doc_details" id="learning_js_doc_id"><summary>Learning JavaScript</summary>
     The quickest way to learn most of the JavaScript you'll need is from the
     Editor Pane's <button>Learn JS&#9660;</button> menu.
@@ -1095,25 +1128,123 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
     <ul><li>Select the all below code in white.</li>
         <li><code style='padding:4px;'>6 / 2 + " * 4 "  </code></li>
         <li>Click the Eval button.</li>
-        <li>In the Output pane, select<br/> 3 * 4</li>
+        <li>In the Output pane, select<br/> 3 * 4 (not including the quotes).</li>
         <li>Click the Eval button.</li>
      </ul>
-    Choose menu items under  <button>Learn JS&#9660;</button> in depth-first order for a consistent overview, and later you can choose
+    Choose menu items under  <button>Learn JS&#9660;</button> in depth-first order for a JavaScript overview, and later you can choose
     exactly those items you need to insert a code snippet.<br/>
     <fieldset><legend><span style="color:red;">Warning</span></legend>
         <b>Code in the editor that has not been evaled will have no effect.</b></fieldset><br/>
+    <button>Step</button> is like <button>Eval</button> only it shows you each intermediate expression
+    as it is being evaled
+    and the returned values, so you can watch your code run in detail. Normally steppers
+    are used for "debugging", but the essenence of debugging is understanding what your
+    code is doing. Stepping through known good code is a great way to let the computer
+    show you exactly what its doing. Here's a step by step (ahem) guide to using the
+    JavaScript stepper for learning JS:
+    <ol>
+      <li>Choose File menu/New to make a new Editor buffer.</li>
+      <li>Choose <i>Learn JS menu/JavaScript Example</i> to insert a function definition and
+          a call to it. </li>
+      <li>Read the comments.</li>
+      <li> Click <button>Eval</button> . When there is no selection, all the code in the editor
+           is evaluated.</li>
+      <li> Observe the print statements in the Output pane caused by the calls to <code>out</code>
+          in the definition of "foo", and the returned value of the call.</li>
+      <li> Select the call to foo, i.e. the last line of code.</li>
+      <li> Click <button>Step</button></li>
+      <li> The Chrome Dev Tools window will pop up.<br/>
+           In the upper right, observe the stepper controls.
+           <img src="doc/coor_images/stepper_buttons.png" width="120" alt="stepper buttons"/>
+           (if you narrow the window to see this text, those controls will move.)
+           The big blue right pointing triangle will just run the code until its end,
+           or until it hits a breakpoint.
+           The <i>over arrow</i> (to its right), steps to the next expression at the current level.
+           Click it.</li>
+       <li> Now you'll see "foo", the name of our method highlighted.
+            Click the stepper control <i>down arrow</i>.</li>
+       <li> Now you'll see the source code of our definition of "foo".
+            Clicking the <i>over arrow</i> to step through the code.</li>
+       <li>While stepping, place the mouse on top of an argument or variable to
+           see its current value.</li>
+       <li>Click the <i>over arrow</i> or the <i>up arrow</i> to evaluate a bunch of code in one fell swoop.</li>
+       <li>Click the "Console" tab to get a "JavaScript" terminal.</li>
+       <li>Type in some JS code and hit return. It will show you the result of evaling that code.
+            You can use local variables in your typed in code and they will be bound to the
+            same values as they are at the point where the stepper is in the code you're stepping.</li>
+       <li>If you keep stepping past the end of the function definition, you'll go into
+           DDE internal code. You can keep stepping to see it if you like, or
+           just click the big blue triangle to complete stepping.</li>
+       <li>Congrats. You're now a JavaScript programmer!</li>
+    </ol>
     A nice interactive tutorial is available at:
     <a target="_blank" href="https://www.codecademy.com/learn/javascript">
-        https://www.codecademy.com/learn/javascript</a> Beware that <code>console.log</code> prints to the
-    <i>normally hidden</i> chrome console. DDE's <code>out</code> is easier to use.
+        https://www.codecademy.com/learn/javascript</a>
+    Beware that <code>console.log</code> prints to the
+    <i>normally hidden</i> chrome console. DDE's
+    <a href="#" onclick="open_doc(out_doc_id)"><code>out</code></a> is easier to use.
     <p></p>
     If you want more prose, there are lots of JavaScript tutorials on the web. You will not need to know
     HTML, CSS or JQuery that are commonly taught in conjunction with JavaScript.
     <p></p>
-    <a href="http://jsforcats.com" target="_blank">A very gentle intro to JavaScript.</a> Ignore the
-    parts that use the <i>Underscore</i> library.<br/>
+    <a href="http://jsforcats.com" target="_blank">A very gentle intro to JavaScript.</a>
+    Ignore the parts that use the <i>Underscore</i> library.<br/>
     A more formal (and long) <a href="http://www.w3schools.com/js/" target="_blank">tutorial</a>.
-    <details class="doc_details"><summary>JS for Programmers</summary>
+    </details> <!-- end Learning JavaScript -->
+    <details class="doc_details"><summary>JS for Python Programmers</summary>
+        Python and JavaScript are two of the most popular general purpose programming languages in use today.
+        Though they differ in many details, for describing the instructions that are the core of DDE's Jobs,
+        they are amazingly similar for the most common operations. Especially with DDE's tools for learning
+        JavaScript, the Python programmer won't have a lot of difficulty adapting.<br/>
+        Similarities:
+        <ul>
+            <li>Literal numbers (integers and floats) look the same <code>123</code> <code>-45</code>  <code>0.56</code></li>
+            <li>Operators that are the same:
+                <ul>
+                    <li>Arithmetic: <code title="unEVALable">+</code>  <code title="unEVALable">-</code>  <code title="unEVALable">*</code>  <code title="unEVALable">/</code>  <code title="unEVALable">**</code>  <code title="unEVALable">%</code></li>
+                    <li>Comparison: <code title="unEVALable">==</code> <code title="unEVALable">!=</code> <code title="unEVALable"><</code>  <code title="unEVALable"><=</code>  <code title="unEVALable">></code>  <code title="unEVALable">>=</code></li>
+                    <li>Assignment: <code title="unEVALable">=</code>  <code title="unEVALable">+=</code> <code title="unEVALable">-=</code> <code title="unEVALable">*=</code>  <code title="unEVALable">/=</code> <code title="unEVALable">**=</code></li>
+                </ul>
+            </li>
+            <li>Literal strings in both are surrounded by either single or double quotes. i.e. <code>"foo"</code></li>
+            <li>Variables: You don't need to declare types for either JS or Python. <br/>
+                Same syntax for variable names:
+                <ul>
+                    <li>Start with letter or underscore.</li>
+                    <li>Non first characters: letters, digits, underscore and hyphen.</li>
+                    <li>Case-sensitive: <code title="unEVALable">age</code>, <code title="unEVALable">Age</code> and <code title="unEVALable">AGE</code> are three different variables.</li>
+                </ul>
+            </li>
+            <li>Booleans: Python <code title="unEVALable">True</code> <code title="unEVALable">False</code>  JS: <code>true</code> <code>false</code></li>
+            <li>Python's "list" is like JS's "array".<br/>
+                  Make a literal JS with the same syntax as Python's list: <code>[0, 1, 2]</code><br/>
+                  Reference an element the same i.e. <code  title="unEVALable">myarray[2]</code><br/>
+                  The first element in both languages is at index 0.</li>
+            <li>Ordinary function and method calls look the same.<br/>
+                Example Job instruction:<br/>
+                <code>Dexter.move_all_joints(10, 20, 30, 40, 50) </code><br/>
+                Example Job do_list:
+                <pre><code>[Dexter.move_all_joints(10, 20, 30, 40, 50),
+ Dexter.move_to([0.5, -0.4, 0.3])] </code></pre></li>
+            <li>Both are English based, have dynamic typing, have automatic garbage collection, are interpreted (no need for compiled files)</li>
+            <li>Object orientation similar, esp. in method call syntax.
+            <li>Functions definitions: similar functionality
+                <ul><li>default values</li>
+                    <li>arguments by position</li>
+                    <li>arguments by keyword with slightly different syntax.</li>
+                 </ul>
+            </li>
+         </ul>
+         Lots of help available on the web, including:<br/>
+        <a target="_blank" href="https://runestone.academy/runestone/books/published/JS4Python/index.html">Tutorial for Python programmers learning JS.</a><br/>
+        <a target="_blank" href="https://observablehq.com/@ballingt/javascript-for-python-programmers">Concise, Computer-sciency JS for Python programers.</a>
+          Beware: One misleading sentence in it is: "JavaScript has default parameters but no keyword arguments".
+          Newer versions of JS, such as DDE uses, do have keyword args, though they aren't exactly the same as Python's.<br/>
+        <a target="_blank" href="https://medium.com/@alexander.s.augenstein/beginners-guide-to-python-vs-javascript-in-one-big-table-22bc78bdf880">Comparison Table</a>
+           Not complete, but still useful for common operations.
+    </details> <!-- end JS for Python Programmers -->
+
+    <details class="doc_details"><summary>JS for Other Programmers</summary>
         If you're already a competent programmer but don't know JS specifics,
         here's a few tips:<br/>
         JavaScript is an <b>untyped</b> language. That means you don't declare types
@@ -1173,10 +1304,9 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
         <a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/A_re-introduction_to_JavaScript">
             JS re-introduction</a><br/>
         <a target="_blank" href="http://www.2ality.com/2013/06/basic-javascript.html">more comprehensive</a>
-    </details>
-    Eventually you will need to know the concepts of ROS (the Robot Operating System), though
-    not the syntax of BASH, C++ and Python normally required to work with ROS.
-</details>
+    </details> <!-- end JS for Other Programmers -->
+</details> <!-- end JavaScript -->
+
 <details class="doc_details"><summary>Workflow</summary>
     DDE let's you execute arbitrary JavaScript that is entered into the Editor pane.
     <ol><li>The Editor pane's menus allow you to insert useful code snippets into
@@ -1222,7 +1352,7 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
             and hit enter. It is run on Dexter's computer.  Returned text will be printed below.
             The command you typed in will also be added to the Output pane's <button>Ops&#9660;</button> menu under
             "User Commands" should you want to execute it again.
-        </li>
+            </li>
             <li>The Output pane's <button>Ops&#9660;</button> menu allows easy access to finding out about the ROS environment.</li>
             <li>If you click on underlined text in the Output pane, it will scroll to
                 a relevent section of the Doc pane, or, in the case of core JavaScript,
@@ -1723,7 +1853,7 @@ the points defined in ez_create.
     of your source code.
     (To open the <i>Chrome Developer Tools</i> window, click right on any DDE pane and choose
     <b>Inspect Element</b>.
-    Use the arrow buttons <img src="doc/stepper_buttons.png" width="120" alt="stepper buttons"/>
+    Use the arrow buttons <img src="doc/coor_images/stepper_buttons.png" width="120" alt="stepper buttons"/>
     in the Developer Tools window upper right to step execution.
     <p></p>
     Rather than enter <code title="not in TestSuite">debugger;</code> into your code,

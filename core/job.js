@@ -294,7 +294,18 @@ class Job{
         }
     }*/
 
-    //starts the first job defined in the file, if any
+    // todo starts the first job defined in the file, if any
+    // beware: if all the jobs defined in the file are defined and active, then
+    //Job.instances_in_file will return [] because new Job has to shut down
+    //same named jobs that are active before redefining the job and that requires
+    //a set timeout meaning the initial call to "new Job" won't actually make the
+    //new job and thus won't increment the job_id. So Job.instances_in_file fails.
+    //So a lously work-around is to make sure all the jobs in the file are
+    //non-active. the problem is, the caller of define_and_start_job (and Job.instances_in_file)
+    // often doesn't know what jobs are in the file, and that's why they're calling Job.instances_in_file
+    //in the first place. So Job.instances_in_file and define_and_start_job really should take
+    //a callback, but that causes some problems with where these fns are used. ARGGG
+    //relavent in Messaging, dexter_user_interface2, instruction start_job, and maybe a few more places.
     static define_and_start_job(job_file_path){
         let job_instances = Job.instances_in_file(job_file_path)
         if(job_instances.length == 0) {

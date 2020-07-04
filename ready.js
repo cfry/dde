@@ -144,8 +144,8 @@
     $('#outer_splitter').jqxSplitter({
         width: '98%', height: '97%', //was 93%
         orientation: 'vertical',
-        panels: [ { size: "70%", min: "0%", collapsible: false },
-                  { size: '30%', min: "0%"}]
+        panels: [ { size: "70%", collapsible: false}, //, min: "0%"}, //collapsible: false }, //collapsible: false fails in DDE v 3, so see below for setTimeout on a fn to do this
+                  { size: '30%', collapsible: true}] //, min: "0%"}] //, collapsible: true}]
     })
 
     $('#outer_splitter').on('resize',
@@ -157,7 +157,7 @@
 
     $('#left_splitter').jqxSplitter({orientation: 'horizontal', width: "100%", height: "100%",
         panels: [{ size: "60%", min: "5%", collapsible: false },
-                 { size: '40%', min: "5%"}]
+                 { size: '40%', min: "5%", collapsible: true}]
     })
 
     $('#left_splitter').on('resize',
@@ -179,6 +179,11 @@
             event.stopPropagation() //must have or outer_splitter on resize is called
         })
 
+    setTimeout(function(){
+                $('#outer_splitter').jqxSplitter('panels')[0].collapsible = false
+                $('#left_splitter').jqxSplitter('panels')[0].collapsible = false
+                $('#right_splitter').jqxSplitter('panels')[0].collapsible = false
+            }, 100)
         //TestSuite.make_suites_menu_items() //doesn't work
 
         //see near bottom for animation.
@@ -472,7 +477,7 @@ function foo(a, b){ //define function foo with 2 args
         }
     }
     return b.length //foo returns the length of its 2nd arg.
-                    //After Evaling, observe '4' in the Output pane.
+                    //After calling, observe '4' in the Output pane.
 }
 
 foo("hello", [7, 10, 20, -3.2]) //call function foo with 2 args
@@ -1251,7 +1256,9 @@ foo      //eval to see the latest values</pre>`,
         open_doc("DXF.init_drawing_doc_id")
     }
     calibrate_id.onclick         = function() { init_calibrate() }//defines 2 jobs and brings up calibrate dialog box
-    dui2_id.onclick              = function() { Job.define_and_start_job(__dirname + "/user_tools/dexter_user_interface2.js") }
+    dui2_id.onclick              = function() {
+        Job.define_and_start_job(__dirname + "/user_tools/dexter_user_interface2.js")
+    }
     ping_dexter_id.onclick       = function() { ping_a_dexter() }
     browse_dexter_id.onclick     = function() {
         let url = "http://" + Dexter.default.ip_address

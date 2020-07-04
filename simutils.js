@@ -125,6 +125,7 @@ SimUtils = class SimUtils{
                 let j_inc_per_frame = js_inc_per_frame[joint]
                 let inc_to_prev_j = frame * j_inc_per_frame
                 let j_angle = prev_j + inc_to_prev_j
+                //if(joint == 0) { j_angle *= -1}
                 let rads = arc_seconds_to_radians(j_angle)
                 let angle_degrees
                 if      (joint == 5) { angle_degrees = (j_angle - 512) * Socket.DEGREES_PER_DYNAMIXEL_UNIT }
@@ -134,7 +135,7 @@ SimUtils = class SimUtils{
                 let j_angle_degrees_rounded = Math.round(angle_degrees)
                 switch(joint) {
                     case 0:
-                        sim.J1.rotation.y = rads
+                        sim.J1.rotation.y = rads * -1
                         sim_pane_j1_id.innerHTML = j_angle_degrees_rounded
                         break;
                     case 1:
@@ -150,7 +151,7 @@ SimUtils = class SimUtils{
                         sim_pane_j4_id.innerHTML = j_angle_degrees_rounded
                         break;
                     case 4:
-                        sim.J5.rotation.y = rads
+                        sim.J5.rotation.y = rads * -1
                         sim_pane_j5_id.innerHTML = j_angle_degrees_rounded
                         break;
                     case 5:

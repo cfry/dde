@@ -6,6 +6,69 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 3.6.0, Jul 4, 2020</summary>
+Highlights: Updated versions of foundational software.<br/>
+    Doc improvements, esp. Learning JS via Stepping
+    and JavaScript for Python programmers.<br/>
+    Simulator bugs fixed.<br/>
+    Dexter UI improvements.<br/>
+    Improvement for Kin.point_down<br/>
+<ul>
+    <li>Underlying Software updates:
+        <ul>
+            <li>node.js   version upped from 10 to 12.</li>
+            <li>Electron  version upped from 4 to 5.</li>
+            <li>serial_port version upped from ^7.0.2 to ^8.0.0</li>
+            <li>jqxwdigets upgraded from version 5 to version 9.</li>
+            <li>Three.js upgraded to v 0.118.3 and converted to using npm to install it.</li>
+            <li>three-2dtext upgraded to v0.6.0 and converted to using npm to install it.</li>
+        </ul>
+    </li>
+    <li>TestSuite "Run TestSuite File" extended to be able to accept ref_man.html and guide.html
+         when chosen by the user to run those doc files as testsuites.</li>
+    <li>Cleaned up User Guide Help System section including fixed webinar videos url in
+        The User Guide to:https://www.hdrobotic.com/blog/programming-in-dexter-development-environment-archive</li>
+    <li>Fixed bug in latest release so that clicking on a splitter pane "expander" bar will
+         expand the editor pane or doc pane, not the other panes like it did in DDE v 2.</li>
+    <li>User Guide: Improvements to "JavaScript" section.</li>
+    <li>User Guide: new section: "JavaScript for Python Programmers"</li>
+    <li>Added tooltips to all menu bar menus</li>
+    <li>Updated Help System doc
+        <ul>
+            <li>At top of Help system doc, new paragraph about different learning styles</li>
+            <li>User Guide section on Learning JavaScript extended to have a step by step tutorial on using the stepper to learn JS.</li>
+            <li>Added Jobs menu/Dexter Tools/Dexter U2 for the "donut dialog".</li>
+            <li>Emphahsized "STRUCTURED LEARNING" where relevent</li>
+        </ul>
+    </li>
+    <li>User Guide new section under Javascript/Learning JavaScript for learning via Stepping.</li>
+    <li>New doc: User Guide/JavaScript/JS for Python Programmers</li>
+    <li>New function: <code>is_folder</code> returns true if the passed in string is a folder.
+        See Ref Man/IO/File Access/is_folder</li>
+    <li>New function: <code>folder_listing</code> returns an array of the files and/or subfolders of a folder.
+        See Ref Man/IO/File Access/folder_listing</li>
+    <li>Output pane made slightly less high to reduce wasted vertical space.</li>
+    <li>Dexter UI2 and simulator
+        <ul>
+            <li>Dexter UI2 extended to have its Job name the same as its file name WHEN it is running on the Job Engine.</li>
+            <li>Choosing Dexter UI2 Jobs menu item automatically switches Misc Pane to "Simulate Dexter" .</li>
+            <li>Dexter UI2 fix X axis wrong sign for the green dot, sim j1 and j5 fixed.</li>
+            <li>New limits to j1 thru j5 sliders of: [185, 105, 150, 120, 185] in
+                robot.js J1_ANGLE_MIN and friends.</li>
+            <li>Dexter UI2 bug fixed when updating Joint angles via the number spinners.</li>
+            <li>Dexter UI2 now points down by default.</li>
+            <li>Dexter UI2 New button "home"</li>
+            <li>Fixed <code>Kin.point_down</code></li>
+            <li>Dexter UI2 New controls for Inserting JS of current location, only when Dexter UI2 running in DDE.</li>
+            <li>Fixed relaunching of Dexter UI2 dialog</li>
+        </ul>
+    <li>New oplet: "C" for pid_move_to</li>
+    <li>New Oplet "D" for pid_move_to_straight</li>
+    <li>New class: Inflow for reading and writing data from the Inflow inventory management system.
+        See Ref Man/IO/Inflow</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.5.12, Jun 16, 2020</summary>
  Highlights: version 3.5.11 build did not produce a .exe file so
             this release was made.
@@ -16,7 +79,7 @@
 
 <details class="doc_details"><summary>v 3.5.11, Jun 16, 2020</summary>
 Highlights: Inspector extended with 2D capability for arrays of objects.
-            WinOS: fix for tiny window on launch and workaround documentented for
+            WinOS: fix for tiny window on launch and workaround documented for
                  installation hang bug.
             Serial port fix, and many others.
 <ul>

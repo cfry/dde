@@ -11,6 +11,9 @@ from http://threejs.org/docs/index.html#Manual/Introduction/Creating_a_scene
 
 //canvas { width: 100%; height: 100% }
 
+var THREE = require('three')
+var THREE_Text2D = require('three-text2d')
+
 var sim = {} //used to store sim "global" vars
 
 //var THREE_font_loader = new THREE.FontLoader();

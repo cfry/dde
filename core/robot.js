@@ -2073,7 +2073,9 @@ Dexter.instruction_type_to_function_name_map = {
     a:"move_all_joints",
     //b:"move_to",           //fry  obsolete
     B:"set_boundries", //10 args: j1BoundryHigh, j1Boundrylow,  j2BoundryHigh, j2Boundrylow, j3BoundryHigh, j3Boundrylow, j4BoundryHigh, j4Boundrylow, j5BoundryHigh, j5Boundrylow,
-    c:"capture_ad", 
+    C:"pid_move_to",
+    c:"capture_ad",
+    D:"pid_move_to_straight",
     d:"dma_read",
     e:"cause_dexter_error", //fry
     E:"empty_instruction_queue_immediately", //new Sept 1, 2016

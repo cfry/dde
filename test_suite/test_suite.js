@@ -336,16 +336,25 @@ var TestSuite = class TestSuite{
     }
 
     static run_ts_in_file(path){
-        let ts_src = read_file(path).trim()
-        //because there is sometimes a comment at top of a testsuite file (like for the
-        //math tests, we have to be careful about deleting that initial comma.
-        //ts_src = ts_src.substring(1) //cut off initial comma
-        ts_src = replace_substrings(ts_src, "new TestSuite", ", new TestSuite") //don't stick in tthe open paren after new TestSuite because regexp will think its a group cmd.
-        let initial_comma_pos = ts_src.indexOf(", new TestSuite")
-        ts_src = ts_src.substring(0, initial_comma_pos) +
-                 ts_src.substring(initial_comma_pos + 1)
-        ts_src = "[\n" + ts_src + "\n]" //need the newlines in case last line in ts_src has a // comment in it
-        let ts_array = eval(ts_src)
+        let ts_array
+        if(path.endsWith("guide.html")) {
+            ts_array = TestSuite.make_test_suites_from_doc(user_guide_id)
+        }
+        else if(path.endsWith("ref_man.html")) {
+            ts_array = TestSuite.make_test_suites_from_doc(reference_manual_id)
+        }
+        else {
+            let ts_src = read_file(path).trim()
+            //because there is sometimes a comment at top of a testsuite file (like for the
+            //math tests, we have to be careful about deleting that initial comma.
+            //ts_src = ts_src.substring(1) //cut off initial comma
+            ts_src = replace_substrings(ts_src, "new TestSuite", ", new TestSuite") //don't stick in the open paren after new TestSuite because regexp will think its a group cmd.
+            let initial_comma_pos = ts_src.indexOf(", new TestSuite")
+            ts_src = ts_src.substring(0, initial_comma_pos) +
+                     ts_src.substring(initial_comma_pos + 1)
+            ts_src = "[\n" + ts_src + "\n]" //need the newlines in case last line in ts_src has a // comment in it
+            ts_array = eval(ts_src)
+        }
         let report_prefix = '<b style="font-size:20px;">Test Suites Report for ' + path + '</b><br/>'
         //this.state = {
         //    reports:             report_prefix,
@@ -411,21 +420,7 @@ var TestSuite = class TestSuite{
                         if (close_paren == null) {out("Found syntactically bad test suite with no closing paren: " + ts_string.split("\n")[0]); return false}
                         ts_string = ts_string.substring(0, close_paren + 1) //now have a good ts source string
                         ts_array_clean_strings.push(ts_string)
-                        //let ts  = window.eval(ts_string)
-                        //if (ts instanceof TestSuite) {out(ts.start());}
-                        //else {
-                        //    out("The source code for test suite: " + ts_string.split("\n")[0] + " isn't proper.")
-                        //    return false
-                        //}
                     }
-                    //this.state = {
-                    //    reports:             "",
-                    //    start_time:          Date.now(),
-                    //    suites:              ts_array_clean_strings, //each will be evaled when its time to run it
-                    //    current_suite_index: 0,
-                     //   next_test_index:     0
-                    //}
-                    //this.resume()
                     this.set_state_and_resume({reports: "", suites: ts_array_clean_strings})
 
                 }
@@ -440,14 +435,6 @@ var TestSuite = class TestSuite{
             if (run_item){
                 let ts  = window.eval(sel_text)
                 if (ts instanceof TestSuite) {
-                   //     this.state = {
-                   //     reports:             "",
-                   //     start_time:          Date.now(),
-                   //     suites:              [ts],
-                   //     current_suite_index: 0,
-                   //     next_test_index:     0
-                   // }
-                   // this.resume()
                    this.set_state_and_resume({reports: "", suites: [ts]})
                 }
                 else {

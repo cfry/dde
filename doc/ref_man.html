@@ -63,15 +63,15 @@
         </details> <!-- end CSV -->
 
         <details class="doc_details"><summary>File Access</summary>
-        Web clients reading an writing files to their local file system has been impossible in the past.
-        DDE gives you programmatic read/write access to all files under the dde_apps folder
-        under your Documents folder, typically under the user's home folder.
-        <p></p>
-        The code for your Job definitions should live under that folder (at any depth beneath
-        that folder).
-        If you do not have a dde_apps folder under your Documents folder, please create one.
+            Web clients reading an writing files to their local file system has been impossible in the past.
+            DDE gives you programmatic read/write access to all files under the dde_apps folder
+            under your Documents folder, typically under the user's home folder.
+            <p></p>
+            The code for your Job definitions should live under that folder (at any depth beneath
+            that folder).
+            If you do not have a dde_apps folder under your Documents folder, please create one.
 
-        <details id="choose_file_doc_id" style="margin-left:40px;"><summary>choose_file</summary>
+        <details id="choose_file_doc_id" class="doc_details"><summary>choose_file</summary>
             Pops up a dialog box allowing you to navigate the file system to choose a file.
             Returns a string of the full path of the file.
             <br/>
@@ -83,7 +83,7 @@
             <code title="not in TestSuite"> choose_file({buttonLabel: "pick the best"})</code>
         </details>
 
-        <details id="choose_save_file_doc_id" style="margin-left:40px;"><summary>choose_save_file</summary>
+        <details id="choose_save_file_doc_id" class="doc_details"><summary>choose_save_file</summary>
             Pops up a dialog box allowing you to enter a name to save a file as,
             and navigate the file system &amp; choose a directory to save it in.
             Returns a string of the full path of the file.
@@ -98,37 +98,14 @@
             <code title="not in TestSuite"> choose_save_file({buttonLabel: "save the best"})</code>
         </details>
 
-        <details id="dde_apps_folder_doc_id" style="margin-left:40px;"><summary>dde_apps_folder</summary>
+        <details id="dde_apps_folder_doc_id" class="doc_details"><summary>dde_apps_folder</summary>
             <code>dde_apps_folder</code> is a global constant whose value is a string
             of the name of the folder beneath which DDE has programmatic access.
             You cannot set this constant. It will have a value something like:
             <code>"/Users/Fry/Documents/dde_apps"</code> on the Mac.
         </details>
 
-        <details id="read_file_doc_id" style="margin-left:40px;"><summary>read_file</summary>
-            <code>read_file</code> is a function that takes an argument of a file path,
-            and returns a string of the content of the file.<br/>
-            <i>Parameters:</i><br/>
-            <b>path</b> A string of a path to the file. Usually this will not start with a slash,
-            but rather tha first character of a file name inside of your dde_apps folder.
-            if the path starts with a slash, it should be a complete path from the root
-            of your file system, on through to dde_apps and the file below it.
-            <br/>
-            <b>encoding</b> A string indicating the encoding of the file. Default: "utf8".
-            The default works fine for most plain text files, including .js files.
-            <p></p>
-            <b>Example:</b> <code>read_file("dde_init.js")</code>
-            <p></p>
-            See <a href="#" onclick="open_doc(load_files_doc_id, event)">load_files</a>
-            for grabbing the file contents, then evaling it.
-            <p/></p>
-            See also Dexter instruction: <a href="#" onclick="open_doc('Dexter.read_file_doc_id', event)">Dexter.read_file</a>
-            <p></p>
-            <span style="color:red;">file_content</span> has been deprecated.
-            Please use <code>read_file</code> instead.
-        </details> <!-- end read_file -->
-
-        <details id="Editor.edit_file_doc_id" style="margin-left:40px;"><summary>Editor.edit_file</summary>
+        <details id="Editor.edit_file_doc_id" class="doc_details"><summary>Editor.edit_file</summary>
             <code>Editor.edit_file</code> takes an argument of a filepath, similar to <code>load_files</code>,
             and puts that file in DDE's editor.
             <p></p>
@@ -139,19 +116,41 @@
             You can also edit docs in subfolders, ie <code>"my_fold/junk.js"</code>
         </details> <!-- end edit_file -->
 
-        <details id="file_exists_doc_id" style="margin-left:40px;"><summary>file_exists</summary>
+        <details id="file_exists_doc_id" class="doc_details"><summary>file_exists</summary>
         Returns true if the file path in the first argument exists.<br/>
         <I>Example</i>:<br/>
         <code>file_exists("dde_init.js")</code> => true
         </details>
 
-        <details id="folder_separator_doc_id" style="margin-left:40px;"><summary>folder_separator</summary>
+        <details id="folder_listing_doc_id" class="doc_details"><summary>folder_listing</summary>
+            Returns an array of strings naming the files and/or subfolders in a folder.<br/>
+            <i>Parameters:</i><br/>
+            <b>folder</b> Default: <code>dde_apps_folder</code> A string of the name of
+               the folder to get the listing of.<br/>
+            <b>include_files</b> Default: <code>true</code>  Whether or not to include
+               files in the returned array.<br/>
+            <b>include_folders</b> Default: <code>true</code>  Whether or not to include
+            subfolders in the returned array.<br/>
+            <b>include_folder_name</b> Default: <code>true</code>  Whether or not to include
+               the full path of the file or folder in the string returned for
+               each folder entry, or just its name and extension.<br/>
+            <i>Example:</i> <code>folder_listing()</code><br/>
+              Returns an array of strings naming the files and subfolder in
+              your dde_apps folder (under your "Documents" folder).
+        </details>
+        <details id="folder_separator_doc_id" class="doc_details"><summary>folder_separator</summary>
             A function of no arguments that returns the character used to separate folders in a filepath.
             For Windows OS's this is "\\" (backslash).
             For others its "/" (forward slash).
         </details>
-
-        <details id="load_files_doc_id" style="margin-left:40px;"><summary>load_files</summary>
+        <details id="is_folder_doc_id"class="doc_details"><summary>is_folder</summary>
+             Returns <code>true</code> if the argument represents a folder, <code>false</code> otherwise.
+             <i>Parameters:</i><br/>
+             <b>path</b> Default: <code>dde_apps_folder</code> The string naming the
+                file or folder to test.<br/>
+            <i>Example:</i> <code>is_folder()</code> => <samp>true</samp>
+        </details>
+        <details id="load_files_doc_id" class="doc_details"><summary>load_files</summary>
             <code>load_files</code> gets the content of files from disk
             (expected to be JavaScript) and evaluates
             it in the DDE environment programmatically. You can pass any number of file paths to
@@ -196,12 +195,12 @@
             for getting the file contents as a string but not evaling it.
         </details> <!-- end load_files  -->
 
-        <details id="loading_file_doc_id" style="margin-left:40px;"><summary>loading_file</summary>
+        <details id="loading_file_doc_id" class="doc_details"><summary>loading_file</summary>
         <code>loading_file</code> is a global variable bound to the full path
         of the file being loaded. If no file is being loaded, it is <code>undefined</code>
         </details>
 
-        <details id="make_folder_doc_id" style="margin-left:40px;"><summary>make_folder</summary>
+        <details id="make_folder_doc_id" class="doc_details"><summary>make_folder</summary>
         Creates potentially nested folders in the file system.<br/>
         <i>Parameter:</i><br/>
         <b>path</b> Required. Similar to other DDE file utilities, if the
@@ -215,7 +214,30 @@
         a folder named "bar", and inside of that is placed a folder "baz".
         </details>
 
-     <details id="write_file_doc_id" style="margin-left:40px;"><summary>write_file</summary>
+        <details id="read_file_doc_id" class="doc_details"><summary>read_file</summary>
+            <code>read_file</code> is a function that takes an argument of a file path,
+            and returns a string of the content of the file.<br/>
+            <i>Parameters:</i><br/>
+            <b>path</b> A string of a path to the file. Usually this will not start with a slash,
+            but rather tha first character of a file name inside of your dde_apps folder.
+            if the path starts with a slash, it should be a complete path from the root
+            of your file system, on through to dde_apps and the file below it.
+            <br/>
+            <b>encoding</b> A string indicating the encoding of the file. Default: "utf8".
+            The default works fine for most plain text files, including .js files.
+            <p></p>
+            <b>Example:</b> <code>read_file("dde_init.js")</code>
+            <p></p>
+            See <a href="#" onclick="open_doc(load_files_doc_id, event)">load_files</a>
+            for grabbing the file contents, then evaling it.
+            <p/></p>
+            See also Dexter instruction: <a href="#" onclick="open_doc('Dexter.read_file_doc_id', event)">Dexter.read_file</a>
+            <p></p>
+            <span style="color:red;">file_content</span> has been deprecated.
+            Please use <code>read_file</code> instead.
+        </details> <!-- end read_file -->
+
+     <details id="write_file_doc_id" class="doc_details"><summary>write_file</summary>
         <code>write_file</code> is a function that takes an argument of a file path
         and a new content string. It sets the content of that file.<br/>
         Arguments:<br/>
@@ -820,6 +842,118 @@ new Job({name: "gamepad_job2",
         </code></pre>
     </details>
 </details> <!-- end Gamepad -->
+
+<details id="Inflow_doc_id" class="doc_details"><summary>Inflow</summary>
+   <a target="_blank" href="https://www.inflowinventory.com/">Inflow</a> is a commercial inventory
+   management system that Haddington uses to keep track of parts for building robots.
+   For an extra fee, you can get access to an API to programmatically use Inflow's database.
+   We've developed an interface to enable DDE users to read and write to that API.
+   Should you need to automate inventory and customer data,
+   using DDE's interface is an easy way to do it. <p></p>
+   The <a target="_blank"
+   href="https://cloudapi.inflowinventory.com/docs/index.html#section/OverviewInflow">API doc</a>
+   isn't easy for JavaScript programmers to understand,
+   so we've packaged up the most useful features.
+    <p></p>
+   <i>Configuration:</i><br/>
+    To use this API, you must first buy the Inflow software plus their API and, in DDE, set 2
+    variables. Your Documents/dde_init.js file is a convenient place to set these variables.<br/>
+    <b id="Inflow.if_company_id_doc_id">Inflow.if_company_id</b> A string. Your Inflow "company id" that you get as an Inflow customer.<br/>
+    Example: <code title="not in TestSuite">Inflow.if_company_id = "your company id"</code><br/>
+    <b id="Inflow.if_api_key_doc_id">Inflow.if_api_key</b> A string. Your Inflow api key that you get from Inflow when you have access to their api.<br/>
+    Example: <code title="not in TestSuite">Inflow.if_api_key = "your api key"</code>
+    <p></p>
+    <i>Methods</i>
+    <details id="Inflow.get_doc_id" class="doc_details"><summary>Inflow.get</summary>
+    Get data from Inflow.<br/>
+    <i>Parameters:</i><br/>
+    <b>path</b>:  Default: <code>"categories"</code> . A string that determines the data
+    you're after. The string should not start with a slash.
+    The default gets an array of the categories
+    (the product categories you're tracking with Inflow)
+    within your Inflow installation.
+    When you pass in a path without slashes,
+    it will cache the resulting array in
+    Inflow.{path} to the array of the result.
+    <p></p>
+    Each of its array elements is a JS literal object with properties:
+        <ul>
+            <li><b>categoryID</b>: A unique string</li>
+            <li><b>name</b>:       A human readable meaningful string such as "A", or "Default Category".</li>
+            <li><b>parentCategoryID</b>:  If there is a parent category, its ID string.
+                   Otherwise: <code>null</code>.</li>
+            <li><b>timeStamp</b>:  A string of a Hexidecimal number indictating when
+                 the category was last modified.</li>
+        </ul>
+    <b>callback</b>: Default: <code>inspect</code>. A method of one argument, a JSON object
+         representing the information you requested in the Inflow.get call.
+    <p></p>
+    <i>Examples:</i><br/>
+        <code title="not in TestSuite">Inflow.get()</code> retrieves your Inflow categories.<br/>
+        <code title="not in TestSuite">Inflow.categories</code> An array of the categories (or any slashless path) retrieved.<br/>
+        <code title="not in TestSuite">Inflow.get("categories/" + Inflow.categories[0].categoryId)</code>
+              passes to the callback function a JS lit object that looks like:
+        <!-- bug in JS eval that it can't eval the below. Maybe because its not set to a variable-->
+        <pre><code title="not in TestSuite">
+{name: "3Dprint",
+catgoryId: "12345c6...",
+parentCategoryId: null,
+timestamp: "000000000001E074"
+} </code></pre>
+  <code title="not in TestSuite">Inflow.get("customers")</code> passes to the callback an array of customer
+      literal objects containing properties of<br/>
+      name, customerID, phone, etc.<br/>
+  <code title="not in TestSuite">Inflow.customers</code> An array of customer JS literal objects.<br/>
+  <code title="not in TestSuite">Inflow.get("customers/" + Inflow.customers[0].customerId)</code>
+  <p></p>
+  <code title="not in TestSuite">Inflow.get("products")</code> , etc.<br/>
+You can use this pattern for:
+<ul>
+  <li>categories</li>
+  <li>customers</li>
+  <li>locations</li>
+  <li>payment-terms</li>
+  <li>pricing-schemes</li>
+  <li>products</li>
+  <li>product-cost-adjustments</li>
+  <li>purchase-orders</li>
+  <li>sales-orders</li>
+  <li>stock-adjustments</li>
+  <li>stock-transfers</li>
+  <li>tax-codes</li>
+  <li>taxing-schemes</li>
+  <li>vendors</li>
+</ul>
+</details> <!--end Inflow.get-->
+<details id="Inflow.put_doc_id" class="doc_details"><summary>Inflow.put</summary>
+    Put new data into Inflow. This could also be called "write" or "insert".<br/>
+    <i>Parameters:</i><br/>
+        <b>path</b>: Default <code>"categories"</code>
+           See <a href="#" onclick="open_doc('Inflow.get_doc_id')">Inflow.get</a> for options.<br/>
+        <b>put_data</b>:  A JSON object of the data to be put into Inflow.
+        For properites, browse <a target="_blank" href="https://cloudapi.inflowinventory.com/docs/index.html">
+            https://cloudapi.inflowinventory.com/docs/index.html</a>
+        then in the left column click a data item to show its details.<br/>
+        Click the "PUT" details to show properties.
+    <p></p>
+    An example for <a target="_blank"
+    href="https://cloudapi.inflowinventory.com/docs/index.html#tag/StockAdjustment/paths/~1{companyId}~1stock-adjustments/put">
+    stock-adjustments</a>
+    <p></p>
+    <i>Examples:</i><br/>
+     <code title="not in TestSuite">Inflow.get("customers")</code><br/>
+     <code title="not in TestSuite">Inflow.put("customers", {customerId: Inflow.make_guid(), name: "Fake R. Customer"})</code><br/>
+     <code title="not in TestSuite">Inflow.get("customers")</code><br/>
+     <pre><code>
+Inflow.put("products",
+           {"productId":"72bab90c-a00a-4fb0-8c09-c010a1b1d59f",
+            "description": "API TESTING",
+            "reorderPoint":"4.0000",
+            "reorderQuantity":"10.0000",
+            "customFields":{"custom4":"printmeplz"}
+            }) </code></pre>
+</details><!--end Inflow.get-->
+</details> <!-- end Inflow -->
 
 <details id="out_doc_id" class="doc_details"><summary>out</summary>
     <code>out</code> prints html that is rendered in the Output pane.<br/>
@@ -2046,7 +2180,7 @@ Plays an electronic sound.<br/>
                Default: null, meaning do nothing.<br/>
 <i>Examples</i>:<br/>
     <code> beep() </code>
-<pre><code title="not in TestSuite">
+<pre><code>
 beep({dur: 0.125,
       frequency: 440,
       volume: 1,
@@ -2061,7 +2195,7 @@ Beeps the indicated number of times with the default <code>beep</code> settings.
     <b>times</b> An integer indicated the number of times to beep. Default: 1.<br/>
     <b>callback</b> A function of no arguments that is called when beeps finishes playing.
     Default: null, meaning do nothing.<br/>
-    <i>Example</i>: <pre><code title="not in TestSuite">beeps(2,
+    <i>Example</i>: <pre><code>beeps(2,
       function(){
         speak({speak_data: "Second Floor, home robots"})
       })
@@ -7112,7 +7246,7 @@ input elements are stored when the dialog is closed.
     next instruction. Then click the <button>Eval</button> button.
     <p></p>
     Note that when you click on buttons in the resulting dialog,
-    <code title="unEVALable JS fragment">this</code> will not be bound to
+    <code>this</code> will not be bound to
     the surrounding job, but otherwise the callback should behave the same
     as it does when running the whole job.
 </details>
@@ -7162,7 +7296,7 @@ If <code>true</code>, no data is sent or recieved over the actual serial port.<b
 If <code>null</code>, the actual value for simulate comes from the Misc pane header simulate radio buttons,
 just like for Dexter robots.<br/>
 
-<b>sim_fun</b> A function. Default <code title="unEVALable code fragment"> return_first_arg</code>.
+<b>sim_fun</b> A function. Default <code> return_first_arg</code>.
 Used only when <code title="unEVALable code fragment"> simulate: true</code><br/>
 When a Serial.string.instruction is simulated, its argument,
 <code title="unEVALable code fragment"> instruction_string</code> is
@@ -7181,7 +7315,7 @@ the basic communication path is working.<br/>
 <b>path</b> A string. Required. The label for the device connected to a serial port on the computer running DDE 
 that you want this software robot to connect to.
 Valid paths can be seen by calling<br/>
-<code>serial_devices()</code><br/>
+<code title="not in TestSuite">serial_devices()</code><br/>
 On Windows, they look something like
  <code>"COM3"</code>.
 On Mac, they look something like <code>"/dev/tty.usbmodem1411"</code>. 

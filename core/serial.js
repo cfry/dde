@@ -96,7 +96,15 @@ function serial_devicies_async_callback_default(err, ports){
 }
 
 function serial_devices_async(callback = serial_devicies_async_callback_default){
-    SerialPort.list(callback)
+    //SerialPort.list(callback)
+    SerialPort.list().then(function(ports) {
+        //console.log("in main sd ports: " + ports)
+        callback(undefined, ports)
+    },
+    function(err) {
+            //console.log("in main sd ports: " + ports)
+            callback(err, undefined)
+    })
 }
 
 module.exports.serial_devices_async = serial_devices_async

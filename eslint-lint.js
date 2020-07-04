@@ -33,6 +33,7 @@
         "Duration":   false,
         "DXF":        false,
         "editor":     false,
+        "file_content": false,
         //"function*:   false,   doesn't work in getting rid of warning.
         "get_in_ui":  false,
         "get_page":   false,
@@ -86,7 +87,8 @@
         "svg_rect":       false,
         "svg_text":       false,
         "TestSuite":      false,
-        "Vector":         false
+        "Vector":         false,
+        "write_file":     false
     },
      "parserOptions": {
          "ecmaVersion": 6,

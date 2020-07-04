@@ -23,7 +23,7 @@ var {array_to_csv, csv_to_array, Duration, flatten, fn_is_keyword_fn, format_num
     version_equal, version_less_than, version_more_than, dde_version_between} = require("./core/utils.js")
 
 var {choose_file, choose_save_file, choose_file_and_get_content,
-     read_file, read_file_async, file_exists, load_files,
+     read_file, read_file_async, file_exists, folder_listing, is_folder, load_files,
      make_folder, make_full_path,
      persistent_get, persistent_remove, persistent_save,
      write_file, write_file_async} = require("./core/storage.js")
