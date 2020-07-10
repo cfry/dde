@@ -24,7 +24,6 @@
   "dependencies": {
     "8": "0.0.1",
     "awesomplete": "^1.1.2",
-    "discord.js": "^12.2.0",
     "electron-context-menu": "^0.8.0",
     "eslint": "^5.16.0",
     "esprima": "^3.1.3",
