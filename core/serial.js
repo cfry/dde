@@ -577,4 +577,4 @@ function serial_disconnect_all(){
 module.exports.serial_disconnect_all = serial_disconnect_all
 
 
-var {dde_error} = require("./utils.js")
+//var {dde_error} = require("./utils.js") //no longer needed. see special def in je_and_browser_code.js

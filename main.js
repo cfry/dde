@@ -96,6 +96,9 @@ function get_persistent_values_from_file() {
 
 function createWindow() {
   //defaults from storage.js get_persistent_values_defaults()
+  const nativeImage = require('electron').nativeImage;
+  let image = nativeImage.createFromPath(__dirname + '/doc/coor_images/dexter128x128.png');
+
   let kiosk = false
   let x = 100
   let y = 100
@@ -118,16 +121,33 @@ function createWindow() {
                "\nheight: " + height +
                "\n")
   mainWindow = new BrowserWindow({
+                   autoHideMenuBar: true, //should get rid of extra file/edit/etc menu bar and leave Just DDE's file?edit
                    kiosk: kiosk,  //makes DDE window be FULL SCREEN, ie no os title bar, etc. locks down app.
                    x: x, y: y, width: width, height: height, show: false,
                    title: "Dexter Development Environment", //not obvious that this actually shows up anywhere.
-                   webPreferences: { nodeIntegration: true } //new for Electron 5
+                   webPreferences: { nodeIntegration: true }, //new for Electron 5
+                   icon: image
                    })
+
+
   //mainWindow.focus() //doesn't do anything.
 
   // and load the index.html of the app.
   mainWindow.loadURL(`file://${__dirname}/index.html`)
 
+    /* window.myvar if defined in the mainWindow's render process, is NOT available
+      in the side window. Nor is an "id" global var in the html of side_win_index.html
+      available in the main render process. Doesn't matter if side_win does
+      parent: mainWindow or not. that just connects the windows for the purpose of dragging,
+      ie dragging the main moves the side but not visa versa.
+      side_win CAN be dragged outside of mainWin's rect though.
+      let side_win =  new BrowserWindow({ parent: mainWindow,
+        x: 200, y: 200, width: 400, height: 300, show: true,
+        title: "side win", //not obvious that this actually shows up anywhere.
+        webPreferences: { nodeIntegration: true } //new for Electron 5
+    })
+    side_win.loadURL(`file://${__dirname}/side_win_index.html`)
+  */
   // Open the DevTools.
  //mainWindow.webContents.openDevTools() //shows chrome dev tools. nice.
 

@@ -320,6 +320,7 @@
             find_doc()
             event.target.blur()
     }
+    find_doc_input_id.onclick = onclick_for_click_help
     find_doc_input_id.onchange = find_doc
     $("#find_doc_input_id").jqxComboBox({ source: [], width: '150px', height: '25px',}); //create
 
@@ -1158,11 +1159,13 @@ foo      //eval to see the latest values</pre>`,
                             //AND causes the onclick for simulate_id to NOT be run.
     }*/
     insert_new_job_id.onclick = Editor.insert_new_job
+    set_menu_string(insert_new_job_id, "New Job", "j")
+
     eval_and_start_job_id.onclick = function(){
            open_doc(eval_and_start_job_doc_id)
            Job.start_job_menu_item_action()
     }
-    set_menu_string(insert_new_job_id, "New Job", "j")
+
 
     insert_job_example0_id.onclick = function(){Editor.insert(job_examples[0])}
     insert_job_example1_id.onclick = function(){Editor.insert(job_examples[1])}
@@ -1185,7 +1188,8 @@ foo      //eval to see the latest values</pre>`,
     move_to_home_id.onclick    = function(){ Robot.dexter0.move_all_joints_fn() }
     move_to_neutral_id.onclick = function(){ Robot.dexter0.move_all_joints_fn(Dexter.NEUTRAL_ANGLES) }
     move_to_parked_id.onclick  = function(){ Robot.dexter0.move_all_joints_fn(Dexter.PARKED_ANGLES) }
-    move_to_selection_id.onclick = function(){
+    move_to_selection_id.onclick = Editor.move_to_instruction
+    /*function(){
          var sel = Editor.get_any_selection().trim()
          if (sel === "") {
             warning("There is no selection for a dexter0 instruction.")
@@ -1220,7 +1224,9 @@ foo      //eval to see the latest values</pre>`,
                      "neither of which are valid Job instructions.")
          }
          else { Robot.dexter0.run_instruction_fn(sel) }
-    }
+    }*/
+    set_menu_string(move_to_selection_id, "selection", "r")
+
     run_instruction_dialog_id.onclick = run_instruction
 
     init_dxf_drawing_id.onclick = function(){
@@ -1259,7 +1265,7 @@ foo      //eval to see the latest values</pre>`,
     dui2_id.onclick              = function() {
         Job.define_and_start_job(__dirname + "/user_tools/dexter_user_interface2.js")
     }
-    ping_dexter_id.onclick       = function() { ping_a_dexter() }
+    ping_dexter_id.onclick       = function() { ping_a_dexter(); open_doc(ping_doc_id) }
     browse_dexter_id.onclick     = function() {
         let url = "http://" + Dexter.default.ip_address
         /* the below opened window doesn't show url or back/forrward buffons
@@ -1460,7 +1466,7 @@ foo      //eval to see the latest values</pre>`,
     adjust_animation() //to the peristent flag
 
 
-        const editor_font_size = persistent_get("editor_font_size")
+    const editor_font_size = persistent_get("editor_font_size")
     $(".CodeMirror").css("font-size", editor_font_size + "px")
     font_size_id.value = editor_font_size
 
@@ -1470,7 +1476,9 @@ foo      //eval to see the latest values</pre>`,
     // rde.ping() //rde.shell("date") //will show an error message
     Editor.restore_files_menu_paths_and_last_file()
      //simulate_help_id.onclick=function(){ open_doc(simulate_doc_id) }
-     simulate_radio_true_id.onclick  = function(){
+    misc_pane_menu_changed(persistent_get("misc_pane_content"))
+
+    simulate_radio_true_id.onclick  = function(){
           persistent_set("default_dexter_simulate", true);   event.stopPropagation()
      }
      simulate_radio_false_id.onclick = function(){ persistent_set("default_dexter_simulate", false);  event.stopPropagation()}
@@ -1486,11 +1494,14 @@ foo      //eval to see the latest values</pre>`,
      set_top_right_panel_height(persistent_get("top_right_panel_height"))
 
      help_system_id.onclick = function(){ open_doc(help_system_doc_id) }
-     MakeInstruction.show(undefined, false) //needs to be after loading dde_init.js so that we'll have dexter0 defined, at least.
+     //now misc_pane_content is a persistent var handled above:  MakeInstruction.show(undefined, false) //needs to be after loading dde_init.js so that we'll have dexter0 defined, at least.
                                             //undefined lets
      setTimeout(check_for_latest_release, 200)
-     setTimeout(function(){ out("For help on using DDE, click <b style='color:blue;font-size:20px;'>?</b> in the upper right <b style='font-size:24px;'>&#x279A;</b> .") }, 400)
-}
+     //setTimeout(function(){ out("For help on using DDE, click <b style='color:blue;font-size:20px;'>?</b> in the upper right <b style='font-size:24px;'>&#x279A;</b> .") }, 400)
+
+     setTimeout(function() { SplashScreen.show_maybe() }, 400)
+     close_all_details() //doc pane just show top level items.
+} //end of on_ready
 function set_left_panel_width(width=700){
     $('#outer_splitter').jqxSplitter({ panels: [{ size: width }] })
 }
@@ -1521,12 +1532,14 @@ function check_for_latest_release(){
             var ver_date  = the_obj.published_at
             if (ver != dde_version){
                 ver_date       = date_to_mmm_dd_yyyy(ver_date) //ver_date.substring(0, ver_date.indexOf("T"))
-                warning("The latest public beta version of DDE is: " + ver +
+                out("The latest public beta version of DDE is: " + ver +
                         " released: " + ver_date +
-                        "<div style='margin-left:180px;'>You're running version: " + dde_version_html +
+                        "<div style='margin-left:135px;'>You're running version: " + dde_version_html +
                         " released: " + dde_release_date +
-                        "</div><a href='#' onclick='open_doc(update_doc_id)'>How to update.</a>")
-                open_doc(update_doc_id)
+                        "</div><a href='#' onclick='open_doc(update_doc_id)'>How to update.</a>",
+                        "#900dff")
+                //open_doc(update_doc_id) //no real need to do this. user can already get to it
+                //by clicking on the a tag in the above printout.
             }
             else { out("DDE is up to date with version: " + dde_version_html +
                         " released: " + dde_release_date)

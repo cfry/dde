@@ -23,61 +23,102 @@ function init_simulation(){
   try{
     init_mouse()
     sim.enable_rendering = false
+    //for organization: https://discoverthreejs.com/book/first-steps/lights-color-action/
+    sim.container = sim_graphics_pane_id //a div that contains a canvas
     sim.scene  = new THREE.Scene();
-    sim.camera = new THREE.PerspectiveCamera(75, //75,
-                                window.innerWidth / window.innerHeight, 0.1, 1000);
-    sim.camera.position.z = 2; //2
-    sim.camera.position.y = 1
-    sim.camera.zoom.zoom = 4 //0.79 //has no effect.
+    sim.scene.name = "scene"
+    sim.scene.background = new THREE.Color( 0x000000 ) //black is the default
+    createCamera()
+    createLights()
+    createMeshes()
+    createRenderer()
+  }
+  catch(err){
+          console.log("init_simulation errored with: " + err.stack)
+  }
+}
 
-//camera.position.set( -15, 10, 15 );
-//camera.lookAt( scene.position );
+function createCamera(){
+    //https://discoverthreejs.com/book/first-steps/first-scene/
+    sim.camera = new THREE.PerspectiveCamera(
+          75, //field of view in degrees. determines ratio of far clipping region is to near clipping region
+          window.innerWidth / window.innerHeight, //aspect ratio, If not same as canvas width and height,
+                                                  //the image will be distorted.
+          0.1, //1, //0.1,   //distance between camera and near clipping plane. Must be > 0.
+          4 //4      // 3 is too small and clips the table. was: 1000   //distance between camera an far clipping plane. Must be > near.
+          );
+    sim.camera.name = "camera"
+    sim.camera.position.x = 0  //to the right of the screen.
+    sim.camera.position.y = 1  //up is positive
+    sim.camera.position.z = 2 //2; //toward the viewer (out of the screen) is positive. 2
+    sim.camera.zoom = 1 //1 is the default.  0.79 //has no effect.
 
-    sim.renderer = new THREE.WebGLRenderer(); //example: https://threejs.org/docs/#Manual/Introduction/Creating_a_scene
-    sim.renderer.setSize( window.innerWidth, window.innerHeight );
-    //sim_graphics_pane_id.innerHTML = "" //done in video.js
-    sim_graphics_pane_id.appendChild(sim.renderer.domElement);
+    //new(75, width/height, 0.1, 4) pos[0, 1, 2]
 
-/* doesn't do anything //var light = new THREE.PointLight( 0xFFFF00 );
- var light = new THREE.DirectionalLight( 0xffffff, 0.5 );
- light.position.set( 10, 10, 10 );
- scene.add( light );
- */
+    //camera.position.set( -15, 10, 15 );
+    //camera.lookAt( scene.position );
+}
+
+function createLights(){
+          /* doesn't do anything //var light = new THREE.PointLight( 0xFFFF00 );
+   var light = new THREE.DirectionalLight( 0xffffff, 0.5 );
+   light.position.set( 10, 10, 10 );
+   scene.add( light );
+   */
 //renderer.setClearColor( 0xdddddd, 1); //makes a gray background color instead of black
 
-    sim.table = draw_table(sim.scene, 1, 2, 0.1)
-    sim.table.position.x = -2.4 //-3.85
-    sim.table.position.y = 2 //2.47
-    sim.table.position.z = -1 //0
+}
 
-    sim.table.rotation.x = 1 //0 //0.53
-    sim.table.rotation.y = 1.8 //0 //-0.44
-    sim.table.rotation.z = 0
+function createRenderer(){
+    sim.renderer = new THREE.WebGLRenderer({ antialias:true });//antialias helps with drawing the table lines. //example: https://threejs.org/docs/#Manual/Introduction/Creating_a_scene
+    sim.renderer.setSize( //sim.container.clientWidth, sim.container.clientHeight) //causes no canvas to appear
+                           window.innerWidth, window.innerHeight );
+    //renderer.setPixelRatio( window.devicePixelRatio );  //causes no canvas to appear
+    //sim_graphics_pane_id.innerHTML = "" //done in video.js
+    sim.container.appendChild(sim.renderer.domElement)
+}
+
+function createMeshes(){
+                     //Dexcell dimensions
+    sim.table_width  = 0.447675,  //width was 1
+    sim.table_length = 0.6985,  //length was 2
+    sim.table_height = 0.01905  //height (thickness of Dexcell surface). This is 3/4 of an inch. was:  0.1)
+    sim.table = draw_table(sim.scene, sim.table_width, sim.table_length, sim.table_height)
 
     //draw_tool_rack(sim.table, 0.1, 0.3, 0.6) //gets in the way of >>> +Y text
-    draw_caption(sim.table, "Dexter 5-axis Robot Simulation")
+    //draw_caption(sim.table, "Dexter 5-axis Robot Simulation")
     /*draw_help("To rotate table, mouse-down then drag.<br/>" +
               "To zoom, shift-down then mouse-down then drag.<br/>" +
               "To pan, alt or option down, then mouse-down, then drag.")
               his is now in the Documentation under Simulate.
     */
-    sim.J0 = new THREE.Object3D(); //0,0,0 //does not move w.r.t table.
-    sim.J0.position.y  = 0.06
-    sim.table.add(sim.J0)
-
     let leg_length = Dexter.LEG_LENGTH //m / 1000000 //(Dexter.LINK1 / 1000000) / 0.8 //2
     let leg_width  = leg_length / 6 //8
-    draw_legs(sim.J0, leg_width, leg_length)         //0.04, 0.4)
+    let leg_height = leg_width
+
+    sim.J0 = new THREE.Object3D(); //0,0,0 //does not move w.r.t table.
+    sim.J0.name = "J0"
+    sim.J0.position.y = (sim.table_height / 2) + (leg_height / 2) //0.06
+    sim.J0.position.x = (sim.table_length / 2)  //the edge of the table
+                         - 0.12425 //the distance from the edge of the table that Dexter is placed
+    sim.table.add(sim.J0)
+
+
+    draw_legs(sim.J0, leg_width, leg_length, leg_height)         //0.04, 0.4)
 
     sim.J1 = new THREE.Object3D();
+    sim.J1.name = "J1"
+    sim.J1.position.y  = 0.05 //0.1
     sim.J0.add(sim.J1)
-    sim.J1.position.y  = 0.1
-    sim.table.add(sim.J1) //scene.add(J1)
+
+    //sim.table.add(sim.J1) //scene.add(J1)
 
     sim.LINK1_height  = Dexter.LINK1 //m / 1000000 //0.5
     sim.LINK1_width   = Dexter.LINK1_AVERAGE_DIAMETER //m / 1000000 //sim.LINK1_height / 1  //0.3
     sim.LINK1         = draw_arm(sim.J1, sim.LINK1_width, sim.LINK1_height)
+    sim.LINK1.name = "LINK1"
     sim.J2            = new THREE.Object3D()
+    sim.J2.name = "J2"
     sim.J2.position.y = sim.LINK1_height / 2.0
     //sim.J2.position.z = sim.LINK1_width  / 2.0
     sim.LINK1.add(sim.J2)
@@ -88,23 +129,29 @@ function init_simulation(){
     sim.LINK2_height  = Dexter.LINK2 //m / 1000000 // 1.0
     sim.LINK2_width   = Dexter.LINK2_AVERAGE_DIAMETER //m / 1000000 //sim.LINK2_height / 4, //0.2,
     sim.LINK2         = draw_arm(sim.J2, sim.LINK2_width, sim.LINK2_height)
+    sim.LINK2.name = "LINK2"
     let circuit_board = draw_circuit_board(sim.LINK2, sim.LINK2_width, sim.LINK2_height)
     //LINK2.position.y += 0.12 //extra rise to arm0 to get it to appear to sit on top of the legs.
     sim.J3            = new THREE.Object3D();
+    sim.J3.name = "J3"
     sim.J3.position.y = sim.LINK2_height / 2.0
     sim.LINK2.add(sim.J3)
 
     sim.LINK3_height  = Dexter.LINK3 //m / 1000000 //0.9
     sim.LINK3_width   = Dexter.LINK3_AVERAGE_DIAMETER //m / 1000000 //sim.LINK3_height / 6 // 0.1
     sim.LINK3         = draw_arm(sim.J3, sim.LINK3_width, sim.LINK3_height)
+    sim.LINK3.name = "LINK3"
     sim.J4            = new THREE.Object3D();
+    sim.J4.name = "J4"
     sim.J4.position.y = sim.LINK3_height / 2.0
     sim.LINK3.add(sim.J4)
 
     sim.LINK4_height  = Dexter.LINK4 //m / 1000000 //0.8
     sim.LINK4_width   = Dexter.LINK4_AVERAGE_DIAMETER //m / 1000000 //sim.LINK4_height / 4 // 0.05
     sim.LINK4         = draw_arm(sim.J4, sim.LINK4_width, sim.LINK4_height)
+    sim.LINK4.name = "LINK4"
     sim.J5            = new THREE.Object3D();
+    sim.J5.name = "J5"
     sim.J5.position.y = sim.LINK4_height / 2.0
     sim.J5.rotation.z = Math.PI / 2
     sim.LINK4.add(sim.J5)
@@ -112,16 +159,14 @@ function init_simulation(){
     sim.LINK5_height = Dexter.LINK5 //m / 1000000 //0.125
     sim.LINK5_width  = Dexter.LINK5_AVERAGE_DIAMETER //m / 1000000 //sim.LINK5_height / 4 //0.05
     sim.LINK5        = draw_arm(sim.J5, sim.LINK5_width, sim.LINK5_height)
+    sim.LINK5.name = "LINK5"
     //below only for the "random flailing demo"
     LINK2_bending = "+" //start out increaing arm0 bending
     LINK3_bending = "+"
     LINK3_bending = "+"
     LINK4_bending = "+"
-  }
-    catch(err){
-        console.log("init_simulation errored with: " + err.stack)
-    }
 }
+
 
 var render_demo = function () {
     if (sim.enable_rendering){
@@ -263,15 +308,24 @@ function draw_table(parent, table_width, table_length, table_height){
     var geometryt    = new THREE.BoxGeometry(table_length, table_height, table_width);
     var materialt    = new THREE.MeshBasicMaterial( { color: 0xFFFFFF} ); //normal material shows different color for each cube face, easier to see the 3d shape.
     sim.table        = new THREE.Mesh(geometryt, materialt)
-    sim.table.position.y  = 0 //-0.9
-    sim.table.position.x  = -2
+    sim.table.name = "table"
+    sim.table.position.x = -2.4 //-3.85
+    sim.table.position.y = 2 //2.47
+    sim.table.position.z = -1 //0
+
+    sim.table.rotation.x = 1 //0 //0.53
+    sim.table.rotation.y = 5 //5 shows table with +x to right, and +y away from camera. 1.8 //0 //-0.44
+    sim.table.rotation.z = 0
     parent.add(sim.table)
+
     //draw lines on table
-    var sizew = table_width, step = 0.2;
+    var sizew = table_width
+    let step = 0.05 //dexcell holes are 0.25 apart and 0,0 is in the CENTER of one of the cells
+                    // that has 4 holes as corners 0.2;
     var sizel = table_length
     var geometry = new THREE.Geometry();
     var material = new THREE.LineBasicMaterial({color: 'gray'});
-    var line_height = table_height - 0.045
+    var line_height = table_height //- 0.045
     for ( var i = - sizew / 2.0; i <= sizew / 2.0; i += step) {
         geometry.vertices.push(new THREE.Vector3(-sizel / 2.0, line_height, i));  //( - size, - 0.04, i ));
         geometry.vertices.push(new THREE.Vector3(sizel / 2.0, line_height, i));
@@ -284,9 +338,11 @@ function draw_table(parent, table_width, table_length, table_height){
         //geometry.vertices.push(new THREE.Vector3( i,  line_height, size ));
     }
     var line = new THREE.LineSegments( geometry, material ); //new THREE.Line( geometry, material, THREE.LinePieces);
+    line.name = "table_line_segments"
     sim.table.add(line);
 
-    let x_text_mesh = new THREE_Text2D.MeshText2D(">>> +X", { align: THREE_Text2D.textAlign.left, font: '30px Arial', fillStyle: '#00FF00', antialias: false })
+    let x_text_mesh = new THREE_Text2D.MeshText2D(">>> +X", { align: THREE_Text2D.textAlign.left, font: '30px Arial', fillStyle: '#00FF00', antialias: true })
+    x_text_mesh.name = "x_axis_label"
     x_text_mesh.scale.set(0.007, 0.007, 0.007) // = THREE.Vector3(0.1, 0.1, 0.1)
     x_text_mesh.position.set(0.11, 0.055, -0.2) //= THREE.Vector3(20, 8, -10)
     //For the XYZ in THREE (not in dde & robot)
@@ -299,7 +355,8 @@ function draw_table(parent, table_width, table_length, table_height){
     x_text_mesh.rotation.z = -1.5708
     sim.table.add(x_text_mesh)
 
-    let y_text_mesh = new THREE_Text2D.MeshText2D(">>> +Y", { align: THREE_Text2D.textAlign.left, font: '30px Arial', fillStyle: '#00FF00', antialias: false })
+    let y_text_mesh = new THREE_Text2D.MeshText2D(">>> +Y", { align: THREE_Text2D.textAlign.left, font: '30px Arial', fillStyle: '#00FF00', antialias: true })
+    y_text_mesh.name = "y_axis_label"
     y_text_mesh.scale.set(0.007, 0.007, 0.007) // = THREE.Vector3(0.1, 0.1, 0.1)
     y_text_mesh.position.set(-0.2, 0.055, 0.11) //= THREE.Vector3(20, 8, -10)
                         //For the XYZ in THREE (not in dde & robot)
@@ -313,11 +370,13 @@ function draw_table(parent, table_width, table_length, table_height){
     y_text_mesh.rotation.z = Math.PI
     sim.table.add(y_text_mesh)
 
-    let z_text_mesh = new THREE_Text2D.MeshText2D(">>> +Z", { align: THREE_Text2D.textAlign.left, font: '30px Arial', fillStyle: '#00FF00', antialias: false })
+    let z_text_mesh = new THREE_Text2D.MeshText2D(">>> +Z", { align: THREE_Text2D.textAlign.left, font: '20px Arial', fillStyle: '#00FF00', antialias: true })
+    z_text_mesh.name = "z_axis_label"
     z_text_mesh.scale.set(0.007, 0.007, 0.007) // = THREE.Vector3(0.1, 0.1, 0.1)
-    z_text_mesh.position.set(1, //-0.8,
+    z_text_mesh.position.set(0.4, //1,
                              0.055,
-                             -0.3) //= THREE.Vector3(20, 8, -10)
+                             0.2 //0 //-0.3) //= THREE.Vector3(20, 8, -10)
+                             )
     //For the XYZ in THREE (not in dde & robot)
     //+x is further away from the tool rack in the horiz plane
     // y is up and down on the screen
@@ -326,8 +385,22 @@ function draw_table(parent, table_width, table_length, table_height){
     //text_mesh.position.z = -10
     z_text_mesh.rotation.x = Math.PI //0 //-1.5708 //90 degrees, now parallel to plane of table with the letters readable from the top
     z_text_mesh.rotation.z = Math.PI / -2 //-1.5708
-    z_text_mesh.rotation.y = Math.PI / -2
+    z_text_mesh.rotation.y = -Math.PI / -2 //was +Math
     sim.table.add(z_text_mesh)
+
+    let table_bottom_text_mesh = new THREE_Text2D.MeshText2D("Dexcell", { align: THREE_Text2D.textAlign.left, font: '20px Arial', fillStyle: '#FF0000', antialias: true })
+    table_bottom_text_mesh.name = "table_bottom_label"
+    table_bottom_text_mesh.scale.set(0.007, 0.007, 0.007) // = THREE.Vector3(0.1, 0.1, 0.1)
+    table_bottom_text_mesh.position.set(0.35, //0.4  1,
+        0.01, //0.055,
+        0.22 //0.2 //0 //-0.3) //= THREE.Vector3(20, 8, -10)
+    )
+    table_bottom_text_mesh.rotation.x = 0 //Math.PI //0 //-1.5708 //90 degrees, now parallel to plane of table with the letters readable from the top
+    table_bottom_text_mesh.rotation.z = 0 //Math.PI / -2 //-1.5708
+    table_bottom_text_mesh.rotation.y = -Math.PI / -2 //was +Math
+    sim.table.add(table_bottom_text_mesh)
+
+
 
     /*THREE_font_loader.load( 'user_tools/helvetiker_regular.typeface.json', function ( font ) {
         let text_geometry = new THREE.TextGeometry( 'Hello three.js and something much longer to see!', {
@@ -372,14 +445,16 @@ function draw_tool_rack(parent, width, height, depth){
     return sim.rack
 }
 
-function draw_legs(parent, leg_width, leg_length) {
-    var geometryleg = new THREE.BoxGeometry(leg_length, leg_width, leg_width);
+function draw_legs(parent, leg_width, leg_length, leg_height) {
+    var geometryleg = new THREE.BoxGeometry(leg_length, leg_width, leg_height);
     var materialleg = new THREE.MeshNormalMaterial({}); //normal material shows differnt color for each cube face, easier to see the 3d shape.
     var angle_between_legs_in_rad = (2 * Math.PI) / 6  //360 / 6 = 60 degrees //angles are in radians. 2PI rad = 360 degrees
     for (var i = 0; i < 6; i++) {
         var leg = new THREE.Mesh(geometryleg, materialleg);
+        leg.name = "leg" + i
         leg.position.x = leg_length / 2.0
         var pivotleg = new THREE.Object3D();
+        pivotleg.name = "pivotleg" + i
         pivotleg.rotation.y = angle_between_legs_in_rad * i
         pivotleg.add(leg)
         parent.add(pivotleg)
@@ -451,7 +526,7 @@ function draw_help(text) {
     sim_graphics_pane_id.appendChild(text2);
 }
 
-//render();
+
 //_________STL VIEWER ________
 function stl_init_viewer(){
         stl_init_mouse()

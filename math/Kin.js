@@ -1116,11 +1116,15 @@ class Kin{
         let result = []
         for(let i = 0; i < J_angles.length; i++){
             if(i === 3) { result.push(90 - J_angles[2] - J_angles[1]) }
+            else if(i === 4) { result.push(0) }
             else { result.push(J_angles[i]) }
         }
         return result
     }
 
+    //Returns an array of an inner radius, an outer radius, and the center point
+    //of the outer circle. All xyz locations between the two radii are valid "in-range"
+    //locations including locations ON the returned inner and outer radii.
     static xy_donut_slice_approx(Z, dir){
         let inner_r, outer_r
         let feet_r = 210 * _mm
@@ -1806,7 +1810,7 @@ class Kin{
 	var {sind, cosd, tand, asind, acosd, atand, atan2d} = require("./Trig_in_Degrees.js")
 	var Vector      = require("./Vector.js")
 	var Convert     = require("./Convert.js")
-	var {dde_error} = require("../core/utils.js")
+	//var {dde_error} = require("../core/utils.js") //now dde_error specially defined in je_and_browser_code.js
 	var {Dexter}    = require("../core/robot.js")
 
     

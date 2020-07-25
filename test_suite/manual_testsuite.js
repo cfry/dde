@@ -82,7 +82,7 @@ new Job({name: "my_job",
                   this.start()
               }
          },
-         do_list:[Robot.out("its working!")
+         do_list:[IO.out("its working!")
        ]}).start()
 
 _______

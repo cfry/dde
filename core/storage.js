@@ -10,24 +10,38 @@ function get_persistent_values_defaults() {
     return {"save_on_eval":     false,
             "default_out_code": false,
             "files_menu_paths": [add_default_file_prefix_maybe("dde_init.js")],
-            "default_dexter_simulate": false,
+            "misc_pane_content": "Simulate Dexter",
+            "default_dexter_simulate": true,
             "editor_font_size":    17,
             "dde_window_width":  1000,
-            "dde_window_height":  600,
-            "dde_window_x":       100,
-            "dde_window_y":       100,
+            "dde_window_height":  700,
+            "dde_window_x":       50,
+            "dde_window_y":       50,
             "left_panel_width":   750,
             "top_left_panel_height": 500,
             "top_right_panel_height": 500,
             "animate_ui": true,
             "last_open_dexter_file_path": "", //doesn't have a dexter: prefix,not robot specific.
             "kiosk": false,
-            "ssh_show_password": false
+            "ssh_show_password": false,
+            "dont_show_splash_screen_on_launch": false,
+            "splash_screen_tutorial_labels": (window.SplashScreen ? SplashScreen.splash_screen_tutorial_labels() : [])
            }
 }
-//if keep_existing is true, don't delete any existing values.
-//but if its false, wipe out everything and set to only the initial values.
-function persistent_initialize(keep_existing=true) {
+//ensures that dde_apps folder exists, that dde_persistent.json, and
+//loads in values from dde_persistent.json
+function persistent_initialize() {
+    if(!file_exists("")){
+        make_folder("") //make dde_apps folder, synchronous
+    }
+    const dp_path = add_default_file_prefix_maybe("dde_persistent.json")
+    if(!file_exists(dp_path)){
+        persistent_values = get_persistent_values_defaults()
+        persistent_save() //synchronous .creates "dde_persistent.json"
+    }
+    else { persistent_load() } //synchronous
+}
+    /*
     if(file_exists("")){ //Documents/dde_apps
         const dp_path = add_default_file_prefix_maybe("dde_persistent.json")
         if(!keep_existing){ //unusual
@@ -67,7 +81,7 @@ function persistent_initialize(keep_existing=true) {
                   "then relaunch DDE."
                   )
     }
-}
+}*/
 
 module.exports.persistent_initialize = persistent_initialize
 
@@ -147,8 +161,8 @@ var default_default_dexter_port       = 50000
 //gaurentees that dde_init.js exists and that it has certain content in it,
 //and that that certain content is evaled and present in the js env.
 function dde_init_dot_js_initialize() {
-    if(!file_exists("")){ //does the folder: Documents/dde_apps not exist?
-       //reported to user in persistent_initialize
+    if(!file_exists("")){
+        dde_error("dde_init_dot_js_initialize called but there is no Documents/dde_apps/ folder.")
     }
     else if (file_exists("dde_init.js")){ //we don't want to error if the file doesn't exist.
         if (global.platform == "node") {
@@ -444,6 +458,7 @@ function file_exists(path){
 module.exports.file_exists = file_exists
 
 //only works for dde computer, not dexter computer paths.
+//is syncrhonous
 function make_folder(path){
     path = make_full_path(path) //now parh is os_specific
     let path_array = path.split(folder_separator())

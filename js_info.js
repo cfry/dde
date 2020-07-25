@@ -1,7 +1,11 @@
 //Created by Fry on 3/22/16.
 
+
+
 Js_info = class Js_info {
     static get_info_string(fn_name, series=null, full_src=null, pos=null){
+            fn_name = this.depricated_to_new(fn_name) //we need "orig_input" to be the new, not
+                //the actual orig_input for processing of fn_name == "Robot.loop"
             let orig_input = fn_name
             let fn
             let param_count
@@ -28,7 +32,7 @@ Js_info = class Js_info {
             let info_and_url = Js_info.fn_name_to_info_map[fn_name] //miscelaneous stuff
             fn_name = Js_info.strip_path_prefix_maybe(fn_name)
             if (!info_and_url) { info_and_url = Js_info.fn_name_to_info_map[fn_name] } //try again without prefix, for cases where orign fn_name is "fn.call", for instance
-            if (!series){ series = Series.find_series(fn_name) }
+            if (!series && (orig_input !== "Control.loop")){ series = Series.find_series(fn_name) }
             if (Array.isArray(info_and_url)){
                 let [info, url] = info_and_url
                 let new_fn_name = fn_name
@@ -234,6 +238,29 @@ Js_info = class Js_info {
                 return 'You clicked in a <a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Basics">comment</a>.'
             }
             else { return Js_info.get_info_string_aux(orig_input, full_src, pos) }
+    }
+
+    //Beware, sometimes fn_name is not a string. Maybe its null
+    static depricated_to_new(fn_name){
+        let new_fn_name = null
+        if(fn_name && (typeof(fn_name) == "string") && fn_name.startsWith("Robot.")) {
+            let parts = fn_name.split(".")
+            if(parts.length == 2){
+                let meth_name = parts[1]
+                let new_class_name
+                if(Control[meth_name])  { new_class_name = "Control" }
+                else if (IO[meth_name]) { new_class_name = "IO" }
+                if(new_class_name) {
+                    new_fn_name = new_class_name + "." + meth_name
+                }
+            }
+        }
+        if(new_fn_name){
+            warning("<code>" + fn_name + "</code> has been deprecated.<br/>" +
+                    "Please use: <code>" + new_fn_name + "</code> instead.")
+            fn_name = new_fn_name
+        }
+        return fn_name
     }
 
     //args that probably will return false from this: "title", "body", "activeElement"

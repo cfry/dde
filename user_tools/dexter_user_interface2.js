@@ -38,12 +38,41 @@ var dui2 = class dui2 {
             }
             return result
         }
-        else { return angle_array }
+        else {
+            let new_angle_array = []
+            for(let i = 0; i < angle_array.length; i++){
+                let ang = angle_array[i]
+                if (similar(ang, 0, Number.EPSILON)) {
+                    ang = 0
+                }
+                else if (ang == 89.999999999999) { //similar(ang, 90, Number.EPSILON * 2)) {
+                    ang = 90
+                }
+                new_angle_array.push(ang)
+            }
+            return new_angle_array
+        }
     }
 
     //should be the ONLY way to set this.maj_angles
+    //maj_angles can be less than 7.
+    // If so and existing this.maj_angles has that angle, default to it,
+    // else default-default to 0.
+    // When done the this.maj_angles will be 7 long
     set_maj_angles(maj_angles){
-        this.maj_angles = dui2.fix_angles(maj_angles)
+        if(!this.maj_angles) { this.maj_angles = [] }
+        let new_angles = []
+        let existing_maj_angles_length = this.maj_angles.length
+        for(let j = 0; j < 7; j++) {
+            let val
+            if(j >= maj_angles.length) {
+                if(j >= existing_maj_angles_length) { val = 0 }
+                else { val = this.maj_angles[j] }
+            }
+            else { val = maj_angles[j] }
+            new_angles.push(val)
+        }
+        this.maj_angles = dui2.fix_angles(new_angles)
     }
 
     static make_job(explicity_start_job=false){
@@ -61,7 +90,7 @@ var dui2 = class dui2 {
                             name: name,
                             robot: dex,
                             when_stopped: "wait",
-                            do_list: [dui2.init_dui]
+                            do_list: [dui2.init]
                         })
             if(explicity_start_job) {
                 new_job.start()
@@ -77,83 +106,92 @@ var dui2 = class dui2 {
         shouldnt("sw_elt_id_to_dui2_instance could not find instance for: " + sw_elt_id)
     }
 
-static init_dui(xy_width_in_px = 300){
-    if(platform == "dde") { misc_pane_menu_changed("Simulate Dexter") } //changes Misc pane to sim if not already. Preserves pose of Dexter.
-    let dui2_instance = new dui2()
-    dui2_instance.dexter_instance = this.robot
-    dui2_instance.should_point_down = true //the checkbox is in sync with this.
-    dui2_instance.xy_width_in_px = xy_width_in_px
-    //we want to map 0 to 300 into roughly -0.7 to 0.7   where 150 -> 0, 0 -> -0.7, 300 -> 0.7
-    let half_xy_width_in_px = xy_width_in_px / 2
-    let angles_for_min_x = [-90, 90, 0, -90, 0]  //means pointing out.
-    let min_x = Kin.J_angles_to_xyz(angles_for_min_x)[0][0] //probably -0.7334... meters
-    let max_x = min_x * -1
-    let half_max_x = (max_x / 2)
-    let max_x_range = max_x * 2
-    let factor_to_multiply_x_px_by = max_x_range / xy_width_in_px
-    dui2_instance.x_px_to_meters = //function(x_px) { return (x_px * factor_to_multiply_x_px_by) - max_x}
-        function(x_px) {
-          return ((x_px - half_xy_width_in_px) * factor_to_multiply_x_px_by)//  * -1)
+    static init(xy_width_in_px = 300){
+        open_doc(dexter_user_interface_doc_id)
+        if((platform == "dde") &&
+            !window.sim_graphics_pane_id) {
+            misc_pane_menu_changed("Simulate Dexter") //changes Misc pane to sim. Preserves pose of Dexter.
         }
-    dui2_instance.y_px_to_meters = //function(y_px) { return (x_px * factor_to_multiply_x_px_by) - max_x}
-        function(y_px) { return ((y_px - half_xy_width_in_px) * factor_to_multiply_x_px_by * -1)}
-    dui2_instance.meters_to_x_px = function(meters) {
-        let scaled = ((meters
-              //* -1
-              ) / factor_to_multiply_x_px_by) + half_xy_width_in_px //0 to 300
-        //out("scaled: " + scaled)
-        //let reversed = xy_width_in_px - scaled
-        //out("reversed: " + reversed)
-        return scaled //reversed
-    } //returns 0 to 300
-    dui2_instance.meters_to_y_px = function(meters) {
-        return ((meters * -1) / factor_to_multiply_x_px_by) + half_xy_width_in_px
+        let dui2_instance = new dui2()
+        dui2_instance.job_name = this.name
+        dui2_instance.dexter_instance = this.robot
+        dui2_instance.should_point_down = true //the checkbox is in sync with this.
+        dui2_instance.xy_width_in_px = xy_width_in_px
+        //we want to map 0 to 300 into roughly -0.7 to 0.7   where 150 -> 0, 0 -> -0.7, 300 -> 0.7
+        let half_xy_width_in_px = xy_width_in_px / 2
+        let angles_for_min_x = [-90, 90, 0, -90, 0]  //means pointing out.
+        let min_x = Kin.J_angles_to_xyz(angles_for_min_x)[0][0] //probably -0.7334... meters
+        let max_x = min_x * -1
+        let half_max_x = (max_x / 2)
+        let max_x_range = max_x * 2
+        let factor_to_multiply_x_px_by = max_x_range / xy_width_in_px
+        dui2_instance.x_px_to_meters = //function(x_px) { return (x_px * factor_to_multiply_x_px_by) - max_x}
+            function(x_px) {
+              return ((x_px - half_xy_width_in_px) * factor_to_multiply_x_px_by)//  * -1)
+            }
+        dui2_instance.y_px_to_meters = //function(y_px) { return (x_px * factor_to_multiply_x_px_by) - max_x}
+            function(y_px) { return ((y_px - half_xy_width_in_px) * factor_to_multiply_x_px_by * -1)}
+        dui2_instance.meters_to_x_px = function(meters) {
+            let scaled = ((meters
+                  //* -1
+                  ) / factor_to_multiply_x_px_by) + half_xy_width_in_px //0 to 300
+            //out("scaled: " + scaled)
+            //let reversed = xy_width_in_px - scaled
+            //out("reversed: " + reversed)
+            return scaled //reversed
+        } //returns 0 to 300
+        dui2_instance.meters_to_y_px = function(meters) {
+            return ((meters * -1) / factor_to_multiply_x_px_by) + half_xy_width_in_px
+        }
+
+        dui2_instance.radius_meters_to_px = function(radius_meters){
+            return radius_meters / factor_to_multiply_x_px_by
+        }
+        //let angles_for_max_z = [0, 0, 0, -90, 0]
+        let min_z = 0
+        let max_z = Kin.reach_extents()[2][1] //aprox 0.97 meters
+        //Kin.J_angles_to_xyz(angles_for_max_z)[0][2]
+        //the z slider will have max-px of 300 just like x and y.
+        //BUT we dynamically change its length based on x & y from the xyslider.
+        //so the z slider is differnt than the xy slider not just because its 1 dimensional,
+        //but because both its px length AND its max value changes with x & y.
+        //a given z px always translates to a given z meters, regardless of xy values.
+        ///max_z_px of 300 translates to max_z_meters.
+        //min_z px and min_z meters is always 0.
+        dui2_instance.z_px_to_meters = function(z_pix)  { return z_pix / xy_width_in_px }
+        dui2_instance.meters_to_z_px = function(meters) { return meters * xy_width_in_px }
+
+
+        show_window({title: "Dexter." + dui2_instance.dexter_instance.name + " User Interface",
+            width: xy_width_in_px + 80, //380,
+            height: xy_width_in_px + 320, //570,
+            y: 0,
+            background_color: "#d5d5d5",
+            job_name: this.name, //important to sync the correct job.
+            callback: "dui2.dexter_user_interface_cb",
+            content:
+            '<span style="margin-top:0px;padding:2px;">Move Dexter to:</span>' +
+            `<input type="button" name="ready"  style="margin-left:10px;margin-top:0px;margin-bottom:3px; padding:2px;" value="ready"  title="Move Dexter to a neutal position.&#013;Good for 'elbow room'."/>` +
+            `<input type="button" name="home"   style="margin-left:10px;margin-top:0px;margin-bottom:3px; padding:2px;" value="home"   title="Move Dexter straight up.&#013;This doesn't allow much freedom of motion."/>` +
+            `<input type="button" name="editor" style="margin-left:10px;margin-top:0px;margin-bottom:3px; padding:2px;" value="editor" title="Move Dexter via the instruction.&#013;near the Editor cursor."/>` +
+
+            dui2_instance.make_xyz_sliders_html(xy_width_in_px,
+                min_x, max_x,
+                //min_y, max_y are same as min_x, max_x, so don't pass them.
+                min_z, max_z) +
+            "<br/>" +
+            dui2_instance.make_joint_sliders_html() +
+            dui2_instance.make_direction_html() +
+            dui2_instance.make_insert_html()
+        })
+        setTimeout(function() {
+                dui2_instance.show_window_elt_id = "show_window_" + SW.window_index + "_id"
+                let RS_inst = dui2_instance.dexter_instance.rs //new RobotStatus(rs)
+                dui2_instance.set_maj_angles(RS_inst.measured_angles(7)) //returns a copy of the array so safe to change it.
+                dui2_instance.update_all(dui2_instance.should_point_down) //true means IFF maj_angles is pointing down, set the checkbox to point down.
+            },
+            300)
     }
-
-    dui2_instance.radius_meters_to_px = function(radius_meters){
-        return radius_meters / factor_to_multiply_x_px_by
-    }
-    //let angles_for_max_z = [0, 0, 0, -90, 0]
-    let min_z = 0
-    let max_z = Kin.reach_extents()[2][1] //aprox 0.97 meters
-    //Kin.J_angles_to_xyz(angles_for_max_z)[0][2]
-    //the z slider will have max-px of 300 just like x and y.
-    //BUT we dynamically change its length based on x & y from the xyslider.
-    //so the z slider is differnt than the xy slider not just because its 1 dimensional,
-    //but because both its px length AND its max value changes with x & y.
-    //a given z px always translates to a given z meters, regardless of xy values.
-    ///max_z_px of 300 translates to max_z_meters.
-    //min_z px and min_z meters is always 0.
-    dui2_instance.z_px_to_meters = function(z_pix)  { return z_pix / xy_width_in_px }
-    dui2_instance.meters_to_z_px = function(meters) { return meters * xy_width_in_px }
-
-
-    show_window({title: "Dexter." + dui2_instance.dexter_instance.name + " User Interface",
-        width: xy_width_in_px + 80, //380,
-        height: xy_width_in_px + 310, //570,
-        y: 0,
-        background_color: "#d5d5d5",
-        job_name: this.name, //important to sync the correct job.
-        callback: dexter_user_interface_cb,
-        content:
-        '<span>Use the below controls to move Dexter.</span> <b style="margin-left:70px;">Z</b><br/>' +
-        dui2_instance.make_xyz_sliders_html(xy_width_in_px,
-            min_x, max_x,
-            //min_y, max_y are same as min_x, max_x, so don't pass them.
-            min_z, max_z) +
-        "<br/>" +
-        dui2_instance.make_joint_sliders_html() +
-        dui2_instance.make_direction_html() +
-        dui2_instance.make_insert_html()
-    })
-    setTimeout(function() {
-            dui2_instance.show_window_elt_id = "show_window_" + SW.window_index + "_id"
-            let RS_inst = dui2_instance.dexter_instance.rs //new RobotStatus(rs)
-            dui2_instance.set_maj_angles(RS_inst.measured_angles(7)) //returns a copy of the array so safe to change it.
-            dui2_instance.update_all(dui2_instance.should_point_down) //true means IFF maj_angles is pointing down, set the checkbox to point down.
-        },
-        300)
-}
 
 
 /*
@@ -172,11 +210,11 @@ cir1.setAttribute("cy", 42)
                                min_x, max_x,
                                //min_y, max_y are same as min_x, max_x, so don't pass them.
                                min_z, max_z){
-        out("\ntop of make_xyz_sliders_html with xy_width_in_px: " + xy_width_in_px +
-            " min_x:" +  min_x +
-            " max_x:" +  max_x +
-            " min_z:" +  min_z +
-            " max_z:" +  max_z )
+       // out("\ntop of make_xyz_sliders_html with xy_width_in_px: " + xy_width_in_px +
+       //     " min_x:" +  min_x +
+       //     " max_x:" +  max_x +
+       //     " min_z:" +  min_z +
+       //     " max_z:" +  max_z )
         //let hidden = '<input type="hidden" name="factor_to_multiply_x_px_by" value="' + factor_to_multiply_x_px_by + '"/>' +
         //             '<input type="hidden" name="max_x" value="' + max_x + '"/>' //used to compute both x and y
         //warning: circle has no "name" property. If you pass one, it will be ignored. stupid design. So use "id", but beware, it may not be unique
@@ -187,7 +225,9 @@ cir1.setAttribute("cy", 42)
         let inner_circle_html = '<circle id="inner_circle" cx="0" cy="0" r="100" fill="' + dui2.xy_background_color + '" ' +
             'style="stroke:black; stroke-width:1;"/>'
         let svg_html =
-            '<div style="display:inline-block;vertical-align:900%;"><b style="margin-right:5px;">Y</b></div>' +
+            //'<div style="display:inline-block;vertical-align:900%;">
+            '<br/><b style="margin-right:5px; vertical-align:850%;">Y</b>' +
+            //'</div>' +
             '<svg style="display:inline-block; border:2px solid black;background-color:' + dui2.xy_background_color + ';margin-bottom:0px;" ' +
             'width="'  + xy_width_in_px + 'px" ' +
             'height="' + xy_width_in_px + 'px" ' +
@@ -201,24 +241,23 @@ cir1.setAttribute("cy", 42)
             'style="width:' + xy_width_in_px + 'px; height:20px;margin:0px; background-color:#0F0;' +
             'transform-origin:' + (xy_width_in_px / 2) + 'px; transform: translate(190px, -163px) rotate(-90deg);"/>'
         let xyz_num_html =
-            'X: <input name="x_num" type="number" data-oninput="true" style="width:55px;" min="' + min_x + '" max="' + max_x + '" value="0" step="0.01" ' + '"/><span style="margin-right:15px;">m</span>' +
-            'Y: <input name="y_num" type="number" data-oninput="true" style="width:55px;" min="' + min_x + '" max="' + max_x + '" value="0" step="0.01" ' + '"/><span style="margin-right:15px;">m</span>' +
-            'Z: <input name="z_num" type="number" data-oninput="true" style="width:55px;" min="' + min_z + '" max="' + max_z + '" value="0" step="0.01" ' + '"/>m'
+            'X: <input name="x_num" type="number" data-oninput="true" style="width:55px;margin-top:0px;" min="' + min_x + '" max="' + max_x + '" value="0" step="0.01" ' + '"/><span style="margin-right:15px;margin-top:0px;">m</span>' +
+            'Y: <input name="y_num" type="number" data-oninput="true" style="width:55px;margin-top:0px;" min="' + min_x + '" max="' + max_x + '" value="0" step="0.01" ' + '"/><span style="margin-right:15px;margin-top:0px;">m</span>' +
+            'Z: <input name="z_num" type="number" data-oninput="true" style="width:55px;margin-top:0px;" min="' + min_z + '" max="' + max_z + '" value="0" step="0.01" ' + '"/>m'
 
         let z_slider_restriction_html = '<div style="position:absolute; top:60px; right:25px; width:20px; height:40px; background-color:' + dui2.xy_background_color + ';"></div>'
         let the_html =
             svg_html +
-            z_slider_html +
+            "<b style='vertical-align:top;margin-left:15px;'>Z</b>" + z_slider_html +
             //z_slider_restriction_html +
-            '<div style="display:inline; position:absolute; margin-top:0px;left:160px;top:365px;"><b>X</b>' +
-               '<input type="button" name="home" style="margin-left:110px;padding:2px;height:22px;"value="home"/>' +
-               '</div><br/>' +
+            '<div style="display:inline; position:absolute; margin-top:10px;margin-bottom:0px;left:167px;top:365px;"><b>X</b>' +
+            '</div><br/>' +
                xyz_num_html
         return the_html
     }
 
     make_joint_sliders_html(){
-        out("top of make_joint_sliders_html with dex: " + dex)
+       // out("top of make_joint_sliders_html with dex: " + dex)
         //let rs = dex.robot_status
         //out("in make_joint_sliders_html with rs: " + rs)
         //let RS_inst = new RobotStatus(rs)
@@ -258,9 +297,14 @@ cir1.setAttribute("cy", 42)
 
     make_insert_html(){
         if(platform === "dde"){
-            let insert_html = ' <select name="instr_type" title="The type of instruction to insert."><option>move_all_joints</option><option>move_to</option></select>' +
-                '<input type="button" name="insert_job"         value="insert job"         style="margin-left:15px" title="Insert into the editor&#013;a Job definition with an instruction&#013;of the current location."/>' +
-                '<input type="button" name="insert_instruction" value="insert instruction" style="margin-left:15px" title="Insert into the editor&#013;an instruction of the current location."/>'
+            let insert_html = "Insert: " +
+                              ' <select id="dui2_instr_type_id" title="The type of instruction to insert." data-oninput="true">' +
+                               '<option>move_all_joints</option>' +
+                               '<option>pid_move_all_joints</option>' +
+                               '<option>move_to</option>' +
+                               '<option>pid_move_to</option></select>' +
+                `<input type="button" name="insert_job"         value="job"         style="margin-left:15px" title="Insert into the editor&#013;a Job definition with an instruction&#013;of the current location.&#013;Do before 'insert instruction'."/>` +
+                `<input type="button" name="insert_instruction" value="instruction" style="margin-left:15px" title="Insert into the editor&#013;an instruction of the current location.&#013;Do after 'insert job'."/>`
             return insert_html
         }
         else { return "" }
@@ -298,7 +342,7 @@ cir1.setAttribute("cy", 42)
 
 //strategy: convert the changed values into maj_angles, set dui2_instance.maj_angles and, at the end,
 // call update_all once regardless of who started it.
-static dexter_user_interface_cb_aux(vals){
+static dexter_user_interface_cb(vals){
     //out("dui_cb got clicked_button_value: " + vals.clicked_button_value +
     //    " which has val: " + vals[vals.clicked_button_value])
     let dui2_instance = dui2.show_window_elt_id_to_dui2_instance(vals.show_window_elt_id)
@@ -310,86 +354,138 @@ static dexter_user_interface_cb_aux(vals){
         let y = parseFloat(cir_xy_obj.cy) //a num between 0 and 300
         //out("got cy of: " + y)
         y = dui2_instance.y_px_to_meters(y)
-
-        let xyz = [x, y, vals.z_slider]
-        try {
-            let j_angles = Kin.xyz_to_J_angles(xyz, dui2_instance.direction) //returns just 5 angles
-            if(j_angles.length === 5) { j_angles.push(vals.j6_angle_num)   }
-            if(j_angles.length === 6) { j_angles.push(vals.j7_angle_num)   }
-            dui2_instance.set_maj_angles(j_angles)
+        let z = vals.z_slider
+        let [inner_r, outer_r, outer_circle_center_xy] = Kin.xy_donut_slice_approx(z, dui2_instance.direction)
+        let new_xy_radius = Math.hypot(x, y)
+        if((new_xy_radius < inner_r) ||
+           (new_xy_radius > outer_r)){ //the new x and y are out of range. do nothing
+             //don't print warning message, just refresh display by calling update_all way below
         }
-        catch(err) {
-            if(vals.clicked_button_value === "z_slider"){
-                warning("Sorry, Dexter can't go to Z position: " + xyz[2] +
-                    " given X position: " + xyz[0] +
-                    " and Y position: " + xyz[2])
+        else {
+            let xyz = [x, y, z]
+            try {
+                let j_angles = Kin.xyz_to_J_angles(xyz, dui2_instance.direction) //returns just 5 angles
+                //out("j_angles " + j_angles)
+                if(j_angles.length === 5) { j_angles.push(vals.j6_angle_num)   }
+                if(j_angles.length === 6) { j_angles.push(vals.j7_angle_num)   }
+                dui2_instance.set_maj_angles(j_angles)
             }
-            else {
-                warning("Sorry, Dexter can't go to X position: " + xyz[0] +
-                    " and/or Y position: " + xyz[1] +
-                    " given Z position: " + xyz[2])
+            catch(err) { //with the above test for new_xy_radius, this catch should never hit.
+                if(vals.clicked_button_value === "z_slider"){
+                    warning("Sorry, Dexter can't go to Z position: " + z +
+                        " given X position: " + x +
+                        " and Y position: " + y)
+                }
+                else {
+                    warning("Sorry, Dexter can't go to X position: " + x +
+                        " and/or Y position: " + y +
+                        " given Z position: " + z)
+                }
+                return
             }
-            //let prev_xyz = [vals.x_num, vals.y_num, vals.y_num]
-            //dui2.update_xyz_circle(vals.show_window_elt_id, prev_xyz) //restore old numbers
-            //return //don't return, just let update_all reset to old maj_angles
         }
         //dui2.update_xyz_nums(vals.show_window_elt_id, xyz)
         //dui2.update_range_and_angle_nums(vals.show_window_elt_id, maj_angles)
     }
     else if(vals.clicked_button_value.endsWith("_num") &&  //x_num, y_num, z_num the typein boxes
         !vals.clicked_button_value.endsWith("_angle_num")){ //an x,y,or z number input
-        let xyz = [vals.x_num, vals.y_num, vals.z_num]
-        try {
-            let j_angles = Kin.xyz_to_J_angles(xyz, dui2_instance.direction) //returns just 5 angles
-            if(j_angles.length === 5) { j_angles.push(vals.j6_angle_num)   }
-            if(j_angles.length === 6) { j_angles.push(vals.j7_angle_num)   }
-            dui2_instance.set_maj_angles(j_angles)
+        let x = vals.x_num
+        let y = vals.y_num
+        let z = vals.z_num
+        let xyz = [x, y, z]
+        let [inner_r, outer_r, outer_circle_center_xy] = Kin.xy_donut_slice_approx(z, dui2_instance.direction)
+        let new_xy_radius = Math.hypot(x, y)
+        if((new_xy_radius < inner_r) ||
+            (new_xy_radius > outer_r)){ //the new x and y are out of range. do nothing
+            //don't print warning message, just refresh display by calling update_all way below
         }
-        catch(err) {
-            let x_y_or_z = vals.clicked_button_value[0]
-            let other_dimensions
-            if(x_y_or_z == "x")      { other_dimensions = "y and z" }
-            else if(x_y_or_z == "y") { other_dimensions = "x and z" }
-            else if(x_y_or_z == "z") { other_dimensions = "x and y" }
-            let val = vals[vals.clicked_button_value]
-            warning("Sorry, Dexter can't go to " +  x_y_or_z + " position: " + val +
-                " given the positions of " + other_dimensions + ".")
-           // let cir_data_array = vals.xy_2d_slider
-           // let prev_xyz = [cir_data_array.cx, cir_data_array.cy, vals.z_slider]
-           // dui2.update_xyz_nums(vals.show_window_elt_id, prev_xyz) //restore old numbers
-           // return  //don't return, just let update_all reset to old maj_angles
+        else {
+            try {
+                let j_angles = Kin.xyz_to_J_angles(xyz, dui2_instance.direction) //returns just 5 angles
+                if(j_angles.length === 5) { j_angles.push(vals.j6_angle_num)   }
+                if(j_angles.length === 6) { j_angles.push(vals.j7_angle_num)   }
+                dui2_instance.set_maj_angles(j_angles)
+            }
+            catch(err) {
+                let x_y_or_z = vals.clicked_button_value[0]
+                let other_dimensions
+                if(x_y_or_z == "x")      { other_dimensions = "y and z" }
+                else if(x_y_or_z == "y") { other_dimensions = "x and z" }
+                else if(x_y_or_z == "z") { other_dimensions = "x and y" }
+                let val = vals[vals.clicked_button_value]
+                warning("Sorry, Dexter can't go to " +  x_y_or_z + " position: " + val +
+                    " given the positions of " + other_dimensions + ".")
+                return
+            }
         }
         //dui2.update_xyz_circle(vals.show_window_elt_id, xyz)
         //dui2.update_range_and_angle_nums(vals.show_window_elt_id, maj_angles)
     }
+    else if(vals.clicked_button_value == "ready"){
+        dui2_instance.set_maj_angles([0, 0, 90, 0, 0, 0, 0])
+    }
     else if(vals.clicked_button_value == "home"){
         dui2_instance.set_maj_angles([0, 0, 0, 0, 0, 0, 0])
+    }
+    else if(vals.clicked_button_value == "editor"){
+        let full_src  = Editor.get_javascript()
+        let start_pos = Editor.selection_start()
+        let start_char = full_src[start_pos]
+        if((start_char == "\n") && (start_pos > 0)) { //treat clicking on the end of a line, as if
+            //its really IN the line, not the next line or in between
+            start_pos -= 1
+            start_char = full_src[start_pos]
+        }
+        if(start_pos == (full_src.length - 1)) { return } //at end of buffer, so no expression
+        let prev_newline_pos = full_src.lastIndexOf("\n", start_pos)
+        if (prev_newline_pos == -1) { prev_newline_pos = 0 } //an aproximation! start_pos is on first line
+        let next_newline_pos = full_src.indexOf("\n", start_pos)
+        let open_paren_pos   = full_src.indexOf("(", prev_newline_pos)
+        if(open_paren_pos === -1) { return } //no instruction
+        if(open_paren_pos > next_newline_pos) { return } //no instr starting on the same line as prev_newline_pos
+        let expr_start_pos   = Editor.skip_forward_over_whitespace(full_src, prev_newline_pos)
+
+        let close_paren_pos = Editor.find_matching_delimiter(full_src, open_paren_pos)
+        if(!close_paren_pos) { return } //no close paren so no expression.
+        let maj_pos = full_src.indexOf("move_all_joints(", expr_start_pos)
+        if(maj_pos > next_newline_pos) { maj_pos = -1 } //too far away
+        let mt_pos  = full_src.indexOf("move_to(", expr_start_pos)
+        if(mt_pos > next_newline_pos) { mt_pos = -1 } //too far away
+
+        let instr_type = null //means no valid instruction
+        if(maj_pos == -1) {
+            if(mt_pos > -1) { instr_type = "mt" }
+        }
+        else { instr_type = "maj" }
+        if(!instr_type) { return } //didn't get an maj or mt instruction
+        else { //good to go!
+            let instr_src = full_src.substring(expr_start_pos, close_paren_pos + 1)
+            let instr_obj
+            let angles
+            try{
+                instr_obj = eval(instr_src)
+            }
+            catch(err) { return } //invalid instruction so just ignore it
+            if((instr_obj instanceof Instruction.Dexter.move_all_joints) ||
+                (instr_obj instanceof Instruction.Dexter.pid_move_all_joints)){
+                angles = instr_obj.array_of_angles
+            }
+            else if ((instr_obj instanceof Instruction.Dexter.move_to) ||
+                     (instr_obj instanceof Instruction.Dexter.pid_move_to)) {
+                angles = Kin.xyz_to_J_angles(instr_obj.xyz, instr_obj.J5_direction,
+                                             instr_obj.config, instr_obj.workspace_pos)
+            }
+            else{ return } //not one of the instructtion we need
+            Editor.select_javascript(expr_start_pos, close_paren_pos + 1)
+            dui2_instance.set_maj_angles(angles)
+        }
     }
     else if(vals.clicked_button_value.endsWith("_range")){ //a joint slider
         dui2_instance.set_maj_angles([vals.j1_range, vals.j2_range, vals.j3_range, vals.j4_range,
             vals.j5_range, vals.j6_range, vals.j7_range])
 
-        //selector_set_in_ui("#" + vals.show_window_elt_id + " [name=j1_range] [style] [width]", "75px")
-        /*let joint_number = parseInt(vals.clicked_button_value[1]) // 1 thru 5
-        let angle = maj_angles[joint_number - 1]
-        let angle_num_name = "j" + joint_number + "_angle_num"
-        let num_selector = "#" + vals.show_window_elt_id + " " +
-            "[name=" + angle_num_name + "]" + " " +
-            "[value]"
-        selector_set_in_ui(num_selector, angle)
-        let xyz = Kin.J_angles_to_xyz(maj_angles)[0]
-        dui2.update_xyz_nums(vals.show_window_elt_id, xyz)
-        dui2.update_xyz_circle(vals.show_window_elt_id, xyz)
-        */
-
     }
     else if(vals.clicked_button_value.endsWith("_angle_num")){ /// the num input for a joint angle
-        /*let val = vals[vals.clicked_button_value]
-        let joint_number = vals.clicked_button_value[1]
-        let range_name = "j" + joint_number + "_range"
-        let selector = "#" + vals.show_window_elt_id + " [name=" + range_name + "] [value]"
-        selector_set_in_ui(selector, val)
-        */
         dui2_instance.set_maj_angles([vals.j1_angle_num, vals.j2_angle_num, vals.j3_angle_num, vals.j4_angle_num,
                                       vals.j5_angle_num, vals.j6_angle_num, vals.j7_angle_num])
     }
@@ -398,20 +494,118 @@ static dexter_user_interface_cb_aux(vals){
         dui2_instance.set_maj_angles([vals.j1_angle_num, vals.j2_angle_num, vals.j3_angle_num, vals.j4_angle_num,
                                       vals.j5_angle_num, vals.j6_angle_num, vals.j7_angle_num])  //no actual change here, but just to ensure consistency
     }
+    else if(vals.clicked_button_value == "dui2_instr_type_id"){
+        dui2_instance.update_editor_maybe()
+    }
     else if (vals.clicked_button_value == "insert_instruction"){
-        Editor.insert(dui2_instance.make_instruction_source(vals))
+        let full_src      = Editor.get_javascript()
+        let start_pos     = Editor.selection_start()
+        let start_char    = full_src[start_pos]
+        let end_pos       = Editor.selection_end()
+        let has_selection = (start_pos !== end_pos)
+        let prev_newline_pos = full_src.lastIndexOf("\n", start_pos)
+        let prefix_sans_comma
+        let needs_comma_before_insert = dui2.needs_comma_before_insert(full_src, end_pos)
+
+        let end_char = full_src[end_pos]
+        let end_char_is_comma = (end_char == ",")
+        let prev_end_char = ((end_pos == 0) ? null : full_src[end_pos - 1])
+        let first_back_non_whitespace_from_start_pos = Editor.backup_over_whitespace(full_src, start_pos - 1)
+
+        let insert_before_start_pos
+        if(has_selection)       { insert_before_start_pos = false }
+        else if(start_pos == 0) { insert_before_start_pos = true }
+        else if(start_char == "\n") { insert_before_start_pos = false }
+        else {
+            if(first_back_non_whitespace_from_start_pos == null) { //no whitespace before start_pos, but not at 0
+                insert_before_start_pos = false
+            }
+            else if(start_char == "\n") { insert_before_start_pos = false }
+            else if (first_back_non_whitespace_from_start_pos < prev_newline_pos){ //between start_pos and the
+                 //back newline, there is only whitespace, so we've clicked on the same line as an item,
+                 //but before its actual text, so we want to insert before start_pos on that same line.
+                insert_before_start_pos = true
+            }
+            else { insert_before_start_pos = false }
+        }
+        if(insert_before_start_pos) {
+            if(start_pos == 0) {//leave sel where it is
+                Editor.select_javascript(0, 0)
+                needs_comma_before_insert = false
+                prefix_sans_comma = "\n        "
+            }
+            else {
+                //let first_back_non_whitespace_char = full_src[first_back_non_whitespace_from_start_pos]
+                Editor.select_javascript(prev_newline_pos, prev_newline_pos)
+                needs_comma_before_insert = false
+                prefix_sans_comma = "\n        "
+            }
+        }
+        else if(end_char_is_comma) {
+            Editor.select_javascript(end_pos + 1, end_pos + 1)
+            needs_comma_before_insert = false
+            prefix_sans_comma = "\n        "
+        }
+        else if(prev_end_char == "[") { //end_char is probably just after the [ that begins the do_list
+            needs_comma_before_insert = false
+            Editor.select_javascript(end_pos, end_pos)
+            prefix_sans_comma = "\n        "
+        }
+        else if(prev_end_char == ",") { //end_char is probably just after the [ that begins the do_list
+            needs_comma_before_insert = false
+            Editor.select_javascript(end_pos, end_pos)
+            prefix_sans_comma = "\n        "
+        }
+        else {
+            Editor.select_javascript(end_pos, end_pos)
+            needs_comma_before_insert = true
+            prefix_sans_comma = "\n        "
+        }
+
+        let prefix = (needs_comma_before_insert ? "," : "") + prefix_sans_comma
+        let instr_src = dui2_instance.make_instruction_source()
+        let on_last_instr = dui2.is_on_last_instruction(full_src, end_pos)
+        let total_insert = prefix + instr_src + (on_last_instr ? "" : ",")
+        Editor.insert(total_insert)
+        //let new_start_pos = end_pos + prefix.length //+ (on_last_instr? 0 : 1)
+        //let new_end_pos = new_start_pos + instr_src.length
+        full_src = Editor.get_javascript()
+        let new_start_open_paren_pos =  //get past comma on prev line if any and to new first open paran
+                           full_src.indexOf("(", end_pos)
+        let new_start_pos = Editor.backup_to_whitespace(full_src, new_start_open_paren_pos)
+        let new_end_pos   = Editor.find_matching_delimiter(full_src, new_start_open_paren_pos) + 1
+        Editor.select_javascript(new_start_pos, new_end_pos)
         return
     }
     else if (vals.clicked_button_value == "insert_job"){
-        let instr_src = dui2_instance.make_instruction_source(vals)
-        let job_src =
-`\nnew Job({name: "my_job",
-         do_list: [` + instr_src +
-'\n]})\n'
+        let job_prefix_src =
+`\nnew Job({
+    name: "my_job",
+    do_list: [
+        `
+        let instr_src = dui2_instance.make_instruction_source()
+        let job_src = job_prefix_src + instr_src + '\n]})\n'
+        let cur_pos = Editor.selection_start()
         Editor.insert(job_src)
-        let cur_pos = Editor.selection_start() //end of job def, now back up to start of where next instruction should be inserted.
-
-        Editor.select_javascript(cur_pos - 5)
+        let inst_start_pos = cur_pos + job_prefix_src.length
+        let inst_end_pos = inst_start_pos + instr_src.length
+         //end of job def, now back up to start of where next instruction should be inserted.
+        Editor.select_javascript(inst_start_pos, inst_end_pos)
+        return
+    }
+    else if (vals.clicked_button_value == "close_button"){
+        let job_instance = Job[vals.job_name]
+        if(job_instance){
+            if(job_instance.is_active()){
+                job_instance.stop_for_reason("interrupted", "User closed dui2 show_window.")
+                setTimeout(function() {
+                    job_instance.undefine_job()
+                }, 200)
+            }
+            else {
+                job_instance.undefine_job()
+            }
+        }
         return
     }
     dui2_instance.update_all(dui2_instance.should_point_down) // do update_all before move_all_joints because update_all may modify ui2_instance.maj_angles if the direction_checkbox is checked
@@ -419,25 +613,100 @@ static dexter_user_interface_cb_aux(vals){
     Job.insert_instruction(instr, {job: vals.job_name, offset: "end"})
     //out("inserted instr: " + instr)
 }
-
-   make_instruction_source(vals){
-       let instr_name = vals.instr_type
-       let instr_code = "Dexter." + instr_name + "("
-       let args
-       if(instr_name == "move_all_joints") {
-            args = this.maj_angles.join(", ")
-       }
-       else if (instr_name == "move_to"){
-            let xyz_src = "[" + this.xyz.join(", ") + "]"
-            let dir_src = "[" + this.direction.join(", ") + "]"
-            args = xyz_src + ", " + dir_src + ", undefined, undefined, " +
-                   this.maj_angles[5] + ", " + this.maj_angles[6]
-       }
-       else { shouldnt("in dui2.make_instruction_source got invalid instr_name of " + instr_name) }
-       instr_code += args + "),\n" + " ".repeat(19)
-       return instr_code
+   //maybe unused
+   static is_on_last_instruction(full_src, end_pos) {
+        let close_angle_pos = full_src.indexOf("]})", end_pos)
+        let open_paren_pos  = full_src.indexOf("(",   end_pos)
+        if(close_angle_pos == -1) { //not well formed situation but
+           return false
+        }
+        else if (open_paren_pos == -1){ //no more open parens after end_pos, so
+            return true
+        }
+        else if(open_paren_pos < close_angle_pos) {
+            return false
+        }
+        else { return true }
    }
 
+    static needs_comma_before_insert(full_src, end_pos) {
+        let end_char = full_src[end_pos]
+        let end_char_is_comma = (end_char == ",")
+        let close_angle_pos = full_src.indexOf("]})")
+        let open_paren_pos = full_src.indexOf("(")
+        let prev_end_char_is_comma = false
+        if(end_pos > 0){
+                prev_end_char_is_comma = (full_src[end_pos - 1] == ",")
+        }
+
+        if(end_char_is_comma) {return false}
+        else if(prev_end_char_is_comma) {return false}
+        //else if(close_angle_pos == -1) { //not well formed situation but
+        //    return false
+        //}
+        //else if (open_paren_pos == -1){ //not well formed situation but
+        //    return false
+        //}
+        //else if(open_paren_pos < close_angle_pos) {
+        //    return false
+        //}
+        else { return true }
+    }
+
+    make_instruction_source(){
+        let instr_name = dui2_instr_type_id.value
+        let instr_code = "Dexter." + instr_name
+        let new_args
+        if(instr_name.endsWith("move_all_joints"))  {
+            /*let angles_to_use = this.maj_angles
+            let last_non_zero_angle = 6
+            for(last_non_zero_angle = last_non_zero_angle; last_non_zero_angle >= 0; last_non_zero_angle--){
+                if(angles_to_use[last_non_zero_angle] !== 0) {
+                    break;
+                }
+            }
+            if (last_non_zero_angle != 6) {
+                angles_to_use = angles_to_use.slice(0, last_non_zero_angle + 1)
+            }*/
+            new_args = this.maj_angles.join(", ") //just always do all 7.
+        }
+        else if (instr_name.endsWith("move_to")){
+            let dir = (this.should_point_down ? [0, 0, -1] : this.direction)
+            let dir_is_default_value = false
+            if(similar(dir, [0, 0, -1], (Number.EPSILON * 10))){
+                dir_is_default_value = true
+                dir = [0, 0, -1]
+            }
+            let j6 = this.maj_angles[5]
+            let j7 = this.maj_angles[6]
+            if((j7 === 0) || (j7 === undefined)) {
+                if((j6 === 0) || (j6 === undefined)) {
+                    if(dir_is_default_value){
+                        new_args = "[" + this.xyz.join(", ") + "]"
+                    }
+                    else {
+                        new_args = "[" + this.xyz.join(", ") + "], " +
+                            "[" + this.direction.join(", ") + "]"
+                    }
+                }
+                else {
+                    new_args =  "[" + this.xyz.join(", ") + "], " +
+                        "[" + dir.join(", ") + "], " +
+                        "undefined, undefined, " +
+                        j6
+                }
+            }
+            else {
+                new_args =  "[" + this.xyz.join(", ") + "], " +
+                    "[" + this.direction.join(", ") + "], " +
+                    "undefined, undefined, " +
+                    j6 + ", " +
+                    j7
+            }
+        }
+        instr_code += "(" + new_args + ")"
+        return instr_code
+    }
 //_______update UI fns_______
     //expects this.maj_angles to be set with the latest.
     //does NOT expect this.maj_angles to have yet been adjusted if the direction checkbox is checked.
@@ -452,7 +721,7 @@ static dexter_user_interface_cb_aux(vals){
              //so the call to similar has to take this into account and consider epslilon close to
              //[0, 0, -1] to be similar. Vector.is_equal can also handle this.
         if(check_box_if_direction_is_down) { //true only during init
-            this.should_point_down = similar(this.direction, [0, 0, -1], Number.EPSILON)
+            this.should_point_down = similar(this.direction, [0, 0, -1], Number.EPSILON * 100)
         }
         this.update_direction()
         this.update_range_and_angle_nums()
@@ -460,6 +729,142 @@ static dexter_user_interface_cb_aux(vals){
         this.update_xyz_nums()
         this.update_xyz_limits()
         this.update_xyz_circle()
+        this.update_editor_maybe()
+    }
+
+    update_editor_maybe(){
+        let full_src  = myCodeMirror.doc.getValue() //$("#js_textarea_id").val() //careful: js_textarea_id.value returns a string with an extra space on the end! A crhome bug that jquery fixes
+        let sel_start_pos = Editor.selection_start()
+        let sel_end_pos   = Editor.selection_end()
+        let next_line_pos = full_src.indexOf("\n", sel_start_pos)
+        if(sel_start_pos !== sel_end_pos){ //we have a selection
+            let sel_text  = full_src.substring(sel_start_pos, sel_end_pos)
+            let maj_pos = full_src.indexOf("move_all_joints(", sel_start_pos)
+            let maj_pos_args = maj_pos + "move_all_joints(".length
+            let maj_pos_args_end = full_src.indexOf(")", maj_pos_args)
+            if((maj_pos !== -1) &&  //we have a move_all_joints after sel_start_pos
+               (maj_pos_args_end !== -1) &&
+               ((next_line_pos == -1) //no new lines after maj pos
+                 || (maj_pos < next_line_pos))) //maj_pos is before the next newline.
+               {
+                let maj_pos_args = maj_pos + "move_all_joints(".length //finds move_all_joints, pid_move_all_joints but not move_all_joints_relative on purpose
+
+                if((maj_pos_args_end !== -1) && (maj_pos_args_end <= sel_end_pos)) {
+                    let begin_of_call_pos = Editor.backup_to_whitespace(full_src, maj_pos)
+                    let last_non_zero_angle = 6
+                    for(last_non_zero_angle = last_non_zero_angle; last_non_zero_angle >= 0; last_non_zero_angle--){
+                        if(this.maj_angles[last_non_zero_angle] !== 0) {
+                            break;
+                        }
+                    }
+                    let angles_to_use = this.maj_angles
+                    if (last_non_zero_angle != 6) {
+                        angles_to_use = angles_to_use.slice(0, last_non_zero_angle + 1)
+                    }
+                    let new_args = angles_to_use.join(", ")
+                    let new_type_and_args = dui2_instr_type_id.value + "(" + new_args
+                    Editor.replace_at_positions(new_type_and_args, maj_pos, maj_pos_args_end)
+                    let new_sel_end = maj_pos_args + new_args.length + 1
+                    Editor.select_javascript(begin_of_call_pos, new_sel_end)
+                    return
+                }
+            }
+            else {
+                let mt_pos = full_src.indexOf("move_to(", sel_start_pos)
+                let mt_pos_args = mt_pos + "move_to(".length
+                let mt_pos_args_end = full_src.indexOf(")", mt_pos_args)
+                if((mt_pos !== -1) &&
+                   (mt_pos_args_end !== -1) &&
+                   ((next_line_pos == -1) //no new lines after maj pos
+                        || (mt_pos < next_line_pos))){ //mt_pos is before the next newline. {
+                    let begin_of_call_pos = Editor.backup_to_whitespace(full_src, mt_pos)
+                    //xyz, direction, config, workspace_pos, j6_angle, j7_angle, robot
+                    //just ignore robot. Too hard to deal with.
+                    /*let mt_args_src_str = full_src.substring(mt_pos_args, mt_pos_args_end)
+                    let mt_args_src_arr
+                    try{
+                        mt_args_src_arr = eval("[" + mt_args_src_str + "]")
+                    }
+                    catch(err) { //can't parse move_to args
+                        return
+                    }*/
+                    let new_args // "[" + this.xyz.join(", ") + "]"
+                    let dir = (this.should_point_down ? [0, 0, -1] : this.direction)
+                    let dir_is_default_value = false
+                    if(similar(dir, [0, 0, -1], (Number.EPSILON * 10))){
+                        dir_is_default_value = true
+                        dir = [0, 0, -1]
+                    }
+                    let j6 = this.maj_angles[5]
+                    let j7 = this.maj_angles[6]
+                    if((j7 === 0) || (j7 === undefined)) {
+                        if((j6 === 0) || (j6 === undefined)) {
+                            if(dir_is_default_value){
+                                new_args = "[" + this.xyz.join(", ") + "]"
+                            }
+                            else {
+                                new_args = "[" + this.xyz.join(", ") + "], " +
+                                           "[" + this.direction.join(", ") + "]"
+                            }
+                        }
+                        else {
+                            new_args =  "[" + this.xyz.join(", ") + "], " +
+                                        "[" + dir.join(", ") + "], " +
+                                        "undefined, undefined, " +
+                                        j6
+                        }
+                    }
+                    else {
+                        new_args =  "[" + this.xyz.join(", ") + "], " +
+                                    "[" + this.direction.join(", ") + "], " +
+                                    "undefined, undefined, " +
+                                    j6 + ", " +
+                                    j7
+                    }
+                    let new_type_and_args = dui2_instr_type_id.value + "(" + new_args
+                    Editor.replace_at_positions(new_type_and_args, mt_pos, mt_pos_args_end)
+                    let new_sel_end = mt_pos_args + new_args.length + 1
+                    Editor.select_javascript(begin_of_call_pos, new_sel_end)
+                    return
+                }
+            }
+        }
+    }
+
+    update_editor_maybe(){
+        let full_src  = myCodeMirror.doc.getValue() //$("#js_textarea_id").val() //careful: js_textarea_id.value returns a string with an extra space on the end! A crhome bug that jquery fixes
+        let sel_start_pos = Editor.selection_start()
+        let sel_end_pos   = Editor.selection_end()
+        if(sel_start_pos !== sel_end_pos){ //we have a selection
+            let sel_text  = full_src.substring(sel_start_pos, sel_end_pos)
+            let maj_pos = full_src.indexOf("move_all_joints(", sel_start_pos)
+            let mt_pos = full_src.indexOf("move_to(", sel_start_pos)
+            let instr_name_start = maj_pos
+            if (maj_pos === -1) {
+               if(mt_pos === -1) { return }                         //no instr in file after sel_start_pos
+               else { instr_name_start = mt_pos}                    //only mt is present
+            }
+            else if (mt_pos === -1) { instr_name_start = maj_pos}   //only maj is present
+            //both instr names present so
+            else if(maj_pos < mt_pos) { instr_name_start = maj_pos} //maj is first
+            else { instr_name_start = mt_pos}                       //mt is first
+            //ok instr_name_start is a non-neg value
+            let next_line_pos = full_src.indexOf("\n", sel_start_pos)
+            if((next_line_pos == -1) || (instr_name_start < next_line_pos)) { //instr_name_start is on the first line of the selection, so we're good to further process. otherwise, do nothing
+                let trimmed_sel_start_pos = Editor.skip_forward_over_whitespace(full_src, sel_start_pos)
+                let sel_end_pos   = Editor.selection_end()
+                if(trimmed_sel_start_pos !== sel_start_pos){ //get ready to replace the selection
+                    sel_start_pos = trimmed_sel_start_pos
+                    Editor.select_javascript(sel_start_pos, sel_end_pos)
+                }
+                let inst_src = this.make_instruction_source()
+                Editor.insert(inst_src, "replace_selection", true) //replace the selection, select the new text
+            }
+            //else we don't have a valid instruction in the first line of the selection, so don't modify editor
+        }
+    }
+    handle_editor_selection(){
+
     }
 
 /*static update_from_robot(dex, sw_elt_id){
@@ -510,8 +915,8 @@ static dexter_user_interface_cb_aux(vals){
         //get the model in meters
         let z = this.xyz[2] //already in meters
         let dir = this.direction
-        let [inner_r, outer_r, outer_xy] = Kin.xy_donut_slice_approx(z, dir)
-        let inner_xy = [0, 0] //and by the way, for now, outer_xy will also always be [0,0],
+        let [inner_r, outer_r, outer_circle_center_xy] = Kin.xy_donut_slice_approx(z, dir)
+        let inner_xy = [0, 0] //and by the way, for now, outer_circle_center_xy will also always be [0,0],
                               // but that will likely change
 
         let current_max_z = Kin.max_z(this.xyz[0], this.xyz[1], dir) //*might* return NaN
@@ -519,8 +924,8 @@ static dexter_user_interface_cb_aux(vals){
 
         //convert to pixels
         let outer_r_px = (Number.isNaN(current_max_z) ? 0 : this.radius_meters_to_px(outer_r))
-        let outer_x_px = this.meters_to_x_px(outer_xy[0])
-        let outer_y_px = this.meters_to_y_px(outer_xy[1])
+        let outer_x_px = this.meters_to_x_px(outer_circle_center_xy[0])
+        let outer_y_px = this.meters_to_y_px(outer_circle_center_xy[1])
 
         let inner_r_px = (Number.isNaN(current_max_z) ? 0 : this.radius_meters_to_px(inner_r))
         let inner_x_px = this.meters_to_x_px(inner_xy[0])
@@ -584,9 +989,6 @@ static dexter_user_interface_cb_aux(vals){
 dui2.instances = []
 dui2.xy_background_color = "#ff7e79"
 
-function dexter_user_interface_cb(vals){
-    dui2.dexter_user_interface_cb_aux(vals)
-}
 } //end of top level if
 
 dui2.make_job() //in DDE, makes a job using the default_robot in the Misc pane select.

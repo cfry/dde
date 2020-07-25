@@ -8,8 +8,8 @@
 
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version: <span id="dde_version_id">3.6.0</span><br/>
-    released: <span id="dde_release_date_id">Jul 4, 2020</span>
+    version: <span id="dde_version_id">3.6.1</span><br/>
+    released: <span id="dde_release_date_id">Jul 24, 2020</span>
     <p></p>
     DDE helps you create, debug, and send software to a Dexter robot.
     You can use any JavaScript augmented with DDE-specific functions to help find out about,
@@ -147,8 +147,15 @@
     </details> <!-- end Windows OS Problems -->
 </details>
 <details class="doc_details"><summary>Configure DDE</summary>
-    DDE requires that you create a folder under your Documents folder named <samp> dde_apps</samp>.
-    If this does not exist when you launch DDE, you'll see a warning in the output pane.
+    DDE uses a folder under your Documents folder named <samp> dde_apps</samp>.
+    If one is not there, it will be created when you launch dde.
+    It's the default folder for JS code that you write. It also stores
+    a file called <samp>dde_persistent.json</samp> which stores settings you've made in
+    DDE so that the next time DDE launches it can restore these settings.
+    Mostly you can ignore this file. The dde_apps folder also stores
+    a file named <samp>dde_apps.js</samp>. It will be automatically created if
+    it doesn't exist. This file contains JS. It is loaded every time
+    DDE is launched. You can use it to customize your DDE environment.
     <p></p>
     DDE requires that you have a default robot named "dexter0". Usually the one
     that is automatically inserted into the file dde_apps/dde_init.js is fine.
@@ -296,7 +303,7 @@ Each indicates that a joint has power.
       </ol>
       We are working on making this easier.
       <p></p>
-        <b>ping</b><br/>
+        <b id="ping_doc_id">ping</b><br/>
         Dexter is shipped with an ip_address of <code title="unEVALable">192.168.1.142</code>
         The Jobs menu item "Ping a Dexter" lets you test connectivity of a specific
         Dexter as well as find all the "host" Dexters that are connected at a "network"
@@ -369,7 +376,7 @@ Each indicates that a joint has power.
 
     <details class="doc_details"><summary>Test Connectivity</summary>
         You should now be able to ping Dexter and have connectivity.<br/>
-        (See above on how to "ping".)<br/>
+        (See <a href="#" onclick="open_doc(ping_doc_id)">ping</a>.)<br/>
         <b>Troubleshooting</b><br/>
         Ping doesn't find the host? Try reseating all the cables. Try power cycling
         Dexter and/or your computer. <br/>
@@ -384,7 +391,7 @@ Each indicates that a joint has power.
         <a target="_blank" href="https://github.com/HaddingtonDynamics/Dexter/wiki/Dexter-Networking">
         Dexter Networking details.</a><br/>
         <b>Using DDE</b><br/>
-        In the Misc pane header simulate radion buttons, choose "real".
+        In the Misc pane header simulate radio buttons, choose "real".
         Now choose Jobs menu/Run Instruction/NEUTRAL_ANGLES,
         or other angles.
         <p></p>
@@ -542,16 +549,21 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
         at least sample each of them, then loop back and concentrate on several that
         are most appealing to you.
         <ul>
+            <li>Splash Screen is a fancy presentation of the below. By default, it
+                comes up at DDE launch. You can disable this by a checkbox in the dialog.
+                If you have disabled it, you can get the window back up by clicking
+                <button onclick="persistent_set('dont_show_splash_screen_on_launch', false); SplashScreen.show();">show splash screen</button>
+                <p></p></li>
             <li><a href="https://www.hdrobotic.com/features" target="_blank">Dexter Features</a>
                  Videos of some things Dexter is capable of plus an early overveiw of DDE.<p></p></li>
             <li><a href="http://hdrobotic.com/videos/" target="_blank">Haddington videos</a>
             Videos on Haddington's mission, and the hardware.<p></p></li>
-            <li>Jobs menu/Dexter Tools/<b>Dexter UI2</b> brings up a dialog box that allows you
+            <li>Jobs menu/Dexter Tools/<b>Dexter UI</b> brings up a dialog box that allows you
                 to interactively control a Dexter (or the simulator of Dexter, depending on the
                 <i>simulate</i> radio buttons in the Misc Pane header). This tools is
                 a great way to learn the relationship between joint angles and xyz (Cartesian)
                 coordinates, a.k.a kinematics.</li>
-            <li><a href="http://hdrobotic.com/videos/" target="_blank">Webinar videos</a> on DDE</li>
+            <li><a href="https://www.hdrobotic.com/blog/programming-in-dexter-development-environment-archive" target="_blank">Webinar videos</a> on DDE</li>
             Each of these 11 videos is 45 minutes to an hour long. Watching them in order, especially the first several, is recommended.
             The first one, <b>Intro to DDE</b>, is primarily about the Help System itself.<p></p></li>
             <li><a href="http://hdrobotic.com/software" target="_blank">http://hdrobotic.com/software</a>
@@ -561,9 +573,9 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
                 from within DDE, but there may be times when this web page is handy.
                 For instance, <b>User Guide/Installation</b> tells you how to install DDE.
                 You can also browse the <b>Release Notes</b> before installing a version.<p></p></li>
-            <li><b>tooltips</b> Many menu items and buttons provide concise help. Place the
+            <li><b id="tooltips_doc_id">tooltips</b> Many menu items and buttons provide concise help. Place the
                 mouse over the item and don't move it for a couple of seconds to see the help.<p></p></li>
-            <li><b>code examples</b> DDE's
+            <li><b id="code_examples_doc_id">code examples</b> DDE's
                 <button>Learn JS&#9660;</button>, <button>Insert&#9660;</button>, <button>Series&#9660;</button>, <button>Jobs&#9660;</button> and <button>Test&#9660;</button> menus let you insert,
                 into the editor buffer,
                 practical examples of JavaScript which you can then customize to your needs.
@@ -581,7 +593,7 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
                  language is to step through working code.
                  <a href="#" onclick="open_doc(learning_js_doc_id)">Learning JavaScript</a> takes you
                  through this process, step by step.</li>
-            <li><b>TestSuite</b> DDE's test suite is used primarily to verify functionality.
+            <li><b id="TestSuite_for_help_doc_id">TestSuite</b> DDE's test suite is used primarily to verify functionality.
                 But you can also use the Test/Insert All menu item to
                 see the source code of many of the tests. This will generally
                 be <i>less</i> useful than explicit examples, but
@@ -597,7 +609,7 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
                     </li>
                 </ul>
                 <p></p></li>
-            <li><b>Doc Pane</b> <br/>
+            <li><b id="doc_pane_doc_id">Doc Pane</b> <br/>
                 <b>Getting Started</b> is the concise, bare-bones doc to get you running quickly.<br/>
                 <b>User Guide</b> helps you with the DDE programming environment.<br/>
                 <b>Reference Manual</b> provides details of the <i>language</i>
@@ -612,14 +624,7 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
                 browse the release notes, which is recommended each time you update DDE.<br/>
                 <b>Known Issues</b> tell you about large omissions and problems within DDE.
                 Please don't send us any bug reports about things documented here.<p></p></li>
-            <li><a href="https://github.com/cfry/dde" target="_blank">https://github.com/cfry/dde</a>
-                Rarely should you need to examine
-                DDE's source code to figure out how something works, but its all
-                available on github, including the documentation. <p></p>
-                <a href="https://github.com/cfry/dde/releases" target="_blank"> https://github.com/cfry/dde/releases</a> has download instructions.</li>
-            <li><b>New Releases</b> Each time you launch DDE, the Output pane will
-                tell you whether or not there is a later release and how to download it.<p></p></li>
-            <li><b>Find button</b> In the Doc pane header, there's a type-in box.
+            <li><b id="find_button_doc_id">Find button</b> In the Doc pane header, there's a type-in box.
                 Enter text and click the Find button. Sections containing
                 that text will have an orange background. Expand them.
                 The text itself will have a yellow background.
@@ -631,12 +636,20 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
                 You can select text in the Editor, Output, and Doc panes.
                 You can also select text in the Command type-in (Output pane
                 header) and the Run Instruction dialog box's source code type-in.<p></p></li>
-            <li><b>Click Help</b> If you click on text in the Editor pane, Output pane,
+            <li><a href="https://github.com/cfry/dde" target="_blank">https://github.com/cfry/dde</a>
+                Rarely should you need to examine
+                DDE's source code to figure out how something works, but its all
+                available on github, including the documentation. <p></p>
+                <a href="https://github.com/cfry/dde/releases" target="_blank"> https://github.com/cfry/dde/releases</a> has download instructions.</li>
+            <li><b>New Releases</b> Each time you launch DDE, the Output pane will
+                tell you whether or not there is a later release and how to download it.<p></p></li>
+
+            <li><b id="click_help_doc_id">Click Help</b> If you click on text in the Editor pane, Output pane,
                 Command line type-in or Doc pane code examples,
                 a line of help about what you clicked on will appear
                 in the output pane. Often this will have a blue, underlined
                 link that you can click on for more information.<p></p></li>
-            <li><b>Eval button</b> The Eval button lets you run code pretty much
+            <li><b id="eval_button_doc_id">Eval button</b> The Eval button lets you run code pretty much
                 where ever you find it in DDE, including the Editor, Output, and Doc panes.
                 The result of the evaluation
                 will appear in the Output pane. While coding, we recommend
@@ -644,7 +657,8 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
                 hard-to-find bugs by helping to localize bugs to a small amount
                 of code.  Its also a great way to learn about functionality.
                 <ul><li>If there is a selection in the Editor or other pane,
-                    it will be evaled when you click the <button>Eval</button> button.
+                    it will be evaled when you click the <button>Eval</button> button in
+                    the Output pane header.
                     Triple click on a line in the editor to select
                     the whole line.
                     Note that all "valid" code won't necessarily
@@ -662,7 +676,10 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
                the result of running that code is shown in the Output pane in an Inspector.
                This allows you to navigate complex data strutures (including circular ones)
                expanding just those parts you're interesting in, giving you control
-               over the visualization of any data that can be produced by Eval.</li>
+               over the visualization of any data that can be produced by Eval.
+               You can programmatically invoke the Inspector:<br/>
+               <code>inspect([100, 200, 300])</code>
+             </li>
             <li><b>Make Instruction</b> The
                 <a href="#" onclick="open_doc(make_instruction_pane_doc_id, event)">Make Instruction</a>
                 dialog let's you trivally create instructions and run them.
@@ -746,7 +763,9 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
             property is <code>null</code> will be simulated or run on the real robot.</li>
         </ul>
         <details id="make_instruction_pane_doc_id" class="doc_details"><summary>Make Instruction</summary>
-           This dialog box allows you to create, edit & debug instructions as well
+           The Make Instruction dialog box shows when you choose "Make Instruction" in the menu in the
+           Misc oane header.
+           It allows you to create, edit & debug instructions as well
            as incorporate them into Jobs.
            <ol><li><b>Create</b> an instruction by choosing it from <button>Instruction&#9660;</button></li>
                <li><b>Edit</b> both the instruction name and the argument type-in fields.
@@ -1104,6 +1123,65 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
 
         </details>  <!-- end simulate pane -->
     </details> <!--end misc_pane -->
+    <details id="dexter_user_interface_doc_id" class="doc_details">
+         <summary>Dexter User Interface</summary>
+         This dialog box can be brought up by choosing Jobs menu/Dexter Tools/Dexter UI.
+         It allows you to control Dexter (or the simulator, depenmding on the
+         radio button settings in the Misc Pane header) by dragging and clicking
+         widgets. Notice that when you move one widget, it adjusts the other related
+         widgets pro-actively so you can see in the dialog box the affect your having,
+         as well as the effect on Dexter itself.
+         The controlled Dexter is the one selected in the Misc pane header.
+         <p></p>
+         The major sections of this dialog are:<br/>
+         <b>Top button bar</b> for moving Dexter to
+            <ul><li><input type="button"  style="padding:2px;height:22px;"value="ready"/>
+               This moves Dexter joints to 0 angles except J3 which goes to 90 degrees.
+               This provides a flexible starting position for many moves, in contrast to...</li>
+               <li><input type="button"  style="padding:2px;height:22px;"value="home"/>
+                   which is all joint angles 0 (straight up). Think about reaching up
+                   to a ceiling that you can just barely touch. You can't keep touching
+                   the ceiling if you change just about any configuration of your body.
+                   So such a position is, constraining. We recommend that you start exploring
+                   this interface by clicking the ready button and not be in home position.</li>
+                <li> <input type="button"  style="padding:2px;height:22px;"value="editor"/>
+                  If the editor cursor or selection is on a line with a move_all_joints
+                  or move_to instruction, clicking "editor" will grab that instruction
+                  and run it on the selected robot. With the instruction selected,
+                  you can edit its arguments by operating widgets in the dialog.
+                  The insert buttons on the bottom,
+                  move instructions from this dialog box to the editor. This "editor" button
+                  moves an instruction in the other direction.</li>
+              </ul>
+            <b>XYZ widgets</b> The big rectangle lets you drag the green dot to
+                set the x and y of Dexter. Valid locations are in the white "donut"
+                in the center of the box. Outside the donut (and in the donut hole)
+                are places Dexter can't reach, either because they're too far away,
+                or Dexter's body prevents its end effector from going there.
+                Use the vertical slider on the right to move Dexter's end effector
+                vertically. The X, Y, and Z number spinners also let you move
+                Dexter, but with the advantage of showing you the exact meters
+                of your movement. You can also type into these number spinners.
+                <p></p>
+            <b>Joint widgets</b> Sliders for all 7 joints and associated number
+               spinners. A great kinematics learning experience is moviing a joint slider,
+                then watching green dot and Z slider change in concert.
+                (and visa versa). Note that the donut varies dramatically
+                as Z changes.
+            <p></p>
+            <b>Insert widgets</b> Let you take the current position in the dialog
+            and copy it into the cursor location of the editor as an instruction.
+            Click the <input type="button" style="padding:2px;height:22px;"value="Job"/>
+            button first to create a Job with its first instruction.
+            Then move the sliders, etc. to where you want the robot to go
+            and notice that the numbers in the editor change to follow suit.
+            With an instruction highlighted, clicking the
+            <input type="button"  style="padding:2px;height:22px;"value="instruction"/>
+            button inserts a new instruction right below the selected one.
+            With no selection, you can insert an instruction at the cursor.
+            The type of instruction is selectable in the select menu on the left.
+    </details>
+
  </details> <!-- end user interface -->
 
 <details class="doc_details"><summary>JavaScript</summary>
@@ -1190,7 +1268,7 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
     Ignore the parts that use the <i>Underscore</i> library.<br/>
     A more formal (and long) <a href="http://www.w3schools.com/js/" target="_blank">tutorial</a>.
     </details> <!-- end Learning JavaScript -->
-    <details class="doc_details"><summary>JS for Python Programmers</summary>
+    <details id="js_for_pythond_programmers_doc_id" class="doc_details"><summary>JS for Python Programmers</summary>
         Python and JavaScript are two of the most popular general purpose programming languages in use today.
         Though they differ in many details, for describing the instructions that are the core of DDE's Jobs,
         they are amazingly similar for the most common operations. Especially with DDE's tools for learning

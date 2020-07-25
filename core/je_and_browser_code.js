@@ -195,7 +195,17 @@ static is_window_shown(index){
 
 //works for both DDE and Browser. needed by submit_window
 static get_window_content_of_elt(elt){
-    return elt.closest(".show_window_content")
+    let result =  elt.closest(".show_window_content")
+    if(result) { return result }
+    else { //maybe elt is the close_button or the collapse_button, not inside the content
+        let sw_elt = elt.closest(".show_window")
+        result = sw_elt.querySelector(".show_window_content")
+        if(result) {return result}
+        else {
+            dde_error('get_window_content_of_elt for :' + elt +
+                      ' could not find ".show_window_content" dom elt.')
+        }
+    }
 }
 
 static get_show_window_elt(elt) {
@@ -431,19 +441,21 @@ static sw_close(elt){
     sw_window_elt.close()
     sw_window_elt.remove() //remove from body_id
 }
+
+//collapse/expand
 static sw_toggle(elt){
     let dia_elt = elt.closest(".show_window")
     let content_elt = dia_elt.querySelector(".show_window_content") // dia_elt.children[1]
     if(content_elt.style.display == "none") { //expand the window
         content_elt.style.display = "block"
         dia_elt.style.height = dia_elt["data-full-height"]
-        elt.innerHTML = "^"
+        elt.innerHTML = "&#8679;" //"^"
     }
     else { //shrink the window
         dia_elt["data-full-height"] = dia_elt.style.height
         content_elt.style.display = "none"
         dia_elt.style.height = "35px"
-        elt.innerHTML = "v"
+        elt.innerHTML = "&#8681;" //"v"
     }
 }
 
@@ -496,6 +508,20 @@ static sw_combobox_select_oninput(event){
 }
 
 static install_submit_window_fns(show_window_elt){
+    let close_elt = show_window_elt.querySelector("button[name='close_button']")
+    close_elt.onclick = function(event){
+                                SW.submit_window.call(close_elt, event)
+                                SW.sw_close(show_window_elt)
+    }
+    //let collapse_elt = show_window_elt.querySelector("button[name='collapse_button']")
+    //collapse_elt.onclick = SW.sw_toggle
+                           //I tried hard to get this to work and failed jul 17, 2020
+                           //it calls the show_window callback ok but
+                           //never calls sw_toggle.
+                          //function(event){
+                          //      SW.submit_window.call(collapse_elt, event)
+                          //      SW.sw_toggle(show_window_elt)
+                          // }//SW.submit_window
     let ins = show_window_elt.querySelectorAll(".clickable")
     for (var index = 0; index < ins.length; index++){ //bug in js chrome: for (var elt in elts) doesn't work here.
         var inp = ins[index]
@@ -762,7 +788,7 @@ static submit_window(event){
             result[in_name + "_height"] = inp.offsetHeight - 6 //inp.style.height
         }
     }
-    var selects = window_content_elt.querySelectorAll("select") //finds all the descentents of teh outer div that are "input" tags
+    var selects = window_content_elt.querySelectorAll("select") //finds all the descentents of the outer div that are "select" tags
     for (var i = 0; i < selects.length; i++){
         var inp = selects[i]
         var in_name = (inp.name ? inp.name : inp.id)
@@ -838,15 +864,25 @@ static submit_window(event){
     }
     catch(err){
         let err_string
-        if (typeof(err) == "string") { err_string = err } //weiredly this DOES happen sometimes
+        if (typeof(err) == "string") { err_string = err } //weirdly this DOES happen sometimes
         else if (err.message) { err_string = err.message }
         else { err_string = err.toString() }
         let fn_name = cb.name
         if(fn_name == "") { fn_name = cb.toString() } //ie some anonymous fn
         let arg_string = JSON.stringify(result)
         arg_string = replace_substrings(arg_string, ",", "<br/>")
-        dde_error("While calling the show_window handler function of:<br/><code>" + fn_name + "</code>,<br/>" +
-                  "passed:<br/>" + arg_string + "<br/>" + err_string)
+        if((result.clicked_button_value == "close_button") &&
+            !cb.toString().includes("close_button")) {
+            warning("The show_window callback function of: <code>" + fn_name +
+                    '</code><br/>does not properly handle a clicked_button_value of <code>"close_button"</code>.<br/>' +
+                    'We recommand that you extend ' + fn_name + ' to something like:<br/>' +
+'<code>if(vals.clicked_button_value == "close_button") {}' +
+'<br/>else { your existing code here } </code>')
+        }
+        else {
+            dde_error("While calling the show_window handler function of:<br/><code>" + fn_name + "</code>,<br/>" +
+                    "passed:<br/>" + arg_string + "<br/>" + err_string)
+        }
     }
     event.preventDefault()
     event.stopPropagation()

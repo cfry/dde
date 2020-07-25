@@ -1446,19 +1446,16 @@ Dexter = class Dexter extends Robot {
     }
 
     move_all_joints_fn(angle_array=Dexter.HOME_ANGLES, set_default_speed_first = true){
-        let job_00
-        if (set_default_speed_first) {
-            job_00 = new Job({name: "job_00", robot: this,
-                             do_list: [make_ins("S", "MaxSpeed", 25),
-                                       Dexter.move_all_joints(angle_array)]
-                     })
+        let is_home_angles = similar(angle_array, Dexter.HOME_ANGLES)
+        let do_list = []
+        if(set_default_speed_first) { do_list.push(make_ins("S", "MaxSpeed", 25)) }
+        do_list.push(Dexter.move_all_joints(angle_array))
+        if(is_home_angles) {
+            do_list.push(Dexter.pid_move_all_joints([0, 0, 0, 0, 0, 0, 0]))
+            do_list.push(Dexter.empty_instruction_queue())
         }
-        else {
-            job_00 = new Job({name: "job_00", robot: this,
-                              do_list: [Dexter.move_all_joints(angle_array)]
-            })
-        }
-        job_00.start()
+        new Job({name: "job_00", robot: this,
+                 do_list: do_list}).start()
     }
 
     move_to_fn(xyz=[0,0,0], set_default_speed_first = true){

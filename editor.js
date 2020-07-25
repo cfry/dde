@@ -48,6 +48,7 @@ Editor.init_editor = function(){
                     "Ctrl-J": Editor.insert_new_job,
                     "Ctrl-O": Editor.open_on_dde_computer,
                     "Ctrl-N": Editor.edit_new_file,
+                    "Ctrl-R": Editor.move_to_instruction,
                     "Ctrl-S": Editor.save //windows
                     } : //Mac
                     {"Alt-Left":  Series.ts_or_replace_sel_left,
@@ -59,8 +60,8 @@ Editor.init_editor = function(){
                      "Cmd-J": Editor.insert_new_job,
                      "Cmd-N": Editor.edit_new_file,
                      "Cmd-O": Editor.open_on_dde_computer,
-                     "Cmd-S": Editor.save, //mac
-
+                     "Cmd-R": Editor.move_to_instruction,
+                     "Cmd-S": Editor.save //mac
                     })
 
 
@@ -82,7 +83,7 @@ Editor.init_editor = function(){
     indent_selection_id.onclick = function(){CodeMirror.commands.indentAuto(myCodeMirror)}
     set_menu_string(select_all_id, "Select All", "a")
 
-    myCodeMirror.on("mousedown",
+    myCodeMirror.on("mousedown", //"mousedown",
                     function(cm, mouse_event){
                          if(mouse_event.altKey){
                              var line_char = myCodeMirror.coordsChar({left: mouse_event.x, top: mouse_event.y})
@@ -103,8 +104,13 @@ Editor.init_editor = function(){
                         setTimeout(function() {Editor.show_identifier_info()}, 1)
                         myCodeMirror.focus()
                         cmd_input_clicked_on_last = false
+
                     })
     myCodeMirror.getDoc().on("change", Editor.mark_as_changed)
+
+    //document.querySelector(".CodeMirror").addEventListener("mouseup", function(){
+    //   out("got mouseup")
+    //})
 }
 
 Editor.mark_as_changed = function(){
@@ -1938,7 +1944,11 @@ Editor.backup_over_slash_slash = function(full_src, cursor_pos){
     }
 }
 
-//returns index of the first char before a whitespace group, or, if none, cursor_pos
+//returns index of the first char before a whitespace group,
+// or, if none, cursor_pos
+//It starts looking backwards from cursor_pos, including looking at the
+//char at cursor pos, so if the char at cursorpos is non-whtespace,
+//just return cursor_pos.
 //in any case, returned index char will not point at whitespace,
 //and may be the last char before a whitespace group
 //if all whitespace from cursor_pos back to doc start, returns null
@@ -2614,6 +2624,44 @@ Editor.show_identifier_info = function(full_src=Editor.get_javascript(), pos=Edi
             }
         }
     }
+}
+
+//for Job menu/Run Instruction/selection
+Editor.move_to_instruction = function(){
+    var sel = Editor.get_any_selection().trim()
+    if (sel === "") {
+        warning("There is no selection for a dexter0 instruction.")
+        return
+    }
+    //selection could be [asdf] or 123 or 123,456 or foo or bar()
+    //if it looks like numbers, wrap [] around them
+    if (sel[0] !== "[") {
+        if (is_digit(sel[0])) {
+            sel = "[" + sel
+            if (sel[sel.length - 1] !== "]") { sel = sel + "]" }
+        }
+    }
+    try{  sel = eval(sel) }
+    catch (err) { warning("The selection did not evaluate to an array.") }
+    if (Array.isArray(sel)){
+        if (sel.length == 0){
+            warning("The selection is an empty array meaning it would have no effect.")
+        }
+        else if ((sel.length <= 3) && (typeof(sel[0]) == "number")){
+            Robot.dexter0.move_to_fn(sel)
+        }
+        else if ((sel.length <= 5) && (typeof(sel[0]) == "number")){
+            Robot.dexter0.move_all_joints_fn(sel)
+        }
+        else { Robot.dexter0.run_instruction_fn(sel) }
+    }
+    else if ((sel === undefined) ||
+        (sel === null) ||
+        (typeof(sel) == "boolean")){
+        warning("The selection evals to undefined, null, or a boolean,<br/>" +
+            "neither of which are valid Job instructions.")
+    }
+    else { Robot.dexter0.run_instruction_fn(sel) }
 }
 
 

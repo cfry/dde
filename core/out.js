@@ -175,10 +175,13 @@ function show_window_values(vals){
         write_to_stdout(str)
     }
 }
-//window.show_window_values = show_window_values
+module.exports.show_window_values = show_window_values
+global.show_window_values = show_window_values //needed because this fn is the default callback for show_window
 
 function show_window({content = `<input type="submit" value="Done"/>`,
                       title = "DDE Information",
+                      title_bar_height = 25,
+                      title_bar_color = "#b8bbff",
                       width = 400, height = 400, x = 200, y = 200,
                       resizable = true,
                       draggable = true,
@@ -269,7 +272,7 @@ function show_window({content = `<input type="submit" value="Done"/>`,
         '; overflow:' + (resizable? "auto" : "visible") +
         '; background-color:' + background_color + //if the content div doesn't take up the whole rest of the window, its good if this covers that extra area below the content
         ';">' +
-        sw_make_title_html(title, show_close_button, show_collapse_button) +
+        sw_make_title_html(title, title_bar_height, title_bar_color, show_close_button, show_collapse_button) +
         '<div draggable="false" style="overflow:auto; background-color:' + background_color + ';">' + content + '</div>' +
         '</dialog>'
     //onsole.log("show_window produced html: " + show_window_html)
@@ -280,7 +283,9 @@ function show_window({content = `<input type="submit" value="Done"/>`,
     //then we get TWO such elements in the browser (one invisible) but that screws up
     //getting the right one and breaks dropping a dragged show_window dialog. Yikes!
     //onsole.log("near bottom of show_window with show_window_html:" + show_window_html)
-    if(platform == "dde") { SW.render_show_window(props) }
+    if(platform == "dde") {
+        SW.render_show_window(props)
+    }
     else {
         //onsole.log("bottom of show_window writing to stdout")
         write_to_stdout("<for_server>" + JSON.stringify(props) + "</for_server>")
@@ -291,17 +296,24 @@ function show_window({content = `<input type="submit" value="Done"/>`,
 module.exports.show_window = show_window
 
 //if you change, this, also change get_show_window_title
-function sw_make_title_html(title, show_close_button, show_collapse_button){
-    let buttons = ""
-    if(show_close_button)    { buttons += '<button onclick="SW.sw_close(this)"  title="close this window."                   style="float:right; background-color:#b8bbff; padding-left:5px;padding-right:5px;">X</button>' }
-    if(show_collapse_button) { buttons += '<button onclick="SW.sw_toggle(this)" title="toggle shrink/expand of this window." style="float:right; background-color:#b8bbff; padding-left:5px;padding-right:5px;height:27px; font-size:20px; margin-right:5px;">^</button>' }
-    if(buttons != "") {
-        buttons = '<div style="float:right; position:absolute; right:5px; top:5px;">' + buttons + '</div>'
+function sw_make_title_html(title, title_bar_height, title_bar_color, show_close_button, show_collapse_button){
+    if(title == "") { return "" } // with no title, there are no close nor collapse buttons and you can't drag it.
+                                  //so its mostly good for "kiosk mode" type windows.
+    else {
+        let buttons = ""  // onclick="SW.sw_close(this)"  onclick="SW.sw_toggle(this)"
+        if(show_close_button)    { buttons += '<button name="close_button"     title="close this window."                   style="float:right; background-color:#b8bbff; padding:0px; margin-top:0px;margin-left:5px;">X</button>' }
+        if(show_collapse_button) { buttons += '<button onclick="SW.sw_toggle(this)" name="collapse_button"  title="toggle shrink/expand of this window." style="float:right; background-color:#b8bbff; padding:0px; margin-top:0px;margin-right:5px;">&#8679;</button>' //double headed updown arrow.
+            //'<button onclick="function(event){ SW.sw_toggle(this, event)   }" ' + //"SW.sw_toggle(this)" ' +
+            //                                             ' name="collapse_button"  title="toggle shrink/expand of this window." style="float:right; background-color:#b8bbff; padding:0px; margin-top:0px;margin-right:5px;">&#8679;</button>'  //double headed updown arrow.
+        }
+        if(buttons != "") {
+            buttons = '<div style="float:right; position:absolute; right:5px; top:5px;">' + buttons + '</div>'
+        }
+        return  "<div " + //id='" + id +
+                " class='show_window_title' style='background-color: " + title_bar_color + "; padding:5px; height:" + title_bar_height + "px; font-size:20px; white-space:nowrap;'>" +
+                title + buttons
+                + "</div>" //DON'T DO. the content needs to be INSIDE the title for drag of title to work properly
     }
-    return  "<div " + //id='" + id +
-            " class='show_window_title' style='background-color: #b8bbff; padding:5px; height:25px; font-size:20px; white-space:nowrap;'>" +
-            title + buttons
-            + "</div>" //DON'T DO. the content needs to be INSIDE the title for drag of title to work properly
 }
 
 function beeps(times=1, callback){

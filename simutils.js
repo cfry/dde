@@ -120,6 +120,7 @@ SimUtils = class SimUtils{
         if(frame >= total_frames) {} //we're done
         else{
             let new_angles = [] //used only for computing xyz to set in sim pane header
+            let xyz = Kin.J_angles_to_xyz(new_angles, rob.pose)[0]
             for(let joint = 0; joint < prev_js.length; joint++){
                 let prev_j = prev_js[joint]
                 let j_inc_per_frame = js_inc_per_frame[joint]
@@ -152,6 +153,7 @@ SimUtils = class SimUtils{
                         break;
                     case 4:
                         sim.J5.rotation.y = rads * -1
+                        xyz = Kin.J_angles_to_xyz(new_angles, rob.pose)[0] //needed in case 6 and below
                         sim_pane_j5_id.innerHTML = j_angle_degrees_rounded
                         break;
                     case 5:
@@ -159,13 +161,13 @@ SimUtils = class SimUtils{
                         break;
                     case 6:
                         sim_pane_j7_id.innerHTML = j_angle_degrees_rounded
+                        if(window.SimBuild) {
+                             SimBuild.handle_j7_change(angle_degrees, xyz, rob)
+                        }
                         break;
                 }
             }
-
-            let xyz = Kin.J_angles_to_xyz(new_angles, rob.pose)[0]
             let str_length
-
             let x = xyz[0]
             if(x < 0) { str_length = 6} //so we get the minus sign plus 3 digits after decimal point, ie MM
             else      { str_length = 5}

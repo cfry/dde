@@ -116,6 +116,8 @@
 
     <script type="text/javascript" src="simutils.js"></script>
     <script type="text/javascript" src="simulate.js"></script>
+    <script type="text/javascript" src="simx.js"></script>
+    <script type="text/javascript" src="simbuild.js"></script>
     <script type="text/javascript" src="video.js"></script>
     <script type="text/javascript" src="picture1.js"></script>
     <script type="text/javascript" src="ros_interface.js"></script>
@@ -198,6 +200,7 @@
     <script type="text/javascript" src="de/de.js"></script>
 
     <script type="text/javascript" src="inflow.js"></script>
+    <script type="text/javascript" src="splash_screen.js"></script>
 
     <script type="text/javascript" src="load_job_engine.js"></script>
 
@@ -602,9 +605,9 @@
                                 <li style="display:inline-block;padding-left:3px;padding-right:0px;" title="Tools for managing Jobs and inserting examples.">Jobs&#9660;
                                     <ul>
                                         <li id="jobs_help_id">Help</li>
-                                        <li id="show_robot_status_id"   title="Pop up a dialog showing the robot status&#013;for a Dexter of your choosing.&#013;It displays updates as soon as they are available.">Show robot status</li>
-                                        <li id="jobs_report_id"         title="Display a report of all Jobs in this session.">Show report</li>
-                                        <li id="insert_new_job_id" title="Insert into the editor, an empty new Job.">New Job Ctrl/&#8984;j</li>
+                                        <li id="show_robot_status_id"  title="Pop up a dialog showing the robot status&#013;for a Dexter of your choosing.&#013;It displays updates as soon as they are available.">Show robot status</li>
+                                        <li id="jobs_report_id"        title="Display a report of all Jobs in this session.">Show report</li>
+                                        <li id="insert_new_job_id"     title="Insert into the editor, an empty new Job.">New Job Ctrl/&#8984;j</li>
                                         <li id="eval_and_start_job_id" title="Run instructions based on selection and cursor position.&#013;Choosing this item scrolls to documentation on it.">Eval&Start Job</li>
 
                                         <li> Insert Example
@@ -618,13 +621,13 @@
                                                 <li id="insert_job_example5_id" title="Insert into the editor, examples of defining jobs that interact with other jobs.">5. Sync Jobs</li>
                                                 <li id="insert_job_example6_id" title="Insert into the editor, examples of defining a job that gets user input while running.">6. User Input</li>
                                                 <li id="insert_job_example7_id" title="Insert into the editor, examples of using a human 'robot'.">7. Human Instrs</li>
-                                                <li id="insert_job_example8_id" title="Insert into the editor, a job containing&#013;Human.enter_instruction.">8. Enter Instruction</li>
+                                                <li id="insert_job_example8_id" title="Insert into the editor, a job containing&#013;Human.enter_instruction.">8. Enter Instr</li>
                                                 <li id="insert_job_example9_id" title="Insert into the editor, a tutorial on using Asynchronous Functions.">9. Async Fns</li>
                                                 <li id="insert_job_example10_id" title="Insert into the editor, a tutorial on using Serial Port.">10. Serial Port</li>
                                                 <li id="insert_job_example11_id" title="Insert into the editor, a tutorial on using&#013;when_stopped for looping a job, etc.">11. when_stopped</li>
                                                 <li id="insert_job_example12_id" title="Insert into the editor, a tutorial on using&#013;Control.go_to instruction for looping a job.">12. Control.go_to</li>
                                                 <li id="insert_job_example13_id" title="Insert into the editor, a tutorial on using&#013;loops in a job.">13. Control.loop</li>
-                                                <li id="insert_job_example14_id" title="Insert into the editor, a tutorial on using&#013;A TestSuite in a job.">14. TestSuite in Job</li>
+                                                <li id="insert_job_example14_id" title="Insert into the editor, a tutorial on using&#013;A TestSuite in a job.">14. TestSuite Job</li>
 
                                             </ul>
                                         </li>
@@ -633,7 +636,7 @@
                                                 <li id="move_to_home_id"    title="Runs a job on dexter0 with the instruction:&#013;Dexter.move_all_joints(Dexter.HOME_ANGLES)">HOME_ANGLES</li>
                                                 <li id="move_to_neutral_id" title="Runs a job on dexter0 with the instruction:&#013;Dexter.move_all_joints(Dexter.NEUTRAL_ANGLES)">NEUTRAL_ANGLES</li>
                                                 <li id="move_to_parked_id"  title="Runs a job on dexter0 with the instruction:&#013;Dexter.move_all_joints(Dexter.PARKED_ANGLES)">PARKED_ANGLES</li>
-                                                <li id="move_to_selection_id"  title="Treat the selection as an instruction&#013;to run on dexter0.&#013;A number or number array < 4&#013;are args to move_to.&#013;Arrays of 4 or 5 numbers&#013;are args to move_all_joints.">selection</li>
+                                                <li id="move_to_selection_id" title="Treat the selection as an instruction&#013;to run on dexter0. For:&#013;- A number or number array < 4&#013; are args to move_to.&#013;- Arrays of 4 or 5 numbers&#013; are args to move_all_joints.">selection</li>
                                                 <li id="run_instruction_dialog_id" title="Show a dialog box for running an instruction on Dexter.">Show Dialog...</li>
                                             </ul>
                                         </li>
@@ -642,7 +645,7 @@
                                            <ul>
                                                 <li id="browse_dexter_id"    title="Browse the web page of&#13;the default Dexter&#13;(selected in the Misc Pane header).">Browse a Dexter...</li>
                                                 <li id="calibrate_id"        title="Calibrate one or more Dexters.&#13;Needed each time you power on a Dexter.">Calibrate Dexter...</li>
-                                                <li id="dui2_id"             title="Show window to directly operate Dexter.">Dexter UI2...</li>
+                                                <li id="dui2_id"             title="Show window to directly operate Dexter.">Dexter UI...</li>
                                                 <li id="ping_dexter_id"      title="Find out if a Dexter&#13;or other ip_address&#13;is connected to this computer.">Ping Dexter...</li>
                                                 <li id="show_errors_log_id"  title="Show the content of the file errors.log&#13;on the default Dexter.">Show errors.log</li>
                                             </ul>
@@ -790,6 +793,7 @@
             <div id="right_splitter">
                 <div id="doc_pane_id" style="background-color:#e1e1e1; padding-left:5px;">
                     <div class="pane_header_wrapper" style="height:30px;white-space:nowrap;">
+                      <div style="display:inline-block;max-width:calc(100% - 20px);overflow:hidden;">
                         <span id="documentation_pane_help_id" class="pane_header"><u>Doc</u></span>&nbsp;
                         <span id="doc_prev_id" title='Show previous documentation.' style='cursor:pointer;color:blue;font-weight:900; font-size:20px; opacity:0.3;'>&lt;</span>
                         <span id="doc_next_id" title='Show next documentation.'     style='cursor:pointer;color:blue;font-weight:900; font-size:20px; opacity:0.3;'>&gt;</span>
@@ -797,7 +801,8 @@
                                style="width:150px; font-size:14px;"/>
                         <!--<div style='display:inline-block;' id="find_doc_input_id"/> -->
                         <button id="find_doc_button_id" title="Find documentation on text to the left&#013;or, if none, selected text anywhere.">Find</button>&nbsp;
-                        <a id="help_system_id" href="#" title="Help on DDE's Help System&#013;New users, please click here!"><b style="font-size:20px;">?</b></a>
+                      </div>
+                        <span id="help_system_id" title="Help on DDE's Help System&#013;New users, please click here!"><b style="font-size:24px;color:blue;vertical-align:bottom;float:right;">?</b></span>
                        <!--  <button id="eval_doc_button_id" title="Evaluated the selected code&#013;in the Doc pane.&#013;Result goes in the Output pane.ƒ">Eval Doc</button> obsolete now that Out pane Eval button can do this-->
                     </div>
                     <div id="doc_pane_content_id" contentEditable="false" style="width:97%; height:90%;padding:5px;overflow:scroll;">
@@ -808,8 +813,8 @@
                         <span id="misc_pane_help_id" class="pane_header" title="Click for help."><u>Misc</u></span>
                         <select id='misc_pane_menu_id'>
                             <!-- <option value='http://hdrobotic.com/videos/'>Dexter Videos</option> can't show these in Sim pane, so forget it -->
-                            <option value='Make Instruction'>Make Instruction</option>
                             <option value='Simulate Dexter'>Simulate Dexter</option>
+                            <option value='Make Instruction'>Make Instruction</option>
                             <option value='http://static1.squarespace.com/static/55f1275ee4b0c65e2113baa5/563c04f5e4b0904f35c87cbb/563c0973e4b06c4bb72a5c89/1446775444596/HD+Robotics-8517.jpg'>Dexter Photo</option>
                             <option value='Reference Manual'>Reference Manual</option>
                             <option value='Choose File'>Choose File</option>

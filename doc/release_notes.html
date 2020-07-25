@@ -6,6 +6,132 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 3.6.1, Jul 24, 2020</summary>
+Highlights: Significant extensions for Simulator, Dexter User Interface, SimBuild.
+New "Splash Screen" of tutorials for aiding new users.
+Minor bugs fixed in Kin.js and serial.js.
+<ul>
+    <li>Removed underline from the big blue question mark and made it slightly larger.</li>
+    <li> Extended Inflow doc with how to pass in options query args to <b>get</b>
+         to increase records returned, sorting order, etc.</li>
+    <li>Fixed Test Suite bug: Inflow.put call should have been "not in testsuite" now it isn't.</li>
+    <li>Removed printout in output pane for the big blue question mark as that's now in the splash screen.</li>
+    <li>Improved <code>Dexter.move_to</code> such that if what's passed in for J6 and J7 is the default, [0],
+        then only 5 angles are sent to Dexter. If only J7 is the default,
+        then only 6 angles are sent to Dexter.
+        If J5 is [0] but J7 is not, then 7 "angles" are sent to dexter,
+        but the angle for J6 is "N" meaning "don't change it from its current position.
+        This means Dexter will "do nothing" for those unpassed in Joints,
+        solving a problem with the gripper.</li>
+    <li>Improved <code>Dexter.move_all_joints</code> similarly, ie if j6 and/or j7 is [0], send a NaN to dexter.</li>
+    <li>Removed folder .license_temp_gen from the electron_dde folder .It never should have been there.</li>
+    <li>Splash screen comes up when you first launch DDE. Provides convenient check-box menu of
+       17 tutorials to view with a click. Checks are perisistent accross launches of DDE so you can
+       keep track of what you've seen and what you haven't.</li>
+    <li><code>show_window</code>
+        <ul>
+            <li>show_window with a title of "" will now have NO title bar, meaning no title, close box, collapse control, and you can't drag the window.</li>
+            <li>show_window has two new init params: title_bar_height, title_bar_color</li>
+            <li>show_window collapse icon improved.</li>
+            <li>show_window, when the user clicks the "X" to close the window, now the show_window's
+                callback function is also called, with the clicked_button_value
+                value of  "close_button".</li>
+            <li><code>show_window_values</code> The default callback for show_window is now a global variable so it is available for all show_window calls.</li>
+        </ul>
+    </li>
+    <li>Click help for Control.loop fixed.</li>
+    <li>RefMan for <code>Control.loop</code> extended to have 4 more examples and
+        a more complete explanation of body_fn returned instructions.</li>
+    <li>In DDE 3.4.7, 17 "Robot" instructions were deprecated and replaced with same_named
+       "Control" or "IO" instructions.
+    Example: <code>Robot.loop</code> is now  <code>Control.loop</code>.
+    The depricated insructions are;
+    <ul><li><code>Robot.break</code></li>
+        <li><code>Robot.go_to</code></li>
+        <li><code>Robot.loop</code></li>
+        <li><code>Robot.label</code></li><li><code>Robot.suspend</code></li>
+        <li><code>Robot.unsuspend</code></li>
+        <li><code>Robot.sync_point</code></li>
+        <li><code>Robot.wait_until</code></li>
+
+        <li><code>Robot.include_job</code></li>
+        <li><code>Robot.send_to_job</code></li>
+        <li><code>Robot.sent_from_job</code></li>
+        <li><code>Robot.start_job</code></li>
+        <li><code>Robot.stop_job</code></li>
+
+        <li><code>Robot.debugger</code></li>
+        <li><code>Robot.step_instructions</code></li>
+        <li><code>Robot.error</code></li>
+        <li><code>Robot.if_any_errors</code></li>
+    </ul>
+    New in this release is click help for each of those deprecated instructions
+    telling you that they are deprecated, and directing you to their replacements.</li>
+    <li>RefMan/Robot/Dexter/Dexter Instructions/move_to for Dexter.move_to instruction extended
+        to contain "move to" so that it will be found when searching with the Find button.
+        Also added 2 examples.</li>
+    <li>RefMan for <code>Dexter.pid_move_all_joints</code> and <code>Dexter.pid_move_to</code> now have examples.
+        Minor improvements made to other examples in the "move" instruction documentation.</li>
+    <li>Find type in: click help now works on this text.</li>
+    <li>Jobs menu/Dexter tools/Ping Dexter now auto-scrolls to the User Guide section on Ping.
+        Also Ping in "Test Connectivity" section, now has a link to the User Guide section on Ping.</li>
+    <li>The big blue question mark is now visible even when the doc pane is very narrow.</li>
+    <li>Getting started: first line: removed the word "fundamentally".</li>
+    <li>If user is not running the latest dde beta version, its now not printed out
+       in the Out pane as a 'warning' but just a note in purple.
+       The Doc pane is no longer auto-scrolled to the page for downloading the latest version.</li>
+    <li>Simulator
+        <ul>
+            <li>Simulator: fixed new DexterSim to init <code>J6_MEASURED_ANGLE</code> to 512.</li>
+            <li>Upon first DDE launch, the content of the misc pane is the simulator.</li>
+            <li>Misc pane content is now a persistent variable meaning whatever was in the
+                content when you quit DDE, that will be the content when you relaunch it.</li>
+         </ul>
+    </li>
+    <li>Simulator_builder
+        <ul>
+            <li>Simulator can sense J7 (gripper) as open or closed</li>
+            <li>A "template" box that can be cloned when the gripper closes on it.</li>
+            <li>New button in Misc pane header for "load sim build".
+        </ul>
+    </li>
+    <li>Simulator Extensions
+        <ul>
+            <li>Sim pane now oriented to up up with +X on the right.</li>
+            <li>The "Z" label now shows you a non-backwards Z in the default view.</li>
+            <li>Simulator table changed to Dexcell dimensions</li>
+        </ul>
+    </li>
+    <li>Dexter User Interface
+    <ul><li>For insert instruction into editor, improved whitespace.</li>
+        <li>The "editor" button grabs the instruction in the editor and populates the Dexter UI dialog with it.
+        <li>Smarter pruning of default args when inserting instructions into the Editor.
+        <li>Respelled Dexter User Interface 2 to Dexter User Interface.
+            Respelled old Human Instruction Job of Dexter User Interface to
+            Dexter Simple UI to avoid confusion.</li>
+        <li>Now preventing the dragging of the  green X,Y dot into the donut hole.</li>
+        <li>New button called "ready" which moves robot (and GUI) to angles[0, 0, 90, 0, 0]
+            because that positions robot to be good for normal moving whereas home position isn't.</li>
+        <li>New button called "editor" to grab an instruction from the editor and populate
+            the dialog plus move the robot.</li>
+        <li>New User Guide section for Dexter User Interface.
+           The doc is scrolled to automatically when the dialog comes up.</li>
+        <li>When inserting an instruction into the editor for move_all_joints, now all 7 args are inserted.</li>
+    </ul>
+    <li>DDE now automatically creates the dde_apps folder if it doesn't exist.</li>
+    <li>Replaced Ref Man and other code examples of deprecated <code>Robot.out</code>
+        with <code>IO.out</code></li>
+    <li>Fixed <code>Kin.point_down</code> for J5.</li>
+    <li>The menu item Jobs menu/Run Instruction/selection can now be invoked with
+        Ctr-R on windows and Cmd-R on MacOS.</li>
+    <li>Jobs menu/Run Instruction/HOME_ANGLES has been extended to to run,
+        after <code>Dexter.move_all_joints(0,0,0,0,0,0,0)</code>,
+        a <code>Dexter.pid_move_all_joints(0,0,0,0,0,0,0)</code>
+        and <code>Dexter.empty_instruction_queue()</code></li>
+    <li>Fixed import/export problems with dde_error in Kin.js and serial.js</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.6.0, Jul 4, 2020</summary>
 Highlights: Updated versions of foundational software.<br/>
     Doc improvements, esp. Learning JS via Stepping

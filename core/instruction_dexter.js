@@ -28,7 +28,8 @@ Instruction.Dexter.move_all_joints = class move_all_joints extends Instruction.D
         for(let i = 5; i < this.array_of_angles.length; i++) {
             let ang = this.array_of_angles[i]
             if ((ang === undefined) ||
-                Number.isNaN(ang)) {
+                Number.isNaN(ang) ||
+                (Array.isArray(ang) && (ang.length == 1) && (ang[0] == 0))) { //ie [0] means move relative amount of 0. in which case, don't more at all, not even what we THINK is to the same place.
                 angles.push(NaN) //this.robot_status[Dexter.ds_j0_angle_index + i] //ie don't change angle
             }
             else if (Array.isArray(ang)) {  //relative move by the first elt of the array
@@ -292,6 +293,24 @@ Instruction.Dexter.move_to = class move_to extends Instruction.Dexter{
             //job_instance.insert_single_instruction(make_ins("a", ...angles))
             job_instance.wait_until_instruction_id_has_run = job_instance.program_counter
             this.computed_angles = angles //for debugging purposes
+            if(Array.isArray(this.j7_angle) &&
+                (this.j7_angle.length === 1) &&
+                (this.j7_angle[0] === 0)){
+                if(Array.isArray(this.j6_angle) &&
+                    (this.j6_angle.length === 1) &&
+                    (this.j6_angle[0] === 0)){
+                    angles = angles.slice(0, 5)
+                }
+                else { //only j7 is [0] so keep j6 in the array
+                    angles = angles.slice(0, 6)
+                }
+            }
+            //we're keeping j7, but maybe not j6
+            else if (Array.isArray(this.j6_angle) &&
+                    (this.j6_angle.length === 1) &&
+                    (this.j6_angle[0] === 0)){
+                    angles[5] = "N" //means don't move J6.
+            }
             job_instance.send(make_ins("a", ...angles), this.robot)
             //job_instance.set_up_next_do(1) //effectively done in robot_done_with_instruction
         }

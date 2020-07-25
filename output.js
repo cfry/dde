@@ -697,9 +697,9 @@ function insert_color(){
     if (starts_with_one_of(orig_color, ["#", "rgb"])) {
         window.insert_color_cb_remove_sharp_sign = false
     }
-    else { orig_color = "#" + orig_color
-        window.insert_color_cb_remove_sharp_sign = true
-    }
+    //else { orig_color = "#" + orig_color
+    //    window.insert_color_cb_remove_sharp_sign = true
+    //}
     show_window(
         {title: "Choose a color to insert",
             content: '<ol><li>Click <input type="color" name="my_color" value="' +

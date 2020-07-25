@@ -48,14 +48,18 @@ function misc_pane_menu_changed(select_val){
     }
     if(select_val instanceof Event) { select_val = misc_pane_menu_id.value }
     else {misc_pane_menu_id.value = select_val } //used when user clicks the demo button.
+    if(select_val !== persistent_get("misc_pane_content")){
+        persistent_set("misc_pane_content", select_val)
+    }
     if (select_val == "Choose File") {
         select_val = choose_file()
     }
     if (select_val == "Simulate Dexter") {
         //video_player_id.style.display      = "none";
         sim_pane_content_id.innerHTML =
-           'Simulate Job/Robot: <select id="job_or_robot_to_simulate_id">' +
-            '</select><br/><b>Move Duration: </b><span id="sim_pane_move_dur_id"></span> seconds<br/>' +
+           '<div style="white-space:nowrap;">Simulate Job/Robot: <select id="job_or_robot_to_simulate_id">' +
+            '</select><b style="margin-left:15px;">Move Dur: </b><span id="sim_pane_move_dur_id"></span> s' +
+            ' <button onclick="SimBuild.init()">Load SimBuild</button></div>' +
             '<b>X: </b><span id="sim_pane_x_id" style="min-width:50px; text-align:left; display:inline-block"></span>' +  //"margin-left:5px;
             '<b> Y: </b><span id="sim_pane_y_id" style="min-width:50px; text-align:left; display:inline-block"></span>' +  //"margin-left:5px;
             '<b> Z: </b><span id="sim_pane_z_id" style="min-width:50px; text-align:left; display:inline-block"></span> meters' +  //"margin-left:5px;

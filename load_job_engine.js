@@ -36,7 +36,7 @@ var {deg_c_to_c, deg_c_to_f, deg_f_to_c,
 
 //require('./core/je_and_browser_code.js') //don't set SW, just load
 //load_files(__dirname + "/core/je_and_browser_code.js") //must be before loading out.js
-var {beep, beeps, format_text_for_code, speak, show_window} = require("./core/out.js")
+var {beep, beeps, format_text_for_code, speak, show_window, show_window_values} = require("./core/out.js")
 
 var {DXF} = require("./math/DXF.js")
 

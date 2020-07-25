@@ -5,6 +5,7 @@ DexterSim = class DexterSim{
         this.robot_name = robot_name
         this.robot      = Robot[robot_name] //only used by predict_move_dur
         this.robot_status_in_arcseconds = Dexter.make_default_status_array()
+        this.robot_status_in_arcseconds[Dexter.J6_MEASURED_ANGLE] = 512 //see also socket.js, convert_robot_status_to_degrees
         this.parameters = {}
         this.write_array = new Array(128)
         this.write_file_file_name = null

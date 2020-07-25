@@ -399,7 +399,7 @@ new Job({
               function(){Gamepad.stop_remembering_keydown()
                          Gamepad.clear_down_keys()
               },
-              Robot.out("game over")
+              IO.out("game over")
     ]
 }) </code></pre>
 <!-- doesnt' work <code>Gamepad.simulate_keydown("Q")</code><br/> -->
@@ -851,7 +851,7 @@ new Job({name: "gamepad_job2",
    Should you need to automate inventory and customer data,
    using DDE's interface is an easy way to do it. <p></p>
    The <a target="_blank"
-   href="https://cloudapi.inflowinventory.com/docs/index.html#section/OverviewInflow">API doc</a>
+   href="https://cloudapi.inflowinventory.com/docs/index.html#section/OverviewInflow"> Inflow API doc</a>
    isn't easy for JavaScript programmers to understand,
    so we've packaged up the most useful features.
     <p></p>
@@ -885,6 +885,18 @@ new Job({name: "gamepad_job2",
             <li><b>timeStamp</b>:  A string of a Hexidecimal number indictating when
                  the category was last modified.</li>
         </ul>
+        Note that by default, get returns a maximum of 20 records. You can increase this,
+        and pass sorting information via query arguments that are appended on to a path.
+        Here's an example that returns the first 50 customers sorted by contactName,
+        alphabetically:<br/>
+        <code title="not in TestSuite">Inflow.get("customers?count=50&sort=contactNamer&sortDesc=true")</code><br/>
+        With sortDesc=false, it returns records in the opposite order.
+        More query parameters are available on
+        <a target="_blank"
+           href="https://cloudapi.inflowinventory.com/docs/index.html#section/OverviewInflow"> Inflow API doc</a>
+        i
+        but are difficult to find. Look for a particular path like Customer, then look under List Customers/Query Parameters/request?
+        to see numerous query parameters.<br/>
     <b>callback</b>: Default: <code>inspect</code>. A method of one argument, a JSON object
          representing the information you requested in the Inflow.get call.
     <p></p>
@@ -944,7 +956,7 @@ You can use this pattern for:
      <code title="not in TestSuite">Inflow.get("customers")</code><br/>
      <code title="not in TestSuite">Inflow.put("customers", {customerId: Inflow.make_guid(), name: "Fake R. Customer"})</code><br/>
      <code title="not in TestSuite">Inflow.get("customers")</code><br/>
-     <pre><code>
+     <pre><code title="not in TestSuite">
 Inflow.put("products",
            {"productId":"72bab90c-a00a-4fb0-8c09-c010a1b1d59f",
             "description": "API TESTING",
@@ -3827,7 +3839,7 @@ new Job({name: "my_job",
                   this.start()
               }
          },
-         do_list:[Robot.out("its working!")
+         do_list:[IO.out("its working!")
                  ]})  </code></pre>
          Note that a Dexter connect error takes several seconds to trigger, so be patient.
         </li>
@@ -4752,15 +4764,43 @@ a location to insert an instruction using <code>Control.send_to_job</code>.<br/>
     <p></p>
     <i>boolean</i><br/> If <code>false</code>, loop no times. This loop becomes a no-op.<br/>
     If <code>true</code>, loop forever, or until a
-    <a href="#" onclick="open_doc('Control.break_doc_id', event)">Control.break</a> instruction in the body_fn
-    is executed. Like all arguments, this is evaluated at Job definition time to
-    supply a value of a boolean (true or false).
+    <a href="#" onclick="open_doc('Control.break_doc_id', event)">Control.break()</a> instruction in the body_fn
+    is returned. Like all arguments, this is evaluated at Job definition time to
+    supply a value of a boolean (true or false).<br/>
+    <i>Example:</i> <pre><code>
+new Job({
+    name: "my_job",
+    do_list: [
+        Control.loop(true,
+                     function(index) {out("on iteration: " + index)
+                                      return Control.break() })
+    ]
+}) </code></pre>
+    The above example will only call the 2nd argument once, since it breaks at
+    the end of the first time.
+    Note that the first argument can be a boolean or any expression that evaluates to a boolean.
+    If a loop instruction is at top level in a do_list, that evaluation will happen at
+    Job definition time, but if it is nested inside of a function definiton on the do_list,
+    that evaluation will happen while the Job is running.
+    <p></p>
+    <span style="color:red">Warning: </span> Using a first argument to loop that always evaluates to
+    <code>true</code> puts you at risk of making an infinite loop. You'll have to manually stop
+    the Job or have some other code outside the Job to stop the loop unless the body_fn
+    returns a <code>Control.break()</code>.
     <p></p>
     <i>non-negative integer</i><br/> Number of times to call the body_fn. If <code>0</code>,
     the loop becomes a no-op, just like when this arg is <code>false</code>.
     This can be <code>Infinity</code> such that looping would only
-    be limited by a <code>Control.break</code> instruction in the body_fn or
-    stopping the Job.
+    be limited by a <code>Control.break()</code> instruction in the body_fn or
+    stopping the Job.<br/>
+    <i>Example:</i> <pre><code>
+new Job({
+    name: "my_job",
+    do_list: [
+        Control.loop(2 + 3,
+                     function(index) {out("on iteration: " + index) })
+    ]
+}) </code></pre>
     <p></p>
     <i>array</i><br/> The length of the array is the number of times to loop.
     If this arg is <code>[]</code> i.e. the empty array, this loop is a no-op
@@ -4768,7 +4808,16 @@ a location to insert an instruction using <code>Control.send_to_job</code>.<br/>
     At each iteration, the iter_val will be a successive value in the array.
     The iter_index will be the index of each successive value in the array,
     taking on the values of 0 through array.length - 1.
-    iter_total will be the length of the array.
+    iter_total will be the length of the array.<br/>
+    <i>Example:</i> <pre><code>
+new Job({
+    name: "my_job",
+    do_list: [
+    Control.loop([1, 3, "five", 7, new Date()],
+    function(index, value) {out("on iteration: " + index +
+                                " with " + value) })
+    ]
+    }) </code></pre>
     <p></p>
     <i>object</i><br/> The number of own properties of the object is the number
     of times to loop. At each iteration, the iter_key will be a property name in the object,
@@ -4792,11 +4841,23 @@ a location to insert an instruction using <code>Control.send_to_job</code>.<br/>
     no looping occurs, this loop is a no-op. If <code>true</code> is returned,
     that "true" is used for the first iteration, and the function is called
     at the beginning of every subsequent iteration until <code>false</code>
-    is returned or the body_fn executes a <code>Control.break</code> instruction.</li>
+    is returned or the body_fn executes a <code>Control.break()</code> instruction.</li>
     </ul>
     You want to use a function here instead of directly using a boolean, non-neg-integer,
     or array, when you want those values to be computed at the time
-    the Control.loop instruction is executed as opposed to Job definition time.
+    the Control.loop instruction is executed as opposed to Job definition time.<br/><pre><code>
+new Job({
+    name: "my_job",
+    do_list: [
+        Control.loop({
+            "NYC": "too crowded",
+            "LA": "too much traffic",
+            "New O": "nice if it doesn't flood"},
+            function(index, value, total, key) {
+                out(key + " <b>is</b> " + value)
+            }
+        )
+    ]}) </code></pre>
     <p></p>
     <b>body_fn</b> This function is called with basically the same args as
     are used to call times_to_loop when it is a function.<br/>
@@ -4831,8 +4892,8 @@ a location to insert an instruction using <code>Control.send_to_job</code>.<br/>
             a number <code>6</code> and generally appear before normal string-named keys.
             Its best if you don't depend on an ordering of the properties.</li>
     </ol>
-    Loop instructions may be nested. <code>Control.break</code> instructions will
-    end the inner-most loop that contains the <code>Control.break</code>.
+    Loop instructions may be nested. <code>Control.break()</code> instructions will
+    end the inner-most loop that contains the <code>Control.break()</code>.
     <p></p>
     Much of the time that you'd be tempted to use a backwards
     <a href="#" onclick="open_doc('Control.go_to_doc_id', event)">Control.go_to</a>,
@@ -4862,7 +4923,7 @@ new Job({
     name: "my_job",
     do_list: [
         Control.loop(function() {return (Math.random() > 0.1)},
-                     function(iter) {return Robot.out(iter)}
+                     function(iter) {return IO.out(iter)}
                      )
     ]
 })</code></pre>
@@ -4873,6 +4934,14 @@ new Job({
   Most of the time it will return a number greater than 0.1, allowing
   the loop to continue. But as soon as <code>Math.random()</code> returns
   a number that is less than or equal to 0.1, the loop stops.
+    <p></p>
+    Whatever the function in the 2nd argument returns should be a valid instruction.
+    This will be added to the do_list and run by the Job. Above we return the
+    value of <code title="unEVALable">IO.out(iter)</code> so that one extra instruction will be
+    run upon each iteration. If you want to run more than one extra instruction
+    per iteration, return an array of them. At the top of each iteration, all instructions
+    added by the previous instruction are removed. body_fn returned instructions can
+    be different upon each iteration if you like.
   <p></p>
 
    See Jobs menu/Insert Example/Control.loop for more examples.
@@ -5832,7 +5901,7 @@ The min and max angles of each joint are in constants: <br/>
 through <code>Dexter.J5_ANGLE_MIN</code>
 and     <code>Dexter.J5_ANGLE_MAX</code>,<br/>
 all included in the series <b>Dexter_constant</b>.
-Examples:<br/>
+<i>Examples:</i><br/>
 <code>Dexter.move_all_joints([15, NaN, 30])</code><br/>
 You can pass in an array of up to 7 long, each indicating the
 degrees you want the corresponding joint to move to.<br/>
@@ -5863,7 +5932,7 @@ in a Job.
 <p></p>
 A <code>NaN</code> or missing angle default to 0, meaning
 move 0 degrees relative to the last value given for that joint<br/>
-<i>Example</i>:<br/>
+<i>Example:</i><br/>
 <code>Dexter.move_all_joints_relative([15, 15])</code><br/>
 tells the Job's robot to move joints 1 and 2 to
 an angle that is 15 degrees <i>more</i> than it is currently at.
@@ -5876,13 +5945,13 @@ move_all_joints_relative, as those joint angles are already relative.
 
 <details id="Dexter.move_home_doc_id" class="doc_details"><summary>move_home</summary>
 Moves all joints to 0. J1 is facing forwards, J2, J3, J4 are straight up. J5 
-causes Link 5 to be horizontal pointing forwards.
-Example: <code>Dexter.move_home()</code>
+causes Link 5 to be horizontal pointing forwards.<br/>
+<i>Example</i> <code>Dexter.move_home()</code>
 </details>
 
 <details id="Dexter.move_to_doc_id" class="doc_details"><summary>move_to</summary>
         This instruction commands Dexter to move from where ever it is, to position its
-        end effector at the given x, y, z location. It is complicated by the fact that
+        end effector at the given x, y, z location. "Move to" is complicated by the fact that
         usually there is more than one configuration of Dexter's joints that
         can achieve that position and that Dexter is inherently limited by the
         lengths of its links.<br/>
@@ -5906,6 +5975,9 @@ Example: <code>Dexter.move_home()</code>
         <p></p> If an x, y, or z argument is wrapped in an array, ie <code>[0.1]</code>
         it means move the robot that number of meters relative to where it was told to
         go in the last move command.
+        Note that this argument is required. Position <code>[0, 0, 0]</code>
+        is at the vry base of the robot and is invalid because Dexter's end effector
+        can't go to this location.
         <p></p>
         The J5_direction parameter also affects reachability.
         <p></p>
@@ -5999,7 +6071,19 @@ Example: <code>Dexter.move_home()</code>
     The default of <code>[0]</code> causes Joint 6 not to move.<br/>
     <b>j7_angle</b>  Default: <code>[0]</code> The angle to move Joint 7 to.
     Wrapping it in an array makes the movement relative.
-    The default of <code>[0]</code> causes Joint 7 not to move.
+    The default of <code>[0]</code> causes Joint 7 not to move.<br/>
+    <i>Examples:</i><br/>
+    <code>Dexter.move_to([0, 0.3, 0.4])</code>
+    <p></p>
+    Below is an example using all default values except for the the first one.
+    <pre><code>
+Dexter.move_to([0.1, 0.2, 0.3],      // xyz position
+               [0, 0 ,-1],           // direction
+               Dexter.RIGHT_UP_OUT,  // config
+               null,                 // workspace_pose
+               [0],                  // J6_angle
+               [0]                  // J7_angle
+)  </code></pre>
 </details> <!--end move_to -->
 
 <details id="Dexter.move_to_relative_doc_id" class="doc_details"><summary>move_to_relative</summary>
@@ -6021,7 +6105,7 @@ Example: <code>Dexter.move_home()</code>
     <b>j6_delta_angle</b>  Default: <code>0</code> The relative amount to move Joint 6 to.<br/>
     <b>j7_delta_angle</b>  Default: <code>0</code> The relative amount to move Joint 7 to.
      <p></p>
-     <i>Example</i>:
+     <i>Example:</i>
 <pre><code>new Job({name: "job_mtr",
          do_list: [Dexter.move_all_joints(Dexter.NEUTRAL_ANGLES),
                    Dexter.move_to_relative([0.005, 0.01, 0])
@@ -6076,7 +6160,7 @@ make_ins("T",
          j6_angle, j7_angle)
          </code></pre>
 <p></p>
-Example:<br/>
+<i>Example:</i><br/>
 <pre><code> new Job({name: "job_mts",
           do_list: [Dexter.move_to([0, 0.55, 0.075]),
                     Dexter.move_to_straight({xyz: [0, 0.5, 0.075]})]
@@ -6088,14 +6172,18 @@ location [0, 0.5, 0.075] in a straight line.
 <details id="Dexter.pid_move_all_joints_doc_id" class="doc_details"><summary>pid_move_all_joints</summary>
 Similar to <a href="#" onclick="open_doc('Dexter.move_all_joints_doc_id', event)">Dexter.move_all_joints</a>
 except that it uses a <a href="https://en.wikipedia.org/wiki/PID_controller" target="_blank">
-proportional–integral–derivative controller</a>.
+proportional–integral–derivative controller</a>.<br/>
+<i>Example:</i><br/>
+<code>Dexter.pid_move_all_joints(0, 10, 20, 30, 40)</code>
 </details>
 
 <details id="Dexter.pid_move_to_doc_id" class="doc_details"><summary>pid_move_to</summary>
     Similar to <a href="#" onclick="open_doc('Dexter.move_to_doc_id', event)">Dexter.move_to</a>
     except that it uses a
     <a href="https://en.wikipedia.org/wiki/PID_controller" target="_blank">
-        proportional–integral–derivative controller</a>.
+        proportional–integral–derivative controller</a>.<br/>
+    <i>Example:</i></br/>
+    <code>Dexter.pid_move_to([0, 0.1, 0.2])</code>
 </details>
 
 <details id="Dexter.read_file_doc_id" class="doc_details"><summary>read_file</summary>
@@ -8725,7 +8813,14 @@ Here's the CSS for a bunch more editor properties.
         For a video presentation of much of this content, please watch
         <a href="http://hdrobotic.com/webinar#show_window" target="_blank">show_window (and friends)</a><br/>
         <i>Parameters</i><br/>
-        <b>title</b> A string of the HTML displayed in the window's title bar. Default: "DDE Information"<br/>
+        <b>title</b> A string of the HTML displayed in the window's title bar.
+                     Default: <code>"DDE Information"</code><br/>
+                     If you pass in <code>""</code> , the window will have no title bar.
+                     That means there will be no close box nor collapse box, nor can you drag the window.
+                     This is not normally what you want, but in case you don't want the user
+                     to adjust this window, that functionality is useful.<br/>
+        <b>title_bar_height</b> A number in pixels, Default <code>25</code> <br/>
+        <b>title_bar_color</b> A CSS color, Default <code>"#b8bbff"</code> (purple) <br/>
         <b>width</b> The number of pixels wide that the window will be. Default: 400.
                      Minimum 100: Maximum: <code>window.outerWidth</code><br/>
         <b>height</b> The number of pixels tall that the window will be. Default: 400.
@@ -8788,7 +8883,17 @@ Here's the CSS for a bunch more editor properties.
             })    </code></pre>
         <b>callback</b> A function of one argument. Any returned value will be ignored.
         It will be called when the user clicks a button in
-        a show_window. It's argument will be a literal object. Many of its properties are x and y positions
+        a show_window. It's argument will be a literal object.
+        The most important property in the literal object is "clicked_button_value"
+        which tells you the name or id of the element clicked on.
+        <p></p>
+        Note that a special
+        value for "clicked_button_value" is "close_button" when the user clicks
+        the X in the upper right of a show_window. This will close the window,
+        but the callback function will also be called just in case
+        you want to write some "clean up" code. Usually you can just ignore this.
+        <p></p>
+        Many of its properties are x and y positions
         relative to the top-left of html elements in or containing the clicked position.
         <p></p>
         Others of its properties will be names and the corresponding values of input elements

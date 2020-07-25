@@ -318,7 +318,6 @@ Job.print_job_1.start()
 //facilitating well-coordinated human-machine processes.
 new Job({
     name: "human_task_test",
-    robot: new Dexter(),
     do_list: [
         Human.task({
             task: "Load more filament.",
@@ -331,7 +330,6 @@ new Job({
         }), //waits until user clicks 'Done'.
         Dexter.move_to([0, 0.5, 0.075])
     ]})                           
-Job.lots_of_options_task.start()
 
 //////// Job Example 7b: Dependent Jobs
 new Job({
@@ -342,7 +340,7 @@ new Job({
     ]})
 
 new Job({
-    name: "my_job", robot: new Human({name: "Joe Jones"}),
+    name: "my_job", robot: new Human({name: "Joe_Jones"}),
     do_list: [
         Human.task({
             task: "Load more filament.",
@@ -360,7 +358,7 @@ Job.dependent_job.start(); Job.my_job.start() //start both at once
 
 //////// Job Example 7c: human chooses material from list
 new Job({
-    name: "material_job", robot: new Human({name: "Joe Jones"}),
+    name: "material_job", robot: new Human({name: "Joe_Jones"}),
     do_list: [
         Human.enter_choice({
             task: "Which material should we use?",
@@ -378,7 +376,7 @@ Job.material_job.start()
 //////// Job Example 7d: human enters a number
 new Job({
     name: "number_job",
-    robot: new Human({name: "Joe Jones"}),
+    robot: new Human({name: "Joe_Jones"}),
     do_list: [
         Human.enter_number({
             task: "How many millimeters long should we make the pipe?",
@@ -397,7 +395,7 @@ Job.number_job.start()
 //////// Job Example 7e: human enters text
 new Job({
     name: "text_job",
-    robot: new Human({name: "Joe Jones"}),
+    robot: new Human({name: "Joe_Jones"}),
     do_list: [
         Human.enter_text({
         task: "Describe how this job is going.",
@@ -414,7 +412,7 @@ Job.text_job.start()
 //Tell human something without pausing execution.
 new Job({
     name: "notify_job",
-    robot: new Human({name: "Joe Jones"}),
+    robot: new Human({name: "Joe_Jones"}),
     do_list: [
         Human.notify({
             task: "Take off work early today!",
@@ -427,22 +425,21 @@ new Job({
     ]})
 Job.notify_job.start()
 
-//////// Job Example 7g: Dexter User Interface
+//////// Job Example 7g: Dexter Simple UI
 //Interactivly control Dexter's joints.
-function dexter_user_interface_cb(vals){
-    debugger;
+function dexter_simple_ui_cb(vals){
     let maj_array = [vals.j1_range, vals.j2_range, vals.j3_range, vals.j4_range,
                      vals.j5_range, vals.j6_range, vals.j7_range]
     let instr = Dexter.move_all_joints(maj_array)
     Job.insert_instruction(instr, {job: vals.job_name, offset: "end"})
 }
-function init_dui(){
-  show_window({title: "Dexter User Interface",
+function dexter_simple_ui_init(){
+  show_window({title: "Dexter Simple UI",
                width: 300,
                height: 220,
                y: 20,
                job_name: this.name, //important to sync the correct job.
-               callback: dexter_user_interface_cb,
+               callback: dexter_simple_ui_cb,
                content:\`
 Use the below controls to move Dexter.<br/>
 J1: <input type="range"  name="j1_range"  value="33"  min="-150" max="150" data-oninput="true"/><br/>
@@ -456,9 +453,9 @@ J7: <input type="range"  name="j7_range"  value="33"  min="0"    max="296" data-
 })}
 
 new Job({
-    name: "dexter_user_interface",
+    name: "dexter_simple_ui",
     when_stopped: "wait",
-    do_list: [init_dui
+    do_list: [dexter_simple_ui_init
 ]})
 `,
 

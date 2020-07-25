@@ -134,7 +134,7 @@ new TestSuite("when_stopped_jobs",
     name: "my_job",
     when_stopped: "wait",
     do_list: [Control.stop_job(),
-              Robot.out("should not print")]})`],
+              IO.out("should not print")]})`],
     ["Job.my_job.status_code", "'completed'"]
 )
    
@@ -180,7 +180,7 @@ new TestSuite("when_stopped_error",
    [`new Job({
     name: "my_job",
     user_data: {an_array: [80]},
-    if_instruction_error: Robot.out("got inst error, but let job continue"),
+    if_instruction_error: IO.out("got inst error, but let job continue"),
     when_stopped: function(){ this.user_data.an_array.push(83)}, //runs
     do_list: [
         function(){ this.user_data.an_array.push(81)}, //runs
