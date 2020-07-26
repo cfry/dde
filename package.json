@@ -10,9 +10,8 @@
   "scripts": {
     "test": "dependency-check ./package.json",
     "start": "electron main",
-    "build": "build --dir",
-    "dist": "build",
-    "appveyor": "build.cmd",
+    "build": "electron-builder build --dir",
+    "dist": "electron-builder build",
     "clean": "rimraf dist",
     "postinstall": "electron-builder install-app-deps"
   },
