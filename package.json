@@ -10,11 +10,11 @@
   "scripts": {
     "test": "dependency-check ./package.json",
     "start": "electron main",
-    "rebuild": "electron-rebuild",
     "build": "build --dir",
     "dist": "build",
     "appveyor": "build.cmd",
-    "clean": "rimraf dist"
+    "clean": "rimraf dist",
+    "postinstall": "electron-builder install-app-deps"
   },
   "keywords": [
     "robot",
@@ -55,7 +55,6 @@
     "dependency-check": "^2.8.0",
     "electron": "^5.0.0",
     "electron-builder": "^20.40.2",
-    "electron-rebuild": "^1.8.4",
     "rimraf": "^2.6.1"
   },
   "build": {
