@@ -11,7 +11,7 @@
     "test": "dependency-check ./package.json",
     "start": "electron main",
     "build": "electron-builder build --dir",
-    "dist": "electron-builder build",
+    "dist": "electron-builder build --publish onTag",
     "clean": "rimraf dist",
     "postinstall": "electron-builder install-app-deps"
   },
