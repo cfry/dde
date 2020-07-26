@@ -23,6 +23,8 @@ jobs:
                              libudev-dev
     - run: npm install
     - run: npm run dist
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-macos:
     runs-on: macos-latest
@@ -34,6 +36,8 @@ jobs:
         node-version: ${{ env.NODE_VERSION }}
     - run: npm install
     - run: npm run dist
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-windows:
     runs-on: windows-latest
@@ -45,4 +49,6 @@ jobs:
         node-version: ${{ env.NODE_VERSION }}
     - run: npm install
     - run: npm run dist
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
