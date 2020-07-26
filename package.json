@@ -22,7 +22,6 @@
     "Haddington"
   ],
   "dependencies": {
-    "8": "0.0.1",
     "awesomplete": "^1.1.2",
     "electron-context-menu": "^0.8.0",
     "eslint": "^5.16.0",
