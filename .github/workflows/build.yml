@@ -22,9 +22,12 @@ jobs:
                              build-essential \
                              libudev-dev
     - run: npm install
+    - run: echo $GH_TOKEN
+      env:
+        GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
     - run: npm run dist
       env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
   build-macos:
     runs-on: macos-latest
@@ -37,7 +40,7 @@ jobs:
     - run: npm install
     - run: npm run dist
       env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
   build-windows:
     runs-on: windows-latest
@@ -50,5 +53,5 @@ jobs:
     - run: npm install
     - run: npm run dist
       env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
