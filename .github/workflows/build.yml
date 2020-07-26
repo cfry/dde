@@ -1,14 +1,38 @@
-name: build
+name: Build
 
 on: [push]
 
 jobs:
-  test:
+  build-linux:
     runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest]
+        node: [12]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js ${{ matrix.node }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node }}
+    - run: |
+      sudo apt-get install libxml2-utils   \
+                           icnsutils       \
+                           graphicsmagick  \
+                           xz-utils        \
+                           build-essential \
+                           libudev-dev
+    - run: npm install
+    - run: npm run dist
+
+  build-macos:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [macos-latest]
         node: [12]
 
     steps:
@@ -19,3 +43,21 @@ jobs:
         node-version: ${{ matrix.node }}
     - run: npm install
     - run: npm run dist
+
+  build-windows:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [windows-latest]
+        node: [12]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js ${{ matrix.node }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node }}
+    - run: npm install
+    - run: npm run dist
+
