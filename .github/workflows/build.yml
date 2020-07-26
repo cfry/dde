@@ -2,62 +2,47 @@ name: Build
 
 on: [push]
 
+env:
+  NODE_VERSION: 12
+
 jobs:
   build-linux:
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        node: [12]
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
-    - name: Use Node.js ${{ matrix.node }}
-      uses: actions/setup-node@v1
+    - uses: actions/setup-node@v1
       with:
-        node-version: ${{ matrix.node }}
+        node-version: ${{ env.NODE_VERSION }}
     - run: |
-      sudo apt-get install libxml2-utils   \
-                           icnsutils       \
-                           graphicsmagick  \
-                           xz-utils        \
-                           build-essential \
-                           libudev-dev
+        sudo apt-get install libxml2-utils   \
+                             icnsutils       \
+                             graphicsmagick  \
+                             xz-utils        \
+                             build-essential \
+                             libudev-dev
     - run: npm install
     - run: npm run dist
 
   build-macos:
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        os: [macos-latest]
-        node: [12]
+    runs-on: macos-latest
 
     steps:
     - uses: actions/checkout@v2
-    - name: Use Node.js ${{ matrix.node }}
-      uses: actions/setup-node@v1
+    - uses: actions/setup-node@v1
       with:
-        node-version: ${{ matrix.node }}
+        node-version: ${{ env.NODE_VERSION }}
     - run: npm install
     - run: npm run dist
 
   build-windows:
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        os: [windows-latest]
-        node: [12]
+    runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v2
-    - name: Use Node.js ${{ matrix.node }}
-      uses: actions/setup-node@v1
+    - uses: actions/setup-node@v1
       with:
-        node-version: ${{ matrix.node }}
+        node-version: ${{ env.NODE_VERSION }}
     - run: npm install
     - run: npm run dist
 
