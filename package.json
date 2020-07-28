@@ -8,10 +8,10 @@
   "license": "GPL-3.0",
   "main": "main.js",
   "scripts": {
-    "test": "dependency-check ./package.json",
     "start": "electron main",
     "build": "electron-builder build --dir",
-    "dist": "electron-builder build --publish onTag",
+    "test-build": "electron-builder build --publish never",
+    "release": "electron-builder build --publish always",
     "clean": "rimraf dist",
     "postinstall": "electron-builder install-app-deps"
   },
@@ -51,7 +51,6 @@
     "webmidi": "^2.2.0"
   },
   "devDependencies": {
-    "dependency-check": "^2.8.0",
     "electron": "^5.0.0",
     "electron-builder": "^22.7.0",
     "rimraf": "^2.6.1"
