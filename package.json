@@ -1,20 +1,19 @@
 {
   "name": "dexter_dev_env",
   "productName": "dexter_dev_env",
-  "version": "3.6.1",
+  "version": "3.6.2-1",
   "release_date": "Jul 24, 2020",
   "description": "Dexter Development Environment",
   "author": "Fry",
   "license": "GPL-3.0",
   "main": "main.js",
   "scripts": {
-    "test": "dependency-check ./package.json",
     "start": "electron main",
-    "rebuild": "electron-rebuild",
-    "build": "build --dir",
-    "dist": "build",
-    "appveyor": "build.cmd",
-    "clean": "rimraf dist"
+    "build": "electron-builder build --dir",
+    "test-build": "electron-builder build --publish never",
+    "release": "electron-builder build --publish always",
+    "clean": "rimraf dist",
+    "postinstall": "electron-builder install-app-deps"
   },
   "keywords": [
     "robot",
@@ -22,7 +21,6 @@
     "Haddington"
   ],
   "dependencies": {
-    "8": "0.0.1",
     "awesomplete": "^1.1.2",
     "electron-context-menu": "^0.8.0",
     "eslint": "^5.16.0",
@@ -53,10 +51,8 @@
     "webmidi": "^2.2.0"
   },
   "devDependencies": {
-    "dependency-check": "^2.8.0",
     "electron": "^5.0.0",
-    "electron-builder": "^20.40.2",
-    "electron-rebuild": "^1.8.4",
+    "electron-builder": "^22.7.0",
     "rimraf": "^2.6.1"
   },
   "build": {

@@ -1,0 +1,70 @@
+name: Build
+
+on: [push]
+
+env:
+  NODE_VERSION: 12
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v1
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+    - run: |
+        sudo apt-get install libxml2-utils   \
+                             icnsutils       \
+                             graphicsmagick  \
+                             xz-utils        \
+                             build-essential \
+                             libudev-dev
+    - uses: olegtarasov/get-tag@v2
+      id: tag_name
+    - run: npm install
+    - run: npm run test-build
+      if: ${{ !steps.tag_name.outputs.tag }}
+    - run: npm run release
+      if: ${{ steps.tag_name.outputs.tag }}
+      env:
+        GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
+
+  build-macos:
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v1
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+    - uses: olegtarasov/get-tag@v2
+      id: tag_name
+    - run: npm install
+    - run: npm run test-build
+      if: ${{ !steps.tag_name.outputs.tag }}
+    - run: npm run release
+      if: ${{ steps.tag_name.outputs.tag }}
+      env:
+        GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v1
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+    - uses: olegtarasov/get-tag@v2
+      id: tag_name
+    - run: npm install
+    - run: npm run test-build
+      if: ${{ !steps.tag_name.outputs.tag }}
+    - run: npm run release
+      if: ${{ steps.tag_name.outputs.tag }}
+      env:
+        GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
