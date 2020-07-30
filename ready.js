@@ -1476,7 +1476,9 @@ foo      //eval to see the latest values</pre>`,
     // rde.ping() //rde.shell("date") //will show an error message
     Editor.restore_files_menu_paths_and_last_file()
      //simulate_help_id.onclick=function(){ open_doc(simulate_doc_id) }
-    misc_pane_menu_changed(persistent_get("misc_pane_content"))
+    let misc_pane_content_str = persistent_get("misc_pane_content")
+    //if(!misc_pane_content_str) { misc_pane_content_str = "Simulate Dexter" } //shouldn't be necessary due to  persistent_load_fill_in_defaults()
+    misc_pane_menu_changed(misc_pane_content_str)
 
     simulate_radio_true_id.onclick  = function(){
           persistent_set("default_dexter_simulate", true);   event.stopPropagation()

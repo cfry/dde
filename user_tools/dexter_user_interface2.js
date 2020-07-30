@@ -343,10 +343,17 @@ cir1.setAttribute("cy", 42)
 //strategy: convert the changed values into maj_angles, set dui2_instance.maj_angles and, at the end,
 // call update_all once regardless of who started it.
 static dexter_user_interface_cb(vals){
+    debugger;
     //out("dui_cb got clicked_button_value: " + vals.clicked_button_value +
     //    " which has val: " + vals[vals.clicked_button_value])
     let dui2_instance = dui2.show_window_elt_id_to_dui2_instance(vals.show_window_elt_id)
-    if(["xy_2d_slider", "z_slider"].includes(vals.clicked_button_value)){
+    if(vals.clicked_button_value == "close_button"){
+        let inst_index = dui2.instances.indexOf(dui2_instance)
+        if(inst_index == -1) { shouldnt("in dexter_user_interface_cb with close_button") }
+        else { dui2.instances.splice(inst_index, 1) } //cut out the instance from the instances list
+        return
+    }
+    else if(["xy_2d_slider", "z_slider"].includes(vals.clicked_button_value)){
         let cir_xy_obj = vals.xy_2d_slider
         //out(JSON.stringify(cir_xy_obj))
         let x = parseFloat(cir_xy_obj.cx)
@@ -428,7 +435,9 @@ static dexter_user_interface_cb(vals){
         dui2_instance.set_maj_angles([0, 0, 0, 0, 0, 0, 0])
     }
     else if(vals.clicked_button_value == "editor"){
-        let full_src  = Editor.get_javascript()
+        let continue_running = dui2.editor_button_click_action(dui2_instance)
+        if(!continue_running) { return } //either a bad instruction or not a maj or mt instruction so stop processing here
+       /* let full_src  = Editor.get_javascript()
         let start_pos = Editor.selection_start()
         let start_char = full_src[start_pos]
         if((start_char == "\n") && (start_pos > 0)) { //treat clicking on the end of a line, as if
@@ -478,7 +487,7 @@ static dexter_user_interface_cb(vals){
             else{ return } //not one of the instructtion we need
             Editor.select_javascript(expr_start_pos, close_paren_pos + 1)
             dui2_instance.set_maj_angles(angles)
-        }
+            */
     }
     else if(vals.clicked_button_value.endsWith("_range")){ //a joint slider
         dui2_instance.set_maj_angles([vals.j1_range, vals.j2_range, vals.j3_range, vals.j4_range,
@@ -613,6 +622,63 @@ static dexter_user_interface_cb(vals){
     Job.insert_instruction(instr, {job: vals.job_name, offset: "end"})
     //out("inserted instr: " + instr)
 }
+
+   //called from Job.go with dui2.instances guarenteed to be non-empty
+   static go_button_click_action(){
+       let dui2_instance = last(dui2.instances)
+       if(pause_id.checked) {
+           let start_pos = Editor.selection_start()
+           let end_pos   = Editor.selection_end()
+           let full_src  = Editor.get_javascript()
+           if(start_pos != end_pos) { //selection so do the NEXT instruction
+              let new_start_pos = Editor.find_forward_whitespace(full_src, end_pos)
+               Editor.select_javascript(new_start_pos, new_start_pos) //and now just use
+               //the dui2.editor_button_click_action as is.
+           }
+           let continue_running = dui2.editor_button_click_action(dui2_instance)
+           if(!continue_running) { return }
+           else {
+               dui2_instance.update_all(dui2_instance.should_point_down) // do update_all before move_all_joints because update_all may modify ui2_instance.maj_angles if the direction_checkbox is checked
+               let instr = Dexter.pid_move_all_joints(dui2_instance.maj_angles)
+               Job.insert_instruction(instr, {job: dui2_instance.job_name, offset: "end"})
+           }
+       }
+   }
+   //also used by "GO" button for stepping
+   static editor_button_click_action(dui2_instance) {
+       let full_src  = Editor.get_javascript()
+       let start_pos = Editor.selection_start()
+       let start_and_end_array = Editor.start_and_end_of_instruction_on_line(full_src, start_pos)
+       if(start_and_end_array == null) { return null } //no instruction on current line.
+       let instr_src = full_src.substring(start_and_end_array[0], start_and_end_array[1])
+       let instr_obj
+       try{
+           instr_obj = eval(instr_src)
+       }
+       catch(err) { return null } //invalid instruction so just ignore it
+       let angles
+       let instr_type = null
+       if((instr_obj instanceof Instruction.Dexter.move_all_joints) ||
+           (instr_obj instanceof Instruction.Dexter.pid_move_all_joints)){
+           angles = instr_obj.array_of_angles
+           instr_type = "maj"
+       }
+       else if ((instr_obj instanceof Instruction.Dexter.move_to) ||
+           (instr_obj instanceof Instruction.Dexter.pid_move_to)) {
+           angles = Kin.xyz_to_J_angles(instr_obj.xyz, instr_obj.J5_direction,
+                                        instr_obj.config, instr_obj.workspace_pos)
+           instr_type = "maj"
+       }
+       Editor.select_javascript(start_and_end_array[0], start_and_end_array[1])
+       if(angles) {
+            dui2_instance.set_maj_angles(angles)
+            return true //continue running in
+       }
+       else { //we just have a non-mt or maj instruction which we should run anyway.
+           Job.insert_instruction(instr, {job: dui2_instance.job_name, offset: "end"})
+           return null
+       }
+   }
    //maybe unused
    static is_on_last_instruction(full_src, end_pos) {
         let close_angle_pos = full_src.indexOf("]})", end_pos)

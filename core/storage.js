@@ -131,6 +131,22 @@ function persistent_load(){
         if(persistent_values.dde_window_width  <= 60)  { persistent_values.dde_window_width  = the_defaults.dde_window_width  }
         if(persistent_values.dde_window_height <= 20)  { persistent_values.dde_window_height = the_defaults.dde_window_height }
     }
+    persistent_load_fill_in_defaults() //this is needed when a new perosistent var is added accross a relese,
+                                       //or the user deletes a varin the .json file
+}
+
+function persistent_load_fill_in_defaults(){
+    let defaults = get_persistent_values_defaults()
+    let needs_saving = false
+    for(let key in defaults){
+       if(!persistent_values.hasOwnProperty(key)){
+           persistent_values[key] = defaults[key]
+           needs_saving = true
+       }
+    }
+    if(needs_saving){
+        persistent_save()
+    }
 }
 
 function persistent_set(key, value){

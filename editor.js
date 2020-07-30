@@ -1149,6 +1149,50 @@ Editor.start_and_end_of_js_call_at_pos = function(js_src, js_cursor_pos){
     else { return [start, end] }
 }
 
+//grab the start and end of the first instruction that starts on the LINE
+//of the cur_pos. The iinstruction can end on another line.
+//if cur_pos is a newline, the cursor will be blinking on the line "above"
+//the newline, not below it. In that case we still want to find the forward instr,
+//not the backward one. If no instr starts on the line, return null.
+//if malformed instruction, return null.
+// return array of [start_pos_of_instru, one_after_end_pos_of_instr]
+//tries to find: fn call, fn def, lit array, lit string,
+// identifier presumed to be either null, or a var ref.
+Editor.start_and_end_of_instruction_on_line = function(full_src, cur_pos){
+    let cur_pos_char = full_src[cur_pos]
+    let cur_pos_is_newline = cur_pos_char == "\n"
+    let prev_newline_pos = Editor.find_backwards(full_src, cur_pos, "\n")
+    let first_non_whitespace_pos = Editor.skip_forward_over_whitespace(full_src, cur_pos)
+    let first_non_whitespace_char = full_src[first_non_whitespace_pos]
+    let next_newline_pos = Editor.find_forwards(full_src, (cur_pos_is_newline ? cur_pos + 1 : cur_pos), "\n")
+    if(first_non_whitespace_pos > next_newline_pos) { return null } //no non-whitespace on the line, so no instr can start on it
+    if(full_src.startsWith("function(", first_non_whitespace_pos)){
+        let open_curley_bracket = Editor.find_forwards(full_src, first_non_whitespace_pos, "{")
+        if(open_curley_bracket === -1) { return null } //malformed function, no {
+        let close_curley_bracket = Editor.find_matching_close(full_src, open_curley_bracket)
+        if(close_square_bracket === -1) { return null } //malformed function, no }
+        return [first_non_whitespace_pos, close_curley_bracket + 1]
+    }
+    if (first_non_whitespace_char == "[") {
+        let close_square_bracket = Editor.find_matching_close(full_src, first_non_whitespace_char)
+        if(close_square_bracket === -1) { return null }
+        return [first_non_whitespace_pos, close_square_bracket + 1]
+    }
+    let open_paren_pos =  Editor.find_forwards(full_src, first_non_whitespace_pos, "(")
+    if((open_paren_pos != -1) && (open_paren_pos < next_newline_pos)) { //presume we've got a call as our instr that starts on the THE line
+        let close_paren_pos = Editor.find_matching_close(full_src, open_paren_pos)
+        if(close_paren_pos === -1) { return null } //malformed fn call, no close paran
+        return [first_non_whitespace_pos, close_paren_pos + 1]
+    }
+    if(Editor.is_quote(first_non_whitespace_char)) { //looks like string instruction
+        return Editor.find_literal_string(full_src, first_non_whitespace_char)
+    }
+    //since we know we have non-whitespace on the line and it doesn't look like anything else,
+    //we probably have a var reference, so just return the bounds of that.
+    let whitespace_after_first_non_whitespace_pos = Editor.find_forward_whitespace(full_src, first_non_whitespace_char)
+    return [first_non_whitespace_char, whitespace_after_first_non_whitespace_pos]
+}
+
 
 //assumes that editor cursor is after end_action_name
 //returns string error message or true for success
@@ -1747,6 +1791,17 @@ Editor.find_forward_delimiter = function(full_src, cursor_pos=0){
     else {
         return cursor_pos + match.index
     }
+}
+
+//returns the pos of the first whitespace at or forward of cursor_pos.
+//if reach the end of full_src with no whitespace chars, return full_src.length
+//as functionally for JS parsing, that's a whitespace.
+Editor.find_forward_whitespace = function(full_src, cursor_pos=0){
+    for(let i = cursor_pos; i < full_src.length; i++){
+        let char = full_src[i]
+        if(is_whitespace(char)) { return i }
+    }
+    return full_src.length
 }
 
 //skips over // comments

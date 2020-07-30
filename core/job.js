@@ -1681,7 +1681,10 @@ Job.set_go_button_state = function(bool){
 }
 
 Job.go = function(){
-    if (Job.go_button_state){
+    if(window.dui2 && dui2.instances.length > 0) {
+        dui2.go_button_click_action()
+    }
+    else if (Job.go_button_state){
         let any_active_jobs = false
         for(let a_job of Job.all_jobs()){
             if (a_job.is_active()){
@@ -1728,7 +1731,7 @@ Job.prototype.set_up_next_do = function(program_counter_increment = 1, allow_onc
             program_counter_increment = 0 //don't increment because we want pc and highest_completed_instruction_id
                                           // to be the instruction that errored when the job finishes.
         }
-        if ((program_counter_increment > 0) && //if this is 0, it means we hanven't completed its associated (PC) instr yet.
+        if ((program_counter_increment > 0) && //if this is 0, it means we haven't completed its associated (PC) instr yet.
                                                //if this is < 0, we're backing up so don't change highest_completed_instruction_id
             (job_instance.program_counter > job_instance.highest_completed_instruction_id) && //if these were the same, setting highest_completed_instruction_id would just bre to its same value
             (job_instance.program_counter < job_instance.do_list.length))   //NEW mar 23, 2019: in case pc goes off the end, we don't want to set highest_completed_instruction_id off the end
@@ -1773,7 +1776,10 @@ Job.prototype.set_up_next_do = function(program_counter_increment = 1, allow_onc
         let out_text = job_instance.name + " paused after program_counter=" + job_instance.program_counter + " of " +
                        job_instance.do_list.length + suffix + "<br/>"
         if(job_instance.program_counter >= 0) {
-            out_text +=  "Prev ins: " + Instruction.text_for_do_list_item_for_stepper(this.do_list[job_instance.program_counter])
+           let instr = this.do_list[job_instance.program_counter]
+           if(instr) { //this may be undefined if using dui2 and you check the pause_id checkbox
+                out_text +=  "Prev ins: " + Instruction.text_for_do_list_item_for_stepper(instr)
+           }
         }
         else { out_text +=  "Prev ins: None" }
         out_text += "<br/> Next ins: "
