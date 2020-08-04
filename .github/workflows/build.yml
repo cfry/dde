@@ -49,6 +49,8 @@ jobs:
       if: ${{ steps.tag_name.outputs.tag }}
       env:
         GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        CSC_KEY_PASSWORD: "${{ secrets.CSC_KEY_PASSWORD }}"
+        CSC_LINK: "${{ secrets.CSC_LINK }}"
 
   build-windows:
     runs-on: windows-latest
