@@ -60,17 +60,17 @@ function misc_pane_menu_changed(select_val){
            '<div style="white-space:nowrap;">Simulate Job/Robot: <select id="job_or_robot_to_simulate_id">' +
             '</select><b style="margin-left:15px;">Move Dur: </b><span id="sim_pane_move_dur_id"></span> s' +
             ' <button onclick="SimBuild.init()">Load SimBuild</button></div>' +
-            '<b>X: </b><span id="sim_pane_x_id" style="min-width:50px; text-align:left; display:inline-block"></span>' +  //"margin-left:5px;
-            '<b> Y: </b><span id="sim_pane_y_id" style="min-width:50px; text-align:left; display:inline-block"></span>' +  //"margin-left:5px;
-            '<b> Z: </b><span id="sim_pane_z_id" style="min-width:50px; text-align:left; display:inline-block"></span> meters' +  //"margin-left:5px;
+            '<b title="X position of end effector in meters.">X: </b><span id="sim_pane_x_id" style="min-width:50px; text-align:left; display:inline-block"></span>' +  //"margin-left:5px;
+            '<b title="Y position of end effector in meters."> Y: </b><span id="sim_pane_y_id" style="min-width:50px; text-align:left; display:inline-block"></span>' +  //"margin-left:5px;
+            '<b title="Z position of end effector in meters."> Z: </b><span id="sim_pane_z_id" style="min-width:50px; text-align:left; display:inline-block"></span>' +  //"margin-left:5px;
             '<div style="white-space:nowrap;">' +
-            '<b> J1: </b><span id="sim_pane_j1_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +  //"margin-left:5px;
-            '<b> J2: </b><span id="sim_pane_j2_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +
-            '<b> J3: </b><span id="sim_pane_j3_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +
-            '<b> J4: </b><span id="sim_pane_j4_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +
-            '<b> J5: </b><span id="sim_pane_j5_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +
-            '<b> J6: </b><span id="sim_pane_j6_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +
-            '<b> J7: </b><span id="sim_pane_j7_id" style="min-width:30px; text-align:left; display:inline-block"></span> degrees</div>' +
+            '<b title="Joint 1 angle in degrees."> J1: </b><span id="sim_pane_j1_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +  //"margin-left:5px;
+            '<b title="Joint 2 angle in degrees."> J2: </b><span id="sim_pane_j2_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +
+            '<b title="Joint 3 angle in degrees."> J3: </b><span id="sim_pane_j3_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +
+            '<b title="Joint 4 angle in degrees."> J4: </b><span id="sim_pane_j4_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +
+            '<b title="Joint 5 angle in degrees."> J5: </b><span id="sim_pane_j5_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +
+            '<b title="Joint 6 angle in degrees."> J6: </b><span id="sim_pane_j6_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +
+            '<b title="Joint 7 angle in degrees."> J7: </b><span id="sim_pane_j7_id" style="min-width:30px; text-align:left; display:inline-block"></span></div>' +
             '<div id="sim_graphics_pane_id"></div>'
         refresh_job_or_robot_to_simulate_id()
         open_doc(simulate_pane_doc_id)
@@ -97,6 +97,72 @@ function misc_pane_menu_changed(select_val){
             sim.scene.add(mesh)
         })
         stl_render()
+    }
+    else if (select_val.endsWith(".fbx")){
+        clear_out_sim_graphics_pane_id()
+        stl_init_viewer()
+        // from https://github.com/ckddbs/three-fbx-loader/commit/b3bc39bef2a4253abf2acc780870a03f5f9cd510
+        var FBXLoader = require('three-fbx-loader')
+        var loader = new FBXLoader()
+        //loader.load(select_val, function (object) { sim.scene.add(object)})
+        loader.load(select_val,
+                    function (object) {
+                        // object3d is a THREE.Group (THREE.Object3D)
+                        //const mixer = new THREE.AnimationMixer(object3d);
+                        // animations is a list of THREE.AnimationClip
+                        //mixer.clipAction(object3d.animations[0]).play();
+                        //https://discourse.threejs.org/t/fbx-model-default-material-is-meshphongmaterial-how-to-change/2855/2
+                        object.traverse( function ( child ) {
+
+                            if ( child.type === "Mesh" ) {
+
+                                // switch the material here - you'll need to take the settings from the
+                                //original material, or create your own new settings, something like:
+                                const oldMat = child.material;
+                                //https://discourse.threejs.org/t/fbx-model-default-material-is-meshphongmaterial-how-to-change/2855/2
+                                //says in is experience, all fbx files have only material of MeshPhongMaterial, but at least one of
+                                //Dexter's materials from fusion 360 is an ARRAY of 3 MeshPhongMaterial. Maybe that causes a problem
+                                const old_color = (Array.isArray(oldMat) ? oldMat[0].color : oldMat.color)
+                                child.material = new THREE.MeshNormalMaterial({})
+                                       //new THREE.MeshLambertMaterial( {color: old_color, map: oldMat.map, /*etc*/} );
+                                let geom = child.geometry
+                                geom.scale(0.001, 0.001, 0.001)
+                                let pos = child.position
+                                child.position.set(pos.x * 0.001,
+                                                   pos.y * 0.001,
+                                                   pos.z * 0.001)
+                            }
+                        } );
+                        //var mixer = new THREE.AnimationMixer( object );
+                        //var action = mixer.clipAction( object.animations[ 0 ] );
+                        //action.play();
+                       sim.scene.add(object)
+                    },
+                    undefined,
+                    function (err) {
+                        console.error( err );
+                    }
+        )
+        setTimeout(fbx_render, 400)
+    }
+    else if (select_val.endsWith(".gltf")){
+        clear_out_sim_graphics_pane_id()
+        stl_init_viewer()
+        // from https://github.com/ckddbs/three-fbx-loader/commit/b3bc39bef2a4253abf2acc780870a03f5f9cd510
+        //https://threejs.org/docs/#examples/en/loaders/GLTFLoader
+        var GLTFLoader = require('three-gltf-loader')
+        var loader = new GLTFLoader()
+
+        loader.load(select_val,
+            function (gltf) {
+                sim.scene.add(gltf.scene)
+            },
+            undefined,
+            function (err) {
+                console.error( err );
+            }
+        )
+        setTimeout(gltf_render, 400)
     }
    // else if (select_val.startsWith("http")){
         ////play_youtube_video(select_val)

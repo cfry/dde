@@ -440,16 +440,28 @@ function inspect_one_liner_regular_fn(item){
      */
 }
 
+function inspect_insert_first_part_of_file(path){
+    let the_file_content = read_file(path)
+    if(the_file_content > 100000) {
+        the_file_content = the_file_content.substring(0, 100000)
+        warning("This file is more than 100,000 characters long.<br/>Only inserting the first 100,000 characters.")
+    }
+    Editor.insert(the_file_content)
+}
+
 function inspect_one_liner_existing_file_path(item){
     item = make_full_path(item)
     let the_file_content = read_file(item)
     the_file_content = replace_substrings(the_file_content, "<", "&lt;") //if I don't do this, fns with bodies containing tags
     let file_length = the_file_content.length
+    let title_suffix = "&#013;This file has length: " + file_length
     if(file_length > 100000){
         the_file_content = "<i>length: " + file_length + " truncated for display to: " + 100000 + "</i><br/>" +
-                     the_file_content.substring(the_file_content)
+                     the_file_content.substring(0, 100000)
+        title_suffix += "&#013;Only the first 100000 will be inserted."
     }
-    let insert_button_html = "<button title='Insert the content of this file&#013;at the editor cursor.' onclick='Editor.insert(`" + the_file_content + "`)'>Insert</button>"
+    let title = 'Insert the content of this file&#013;at the editor cursor.' + title_suffix
+    let insert_button_html = `<button title='` + title + `' onclick='inspect_insert_first_part_of_file("` + item + `")'>Insert</button>`
     let first_part = "File: " + item + " length: " + file_length + " "  + insert_button_html
     result = "<details style='display:inline-block;'><summary><code style='background-color:transparent;'>" +
             //"<i>String of " + item.length + "</i>: " +

@@ -246,6 +246,7 @@ var TestSuite = class TestSuite{
         //this.suites = [] //bad: causes ref man tests not to run, //warning, wipes out any user defined test suites. Maybe not good.
 
         load_files(__dirname + "/test_suite/math_testsuite.js")
+        load_files(__dirname + "/test_suite/utils_testsuite.js")
         load_files(__dirname + "/test_suite/move_all_joints_testsuite.js")
         load_files(__dirname + "/music/note_testsuite.js")
         load_files(__dirname + "/music/phrase_testsuite.js")
@@ -915,9 +916,29 @@ var TestSuite = class TestSuite{
             Editor.select_javascript(start, end)
         }
         else{
-            new_text = 'new TestSuite("rename_me",\n    ' + new_text + '\n)\n'
+            let testsuite_name
+            let testsuite_name_source = new_text.substring(2) //get rid of open square braket and quote char
+            let index_of_open_paren = testsuite_name_source.indexOf("(")
+            let index_of_space = testsuite_name_source.indexOf(" ")
+            let index_of_comma = testsuite_name_source.indexOf(",")
+            let index_of_single_quote = testsuite_name_source.indexOf("'")
+            let index_of_double_quote = testsuite_name_source.indexOf('"')
+            let end_index = this.lowest_number_thats_not_negative([index_of_open_paren, index_of_space, index_of_comma, index_of_single_quote, index_of_double_quote])
+            if(end_index == null) {  testsuite_name = "rename_me" }
+            else { testsuite_name = testsuite_name_source.substring(0, end_index) }
+            new_text = 'new TestSuite("' + testsuite_name + '",\n    ' + new_text + '\n)\n'
             Editor.replace_selection(new_text, true)
         }
+    }
+
+    //returns null if all numbers are neg or array_of_numbers is empty
+    static lowest_number_thats_not_negative(array_of_numbers){
+        let non_negs = []
+        for(let num of array_of_numbers) {
+            if(num >= 0) { non_negs.push(num) }
+        }
+        if(non_negs.length === 0) { return null }
+        return Math.min.apply(null, non_negs)
     }
     static find_test_suites(string_to_search_for){
         let result_tses = []

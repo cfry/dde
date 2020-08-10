@@ -240,6 +240,27 @@ function is_whitespace(a_string){
 
 module.exports.is_whitespace = is_whitespace
 
+//the empty string is considered a comment as is all whitespace strings
+//and strings of prefix whitespace followed by // follwoed by no newline
+//and whitespace /* some text */ whitespace
+function is_comment(a_string){
+    a_string = a_string.trim()
+    if(a_string.length == 0) { return true }
+    else if (a_string.startsWith("//") &&
+        (a_string.indexOf("\n") === -1)) {
+        return true
+    }
+    else if (a_string.startsWith("/*") &&
+             a_string.endsWith("*/")) {
+        return true
+    }
+    else { return false }
+}
+
+module.exports.is_comment = is_comment
+
+
+
 function is_generator_function(obj){
     return obj.constructor && obj.constructor.name == "GeneratorFunction"
 }
@@ -1309,8 +1330,8 @@ function regexp_escape_special_chars(str){
 
 
 //the first arg to new RegExp is a regexp pattern that treats
-//lots of punctuation chars like parans specially.
-//To turn off that special treatment, pass in a 3rd arg of false
+//lots of punctuation chars like parens specially.
+//To turn off that special treatment, pass in a 4th arg of false
 function replace_substrings(orig_string, substring_to_replace, replacement, substring_to_replace_treated_specially=true){
     if(!substring_to_replace_treated_specially) {
         substring_to_replace = regexp_escape_special_chars(substring_to_replace)

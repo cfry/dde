@@ -256,6 +256,22 @@ Editor.add_path_to_files_menu = function(path){
         }
 }
 
+//returns true or false.
+// Called by Editor.restore_files_menu_paths_and_last_file and
+//storage.js dde_init_dot_js_initialize
+// This implies that user is a first time user, OR at least
+// hasn't saved any files so they haven't used DDE much at all.
+Editor.files_menu_paths_empty_or_contains_only_dde_init = function(){
+    const paths =  persistent_get("files_menu_paths")
+    if(paths.length == 0) { return true }
+    else if ((paths.length == 1) &&
+            ((paths[0] == "dde_init.js") ||
+             paths[0].endsWith("dde_apps/dde_init.js"))) {
+        return true
+    }
+    else { return false }
+}
+
 Editor.restore_files_menu_paths_and_last_file = function(){ //called by on ready
     if(file_exists("") && file_exists("dde_persistent.json")){ //Documents/dde_apps
         const paths =  persistent_get("files_menu_paths")
@@ -265,22 +281,23 @@ Editor.restore_files_menu_paths_and_last_file = function(){ //called by on ready
             html += '<option>' + inner_path + "</option>"
         }
         file_name_id.innerHTML = html
-        if (paths.length > 0) {
+        let latest_file = paths[0]
+        if(Editor.files_menu_paths_empty_or_contains_only_dde_init()){
+            Editor.edit_new_file()
+        }
+        else {
             try {
-                Editor.edit_file(paths[0]) //sometimes paths[0] will be 'new buffer' and that's fine
+                Editor.edit_file(latest_file) //sometimes paths[0] will be 'new buffer' and that's fine
             }
             catch(err) {
-                warning("Could not find the last edited file:<br/><code title='unEVALable'>" + paths[0] +
+                warning("Could not find the last edited file:<br/><code title='unEVALable'>" + latest_file +
                         "</code><br/> to insert into the editor.")
                 Editor.edit_new_file()
             }
         }
-        else {
-            Editor.edit_new_file()
-        }
     }
     else {
-        warning("could not find the file: dde_apps/dde_perisistend.json")
+        warning("could not find the file: dde_apps/dde_perisistent.json")
     }
 }
 
@@ -1165,32 +1182,69 @@ Editor.start_and_end_of_instruction_on_line = function(full_src, cur_pos){
     let first_non_whitespace_pos = Editor.skip_forward_over_whitespace(full_src, cur_pos)
     let first_non_whitespace_char = full_src[first_non_whitespace_pos]
     let next_newline_pos = Editor.find_forwards(full_src, (cur_pos_is_newline ? cur_pos + 1 : cur_pos), "\n")
-    if(first_non_whitespace_pos > next_newline_pos) { return null } //no non-whitespace on the line, so no instr can start on it
-    if(full_src.startsWith("function(", first_non_whitespace_pos)){
-        let open_curley_bracket = Editor.find_forwards(full_src, first_non_whitespace_pos, "{")
-        if(open_curley_bracket === -1) { return null } //malformed function, no {
-        let close_curley_bracket = Editor.find_matching_close(full_src, open_curley_bracket)
-        if(close_square_bracket === -1) { return null } //malformed function, no }
-        return [first_non_whitespace_pos, close_curley_bracket + 1]
+    let cur_pos_to_next_newline_str = full_src.substring(cur_pos, next_newline_pos)
+    if(is_whitespace(cur_pos_to_next_newline_str)){ //skip over this
+        return Editor.start_and_end_of_instruction_on_line(full_src, next_newline_pos + 1)
     }
-    if (first_non_whitespace_char == "[") {
-        let close_square_bracket = Editor.find_matching_close(full_src, first_non_whitespace_char)
-        if(close_square_bracket === -1) { return null }
-        return [first_non_whitespace_pos, close_square_bracket + 1]
+    else if (is_comment(cur_pos_to_next_newline_str)) { //skip over this
+        return Editor.start_and_end_of_instruction_on_line(full_src, next_newline_pos + 1)
     }
-    let open_paren_pos =  Editor.find_forwards(full_src, first_non_whitespace_pos, "(")
-    if((open_paren_pos != -1) && (open_paren_pos < next_newline_pos)) { //presume we've got a call as our instr that starts on the THE line
-        let close_paren_pos = Editor.find_matching_close(full_src, open_paren_pos)
-        if(close_paren_pos === -1) { return null } //malformed fn call, no close paran
-        return [first_non_whitespace_pos, close_paren_pos + 1]
+    else if(full_src.startsWith( "/*", first_non_whitespace_pos)){
+        let comment_end_pos = full_src.indexOf("*/")
+        if(comment_end_pos == -1) {
+            warning("Found /* but did not find corresponding */")
+            return null
+        }
+        else {
+            return Editor.start_and_end_of_instruction_on_line(full_src, comment_end_pos + 2)
+        }
     }
-    if(Editor.is_quote(first_non_whitespace_char)) { //looks like string instruction
-        return Editor.find_literal_string(full_src, first_non_whitespace_char)
+    else {
+        if(first_non_whitespace_pos > next_newline_pos) { return null } //no non-whitespace on the line, so no instr can start on it
+        else if(full_src.startsWith("function(", first_non_whitespace_pos)){
+            let open_curley_bracket = Editor.find_forwards(full_src, first_non_whitespace_pos, "{")
+            if(open_curley_bracket === -1) { return null } //malformed function, no {
+            let close_curley_bracket_pos = Editor.find_matching_close(full_src, open_curley_bracket)
+            if(close_curley_bracket_pos === -1) { return null } //malformed function, no }
+            return [first_non_whitespace_pos, close_curley_bracket_pos + 1]
+        }
+        else if (first_non_whitespace_char == "[") {
+            let close_square_bracket_pos = Editor.find_matching_close(full_src, first_non_whitespace_pos)
+            if(close_square_bracket_pos === -1) { return null }
+            return [first_non_whitespace_pos, close_square_bracket_pos + 1]
+        }
+        else if (first_non_whitespace_char === "]"){
+            let second_non_whitespace_pos = Editor.skip_forward_over_whitespace(full_src, first_non_whitespace_pos + 1)
+            let second_non_whitespace_char = full_src[second_non_whitespace_pos]
+            if(second_non_whitespace_char === "}") {
+                warning("No more instructions detected in the Job.")
+                return null
+            } //end of job, no more instructions.
+        }
+        else {
+            let open_paren_pos =  Editor.find_forwards(full_src, first_non_whitespace_pos, "(")
+            let comma_pos = Editor.find_forwards(full_src, first_non_whitespace_pos, ",")
+            if(((comma_pos == -1) || (comma_pos > open_paren_pos)) &&
+               (open_paren_pos != -1) &&
+               (open_paren_pos < next_newline_pos)) { //presume we've got a call as our instr that starts on the THE line
+                let close_paren_pos = Editor.find_matching_close(full_src, open_paren_pos)
+                if(close_paren_pos === -1) { return null } //malformed fn call, no close paran
+                return [first_non_whitespace_pos, close_paren_pos + 1]
+            }
+            else if(Editor.is_quote(first_non_whitespace_char)) { //looks like string instruction
+                return Editor.find_literal_string(full_src, first_non_whitespace_pos)
+            }
+            else {
+                //since we know we have non-whitespace on the line and it doesn't look like anything else,
+                //we probably have a var reference, so just return the bounds of that.
+                let whitespace_after_first_non_whitespace_pos = Editor.find_forward_whitespace(full_src, first_non_whitespace_pos)
+                if(full_src[whitespace_after_first_non_whitespace_pos - 1] === ",") {
+                    whitespace_after_first_non_whitespace_pos -= 1
+                }
+                return [first_non_whitespace_pos, whitespace_after_first_non_whitespace_pos]
+            }
+        }
     }
-    //since we know we have non-whitespace on the line and it doesn't look like anything else,
-    //we probably have a var reference, so just return the bounds of that.
-    let whitespace_after_first_non_whitespace_pos = Editor.find_forward_whitespace(full_src, first_non_whitespace_char)
-    return [first_non_whitespace_char, whitespace_after_first_non_whitespace_pos]
 }
 
 
@@ -2721,5 +2775,5 @@ Editor.move_to_instruction = function(){
 
 
 var {persistent_initialize, persistent_get, persistent_set, load_files, file_exists, write_file, dde_init_dot_js_initialize} = require('./core/storage.js')
-var {decode_quotes, is_alphanumeric, is_digit, is_letter, is_letter_or_underscore,
+var {decode_quotes, is_alphanumeric, is_comment, is_digit, is_letter, is_letter_or_underscore,
      is_whitespace, reverse_string} = require("./core/utils.js")

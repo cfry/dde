@@ -8,8 +8,8 @@
 
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version: <span id="dde_version_id">3.6.1</span><br/>
-    released: <span id="dde_release_date_id">Jul 24, 2020</span>
+    version: <span id="dde_version_id">3.6.2</span><br/>
+    released: <span id="dde_release_date_id">Aug 10, 2020</span>
     <p></p>
     DDE helps you create, debug, and send software to a Dexter robot.
     You can use any JavaScript augmented with DDE-specific functions to help find out about,
@@ -148,11 +148,15 @@
 </details>
 <details class="doc_details"><summary>Configure DDE</summary>
     DDE uses a folder under your Documents folder named <samp> dde_apps</samp>.
-    If one is not there, it will be created when you launch dde.
-    It's the default folder for JS code that you write. It also stores
+    If one is not there, it will be created when you launch DDE.
+    It's the default folder for JS code that you write.
+    <p></p>
+    dde_apps also stores
     a file called <samp>dde_persistent.json</samp> which stores settings you've made in
     DDE so that the next time DDE launches it can restore these settings.
-    Mostly you can ignore this file. The dde_apps folder also stores
+    Mostly you can ignore this file.
+    <p></p>
+    The dde_apps folder also stores
     a file named <samp>dde_apps.js</samp>. It will be automatically created if
     it doesn't exist. This file contains JS. It is loaded every time
     DDE is launched. You can use it to customize your DDE environment.
@@ -549,20 +553,20 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
         at least sample each of them, then loop back and concentrate on several that
         are most appealing to you.
         <ul>
-            <li>Splash Screen is a fancy presentation of the below. By default, it
+            <li>The Welcome Dialog is a fancy presentation of the below. By default, it
                 comes up at DDE launch. You can disable this by a checkbox in the dialog.
                 If you have disabled it, you can get the window back up by clicking
-                <button onclick="persistent_set('dont_show_splash_screen_on_launch', false); SplashScreen.show();">show splash screen</button>
+                <button onclick="persistent_set('dont_show_splash_screen_on_launch', false); SplashScreen.show();">show Welcome Dialog</button>
                 <p></p></li>
             <li><a href="https://www.hdrobotic.com/features" target="_blank">Dexter Features</a>
                  Videos of some things Dexter is capable of plus an early overveiw of DDE.<p></p></li>
             <li><a href="http://hdrobotic.com/videos/" target="_blank">Haddington videos</a>
             Videos on Haddington's mission, and the hardware.<p></p></li>
-            <li>Jobs menu/Dexter Tools/<b>Dexter UI</b> brings up a dialog box that allows you
+            <li>Jobs menu/<b>Dexter UI</b> brings up a dialog box that allows you
                 to interactively control a Dexter (or the simulator of Dexter, depending on the
-                <i>simulate</i> radio buttons in the Misc Pane header). This tools is
+                <i>simulate/real</i> radio buttons in the Misc Pane header). This dialog is
                 a great way to learn the relationship between joint angles and xyz (Cartesian)
-                coordinates, a.k.a kinematics.</li>
+                coordinates, a.k.a. kinematics.</li>
             <li><a href="https://www.hdrobotic.com/blog/programming-in-dexter-development-environment-archive" target="_blank">Webinar videos</a> on DDE</li>
             Each of these 11 videos is 45 minutes to an hour long. Watching them in order, especially the first several, is recommended.
             The first one, <b>Intro to DDE</b>, is primarily about the Help System itself.<p></p></li>
@@ -610,19 +614,19 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
                 </ul>
                 <p></p></li>
             <li><b id="doc_pane_doc_id">Doc Pane</b> <br/>
-                <b>Getting Started</b> is the concise, bare-bones doc to get you running quickly.<br/>
-                <b>User Guide</b> helps you with the DDE programming environment.<br/>
-                <b>Reference Manual</b> provides details of the <i>language</i>
+                <i>Getting Started</i> is the concise, bare-bones doc to get you running quickly.<br/>
+                <i>User Guide</i> helps you with the DDE programming environment.<br/>
+                <i>Reference Manual</i> provides details of the <i>language</i>
                    that is used to create Jobs.<br/>
-                <b>Articles</b> provide abstract as well as concrete help. Code in
+                <i>Articles</i> provide abstract as well as concrete help. Code in
                 articles can be selected then evaled by clicking the <button> Eval </button> button.
                 Understanding how <code>eval</code> works is central to understanding not just JavaScript,
                 but programming languages in general. That's the topic of the article <i>How To Think Like A Computer</i><br/>
-                <b>Release Notes</b> tell you what has changed between releases.
+                <i>Release Notes</i> tell you what has changed between releases.
                 The vast majority of this information is folded into the regular documentation
                 upon each release, but if you want to know what's changed,
                 browse the release notes, which is recommended each time you update DDE.<br/>
-                <b>Known Issues</b> tell you about large omissions and problems within DDE.
+                <i>Known Issues</i> tell you about large omissions and problems within DDE.
                 Please don't send us any bug reports about things documented here.<p></p></li>
             <li><b id="find_button_doc_id">Find button</b> In the Doc pane header, there's a type-in box.
                 Enter text and click the Find button. Sections containing
@@ -1125,13 +1129,16 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
     </details> <!--end misc_pane -->
     <details id="dexter_user_interface_doc_id" class="doc_details">
          <summary>Dexter User Interface</summary>
-         This dialog box can be brought up by choosing Jobs menu/Dexter Tools/Dexter UI.
-         It allows you to control Dexter (or the simulator, depenmding on the
+         This dialog box can be brought up by choosing Jobs menu/Dexter UI.
+         It allows you to control a Dexter (actual robot or the simulator, depending on the
          radio button settings in the Misc Pane header) by dragging and clicking
          widgets. Notice that when you move one widget, it adjusts the other related
          widgets pro-actively so you can see in the dialog box the affect your having,
-         as well as the effect on Dexter itself.
-         The controlled Dexter is the one selected in the Misc pane header.
+         as well as the effect on Dexter itself. Watching how the change in one value
+         affects others is a great way to understand the basics of robot kinematics.
+        <p></p>
+         The controlled Dexter is the one selected in the Misc pane header when you
+         bring up the dialog.
          <p></p>
          The major sections of this dialog are:<br/>
          <b>Top button bar</b> for moving Dexter to
@@ -1144,15 +1151,49 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
                    the ceiling if you change just about any configuration of your body.
                    So such a position is, constraining. We recommend that you start exploring
                    this interface by clicking the ready button and not be in home position.</li>
-                <li> <input type="button"  style="padding:2px;height:22px;"value="editor"/>
-                  If the editor cursor or selection is on a line with a move_all_joints
-                  or move_to instruction, clicking "editor" will grab that instruction
-                  and run it on the selected robot. With the instruction selected,
-                  you can edit its arguments by operating widgets in the dialog.
-                  The insert buttons on the bottom,
-                  move instructions from this dialog box to the editor. This "editor" button
-                  moves an instruction in the other direction.</li>
-              </ul>
+                <li> <span style="font-size: 24px; color: rgb(0, 200, 0); vertical-align:-10%;">◀</span>
+                    <b>Move to begining</b> This positions the editor cursor before the first
+                      instruction in the do_list of the job that the cursor started in.
+                      Now you can click on "Step Forward" or "Run Forward" to execute
+                      instruction(s).
+                </li>
+                <li> <span style="font-size: 18px; margin-left: 5px; color: rgb(0, 200, 0); vertical-align:-10%;">◀</span>
+                    <b>Step backward</b> If there is no selection, clicking this button selects the instruction before the
+                      cursor. If there is a selection, it selects the instruction before that selection.
+                      Then it does what "Step Forward" does with the selected instruction.
+                      <span style="color:red">Beware: </span> Stepping backward <i>can</i> lead to
+                      unexpexted behavior in a Job, but at least for move instructions,
+                      its what you would expect.
+                </li>
+               <li> <span style="font-size: 18px; margin-left: 5px; color: rgb(0, 200, 0); vertical-align:-10%;">▶</span>
+                       <b>Step forward</b> If the cursor in the editor is before a Job instruction, that instruction is
+                       selected. If there is a selection, the NEXT instruction in the job is selected instead.
+                       If this newly selected instruction is a "move" instruction of:
+                       <ul>
+                           <li><code>Dexter.move_all_joints</code></li>
+                           <li><code>Dexter.pid_move_all_joints</code></li>
+                           <li><code>Dexter.move_to</code></li>
+                           <li><code>Dexter.pid_move_to</code></li>
+                       </ul>
+                        the joint angle or xyz arguments are used to populate the wigets in the Dexter User Interface dialog
+                        <i>and</i> the robot (or simulation) of the Dexter User Interface is sent this instruxtion
+                        to run.
+                        <p></p>With a selected instruction, you can drag the wigets in
+                           the dialog and it will update the corresponding arguments
+                           in the editor.
+                        <p></p>
+                       The insert buttons on the bottom,
+                       move instructions from the dialog to the editor. The "step forward"
+                       and "step backward" buttons
+                       moves an instruction in the other direction.
+                       This provides a "two way street" between
+                       values in the editor and the Dexter User Interface dialog.
+               </li>
+                <li> <span style="font-size: 24px; color: rgb(0, 200, 0); vertical-align:-10%;">▶</span>
+                    <b>Run Forward</b> Runs all the instructions in the Job after the selection,
+                    or, if none, the cursor.
+                </li>
+            </ul>
             <b>XYZ widgets</b> The big rectangle lets you drag the green dot to
                 set the x and y of Dexter. Valid locations are in the white "donut"
                 in the center of the box. Outside the donut (and in the donut hole)
@@ -1179,7 +1220,7 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
             <input type="button"  style="padding:2px;height:22px;"value="instruction"/>
             button inserts a new instruction right below the selected one.
             With no selection, you can insert an instruction at the cursor.
-            The type of instruction is selectable in the select menu on the left.
+            The type of instruction inserted is selectable in the select menu on the left.
     </details>
 
  </details> <!-- end user interface -->
@@ -1823,7 +1864,7 @@ the points defined in ez_create.
 </details>
 <details class="doc_details" id='debugging_id'><summary>Debugging</summary>
     For a video presentation of many of these concepts, please watch
-    <a href="http://hdrobotic.com/webinar#debugging" target="_blank">Debugging</a>.<br/>
+    <a href="https://drive.google.com/file/d/0B6PCkmO9RJLJTDFfYTNqYS1PdHM/view" target="_blank">Debugging</a>.<br/>
     Most programmers spend most of their time debugging.
     Don't sweep this problem under the rug --- confront it with the following strategies:
 

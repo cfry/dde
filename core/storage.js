@@ -97,6 +97,7 @@ function persistent_save(){
     const path = add_default_file_prefix_maybe("dde_persistent.json")
     var content = JSON.stringify(persistent_values)
     content = replace_substrings(content, ",", ",\n") //easier to read & edit
+    content = content.replace('"files_menu_paths":[', '"files_menu_paths":[\n') //just insert newline to improve formatting of the file
     content = "//This file content must live in Documents/dde_apps/dde_persistent.json\n" +
               "//Upon DDE launch, this file is loaded before Documents/dde_apps/dde_init.js\n" +
               "//Because this file is automatically saved while running DDE, only edit it with DDE closed.\n" +
@@ -246,10 +247,15 @@ function dde_init_dot_js_initialize() {
 
         eval(initial_dde_init_content)
         write_file("dde_init.js", initial_dde_init_content)
-        out("Your dde_init.js file did not exist<br/>" +
-            "so a fresh one was created in Documents/dde_apps/<br/>" +
-            "Extend it with whatever JavaScript you want<br/>" +
-            "to be evaled when DDE is launched.", "green")
+        if(!Editor.files_menu_paths_empty_or_contains_only_dde_init()){ // we don't want to
+            //print out this message on first DDE launch or if they haven't even
+            //saves a file yet, so as not to scare new users.
+            out("DDE uses the file: Documents/dde_apps/dde_init.js<br/>" +
+                "to store JavaScript to be evaluated when DDE is Launched.<br/>" +
+                "DDE didn't find the file so a default one was created.<br/>" +
+                "If this is your first launch of DDE, this is normal.",
+                "green")
+        }
     }
 }
 

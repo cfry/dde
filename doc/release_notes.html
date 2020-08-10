@@ -6,6 +6,53 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 3.6.2, Aug 10, 2020</summary>
+Highlights: Dexter User Interface dialog extensions.<br/>
+            Simplified "Welcome" dialog box.
+<ul>
+    <li>Fixed Job Human instruction examples (actually done in 3.6.1)</li>
+    <li>Fixed inserting a color such that # will be inserted before a
+        hex value of a color. (actually fixed in 3.6.1)</li>
+    <li>Windows version now no longer has redundant File/Edit/etc menu bar.
+       (actually fixed in 3.6.1)</li>
+    <li>Fixed initialization of the new "misc_pane_content" persistent variable by correctly
+        setting defaults.</li>
+    <li>Internal: Removed font "creepster" that was used in the Welcome dialog.</li>
+    <li>Removed "Configure DDE" from "Getting Started". Its not important to know when first
+        learning DDE and its covered in its own section in the User Guide.</li>
+    <li>On DDE launch, if the only remembered edited file is dde_init.js (as it is on initial launch),
+        then it does not show up in the editor but rather a new buffer does.</li>
+    <li>Improved formatting in User Guide/Doc Pane.</li>
+    <li>Reduced welcome dialog from 17 tutorial to 9, no scrolling.
+       Also removed reference to the big blue question mark, but have a new last tutorial of
+       "Help System".</li>
+    <li>Improved confusing persistent.json formatting.</li>
+    <li>Reworded "no dde_init.json" error message, and made it not come up if user hasn't
+        saved any files as in when they first launch DDE.</li>
+    <li>Fixed the link to the debugging video in the User Guide Debugging section.</li>
+    <li>Fixed show_window content elements of class "clickable" that have a "name" property to have
+         that be the value of the literal object passed in to the show_window callback's
+         clicked_button_value property, and that such elements will have their "innerHTML"
+         be the value of their "name" or "id" in the show_window callback.
+         See Ref Man/Window System/show_window/content/clickable.</li>
+    <li>Testsuite: selection_to_test now automatically computes a reasonable testsuite name
+        when making a new testsuite.</li>
+    <li>Dexter UI: Improved Documentation.</li>
+    <li>Dexter UI: Now there's 4 arrow buttons for stepping through the instructions of
+        a Job defined in the editor.</li>
+    <li>Dexter UI: The dialog now has a horizontal line above the Insert row to separate it
+        from the rest of the dialog.</li>
+    <li>Dexter UI: Jobs menu/Dexter Tools/Dexter UI has been moved to Jobs menu/Dexter UI
+        for easier access.</li>
+    <li>Simulator: in Sim pane header, respelled "Move duration 2.1 seconds" => "Move dur: 2.1 s"
+        and shift it to right of the job/robot select menu to save vertical space. (actually done in 3.6.1)</li>
+    <li>Simulator: Tooltips now shown on radio and checkbox labels, J1 through J7 labels,
+        and X, Y, Z labels.</li>
+    <li>Fixed click-help and inspector when clicking on file names of long files.</li>
+    <li>MacOS certificate installed so users won't get warning of untrusted file when installing DDE.</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.6.1, Jul 24, 2020</summary>
 Highlights: Significant extensions for Simulator, Dexter User Interface, SimBuild.
 New "Splash Screen" of tutorials for aiding new users.
@@ -129,6 +176,8 @@ Minor bugs fixed in Kin.js and serial.js.
         a <code>Dexter.pid_move_all_joints(0,0,0,0,0,0,0)</code>
         and <code>Dexter.empty_instruction_queue()</code></li>
     <li>Fixed import/export problems with dde_error in Kin.js and serial.js</li>
+    <li>Fixed click-help and inspector when clicking on file names of long files.</li>
+    <li>MacOS certificate installed so users won't get warning of untrusted file when installing DDE.</li>
 </ul>
 </details>
 

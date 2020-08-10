@@ -92,18 +92,34 @@ var dui2 = class dui2 {
                             when_stopped: "wait",
                             do_list: [dui2.init]
                         })
+           // dex.instruction_callback = this.dui_instruction_callback //used for "run_forward" , complicated to get this to work so now run_forward does something simpler
             if(explicity_start_job) {
                 new_job.start()
             }
         }
     }
-    static show_window_elt_id_to_dui2_instance(sw_elt_id){
-        for(let inst of dui2.instances) {
+    static show_window_elt_id_to_dui_instance(sw_elt_id){
+        for(let inst of this.instances) {
             if(inst.show_window_elt_id === sw_elt_id) {
                 return inst
             }
         }
-        shouldnt("sw_elt_id_to_dui2_instance could not find instance for: " + sw_elt_id)
+        shouldnt("sw_elt_id_to_dui_instance could not find instance for: " + sw_elt_id)
+    }
+
+    static dui_instance_to_show_window_elt(dui_instance){
+        return window[dui_instance.show_window_elt_id]
+    }
+
+    static dui_instance_under_mouse(){
+        let elts = elements_under_mouse()
+        for(let dui_instance of dui2.instances){
+            let dui_elt = this.dui_instance_to_show_window_elt(dui_instance)
+            if(elts.includes(dui_elt)) {
+                return this.show_window_elt_id_to_dui_instance(dui_elt.id)
+            }
+        }
+        return null
     }
 
     static init(xy_width_in_px = 300){
@@ -112,11 +128,11 @@ var dui2 = class dui2 {
             !window.sim_graphics_pane_id) {
             misc_pane_menu_changed("Simulate Dexter") //changes Misc pane to sim. Preserves pose of Dexter.
         }
-        let dui2_instance = new dui2()
-        dui2_instance.job_name = this.name
-        dui2_instance.dexter_instance = this.robot
-        dui2_instance.should_point_down = true //the checkbox is in sync with this.
-        dui2_instance.xy_width_in_px = xy_width_in_px
+        let dui_instance = new dui2()
+        dui_instance.job_name = this.name
+        dui_instance.dexter_instance = this.robot
+        dui_instance.should_point_down = true //the checkbox is in sync with this.
+        dui_instance.xy_width_in_px = xy_width_in_px
         //we want to map 0 to 300 into roughly -0.7 to 0.7   where 150 -> 0, 0 -> -0.7, 300 -> 0.7
         let half_xy_width_in_px = xy_width_in_px / 2
         let angles_for_min_x = [-90, 90, 0, -90, 0]  //means pointing out.
@@ -125,13 +141,13 @@ var dui2 = class dui2 {
         let half_max_x = (max_x / 2)
         let max_x_range = max_x * 2
         let factor_to_multiply_x_px_by = max_x_range / xy_width_in_px
-        dui2_instance.x_px_to_meters = //function(x_px) { return (x_px * factor_to_multiply_x_px_by) - max_x}
+        dui_instance.x_px_to_meters = //function(x_px) { return (x_px * factor_to_multiply_x_px_by) - max_x}
             function(x_px) {
               return ((x_px - half_xy_width_in_px) * factor_to_multiply_x_px_by)//  * -1)
             }
-        dui2_instance.y_px_to_meters = //function(y_px) { return (x_px * factor_to_multiply_x_px_by) - max_x}
+        dui_instance.y_px_to_meters = //function(y_px) { return (x_px * factor_to_multiply_x_px_by) - max_x}
             function(y_px) { return ((y_px - half_xy_width_in_px) * factor_to_multiply_x_px_by * -1)}
-        dui2_instance.meters_to_x_px = function(meters) {
+        dui_instance.meters_to_x_px = function(meters) {
             let scaled = ((meters
                   //* -1
                   ) / factor_to_multiply_x_px_by) + half_xy_width_in_px //0 to 300
@@ -140,11 +156,11 @@ var dui2 = class dui2 {
             //out("reversed: " + reversed)
             return scaled //reversed
         } //returns 0 to 300
-        dui2_instance.meters_to_y_px = function(meters) {
+        dui_instance.meters_to_y_px = function(meters) {
             return ((meters * -1) / factor_to_multiply_x_px_by) + half_xy_width_in_px
         }
 
-        dui2_instance.radius_meters_to_px = function(radius_meters){
+        dui_instance.radius_meters_to_px = function(radius_meters){
             return radius_meters / factor_to_multiply_x_px_by
         }
         //let angles_for_max_z = [0, 0, 0, -90, 0]
@@ -158,13 +174,13 @@ var dui2 = class dui2 {
         //a given z px always translates to a given z meters, regardless of xy values.
         ///max_z_px of 300 translates to max_z_meters.
         //min_z px and min_z meters is always 0.
-        dui2_instance.z_px_to_meters = function(z_pix)  { return z_pix / xy_width_in_px }
-        dui2_instance.meters_to_z_px = function(meters) { return meters * xy_width_in_px }
+        dui_instance.z_px_to_meters = function(z_pix)  { return z_pix / xy_width_in_px }
+        dui_instance.meters_to_z_px = function(meters) { return meters * xy_width_in_px }
 
 
-        show_window({title: "Dexter." + dui2_instance.dexter_instance.name + " User Interface",
+        show_window({title: "Dexter." + dui_instance.dexter_instance.name + " User Interface",
             width: xy_width_in_px + 80, //380,
-            height: xy_width_in_px + 320, //570,
+            height: xy_width_in_px + 330, //570,
             y: 0,
             background_color: "#d5d5d5",
             job_name: this.name, //important to sync the correct job.
@@ -173,25 +189,47 @@ var dui2 = class dui2 {
             '<span style="margin-top:0px;padding:2px;">Move Dexter to:</span>' +
             `<input type="button" name="ready"  style="margin-left:10px;margin-top:0px;margin-bottom:3px; padding:2px;" value="ready"  title="Move Dexter to a neutal position.&#013;Good for 'elbow room'."/>` +
             `<input type="button" name="home"   style="margin-left:10px;margin-top:0px;margin-bottom:3px; padding:2px;" value="home"   title="Move Dexter straight up.&#013;This doesn't allow much freedom of motion."/>` +
-            `<input type="button" name="editor" style="margin-left:10px;margin-top:0px;margin-bottom:3px; padding:2px;" value="editor" title="Move Dexter via the instruction.&#013;near the Editor cursor."/>` +
+            //`<input type="button" name="editor" style="margin-left:10px;margin-top:0px;margin-bottom:3px; padding:2px;" value="editor" title="Move Dexter via the instruction.&#013;near the Editor cursor."/>` +
+            `<span  class="clickable" name="go_to_start"   style="font-size: 24px; margin-left: 5px; cursor: pointer; color: rgb(0, 200, 0); vertical-align:bottom;" title="Move cursor to before the first instruction&#013;of its containing do_list.">◀</span>` +
+            `<span  class="clickable" name="step_backward" style="font-size: 18px; margin-left: 5px; cursor: pointer; color: rgb(0, 200, 0); vertical-align:-10%;"   title="Step and execute the instruction before the selection&#013;or, if none, the cursor&#013;in the Job defined in the editor.">◀</span>` +
+            `<span  class="clickable" name="step_forward"  style="font-size: 18px; margin-left: 5px; cursor: pointer; color: rgb(0, 200, 0); vertical-align:-10%;"   title="Step through the instruction after the selection&#013;or, if none, the cursor&#013;in the Job defined in the editor.">▶</span>` +
+            `<span  class="clickable" name="run_forward"   style="font-size: 24px; margin-left: 5px; cursor: pointer; color: rgb(0, 200, 0); vertical-align:-10%;"   title="Run the instrutions &#013;from the cursor through the end.">▶</span>` +
 
-            dui2_instance.make_xyz_sliders_html(xy_width_in_px,
+            dui_instance.make_xyz_sliders_html(xy_width_in_px,
                 min_x, max_x,
                 //min_y, max_y are same as min_x, max_x, so don't pass them.
                 min_z, max_z) +
             "<br/>" +
-            dui2_instance.make_joint_sliders_html() +
-            dui2_instance.make_direction_html() +
-            dui2_instance.make_insert_html()
+            dui_instance.make_joint_sliders_html() +
+            dui_instance.make_direction_html() +
+            "<hr style='height:1px; color:black; background-color:black; margin:0px; padding:0px;'/>" +
+            dui_instance.make_insert_html()
         })
         setTimeout(function() {
-                dui2_instance.show_window_elt_id = "show_window_" + SW.window_index + "_id"
-                let RS_inst = dui2_instance.dexter_instance.rs //new RobotStatus(rs)
-                dui2_instance.set_maj_angles(RS_inst.measured_angles(7)) //returns a copy of the array so safe to change it.
-                dui2_instance.update_all(dui2_instance.should_point_down) //true means IFF maj_angles is pointing down, set the checkbox to point down.
+                dui_instance.show_window_elt_id = "show_window_" + SW.window_index + "_id"
+                let RS_inst = dui_instance.dexter_instance.rs //new RobotStatus(rs)
+                dui_instance.set_maj_angles(RS_inst.measured_angles(7)) //returns a copy of the array so safe to change it.
+                dui_instance.update_all(dui_instance.should_point_down) //true means IFF maj_angles is pointing down, set the checkbox to point down.
+                //dui2.init_is_mouse_over(dui_instance)
             },
             300)
     }
+
+    /*static init_is_mouse_over(dui_instance){
+        let dom_elt = window[dui_instance.show_window_elt_id]
+        dui_instance.is_mouse_over = true
+        dom_elt.onmouseover = function(event){
+            let x = event.clientX
+            let y = event.clientY
+            dui_instance.is_mouse_over = true
+            out("is_mouse_over: " + dui_instance.is_mouse_over)
+        };
+        dom_elt.onmouseout = function(event){
+            dui_instance.is_mouse_over = false
+            out("is_mouse_over: " + dui_instance.is_mouse_over)
+        }
+    }*/
+
 
 
 /*
@@ -207,9 +245,9 @@ cir1.setAttribute("cy", 42)
 
 //does not attempt to set initial value. That's done in update_from_robot
     make_xyz_sliders_html(xy_width_in_px = 300,
-                               min_x, max_x,
-                               //min_y, max_y are same as min_x, max_x, so don't pass them.
-                               min_z, max_z){
+                          min_x, max_x,
+                          //min_y, max_y are same as min_x, max_x, so don't pass them.
+                          min_z, max_z){
        // out("\ntop of make_xyz_sliders_html with xy_width_in_px: " + xy_width_in_px +
        //     " min_x:" +  min_x +
        //     " max_x:" +  max_x +
@@ -237,9 +275,11 @@ cir1.setAttribute("cy", 42)
             xy_loc_circle_html +
             '</svg>'
         let z_slider_html =
+            '<div style="border:2px solid black; display:inline-block; background-color:#ff7e79; transform-origin:' + (xy_width_in_px / 2) + 'px; transform: translate(190px, -163px) rotate(-90deg);">' +
             '<input type="range" name="z_slider" step="0.01" value="0" min="0" max="' + max_z + '" data-oninput="true" ' +
-            'style="width:' + xy_width_in_px + 'px; height:20px;margin:0px; background-color:#0F0;' +
-            'transform-origin:' + (xy_width_in_px / 2) + 'px; transform: translate(190px, -163px) rotate(-90deg);"/>'
+            'style="width:' + xy_width_in_px + 'px; height:20px;margin:0px; background-color:#0F0; color:#0F0;' +
+            '"/>' +
+            '</div>'
         let xyz_num_html =
             'X: <input name="x_num" type="number" data-oninput="true" style="width:55px;margin-top:0px;" min="' + min_x + '" max="' + max_x + '" value="0" step="0.01" ' + '"/><span style="margin-right:15px;margin-top:0px;">m</span>' +
             'Y: <input name="y_num" type="number" data-oninput="true" style="width:55px;margin-top:0px;" min="' + min_x + '" max="' + max_x + '" value="0" step="0.01" ' + '"/><span style="margin-right:15px;margin-top:0px;">m</span>' +
@@ -298,7 +338,7 @@ cir1.setAttribute("cy", 42)
     make_insert_html(){
         if(platform === "dde"){
             let insert_html = "Insert: " +
-                              ' <select id="dui2_instr_type_id" title="The type of instruction to insert." data-oninput="true">' +
+                              ' <select id="dui_instr_type_id" title="The type of instruction to insert." data-oninput="true">' +
                                '<option>move_all_joints</option>' +
                                '<option>pid_move_all_joints</option>' +
                                '<option>move_to</option>' +
@@ -310,7 +350,7 @@ cir1.setAttribute("cy", 42)
         else { return "" }
     }
 
-    //unnecessary, use the dui2_instance.direction
+    //unnecessary, use the dui_instance.direction
     static get_direction_in_ui(sw_elt){
         if(typeof(sw_elt)) { sw_elt = window[sw_elt] }
         let dir_elt = sw_elt.querySelector(".direction")
@@ -325,7 +365,7 @@ cir1.setAttribute("cy", 42)
         dir_elt.innerHTML = dir_str
     }
 
-     //unnecessary, use the dui2_instance.should_point_down
+     //unnecessary, use the dui_instance.should_point_down
     static is_point_down_checked(sw_elt){
         if(typeof(sw_elt)) { sw_elt = window[sw_elt] }
         let dir_checkbox_elt = sw_elt.querySelector(".direction_checkbox")
@@ -340,15 +380,15 @@ cir1.setAttribute("cy", 42)
 
 //______show_window callback
 
-//strategy: convert the changed values into maj_angles, set dui2_instance.maj_angles and, at the end,
+//strategy: convert the changed values into maj_angles, set dui_instance.maj_angles and, at the end,
 // call update_all once regardless of who started it.
 static dexter_user_interface_cb(vals){
-    debugger;
     //out("dui_cb got clicked_button_value: " + vals.clicked_button_value +
     //    " which has val: " + vals[vals.clicked_button_value])
-    let dui2_instance = dui2.show_window_elt_id_to_dui2_instance(vals.show_window_elt_id)
+    let dui_instance = dui2.show_window_elt_id_to_dui_instance(vals.show_window_elt_id)
+    //inspect(dui2.dui_instance_under_mouse())
     if(vals.clicked_button_value == "close_button"){
-        let inst_index = dui2.instances.indexOf(dui2_instance)
+        let inst_index = dui2.instances.indexOf(dui_instance)
         if(inst_index == -1) { shouldnt("in dexter_user_interface_cb with close_button") }
         else { dui2.instances.splice(inst_index, 1) } //cut out the instance from the instances list
         return
@@ -357,12 +397,12 @@ static dexter_user_interface_cb(vals){
         let cir_xy_obj = vals.xy_2d_slider
         //out(JSON.stringify(cir_xy_obj))
         let x = parseFloat(cir_xy_obj.cx)
-        x = dui2_instance.x_px_to_meters(x)
+        x = dui_instance.x_px_to_meters(x)
         let y = parseFloat(cir_xy_obj.cy) //a num between 0 and 300
         //out("got cy of: " + y)
-        y = dui2_instance.y_px_to_meters(y)
+        y = dui_instance.y_px_to_meters(y)
         let z = vals.z_slider
-        let [inner_r, outer_r, outer_circle_center_xy] = Kin.xy_donut_slice_approx(z, dui2_instance.direction)
+        let [inner_r, outer_r, outer_circle_center_xy] = Kin.xy_donut_slice_approx(z, dui_instance.direction)
         let new_xy_radius = Math.hypot(x, y)
         if((new_xy_radius < inner_r) ||
            (new_xy_radius > outer_r)){ //the new x and y are out of range. do nothing
@@ -371,11 +411,11 @@ static dexter_user_interface_cb(vals){
         else {
             let xyz = [x, y, z]
             try {
-                let j_angles = Kin.xyz_to_J_angles(xyz, dui2_instance.direction) //returns just 5 angles
+                let j_angles = Kin.xyz_to_J_angles(xyz, dui_instance.direction) //returns just 5 angles
                 //out("j_angles " + j_angles)
                 if(j_angles.length === 5) { j_angles.push(vals.j6_angle_num)   }
                 if(j_angles.length === 6) { j_angles.push(vals.j7_angle_num)   }
-                dui2_instance.set_maj_angles(j_angles)
+                dui_instance.set_maj_angles(j_angles)
             }
             catch(err) { //with the above test for new_xy_radius, this catch should never hit.
                 if(vals.clicked_button_value === "z_slider"){
@@ -400,7 +440,7 @@ static dexter_user_interface_cb(vals){
         let y = vals.y_num
         let z = vals.z_num
         let xyz = [x, y, z]
-        let [inner_r, outer_r, outer_circle_center_xy] = Kin.xy_donut_slice_approx(z, dui2_instance.direction)
+        let [inner_r, outer_r, outer_circle_center_xy] = Kin.xy_donut_slice_approx(z, dui_instance.direction)
         let new_xy_radius = Math.hypot(x, y)
         if((new_xy_radius < inner_r) ||
             (new_xy_radius > outer_r)){ //the new x and y are out of range. do nothing
@@ -408,10 +448,10 @@ static dexter_user_interface_cb(vals){
         }
         else {
             try {
-                let j_angles = Kin.xyz_to_J_angles(xyz, dui2_instance.direction) //returns just 5 angles
+                let j_angles = Kin.xyz_to_J_angles(xyz, dui_instance.direction) //returns just 5 angles
                 if(j_angles.length === 5) { j_angles.push(vals.j6_angle_num)   }
                 if(j_angles.length === 6) { j_angles.push(vals.j7_angle_num)   }
-                dui2_instance.set_maj_angles(j_angles)
+                dui_instance.set_maj_angles(j_angles)
             }
             catch(err) {
                 let x_y_or_z = vals.clicked_button_value[0]
@@ -429,13 +469,21 @@ static dexter_user_interface_cb(vals){
         //dui2.update_range_and_angle_nums(vals.show_window_elt_id, maj_angles)
     }
     else if(vals.clicked_button_value == "ready"){
-        dui2_instance.set_maj_angles([0, 0, 90, 0, 0, 0, 0])
+        dui_instance.set_maj_angles([0, 0, 90, 0, 0, 0, 0])
     }
     else if(vals.clicked_button_value == "home"){
-        dui2_instance.set_maj_angles([0, 0, 0, 0, 0, 0, 0])
+        dui_instance.set_maj_angles([0, 0, 0, 0, 0, 0, 0])
     }
-    else if(vals.clicked_button_value == "editor"){
-        let continue_running = dui2.editor_button_click_action(dui2_instance)
+    else if(vals.clicked_button_value == "go_to_start"){
+            let continue_running = dui2.go_to_start_button_click_action(dui_instance)
+            if(!continue_running) { return }
+    }
+    else if(vals.clicked_button_value == "step_backward"){
+        let continue_running = dui2.step_backward_button_click_action(dui_instance)
+        if(!continue_running) { return }
+    }
+    else if(vals.clicked_button_value == "step_forward"){
+        let continue_running = dui2.step_forward_button_click_action(dui_instance)
         if(!continue_running) { return } //either a bad instruction or not a maj or mt instruction so stop processing here
        /* let full_src  = Editor.get_javascript()
         let start_pos = Editor.selection_start()
@@ -486,25 +534,44 @@ static dexter_user_interface_cb(vals){
             }
             else{ return } //not one of the instructtion we need
             Editor.select_javascript(expr_start_pos, close_paren_pos + 1)
-            dui2_instance.set_maj_angles(angles)
+            dui_instance.set_maj_angles(angles)
             */
     }
+
+    else if(vals.clicked_button_value == "run_forward"){
+        let continue_running
+        for(var i = 0; i < 100000; i++){
+            continue_running = dui2.step_forward_button_click_action(dui_instance) //dui2.run_forward_button_click_action(dui_instance)
+            if(!continue_running) { return } //error in processing next instr, perhaps syntactic, perhaps already did last instruction
+            else if (continue_running == "already_inserted_instruction"){ //instruction was a valid instr but not a move instruction
+            }
+            else { //got a move instruction, keep going to bottom of this method for the instruction selection and insertion
+                dui_instance.update_all(dui_instance.should_point_down) // do update_all before move_all_joints because update_all may modify ui2_instance.maj_angles if the direction_checkbox is checked
+                let instr = Dexter.pid_move_all_joints(dui_instance.maj_angles)
+                Job.insert_instruction(instr, {job: vals.job_name, offset: "end"})
+            }
+        }
+        //let show_win_elt = window[vals.show_window_elt_id]
+        //show_win_elt.focus()  //so that is_dui_the_focus will work after setting the selection.
+                              //is_dui_the_focus needed by dui_instruction_callback
+        return
+    }
     else if(vals.clicked_button_value.endsWith("_range")){ //a joint slider
-        dui2_instance.set_maj_angles([vals.j1_range, vals.j2_range, vals.j3_range, vals.j4_range,
+        dui_instance.set_maj_angles([vals.j1_range, vals.j2_range, vals.j3_range, vals.j4_range,
             vals.j5_range, vals.j6_range, vals.j7_range])
 
     }
     else if(vals.clicked_button_value.endsWith("_angle_num")){ /// the num input for a joint angle
-        dui2_instance.set_maj_angles([vals.j1_angle_num, vals.j2_angle_num, vals.j3_angle_num, vals.j4_angle_num,
+        dui_instance.set_maj_angles([vals.j1_angle_num, vals.j2_angle_num, vals.j3_angle_num, vals.j4_angle_num,
                                       vals.j5_angle_num, vals.j6_angle_num, vals.j7_angle_num])
     }
     else if(vals.clicked_button_value == "direction_checkbox"){
-        dui2_instance.should_point_down = vals.direction_checkbox
-        dui2_instance.set_maj_angles([vals.j1_angle_num, vals.j2_angle_num, vals.j3_angle_num, vals.j4_angle_num,
+        dui_instance.should_point_down = vals.direction_checkbox
+        dui_instance.set_maj_angles([vals.j1_angle_num, vals.j2_angle_num, vals.j3_angle_num, vals.j4_angle_num,
                                       vals.j5_angle_num, vals.j6_angle_num, vals.j7_angle_num])  //no actual change here, but just to ensure consistency
     }
-    else if(vals.clicked_button_value == "dui2_instr_type_id"){
-        dui2_instance.update_editor_maybe()
+    else if(vals.clicked_button_value == "dui_instr_type_id"){
+        dui_instance.update_editor_maybe()
     }
     else if (vals.clicked_button_value == "insert_instruction"){
         let full_src      = Editor.get_javascript()
@@ -572,7 +639,7 @@ static dexter_user_interface_cb(vals){
         }
 
         let prefix = (needs_comma_before_insert ? "," : "") + prefix_sans_comma
-        let instr_src = dui2_instance.make_instruction_source()
+        let instr_src = dui_instance.make_instruction_source()
         let on_last_instr = dui2.is_on_last_instruction(full_src, end_pos)
         let total_insert = prefix + instr_src + (on_last_instr ? "" : ",")
         Editor.insert(total_insert)
@@ -592,7 +659,7 @@ static dexter_user_interface_cb(vals){
     name: "my_job",
     do_list: [
         `
-        let instr_src = dui2_instance.make_instruction_source()
+        let instr_src = dui_instance.make_instruction_source()
         let job_src = job_prefix_src + instr_src + '\n]})\n'
         let cur_pos = Editor.selection_start()
         Editor.insert(job_src)
@@ -606,7 +673,7 @@ static dexter_user_interface_cb(vals){
         let job_instance = Job[vals.job_name]
         if(job_instance){
             if(job_instance.is_active()){
-                job_instance.stop_for_reason("interrupted", "User closed dui2 show_window.")
+                job_instance.stop_for_reason("interrupted", "User closed dui show_window.")
                 setTimeout(function() {
                     job_instance.undefine_job()
                 }, 200)
@@ -617,15 +684,15 @@ static dexter_user_interface_cb(vals){
         }
         return
     }
-    dui2_instance.update_all(dui2_instance.should_point_down) // do update_all before move_all_joints because update_all may modify ui2_instance.maj_angles if the direction_checkbox is checked
-    let instr = Dexter.pid_move_all_joints(dui2_instance.maj_angles)
+    dui_instance.update_all(dui_instance.should_point_down) // do update_all before move_all_joints because update_all may modify ui2_instance.maj_angles if the direction_checkbox is checked
+    let instr = Dexter.pid_move_all_joints(dui_instance.maj_angles)
     Job.insert_instruction(instr, {job: vals.job_name, offset: "end"})
     //out("inserted instr: " + instr)
 }
 
    //called from Job.go with dui2.instances guarenteed to be non-empty
-   static go_button_click_action(){
-       let dui2_instance = last(dui2.instances)
+   /*static go_button_click_action(){
+       let dui_instance = last(dui.instances)
        if(pause_id.checked) {
            let start_pos = Editor.selection_start()
            let end_pos   = Editor.selection_end()
@@ -635,27 +702,48 @@ static dexter_user_interface_cb(vals){
                Editor.select_javascript(new_start_pos, new_start_pos) //and now just use
                //the dui2.editor_button_click_action as is.
            }
-           let continue_running = dui2.editor_button_click_action(dui2_instance)
+           let continue_running = dui2.editor_button_click_action(dui_instance)
            if(!continue_running) { return }
            else {
-               dui2_instance.update_all(dui2_instance.should_point_down) // do update_all before move_all_joints because update_all may modify ui2_instance.maj_angles if the direction_checkbox is checked
-               let instr = Dexter.pid_move_all_joints(dui2_instance.maj_angles)
-               Job.insert_instruction(instr, {job: dui2_instance.job_name, offset: "end"})
+               dui_instance.update_all(dui_instance.should_point_down) // do update_all before move_all_joints because update_all may modify ui2_instance.maj_angles if the direction_checkbox is checked
+               let instr = Dexter.pid_move_all_joints(dui_instance.maj_angles)
+               Job.insert_instruction(instr, {job: dui_instance.job_name, offset: "end"})
            }
        }
-   }
-   //also used by "GO" button for stepping
-   static editor_button_click_action(dui2_instance) {
+   }*/
+
+   //returns null if there's an error or already did last instruction
+   //returns true if insructiom is a move instruction and we should let dexter_user_interface_cb
+   //    code at its bottom handle the selection and insertion
+   //returns "already_inserted_instruction" if the instruction was ok, its src selected,
+   //    and we inserted it into the job.
+   static step_forward_button_click_action(dui_instance) {
        let full_src  = Editor.get_javascript()
        let start_pos = Editor.selection_start()
-       let start_and_end_array = Editor.start_and_end_of_instruction_on_line(full_src, start_pos)
+       let end_pos   = Editor.selection_end()
+       let look_for_instr_starting_at_pos = end_pos
+       if(start_pos !== end_pos) { //got a selection. Presume its of a whole instruction
+       //start at the end_pos, then forward over the next newline
+           //full_src[look_for_instruction_starting_at_pos] == ";"
+           //look_for_instruction_starting_at_pos += 1
+           look_for_instr_starting_at_pos = full_src.indexOf("\n", look_for_instr_starting_at_pos)
+           if(look_for_instr_starting_at_pos === -1) { return null} //no more instructions
+           else {look_for_instr_starting_at_pos += 1 }  //get passed the newline
+       }
+       let start_and_end_array = Editor.start_and_end_of_instruction_on_line(full_src, look_for_instr_starting_at_pos)
        if(start_and_end_array == null) { return null } //no instruction on current line.
        let instr_src = full_src.substring(start_and_end_array[0], start_and_end_array[1])
+       if(instr_src.startsWith("function(")) {
+           instr_src = "(" + instr_src + ")"
+       }
        let instr_obj
        try{
            instr_obj = eval(instr_src)
        }
-       catch(err) { return null } //invalid instruction so just ignore it
+       catch(err) {
+            warning("Evaling: " + instr_src + " errored with:<br/>" + err.message)
+            return null
+       } //invalid instruction so just ignore it
        let angles
        let instr_type = null
        if((instr_obj instanceof Instruction.Dexter.move_all_joints) ||
@@ -671,14 +759,29 @@ static dexter_user_interface_cb(vals){
        }
        Editor.select_javascript(start_and_end_array[0], start_and_end_array[1])
        if(angles) {
-            dui2_instance.set_maj_angles(angles)
+            dui_instance.set_maj_angles(angles)
             return true //continue running in
        }
        else { //we just have a non-mt or maj instruction which we should run anyway.
-           Job.insert_instruction(instr, {job: dui2_instance.job_name, offset: "end"})
-           return null
+           Job.insert_instruction(instr_obj, {job: dui_instance.job_name, offset: "end"})
+           return "already_inserted_instruction"
        }
    }
+
+   static dui_instruction_callback(job_instance){
+       let is_dui_on_top = dui2.is_dui_the_focus()
+       job_instance.set_up_next_do()
+   }
+
+   static is_dui_the_focus() {
+      let focus_elt =  document.activeElement
+      let par = focus_elt.closest(".show_window")
+      if(par) {
+          return true
+      }
+      else { return false }
+   }
+
    //maybe unused
    static is_on_last_instruction(full_src, end_pos) {
         let close_angle_pos = full_src.indexOf("]})", end_pos)
@@ -693,6 +796,91 @@ static dexter_user_interface_cb(vals){
             return false
         }
         else { return true }
+   }
+
+  /* not now debugged or used as isn't needed by
+  step_backward_button_click_action but might come in handy
+      static is_before_first_instruction(full_src, pos){
+       let first_non_whitespace_pos = Editor.backup_over_whitespace(full_src, pos)
+       let first_non_whitespace_char = full_src[first_non_whitespace_pos]
+       if(first_non_whitespace_char == "[" &&
+           (first_non_whitespace_pos >= 10)) {
+           let more_back_pos = Editor.backup_over_whitespace(full_src, first_non_whitespace_pos - 1)
+           let more_back_char = full_src[more_back_pos]
+           if(more_back_char == ":") {
+               if(Editor.endsWith("do_list:", more_back_pos + 1)) {
+                   return true
+               }
+           }
+       }
+       else { return false }
+   }*/
+
+    static go_to_start_button_click_action(dui_instance) {
+        let full_src  = Editor.get_javascript()
+        let start_pos = Editor.selection_start()
+        let do_list_pos = full_src.lastIndexOf("do_list:", start_pos)
+        if(do_list_pos === -1) {
+           warning("Could not find the beginning of the do_list.")
+           return null
+        }
+        else {
+            let past_do_list_pos = do_list_pos + 8
+            let next_newline_pos = full_src.indexOf("\n", past_do_list_pos)
+            let next_square_bracket_pos = full_src.indexOf("[", past_do_list_pos)
+            let before_first_instr_pos
+            if ((next_square_bracket_pos == -1) || (next_square_bracket_pos > next_newline_pos)){
+                before_first_instr_pos = past_do_list_pos
+            }
+            else {
+                before_first_instr_pos = next_square_bracket_pos + 1
+            }
+            Editor.select_javascript(before_first_instr_pos, before_first_instr_pos)
+            return true
+        }
+    }
+
+   static step_backward_button_click_action(dui_instance) {
+        let full_src  = Editor.get_javascript()
+        let start_pos = Editor.selection_start()
+        //if(is_before_first_instruction(full_src, pos)) { return null }
+        let prev_newline_pos = full_src.lastIndexOf("\n", start_pos)
+        if(prev_newline_pos === -1) {return null} //no more instructions backward
+        let prev_prev_newline_pos = full_src.lastIndexOf("\n", prev_newline_pos - 1)
+        if(prev_prev_newline_pos === -1) {return null} //no more instructions backward
+        let the_line_text = full_src.substring(prev_prev_newline_pos, prev_newline_pos)
+        if (is_whitespace(the_line_text)) { //got a blank line
+            Editor.select_javascript(prev_prev_newline_pos, prev_prev_newline_pos)
+            return this.step_backward_button_click_action(dui_instance)
+        }
+        let do_list_pos = full_src.lastIndexOf("do_list:", start_pos)
+        if(do_list_pos > prev_prev_newline_pos) {
+            warning("you're already at the first instruction of the Job.")
+            return null
+        }
+
+        else {
+            let first_non_whitespace_pos = Editor.skip_forward_over_whitespace(full_src, prev_prev_newline_pos)
+            if(full_src.startsWith("//", first_non_whitespace_pos)) {
+                Editor.select_javascript(prev_prev_newline_pos, prev_prev_newline_pos)
+                return this.step_backward_button_click_action(dui_instance)
+            }
+            else if(full_src.startsWith("/*", first_non_whitespace_pos)) {
+                Editor.select_javascript(first_non_whitespace_pos, first_non_whitespace_pos)
+                return this.step_backward_button_click_action(dui_instance)
+            }
+            let prev_non_whitespace_pos = Editor.backup_over_whitespace(full_src, start_pos - 1)
+            if(full_src.endsWith("*/", prev_non_whitespace_pos + 1)){
+                let starting_comment_pos = full_src.lastIndexOf("/*")
+                if(starting_comment_pos !== -1){
+                    Editor.select_javascript(starting_comment_pos - 1, starting_comment_pos - 1)
+                    return this.step_backward_button_click_action(dui_instance)
+                }
+            }
+
+            Editor.select_javascript(prev_prev_newline_pos + 1, prev_prev_newline_pos + 1)
+            return this.step_forward_button_click_action(dui_instance)
+        }
    }
 
     static needs_comma_before_insert(full_src, end_pos) {
@@ -720,7 +908,7 @@ static dexter_user_interface_cb(vals){
     }
 
     make_instruction_source(){
-        let instr_name = dui2_instr_type_id.value
+        let instr_name = dui_instr_type_id.value
         let instr_code = "Dexter." + instr_name
         let new_args
         if(instr_name.endsWith("move_all_joints"))  {
@@ -828,7 +1016,7 @@ static dexter_user_interface_cb(vals){
                         angles_to_use = angles_to_use.slice(0, last_non_zero_angle + 1)
                     }
                     let new_args = angles_to_use.join(", ")
-                    let new_type_and_args = dui2_instr_type_id.value + "(" + new_args
+                    let new_type_and_args = dui_instr_type_id.value + "(" + new_args
                     Editor.replace_at_positions(new_type_and_args, maj_pos, maj_pos_args_end)
                     let new_sel_end = maj_pos_args + new_args.length + 1
                     Editor.select_javascript(begin_of_call_pos, new_sel_end)
@@ -887,7 +1075,7 @@ static dexter_user_interface_cb(vals){
                                     j6 + ", " +
                                     j7
                     }
-                    let new_type_and_args = dui2_instr_type_id.value + "(" + new_args
+                    let new_type_and_args = dui_instr_type_id.value + "(" + new_args
                     Editor.replace_at_positions(new_type_and_args, mt_pos, mt_pos_args_end)
                     let new_sel_end = mt_pos_args + new_args.length + 1
                     Editor.select_javascript(begin_of_call_pos, new_sel_end)

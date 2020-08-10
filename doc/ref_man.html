@@ -8864,12 +8864,17 @@ Here's the CSS for a bunch more editor properties.
         attributes of <code title="unEVALable code fragment"> button</code> and
         <code title="unEVALable code fragment"> submit</code> will cause the window's
         callback function to be called.
-        <code title="unEVALable code fragment"> submit</code> will also cause the window to be closed.<p></p>
+        <code title="unEVALable code fragment"> submit</code> will also cause the window to be closed.
+        <p></p>
+        <i>clickable</i><br/>
         HTML elements with a class of "clickable" will behave as a button. Clicking on them
-        will cause the window's callback button to be called with a
+        will cause the window's callback button to be called with a literal object
+        whose
         <code title="unEVALable code fragment"> clicked_button_value</code>
-        property of the <code title="unEVALable code fragment"> name</code>, or if none, the
+        property will have a value of the <code title="unEVALable code fragment"> name</code>, or if none, the
         <code title="unEVALable code fragment"> id</code> of the clicked on element.
+        That literal object will also have a property of that name whose value
+        will be the innerHTML of the element.
         Clicking on such HTML elements will <i>not</i> close the window.<br/>
         <i>Example</i>:<br/>
         <pre><code>show_window({

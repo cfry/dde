@@ -1681,10 +1681,8 @@ Job.set_go_button_state = function(bool){
 }
 
 Job.go = function(){
-    if(window.dui2 && dui2.instances.length > 0) {
-        dui2.go_button_click_action()
-    }
-    else if (Job.go_button_state){
+    //if(window.dui2 && dui2.instances.length > 0) { dui2.go_button_click_action()}
+    if (Job.go_button_state){
         let any_active_jobs = false
         for(let a_job of Job.all_jobs()){
             if (a_job.is_active()){

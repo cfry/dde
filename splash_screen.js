@@ -52,24 +52,28 @@ var SplashScreen = class SplashScreen {
         show_window({title: "Welcome to Dexter Development Environment",
             y: 100,
             width: 480,
-            height: 390,
+            height: 300,
             background_color: "#bae5fe", // pastel green: "#e7ffef",
             callback: "SplashScreen.show_splash_screen_cb",
             content:
     `<div style="font-size:18px;margin-left:15px;">
-        <!--<div style="font-family: 'Creepster';font-size: 60px;color:#7600f5">D o n't &nbsp; P a n i c !</div>
-        <i>The</i> answer is 42, but for other answers,<br/> -->
-        <div style="font-size:50px;">Tutorials</div>
-        &bull; Click <b style='color:blue;font-size:24px;'>?</b> in the upper right of the outer window <b style='font-size:24px;'>&#x279A;</b> <i>or</i>,<br/>
-        <!--&bull; <button onclick="open_doc(help_system_doc_id)">Show Tutorial List</button> <i>or</i><br/>-->
-         <span style="vertical-align:top;">&bull; Select a tutorial from: </span><br/>
+         <div style="font-size:30px;">Tutorials</div>      
         <select id="splash_screen_which_tutorial_id" size="9" data-oninput="true" style="font-size:16px;">` +
         this.splash_screen_tutorial_options_html() +
-       `</select><p></p>
+       `</select>
+        <div style="margin-top:5px;">
         <input name="splash_screen_dont_show_checkbox" type="checkbox" data-onchange="true"/><span style="font-size:14px;">
-            Don't show this dialog on DDE launch.</span>
+            Don't show this dialog on DDE launch.</span></div>
     </div>`})
     }
+
+    /*
+    <!--<div style="font-family: 'Creepster';font-size: 60px;color:#7600f5">D o n't &nbsp; P a n i c !</div>
+        <i>The</i> answer is 42, but for other answers,<br/> -->
+
+    &bull; Click <b style='color:blue;font-size:24px;'>?</b> in the upper right of the outer window <b style='font-size:24px;'>&#x279A;</b> <i>or</i>,<br/>
+        <!--&bull; <button onclick="open_doc(help_system_doc_id)">Show Tutorial List</button> <i>or</i><br/>-->
+         <span style="vertical-align:top;">&bull; Select a tutorial from: </span><br/>*/
 
     static show_maybe(){
         if(!persistent_get("dont_show_splash_screen_on_launch")){
@@ -116,25 +120,28 @@ var SplashScreen = class SplashScreen {
                                       "Job.define_and_start_job(__dirname + '/user_tools/dexter_user_interface2.js')"],
         ["Configure Dexter",          "How to connect your Dexter robot,&#013;to your computer.",
                                       "open_doc(configure_dexter_id)"],
-        ["Tooltips",                  "Hover the mouse on a widget to learn about it.",
-                                      "open_doc(tooltips_doc_id)"] ,
+       // ["Tooltips",                  "Hover the mouse on a widget to learn about it.",
+        //                              "open_doc(tooltips_doc_id)"] ,
+        ["Eval Button",               "Evaluate selected JavaScript.",
+                                      "open_doc(eval_button_doc_id)"],
         ["Code Examples",             "Insert code into the editor via menus.",
                                       "open_doc(code_examples_doc_id)"],
         ["Learning JavaScript",       "Learn JS by stepping through code.",
                                       "open_doc(learning_js_doc_id)"],
-        ["Test Suite examples",       "The DDE diagnostic system doubles as code exammples.",
-                                      "open_doc(TestSuite_for_help_doc_id)"],
+       // ["Test Suite examples",       "The DDE diagnostic system doubles as code exammples.",
+       //                               "open_doc(TestSuite_for_help_doc_id)"],
         ["Doc Pane",                  "DDE documentation is contained in the right-hand documentation pane.",
                                       "close_all_details()"],
         ["Find Button",               "Search the documentation.",
                                       "open_doc(find_button_doc_id)"],
-        ["Click Help",                "Clicking anywhere in the editor shows help in the output pane.",
-                                      "open_doc(click_help_doc_id)"],
-        ["Eval Button",               "Evaluate selected JavaScript.",
-                                      "open_doc(eval_button_doc_id)"],
+       // ["Click Help",                "Clicking anywhere in the editor shows help in the output pane.",
+       //                               "open_doc(click_help_doc_id)"],
+
         ["Make Instruction",          "Create instructions for a Job via a dialog box.",
                                       "open_doc(make_instruction_pane_doc_id)"],
-        ["Dexter Features",           "Videos demonstrating Dexter capabilities&#013;plus an early look at DDE.",
+        ["Help System",               "How DDE helps you learn DDE.",
+                                      "open_doc(help_system_doc_id)"]
+       /* ["Dexter Features",           "Videos demonstrating Dexter capabilities&#013;plus an early look at DDE.",
                                       "window.open('https://www.hdrobotic.com/features')"],
         ["Haddington Videos",         "Haddington mission and hardware.",
                                       "window.open('http://hdrobotic.com/videos/')"],
@@ -146,6 +153,7 @@ var SplashScreen = class SplashScreen {
                                       "window.open('https://www.hdrobotic.com/software')"],
         ["DDE Source Code",           "DDE is open source software that is stored on GitHub.",
                                       "window.open('https://github.com/cfry/dde')"]
+        */
      ]
 
     //called by get_persistent_values_defaults

@@ -538,8 +538,8 @@ function stl_init_viewer(){
         sim.camera.position.y = 1
         sim.camera.zoom.zoom = 4 //0.79 //has no effect.
 
-//camera.position.set( -15, 10, 15 );
-//camera.lookAt( scene.position );
+        //camera.position.set( -15, 10, 15 );
+        //camera.lookAt( scene.position );
 
         sim.renderer = new THREE.WebGLRenderer();
         sim.renderer.setSize( window.innerWidth, window.innerHeight );
@@ -549,6 +549,22 @@ function stl_init_viewer(){
 
 function stl_render(){
     requestAnimationFrame(stl_render)
+    if (sim.mouseDown){
+        stl_sim_handle_mouse_move()
+    }
+    sim.renderer.render(sim.scene, sim.camera);
+}
+
+function fbx_render(){
+    requestAnimationFrame(fbx_render)
+    if (sim.mouseDown){
+        stl_sim_handle_mouse_move()
+    }
+    sim.renderer.render(sim.scene, sim.camera) //don't pass camera as 2nd arg because the fbx file already has a camera in it.
+}
+
+function gltf_render(){
+    requestAnimationFrame(gltf_render)
     if (sim.mouseDown){
         stl_sim_handle_mouse_move()
     }

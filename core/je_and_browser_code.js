@@ -526,6 +526,17 @@ static install_submit_window_fns(show_window_elt){
     for (var index = 0; index < ins.length; index++){ //bug in js chrome: for (var elt in elts) doesn't work here.
         var inp = ins[index]
         inp.onclick = this.submit_window
+        if(!inp.name){ //something screwy is removing the "name" property. looks like electron or below bug
+            let outer_html = inp.outerHTML
+            let name_pos = outer_html.indexOf(" name=")
+            if(name_pos != -1) {
+                let end_space_pos = outer_html.indexOf(" ", name_pos + 2)
+                if(end_space_pos != -1){ //add the property
+                    let name_string = outer_html.substring(name_pos + 7, end_space_pos -1)
+                    inp.name = name_string
+                }
+            }
+        }
     }
     ins = show_window_elt.querySelectorAll("[data-onchange='true']")
     for (var index = 0; index < ins.length; index++){ //bug in js chrome: for (var elt in elts) doesn't work here.
@@ -687,6 +698,11 @@ static submit_window(event){
     var trim_strings = trim_strings_elt.value
     if (trim_strings == "false") { trim_strings = false}
     else {trim_strings = true}
+    var clickables = window_content_elt.querySelectorAll(".clickable")
+    for(let inp of clickables){
+        if     (inp.name && (inp.name.length > 0)) { result[inp.name] = inp.innerHTML }
+        else if(inp.id   && (inp.id.length > 0))   { result[inp.id]   = inp.innerHTML }
+    }
     var inputs = window_content_elt.querySelectorAll("input") //finds all the descendents of the outer div that are "input" tags
     var window_callback_string = null
     for (var i = 0; i < inputs.length; i++){

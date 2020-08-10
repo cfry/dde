@@ -604,6 +604,7 @@
                                 <li style="display:inline-block;padding-left:3px;padding-right:0px;" title="Tools for managing Jobs and inserting examples.">Jobs&#9660;
                                     <ul>
                                         <li id="jobs_help_id">Help</li>
+                                        <li id="dui2_id"               title="Show a dialog box to directly operate Dexter.">Dexter UI...</li>
                                         <li id="show_robot_status_id"  title="Pop up a dialog showing the robot status&#013;for a Dexter of your choosing.&#013;It displays updates as soon as they are available.">Show robot status</li>
                                         <li id="jobs_report_id"        title="Display a report of all Jobs in this session.">Show report</li>
                                         <li id="insert_new_job_id"     title="Insert into the editor, an empty new Job.">New Job Ctrl/&#8984;j</li>
@@ -644,7 +645,6 @@
                                            <ul>
                                                 <li id="browse_dexter_id"    title="Browse the web page of&#13;the default Dexter&#13;(selected in the Misc Pane header).">Browse a Dexter...</li>
                                                 <li id="calibrate_id"        title="Calibrate one or more Dexters.&#13;Needed each time you power on a Dexter.">Calibrate Dexter...</li>
-                                                <li id="dui2_id"             title="Show window to directly operate Dexter.">Dexter UI...</li>
                                                 <li id="ping_dexter_id"      title="Find out if a Dexter&#13;or other ip_address&#13;is connected to this computer.">Ping Dexter...</li>
                                                 <li id="show_errors_log_id"  title="Show the content of the file errors.log&#13;on the default Dexter.">Show errors.log</li>
                                             </ul>
@@ -823,11 +823,16 @@
                         <span title="Pause job execution."><input  id="pause_id" type="checkbox"/>Pause</span>
                         <button id="go_id"   title="Continue paused job execution." style="padding:2px">Go</button>
                         <button id="demo_id" title="Moves graphical depiction of Dexter randomly." style="padding:2px">Demo</button><br/>
-                        <input id="simulate_radio_true_id"  type="radio" name="simulate" value="true" checked="true" title="Dexter instances with a 'simulate' value of null,&#013;such as the default Dexter: 'dexter0',&#013;get their simulate value from the selected radio button.">simulate</input>
-                        <input id="simulate_radio_false_id" type="radio" name="simulate" value="false" title="When this button is selected,&#013;Dexter instances with a 'simulate' value of null&#013;will have their instructions sent to a real Dexter.">real</input>
-                        <input id="simulate_radio_both_id"  type="radio" name="simulate" value="both" title="Both simulate and real will be run for Dexter's with a 'simulate' value of null.">both</input> &nbsp; &nbsp;
-                        <input style="display:inline-block; vertical-align:bottom;" id="real_time_sim_checkbox_id" type="checkbox" checked="true" title="If unchecked, simulation&#013;will run as fast as it can.&#013;No pauses for sleep or motion.">real-time-sim</input>
-                        <input style="display:inline-block; vertical-align:bottom;margin-left:35px;" id="js_debugger_checkbox_id" type="checkbox" title="If checked, it will cause stepping of the underlying JavaScript code.&#013;when running a job.">JS debugger</input>
+                        <span title="Dexter instances with a 'simulate' value of null,&#013;such as the default Dexter: 'dexter0',&#013;get their simulate value from the selected radio button.">
+                           <input id="simulate_radio_true_id"  type="radio" name="simulate" value="true" checked="true" title="Dexter instances with a 'simulate' value of null,&#013;such as the default Dexter: 'dexter0',&#013;get their simulate value from the selected radio button.">simulate</input></span>
+                        <span title="When this button is selected,&#013;Dexter instances with a 'simulate' value of null (the default)&#013;will have their instructions sent to a real Dexter.">
+                           <input id="simulate_radio_false_id" type="radio" name="simulate" value="false" title="When this button is selected,&#013;Dexter instances with a 'simulate' value of null (the default)&#013;will have their instructions sent to a real Dexter.">real</input></span>
+                        <span title="Both simulate and real will be run for Dexter's with a 'simulate' value of null.">
+                           <input id="simulate_radio_both_id"  type="radio" name="simulate" value="both" title="Both simulate and real will be run for Dexter's with a 'simulate' value of null.">both</input></span> &nbsp;
+                        <span title="If unchecked, simulation&#013;will run as fast as it can.&#013;No pauses for sleep or motion.">
+                        <input style="display:inline-block; vertical-align:bottom;" id="real_time_sim_checkbox_id" type="checkbox" checked="true" title="If unchecked, simulation&#013;will run as fast as it can.&#013;No pauses for sleep or motion.">real-time-sim</input></span>
+                        <span title="If checked, it will cause stepping of the underlying JavaScript code.&#013;when running a job.">
+                        <input style="display:inline-block; vertical-align:bottom;margin-left:35px;" id="js_debugger_checkbox_id" type="checkbox" title="If checked, it will cause stepping of the underlying JavaScript code.&#013;when running a job.">JS debugger</input></span>
                     </div>
                     <div id='sim_pane_content_id' contentEditable="false" style="background-color:#EEEEEE; width:97%; height:85%;padding:5px;overflow:scroll;">
                     </div>
