@@ -146,16 +146,29 @@ function misc_pane_menu_changed(select_val){
         setTimeout(fbx_render, 400)
     }
     else if (select_val.endsWith(".gltf")){
-        clear_out_sim_graphics_pane_id()
-        stl_init_viewer()
+//      clear_out_sim_graphics_pane_id()
+//      stl_init_viewer()
         // from https://github.com/ckddbs/three-fbx-loader/commit/b3bc39bef2a4253abf2acc780870a03f5f9cd510
         //https://threejs.org/docs/#examples/en/loaders/GLTFLoader
-        var GLTFLoader = require('three-gltf-loader')
-        var loader = new GLTFLoader()
+//      var GLTFLoader = require('three-gltf-loader')
+//      var loader = new GLTFLoader()
+        var GLTFLoader = require('three/examples/js/loaders/GLTFLoader.js')
+        var loader = new THREE.GLTFLoader()
 
         loader.load(select_val,
             function (gltf) {
-                sim.scene.add(gltf.scene)
+//              sim.scene.add(gltf.scene)
+				let root = gltf.scene;
+				let c0 = root.children[0]
+				c0.scale.set(0.001, 0.001, 0.001);
+				//	Remove imported lights, cameras. Just want Object3D.
+				let objs = [];
+				c0.children.forEach ( c => {
+					if ( c.constructor.name === 'Object3D' ) {
+						objs.push(c); } } );
+				c0.children = objs;
+			//	sim.scene.add(root)
+				sim.table.add(root)
             },
             undefined,
             function (err) {
