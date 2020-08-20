@@ -155,6 +155,39 @@ function misc_pane_menu_changed(select_val){
         var GLTFLoader = require('three/examples/js/loaders/GLTFLoader.js')
         var loader = new THREE.GLTFLoader()
 
+		function chainLink ( children, i ) {
+			//	The  previous link (base if i is 0).
+			let linkPrv = children[i-1];
+			let Lprv = new THREE.Matrix4();
+			Lprv.copy ( linkPrv.matrix );
+
+			let nLprv = new THREE.Matrix4();
+			nLprv.getInverse ( Lprv );
+
+			//	The link's position WRT base.
+			let link = children[i];
+			let B = new THREE.Matrix4();
+			B.copy ( link.matrix );
+
+			//	The link's position WRT the previous link.
+			let L = nLprv.multiply ( B );
+
+			//	Remove the link from the current object tree.
+			children.splice ( i, 1 );
+
+			//	Add it as a child to the previous link.
+			link.matrix.identity();
+			linkPrv.add ( link );
+
+			//	Set it's position.
+			let p = new THREE.Vector3();
+			let q = new THREE.Quaternion();
+			let s = new THREE.Vector3();
+			L.decompose ( p, q, s );
+			link.position.set ( p.x, p.y, p.z );
+			link.setRotationFromQuaternion ( q );
+		}	//	chainLink()
+
         loader.load(select_val,
             function (gltf) {
 //              sim.scene.add(gltf.scene)
@@ -169,13 +202,26 @@ function misc_pane_menu_changed(select_val){
 				c0.children = objs;
 			//	sim.scene.add(root)
 				sim.table.add(root)
-            },
+				
+				//	Set link parent-child relationships.
+				//
+				gltf_render();		 //	One render here to set the matrices.
+
+				//	Now link.
+   				chainLink ( objs[0].children, 7 );
+				chainLink ( objs[0].children, 6 );
+				chainLink ( objs[0].children, 5 );
+				chainLink ( objs[0].children, 4 );
+				chainLink ( objs[0].children, 3 );
+				chainLink ( objs[0].children, 2 );
+				chainLink ( objs[0].children, 1 );
+         },
             undefined,
             function (err) {
                 console.error( err );
             }
         )
-        setTimeout(gltf_render, 400)
+    //  setTimeout(gltf_render, 400)
     }
    // else if (select_val.startsWith("http")){
         ////play_youtube_video(select_val)
