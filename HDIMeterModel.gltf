@@ -1,0 +1,5847 @@
+{
+    "asset": {
+        "generator": "FBX2glTF v0.9.7",
+        "version": "2.0"
+    },
+    "scene": 0,
+    "extensionsUsed": [
+        "KHR_lights_punctual"
+    ],
+    "buffers": [
+        {
+            "byteLength": 10966900,
+            "uri": "buffer.bin"
+        }
+    ],
+    "bufferViews": [
+        {
+            "buffer": 0,
+            "byteLength": 155694,
+            "byteOffset": 0,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteLength": 233580,
+            "byteOffset": 155696,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 233580,
+            "byteOffset": 389276,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 155720,
+            "byteOffset": 622856,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 7788,
+            "byteOffset": 778576,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteLength": 14364,
+            "byteOffset": 786364,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 14364,
+            "byteOffset": 800728,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 9576,
+            "byteOffset": 815092,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 157200,
+            "byteOffset": 824668,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteLength": 223800,
+            "byteOffset": 981868,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 223800,
+            "byteOffset": 1205668,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 149200,
+            "byteOffset": 1429468,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 58476,
+            "byteOffset": 1578668,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteLength": 100944,
+            "byteOffset": 1637144,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 100944,
+            "byteOffset": 1738088,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 67296,
+            "byteOffset": 1839032,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 32628,
+            "byteOffset": 1906328,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteLength": 47340,
+            "byteOffset": 1938956,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 47340,
+            "byteOffset": 1986296,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 31560,
+            "byteOffset": 2033636,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 113568,
+            "byteOffset": 2065196,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteLength": 205488,
+            "byteOffset": 2178764,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 205488,
+            "byteOffset": 2384252,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 136992,
+            "byteOffset": 2589740,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 41268,
+            "byteOffset": 2726732,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteLength": 76728,
+            "byteOffset": 2768000,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 76728,
+            "byteOffset": 2844728,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 51152,
+            "byteOffset": 2921456,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 44328,
+            "byteOffset": 2972608,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteLength": 79920,
+            "byteOffset": 3016936,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 79920,
+            "byteOffset": 3096856,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 53280,
+            "byteOffset": 3176776,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 41004,
+            "byteOffset": 3230056,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteLength": 61296,
+            "byteOffset": 3271060,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 61296,
+            "byteOffset": 3332356,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 40864,
+            "byteOffset": 3393652,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 30912,
+            "byteOffset": 3434516,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteLength": 45828,
+            "byteOffset": 3465428,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 45828,
+            "byteOffset": 3511256,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 30552,
+            "byteOffset": 3557084,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 97992,
+            "byteOffset": 3587636,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteLength": 167640,
+            "byteOffset": 3685628,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 167640,
+            "byteOffset": 3853268,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 111760,
+            "byteOffset": 4020908,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 143970,
+            "byteOffset": 4132668,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteLength": 234312,
+            "byteOffset": 4276640,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 234312,
+            "byteOffset": 4510952,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 156208,
+            "byteOffset": 4745264,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 32280,
+            "byteOffset": 4901472,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteLength": 51660,
+            "byteOffset": 4933752,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 51660,
+            "byteOffset": 4985412,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 34440,
+            "byteOffset": 5037072,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 47316,
+            "byteOffset": 5071512,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteLength": 72348,
+            "byteOffset": 5118828,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 72348,
+            "byteOffset": 5191176,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 48232,
+            "byteOffset": 5263524,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 37404,
+            "byteOffset": 5311756,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteLength": 59952,
+            "byteOffset": 5349160,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 59952,
+            "byteOffset": 5409112,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 39968,
+            "byteOffset": 5469064,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 41304,
+            "byteOffset": 5509032,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteLength": 61344,
+            "byteOffset": 5550336,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 61344,
+            "byteOffset": 5611680,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 40896,
+            "byteOffset": 5673024,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 73008,
+            "byteOffset": 5713920,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteLength": 117840,
+            "byteOffset": 5786928,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 117840,
+            "byteOffset": 5904768,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 78560,
+            "byteOffset": 6022608,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 140052,
+            "byteOffset": 6101168,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteLength": 194784,
+            "byteOffset": 6241220,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 194784,
+            "byteOffset": 6436004,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 129856,
+            "byteOffset": 6630788,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 34368,
+            "byteOffset": 6760644,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteLength": 48768,
+            "byteOffset": 6795012,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 48768,
+            "byteOffset": 6843780,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 32512,
+            "byteOffset": 6892548,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 69792,
+            "byteOffset": 6925060,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteLength": 126792,
+            "byteOffset": 6994852,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 126792,
+            "byteOffset": 7121644,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 84528,
+            "byteOffset": 7248436,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 49284,
+            "byteOffset": 7332964,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteLength": 89772,
+            "byteOffset": 7382248,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 89772,
+            "byteOffset": 7472020,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 59848,
+            "byteOffset": 7561792,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 31080,
+            "byteOffset": 7621640,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteLength": 50796,
+            "byteOffset": 7652720,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 50796,
+            "byteOffset": 7703516,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 33864,
+            "byteOffset": 7754312,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 10944,
+            "byteOffset": 7788176,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteLength": 19200,
+            "byteOffset": 7799120,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 19200,
+            "byteOffset": 7818320,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 12800,
+            "byteOffset": 7837520,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 27468,
+            "byteOffset": 7850320,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteLength": 51540,
+            "byteOffset": 7877788,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 51540,
+            "byteOffset": 7929328,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 34360,
+            "byteOffset": 7980868,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 71448,
+            "byteOffset": 8015228,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteLength": 112668,
+            "byteOffset": 8086676,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 112668,
+            "byteOffset": 8199344,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 75112,
+            "byteOffset": 8312012,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 34734,
+            "byteOffset": 8387124,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteLength": 52044,
+            "byteOffset": 8421860,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 52044,
+            "byteOffset": 8473904,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 34696,
+            "byteOffset": 8525948,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 77508,
+            "byteOffset": 8560644,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteLength": 127236,
+            "byteOffset": 8638152,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 127236,
+            "byteOffset": 8765388,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 84824,
+            "byteOffset": 8892624,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 63450,
+            "byteOffset": 8977448,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteLength": 98736,
+            "byteOffset": 9040900,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 98736,
+            "byteOffset": 9139636,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 65824,
+            "byteOffset": 9238372,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 29208,
+            "byteOffset": 9304196,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteLength": 50340,
+            "byteOffset": 9333404,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 50340,
+            "byteOffset": 9383744,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 33560,
+            "byteOffset": 9434084,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 20820,
+            "byteOffset": 9467644,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteLength": 37668,
+            "byteOffset": 9488464,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 37668,
+            "byteOffset": 9526132,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 25112,
+            "byteOffset": 9563800,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 41004,
+            "byteOffset": 9588912,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteLength": 62292,
+            "byteOffset": 9629916,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 62292,
+            "byteOffset": 9692208,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 41528,
+            "byteOffset": 9754500,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 18660,
+            "byteOffset": 9796028,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteLength": 33360,
+            "byteOffset": 9814688,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 33360,
+            "byteOffset": 9848048,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 22240,
+            "byteOffset": 9881408,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 9120,
+            "byteOffset": 9903648,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteLength": 16188,
+            "byteOffset": 9912768,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 16188,
+            "byteOffset": 9928956,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 10792,
+            "byteOffset": 9945144,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 13092,
+            "byteOffset": 9955936,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteLength": 23988,
+            "byteOffset": 9969028,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 23988,
+            "byteOffset": 9993016,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 15992,
+            "byteOffset": 10017004,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 18084,
+            "byteOffset": 10032996,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteLength": 32004,
+            "byteOffset": 10051080,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 32004,
+            "byteOffset": 10083084,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 21336,
+            "byteOffset": 10115088,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 36708,
+            "byteOffset": 10136424,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteLength": 62484,
+            "byteOffset": 10173132,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 62484,
+            "byteOffset": 10235616,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 41656,
+            "byteOffset": 10298100,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 30696,
+            "byteOffset": 10339756,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteLength": 55236,
+            "byteOffset": 10370452,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 55236,
+            "byteOffset": 10425688,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 36824,
+            "byteOffset": 10480924,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 77184,
+            "byteOffset": 10517748,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteLength": 137700,
+            "byteOffset": 10594932,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 137700,
+            "byteOffset": 10732632,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 91800,
+            "byteOffset": 10870332,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 1152,
+            "byteOffset": 10962132,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteLength": 1356,
+            "byteOffset": 10963284,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 1356,
+            "byteOffset": 10964640,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 904,
+            "byteOffset": 10965996,
+            "target": 34962
+        }
+    ],
+    "scenes": [
+        {
+            "name": "Root Scene",
+            "nodes": [
+                0
+            ]
+        }
+    ],
+    "accessors": [
+        {
+            "componentType": 5123,
+            "type": "SCALAR",
+            "count": 77847,
+            "bufferView": 0,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 19465,
+            "bufferView": 1,
+            "byteOffset": 0,
+            "min": [
+                -0.0749999955296516,
+                -0.0749999955296516,
+                0.0
+            ],
+            "max": [
+                0.0749999955296516,
+                0.0749999955296516,
+                0.0979999974370003
+            ]
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 19465,
+            "bufferView": 2,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC2",
+            "count": 19465,
+            "bufferView": 3,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5123,
+            "type": "SCALAR",
+            "count": 3894,
+            "bufferView": 4,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 1197,
+            "bufferView": 5,
+            "byteOffset": 0,
+            "min": [
+                -0.044999998062849,
+                0.0,
+                -0.044982623308897
+            ],
+            "max": [
+                0.0449304990470409,
+                0.0149999996647239,
+                0.044982623308897
+            ]
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 1197,
+            "bufferView": 6,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC2",
+            "count": 1197,
+            "bufferView": 7,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5123,
+            "type": "SCALAR",
+            "count": 78600,
+            "bufferView": 8,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 18650,
+            "bufferView": 9,
+            "byteOffset": 0,
+            "min": [
+                -0.0421453230082989,
+                -0.0421453230082989,
+                0.000299999985145405
+            ],
+            "max": [
+                0.042145561426878,
+                0.0421453230082989,
+                0.096000000834465
+            ]
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 18650,
+            "bufferView": 10,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC2",
+            "count": 18650,
+            "bufferView": 11,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5123,
+            "type": "SCALAR",
+            "count": 29238,
+            "bufferView": 12,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 8412,
+            "bufferView": 13,
+            "byteOffset": 0,
+            "min": [
+                -0.0374497473239899,
+                -0.0374999977648258,
+                -0.0324999988079071
+            ],
+            "max": [
+                0.0576292015612125,
+                0.0274999998509884,
+                0.0576292015612125
+            ]
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 8412,
+            "bufferView": 14,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC2",
+            "count": 8412,
+            "bufferView": 15,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5123,
+            "type": "SCALAR",
+            "count": 16314,
+            "bufferView": 16,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 3945,
+            "bufferView": 17,
+            "byteOffset": 0,
+            "min": [
+                -0.0515484064817429,
+                -0.0247613955289125,
+                -0.00579999992623925
+            ],
+            "max": [
+                0.0515449456870556,
+                0.051518976688385,
+                0.0203999988734722
+            ]
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 3945,
+            "bufferView": 18,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC2",
+            "count": 3945,
+            "bufferView": 19,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5123,
+            "type": "SCALAR",
+            "count": 56784,
+            "bufferView": 20,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 17124,
+            "bufferView": 21,
+            "byteOffset": 0,
+            "min": [
+                -0.049015998840332,
+                -0.0486104674637318,
+                -0.00699999975040555
+            ],
+            "max": [
+                0.049015998840332,
+                0.0829709321260452,
+                0.090999998152256
+            ]
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 17124,
+            "bufferView": 22,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC2",
+            "count": 17124,
+            "bufferView": 23,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5123,
+            "type": "SCALAR",
+            "count": 20634,
+            "bufferView": 24,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 6394,
+            "bufferView": 25,
+            "byteOffset": 0,
+            "min": [
+                -0.0403160005807877,
+                -0.0403160005807877,
+                -0.00249999994412065
+            ],
+            "max": [
+                0.0403160005807877,
+                0.0403160005807877,
+                0.00789999961853027
+            ]
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 6394,
+            "bufferView": 26,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC2",
+            "count": 6394,
+            "bufferView": 27,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5123,
+            "type": "SCALAR",
+            "count": 22164,
+            "bufferView": 28,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 6660,
+            "bufferView": 29,
+            "byteOffset": 0,
+            "min": [
+                -0.0415159985423088,
+                -0.0415159985423088,
+                0.00789999961853027
+            ],
+            "max": [
+                0.0415159985423088,
+                0.0415159985423088,
+                0.0160000007599592
+            ]
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 6660,
+            "bufferView": 30,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC2",
+            "count": 6660,
+            "bufferView": 31,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5123,
+            "type": "SCALAR",
+            "count": 20502,
+            "bufferView": 32,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 5108,
+            "bufferView": 33,
+            "byteOffset": 0,
+            "min": [
+                -0.0521468110382557,
+                -0.0179228968918324,
+                -0.00559999980032444
+            ],
+            "max": [
+                0.0522810891270638,
+                0.0522810108959675,
+                0.0140448044985533
+            ]
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 5108,
+            "bufferView": 34,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC2",
+            "count": 5108,
+            "bufferView": 35,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5123,
+            "type": "SCALAR",
+            "count": 15456,
+            "bufferView": 36,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 3819,
+            "bufferView": 37,
+            "byteOffset": 0,
+            "min": [
+                -0.0522969625890255,
+                -0.0521956905722618,
+                -0.00559999980032444
+            ],
+            "max": [
+                0.0336465202271938,
+                0.00400000018998981,
+                0.0140448044985533
+            ]
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 3819,
+            "bufferView": 38,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC2",
+            "count": 3819,
+            "bufferView": 39,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5123,
+            "type": "SCALAR",
+            "count": 48996,
+            "bufferView": 40,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 13970,
+            "bufferView": 41,
+            "byteOffset": 0,
+            "min": [
+                -0.0538023859262466,
+                -0.044999998062849,
+                0.0
+            ],
+            "max": [
+                0.0528768002986908,
+                0.159999996423721,
+                0.0923115536570549
+            ]
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 13970,
+            "bufferView": 42,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC2",
+            "count": 13970,
+            "bufferView": 43,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5123,
+            "type": "SCALAR",
+            "count": 71985,
+            "bufferView": 44,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 19526,
+            "bufferView": 45,
+            "byteOffset": 0,
+            "min": [
+                -0.0659999996423721,
+                -0.159999996423721,
+                -3.15771906400641e-08
+            ],
+            "max": [
+                0.0659999996423721,
+                0.0477427579462528,
+                0.0979999974370003
+            ]
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 19526,
+            "bufferView": 46,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC2",
+            "count": 19526,
+            "bufferView": 47,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5123,
+            "type": "SCALAR",
+            "count": 16140,
+            "bufferView": 48,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 4305,
+            "bufferView": 49,
+            "byteOffset": 0,
+            "min": [
+                -0.0291249975562096,
+                -0.0884055271744728,
+                0.0
+            ],
+            "max": [
+                0.0291249975562096,
+                0.121594466269016,
+                0.0109999999403954
+            ]
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 4305,
+            "bufferView": 50,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC2",
+            "count": 4305,
+            "bufferView": 51,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5123,
+            "type": "SCALAR",
+            "count": 23658,
+            "bufferView": 52,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 6029,
+            "bufferView": 53,
+            "byteOffset": 0,
+            "min": [
+                -0.0910389944911003,
+                -0.357326000928879,
+                -0.0172549989074469
+            ],
+            "max": [
+                0.0910389944911003,
+                -0.270594000816345,
+                0.0837569981813431
+            ]
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 6029,
+            "bufferView": 54,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC2",
+            "count": 6029,
+            "bufferView": 55,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5123,
+            "type": "SCALAR",
+            "count": 18702,
+            "bufferView": 56,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 4996,
+            "bufferView": 57,
+            "byteOffset": 0,
+            "min": [
+                -0.0910389944911003,
+                -0.270594000816345,
+                -0.0158589985221624
+            ],
+            "max": [
+                0.0336549989879131,
+                -0.167611330747604,
+                0.0989999920129776
+            ]
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 4996,
+            "bufferView": 58,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC2",
+            "count": 4996,
+            "bufferView": 59,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5123,
+            "type": "SCALAR",
+            "count": 20652,
+            "bufferView": 60,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 5112,
+            "bufferView": 61,
+            "byteOffset": 0,
+            "min": [
+                -0.0820389986038208,
+                -0.357326000928879,
+                -0.00297500006854534
+            ],
+            "max": [
+                0.0820389986038208,
+                -0.264351010322571,
+                0.0937450006604195
+            ]
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 5112,
+            "bufferView": 62,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC2",
+            "count": 5112,
+            "bufferView": 63,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5123,
+            "type": "SCALAR",
+            "count": 36504,
+            "bufferView": 64,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 9820,
+            "bufferView": 65,
+            "byteOffset": 0,
+            "min": [
+                -0.068443663418293,
+                -0.270594000816345,
+                -0.0158589985221624
+            ],
+            "max": [
+                0.0910389944911003,
+                -0.159999996423721,
+                0.0989999920129776
+            ]
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 9820,
+            "bufferView": 66,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC2",
+            "count": 9820,
+            "bufferView": 67,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5123,
+            "type": "SCALAR",
+            "count": 70026,
+            "bufferView": 68,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 16232,
+            "bufferView": 69,
+            "byteOffset": 0,
+            "min": [
+                -0.0453460104763508,
+                -0.0188916996121407,
+                -0.0830043032765388
+            ],
+            "max": [
+                0.0453460104763508,
+                0.0467500016093254,
+                0.00400000018998981
+            ]
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 16232,
+            "bufferView": 70,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC2",
+            "count": 16232,
+            "bufferView": 71,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5123,
+            "type": "SCALAR",
+            "count": 17184,
+            "bufferView": 72,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 4064,
+            "bufferView": 73,
+            "byteOffset": 0,
+            "min": [
+                -0.0320000015199184,
+                -0.0320000015199184,
+                0.00400000018998981
+            ],
+            "max": [
+                0.0320000015199184,
+                0.0320000015199184,
+                0.0139999995008111
+            ]
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 4064,
+            "bufferView": 74,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC2",
+            "count": 4064,
+            "bufferView": 75,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5123,
+            "type": "SCALAR",
+            "count": 34896,
+            "bufferView": 76,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 10566,
+            "bufferView": 77,
+            "byteOffset": 0,
+            "min": [
+                -0.0785389989614487,
+                -0.0968960002064705,
+                -0.0379999987781048
+            ],
+            "max": [
+                0.0785389989614487,
+                0.00400000018998981,
+                0.067731998860836
+            ]
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 10566,
+            "bufferView": 78,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC2",
+            "count": 10566,
+            "bufferView": 79,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5123,
+            "type": "SCALAR",
+            "count": 24642,
+            "bufferView": 80,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 7481,
+            "bufferView": 81,
+            "byteOffset": 0,
+            "min": [
+                -0.0324981696903706,
+                -0.057499997317791,
+                0.0219999998807907
+            ],
+            "max": [
+                0.0324981696903706,
+                0.0334268920123577,
+                0.0480000004172325
+            ]
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 7481,
+            "bufferView": 82,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC2",
+            "count": 7481,
+            "bufferView": 83,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5123,
+            "type": "SCALAR",
+            "count": 15540,
+            "bufferView": 84,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 4233,
+            "bufferView": 85,
+            "byteOffset": 0,
+            "min": [
+                -0.0149999996647239,
+                -0.0149999996647239,
+                0.0
+            ],
+            "max": [
+                0.0149999996647239,
+                0.0149999996647239,
+                0.0120000001043081
+            ]
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 4233,
+            "bufferView": 86,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC2",
+            "count": 4233,
+            "bufferView": 87,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5123,
+            "type": "SCALAR",
+            "count": 5472,
+            "bufferView": 88,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 1600,
+            "bufferView": 89,
+            "byteOffset": 0,
+            "min": [
+                -0.0254999995231628,
+                -0.0254999995231628,
+                0.0979999974370003
+            ],
+            "max": [
+                0.0254999995231628,
+                0.0254999995231628,
+                0.101999998092651
+            ]
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 1600,
+            "bufferView": 90,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC2",
+            "count": 1600,
+            "bufferView": 91,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5123,
+            "type": "SCALAR",
+            "count": 13734,
+            "bufferView": 92,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 4295,
+            "bufferView": 93,
+            "byteOffset": 0,
+            "min": [
+                -0.0249999985098839,
+                -0.0249962545931339,
+                0.0
+            ],
+            "max": [
+                0.0444999970495701,
+                0.0249997917562723,
+                0.0419999957084656
+            ]
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 4295,
+            "bufferView": 94,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC2",
+            "count": 4295,
+            "bufferView": 95,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5123,
+            "type": "SCALAR",
+            "count": 35724,
+            "bufferView": 96,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 9389,
+            "bufferView": 97,
+            "byteOffset": 0,
+            "min": [
+                -0.038963295519352,
+                0.0324999988079071,
+                -6.66133799885843e-18
+            ],
+            "max": [
+                0.0389632619917393,
+                0.346500009298325,
+                0.0469999983906746
+            ]
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 9389,
+            "bufferView": 98,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC2",
+            "count": 9389,
+            "bufferView": 99,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5123,
+            "type": "SCALAR",
+            "count": 17367,
+            "bufferView": 100,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 4337,
+            "bufferView": 101,
+            "byteOffset": 0,
+            "min": [
+                -0.0270000007003546,
+                0.280499994754791,
+                -0.00999999977648258
+            ],
+            "max": [
+                0.0270000007003546,
+                0.334500014781952,
+                0.0
+            ]
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 4337,
+            "bufferView": 102,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC2",
+            "count": 4337,
+            "bufferView": 103,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5123,
+            "type": "SCALAR",
+            "count": 38754,
+            "bufferView": 104,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 10603,
+            "bufferView": 105,
+            "byteOffset": 0,
+            "min": [
+                -0.0354998223483562,
+                -0.0354999974370003,
+                -1.02167837212619e-06
+            ],
+            "max": [
+                0.0354998223483562,
+                0.27649998664856,
+                0.0469999983906746
+            ]
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 10603,
+            "bufferView": 106,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC2",
+            "count": 10603,
+            "bufferView": 107,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5123,
+            "type": "SCALAR",
+            "count": 31725,
+            "bufferView": 108,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 8228,
+            "bufferView": 109,
+            "byteOffset": 0,
+            "min": [
+                -0.0389981493353844,
+                -0.0390000008046627,
+                -0.0329999998211861
+            ],
+            "max": [
+                0.0389920212328434,
+                0.0344999991357327,
+                0.0175000000745058
+            ]
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 8228,
+            "bufferView": 110,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC2",
+            "count": 8228,
+            "bufferView": 111,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5123,
+            "type": "SCALAR",
+            "count": 14604,
+            "bufferView": 112,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 4195,
+            "bufferView": 113,
+            "byteOffset": 0,
+            "min": [
+                -0.0350000001490116,
+                0.0344999991357327,
+                -0.0327499993145466
+            ],
+            "max": [
+                0.0334765464067459,
+                0.0439999997615814,
+                0.0281429588794708
+            ]
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 4195,
+            "bufferView": 114,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC2",
+            "count": 4195,
+            "bufferView": 115,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5123,
+            "type": "SCALAR",
+            "count": 10410,
+            "bufferView": 116,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 3139,
+            "bufferView": 117,
+            "byteOffset": 0,
+            "min": [
+                -0.0302439350634813,
+                -0.0302499998360872,
+                -0.00699999975040555
+            ],
+            "max": [
+                0.0302430726587772,
+                0.0548150613903999,
+                0.00999999977648258
+            ]
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 3139,
+            "bufferView": 118,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC2",
+            "count": 3139,
+            "bufferView": 119,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5123,
+            "type": "SCALAR",
+            "count": 20502,
+            "bufferView": 120,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 5191,
+            "bufferView": 121,
+            "byteOffset": 0,
+            "min": [
+                -0.0302499998360872,
+                -0.0302495304495096,
+                0.00999999977648258
+            ],
+            "max": [
+                0.0302499998360872,
+                0.0548150613903999,
+                0.0465000011026859
+            ]
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 5191,
+            "bufferView": 122,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC2",
+            "count": 5191,
+            "bufferView": 123,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5123,
+            "type": "SCALAR",
+            "count": 9330,
+            "bufferView": 124,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 2780,
+            "bufferView": 125,
+            "byteOffset": 0,
+            "min": [
+                -0.02913848310709,
+                -0.0124999992549419,
+                0.00999999977648258
+            ],
+            "max": [
+                0.0311336182057858,
+                0.0187569987028837,
+                0.0935000032186508
+            ]
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 2780,
+            "bufferView": 126,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC2",
+            "count": 2780,
+            "bufferView": 127,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5123,
+            "type": "SCALAR",
+            "count": 4560,
+            "bufferView": 128,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 1349,
+            "bufferView": 129,
+            "byteOffset": 0,
+            "min": [
+                -0.0639524906873703,
+                -0.0157570000737906,
+                -0.0020000000949949
+            ],
+            "max": [
+                0.0130519159138203,
+                0.00924300029873848,
+                0.0654999986290932
+            ]
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 1349,
+            "bufferView": 130,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC2",
+            "count": 1349,
+            "bufferView": 131,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5123,
+            "type": "SCALAR",
+            "count": 6546,
+            "bufferView": 132,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 1999,
+            "bufferView": 133,
+            "byteOffset": 0,
+            "min": [
+                -0.0199999995529652,
+                -0.0199999995529652,
+                0.0
+            ],
+            "max": [
+                0.0199999995529652,
+                0.0199999995529652,
+                0.0108000002801418
+            ]
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 1999,
+            "bufferView": 134,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC2",
+            "count": 1999,
+            "bufferView": 135,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5123,
+            "type": "SCALAR",
+            "count": 9042,
+            "bufferView": 136,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 2667,
+            "bufferView": 137,
+            "byteOffset": 0,
+            "min": [
+                -0.0249999985098839,
+                -0.0249999985098839,
+                0.0
+            ],
+            "max": [
+                0.0249999985098839,
+                0.0249999985098839,
+                0.00789999961853027
+            ]
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 2667,
+            "bufferView": 138,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC2",
+            "count": 2667,
+            "bufferView": 139,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5123,
+            "type": "SCALAR",
+            "count": 18354,
+            "bufferView": 140,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 5207,
+            "bufferView": 141,
+            "byteOffset": 0,
+            "min": [
+                -0.0179999992251396,
+                -0.0290027186274529,
+                -0.0020000000949949
+            ],
+            "max": [
+                0.0179999992251396,
+                0.0174999982118607,
+                0.016499999910593
+            ]
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 5207,
+            "bufferView": 142,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC2",
+            "count": 5207,
+            "bufferView": 143,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5123,
+            "type": "SCALAR",
+            "count": 15348,
+            "bufferView": 144,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 4603,
+            "bufferView": 145,
+            "byteOffset": 0,
+            "min": [
+                -0.0114921666681767,
+                -0.0125611405819654,
+                -0.00249999994412065
+            ],
+            "max": [
+                0.0162426400929689,
+                0.0231388583779335,
+                0.0261999983340502
+            ]
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 4603,
+            "bufferView": 146,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC2",
+            "count": 4603,
+            "bufferView": 147,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5123,
+            "type": "SCALAR",
+            "count": 38592,
+            "bufferView": 148,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 11475,
+            "bufferView": 149,
+            "byteOffset": 0,
+            "min": [
+                -0.0120000001043081,
+                -0.0270000007003546,
+                -0.0120000001043081
+            ],
+            "max": [
+                0.0120000001043081,
+                0.00899999961256981,
+                0.0149999996647239
+            ]
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 11475,
+            "bufferView": 150,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC2",
+            "count": 11475,
+            "bufferView": 151,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5123,
+            "type": "SCALAR",
+            "count": 576,
+            "bufferView": 152,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 113,
+            "bufferView": 153,
+            "byteOffset": 0,
+            "min": [
+                -0.00279999990016222,
+                -0.00279999990016222,
+                0.0145000005140901
+            ],
+            "max": [
+                0.00279999990016222,
+                0.00279999990016222,
+                0.0149999996647239
+            ]
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC3",
+            "count": 113,
+            "bufferView": 154,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC2",
+            "count": 113,
+            "bufferView": 155,
+            "byteOffset": 0
+        }
+    ],
+    "samplers": [
+        {}
+    ],
+    "materials": [
+        {
+            "name": "Steel - Satin.001",
+            "alphaMode": "OPAQUE",
+            "extras": {
+                "fromFBX": {
+                    "shadingModel": "Phong",
+                    "isTruePBR": false
+                }
+            },
+            "pbrMetallicRoughness": {
+                "baseColorFactor": [
+                    0.627451002597809,
+                    0.627451002597809,
+                    0.627451002597809,
+                    1.0
+                ],
+                "metallicFactor": 0.400000005960464,
+                "roughnessFactor": 0.301511347293854
+            }
+        },
+        {
+            "name": "Plastic - Glossy (Black)",
+            "alphaMode": "OPAQUE",
+            "extras": {
+                "fromFBX": {
+                    "shadingModel": "Phong",
+                    "isTruePBR": false
+                }
+            },
+            "pbrMetallicRoughness": {
+                "baseColorFactor": [
+                    0.0980392172932625,
+                    0.0980392172932625,
+                    0.0980392172932625,
+                    1.0
+                ],
+                "metallicFactor": 0.400000005960464,
+                "roughnessFactor": 0.301511347293854
+            }
+        },
+        {
+            "name": "Aluminum - Polished",
+            "alphaMode": "OPAQUE",
+            "extras": {
+                "fromFBX": {
+                    "shadingModel": "Phong",
+                    "isTruePBR": false
+                }
+            },
+            "pbrMetallicRoughness": {
+                "baseColorFactor": [
+                    0.960784316062927,
+                    0.960784316062927,
+                    0.964705884456635,
+                    1.0
+                ],
+                "metallicFactor": 0.400000005960464,
+                "roughnessFactor": 0.301511347293854
+            }
+        },
+        {
+            "name": "Default",
+            "alphaMode": "OPAQUE",
+            "extras": {
+                "fromFBX": {
+                    "shadingModel": "Phong",
+                    "isTruePBR": false
+                }
+            },
+            "pbrMetallicRoughness": {
+                "baseColorFactor": [
+                    0.749019622802734,
+                    0.749019622802734,
+                    0.749019622802734,
+                    1.0
+                ],
+                "metallicFactor": 0.400000005960464,
+                "roughnessFactor": 0.301511347293854
+            }
+        },
+        {
+            "name": "Opaque(191,191,191)",
+            "alphaMode": "OPAQUE",
+            "extras": {
+                "fromFBX": {
+                    "shadingModel": "Phong",
+                    "isTruePBR": false
+                }
+            },
+            "pbrMetallicRoughness": {
+                "baseColorFactor": [
+                    0.749019622802734,
+                    0.749019622802734,
+                    0.749019622802734,
+                    1.0
+                ],
+                "metallicFactor": 0.400000005960464,
+                "roughnessFactor": 0.301511347293854
+            }
+        },
+        {
+            "name": "Opaque(25,25,25)",
+            "alphaMode": "OPAQUE",
+            "extras": {
+                "fromFBX": {
+                    "shadingModel": "Phong",
+                    "isTruePBR": false
+                }
+            },
+            "pbrMetallicRoughness": {
+                "baseColorFactor": [
+                    0.0980392172932625,
+                    0.0980392172932625,
+                    0.0980392172932625,
+                    1.0
+                ],
+                "metallicFactor": 0.400000005960464,
+                "roughnessFactor": 0.301511347293854
+            }
+        },
+        {
+            "name": "Opaque(245,245,246)",
+            "alphaMode": "OPAQUE",
+            "extras": {
+                "fromFBX": {
+                    "shadingModel": "Phong",
+                    "isTruePBR": false
+                }
+            },
+            "pbrMetallicRoughness": {
+                "baseColorFactor": [
+                    0.960784316062927,
+                    0.960784316062927,
+                    0.964705884456635,
+                    1.0
+                ],
+                "metallicFactor": 0.400000005960464,
+                "roughnessFactor": 0.301511347293854
+            }
+        }
+    ],
+    "meshes": [
+        {
+            "name": "HDI-110-001_BaseMountBottom",
+            "primitives": [
+                {
+                    "material": 0,
+                    "mode": 4,
+                    "attributes": {
+                        "NORMAL": 2,
+                        "POSITION": 1,
+                        "TEXCOORD_0": 3
+                    },
+                    "indices": 0
+                }
+            ]
+        },
+        {
+            "name": "HDI-110-002_BaseClamp",
+            "primitives": [
+                {
+                    "material": 0,
+                    "mode": 4,
+                    "attributes": {
+                        "NORMAL": 6,
+                        "POSITION": 5,
+                        "TEXCOORD_0": 7
+                    },
+                    "indices": 4
+                }
+            ]
+        },
+        {
+            "name": "HDI-220-001_BaseLong",
+            "primitives": [
+                {
+                    "material": 0,
+                    "mode": 4,
+                    "attributes": {
+                        "NORMAL": 10,
+                        "POSITION": 9,
+                        "TEXCOORD_0": 11
+                    },
+                    "indices": 8
+                }
+            ]
+        },
+        {
+            "name": "HDI-210-001_MainPivot",
+            "primitives": [
+                {
+                    "material": 0,
+                    "mode": 4,
+                    "attributes": {
+                        "NORMAL": 14,
+                        "POSITION": 13,
+                        "TEXCOORD_0": 15
+                    },
+                    "indices": 12
+                }
+            ]
+        },
+        {
+            "name": "HDI-220-005_J1DiskCover",
+            "primitives": [
+                {
+                    "material": 0,
+                    "mode": 4,
+                    "attributes": {
+                        "NORMAL": 18,
+                        "POSITION": 17,
+                        "TEXCOORD_0": 19
+                    },
+                    "indices": 16
+                }
+            ]
+        },
+        {
+            "name": "HDI-310-001_ArmBody",
+            "primitives": [
+                {
+                    "material": 0,
+                    "mode": 4,
+                    "attributes": {
+                        "NORMAL": 22,
+                        "POSITION": 21,
+                        "TEXCOORD_0": 23
+                    },
+                    "indices": 20
+                }
+            ]
+        },
+        {
+            "name": "HDI-311-006B-J2StatorHolder_ConeDrive",
+            "primitives": [
+                {
+                    "material": 0,
+                    "mode": 4,
+                    "attributes": {
+                        "NORMAL": 26,
+                        "POSITION": 25,
+                        "TEXCOORD_0": 27
+                    },
+                    "indices": 24
+                }
+            ]
+        },
+        {
+            "name": "HDI-311-006C-J2StatorHolderCap_ConeDrive",
+            "primitives": [
+                {
+                    "material": 0,
+                    "mode": 4,
+                    "attributes": {
+                        "NORMAL": 30,
+                        "POSITION": 29,
+                        "TEXCOORD_0": 31
+                    },
+                    "indices": 28
+                }
+            ]
+        },
+        {
+            "name": "HDI-310-003_J2DiskCoverTop",
+            "primitives": [
+                {
+                    "material": 0,
+                    "mode": 4,
+                    "attributes": {
+                        "NORMAL": 34,
+                        "POSITION": 33,
+                        "TEXCOORD_0": 35
+                    },
+                    "indices": 32
+                }
+            ]
+        },
+        {
+            "name": "HDI-310-004_J2DiskCoverBottom",
+            "primitives": [
+                {
+                    "material": 0,
+                    "mode": 4,
+                    "attributes": {
+                        "NORMAL": 38,
+                        "POSITION": 37,
+                        "TEXCOORD_0": 39
+                    },
+                    "indices": 36
+                }
+            ]
+        },
+        {
+            "name": "HDI-910-001_L2SkinTop",
+            "primitives": [
+                {
+                    "material": 0,
+                    "mode": 4,
+                    "attributes": {
+                        "NORMAL": 42,
+                        "POSITION": 41,
+                        "TEXCOORD_0": 43
+                    },
+                    "indices": 40
+                }
+            ]
+        },
+        {
+            "name": "HDI-910-002_L2SkinBottom",
+            "primitives": [
+                {
+                    "material": 0,
+                    "mode": 4,
+                    "attributes": {
+                        "NORMAL": 46,
+                        "POSITION": 45,
+                        "TEXCOORD_0": 47
+                    },
+                    "indices": 44
+                }
+            ]
+        },
+        {
+            "name": "HDI-910-003_L2SkinBackPanel",
+            "primitives": [
+                {
+                    "material": 0,
+                    "mode": 4,
+                    "attributes": {
+                        "NORMAL": 50,
+                        "POSITION": 49,
+                        "TEXCOORD_0": 51
+                    },
+                    "indices": 48
+                }
+            ]
+        },
+        {
+            "name": "HDI-930-004_ExGearSkinD",
+            "primitives": [
+                {
+                    "material": 0,
+                    "mode": 4,
+                    "attributes": {
+                        "NORMAL": 54,
+                        "POSITION": 53,
+                        "TEXCOORD_0": 55
+                    },
+                    "indices": 52
+                }
+            ]
+        },
+        {
+            "name": "HDI-930_002_ExGearSkinB",
+            "primitives": [
+                {
+                    "material": 0,
+                    "mode": 4,
+                    "attributes": {
+                        "NORMAL": 58,
+                        "POSITION": 57,
+                        "TEXCOORD_0": 59
+                    },
+                    "indices": 56
+                }
+            ]
+        },
+        {
+            "name": "HDI-930-003_ExGearSkinC",
+            "primitives": [
+                {
+                    "material": 0,
+                    "mode": 4,
+                    "attributes": {
+                        "NORMAL": 62,
+                        "POSITION": 61,
+                        "TEXCOORD_0": 63
+                    },
+                    "indices": 60
+                }
+            ]
+        },
+        {
+            "name": "HDI-930-001_ExGearSkinA",
+            "primitives": [
+                {
+                    "material": 0,
+                    "mode": 4,
+                    "attributes": {
+                        "NORMAL": 66,
+                        "POSITION": 65,
+                        "TEXCOORD_0": 67
+                    },
+                    "indices": 64
+                }
+            ]
+        },
+        {
+            "name": "HDI-910-004_J3Cover",
+            "primitives": [
+                {
+                    "material": 0,
+                    "mode": 4,
+                    "attributes": {
+                        "NORMAL": 70,
+                        "POSITION": 69,
+                        "TEXCOORD_0": 71
+                    },
+                    "indices": 68
+                }
+            ]
+        },
+        {
+            "name": "HDI-910-005_J3CoverCap",
+            "primitives": [
+                {
+                    "material": 0,
+                    "mode": 4,
+                    "attributes": {
+                        "NORMAL": 74,
+                        "POSITION": 73,
+                        "TEXCOORD_0": 75
+                    },
+                    "indices": 72
+                }
+            ]
+        },
+        {
+            "name": "HDI-320-001_ExGearMount",
+            "primitives": [
+                {
+                    "material": 0,
+                    "mode": 4,
+                    "attributes": {
+                        "NORMAL": 78,
+                        "POSITION": 77,
+                        "TEXCOORD_0": 79
+                    },
+                    "indices": 76
+                }
+            ]
+        },
+        {
+            "name": "HDI-330-002_ArmBodyHubB",
+            "primitives": [
+                {
+                    "material": 0,
+                    "mode": 4,
+                    "attributes": {
+                        "NORMAL": 82,
+                        "POSITION": 81,
+                        "TEXCOORD_0": 83
+                    },
+                    "indices": 80
+                }
+            ]
+        },
+        {
+            "name": "HDI-610-006_MotorShaftCoupler",
+            "primitives": [
+                {
+                    "material": 0,
+                    "mode": 4,
+                    "attributes": {
+                        "NORMAL": 86,
+                        "POSITION": 85,
+                        "TEXCOORD_0": 87
+                    },
+                    "indices": 84
+                }
+            ]
+        },
+        {
+            "name": "Body1",
+            "primitives": [
+                {
+                    "material": 0,
+                    "mode": 4,
+                    "attributes": {
+                        "NORMAL": 90,
+                        "POSITION": 89,
+                        "TEXCOORD_0": 91
+                    },
+                    "indices": 88
+                }
+            ]
+        },
+        {
+            "name": "HDI-500-001_EndArmHub",
+            "primitives": [
+                {
+                    "material": 0,
+                    "mode": 4,
+                    "attributes": {
+                        "NORMAL": 94,
+                        "POSITION": 93,
+                        "TEXCOORD_0": 95
+                    },
+                    "indices": 92
+                }
+            ]
+        },
+        {
+            "name": "HDI-920-001_L3SkinA",
+            "primitives": [
+                {
+                    "material": 0,
+                    "mode": 4,
+                    "attributes": {
+                        "NORMAL": 98,
+                        "POSITION": 97,
+                        "TEXCOORD_0": 99
+                    },
+                    "indices": 96
+                }
+            ]
+        },
+        {
+            "name": "HDI-920-003_L3SkinCap",
+            "primitives": [
+                {
+                    "material": 0,
+                    "mode": 4,
+                    "attributes": {
+                        "NORMAL": 102,
+                        "POSITION": 101,
+                        "TEXCOORD_0": 103
+                    },
+                    "indices": 100
+                }
+            ]
+        },
+        {
+            "name": "HDI-920-002_L3SkinB",
+            "primitives": [
+                {
+                    "material": 0,
+                    "mode": 4,
+                    "attributes": {
+                        "NORMAL": 106,
+                        "POSITION": 105,
+                        "TEXCOORD_0": 107
+                    },
+                    "indices": 104
+                }
+            ]
+        },
+        {
+            "name": "HDI-940-001_DiffCover",
+            "primitives": [
+                {
+                    "material": 0,
+                    "mode": 4,
+                    "attributes": {
+                        "NORMAL": 110,
+                        "POSITION": 109,
+                        "TEXCOORD_0": 111
+                    },
+                    "indices": 108
+                }
+            ]
+        },
+        {
+            "name": "HDI-940-002_DiffCoverCap",
+            "primitives": [
+                {
+                    "material": 0,
+                    "mode": 4,
+                    "attributes": {
+                        "NORMAL": 114,
+                        "POSITION": 113,
+                        "TEXCOORD_0": 115
+                    },
+                    "indices": 112
+                }
+            ]
+        },
+        {
+            "name": "HDI-950-001_GripperCoverBottom",
+            "primitives": [
+                {
+                    "material": 0,
+                    "mode": 4,
+                    "attributes": {
+                        "NORMAL": 118,
+                        "POSITION": 117,
+                        "TEXCOORD_0": 119
+                    },
+                    "indices": 116
+                }
+            ]
+        },
+        {
+            "name": "HDI-950-002_GripperCoverTop",
+            "primitives": [
+                {
+                    "material": 0,
+                    "mode": 4,
+                    "attributes": {
+                        "NORMAL": 122,
+                        "POSITION": 121,
+                        "TEXCOORD_0": 123
+                    },
+                    "indices": 120
+                }
+            ]
+        },
+        {
+            "name": "TI1-420-001_ParallelGripperStationaryFinger",
+            "primitives": [
+                {
+                    "material": 0,
+                    "mode": 4,
+                    "attributes": {
+                        "NORMAL": 126,
+                        "POSITION": 125,
+                        "TEXCOORD_0": 127
+                    },
+                    "indices": 124
+                }
+            ]
+        },
+        {
+            "name": "TI1-420-002_ParallelGripperMovingFinger",
+            "primitives": [
+                {
+                    "material": 0,
+                    "mode": 4,
+                    "attributes": {
+                        "NORMAL": 130,
+                        "POSITION": 129,
+                        "TEXCOORD_0": 131
+                    },
+                    "indices": 128
+                }
+            ]
+        },
+        {
+            "name": "HDI-730-005_Fan",
+            "primitives": [
+                {
+                    "material": 1,
+                    "mode": 4,
+                    "attributes": {
+                        "NORMAL": 134,
+                        "POSITION": 133,
+                        "TEXCOORD_0": 135
+                    },
+                    "indices": 132
+                }
+            ]
+        },
+        {
+            "name": "HDI-610-002B_StatorGear",
+            "primitives": [
+                {
+                    "material": 2,
+                    "mode": 4,
+                    "attributes": {
+                        "NORMAL": 138,
+                        "POSITION": 137,
+                        "TEXCOORD_0": 139
+                    },
+                    "indices": 136
+                }
+            ]
+        },
+        {
+            "name": "Body1.001",
+            "primitives": [
+                {
+                    "material": 3,
+                    "mode": 4,
+                    "attributes": {
+                        "NORMAL": 142,
+                        "POSITION": 141,
+                        "TEXCOORD_0": 143
+                    },
+                    "indices": 140
+                }
+            ]
+        },
+        {
+            "name": "Body1.002",
+            "primitives": [
+                {
+                    "material": 4,
+                    "mode": 4,
+                    "attributes": {
+                        "NORMAL": 146,
+                        "POSITION": 145,
+                        "TEXCOORD_0": 147
+                    },
+                    "indices": 144
+                }
+            ]
+        },
+        {
+            "name": "Body1.003",
+            "primitives": [
+                {
+                    "material": 5,
+                    "mode": 4,
+                    "attributes": {
+                        "NORMAL": 150,
+                        "POSITION": 149,
+                        "TEXCOORD_0": 151
+                    },
+                    "indices": 148
+                },
+                {
+                    "material": 6,
+                    "mode": 4,
+                    "attributes": {
+                        "NORMAL": 154,
+                        "POSITION": 153,
+                        "TEXCOORD_0": 155
+                    },
+                    "indices": 152
+                }
+            ]
+        }
+    ],
+    "cameras": [
+        {
+            "name": "",
+            "type": "perspective",
+            "perspective": {
+                "znear": 10.0,
+                "zfar": 10000.0,
+                "aspectRatio": 1.5,
+                "yfov": 0.471089959144592
+            }
+        },
+        {
+            "name": "",
+            "type": "perspective",
+            "perspective": {
+                "znear": 10.0,
+                "zfar": 10000.0,
+                "aspectRatio": 1.5,
+                "yfov": 0.471089959144592
+            }
+        }
+    ],
+    "nodes": [
+        {
+            "name": "RootNode",
+            "translation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                1,
+                2,
+                3,
+                4,
+                5
+            ]
+        },
+        {
+            "name": "Light",
+            "translation": [
+                4.07624530792236,
+                5.90386199951172,
+                -1.00545394420624
+            ],
+            "rotation": [
+                0.169075712561607,
+                0.755880355834961,
+                -0.272171318531036,
+                0.570947468280792
+            ],
+            "scale": [
+                100.000007629395,
+                100.0,
+                100.0
+            ],
+            "extensions": {
+                "KHR_lights_punctual": {
+                    "light": 0
+                }
+            }
+        },
+        {
+            "name": "Camera",
+            "translation": [
+                7.35889148712158,
+                4.95830917358398,
+                6.92579078674316
+            ],
+            "rotation": [
+                -0.209972992539406,
+                0.385779976844788,
+                0.0906284004449844,
+                0.89379620552063
+            ],
+            "scale": [
+                100.0,
+                100.000007629395,
+                99.9999923706055
+            ],
+            "camera": 0
+        },
+        {
+            "name": "Light.001",
+            "translation": [
+                4.07624530792236,
+                5.90386199951172,
+                -1.00545394420624
+            ],
+            "rotation": [
+                0.169075772166252,
+                0.755880355834961,
+                -0.272171348333359,
+                0.570947527885437
+            ],
+            "scale": [
+                100.0,
+                100.0,
+                99.9999923706055
+            ],
+            "extensions": {
+                "KHR_lights_punctual": {
+                    "light": 1
+                }
+            }
+        },
+        {
+            "name": "Camera.001",
+            "translation": [
+                7.35889148712158,
+                4.95830917358398,
+                6.92579078674316
+            ],
+            "rotation": [
+                -0.209972962737083,
+                0.38578000664711,
+                0.0906284004449844,
+                0.89379620552063
+            ],
+            "scale": [
+                99.9999923706055,
+                99.9999923706055,
+                99.9999923706055
+            ],
+            "camera": 1
+        },
+        {
+            "name": "DexterHDI_KinematicAssembly v1",
+            "translation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                8.14603353660459e-08,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                100.0,
+                100.0,
+                100.0
+            ],
+            "children": [
+                6,
+                17,
+                25,
+                78,
+                88,
+                96,
+                105,
+                116
+            ]
+        },
+        {
+            "name": "DexterHDI_Link1_KinematicAssembly v1:1",
+            "translation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                7.105427357601e-15,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                7
+            ]
+        },
+        {
+            "name": "DexterHDI_Link1_KinematicAssembly v1",
+            "translation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                7.105427357601e-15,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                8,
+                11,
+                14
+            ]
+        },
+        {
+            "name": "BaseMountBottom_Bolted v9:1",
+            "translation": [
+                0.0,
+                6.31088710070877e-32,
+                -4.44089199923895e-18
+            ],
+            "rotation": [
+                -0.707106828689575,
+                0.0,
+                0.0,
+                0.707106709480286
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                9
+            ]
+        },
+        {
+            "name": "BaseMountBottom_Bolted v9",
+            "translation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                10
+            ]
+        },
+        {
+            "name": "HDI-110-001_BaseMountBottom",
+            "translation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                10.0,
+                10.0
+            ],
+            "mesh": 0
+        },
+        {
+            "name": "HDI-110-002_BaseClamp v8:1",
+            "translation": [
+                -0.000347490567946807,
+                0.969999969005585,
+                0.0
+            ],
+            "rotation": [
+                -6.12322499850298e-17,
+                -7.105427357601e-15,
+                1.0,
+                -7.54979012640433e-08
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                12
+            ]
+        },
+        {
+            "name": "HDI-110-002_BaseClamp v8",
+            "translation": [
+                3.72529021519519e-11,
+                -5.24953240599313e-11,
+                3.38813171328655e-23
+            ],
+            "rotation": [
+                -7.105427357601e-15,
+                4.2351647362715e-22,
+                2.22547364351982e-24,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                13
+            ]
+        },
+        {
+            "name": "HDI-110-002_BaseClamp",
+            "translation": [
+                3.72529021519519e-11,
+                -5.24953240599313e-11,
+                0.0
+            ],
+            "rotation": [
+                -1.05879119984509e-23,
+                6.7762636790086e-22,
+                1.28136719984793e-23,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                10.0,
+                10.0
+            ],
+            "mesh": 1
+        },
+        {
+            "name": "HDI-220-001_BaseLong v27:1",
+            "translation": [
+                -2.22044591690142e-17,
+                0.976999938488007,
+                1.81898936288828e-14
+            ],
+            "rotation": [
+                -0.707106828689575,
+                -4.18356746745787e-31,
+                4.18356652706239e-31,
+                0.707106709480286
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                15
+            ]
+        },
+        {
+            "name": "HDI-220-001_BaseLong v27",
+            "translation": [
+                0.0,
+                0.0,
+                7.62939436071974e-08
+            ],
+            "rotation": [
+                -0.0,
+                0.0,
+                2.98476572901186e-40,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                16
+            ]
+        },
+        {
+            "name": "HDI-220-001_BaseLong",
+            "translation": [
+                0.0,
+                0.0,
+                7.62939436071974e-08
+            ],
+            "rotation": [
+                0.0,
+                -3.76158197868326e-38,
+                2.98473770304257e-40,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                10.0,
+                10.0
+            ],
+            "mesh": 2
+        },
+        {
+            "name": "DexterHDI_MainPivot_KinematicAssembly v2:1",
+            "translation": [
+                -1.11022295845071e-17,
+                1.93699979782104,
+                0.0
+            ],
+            "rotation": [
+                7.105427357601e-15,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                18
+            ]
+        },
+        {
+            "name": "DexterHDI_MainPivot_KinematicAssembly v2",
+            "translation": [
+                0.0,
+                5.1443292442728e-14,
+                0.0
+            ],
+            "rotation": [
+                7.105427357601e-15,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                19,
+                22
+            ]
+        },
+        {
+            "name": "HDI-210-001_MainPivot v46:1",
+            "translation": [
+                -1.11022295845071e-17,
+                0.375000149011612,
+                0.0
+            ],
+            "rotation": [
+                5.76814486948659e-15,
+                -0.382683455944061,
+                -1.68945136489108e-15,
+                0.923879504203796
+            ],
+            "scale": [
+                0.99999988079071,
+                1.0,
+                0.99999988079071
+            ],
+            "children": [
+                20
+            ]
+        },
+        {
+            "name": "HDI-210-001_MainPivot v46",
+            "translation": [
+                0.0,
+                6.1390888032864e-14,
+                1.81898936288828e-14
+            ],
+            "rotation": [
+                -1.77635683940025e-15,
+                -5.55111512312578e-17,
+                1.77635683940025e-15,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                21
+            ]
+        },
+        {
+            "name": "HDI-210-001_MainPivot",
+            "translation": [
+                0.0,
+                6.16751048561175e-14,
+                1.81898936288828e-14
+            ],
+            "rotation": [
+                1.058791120959e-23,
+                4.44089216467508e-17,
+                -4.70197291913406e-40,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                10.0000009536743,
+                10.0
+            ],
+            "mesh": 3
+        },
+        {
+            "name": "HDI-220-005_J1DiskCover v12:1",
+            "translation": [
+                8.88178366760566e-17,
+                0.016000060364604,
+                0.0
+            ],
+            "rotation": [
+                -0.653281509876251,
+                -0.270597994327545,
+                -0.270598083734512,
+                0.653281450271606
+            ],
+            "scale": [
+                0.999999940395355,
+                0.999999940395355,
+                1.0
+            ],
+            "children": [
+                23
+            ]
+        },
+        {
+            "name": "HDI-220-005_J1DiskCover v12",
+            "translation": [
+                6.77626342657311e-23,
+                -1.81898936288828e-14,
+                4.17799102877137e-14
+            ],
+            "rotation": [
+                6.66133920654212e-16,
+                -3.55271410231697e-15,
+                2.77555789243514e-17,
+                1.0
+            ],
+            "scale": [
+                0.99999988079071,
+                0.99999988079071,
+                0.999999940395355
+            ],
+            "children": [
+                24
+            ]
+        },
+        {
+            "name": "HDI-220-005_J1DiskCover",
+            "translation": [
+                3.63797872577655e-14,
+                -3.63797872577655e-14,
+                4.17799102877137e-14
+            ],
+            "rotation": [
+                2.48689974456694e-15,
+                5.68434281781704e-15,
+                -4.44089282641957e-17,
+                1.0
+            ],
+            "scale": [
+                9.99999809265137,
+                9.99999809265137,
+                9.99999904632568
+            ],
+            "mesh": 4
+        },
+        {
+            "name": "DexterHDI_Link2_KinematicAssembly v5:1",
+            "translation": [
+                4.88498141422981e-16,
+                2.31200003623962,
+                0.550000011920929
+            ],
+            "rotation": [
+                7.105427357601e-15,
+                1.76889471366541e-31,
+                -6.12323426292584e-17,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                26
+            ]
+        },
+        {
+            "name": "DexterHDI_Link2_KinematicAssembly v5",
+            "translation": [
+                -3.15544355035439e-32,
+                8.96064520361506e-08,
+                3.81469718035987e-08
+            ],
+            "rotation": [
+                7.105427357601e-15,
+                1.46936793852786e-39,
+                1.72642945126949e-33,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                27,
+                30,
+                34,
+                37,
+                40,
+                49,
+                53,
+                56,
+                59,
+                62,
+                65,
+                68,
+                71,
+                74,
+                77
+            ]
+        },
+        {
+            "name": "HDI-310-001_ArmBody v47:1",
+            "translation": [
+                9.46633065106316e-32,
+                1.0101090452963e-07,
+                0.0700000002980232
+            ],
+            "rotation": [
+                7.105427357601e-15,
+                1.46936793852786e-39,
+                1.40522385666578e-32,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                28
+            ]
+        },
+        {
+            "name": "HDI-310-001_ArmBody v47",
+            "translation": [
+                3.15544355035439e-32,
+                1.0101090452963e-07,
+                -3.81469718035987e-08
+            ],
+            "rotation": [
+                7.105427357601e-15,
+                0.0,
+                2.6378049151414e-32,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                29
+            ]
+        },
+        {
+            "name": "HDI-310-001_ArmBody",
+            "translation": [
+                -6.31088710070877e-32,
+                1.01010918740485e-07,
+                -3.81469718035987e-08
+            ],
+            "rotation": [
+                -1.05879119984509e-23,
+                3.15544366790382e-31,
+                -5.29395599922547e-24,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                10.0,
+                10.0
+            ],
+            "mesh": 5
+        },
+        {
+            "name": "HDI-311-006B_J2StatorHolder_ConeDrive-Master v10:1",
+            "translation": [
+                3.15544355035439e-32,
+                -7.87159066817367e-08,
+                0.839999973773956
+            ],
+            "rotation": [
+                7.105427357601e-15,
+                1.46936793852786e-39,
+                1.40522385666578e-32,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                31
+            ]
+        },
+        {
+            "name": "HDI-311-006B_J2StatorHolder_ConeDrive-Master v10",
+            "translation": [
+                -3.38813171328655e-23,
+                7.38719947435129e-08,
+                2.84217087951293e-16
+            ],
+            "rotation": [
+                7.105427357601e-15,
+                0.0,
+                2.6378049151414e-32,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                32,
+                33
+            ]
+        },
+        {
+            "name": "HDI-311-006B-J2StatorHolder_ConeDrive",
+            "translation": [
+                -3.38813171328655e-23,
+                7.3872016059795e-08,
+                -2.84217087951293e-16
+            ],
+            "rotation": [
+                -1.05879119984509e-23,
+                3.15544366790382e-31,
+                -5.29395599922547e-24,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                10.0,
+                10.0
+            ],
+            "mesh": 6
+        },
+        {
+            "name": "HDI-311-006C-J2StatorHolderCap_ConeDrive",
+            "translation": [
+                -3.38813171328655e-23,
+                7.3872016059795e-08,
+                -2.84217087951293e-16
+            ],
+            "rotation": [
+                -1.05879119984509e-23,
+                3.15544366790382e-31,
+                -5.29395599922547e-24,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                10.0,
+                10.0
+            ],
+            "mesh": 7
+        },
+        {
+            "name": "HDI-310-003_J2DiskCoverTop v3:1",
+            "translation": [
+                -8.88178366760566e-17,
+                8.87918645275931e-08,
+                -0.00499996170401573
+            ],
+            "rotation": [
+                7.105427357601e-15,
+                1.46936793852786e-39,
+                1.40522385666578e-32,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                35
+            ]
+        },
+        {
+            "name": "HDI-310-003_J2DiskCoverTop v3",
+            "translation": [
+                3.38813171328655e-23,
+                8.87918716330205e-08,
+                3.81469718035987e-08
+            ],
+            "rotation": [
+                7.105427357601e-15,
+                0.0,
+                2.6378049151414e-32,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                36
+            ]
+        },
+        {
+            "name": "HDI-310-003_J2DiskCoverTop",
+            "translation": [
+                3.38813171328655e-23,
+                8.87918929493026e-08,
+                3.81469718035987e-08
+            ],
+            "rotation": [
+                -1.05879119984509e-23,
+                3.15544366790382e-31,
+                -5.29395599922547e-24,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                10.0,
+                10.0
+            ],
+            "mesh": 8
+        },
+        {
+            "name": "HDI-310-004_J2DiskCoverBottom v3:1",
+            "translation": [
+                -6.88338254091773e-16,
+                8.87918645275931e-08,
+                -0.00499996170401573
+            ],
+            "rotation": [
+                7.105427357601e-15,
+                -0.0,
+                -1.38777944252594e-17,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                38
+            ]
+        },
+        {
+            "name": "HDI-310-004_J2DiskCoverBottom v3",
+            "translation": [
+                -1.69406585664328e-23,
+                8.87918716330205e-08,
+                3.81469718035987e-08
+            ],
+            "rotation": [
+                7.105427357601e-15,
+                -3.94430452610506e-31,
+                -6.61744490042422e-24,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                39
+            ]
+        },
+        {
+            "name": "HDI-310-004_J2DiskCoverBottom",
+            "translation": [
+                -1.69406585664328e-23,
+                8.87918929493026e-08,
+                3.81469718035987e-08
+            ],
+            "rotation": [
+                -1.05879119984509e-23,
+                -1.26217746716153e-30,
+                -5.29395599922547e-24,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                10.0,
+                10.0
+            ],
+            "mesh": 9
+        },
+        {
+            "name": "HDI_L2SkinB v159:1",
+            "translation": [
+                9.14823619825198e-15,
+                1.60000014305115,
+                0.109999999403954
+            ],
+            "rotation": [
+                7.105427357601e-15,
+                1.46936793852786e-39,
+                1.40522385666578e-32,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                41
+            ]
+        },
+        {
+            "name": "HDI_L2SkinB v159",
+            "translation": [
+                1.0842021482517e-21,
+                4.12703570873418e-07,
+                0.0
+            ],
+            "rotation": [
+                7.105427357601e-15,
+                0.0,
+                2.6378049151414e-32,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                42,
+                43,
+                44,
+                45,
+                46,
+                47,
+                48
+            ]
+        },
+        {
+            "name": "HDI-910-001_L2SkinTop",
+            "translation": [
+                1.0842021482517e-21,
+                4.12703570873418e-07,
+                0.0
+            ],
+            "rotation": [
+                -1.05879119984509e-23,
+                3.15544366790382e-31,
+                -5.29395599922547e-24,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                10.0,
+                10.0
+            ],
+            "mesh": 10
+        },
+        {
+            "name": "HDI-910-002_L2SkinBottom",
+            "translation": [
+                1.0842021482517e-21,
+                4.12703570873418e-07,
+                0.0
+            ],
+            "rotation": [
+                -1.05879119984509e-23,
+                3.15544366790382e-31,
+                -5.29395599922547e-24,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                10.0,
+                10.0
+            ],
+            "mesh": 11
+        },
+        {
+            "name": "HDI-910-003_L2SkinBackPanel",
+            "translation": [
+                1.0842021482517e-21,
+                4.12703570873418e-07,
+                0.0
+            ],
+            "rotation": [
+                -1.05879119984509e-23,
+                3.15544366790382e-31,
+                -5.29395599922547e-24,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                10.0,
+                10.0
+            ],
+            "mesh": 12
+        },
+        {
+            "name": "HDI-930-004_ExGearSkinD",
+            "translation": [
+                1.0842021482517e-21,
+                4.12703570873418e-07,
+                0.0
+            ],
+            "rotation": [
+                -1.05879119984509e-23,
+                3.15544366790382e-31,
+                -5.29395599922547e-24,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                10.0,
+                10.0
+            ],
+            "mesh": 13
+        },
+        {
+            "name": "HDI-930_002_ExGearSkinB",
+            "translation": [
+                1.0842021482517e-21,
+                4.12703570873418e-07,
+                0.0
+            ],
+            "rotation": [
+                -1.05879119984509e-23,
+                3.15544366790382e-31,
+                -5.29395599922547e-24,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                10.0,
+                10.0
+            ],
+            "mesh": 14
+        },
+        {
+            "name": "HDI-930-003_ExGearSkinC",
+            "translation": [
+                1.0842021482517e-21,
+                4.12703570873418e-07,
+                0.0
+            ],
+            "rotation": [
+                -1.05879119984509e-23,
+                3.15544366790382e-31,
+                -5.29395599922547e-24,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                10.0,
+                10.0
+            ],
+            "mesh": 15
+        },
+        {
+            "name": "HDI-930-001_ExGearSkinA",
+            "translation": [
+                1.0842021482517e-21,
+                4.12703570873418e-07,
+                0.0
+            ],
+            "rotation": [
+                -1.05879119984509e-23,
+                3.15544366790382e-31,
+                -5.29395599922547e-24,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                10.0,
+                10.0
+            ],
+            "mesh": 16
+        },
+        {
+            "name": "HDI-910-004_J3Cover-Master v1:1",
+            "translation": [
+                -7.54951519102253e-16,
+                3.38891696929932,
+                0.940000116825104
+            ],
+            "rotation": [
+                7.105427357601e-15,
+                1.46936793852786e-39,
+                1.40522385666578e-32,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                50
+            ]
+        },
+        {
+            "name": "HDI-910-004_J3Cover-Master v1",
+            "translation": [
+                3.38813171328655e-23,
+                2.42752065560126e-07,
+                0.0
+            ],
+            "rotation": [
+                7.105427357601e-15,
+                0.0,
+                2.6378049151414e-32,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                51,
+                52
+            ]
+        },
+        {
+            "name": "HDI-910-004_J3Cover",
+            "translation": [
+                3.38813171328655e-23,
+                2.42752065560126e-07,
+                0.0
+            ],
+            "rotation": [
+                -1.05879119984509e-23,
+                3.15544366790382e-31,
+                -5.29395599922547e-24,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                10.0,
+                10.0
+            ],
+            "mesh": 17
+        },
+        {
+            "name": "HDI-910-005_J3CoverCap",
+            "translation": [
+                3.38813171328655e-23,
+                2.42752065560126e-07,
+                0.0
+            ],
+            "rotation": [
+                -1.05879119984509e-23,
+                3.15544366790382e-31,
+                -5.29395599922547e-24,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                10.0,
+                10.0
+            ],
+            "mesh": 18
+        },
+        {
+            "name": "HDI-320-001_ExGearMount v15:1",
+            "translation": [
+                -8.88178366760566e-17,
+                -1.55325984954834,
+                -0.0200499724596739
+            ],
+            "rotation": [
+                -0.707106828689575,
+                5.443520617189e-31,
+                1.28436687435392e-31,
+                0.707106709480286
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                54
+            ]
+        },
+        {
+            "name": "HDI-320-001_ExGearMount v15",
+            "translation": [
+                0.0,
+                0.0,
+                1.50635051849625e-14
+            ],
+            "rotation": [
+                0.0,
+                -1.23257562181425e-32,
+                7.88860905221012e-31,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                55
+            ]
+        },
+        {
+            "name": "HDI-320-001_ExGearMount",
+            "translation": [
+                -1.57772177517719e-32,
+                0.0,
+                1.50635051849625e-14
+            ],
+            "rotation": [
+                -0.0,
+                5.29395599922547e-24,
+                3.15544296260721e-31,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                10.0,
+                10.0
+            ],
+            "mesh": 19
+        },
+        {
+            "name": "HDI-330-002_ArmBodyHubB v24:1",
+            "translation": [
+                -6.13160577541717e-14,
+                3.39094567298889,
+                0.590000033378601
+            ],
+            "rotation": [
+                4.37113882867379e-08,
+                1.0,
+                4.37113882867379e-08,
+                -7.5497894158616e-08
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                57
+            ]
+        },
+        {
+            "name": "HDI-330-002_ArmBodyHubB v24",
+            "translation": [
+                9.0949464756282e-14,
+                8.95743426099216e-07,
+                -1.42108543975646e-16
+            ],
+            "rotation": [
+                -2.64697796016969e-23,
+                4.10281583826302e-22,
+                -4.63278130341489e-24,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                58
+            ]
+        },
+        {
+            "name": "HDI-330-002_ArmBodyHubB",
+            "translation": [
+                9.0949464756282e-14,
+                8.95743426099216e-07,
+                0.0
+            ],
+            "rotation": [
+                -9.47918637328445e-37,
+                6.67038466157601e-22,
+                1.42108549269602e-15,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                10.0,
+                10.0
+            ],
+            "mesh": 20
+        },
+        {
+            "name": "HDI-610-006_MotorShaftCoupler v16:1",
+            "translation": [
+                -0.534999966621399,
+                -1.12632989883423,
+                1.10641014575958
+            ],
+            "rotation": [
+                0.707106709480286,
+                0.707106828689575,
+                -5.33850759154575e-08,
+                -5.33850759154575e-08
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                60
+            ]
+        },
+        {
+            "name": "HDI-610-006_MotorShaftCoupler v16",
+            "translation": [
+                5.1850399529485e-08,
+                0.0,
+                -1.52587887214395e-07
+            ],
+            "rotation": [
+                5.04870979341448e-29,
+                7.105427357601e-15,
+                -7.105427357601e-15,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                61
+            ]
+        },
+        {
+            "name": "HDI-610-006_MotorShaftCoupler",
+            "translation": [
+                5.18504386093355e-08,
+                -7.10542719878232e-17,
+                -1.52587887214395e-07
+            ],
+            "rotation": [
+                0.0,
+                2.11758239969019e-23,
+                -1.48813324401879e-23,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                10.0,
+                10.0
+            ],
+            "mesh": 21
+        },
+        {
+            "name": "HDI-610-006_MotorShaftCoupler v16:2",
+            "translation": [
+                0.534999966621399,
+                -1.12632989883423,
+                1.10641014575958
+            ],
+            "rotation": [
+                0.707106709480286,
+                0.707106828689575,
+                -5.33850759154575e-08,
+                -5.33850759154575e-08
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                63
+            ]
+        },
+        {
+            "name": "HDI-610-006_MotorShaftCoupler v16.001",
+            "translation": [
+                -4.61807942997439e-08,
+                0.0,
+                -1.52587887214395e-07
+            ],
+            "rotation": [
+                5.04870979341448e-29,
+                7.105427357601e-15,
+                -7.105427357601e-15,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                64
+            ]
+        },
+        {
+            "name": "HDI-610-006_MotorShaftCoupler.001",
+            "translation": [
+                -4.61807552198934e-08,
+                -7.10542719878232e-17,
+                -1.52587887214395e-07
+            ],
+            "rotation": [
+                0.0,
+                2.11758239969019e-23,
+                -1.48813324401879e-23,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                10.0,
+                10.0
+            ],
+            "mesh": 21
+        },
+        {
+            "name": "HDI-610-006_MotorShaftCoupler v16:3",
+            "translation": [
+                -9.10382859016805e-16,
+                -1.55325984954834,
+                1.12640988826752
+            ],
+            "rotation": [
+                1.0,
+                1.4052520685302e-32,
+                1.18329135783152e-30,
+                -7.54979012640433e-08
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                66
+            ]
+        },
+        {
+            "name": "HDI-610-006_MotorShaftCoupler v16.002",
+            "translation": [
+                6.77626342657311e-23,
+                -6.84891716673519e-08,
+                0.0
+            ],
+            "rotation": [
+                5.29395592033938e-23,
+                -2.93873587705572e-39,
+                8.43588561750822e-34,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                67
+            ]
+        },
+        {
+            "name": "HDI-610-006_MotorShaftCoupler.002",
+            "translation": [
+                6.77626342657311e-23,
+                -6.84891716673519e-08,
+                0.0
+            ],
+            "rotation": [
+                1.13686839415682e-14,
+                2.58608930941913e-39,
+                5.29395599922547e-24,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                10.0,
+                10.0
+            ],
+            "mesh": 21
+        },
+        {
+            "name": "HDI-730-005_Fan v2:1",
+            "translation": [
+                9.22824184825194e-15,
+                0.715160131454468,
+                0.916999995708466
+            ],
+            "rotation": [
+                7.105427357601e-15,
+                1.76889471366541e-31,
+                6.12323426292584e-17,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                69
+            ]
+        },
+        {
+            "name": "HDI-730-005_Fan v2",
+            "translation": [
+                0.0,
+                2.39004805280274e-07,
+                0.0
+            ],
+            "rotation": [
+                7.105427357601e-15,
+                1.68155815718978e-44,
+                -0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                70
+            ]
+        },
+        {
+            "name": "HDI-730-005_Fan",
+            "translation": [
+                0.0,
+                2.39004805280274e-07,
+                0.0
+            ],
+            "rotation": [
+                -1.05879119984509e-23,
+                1.68155815718978e-44,
+                -1.40129846432482e-44,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                10.0,
+                10.0
+            ],
+            "mesh": 33
+        },
+        {
+            "name": "HDI-610-006_MotorShaftCoupler v16:4",
+            "translation": [
+                -3.38813171328655e-23,
+                1.16231383628929e-07,
+                1.10000014305115
+            ],
+            "rotation": [
+                1.0,
+                1.4052520685302e-32,
+                1.18329135783152e-30,
+                -7.54979012640433e-08
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                72
+            ]
+        },
+        {
+            "name": "HDI-610-006_MotorShaftCoupler v16.003",
+            "translation": [
+                -3.15544355035439e-32,
+                -2.12786687825428e-07,
+                -2.84217087951293e-16
+            ],
+            "rotation": [
+                5.29395592033938e-23,
+                -2.93873587705572e-39,
+                8.43588561750822e-34,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                73
+            ]
+        },
+        {
+            "name": "HDI-610-006_MotorShaftCoupler.003",
+            "translation": [
+                3.38813171328655e-23,
+                -2.12786687825428e-07,
+                0.0
+            ],
+            "rotation": [
+                1.13686839415682e-14,
+                2.58608930941913e-39,
+                5.29395599922547e-24,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                10.0,
+                10.0
+            ],
+            "mesh": 21
+        },
+        {
+            "name": "HDI-610-002B_StatorGear v4:1",
+            "translation": [
+                -3.33067251494682e-17,
+                8.67427303319346e-08,
+                0.919000089168549
+            ],
+            "rotation": [
+                -4.37113882867379e-08,
+                1.0,
+                -4.37113847340243e-08,
+                -7.5497894158616e-08
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                75
+            ]
+        },
+        {
+            "name": "HDI-610-002B_StatorGear v4",
+            "translation": [
+                -1.81898936288828e-14,
+                1.10906526629151e-07,
+                0.0
+            ],
+            "rotation": [
+                -0.0,
+                -1.05879118406788e-22,
+                -2.45335820409825e-24,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                76
+            ]
+        },
+        {
+            "name": "HDI-610-002B_StatorGear",
+            "translation": [
+                -1.81898936288828e-14,
+                1.10906526629151e-07,
+                2.84217087951293e-16
+            ],
+            "rotation": [
+                1.58818683921069e-23,
+                -1.16467032771821e-22,
+                -1.42108549269602e-15,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                10.0,
+                10.0
+            ],
+            "mesh": 34
+        },
+        {
+            "name": "Body1",
+            "translation": [
+                3.15544355035439e-32,
+                8.96064662470053e-08,
+                3.81469718035987e-08
+            ],
+            "rotation": [
+                0.0,
+                1.17549463108198e-39,
+                -5.29395599922547e-24,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                10.0,
+                10.0
+            ],
+            "mesh": 22
+        },
+        {
+            "name": "DexterHDI_Link3_KinematicAssembly v2:1",
+            "translation": [
+                -6.03535030654391e-14,
+                5.7029447555542,
+                0.649999976158142
+            ],
+            "rotation": [
+                7.105427357601e-15,
+                -1.13899280243942e-28,
+                1.05727660445489e-14,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                79
+            ]
+        },
+        {
+            "name": "DexterHDI_Link3_KinematicAssembly v2",
+            "translation": [
+                -8.07793548890723e-30,
+                7.1625009923082e-07,
+                1.42108543975646e-16
+            ],
+            "rotation": [
+                7.105427357601e-15,
+                -3.76158169842357e-37,
+                8.470329472543e-22,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                80,
+                83
+            ]
+        },
+        {
+            "name": "HDI-500-001_EndArmHub v10:1",
+            "translation": [
+                8.67361718601358e-21,
+                7.16250212917657e-07,
+                0.0
+            ],
+            "rotation": [
+                0.707106709480286,
+                0.707106828689575,
+                -5.33850759154575e-08,
+                -5.33850759154575e-08
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                81
+            ]
+        },
+        {
+            "name": "HDI-500-001_EndArmHub v10",
+            "translation": [
+                7.16250212917657e-07,
+                5.45696808866483e-14,
+                1.42108543975646e-16
+            ],
+            "rotation": [
+                5.04870979341448e-29,
+                7.105427357601e-15,
+                -7.105427357601e-15,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                82
+            ]
+        },
+        {
+            "name": "HDI-500-001_EndArmHub",
+            "translation": [
+                7.16250212917657e-07,
+                1.27329258790311e-13,
+                0.0
+            ],
+            "rotation": [
+                1.05879119984509e-23,
+                -0.0,
+                -2.54689643930175e-23,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                10.0,
+                10.0
+            ],
+            "mesh": 23
+        },
+        {
+            "name": "HDI_L3Skins v54:1",
+            "translation": [
+                -8.85957975768457e-16,
+                7.16250212917657e-07,
+                0.0
+            ],
+            "rotation": [
+                -4.37113882867379e-08,
+                1.0,
+                -4.37113847340243e-08,
+                -7.5497894158616e-08
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                84
+            ]
+        },
+        {
+            "name": "HDI_L3Skins v54",
+            "translation": [
+                -2.72848404433241e-14,
+                6.59425268167979e-07,
+                1.42108543975646e-16
+            ],
+            "rotation": [
+                5.40727401378252e-37,
+                -3.04402465419514e-22,
+                1.77635683940025e-15,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                85,
+                86,
+                87
+            ]
+        },
+        {
+            "name": "HDI-920-001_L3SkinA",
+            "translation": [
+                -1.81898936288828e-14,
+                6.59425268167979e-07,
+                0.0
+            ],
+            "rotation": [
+                6.1689942993055e-37,
+                -4.34104375370409e-22,
+                1.42108549269602e-15,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                10.0,
+                10.0
+            ],
+            "mesh": 24
+        },
+        {
+            "name": "HDI-920-003_L3SkinCap",
+            "translation": [
+                -1.81898936288828e-14,
+                6.59425268167979e-07,
+                0.0
+            ],
+            "rotation": [
+                6.1689942993055e-37,
+                -4.34104375370409e-22,
+                1.42108549269602e-15,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                10.0,
+                10.0
+            ],
+            "mesh": 25
+        },
+        {
+            "name": "HDI-920-002_L3SkinB",
+            "translation": [
+                -1.81898936288828e-14,
+                6.59425268167979e-07,
+                0.0
+            ],
+            "rotation": [
+                6.1689942993055e-37,
+                -4.34104375370409e-22,
+                1.42108549269602e-15,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                10.0,
+                10.0
+            ],
+            "mesh": 26
+        },
+        {
+            "name": "DexterHDI_Link4_KinematicAssembly v3:1",
+            "translation": [
+                1.4814794724316e-07,
+                8.77794456481934,
+                0.179999992251396
+            ],
+            "rotation": [
+                7.105427357601e-15,
+                -1.13899280243942e-28,
+                1.05727660445489e-14,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                89
+            ]
+        },
+        {
+            "name": "DexterHDI_Link4_KinematicAssembly v3",
+            "translation": [
+                -9.09494681444138e-15,
+                6.39677523395221e-07,
+                -3.55271359939116e-17
+            ],
+            "rotation": [
+                7.105427357601e-15,
+                -3.76158169842357e-37,
+                8.470329472543e-22,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                90,
+                93
+            ]
+        },
+        {
+            "name": "HDI_DiffSkins v37:1",
+            "translation": [
+                -9.09494681444138e-15,
+                6.11166399266949e-07,
+                -0.174999982118607
+            ],
+            "rotation": [
+                7.105427357601e-15,
+                -1.0097419586829e-28,
+                8.470329472543e-22,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                91
+            ]
+        },
+        {
+            "name": "HDI_DiffSkins v37",
+            "translation": [
+                -9.09494681444138e-15,
+                6.11166399266949e-07,
+                5.9604643443123e-10
+            ],
+            "rotation": [
+                7.105427357601e-15,
+                9.80908925027372e-45,
+                8.470329472543e-22,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                92
+            ]
+        },
+        {
+            "name": "HDI-940-001_DiffCover",
+            "translation": [
+                -9.09494681444138e-15,
+                6.11166399266949e-07,
+                5.9604643443123e-10
+            ],
+            "rotation": [
+                -1.05879119984509e-23,
+                -8.07793578983378e-29,
+                6.7762636790086e-22,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                10.0,
+                10.0
+            ],
+            "mesh": 27
+        },
+        {
+            "name": "HDI-940-002_DiffCoverCap v5:1",
+            "translation": [
+                -9.09494681444138e-15,
+                6.11166399266949e-07,
+                -0.174999982118607
+            ],
+            "rotation": [
+                7.105427357601e-15,
+                -1.0097419586829e-28,
+                8.470329472543e-22,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                94
+            ]
+        },
+        {
+            "name": "HDI-940-002_DiffCoverCap v5",
+            "translation": [
+                -9.09494681444138e-15,
+                6.11166399266949e-07,
+                5.9604643443123e-10
+            ],
+            "rotation": [
+                7.105427357601e-15,
+                9.80908925027372e-45,
+                8.470329472543e-22,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                95
+            ]
+        },
+        {
+            "name": "HDI-940-002_DiffCoverCap",
+            "translation": [
+                -9.09494681444138e-15,
+                6.11166399266949e-07,
+                5.9604643443123e-10
+            ],
+            "rotation": [
+                -1.05879119984509e-23,
+                -8.07793578983378e-29,
+                6.7762636790086e-22,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                10.0,
+                10.0
+            ],
+            "mesh": 28
+        },
+        {
+            "name": "DexterHDI_Link5_KinematicAssembly v2:1",
+            "translation": [
+                1.48147933032305e-07,
+                9.17294502258301,
+                -0.0199999995529652
+            ],
+            "rotation": [
+                7.105427357601e-15,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                97
+            ]
+        },
+        {
+            "name": "DexterHDI_Link5_KinematicAssembly v2",
+            "translation": [
+                9.09494681444138e-15,
+                -3.25817040014442e-09,
+                -2.38418573772492e-09
+            ],
+            "rotation": [
+                7.105427357601e-15,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                98,
+                102
+            ]
+        },
+        {
+            "name": "HDI-950-000_GripperCover v9:1",
+            "translation": [
+                9.09494681444138e-15,
+                0.0700006037950516,
+                0.0
+            ],
+            "rotation": [
+                0.50000011920929,
+                0.49999988079071,
+                0.500000059604645,
+                -0.499999910593033
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                99
+            ]
+        },
+        {
+            "name": "HDI-950-000_GripperCover v9",
+            "translation": [
+                -1.19209286886246e-09,
+                -1.18234306893672e-13,
+                6.07093397775316e-07
+            ],
+            "rotation": [
+                -7.105427357601e-15,
+                7.105427357601e-15,
+                1.68083100470775e-21,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                100,
+                101
+            ]
+        },
+        {
+            "name": "HDI-950-001_GripperCoverBottom",
+            "translation": [
+                0.0,
+                -2.72848404433241e-14,
+                6.07093397775316e-07
+            ],
+            "rotation": [
+                5.85833162439473e-23,
+                -2.11758239969019e-23,
+                1.36584058705788e-21,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                10.0,
+                10.0
+            ],
+            "mesh": 29
+        },
+        {
+            "name": "HDI-950-002_GripperCoverTop",
+            "translation": [
+                0.0,
+                -2.72848404433241e-14,
+                6.07093397775316e-07
+            ],
+            "rotation": [
+                5.85833162439473e-23,
+                -2.11758239969019e-23,
+                1.36584058705788e-21,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                10.0,
+                10.0
+            ],
+            "mesh": 30
+        },
+        {
+            "name": "TI1-200-001_RollBody v4:1",
+            "translation": [
+                0.383150637149811,
+                0.224999994039536,
+                0.0
+            ],
+            "rotation": [
+                0.707106828689575,
+                5.33850759154575e-08,
+                0.70710676908493,
+                -5.33850794681712e-08
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                103
+            ]
+        },
+        {
+            "name": "TI1-200-001_RollBody v4",
+            "translation": [
+                -1.19209286886246e-09,
+                -5.49239246083744e-07,
+                3.81469718035987e-08
+            ],
+            "rotation": [
+                -2.04024200322578e-24,
+                8.27180612553028e-22,
+                7.105427357601e-15,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                104
+            ]
+        },
+        {
+            "name": "Body1.001",
+            "translation": [
+                -1.19209286886246e-09,
+                -5.49239246083744e-07,
+                3.81469718035987e-08
+            ],
+            "rotation": [
+                5.72789733913487e-24,
+                -1.42108538681691e-15,
+                -2.84217098539205e-15,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                10.0,
+                10.0
+            ],
+            "mesh": 35
+        },
+        {
+            "name": "DexterHDI_Link6_KinematicAssembly v3:1",
+            "translation": [
+                0.548150718212128,
+                9.39843559265137,
+                -0.0199999958276749
+            ],
+            "rotation": [
+                -1.11561786593603e-30,
+                -0.70710676908493,
+                -1.11561777189649e-30,
+                0.707106828689575
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                106
+            ]
+        },
+        {
+            "name": "DexterHDI_Link6_KinematicAssembly v3",
+            "translation": [
+                1.19209286886246e-09,
+                -3.25816351676167e-09,
+                7.10542719878232e-17
+            ],
+            "rotation": [
+                2.11758236813575e-22,
+                1.32348898008484e-23,
+                -7.105427357601e-15,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                107,
+                110,
+                113
+            ]
+        },
+        {
+            "name": "CenterGripper v1:1",
+            "translation": [
+                -1.19209286886246e-09,
+                -0.000490725913550705,
+                -0.025000037625432
+            ],
+            "rotation": [
+                -0.707106709480286,
+                0.707106828689575,
+                -5.33850794681712e-08,
+                5.33850723627438e-08
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                108
+            ]
+        },
+        {
+            "name": "CenterGripper v1",
+            "translation": [
+                -6.03835246693052e-07,
+                3.57627860658738e-09,
+                3.81469718035987e-08
+            ],
+            "rotation": [
+                1.20370621524202e-35,
+                -8.470329472543e-22,
+                1.4210854715202e-14,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                109
+            ]
+        },
+        {
+            "name": "Body1.002",
+            "translation": [
+                -6.03835246693052e-07,
+                3.57627860658738e-09,
+                3.81469718035987e-08
+            ],
+            "rotation": [
+                0.0,
+                -6.7762636790086e-22,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                10.0,
+                10.0
+            ],
+            "mesh": 36
+        },
+        {
+            "name": "TI1-000-001_DynamixelXL-320-3 v1:1",
+            "translation": [
+                -0.141388580203056,
+                -0.192921161651611,
+                -0.185000032186508
+            ],
+            "rotation": [
+                0.50000011920929,
+                -0.49999988079071,
+                -0.500000059604645,
+                -0.499999910593033
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                111
+            ]
+        },
+        {
+            "name": "TI1-000-001_DynamixelXL-320-3 v1",
+            "translation": [
+                0.0,
+                1.90734859017994e-08,
+                1.92388416309086e-08
+            ],
+            "rotation": [
+                0.0,
+                8.36025930255839e-38,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                112
+            ]
+        },
+        {
+            "name": "Body1.003",
+            "translation": [
+                0.0,
+                1.90734859017994e-08,
+                1.92388434072654e-08
+            ],
+            "rotation": [
+                -2.11758239969019e-23,
+                4.59867704361544e-38,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                10.0,
+                10.0
+            ],
+            "mesh": 37
+        },
+        {
+            "name": "TI1-420-001_ParallelGripperStationaryFinger v2:1",
+            "translation": [
+                0.0,
+                -0.000490725913550705,
+                -0.00999999977648258
+            ],
+            "rotation": [
+                4.37113882867379e-08,
+                1.0,
+                -4.37113882867379e-08,
+                7.5497894158616e-08
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                114
+            ]
+        },
+        {
+            "name": "TI1-420-001_ParallelGripperStationaryFinger v2",
+            "translation": [
+                2.38418573772492e-09,
+                6.54140137612558e-07,
+                -3.81469718035987e-08
+            ],
+            "rotation": [
+                3.44058528368523e-25,
+                4.10281583826302e-22,
+                -2.64697796016969e-23,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                115
+            ]
+        },
+        {
+            "name": "TI1-420-001_ParallelGripperStationaryFinger",
+            "translation": [
+                1.19209286886246e-09,
+                6.54140137612558e-07,
+                -3.81469718035987e-08
+            ],
+            "rotation": [
+                1.42108549269602e-15,
+                1.42108581033338e-15,
+                -2.0194844364641e-30,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                10.0,
+                10.0
+            ],
+            "mesh": 31
+        },
+        {
+            "name": "DexterHDI_Link7_KinematicAssembly v2:1",
+            "translation": [
+                0.0,
+                -0.99999988079071,
+                -1.81898936288828e-14
+            ],
+            "rotation": [
+                7.105427357601e-15,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                117
+            ]
+        },
+        {
+            "name": "DexterHDI_Link7_KinematicAssembly v2",
+            "translation": [
+                0.0,
+                -2.65742983851904e-14,
+                -3.38813171328655e-23
+            ],
+            "rotation": [
+                7.105427357601e-15,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                118
+            ]
+        },
+        {
+            "name": "TI1-420-002_ParallelGripperDynamicFinger v2:1",
+            "translation": [
+                0.8381507396698,
+                10.4305152893066,
+                -0.202720642089844
+            ],
+            "rotation": [
+                -4.32978427218022e-17,
+                0.70710676908493,
+                4.32978394130797e-17,
+                0.707106828689575
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                119
+            ]
+        },
+        {
+            "name": "TI1-420-002_ParallelGripperDynamicFinger v2",
+            "translation": [
+                3.81469718035987e-08,
+                5.77324385631073e-07,
+                0.0
+            ],
+            "rotation": [
+                2.11758236813575e-22,
+                -6.61744490042422e-24,
+                7.105427357601e-15,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "children": [
+                120
+            ]
+        },
+        {
+            "name": "TI1-420-002_ParallelGripperMovingFinger",
+            "translation": [
+                3.81469718035987e-08,
+                5.77324385631073e-07,
+                1.42108543975646e-16
+            ],
+            "rotation": [
+                -2.52435493432306e-30,
+                -1.05879119984509e-23,
+                1.05879119984509e-23,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                10.0,
+                10.0
+            ],
+            "mesh": 32
+        }
+    ],
+    "extensions": {
+        "KHR_lights_punctual": {
+            "lights": [
+                {
+                    "name": "",
+                    "color": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "intensity": 1000.0,
+                    "type": "point"
+                },
+                {
+                    "name": "",
+                    "color": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "intensity": 1000.0,
+                    "type": "point"
+                }
+            ]
+        }
+    }
+}

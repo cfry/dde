@@ -88,6 +88,28 @@ function createLights(){
     dlight.shadow.camera.right	=  1.5;
     dlight.shadow.camera.top	=  1.5;
     dlight.shadow.camera.bottom	= -1.5;
+/* Brad's version aug 22, 2020  semantically the same as above except fry has
+    dlight.castShadow = true;
+    and the extra 4 last lines of "dlight.shadow.camera.left	= -1.5;" , etc.
+    /
+	//	Ambient Light
+	//
+	{	const color = 0xFFFFFF;
+		const intensity = 0.75;
+		const light = new THREE.AmbientLight ( color, intensity );
+		sim.scene.add ( light ); }
+
+	//	Directional Light
+	//
+	{ 	const color = 0xFFFFFF;
+		const intensity = 0.5;
+		const light = new THREE.DirectionalLight ( color, intensity );
+		light.position.set ( 4, 4, 2 );
+		light.target.position.set ( 0, 0, 0 );
+	//	light.castShadow = true;
+		sim.scene.add ( light );
+		sim.scene.add ( light.target ); }
+*/
 }
 
 function createRenderer(){
@@ -588,11 +610,12 @@ function fbx_render(){
 }
 
 function gltf_render(){
-    requestAnimationFrame(gltf_render)
-    if (sim.mouseDown){
-        stl_sim_handle_mouse_move()
-    }
+//  requestAnimationFrame(gltf_render)
+//  if (sim.mouseDown){
+//      stl_sim_handle_mouse_move()
+//  }
     sim.renderer.render(sim.scene, sim.camera);
+    requestAnimationFrame(gltf_render)
 }
 
 function stl_init_mouse(){
