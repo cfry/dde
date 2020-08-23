@@ -923,8 +923,8 @@ Dexter = class Dexter extends Robot {
                (old_same_named_robot.port       === port)){
                if (old_same_named_robot.active_jobs_using_this_robot().length > 0){
                     warning("There's already a robot with the name: " + name +
-                        ", with same ip_address and port that has active jobs " +
-                        " so that's being used instead of a new Dexter instance.")
+                             ", with same ip_address and port that has active jobs " +
+                             " so that's being used instead of a new Dexter instance.")
                     return old_same_named_robot
                }
                else {
@@ -936,8 +936,8 @@ Dexter = class Dexter extends Robot {
             else {//old_same_named_robot is same_named but has different ip address
                if (old_same_named_robot.active_jobs_using_this_robot().length > 0){
                    dde_error("Attempt to create a robot named: " + name +
-                       " but there is already robot with that name that has active jobs " +
-                       " but a different ip_address and/or port.")
+                            " but there is already robot with that name that has active jobs " +
+                             " but a different ip_address and/or port.")
                }
                else {
                    old_same_named_robot.close_robot()
@@ -951,8 +951,8 @@ Dexter = class Dexter extends Robot {
             if (old_same_ip_address_robot){
                 if (old_same_ip_address_robot.active_jobs_using_this_robot().length > 0){
                     dde_error("Attempt to create a robot named: " + name +
-                         " but a robot named: " + old_same_ip_address_robot.name +
-                         " is already using that ip_address and port and has active jobs.")
+                            " but a robot named: " + old_same_ip_address_robot.name +
+                            " is already using that ip_address and port and has active jobs.")
                 }
                 else {
                     old_same_ip_address_robot.close_robot()

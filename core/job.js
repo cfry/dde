@@ -1446,7 +1446,9 @@ Job.prototype.if_dexter_connect_error_default = function(robot_name){
     let rob = Dexter[robot_name]
     let msg = "Error in connecting to Dexter." + robot_name +
               " at ip_address: " + rob.ip_address +
-              " for Job." + this.name
+              " for Job." + this.name +
+              "<br/>If Dexter." + robot_name + " is unconnected, you can still use the simulator." +
+              "<br/>In the Misc pane header, click the <b>simulate</b> radio button."
     warning(msg)
     return null // this default method allows the job to proceed, unlike
                 // Dexter.stop_job(undefined, msg) or Control.error instruction

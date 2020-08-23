@@ -50,8 +50,8 @@ function createCamera(){
     sim.camera.name = "camera"
     sim.camera.position.x = 0  //to the right of the screen.
     sim.camera.position.y = 1  //up is positive
-    sim.camera.position.z = 2 //2; //toward the viewer (out of the screen) is positive. 2
-    sim.camera.zoom = 1 //1 is the default.  0.79 //has no effect.
+    sim.camera.position.z = 2  //2; //toward the viewer (out of the screen) is positive. 2
+    sim.camera.zoom = 1        //1 is the default.  0.79 //has no effect.
 
     //new(75, width/height, 0.1, 4) pos[0, 1, 2]
 
@@ -66,7 +66,28 @@ function createLights(){
    scene.add( light );
    */
 //renderer.setClearColor( 0xdddddd, 1); //makes a gray background color instead of black
+  //from Brad, App.js
+  //ambient light
+    const color = 0xFFFFFF;
+    const intensity = 0.75;
+    const light = new THREE.AmbientLight ( color, intensity );
+    sim.scene.add ( light );
 
+  //directional light
+    const dcolor = 0xFFFFFF;
+    const dintensity = 0.5;
+    //	const intensity = 0.35;		//	To see the helpers easier.
+    const dlight = new THREE.DirectionalLight ( dcolor, dintensity );
+    dlight.position.set ( 4, 4, 2 );
+    dlight.target.position.set ( 0, 0, 0 );
+    dlight.castShadow = true;
+    sim.scene.add ( dlight );
+    sim.scene.add ( dlight.target );
+
+    dlight.shadow.camera.left	= -1.5;
+    dlight.shadow.camera.right	=  1.5;
+    dlight.shadow.camera.top	=  1.5;
+    dlight.shadow.camera.bottom	= -1.5;
 }
 
 function createRenderer(){
@@ -75,6 +96,7 @@ function createRenderer(){
                            window.innerWidth, window.innerHeight );
     //renderer.setPixelRatio( window.devicePixelRatio );  //causes no canvas to appear
     //sim_graphics_pane_id.innerHTML = "" //done in video.js
+    sim.renderer.shadowMap.enabled = true;
     sim.container.appendChild(sim.renderer.domElement)
 }
 
@@ -306,9 +328,10 @@ function init_mouse(){
 
 function draw_table(parent, table_width, table_length, table_height){
     var geometryt    = new THREE.BoxGeometry(table_length, table_height, table_width);
-    var materialt    = new THREE.MeshBasicMaterial( { color: 0xFFFFFF} ); //normal material shows different color for each cube face, easier to see the 3d shape.
+    var materialt    = new THREE.MeshPhongMaterial( { color: 0xFFFFFF} ); //normal material shows different color for each cube face, easier to see the 3d shape.
     sim.table        = new THREE.Mesh(geometryt, materialt)
     sim.table.name = "table"
+    sim.table.receiveShadow = true;
     sim.table.position.x = -2.4 //-3.85
     sim.table.position.y = 2 //2.47
     sim.table.position.z = -1 //0
@@ -432,6 +455,7 @@ function draw_tool_rack(parent, width, height, depth){
     sim.rack         = new THREE.Mesh(geometryt, materialt)
     sim.rack.position.y  = 0.2
     sim.rack.position.x  = -0.9
+    sim.rack.name = "rack"
     parent.add(sim.rack)
     var text2 = document.createElement('div');
     text2.style.position = 'absolute';

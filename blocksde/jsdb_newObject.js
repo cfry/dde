@@ -2937,6 +2937,8 @@ var {shouldnt, compute_string_size, function_param_names_and_defaults,
      replace_substrings, value_of_path} = require("./core/utils.js")
 
 var {newObject, Root} = require("./core/object_system.js")
+var {make_dom_elt} = require("./core/html_db.js")
+
 
 
 

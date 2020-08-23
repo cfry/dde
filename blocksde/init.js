@@ -164,6 +164,8 @@ function defeng_to_blocks(){
     js_to_blocks()
 }
 
+var {make_dom_elt} = require("./core/html_db.js")
+
 
              
              

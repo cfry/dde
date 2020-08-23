@@ -944,3 +944,4 @@ var {function_name, function_params, function_params_for_keyword_call,
 var {pluralize_full_unit_name, series_name_to_unity_unit, unit_abbrev_to_full_name} = require("./core/units.js")
 
 var {file_exists} = require("./core/storage.js")
+var {make_html} = require("./core/html_db.js")

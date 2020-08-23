@@ -77,9 +77,9 @@ function is_string_a_number(a_string){
 
 //____end copy from utils.js
 function append_to_output(text){
-    var out_height = output_div_id.scrollHeight
     text += "\n"
     if(window["output_div_id"]) { //DDE and browser
+        let out_height = output_div_id.scrollHeight
         output_div_id.insertAdjacentHTML('beforeend', text) //output_div_id is defined in DDE and browser
         output_div_id.scrollTop = out_height
         SW.install_onclick_via_data_fns()
@@ -1058,6 +1058,35 @@ function selector_set_in_ui(path_string, value=null){
         }
     }
 }
+
+//inserts the new_html as the new last child of the element indicated by path_string
+function append_in_ui(path_string, new_html){
+    if(window.platform == "node") { //console.log(val)
+        let obj = {kind: "append_in_ui_call", path_string: path_string, new_html: new_html}
+        write_to_stdout("<for_server>" + JSON.stringify(obj) + "</for_server>")
+    }
+    else {
+        let elt = value_of_path(path_string)
+        let ancestor_svg = $(elt).closest("svg")
+        if (ancestor_svg.length > 0) {
+            ancestor_svg = ancestor_svg[0]
+            let new_tag     = html_to_tag_name(new_html)
+            let attr_vals   = html_attributes_and_values(new_html)
+            let new_svg_elt = document.createElementNS("http://www.w3.org/2000/svg", new_tag);
+            for (let pair of attr_vals){
+                new_svg_elt.setAttribute(pair[0], pair[1])
+            }
+            let content = html_content(new_html)
+            new_svg_elt.innerHTML = content
+            ancestor_svg.appendChild(new_svg_elt);
+        }
+        else{
+            elt.insertAdjacentHTML("beforeend", new_html) //$(elt).append(new_html)
+        }
+    }
+}
+
+
  //ie we have a platform global var meaning we're runnningthis in node, not in the browser, which doesn't have module defined.
 // module.exports.SW = SW //"module" not available in browser
 //window.SW = SW
@@ -1071,6 +1100,7 @@ try { //if window is defined, we're in DDE or the browser
     window.prepend_file_message_maybe = prepend_file_message_maybe
     window.out = out
     window.selector_set_in_ui = selector_set_in_ui
+    window.append_in_ui = append_in_ui
 }
 catch(e){ //else we're in the job engine
     global.SW = SW
@@ -1081,6 +1111,7 @@ catch(e){ //else we're in the job engine
     global.prepend_file_message_maybe = prepend_file_message_maybe
     global.out = out
     global.selector_set_in_ui = selector_set_in_ui
+    global.append_in_ui = append_in_ui
 }
 
 //global.SW = SW

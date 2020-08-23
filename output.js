@@ -13,6 +13,7 @@ ipcRenderer.on('record_dde_window_size', function(event){
     persistent_save()
 });
 
+//never called
 window.set_dde_window_size_to_persistent_values = function(){
     ipcRenderer.send('set_dde_window_size',
                         persistent_get("dde_window_x"),
@@ -195,26 +196,7 @@ function html_content(html){
 }
 window.html_content = html_content
 
-//inserts the new_html as the new last child of the element indicated by path_string
-window.append_in_ui = function(path_string, new_html){
-        let elt = value_of_path(path_string)
-        let ancestor_svg = $(elt).closest("svg")
-        if (ancestor_svg.length > 0) {
-            ancestor_svg = ancestor_svg[0]
-            let new_tag     = html_to_tag_name(new_html)
-           let attr_vals   = html_attributes_and_values(new_html)
-           let new_svg_elt = document.createElementNS("http://www.w3.org/2000/svg", new_tag);
-           for (let pair of attr_vals){
-            new_svg_elt.setAttribute(pair[0], pair[1])
-           }
-           let content = html_content(new_html)
-            new_svg_elt.innerHTML = content
-           ancestor_svg.appendChild(new_svg_elt);
-        }
-        else{
-            elt.insertAdjacentElement("beforeend", new_html) //$(elt).append(new_html)
-        }
-}
+
 
 
 //___________SOUND__________

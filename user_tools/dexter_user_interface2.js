@@ -82,10 +82,11 @@ var dui2 = class dui2 {
             //previous version is stopped first
             if (Job[name].robot instanceof Dexter) {Job[name].robot.empty_instruction_queue_now() }
             Job[name].stop_for_reason("interrupted", "User is redefining this job.")
-            let orig_args = arguments[0]
             setTimeout(function(){ dui2.make_job(true) }, 200)
         }
-        else {
+        else { //hits when job is undefined, or is defined but not active.
+               //if job is defined but not active, it will be redefined,
+               //with a new job_id. This should be fine.
             let new_job = new Job({
                             name: name,
                             robot: dex,

@@ -189,7 +189,7 @@ var Picture = class Picture{
     //rect_to_draw can be an array of [x,y,width,height]  a cv.Rect or a cv.Point
     static render_canvas_content(canvas_elt, content, rect_to_draw=null) {
         if(typeof(content) == "string") { //got a file path
-            let img = new Image() //Don't pass in width and height because we want the width and height to come from the content  file name. canvas_elt.width, canvas_elt.height) //img_id //make_dom_elt("img") //new Image()
+            let img = new Image() //Don't pass in width and height because we want the width and height to come from the content  file name. canvas_elt.width, canvas_elt.height) //img_id  //new Image()
             let ctx = canvas_elt.getContext("2d")
             img.onload = function(){
                 let imgWidth      = img.width

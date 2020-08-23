@@ -1,0 +1,58 @@
+<head>
+<script type="text/javascript" src="node_modules/three/build/three.js">
+</script>
+<script type="text/javascript" src="node_modules/three-fbx-loader/build/three.js">
+</script>
+<script>
+var fbx_scene
+function fbx_main() {
+    debugger;
+    var fbx_file = "/Users/Fry/Downloads/DexterHDI-KinematicAssembly-CleanedUp.fbx"
+    // renderer   
+    //var THREE = require("three")
+    const renderer = new THREE.WebGLRenderer({antialias: true});
+    renderer.setSize(800, 600);
+    fbx_div_id.appendChild(renderer.domElement);
+
+    // camera                                                                   
+    const camera = new THREE.PerspectiveCamera(30, 800 / 600, 1, 10000);
+    camera.position.set(0, 10, 100);
+    camera.up.set(0, 1, 0);
+    camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+    // scene and lights                                                         
+    const scene = new THREE.Scene();
+    fbx_scene = scene
+    scene.add(new THREE.AmbientLight(0xcccccc));
+
+    // load fbx model and texture                                               
+    const objs = [];
+    var FBXLoader = require('three-fbx-loader')
+    var loader = new FBXLoader()
+    loader.load(fbx_file, model => {
+        // model is a THREE.Group (THREE.Object3D)                              
+        //const mixer = new THREE.AnimationMixer(model);
+        // animations is a list of THREE.AnimationClip                          
+       // mixer.clipAction(model.animations[0]).play(); //causes process to disappear. Can't even step over it
+        scene.add(model);
+        objs.push({model, mixer});
+    });
+
+    // animation rendering                                                      
+    const clock = new THREE.Clock();
+    (function animate() {
+        // animation with THREE.AnimationMixer.update(timedelta)                
+        objs.forEach(({mixer}) => {mixer.update(clock.getDelta());});
+        renderer.render(scene, camera);
+        requestAnimationFrame(animate);
+    })();
+    return objs;
+}
+//show_window({content: "hey <div id='fbx_div_id'></div>"})
+//var fbx_objs = main();
+</script>
+</head>
+<body onload="alert(123); fbx_main();">
+ hey
+ <div id='fbx_div_id'></div>
+</body>

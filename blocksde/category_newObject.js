@@ -98,4 +98,6 @@ newObject({prototype: Root.BlockCategory,
 })
 }
 var {newObject, Root} = require("./core/object_system.js")
+var {make_html} = require("./core/html_db.js")
+
 

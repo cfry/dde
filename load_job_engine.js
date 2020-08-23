@@ -57,6 +57,8 @@ var Job  = require('./core/job.js')
 var {Messaging, MessStat} = require('./core/messaging.js')
 var {linux_error_message} = require('./core/linux_error_message.js')
 
+var {make_dom_elt, make_html} = require("./core/html_db.js")
+
 var keep_alive_value = true //only really used by node-browser,
    //but effectively, dde, always has keep_alive_value true.
    //this should never actually be read by dde.

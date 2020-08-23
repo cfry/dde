@@ -112,10 +112,10 @@ function misc_pane_menu_changed(select_val){
                         // animations is a list of THREE.AnimationClip
                         //mixer.clipAction(object3d.animations[0]).play();
                         //https://discourse.threejs.org/t/fbx-model-default-material-is-meshphongmaterial-how-to-change/2855/2
-                        object.traverse( function ( child ) {
+                       object.traverse( function ( child ) {
 
                             if ( child.type === "Mesh" ) {
-
+                                debugger;
                                 // switch the material here - you'll need to take the settings from the
                                 //original material, or create your own new settings, something like:
                                 const oldMat = child.material;
@@ -124,19 +124,22 @@ function misc_pane_menu_changed(select_val){
                                 //Dexter's materials from fusion 360 is an ARRAY of 3 MeshPhongMaterial. Maybe that causes a problem
                                 const old_color = (Array.isArray(oldMat) ? oldMat[0].color : oldMat.color)
                                 child.material = new THREE.MeshNormalMaterial({})
-                                       //new THREE.MeshLambertMaterial( {color: old_color, map: oldMat.map, /*etc*/} );
-                                let geom = child.geometry
+                                       //new THREE.MeshLambertMaterial( {color: old_color, map: oldMat.map,} );
+                                /*let geom = child.geometry
                                 geom.scale(0.001, 0.001, 0.001)
                                 let pos = child.position
                                 child.position.set(pos.x * 0.001,
                                                    pos.y * 0.001,
                                                    pos.z * 0.001)
+                                */
+                                sim.scene.add(child)
                             }
                         } );
+
                         //var mixer = new THREE.AnimationMixer( object );
                         //var action = mixer.clipAction( object.animations[ 0 ] );
                         //action.play();
-                       sim.scene.add(object)
+                      //   sim.scene.add(object)
                     },
                     undefined,
                     function (err) {

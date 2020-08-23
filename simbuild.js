@@ -2,6 +2,7 @@ var SimBuild = class Simbuild{
     static j7_prev_angle = 0
     static j7_threshold = 20 //20 or below means gripper should be closed
     static is_gripper_open = false
+    static template_object = null
 
     static init(){
         if(SimX.objects) { SimX.remove_all() }
@@ -10,14 +11,17 @@ var SimBuild = class Simbuild{
         this.gripper_closing = this.gripper_closing_sim_build
         this.gripper_opening = this.gripper_opening_sim_build
         setTimeout(function(){
-            SimX.make_box({color: "blue",
+            SimBuild.template_object = SimX.make_box({color: "blue",
                 name: "sim_build_template",
                 size: [0.1, 0.2, 0.4],
                 position: [0.3,
                     0.5,
                     0.5],
-                orientation: [0, 0, 0]
-            })}, 500) //gives chance for SimX.ensure_simulate to work before adding new box.
+                orientation: [0, 0, 0],
+                castShadow: true,
+                receiveShadow: true
+            })
+            }, 500) //gives chance for SimX.ensure_simulate to work before adding new box.
     }
 
     //maybe not useful. returns array of 3 but the numbers are huge.
@@ -88,14 +92,20 @@ var SimBuild = class Simbuild{
 
     static gripper_closing_sim_build(j7_angle, xyz, obj, rob){
         this.gripper_closing_default(j7_angle, xyz, obj, rob)
-        let new_obj = obj.clone()
-        new_obj.material = new THREE.MeshBasicMaterial({color: "black"}) //must do so that
-        //all the boxes we make with clone won't be the same color
-        //they need their own "material" object to hold their own color.
-        SimX.objects.push(new_obj)
-        new_obj.name = "sim_build_obj_" + this.made_obj_count
-        this.made_obj_count += 1
-        SimX.set_color(new_obj, "random")
+        let new_obj
+        if(obj === this.template_object){
+            new_obj = obj.clone()
+            new_obj.material = new THREE.MeshPhongMaterial({color:"black", shininess:90, specular:"white"}) //MeshBasicMaterial  must do so that
+            //all the boxes we make with clone won't be the same color
+            //they need their own "material" object to hold their own color.
+            SimX.objects.push(new_obj)
+            new_obj.name = "sim_build_obj_" + this.made_obj_count
+            this.made_obj_count += 1
+            SimX.set_color(new_obj, "random")
+        }
+        else {
+            new_obj = obj
+        }
         SimX.set_position(new_obj, [0, 0, 0])
         sim.LINK5.add(new_obj)
         this.gripper_now_holding_object = new_obj

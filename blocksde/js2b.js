@@ -476,3 +476,5 @@ var JS2B = class JS2B{
   }
 }
 var {shouldnt, function_param_names_and_defaults_array, value_of_path} = require("./core/utils.js")
+var {make_dom_elt} = require("./core/html_db.js")
+

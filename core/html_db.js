@@ -56,6 +56,7 @@ var html_db = class html_db{
         return  html_db.css_properties.includes(prop_name)
    }
 }
+module.exports.html_db = html_db
 
 html_db.tags = [
     "a",
@@ -568,6 +569,7 @@ function make_html(tag, properties, innerHTML="", ending="auto", error=false){
 //from https://davidwalsh.name/convert-html-stings-dom-nodes
 //innerHTML can be a string, a Node (elt) or an array of Nodes
 
+module.exports.make_html = make_html
 //only uses the first top level element
 function html_to_dom_elt(html, use_first_top_level_elemment_only=true){
     let frag = document.createRange().createContextualFragment(html)
@@ -598,6 +600,7 @@ function make_dom_elt(tag, properties, innerHTML="", ending="auto", error=false)
     }
     return result
 }
+module.exports.make_dom_elt = make_dom_elt
 
 function replace_dom_elt(old_elt, new_elt){
     old_elt.parentNode.replaceChild(new_elt, old_elt)
@@ -685,4 +688,4 @@ function ancestors_of_class(elt, a_class){
     }
     return result
 }
-var {shouldnt, warning_or_error, intersection, replace_substrings} = require("./core/utils.js")
+var {shouldnt, warning_or_error, intersection, replace_substrings} = require("./utils.js")

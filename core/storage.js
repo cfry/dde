@@ -17,9 +17,9 @@ function get_persistent_values_defaults() {
             "dde_window_height":  700,
             "dde_window_x":       50,
             "dde_window_y":       50,
-            "left_panel_width":   750,
-            "top_left_panel_height": 500,
-            "top_right_panel_height": 500,
+            "left_panel_width":   700,
+            "top_left_panel_height": 350,
+            "top_right_panel_height": 200,
             "animate_ui": true,
             "last_open_dexter_file_path": "", //doesn't have a dexter: prefix,not robot specific.
             "kiosk": false,
@@ -132,8 +132,8 @@ function persistent_load(){
         if(persistent_values.dde_window_width  <= 60)  { persistent_values.dde_window_width  = the_defaults.dde_window_width  }
         if(persistent_values.dde_window_height <= 20)  { persistent_values.dde_window_height = the_defaults.dde_window_height }
     }
-    persistent_load_fill_in_defaults() //this is needed when a new perosistent var is added accross a relese,
-                                       //or the user deletes a varin the .json file
+    persistent_load_fill_in_defaults() //this is needed when a new persistent var is added accross a release,
+                                       //or the user deletes a var in the .json file
 }
 
 function persistent_load_fill_in_defaults(){

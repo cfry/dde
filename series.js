@@ -951,5 +951,6 @@ var {copy_missing_fields, is_string_a_integer, is_string_a_float, is_string_a_nu
 
 var {init_units, unit_abbrev_to_full_name} = require("./core/units.js")
 var {Robot, Brain, Dexter, Human, Serial} = require('./core/robot.js')
+var {html_db} = require("./core/html_db.js")
 
 

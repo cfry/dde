@@ -350,4 +350,6 @@ Workspace.floating_typein_x = 0
 Workspace.floating_typein_y = 0
 
 var {shouldnt, is_string_an_identifier, is_string_a_path, value_of_path} = require("./core/utils.js")
+var {make_dom_elt, make_html} = require("./core/html_db.js")
+
 

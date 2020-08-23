@@ -164,7 +164,7 @@ var SimX = class SimX{
                           //of a parent. the "default parent" is scene.table
         let three_size = this.size_dde_to_three(size)
         let geom = new THREE.BoxGeometry(three_size[0], three_size[1], three_size[2])
-        let mat = (color ? new THREE.MeshBasicMaterial({color: color}) :
+        let mat = (color ? new THREE.MeshPhongMaterial({color: color}) : //  MeshBasicMateria
             new THREE.MeshNormalMaterial({}))
         //mat.side = THREE.DoubleSide //From https://threejs.org/docs/index.html#manual/en/introduction/FAQ
         //todo should be unnecessary but helps in debugging invisible objects
