@@ -279,9 +279,13 @@ function inspect_aux(item, stack_number, in_stack_position, increase_max_display
                 let prop_value = item.constructor
                 if (prop_value == {}.constructor) { } //just don't show this as we'be probably just inspecting a {foo: 2, bar: 3} literal obj
                 else {
+                    let name = ((item.name) ? " named: " + item.name : "")
                     if(is_class(item.constructor)) {
                         prop_name = "class"
-                        title = "A " + get_class_name(item.constructor) + ((item.name) ? " named: " + item.name : "")
+                        title = "A " + get_class_name(item.constructor) + name
+                    }
+                    else if (prop_value && prop_value.name) {
+                        title = "A " + prop_value.name + name
                     }
                     result += prefix + "<i>" + prop_name + "</i>: "   + inspect_one_liner(prop_value, stack_number, in_stack_position, prop_name) + "<br/>\n"
                     prefix = "&nbsp;&nbsp;"
@@ -403,8 +407,11 @@ function inspect_one_liner(item, stack_number, in_stack_position, prop_name){
        else return inspect_clickable_path(item, stack_number, in_stack_position, prop_name) +
                     inspect_extra_info(item)
     }
-    else if (the_type == "object") { //handles the typeArray case but note, is same call as nomral array
+    else if (the_type == "object") { //handles the typeArray case but note, is same call as normal array
+        let name_text = ""
+        if(item.name && (item.name != "")) { name_text = " name: " + item.name + " " } //really useful for Threejs Object3D and probably others
         return inspect_clickable_path(item, stack_number, in_stack_position, prop_name) +
+                 name_text +
                  inspect_extra_info(item)
     }
     else { shouldnt("inspect_one_liner passed unhandled: " + item) }
@@ -477,8 +484,24 @@ function inspect_extra_info(item){
        info = "["
        for(let i = 0; i < item.length; i++) {
            let elt = item[i]
-           let elt_str
+           let elt_str = ""
            if(Number.isNaN(elt)) { elt_str = "NaN"} //because JSON.stringify prints NaN as "null"
+           else if (typeof(elt) == "object"){
+               let class_name = get_class_name(elt)
+               if(class_name) { elt += class_name }
+               else if ((elt.constructor) &&
+                         elt.constructor.name &&
+                         elt.constructor.name != ""){
+                   elt_str += " " + elt.constructor.name
+               }
+               if(elt.name && (elt.name != "")) {
+                   elt_str += " name: " + elt.name
+               }
+               if(elt_str == "") {
+                   let prop_names = Object.getOwnPropertyNames(elt)
+                   elt_str = "object with " + prop_names.length + " prop" + ((prop_names.length == 1) ? "": "s")
+               }
+           }
            else  {
                try { elt_str = JSON.stringify(elt) }
                catch { elt_str = "" }
@@ -492,8 +515,8 @@ function inspect_extra_info(item){
         try{ info = JSON.stringify(item) } //might be a circular structure such as happens with newObjects
         catch(err) { return "" }
     }
-    if (info.length > 50) {
-        info = info.substring(0, 80) + " &nbsp;..."
+    if (info.length > 55) {
+        info = info.substring(0, 50) + " &nbsp;..."
         if      (info[0] == "{") { info += "}" }
         else if (info[0] == "[") { info += "]" }
     }
@@ -691,7 +714,7 @@ function inspect_set_prev_onclick(stack_number, in_stack_position, id_string){
 
 function inspect_set_next_onclick(stack_number, in_stack_position, id_string){
     setTimeout(function(){ //we need to wait until the html is actually rendered.
-            if((in_stack_position + 1) < inspect_stacks[stack_number].length){
+            if((inspect_stacks.length > 0) && ((in_stack_position + 1) < inspect_stacks[stack_number].length)){
                 let fn = function(event){
                     const html_elt_to_replace = $(event.target).closest(".inspector")
                     inspect_out(null, stack_number, in_stack_position + 1, html_elt_to_replace)

@@ -8,8 +8,8 @@
 
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version: <span id="dde_version_id">3.6.2</span><br/>
-    released: <span id="dde_release_date_id">Aug 10, 2020</span>
+    version: <span id="dde_version_id">3.6.3</span><br/>
+    released: <span id="dde_release_date_id">Sep 4, 2020</span>
     <p></p>
     DDE helps you create, debug, and send software to a Dexter robot.
     You can use any JavaScript augmented with DDE-specific functions to help find out about,
@@ -430,14 +430,15 @@ Each indicates that a joint has power.
 <b>When</b><br/>
 To obtain optimal precision, Dexter must be calibrated after it is built.
 <p></p>
-Environmental effects of heat, humidity, movement, and orientation towards gravity,
-all conspire to make minor changes that affect Dexter's accuracy.
-<b>Calibrate optical sensors</b> will most likely only need to be done once.
-If you received a fully assembled Dexter, this initial calibration has been done.
-If you are building a kit, you must calibrate it when the building is complete.
-<b>Calibrate optical encoders</b> needs to be done every time Dexter is turned on.
-If Dexter is having sporadic movement or is not smooth
-in FollowMe mode, try going through a full calibration.
+    Environmental effects of heat, humidity, movement, and orientation towards gravity,
+    all conspire to make minor changes that affect Dexter's accuracy.
+    If you have an HD version of Dexter, you will need to <b>calibrate optical encoders</b>
+    every time Dexter is turned on. If you have an HDI version of Dexter,
+    the HDI will automatically find its
+    home position when it is turned on and upon every restart.
+    If you are building a kit, you must calibrate it when the building is complete.
+    If Dexter is having sporadic movement or is not smooth
+    in FollowMe mode, try going through a full calibration.
 <p></p>
 <b>How</b><br/>
 Choose the Jobs menu item of "Calibrate Dexter..." to open a dialog

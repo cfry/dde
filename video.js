@@ -33,6 +33,7 @@
     //between dexter sim and stl view
     //https://stackoverflow.com/questions/9251837/how-to-remove-all-listeners-in-an-element
 var THREE = require('three')
+var THREE_GLTFLoader = require('three-gltf-loader')
 
 function clear_out_sim_graphics_pane_id(){
     if(window.sim_graphics_pane_id){
@@ -42,18 +43,26 @@ function clear_out_sim_graphics_pane_id(){
 }
 
 var prev_make_instruction_src = undefined
-function misc_pane_menu_changed(select_val){
+//choose_file_onlu matters if select_val == "Choose File", and is only passed in
+//when initing DDE
+function misc_pane_menu_changed(select_val, choose_file_path = ""){
     if(MakeInstruction.is_shown()) {
         prev_make_instruction_src = MakeInstruction.dialog_to_instruction_src()
     }
     if(select_val instanceof Event) { select_val = misc_pane_menu_id.value }
     else {misc_pane_menu_id.value = select_val } //used when user clicks the demo button.
-    if(select_val !== persistent_get("misc_pane_content")){
-        persistent_set("misc_pane_content", select_val)
-    }
+    let select_val_started_as_choose_file = false
     if (select_val == "Choose File") {
-        select_val = choose_file()
+        select_val_started_as_choose_file = true
+        if(choose_file_path == "") {
+            select_val = choose_file()
+        }
+        else {
+            select_val = choose_file_path
+        }
     }
+    let prev_val = persistent_get("misc_pane_content")
+    try {
     if (select_val == "Simulate Dexter") {
         //video_player_id.style.display      = "none";
         sim_pane_content_id.innerHTML =
@@ -78,25 +87,25 @@ function misc_pane_menu_changed(select_val){
         //sim.renderer.render(sim.scene, sim.camera);
         SimUtils.render_once_with_prev_args_maybe() //restore sim graphics to prev state
     }
-    else if (select_val.endsWith(".jpg") ||
-             select_val.endsWith(".png") ||
-             select_val.endsWith(".gif") ||
-             select_val.endsWith(".bmp") ||
-             select_val.endsWith(".svg")
-            ){
-        sim_pane_content_id.innerHTML = "<img style='width:100%;' src='" + select_val + "'/>"
-    }
+
     else if (select_val.endsWith(".stl")){
-        clear_out_sim_graphics_pane_id()
-        stl_init_viewer()
-        var STLLoader = require('three-stl-loader')(THREE)
-        var loader = new STLLoader()
-        loader.load(select_val, function (geometry) {
-            var material = new THREE.MeshNormalMaterial()
-            var mesh = new THREE.Mesh(geometry, material)
-            sim.scene.add(mesh)
-        })
-        stl_render()
+        if(file_exists(select_val)){
+            clear_out_sim_graphics_pane_id()
+            stl_init_viewer()
+            var STLLoader = require('three-stl-loader')(THREE)
+            var loader = new STLLoader()
+            loader.load(select_val, function (geometry) {
+                var material = new THREE.MeshNormalMaterial()
+                var mesh = new THREE.Mesh(geometry, material)
+                sim.scene.add(mesh)
+            })
+            stl_render()
+        }
+        else {
+            warning("Could not find file: " + select_val)
+            misc_pane_menu_id.value = prev_val  //reset to what it was before the person chose the item, which we know is good
+            return
+        }
     }
     else if (select_val.endsWith(".fbx")){
         clear_out_sim_graphics_pane_id()
@@ -115,7 +124,6 @@ function misc_pane_menu_changed(select_val){
                        object.traverse( function ( child ) {
 
                             if ( child.type === "Mesh" ) {
-                                debugger;
                                 // switch the material here - you'll need to take the settings from the
                                 //original material, or create your own new settings, something like:
                                 const oldMat = child.material;
@@ -153,10 +161,7 @@ function misc_pane_menu_changed(select_val){
 //      stl_init_viewer()
         // from https://github.com/ckddbs/three-fbx-loader/commit/b3bc39bef2a4253abf2acc780870a03f5f9cd510
         //https://threejs.org/docs/#examples/en/loaders/GLTFLoader
-//      var GLTFLoader = require('three-gltf-loader')
-//      var loader = new GLTFLoader()
-        var GLTFLoader = require('three/examples/js/loaders/GLTFLoader.js')
-        var loader = new THREE.GLTFLoader()
+        var loader = new THREE_GLTFLoader()
 
 		function chainLink ( children, i ) {
 			//	The  previous link (base if i is 0).
@@ -228,12 +233,20 @@ function misc_pane_menu_changed(select_val){
     }
    // else if (select_val.startsWith("http")){
         ////play_youtube_video(select_val)
-        //show_page(select_val) //this doesn't show the page in the SIm pane,
+        //show_page(select_val) //this doesn't show the page in the Misc pane,
         //so I decided to remove it
         //the below fails
     //    let content = get_page(select_val)
     //    sim_graphics_pane_id.innerHTML = content
     //}
+    else if(select_val === "Dexter Photo"){
+        let file_name = __dirname + "/doc/HD+Robotics-8517.jpg" //Dexter and Kent
+        sim_pane_content_id.innerHTML = "<img src='" + file_name + "' style='width:100%;'/>"
+    }
+    else if(select_val === "Dexter Architecture"){
+        let file_name = __dirname + "/doc/dexter_architecture.jpg"
+        sim_pane_content_id.innerHTML = "<img src='" + file_name + "' style='width:100%;'/>"
+    }
     else if (select_val == "Reference Manual"){
         let div_html = `<div contenteditable='false' 
                             style='height:300px; width:300px; padding:5%; background-color:#DDDDDD; overflow:scroll;'>` +
@@ -242,30 +255,81 @@ function misc_pane_menu_changed(select_val){
         //sim_graphics_pane_id.style = "width:97%; height:90%; padding:5%; background-color:white; overflow:scroll !important;"
         sim_pane_content_id.innerHTML = div_html + content + "</div>"
     }
+    else if (select_val.endsWith(".jpg") ||
+        select_val.endsWith(".png") ||
+        select_val.endsWith(".gif") ||
+        select_val.endsWith(".bmp") ||
+        select_val.endsWith(".svg")
+    ){
+        if(file_exists(select_val)){
+            let div_html = `<div title="Click to choose a different file." onclick='misc_pane_menu_changed(\"Choose File\")' style='padding:7px; font-size:12px; font-weight:600;background-color:rgb(184, 187, 255);'>` +
+                             select_val + "</div>" +
+                            "<img style='width:100%;' src='" + select_val + "'/>"
+            sim_pane_content_id.innerHTML = div_html
+        }
+        else {
+            warning("Could not find file: " + select_val + "<br/>to show in the Misc pane.")
+            misc_pane_menu_id.value = prev_val  //reset to what it was before the person chose the item, which we know is good
+            return
+        }
+    }
     else if (select_val.endsWith(".txt")  ||
              select_val.endsWith(".js")   ||
              select_val.endsWith(".json") ||
              select_val.endsWith(".dde")){
-        let div_html = `<div title="Click to choose a different file." onclick='sim_pane_menu_changed(\"Choose File\")' style='padding:7px; font-size:12px; font-weight:600;background-color:rgb(184, 187, 255);'>` +
-                        select_val + "</div>" +
-          "<div contenteditable='false' style='height:300px; width:800px; padding:5%; background-color:white; overflow:scroll;'>"
+        if(file_exists(select_val)){
+            let div_html = `<div title="Click to choose a different file." onclick='misc_pane_menu_changed(\"Choose File\")' style='padding:7px; font-size:12px; font-weight:600;background-color:rgb(184, 187, 255);'>` +
+                            select_val + "</div>" +
+              "<div contenteditable='false' style='height:300px; width:800px; padding:5%; background-color:white; overflow:scroll;'>"
 
-        let content = read_file(select_val)
-        content = replace_substrings(content, "<", "&lt;")
-        //sim_graphics_pane_id.style = "width:97%; height:90%; padding:5%; background-color:white; overflow:scroll !important;"
-        sim_pane_content_id.innerHTML = div_html + "<pre>" + content + "</pre></div>"
+            let content = read_file(select_val)
+            content = replace_substrings(content, "<", "&lt;")
+            //sim_graphics_pane_id.style = "width:97%; height:90%; padding:5%; background-color:white; overflow:scroll !important;"
+            sim_pane_content_id.innerHTML = div_html + "<pre>" + content + "</pre></div>"
+        }
+        else {
+            warning("Could not find file: " + select_val + "<br/>to show in the Misc pane.")
+            misc_pane_menu_id.value = prev_val  //reset to what it was before the person chose the item, which we know is good
+            return
+        }
     }
-    else if (select_val = "Make Instruction"){
+    else if (select_val == "Make Instruction"){
        MakeInstruction.show(prev_make_instruction_src) //if arg value is undefined, show show's the default move_all_joints, otherwise, its previous state
        open_doc(make_instruction_pane_doc_id)
     }
-    else //if (select_val.endsWith(".html") || select_val.endsWith(".htm"))
-         {
-        let div_html = "<div contenteditable='false' style='height:300px; width:300px; padding:5%; background-color:white; overflow:scroll;'>"
+    else if(file_exists(select_val)) { //select_val could be: (select_val.endsWith(".html") || select_val.endsWith(".htm") ||
+         //some random other file that hopefully can be displayed as html.
+         //but if we get an error, the below catch will catch it.
+        let div_html = `<div title="Click to choose a different file." onclick='misc_pane_menu_changed(\"Choose File\")' style='padding:7px; font-size:12px; font-weight:600;background-color:rgb(184, 187, 255);'>` +
+            select_val + "</div>" +
+            "<div contenteditable='false' style='height:300px; width:800px; padding:5%; background-color:white; overflow:scroll;'>"
         let content = read_file(select_val)
         //sim_graphics_pane_id.style = "width:97%; height:90%; padding:5%; background-color:white; overflow:scroll !important;"
         sim_pane_content_id.innerHTML = div_html + content + "</div>"
     }
+    else {
+        warning("Could not find file: " + select_val + "<br/>to show in the Misc pane.")
+        misc_pane_menu_id.value = prev_val  //reset to what it was before the person chose the item, which we know is good
+        return
+    }
+    } //end try
+    catch(err){
+        warning("Could not load: " + select_val  + "<br/>into the Misc pane.")
+        misc_pane_menu_id.value = prev_val  //reset to what it was before the person chose the item, which we know is good
+        return
+    }
+    if(select_val !== prev_val){
+        if(select_val_started_as_choose_file) {
+            persistent_set("misc_pane_content", "Choose File")
+        }
+        else {
+            persistent_set("misc_pane_content", select_val)
+        }
+    }
+    if(select_val_started_as_choose_file && (select_val !== "") && (select_val !== undefined)){
+        persistent_set("misc_pane_choose_file_path", select_val)
+    }
+
 }
 
 function refresh_job_or_robot_to_simulate_id(){

@@ -59,7 +59,7 @@ var SimX = class SimX{
     }
 
     static is_object(object_maybe){
-        return object_maybe instanceof THREE.Mesh //could use THREE.Object3D here, but Mesh is more specfic
+        return object_maybe instanceof THREE.Object3D // used to use THREE.Mesh here, but that fails for end effector in the dexter gltf model
     }
     static get_object(object_or_name){
         if(typeof(object_or_name) === "string") {

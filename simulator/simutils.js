@@ -126,12 +126,15 @@ SimUtils = class SimUtils{
                 let j_inc_per_frame = js_inc_per_frame[joint]
                 let inc_to_prev_j = frame * j_inc_per_frame
                 let j_angle = prev_j + inc_to_prev_j
-                //if(joint == 0) { j_angle *= -1}
-                let rads = arc_seconds_to_radians(j_angle)
                 let angle_degrees
                 if      (joint == 5) { angle_degrees = (j_angle - 512) * Socket.DEGREES_PER_DYNAMIXEL_UNIT }
                 else if (joint == 6) { angle_degrees = j_angle * Socket.DEGREES_PER_DYNAMIXEL_UNIT }
                 else                 { angle_degrees = j_angle / 3600 }
+                if(((joint === 1) || (joint === 2) || (joint === 3)) &&
+                    sim.hi_rez) {
+                    angle_degrees *= -1
+                }
+                let rads = degrees_to_radians(angle_degrees)
                 new_angles.push(angle_degrees)
                 let j_angle_degrees_rounded = Math.round(angle_degrees)
                 switch(joint) {
@@ -157,9 +160,29 @@ SimUtils = class SimUtils{
                         sim_pane_j5_id.innerHTML = j_angle_degrees_rounded
                         break;
                     case 5:
+                        if(sim.J6) {
+                            sim.J6.rotation.z = rads
+                        }
                         sim_pane_j6_id.innerHTML = j_angle_degrees_rounded
                         break;
                     case 6:
+                        if(sim.J7) { //330 degrees = 0.05 meters
+                           let new_xpos = ((angle_degrees * 0.05424483315198377) / 296) * -1 //more precise version from James W aug 25.
+                           new_xpos *= 10
+                           //out("J7 angle_degrees: " + angle_degrees + " new xpos: " + new_xpos)
+                           sim.J7.position.setX(new_xpos) //see https://threejs.org/docs/#api/en/math/Vector3
+                           //all below fail to change render
+                           //sim.J7.position.x = new_pos
+                           //sim.J7.updateMatrix() //no effect
+                           //sim.j7.updateWorldMatrix(true, true)
+                                // prev new_pos value;
+                                // ((angle_degrees * 0.05) / 330 ) * -1 //meters of new location
+                                // but has the below problems
+                                // x causes no movement, but at least inited correctly
+                                // y sends the finger to move to outer space upon init, but still visible, however moving j7 doesn't move it
+                                // z causes the finger to be somewhat dislocated upon dui init, however moving j7 doesn't move it
+                           //sim.J7.rotation.y = rads
+                        }
                         sim_pane_j7_id.innerHTML = j_angle_degrees_rounded
                         if(window.SimBuild) {
                              SimBuild.handle_j7_change(angle_degrees, xyz, rob)

@@ -1409,17 +1409,20 @@ Messaging.new_message_to_source = function(){
     let to = messaging_dialog_to_id.value
     let get_result = get_result_id.checked
     if(body.startsWith("{")) {
+        body = body.substring(1) //cut off the "{"
         body = body.substring(0, body.length - 1).trim() //cut off final "}" and possibly newline or space before it
         body += ',\n  to: "' + to +
-                '",\n  get_result: ' + get_result + '}'
-        result += body
+                '",\n  get_result: ' + get_result
+        result += "{\n  " + body + "}"
     }
     else {
         let mess_obj = Messaging.mess_type_to_mess_obj(type, body)
         mess_obj.to = to
         mess_obj.get_result = get_result
         let mess_obj_src = to_source_code({value: mess_obj})
-        mess_obj_src = replace_substrings(mess_obj_src, "\n ", "\n                ")
+        mess_obj_src = mess_obj_src.substring(1) // cut off the opening curly
+        mess_obj_src = "{\n " + mess_obj_src
+        mess_obj_src = replace_substrings(mess_obj_src, "\n ", "\n        ")
         result += mess_obj_src
     }
     result += ")"

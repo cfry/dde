@@ -1,6 +1,6 @@
 function to_source_code({value, indent="", function_names=false, newObject_paths=false,
                         job_names=false, robot_names=false,
-                        depth_limit=Infinity, depth=0, job_orig_args=false,
+                        depth_limit=100, depth=0, job_orig_args=false,
                         one_line_per_array_elt=false, array_elt_max_chars=60} = {}){
         //console.log("Object.isNewObject: " + Object.isNewObject)
         if (!((typeof(arguments[0]) == "object") && arguments[0].hasOwnProperty("value"))){
@@ -36,7 +36,7 @@ function to_source_code({value, indent="", function_names=false, newObject_paths
         }
         //Job. Robot, Instruction, Duration
         else if (value.to_source_code){
-            let new_args = {value: value, indent: indent}
+            let new_args = {value: value, indent: indent, depth: depth + 1} //use depth because we can potentially have infinite recursion here.
             return value.to_source_code(new_args)
         }
         else if (value === window)     { return "window"  } //too many weird values in there and too slow so punt.
@@ -85,7 +85,7 @@ function to_source_code_array(args){
     return result
 }
 
-function to_source_code_instruction_array(args){
+/* errors on at least some instruction arrays .function to_source_code_instruction_array(args){
     let inst_array = args.value
     let the_indent = ((args.indent === undefined) ? "" : args.indent)
     let result = the_indent + "make_ins("
@@ -96,6 +96,21 @@ function to_source_code_instruction_array(args){
         let prop_src = to_source_code(prop_args)
         let suffix = ((prop_index == (inst_array.length - 1)) ? "" : ", ")
         result += prop_src + suffix
+    }
+    result += ")"
+    return result
+}*/
+
+function to_source_code_instruction_array(args){
+    let inst_array = args.value
+    let the_indent = ((args.indent === undefined) ? "" : args.indent)
+    let result = the_indent + "make_ins("
+    let start_array_index = Instruction.INSTRUCTION_TYPE
+    for(let i = start_array_index; i <  inst_array.length; i++) {
+        let val = inst_array[i]
+        let val_src = to_source_code(val)
+        let suffix = ((i == (inst_array.length - 1)) ? "" : ", ")
+        result += val_src + suffix
     }
     result += ")"
     return result

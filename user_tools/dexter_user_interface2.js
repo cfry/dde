@@ -91,7 +91,9 @@ var dui2 = class dui2 {
                             name: name,
                             robot: dex,
                             when_stopped: "wait",
-                            do_list: [dui2.init]
+                            do_list: [dui2.init,
+                                      Dexter.move_all_joints(0, 0, 0, 90, 0, 0, 0)
+                                      ]
                         })
            // dex.instruction_callback = this.dui_instruction_callback //used for "run_forward" , complicated to get this to work so now run_forward does something simpler
             if(explicity_start_job) {
@@ -181,7 +183,8 @@ var dui2 = class dui2 {
 
         show_window({title: "Dexter." + dui_instance.dexter_instance.name + " User Interface",
             width: xy_width_in_px + 80, //380,
-            height: xy_width_in_px + 330, //570,
+            height: xy_width_in_px + 333, //570,
+            x: 320,
             y: 0,
             background_color: "#d5d5d5",
             job_name: this.name, //important to sync the correct job.
@@ -190,12 +193,12 @@ var dui2 = class dui2 {
             '<span style="margin-top:0px;padding:2px;">Move Dexter to:</span>' +
             `<input type="button" name="ready"  style="margin-left:10px;margin-top:0px;margin-bottom:3px; padding:2px;" value="ready"  title="Move Dexter to a neutal position.&#013;Good for 'elbow room'."/>` +
             `<input type="button" name="home"   style="margin-left:10px;margin-top:0px;margin-bottom:3px; padding:2px;" value="home"   title="Move Dexter straight up.&#013;This doesn't allow much freedom of motion."/>` +
-            //`<input type="button" name="editor" style="margin-left:10px;margin-top:0px;margin-bottom:3px; padding:2px;" value="editor" title="Move Dexter via the instruction.&#013;near the Editor cursor."/>` +
+            "<span name='step_arrow_buttons'>" + //needed by tutorial
             `<span  class="clickable" name="go_to_start"   style="font-size: 24px; margin-left: 5px; cursor: pointer; color: rgb(0, 200, 0); vertical-align:bottom;" title="Move cursor to before the first instruction&#013;of its containing do_list.">◀</span>` +
             `<span  class="clickable" name="step_backward" style="font-size: 18px; margin-left: 5px; cursor: pointer; color: rgb(0, 200, 0); vertical-align:-10%;"   title="Step and execute the instruction before the selection&#013;or, if none, the cursor&#013;in the Job defined in the editor.">◀</span>` +
             `<span  class="clickable" name="step_forward"  style="font-size: 18px; margin-left: 5px; cursor: pointer; color: rgb(0, 200, 0); vertical-align:-10%;"   title="Step through the instruction after the selection&#013;or, if none, the cursor&#013;in the Job defined in the editor.">▶</span>` +
-            `<span  class="clickable" name="run_forward"   style="font-size: 24px; margin-left: 5px; cursor: pointer; color: rgb(0, 200, 0); vertical-align:-10%;"   title="Run the instrutions &#013;from the cursor through the end.">▶</span>` +
-
+            `<span  class="clickable" name="run_forward"   style="font-size: 24px; margin-left: 5px; cursor: pointer; color: rgb(0, 200, 0); vertical-align:-10%;"   title="Run the instructions &#013;from the cursor through the end.">▶</span>` +
+            "</span>" +
             dui_instance.make_xyz_sliders_html(xy_width_in_px,
                 min_x, max_x,
                 //min_y, max_y are same as min_x, max_x, so don't pass them.
@@ -208,6 +211,8 @@ var dui2 = class dui2 {
         })
         setTimeout(function() {
                 dui_instance.show_window_elt_id = "show_window_" + SW.window_index + "_id"
+                let sw_elt = window[dui_instance.show_window_elt_id]
+                sw_elt.classList.add("dui_dialog")
                 let RS_inst = dui_instance.dexter_instance.rs //new RobotStatus(rs)
                 dui_instance.set_maj_angles(RS_inst.measured_angles(7)) //returns a copy of the array so safe to change it.
                 dui_instance.update_all(dui_instance.should_point_down) //true means IFF maj_angles is pointing down, set the checkbox to point down.
@@ -276,9 +281,9 @@ cir1.setAttribute("cy", 42)
             xy_loc_circle_html +
             '</svg>'
         let z_slider_html =
-            '<div style="border:2px solid black; display:inline-block; background-color:#ff7e79; transform-origin:' + (xy_width_in_px / 2) + 'px; transform: translate(190px, -163px) rotate(-90deg);">' +
+            '<div style="border:4px solid ' + dui2.xy_background_color + '; display:inline-block; margin:0px; background-color:white; transform-origin:' + (xy_width_in_px / 2) + 'px; transform: translate(185px, -170px) rotate(-90deg);">' +
             '<input type="range" name="z_slider" step="0.01" value="0" min="0" max="' + max_z + '" data-oninput="true" ' +
-            'style="width:' + xy_width_in_px + 'px; height:20px;margin:0px; background-color:#0F0; color:#0F0;' +
+            'style="width:' + xy_width_in_px + 'px; height:20px;margin:0px;' +
             '"/>' +
             '</div>'
         let xyz_num_html =
@@ -1186,7 +1191,7 @@ static dexter_user_interface_cb(vals){
         let inner_x_px = this.meters_to_x_px(inner_xy[0])
         let inner_y_px = this.meters_to_y_px(inner_xy[1])
         //draw
-        selector_set_in_ui("#" + this.show_window_elt_id + " svg [style] [background-color]", "#ff7e79")
+        selector_set_in_ui("#" + this.show_window_elt_id + " svg [style] [background-color]", dui2.xy_background_color)
         //ebugger;
         selector_set_in_ui("#" + this.show_window_elt_id + " svg [id=outer_circle] [r]",  outer_r_px)
         selector_set_in_ui("#" + this.show_window_elt_id + " svg [id=outer_circle] [cx]", outer_x_px)
@@ -1242,7 +1247,7 @@ static dexter_user_interface_cb(vals){
 } //end of class dui2
 
 dui2.instances = []
-dui2.xy_background_color = "#ff7e79"
+dui2.xy_background_color = "#fe8798" //   #ff7e79 is too orange
 
 } //end of top level if
 

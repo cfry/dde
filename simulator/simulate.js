@@ -13,8 +13,11 @@ from http://threejs.org/docs/index.html#Manual/Introduction/Creating_a_scene
 
 var THREE = require('three')
 var THREE_Text2D = require('three-text2d')
+var THREE_GLTFLoader = require('three-gltf-loader') //using the examples folder like this is depricated three/examples/js/loaders/GLTFLoader.js')
+
 
 var sim = {} //used to store sim "global" vars
+sim.hi_rez = true
 
 //var THREE_font_loader = new THREE.FontLoader();
 
@@ -27,11 +30,12 @@ function init_simulation(){
     sim.container = sim_graphics_pane_id //a div that contains a canvas
     sim.scene  = new THREE.Scene();
     sim.scene.name = "scene"
-    sim.scene.background = new THREE.Color( 0x000000 ) //black is the default
+    sim.scene.background = new THREE.Color( 0xBBBBBB ) // 0x000000black is the default
+    createRenderer()
     createCamera()
     createLights()
-    createMeshes()
-    createRenderer()
+    if(sim.hi_rez) { createMeshGLTF() }
+    else           { createMeshBoxes() }
   }
   catch(err){
           console.log("init_simulation errored with: " + err.stack)
@@ -79,6 +83,7 @@ function createLights(){
     //	const intensity = 0.35;		//	To see the helpers easier.
     const dlight = new THREE.DirectionalLight ( dcolor, dintensity );
     dlight.position.set ( 4, 4, 2 );
+    dlight.target.name = "directional_light_target"
     dlight.target.position.set ( 0, 0, 0 );
     dlight.castShadow = true;
     sim.scene.add ( dlight );
@@ -122,7 +127,120 @@ function createRenderer(){
     sim.container.appendChild(sim.renderer.domElement)
 }
 
-function createMeshes(){
+//simulator using actual Dexter CAD. the GLTF was created by using the
+//fusion 360 exporter of FBX, then converting that to .gltf, then
+//processing in video.js to clean it up.
+function createMeshGLTF(){
+    sim.table_width  = 0.447675,  //width was 1
+    sim.table_length = 0.6985,  //length was 2
+    sim.table_height = 0.01905  //height (thickness of Dexcell surface). This is 3/4 of an inch. was:  0.1)
+    sim.table = draw_table(sim.scene, sim.table_width, sim.table_length, sim.table_height)
+
+    sim.J0 = new THREE.Object3D(); //0,0,0 //does not move w.r.t table.
+    sim.J0.rotation.y = Math.PI //radians for 180 degrees
+    sim.J0.name = "J0"
+    sim.J0.position.y = (sim.table_height / 2) //+ (leg_height / 2) //0.06 //for orig boxes model, leg)height was positive, but for legless dexter mounted on table, its probably 0
+    sim.J0.position.x = (sim.table_length / 2)  //the edge of the table
+                         - 0.12425 //the distance from the edge of the table that Dexter is placed
+    sim.table.add(sim.J0)
+
+    let loader = new THREE_GLTFLoader()
+
+    loader.load(__dirname + "/HDIMeterModel.gltf", //select_val,
+                fix_up_gltf_and_add,
+                undefined,
+                function (err) {
+                    console.error( err );
+                }
+    )
+
+}
+
+//copied from video_js with slight mods
+function fix_up_gltf_and_add(gltf_object3D) {
+//              sim.scene.add(gltf.scene)
+    let root = gltf_object3D.scene;
+    let c0 = root.children[0]
+    c0.scale.set(0.001, 0.001, 0.001);
+    //	Remove imported lights, cameras. Just want Object3D.
+    let objs = [];
+    c0.children.forEach ( c => {
+        if ( c.constructor.name === 'Object3D' ) {
+            objs.push(c); } } );
+    c0.children = objs;
+    //	sim.scene.add(root)
+    sim.J0.add(root) //fry added in J0 to shift dexter to back of the table.
+
+    //	Set link parent-child relationships.
+    //
+    gltf_render();		 //	One render here to set the matrices.
+
+    //	Now link.
+    chainLink ( objs[0].children, 7 );
+    chainLink ( objs[0].children, 6 );
+    chainLink ( objs[0].children, 5 );
+    chainLink ( objs[0].children, 4 );
+    chainLink ( objs[0].children, 3 );
+    chainLink ( objs[0].children, 2 );
+    chainLink ( objs[0].children, 1 );
+
+    set_joints_in_sim()
+}
+
+//copied from video.js. for fixing gltf child-parent relationships.
+function chainLink ( children, i ) {
+    //	The  previous link (base if i is 0).
+    let linkPrv = children[i-1];
+    let Lprv = new THREE.Matrix4();
+    Lprv.copy ( linkPrv.matrix );
+
+    let nLprv = new THREE.Matrix4();
+    nLprv.getInverse ( Lprv );
+
+    //	The link's position WRT base.
+    let link = children[i];
+    let B = new THREE.Matrix4();
+    B.copy ( link.matrix );
+
+    //	The link's position WRT the previous link.
+    let L = nLprv.multiply ( B );
+
+    //	Remove the link from the current object tree.
+    children.splice ( i, 1 );
+
+    //	Add it as a child to the previous link.
+    link.matrix.identity();
+    linkPrv.add ( link );
+
+    //	Set it's position.
+    let p = new THREE.Vector3();
+    let q = new THREE.Quaternion();
+    let s = new THREE.Vector3();
+    L.decompose ( p, q, s );
+    link.position.set ( p.x, p.y, p.z );
+    link.setRotationFromQuaternion ( q );
+}
+
+function set_joints_in_sim(){
+    sim.LINK1 = sim.scene.getObjectByName("DexterHDI_MainPivot_KinematicAssembly_v21")
+    sim.LINK2 = sim.scene.getObjectByName("DexterHDI_Link2_KinematicAssembly_v51")
+    sim.LINK3 = sim.scene.getObjectByName("DexterHDI_Link3_KinematicAssembly_v21")
+    sim.LINK4 = sim.scene.getObjectByName("DexterHDI_Link4_KinematicAssembly_v31")
+    sim.LINK5 = sim.scene.getObjectByName("DexterHDI_Link5_KinematicAssembly_v21")
+    sim.LINK6 = sim.scene.getObjectByName("DexterHDI_Link6_KinematicAssembly_v31")
+    sim.LINK7 = sim.scene.getObjectByName("DexterHDI_Link7_KinematicAssembly_v21")
+
+    sim.J1 = sim.LINK1
+    sim.J2 = sim.LINK2
+    sim.J3 = sim.LINK3
+    sim.J4 = sim.LINK4
+    sim.J5 = sim.LINK5
+    sim.J6 = sim.LINK6
+    sim.J7 = sim.LINK7
+}
+
+//the orig simulator with crude geometry boxes.
+function createMeshBoxes(){
                      //Dexcell dimensions
     sim.table_width  = 0.447675,  //width was 1
     sim.table_length = 0.6985,  //length was 2
@@ -159,7 +277,7 @@ function createMeshes(){
 
     sim.LINK1_height  = Dexter.LINK1 //m / 1000000 //0.5
     sim.LINK1_width   = Dexter.LINK1_AVERAGE_DIAMETER //m / 1000000 //sim.LINK1_height / 1  //0.3
-    sim.LINK1         = draw_arm(sim.J1, sim.LINK1_width, sim.LINK1_height)
+    sim.LINK1         = draw_link(sim.J1, sim.LINK1_width, sim.LINK1_height)
     sim.LINK1.name = "LINK1"
     sim.J2            = new THREE.Object3D()
     sim.J2.name = "J2"
@@ -172,7 +290,7 @@ function createMeshes(){
 
     sim.LINK2_height  = Dexter.LINK2 //m / 1000000 // 1.0
     sim.LINK2_width   = Dexter.LINK2_AVERAGE_DIAMETER //m / 1000000 //sim.LINK2_height / 4, //0.2,
-    sim.LINK2         = draw_arm(sim.J2, sim.LINK2_width, sim.LINK2_height)
+    sim.LINK2         = draw_link(sim.J2, sim.LINK2_width, sim.LINK2_height)
     sim.LINK2.name = "LINK2"
     let circuit_board = draw_circuit_board(sim.LINK2, sim.LINK2_width, sim.LINK2_height)
     //LINK2.position.y += 0.12 //extra rise to arm0 to get it to appear to sit on top of the legs.
@@ -183,7 +301,7 @@ function createMeshes(){
 
     sim.LINK3_height  = Dexter.LINK3 //m / 1000000 //0.9
     sim.LINK3_width   = Dexter.LINK3_AVERAGE_DIAMETER //m / 1000000 //sim.LINK3_height / 6 // 0.1
-    sim.LINK3         = draw_arm(sim.J3, sim.LINK3_width, sim.LINK3_height)
+    sim.LINK3         = draw_link(sim.J3, sim.LINK3_width, sim.LINK3_height)
     sim.LINK3.name = "LINK3"
     sim.J4            = new THREE.Object3D();
     sim.J4.name = "J4"
@@ -192,7 +310,7 @@ function createMeshes(){
 
     sim.LINK4_height  = Dexter.LINK4 //m / 1000000 //0.8
     sim.LINK4_width   = Dexter.LINK4_AVERAGE_DIAMETER //m / 1000000 //sim.LINK4_height / 4 // 0.05
-    sim.LINK4         = draw_arm(sim.J4, sim.LINK4_width, sim.LINK4_height)
+    sim.LINK4         = draw_link(sim.J4, sim.LINK4_width, sim.LINK4_height)
     sim.LINK4.name = "LINK4"
     sim.J5            = new THREE.Object3D();
     sim.J5.name = "J5"
@@ -202,24 +320,26 @@ function createMeshes(){
 
     sim.LINK5_height = Dexter.LINK5 //m / 1000000 //0.125
     sim.LINK5_width  = Dexter.LINK5_AVERAGE_DIAMETER //m / 1000000 //sim.LINK5_height / 4 //0.05
-    sim.LINK5        = draw_arm(sim.J5, sim.LINK5_width, sim.LINK5_height)
+    sim.LINK5        = draw_link(sim.J5, sim.LINK5_width, sim.LINK5_height)
     sim.LINK5.name = "LINK5"
     //below only for the "random flailing demo"
-    LINK2_bending = "+" //start out increaing arm0 bending
-    LINK3_bending = "+"
-    LINK3_bending = "+"
-    LINK4_bending = "+"
 }
 
 
 var render_demo = function () {
+    if(!sim.LINK2_bending) { //initialize demo
+        sim.LINK2_bending = "+" //start out increasing link2 bending
+        sim.LINK3_bending = "+"
+        sim.LINK3_bending = "+"
+        sim.LINK4_bending = "+"
+    }
     if (sim.enable_rendering){
         requestAnimationFrame( render_demo );
         sim.J1.rotation.y += 0.001 //twisting the base.
         //ossolate arm0 bending
-        if (LINK2_bending == "+") {
+        if (sim.LINK2_bending == "+") {
             if (sim.J2.rotation.z > 0.5) {
-                LINK2_bending = "-"
+                sim.LINK2_bending = "-"
                 sim.J2.rotation.z -= 0.01
             }
             else {
@@ -228,16 +348,16 @@ var render_demo = function () {
         }
         //we are in "-" bend mode
         else if(sim.J2.rotation.z < -0.5){
-            LINK2_bending = "+"
+            sim.LINK2_bending = "+"
             sim.J2.rotation.z += 0.01
         }
         else {
             sim.J2.rotation.z -= 0.01
         }
 
-        if (LINK3_bending == "+") {
+        if (sim.LINK3_bending == "+") {
             if (sim.J3.rotation.z > 2.5) {
-                LINK3_bending = "-"
+                sim.LINK3_bending = "-"
                 sim.J3.rotation.z -= 0.01
             }
             else {
@@ -246,16 +366,16 @@ var render_demo = function () {
         }
         //we are in "-" bend mode
         else if(sim.J3.rotation.z < -2.5){
-            LINK3_bending = "+"
+            sim.LINK3_bending = "+"
             sim.J3.rotation.z += 0.01
         }
         else {
             sim.J3.rotation.z -= 0.01
         }
 
-        if (LINK4_bending == "+") {
+        if (sim.LINK4_bending == "+") {
             if (sim.J4.rotation.z > 2.5) {
-                LINK4_bending = "-"
+                sim.LINK4_bending = "-"
                 sim.J4.rotation.z -= 0.01
             }
             else {
@@ -264,7 +384,7 @@ var render_demo = function () {
         }
         //we are in "-" bend mode
         else if(sim.J4.rotation.z < -2.5){
-            LINK4_bending = "+"
+            sim.LINK4_bending = "+"
             sim.J4.rotation.z += 0.01
         }
         else {
@@ -307,6 +427,10 @@ function sim_handle_mouse_move(){
 // 0.00000484813681109536 radians per arc_second
 function arc_seconds_to_radians(arc_seconds){
     return 0.00000484813681109536 * arc_seconds
+}
+
+function degrees_to_radians(degrees){
+    return (Math.PI * degrees ) / 180
 }
 
 //set up drag mouse to rotate table
@@ -386,7 +510,7 @@ function draw_table(parent, table_width, table_length, table_height){
     line.name = "table_line_segments"
     sim.table.add(line);
 
-    let x_text_mesh = new THREE_Text2D.MeshText2D(">>> +X", { align: THREE_Text2D.textAlign.left, font: '30px Arial', fillStyle: '#00FF00', antialias: true })
+    let x_text_mesh = new THREE_Text2D.MeshText2D(">> +X", { align: THREE_Text2D.textAlign.left, font: '30px Arial', fillStyle: '#00FF00', antialias: true })
     x_text_mesh.name = "x_axis_label"
     x_text_mesh.scale.set(0.007, 0.007, 0.007) // = THREE.Vector3(0.1, 0.1, 0.1)
     x_text_mesh.position.set(0.11, 0.055, -0.2) //= THREE.Vector3(20, 8, -10)
@@ -400,7 +524,7 @@ function draw_table(parent, table_width, table_length, table_height){
     x_text_mesh.rotation.z = -1.5708
     sim.table.add(x_text_mesh)
 
-    let y_text_mesh = new THREE_Text2D.MeshText2D(">>> +Y", { align: THREE_Text2D.textAlign.left, font: '30px Arial', fillStyle: '#00FF00', antialias: true })
+    let y_text_mesh = new THREE_Text2D.MeshText2D(">> +Y", { align: THREE_Text2D.textAlign.left, font: '30px Arial', fillStyle: '#00FF00', antialias: true })
     y_text_mesh.name = "y_axis_label"
     y_text_mesh.scale.set(0.007, 0.007, 0.007) // = THREE.Vector3(0.1, 0.1, 0.1)
     y_text_mesh.position.set(-0.2, 0.055, 0.11) //= THREE.Vector3(20, 8, -10)
@@ -415,7 +539,7 @@ function draw_table(parent, table_width, table_length, table_height){
     y_text_mesh.rotation.z = Math.PI
     sim.table.add(y_text_mesh)
 
-    let z_text_mesh = new THREE_Text2D.MeshText2D(">>> +Z", { align: THREE_Text2D.textAlign.left, font: '20px Arial', fillStyle: '#00FF00', antialias: true })
+    let z_text_mesh = new THREE_Text2D.MeshText2D(">> +Z", { align: THREE_Text2D.textAlign.left, font: '20px Arial', fillStyle: '#00FF00', antialias: true })
     z_text_mesh.name = "z_axis_label"
     z_text_mesh.scale.set(0.007, 0.007, 0.007) // = THREE.Vector3(0.1, 0.1, 0.1)
     z_text_mesh.position.set(0.4, //1,
@@ -507,7 +631,7 @@ function draw_legs(parent, leg_width, leg_length, leg_height) {
     }
 }
 
-function draw_arm (parent, width, height){
+function draw_link (parent, width, height){
     var geometry = new THREE.BoxGeometry(width, height, width);
     var material = new THREE.MeshNormalMaterial({}); //normal material shows different color for each cube face, easier to see the 3d shape.
     //var material = THREE.MeshLambertMaterial( { color: 0xFF0000 } ); errors in threejs code :this.setValues is not a funciton"

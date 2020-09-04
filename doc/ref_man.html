@@ -3180,9 +3180,10 @@ the text to be spoken is in. The syntax for "lang"
     Though the underlying software claims to support different "voices", we've
     noticed that changing the voice parameter from 0 through 3 does not change the
     actualy quality of the voice. Perhaps some day this will work.<br/>
-<b>callback</b> A function that is called when the speaking is done.
-When in DDE, the callback is called with one argument, "event".
-Within the body of that callback function, you can get:
+<b>callback</b> A function that is called when the call is performed in DDE (not on the Job Engine)
+               and the speaking is done.
+               The callback is passed one argument: "event".
+The most useful properties of the event are:
 <ul>
     <li><code title="unEVALable">event.utterance.text</code> The spoken text.</li>
     <li><code title="unEVALable">event.utterance.volume</code> The spoken loudness.</li>
@@ -3190,16 +3191,26 @@ Within the body of that callback function, you can get:
     <li><code title="unEVALable">event.utterance.pitch</code> The spoken frequency.</li>
     <li><code title="unEVALable">event.utterance.lang</code> The designated language of the spoken text.</li>
     <li><code title="unEVALable">event.utterance.voice</code> An object with fields of "name" (i.e. "Alex"), "lang" and a few others.</li>
+    <li><code title="unEVALable">event.elapsedTime</code> A number in milliseconds from start to end of the spoken text.</li>
+
 </ul>
+    <b>node_callback</b> When speak is called from the Job Engine,
+    the node_callback is called. It uses a speech synthesizer named "espeak".
+    The node_callback is passed the arguments of:
+    <ol>
+        <li>An error obj (or null if no error)</li>
+        <li>A string of the text printed to stdout by this call to speak.</li>
+        <li>A string of the text printed to stderr by this call to speak.</li>
+    </ol>
+    For more details on the node_callback function,
+    see the node.js documentation for
+    <a target="_blank" href="https://nodejs.org/api/child_process.html#child_process_child_process_exec_command_options_callback"> child_process.exec</a>.
+    <p></p>
     When calling <code>speak</code> in the Job Engine (running purely on Dexter),
-    you need a speaker conneceted to a sound card, which is connected to Dexter's micro USB port.
+    you need a speaker connected to a sound card, which is connected to Dexter's micro USB port.
     We've tested the <a target="_blank" href="https://www.amazon.com/dp/B01J7P0OGI">
          TechRise USB External Stereo Sound Adapter</a>
     You get an, ahem, more robotic voice than when running in DDE.
-    <p></p>
-    The callback is called with two arguments: an error object and the
-    string of the result of running a command in Linux that implements
-    the speaking on Dexter.
 <p></p>
 <i>Examples:</i><br/>
 <code>speak("testing 1, 2, 3")</code><br/>
@@ -5782,10 +5793,10 @@ before any of the instructions on its <i>instruction queue</i> are executed.
     useful in some low level situations. The first argument is the instruction type, (nickname: "oplet")
     a single letter string such as "a". The remaining arguments are whatever that instruction type
     accepts. Example:<br/>
-    <code>make_ins("a", 1, 2, 3, 4 ,5)</code> =>
-    <samp>[undefined, undefined, undefined, undefined, "a", 1, 2, 3, 4, 5]</samp>
+    <code>make_ins("a", 10, 20, 30, 40, 50)</code> =>
+    <samp>[undefined, undefined, undefined, undefined, "a", 10, 20, 30, 40, 50]</samp>
     creates an instruction that moves the 5 joints
-    by 1, through 5 degrees respectively.
+    by 10, through 50 degrees respectively.
     If you have the arguments in an array, you can use this syntax:<br/>
     <code title="unEVALable code fragment"> make_ins("a", ...my_array)</code>
     <p></p>

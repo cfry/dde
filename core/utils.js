@@ -220,10 +220,13 @@ function is_string_a_path(path_string_maybe){
 module.exports.is_string_a_path = is_string_a_path
 
 
-//needs work
+
 function is_literal_object(value){
-    return (Object.getPrototypeOf(value) === Object.getPrototypeOf({}))
-    //return ((typeof(value) == "object") && (value !== null) && !Array.isArray(params[0]))
+    if(value === null) { return false } // because typeof(null) == "object")
+    else if(typeof(value) == "object") {
+        return (Object.getPrototypeOf(value) === Object.getPrototypeOf({}))
+    }
+    else { return false }
 }
 module.exports.is_literal_object = is_literal_object
 

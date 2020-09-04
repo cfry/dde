@@ -5,6 +5,47 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 3.6.3, Sep 4, 2020</summary>
+Hightlights: Simulator now displays much more realistic Dexter.
+             New tutorial for Dexter UI.
+             New "Dexter Platform Archtecture" diagram.
+             Green blinking to alert for hidden info displays.
+             Bug fixes for low level instructions.
+<ul>
+    <li>Much more realistic simulated dexter from the CAD files that print its skin.</li>
+    <li>Support for displaying glTF files in Misc Pane/choose file.</li>
+    <li>Adjusted initial splitter panes now show more of output and misc panes.</li>
+    <li>Wecome screen top tutorial title now spelled "Move Dexter".</li>
+    <li>When you click on the Welcome dialog box's "Move Dexter" tutorial, you get a multi-step,
+            highlighted region guided tour of the dialog box.</li>
+    <li>Fixed <code>append_in_ui</code> by replacing call of insertAdjacentElement with insertAdjacentHTML.</li>
+    <li>Moved <code>html_db</code> to core folder so that now make_html and friends are available in job engine.</li>
+
+    <li>Fix "Making Music" url in Ref man to point at the specific making music video.</li>
+    <li>Inspector: extended to show "name: foo" for each item when inspecting an array of objects and an object has a name property.</li>
+    <li>Inspector: title when inspecting an object, if that has a "class" or "type", its shown.</li>
+    <li>Misc Pane now remembers, across dde launches,  the file shown in it and displays it upon relaunch if the file still exists.</li>
+    <li>to_source_code: Changed its depth_limit default value from Infinity to 100, and for newObjects, now passes in a depth of depth + 1 to stop infinite recursion potential.</li>
+    <li>speak extended to work on Job Engine. See  Ref Man/IO/Sound/speak/node_callback</li>
+    <li>Improved messaging dialog insert button formatting of inserted text.</li>
+    <li>New Insert menu show_window example for input range sliders.</li>
+    <li>Fixed to_source code for make_ins instruction via aux fn to_source_code_instruction_array</li>
+    <li>Fixed is_literal_object utility. And that fixed:inspect(make_ins("S", "RebootServo", 3))</li>
+    <li>When there is new output in the doc pane or the output pane, and the pane is hidden (collapsed),
+         its corresponding splitter bar control blinks green to let the user know there is
+         something new to see in the hidden pane.</li>
+    <li>User Guide/Calibrate Dexter updated for Dexter HDI.</li>
+    <li>Fixed show_window menu widgets and the Insert menu/show_window/Menu example</li>
+    <li>Misc pane new option "Dexter Architecture" shows The Dexter Platform Architecture block diagram.</li>
+    <li>Dexter UI: zslider appearance and color tweaks.</li>
+    <li>Dexter UI: When DUI is initialized, its job moves the robot to 0,0,0,90,0,0,0.</li>
+    <li>Fixed Dexter Photo   ... now part of DDE instead of hitting hdrobotic.com</li>
+    <li>SimBuild the template block and the new blocks made now have phong shading material for a more 3D look.
+        (but this still needs work)</li>
+    <li>Bug fix: when picking up an already made block, it doesn't make a copy, it just grips the existing block.</li>
+    <li>Extensions to "manual_testsuite" to make it more definitive for running all tests.</li>
+</ul>
+</details>
 
 <details class="doc_details"><summary>v 3.6.2, Aug 10, 2020</summary>
 Highlights: Dexter User Interface dialog extensions.<br/>

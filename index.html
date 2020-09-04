@@ -82,6 +82,9 @@
     <!-- from http://cdn.robotwebtools.org/roslibjs/current/roslib.min.js on Dec 18, 2015  for Chrome app -->
     <script type="text/javascript" src="roslib.min.js"></script>
 
+    <link rel="stylesheet" href="node_modules/shepherd.js/dist/css/shepherd.css" type="text/css" />
+
+
     <!--text messaging software from
     https://github.com/jitsi/lib-jitsi-meet/blob/master/doc/example/index.html -->
     <!--<script type="text/javascript" src="jitsi/strophe.js"></script>
@@ -113,10 +116,12 @@
     <script type="text/javascript" src="series.js"></script>
     <!--<script type="text/javascript" src="core/units.js"></script>-->
 
-    <script type="text/javascript" src="simutils.js"></script>
-    <script type="text/javascript" src="simulate.js"></script>
-    <script type="text/javascript" src="simx.js"></script>
-    <script type="text/javascript" src="simbuild.js"></script>
+    <script type="text/javascript" src="simulator/ammo.wasm.js"></script>
+    <script type="text/javascript" src="simulator/simutils.js"></script>
+    <script type="text/javascript" src="simulator/simulate.js"></script>
+    <script type="text/javascript" src="simulator/simx.js"></script>
+    <script type="text/javascript" src="simulator/simbuild.js"></script>
+
     <script type="text/javascript" src="video.js"></script>
     <script type="text/javascript" src="picture1.js"></script>
     <script type="text/javascript" src="ros_interface.js"></script>
@@ -210,15 +215,15 @@
 <input class="awesomplete" list="dl_id"/>--><!--<span style="font-size:30px;">Dexte<img src="dexter_128.png" width="20" alt="r"/> Development Environment</span>
 <i style="font-size:20px;padding-left:20px;">Create software to control the Dexter robot</i><br/>-->
 <!--<div style="width: 100%; height: 100%;margin:0px; padding:0px;">--> <!--height of 99% allows a tiny pink bottom border which is good.-->
-    <div id="outer_splitter">
+    <div id="outer_splitter_id">
         <div>
-            <div id="left_splitter">
-                <div>
+            <div id="left_splitter_id"> <!-- splits editor and output pane -->
+                <div id="editor_pane_id">
                     <div id="javascript_pane_header_wrapper_id" class="pane_header_wrapper">
                         <span id="javascript_pane_help_id" class="pane_header" title="Click for help." style="vertical-align:super;"><u>Editor</u></span>
                         <div id='js_menubar_id' class='dde_menu' style="display:inline-block;">
                             <ul style="display:inline-block;padding:0;margin-top:0px;">
-                                <li style="display:inline-block;padding-left:3px;padding-right:0px;">File&#9660;
+                                <li id="file_menu_id" style="display:inline-block;padding-left:3px;padding-right:0px;">File&#9660;
                                     <ul>
                                         <li id="new_id"     title="Make a new editor buffer.">New</li>
                                         <li id="open_id"    title="Edit an exiting file.">Open... Ctrl/&#8984;o</li>
@@ -418,6 +423,8 @@
                                                 <li id="window_simple_message_id" title="Basic information presentation">Simple Message</li>
                                                 <li id="window_options_id"        title="Window title, size, position">Window Options</li>
                                                 <li id="window_buttons_id"        title="Submit and non-window-closing buttons&#013;Explains callback function.">Buttons</li>
+                                                <li id="window_sliders_id"        title="Static and dynamic input range slider examples.">Sliders</li>
+
                                                 <li id="window_menu_id"           title="Hierarchical menu">Menu</li>
                                                 <li id="window_many_inputs_id"    title="Examples of numerous input types">Many Inputs</li>
                                                 <li id="window_onchange_id"       title="Examples of using onchange and oninput&#013;to call the callback as soon as&#013;there's a change in an input.">onchange calls</li>
@@ -789,7 +796,7 @@
             </div>
         </div>
         <div>
-            <div id="right_splitter">
+            <div id="right_splitter_id">
                 <div id="doc_pane_id" style="background-color:#e1e1e1; padding-left:5px;">
                     <div class="pane_header_wrapper" style="height:30px;white-space:nowrap;">
                       <div style="display:inline-block;max-width:calc(100% - 20px);overflow:hidden;">
@@ -814,7 +821,8 @@
                             <!-- <option value='http://hdrobotic.com/videos/'>Dexter Videos</option> can't show these in Sim pane, so forget it -->
                             <option value='Simulate Dexter'>Simulate Dexter</option>
                             <option value='Make Instruction'>Make Instruction</option>
-                            <option value='http://static1.squarespace.com/static/55f1275ee4b0c65e2113baa5/563c04f5e4b0904f35c87cbb/563c0973e4b06c4bb72a5c89/1446775444596/HD+Robotics-8517.jpg'>Dexter Photo</option>
+                            <option value='Dexter Photo'>Dexter Photo</option>
+                            <option value='Dexter Architecture'>Dexter Architecture</option>
                             <option value='Reference Manual'>Reference Manual</option>
                             <option value='Choose File'>Choose File</option>
                             <!--<option value=''>Measurements Video</option>-->
@@ -823,7 +831,7 @@
                         <span title="Pause job execution."><input  id="pause_id" type="checkbox"/>Pause</span>
                         <button id="go_id"   title="Continue paused job execution." style="padding:2px">Go</button>
                         <button id="demo_id" title="Moves graphical depiction of Dexter randomly." style="padding:2px">Demo</button><br/>
-                        <span title="Dexter instances with a 'simulate' value of null,&#013;such as the default Dexter: 'dexter0',&#013;get their simulate value from the selected radio button.">
+                        <span id="simulate_radio_true_wrapper_id" title="Dexter instances with a 'simulate' value of null,&#013;such as the default Dexter: 'dexter0',&#013;get their simulate value from the selected radio button.">
                            <input id="simulate_radio_true_id"  type="radio" name="simulate" value="true" checked="true" title="Dexter instances with a 'simulate' value of null,&#013;such as the default Dexter: 'dexter0',&#013;get their simulate value from the selected radio button.">simulate</input></span>
                         <span title="When this button is selected,&#013;Dexter instances with a 'simulate' value of null (the default)&#013;will have their instructions sent to a real Dexter.">
                            <input id="simulate_radio_false_id" type="radio" name="simulate" value="false" title="When this button is selected,&#013;Dexter instances with a 'simulate' value of null (the default)&#013;will have their instructions sent to a real Dexter.">real</input></span>

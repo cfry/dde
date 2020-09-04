@@ -141,48 +141,50 @@
             return Dexter.draw_dxf(obj_args)
     }
 
-    $('#outer_splitter').jqxSplitter({
+    $('#outer_splitter_id').jqxSplitter({
         width: '98%', height: '97%', //was 93%
         orientation: 'vertical',
         panels: [ { size: "70%", collapsible: false}, //, min: "0%"}, //collapsible: false }, //collapsible: false fails in DDE v 3, so see below for setTimeout on a fn to do this
                   { size: '30%', collapsible: true}] //, min: "0%"}] //, collapsible: true}]
     })
 
-    $('#outer_splitter').on('resize',
+    $('#outer_splitter_id').on('resize',
         function (event) {
             let new_size = event.args.panels[0].size
             persistent_set("left_panel_width", new_size)
             event.stopPropagation()
         })
 
-    $('#left_splitter').jqxSplitter({orientation: 'horizontal', width: "100%", height: "100%",
+    init_outer_splitter_expand_event()
+
+    $('#left_splitter_id').jqxSplitter({orientation: 'horizontal', width: "100%", height: "100%",
         panels: [{ size: "60%", min: "5%", collapsible: false },
                  { size: '40%', min: "5%", collapsible: true}]
     })
 
-    $('#left_splitter').on('resize',
+    $('#left_splitter_id').on('resize',
         function (event) {
             let new_size = event.args.panels[0].size
             persistent_set("top_left_panel_height", new_size)
-            event.stopPropagation() //must have or outer_splitter on resize is called
+            event.stopPropagation() //must have or outer_splitter_id on resize is called
         })
 
 
-    $('#right_splitter').jqxSplitter({ orientation: 'horizontal', width: "100%", height: "100%",
+    $('#right_splitter_id').jqxSplitter({ orientation: 'horizontal', width: "100%", height: "100%",
         panels: [{ size: "50%"}, { size: "50%"}]
     })
 
-    $('#right_splitter').on('resize',
+    $('#right_splitter_id').on('resize',
         function (event) {
             let new_size = event.args.panels[0].size
             persistent_set("top_right_panel_height", new_size)
-            event.stopPropagation() //must have or outer_splitter on resize is called
+            event.stopPropagation() //must have or outer_splitter_id on resize is called
         })
 
     setTimeout(function(){
-                $('#outer_splitter').jqxSplitter('panels')[0].collapsible = false
-                $('#left_splitter').jqxSplitter('panels')[0].collapsible = false
-                $('#right_splitter').jqxSplitter('panels')[0].collapsible = false
+                $('#outer_splitter_id').jqxSplitter('panels')[0].collapsible = false
+                $('#left_splitter_id').jqxSplitter('panels')[0].collapsible = false
+                $('#right_splitter_id').jqxSplitter('panels')[0].collapsible = false
             }, 100)
         //TestSuite.make_suites_menu_items() //doesn't work
 
@@ -549,9 +551,28 @@ function count_up(vals){ //vals contains name-value pairs for each
 ' <span  name="count_display" id="count_id">10</span><br/><br/>\n' +
 ' <input type="submit" value="Done"/>`, // submit button closes window\n' +
 '    callback: count_up})      // This function called when either button is clicked.\n'
+)} //done with window buttons
+
+window_sliders_id.onclick=function(){Editor.insert(
+`function handle_cb(vals){
+    if(vals.clicked_button_value === "submit_slow") {
+        out("slide_slow: " + vals.slide_slow)
+    }
+    else if(vals.clicked_button_value === "slide_fast"){
+        out("slide_fast: " + vals.slide_fast, "green", true)
+    }
+}
+
+show_window({title: "show_window sliders demo",
+    content: "Fast: 0<input name='slide_fast' type='range' min='0', max='100' data-oninput='true'/>100<br/>" +
+    "Slow: 0<input id='slide_slow' type='range' min='0', max='10' step='0.1' />10<br/>" +
+    "<input type='button' value='submit_slow'> </input>",
+    height: 130,
+    callback: handle_cb})`
 )}
 
-    let show_window_menu_body =
+
+let show_window_menu_body =
 `Choose:
 <div class="menu" style="display:inline-block;">
    <ul>
@@ -576,10 +597,10 @@ function count_up(vals){ //vals contains name-value pairs for each
 `//show_winow   Menu example
 //Called whenever user chooses a menu item or clicks a button.
 function menu_choice_cb(vals){
-            if (vals.clicked_button_value != "Done"){ // True when menu item chosen.
-                var clicked_item = vals.clicked_button_value
-                dex.set_in_window(vals.window_index, "menu_choice", "innerHTML", clicked_item) // Display menu choice
-            }
+        if (vals.clicked_button_value != "Done"){ // True when menu item chosen.
+            var clicked_item = vals.clicked_button_value
+            out("You picked: " + clicked_item)
+        }
 }
 
 show_window({content: ` + "`" + show_window_menu_body + "`," +
@@ -1478,7 +1499,7 @@ foo      //eval to see the latest values</pre>`,
      //simulate_help_id.onclick=function(){ open_doc(simulate_doc_id) }
     let misc_pane_content_str = persistent_get("misc_pane_content")
     //if(!misc_pane_content_str) { misc_pane_content_str = "Simulate Dexter" } //shouldn't be necessary due to  persistent_load_fill_in_defaults()
-    misc_pane_menu_changed(misc_pane_content_str)
+    misc_pane_menu_changed(misc_pane_content_str, persistent_get("misc_pane_choose_file_path"))
 
     simulate_radio_true_id.onclick  = function(){
           persistent_set("default_dexter_simulate", true);   event.stopPropagation()
@@ -1496,8 +1517,6 @@ foo      //eval to see the latest values</pre>`,
      set_top_right_panel_height(persistent_get("top_right_panel_height"))
 
      help_system_id.onclick = function(){ open_doc(help_system_doc_id) }
-     //now misc_pane_content is a persistent var handled above:  MakeInstruction.show(undefined, false) //needs to be after loading dde_init.js so that we'll have dexter0 defined, at least.
-                                            //undefined lets
      setTimeout(check_for_latest_release, 200)
      //setTimeout(function(){ out("For help on using DDE, click <b style='color:blue;font-size:20px;'>?</b> in the upper right <b style='font-size:24px;'>&#x279A;</b> .") }, 400)
 
@@ -1505,16 +1524,16 @@ foo      //eval to see the latest values</pre>`,
      close_all_details() //doc pane just show top level items.
 } //end of on_ready
 function set_left_panel_width(width=700){
-    $('#outer_splitter').jqxSplitter({ panels: [{ size: width }] })
+    $('#outer_splitter_id').jqxSplitter({ panels: [{ size: width }] })
 }
 
 function set_top_left_panel_height(height=600){
-    $('#left_splitter').jqxSplitter({ panels: [{ size: height }] })
+    $('#left_splitter_id').jqxSplitter({ panels: [{ size: height }] })
 }
 
 function set_top_right_panel_height(height=600){
     //out("set top right:" + height)
-    $('#right_splitter').jqxSplitter({ panels: [{ size: height }] })
+    $('#right_splitter_id').jqxSplitter({ panels: [{ size: height }] })
 }
 
 function check_for_latest_release(){

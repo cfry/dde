@@ -11,15 +11,18 @@ function get_persistent_values_defaults() {
             "default_out_code": false,
             "files_menu_paths": [add_default_file_prefix_maybe("dde_init.js")],
             "misc_pane_content": "Simulate Dexter",
+            "misc_pane_choose_file_path": "", //only used on dde init, and only if misc_pane_content is "choose_file"
             "default_dexter_simulate": true,
             "editor_font_size":    17,
-            "dde_window_width":  1000,
-            "dde_window_height":  700,
+
             "dde_window_x":       50,
             "dde_window_y":       50,
+            "dde_window_width":  1000,
+            "dde_window_height":  700,
             "left_panel_width":   700,
             "top_left_panel_height": 350,
             "top_right_panel_height": 200,
+
             "animate_ui": true,
             "last_open_dexter_file_path": "", //doesn't have a dexter: prefix,not robot specific.
             "kiosk": false,

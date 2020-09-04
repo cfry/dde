@@ -49,15 +49,17 @@ var SplashScreen = class SplashScreen {
     }
 
     static show(){
-        show_window({title: "Welcome to Dexter Development Environment",
+        show_window({title: '<span style="font-size:16px;">Welcome to Dexter Development Environment</span>',
+            x: 320, //same as dexter ui on purpose so that dui will "cover up" the splash screen.
             y: 100,
-            width: 480,
-            height: 300,
+            width: 380, //380 is splash screen width 480,
+            height: 315,
             background_color: "#bae5fe", // pastel green: "#e7ffef",
             callback: "SplashScreen.show_splash_screen_cb",
             content:
     `<div style="font-size:18px;margin-left:15px;">
-         <div style="font-size:30px;">Tutorials</div>      
+         <div style="font-size:30px;">Tutorials</div> 
+         Please start with the first tutorial.<br/>     
         <select id="splash_screen_which_tutorial_id" size="9" data-oninput="true" style="font-size:16px;">` +
         this.splash_screen_tutorial_options_html() +
        `</select>
@@ -115,14 +117,21 @@ var SplashScreen = class SplashScreen {
         shouldnt("in SplashScreen.perform_tutorial_action, couldn't find action for: " + name)
     }
 
+    static start_dui_tutorial(){
+        Job.define_and_start_job(__dirname + '/user_tools/dexter_user_interface2.js')
+        setTimeout(function() {
+                    load_files(__dirname + "/tutorials/dexter_ui_tutorial.dde")},
+                    500)
+    }
+
     static splash_screen_tutorial_names_and_tooltips = [
-        ["Dexter User Interface",     "Control Dexter or a simulation&#013;via an interactive dialog&#013;and learn Kinematics in the process.&#013;Also at: Jobs menu/Dexter Tools/Dexter UI",
-                                      "Job.define_and_start_job(__dirname + '/user_tools/dexter_user_interface2.js')"],
+        ["Move Dexter",               "Control Dexter or a simulation&#013;via an interactive dialog&#013;and learn Kinematics in the process.&#013;Also at: Jobs menu/Dexter UI",
+                                      "SplashScreen.start_dui_tutorial()"],
         ["Configure Dexter",          "How to connect your Dexter robot,&#013;to your computer.",
                                       "open_doc(configure_dexter_id)"],
        // ["Tooltips",                  "Hover the mouse on a widget to learn about it.",
         //                              "open_doc(tooltips_doc_id)"] ,
-        ["Eval Button",               "Evaluate selected JavaScript.",
+        ["Run JavaScript",            "Use the Eval button to evaluate JavaScript.",
                                       "open_doc(eval_button_doc_id)"],
         ["Code Examples",             "Insert code into the editor via menus.",
                                       "open_doc(code_examples_doc_id)"],

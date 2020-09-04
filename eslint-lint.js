@@ -73,6 +73,7 @@
         "serial_disconnect": false,
         "serial_flush":   false,
         "serial_send_low_level": false,
+        "set_css_properties": false,
         "show_window":    false,
         "show_page":      false,
         "Sim":            false,

@@ -621,6 +621,8 @@ function is_dom_elt(obj){
   return obj instanceof HTMLElement
 }
 
+module.exports.is_dom_elt = is_dom_elt
+
 function is_dom_elt_ancestor(possible_ancestor, starting_elt){
     if (possible_ancestor == null) { return false}
     else if(possible_ancestor == starting_elt) { return true }

@@ -519,6 +519,15 @@ var TestSuite = class TestSuite{
         //}
         for(let test_number = starting_test_index; test_number < this_suite.tests.length; test_number++){
             var test     = this_suite.tests[test_number]
+            if((name === "reference_manual_id") || (name === "user_guide_id")){
+                let src = test[0]
+                if(typeof(src) !== "string") {
+                    src = "" + src
+                }
+                let newline_pos = src.indexOf("\n")
+                if(newline_pos > -1) { src = src.substring(0, newline_pos) + " ..." }
+                console.log(test_number + ": " + src)
+            }
             //onsole.log("About to run test: " + test_number + " " + test)
             let [status, error_message] = TestSuite.run_test_array(test, test_number, this_suite) //does the core work of evaling one test in this_suite.
             this.state.next_test_index = test_number + 1

@@ -110,7 +110,7 @@ th, td { text-align:left; }
 /*this doesn't work in setting the dui2 vertical z slider thumb color but "should" according to web doc.*/
 input[name='z_slider']::-webkit-slider-thumb {
     -webkit-appearance: none;
-    background-color: #0f0;
+    background-color: #00ff00 !important;
 
 }
 

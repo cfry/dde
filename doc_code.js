@@ -40,7 +40,7 @@ function onclick_for_click_help(event) {
 //Doc pane
 var doc_pane_elt_id_history = []
 var doc_pane_elt_id_history_cur_index = -1
-
+var open_doc_called_since_doc_pane_collapsed = false
 
 //if an id name has a dot in it, then
 //open_doc(foo.bar_doc_id) won't work because
@@ -72,13 +72,42 @@ function open_doc(details_elt, record=true){
         doc_pane_elt_id_history_cur_index = doc_pane_elt_id_history.length - 1
     }
     open_doc_arrow_set_opacity()
-    if(persistent_get("animate_ui")) {
+    /* Careful Let the init_outer_splitter_event handle it.
+       The problem is, if a pane isn't expanded, there's no "width" for details_elt.offsetTop
+       to be able to calulate where the actual content you want to see is.
+       So we have to explitly show that content when you expand it.
+       But we dont' just want to move to the last open_doc loc because
+       the user might have scrolled to where they want it to be,
+       causes NO open_doc calls, and expect, upon expansion, for the doc to be where
+       they left it.
+       */
+     if (!doc_pane_showing()){
+        open_doc_called_since_doc_pane_collapsed = true
+        doc_pane_content_id.scrollTop = details_elt.offsetTop - 40 //this can't win because
+        //the pane is collapsed, then it tries to get the pos of the details_elt but
+        ///how can in know how many pixels down from the top it is when
+        //it doesn't know how wide the collpased pane will be when it opens up?
+    }
+    else if(persistent_get("animate_ui")) {
+        open_doc_called_since_doc_pane_collapsed = false
         $('#doc_pane_content_id').animate({scrollTop: details_elt.offsetTop - 40}, 800) //WORKS! 800 is milliseconds for the animation to take.
     }
     else {
+        open_doc_called_since_doc_pane_collapsed = false
         $('#doc_pane_content_id').animate({scrollTop: details_elt.offsetTop - 40}, 0)
     }
+    blink_if_doc_pane_hidden()
     myCodeMirror.focus()
+}
+
+function init_outer_splitter_expand_event(){
+    $('#outer_splitter_id').on('expanded',
+        function (event) {
+          if(open_doc_called_since_doc_pane_collapsed){
+            open_doc_called_since_doc_pane_collapsed = false
+            setTimeout(open_doc_current, 300)
+          }
+        })
 }
 
 //fn_name can be the actual fn or a string of its name or a path to the fn, or a class
@@ -171,6 +200,61 @@ function open_doc_current(){
     }
     else { open_doc(elt_id, false) }
 }
+
+//splits editor-putput panes  from doc_misc panes
+function blink_vertical_splitter(count = 6){
+    if(count > 0) {
+        setTimeout(function(){
+                let color
+                if((count % 2) === 0) { color = "#00FF00" }
+                else { color = "#AAAAAA"}
+                set_css_properties(".jqx-splitter-collapse-button-vertical {background-color:" + color + ";}")
+                blink_vertical_splitter(count - 1)
+            }, 500
+        )
+    }
+}
+
+function blink_editor_output_splitter(count = 6){
+    if(count > 0) {
+        setTimeout(function(){
+                let color
+                if((count % 2) === 0) { color = "#00FF00" }
+                else { color = "#AAAAAA"}
+                set_css_properties("#left_splitter_id .jqx-splitter-collapse-button-horizontal {background-color:" + color + ";}")
+                    blink_editor_output_splitter(count - 1)
+            }, 500
+        )
+    }
+}
+
+function blink_if_doc_pane_hidden(){
+    if(!doc_pane_showing()){
+        blink_vertical_splitter()
+    }
+}
+
+function blink_if_output_pane_hidden(){
+    if(!output_pane_showing()){
+        blink_editor_output_splitter()
+    }
+}
+
+function doc_pane_showing(){
+    return !$('#outer_splitter_id').jqxSplitter('panels')[1].collapsed
+}
+
+function output_pane_showing(){
+    return !$('#left_splitter_id').jqxSplitter('panels')[1].collapsed
+}
+
+function misc_pane_showing(){
+    return !$('#right_splitter_id').jqxSplitter('panels')[1].collapsed
+}
+
+
+
+
 
 function close_all_details(){
     var details = document.getElementsByTagName("details");

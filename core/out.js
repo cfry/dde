@@ -136,15 +136,23 @@ function stringify_for_speak(value, recursing=false){
 
 module.exports.stringify_for_speak = stringify_for_speak //also called in Messaging.speak
 
-function speak({speak_data = "hello", volume = 1.0, rate = 1.0, pitch = 1.0, lang = "en_US", voice = 0, callback = null} = {}){
+function speak({speak_data = "hello", volume = 1.0, rate = 1.0, pitch = 1.0, lang = "en_US", voice = 0, callback = null, node_callback = null} = {}){
     if (arguments.length > 0){
         var speak_data = arguments[0] //, volume = 1.0, rate = 1.0, pitch = 1.0, lang = "en_US", voice = 0, callback = null
     }
     var text = stringify_for_speak(speak_data)
     if(window.platform == "node"){
-        exec("espeak \"" + text + "\" -a "+ (volume*200) + " -p " + (pitch * 50) + " -s " + (rate * 37 + 130),
-             callback );//this callback takes 2 args, an err object and a string of the shell output
-                        //of calling the command.
+        let cmd_string = "espeak \"" + text + "\" -a "+ (volume*200) + " -p " + (pitch * 50) + " -s " + (rate * 37 + 130)
+        if(node_callback) {
+            exec(cmd_string, node_callback) //node_callback passed 3 args,
+                                            // 1. an error obj (or null if no error)
+                                            // 2. string of stdout
+                                            // 3. string of stderr
+          //see https://nodejs.org/api/child_process.html#child_process_child_process_exec_command_options_callback
+        }
+        else {
+            exec(cmd_string)
+        }
     }
     else {
         var msg = new SpeechSynthesisUtterance();
@@ -302,7 +310,7 @@ function sw_make_title_html(title, title_bar_height, title_bar_color, show_close
     else {
         let buttons = ""  // onclick="SW.sw_close(this)"  onclick="SW.sw_toggle(this)"
         if(show_close_button)    { buttons += '<button name="close_button"     title="close this window."                   style="float:right; background-color:#b8bbff; padding:0px; margin-top:0px;margin-left:5px;">X</button>' }
-        if(show_collapse_button) { buttons += '<button onclick="SW.sw_toggle(this)" name="collapse_button"  title="toggle shrink/expand of this window." style="float:right; background-color:#b8bbff; padding:0px; margin-top:0px;margin-right:5px;">&#8679;</button>' //double headed updown arrow.
+        if(show_collapse_button) { buttons += '<button onclick="SW.sw_toggle(this)" name="collapse_button"  title="Toggle the shrinking or expanding of this window." style="float:right; background-color:#b8bbff; padding:0px; margin-top:0px;margin-right:5px;">&#8679;</button>' //double headed updown arrow.
             //'<button onclick="function(event){ SW.sw_toggle(this, event)   }" ' + //"SW.sw_toggle(this)" ' +
             //                                             ' name="collapse_button"  title="toggle shrink/expand of this window." style="float:right; background-color:#b8bbff; padding:0px; margin-top:0px;margin-right:5px;">&#8679;</button>'  //double headed updown arrow.
         }

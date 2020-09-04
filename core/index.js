@@ -1,5 +1,5 @@
-global.dde_version = "3.6.2"
-global.dde_release_date = "Aug 10, 2020"
+global.dde_version = "3.6.3"
+global.dde_release_date = "Sep 4, 2020"
 
 console.log("dde_version: " + global.dde_version + " dde_release_date: " + global.dde_release_date +
             "\nRead electron_dde/core/job_engine_doc.txt for how to use the Job Engine.\n")
@@ -149,6 +149,8 @@ var {SerialPort, serial_connect, serial_connect_low_level,
 
 var {close_readline, set_keep_alive_value, write_to_stdout} = require("./stdio.js")
 
+var {html_db, is_dom_elt, make_dom_elt, make_html} = require("./html_db.js")
+
 var {Messaging, MessStat} =  require("./messaging.js")
 global.keep_alive_value = false
 global.Brain    = Brain
@@ -216,6 +218,12 @@ global.serial_path_to_info_map = serial_path_to_info_map
 global.serial_port_init = serial_port_init
 global.serial_send = serial_send
 global.serial_send_low_level = serial_send_low_level
+
+global.html_db = html_db
+global.is_dom_elt = is_dom_elt
+global.make_html = make_html
+global.make_dom_elt = make_dom_elt
+
 
 run_node_command(process.argv)
 /*

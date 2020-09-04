@@ -137,6 +137,8 @@ function out(val="", color="black", temp=false, code=null){
         if (existing_temp_elts.length == 0){
             text = '<div id="' + temp_str_id + '" style="border-style:solid;border-width:1px;border-color:#0000FF;margin:5px 5px 5px 15px;padding:4px;">' + text + '</div>'
             append_to_output(text)
+            //don't blink output pane splitter even if output pane is hidden because
+            //its just "temp" output so presumed not so important.
         }
         else {
             //existing_temp_elts.html(text)
@@ -154,6 +156,7 @@ function out(val="", color="black", temp=false, code=null){
         text = '<div id="' + //out_item_id +
             '" style="border-style:solid;border-width:1px;border-color:#AA00AA;margin:5px 5px 5px 15px;padding:4px;">' + text + '</div>'
         append_to_output(text)
+        blink_if_output_pane_hidden() //let user know there's new output that they can't see.
     }
     if(window["document"]){
         let orig_focus_elt = document.activeElement
@@ -197,6 +200,16 @@ static is_window_shown(index){
 static get_window_content_of_elt(elt){
     let result =  elt.closest(".show_window_content")
     if(result) { return result }
+    else if(elt.classList.contains("jqx-menu-item")){
+        let win_index = elt.dataset.window_index
+        let sw_elt = SW.get_window_of_index(win_index)
+        result = sw_elt.querySelector(".show_window_content")
+        if(result) {return result}
+        else {
+            dde_error('get_window_content_of_elt for :' + elt +
+                ' could not find ".show_window_content" dom elt.')
+        }
+    }
     else { //maybe elt is the close_button or the collapse_button, not inside the content
         let sw_elt = elt.closest(".show_window")
         result = sw_elt.querySelector(".show_window_content")

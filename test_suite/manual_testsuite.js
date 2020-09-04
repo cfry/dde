@@ -1,5 +1,26 @@
+- In DDE, choose: Test menu/Run all testsuites
 
+- hear speech output during the running of all testsuites,
+     or, eval speak("hello world")
 
+- After the run, veryfiy that the Output pane shows no bugs.
+
+- In the small dialog titled "Modify Window",
+  click the "click to colorize" button and verify that
+  a new line of text appears below the button
+  looking like: rgb(244,124,102) is inserted,
+  and that the button changes to that rgb color.
+
+- In the Window titled "Printer Config"
+  tweak the controls
+  then click the "show settings" button and verify that the values
+  printed in the Output pane, are what you set them to.
+
+- Look in Chrome Dev tools for any red-text errors.
+
+- click on Welcome Window/Move Dexter and take the steptorial.
+
+_____
 Messaging.eval({source: "2 + 3",
 callback: function(aa){out(aa)}
 , to: "kb",
@@ -166,3 +187,16 @@ Messaging.login_test = function(){
     Messaging.login_test_trials_done += 1
 }
 Messaging.login_test() //run the tests
+
+_____
+//HIDDEN SPLITTER BLINKING
+//eval this in editor and see "hey" after 4 seconds.
+//Then collapse the output pane by clickign on the center of its splitter bar,
+// and eval it again, Now the output pane center should blick green.
+setTimeout(function(){out("hey")}, 4000)
+
+1 collapse verical splitter, choose
+2. choose Jobs menu/Help
+3. observe blinking green vertical splitter.
+_____
+
