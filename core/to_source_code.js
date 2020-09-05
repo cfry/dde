@@ -40,6 +40,14 @@ function to_source_code({value, indent="", function_names=false, newObject_paths
             return value.to_source_code(new_args)
         }
         else if (value === window)     { return "window"  } //too many weird values in there and too slow so punt.
+        else if (window.Picture && Picture.is_mat(value)){ //we can't and probably shouldn't attempt to print out a readable mat here,
+                                          //so just print a string to let a user know what it is in the inspector
+                                          //without this, bad bug happens when inspecting Jobs that have taken a picture and
+                                          //put it in a user_data variable
+            let result = "Mat (picture) of: width: " +  Picture.mat_width(value) +
+                         " height: "  + Picture.mat_height(value)
+            return result
+        }
         else if (typeof(value) == "object"){//beware if we didn't catch arrays above this would hit
                                             //assumes at this point we just have a lit obj.
             return to_source_code_lit_obj(arguments[0])

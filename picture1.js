@@ -427,10 +427,10 @@ var Picture = class Picture{
         else if(typeof(video_id) == "string") { 
       	  	video_elt = value_of_path(video_id) 
           	if(video_elt == undefined){
-                let vid_callback = function() {
+                let show_video_callback = function() {
                		                    Picture.take_picture({video_id: video_id, width: width, height: height, callback: callback})
                                    }
-                Picture.show_video({video_id: video_id, camera_id: camera_id, width: width, height: height, visible: false, callback: vid_callback})
+                Picture.show_video({video_id: video_id, camera_id: camera_id, width: width, height: height, visible: false, callback: show_video_callback})
                 return
               //a video show window will pop up but the below code won't be able to return its mat.
              /*let the_html = '<video id="' + video_id + 
@@ -492,7 +492,9 @@ var Picture = class Picture{
     //type can be null (any mat type), "rgba", "gray", or a cv type number.
     //returns a boolean
     static is_mat(mat, type=null) {
-         if(mat instanceof cv.Mat) {
+         if((typeof(mat) === "object") &&
+            (typeof(window.cv) === "object") && //just in case cv is not initialized yet, don't have in screw up to_source_code and inspect
+             (mat instanceof cv.Mat)) {
              let mat_type = mat.type()
              switch (type) {
                  case null:   return true //mat can be of any mat_type

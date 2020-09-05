@@ -50,8 +50,7 @@ dui_tour.addSteps([
           is one easy way to accomplish these goals.`,
   },
   {attachTo: {element: '#simulate_radio_true_wrapper_id', on: 'top'},
-   text: `To accomplish these goals,<br/>
-          please select <b>simulate</b> (if it isn't already).
+   text: `Please select <b>simulate</b> (if it isn't already).
           You can select <b>real</b> after this tutorial, to move a real robot.`,
    popperOptions: {modifiers: [{ name: 'offset', options: { offset: [0, 20] } }]},
   },
@@ -158,8 +157,8 @@ dui_tour.addSteps([
    popperOptions: {modifiers: [{ name: 'offset', options: { offset: [0, 0] } }]}
   },
   {attachTo: {element: '#eval_id', on: 'right'},
-   text: `The <b>Eval</b> button runs the selected JavaScript code<br/>
-          in the editor.
+   text: `The <b>Eval</b> button runs the selected JavaScript code
+          in the editor.<br/>
           Click it now to evaluate the selection.<br/>
           In the <b>Output</b> pane you'll see the internal data structure
           that represents the instruction, but this does not cause
@@ -190,7 +189,7 @@ dui_tour.addSteps([
    buttons: [{text: 'Back', action: dui_tour.back},
              {text: 'Next', action: dui_tour.next}]
   },
-  {attachTo: { element: '#js_menubar_id', on: 'left'},
+  {attachTo: { element: '#doc_pane_id', on: 'left'},
    text: `Clicking the <b>Jobs</b> menu, <b>Dexter UI</b> item, automatically scrolls
           the <i>Doc Pane</i> to the section of the <i>User Guide</i>
           that describes the Dexter UI dialog.`

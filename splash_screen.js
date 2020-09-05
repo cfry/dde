@@ -23,7 +23,7 @@ var SplashScreen = class SplashScreen {
             let the_tut_name = SplashScreen.splash_screen_tutorial_label_to_name(the_tut_label)
             let the_option_elt
             for(let an_option_elt of splash_screen_which_tutorial_id.children){
-                if(an_option_elt.innerText === the_tut_label){
+                if(an_option_elt.innerText.includes(the_tut_name)){ //beware, race condition on WinOS can cause a problem here
                     the_option_elt = an_option_elt
                     break;
                 }
@@ -53,7 +53,7 @@ var SplashScreen = class SplashScreen {
             x: 320, //same as dexter ui on purpose so that dui will "cover up" the splash screen.
             y: 100,
             width: 380, //380 is splash screen width 480,
-            height: 315,
+            height: 330,
             background_color: "#bae5fe", // pastel green: "#e7ffef",
             callback: "SplashScreen.show_splash_screen_cb",
             content:
