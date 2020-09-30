@@ -299,7 +299,7 @@
             }
     }
 
-    //init_simulation() now in video.js misc_pane_menu_changed
+    //init_simulation() now in video.js show_in_misc_pane
 
     init_doc()
 
@@ -409,6 +409,8 @@
             }
         }
 
+        misc_pane_expand_checkbox_id.onclick=toggle_misc_pane_size
+
     email_bug_report_id.onclick=email_bug_report
 
     //File Menu
@@ -459,7 +461,7 @@
     save_id.onclick = Editor.save
     set_menu_string(save_id, "Save", "s")
 
-    save_as_id.onclick = Editor.save_on_dde_computer //only for saving on dde computer  was: Editor.save_as
+    save_as_id.onclick = Editor.save_as //was: Editor.save_on_dde_computer //only for saving on dde computer
 
     save_to_dexter_as_id.onclick = Editor.save_to_dexter_as
 
@@ -1412,7 +1414,7 @@ foo      //eval to see the latest values</pre>`,
     demo_id.onclick          = function() {
                                     if (demo_id.innerHTML == "Demo") {
                                         demo_id.innerHTML = "Stop"
-                                        misc_pane_menu_changed("Simulate Dexter")
+                                        show_in_misc_pane("Simulate Dexter")
                                         play_simulation_demo()
                                     }
                                     else {
@@ -1428,8 +1430,47 @@ foo      //eval to see the latest values</pre>`,
                                  }
     go_id.onclick                 = Job.go
 
-    misc_pane_menu_id.oninput            = misc_pane_menu_changed
-
+    //misc_pane_menu_id.oninput            = show_in_misc_pane
+    let misc_items = ['Simulate Dexter',
+                      'Make Instruction',
+                      'Dexter Photo',
+                      'Haddington Website',
+                      'Dexter Architecture',
+                      'Reference Manual',
+                      'Choose File']
+    $("#misc_pane_menu_id").jqxComboBox({ source: misc_items, width: '85%', height: '20px',});
+    $('#misc_pane_menu_id').on('keypress', function (event) {
+        if(event.code == "Enter"){
+            var val = event.target.value
+            show_in_misc_pane(val)
+        }
+    })
+    $('#misc_pane_menu_id').on('select', function (event) { //fired when user types a char, or chooses a menu item
+        let args = event.args;
+        if(args) {
+            let item = $('#misc_pane_menu_id').jqxComboBox('getItem', args.index)
+            if(item) {
+                let val = item.value
+                if(val) {
+                    setTimeout(function() {
+                        show_in_misc_pane(val)
+                    }, 100)
+                }
+            }
+        }
+    })
+   /* $('#misc_pane_menu_id').on('change', function (event) { //fired when programmatically the comb box value is set
+        let args = event.args;
+        if(args) {
+            let item = $('#misc_pane_menu_id').jqxComboBox('getItem', args.index)
+            if(item) {
+                let val = item.value
+                if(val) {
+                    show_in_misc_pane(val)
+                }
+            }
+        }
+    })*/
 
     font_size_id.onclick = function(){
                              $(".CodeMirror").css("font-size", this.value + "px")
@@ -1454,10 +1495,17 @@ foo      //eval to see the latest values</pre>`,
     //}
     //similar to animate ui
     save_on_eval_id.onclick = function(event){
-        //let val = save_on_eval_id.checked
         let val = $("#save_on_eval_id").val()
         persistent_set("save_on_eval", val)
         event.stopPropagation() //causes menu to not shrink up, so you can see the effect of your click
+    }
+
+    save_on_eval_wrapper_id.onclick = function(event){
+        let old_val = $("#save_on_eval_id").val()
+        let new_val = !old_val
+        $("#save_on_eval_id").val(new_val)
+        persistent_set("save_on_eval", new_val)
+        event.stopPropagation()
     }
 
     val = persistent_get("default_out_code")
@@ -1484,6 +1532,17 @@ foo      //eval to see the latest values</pre>`,
         //AND causes the onclick for simulate_id to NOT be run.
         adjust_animation()
     }
+    //so that you don't have to hit the checkbox, just anywhere in the menu item to check/uncheck it
+    animate_ui_checkbox_wrapper_id.onclick = function(event){
+        let old_val = $("#animate_ui_checkbox_id").val()
+        let new_val = !old_val
+        $("#animate_ui_checkbox_id").val(new_val)
+        persistent_set("animate_ui", new_val)
+
+        event.stopPropagation() //causes menu to not shrink up, so you can see the effect of your click
+        //AND causes the onclick for simulate_id to NOT be run.
+        adjust_animation()
+    }
     adjust_animation() //to the peristent flag
 
 
@@ -1497,9 +1556,8 @@ foo      //eval to see the latest values</pre>`,
     // rde.ping() //rde.shell("date") //will show an error message
     Editor.restore_files_menu_paths_and_last_file()
      //simulate_help_id.onclick=function(){ open_doc(simulate_doc_id) }
-    let misc_pane_content_str = persistent_get("misc_pane_content")
-    //if(!misc_pane_content_str) { misc_pane_content_str = "Simulate Dexter" } //shouldn't be necessary due to  persistent_load_fill_in_defaults()
-    misc_pane_menu_changed(misc_pane_content_str, persistent_get("misc_pane_choose_file_path"))
+
+
 
     simulate_radio_true_id.onclick  = function(){
           persistent_set("default_dexter_simulate", true);   event.stopPropagation()
@@ -1516,12 +1574,18 @@ foo      //eval to see the latest values</pre>`,
      set_top_left_panel_height(persistent_get("top_left_panel_height"))
      set_top_right_panel_height(persistent_get("top_right_panel_height"))
 
-     help_system_id.onclick = function(){ open_doc(help_system_doc_id) }
+     help_system_id.onclick = function(){
+        //open_doc(help_system_doc_id)
+         SplashScreen.show()
+     }
      setTimeout(check_for_latest_release, 200)
      //setTimeout(function(){ out("For help on using DDE, click <b style='color:blue;font-size:20px;'>?</b> in the upper right <b style='font-size:24px;'>&#x279A;</b> .") }, 400)
 
      setTimeout(function() { SplashScreen.show_maybe() }, 400)
      close_all_details() //doc pane just show top level items.
+     setTimeout(function(){
+         show_in_misc_pane(persistent_get("misc_pane_content"))
+     }, 200)
 } //end of on_ready
 function set_left_panel_width(width=700){
     $('#outer_splitter_id').jqxSplitter({ panels: [{ size: width }] })

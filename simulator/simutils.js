@@ -230,7 +230,7 @@ SimUtils = class SimUtils{
         }
     }
 
-    //called by video.js misc_pane_menu_changed
+    //called by video.js show_in_misc_pane
     static render_once_with_prev_args_maybe(){
         if(this.prev_robot_status){
             this.render_once(SimUtils.prev_robot_status,

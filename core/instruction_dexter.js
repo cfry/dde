@@ -792,7 +792,7 @@ Instruction.Dexter.read_file = class read_file extends Instruction.Dexter{
         if      (path.startsWith("/"))   { return path }
         else if (path.startsWith("#"))   { return path }
         else if (path.startsWith("./"))  { return "dde_apps/" + path.substring(2) }
-        else if (path.startsWith("../")) { return path.substring(3) } //will go to dexrun's default foler, ie /srv/samba/share/
+        else if (path.startsWith("../")) { return path.substring(3) } //will go to dexrun's default folder, ie /srv/samba/share/
         else                             { return "dde_apps/" + path }
     }
 

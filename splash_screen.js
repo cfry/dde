@@ -11,15 +11,14 @@ var SplashScreen = class SplashScreen {
             let boolean_to_save = vals.splash_screen_dont_show_checkbox
             persistent_set("dont_show_splash_screen_on_launch", boolean_to_save)
             if(vals["splash_screen_dont_show_checkbox"]) {
-                out("The splash screen will not come up when you launch DDE.<br/>" +
-                    "You can still see the splash screen by:<br/>" +
-                    "1. Click the big blue question mark in the upper right.<br/>" +
-                    "2. In the Doc pane, click: <button>show splash screen</button>")
+                out("The Welcome Dialog box will not come up when you launch DDE.<br/>" +
+                    "You can still see the  Welcome Dialog box by<br/>" +
+                    "clicking the big blue question mark in the upper right<br/>" +
+                    "of the DDE window.")
             }
         }
         else if(vals.clicked_button_value == "splash_screen_which_tutorial_id") {
             let the_tut_label = vals.splash_screen_which_tutorial_id //includes checkmark or whitespace before actual name
-            let is_already_checked = the_tut_label.startsWith(SplashScreen.the_checkmark_char)
             let the_tut_name = SplashScreen.splash_screen_tutorial_label_to_name(the_tut_label)
             let the_option_elt
             for(let an_option_elt of splash_screen_which_tutorial_id.children){
@@ -31,14 +30,23 @@ var SplashScreen = class SplashScreen {
             splash_screen_which_tutorial_id.value = undefined //this "unselects the option, Now a user can click on the same option again
                                          //and the event will make it to show_splash_screen_cb and
                                          //we can operate on it. Otherwise, can't get an event though.
-            if(is_already_checked) {
-                the_option_elt.innerHTML = "&nbsp;&nbsp;&nbsp;" + the_tut_name //uncheck it
-                out("To view <b>" + the_tut_name + "</b>, please click it again and check it.")
-            }
-            else { // not already checked
-                the_option_elt.innerHTML = "&check;" + the_tut_name //check it
-                SplashScreen.perform_tutorial_action(the_tut_name)
-            }
+            SplashScreen.handle_checking_of_tutorial(the_tut_label, the_tut_name, the_option_elt)
+            SplashScreen.perform_tutorial_action(the_tut_name)
+        }
+        else if(vals.clicked_button_value == "close_button"){
+            out("You can pop up the Welcome Dialog box by<br/>" +
+                "clicking the big blue question mark<br/>" +
+                 "in the upper right of the DDE window.")
+        }
+    }
+
+    //this ensures that the label is checked,
+    //and if not, checks it and saves out the new vals.
+    //we now don't let the user uncheck a checkbox.
+    static handle_checking_of_tutorial(the_tut_label, the_tut_name, the_option_elt){
+        let is_already_checked = the_tut_label.startsWith(SplashScreen.the_checkmark_char)
+        if(!is_already_checked){
+            the_option_elt.innerHTML = "&check;" + the_tut_name //check it
             let all_options = []
             for(let an_option_elt of splash_screen_which_tutorial_id.children){
                 let text = an_option_elt.innerHTML
@@ -49,7 +57,8 @@ var SplashScreen = class SplashScreen {
     }
 
     static show(){
-        show_window({title: '<span style="font-size:16px;">Welcome to Dexter Development Environment</span>',
+        show_window({title: 'Welcome to DDE', //The title is used to find the window to auto_close it when user chooses certain tutorials.
+            // putting this in a span tag and making a smaller font means you can't drag the title bar to reposition the dialog
             x: 320, //same as dexter ui on purpose so that dui will "cover up" the splash screen.
             y: 100,
             width: 380, //380 is splash screen width 480,
@@ -81,6 +90,13 @@ var SplashScreen = class SplashScreen {
         if(!persistent_get("dont_show_splash_screen_on_launch")){
             this.show()
         }
+    }
+
+    static close_window_with_help(){
+        SW.close_windows_of_title("Welcome to DDE")
+        out("You can pop up the Welcome Dialog box by<br/>" +
+            "clicking the big blue question mark<br/>" +
+            "in the upper right of the DDE window.")
     }
 
 //complication: what if I change the tutorials in a new release,
@@ -129,14 +145,17 @@ var SplashScreen = class SplashScreen {
                                       "SplashScreen.start_dui_tutorial()"],
         ["Configure Dexter",          "How to connect your Dexter robot,&#013;to your computer.",
                                       "open_doc(configure_dexter_id)"],
+        //["Learning JavaScript",       "Learn JS by stepping through code.",
+        //    "open_doc(learning_js_doc_id)"],
+        ["Learn JavaScript",           "The basics of entering, running and debugging JavaScript.",
+                                       "SplashScreen.close_window_with_help(); open_doc(learning_js_doc_id); load_files(__dirname + '/tutorials/learn_js_tour.dde')"],
        // ["Tooltips",                  "Hover the mouse on a widget to learn about it.",
         //                              "open_doc(tooltips_doc_id)"] ,
-        ["Run JavaScript",            "Use the Eval button to evaluate JavaScript.",
-                                      "open_doc(eval_button_doc_id)"],
+        //["Run JavaScript",            "Use the Eval button to evaluate JavaScript.",
+        //                              "open_doc(eval_button_doc_id)"],
         ["Code Examples",             "Insert code into the editor via menus.",
                                       "open_doc(code_examples_doc_id)"],
-        ["Learning JavaScript",       "Learn JS by stepping through code.",
-                                      "open_doc(learning_js_doc_id)"],
+
        // ["Test Suite examples",       "The DDE diagnostic system doubles as code exammples.",
        //                               "open_doc(TestSuite_for_help_doc_id)"],
         ["Doc Pane",                  "DDE documentation is contained in the right-hand documentation pane.",

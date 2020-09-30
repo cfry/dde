@@ -126,7 +126,8 @@ function createWindow() {
                    x: x, y: y, width: width, height: height, show: false,
                    title: "Dexter Development Environment", //not obvious that this actually shows up anywhere.
                    webPreferences: { nodeIntegration: true }, //new for Electron 5
-                   icon: image
+                   icon: image,
+                   backgroundColor: '#00FFFF' //no effect
                    })
 
 

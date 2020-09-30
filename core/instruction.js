@@ -2620,6 +2620,58 @@ Instruction.sent_from_job = class sent_from_job extends Instruction{
     }
 }
 
+Instruction.set_inter_do_item_dur = class set_inter_do_item_dur extends Instruction{
+    constructor ({dur = null, //can be null, a single instruction, or an array of instructions
+                  instructions_array = []
+                  } = {}) {
+        super()
+        if(dur == null) {} //ok
+        else if(typeof(dur) == "number"){
+            if(dur >= 0) {} //ok
+            else if([-1. -2, -3].includes(dur)) {} //ok
+            else {
+                dde_error("Control,.inter_do_item_dur passed invalid dur of: " + dur +
+                    "<br/>Valid values are only: null, non-neg number, -1, -2, -3.")
+            }
+        }
+        this.dur = dur
+        this.instructions_array = instructions_array
+    }
+
+    do_item (job_instance){
+        if(this.instructions_array.length == 0){
+            if(this.dur != null) {
+                job_instance.prev_inter_do_item_dur = job_instance.inter_do_item_dur //cache for when another instance of this insturcgtion is called with dur == null
+                job_instance.inter_do_item_dur = this.dur
+            }
+            else { //restores the previous inter_do_item_dur if any
+                if(job_instance.hasOwnProperty("prev_inter_do_item_dur")) {
+                    job_instance.inter_do_item_dur = job_instance.prev_inter_do_item_dur
+                }
+                else {} //just leave whatever the existing inter_do_item_dur.
+                        //if this cause is reached, its probably a programmer mistake.
+                        //BUT we don't want to error, as errors in this code that
+                        //might be running in an intolerant-to-errors mode, aren't good,
+                        //so just let it go.
+            }
+        }
+        //we have an instruction array
+        else if (this.dur == null) { //unusual and not much point, but allow
+            job_instance.insert_instructions(this.instructions_array)
+        }
+        else { //normal. We have a dur and an instruction array.
+            let prev_inter_do_item_dur = job_instance.inter_do_item_dur
+            job_instance.inter_do_item_dur = this.dur
+            this.instructions_array.push(function(){
+                                            job_instance.inter_do_item_dur = prev_inter_do_item_dur
+                                         })
+            job_instance.insert_instructions(this.instructions_array)
+        }
+        job_instance.set_up_next_do(1)
+    }
+}
+
+
 Instruction.start_job = class start_job extends Instruction{
     constructor (job_name, start_options={}, if_started="ignore", wait_until_job_done=false) {
         if(!["ignore", "error", "restart"].includes(if_started)){

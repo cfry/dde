@@ -205,6 +205,8 @@
 
     <script type="text/javascript" src="inflow.js"></script>
     <script type="text/javascript" src="splash_screen.js"></script>
+    <script type="text/javascript" src="lesson_code.js"></script>
+
 
     <script type="text/javascript" src="load_job_engine.js"></script>
 
@@ -242,7 +244,7 @@
                                         <li id="save_as_id" title="Save the current editor content under a new name.&#013;The old file remains unchanged.&#013;It will remain on the list of files.">Save As...</li>
                                         <li id="save_to_dexter_as_id" style="width:200px;" title="Save the current editor content&#013;under a new name on the default Dexter.&#013;(in the Misc Pane Header menu)&#013;The old file remains unchanged.&#013;It will remain on the list of files.">Save to Dexter as...</li>
 
-                                        <li title="Automatically save the edited file&#013;when you click 'Eval',&#013;and when you edit another file.">
+                                        <li id='save_on_eval_wrapper_id'title="Automatically save the edited file&#013;when you click 'Eval',&#013;and when you edit another file.">
                                             <div style='float: left; margin-right: 5px;' id='save_on_eval_id'></div>
                                             Auto Save
                                         </li>
@@ -266,7 +268,7 @@
                                         <li id="select_all_id" title="Select all the text in the Editor.">Select All Ctrl/&#8984;A</li>
                                         <li id="indent_selection_id" title="Indent the selected code in the Editor.">Indent Sel shift-tab</li>
 
-                                        <li title="If checked, some user interface operations&#013will change the display incrementally.&#013Unchecked is faster.">
+                                        <li id="animate_ui_checkbox_wrapper_id" title="If checked, some user interface operations&#013will change the display incrementally.&#013Unchecked is faster.">
                                             <div style='float: left; margin-right: 5px;' id='animate_ui_checkbox_id'></div>
                                             Animate UI
                                         </li>
@@ -808,7 +810,7 @@
                         <!--<div style='display:inline-block;' id="find_doc_input_id"/> -->
                         <button id="find_doc_button_id" title="Find documentation on text to the left&#013;or, if none, selected text anywhere.">Find</button>&nbsp;
                       </div>
-                        <span id="help_system_id" title="Help on DDE's Help System&#013;New users, please click here!"><b style="font-size:24px;color:blue;vertical-align:bottom;float:right;">?</b></span>
+                        <span id="help_system_id" title="Show the Welcome dialog box&#013;which lets you select tutorials to take."><b style="font-size:24px;color:blue;vertical-align:bottom;float:right;">?</b></span>
                        <!--  <button id="eval_doc_button_id" title="Evaluated the selected code&#013;in the Doc pane.&#013;Result goes in the Output pane.ƒ">Eval Doc</button> obsolete now that Out pane Eval button can do this-->
                     </div>
                     <div id="doc_pane_content_id" contentEditable="false" style="width:97%; height:90%;padding:5px;overflow:scroll;">
@@ -817,30 +819,41 @@
                 <div id="misc_pane_id" style="background-color:black">
                     <div class="pane_header_wrapper" style="white-space:nowrap; margin-top:0px; padding-top:0px;">
                         <span id="misc_pane_help_id" class="pane_header" title="Click for help."><u>Misc</u></span>
-                        <select id='misc_pane_menu_id'>
+                        <!--<select id='misc_pane_menu_id'> -->
                             <!-- <option value='http://hdrobotic.com/videos/'>Dexter Videos</option> can't show these in Sim pane, so forget it -->
-                            <option value='Simulate Dexter'>Simulate Dexter</option>
+                           <!-- <option value='Simulate Dexter'>Simulate Dexter</option>
                             <option value='Make Instruction'>Make Instruction</option>
                             <option value='Dexter Photo'>Dexter Photo</option>
+                            <option value='http://hdrobotic.com'>Haddington Website</option>
                             <option value='Dexter Architecture'>Dexter Architecture</option>
                             <option value='Reference Manual'>Reference Manual</option>
-                            <option value='Choose File'>Choose File</option>
+                            <option value='Choose File'>Choose File</option> -->
                             <!--<option value=''>Measurements Video</option>-->
-                        </select>
+                        <!--</select> -->
+                        <div id='misc_pane_menu_id' style="display:inline-block; margin-top:5px;margin_right:10px;"></div><br/>
                         <div id="default_robot_name_menu_container_id" style="margin-top:0px; padding:0px; display:inline-block"></div>
                         <span title="Pause job execution."><input  id="pause_id" type="checkbox"/>Pause</span>
                         <button id="go_id"   title="Continue paused job execution." style="padding:2px">Go</button>
-                        <button id="demo_id" title="Moves graphical depiction of Dexter randomly." style="padding:2px">Demo</button><br/>
-                        <span id="simulate_radio_true_wrapper_id" title="Dexter instances with a 'simulate' value of null,&#013;such as the default Dexter: 'dexter0',&#013;get their simulate value from the selected radio button.">
-                           <input id="simulate_radio_true_id"  type="radio" name="simulate" value="true" checked="true" title="Dexter instances with a 'simulate' value of null,&#013;such as the default Dexter: 'dexter0',&#013;get their simulate value from the selected radio button.">simulate</input></span>
-                        <span title="When this button is selected,&#013;Dexter instances with a 'simulate' value of null (the default)&#013;will have their instructions sent to a real Dexter.">
-                           <input id="simulate_radio_false_id" type="radio" name="simulate" value="false" title="When this button is selected,&#013;Dexter instances with a 'simulate' value of null (the default)&#013;will have their instructions sent to a real Dexter.">real</input></span>
-                        <span title="Both simulate and real will be run for Dexter's with a 'simulate' value of null.">
-                           <input id="simulate_radio_both_id"  type="radio" name="simulate" value="both" title="Both simulate and real will be run for Dexter's with a 'simulate' value of null.">both</input></span> &nbsp;
+                        <button id="demo_id" title="Moves graphical depiction of Dexter randomly." style="padding:2px">Demo</button>
+                        <span title="Expand or shrink this pane.">
+                        <input style="display:inline-block; vertical-align:bottom; margin-left:15px;" id="misc_pane_expand_checkbox_id" type="checkbox">Expand</input></span>
+                        <br/>
+                        <span id="simulate_radio_button_group"> <!-- used by Move Dexter steptorial -->
+                            <span id="simulate_radio_true_wrapper_id" title="Dexter instances with a 'simulate' value of null,&#013;such as the default Dexter: 'dexter0',&#013;get their simulate value from the selected radio button.">
+                            <input id="simulate_radio_true_id"  type="radio" name="simulate" value="true" checked="true" title="Dexter instances with a 'simulate' value of null,&#013;such as the default Dexter: 'dexter0',&#013;get their simulate value from the selected radio button.">simulate</input></span>
+
+                            <span title="When this button is selected,&#013;Dexter instances with a 'simulate' value of null (the default)&#013;will have their instructions sent to a real Dexter.">
+                            <input id="simulate_radio_false_id" type="radio" name="simulate" value="false" title="When this button is selected,&#013;Dexter instances with a 'simulate' value of null (the default)&#013;will have their instructions sent to a real Dexter.">real</input></span>
+
+                            <span title="Both simulate and real will be run for Dexter's with a 'simulate' value of null.">
+                            <input id="simulate_radio_both_id"  type="radio" name="simulate" value="both" title="Both simulate and real will be run for Dexters with a 'simulate' value of null.">both</input></span> &nbsp;
+                        </span>
                         <span title="If unchecked, simulation&#013;will run as fast as it can.&#013;No pauses for sleep or motion.">
                         <input style="display:inline-block; vertical-align:bottom;" id="real_time_sim_checkbox_id" type="checkbox" checked="true" title="If unchecked, simulation&#013;will run as fast as it can.&#013;No pauses for sleep or motion.">real-time-sim</input></span>
+
                         <span title="If checked, it will cause stepping of the underlying JavaScript code.&#013;when running a job.">
-                        <input style="display:inline-block; vertical-align:bottom;margin-left:35px;" id="js_debugger_checkbox_id" type="checkbox" title="If checked, it will cause stepping of the underlying JavaScript code.&#013;when running a job.">JS debugger</input></span>
+                        <input style="display:inline-block; vertical-align:bottom; margin-left:15px;" id="js_debugger_checkbox_id" type="checkbox" title="If checked, it will cause stepping of the underlying JavaScript code.&#013;when running a job.">JS debugger</input></span>
+
                     </div>
                     <div id='sim_pane_content_id' contentEditable="false" style="background-color:#EEEEEE; width:97%; height:85%;padding:5px;overflow:scroll;">
                     </div>

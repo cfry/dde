@@ -284,7 +284,7 @@ function ping_a_dexter(){
 }
 //_______default robot_______
 function make_default_robot_menu_html(selected_robot_full_name=""){
-    var result = "<span style='font-size:10px;'>default robot</span><br/>" +
+    var result = "<span style='font-size:10px;'>default robot: </span>" +
         "<select id='default_robot_name_id' onchange='MakeInstruction.onchange_job_robot(event)' style='font-size:14px;width:130px;'" +
         " title='Supplies the robot for instructions prefixed\n" +
         "with a robot class (like Dexter or Serial)\n" +

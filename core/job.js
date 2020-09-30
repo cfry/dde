@@ -1723,7 +1723,7 @@ Job.go = function(){
 //will run next. So we want to keep the incrementing of the PC to be
 //in the setTimeout so that when we do a insert "after_pc",
 //that inserted instruction is run next.
-Job.prototype.set_up_next_do = function(program_counter_increment = 1, allow_once=false, inter_do_item_dur=this.inter_do_item_dur){ //usual arg is 1 but a few control instructions that want to take a breath call it with 0
+Job.prototype.set_up_next_do = function(program_counter_increment = 1, allow_once=false){ //this was removed as it is never called in DDE, inter_do_item_dur=this.inter_do_item_dur){ //usual arg is 1 but a few control instructions that want to take a breath call it with 0
     var job_instance = this
     if (this.status_code == "suspended") { return } //don't call do_next_item
     else if (Job.go_button_state || allow_once){ //Job.go_button_state being true is the normal case
@@ -1752,18 +1752,36 @@ Job.prototype.set_up_next_do = function(program_counter_increment = 1, allow_onc
             }
         }
         job_instance.program_counter += program_counter_increment
+        let job_inter_do_item_dur = this.inter_do_item_dur
+        let processed_inter_do_item_dur = job_inter_do_item_dur
         if(job_instance.do_list.length > job_instance.program_counter){ //there are more instructions
             let next_item = job_instance.do_list[job_instance.program_counter]
             if(Instruction.is_oplet_array(next_item, "S") ||
                 (typeof(next_item) == "function") ||
                Control.is_control_instruction(next_item)) {
-                inter_do_item_dur = 0
+                processed_inter_do_item_dur = 0
             }
         }
-        setTimeout(function(){
-                        job_instance.do_next_item()
-                    },
-                    inter_do_item_dur * 1000) //convert from seconds to milliseconds
+        //in order from fastests and most dangerous to slowest and most safe.
+        if(job_inter_do_item_dur === -3){
+            return job_instance.do_next_item()
+        }
+        else if(job_inter_do_item_dur === -2){
+            return asapRaw(function() {
+                job_instance.do_next_item()
+            })
+        }
+        else if(job_inter_do_item_dur === -1){
+            return asap(function() {
+                job_instance.do_next_item()
+            })
+        }
+        else {
+            setTimeout(function(){
+                            job_instance.do_next_item()
+                        },
+                       processed_inter_do_item_dur * 1000) //convert from seconds to milliseconds
+        }
     }
     else { //the stepper output
         job_instance.pause_next_program_counter_increment = program_counter_increment
@@ -2875,6 +2893,8 @@ Job.prototype.to_source_code = function(args={}){
 
 module.exports = Job
 var esprima = require('esprima')
+var asap = require("asap")
+var asapRaw = require("asap/raw")
 var {serial_disconnect_all} = require("./serial.js")
 var {Robot, Brain, Dexter, Human, Serial} = require('./robot.js')
 var Coor  = require('../math/Coor.js')

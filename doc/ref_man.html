@@ -237,6 +237,24 @@
             Please use <code>read_file</code> instead.
         </details> <!-- end read_file -->
 
+        <details id="read_file_async_doc_id" class="doc_details"><summary>read_file_async</summary>
+           Similar to <a href="#" onclick="open_doc(read_file_doc_id)">read_file</a>
+           but does not return the
+           file contents. Instead, it takes an additional argument
+           of <b>callback</b>.
+           The callback is passed an error object and the content of the file.
+           If the error object is null, there was no error, and the content
+           argument contains the content of the file.
+           <p></p>
+           The <b>path</b> argument may refer to a Dexter robot to get the file from.<br/>
+           <i>Example:</i><br>
+           <pre><code title="not in TestSuite">read_file_async("Dexter.dexter0:dde_init.js", "utf8",
+               function(err, content){
+                   out("read_file_async got err: " + err + " content: " + content)
+               })    </code></pre>
+        </details>
+
+
      <details id="write_file_doc_id" class="doc_details"><summary>write_file</summary>
         <code>write_file</code> is a function that takes an argument of a file path
         and a new content string. It sets the content of that file.<br/>
@@ -255,6 +273,25 @@
         <p></p>
         See also Dexter instruction: <a href="#" onclick="open_doc('Dexter.write_file_doc_id', event)">Dexter.write_file</a>
     </details>
+
+     <details id="write_file_async_doc_id" class="doc_details"><summary>read_file_async</summary>
+            Similar to <a href="#" onclick="open_doc(write_file_doc_id)">write_file</a>
+            but takes an extra argument of
+            of <b>callback</b>.
+            The callback is passed an error object and the content of the file.
+            If the error object is null, there was no error, and the content
+            argument contains the content of the file.
+            <p></p>
+            The <b>path</b> argument may refer to a Dexter robot to write the file to.<br/>
+            <i>Example:</i><br>
+            <pre><code title="not in TestSuite">write_file_async("Dexter.dexter0:junk.js", "some content", "utf8",
+           function(err, content){
+               out("write_file_async got err: " + err + " content: " + content)
+           })    </code></pre>
+            "some content" is written into dexter0's
+            <code>"/srv/samba/share/dde_apps/junk.js"</code> file.
+            If the file existed, it is overwritten. If not, it is created.
+     </details>
 
 
         <!-- removed for security reasons
@@ -8946,6 +8983,7 @@ Here's the CSS for a bunch more editor properties.
                    //SW.close_window(window_index)
                    //will close the show_window window.
  clicked_button_value: "my_in_id", //the 'name' or 'id' attribute of the clicked on element.
+   //This will be "close_button" if the user clicked the close window "X" in the window.
  trim_strings: true}</code></pre>
         <i>Example callback that is called when a button is clicked:</i><br/>
 <code>function show_vals(vals){out(vals)}</code><br/>

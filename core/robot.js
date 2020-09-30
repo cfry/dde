@@ -204,6 +204,10 @@ var Robot = class Robot {
         return new Instruction.sent_from_job(arguments[0])
     }
 
+    static set_inter_do_item_dur(dur, instructions_array){
+        return new Instruction.set_inter_do_item_dur({dur: dur, instructions_array: instructions_array})
+    }
+
     static start_job(job_name, start_options={}, if_started="ignore", wait_until_job_done=false){
         return new Instruction.start_job(job_name, start_options, if_started, wait_until_job_done)
     }

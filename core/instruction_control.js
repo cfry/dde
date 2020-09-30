@@ -48,6 +48,7 @@ Control.break = Robot.break
 Control.go_to = Robot.go_to
 Control.loop = Robot.loop
 Control.label = Robot.label
+Control.set_inter_do_item_dur = Robot.set_inter_do_item_dur
 Control.suspend = Robot.suspend
 Control.unsuspend = Robot.unsuspend
 Control.sync_point = Robot.sync_point

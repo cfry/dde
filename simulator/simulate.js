@@ -239,6 +239,22 @@ function set_joints_in_sim(){
     sim.J7 = sim.LINK7
 }
 
+//xyz is in dexter coords, ie z is UP
+function create_marker_mesh(xyz, rotxyz) { //radius, length, sides
+   let geom = new THREE.ConeGeometry( 0.05,    0.2,     8)
+   let mat  = new THREE.MeshPhongMaterial( { color: 0xFF0000} ); //normal material shows different color for each cube face, easier to see the 3d shape.
+   let the_mesh = new THREE.Mesh(geom, mat)
+   the_mesh.name = "marker"
+   the_mesh.position.x = xyz[1] * -1
+   the_mesh.position.y = xyz[2]   //input z goes to Y in Three. in THREE is up, so grab the z from the input
+   the_mesh.position.z = xyz[0] * -1
+   the_mesh.rotation.x = degrees_to_radians(rotxyz[1]) * -1
+   the_mesh.rotation.y = degrees_to_radians(rotxyz[2])
+   the_mesh.rotation.z = degrees_to_radians(rotxyz[0])
+   sim.table.add(the_mesh)
+
+}
+
 //the orig simulator with crude geometry boxes.
 function createMeshBoxes(){
                      //Dexcell dimensions

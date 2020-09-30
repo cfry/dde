@@ -1,5 +1,7 @@
 /*Created by Fry on 7/4/16.*/
 
+var request = require('request'); //needed by write_file_async for node server
+
 //_______PERSISTENT: store name-value pairs in a file. Keep a copy of hte file in JS env, persistent_values
 //and write it out every time its changed.
 
@@ -297,33 +299,12 @@ module.exports.file_content = file_content //depricated
 function read_file_async(path, encoding="utf8", callback){
     let dex_instance = path_to_dexter_instance(path)
     if(dex_instance){
-           let colon_pos = path.indexOf(":")
-           let dex_file_path = path.substring(colon_pos + 1)
-           let the_callback = callback
-           let the_path = path
-           new Job({name: "dex_read_file",
-                    robot: dex_instance,
-                    do_list: [
-                        Dexter.read_file(dex_file_path, "file_content"),
-                        function(){
-                           let cont = this.user_data.file_content
-                           if(typeof(cont) == "string"){
-                               the_callback(null, cont)
-                           }
-                           else {
-                               let err = new Error("Error getting file content for: " + the_path + " with error number: " + cont, the_path)
-                               the_callback(err, cont)
-                           }
-                        }
-                    ],
-                    when_stopped: function(){ //this code OUGHT to be called but as of apr 2019, if we error due to dexter not connected, then Job,.finish is never called so we don't call this method. Handle it in Job.stop_for_reason
-                        if(this.status_code == "errored"){
-                            if(window.Editor) { //won't hit in node, bu won't error either
-                                Editor.set_files_menu_to_path() //restore files menu to what it was before we tried to get the file off of dexter.
-                            }
-                        }
-                    }
-            }).start()
+           if(node_server_supports_editor(dex_instance)) {
+               read_file_async_from_dexter_using_node_server(dex_instance, path, callback)
+           }
+           else {
+               read_file_async_from_dexter_using_job(dex_instance, path, callback)
+           }
     }
     else if (is_dexter_path(path)){
         dde_error("In read_file_async of path: " + path +
@@ -334,6 +315,60 @@ function read_file_async(path, encoding="utf8", callback){
         fs.readFile(path, encoding, callback)
     }
 }
+
+//this really isn't an async fn but since we want it to behavir like
+//read_file_async, it has to call the callback, so we do it.
+function read_file_async_from_dexter_using_node_server(dex_instance, path, callback){
+    let colon_pos = path.indexOf(":")
+    path = path.substring(colon_pos + 1) // path comes in as, for example,  "Dexter.dexter0:foo.txt
+    if(path.startsWith("/")) {
+        path = path.substring(1) //because of crazy node server editor's code
+    }
+    else { //doesn't start with slash, meaning relative to server default
+        path = "/dde_apps/" + path //  on the node webserver, starting with / means ?srv/samba/share/
+                                    // so we add the dde_apps to be consistent with dde's default dir.
+    }
+    let url = "http://" + dex_instance.ip_address + "/edit?edit=" + path //example: "http://192.168.1.142/edit?edit=root/dde_apps/dde_init.js" whereby no beiginning slas actually means going from the server's top level of file system
+    let content = get_page(url) //does not error if file doens't exist so ...
+    let the_err = null
+    if(content.startsWith("Error:")){
+        the_err = new Error()
+        the_err.message = content
+        content = null
+    }
+    callback(the_err, content)
+}
+
+function read_file_async_from_dexter_using_job(dex_instance, path, callback){
+    let colon_pos = path.indexOf(":")
+    let dex_file_path = path.substring(colon_pos + 1)
+    new Job({name: "dex_read_file",
+        robot: dex_instance,
+        do_list: [
+            Dexter.read_file(dex_file_path, "file_content"),
+            function(){
+                let cont = this.user_data.file_content
+                if(typeof(cont) == "string"){
+                    callback(null, cont)
+                }
+                else {
+                    let err = new Error("Error getting file content for: " + the_path + " with error number: " + cont, the_path)
+                    callback(err, cont)
+                }
+            }
+        ],
+        when_stopped: function(){ //this code OUGHT to be called but as of apr 2019, if we error due to dexter not connected, then Job,.finish is never called so we don't call this method. Handle it in Job.stop_for_reason
+            if(this.status_code == "errored"){
+                if(window.Editor) { //won't hit in node, bu won't error either
+                    Editor.set_files_menu_to_path() //restore files menu to what it was before we tried to get the file off of dexter.
+                }
+            }
+        }
+    }).start()
+}
+
+
+
 
 module.exports.read_file_async = read_file_async
 
@@ -411,7 +446,10 @@ function write_file(path, content, encoding="utf8"){
 module.exports.write_file = write_file
 
 //callback takes one arg, err. If it is null, there's no error
-function write_file_async(path, content, encoding="utf8", callback){
+//from https://www.npmjs.com/package/request#requestoptions-callback,
+//encoding: at least in the http case, "if you expect binary data, you should set encoding: null",
+
+function write_file_async(path, content, encoding="utf8", callback=write_file_async_default_callback){
     if (path === undefined){
         if (Editor.current_file_path == "new buffer"){
             dde_error("Attempt to write file but no filepath given.")
@@ -421,57 +459,68 @@ function write_file_async(path, content, encoding="utf8", callback){
     if (content === undefined) {
         content = Editor.get_javascript()
     }
-
+    console.log("path: " + path + " " + content)
     let dex_instance = path_to_dexter_instance(path)
     if(dex_instance){
-        if(!callback) {
-            let the_path = path
-            callback = function(err){
-                if(err){
-                    dde_error("write_file_async passed: " + the_path +
-                        "<br/>Got error: " + err.message)
-                }
-                else {
-                    out("saved: " + the_path, undefined, true)
-                }
-            }
+        if(node_server_supports_editor(dex_instance)) {
+            write_file_async_to_dexter_using_node_server(dex_instance, path, content, callback)
         }
-        let colon_pos = path.indexOf(":") //will not return -1
-        let dex_file_path = path.substring(colon_pos + 1)
-        let the_callback = callback
-        let the_path = path
-        let the_job = new Job({name: "dex_write_file",
-                 robot: dex_instance,
-                 do_list: [
-                    Dexter.write_file(dex_file_path, content),
-                    callback //but never passes an error object. not good, but robot_status should contain an error, and error if there is one, else callback should be called with no error so it does what it should do when no error
-                 ]
-        })
-        the_job.start()
+        else {
+            write_file_async_to_dexter_using_job(dex_instance, path, content, callback)
+        }
     }
     else if (is_dexter_path(path)){
         dde_error("In write_file_async of path: " + path +
             "<br/>there is no Dexter instance defined of that Dexter name.")
     }
-    else {
+    else { //the usual case, Just writing a file to the local file system
         path = make_full_path(path)
-        if(!callback) {
-            let the_path = path
-            callback = function(err){
-                if(err){
-                    dde_error("write_file_async passed: " + the_path +
-                        "<br/>Got error: " + err.message)
-                }
-                else {
-                    out("saved: " + the_path, undefined, true)
-                }
-            }
-        }
         fs.writeFile(path, content, encoding, callback)
     }
 }
 
 module.exports.write_file_async = write_file_async
+
+function write_file_async_default_callback(err){
+    if(err){
+        dde_error("write_file_async error: " + err.message)
+    }
+    else {
+        out("saved: file")
+    }
+}
+
+
+function write_file_async_to_dexter_using_node_server(dex_instance, path, content, callback){
+    //console.log("write_file_async_to_dexter_using_node_server with path: " + path + "  " + content)
+    let colon_pos = path.indexOf(":")
+    path = path.substring(colon_pos + 1) // path comes in as, for example,  "Dexter.dexter0:foo.txt
+    if(path.startsWith("/")) {
+        path = path.substring(1) //because of crazy node server editor's code
+    }
+    else { //doesn't start with slash, meaning relative to server default
+        path = "srv/samba/share/dde_apps/" + path //  on the node webserver, starting with / means ?srv/samba/share/
+        // so we add the dde_apps to be consistent with dde's default dir.
+    }
+
+//do not single step the below code. Must be done in one fell swoop.
+    let r = request.post('http://192.168.1.142/edit', callback)
+    let form = r.form(); //tack on a form before the POST is done... Don't step through
+    form.append("data", content, {filepath: path});
+}
+
+function write_file_async_to_dexter_using_job(dex_instance, path, content, callback){
+    let colon_pos = path.indexOf(":") //will not return -1
+    let dex_file_path = path.substring(colon_pos + 1)
+    let the_job = new Job({name: "dex_write_file",
+        robot: dex_instance,
+        do_list: [
+            Dexter.write_file(dex_file_path, content),
+            callback //but never passes an error object. not good, but robot_status should contain an error, and error if there is one, else callback should be called with no error so it does what it should do when no error
+        ]
+    })
+    the_job.start()
+}
 
 //for paths starting with "dexter0:" and other dexters, this will always return false.
 //you have to use read_file_async for that and pass it a callback that
@@ -656,6 +705,42 @@ function is_dexter_path(path){
         else if (colon_pos == -1) { return false }
         else if (colon_pos < dot_pos) { return false }
         else { return true }
+    }
+}
+
+//returns boolean
+//this can be called many times a session, but
+//the first time its called, it actually does the work
+//to figure out if the dexter really supports sending files or not,
+//and that result is cached and used on all subsequent calls,
+//until dde is booted.
+function node_server_supports_editor(dexter_instance){
+    if(dexter_instance.supports_editor !== undefined) {
+        return dexter_instance.supports_editor
+    }
+    else {
+        let url = "http://" + dexter_instance.ip_address + "/edit/folder.png"
+        let content
+        try{
+            content = get_page({url: url,
+                                method: "GET",
+                                timeout: 500 //no need for a long timeout here since should
+                             //be a local wired connection.
+            })
+
+        }
+        catch(err) { //could be timeout or just no node server on Dexter.
+            dexter_instance.supports_editor = false
+            return false
+        }
+        if(content.startsWith("Error:")){
+            dexter_instance.supports_editor = false
+            return false
+        }
+        else {
+            dexter_instance.supports_editor = true
+            return true
+        }
     }
 }
 

@@ -95,14 +95,14 @@
          "ecmaVersion": 6,
          "ecmaFeatures": {
              "forOf": true, //cfry added forOf to not warn when "for ... of"
-             //"backtick": true //cfry this doesn't work. I get errors when using backtick. apparently no feature to allow backticks
              "class": true
          }
     },
     "env": {
         "browser": true, //cfry default is false,
+        "commonjs": true,
         "es6":     true, //cfry default was not to have this line here
-        "node":    false,
+        "node":    true,
         "amd":     false,
         "mocha":   false,
         "jasmine": false
@@ -158,7 +158,7 @@
         "no-native-reassign": 2,
         "no-negated-in-lhs": 2,
         "no-nested-ternary": 0,
-        "no-new": 0, //cfry   default is 2, neaming that "new foo()" causes warning whereas bar = new foo() does not.
+        "no-new": 0, //cfry   default is 2, meaning that "new foo()" causes warning whereas bar = new foo() does not.
                   //cfry set to 0 because "new Job()" is good code in DDE because new Job("j2") gives a name to the job
                   // and makes Job.j2  work in returing the new instance.
         "no-new-func": 2,
@@ -189,7 +189,7 @@
         "no-sync": 0,
         "no-ternary": 0,
         "no-trailing-spaces": 0, //cfry  default 2
-        "no-undef": 2,
+        "no-undef": 0, //cfry  default 2  using 0 stops eslint from complaining that a var isn't defined even when it is.
         "no-undef-init": 2,
         "no-undefined": 0,
         "no-underscore-dangle": 2,

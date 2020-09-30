@@ -560,8 +560,12 @@ function serial_disconnect(path){
     let info = serial_path_to_info_map[path]
     if (info){
         if((info.simulate === false) || (info.simulate === "both")) {
-            info.port.close(out)
-            serial_flush(path) //perhaps unnecessary
+            //info.port.close(out)
+            //serial_flush(path) //perhaps unnecessary
+            try { serial_flush(path) //perhaps unnecessary
+                  info.port.close(out)
+            }
+            catch(err) { out ("serial port already closed.") }
         }
         delete serial_path_to_info_map[path]
     }

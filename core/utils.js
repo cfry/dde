@@ -1858,25 +1858,7 @@ class Duration {
 module.exports.Duration = Duration
 
 
-//user fn but not called in dde, jan 2019
-function make_ins_arrays(default_oplet, instruction_arrays=[]){
-    let result = []
-    for(let instr of instruction_arrays) {
-        if((instr.length > 0) && (Robot.is_oplet(instr[0], false))) {//instr ok as is
-            result.push(make_ins(...instr))
-        }
-        else if(default_oplet) {
-            let new_array = instr.slice()
-            new_array.unshift(default_oplet)
-            result.push(make_ins(...new_array))
-        }
-        else {
-            dde_error("make_ins_arrays called with no default oplet and an instruction args array without an oplet: " + instr)
-        }
-    }
-    return result
-}
-module.exports.make_ins_arrays = make_ins_arrays
+
 
 module.exports.month_names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September','October', 'November', 'December']
 
@@ -1899,6 +1881,78 @@ Conclusion: time_in_us gives us 0.1ms  or 0.2ms res, not consistently.
 
 function time_in_us() { return parseInt(nano_time.micro()) }
 module.exports.time_in_us = time_in_us
+
+//input -> output
+// 12       12
+// 12.3     12.3
+// "1:34"     94
+// "1:34.5"   94.5
+// "1:2:3"    1 hour, 2 minutes, 3 seconds ie 3600 + 120 + 3
+// else error
+function string_to_seconds(dur){
+    if(typeof(dur) === "number") { return dur }
+    else if(typeof(dur) == "string"){
+        let num_strings = dur.split(":")
+        if(num_strings.length == 0)  { dde_error("string_to_seconds passed empty string for dur of: " + dur) }
+        else if (num_strings.length == 1) {
+           if(is_string_a_number(num_strings[0])) {
+               return parseFloat(num_strings[0])
+           }
+           else { dde_error("string_to_seconds passed string that is not a number: " + dur) }
+        }
+        else if(num_strings.length == 2) {
+            if(!is_string_a_integer(num_strings[0]) ||
+                !is_string_a_number(num_strings[1])) {
+                dde_error("string_to_seconds passed string that does not contain valid numbers: " + dur)
+            }
+            else {
+                let result = parseInt(num_strings[0]) * 60
+                result +=  parseFloat(num_strings[1])
+                return result
+            }
+        }
+        else if(num_strings.length == 3) {
+            if(!is_string_a_integer(num_strings[0]) ||
+               !is_string_a_integer(num_strings[0]) ||
+               !is_string_a_number(num_strings[2])) {
+                dde_error("string_to_seconds passed string that does not contain valid numbers: " + dur)
+            }
+            else {
+                let result = parseInt(num_strings[0]) * 60 * 60
+                result    += parseInt(num_strings[0]) * 60
+                result    += parseFloat(num_strings[2])
+                return result
+            }
+        }
+        else {
+          dde_error("string_to_seconds passed string that does not 1 to 3 numbers: " + dur)
+        }
+    }
+    else {
+        dde_error("string_to_seconds passed non number, non string: " + dur)
+    }
+}
+module.exports.string_to_seconds = string_to_seconds
+
+//user fn but not called in dde, jan 2019
+function make_ins_arrays(default_oplet, instruction_arrays=[]){
+    let result = []
+    for(let instr of instruction_arrays) {
+        if((instr.length > 0) && (Robot.is_oplet(instr[0], false))) {//instr ok as is
+            result.push(make_ins(...instr))
+        }
+        else if(default_oplet) {
+            let new_array = instr.slice()
+            new_array.unshift(default_oplet)
+            result.push(make_ins(...new_array))
+        }
+        else {
+            dde_error("make_ins_arrays called with no default oplet and an instruction args array without an oplet: " + instr)
+        }
+    }
+    return result
+}
+module.exports.make_ins_arrays = make_ins_arrays
 
 var nano_time = require("nano-time")
 var semver = require("semver")

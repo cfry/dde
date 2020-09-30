@@ -154,6 +154,7 @@ var Socket = class Socket{
                 let instruction_array_copy = instruction_array.slice()
                 let new_val = Math.round(first_arg / _um) //convert from meters to microns
                 instruction_array_copy[Instruction.INSTRUCTION_ARG1] = new_val
+                return instruction_array_copy
             }
             else if ("LinkLengths" == "name"){
                 let instruction_array_copy = instruction_array.slice()
@@ -168,6 +169,7 @@ var Socket = class Socket{
                 let instruction_array_copy = instruction_array.slice()
                 let new_val = Math.round(first_arg / _um) //convert from meters to microns
                 instruction_array_copy[Instruction.INSTRUCTION_ARG1] = new_val
+                return instruction_array_copy
             }
             else { return instruction_array }
         }

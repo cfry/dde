@@ -13,7 +13,7 @@ var dui_tour = new Shepherd.Tour({
 dui_tour.options.defaultStepOptions = {
     classes: 'shepherd_step',
     scrollTo: true,
-    cancelIcon: {enabled: true},
+    cancelIcon: {enabled: true, label: "Exit tutorial"},
     arrow: false,
     when: { //from https://shepherdjs.dev/docs/tutorial-04-cookbook.html
       show() {
@@ -49,9 +49,9 @@ dui_tour.addSteps([
    text: `The Dexter User Interface dialog box (now highlighted)
           is one easy way to accomplish these goals.`,
   },
-  {attachTo: {element: '#simulate_radio_true_wrapper_id', on: 'top'},
-   text: `Please select <b>simulate</b> (if it isn't already).
-          You can select <b>real</b> after this tutorial, to move a real robot.`,
+  {attachTo: {element: '#simulate_radio_button_group', on: 'top'},
+   text: `If you have not yet configured Dexter, please select <b>simulate</b> (if it isn't already).<br/>
+          To move a real robot, you can select <b>real</b> after this tutorial.`,
    popperOptions: {modifiers: [{ name: 'offset', options: { offset: [0, 20] } }]},
   },
   {attachTo: {element: '.dui_dialog [name=j2_range]', on: 'left'},
@@ -185,9 +185,7 @@ dui_tour.addSteps([
   },
   {attachTo: { element: '#js_menubar_id', on: 'top'},
    text: `If you close the Dexter UI dialog, you can get it back
-          by clicking on the <b>Jobs</b> menu's <b>Dexter UI</b> item.`,
-   buttons: [{text: 'Back', action: dui_tour.back},
-             {text: 'Next', action: dui_tour.next}]
+          by clicking on the <b>Jobs</b> menu's <b>Dexter UI</b> item.`
   },
   {attachTo: { element: '#doc_pane_id', on: 'left'},
    text: `Clicking the <b>Jobs</b> menu, <b>Dexter UI</b> item, automatically scrolls

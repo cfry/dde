@@ -1064,7 +1064,7 @@ var MakeInstruction = class MakeInstruction{
         let the_inst = eval(inst_src)
         if(the_inst instanceof Job){
             if(Robot.simulate_or_both_selected()){
-                misc_pane_menu_changed("Simulate Dexter")
+                show_in_misc_pane("Simulate Dexter")
                 //to give user time to adjust to the sim pane
                 let when_stopped_fn = function(){
                     setTimeout(function() { MakeInstruction.show(call_obj, false) },
@@ -1101,7 +1101,7 @@ var MakeInstruction = class MakeInstruction{
                 dde_error(true_or_error_mess)
             }
             else if(Robot.simulate_or_both_selected()){
-                misc_pane_menu_changed("Simulate Dexter")
+                show_in_misc_pane("Simulate Dexter")
                 //to give user time to adjust to the sim pane
                 setTimeout(function() { job_00.start() },
                            2000)

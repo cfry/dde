@@ -8,8 +8,8 @@
 
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version: <span id="dde_version_id">3.6.3</span><br/>
-    released: <span id="dde_release_date_id">Sep 4, 2020</span>
+    version: <span id="dde_version_id">3.6.4</span><br/>
+    released: <span id="dde_release_date_id">Sep 29, 2020</span>
     <p></p>
     DDE helps you create, debug, and send software to a Dexter robot.
     You can use any JavaScript augmented with DDE-specific functions to help find out about,
@@ -291,7 +291,9 @@ Each indicates that a joint has power.
              all the possible connections. Apple cleverly made this column too
              narrow to be useful, so hover your mouse over each items to
              be able to read one in full. You're looking for a USB to Ethernet connection.
-             Look for one with the phrase "Connected" under it.
+             Look for one with the phrase "Connected" under it, though for
+             some flavors of MacOS, you have to click on the link to see
+             "Connected" in the right portion of the dialog box.
              For the dongle we recommend above, it will be labeled
              "Apple USB Ethernet Adaptor"</li>
          <li>Clicking on the connection changes the inputs to the right.<br/>
@@ -301,8 +303,8 @@ Each indicates that a joint has power.
              For the <b>Subnet Mask</b> field, type in <code title="unEVALable">255.255.255.0</code><br/>
              For the <b>Router</b> field, leave it blank.</li>
          <li>Click the "Apply" button.
-             If you are wired to Dexter, the left column entry for "Apple USB Eithernet Adaptor" there
-             should now be a green dot.
+             If you are wired to Dexter, the left column entry for "Apple USB Eithernet Adaptor"
+             should now show a green dot.
          </li>
       </ol>
       We are working on making this easier.
@@ -556,8 +558,8 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
         <ul>
             <li>The Welcome Dialog is a fancy presentation of the below. By default, it
                 comes up at DDE launch. You can disable this by a checkbox in the dialog.
-                If you have disabled it, you can get the window back up by clicking
-                <button onclick="persistent_set('dont_show_splash_screen_on_launch', false); SplashScreen.show();">show Welcome Dialog</button>
+                If you have disabled it, you can show the dialog by clicking
+                the big blue question mark in the upper right of DDE's window.
                 <p></p></li>
             <li><a href="https://www.hdrobotic.com/features" target="_blank">Dexter Features</a>
                  Videos of some things Dexter is capable of plus an early overveiw of DDE.<p></p></li>

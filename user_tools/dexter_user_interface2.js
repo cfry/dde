@@ -129,7 +129,7 @@ var dui2 = class dui2 {
         open_doc(dexter_user_interface_doc_id)
         if((platform == "dde") &&
             !window.sim_graphics_pane_id) {
-            misc_pane_menu_changed("Simulate Dexter") //changes Misc pane to sim. Preserves pose of Dexter.
+            show_in_misc_pane("Simulate Dexter") //changes Misc pane to sim. Preserves pose of Dexter.
         }
         let dui_instance = new dui2()
         dui_instance.job_name = this.name

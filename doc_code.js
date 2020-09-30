@@ -387,6 +387,80 @@ function undecorate_doc_details(unmark_options){
    // $("mark").unmark();
 }
 
+/*
+Returns the details elt with summary specified by summary_text_path.
+summary_text_path can be:
+  - null, meaning return doc_pane_content_id so that new doc goes at top level in doc pane
+ - a single summary innerText (and that might be
+      nested deep0 OR, to help with ambiguity possibility of
+ - a summary having same named 'cousins', you can give a path a la
+  "foo/bar/baz for finding the correct details elt.
+
+<details><summary>foo</summary>
+  <details><summary>bar</summary>
+    <details id="the_det"><summary>baz</summary>
+    </details>
+  </details>
+</details>
+to return the elt "the_det"
+*/
+
+function find_doc_pane_details_elt_with_summary(summary_text_path){
+    let par = doc_pane_content_id
+    let new_par
+    let path_arr = summary_text_path.split("/")
+    for(let sum_text of path_arr){
+        let summaries = par.querySelectorAll("summary")
+        new_par = null
+        for(let elt of summaries) {
+            if(elt.innerText === sum_text) {
+                new_par = elt.parentElement
+                break;
+            }
+        }
+        if(new_par === null) {return null} //didn't find it
+        else {par = new_par}
+    }
+    if(par === doc_pane_content_id) { return null }
+    else { return par }
+}
+/*inserts html as the new last child of the details elt that has a summary elt
+specified by summary_text_path. See find_doc_pane_details_elt_with_summary
+position is same as position arg for insertAdjacentHTML
+<!-- beforebegin -->
+<p>
+<!-- afterbegin -->
+foo
+<!-- beforeend -->
+</p>
+<!-- afterend -->
+*/
+function insert_html_into_doc_pane(html, summary_text_path=null, position="beforeend"){
+    let parent_details_elt
+    let valid_positions = ["beforebegin", "afterbegin", "beforeend", "afterend"]
+    if(!valid_positions.includes(position)){
+        dde_error('insert_html_into_doc_pane passed position of: <code>"' + position +
+            '"</code><br/> that is not one of "' + valid_positions.join('", "') + '"')
+    }
+    if(summary_text_path == null) {
+        if((position == "beforebegin") || (position == "afterend")){
+            dde_error('In call to insert_html_into_doc_pane, position of: <code>"' + position +
+                      '"</code><br/>is not valid with summary_text_path of: <code>null</code>')
+        }
+        else { parent_details_elt = doc_pane_content_id }
+    }
+
+    else {
+        parent_details_elt = find_doc_pane_details_elt_with_summary(summary_text_path)
+    }
+    if(parent_details_elt == null) {
+       dde_error("insert_html_into_doc_pane could not find summary_text_path: " + summary_text_path)
+    }
+    else {
+        parent_details_elt.insertAdjacentHTML(position, html)
+    }
+}
+
 function init_doc(){
     let content =
         '<details id="getting_started_id"><summary class="doc_top_level_summary">Getting Started</summary>\n' +
@@ -417,15 +491,20 @@ function init_doc(){
         "</details>\n" +
         '<details class="doc_details"><summary class="doc_articles_level_summary">Dexter Kinematics</summary>\n' +
         read_file(__dirname + "/doc/dexter_kinematics.html") +
-        "</details>\n" +
+        '</details>\n' +
         '<details class="doc_details"><summary class="doc_articles_level_summary">Glossary</summary>\n' +
         read_file(__dirname + "/doc/glossary.html") +
-        "</details>\n" +
+        '</details>\n' +
+        '</details>\n' +
+
+        '<details><summary class="doc_top_level_summary">Build Dexter</summary>\n' +
+        read_file(__dirname + "/doc/build_dexter/wire_harness_assembly.html") +
         '</details>\n' +
 
         '<details id="release_notes_doc_id"><summary class="doc_top_level_summary">Release Notes</summary>\n' +
         read_file(__dirname + "/doc/release_notes.html") +
         "</details>\n" +
+
         '<details><summary class="doc_top_level_summary">Known Issues</summary>\n' +
         read_file(__dirname + "/doc/known_issues.html") +
         "</details>\n"

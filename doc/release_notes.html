@@ -5,10 +5,55 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 3.6.4, Sep 29, 2020</summary>
+Highlights: New Steptorial for Learn JS.
+            Improvements to the Welcome window.
+            read_file_sync and write_file_sync now have efficient file transfer between
+            DDE and Dexter.
+            Saving Files UI in DDE improved.
+            Bug fix for Dexter.set_parameter("CartesianSpeed") and friends.
+    <ul>
+        <li>Welcome Dialog: shortened title to "Welcome to DDE" so that you can drag the title bar
+             to reposition it.</li>
+        <li>Welcome dialog now when you click an item, it checks it and leaves it checked.
+            User can no longer uncheck it by clicking on it. This is just simpler.</li>
+        <li>When you close the Welcome dialog, a printout in the output pane tells you
+            how to get it back.</li>
+        <li>Clicking on the big blue question mark in the upper right now shows
+            the Welcome dialog box of tutorials. The last one is "help system" to see what
+            the big blue question mark use to show you.</li>
+        <li>Misc Pane new checkbox "Expand". Check to maximize the Misc pane,
+            uncheck to put it back where it was. Pays attention to the Edit menu "animate ui"
+             checkbox.</li>
+        <li>serial_disconnect now has flush before close, and a try_catch around it.</li>
+        <li>Improved error message when selecting from Misc Pane menu fails.</li>
+        <li>"Save on eval" and "Animate UI" menu item checkboxes now check and uncheck
+            if you choose the menu item OUTSIDE of the checkbox.</li>
+        <li>For a lesson's button, checks a button at most once.</li>
+        <li>Misc pane menu is now a combo box allowing type in, and it is
+            automatically updated when the content of the Misc pane changes,
+            esp when choosing "Choose File"</li>
+        <li>Bug fix for instruction <code>Dexter.set_parameter("CartesianSpeed", 300000)</code>
+             and similar fix for  set_parameter of names that start with: "Link"</li>
+        <li>ESLint added ok to have node.js fns, commonjs fns, and globals
+            that are not known to eslint, but are none the less defined.</li>
+        <li> Adjusted Move Dexter tutorial to allow you to select simulate OR real,
+            (with a warning).</li>
+        <li>Clicking on Welcome dialog "Learn JavaScript now brings up a guided tour of
+            how to learn JS, closes the Welcome dialog and tells you how to get it back.</li>
+        <li> File menu/Save (ctrl S) now always saves to the local computer. </li>
+            It does not ask you what dexter you might want to save on.</li>
+        <li>File menu/Save to Dexter as:  removed incorrect first para in the dialog box.</li>
+        <li>Minor improvement to User Guide/Configure Dexter/Data Connection/on MacOS</li>
+        <li><code>read_file_async</code> and <code>write_file_async</code> can now write to Dexter efficiently.
+           See Ref Man/IO/File Access/read_file_async, write_file_async.
+        </li>
+</ul>
+</details>
 <details class="doc_details"><summary>v 3.6.3, Sep 4, 2020</summary>
 Hightlights: Simulator now displays much more realistic Dexter.
              New tutorial for Dexter UI.
-             New "Dexter Platform Archtecture" diagram.
+             New "Dexter Platform Architecture" diagram.
              Green blinking to alert for hidden info displays.
              Bug fixes for low level instructions.
 <ul>

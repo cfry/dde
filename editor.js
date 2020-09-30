@@ -891,7 +891,7 @@ function save_as_cb(vals){
     Editor.unmark_as_changed()
 }
 
-Editor.save_as = function(){ //also called by onclick save
+/*Editor.save_as = function(){ //also called by onclick save
     let cont = '<input type="submit" value="DDE computer"/>\n'
     for(let dex_name of Dexter.all_names){
         if(Dexter[dex_name]) {//should hit every time, but just a check
@@ -907,9 +907,9 @@ Editor.save_as = function(){ //also called by onclick save
                 callback: save_as_cb
         }
     )
-}
+}*/
 
-Editor.save_on_dde_computer = function(){
+Editor.save_as = function(){
     const title     = 'save "' + Editor.current_file_path + '" as'
     const default_path = ((Editor.current_file_path == "new buffer") ? dde_apps_folder : Editor.current_file_path)
     const path = choose_save_file({title: title, defaultPath: default_path}) //sychronous! good
@@ -944,10 +944,7 @@ Editor.save_on_dexter_computer = function(dex_name){
         dex_name = dex_name.substring(7) //cut off "Dexter."
     }
     show_window({title: "Enter file on <i>" + dex_name + "</i> to save to",
-        content: '<i>Saving Dexter files considers simulation state<br/>' +
-        'when determining where to save the file to.<br/>' +
-        'If you want to save to a Dexter, select<br/>' +
-        'the <b>real</b> button in the Misc pane header.</i><p/>' +
+        content:
         '<span style="color:#e50;">Warning:</span> you may have to use<br/>' +
         '<span style="font-family:monospace;background-color:white;">chmod</span> (change permissions)<br/>' +
          'on the saved file to get<br/>' +
