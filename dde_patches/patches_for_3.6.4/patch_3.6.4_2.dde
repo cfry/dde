@@ -1,1 +1,1 @@
-var PatchDDE.test_patch_2 = true
+PatchDDE.test_patch_2 = true
