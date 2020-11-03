@@ -359,7 +359,7 @@ var audioCtx
 
 function beep({dur = 0.5, frequency = 440, volume = 1, waveform = "triangle", callback = null}={}){
     if(window.platform == "node"){
-        exec("espeak \"" + "beep" + "\" -a "+ (volume*200) + " -p " + (pitch * 50) + " -s " + (rate * 37 + 130),
+        exec("espeak \"" + "beep" + "\" -a "+ (volume*200) + " -p " + (frequency * 100) + " -s 300",
             callback );//this callback takes 2 args, an err object and a string of the shell output
                        //of calling the command.
     }
