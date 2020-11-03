@@ -6,6 +6,7 @@ Js_info = class Js_info {
     static get_info_string(fn_name, series=null, full_src=null, pos=null){
             fn_name = this.depricated_to_new(fn_name) //we need "orig_input" to be the new, not
                 //the actual orig_input for processing of fn_name == "Robot.loop"
+            if(fn_name === undefined) { return "" } //no click help on this deprecated, unsupported fn_name
             let orig_input = fn_name
             let fn
             let param_count
@@ -241,8 +242,11 @@ Js_info = class Js_info {
     }
 
     //Beware, sometimes fn_name is not a string. Maybe its null
+    //if fn_name has NOT been deprecated, it is returned.
+    //else its replacement is returned (if there is one
     static depricated_to_new(fn_name){
         let new_fn_name = null
+        let dep_obj = PatchDDE.old_to_deprecate_object(fn_name)
         if(fn_name && (typeof(fn_name) == "string") && fn_name.startsWith("Robot.")) {
             let parts = fn_name.split(".")
             if(parts.length == 2){
@@ -254,13 +258,31 @@ Js_info = class Js_info {
                     new_fn_name = new_class_name + "." + meth_name
                 }
             }
-        }
-        if(new_fn_name){
-            warning("<code>" + fn_name + "</code> has been deprecated.<br/>" +
+            if(new_fn_name){
+                warning("<code>" + fn_name + "</code> has been deprecated.<br/>" +
                     "Please use: <code>" + new_fn_name + "</code> instead.")
-            fn_name = new_fn_name
+                fn_name = new_fn_name
+            }
         }
-        return fn_name
+        else if(dep_obj) { //fn_name is deprecated
+            //out("in Js_info.depricated_to_new calling PatchDDE.old_to_deprecate_html with fn_name: " + fn_name)
+            let html = PatchDDE.old_to_deprecate_html(fn_name)
+            //warning(html) //don't call warning here because we don't want a stack trace, and we want user
+            //to be able to click/select the code items without "expanding the details tag"
+            //in the warning.
+            out(html, "#e50") //orange, the warning color
+            if(dep_obj.new){ //fn_name doesn't exist in cur env, but we've got a replacement, so use that for rest of click help
+                fn_name = dep_obj.new
+            }
+            else if(value_of_path(fn_name)) {} //fn_name exists in the current dde.
+            // We've already printed the warning, so just leave orig fn_name for the help
+
+            else { //we've printed the deprecation message, but no replacement for fn_name and fn_name isn't defined
+                   //so nothing else that click help can do
+              fn_name == undefined
+            }
+        }
+        return fn_name //might be the new fn name, not the passed in original, old fn name
     }
 
     //args that probably will return false from this: "title", "body", "activeElement"
@@ -641,7 +663,7 @@ Js_info = class Js_info {
                 if (typeof(fn6) == "function"){
                     return "<code style='color:blue;'>" + Js_info.wrap_fn_name(fn_name) + '</code>' + function_params(fn6)
                 }
-                else { //hits for serial_path_to_info_map
+                else { //hits for serial_port_path_to_info_map
                     return "<code style='color:blue;'>" + fn_name + '</code>'
                 }
             case "series_object_system_id":
@@ -945,3 +967,12 @@ var {pluralize_full_unit_name, series_name_to_unity_unit, unit_abbrev_to_full_na
 
 var {file_exists} = require("./core/storage.js")
 var {make_html} = require("./core/html_db.js")
+
+//below here are included just in case the user clicks on the name of a function
+//that's in the definition of a function def being inspected
+//doing all of these is a lot of work. this is just a start.
+//we probably need another mechanism.
+/* hmm, decided not to do. it means exporting all those defs too.
+var {onReceiveCallback_low_level, onReceiveErrorCallback_low_level,
+     onOpenCallback_low_level} = require("./core/serial.js")
+*/

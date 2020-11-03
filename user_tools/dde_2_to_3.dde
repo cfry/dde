@@ -1,0 +1,11 @@
+var dde_apps_dir = dde_apps_folder
+var file_content = read_file
+var serial_path_to_info_map = serial_port_path_to_info_map
+var patch_until = PatchDDE.patch_until
+
+var {setFollowMe, setForceProtect, setKeepPosition, setOpenLoop,} = require("./math/Dexter_Modes.js")
+//for job engine:
+global.setFollowMe
+global.setForceProtect
+global.setKeepPosition
+global.setOpenLoop

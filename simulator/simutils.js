@@ -71,7 +71,7 @@ SimUtils = class SimUtils{
         }
     }
 
-    static render_multi(robot_status, job_name, robot_name, force_render=false, dur_in_ms){ //inputs in arc_seconds
+    static render_multi(robot_status, job_name, robot_name, force_render=false, dur_in_ms=0){ //inputs in arc_seconds
         let job_or_robot_to_sim = job_or_robot_to_simulate_name()
         if (force_render ||
             (job_or_robot_to_sim == job_name) ||
@@ -236,6 +236,15 @@ SimUtils = class SimUtils{
             this.render_once(SimUtils.prev_robot_status,
                              SimUtils.prev_job_name,
                              SimUtils.prev_robot_name)
+        }
+        else { sim.renderer.render(sim.scene, sim.camera) } //just the initial condition, dex straight up
+    }
+
+    static render_multi_with_prev_args_maybe(){
+        if(this.prev_robot_status){
+            this.render_multi(SimUtils.prev_robot_status,
+                SimUtils.prev_job_name,
+                SimUtils.prev_robot_name)
         }
         else { sim.renderer.render(sim.scene, sim.camera) } //just the initial condition, dex straight up
     }

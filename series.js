@@ -753,7 +753,7 @@ Series.instances = [
                      }
         }),
                                                    //note that choose_file_and_get_content and get_page are really INPUT functions. change name of series to io or make a new input series?
-    new Series({id:"series_output_id",      array: ['beep', 'beeps', 'Editor.insert', 'get_page', 'get_page_async','make_url', 'out', 'show_page', 'speak', 'recognize_speech'],
+    new Series({id:"series_output_id",      array: ['beep', 'beeps', 'Editor.insert', 'get_page', 'get_page_async','make_url', 'out', 'show_page', 'speak'],
         menu_insertion_string: "beep({dur: 1, frequency: 440, volume: 1})",
         menu_sel_start:0, menu_sel_end:4, sample: "beep"}),
     new Series({id:"series_window_id",      array: ['clear_output', 'SW.close_window', 'make_dom_elt', 'make_html', 'show_window',
@@ -891,7 +891,7 @@ Series.instances = [
     new Series({id:"series_robot_name_id", array: Series.get_robot_name_array,
         menu_insertion_string: 'Robot.dexter0',
         menu_sel_start: 0, sample: Series.robot_dot_last_robot_name}),
-    new Series({id:"series_serial_id", array: ['serial_devices', 'serial_path_to_info_map',
+    new Series({id:"series_serial_id", array: ['serial_devices', 'serial_port_path_to_info_map',
                                                'serial_connect_low_level', 'serial_send_low_level', 'serial_flush', 'serial_disconnect', 'serial_disconnect_all'],
         menu_insertion_string: 'serial_devices()',
         menu_sel_start: 0,  menu_sel_end: -2, sample: "serial_devices"}),

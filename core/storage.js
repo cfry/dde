@@ -1,6 +1,7 @@
 /*Created by Fry on 7/4/16.*/
 
 var request = require('request'); //needed by write_file_async for node server
+var fsPath  = require('fs-path')
 
 //_______PERSISTENT: store name-value pairs in a file. Keep a copy of hte file in JS env, persistent_values
 //and write it out every time its changed.
@@ -310,6 +311,14 @@ function read_file_async(path, encoding="utf8", callback){
         dde_error("In read_file_async of path: " + path +
                   "<br/>there is no Dexter instance defined of that Dexter name.")
     }
+    else if(path.startsWith("http://") || path.startsWith("https://")){
+        get_page_async(path, function(err, response_object, data){
+            if((err === null) && (data === "404: Not Found")){
+                err = new Error("get_page_async could not find file: " + path)
+            }
+            callback(err, data)
+        })
+    }
     else {
         path = make_full_path(path)
         fs.readFile(path, encoding, callback)
@@ -445,6 +454,7 @@ function write_file(path, content, encoding="utf8"){
 
 module.exports.write_file = write_file
 
+//path example" Dexter.dexter0:junk.js
 //callback takes one arg, err. If it is null, there's no error
 //from https://www.npmjs.com/package/request#requestoptions-callback,
 //encoding: at least in the http case, "if you expect binary data, you should set encoding: null",
@@ -475,7 +485,9 @@ function write_file_async(path, content, encoding="utf8", callback=write_file_as
     }
     else { //the usual case, Just writing a file to the local file system
         path = make_full_path(path)
-        fs.writeFile(path, content, encoding, callback)
+        //fs.writeFile(path, content, encoding, callback)   //doesn't auto create folders
+        fsPath.writeFile(path, content, encoding, callback) //does auto create folders, just like
+        //the node-server does.
     }
 }
 
@@ -522,6 +534,59 @@ function write_file_async_to_dexter_using_job(dex_instance, path, content, callb
     the_job.start()
 }
 
+//the callback takes 1 arg, err. IF it is passed non-null, there's an error.
+// opy_file_async("foo/bar.js", "Dexter.dexter0:bar_copy.js"
+function copy_file_async(source_path, destination_path, callback=copy_file_async_default_callback){
+   read_file_async(source_path, "binary", //"binary" should faithfully read and write content without modification.
+                                          // "ascii" fails on jpg files.
+      function(err, data){
+        if(err) { //only call the callback for the read IF there's a read error.
+            callback(err)
+        }
+        else {
+            write_file_async(destination_path, data, "binary", callback)
+        }
+      })
+}
+
+function copy_file_async_default_callback(err){
+    if(err){
+        dde_error("copy_file_async error: " + err.message)
+    }
+    else {
+        out("copy_file_async succeeded.")
+    }
+}
+
+function copy_folder_async_default_callback(err){
+    if(err){
+        dde_error("copy_folder_async error: " + err.message)
+    }
+}
+module.exports.copy_file_async = copy_file_async
+
+//example: copy_folder(foo/bar, Dexter
+//beware, can't yet handle copying folders FROM dexter to dde.
+function copy_folder_async(source_folder, destination_folder, callback=copy_folder_async_default_callback){
+    let paths = folder_listing(source_folder, true, true, true) //include files, folders, and returned string has full path
+    for(let path of paths) {
+       let last_slash_pos = path.lastIndexOf("/")
+       let name = path.substring(last_slash_pos + 1)
+       let dest_path_last_char = destination_folder[destination_folder.length - 1]
+       let dest_path = ((dest_path_last_char === "/") ? destination_folder + name
+                                                      : destination_folder + "/" + name)
+        if(is_folder(path)) { //is_folder only works on DDE paths, not on Dexter paths.
+           let dest_fold =
+           copy_folder_async(path, dest_path, callback)
+       }
+       else {
+           copy_file_async(path, dest_path, callback)
+       }
+    }
+}
+
+module.exports.copy_folder_async = copy_folder_async
+
 //for paths starting with "dexter0:" and other dexters, this will always return false.
 //you have to use read_file_async for that and pass it a callback that
 //handles the err when the file doesn't exist.
@@ -530,6 +595,8 @@ function file_exists(path){
     return fs.existsSync(path)
 }
 module.exports.file_exists = file_exists
+
+
 
 //only works for dde computer, not dexter computer paths.
 //is syncrhonous
@@ -589,6 +656,8 @@ function folder_separator(){
     if (operating_system == "win") { return "\\" }
     else                           { return "/"  }
 }
+
+module.exports.folder_separator = folder_separator
 
 function add_folder_separator_prefix_maybe(filepath){
     if (filepath.startsWith("/")) {//|| filepath.startsWith("\\"))

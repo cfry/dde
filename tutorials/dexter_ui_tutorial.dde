@@ -45,16 +45,34 @@ dui_tour.addSteps([
           </ol>`,
    buttons: [{text: 'Next', action: dui_tour.next}],
   },
-  {attachTo: {element: '.dui_dialog', on: 'right-start'},
-   text: `The Dexter User Interface dialog box (now highlighted)
-          is one easy way to accomplish these goals.`,
-  },
+
   {attachTo: {element: '#simulate_radio_button_group', on: 'top'},
    text: `If you have not yet configured Dexter, please select <b>simulate</b> (if it isn't already).<br/>
-          To move a real robot, you can select <b>real</b> after this tutorial.`,
+          If you have connected a Dexter to this computer,
+          you can select <b>real</b> to move a real robot, if you like.`,
    popperOptions: {modifiers: [{ name: 'offset', options: { offset: [0, 20] } }]},
   },
+  {text: `The Dexter User Interface dialog box
+            is one easy way to accomplish these goals.`,
+   when: {
+        show() {
+                const currentStepElement = dui_tour.currentStep.el;
+                const header = currentStepElement.querySelector('.shepherd-header');
+                const progress = document.createElement('span');
+                progress.style['margin-right'] = '15px';
+                progress.innerHTML = "<span style='margin-right:20px;'>" + dui_tour.options.tourName +
+                                     "</span> <span style='font-size:13px;'>step " +
+                                     (dui_tour.steps.indexOf(dui_tour.currentStep) + 1) +
+                                     " of " + dui_tour.steps.length +
+                                     "</span>"
+                header.insertBefore(progress, currentStepElement.querySelector('.shepherd-cancel-icon'));
+                //out("after sim")
+                Job.define_and_start_job(__dirname + '/user_tools/dexter_user_interface2.js')
+              }
+        },
+  },
   {attachTo: {element: '.dui_dialog [name=j2_range]', on: 'left'},
+
    text: `Drag the joint 2 slider <i>very</i> slowly for just a short distance.
           (Dexter has a maximum speed that's slower than you can drag.)<br/>
           Observe that the simulated Dexter's <b>joint 2</b> changes.<br/>

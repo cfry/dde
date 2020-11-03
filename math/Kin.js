@@ -684,9 +684,9 @@ class Kin{
         if(Object.isNewObject(L0_pose)){
             L0 = L0_pose
         }else if(Vector.is_pose(L0_pose)){
-        	L0 = Table.create_child(L0_pose)
+        	L0 = Coor.Table.create_child(L0_pose)
         }else if(L0_pose == undefined){ // this should get replaced with is_Coor()
-            L0 = Table.create_child(Vector.make_pose())
+            L0 = Coor.Table.create_child(Vector.make_pose())
         }else{
         	dde_error("L0_pose input arg must be a Coordinate System Object, a pose, or undefined")
         }
@@ -708,7 +708,7 @@ class Kin{
         L4.rotate("X", J[3], [0, 0, 0])
         L5.rotate("Z", J[4], [0, 0, 0])
         
-        return [L0.get_pose(Table), L1.get_pose(Table), L2.get_pose(Table), L3.get_pose(Table), L4.get_pose(Table), L5.get_pose(Table)]
+        return [L0.get_pose(Coor.Table), L1.get_pose(Coor.Table), L2.get_pose(Coor.Table), L3.get_pose(Coor.Table), L4.get_pose(Coor.Table), L5.get_pose(Coor.Table)]
     }
     
     static three_positions_to_pose(J_angles_1, J_angles_2, J_angles_3, scale_factor, dexter_inst){

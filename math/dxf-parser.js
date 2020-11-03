@@ -1221,11 +1221,11 @@ DxfParser.prototype._parse = function(dxfString) {
 
    var parseLWPolylineVertices = function(n) {
       if(!n || n <= 0) throw Error('n must be greater than 0 verticies');
-      var vertices = [], i;
+      var vertices = []
       var vertexIsStarted = false;
       var vertexIsFinished = false;
 
-      for(i = 0; i < n; i++) {
+      for(let i = 0; i < n; i++) {
          var vertex = {};
          while(curr !== 'EOF') {
             if(curr.code === 0 || vertexIsFinished) break;

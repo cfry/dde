@@ -98,6 +98,52 @@
             <code title="not in TestSuite"> choose_save_file({buttonLabel: "save the best"})</code>
         </details>
 
+        <details id="copy_file_async_doc_id" class="doc_details"><summary>copy_file_async</summary>
+        Copy a file from a source to a destination file.
+        <p></p>
+        <i>Parameters:</i><br/>
+        <b>source_path</b> Required. A string of a file path. The file can be of any type.<br/>
+        <b>destination_path</b> Required. A string of a file path. Will create a new
+        file if it doesn't exist, or overwrite an existing file if it does exist.<br/>
+        <b>callback</b> A function that takes one argument, an error object.
+        The function is called if the read operation of the source_path errors,
+        such as when the source_path file doesn't exist.
+        If no error on the read operation, the write operation is called
+        with the callback passed as its callback. If the error object passed is
+        <code>null</code>, that means the operation succeeded.
+        <p></p>
+        <i>Example:</i><br/>
+        <pre><code>copy_file_async(
+    "junk1.js",
+    "junk1_copy.js",
+    function(err){
+        if(err) {warning("copying junk1.js errored with: " + err.message)}
+        else { out("junk1.js copied successfully.")}
+        })    </code></pre>
+        </details>
+
+        <details id="copy_folder_async_doc_id" class="doc_details"><summary>copy_folder_async</summary>
+         Copies a folder and all its contents recursively to another folder.<br/>
+         <i>Parameters:</i><br/>
+         <b>source_folder</b> The folder containing the existing files to be copied.<br/>
+         <b>destination_folder</b>
+                  The folder that will contain new copies of the content
+                  of the source_folder.
+                  If the destination folder or any of its sub-folders don't exist,
+                  they will be created.<br>
+         <b>callback</b>
+            A function of one arg, an error object. If the arg passed is <code>null</code>
+            that means that their is no error and the copy succeeded.
+            Default: A function that just prints its error object arg's message
+             to the Output pane.<br/>
+         <i>Example:</i><br/>
+         <code title="unEVALable">copy_folder_async("old", "new")</code><br/>
+         The parent folders of both "old" and "new" is the normal default in dde,
+         i.e. the "dde_apps" folder.
+         Upon successful completion, the dde_apps folder will contain a new sub-folder
+         named "new", whose contents is a copy of the contents of the "old" folder.
+        </details>
+
         <details id="dde_apps_folder_doc_id" class="doc_details"><summary>dde_apps_folder</summary>
             <code>dde_apps_folder</code> is a global constant whose value is a string
             of the name of the folder beneath which DDE has programmatic access.
@@ -264,6 +310,18 @@
         editor.<br/>
         <b>content</b> A string of the content you wish to be in the written file.
         Defaults to the text currently in the editor.<br/>
+        <b>encoding</b> Default: <code>"utf8"</code> A string indicating the
+        type of file to be written.
+        Some possible values:
+        <ul>
+            <li><code>"utf8"</code></li>
+            <li><code>"ascii"</code></li>
+            <li><code>"base64"</code></li>
+            <li><code>"hex"</code></li>
+        </ul>
+        <a href="https://nodejs.org/api/buffer.html#buffer_buffers_and_character_encodings"
+           target="_blank">Encoding details</a>
+        <p></p>
         Examples: <br/>
         <code>write_file("no_exist.js", "stuff")</code> Creates the named file and gives it a content of "stuff".<br/>
         <code>write_file("junk.js")</code> Gives foo.js the content now in the editor.
@@ -274,23 +332,22 @@
         See also Dexter instruction: <a href="#" onclick="open_doc('Dexter.write_file_doc_id', event)">Dexter.write_file</a>
     </details>
 
-     <details id="write_file_async_doc_id" class="doc_details"><summary>read_file_async</summary>
+     <details id="write_file_async_doc_id" class="doc_details"><summary>write_file_async</summary>
             Similar to <a href="#" onclick="open_doc(write_file_doc_id)">write_file</a>
-            but takes an extra argument of
-            of <b>callback</b>.
-            The callback is passed an error object and the content of the file.
-            If the error object is null, there was no error, and the content
-            argument contains the content of the file.
+            but takes an extra argument of a <b>callback</b>.
+            The callback is passed an error object.
+            If the error object is null, there was no error.
             <p></p>
-            The <b>path</b> argument may refer to a Dexter robot to write the file to.<br/>
+            The <b>path</b> argument may refer to a Dexter robot to write the file to.
+            If the path contains a folder that doesn't exist, it is automatically
+            created.<br/>
             <i>Example:</i><br>
             <pre><code title="not in TestSuite">write_file_async("Dexter.dexter0:junk.js", "some content", "utf8",
-           function(err, content){
-               out("write_file_async got err: " + err + " content: " + content)
+           function(err){
+               out("write_file_async got err: " + err)
            })    </code></pre>
             "some content" is written into dexter0's
             <code>"/srv/samba/share/dde_apps/junk.js"</code> file.
-            If the file existed, it is overwritten. If not, it is created.
      </details>
 
 
@@ -1203,7 +1260,9 @@ This makes it easy to show pictures in a given place, or make a new place.<br/>
 which is a picture of a printed circuit board similar to Dexter's processor board
 that is included in DDE. You can also show pictures stored in your dde_apps folder
 by using their name (without a prefix).
-Content can also be a url or OpenCV.js's "mat" object.<br/>
+Content can also be a url or <br/>
+OpenCV.js's "mat" object or<br/>
+a base64 string of the actual image to show.<br/>
 
 <b>title</b> Default: <code>undefined</code>. If undefined or null, and a new window is
 created for showing this picture, a title for the window will be made up
@@ -1220,6 +1279,15 @@ based on the <i>content</i> arg. If its a string, that string will be shown in t
 
 <b>height</b> Default: <code>240</code>.  If a new window is created, the height
     of the image shown in that window.<br/>
+
+<b>rotate</b> Default: <code>0</code>. Number in degrees. Rotate the picture clockwise.<br/>
+<b>scale_x</b> Default: <code>1</code>. Number to multiply the width of the picture by.
+      If this number is negative, the picture displayed will be a mirror image
+      of the original picture, i.e. flipped left to right. <br/>
+<b>scale_y</b> Default: <code>1</code>. Number to multiply the height of the picture by.
+   Note that scale_y can differ from scale_x if you want to distort the picture.<br/>
+<b>translate_x</b> Default: <code>0</code>. Number in pixels to shift the picture right by.<br/>
+<b>translate_y</b> Default: <code>0</code>. Number in pixels to shift the picture down by.<br/>
 
 <b>rect_to_draw</b> Default: <code>null</code>. If this is an array of 4 non-negative integers,
 it is used to make a single pixel wide red box at the
@@ -1428,8 +1496,34 @@ Alpha is transparency wherein 0 is completely transparent and 255 is opague.
 Picture defaults alpha to 255.<br/>
 These two mat types can get you through a lot of image processing.
 </details>
+
+<details id="is_string_base64_doc_id" class="doc_details"><summary>is_string_base64</summary>
+    Returns <code>true</code> if the passed in string is base64 format, often
+    used in tranferring image data on the web.
+    The primary characters of Base64 strings are:<br/>
+     letters, digits, plus_sign and slash.<br/>
+    Sometimes they can contain newlines every 76 characters.
+    The length is always a multiple of 4. To make that true, they
+    may have equal-signs at the end to pad them to a length
+    that is a multiple of 4.
+    <br/>
+    <i>Parameters:</i><br/>
+    <b>a_string</b> Required. If the passed in value is a string of
+    base64 format, <code>true</code> is returned</br/>
+    <b>permit_trailing_newline</b> Boolean. Default: <code>false</code>.
+    If true, a_string can have an extra newline on the end and still
+    be considered as a base64 string if the rest of the string
+    matches base 64. Some situations permit trailing newlines,
+    so setting this to true is convenient in those cases.
+    <i>Examples:</i><br/>
+    <code>is_string_base64("abc=")</code> => <samp>true</samp><br/>
+    <code>is_string_base64("abc")</code> => <samp>false</samp><br/>
+    <code>is_string_base64(4321)</code> => <samp>false</samp><br/>
+</details>
+
 <i>Low-Level Methods ...</i>
-<details id="Picture.is_mat_doc_id" class="doc_details"><summary>is_mat</summary>
+
+    <details id="Picture.is_mat_doc_id" class="doc_details"><summary>is_mat</summary>
 Returns true if the passed in object is a mat, otherwise false.<br/>
 <i>Parameters:</i></br/>
 <b>mat</b> A mat. Required.<br/>
@@ -2333,7 +2427,7 @@ GarageBand for a synthesizer.<br/>
 <i>Parameters:</i> None.
 <p></p>
 <b id="Midi.describe_midi_event_doc_id">Midi.describe_midi_event</b>
-used as a diagnostic function to print out of of the properties of
+used as a diagnostic function to print out the properties of
 a MIDI event.
 <i>Example:</i>
 <code title="not in TestSuite">WebMidi.inputs[1].addListener('noteon',  "all", Midi.describe_midi_event)</code>
@@ -3094,6 +3188,7 @@ new Phrase({notes: [new Note({time: 0, dur: 1, pitch: 60, velocity: 0.25, channe
     </details> <!-- end Listening -->
 </details> <!-- end Music with MIDI -->
 
+<!--Doesn't work. Needs support from Google.
 <details id="recognize_speech_doc_id" class="doc_details"><summary>recognize_speech</summary>
     Speech recognition has a long history in AI.
     It hasn't been taken advantage of where ever possible because:
@@ -3183,6 +3278,7 @@ new Phrase({notes: [new Note({time: 0, dur: 1, pitch: 60, velocity: 0.25, channe
         </li>
     </ul>
 </details> <!-- end of recognize_speech -->
+-->
 
 <details id="speak_doc_id" class="doc_details"><summary>speak</summary>
 <code>speak</code> uses text to speech technology.<br/>
@@ -7621,20 +7717,50 @@ serial_devices does not work on the Job Engine. Use instead ...
  <i>ports</i> An array of serial ports objects.<br/>
  <code title="unEVALable fragment">ports[0].comName</code> => <samp>"/dev/tty.Bluetooth-Incoming-Port"</samp>
 <p></p>
-<b id="serial_path_to_info_map_doc_id"><code>serial_path_to_info_map</code></b> Holds the mapping between the
+<b id="serial_port_path_to_info_map_doc_id"><code>serial_port_path_to_info_map</code></b> Holds the mapping between the
 path of a serial device and lots of properties about it, most of which come from defining
 the associated Serial robot. The value of this global variable is a JS literal object with
 keys of each path to which there is a serial connection, and values of
 another JS literal object holding useful properties of that connection, i.e. its "info".<p></p>
 <i>Example:</i><br/>
-<code title="unEVALable code fragment"> serial_path_to_info_map[spath]</code>
+<code title="unEVALable code fragment"> serial_port_path_to_info_map[spath]</code>
 <p></p>
 
-<b id="serial_connect_low_level_doc_id"><code>serial_connect_low_level</code></b>
-Allows you to create a software connection between a serial device and DDE software NOT in a job.<br/>
+<details id="serial_connect_low_level_doc_id"><summary>serial_connect_low_level</summary>
+Allows you to create a software connection between a serial device and DDE software.
+Does not have to be in a Job.<br>
+    <i>Parameters</i><br/>
+    <b>port_path</b> Default: None. String
+    <b>port_options</b> Default: <code>{}</code><br/>
+    <b>capture_n_items</b> Default: <code>1</code><br/>
+    <b>item_delimiter</b> Default: <code>"\n"</code><br/>
+    <b>trim_whitespace</b> Default: <code>true</code><br/>
+    <b>parse_items</b> Default: <code>true</code><br/>
+    <b>capture_extras</b> Default: <code>false</code><br/>
+    <b>callback</b> Default: <code title="unEVALable">onReceiveCallback_low_level</code><br>
+      Called with a <code>this</code> of the port object, and two arguments:
+      <ul>
+        <li>data  a string.</li>
+        <li>port_path a string.</li>
+      </ul>
+    <br/>
+    <b>error_callback</b> Default: <code  title="unEVALable">onReceiveErrorCallback_low_level</code><br/>
+        Called with a <code>this</code> of the port object, and two arguments:
+        <ul>
+            <li>data  a string.</li>
+            <li>port_path a string.</li>
+        </ul>
+        <br/>
+    <b>open_callback</b> Default: <code  title="unEVALable">onOpenCallback_low_level</code><br/>
+        Called with a <code>this</code> of the port object, and two arguments:
+        <ul>
+            <li>err  an error object </li>
+            <li>port_path a string.</li>
+        </ul><br/>
 <i>Example:</i><br/>
 <code title="unEVALable code fragment"> serial_connect_low_level(spath)</code>
-<p></p>
+</details>
+<hr/>
 
 <b id="serial_send_low_level_doc_id"><code title="unEVALable code fragment"> serial_send_low_level( "some_path", "some_string")</code></b>
 Allows you to send a string to a serial device from DDE but NOT in a job.
@@ -8304,66 +8430,7 @@ If include_this is true, the returned source, when evaled, will return a copy of
         <i>Examples:</i><br/>
         <code>dde_version_between("0.1.0", "100.1.1")</code> => <samp>true</samp>
     </details>
-    <details id="patch_until_doc_id" class="doc_details"><summary>patch_until</summary>
-        Function calls to <i>patch_until</i> are meant to surround
-        code that is to be evaled conditionally based on what version of
-        DDE you are running.
-        <p></p>
-        The primary use case is that there is a
-        fix to some bug made in a later version of DDE, and
-        you need that fix in your code, <i>but</i> you are not
-        ready to switch to the new version yet. By using patch_until,
-        you can have the patch code evaluated only if the dde_version
-        is less than the version passed in to <i>patch_until</i>.
-        <p></p>
-        This allows you to include the call to <i>patch_until</i> in your code,
-        (such as your dde_init.js file) and it will automatically be
-        ignored when you run an equal to or higher version of DDE than in the <i>version</i>
-        argument to <i>patch_until</i>.<br/>
-        <i>patch_until</i> thus allows you to switch back and forth between
-        dde versions and not have to change your dde_init.js file (or other code)
-        to include or exclude "patches".
-        <p></p>
-        The function is so named because the source code in the first argument
-        is a valid patch for DDE versions up to (i.e. until) the
-        version number in the 2nd argument.<br/>
-        <i>Parameters:</i><br/>
-        <b>before_source</b> Default: <code>null</code>
-        If the current version of dde (stored in <code>dde_version</code>)
-        is less than the 2nd argument, and
-        before_source is a string, then before_source is passed to <code>eval</code>
-        and the result is returned. In the case that before_source is <code>null</code>
-        (the default), it is ignored.<br/>
-        <b>version</b> The version that is compared to <code>dde_version</code>.<br/>
-        <b>equal_and_after_source</b> Default: <code>null</code>.
-        If the current version of dde
-        is more than or equal to the 2nd argument, equal_and_after_source is passed to
-        <code>eval</code>
-        and the result is returned. In the case that equal_and_after_source is null(the default),
-        it is ignored.<br/>
-        <i>Example:</i><br/>
-        <code>patch_until("1 + 2", "1000.0.0", "4 + 5")</code><br/>
-        => <samp>3</samp><br/>
-        In the above example, until the dde_version exceeds "1000.0.0",
-        the above code will return <code>3</code> i.e. the result of evaling
-        the first arg.
-        When dde_version is "1000.0.0" or higher, this call will return <code>9</code>,
-        i.e. the result of evaling the third arg.
-        <p></p>
-        Since <i>patch_until</i> is just a funtion that returns a value,
-        it can be embedded in other definitions, etc.
-        But its most common use case is to declare that a given
-        function definition (in the first argument) is to be used
-        when the version number in the second argument is
-        more than the current dde_version.
-        In the normal case, the 3rd argument wouldn't be passed,
-        because the function defined in the first argument
-        is built-in to versions of DDE that are equal to or higher than the
-        version in the second argument.
-        <p></p>
-        Note that <i>patch_until</i> was introduced in DDE 2.4.4, so
-        calls to it will error in earlier versions of DDE.
-    </details>
+
 </details> <!-- end operating system etc -->
 
 <details class="doc_details"><summary>Window System</summary>
@@ -10027,4 +10094,540 @@ Messaging.stop_job({job_name: "wait_for_message",
 
    </details><!--end Messaging Communication -->
 </details> <!-- end Messaging -->
+<details id="Lesson_doc_id" class="doc_details"><summary>Lesson</summary>
+In many ways, DDE is a cirriculua delivery platform for highly
+interactive ways to learn about programming JavaScript, with an emphasis
+on programming Dexter. Dexter and JavaScript are well matched because
+both are general purpose tools; one in the hardware domain and one in software.
+Both are also complex, hence the need for quality educational material.
+<p></p>
+DDE can also be used to <b><i>create</i></b> interactive lessons by:
+<ul>
+    <li>teachers implementing lesson plans in DDE</li>
+    <li>students presenting class projects in DDE</li>
+    <li>employees demoing software written in DDE</li>
+    <li>marketers showing custom features built in DDE</li>
+</ul>
+Below are some of DDE's lesson authoring tools.
+    <details id="insert_html_into_doc_pane_doc_id" class="doc_details"><summary>insert_html_into_doc_pane</summary>
+    DDE users can extend the content of DDE's Doc pane with HTML of their own.
+    This function facilitates inserting custom HTML at a place of your choosing.<br/>
+    <i>Parameters</i><br/>
+    <b>html</b> A string. Required.<br/>
+    <b>summary_text_path</b> Usually a string. Default: <code>null</code>.
+        This indicates the header near which to insert the html in the Doc pane.
+        <code>null</code> inserts the html directly into the top level of the Doc pane.
+        Separate Doc pane hierachical headers with a slash ie <code>"Reference Manual/Lesson"</code>
+    <br/>
+    <b>position</b> One of: <code>"beforebegin"</code>, <code>"afterbegin"</code>, <code>"beforeend"</code>, <code>"afterend"</code>.
+                 Default: <code>"beforeend"</code>
+        This indicates where, in relation to the summary_text_path, that the html is to
+        be inserted.<br/>
+        <code>"beforeend"</code>, (the default) inserts the html as
+        new final content under the header of summary_text_path.<br/>
+        <code>"afterbegin"</code> inserts the html as
+        new initial content under the header of summary_text_path.
+    <br/>
+    <i>Example:</i><br/>
+    <pre><code>
+insert_html_into_doc_pane(`&lt;details id="foo_doc_id" style="font-size:16px;">
+                               &lt;summary class="doc_top_level_summary">foo&lt;/summary>
+                               foo is a metasyntactic variable
+                               (placeholder) used by programmers.
+                           &lt;/details>`)
+        </code></pre>
+    </details> <!-- end of insert_html_into_doc_pane-->
+
+    <details id="show_in_misc_pane_doc_id" class="doc_details"><summary>show_in_misc_pane</summary>
+    This function allows the user to display lots of different content
+    in DDE's Misc pane programmatically.
+    show_in_misc_pane is automatically called with the string of
+    the Misc pane combo box when you choose a value from its menu or type
+    in text and hit return.<br/>
+    <i>Parameters:</i><br/>
+    <b>content</b> Required. Possible values used to fill the Misc Pane:
+    <ul>
+        <li><code>"Choose File"</code> Pops up a choose file dialog box to
+        let the user select a file to display in the Misc Pane.</li>
+        <li><i>Any DOM element</i> </li>
+        <li><code>"Simulate Dexter"</code> Show the Dexter simulator.</li>
+        <li><code>"create_dexter_marker"</code> Same as "Simulate Dexter" but
+        also uses<br/>
+         <b>arg1</b> as the xyz location (an array of 3 numbers in meters.) and <br/>
+         <b>arg2</b> as the orientation (an array of 3 numbers in degrees)<br/>
+        to place an arrow pointing at the indicated spot on the Dexter simulation.</li>
+        <li><code>"Dexter Photo"</code></li> A picture of Dexter.
+        <li><code>"Dexter Architecture"</code> A functional diagram of Dexter's parts.</li>
+        <li><code>"Reference Manual"</code> The DDE Reference Manual.</li>
+        <li><code>"Make Instruction"</code> The Make Instruction dialog box.</li>
+        <li><code>"Haddington Website"</code></li>
+        <li><i>A string starting with "http".</i> The URL of a web page to show.</li>
+        <li><i>File paths ending in:</i>
+            <ul>
+                <li>.bmp<li>.dde</li>
+                <li>.fbx</li>
+                <li>.gif</li>
+                <li>.gltf</li>
+                <li>.jpg</li>
+                <li>.js</li>
+                <li>.json</li>
+                <li>.png</li>
+                <li>.stl</li>
+                <li>.svg</li>
+                <li>.txt</li>
+             </ul>
+            displays the file content.
+        </li>
+        <li><i>Other existing local files</i>  Show the content of the file.</li>
+        <li><i>Strings starting with <b>&lt;</b></i>.  Render the string
+          as HTML. </li>
+    </ul>
+    <b>arg1</b> Used by particular content values to customize them. See "create_dexter_marker".<br/>
+    <b>arg2</b> Used by particular content values to customize them. See "create_dexter_marker".<br/>
+    <i>Example:</i><br/>
+    <pre><code>show_in_misc_pane(
+    `&lt;h1 style="color:purple;">
+        Hello Planet
+    &lt;/hi>`
+)    </code></pre>
+</details>  <!-- end of show_in_misc_pane -->
+<details id="Lesson.make_button_column_doc_id" class="doc_details"><summary>Lesson.make_button_column</summary>
+  This function makes a column of "steps" to perform in an educational sequence.
+  The column is a clickable Table of Contents for learning tasks that have
+  many individual components.
+  <p></p>
+  Each step can be any HTML, most commonly shown in the Misc pane.
+  A step can also be a button, most commonly of a snipet of video
+  played in the Misc pane.
+  See <a href="#" onclick=open_doc("Lesson.make_button_html_doc_id")>Lesson.make_button_html</a>
+  <p></p>
+  <i>Parameters:</i><br/>
+      <b>name</b> Default: <code>null</code> The name of this lession.
+        Use <code>null</code> for no displayed name.<br/>
+      <b>steps</b> Default: <code>[]</code> The array of steps for this lesson.
+      A step may be a string of any HTML.
+      The utility function<br/>
+      <a href="#" onclick="open_doc('Lesson.make_button_html_doc_id')">
+          Lesson.make_button_html</a><br/>
+          is convenient for creating buttons, especially those that play
+          video clips.<br/>
+
+      <b>location</b> Default: <code>null</code> The location that the
+      lesson is to be shown <i>near</i>. <code>null</code> doesn't display the generated HTML
+      anywhere. Regardless of the location, the grenerated HTML is returned
+      by each call to <code>Lesson.make_button_column</code>. This is useful
+      if you'd like to save the HTML to be displayed later.<br/>
+      Possible values:
+          <ul>
+             <li><code>"show_window"</code> Make a new show_window to display the lesson</li>
+             <li><code>"doc_pane_top_level"</code> shows the lesson at top level in the Doc pane.</li>
+             <li><i>A DOM element</i> show the lesson near that DOM element.</li>
+             <li><i>The ID of a DOM element</i> show the lesson near that DOM element.</li>
+             <li><i>A string of a header in the Doc pane.</i>
+                Separate Doc pane hierachical headers with a slash
+                i.e. <code>"Reference Manual/Lesson"</code>
+             </li>
+          </ul>
+      </li>
+      <b>position</b> A string indicating the position of the inserted HTML W.R.T. the location.<br/>
+              Possible values:
+              <ul>
+                  <li><code>"beforebegin"</code></li>
+                  <li><code>"afterbegin"</code></li>
+                  <li><code>"beforeend"</code> The default.</li>
+                  <li><code>"afterend"</code></li>
+              </ul>
+
+      <b>html_wrapper</b> The name of an HTML tag
+      that wraps the lesson.<br/>
+      Reasonable values:
+      <ul>
+        <li><code>"details"</code> The default.</li>
+          <li><code>"fieldset"</code> Draws a box around the steps.</li>
+          <li><code>"div"</code></li>
+          <li><code>null</code> No wrapper.</li>
+      </ul>
+      <b>open</b> Default: <code>false</code> If html_wrapper is <code>"details"</code>,
+       the details are originally open.<br/>
+      <b>add_spinner</b> Default: <code>true</code> A number spinner than appears
+      in the header for the lesson that lets a user click to do the next (or previous)
+      step. Particularly useful when the html_wrapper is <code>"details"</code>
+      and you want to leave the steps hidden to save room.<br/>
+      <b>default_method</b> Default: <code>"show_in_misc_pane"</code>
+      The method that is called when a user clicks on a step that
+      doesn't have a method, such as a non-button HTML step.
+      <p></p>
+      <i>Example:</i><br/>
+      <pre><code>Lesson.make_button_column({name: "Test Lesson",
+      location: "show_window",
+      html_wrapper: "details",
+      steps: [
+            Lesson.make_button_html({label: "Introduction",
+                 start: 0,
+                 end: "0:15", //zero minutes and 15 seconds.
+                 args: ["https://www.youtube.com/embed/Al2NUrO4HAU"]
+                 }),
+            Lesson.make_button_html({label: "Dexter Picture",
+                 args: [__dirname + "/doc/HD+Robotics-8517.jpg"]
+                 }),
+             Lesson.make_button_html({label: "Indicate Dexter part",
+                  tooltip: "Red arrow points at simulated Dexter part.",
+                  method: "show_in_misc_pane",
+                  args: ["create_dexter_marker", //content to show
+                          [0.3, -0.25, 0.4],      //xyz location
+                          [0, -90, 0]]}),         //orientation
+            "&lt;div> That's all&lt;br/> folks&lt;br/>&lt;b>the end&lt;/b>&lt;/div>"
+            ]
+})    </code></pre>
+</details> <!-- end of Lesson.make_button_column -->
+<details id="Lesson.make_button_html_doc_id" class="doc_details"><summary>Lesson.make_button_html</summary>
+   This method creates the HTML for a button step used by Lesson.make_button_column.
+   Though you could do this by custom writing HTML, this method makes it
+   a lot easier.<br/>
+   <i>Parameters:</i><br/>
+   <b>icon</b> Default: <code>"right_triangle"</code> An icon that appears inside the button
+      on its left side indicating the kind of operation that will be performed
+      when the user clicks the button.
+      This can be any HTML "entity" reference like: <code>"&amp;lt;"</code>.
+      A few icon values are handled specially:
+      <ul>
+          <li><code>"right_triangle"</code> Play a video clip.</li>
+          <li><code>"info"</code> Show information to the user.</li>
+          <li><code>"pencil"</code> Write or edit something.</li>
+          <li><code>"bicycle"</code> Display a tour.</li>
+      </ul>
+    <b>label</b> Default: <code>""</code> A string of the button label. <br/>
+    <b>tooltip</b> Default: <code>""</code> Text to display when the user hovers
+         the mouse over the  button.<br/>
+    <b>method</b> Default: <code>"show_in_misc_pane"</code> The name of the method to call
+        when the button is clicked.<br/>
+    <b>args</b> Default: <code>[]</code> An array of arguments to pass to <i>method</i> when
+       the button is clicked.<br/>
+    <b>start</b> Default: <code>undefined</code> Used as the start time of
+      the video when a video url is the first argument.<br/>
+    <b>end</b> Default: <code>undefined</code> Used as the end time of
+          the video when a video url is the first argument.<br/>
+    <b>autoplay</b> Default: <code>true</code> If true, and the
+    first arg is a video url, start playing the video when the button is clicked.
+    the video when a video url is the first argument.
+    <p></p>
+    For examples, see the example for <a href="#" onclick="open_doc('Lesson.make_button_column_doc_id')">Lesson.make_button_column</a>
+</details>
+<details id="Lesson.make_tour_doc_id" class="doc_details"><summary>Lesson.make_tour</summary>
+   A Tour is a lesson wherein a user steps through fancy tooltips, while a portion of
+   the screen is highlighted. Each tooltip has buttons to let the user go forward,
+   back, or cancel the tour. <code>Lesson.make_tour</code> is an easy way to create such tours.
+   It returns an instance of the class Tour.<br/>
+   The underlying library for implementing tours is
+   <a href="https://shepherdjs.dev/" target="_blank">Shepherd</a>.
+
+   <p></p>
+   <i>Parameters</i><br/>
+    <b>name</b> Default: <code>"my_tour"</code> A string that identifies a tour. Only one tour
+    can be bound to a given tour name.
+    <br/>
+    <b>steps</b> Default: <code>[[]]</code> An array of the "fancy tooltips" of the tour.
+       Each step is represented by an array whose elements describe the steps.
+       Elements of the array themselves default.
+       Thus the default for steps, <code>[[]]</code>, consists of one
+       step, all of whose elements default to the values provided in defaultStepOptions.
+       See below for details. <br/>
+    <b>useModalOverlay</b> Default: <code>true</code> If true, a gray, transparent
+    "overlay is placed over the DDE window that prevents the user from clicking
+    on any underlying components. A step can create a "hole" in that window
+    to highlight the underlying area, and allow the user to interact with it,
+    such as click on a button, or enter some text.<br/>
+    A <code>false</code> value presents no
+    overlay. All of the DDE window is visible as usual, and all areas may be clicked on.<br/>
+    <b>defaultStepOptions</b> Default: <code>null</code>
+    These options provide defaults for steps with missing properties.
+    <p></p>
+    <i style="font-size:20px;" >Step</i><br/>
+     Each step is represented as an array.<br/>
+     Its elements:<br/>
+    <ol start="0">
+    <li><b>text</b> Default: <code>"html goes here"</code> A string of HTML to display in the tooltip.</li>
+    <li><b>selector</b> Default: <code>null</code> A string of a CSS selector used to highlight
+    a particular area of the screen such as a button.
+    If <code>null</code>, no area is highlighted.
+    <a href="https://www.w3schools.com/cssref/css_selectors.asp" target="_blank">
+          A summary of selector types</a>.</li>
+    <li><b>location</b> Default: <code>"right"</code> Where the tooltip appears w.r.t
+    the selected element.<br/>
+    Possible values:<br/>
+        <ul>
+            <li><code>"top"</code></li>
+            <li><code>"top-start"</code></li>
+            <li><code>"top-end"</code></li>
+            <li><code>"bottom"</code></li>
+            <li><code>"bottom-start"</code></li>
+            <li><code>"bottom-end"</code></li>
+            <li><code>"left"</code></li>
+            <li><code>"left-start"</code></li>
+            <li><code>"left-end"</code></li>
+            <li><code>"right"</code></li>
+            <li><code>"right-start"</code></li>
+            <li><code>"right-end"</code></li>
+        </ul>
+    </li>
+    <li><b>distance</b> Default: <code>0</code> The distance in pixels that the
+        tooltip appears from the selected element.</li>
+    <li><b>options</b> Default: <code>{}</code> The most useful properties for a step
+    are above. For additional possibilities,
+       <a href="https://shepherdjs.dev/docs/Step.html" target="_blank">options</a>.
+    </li>
+    </ol>
+    <i>Example:</i><pre><code title="not in Testsuite">
+Lesson.make_tour({name: "Author Lessons", steps: [
+  [`DDE can help you create
+    &lt;i>lessons&lt;/i> using any
+    &lt;h2 style="color:#00AA00;">HTML&lt;/h2>
+    to make learning easier.`],
+  [`By &lt;i>unmasking&lt;/i> an area of the screen,
+    you can highlight it.`,
+   "#doc_pane_content_id"],
+  [`You can even operate the unmasked sections.
+    Click the button to clear the Output pane.`,
+   "#clear_output_id",
+   "top"]
+  ]}).start()
+  </code></pre>
+  The above example defines a tour named "Author Lessons" and immediately starts it.
+</details>
+<details id="Lesson.start_tour" class="doc_details"><summary>Lesson.start_tour</summary>
+   <i>Parameter:</i><br/>
+    <b>name</b> A string. Name of the tour to start.
+    You can define the tour one place, and start it later from somewhere else.<br/>
+    <i>Example:</i><br/>
+    <code title="not in Testsuite"> Lesson.start_tour("Author Lessons") </code>
+</details>
+<details class="doc_details"><summary>Job as a Lesson</summary>
+  A Lesson is comprised of a sequence of steps for a student to perform.
+  A Job is comprised of a sequence of steps (usually called "instructions") for
+  a robot to perform. We can think of a Job as a "lesson" for a robot.
+  <p></p>
+  A Job's instruction can run many different kinds of instructions.
+  One important class of instructions is called "Human" to direct a
+  human "robot" to perform some action. Usually Human instructions are
+  used to collect information from the robot operator, but they also
+  can be used simply to deliver information to that operator.
+  The <a href="#" onclick="open_doc('Human.task_doc_id')">Human.task</a>
+  instruction is intended for this.
+  <p></p>
+  Using a Job as a lesson is particularly effective when you want to
+  intersperse robot movements, or other actions, between lesson steps.
+</details> <!-- end of Job as a Lesson -->
+<details class="doc_details"><summary>Other Outputs for Education</summary>
+DDE is a general purpose software development environment and as such there's
+an infinite range of extensions for education that can be authored in it.
+Here we point out just a few that are especially easy and useful for teaching.
+<p></p>
+Calling the <a href="#" onclick="open_doc(out_doc_id)"><code>out</code></a> function lets you put HTML or plain text
+in any colour, into the Output pane, either temporarily or until DDE is closed.
+<p></p>
+Calling the <a href="#" onclick="open_doc(speak_doc_id)"><code>speak</code></a>
+function performs text-to-speech
+with a bunch of settings for varying the voice.
+<p></p>
+Calling the <a href="#" onclick="open_doc(show_window_doc_id)"><code>show_window</code></a> function displays a dialog box
+of HTML with easy association of JavaScript actions to numerous input
+widgets. <a href="#" onclick="open_doc('Human.show_window_doc_id')"><code>Human.show_window</code></a>
+is an instruction that displays
+a similar dialog box, but is used as an instruction in a Job.
+It causes the Job to pause while a human fills in values.
+Once the human clicks the <button>Continue</button> button,
+the next instruction is run in the job. It and all subsequent instructions
+can access the values filled in. <code>Human.show_window</code> is particularly useful for coordinating activites
+between humans and robots.
+</details>
+</details> <!-- end of Lesson -->
+<details id="PatchDDE_doc_id" class="doc_details"><summary>PatchDDE</summary>
+   <code>PatchDDE</code> encompasses tools to help you keep DDE up-to-date.
+   <details class="doc_details"><summary>Deprecate</summary>
+         A function or variable that has been "deprecated" means that it
+         is no longer the best way to do something. It might be that
+         there is a new way to do it, or that the functionality has
+         been dropped from the current release.
+         <p></p>
+         When you click on a name in the Editor pane, if the name
+         has been deprecated you will be told.
+         If there is a new name to use in its place, you will be told.
+         If the name is defined by a compatibility file, you'll
+         be told which one and how to load it.
+         You may also be given a bit of documentation on how to
+         work-around no longer supported names.
+         <p></p>
+         <i>Example:</i><br/>
+         Click on the below code to see the deprecate click_help.<br/>
+         <code title="not in TestSuite">dde_apps_dir </code>
+   </details>
+   <details class="doc_details"><summary>Backwards Compatibility</summary>
+       If you have some old DDE code that no longer works in a modern DDE,
+       there may be code that you can load to bring that old functionality
+       into your current dde.
+       <p></p>
+
+       <b id="PatchDDE.load_dde_2_to_3_doc_id">PatchDDE.load_dde_2_to_3</b>
+         Calling this function loads a JavaScript file that adds backwards
+         compatibility for DDE version 2 into DDE version 3.
+         It won't make *all* of your old code work, but many of the most
+         common constructs will work. Many of the other constructs will be deprecated
+         with a work_around documented in click-help.
+         <p></p>
+         <i>Example:</i><br/>
+         <code title="not in TestSuite">PatchDDE.load_dde_2_to_3() </code><br/>
+         Stick this code in your dde_init.js file if you're
+         going to need it every time you launch DDE.
+          <p></p>
+
+         <b id="PatchDDE.dde_2_to_3_loaded_doc_id">PatchDDE.dde_2_to_3_loaded</b>
+         A boolean variable that's <code>true</code> if the code for
+         increasing the compatibility with version 2 has been loaded.<br/>
+         <i>Example:</i><br/>
+         <code>PatchDDE.dde_2_to_3_loaded </code>
+         <p></p>
+
+         <b id="PatchDDE.show_dde_2_to_3_doc_id">PatchDDE.show_dde_2_to_3</b>
+         Calling this function prints the dde_2_to_3 code in the Output pane
+         so you can see exactly what its doing.
+         <p></p>
+         <i>Example:</i><br/>
+         <code>PatchDDE.show_dde_2_to_3() </code>
+   </details>
+   <details class="doc_details"><summary>Patch System</summary>
+   DDE has a mechanism for users to get small updates
+   to a DDE release automatically. This is intended for isolated
+   bug fixes, not complex code or significant new features.
+   This mechanism enables us to get fixes to users much faster
+   than normal new releases, which take weeks.
+   <p></p>
+   When versions of DDE after 3.6.4 are launched, part of the
+   start-up process is to ensure that there is a folder named
+   "dde_patches" under your Documents folder, parallel to your
+   "dde_apps" folder. If the folder isn't there, it will be created.
+    DDE Launch will also ensure that a subfolder of dde_patches
+    exists named "patches_for_(your dde version). For example:
+    "Documents/dde_patches/patches_for_3.6.5/".
+    Its fine for users to look inside these folders, but you're
+    not expected to modify them. If you delete them,
+    they will be recreated upon the next launch of DDE.
+    <p></p>
+     Patches are specific to a particular release. When you get a NEW release,
+     it will, under most circumstances, have all the patches from the previous
+     releases already in the new release. So even though a patch folder for
+     a given release starts out empty, the release itself will contain
+     the previous fixes, plus likely some new, larger amounts of code.
+
+   <details id="PatchDDE.download_all" class="doc_details"><summary>download_all</summary>
+       This method downloads patch files from github into the folder
+       Documents/dde_patches/patches_for_(your dde version number).
+       Each patch file will have a small amount of code. The file's
+       name will include the DDE version number that it is intended for
+       and a patch number (a positive integer).
+       For example, the first such patch file will be:
+       "Documents/dde_patches/patches_for_3.6.5/patch_3.6.5_1.dde".<br/>
+       <i>Example: </i><br/>
+       <code title="not in Testsuite.">PatchDDE.download_all() </code><br/>
+       Each patch file is downloaded just once (unless you delete it).
+       Merely downloading a file does not affect the running of DDE.
+       <p></p>
+       We expect many user to have <code title="not in Testsuite.">PatchDDE.download_all() </code>
+       in their dde_init.js file, so that they'll get the latest patches
+       every time they launch DDE.
+   </details>
+
+   <details id="PatchDDE.load" class="doc_details"><summary>load</summary>
+      Load into the DDE JavaScript environment, the patch files for
+      the release of DDE that you're running.
+      <p></p>
+      <i>Parameter:</i><br/>
+      <b>patches</b> Default: <code>"all"</code>.
+        If the value of patches is:
+        <ul>
+            <li><b>"all"</b> The default. Load all the patches in the local patches folder.
+                   Does not download any patches.
+                   Many users will want
+                   <code title="not in Testsuite">PatchDDE.load()</code>
+                   in their dde_init.js file.
+                   BUT: if you're giving a big demo and you want to be
+                   confident that you don't modify your DDE environment
+                   in an unexpected way when launching DDE, we recommend NOT calling
+                   load with "all" (or no) arguments.
+            </li>
+            <li><b>a positive integer</b> Load all the patches from 1 through
+                this patch number, in order. To be confident that you won't
+                get unexpected new behavior, this is a safe bet.
+                But beware, you may not get the latest fixes.
+            </li>
+            <li><b>an array of positive integers</b>
+                Load the patches with the numbers in the array.
+                This enables you to load exactly as many patches as
+                you want, skipping some and even loading them out of order.
+                This is discouraged, unless you really know what you're doing.
+                Higher patch-numbered-patches may well depend on
+                lower patches, so skipping patches or loaded them out
+                of order is risky. DDE gives you enough rope
+                to hang yourself. It may be useful when there's a bug
+                in a patch. (send us a bug report!)
+                Like passing in a positive integer, you won't
+                get new patches, but you won't get different
+                behavior than your last launch of DDE either.
+            </li>
+        </ul>
+        <i>Example:</i><br/>
+       <code title="not in Testsuite">PatchDDE.load()</code><br/>
+       Loads all the patches in this release's patch folder.
+   </details>
+   <details id="PatchDDE.patch_until_doc_id" class="doc_details"><summary>patch_until</summary>
+       Function calls to <i>patch_until</i> are meant to surround
+       code that is to be evaled conditionally based on what version of
+       DDE you are running. You pass patch_until a DDE version number, code to
+       eval in versions of DDE that are less than the version number, and
+       code to run in versions of DDE equal to or more than the passed in version number.
+       <p></p>
+       This allows you to include the call to <i>patch_until</i> in your code,
+       (such as your dde_init.js file) and it will automatically run the correct code
+       for the version of DDE that you happen to be running. patch_until is
+       not meant to be used for DDE system patches, but rather your own private patches.
+       <p></p>
+       The function is so named because the source code in the first argument
+       is a valid patch for DDE versions up to (i.e. until) the
+       version number in the 2nd argument.<br/>
+       <i>Parameters:</i><br/>
+       <b>before_source</b> Default: <code>null</code>
+       If the current version of dde (stored in <code>dde_version</code>)
+       is less than the 2nd argument, and
+       before_source is a string, then before_source is passed to <code>eval</code>
+       and the result is returned. In the case that before_source is <code>null</code>
+       (the default), it is ignored.<br/>
+       <b>version</b> The version that is compared to <code>dde_version</code>, i.e. the
+       version of DDE tha you are running.<br/>
+       <b>equal_and_after_source</b> Default: <code>null</code>.
+       If the current version of dde
+       is more than or equal to the 2nd argument, equal_and_after_source is passed to
+       <code>eval</code>
+       and the result is returned. In the case that equal_and_after_source is <code>null</code>
+       (the default), it is ignored.<br/>
+       <i>Example:</i><br/>
+       <code>PatchDDE.patch_until("6 + 7", "1000.0.0", "8 + 9")</code><br/>
+       => <samp>13</samp><br/>
+       In the above example, until the dde_version exceeds "1000.0.0",
+       the above code will return <code>13</code> i.e. the result of evaling
+       the first arg.
+       When dde_version is "1000.0.0" or higher, this call will return <code>17</code>,
+       i.e. the result of evaling the third arg.
+       <p></p>
+       Since <i>patch_until</i> is just a function that returns a value,
+       it can be embedded in other definitions, etc.
+       <p></p>
+       Note that <i>patch_until</i> was introduced in DDE 2.4.4, without the "PatchDDE" class,
+       so calls to it will error in earlier versions of DDE unless you
+       prefix them with "PatchDDE." or
+       eval <code title="not in TestSuite">PatchDDE.load_dde_2_to_3()</code>
+   </details>
+   </details> <!-- end Patch System -->
+
+
+    </details> <!-- End PatchDDE -->
+
 </details> <!-- end ref man -->

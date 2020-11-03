@@ -1,29 +1,30 @@
 //these TestSuites from the files in the "math" folder
 
 //from Coor.js
+//note that Coor.Table is the normal way to refer to table
 new TestSuite("Coordinate Object System",
-    ['table = Coor.create_child(Vector.make_pose(), "table")', "Coor.table"],
-    ['J0 = table.create_child(Vector.make_pose(), "J0")', "Coor.table.J0"],
-    ['J1 = J0.create_child(Vector.make_pose([10, 0, 0]), "J1")', "Coor.table.J0.J1"],
-    ['J2 = J1.create_child(Vector.make_pose([0, 0, 20]), "J2")', "Coor.table.J0.J1.J2"],
-    ['J3 = J2.create_child(Vector.make_pose([0, 0, 20]), "J3")', "Coor.table.J0.J1.J2.J3"],
-    ['cube = table.create_child(Vector.make_pose([15, 10, 5], [0, 0, 0]), "cube")', "Coor.table.cube"],
+    ['desk = Coor.create_child(Vector.make_pose(), "desk")', "Coor.desk"],
+    ['J0 = desk.create_child(Vector.make_pose(), "J0")', "Coor.desk.J0"],
+    ['J1 = J0.create_child(Vector.make_pose([10, 0, 0]), "J1")', "Coor.desk.J0.J1"],
+    ['J2 = J1.create_child(Vector.make_pose([0, 0, 20]), "J2")', "Coor.desk.J0.J1.J2"],
+    ['J3 = J2.create_child(Vector.make_pose([0, 0, 20]), "J3")', "Coor.desk.J0.J1.J2.J3"],
+    ['cube = desk.create_child(Vector.make_pose([15, 10, 5], [0, 0, 0]), "cube")', "Coor.desk.cube"],
     ["J3.get_pose()", "[[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 20], [0, 0, 0, 1]]"],
-    ["J3.get_pose(table)", "[[1, 0, 0, 10], [0, 1, 0, 0], [0, 0, 1, 40], [0, 0, 0, 1]]"],
+    ["J3.get_pose(desk)", "[[1, 0, 0, 10], [0, 1, 0, 0], [0, 0, 1, 40], [0, 0, 0, 1]]"],
     ["cube.get_pose()", "[[1, 0, 0, 15], [0, 1, 0, 10], [0, 0, 1, 5], [0, 0, 0, 1]]"],
     ["J3.get_pose(cube)", "[[1, 0, 0, -5], [0, 1, 0, -10], [0, 0, 1, 35], [0, 0, 0, 1]]"],
     ["cube.get_pose(J3)", "[[1, 0, 0, 5], [0, 1, 0, 10], [0, 0, 1, -35], [0, 0, 0, 1]]"],
 
-    ['cube = table.create_child(Vector.make_pose([15, 10, 5], [0, 0, 45]), "cube")', "Coor.table.cube"],
+    ['cube = desk.create_child(Vector.make_pose([15, 10, 5], [0, 0, 45]), "cube")', "Coor.desk.cube"],
 
     ["J3.get_position()", "[0, 0, 20]"],
     ["J3.get_orientation()", "[[1, 0, 0], [0, 1, 0], [0, 0, 1]]"],
     ["J3.get_orientation(cube)", "[ [1, 0, 0], [0, 0.7071067811865476, 0.7071067811865475], [0, -0.7071067811865475, 0.7071067811865476]]"],
 
     ["J3.set_pose([[1, 0, 0, 10], [0, 1, 0, 10],[0, 0, 1, 10],[0, 0, 0, 1]])", "[[1, 0, 0, 10], [0, 1, 0, 10], [0, 0, 1, 10], [0, 0, 0, 1]]"],
-    ["J3.set_pose([[1, 0, 0, 10], [0, 1, 0, 10],[0, 0, 1, 10],[0, 0, 0, 1]], table)   ", "[[1, 0, 0, 0], [0, 1, 0, 10], [0, 0, 1, -10], [0, 0, 0, 1]]"],
+    ["J3.set_pose([[1, 0, 0, 10], [0, 1, 0, 10],[0, 0, 1, 10],[0, 0, 0, 1]], desk)   ", "[[1, 0, 0, 0], [0, 1, 0, 10], [0, 0, 1, -10], [0, 0, 0, 1]]"],
     ["J3.set_position([10, 10, 10])", "[[1, 0, 0, 10], [0, 1, 0, 10], [0, 0, 1, 10], [0, 0, 0, 1]]"],
-    ["J3.set_position([10, 10, 10], table)", "[[1, 0, 0, 0], [0, 1, 0, 10], [0, 0, 1, -10], [0, 0, 0, 1]]"],
+    ["J3.set_position([10, 10, 10], desk)", "[[1, 0, 0, 0], [0, 1, 0, 10], [0, 0, 1, -10], [0, 0, 0, 1]]"],
     ["J3.set_orientation([[-1, 0, 0], [0, 0, 1], [0, 0, 1]])", "[[-1, 0, 0, 0], [0, 0, 1, 10], [0, 0, 1, -10], [0, 0, 0, 1]]"],
     ["J3.set_orientation([[-1, 0, 0], [0, 0, 1], [0, 0, 1]], cube)", "[ [-1, 0, 0, 0], [0, 0, 1.1102230246251565e-16, 10], [0, 0,  1.414213562373095, -10], [0, 0, 0, 1]]"]
 )

@@ -59,20 +59,20 @@ Coor.get_pose = function(reference_coordinate_system){
             }
         }
         let common_to_base = Vector.make_pose()
-        for(i = base_idx; i < base_path.length; i++){
+        for(let i = base_idx; i < base_path.length; i++){
         	obj_elt = base_path[i]
         	common_to_base = Vector.matrix_multiply(common_to_base, obj_elt.pose)
         }
         //common_to_base = Vector.matrix_multiply(common_to_base, base.pose)
         
-        for(i = 1; i < ref_path.length; i++){
+        for(let i = 1; i < ref_path.length; i++){
         	if (common === ref_path[i]){
             	ref_idx = i
                 break
             }
         }
         let common_to_ref = Vector.make_pose()
-        for(i = ref_idx; i < ref_path.length; i++){
+        for(let i = ref_idx; i < ref_path.length; i++){
         	obj_elt = ref_path[i]
         	common_to_ref = Vector.matrix_multiply(common_to_ref, obj_elt.pose)
         }
@@ -237,7 +237,7 @@ Coor.move_vectors_to_coor = function(vectors, destination_coordinate_system, ref
 
 
 /*
-var board = Table.create_child(Vector.make_pose([0, 0, 1000], [0, 0, 324000]), "board")
+var board = Coor.Table.create_child(Vector.make_pose([0, 0, 1000], [0, 0, 324000]), "board")
 var points = [[1, 2, 3], [4, 5, 6]]
 debugger
 var result = Coor.move_points_to_coor(points, board)

@@ -91,17 +91,6 @@ function dde_version_between(min=null, max=null, action="error"){ //"error", "wa
 module.exports.dde_version_between = dde_version_between
 
 
-function patch_until(before_source=null, version, equal_and_after_source=null){
-    if(version_less_than(version, dde_version)) {
-        if (before_source) { return eval(before_source) }
-    }
-    else { //if version is more than or equal to the current dde_version, do this clause
-        if (equal_and_after_source) { return eval(equal_and_after_source) }
-    }
-}
-module.exports.patch_until = patch_until
-
-
 var primitive_types = ["undefined", "boolean", "string", "number"] //beware; leave out null because
   //for some strange reason, null is of type "object"
 
@@ -219,23 +208,33 @@ function is_string_a_path(path_string_maybe){
 }
 module.exports.is_string_a_path = is_string_a_path
 
-
-
-function is_literal_object(value){
-    if(value === null) { return false } // because typeof(null) == "object")
-    else if(typeof(value) == "object") {
-        return (Object.getPrototypeOf(value) === Object.getPrototypeOf({}))
-    }
-    else { return false }
-}
-module.exports.is_literal_object = is_literal_object
-
 //not perfect as could be escape sequences, internal quotes, but pretty good
 function is_string_a_literal_array(a_string){
     if (a_string.startsWith('[') && a_string.endsWith(']')) { return true }
     else { return false }
 }
 module.exports.is_string_a_literal_array = is_string_a_literal_array
+
+//normal base64 chars are only letters, digits, plus_sign and slash
+//but *some* base64 has \n every 76 chars, and sometimes there's a
+//trailing newline.
+function is_string_base64(a_string, permit_trailing_newline=false) {
+   if(typeof(a_string) === "string") {
+       if(raw_is_base64_string(a_string)) { return true }
+       else if(permit_trailing_newline  &&
+               (last(a_string) == "\n") &&
+               (is_integer(a_string.length - 1) / 4)) {
+          //normal base64 length is a multiple of 4. since these strings can be long,
+          //I don't want to unnecessarily make a long string
+           a_string = a_string.substr(0, (a_string.length - 1))
+           return raw_is_base64_string(a_string)
+       }
+       else { return false }
+   }
+   else { return false } //raw_is_base64_string(null) => true which is bad, but
+    // that's in the pkg I'm using, so I do the extra check to ensure non-strings return false
+}
+module.exports.is_string_base64 = is_string_base64
 
 function is_whitespace(a_string){
     return a_string.trim().length == 0
@@ -262,6 +261,14 @@ function is_comment(a_string){
 
 module.exports.is_comment = is_comment
 
+function is_literal_object(value){
+    if(value === null) { return false } // because typeof(null) == "object")
+    else if(typeof(value) == "object") {
+        return (Object.getPrototypeOf(value) === Object.getPrototypeOf({}))
+    }
+    else { return false }
+}
+module.exports.is_literal_object = is_literal_object
 
 
 function is_generator_function(obj){
@@ -345,10 +352,12 @@ function rgb_string_to_integer_array(str){
 }
 module.exports.rgb_string_to_integer_array = rgb_string_to_integer_array
 
-//not used jan 2019
+
 function integer_array_to_rgb_string(arr3){
     return "rgb(" + arr3[0] + ", " + arr3[1] + ", " + arr3[2] + ")"
 }
+module.exports.integer_array_to_rgb_string = integer_array_to_rgb_string
+
 //________Date________
 function is_valid_new_date_arg(string_or_int){
     const timestamp = Date.parse(string_or_int)
@@ -1934,6 +1943,22 @@ function string_to_seconds(dur){
 }
 module.exports.string_to_seconds = string_to_seconds
 
+
+//note that the JS fns atob and btoa are defined in DDE proper
+//but are not in node.js so they don't work on the Job Engine.
+//So these are defined and will work on both DDE and Job Engine under node.
+function base64_to_binary_string(str) {
+    return Buffer.from(str, 'base64').toString('binary')
+}
+
+module.exports.base64_to_binary_string = base64_to_binary_string
+
+function binary_to_base64_string(str) {
+    return Buffer.from(str, 'binary').toString('base64')
+}
+
+module.exports.binary_to_base64_string = binary_to_base64_string
+
 //user fn but not called in dde, jan 2019
 function make_ins_arrays(default_oplet, instruction_arrays=[]){
     let result = []
@@ -1954,6 +1979,7 @@ function make_ins_arrays(default_oplet, instruction_arrays=[]){
 }
 module.exports.make_ins_arrays = make_ins_arrays
 
+var raw_is_base64_string = require('is-base64');
 var nano_time = require("nano-time")
 var semver = require("semver")
 var {Instruction} = require("./instruction.js")

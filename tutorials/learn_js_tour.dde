@@ -112,20 +112,4 @@ Lesson.make_tour({name: "Learn JavaScript", steps: [
      ]
 ]}).start()
 
-/*
-//Click the Eval button to define and call the function 'foo'.
-function foo(a, b){ //define function foo with 2 args
-    out("foo called with a=" + a) //print 1st arg to Output pane.
-    for(var item of b){ //loop over items in array b
-        if (item > 9.9){
-            out("got a big one: " + item)
-        }
-    }
-    return b.length //foo returns the length of its 2nd arg.
-                    //After calling, observe '4' in the Output pane.
-}
-
-foo("hello", [7, 10, 20, -3.2]) //call function foo with 2 args
-                                //a string and an array of numbers.
-*/
 

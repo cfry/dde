@@ -804,6 +804,7 @@ Instruction.grab_robot_status = class grab_robot_status extends Instruction{
     }
 }
 
+/*
 Instruction.human_recognize_speech = class human_recognize_speech extends Instruction{
     constructor (args){
         super()
@@ -832,7 +833,7 @@ Instruction.human_recognize_speech = class human_recognize_speech extends Instru
         args.value = this.args
         return this_indent + "Human.recognize_speech(" + to_source_code(args) + ")"
     }
-}
+}*/
 
 Instruction.human_speak = class human_speak extends Instruction{
     constructor (args){

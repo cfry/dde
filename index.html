@@ -74,7 +74,7 @@
             }
     </style>
     <script type="text/javascript" src="stacktrace.min.js"></script>
-    <script type="text/javascript" src="mark.min.js" charset="UTF-8"></script> <!-- https://markjs.io  for marking found search terms in the documentation -->
+    <!--<script type="text/javascript" src="mark.min.js" charset="UTF-8"></script> --> <!-- https://markjs.io  for marking found search terms in the documentation -->
 
     <!-- ROS interface -->
     <!-- From http://cdn.robotwebtools.org/EventEmitter2/current/eventemitter2.min.js on dec 19, 2015 for Chrome app-->
@@ -207,8 +207,8 @@
     <script type="text/javascript" src="splash_screen.js"></script>
     <script type="text/javascript" src="lesson_code.js"></script>
 
-
     <script type="text/javascript" src="load_job_engine.js"></script>
+    <script type="text/javascript" src="patch_dde.js"></script> <!--doesn't load patches, just the system for dealing with them -->
 
     <script type="text/javascript" src="ready.js"></script>
     <link rel="stylesheet" href="styles.css" type="text/css"/>
@@ -810,7 +810,7 @@
                         <!--<div style='display:inline-block;' id="find_doc_input_id"/> -->
                         <button id="find_doc_button_id" title="Find documentation on text to the left&#013;or, if none, selected text anywhere.">Find</button>&nbsp;
                       </div>
-                        <span id="help_system_id" title="Show the Welcome dialog box&#013;which lets you select tutorials to take."><b style="font-size:24px;color:blue;vertical-align:bottom;float:right;">?</b></span>
+                        <span id="help_system_id" title="Show the Welcome dialog box&#013;which lets you select tutorials to take."><b style="font-size:24px; color:blue; vertical-align:bottom; float:right; cursor:pointer;">?</b></span>
                        <!--  <button id="eval_doc_button_id" title="Evaluated the selected code&#013;in the Doc pane.&#013;Result goes in the Output pane.ƒ">Eval Doc</button> obsolete now that Out pane Eval button can do this-->
                     </div>
                     <div id="doc_pane_content_id" contentEditable="false" style="width:97%; height:90%;padding:5px;overflow:scroll;">

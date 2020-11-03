@@ -1931,6 +1931,7 @@ Editor.find_matching_close = function(full_src, cursor_pos=0){
     var open_delim    = full_src[cursor_pos]
     var close_delim   = Editor.matching_delimiter(open_delim)
     var closes_needed = 0
+    var close_star_slash_comments_needed = 0
     for (var i = cursor_pos; i < full_src.length; i++){
         var char = full_src[i]
         if (char == open_delim) closes_needed += 1
@@ -1954,6 +1955,22 @@ Editor.find_matching_close = function(full_src, cursor_pos=0){
             var newline_pos = full_src.indexOf("\n", i)
             if (newline_pos) { i = newline_pos }
             else return null //no chars after the // comment
+        }
+        else if ((char == "/") &&
+            //could be "http://foo.com", which I don't handle.
+            (i < (full_src.length - 1)) &&
+            (full_src[i + 1] == "*")){ //got /* beginning of comment. skip over the whole comment.
+            var end_of_comment_pos = full_src.indexOf("*/", i)
+            if (end_of_comment_pos) { i = end_of_comment_pos + 2 }
+            else return null //there is no corresponding star-slash so give up and return null. Badly formed half comment.
+        }
+        else if ((char == "*") &&
+                 (i < (full_src.length - 1)) &&
+                (full_src[i + 1] == "/")){ //found star-slash ie end of comment.
+                    //this shouldn't happen if you clicked in non comment code.
+                    //But if you clicked in comment code, we found the end of the comment,
+                    //so no matching close
+            return null
         }
     }
     return null
@@ -2698,7 +2715,10 @@ Editor.show_identifier_info_for_type_in = function(event){
     Editor.show_identifier_info(full_src, pos)
 }
 
+Editor.enable_click_help = true
+
 Editor.show_identifier_info = function(full_src=Editor.get_javascript(), pos=Editor.selection_start(), html_elt){
+  if(Editor.enable_click_help){
     var identifier = Editor.identifier_or_operator(full_src, pos)
     if (identifier){
         let lang = cmd_lang_id.value
@@ -2730,6 +2750,7 @@ Editor.show_identifier_info = function(full_src=Editor.get_javascript(), pos=Edi
             }
         }
     }
+  }
 }
 
 //for Job menu/Run Instruction/selection

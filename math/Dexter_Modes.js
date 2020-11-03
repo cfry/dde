@@ -150,5 +150,5 @@ function setOpenLoop(robot){
     return result
 }
 
-	module.exports.setOpenLoop = setOpenLoop
-	var {Instruction, make_ins} = require("../core/instruction.js")
+module.exports.setOpenLoop = setOpenLoop
+var {Instruction, make_ins} = require("../core/instruction.js")

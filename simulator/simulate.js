@@ -20,8 +20,16 @@ var sim = {} //used to store sim "global" vars
 sim.hi_rez = true
 
 //var THREE_font_loader = new THREE.FontLoader();
+var init_simulation_done = false
+function init_simulation_maybe(){
+    if(init_simulation_done) {}
+    else {
+        init_simulation_done = true //needs to be done first as if init_simulation has already started we don't
+         //dont want to start it again.
+        init_simulation()
 
-//called by ready
+    }
+}
 function init_simulation(){
   try{
     init_mouse()

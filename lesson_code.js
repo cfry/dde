@@ -2,9 +2,98 @@ set_css_properties(".shepherd_step {background-color:#ffcdb0; width:300px;}")
 set_css_properties(".shepherd-modal-overlay-container.shepherd-modal-is-visible{opacity:0.4}")
 
 var Lesson = class Lesson{
-    static make_button_html({icon="right_triangle", //also "info", "pencil" OR any html esp entity references like "&lt;"
+    /*always returns the constructed HTML, and, if there's a location, sticks it somewhere
+    name=null, //but can be any string
+    steps=[], //array of html strings, most commonly constructed by calls to make_button_html
+    location = null, //null, "doc_pane_top_level", dom elt, string-that-evals-to_don_elt, doc_pane_details_summary_string, "show_window" to make a new show_window
+    position = "beforeend", //one of "beforebegin", "afterbegin", "beforeend", "afterend"
+    html_wrapper="details", //typically "details", "fieldset", "div" or null for  none.
+    open = false,
+    add_spinner=true,
+    default_method="show_in_misc_pane"}){ //for text & html "steps".
+   */
+    static make_button_column({name=null,
+                               steps=[],
+                               location = null,
+                               position = "beforeend",
+                               html_wrapper="details",
+                               open = false,
+                               add_spinner=true,
+                               default_method="show_in_misc_pane"}){
+        let html = ""
+        let html_suffix = ""
+        let spinner_html = ""
+        if(add_spinner) {
+            spinner_html = `&nbsp;<input type="number", onclick="Lesson.spinner_onclick(event, '` + default_method + `')" value="0", min="1", max="` +
+                            steps.length +
+                            '" style="width:30px; height:20px; font-size:14px;"/>' +
+                           " of " + steps.length
+        }
+        if(typeof(name) == "string"){
+            if(html_wrapper == "details") {
+                let open_html = (open? "open" : "")
+                let details_class_html = ((location == "doc_pane_top_level") ? "" : " class='doc_details' ")
+                let summary_class_html = ((location == "doc_pane_top_level") ? " class='doc_top_level_summary' " : "")
+                html += "<details class='steps_container' " + details_class_html + open_html +
+                        "><summary " + summary_class_html +
+                        "><b>" + name +
+                        spinner_html + "</b></summary>\n"
+                html_suffix = "\n</details>"
+            }
+            else if(html_wrapper == "fieldset") {
+                html += "<fieldset  class='steps_container' " + "><legend><b>" + name + "</b></legend>\n"
+                html_suffix = "\n</fieldset>"
+            }
+            else if(html_wrapper){ //like "div"
+                html += "<" + html_wrapper + " class='steps_container'><b>" + name + "</b><br/>\n"
+                html_suffix = "\n</" + html_wrapper + ">"
+            }
+            //else no wrapper
+        }
+        html += "<table style='border-width:0px;'>"
+        for(let i = 0; i < steps.length; i++){
+            let step = steps[i]
+            let action =    ((step.startsWith("<button ")) ? "" : ` onclick="Lesson.outer_step_onclick(event, '` + default_method + `')" `)
+            let td_style_extra =  ((step.startsWith("<button ")) ? "" : "max-height:20px; display:block; overflow:hidden; border-style:solid; border-width:1px;")
+            step = '<tr class="step_wrapper" ' + action + 'margin-top:10px;margin-left:20px;' +
+                       '"><td style="border:none;">&nbsp;&nbsp;&nbsp</td>' +  //checkmark container
+                         '<td style="border:none;">' + (i + 1) + '. </td>' +  //step number container
+                         '<td style="border:none;'   + td_style_extra + '">' + step + '</td>' +
+                   '</tr>' //inner_step container
+            //if(i < (steps.length - 1)) {step += "<br/>"}
+            html += step
+        }
+        html += "</table>" + html_suffix
+        let location_dom_elt = ((location instanceof HTMLElement) ? location : value_of_path(location))
+        if(location == "doc_pane_top_level") {
+            location_dom_elt = doc_pane_content_id
+        }
+        if(location === "show_window"){
+            show_window({title: name,
+                        content: html
+                       })
+        }
+        else if(location_dom_elt instanceof HTMLElement) {
+            let valid_positions = ["beforebegin", "afterbegin", "beforeend", "afterend"]
+            if(!valid_positions.includes(position)){
+                dde_error('make_button_column passed position of: <code>"' + position +
+                    '"</code><br/> that is not one of "' + valid_positions.join('", "') + '"')
+            }
+            else {
+                location_dom_elt.insertAdjacentHTML(position, html)
+            }
+        }
+        else if(typeof(location) === "string"){ //we've got a details-summary string.
+            insert_html_into_doc_pane(html, location, position)
+        }
+        //else we're not installing this html anywhere, just return it.
+        return html
+    }
+
+    //icon can also be: "info", "pencil" OR any html esp entity references like "&lt;"
+    static make_button_html({icon="right_triangle",
                              label="",
-                             check_when_clicked=true,
+                             tooltip="",
                              method="show_in_misc_pane",
                              args=[],
                              start,
@@ -16,7 +105,7 @@ var Lesson = class Lesson{
         else if(icon == "pencil")         { icon = "&#9998;"}
         let full_label = ""
         full_label += icon
-        if(start) {
+        if(start !== undefined) { //I want to capture if its 0
             start = string_to_seconds(start)
             if(end) {
                 end = string_to_seconds(end)
@@ -24,7 +113,7 @@ var Lesson = class Lesson{
             }
             else { full_label += " " + start }
         }
-        else if (end) {
+        else if (end !== undefined) {
             end = string_to_seconds(end)
             full_label += " - " + end
         }
@@ -36,35 +125,109 @@ var Lesson = class Lesson{
             if(!arg0.includes("?")) { //the usual
                 arg0 += "?"
                 if(autoplay)  { arg0 += "autoplay=1&" }
-                if(start) { start = string_to_seconds(start)
+                if(start !== undefined) { start = string_to_seconds(start) //we want to capture 0
                             arg0 += "start=" + start + "&"
                 }
-                if(end)   { end   = string_to_seconds(end)
-                            arg0 += "end=" + end + "&"
+                if(end !== undefined)   { end   = string_to_seconds(end)
+                            arg0 += "end=" + end
                 }
             }
             args[0] = arg0
         }
-        let action = ""
-        if(check_when_clicked) { action += "check_inner_html(event); " }
+        let click_args = ""
         if(method){
             let args_src_arr = []
             for(let arg of args){
                 let src = to_source_code({value: arg}) //wraps double quotes around strings.
-                src = replace_substrings(src, '"', "'") //use single quotes for inner action
+                src = replace_substrings(src, '"', "'") //use double quotes for inner action, but could use single quotes instead
                 args_src_arr.push(src)
             }
-            action += method + "("  + args_src_arr.join(", ") + ");"
+            click_args = args_src_arr.join(", ")
         }
-
-        let result = '<button style="margin-top:5px;margin-left:20px;" ' +
-                     '\n         onclick="' + action + '">' +
-                      "\n " + full_label + "</button>"
-
-        return result
+        //action = "out('789')"
+        let html_result = "<button " + "title='" + tooltip + "' " +
+                          `onclick="Lesson.outer_step_onclick(event, '` + method + "', " + click_args + `)" ` + // works: 'onclick="out(456)
+                          ">" +
+                          full_label + "</button>"  //note: lots of trouble stepping thru this code,
+                          //and displaying it in the output pane. But works if put into its own show_window.
+        return html_result
     }
 
-   //// TOUR
+    static check_inner_html(event){
+        let the_elt = event.target //usually a button element
+        if(the_elt.innerText.charCodeAt(0) !== 10003) { //only put at most 1 checkmark.
+            the_elt.innerHTML = "<b>&check;</b>" + the_elt.innerHTML //"&#10003;"
+        }
+    }
+    static do_check_inner_step_elt(inner_step_elt){
+        let tr_elt = inner_step_elt.closest("TR")
+        let checkmark_td_elt = tr_elt.firstElementChild
+        checkmark_td_elt.innerHTML = "<b>&check;</b>" //just always check it, even if already checked. Its simpler
+        //if(outer_dom_elt.innerText.charCodeAt(0) !== 10003) { //only put at most 1 checkmark.
+        //    the_elt.innerHTML = "<b>&check;</b>" + the_elt.innerHTML //"&#10003;"
+        //}
+    }
+
+    static button_step_onclick(event, method, ...args){
+        let inner_step_elt = event.target //a button dom elt.
+        this.do_inner_step_elt_action(inner_step_elt, method, ...args)
+    }
+
+    //the action for user clicking on an html step not a button step. event.target is the outer (div) html elt.
+    static outer_step_onclick(event, default_method, ...args) {
+        let inner_step_elt = event.target //even though the onclick is on the outer div, when you click on the text
+                                          //the event target is the inner div.
+        if(inner_step_elt.className === "step_wrapper"){ //whoops, user really clicked on the OUTER step div
+            inner_step_elt = inner_step_elt.children[2]
+        }
+        //let kids = outer_step_elt.children
+        //let inner_step_elt = kids[2]
+        this.do_inner_step_elt_action(inner_step_elt, default_method, args)
+    }
+
+    static spinner_onclick(event, default_method, ...args){
+       let spinner_dom_elt = event.target
+       let steps_container =  spinner_dom_elt.closest(".steps_container")
+       let table_dom_elt   =  steps_container.querySelector("table")
+       let tr_elts         = table_dom_elt.children[0].children
+       //let buttons_elts = the_steps_container.children
+       //let button_elts_len = buttons_elts.length
+       //let first_step_index = ((["DETAILS", "FIELDSET"].includes(the_steps_container.tagName)) ? 1 : 0)
+       let ui_index = parseInt(spinner_dom_elt.value) //this is intended to be 1 based. so 1 means the first step
+       if(ui_index < 1) { //happens at very beginning when 0 is shown and user clicks down arrow,
+                            //this causes big problems if shown
+           warning("Clicking down arrow isn't valid when index shown is 0.<br/>" +
+                    "Please click the up arrow to perform the first step.")
+           return
+
+       }
+       let tr_elt_index =  ui_index - 1 //make it 0 based.
+       let tr_elt = tr_elts[tr_elt_index]
+       let td_elt = tr_elt.children[2]
+       let inner_step_elt = td_elt.firstElementChild
+       this.do_inner_step_elt_action(inner_step_elt, default_method, args)
+    }
+
+    //called indirectly from onclick for spinner, button, and outer-html onclicks.
+    static do_inner_step_elt_action(inner_step_elt, method, args){
+        let meth = value_of_path(method) //usually "show_in_misc_pane"
+        if(!Array.isArray(args)) { args = [] }
+        if(inner_step_elt.tagName === "BUTTON"){
+            if(args.length === 0) { //happens the first time around when we don't have the args.
+                inner_step_elt.click()
+            }
+            else { //happens the second time around when we have args, ie play a video
+                meth.apply(null, args)
+            }
+        }
+        else { //inner_step_elt is not a button
+            args.unshift(inner_step_elt)
+            meth.apply(null, args)
+        }
+        this.do_check_inner_step_elt(inner_step_elt)
+    }
+
+   //_________ TOUR ____________
     static tours = []
     static get_tour(tourName){
         for(let tour of this.tours){
@@ -217,7 +380,7 @@ var Lesson = class Lesson{
 }
 var Shepherd = require("shepherd.js")
 /*
-Lesson.make_button_html({label: Introduction, start: 15, end: "1:30", args: "https://www.youtube.com/embed/Al2NUrO4HAU"}
+Lesson.make_button_html({label: "Introduction", start: 15, end: "1:30", args: "https://www.youtube.com/embed/Al2NUrO4HAU"})
 
     <button style="margin-top:5px;margin-left:20px;"
 onclick='check_inner_html(event); show_in_misc_pane("https://www.youtube.com/embed/Al2NUrO4HAU?autoplay=1&start=0&end=11")'>

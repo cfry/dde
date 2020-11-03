@@ -25,15 +25,24 @@ function dde_error(message){
 }
 
 function warning(message, temp=false){
-    let out_string
-    let stack_trace = "Sorry, a stack trace is not available."
-    if(window["replace_substrings"]){
-        let err = new Error();
-        stack_trace = replace_substrings(err.stack, "\n", "<br/>")
+    if(message){
+        let out_string
+        let stack_trace = "Sorry, a stack trace is not available."
+        if(window["replace_substrings"]){
+            try{  //if I don't do this, apparently the new error is actually throw, but
+                  //it really shouldn't be according to:
+                  // https://stackoverflow.com/questions/41586293/how-can-i-get-a-js-stack-trace-without-halting-the-script
+                let err = new Error();
+                stack_trace = replace_substrings(err.stack, "\n", "<br/>")
+                //get rid of the "Error " at the beginning
+                stack_trace = stack_trace.substring(stack_trace.indexOf(" "))
+            }
+            catch(an_err) {}
+        }
+        out_string = "<details><summary><span class='warning_css_class'>Warning: " + prepend_file_message_maybe(message) +
+            "</span></summary>" + stack_trace + "</details>"
+        out(out_string, undefined, temp)
     }
-    out_string = "<details><summary><span class='warning_css_class'>Warning: " + prepend_file_message_maybe(message) +
-        "</span></summary>" + stack_trace + "</details>"
-    out(out_string, undefined, temp)
 }
 
 function function_name(fn_or_src){
@@ -338,6 +347,8 @@ static render_show_window(properties){
     show_window_elt.ondragend = function(event) {
         event.target.setAttribute('draggable', 'false')
     };
+
+    //show_window_elt.onresize = function(event){}
 
     body_id.ondragenter = this.sw_ondragenter
     body_id.ondragover = this.sw_allow_drop

@@ -43,19 +43,20 @@ function clear_out_sim_graphics_pane_id(){
 }
 
 var prev_make_instruction_src = undefined
+var init_sim_in_process = false
 //choose_file_path matters if select_val == "Choose File", and is only passed in
 //when initing DDE/ It is the full file path of the file to be shown
-function show_in_misc_pane(select_val, arg1 = "", arg2){
+function show_in_misc_pane(content, arg1 = "", arg2){
     //if Choose File is called from outside dialog, and user cancels, we don't want to
     //change the combo_box value OR persistent save it.
     //But if user doesn't cancel, we DO want to change the combo box value, and,
     //if the value is good, persistent save it.
-    if (select_val == "Choose File") {
-        select_val = choose_file() //will be undefined if user cancels the dialog box.
-        if(select_val) {
+    if (content == "Choose File") {
+        content = choose_file() //will be undefined if user cancels the dialog box.
+        if(content) {
             $("#misc_pane_menu_id").jqxComboBox('unselectItem', "Choose File") //must do!
-           // just let it fall through ////old: return show_in_misc_pane(select_val) //$('#misc_pane_menu_id').jqxComboBox('val', select_val) //causes show_in_misc_pane to be called with the chosen value
-            $("#misc_pane_menu_id").jqxComboBox('val', select_val)
+           // just let it fall through ////old: return show_in_misc_pane(content) //$('#misc_pane_menu_id').jqxComboBox('val', content) //causes show_in_misc_pane to be called with the chosen value
+            $("#misc_pane_menu_id").jqxComboBox('val', content)
         }
         else { //user canceled from choose file dialog so don't persistent-save the value.
             //leave combo_box val at "choose file" which won't match content, but we might
@@ -67,53 +68,75 @@ function show_in_misc_pane(select_val, arg1 = "", arg2){
             return
         }
     }
-    if(select_val != $('#misc_pane_menu_id').jqxComboBox('val')) { //show_in_misc_pane called from outside,
+    let orig_content = $('#misc_pane_menu_id').jqxComboBox('val')
+    if(content != orig_content) {
+    //if(content != orig_content) { //show_in_misc_pane called from outside,
     // and via user typing in  or selecting item from combo box
-    // so get the val in the combo box to be the same as select_val
-        $("#misc_pane_menu_id").jqxComboBox('val', select_val);
-        //$('#misc_pane_menu_id').jqxComboBox('val', select_val) //this will cause combon box's onchange event, defined in ready.js to call show_in_misc_pane again,
-        // but this new time, select_val WILL equal what's in the combo-box val so tis clause doesn't hit
+    // so get the val in the combo box to be the same as content
+        $("#misc_pane_menu_id").jqxComboBox('val', content);
+        //$('#misc_pane_menu_id').jqxComboBox('val', content) //this will cause combon box's onchange event, defined in ready.js to call show_in_misc_pane again,
+        // but this new time, content WILL equal what's in the combo-box val so tis clause doesn't hit
        // setTimeout(function() {
-       //     show_in_misc_pane(select_val)
+       //     show_in_misc_pane(content)
        // }, 100)
-       // return
+       //return //note that calling $("#misc_pane_menu_id").jqxComboBox('val', content), will cause
+              //show_in_misc_pane to be called again due to the combo box's on select.
     }
     if(MakeInstruction.is_shown()) { //so that in case this or some later call to show_in_misc_pane
                                      // is "Make Instruction", we know what content to fill it with
         prev_make_instruction_src = MakeInstruction.dialog_to_instruction_src()
     }
-    let select_val_is_good = false //presume bad until proven otherwise, esp because some of the time we don't find out
+    let content_is_good = false //presume bad until proven otherwise, esp because some of the time we don't find out
     // if it's bad until after a callback, and we don't want to save a bad value.
     // we'd rather leave the prev good value in the persistent save.
-
-    select_val = replace_substrings(select_val, "__dirname", __dirname)
-    try {
-    if (select_val == "Simulate Dexter") {
-        //video_player_id.style.display      = "none";
-        sim_pane_content_id.innerHTML =
-           '<div style="white-space:nowrap;">Simulate Job/Robot: <select id="job_or_robot_to_simulate_id">' +
-            '</select><b style="margin-left:15px;">Move Dur: </b><span id="sim_pane_move_dur_id"></span> s' +
-            ' <button onclick="SimBuild.init()">Load SimBuild</button></div>' +
-            '<b title="X position of end effector in meters.">X: </b><span id="sim_pane_x_id" style="min-width:50px; text-align:left; display:inline-block"></span>' +  //"margin-left:5px;
-            '<b title="Y position of end effector in meters."> Y: </b><span id="sim_pane_y_id" style="min-width:50px; text-align:left; display:inline-block"></span>' +  //"margin-left:5px;
-            '<b title="Z position of end effector in meters."> Z: </b><span id="sim_pane_z_id" style="min-width:50px; text-align:left; display:inline-block"></span>' +  //"margin-left:5px;
-            '<div style="white-space:nowrap;">' +
-            '<b title="Joint 1 angle in degrees."> J1: </b><span id="sim_pane_j1_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +  //"margin-left:5px;
-            '<b title="Joint 2 angle in degrees."> J2: </b><span id="sim_pane_j2_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +
-            '<b title="Joint 3 angle in degrees."> J3: </b><span id="sim_pane_j3_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +
-            '<b title="Joint 4 angle in degrees."> J4: </b><span id="sim_pane_j4_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +
-            '<b title="Joint 5 angle in degrees."> J5: </b><span id="sim_pane_j5_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +
-            '<b title="Joint 6 angle in degrees."> J6: </b><span id="sim_pane_j6_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +
-            '<b title="Joint 7 angle in degrees."> J7: </b><span id="sim_pane_j7_id" style="min-width:30px; text-align:left; display:inline-block"></span></div>' +
-            '<div id="sim_graphics_pane_id"></div>'
-        refresh_job_or_robot_to_simulate_id()
-        open_doc(simulate_pane_doc_id)
-        init_simulation()
-        //sim.renderer.render(sim.scene, sim.camera);
-        SimUtils.render_once_with_prev_args_maybe() //restore sim graphics to prev state
-        select_val_is_good = true
+    if(content instanceof HTMLElement){
+        sim_pane_content_id.innerHTML = ""
+        let content_copy = content.cloneNode(true) //true means copy all children on down.
+            //must copy because otherwise content is removed from its original place and put here,
+            //but we want to leave it in its button_column for example.
+        sim_pane_content_id.appendChild(content_copy)
+        return
+        //do not attempt to save the elt persistently. We just don't return to this if we launch dde.
     }
-    else if (select_val.startsWith("create_dexter_marker")){
+    content = replace_substrings(content, "__dirname", __dirname)
+    if((content == "Simulate Dexter") && init_sim_in_process){
+        return
+    }
+    else {
+        init_sim_in_process = false
+    }
+    try {
+    if (content == "Simulate Dexter") {
+            init_sim_in_process = true
+            sim_pane_content_id.innerHTML =
+               '<div style="white-space:nowrap;">Simulate Job/Robot: <select id="job_or_robot_to_simulate_id">' +
+                '</select><b style="margin-left:15px;">Move Dur: </b><span id="sim_pane_move_dur_id"></span> s' +
+                ' <button onclick="SimBuild.init()">Load SimBuild</button></div>' +
+                '<b title="X position of end effector in meters.">X: </b><span id="sim_pane_x_id" style="min-width:50px; text-align:left; display:inline-block"></span>' +  //"margin-left:5px;
+                '<b title="Y position of end effector in meters."> Y: </b><span id="sim_pane_y_id" style="min-width:50px; text-align:left; display:inline-block"></span>' +  //"margin-left:5px;
+                '<b title="Z position of end effector in meters."> Z: </b><span id="sim_pane_z_id" style="min-width:50px; text-align:left; display:inline-block"></span>' +  //"margin-left:5px;
+                '<div style="white-space:nowrap;">' +
+                '<b title="Joint 1 angle in degrees."> J1: </b><span id="sim_pane_j1_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +  //"margin-left:5px;
+                '<b title="Joint 2 angle in degrees."> J2: </b><span id="sim_pane_j2_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +
+                '<b title="Joint 3 angle in degrees."> J3: </b><span id="sim_pane_j3_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +
+                '<b title="Joint 4 angle in degrees."> J4: </b><span id="sim_pane_j4_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +
+                '<b title="Joint 5 angle in degrees."> J5: </b><span id="sim_pane_j5_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +
+                '<b title="Joint 6 angle in degrees."> J6: </b><span id="sim_pane_j6_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +
+                '<b title="Joint 7 angle in degrees."> J7: </b><span id="sim_pane_j7_id" style="min-width:30px; text-align:left; display:inline-block"></span></div>' +
+                '<div id="sim_graphics_pane_id"></div>'
+            refresh_job_or_robot_to_simulate_id()
+            open_doc(simulate_pane_doc_id)
+            init_simulation()
+            //sim.renderer.render(sim.scene, sim.camera);
+            setTimeout(function() {
+                         //SimUtils.render_once_with_prev_args_maybe()}, //restore sim graphics to prev state, is way off in restoring robot position
+                         //SimUtils.render_multi(robot_status, job_name, robot_name
+                         SimUtils.render_multi_with_prev_args_maybe()},
+                       100)
+       //}
+        content_is_good = true
+    }
+    else if (content === "create_dexter_marker"){
         sim_pane_content_id.innerHTML ='<div id="sim_graphics_pane_id"></div>'
         init_simulation()
         let xyz = arg1
@@ -121,46 +144,46 @@ function show_in_misc_pane(select_val, arg1 = "", arg2){
         create_marker_mesh(xyz, rotzyz)
         sim.renderer.render(sim.scene, sim.camera)
         //SimUtils.render_once_with_prev_args_maybe()
-        select_val_is_good = true
+        content_is_good = true
     }
-    else if(select_val === "Dexter Photo"){
+    else if(content === "Dexter Photo"){
         let file_name = __dirname + "/doc/HD+Robotics-8517.jpg" //Dexter and Kent
         sim_pane_content_id.innerHTML = "<img src='" + file_name + "' style='width:100%;'/>"
-        select_val_is_good = true
+        content_is_good = true
     }
-    else if(select_val === "Dexter Architecture"){
+    else if(content === "Dexter Architecture"){
         let file_name = __dirname + "/doc/dexter_architecture.jpg"
         sim_pane_content_id.innerHTML = "<img src='" + file_name + "' style='width:100%;'/>"
-        select_val_is_good = true
+        content_is_good = true
     }
-    else if (select_val == "Reference Manual"){
+    else if (content == "Reference Manual"){
         let div_html = `<div contenteditable='false' 
                             style='height:100%; width:100%; padding:5%; background-color:#DDDDDD; overflow:scroll;'>` +
             "<div style='font-size:18px; font-weight:700;'>Reference Manual</div>"
-        let content = read_file(__dirname + "/doc/ref_man.html")
+        content = read_file(__dirname + "/doc/ref_man.html")
         //sim_graphics_pane_id.style = "width:97%; height:90%; padding:5%; background-color:white; overflow:scroll !important;"
         sim_pane_content_id.innerHTML = div_html + content + "</div>"
-        select_val_is_good = true
+        content_is_good = true
     }
-    else if (select_val == "Make Instruction"){
+    else if (content == "Make Instruction"){
         MakeInstruction.show(prev_make_instruction_src) //if arg value is undefined, show the default move_all_joints, otherwise, its previous state
         open_doc(make_instruction_pane_doc_id)
-        select_val_is_good = true
+        content_is_good = true
     }
-    else if (select_val == "Haddington Website"){ //Will work for https:// ...
-        let content = "<iframe src='http://www.hdrobotic.com' width='100%' height='100%'/>" //no way to catch an error like 404 here due to security restrictions.
+    else if (content == "Haddington Website"){ //Will work for https:// ...
+        content = "<iframe src='http://www.hdrobotic.com' width='100%' height='100%'/>" //no way to catch an error like 404 here due to security restrictions.
         sim_pane_content_id.innerHTML = content
-        select_val_is_good = true
+        content_is_good = true
     }
-    else if (select_val.startsWith("http")){ //Will work for https:// ...
+    else if (content.startsWith("http")){ //Will work for https:// ...
             // Put before extension checking because of http://foo.jpg could be displayed if http checking before extension checking
-        let content = "<iframe src='" + select_val + "' width='100%' height='100%'/>" //no way to catch an error like 404 here due to security restrictions.
+        content = "<iframe src='" + content + "' width='100%' height='100%'/>" //no way to catch an error like 404 here due to security restrictions.
         sim_pane_content_id.innerHTML = content
         //might error with file not found or can't use content, so don't persist the url just in case.
     }
 
-    else if (select_val.endsWith(".stl")){
-        if(file_exists(select_val)){
+    else if (content.endsWith(".stl")){
+        if(file_exists(content)){
             sim_pane_content_id.innerHTML = '<div id="sim_graphics_pane_id"></div>'
 
             //from: init_simulation()
@@ -194,11 +217,11 @@ function show_in_misc_pane(select_val, arg1 = "", arg2){
             }
             var STLLoader = require('three-stl-loader')(THREE)
             var loader = new STLLoader()
-            loader.load(select_val, function (geometry) {
+            loader.load(content, function (geometry) {
                 var material = new THREE.MeshNormalMaterial()
                 var mesh = new THREE.Mesh(geometry, material)
                 mesh.scale.set(0.001, 0.001, 0.001)
-                mesh.name = select_val
+                mesh.name = content
                 the_scene.add(mesh)
                 //the_renderer.render(sim.scene, sim.camera)
                 animate()
@@ -211,20 +234,20 @@ function show_in_misc_pane(select_val, arg1 = "", arg2){
             // from https://threejs.org/docs/#examples/en/controls/OrbitControls
 
             animate()*/
-            select_val_is_good = true
+            content_is_good = true
         }
         else {
-            warning("Could not find file: " + select_val)
+            warning("Could not find file: " + content)
         }
     }
-    else if (select_val.endsWith(".fbx")){
+    else if (content.endsWith(".fbx")){
         clear_out_sim_graphics_pane_id()
         stl_init_viewer()
         // from https://github.com/ckddbs/three-fbx-loader/commit/b3bc39bef2a4253abf2acc780870a03f5f9cd510
         var FBXLoader = require('three-fbx-loader')
         var loader = new FBXLoader()
-        //loader.load(select_val, function (object) { sim.scene.add(object)})
-        loader.load(select_val,
+        //loader.load(content, function (object) { sim.scene.add(object)})
+        loader.load(content,
                     function (object) {
                         // object3d is a THREE.Group (THREE.Object3D)
                         //const mixer = new THREE.AnimationMixer(object3d);
@@ -266,7 +289,7 @@ function show_in_misc_pane(select_val, arg1 = "", arg2){
         )
         setTimeout(fbx_render, 400)
     }
-    else if (select_val.endsWith(".gltf")){
+    else if (content.endsWith(".gltf")){
 //      clear_out_sim_graphics_pane_id()
 //      stl_init_viewer()
         // from https://github.com/ckddbs/three-fbx-loader/commit/b3bc39bef2a4253abf2acc780870a03f5f9cd510
@@ -306,7 +329,7 @@ function show_in_misc_pane(select_val, arg1 = "", arg2){
 			link.setRotationFromQuaternion ( q );
 		}	//	chainLink()
 
-        loader.load(select_val,
+        loader.load(content,
             function (gltf) {
 //              sim.scene.add(gltf.scene)
 				let root = gltf.scene;
@@ -341,80 +364,66 @@ function show_in_misc_pane(select_val, arg1 = "", arg2){
         )
     //  setTimeout(gltf_render, 400)
     }
-   // else if (select_val.startsWith("http")){
-        ////play_youtube_video(select_val)
-        //show_page(select_val) //this doesn't show the page in the Misc pane,
-        //so I decided to remove it
-        //the below fails
-    //    let content = get_page(select_val)
-    //    sim_graphics_pane_id.innerHTML = content
-    //}
-
-    else if (select_val.endsWith(".jpg") ||
-             select_val.endsWith(".png") ||
-             select_val.endsWith(".gif") ||
-             select_val.endsWith(".bmp") ||
-             select_val.endsWith(".svg")
+    else if (content.endsWith(".jpg") ||
+             content.endsWith(".png") ||
+             content.endsWith(".gif") ||
+             content.endsWith(".bmp") ||
+             content.endsWith(".svg")
     ){
-        if(file_exists(select_val)){
-            let div_html = "<img style='width:100%;' src='" + select_val + "'/>"
+        if(file_exists(content)){
+            let div_html = "<img style='width:100%;' src='" + content + "'/>"
             sim_pane_content_id.innerHTML = div_html
-            select_val_is_good = true
+            content_is_good = true
         }
         else {
-            warning("Could not find file: " + select_val + "<br/>to show in the Misc pane.")
+            warning("Could not find file: " + content + "<br/>to show in the Misc pane.")
         }
     }
-    else if (select_val.endsWith(".txt")  ||
-             select_val.endsWith(".js")   ||
-             select_val.endsWith(".json") ||
-             select_val.endsWith(".dde")){
-        if(file_exists(select_val)){
+    else if (content.endsWith(".txt")  ||
+             content.endsWith(".js")   ||
+             content.endsWith(".json") ||
+             content.endsWith(".dde")){
+        if(file_exists(content)){
             let div_html =
               "<div contenteditable='false' style='height:300px; width:800px; padding:5%; background-color:white; overflow:scroll;'>"
 
-            let content = read_file(select_val)
+            content = read_file(content)
             content = replace_substrings(content, "<", "&lt;")
             //sim_graphics_pane_id.style = "width:97%; height:90%; padding:5%; background-color:white; overflow:scroll !important;"
             sim_pane_content_id.innerHTML = div_html + "<pre>" + content + "</pre></div>"
-            select_val_is_good = true
+            content_is_good = true
         }
         else {
-            warning("Could not find file: " + select_val + "<br/>to show in the Misc pane.")
+            warning("Could not find file: " + content + "<br/>to show in the Misc pane.")
         }
     }
 
-    else if(file_exists(select_val)) { //select_val could be: (select_val.endsWith(".html") || select_val.endsWith(".htm") ||
+    else if(file_exists(content)) { //content could be: (content.endsWith(".html") || content.endsWith(".htm") ||
          //some random other file that hopefully can be displayed as html.
          //but if we get an error, the below catch will catch it.
         let div_html =
             "<div contenteditable='false' style='height:300px; width:800px; padding:5%; background-color:white; overflow:scroll;'>"
-        let content = read_file(select_val)
+        content = read_file(content)
         //sim_graphics_pane_id.style = "width:97%; height:90%; padding:5%; background-color:white; overflow:scroll !important;"
         sim_pane_content_id.innerHTML = div_html + content + "</div>"
-        select_val_is_good = true //questionable, but maybe ok
+        content_is_good = true //questionable, but maybe ok
     }
-
+    //display any old html.
+    else if((typeof(content) === "string") && content.startsWith("<")){
+        sim_pane_content_id.innerHTML = content
+    }
     else {
-        warning("Could not find file: " + select_val + "<br/>to show in the Misc pane.")
+        warning("Could not find file: " + content + "<br/>to show in the Misc pane.")
         return
     }
     } //end try
     catch(err){
-        warning("Could not load: " + select_val  +
+        warning("Could not load: " + content  +
                 "<br/>into the Misc pane because: " + err.message)
-        select_val_is_good = false
+        content_is_good = false
     }
-    if(select_val_is_good){
-        persistent_set("misc_pane_content", select_val)
-    }
-}
-
-//used in video segment buttons to show that user has clicked a button.
-function check_inner_html(event){
-    let the_elt = event.target //usually a button element
-    if(the_elt.innerText.charCodeAt(0) !== 10003) { //only put at most 1 checkmark.
-        the_elt.innerHTML = "<b>&check;</b>" + the_elt.innerHTML //"&#10003;"
+    if(content_is_good){
+        persistent_set("misc_pane_content", content)
     }
 }
 
@@ -499,7 +508,7 @@ function refresh_job_or_robot_to_simulate_id(){
 }
 //returns a string
 function job_or_robot_to_simulate_name(){
-    if(job_or_robot_to_simulate_id.value) {
+    if(job_or_robot_to_simulate_id && job_or_robot_to_simulate_id.value) {
         return job_or_robot_to_simulate_id.value
     }
     else { return "Dexter.default" }

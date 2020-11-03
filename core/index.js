@@ -1,5 +1,5 @@
-global.dde_version = "3.6.4"
-global.dde_release_date = "Sep 29, 2020"
+global.dde_version = "3.6.5"
+global.dde_release_date = "Nov 3, 2020"
 
 console.log("dde_version: " + global.dde_version + " dde_release_date: " + global.dde_release_date +
             "\nRead electron_dde/core/job_engine_doc.txt for how to use the Job Engine.\n")
@@ -115,8 +115,11 @@ function run_shell_cmd(cmd_string, options={}, cb=run_shell_cmd_default_cb){
     exec(cmd_string, options, cb)
 }
 
-var {load_files, persistent_initialize, read_file, file_content, write_file, dde_init_dot_js_initialize} = require('./storage.js')
-      //file_content is deprecated
+var {copy_file_async, copy_folder_async,
+     dde_init_dot_js_initialize, file_content, //file_content is deprecated
+     folder_separator, load_files,
+     persistent_initialize, read_file, write_file} = require('./storage.js')
+
 var {Root} = require("./object_system.js")
 var Coor   = require("../math/Coor.js")
 var Kin    = require("../math/Kin.js")
@@ -141,17 +144,21 @@ var calibrate_build_tables = require("../low_level_dexter/calibrate_build_tables
 var DXF    = require("../math/DXF.js")
 var {init_units} = require("./units.js")
 var {FPGA} = require("./fpga.js")
-var {SerialPort, serial_connect, serial_connect_low_level,
+var {convertArrayBufferToString, convertStringToArrayBuffer,
+     SerialPort, serial_connect, serial_connect_low_level,
      serial_devices, serial_devices_async,
      serial_disconnect, serial_disconnect_all,  serial_flush,
      serial_get_or_make_port, serial_path_to_port_map,
-     serial_path_to_info_map, serial_port_init, serial_send, serial_send_low_level} = require("./serial.js")
+     serial_port_path_to_info_map, serial_port_init, serial_send, serial_send_low_level} = require("./serial.js")
 
 var {close_readline, set_keep_alive_value, write_to_stdout} = require("./stdio.js")
 
 var {html_db, is_dom_elt, make_dom_elt, make_html} = require("./html_db.js")
 
 var {Messaging, MessStat} =  require("./messaging.js")
+
+
+// see also je_and_browser_code.js for global vars.
 global.keep_alive_value = false
 global.Brain    = Brain
 global.Dexter   = Dexter
@@ -195,8 +202,12 @@ global.acosd    = acosd
 global.atand    = atand
 global.atan2d   = atan2d
 
+global.copy_file_async = copy_file_async
+global.copy_folder_async = copy_folder_async
+global.folder_separator = folder_separator
+global.load_files = load_files
 global.read_file = read_file
-global.file_content = file_content
+global.file_content = file_content //deprecated
 global.write_file = write_file
 
 
@@ -204,6 +215,9 @@ global.close_readline = close_readline
 global.set_keep_alive_value = set_keep_alive_value
 global.write_to_stdout = write_to_stdout
 
+
+global.convertArrayBufferToString = convertArrayBufferToString
+global.convertStringToArrayBuffer = convertStringToArrayBuffer
 global.SerialPort = SerialPort
 global.serial_connect = serial_connect
 global.serial_connect_low_level = serial_connect_low_level
@@ -213,8 +227,8 @@ global.serial_disconnect = serial_disconnect
 global.serial_disconnect_all = serial_disconnect_all
 global.serial_flush = serial_flush
 global.serial_get_or_make_port = serial_get_or_make_port
-global.serial_path_to_port_map = serial_path_to_port_map
-global.serial_path_to_info_map = serial_path_to_info_map
+global.serial_path_to_port_map = serial_path_to_port_map //depricated
+global.serial_port_path_to_info_map = serial_port_path_to_info_map
 global.serial_port_init = serial_port_init
 global.serial_send = serial_send
 global.serial_send_low_level = serial_send_low_level

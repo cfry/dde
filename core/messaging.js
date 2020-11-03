@@ -2368,7 +2368,7 @@ MessStat.show_report_cb = function(vals){
        shouldnt("In MessStat.show_report_cb got unhandled clicked_button_value of: " + vals.clicked_button_value)
     }
 }
-
+var {stringify_value} = require("./utils.js")
 var {speak, stringify_for_speak} = require("./out.js")
 
 module.exports.MessStat = MessStat

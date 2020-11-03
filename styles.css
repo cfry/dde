@@ -114,6 +114,8 @@ input[name='z_slider']::-webkit-slider-thumb {
 
 }
 
+.splash_screen_item:hover{ background: #EECCFF;}
+
 /*
 .vsplitbar {
     width: 10px;

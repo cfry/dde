@@ -2701,9 +2701,9 @@ function matrix_invert(M){
     if(M.length !== M[0].length){return;}
 
     //create the identity matrix (I), and a copy (C) of the original
-    var i=0, ii=0, j=0, dim=M.length, e=0, t=0;
+    var ii=0, j=0, dim=M.length, e=0, t=0;
     var I = [], C = [];
-    for(i=0; i<dim; i+=1){
+    for(let i=0; i<dim; i+=1){
         // Create the row
         I[I.length]=[];
         C[C.length]=[];
@@ -2717,7 +2717,7 @@ function matrix_invert(M){
     }
 
     // Perform elementary row operations
-    for(i=0; i<dim; i+=1){
+    for(let i=0; i<dim; i+=1){
         // get the element e on the diagonal
         e = C[i][i];
 

@@ -8,25 +8,31 @@ var Vector  = require("./math/Vector.js")
 var txt     = require("./math/txt.js")
 var calibrate_build_tables = require("./low_level_dexter/calibrate_build_tables.js")
 
-var {SerialPort, serial_port_init, serial_path_to_info_map,
+var {convertArrayBufferToString, convertStringToArrayBuffer,
+    SerialPort, serial_port_init, serial_port_path_to_info_map,
     serial_devices, serial_devices_async,
     serial_connect_low_level,
     serial_send_low_level, serial_connect, serial_send, serial_flush, serial_disconnect,
     serial_disconnect_all} = require("./core/serial.js")
 
 
-var {array_to_csv, csv_to_array, Duration, flatten, fn_is_keyword_fn, format_number,
+var {array_to_csv, csv_to_array,
+     base64_to_binary_string, binary_to_base64_string, is_string_base64,
+     Duration, flatten, fn_is_keyword_fn, format_number,
+    integer_array_to_rgb_string,
     is_array_of_numbers, make_ins_arrays,
-    ordinal_string, patch_until, return_first_arg,
+    ordinal_string, patch_until,
+    return_first_arg, rgb,
     same_elts, shouldnt, show_string_char_codes, string_to_seconds,
     time_in_us, trim_comments_from_front,
     version_equal, version_less_than, version_more_than, dde_version_between} = require("./core/utils.js")
 
 var {choose_file, choose_save_file, choose_file_and_get_content,
-     read_file, read_file_async, file_exists, folder_listing, is_folder, load_files,
+     copy_file_async, copy_folder_async,
+     file_exists, folder_listing, folder_separator, is_folder, load_files,
      make_folder, make_full_path,
      persistent_get, persistent_remove, persistent_save,
-     write_file, write_file_async} = require("./core/storage.js")
+     read_file, read_file_async, write_file, write_file_async} = require("./core/storage.js")
 
 var file_content = read_file //file_content is deprecated
 

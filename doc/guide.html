@@ -8,8 +8,8 @@
 
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version: <span id="dde_version_id">3.6.4</span><br/>
-    released: <span id="dde_release_date_id">Sep 29, 2020</span>
+    version: <span id="dde_version_id">3.6.5</span><br/>
+    released: <span id="dde_release_date_id">Nov 3, 2020</span>
     <p></p>
     DDE helps you create, debug, and send software to a Dexter robot.
     You can use any JavaScript augmented with DDE-specific functions to help find out about,
@@ -723,7 +723,21 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
             </li>
         </ul>
         </details>
-    </details>
+        <details id="Editor.enable_click_help_doc_id" class="doc_details"><summary>Editor.enable_click_help</summary>
+           Click help is automatically called when the user clicks in the Editor pane,
+           or other text that's likely to be JS and help is needed.
+           It is a complex process to parse, identify and format useful help.
+           Occasionally errors happen in click-help. You also *might* not
+           want output in the Output pane whenever you click.
+           <p></p>
+           You can turn off click help by evaling:
+           <code title="not in Testsuite">Editor.enable_click_help = false</code>
+           The default value of this variable is <code>true</code>
+            <p></p>
+           If you want to always have click help off, stick the above
+           code in your dde_init.js file.
+       </details>
+    </details> <!-- end Editor pane -->
     <details id="output_pane_doc_id" class="doc_details"><summary>Output Pane</summary>
         DDE prints information in the Output pane that will be useful in your current context.
         You can explicitly print in the output pane with a call to the JavaScript function <code>out</code>.

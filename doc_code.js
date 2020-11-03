@@ -332,6 +332,7 @@ function find_doc_aux(record){
         `')">View Found TestSuite` + ts_plural_suffix + "</button>"
     }
     open_doc_arrow_set_opacity()
+    //doc in https://markjs.io/  npm package
     var mark_inst = new Mark(doc_pane_content_id) //document.querySelector("#doc_pane_content_id"))
     mark_inst.unmark()
     mark_inst.mark(search_string, {
@@ -435,6 +436,8 @@ foo
 </p>
 <!-- afterend -->
 */
+
+//documented in Ref Man/Lesson
 function insert_html_into_doc_pane(html, summary_text_path=null, position="beforeend"){
     let parent_details_elt
     let valid_positions = ["beforebegin", "afterbegin", "beforeend", "afterend"]
@@ -498,6 +501,8 @@ function init_doc(){
         '</details>\n' +
 
         '<details><summary class="doc_top_level_summary">Build Dexter</summary>\n' +
+           'This is just an example of the kinds of tutorials you can construct with ' +
+            `<a href="#" onclick="open_doc('Lesson.make_button_column_doc_id')"><code>Lesson.make_button_column</code></a>\n` +
         read_file(__dirname + "/doc/build_dexter/wire_harness_assembly.html") +
         '</details>\n' +
 
@@ -521,5 +526,6 @@ function show_configurations_image(){
     })
 }
 
+var Mark = require('mark.js')
 var {read_file} = require("./core/storage.js")
 var {last, replace_substrings, value_of_path} = require("./core/utils.js")

@@ -25,3 +25,15 @@ new TestSuite("string_to_seconds",
     ["string_to_seconds('1:2:34')", "3694"]
 )
 
+new TestSuite("is_string_base64",
+    ['is_string_base64("abc=")',   "true"],
+    ['is_string_base64("abc")',    "false"],
+    ['is_string_base64(null)',     "false"],
+    ['is_string_base64(37)',       "false"]
+    //['is_string_base64("abc=\n")', "false"], //causes error in ts, probably due to nested literla string with newline 
+    // ['is_string_base64("abc=\n", true)', "true"]
+)
+
+
+
+

@@ -114,9 +114,9 @@ var SplashScreen = class SplashScreen {
                }
            }
            if(!label) { label = "&nbsp;&nbsp;&nbsp;" + name } //default is no checkmark
-           result += "<option " +
+           result += "<option class='splash_screen_item' " +
                       "title='" + name_and_tooltip[1] +
-                      "'>" +
+                      "' style='cursor:pointer;'>" +
                       label + "</option>\n"
         }
         return result
@@ -130,11 +130,13 @@ var SplashScreen = class SplashScreen {
                 return
             }
         }
-        shouldnt("in SplashScreen.perform_tutorial_action, couldn't find action for: " + name)
+        //don't have to have an action for the first step. It could just show a tooltip.
+        // shouldnt("in SplashScreen.perform_tutorial_action, couldn't find action for: " + name)
     }
 
     static start_dui_tutorial(){
-        Job.define_and_start_job(__dirname + '/user_tools/dexter_user_interface2.js')
+        //Job.define_and_start_job(__dirname + '/user_tools/dexter_user_interface2.js') //now done after
+        //user selects simulate or real so that the robt/job picks up the radio button value.
         setTimeout(function() {
                     load_files(__dirname + "/tutorials/dexter_ui_tutorial.dde")},
                     500)

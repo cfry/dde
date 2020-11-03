@@ -22,6 +22,7 @@
         "beeps":      false,
         "Brain":      false,
         "class":      false, //I still get a warning for class as a "reserved word"
+        "connectSerial": false,
         "console":    false, //permit using "console" without warning, but don't permit the setting of it.
         "Control":    false,
         "Coor":       false,
@@ -107,7 +108,7 @@
         "mocha":   false,
         "jasmine": false
     },
-    "rules": { //0 = "off" or "turn the rule off", 1 = warn, 2 = on
+    "rules": { //0 = "off" or "turn the rule off", 1 = warn, 2 = on, ie flag an error.
         "no-alert": 2,
         "no-array-constructor": 2,
         "no-bitwise": 0,
@@ -152,7 +153,7 @@
         "no-loop-func": 2,
         "no-mixed-requires": [0, false],
         "no-mixed-spaces-and-tabs": [0, false], //was 2
-        "no-multi-spaces": 2,
+        "no-multi-spaces": 0,
         "no-multi-str": 2,
         "no-multiple-empty-lines": [0, {"max": 2}],
         "no-native-reassign": 2,
@@ -195,8 +196,13 @@
         "no-underscore-dangle": 2,
         //"no-unreachable": 2, //causes error when loading eslint version 5.
         "no-unused-expressions": 2,
-        "no-unused-vars": [2, {"vars": "all", "args": "after-used"}],
-        "no-use-before-define": 2,
+        "no-unused-vars": [1, {"vars": "local", "args": "all"}], //"vars": "local" will flag unused local vars but not global ones, as often the globals aer used somewhere tlse far away and shouldn't be flagged.
+         //above I tried to have an error when we have an unused LOCAL var but have no error when
+         //we have an unused "global" ie function foo(){} where foo is not called in the file.
+         //but I failed so compromised and gave this rule a 1 meaning a "warning" for both
+         //unsued global and unused local. Looks like the "vars": "local" is NOT behaving as documented.
+         //maybe a newer version of eslint will fix this --fry oct 14, 2020
+        "no-use-before-define": 0,
         "no-void": 0,
         "no-var": 0,
         "no-warning-comments": [0, { "terms": ["todo", "fixme", "xxx"], "location": "start" }],
@@ -221,7 +227,7 @@
        // "global-strict": [2, "never"], old rule, replaced by "strict", see below
         "guard-for-in": 0,
         "handle-callback-err": 0,
-        "key-spacing": [2, { "beforeColon": false, "afterColon": true }],
+        "key-spacing": 0, //[2, { "beforeColon": false, "afterColon": true }], //using 0 gets rid of the warnings for having space around a colon for a prop  in a lit obj.
         "max-depth": [0, 4],
         "max-len": [0, 80, 4],
         "max-nested-callbacks": [0, 2],
@@ -244,7 +250,7 @@
         "space-in-parens": [0, "never"],
         "space-infix-ops": 2,
        // "space-return-throw-case": 2, no longer a rule. It was replaced by "keyword-spacing" which is fundanemtally undocumented
-        "space-unary-ops": [2, { "words": true, "nonwords": false }],
+        "space-unary-ops": [2, { "words": false, "nonwords": false }],
         "spaced-line-comment": [0, "always"],
         "strict": 0, //default 2, cfry changed to 0 because if I have "forOf": true as above to not warn on forOf, then if strict: 2, every line in programis underlined in red.
                      // https://jslinterrors.com/missing-use-strict-statement

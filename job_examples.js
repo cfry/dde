@@ -638,7 +638,7 @@ void loop() {
 //After success, connect to the device
 serial_connect_low_level(ard_path) //returns lots of info including the path
 
-serial_path_to_info_map //Shows us what the current connections are.
+serial_port_path_to_info_map //Shows us what the current connections are.
  //this should contain one with our "ard_path".
 
 serial_send_low_level(ard_path, "y") //turns on orange light on board.
@@ -650,7 +650,7 @@ serial_send_low_level(ard_path, "n") //turns off orange light on board.
 serial_flush(ard_path) //just makes sure all pending data moved. Not usually needed.
 
 serial_disconnect(ard_path) //returns null
-serial_path_to_info_map     //now this will return {} 
+serial_port_path_to_info_map     //now this will return {} 
 
 //Now we're ready to use DDE's Job software to control our Arduino.
 //First, you may want to programmatically upload a file into Arduino from DDE.

@@ -190,7 +190,8 @@ function show_window({content = `<input type="submit" value="Done"/>`,
                       title = "DDE Information",
                       title_bar_height = 25,
                       title_bar_color = "#b8bbff",
-                      width = 400, height = 400, x = 200, y = 200,
+                      width = 400, height = 400, //the outer width of the dialog. Content region is smaller
+                      x = 200, y = 200,
                       resizable = true,
                       draggable = true,
                       background_color = "rgb(238, 238, 238)",
@@ -259,7 +260,14 @@ function show_window({content = `<input type="submit" value="Done"/>`,
     if(SW.window_index === null) { SW.window_index = 0 }
     else { SW.window_index += 1 }
     let the_sw_elt_id = 'show_window_' + SW.window_index + '_id'
-    content = '<div class="show_window_content" contentEditable="false" draggable="false" style="font-size:15px; padding:5px;">' +
+    //let content_height = height - title_bar_height -21
+    //let content_width  = width - 10
+    content = '<div class="show_window_content" contentEditable="false" draggable="false" ' +
+              //'onresize="show_window_content_onresize(event)" ' +
+        ' style="' +
+        //'width:' + content_width + 'px; height:' + content_height + 'px; ' +
+       // 'overflow:' + (resizable? "auto" : "visible") + '; resize:' + (resizable? "both" : "none") + "; " +
+        'font-size:15px; padding:5px;">' +
         '<input name="window_callback_string" type="hidden" value="' + callback + '"/>' +
         '<input name="trim_strings" type="hidden" value="' + trim_strings + '"/>' +
         '<input name="job_name" type="hidden" value="' + job_name + '"/>' +
@@ -275,13 +283,14 @@ function show_window({content = `<input type="submit" value="Done"/>`,
         //'" data-show_window_title="' + title +
         // '" ondragstart="sw_dragstart(event)' +
         '" style="padding:0px; right:none; margin:0px; position:fixed; z-index:100;' +
-        ' width:' + width + 'px; height:' + height + 'px; left:' + x + 'px; top:' + y +
-        'px; resize:' + (resizable? "both" : "none") +
-        '; overflow:' + (resizable? "auto" : "visible") +
-        '; background-color:' + background_color + //if the content div doesn't take up the whole rest of the window, its good if this covers that extra area below the content
+         ' left:' + x + 'px; top:' + y + 'px; ' +
+        'width:' + width + 'px; height:' + height + 'px; ' +
+        'overflow:' + (resizable? "auto" : "visible") + '; resize:' + (resizable? "both" : "none") + "; " +
+
+        'background-color:' + background_color + //if the content div doesn't take up the whole rest of the window, its good if this covers that extra area below the content
         ';">' +
-        sw_make_title_html(title, title_bar_height, title_bar_color, show_close_button, show_collapse_button) +
-        '<div draggable="false" style="overflow:auto; background-color:' + background_color + ';">' + content + '</div>' +
+        sw_make_title_html(title, width, title_bar_height, title_bar_color, show_close_button, show_collapse_button) +
+        '<div draggable="false" background-color:' + background_color + ';">' + content + '</div>' +
         '</dialog>'
     //onsole.log("show_window produced html: " + show_window_html)
     let props = {job_name: job_name, kind: "show_window", html: show_window_html, draggable: draggable,
@@ -303,8 +312,12 @@ function show_window({content = `<input type="submit" value="Done"/>`,
 
 module.exports.show_window = show_window
 
+//can't get this to work well with shrinking the title bar below orig size.
+//function show_window_content_onresize(event){ }
+//module.exports.show_window_content_onresize = show_window_content_onresize
+
 //if you change, this, also change get_show_window_title
-function sw_make_title_html(title, title_bar_height, title_bar_color, show_close_button, show_collapse_button){
+function sw_make_title_html(title, title_bar_width, title_bar_height,  title_bar_color, show_close_button, show_collapse_button){
     if(title == "") { return "" } // with no title, there are no close nor collapse buttons and you can't drag it.
                                   //so its mostly good for "kiosk mode" type windows.
     else {
@@ -318,7 +331,12 @@ function sw_make_title_html(title, title_bar_height, title_bar_color, show_close
             buttons = '<div style="float:right; position:absolute; right:5px; top:5px;">' + buttons + '</div>'
         }
         return  "<div " + //id='" + id +
-                " class='show_window_title' style='background-color: " + title_bar_color + "; padding:5px; height:" + title_bar_height + "px; font-size:20px; white-space:nowrap;'>" +
+                " class='show_window_title' " +
+                " style='background-color: " + title_bar_color +
+                "; padding:5px; height:" + title_bar_height +
+                //"px; width:" + title_bar_width +
+                "px; overflow: hidden; " +
+                " font-size:20px; white-space:nowrap;'>" +
                 title + buttons
                 + "</div>" //DON'T DO. the content needs to be INSIDE the title for drag of title to work properly
     }

@@ -44,28 +44,37 @@ function serial_port_init() {
 module.exports.serial_port_init = serial_port_init
 
 
-var serial_path_to_info_map = {}
-module.exports.serial_path_to_info_map = serial_path_to_info_map
+var serial_port_path_to_info_map = {}
+module.exports.serial_port_path_to_info_map = serial_port_path_to_info_map
 
-function serial_path_to_info(path){
-    return serial_path_to_info_map[path]
+//serial_path_to_info_map is deprecated in PatchDDE
+//var serial_path_to_info_map = serial_port_path_to_info_map
+//module.exports.serial_path_to_info_map = serial_path_to_info_map
+
+function serial_port_path_to_info(port_path){
+    return serial_port_path_to_info_map[port_path]
 }
 
-//only cleared by relaunching DDE on purpose.
-//a given path only gets a port made for it once.
-var serial_path_to_port_map = {}
-module.exports.serial_path_to_port_map
 
-function serial_get_or_make_port(path, options){
-    let port = serial_path_to_port_map[path]
+//only cleared by relaunching DDE on purpose.
+//a given port_path only gets a port made for it once.
+var serial_port_path_to_port_map = {}
+module.exports.serial_port_path_to_port_map
+
+function serial_get_or_make_port(port_path, port_options, open_callback){
+    let port = serial_port_path_to_port_map[port_path]
     if(!port) {
-        port = new SerialPort(path, options)
-        serial_path_to_port_map[path] = port
+        port = new SerialPort(port_path, port_options, open_callback)
+        serial_port_path_to_port_map[port_path] = port
     }
     else {
-        for(let key in options){
-           let val = options[key]
+        for(let key in port_options){
+           let val = port_options[key]
            port.settings[key] = val
+        }
+        if(!port.isOpen){
+            //port.open()
+            open_callback.call(port)
         }
     }
     return port
@@ -111,14 +120,15 @@ module.exports.serial_devices_async = serial_devices_async
 
 
 //only used for testing.
-function serial_connect_low_level(path, options, capture_n_items=1, item_delimiter="\n",
+function serial_connect_low_level(port_path, port_options, capture_n_items=1, item_delimiter="\n",
                                   trim_whitespace = true,
                                   parse_items=true, capture_extras=false,
                                   callback=onReceiveCallback_low_level,
-                                  error_callback=onReceiveErrorCallback_low_level){
-    const port = serial_get_or_make_port(path, options) //new SerialPort(path, options)
-    serial_path_to_info_map[path] =
-            {path: path, //Needed because sometinmes we get the info without having the path thru serial_path_to_connection_idsimulate: simulate,
+                                  error_callback=onReceiveErrorCallback_low_level,
+                                  open_callback=onOpenCallback_low_level){
+    const port = serial_get_or_make_port(port_path, port_options, open_callback) //new SerialPort(port_path, port_options)
+    serial_port_path_to_info_map[port_path] =
+            {port_path: port_path, //Needed because sometimes we get the info without having the path thru serial_path_to_connection_idsimulate: simulate,
             simulate: false,
             port: port,
             capture_n_items: capture_n_items,
@@ -127,30 +137,33 @@ function serial_connect_low_level(path, options, capture_n_items=1, item_delimit
             parse_items:     parse_items,
             capture_extras:  capture_extras,
             pending_input:   ""}
-    port.on('open', function(err){
-        if (err) {
-            dde_error("new SerialPort to path: " + path + " errored with; " + err)
-        }
-        else {
-            out("Serial connection made to: " + path)
-            port.on('data',  function(data) { callback.call(null, data, path) } )
-            port.on('error', function(data) { error_callback.call(null, data, path) } )
-            out(stringify_value(serial_path_to_info_map[path]))
-        }
-    })
+    port.on('open',  function(err)  { open_callback.call(port, err, port_path)})  //port.open_callback(err, port_path)
+    port.on('data',  function(data) { callback.call(port, data, port_path)})
+    port.on('error', function(data) { error_callback.call(port, data, port_path)})
 }
+
 module.exports.serial_connect_low_level = serial_connect_low_level
+
+function onOpenCallback_low_level(err, port_path){
+    let port_obj = this //not used, but good documentation.
+    if (err) {
+        dde_error("serial_connect_low_level errored while making new SerialPort of port_path: " + port_path + " with error: " + err.message)
+    }
+    else {
+        out("serial port opened with port_path: " + port_path)
+    }
+}
 
 
 //not used by DDE robots
-function serial_send_low_level(path, content){
-    let info = serial_path_to_info_map[path]
+function serial_send_low_level(port_path, content){
+    let info = serial_port_path_to_info_map[port_path]
     if (info){
         let arr =
         info.port.write(content, //convertStringToArrayBuffer(content),
             function(error){ //can't rely on this getting called before onReceived so mostly pretend like its not called, except in error cases
                 if (error){
-                    dde_error("In serial_send callback to path: " + path +
+                    dde_error("In serial_send callback to port_path: " + port_path +
                         " got the error: " + error.message)
                 }
                 else {
@@ -159,7 +172,7 @@ function serial_send_low_level(path, content){
             })
     }
     else {
-        dde_error("In serial_send, attempt to send to path: " + path +
+        dde_error("In serial_send, attempt to send to port_path: " + port_path +
             " which doesn't have info.")
     }
 }
@@ -167,12 +180,12 @@ module.exports.serial_send_low_level = serial_send_low_level
 
 
 //called by serial_connect AND Serial.send
-function serial_init_one_info_map_item(path, options, simulate=null, capture_n_items=1, item_delimiter="\n",
+function serial_init_one_info_map_item(port_path, port_options, simulate=null, capture_n_items=1, item_delimiter="\n",
                                        trim_whitespace=true,
                                        parse_items=true, capture_extras="error"){
     let sim_actual = Robot.get_simulate_actual(simulate)
-    serial_path_to_info_map[path] =
-           {path:            path, //Needed because sometimes we get the info without having the path thru serial_path_to_connection_id
+    serial_port_path_to_info_map[port_path] =
+           {port_path:            port_path, //Needed because sometimes we get the info without having the port_path thru serial_path_to_connection_id
             simulate:        sim_actual,
             capture_n_items: capture_n_items,
             item_delimiter:  item_delimiter,
@@ -184,26 +197,26 @@ function serial_init_one_info_map_item(path, options, simulate=null, capture_n_i
 }
 
 //called from robot.js
-function serial_connect(path, options, simulate=null, capture_n_items=1, item_delimiter="\n",
+function serial_connect(port_path, port_options, simulate=null, capture_n_items=1, item_delimiter="\n",
                         trim_whitespace=true,
                         parse_items=true, capture_extras="error", job_instance){ //"ignore", "capture", "error"
     const sim_actual = Robot.get_simulate_actual(simulate)
-    serial_init_one_info_map_item(path, options, simulate, capture_n_items, item_delimiter,
+    serial_init_one_info_map_item(port_path, port_options, simulate, capture_n_items, item_delimiter,
         trim_whitespace, parse_items, capture_extras)
     if(sim_actual === true){ //if its "both" we let the below handle it. Don't want to call serial_new_socket_callback twice when sim is "both"
-        serial_new_socket_callback(path, job_instance) //don't need to simulate socket_id for now
+        serial_new_socket_callback(port_path, job_instance) //don't need to simulate socket_id for now
     }
     if ((sim_actual === false) || (sim_actual == "both")){
-        const port = serial_get_or_make_port(path, options) //new SerialPort(path, options)
+        const port = serial_get_or_make_port(port_path, port_options) //new SerialPort(port_path, port_options)
         port.on('open', function(err){
             if (err) {
-                 dde_error("new SerialPort to path: " + path + " errored with; " + err)
+                 dde_error("new SerialPort to port_path: " + port_path + " errored with; " + err)
             }
             else {
-                out("Serial connection made to: " + path)
-                serial_path_to_info_map[path].port = port
-                serial_new_socket_callback(path, job_instance)
-                let the_path = path //needed for closed over var below
+                out("Serial connection made to: " + port_path)
+                serial_port_path_to_info_map[port_path].port = port
+                serial_new_socket_callback(port_path, job_instance)
+                let the_path = port_path //needed for closed over var below
                 port.on('data',  function(data) { serial_onReceiveCallback(data, the_path) } )
                 port.on('error', function(data) { onReceiveErrorCallback(data, the_path) } )
             }
@@ -213,9 +226,9 @@ function serial_connect(path, options, simulate=null, capture_n_items=1, item_de
 
 module.exports.serial_connect = serial_connect
 
-function serial_new_socket_callback(path, job_instance){
-    console.log("serial_new_socket_callback passed: " + "path: " + path)
-    Serial.set_a_robot_instance_socket_id(path, job_instance)
+function serial_new_socket_callback(port_path, job_instance){
+    console.log("serial_new_socket_callback passed port_path: " + port_path)
+    Serial.set_a_robot_instance_socket_id(port_path, job_instance)
 }
 
 //_______send data to serial_______
@@ -229,6 +242,7 @@ function convertArrayBufferToString(buf, content_length=null) {
     if (content_length){ result = result.substring(0, content_length) }
     return result
 };
+module.exports.convertArrayBufferToString = convertArrayBufferToString
 
 function convertStringToArrayBuffer(str) {
     var buf=new ArrayBuffer(str.length);
@@ -239,13 +253,16 @@ function convertStringToArrayBuffer(str) {
     return buf;
 }
 
+module.exports.convertStringToArrayBuffer = convertStringToArrayBuffer
+
+
 //content is a string
-function serial_send(instruction_array, path, simulate=null, sim_fun) {
+function serial_send(instruction_array, port_path, simulate=null, sim_fun) {
     let ins_str = instruction_array[Serial.INSTRUCTION_TYPE + 1]
     //out("top of serial_send about to send: " + ins_str)
     let robot_status = instruction_array.slice(0, Serial.DATA0) //Make a copy. don't include any fields for data coming back. We'll push onto this if need be.
-    let info = serial_path_to_info(path)
-    let the_path = path //because JS closures sometimes don't close over para variables
+    let info = serial_port_path_to_info(port_path)
+    let the_path = port_path //because JS closures sometimes don't close over para variables
     info.robot_status = robot_status //save this so that onReceive can get it later
     info.robot_status[Serial.ERROR_CODE] = 0 //we haven't errored yet so pretend like its going to work
     //set the error code, and maybe call serial_on_done_with_sending
@@ -253,7 +270,7 @@ function serial_send(instruction_array, path, simulate=null, sim_fun) {
     const sim_actual = Robot.get_simulate_actual(simulate)
     if ((sim_actual === true) || (sim_actual === "both")){
         setTimeout(function(){
-                        serial_send_simulate(ins_str, sim_fun, path, sim_actual)
+                        serial_send_simulate(ins_str, sim_fun, port_path, sim_actual)
                     }, 300)
     }
     if ((sim_actual === false) || (sim_actual === "both")){
@@ -262,7 +279,7 @@ function serial_send(instruction_array, path, simulate=null, sim_fun) {
             info.port.write(ins_str, //convertStringToArrayBuffer(ins_str),
                 function(error){ //can't rely on this getting called before onReceived so mostly pretend like its not called, except in error cases
                     if (error){
-                        dde_error("In serial_send callback to path: " + the_path +
+                        dde_error("In serial_send callback to port_path: " + the_path +
                                   " got the error: " + send_info.error)
                     }
                     else {
@@ -274,7 +291,7 @@ function serial_send(instruction_array, path, simulate=null, sim_fun) {
             }
         }
         else {
-            let err = "In serial_send, attempt to send to path: " + the_path +
+            let err = "In serial_send, attempt to send to port_path: " + the_path +
                       " which doesn't have a port."
             info.robot_status[Serial.ERROR_CODE] = err
             serial_on_done_with_sending(info.robot_status, the_path)
@@ -284,12 +301,12 @@ function serial_send(instruction_array, path, simulate=null, sim_fun) {
 
 module.exports.serial_send = serial_send
 
-function serial_send_simulate(ins_str, sim_fun, path, sim_actual){
+function serial_send_simulate(ins_str, sim_fun, port_path, sim_actual){
     let result = sim_fun.call(null, ins_str)
     let info_from_board = {buffer: convertStringToArrayBuffer(result)}
     out("in serial_send_simulate with ins_str: " + ins_str + " and info_from_board: " + info_from_board)
     if (sim_actual === true) { //but NOT "both", since we let the hardware side take it from here if its "both".
-        serial_onReceiveCallback(info_from_board, path)
+        serial_onReceiveCallback(info_from_board, port_path)
     }
 }
 
@@ -319,7 +336,7 @@ If it returns an array that starts or ends with "" , that means their was a deli
 on the start or end respectively.
 */
 
-function onReceiveCallback_low_level(info_from_board, path){ //if there's an error, onReceiveErrorCallback will be called instead
+function onReceiveCallback_low_level(info_from_board, port_path){ //if there's an error, onReceiveErrorCallback will be called instead
     if (info_from_board) { //info.connectionId == expectedConnectionId &&
         let number_of_new_chars_on_end = info_from_board.length //length in chars.
         //note that if an arduino program has:
@@ -352,7 +369,7 @@ function serial_make_default_robot_status_maybe(info){
     }
 }
 
-function serial_onReceiveCallback(info_from_board, path) { //if there's an error, onReceiveErrorCallback will be called instead
+function serial_onReceiveCallback(info_from_board, port_path) { //if there's an error, onReceiveErrorCallback will be called instead
     //out("top of serial_onReceiveCallback")
     if (info_from_board.length) { //info.connectionId == expectedConnectionId &&
         //let str = convertArrayBufferToString(info_from_board.buffer, info_from_board.length); //note that if aruino program
@@ -368,9 +385,9 @@ function serial_onReceiveCallback(info_from_board, path) { //if there's an error
         //this is ok as convertArrayBufferToString will just go with the length of the
         //info_from_board.buffer, which will usually be correct for the content.
         out("serial_onReceiveCallback got " + info_from_board.length + " byte string: '" + str + "'.")
-        let info = serial_path_to_info_map[path]
+        let info = serial_port_path_to_info_map[port_path]
         if (!info) {
-           warning("serial_onReceiveCallback got path: " + path + " that's not a known DDE connected path which is possibly OK if you've got other serial devices sending in data.")
+           warning("serial_onReceiveCallback got port_path: " + port_path + " that's not a known DDE connected port_path which is possibly OK if you've got other serial devices sending in data.")
         }
         else {
             info.robot_status[Serial.ERROR_CODE] = 0 //since onRecievedErrorCallback wasn't called in place of this, 
@@ -381,7 +398,7 @@ function serial_onReceiveCallback(info_from_board, path) { //if there's an error
                 if (left_to_capture(info) > 0) {
                     serial_store_str_in_rs(str, info)
                     if (left_to_capture(info) == 0){
-                        serial_on_done_with_sending(info.robot_status, info.path)
+                        serial_on_done_with_sending(info.robot_status, info.port_path)
                     }
                     else { out("waiting for more strings from robot.") } 
 			//beware, they might never come in which case the job is just hanging.
@@ -389,10 +406,10 @@ function serial_onReceiveCallback(info_from_board, path) { //if there's an error
                     //the job has status_code "running" but is really paused waiting for response.
                 }
                 else if (info.capture_extras == "capture"){
-                    serial_send_extra_item_to_job(str, info.path, false, info) //false means everything ok
+                    serial_send_extra_item_to_job(str, info.port_path, false, info) //false means everything ok
                 }
                 else if (info.capture_extras == "error"){
-                    serial_send_extra_item_to_job(str, info.path, true, info) //true means job should error
+                    serial_send_extra_item_to_job(str, info.port_path, true, info) //true means job should error
                 }
                 else if (info.capture_extras == "ignore") {}
                 else { dde_error("serial_onReceiveCallback got invalid capture_extras value of: " + info.capture_extras) }
@@ -412,7 +429,7 @@ function serial_onReceiveCallback(info_from_board, path) { //if there's an error
                             if (left_to_capture(info) > 0) {
                                 serial_store_str_in_rs(item, info)
                                 if (left_to_capture(info) == 0){
-                                    serial_on_done_with_sending(info.robot_status, info.path)
+                                    serial_on_done_with_sending(info.robot_status, info.port_path)
                                 }
                                 else { out("waiting for more strings from robot.") } 
 					//beware, they might never come in which case the job is just hanging.
@@ -420,10 +437,10 @@ function serial_onReceiveCallback(info_from_board, path) { //if there's an error
                             //the job has status_code "running" but is really paused waiting for response.
                             }
                             else if (info.capture_extras == "capture"){
-                                serial_send_extra_item_to_job(item, info.path, false, info) //false means everything ok
+                                serial_send_extra_item_to_job(item, info.port_path, false, info) //false means everything ok
                             }
                             else if (info.capture_extras == "error"){
-                                serial_send_extra_item_to_job(item, info.path, true, info) //true means job should error
+                                serial_send_extra_item_to_job(item, info.port_path, true, info) //true means job should error
                             }
                             else if (info.capture_extras == "ignore") {}
                             else { dde_error("serial_onReceiveCallback got invalid capture_extras value of: " + info.capture_extras) }
@@ -443,7 +460,7 @@ function serial_onReceiveCallback(info_from_board, path) { //if there's an error
                             if (left_to_capture(info) > 0) {
                                 serial_store_str_in_rs(item, info)
                                 if (left_to_capture(info) == 0){
-                                    serial_on_done_with_sending(info.robot_status, info.path)
+                                    serial_on_done_with_sending(info.robot_status, info.port_path)
                                 }
                                 else { out("waiting for more strings from robot.") } 
 					//beware, they might never come in which case the job is just hanging.
@@ -452,10 +469,10 @@ function serial_onReceiveCallback(info_from_board, path) { //if there's an error
                                 //the job has status_code "running" but is really paused waiting for response.
                             }
                             else if (info.capture_extras == "capture"){
-                                serial_send_extra_item_to_job(item, info.path, false, info) //false means everything ok
+                                serial_send_extra_item_to_job(item, info.port_path, false, info) //false means everything ok
                             }
                             else if (info.capture_extras == "error"){
-                                serial_send_extra_item_to_job(item, info.path, true, info) //true means job should error
+                                serial_send_extra_item_to_job(item, info.port_path, true, info) //true means job should error
                             }
                             else if (info.capture_extras == "ignore") {}
                             else { dde_error("serial_onReceiveCallback got invalid capture_extras value of: " + info.capture_extras) }
@@ -489,36 +506,36 @@ function serial_store_str_in_rs(str, info){
     info.robot_status.push(str)
 }
 
-function onReceiveErrorCallback_low_level(info_from_board, path) {
+function onReceiveErrorCallback_low_level(info_from_board, port_path) {
     //let id = info_from_board.connectionId
     let errnum = info_from_board.error
     let error_codes = ["disconnected", "timeout", "device_lost", "break", "frame_error", "overrun",
         "buffer_overflow", "parity_error", "system_error"] //beware,
     //it wouldn't surprise me if "disconnected" was really error_code 1 instead of 0.
     //but this is what https://developer.chrome.com/apps/serial#event-onReceive sez.
-    let info = serial_path_to_info_map[path]
+    let info = serial_port_path_to_info_map[port_path]
     let rs = info.robot_status
-    out("onReceiveErrorCallback called with path: " + info.path, "red")
+    out("onReceiveErrorCallback called with port_path: " + info.port_path, "red")
     rs[Serial.ERROR_CODE] = error_codes[errnum]
-    serial_on_done_with_sending(rs, info.path)
+    serial_on_done_with_sending(rs, info.port_path)
 }
 
-function onReceiveErrorCallback(info_from_board, path) {
+function onReceiveErrorCallback(info_from_board, port_path) {
     //let id = info_from_board.connectionId
     let errnum = info_from_board.error
     let error_codes = ["disconnected", "timeout", "device_lost", "break", "frame_error", "overrun",
                         "buffer_overflow", "parity_error", "system_error"] //beware,
         //it wouldn't surprise me if "disconnected" was really error_code 1 instead of 0.
         //but this is what https://developer.chrome.com/apps/serial#event-onReceive sez.
-    let info = serial_path_to_info_map[path]
+    let info = serial_port_path_to_info_map[port_path]
     let rs = info.robot_status
-    out("onReceiveErrorCallback called with path: " + info.path, "red")
+    out("onReceiveErrorCallback called with port_path: " + info.port_path, "red")
     rs[Serial.ERROR_CODE] = error_codes[errnum]
-    serial_on_done_with_sending(rs, info.path)
+    serial_on_done_with_sending(rs, info.port_path)
 }
 
 //like socket on_receive
-function serial_on_done_with_sending(robot_status, path){
+function serial_on_done_with_sending(robot_status, port_path){
     robot_status[Serial.STOP_TIME] = Date.now()
     out("serial_on_done_with_sending with rs: " + robot_status)
     let job_id       = robot_status[Serial.JOB_ID]
@@ -531,9 +548,9 @@ function serial_on_done_with_sending(robot_status, path){
     rob.robot_done_with_instruction(robot_status)
 }
 
-function serial_send_extra_item_to_job(string_from_robot, path, is_error=false, info){ //info only needed on UI side.
+function serial_send_extra_item_to_job(string_from_robot, port_path, is_error=false, info){ //info only needed on UI side.
     string_from_robot = serial_parse_string_maybe(string_from_robot, info) //after this, might not be a string anymore
-    let job_instance = Serial.get_job_with_robot_path(path)
+    let job_instance = Serial.get_job_with_robot_path(port_path)
     if (job_instance){
         job_instance.robot.robot_status.push(string_from_robot) //just add to the current robot_status. Might not be right.
         if (is_error){
@@ -542,43 +559,72 @@ function serial_send_extra_item_to_job(string_from_robot, path, is_error=false, 
     }
 }
 
-function serial_flush(path){
-    let info = serial_path_to_info(path)
+function serial_flush(port_path){
+    let info = serial_port_path_to_info(port_path)
     if (info && ((info.simulate === false) || (info.simulate === "both"))) {
-        info.port.flush(function(){ out("Serial path: " + path + " flushed.") })
+        info.port.flush(function(){ out("Serial port_path: " + port_path + " flushed.") })
     }
     else {
-        warning("Attempt to serial_flush path: " + path + " but that path doesn't have info.")
+        warning("Attempt to serial_flush port_path: " + port_path + " but that port_path doesn't have info.")
     }
 }
 module.exports.serial_flush = serial_flush
 
 
 //with an arduino connected, this disconnects but then immdiately afterwards,
-//a new connection is automatically made with 1 higher port number and same path.
-function serial_disconnect(path){
-    let info = serial_path_to_info_map[path]
+//a new connection is automatically made with 1 higher port number and same port_path.
+/*function serial_disconnect(port_path){
+    let info = serial_port_path_to_info_map[port_path]
     if (info){
         if((info.simulate === false) || (info.simulate === "both")) {
             //info.port.close(out)
-            //serial_flush(path) //perhaps unnecessary
-            try { serial_flush(path) //perhaps unnecessary
-                  info.port.close(out)
+            //serial_flush(port_path) //perhaps unnecessary
+            try { //serial_flush(port_path) //perhaps unnecessary
+                  info.port.drain(function(err){
+                        try { info.port.close(function(err){out(port_path + " closed. " + err)}) }
+                        catch(err) { out("serial port error: " + err.message) }
+                  //info.port.close(out)
             }
             catch(err) { out ("serial port already closed.") }
         }
-        delete serial_path_to_info_map[path]
+        delete serial_port_path_to_info_map[port_path]
+    }
+}*/
+//James N new version oct 20 , 2020
+function serial_disconnect(port_path){
+    let info = serial_port_path_to_info_map[port_path]
+    debugger;
+    if (info){
+        if((info.simulate === false) || (info.simulate === "both")) {
+            //info.port.close(function(err){out("closed"+err)})
+            try {
+              info.port.drain(function(err){
+                    try { info.port.close(function(err){out(port_path + " closed. " + err)}) }
+                    catch(err) { out("serial port error: " + err.message) }
+                })
+            }
+            catch(err) { out ("serial port already closed.") }
+            out("closing: " + port_path)
+        }
+        delete serial_port_path_to_info_map[port_path]
+        out("deleted: " + port_path)
+    }
+    else {
+        out("no serial port found at " + port_path)
     }
 }
+
 module.exports.serial_disconnect = serial_disconnect
 
 
 function serial_disconnect_all(){
-  for(let path of Object.keys(serial_path_to_info_map)){
-      serial_disconnect(path)
+  for(let port_path of Object.keys(serial_port_path_to_info_map)){
+      serial_disconnect(port_path)
   }
 }
 module.exports.serial_disconnect_all = serial_disconnect_all
+
+var {stringify_value} = require("./utils.js")
 
 
 //var {dde_error} = require("./utils.js") //no longer needed. see special def in je_and_browser_code.js

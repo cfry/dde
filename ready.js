@@ -86,7 +86,6 @@
 
     function on_ready() {
         //open_dev_tools() //FAILS! dev_tools opens but too late. so that break points in on_ready calls will actually break
-        //console.log("just opened dev tools")
         const os = require('os');
         operating_system = os.platform().toLowerCase() //for Ubuntu, ths returns "linux"
 
@@ -1573,6 +1572,8 @@ foo      //eval to see the latest values</pre>`,
      set_left_panel_width(persistent_get("left_panel_width"))
      set_top_left_panel_height(persistent_get("top_left_panel_height"))
      set_top_right_panel_height(persistent_get("top_right_panel_height"))
+
+     PatchDDE.init()
 
      help_system_id.onclick = function(){
         //open_doc(help_system_doc_id)

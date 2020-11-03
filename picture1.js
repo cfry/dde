@@ -21,7 +21,7 @@ var Picture = class Picture{
        }
    }
    //see https://stackoverflow.com/questions/5867534/how-to-save-canvas-data-to-file
-    static save_picture({canvas_id_or_mat="canvas_id", path="my_pic.png"}){
+    static save_picture({canvas_id_or_mat="canvas_id", path="my_pic.png"}={}){
         let sw_index = null
         let canvas_elt
         if(canvas_id_or_mat instanceof HTMLElement){
@@ -30,12 +30,10 @@ var Picture = class Picture{
         else if(typeof(canvas_id_or_mat) == "string"){
             canvas_elt = value_of_path(canvas_id_or_mat)
         }
-        else { //must be a mat
+        else if(Picture.is_mat(canvas_id_or_mat)){
             let mat = canvas_id_or_mat
             let width = mat.cols
             let height = mat.rows
-            //canvas_elt = document.createElement("CANVAS")
-            //canvas_elt.id = "canvas_id" //canvas_elt must have an id for render_canvas_content to work
 
            sw_index = show_window({title: "storage for save_picture",
                                     content: '<canvas id="canvas_for_save_picture_id"' +
@@ -52,6 +50,10 @@ var Picture = class Picture{
                 //canvas_elt.width  = width
                 //canvas_elt.height = height
             Picture.render_canvas_content(canvas_elt, mat)
+        }
+        else {
+            dde_error("Picture.save_picture passed canvas_id_or_mat of: " + canvas_id_or_mat +
+                      "<br/>but that isn't a canvas or a mat.")
         }
         let img = canvas_elt.toDataURL()
         let data = img.replace(/^data:image\/\w+;base64,/, "")
@@ -122,17 +124,24 @@ var Picture = class Picture{
                         title=undefined,
                         x=200, y=40, width=320, height=240,
                         rect_to_draw=null,
+                        rotate=0,
+                        scale_x=1,
+                        scale_y=1,
+                        translate_x=0,
+                        translate_y=0,
                         show_window_callback=show_window_callback_for_canvas_click}={}){
       if (!content) { content = __dirname + "/examples/snickerdoodle_board.png" }
       if(!title) {
            let title_suffix
-           if(typeof(content) == "string") {  title_suffix = content }
+           if(typeof(content) == "string") {   //content might be a long base64 string
+                    title_suffix = content.substr(0, 64)
+           }
            else { title_suffix = Picture.mat_type(content) +
                " mat (" + Picture.mat_width(content) +
                " x " +  Picture.mat_height(content) + ")"}
            title = "Picture from: " + title_suffix
       }
-      if (typeof(content) === "string"){
+      if ((typeof(content) === "string") && (content.length < 256)){ //presumed not base64 image data
           content = make_full_path(content)
       }
       let canvas_elt
@@ -143,15 +152,18 @@ var Picture = class Picture{
       else if(typeof(canvas_id) == "string") { 
       	canvas_elt = value_of_path(canvas_id)
       }
-      if(canvas_elt) { Picture.render_canvas_content(canvas_elt, content, rect_to_draw) }
+      let transforms = {rotate: rotate,
+                        scale_x: scale_x, scale_y: scale_y,
+                        translate_x: translate_x, translate_y: translate_y}
+      if(canvas_elt) { Picture.render_canvas_content(canvas_elt, content, rect_to_draw, transforms)  }
       else {
           let width_html  = ' width="'  + width  + 'px" '
           let height_html = ' height="' + height + 'px" '
           let the_html
-          the_html = '<canvas class="clickable" id="' + canvas_id + '" ' +
+          the_html = '<div style="overflow: scroll;"><canvas class="clickable" id="' + canvas_id + '" ' +
                         width_html +
                         height_html +
-                        'style="padding:0px;"/>'
+                        'style="padding:0px;"/></div>'
           let observer = new MutationObserver(function(mutations, observer) {
                let show_window_rendered = false
                let canvas_elt = value_of_path(canvas_id)
@@ -161,7 +173,7 @@ var Picture = class Picture{
                          for(let a_node of mutation.addedNodes){
                            if (a_node.classList && a_node.classList.contains("show_window")){
                               observer.disconnect() //or maybe this.disconnect()
-                              Picture.render_canvas_content(canvas_elt, content, rect_to_draw)
+                              Picture.render_canvas_content(canvas_elt, content, rect_to_draw, transforms)
                               return
                            }
                          }
@@ -176,29 +188,50 @@ var Picture = class Picture{
                        callback: show_window_callback,
                        content: the_html}) //there isn't a binding to canvas_id so safe to use it. the binding goes away when the user closes the window
       }
-     // setTimeout(function(event) {
-      //            if(canvas_elt == undefined) {canvas_elt = window[canvas_id] }
-      //            if(canvas_elt.tagName != "CANVAS"){
-      //                dde_error("Picture.show_picture got a canvas_elt: " + canvas_elt +
-      //                          "that is not a dom-elt of a canvas.")
-      //            }
-      //            Picture.render_canvas_content(canvas_elt, content, rect_to_draw)
-	//}, 100)
     }
+
+    /*static make_transform_style(rotate=0) {
+        let transform_style = ""
+        if(rotate !== 0) {
+            transform_style += "rotate(" + rotate + "deg) "
+        }
+        //if(transform_style.length > 0){
+        //    transform_style = "transform: " + transform_style
+        //}
+        return transform_style
+    }*/
     //content can be the string name of file with an image in it, or a Mat.
     //rect_to_draw can be an array of [x,y,width,height]  a cv.Rect or a cv.Point
-    static render_canvas_content(canvas_elt, content, rect_to_draw=null) {
+    //see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D
+    //and https://codepo8.github.io/canvas-images-and-pixels/
+    static render_canvas_content(canvas_elt, content, rect_to_draw=null, transforms={}) {
         if(typeof(content) == "string") { //got a file path
             let img = new Image() //Don't pass in width and height because we want the width and height to come from the content  file name. canvas_elt.width, canvas_elt.height) //img_id  //new Image()
+            //if(transform_style.length > 0) {img.style.transform = transform_style }
+            if(is_string_base64(content, true)) { //permit newline at end of content
+                content = "data:image/jpg;base64," + content
+            }
+            img.src = content //"/images/2c.jpg";
             let ctx = canvas_elt.getContext("2d")
             img.onload = function(){
                 let imgWidth      = img.width
                 let imgHeight     = img.height;
                 canvas_elt.width  = imgWidth
                 canvas_elt.height = imgHeight
+                if(transforms.rotate !== 0){
+                    ctx.rotate(degrees_to_radians(transforms.rotate))
+                }
+                if((transforms.scale_x !== 1) || (transforms.scale_y !== 1)){
+                    ctx.scale(transforms.scale_x, transforms.scale_y)
+                }
+                if((transforms.translate_x !== 0) || (transforms.translate_y !== 0)){
+                    ctx.translate(transforms.translate_x, transforms.translate_y)
+                }
+                if(transforms.scale_x < 1) {
+                    imgWidth = imgWidth * -1 //see https://stackoverflow.com/questions/8168217/html-canvas-how-to-draw-a-flipped-mirrored-image
+                }
                 ctx.drawImage(img, 0, 0, imgWidth, imgHeight)
             }
-            img.src = content //"/images/2c.jpg";
         }
         else { //we have a mat, not a file, to show.
             //let a_mat = cv.Mat.zeros(mat_or_file_path.rows, mat_or_file_path.cols, mat_or_file_path.type());

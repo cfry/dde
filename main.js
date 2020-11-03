@@ -129,6 +129,12 @@ function createWindow() {
                    icon: image,
                    backgroundColor: '#00FFFF' //no effect
                    })
+    //attempt to fix the problem of taking a picture on MacOS, see:
+    // https://github.com/electron/electron/issues/13525
+    //but note that the bug in ref man example my_job8 doesn't manifest in
+    //WinOS, or Mac OS with a LOCAL build, just when I do a full release and download.
+    //That's suprising to see a difference!
+    app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 
 
   //mainWindow.focus() //doesn't do anything.

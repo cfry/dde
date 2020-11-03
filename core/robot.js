@@ -373,7 +373,7 @@ var Human = class Human extends Brain { /*no associated hardware */
     }
 
     //the human instructions
-
+    /*
     static recognize_speech ({title="Recognize Speech", prompt="",
                              only_once=true, click_to_talk=true,
                              width=430, height=270, x=400, y=200,
@@ -391,7 +391,7 @@ var Human = class Human extends Brain { /*no associated hardware */
                     finish_callback: finish_callback,
                     user_data_variable_name: user_data_variable_name}
         return new Instruction.human_recognize_speech(args)
-    }
+    }*/
 
     static speak ({speak_data = "hello", volume = 1.0, rate = 1.0, pitch = 1.0,
                      lang = "en_US", voice = 0, wait = true} = {}){ //does not have calLback on purpose
@@ -933,7 +933,8 @@ Dexter = class Dexter extends Robot {
                }
                else {
                    old_same_named_robot.close_robot()
-                   super(arguments[0])
+                   super(keyword_args //arguments[0]
+                   )
                    return this.make_new_robot(keyword_args)
                }
             }
@@ -945,7 +946,8 @@ Dexter = class Dexter extends Robot {
                }
                else {
                    old_same_named_robot.close_robot()
-                   super(arguments[0])
+                   super(keyword_args //arguments[0]
+                   )
                    return this.make_new_robot(keyword_args)
                }
            }
@@ -960,7 +962,8 @@ Dexter = class Dexter extends Robot {
                 }
                 else {
                     old_same_ip_address_robot.close_robot()
-                    super(arguments[0])
+                    super(keyword_args //arguments[0]
+                     )
                     return this.make_new_robot(keyword_args)
                 }
             }
@@ -2883,7 +2886,7 @@ var Job = require("./job.js")
 var {Instruction, make_ins} = require("./instruction.js")
 Dexter.make_ins = make_ins
 var {shouldnt, date_integer_to_long_string, is_iterator, is_string_an_identifier, last,
-    return_first_arg, starts_with_one_of, value_of_path} = require("./utils")
+    return_first_arg, starts_with_one_of, stringify_value, value_of_path} = require("./utils")
 var {file_exists, persistent_get, read_file} = require("./storage")
 var Socket = require("./socket.js")
 var {serial_connect, serial_disconnect, serial_send} = require("./serial.js")

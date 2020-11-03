@@ -5,6 +5,74 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 3.6.5, Nov 3, 2020</summary>
+Highlights: New PatchDDE for deprecation, 2_to_3 compatibility and patching system.
+            New Tutorial authoring tools.
+            Serial port, File handling, Picture improvements.
+
+<ul>
+    <li> serial.js imported <code>stringify_value</code> to fix bug in
+          <code>serial_connect_low_level</code>
+          Also imported it to messaging.js and robot.js</li>
+    <li>serial.js <code>serial_connect_low_level</code> new arg: open_callback</li>
+    <li>serial: changed "path" to "port_path" in most places.
+        Changed "options" to "port_options" in parameter names.</li>
+    <li> serial port: <code>serial_get_or_make_port</code> now if it finds an existing port,
+         and that port is  not open, it opens it.</li>
+    <li><code>serial_disconnect</code>  improved version that prints status to Output pane
+         and has more reliable algorithm</li>
+    <li>Changed hover cursor for big blue question mark to a pointer.</li>
+    <li>Welcome screen tutorial items now have a hover background color and a pointer cursor.</li>
+    <li>"Move Dexter" steptorial now does not present the
+         Dexter UI dialog box until after the user has chosen simulate or real
+         so that that choice will be used.</li>
+    <li>Fix to <code>espeak</code> for text to speech on Dexter </li>
+    <li>Fix for the "double rendering of Dexter" problem.</li>
+    <li>JS Editor Lint: Eliminated warning for not having spacing around a colon f
+         or a JS literal object.
+         Also eliminated warning for <code>typeof(foo)</code>.</li>
+    <li>JS Editor Lint: now "unused variables & uncalled fn defs get a warning
+          (yellow triangle , not an error (red dot in left margin.)</li>
+    <li>Fixed click help infinite loop with unclosed open bracket inside of a /* ..*/ comment.</li>
+    <li><code>Editor.enable_click_help</code> is a new global variable to
+         turn on or off click help.
+         Its default value is true.
+         See User Guide/User Interface/Editor Pane/Editor.enable_click_help.</li>
+    <li><code>show_in_misc_pane</code>, if passed a string starting with &lt; will display it as html.</li>
+    <li><code>show_in_misc_pane</code> if passed a dom elt, displays it in the misc pane.</li>
+    <li>Ref Man new top level section "Lesson" on how to create lessons in DDE.</li>
+    <li>New utility function: <code>is_string_base64</code>.
+         See Ref man/IO/Picture/Low Level/is_string_base64</li>
+    <li>Fix for taking pictures on Mac OS</li>
+    <li><code>Picture.show_picture</code> can now take a base64 string as its "content" to display.</li>
+    <li><code>Picture.save_picture()</code> now works for using all defaults for args.
+        Better error message for no valid canvas_or_mat arg.</li>
+    <li>Improvements to inspect for inspecting a class.</li>
+    <li>Exported function: <code>folder_separator</code>, now available in DDE and job engine.
+         Was formerly available only in LTS.</li>
+    <li>Fixed <code>new Dexter()</code> to work just like  <code>new Dexter({})</code>
+         This also fixed Jobs menu/Insert Example/Human Instrs/</li>
+    <li>New class <code>PatchDDE</code> which formalizes deprecate,
+        loading code to make DDE 3 more compatible with DDE 2,
+        and provides a patching facility for quick fixes to a given release.</li>
+    <li><code>patch_until</code> fixed, deprecated, moved to <code>PatchDDE.patch_until</code> and
+          added to dde_2_to_3 compatibility.
+          See Ref Man/PatchDDE/patch system/patch_until</li>
+    <li>Ref Man documentation for <code>write_file</code>'s 3rd (encoding) parameter has been written.</li>
+    <li>Ref man for <code>write_file_async</code> was mislabeled. Now fixed.</li>
+    <li>New function: <code>copy_file_async</code>.
+          See Ref Man/IO/File Access/copy_file_async</li>
+    <li>fixed doc for <code>write_file_async</code>.
+        The callback takes only 1 arg, an error object,
+        but not a 2nd arg of content as previously documented.</li>
+    <li><code>write_file_async</code> extended.
+        Now if the path argument contains folder(s)
+        that don't exist, they are automatically created.</li>
+    <li>new function: <code>copy_folder_async</code>. See Ref Man/IO/File Access/copy_folder_async.
+           Not yet working for copying folders to and from Dexter.</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.6.4, Sep 29, 2020</summary>
 Highlights: New Steptorial for Learn JS.
             Improvements to the Welcome window.

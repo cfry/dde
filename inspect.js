@@ -220,10 +220,10 @@ function inspect_aux(item, stack_number, in_stack_position, increase_max_display
             result += "}"
         }
         else if ((the_type == "function") &&
-            out.constructor &&
-            (out.constructor.name == "Function") &&
-            !is_class(item) &&
-            (item !== Number)){//a regular function
+                  out.constructor &&
+                 (out.constructor.name == "Function") &&
+                 !is_class(item) &&
+                 (item !== Number)){//a regular function
             result = inspect_one_liner_regular_fn(item)
             //note that this title for a fn is probably never used since fns
             //are either handld outside the insepctor at top level or
@@ -258,22 +258,14 @@ function inspect_aux(item, stack_number, in_stack_position, increase_max_display
                 let class_name = get_class_name(item)
                 if (class_name) { title = "A Class named: " + class_name }
             }
-            if (item.hasOwnProperty("prototype")){
-                let prop_name = "prototype"
-                const constructor_class_name = get_class_name(item.constructor)
-                if(constructor_class_name) { prop_name = constructor_class_name }
-                let prop_value = item.prototype
-
-                //if(title == "") { title = "A " + prop_name }
-                result += prefix + "<i>" + prop_name + "</i>: "   + inspect_one_liner(prop_value, stack_number, in_stack_position, prop_name)   + "<br/>\n"
-                prefix = "&nbsp;&nbsp;"
-            }
             if (item.hasOwnProperty("name")){
                 let prop_name = "name"
                 let prop_value = item.name
                 result += prefix + "<i>name</i>: "                + inspect_one_liner(prop_value, stack_number, in_stack_position, prop_name)        + "<br/>\n"
                 prefix = "&nbsp;&nbsp;"
             }
+
+
             if (item.constructor && item.constructor.name){
                 let prop_name  = "constructor"
                 let prop_value = item.constructor
@@ -284,12 +276,24 @@ function inspect_aux(item, stack_number, in_stack_position, increase_max_display
                         prop_name = "class"
                         title = "A " + get_class_name(item.constructor) + name
                     }
-                    else if (prop_value && prop_value.name) {
+                    else if (prop_value &&
+                             prop_value.name &&
+                             (title == "")) { //otherwise we don't give proper classes like Job a title of "A class ..."
                         title = "A " + prop_value.name + name
                     }
                     result += prefix + "<i>" + prop_name + "</i>: "   + inspect_one_liner(prop_value, stack_number, in_stack_position, prop_name) + "<br/>\n"
                     prefix = "&nbsp;&nbsp;"
                 }
+            }
+            if (item.hasOwnProperty("prototype")){
+                let prop_name = "prototype"
+                const constructor_class_name = get_class_name(item.constructor)
+                if(constructor_class_name) { prop_name = constructor_class_name }
+                let prop_value = item.prototype
+
+                //if(title == "") { title = "A " + prop_name }
+                result += prefix + "<i>" + prop_name + "</i>: "   + inspect_one_liner(prop_value, stack_number, in_stack_position, prop_name)   + "<br/>\n"
+                prefix = "&nbsp;&nbsp;"
             }
             //https://stackoverflow.com/questions/30881632/es6-iterate-over-class-methods
             let prop_names = Object.getOwnPropertyNames(item)
@@ -410,9 +414,10 @@ function inspect_one_liner(item, stack_number, in_stack_position, prop_name){
     else if (the_type == "object") { //handles the typeArray case but note, is same call as normal array
         let name_text = ""
         if(item.name && (item.name != "")) { name_text = " name: " + item.name + " " } //really useful for Threejs Object3D and probably others
+        else if(prop_name === "prototype") { name_text = "(click for instance methods)"} //when inspecting a class
         return inspect_clickable_path(item, stack_number, in_stack_position, prop_name) +
                  name_text +
-                 inspect_extra_info(item)
+                 ((prop_name === "prototype") ? "" : inspect_extra_info(item))
     }
     else { shouldnt("inspect_one_liner passed unhandled: " + item) }
 }
@@ -485,7 +490,8 @@ function inspect_extra_info(item){
        for(let i = 0; i < item.length; i++) {
            let elt = item[i]
            let elt_str = ""
-           if(Number.isNaN(elt)) { elt_str = "NaN"} //because JSON.stringify prints NaN as "null"
+           if(elt === null) { elt_str = "null" }
+           else if(Number.isNaN(elt)) { elt_str = "NaN"} //because JSON.stringify prints NaN as "null"
            else if (typeof(elt) == "object"){
                let class_name = get_class_name(elt)
                if(class_name) { elt += class_name }

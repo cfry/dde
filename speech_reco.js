@@ -354,4 +354,4 @@ function recognize_speech({
     if (!click_to_talk) { start_recognition() }
 }
 
-window.recognize_speech = recognize_speech
+//window.recognize_speech = recognize_speech
