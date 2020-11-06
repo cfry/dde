@@ -1225,6 +1225,28 @@ for its first use, as not doing that might result in taking some "blank" picture
 
 <details class="doc_details"><summary>Camera I/O</summary>
 
+    <details class="doc_details"><summary><span style="color:red;">Attention Mac Users</span></summary>
+        Camera-using methods: <code>Picture.show_picture</code>,
+        <code>Picture.show_video</code>,
+        and <code>Picture.take_picture</code> depend on
+        camera permissions granted by the user.
+        Calling these methods may pop up a dialog asking
+        for permission the first time you call them
+        in a DDE session. But we've had cases where
+        such dialog boxes are obscured by other windows
+        or simply don't pop up. In the later case,
+        often the camera "picture" is blank.
+        <p></p>
+        If you use these methods on a Mac,
+        we strongly suggest that you permit DDE to
+        have camera access by choosing:<br/>
+        Apple menu/System Preferences/Security & Privacy/Camera
+        and checking the "dde_dev_env" app. Even if it is already
+        checked, we've had a case where you must uncheck and then
+        recheck for permissions to be granted. Perhaps this happens
+        the first time you use a new DDE release.
+    </details>
+
 <details id="Picture.save_picture_doc_id" class="doc_details"><summary>save_picture</summary>
 <code>Picture.save_picture</code> saves a picture to a file.<br/>
 <i>Parameters:</i><br/>

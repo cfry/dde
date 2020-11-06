@@ -469,7 +469,7 @@ function write_file_async(path, content, encoding="utf8", callback=write_file_as
     if (content === undefined) {
         content = Editor.get_javascript()
     }
-    console.log("path: " + path + " " + content)
+    //console.log("path: " + path + " " + content)
     let dex_instance = path_to_dexter_instance(path)
     if(dex_instance){
         if(node_server_supports_editor(dex_instance)) {

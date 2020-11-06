@@ -593,7 +593,6 @@ module.exports.serial_flush = serial_flush
 //James N new version oct 20 , 2020
 function serial_disconnect(port_path){
     let info = serial_port_path_to_info_map[port_path]
-    debugger;
     if (info){
         if((info.simulate === false) || (info.simulate === "both")) {
             //info.port.close(function(err){out("closed"+err)})

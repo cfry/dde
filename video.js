@@ -508,7 +508,7 @@ function refresh_job_or_robot_to_simulate_id(){
 }
 //returns a string
 function job_or_robot_to_simulate_name(){
-    if(job_or_robot_to_simulate_id && job_or_robot_to_simulate_id.value) {
+    if(window["job_or_robot_to_simulate_id"] && job_or_robot_to_simulate_id.value) {
         return job_or_robot_to_simulate_id.value
     }
     else { return "Dexter.default" }
