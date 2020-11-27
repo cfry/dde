@@ -1000,9 +1000,9 @@ function selector_set_in_ui(path_string, value=null){
         write_to_stdout("<for_server>" + JSON.stringify(obj) + "</for_server>")
     }
     else {
-        if(value === -0) { value = 0 } //in some werid raoujnding situations, we get a negative zero.
+        if(value === -0) { value = 0 } //in some weird raoujnding situations, we get a negative zero.
                                        //and maybe this cause problems in the below setAttrubute call
-                                       //so jsut to be safe. get rid of it.
+                                       //so just to be safe. get rid of it.
                                        //Note -0 === 0, but still, here we ensure either 0 or -0 is really 0
         let path_string_elts = path_string.split(" ")
         let last_elt_str = path_string_elts[path_string_elts.length - 1]

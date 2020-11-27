@@ -3503,9 +3503,10 @@ This will not work for Jobs run on the Job Engine on Dexter.
 </details> <!-- end i/o -->
 
 <details id='Job_doc_id' class="doc_details"><summary>Job</summary>
-A job contains a do_list of instructions that it feeds one at a time, in order,
-to a robot, to make things.
-The syntax of defining a job is:
+A DDE Job is, fundamentally, a description of an automated process to make something.
+It's core part is a do_list of instructions that it feeds, one at a time,
+to a robot, to tell it how to perform a step to make something.
+The syntax of defining a simple job is:
 <pre><code>new Job({name: "my_job",
          robot: Robot.dexter0,
          do_list: [ Dexter.move_to([0, 0.5, 0.075]),
@@ -3513,9 +3514,11 @@ The syntax of defining a job is:
                     //more instructions here
                    ]
         })</code></pre>
-Select such source code in the editor pane and click the <button>Eval</button> button to define the job.
+Evaling that JavaScript code (by selecting it above or similar code in the editor and
+clicking the <button>Eval</button> button)
+defines the Job.
 This will cause a button for the Job to be placed in the Output Pane header, such as
-    <button>my_job</button>.
+    <button>my_job</button>.  Clicking the button runs the Job.
 <p></p>
 Webinar videos for Job:<br/>
 <a target="_blank" href="http://hdrobotic.com/webinar#making_jobs"   target="_blank">Making Jobs</a><br/>
@@ -4653,6 +4656,43 @@ new Job({name: "my_job5",
     If Control.break is not in a loop, a warning will be printed in the Output pane.
     <p></p> Note that Javascript also uses the symbol <code title="unEVALable">break</code>
     to end a JavaScript <code title="unEVALable">for</code> loop.
+</details>
+
+<details id="Control.continue_doc_id" class="doc_details"><summary>continue</summary>
+    Control.continue is similar to the JavaScript continue statement inside a loop.
+    When in the body of a
+    <a href="#" onclick="open_doc('Control.loop_doc_id', event)">Control.loop</a>,
+    instruction, it immediately jumps to the top of the next iteration of the
+    loop, skipping passed instructions after the continue instructions within
+    the loop body.
+    <p></p>
+    <i>Parameters:</i> None.<br/>
+    <i>Example:</i> <pre><code>new Job({
+    name: "test_continue_job",
+    do_list: [Control.loop(3,
+    			function(i){
+                    return [IO.out("top of loop " + i),
+                            ((i === 1) ? Control.continue() : null),
+                            IO.out("bottom of loop " + i)
+                           ]
+            	}),
+             IO.out("the end")
+    ]
+})   </code></pre>
+    The above will print to the Output Pane:<br/>
+    <ul>
+        <li>top of loop 0</li>
+        <li>bottom of loop 0</li>
+        <li>top of loop 1</li>
+        <li>top of loop 2</li>
+        <li>bottom of loop 2</li>
+        <li>the end</li>
+    </ul>
+    Notice that it <i>doesn't</i> print: "bottom of loop 1" because
+    on the "1" iteration, the <code>Control.continue()</code>
+    instruction is placed before the
+    <code title="unEVALable">IO.out("bottom of loop " + i)</code>
+    so that that out instruction is never run.
 </details>
 
 <!-- the real doc for Control.step_instructions is in the user guide -->
@@ -10292,6 +10332,11 @@ insert_html_into_doc_pane(`&lt;details id="foo_doc_id" style="font-size:16px;">
             Lesson.make_button_html({label: "Dexter Picture",
                  args: [__dirname + "/doc/HD+Robotics-8517.jpg"]
                  }),
+             Lesson.make_button_html({label: "compute 2 + 3",
+             icon: "",
+             method: "eval",
+             args: ["out(2 + 3)"]
+             }),
              Lesson.make_button_html({label: "Indicate Dexter part",
                   tooltip: "Red arrow points at simulated Dexter part.",
                   method: "show_in_misc_pane",
@@ -10443,24 +10488,61 @@ Lesson.make_tour({name: "Author Lessons", steps: [
 DDE is a general purpose software development environment and as such there's
 an infinite range of extensions for education that can be authored in it.
 Here we point out just a few that are especially easy and useful for teaching.
-<p></p>
-Calling the <a href="#" onclick="open_doc(out_doc_id)"><code>out</code></a> function lets you put HTML or plain text
-in any colour, into the Output pane, either temporarily or until DDE is closed.
-<p></p>
-Calling the <a href="#" onclick="open_doc(speak_doc_id)"><code>speak</code></a>
-function performs text-to-speech
-with a bunch of settings for varying the voice.
-<p></p>
-Calling the <a href="#" onclick="open_doc(show_window_doc_id)"><code>show_window</code></a> function displays a dialog box
-of HTML with easy association of JavaScript actions to numerous input
-widgets. <a href="#" onclick="open_doc('Human.show_window_doc_id')"><code>Human.show_window</code></a>
-is an instruction that displays
-a similar dialog box, but is used as an instruction in a Job.
-It causes the Job to pause while a human fills in values.
-Once the human clicks the <button>Continue</button> button,
-the next instruction is run in the job. It and all subsequent instructions
-can access the values filled in. <code>Human.show_window</code> is particularly useful for coordinating activites
-between humans and robots.
+    <details class="doc_details"><summary>Insert into Editor pane</summary>
+        Editor.insert can insert text into the editor.<br/>
+        <i>Parameters:</i><br/>
+        <b>text</b> Default: <code>""</code>. A string to insert.<br/>
+        <b>insertion_pos</b> Default: <code>"replace_selection"</code>.<br/>
+            Possible values:
+            <ul>
+                <li><i>a non-negative integer</i> Insert the text at that position in the editor buffer.
+                       <code>0</code> inserts at the beginning. </li>
+                <li><code>"start"</code> Insert the text at the start of the editor buffer.</li>
+                <li><code>"end"</code>  Insert the text at the end of the editor buffer.</li>
+                <li><code>"selection_start"</code>  Insert the text at the start of the selection.
+                    If there is no selection, this inserts at the cursor position.</li>
+                <li><code>"selection_end"</code>  Insert the text at the end of the selection.
+                    If there is no selection, this inserts at the cursor position.</li>
+                <li><code>"replace_selection"</code> (the default). Replace the selected text with the text.
+                    If text is <code>""</code>, delete the selected text.
+                    If there is no selection, insert text at the cursor.</li>
+                <li><code>"whole"</code> Replace the all the text in the editor with the text.
+                    If text is <code>""</code>, delete the content of the editor.</li>
+            </ul><br/>
+        <b>select_new_text</b> Default: <code>false</code> If <code>true</code>, the
+           new text inserted will be selected.
+        <p></p>
+        <i>Examples:</i><br/>
+        <code>Editor.insert("hello world")</code><br/>
+        Inserts the characters of "hello world" at the cursor position,
+        replacing the selection if any.
+        <p></p>
+        <code>Editor.insert("everything", "whole")</code><br/>
+        Replaces the whole editor content with the string "everything".
+
+    </details>
+
+    <details class="doc_details"><summary>Insert into Output pane</summary>
+        Calling the <a href="#" onclick="open_doc(out_doc_id)"><code>out</code></a> function lets you put HTML or plain text
+        in any color, into the Output pane, either temporarily or until DDE is closed.
+    </details>
+    <details class="doc_details"><summary>Text to Speech</summary>
+        Calling the <a href="#" onclick="open_doc(speak_doc_id)"><code>speak</code></a>
+        function performs text-to-speech
+        with a bunch of settings for varying the voice.
+    </details>
+    <details class="doc_details"><summary>Pop up dialog box</summary>
+        Calling the <a href="#" onclick="open_doc(show_window_doc_id)"><code>show_window</code></a> function displays a dialog box
+        of HTML with easy association of JavaScript actions to numerous input
+        widgets. <a href="#" onclick="open_doc('Human.show_window_doc_id')"><code>Human.show_window</code></a>
+        is an instruction that displays
+        a similar dialog box, but is used as an instruction in a Job.
+        It causes the Job to pause while a human fills in values.
+        Once the human clicks the <button>Continue</button> button,
+        the next instruction is run in the job. It and all subsequent instructions
+        can access the values filled in. <code>Human.show_window</code> is particularly useful for coordinating activites
+        between humans and robots.
+    </details>
 </details>
 </details> <!-- end of Lesson -->
 <details id="PatchDDE_doc_id" class="doc_details"><summary>PatchDDE</summary>

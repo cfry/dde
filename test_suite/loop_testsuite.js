@@ -89,7 +89,22 @@ new TestSuite("loop",
             ]}),
         function(){this.user_data.an_array.push(6)}
             ]})`],
-        ["Job.inner_loop_break_test.user_data.an_array", "[0,1,2,3,4,6]"]
+        ["Job.inner_loop_break_test.user_data.an_array", "[0,1,2,3,4,6]"],
+    [`new Job({
+    name: "test_continue_job",
+    user_data: {loop_data: []},
+    do_list: [Control.loop(3, 
+    			function(i){
+                    return [function(){this.user_data.loop_data.push(i)},
+                            ((i === 1) ? Control.continue() : null),
+                            function(){this.user_data.loop_data.push(i + 10)}
+                           ]
+            	}),                 
+              IO.out("the end")
+             ]
+       })`
+       ],
+       ["Job.test_continue_job.user_data.loop_data", "[0, 10, 1, 2, 12]"]
 )
           
                 

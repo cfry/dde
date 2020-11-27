@@ -3,6 +3,7 @@ function to_source_code({value, indent="", function_names=false, newObject_paths
                         depth_limit=100, depth=0, job_orig_args=false,
                         one_line_per_array_elt=false, array_elt_max_chars=60} = {}){
         //console.log("Object.isNewObject: " + Object.isNewObject)
+        if(window.Ammo && (value === Ammo)) { return "Ammo" } //if I let this go, it causes some infinite recursion which also happens in inspect
         if (!((typeof(arguments[0]) == "object") && arguments[0].hasOwnProperty("value"))){
             value = arguments[0] //so we can just do calls of to_source_code("stuf")
         }

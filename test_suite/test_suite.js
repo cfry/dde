@@ -323,7 +323,7 @@ var TestSuite = class TestSuite{
         let result =  "<b>Summary:</b><br/>" +
                       " Test suites run: "  + total_suites +
                       ", Total tests: "     + total_tests  +
-                      ", Duration: "        + total_dur    + " ms <br/>" +
+                      ", Duration: "        + total_dur    + " ms (typical: 130,000 ms)<br/>" +
                       "Total unknown failures: <span style='color:" + ((total_unknown_failures == 0) ? "black" : "red") + "'>" + total_unknown_failures + "</span>" +
                       ", Total known failures: <span style='color:" + ((total_known_failures   == 0) ? "black" : "red") + "'>" + total_known_failures   + "</span> "
         return result

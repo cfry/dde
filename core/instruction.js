@@ -593,6 +593,27 @@ Instruction.break = class Break extends Instruction{ //class name must be upper 
     to_source_code(args){ return args.indent + "Control.break()" }
 }
 
+//like JS continue but in a dde LOOP instruction
+//very similar to Instruction.break, but without loop_ins.init_instruction()
+Instruction.continue = class Continue extends Instruction{ //class name must be upper case because lower case conflicts with js continue
+    constructor () { super() }
+    do_item (job_instance){
+        let loop_pc = Instruction.loop.pc_of_enclosing_loop(job_instance)
+        if (loop_pc === null) {
+            dde_error("Job " + job_instance.name + ' has a Control.Continue instruction at pc: ' + job_instance.program_counter +
+                "<br/> but there is no Control.loop instruction above it.")
+            job_instance.set_up_next_do(1)
+        }
+        else {
+            let loop_ins = job_instance.do_list[loop_pc]
+            job_instance.program_counter = loop_pc
+            job_instance.set_up_next_do(0)
+        }
+    }
+    toString(){ return "continue" }
+    to_source_code(args){ return args.indent + "Control.continue()" }
+}
+
 
 Instruction.debugger = class Debugger extends Instruction{ //class name must be upper case because lower case conflicts with js debugger
     constructor () {
@@ -2335,7 +2356,7 @@ Instruction.loop = class loop extends Instruction{
            }
        }
        else { shouldnt("Control.loop has an invalid this.resolved_times_to_loop of: " + this.resolved_times_to_loop)}
-       if(this.iter_index >= this.iter_total) { //done looping but initialize so if the job is restrted, the loop will restart
+       if(this.iter_index >= this.iter_total) { //done looping but initialize so if the job is restarted, the loop will restart
             this.init_instruction() //ready for next time this whole loop might be called.
             return null
        }

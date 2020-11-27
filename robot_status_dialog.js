@@ -11,7 +11,10 @@ var RobotStatusDialog = class RobotStatusDialog{
     static show(event){
         if(RobotStatusDialog.window_up()) { warning("Robot Status is already shown.") }
         else {
-            let robot = (Job.last_job? Job.last_job.robot : Robot.dexter0)
+            let robot = (Job.last_job? Job.last_job.robot : Dexter.dexter0)
+            if(!robot || !(robot instanceof Dexter)) {
+                robot = Dexter.dexter0
+            }
             let content = RobotStatusDialog.make_html_table(robot)
             let cal = robot.is_calibrated()
             cal = ((cal === null) ? "unknown" : cal)
@@ -21,7 +24,10 @@ var RobotStatusDialog = class RobotStatusDialog{
                 "<span style='font-size:12px;margin-left:10px;'> Updated: <span id='robot_status_window_time_id'>" + RobotStatusDialog.update_time_string() + "</span></span>" +
                 " <button id='robot_status_run_update_job_button_id' title='Defines and starts a Job&#13; that continually gets the robot status&#13;of the selected robot.&#13;Click again to stop that Job.'" +
                 " onclick='RobotStatusDialog.run_update_job()'>run update job</button> " +
-                "<span style='font-size:14px;'> is_calibrated: <span id='robot_status_is_calibrated_id'>" + cal + "</span></span>",
+                "<span style='font-size:14px;'> is_calibrated: <span id='robot_status_is_calibrated_id'>" + cal + "</span></span> " +
+                `<button title='Inspect the robot_status array.' onclick="RobotStatusDialog.inspect_array()"'>Inspect Array</button> ` +
+                `<button title="Browse the Dexter node server main page.&#013;For this to work, you must be connected&#013;to a Dexter that's running its server." onclick="RobotStatusDialog.browse()"'>Browse</button> `
+                ,
                 width:  890,
                 height: 380
             })
@@ -213,11 +219,44 @@ var RobotStatusDialog = class RobotStatusDialog{
                 robot: rob,
                 do_list: [ Control.loop(true,
                            function() {
-                              let cal = rob.is_calibrated()
-                              if (cal == null) { cal = "unknown" }
-                              robot_status_is_calibrated_id.innerHTML = cal
-                              return Dexter.get_robot_status()
+                              if(RobotStatusDialog.window_up()){
+                                  let cal = rob.is_calibrated()
+                                  if (cal == null) { cal = "unknown" }
+                                  robot_status_is_calibrated_id.innerHTML = cal
+                                  return Dexter.get_robot_status()
+                              }
+                              else {
+                                  return Control.break()
+                              }
                            })]}).start()
+        }
+    }
+
+    static inspect_array(){
+        let robot_name = update_robot_status_names_select_id.value
+        let robot = Dexter[robot_name]
+        let robot_status_array = robot.robot_status
+        let len = (robot_status_array ? robot_status_array.length : 60)
+        let array_for_display = []
+        let labels = Dexter.robot_status_labels
+        for(let i = 0; i < len; i++){
+            array_for_display.push([
+               //i, //i is already printed by the inspector
+               labels[i],
+                (robot_status_array ? robot_status_array[i] : "no status")])
+        }
+        inspect(array_for_display)
+    }
+
+    static browse(){
+        try{
+        let robot_name = update_robot_status_names_select_id.value
+        let robot = Dexter[robot_name]
+        let ip_addr = robot.ip_address
+        show_page(ip_addr)
+        }
+        catch(err) {
+            warning("Sorry, unable to browse the web page for: " + update_robot_status_names_select_id.value)
         }
     }
 }

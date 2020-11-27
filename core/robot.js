@@ -121,10 +121,13 @@ var Robot = class Robot {
     static break(){ //stop a Control.loop
         return new Instruction.break()
     }
-    static debugger(){ //stop a Control.loop
+    static continue(){ //start next iteration of a Control.loop
+        return new Instruction.continue()
+    }
+    static debugger(){
         return new Instruction.debugger()
     }
-    static step_instructions(){ //stop a Control.loop
+    static step_instructions(){
         return new Instruction.step_instructions()
     }
     static error(reason="", perform_when_stopped=true){ //declare that an error happened. This will cause the job to stop.
@@ -1149,6 +1152,44 @@ Dexter = class Dexter extends Robot {
         }
     }
 
+    //______phui_button processing
+    is_phui_button_down(){
+        if(!this.robot_status) { return false }
+        else {
+            return ((this.robot_status[Dexter.END_EFFECTOR_IN] & 1) === 0)
+        }
+    }
+    //called from Dexter.prototype.robot_done_with_instruction. Not to be called by users
+    set_robot_status(robot_status) {
+        let old_robot_status_button_down = this.is_phui_button_down()
+        this.robot_status = robot_status //thus rob.robot_status always has the latest rs we got from Dexter.
+        let new_robot_status_button_down = this.is_phui_button_down()
+        if((!old_robot_status_button_down) &&
+            new_robot_status_button_down) {
+            this.time_of_last_phui_button_click_ms = Date.now()
+        }
+    }
+    clear_time_of_last_phui_button_click_ms(){
+        this.time_of_last_phui_button_click_ms = null
+    }
+
+    phui_button_clicked_but_not_processed(){
+        if(this.time_of_last_phui_button_click_ms) {
+            this.clear_time_of_last_phui_button_click_ms()
+            return true
+        }
+        else { return false }
+    }
+    seconds_since_phui_button_clicked(){
+        if(!this.time_of_last_phui_button_click_ms) {
+            return null
+        }
+        else {
+            return (Date.now() - this.time_of_last_phui_button_click_ms) / 1000
+        }
+    }
+    //end phui button processing
+
     run_heartbeat(){
         let this_dex = this
         this.heartbeat_timeout_obj =
@@ -1320,7 +1361,7 @@ Dexter = class Dexter extends Robot {
             //job_instance.highest_completed_instruction_id = ins_id //now always done by set_up_next_do
             if (!got_ack){
                 //job_instance.robot_status = robot_status
-                rob.robot_status          = robot_status //thus rob.robot_status always has the latest rs we got from Dexter.
+                rob.set_robot_status(robot_status)
                 if(window.platform == "dde"){
                     rob.rs = new RobotStatus({robot_status: robot_status})
                 }

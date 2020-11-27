@@ -1519,6 +1519,8 @@ foo      //eval to see the latest values</pre>`,
     //this must be before dde_init_dot_js_initialize() so that when a robot is defined, it can go on the menu
     default_robot_name_menu_container_id.innerHTML = make_default_robot_menu_html()
 
+    PatchDDE.init()
+
     dde_init_dot_js_initialize()//must occcur after persistent_initialize
     Dexter.default = (Dexter.dexter0 ?  Dexter.dexter0 : null )
     //initialize the checkbox state
@@ -1549,6 +1551,7 @@ foo      //eval to see the latest values</pre>`,
     $(".CodeMirror").css("font-size", editor_font_size + "px")
     font_size_id.value = editor_font_size
 
+
     //init_ros_id.onclick = function(){
     //         init_ros_service_if_url_changed()
     //} //must occur after dde_init_doc_js_initialize  init_ros_service($("#dexter_url").val())
@@ -1573,7 +1576,7 @@ foo      //eval to see the latest values</pre>`,
      set_top_left_panel_height(persistent_get("top_left_panel_height"))
      set_top_right_panel_height(persistent_get("top_right_panel_height"))
 
-     PatchDDE.init()
+
 
      help_system_id.onclick = function(){
         //open_doc(help_system_doc_id)
@@ -1588,6 +1591,7 @@ foo      //eval to see the latest values</pre>`,
          show_in_misc_pane(persistent_get("misc_pane_content"))
      }, 200)
 } //end of on_ready
+
 function set_left_panel_width(width=700){
     $('#outer_splitter_id').jqxSplitter({ panels: [{ size: width }] })
 }

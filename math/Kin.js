@@ -1247,6 +1247,14 @@ class Kin{
         let R = L[1] + L[2] + Math.hypot(L[3], L[4])
         return [[-R, R], [-R, R], [L[0] - R, L[0] + R]]
     }
+
+    static roll_to_J6(xyz, roll = 0){
+        return atan2d(xyz[1], xyz[0]) - 90 - roll
+    }
+
+    static J6_to_roll(xyz, J6 = 0){
+        return atan2d(xyz[1], xyz[0]) - 90 - J6
+    }
     
     /*
 	Kin.inverse_kinematics([0, Dexter.LINK5, Dexter.LINK1+Dexter.LINK2+Dexter.LINK3+Dexter.LINK4], [0, 1, 0])

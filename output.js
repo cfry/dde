@@ -31,24 +31,32 @@ window.get_in_ui = function(path_string){
     let the_loc = window
     for (var i = 0; i < path_elts.length; i++){
         var path_elt = path_elts[i]
-        if (i == (path_elts.length - 1)){ //on last elt so set it
+        if (i === (path_elts.length - 1)){ //on last elt so set it
             if( // the_loc.hasOwnProperty("attributes") /doesn't work
+                the_loc.hasAttributes && //note if the_loc is the global obj, it doesn't have a field of hasAttributes
                 the_loc.hasAttributes() &&
                 the_loc.attributes.hasOwnProperty(path_elt)) {
                 let result = the_loc.getAttribute(path_elt)
-                if (is_string_a_number(result)) {
+                if ((typeof(result) === "string") && (is_string_a_number(result))) {
                     return parseFloat(result)
                 }
                 else { return result }
 
             } //necessary for "active" attributes like cx in svg ellipse, in order to actually get the real value of  "cx" property
-            else {
-                let result = the_loc.getAttribute(path_elt)
-                if (is_string_a_number(result)) {
+            else if(the_loc[path_elt] !== undefined) { //hits when path_elt is "value"
+                let result = the_loc[path_elt]
+                if ((typeof(result) === "string") && (is_string_a_number(result))) {
                     return parseFloat(result)
                 }
                 else { return result }
-             }
+            }
+            else {
+                let result = the_loc.getAttribute(path_elt)
+                if ((typeof(result) === "string") && (is_string_a_number(result))) {
+                    return parseFloat(result)
+                }
+                else { return result }
+            }
         }
         else {
             the_loc = the_loc[path_elt]

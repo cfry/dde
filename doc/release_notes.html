@@ -5,6 +5,71 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 3.6.7, Nov 27, 2020</summary>
+    Highlights: Dexter User Interface: support for keystrokes, getting points from Dexter, and more.
+    Big fix for the editor interface to the file system.
+    Fix for MotionSetup code.
+    Lesson improvements for helping teachers create tutorials for students.
+    Jobs menu/Show Robot Status improvments.
+    copy_file_async now is much more "async" for copying files from DDE to Dexter.
+    Jobs Menu/Show Robot Status: fixes and extensions.
+<ul>
+    <li><code>get_in_ui</code> bug fix which fixes bug in MotionSetup code.</li>
+    <li>TestSuite: added "typical duration" to the final report for comparison of that
+        test suite run time.</li>
+    <li>New Job Instruction: <code>Control.continue</code> for use within <code>Control.loop</code>.
+        See Ref Man/Robot/Robot Instructions/Control.</li>
+    <li>Improved click_help for Job.</li>
+    <li>Fixed click_help for all "Control." and "IO." paths, especially <code>Control.break</code>
+       which was confused with Javascript break.</li>
+    <li>Fixed Jobs/Dexter Tools/ Calibrate Dexter dialog when clicking the close dialog box.
+        Now does not display errors or warnings in the output pane.</li>
+    <li>Fixed Jobs/Dexter Tools/ Calibrate Dexter dialog when simulate is on.
+        Changed the alert box telling you more accurately how to change from simulate to real,
+        and changed it from a "confirm" dialog to an "alert" as only 1 button is needed.</li>
+    <li>Ammo caused infinite loop on JSON.stringify(Ammo) and inspect(Ammo)
+         so those calls have been eliminated. This was breaking inspect(window)</li>
+    <li>The asterisk that shows that the current editor needs saving now has a tooltip that explains it.</li>
+    <li>Fixed bugs in the editor's file handling</li>
+    <li>Extended <code>Lesson.make_button_column</code>
+        with an example of a button that evals any JavaScript.</li>
+    <li>Organized RefMan/Lesson/Lesson  and extended it with new section:
+       Insert into Editor Pane, which lets you also replace the selection or all editor content,
+       and select the newly inserted text.</li>
+    <li>Improved the definition of a Job at the top of  RefMan/Job</li>
+    <li>New User Guide/Installation/Multiple DDEs Installed</li>
+    <li><code>copy_file_async</code> now truely is async and works for copying nested folders
+        from laptop to Dexter's linux file system.</li>
+    <li>Dexter User Interface: added methods: <code>Kin.J6_to_roll</code> and <code>Kin.roll_to_j6</code>
+    which support the new Dexter User Interface dialog J6 roll feature.</li>
+    <li>Dexter User Interface: Fixed dui2.dui_instance_under_mouse() that caused problems.</li>
+    <li>Dexter User Interface: changed initial value of j3 from 0 to epslion, like J2 is now.
+        This gets rid of the bug on initial start of the dialog and decrimenting Z.</li>
+    <li>Dexter User Interface: can now be controlled by keyboard keys. This is modified
+        by the new "key inc" menu.
+        See tooltip on big x-y square for doc.</li>
+    <li>Dexter User Interface: now has "FromDex" checkbox to populate the fields with values
+         from Dexter after setting it to follow_me mode.
+         Doc printed in Output pane when you check it.</li>
+    <li>Dexter User Interface:  insert "Job" button now does not insert a first instruction,
+         it just inserts an empty Job. This is better if you are using from Dexter to get points.</li>
+    <li>When launching DDE, the initial file edited will be the file you were editing when you quit DDE.</li>
+    <li>When launching DDE, the initial file edited will be the file you were editing when you quit DDE.</li>
+    <li>Jobs menu/Show Robot Status: bug fix for
+           <ol>
+               <li>when simulate off</li>
+               <li>choose jobs menu/Show Robot Status</li>
+               <li>click Run update job</li>
+               <li>click window close box, get error.</li>
+           </ol>
+    </li>
+    <li>Jobs menu/Show Robot Status: Fix: when the latest run Job had a robot that wasn't a Dexter.</li>
+    <li>Jobs menu/Show Robot Status:  New button <button>Inspect Array</button> that shows you the robot status array with the index numbers, labels, and values.</li>
+    <li>Jobs menu/Show Robot Status:  New button <button>Browse</button> that let's you see the main web page for the selected Dexter.</li>
+    <li>Editor: The most common syntactic stylistic "errors" have been removed or replaced with warnings.</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.6.6, Nov 5, 2020</summary>
 Highlights: Fix to Job Engine build process.
 <ul>

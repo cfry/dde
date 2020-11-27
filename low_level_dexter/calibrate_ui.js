@@ -199,6 +199,7 @@ function cal_draw_saved_center(){
 
 function handle_cal(vals){
 	//debugger
+	if(vals.clicked_button_value === "close_button") { return }
     var the_robot = cal_get_robot()
     //out(vals.clicked_button_value)
     if(vals.clicked_button_value == "Reset Ranges") {
@@ -489,7 +490,8 @@ function init_calibrate(){
         	if(sim_actual === true){
         		//show_window({content: "Don't Sim"})
             	open_doc(dexter_param_simulate_doc_id)
-            	confirm("Warning: Simulate is set to true so calibration window will not work. \nTo set to false, choose Jobs menu/Simulate/false.")
+            	alert("Warning: Simulate is turned on so the calibration window will not work. \n" +
+                        "To set to real, choose Misc pane radio button: 'real'.")
         	}
         	else if (Dexter.all_names.length == 1) { cal_init_robot() } //Fry added Oct 19, 2018
     	}catch(err){

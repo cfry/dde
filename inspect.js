@@ -315,8 +315,17 @@ function inspect_aux(item, stack_number, in_stack_position, increase_max_display
                       let prop_name = prop_names[prop_index]
                       if (!["prototype", "constructor", "name"].includes(prop_name)){ //item.hasOwnProperty(prop_name) &&
                         let prop_val = item[prop_name]
-                        let prop_val_string = inspect_one_liner(prop_val, stack_number, in_stack_position, prop_name)
-                        prop_val_string = inspect_prop_val_string_exceptions(item, prop_name, prop_val, prop_val_string)
+                        let prop_val_string
+                        if(prop_val === item) { //happens when inspecting "window" and "global". gets into infinite loop so stop it
+                            prop_val_string = "" + prop_val
+                        }
+                        else if(prop_val === window) {
+                            prop_val_string = "" + prop_val
+                        }
+                        else {
+                            prop_val_string = inspect_one_liner(prop_val, stack_number, in_stack_position, prop_name)
+                            prop_val_string = inspect_prop_val_string_exceptions(item, prop_name, prop_val, prop_val_string)
+                        }
                         if ((prop_index == 0) && (typeof(prop_val) == "function")) {//due to weirdness in formatting details tags when expanded and when the first item is inside or {}. This is a workaround.
                               prefix = "<br/>" + "&nbsp;&nbsp;"
                         }
@@ -406,6 +415,7 @@ function inspect_one_liner(item, stack_number, in_stack_position, prop_name){
         }
         else { return inspect_one_liner_regular_fn(item) }
     }
+
     else if (Array.isArray(item))  {
        if ((item.length > 0) && Array.isArray(item[0])) { return inspect_format_2D_array(item) }
        else return inspect_clickable_path(item, stack_number, in_stack_position, prop_name) +
@@ -419,7 +429,10 @@ function inspect_one_liner(item, stack_number, in_stack_position, prop_name){
                  name_text +
                  ((prop_name === "prototype") ? "" : inspect_extra_info(item))
     }
-    else { shouldnt("inspect_one_liner passed unhandled: " + item) }
+    else { //hits with HTMLAllCollection
+        return "cannot inspect: " + item
+        //shouldnt("inspect_one_liner passed unhandled: " + item)
+    }
 }
 
 function inspect_one_liner_regular_fn(item){
@@ -517,8 +530,14 @@ function inspect_extra_info(item){
        }
        info += "]"
     }
+    else if (window.Ammo && (item === Ammo)) { //because JSON.stringify(Ammo) causes infinite recursion
+        info = "Ammo"
+    }
     else {
-        try{ info = JSON.stringify(item) } //might be a circular structure such as happens with newObjects
+        //console.log("non-array extra info: ") // + item)
+        //info = "extra info cannot inspect"
+        //causes infinit loop when inspecting window, but it must be some field within window, not window itself
+        try{ info = JSON.stringify(item) } //JSON.stringify(Ammo) causes infinit loop so I must catch this above.
         catch(err) { return "" }
     }
     if (info.length > 55) {

@@ -20,6 +20,7 @@ class Control{
      static init_classes_in_control() {
         Control.instruction_classes_in_control = [
             Instruction.break,
+            Instruction.continue,
             Instruction.go_to,
             Instruction.loop,
             Instruction.label,
@@ -45,6 +46,7 @@ Control.instruction_classes_in_control = null
 
 //Methods that result in an instance of a Control class
 Control.break = Robot.break
+Control.continue = Robot.continue
 Control.go_to = Robot.go_to
 Control.loop = Robot.loop
 Control.label = Robot.label

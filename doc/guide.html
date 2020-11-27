@@ -8,8 +8,8 @@
 
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version: <span id="dde_version_id">3.6.6</span><br/>
-    released: <span id="dde_release_date_id">Nov 5, 2020</span>
+    version: <span id="dde_version_id">3.6.7</span><br/>
+    released: <span id="dde_release_date_id">Nov 27, 2020</span>
     <p></p>
     DDE helps you create, debug, and send software to a Dexter robot.
     You can use any JavaScript augmented with DDE-specific functions to help find out about,
@@ -145,7 +145,37 @@
         and it has this, ahem, feature.
     </details>
     </details> <!-- end Windows OS Problems -->
-</details>
+    <details class="doc_details"><summary>Multiple DDEs Installed</summary>
+      You can have multiple versions of DDE installed on your computer at once,
+      and even run them simultaneously. You might want to do this
+      when you have some code that works fine in a version, and are nervous that
+      installing a new version will cause something to break.
+      (Normally, installing a new version overwrites the previous version.)
+      Keeping the old version installed lets you easily go back to it.
+      Here's how to keep your old version:
+      <p></p>
+      <b>WinOS</b> Before installing the new version,
+         <ol>
+          <li>copy the old version from Local Disc (C:)/Program Files/dexter_dev_env</li>
+          <li>paste it into (C:)/Program Files/</li>
+          <li>rename it with its old version i.e. dexter_dev_env_3.6.6.</li>
+          <li>install the new version, which will go in the C:/Program Files/dexter_dev_env folder.</li>
+         </ol>
+      <b>MacOS</b>
+      <ol>
+        <li>Rename MacintoshHD/Applications/dexter_dev_env.app to something like
+            MacintoshHD/Applications/dexter_dev_env_3.6.6.app</li>
+        <li>Install a new version.</li>
+      </ol>
+      You can keep as many versions of DDE as you like as long as their folder names differ.
+      <p></p>
+      On Windows, you can launch a 2nd instance of DDE from the File Explore by double clicking on it
+      again. On Mac, this won't launch a 2nd instance, but if you copy the dexter_dev_env.app file
+      and rename it, then you can double click that and run a 2nd instance of the same
+      DDE version.
+
+    </details>
+</details> <!-- end installation -->
 <details class="doc_details"><summary>Configure DDE</summary>
     DDE uses a folder under your Documents folder named <samp> dde_apps</samp>.
     If one is not there, it will be created when you launch DDE.

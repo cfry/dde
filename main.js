@@ -126,7 +126,8 @@ function createWindow() {
                    x: x, y: y, width: width, height: height, show: false,
                    title: "Dexter Development Environment", //not obvious that this actually shows up anywhere.
                    webPreferences: { nodeIntegration: true }, //new for Electron 5
-                   icon: image,
+                   icon: __dirname + "/dexter_128.png", //icon: image doesn't work
+                        //either does __dirname + "/dexter_128.png", nor "Tray" in on ready.
                    backgroundColor: '#00FFFF' //no effect
                    })
     //attempt to fix the problem of taking a picture on MacOS, see:
@@ -186,10 +187,16 @@ function createWindow() {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
+let tray = null
+
 app.on('ready', function() {
     console.log("top of app.on 'ready'")
     createWindow();
-    //mainWindow.webContents.send("main_is_ready") //looks like this does nothing
+    /* doesn't work in electron 5 despite doc
+    let tray = new electron.Tray('dexter_128.png')
+    tray.tooltip = "Dexter Development Environment"
+    tray.setTitle("DDE") //for MacOS only
+    */
 })
 
 // Quit when all windows are closed.

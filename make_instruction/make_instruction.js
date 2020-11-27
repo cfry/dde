@@ -1535,7 +1535,7 @@ MakeInstruction.menu_hierarchy = [
                     "sleep",  "slow_move", "write"],
     ["Human",       "enter_choice", "enter_filepath", "enter_instruction", "enter_number",
                     "enter_position", "enter_text", "notify", "show_window", "speak", "task"],
-    ["Control",     "break", "go_to", "loop","label",
+    ["Control",     "break", "continue", "go_to", "loop", "label",
                       "suspend", "unsuspend", "sync_point", "wait_until"],
     ["Control Jobs", "include_job", "send_to_job", /*"sent_from_job" don't let user use this*/
                      "start_job", "stop_job"],

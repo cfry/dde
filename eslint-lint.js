@@ -191,11 +191,11 @@
         "no-ternary": 0,
         "no-trailing-spaces": 0, //cfry  default 2
         "no-undef": 0, //cfry  default 2  using 0 stops eslint from complaining that a var isn't defined even when it is.
-        "no-undef-init": 2,
+        "no-undef-init": 0,
         "no-undefined": 0,
         "no-underscore-dangle": 2,
         //"no-unreachable": 2, //causes error when loading eslint version 5.
-        "no-unused-expressions": 2,
+        "no-unused-expressions": 1,
         "no-unused-vars": [1, {"vars": "local", "args": "all"}], //"vars": "local" will flag unused local vars but not global ones, as often the globals aer used somewhere tlse far away and shouldn't be flagged.
          //above I tried to have an error when we have an unused LOCAL var but have no error when
          //we have an unused "global" ie function foo(){} where foo is not called in the file.
@@ -211,10 +211,10 @@
         "block-scoped-var": 0,
         "brace-style": [0, "1tbs"],
         "camelcase": 0, //cfry default of 2 requires fn names to be camel cased. yuck
-        "comma-spacing": 2,
+        "comma-spacing": 0,
         "comma-style": 0,
         "complexity": [0, 11],
-        "consistent-return": 2,
+        "consistent-return": 1,
         "consistent-this": [0, "that"],
         "curly": [2, "all"],
         "default-case": 0,
@@ -233,7 +233,7 @@
         "max-nested-callbacks": [0, 2],
         "max-params": [0, 3],
         "max-statements": [0, 10],
-        "new-cap": 2,
+        "new-cap": 0,
         "new-parens": 2,
         "one-var": 0,
         "operator-assignment": [0, "always"],
@@ -243,14 +243,14 @@
         "radix": 0,
         "semi": 0, //cfry default was: 2.  using 0 turn offs warning for no semicolons.
         "sort-vars": 0,
-        "space-after-function-name": [0, "never"],
+        "space-after-function-name": [1, "never"],
         "space-after-keywords": [0, "always"],
         "space-before-blocks": [0, "always"],
         "space-in-brackets": [0, "never"],
         "space-in-parens": [0, "never"],
-        "space-infix-ops": 2,
+        "space-infix-ops": 0,
        // "space-return-throw-case": 2, no longer a rule. It was replaced by "keyword-spacing" which is fundanemtally undocumented
-        "space-unary-ops": [2, { "words": false, "nonwords": false }],
+        "space-unary-ops": [0, { "words": false, "nonwords": false }],
         "spaced-line-comment": [0, "always"],
         "strict": 0, //default 2, cfry changed to 0 because if I have "forOf": true as above to not warn on forOf, then if strict: 2, every line in programis underlined in red.
                      // https://jslinterrors.com/missing-use-strict-statement

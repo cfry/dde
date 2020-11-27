@@ -64,13 +64,14 @@ Js_info = class Js_info {
                 for(let key in Job.job_default_params) {
                     let val = Job.job_default_params[key]
                     let src
-                    if      (key == "default_workspace_pose") { src = "null" }
-                    else if (key == "if_robot_status_error")  { src = "Job.prototype.if_robot_status_error" }
-                    else if (key == "if_instruction_error")   { src = "Job.prototype.if_instruction_error" }
+                    if      (key == "default_workspace_pose")  { src = "null" }
+                    else if (key == "if_robot_status_error")   { src = "Job.prototype.if_robot_status_error_default" }
+                    else if (key == "if_instruction_error")    { src = "Job.prototype.if_instruction_error_default" }
+                    else if (key == "if_dexter_connect_error") { src = "Job.prototype.if_dexter_connect_error_default"}
                     else { src = to_source_code({value: val, function_names: true, newObject_paths: true}) }
                     let key_html = '<a href="#" onclick="open_doc(job_param_' + key + '_doc_id)">' + key + '</a>'
                     result += key_html + ": " + src + ((key == "callback_param") ? "" : ", &nbsp;")
-                    if(((arg_index % 3) == 0) && (arg_index !== 0)) {
+                    if(((arg_index % 2) == 0) && (arg_index !== 0)) {
                         result += "<br/> <span style='margin-left:83px;'> </span>"
                     }
                     arg_index += 1
@@ -448,7 +449,7 @@ Js_info = class Js_info {
         let first_char = ((fn_name.length > 1) ? fn_name[0] : null)
         if(is_string_a_literal_string(fn_name)) { return fn_name }
         else if (!fn_name.includes(".")) { return fn_name }
-        else if (starts_with_one_of(fn_name, ["Brain.", "Dexter.", "FPGA.", "Human.", "Job.", "Math.",
+        else if (starts_with_one_of(fn_name, ["Brain.", "Control.", "Dexter.", "FPGA.", "Human.", "IO.", "Job.", "Math.",
                                               "Number.", "Object.", "Series.", "Robot.", "Serial."
                                               ])) {
             return fn_name

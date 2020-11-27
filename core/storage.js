@@ -255,7 +255,7 @@ function dde_init_dot_js_initialize() {
         write_file("dde_init.js", initial_dde_init_content)
         if(!Editor.files_menu_paths_empty_or_contains_only_dde_init()){ // we don't want to
             //print out this message on first DDE launch or if they haven't even
-            //saves a file yet, so as not to scare new users.
+            //saved a file yet, so as not to scare new users.
             out("DDE uses the file: Documents/dde_apps/dde_init.js<br/>" +
                 "to store JavaScript to be evaluated when DDE is Launched.<br/>" +
                 "DDE didn't find the file so a default one was created.<br/>" +
@@ -498,7 +498,7 @@ function write_file_async_default_callback(err){
         dde_error("write_file_async error: " + err.message)
     }
     else {
-        out("saved: file")
+        out("saved: file", undefined, true)
     }
 }
 
@@ -507,16 +507,14 @@ function write_file_async_to_dexter_using_node_server(dex_instance, path, conten
     //console.log("write_file_async_to_dexter_using_node_server with path: " + path + "  " + content)
     let colon_pos = path.indexOf(":")
     path = path.substring(colon_pos + 1) // path comes in as, for example,  "Dexter.dexter0:foo.txt
-    if(path.startsWith("/")) {
-        path = path.substring(1) //because of crazy node server editor's code
-    }
-    else { //doesn't start with slash, meaning relative to server default
-        path = "srv/samba/share/dde_apps/" + path //  on the node webserver, starting with / means ?srv/samba/share/
-        // so we add the dde_apps to be consistent with dde's default dir.
+    if(path.startsWith("/")) {} //leave path alone
+    else { //path doesn't start with slash, meaning relative to server default
+        path = "/srv/samba/share/dde_apps/" + path
     }
 
 //do not single step the below code. Must be done in one fell swoop.
-    let r = request.post('http://192.168.1.142/edit', callback)
+    let ip = dex_instance.ip_address
+    let r = request.post('http://' + ip + '/edit', callback)
     let form = r.form(); //tack on a form before the POST is done... Don't step through
     form.append("data", content, {filepath: path});
 }
@@ -562,12 +560,15 @@ function copy_folder_async_default_callback(err){
     if(err){
         dde_error("copy_folder_async error: " + err.message)
     }
+    else {
+        out("copy_folder_async completed successfully")
+    }
 }
 module.exports.copy_file_async = copy_file_async
 
 //example: copy_folder(foo/bar, Dexter
 //beware, can't yet handle copying folders FROM dexter to dde.
-function copy_folder_async(source_folder, destination_folder, callback=copy_folder_async_default_callback){
+/*function copy_folder_async(source_folder, destination_folder, callback=copy_folder_async_default_callback){
     let paths = folder_listing(source_folder, true, true, true) //include files, folders, and returned string has full path
     for(let path of paths) {
        let last_slash_pos = path.lastIndexOf("/")
@@ -576,16 +577,128 @@ function copy_folder_async(source_folder, destination_folder, callback=copy_fold
        let dest_path = ((dest_path_last_char === "/") ? destination_folder + name
                                                       : destination_folder + "/" + name)
         if(is_folder(path)) { //is_folder only works on DDE paths, not on Dexter paths.
-           let dest_fold =
            copy_folder_async(path, dest_path, callback)
        }
        else {
            copy_file_async(path, dest_path, callback)
        }
     }
+}*/
+
+/*function copy_folder_async(source_folder, destination_folder, callback=copy_folder_async_default_callback){
+    let paths = folder_listing(source_folder, true, true, true) //include files, folders, and returned string has full path
+    copy_files_async(paths, destination_folder, callback, null, true)
+}*/
+
+//callback is the doneCb
+function copy_folder_async(source_folder, destination_folder, callback=copy_folder_async_default_callback){
+    source_folder = make_full_path(source_folder)   //todo change due to Dexter,dexter0: type paths
+    if(last(destination_folder) === "/") {
+        destination_folder = destination_folder.substring(0, destination_folder.length - 1)
+    } //but don't make destination folder be a full path. Just leave it so that copy_file_async can worry about that.
+    let fileCb = function(file, next){
+                    out("fileCb called with file: " + file + " next: " + next);
+                    let file_name_start_pos = file.lastIndexOf("/")
+                    let file_name = file.substring(file_name_start_pos + 1) //excludes beginning slash
+                    let source_folder_len = source_folder.length
+                    let file_minus_source_folder = file.substring(source_folder_len)
+                    let destination_file = destination_folder + file_minus_source_folder
+                    //let destination_file = destination_folder + "/" + file_name
+                    copy_file_async(file, destination_file,
+                                     function(err){
+                                         if(err) {
+                                           dde_error("copy_file_async failed to copy: " + file +
+                                                     " to: " + destination_folder +
+                                                     "<br/>" + err.message)
+                                         }
+                                         else {
+                                             next(false)
+                                         }
+                                     })
+                 }
+    forAllFiles(source_folder, fileCb, callback)
 }
 
 module.exports.copy_folder_async = copy_folder_async
+
+/*function copy_files_async(source_files, destination_folder, all_done_callback, file_done_callback, top_level=false){
+    if(source_files.length == 0) {
+        if(top_level) {
+            all_done_callback.call(null, null)
+        }
+        else {
+            callback.call(null)
+        }
+    }
+    else {
+        let path = source_files.shift() //removes first file from source_files
+        let last_slash_pos = path.lastIndexOf("/")
+        let name = path.substring(last_slash_pos + 1)
+        let dest_path_last_char = destination_folder[destination_folder.length - 1]
+        let dest_path = ((dest_path_last_char === "/") ? destination_folder + name
+            : destination_folder + "/" + name)
+        if(is_folder(path)) { //is_folder only works on DDE paths, not on Dexter paths.
+            let cb = function(){ copy_files_async(source_files) }
+            copy_folder_async(path, dest_path, cb)
+        }
+        else {
+            let cb = function(){ copy_files_async(source_files, destination_folder) }
+            copy_file_async(path, dest_path, cb)
+        }
+    }
+}*/
+
+//from http://grammerjack.blogspot.com/2010/12/asynchronous-directory-tree-walk-in.html
+// asynchronous tree walk
+// root - root path
+// fileCb - callback function (file, next) called for each file
+// -- the callback must call next(falsey) to continue the iteration,
+//    or next(truthy) to abort the iteration.
+// doneCb - callback function (err) called when iteration is finished
+// or an error occurs.
+//
+// example:
+//
+// forAllFiles('~/',
+//     function (file, next) { sys.log(file); next(); },
+//     function (err) { sys.log("done: " + err); });
+function forAllFiles(root, fileCb, doneCb) {
+    fs.readdir(root, function processDir(err, files) {
+        if (err) {
+            doneCb(err) //fry changed this from: fileCb(err);
+        } else {
+            if (files.length > 0) {
+                var file = root + '/' + files.shift();
+                fs.stat(file, function processStat(err, stat) {
+                    if (err) {
+                        doneCb(err);
+                    } else {
+                        if (stat.isFile()) {
+                            fileCb(file, function(err) {
+                                if (err) {
+                                    doneCb(err);
+                                } else {
+                                    processDir(false, files);
+                                }
+                            });
+                        } else {
+                            forAllFiles(file, fileCb, function(err) {
+                                if (err) {
+                                    doneCb(err);
+                                } else {
+                                    processDir(false, files);
+                                }
+                            });
+                        }
+                    }
+                });
+            } else {
+                doneCb(false);
+            }
+        }
+    });
+}
+
 
 //for paths starting with "dexter0:" and other dexters, this will always return false.
 //you have to use read_file_async for that and pass it a callback that
@@ -952,11 +1065,6 @@ function load_files(...paths) {
     return result
 }
 module.exports.load_files = load_files
-var fs        = require('fs'); //errors because require is undefined.
-var app       = require('electron').remote;  //in the electron book, "app" is spelled "remote"
-var {Robot, Brain, Dexter, Human, Serial}  = require("./robot.js")
-var {shouldnt, starts_with_one_of, replace_substrings} = require("./utils")
-var Job       = require("./job.js") //because loading a file with new Job in it needs this.
 
 
 //returns true or false. Path is a full path.
@@ -1018,6 +1126,13 @@ function folder_listing_aux(str, include_folders=true, include_files=true){
     return result
 }
 */
+
+var fs        = require('fs'); //errors because require is undefined.
+var app       = require('electron').remote;  //in the electron book, "app" is spelled "remote"
+var {Robot, Brain, Dexter, Human, Serial}  = require("./robot.js")
+var {shouldnt, starts_with_one_of, replace_substrings} = require("./utils")
+var Job       = require("./job.js") //because loading a file with new Job in it needs this.
+
 
 
 
