@@ -345,11 +345,12 @@ DexterSim = class DexterSim{
         if (job_instance){
             let job_name = "Job." + job_instance.name
             let rob_name = "Dexter." + this.robot_name
-            if(window["sim_graphics_pane_id"]) { //window.platform == "dde") //even if we're in dde, unless the sim pane is up, don't attempt to render
+            if(global.job_or_robot_to_simulate_id) { //window.platform == "dde") //even if we're in dde, unless the sim pane is up, don't attempt to render
                 //SimUtils.render_once(robot_status, job_name, rob_name) //renders after dur, ie when the dexter move is completed.
                 SimUtils.render_multi(robot_status, job_name, rob_name, undefined, dur)
             }
             else {
+                warning("To see a graphical simulation,<br/>choose from the Misc pane's first menu: Simulate Dexter.")
                 DexterSim.render_once_node(robot_status, job_name, rob_name) //renders after dur, ie when the dexter move is completed.
             }
         }

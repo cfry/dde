@@ -511,7 +511,7 @@ function job_or_robot_to_simulate_name(){
     if(window["job_or_robot_to_simulate_id"] && job_or_robot_to_simulate_id.value) {
         return job_or_robot_to_simulate_id.value
     }
-    else { return "Dexter.default" }
+    else { return "Dexter.dexter0" }
 }
 
 var {replace_substrings} = require("./core/utils.js")

@@ -471,7 +471,6 @@ cir1.setAttribute("cy", 42)
         //this set of if..else sets j_angles to new values, OR returns from fn because a
         //key was pressed that does nothing
         if (typeof(key) === "number") { //got joint key
-            //debugger;
             let joint_number = key
             if (dui_instance.should_point_down && ((joint_number == 4) || joint_number == 5)) {
                   warning("You can't change Joint 4 or 5 when you have 'Point Down' checked.")

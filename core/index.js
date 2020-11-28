@@ -1,4 +1,4 @@
-global.dde_version = "3.6.7"
+global.dde_version = "3.6.8"
 global.dde_release_date = "Nov 27, 2020"
 
 console.log("dde_version: " + global.dde_version + " dde_release_date: " + global.dde_release_date +
