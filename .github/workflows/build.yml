@@ -14,6 +14,10 @@ jobs:
     - uses: actions/setup-node@v1
       with:
         node-version: ${{ env.NODE_VERSION }}
+    - name: fix apt-get # https://github.com/actions/virtual-environments/issues/675#issuecomment-610483420
+      run: |
+        sudo sed -i 's/azure\.//' /etc/apt/sources.list
+        sudo apt-get update
     - run: |
         sudo apt-get install libxml2-utils   \
                              icnsutils       \
