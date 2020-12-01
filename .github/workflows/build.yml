@@ -25,7 +25,7 @@ jobs:
                              xz-utils        \
                              build-essential \
                              libudev-dev
-    - uses: little-core-labs/get-git-tag@v3.0.1
+    - uses: little-core-labs/get-git-tag@v3.0.2
       id: tag_name
     - run: npm install
     - run: npm run test-build
@@ -44,7 +44,7 @@ jobs:
     - uses: actions/setup-node@v2.1.2
       with:
         node-version: ${{ env.NODE_VERSION }}
-    - uses: little-core-labs/get-git-tag@v3.0.1
+    - uses: little-core-labs/get-git-tag@v3.0.2
       id: tag_name
     - run: npm install
     - run: npm run test-build
@@ -64,7 +64,7 @@ jobs:
     - uses: actions/setup-node@v2.1.2
       with:
         node-version: ${{ env.NODE_VERSION }}
-    - uses: little-core-labs/get-git-tag@v3.0.1
+    - uses: little-core-labs/get-git-tag@v3.0.2
       id: tag_name
     - run: npm install
     - run: npm run test-build
