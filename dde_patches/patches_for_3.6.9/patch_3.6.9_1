@@ -1,0 +1,121 @@
+Editor.edit_file = function(path, content){ //path could be "new buffer"
+    let new_path = convert_backslashes_to_slashes(path) //must store only slashes in files menu
+    let cur_path = Editor.current_file_path
+    let cur_content = Editor.get_javascript()
+    if(!Editor.current_buffer_needs_saving){
+        Editor.remove_new_buffer_from_files_menu() //does nothing if "new buffer" is not on files menu
+                   //this only does something if cur_path is "new buffer" and its empty.
+        if(content)                       { Editor.edit_file_aux(new_path, content) }
+        else if(new_path === "new buffer") { Editor.edit_file_aux(new_path, "") }
+        else {
+            read_file_async(path, undefined, function(err, new_content) { //file_content will convert to windows format if needed
+                if(err) {
+                    Editor.set_files_menu_to_path() //set the files menu BACK to its previously selected file cause we can't get the new one
+                    dde_error(err.message)
+                }
+                else {
+                    new_content = new_content.toString() //because sometimes the content passed in is  buffer, not a string. This handles both.
+                    Editor.edit_file_aux(new_path, new_content)
+                }
+            })}
+    }
+     //cur buffer needs saving
+    else if(cur_path === "new buffer") { //Editor.current_file_path is null  when we first launch dde.
+        Editor.set_files_menu_to_path() //set the files menu BACK to its previously selected file cause we can't get the new one
+        if (path === "new buffer"){
+            if (Editor.get_javascript().trim().length === 0) { } //nothing to do as our cur buf is empty and we've chosen a new buff.
+            else { Editor.show_clear_new_buffer_choice() }  //either we make the cur buff empty or we do nothing.
+        }
+        //cur buff is a new buffer, and the target path is not
+        else if (Editor.get_javascript().trim().length === 0) { //don't ask about deleting the new buf, just do it;
+            ditor.remove_new_buffer_from_files_menu() //get rid of the current "new buffer"
+            const path_already_in_menu = Editor.set_files_menu_to_path(new_path)
+            if (!path_already_in_menu) { Editor.add_path_to_files_menu(new_path) }
+            if(content) {
+                Editor.edit_file_aux(new_path, content)
+            }
+            else {
+                read_file_async(path, undefined, function(err, content) { //file_content will convert to windows format if needed
+                    if(err) {
+                        Editor.set_files_menu_to_path() //set the files menu BACK to its previously selected file cause we can't get the new one
+                        dde_error(err.message)
+                    }
+                    else {
+                        content = content.toString() //because sometimes the content passed in is  buffer, not a string. This handles both.
+                        Editor.edit_file_aux(new_path, content)
+                    }
+                })}
+        }
+        //cur is new buffer, but it needs saving, we're trying to edit a new file.
+        //should we save the buffer first?
+        else {
+            let save_it = confirm( "The editor buffer has unsaved changes.\n" +
+                "Click OK to save it before editing the other file.\n" +
+                "Click Cancel to not save it before editing the other file.")
+            if(save_it) {
+                let file_to_save_buffer_to = choose_save_file()
+                if(file_to_save_buffer_to) {
+                    write_file_async(file_to_save_buffer_to, cur_content) //since this is async, we must already have the path and content to save as the 'cur' may have changed.
+                    out(file_to_save_buffer_to + " saved.")
+                    Editor.add_path_to_files_menu(file_to_save_buffer_to)
+                    Editor.remove_new_buffer_from_files_menu()
+                }
+                //else (user hit cancel in choose_save_file dialog).
+                //     we just leave existing new buffer up and not saved.
+            }
+            else {
+                Editor.remove_new_buffer_from_files_menu() //the only time "new buffer"
+                //should be on the files menu, is if it is the currently selected one.
+                //user can choose File menu, "new" to get a fresh "new buffer".
+            }
+            //
+            read_file_async(new_path, undefined, function(err, content) { //file_content will convert to windows format if needed
+                if(err) {
+                    Editor.set_files_menu_to_path() //set the files menu BACK to its previously selected file cause we can't get the new one
+                    dde_error(err.message)
+                }
+                else {
+                    content = content.toString() //because sometimes the content passed in is  buffer, not a string. This handles both.
+                    Editor.edit_file_aux(new_path, content)
+                }
+            })
+        }
+    }
+
+    else {  //cur path is NOT a new buffer, and it needs saving
+        let save_it
+        if (persistent_get("save_on_eval")) { save_it = true }
+        else {
+            save_it =  confirm(Editor.current_file_path + "\n has unsaved changes.\n" +
+                                "Click OK to save it before editing the other file.\n" +
+                                "Click Cancel to not save it before editing the other file.")
+        }
+        if(save_it) {
+            write_file_async(cur_path, cur_content) //since this is async, we must already have the path and content to save as the 'cur' may have changed.
+            out(cur_path + " saved.")
+        }
+        //cur buffer has been delt with, now on to the new
+        if (path == "new buffer"){
+            Editor.edit_file_aux(new_path, (content? content: ""))
+        }
+        else {
+            const path_already_in_menu = Editor.set_files_menu_to_path(path)
+            if (!path_already_in_menu) { Editor.add_path_to_files_menu(path) }
+            if(content) {
+                Editor.edit_file_aux(new_path, content)
+            }
+            else {
+                read_file_async(new_path, undefined, function(err, content) { //file_content will conver to windows format if needed
+                    if(err) {
+                        Editor.set_files_menu_to_path() //set the files menu BACK to its previously selected file cause we can't get the new one
+                        dde_error(err.message)
+                    }
+                    else {
+                        content = content.toString() //because sometimes the content passed in is  buffer, not a string. This handles both.
+                        Editor.edit_file_aux(new_path, content)
+                    }
+                })
+            }
+        }
+    }
+}
