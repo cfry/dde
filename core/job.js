@@ -2237,7 +2237,7 @@ Job.prototype.send = function(oplet_array_or_string, robot){ //if remember is fa
 //but used only with send_to_job and only when the from_job is waiting for the
 //to_job to complete the ins it was sent before allowing the from_job to continue.
 Job.prototype.send_to_job_receive_done = function(params){
-    if (this.wait_until_instruction_id_has_run == params.from_instruction_id){
+    if (this.wait_until_instruction_id_has_run === params.from_instruction_id){
         this.highest_completed_instruction_id  = params.from_instruction_id
         this.wait_until_instruction_id_has_run = null
         //below is done in Instruction.destination_send_to_job_is_done.do_item

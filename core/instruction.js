@@ -546,17 +546,17 @@ Instruction.w_address_name_to_number = function(name){
 //the last arg can be a Dexter robot, but if not, the robot comes from the
 //default robot for the job that this instruction is in.
 function make_ins(instruction_type, ...args){
-    if(!Dexter.instruction_type_to_function_name_map[instruction_type] &&
+    /*if(!Dexter.instruction_type_to_function_name_map[instruction_type] &&
        !Serial.instruction_type_to_function_name_map[instruction_type]){
         warning("make_ins called with an invalid instruction_type: " + instruction_type +
                 "<br/>make_ins still returning an array using: " + instruction_type)
-    }
+    }*/
     let first_arg = args[0]
-    if((instruction_type == "w") && !Instruction.is_valid_w_address(first_arg)){
+    /*if((instruction_type == "w") && !Instruction.is_valid_w_address(first_arg)){
         dde_error('make_ins("w" ...) does not support an address of ' + first_arg +
                   '.<br/>Valid addresses are non-negative integers. ' +
                   '.<br/>See <a target="_blank" href="https://github.com/HaddingtonDynamics/Dexter/wiki/oplet-write">oplet_write doc</a>. for details.')
-    }
+    }*/
     let result = new Array(Instruction.INSTRUCTION_TYPE)
     result.push(instruction_type)
     if (args.length === 0) { return result } //avoids generating the garbage that concat with an arg of an empty list would for this common case, ie for "g" ahd "h" instructions

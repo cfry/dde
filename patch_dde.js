@@ -24,6 +24,8 @@ var PatchDDE = class PatchDDE {
         this.deprecate_db = [
             {old: "close_window",            new: "SW.close_window"},
             {old: "dde_apps_dir",            new: "dde_apps_folder"},
+            {old: "Dexter.get_robot_status_immediately", new: "Dexter.get_robot_status", doc: "Dexter.get_robot_status_immediately was never properly implemented."},
+            {old: "Dexter.prototype.get_robot_status_immediately", new: "Dexter.prototype.get_robot_status", doc: "Dexter.prototype.get_robot_status_immediately was never properly implemented."},
             {old: "Dexter.prototype.prop",   new: undefined, doc: "Use properties of a Dexter instance directly to get info on the Dexter."},
             {old: "file_content",            new: "read_file"},
             {old: "Human.recognize_speech",  new: undefined, doc: "no longer supported."},

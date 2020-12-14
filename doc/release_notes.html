@@ -5,6 +5,41 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 3.7.0, Dec 14, 2020</summary>
+Highlights: Dexter User Interface: numerous fixes. Support for Robot Status "g1".
+<ul>
+    <li>Fixed (on WinOS only) run the "Buttons column" example code in RefMan/Lesson.
+        Fixed the bug when you clicked on the button "Dexter Picture".</li>
+    <li>Remove from the testsuite, the RefMan example of:  new Job({name: "my_job8",
+        works on WinOS but is intermittent on MacOS. See Doc on <code>Picture</code>.</li>
+    <li>Fixed bug when choosing: File menu/New (also fixed in patch_3.6.9_1.dde)</li>
+    <li>Dexter User Interface dialog improvements:
+    <ul><li>Reduced width of row under big square so it wouldn't wrap to another line</li>
+        <li>User Guide/User Interface/Dexter User Interface now documents keyboard control
+             and the FromDex checkbox</li>
+        <li>Now has a ? button in its upper right, to scroll the doc to help.</li>
+        <li>Initial instructions are now a <code>Dexter.move_all_joints</code> and a
+             <code>Dexter.pid_move_all_joints</code></li>
+        <li>Now uses <code>insert_last_instruction_overwrite</code>
+              which doesn't cause the do_list to continually
+              build up but rather replaces the last instruction.</li>
+        <li>Fixed: when user holds down only the shift key,
+              now nothing happens, not even a warning message.</li>
+        <li>Now the number keys increment the corresponding joint angle and shift-number-key decrements
+            it. It use to be the reverse.</li>
+    </ul>
+    <li>Job now has defaults:<br/>
+     keep_history: false, <br/>
+     show_instructions: false</li>
+    <li><code>Dexter.END_EFFECTOR_IN</code> has been deprecated.
+        The new, and distant past spelling is <code>Dexter.END_EFFECTOR_IO_IN</code> which is compatible
+         with Dexter firmware.</li>
+    <li><code>Dexter.get_robot_status</code> now takes an optional argument, status_mode,
+         which can be null (the default) 0, or 1.</li>
+    <li><code>make_ins</code> now doesn't warn or error.</li>
+    <li>DexterSim improvements now more accurately model Dexter.</li>
+</ul>
+</details>
 <details class="doc_details"><summary>v 3.6.9, Nov 30, 2020</summary>
     <ul>
         <li> Fixed Release 3.6.8 build problems</li>

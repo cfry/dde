@@ -148,7 +148,7 @@
         "no-iterator": 2,
         "no-label-var": 2,
         "no-labels": 2,
-        "no-lone-blocks": 2,
+        "no-lone-blocks": 1, //happens with warning: nested block is rudundant
         "no-lonely-if": 0,
         "no-loop-func": 2,
         "no-mixed-requires": [0, false],
@@ -182,10 +182,10 @@
         "no-script-url": 2,
         "no-self-compare": 0,
         "no-sequences": 2,
-        "no-shadow": 2,
+        "no-shadow": 1, //this is the "foo is already declared in the upper scope. Its not an actual error, but is sitll questionable, so just warn.
         "no-shadow-restricted-names": 2,
         //"no-space-before-semi": 2, //replaced by undocumented semi-spacing
-        "no-spaced-func": 2,
+        "no-spaced-func": 1, //warns if yoo have foo ()  but not if you have foo()
         "no-sparse-arrays": 2,
         "no-sync": 0,
         "no-ternary": 0,
@@ -216,11 +216,11 @@
         "complexity": [0, 11],
         "consistent-return": 1,
         "consistent-this": [0, "that"],
-        "curly": [2, "all"],
+        "curly": [1, "all"],
         "default-case": 0,
         "dot-notation": [2, { "allowKeywords": true }],
         "eol-last": 0, //cfry default of 2 requires a newline at end of file. 0 allows there to be no newline.
-        "eqeqeq": 2,
+        "eqeqeq": 1,   // warn when you have == and != instead of === and !==
         "func-names": 0,
         "func-style": [0, "declaration"],
         "generator-star": 0,
@@ -243,7 +243,8 @@
         "radix": 0,
         "semi": 0, //cfry default was: 2.  using 0 turn offs warning for no semicolons.
         "sort-vars": 0,
-        "space-after-function-name": [1, "never"],
+        //"space-after-function-name": [1, "never"],
+        "space-before-function-paren": 0, //[1, "always"],
         "space-after-keywords": [0, "always"],
         "space-before-blocks": [0, "always"],
         "space-in-brackets": [0, "never"],

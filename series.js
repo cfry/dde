@@ -801,7 +801,7 @@ Series.instances = [
                                                           "Dexter.dma_read", "Dexter.dma_write", "Dexter.draw_dxf", "Dexter.exit",
                                                           "Dexter.empty_instruction_queue_immediately", "Dexter.empty_instruction_queue",
                                                           "Dexter.find_index",
-                                                          "Dexter.get_robot_status", "Dexter.get_robot_status_immediately",
+                                                          "Dexter.get_robot_status",
                                                           "Dexter.load_tables",  "Dexter.move_all_joints", "Dexter.move_all_joints_relative",
                                                             "Dexter.move_home",
                                                           "Dexter.move_to", "Dexter.move_to_relative", "Dexter.move_to_straight",

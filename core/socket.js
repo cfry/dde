@@ -351,52 +351,48 @@ var Socket = class Socket{
         Instruction.Dexter.read_file.got_content_hunk(job_id, ins_id, payload_string_maybe)
     }
 
+    //only convert status_mode of 0 arrays.
     static convert_robot_status_to_degrees(robot_status){
-        if (robot_status.length == Dexter.robot_status_labels.length){
-            robot_status[Dexter.J1_ANGLE] *= 0.0002777777777777778 //this number == _arcsec
-            robot_status[Dexter.J2_ANGLE] *= 0.0002777777777777778
-            robot_status[Dexter.J3_ANGLE] *= 0.0002777777777777778
-            robot_status[Dexter.J4_ANGLE] *= 0.0002777777777777778
-            robot_status[Dexter.J5_ANGLE] *= 0.0002777777777777778
+        let raw_status_mode = robot_status[Dexter.RECORD_BLOCK_SIZE]
+        if((raw_status_mode === null) || (raw_status_mode === 0) || (raw_status_mode === "0")){
+            if (robot_status.length == Dexter.robot_status_labels.length){
+                robot_status[Dexter.J1_ANGLE] *= 0.0002777777777777778 //this number == _arcsec
+                robot_status[Dexter.J2_ANGLE] *= 0.0002777777777777778
+                robot_status[Dexter.J3_ANGLE] *= 0.0002777777777777778
+                robot_status[Dexter.J4_ANGLE] *= 0.0002777777777777778
+                robot_status[Dexter.J5_ANGLE] *= 0.0002777777777777778
 
-            robot_status[Dexter.J1_DELTA] *= 0.0002777777777777778
-            robot_status[Dexter.J2_DELTA] *= 0.0002777777777777778
-            robot_status[Dexter.J3_DELTA] *= 0.0002777777777777778
-            robot_status[Dexter.J4_DELTA] *= 0.00001736111111111111
-            robot_status[Dexter.J5_DELTA] *= 0.00001736111111111111
+                robot_status[Dexter.J1_DELTA] *= 0.0002777777777777778
+                robot_status[Dexter.J2_DELTA] *= 0.0002777777777777778
+                robot_status[Dexter.J3_DELTA] *= 0.0002777777777777778
+                robot_status[Dexter.J4_DELTA] *= 0.00001736111111111111
+                robot_status[Dexter.J5_DELTA] *= 0.00001736111111111111
 
-            robot_status[Dexter.J1_PID_DELTA] *= 0.0002777777777777778
-            robot_status[Dexter.J2_PID_DELTA] *= 0.0002777777777777778
-            robot_status[Dexter.J3_PID_DELTA] *= 0.0002777777777777778
-            robot_status[Dexter.J4_PID_DELTA] *= 0.00001736111111111111
-            robot_status[Dexter.J5_PID_DELTA] *= 0.00001736111111111111
+                robot_status[Dexter.J1_PID_DELTA] *= 0.0002777777777777778
+                robot_status[Dexter.J2_PID_DELTA] *= 0.0002777777777777778
+                robot_status[Dexter.J3_PID_DELTA] *= 0.0002777777777777778
+                robot_status[Dexter.J4_PID_DELTA] *= 0.00001736111111111111
+                robot_status[Dexter.J5_PID_DELTA] *= 0.00001736111111111111
 
-            robot_status[Dexter.J1_MEASURED_ANGLE] *= 0.0002777777777777778 //this number == _arcsec
-            robot_status[Dexter.J2_MEASURED_ANGLE] *= 0.0002777777777777778
-            robot_status[Dexter.J3_MEASURED_ANGLE] *= 0.0002777777777777778
-            robot_status[Dexter.J4_MEASURED_ANGLE] *= 0.0002777777777777778
-            robot_status[Dexter.J5_MEASURED_ANGLE] *= 0.0002777777777777778
-            robot_status[Dexter.J6_MEASURED_ANGLE] = (robot_status[Dexter.J6_MEASURED_ANGLE] - 512) * Socket.DEGREES_PER_DYNAMIXEL_UNIT //0.0002777777777777778
-            robot_status[Dexter.J7_MEASURED_ANGLE] *= Socket.DEGREES_PER_DYNAMIXEL_UNIT //0.0002777777777777778
-
-           /* deprecated
-             robot_status[Dexter.J1_FORCE_CALC_ANGLE] *= 0.0002777777777777778
-            robot_status[Dexter.J2_FORCE_CALC_ANGLE] *= 0.0002777777777777778
-            robot_status[Dexter.J3_FORCE_CALC_ANGLE] *= 0.0002777777777777778
-            robot_status[Dexter.J4_FORCE_CALC_ANGLE] *= 0.00001736111111111111
-            robot_status[Dexter.J5_FORCE_CALC_ANGLE] *= 0.00001736111111111111
-            */
-
-           // Socket.compute_measured_angles(robot_status)
+                robot_status[Dexter.J1_MEASURED_ANGLE] *= 0.0002777777777777778 //this number == _arcsec
+                robot_status[Dexter.J2_MEASURED_ANGLE] *= 0.0002777777777777778
+                robot_status[Dexter.J3_MEASURED_ANGLE] *= 0.0002777777777777778
+                robot_status[Dexter.J4_MEASURED_ANGLE] *= 0.0002777777777777778
+                robot_status[Dexter.J5_MEASURED_ANGLE] *= 0.0002777777777777778
+                robot_status[Dexter.J6_MEASURED_ANGLE] = (robot_status[Dexter.J6_MEASURED_ANGLE] - 512) * Socket.DEGREES_PER_DYNAMIXEL_UNIT //0.0002777777777777778
+                robot_status[Dexter.J7_MEASURED_ANGLE] *= Socket.DEGREES_PER_DYNAMIXEL_UNIT //0.0002777777777777778
+            }
         }
+        //else not g0 so no conversion
     }
+    /* never called
     static compute_measured_angles(robot_status){
         robot_status[Dexter.J1_MEASURED_ANGLE] = robot_status[Dexter.J1_ANGLE] + robot_status[Dexter.J1_DELTA] - robot_status[Dexter.J1_PID_DELTA] + robot_status[Dexter.J1_FORCE_CALC_ANGLE]
         robot_status[Dexter.J2_MEASURED_ANGLE] = robot_status[Dexter.J2_ANGLE] + robot_status[Dexter.J2_DELTA] - robot_status[Dexter.J2_PID_DELTA] + robot_status[Dexter.J2_FORCE_CALC_ANGLE]
         robot_status[Dexter.J3_MEASURED_ANGLE] = robot_status[Dexter.J3_ANGLE] + robot_status[Dexter.J3_DELTA] - robot_status[Dexter.J3_PID_DELTA] + robot_status[Dexter.J3_FORCE_CALC_ANGLE]
         robot_status[Dexter.J4_MEASURED_ANGLE] = robot_status[Dexter.J4_ANGLE] + robot_status[Dexter.J4_DELTA] - robot_status[Dexter.J4_PID_DELTA] + robot_status[Dexter.J4_FORCE_CALC_ANGLE]
         robot_status[Dexter.J5_MEASURED_ANGLE] = robot_status[Dexter.J5_ANGLE] + robot_status[Dexter.J5_DELTA] - robot_status[Dexter.J5_PID_DELTA] + robot_status[Dexter.J5_FORCE_CALC_ANGLE]
-    }
+    } */
 
     static close(robot_name, force_close=false){
         let rob = Robot[robot_name]

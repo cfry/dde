@@ -115,6 +115,9 @@ function show_in_misc_pane(content, arg1 = "", arg2){
                 '<b title="X position of end effector in meters.">X: </b><span id="sim_pane_x_id" style="min-width:50px; text-align:left; display:inline-block"></span>' +  //"margin-left:5px;
                 '<b title="Y position of end effector in meters."> Y: </b><span id="sim_pane_y_id" style="min-width:50px; text-align:left; display:inline-block"></span>' +  //"margin-left:5px;
                 '<b title="Z position of end effector in meters."> Z: </b><span id="sim_pane_z_id" style="min-width:50px; text-align:left; display:inline-block"></span>' +  //"margin-left:5px;
+                '<span title="Inspect simulator Details." ' +
+                       'onclick="SimUtils.inspect_dexter_sim_instance()" ' +
+                       'style="margin-left:20px;color:blue;cursor:pointer;font-weight:bold;"> &#9432; </span> ' +
                 '<div style="white-space:nowrap;">' +
                 '<b title="Joint 1 angle in degrees."> J1: </b><span id="sim_pane_j1_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +  //"margin-left:5px;
                 '<b title="Joint 2 angle in degrees."> J2: </b><span id="sim_pane_j2_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +

@@ -136,6 +136,25 @@ new Job({
         IO.out("three"),
     ]
 })
+
+______
+new Job({
+    name: "my_job",
+    do_list: [
+        Dexter.move_all_joints(0, 0, 0),
+        Dexter.move_all_joints(10, 20, 30),
+        Dexter.sleep(3),
+        Dexter.empty_instruction_queue(),
+        Dexter.get_robot_status(1),
+        Dexter.move_all_joints(30, 40, 50)
+        //Dexter.move_all_joints(40, 50, 60)
+    ]
+})
+Notice that there's a 3 second pause in the middle of running te job.
+THen Choose Jobs menu/Show robot status.
+It should come up with the "g1" status, with Measured Angles being non-zero.
+Click the "Run Update Job" button to get no errors
+Click the "Inspect Array" button to see g1 array of 60 elements.
 ___________
 Run the job, (with the Dev tools window closed).
 Click on the Misc Pane JS Debugging check

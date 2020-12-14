@@ -8,8 +8,8 @@
 
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version: <span id="dde_version_id">3.6.9</span><br/>
-    released: <span id="dde_release_date_id">Nov 30, 2020</span>
+    version: <span id="dde_version_id">3.7.0</span><br/>
+    released: <span id="dde_release_date_id">Dec 14, 2020</span>
     <p></p>
     DDE helps you create, debug, and send software to a Dexter robot.
     You can use any JavaScript augmented with DDE-specific functions to help find out about,
@@ -1251,11 +1251,45 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
                 Dexter, but with the advantage of showing you the exact meters
                 of your movement. You can also type into these number spinners.
                 <p></p>
+
             <b>Joint widgets</b> Sliders for all 7 joints and associated number
                spinners. A great kinematics learning experience is moviing a joint slider,
                 then watching green dot and Z slider change in concert.
                 (and visa versa). Note that the donut varies dramatically
                 as Z changes.
+            <p></p>
+            <b>Keyboard Control</b> You can change xyz values, joint values, and J6roll by
+            pressing keys. First, you must click on the big XY square to select it, then,
+            clicking a key will change a value the minimum amount. Holding the key
+            down will gradually accelerate the amount the value changes up to a maximum.
+            The delay duration between the first change and the start of "repeats" is
+            user settable in WinOS and MacOS. (Default is about a half a second.)
+            After that delay, the number of repeats per second is also settable in the OS.
+            <p></p>
+            <table>
+                <tr><th>Values to change</th><th>Keys to press</th></tr>
+                <tr><td>-X</td><td>left arrow, a</td></tr>
+                <tr><td>+X</td><td>right arrow, d</td></tr>
+                <tr><td>-Y</td><td>down arrow, s</td></tr>
+                <tr><td>+Y</td><td>up arrow, w</td></tr>
+                <tr><td>-Z</td><td>comma, c</td></tr>
+                <tr><td>+Z</td><td>period, e</td></tr>
+                <tr><td>-J6Roll</td><td>v</td></tr>
+                <tr><td>+J6Roll</td><td>r</td></tr>
+                <tr><td>-Joints 1 thru 7</td><td>1 thru 7</td></tr>
+                <tr><td>+Joints 1 thru 7</td><td>shift 1 thru 7</td></tr>
+            </table>
+            <br/>
+            <b>FromDex Checkbox</b> If checked, the dialog input widgets are disabled,
+            and you can manually move the robot. The joint angles of the robot are
+            transmitted to the dialog box and update the appropriate values for
+            joints and x,y,z.<br/>
+            Clicking the PHUI button on the end effector
+            (if you have one) will be the same as clicking the insert <button>Instruction</button> button.
+            This allows you to record a sequence of "waypoints" in a Job to move
+            Dexter through. The most important are the beginning and end points,
+            but you may wish to record several intermediate waypoints to make
+            sure Dexter clears obstacles in the workspace on its way to the end point.
             <p></p>
             <b>Insert widgets</b> Let you take the current position in the dialog
             and copy it into the cursor location of the editor as an instruction.

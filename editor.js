@@ -847,23 +847,24 @@ Editor.edit_file = function(path, content){ //path could be "new buffer"
     if(!Editor.current_buffer_needs_saving){
         Editor.remove_new_buffer_from_files_menu() //does nothing if "new buffer" is not on files menu
                    //this only does something if cur_path is "new buffer" and its empty.
-        if(content) { Editor.edit_file_aux(new_path, content) }
+        if(content)                        { Editor.edit_file_aux(new_path, content) }
+        else if(new_path === "new buffer") { Editor.edit_file_aux(new_path, "") }
         else {
-            read_file_async(path, undefined, function(err, content) { //file_content will convert to windows format if needed
+            read_file_async(path, undefined, function(err, new_content) { //file_content will convert to windows format if needed
                 if(err) {
                     Editor.set_files_menu_to_path() //set the files menu BACK to its previously selected file cause we can't get the new one
                     dde_error(err.message)
                 }
                 else {
-                    content = content.toString() //because sometimes the content passed in is  buffer, not a string. This handles both.
-                    Editor.edit_file_aux(new_path, content)
+                    new_content = new_content.toString() //because sometimes the content passed in is  buffer, not a string. This handles both.
+                    Editor.edit_file_aux(new_path, new_content)
                 }
             })}
     }
      //cur buffer needs saving
-    else if(cur_path == "new buffer") { //Editor.current_file_path is null  when we first launch dde.
+    else if(cur_path === "new buffer") { //Editor.current_file_path is null  when we first launch dde.
         Editor.set_files_menu_to_path() //set the files menu BACK to its previously selected file cause we can't get the new one
-        if (path == "new buffer"){
+        if (path === "new buffer"){
             if (Editor.get_javascript().trim().length == 0) { } //nothing to do as our cur buf is empty and we've chosen a new buff.
             else { Editor.show_clear_new_buffer_choice() }  //either we make the cur buff empty or we do nothing.
         }
@@ -876,14 +877,14 @@ Editor.edit_file = function(path, content){ //path could be "new buffer"
                 Editor.edit_file_aux(new_path, content)
             }
             else {
-                read_file_async(path, undefined, function(err, content) { //file_content will convert to windows format if needed
+                read_file_async(path, undefined, function(err, new_content) { //file_content will convert to windows format if needed
                     if(err) {
                         Editor.set_files_menu_to_path() //set the files menu BACK to its previously selected file cause we can't get the new one
                         dde_error(err.message)
                     }
                     else {
-                        content = content.toString() //because sometimes the content passed in is  buffer, not a string. This handles both.
-                        Editor.edit_file_aux(new_path, content)
+                        new_content = new_content.toString() //because sometimes the content passed in is  buffer, not a string. This handles both.
+                        Editor.edit_file_aux(new_path, new_content)
                     }
                 })}
         }
@@ -910,14 +911,14 @@ Editor.edit_file = function(path, content){ //path could be "new buffer"
                 //user can choose File menu, "new" to get a fresh "new buffer".
             }
             //
-            read_file_async(new_path, undefined, function(err, content) { //file_content will convert to windows format if needed
+            read_file_async(new_path, undefined, function(err, new_content) { //file_content will convert to windows format if needed
                 if(err) {
                     Editor.set_files_menu_to_path() //set the files menu BACK to its previously selected file cause we can't get the new one
                     dde_error(err.message)
                 }
                 else {
-                    content = content.toString() //because sometimes the content passed in is  buffer, not a string. This handles both.
-                    Editor.edit_file_aux(new_path, content)
+                    new_content = new_content.toString() //because sometimes the content passed in is  buffer, not a string. This handles both.
+                    Editor.edit_file_aux(new_path, new_content)
                 }
             })
         }
@@ -936,7 +937,7 @@ Editor.edit_file = function(path, content){ //path could be "new buffer"
             out(cur_path + " saved.")
         }
         //cur buffer has been delt with, now on to the new
-        if (path == "new buffer"){
+        if (path === "new buffer"){
             Editor.edit_file_aux(new_path, (content? content: ""))
         }
         else {
@@ -946,14 +947,14 @@ Editor.edit_file = function(path, content){ //path could be "new buffer"
                 Editor.edit_file_aux(new_path, content)
             }
             else {
-                read_file_async(new_path, undefined, function(err, content) { //file_content will conver to windows format if needed
+                read_file_async(new_path, undefined, function(err, new_content) { //file_content will conver to windows format if needed
                     if(err) {
                         Editor.set_files_menu_to_path() //set the files menu BACK to its previously selected file cause we can't get the new one
                         dde_error(err.message)
                     }
                     else {
-                        content = content.toString() //because sometimes the content passed in is  buffer, not a string. This handles both.
-                        Editor.edit_file_aux(new_path, content)
+                        new_content = new_content.toString() //because sometimes the content passed in is  buffer, not a string. This handles both.
+                        Editor.edit_file_aux(new_path, new_content)
                     }
                 })
             }

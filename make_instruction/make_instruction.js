@@ -1527,7 +1527,7 @@ MakeInstruction.menu_hierarchy = [
                      "pid_move_all_joints", "pid_move_to"],
     ["Dexter mode",  "set_follow_me", "set_force_protect", "set_keep_position", "set_open_loop"],
     ["Dexter common", "draw_dxf", "empty_instruction_queue_immediately", "empty_instruction_queue",
-                      "get_robot_status", "get_robot_status_immediately", "make_ins", "read_file",
+                      "get_robot_status", "make_ins", "read_file",
                       "run_gcode", "set_parameter", "write_file"],
     ["Dexter rare", "calibrate_build_tables", "capture_ad", "capture_points", "cause_error", "dma_read", "dma_write", "exit",
                     "find_index", "load_tables",

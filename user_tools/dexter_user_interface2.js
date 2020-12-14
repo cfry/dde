@@ -92,7 +92,9 @@ var dui2 = class dui2 {
                             robot: dex,
                             when_stopped: "wait",
                             do_list: [dui2.init,
-                                      Dexter.move_all_joints(0, 0, 0, 90, 0, 0, 0)
+                                      //Dexter.move_all_joints(0, 0, 0, 90, 0, 0, 0)
+                                      Dexter.move_all_joints([0, 0, 0, 0, 0]),
+                                      Dexter.pid_move_all_joints([0, 0, 0, 0, 0])
                                       ]
                         })
            // dex.instruction_callback = this.dui_instruction_callback //used for "run_forward" , complicated to get this to work so now run_forward does something simpler
@@ -184,7 +186,7 @@ var dui2 = class dui2 {
 
         show_window({title: "Dexter." + dui_instance.dexter_instance.name + " User Interface",
             width: xy_width_in_px + 80, //380,
-            height: xy_width_in_px + 333, //570,
+            height: xy_width_in_px + 333 + ((operating_system === "win") ? 60 : 0), //windows needs more vert space than mac for some strange reason.
             x: 320,
             y: 0,
             background_color: "#d5d5d5",
@@ -195,10 +197,11 @@ var dui2 = class dui2 {
             `<input type="button" name="ready"  style="margin-left:10px;margin-top:0px;margin-bottom:3px; padding:2px;" value="ready"  title="Move Dexter to a neutal position.&#013;Good for 'elbow room'."/>` +
             `<input type="button" name="home"   style="margin-left:10px;margin-top:0px;margin-bottom:3px; padding:2px;" value="home"   title="Move Dexter straight up.&#013;This doesn't allow much freedom of motion."/>` +
             "<span name='step_arrow_buttons'>" + //needed by tutorial
-            `<span  class="clickable" name="go_to_start"   style="font-size: 24px; margin-left: 5px; cursor: pointer; color: rgb(0, 200, 0); vertical-align:bottom;" title="Move cursor to before the first instruction&#013;of its containing do_list.">◀</span>` +
-            `<span  class="clickable" name="step_backward" style="font-size: 18px; margin-left: 5px; cursor: pointer; color: rgb(0, 200, 0); vertical-align:-10%;"   title="Step and execute the instruction before the selection&#013;or, if none, the cursor&#013;in the Job defined in the editor.">◀</span>` +
-            `<span  class="clickable" name="step_forward"  style="font-size: 18px; margin-left: 5px; cursor: pointer; color: rgb(0, 200, 0); vertical-align:-10%;"   title="Step through the instruction after the selection&#013;or, if none, the cursor&#013;in the Job defined in the editor.">▶</span>` +
-            `<span  class="clickable" name="run_forward"   style="font-size: 24px; margin-left: 5px; cursor: pointer; color: rgb(0, 200, 0); vertical-align:-10%;"   title="Run the instructions &#013;from the cursor through the end.">▶</span>` +
+            `<span class="clickable" name="go_to_start"   style="font-size: 24px; margin-left: 5px; cursor: pointer; color: rgb(0, 200, 0); vertical-align:bottom;" title="Move cursor to before the first instruction&#013;of its containing do_list.">◀</span>` +
+            `<span class="clickable" name="step_backward" style="font-size: 18px; margin-left: 5px; cursor: pointer; color: rgb(0, 200, 0); vertical-align:-10%;"   title="Step and execute the instruction before the selection&#013;or, if none, the cursor&#013;in the Job defined in the editor.">◀</span>` +
+            `<span class="clickable" name="step_forward"  style="font-size: 18px; margin-left: 5px; cursor: pointer; color: rgb(0, 200, 0); vertical-align:-10%;"   title="Step through the instruction after the selection&#013;or, if none, the cursor&#013;in the Job defined in the editor.">▶</span>` +
+            `<span class="clickable" name="run_forward"   style="font-size: 24px; margin-left: 5px; cursor: pointer; color: rgb(0, 200, 0); vertical-align:-10%;"   title="Run the instructions &#013;from the cursor through the end.">▶</span>` +
+            '<div class="clickable"  name="help" style="display:inline-block; margin-left:15px;cursor: pointer;color:blue;font-size:20px;font-weight:bold;" title="Help"> ? </div>' +
             "</span>" +
             dui_instance.make_xyz_sliders_html(xy_width_in_px,
                 min_x, max_x,
@@ -214,7 +217,7 @@ var dui2 = class dui2 {
                 dui_instance.show_window_elt_id = "show_window_" + SW.window_index + "_id"
                 let sw_elt = window[dui_instance.show_window_elt_id]
                 sw_elt.classList.add("dui_dialog")
-                let RS_inst = dui_instance.dexter_instance.rs //new RobotStatus(rs)
+                let RS_inst = dui_instance.dexter_instance.rs
                 let measured_angles = RS_inst.measured_angles(7).slice() //returns a copy of the array so safe to change it.
                 dui_instance.set_maj_angles(measured_angles)
                 dui_instance.update_all(dui_instance.should_point_down) //true means IFF maj_angles is pointing down, set the checkbox to point down.
@@ -222,34 +225,6 @@ var dui2 = class dui2 {
             },
             300)
     }
-
-    /*static init_is_mouse_over(dui_instance){
-        let dom_elt = window[dui_instance.show_window_elt_id]
-        dui_instance.is_mouse_over = true
-        dom_elt.onmouseover = function(event){
-            let x = event.clientX
-            let y = event.clientY
-            dui_instance.is_mouse_over = true
-            out("is_mouse_over: " + dui_instance.is_mouse_over)
-        };
-        dom_elt.onmouseout = function(event){
-            dui_instance.is_mouse_over = false
-            out("is_mouse_over: " + dui_instance.is_mouse_over)
-        }
-    }*/
-
-
-
-/*
-var cir1 = SW.get_window_of_index().querySelector("[id=xy_2d_slider]")
-cir1.cx = 42 fails
-cir1.getAttribute("cx")
-cir1.setAttribute("cx", 0)
-cir1.setAttribute("cx", 42)
-cir1.getAttribute("cy")
-cir1.setAttribute("cy", 0)
-cir1.setAttribute("cy", 42)
-*/
 
 //does not attempt to set initial value. That's done in update_from_robot
     make_xyz_sliders_html(xy_width_in_px = 300,
@@ -308,25 +283,22 @@ cir1.setAttribute("cy", 42)
             "<b style='vertical-align:top;margin-left:15px;'>Z</b>" + z_slider_html +
             //z_slider_restriction_html +
             '<div style="display:inline; position:absolute; margin-top:10px;margin-bottom:0px;left:10px;top:365px;"><b>X</b>' +
+            //'<div margin-top:0px;margin-bottom:0px;left:20px;"><b>X</b>' +
+
             ' key inc:<select name="key_inc" title="When using keys to increment x, y, or z,&#013;this is the inc amount.&#013;auto means automatically increase inc&#013;the longer you hold down the key.">' +
             '<option>auto</option><option>0.001</option><option>0.01</option><option>0.1</option>' +
             '<option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>8</option><option>10</option><option>12</option><option>16</option>' +
             '<option>20</option><option>25</option><option>30</option><option>40</option>'+
             '<option>50</option><option>75</option><option>100</option>' +
              '</select>mm ' +
-            '<span style="margin-left:5px;">J6 roll:</span><input name="J6_roll" data-oninput="true" type="number" min="-180" max="180" step="0.1" value="0"/>&deg;' +
-            '<span style="margin-left:10px;" title="Fill in joint angles by moving your Dexter by hand.">FromDex:<input name="from_dexter" type="checkbox" data-oninput="true"/></span>' +
+            '<span style="margin-left:5px;">J6roll:</span><input name="J6_roll" data-oninput="true" type="number" min="-180" max="180" step="0.1" value="0" style="width:50px;"/>&deg;' +
+            '<span style="margin-left:3px;" title="Fill in joint angles by moving your Dexter by hand.">FromDex:<input name="from_dexter" type="checkbox" data-oninput="true"/></span>' +
             '</div><br/>' +
                xyz_num_html
         return the_html
     }
 
     make_joint_sliders_html(){
-       // out("top of make_joint_sliders_html with dex: " + dex)
-        //let rs = dex.robot_status
-        //out("in make_joint_sliders_html with rs: " + rs)
-        //let RS_inst = new RobotStatus(rs)
-        //out("in make_joint_sliders_html with RS_inst: " + RS_inst)
         let result = "" //"<style> .dui-slider::-webkit-slider-thumb {background-color:#00FF00;}</style>"
         for(let joint_number = 1; joint_number < 8; joint_number++){
             let min_name = "J" + joint_number + "_angle_min"
@@ -437,16 +409,20 @@ cir1.setAttribute("cy", 42)
     }
 
     static keyup_on_xy_square_action(event){
-        //out("keyup_on_xy_square_action called.")
         this.xyz_key_increment = 0
         this.joint_key_increment = 0 //use for roll (r & v) as well
     }
 
+    //returns ["Shift", null] when only the shift key is down as happens when you hold shift down,
+    //THEN you type a number key
+    //returns array of 2 elts, the key (as a string, or,
+    // if its a number key, an actual pos integer of the joint) and
+    // the sign as either 1 or -1 (a factor in a multiply)
     static convert_key_and_sign(key){
         let shift_joint_keys = ")!@#$%^&*("
-        let keyint = shift_joint_keys.indexOf(key)
-        if(is_digit(key))      { return [parseInt(key), -1] } //negative joint angle
-        else if(keyint !== -1) { return [keyint, 1] } //the shift of an int. positive joint angle
+        let keyint = shift_joint_keys.indexOf(key)  //if keyint is not -1, then we have a SHIFT_integer keystroke, ie a decriment of a joint angle
+        if(is_digit(key))      { return [parseInt(key), 1] } //positive joint angle
+        else if(keyint !== -1) { return [keyint, -1] } //the shift of an int, ie a negative joint angle
         else if (key === "r")  { return [key, 1]    }
         else if (key === "v")  { return [key, -1]   }
         else {                   return [key, null] } //could be arrow key or other key for xyz or r or v
@@ -454,13 +430,16 @@ cir1.setAttribute("cy", 42)
 
     //similar in functionality to dexter_user_interface_cb, only for keyboard events on the big xy square
     static keydown_on_xy_square_action(event){
+        //ebugger;
         let [key, sign]  = this.convert_key_and_sign(event.key)
+        //out(key + " " + sign)
         let dui_instance = dui2.dui_instance_under_mouse()
         if (!dui_instance) {
             warning("To use the keyboard to control the Dexter User Inferface,<br/>" +
                      "the mouse must be in the dialog box.")
             return
         }
+        else if((key === "Shift") && (sign === null)) { return } // a no-op. don't even print warning
         let x = dui_instance.xyz[0]
         let y = dui_instance.xyz[1]
         let z = dui_instance.xyz[2]
@@ -553,7 +532,8 @@ cir1.setAttribute("cy", 42)
         dui_instance.set_maj_angles(j_angles)
         dui_instance.update_all(dui_instance.should_point_down) // do update_all before move_all_joints because update_all may modify ui2_instance.maj_angles if the direction_checkbox is checked
         let instr = Dexter.pid_move_all_joints(dui_instance.maj_angles)
-        Job.insert_instruction(instr, {job: dui_instance.job_name, offset: "end"})
+        //Job.insert_instruction(instr, {job: dui_instance.job_name, offset: "end"}) //todo overwrite
+        Job[dui_instance.job_name].insert_last_instruction_overwrite(instr)
     }
 
 //______show_window callback
@@ -564,7 +544,6 @@ cir1.setAttribute("cy", 42)
   static dexter_user_interface_cb(vals){
     //out("dui_cb got clicked_button_value: " + vals.clicked_button_value +
     //    " which has val: " + vals[vals.clicked_button_value])
-    //ebugger;
     let dui_instance = dui2.show_window_elt_id_to_dui_instance(vals.show_window_elt_id)
     //inspect(dui2.dui_instance_under_mouse())
     if(vals.clicked_button_value === "close_button"){
@@ -579,6 +558,10 @@ cir1.setAttribute("cy", 42)
         let inst_index = dui2.instances.indexOf(dui_instance)
         if(inst_index == -1) { shouldnt("in dexter_user_interface_cb with close_button") }
         else { dui2.instances.splice(inst_index, 1) } //cut out the instance from the instances list
+        return
+    }
+    else if(vals.clicked_button_value === "help") {
+        open_doc(dexter_user_interface_doc_id)
         return
     }
     else if(["xy_2d_slider", "z_slider", "J6_roll"].includes(vals.clicked_button_value)){
@@ -672,59 +655,7 @@ cir1.setAttribute("cy", 42)
     else if(vals.clicked_button_value == "step_forward"){
         let continue_running = dui2.step_forward_button_click_action(dui_instance)
         if(!continue_running) { return } //either a bad instruction or not a maj or mt instruction so stop processing here
-       /* let full_src  = Editor.get_javascript()
-        let start_pos = Editor.selection_start()
-        let start_char = full_src[start_pos]
-        if((start_char == "\n") && (start_pos > 0)) { //treat clicking on the end of a line, as if
-            //its really IN the line, not the next line or in between
-            start_pos -= 1
-            start_char = full_src[start_pos]
-        }
-        if(start_pos == (full_src.length - 1)) { return } //at end of buffer, so no expression
-        let prev_newline_pos = full_src.lastIndexOf("\n", start_pos)
-        if (prev_newline_pos == -1) { prev_newline_pos = 0 } //an aproximation! start_pos is on first line
-        let next_newline_pos = full_src.indexOf("\n", start_pos)
-        let open_paren_pos   = full_src.indexOf("(", prev_newline_pos)
-        if(open_paren_pos === -1) { return } //no instruction
-        if(open_paren_pos > next_newline_pos) { return } //no instr starting on the same line as prev_newline_pos
-        let expr_start_pos   = Editor.skip_forward_over_whitespace(full_src, prev_newline_pos)
-
-        let close_paren_pos = Editor.find_matching_delimiter(full_src, open_paren_pos)
-        if(!close_paren_pos) { return } //no close paren so no expression.
-        let maj_pos = full_src.indexOf("move_all_joints(", expr_start_pos)
-        if(maj_pos > next_newline_pos) { maj_pos = -1 } //too far away
-        let mt_pos  = full_src.indexOf("move_to(", expr_start_pos)
-        if(mt_pos > next_newline_pos) { mt_pos = -1 } //too far away
-
-        let instr_type = null //means no valid instruction
-        if(maj_pos == -1) {
-            if(mt_pos > -1) { instr_type = "mt" }
-        }
-        else { instr_type = "maj" }
-        if(!instr_type) { return } //didn't get an maj or mt instruction
-        else { //good to go!
-            let instr_src = full_src.substring(expr_start_pos, close_paren_pos + 1)
-            let instr_obj
-            let angles
-            try{
-                instr_obj = eval(instr_src)
-            }
-            catch(err) { return } //invalid instruction so just ignore it
-            if((instr_obj instanceof Instruction.Dexter.move_all_joints) ||
-                (instr_obj instanceof Instruction.Dexter.pid_move_all_joints)){
-                angles = instr_obj.array_of_angles
-            }
-            else if ((instr_obj instanceof Instruction.Dexter.move_to) ||
-                     (instr_obj instanceof Instruction.Dexter.pid_move_to)) {
-                angles = Kin.xyz_to_J_angles(instr_obj.xyz, instr_obj.J5_direction,
-                                             instr_obj.config, instr_obj.workspace_pos)
-            }
-            else{ return } //not one of the instructtion we need
-            Editor.select_javascript(expr_start_pos, close_paren_pos + 1)
-            dui_instance.set_maj_angles(angles)
-            */
     }
-
     else if(vals.clicked_button_value == "run_forward"){
         let continue_running
         for(var i = 0; i < 100000; i++){
@@ -762,7 +693,7 @@ cir1.setAttribute("cy", 42)
                 if(!from_dexter_checkbox.checked) {return} //its over. user unchecked checkbox.
                 else if (dui_instance.waiting_for_user_to_start_get_points) { //not yet inited.
                     if((!dui_instance.waiting_for_phui_gui_button_click) ||
-                        dui_instance.dexter_instance.phui_button_clicked_but_not_processed()){ //ready to start getting points
+                        dui_instance.dexter_instance.was_phui_button_down()){ //ready to start getting points
                         dui_instance.waiting_for_phui_gui_button_click = false
                         dui_instance.waiting_for_user_to_start_get_points = false
                         dui_instance.should_point_down = false //let user drag end effector where they want.
@@ -785,12 +716,13 @@ cir1.setAttribute("cy", 42)
                     dui_instance.set_maj_angles(j_angles)
                     dui_instance.update_all(false) //hmm, needs work on should_point_down.
                     out("grabbed from Dexter: " + j_angles, "green", true)
-                    if(dui_instance.dexter_instance.phui_button_clicked_but_not_processed()){ //insert point into editor
+                    if(dui_instance.dexter_instance.was_phui_button_down()){ //insert point into editor
                         dui_instance.insert_instruction_into_editor()
                     }
                     if(dui_instance.dexter_mode === "follow_me") { //user hasn't quit yet so keep updating dialog from Dexter
                         setTimeout(the_follow_me_fn, 30) //loop around
                     }
+                    //else user unchecked the box so we're no longer in follow_me so stop the loop
                     return
                 }
             }
@@ -829,6 +761,8 @@ cir1.setAttribute("cy", 42)
         let job_prefix_src =
 `\nnew Job({
     name: "my_job",
+    keep_history: false,
+    show_instructions: false,
     do_list: [
         `
         /* inserts an instruction but not the right thing if you use FromDex mode to get all points
@@ -867,7 +801,8 @@ cir1.setAttribute("cy", 42)
     }
     dui_instance.update_all(dui_instance.should_point_down) // do update_all before move_all_joints because update_all may modify ui2_instance.maj_angles if the direction_checkbox is checked
     let instr = Dexter.pid_move_all_joints(dui_instance.maj_angles)
-    Job.insert_instruction(instr, {job: vals.job_name, offset: "end"})
+    //Job.insert_instruction(instr, {job: vals.job_name, offset: "end"})
+    Job[dui_instance.job_name].insert_last_instruction_overwrite(instr)
 }
    //called both from show_window handler insert_instruction, and by a phui button click
    insert_instruction_into_editor(){

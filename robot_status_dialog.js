@@ -8,17 +8,20 @@
 var RobotStatusDialog = class RobotStatusDialog{
 //only called from the menu bar Jobs/show robot status item
 //makes a new window, but not if one is already up.
-    static show(event){
-        if(RobotStatusDialog.window_up()) { warning("Robot Status is already shown.") }
+    static show(robot){
+        if(RobotStatusDialog.window_up()) { out("Robot Status is already shown.") }
         else {
-            let robot = (Job.last_job? Job.last_job.robot : Dexter.dexter0)
+            if(!robot) {
+                robot = (Job.last_job? Job.last_job.robot : Dexter.dexter0)
+            }
             if(!robot || !(robot instanceof Dexter)) {
                 robot = Dexter.dexter0
             }
             let content = RobotStatusDialog.make_html_table(robot)
             let cal = robot.is_calibrated()
             cal = ((cal === null) ? "unknown" : cal)
-            show_window({content: content,
+            this.show_window_id =
+              show_window({content: content,
                 title:  "<span style='font-size:16px;'>Robot Status of</span> " +
                 RobotStatusDialog.make_names_menu_html(robot) +
                 "<span style='font-size:12px;margin-left:10px;'> Updated: <span id='robot_status_window_time_id'>" + RobotStatusDialog.update_time_string() + "</span></span>" +
@@ -39,6 +42,12 @@ var RobotStatusDialog = class RobotStatusDialog{
 
     static window_up(){
         return (window.update_robot_status_names_select_id ? true : false)
+    }
+
+    static close_window(){
+       if(typeof(this.show_window_id) === "number"){
+           SW.close_window(this.show_window_id)
+       }
     }
 
     //returns null if no update_robot_status window up, or if it doesn't have a robot selectec
@@ -85,35 +94,60 @@ var RobotStatusDialog = class RobotStatusDialog{
         let robot_status = robot.robot_status
         if (this.window_up()) { //don't attempt to show if the window isn't up. this does repopulate window if its merely shrunken
             robot_status_window_time_id.innerHTML = this.update_time_string()
-            for (let i = 0; i < 60; i++){ //don't use robot_status.length as there might not BE a robot_status if it hasn't been run yet
-                let label    = Dexter.robot_status_labels[i]
-                if ((label != null) && !label.startsWith("UNUSED")){
-                    let val      = (robot_status ? robot_status[i] : "no status") //its possible that a robot will have been defined, but never actually run when this fn is called.
-                    if((typeof(val) == "number") && (i >= 10)) { //display as a real float
-                        val = to_fixed_smart(val, 3) //val.toFixed(3)
-                    }
-                    let elt_name = label + "_id"
-                    window[elt_name].innerHTML = val
-                }
-            }
-            if(robot_status){
-                START_TIME_id.title = date_integer_to_long_string(robot_status[Dexter.START_TIME])
-                STOP_TIME_id.title  = date_integer_to_long_string(robot_status[Dexter.STOP_TIME])
-                INSTRUCTION_TYPE_id.title = Robot.instruction_type_to_function_name(robot_status[Dexter.INSTRUCTION_TYPE])
-                let xyz
-                try      { xyz = robot.joint_xyz() } //gets xyz array for joint 5
-                catch(e) { xyz = ["no status", "no status", "no status"] }
-                MEASURED_X_id.innerHTML = this.format_measured_angle(xyz[0])
-                MEASURED_Y_id.innerHTML = this.format_measured_angle(xyz[1])
-                MEASURED_Z_id.innerHTML = this.format_measured_angle(xyz[2])
+            let sm = robot.rs.status_mode()
+            let sm_inner_text = RECORD_BLOCK_SIZE_id.innerText
+            let actual_sm_now_shown
+            if(is_string_a_integer(sm_inner_text)) {
+                actual_sm_now_shown = parseInt(sm_inner_text)
             }
             else {
-                START_TIME_id.title = "No jobs run on this robot yet."
-                STOP_TIME_id.title  = "No jobs run on this robot yet."
-                INSTRUCTION_TYPE_id.title = "No jobs run on this robot yet."
-                MEASURED_X_id.innerHTML = "no status"
-                MEASURED_Y_id.innerHTML = "no status"
-                MEASURED_Z_id.innerHTML = "no status"
+                actual_sm_now_shown = 0
+            }
+            if(sm !== actual_sm_now_shown) {
+                this.close_window()
+                setTimeout(function() {
+                    RobotStatusDialog.show(robot)
+                    }, 100)
+            }
+            else {
+                let labels
+                if     (sm === 0) { labels = Dexter.robot_status_labels }
+                else if(sm === 1) { labels = Dexter.robot_status_labels_g1 }
+                else {
+                  warning("RobotStatus.update_robot_status_table can't handle status_mode: " + sm)
+                  return
+                }
+                for (let i = 0; i < 60; i++){ //don't use robot_status.length as there might not BE a robot_status if it hasn't been run yet
+                    let label = labels[i]
+                    if ((label != null) && !label.startsWith("UNUSED")){
+                        let val      = (robot_status ? robot_status[i] : "no status") //its possible that a robot will have been defined, but never actually run when this fn is called.
+                        if((typeof(val) == "number") && (i >= 10)) { //display as a real float
+                            val = to_fixed_smart(val, 3) //val.toFixed(3)
+                        }
+                        let elt_name = label + "_id"
+                        window[elt_name].innerHTML = val
+                    }
+                }
+                if(robot_status){
+                    JOB_ID_id.innerHTML = this.make_job_id_td_innerHTML(robot_status[Dexter.JOB_ID])
+                    START_TIME_id.title = date_integer_to_long_string(robot_status[Dexter.START_TIME])
+                    STOP_TIME_id.title  = date_integer_to_long_string(robot_status[Dexter.STOP_TIME])
+                    INSTRUCTION_TYPE_id.title = Robot.instruction_type_to_function_name(robot_status[Dexter.INSTRUCTION_TYPE])
+                    let xyz
+                    try      { xyz = robot.rs.xyz()[0] } //gets xyz array for joint 5
+                    catch(e) { xyz = ["no status", "no status", "no status"] }
+                    MEASURED_X_id.innerHTML = this.format_measured_angle(xyz[0])
+                    MEASURED_Y_id.innerHTML = this.format_measured_angle(xyz[1])
+                    MEASURED_Z_id.innerHTML = this.format_measured_angle(xyz[2])
+                }
+                else {
+                    START_TIME_id.title = "No jobs run on this robot yet."
+                    STOP_TIME_id.title  = "No jobs run on this robot yet."
+                    INSTRUCTION_TYPE_id.title = "No jobs run on this robot yet."
+                    MEASURED_X_id.innerHTML = "no status"
+                    MEASURED_Y_id.innerHTML = "no status"
+                    MEASURED_Z_id.innerHTML = "no status"
+                }
             }
         }
     }
@@ -132,35 +166,54 @@ var RobotStatusDialog = class RobotStatusDialog{
         //let oplet = ds[Dexter.INSTRUCTION_TYPE]
         let robot_status = robot.robot_status
         let xyz
-        try { xyz = robot.joint_xyz() } //gets xyz array for joint 5
+        try { xyz = robot.rs.xyz()[0] } //robot.joint_xyz()  //gets xyz array for joint 5
         catch(e) {xyz = ["no status", "no status", "no status"] }
+        let core_rows_html
+        let sm = (robot.rs ? robot.rs.status_mode() : 0)
+        if(sm === 0)      { core_rows_html = this.make_html_table_g0(robot_status)  }
+        else if(sm === 1) { core_rows_html = this.make_html_table_g1(robot_status)  }
+        else { shouldnt("RobotStatusDialog.make_html_table got invalid status_mode of: " + sm) }
         let result =
             "<table class='robot_status_table'>" +
             "<tr><th></th>    <th>JOB_ID</th><th>INSTRUCTION_ID</th><th>START_TIME</th><th>STOP_TIME</th><th>INSTRUCTION_TYPE</th></tr>" +
             this.make_rs_row(robot_status, "", "JOB_ID",      "INSTRUCTION_ID",      "START_TIME",      "STOP_TIME",      "INSTRUCTION_TYPE") +
 
-            "<tr><th></th>    <th>ERROR_CODE</th><th>JOB_ID_OF_CI</th><th>CURRENT_INSTR</th><th>RECORD_BLOCK_SIZE</th><th>END_EFFECTOR_IN</th></tr>" +
-            this.make_rs_row(robot_status, "", "ERROR_CODE",      "JOB_ID_OF_CURRENT_INSTRUCTION",      "CURRENT_INSTRUCTION_ID",      "RECORD_BLOCK_SIZE",      "END_EFFECTOR_IN") +
+            "<tr><th></th>    <th>ERROR_CODE</th><th>JOB_ID_OF_CI</th><th>CURRENT_INSTR</th><th>RECORD_BLOCK_SIZE</th><th>END_EFFECTOR_IO_IN</th></tr>" +
+            this.make_rs_row(robot_status, "", "ERROR_CODE",      "DMA_READ_DATA",      "READ_BLOCK_COUNT",      "RECORD_BLOCK_SIZE",      "END_EFFECTOR_IO_IN") +
 
             "<tr><th></th>         <th>Joint 1</th><th>Joint 2</th><th>Joint 3</th><th>Joint 4</th><th>Joint 5</th><th>Joint 6</th><th>Joint 7</th></tr>" +
-            this.make_rs_row(robot_status, "ANGLE",     "J1_ANGLE",     "J2_ANGLE",     "J3_ANGLE",     "J4_ANGLE",     "J5_ANGLE"    ) +
-            this.make_rs_row(robot_status, "DELTA",     "J1_DELTA",     "J2_DELTA",     "J3_DELTA",     "J4_DELTA",     "J5_DELTA"    ) +
-            this.make_rs_row(robot_status, "PID_DELTA", "J1_PID_DELTA", "J2_PID_DELTA", "J3_PID_DELTA", "J4_PID_DELTA", "J5_PID_DELTA") +
-            //this.make_rs_row(robot_status, "FORCE_CALC_ANGLE", "J1_FORCE_CALC_ANGLE", "J2_FORCE_CALC_ANGLE", "J3_FORCE_CALC_ANGLE", "J4_FORCE_CALC_ANGLE", "J5_FORCE_CALC_ANGLE") +
-            this.make_rs_row(robot_status, "A2D_SIN",   "J1_A2D_SIN",   "J2_A2D_SIN",   "J3_A2D_SIN",   "J4_A2D_SIN",   "J5_A2D_SIN"  ) +
-            this.make_rs_row(robot_status, "A2D_COS",   "J1_A2D_COS",   "J2_A2D_COS",   "J3_A2D_COS",   "J4_A2D_COS",   "J5_A2D_COS"  ) +
-            //this.make_rs_row(robot_status, "PLAYBACK",  "J1_PLAYBACK",  "J2_PLAYBACK",  "J3_PLAYBACK",  "J4_PLAYBACK",  "J5_PLAYBACK" ) +
-            this.make_rs_row(robot_status, "MEASURED_ANGLE",    "J1_MEASURED_ANGLE",   "J2_MEASURED_ANGLE",   "J3_MEASURED_ANGLE",   "J4_MEASURED_ANGLE", "J5_MEASURED_ANGLE", "J6_MEASURED_ANGLE", "J7_MEASURED_ANGLE") +
-            this.make_rs_row(robot_status, "MEASURED_TORQUE",    null,                 null,                   null,                  null,                null,               "J6_MEASURED_TORQUE", "J7_MEASURED_TORQUE") +
-
-            this.make_rs_row(robot_status, "SENT",      "J1_SENT",      "J2_SENT",      "J3_SENT",      "J4_SENT",      "J5_SENT"     ) +
-            //this.make_rs_row(robot_status, "SLOPE",     "J1_SLOPE",     "J2_SLOPE",     "J3_SLOPE",     "J4_SLOPE",     "J5_SLOPE"    ) +
-                    "<tr><th>J5 MEASURED X</th><td><span id='MEASURED_X_id' style='font-family:monospace;float:right;'>" + this.format_measured_angle(xyz[0]) +
+            core_rows_html +
+            "<tr><th>J5 MEASURED X</th><td><span id='MEASURED_X_id' style='font-family:monospace;float:right;'>" + this.format_measured_angle(xyz[0]) +
             "</span></td><th>J5 MEASURED Y</th><td><span id='MEASURED_Y_id' style='font-family:monospace;float:right;'>" + this.format_measured_angle(xyz[1]) +
             "</span></td><th>J5 MEASURED Z</th><td><span id='MEASURED_Z_id' style='font-family:monospace;float:right;'>" + this.format_measured_angle(xyz[2]) +
             "</span></td></tr>" +
             "</table>"
         return result
+    }
+
+    static make_html_table_g0(robot_status){
+      return (
+        this.make_rs_row(robot_status, "ANGLE",     "J1_ANGLE",     "J2_ANGLE",     "J3_ANGLE",     "J4_ANGLE",     "J5_ANGLE"    ) +
+        this.make_rs_row(robot_status, "DELTA",     "J1_DELTA",     "J2_DELTA",     "J3_DELTA",     "J4_DELTA",     "J5_DELTA"    ) +
+        this.make_rs_row(robot_status, "PID_DELTA", "J1_PID_DELTA", "J2_PID_DELTA", "J3_PID_DELTA", "J4_PID_DELTA", "J5_PID_DELTA") +
+        //this.make_rs_row(robot_status, "FORCE_CALC_ANGLE", "J1_FORCE_CALC_ANGLE", "J2_FORCE_CALC_ANGLE", "J3_FORCE_CALC_ANGLE", "J4_FORCE_CALC_ANGLE", "J5_FORCE_CALC_ANGLE") +
+        this.make_rs_row(robot_status, "A2D_SIN",   "J1_A2D_SIN",   "J2_A2D_SIN",   "J3_A2D_SIN",   "J4_A2D_SIN",   "J5_A2D_SIN"  ) +
+        this.make_rs_row(robot_status, "A2D_COS",   "J1_A2D_COS",   "J2_A2D_COS",   "J3_A2D_COS",   "J4_A2D_COS",   "J5_A2D_COS"  ) +
+        //this.make_rs_row(robot_status, "PLAYBACK",  "J1_PLAYBACK",  "J2_PLAYBACK",  "J3_PLAYBACK",  "J4_PLAYBACK",  "J5_PLAYBACK" ) +
+        this.make_rs_row(robot_status, "MEASURED_ANGLE",    "J1_MEASURED_ANGLE",   "J2_MEASURED_ANGLE",   "J3_MEASURED_ANGLE",   "J4_MEASURED_ANGLE", "J5_MEASURED_ANGLE", "J6_MEASURED_ANGLE", "J7_MEASURED_ANGLE") +
+        this.make_rs_row(robot_status, "MEASURED_TORQUE",    null,                 null,                   null,                  null,                null,               "J6_MEASURED_TORQUE", "J7_MEASURED_TORQUE") +
+
+        this.make_rs_row(robot_status, "SENT",      "J1_SENT",      "J2_SENT",      "J3_SENT",      "J4_SENT",      "J5_SENT"     )
+        //this.make_rs_row(robot_status, "SLOPE",     "J1_SLOPE",     "J2_SLOPE",     "J3_SLOPE",     "J4_SLOPE",     "J5_SLOPE"    ) +
+      )
+    }
+
+    static make_html_table_g1(robot_status){
+        return (
+            this.make_rs_row(robot_status, "MEASURED_ANGLE", "J1_MEASURED_ANGLE_G1", "J2_MEASURED_ANGLE_G1", "J3_MEASURED_ANGLE_G1", "J4_MEASURED_ANGLE_G1", "J5_MEASURED_ANGLE_G1", "J6_MEASURED_ANGLE_G1", "J7_MEASURED_ANGLE_G1") +
+            this.make_rs_row(robot_status, "TORQUE",         "J1_TORQUE_G1",         "J2_TORQUE_G1",         "J3_TORQUE_G1",         "J4_TORQUE_G1",         "J5_TORQUE_G1",         "J6_TORQUE_G1",         "J7_TORQUE_G1") +
+            this.make_rs_row(robot_status, "VELOCITY",       "J1_VELOCITY_G1",       "J2_VELOCITY_G1",       "J3_VELOCITY_G1",       "J4_VELOCITY_G1",       "J5_VELOCITY_G1",       "J6_VELOCITY_G1",       "J7_VELOCITY_G1")
+            )
     }
 
     static format_measured_angle(angle) {
@@ -187,11 +240,15 @@ var RobotStatusDialog = class RobotStatusDialog{
                     "' id='" + field + "_id'>" +
                     val + "</td>"
             }
-            else if (field == "TIME"){
+            else if (field === "TIME"){
                 result += "<td title='" +
                     date_integer_to_long_string(val) +
                     "' id='" + field + "_id'>" +
                     val + "</td>"
+            }
+            else if (field === "JOB_ID"){
+                val = this.make_job_id_td_innerHTML(val)
+                result += '<td id="' + field + '_id">' + val + '</td>'
             }
             else if (row_header != "") { //body of table, expect floating point numbers, float right
                 val = to_fixed_smart(val, 3)
@@ -206,6 +263,23 @@ var RobotStatusDialog = class RobotStatusDialog{
         return result + "</tr>"
     }
 
+    static make_job_id_td_innerHTML(val){
+        let job_name = ((typeof(val) === "number") ? Job.job_id_to_job_instance(val).name : null)
+        let tooltip
+        if(job_name){
+            tooltip = "Inspect Job." + job_name + " details."
+        }
+        else {
+            tooltip = "No Job indicted."
+        }
+        let the_html = '<span title="' + tooltip + '" ' +
+                        'onclick="inspect(Job.job_id_to_job_instance(' + val + '))" ' +
+                        'style="color:blue;cursor:pointer;font-weight:bold;">' + val +
+                        ' &#9432; </span>'
+
+        return the_html
+    }
+
     static run_update_job(){
         let existing_job = Job.rs_update
         if(existing_job && existing_job.is_active()){
@@ -214,31 +288,37 @@ var RobotStatusDialog = class RobotStatusDialog{
         }
         else {
             let rob = this.selected_robot()
+            let sm = (rob.rs ? rob.rs.status_mode() : 0)
             robot_status_run_update_job_button_id.style.backgroundColor = "#AAFFAA"
-            new Job({name: "rs_update",
-                robot: rob,
-                do_list: [ Control.loop(true,
-                           function() {
-                              if(RobotStatusDialog.window_up()){
-                                  let cal = rob.is_calibrated()
-                                  if (cal == null) { cal = "unknown" }
-                                  robot_status_is_calibrated_id.innerHTML = cal
-                                  return Dexter.get_robot_status()
-                              }
-                              else {
-                                  return Control.break()
-                              }
-                           })]}).start()
+            let the_job = new Job({name: "rs_update",
+                                     robot: rob,
+                                     do_list: [ Dexter.get_robot_status(sm),
+                                                Control.loop(true,
+                                                   function() {
+                                                      if(RobotStatusDialog.window_up()){
+                                                          let cal = rob.is_calibrated()
+                                                          if (cal == null) { cal = "unknown" }
+                                                          robot_status_is_calibrated_id.innerHTML = cal
+                                                          return Dexter.get_robot_status()
+                                                      }
+                                                      else {
+                                                          return Control.break()
+                                                      }
+                                                   })]})
+            the_job.start()
         }
     }
 
+    //works for g0 and g1
     static inspect_array(){
         let robot_name = update_robot_status_names_select_id.value
         let robot = Dexter[robot_name]
         let robot_status_array = robot.robot_status
-        let len = (robot_status_array ? robot_status_array.length : 60)
+        let rs_inst = new RobotStatus({robot_status: robot_status_array})
+        let mode = rs_inst.status_mode()
+        let labels = ((mode === 0) ? Dexter.robot_status_labels : Dexter.robot_status_labels_g1)
+        let len = labels.length
         let array_for_display = []
-        let labels = Dexter.robot_status_labels
         for(let i = 0; i < len; i++){
             array_for_display.push([
                //i, //i is already printed by the inspector

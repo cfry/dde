@@ -45,6 +45,7 @@ button             {background-color:#93dfff; font-size:14px;border-style:outset
 input[type=button]:hover {border-color:#0a0;}
 input[type=submit]:hover {border-color:#0a0;}
 button:hover {border-color:#0a0;}
+/* svg:focus { outline: 3px solid rgb(100,150,255); } */
 /* .jqx-menu-item {width:400px !important;} this forces menu items to be just 1 line but truncates it at about 150px regardless of the setting*/
 code { background-color:white; }
 samp { background-color: #cefff3; } /* pale green for results of code examples*/
