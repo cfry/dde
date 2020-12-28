@@ -5551,7 +5551,7 @@ Example:<code>Control.wait_until(2)</code><br/>
         For Dexter, it will be DMA_READ_DATA.
         <p></p>
         You can use some constants for the values of start_index and end_index.<br/>
-        For a Dexter robot these are: <br/>
+        For a Dexter robot in "g0" status_mode, these are: <br/>
         <code>Dexter.JOB_ID</code><br/>
         <code>Dexter.INSTRUCTION_ID</code><br/>
         <code>Dexter.START_TIME</code> //ms since jan 1, 1970 from Dexter's clock<br/>
@@ -5559,7 +5559,7 @@ Example:<code>Control.wait_until(2)</code><br/>
         <code>Dexter.INSTRUCTION_TYPE</code> //a letter signifying the instruction type.<br/>
         <br/>
         <code>Dexter.ERROR_CODE</code> //0 means no error.<br/>
-        <code>Dexter.RECORD_BLOCK_SIZE</code><br/>
+        <code>Dexter.STATUS_MODE</code> //0 for g0. In general, a small non-negative interger. The kind of data that's in the robot_status array.<br/>
         <code>Dexter.END_EFFECTOR_IO_IN</code><br/>
         <br/>
         <code>Dexter.J6_MEASURED_ANGLE</code><br/>
@@ -5624,8 +5624,7 @@ Example:<code>Control.wait_until(2)</code><br/>
         be any string in the <b>color</b> series, or have the format:<br/>
         <code>"rgb(255, 100, 0)"</code>.<br/>
         <b>temp</b> Default: <code>false</code>. With the default, printed output stays in the
-        Output pane until DDE is relaunched.
-        <p></p>
+        Output pane until DDE is relaunched.<br/>
         If temp is <code>true</code>,
         then <b>val</b> is still printed in the Output pane, but is over-ridden
         by subsequence calls to out with temp == true. Calls to out with temp == false
@@ -5637,6 +5636,11 @@ Example:<code>Control.wait_until(2)</code><br/>
         the output of out with a temp string will <i>not</i> be erased.
         Thus the last call to out with a given temp string remains in the Output pane,
         in its place, regardless of other out calls.
+        <p></p>
+        <b>print_job_info</b> boolean. Default <code>false</code> .
+        If <code>true</code>, prints out the name of the job that this instruction is in,
+        the instruction ID,
+        and the instruction type (which is always IO.out).
         <p></p>
         Unlike an instruction such as:<br/>
         <code>function(){out("The status is: " + this.status_code)}</code><br/>
@@ -5987,6 +5991,9 @@ See also the instruction: <code>IO.grab_robot_status</code>
     by 10, through 50 degrees respectively.
     If you have the arguments in an array, you can use this syntax:<br/>
     <code title="unEVALable code fragment"> make_ins("a", ...my_array)</code>
+    <p></p>
+    Note that for make_ins calls with an "a" first argument, they must pass
+    at least 5 other numbers for joint angles.
     <p></p>
     If the last argument passed in a make_ins call is a Dexter robot instance,
     the instruction will be sent to that Dexter.
@@ -6675,6 +6682,8 @@ If it is passed, the instruction will be sent to that robot.
         Dexter will move to the locations it is told to by instructions.
         Dexter will actively compensate for any applied forces.
         This mode creates the most accurate joint angles and paths.
+        It uses the optical encoders for each joint for position feedback,
+        so it is "closed loop".
         This is the default mode.
         <p></p>
         <i>Parameters:</i> None<br/>
@@ -6685,7 +6694,8 @@ If it is passed, the instruction will be sent to that robot.
         Dexter will move to the locations it is told to by instructions.
         Dexter will not actively compensate for any applied forces.
         The stepper motors are locked at each desired location but the actually joint angles will have error.
-        This mode can be useful for accurately measuring torque.<br/>
+        This mode can be useful for accurately measuring torque.
+        It does not use the joint optical encoders.<br/>
         <i>Example</i>: (as an instruction in a job's do_list.)
         <p></p>
         <i>Parameters:</i> None<br/>

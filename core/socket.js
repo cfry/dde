@@ -56,7 +56,7 @@ var Socket = class Socket{
 
     static oplet_array_or_string_to_string(oplet_array_or_string) {
         if (typeof(oplet_array_or_string) == "string") { return oplet_array_or_string }
-        else {
+        else { //oplet_array_or_string is an array
             let str = ""
             for(var i = 0; i < oplet_array_or_string.length; i++){
                 let suffix = ((i == (oplet_array_or_string.length - 1))? ";": " ")
@@ -89,7 +89,7 @@ var Socket = class Socket{
         if(typeof(instruction_array) == "string") { return instruction_array} //no conversion needed.
         const oplet = instruction_array[Dexter.INSTRUCTION_TYPE]
         let number_of_args = instruction_array.length - Instruction.INSTRUCTION_ARG0
-        if ((oplet == "a") || (oplet == "P")){
+        if ((oplet === "a") || (oplet === "P")){
             //take any number of angle args
             let instruction_array_copy = instruction_array.slice()
             let angle_args_count = instruction_array_copy.length - Instruction.INSTRUCTION_ARG0
@@ -98,7 +98,7 @@ var Socket = class Socket{
                 let arg_val = instruction_array_copy[index]
                 let converted_val
                 if (i == 5) { //J6
-                    converted_val = 512 + Math.round(arg_val / Socket.DEGREES_PER_DYNAMIXEL_UNIT) //convert degrees to dynamixel units to get dynamixel integer from 0 through 1023 going from 0 to 296 degrees
+                    converted_val = 512 + Math.round(arg_val / Socket.DEGREES_PER_DYNAMIXEL_UNIT) //todo get rid of hardcode 512 convert degrees to dynamixel units to get dynamixel integer from 0 through 1023 going from 0 to 296 degrees
                 }
                 else if (i == 6) { //J7
                     converted_val = Math.round(arg_val / Socket.DEGREES_PER_DYNAMIXEL_UNIT) //convert degrees to dynamixel units to get dynamixel integer from 0 through 1023 going from 0 to 296 degrees
@@ -111,7 +111,17 @@ var Socket = class Socket{
             }
             return instruction_array_copy
         }
-        else if (oplet == "S") {
+        /*else if (oplet === "g"){
+            let instruction_array_copy = instruction_array.slice()
+            let status_mode = instruction_array_copy[Instruction.INSTRUCTION_ARG0] //0 or 1  or undefined
+            if(status_mode === undefined) {}
+            else {
+                let converted_val =  ("" + status_mode)
+                instruction_array_copy[Instruction.INSTRUCTION_ARG0] = converted_val
+            }
+            return instruction_array_copy
+        }*/
+        else if (oplet === "S") {
             const name = instruction_array[Instruction.INSTRUCTION_ARG0]
             const args = instruction_array.slice(Instruction.INSTRUCTION_ARG1, instruction_array.length)
             const first_arg = args[0]
@@ -286,7 +296,7 @@ var Socket = class Socket{
         //onsole.log("Socket.on_receive passed data: " + data)
         let robot_status
         let oplet
-        if(Array.isArray(data)) {  //a status array passed in from the simulator
+        if(Array.isArray(data)) {  //todo rturn from sim same data type as Dexter returns.   //a status array passed in from the simulator
             robot_status = data
             oplet = robot_status[Dexter.INSTRUCTION_TYPE]
         }
@@ -353,10 +363,12 @@ var Socket = class Socket{
 
     //only convert status_mode of 0 arrays.
     static convert_robot_status_to_degrees(robot_status){
-        let raw_status_mode = robot_status[Dexter.RECORD_BLOCK_SIZE]
+        let raw_status_mode = robot_status[Dexter.STATUS_MODE]
+        //out("convert_robot_status_to_degrees got raw_status_mode of: " + raw_status_mode)
         if((raw_status_mode === null) || (raw_status_mode === 0) || (raw_status_mode === "0")){
+            robot_status[Dexter.STATUS_MODE] = 0
             if (robot_status.length == Dexter.robot_status_labels.length){
-                robot_status[Dexter.J1_ANGLE] *= 0.0002777777777777778 //this number == _arcsec
+                robot_status[Dexter.J1_ANGLE] *= 0.0002777777777777778 //this number === _arcsec
                 robot_status[Dexter.J2_ANGLE] *= 0.0002777777777777778
                 robot_status[Dexter.J3_ANGLE] *= 0.0002777777777777778
                 robot_status[Dexter.J4_ANGLE] *= 0.0002777777777777778
@@ -365,16 +377,16 @@ var Socket = class Socket{
                 robot_status[Dexter.J1_DELTA] *= 0.0002777777777777778
                 robot_status[Dexter.J2_DELTA] *= 0.0002777777777777778
                 robot_status[Dexter.J3_DELTA] *= 0.0002777777777777778
-                robot_status[Dexter.J4_DELTA] *= 0.00001736111111111111
-                robot_status[Dexter.J5_DELTA] *= 0.00001736111111111111
+                robot_status[Dexter.J4_DELTA] *= 0.00001736111111111111   //todo get the "S" interpolation values from Defaults.make_ins instead  ie robot_status[Dexter.J4_DELTA] *= _arcsec / the_make_int_number
+                robot_status[Dexter.J5_DELTA] *= 0.00001736111111111111   //for this one too.
 
                 robot_status[Dexter.J1_PID_DELTA] *= 0.0002777777777777778
                 robot_status[Dexter.J2_PID_DELTA] *= 0.0002777777777777778
                 robot_status[Dexter.J3_PID_DELTA] *= 0.0002777777777777778
-                robot_status[Dexter.J4_PID_DELTA] *= 0.00001736111111111111
-                robot_status[Dexter.J5_PID_DELTA] *= 0.00001736111111111111
+                robot_status[Dexter.J4_PID_DELTA] *= 0.00001736111111111111  //for this one too.
+                robot_status[Dexter.J5_PID_DELTA] *= 0.00001736111111111111  //for this one too.
 
-                robot_status[Dexter.J1_MEASURED_ANGLE] *= 0.0002777777777777778 //this number == _arcsec
+                robot_status[Dexter.J1_MEASURED_ANGLE] *= 0.0002777777777777778 //this number === _arcsec
                 robot_status[Dexter.J2_MEASURED_ANGLE] *= 0.0002777777777777778
                 robot_status[Dexter.J3_MEASURED_ANGLE] *= 0.0002777777777777778
                 robot_status[Dexter.J4_MEASURED_ANGLE] *= 0.0002777777777777778

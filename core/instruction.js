@@ -2410,14 +2410,16 @@ Instruction.loop = class loop extends Instruction{
 }
 
 Instruction.out = class Out extends Instruction{
-    constructor (val="", color="black", temp=false) {
+    constructor (val="", color="black", temp=false, print_job_info=false) {
         super()
         this.val   = val
         this.color = color
         this.temp  = temp
+        this.print_job_info = print_job_info
     }
     do_item (job_instance){
-        let message = "Job: " + job_instance.name + ", instruction ID: " + job_instance.program_counter + ", Instruction type: IO.out<br/>" + this.val
+        let prefix = (this.print_job_info ? "Job: " + job_instance.name + ", instruction ID: " + job_instance.program_counter + ", Instruction type: IO.out<br/>" : "")
+        let message = prefix + this.val
         out(message, this.color, this.temp)
         job_instance.set_up_next_do(1)
     }

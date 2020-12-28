@@ -137,34 +137,8 @@ DexterSim = class DexterSim{
                 break;
             case "g":
                 let inst_status_mode = instruction_array[Instruction.INSTRUCTION_ARG0]
-                if(inst_status_mode === 0) {
-                   if(sim_inst.status_mode === 0) {}
-                   else if (sim_inst.status_mode === 1) {
-                       //let new_rs_array = Dexter.make_default_status_array()
-                       //RobotStatus.fill_robot_status_array_with_another(new_rs_array, sim_inst.robot_status_in_arcseconds)
-                       //sim_inst.robot_status_in_arcseconds = new_rs_array
-                       sim_inst.status_mode = inst_status_mode
-                   }
-                   else {
-                       dde_error("DexterSim.send can't make a robot_status array for status_mode: " + status_mode)
-                   }
-                }
-                else if (inst_status_mode === 1) {
-                    if(sim_inst.status_mode === 1) {} //no change
-                    else if(sim_inst.status_mode === 0){
-                        //let new_rs_array = Dexter.make_default_status_array_g1() //for g0
-                        //RobotStatus.fill_robot_status_array_with_another(new_rs_array, sim_inst.robot_status_in_arcseconds)
-                        //sim_inst.robot_status_in_arcseconds = new_rs_array
-                        sim_inst.status_mode = inst_status_mode
-                    }
-                    else {
-                        dde_error("DexterSim.send can't make a robot_status array for status_mode: " + status_mode)
-                    }
-                }
-                else if (!inst_status_mode) { } //no change //if no status_mode in the instruction, status_mode will be undefined and this clause will hit
-                else {
-                  dde_error('DexterSim.send, while processing "g" instruction, got invalid status_mode of: ' + status_mode)
-                }
+                if((inst_status_mode === null) || (inst_status_mode === undefined)){} //don't change existing sim_inst.status_mode
+                else { sim_inst.status_mode = inst_status_mode }
                 sim_inst.ack_reply(instruction_array)
                 break;
             case "G": //deprecated. get immediate. The very first instruction sent to send should be  "G",
@@ -223,19 +197,12 @@ DexterSim = class DexterSim{
     //hacked to now create and pass to on_receive a full robot status
     //payload_string_maybe might be undefined, a string payload or an error number positive int.
     ack_reply(instruction_array, payload_string_maybe){
-        let robot_status_array //= this.robot_status_in_arcseconds.slice()
-        if(this.status_mode === 0) {
-            robot_status_array = Dexter.make_default_status_array()
-            let angles_in_degrees = []
-            let rs_inst = new RobotStatus({robot_status: robot_status_array})
+        let robot_status_array = Dexter.make_default_status_array_g_sm(this.status_mode)
+        let rs_inst = new RobotStatus({robot_status: robot_status_array})
+        if(rs_inst.supports_measured_angles()) {
             rs_inst.set_measured_angles(this.measured_angles_arcseconds, true) //we want to install arcseconds, as Societ is expected arcseconds and will convert to degrees
         }
-        else if(this.status_mode === 1) {
-            robot_status_array = Dexter.make_default_status_array_g1()
-            let rs_inst = new RobotStatus({robot_status: robot_status_array})
-            rs_inst.set_measured_angles(this.measured_angles_arcseconds, true) //true means "raw" ie accept first arg without conversion
-        }
-        else {shouldnt("DexterSim.ack_reply got invalid status_mode of: " + this.status_mode) }
+        //else allow all other status modes.
         robot_status_array[Dexter.JOB_ID]            = instruction_array[Instruction.JOB_ID]
         robot_status_array[Dexter.INSTRUCTION_ID]    = instruction_array[Instruction.INSTRUCTION_ID]
         robot_status_array[Dexter.START_TIME]        = instruction_array[Instruction.START_TIME] //Date.now()

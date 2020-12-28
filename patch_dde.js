@@ -27,6 +27,7 @@ var PatchDDE = class PatchDDE {
             {old: "Dexter.get_robot_status_immediately", new: "Dexter.get_robot_status", doc: "Dexter.get_robot_status_immediately was never properly implemented."},
             {old: "Dexter.prototype.get_robot_status_immediately", new: "Dexter.prototype.get_robot_status", doc: "Dexter.prototype.get_robot_status_immediately was never properly implemented."},
             {old: "Dexter.prototype.prop",   new: undefined, doc: "Use properties of a Dexter instance directly to get info on the Dexter."},
+            {old: "Dexter.RECORD_BLOCK_SIZE", new: "Dexter.STATUS_MODE", doc: "RECORD_BLOCK_SIZE was unused. Now STATUS_MODE indicates the kind of data in the robot_status array."},
             {old: "file_content",            new: "read_file"},
             {old: "Human.recognize_speech",  new: undefined, doc: "no longer supported."},
             {old: "recognize_speech",        new: undefined, doc: "no longer supported."},

@@ -5,6 +5,25 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 3.7.1, Dec 27, 2020</summary>
+Highlights: Support for robot status's g1, and g_other.
+<ul>
+    <li>Jobs menu/Run Instruction/Show_dialog the "Change mode to" select element now is initialized to empty.
+        It did not show correct mode on initialization (and can't) so better to show blank.</li>
+    <li>Bug fix to <code>is_phui_button_down()</code> which was returning the opposite of the correct boolean.</li>
+    <li>User Guide/User Interface/Dexter User Interface: new section describing the "point down" checkbox.</li>
+    <li>Robot Status now supports g0 (the original), g1(measured angles, velocity, torque) and
+        g_other (generic, any non 0 or 1 status_mode).
+        Lots of improvements to the robot_status dialog box.</li>
+    <li>The "I" letter to the lower right of a Job button is now a &#9432; (circle i)
+          for inspecting the job. &#9432; is used other places in DDE for inspecting objects.</li>
+    <li>Ref Man/Robot/Dexter/Dexter Modes/set_keep_position,
+         <code>set_open_loop</code> documentation extended slightly to be clearer.</li>
+    <li>Instruction <code>IO.out</code> now takes a new 4th optional arg, print_job_info.
+        If true, it prints the extra info it use to: Job name, instruction ID and instruction type.
+         Default is false so that old calls to this instruction now won't have this "job info".</li>
+</ul>
+</details>
 <details class="doc_details"><summary>v 3.7.0, Dec 14, 2020</summary>
 Highlights: Dexter User Interface: numerous fixes. Support for Robot Status "g1".
 <ul>

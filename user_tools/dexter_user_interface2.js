@@ -686,12 +686,15 @@ var dui2 = class dui2 {
                 dui_instance.dui_instance_to_index() +
                 ")'>Get Points From Dexter</button> or click Dexter's Phui button.")
             dui_instance.waiting_for_user_to_start_get_points = true
-            let the_follow_me_fn = function() {
+            let the_follow_me_fn  //declaer first so the body of the fn will close over the var
+            the_follow_me_fn = function() {
                 let show_window_instance = value_of_path(dui_instance.show_window_elt_id)
                 if(!show_window_instance) {return} //its over user closed show_window
                 let from_dexter_checkbox = show_window_instance.querySelector("[name=from_dexter]")
                 if(!from_dexter_checkbox.checked) {return} //its over. user unchecked checkbox.
                 else if (dui_instance.waiting_for_user_to_start_get_points) { //not yet inited.
+                    let job_instance = Job[dui_instance.job_name]
+                    job_instance.insert_single_instruction(Dexter.get_robot_status(), false)
                     if((!dui_instance.waiting_for_phui_gui_button_click) ||
                         dui_instance.dexter_instance.was_phui_button_down()){ //ready to start getting points
                         dui_instance.waiting_for_phui_gui_button_click = false

@@ -163,7 +163,8 @@ function make_robots_select_html(){
 
 function make_modes_select_html(){
   var result = "<select name='mode_name' title='Changing this will send a mode change instruction to Dexter.' " +
-                       "style='font-size:14px;width:200px;margin:8px;' data-onchange='true'>"
+                       "style='font-size:14px;width:200px;margin:8px;' data-onchange='true'>" +
+                       " <option></option> " //needs to be blank when dialog first comes up.
   for(let name of ["set_open_loop", "set_follow_me", "set_force_protect", "set_keep_position"]){
     result += "<option>Dexter." + name + "()</option>"
   }

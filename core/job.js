@@ -719,7 +719,7 @@ class Job{
                                 close_on_click_fn_src +
                                 "' title='Undefine this job'>X</span><br/><span style='cursor:pointer; padding-left:2px;' onclick='" +
                                 inspect_on_click_fn_src +
-                                "' title='Inspect this job'>I</span></div>"
+                                "' title='Inspect this job'>&#9432;</span></div>"
             jobs_button_bar_id.append(wrapper) //.firstChild)
 
             but_elt = window[the_id]

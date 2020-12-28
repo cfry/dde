@@ -150,7 +150,7 @@
         "no-labels": 2,
         "no-lone-blocks": 1, //happens with warning: nested block is rudundant
         "no-lonely-if": 0,
-        "no-loop-func": 2,
+        "no-loop-func": 0, //defining a fn inside a loop will have errors in for(var i=0; i< 3l i++){function() { return i} but ok if you use for(let i=0 instead
         "no-mixed-requires": [0, false],
         "no-mixed-spaces-and-tabs": [0, false], //was 2
         "no-multi-spaces": 0,
@@ -261,7 +261,7 @@
         "vars-on-top": 0,
         "wrap-iife": 0,
         "wrap-regex": 0,
-        "yoda": [2, "never"],
+        "yoda": 0, //[2, "never"],
         //units
         "_km": false,
         "_m": false,

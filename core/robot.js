@@ -166,8 +166,8 @@ var Robot = class Robot {
         return new Instruction.loop(boolean_int_array_fn, body_fn)
     }
 
-    static out(val="", color="black", temp=false){
-        return new Instruction.out(val, color, temp)
+    static out(val="", color="black", temp=false, print_job_info=false){
+        return new Instruction.out(val, color, temp, print_job_info)
     }
 
     /* Warning the below is at least somewhat obsolete as of new arch Aug 25, 2016
@@ -1140,23 +1140,25 @@ Dexter = class Dexter extends Robot {
         return null
     }
 
+    //return true if it is, false if it isn't and null if can't tell
     is_calibrated(){
         let sim_actual = Robot.get_simulate_actual(this.simulate)
         if(sim_actual === true) { return true } //simulation is always calibrated
-        else if(this.rs === undefined) { return null } //calbration unknown
-        else {
-            for(let j_deg of this.rs.measured_angles()){ //gets joint angles 1 through 5
-                if(j_deg != 0) { return true } //is calibrated
-            }
-            return false //not calibrated
+        else if(this.rs === undefined) { return null } //calibration unknown
+        else if (this.rs.supports_measured_angles()) {
+                for(let j_deg of this.rs.measured_angles()){ //gets joint angles 1 through 5
+                    if(j_deg != 0) { return true } //is calibrated
+                }
+                return false //not calibrated, ie all joint angles are 0
         }
+        else { return null }
     }
 
     //______phui_button processing
     is_phui_button_down(){
         if(!this.robot_status) { return false }
         else {
-            return ((this.robot_status[Dexter.END_EFFECTOR_IO_IN] & 1) === 0)
+            return ((this.robot_status[Dexter.END_EFFECTOR_IO_IN] & 1) === 1)
         }
     }
     //called from Dexter.prototype.robot_done_with_instruction. Not to be called by users
@@ -1683,32 +1685,33 @@ Dexter.prototype.find_index = function(...args){ args.push(this); return Dexter.
 //Dexter.get_robot_status(null, rob)
 Dexter.get_robot_status = function(status_mode = null){
                                 if(typeof(status_mode) === "number") {
-                                    if((status_mode === 0) || (status_mode === 1)) {
-                                        return make_ins("g", status_mode)
-                                    }
-                                    else {
-                                        dde_error("Dexter.get_robot_status called with invalid status mode: " +
-                                                   status_mode +
-                                                   "<br/>The valid status_modes are 0 and 1.")
-                                    }
+                                    return make_ins("g", status_mode)
                                 }
-                                else { return make_ins("g") }
+                                else if((status_mode === null) || (status_mode === undefined)) {
+                                    return make_ins("g")
+                                }
+                                else {
+                                    dde_error("Dexter.get_robot_status called with invalid status mode: " +
+                                               status_mode +
+                                               "<br/>The valid status_modes are null or non-negative integers, usually 0 or 1.")
+                                }
 }
 
 
 Dexter.prototype.get_robot_status = function(status_mode = null){
                                         if(typeof(status_mode) === "number") {
-                                            if((status_mode === 0) || (status_mode === 1)) {
-                                                return make_ins("g", status_mode, this) //this is the dexter instance.
-                                                // It is pulled out in Job.send and used to determin which robot to send the instruction to.
-                                            }
-                                            else {
-                                                dde_error("Dexter.get_robot_status called with invalid status mode: " +
-                                                    status_mode +
-                                                    "<br/>The valid status_modes are 0 and 1.")
-                                            }
+                                            //if((status_mode === 0) || (status_mode === 1)) {
+                                            return make_ins("g", status_mode, this) //this is the dexter instance.
+                                                // It is pulled out in Job.send and used to determine which robot to send the instruction to.
                                         }
-                                        else { return make_ins("g", this) }
+                                        else if((status_mode === null) || (status_mode === undefined)) {
+                                            return make_ins("g", this)
+                                        }
+                                        else {
+                                            dde_error("Dexter.get_robot_status called with invalid status mode: " +
+                                                status_mode +
+                                                "<br/>The valid status_modes are null or non-negative integers, usually 0 or 1.")
+                                        }
 }
 
     //this forces do_next_item to wait until robot_status is
@@ -2555,9 +2558,19 @@ Dexter.robot_ack_labels = [
     "START_TIME",          //2 //ms since jan 1, 1970? From Dexter's clock
     "STOP_TIME",           //3 //ms since jan 1, 1970? From Dexter's clock
     "INSTRUCTION_TYPE",    //4 "oplet"
-
     "ERROR_CODE"           //5   0 means ok
 ]
+
+//call this from most code
+Dexter.robot_status_labels_sm = function(sm=0){
+    if(sm === 0) { return Dexter.robot_status_labels }
+    else {
+        let labels_name = "robot_status_labels_g" + sm
+        let actual_labels_array = Dexter[labels_name]
+        if(actual_labels_array) { return actual_labels_array}
+        else { return Dexter.robot_status_labels_g_other }
+    }
+}
 
 Dexter.robot_status_labels = [
 //new name   old name                   array index
@@ -2571,7 +2584,7 @@ Dexter.robot_status_labels = [
 "ERROR_CODE",          //same name                    5 //for any error      //0 means no error. 1 means an error
 "DMA_READ_DATA",       //                             6 // deprecated DMA_READ_DATA  then deprecated  "JOB_ID_OF_CURRENT_INSTRUCTION"
 "READ_BLOCK_COUNT",    //                             7 // deprecated READ_BLOCK_COUNT then deprecated CURRENT_INSTRUCTION_ID
-"RECORD_BLOCK_SIZE",   //same name                    8 //unused
+"STATUS_MODE",   //same name                    8 //was RECORD_BLOCK_SIZE and was unused
 "END_EFFECTOR_IO_IN",     //END_EFFECTOR_IO_IN           9 // was END_EFFECTOR_IN for a while, 0, 1, or 2 indicating type of io for end effector
 
 //J1 block
@@ -2653,6 +2666,7 @@ Dexter.make_robot_status_indices()
 Dexter.make_backward_compatible_robot_status_indices = function(){
     Dexter.DMA_READ_DATA    = 6
     Dexter.READ_BLOCK_COUNT = 7
+    Dexter.RECORD_BLOCK_SIZE = 8
     Dexter.END_EFFECTOR_IN  = 9
 
     Dexter.J1_PLAYBACK = 16
@@ -2679,7 +2693,7 @@ Dexter.make_backward_compatible_robot_status_indices = function(){
 
 Dexter.make_backward_compatible_robot_status_indices()
 
-//also called by dextersim.js
+
 Dexter.make_default_status_array = function(){
     let result = new Array(Dexter.robot_status_labels.length).fill(0)
     result[Dexter.INSTRUCTION_ID]   = -1
@@ -2692,10 +2706,26 @@ Dexter.make_default_status_array_g1 = function(){
     let result = new Array(Dexter.robot_status_labels_g1.length).fill(0)
     result[Dexter.INSTRUCTION_ID]   = -1
     result[Dexter.INSTRUCTION_TYPE] = "g"
-    result[Dexter.RECORD_BLOCK_SIZE] = 1
+    result[Dexter.STATUS_MODE] = 1
     let index_j6_ma = Dexter.robot_status_labels_g1.indexOf("J6_MEASURED_ANGLE_G1")
     result[index_j6_ma] = -512
     return result
+}
+
+Dexter.make_default_status_array_g_other = function(sm){
+    let result = new Array(Dexter.robot_status_labels.length).fill(0)
+    result[Dexter.INSTRUCTION_ID]   = -1
+    result[Dexter.INSTRUCTION_TYPE] = "g"
+    result[Dexter.STATUS_MODE] = sm
+    return result
+}
+
+//call this from most code
+Dexter.make_default_status_array_g_sm = function(sm=0){
+    let meth_name = "make_default_status_array_g" + sm
+    let meth = Dexter[meth_name]
+    if(meth) { return  meth.call(this) }
+    else     { return Dexter.make_default_status_array_g_other(sm) }
 }
 
 Dexter.robot_status_labels_g1 = [
@@ -2709,7 +2739,7 @@ Dexter.robot_status_labels_g1 = [
     "ERROR_CODE",          //same name                    5 //for any error      //0 means no error. 1 means an error
     "DMA_READ_DATA",       //                             6 // deprecated DMA_READ_DATA then deprecated JOB_ID_OF_CURRENT_INSTRUCTION
     "READ_BLOCK_COUNT",    //                             7 // deprecated READ_BLOCK_COUNT then deprecated CURRENT_INSTRUCTION_ID
-    "RECORD_BLOCK_SIZE",   //same name                    8 //unused
+    "STATUS_MODE",   //same name                    8
     "END_EFFECTOR_IO_IN",  //END_EFFECTOR_IO_IN           9 // was END_EFFECTOR_IN for a while, 0, 1, or 2 indicating type of io for end effector
 
     "J1_MEASURED_ANGLE_G1", //10
@@ -2771,6 +2801,80 @@ Dexter.robot_status_labels_g1 = [
 Dexter.robot_status_index_labels_g1 = []
 Dexter.make_robot_status_indices(Dexter.robot_status_labels_g1, Dexter.robot_status_index_labels_g1)
 
+Dexter.robot_status_labels_g_other = [
+    // misc block
+    "JOB_ID",              //new field                    0 //for commmanded instruction (when added to queue)
+    "INSTRUCTION_ID",      //same name                    1 //for cmd ins
+    "START_TIME",          //new field                    2 //for cmd ins//ms since jan 1, 1970? From Dexter's clock
+    "STOP_TIME",           //new field                    3 //for cmd ins//ms since jan 1, 1970? From Dexter's clock
+    "INSTRUCTION_TYPE",    //same name                    4 //for cmd ins  //"oplet"
+
+    "ERROR_CODE",          //same name                    5 //for any error      //0 means no error. 1 means an error
+    "DMA_READ_DATA",       //                             6 // deprecated DMA_READ_DATA then deprecated JOB_ID_OF_CURRENT_INSTRUCTION
+    "READ_BLOCK_COUNT",    //                             7 // deprecated READ_BLOCK_COUNT then deprecated CURRENT_INSTRUCTION_ID
+    "STATUS_MODE",   //same name                    8
+    "END_EFFECTOR_IO_IN",  //END_EFFECTOR_IO_IN           9 // was END_EFFECTOR_IN for a while, 0, 1, or 2 indicating type of io for end effector
+
+    "RS_10_G_OTHER", //10
+    "RS_11_G_OTHER", //11
+    "RS_12_G_OTHER", //12
+    "RS_13_G_OTHER", //13
+    "RS_14_G_OTHER", //14
+    "RS_15_G_OTHER", //15
+    "RS_16_G_OTHER", //16
+    "RS_17_G_OTHER", //17
+    "RS_18_G_OTHER", //18
+    "RS_19_G_OTHER", //19
+
+    "RS_20_G_OTHER", //20
+    "RS_21_G_OTHER", //21
+    "RS_22_G_OTHER", //22
+    "RS_23_G_OTHER", //23
+    "RS_24_G_OTHER", //24
+    "RS_25_G_OTHER", //25
+    "RS_26_G_OTHER", //26
+    "RS_27_G_OTHER", //27
+    "RS_28_G_OTHER", //28
+    "RS_29_G_OTHER", //29
+
+    "RS_30_G_OTHER", //30
+    "RS_31_G_OTHER", //31
+    "RS_32_G_OTHER", //32
+    "RS_33_G_OTHER", //33
+    "RS_34_G_OTHER", //34
+    "RS_35_G_OTHER", //35
+    "RS_36_G_OTHER", //36
+    "RS_37_G_OTHER", //37
+    "RS_38_G_OTHER", //38
+    "RS_39_G_OTHER", //39
+
+    "RS_40_G_OTHER", //40
+    "RS_41_G_OTHER", //41
+    "RS_42_G_OTHER", //42
+    "RS_43_G_OTHER", //43
+    "RS_44_G_OTHER", //44
+    "RS_45_G_OTHER", //45
+    "RS_46_G_OTHER", //46
+    "RS_47_G_OTHER", //47
+    "RS_48_G_OTHER", //48
+    "RS_49_G_OTHER", //49
+
+    "RS_50_G_OTHER", //50
+    "RS_51_G_OTHER", //51
+    "RS_52_G_OTHER", //52
+    "RS_53_G_OTHER", //53
+    "RS_54_G_OTHER", //54
+    "RS_55_G_OTHER", //55
+    "RS_56_G_OTHER", //56
+    "RS_57_G_OTHER", //57
+    "RS_58_G_OTHER", //58
+    "RS_59_G_OTHER"  //59
+]
+
+Dexter.robot_status_index_labels_g_other = []
+Dexter.make_robot_status_indices(Dexter.robot_status_labels_g_other, Dexter.robot_status_index_labels_g_other)
+
+
 Dexter.tool_names = [
     "no_tool",      //0
     "unknown_tool" //1
@@ -2815,8 +2919,8 @@ Dexter.robot_status_to_html_table = function(ds){
         "<tr><th></th>                        <th>JOB_ID</th>                           <th>INSTRUCTION_ID</th>                                                            <th>START_TIME</th>                                                         <th>STOP_TIME</th>                                                                              <th>INSTRUCTION_TYPE</th> </tr>" +
         "<tr><td></td><td>"           + ds[Dexter.JOB_ID]         + "</td><td>" + ds[Dexter.INSTRUCTION_ID]   + "</td><td title='" + long_start_time_string + "'>" + ds[Dexter.START_TIME] + "</td><td title='" + long_stop_time_string + "'>" + ds[Dexter.STOP_TIME] + "</td><td title='" + Robot.instruction_type_to_function_name(oplet)  + "'>" + oplet +        "</td></tr>" +
 
-        "<tr><th></th>              <th>ERROR_CODE</th>                          <th>DMA_READ_DATA</th>                    <th>READ_BLOCK_COUNT</th>                   <th>RECORD_BLOCK_SIZE</th>                                                                 <th>END_EFFECTOR_IO_IN</th></tr>"      +
-        "<tr><td></td><td>" + ds[Dexter.ERROR_CODE] + "</td> <td>"       + ds[Dexter.DMA_READ_DATA]  + "</td><td>" + ds[Dexter.READ_BLOCK_COUNT] + "</td><td>" + ds[Dexter.RECORD_BLOCK_SIZE]                                               + "</td><td>" + ds[Dexter.END_EFFECTOR_IO_IN] + "</td></tr>" +
+        "<tr><th></th>              <th>ERROR_CODE</th>                          <th>DMA_READ_DATA</th>                    <th>READ_BLOCK_COUNT</th>                   <th>STATUS_MODE</th>                                                                 <th>END_EFFECTOR_IO_IN</th></tr>"      +
+        "<tr><td></td><td>" + ds[Dexter.ERROR_CODE] + "</td> <td>"       + ds[Dexter.DMA_READ_DATA]  + "</td><td>" + ds[Dexter.READ_BLOCK_COUNT] + "</td><td>" + ds[Dexter.STATUS_MODE]                                               + "</td><td>" + ds[Dexter.END_EFFECTOR_IO_IN] + "</td></tr>" +
 
         "<tr><th></th>                   <th>Joint 1</th>                          <th>Joint 2</th>                          <th>Joint 3</th>                          <th>Joint 4</th>                          <th>Joint 5</th></tr>" +
         "<tr><th>ANGLE</th><td>"      + ds[Dexter.J1_ANGLE]       + "</td><td>" + ds[Dexter.J2_ANGLE]       + "</td><td>" + ds[Dexter.J3_ANGLE]       + "</td><td>" + ds[Dexter.J4_ANGLE]       + "</td><td>" + ds[Dexter.J5_ANGLE]     + "</td></tr>" +
@@ -2882,9 +2986,14 @@ Dexter.show_rs_history_get_rs_history = function(job_id){
          let new_rs_history = []
          for (let i = 0; i < rs_history.length; i++){
             let rs = rs_history[i]
-            let angles = [rs[Dexter.J1_MEASURED_ANGLE], rs[Dexter.J2_MEASURED_ANGLE], rs[Dexter.J3_MEASURED_ANGLE], rs[Dexter.J4_MEASURED_ANGLE], rs[Dexter.J5_MEASURED_ANGLE]]
-            let a_xyz  = Kin.J_angles_to_xyz(angles, rob.pose)[0]
-            new_rs_history.push(rs.concat(a_xyz))
+            let robot_status_instance = new RobotStatus({robot_status: rs})
+            let sm = robot_status_instance.status_mode()
+            if((sm === 0) || (sm === 1)) {
+                //let angles = [rs[Dexter.J1_MEASURED_ANGLE], rs[Dexter.J2_MEASURED_ANGLE], rs[Dexter.J3_MEASURED_ANGLE], rs[Dexter.J4_MEASURED_ANGLE], rs[Dexter.J5_MEASURED_ANGLE]]
+                let a_xyz  = robot_status_instance.xyz()[0]
+                new_rs_history.push(rs.concat(a_xyz))
+            }
+            else { new_rs_history.push(rs) }
         }
         rs_history = new_rs_history
     }

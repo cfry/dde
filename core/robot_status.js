@@ -15,17 +15,24 @@ var RobotStatus = class RobotStatus{
     error_code()                    { return this.robot_status[Dexter.ERROR_CODE]}
     dma_read_data()                 { return this.robot_status[Dexter.DMA_READ_INSTRUCTION]}
     read_block_count()              { return this.robot_status[Dexter.READ_BLOCK_COUNT]}
-    record_block_size()             { return this.robot_status[Dexter.RECORD_BLOCK_SIZE]}
     end_effector_io_in()            { return this.robot_status[Dexter.END_EFFECTOR_IO_IN]} //was end_effector_io_in
 
-    status_mode(){ //processed for Dexter.RECORD_BLOCK_SIZE
+    status_mode(){
         return RobotStatus.array_status_mode(this.robot_status)
     }
 
     static array_status_mode(robot_status_array){
-        let raw = robot_status_array[Dexter.RECORD_BLOCK_SIZE]
+        let raw = robot_status_array[Dexter.STATUS_MODE]
         if      (typeof(raw) === "string") { return parseInt(raw) }
         else if (typeof(raw === "number")) { return raw }
+    }
+
+    static is_other_status_mode(sm){ //such status_modes will use generic table display.
+        return ![0, 1].includes(sm)
+    }
+
+    supports_measured_angles(){
+        return (this.status_mode() < 2)
     }
 
     //below for g0 only
@@ -342,6 +349,8 @@ var RobotStatus = class RobotStatus{
         return result
     }
 
+
+    //returns array. First elt is an array of x,y,z
     xyz(){
         let joint_angles = this.measured_angles(5)
         return Kin.J_angles_to_xyz(joint_angles)
@@ -349,7 +358,7 @@ var RobotStatus = class RobotStatus{
 
     static fill_robot_status_array_with_another(rs_array_to_modify, source_of_values_rs_array, raw=false){
        for(let i = 0; i < 10; i++){
-           if(i !== Dexter.RECORD_BLOCK_SIZE) { //don't change the status_mode of rs_array_to_modify, as that's the real reason we're calling this whole method
+           if(i !== Dexter.STATUS_MODE) { //don't change the status_mode of rs_array_to_modify, as that's the real reason we're calling this whole method
                 rs_array_to_modify[i] = source_of_values_rs_array[i]
            }
        }
