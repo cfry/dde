@@ -355,7 +355,7 @@ var MiRecord = class MiRecord {
     }
 
     static start_record_pre_aux() {
-        let job_wrapper_robot = default_robot()
+        let job_wrapper_robot = Dexter.default
         let active_jobs = job_wrapper_robot.active_jobs_using_this_robot()
         if(active_jobs.length > 0) {
             for(let a_job of active_jobs){
@@ -389,7 +389,7 @@ var MiRecord = class MiRecord {
         MiRecord.set_step_play_state("disabled")
         MiRecord.set_play_state("disabled")
         MiRecord.set_insert_recording_state("disabled")
-        let job_wrapper_robot = default_robot() //we want to use the
+        let job_wrapper_robot = Dexter.default //we want to use the
         //same robot for doing the recording as we will for running the job that is recorded.
         MiRecord.start_time_in_ms = Date.now()
         console.log("just before starting record job")

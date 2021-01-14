@@ -90,8 +90,10 @@ var MakeInstruction = class MakeInstruction{
 
     //top level fn, called when user option-clicks in editor, passed the selected src.
     //first arg can be a string of js src, or a call obj (used by MakeInstruction.run
-    static show(instruction_call_src=null, show_doc=true){
-        misc_pane_menu_id.value = "Make Instruction"
+    static show(instruction_call_src=null, show_doc=true, set_misc_pane_menu_label=true){
+        if(set_misc_pane_menu_label){
+            set_misc_pane_menu_selection("Make Instruction")
+        }
         let call_obj
         if(typeof(instruction_call_src) == "string"){ //don't use pipeline because we don't want to merge in prev_vals when coming from the editor, just instrudtion def defaults overlayed with src values
             call_obj = MiIns.make_from_instruction_source_no_args(instruction_call_src). //just fill in instruction name
@@ -140,21 +142,21 @@ var MakeInstruction = class MakeInstruction{
         else { return false }
     }
 
-    static onchange_job_robot(event){
+    /*static onchange_job_robot(event){
        let rob = value_of_path(event.target.value) ///might not be a dexter
        if(rob instanceof Dexter) { Dexter.default = rob }
-       else { Dexter.default = Dexter.dexter0 } //yes< i *could* have just
+       else { Dexter.default = Dexter.dexter0 } //yes, I *could* have just
          //left the Dexter.default be its last value.
          //BUT then user would have to remember that,
-         //AND that's not what default_dexter()  does (it retruns dexter0
+         //AND that's not what default_dexter()  does (it returns dexter0
          //if the robot in the select widget is NOT a dexter.
          //So beware, changing the select widget from "dex2" to "brain1"
          //will also change Dexter.default to dexter0.
        if(this.get_instruction_name_from_ui() == "new Job"){
-           window[this.arg_name_to_dom_elt_id("robot")].value = default_robot_name()
+           window[this.arg_name_to_dom_elt_id("robot")].value = default_dexter_full_name()
        }
     }
-
+    */
     static make_instruction_menu_item_html(label_array){
       let result = "<li>" + label_array[0] + "<ul>"
       for(let i = 1; i < label_array.length; i++){
@@ -396,7 +398,7 @@ var MakeInstruction = class MakeInstruction{
             if(window[id]) { open_doc(id) }
         }
         if (instruction_name == "Job") {
-            window[this.arg_name_to_dom_elt_id("robot")].value = default_robot_name()
+            window[this.arg_name_to_dom_elt_id("robot")].value = default_dexter_full_name()
             mi_run_id.title = "Start the job defined by the above fields."
             MiRecord.init_with_job_in_dialog()
         }
@@ -614,7 +616,7 @@ var MakeInstruction = class MakeInstruction{
         MakeInstruction.update_instruction_args(call_obj)
     }
     static replace_arg_vals_maj_get_from_dexter(){
-        let job_wrapper_robot = default_robot()
+        let job_wrapper_robot = Dexter.default
         new Job({name: "get_from_dexter",
                  robot: job_wrapper_robot,
                  when_stopped: function(){
@@ -629,7 +631,7 @@ var MakeInstruction = class MakeInstruction{
         let new_instruction_name = "Dexter.move_to"
         let old_call_obj = this.make_call_obj_from_ui()
         let angles = old_call_obj.get_angle_array()
-        let job_wrapper_robot = default_robot()
+        let job_wrapper_robot = Dexter.default
         let call_obj = MiIns.move_to_family.make_from_instruction_name_and_angles(new_instruction_name, angles, job_wrapper_robot)
         MakeInstruction.update_instruction_name_and_args(call_obj)
     }
@@ -637,7 +639,7 @@ var MakeInstruction = class MakeInstruction{
     //______All the replace menu items that go on move_to_family_______
     static replace_arg_vals_mt_angles(angles){
         let instruction_name = this.get_instruction_name_from_ui()
-        let job_wrapper_robot = default_robot()
+        let job_wrapper_robot = Dexter.default
         let call_obj = MiIns.move_to_family.make_from_instruction_name_and_angles(instruction_name, angles, job_wrapper_robot)
        /* let call_obj = MiIns.make_from_instruction_name_no_args(instruction_name)
         let [xyz, J5_direction, config] =
@@ -652,7 +654,7 @@ var MakeInstruction = class MakeInstruction{
         MakeInstruction.update_instruction_args(call_obj)
     }
     static replace_arg_vals_mt_get_from_dexter(){
-        let job_wrapper_robot = default_robot()
+        let job_wrapper_robot = Dexter.default
         new Job({name: "get_from_dexter",
             robot: job_wrapper_robot,
             when_stopped: function(){
@@ -727,7 +729,7 @@ var MakeInstruction = class MakeInstruction{
         angles.push(j7_angle)
 
         angles.push(old_call_obj.args_obj.j6_angle)
-        let job_wrapper_robot = default_robot()
+        let job_wrapper_robot = Dexter.default
         let call_obj = MiIns.move_all_joints_family.make_from_instruction_name_and_angles(new_instruction_name, angles, job_wrapper_robot)
         MakeInstruction.update_instruction_name_and_args(call_obj)
     }
@@ -1076,7 +1078,7 @@ var MakeInstruction = class MakeInstruction{
             else {  the_inst.start() }
         }
         else {
-            let robot_of_wrapper = default_robot()
+            let robot_of_wrapper = Dexter.default
             let job_00
             if((this.get_instruction_name_from_ui() == "new Job") &&
                 robot_of_wrapper == the_inst.robot) {

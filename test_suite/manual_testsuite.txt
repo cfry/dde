@@ -214,8 +214,88 @@ _____
 // and eval it again, Now the output pane center should blick green.
 setTimeout(function(){out("hey")}, 4000)
 
-1 collapse verical splitter, choose
+1  collapse verical splitter, choose
 2. choose Jobs menu/Help
 3. observe blinking green vertical splitter.
 _____
+PHUI_GUI Manual Test
+Fry Jan 13, 2021 (DDE 3.7.2)
 
+Create folder under dde_apps named SpectraPass
+
+Create folder under SpectraPass named Saved_Motions
+
+Connect and turn on Dexter
+  Wait for Dexter to finish boot calibration
+
+Launch DDE
+
+If you are using DDE 3.6.6 or later:
+    Eval: PatchDDE.load_dde_2_to_3()  (note: this might be at the first line in the file, if so,
+                                       no need to do this step.)
+    This will show the loading of a file.
+Else if you are using a DDE 3 that is less than 3.6.6. you can't run this program.
+
+Choose DDE's File menu/Open, and choose the file: SpectraPass_MotionSetup.dde
+
+This will will fill DDE's editor with a large file of code.
+
+Click in the editor pane but don't make a selection.
+
+Click the Eval button.
+    This pops up a large dialog box.
+    If you have nothing connected to the serial port, you
+    will get an error message in the output pane:
+    "Error: serial_connect_low_level errored..."
+        you can ignore this error.
+
+Select a Dexter from the dropdown menu.
+   Often there will be only one, "dexter0".
+   If so, just leave it.
+
+Click the "Add" button.
+    This will cause the selected dexter it disappear from
+    the dropdown menu and add a row of 5 checkboxes below.
+
+In the row of 5 checkboxes, check the 3rd from the left (the middle one).
+
+Place your hand on Dexter's handle to steady it.
+
+Click the "StartRobots" button.
+   This puts the selected Dexter in follow mode.
+   The robot will move just slightly when you do this.
+
+Manually move the dexter around. Dexter should let you move it.
+
+Click phui button on Dexter's tool interface.
+
+See in the Output pane:
+   Button on
+   Set Point
+   Button off
+
+Click the "Write Motion" button.
+   This should make a file, with the name of the file in the text entry in the dialog
+   labeled "FName".
+
+Click the "Done" button at the bottom of the dialog.
+   This will cause Dexter to move to home position (straight up)
+   and close the dialog box.
+
+In DDE, choose File menu/Oen, and open the file that
+   was written by clicking on "Write Motion", ie:
+    dde_apps/SpectraPass/Saved_Motions/fn_
+   In that file will be a function definition that
+   returns array of move_all_joints instructions.
+   It should look like this (with different values for the arguments to
+   move_all_joints based on the angles of the joints when you clicked the
+   phui button) :
+function fn_(){
+     out('fn_')
+ return [
+
+    Dexter.move_all_joints(1.0044, 0.9956, 1, 0.9539, 0.9956, -1.45, 82.65),
+    make_ins("F"),]
+}
+
+Done with PHU_GUI manual test.

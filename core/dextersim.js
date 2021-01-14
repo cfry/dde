@@ -12,13 +12,16 @@ DexterSim = class DexterSim{
 
     //sim_actual passed in is either true or "both"
     //called by Socket
-    static create_or_just_init(robot_name, sim_actual = "required"){
+    static create_or_just_init(robot_name, sim_actual = "required", connect_success_cb){
         if (!DexterSim.robot_name_to_dextersim_instance_map){
             DexterSim.init_all()
         }
         var sim_inst = DexterSim.robot_name_to_dextersim_instance_map[robot_name]
         if(!sim_inst) { sim_inst = new DexterSim(robot_name) }
         sim_inst.init(sim_actual)
+        if (sim_actual === true) { //do not call new_socket_callback if simulate is "both" because we don't want to call it twice
+            Socket.new_socket_callback(robot_name, connect_success_cb)
+        }
     }
 
     static init_all(){ //called once per DDE session (normally)
@@ -53,9 +56,6 @@ DexterSim = class DexterSim{
         this.velocity_arcseconds_per_second = [0,0,0,0,0,0,0]
 
         this.now_processing_instruction = null // a Dexter can only be doing at most 1 instruction at a time. This is it.
-        if (this.sim_actual === true) { //do not call new_socket_callback if simulate is "both" because we don't want to call it twice
-            Socket.new_socket_callback(this.robot_name)
-        }
     }
 
     static stop_all_sims(){
@@ -137,7 +137,7 @@ DexterSim = class DexterSim{
                 break;
             case "g":
                 let inst_status_mode = instruction_array[Instruction.INSTRUCTION_ARG0]
-                if((inst_status_mode === null) || (inst_status_mode === undefined)){} //don't change existing sim_inst.status_mode
+                if((inst_status_mode === null) || (inst_status_mode === undefined)){ sim_inst.status_mode = 0} //helps backwards compatibility pre status modes.
                 else { sim_inst.status_mode = inst_status_mode }
                 sim_inst.ack_reply(instruction_array)
                 break;
@@ -403,7 +403,7 @@ DexterSim = class DexterSim{
             else if (oplet === "W") {}
             else if (oplet === "z") {} //just let process_next_instructions trigger the next instruction after the ending_time_of_cur_instruction
             //below handles "a", "P", "T"
-            else if(global.job_or_robot_to_simulate_id) { //window.platform == "dde") //even if we're in dde, unless the sim pane is up, don't attempt to render
+            else if(SimUtils.is_simulator_showing()) { //window.platform == "dde") //even if we're in dde, unless the sim pane is up, don't attempt to render
                 //SimUtils.render_once(robot_status, job_name, rob_name) //renders after dur, ie when the dexter move is completed.
                 SimUtils.render_multi(this, ins_args, job_name, rob_name, undefined, dur)
             }

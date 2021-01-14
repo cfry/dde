@@ -11,11 +11,13 @@ var RobotStatusDialog = class RobotStatusDialog{
     static show(robot){
         if(RobotStatusDialog.window_up()) { out("Robot Status is already shown.") }
         else {
-            if(!robot) {
+            if(!(robot instanceof Dexter)) {
                 robot = (Job.last_job? Job.last_job.robot : Dexter.dexter0)
             }
-            if(!robot || !(robot instanceof Dexter)) {
-                robot = Dexter.dexter0
+            if(!robot.robot_status) {
+               warning("Dexter." + robot.name + " has not had a Job run on it since launching DDE,<br/>" +
+                       "so it has no robot_status yet.")
+                return
             }
             let content = RobotStatusDialog.make_html_table(robot)
             let cal = robot.is_calibrated()
@@ -24,6 +26,8 @@ var RobotStatusDialog = class RobotStatusDialog{
               show_window({content: content,
                 title:  "<span style='font-size:16px;'>Robot Status of</span> " +
                 RobotStatusDialog.make_names_menu_html(robot) +
+                "<span title='Inspect this robot.' onclick='RobotStatusDialog.inspect_robot()' " +
+                "style='color:blue;cursor:pointer;font-weight:bold;font-size:14px;'> &#9432;</span>" +
                 "<span style='font-size:12px;margin-left:10px;'> Updated: <span id='robot_status_window_time_id'>" + RobotStatusDialog.update_time_string() + "</span></span>" +
                 " <button id='robot_status_run_update_job_button_id' title='Defines and starts a Job&#13; that continually gets the robot status&#13;of the selected robot.&#13;Click again to stop that Job.'" +
                 " onclick='RobotStatusDialog.run_update_job()'>run update job</button> " +
@@ -38,6 +42,11 @@ var RobotStatusDialog = class RobotStatusDialog{
                 update_robot_status_names_select_id.oninput=RobotStatusDialog.robot_name_changed
             }, 300)
         }
+    }
+
+    static inspect_robot(){
+        let rob = this.selected_robot()
+        inspect(rob)
     }
 
     static window_up(){
@@ -218,6 +227,27 @@ var RobotStatusDialog = class RobotStatusDialog{
             "</span></td><th>J5 MEASURED Z</th><td><span id='MEASURED_Z_id' style='font-family:monospace;float:right;'>" + this.format_measured_angle(xyz[2]) +
             "</span></td></tr>"
             )
+    }
+
+    static make_html_table_g2(robot_status, robot){
+        let xyz = robot.rs.xyz()[0]  //gets xyz array for joint 5
+        return (
+            "<tr><th></th>         <th>Joint 1</th><th>Joint 2</th><th>Joint 3</th><th>Joint 4</th><th>Joint 5</th><th>Joint 6</th><th>Joint 7</th></tr>" +
+            this.make_rs_row(robot_status, "MEASURED_ANGLE",    "J1_MEASURED_ANGLE_G2",   "J2_MEASURED_ANGLE_G2",   "J3_MEASURED_ANGLE_G2",   "J4_MEASURED_ANGLE_G2", "J5_MEASURED_ANGLE_G2", "J6_MEASURED_ANGLE_G2",  "J7_MEASURED_ANGLE_G2") +
+            this.make_rs_row(robot_status, "RAW_ENCODER_ANGLE_FXP", "J1_RAW_ENCODER_ANGLE_FXP_G2", "J2_RAW_ENCODER_ANGLE_FXP_G2", "J3_RAW_ENCODER_ANGLE_FXP_G2", "J4_RAW_ENCODER_ANGLE_FXP_G2", "J5_RAW_ENCODER_ANGLE_FXP_G2") +
+            this.make_rs_row(robot_status, "MEASURED_TORQUE",   "N/A",                 "N/A",                 "N/A",                 "N/A",               "N/A",               "J6_MEASURED_TORQUE_G2", "J7_MEASURED_TORQUE_G2") +
+            this.make_rs_row(robot_status, "EYE_NUMBER",     "J1_EYE_NUMBER_G2",     "J2_EYE_NUMBER_G2",     "J3_EYE_NUMBER_G2",     "J4_EYE_NUMBER_G2",  "J5_EYE_NUMBER_G2") +
+            this.make_rs_row(robot_status, "PID_DELTA", "J1_PID_DELTA_G2", "J2_PID_DELTA_G2", "J3_PID_DELTA_G2", "J4_PID_DELTA_G2", "J5_PID_DELTA_G2") +
+            //this.make_rs_row(robot_status, "FORCE_CALC_ANGLE", "J1_FORCE_CALC_ANGLE", "J2_FORCE_CALC_ANGLE", "J3_FORCE_CALC_ANGLE", "J4_FORCE_CALC_ANGLE", "J5_FORCE_CALC_ANGLE") +
+            this.make_rs_row(robot_status, "A2D_SIN",   "J1_A2D_SIN_G2",   "J2_A2D_SIN_G2",   "J3_A2D_SIN_G2",   "J4_A2D_SIN_G2",   "J5_A2D_SIN_G2"  ) +
+            this.make_rs_row(robot_status, "A2D_COS",   "J1_A2D_COS_G2",   "J2_A2D_COS_G2",   "J3_A2D_COS_G2",   "J4_A2D_COS_G2",   "J5_A2D_COS_G2"  ) +
+            //this.make_rs_row(robot_status, "PLAYBACK",  "J1_PLAYBACK",  "J2_PLAYBACK",  "J3_PLAYBACK",  "J4_PLAYBACK",  "J5_PLAYBACK" ) +
+
+            this.make_rs_row(robot_status, "SENT",      "J1_SENT_G2",      "J2_SENT_G2",      "J3_SENT_G2",      "J4_SENT_G2",      "J5_SENT_G2")     +
+            "<tr><th>J5 MEASURED X</th><td><span id='MEASURED_X_id' style='font-family:monospace;float:right;'>" + this.format_measured_angle(xyz[0]) +
+            "</span></td><th>J5 MEASURED Y</th><td><span id='MEASURED_Y_id' style='font-family:monospace;float:right;'>" + this.format_measured_angle(xyz[1]) +
+            "</span></td><th>J5 MEASURED Z</th><td><span id='MEASURED_Z_id' style='font-family:monospace;float:right;'>" + this.format_measured_angle(xyz[2]) +
+            "</span></td></tr>"      )
     }
 
     static make_html_table_g_other(robot_status){

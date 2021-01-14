@@ -1204,12 +1204,6 @@ Job.all_names = [] //maintained in both UI and sandbox/ used by replacement seri
 Job.remember_job_name = function(job_name){
     if (!Job.all_names.includes(job_name)){
         Job.all_names.push(job_name)
-        if(window["job_or_robot_to_simulate_id"]){
-            refresh_job_or_robot_to_simulate_id()
-            //let a_option = document.createElement("option");
-            //a_option.innerText = "Job." + job_name
-            //job_or_robot_to_simulate_id.prepend(a_option)
-        }
     }
 }
 
@@ -1896,8 +1890,8 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
             //is not true (from "else if" above). So while we have more, set status to running
           this.set_status_code("running")
       }
+      let cur_do_item = this.current_instruction()
       try {
-        let cur_do_item = this.current_instruction()
         //onsole.log("do_next_item cur_do_item: " + cur_do_item)
         this.show_progress_maybe()
         this.select_instruction_maybe(cur_do_item)
@@ -2035,7 +2029,10 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
     catch(err){ //this can happen when, for instance a fn def on the do_list is called and it contains an unbound var ref
        //this.stop_for_reason("errored", err.message) //let do_next_item loop around and stop normally
        //this.set_up_next_do(0)
-        warning("Error running instruction: " + err.message)
+        warning("Error running instruction: " + this.program_counter +
+                " with source: " + to_source_code({value: cur_do_item}) +
+                " in Job." + this.name +
+                " of:<br/>" + err.message)
         if(this.if_instruction_error){
             //note instruction_to_run_when_error can be a single instruction or an array
             //of instructions. If its an array, we insert it as just one instruction,

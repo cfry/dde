@@ -244,10 +244,11 @@ var TestSuite = class TestSuite{
     static run_all(){
         //just in case we previously called run_all in this session do:
         //this.suites = [] //bad: causes ref man tests not to run, //warning, wipes out any user defined test suites. Maybe not good.
-
+        console.log("Starting to load testsuite files.")
         load_files(__dirname + "/test_suite/math_testsuite.js")
         load_files(__dirname + "/test_suite/utils_testsuite.js")
         load_files(__dirname + "/test_suite/move_all_joints_testsuite.js")
+        load_files(__dirname + "/test_suite/RobotStatus_testsuite.js")
         load_files(__dirname + "/music/note_testsuite.js")
         load_files(__dirname + "/music/phrase_testsuite.js")
         load_files(__dirname + "/test_suite/picture_testsuite.js")
@@ -273,20 +274,25 @@ var TestSuite = class TestSuite{
     //when a job finishes because its when_stopped method as set by
     //the job's start method will call TestSuite.resume()
     static resume(){
-        if (this.state){
+        console.log("Top of TestSuite.resume")
+        if(this.immediate_stop){
+           this.finish()
+        }
+        else if (this.state) {
             if (this.state.started_job) { return } //can't resume until we finish the started_job
             for (let suite_index = this.state.current_suite_index;
                      suite_index < this.state.suites.length;
                      suite_index++){
-                if (this.state.started_job) { return } //IF the last test item we executed was starting a job,
+                if (this.state.started_job) { return } // If the last test item we executed was starting a job,
                                                        // then likely this.state.started_job will hold a job.
-                                                       //so we can't resume until that job is finished.
+                                                       // so we can't resume until that job is finished.
                                                        // monitor_started_job will call resume when the job is finished.
                 let cur_suite = this.state.suites[suite_index]
                 if (typeof(cur_suite) == "string"){
                     cur_suite = window.eval(cur_suite)
                     this.state.suites[suite_index] = cur_suite
                 }
+                console.log("starting testsuite: " + cur_suite.name)
                 cur_suite.start(this.state.next_test_index) //try to get through all tests iin cur_suite,
                 if (this.state.started_job) { return }      //but if one is a job, we need to wait until its done
                 if(this.state.next_test_index == cur_suite.tests.length) { //done with cur_suite
@@ -296,12 +302,25 @@ var TestSuite = class TestSuite{
                 }
                 //else { return } //suspend until TestSuite.resume() is called again.
             }
-            this.state.end_time = Date.now()
-            out(this.state.reports + this.summary())
-            this.prev_state = this.state //allows for post-mortem examination.
-            this.state = null
+            this.finish()
         }
         else { shouldnt("In TestSuite.resume, no state to resume from.") }
+    }
+
+    static finish(){
+        let prefix = ""
+        if(this.immediate_stop === true) {
+            if(this.state.started_job) {
+                this.state.started_job.stop_for_reason("interrupted", "User clicked stop button while Job was running in a TestSuite.")
+                this.state.started_job = null
+            }
+            prefix = "<i>Immediately Stopped Test Running</b><br/>"
+            this.immediate_stop = false
+        }
+        this.state.end_time = Date.now()
+        out(prefix + this.state.reports + prefix + this.summary())
+        this.prev_state = this.state //allows for post-mortem examination.
+        this.state = null
     }
 
     static summary(){
@@ -479,14 +498,14 @@ var TestSuite = class TestSuite{
                 let cur_ts = this.state.suites[this.state.current_suite_index]
                 let cur_test = cur_ts.tests[this.state.next_test_index - 1]
                 let expected_src = cur_test[1]
-                if(expected_src == "TestSuite.error"){ }//we were expecting an error and we got one so no tesrt failure
+                if(expected_src == "TestSuite.error"){ }//we were expecting an error and we got one so no test failure
                 else {
                     let error_mess = this.state.started_job.status()
 
                     let suite_index = this.state.current_suite_index;
                     let cur_suite   = this.state.suites[suite_index]
                     cur_suite.unknown_failure_count += 1
-                    cur_suite.report += "Test " + (this.state.next_test_index - 1) + " errored after starting Job: " + this.state.started_job.name + "<br/>"
+                    cur_suite.report += "Test " + (this.state.next_test_index - 1) + " errored after starting Job: " + this.state.started_job.name + "<br/>" + cur_test[1] + "<br/>"
                 }
                 clearInterval(this.state.started_job_monitor_set_interval)
                 this.state.started_job = null
@@ -499,7 +518,7 @@ var TestSuite = class TestSuite{
             }
             else {} //all other states like "starting", "running", "running_when_stopped", "suspended" "waiting". just do nothing
                     //and monitor_started_job will be called again by setInterval and
-                    //maybe the job status_code will change to completed by then
+                    //maybe the job status_code will change to completed, errored, or interrupted by then
         }
     }
 

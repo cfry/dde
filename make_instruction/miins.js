@@ -144,7 +144,7 @@ var MiIns = class MiIns {
     //Beware, calling this fn may reach into the UI.
     get_robot(){
         if((this.superclass_name == "") || (this.instance_name == "")) {
-            return default_robot()
+            return Dexter.default
         }
         else {
             let fullname = this.superclass_name + "." + this.instance_name

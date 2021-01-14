@@ -326,10 +326,14 @@ function inspect_aux(item, stack_number, in_stack_position, increase_max_display
                             prop_val_string = inspect_one_liner(prop_val, stack_number, in_stack_position, prop_name)
                             prop_val_string = inspect_prop_val_string_exceptions(item, prop_name, prop_val, prop_val_string)
                         }
+                        if((item instanceof Dexter) && (prop_name === "robot_status") && Array.isArray(prop_val)) {
+                            prop_val_string += " <button onclick='RobotStatusDialog.show(Dexter." + item.name + ")'>Robot Status Dialog</button>"
+                        }
                         if ((prop_index == 0) && (typeof(prop_val) == "function")) {//due to weirdness in formatting details tags when expanded and when the first item is inside or {}. This is a workaround.
                               prefix = "<br/>" + "&nbsp;&nbsp;"
                         }
-                        result += prefix + "<div style='display:inline-block; vertical-align:top;'><i>" + prop_name + "</i>:</div> "    + prop_val_string + "<br/>\n"
+                        result += prefix + "<div style='display:inline-block; vertical-align:top;'><i>" + prop_name +
+                                           "</i>:</div> "    + prop_val_string + "<br/>\n"
                             //(prop_val_string.startsWith("<details") ? "" : "<br/>") + "\n"
                         prefix = "&nbsp;&nbsp;"
                       }

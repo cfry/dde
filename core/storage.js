@@ -296,7 +296,7 @@ module.exports.file_content = file_content //depricated
 //but beware, sometimes data is a BUFFER not a string.
 // data.toString() will convert a buffer to a string,
 //and just returns the string if data happens to be a string
-//for referencing a file on dexter, path example 'Dexter.dexter0:/srv/samba/share/errors.log'
+//for referencing a file on dexter, path example 'Dexter.dexter0:/srv/samba/share/errors
 function read_file_async(path, encoding="utf8", callback){
     let dex_instance = path_to_dexter_instance(path)
     if(dex_instance){
@@ -909,7 +909,6 @@ function node_server_supports_editor(dexter_instance){
                                 timeout: 500 //no need for a long timeout here since should
                              //be a local wired connection.
             })
-
         }
         catch(err) { //could be timeout or just no node server on Dexter.
             dexter_instance.supports_editor = false
@@ -925,7 +924,7 @@ function node_server_supports_editor(dexter_instance){
         }
     }
 }
-
+module.exports.node_server_supports_editor = node_server_supports_editor
 
 
 //______new load_files synchronous______

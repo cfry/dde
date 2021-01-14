@@ -282,10 +282,13 @@ function ping_a_dexter(){
                  callback: ping_a_dexter_handler
                 })
 }
+
+//ping.sys.probe(host, function(isAlive){ out(host + " connected: " + isAlive) }
+
 //_______default robot_______
-function make_default_robot_menu_html(selected_robot_full_name=""){
-    var result = "<span style='font-size:10px;'>default robot: </span>" +
-        "<select id='default_robot_name_id' onchange='MakeInstruction.onchange_job_robot(event)' style='font-size:14px;width:130px;'" +
+function make_dexter_default_menu_html(selected_robot_full_name=""){
+    var result = "<span style='font-size:10px;'>Dexter.default: </span>" +
+        "<select id='default_dexter_name_id' onchange='onchange_dexter_default(event)' style='font-size:14px;width:130px;'" +
         " title='Supplies the robot for instructions prefixed\n" +
         "with a robot class (like Dexter or Serial)\n" +
         "but no robot instance.')>"
@@ -300,36 +303,37 @@ function make_default_robot_menu_html(selected_robot_full_name=""){
     return result
 }
 
+function onchange_dexter_default(){
+    //let rob = value_of_path(event.target.value) ///might not be a dexter
+    let dexter_name = event.target.value
+    let rob = Dexter[dexter_name]
+    if(rob instanceof Dexter) { Dexter.default = rob }
+    else { //Dexter.default = Dexter.dexter0
+       shouldnt("in onchange_dexter_default, got a non-dexter in the Dexter default menu.")
+    }
+}
+
 //example return: "Dexter.dexter0"
 //the id in the Misc Pane robot select widget.
-function default_robot_name(){
-    if(default_robot_name_id){
-        return default_robot_name_id.value
+//note this will always return a string starting with "Dexter."
+function default_dexter_full_name(){
+    if(default_dexter_name_id){
+        return "Dexter." + default_dexter_name_id.value
     }
     else { return "Dexter.dexter0" }
 }
 
-//but you can also use Dexter.default
-function default_robot(){
-    return value_of_path(default_robot_name())
-}
-
-
-function add_robot_to_default_menu(robot_or_name){
-    if (typeof(robot_or_name) != "string") { //must be a robot instance
-        robot_or_name = robot_or_name.constructor.name + "." + robot_or_name.name
+function add_dexter_to_dexter_default_menu(a_dexter_or_dexter_name){
+    let dex_name
+    if (a_dexter_or_dexter_name instanceof Dexter) {
+        dex_name = a_dexter_or_dexter_name.name
     }
+    else if (typeof(a_dexter_or_dexter_name) === "string"){ dex_name = a_dexter_or_dexter_name}
+    else { shouldnt("add_dexter_to_dexter_default_menu passed: " + a_dexter_or_dexter_name +
+                    "<br/>but that isn't a dexter instance or dexter name.") }
     let a_option = document.createElement("option")
-    a_option.innerText = robot_or_name
-    default_robot_name_id.prepend(a_option)
+    a_option.innerText = dex_name
+    default_dexter_name_id.prepend(a_option)
 }
 
 var {last} = require("./core/utils.js")
-
-
-/*
-ping.sys.probe(host, function(isAlive){
-    out(host + " connected: " + isAlive)
-}
-
-*/

@@ -5959,15 +5959,23 @@ You might want to do this in an emergency situation or if the environment unexpe
 </details>
 
 <details id="Dexter.get_robot_status_doc_id" class="doc_details"><summary>get_robot_status</summary>
-    Retrieves lots of information from Dexter. This is placed in an array that becomes the value of
+    Retrieves lots of information from Dexter. This is placed in an array of 60 items (most are numbers)
+    that becomes the value of
     the job's robot's <code title="unEVALable code fragment"> robot_status</code> field, and, if the job's
     <code title="unEVALable code fragment"> keep_history</code> is true, gets pushed onto the
     job's <code title="unEVALable code fragment"> rs_history</code> array.
-<i>Paramenters:</i> <br/>
-<b>status_mode</b> Default: <code>null</code><br/>
-    <code>null</code> leaves the status mode of Dexter unchanged.<br/>
-    <code>0</code> The original status array retruned by Dexter. Dexter boots up
-                   with a value of 0 here.<br/>
+    <p/>
+    When any an instruction is sent to Dexter, Dexter immediately returns a robot status array.
+    Dexter can return several different kinds of status modes, each represented by a small
+    non-negative integer. The kind of status mode that
+    is sent back from Dexter is the kind passed in as the argument to get_robot_status or
+    its lower level oplet "g" instructions. A given get_robot_status  mode sent to Dexter remains
+    in effect until over-ridden by the next get_robot_status instruction.
+<i>Paramenter:</i> <br/>
+<b>status_mode</b> Default: <code>0</code><br/>
+    <code>null</code> Same as passing in 0.<br/>
+    <code>0</code> The original status array returned by Dexter. Dexter boots up
+                   with a value of 0 here. All Jobs start off with a status_mode of 0.<br/>
     <code>1</code> Another status mode that returns measured angles, torques and velocities
                    of Dexter's joints.
 <p></p>
@@ -7034,14 +7042,14 @@ values in meters<br/>
 <code>Dexter.LEG_LENGTH</code> => <samp>0.152400</samp><br/>
 <p></p>
 values in degrees<br/>
-<code>Dexter.J1_ANGLE_MIN</code> => <samp>-150</samp><br/>
-<code>Dexter.J1_ANGLE_MAX</code> => <samp>150</samp><br/>
-<code>Dexter.J2_ANGLE_MIN</code> => <samp>-90</samp><br/>
-<code>Dexter.J2_ANGLE_MAX</code> => <samp>90</samp><br/>
+<code>Dexter.J1_ANGLE_MIN</code> => <samp>-185</samp><br/>
+<code>Dexter.J1_ANGLE_MAX</code> => <samp>185</samp><br/>
+<code>Dexter.J2_ANGLE_MIN</code> => <samp>-105</samp><br/>
+<code>Dexter.J2_ANGLE_MAX</code> => <samp>105</samp><br/>
 <code>Dexter.J3_ANGLE_MIN</code> => <samp>-150</samp><br/>
 <code>Dexter.J3_ANGLE_MAX</code> => <samp>150</samp><br/>
-<code>Dexter.J4_ANGLE_MIN</code> => <samp>-130</samp><br/>
-<code>Dexter.J4_ANGLE_MAX</code> => <samp>130</samp><br/>
+<code>Dexter.J4_ANGLE_MIN</code> => <samp>-120</samp><br/>
+<code>Dexter.J4_ANGLE_MAX</code> => <samp>120</samp><br/>
 <code>Dexter.J5_ANGLE_MIN</code> => <samp>-185</samp><br/>
 <code>Dexter.J5_ANGLE_MAX</code> => <samp>185</samp><br/>
 <code>Dexter.J6_ANGLE_MIN</code> => <samp> 0 </samp><br/>
@@ -9242,7 +9250,7 @@ show_window({
        <p></p>
        <i>Example:</i>
        <pre><code>var win = show_page("http://hdrobotic.com",
-          {x:100, y:100,
+          {x:100, y:150,
            width:800, height:600})
            </code></pre>
         The returned value is an instance of Electron's BrowserWindow.
@@ -10255,6 +10263,10 @@ insert_html_into_doc_pane(`&lt;details id="foo_doc_id" style="font-size:16px;">
         Hello Planet
     &lt;/hi>`
 )    </code></pre>
+     To get the simulate pane back: <br/>
+     <code>show_in_misc_pane("Simulate Dexter")</code> <!-- note: I must have this here
+       as we need the sim pane up to complete the rest of the test suite. -->
+
 </details>  <!-- end of show_in_misc_pane -->
 <details id="Lesson.make_button_column_doc_id" class="doc_details"><summary>Lesson.make_button_column</summary>
   This function makes a column of "steps" to perform in an educational sequence.

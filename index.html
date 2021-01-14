@@ -435,7 +435,7 @@
                                                 <li id="window_svg_id"            title="Examples of using svg&#013;to dynamically add and reposition&#013;shapes in a window.">svg (2D drawing)</li>
                                                 <li id="window_modify_id"         title="Example of using selector_set_in_ui&#013;to extend a show_window.">Modify Window</li>
                                                 <li id="build_window_id"          title="Create a show_window call via a dialog box.">Build Window</li>
-                                                <li id="window_close_all_id"      title="Closes all open 'show_windows'.&#013;Does not insert code into Editor.">Close all windows</li>
+                                                <li id="window_close_all_id"      title="Closes all open 'show_windows'.&#013;Does not close DDE's main window.&#013;Does not insert code into Editor..">Close all windows</li>
                                             </ul>
                                         </li>
                                         <li title="Image processing using OpenCV.">Machine Vision
@@ -654,7 +654,7 @@
                                         <li id="init_dxf_drawing_id" title="Insert a call to DXF.init_drawing&#13;into the editor.&#13;Also scrolls Doc pane to doc.">DXF.init_drawing()</li>
                                         <li>Dexter Tools
                                            <ul>
-                                                <li id="browse_dexter_id"    title="Browse the web page of&#13;the default Dexter&#13;(selected in the Misc Pane header).">Browse a Dexter...</li>
+                                                <li id="browse_dexter_id"    title="Browse the web page of&#13;the default Dexter&#13;(selected in the Misc Pane header).">Browse Dexter.default</li>
                                                 <li id="calibrate_id"        title="Calibrate one or more Dexters.&#13;Needed each time you power on a Dexter.">Calibrate Dexter...</li>
                                                 <li id="ping_dexter_id"      title="Find out if a Dexter&#13;or other ip_address&#13;is connected to this computer.">Ping Dexter...</li>
                                                 <li id="show_errors_log_id"  title="Show the content of the file errors.log&#13;on the default Dexter.">Show errors.log</li>
@@ -784,7 +784,7 @@
                             <!--<button id="eval_and_start_button_id" style="vertical-align:top;" title="Eval the selected JS.&#013;With the result, call its 'start' method or, &#013;if its a do_list item, run it in a Job on dexter0.">Eval&Start</button>
                             <button id="start_job_id" style="vertical-align:top;" title='Eval job that cursor is in and start it.&#13;Click on "Output" pane title for doc.'>Start Job</button>&nbsp;
                             -->
-                            <img id="stop_all_jobs_id" src="stop_sign.png" title="Stop all of the currently running jobs." style="vertical-align:top;"/>
+                            <img id="stop_all_jobs_id" src="stop_sign.png" title="Stop all of the currently running jobs.&#13;as well as running TestSuites." style="vertical-align:top;"/>
                             <button id="undefine_jobs_id" style="vertical-align:39px;" title="Undefine all jobs that are not running.">Undef</button>
                             <!--<div style="display:inline-block;vertical-align:top;">J<br/>o<br/>b<br/>s</div>-->
                             <div style="display:inline-block;margin:0px;padding:0px;font-size:11px;vertical-align:42px;transform:rotate(-90deg);">Jobs</div>
@@ -834,6 +834,10 @@
                         <!--</select> -->
                         <div id='misc_pane_menu_id' style="display:inline-block; margin-top:5px;margin_right:10px;"></div><br/>
                         <div id="default_robot_name_menu_container_id" style="margin-top:0px; padding:0px; display:inline-block"></div>
+
+                        <span id="inspect_dexter_details_id" title="Inspect Dexter details."
+                              style="color:blue;cursor:pointer;font-weight:bold;"> &#9432; </span>
+
                         <span title="Pause job execution."><input  id="pause_id" type="checkbox"/>Pause</span>
                         <button id="go_id"   title="Continue paused job execution." style="padding:2px">Go</button>
                         <button id="demo_id" title="Moves graphical depiction of Dexter randomly." style="padding:2px">Demo</button>

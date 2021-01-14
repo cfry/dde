@@ -41,6 +41,11 @@ SimUtils = class SimUtils{
         return Math.hypot(xyz1[0] - xyz2[0], xyz1[1] - xyz2[1], xyz1[2] - xyz2[2])
     }
 
+    static is_simulator_showing(){
+        if(window["sim_graphics_pane_id"]) { return true }
+        else { return false }
+    }
+
     //job_or_robot name format is really "Job.j1"  or "Dexter.dex1", ie same as the menu item in the Simulate pane
     //input angles are in arcseconds
     /* never called as of Dec, 2020 or before
@@ -72,12 +77,12 @@ SimUtils = class SimUtils{
         }
     } */
     //ds_inst is an instance of DexterSim class.
+    //robot_name example: "Dexter.dexter0"
     static render_multi(ds_instance, new_angles_arcseconds, job_name, robot_name, force_render=false, dur_in_ms=0){ //inputs in arc_seconds
-        let job_or_robot_to_sim = job_or_robot_to_simulate_name()
+        let job_or_robot_to_sim = "Dexter." + Dexter.default.name
         if (force_render ||
             (job_or_robot_to_sim == job_name) ||
-            (job_or_robot_to_sim == robot_name) ||
-            (job_or_robot_to_sim == "All")){
+            (job_or_robot_to_sim == robot_name)){
             let dur_to_show = Math.round(dur_in_ms / 100) //in 10ths of seconds, rounded
             dur_to_show = "" + dur_to_show
             if (dur_to_show.length > 1) {
@@ -124,7 +129,7 @@ SimUtils = class SimUtils{
     //between the calls. All args remain the same for such calls except for frame, which is incremented from
     //0 up to total_frames. Once its called with frame == total_frames, it immediately stops the recursive calls.
     static render_multi_frame(ds_instance, new_angles_arcseconds, prev_js, js_inc_per_frame, ms_per_frame, total_frames, frame_number=0, rob, did_last_frame=false){
-        if(frame_number >= total_frames) { ds_instance.animation_running = false} //we're done
+        if(frame_number > total_frames) { ds_instance.animation_running = false} //we're done
         else{
             ds_instance.animation_running = true
             let new_angles = [] //used only for computing xyz to set in sim pane header
@@ -135,7 +140,10 @@ SimUtils = class SimUtils{
                 let inc_to_prev_j = frame_number * j_inc_per_frame
                 let j_angle = prev_j + (Number.isNaN(inc_to_prev_j) ? 0 : inc_to_prev_j) //j_angle is in arcseconds
                 ds_instance.measured_angles_arcseconds[joint] = j_angle
-                //if(joint === 0) { out("J" + joint + ": inc_to_prev_j: " + Math.round(inc_to_prev_j) + " j_angle: " + Math.round(j_angle)) }
+                //if(joint === 0) { out("J" + joint + ": inc_to_prev_j: " + Math.round(inc_to_prev_j) +
+                //                      " j_angle as: "  +  Math.round(j_angle) +
+                //                      " j_angle deg: " + (Math.round(j_angle) / 3600 ))
+                //}
                 let angle_degrees
                 if      (joint == 5) { angle_degrees = (j_angle - 512) * Socket.DEGREES_PER_DYNAMIXEL_UNIT }
                 else if (joint == 6) { angle_degrees = j_angle * Socket.DEGREES_PER_DYNAMIXEL_UNIT }
@@ -270,7 +278,7 @@ SimUtils = class SimUtils{
 
     static inspect_dexter_sim_instance(robot_name){
         if(!robot_name) {
-            robot_name = default_robot_name_id.value
+            robot_name = default_dexter_name_id.value
             if(!robot_name.startsWith("Dexter.")) {
                 robot_name = "Dexter." + Dexter.default.name
             }

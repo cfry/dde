@@ -91,7 +91,14 @@ Editor.init_editor = function(){
                              if (Editor.select_expr()){
                                 setTimeout(function(){  //without setTimeout, the sel isn't really selected by the tme we call MakeInstruction.show
                                             let sel = Editor.get_any_selection()
-                                            if(sel != "") { MakeInstruction.show(sel) }
+                                            if((typeof(sel) === "string") &&
+                                                (sel !== "") &&
+                                                !sel.startsWith("new TestSuite")) { //exclude new TestSuite because usually when you're
+                                                //selecting a testsuite you're doing it to run it, and running it should
+                                                //remain with Simulator showing, not switch to Make Instruction.
+                                                //MakeInstruction.show(sel)
+                                                show_in_misc_pane("Make Instruction", sel)
+                                            }
                                 }, 200)
                                 mouse_event.preventDefault()
                              }
@@ -1132,7 +1139,7 @@ Editor.save_on_dexter_computer = function(dex_name){
 }
 
 Editor.save_to_dexter_as = function(){
-    let dexter_name = default_robot_name()
+    let dexter_name = default_dexter_full_name()
     Editor.save_on_dexter_computer(dexter_name)
 }
 /* below makes a dialog "menu" of all dexters. but that's unnecessary as
@@ -1160,6 +1167,22 @@ we already have a menu in the Misc Pane header.
         )
     }
 }*/
+
+//called by main process when user tries to quit dde.
+var ipcRenderer = require('electron').ipcRenderer
+ipcRenderer.on('save_before_quit_dde_maybe', function(event){
+    out("in render process, save_before_quit_dde_maybe")
+    if(Editor.current_buffer_needs_saving) {
+        let should_quit = confirm("The file in DDE's editor has unsaved changes.\nQuit DDE without saving it?")
+        if(should_quit){
+            ipcRenderer.send("really-quit") //process.exit() //window.close()
+        }
+        else{ //don't quit dde
+            out("To save the current file, use the file menu 'Save' item.")
+        }
+    }
+    else { ipcRenderer.send("really-quit") } //process.exit() //window.close()
+})
 
 //on Jobs menu/insert_new_job
 Editor.insert_new_job = function(){

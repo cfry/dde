@@ -27,6 +27,7 @@ console.log("in main.js with __dirname:    " + __dirname)
 console.log("in main.js with  app_path:    " + global.app_path)
 
 const fs = require('fs');
+
 // Module to create native browser window.
 //Because MS screwed up the relationhip between OneDrive and Documents in Windows 10,
 //we do a lot of work to work around their bug.
@@ -166,9 +167,16 @@ function createWindow() {
     // in an array if your app supports multi windows, this is the time
     // when you should delete the corresponding element.
         console.log("top of on.closed")
-        //mainWindow.webContents.send('save_current_file') //doesn't work now using window.onbeforeunload in reneder process (editor.js)
+        //mainWindow.webContents.send('save_current_file') //doesn't work now using window.onbeforeunload in render process (editor.js)
         mainWindow = null
 
+  })
+  mainWindow.on('close', (event) => {
+        console.log("on close fry with force_quit: " + force_quit)
+        if(!force_quit) {
+            mainWindow.webContents.send("save_before_quit_dde_maybe")
+            event.preventDefault()
+        }
   })
   mainWindow.once('ready-to-show', () => { mainWindow.show()})
   var mainWindow_for_closure = mainWindow
@@ -216,6 +224,42 @@ app.on('activate', function () {
         createWindow()
     }
 })
+
+var force_quit = false
+
+//catch the quiting of dde app just in case there's an unsaved edtiror buffer.
+//see also mainWindow.on('close' in def of createWindow() above.
+app.on('before-quit', (event) => {
+    //if(confirm("The file you are editing has unsaved changes. Quit DDE without saving it?")){
+    //    app.exit()
+    //}
+    //else { event.preventDefault() }
+    console.log("before-quit fry with force_quit: " + force_quit)
+    if(!force_quit) {
+        mainWindow.webContents.send("save_before_quit_dde_maybe")
+        event.preventDefault()
+    }
+})
+
+/*this doesn't seem to help but maybe good insurance
+app.on('will-quit', (event) => {
+    //if(confirm("The file you are editing has unsaved changes. Quit DDE without saving it?")){
+    //    app.exit()
+    //}
+    //else { event.preventDefault() }
+    mainWindow.webContents.send("save_before_quit_dde_maybe")
+    event.preventDefault()
+})
+*/
+//called from render process in Editor.js  save_before_quit_dde_maybe
+ipc.on('really-quit', function (event) {
+    force_quit = true
+    console.log("in really-quit, force_quit set to true")
+    app.quit()
+})
+
+
+
 
 function register_shortcuts(){
      globalShortcut.register('CommandOrControl+X', () => {

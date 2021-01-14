@@ -522,10 +522,12 @@ window.get_page_async = get_page_async
 //args/options than standard request which I use for get_page_async
 //and I don't want users to have to use different args for the 2 fns,
 //so I stick with my "main.js" trick for async here.
+//Always returns a string.
+//If there's an error, the string starts with: "Error: "
 function get_page(url_or_options){
-        console.log("rend get_page sync: " + url_or_options)
+        //onsole.log("rend get_page sync: " + url_or_options)
         const reply = ipcRenderer.sendSync('get_page', url_or_options) //see main.js "get_page"
-        console.log("rend get_page sync back from: " + url_or_options + " with: " + reply.substring(0, 10))
+        //onsole.log("rend get_page sync back from: " + url_or_options + " with: " + reply.substring(0, 10))
         return reply
 }
 window.get_page = get_page

@@ -76,7 +76,7 @@ var dui2 = class dui2 {
     }
 
     static make_job(explicity_start_job=false){
-        let dex = (window.default_robot ? default_robot() : Dexter.dexter0)
+        let dex = (window.default_robot ? Dexter.default : Dexter.dexter0)
         let name = ((platform === "dde") ? "dui2_for_" + dex.name : "dexter_user_interface2") //the job engine Job name must match the file name (sans .js")
         if (Job[name] && Job[name].is_active()) { //we're redefining the job so we want to make sure the
             //previous version is stopped first

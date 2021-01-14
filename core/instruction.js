@@ -3102,14 +3102,18 @@ Instruction.wait_until = class wait_until extends Instruction{
             }
         }
         else if (typeof(this.fn_date_dur) == "number"){ //number is seconds
-            if (this.start_time_in_ms == null) { this.start_time_in_ms = Date.now() } //hits the first time this do_item is called for an inst
-            let dur_from_start_in_ms = Date.now() - this.start_time_in_ms
+            let the_now_in_ms = Date.now()
+            if (this.start_time_in_ms == null) { this.start_time_in_ms = the_now_in_ms } //hits the first time this do_item is called for an inst
+            let dur_from_start_in_ms = the_now_in_ms - this.start_time_in_ms
             if (dur_from_start_in_ms >= this.fn_date_dur * 1000){ //The wait is over. dur_from_start_in_ms is in ms, fn_date_dur is in seconds
                 job_instance.wait_reason = null
                 job_instance.set_status_code("running")
                 this.init_instruction() //essential for the 2nd thru nth call to start() for this job.
                 job_instance.set_up_next_do(1)
-            }
+            }/* this 'keep alive/ clause should be unnecessary because if the socket times out, the
+               //Socket.send method will reconnect the socket when the next send to dexter instruction comes through.
+               //We'd need that socket code anyway for other do_lists that have long running sections
+               //that don't involve sending instructions to dexter for a long period.
             else if ((job_instance.robot instanceof Dexter) && (dur_from_start_in_ms > 1000)){
                 //so that we can keep the tcp connection alive, send a virtual heartbeat
                 let new_wait_dur_in_sec = this.fn_date_dur - (dur_from_start_in_ms / 1000)
@@ -3120,7 +3124,7 @@ Instruction.wait_until = class wait_until extends Instruction{
                 job_instance.wait_reason = null
                 job_instance.set_status_code("running")
                 job_instance.set_up_next_do(1)
-            }
+            }*/
             else {
                 job_instance.set_status_code("waiting", "a wait_until duration of: " +  this.fn_date_dur + " seconds")
                 job_instance.set_up_next_do(0)

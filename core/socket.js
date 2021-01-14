@@ -4,45 +4,75 @@ const net = require("net")
 
 //never create an instance
 var Socket = class Socket{
-    static init(robot_name //, simulate, ip_address, port=50000
+    static init(robot_name, connect_success_cb, connect_error_cb //, simulate, ip_address, port=50000
             ){
         //out("Creating Socket for ip_address: " + ip_address + " port: "   + port + " robot_name: " + robot_name)
         let rob = Robot[robot_name]
         const sim_actual = Robot.get_simulate_actual(rob.simulate) //true, false, or "both"
-        //if(Socket.robot_name_to_ws_instance_map[robot_name]){
-        //    this.close(robot_name)
-        //}
-        if ((sim_actual === true)  || (sim_actual == "both")) {
-            DexterSim.create_or_just_init(robot_name, sim_actual)
+        if ((sim_actual === true)  || (sim_actual == "both")){
+            DexterSim.create_or_just_init(robot_name, sim_actual, connect_success_cb)
             out("Simulating socket for Robot." + robot_name + ". is_connected? " + Robot[robot_name].is_connected)
         }
-        if ((sim_actual === false) || (sim_actual == "both")) {
+        else if ((sim_actual === false) || (sim_actual == "both")) {
             if(!Socket.robot_name_to_ws_instance_map[robot_name]){
                 try {
                     let ws_inst = new net.Socket()
-                    Socket.robot_name_to_ws_instance_map[robot_name] = ws_inst
-                    ws_inst.on("data", function(data) { Socket.on_receive(data, robot_name) })
-                    out("Now attempting to connect to Dexter: " + robot_name + " at ip_address: " + rob.ip_address + " port: " + rob.port + " ...", "brown")
-                    ws_inst.connect(rob.port, rob.ip_address, function(){
-                        Socket.new_socket_callback(robot_name)
+                    ws_inst.on("data", function(data) {
+                        Socket.on_receive(data, robot_name)
                     })
+                    /* on error *could* be called, but its duration from a no-connection is
+                       highly variable so I have below a setTimeout to kill the connection
+                       after a second. But then both on error and the setTimeout method
+                       *could* get called so I take pains to kill off the setTimeout
+                       so that only one will get called.
 
+                    })*/
+                    let st_inst = setTimeout(function(){
+                        if(ws_inst.connecting) { //still trying to connect after 1 sec, so presume it never will. kill it
+                            out("Socket timeout while connecting to Dexter." + robot_name)
+                            delete Socket.robot_name_to_ws_instance_map[robot_name]
+                            ws_inst.destroy() //todo destroy
+                            if(connect_error_cb) {
+                                connect_error_cb() //stop the job that started this.
+                            }
+                        }
+                    }, Socket.connect_timeout_seconds * 1000)
+                    ws_inst.on("error", function(err){
+                        out("Socket error while connecting to Dexter." + robot_name)
+                        clearTimeout(st_inst)
+                        delete Socket.robot_name_to_ws_instance_map[robot_name]
+                        ws_inst.destroy()
+                        if(connect_error_cb) {
+                            connect_error_cb()
+                        }
+                    })
+                    out("Now attempting to connect to Dexter." + robot_name + " at ip_address: " + rob.ip_address + " port: " + rob.port + " ...", "brown")
+                    ws_inst.connect(rob.port, rob.ip_address, function(){
+                        clearTimeout(st_inst)
+                        Socket.robot_name_to_ws_instance_map[robot_name] = ws_inst
+                        Socket.new_socket_callback(robot_name, connect_success_cb)
+                    })
                 }
                 catch(e){
-                    dde_error("Error attempting to create socket: " + e.message)
+                    dde_error("Error attempting to create socket to Dexter." + robot_name + " at ip_address: " + rob.ip_address + " port: " + rob.port + e.message)
                     this.close(robot_name, true)
+                }
+            }
+            else { //there is a ws_inst in the map, BUT it might have died since it was set.
+                   //none the less, pretend its good, and forge ahead
+                if(connect_success_cb) {
+                    connect_success_cb()
                 }
             }
         }
     }
 
-    /*static new_socket_callback(robot_name){
-        //console.log("Socket.new_socket_callback passed: " + "robot_name: " + robot_name)
+    //called from both above socket code and from dexsim
+    static new_socket_callback(robot_name, connect_success_cb){
         Dexter.set_a_robot_instance_socket_id(robot_name)
-    }*/
-
-    static new_socket_callback(robot_name){
-        Dexter.set_a_robot_instance_socket_id(robot_name)
+        if(connect_success_cb) {
+            connect_success_cb()
+        }
         if (Socket.resend_instruction) {
             let rob = Robot[robot_name]
             Socket.send(robot_name, Socket.resend_instruction)
@@ -296,7 +326,7 @@ var Socket = class Socket{
         //onsole.log("Socket.on_receive passed data: " + data)
         let robot_status
         let oplet
-        if(Array.isArray(data)) {  //todo rturn from sim same data type as Dexter returns.   //a status array passed in from the simulator
+        if(Array.isArray(data)) {  //todo return from sim same data type as Dexter returns.   //a status array passed in from the simulator
             robot_status = data
             oplet = robot_status[Dexter.INSTRUCTION_TYPE]
         }
@@ -451,6 +481,7 @@ var Socket = class Socket{
 //Socket.robot_is_waiting_for_reply = {} //robot_name to boolean map.
 //Socket.max_dur_to_wait_for_reply_ms = 200
 
+Socket.connect_timeout_seconds = 1
 Socket.PAYLOAD_START = 7 * 4 //7th integer array index, times 4 bytes per integer
 Socket.PAYLOAD_LENGTH = 6 //6th integer array index
 

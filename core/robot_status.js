@@ -28,11 +28,20 @@ var RobotStatus = class RobotStatus{
     }
 
     static is_other_status_mode(sm){ //such status_modes will use generic table display.
-        return ![0, 1].includes(sm)
+        return ![0, 1, 2].includes(sm)
     }
 
     supports_measured_angles(){
-        return (this.status_mode() < 2)
+        return (this.status_mode() < 3)
+    }
+
+    value_at_index(index){
+        if((index < 0) || (index > 59)) {
+            return this.robot_status(index)
+        }
+        else {
+            dde_error("RobotStatus.value_at_index called with index that's not between 0 and 59 iclusive: " + index)
+        }
     }
 
     //below for g0 only
@@ -107,6 +116,13 @@ var RobotStatus = class RobotStatus{
             if(typeof(result) == "number") { return result}
             else { dde_error("RobotStatus.pid_delta passed joint_number: " + joint_number + " which isn't valid.") }
         }
+        if(sm === 2) {
+            let label = "Dexter.J" + joint_number + "_PID_DELTA_G2"
+            let index = value_of_path(label)
+            let result = this.robot_status[index]
+            if(typeof(result) == "number") { return result}
+            else { dde_error("RobotStatus.pid_delta passed joint_number: " + joint_number + " which isn't valid.") }
+        }
         else {
             dde_error("RobotStatus.pid_delta is invalid for status_mode: " + sm)
         }
@@ -149,23 +165,24 @@ var RobotStatus = class RobotStatus{
             if(typeof(result) == "number") { return result}
             else { dde_error("RobotStatus.a2d_sin passed joint_number: " + joint_number + " which isn't valid.") }
         }
+        else if(sm === 2) {
+            let label = "Dexter.J" + joint_number + "_A2D_SIN_G2"
+            let index = value_of_path(label)
+            let result = this.robot_status[index]
+            if(typeof(result) == "number") { return result}
+            else { dde_error("RobotStatus.a2d_sin passed joint_number: " + joint_number + " which isn't valid.") }
+        }
         else {
             dde_error("RobotStatus.a2d_sin is invalid for status_mode: " + sm)
         }
     }
 
     a2d_sins(joint_count=5){
-        let sm = this.status_mode()
-        if(sm === 0) {
-            let result = []
-            for(let j_number = 1; j_number <= joint_count;  j_number++){
-                result.push(this.a2d_sin(j_number))
-            }
-            return result
+        let result = []
+        for(let j_number = 1; j_number <= joint_count;  j_number++){
+            result.push(this.a2d_sin(j_number))
         }
-        else {
-            dde_error("RobotStatus.a2d_sins is invalid for status_mode: " + sm)
-        }
+        return result
     }
 
     a2d_cos(joint_number){
@@ -177,28 +194,37 @@ var RobotStatus = class RobotStatus{
             if(typeof(result) == "number") { return result}
             else { dde_error("RobotStatus.a2d_cos passed joint_number: " + joint_number + " which isn't valid.") }
         }
+        else if(sm === 2) {
+            let label = "Dexter.J" + joint_number + "_A2D_COS_G2"
+            let index = value_of_path(label)
+            let result = this.robot_status[index]
+            if(typeof(result) == "number") { return result}
+            else { dde_error("RobotStatus.a2d_cos passed joint_number: " + joint_number + " which isn't valid.") }
+        }
         else {
             dde_error("RobotStatus.a2d_cos is invalid for status_mode: " + sm)
         }
     }
 
     a2d_coses(joint_count=5){
-        let sm = this.status_mode()
-        if(sm === 0) {
-            let result = []
-            for(let j_number = 1; j_number <= joint_count;  j_number++){
-                result.push(this.a2d_cos(j_number))
-            }
-            return result
+        let result = []
+        for(let j_number = 1; j_number <= joint_count;  j_number++){
+            result.push(this.a2d_cos(j_number))
         }
-        else {
-            dde_error("RobotStatus.a2d_coses is invalid for status_mode: " + sm)
-        }
+        return result
+
     }
 
     sent(joint_number){
         let sm = this.status_mode()
         if(sm === 0) {
+            let label = "Dexter.J" + joint_number + "_SENT"
+            let index = value_of_path(label)
+            let result = this.robot_status[index]
+            if(typeof(result) == "number") { return result}
+            else { dde_error("RobotStatus.sent passed joint_number: " + joint_number + " which isn't valid.") }
+        }
+        if(sm === 2) {
             let label = "Dexter.J" + joint_number + "_SENT"
             let index = value_of_path(label)
             let result = this.robot_status[index]
@@ -212,7 +238,7 @@ var RobotStatus = class RobotStatus{
 
     sents(joint_count=5){
         let sm = this.status_mode()
-        if(sm === 0) {
+        if((sm === 0) || (sm === 2)) {
             let result = []
             for(let j_number = 1; j_number <= joint_count;  j_number++){
                 result.push(this.sent(j_number))
@@ -230,15 +256,13 @@ var RobotStatus = class RobotStatus{
     measured_angle(joint_number, raw=false) {
         let sm = this.status_mode()
         if(sm === 0) {
-            if((joint_number >= 0) && (joint_number <= 7)) {
-                if      (joint_number == 1) { return this.robot_status[Dexter.J1_MEASURED_ANGLE] }
-                else if (joint_number == 2) { return this.robot_status[Dexter.J2_MEASURED_ANGLE] }
-                else if (joint_number == 3) { return this.robot_status[Dexter.J3_MEASURED_ANGLE] }
-                else if (joint_number == 4) { return this.robot_status[Dexter.J4_MEASURED_ANGLE] }
-                else if (joint_number == 5) { return this.robot_status[Dexter.J5_MEASURED_ANGLE] }
-                else if (joint_number == 6) { return this.robot_status[Dexter.J6_MEASURED_ANGLE] }
-                else if (joint_number == 7) { return this.robot_status[Dexter.J7_MEASURED_ANGLE] }
-            }
+            if      (joint_number == 1) { return this.robot_status[Dexter.J1_MEASURED_ANGLE] }
+            else if (joint_number == 2) { return this.robot_status[Dexter.J2_MEASURED_ANGLE] }
+            else if (joint_number == 3) { return this.robot_status[Dexter.J3_MEASURED_ANGLE] }
+            else if (joint_number == 4) { return this.robot_status[Dexter.J4_MEASURED_ANGLE] }
+            else if (joint_number == 5) { return this.robot_status[Dexter.J5_MEASURED_ANGLE] }
+            else if (joint_number == 6) { return this.robot_status[Dexter.J6_MEASURED_ANGLE] }
+            else if (joint_number == 7) { return this.robot_status[Dexter.J7_MEASURED_ANGLE] }
             else {
                 dde_error("RobotStatus.measured_angle passed invalid joint_number of: " + joint_number +
                           "<br/>Valid numbers are 1 through 7.")
@@ -254,6 +278,21 @@ var RobotStatus = class RobotStatus{
             else{
                 dde_error("RobotStatus.measured_angle passed invalid joint_number of: " + joint_number +
                           "<br/>Valid numbers are 1 through 7.")
+            }
+        }
+        if(sm === 2) {
+            if((joint_number >= 0) && (joint_number <= 7)) {
+                if      (joint_number == 1) { return this.robot_status[Dexter.J1_MEASURED_ANGLE_G2] / 3600 }
+                else if (joint_number == 2) { return this.robot_status[Dexter.J2_MEASURED_ANGLE_G2] / 3600 }
+                else if (joint_number == 3) { return this.robot_status[Dexter.J3_MEASURED_ANGLE_G2] / 3600 }
+                else if (joint_number == 4) { return this.robot_status[Dexter.J4_MEASURED_ANGLE_G2] / 3600 }
+                else if (joint_number == 5) { return this.robot_status[Dexter.J5_MEASURED_ANGLE_G2] / 3600 }
+                else if (joint_number == 6) { return this.robot_status[Dexter.J6_MEASURED_ANGLE_G2] / 3600 }
+                else if (joint_number == 7) { return this.robot_status[Dexter.J7_MEASURED_ANGLE_G2] / 3600 }
+            }
+            else {
+                dde_error("RobotStatus.measured_angle passed invalid joint_number of: " + joint_number +
+                    "<br/>Valid numbers are 1 through 7.")
             }
         }
         else {
@@ -292,6 +331,15 @@ var RobotStatus = class RobotStatus{
                 rs_array[10 + i] = new_val
             }
         }
+        else if(sm === 2) { //angles in rs_array are in degrees
+            rs_array[Dexter.J1_MEASURED_ANGLE_G2] = array_of_measured_angles[0]
+            rs_array[Dexter.J2_MEASURED_ANGLE_G2] = array_of_measured_angles[1]
+            rs_array[Dexter.J3_MEASURED_ANGLE_G2] = array_of_measured_angles[2]
+            rs_array[Dexter.J4_MEASURED_ANGLE_G2] = array_of_measured_angles[3]
+            rs_array[Dexter.J5_MEASURED_ANGLE_G2] = array_of_measured_angles[4]
+            rs_array[Dexter.J6_MEASURED_ANGLE_G2] = array_of_measured_angles[5]
+            rs_array[Dexter.J7_MEASURED_ANGLE_G2] = array_of_measured_angles[6]
+        }
         else {
             dde_error("RobotStatus.set_measured_angles can't handle status_mode: " + sm)
         }
@@ -310,7 +358,7 @@ var RobotStatus = class RobotStatus{
             }
         }
         else {
-            dde_error("RobotStatus.torque called using status_mode 0, but it only works for 1.")
+            dde_error("RobotStatus.torque called using status_mode " + sm + ", but it only works for 1.")
         }
     }
 
@@ -336,7 +384,7 @@ var RobotStatus = class RobotStatus{
             }
         }
         else {
-            dde_error("RobotStatus.velocity called using status_mode 0, but it only works for 1.")
+            dde_error("RobotStatus.velocity called using status_mode " + sm + ", but it only works for 1.")
         }
     }
 
@@ -345,6 +393,58 @@ var RobotStatus = class RobotStatus{
         let result = []
         for(let j_number = 1; j_number <= joint_count;  j_number++){
             result.push(this.velocity(j_number))
+        }
+        return result
+    }
+
+    raw_encoder_angle(joint_number) {
+        let sm = this.status_mode()
+        if(sm === 2) {
+            if      (joint_number == 1) { return this.robot_status[Dexter.J1_RAW_ENCODER_ANGLE_FXP_G2] }
+            else if (joint_number == 2) { return this.robot_status[Dexter.J2_RAW_ENCODER_ANGLE_FXP_G2] }
+            else if (joint_number == 3) { return this.robot_status[Dexter.J3_RAW_ENCODER_ANGLE_FXP_G2] }
+            else if (joint_number == 4) { return this.robot_status[Dexter.J4_RAW_ENCODER_ANGLE_FXP_G2] }
+            else if (joint_number == 5) { return this.robot_status[Dexter.J5_RAW_ENCODER_ANGLE_FXP_G2] }
+            else {
+                dde_error("RobotStatus.measured_angle passed invalid joint_number of: " + joint_number +
+                    "<br/>Valid numbers are 1 through 5.")
+            }
+        }
+        else {
+            dde_error("RobotStatus.raw_encoder_angle called using status_mode: " + sm + ", but it only works for 2.")
+        }
+    }
+
+    raw_encoder_angles(joint_count=5){
+        let result = []
+        for(let j_number = 1; j_number <= joint_count;  j_number++){
+            result.push(this.raw_encoder_angle(j_number))
+        }
+        return result
+    }
+
+    eye_number(joint_number) {
+        let sm = this.status_mode()
+        if(sm === 2) {
+            if      (joint_number == 1) { return this.robot_status[Dexter.J1_EYE_NUMBER_G2] }
+            else if (joint_number == 2) { return this.robot_status[Dexter.J2_EYE_NUMBER_G2] }
+            else if (joint_number == 3) { return this.robot_status[Dexter.J3_EYE_NUMBER_G2] }
+            else if (joint_number == 4) { return this.robot_status[Dexter.J4_EYE_NUMBER_G2] }
+            else if (joint_number == 5) { return this.robot_status[Dexter.J5_EYE_NUMBER_G2] }
+            else {
+                dde_error("RobotStatus.measured_angle passed invalid joint_number of: " + joint_number +
+                    "<br/>Valid numbers are 1 through 5.")
+            }
+        }
+        else {
+            dde_error("RobotStatus.raw_encoder_angle called using status_mode: " + sm + ", but it only works for 2.")
+        }
+    }
+
+    eye_numbers(joint_count=5){
+        let result = []
+        for(let j_number = 1; j_number <= joint_count;  j_number++){
+            result.push(this.eye_number(j_number))
         }
         return result
     }

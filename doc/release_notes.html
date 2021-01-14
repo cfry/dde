@@ -5,6 +5,68 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 3.7.2, Jan 13, 2021</summary>
+Highlights: Improved robustness of connecting DDE to Dexter includoing error handling
+      and no longer uses ping (to aid Linux installations and speedup).
+      Simplied Misc Pane header/Simulation panel header by removing the extra "Dexter" menu.
+      robot_status: now 4 different possibilities: g0 (the original), g1, g2, and g_other
+      for statuses that are not yet well defined, but we can still look at them in the
+      robot status dialog. TestSuite enhancements.
+<ul>
+    <li>Fixed the Jobs menu/Dexter Tools/Browse Dexter to always browse the current Dexter.default
+        and not always 192.168.1.142</li>
+    <li>Now when a user quits DDE from the Electron menu quit,
+        from the Electron menu item "close window" or from clicking the main DDE window's close box,
+          and there is a file in the editor with unsaved changes,
+          they will be prompted as to whether they want to quit DDE without saving or not.</li>
+    <li>Removed Sim pane header job and robot menu. Now just use the menu in the Misc pane header for selecting
+        the default Dexter.</li>
+    <li>Misc pane robot menu only gets dexter instance names on it,
+        sans the "Dexter." prefix. A bunch of other code simplifcations around this.</li>
+    <li>Redefined <code>default_robot_name()</code>  to return "Dexter." + Dexter.default.name
+        and respelled this method to: <code>default_dexter_full_name()</code></li>
+    <li> Pane header: respelled text: "default robot" to "Dexter.default:"
+    <li>Changed instruction: <code>Dexter.get_robot_status</code>'s only argument's default from null to 0.
+         Passing in an empty argument or null, now results in changing Dexter's status mode to 0, if it wasn't already.
+         Documented in Ref Man/Robot/Dexter/Dexter Instructions/get_robot_status.</li>
+    <li>Misc Pane Header: now has circle i  inspect button to inspect <code>Dexter.default</code>.</li>
+    <li>When starting a Job using a Dexter for the first time since lanuching DDE,
+      DDE gets the link_lengths and other settings from a file on Dexter.
+      Now we first try to get that file via Dexter's node server,
+      and if that fails, we fall back to getting it via a Job which is slower and more error prone.</li>
+    <li>The Robot Status dialog box now has a circle-i icon to the right of the selected robot.
+        Clicking it inspects the selected robot.</li>
+    <li>When Inspecting a Dexter, the line for "robot_status" now has a button on the end of it
+        named "Robot Status Dialog" that brings up the dialog for the inspected robot.</li>
+    <li>Improved the error message: "Error running instruction" to give more information about the error.</li>
+    <li>Fixed bug in sending <code>Dexter.get_robot_status(1)</code> with converting from an ascii digit
+        to an integer.</li>
+    <li>Robot status g2 implemented. New TestSuite file for RobotStatus.</li>
+    <li><code>Dexter.start</code> removed "ping" from checking for existence of Dexter.
+        This simplifies the underlying code, speeds up the starting of a job,
+        and doesn't depend on Ping so should work better on Linux OS.</li>
+    <li>DDE's default link length and joint angle min & max now set to Dexter HDI values.</li>
+    <li>Fixed bug in <code>SimUtils.is_simulator_showing()</code></li>
+    <li>Fixed when_stopped_testsuite to handle new pingless architecture.</li>
+    <li>Option_click on editor now improves the display of Make Instruction by
+         setting the Misc pane header correctly to "Make Instruction".</li>
+    <li>Improved <code>show_in_misc_pane</code> to accept arg1 of the source code for make_instruction.</li>
+    <li>Improved logic in <code>show_in_misc_pane</code> to coordinate its setting from various sources.</li>
+    <li>Improved instruction <code>Control.wait_until</code> by not having it send periodic
+        "keep_alive" g instructions during a long wait.
+         This new code is simpler, removes a bug in waiting,
+         and shifts the retrying to Socket.send which already had that mechanism in place.</li>
+    <li>Fixed the setting of the Misc pane menu item in two places.</li>
+    <li>Using option-click to select a whole <code>new TestSuite</code> expression in the editor
+        no longer switches the Misc pane to "Make Instruction"
+        because usually you want to run a TestSuite with Simulate Dexter in the Misc pane.</li>
+    <li>The Output Pane header STOP button now also stops running TestSuites.</li>
+    <li>Fixed Simulator to compute the <i>actual</i> last frame of simulation instead of one short,
+       thus improving the accuracy of simulation.</li>
+    <li>The manual TestSuite has been improved with a large PHUI_GUI test.</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.7.1, Dec 27, 2020</summary>
 Highlights: Support for robot status's g1, and g_other.
 <ul>

@@ -33,7 +33,7 @@ var Robot = class Robot {
         else { return rob_class.all_names.length > 0 }
     }
 
-    //put the new item on the end, even if ypu have to remove it from the middle,
+    //put the new item on the end, even if you have to remove it from the middle,
     //because we want the latest on the end for default_robot_name
     static set_robot_name(name, robot_instance){
         Robot[name] = robot_instance
@@ -41,16 +41,14 @@ var Robot = class Robot {
         let i = Robot.all_names.indexOf(name)
         if (i != -1){ Robot.all_names.splice(i, 1) }
         Robot.all_names.push(name)
-        if ((i == -1) && (robot_instance instanceof Dexter) && window["job_or_robot_to_simulate_id"]) {
-            let a_option = document.createElement("option");
-            a_option.innerText = "Robot." + name
-            job_or_robot_to_simulate_id.prepend(a_option)
-        }
         //for Make Instance dialog
-        if ((i == -1) && window["add_robot_to_default_menu"]) {
-            add_robot_to_default_menu(robot_instance)
+        if ((i == -1) &&
+             window["add_dexter_to_dexter_default_menu"] &&
+            (robot_instance instanceof Dexter)) {
+            add_dexter_to_dexter_default_menu(robot_instance)
         }
     }
+
     static get_simulate_actual(simulate_val){
         if      (simulate_val === true)   { return true   }
         else if (simulate_val === false)  { return false  }
@@ -1042,11 +1040,11 @@ Dexter = class Dexter extends Robot {
     }
 
     start(job_instance){
-        let sim_actual = Robot.get_simulate_actual(this.simulate)
-        let this_robot = this
-        let this_job   = job_instance
-        if ([false, "both"].includes(sim_actual)){
-                let ping = require('ping') //https://www.npmjs.com/package/ping
+        //let sim_actual = Robot.get_simulate_actual(this.simulate)
+        //let this_robot = this
+        //let this_job   = job_instance
+        //if ([false, "both"].includes(sim_actual)){ //runnig in "real" not simulated.
+              /*let ping = require('ping') //https://www.npmjs.com/package/ping
                 ping.sys.probe(this.ip_address,
                                 function(isAlive, err){
                                     if (isAlive) {
@@ -1069,28 +1067,34 @@ Dexter = class Dexter extends Robot {
                                     }
                                 },
                                {timeout: 10}
-                               )
+                               )*/
+          //new strategy: just let the socket interface test Dexter connectivity because ping fails on Linux
+          //run same code for sim and real
+        if(job_instance.name == "set_link_lengths") { //don't attempt to set link lengths again!
+            this.start_aux(job_instance)
         }
         else {
+            this.set_link_lengths(job_instance)
+        }
+        /*}
+        else { //running in simulation
             if(job_instance.name == "set_link_lengths") { //don't attempt to set link lengths again!
                 this_robot.start_aux(job_instance)
             }
-            else { setTimeout(function(){
-                                    this_robot.set_link_lengths(this_job)
-                                },
-                              500)
+            else {
+                this_robot.set_link_lengths(this_job)
             }
         } //no actual connection to Dexter needed as we're only simulating, BUT
                                  //to keep similation as much like non-sim. due the same timeout.
+       */
     }
 
     start_aux(job_instance) { //fill in initial robot_status
-        Socket.init(this.name)
         this.processing_flush = false
         let this_robot = this
         let this_job   = job_instance
         //give it a bit of time in case its in the process of initializing
-        setTimeout(function(){ //give robot a chance to get its socket before doing the initial "g" send.
+        let connect_success_cb = function(){ //give robot a chance to get its socket before doing the initial "g" send.
                         const sim_actual = Robot.get_simulate_actual(this_robot.simulate)
                         if(!this_robot.is_initialized()){
                             if (this_robot.simulate === true){
@@ -1123,9 +1127,13 @@ Dexter = class Dexter extends Robot {
                             }
 
                         }
-                        else { this_job.send(Dexter.get_robot_status(), this_robot)}
-                    },
-                    200)
+                        else { this_job.send(Dexter.get_robot_status(), this_robot)} //the initial g stareting off the job
+        }
+        let connect_error_cb = function(){
+             this_job.stop_for_reason("errored_from_dexter_connect",
+                 "The job: " + this_job.name + " could not connect to Dexter." + this_robot.name)
+        }
+        Socket.init(this.name, connect_success_cb, connect_error_cb)
     }
 
     static get_robot_with_ip_address_and_port(ip_address, port){
@@ -1314,28 +1322,27 @@ Dexter = class Dexter extends Robot {
         }
         let job_id       = robot_status[Dexter.JOB_ID]
         let job_instance = Job.job_id_to_job_instance(job_id)
+        let ins_id  = robot_status[Dexter.INSTRUCTION_ID] //-1 means the initiating status get, before the first od_list instruction
+        let oplet  = robot_status[Dexter.INSTRUCTION_TYPE]
+        let error_code = robot_status[Dexter.ERROR_CODE]
+        let rob     = this //job_instance.robot
         if (job_instance == null){ //note: we have to error here because we can't get the job
             //so we can't call stop_for_reason
             throw new Error("Dexter.robot_done_with_instruction passed job_id: " + job_id +
                             " but couldn't find a Job instance with that job_id.")
         }
         if(this instanceof Dexter) { this.remove_from_busy_job_array(job_instance) }
-        if ((robot_status.length != Dexter.robot_status_labels.length) &&
-            (robot_status.length != Dexter.robot_ack_labels.length)){ //allows when_stopped action to run if any
+        if (robot_status.length != Dexter.robot_status_labels.length){ //allows when_stopped action to run if any
             job_instance.condition_when_stopped = "errored_from_dexter"
             job_instance.stop_for_reason("errored_from_dexter",
                "Dexter.robot_done_with_instruction recieved a robot_status array: " +
                 robot_status + "<br/> of length: " + robot_status.length +
-                " that is not the proper length of: " + Dexter.robot_status_labels.length +
-                " or: " + Dexter.robot_ack_labels.length)
+                " that is not the proper length of: " + Dexter.robot_status_labels.length)
             job_instance.set_up_next_do(0)
             return
         }
-        else if (robot_status[Dexter.ERROR_CODE] !== 0){
-            let ins_id = robot_status[Dexter.INSTRUCTION_ID]
-            let ins    = job_instance.do_list[ins_id]
-            let oplet  = ins[Instruction.INSTRUCTION_TYPE]
-            if(oplet === "r") {  //Dexter.read_file errored, assuming its "file not found" so end the rfr loop and set the "content read" as null, meaning file not found
+        else if ((robot_status[Dexter.ERROR_CODE] !== 0) && (oplet === "r")){ //we have an error
+             //Dexter.read_file errored, assuming its "file not found" so end the rfr loop and set the "content read" as null, meaning file not found
                 //the below setting of the user data already done by got_content_hunk
                 //let rfr_instance = Instruction.Dexter.read_file.find_read_file_instance_on_do_list(job_instance, ins_id)
                 // job_instance.user_data[ins.destination] = null //usually means "file not found"
@@ -1343,19 +1350,12 @@ Dexter = class Dexter extends Robot {
                 this.perform_instruction_callback(job_instance) //calls set_up_next_do(1) but we want 0, because we want to give the Dexter.read_file instance code a chance to clean up before ending its loop
                 //job_instance.set_up_next_do(0)
                 return
-            }
         }
-
-        let got_ack = (robot_status.length == Dexter.robot_ack_labels.length) //if we have an "acknowledgent, it means we DON"T have in robot_status all we need to render the joint positions
-        let rob     = this //job_instance.robot
-        let ins_id  = robot_status[Dexter.INSTRUCTION_ID] //-1 means the initiating status get, before the first od_list instruction
-        let op_let  = robot_status[Dexter.INSTRUCTION_TYPE]
-        //let op_let = String.fromCharCode(op_let_number)
-        if (op_let === "h") { //we got heartbeat acknowledgement of reciept by phys or sim so now no longer waiting for that acknowledgement
+        if (oplet === "h") { //we got heartbeat acknowledgement of reciept by phys or sim so now no longer waiting for that acknowledgement
             rob.waiting_for_heartbeat = false
             return
         }
-        else if (op_let === "F"){
+        else if (oplet === "F"){
             if (rob.processing_flush) { rob.processing_flush = false }
             else { shouldnt("robot_done_with_instruction passed a returned instruction oplet of: F " +
                             "but " + this.name + ".processing_flush is false. " +
@@ -1371,24 +1371,13 @@ Dexter = class Dexter extends Robot {
         //only comming for simulation and not from read dexter.
         //else if (ins_id == -1) {}
         else {
-            //job_instance.highest_completed_instruction_id = ins_id //now always done by set_up_next_do
-            if (!got_ack){
-                rob.set_robot_status(robot_status) //makes RobotStatus updated too
-                if (job_instance.keep_history && (op_let == "g")){ //don't do it for oplet "G", get_robot_status_immediate
+            rob.set_robot_status(robot_status) //makes RobotStatus updated too
+            if (job_instance.keep_history && (oplet == "g")){ //don't do it for oplet "G", get_robot_status_immediate
                     job_instance.rs_history.push(robot_status)
-                }
-                /*Don't do this rob.angles is set by move_all_joints BEFORE sending it to robot and should not
-                  be set by a move_all_joints coming back from robot.
-                else if (op_let == "a"){ //no robot_status so I must get the pos we tried to move_to. This works for orign insturctions of move_to, move_to_relative, and move_all_joints
-                                         //rob.xy used by move_to_relative
-                    const full_inst = job_instance.do_list[ins_id]
-                    rob.angles = [full_inst[Dexter.J1_ANGLE], full_inst[Dexter.J2_ANGLE], full_inst[Dexter.J3_ANGLE], full_inst[Dexter.J4_ANGLE], full_inst[Dexter.J5_ANGLE]]
-                }*/
             }
             if(window.platform === "dde"){
                 RobotStatusDialog.update_robot_status_table_maybe(rob) //if the dialog isn't up, this does nothing
             }
-            var error_code = robot_status[Dexter.ERROR_CODE]
             if (error_code !== 0){ //we've got an error
                 //job_instance.stop_for_reason("errored", "Robot status got error: " + error_code)
                 if (job_instance.wait_until_instruction_id_has_run === ins_id){ //we've done it!
@@ -2246,12 +2235,13 @@ Dexter.prototype.prop = function(prop_name, get_from_dexter=false){
 //Dexter constants
 //values in microns, pivot point to pivot point, not actual link length.
 //Dexter manufacturing tolerance is about 5 microns for these link lengths.
+
 //             HDI         ORIG DEX              ORIG DEX
-Dexter.LINK1 = 0.2352    //0.228600   //meters   6.5 inches,
-Dexter.LINK2 = 0.339092  //0.320676   //meters  12 5/8 inches
-Dexter.LINK3 = 0.3075    //0.330201   //meters  13 inches
-Dexter.LINK4 = 0.0595    //0.050801   //meters  2 inches
-Dexter.LINK5 = 0.08244   //0.082551   //meters  3.25 inches  // from pivot point to tip of the end-effector
+Dexter.LINK1 = 0.235200    //0.228600   //meters   6.5 inches,
+Dexter.LINK2 = 0.339092   //0.320676   //meters  12 5/8 inches
+Dexter.LINK3 = 0.307500    //0.330201   //meters  13 inches
+Dexter.LINK4 = 0.059500    //0.050801   //meters  2 inches
+Dexter.LINK5 = 0.082440   //0.082551   //meters  3.25 inches  // from pivot point to tip of the end-effector
 //Dexter.LINKS = [0, Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5]
 
 /*These are the HDI Link Lengths as of Jan 1, 2020:
@@ -2277,7 +2267,7 @@ Dexter.LINK5_AVERAGE_DIAMETER =  0.030000 //meters
 //gets called regardless of whether simulate = true or not because
 //even if we're simulating, we like to get that actual link lengths from
 //the dexter IF its available
-Dexter.prototype.set_link_lengths = function(job_to_start_when_done = null){
+/*Dexter.prototype.set_link_lengths = function(job_to_start_when_done = null){
     let job_to_start = job_to_start_when_done //for closure
     let the_robot  = this //for closure
     let sim_actual = Robot.get_simulate_actual(this.simulate)
@@ -2293,69 +2283,168 @@ Dexter.prototype.set_link_lengths = function(job_to_start_when_done = null){
     if(!this.Link1 &&
        (!job_to_start || (job_to_start.name != "set_link_lengths"))){
        //we're going to set link lengths.
-        let callback = function() {
-            the_robot.start_aux(job_to_start)
-        }
         if(sim_actual !== true) { //get link lengths from Dexter
-            let ssl_job = new Job({name: "set_link_lengths",
-                 robot: this,
-                 show_instructions: false,
-                 when_stopped: (job_to_start ? callback : "stop"),
-                 do_list: [
-                    Dexter.read_file("../Defaults.make_ins", "default_content"),
-                    function() {
-                       if(typeof(this.user_data.default_content) == "string"){
-                           this.robot.set_link_lengths_from_file_content(this.user_data.default_content)
-                       }
-                       else { //no file because we got an error code integer in this.user_data.default_content
-                           the_robot.Link1 = Dexter.LINK1
-                           the_robot.Link2 = Dexter.LINK2
-                           the_robot.Link3 = Dexter.LINK3
-                           the_robot.Link4 = Dexter.LINK4
-                           the_robot.Link5 = Dexter.LINK5
-                       }
-                    }
-                 ]})
-            setTimeout(function(){
-                        ssl_job.start()
-                      },
-                           500)
-            delete the_robot.link_lengths_set_from_dde_computer //just in case it was previously set from dde computer
-        }
-        else { //get link lengths from dde computer
-            let path = dde_apps_folder + "/dexter_file_systems/"  + the_robot.name + "/Defaults.make_ins"
-            if(file_exists(path)) {
-                let content = read_file(path)
-                this.set_link_lengths_from_file_content(content)
+            if(node_server_supports_editor(this)) {
+                this.set_link_lengths_using_node_server(job_to_start)
             }
             else {
-                the_robot.Link1 = Dexter.LINK1
-                the_robot.Link2 = Dexter.LINK2
-                the_robot.Link3 = Dexter.LINK3
-                the_robot.Link4 = Dexter.LINK4
-                the_robot.Link5 = Dexter.LINK5
-
-                the_robot.J1_angle_min = Dexter.J1_ANGLE_MIN
-                the_robot.J2_angle_min = Dexter.J2_ANGLE_MIN
-                the_robot.J3_angle_min = Dexter.J3_ANGLE_MIN
-                the_robot.J4_angle_min = Dexter.J4_ANGLE_MIN
-                the_robot.J5_angle_min = Dexter.J5_ANGLE_MIN
-                the_robot.J6_angle_min = Dexter.J6_ANGLE_MIN
-                the_robot.J7_angle_min = Dexter.J7_ANGLE_MIN
-
-                the_robot.J1_angle_max = Dexter.J1_ANGLE_MAX
-                the_robot.J2_angle_max = Dexter.J2_ANGLE_MAX
-                the_robot.J3_angle_max = Dexter.J3_ANGLE_MAX
-                the_robot.J4_angle_max = Dexter.J4_ANGLE_MAX
-                the_robot.J5_angle_max = Dexter.J5_ANGLE_MAX
-                the_robot.J6_angle_min = Dexter.J6_ANGLE_MAX
-                the_robot.J7_angle_min = Dexter.J7_ANGLE_MAX
+                warning("Dexter." + the_robot.name + "'s node server is not responding.<br/>" +
+                        "Now attempting to get link lengths via a Job.")
+                this.set_link_lengths_using_job(job_to_start)
             }
-            the_robot.link_lengths_set_from_dde_computer = true
-            the_robot.start_aux(job_to_start)
+        }
+        else { //get link lengths from dde computer
+            this.set_link_lengths_using_dde_db(job_to_start)
         }
     }
     else {
+        this.start_aux(job_to_start)
+    }
+}*/
+
+//note that
+Dexter.prototype.set_link_lengths = function(job_to_start_when_done = null){
+    let sim_actual = Robot.get_simulate_actual(this.simulate)
+    if(job_to_start_when_done.name === "set_link_lengths") {
+        this.start_aux(job_to_start_when_done)
+    }
+    else if(!this.Link1) { //no values set since dde launch
+        if(sim_actual !== true) { //ie "real"
+            if(node_server_supports_editor(this)) {
+                this.set_link_lengths_using_node_server(job_to_start_when_done)
+            }
+            else {
+                warning("Dexter." + this.name + "'s node server is not responding.<br/>" +
+                    "Now attempting to get link lengths via Job.set_link_lengths")
+                this.set_link_lengths_using_job(job_to_start_when_done)
+            }
+        }
+        else { //simulating
+            this.set_link_lengths_using_dde_db(job_to_start_when_done)
+        }
+    }
+    //already set the Link lengths once, but ...
+    else if((sim_actual !== true) && //ie real
+            (this.link_lengths_set_from_dde_computer === true)) { //the only time we read link_lengths_set_from_dde_computer
+        if(node_server_supports_editor(this)) {
+            this.set_link_lengths_using_node_server(job_to_start_when_done)
+        }
+        else {
+            warning("Dexter." + this.name + "'s node server is not responding.<br/>" +
+                "Now attempting to get link lengths via Job.set_link_lengths")
+            this.set_link_lengths_using_job(job_to_start_when_done)
+        }
+    }
+    else {//link lengths already set correctly
+        this.start_aux(job_to_start_when_done)
+    }
+}
+
+/*
+Dexter.prototype.set_link_lengths_using_node_server = function(job_to_start){
+    let path = //"https://" + this.ip_address + "/srv/samba/share/Defaults.make_ins"
+              "http://192.168.1.142/edit?edit=/srv/samba/share/Defaults.make_ins"
+    let the_dexter = this
+    let callback = function(err, data){
+        if(err){
+            dde_error("in set_link_lengths_using_node_server, could not get content of:<br/>" +
+                       path)
+        }
+        else {
+            if(typeof(data) !== "string") {
+                data = data.body
+            }
+            the_dexter.set_link_lengths_from_file_content(data)
+            if(job_to_start) { job_to_start.start }
+        }
+    }
+    read_file_async(path, undefined, callback)
+}
+*/
+
+Dexter.prototype.set_link_lengths_using_node_server = function(job_to_start){
+    let path = "http://192.168.1.142/edit?edit=/srv/samba/share/Defaults.make_ins"
+    let content = get_page(path)
+    if(content.startsWith("Error: ")) {
+        warning("set_link_lengths_using_node_server with path: " + path +
+                " got error: " + content +
+                "<br/> so now setting link lengths using a DDE Job.")
+        this.set_link_lengths_using_job(job_to_start) //this will deal with link_lengths_set_from_dde_computer
+    }
+    else {
+        this.set_link_lengths_from_file_content(content)
+        delete this.link_lengths_set_from_dde_computer
+        if(job_to_start) {
+            this.start_aux(job_to_start)
+        }
+    }
+}
+
+Dexter.prototype.set_link_lengths_using_job = function(job_to_start){
+    let the_robot = this
+    let callback = function() {
+        if(Job.set_link_lengths) {
+            out("in sll cbb")
+        }
+        the_robot.start_aux(job_to_start)
+    }
+    let ssl_job =  new Job({name: "set_link_lengths",
+                            robot: this,
+                            show_instructions: false,
+                            when_stopped: (job_to_start ? callback : "stop"),
+                            if_dexter_connect_error: function(robot_name){
+                                 warning("Can't connect to Dexter." + robot_name + " executing Job." + "set_link_lengths")
+                                if(job_to_start.if_dexter_connect_error){
+                                    job_to_start.if_dexter_connect_error(robot_name)
+                                }
+                                job_to_start.stop_for_reason("errored", "Can't connect to robot: " + robot_name)
+                            },
+                            do_list: [
+                                Dexter.read_file("../Defaults.make_ins", "default_content"), //gets file from Dexter
+                                function() {
+                                    if(typeof(this.user_data.default_content) == "string"){
+                                        this.robot.set_link_lengths_from_file_content(this.user_data.default_content)
+                                        delete the_robot.link_lengths_set_from_dde_computer //because link lengths set from Dexter
+                                    }
+                                    else { //no file because we got an error code integer in this.user_data.default_content
+                                        this.robot.set_link_lengths_using_dde_db(job_to_start) //will deal with link_lengths_set_from_dde_computer
+                                    }
+                                }
+                            ]})
+    ssl_job.start()
+}
+
+Dexter.prototype.set_link_lengths_using_dde_db = function(job_to_start){
+    let path = dde_apps_folder + "/dexter_file_systems/"  + this.name + "/Defaults.make_ins"
+    if(file_exists(path)) {
+        let content = read_file(path)
+        this.set_link_lengths_from_file_content(content)
+    }
+    else {
+        this.Link1 = Dexter.LINK1
+        this.Link2 = Dexter.LINK2
+        this.Link3 = Dexter.LINK3
+        this.Link4 = Dexter.LINK4
+        this.Link5 = Dexter.LINK5
+
+        this.J1_angle_min = Dexter.J1_ANGLE_MIN
+        this.J2_angle_min = Dexter.J2_ANGLE_MIN
+        this.J3_angle_min = Dexter.J3_ANGLE_MIN
+        this.J4_angle_min = Dexter.J4_ANGLE_MIN
+        this.J5_angle_min = Dexter.J5_ANGLE_MIN
+        this.J6_angle_min = Dexter.J6_ANGLE_MIN
+        this.J7_angle_min = Dexter.J7_ANGLE_MIN
+
+        this.J1_angle_max = Dexter.J1_ANGLE_MAX
+        this.J2_angle_max = Dexter.J2_ANGLE_MAX
+        this.J3_angle_max = Dexter.J3_ANGLE_MAX
+        this.J4_angle_max = Dexter.J4_ANGLE_MAX
+        this.J5_angle_max = Dexter.J5_ANGLE_MAX
+        this.J6_angle_min = Dexter.J6_ANGLE_MAX
+        this.J7_angle_min = Dexter.J7_ANGLE_MAX
+    }
+    this.link_lengths_set_from_dde_computer = true
+    if(job_to_start) {
         this.start_aux(job_to_start)
     }
 }
@@ -2409,15 +2498,15 @@ Dexter.prototype.set_link_lengths_from_file_content = function(content){
 
 Dexter.LEG_LENGTH = 0.152400 //meters  6 inches
 
-//values in degrees
-Dexter.J1_ANGLE_MIN = -150
-Dexter.J1_ANGLE_MAX = 150
-Dexter.J2_ANGLE_MIN = -90
-Dexter.J2_ANGLE_MAX = 90
+//values in degrees, Dexter HDI
+Dexter.J1_ANGLE_MIN = -185
+Dexter.J1_ANGLE_MAX = 185
+Dexter.J2_ANGLE_MIN = -105
+Dexter.J2_ANGLE_MAX = 105
 Dexter.J3_ANGLE_MIN = -150
 Dexter.J3_ANGLE_MAX = 150
-Dexter.J4_ANGLE_MIN = -130 //-100
-Dexter.J4_ANGLE_MAX = 130  //100
+Dexter.J4_ANGLE_MIN = -120 //-100
+Dexter.J4_ANGLE_MAX = 120  //100
 Dexter.J5_ANGLE_MIN = -185
 Dexter.J5_ANGLE_MAX = 185
 Dexter.J6_ANGLE_MIN = 0
@@ -2550,6 +2639,7 @@ Dexter.robot_status_labels = [
     "SLOPE_ROT_POSITION"    //  48
 ] */
 //for acknowledgement
+/* obsolete Jan 2021
 Dexter.robot_ack_labels = [
 //new name   old name                   array index
 // misc block
@@ -2559,7 +2649,7 @@ Dexter.robot_ack_labels = [
     "STOP_TIME",           //3 //ms since jan 1, 1970? From Dexter's clock
     "INSTRUCTION_TYPE",    //4 "oplet"
     "ERROR_CODE"           //5   0 means ok
-]
+]*/
 
 //call this from most code
 Dexter.robot_status_labels_sm = function(sm=0){
@@ -2573,8 +2663,8 @@ Dexter.robot_status_labels_sm = function(sm=0){
 }
 
 Dexter.robot_status_labels = [
-//new name   old name                   array index
-// misc block
+//new name             old name
+// misc block                    array index
 "JOB_ID",              //new field                    0 //for commmanded instruction (when added to queue)
 "INSTRUCTION_ID",      //same name                    1 //for cmd ins
 "START_TIME",          //new field                    2 //for cmd ins//ms since jan 1, 1970? From Dexter's clock
@@ -2800,6 +2890,89 @@ Dexter.robot_status_labels_g1 = [
 
 Dexter.robot_status_index_labels_g1 = []
 Dexter.make_robot_status_indices(Dexter.robot_status_labels_g1, Dexter.robot_status_index_labels_g1)
+
+/* changes from g0 to g2:
+DONE Replace *_AT (presumably ANGLE as in J1_ANGLE) with *_RAW_ENCODER_ANGLE_FXP
+DONE Replace *_DELTA with *_EYE_NUMBER
+NO CHANGE Keep *_PID_DELTA
+DON'T DO: Replace *_FORCE_DELTA with AdcCenter  What's FORCE_DELTA?
+NO CHANGE Keep *_SIN
+NO CHANGE Keep *_COS
+NO CHANGE Keep MEASURED_ANGLE
+*/
+Dexter.robot_status_labels_g2 = [
+//new name             old name
+// misc block                    array index
+    "JOB_ID",              //new field                    0 //for commmanded instruction (when added to queue)
+    "INSTRUCTION_ID",      //same name                    1 //for cmd ins
+    "START_TIME",          //new field                    2 //for cmd ins//ms since jan 1, 1970? From Dexter's clock
+    "STOP_TIME",           //new field                    3 //for cmd ins//ms since jan 1, 1970? From Dexter's clock
+    "INSTRUCTION_TYPE",    //same name                    4 //for cmd ins  //"oplet"
+
+    "ERROR_CODE",          //same name                    5 //for any error      //0 means no error. 1 means an error
+    "DMA_READ_DATA",       //                             6 // deprecated DMA_READ_DATA  then deprecated  "JOB_ID_OF_CURRENT_INSTRUCTION"
+    "READ_BLOCK_COUNT",    //                             7 // deprecated READ_BLOCK_COUNT then deprecated CURRENT_INSTRUCTION_ID
+    "STATUS_MODE",   //same name                    8 //was RECORD_BLOCK_SIZE and was unused
+    "END_EFFECTOR_IO_IN",     //END_EFFECTOR_IO_IN           9 // was END_EFFECTOR_IN for a while, 0, 1, or 2 indicating type of io for end effector
+
+//J1 block
+    "J1_RAW_ENCODER_ANGLE_FXP_G2",            // BASE_POSITION_AT           10 //means commanded stepped angle, not commanded_angle and not current_angle
+    "J1_EYE_NUMBER_G2",            // BASE_POSITION_DELTA        11
+    "J1_PID_DELTA_G2",        // BASE_POSITION_PID_DELTA    12
+    null,                  // BASE_POSITION_FORCE_DELTA  13 //was J1_FORCE_CALC_ANGLE
+    "J1_A2D_SIN_G2",          // BASE_SIN                   14
+    "J1_A2D_COS_G2",          // BASE_COS                   15
+    "J1_MEASURED_ANGLE_G2",   // PLAYBACK_BASE_POSITION     16 //deprecated J1_PLAYBACK
+    "J1_SENT_G2",             // SENT_BASE_POSITION         17 //unused. angle sent in the commanded angle of INSTRUCTION_ID
+    "J7_MEASURED_ANGLE_G2",   // SLOPE_BASE_POSITION        18 //deprecated J1_SLOPE
+    null,                 //                            19 //was J1_MEASURED_ANGLE. not used, get rid of, now don't compute on dde side,
+//J2 block of 10
+    "J2_RAW_ENCODER_ANGLE_FXP_G2",            // END_POSITION_AT            20
+    "J2_EYE_NUMBER_G2",            // END_POSITION_DELTA         21
+    "J2_PID_DELTA_G2",        // END_POSITION_PID_DELTA     22 was J2_FORCE_CALC_ANGLE
+    null, // END_POSITION_FORCE_DELTA   23
+    "J2_A2D_SIN_G2",          // END_SIN                    24
+    "J2_A2D_COS_G2",          // END_COS                    25
+    "J2_MEASURED_ANGLE_G2",   // PLAYBACK_END_POSITION      26 //deprecated J2_PLAYBACK
+    "J2_SENT_G2",             // SENT_END_POSITION          27 //unused
+    "J7_MEASURED_TORQUE_G2",  // SLOPE_END_POSITION         28 //deprecated J2_SLOPE
+    null,                 // new field                  29 //was J2_MEASURED_ANGLE, not used, get rid of,
+//J2 block of 10
+    "J3_RAW_ENCODER_ANGLE_FXP_G2",            // PIVOT_POSITION_AT           30
+    "J3_EYE_NUMBER_G2",            // PIVOT_POSITION_DELTA        31
+    "J3_PID_DELTA_G2",        // PIVOT_POSITION_PID_DELTA    32
+    null,                  // PIVOT_POSITION_FORCE_DELTA  33  was "J3_FORCE_CALC_ANGLE"
+    "J3_A2D_SIN_G2",          // PIVOT_SIN                   34
+    "J3_A2D_COS_G2",          // PIVOT_SIN                   35
+    "J3_MEASURED_ANGLE_G2",   // PLAYBACK_PIVOT_POSITION     36 //deprecated J3_PLAYBACK
+    "J3_SENT_G2",             // SENT_PIVOT_POSITION         37 //unused
+    "J6_MEASURED_ANGLE_G2",   // SLOPE_PIVOT_POSITION        38 //deprecated  J3_SLOPE
+    null,                 // new field                   39 //was J3_MESURED_ANGLE not used get rid of
+//J4 block of 10
+    "J4_RAW_ENCODER_ANGLE_FXP_G2",            // ANGLE_POSITION_AT           40
+    "J4_EYE_NUMBER_G2",            // ANGLE_POSITION_DELTA        41
+    "J4_PID_DELTA_G2",        // ANGLE_POSITION_PID_DELTA    42
+    null,                  // ANGLE_POSITION_FORCE_DELTA  43 was "J4_FORCE_CALC_ANGLE"
+    "J4_A2D_SIN_G2",          // ANGLE_SIN                   44
+    "J4_A2D_COS_G2",          // ANGLE_SIN                   45
+    "J4_MEASURED_ANGLE_G2",   // PLAYBACK_ANGLE_POSITION     46 //deprecated J4_PLAYBACK
+    "J4_SENT_G2",             // SENT_ANGLE_POSITION         47 //unused
+    "J6_MEASURED_TORQUE_G2",  // SLOPE_ANGLE_POSITION        48 //deprecated J4_SLOPE
+    null,                  // new field                   49 //not used get rid of
+//J4 block of 10
+    "J5_RAW_ENCODER_ANGLE_FXP_G2",            // ROTATE_POSITION_AT          50
+    "J5_EYE_NUMBER_G2",            // ROTATE_POSITION_DELTA       51
+    "J5_PID_DELTA_G2",        // ROTATE_POSITION_PID_DELTA   52
+    null,                  // ROT_POSITION_FORCE_DELTA    53 was "J5_FORCE_CALC_ANGLE"
+    "J5_A2D_SIN_G2",          // ROT_SIN                     54
+    "J5_A2D_COS_G2",          // ROT_SIN                     55
+    "J5_MEASURED_ANGLE_G2",   // PLAYBACK_ROT_POSITION       56 //deprecated J5_PLAYBACK
+    "J5_SENT_G2",             // SENT_ROT_POSITION           57 //unused
+    null,                  // SLOPE_ROT_POSITION          58 //deprecated J5_SLOPE  unusued
+    null                   // new field                   59 //was J5_MEASURED_ANGLE, not used get rid of
+]
+Dexter.robot_status_index_labels_g2 = []
+Dexter.make_robot_status_indices(Dexter.robot_status_labels_g2, Dexter.robot_status_index_labels_g2)
 
 Dexter.robot_status_labels_g_other = [
     // misc block
@@ -3162,7 +3335,7 @@ var {Instruction, make_ins} = require("./instruction.js")
 Dexter.make_ins = make_ins
 var {shouldnt, date_integer_to_long_string, is_iterator, is_string_an_identifier, last,
     return_first_arg, starts_with_one_of, stringify_value, value_of_path} = require("./utils")
-var {file_exists, persistent_get, read_file} = require("./storage")
+var {file_exists, node_server_supports_editor, persistent_get, read_file} = require("./storage")
 var Socket = require("./socket.js")
 var {serial_connect, serial_disconnect, serial_send} = require("./serial.js")
 

@@ -14,7 +14,7 @@ var SimX = class SimX{
         if(!simulate_radio_true_id.checked) {
             simulate_radio_true_id.checked = true
         }
-        if(misc_pane_menu_id.value !== "Simulate Dexter"){
+        if(misc_pane_menu_selection !== "Simulate Dexter"){
             show_in_misc_pane("Simulate Dexter")
         }
     }

@@ -108,6 +108,8 @@
         platform         = "dde" //"node" is the other possibility, which happens when we're in the job_engine
         //serial_port_init() //now does nothing, No longer necessary to use serial port.
         //window.Root      = Root //should work but doesn't jan 13, 2019
+
+
         Coor.init()
         //see also ./core/index.js that has this same code
         Dexter.calibrate_build_tables = calibrate_build_tables
@@ -1163,7 +1165,12 @@ foo      //eval to see the latest values</pre>`,
      //jobs menu
     show_robot_status_id.onclick   = RobotStatusDialog.show
     jobs_report_id.onclick         = function(){Job.report() }
-    stop_all_jobs_id.onclick       = function(){Job.stop_all_jobs() }
+    stop_all_jobs_id.onclick       = function(){
+                                         Job.stop_all_jobs()
+                                         if(!TestSuite.status) {
+                                             TestSuite.immediate_stop = true
+                                         }
+                                     }
     undefine_jobs_id.onclick       = function(event){
         Job.clear_stopped_jobs()
         event.target.blur()
@@ -1300,7 +1307,7 @@ foo      //eval to see the latest values</pre>`,
                             //but see https://electronjs.org/docs/api/browser-window-proxy
        */
         var {shell} = require("electron")
-        shell.openExternal("http://192.168.1.142") //shows url, back/forward buttons. Allows resizing.
+        shell.openExternal(url) //shows url, back/forward buttons. Allows resizing.
     }
     show_errors_log_id.onclick = function(){
         let path = "Dexter." + Dexter.default.name + ":/srv/samba/share/errors.log"
@@ -1421,6 +1428,8 @@ foo      //eval to see the latest values</pre>`,
                                           demo_id.innerHTML = "Demo"
                                     }
                                }
+    inspect_dexter_details_id.onclick = function() { inspect(Dexter.default) }
+
     pause_id.onclick         = function (){
                                     if (pause_id.checked) { //it just got checked
                                            Job.go_button_state = false
@@ -1450,7 +1459,7 @@ foo      //eval to see the latest values</pre>`,
             let item = $('#misc_pane_menu_id').jqxComboBox('getItem', args.index)
             if(item) {
                 let val = item.value
-                if(val) {
+                if(val && (val !== misc_pane_menu_selection)) {
                     setTimeout(function() {
                         show_in_misc_pane(val)
                     }, 100)
@@ -1517,7 +1526,7 @@ foo      //eval to see the latest values</pre>`,
     }
 
     //this must be before dde_init_dot_js_initialize() so that when a robot is defined, it can go on the menu
-    default_robot_name_menu_container_id.innerHTML = make_default_robot_menu_html()
+    default_robot_name_menu_container_id.innerHTML = make_dexter_default_menu_html()
 
     PatchDDE.init()
 

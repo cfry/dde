@@ -149,8 +149,9 @@ new TestSuite("when_stopped_error",
     do_list: [
         function(){ this.user_data.an_array.push(81)}, //runs
         function(){ unbound_var_name }, //causes an error
-        function(){ this.user_data.an_array.push(82)} //doesn't run
-    ]
+        function(){ this.user_data.an_array.push(82)}, //doesn't run
+        Dexter.empty_instruction_queue()
+   ]
    })`, "TestSuite.error"],
    ["Job.my_job.user_data.an_array", "[80,81,83]"],
    [`new Job({
@@ -161,8 +162,9 @@ new TestSuite("when_stopped_error",
     do_list: [
         function(){ this.user_data.an_array.push(81)}, //runs
         function(){ unbound_var_name }, //causes an error
-        function(){ this.user_data.an_array.push(82)} //doesn't run
-    ]
+        function(){ this.user_data.an_array.push(82)}, //doesn't run
+        Dexter.empty_instruction_queue()
+   ]
    })`],
    ["Job.my_job.user_data.an_array", "[80,81,83]"],
    [`new Job({
@@ -173,7 +175,8 @@ new TestSuite("when_stopped_error",
     do_list: [
         function(){ this.user_data.an_array.push(81)}, //runs
         function(){ unbound_var_name }, //causes an error
-        function(){ this.user_data.an_array.push(82)} //doesn't run
+        function(){ this.user_data.an_array.push(82)}, //doesn't run
+        Dexter.empty_instruction_queue()
     ]
    })`, "TestSuite.error"],
    ["Job.my_job.user_data.an_array", "[80,81,83]"],
@@ -185,7 +188,8 @@ new TestSuite("when_stopped_error",
     do_list: [
         function(){ this.user_data.an_array.push(81)}, //runs
         function(){ unbound_var_name }, //causes an error
-        function(){ this.user_data.an_array.push(82)} //runs
+        function(){ this.user_data.an_array.push(82)}, //runs
+        Dexter.empty_instruction_queue()
     ]
    })`, "TestSuite.error"],
    ["Job.my_job.user_data.an_array", "[80,81,82,83]"],
@@ -197,7 +201,7 @@ new TestSuite("when_stopped_error",
     ]
     })`, "TestSuite.error"],
     ["Job.my_job.user_data.an_array", "[90]"],
-     [`new Job({
+    [`new Job({
     name: "my_job",
     robot: new Dexter({name: "dexter_no_exist", ip_address: "111.111.1.111", simulate: false}),
     user_data: {an_array: [90]},
@@ -221,7 +225,8 @@ new TestSuite("Control.error",
     user_data: {an_array: [100]},
     do_list: [ function(){ this.user_data.an_array.push(101)},
                Control.error("on purpose"),
-               function(){ this.user_data.an_array.push(102)}      
+               function(){ this.user_data.an_array.push(102)},
+               Dexter.empty_instruction_queue()
     ]})`, "TestSuite.error"],
     ["Job.my_job.user_data.an_array", "[100, 101]"],
     [`new Job({
@@ -230,7 +235,8 @@ new TestSuite("Control.error",
     when_stopped: function(){ this.user_data.an_array.push(113)},
     do_list: [ function(){ this.user_data.an_array.push(111)},
                Control.error("on purpose"),
-               function(){ this.user_data.an_array.push(112)}      
+               function(){ this.user_data.an_array.push(112)}, 
+               Dexter.empty_instruction_queue()
     ]})`, "TestSuite.error"],
     ["Job.my_job.user_data.an_array", "[110, 111, 113]"],
     [`new Job({
@@ -239,16 +245,18 @@ new TestSuite("Control.error",
     when_stopped: function(){ this.user_data.an_array.push(123)},
     do_list: [ function(){ this.user_data.an_array.push(121)},
                Control.error("on purpose", true),
-               function(){ this.user_data.an_array.push(122)}      
+               function(){ this.user_data.an_array.push(122)},
+               Dexter.empty_instruction_queue()
     ]})`, "TestSuite.error"],
     ["Job.my_job.user_data.an_array", "[120, 121, 123]"],
     [`new Job({
-    name: "my_job",
+    name: "my_job9",
     user_data: {an_array: [130]},
     when_stopped: function(){ this.user_data.an_array.push(133)},
     do_list: [ function(){ this.user_data.an_array.push(131)},
                Control.error("on purpose", false), //don't run when_stopped
-               function(){ this.user_data.an_array.push(132)}      
+               function(){ this.user_data.an_array.push(132)},
+               Dexter.empty_instruction_queue()
     ]})`, "TestSuite.error"],
-    ["Job.my_job.user_data.an_array", "[130, 131]"]
+    ["Job.my_job9.user_data.an_array", "[130, 131]"]
 )

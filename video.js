@@ -46,17 +46,32 @@ var prev_make_instruction_src = undefined
 var init_sim_in_process = false
 //choose_file_path matters if select_val == "Choose File", and is only passed in
 //when initing DDE/ It is the full file path of the file to be shown
+//see ready.js $('#misc_pane_menu_id').on('select' ...)
+
+//Use the below global var for "reading" the misc_pane_menu_label and
+//the function for setting it.
+//neigher of these are good for DDE users, they're system level.
+//Users should use: show_in_misc_pane
+var misc_pane_menu_selection //workaround for $("#misc_pane_menu_id").jqxComboBox('val') jqxwidget bug
+//this does NOT do the action of the selection, just changes the text shown in the menu.
+function set_misc_pane_menu_selection(label){
+    misc_pane_menu_selection = label
+    $('#misc_pane_menu_id').jqxComboBox('val', label)
+}
+
+
 function show_in_misc_pane(content, arg1 = "", arg2){
     //if Choose File is called from outside dialog, and user cancels, we don't want to
     //change the combo_box value OR persistent save it.
     //But if user doesn't cancel, we DO want to change the combo box value, and,
     //if the value is good, persistent save it.
-    if (content == "Choose File") {
+    if (content === "Choose File") {
         content = choose_file() //will be undefined if user cancels the dialog box.
         if(content) {
             $("#misc_pane_menu_id").jqxComboBox('unselectItem', "Choose File") //must do!
            // just let it fall through ////old: return show_in_misc_pane(content) //$('#misc_pane_menu_id').jqxComboBox('val', content) //causes show_in_misc_pane to be called with the chosen value
-            $("#misc_pane_menu_id").jqxComboBox('val', content)
+            set_misc_pane_menu_selection(content)
+
         }
         else { //user canceled from choose file dialog so don't persistent-save the value.
             //leave combo_box val at "choose file" which won't match content, but we might
@@ -64,16 +79,19 @@ function show_in_misc_pane(content, arg1 = "", arg2){
             //if we did $('#misc_pane_menu_id').jqxComboBox('val', the_prev_val),
             //just leave it as "Choose File"
             let prev_val = persistent_get("misc_pane_content")
-            $("#misc_pane_menu_id").jqxComboBox('val', prev_val)
+            set_misc_pane_menu_selection(prev_val)
             return
         }
     }
-    let orig_content = $('#misc_pane_menu_id').jqxComboBox('val')
-    if(content != orig_content) {
-    //if(content != orig_content) { //show_in_misc_pane called from outside,
-    // and via user typing in  or selecting item from combo box
-    // so get the val in the combo box to be the same as content
-        $("#misc_pane_menu_id").jqxComboBox('val', content);
+    //let orig_content = $('#misc_pane_menu_id').jqxComboBox('val') //warning: this doesn't always get the
+    //content showing in the combo box. Bug in jqxwidgets. So just always set it.
+    if(content !== misc_pane_menu_selection) {
+        let label = content
+        if((typeof(content) === "string") && content.startsWith("<")) {
+            label = "HTML"
+        }
+        set_misc_pane_menu_selection(label)
+    }
         //$('#misc_pane_menu_id').jqxComboBox('val', content) //this will cause combon box's onchange event, defined in ready.js to call show_in_misc_pane again,
         // but this new time, content WILL equal what's in the combo-box val so tis clause doesn't hit
        // setTimeout(function() {
@@ -81,7 +99,7 @@ function show_in_misc_pane(content, arg1 = "", arg2){
        // }, 100)
        //return //note that calling $("#misc_pane_menu_id").jqxComboBox('val', content), will cause
               //show_in_misc_pane to be called again due to the combo box's on select.
-    }
+
     if(MakeInstruction.is_shown()) { //so that in case this or some later call to show_in_misc_pane
                                      // is "Make Instruction", we know what content to fill it with
         prev_make_instruction_src = MakeInstruction.dialog_to_instruction_src()
@@ -106,18 +124,21 @@ function show_in_misc_pane(content, arg1 = "", arg2){
         init_sim_in_process = false
     }
     try {
-    if (content == "Simulate Dexter") {
+    if (content === "Simulate Dexter") {
             init_sim_in_process = true
             sim_pane_content_id.innerHTML =
-               '<div style="white-space:nowrap;">Simulate Job/Robot: <select id="job_or_robot_to_simulate_id">' +
-                '</select><b style="margin-left:15px;">Move Dur: </b><span id="sim_pane_move_dur_id"></span> s' +
-                ' <button onclick="SimBuild.init()">Load SimBuild</button></div>' +
+               '<div style="white-space:nowrap;"> ' + //Simulate Job/Robot: <select id="job_or_robot_to_simulate_id">' +
+                '<b>Move Dur: </b><span id="sim_pane_move_dur_id"></span> s' +
+                ' <button onclick="SimBuild.init()">Load SimBuild</button> ' +
+                '<span title="Inspect simulator Details." ' +
+                'onclick="SimUtils.inspect_dexter_sim_instance()" ' +
+                'style="margin-left:15px;color:blue;cursor:pointer;font-weight:bold;"> &#9432; </span> ' +
+                '</div>' +
+
                 '<b title="X position of end effector in meters.">X: </b><span id="sim_pane_x_id" style="min-width:50px; text-align:left; display:inline-block"></span>' +  //"margin-left:5px;
                 '<b title="Y position of end effector in meters."> Y: </b><span id="sim_pane_y_id" style="min-width:50px; text-align:left; display:inline-block"></span>' +  //"margin-left:5px;
                 '<b title="Z position of end effector in meters."> Z: </b><span id="sim_pane_z_id" style="min-width:50px; text-align:left; display:inline-block"></span>' +  //"margin-left:5px;
-                '<span title="Inspect simulator Details." ' +
-                       'onclick="SimUtils.inspect_dexter_sim_instance()" ' +
-                       'style="margin-left:20px;color:blue;cursor:pointer;font-weight:bold;"> &#9432; </span> ' +
+
                 '<div style="white-space:nowrap;">' +
                 '<b title="Joint 1 angle in degrees."> J1: </b><span id="sim_pane_j1_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +  //"margin-left:5px;
                 '<b title="Joint 2 angle in degrees."> J2: </b><span id="sim_pane_j2_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +
@@ -127,7 +148,6 @@ function show_in_misc_pane(content, arg1 = "", arg2){
                 '<b title="Joint 6 angle in degrees."> J6: </b><span id="sim_pane_j6_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +
                 '<b title="Joint 7 angle in degrees."> J7: </b><span id="sim_pane_j7_id" style="min-width:30px; text-align:left; display:inline-block"></span></div>' +
                 '<div id="sim_graphics_pane_id"></div>'
-            refresh_job_or_robot_to_simulate_id()
             open_doc(simulate_pane_doc_id)
             init_simulation()
             //sim.renderer.render(sim.scene, sim.camera);
@@ -159,7 +179,7 @@ function show_in_misc_pane(content, arg1 = "", arg2){
         sim_pane_content_id.innerHTML = "<img src='" + file_name + "' style='width:100%;'/>"
         content_is_good = true
     }
-    else if (content == "Reference Manual"){
+    else if (content === "Reference Manual"){
         let div_html = `<div contenteditable='false' 
                             style='height:100%; width:100%; padding:5%; background-color:#DDDDDD; overflow:scroll;'>` +
             "<div style='font-size:18px; font-weight:700;'>Reference Manual</div>"
@@ -168,12 +188,15 @@ function show_in_misc_pane(content, arg1 = "", arg2){
         sim_pane_content_id.innerHTML = div_html + content + "</div>"
         content_is_good = true
     }
-    else if (content == "Make Instruction"){
-        MakeInstruction.show(prev_make_instruction_src) //if arg value is undefined, show the default move_all_joints, otherwise, its previous state
+    else if (content === "Make Instruction"){
+        let src = ((arg1 === "") ? prev_make_instruction_src : arg1)
+                           //instr, show_doc, set_misc_pane_menu_label
+        MakeInstruction.show(src,   true,     false) //if arg value is undefined, show the default move_all_joints, otherwise, its previous state
+              //must pass set_misc_pane_menu_label as false or will get infinite loop.
         open_doc(make_instruction_pane_doc_id)
         content_is_good = true
     }
-    else if (content == "Haddington Website"){ //Will work for https:// ...
+    else if (content === "Haddington Website"){ //Will work for https:// ...
         content = "<iframe src='http://www.hdrobotic.com' width='100%' height='100%'/>" //no way to catch an error like 404 here due to security restrictions.
         sim_pane_content_id.innerHTML = content
         content_is_good = true
@@ -190,7 +213,7 @@ function show_in_misc_pane(content, arg1 = "", arg2){
             sim_pane_content_id.innerHTML = '<div id="sim_graphics_pane_id"></div>'
 
             //from: init_simulation()
-            the_scene  = new THREE.Scene();
+            the_scene = new THREE.Scene();
             the_scene.name = "scene"
             the_scene.background = new THREE.Color( 0x000000 ) // 0x000000black is the default
                 //from createRenderer
@@ -497,6 +520,7 @@ function decrease_misc_pane_size(){
 }
 ////// end toggle_misc_pane_size
 
+/* no longer called now that sim pane robot menu is gone.
 function refresh_job_or_robot_to_simulate_id(){
     if(window["job_or_robot_to_simulate_id"]){
         let options_html = "<option>All</option>\n<option>Dexter.default</option>"
@@ -508,13 +532,13 @@ function refresh_job_or_robot_to_simulate_id(){
         //}
         job_or_robot_to_simulate_id.innerHTML = options_html
     }
-}
+}*/
 //returns a string
-function job_or_robot_to_simulate_name(){
+/*function job_or_robot_to_simulate_name(){
     if(window["job_or_robot_to_simulate_id"] && job_or_robot_to_simulate_id.value) {
         return job_or_robot_to_simulate_id.value
     }
     else { return "Dexter.dexter0" }
-}
+}*/
 
 var {replace_substrings} = require("./core/utils.js")
