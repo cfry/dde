@@ -64,7 +64,8 @@ class Py{
        if      (operating_system === "win")   { Py.python_executable_path = "python" }
        else if (operating_system === "mac")   { Py.python_executable_path = "python3" } //python gets you python2.7
        else if (operating_system === "linux") { Py.python_executable_path = "python" }
-       Py.main_eval_py_path = __dirname + "/main_eval.py" //note that __dirname, when inside the job engine core folder,  ends in "/core" so don't stick that on the end.
+       if(!Py.main_eval_py_path) { Py.main_eval_py_path = dde_apps_folder + "/main_eval.py" }
+       //Py.main_eval_py_path = __dirname + "/main_eval.py" //note that __dirname, when inside the job engine core folder,  ends in "/core" so don't stick that on the end.
        out('Py.python_executable_path set to: <code>' + Py.python_executable_path + '</code>')
     }
     //document
@@ -259,7 +260,7 @@ module.exports.Py = Py
 
 Py.process = null //doc
 Py.python_executable_path = null
-Py.main_eval_py_path = null
+Py.main_eval_py_path = null //see comment in ready.js about copying main_eval.py to dde_apps_folder
 Py.callbacks = []
 
 var {replace_substrings} = require("./utils")
