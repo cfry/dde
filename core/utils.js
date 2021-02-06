@@ -469,7 +469,7 @@ module.exports.is_json_date = is_json_date
 
 function starts_with_one_of(a_string, possible_starting_strings){
     for (let str of possible_starting_strings){
-        if (a_string.startsWith(str)) return true
+        if (a_string.startsWith(str)) { return true }
     }
     return false
 }
@@ -1200,11 +1200,12 @@ module.exports.function_param_names_and_defaults_lit_obj = function_param_names_
 function shallow_copy(obj){ //copies only enumerable, own properites. Used in
                             //copying Job's user_data at start
     let result = obj
-    if(Array.isArray(obj)){
+    if(result === null) {} //typeof returns "object" for null
+    else if(Array.isArray(obj)){
         result = []
         for (let elt of obj) { result.push(elt) }
     }
-    else if (typeof(obj) == "object"){
+    else if (typeof(obj) == "object"){ //typeof returns "object" for null
         result = {}
         for(let name of Object.keys(obj)){
             result[name] = obj[name]

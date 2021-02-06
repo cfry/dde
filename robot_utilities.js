@@ -336,4 +336,96 @@ function add_dexter_to_dexter_default_menu(a_dexter_or_dexter_name){
     default_dexter_name_id.prepend(a_option)
 }
 
+//_______Dexter Start Options dialog________
+function dexter_start_options_path() {
+    return "Dexter." + Dexter.default.name + ":/srv/samba/share/autoexec.jobs"
+}
+
+//top level fn called from menu item
+function show_dexter_start_options(){
+    let path = dexter_start_options_path()
+    read_file_async(path, undefined, function(err, content){
+       if(err) {
+           warning("Sorry, can't connect to Dexter." + Dexter.default.name)
+       }
+       else {
+           show_dexter_start_options_aux(content)
+       }
+    })
+}
+
+function show_dexter_start_options_cb(vals){
+    if(vals.clicked_button_value === "Save"){
+        out("saving start options.")
+        let path = dexter_start_options_path()
+        read_file_async(path, undefined, function(err, content){
+            if(err) {
+                warning("Sorry, can't connect to Dexter." + Dexter.default.name)
+            }
+            else {
+                let show_dexter_start_options_lines = content.split("\n")
+                let result_content = ""
+                show_dexter_start_options_lines.forEach(function(line, index, lines){
+                    if(index !== 0) { result_content += "\n" } //carefully done so that we won't build up extra newlines in the file
+                    let name = "line_" + index
+                    let should_be_checked_and_run = vals[name]
+                    if      (line.trim() === "")      { the_new_line = line } //blank line. keep as is.
+                    else if(line.startsWith("# "))    { the_new_line = line } //its just a comment. keep as is.
+                    else if(line.startsWith("#")){
+                       if(should_be_checked_and_run)  { the_new_line = line.substring(1) } //uncomment by cuting off the #
+                       else                           {  the_new_line = line }  //should be commented out and it is
+                    }
+                    else { //no # at beginning
+                        if(should_be_checked_and_run) { the_new_line = line } //should be run and it is
+                        else                          { the_new_line = "#" + line } //comment it out
+                    }
+                    result_content += the_new_line
+                })
+                write_file_async(path, result_content, undefined,
+                                 show_dexter_start_options_write_cb)
+            }
+        })
+    }
+}
+
+function show_dexter_start_options_write_cb(err){
+    let path = dexter_start_options_path()
+    if(err){
+        dde_error("Sorry, could not save: " + path + "<br/>" + err.message)
+    }
+    else {
+        out("Saved " + path, "green")
+    }
+}
+
+var show_dexter_start_options_lines = null
+
+function show_dexter_start_options_aux(file_content){
+    let show_dexter_start_options_lines = file_content.split("\n")
+    let directions =
+        `When Dexter turns on,<br/>it will run the checked items automatically.<br/>
+         Modify them and click <b>Save</b> if you like.<p/>
+         Checking PHUI2RCP.js puts Dexter in PHysical UI mode,<br/>
+         where you program Dexter by moving Dexter.<br/>
+         This prevents programming from DDE.<hr/>`
+    let html_content = directions
+    show_dexter_start_options_lines.forEach(function(line, index, lines){
+        if(line.startsWith("# ")){} //its just a comment. leave as is
+        else if (line.trim() === "") {} //ignore blank lines
+        else {
+            let is_checked = !line.startsWith("#")
+            let label = (is_checked ? line : line.substring(1)) //for the unchecked ones, cut off the # (omment char)
+            let checked_prop = (is_checked? " checked='checked'" : " ")
+            let html_checkbox =  "<input name='line_" + index + "' type='checkbox' " + checked_prop + " />\n"
+            let html_line = html_checkbox + " " + label + "<br/>"
+            html_content += html_line
+    }})
+    html_content += ("<input type='submit' value='Cancel'/> &nbsp;&nbsp;\n" +
+                     "<input type='submit' value='Save'/> &nbsp;&nbsp;")
+    show_window({title: "Dexter." + Dexter.default.name + " Start Options",
+                 content: html_content,
+                 callback: show_dexter_start_options_cb
+                })
+}
+
 var {last} = require("./core/utils.js")

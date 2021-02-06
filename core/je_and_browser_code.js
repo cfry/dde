@@ -326,13 +326,15 @@ static render_show_window(properties){
     //let title_id = "sw_title_" + properties.window_index + "_id"
     let title_elt = show_window_elt.querySelector(".show_window_title") //window[title_id]
     //onsole.log("render_show_window got title_elt: " + title_elt)
-    let draggable_value = (properties.draggable? "true": "false")
-    //onsole.log("render_show_window got draggable_value: " + draggable_value)
-    title_elt.onmousedown = function(event) {
-        event.target.parentNode.setAttribute('draggable', draggable_value) //set the whole sw window to now be draggable.
-    }
-    title_elt.onmouseup = function(event) {
-        event.target.parentNode.setAttribute('draggable', 'false') //set the whole sw window to now be draggable.
+    if(title_elt) { // won't hit if title === "" because that means no title
+        let draggable_value = (properties.draggable? "true": "false")
+        //onsole.log("render_show_window got draggable_value: " + draggable_value)
+        title_elt.onmousedown = function(event) {
+            event.target.parentNode.setAttribute('draggable', draggable_value) //set the whole sw window to now be draggable.
+        }
+        title_elt.onmouseup = function(event) {
+            event.target.parentNode.setAttribute('draggable', 'false') //set the whole sw window to now be draggable.
+        }
     }
     show_window_elt.ondragstart = function(event) {
         let show_win_elt = event.target

@@ -9,7 +9,7 @@
     var previous_active_element = null
     var selected_text_when_eval_button_clicked = ""
 
-    operating_system = "not inited" //on MAC this is "mac", on windows its "win".  bound in both ui and sandbox by ready
+    operating_system = "not inited" //"mac", "win" or "linux"(for Ubuntu)  bound in both ui and sandbox by ready
     dde_apps_folder  = null
 
     function open_dev_tools(){
@@ -29,13 +29,13 @@
     function set_menu_string(elt, label, key){
         let modifier
         let max_spaces
-        if(operating_system === "win") {
-            modifier = "Ctrl "
-            max_spaces = 14
-        }
-        else { //Mac
+        if(operating_system === "mac") {
             modifier = "&#8984" //the command (cloverleaf)
             max_spaces = 18 //more because we don't need the "Ctrl " of WinOS, just one char
+        }
+        else { //"win" and "linux"
+            modifier = "Ctrl "
+            max_spaces = 14
         }
         let needed_spaces = Math.max(max_spaces - label.length, 1)
         elt.innerHTML = label + "&nbsp;".repeat(needed_spaces) + modifier + key
@@ -214,6 +214,9 @@
                 js_cmds_index = js_cmds_array.length - 1
                 eval_js_part2(src)
             }
+            else if(cmd_lang_id.value == "Python"){
+                Py.eval(src)
+            }
             else if (cmd_lang_id.value == "SSH"){
                 cmd_input_id.placeholder = "Type in a shell 'bash' command & hit the Enter key to run."
                 //but the above probably never get's seen because the src of the actual default cmd gets shown instead
@@ -286,13 +289,18 @@
     //ros_radio_button_id.onclick = function() { ros_menu_id.style.display = "inline-block"}
 
     cmd_lang_id.onchange = function(){
-            if(cmd_lang_id.value == "JS"){
+            if(cmd_lang_id.value === "JS"){
                 SSH.close_connection()  //if no connection. that's ok
                 cmd_menu_id.style.display = "none"
                 cmd_input_id.placeholder = "Type in JS & hit the Enter key to eval"
             }
-            else if(cmd_lang_id.value == "SSH"){
+            else if(cmd_lang_id.value === "Python"){
+                open_doc(python_doc_id)
+                cmd_input_id.placeholder = "Type in Python3 & hit the Enter key to eval"
+            }
+            else if(cmd_lang_id.value === "SSH"){
                 open_doc(ssh_doc_id)
+                cmd_input_id.placeholder = "Type in Bash & hit the Enter key to eval"
                 SSH.show_config_dialog()
                 //cmd_menu_id.style.display = "inline-block"
                 //cmd_input_id.value = SSH.show_dir_cmd
@@ -435,7 +443,12 @@
     load_file_id.onclick=function(e) {
         const path = choose_file({title: "Choose a file to load"})
         if (path){
-            out(load_files(path))
+            if(path.endsWith(".py")){
+               Py.load_file_ask_for_as_name(path)
+            }
+            else {
+                out(load_files(path))
+            }
         }
     }
 
@@ -1321,6 +1334,8 @@ foo      //eval to see the latest values</pre>`,
             }
         })
     }
+    dexter_start_options_id.onclick = show_dexter_start_options
+
     run_job_on_dexter_id.onclick = function() {
         let job_src = Editor.get_any_selection() //we want to be able to select a Job def in
             //the doc pane and send it to Dexter.

@@ -1,5 +1,5 @@
-global.dde_version = "3.7.2"
-global.dde_release_date = "Jan 13, 2021"
+global.dde_version = "3.7.3"
+global.dde_release_date = "Feb 5, 2021"
 
 console.log("dde_version: " + global.dde_version + " dde_release_date: " + global.dde_release_date +
             "\nRead electron_dde/core/job_engine_doc.txt for how to use the Job Engine.\n")
@@ -157,6 +157,7 @@ var {html_db, is_dom_elt, make_dom_elt, make_html} = require("./html_db.js")
 
 var {Messaging, MessStat} =  require("./messaging.js")
 
+var {Py} = require("./py.js")
 
 // see also je_and_browser_code.js for global vars.
 global.keep_alive_value = false
@@ -237,6 +238,7 @@ global.html_db = html_db
 global.is_dom_elt = is_dom_elt
 global.make_html = make_html
 global.make_dom_elt = make_dom_elt
+global.Py = Py
 
 
 run_node_command(process.argv)

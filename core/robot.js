@@ -1654,7 +1654,18 @@ Dexter.exit           = function(...args){ return make_ins("x", ...args) }
 Dexter.prototype.exit = function(...args){ args.push(this); return Dexter.exit(...args) }
 
 
-Dexter.empty_instruction_queue_immediately           = function() { return make_ins("E") }
+Dexter.empty_instruction_queue_immediately = function(){
+        //return make_ins("E")
+        let num = Instruction.w_address_name_to_number("RESET_PID_AND_FLUSH_QUEUE")
+        if(num >= 0) {
+            return [ Dexter.write_fpga(num, 1), //this flushes the queue
+                     Dexter.write_fpga(num, 0)  //this resets the ode to normal so Dexter can accept new instructions
+                   ]
+        }
+        else {
+            shouldnt("Dexter.empty_instruction_queue_immediately could not find w name: RESET_PID_AND_FLUSH_QUEUE.")
+        }
+}
 Dexter.prototype.empty_instruction_queue_immediately = function(...args){ args.push(this); return Dexter.empty_instruction_queue_immediately(...args) }
 
 Dexter.empty_instruction_queue           = function() { return make_ins("F") }
@@ -2154,7 +2165,7 @@ Dexter.instruction_type_to_function_name_map = {
     D:"pid_move_to_straight",
     d:"dma_read",
     e:"cause_dexter_error", //fry
-    E:"empty_instruction_queue_immediately", //new Sept 1, 2016
+    //E:"empty_instruction_queue_immediately", //new Sept 1, 2016
     F:"empty_instruction_queue",   //new Sept 1, 2016
     G:"get_robot_status_immediately",        //new Sept 1, 2016. Deprecated Dec 8, 2020
     g:"get_robot_status",   //fry
@@ -2363,7 +2374,10 @@ Dexter.prototype.set_link_lengths_using_node_server = function(job_to_start){
 */
 
 Dexter.prototype.set_link_lengths_using_node_server = function(job_to_start){
-    let path = "http://192.168.1.142/edit?edit=/srv/samba/share/Defaults.make_ins"
+    let ip = job_to_start.robot.ip_address
+    let path = //"http://" + ip + "/edit?edit=/srv/samba/share/Defaults.make_ins"
+               "http://192.168.1.142/edit?edit=/srv/samba/share/Defaults.make_ins"
+    let options = {uri: path} //, timeout: 1000}
     let content = get_page(path)
     if(content.startsWith("Error: ")) {
         warning("set_link_lengths_using_node_server with path: " + path +

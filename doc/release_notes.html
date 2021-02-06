@@ -5,10 +5,43 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 3.7.3, Feb 5, 2021</summary>
+Highlights: New Python interface. New easy way to turn on/off the Startup operations
+in Dexter like the PHUI interface. Bug fixes for Linux, node server interface, show_window
+<ul>
+<li><code>set_link_lengths_using_node_server</code> now gets it's ip address from the robot of the "job_to_start"</li>
+<li><code>set_link_lengths_using_node_server</code> now sets a timeout for its attempt at 1 second, making it fail faster.</li>
+<li>Now linux keybindings are like Windows keybindings,
+    not like Mac as they previously were.</li>
+<li>Fixed bug in switching to a file on the menu of files.</li>
+<li>Minor bug fix in <code>show_window</code> callback function handling for anonymous functions.</li>
+<li>Minor bug fix in <code>show_window</code>. Now passing in title: ""
+     will create a window with no title bar without erroring.</li>
+<li>Extended the documentation for <code>new Job</code> parameter,
+    <code>if_robot_status_error</code> to include how to ignore an error.
+     Extended the description of the different kinds of instructions to include null and undefined,
+     under Ref Man/Robot and Ref Man/Robot/Robot Instructions.</li>
+<li>Fixed <code>read_file_async</code> for node server to leave in beginning slash of path.</li>
+<li>New menu item: Jobs menu/dexter tools/start options to "edit" Dexter's autoexec.jobs file
+    controlling Dexter start up operations.
+    Let's you turn on and off PHUI mode amongst other operations.</li>
+<li>Improved User Guide/Debugging/Syntax Checker, first paragraph.</li>
+<li>Fixed click_help doc scrolling for patch system methods.</li>
+<li>New class <code>Py</code> for running Python code from within DDE JavaScript code.
+   DDE user interface access with:
+   <ul>
+       <li>Eval button</li>
+       <li>Command Line</li>
+       <li>File menu/Load...</li>
+   </ul>
+    Documentation in RefMan/Python
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.7.2, Jan 13, 2021</summary>
-Highlights: Improved robustness of connecting DDE to Dexter includoing error handling
+Highlights: Improved robustness of connecting DDE to Dexter including error handling
       and no longer uses ping (to aid Linux installations and speedup).
-      Simplied Misc Pane header/Simulation panel header by removing the extra "Dexter" menu.
+      Simplified Misc Pane header/Simulation panel header by removing the extra "Dexter" menu.
       robot_status: now 4 different possibilities: g0 (the original), g1, g2, and g_other
       for statuses that are not yet well defined, but we can still look at them in the
       robot status dialog. TestSuite enhancements.

@@ -42,7 +42,6 @@ DexterSim = class DexterSim{
             MaxSpeed: 30, //todo what are the units on dde side and on sim/dex side?
             StartSpeed: 0
         }
-        this.ready_to_start_new_instruction = true  //true at beginning and when we've just completed an instruction but not started another
         this.sent_instructions_count = 0
         this.status = "before_first_send"
         this.status_mode = 0 //can also be 1, set by "g" command.
@@ -55,7 +54,8 @@ DexterSim = class DexterSim{
         this.pid_angles_arcseconds      = [0,0,0,0,0,0,0]
         this.velocity_arcseconds_per_second = [0,0,0,0,0,0,0]
 
-        this.now_processing_instruction = null // a Dexter can only be doing at most 1 instruction at a time. This is it.
+        this.ready_to_start_new_instruction = true  //true at beginning and when we've just completed an instruction but not started another
+        this.now_processing_instruction = null // a Dexter can only be doing a move at most 1 instruction at a time. This is it.
     }
 
     static stop_all_sims(){
@@ -267,12 +267,12 @@ DexterSim = class DexterSim{
                  sim_inst.now_processing_instruction &&
                 (sim_inst.ending_time_of_cur_instruction <= the_now)) { //end the cur instruction and move to the next
                 const oplet = sim_inst.now_processing_instruction[Dexter.INSTRUCTION_TYPE]
-                if ((sim_inst.sim_actual === true) && [/*"F" , "G", "g"*/].includes(oplet)) { //dont do when sim == "both"
+                //if ((sim_inst.sim_actual === true) && [/*"F" , "G", "g"*/].includes(oplet)) { //dont do when sim == "both"
                     //let rs_copy = sim_inst.robot_status_in_arcseconds.slice() //make a copy to return as some subseqent call to this meth will modify the one "model of dexter" that we're saving in the instance
                     //rs_copy[Dexter.STOP_TIME] = Date.now() //in milliseconds
                     ///Socket.on_receive(rs_copy, sim_inst.robot.name)
-                    sim_inst.ack_reply(sim_inst.now_processing_instruction)
-                }
+                //    sim_inst.ack_reply(sim_inst.now_processing_instruction)
+                //}
                 sim_inst.completed_instructions.push(sim_inst.now_processing_instruction)
                 sim_inst.now_processing_instruction = null     //Done with cur ins,
                 sim_inst.ready_to_start_new_instruction = true
@@ -280,18 +280,19 @@ DexterSim = class DexterSim{
             //hits when there's more on the queue to do
             if(sim_inst.ready_to_start_new_instruction &&
                 (sim_inst.instruction_queue.length > 0) &&
-                (sim_inst.status != "closed")) {
+                (sim_inst.status !== "closed")) {
                 sim_inst.ready_to_start_new_instruction = false
                 sim_inst.process_next_instruction()
             }
-            if((sim_inst.instruction_queue.length == 0) && //nothing in the queue,
-                (sim_inst.status == "closing")) {          //and no more coming from DDE.
+            else if((sim_inst.instruction_queue.length == 0) && //nothing in the queue,
+                    !sim_inst.now_processing_instruction     && //we're not currently in the middle of an instruction
+                    (sim_inst.status === "closing")) {          //and no more coming from DDE.
                 sim_inst.ready_to_start_new_instruction = false
                 DexterSim.close(sim_inst.robot_name)       //cleaner to set "closed" in one place.
             }
-            if(sim_inst.status != "closed") { keep_alive = true }
+            if(sim_inst.status !== "closed") { keep_alive = true }
         }
-        if ((keep_alive == false) && (window.platform == "node")) {
+        if ((keep_alive == false) && (window.platform === "node")) {
             clearInterval(DexterSim.set_interval_id) //so that nodejs will quit
         }
     }
@@ -557,9 +558,7 @@ DexterSim = class DexterSim{
                    (sim_inst.now_processing_instruction == null)){
                     sim_inst.stop_sim() //also set near bottom of process_next_instruction
                 }
-                else { //note: now that I automatically put a "g" instruction as the automatic last instruction
-                //of a job's do_list, we shouldn't be getting this "closing" state because
-                //the "g" naturally empties the instruction_queue.
+                else {
                 sim_inst.status = "closing"
                 //setTimeout(function(){DexterSim.close(socket_id)}, 1000) //shouldn't be necessary.
                 //as process_next_instruction will handle final close in this case.

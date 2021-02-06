@@ -79,6 +79,7 @@ SimUtils = class SimUtils{
     //ds_inst is an instance of DexterSim class.
     //robot_name example: "Dexter.dexter0"
     static render_multi(ds_instance, new_angles_arcseconds, job_name, robot_name, force_render=false, dur_in_ms=0){ //inputs in arc_seconds
+        console.log("render_multi passed: " +  new_angles_arcseconds)
         let job_or_robot_to_sim = "Dexter." + Dexter.default.name
         if (force_render ||
             (job_or_robot_to_sim == job_name) ||
@@ -113,7 +114,7 @@ SimUtils = class SimUtils{
             //let prev_js = this.prev_joint_angles.slice(0)
             let rob = value_of_path(robot_name)
             let prev_js = ds_instance.measured_angles_arcseconds.slice() //must copy because render_multi is going to continuous update mesured_angels per frame and we want to capture the prev_js and keep it constant
-            //out("calling render_multi_frame first time with new_angles as: " + new_angles_arcseconds + " prev_js: " + prev_js + " js_inc_per_frame: " + js_inc_per_frame)
+            console.log("calling render_multi_frame first time with new_angles as: " + new_angles_arcseconds + " prev_js: " + prev_js + " js_inc_per_frame: " + js_inc_per_frame)
             SimUtils.render_multi_frame(ds_instance, new_angles_arcseconds, prev_js, js_inc_per_frame, ms_per_frame, total_frames, 0, rob, false) //beginning an all but last rendering
 
             //used by render_once_but_only_if_have_prev_args\

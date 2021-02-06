@@ -38,33 +38,32 @@ Editor.init_editor = function(){
                                //indent each line to the line above it when you hit Return
          indentUnit: 4, //default is 2. Using 4 makes it same size as tab, then cmd(mac or ctrl(PC) open square will unindent by this amount.
          extraKeys: //undo z and select_all (a) work automaticaly with proper ctrl and cmd bindings for win and  mac
-             ((operating_system === "win") ?
-                    {"Alt-Left":  Series.ts_or_replace_sel_left,
-                    "Alt-Right":  Series.ts_or_replace_sel_right,
-                    "Shift-Alt-Right": Series.ts_sel_shift_right, //no non ts semantics decided to cut this as is uncommonly used and shift right is "continue selection" in normal test editor and conde mirror AND alt_shift_right too hairy to remember.
-                    "Alt-Up":     Series.ts_or_replace_sel_up,
-                    "Alt-Down":   Series.ts_or_replace_sel_down,
-                    "Ctrl-E": eval_button_action, //the correct Cmd-e doesn't work
-                    "Ctrl-J": Editor.insert_new_job,
-                    "Ctrl-O": Editor.open_on_dde_computer,
-                    "Ctrl-N": Editor.edit_new_file,
-                    "Ctrl-R": Editor.move_to_instruction,
-                    "Ctrl-S": Editor.save //windows
-                    } : //Mac
-                    {"Alt-Left":  Series.ts_or_replace_sel_left,
-                     "Alt-Right": Series.ts_or_replace_sel_right,
-                     "Shift-Alt-Right": Series.ts_sel_shift_right, //no non ts semantics see above for why cuttong this
-                     "Alt-Up":    Series.ts_or_replace_sel_up,
-                     "Alt-Down":  Series.ts_or_replace_sel_down,
-                     "Cmd-E": eval_button_action, //the correct Cmd-e doesn't work
-                     "Cmd-J": Editor.insert_new_job,
-                     "Cmd-N": Editor.edit_new_file,
-                     "Cmd-O": Editor.open_on_dde_computer,
-                     "Cmd-R": Editor.move_to_instruction,
-                     "Cmd-S": Editor.save //mac
-                    })
-
-
+             ((operating_system === "mac") ? //the "Alt" key on a Mac is labeled "option" on mac keyboard.
+                        {"Alt-Left":  Series.ts_or_replace_sel_left,
+                         "Alt-Right": Series.ts_or_replace_sel_right,
+                         "Shift-Alt-Right": Series.ts_sel_shift_right, //no non ts semantics see above for why cuttong this
+                         "Alt-Up":    Series.ts_or_replace_sel_up,
+                         "Alt-Down":  Series.ts_or_replace_sel_down,
+                         "Cmd-E": eval_button_action, //the correct Cmd-e doesn't work
+                         "Cmd-J": Editor.insert_new_job,
+                         "Cmd-N": Editor.edit_new_file,
+                         "Cmd-O": Editor.open_on_dde_computer,
+                         "Cmd-R": Editor.move_to_instruction,
+                         "Cmd-S": Editor.save //mac
+                       }:  //"win" and "linux"
+                        {"Alt-Left":  Series.ts_or_replace_sel_left,
+                         "Alt-Right":  Series.ts_or_replace_sel_right,
+                         "Shift-Alt-Right": Series.ts_sel_shift_right, //no non ts semantics decided to cut this as is uncommonly used and shift right is "continue selection" in normal test editor and conde mirror AND alt_shift_right too hairy to remember.
+                         "Alt-Up":     Series.ts_or_replace_sel_up,
+                         "Alt-Down":   Series.ts_or_replace_sel_down,
+                         "Ctrl-E": eval_button_action, //the correct Cmd-e doesn't work
+                         "Ctrl-J": Editor.insert_new_job,
+                         "Ctrl-N": Editor.edit_new_file,
+                         "Ctrl-O": Editor.open_on_dde_computer,
+                         "Ctrl-R": Editor.move_to_instruction,
+                         "Ctrl-S": Editor.save //windows
+                     }
+                    )
         });
     undo_id.onclick        = Editor.undo
     set_menu_string(undo_id, "Undo", "z")
@@ -877,7 +876,7 @@ Editor.edit_file = function(path, content){ //path could be "new buffer"
         }
         //cur buff is a new buffer, and the target path is not
         else if (Editor.get_javascript().trim().length == 0) { //don't ask about deleting the new buf, just do it;
-            ditor.remove_new_buffer_from_files_menu() //get rid of the current "new buffer"
+            Editor.remove_new_buffer_from_files_menu() //get rid of the current "new buffer"
             const path_already_in_menu = Editor.set_files_menu_to_path(new_path)
             if (!path_already_in_menu) { Editor.add_path_to_files_menu(new_path) }
             if(content) {

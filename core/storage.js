@@ -331,7 +331,7 @@ function read_file_async_from_dexter_using_node_server(dex_instance, path, callb
     let colon_pos = path.indexOf(":")
     path = path.substring(colon_pos + 1) // path comes in as, for example,  "Dexter.dexter0:foo.txt
     if(path.startsWith("/")) {
-        path = path.substring(1) //because of crazy node server editor's code
+        //path = path.substring(1) //because of crazy node server editor's code
     }
     else { //doesn't start with slash, meaning relative to server default
         path = "/dde_apps/" + path //  on the node webserver, starting with / means ?srv/samba/share/
@@ -797,7 +797,9 @@ function add_default_file_prefix_maybe(path){
         path = path.substring(8)
         return dde_apps_folder + path
     }
-    else if(path.startsWith("./")) { return "dde_apps/" + path.substring(2) }
+    else if(path.startsWith("./")) {  //return "dde_apps/" + path.substring(2)
+        return dde_apps_folder + path.substring(1)
+    }
     else if (path.startsWith("../")) {
         let core_path = path.substring(3)
         let last_slash_pos = dde_apps_folder.lastIndexOf("/")
@@ -1042,23 +1044,6 @@ function load_files(...paths) {
                                                //it won't get done BUT need dde_error to print out the loading file message.
             dde_error(file_mess)
         }
-        /*
-        let prev_loading_file  =  window["loading_file"]
-        window["loading_file"] = resolved_path
-        let result_obj = eval_js_part2 is not part of core/job engine so
-                          // we can't use it here.
-                          // eval_js_part2(content, false) // warning: calling straight eval often
-                          //doesn't return the value of the last expr in the src, but my eval_js_part2 usually does.
-                          //window.eval(content)
-        window["loading_file"] = prev_loading_file //when nested file loading, we need to "pop the stack"
-        if(result_obj.error_message){
-            dde_error("While loading the file: " + resolved_pathresolved_path +
-                "<br/>the file exists, but contains the JavaScript error of:<br/>" +
-                err.message)
-        }
-        else { result = result_obj.value
-               out("Done loading file: " + resolved_path, "green")
-        }*/
         out("Done loading file: " + resolved_path, "green")
     }
     return result

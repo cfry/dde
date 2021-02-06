@@ -8,8 +8,8 @@
 
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version: <span id="dde_version_id">3.7.2</span><br/>
-    released: <span id="dde_release_date_id">Jan 13, 2021</span>
+    version: <span id="dde_version_id">3.7.3</span><br/>
+    released: <span id="dde_release_date_id">Feb 5, 2021</span>
     <p></p>
     DDE helps you create, debug, and send software to a Dexter robot.
     You can use any JavaScript augmented with DDE-specific functions to help find out about,
@@ -1395,7 +1395,8 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
     Ignore the parts that use the <i>Underscore</i> library.<br/>
     A more formal (and long) <a href="http://www.w3schools.com/js/" target="_blank">tutorial</a>.
     </details> <!-- end Learning JavaScript -->
-    <details id="js_for_pythond_programmers_doc_id" class="doc_details"><summary>JS for Python Programmers</summary>
+    <details id="js_for_python_programmers_doc_id" class="doc_details"><summary>JS for Python Programmers</summary>
+        DDE supports calling <a href="#" onclick="open_doc(python_doc_id)">Python from JavaScript</a> and DDE's user interface.
         Python and JavaScript are two of the most popular general purpose programming languages in use today.
         Though they differ in many details, for describing the instructions that are the core of DDE's Jobs,
         they are amazingly similar for the most common operations. Especially with DDE's tools for learning
@@ -1968,7 +1969,9 @@ the points defined in ez_create.
 
     <details class="doc_details"><summary>Syntax Checker</summary>
     DDE uses an automatic syntax checker named <i>ESLint</i>. It
-    indicates syntax errors in the Editor pane as soon as you enter them.
+    indicates syntax errors in the Editor pane as red dots in the left margin.
+    The tooltip on a red dot gives you details about the error.
+    <p></p>
     There are many different styles of JS coding and different versions
     of JS so its hard to get such errors correct. Even if you have syntax
     errors indicated, your code may run fine. As a first pass though, try
@@ -2277,5 +2280,4 @@ and see the results in DDE's Output pane.
     latest <a href="#" onclick="open_doc(release_notes_doc_id)">Release Notes</a><br/>
      and the <a href="#" onclick="open_doc(known_issues_doc_id)">Known Issues</a> to help hone your
     suggestions.
-</details>
 </details>

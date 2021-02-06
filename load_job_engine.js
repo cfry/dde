@@ -65,6 +65,8 @@ var {linux_error_message} = require('./core/linux_error_message.js')
 
 var {html_db, is_dom_elt, make_dom_elt, make_html} = require("./core/html_db.js")
 
+var {Py} = require('./core/py.js')
+
 var keep_alive_value = true //only really used by node-browser,
    //but effectively, dde, always has keep_alive_value true.
    //this should never actually be read by dde.

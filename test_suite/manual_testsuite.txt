@@ -217,7 +217,7 @@ setTimeout(function(){out("hey")}, 4000)
 1  collapse verical splitter, choose
 2. choose Jobs menu/Help
 3. observe blinking green vertical splitter.
-_____
+____________________________________
 PHUI_GUI Manual Test
 Fry Jan 13, 2021 (DDE 3.7.2)
 

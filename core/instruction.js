@@ -529,17 +529,27 @@ Instruction.w_address_names = [
     "DIFFERENTIAL_FORCE_TIMEBASE", //"80"
     "PID_TIMEBASE" //"81"
 ]
-Instruction.w_address_number_to_name = function(num){
+/*Instruction.w_address_number_to_name = function(num){
     if(!Instruction.is_valid_w_address(num)) { return "unknown" }
     let w_address_names = Series.id_to_series("series_w_oplet_address_id").array
     if (num >= w_address_names.length) { return "unknown" }
     else { return w_address_names[num] }
+}*/
+
+//returns undefined for invalid nums
+Instruction.w_address_number_to_name = function(num){
+    return Instruction.w_address_names[num]
 }
 
 //beware: will return -1 if name is invalid
-Instruction.w_address_name_to_number = function(name){
+/*Instruction.w_address_name_to_number = function(name){
     let w_address_names = Series.id_to_series("series_w_oplet_address_id").array
     return w_address_names.indexOf(name)
+}*/
+
+//beware: will return -1 if name is invalid
+Instruction.w_address_name_to_number = function(name){
+    return Instruction.w_address_names.indexOf(name)
 }
 
 //user might call this at top level in a do_list so make it's name short.
@@ -551,7 +561,7 @@ function make_ins(instruction_type, ...args){
         warning("make_ins called with an invalid instruction_type: " + instruction_type +
                 "<br/>make_ins still returning an array using: " + instruction_type)
     }*/
-    let first_arg = args[0]
+    //let first_arg = args[0]
     /*if((instruction_type == "w") && !Instruction.is_valid_w_address(first_arg)){
         dde_error('make_ins("w" ...) does not support an address of ' + first_arg +
                   '.<br/>Valid addresses are non-negative integers. ' +

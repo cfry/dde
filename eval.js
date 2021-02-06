@@ -44,17 +44,20 @@ var latest_eval_button_click_source = null
 //Only called by eval_button_action
 //when this is called, there is no selection, so either we're evaling the whole editor buffer
 //or the whole cmd line.
+//beware, the code *might* be HTML or python at this point
 function eval_js_part1(step=false){
     //tricky: when button is clicked, Editor.get_any_selection() doesn't work,
     //I guess because the button itself is now in focus,
     //so we grab the selection on mousedown of the the Eval button.
     //then use that here if its not "", otherwise, Editor.get_javascript("auto"), getting the whol editor buffer
     let src
+    let src_comes_from_editor = false
     if(previous_active_element &&
        previous_active_element.parentNode &&
        previous_active_element.parentNode.parentNode &&
        previous_active_element.parentNode.parentNode.CodeMirror){
         src = Editor.get_javascript("auto") //if sel in editor, get it, else get whole editor
+        src_comes_from_editor = true
     }
     //let sel_obj = window.getSelection()
     else if (selected_text_when_eval_button_clicked.length > 0) {
@@ -84,7 +87,7 @@ function eval_js_part1(step=false){
     latest_eval_button_click_source = src
     if (src.trim() == ""){
         open_doc(learning_js_doc_id)
-        warning("There is no JavaScript to execute.<br/>See <span style='color:black;'>Learning JavaScript</span> " +
+        warning("There is no code to execute.<br/>See <span style='color:black;'>Learning JavaScript</span> " +
             "in the Documentation pane for help.")
     }
     else{
@@ -96,6 +99,11 @@ function eval_js_part1(step=false){
         //must add "d ebugger" after converting DefEng to JS.
         if(html_db.string_looks_like_html(src)){
             render_html(src)
+        }
+        else if(Editor.current_file_path.endsWith(".py") &&
+                src_comes_from_editor
+                ){
+            Py.eval_part2(src)
         }
         else {
             eval_js_part2((step? "debugger; ": "") + src) //LEAVE THIS IN RELEASED CODE

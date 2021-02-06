@@ -238,7 +238,8 @@ var TestSuite = class TestSuite{
                         current_suite_index: 0,
                         next_test_index:     0
                        }
-        this.resume()
+        let ts_inst = this
+        setTimeout(function() { ts_inst.resume() }, 100)
     }
 
     static run_all(){
@@ -261,18 +262,11 @@ var TestSuite = class TestSuite{
         if (!TestSuite["reference_manual_id"]) { TestSuite.make_test_suites_from_doc(reference_manual_id) }
         let report_prefix = '<b style="font-size:20px;">All Test Suites Report</b><br/>' +
             '<span style="color:magenta;">test_suite_reporting *should* indicate<br/>"failures: unknown=2, known=1"</span><br/>'
-        //this.state = {reports:             report_prefix,
-         //             start_time:          Date.now(),
-         //             suites:              TestSuite.suites,
-         //             current_suite_index: 0,
-         //             next_test_index:     0
-         //            }
-        //this.resume()
         this.set_state_and_resume({reports: report_prefix, suites: TestSuite.suites})
     }
     //called from run_all before run_all actually runs any tests, and
     //when a job finishes because its when_stopped method as set by
-    //the job's start method will call TestSuite.resume()
+    //the job's start method will call TestSuite.resume
     static resume(){
         console.log("Top of TestSuite.resume")
         if(this.immediate_stop){
@@ -300,7 +294,6 @@ var TestSuite = class TestSuite{
                     this.state.current_suite_index += 1 //mostly redundant with setting this above, but not if we're on the last suite.
                     this.state.next_test_index = 0 //don't do this above since we might be entering resume whule in the middle of some test suite
                 }
-                //else { return } //suspend until TestSuite.resume() is called again.
             }
             this.finish()
         }
@@ -376,14 +369,6 @@ var TestSuite = class TestSuite{
             ts_array = eval(ts_src)
         }
         let report_prefix = '<b style="font-size:20px;">Test Suites Report for ' + path + '</b><br/>'
-        //this.state = {
-        //    reports:             report_prefix,
-        //    start_time:          Date.now(),
-        //    suites:              ts_array,
-        //    current_suite_index: 0,
-        //    next_test_index:     0
-        //}
-        //this.resume()
         this.set_state_and_resume({reports: report_prefix, suites: ts_array})
     }
 
@@ -494,11 +479,11 @@ var TestSuite = class TestSuite{
     static monitor_started_job(){
         if(this.state && this.state.started_job){
             let job_status_code = this.state.started_job.status_code
-            if ((job_status_code == "errored") || (job_status_code == "interrupted")){
+            if ((job_status_code === "errored") || (job_status_code === "interrupted")){
                 let cur_ts = this.state.suites[this.state.current_suite_index]
                 let cur_test = cur_ts.tests[this.state.next_test_index - 1]
                 let expected_src = cur_test[1]
-                if(expected_src == "TestSuite.error"){ }//we were expecting an error and we got one so no test failure
+                if(expected_src === "TestSuite.error"){ }//we were expecting an error and we got one so no test failure
                 else {
                     let error_mess = this.state.started_job.status()
 
@@ -509,12 +494,14 @@ var TestSuite = class TestSuite{
                 }
                 clearInterval(this.state.started_job_monitor_set_interval)
                 this.state.started_job = null
-                this.resume()
+                let ts_inst = this
+                setTimeout(function() { ts_inst.resume() }, 100)
             }
             else if (job_status_code == "completed"){
                 clearInterval(this.state.started_job_monitor_set_interval)
                 this.state.started_job = null
-                this.resume()
+                let ts_inst = this
+                setTimeout(function() { ts_inst.resume() }, 100)
             }
             else {} //all other states like "starting", "running", "running_when_stopped", "suspended" "waiting". just do nothing
                     //and monitor_started_job will be called again by setInterval and
@@ -561,7 +548,7 @@ var TestSuite = class TestSuite{
                     job_instance.start(//{when_stopped: function() {TestSuite.resume()}}
                     )
                     return false //means we're suspending this TestSuite. No further action
-                    //in this TestSuite until the job finishes. thenTestSuite.resume is called
+                    //in this TestSuite until the job finishes. then TestSuite.resume is called
                 } //must be wrapped in a fn because
                 //this fun will be called when job finishes with a this of the job instance.
                 //but we want to call resume with a this of TestSuite

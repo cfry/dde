@@ -70,8 +70,8 @@ function out_eval_result(text, color="#000000", src, src_label="The result of ev
             src_formatted = " <code title='" + src + "'>&nbsp;" + src_formatted + src_formatted_suffix + "&nbsp;</code>"
         }
         //if (src_formatted == "") { console.log("_____out_eval_result passed src: " + src + " with empty string for src_formatted and text: " + text)}
-        text = "<fieldset><legend><i>" + src_label  + " </i>" + src_formatted + " <i>is...</i></legend>" +  text + "</fieldset>"
-        append_to_output(text)
+        let the_html = "<fieldset><legend><i>" + src_label  + " </i>" + src_formatted + " <i>is...</i></legend>" +  text + "</fieldset>"
+        append_to_output(the_html)
     }
     //$('#js_textarea_id').focus() fails silently
     if(window["document"]){
@@ -235,7 +235,7 @@ function show_window({content = `<input type="submit" value="Done"/>`,
         if (fn_name && (fn_name != "")) {
             if(fn_name == "callback") { //careful, might be just JS being clever and not the actual name in the fn def
                 fn_name = function_name(callback.toString()) //extracts real name if any
-                if (fn_name == "") { //nope, no actual name in fn
+                if ((fn_name == "") || (fn_name == null)) { //nope, no actual name in fn
                     callback = callback.toString() //get the src of the anonymous fn
                 }
                 else { callback = fn_name }

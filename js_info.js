@@ -31,6 +31,12 @@ Js_info = class Js_info {
             let is_identifier = ((typeof(fn_name) == "string") && is_string_an_identifier(fn_name))
             let bounds_of_identifier = (is_identifier ? Editor.bounds_of_identifier(full_src, pos) : null )
             let info_and_url = Js_info.fn_name_to_info_map[fn_name] //miscelaneous stuff
+            if(fn_name == "Py.eval"){
+                //fn = value_of_path(fn_name)
+                return Js_info.get_info_string_aux(orig_input, full_src, pos)
+                //Js_info.make_atag("Py", "eval") + "(" + Js_info.get_param_string(fn) + ")"
+
+            }
             fn_name = Js_info.strip_path_prefix_maybe(fn_name)
             if (!info_and_url) { info_and_url = Js_info.fn_name_to_info_map[fn_name] } //try again without prefix, for cases where orign fn_name is "fn.call", for instance
             if (!series && (orig_input !== "Control.loop")){ series = Series.find_series(fn_name) }
@@ -738,7 +744,6 @@ Js_info = class Js_info {
         let the_html = make_html("a", {href: "#", onclick: onclick_val, title: title}, fn_name)
         return the_html
     }
-
 
     static get_param_string(fn){
         var params_from_src = Js_info.parse_fn_source_for_params(fn)

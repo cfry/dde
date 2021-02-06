@@ -3774,7 +3774,7 @@ is a valid job to define and run, though it will give a warning message:<br/>
             instruction so that you can have one job that feeds instructions to
             multiple serial robots as well as multiple Dexters.
          </li>
-        <li id="job_param_do_list_doc_id"><b>do_list</b> Default: <code>[]</code> (an empty array). An array of instructions to be sent to the job's robot when the
+        <li id="job_param_do_list_doc_id"><b>do_list</b> Default: <code>[]</code> (an empty array). The do list of a Job, represented as an array of instructions to be sent to the job's robot when the
              Job is run. There are a number of different kinds of instructions, including
              user-defined JavaScript functions that can call arbitrary JS code.
              <p></p>
@@ -3935,7 +3935,8 @@ new Job({name: "my_job",
             <span style="color:red;">Warning</span>: When there is more than one Job running on a robot,
              a Job can't expect Dexter to be where it told it to go, as another Job
              might have changed its position.</li>
-        <li id="job_param_if_robot_status_error_doc_id"><b>if_robot_status_error</b> the value is a do_list item that
+        <li id="job_param_if_robot_status_error_doc_id"><b>if_robot_status_error</b>
+            The value is a <a href="#" onclick="open_doc(Robot_doc_id)">do_list item</a> that
             is automatically put on the do_list when a Dexter robot_status comes back to DDE with an error
             (i.e. a non-zero error code.)
             <p></p>
@@ -3950,6 +3951,8 @@ new Job({name: "my_job",
             The default value for <i>if_robot_status_error</i> is <code>Job.prototype.if_robot_status_error_default</code> .
             It prints a warning message to the Output pane and returns a Control.error instruction,
             stopping the Job.
+            <p></p>
+            If the instruction is null, the Job will ignore the error and just keep going.
             <p></p>
             You can see the possible
             <a target="_blank" href="https://github.com/HaddingtonDynamics/Dexter/wiki/status-errors">error codes</a>.
@@ -4187,9 +4190,14 @@ the JavaScript code that implements Job instructions.
 
 
 <details id="Robot_doc_id" class="doc_details"><summary>Robot</summary>
-  A robot is a machine that can execute the instructions in its instruction set. In general,
+  A robot is a machine that can execute the instructions in its instruction set.
+  There are lots of different kinds of instructions.
+  In general,
   each kind of robot will have its own instruction set. The primary
-  difference between robots is the difference in their instruction sets.
+  difference between robots is the difference in their instruction sets,
+  though there are some kinds of instructions that can be run on any kind of Robot.
+  Those "common instructions" opperate completely within DDE as they have
+  no need to be sent to a special piece of hardware.
   <p></p>
   All Jobs have a default <i>robot</i> property. You can access the robot property
   from a running job like so:<br/>
@@ -5705,7 +5713,15 @@ Example:<code>Control.wait_until(2)</code><br/>
         returns the mat.
     </details>
     </details> <!--end IO -->
-</details> <!-- end Robot Instructions -->
+  <details  class="doc_details"><summary>null, undefined</summary>
+  A null or undefined on the do_list does nothing. It is a "no-op".
+  You wouldn't explicitly put one of these on a do_list, but you may have a
+  function on the do_list that is used for a side-effect. It can have a
+  <code title="unEVALable">return null</code> statement in it or no return at all
+   (which returns <code>undefined</code>).
+  </details>
+
+    </details> <!-- end Robot Instructions -->
 
 <details id="Brain_doc_id" class="doc_details"><summary>Brain</summary>
 <b>Brain</b> is a virtual robot used to manage other robots or do purely software tasks.
@@ -10639,7 +10655,7 @@ Here we point out just a few that are especially easy and useful for teaching.
      a given release starts out empty, the release itself will contain
      the previous fixes, plus likely some new, larger amounts of code.
 
-   <details id="PatchDDE.download_all" class="doc_details"><summary>download_all</summary>
+   <details id="PatchDDE.download_all_doc_id" class="doc_details"><summary>download_all</summary>
        This method downloads patch files from github into the folder
        Documents/dde_patches/patches_for_(your dde version number).
        Each patch file will have a small amount of code. The file's
@@ -10657,7 +10673,7 @@ Here we point out just a few that are especially easy and useful for teaching.
        every time they launch DDE.
    </details>
 
-   <details id="PatchDDE.load" class="doc_details"><summary>load</summary>
+   <details id="PatchDDE.load-doc_id" class="doc_details"><summary>load</summary>
       Load into the DDE JavaScript environment, the patch files for
       the release of DDE that you're running.
       <p></p>
@@ -10747,8 +10763,227 @@ Here we point out just a few that are especially easy and useful for teaching.
        eval <code title="not in TestSuite">PatchDDE.load_dde_2_to_3()</code>
    </details>
    </details> <!-- end Patch System -->
+   </details> <!-- End PatchDDE -->
+   <details id="python_doc_id" class="doc_details"><summary>Python</summary>
+       DDE is a JavaScript-based development environment, BUT it facilitates
+       calling Python 3 code.
+       <p/>
+       Behind the scenes, DDE creates a process to run Python.
+       Python code will be evaluated in that process until you kill, it, init a fresh one,
+       or relaunch DDE. Thus you can set global variables or def's in it, import files into
+       it and expect those modifications to be there when you attempt to get values or call
+       functions.
+       <p/><a href="#" onclick='open_doc(js_for_python_programmers_doc_id)'>Similarities</a>
+       between JavaScript and Python.
 
+       <details class="doc_details"><summary>Installation</summary>
+          To use Python from DDE, the Python 3 interpreter must be installed on your computer.<br/>
+          <b>MacOS</b> has, for years, included Python 2.7.<br/>
+          In the terminal, type: <code title="unEvalable">python</code><br/>
+          More modern versions of MacOS include Python 3.<br/>
+          In the terminal, type:  <code title="unEvalable">python3</code>
+          to get a read_eval_print loop for Python.
+          <p/>
+          To install Python on other Operating Systems see
+          <a href="https://www.python.org/downloads/" target="_blank">Python.org</a>
+       </details>
 
-    </details> <!-- End PatchDDE -->
+       <details id="python_user_interface_doc_id" class="doc_details"><summary>User Interface</summary>
+           <ul>
+           <li>When you are editing a file who's name ends in ".py",
+           clicking <button>Eval</button> will evaluate the selection (or whole editor text if
+           no selection) as Python code.<br/>
+            The result will appear in the Output pane.
+           <p/>
+           </li>
+           <li>
+           When you select <select><option>Python</option></select> from the command line menu,
+           and hit ENTER in the command line, the command line text will be evaluated as Python code.<br/>
+           The result will appear in the Output pane.
+           <p/>
+           </li>
+           <li>
+           The File menu/Load ... item let's you choose a file.
+           If you choose one with a ".py" extension,
+           you will be prompted to enter an "as name".
+           If you then click <button>OK</button>,
+           that is the equivalent of the python code:<br/>
+           <code title="unEVALable">import /the/file.py as somename</code><br/>
+           You'll see confirmation in the Output pane.
+           </li>
+           </ul>
+       </details>
+       <details id="Py.python_executable_path" class="doc_details"><summary>Py.python_executable_path</summary>
+        This variable contains a string that is the path to the Python3 interpreter on your computer.
+        It defaults to something that may just work on your computer, but if it doesn't,
+        you can set this variable before <code>Py.init</code> is called,
+        (or <code>Py.eval</code> is called the first time).
+        <p/>
+        If you can type in to a terminal some string like <code title="unEVALable">python3</code>,
+        or perhaps <code title="unEVALable">python</code> and it puts you in a Python3 read_eval_print loop,
+        then that string will very likely work for the value of this variable.
+        <p/>
+        <i>Examples:</i><br/>
+        <code>Py.python_executable_path</code><br/>
+        <code title="not in TestSuite.">Py.python_executable_path = "python3"</code><br/>
+       </details>
+       <details id="Py.eval_doc_id" class="doc_details"><summary>Py.eval</summary>
+       The <code>Py</code> class holds utilites for evaluating Python code embedded in JavaScript code.
+       The most important function is <code>Py.eval</code>.<br/>
+       <i>Parameters:</i><br/>
+       <b>python_source_code</b> Required. A string of Python source code to be
+         evaluated in the Python process.<br/>
+       <b>callback</b> A function. Default: <code>Py.default_callback</code>
+       The callback is called when Python is done evaluating the source code.
+       It is called with one argument, a JSON object with fields:
+           json_obj = {"from": "Py.eval", "is_error": is_error, "source": src, "callback_id": callback_id, "result": result}
 
-</details> <!-- end ref man -->
+           <ul>
+           <li><b>from</b> Always "Py.eval". Allows you to distinguish this JSON object from others.</li>
+           <li><b>is_error</b> Boolean. </li>
+           <li><b>source</b> The string of python_source_code that Py.eval was called with.</li>
+           <li><b>callback_id</b> (internal) The id of the callback that Py.eval was called with.</li>
+           <li><b>result</b> The result of the evaluation of the python_source_code.
+               This will be JSON, ie <code>null</code>, a boolean, a number, a string, an array or
+               nested object of those types.
+               If evaluating python_source_code returns a value, it will be of that type.
+               Otherwise, if the python_source_code returns Python's None, it will be
+               <code>null</code>.
+               Python's None is more similar to JS <code>undefined</code> than it is to
+               <code>null</code>, but JSON can't represent <code>undefined</code>.
+           </li>
+       </ul>
+       If you launch DDE and call <code>Py.eval</code>, a new Python process will be created
+       for evaluating the Python code. That process will remain to run more Python code until
+       you kill it, init a new Python process, or quit DDE.
+       <p/>
+       <i>Examples:</i><p/>
+       <code>Py.eval("len([4, 5])") </code><p/>
+
+       <code>Py.eval('foo = "hi from py"') </code><br/>
+       <code>Py.eval('foo') </code><p/>
+
+       <code>Py.eval('import math') </code><br/>
+       <code>Py.eval('math.pi') </code><br/>
+       <pre><code>Py.eval("2 + 3",
+        function(json_obj){
+          out(json_obj.source + " => " + json_obj.result)
+       })    </code></pre>
+       <pre><code>
+new Job({
+  name: "my_job",
+  user_data: {j2: null},
+  do_list: [
+    function(){ Py.eval("import math") },
+    Control.wait_until(1),
+    function(){
+      let the_job = this
+      Py.eval("math.pi * 10",
+               function(json_obj){
+                 the_job.user_data.j2 = json_obj.result
+               })
+    },
+    Control.wait_until(function() {
+                         out("this.user_data.j2: " + this.user_data.j2)
+                         return this.user_data.j2 }),
+    function() {
+      return Dexter.move_all_joints(0, this.user_data.j2)
+    }
+  ]
+})    </code></pre>
+      Like the other examples, the last example isn't practical, but understanding it will help you
+      integrate Python dynamically into a running job.
+      <ol>
+          <li> First we initialize <code title="unEVALable">user_data.j2</code> to <code>null</code>. It's going to hold the joint angle that Python computes.
+          </li>
+          <li> We <code title="unEVALable">import math</code> to set up our Python environment.
+               Replace math with packages of your choice.
+          </li>
+          <li> <code>Control.wait_until(1)</code> pauses the Job for 1 second,
+              giving Python a chance to initialize and load the math package.
+              This 1 second is longer than the rest of the job put together.
+              It could be cut down, or even moved before the Job if you like.
+              The import doesn't need to be executed after the first time the Job is run.
+          </li>
+          <li> The next function does the real work, evaluating <code title="unEVALable">math.pi * 10</code> in Python.
+               We COULD have done this particular computation before, and outside of, the Job,
+               but we want to show that this can be done while running the Job. You might want
+               to pass in arguments that are computed while the Job is running, for instance.
+               <p></p>
+               The callback function is a closure around <code title="unEVALable">the_job</code>.
+               Since JS won't close over
+               <code>this</code> properly, we must create a local variable via
+               <code>let the_job = this</code>
+               before defining the inner function.
+               <p></p>
+               That inner function is the 2nd argument to
+               <code>Py.eval</code> i.e. our callback. Once Python has completed the multiply,
+               this callback will be called with a json_object containing the result.
+               The callback sets <code title="unEVALable">Job.my_job.user_data.j2</code>
+               to the result from Python.
+          </li>
+          <li> <code>Control.wait_until</code> calls the function in its first argument
+               until it returns a truthy value.
+               When our callback changes the value of <code title="unEVALable">user_data.j2</code>
+               from <code>null</code> to <code>31.4</code>, <code>Control.wait_until</code> is
+               done waiting and we move on to the next instruction.
+               <p></p>
+               In this wait_until function, we print out the value of <code title="unEVALable">user_data.j2</code>
+               just so you can see that the code is still working, and exactly when
+               it has a good value. During this time, the Job button will be yellow.
+               <p></p>
+               For such a trivial computation, there might be no <code>null</code> print outs,
+               and you might not even need a <code>Control.wait_until</code>.
+               But if you tell Python to perform a long computation, <code>Control.wait_until</code>
+               pauses the Job until we have the results back from Python.
+          </li>
+          <li> Our final Job instruction retrieves the value from user_data and uses it
+               as the angle to move joint 2 to.
+               We must wrap our call to <code>Dexter.move_all_joints</code> in a function,
+               because its crucial argument, <code title="unEVALable">this.user_data.j2</code>
+               must be evaled when this instruction is run, not at Job definition time.
+          </li>
+      </ol>
+       </details>
+       <details id="Py.load_file_doc_id" class="doc_details"><summary>Py.load_file</summary>
+       Imports a file into DDE's Python process.<br/>
+       <i>Parameters:</i><br/>
+       <b>path</b> Required. A string of the file to load. If it doesn't start with slash,
+                  it will have <code>dde_apps_folder</code> prepended to it.
+                  If it starts with <code>"../"</code>, it will have the parent folder of <code>dde_apps_folder</code>
+                  prepended to it.<br/>
+        <b>as_name</b> Default: <code>null</code>. indicating that the
+                 file name (sans folder, sans extension) will be used as the as_name,
+                 just like <code title="unEVALable">import foo</code> means the same thing as
+                 <code title="unEVALable">import foo as foo</code><br/>
+        <b>callback</b> Same as "callback" for <a href="#" onclick="open_doc('Py.eval_doc_id')">Py.eval_doc_id</a>
+        <p/>
+        <i>Example:</i><br/>
+         <code title="unEVALable">Py.load_file("hello.py")</code> which means the same as <br/>
+         <code  title="unEVALable">Py.load_file("/Users/Fry/Documents/dde_apps/hello.py")</code> (or whatever
+              folder <code>dde_apps_folder</code> evals to.)<br/>
+        <code title="unEVALable">Py.load_file("hello.py", "howdy")</code> (uses "howdy" as the "as name".)
+       </details>
+       <details id="Py.kill_doc_id" class="doc_details"><summary>Py.kill</summary>
+       Ends the Python process. The Python process shouldn't take up much resources
+       when idle. One reason to kill it is to get rid of the state currently
+       in the Python process so the next time <code>Py.eval</code> is called,
+       it will start afresh.
+       </details>
+       <details id="Py.init_doc_id" class="doc_details"><summary>Py.init</summary>
+       This function
+       <ul>
+           <li>Kills the running Python process if any</li>
+           <li>Creates a new Python process</li>
+           <li>Puts <code>dde_apps_folder</code> on Python's
+                sys.path list
+           <li>Makes the new Python process ready to accept eval commands from DDE.</li>
+       </ul>
+       It is called automatically the first time you call <code>Py.eval</code>
+       after launching DDE or killing the Python process,
+       so there isn't much need to call this function explicitly.
+       After calling this function, your first call to <code>Py.eval</code> will
+       be a fraction of a second faster.
+       </details>
+       </details> <!-- end Py -->
+       </details> <!-- end ref man -->

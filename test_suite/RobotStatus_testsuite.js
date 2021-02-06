@@ -22,6 +22,10 @@ new TestSuite("robot_status_g0",
     ["Job.rs_test_job_g0.robot.rs.eye_numbers()", "TestSuite.error"]   
 )
 
+new TestSuite("junkts",
+   ["out(123)"]
+)
+
 
 new TestSuite("robot_status_g2",
     [`new Job({

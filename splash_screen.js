@@ -178,7 +178,7 @@ var SplashScreen = class SplashScreen {
         ["Webinar Videos",            "DDE in depth. 45 to 60 minute videos of the core concepts and syntax.",
                                       "window.open('https://www.hdrobotic.com/blog/programming-in-dexter-development-environment-archive')"],
         ["JS for Python Programmers", "Instructions for DDE Jobs&#013;look a lot like Python.",
-                                      "open_doc(js_for_pythond_programmers_doc_id)"],
+                                      "open_doc(js_for_python_programmers_doc_id)"],
         ["On-line Documentation",     "Full on-line doc, including&#013;release notes of the latest version.",
                                       "window.open('https://www.hdrobotic.com/software')"],
         ["DDE Source Code",           "DDE is open source software that is stored on GitHub.",
