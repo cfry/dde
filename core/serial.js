@@ -120,9 +120,13 @@ module.exports.serial_devices_async = serial_devices_async
 
 
 //only used for testing.
-function serial_connect_low_level(port_path, port_options, capture_n_items=1, item_delimiter="\n",
+function serial_connect_low_level(port_path,
+                                  port_options,
+                                  capture_n_items=1,
+                                  item_delimiter="\n",
                                   trim_whitespace = true,
-                                  parse_items=true, capture_extras=false,
+                                  parse_items=true,
+                                  capture_extras=false,
                                   callback=onReceiveCallback_low_level,
                                   error_callback=onReceiveErrorCallback_low_level,
                                   open_callback=onOpenCallback_low_level){
@@ -138,7 +142,9 @@ function serial_connect_low_level(port_path, port_options, capture_n_items=1, it
             capture_extras:  capture_extras,
             pending_input:   ""}
     port.on('open',  function(err)  { open_callback.call(port, err, port_path)})  //port.open_callback(err, port_path)
-    port.on('data',  function(data) { callback.call(port, data, port_path)})
+    port.on('data',  function(data) {
+       callback.call(port, data, port_path)
+    })
     port.on('error', function(data) { error_callback.call(port, data, port_path)})
 }
 

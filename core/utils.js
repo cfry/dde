@@ -1383,6 +1383,24 @@ function format_number(num, digits_before_point=6, digits_after_point=3, allow_f
 }
 module.exports.format_number = format_number
 
+function array_to_html_table(values_array, labels_array=null, header_array=null, zeropad=3){
+    if(labels_array == null) {
+        labels_array = Array.from(Array(values_array.length).keys())
+    }
+    let result = "<table>"
+    if(header_array){
+        result += "<tr><th>" + header_array[0] + "</th><th>" + header_array[1] + "</th></tr>"
+    }
+    for(let i = 0; i < values_array.length; i++){
+        let numstr = format_number(values_array[i])
+        numstr = replace_substrings(numstr, " ", "&nbsp;")
+        result += "<tr><td>" + labels_array[i] + "</td><td style='font-family:monospace;'>" + numstr + "</td></tr>"
+    }
+    result += "</table>"
+    return result
+}
+module.exports.array_to_html_table = array_to_html_table
+
 // ordinal_string(0) => "0th"   ordinal_string(1) => "1st"
 // ordinal_string(11) => "11th" ordinal_string(21) => "21st"
 function ordinal_string(n){

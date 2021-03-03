@@ -123,7 +123,7 @@ function render_html(str){
 }
 
 //part 2 of 3 is in eval.js,  window.addEventListener('message'  under the message name of "eval"
-function eval_js_part2(command, calL_eval_part3_if_no_error=true){ //2nd arg passed in as false for eval_and_play
+function eval_js_part2(command, call_eval_part3_if_no_error=true){ //2nd arg passed in as false for eval_and_play
     command = fix_code_to_be_evaled(command)
     let suffix_to_evaled_src
     let prefix_to_evaled_src
@@ -177,7 +177,7 @@ function eval_js_part2(command, calL_eval_part3_if_no_error=true){ //2nd arg pas
         eval_js_part3(result)
         return "Error: " + err.message
     }
-    if (calL_eval_part3_if_no_error) { eval_js_part3(result) }
+    if (call_eval_part3_if_no_error) { eval_js_part3(result) }
     return result
 }
 

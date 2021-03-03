@@ -2856,6 +2856,84 @@ Job.is_plausible_when_stopped_value = function(val){
             )
 }
 
+//retruns an array of arrays, with the outer array having 3 inner arrays,
+//one for x, y and z.
+Job.prototype.three_d_points_for_plotting = function(which="auto"){ //can also be "orig_do_list" or "sent"
+    if((which === "auto") && this.sent_instructions) {
+        which = "sent"
+    }
+    else { which = "orig_do_list" }
+    let xarr=[], yarr=[], zarr=[]
+    if(which === "orig_do_list") {
+       let do_list = this.orig_args.do_list
+       for(let instr of do_list){
+           let xyz = null
+           if((instr instanceof Instruction.Dexter) && instr.array_of_angles) {
+              let angs = instr.array_of_angles
+              if(angs.length < 5) { //todo imperfect!
+                  angs = angs.slice()
+                  for(let i = 0; i < 5; i++){
+                      if(i === angs.length) {
+                          angs.push(0) //todo hack to get around not having 5 angles because Kin.J_angles_to_xyz will error if we don't
+                          //but really less than 5 should mean "keep that angle in its same position
+                          //see src for move_all_joints
+                      }
+                  }
+              }
+              xyz = Kin.J_angles_to_xyz(angs)[0]
+           }
+           else if((instr instanceof Instruction.Dexter) && instr.xyz) {
+               xyz = instr.xyz
+           }
+           else if(Instruction.is_oplet_array(instr, "a")){
+               let angs = Instruction.extract_args(instr)
+               if(angs.length < 5) { //todo imperfect!
+                   angs = angs.slice()
+                   for(let i = 0; i < 5; i++){
+                       if(i === angs.length) {
+                           angs.push(0) //todo hack to get around not having 5 angles because Kin.J_angles_to_xyz will error if we don't
+                           //but really less than 5 should mean "keep that angle in its same position
+                           //see src for move_all_joints
+                       }
+                   }
+               }
+               xyz = Kin.J_angles_to_xyz(angs)[0]
+           }
+           if(xyz){
+               xarr.push(xyz[0])
+               yarr.push(xyz[1])
+               zarr.push(xyz[2])
+           }
+       }
+    } // end which === "orig_do_list"
+    else { //we have which = "sent"
+       let instrs = this.sent_instructions
+        for(let instr of instrs){
+            let xyz = null
+            if(Instruction.is_oplet_array(instr, "a")){
+                let angs = Instruction.extract_args(instr)
+                if(angs.length < 5) { //todo imperfect!
+                    angs = angs.slice()
+                    for(let i = 0; i < 5; i++){
+                        if(i === angs.length) {
+                            angs.push(0) //todo hack to get around not having 5 angles because Kin.J_angles_to_xyz will error if we don't
+                            //but really less than 5 should mean "keep that angle in its same position
+                            //see src for move_all_joints
+                        }
+                    }
+                }
+                xyz = Kin.J_angles_to_xyz(angs)[0]
+            }
+            if(xyz){
+                xarr.push(xyz[0])
+                yarr.push(xyz[1])
+                zarr.push(xyz[2])
+            }
+        }
+    } //end which == "sent"
+    return [xarr, yarr, zarr]
+}
+
 Job.prototype.to_source_code = function(args={}){
     if(!args.indent) { args.indent = "" }
     let props_indent = args.indent + "         "

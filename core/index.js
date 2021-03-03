@@ -1,5 +1,5 @@
-global.dde_version = "3.7.4"
-global.dde_release_date = "Feb 5, 2021"
+global.dde_version = "3.7.5"
+global.dde_release_date = "Mar 2, 2021"
 
 console.log("dde_version: " + global.dde_version + " dde_release_date: " + global.dde_release_date +
             "\nRead electron_dde/core/job_engine_doc.txt for how to use the Job Engine.\n")

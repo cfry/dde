@@ -61,9 +61,11 @@ class Py{
     }
 
     static init_class(){ //does not init the process, just the Py class
-       if      (operating_system === "win")   { Py.python_executable_path = "python" }
-       else if (operating_system === "mac")   { Py.python_executable_path = "python3" } //python gets you python2.7
-       else if (operating_system === "linux") { Py.python_executable_path = "python" }
+       if(!Py.python_executable_path){
+         if      (operating_system === "win")    { Py.python_executable_path = "python"  }
+         else if (operating_system === "mac")    { Py.python_executable_path = "python3" } //python gets you python2.7
+         else /*(operating_system === "linux")*/ { Py.python_executable_path = "python3"  }
+       }
        if(!Py.main_eval_py_path) { Py.main_eval_py_path = dde_apps_folder + "/main_eval.py" }
        //Py.main_eval_py_path = __dirname + "/main_eval.py" //note that __dirname, when inside the job engine core folder,  ends in "/core" so don't stick that on the end.
        out('Py.python_executable_path set to: <code>' + Py.python_executable_path + '</code>')
@@ -77,9 +79,7 @@ class Py{
     //document
     static init(){
         this.kill()
-        if(!Py.python_executable_path) {
-            Py.init_class()
-        }
+        Py.init_class()
         this.process = spawn(this.python_executable_path, [Py.main_eval_py_path]) //[dde_apps_folder + "/main_eval.py"]);
         out("New Python process created.")
         this.process.stdout.on('data', (data) => {
@@ -190,7 +190,7 @@ class Py{
     //path should end in .py
     static load_file(path, as_name = null, callback=Py.default_callback){
        path = make_full_path(path, false) //don't adjust to OS, keep as slashes.
-       path = replace_substrings(path, "\\", "/")
+       path = replace_substrings(path, "\\", "/", false)
        this.eval("sys.path",
                  function(json_obj){
                      let folder_array = json_obj.result

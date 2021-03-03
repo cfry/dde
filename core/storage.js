@@ -376,9 +376,6 @@ function read_file_async_from_dexter_using_job(dex_instance, path, callback){
     }).start()
 }
 
-
-
-
 module.exports.read_file_async = read_file_async
 
 function choose_file(show_dialog_options={}) {
@@ -534,9 +531,22 @@ function write_file_async_to_dexter_using_job(dex_instance, path, content, callb
 
 //the callback takes 1 arg, err. IF it is passed non-null, there's an error.
 // opy_file_async("foo/bar.js", "Dexter.dexter0:bar_copy.js"
-function copy_file_async(source_path, destination_path, callback=copy_file_async_default_callback){
+function copy_file_async(source_path, destination_path, callback=null){
+    if(!callback) {
+        callback = function(err){
+            if(err){
+                dde_error("In call to: copy_file_async<br/>from: " +  source_path + "<br/> &nbsp;&nbsp;&nbsp;&nbsp;to: " +
+                    destination_path + "<br/>error: " + err.message)
+            }
+            else {
+                out("copy_file_async<br/>from: " +  source_path + "<br/> &nbsp;&nbsp;&nbsp;&nbsp;to: " +
+                    destination_path + "<br/>succeeded.", "green")
+            }
+        }
+    }
    read_file_async(source_path, "binary", //"binary" should faithfully read and write content without modification.
                                           // "ascii" fails on jpg files.
+
       function(err, data){
         if(err) { //only call the callback for the read IF there's a read error.
             callback(err)
@@ -546,7 +556,7 @@ function copy_file_async(source_path, destination_path, callback=copy_file_async
         }
       })
 }
-
+/*
 function copy_file_async_default_callback(err){
     if(err){
         dde_error("copy_file_async error: " + err.message)
@@ -555,6 +565,7 @@ function copy_file_async_default_callback(err){
         out("copy_file_async succeeded.")
     }
 }
+*/
 
 function copy_folder_async_default_callback(err){
     if(err){
@@ -1016,7 +1027,13 @@ function load_files(...paths) {
     let contents = []
     for (let path of resolved_paths){
         //console.log("getting content for: " + path)
-        let content = read_file(path) //might error
+        let content
+        if(path.endsWith(".py") || path.endsWith(".pyc")){
+            content = [path]
+        }
+        else {
+            content = read_file(path) //might error
+        }
         //onsole.log("got content: " + content)
         contents.push(content)
     }
@@ -1035,7 +1052,13 @@ function load_files(...paths) {
         try{let prev_loading_file =  window["loading_file"]
             window["loading_file"] = resolved_path
             window.Job = Job //needed if content has "Job" in it.
-            result = window.eval(content)
+            if(Array.isArray(content)){
+                Py.load_file(content[0])
+                result = "Loading Python files doesn't return a result."
+            }
+            else {
+                result = window.eval(content)
+            }
             window["loading_file"] = prev_loading_file
         }
         catch(err){

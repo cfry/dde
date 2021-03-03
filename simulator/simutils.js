@@ -78,8 +78,8 @@ SimUtils = class SimUtils{
     } */
     //ds_inst is an instance of DexterSim class.
     //robot_name example: "Dexter.dexter0"
-    static render_multi(ds_instance, new_angles_arcseconds, job_name, robot_name, force_render=false, dur_in_ms=0){ //inputs in arc_seconds
-        console.log("render_multi passed: " +  new_angles_arcseconds)
+    static render_multi(ds_instance, new_angles_dexter_units, job_name, robot_name, force_render=false, dur_in_ms=0){ //inputs in arc_seconds
+        console.log("render_multi passed: " +  new_angles_dexter_units)
         let job_or_robot_to_sim = "Dexter." + Dexter.default.name
         if (force_render ||
             (job_or_robot_to_sim == job_name) ||
@@ -107,18 +107,18 @@ SimUtils = class SimUtils{
             //let new_RobotStatus_instance = new RobotStatus({robot_status: robot_status})
             //let new_js = new_RobotStatus_instance.measured_angles(7)
             let js_inc_per_frame = []
-            for(let joint = 0; joint < new_angles_arcseconds.length; joint++){
-                let j_diff = new_angles_arcseconds[joint] - this.prev_joint_angles[joint]
+            for(let joint = 0; joint < new_angles_dexter_units.length; joint++){
+                let j_diff = new_angles_dexter_units[joint] - this.prev_joint_angles[joint]
                 js_inc_per_frame.push(j_diff / total_frames)
             }
             //let prev_js = this.prev_joint_angles.slice(0)
             let rob = value_of_path(robot_name)
-            let prev_js = ds_instance.measured_angles_arcseconds.slice() //must copy because render_multi is going to continuous update mesured_angels per frame and we want to capture the prev_js and keep it constant
-            console.log("calling render_multi_frame first time with new_angles as: " + new_angles_arcseconds + " prev_js: " + prev_js + " js_inc_per_frame: " + js_inc_per_frame)
-            SimUtils.render_multi_frame(ds_instance, new_angles_arcseconds, prev_js, js_inc_per_frame, ms_per_frame, total_frames, 0, rob, false) //beginning an all but last rendering
+            let prev_js = ds_instance.measured_angles_dexter_units.slice() //must copy because render_multi is going to continuous update mesured_angels per frame and we want to capture the prev_js and keep it constant
+            console.log("calling render_multi_frame first time with new_angles as: " + new_angles_dexter_units + " prev_js: " + prev_js + " js_inc_per_frame: " + js_inc_per_frame)
+            SimUtils.render_multi_frame(ds_instance, new_angles_dexter_units, prev_js, js_inc_per_frame, ms_per_frame, total_frames, 0, rob, false) //beginning an all but last rendering
 
             //used by render_once_but_only_if_have_prev_args\
-            this.prev_joint_angles     = new_angles_arcseconds
+            this.prev_joint_angles     = new_angles_dexter_units
             //SimUtils.prev_robot_status = robot_status //not use by  render_multi or render_multi_frame
             SimUtils.prev_job_name     = job_name
             SimUtils.prev_robot_name   = robot_name
@@ -129,8 +129,10 @@ SimUtils = class SimUtils{
     //For given new commanded angles of an instrution, this fn is called many times, with a dur of ms_per_frame
     //between the calls. All args remain the same for such calls except for frame, which is incremented from
     //0 up to total_frames. Once its called with frame == total_frames, it immediately stops the recursive calls.
-    static render_multi_frame(ds_instance, new_angles_arcseconds, prev_js, js_inc_per_frame, ms_per_frame, total_frames, frame_number=0, rob, did_last_frame=false){
-        if(frame_number > total_frames) { ds_instance.animation_running = false} //we're done
+    static render_multi_frame(ds_instance, new_angles_dexter_units, prev_js, js_inc_per_frame, ms_per_frame, total_frames, frame_number=0, rob, did_last_frame=false){
+        if(frame_number > total_frames) { //we're done
+            ds_instance.animation_running = false
+        }
         else{
             ds_instance.animation_running = true
             let new_angles = [] //used only for computing xyz to set in sim pane header
@@ -140,15 +142,12 @@ SimUtils = class SimUtils{
                 let j_inc_per_frame = js_inc_per_frame[joint] //might be undefined for j6 and 7
                 let inc_to_prev_j = frame_number * j_inc_per_frame
                 let j_angle = prev_j + (Number.isNaN(inc_to_prev_j) ? 0 : inc_to_prev_j) //j_angle is in arcseconds
-                ds_instance.measured_angles_arcseconds[joint] = j_angle
+                ds_instance.measured_angles_dexter_units[joint] = j_angle
                 //if(joint === 0) { out("J" + joint + ": inc_to_prev_j: " + Math.round(inc_to_prev_j) +
                 //                      " j_angle as: "  +  Math.round(j_angle) +
                 //                      " j_angle deg: " + (Math.round(j_angle) / 3600 ))
                 //}
-                let angle_degrees
-                if      (joint == 5) { angle_degrees = (j_angle - 512) * Socket.DEGREES_PER_DYNAMIXEL_UNIT }
-                else if (joint == 6) { angle_degrees = j_angle * Socket.DEGREES_PER_DYNAMIXEL_UNIT }
-                else                 { angle_degrees = j_angle / 3600 }
+                let angle_degrees = Socket.dexter_units_to_degrees(j_angle, joint + 1)
                 if(((joint === 1) || (joint === 2) || (joint === 3)) &&
                     sim.hi_rez) {
                     angle_degrees *= -1
@@ -164,15 +163,15 @@ SimUtils = class SimUtils{
                         break;
                     case 1:
                         sim.J2.rotation.z = rads
-                        sim_pane_j2_id.innerHTML = j_angle_degrees_rounded
+                        sim_pane_j2_id.innerHTML = j_angle_degrees_rounded * -1
                         break;
                     case 2:
                         sim.J3.rotation.z = rads
-                        sim_pane_j3_id.innerHTML = j_angle_degrees_rounded
+                        sim_pane_j3_id.innerHTML = j_angle_degrees_rounded * -1
                         break;
                     case 3:
                         sim.J4.rotation.z = rads
-                        sim_pane_j4_id.innerHTML = j_angle_degrees_rounded
+                        sim_pane_j4_id.innerHTML = j_angle_degrees_rounded * -1
                         break;
                     case 4:
                         sim.J5.rotation.y = rads * -1
@@ -227,28 +226,8 @@ SimUtils = class SimUtils{
             sim_pane_z_id.innerHTML = ("" + z).substring(0, str_length)
 
             sim.renderer.render(sim.scene, sim.camera)
-            /*if(frame_number < (total_frames - 1)){
-                setTimeout(function() {
-                    SimUtils.render_multi_frame(ds_instance, new_angles_arcseconds, prev_js, js_inc_per_frame, ms_per_frame, total_frames, frame_number + 1, rob, false)
-                   }, ms_per_frame)
-            }
-            else if ((frame_number == (total_frames - 1)) && !did_last_frame){//for the last time
-                setTimeout(function() {
-                    SimUtils.render_multi_frame(ds_instance, new_angles_arcseconds, new_angles_arcseconds, [0,0,0,0,0,0,0], ms_per_frame, 1, 0, rob, true)
-                    //the only real use of "new_js" is for it to be the 2nd arg in the above call.
-                    //then adding an increment of 0 to all its joints, makes whatever is in that
-                    //2nd arg BE the place to move the sim to, which will be the target angles.
-                    //we must have the did_last_frame be true so we don't keep having
-                    //the above else_if hit after the "first" use of this "last frame".
-                }, ms_per_frame) //since the correct "dur" for the final frame is really
-                                 //only a partial frame, the real ms_per_frame should
-                                 //be less than a full frame. But its set to a constant
-                                 //above to 33msec (for 30 frames per sec) so
-                                 //its small in any case. Thus we have an inaccuracy of the
-                                 //sim, but, its minor and really just at the "animation frame rate".
-            }*/
             setTimeout(function() {
-                SimUtils.render_multi_frame(ds_instance, new_angles_arcseconds, prev_js, js_inc_per_frame, ms_per_frame, total_frames, frame_number + 1, rob, false)
+                SimUtils.render_multi_frame(ds_instance, new_angles_dexter_units, prev_js, js_inc_per_frame, ms_per_frame, total_frames, frame_number + 1, rob, false)
             }, ms_per_frame)
         }
     }

@@ -5,6 +5,39 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+
+<details class="doc_details"><summary>v 3.7.5, Mar 2, 2021</summary>
+Highlights: Python Interface much more useful.
+            New Plot class and inspector integration.
+            Simulator fixes.
+<ul>
+    <li>Extensions to Ref Man/Python documentation. The most substantial of which is for Windows Installation.</li>
+    <li> Instruction: <code>Brain.eval_python</code> that facilitates integrating Python code into a Job.</li>
+    <li>Fix for Py.init under certain circumstances for Linux.</li>
+    <li>The default for the python installation in non-mac, non-windows (ie Linux, etc)
+        is now "python3" instead of "python".</li>
+    <li>Fixed bug in <code>Py.load_file</code> when processing slashes.</li>
+    <li><code>load_files</code> can now take a .py file and it loads it using <code>Py.load_file</code>.</li>
+    <li>When a Python numpy array is about to be returned to DDE,
+        it is automatically converted to a list so that it can be converted to a JSON array
+        and returned as a JS array.</li>
+    <li>Improved callback default for <code>copy_file_async</code> to tell you the names of the files.</li>
+    <li>Fixed simulator header pane numerical display for J2, J3, J4. The sign was wrong.</li>
+    <li>Fixed simulator for J6 and J7.</li>
+    <li>Serial Port: improved documentation on <code>serial_devices</code>.</li>
+    <li>Added about 10 set_parameters to the set parameters series that shows up
+        in the MakeInstruction dialog box for <code>Dexter.set_parameter</code>.</li>
+    <li>Fixed Dexter set_link_lengths_using_dde_db for J6_angle_max and J7_angle_max.</li>
+    <li>Compartmentalization of conversion of degrees to dexter_units (such as arcseconds) and back.</li>
+    <li>Make Instruction, instructions menu now has "empty_instruction_queue" before "empty_instruction_queue_immediately"</li>
+    <li>When launching DDE, now dde_init.js never comes up in the editor.
+        If dde_init.js is the last file saved or it is the only file ever edited, a new buffer will come up instead.
+        This prevents mistakes with this file, but you can still explicitly edit it.</li>
+    <li>New class <code>Plot</code>, makes it easy to plot 1D, 2D and 3D arrays as well as move-points in Jobs.
+        See Ref Man/Window System/Plot</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.7.4, Feb 5, 2021</summary>
 Fix for initializing Python process with the file system.
 </details>

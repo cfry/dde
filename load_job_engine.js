@@ -16,7 +16,7 @@ var {convertArrayBufferToString, convertStringToArrayBuffer,
     serial_disconnect_all} = require("./core/serial.js")
 
 
-var {array_to_csv, csv_to_array,
+var {array_to_html_table, array_to_csv, csv_to_array,
      base64_to_binary_string, binary_to_base64_string, is_string_base64,
      Duration, flatten, fn_is_keyword_fn, format_number,
     integer_array_to_rgb_string,

@@ -1702,6 +1702,11 @@ function make_dde_status_report(){
     return result
 }
 
+
+function quit_dde(){
+    require('electron').remote.getCurrentWindow().close()
+}
+
 //misc fns called in ready.js
 function email_bug_report(){
     subj = "DDE Suggestion " + date_to_human_string()

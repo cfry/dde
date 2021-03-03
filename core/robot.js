@@ -338,6 +338,22 @@ var Brain = class Brain extends Robot { /*no associated hardware */
         out(reason, "red")
         throw new Error("send called on Robot.Brain, which has no physical robot.")
     }
+
+    static eval_python(python_source, user_data_variable="python_value"){
+        return [
+            function() {
+              let the_job = this
+              the_job.user_data[user_data_variable + "_python_source"] = python_source
+              Py.eval(python_source,
+                function(json_obj){
+                    the_job.user_data[user_data_variable] = json_obj.result
+                })
+            },
+            Control.wait_until(function() {
+                      //out("this.user_data." + user_data_variable = ": " + this.user_data.[user_data_variable])
+                      return this.user_data[user_data_variable] !== undefined})
+            ]
+    }
 }
 
 Brain.all_names = []
@@ -2454,8 +2470,8 @@ Dexter.prototype.set_link_lengths_using_dde_db = function(job_to_start){
         this.J3_angle_max = Dexter.J3_ANGLE_MAX
         this.J4_angle_max = Dexter.J4_ANGLE_MAX
         this.J5_angle_max = Dexter.J5_ANGLE_MAX
-        this.J6_angle_min = Dexter.J6_ANGLE_MAX
-        this.J7_angle_min = Dexter.J7_ANGLE_MAX
+        this.J6_angle_max = Dexter.J6_ANGLE_MAX
+        this.J7_angle_max = Dexter.J7_ANGLE_MAX
     }
     this.link_lengths_set_from_dde_computer = true
     if(job_to_start) {
@@ -2528,9 +2544,9 @@ Dexter.J6_ANGLE_MAX = 296
 Dexter.J7_ANGLE_MIN = 0
 Dexter.J7_ANGLE_MAX = 296
 
-Dexter.MAX_SPEED    = 30  //degrees per second. NOT the max speed tha robot,
-                         //but rather for a givien instruction's envelope of speed,
-                         //its the max speed that will be attined by that instrution.
+Dexter.MAX_SPEED    = 30  //degrees per second. NOT the max speed of the robot,
+                         //but rather for a given instruction's envelope of speed,
+                         //its the max speed that will be attined by that instruction.
                          //The JOINT that this is the max speed for is
                          //the joint that changes the most in a given call to move_all_joints.
 Dexter.START_SPEED  = 0.5 //degrees per second

@@ -302,7 +302,14 @@ Js_info = class Js_info {
             if (Array.isArray(fn_name)){
                 if(fn_name[0] == "fn_name"){ //user clicked on the name of the function in a function def
                     var actual_name_of_function = fn_name[1]
-                    var main_help =  "<span style='color:blue;'>" + actual_name_of_function + "</span> is the name of a function with parameters: " + fn_name[2] // fn_name[2].join(", ")
+                    var help_suffix
+                    if(fn_name[2] === "") {
+                        help_suffix = " is the name of a function with no parameters."
+                    }
+                    else {
+                        help_suffix = " is the name of a function with parameters: " + fn_name[2] // fn_name[2].join(", ")
+                    }
+                    var main_help =  "<span style='color:blue;'>" + actual_name_of_function + "</span>" +  help_suffix
                     val = value_of_path(actual_name_of_function)
                     var suffix = ""
                     if(val == undefined){

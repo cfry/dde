@@ -113,9 +113,49 @@ var Socket = class Socket{
         return arr_buff
     }
 
+    static degrees_to_dexter_units_array(arr){
+        let new_array = []
+        for(let index = 0; index < arr.length; index++){
+            let joint_number = index + 1
+            new_array.push(this.degrees_to_dexter_units(arr[index], joint_number))
+        }
+        return new_array
+    }
+
+    static dexter_units_to_degrees_array(arr){
+        let new_array = []
+        for(let index = 0; index < arr.length; index++){
+            let joint_number = index + 1
+            new_array.push(this.dexter_units_to_degrees(arr[index], joint_number))
+        }
+        return new_array
+    }
+
+    static degrees_to_dexter_units(deg, joint_number){
+        if(joint_number == 6) {
+            return  Math.round(deg / Socket.DEGREES_PER_DYNAMIXEL_320_UNIT) +
+                    Socket.J6_OFFSET_SERVO_UNITS // //512
+        }
+        else if (joint_number == 7) {
+            return Math.round(deg / Socket.DEGREES_PER_DYNAMIXEL_320_UNIT)
+        }
+        else { return deg * 3600 } //convert to arcseconds
+    }
+
+    static dexter_units_to_degrees(du, joint_number){
+        if(joint_number == 6) {
+               return (du - Socket.J6_OFFSET_SERVO_UNITS ) *
+                       Socket.DEGREES_PER_DYNAMIXEL_320_UNIT
+        }
+        else if (joint_number == 7) {
+               return du * Socket.DEGREES_PER_DYNAMIXEL_320_UNIT
+        }
+        else { return du / 3600 }
+    }
+
     //also converts S params: "MaxSpeed", "StartSpeed", "Acceleration", S params of  boundry
     //and  the z oplet. Note that instruction start and end times are always in milliseconds
-    static instruction_array_degrees_to_arcseconds_maybe(instruction_array, rob){
+    /*static instruction_array_degrees_to_arcseconds_maybe(instruction_array, rob){
         if(typeof(instruction_array) == "string") { return instruction_array} //no conversion needed.
         const oplet = instruction_array[Dexter.INSTRUCTION_TYPE]
         let number_of_args = instruction_array.length - Instruction.INSTRUCTION_ARG0
@@ -128,7 +168,8 @@ var Socket = class Socket{
                 let arg_val = instruction_array_copy[index]
                 let converted_val
                 if (i == 5) { //J6
-                    converted_val = 512 + Math.round(arg_val / Socket.DEGREES_PER_DYNAMIXEL_UNIT) //todo get rid of hardcode 512 convert degrees to dynamixel units to get dynamixel integer from 0 through 1023 going from 0 to 296 degrees
+                    converted_val = Socket.J6_OFFSET_SERVO_UNITS  +  //512
+                                    Math.round(arg_val / Socket.DEGREES_PER_DYNAMIXEL_UNIT) //convert degrees to dynamixel units to get dynamixel integer from 0 through 1023 going from 0 to 296 degrees
                 }
                 else if (i == 6) { //J7
                     converted_val = Math.round(arg_val / Socket.DEGREES_PER_DYNAMIXEL_UNIT) //convert degrees to dynamixel units to get dynamixel integer from 0 through 1023 going from 0 to 296 degrees
@@ -141,16 +182,6 @@ var Socket = class Socket{
             }
             return instruction_array_copy
         }
-        /*else if (oplet === "g"){
-            let instruction_array_copy = instruction_array.slice()
-            let status_mode = instruction_array_copy[Instruction.INSTRUCTION_ARG0] //0 or 1  or undefined
-            if(status_mode === undefined) {}
-            else {
-                let converted_val =  ("" + status_mode)
-                instruction_array_copy[Instruction.INSTRUCTION_ARG0] = converted_val
-            }
-            return instruction_array_copy
-        }*/
         else if (oplet === "S") {
             const name = instruction_array[Instruction.INSTRUCTION_ARG0]
             const args = instruction_array.slice(Instruction.INSTRUCTION_ARG1, instruction_array.length)
@@ -206,6 +237,108 @@ var Socket = class Socket{
             }
             else if (["CartesianSpeed", "CartesianSpeedStart", "CartesianSpeedEnd", "CartesianAcceleration",
                       "CartesianStepSize", ].includes(name)){
+                let instruction_array_copy = instruction_array.slice()
+                let new_val = Math.round(first_arg / _um) //convert from meters to microns
+                instruction_array_copy[Instruction.INSTRUCTION_ARG1] = new_val
+                return instruction_array_copy
+            }
+            else { return instruction_array }
+        }
+        else if (oplet == "T") { //move_to_straight
+            let instruction_array_copy = instruction_array.slice()
+            instruction_array_copy[Instruction.INSTRUCTION_ARG0] =
+                Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG0] / _um) //meters to microns
+            instruction_array_copy[Instruction.INSTRUCTION_ARG1] =
+                Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG1] / _um) //meters to microns
+            instruction_array_copy[Instruction.INSTRUCTION_ARG2] =
+                Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG2] / _um) //meters to microns
+            instruction_array_copy[Instruction.INSTRUCTION_ARG11] =
+                Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG11] * 3600) //degrees to arcseconds
+            instruction_array_copy[Instruction.INSTRUCTION_ARG12] =
+                Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG12] * 3600) //degrees to arcseconds
+            return instruction_array_copy
+        }
+        else if (oplet == "z") {
+            let instruction_array_copy = instruction_array.slice()
+            instruction_array_copy[Instruction.INSTRUCTION_ARG0] =
+                Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG0] * 1000000) //seconds to microseconds
+            return instruction_array_copy
+        }
+        else { return instruction_array }
+    }*/
+
+    static instruction_array_degrees_to_arcseconds_maybe(instruction_array, rob){
+        if(typeof(instruction_array) == "string") { return instruction_array} //no conversion needed.
+        const oplet = instruction_array[Dexter.INSTRUCTION_TYPE]
+        let number_of_args = instruction_array.length - Instruction.INSTRUCTION_ARG0
+        if ((oplet === "a") || (oplet === "P")){
+            //take any number of angle args
+            let instruction_array_copy = instruction_array.slice()
+            let angle_args_count = instruction_array_copy.length - Instruction.INSTRUCTION_ARG0
+            for(let i = 0; i < number_of_args; i++) {
+                let index = Instruction.INSTRUCTION_ARG0 + i
+                let arg_val = instruction_array_copy[index]
+                let converted_val = this.degrees_to_dexter_units(arg_val, i + 1)
+                instruction_array_copy[index] = converted_val
+            }
+            return instruction_array_copy
+        }
+        else if (oplet === "S") {
+            const name = instruction_array[Instruction.INSTRUCTION_ARG0]
+            const args = instruction_array.slice(Instruction.INSTRUCTION_ARG1, instruction_array.length)
+            const first_arg = args[0]
+            //first convert degrees to arcseconds
+            if(["MaxSpeed", "StartSpeed", "Acceleration",
+                "AngularSpeed", "AngularSpeedStartAndEnd", "AngularAcceleration",
+                "CartesianPivotSpeed", "CartesianPivotSpeedStart", "CartesianPivotSpeedEnd",
+                "CartesianPivotAcceleration", "CartesianPivotStepSize" ].includes(name)){
+                let instruction_array_copy = instruction_array.slice()
+                instruction_array_copy[Instruction.INSTRUCTION_ARG1] = Math.round(first_arg * _nbits_cf)
+                return instruction_array_copy
+            }
+            else if (name.includes("Boundry")) { //the full name is something like J1Boundry thru J5Boundry
+                let instruction_array_copy = instruction_array.slice()
+                instruction_array_copy[Instruction.INSTRUCTION_ARG1] = this.degrees_to_dexter_units(arg_val, 1) //Math.round(first_arg * 3600) //deg to arcseconds
+                                            //only expecting j1 thru J5, and since they're all the same, just pass joint 1
+                return instruction_array_copy
+            }
+            else if (["CommandedAngles", "RawEncoderErrorLimits", "RawVelocityLimits"].includes(name)){
+                let instruction_array_copy = instruction_array.slice()
+                for(let i = Instruction.INSTRUCTION_ARG1; i <  instruction_array.length; i++){
+                    let orig_arg = instruction_array_copy[1]
+                    instruction_array_copy[i] = this.degrees_to_dexter_units(arg_val, i + 1) // Math.round(orig_arg * 3600)
+                }
+                return instruction_array_copy
+            }
+            //dynamixel conversion
+            else if (name == "EERoll"){ //J6 no actual conversion here, but this is a convenient place
+                //to put the setting of robot.angles and is also the same fn where we convert
+                // the degrees to dynamixel units of 0.20 degrees
+                //val is in dynamixel units
+                rob.angles[5] = this.dexter_units_to_degrees(first_arg, 6) //convert dynamixel units to degrees then shove that into rob.angles for use by subsequent relative move instructions
+                return instruction_array
+            }
+            else if (name == "EESpan") { //J7
+                rob.angles[6] = this.dexter_units_to_degrees(first_arg, 7)
+                return instruction_array
+            }
+            //convert meters to microns
+            else if ((name.length == 5) && name.startsWith("Link")){
+                let instruction_array_copy = instruction_array.slice()
+                let new_val = Math.round(first_arg / _um) //convert from meters to microns
+                instruction_array_copy[Instruction.INSTRUCTION_ARG1] = new_val
+                return instruction_array_copy
+            }
+            else if ("LinkLengths" == "name"){
+                let instruction_array_copy = instruction_array.slice()
+                for(let i = Instruction.INSTRUCTION_ARG1; i < instruction_array.length; i++){
+                    let orig_arg = instruction_array_copy[1]
+                    instruction_array_copy[i] = Math.round(orig_arg / _um)
+                }
+                return instruction_array_copy
+            }
+            else if (["CartesianSpeed", "CartesianSpeedStart", "CartesianSpeedEnd", "CartesianAcceleration",
+                "CartesianStepSize", ].includes(name)){
                 let instruction_array_copy = instruction_array.slice()
                 let new_val = Math.round(first_arg / _um) //convert from meters to microns
                 instruction_array_copy[Instruction.INSTRUCTION_ARG1] = new_val
@@ -392,7 +525,7 @@ var Socket = class Socket{
     }
 
     //only convert status_mode of 0 arrays.
-    static convert_robot_status_to_degrees(robot_status){
+    /*static convert_robot_status_to_degrees(robot_status){
         let raw_status_mode = robot_status[Dexter.STATUS_MODE]
         //out("convert_robot_status_to_degrees got raw_status_mode of: " + raw_status_mode)
         if((raw_status_mode === null) || (raw_status_mode === 0) || (raw_status_mode === "0")){
@@ -421,8 +554,45 @@ var Socket = class Socket{
                 robot_status[Dexter.J3_MEASURED_ANGLE] *= 0.0002777777777777778
                 robot_status[Dexter.J4_MEASURED_ANGLE] *= 0.0002777777777777778
                 robot_status[Dexter.J5_MEASURED_ANGLE] *= 0.0002777777777777778
-                robot_status[Dexter.J6_MEASURED_ANGLE] = (robot_status[Dexter.J6_MEASURED_ANGLE] - 512) * Socket.DEGREES_PER_DYNAMIXEL_UNIT //0.0002777777777777778
-                robot_status[Dexter.J7_MEASURED_ANGLE] *= Socket.DEGREES_PER_DYNAMIXEL_UNIT //0.0002777777777777778
+                robot_status[Dexter.J6_MEASURED_ANGLE] = (robot_status[Dexter.J6_MEASURED_ANGLE] - Socket.J6_OFFSET_SERVO_UNITS) * Socket.DEGREES_PER_DYNAMIXEL_320_UNIT //0.0002777777777777778
+                robot_status[Dexter.J7_MEASURED_ANGLE] *= Socket.DEGREES_PER_DYNAMIXEL_320_UNIT //0.0002777777777777778
+            }
+        }
+        //else not g0 so no conversion
+    }*/
+
+    //only convert status_mode of 0 arrays.
+    static convert_robot_status_to_degrees(robot_status){
+        let raw_status_mode = robot_status[Dexter.STATUS_MODE]
+        //out("convert_robot_status_to_degrees got raw_status_mode of: " + raw_status_mode)
+        if((raw_status_mode === null) || (raw_status_mode === 0) || (raw_status_mode === "0")){
+            robot_status[Dexter.STATUS_MODE] = 0
+            if (robot_status.length == Dexter.robot_status_labels.length){
+                robot_status[Dexter.J1_ANGLE] = Socket.dexter_units_to_degrees(robot_status[Dexter.J1_ANGLE], 1) //0.0002777777777777778 //this number === _arcsec
+                robot_status[Dexter.J2_ANGLE] = Socket.dexter_units_to_degrees(robot_status[Dexter.J2_ANGLE], 2)
+                robot_status[Dexter.J3_ANGLE] = Socket.dexter_units_to_degrees(robot_status[Dexter.J3_ANGLE], 3)
+                robot_status[Dexter.J4_ANGLE] = Socket.dexter_units_to_degrees(robot_status[Dexter.J4_ANGLE], 4)
+                robot_status[Dexter.J5_ANGLE] = Socket.dexter_units_to_degrees(robot_status[Dexter.J5_ANGLE], 5)
+
+                robot_status[Dexter.J1_DELTA] = Socket.dexter_units_to_degrees(robot_status[Dexter.J1_DELTA], 1)
+                robot_status[Dexter.J2_DELTA] = Socket.dexter_units_to_degrees(robot_status[Dexter.J2_DELTA], 2)
+                robot_status[Dexter.J3_DELTA] = Socket.dexter_units_to_degrees(robot_status[Dexter.J3_DELTA], 3)
+                robot_status[Dexter.J4_DELTA] *= 0.00001736111111111111   //todo get the "S" interpolation values from Defaults.make_ins instead  ie robot_status[Dexter.J4_DELTA] *= _arcsec / the_make_int_number
+                robot_status[Dexter.J5_DELTA] *= 0.00001736111111111111   //for this one too.
+
+                robot_status[Dexter.J1_PID_DELTA] = Socket.dexter_units_to_degrees(robot_status[Dexter.J1_PID_DELTA], 1)
+                robot_status[Dexter.J2_PID_DELTA] = Socket.dexter_units_to_degrees(robot_status[Dexter.J2_PID_DELTA], 2)
+                robot_status[Dexter.J3_PID_DELTA] = Socket.dexter_units_to_degrees(robot_status[Dexter.J3_PID_DELTA], 3)
+                robot_status[Dexter.J4_PID_DELTA] *= 0.00001736111111111111  //for this one too.
+                robot_status[Dexter.J5_PID_DELTA] *= 0.00001736111111111111  //for this one too.
+
+                robot_status[Dexter.J1_MEASURED_ANGLE] = Socket.dexter_units_to_degrees(robot_status[Dexter.J1_MEASURED_ANGLE], 1)
+                robot_status[Dexter.J2_MEASURED_ANGLE] = Socket.dexter_units_to_degrees(robot_status[Dexter.J2_MEASURED_ANGLE], 2)
+                robot_status[Dexter.J3_MEASURED_ANGLE] = Socket.dexter_units_to_degrees(robot_status[Dexter.J3_MEASURED_ANGLE], 3)
+                robot_status[Dexter.J4_MEASURED_ANGLE] = Socket.dexter_units_to_degrees(robot_status[Dexter.J4_MEASURED_ANGLE], 4)
+                robot_status[Dexter.J5_MEASURED_ANGLE] = Socket.dexter_units_to_degrees(robot_status[Dexter.J5_MEASURED_ANGLE], 5)
+                robot_status[Dexter.J6_MEASURED_ANGLE] = Socket.dexter_units_to_degrees(robot_status[Dexter.J6_MEASURED_ANGLE], 6)
+                robot_status[Dexter.J7_MEASURED_ANGLE] = Socket.dexter_units_to_degrees(robot_status[Dexter.J7_MEASURED_ANGLE], 7)
             }
         }
         //else not g0 so no conversion
@@ -489,7 +659,9 @@ Socket.resend_instruction = null
 Socket.resend_count = null
 
 Socket.robot_name_to_ws_instance_map = {}
-Socket.DEGREES_PER_DYNAMIXEL_UNIT = 0.29
+Socket.DEGREES_PER_DYNAMIXEL_320_UNIT = 0.29   //range of motion sent is 0 to 1023
+Socket.DEGREES_PER_DYNAMIXEL_430_UNIT = 360 / 4096
+Socket.J6_OFFSET_SERVO_UNITS = 512
 
 module.exports = Socket
 var {Robot} = require("./robot.js")
@@ -497,6 +669,20 @@ var {Instruction, make_ins} = require("./instruction.js")
 var DexterSim = require("./dextersim.js")
 //var {_nbits_cf, _arcsec, _um} = require("./units.js") //don't do this. These units and all the rest are
 //already global vars.
+
+/*dexter0.joints = []
+             joint_instances
+                 motor_instance of a 2, 320, 430 or stepper
+                        speed=30
+
+                 min=-360
+                 max=360
+                 gear_ratio=1
+
+                 convert_deg_to_dexter_units()
+                 init() // ie like reboot_servo
+                 set_indicator(val)   //ie turn on LED for J6
+ */
 
 
 

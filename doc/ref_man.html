@@ -239,6 +239,9 @@
             <p></p>
             See <a href="#" onclick="open_doc(read_file_doc_id, event)">read_file</a>
             for getting the file contents as a string but not evaling it.
+            <p></p>
+            See <a href="#" onclick="open_doc('Py.load_file_doc_id')">Py.load_file</a>
+            for importing a Python file into DDE's Python process.
         </details> <!-- end load_files  -->
 
         <details id="loading_file_doc_id" class="doc_details"><summary>loading_file</summary>
@@ -3828,7 +3831,7 @@ new Job({name: "my_job",
                    as each instruction is run, so you can do whatever you like.
                    A function written for this purpose is
                    <code>Job.prototype.show_progress_and_user_data</code>.
-                   This allows you to see user data as it is updated by the job.
+                   This allows you to see user_data as it is updated by the job.
                    Eval the above code to see the method's source code.</li>
            </ul>
            See <a href="#" onclick="open_doc(print_statements_doc_id, event)">print statements</a>
@@ -5725,10 +5728,63 @@ Example:<code>Control.wait_until(2)</code><br/>
 
 <details id="Brain_doc_id" class="doc_details"><summary>Brain</summary>
 <b>Brain</b> is a virtual robot used to manage other robots or do purely software tasks.
-It has no special instructions of its own, but can use Control, Human, IO and the
+It has few special instructions of its own, but can use Control, Human, IO and the
 miscellaneous Robot instructions (function definitions, etc),
 just like all the other robots.
-<p></p>
+    <details id="Brain.eval_python_doc_id" class="doc_details"><summary>eval_python</summary>
+       Evals python code, puts result in user_data and pauses the Job until its done.<br/>
+       <i>Parameters:</i><br/>
+        <b>python_source</b> Required. A string of Python source code. If it is exactly one
+        expression that returns a value, that value will be put in user_data.
+        Otherwise, <code>null</code> will be put in user_data.<br/>
+        <b>user_data_variable</b> Default: <code>"python_value"</code> A string of the
+        name of the user_data variable that will store the value of evaluating the python_source.<br/>
+        A user data variable whose prefix is the user_data_variable_name with a suffix of
+        <code>"_python_source"</code> is also created with the value of python_source.
+        This is set before the source is executed. After starting the Job,
+        examining the Job's user_data variables helps debugging.
+        <p></p>
+        <i>Example:</i>
+<pre><code>new Job({
+    name: "my_py_job",
+    do_list: [
+        Brain.eval_python('import math'),
+        Brain.eval_python('2 + math.pi', "my_sum"),
+        function() {
+          let src = this.user_data.my_sum + ' * 4'
+          return Brain.eval_python(src, "my_multiply")
+        },
+        function(){
+          return Dexter.move_all_joints(0, this.user_data.my_multiply)
+        }
+    ]
+})    </code></pre>
+    <ol>
+    <li>The first instruction initializes the Python process,
+    imports the math library into the process
+    and stores the result into  <code>Job.my_py_job.user_data.python_value</code> => <samp>null</samp>.
+    </li>
+    <li>The second instruction evaluates <code>'2 + math.pi'</code> and stores the
+    result into <code>Job.my_py_job.user_data.my_sum</code> => <samp>5.141592653589793</samp>.
+    </li>
+    <li>The third instruction must be a function because we must get the
+    value from <code>Job.my_py_job.user_data.my_sum</code> after it has been computed,
+    not at Job definition time. We make the value of src, <code>"5.141592653589793 * 4"</code>,
+    then use it in our next instruction,
+    <code title="unEVALable">Brain.eval_python(src, "my_multiply")</code>.
+    We must return the result of calling <code>Brain.eval_python</code> because it returns
+    instructions to stick on the do_list. The src is evaluated in Python
+    and stored in <code>Job.my_py_job.user_data.my_multiply</code> => <samp>20.566370614359172</samp>.
+    </li>
+    <li>The last instruction uses <code>Job.my_py_job.user_data.my_multiply</code> to move
+    joint 2 of Dexter.
+    </li>
+    </ol>
+    Eval: <code>inspect(Job.my_py_job.user_data)</code> to see the stored state.
+    <p></p>
+    See <a href="#" onclick="open_doc(python_doc_id)">Python</a> for details on
+    controlling Python processes.
+    </details>
 </details> <!-- End Brain -->
 
 <details id="Dexter_doc_id" class="doc_details"><summary>Dexter</summary>
@@ -6433,7 +6489,7 @@ proportional–integral–derivative controller</a>.<br/>
     When not simulating: <code>"/srv/samba/share/foo.txt"</code><br/>
     When simulating: <code>"Documents/dde_apps/dexter_file_systems/{robot_name}/foo.txt"</code><br/>
     <b>destination</b> A string. Default: <code>"read_file_content"</code><br/>
-     The name of a user data variable on the running
+     The name of a user_data variable on the running
     job that will be written (or over-written) with the contents
     of the file indicated in "source".<br/>
     If the file does not exist, the value of the_job_instance.user_data.{destination}
@@ -7241,7 +7297,7 @@ is a video describing most of the Human instructions.
               value of the user_data_variable. The evaluation of this item
               happens at Job definition time.
               <p></p>
-              Note that if you want the user data variable to have the value
+              Note that if you want the user_data variable to have the value
               as a string, you must use a format like <code>'"foo"'</code>. At Job definition
               time this becomes a string of 5 chars, <code>"foo"</code>.
               Then at button-click time, that is evaled and produces a string
@@ -7792,9 +7848,14 @@ to help you verify connectivity and may be useful in some applications.<p></p>
 
 <b id="serial_devices_doc_id"><code>serial_devices</code></b> Returns an array of objects representing
 the available devices on serial ports. the <code title="unEVALable code fragment"> comName</code> field holds the path to the serial
-port that you can use to connect to that device. <br/>
-<i>Example:</i><br/>
-<code title="not in TestSuite"> serial_devices()[0].comName </code> => <samp> "/dev/tty.Bluetooth-Incoming-Port" </samp><br/>
+port that you can use to connect to that device.
+<p></p>
+<i>Examples:</i><br/>
+<code title="not in TestSuite"> serial_devices()</code> => An array of objects that represent devices connected
+to serial ports on your computer.<br/>
+<code title="not in TestSuite"> serial_devices()[0].path </code> => <samp> "COM3" </samp>
+Note that the same device plugged in to computers with different operating systems
+will likely result in objects that contain different fields.<br/>
 serial_devices does not work on the Job Engine. Use instead ...
 <p></p>
 <b id="serial_devices_async_doc_id"><code>serial_devices_async</code></b><br/>
@@ -7810,7 +7871,8 @@ serial_devices does not work on the Job Engine. Use instead ...
 path of a serial device and lots of properties about it, most of which come from defining
 the associated Serial robot. The value of this global variable is a JS literal object with
 keys of each path to which there is a serial connection, and values of
-another JS literal object holding useful properties of that connection, i.e. its "info".<p></p>
+another JS literal object holding useful properties of that connection, i.e. its "info".
+<p></p>
 <i>Example:</i><br/>
 <code title="unEVALable code fragment"> serial_port_path_to_info_map[spath]</code>
 <p></p>
@@ -8519,8 +8581,13 @@ If include_this is true, the returned source, when evaled, will return a copy of
         <i>Examples:</i><br/>
         <code>dde_version_between("0.1.0", "100.1.1")</code> => <samp>true</samp>
     </details>
+    <details id="quit_dde_doc_id"class="doc_details"><summary>quit_dde</summary>
+        Exits DDE immediately. Make sure you have files saved first!<br/>
+        <i>Example:</i><br/>
+        <code title="Not in TestSuite">quit_dde()</code>
+    </details>
 
-</details> <!-- end operating system etc -->
+    </details> <!-- end operating system etc -->
 
 <details class="doc_details"><summary>Window System</summary>
     Dealing with HTML, CSS and JavaScript of traditional web apps is complex.
@@ -8930,6 +8997,164 @@ show_window({draggable: false,
     </details>
 
     </details> <!-- end Making Applications -->
+
+    <details id="Plot_doc_id" class="doc_details"><summary>Plot</summary>
+    DDE makes it easy to make plots (graphs) of 1D, 2D, 3D arrays as well as
+    the move-points of Jobs.
+    <details class="doc_details"><summary>Inspector</summary>
+    When you inspect a 1D, 2D, or 3D array of numbers, or a Job,
+    there will be a <button>Plot</button> button in the title of the inspector pane.
+    Clicking it pops up a window showing the points plotted.
+    <b>1D array</b> This will be treated as a 2D array, wherein the "Y" values
+    are the array values, and the "X" values are their associated index in the array.<br/>
+    <i>Example:</i><br/>
+    <code>[0, 2, 4, 8, 16]  </code> Eval this array. In the Inspector window,
+    click in the <button>Plot</button> button.
+    <p></p>
+    <b>2D array</b> An array of 2 elements. The first is the "X" values. The second
+    is the "Y" values.<br/>
+    <i>Example:</i>
+    <pre><code>[[0, 1, 2, 3, 4],
+ [0, 2, 4, 8, 16]]  </code></pre> This will plot the same
+    as the preceeding example.
+     <p></p>
+     <b>3D array</b> Its not really a 3D array, its a 2D array that represents
+     3D points. The array has 3 elements. The first is the "X" values. The second
+        is the "Y" values. The 3rd is the "Z" values.<br/>
+     <i>Example:</i>
+     <pre><code>[[0, 1, 2, 3, 4],
+ [0, 2, 4, 8, 16],
+ [0, 2, 4, 6, 8]] </code></pre>
+    <b>Job Instance</b> Jobs have lots of different instructions, but the
+    ones that move the robot are the most important. The inspector can extract
+    the move-points from a job and graph them.<br/>
+    <i>Example:</i>
+    <pre><code>new Job({
+    name: "my_job3",
+    do_list: [
+        Dexter.move_all_joints(10, 20, 30, 40, 50),
+        Dexter.move_to([0.1, 0.2, 0.3]),
+        make_ins("a", 10, 11, 16, 21, 26),
+        function(){ return make_ins("a", 20, 11, 16, 21, 26)},
+        Dexter.move_all_joints( 1, 1, 1, 1, 1),
+    ]})    </code></pre>
+    When you eval the above Job definition, you'll see the Job instance in the inspector pane.
+    Click on the <button>Plot</button> button. You'll see just 4 points, because
+    the Job has not yet been run, and without being run, the inspector extracts just the
+    top level points from the Job. Now click the Job's button to run it.
+    After its run, click the plot button again. Now you'll see 5 points because
+    that point in the function def gets "surfaced" and is now available to be plotted.
+    Comparing such plots is an easy way to see what points are computed during the
+    running of the Job vs just those that are at top level when the Job is merely defined.
+    <p></p>
+    <b>All Job Instances</b><br/>
+    <i>Example:</i>
+    <pre><code>new Job({
+    name: "my_job2",
+    do_list: [
+        Dexter.move_all_joints(10, 20, 30, 40, 50),
+        Dexter.move_all_joints( 6, 11, 16, 21, 26),
+        Dexter.move_all_joints(10, 11, 16, 21, 26),
+        Dexter.move_all_joints( 10, 1, 1, 1, 1),
+    ]})    </code></pre> Eval the above and observe that in the inspector pane title bar,
+    there's a <button>Plot Jobs</button> button. Click it.
+    You'll see all the defined Jobs plotted in the same window.
+    <ul>
+        <li>You can click on a legend item to show/hide the given Job.</li>
+        <li>You can also delete a Job's button by clicking its "X". Then the next time
+            you click <button>Plot Jobs</button>, that deleted Job won't show up.</li>
+        <li>Mouse over a point to see its details.</li>
+        <li>Right click (or Two fingers on track pad) and dragging shrinks/expands the plot.</li>
+    </ul>
+    </details><!-- end Plot inspector-->
+    <details id="Plot.show_doc_id" class="doc_details"><summary>Plot.show</summary>
+    DDE's plot capability is based on a library named Plotly (see below).
+    Plotly (and Plot.show) can display *lots* of 2D and 3D graphs with many options each.
+    All the graphs in DDE's inspector are made with Plot.show.
+    <p></p>
+    We've made a thin wrapper to Plotly to make it slightly easier to make plots,
+    especially ones involving Jobs. The class <code>Plot</code> implements
+    this thin wrapper. Its primary method is: <code>Plot.show</code>. It takes the same arguments
+    as the underlying <code>Plotly.newPlot</code>, though the arguments to <code>Plot.show</code>  can encode
+    a superset of the functionality of <code>Plotly.newPlot</code><br/>
+    <i>Parameters:</i><br/>
+    <b>graphDiv</b> A div dom-element or the string id of that dom element. Default "plot_id".
+    This is the div where the plot will be shown. Unlike <code>Plotly.newPlot</code>.
+    <code>Plot.show</code> automatically creates that dom element and pops up a
+    show_window to display it.
+    <p></p>
+    <b>data</b> Takes an array of "trace" objects just like <code>Plotly.newPlot</code>.
+    But it can also take a 1D, 2D or 3D array of numbers as described under Plot/Inspector.
+    It can also take a Job instance, an array of Job instances (to show each in
+    their own "trace" or the string <code>"Job"</code> to show all Job instances in
+    one window.<br/>
+    <i>Example:</i><br/>
+    <code>Plot.show(undefined, "Job")</code>
+    <p></p>
+    <b>layout</b> Same as <code>Plotly.newPlot</code>'s layout argument.
+    <p></p>
+    <b>config</b> Same as <code>Plotly.newPlot</code>'s config argument.<br/>
+    <p></p>
+    <i>Examples:</i><br/>
+    Customizing the window title and axis titles.
+    <pre><code>Plot.show(undefined,
+    [[10, 20, 33, 40],
+     [2, 4.33, 6, 8]],
+    {title:  "Not so great title",
+     xaxis:  {title: {text: 'the x Axis'}},
+     yaxis:  {title: {text: 'the y Axis'}}
+    })    </code></pre>
+
+    <p></p>
+    Boxes and whiskers plot.
+     <pre><code>function make_random_array(length=50, offset=0){
+    let arr = []
+    for (var i = 0; i < length; i ++) {
+        arr[i] = Math.random() + offset
+    }
+    return arr
+}
+var trace0 = { y: make_random_array(50, 0),
+               type: 'box'
+}
+var trace1 = { y: make_random_array(50, 1),
+              type: 'box'
+}
+Plot.show(undefined, [trace0, trace1])</code></pre>
+
+    Plot of 3D points.
+    <pre><code>Plot.show(
+    undefined,
+    [[0, 1, 2, 3, 4],
+     [0, 2, 4, 8, 16],
+     [0, 2, 4, 6, 8]]) </code></pre>
+
+     Plot the move-points of a job.<br/>
+     <code title="unEVALable"> Plot.show(undefined, Job.my_job) </code>
+    </details> <!-- end Plot.show -->
+
+    <details id="Plotly" class="doc_details"><summary>Plotly</summary>
+    Plotly is the graphing library underlying DDE's plotting facility.
+    You can access all of its functionality within DDE.
+    Its <a target="_blank" href="https://plotly.com/javascript">
+    documentation</a> is better than average, though it takes a bit of finding your
+    way around it.
+    <p></p>
+     <code>Plotly.newPlot</code> is a (large) subset of the functionality of
+     <code>Plot.show</code>. It takes the same 4 args as Plot.show
+     but it doesn't:
+     <ul><li>show the plot unless its first arg of graphDiv is the id of
+             a "div" html element already shown on the screen.</li>
+         <li>show 1D, 2D, and "3D" arrays that are the value of the data (2nd) arg.
+             You can still show them, but you must pass in, as data, an array of
+             "trace" objects, which is a bit more complex.</li>
+         <li>allow a Job instance, array of Job instances or <code>"Job"</code> as the data arg.</li>
+     </ul>
+
+    </details>
+
+    </details> <!-- end Plot -->
+
 
     <details class="doc_details"><summary>Set DDE Colors</summary>
     Users can customize the DDE colors by calling the below functions.
@@ -9894,7 +10119,7 @@ Messaging.permit_default = function(mess_obj){
        <b>job_name</b> Default: <code>null</code>. If null, variable_name is a global variable
         or at least its first path part is a global variable.
         Otherwise, job_name should be the name of a defined Job in the receiver's DDE.
-        In that case, variable_name is the name of a user data variable or
+        In that case, variable_name is the name of a user_data variable or
         the first path part is a top level user_data variable.
         Thus a Job name of <code>"my_job"</code> with a variable_name of
         <code>"foo.bar"</code> is equivalent to
@@ -10776,19 +11001,54 @@ Here we point out just a few that are especially easy and useful for teaching.
        <p/><a href="#" onclick='open_doc(js_for_python_programmers_doc_id)'>Similarities</a>
        between JavaScript and Python.
 
-       <details class="doc_details"><summary>Installation</summary>
+       <details class="doc_details"><summary>Installing Python</summary>
           To use Python from DDE, the Python 3 interpreter must be installed on your computer.<br/>
-          <b>MacOS</b> has, for years, included Python 2.7.<br/>
+          <details class="doc_details"><summary>MacOS</summary>
+          MacOS has, for years, included Python 2.7.<br/>
           In the terminal, type: <code title="unEvalable">python</code><br/>
           More modern versions of MacOS include Python 3.<br/>
           In the terminal, type:  <code title="unEvalable">python3</code>
           to get a read_eval_print loop for Python.
-          <p/>
-          To install Python on other Operating Systems see
-          <a href="https://www.python.org/downloads/" target="_blank">Python.org</a>
+          <p></p>
+          For a more recent version, browse <a href="https://www.python.org/downloads/" target="_blank">Python.org</a>
+              for download instructions.
+          </details>
+          <details class="doc_details"><summary>WinOS</summary>
+            <b>Windows7</b><br/> We've had a hard time installing Python3 on Windows 7
+              from the download direction in <a href="https://www.python.org/downloads/" target="_blank">Python.org</a>.
+              There is a "missing file". The web documents some work arounds,
+              but they aren't easy. We recommend using Windows 10.
+            <p/>
+            <b>Windows 10</b>
+            <ol>
+            <li>In the lower right search type in, type in "cmd' and hit the ENTER key.</li>
+            <li>In the terminal window that comes up, type in "python" and hit the ENTER key.</li>
+            <li>If Python is installed on your computer, you should see a >>> prompt
+                 after it prints out the Python version number.
+                 If its a recent version 3 python, you're all set.
+                 <p></p>
+                  If there's NO Python installed, you get a new browser window in the Microsoft store.
+                  On Feb 6, 2021, that window says Python 3.91.</li>
+            <li>Its free. Click the GET button.</li>
+            <li>You'll be asked to log in, but you can click "no thanks" and still get it.</li>
+            <li> The size of the download is hard to determine from the confusing "progress bar"
+               but looks like about 30Mbytes.</li>
+            <li> After its installed, again type in "python" into your terminal window
+                and you should see the python prompt >>> proceeded by a version number of Python.</li>
+            <li>This install puts two items on your start menu: Python and IDLE(python).<br/>
+                 Choosing <b>Python</b> launches the terminal window in Python.<br/>
+                 Choosing <b>IDLE(python)</b> launches a small development environment for Python.
+            </li>
+            </ol>
+          </details>
+          <details class="doc_details"><summary>Linux, etc</summary>
+            To install Python on other Operating Systems browse
+            <a href="https://www.python.org/downloads/" https://pypi.org/>Python.org</a>
+            for download instructions.
+          </details>
        </details>
 
-       <details id="python_user_interface_doc_id" class="doc_details"><summary>User Interface</summary>
+       <details id="python_user_interface_doc_id" class="doc_details"><summary>DDE's Python User Interface</summary>
            <ul>
            <li>When you are editing a file who's name ends in ".py",
            clicking <button>Eval</button> will evaluate the selection (or whole editor text if
@@ -10813,10 +11073,11 @@ Here we point out just a few that are especially easy and useful for teaching.
            </li>
            </ul>
        </details>
-       <details id="Py.python_executable_path" class="doc_details"><summary>Py.python_executable_path</summary>
+       <details id="Py.python_executable_path_doc_id" class="doc_details"><summary>Py.python_executable_path</summary>
         This variable contains a string that is the path to the Python3 interpreter on your computer.
-        It defaults to something that may just work on your computer, but if it doesn't,
-        you can set this variable before <code>Py.init</code> is called,
+        For MacOS, it defaults to <code>"python3"</code>. For
+        other OSes,  it defaults to <code>"python"</code>.
+        If this is incorrect, you can set this variable before <code>Py.init</code> is called,
         (or <code>Py.eval</code> is called the first time).
         <p/>
         If you can type in to a terminal some string like <code title="unEVALable">python3</code>,
@@ -10828,7 +11089,7 @@ Here we point out just a few that are especially easy and useful for teaching.
         <code title="not in TestSuite.">Py.python_executable_path = "python3"</code><br/>
        </details>
        <details id="Py.eval_doc_id" class="doc_details"><summary>Py.eval</summary>
-       The <code>Py</code> class holds utilites for evaluating Python code embedded in JavaScript code.
+       The <code>Py</code> class holds utilities for evaluating Python code embedded in JavaScript code.
        The most important function is <code>Py.eval</code>.<br/>
        <i>Parameters:</i><br/>
        <b>python_source_code</b> Required. A string of Python source code to be
@@ -10840,7 +11101,11 @@ Here we point out just a few that are especially easy and useful for teaching.
 
            <ul>
            <li><b>from</b> Always "Py.eval". Allows you to distinguish this JSON object from others.</li>
-           <li><b>is_error</b> Boolean. </li>
+           <li><b>is_error</b> Boolean. If evaling the python_source_code errors, or if
+             converting its result to JSON errors, this will be <code>true</code>.
+             Results of numpy arrays will be automatically converted to Python lists before
+             JSONizing, so they won't error.
+           </li>
            <li><b>source</b> The string of python_source_code that Py.eval was called with.</li>
            <li><b>callback_id</b> (internal) The id of the callback that Py.eval was called with.</li>
            <li><b>result</b> The result of the evaluation of the python_source_code.
@@ -10944,6 +11209,8 @@ new Job({
                must be evaled when this instruction is run, not at Job definition time.
           </li>
       </ol>
+      For a simpler way to call Python from within a Job, see
+      <a href="#" onclick="open_doc('Brain.eval_python_doc_id')">Brain.eval_python</a>
        </details>
        <details id="Py.load_file_doc_id" class="doc_details"><summary>Py.load_file</summary>
        Imports a file into DDE's Python process.<br/>
@@ -10962,7 +11229,15 @@ new Job({
          <code title="unEVALable">Py.load_file("hello.py")</code> which means the same as <br/>
          <code  title="unEVALable">Py.load_file("/Users/Fry/Documents/dde_apps/hello.py")</code> (or whatever
               folder <code>dde_apps_folder</code> evals to.)<br/>
-        <code title="unEVALable">Py.load_file("hello.py", "howdy")</code> (uses "howdy" as the "as name".)
+         <code title="unEVALable">Py.load_file("hello.py", "howdy")</code> (uses "howdy" as the "as name".)<br/>
+         <code title="unEVALable">load_files("hello.py")</code> (loads the Python file "hello.py" in
+         the dde_apps_folder using the default "hello" as the "as_name")<br/>
+         <code title="unEVALable">load_files("hello.pyc")</code>(loads the Python file "hello.pyc")<br/>
+         For all of the loads above, if the folder of the file being loaded is not on
+         Python's sys.path, then it is added before the file is imported.
+         <p></p>
+         See <a href="#" onclick='open_doc(load_files_doc_id)'>load_files</a> for loading
+         JavaScript files</a>
        </details>
        <details id="Py.kill_doc_id" class="doc_details"><summary>Py.kill</summary>
        Ends the Python process. The Python process shouldn't take up much resources
@@ -10985,5 +11260,46 @@ new Job({
        After calling this function, your first call to <code>Py.eval</code> will
        be a fraction of a second faster.
        </details>
+       <details  class="doc_details"><summary>Troubleshooting</summary>
+       Python, like all modern popular programming languages, has
+       confusing aspects. This section helps you get through *some* of them
+       that we've found useful.
+       <p></p>
+       The Python interface automatically imports
+       <ul><li>json</li><li>sys</li> <li>traceback</li></ul>
+       so you won't have to import those when using DDE's python interface.
+       <p></p>
+       To see what folders you can import files from:
+       <code>Py.eval("sys.path")</code><br/>
+       To extend sys.path to include another folder<br/>
+       <code title="not in TestSuite">Py.eval('sys.path.append("/my/other/folder")'</code><br/>
+       Note that <code>load_files("/my/other/folder/hi.py")</code>
+       automatically adds "/my/other/folder" to sys.path, then
+       runs import("hi.py")
+       <p></p>
+       Python has numerous packages on the web that you can download and install on
+       your computer for use in your Python packages.
+       The easist ones to use can be found at
+       <a target="_blank" href="https://pypi.org/">Python Package Index. (PyPI)</a>
+       From a command line terminal, you can install a PyPI package via, for example:<br/>
+       <code title="unEVALable">sudo pip3 install numpy</code><br/>
+       Notes:
+       <ul>
+       <li><b>pip</b> stands for Package Installer for Python. You will need
+       to use pip3 or a very recent version of pip for installing packages into Python3.
+       You can install this installer from
+       <a target="_blank" href="https://pypi.org/project/pip/">pip installation</a></li>
+       <li><b>Numpy</b> is an often-used Python library for advanced math.
+       Its not included in Python distributions so you have to download it using pip</li>
+
+       <li>numpy install is complex, requing compiling on your computer.
+       If you're lucky, pip will handle this compiling and installing automatically.</li>
+
+       <li>pip attempts to install Python packages globally. You may run into
+       "permissions" problems doing this, which explains the need for the
+       <code code title="unEVALable">sudo</code> prefix in the above example.</li>
+       </ul>
+       </details>
+
        </details> <!-- end Py -->
        </details> <!-- end ref man -->

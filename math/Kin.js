@@ -926,9 +926,9 @@ class Kin{
     }*/
 
     /*returns time in milliseconds*/
-    static predict_move_dur(J_angles_original, J_angles_destination, robot){
+    static predict_move_dur_5_joint(J_angles_original, J_angles_destination, robot){
         //let speed = robot.prop("MAX_SPEED")
-        let speed = 30
+        let speed = 30 //degrees per second
         let angle_length = Math.min(J_angles_original.length, J_angles_destination.length)
         angle_length = Math.min(angle_length, 5)
         let delta = []
@@ -937,6 +937,23 @@ class Kin{
             delta.push(Math.abs(delta_val))
         }
         return Vector.max(delta)/speed
+    }
+
+    static predict_move_dur(J_angles_original, J_angles_destination, robot){
+        //let speed = robot.prop("MAX_SPEED")
+        //let speed = 30 //degrees per second
+        let angle_length = Math.min(J_angles_original.length, J_angles_destination.length)
+        //angle_length = Math.min(angle_length, 5)
+        let result_dur_in_seconds = 0
+        for(let i = 0; i < angle_length; i++){
+            let delta_val = J_angles_destination[i] - J_angles_original[i]
+            delta_val = Math.abs(delta_val)
+            let speed = ((i <= 4) ? Kin.j1_thru_j5_motor_degrees_per_second  :
+                                    Kin.dynamixel_320_degrees_per_second)
+            let dur = delta_val / speed
+            result_dur_in_seconds = Math.max(result_dur_in_seconds, dur)
+        }
+        return result_dur_in_seconds
     }
 
     static tip_speed_to_angle_speed(J_angles_original, J_angles_destination, tip_speed, dexter_inst_or_workspace_pose){
@@ -1814,12 +1831,25 @@ class Kin{
     } end of context_inverse_kinematics */
 }
 
-	module.exports = Kin
-	var {sind, cosd, tand, asind, acosd, atand, atan2d} = require("./Trig_in_Degrees.js")
-	var Vector      = require("./Vector.js")
-	var Convert     = require("./Convert.js")
-	//var {dde_error} = require("../core/utils.js") //now dde_error specially defined in je_and_browser_code.js
-	var {Dexter}    = require("../core/robot.js")
+module.exports = Kin
+
+
+//Used in predict_move_dur
+//Computation based on James N reading of Dynamixel XL 320, 114RPM at 7.4 volts.
+//but we're running it at 5 volts so down to 77RPM, which is 1.28rps
+//which is 461 deg per sec.
+//the dynamixel 430 has a slower RPM, but the 320 is our default.
+//used in
+Kin.dynamixel_320_degrees_per_second = 461
+Kin.j1_thru_j5_motor_degrees_per_second = 30
+
+
+
+var {sind, cosd, tand, asind, acosd, atand, atan2d} = require("./Trig_in_Degrees.js")
+var Vector      = require("./Vector.js")
+var Convert     = require("./Convert.js")
+//var {dde_error} = require("../core/utils.js") //now dde_error specially defined in je_and_browser_code.js
+var {Dexter}    = require("../core/robot.js")
 
     
     /*

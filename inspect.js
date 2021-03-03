@@ -117,6 +117,31 @@ function inspect_toggle_2d_checkbox(stack_number, in_stack_position){
     )
 }
 
+function make_plot_button_html_maybe(stack_number, in_stack_position){
+    let item = inspect_stacks[stack_number][in_stack_position]
+    let result = ""
+    if(window.Plot) {
+        if(Plot.is_data_array_ok(item)) {
+            result = " <button title='Show a graph of the array.'" +
+                     " style='cursor:pointer;font-size:12px;padding:2px;height:20px;'" +
+                     " onclick='Plot.show(undefined," +
+                     " inspect_stacks[" + stack_number + "][" + in_stack_position + "])'>Plot</button>"
+        }
+        else if (item instanceof Job){
+            result = " <button title='Show a graph of the Job move points.'" +
+                     " style='cursor:pointer;font-size:12px;padding:2px;height:20px;'" +
+                     " onclick='Plot.show(undefined," +
+                     " inspect_stacks[" + stack_number + "][" + in_stack_position + "].three_d_points_for_plotting())'>Plot</button>" +
+
+                     " <button title='Show graphs of all Jobs points.'" +
+                     " style='cursor:pointer;font-size:12px;padding:2px;height:20px;'" +
+                     " onclick='Plot.show(undefined," +
+                     ` "Job")'>Plot Jobs</button>`
+        }
+    }
+    return result
+}
+
 function inspect_aux(item, stack_number, in_stack_position, increase_max_display_length=false){
     // still causes jquery infinite error if the below is commented in.
     //if (typeof(new_object_or_path) == "string")  { return new_object_or_path }
@@ -131,7 +156,8 @@ function inspect_aux(item, stack_number, in_stack_position, increase_max_display
         let result
         let title = ""
         let array_type = typed_array_name(item) //"Array", "Int8Array" ... or null
-        let checkbox_2d_html_maybe =  ""
+        let checkbox_2d_html_maybe = ""
+        let plot_button_html_maybe = make_plot_button_html_maybe(stack_number, in_stack_position) //returns non-empty string for certain arrays, and all Job instances
         let div_id = make_inspector_id_string(stack_number, in_stack_position)
         let max_display_factor = (increase_max_display_length ? 4 : 1)
         //each clause below sets title and result
@@ -142,8 +168,8 @@ function inspect_aux(item, stack_number, in_stack_position, increase_max_display
             result = inspect_one_liner(item)
         }
         else if (array_type){ //return "Array of " + item.length
-            checkbox_2d_html_maybe =  ' &nbsp;<input id="inspect_2d_checkbox_id" type="checkbox" ' +
-                                      'onchange="inspect_toggle_2d_checkbox(' + stack_number + ', ' + in_stack_position + ')" ' +
+            checkbox_2d_html_maybe =  ' &nbsp;<input id="inspect_2d_checkbox_id" type="checkbox"' +
+                                      ' onchange="inspect_toggle_2d_checkbox(' + stack_number + ', ' + in_stack_position + ')" ' +
                                       (inspect_2d ? "checked" : "") +
                                       '/>2D'
             if (inspect_2d && (item.length > 0) && is_array_of_same_lengthed_arrays(item)) { //2D arrays can't be "typed arrays"
@@ -365,7 +391,7 @@ function inspect_aux(item, stack_number, in_stack_position, increase_max_display
             "&nbsp;&nbsp;&nbsp;<span id='" + next_id + "' title='Inspect next value.'     style='cursor:pointer;color:blue;font-weight:900; font-size:20px; opacity:"  + next_opacity + ";'>&gt;</span>\n" +
             //"<span id='" + refresh_id + "' style='cursor:pointer;padding-left:30px;font-size:20px;' title='refresh' >" + "&#10227;</span>\n" +
             "<button id='" + refresh_id + "' style='cursor:pointer;font-size:12px;padding:1px;height:20px;' title='refresh the data being inspected.' >Refresh</button>\n" +
-            "<b style='padding-left:10px;'>INSPECTing<i> &nbsp;" + title + "</i></b> " + checkbox_2d_html_maybe + "<br/>\n"  +
+            "<b style='padding-left:10px;'>INSPECTing<i> &nbsp;" + title + "</i></b> " + checkbox_2d_html_maybe + plot_button_html_maybe + "<br/>\n"  +
             result + "</div>"
         inspect_set_prev_onclick(   stack_number, in_stack_position, prev_id)
         inspect_set_next_onclick(   stack_number, in_stack_position, next_id)

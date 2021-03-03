@@ -22,15 +22,17 @@ def main():
             is_py_evalable = False
         else: 
             is_py_evalable = True
-        if is_py_evalable :
+        if is_py_evalable:
             try:
-        	    result = eval(src)
-            except Exception as err:
+                result = eval(src)
+                if str(type(result)) == "<class 'numpy.ndarray'>":
+                    result = result.tolist()
+            except Exception as err :
                 is_error = True
                 result = traceback.format_exc()
                 #result = result.replace(", line ", ", <br/>line ")
             else: #the normal, working, return a  value, eval case
-               is_error = False
+                is_error = False
         else:
             try:
                 exec(src)
@@ -40,9 +42,15 @@ def main():
                 #result = result.replace(", line ", ", <br/>line ")
             else:
                 is_error = False
-                result = None            
+                result = None
         json_obj = {"from": "Py.eval", "is_error": is_error, "source": src, "callback_id": callback_id, "result": result}
-        print(json.dumps(json_obj), sep="", flush=True)
+        json_str = None
+        try:
+            json_str = json.dumps(json_obj)
+        except Exception as err:
+            json_obj = {"from": "Py.eval", "is_error": True, "source": src, "callback_id": callback_id, "result": "Could not make JSON string of the result."}
+            json_str = json.dumps(json_obj)
+        print(json_str, sep="", flush=True)
 
 print("Python: main_eval.py file loaded.", "\n", flush=True)
 main()

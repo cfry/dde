@@ -304,11 +304,18 @@ Editor.restore_files_menu_paths_and_last_file = function(){ //called by on ready
             html += '<option>' + inner_path + "</option>"
         }
         file_name_id.innerHTML = html
-        let latest_file = paths[0]
         if(Editor.files_menu_paths_empty_or_contains_only_dde_init()){
             Editor.edit_new_file()
         }
         else {
+            let latest_file = paths[0]
+            if(latest_file.endsWith("/dde_init.js")){
+                if(paths.length > 1) { latest_file = paths[1]}
+                else {
+                    Editor.edit_new_file()
+                    return
+                }
+            }
             try {
                 Editor.edit_file(latest_file) //sometimes paths[0] will be 'new buffer' and that's fine
             }
