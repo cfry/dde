@@ -539,6 +539,19 @@ function is_array_of_numbers(a_array){
 }
 module.exports.is_array_of_numbers = is_array_of_numbers
 
+function is_2D_array_of_numbers(a_array){
+    if(!Array.isArray(a_array)) { return false }
+    else {
+        for(let inner_array of a_array){
+            if(!is_array_of_numbers(inner_array)) {
+                return false
+            }
+        }
+        return true
+    }
+}
+module.exports.is_2D_array_of_numbers = is_2D_array_of_numbers
+
 //used by inspector for printing 2D arrays
 function is_array_of_same_lengthed_arrays(array){
   if (array.length === 0) { return false }
@@ -767,11 +780,15 @@ function compute_string_size(a_string, font_size=12, extra_width = 0){
 }
 module.exports.compute_string_size = compute_string_size
 
-//avoids calling eval. If he path_ isn't defined, this fn returns undefined.
+//avoids calling eval. If the path isn't defined, this fn returns undefined.
 //arg can either be a string with dots or an array of strings that are path elts.
 function value_of_path(path_string){
     let path = path_string
     if (typeof(path) == "string"){ path = path.split(".") }
+    else if(Array.isArray(path)) { } //ok as is
+    else {
+        dde_error("value_of_path passed: " + path_string + " which is not a string or an array.")
+    }
     let result
     if(window[path[0]] !== undefined) { result = window }
     //note window["window"] returns the window obj so the arg can be "window" and we still win

@@ -788,7 +788,7 @@ static submit_window(event){
             else if (val == "true")  {val = true}
             else if (val == "null")  {val = null}
             else if (is_string_a_number(val)) { val = parseFloat(val) } //for "123", returns an int
-            result[in_name] = val
+            result[in_name] = val //in_name could be bound to "window_callback_string"
         }
         else if (in_type == "text"){
             if (in_name){
@@ -873,59 +873,61 @@ static submit_window(event){
     }
     //widget_values: result,
     let callback_fn_string = result["window_callback_string"]
-    let cb
-    if(platform === "browser") { cb = callback_fn_string }
-    else {
-        cb = value_of_path(callback_fn_string)
-        if (!cb) { try { cb = window.eval("(" + callback_fn_string + ")") } //probably have an anonymous fn. Evaling it without the parent wrappers errors.
-                   catch(err){ dde_error("During show_window handler (callback), could not find: " + callback_fn_string) } //just ignore
+    if(callback_fn_string) { //it might be null, as is the new default a of Mar 12, 2021
+        let cb
+        if(platform === "browser") { cb = callback_fn_string }
+        else {
+            cb = value_of_path(callback_fn_string)
+            if (!cb) { try { cb = window.eval("(" + callback_fn_string + ")") } //probably have an anonymous fn. Evaling it without the parent wrappers errors.
+                       catch(err){ dde_error("During show_window handler (callback), could not find: " + callback_fn_string) } //just ignore
+            }
         }
-    }
-    //cb is probably "function () ..." ie a string of a fn src code
-    if (!cb) { //cb could have been a named fn such that when evaled didn't return the fn due to bad js design
-        if(callback_fn_string.startsWith("function ")){
-            let fn_name = function_name(callback_fn_string)
-            if ((typeof(fn_name) == "string") && (fn_name.length > 0)) { cb = window.fn_name }
-            else { //we've got an anonyous function source cde def
-                cb = eval("(" + callback_fn_string + ")") //need extra parens are veal will error becuase JS is wrong
-                if(typeof(cb) != "function"){
-                    dde_error("show_window got a callback that doesn't look like a function.")
+        //cb is probably "function () ..." ie a string of a fn src code
+        if (!cb) { //cb could have been a named fn such that when evaled didn't return the fn due to bad js design
+            if(callback_fn_string.startsWith("function ")){
+                let fn_name = function_name(callback_fn_string)
+                if ((typeof(fn_name) == "string") && (fn_name.length > 0)) { cb = window.fn_name }
+                else { //we've got an anonyous function source cde def
+                    cb = eval("(" + callback_fn_string + ")") //need extra parens are veal will error becuase JS is wrong
+                    if(typeof(cb) != "function"){
+                        dde_error("show_window got a callback that doesn't look like a function.")
+                    }
                 }
             }
-        }
-        else {
-            dde_error("In submit_window with bad format for the callback function of: " + callback_fn_string)
-        }
-    }
-    try {   if (platform == "dde") { cb.call(null, result) }
-            else { //in  browser. send to server this button click
-                let mess_obj = {kind: "show_window_call_callback", callback_fn_name: cb, callback_arg: result}
-                let mess = JSON.stringify(mess_obj)
-                web_socket.send(mess)
+            else {
+                dde_error("In submit_window with bad format for the callback function of: " + callback_fn_string)
             }
-    }
-    catch(err){
-        let err_string
-        if (typeof(err) == "string") { err_string = err } //weirdly this DOES happen sometimes
-        else if (err.message) { err_string = err.message }
-        else { err_string = err.toString() }
-        let fn_name = cb.name
-        if(fn_name == "") { fn_name = cb.toString() } //ie some anonymous fn
-        let arg_string = JSON.stringify(result)
-        arg_string = replace_substrings(arg_string, ",", "<br/>")
-        if((result.clicked_button_value == "close_button") &&
-            !cb.toString().includes("close_button")) {
-            warning("The show_window callback function of: <code>" + fn_name +
-                    '</code><br/>does not properly handle a clicked_button_value of <code>"close_button"</code>.<br/>' +
-                    'We recommand that you extend ' + fn_name + ' to something like:<br/>' +
-'<code>if(vals.clicked_button_value == "close_button") {}' +
-'<br/>else { your existing code here } </code>')
         }
-        else {
-            dde_error("While calling the show_window handler function of:<br/><code>" + fn_name + "</code>,<br/>" +
-                    "passed:<br/>" + arg_string + "<br/>" + err_string)
+        try {   if (platform == "dde") { cb.call(null, result) }
+                else { //in  browser. send to server this button click
+                    let mess_obj = {kind: "show_window_call_callback", callback_fn_name: cb, callback_arg: result}
+                    let mess = JSON.stringify(mess_obj)
+                    web_socket.send(mess)
+                }
         }
-    }
+        catch(err){
+            let err_string
+            if (typeof(err) == "string") { err_string = err } //weirdly this DOES happen sometimes
+            else if (err.message) { err_string = err.message }
+            else { err_string = err.toString() }
+            let fn_name = cb.name
+            if(fn_name == "") { fn_name = cb.toString() } //ie some anonymous fn
+            let arg_string = JSON.stringify(result)
+            arg_string = replace_substrings(arg_string, ",", "<br/>")
+            if((result.clicked_button_value == "close_button") &&
+                !cb.toString().includes("close_button")) {
+                warning("The show_window callback function of: <code>" + fn_name +
+                        '</code><br/>does not properly handle a clicked_button_value of <code>"close_button"</code>.<br/>' +
+                        'We recommand that you extend ' + fn_name + ' to something like:<br/>' +
+                        '<code>if(vals.clicked_button_value == "close_button") {}' +
+                        '<br/>else { your existing code here } </code>')
+                                }
+                                else {
+                                    dde_error("While calling the show_window handler function of:<br/><code>" + fn_name + "</code>,<br/>" +
+                                            "passed:<br/>" + arg_string + "<br/>" + err_string)
+                                }
+        }
+    } //end of handling callback
     event.preventDefault()
     event.stopPropagation()
     if (subject_elt.oninput) { //work around bug in Chrome 51 June 8 2016 wherein when you have

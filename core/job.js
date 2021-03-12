@@ -1236,6 +1236,11 @@ Job.job_id_to_job_instance = function(job_id){
     return null
 }
 
+//returns the latest defined job or null if there are no defined jobs
+Job.latest_defined_job = function() {
+    return Job.job_id_to_job_instance(Job.job_id_base)
+}
+
 /*Job.job_id_to_job_instance = function(job_id){
     let str = job_id.toString()
     let str_of_int = str.substring(0, str.indexOf("."))

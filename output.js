@@ -471,6 +471,16 @@ function show_page(url, options={x:0, y:0, width: 800, height: 600}){
 
 window.show_page = show_page
 
+//unlike show_page, you can't set size, x, y, BUT it opens the page
+//in your default browser and you see the url and you can edit the url
+//and continue to browse, because it is a regular browser window.
+//it will probably add a tab to your already open browser window.
+function browse_page(url){
+    require("electron").shell.openExternal(url)
+}
+
+window.browse_page = browse_page
+
 
 /*
 function get_page(url, callback=out, error_callback=get_page_error_callback){//in sandbox, callback is a fn, in ui, its an integer

@@ -61,7 +61,7 @@ var SplashScreen = class SplashScreen {
             // putting this in a span tag and making a smaller font means you can't drag the title bar to reposition the dialog
             x: 320, //same as dexter ui on purpose so that dui will "cover up" the splash screen.
             y: 100,
-            width: 380, //380 is splash screen width 480,
+            width: 310, //380 is splash screen width 480,
             height: 330,
             background_color: "#bae5fe", // pastel green: "#e7ffef",
             callback: "SplashScreen.show_splash_screen_cb",
@@ -169,6 +169,8 @@ var SplashScreen = class SplashScreen {
 
         ["Make Instruction",          "Create instructions for a Job via a dialog box.",
                                       "open_doc(make_instruction_pane_doc_id)"],
+        ["Adding JavaScript",         "Extend DDE and create applications.",
+                                      "open_doc(adding_javascript_doc_id)"],
         ["Help System",               "How DDE helps you learn DDE.",
                                       "open_doc(help_system_doc_id)"]
        /* ["Dexter Features",           "Videos demonstrating Dexter capabilities&#013;plus an early look at DDE.",

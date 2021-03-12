@@ -1080,6 +1080,7 @@ function is_folder(path=dde_apps_folder){
 }
 module.exports.is_folder = is_folder
 
+//could have been called list_folder
 function folder_listing(folder=dde_apps_folder, include_files=true, include_folders=true, include_folder_name=true){
     folder = make_full_path(folder)
     let result = []

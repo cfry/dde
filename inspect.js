@@ -436,8 +436,11 @@ function inspect_one_liner(item, stack_number, in_stack_position, prop_name){
                       first_part + "</summary>" + body + "</details>"
             return result
         }
-        else { return JSON.stringify(item) }
-
+        else { return "&quot;" + item + "&quot;" }// JSON.stringify(item) // json stringfy screws up
+        //if the string being "stringifyed contains both single and double quotes.
+        //but since we're returning html, we can use "&quot;" instead of the quteo marks.
+        //now, in DDE_NPM.list,  when I wrap each array item in an A tag with an ooncluck fn
+        //that has a lit string arg, I can win.
     }
     else if (the_type == "function")   {
         if (is_class(item)){

@@ -452,6 +452,9 @@
         }
     }
 
+    DDE_NPM.init()
+    install_npm_pkg_id.onclick = DDE_NPM.show_ui
+
     insert_file_content_id.onclick=function(e) {
         const path = choose_file({title: "Choose a file to insert into DDE's editor"})
         if (path){
@@ -1319,8 +1322,9 @@ foo      //eval to see the latest values</pre>`,
         win.setTitle("hey") //errors but is doecumented in https://electronjs.org/docs/api/browser-window
                             //but see https://electronjs.org/docs/api/browser-window-proxy
        */
-        var {shell} = require("electron")
-        shell.openExternal(url) //shows url, back/forward buttons. Allows resizing.
+        //var {shell} = require("electron")
+        //shell.openExternal(url) //shows url, back/forward buttons. Allows resizing.
+        browse_page(url)
     }
     show_errors_log_id.onclick = function(){
         let path = "Dexter." + Dexter.default.name + ":/srv/samba/share/errors.log"

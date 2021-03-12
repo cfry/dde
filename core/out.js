@@ -175,7 +175,8 @@ module.exports.speak = speak
 
 //______show_window_____
 //output the "vals" to inspector or stdout.
-//this is the default show_window callback
+//this use to be the default show_window callback
+//good for debugging
 function show_window_values(vals){
     if(platform == "dde") { inspect(vals) }
     else {
@@ -184,7 +185,7 @@ function show_window_values(vals){
     }
 }
 module.exports.show_window_values = show_window_values
-global.show_window_values = show_window_values //needed because this fn is the default callback for show_window
+global.show_window_values = show_window_values
 
 function show_window({content = `<input type="submit" value="Done"/>`,
                       title = "DDE Information",
@@ -200,7 +201,7 @@ function show_window({content = `<input type="submit" value="Done"/>`,
                       show_collapse_button = true,
                       trim_strings = true,
                       window_class,
-                      callback = show_window_values,
+                      callback = null, //show_window_values,
                       close_same_titled_windows = true,
                       job_name = null, //this really is a param, but its only used internally with Human instructions and some browser interactions.
                       init_elt_id = null} = {}){
@@ -230,7 +231,7 @@ function show_window({content = `<input type="submit" value="Done"/>`,
         content = stringify_value(content)
     }
     //onsole.log("show_window before callback")
-    if (typeof(callback) == "function"){
+    if (typeof(callback) === "function"){
         let fn_name = callback.name
         if (fn_name && (fn_name != "")) {
             if(fn_name == "callback") { //careful, might be just JS being clever and not the actual name in the fn def
@@ -242,7 +243,9 @@ function show_window({content = `<input type="submit" value="Done"/>`,
             }
             else { callback = fn_name }
         }
-        else { callback = callback.toString() } //using the src of an annonymous fn.
+        else { callback = callback.toString() } //using the src of an annonymous fn,
+              //or, if callback passed in is a string, then this just sets callback back
+              //to that same string.
     }
     if (!job_name){
         let latest_job = Job.job_id_to_job_instance(Job.job_id_base)

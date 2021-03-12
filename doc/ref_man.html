@@ -3542,7 +3542,7 @@ Jobs either run to completion, error, or are stopped by the user via:
  </ul>
  You can stop all jobs by:
  <ul>
-   <li>Clicking the the stop sign icon <img src='stop_sign.png'/>in the output pane</li>
+   <li>Clicking the stop sign icon <img src='stop_sign.png'/>in the output pane</li>
    <li>Calling <code>Job.stop_all_jobs()</code></li>
 </ul>
 
@@ -3739,7 +3739,7 @@ new Job({name: "my_job1",
     Jobs have a great deal of flexibility. We can use the full power of
     a general purpose programming language (JS) plus DDE's libraries
     to define them. During their
-    running, Jobs can also use the the full power of JavaScript plus DDE's libraries, or any
+    running, Jobs can also use the full power of JavaScript plus DDE's libraries, or any
     that you import or create.
     <p></p>
     Though powerful, this flexibility comes
@@ -6362,7 +6362,7 @@ causes Link 5 to be horizontal pointing forwards.<br/>
     <i>Examples:</i><br/>
     <code>Dexter.move_to([0, 0.3, 0.4])</code>
     <p></p>
-    Below is an example using all default values except for the the first one.
+    Below is an example using all default values except for the first one.
     <pre><code>
 Dexter.move_to([0.1, 0.2, 0.3],      // xyz position
                [0, 0 ,-1],           // direction
@@ -7046,7 +7046,7 @@ This is used for link lengths (properties LINK1, LINK2 ... LINK5)
 because each Dexter has very slightly different link lengths.
 Due to Dexter's precision, we must take these lengths into
 account when moving the robot to a location.<br/>
-Else if the the property is a class property of Dexter
+Else if the property is a class property of Dexter
 (used for "typical values" or values appropriate for all Dexters),
 then that value is returned.<br/>
 Otherwise, <code>undefined</code> is returned.
@@ -9077,8 +9077,19 @@ show_window({draggable: false,
     this thin wrapper. Its primary method is: <code>Plot.show</code>. It takes the same arguments
     as the underlying <code>Plotly.newPlot</code>, though the arguments to <code>Plot.show</code>  can encode
     a superset of the functionality of <code>Plotly.newPlot</code><br/>
+    <details class="doc_details"><summary>Plot Colors</summary>
+    Colors can be reprsented as:
+    <ul>
+     <li><b>Strings of color names:</b> Examples: <code>"red"</code> <code>"green"</code> <code>"blue"</code>
+           and a bunch more common names.</li>
+     <li><b>3 hexidecimal digits:</b> character set: 0-9 and a-f Examples: <code>"#af2"</code> <code>"#f0f"</code></li>
+     <li><b>6 hexidecimal digits:</b> character set: 0-9 and a-f Examples: <code>"#aaf032"</code> <code>"#ff00ff"</code></li>
+     <li><b>red-green-blue values</b> Each 0 thru 255. Examples: <code>rgb(0, 50, 100)</code>, <code>rgb(255, 16, 99)</code>
+    </ul>
+    </details>
     <i>Parameters:</i><br/>
-    <b>graphDiv</b> A div dom-element or the string id of that dom element. Default "plot_id".
+    <b>graphDiv</b> A div dom-element or the string id of that dom element. Default <code>"plot_id"</code>.
+    If you pass in <code>null</code> or <code>undefined</code>, it will default to <code>"plot_id"</code>.
     This is the div where the plot will be shown. Unlike <code>Plotly.newPlot</code>.
     <code>Plot.show</code> automatically creates that dom element and pops up a
     show_window to display it.
@@ -9089,24 +9100,114 @@ show_window({draggable: false,
     their own "trace" or the string <code>"Job"</code> to show all Job instances in
     one window.<br/>
     <i>Example:</i><br/>
-    <code>Plot.show(undefined, "Job")</code>
+    <code>Plot.show(null, "Job")</code>
     <p></p>
-    <b>layout</b> Same as <code>Plotly.newPlot</code>'s layout argument.
+    <b>layout</b> Default <code>null</code>. Same as <code>Plotly.newPlot</code>'s layout argument.
     <p></p>
-    <b>config</b> Same as <code>Plotly.newPlot</code>'s config argument.<br/>
+    <b>config</b> Default <code>null</code>. Same as <code>Plotly.newPlot</code>'s config argument.<br/>
+    <p></p>
+    <b>show_window_options</b> Unlike Plotly.newPlot, Plot.show wraps a <code>show_window</code>
+    around the plot. You can pass in an object with the values that you would normally
+    pass in to show_window. Plot.show_window has different defaults for a few of them
+    which are:
+    <ul>
+    <li><b>content</b>  Default: <code title="unEVALable">"&lt;div id='" + graphDiv + "'/>" </code></li>
+    <li><b>x</b> Default: <code>50 </code></li>
+    <li><b>y</b>  Default: <code>50 </code></li>
+    <li><b>width</b>  Default: <code>700 </code></li>
+    <li><b>height</b>  Default: <code>500 </code></li>
+    </ul>
     <p></p>
     <i>Examples:</i><br/>
-    Customizing the window title and axis titles.
-    <pre><code>Plot.show(undefined,
+
+    <details class="doc_details"><summary>Speedometer</summary>
+    A fancy way to show one number.
+    <pre><code>var data = [
+  { value: 128,
+    title: "Joint 1 degrees",
+    type:  "indicator",
+    mode:  "gauge+number", //bar+number
+    gauge: { axis:  { range: [0, 180] },
+             shape: "angular", //also: "bullet"
+             bar:   { color: rgb(100, 30, 200)}
+           }
+  }
+]
+Plot.show(undefined, data,
+         {height: 250,
+          width: 300,
+          margin: {l:40, r:20, t:0, b:0},
+          },
+          null,
+          {x: 20, y: 40, width: 310, height: 300} //window pos & size
+          )   </code></pre>
+    </details>
+    <details class="doc_details"><summary>1D array</summary>
+        Only one array is given, the "Y" values.<br/>
+        The "X" values are the automatically generated:
+        <code>[0, 1, 2, 3, 4]</code><br/>
+        <code>Plot.show(null, [0, 1, 1.5, 1.5, 7])  </code>
+    </details>
+    <details class="doc_details"><summary>Window and axis titles</summary>
+    <pre><code>Plot.show(null,
     [[10, 20, 33, 40],
      [2, 4.33, 6, 8]],
     {title:  "Not so great title",
-     xaxis:  {title: {text: 'the x Axis'}},
-     yaxis:  {title: {text: 'the y Axis'}}
+     xaxis:  {title: 'the x Axis'},
+     yaxis:  {title: 'the y Axis'}
     })    </code></pre>
-
-    <p></p>
-    Boxes and whiskers plot.
+    </details>
+    <details class="doc_details"><summary>Title styling</summary>
+     Titles can be styled with HTML.
+    <pre><code>Plot.show(null,
+    [[10, 20, 33, 40],
+     [2, 4.33, 6, 8]],
+    {title:  "&lt;i>Not &lt;span style='font-size:12px;color:red'>so&lt;/span> &lt;b>great&lt;/b> title&lt;/i>",
+     xaxis:  {title: "the &lt;i style='font-size:24px;'>X&lt;/i> Axis"},
+     yaxis:  {title: 'the &lt;b>Y&lt;/b> Axis'},
+     plot_bgcolor:  "#ffef9f", //default: "white",
+     paper_bgcolor: "#ffd9b4", //margin around the plot area
+     colorway: ["#00CC00"],    //data line color for 1st trace
+     margin: {l:40, r:40, t:40, b:40} //around the plot area
+    })   </code></pre>
+    </details>
+    <details class="doc_details"><summary>Multiple traces in same plot</summary>
+        The first trace has dots for the points connected by lines.<br/>
+        The second trace is just dots, no lines between the points.<br/>
+        The third trace has only lines, no dots on the points.<br/>
+     <a href="#" target="_blank" onclick="browse_page('https://plotly.com/javascript/reference/scatter')">Plotly Styling Doc</a>
+<pre><code>Plot.show(null,
+     [{type: "scatter",
+       name: "J1",
+       mode: "lines+markers", //lines between points and dots (markers) on the points
+       x: [0, 1, 2, 3, 4,   5],
+       y: [0, 1, 1, 3, 1.5, 6]
+      },
+      {type: "scatter",
+       name: "J2",
+       mode: "markers", //no lines between points just the points.
+       x: [0, 1, 2, 3, 4,   5  ],
+       y: [5, 5, 1, 4, 2.5, 4.5],
+       marker: {symbol: "square", //many options including "circle" "square", "circle-open", "diamond", "triangle-up"
+                size:   10,
+                color: "#a0f" //"green" or format like "#f0f" for mageneta
+               }
+       },
+       {type: "scatter",
+        name: "J3",
+        mode: "lines", //just the lines
+        x: [0, 1.2, 2.2, 3.2, 4.2,   5.2],
+        y: [0, 1,   1,   3,   1.5,   6  ],
+        line: {color: "red",
+               width: 4, //default 2
+               shape: "spline", //one of "linear" | "spline" | "hv" | "vh" | "hvh" | "vhv"
+               smoothing: 1.3,  //only when shape is "spline" 0==straight line, 1.3 max smoothing.
+               dash:  "dash"    //one of "solid", "dot", "dash", "longdash", "dashdot", or "longdashdot"
+              }
+       }
+      ])   </code></pre>
+    </details>
+    <details class="doc_details"><summary>Boxes and whiskers</summary>
      <pre><code>function make_random_array(length=50, offset=0){
     let arr = []
     for (var i = 0; i < length; i ++) {
@@ -9115,42 +9216,91 @@ show_window({draggable: false,
     return arr
 }
 var trace0 = { y: make_random_array(50, 0),
-               type: 'box'
-}
+               type: 'box'}
 var trace1 = { y: make_random_array(50, 1),
-              type: 'box'
-}
-Plot.show(undefined, [trace0, trace1])</code></pre>
-
-    Plot of 3D points.
+              type: 'box'}
+Plot.show(null, [trace0, trace1])   </code></pre>
+    </details>
+    <details class="doc_details"><summary>3D line</summary>
+    5 points with lines between them.
     <pre><code>Plot.show(
-    undefined,
-    [[0, 1, 2, 3, 4],
-     [0, 2, 4, 8, 16],
-     [0, 2, 4, 6, 8]]) </code></pre>
-
-     Plot the move-points of a job.<br/>
-     <code title="unEVALable"> Plot.show(undefined, Job.my_job) </code>
+    null,
+    [[0, 1, 2, 3,  4],  //x values
+     [0, 2, 4, 8, 16],  //y values
+     [0, 2, 4, 6,  8]]) //z values
+     </code></pre>
+    </details>
+    <details class="doc_details"><summary>Heat Map</summary>
+        In the below 2D array, each number is the value at a point in the 2D grid.
+        The number will be represented by a color.<br/>
+        0 is displayed as yellow.<br/>
+        0.5 is displayed as orange.<br/>
+        1 is displayed as red.<br/>
+        The first inner array is shown in the bottom row in the plot.<br/>
+        The last inner array is shown in the top row in the plot.
+     <pre><code>var data = [
+     {z: [[0,   0,    0.3, 0,   0],
+          [0,   0.2,  0.5, 0,   0],
+          [0,   0.5,  1,   0.8, 0.6],
+          [0.1, 0,    0.7, 0.2, 0.1],
+          [0,   0.2,  0.4, 0.2, 0]],
+      type: 'heatmap',
+      colorscale: [[0, "yellow"], [1, "red"]]
+      }]
+      Plot.show(null, data, null, null,
+                {title: "Heat Map 5 x 5"})  </code></pre>
+      There are lots of possible colorscale values.
+      Some are represented by pre-packages strings.
+      To use the below, in place of the array following <code title="unEVALable">colorscales:</code>
+      above, put, for instance, <code>"Bluered"</code>.
+      Some of our favorite ones are:
+      <ul>
+          <li><code>"Bluered"</code> blue, purple, red</li>
+          <li><code>"Greys"</code> monochrome</li>
+          <li><code>"Electric"</code> black, blue, purple, brown, cream</li>
+          <li><code>"Picnic"</code> blue to red with pastels</li>
+          <li><code>"Portland"</code> blue, green, yellow, orange, red</li>
+          <li><code>"Hot"</code> black, red, orange, yellow, white</li>
+      </ul>
+      See <a target="_blank" href="#" onclick="browse_page('https://plotly.com/javascript/colorscales/')">Plotly doc</a>
+      for more on colorscales.
+    </details>
+    <details class="doc_details"><summary>Job move points</summary>Job move points</i></b><br/>
+      The move_all_joints, move_to, and friends instructions
+      have their target xyz points plotted in a 3D line.<br/>
+     <code> Plot.show(null, Job.latest_defined_job()) </code><br/>
+     You can also pass an array of Job instances to plot more than one Job,
+     each in its own trace. The below plots the points of the last 2 defined Jobs,
+     <span style="color:#D60">provided that you have defined at least 2 Jobs</span>.
+    <pre><code> Plot.show(null, [Job.job_id_to_job_instance(Job.job_id_base - 1),
+                  Job.latest_defined_job()]) </code></pre>
+    </details>
+    <details class="doc_details"><summary>All Jobs' move points</summary>
+    Plots a 3D line for the move-points of each defined Job.
+    Note that you can use the Output Pane's Job bar to undefine particular Jobs
+    (by clicking on the "X" to the right of a Job's button)
+    so that you get just the Jobs you want in the plot.<br/>
+    <code> Plot.show(null, Job) </code>
+    </details>
     </details> <!-- end Plot.show -->
 
     <details id="Plotly" class="doc_details"><summary>Plotly</summary>
-    Plotly is the graphing library underlying DDE's plotting facility.
-    You can access all of its functionality within DDE.
-    Its <a target="_blank" href="https://plotly.com/javascript">
-    documentation</a> is better than average, though it takes a bit of finding your
-    way around it.
-    <p></p>
-     <code>Plotly.newPlot</code> is a (large) subset of the functionality of
-     <code>Plot.show</code>. It takes the same 4 args as Plot.show
-     but it doesn't:
-     <ul><li>show the plot unless its first arg of graphDiv is the id of
-             a "div" html element already shown on the screen.</li>
-         <li>show 1D, 2D, and "3D" arrays that are the value of the data (2nd) arg.
-             You can still show them, but you must pass in, as data, an array of
-             "trace" objects, which is a bit more complex.</li>
-         <li>allow a Job instance, array of Job instances or <code>"Job"</code> as the data arg.</li>
-     </ul>
-
+        Plotly is the graphing library underlying DDE's plotting facility.
+        You can access all of its functionality within DDE.
+        Its <a target="_blank" href="https://plotly.com/javascript">
+        documentation</a> is better than average, though it takes a bit of finding your
+        way around it.
+        <p></p>
+         <code>Plotly.newPlot</code> is a (large) subset of the functionality of
+         <code>Plot.show</code>. It takes the same 4 args as Plot.show
+         but it doesn't:
+         <ul><li>show the plot unless its first arg of graphDiv is the id of
+                 a "div" html element already shown on the screen.</li>
+             <li>show 1D, 2D, and "3D" arrays that are the value of the data (2nd) arg.
+                 You can still show them, but you must pass in, as data, an array of
+                 "trace" objects, which is a bit more complex.</li>
+             <li>allow a Job instance, array of Job instances or <code>"Job"</code> as the data arg.</li>
+         </ul>
     </details>
 
     </details> <!-- end Plot -->
@@ -9471,6 +9621,8 @@ show_window({
 
     <details id="show_page_doc_id" class="doc_details"><summary>show_page</summary>
        Creates a new browser window and shows a web page in it.<br/>
+       Unlike <code>browse_page</code> does not show url in an editable field,
+       but does allow you to set location and size of the widnow that pops up.<br/>
        <i>Parameters:</i><br/>
        <b>url</b> A string. The url to show in the new browser window.<br/>
        <b>options</b> A literal object. The most useful properties are:
@@ -9520,7 +9672,17 @@ show_window({
         See also: <a href="#" onclick="open_doc(get_page_doc_id, event)">get_page</a>
     </details>
 
-    <details class="doc_details"><summary>Window Utilities</summary>
+    <details id="browse_page_doc_id" class="doc_details"><summary>browse_pages</summary>
+       Shows a url in your default browser, which includes an editable url at the top.
+       Ofen this will open a new tab for the given url in an already open browser.<br/>
+       <i>Parameter:</i><br/>
+       <b>url</b> Required. A string.<br/>
+       <br/>
+       <i>Example:</i><br/>
+       <code>browse_page("http://hdrobotic.com")</code>
+    </details>
+
+        <details class="doc_details"><summary>Window Utilities</summary>
 
            <details id="clear_output_doc_id" class="doc_details"><summary>clear_output</summary>
                Erase all content in the output pane. This does the same thing
@@ -10254,7 +10416,7 @@ Messaging.job_instruction({do_list_item: Dexter.move_all_joints(10, 20, 30, 40, 
        <b>variable_name</b> Required. A string of a variable name.
        If the string has dots in it, its a path to the actual var set.
        If there's a part of the path that doesn't exist, then it is
-       created with the value of {} so the the next part of the path
+       created with the value of {} so the next part of the path
        will be a property within that new value. <br/>
        <b>new_value</b> Default: <code>undefined</code>
        The new value to set the variable to.
@@ -11010,12 +11172,14 @@ Here we point out just a few that are especially easy and useful for teaching.
           In the terminal, type:  <code title="unEvalable">python3</code>
           to get a read_eval_print loop for Python.
           <p></p>
-          For a more recent version, browse <a href="https://www.python.org/downloads/" target="_blank">Python.org</a>
+          For a more recent version, browse
+              <a target="_blank" href="#" onclick="browse_page('https://www.python.org/downloads/')"/>Python.org</a>
               for download instructions.
           </details>
           <details class="doc_details"><summary>WinOS</summary>
             <b>Windows7</b><br/> We've had a hard time installing Python3 on Windows 7
-              from the download direction in <a href="https://www.python.org/downloads/" target="_blank">Python.org</a>.
+              from the download direction in
+              <a target="_blank" href="#" onclick="browse_page('https://www.python.org/downloads/')"/>Python.org</a> .
               There is a "missing file". The web documents some work arounds,
               but they aren't easy. We recommend using Windows 10.
             <p/>
@@ -11043,7 +11207,7 @@ Here we point out just a few that are especially easy and useful for teaching.
           </details>
           <details class="doc_details"><summary>Linux, etc</summary>
             To install Python on other Operating Systems browse
-            <a href="https://www.python.org/downloads/" https://pypi.org/>Python.org</a>
+            <a target="_blank" href="#" onclick="browse_page('https://www.python.org/downloads/')"/>Python.org</a>
             for download instructions.
           </details>
        </details>
@@ -11240,66 +11404,251 @@ new Job({
          JavaScript files</a>
        </details>
        <details id="Py.kill_doc_id" class="doc_details"><summary>Py.kill</summary>
-       Ends the Python process. The Python process shouldn't take up much resources
-       when idle. One reason to kill it is to get rid of the state currently
-       in the Python process so the next time <code>Py.eval</code> is called,
-       it will start afresh.
+           Ends the Python process. The Python process shouldn't take up much resources
+           when idle. One reason to kill it is to get rid of the state currently
+           in the Python process so the next time <code>Py.eval</code> is called,
+           it will start afresh.
        </details>
        <details id="Py.init_doc_id" class="doc_details"><summary>Py.init</summary>
-       This function
-       <ul>
-           <li>Kills the running Python process if any</li>
-           <li>Creates a new Python process</li>
-           <li>Puts <code>dde_apps_folder</code> on Python's
-                sys.path list
-           <li>Makes the new Python process ready to accept eval commands from DDE.</li>
-       </ul>
-       It is called automatically the first time you call <code>Py.eval</code>
-       after launching DDE or killing the Python process,
-       so there isn't much need to call this function explicitly.
-       After calling this function, your first call to <code>Py.eval</code> will
-       be a fraction of a second faster.
+           This function
+           <ul>
+               <li>Kills the running Python process if any</li>
+               <li>Creates a new Python process</li>
+               <li>Puts <code>dde_apps_folder</code> on Python's
+                    sys.path list
+               <li>Makes the new Python process ready to accept eval commands from DDE.</li>
+           </ul>
+           It is called automatically the first time you call <code>Py.eval</code>
+           after launching DDE or killing the Python process,
+           so there isn't much need to call this function explicitly.
+           After calling this function, your first call to <code>Py.eval</code> will
+           be a fraction of a second faster.
        </details>
        <details  class="doc_details"><summary>Troubleshooting</summary>
-       Python, like all modern popular programming languages, has
-       confusing aspects. This section helps you get through *some* of them
-       that we've found useful.
-       <p></p>
-       The Python interface automatically imports
-       <ul><li>json</li><li>sys</li> <li>traceback</li></ul>
-       so you won't have to import those when using DDE's python interface.
-       <p></p>
-       To see what folders you can import files from:
-       <code>Py.eval("sys.path")</code><br/>
-       To extend sys.path to include another folder<br/>
-       <code title="not in TestSuite">Py.eval('sys.path.append("/my/other/folder")'</code><br/>
-       Note that <code>load_files("/my/other/folder/hi.py")</code>
-       automatically adds "/my/other/folder" to sys.path, then
-       runs import("hi.py")
-       <p></p>
-       Python has numerous packages on the web that you can download and install on
-       your computer for use in your Python packages.
-       The easist ones to use can be found at
-       <a target="_blank" href="https://pypi.org/">Python Package Index. (PyPI)</a>
-       From a command line terminal, you can install a PyPI package via, for example:<br/>
-       <code title="unEVALable">sudo pip3 install numpy</code><br/>
-       Notes:
-       <ul>
-       <li><b>pip</b> stands for Package Installer for Python. You will need
-       to use pip3 or a very recent version of pip for installing packages into Python3.
-       You can install this installer from
-       <a target="_blank" href="https://pypi.org/project/pip/">pip installation</a></li>
-       <li><b>Numpy</b> is an often-used Python library for advanced math.
-       Its not included in Python distributions so you have to download it using pip</li>
+           Python, like all modern popular programming languages, has
+           confusing aspects. This section helps you get through *some* of them
+           that we've found useful.
+           <p></p>
+           The Python interface automatically imports
+           <ul><li>json</li><li>sys</li> <li>traceback</li></ul>
+           so you won't have to import those when using DDE's python interface.
+           <p></p>
+           To see what folders you can import files from:
+           <code>Py.eval("sys.path")</code><br/>
+           To extend sys.path to include another folder<br/>
+           <code title="not in TestSuite">Py.eval('sys.path.append("/my/other/folder")'</code><br/>
+           Note that <code title="not in TestSuite">load_files("/my/other/folder/hi.py")</code>
+           automatically adds "/my/other/folder" to sys.path, then
+           runs import("hi.py")
+           <p></p>
+           Python has numerous packages on the web that you can download and install on
+           your computer for use in your Python packages.
+           The easist ones to use can be found at
+           <a target="_blank" href="https://pypi.org/">Python Package Index. (PyPI)</a>
+           From a command line terminal, you can install a PyPI package via, for example:<br/>
+           <code title="unEVALable">sudo pip3 install numpy</code><br/>
+           Notes:
+           <ul>
+           <li><b>pip</b> stands for Package Installer for Python. You will need
+           to use pip3 or a very recent version of pip for installing packages into Python3.
+           You can install this installer from
+           <a target="_blank" href="https://pypi.org/project/pip/">pip installation</a></li>
+           <li><b>Numpy</b> is an often-used Python library for advanced math.
+           Its not included in Python distributions so you have to download it using pip</li>
 
-       <li>numpy install is complex, requing compiling on your computer.
-       If you're lucky, pip will handle this compiling and installing automatically.</li>
+           <li>numpy install is complex, requing compiling on your computer.
+           If you're lucky, pip will handle this compiling and installing automatically.</li>
 
-       <li>pip attempts to install Python packages globally. You may run into
-       "permissions" problems doing this, which explains the need for the
-       <code code title="unEVALable">sudo</code> prefix in the above example.</li>
-       </ul>
+           <li>pip attempts to install Python packages globally. You may run into
+           "permissions" problems doing this, which explains the need for the
+           <code code title="unEVALable">sudo</code> prefix in the above example.</li>
+           </ul>
        </details>
 
        </details> <!-- end Py -->
-       </details> <!-- end ref man -->
+       <details id="adding_javascript_doc_id" class="doc_details"><summary>Adding JavaScript</summary>
+       Most applications don't allow you to change them at all.
+       Some applications allow you to change "preferences" or "configurations",
+       a few narrowly focused settings.
+       <p></p>
+       DDE, being both a development environment and an application runner is different.
+       Here's ways you can add JavaScript to DDE.
+       <ol>
+       <li>The simplest is just perform some operation once.<br/>
+            Example: In DDE's command line, type in <code>2 + 3</code> and hit the Enter key.
+            It adds the two numbers, prints out 5 in the output pane and that's it.
+            This doesn't extended DDE in any meaningful way, through you can hit the
+            enter key a 2nd time and get it to compute 5 again.
+       </li>
+       <li> Next we can enter our <code>2 + 3</code> into the file dde_apps/dde_init.js
+           Now every time we launch DDE, it will perform the computation.
+           But we won't even be able to see the result unless we do<br/>
+           <code>out(2 + 3)</code> which will print 5 in the output pane.
+           That's more of a modification but it doesn't make this computation available
+           to other software within DDE.
+       </li>
+       <li> We could wrap our computation in a function, say:<br/>
+           <code>function add(a=2, b=3){ out(a + b) }</code>
+           and stick that in Documents/dde_init.js.
+           Now when we boot up, "add" will be defined for the duration of each DDE session.
+           We can enter into DDE's command line <code>add()</code> and we'll
+           see 5 in the output pane.
+       </li>
+       <li> Modifying dde_init.js isn't somewhere we want to put a lot of code.
+           Its mostly for "configuration" tasks. So we can enter our
+           <code>function add(a=2, b=3){ out(a + b) }</code> into the editor buffer.
+           We can select that code, and click the <button>Eval</button> button
+           and we'll define our function.
+           Now we call it a la <code>add()</code> from the command line or
+           as code in the editor using the <button>Eval</button> button.
+           Note that if there is no selection, clicking <button>Eval</button> evaluates
+           all code in the editor buffer.
+       </li>
+       <li> If we SAVE our file, say in dde_apps/math.js, we can get it back
+            in subsequent sessions of DDE. If its in the editor buffer when
+            we quit DDE, it will be there the next time we launch DDE.
+            If not, we can use the File menu/Open... item to edit it.
+       </li>
+       <li> We can extend the code in our file with<br/>
+            <code>function subtract(a=2, b=3){ out(a - b) }</code> and
+            any other functions definitions, global variable settings
+            and one-shot operations we like.
+            After saving this file,
+            We can evaluate all the code in that file via
+            the <button>Eval</button>.
+            But even without the code in the editor, we can evaluate all the code
+            using the File menu's "Load..." item.
+       </li>
+       <li> We can <i>programmatically</i> load our file by evaling
+           <code title="not in Testsuite">load_files("math.js")</code>. (load_files, like most other
+             file manipulating functions in DDE, uses dde_apps as its default folder.)
+             As the name implies,
+             <a href="#" onclick="open_doc(load_files_doc_id)">load_files</a>
+             can load multiple files in one call.
+       </li>
+       <li>You can get JavaScript files from other people (say via email) or
+           downloaded from web sites, stick them in a convenient location,
+           say documents/dde_apps/ and then use them as above.
+       </li>
+       <li>Programs of multiple files are often put in a ".zip" file so you can
+           grab them as one file, then "unzip" them on your computer
+           and load its "main" file (often called "index.js") which
+           may have calls to load in the other files.
+       </li>
+       <li>One reason DDE uses JavaScript is that it has the most freely available,
+            open-source code of any language. The bulk of this is stored on
+            <a href="https://www.npmjs.com/" target="_blank">the npm web site</a>
+            in a format that is convenient to download and
+            load into your JavaScript programs. NPM stands for Node Package Manager.
+            <p></p>
+            The NPM website has over 1.3M programs as of Apr 2020.
+            Use the search bar on the site, or just Google to find
+            packages you're interested in.
+           <p></p>
+           If a package has been on NPM for at least a couple months, and
+           has a 1000 or more downloads, you can be fairly confident that
+           it doesn't contain malicious code. Its also fairly likely to
+           not have show-stopper bugs, at least for its main functionality.
+           You can, however, be fairly confident that the documentation
+           is lousy. If its a popular program, use Google to search for
+           examples or bug reports/fixes, often found on
+           <a href="https://stackoverflow.com/" target="_blank">Stack Overflow</a>.
+       </ol>
+       <details id="DDE_NPM_doc_id" class="doc_details"><summary>DDE_NPM</summary>
+       A class for managing NPM files for use with DDE.
+
+       <details  id="DDE_NPM.list_doc_id" class="doc_details"><summary>List NPM Packages</summary>
+           You can find out the top level NPM packages installed for use by DDE
+           via choosing File menu/Manage npm and choosing one of the "list" buttons.
+           <p/>
+           <b>DDE_NPM.list</b> is a method that will list NPM packages.<br/>
+           <i>Parameters:</i><br/>
+           <b>which</b> Default: <code>"all"</code> lists top level packages available in this
+             installation of DDE.<br/>
+               <code>"built_in"</code> Lists the packages built in to this version of DDE.<br/>
+               <code>"all_on"</code> Lists the packages you have added to your computer
+               for use by DDE.<br/>
+           <b>success_callback</b> A method of one argument, an array of strings, each of which
+             starts with a package name followed by "@", then its semantic version number.
+             The default value inspects the array.</b>
+           <b>error_callback</b> A method of one argument, the error. This method is called
+              if the call to DDE_NPM.list fails.
+           <p></p>
+           <i>Examples:</i><br/>
+               <code>DDE_NPM.list("all")</code><br/>
+               <code>DDE_NPM.list("built_in")</code><br/>
+               <code>DDE_NPM.list("all_on")</code><br/>
+       </details>
+
+      <details  id="DDE_NPM.is_installed_doc_id" class="doc_details"><summary>is_installed</summary>
+          Returns <code>true</code> if the package is installed, <code>false</code> otherwise.<br/>
+          <i>Parameters:</i><br/>
+          <b>pkg_name</b> Required. The string name of package you are testing.<br/>
+          <b>which</b> Indicates which kind of package you are testing. Default: <code>"all"</code><br/>
+          Other possibilities:<br/>
+          <code>"add_on"</code> Only return true if the package was installed by you.<br/>
+          <code>"built_in"</code> Only return true if the package is built in to this release of DDE.
+          <p></p>
+          <i>Examples:</i><br/>
+          <code>DDE_NPM.is_installed("mathjs")</code> => <samp>true</samp><br/>
+          <code>DDE_NPM.is_installed("mathjs", "add_on")</code> => <samp>false</samp><br/>
+          <code>DDE_NPM.is_installed("mathjs", "built_in")</code> => <samp>true</samp><br/>
+          <code>DDE_NPM.is_installed("some_non_package", "all")</code> => <samp>false</samp><br/>
+      </details>
+
+      <details  id="DDE_NPM.install_doc_id" class="doc_details"><summary>Installing NPM Packages</summary>
+           <b style="color:#ff9300;">Caution: </b> DDE already has about 500 packages installed, many of which are common.
+           Before installing a package, eval:<br>
+            <code title="unEVALable">require("the package name")</code><br/>
+           If it doesn't error, its already installed.
+           <p></p>
+           You can install NPM packages by choosing File menu/Manage npm and
+           choosing <input type="button" value="Install"/>
+           <p></p>
+           <b>DDE_NPM.install</b> is a method that will install an npm package for use by DDE.<br/>
+           <i>Parameter:</i><br/>
+           <b>pkg_name</b> Required. The string name of the package to install.
+           <p></p>
+           <i>Example:</i><br/>
+           <code>DDE_NPM.install("existy")</code>
+       </details>
+
+       <details  id="DDE_NPM.folder_doc_id" class="doc_details"><summary>DDE_NPM.folder</summary>
+           NPM packages that you install will be installed under the value of this variable.
+           It is under your dde_apps_folder, named "npm_packages".
+           <p></p>
+           <i>Example:</i><br/>
+           <code>DDE_NPM.folder</code>
+       </details>
+
+       <details  id="DDE_NPM.uninstall_doc_id" class="doc_details"><summary>Uninstalling NPM Packages</summary>
+           You can uninstall NPM packages by choosing File menu/Manage npm and
+           choosing <input type="button" value="Uninstall"/>
+           <p></p>
+           <b>DDE_NPM.uninstall</b> is a method that will uninstall an npm package that you have installed
+              for use by DDE.<br/>
+           <i>Parameter:</i><br/>
+           <b>pkg_name</b> Required. The string name of the package to uninstall.
+           <p></p>
+           <i>Example:</i><br/>
+           <code>DDE_NPM.uninstall("existy")</code>
+       </details>
+
+       <details  id="using_npm_packages_doc_id"
+                class="doc_details"><summary>Using NPM Packages</summary>
+         In your code, you must "require" that package to make use of it.
+         The File menu/Manage NPM item pops up a dialog box.
+         Enter the name of the package you want to require and choose <input type="button" value="Insert require()"/>
+         This will insert the code in the editor buffer to require the package.
+         <p></p>
+         <i>Examples:</i><br/>
+         <code title="unEVALable">var foo = require(DDE_NPM.folder + "foo")</code><br/>
+         <code title="unEVALable">var {bar, baz} = require(NPM_DDE.folder + "foo")</code><br/>
+         Hopefully the doc for the package at its NPM web page will show you
+         which require format to use and how to call functions in the package,
+         but be forewarned: Open Source documentation is notoriously poorly documented.
+       </details>
+       </details> <!-- end DDE_NPM -->
+       </details> <!-- ending Adding JavaScript
+
+</details> <!-- end ref man -->

@@ -6,6 +6,73 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 3.7.7, Mar 12, 2021</summary>
+Highlghts: Significant enhancements to Plot and DDE_NPM for programmatic interface,
+GUI interface and Documentation.
+<ul>
+    <li><code>DDE_NPM</code> now prints a helpful error message if npm is not installed when
+        you choose File menu/Manage npm</li>
+    <li><code>inspect_one_liner</code> for an array of strings now handles strings containing both
+        single and double quotes better.</li>
+    <li>Manage npm dialog now has buttons for
+        <input type="button" value="info"/>,
+        <input type="button" value="doc"/>,
+        <input type="button" value="search"/>.</li>
+    <li><code>DDE_NPM.list</code> now gets info from the relevant folder names AND prints e
+        ach package_name in the inspector as a clickable link that inserts the package_name
+        into the Manage npm dialog box.</li>
+    <li>New Method: <code>DDE_NPM.is_installed</code>.
+        See RefMan/Add Javascript/DDE_NPM.is_installed.</li>
+    <li><code>DDE_NPM.uninstall</code> now won't uninstall built_in packages,
+        and prints helpful warning messages.</li>
+    <li>Manage npm <input type="button" value="insert require"/>
+        button now fixes inserted variable names
+        for package with hyphens in them to have underscores instead.</li>
+    <li>Removed "npm" package from DDE."npm": "^6.13.7"</li>
+    <li><code>Plot.is_3d_array(data)</code> fixed to more throughly check that it really
+        has a 3D array with only numbers in it. Fixes a bug in the inspector.</li>
+    <li><code>Plot.show</code> fix for title defaulting.</li>
+    <li>New example in: RefMan/Window System/Plot/Plot.show/heat map.</li>
+    <li>RefMan/Window System/Plot/Plot.show has lots of stying and descriptive improvements.</li>
+    <li>When inspecting a 2D array of numbers, it will now always show a plot button.
+        If the 2D array is not one of the special kinds of 2D array used for other plots,
+        a heat map plot will be shown when you click on the plot button.</li>
+    <li><code>show_window</code>: Removed the default callback of "show_window_values".
+        Now no callback is called when you don't specify one and you click the
+        close window button.</li>
+    <li>New function: <code>browse_page</code> browses a url in your default browser.
+        Unlike <code>show_page</code>, this shows you the url in an editable text field.</li>
+</ul>
+</details>
+
+<details class="doc_details"><summary>v 3.7.6, Mar 8, 2021</summary>
+    Highlights: New facility for DDE users installing and using NPM packages
+     both in the user interface, and programmatically.
+     Plot code and doc enhanced.
+<ul>
+    <li>Fixed a Python Ref Man example to not be in test suite as its not relevant.</li>
+    <li>Fix for Plot titles that contain html.</li>
+    <li>New <code>Plot.show</code> examples in Ref Man/Window System/Plot/Plot.show</li>
+    <li><code>Plot.show</code> first arg can now be <code>null</code> to cause it to default to "plot_id". (<code>null</code> is shorter than <code>undefined</code>.)
+    <li><code>Plot.show</code> now takes a 5th arg of <code>show_window</code> options.
+        These are the same as the keyword args to show_window with some different
+        defaults that make more sense for plots.
+        Thus a plot can have both a show_window title and a plot title.</li>
+    <li><code>Plot.show</code> now handles margins better such that you can see both the
+         numbers of an axis and its axis title (if it has one).</li>
+    <li><code>Plot.show</code> now doesn't (by default) inspect the values that are passed to
+        <code>show_window</code>'s callback. With the new 5th arg to Plot.show,
+        you can explicitly pass a callback for the show_window and
+         have it do something different than nothing if you like.</li>
+    <li>New File menu item: "Manage npm" for listing,
+         installing and uninstalling npm packages.</li>
+    <li>New class <code>DDE_NPM</code> for listing, installing and uninstalling npm packages.
+        See Ref Man/Adding JavaScript</li>
+    <li>New start screen tutorial: <b>Adding JavaScript</b>. It
+        opens up the new Ref Man section on Adding JavaScript.</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.7.5, Mar 2, 2021</summary>
 Highlights: Python Interface much more useful.
             New Plot class and inspector integration.

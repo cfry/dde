@@ -17,18 +17,16 @@ var Plot = class Plot{
           return job_count
        }
    }
-
-   static make_title(data, layout){
+   //returns the title to be used in the show_window.
+   //if show_window_options has a title, just return that.
+   //else if there is a tile in layout, extract it trom there and return that.
+   //else make up a title from the data and return that.
+   //Thus if you want a window that uses the layout title IN THE PLOT
+   //and not in the show_window title, then include a title in layout,
+   //and one in show_window_options
+   static make_show_window_title(data, show_window_options){
       let title
-      if(layout && layout.title){
-          if(typeof(layout.title) === "string") {
-          	title = layout.title
-          }
-          else {
-            title = layout.title.text
-          }
-          delete layout.title
-      }
+      if(show_window_options && show_window_options.title) { title = show_window_options.title }
       else {
           if(data instanceof Job){
               title = "Path of Job." + data.name
@@ -55,26 +53,25 @@ var Plot = class Plot{
             title = "3D array of " + data[0].length + " points"
           }
           else if(Array.isArray(data) && Array.isArray(data[0].z)){
-          	title = "3D array of " + data[0].z.length + " points"
+            title = "3D array of " + data[0].z.length + " points"
           }
           else if(Array.isArray(data) && Array.isArray(data[0].y)){
-          	title = "3D array of " + data[0].y.length + " points"
+            title = "3D array of " + data[0].y.length + " points"
           }
           else {
             title = "Plot of data"
           }
+          if((title.length > 32) && !title.includes("<")) { //if it has hhtm in the title, it could well be longer than 32 chars bu still display shorter. Just allow titles with > to be any length
+             title = title.substring(0, 32) + "..."
+          }
       }
-      
-      if(title.length > 32) {
-         title = title.substring(0, 32) + "..."
-      }
-      return title
+       return title
    }
    static is_1d_array(data) {
      return Array.isArray(data) && 
            (typeof(data[0]) === "number")
    }
-   static is_2d_array(data) {
+   static is_2d_array(data) { //not any 2D array, just the special kind for a scatter plot
      return Array.isArray(data) && 
             data.length === 2 &&
             (typeof(data[0][0]) === "number") &&
@@ -83,44 +80,62 @@ var Plot = class Plot{
    }
    static is_3d_array(data) {
      return Array.isArray(data) && 
-            data.length === 3 &&
-            (typeof(data[0][0]) === "number") &&
-            Array.isArray(data[0]) &&
-            Array.isArray(data[1]) &&
-            Array.isArray(data[2])
+            data.length === 3   &&
+            is_array_of_numbers(data[0]) &&
+            is_array_of_numbers(data[1]) &&
+            is_array_of_numbers(data[2])
    }
    
    //called by inspect to know if it can plot an arry
    static is_data_array_ok(data){
      return this.is_1d_array(data) ||
             this.is_2d_array(data) ||
-            this.is_3d_array(data)
+            this.is_3d_array(data) ||
+            this.is_heat_map_suitable_data(data)
+   }
+
+   static is_heat_map_suitable_data(data){
+       return is_2D_array_of_numbers(data)
+   }
+
+   //if there is a title in layout. we should keep it rther than move it to show_window_header. sp return true
+   //otherwisde return false. Used by fix_margin to give title space at top of plot
+   static has_plotly_title(layout){
+       if(!layout) { return false } //no plotly title to keep
+       else if (!layout.title) { return false } //no plotly title to keep
+       else if ((typeof(layout.title) === "string") ||
+                layout.title.text) { //got a plotly title
+          return true //make space for the plotly title as we're keeping it.
+       }
+       else { return false }
    }
    
    //margin: see https://plotly.com/javascript/reference/layout/#layout-margin
    //default ploty margin is 80px all around, but that's way to wasteful of space
-   static fix_margin(layout){
+   /* no longer used static fix_margin(layout){
+       let make_space_for_plotly_title = this.has_plotly_title(layout)
+       let title_margin = (make_space_for_plotly_title ? 45 : 0)
        if((layout === null) || (layout === undefined)) {
-           layout = {margin: {l:30, r:0, t:15, b:30}}
+           layout = {margin: {l:30, r:0, t: 15 + title_margin, b:30}}
        }
-       if(layout && (layout.margin === undefined)){
+       else if(layout && (layout.margin === undefined)){
           if(layout.xaxis || layout.yaxis) { //due to what looks like a plotly bug,
            //if the layout has explicit xyis and/or yaxis text,
            //that text doesnt show up with DDE normal default margins of: {l:30, r:0, t:15, b:30}
-              layout.margin = {l:0, r:0, t:0, b:0}
+              layout.margin = {l:0, r:0, t: 0 + title_margin, b:0}
           }
           else {
-              layout.margin = {l:30, r:0, t:15, b:30}
+              layout.margin = {l:30, r:0, t: 15 + title_margin, b:30}
           }
        }
        return layout
-   }
+   }*/
 
    static make_default_div_id(graphDiv){
-       if(!value_of_path(graphDiv)){
+       if(!value_of_path(graphDiv)){ //if  graphDiv doesn't exist, we're going to make a new graph
            return graphDiv
        }
-       else {
+       else { //graphdiv exists, so make a new window so we don't cover it up.
            for(let i = 1; i < 100; i++){
                let str = graphDiv + i
                if(!value_of_path(str)) {
@@ -130,21 +145,23 @@ var Plot = class Plot{
            dde_error("Too many plot windows open. Please close some.")
        }
    }
-   static show(graphDiv="plot_id", data, layout=null, config){
+   static show(graphDiv="plot_id", data, layout=null, config, show_window_options={}){
+       if(graphDiv === null) {graphDiv = "plot_id"}  //so that user can enter null instead of undefined to get
+         //the default behavior as undefined is kinda long.
        graphDiv = this.make_default_div_id(graphDiv)
        if(typeof(data) === "string") { //useful when this is called from an html elt onclick property
            data = value_of_path(data)
        }
-       let title = this.make_title(data, layout)
-       layout    = this.fix_margin(layout)
-       show_window({title: title,
-                    content: "<div id='" + graphDiv + "'/>",
-                    x: 50,
-                    y: 50,
-                    width:  700,
-                    height: 500
-                   }
-                  )
+       //layout       = this.fix_margin(layout)
+       show_window_options.title = this.make_show_window_title(data, show_window_options) //if show_window_options as passed in already had a title,
+                                         //then this just sets that title back to itself so no change.
+       if(!show_window_options.content) { show_window_options.content = "<div id='" + graphDiv + "'/>" }
+       if(show_window_options.x === undefined) { show_window_options.x       = 50 }
+       if(show_window_options.y === undefined) { show_window_options.y       = 50 }
+       if(!show_window_options.width)          { show_window_options.width   = 700 }
+       if(!show_window_options.height)         { show_window_options.height  = 500 }
+       if(!show_window_options.callback)       { show_window_options.callback = function(vals) {} } //so that we don't inspect the show_window values when user closes the window. as the default callback does
+       show_window(show_window_options)
 
        if (data === Job){
            data = Job.all_jobs() //array of job instances
@@ -162,11 +179,14 @@ var Plot = class Plot{
        else if(this.is_1d_array(data)) { //data is a 1D array
            this.show_1d_array(graphDiv, data, layout, config)
        }
-       else if(this.is_2d_array(data)) {
+       else if(this.is_2d_array(data)) { //not ANY 2D array, just the special kind for making a scatter plot.
            this.show_2d_array(graphDiv, data, layout, config)
        }
        else if(this.is_3d_array(data)){
            this.show_3d_array(graphDiv, data, layout, config)
+       }
+       else if(this.is_heat_map_suitable_data(data)){ //put this last. It can opperate on any 2D array, even ones with non-uniform lengthed inner arrays
+           this.show_heat_map_array(graphDiv, data, layout, config)
        }
        else {
           Plotly.newPlot(graphDiv, data, layout, config)
@@ -274,6 +294,14 @@ var Plot = class Plot{
             layout,
             config
         )
+   }
+
+   static show_heat_map_array(graphDiv, array_2d, layout, config){
+       let data = [{z: array_2d,
+                    type: 'heatmap',
+                    colorscale: "Bluered" // 'Electric' 'Greys' 'Picnic' 'Portland' "Hot" [[0, "yellow"], [1, "red"]]
+           }]
+       Plotly.newPlot(graphDiv, data, layout, config)
    }
 }
 /*
