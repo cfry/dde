@@ -49,14 +49,16 @@ SimUtils = class SimUtils{
     //job_or_robot name format is really "Job.j1"  or "Dexter.dex1", ie same as the menu item in the Simulate pane
     //input angles are in arcseconds
     /* never called as of Dec, 2020 or before
-    static render_once(robot_status,  robot_name, force_render=false){ //inputs in arc_seconds
+    static render_once(robot_status, job_name, robot_name, force_render=false){ //inputs in arc_seconds
         let job_or_robot_to_sim = job_or_robot_to_simulate_name()
         if (force_render ||
+           (job_or_robot_to_sim == job_name) ||
            (job_or_robot_to_sim == robot_name) ||
            (job_or_robot_to_sim == "All")){
 
             //used by render_once_but_only_if_have_prev_args
             SimUtils.prev_robot_status = robot_status
+            SimUtils.prev_job_name     = job_name
             SimUtils.prev_robot_name   = robot_name
 
             let j1 = robot_status[Dexter.J1_MEASURED_ANGLE]
@@ -76,9 +78,12 @@ SimUtils = class SimUtils{
     } */
     //ds_inst is an instance of DexterSim class.
     //robot_name example: "Dexter.dexter0"
-    static render_multi(ds_instance, new_angles_dexter_units, robot_name, dur_in_ms=0){ //inputs in arc_seconds
+    static render_multi(ds_instance, new_angles_dexter_units, job_name, robot_name, force_render=false, dur_in_ms=0){ //inputs in arc_seconds
         console.log("render_multi passed: " +  new_angles_dexter_units)
-        if (Dexter.default.name === robot_name){
+        let job_or_robot_to_sim = "Dexter." + Dexter.default.name
+        if (force_render ||
+            (job_or_robot_to_sim == job_name) ||
+            (job_or_robot_to_sim == robot_name)){
             let dur_to_show = Math.round(dur_in_ms / 100) //in 10ths of seconds, rounded
             dur_to_show = "" + dur_to_show
             if (dur_to_show.length > 1) {
@@ -87,21 +92,35 @@ SimUtils = class SimUtils{
             }
             else { dur_to_show = "0." + dur_to_show }
             sim_pane_move_dur_id.innerHTML = dur_to_show
-            let total_frames = Math.ceil(dur_in_ms / SimUtils.ms_per_frame) //total_frames might be 0. that's ok.
+            let ms_per_frame = 33
+            let total_frames = Math.ceil(dur_in_ms / ms_per_frame) //total_frames might be 0. that's ok.
+            //total_frames = Math.max(total_frames, 1) //when dur_in_ms == 0, total_frames can be zero, as happens on "g" instructions, like at beginning of a job
+            /*let prev_js
+            if(!SimUtils.prev_robot_status) { //happens on start up. Just presume robot is at 0
+                prev_js = [0, 0, 0, 0, 0]
+            }
+            else {
+                let prev_RobotStatus_instance = new RobotStatus({robot_status: SimUtils.prev_robot_status})
+                prev_js = prev_RobotStatus_instance.measured_angles()
+            }
+            */
+            //let new_RobotStatus_instance = new RobotStatus({robot_status: robot_status})
+            //let new_js = new_RobotStatus_instance.measured_angles(7)
             let js_inc_per_frame = []
             for(let joint = 0; joint < new_angles_dexter_units.length; joint++){
                 let j_diff = new_angles_dexter_units[joint] - this.prev_joint_angles[joint]
                 js_inc_per_frame.push(j_diff / total_frames)
             }
             //let prev_js = this.prev_joint_angles.slice(0)
-            let rob = Dexter[robot_name]
+            let rob = value_of_path(robot_name)
             let prev_js = ds_instance.measured_angles_dexter_units.slice() //must copy because render_multi is going to continuous update mesured_angels per frame and we want to capture the prev_js and keep it constant
-            //console.log("calling render_multi_frame first time with new_angles as: " + new_angles_dexter_units + " prev_js: " + prev_js + " js_inc_per_frame: " + js_inc_per_frame)
-            SimUtils.render_multi_frame(ds_instance, new_angles_dexter_units, prev_js, js_inc_per_frame, total_frames, 0, rob) //beginning an all but last rendering
+            console.log("calling render_multi_frame first time with new_angles as: " + new_angles_dexter_units + " prev_js: " + prev_js + " js_inc_per_frame: " + js_inc_per_frame)
+            SimUtils.render_multi_frame(ds_instance, new_angles_dexter_units, prev_js, js_inc_per_frame, ms_per_frame, total_frames, 0, rob, false) //beginning an all but last rendering
 
             //used by render_once_but_only_if_have_prev_args\
             this.prev_joint_angles     = new_angles_dexter_units
             //SimUtils.prev_robot_status = robot_status //not use by  render_multi or render_multi_frame
+            SimUtils.prev_job_name     = job_name
             SimUtils.prev_robot_name   = robot_name
         }
     }
@@ -110,15 +129,15 @@ SimUtils = class SimUtils{
     //For given new commanded angles of an instrution, this fn is called many times, with a dur of ms_per_frame
     //between the calls. All args remain the same for such calls except for frame, which is incremented from
     //0 up to total_frames. Once its called with frame == total_frames, it immediately stops the recursive calls.
-    static render_multi_frame(ds_instance, new_angles_dexter_units, prev_js, js_inc_per_frame, total_frames, frame_number=0, rob){
+    static render_multi_frame(ds_instance, new_angles_dexter_units, prev_js, js_inc_per_frame, ms_per_frame, total_frames, frame_number=0, rob, did_last_frame=false){
         if(frame_number > total_frames) { //we're done
-            ds_instance.queue_instance.done_with_instruction() //removes the cur instruction_array from queue and if there's more, starts the next instruction.
+            ds_instance.animation_running = false
         }
         else{
+            ds_instance.animation_running = true
             let new_angles = [] //used only for computing xyz to set in sim pane header
             let xyz = Kin.J_angles_to_xyz(new_angles, rob.pose)[0]
-            let prev_js_useful_len = Math.min(5, prev_js.length) //we do not handle j6 & 7 here. That's done with render_j6_plus
-            for(let joint = 0; joint < prev_js_useful_len; joint++){
+            for(let joint = 0; joint < prev_js.length; joint++){
                 let prev_j = prev_js[joint]
                 let j_inc_per_frame = js_inc_per_frame[joint] //might be undefined for j6 and 7
                 let inc_to_prev_j = frame_number * j_inc_per_frame
@@ -206,163 +225,27 @@ SimUtils = class SimUtils{
             else      { str_length = 5}
             sim_pane_z_id.innerHTML = ("" + z).substring(0, str_length)
 
-            //ds_instance.queue_instance.update_show_queue_if_shown() //I *could* do this here and update
-            //the curreint intruction row based on ds_instance.measured_angles_dexter_units
-            //but update_show_queue_if_shown just uses the instruction_array's commanded angles and
-            //besides, you can see J angles updated every frame in the Sim pane's header.
-            //Best to just leave the queue sim alone until actual whole instructions in queue change.
             sim.renderer.render(sim.scene, sim.camera)
             setTimeout(function() {
-                SimUtils.render_multi_frame(ds_instance, new_angles_dexter_units, prev_js, js_inc_per_frame, total_frames, frame_number + 1, rob, false)
-            }, SimUtils.ms_per_frame)
+                SimUtils.render_multi_frame(ds_instance, new_angles_dexter_units, prev_js, js_inc_per_frame, ms_per_frame, total_frames, frame_number + 1, rob, false)
+            }, ms_per_frame)
         }
     }
 
-    //same level as render_multi but for one of j6 or j7.
-    static render_j6_plus(ds_instance, new_angle_dexter_units, robot_name, dur_in_ms=0, joint_number=7){
-        if (Dexter.default.name === robot_name){
-            let total_frames = Math.ceil(dur_in_ms / SimUtils.ms_per_frame)
-            let prev_js = ds_instance.measured_angles_dexter_units[joint_number - 1]
-            let j_diff = new_angle_dexter_units - prev_js //this.prev_joint_angles[joint]
-            let js_inc_per_frame = ((total_frames === 0) ? 0 : (j_diff / total_frames))
-             //let prev_js = this.prev_joint_angles.slice(0)
-            let rob = Dexter[robot_name]
-            //console.log("calling render_j6_plus first time with new_angles as: " + new_angle_dexter_units + " prev_js: " + prev_js + " js_inc_per_frame: " + js_inc_per_frame)
-            let render_j6_plus_frame_call = function(){
-                SimUtils.render_j6_plus_frame(ds_instance, new_angle_dexter_units, js_inc_per_frame,
-                                              total_frames, 0, rob, joint_number)
-            }
-            this.render_j6_plus_frame_outer(ds_instance, joint_number, render_j6_plus_frame_call)
-        }
-    }
-
-    //joint_number: usually 6 or 7
-    //render_j6_plus_frame_call a closure of no args that calls render_j6_plus_frame
-    //If there is an ongoing call to render_j6_plus_frame,
-    // then that ongoing call to render_j6_plus_frame will stop it and call render_j6_plus_frame_call,
-    //otherwise, no ongoing call to stop so just call render_j6_plus_frame_call,
-    //else just call render_j6_plus_frame_call
-    static render_j6_plus_frame_outer(ds_instance, joint_number, render_j6_plus_frame_call){
-        let call_map = ds_instance.queue_instance.joint_number_to_render_j6_plus_frame_call_map
-        let the_call = call_map[joint_number]
-        if(!the_call) { //no ongoing call to render_j6_plus_frame, so no need to stop one in progess.
-            call_map[joint_number] = true //true indicates there is, (just to be started) an ongoing call, but no "next call"
-            render_j6_plus_frame_call.call(this)
-        }
-        else if (the_call === true) { //there is an ongoing call, so have render_j6_plus_frame stop it then call the new render_j6_plus_frame_call
-            call_map[joint_number] = render_j6_plus_frame_call
-        }
-        else if (typeof(the_call) === "function") { //unusual but could happen. there is an ongoing call, AND a "next call", but that
-               //next_call hasn't been called yet, so overwrite it in the map, and have the ongoing call
-               //stop. No need to bother with the exiting "next" call as we've got a new one
-               //that superseeds it.
-            call_map[joint_number] = render_j6_plus_frame_call
-        }
-        else {
-            shouldnt("render_j6_plus_frame_outer found the_call of: " + the_call + " which is not undefined, not true and not a function.")
-        }
-    }
-
-    static render_j6_plus_frame(ds_instance, new_angle_dexter_units, js_inc_per_frame,
-                                total_frames, frame_number=0, rob, joint_number){
-        let call_map = ds_instance.queue_instance.joint_number_to_render_j6_plus_frame_call_map
-        let render_j6_plus_frame_call = call_map[joint_number]
-        if(frame_number >= total_frames) { //we're done, normal
-            if(render_j6_plus_frame_call === true) {
-                ds_instance.queue_instance.done_with_j6_plus_instruction(joint_number) //updates j6 or j7 status
-                call_map[joint_number] = undefined //all done with this call to render_j6_plus_frame
-
-            }
-            else if (typeof(render_j6_plus_frame_call === "function")) {
-                ds_instance.queue_instance.done_with_j6_plus_instruction(joint_number) //updates j6 or j7 status
-                call_map[joint_number] = undefined
-                this.render_j6_plus_frame_outer(ds_instance, joint_number, render_j6_plus_frame_call)
-            }
-            else {
-                shouldnt("In render_j6_plus_frame with joint_number: " + joint_number +
-                         " done with instruction but invalid render_j6_plus_frame_call: " + render_j6_plus_frame_call)
-            }
-        }
-        else if (typeof(render_j6_plus_frame_call) === "function") { //stop the current call early and switch to the new one
-            ds_instance.queue_instance.done_with_j6_plus_instruction(joint_number) //updates j6 or j7 status
-            call_map[joint_number] = undefined
-            this.render_j6_plus_frame_outer(ds_instance, joint_number, render_j6_plus_frame_call)
-        }
-        else{
-            let ma_du   = ds_instance.measured_angles_dexter_units
-            let prev_js = ma_du[joint_number - 1]     //grab the old
-            let j_angle = prev_js + js_inc_per_frame  //compute the new
-            ma_du[joint_number - 1] = j_angle         //set it for all to see
-            //undate the graphics of the simulation
-            let angle_degrees = Socket.dexter_units_to_degrees(j_angle, joint_number)
-            let rads = degrees_to_radians(angle_degrees)
-            let j_angle_degrees_rounded = Math.round(angle_degrees)
-            switch(joint_number) {
-                case 6:
-                    if(sim.J6) {
-                        sim.J6.rotation.z = rads
-                    }
-                    sim_pane_j6_id.innerHTML = j_angle_degrees_rounded
-                    break;
-                case 7:
-                    if(sim.J7) { //330 degrees = 0.05 meters
-                        let new_xpos = ((angle_degrees * 0.05424483315198377) / 296) * -1 //more precise version from James W aug 25.
-                        new_xpos *= 10
-                        //out("J7 angle_degrees: " + angle_degrees + " new xpos: " + new_xpos)
-                        sim.J7.position.setX(new_xpos) //see https://threejs.org/docs/#api/en/math/Vector3
-                        //all below fail to change render
-                        //sim.J7.position.x = new_pos
-                        //sim.J7.updateMatrix() //no effect
-                        //sim.j7.updateWorldMatrix(true, true)
-                        // prev new_pos value;
-                        // ((angle_degrees * 0.05) / 330 ) * -1 //meters of new location
-                        // but has the below problems
-                        // x causes no movement, but at least inited correctly
-                        // y sends the finger to move to outer space upon init, but still visible, however moving j7 doesn't move it
-                        // z causes the finger to be somewhat dislocated upon dui init, however moving j7 doesn't move it
-                        //sim.J7.rotation.y = rads
-                    }
-                    sim_pane_j7_id.innerHTML = j_angle_degrees_rounded
-                    if(window.SimBuild) {
-                        let new_angles = []
-                        for(let i = 0; i < 5; i++) {
-                            let ang_du = ma_du[i]
-                            let ang_deg = Socket.dexter_units_to_degrees(ang_du, joint_number)
-                            new_angles.push(ang_deg)
-                        }
-                        let xyz = Kin.J_angles_to_xyz(new_angles, rob.pose)[0]
-                        SimBuild.handle_j7_change(angle_degrees, xyz, rob)
-                    }
-                    break;
-            } //end switch
-            //sim.renderer.render(sim.scene, sim.camera) //maybe not needed
-
-            //figure out whether to loop, or start new commanded angle
-            if (render_j6_plus_frame_call === true){ //just keep going
-                 setTimeout(function() {
-                    SimUtils.render_j6_plus_frame(ds_instance, new_angle_dexter_units, js_inc_per_frame, total_frames, frame_number + 1, rob, joint_number)
-                }, SimUtils.ms_per_frame)
-            }
-            else {
-               shouldnt("render_j6_plus_frame found render_j6_plus_frame_call of: " + render_j6_plus_frame_call +
-                        "which is not true and not a function.")
-            }
-        }
-    }
-
-    //called by simx.js
+    //called by video.js show_in_misc_pane
     static render_once_with_prev_args_maybe(){
         if(this.prev_robot_status){
             this.render_once(SimUtils.prev_robot_status,
+                             SimUtils.prev_job_name,
                              SimUtils.prev_robot_name)
         }
         else { sim.renderer.render(sim.scene, sim.camera) } //just the initial condition, dex straight up
     }
 
-    //called from video.js
     static render_multi_with_prev_args_maybe(){
         if(this.prev_robot_status){
             this.render_multi(SimUtils.prev_robot_status,
+                SimUtils.prev_job_name,
                 SimUtils.prev_robot_name)
         }
         else { sim.renderer.render(sim.scene, sim.camera) } //just the initial condition, dex straight up
@@ -401,8 +284,8 @@ SimUtils = class SimUtils{
 }
 SimUtils.prev_joint_angles = [0, 0, 0, 0, 0, 0, 0]
 SimUtils.prev_robot_status = null
+SimUtils.prev_job_name     = null
 SimUtils.prev_robot_name   = null
-SimUtils.ms_per_frame      = 33 //30 frames per second
 
 
 

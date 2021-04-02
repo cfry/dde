@@ -1,5 +1,5 @@
-//doc: https://shepherdjs.dev/docs/tutorial-02-usage.html
-set_css_properties(".shepherd_step {background-color:#ffcdb0; width:300px;}")
+//doc: https://shepherdjs.dev/docs/tutorial-02-usage.html  orig tan color: #ffcdb0
+set_css_properties(".shepherd_step {background-color:#ffdfc0; width:300px;}")
 set_css_properties(".shepherd-modal-overlay-container.shepherd-modal-is-visible{opacity:0.4}")
 set_css_properties(".shepherd_step_dui_wide {width:400px}")
 // npm install shepherd.js --save  
@@ -47,13 +47,24 @@ dui_tour.addSteps([
   },
 
   {attachTo: {element: '#simulate_radio_button_group', on: 'top'},
-   text: `If you have not yet configured Dexter, please select <b>simulate</b> (if it isn't already).<br/>
-          If you have connected a Dexter to this computer,
-          you can select <b>real</b> to move a real robot, if you like.`,
+   text: `If you have not yet configured Dexter,
+          don't have a working Dexter connected,
+          or aren't sure,
+          please select <b>simulate</b> (if it isn't already).<p></p>
+          If you have connected a working Dexter to this computer,
+          and want to move it in this tutuorial,<br/>
+          select <b>real</b> to move a real robot.`,
    popperOptions: {modifiers: [{ name: 'offset', options: { offset: [0, 20] } }]},
   },
   {text: `The Dexter User Interface dialog box
-            is one easy way to accomplish these goals.`,
+            is one easy way to accomplish these goals.<p></p>
+            Note: If you <b>didn't</b> see a new dialog box just pop up,
+            check the lower right Output pane in DDE for warnings.
+            Dexter may not be connected.<br/>
+
+            Click the <b>X</b> in this window.<br/>
+            You can start the tutorial over and choose <b>simulate</b> or<br/>
+            choose the <b>Configure Dexter</b> tutorial.`,
    when: {
         show() {
                 const currentStepElement = dui_tour.currentStep.el;
@@ -124,12 +135,13 @@ dui_tour.addSteps([
   }, 
   {attachTo: { element: '.dui_dialog [name=insert_job]', on: 'top'},
    text: `Click the highlighed <b>Job</b> button.
-          This will insert the JavaScript source code for a Job having just 
-          the current instruction, into the editor.`, 
+          This will insert the JavaScript source code for a Job having 
+          no instructions, into the editor.`,
   },
   {attachTo: { element: '.dui_dialog [name=insert_instruction]', on: 'top'},
    text: `Click the highlighted <b>instruction</b> button.
-          This will insert the JavaScript for a 2nd instruction.`, 
+          This will insert the JavaScript for an instruction
+          that tells Dexter to move to where it currently is.`,
   },
   {attachTo: {element: '.dui_dialog [name=j1_range]', on: 'bottom'},
    text: `Modify the new instruction <br/>
@@ -143,9 +155,9 @@ dui_tour.addSteps([
   },
   {attachTo: {element: '.dui_dialog', on: 'right'},
    text: `Make a few more instructions by <br/>
+          moving Dexter to a desired location, then
           clicking on the <b>instruction</b> button
-          (bottom-right)
-          and adjusting each new instruction's joint angle arguments.`,     
+          (bottom-right).`,
    popperOptions: {modifiers: [{ name: 'offset', options: { offset: [0, 0] } }]}
   },
   {attachTo: {element: '.dui_dialog [name=step_arrow_buttons]', on: 'right'},
@@ -201,14 +213,20 @@ dui_tour.addSteps([
           in the Job.`,     
    popperOptions: {modifiers: [{ name: 'offset', options: { offset: [0, 0] } }]}
   },
-  {attachTo: { element: '#js_menubar_id', on: 'top'},
-   text: `If you close the Dexter UI dialog, you can get it back
-          by clicking on the <b>Jobs</b> menu's <b>Dexter UI</b> item.`
+  {attachTo: { element: '.dui_dialog', on: 'right'},
+   text: `We're almost done so<br/>
+          close the Dexter UI dialog by<br/>
+          clicking the X in its upper right corner`
+  },
+  {attachTo: { element: '#editor_pane_id', on: 'left'},
+   text: `Get the dialog back by clicking<br/>
+          on the <b>Jobs</b> menu's <b>Dexter UI</b> item.`
   },
   {attachTo: { element: '#doc_pane_id', on: 'left'},
    text: `Clicking the <b>Jobs</b> menu, <b>Dexter UI</b> item, automatically scrolls
           the <i>Doc Pane</i> to the section of the <i>User Guide</i>
-          that describes the Dexter UI dialog.`
+          that describes the Dexter UI dialog.<br/>
+          There's more to it than this tutorial covers.`
    },
    {classes: "shepherd_step_dui_wide",
     text: `Congrats, You're a <i>Dexter Process Author!</i><br/>

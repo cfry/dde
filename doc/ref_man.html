@@ -114,11 +114,11 @@
         <p></p>
         <i>Example:</i><br/>
         <pre><code>copy_file_async(
-    "junk1.js",
-    "junk1_copy.js",
+    "dde_init.js",
+    "dde_init_copy_for_testing.js",
     function(err){
-        if(err) {warning("copying junk1.js errored with: " + err.message)}
-        else { out("junk1.js copied successfully.")}
+        if(err) {warning("copying dde_init.js errored with: " + err.message)}
+        else { out("dde_init.js copied successfully.")}
         })    </code></pre>
         </details>
 
@@ -6450,7 +6450,7 @@ make_ins("T",
 <i>Example:</i><br/>
 <pre><code> new Job({name: "job_mts",
           do_list: [Dexter.move_to([0, 0.55, 0.075]),
-                    Dexter.move_to_straight({xyz: [0, 0.5, 0.075]})]
+                    Dexter.move_to_straight({xyz: [0, 0.546, 0.075]})]
           })</code></pre>
 Moves Dexter's end effector from location: [0, 0.55, 0.075] to
 location [0, 0.5, 0.075] in a straight line.
@@ -6519,6 +6519,36 @@ proportional–integral–derivative controller</a>.<br/>
     "/srv/samba/share/dde_apps" as it is for <code>Dexter.read_file</code>.
     <code>Dexter.read_from_robot</code> is maintained for backwards compatibility.
     Most users are expected to use <code>Dexter.read_file</code>
+</details>
+
+<details id="Dexter.reboot_joints_doc_id" class="doc_details"><summary>reboot_joints</summary>
+Dexters build before March, 2021, have Dynamixel 320 motors for Joints 6 and 7.
+When these motors are commanded to push past an immovable object,
+the motors overheat. After about 5 seconds, a motor will
+stop trying to push, become disabled, and start flashing a red light
+(blinking red, <i>not</i> steady red).
+This condition can happen when the jaws of a parallel gripper
+attempt to close more than an unsquisible object between the jaws will allow.
+<p></p>
+Once a motor is disabled, it can't be used until it is rebooted.
+The rebooting process takes 2 seconds.
+You can start this process via the Jobs menu/Dexter Tools/Reboot Joints,
+or start it with the reboot_joints instruction in a Job.
+This instruction will stop DDE from sending new instructions to Dexter
+until it is complete,
+but will not prevent instructions that are already in Dexter's queue (for Joint's 1 thru 5)
+from running.
+<p></p>
+<i>Parameter:</i><br/>
+<b>joint_number_array</b> Default: <code>"all"</code>. An array of integers of
+the number of a joint to reboot. The only permissible numbers as of March, 2021 are
+6 and 7. Passing <code>"all"</code> is the same as passing <code>[6, 7]</code> .
+<p></p>
+<i>Example:</i><br/>
+<pre><code>new Job({
+    name: "reboot_the_joints",
+    do_list: [Dexter.reboot_joints()]
+})    </code></pre>
 </details>
 
 <details id="Dexter.run_gcode_doc_id" class="doc_details"><summary>run_gcode</summary>
@@ -9175,7 +9205,7 @@ Plot.show(undefined, data,
         The first trace has dots for the points connected by lines.<br/>
         The second trace is just dots, no lines between the points.<br/>
         The third trace has only lines, no dots on the points.<br/>
-     <a href="#" target="_blank" onclick="browse_page('https://plotly.com/javascript/reference/scatter')">Plotly Styling Doc</a>
+     <a href="#" onclick="browse_page('https://plotly.com/javascript/reference/scatter')">Plotly Styling Doc</a>
 <pre><code>Plot.show(null,
      [{type: "scatter",
        name: "J1",
@@ -9262,7 +9292,7 @@ Plot.show(null, [trace0, trace1])   </code></pre>
           <li><code>"Portland"</code> blue, green, yellow, orange, red</li>
           <li><code>"Hot"</code> black, red, orange, yellow, white</li>
       </ul>
-      See <a target="_blank" href="#" onclick="browse_page('https://plotly.com/javascript/colorscales/')">Plotly doc</a>
+      See <a href="#" onclick="browse_page('https://plotly.com/javascript/colorscales/')">Plotly doc</a>
       for more on colorscales.
     </details>
     <details class="doc_details"><summary>Job move points</summary>Job move points</i></b><br/>
@@ -11152,15 +11182,32 @@ Here we point out just a few that are especially easy and useful for teaching.
    </details> <!-- end Patch System -->
    </details> <!-- End PatchDDE -->
    <details id="python_doc_id" class="doc_details"><summary>Python</summary>
-       DDE is a JavaScript-based development environment, BUT it facilitates
-       calling Python 3 code.
+       DDE is a JavaScript-based development environment. When you have code in the
+       editor, it is expected to be JavaScript <i>unless</i>
+       <ul><li>The code is in a file with a ".py" extension.</li>
+           <li>The code is wrapped in a call to DDE's (JavaScript) function:
+                <code>Py.eval</code></li>
+           <li>The code is in DDE's command line, and you've selected "Python"
+               in the command line's language menu (to the left of the type-in area).
+           </li>
+       </ul>
+       Only Python 3 is supported.
        <p/>
-       Behind the scenes, DDE creates a process to run Python.
+       Behind the scenes, DDE can create a process to run Python.
        Python code will be evaluated in that process until you kill, it, init a fresh one,
        or relaunch DDE. Thus you can set global variables or def's in it, import files into
        it and expect those modifications to be there when you attempt to get values or call
        functions.
-       <p/><a href="#" onclick='open_doc(js_for_python_programmers_doc_id)'>Similarities</a>
+       <p></p> At this time we're not expecting DDE to become an IDE for Python.
+       However, we are expecting that you can load known-good Python libraries
+       into DDE, call them with simple arguments from DDE, and get back results
+       (in the simple data structures that can be encoded in JSON format).
+       This doesn't provide all kinds of Python structures, but does provide a lot of them.
+       If your Python code returns simple data or you can write some Python
+       wrappers than coerce more complicated data into simpler data structures,
+       DDE can be a bridge to taking advantage of Python libraries.
+       <p></p>
+       <a href="#" onclick='open_doc(js_for_python_programmers_doc_id)'>Similarities</a>
        between JavaScript and Python.
 
        <details class="doc_details"><summary>Installing Python</summary>
@@ -11173,13 +11220,13 @@ Here we point out just a few that are especially easy and useful for teaching.
           to get a read_eval_print loop for Python.
           <p></p>
           For a more recent version, browse
-              <a target="_blank" href="#" onclick="browse_page('https://www.python.org/downloads/')"/>Python.org</a>
+              <a href="#" onclick="browse_page('https://www.python.org/downloads/')"/>Python.org</a>
               for download instructions.
           </details>
           <details class="doc_details"><summary>WinOS</summary>
             <b>Windows7</b><br/> We've had a hard time installing Python3 on Windows 7
               from the download direction in
-              <a target="_blank" href="#" onclick="browse_page('https://www.python.org/downloads/')"/>Python.org</a> .
+              <a href="#" onclick="browse_page('https://www.python.org/downloads/')"/>Python.org</a> .
               There is a "missing file". The web documents some work arounds,
               but they aren't easy. We recommend using Windows 10.
             <p/>
@@ -11207,7 +11254,7 @@ Here we point out just a few that are especially easy and useful for teaching.
           </details>
           <details class="doc_details"><summary>Linux, etc</summary>
             To install Python on other Operating Systems browse
-            <a target="_blank" href="#" onclick="browse_page('https://www.python.org/downloads/')"/>Python.org</a>
+            <a href="#" onclick="browse_page('https://www.python.org/downloads/')"/>Python.org</a>
             for download instructions.
           </details>
        </details>

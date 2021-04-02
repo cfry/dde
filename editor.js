@@ -298,18 +298,25 @@ Editor.files_menu_paths_empty_or_contains_only_dde_init = function(){
 Editor.restore_files_menu_paths_and_last_file = function(){ //called by on ready
     if(file_exists("") && file_exists("dde_persistent.json")){ //Documents/dde_apps
         const paths =  persistent_get("files_menu_paths")
+        let existing_paths = []
         var html = ""
         for(let path of paths){
-            let inner_path = Editor.path_to_files_menu_path(path)
-            html += '<option>' + inner_path + "</option>"
+            if(file_exists(path)) {
+                existing_paths.push(path) //don't put non-existent files on the menu
+                let inner_path = Editor.path_to_files_menu_path(path)
+                html += '<option>' + inner_path + "</option>"
+            }
+        }
+        if (existing_paths.length !== paths.length) {
+            persistent_set("files_menu_paths", existing_paths)
         }
         file_name_id.innerHTML = html
         if(Editor.files_menu_paths_empty_or_contains_only_dde_init()){
             Editor.edit_new_file()
         }
         else {
-            let latest_file = paths[0]
-            if(latest_file.endsWith("/dde_init.js")){
+            let latest_file = existing_paths[0]
+            if(latest_file.endsWith("/dde_init.js")){ //don't edit this file as usually users won't want to
                 if(paths.length > 1) { latest_file = paths[1]}
                 else {
                     Editor.edit_new_file()

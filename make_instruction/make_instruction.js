@@ -1534,7 +1534,7 @@ MakeInstruction.menu_hierarchy = [
     ["Dexter rare", "calibrate_build_tables", "capture_ad", "capture_points", "cause_error", "dma_read", "dma_write", "exit",
                     "find_index", "load_tables",
                     "record_movement", "replay_movement",
-                    "sleep",  "slow_move", "write"],
+                    "sleep",  "slow_move", "write_fpga"],
     ["Human",       "enter_choice", "enter_filepath", "enter_instruction", "enter_number",
                     "enter_position", "enter_text", "notify", "show_window", "speak", "task"],
     ["Control",     "break", "continue", "go_to", "loop", "label",

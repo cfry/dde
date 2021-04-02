@@ -1306,26 +1306,24 @@ foo      //eval to see the latest values</pre>`,
         Editor.insert(content)
         open_doc("DXF.init_drawing_doc_id")
     }
+
+    //Jobs/Dexter Tools menu.
+    browse_dexter_id.onclick     = function() {
+        let url = "http://" + Dexter.default.ip_address
+        browse_page(url)
+    }
     calibrate_id.onclick         = function() { init_calibrate() }//defines 2 jobs and brings up calibrate dialog box
+
     dui2_id.onclick              = function() {
         Job.define_and_start_job(__dirname + "/user_tools/dexter_user_interface2.js")
     }
     ping_dexter_id.onclick       = function() { ping_a_dexter(); open_doc(ping_doc_id) }
-    browse_dexter_id.onclick     = function() {
-        let url = "http://" + Dexter.default.ip_address
-        /* the below opened window doesn't show url or back/forrward buffons
-         let win = open("http://" + Dexter.default.ip_address,
 
-                       "_blank", //creates a new window each time.
-                       "location=yes, status=yes, menubar=yes, toolbar=yes" //none of these work in Electron
-                       )
-        win.setTitle("hey") //errors but is doecumented in https://electronjs.org/docs/api/browser-window
-                            //but see https://electronjs.org/docs/api/browser-window-proxy
-       */
-        //var {shell} = require("electron")
-        //shell.openExternal(url) //shows url, back/forward buttons. Allows resizing.
-        browse_page(url)
+    reboot_joints_id.onclick  = function(){
+        open_doc("Dexter.reboot_joints_doc_id")
+        Dexter.default.reboot_joints_fn() //not an instruction, a function that creates a job and starts it
     }
+
     show_errors_log_id.onclick = function(){
         let path = "Dexter." + Dexter.default.name + ":/srv/samba/share/errors.log"
         read_file_async(path, undefined, function(err, data){
@@ -1456,6 +1454,7 @@ foo      //eval to see the latest values</pre>`,
                                     else { Job.go_button_state = true }
                                  }
     go_id.onclick                 = Job.go
+    show_queue_id.onclick = Simqueue.show_queue_for_default_dexter
 
     //misc_pane_menu_id.oninput            = show_in_misc_pane
     let misc_items = ['Simulate Dexter',
@@ -1729,6 +1728,7 @@ var Gcode = require("./core/gcode.js")
 var DXF   = require("./math/DXF.js")
 var {date_to_human_string, date_to_mmm_dd_yyyy, is_digit} = require("./core/utils.js")
 var {FPGA} = require("./core/fpga.js")
+var {Simqueue} = require("./core/simqueue.js")
 
 
 

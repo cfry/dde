@@ -6,7 +6,7 @@ def main():
     print("Python eval process started.\n", flush=True)
     while True:
         #src = sys.stdin.readlines()  #hangs until gets some stdin with a newline
-        src = sys.stdin.readline()
+        src = sys.stdin.readline() #first there's a callback_id (int) then a space, then the code to eval
         src = src.replace("{nL}", "\n")
         index_of_space = src.index(" ")
         callback_id = int(src[0:index_of_space])
@@ -18,7 +18,7 @@ def main():
         is_py_evalable = None
         try:
             compile(src, "main_eval compile", "eval") #works only for single expressions that return one value
-        except: #compile for eval errored, so maybe src is not an expression. 
+        except: #compile for eval errored, so maybe src is not a single expression.
             is_py_evalable = False
         else: 
             is_py_evalable = True

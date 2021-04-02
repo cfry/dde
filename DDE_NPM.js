@@ -298,9 +298,10 @@ var DDE_NPM = class DDE_NPM {
     }
 
     static show_ui(){
-        exec("which npm", {cwd: dde_apps_folder}, function(err, stdout, stderr){
-            if(err) {warning("It appears that npm is not installed on your computer.<br/>" +
-                             `Please browse <a target='_blank' href='#' onclick='browse_page("https://nodejs.org/en/download")'>the node website</a> to install it.` +
+        exec("npm list", {cwd: dde_apps_folder}, function(err, stdout, stderr){ //stderr will be a string. It is an empty string if our bash cmd succeeded.
+            if(err || (stderr.length > 0)) {
+                     warning("It appears that npm is not installed on your computer.<br/>" +
+                             `Please browse <a href='#' onclick='browse_page("https://nodejs.org/en/download")'>the node website</a> to install it.` +
                              `<br/>You must install node to get npm.`)
             }
             else{ DDE_NPM.show_ui_really() }

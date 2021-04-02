@@ -93,8 +93,8 @@ var dui2 = class dui2 {
                             when_stopped: "wait",
                             do_list: [dui2.init,
                                       //Dexter.move_all_joints(0, 0, 0, 90, 0, 0, 0)
-                                      Dexter.move_all_joints([0, 0, 0, 0, 0]),
-                                      Dexter.pid_move_all_joints([0, 0, 0, 0, 0])
+                                      //Dexter.move_all_joints([0, 0, 0, 0, 0]),
+                                      //Dexter.pid_move_all_joints([0, 0, 0, 0, 0])
                                       ]
                         })
            // dex.instruction_callback = this.dui_instruction_callback //used for "run_forward" , complicated to get this to work so now run_forward does something simpler
@@ -1267,7 +1267,7 @@ var dui2 = class dui2 {
             j4_5_disabled_value)
         let j4_5_title = ""
         if(j4_5_disabled_value !== null) {
-            j4_5_title = "J4 & J5 sliders disabled because Point Down checkbox is checked."
+            j4_5_title = "J4 & J5 sliders are disabled because\nthe Point Down checkbox is checked,\nwhich constrains the motion of J4 & J5."
         }
         selector_set_in_ui("#" + this.show_window_elt_id + " [name=j4_range] [title]", j4_5_title)
         selector_set_in_ui("#" + this.show_window_elt_id + " [name=j5_range] [title]", j4_5_title)

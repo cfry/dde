@@ -1,5 +1,6 @@
 /* Created by Fry on 3/30/16.*/
 //whole file loaded in  env only as is tcp
+//DexterSim.init_all()
 DexterSim = class DexterSim{
     constructor(robot_name){ //called once per DDE session per robot_name by create_or_just_init
         this.robot_name = robot_name
@@ -8,15 +9,36 @@ DexterSim = class DexterSim{
         this.measured_angles_dexter_units = [0,0,0,0,0,0,0]  //a_angles + pid_angles
     }
 
+    static is_simulator_running(){
+        for(let rob_name in DexterSim.robot_name_to_dextersim_instance_map){
+            let sim_instance = DexterSim.robot_name_to_dextersim_instance_map[rob_name]
+            if(sim_instance.queue_instance.is_simulator_running()){
+                return true
+            }
+        }
+        return false
+    }
+
+    simout(string){
+       let sim_html = '<span style="color:black; background-color:#ab99ff;"> &nbsp;Simulator: </span> &nbsp;&nbsp;'
+        let rob_name = "Dexter." + this.robot_name
+        out(sim_html + rob_name + " " + string)
+    }
+
     //sim_actual passed in is either true or "both"
-    //called by Socket
+    //called by Socket.init. This is the top level initializer for the simulator
     static create_or_just_init(robot_name, sim_actual = "required", connect_success_cb){
         if (!DexterSim.robot_name_to_dextersim_instance_map){
             DexterSim.init_all()
         }
         var sim_inst = DexterSim.robot_name_to_dextersim_instance_map[robot_name]
-        if(!sim_inst) { sim_inst = new DexterSim(robot_name) }
-        sim_inst.init(sim_actual)
+        if(!sim_inst) {
+            sim_inst = new DexterSim(robot_name)
+            sim_inst.init(sim_actual)
+        }
+        else {
+            sim_inst.sim_actual = sim_actual
+        }
         if (sim_actual === true) { //do not call new_socket_callback if simulate is "both" because we don't want to call it twice
             Socket.new_socket_callback(robot_name, connect_success_cb)
         }
@@ -24,46 +46,28 @@ DexterSim = class DexterSim{
 
     static init_all(){ //called once per DDE session (normally)
         DexterSim.robot_name_to_dextersim_instance_map = {}
-        DexterSim.set_interval_id = setInterval(DexterSim.process_next_instructions, 10)
+        //DexterSim.set_interval_id = setInterval(DexterSim.process_next_instructions, 10)
     }
 
     init(sim_actual){
-        this.animation_running = false
         this.sim_actual = sim_actual
-        this.ending_time_of_cur_instruction = 0
-        this.error_code = 0
-        this.instruction_queue = []
-        this.completed_instructions = []
+        this.queue_instance = new Simqueue(this)
 
-        this.parameters = { //set_params.
-            Acceleration:0.0001, //todo what are the units on dde side and on sim/dex side?
-            MaxSpeed: 30, //todo what are the units on dde side and on sim/dex side?
-            StartSpeed: 0
+        //these should be in dexter_units
+        this.parameters = { //set_params. see Socket.js instruction_array_degrees_to_arcseconds_maybe
+            Acceleration:  0.0001,        // in _nbits_cf units
+            MaxSpeed:     30 * _nbits_cf, // in _nbits_cf units
+            StartSpeed:    0 * _nbits_cf  // in _nbits_cf units
         }
-        this.sent_instructions_count = 0
-        this.status = "before_first_send"
         this.status_mode = 0 //can also be 1, set by "g" command.
         this.fpga_register = new Array(Instruction.w_address_names.length) //the make_ins("w", index, val) instructions stored here. //write fpga register
         this.fpga_register.fill(0)
         this.write_file_file_name = null
         this.write_file_file_content = "" //grows as "m" instructions come in
-
+        this.last_instruction_sent = null
 
         // not used  this.pid_angles_arcseconds      = [0,0,0,0,0,0,0]
         this.velocity_arcseconds_per_second = [0,0,0,0,0,0,0]
-
-        this.ready_to_start_new_instruction = true  //true at beginning and when we've just completed an instruction but not started another
-        this.now_processing_instruction = null // a Dexter can only be doing a move at most 1 instruction at a time. This is it.
-    }
-
-    static stop_all_sims(){
-        for(var sim_inst in Dextersim.sim_inst_next_inst_time_map){
-            sim_inst.stop_sim()
-        }
-    }
-
-    stop_sim(){
-        this.status = "closed"
     }
 
     static array_buffer_to_string(arr_buff, terminating_char=";"){
@@ -104,34 +108,40 @@ DexterSim = class DexterSim{
         return oplet_array
     }
 
+    //used in Simqueue for showing sent instructions
+    job_of_last_instruction_sent() {
+        let instr = this.last_instruction_sent
+        if(!instr) { return null }
+        else {
+            let job_id = instr[Instruction.JOB_ID]
+            return Job.job_id_to_job_instance(job_id)
+        }
+    }
+
     //called from Socket.send
     //typically adds instruction to sim_inst.instruction_queue
     static send(robot_name, arr_buff){
         //out("Sim.send passed instruction_array: " + instruction_array + " robot_name: " + robot_name)
         let sim_inst = DexterSim.robot_name_to_dextersim_instance_map[robot_name]
         let instruction_array = this.array_buffer_to_oplet_array(arr_buff) //instruction_array is in dexter_units
+        sim_inst.last_instruction_sent = instruction_array
         let ins_args = Instruction.args(instruction_array) //in dexter_units
-        sim_inst.sent_instructions_count += 1
-        if (sim_inst.status == "closing"){
-            shouldnt("In a_DexterSim.send with robot_name: " + robot_name +
-                     " passed instruction_array: " + instruction_array +
-                     " but it shouldn't be called at all because a_DexterSim.status == 'closing'.")
-        }
-        sim_inst.status = "after_first_send"
         let oplet  = instruction_array[Dexter.INSTRUCTION_TYPE]
         switch(oplet){
-            //case "E":  //empty_instruction_queue_immediately
-            //now handled by the default clause below, and add_instruction_to_queue
             case "a":
-                sim_inst.add_instruction_to_queue(instruction_array)
-                sim_inst.ack_reply(instruction_array)
+                sim_inst.queue_instance.add_to_queue(instruction_array)
+                sim_inst.ack_reply_maybe(instruction_array)
                 break;
             case "e": //cause an error. Used for testing only
-                this.error_code = instruction_array[Instruction.INSTRUCTION_ARG0]
+                let the_error_code = instruction_array[Instruction.INSTRUCTION_ARG0]
+                sim_inst.ack_reply_maybe(instruction_array, the_error_code)
                 break;
-            case "F": //empty_instruction_queue, //waits to be "executed" when instruction is processed
-                sim_inst.add_instruction_to_queue(instruction_array)
-                //do not ack_reply! That happens when it is run from the queue.
+            case "E": //not implemented on Dexter Mar 13, 2021 but should be. Requires FPGA programming
+                sim_inst.queue_instance.empty_instruction_queue() //this will call ack_reply IFF the queue is blocked (by a previous "F" cmd
+                break;
+            case "F": //empty_instruction_queue. blocks adding to queue until its empty.
+                sim_inst.queue_instance.set_queue_blocking_instruction(instruction_array)
+                //do not ack_reply! That happens when all items removed from the queue.
                 break;
             case "g":
                 let inst_status_mode = instruction_array[Instruction.INSTRUCTION_ARG0]
@@ -139,16 +149,16 @@ DexterSim = class DexterSim{
                 else { sim_inst.status_mode = inst_status_mode }
                 sim_inst.ack_reply(instruction_array)
                 break;
-            case "G": //deprecated. get immediate. The very first instruction sent to send should be  "G",
+            /*case "G": //deprecated. get immediate. The very first instruction sent to send should be  "G",
                                      //so let it be the first call to process_next_instruction & start out the setTimeout chain
                 sim_inst.add_instruction_to_queue(instruction_array) //stick it on the front of the queue so it will be done next
-                break;
+                break;*/
             case "h": //doesn't go on instruction queue, just immediate ack
                 sim_inst.ack_reply(instruction_array)
                 break;
             case "P":
-                sim_inst.add_instruction_to_queue(instruction_array)
-                sim_inst.ack_reply(instruction_array)
+                sim_inst.queue_instance.add_to_queue(instruction_array)
+                sim_inst.ack_reply_maybe(instruction_array)
                 break;
             case "r": //Dexter.read_file. does not go on queue
                 let payload_string_maybe = sim_inst.process_next_instruction_r(instruction_array)
@@ -156,39 +166,85 @@ DexterSim = class DexterSim{
                 break;
             case "S":
                 let param_name = ins_args[0]
+                let param_val  = ins_args[1]
                 if(["Acceleration", "MaxSpeed", "StartSpeed"].includes(param_name)) {
-                    sim_inst.add_instruction_to_queue(instruction_array)
+                    sim_inst.queue_instance.set_instruction_done_action(param_name, param_val)
                 }
+                //EERoll & EESpan *ought* to go on queue but Dexter Mar 19, 2021 does them immediately
+                //so the simulator follows suit.
+                //Also, the belwo sets the peasured angles immediately to the commanded angle
+                //bit really should "animate" it based on the speed of these motors
+                //though they're much faster than j1 thru 5.
+                //Note that if the robot has 320 motors vs 430, the speed will vary.
+                //So this is a cheap simulation.
                 else {
-                   let param_val = ins_args[1]
-                   sim_inst.parameters[param_name] = param_val
-
+                    if(param_name === "EERoll") { //joint 6
+                        //sim_inst.measured_angles_dexter_units[5] = param_val
+                        sim_inst.queue_instance.start_running_j6_plus_instruction(6, param_val)
+                    }
+                    else if(param_name === "EESpan") { //joint 7
+                        //sim_inst.measured_angles_dexter_units[6] = param_val
+                        sim_inst.queue_instance.start_running_j6_plus_instruction(7, param_val)
+                    }
+                    //else if(param_name === "RebootServo"){
+                       //we don't need special processing for RebootServo. After it will be
+                       //a "z" oplet instruction (Dexter.sleep) that will cause Sim queue to show "sleep"
+                    //}
+                    else {
+                        sim_inst.parameters[param_name] = param_val
+                        sim_inst.simout("set parameter: " + param_name + " to " + param_val)
+                    }
                 }
                 sim_inst.ack_reply(instruction_array)
                 break;
+            case "T":
+                let angles_dexter_units = sim_inst.convert_T_args_to_joint_angles_dexter_units(ins_args)
+                let new_instruction_array = instruction_array.slice(0, Instruction.INSTRUCTION_ARG0)
+                new_instruction_array[Instruction.INSTRUCTION_TYPE] = "a" //change from "T" to "a"
+                new_instruction_array.concat(angles_dexter_units)
+                sim_inst.queue_instance.add_to_queue(instruction_array) //just like "a" for now
+
             case "w": //write fpga register
-                dur = 0
                 const write_location = ins_args[0]
-                if (write_location < this.fpga_register.length) {
-                    this.fpga_register[write_location] = ins_args[1]
-                    sim_inst.ack_reply(instruction_array)
+                if (write_location < sim_inst.fpga_register.length) {
+                    let new_val = ins_args[1]
+                    sim_inst.fpga_register[write_location] = new_val
+                    let reg_name = Instruction.w_address_names[write_location]
+                    sim_inst.simout("FPGA Register: " + reg_name + " ( " + write_location + " )  set to: " + new_val)
+                    sim_inst.ack_reply(instruction_array)                 
                 }
                 else { shouldnt('DexterSim.fpga_register is too short to accommodate "w" instruction<br/> with write_location of: ' +
-                    write_location + " and value of: " + ins_args[1]) }
-                break;
+                    write_location + " and value of: " + ins_args[1]) 
+                }  
+                 break;
             case "W": //write file
-                sim_inst.add_instruction_to_queue(instruction_array)
+                sim_inst.process_next_instruction_W(ins_args)
                 sim_inst.ack_reply(instruction_array)
                 break;
-            case "z": //sleep
-                sim_inst.add_instruction_to_queue(instruction_array)
-                sim_inst.ack_reply(instruction_array)
+            case "z": //sleep, first arg holds microseconds dur
+                //all sleep does is wait for the dur, (starting when the instruction is received
+                // by the robot) and then return the ack_reply.
+                //so it just holds up DDE sending more instructions.
+                //Any ongoing queued instructions just keep running as they would
+                //without the sleep.
+                //When the dur is up, the queue_instance takes care of sending the ack_reply.
+                sim_inst.queue_instance.start_sleep(instruction_array)
                 break;
             default:
                 warning("In DexterSim.send, got instruction not normally processed: " + oplet)
-                sim_inst.add_instruction_to_queue(instruction_array)
                 sim_inst.ack_reply(instruction_array)
                 break;
+        }
+    }
+
+    //this is called by "a" and "P" instructions only, ie only
+    //instuctions that add to the queue.
+    ack_reply_maybe(instruction_array, payload_string_maybe){
+        if(this.queue_instance.is_queue_full()) {
+            this.simout("queue is full.<br/>There will be no reply until the current instruction completes.")
+        }
+        else {
+            this.ack_reply(instruction_array, payload_string_maybe)
         }
     }
 
@@ -197,220 +253,57 @@ DexterSim = class DexterSim{
     ack_reply(instruction_array, payload_string_maybe){
         let robot_status_array = Dexter.make_default_status_array_g_sm(this.status_mode)
         let rs_inst = new RobotStatus({robot_status: robot_status_array})
-        if(rs_inst.supports_measured_angles()) {
-            rs_inst.set_measured_angles(this.measured_angles_dexter_units, true) //we want to install arcseconds, as Socket is expected arcseconds and will convert to degrees
-        }
-        //else allow all other status modes.
+
         robot_status_array[Dexter.JOB_ID]            = instruction_array[Instruction.JOB_ID]
         robot_status_array[Dexter.INSTRUCTION_ID]    = instruction_array[Instruction.INSTRUCTION_ID]
         robot_status_array[Dexter.START_TIME]        = instruction_array[Instruction.START_TIME] //Date.now()
         robot_status_array[Dexter.STOP_TIME]         = Date.now()
         robot_status_array[Dexter.INSTRUCTION_TYPE]  = instruction_array[Instruction.INSTRUCTION_TYPE] //leave this as a 1 char string for now. helpful for debugging
-        robot_status_array[Dexter.ERROR_CODE]        = this.error_code //will be 0 if no error
-       //above use to be in BUT instruction_array was never supposed to have an error code,
-       //and the only thing setting robot_status error code to other than 0 is the "e" instruction,
-       //so just leave that as it is--apr 2019
+        if((robot_status_array[Dexter.INSTRUCTION_TYPE] === "r")   &&
+            (typeof(payload_string_maybe) == "number") &&
+            (payload_string_maybe > 0)){
+            robot_status_array[Dexter.ERROR_CODE] = payload_string_maybe
+        }
+
+        if(rs_inst.supports_measured_angles()) {
+            rs_inst.set_measured_angles(this.measured_angles_dexter_units, true) //we want to install arcseconds, as Socket is expected arcseconds and will convert to degrees
+        }
+
+        if(this.status_mode === 0){
+           let latest = this.queue_instance.latest_sent_queued_instruction
+           let j1_5_arcsecs
+           if(latest) {
+              j1_5_arcsecs = [latest[Instruction.INSTRUCTION_ARG0], 
+                              latest[Instruction.INSTRUCTION_ARG1], 
+                              latest[Instruction.INSTRUCTION_ARG2], 
+                              latest[Instruction.INSTRUCTION_ARG3], 
+                              latest[Instruction.INSTRUCTION_ARG4]]  
+           }
+           else { j1_5_arcsecs = [0,0,0,0,0] }
+           robot_status_array[Dexter.J1_SENT] = j1_5_arcsecs[0]
+           robot_status_array[Dexter.J2_SENT] = j1_5_arcsecs[1]
+           robot_status_array[Dexter.J3_SENT] = j1_5_arcsecs[2]
+           robot_status_array[Dexter.J4_SENT] = j1_5_arcsecs[3]
+           robot_status_array[Dexter.J5_SENT] = j1_5_arcsecs[4]
+           //unfortunately g0 doesn't support J6_SENT or J7_SENT
+        } 
+         
         if (this.sim_actual === true){
             let rob = this.robot
-            if((robot_status_array[Dexter.INSTRUCTION_TYPE] === "r")   &&
-                (typeof(payload_string_maybe) == "number") &&
-                (payload_string_maybe > 0)){
-                robot_status_array[Dexter.ERROR_CODE] = payload_string_maybe
-            }
             setTimeout(function(){
                         Socket.on_receive(robot_status_array, rob.name, payload_string_maybe)
                         }, 1)
         }
     }
 
-    // convert a robot_status 60 elt array into the Uint8 data array length 240
-    //that Socket.onreive wants for its first (data) arg.
-    robot_status_to_data(robot_status){
-
-    }
     //from https://stackoverflow.com/questions/15761790/convert-a-32bit-integer-into-4-bytes-of-data-in-javascript/24947000
-    toBytesInt32 (num) {
+    //not called mar 18, 2021
+    /*toBytesInt32 (num) {
         arr = new ArrayBuffer(4); // an Int32 takes 4 bytes
         view = new DataView(arr);
         view.setUint32(0, num, false); // byteOffset = 0; litteEndian = false
         return arr;
-    }
-
-    //this is the method that moves an instrucction from the "DDE side"
-    //to the "hardware side"
-    add_instruction_to_queue(instruction_array){
-        const oplet = instruction_array[Dexter.INSTRUCTION_TYPE]
-        if (oplet == "E") { //empty_instruction_queue_immediately
-            out("In simulating Dexter at robot_name: " + this.robot_name +
-                ", an E instruction (empty_instruction_queue_immediately),<br/> is " +
-                "deleting " + this.instruction_queue.length + " instructions:<br/>" +
-                this.instruction_queue.join("<br/>") +
-                "<br/>from the queue. They will never be run.")
-            this.instruction_queue = []
-        }
-        else {
-            this.instruction_queue.push(instruction_array)
-            //if(instruction_array[4] == "a"){ out("sim J2: " + instruction_array[6] / 3600 + "<br/>_____________")} //debugging statement only
-        }
-    }
-
-    //hardware side methods below
-    static process_next_instructions(){
-        const the_now = Date.now() //in milliseconds
-        let keep_alive = false
-        for(var robot_name in DexterSim.robot_name_to_dextersim_instance_map){
-            const sim_inst = DexterSim.robot_name_to_dextersim_instance_map[robot_name]
-            //hits when just ending an instruction
-            if (!sim_inst.animation_running &&
-                 sim_inst.now_processing_instruction &&
-                (sim_inst.ending_time_of_cur_instruction <= the_now)) { //end the cur instruction and move to the next
-                const oplet = sim_inst.now_processing_instruction[Dexter.INSTRUCTION_TYPE]
-                sim_inst.completed_instructions.push(sim_inst.now_processing_instruction)
-                sim_inst.now_processing_instruction = null     //Done with cur ins,
-                sim_inst.ready_to_start_new_instruction = true
-            }
-            //hits when there's more on the queue to do
-            if(sim_inst.ready_to_start_new_instruction &&
-                (sim_inst.instruction_queue.length > 0) &&
-                (sim_inst.status !== "closed")) {
-                sim_inst.ready_to_start_new_instruction = false
-                sim_inst.process_next_instruction()
-            }
-            else if((sim_inst.instruction_queue.length == 0) && //nothing in the queue,
-                    !sim_inst.now_processing_instruction     && //we're not currently in the middle of an instruction
-                    (sim_inst.status === "closing")) {          //and no more coming from DDE.
-                sim_inst.ready_to_start_new_instruction = false
-                DexterSim.close(sim_inst.robot_name)       //cleaner to set "closed" in one place.
-            }
-            if(sim_inst.status !== "closed") { keep_alive = true }
-        }
-        if ((keep_alive == false) && (window.platform === "node")) {
-            clearInterval(DexterSim.set_interval_id) //so that nodejs will quit
-        }
-    }
-
-    process_next_instruction(){
-        let dur = 10 // in ms
-        this.now_processing_instruction = this.instruction_queue.shift() //pop off next inst from front of the list
-        let instruction_array = this.now_processing_instruction
-        let oplet  = instruction_array[Dexter.INSTRUCTION_TYPE]
-        //robot_status[Dexter.JOB_ID]            = instruction_array[Instruction.JOB_ID]
-        //robot_status[Dexter.INSTRUCTION_ID]    = instruction_array[Instruction.INSTRUCTION_ID]
-        //robot_status[Dexter.START_TIME]        = Date.now() //in ms
-        //robot_status[Dexter.INSTRUCTION_TYPE]  = instruction_array[Instruction.INSTRUCTION_TYPE] //leave this as a 1 char string for now. helpful for debugging
-        //robot_status[Dexter.ERROR_CODE]        = 0
-
-        let ins_args = Instruction.args(instruction_array) //in dexter_units
-        switch (oplet){
-            case "a": //move_all_joints
-                //this.robot.angles = ins_args //only set this in move_all_joints and friends
-                dur = this.process_next_instruction_a(ins_args) //Vector.add(ins_args))
-                break;
-            case "F":
-                dur = 0
-                break;
-            /* never gets here. g handled above. g instrs are not put on queue
-              case "g": //get_robot_status
-                dur = 0;
-                break;
-                */
-            case "G": //get_robot_status_immediately, deprecated
-                dur = 0;
-                break;
-            //handled by send. h never gets to this fn
-            case "h": //heartbeat get robot status
-                //dur = 0;
-                shouldnt("In dextersim.process_next_instruction, got an 'h' oplet but this fn shouldn't get 'h' instructions.")
-                break;
-            case "P": //pid_move_all_joints
-                //this.robot.pid_angles = ins_args //but not used aug 27, 2018. Note this would set DDE's robot object, but we really want to set the SIM robot if anything
-                dur = this.process_next_instruction_a(Vector.add(ins_args))
-            break;
-            /*case "R": //move_all_joints_relative //no longer used because Dexter.move_all_joints_relative  converts to "a" oplet
-                let angle = ins_args[0]
-                if (!isNaN(angle)){ robot_status[Dexter.J1_ANGLE] += angle}
-                angle = ins_args[1]
-                if (!isNaN(angle)){ robot_status[Dexter.J2_ANGLE] += angle}
-                angle = ins_args[2]
-                if (!isNaN(angle)){ robot_status[Dexter.J3_ANGLE] += angle}
-                angle = ins_args[3]
-                if (!isNaN(angle)){ robot_status[Dexter.J4_ANGLE] += angle}
-                angle = ins_args[4]
-                if (!isNaN(angle)){ robot_status[Dexter.J5_ANGLE] += angle}
-                //DexterSim.fill_in_robot_status_xyzs(robot_status)
-                break;
-                */
-            //case "r": //handled in send.
-            //    this.process_next_instruction_r(instruction_array)
-            //    break;
-            case "S": //set_parameter
-                let param_name = ins_args[0]
-                if(["Acceleration", "MaxSpeed", "StartSpeed"].includes(param_name)) {
-                    this.parameters[ins_args[0]] = ins_args[1]
-                    dur = 0
-                }
-                else {
-                    shouldnt("DexterSim.process_next_instruction passed S param of: " + param_name +
-                             "<br/>but that should have been processed in DexterSim.send.")
-                }
-                break
-            case "T": //move_to_straight, the oplet version
-                dur = this.process_next_instruction_T(ins_args)
-                break
-            case "W": //Dexter.write_file
-                dur = this.process_next_instruction_W(ins_args) //Vector.add(ins_args))
-                break;
-            case "z": //sleep
-                dur = Math.round(ins_args[0] / 1000) //ins_args z sleep time is in microseconds. Conver to ms.
-                                                     //It was converted from secs to to usecs in in socket.js
-                break;
-            default:
-                if (Dexter.instruction_type_to_function_name_map[oplet]){
-                    warning("Dextersim.send doesn't know what to do with the legal oplet: " + oplet)
-                    return
-                }
-                else {
-                    warning("DexterSim.send received an instruction array with an illegal oplet: " + instruction_array)
-                    return
-                }
-        }
-        //if (oplet != "h"){  //never put -1 in instruction_id of robot status except before first instruction is run.
-        //For heartbeats, we want to leave in robot_status whatever the last "real" instruction was in there.
-        //    ds_copy[0] = instruction_array[0] //instruction id
-                //}
-        if(window.platform == "dde") {
-            if (!real_time_sim_checkbox_id.checked){
-             dur = 0
-            }
-        }
-        this.ending_time_of_cur_instruction = Date.now() + dur //Instruction.extract_start_time(instruction_array) + dur
-        const job_id       = Instruction.extract_job_id(instruction_array)
-        const job_instance = Job.job_id_to_job_instance(job_id)
-        if (job_instance){
-            let job_name = "Job." + job_instance.name
-            let rob_name = "Dexter." + this.robot_name
-            if      (oplet === "F") { this.ack_reply(instruction_array) }
-            else if (oplet === "G") {} //deprecated
-            else if (oplet === "S") {}
-            else if (oplet === "W") {}
-            else if (oplet === "z") {} //just let process_next_instructions trigger the next instruction after the ending_time_of_cur_instruction
-            //below handles "a", "P", "T"
-            else if(SimUtils.is_simulator_showing()) { //window.platform == "dde") //even if we're in dde, unless the sim pane is up, don't attempt to render
-                //SimUtils.render_once(robot_status, job_name, rob_name) //renders after dur, ie when the dexter move is completed.
-                SimUtils.render_multi(this, ins_args, job_name, rob_name, undefined, dur)
-            }
-            else {
-                warning("To see a graphical simulation,<br/>choose from the Misc pane's first menu: Simulate Dexter.")
-                DexterSim.render_once_node(this, job_name, rob_name) //renders after dur, ie when the dexter move is completed.
-            }
-        }
-        else {
-            this.instruction_queue = []
-            this.now_processing_instruction = null
-            DexterSim.close(this.name)
-            dde_error("In DexterSim.process_next_instruction, could not find a job with job_id: " + job_id)
-        }
-    }
+    }*/
 
     //when we're running the simulator on Dexter
     static render_once_node(dexter_sim_instance, job_name, robot_name, force_render=true){ //inputs in arc_seconds
@@ -418,7 +311,6 @@ DexterSim = class DexterSim{
          //due to other changes, its best if render_once_node default to true
          rs_inst = dexter_sim_instance.robot.rs
         if (force_render){
-            //let rs_inst = new RobotStatus({robot_statusa: robot_status})
             let j1 = rs_inst.measured_angle(1) //joint_number)robot_status[Dexter.J1_MEASURED_ANGLE]
             let j2 = rs_inst.measured_angle(2)
             let j3 = rs_inst.measured_angle(3)
@@ -435,7 +327,7 @@ DexterSim = class DexterSim{
     }
 
     // also called by process_next_instruction_T()
-    process_next_instruction_a(angles_dexter_units){
+    /*process_next_instruction_a(angles_dexter_units){
         //predict needs its angles in degrees but ins_args are in arcseconds
         const orig_angles_in_deg = Socket.dexter_units_to_degrees_array(this.measured_angles_dexter_units)  //Socket.dexter_units_to_degrees(this.measured_angles_dexter_units) //this.measured_angles_dexter_units.map(function(ang) { return ang / 3600 })
         const angles_in_deg  = Socket.dexter_units_to_degrees_array(angles_dexter_units) //ns_args.map(function(ang)    { return ang / 3600 })
@@ -446,8 +338,39 @@ DexterSim = class DexterSim{
         let dur_in_seconds = Math.abs(Kin.predict_move_dur(orig_angles_in_deg, angles_in_deg, this.robot))
         let dur_in_milliseconds = dur_in_seconds * 1000
         return dur_in_milliseconds
+    }*/
+
+    //same as the above. just better named for its functionality
+    predict_a_instruction_dur_in_ms(angles_dexter_units){
+        if(angles_dexter_units === this.measured_angles_dexter_units) { //an optimization for this common case of no change
+            return 0
+        }
+        else {
+            //predict needs its angles in degrees but ins_args are in arcseconds
+            const orig_angles_in_deg = Socket.dexter_units_to_degrees_array(this.measured_angles_dexter_units)  //Socket.dexter_units_to_degrees(this.measured_angles_dexter_units) //this.measured_angles_dexter_units.map(function(ang) { return ang / 3600 })
+            const angles_in_deg  = Socket.dexter_units_to_degrees_array(angles_dexter_units) //ns_args.map(function(ang)    { return ang / 3600 })
+            //ins_args_in_deg[5] = Socket.dexter_units_to_degrees(ins_args[5], 6) //joint 6
+            //ins_args_in_deg[6] = Socket.dexter_units_to_degrees(ins_args[6], 7) //joint 7
+
+            //predict_move_dur takes degrees in and returns seconds
+            //let dur_in_seconds = Math.abs(Kin.predict_move_dur(orig_angles_in_deg, angles_in_deg, this.robot))
+            let dur_in_seconds = Math.abs(Kin.predict_move_dur_5_joint(orig_angles_in_deg, angles_in_deg, this.robot))
+            //use 5 joint as j6 and j7 aren't part of this path.
+            let dur_in_milliseconds = dur_in_seconds * 1000
+            return dur_in_milliseconds
+        }
     }
 
+    predict_j6_plus_instruction_dur_in_ms(new_angle_in_dexter_units, joint_number){
+        let orig_angle_in_dexter_units = this.measured_angles_dexter_units[joint_number -1]
+        let diff_du = new_angle_in_dexter_units - orig_angle_in_dexter_units
+        let diff_deg = Socket.dexter_units_to_degrees(diff_du, joint_number)
+        let dur_in_seconds = Math.abs(diff_deg) / Kin.dynamixel_320_degrees_per_second
+        let dur_in_ms = dur_in_seconds * 1000
+        return dur_in_ms
+    }
+
+    /*
     process_next_instruction_T(ins_args){ //ins_args xyz in microns
         let xyz_in_microns = [ins_args[0], ins_args[1], ins_args[2]]
         let J5_direction   = [ins_args[3], ins_args[4], ins_args[5]]
@@ -464,6 +387,24 @@ DexterSim = class DexterSim{
         angles_in_dexter_units.push(j6_angle)
         angles_in_dexter_units.push(j7_angle)
         return this.process_next_instruction_a(angles_in_dexter_units)
+    }*/
+
+    convert_T_args_to_joint_angles_dexter_units(ins_args){ //ins_args contains xyz in microns
+        let xyz_in_microns = [ins_args[0], ins_args[1], ins_args[2]]
+        let J5_direction   = [ins_args[3], ins_args[4], ins_args[5]]
+        let config         = [ins_args[6], ins_args[7], ins_args[8]]
+        let j6_angle       = ins_args[11]
+        let j7_angle       = ins_args[12]
+        let pose           = undefined //its not in the ins_args, and defaults just fine
+
+        let xyz_in_meters = [xyz_in_microns[0] / 1000000,
+            xyz_in_microns[1] / 1000000,
+            xyz_in_microns[2] / 1000000]
+        let angles_in_degrees = Kin.xyz_to_J_angles(xyz_in_meters, J5_direction, config, pose)
+        let angles_in_dexter_units = Socket.degrees_to_dexter_units(angles_in_degrees)
+        angles_in_dexter_units.push(j6_angle)
+        angles_in_dexter_units.push(j7_angle)
+        return angles_in_dexter_units //this.process_next_instruction_a(angles_in_dexter_units)
     }
 
     process_next_instruction_r(instruction_array) {
@@ -521,30 +462,11 @@ DexterSim = class DexterSim{
         return 0 //dur
     }
 
-    static close(robot_name){
-        //when this is called, no more instructions will be coming from the job, but there might be
-        //be stragglers left in the instruction_queue
-        if (DexterSim.robot_name_to_dextersim_instance_map) { //because close might be called before we init the map
-            let sim_inst = DexterSim.robot_name_to_dextersim_instance_map[robot_name]
-            if(sim_inst){
-               if ((sim_inst.instruction_queue.length == 0) &&
-                   (sim_inst.now_processing_instruction == null)){
-                    sim_inst.stop_sim() //also set near bottom of process_next_instruction
-                }
-                else {
-                sim_inst.status = "closing"
-                //setTimeout(function(){DexterSim.close(socket_id)}, 1000) //shouldn't be necessary.
-                //as process_next_instruction will handle final close in this case.
-                }
-            }
-        }
-    }
-
     static empty_instruction_queue_now(robot_name){
         if(DexterSim.robot_name_to_dextersim_instance_map) {
             let sim_inst = DexterSim.robot_name_to_dextersim_instance_map[robot_name]
             if(sim_inst) {
-                sim_inst.instruction_queue = []
+                sim_inst.queue_instance.empty_instruction_queue()
             }
         }
     }
@@ -564,3 +486,4 @@ var {make_folder, make_full_path}   = require("./storage")
 
 var Kin = require("../math/Kin.js")
 var Vector = require("../math/Vector.js")
+var {Simqueue}  = require("./simqueue.js")

@@ -831,17 +831,21 @@ class Job{
                 }
                 else {
                     const cur_ins = this.do_list[this.program_counter]
+                    let oplet = null
                     if (Instruction.is_oplet_array(cur_ins)){
-                        const oplet   = cur_ins[Dexter.INSTRUCTION_TYPE]
-                        if(oplet == "z") {
-                            bg_color = "rgb(255, 255, 102)"; //pale yellow
-                            tooltip  = "Now running 'sleep' instruction " + this.program_counter + "."
-                            break;
-                        }
+                        oplet = cur_ins[Dexter.INSTRUCTION_TYPE]
                     }
-                    bg_color = "rgb(136, 255, 136)";
-                    tooltip  = "This Job is running instruction " + this.program_counter +
-                               ".\nClick to stop this job."
+                    if(oplet === "z") {
+                        let dur_in_seconds = cur_ins[Instruction.INSTRUCTION_ARG0]
+                        bg_color = "rgb(255, 255, 102)"; //pale yellow
+                        tooltip  = "Now running instruction " + this.program_counter +
+                                   ', sleep (oplet "z") for ' + dur_in_seconds + " second(s)."
+                    }
+                    else {
+                        bg_color = "rgb(136, 255, 136)";
+                        tooltip  = "This Job is running instruction " + this.program_counter +
+                                   ".\nClick to stop this job."
+                    }
                 }
                 break;
             case "running_when_stopped":
@@ -2228,6 +2232,10 @@ Job.prototype.send = function(oplet_array_or_string, robot){ //if remember is fa
 
     if (this.keep_history){
         this.sent_instructions.push(oplet_array_or_string) //for debugging mainly
+    }
+    if(oplet === "z"){
+        this.color_job_button() //colors job button yellow, even though status is "running" because
+        //cur instruction is "z"
     }
     //if(oplet === "a") { out("snd J2: " + oplet_array_or_string[6]) } //debugging statement only
     robot.send(oplet_array_or_string)

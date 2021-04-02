@@ -4,6 +4,8 @@ const net = require("net")
 
 //never create an instance
 var Socket = class Socket{
+    //when a job starts, it calls robot.start, which calls start_aux, which (for Dexter's)
+    //calls Socket.init, which for sim, calls DexterSim.create_or_just_init
     static init(robot_name, connect_success_cb, connect_error_cb //, simulate, ip_address, port=50000
             ){
         //out("Creating Socket for ip_address: " + ip_address + " port: "   + port + " robot_name: " + robot_name)
@@ -11,7 +13,7 @@ var Socket = class Socket{
         const sim_actual = Robot.get_simulate_actual(rob.simulate) //true, false, or "both"
         if ((sim_actual === true)  || (sim_actual == "both")){
             DexterSim.create_or_just_init(robot_name, sim_actual, connect_success_cb)
-            out("Simulating socket for Robot." + robot_name + ". is_connected? " + Robot[robot_name].is_connected)
+            out("socket for Robot." + robot_name + ". is_connected? " + Robot[robot_name].is_connected)
         }
         else if ((sim_actual === false) || (sim_actual == "both")) {
             if(!Socket.robot_name_to_ws_instance_map[robot_name]){
@@ -360,10 +362,10 @@ var Socket = class Socket{
                 Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG12] * 3600) //degrees to arcseconds
             return instruction_array_copy
         }
-        else if (oplet == "z") {
-            let instruction_array_copy = instruction_array.slice()
+        else if (oplet == "z") { //sleep
+            let instruction_array_copy = instruction_array.slice() //instruction array contains dur in seconds, but Dexter expects microseconds
             instruction_array_copy[Instruction.INSTRUCTION_ARG0] =
-                Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG0] * 1000000) //seconds to microseconds
+                Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG0] * Socket.DEXTER_UNITS_PER_SECOND_FOR_SLEEP) //seconds to nanoseconds
             return instruction_array_copy
         }
         else { return instruction_array }
@@ -474,7 +476,7 @@ var Socket = class Socket{
             oplet  = String.fromCharCode(opcode)
         }
         //the simulator automatically does this so we have to do it here in non-simulation
-
+        //out("on_receive got back oplet of " + oplet)
         robot_status[Dexter.INSTRUCTION_TYPE] = oplet
         if(oplet == "r"){ //Dexter.read_file
             if(typeof(payload_string_maybe) == "number") { //only can hit im sim.// should be 2 if it hits
@@ -593,6 +595,13 @@ var Socket = class Socket{
                 robot_status[Dexter.J5_MEASURED_ANGLE] = Socket.dexter_units_to_degrees(robot_status[Dexter.J5_MEASURED_ANGLE], 5)
                 robot_status[Dexter.J6_MEASURED_ANGLE] = Socket.dexter_units_to_degrees(robot_status[Dexter.J6_MEASURED_ANGLE], 6)
                 robot_status[Dexter.J7_MEASURED_ANGLE] = Socket.dexter_units_to_degrees(robot_status[Dexter.J7_MEASURED_ANGLE], 7)
+
+                robot_status[Dexter.J1_SENT] = Socket.dexter_units_to_degrees(robot_status[Dexter.J1_SENT], 1) //0.0002777777777777778 //this number === _arcsec
+                robot_status[Dexter.J2_SENT] = Socket.dexter_units_to_degrees(robot_status[Dexter.J2_SENT], 2)
+                robot_status[Dexter.J3_SENT] = Socket.dexter_units_to_degrees(robot_status[Dexter.J3_SENT], 3)
+                robot_status[Dexter.J4_SENT] = Socket.dexter_units_to_degrees(robot_status[Dexter.J4_SENT], 4)
+                robot_status[Dexter.J5_SENT] = Socket.dexter_units_to_degrees(robot_status[Dexter.J5_SENT], 5)
+
             }
         }
         //else not g0 so no conversion
@@ -610,7 +619,8 @@ var Socket = class Socket{
         let rob = Robot[robot_name]
         const sim_actual = Robot.get_simulate_actual(rob.simulate)
         if ((sim_actual === true) || (sim_actual === "both")){ //simulation
-            DexterSim.close(robot_name)
+            //DexterSim.close(robot_name) //commented out mar 21, 20201 because DexterSim.close didn't actually do anything.
+            //if we stop a job, the robot still plays out its queue so simulator should too.
         }
         if ((sim_actual === false) || (sim_actual == "both")){
             if((rob.active_jobs_using_this_robot().length == 0) || force_close){
@@ -662,11 +672,13 @@ Socket.robot_name_to_ws_instance_map = {}
 Socket.DEGREES_PER_DYNAMIXEL_320_UNIT = 0.29   //range of motion sent is 0 to 1023
 Socket.DEGREES_PER_DYNAMIXEL_430_UNIT = 360 / 4096
 Socket.J6_OFFSET_SERVO_UNITS = 512
+Socket.DEXTER_UNITS_PER_SECOND_FOR_SLEEP = 1000000 //ie microseconds
 
 module.exports = Socket
 var {Robot} = require("./robot.js")
 var {Instruction, make_ins} = require("./instruction.js")
 var DexterSim = require("./dextersim.js")
+var Simqueue  = require("./simqueue.js")
 //var {_nbits_cf, _arcsec, _um} = require("./units.js") //don't do this. These units and all the rest are
 //already global vars.
 

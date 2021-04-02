@@ -299,3 +299,44 @@ function fn_(){
 }
 
 Done with PHU_GUI manual test.
+
+_____Job for testing queoe Simulation_____
+In DDE 3.7.8 or later.
+- IN Misc pane header, click "Show Q".
+- Run job
+- Observe that
+   - the queue blocks additional items after the  Dexter.empty_instruction_queue()
+   - comment out the Dexter.empty_instruction_queue() and the queue should block
+      when its full.
+   - Queue status goes from empty, blocked, sleep, full, accepting
+   - sleep should pause the simulation for 5 seconds
+   - after a run, click Params button to see changes (these are in dexter units!)
+   - after a run click "FPGA" button to see changes to fpga register 7
+
+new Job({
+         name: "my_job",
+         do_list: [
+             Dexter.move_all_joints([10, 20, 90]),
+             Dexter.move_all_joints([ 1, 10,  3]),
+             Dexter.move_all_joints([ 1, 50,  3]),
+             Dexter.sleep(5),
+             Dexter.move_all_joints([ 1,  0,  3]),
+             Dexter.set_parameter("J1Force", 0.44),
+             Dexter.write_fpga(7, 747),
+             Dexter.move_all_joints([-22, 20, 90]),
+             Dexter.empty_instruction_queue(),
+             Dexter.move_all_joints([ 1, 10,  3]),
+             Dexter.move_all_joints([ 1,  50,  3]),
+             Dexter.move_all_joints([ 1,  0,  3]),
+             Dexter.move_all_joints([10, 20, 90]),
+             Dexter.move_all_joints([ 1, 10,  3]),
+             Dexter.move_all_joints([ 1, 50,  3]),
+             Dexter.move_all_joints([ 1,  0,  3]),
+             Dexter.move_all_joints([10, 20, 90]),
+             Dexter.set_parameter("Acceleration", 0.2),
+             Dexter.move_all_joints([ 1, 10,  3]),
+             Dexter.move_all_joints([ 1, 50,  3]),
+             Dexter.move_all_joints([ 88,  0,  3]),
+             Dexter.move_all_joints([ 99, 30,  3])
+         ]
+     })

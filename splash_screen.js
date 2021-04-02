@@ -12,9 +12,8 @@ var SplashScreen = class SplashScreen {
             persistent_set("dont_show_splash_screen_on_launch", boolean_to_save)
             if(vals["splash_screen_dont_show_checkbox"]) {
                 out("The Welcome Dialog box will not come up when you launch DDE.<br/>" +
-                    "You can still see the  Welcome Dialog box by<br/>" +
-                    "clicking the big blue question mark in the upper right<br/>" +
-                    "of the DDE window.")
+                    "You can still see the Welcome Dialog box by clicking<br/>" +
+                    "the help button at the end of the Editor pane menu bar.")
             }
         }
         else if(vals.clicked_button_value == "splash_screen_which_tutorial_id") {
@@ -35,8 +34,8 @@ var SplashScreen = class SplashScreen {
         }
         else if(vals.clicked_button_value == "close_button"){
             out("You can pop up the Welcome Dialog box by<br/>" +
-                "clicking the big blue question mark<br/>" +
-                 "in the upper right of the DDE window.")
+                "clicking the Help button<br/>" +
+                 "at the end of the Editor pane menu bar.")
         }
     }
 
@@ -62,7 +61,7 @@ var SplashScreen = class SplashScreen {
             x: 320, //same as dexter ui on purpose so that dui will "cover up" the splash screen.
             y: 100,
             width: 310, //380 is splash screen width 480,
-            height: 330,
+            height: 370,
             background_color: "#bae5fe", // pastel green: "#e7ffef",
             callback: "SplashScreen.show_splash_screen_cb",
             content:
@@ -74,7 +73,10 @@ var SplashScreen = class SplashScreen {
        `</select>
         <div style="margin-top:5px;">
         <input name="splash_screen_dont_show_checkbox" type="checkbox" data-onchange="true"/><span style="font-size:14px;">
-            Don't show this dialog on DDE launch.</span></div>
+            Don't show this dialog on DDE launch.<br/>
+            (You can get it back by clicking 
+            <button>Help</button><br/>
+            in the Editor pane menu bar.)</span></div>
     </div>`})
     }
 
@@ -95,8 +97,8 @@ var SplashScreen = class SplashScreen {
     static close_window_with_help(){
         SW.close_windows_of_title("Welcome to DDE")
         out("You can pop up the Welcome Dialog box by<br/>" +
-            "clicking the big blue question mark<br/>" +
-            "in the upper right of the DDE window.")
+            "clicking the Help button<br/>" +
+            "at the end of the Editor pane menu bar.")
     }
 
 //complication: what if I change the tutorials in a new release,
@@ -138,7 +140,7 @@ var SplashScreen = class SplashScreen {
         //Job.define_and_start_job(__dirname + '/user_tools/dexter_user_interface2.js') //now done after
         //user selects simulate or real so that the robt/job picks up the radio button value.
         setTimeout(function() {
-                    load_files(__dirname + "/tutorials/dexter_ui_tutorial.dde")},
+                    load_files(__dirname + "/tutorials/dexter_ui_tutorial.js")},
                     500)
     }
 

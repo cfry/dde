@@ -323,7 +323,7 @@ function find_doc_aux(record){
     let html_for_test_suites
     let ts_plural_suffix = ((array_of_found_test_suites.length > 1) ? "s" : "")
     if(array_of_found_test_suites.length == 0){
-        html_for_test_suites = "<span style='background-color:yellow;'>" + search_string + "</span> is not in any TestSuites."
+        html_for_test_suites = "" //note; having this text is just confusing for users. so if not found in text suites, just print nothing. //"<span style='background-color:yellow;'>" + search_string + "</span> is not in any TestSuites."
     }
     else {
         html_for_test_suites = "<span style='background-color:yellow;'>" + search_string + "</span> is in " +
@@ -349,7 +349,7 @@ function find_doc_aux(record){
                     search_string + '</span> now highlighed  in yellow in the Doc pane.<br/>' +
                     'To see them, twist down the <details style="background-color:rgb(255, 214, 153);"><summary><b>Orange Rows</b></summary></details>' +
                     html_for_test_suites,
-                    "black", true)
+                    "black")
             }
         },
         each:function(text_node){

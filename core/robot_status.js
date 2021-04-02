@@ -221,14 +221,14 @@ var RobotStatus = class RobotStatus{
             let label = "Dexter.J" + joint_number + "_SENT"
             let index = value_of_path(label)
             let result = this.robot_status[index]
-            if(typeof(result) == "number") { return result}
+            if(typeof(result) === "number") { return result}
             else { dde_error("RobotStatus.sent passed joint_number: " + joint_number + " which isn't valid.") }
         }
         if(sm === 2) {
             let label = "Dexter.J" + joint_number + "_SENT"
             let index = value_of_path(label)
             let result = this.robot_status[index]
-            if(typeof(result) == "number") { return result}
+            if(typeof(result) === "number") { return result}
             else { dde_error("RobotStatus.sent passed joint_number: " + joint_number + " which isn't valid.") }
         }
         else {

@@ -44,7 +44,10 @@ function make_inspector_id_string(stack_number, in_stack_position){
 }
 
 function inspect(item, src){
-    if(src === undefined) { src = to_source_code({value: item}) }
+    if(src === undefined) {
+        try { src = to_source_code({value: item})  } //might get into an infinite loop
+        catch(err) { src = "" + item }
+    }
     inspect_out(item, undefined, undefined, undefined, undefined, undefined, src)
     return "dont_print"
 }
@@ -81,7 +84,7 @@ function inspect_out(item, stack_number, in_stack_position, html_elt_to_replace,
     inspect_stacks_positions[stack_number] = in_stack_position //but is this used anywhere?
     //now first 3 args all filled in and consistent
     let new_inspect_html = inspect_aux(item, stack_number, in_stack_position, increase_max_display_length)
-    if (collapse) {
+    if (collapse) { //probably never hits
         const title_start = new_inspect_html.indexOf("<i>") + 3
         const title_end   = new_inspect_html.indexOf("</i>")
         const title = new_inspect_html.substring(title_start, title_end)
@@ -417,17 +420,17 @@ function inspect_one_liner(item, stack_number, in_stack_position, prop_name){
     if (item === undefined)            { return "undefined" }
     else if (item === null)            { return "null" }
     else if (Number.isNaN(item))       { return "NaN" }
-    else if (the_type == "boolean")    { return "" + item }
-    else if (the_type == "number")     { return "" + item }
+    else if (the_type === "boolean")   { return "" + item }
+    else if (the_type === "number")    { return "" + item }
     else if (item instanceof Date)     { return item.toString() }
 
-    else if (the_type == "string")     {
+    else if (the_type === "string")     {
         //return JSON.stringify(item)
         //var quoting_char = '"'
         let str_length = item.length
         item = replace_substrings(item, "\n", "<br/>")
         var pos_of_br = item.indexOf("<br/>")
-        if (pos_of_br != -1) {
+        if (pos_of_br !== -1) {
             var first_part = item.substring(0, pos_of_br)
             var body       = item.substring(pos_of_br + 5)
             body   = "<div style='display:inline-block;margin-left:17px;'>" + body + "</div>" //to indent by teh twist triangle
@@ -442,7 +445,7 @@ function inspect_one_liner(item, stack_number, in_stack_position, prop_name){
         //now, in DDE_NPM.list,  when I wrap each array item in an A tag with an ooncluck fn
         //that has a lit string arg, I can win.
     }
-    else if (the_type == "function")   {
+    else if (the_type === "function")   {
         if (is_class(item)){
             return inspect_clickable_path(item, stack_number, in_stack_position, prop_name)
         }
@@ -454,9 +457,9 @@ function inspect_one_liner(item, stack_number, in_stack_position, prop_name){
        else return inspect_clickable_path(item, stack_number, in_stack_position, prop_name) +
                     inspect_extra_info(item)
     }
-    else if (the_type == "object") { //handles the typeArray case but note, is same call as normal array
+    else if (the_type === "object") { //handles the typeArray case but note, is same call as normal array
         let name_text = ""
-        if(item.name && (item.name != "")) { name_text = " name: " + item.name + " " } //really useful for Threejs Object3D and probably others
+        if(item.name && (item.name !== "")) { name_text = " name: " + item.name + " " } //really useful for Threejs Object3D and probably others
         else if(prop_name === "prototype") { name_text = "(click for instance methods)"} //when inspecting a class
         return inspect_clickable_path(item, stack_number, in_stack_position, prop_name) +
                  name_text +
@@ -648,7 +651,7 @@ function inspect_format_array_of_similar_objects(item, stack_number, in_stack_po
 
 //item has at least 1 item in it which is an array.
 function inspect_format_2D_array(item){
-    let result = "<details style='display:inline-block;'><summary>2D Array " + item.length + "x" + item[0].length + "</summary>\n"
+    let result = "<details open style='display:inline-block;'><summary>2D Array " + item.length + "x" + item[0].length + "</summary>\n"
     result += "<table>\n"
     for(let i = -1; i < item.length; i++){
         //let row = item[i]

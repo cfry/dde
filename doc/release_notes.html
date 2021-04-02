@@ -6,6 +6,65 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 3.7.8, Apr 2, 2021</summary>
+Highlights: Simulator now more accurately reflects Dexter hardware.
+   Simulator new "Show Q" button.
+   New Reboot Joints menu item and instruction.
+   New help button on Editor pane menu bar replaces big blue quesiton mark in upper right.
+   Dexter UI and its tutorial improved.
+<ul>
+    <li>Improved robot status to g0 to convert the "sent" j1 thru 5 from arcseconds to degrees.</li>
+    <li>DDE_NPM bug fix: when clicking on File menu/Manage npm, the test for whether npm is installed on the machine or not was faulty.</li>
+    <li>Bug fix for browsing several external links in the Ref Man under Python and Plot.</li>
+    <li>If a file is in DDE's files menu list, and you quit DDE and the file is deleted in the OS, and you then launch DDE,
+        DDE use to error or at least put deleted files on the file menu.
+        Now it doesn't.</li>
+    <li>Make Instruction: Dexter rare instructions menu, respelled "write" to "write_fpga".</li>
+    <li>Simulator re-architecture to more accurately reflect Dexter.
+        Much better simulation of J6 & 7 and Dexter.sleep</li>
+    <li>Simulator: Click on the the "Show Q" button in the Misc pane,
+        sim header to display a dynamic representation of Dexter's queue.</li>
+    <li>Minor extension to the tooltip for the Doc pane's "Find" type in field.</li>
+    <li>Dexter UI, Improved tooltip help on J4 and J5 sliders.</li>
+    <li>Extended the Ref Man Python doc to be clearer about what contexts Python
+        code is accepted in, and the intention of DDE's Python interface.</li>
+    <li>For the 'find' results printing in the output pane: Made this non-temporary.
+        Also, if not found in any TestSuites, just print nothing.
+        Too confusing to tell users it isn't in test suites.</li>
+    <li>Welcome to DDE window now tells you, at the bottom,
+        how to get this dialog back if you close it.</li>
+    <li>Improved a Job button's tooltip while running a Dexter.sleep instruction to
+         include the duration.</li>
+    <li>User Guide/Workflow extended to advise evaling small amounts of code often
+        and keeping File Menu/Auto Save checkbox checed to avoid losing work in the event
+        of a crash.</li>
+    <li>New instruction: <code>Dexter.reboot_joints() </code>.
+       This functionality for the default robot can also be achieved via the new item: Jobs Menu/Dexter Tools/Reboot Joints.</li>
+    <li>The functionality of the upper right big blue question mark has
+        been moved to the end of the Editor pane menu bar in a button named "Help"</li>
+    <li>The Editor pane font size change widget and the * mark showing that the
+        editor pane content needs saving is now under the "Editor" label in
+        the upper left of the Editor pane.</li>
+    <li>Dexter UI tutorial panes are now slightly lighter to increase contrast for
+        the text in the panes.</li>
+    <li>Dexter UI tutorial extended to make it more obvious what happens when "real"
+        is selected but no working Dexter is connected.</li>
+    <li>Dexter UI: launching this does not move Dexter (or the sim),
+        it just changes the UI to conform to where Dexter (or sim) is.</li>
+    <li>Dexter UI: improved tutorial flow towards the end of the tutorial and other minor fixes.</li>
+    <li>Bug Fix: For robot status G0, The mapping between the robot status indexes and their names
+        has been restored to the same as it was in DDE LTS, ie:<br/>
+         38 J6_MEASURED_ANGLE,<br/>
+         48  J6_MEASURED_TORQUE,<br/>
+          18  J7_MEASURED_ANGLE,<br/>
+         28  J7_MEASURED_TORQUE</li>
+    <li>Inspector: now catches infinite recursion bug on computing source code. </li>
+    <li>When Inspecting a 2D array, it will be "open" when you first inspect it.
+        This saves the step of expanding it to see its contents.</li>
+</ul>
+</details>
+
+
 <details class="doc_details"><summary>v 3.7.7, Mar 12, 2021</summary>
 Highlghts: Significant enhancements to Plot and DDE_NPM for programmatic interface,
 GUI interface and Documentation.
@@ -2674,6 +2733,7 @@ Highlights: bug fixes.
 </ul>
 </details>
 
+
 <details class="doc_details"><summary>v 3.3.2, May 2, 2019</summary>
 Hightlights: File menu extensions. read_file & write_file names
              now more consistent. Eval button functionality improved.
@@ -2698,7 +2758,7 @@ Hightlights: File menu extensions. read_file & write_file names
 
     <li> <code>DXF.string_to_lines</code> is now bound to <code>txt.string_to_lines</code>.
          The full set of visible ascii chars now supported
-         (lots of pnctuation chars added).
+         (lots of punctuation chars added).
          string_to_lines is not yet documented, but will be soon.</li>
 
     <li>  <code>file_content</code> deprecated and replaced by <code>read_file</code>.<br/>

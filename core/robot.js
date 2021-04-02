@@ -1090,7 +1090,7 @@ Dexter = class Dexter extends Robot {
             this.start_aux(job_instance)
         }
         else {
-            this.set_link_lengths(job_instance)
+            this.set_link_lengths(job_instance) //eventually calls start_aux
         }
         /*}
         else { //running in simulation
@@ -1565,6 +1565,7 @@ Dexter = class Dexter extends Robot {
         //now job_00 is just waiting for another instruction to be passed to it.
     }*/
 }
+
 Dexter.all_names = []
 Dexter.last_robot = null //last Dexter defined.
 
@@ -1744,6 +1745,67 @@ Dexter.prototype.get_robot_status_immediately = function(){ return Dexter.get_ro
 Dexter.load_tables     = function(...args){ return make_ins("l", ...args) } //
 //loads the data created from calibration onto the SD card for persistent storage.
 Dexter.prototype.load_tables = function(...args){ args.push(this); return Dexter.load_tables(...args) }
+
+
+Dexter.joint_to_servo_number_map = {6: 3, 7: 1}
+Dexter.joint_to_servo_number = function(joint_number){
+    return Dexter.joint_to_servo_number_map[joint_number]
+}
+Dexter.servo_to_joint_number = function(servo_number){
+    for(let a_joint_number in Dexter.joint_to_servo_number_map){
+       let a_servo_number = Dexter.joint_to_servo_number_map[a_joint_number]
+       if(a_servo_number === servo_number) { return parseInt(a_joint_number) }
+    }
+    return undefined
+}
+//the instruction
+Dexter.reboot_joints = function(joint_number_array="all"){
+   let servos_to_reboot = []
+   if(joint_number_array === "all") {
+       joint_number_array = Object.getOwnPropertyNames(Dexter.joint_to_servo_number_map)
+       for(let i = 0; i < joint_number_array.length; i++){
+           joint_number_array[i] =  parseInt(joint_number_array[i])
+       }
+   }
+   let instrs = []
+   for(let joint_number of joint_number_array){
+       instrs.push(
+            Dexter.set_parameter("RebootServo", Dexter.joint_to_servo_number(joint_number)))
+       instrs.push(Dexter.sleep(1)) //sleep for 1 sec to allow dynamixel bus to settle
+   }
+   return instrs
+}
+
+Dexter.prototype.reboot_joints = function(joint_number_array="all"){
+    let servos_to_reboot = []
+    if(joint_number_array === "all"){
+        joint_number_array = Object.getOwnPropertyNames(Dexter.joint_to_servo_number_map)
+        for(let i = 0; i < joint_number_array.length; i++){
+            joint_number_array[i] =  parseInt(joint_number_array[i])
+        }
+    }
+    let instrs = []
+    for(let joint_number of joint_number_array){
+        instrs.push(
+            this.set_parameter("RebootServo", Dexter.joint_to_servo_number(joint_number)))
+        instrs.push(this.sleep(1)) //sleep for 1 sec to allow dynamixel bus to settle
+    }
+    return instrs
+}
+
+//the function
+Dexter.prototype.reboot_joints_fn = function (){
+    new Job({name: "reboot_joints",
+        robot: this,
+        do_list: [
+            //Dexter.set_parameter("RebootServo", 1), //reset J7 SPAN
+            //Dexter.sleep(1), //give the servo time to reset.
+            //Dexter.set_parameter("RebootServo", 3), //reset J6 ROLL
+            //Dexter.sleep(1) //give the servo time to reset.
+            this.reboot_joints()
+        ]
+    }).start()
+}
 
 
 
@@ -2042,7 +2104,7 @@ Dexter.prototype.set_parameter = function(name="Acceleration", ...values){
                                                 " which is too low.<br/>MaxSpeed set to the minimum permissible speed of: " + (1 / _nbits_cf))
                                         }
                                     }
-                                    return make_ins("S", name, ...value, this)
+                                    return make_ins("S", name, ...values, this)
                                 }
 
 
@@ -2704,9 +2766,8 @@ Dexter.robot_status_labels = [
 "ERROR_CODE",          //same name                    5 //for any error      //0 means no error. 1 means an error
 "DMA_READ_DATA",       //                             6 // deprecated DMA_READ_DATA  then deprecated  "JOB_ID_OF_CURRENT_INSTRUCTION"
 "READ_BLOCK_COUNT",    //                             7 // deprecated READ_BLOCK_COUNT then deprecated CURRENT_INSTRUCTION_ID
-"STATUS_MODE",   //same name                    8 //was RECORD_BLOCK_SIZE and was unused
-"END_EFFECTOR_IO_IN",     //END_EFFECTOR_IO_IN           9 // was END_EFFECTOR_IN for a while, 0, 1, or 2 indicating type of io for end effector
-
+"STATUS_MODE",         //same name                    8 //was RECORD_BLOCK_SIZE and was unused
+"END_EFFECTOR_IO_IN",     //END_EFFECTOR_IO_IN        9 // was END_EFFECTOR_IN for a while, 0, 1, or 2 indicating type of io for end effector
 //J1 block
 "J1_ANGLE",            // BASE_POSITION_AT           10 //means commanded stepped angle, not commanded_angle and not current_angle
 "J1_DELTA",            // BASE_POSITION_DELTA        11
@@ -2722,7 +2783,7 @@ null,                  // BASE_POSITION_FORCE_DELTA  13 //was J1_FORCE_CALC_ANGL
 "J2_ANGLE",            // END_POSITION_AT            20
 "J2_DELTA",            // END_POSITION_DELTA         21
 "J2_PID_DELTA",        // END_POSITION_PID_DELTA     22 was J2_FORCE_CALC_ANGLE
-null, // END_POSITION_FORCE_DELTA   23
+null,                  // END_POSITION_FORCE_DELTA   23
 "J2_A2D_SIN",          // END_SIN                    24
 "J2_A2D_COS",          // END_COS                    25
 "J2_MEASURED_ANGLE",   // PLAYBACK_END_POSITION      26 //deprecated J2_PLAYBACK
@@ -2850,17 +2911,17 @@ Dexter.make_default_status_array_g_sm = function(sm=0){
 
 Dexter.robot_status_labels_g1 = [
     // misc block
-    "JOB_ID",              //new field                    0 //for commmanded instruction (when added to queue)
-    "INSTRUCTION_ID",      //same name                    1 //for cmd ins
-    "START_TIME",          //new field                    2 //for cmd ins//ms since jan 1, 1970? From Dexter's clock
-    "STOP_TIME",           //new field                    3 //for cmd ins//ms since jan 1, 1970? From Dexter's clock
-    "INSTRUCTION_TYPE",    //same name                    4 //for cmd ins  //"oplet"
+    "JOB_ID",              //new field  0 //for commmanded instruction (when added to queue)
+    "INSTRUCTION_ID",      //same name  1 //for cmd ins
+    "START_TIME",          //new field  2 //for cmd ins//ms since jan 1, 1970? From Dexter's clock
+    "STOP_TIME",           //new field  3 //for cmd ins//ms since jan 1, 1970? From Dexter's clock
+    "INSTRUCTION_TYPE",    //same name  4 //for cmd ins  //"oplet"
 
-    "ERROR_CODE",          //same name                    5 //for any error      //0 means no error. 1 means an error
-    "DMA_READ_DATA",       //                             6 // deprecated DMA_READ_DATA then deprecated JOB_ID_OF_CURRENT_INSTRUCTION
-    "READ_BLOCK_COUNT",    //                             7 // deprecated READ_BLOCK_COUNT then deprecated CURRENT_INSTRUCTION_ID
-    "STATUS_MODE",   //same name                    8
-    "END_EFFECTOR_IO_IN",  //END_EFFECTOR_IO_IN           9 // was END_EFFECTOR_IN for a while, 0, 1, or 2 indicating type of io for end effector
+    "ERROR_CODE",          //same name  5 //for any error      //0 means no error. 1 means an error
+    "DMA_READ_DATA",       //           6 // deprecated DMA_READ_DATA then deprecated JOB_ID_OF_CURRENT_INSTRUCTION
+    "READ_BLOCK_COUNT",    //           7 // deprecated READ_BLOCK_COUNT then deprecated CURRENT_INSTRUCTION_ID
+    "STATUS_MODE",   //same name        8
+    "END_EFFECTOR_IO_IN",  //END_EFFECTOR_IO_IN 9 // was END_EFFECTOR_IN for a while, 0, 1, or 2 indicating type of io for end effector
 
     "J1_MEASURED_ANGLE_G1", //10
     "J2_MEASURED_ANGLE_G1", //11

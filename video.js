@@ -60,6 +60,7 @@ function set_misc_pane_menu_selection(label){
 }
 
 
+
 function show_in_misc_pane(content, arg1 = "", arg2){
     //if Choose File is called from outside dialog, and user cancels, we don't want to
     //change the combo_box value OR persistent save it.
@@ -152,8 +153,6 @@ function show_in_misc_pane(content, arg1 = "", arg2){
             init_simulation()
             //sim.renderer.render(sim.scene, sim.camera);
             setTimeout(function() {
-                         //SimUtils.render_once_with_prev_args_maybe()}, //restore sim graphics to prev state, is way off in restoring robot position
-                         //SimUtils.render_multi(robot_status, job_name, robot_name
                          SimUtils.render_multi_with_prev_args_maybe()},
                        100)
        //}

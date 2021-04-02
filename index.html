@@ -148,7 +148,7 @@
     <script type="text/javascript" src="core/instruction.js"></script>
     <script type="text/javascript" src="core/robot.js"></script>-->
     <script type="text/javascript" src="robot_status_dialog.js"></script>
-    <!--<script type="text/javascript" src="core/dextersim.js"></script>-->
+    <!--<script type="text/javascript" src="core/dextersim.js"></script> Now in  core-->
 
     <!--<script type="text/javascript" src="core/job.js"></script>-->
     <script type="text/javascript" src="job_examples.js"></script> <!--evals no Job code, just literal strings for insertion-->
@@ -227,10 +227,13 @@
         <div>
             <div id="left_splitter_id"> <!-- splits editor and output pane -->
                 <div id="editor_pane_id">
-                    <div id="javascript_pane_header_wrapper_id" class="pane_header_wrapper">
-                        <span id="javascript_pane_help_id" class="pane_header" title="Click for help." style="vertical-align:super;"><u>Editor</u></span>
-                        <div id='js_menubar_id' class='dde_menu' style="display:inline-block;">
-                            <ul style="display:inline-block;padding:0;margin-top:0px;">
+                    <div id="javascript_pane_header_wrapper_id" class="pane_header_wrapper" style="margin:0px;padding-top:0px;padding-bottom:0px;">
+                        <div style="display:inline-block;"><span id="javascript_pane_help_id" class="pane_header" title="Click for help." style="vertical-align:super;margin:0px;padding:0px;"><u style="height:15px;">Editor</u></span><br/>
+                             <input id="font_size_id"  type="number" title="Adjust the font size of the Editor." style="vertical-align:top; width:30px; max-height:15px; margin:0px;padding:0px;" value="16" min="6" step="1"/>
+                             <span id='editor_needs_saving_id' title='* indicates that the editor needs saving.'>&nbsp;</span>
+                        </div>
+                        <div id='js_menubar_id' class='dde_menu' style="display:inline-block;margin-right:0px;">
+                            <ul style="display:inline-block;padding:0;margin-top:0px;margin-right:0px;">
                                 <li id="file_menu_id" style="display:inline-block;padding-left:3px;padding-right:0px;">File&#9660;
                                     <ul>
                                         <li id="new_id"     title="Make a new editor buffer.">New</li>
@@ -662,6 +665,7 @@
                                                 <li id="browse_dexter_id"    title="Browse the web page of&#13;the default Dexter&#13;(selected in the Misc Pane header).">Browse Dexter.default</li>
                                                 <li id="calibrate_id"        title="Calibrate one or more Dexters.&#13;Needed each time you power on a Dexter.">Calibrate Dexter...</li>
                                                 <li id="ping_dexter_id"      title="Find out if a Dexter&#13;or other ip_address&#13;is connected to this computer.">Ping Dexter...</li>
+                                                <li id="reboot_joints_id"    title="Re-enable Joints 6 & 7&#13;when they have been disabled and red lights flash,&#13;Documentation will be shown when you choose this.">Reboot Joints</li>
                                                 <li id="show_errors_log_id"  title="Show the content of the file errors.log&#13;on the default Dexter.">Show errors.log</li>
                                                 <li id="dexter_start_options_id" title="View and set the operations run&#13;when the Dexter selected in the Misc Pane header&#13;is turned on.">Start Options</li>
                                            </ul>
@@ -695,13 +699,8 @@
                                 </li>
                             </ul>
                         </div>
-                       <!--  <div style="vertical-align:top;display:inline-block;line-height: 1.0;font-size:10px;margin:0px;padding:0px;"> -->
-                            <div style="display:inline-block;margin:0px;padding:0px;vertical-align:super;">
-                               <span style="font-size:9px;margin:0px;padding:0px;">fontsize</span><br/>
-                               <input id="font_size_id"  type="number" style="vertical-align:top; width:30px;margin:0px;padding:0px;" value="17" min="6"/>
-                            </div>
-                            <span id='editor_needs_saving_id' title='* indicates that the editor needs saving.'>&nbsp;</span>
-                            <select id="file_name_id" style="width:250px;font-size:14px;margin-right:0px;padding-right:0px;vertical-align:50%;" title=""><option>new buffer</option></select>
+                        <button id="help_system_id" title="Show the Welcome dialog box&#013;which lets you select tutorials to take." style="vertical-align:55%;margin-left:0px;margin-right:0px;">Help</button>
+                        <select id="file_name_id" style="width:250px;font-size:14px;margin-right:0px;padding-right:0px;vertical-align:50%;" title=""><option>new buffer</option></select>
                        <!-- </div> -->
                         <!--ROS url: <input id='dexter_url' value="localhost:9090" style="font-size:14px;"/> -->
                     </div>
@@ -814,13 +813,10 @@
                         <span id="documentation_pane_help_id" class="pane_header"><u>Doc</u></span>&nbsp;
                         <span id="doc_prev_id" title='Show previous documentation.' style='cursor:pointer;color:blue;font-weight:900; font-size:20px; opacity:0.3;'>&lt;</span>
                         <span id="doc_next_id" title='Show next documentation.'     style='cursor:pointer;color:blue;font-weight:900; font-size:20px; opacity:0.3;'>&gt;</span>
-                        <input id="find_doc_input_id" placeholder="search string" title="If this field is empty,&#013;the selection in the&#013;Editor, Cmd line, Doc, or Output&#013;pane is used."
+                        <input id="find_doc_input_id" placeholder="search string" title="If this field is empty,&#013;the selection in the&#013;Editor, Cmd line, Doc, or Output&#013;pane is used by the Find button."
                                style="width:150px; font-size:14px;"/>
-                        <!--<div style='display:inline-block;' id="find_doc_input_id"/> -->
-                        <button id="find_doc_button_id" title="Find documentation on text to the left&#013;or, if none, selected text anywhere.">Find</button>&nbsp;
                       </div>
-                        <span id="help_system_id" title="Show the Welcome dialog box&#013;which lets you select tutorials to take."><b style="font-size:24px; color:blue; vertical-align:bottom; float:right; cursor:pointer;">?</b></span>
-                       <!--  <button id="eval_doc_button_id" title="Evaluated the selected code&#013;in the Doc pane.&#013;Result goes in the Output pane.ƒ">Eval Doc</button> obsolete now that Out pane Eval button can do this-->
+                        <button id="find_doc_button_id" title="Find documentation on text to the left&#013;or, if none, selected text anywhere." style="vertical-align:55%;">Find</button>&nbsp;
                     </div>
                     <div id="doc_pane_content_id" contentEditable="false" style="width:97%; height:90%;padding:5px;overflow:scroll;">
                     </div>
@@ -863,9 +859,11 @@
                         </span>
                         <span title="If unchecked, simulation&#013;will run as fast as it can.&#013;No pauses for sleep or motion.">
                         <input style="display:inline-block; vertical-align:bottom;" id="real_time_sim_checkbox_id" type="checkbox" checked="true" title="If unchecked, simulation&#013;will run as fast as it can.&#013;No pauses for sleep or motion.">real-time-sim</input></span>
-
+                        <button id="show_queue_id"   title="Show a window&#013;that displays a simulation&#013;of Dexter's instruction queue." style="padding:2px">Show Q </button>
                         <span title="If checked, it will cause stepping of the underlying JavaScript code.&#013;when running a job.">
-                        <input style="display:inline-block; vertical-align:bottom; margin-left:15px;" id="js_debugger_checkbox_id" type="checkbox" title="If checked, it will cause stepping of the underlying JavaScript code.&#013;when running a job.">JS debugger</input></span>
+                            <input style="display:inline-block; vertical-align:bottom; margin-left:15px;" id="js_debugger_checkbox_id" type="checkbox" title="If checked, it will cause stepping of the underlying JavaScript code.&#013;when running a job.">JS debugger</input>
+                        </span>
+
 
                     </div>
                     <div id='sim_pane_content_id' contentEditable="false" style="background-color:#EEEEEE; width:97%; height:85%;padding:5px;overflow:scroll;">

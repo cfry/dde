@@ -250,6 +250,7 @@ var TestSuite = class TestSuite{
         load_files(__dirname + "/test_suite/utils_testsuite.js")
         load_files(__dirname + "/test_suite/move_all_joints_testsuite.js")
         load_files(__dirname + "/test_suite/RobotStatus_testsuite.js")
+        load_files(__dirname + "/test_suite/dexter_testsuite.js")
         load_files(__dirname + "/music/note_testsuite.js")
         load_files(__dirname + "/music/phrase_testsuite.js")
         load_files(__dirname + "/test_suite/picture_testsuite.js")
@@ -281,6 +282,7 @@ var TestSuite = class TestSuite{
                                                        // then likely this.state.started_job will hold a job.
                                                        // so we can't resume until that job is finished.
                                                        // monitor_started_job will call resume when the job is finished.
+                let suite_index = this.state.current_suite_index;
                 let cur_suite = this.state.suites[suite_index]
                 if (typeof(cur_suite) == "string"){
                     cur_suite = window.eval(cur_suite)
@@ -289,7 +291,7 @@ var TestSuite = class TestSuite{
                 console.log("starting testsuite: " + cur_suite.name)
                 cur_suite.start(this.state.next_test_index) //try to get through all tests iin cur_suite,
                 if (this.state.started_job) { return }      //but if one is a job, we need to wait until its done
-                if(this.state.next_test_index == cur_suite.tests.length) { //done with cur_suite
+                else if(this.state.next_test_index == cur_suite.tests.length) { //done with cur_suite
                     this.state.reports += cur_suite.report + "<br/>"
                     this.state.current_suite_index += 1 //mostly redundant with setting this above, but not if we're on the last suite.
                     this.state.next_test_index = 0 //don't do this above since we might be entering resume whule in the middle of some test suite
@@ -335,7 +337,7 @@ var TestSuite = class TestSuite{
         let result =  "<b>Summary:</b><br/>" +
                       " Test suites run: "  + total_suites +
                       ", Total tests: "     + total_tests  +
-                      ", Duration: "        + total_dur    + " ms (typical: 130,000 ms)<br/>" +
+                      ", Duration: "        + total_dur    + " ms (typical: 91,000 to 92,000 ms)<br/>" +
                       "Total unknown failures: <span style='color:" + ((total_unknown_failures == 0) ? "black" : "red") + "'>" + total_unknown_failures + "</span>" +
                       ", Total known failures: <span style='color:" + ((total_known_failures   == 0) ? "black" : "red") + "'>" + total_known_failures   + "</span> "
         return result
@@ -479,9 +481,10 @@ var TestSuite = class TestSuite{
     static monitor_started_job(){
         if(this.state && this.state.started_job){
             let job_status_code = this.state.started_job.status_code
+            let cur_test_number = this.state.next_test_index - 1
             if ((job_status_code === "errored") || (job_status_code === "interrupted")){
                 let cur_ts = this.state.suites[this.state.current_suite_index]
-                let cur_test = cur_ts.tests[this.state.next_test_index - 1]
+                let cur_test = cur_ts.tests[cur_test_number]
                 let expected_src = cur_test[1]
                 if(expected_src === "TestSuite.error"){ }//we were expecting an error and we got one so no test failure
                 else {
@@ -490,18 +493,24 @@ var TestSuite = class TestSuite{
                     let suite_index = this.state.current_suite_index;
                     let cur_suite   = this.state.suites[suite_index]
                     cur_suite.unknown_failure_count += 1
-                    cur_suite.report += "Test " + (this.state.next_test_index - 1) + " errored after starting Job: " + this.state.started_job.name + "<br/>" + cur_test[1] + "<br/>"
+                    cur_suite.report += "Test " + cur_test_number + " errored after starting Job: " + this.state.started_job.name + "<br/>" + cur_test[1] + "<br/>"
                 }
+                console.log("testsuite: " + name + " test number: " + cur_test_number +  " " + job_status_code + " Job. " + this.state.started_job.name)
                 clearInterval(this.state.started_job_monitor_set_interval)
                 this.state.started_job = null
                 let ts_inst = this
-                setTimeout(function() { ts_inst.resume() }, 100)
+                setTimeout(function() {
+                    ts_inst.resume() },
+                    100)
             }
             else if (job_status_code == "completed"){
+                console.log("testsuite: " + name + " test number: " + cur_test_number +  " " + job_status_code + " Job. " + this.state.started_job.name)
                 clearInterval(this.state.started_job_monitor_set_interval)
                 this.state.started_job = null
                 let ts_inst = this
-                setTimeout(function() { ts_inst.resume() }, 100)
+                setTimeout(function() {
+                    ts_inst.resume() },
+                    100)
             }
             else {} //all other states like "starting", "running", "running_when_stopped", "suspended" "waiting". just do nothing
                     //and monitor_started_job will be called again by setInterval and
@@ -540,11 +549,16 @@ var TestSuite = class TestSuite{
             if (status == "suspend") {
                 let job_path_string = last(error_message.split(" "))
                 let job_instance = value_of_path(job_path_string)
+                if(!(job_instance instanceof Job)) {
+                    shouldnt("TestSuite expected job_path_string of: " + job_path_string +
+                             " would eval to a job but instead evaled to: " + job_instance)
+                }
                 try {
                      this.state.started_job = job_instance
                      this.state.started_job_monitor_set_interval = setInterval(function(){TestSuite.monitor_started_job()}, 100) //
                         //we need the wrapper around TestSuite.monitor_started_job because otherwise it doesn't get called
                         //with TestSuite as "this".
+                    console.log("starting testsuite: " + name + " test number: " + test_number + " starting Job. " + this.state.started_job.name)
                     job_instance.start(//{when_stopped: function() {TestSuite.resume()}}
                     )
                     return false //means we're suspending this TestSuite. No further action
@@ -603,12 +617,10 @@ var TestSuite = class TestSuite{
         else if (src.startsWith("function(")) { //assume there is only 1 fn def in src, should end with "}"
             src = "let ts_temp = " + src + "\nts_temp" //if I don't do this the try wrapped around my inner eval will cause just a fn to syntactically error. Looks like a chrome eval bug, but do this as its harmless
         }
-        //out(src)
         TestSuite.last_src_error_message = false //needs to be a global to get the val out of the catch clause.
         //unlike every other use of curly braces in JS, try returns the value of its last try expr if no error, and otherwise returns the value of the last expr in catch
         var wrapped_src = "try{ " + src + "} catch(err) {TestSuite.last_src_error_message = err.name + ' ' + err.message; TestSuite.error}"
         var src_result
-        //if (window.prev_src && (src.trim() == "")) { out(windows.prev_src) }
         try{ src_result = window.eval(wrapped_src) }
 
         catch(err) {
@@ -627,7 +639,7 @@ var TestSuite = class TestSuite{
                 error_message =  test_number_html + " suspended until finish of Job." + src_result.name //this error message just end in " Job.foo" as that's used by run_test_array caller
             }
             else { //don't suspend, no error message
-               try { src_result.start()} //don't add resume, justt let the job run and user decides when its done
+               try { src_result.start()} //don't add resume, just let the job run and user decides when its done
                                    //to manually go to the next item
                catch(err) {
                    TestSuite.last_expected_error_message = err.name + ' ' +
@@ -971,11 +983,6 @@ var TestSuite = class TestSuite{
                 }
             }
         }
-        //let result_html = ""
-        // for(let ts of result_tses){
-        //    result_html += ts.to_html() + "<br/>"
-        //}
-        //out(result_html)
         return result_tses
     }
 

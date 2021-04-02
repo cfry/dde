@@ -8,8 +8,8 @@
 
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version: <span id="dde_version_id">3.7.7</span><br/>
-    released: <span id="dde_release_date_id">Mar 12, 2021</span>
+    version: <span id="dde_version_id">3.7.8</span><br/>
+    released: <span id="dde_release_date_id">Apr 2, 2021</span>
     <p></p>
     DDE helps you create, debug, and send software to a Dexter robot.
     You can use any JavaScript augmented with DDE-specific functions to help find out about,
@@ -589,7 +589,7 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
             <li>The Welcome Dialog is a fancy presentation of the below. By default, it
                 comes up at DDE launch. You can disable this by a checkbox in the dialog.
                 If you have disabled it, you can show the dialog by clicking
-                the big blue question mark in the upper right of DDE's window.
+                <button>Help</button> at the end of the Editor pane menu bar.
                 <p></p></li>
             <li><a href="https://www.hdrobotic.com/features" target="_blank">Dexter Features</a>
                  Videos of some things Dexter is capable of plus an early overveiw of DDE.<p></p></li>
@@ -1527,6 +1527,17 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
     Try this: type into the editor<br/>
     <code>2 + 3</code><br/>
     Click <button>Eval</button> and see <b>5</b> in the Output pane.
+    <p></p>
+    We highly recommend that you enter/edit only small amounts of code before
+    selecting and Evaling it. This makes it quite likely that new bugs that you introduce
+    will be in the small amount of code you just entered,
+    making the "locate bug" task easy. When adding an instruction to the definition of a Job,
+    the source code for every Job instruction should eval without an error.
+    <p></p>
+    The File menu contains a checkbox named "Auto Save". When checked,
+    the file you're working on will be saved before every <button>Eval</button> button click.
+    Keeping this checked and following the above advice about only editing small
+    amounts of code before Evaling means you won't lose a lot of work if DDE crashes.
 
     <details class="doc_details"><summary>Persistent Data</summary>
         When you have defined a named function, set a global variable or a property

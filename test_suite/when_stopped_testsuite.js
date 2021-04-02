@@ -141,58 +141,58 @@ new TestSuite("when_stopped_jobs",
 
 new TestSuite("when_stopped_error",
    [`new Job({
-    name: "my_job",
+    name: "my_job_e1",
     user_data: {an_array: [80]},
     //the default if_instruction_error causes the job to stop,
     //but lets the when_stopped instruction run.
     when_stopped: function(){ this.user_data.an_array.push(83)}, //runs
     do_list: [
         function(){ this.user_data.an_array.push(81)}, //runs
-        function(){ unbound_var_name }, //causes an error
+        function(){ unbound_var_name1 }, //causes an error
         function(){ this.user_data.an_array.push(82)}, //doesn't run
         Dexter.empty_instruction_queue()
    ]
    })`, "TestSuite.error"],
-   ["Job.my_job.user_data.an_array", "[80,81,83]"],
+   ["Job.my_job_e1.user_data.an_array", "[80,81,83]"],
    [`new Job({
-    name: "my_job",
+    name: "my_job_e2",
     user_data: {an_array: [80]},
     if_instruction_error: Control.stop_job(),
     when_stopped: function(){ this.user_data.an_array.push(83)}, //runs
     do_list: [
         function(){ this.user_data.an_array.push(81)}, //runs
-        function(){ unbound_var_name }, //causes an error
+        function(){ unbound_var_name2 }, //causes an error
         function(){ this.user_data.an_array.push(82)}, //doesn't run
         Dexter.empty_instruction_queue()
    ]
    })`],
-   ["Job.my_job.user_data.an_array", "[80,81,83]"],
+   ["Job.my_job_e2.user_data.an_array", "[80,81,83]"],
    [`new Job({
-    name: "my_job",
+    name: "my_job_e3",
     user_data: {an_array: [80]},
     if_instruction_error: Control.error("my inst error"),
     when_stopped: function(){ this.user_data.an_array.push(83)}, //runs
     do_list: [
         function(){ this.user_data.an_array.push(81)}, //runs
-        function(){ unbound_var_name }, //causes an error
+        function(){ unbound_var_name3 }, //causes an error
         function(){ this.user_data.an_array.push(82)}, //doesn't run
         Dexter.empty_instruction_queue()
     ]
    })`, "TestSuite.error"],
-   ["Job.my_job.user_data.an_array", "[80,81,83]"],
+   ["Job.my_job_e3.user_data.an_array", "[80,81,83]"],
    [`new Job({
-    name: "my_job",
+    name: "my_job_e4",
     user_data: {an_array: [80]},
     if_instruction_error: IO.out("got inst error, but let job continue"),
     when_stopped: function(){ this.user_data.an_array.push(83)}, //runs
     do_list: [
         function(){ this.user_data.an_array.push(81)}, //runs
-        function(){ unbound_var_name }, //causes an error
+        function(){ unbound_var_name4 }, //causes an error
         function(){ this.user_data.an_array.push(82)}, //runs
         Dexter.empty_instruction_queue()
     ]
    })`, "TestSuite.error"],
-   ["Job.my_job.user_data.an_array", "[80,81,82,83]"],
+   ["Job.my_job_e4.user_data.an_array", "[80,81,82,83]"],
    [`new Job({
     name: "my_job",
     robot: new Dexter({name: "dexter_no_exist", ip_address: "111.111.1.111", simulate: false}),
