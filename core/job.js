@@ -106,7 +106,7 @@ class Job{
     }
     if (Job[name] && Job[name].is_active()) { //we're redefining the job so we want to make sure the
                                               //previous version is stopped.
-        if (Job[name].robot instanceof Dexter) {Job[name].robot.empty_instruction_queue_now() }
+        //if (Job[name].robot instanceof Dexter) {Job[name].robot.empty_instruction_queue_now() }
         Job[name].stop_for_reason("interrupted", "User is redefining this job.")
         let orig_args = arguments[0]
         setTimeout(function(){ new Job (orig_args) }, 200)
@@ -728,6 +728,7 @@ class Job{
                 //not focused, pressing the space or ENTER key doesn't do something strange
                 //like an extra button click.
                 const job_instance = Job[job_name]
+                console.log("Job button clicked when status was: " + job_instance.status_code)
                 if (job_instance.status_code == "suspended"){
                     if(but_elt.title.includes("Make Instruction")) { job_instance.stop_for_reason("interrupted", "User stopped job.") }
                     else { job_instance.unsuspend() }
@@ -738,7 +739,7 @@ class Job{
                         job_instance.color_job_button() //keep this call
                     }
                     else if(job_instance.is_active()){
-                        if (job_instance.robot instanceof Dexter) { job_instance.robot.empty_instruction_queue_now() }
+                        //if (job_instance.robot instanceof Dexter) { job_instance.robot.empty_instruction_queue_now() }
                         job_instance.stop_for_reason("interrupted", "User stopped job", false)
                     }
                     else { //restart this job on Dexter
@@ -747,7 +748,9 @@ class Job{
                     }
                 }
                 else if(job_instance.is_active()){
-                    if (job_instance.robot instanceof Dexter) { job_instance.robot.empty_instruction_queue_now() }
+                    if (job_instance.robot instanceof Dexter) {
+                         //job_instance.robot.empty_instruction_queue_now() //causes DexRun to error.
+                    }
                     job_instance.stop_for_reason("interrupted", "User stopped job", false)
                 }
                 else {
@@ -792,7 +795,7 @@ class Job{
            job_instance.unsuspend()
         }
         else if(job_instance.is_active()){
-            if (job_instance.robot instanceof Dexter) { job_instance.robot.empty_instruction_queue_now() }
+            //if (job_instance.robot instanceof Dexter) { job_instance.robot.empty_instruction_queue_now() }
             job_instance.stop_for_reason("interrupted", "User stopped job", false)
         }
         else {
@@ -1258,8 +1261,8 @@ Job.last_job = null
 Job.stop_all_jobs = function(){
     var stopped_job_names = []
     for(var j of Job.all_jobs()){
-        if (j.robot instanceof Dexter) { j.robot.empty_instruction_queue_now() }
-        if ((j.stop_reason == null) && (j.status_code != "not_started")){
+        //if (j.robot instanceof Dexter) { j.robot.empty_instruction_queue_now() }
+        if ((j.stop_reason == null) && (j.status_code !== "not_started")){
             j.stop_for_reason("interrupted_by_stop_button", "User stopped all jobs.", false)
             stopped_job_names.push(j.name)
         }
@@ -2052,7 +2055,6 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
     }
   }
 }
-    //this.color_job_button() //todo needs to work for Dexter.sleep (z) instruction and to undo its yellow.
 
 ///also called by Make Instruction for creating string to save.
 Job.prototype.transform_data_array = function(data_array){

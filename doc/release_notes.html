@@ -6,6 +6,29 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 3.7.9, Apr 7, 2021</summary>
+Highlights: Fixed crashing DexRun due to faulty sending of instruction.
+            Fixed Py.eval for global variables.
+            Ref Man new section: "Math in JavaScript"
+<ul>
+    <li>Fixed DexRun crashing by removing faulty sending of instruction "E".</li>
+    <li>Welcome to DDE dialog increased height slightly to avoid scroll bar.</li>
+    <li>Robot Status dialog can now be brought up when no Job has run on the given robot.</li>
+    <li>Robot Status dialog no longer shows incorrect units for 'Measured Torque".</li>
+    <li>When you choose "JS" in the command line language menu,
+        the doc pane scrolls to the User Guide section on "JavaScript".</li>
+    <li>When the command line has language "Python" selected and you click one some text in it,
+         now instead of erroring, you get a link to Python documentation in the output pane.</li>
+    <li>Fixed <code>Py.eval</code> bug for global variables.</li>
+    <li>Ref Man <code>Py.eval</code> has been extended to be a mini tutorial in Python basics.</li>
+    <li>The Ref Man intro to Python in DDE has been extended to encompass a wider programming picture.</li>
+    <li>Python documntation: new examples for <code>Py.init()</code> and <code>Py.kill()</code> added.</li>
+    <li>Jobs bar height increased to show the bottom of the "circle i" character for inspecting
+        the Job.</li>
+    <li>Ref Man new top level section: <b>Math in JavaScript</b></li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.7.8, Apr 2, 2021</summary>
 Highlights: Simulator now more accurately reflects Dexter hardware.
    Simulator new "Show Q" button.

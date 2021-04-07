@@ -2,6 +2,7 @@ import sys
 import traceback
 import json
 
+dde_py_globals = {'sys': sys}
 def main():
     print("Python eval process started.\n", flush=True)
     while True:
@@ -24,7 +25,7 @@ def main():
             is_py_evalable = True
         if is_py_evalable:
             try:
-                result = eval(src)
+                result = eval(src, dde_py_globals)
                 if str(type(result)) == "<class 'numpy.ndarray'>":
                     result = result.tolist()
             except Exception as err :
@@ -35,7 +36,7 @@ def main():
                 is_error = False
         else:
             try:
-                exec(src)
+                exec(src, dde_py_globals)
             except Exception as err:
                 is_error = True
                 result = traceback.format_exc()

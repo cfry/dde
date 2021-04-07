@@ -61,7 +61,7 @@ var SplashScreen = class SplashScreen {
             x: 320, //same as dexter ui on purpose so that dui will "cover up" the splash screen.
             y: 100,
             width: 310, //380 is splash screen width 480,
-            height: 370,
+            height: 375,
             background_color: "#bae5fe", // pastel green: "#e7ffef",
             callback: "SplashScreen.show_splash_screen_cb",
             content:

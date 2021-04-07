@@ -77,7 +77,7 @@ SimUtils = class SimUtils{
     //ds_inst is an instance of DexterSim class.
     //robot_name example: "Dexter.dexter0"
     static render_multi(ds_instance, new_angles_dexter_units, robot_name, dur_in_ms=0){ //inputs in arc_seconds
-        console.log("render_multi passed: " +  new_angles_dexter_units)
+        //console.log("render_multi passed: " +  new_angles_dexter_units)
         if (Dexter.default.name === robot_name){
             let dur_to_show = Math.round(dur_in_ms / 100) //in 10ths of seconds, rounded
             dur_to_show = "" + dur_to_show

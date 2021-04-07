@@ -265,7 +265,10 @@
             if(full_src.length > 0){
                 let pos = event.target.selectionStart
                 if(pos < (full_src.length - 1)){
-                    if(cmd_lang_id.value == "SSH"){
+                    if(cmd_lang_id.value == "JS"){
+                        onclick_for_click_help(event)
+                    }
+                    else if(cmd_lang_id.value == "SSH"){
                         let space_pos = full_src.indexOf(" ")
                         if((space_pos == -1) || (pos < space_pos)){
                             onclick_for_click_help(event)
@@ -273,8 +276,13 @@
                         //else don't do click help because clicking on the args of a bash cmd
                         //doesn't yield meaningful man help
                     }
-                    else { //JS
-                        onclick_for_click_help(event)
+                    else if (cmd_lang_id.value == "Python"){
+                        out(`<a href='#' onclick='browse_page("https://docs.python.org/3/reference/index.html")' >Python doc</a>`,
+                            undefined, true)
+                    }
+                    else {
+                        shouldnt("cmd_input_id got menu item: " + cmd_lang_id.value +
+                                 " that has no help.")
                     }
                 }
                 //else don't give help if clicking at very end.
@@ -293,6 +301,7 @@
                 SSH.close_connection()  //if no connection. that's ok
                 cmd_menu_id.style.display = "none"
                 cmd_input_id.placeholder = "Type in JS & hit the Enter key to eval"
+                open_doc(JavaScript_guide_id)
             }
             else if(cmd_lang_id.value === "Python"){
                 open_doc(python_doc_id)

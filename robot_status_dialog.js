@@ -14,11 +14,6 @@ var RobotStatusDialog = class RobotStatusDialog{
             if(!(robot instanceof Dexter)) {
                 robot = (Job.last_job? Job.last_job.robot : Dexter.dexter0)
             }
-            if(!robot.robot_status) {
-               warning("Dexter." + robot.name + " has not had a Job run on it since launching DDE,<br/>" +
-                       "so it has no robot_status yet.")
-                return
-            }
             let content = RobotStatusDialog.make_html_table(robot)
             let cal = robot.is_calibrated()
             cal = ((cal === null) ? "unknown" : cal)
@@ -124,7 +119,7 @@ var RobotStatusDialog = class RobotStatusDialog{
                 for (let i = 0; i < 60; i++){ //don't use robot_status.length as there might not BE a robot_status if it hasn't been run yet
                     let label = labels[i]
                     if ((label != null) && !label.startsWith("UNUSED")){
-                        let val      = (robot_status ? robot_status[i] : "no status") //its possible that a robot will have been defined, but never actually run when this fn is called.
+                        let val      = (robot_status ? robot_status[i] : "N/A") //its possible that a robot will have been defined, but never actually run when this fn is called.
                         if((typeof(val) == "number") && (i >= 10)) { //display as a real float
                             val = to_fixed_smart(val, 3) //val.toFixed(3)
                         }
@@ -141,10 +136,12 @@ var RobotStatusDialog = class RobotStatusDialog{
                     STOP_TIME_id.title  = date_integer_to_long_string(robot_status[Dexter.STOP_TIME])
                     INSTRUCTION_TYPE_id.title = Robot.instruction_type_to_function_name(robot_status[Dexter.INSTRUCTION_TYPE])
                     if(window["MEASURED_X_id"]) {
-                        let xyz = robot.rs.xyz()[0]
-                        MEASURED_X_id.innerHTML = this.format_measured_angle(xyz[0])
-                        MEASURED_Y_id.innerHTML = this.format_measured_angle(xyz[1])
-                        MEASURED_Z_id.innerHTML = this.format_measured_angle(xyz[2])
+                        let xyz
+                        if(robot.rs) { xyz = robot.rs.xyz()[0] }  //gets xyz array for joint 5}
+                        else { xyz = ["N/A", "N/A", "N/A"] }
+                        MEASURED_X_id.innerHTML = this.format_measured_meters(xyz[0])
+                        MEASURED_Y_id.innerHTML = this.format_measured_meters(xyz[1])
+                        MEASURED_Z_id.innerHTML = this.format_measured_meters(xyz[2])
                     }
                 }
                 else {
@@ -195,7 +192,9 @@ var RobotStatusDialog = class RobotStatusDialog{
     }
 
     static make_html_table_g0(robot_status, robot){
-        let xyz = robot.rs.xyz()[0]  //gets xyz array for joint 5
+        let xyz
+        if(robot.rs) { xyz = robot.rs.xyz()[0] } //gets xyz array for joint 5
+        else { xyz = ["N/A", "N/A", "N/A"] }
       return (
         "<tr><th></th>         <th>Joint 1</th><th>Joint 2</th><th>Joint 3</th><th>Joint 4</th><th>Joint 5</th><th>Joint 6</th><th>Joint 7</th></tr>" +
         this.make_rs_row(robot_status, "MEASURED_ANGLE",    "J1_MEASURED_ANGLE",   "J2_MEASURED_ANGLE",   "J3_MEASURED_ANGLE",   "J4_MEASURED_ANGLE", "J5_MEASURED_ANGLE", "J6_MEASURED_ANGLE",  "J7_MEASURED_ANGLE") +
@@ -209,28 +208,32 @@ var RobotStatusDialog = class RobotStatusDialog{
         //this.make_rs_row(robot_status, "PLAYBACK",  "J1_PLAYBACK",  "J2_PLAYBACK",  "J3_PLAYBACK",  "J4_PLAYBACK",  "J5_PLAYBACK" ) +
 
         this.make_rs_row(robot_status, "SENT",      "J1_SENT",      "J2_SENT",      "J3_SENT",      "J4_SENT",      "J5_SENT")     +
-        "<tr><th>J5 MEASURED X</th><td><span id='MEASURED_X_id' style='font-family:monospace;float:right;'>" + this.format_measured_angle(xyz[0]) +
-        "</span></td><th>J5 MEASURED Y</th><td><span id='MEASURED_Y_id' style='font-family:monospace;float:right;'>" + this.format_measured_angle(xyz[1]) +
-        "</span></td><th>J5 MEASURED Z</th><td><span id='MEASURED_Z_id' style='font-family:monospace;float:right;'>" + this.format_measured_angle(xyz[2]) +
+        "<tr>        <th>J5 MEASURED X</th><td><span id='MEASURED_X_id' style='font-family:monospace;float:right;'>" + this.format_measured_meters(xyz[0]) +
+        "</span></td><th>J5 MEASURED Y</th><td><span id='MEASURED_Y_id' style='font-family:monospace;float:right;'>" + this.format_measured_meters(xyz[1]) +
+        "</span></td><th>J5 MEASURED Z</th><td><span id='MEASURED_Z_id' style='font-family:monospace;float:right;'>" + this.format_measured_meters(xyz[2]) +
         "</span></td></tr>"      )
     }
 
     static make_html_table_g1(robot_status, robot){
-        let xyz = robot.rs.xyz()[0]  //gets xyz array for joint 5
+        let xyz
+        if(robot.rs) { xyz = robot.rs.xyz()[0]}  //gets xyz array for joint 5
+        else { xyz = ["N/A", "N/A", "N/A"] }
         return (
             "<tr><th></th>         <th>Joint 1</th><th>Joint 2</th><th>Joint 3</th><th>Joint 4</th><th>Joint 5</th><th>Joint 6</th><th>Joint 7</th></tr>" +
             this.make_rs_row(robot_status, "MEASURED_ANGLE", "J1_MEASURED_ANGLE_G1", "J2_MEASURED_ANGLE_G1", "J3_MEASURED_ANGLE_G1", "J4_MEASURED_ANGLE_G1", "J5_MEASURED_ANGLE_G1", "J6_MEASURED_ANGLE_G1", "J7_MEASURED_ANGLE_G1") +
             this.make_rs_row(robot_status, "TORQUE",         "J1_TORQUE_G1",         "J2_TORQUE_G1",         "J3_TORQUE_G1",         "J4_TORQUE_G1",         "J5_TORQUE_G1",         "J6_TORQUE_G1",         "J7_TORQUE_G1") +
             this.make_rs_row(robot_status, "VELOCITY",       "J1_VELOCITY_G1",       "J2_VELOCITY_G1",       "J3_VELOCITY_G1",       "J4_VELOCITY_G1",       "J5_VELOCITY_G1",       "J6_VELOCITY_G1",       "J7_VELOCITY_G1") +
-            "<tr><th>J5 MEASURED X</th><td><span id='MEASURED_X_id' style='font-family:monospace;float:right;'>" + this.format_measured_angle(xyz[0]) +
-            "</span></td><th>J5 MEASURED Y</th><td><span id='MEASURED_Y_id' style='font-family:monospace;float:right;'>" + this.format_measured_angle(xyz[1]) +
-            "</span></td><th>J5 MEASURED Z</th><td><span id='MEASURED_Z_id' style='font-family:monospace;float:right;'>" + this.format_measured_angle(xyz[2]) +
+            "<tr>        <th>J5 MEASURED X</th><td><span id='MEASURED_X_id' style='font-family:monospace;float:right;'>" + this.format_measured_meters(xyz[0]) +
+            "</span></td><th>J5 MEASURED Y</th><td><span id='MEASURED_Y_id' style='font-family:monospace;float:right;'>" + this.format_measured_meters(xyz[1]) +
+            "</span></td><th>J5 MEASURED Z</th><td><span id='MEASURED_Z_id' style='font-family:monospace;float:right;'>" + this.format_measured_meters(xyz[2]) +
             "</span></td></tr>"
             )
     }
 
     static make_html_table_g2(robot_status, robot){
-        let xyz = robot.rs.xyz()[0]  //gets xyz array for joint 5
+        let xyz
+        if(robot.rs) { xyz = robot.rs.xyz()[0]}  //gets xyz array for joint 5
+        else { xyz = ["N/A", "N/A", "N/A"] }
         return (
             "<tr><th></th>         <th>Joint 1</th><th>Joint 2</th><th>Joint 3</th><th>Joint 4</th><th>Joint 5</th><th>Joint 6</th><th>Joint 7</th></tr>" +
             this.make_rs_row(robot_status, "MEASURED_ANGLE",    "J1_MEASURED_ANGLE_G2",   "J2_MEASURED_ANGLE_G2",   "J3_MEASURED_ANGLE_G2",   "J4_MEASURED_ANGLE_G2", "J5_MEASURED_ANGLE_G2", "J6_MEASURED_ANGLE_G2",  "J7_MEASURED_ANGLE_G2") +
@@ -244,9 +247,9 @@ var RobotStatusDialog = class RobotStatusDialog{
             //this.make_rs_row(robot_status, "PLAYBACK",  "J1_PLAYBACK",  "J2_PLAYBACK",  "J3_PLAYBACK",  "J4_PLAYBACK",  "J5_PLAYBACK" ) +
 
             this.make_rs_row(robot_status, "SENT",      "J1_SENT_G2",      "J2_SENT_G2",      "J3_SENT_G2",      "J4_SENT_G2",      "J5_SENT_G2")     +
-            "<tr><th>J5 MEASURED X</th><td><span id='MEASURED_X_id' style='font-family:monospace;float:right;'>" + this.format_measured_angle(xyz[0]) +
-            "</span></td><th>J5 MEASURED Y</th><td><span id='MEASURED_Y_id' style='font-family:monospace;float:right;'>" + this.format_measured_angle(xyz[1]) +
-            "</span></td><th>J5 MEASURED Z</th><td><span id='MEASURED_Z_id' style='font-family:monospace;float:right;'>" + this.format_measured_angle(xyz[2]) +
+            "<tr><th>J5 MEASURED X</th><td><span id='MEASURED_X_id' style='font-family:monospace;float:right;'>"         + this.format_measured_meters(xyz[0]) +
+            "</span></td><th>J5 MEASURED Y</th><td><span id='MEASURED_Y_id' style='font-family:monospace;float:right;'>" + this.format_measured_meters(xyz[1]) +
+            "</span></td><th>J5 MEASURED Z</th><td><span id='MEASURED_Z_id' style='font-family:monospace;float:right;'>" + this.format_measured_meters(xyz[2]) +
             "</span></td></tr>"      )
     }
 
@@ -272,36 +275,42 @@ var RobotStatusDialog = class RobotStatusDialog{
         return "<tr>" + result + "</tr>"
     }
 
-    static format_measured_angle(angle) {
-        if (angle == "no status") { return angle }
-        else { return to_fixed_smart(angle, 3) + "m" }
+    static format_measured_meters(angle) {
+        if (typeof(angle) === "number") { return to_fixed_smart(angle, 3) + "m" }
+        else { return angle }
     }
 
     static make_rs_row(robot_status, ...fields){
         let result   = "<tr>"
         let on_first = true
         let row_header = fields[0]
-        let sm = robot_status[Dexter.STATUS_MODE]
+        let sm = (robot_status ? robot_status[Dexter.STATUS_MODE] : 0)
         let do_decimal_processing = row_header != ""
         //let is_angle = fields[0].endsWith("ANGLE")
         //let degree_html = (is_angle ? "&deg;" : "")
-        let val_units = ""
         for(let field of fields){
+            let val_units = ""
             let val = (robot_status ? robot_status[Dexter[field]] : "no status")
-            if(field && field.includes("MEASURED_ANGLE") && (field !== "MEASURED_ANGLE")) { //exclude the header
-                if(sm > 0) { val = val / 3600   }  //convert from degrees to arcseconds for all sm's except G0
-                val_units = "&deg;"
-            }
-            else if (field && field.includes("TORQUE") && ((field !== "TORQUE") || (field !== "MEASURED_TORQUE"))) {
-                if((val === undefined) || (val === null)) { val = "N/A" } //happens when sm === 0 for J1 thru 5
-                else {
-                    val = val / 1000000
-                    val_units = "Nm" //Newton-meter
+            if(robot_status) {
+                if(field && field.includes("MEASURED_ANGLE") && (field !== "MEASURED_ANGLE")) { //exclude the header
+                    if(sm > 0) { val = val / 3600   }  //convert from degrees to arcseconds for all sm's except G0
+                    val_units = "&deg;"
+                }
+                else if (field && field.includes("TORQUE") && ((field !== "TORQUE") || (field !== "MEASURED_TORQUE"))) {
+                    if((val === undefined) || (val === null)) { val = "N/A" } //happens when sm === 0 for J1 thru 5
+                    else {
+                        val = val / 1000000
+                        val_units = "" //"Nm" //Newton-meter  this is NOT Newton-meter its "dexter_units, ie speical Dynamixel units, 0 to 1023
+                    }
+                }
+                else if (field && field.includes("VELOCITY") && (field !== "VELOCITY")) {
+                    val = val / 3600 //convert from arcseconds per second to degrees per second
+                    val_units = "&deg;/s" //degrees per scound
                 }
             }
-            else if (field && field.includes("VELOCITY") && (field !== "VELOCITY")) {
-                val = val / 3600 //convert from arcseconds per second to degrees per second
-                val_units = "&deg;/s" //degrees per scound
+            else {
+                val = "N/A"
+                val_units = ""
             }
             if(on_first) {
                 result += "<th>" + field + "</th>"

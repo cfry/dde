@@ -80,7 +80,7 @@ var dui2 = class dui2 {
         let name = ((platform === "dde") ? "dui2_for_" + dex.name : "dexter_user_interface2") //the job engine Job name must match the file name (sans .js")
         if (Job[name] && Job[name].is_active()) { //we're redefining the job so we want to make sure the
             //previous version is stopped first
-            if (Job[name].robot instanceof Dexter) {Job[name].robot.empty_instruction_queue_now() }
+            //if (Job[name].robot instanceof Dexter) {Job[name].robot.empty_instruction_queue_now() }
             Job[name].stop_for_reason("interrupted", "User is redefining this job.")
             setTimeout(function(){ dui2.make_job(true) }, 200)
         }

@@ -1272,6 +1272,9 @@ Dexter = class Dexter extends Robot {
     }
 
     close_robot(){
+        out("top of Dexter.close_robot")
+        //setTimeout(function(){
+        //out("top of timeout fn Dexter.close_robot")
         clearTimeout(this.heartbeat_timeout_obj) //looks like not working
         this.waiting_for_heartbeat = false
         this.heartbeat_timeout_obj = null
@@ -1280,11 +1283,13 @@ Dexter = class Dexter extends Robot {
         // delete Dexter[this.name] //don't do this. If the robot is still part of a Job,
         //and that job is inactive, then we can still "restart" the job,
         //and as such we want that binding of Robot.this_name to still be around.
+        //}, 5000)
     }
 
+    /* causes DexRun to crash. re-inswtate when FPGA code rewriten to support this
     empty_instruction_queue_now(){
         Socket.empty_instruction_queue_now(this.name)
-    }
+    }*/
 
     //ins_array can be an oplet array or a raw string
     send(oplet_array_or_string){

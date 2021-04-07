@@ -442,12 +442,14 @@ module.exports.pad_integer = pad_integer
 
 //used in computing numbers to display in the robot_status dialog
 function to_fixed_smart(num, digits=0){
-    if((num == "no status") || (num === undefined)) { return num }
-    try{ return num.toFixed(digits)}
-    catch(err){
-        warning("to_fixed_smart called with non_number: " + num)
-        return "" + num
+    if(typeof(num) === "number") {
+        try{ return num.toFixed(digits)}
+        catch(err){
+            warning("to_fixed_smart called with non_number: " + num)
+            return "" + num
+        }
     }
+    else { return num } //presume its a string like "N/A" and leave it alone.
 }
 module.exports.to_fixed_smart = to_fixed_smart
 

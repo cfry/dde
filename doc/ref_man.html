@@ -10097,6 +10097,37 @@ show_window({title: "Modify Window",
 
 </details> <!-- end window_system -->
 
+<details id="Math_id" class="doc_details"><summary>Math in JavaScript</summary>
+Arithmetic is built-in to JavaScript at top level.<br/>
+See DDE menu bar/Learn JS/Math for examples to insert.
+<p></p>
+The class <code>Number</code> has a few constants and utility functions.<br/>
+Eval <code>Number</code> to see them.
+<p></p>
+The class <code>Math</code> has quite a few more contants and functions
+including trigonometry and exponents.<br/>
+Eval <code>Math</code> to see them.
+<p></p>
+<code>"mathjs"</code> is an npm package containing a large number of functions.
+It is built-in to DDE. It supports
+numbers, big numbers, complex numbers, fractions, units, strings,
+arrays, matrices, eigenvalues and symbolic math.<br/>
+<a href="#" onclick='browse_page("https://mathjs.org/")'>Overview</a>
+<a style="margin-left:20px;" href="#" onclick='browse_page("https://mathjs.org/docs/reference/functions.html")'>Function Reference</a>
+<p></p>
+<i>Examples:</i><br/>
+Initialize "math" to the class containing the mathjs functions<br/>
+<code>var math = require("mathjs")</code>
+<p></p>
+Eval <code>math</code>  to inspect the list of constants and functions available<br/>
+<code>math.hypot(3, 4)</code> => <samp>5</samp>
+<p></p>
+There's a lot more math libraries in npm. Choose File menu/Manage npm.
+Type in "math" or the name of some math function like "svd", and
+click the <button>search</button> button. This will show you a page
+of relevant npm packages.
+</details>
+
 <details id="Messaging_id" class="doc_details"><summary>Messaging</summary>
    <div style="color: red;"> Warning: The Messaging facility
       is now just internal prototype code, not available for public use.
@@ -11182,9 +11213,34 @@ Here we point out just a few that are especially easy and useful for teaching.
    </details> <!-- end Patch System -->
    </details> <!-- End PatchDDE -->
    <details id="python_doc_id" class="doc_details"><summary>Python</summary>
-       DDE is a JavaScript-based development environment. When you have code in the
-       editor, it is expected to be JavaScript <i>unless</i>
-       <ul><li>The code is in a file with a ".py" extension.</li>
+       A language is a collection of tools that are designed to work synergistically
+       with each other. When possible, its good to keep the code for a program in
+       one language for this reason.
+       <p></p>
+       JavaScript was chosen for DDE because:
+       <ul>
+            <li>It has the largest repository of open source code for any programming language ever.</li>
+            <li>Its the primary general purpose programming language on the Web.</li>
+            <li>It has decent support for "eval" (which Python doesn't), necessary for
+                the kind of interactive IDE that DDE is. </li>
+       </ul>
+       JavaScript, like all programming languages,
+       especially those popular now, is far from perfect. DDE helps programmers
+       work around those imperfections.
+       <p></p>
+       None-the-less, sometimes its worth it to put up with the difficulties of
+       "foreign function calls" to get the functionality in other languages.
+       This can happen because a given functionality isn't available in the primary
+       language of the app, and its too big to write. Or it may be that the programmer
+       is more familiar with a library in another language. There are "cultural"
+       reasons as well, or simply matters of personal taste.
+       <p></p>
+       DDE is a JavaScript-based development environment. When you have code in DDE,
+       it is expected to be JavaScript. But to accomodate useful functionality
+       in Python, DDE has several ways that DDE programs can take advantage of
+       existing Python code, or even write new bits of "glue code" between
+       existing Python and DDE/JavaScript.
+       <ul><li>The Python code is in a file with a ".py" extension.</li>
            <li>The code is wrapped in a call to DDE's (JavaScript) function:
                 <code>Py.eval</code></li>
            <li>The code is in DDE's command line, and you've selected "Python"
@@ -11334,18 +11390,51 @@ Here we point out just a few that are especially easy and useful for teaching.
        you kill it, init a new Python process, or quit DDE.
        <p/>
        <i>Examples:</i><p/>
-       <code>Py.eval("len([4, 5])") </code><p/>
-
-       <code>Py.eval('foo = "hi from py"') </code><br/>
-       <code>Py.eval('foo') </code><p/>
-
-       <code>Py.eval('import math') </code><br/>
-       <code>Py.eval('math.pi') </code><br/>
+       Get the length of a list:<br/>
+       <code>Py.eval("len([4, 5])") </code>
+       <p></p>
+       Set the variable "foo".<br/>
+       <code>Py.eval('foo = "hi from Py"') </code><br/>
+       Get the value of the varible foo:<br/>
+       <code>Py.eval('foo') </code>
+       <p></p>
+       See the installed modules<br/>
+       Note: The "sys" module is automatically installed in
+             DDE's Python interface process.<br/>
+       <code>Py.eval("list(sys.modules.keys())")</code>
+       <p></p>
+       See the folders where Python looks for modules to import.<br/>
+       <code>Py.eval("sys.path")</code><br/>
+       Add to that array:<br/>
+       <code title="not  in TestSuite">Py.eval("sys.path.append('/Users/foo/Documents')")</code>
+       <p></p>
+       Import the "math" module.<br/>
+       <code>Py.eval('import math') </code>
+       <p></p>
+       Get the value of a constant in the Math package.<br/>
+       <code>Py.eval('math.pi') </code>
+       <p></p>
+       Add two numbers and use the result in the callback to Py.eval.
        <pre><code>Py.eval("2 + 3",
         function(json_obj){
           out(json_obj.source + " => " + json_obj.result)
        })    </code></pre>
-       <pre><code>
+       Redefine foo to 12<br/>
+       <code>Py.eval('foo = 12')</code><br/>
+       Get the new value.<br/>
+       <code>Py.eval('foo')</code>
+       <p></p>
+       Define a function that accesses the global variable "foo" and sets it.
+       <pre><code>Py.eval(`def a_fn():
+  global foo
+  foo = foo + 1
+  return foo`)    </code></pre>
+      Call our newly defined function. Each time we call it, foo is incremented<br/>
+      <code>Py.eval('a_fn()')</code>
+      <p></p>
+      Define a Job that imports "math" and sets the user_data variable of "j2" to
+      the result of math.pi * 10 then uses it to move Joint 2.
+      <pre><code>
 new Job({
   name: "my_job",
   user_data: {j2: null},
@@ -11367,8 +11456,8 @@ new Job({
     }
   ]
 })    </code></pre>
-      Like the other examples, the last example isn't practical, but understanding it will help you
-      integrate Python dynamically into a running job.
+      Like the other examples, the last example isn't so practical, but understanding it will help you
+      integrate Python dynamically into a running job. The details:
       <ol>
           <li> First we initialize <code title="unEVALable">user_data.j2</code> to <code>null</code>. It's going to hold the joint angle that Python computes.
           </li>
@@ -11423,6 +11512,30 @@ new Job({
       For a simpler way to call Python from within a Job, see
       <a href="#" onclick="open_doc('Brain.eval_python_doc_id')">Brain.eval_python</a>
        </details>
+
+       <details  class="doc_details"><summary>dde_apps_folder for Python</summary>
+         In DDE JavaScript, <code>dde_apps_folder</code> is a global variable bound
+         to the full path of the dde_apps folder. It's exact value will be different
+         for each computer, but will be something like
+         <code>"/Users/Fry/Documents/dde_apps"</code>
+         <p></p>
+         This is so convenient that we've made this global variable available in
+         DDE's Python process as well.
+         Here's a case where you might use it. We're storing a filename to
+         write to in a global variable, then using it in a function
+         that writes <code>"Test47"</code> into a file in your dde_apps folder.<br/>
+         <i>Example:</i>
+         <pre><code>Py.eval(`filename = dde_apps_folder + "/filename.txt"
+def main():
+  with open(filename, 'w') as f:
+    f.write("Test47")`)   </code></pre>
+         <code>Py.eval("main()")</code> //creates the file and sets its content to "Test47"<br/>
+         This is one strategy for getting a large string from Python into DDE JavaScript
+         via:<br/>
+         <code>read_file(dde_apps_folder + "/filename.txt")</code> => <samp>"Test47"</samp><br/>
+         Note that our designation for the file is <i>the same</i> for both Python and JavaScript.
+       </details>
+
        <details id="Py.load_file_doc_id" class="doc_details"><summary>Py.load_file</summary>
        Imports a file into DDE's Python process.<br/>
        <i>Parameters:</i><br/>
@@ -11454,7 +11567,9 @@ new Job({
            Ends the Python process. The Python process shouldn't take up much resources
            when idle. One reason to kill it is to get rid of the state currently
            in the Python process so the next time <code>Py.eval</code> is called,
-           it will start afresh.
+           it will start afresh.<br/>
+           <i>Example:</i><br/>
+           <code>Py.kill()</code>
        </details>
        <details id="Py.init_doc_id" class="doc_details"><summary>Py.init</summary>
            This function
@@ -11469,7 +11584,9 @@ new Job({
            after launching DDE or killing the Python process,
            so there isn't much need to call this function explicitly.
            After calling this function, your first call to <code>Py.eval</code> will
-           be a fraction of a second faster.
+           be a fraction of a second faster.<br/>
+           <i>Example:</i><br/>
+           <code>Py.init()</code>
        </details>
        <details  class="doc_details"><summary>Troubleshooting</summary>
            Python, like all modern popular programming languages, has

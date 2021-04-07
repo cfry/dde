@@ -16,7 +16,7 @@ var Socket = class Socket{
             out("socket for Robot." + robot_name + ". is_connected? " + Robot[robot_name].is_connected)
         }
         else if ((sim_actual === false) || (sim_actual == "both")) {
-            if(!Socket.robot_name_to_ws_instance_map[robot_name]){
+            if(!Socket.robot_name_to_soc_instance_map[robot_name]){
                 try {
                     let ws_inst = new net.Socket()
                     ws_inst.on("data", function(data) {
@@ -32,7 +32,7 @@ var Socket = class Socket{
                     let st_inst = setTimeout(function(){
                         if(ws_inst.connecting) { //still trying to connect after 1 sec, so presume it never will. kill it
                             out("Socket timeout while connecting to Dexter." + robot_name)
-                            delete Socket.robot_name_to_ws_instance_map[robot_name]
+                            delete Socket.robot_name_to_soc_instance_map[robot_name]
                             ws_inst.destroy() //todo destroy
                             if(connect_error_cb) {
                                 connect_error_cb() //stop the job that started this.
@@ -42,7 +42,7 @@ var Socket = class Socket{
                     ws_inst.on("error", function(err){
                         out("Socket error while connecting to Dexter." + robot_name)
                         clearTimeout(st_inst)
-                        delete Socket.robot_name_to_ws_instance_map[robot_name]
+                        delete Socket.robot_name_to_soc_instance_map[robot_name]
                         ws_inst.destroy()
                         if(connect_error_cb) {
                             connect_error_cb()
@@ -51,7 +51,7 @@ var Socket = class Socket{
                     out("Now attempting to connect to Dexter." + robot_name + " at ip_address: " + rob.ip_address + " port: " + rob.port + " ...", "brown")
                     ws_inst.connect(rob.port, rob.ip_address, function(){
                         clearTimeout(st_inst)
-                        Socket.robot_name_to_ws_instance_map[robot_name] = ws_inst
+                        Socket.robot_name_to_soc_instance_map[robot_name] = ws_inst
                         Socket.new_socket_callback(robot_name, connect_success_cb)
                     })
                 }
@@ -374,6 +374,10 @@ var Socket = class Socket{
     static send(robot_name, oplet_array_or_string){ //can't name a class method and instance method the same thing
         //onsole.log("Socket.send passed oplet_array_or_string: " + oplet_array_or_string)
         let rob = Robot[robot_name]
+        if(rob.waiting_for_instruction_ack) {
+            dde_error("In Socket.send, attempt to send instruction: " + oplet_array_or_string +
+                      " but still waiting for previous instruction: " + rob.waiting_for_instruction_ack)
+        }
        	if(oplet_array_or_string !== Socket.resend_instruction){ //we don't want to convert an array more than once as that would have degreees * 3600 * 3600 ...
        	                                                     //so only to the convert on the first attempt.
             oplet_array_or_string = Socket.instruction_array_degrees_to_arcseconds_maybe(oplet_array_or_string, rob)
@@ -387,13 +391,17 @@ var Socket = class Socket{
         const arr_buff = Socket.string_to_array_buffer(str)
         const sim_actual = Robot.get_simulate_actual(rob.simulate)
         if((sim_actual === true) || (sim_actual === "both")){
+            rob.waiting_for_instruction_ack = oplet_array_or_string
             DexterSim.send(robot_name, arr_buff)
         }
         if ((sim_actual === false) || (sim_actual === "both")) {
-            let ws_inst = Socket.robot_name_to_ws_instance_map[robot_name]
+            let ws_inst = Socket.robot_name_to_soc_instance_map[robot_name]
             if(ws_inst) {
                 try {
+                    rob.waiting_for_instruction_ack = oplet_array_or_string
+                    //console.log("Socket.send about to send: " + str)
                     ws_inst.write(arr_buff) //if doesn't error, success and we're done with send
+                    //console.log("Socket.send just sent:     " + str)
                     Socket.resend_instruction = null
                     Socket.resend_count       = null
                     //this.stop_job_if_socket_dead(job_id, robot_name)
@@ -458,7 +466,13 @@ var Socket = class Socket{
     //
     static on_receive(data, robot_name, payload_string_maybe){
         //data.length == 240 data is of type: Uint8Array, all values between 0 and 255 inclusive
-        //onsole.log("Socket.on_receive passed data: " + data)
+        //console.log("Socket.on_receive passed data:        " + data)
+        let rob = Dexter[robot_name]
+        if(rob.waiting_for_instruction_ack){ } //ok todo check that data has in it the instruction ack that we are expecting.
+        else {
+            dde_error("Socket.on_receive is not expecting data from Dexter.")
+        }
+        rob.waiting_for_instruction_ack = false
         let robot_status
         let oplet
         if(Array.isArray(data)) {  //todo return from sim same data type as Dexter returns.   //a status array passed in from the simulator
@@ -475,6 +489,7 @@ var Socket = class Socket{
             let opcode = robot_status[Dexter.INSTRUCTION_TYPE]
             oplet  = String.fromCharCode(opcode)
         }
+        //console.log("Socket.on_receive passed robot status: " + robot_status)
         //the simulator automatically does this so we have to do it here in non-simulation
         //out("on_receive got back oplet of " + oplet)
         robot_status[Dexter.INSTRUCTION_TYPE] = oplet
@@ -500,7 +515,7 @@ var Socket = class Socket{
         else {
             Socket.convert_robot_status_to_degrees(robot_status)
         }
-        let rob = Dexter[robot_name]
+
         //Socket.robot_is_waiting_for_reply[robot_name] = false
         rob.robot_done_with_instruction(robot_status) //robot_status ERROR_CODE *might* be 1
     }
@@ -624,16 +639,21 @@ var Socket = class Socket{
         }
         if ((sim_actual === false) || (sim_actual == "both")){
             if((rob.active_jobs_using_this_robot().length == 0) || force_close){
-                const ws_inst = Socket.robot_name_to_ws_instance_map[robot_name]
-                if(ws_inst){
-                    ws_inst.removeAllListeners()
-                    ws_inst.destroy()
-                    delete Socket.robot_name_to_ws_instance_map[robot_name]
+                const soc_instance = Socket.robot_name_to_soc_instance_map[robot_name]
+                if(soc_instance){
+                  //out("about to destroy socket")
+                  //setTimeout(function(){
+                    soc_instance.removeAllListeners()
+                    soc_instance.destroy()
+                    delete Socket.robot_name_to_soc_instance_map[robot_name]
+                    //out("destroyed socket")
+                  //}, 5000)
                 }
             }
         }
     }
 
+    /*this causes DexRun to crash. Ultimately we need to rewrite FPGA code to get this functionality.
     static empty_instruction_queue_now(robot_name){
         let rob = Robot[robot_name]
         const sim_actual = Robot.get_simulate_actual(rob.simulate)
@@ -641,11 +661,11 @@ var Socket = class Socket{
             DexterSim.empty_instruction_queue_now(robot_name)
         }
         if ((sim_actual === false) || (sim_actual == "both")){
-            const ws_inst = Socket.robot_name_to_ws_instance_map[robot_name]
-            if(ws_inst && !ws_inst.destroyed){
+            const soc_inst = Socket.robot_name_to_soc_instance_map[robot_name]
+            if(soc_inst && !soc_inst.destroyed){
                 const oplet_array = make_ins("E") //don't expect to hear anything back from this.
                 const arr_buff = this.oplet_array_or_string_to_array_buffer(oplet_array)
-                try { ws_inst.write(arr_buff) } //band-aid for not knowing what's in Dexter's queue.
+                try { soc_inst.write(arr_buff) } //band-aid for not knowing what's in Dexter's queue.
                                               //if the queue is empty we shouldn't do.
                                               //we should empty the queue whenever DDE detects an error,
                                               //but before closing the socket.
@@ -655,7 +675,7 @@ var Socket = class Socket{
                 }
             }
         }
-    }
+    }*/
 }
 
 //Socket.robot_is_waiting_for_reply = {} //robot_name to boolean map.
@@ -668,7 +688,7 @@ Socket.PAYLOAD_LENGTH = 6 //6th integer array index
 Socket.resend_instruction = null
 Socket.resend_count = null
 
-Socket.robot_name_to_ws_instance_map = {}
+Socket.robot_name_to_soc_instance_map = {}
 Socket.DEGREES_PER_DYNAMIXEL_320_UNIT = 0.29   //range of motion sent is 0 to 1023
 Socket.DEGREES_PER_DYNAMIXEL_430_UNIT = 360 / 4096
 Socket.J6_OFFSET_SERVO_UNITS = 512

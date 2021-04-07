@@ -152,6 +152,7 @@ class Py{
         });
         this.callbacks = [this.default_callback] //clear out old callbacks, and add back the default.
         this.eval('sys.path.append("' + dde_apps_folder + '")')
+        this.eval("dde_apps_folder = '"  + dde_apps_folder + "'")
     }
 
     //callback takes 1 arg, a json_object with is_error, source, result properties
