@@ -6,7 +6,9 @@ DexterSim = class DexterSim{
         this.robot_name = robot_name
         this.robot      = Robot[robot_name] //only used by predict_move_dur
         DexterSim.robot_name_to_dextersim_instance_map[robot_name] = this
-        this.measured_angles_dexter_units = [0,0,0,0,0,0,0]  //a_angles + pid_angles
+        this.measured_angles_dexter_units = [0,0,0,0,0,
+                                             Socket.degrees_to_dexter_units(0, 6), //different from the others because for the others, 0 deg is also 0 dexter units, but not for j6
+                                             0]  //a_angles + pid_angles
     }
 
     static is_simulator_running(){
@@ -27,7 +29,7 @@ DexterSim = class DexterSim{
 
     //sim_actual passed in is either true or "both"
     //called by Socket.init. This is the top level initializer for the simulator
-    static create_or_just_init(robot_name, sim_actual = "required", connect_success_cb){
+    static create_or_just_init(robot_name, sim_actual = "required"){
         if (!DexterSim.robot_name_to_dextersim_instance_map){
             DexterSim.init_all()
         }
@@ -40,7 +42,7 @@ DexterSim = class DexterSim{
             sim_inst.sim_actual = sim_actual
         }
         if (sim_actual === true) { //do not call new_socket_callback if simulate is "both" because we don't want to call it twice
-            Socket.new_socket_callback(robot_name, connect_success_cb)
+            Socket.new_socket_callback(robot_name)
         }
     }
 

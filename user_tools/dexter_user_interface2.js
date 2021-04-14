@@ -305,9 +305,9 @@ var dui2 = class dui2 {
             let min = this.dexter_instance[min_name]
             let max_name = "J" + joint_number + "_angle_max"
             let max = this.dexter_instance[max_name]
-            let val //= RS_inst.measured_angle(joint_number) //these will be set in update_all
-            if(!val) { val = 0 } //when the robot hasn't had a job run on it yet, there won't be a measured_angle,
-                                 //and a val of "undefined" causes a low level warning.
+            let val = 0 //= RS_inst.measured_angle(joint_number) //these will be set in update_all.
+                        //When the robot hasn't had a job run on it yet, there won't be a measured_angle,
+                        // and a val of "undefined" causes a low level warning.
             let slider_width = 200
             let slider_step = 1
             let slider_html = 'J' + joint_number + ': <input data-oninput="true" type="range" ' +

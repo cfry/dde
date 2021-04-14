@@ -41,8 +41,9 @@ var DDE_NPM = class DDE_NPM {
                        save:true
                       })
             .then(function(){
+                let pkg_name_underscores = replace_substrings(pkg_name, "-", "_")
                 out("npm package: " + pkg_name + " successfully installed. To use it, eval: <br/>" +
-                    '<code>var ' + pkg_name + ' = require(DDE_NPM.folder + "' + pkg_name + '") </code>')
+                    '<code>var ' + pkg_name_underscores + ' = require(DDE_NPM.folder + "' + pkg_name + '") </code>')
             })
             .catch(function(err){
                 warning("npm package: " + pkg_name + " could not be installed.<br/>" + err)
@@ -252,7 +253,7 @@ var DDE_NPM = class DDE_NPM {
         let result = []
         for(let pkg_name of array_of_pkg_names){
            //let html = `<a href='#' onclick="DDE_NPM.show_ui_really('` + pkg_name + `')">` + pkg_name + `</a>`
-            let html = "<a href='#' onclick='DDE_NPM.show_ui_really(" +
+            let html = "<a href='#' title='Insert this package name into the \"Manage NPM packages\" dialog.' onclick='DDE_NPM.show_ui_really(" +
                        '"' + pkg_name + '"' + ")'>" + pkg_name + "</a>"
            result.push(html)
         }
@@ -298,6 +299,7 @@ var DDE_NPM = class DDE_NPM {
     }
 
     static show_ui(){
+        open_doc(DDE_NPM_doc_id)
         exec("npm list", {cwd: dde_apps_folder}, function(err, stdout, stderr){ //stderr will be a string. It is an empty string if our bash cmd succeeded.
             if(err || (stderr.length > 0)) {
                      warning("It appears that npm is not installed on your computer.<br/>" +
@@ -309,7 +311,6 @@ var DDE_NPM = class DDE_NPM {
     }
 
     static show_ui_really(pkg_name = ""){
-        open_doc(using_npm_packages_doc_id)
         if(window.pkg_name_id) {
             pkg_name_id.value = pkg_name
         }
@@ -330,13 +331,13 @@ var DDE_NPM = class DDE_NPM {
                       <p></p>
                       <input id="pkg_name_id" autofocus style="margin-left:20px;width:200px;font-size:16px;" value="` + pkg_name + `"/>
                       <p></p>  
-                      <input type="button" name="info_button"           value="Info"             style='margin-left:20px;'/>
-                      <input type="button" name="doc_button"            value="Doc"              style='margin-left:20px;'/>
-                      <input type="button" name="search_button"         value="Search"           style='margin-left:20px;'/>
+                      <input type="button" name="info_button"           value="Info"             style='margin-left:20px;' title="Prints some information about the named package that is availible in this computer."/>
+                      <input type="button" name="doc_button"            value="Doc"              style='margin-left:20px;' title="Browses the npm web page for the named package, if it exists."/>
+                      <input type="button" name="search_button"         value="Search"           style='margin-left:20px;' title="Searches the npm website for packages related to the text in the type-in field."/>
                       <p></p>
-                      <input type="button" name="install_button"        value="Install"          style='margin-left:20px;'/>
-                      <input type="button" name="uninstall_button"      value="Uninstall"        style='margin-left:20px;'/>
-                      <input type="button" name="insert_require_button" value="Insert require()" style='margin-left:20px;'/>`,
+                      <input type="button" name="install_button"        value="Install"          style='margin-left:20px;' title="Installs the named package as an 'add_on'."/>
+                      <input type="button" name="uninstall_button"      value="Uninstall"        style='margin-left:20px;' title="Uninstalls the named package if it is installed as an 'add_on'."/>
+                      <input type="button" name="insert_require_button" value="Insert require()" style='margin-left:20px;' title="Inserts a call to 'require' for the named package, into the editor."/>`,
 
             callback: "DDE_NPM.ui_handler"
             })

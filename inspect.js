@@ -511,24 +511,32 @@ function inspect_insert_first_part_of_file(path){
 }
 
 function inspect_one_liner_existing_file_path(item){
+    let orig_arg = item
     item = make_full_path(item)
-    let the_file_content = read_file(item)
-    the_file_content = replace_substrings(the_file_content, "<", "&lt;") //if I don't do this, fns with bodies containing tags
-    let file_length = the_file_content.length
-    let title_suffix = "&#013;This file has length: " + file_length
-    if(file_length > 100000){
-        the_file_content = "<i>length: " + file_length + " truncated for display to: " + 100000 + "</i><br/>" +
-                     the_file_content.substring(0, 100000)
-        title_suffix += "&#013;Only the first 100000 will be inserted."
+    if(!file_exists(item)) {
+        return orig_arg + " looks like a file path but couldn't find the file."
     }
-    let title = 'Insert the content of this file&#013;at the editor cursor.' + title_suffix
-    let insert_button_html = `<button title='` + title + `' onclick='inspect_insert_first_part_of_file("` + item + `")'>Insert</button>`
-    let first_part = "File: " + item + " length: " + file_length + " "  + insert_button_html
-    result = "<details style='display:inline-block;'><summary><code style='background-color:transparent;'>" +
-            //"<i>String of " + item.length + "</i>: " +
-            //can't get rid of the blank line beteeen the first part and the body so best to make the background color same as the inspector
-            first_part + "</code></summary><pre style='margin:0;'><code style='background-color:transparent;'>" + the_file_content + "</code></pre></details>"
-    return result
+    else if(is_folder(item)){
+        return '"' + item + '" is a folder.'
+    }
+    else { //item is an existing file (not a folder)
+        the_file_content = replace_substrings(the_file_content, "<", "&lt;") //if I don't do this, fns with bodies containing tags
+        let file_length = the_file_content.length
+        let title_suffix = "&#013;This file has length: " + file_length
+        if(file_length > 100000){
+            the_file_content = "<i>length: " + file_length + " truncated for display to: " + 100000 + "</i><br/>" +
+                         the_file_content.substring(0, 100000)
+            title_suffix += "&#013;Only the first 100000 will be inserted."
+        }
+        let title = 'Insert the content of this file&#013;at the editor cursor.' + title_suffix
+        let insert_button_html = `<button title='` + title + `' onclick='inspect_insert_first_part_of_file("` + item + `")'>Insert</button>`
+        let first_part = "File: " + item + " length: " + file_length + " "  + insert_button_html
+        result = "<details style='display:inline-block;'><summary><code style='background-color:transparent;'>" +
+                //"<i>String of " + item.length + "</i>: " +
+                //can't get rid of the blank line beteeen the first part and the body so best to make the background color same as the inspector
+                first_part + "</code></summary><pre style='margin:0;'><code style='background-color:transparent;'>" + the_file_content + "</code></pre></details>"
+        return result
+    }
 }
 
 function inspect_extra_info(item){

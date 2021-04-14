@@ -7154,8 +7154,8 @@ values in degrees<br/>
 <code>Dexter.J4_ANGLE_MAX</code> => <samp>120</samp><br/>
 <code>Dexter.J5_ANGLE_MIN</code> => <samp>-185</samp><br/>
 <code>Dexter.J5_ANGLE_MAX</code> => <samp>185</samp><br/>
-<code>Dexter.J6_ANGLE_MIN</code> => <samp> 0 </samp><br/>
-<code>Dexter.J6_ANGLE_MAX</code> => <samp> 296 </samp><br/>
+<code>Dexter.J6_ANGLE_MIN</code> => <samp> -150 </samp><br/>
+<code>Dexter.J6_ANGLE_MAX</code> => <samp> 150 </samp><br/>
 <code>Dexter.J7_ANGLE_MIN</code> => <samp> 0 </samp><br/>
 <code>Dexter.J7_ANGLE_MAX</code> => <samp> 296 </samp><br/>
 
@@ -9201,6 +9201,22 @@ Plot.show(undefined, data,
      margin: {l:40, r:40, t:40, b:40} //around the plot area
     })   </code></pre>
     </details>
+
+    <details class="doc_details"><summary>show_window options</summary>
+     <i>Example:</i>
+     <pre><code>Plot.show(null,
+   [[10, 20, 33, 40],
+    [2, 4.33, 6, 8]],
+   {title:  "A title inside the plot"},
+   undefined,
+   {title: "show_window title",
+    x: 0,
+    y: 0,
+    width: 900,
+    height: 300}
+ )    </code></pre>
+    </details>
+
     <details class="doc_details"><summary>Multiple traces in same plot</summary>
         The first trace has dots for the points connected by lines.<br/>
         The second trace is just dots, no lines between the points.<br/>
@@ -11699,27 +11715,45 @@ def main():
            and load its "main" file (often called "index.js") which
            may have calls to load in the other files.
        </li>
-       <li>One reason DDE uses JavaScript is that it has the most freely available,
-            open-source code of any language. The bulk of this is stored on
-            <a href="https://www.npmjs.com/" target="_blank">the npm web site</a>
-            in a format that is convenient to download and
-            load into your JavaScript programs. NPM stands for Node Package Manager.
-            <p></p>
-            The NPM website has over 1.3M programs as of Apr 2020.
-            Use the search bar on the site, or just Google to find
-            packages you're interested in.
+       <li>Node Package Manager (NPM) for loading open source JavaScript.
+           See below.</li>
+       </ol>
+       <details id="DDE_NPM_doc_id" class="doc_details"><summary>DDE_NPM</summary>
+           One reason DDE uses JavaScript is that it has the most freely available,
+           open-source code of any language. The bulk of this is stored on
+           <a href="https://www.npmjs.com/" target="_blank">the npm web site</a>
+           in a format that is convenient to download and
+           load into your JavaScript programs. NPM stands for Node Package Manager.
+           <p></p>
+           The NPM website has over 1.3M programs as of Apr 2020.
+           Use the search bar on the site, or just Google to find
+           packages you're interested in.
            <p></p>
            If a package has been on NPM for at least a couple months, and
            has a 1000 or more downloads, you can be fairly confident that
            it doesn't contain malicious code. Its also fairly likely to
            not have show-stopper bugs, at least for its main functionality.
-           You can, however, be fairly confident that the documentation
+           You can also be fairly confident that the documentation
            is lousy. If its a popular program, use Google to search for
            examples or bug reports/fixes, often found on
            <a href="https://stackoverflow.com/" target="_blank">Stack Overflow</a>.
-       </ol>
-       <details id="DDE_NPM_doc_id" class="doc_details"><summary>DDE_NPM</summary>
-       A class for managing NPM files for use with DDE.
+           <p></p>
+           <code>DDE_NPM</code> is a class of methods for managing NPM files for use with DDE.
+        <details><summary>Installing Node</summary>
+        To use npm, you must have "node" installed on your computer.
+        Choose File Menu/Manage npm. It will tell you if you don't have node installed
+        and how to install it. Or, by hand ...<br/>
+        To verify that node/npm is installed:
+        <ol>
+        <li>open a terminal window</li>
+        <li>go to Documents/dde_apps</li>
+        <li> type in: npm list
+             and hit return.</li>
+        </ol>
+        If you see something like a "not found" error message, node is not installed.
+        To install it, browse: <a href="#" onclick="browse_page("https://nodejs.org/")>nodejs.org</a>,
+        click on the Download LTS (long term supported) button and follow the defaults.
+        </details>
 
        <details  id="DDE_NPM.list_doc_id" class="doc_details"><summary>List NPM Packages</summary>
            You can find out the top level NPM packages installed for use by DDE

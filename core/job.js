@@ -525,6 +525,7 @@ class Job{
             this.condition_when_stopped = null
 
             this.show_progress_maybe()
+            console.log('calling robot.start from job.start')
             this.robot.start(this) //the only call to robot.start
             return this
     }
@@ -2744,7 +2745,7 @@ Job.prototype.insert_last_instruction_overwrite = function(instruction, force_al
             Job.insert_instruction(instruction, {job: this, offset: this.insert_last_instruction_index}, false)
             this.program_counter = this.insert_last_instruction_index
         }
-        else if(this.hasOwnProperty("insert_last_instruction_index")) {//we've had this fn called before and had an insruction,
+        else if(this.hasOwnProperty("insert_last_instruction_index")) {//we've had this fn called before and had an instruction,
           //but haven't completed the instructions in the last insertion, so just add them to the end.
             Job.insert_instruction(instruction, {job: this, offset: this.do_list.length}, false)
         }

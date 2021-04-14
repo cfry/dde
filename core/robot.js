@@ -1110,9 +1110,9 @@ Dexter = class Dexter extends Robot {
         let this_robot = this
         let this_job   = job_instance
         //give it a bit of time in case its in the process of initializing
-        let connect_success_cb = function(){ //give robot a chance to get its socket before doing the initial "g" send.
+        /*let connect_success_cb = function(){ //give robot a chance to get its socket before doing the initial "g" send.
                         const sim_actual = Robot.get_simulate_actual(this_robot.simulate)
-                        if(!this_robot.is_initialized()){
+                        if(!this_robot.is_initialized()){ //bad. stop the job
                             if (this_robot.simulate === true){
                                 this_job.stop_for_reason("errored_from_dexter_connect", "The job: " + this_job.name + " is using robot: " + this_robot.name +
                                     "<br/>\nwith simulate=true, but could not connect with the Dexter simulator.")
@@ -1143,13 +1143,18 @@ Dexter = class Dexter extends Robot {
                             }
 
                         }
-                        else { this_job.send(Dexter.get_robot_status(), this_robot)} //the initial g stareting off the job
-        }
+                        else { //good. normal case
+                            //this_job.send(Dexter.get_robot_status(), this_robot)
+                        } //the initial g stareting off the job
+        }*/
         let connect_error_cb = function(){
              this_job.stop_for_reason("errored_from_dexter_connect",
                  "The job: " + this_job.name + " could not connect to Dexter." + this_robot.name)
         }
-        Socket.init(this.name, connect_success_cb, connect_error_cb)
+        this_robot.connect_error_cb = connect_error_cb
+        this_robot.instruction_to_send_on_connect = Dexter.get_robot_status()
+        this_robot.job_to_send_on_connect = this_job
+        Socket.init(this.name)
     }
 
     static get_robot_with_ip_address_and_port(ip_address, port){
@@ -1295,8 +1300,8 @@ Dexter = class Dexter extends Robot {
     send(oplet_array_or_string){
         //var is_heartbeat = ins_array[Instruction.INSTRUCTION_TYPE] == "h"
         let oplet = Instruction.extract_instruction_type(oplet_array_or_string)
-        if (oplet == "F") { this.processing_flush = true } //ok even if flush is already true. We can send 2 flushes in a row if we like, that's ok. essentially only 1 matters
-        if (this.processing_flush && (oplet != "F")) {
+        if (oplet === "F") { this.processing_flush = true } //ok even if flush is already true. We can send 2 flushes in a row if we like, that's ok. essentially only 1 matters
+        if (this.processing_flush && (oplet !== "F")) {
             shouldnt(this.name + ".send called with oplet: " + oplet +
                      ", but " + this.name + ".processing_flush is true so send shouldn't have been called.")
         }
@@ -2591,6 +2596,18 @@ Dexter.prototype.set_link_lengths_from_file_content = function(content){
             }
         }
     }
+    if(!this.J6_angle_min) { //not included in some defaults.makeins files
+        this.J6_angle_min = Dexter.J6_ANGLE_MIN
+    }
+    if(!this.J6_angle_max) { //not included in some defaults.makeins files
+        this.J6_angle_max = Dexter.J6_ANGLE_MAX
+    }
+    if(!this.J7_angle_min) { //not included in some defaults.makeins files
+        this.J7_angle_min = Dexter.J7_ANGLE_MIN
+    }
+    if(!this.J7_angle_max) { //not included in some defaults.makeins files
+        this.J7_angle_max = Dexter.J7_ANGLE_MAX
+    }
 }
 
 Dexter.LEG_LENGTH = 0.152400 //meters  6 inches
@@ -2606,8 +2623,8 @@ Dexter.J4_ANGLE_MIN = -120 //-100
 Dexter.J4_ANGLE_MAX = 120  //100
 Dexter.J5_ANGLE_MIN = -185
 Dexter.J5_ANGLE_MAX = 185
-Dexter.J6_ANGLE_MIN = 0
-Dexter.J6_ANGLE_MAX = 296
+Dexter.J6_ANGLE_MIN = -150 //0
+Dexter.J6_ANGLE_MAX = 150 //296
 Dexter.J7_ANGLE_MIN = 0
 Dexter.J7_ANGLE_MAX = 296
 

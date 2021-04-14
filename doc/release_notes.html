@@ -6,6 +6,32 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 3.7.10, Apr 14, 2021</summary>
+Highlights: Bug fix for re-initialization of a socket when in "real" mode.
+Important bug fixes to J6 & J7 software.
+Minor Improvements to Manage npm and Plot.show.
+<ul>
+    <li>DexterSim now correctly initializes Joint 6 to 0 degrees.</li>
+    <li>Fixed conversion of degree-angles to dexter-units, to always return integers.
+    <li>Fixed Socket code to properly re-initialize a socket if it times out.
+    <li>Fixed the DDE Dexter settings such that if you start up DDE in real mode, and the "link lengths"
+    (and min & max joint angles) are retrieved from defaults.makeins,
+    but that file does not have min and max values for J6 and J7 (they don't now),
+    then use default values for them.
+    This fixes a bug in the Dexter UI sliders for J6 & J7 max values.</li>
+    <li><code>J6_ANGLE_MIN</code> is now -150 (was 0).  <code>J6_ANGLE_MAX</code> is now 150 (was 296)</li>
+    <li>Manage NPM, the help for creating the "require" code now has var names
+        with hyphens changed to underscores to match JS syntax for var names.</li>
+    <li>Manage NPM dialog, "List" buttons now print out list items with a new tooltip
+        that tells you that clicking it will insert that package name into the NPM dialog box.</li>
+    <li>Manage NPM dialog: added tooltips to the bottom 6 buttons.</li>
+    <li>Ref Man: Minor reorganization of <code>DDE_NPM</code> documentation.</li>
+    <li><code>Plot.show</code> fixed the show_window title default for multiple traces of 2D plots.</li>
+    <li><code>Plot.show</code> Ref Man, added example for the show_window_options argument.</li>
+    <li>Click_help on a string that looks like a path to a file but isn't, now doesn't error.</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.7.9, Apr 7, 2021</summary>
 Highlights: Fixed crashing DexRun due to faulty sending of instruction.
             Fixed Py.eval for global variables.

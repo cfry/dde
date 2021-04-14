@@ -56,7 +56,7 @@ var Plot = class Plot{
             title = "3D array of " + data[0].z.length + " points"
           }
           else if(Array.isArray(data) && Array.isArray(data[0].y)){
-            title = "3D array of " + data[0].y.length + " points"
+            title = "(" + data.length + ")" + " 2D traces."
           }
           else {
             title = "Plot of data"

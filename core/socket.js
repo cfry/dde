@@ -6,19 +6,19 @@ const net = require("net")
 var Socket = class Socket{
     //when a job starts, it calls robot.start, which calls start_aux, which (for Dexter's)
     //calls Socket.init, which for sim, calls DexterSim.create_or_just_init
-    static init(robot_name, connect_success_cb, connect_error_cb //, simulate, ip_address, port=50000
-            ){
+    static init(robot_name){
         //out("Creating Socket for ip_address: " + ip_address + " port: "   + port + " robot_name: " + robot_name)
         let rob = Robot[robot_name]
         const sim_actual = Robot.get_simulate_actual(rob.simulate) //true, false, or "both"
         if ((sim_actual === true)  || (sim_actual == "both")){
-            DexterSim.create_or_just_init(robot_name, sim_actual, connect_success_cb)
+            DexterSim.create_or_just_init(robot_name, sim_actual)
             out("socket for Robot." + robot_name + ". is_connected? " + Robot[robot_name].is_connected)
         }
         else if ((sim_actual === false) || (sim_actual == "both")) {
             if(!Socket.robot_name_to_soc_instance_map[robot_name]){
                 try {
                     let ws_inst = new net.Socket()
+                    ws_inst.setKeepAlive(true)
                     ws_inst.on("data", function(data) {
                         Socket.on_receive(data, robot_name)
                     })
@@ -34,50 +34,70 @@ var Socket = class Socket{
                             out("Socket timeout while connecting to Dexter." + robot_name)
                             delete Socket.robot_name_to_soc_instance_map[robot_name]
                             ws_inst.destroy() //todo destroy
-                            if(connect_error_cb) {
-                                connect_error_cb() //stop the job that started this.
-                            }
+                            rob.connect_error_cb()  //stop the job that started this.
                         }
                     }, Socket.connect_timeout_seconds * 1000)
                     ws_inst.on("error", function(err){
-                        out("Socket error while connecting to Dexter." + robot_name)
+                        /*out("Socket error while connecting to Dexter." + robot_name)
                         clearTimeout(st_inst)
                         delete Socket.robot_name_to_soc_instance_map[robot_name]
                         ws_inst.destroy()
                         if(connect_error_cb) {
                             connect_error_cb()
-                        }
+                        }*/
+                        console.log("Socket.init on error with  waiting_for_instruction_ack: " + rob.waiting_for_instruction_ack +
+                                     " and err: " + err.message)
+                        clearTimeout(st_inst)
+                        delete Socket.robot_name_to_soc_instance_map[robot_name]
+                        ws_inst.destroy()
+                        //if (rob.waiting_for_instruction_ack) {
+                        //    out("Socket error while connecting to Dexter." + robot_name + ". Reconneting...")
+                            Socket.init(robot_name) //Socket.init connect event
+                             //callback will call Socket.new_socket_callback, which will
+                             //resend rob.waiting_for_instruction_ack if it exists.
+                        //}
+                        //else {
+                        //   rob.connect_error_cb()
+                        ///}//stop the job that started this.
                     })
                     out("Now attempting to connect to Dexter." + robot_name + " at ip_address: " + rob.ip_address + " port: " + rob.port + " ...", "brown")
                     ws_inst.connect(rob.port, rob.ip_address, function(){
+                        console.log("just connected to Dexter." + robot_name)
                         clearTimeout(st_inst)
                         Socket.robot_name_to_soc_instance_map[robot_name] = ws_inst
-                        Socket.new_socket_callback(robot_name, connect_success_cb)
+                        Socket.new_socket_callback(robot_name)
                     })
                 }
                 catch(e){
+                    console.log("Socket.init catch clause with err: " + e.message)
                     dde_error("Error attempting to create socket to Dexter." + robot_name + " at ip_address: " + rob.ip_address + " port: " + rob.port + e.message)
                     this.close(robot_name, true)
                 }
             }
             else { //there is a ws_inst in the map, BUT it might have died since it was set.
                    //none the less, pretend its good, and forge ahead
-                if(connect_success_cb) {
-                    connect_success_cb()
-                }
             }
         }
     }
 
     //called from both above socket code and from dexsim
-    static new_socket_callback(robot_name, connect_success_cb){
+    static new_socket_callback(robot_name){
         Dexter.set_a_robot_instance_socket_id(robot_name)
-        if(connect_success_cb) {
-            connect_success_cb()
+        let rob = Robot[robot_name]
+        if(rob.instruction_to_send_on_connect) { //usually this clause hits. happens for initial g oplet for a job
+              //and when connection is dropped and we need to resetablish connection and resend.
+            rob.waiting_for_instruction_ack = false //otherwise the Socket.send that gets called will error.
+            if(rob.job_to_send_on_connect){ //only should hit for first initial g oplet
+                let the_job = rob.job_to_send_on_connect
+                rob.job_to_send_on_connect = null
+                the_job.send(rob.instruction_to_send_on_connect)
+            }
+            else {
+                rob.send(rob.instruction_to_send_on_connect)
+            }
         }
-        if (Socket.resend_instruction) {
-            let rob = Robot[robot_name]
-            Socket.send(robot_name, Socket.resend_instruction)
+        else {
+            warning("In new_socket_callback without instruction to send.")
         }
     }
 
@@ -135,13 +155,15 @@ var Socket = class Socket{
 
     static degrees_to_dexter_units(deg, joint_number){
         if(joint_number == 6) {
-            return  Math.round(deg / Socket.DEGREES_PER_DYNAMIXEL_320_UNIT) +
-                    Socket.J6_OFFSET_SERVO_UNITS // //512
+            return Math.round(deg / Socket.DEGREES_PER_DYNAMIXEL_320_UNIT) +
+                              Socket.J6_OFFSET_SERVO_UNITS //512
         }
         else if (joint_number == 7) {
             return Math.round(deg / Socket.DEGREES_PER_DYNAMIXEL_320_UNIT)
         }
-        else { return deg * 3600 } //convert to arcseconds
+        else {
+            return Math.round(deg * 3600)  //convert to arcseconds
+        }
     }
 
     static dexter_units_to_degrees(du, joint_number){
@@ -154,120 +176,6 @@ var Socket = class Socket{
         }
         else { return du / 3600 }
     }
-
-    //also converts S params: "MaxSpeed", "StartSpeed", "Acceleration", S params of  boundry
-    //and  the z oplet. Note that instruction start and end times are always in milliseconds
-    /*static instruction_array_degrees_to_arcseconds_maybe(instruction_array, rob){
-        if(typeof(instruction_array) == "string") { return instruction_array} //no conversion needed.
-        const oplet = instruction_array[Dexter.INSTRUCTION_TYPE]
-        let number_of_args = instruction_array.length - Instruction.INSTRUCTION_ARG0
-        if ((oplet === "a") || (oplet === "P")){
-            //take any number of angle args
-            let instruction_array_copy = instruction_array.slice()
-            let angle_args_count = instruction_array_copy.length - Instruction.INSTRUCTION_ARG0
-            for(let i = 0; i < number_of_args; i++) {
-                let index = Instruction.INSTRUCTION_ARG0 + i
-                let arg_val = instruction_array_copy[index]
-                let converted_val
-                if (i == 5) { //J6
-                    converted_val = Socket.J6_OFFSET_SERVO_UNITS  +  //512
-                                    Math.round(arg_val / Socket.DEGREES_PER_DYNAMIXEL_UNIT) //convert degrees to dynamixel units to get dynamixel integer from 0 through 1023 going from 0 to 296 degrees
-                }
-                else if (i == 6) { //J7
-                    converted_val = Math.round(arg_val / Socket.DEGREES_PER_DYNAMIXEL_UNIT) //convert degrees to dynamixel units to get dynamixel integer from 0 through 1023 going from 0 to 296 degrees
-                }
-                else {//J1 thru J5  for J1, i == 0
-                    converted_val = Math.round(arg_val * 3600) //still might be a NaN
-                    //if(i == 1) { out("soc J2: " + arg_val + " arcsec: " + converted_val) } //degugging statement only
-                }
-                instruction_array_copy[index] = converted_val
-            }
-            return instruction_array_copy
-        }
-        else if (oplet === "S") {
-            const name = instruction_array[Instruction.INSTRUCTION_ARG0]
-            const args = instruction_array.slice(Instruction.INSTRUCTION_ARG1, instruction_array.length)
-            const first_arg = args[0]
-            //first convert degress to arcseconds
-            if(["MaxSpeed", "StartSpeed", "Acceleration",
-                "AngularSpeed", "AngularSpeedStartAndEnd", "AngularAcceleration",
-                "CartesianPivotSpeed", "CartesianPivotSpeedStart", "CartesianPivotSpeedEnd",
-                "CartesianPivotAcceleration", "CartesianPivotStepSize" ].includes(name)){
-                let instruction_array_copy = instruction_array.slice()
-                instruction_array_copy[Instruction.INSTRUCTION_ARG1] = Math.round(first_arg * _nbits_cf)
-                return instruction_array_copy
-            }
-            else if (name.includes("Boundry")) {
-                let instruction_array_copy = instruction_array.slice()
-                instruction_array_copy[Instruction.INSTRUCTION_ARG1] = Math.round(first_arg * 3600) //deg to arcseconds
-                return instruction_array_copy
-            }
-            else if (["CommandedAngles", "RawEncoderErrorLimits", "RawVelocityLimits"].includes(name)){
-                let instruction_array_copy = instruction_array.slice()
-                for(let i = Instruction.INSTRUCTION_ARG1; i <  instruction_array.length; i++){
-                    let orig_arg = instruction_array_copy[1]
-                    instruction_array_copy[i] = Math.round(orig_arg * 3600)
-                }
-                return instruction_array_copy
-            }
-            //dynamixel conversion
-            else if (name == "EERoll"){ //J6 no actual conversion here, but this is a convenient place
-                        //to put the setting of robot.angles and is also the same fn where we convert
-                        // the degrees to dynamixel units of 0.20 degrees
-                        //val is in dynamixel units
-                rob.angles[5] = first_arg * Socket.DEGREES_PER_DYNAMIXEL_UNIT //convert dynamixel units to degrees then shove that into rob.angles for use by subsequent relative move instructions
-                return instruction_array
-            }
-            else if (name == "EESpan") { //J7
-                rob.angles[6] = first_arg * Socket.DEGREES_PER_DYNAMIXEL_UNIT
-                return instruction_array
-            }
-            //convert meters to microns
-            else if ((name.length == 5) && name.startsWith("Link")){
-                let instruction_array_copy = instruction_array.slice()
-                let new_val = Math.round(first_arg / _um) //convert from meters to microns
-                instruction_array_copy[Instruction.INSTRUCTION_ARG1] = new_val
-                return instruction_array_copy
-            }
-            else if ("LinkLengths" == "name"){
-                let instruction_array_copy = instruction_array.slice()
-                for(let i = Instruction.INSTRUCTION_ARG1; i < instruction_array.length; i++){
-                    let orig_arg = instruction_array_copy[1]
-                    instruction_array_copy[i] = Math.round(orig_arg / _um)
-                }
-                return instruction_array_copy
-            }
-            else if (["CartesianSpeed", "CartesianSpeedStart", "CartesianSpeedEnd", "CartesianAcceleration",
-                      "CartesianStepSize", ].includes(name)){
-                let instruction_array_copy = instruction_array.slice()
-                let new_val = Math.round(first_arg / _um) //convert from meters to microns
-                instruction_array_copy[Instruction.INSTRUCTION_ARG1] = new_val
-                return instruction_array_copy
-            }
-            else { return instruction_array }
-        }
-        else if (oplet == "T") { //move_to_straight
-            let instruction_array_copy = instruction_array.slice()
-            instruction_array_copy[Instruction.INSTRUCTION_ARG0] =
-                Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG0] / _um) //meters to microns
-            instruction_array_copy[Instruction.INSTRUCTION_ARG1] =
-                Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG1] / _um) //meters to microns
-            instruction_array_copy[Instruction.INSTRUCTION_ARG2] =
-                Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG2] / _um) //meters to microns
-            instruction_array_copy[Instruction.INSTRUCTION_ARG11] =
-                Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG11] * 3600) //degrees to arcseconds
-            instruction_array_copy[Instruction.INSTRUCTION_ARG12] =
-                Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG12] * 3600) //degrees to arcseconds
-            return instruction_array_copy
-        }
-        else if (oplet == "z") {
-            let instruction_array_copy = instruction_array.slice()
-            instruction_array_copy[Instruction.INSTRUCTION_ARG0] =
-                Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG0] * 1000000) //seconds to microseconds
-            return instruction_array_copy
-        }
-        else { return instruction_array }
-    }*/
 
     static instruction_array_degrees_to_arcseconds_maybe(instruction_array, rob){
         if(typeof(instruction_array) == "string") { return instruction_array} //no conversion needed.
@@ -372,72 +280,65 @@ var Socket = class Socket{
     }
 
     static send(robot_name, oplet_array_or_string){ //can't name a class method and instance method the same thing
-        //onsole.log("Socket.send passed oplet_array_or_string: " + oplet_array_or_string)
+        console.log("Socket.send passed oplet_array_or_string: " + oplet_array_or_string)
         let rob = Robot[robot_name]
-        if(rob.waiting_for_instruction_ack) {
+        if(rob.waiting_for_instruction_ack) { //always a boolean
             dde_error("In Socket.send, attempt to send instruction: " + oplet_array_or_string +
-                      " but still waiting for previous instruction: " + rob.waiting_for_instruction_ack)
+                      " but still waiting for previous instruction: " + rob.instruction_to_send_on_connect)
         }
-       	if(oplet_array_or_string !== Socket.resend_instruction){ //we don't want to convert an array more than once as that would have degreees * 3600 * 3600 ...
-       	                                                     //so only to the convert on the first attempt.
-            oplet_array_or_string = Socket.instruction_array_degrees_to_arcseconds_maybe(oplet_array_or_string, rob)
+        else {
+            rob.instruction_to_send_on_connect = oplet_array_or_string //the one place this is set to an instruction DON'T store the _du version
+                        //just in case we need it. We might not.
+            rob.waiting_for_instruction_ack = true
         }
-        let job_id = Instruction.extract_job_id(oplet_array_or_string)
+        let oplet_array_or_string_du = Socket.instruction_array_degrees_to_arcseconds_maybe(oplet_array_or_string, rob)
+        let job_id = Instruction.extract_job_id(oplet_array_or_string_du)
         let job_instance = Job.job_id_to_job_instance(job_id)
-        const str =  Socket.oplet_array_or_string_to_string(oplet_array_or_string)
+        const str =  Socket.oplet_array_or_string_to_string(oplet_array_or_string_du)
         if(job_instance.keep_history) {
             job_instance.sent_instructions_strings.push(str)
         }
         const arr_buff = Socket.string_to_array_buffer(str)
         const sim_actual = Robot.get_simulate_actual(rob.simulate)
         if((sim_actual === true) || (sim_actual === "both")){
-            rob.waiting_for_instruction_ack = oplet_array_or_string
-            DexterSim.send(robot_name, arr_buff)
+            setTimeout( function() { //eqiv to ws_inst.write(arr_buff) below.
+                DexterSim.send(robot_name, arr_buff)
+            }, 1)
         }
         if ((sim_actual === false) || (sim_actual === "both")) {
             let ws_inst = Socket.robot_name_to_soc_instance_map[robot_name]
             if(ws_inst) {
                 try {
-                    rob.waiting_for_instruction_ack = oplet_array_or_string
                     //console.log("Socket.send about to send: " + str)
                     ws_inst.write(arr_buff) //if doesn't error, success and we're done with send
                     //console.log("Socket.send just sent:     " + str)
-                    Socket.resend_instruction = null
-                    Socket.resend_count       = null
                     //this.stop_job_if_socket_dead(job_id, robot_name)
                     return
                 }
                 catch(err) {
-                    if(oplet_array_or_string === Socket.resend_instruction) {
-                        if (Socket.resend_count >= 4) {  //we're done
+                    console.log("Socket.send just after write in catch clause with err: " + err.message)
+                        if (rob.resend_count && (rob.resend_count >= 4)) {  //give up retrying and error
                             job_instance.stop_for_reason("errored_from_dexter", "can't connect to Dexter")
                             //job_instance.color_job_button() //automatically done by job.prototype.finish
                             job_instance.set_up_next_do(0)  //necessary?
                             return
                         }
                         else { //keep trying
-                            Socket.resend_count += 1
-                            Socket.close(robot_name, true) //both are send args
-                            let timeout_dur = Math.pow(10, Socket.resend_count)
+                            if(!rob.resend_count) {
+                                rob.resend_count = 1
+                            }
+                            else { rob.resend_count += 1 }
+                            Socket.close(robot_name, true)
+                            let timeout_dur = Math.pow(10, rob.resend_count)
                             setTimeout(function(){
+                                console.log("re-initing Socket to Dexter." + robot_name)
                                 Socket.init(robot_name)
                             }, timeout_dur)
                             return
                         }
-                    }
-                    else { //first attempt failed so initiate retrys
-                        Socket.resend_instruction =  oplet_array_or_string
-                        Socket.resend_count = 0
-                        Socket.close(robot_name, true) //both are send args
-                        let timeout_dur = Math.pow(10, Socket.resend_count)
-                        setTimeout(function(){
-                            Socket.init(robot_name)
-                        }, timeout_dur)
-                        return
-                    }
                 }
             }
-            else {
+            else { //maybe never hits
                 Socket.close(robot_name, true) //both are send args
                 setTimeout(function(){
                     Socket.init(robot_name)
@@ -468,11 +369,12 @@ var Socket = class Socket{
         //data.length == 240 data is of type: Uint8Array, all values between 0 and 255 inclusive
         //console.log("Socket.on_receive passed data:        " + data)
         let rob = Dexter[robot_name]
-        if(rob.waiting_for_instruction_ack){ } //ok todo check that data has in it the instruction ack that we are expecting.
+        if(rob.waiting_for_instruction_ack){
+            rob.waiting_for_instruction_ack = false //the one place this is set to false
+        } //ok todo check that data has in it the instruction ack that we are expecting.
         else {
             dde_error("Socket.on_receive is not expecting data from Dexter.")
         }
-        rob.waiting_for_instruction_ack = false
         let robot_status
         let oplet
         if(Array.isArray(data)) {  //todo return from sim same data type as Dexter returns.   //a status array passed in from the simulator
@@ -489,7 +391,7 @@ var Socket = class Socket{
             let opcode = robot_status[Dexter.INSTRUCTION_TYPE]
             oplet  = String.fromCharCode(opcode)
         }
-        //console.log("Socket.on_receive passed robot status: " + robot_status)
+        console.log("Socket.on_receive passed DU robot status: " + robot_status)
         //the simulator automatically does this so we have to do it here in non-simulation
         //out("on_receive got back oplet of " + oplet)
         robot_status[Dexter.INSTRUCTION_TYPE] = oplet
@@ -685,8 +587,7 @@ Socket.connect_timeout_seconds = 1
 Socket.PAYLOAD_START = 7 * 4 //7th integer array index, times 4 bytes per integer
 Socket.PAYLOAD_LENGTH = 6 //6th integer array index
 
-Socket.resend_instruction = null
-Socket.resend_count = null
+////Socket.resend_count = null
 
 Socket.robot_name_to_soc_instance_map = {}
 Socket.DEGREES_PER_DYNAMIXEL_320_UNIT = 0.29   //range of motion sent is 0 to 1023
