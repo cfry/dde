@@ -379,8 +379,18 @@ class Job{
 
     //Called by user to start the job and "reinitialize" a stopped job
     start(options={}){  //sent_from_job = null
+        let the_active_job_with_robot_maybe = Job.active_job_with_robot(this.robot) //could be null.
+            //must do this before setting status_code to "starting".
+            //there can only be one Job trying to use a Dexter. (at least as the Job's main robot.)
+        if((this.robot instanceof Dexter) && the_active_job_with_robot_maybe) {
+            this.stop_for_reason("errored", "Dexter." + this.robot.name +
+                                 " already running Job." + the_active_job_with_robot_maybe.name)
+            dde_error("Attempt to start Job." + this.name + " with Dexter." + this.robot.name +
+                      ",<br/>but that Dexter is already running Job." + the_active_job_with_robot_maybe.name +
+                      ",<br/>so Job." + this.name + " was automatically stopped.")
+        }
         if(this.wait_until_this_prop_is_false) { this.wait_until_this_prop_is_false = false } //just in case previous running errored before it could set this to false, used by start_objects
-        if (["starting", "running", "running_when_stopped", "suspended", "waiting"].includes(this.status_code)){
+        if (["starting", "running", "stopping", "running_when_stopped", "suspended", "waiting"].includes(this.status_code)){
             //does not run when_stopped instruction.
             dde_error("Attempt to restart job: "  + this.name +
                       " but it has status code: " + this.status_code +
@@ -751,6 +761,16 @@ class Job{
                 else if(job_instance.is_active()){
                     if (job_instance.robot instanceof Dexter) {
                          //job_instance.robot.empty_instruction_queue_now() //causes DexRun to error.
+                         if (job_instance.robot.waiting_for_flush_ack()) {
+                             if(job_instance.status_code === "stopping"){ //2nd time user clicked button while job was running
+                               //allow to fall thru to "stop_for_reason" call below
+                             }
+                             else { //first time user clicked button while job was running.
+                                job_instance.set_status_code("stopping")
+                                return //we don't want to call stop_for_reason until the ack for the "F"
+                                    // comes back to Dexter.protype.robot_done_with_instruction
+                             }
+                         }
                     }
                     job_instance.stop_for_reason("interrupted", "User stopped job", false)
                 }
@@ -852,6 +872,10 @@ class Job{
                     }
                 }
                 break;
+            case "stopping":
+               bg_color = "rgb(225, 169, 107)" //"#db8622" //brown
+               tooltip = "The job is running a\nDexter.empty_instruction_queue instruction\nand will stop when that's complete."
+               break;
             case "running_when_stopped":
                 bg_color = "#00a600" //dark green
                 tooltip = "This job is running its when_stopped instruction."
@@ -937,7 +961,10 @@ class Job{
                     this.stop_reason = reason
                 }
             }
-            else if (status_code == "running_when_stopped"){
+            else if (status_code === "stopping") { //see Dexter.
+
+            }
+            else if (status_code === "running_when_stopped"){
 
             }
             else { //"not_started", "starting", "running"
@@ -956,7 +983,7 @@ class Job{
 
     is_active(){
         //return ((this.status_code != "not_started") && (this.stop_reason == null))
-       return ["starting", "running", "running_when_stopped", "suspended", "waiting"].includes(this.status_code)
+       return ["starting", "running", "stopping", "running_when_stopped", "suspended", "waiting"].includes(this.status_code)
     }
     static active_jobs(){
         let result = []
@@ -966,6 +993,18 @@ class Job{
             }
         }
         return result
+    }
+
+    //returns the active job that has robot as its robot OR null if none.
+    static active_job_with_robot(robot){
+        for(let a_job of Job.all_jobs()){
+            if (a_job.is_active()){
+                if(a_job.robot === robot) {
+                    return a_job
+                }
+            }
+        }
+        return null
     }
 
     //called in utils stringify_value    used for original_do_list
@@ -1192,7 +1231,11 @@ class Job{
 Job.job_default_params = null
 
 Job.status_codes = [//normal starting up
-                    "not_started", "starting", "running", "running_when_stopped",
+                    "not_started", "starting", "running",
+                    "stopping",  //user clicked button to stop while Job was running Dexter.empty_instruction_queue.
+                                 //so wait until the ack for Dexter.empty_instruction_queue comes back to DDE,
+                                 //THEN stop the job.
+                    "running_when_stopped",
                     //paused while running
                     "suspended", "waiting",   //(wait_until, sync_point)
                     //below mean how runnning the job was stopped.
@@ -1820,7 +1863,7 @@ Job.prototype.set_up_next_do = function(program_counter_increment = 1, allow_onc
 
 //run the instruction at the pc. The pc has been adjusted by set_up_next_do to normally increment the pc.
 //with a bunch of exceptions for determining that the job is over at the top of this method.
-Job.prototype.do_next_item = function(){ //user calls this when they want the job to start, then this fn calls itself until done
+Job.prototype.do_next_item = function(){ //user calls this when they want the job to start, then this fn calls itself (via set_up_next_do until done
     //this.program_counter += 1 now done in set_up_next_do
     //if (this.show_instructions){ onsole.log("Top of do_next_item in job: " + this.name + " with PC: " + this.program_counter)}
     //onsole.log("top of do_next_item with pc: " + this.program_counter)
@@ -1832,19 +1875,26 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
         console.log("To stop debugging, Eval:   undebug_job()   and click the big blue arrow, ")
     }
     let ending_pc = this.instruction_location_to_id(this.ending_program_counter) //we end BEFORE executing the ending_pcm we don't execute the instr at the ending pc if any
+
     if (["completed", "errored", "interrupted"].includes(this.status_code)){//put before the wait until instruction_id because interrupted is the user wanting to halt, regardless of pending instructions.
         this.finish_job()
+        return
     }
     else if (this.wait_until_instruction_id_has_run || (this.wait_until_instruction_id_has_run === 0)){ //the ordering of this clause is important. Nothing below has to wait for instructions to complete
         //wait for the wait instruction id to be done
         //the waited for instruction coming back thru robot_done_with_instruction will call set_up_next_do(1)
         //so don't do it here. BUT still have this clause to block doing anything below if we're waiting.
+        return
     }
     else if (this.stop_reason && (this.status_code !== "running_when_stopped")){ //maybe never hits as one of the above status_codes is pobably set
          this.finish_job()
+        return
     } //must be before the below since if we've
     //already got a stop reason, we don't want to keep waiting for another instruction.
-    else if (this.wait_until_this_prop_is_false) { this.set_up_next_do(0) }
+    else if (this.wait_until_this_prop_is_false) {
+        this.set_up_next_do(0)
+        return
+    }
     else if (this.instr_and_robot_to_send_when_robot_unbusy) {
         let [inst, robot] = this.instr_and_robot_to_send_when_robot_unbusy
         if(robot.is_busy()) { } //loop around again
@@ -1852,7 +1902,16 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
             this.robot_and_instr_to_send_when_robot_unbusy = null
             this.send(inst, robot)
         }
+        return
     }
+    else if (this.hasOwnProperty("insert_last_instruction_index") &&
+            (this.when_stopped == "wait") &&
+            (this.program_counter <= this.insert_last_instruction_index)){
+        delete this.insert_last_instruction_index
+        //allow this to fall through to the code after this if...else if
+        //unlike all the other clauses
+    }
+
     else if (this.program_counter >= ending_pc) {  //this.do_list.length
              //the normal stop case
         if (this.when_stopped == "wait") { //we're in a loop waiting for the next instruction.
@@ -1892,11 +1951,11 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
             this.finish_job()
         }
         else { this.finish_job() }
+        return
     }
-
-    else{
-        //regardless of whether we're in an iter or not, do the item at pc. (might or might not
-        //have been just inserted by the above).
+    //body of the fn.
+    //regardless of whether we're in an iter or not, do the item at pc. (might or might not
+    //have been just inserted by the above).
       if((this.status_code === "waiting") &&
           (this.wait_reason === "more instructions.")){ //we WERE waiting for more instructions, but
             // we must have gotten more because (this.program_counter >= ending_pc)
@@ -2054,7 +2113,6 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
         }
         this.set_up_next_do()
     }
-  }
 }
 
 ///also called by Make Instruction for creating string to save.

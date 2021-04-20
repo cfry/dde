@@ -337,7 +337,7 @@ var TestSuite = class TestSuite{
         let result =  "<b>Summary:</b><br/>" +
                       " Test suites run: "  + total_suites +
                       ", Total tests: "     + total_tests  +
-                      ", Duration: "        + total_dur    + " ms (typical: 91,000 to 92,000 ms)<br/>" +
+                      ", Duration: "        + total_dur    + " ms (typical: 80,000 to 100,000 ms)<br/>" +
                       "Total unknown failures: <span style='color:" + ((total_unknown_failures == 0) ? "black" : "red") + "'>" + total_unknown_failures + "</span>" +
                       ", Total known failures: <span style='color:" + ((total_known_failures   == 0) ? "black" : "red") + "'>" + total_known_failures   + "</span> "
         return result
@@ -512,7 +512,7 @@ var TestSuite = class TestSuite{
                     ts_inst.resume() },
                     100)
             }
-            else {} //all other states like "starting", "running", "running_when_stopped", "suspended" "waiting". just do nothing
+            else {} //all other states like "starting", "running", "stopping", "running_when_stopped", "suspended" "waiting". just do nothing
                     //and monitor_started_job will be called again by setInterval and
                     //maybe the job status_code will change to completed, errored, or interrupted by then
         }

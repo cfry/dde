@@ -585,7 +585,7 @@ var MiRecord = class MiRecord {
     //new semantics: sets MiState.job_instance to the job indicated in the MI dialog, and returns true,
     //else prints warnings on what to do and returns false
     static prepare_for_play(){
-        if(Job.run_one && ["starting", "running", "suspended", "waiting"].includes(Job.run_one.status_code)){
+        if(Job.run_one && ["starting",  "running", "stopping", "suspended", "waiting"].includes(Job.run_one.status_code)){
             Job.run_one.stop_for_reason("interrupted", "Play button pressed so stop run_one job first.")
             setTimeout(function() { MiRecord.prepare_for_play()},  //MiRecord.prepare_for_play has to be wrapped in a fn because otherwise it gets called not with MiRecord as "this".
                        100)
@@ -1211,7 +1211,7 @@ var MiRecord = class MiRecord {
             warning("No job defined to delete instructions from.")
             return
         }
-        if(["starting", "running", "suspended", "waiting"].includes(MiState.job_instance.status_code)){
+        if(["starting", "running", "stopping", "suspended", "waiting"].includes(MiState.job_instance.status_code)){
             MiState.job_instance.stop_for_reason("interrupted", "Delete button pressed to change do_list.")
             MiState.job_instance.do_list = undefined
             setTimeout(function() {MiRecord.delete_instructions()} //must wrap MiRecord.delete_instructions in a fn to have "this" be correct when its called.

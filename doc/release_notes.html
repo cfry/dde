@@ -6,6 +6,25 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 3.7.11, Apr 20, 2021</summary>
+Highlights: improvements to socket handling. New Job status: "stopping'.
+No longer using set_link_lengths_using_job.
+<ul>
+    <li>Lots of internal changes to Job and socket handling.
+    Restriction of only 1 active job per robot.
+    New status_code of <code>"stopping"</code> for handling jobs with <code>"F"</code>
+    instructions that are stopped
+    by user before the <code>"F"</code> instruction acknowledgement comes back from Dexter.
+    Socket informal code to close socket now all call <code>Socket.close()</code>.
+    Some calls to close now are passed true, to force close of the socket,
+    ie when socket errors.</li>
+    <li>No longer using  <code>Dexter.set_link_lengths_using_job</code>.
+         This method is slow, unreliable and causes another job to be launched during
+         the running of a job, which was confusing, and now not permitted with the
+         new socket architecture.</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.7.10, Apr 14, 2021</summary>
 Highlights: Bug fix for re-initialization of a socket when in "real" mode.
 Important bug fixes to J6 & J7 software.

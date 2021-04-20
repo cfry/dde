@@ -2776,7 +2776,7 @@ Instruction.start_job = class start_job extends Instruction{
                  job_instance.set_up_next_do(1)
                  return
              }
-             else if(["starting", "running", "running_when_stopped"].includes(stat)) {
+             else if(["starting", "running", "stopping", "running_when_stopped"].includes(stat)) {
                 let wait_reason = "Control.start_job waiting at instruction " +
                                           job_instance.program_counter + " for " + this.job_to_start.name + " to complete."
                 job_instance.set_status_code("waiting", wait_reason)
@@ -2822,7 +2822,7 @@ Instruction.start_job = class start_job extends Instruction{
             this.job_to_start.unsuspend()
             job_instance.set_up_next_do(1)
         }
-        else if (["running", "waiting", "running_when_stopped"].includes(stat)){
+        else if (["running", "waiting", "stopping", "running_when_stopped"].includes(stat)){
            if     (this.if_started == "ignore") {job_instance.set_up_next_do(1)}
            else if(this.if_started == "error") {
                job_instance.stop_for_reason("errored",

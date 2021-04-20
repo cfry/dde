@@ -971,7 +971,7 @@ Messaging.start_job_receive = function(mess_obj){
         job_instance.unsuspend()
         mess_obj.result = "The Job was unsuspended."
     }
-    else if (["running", "waiting", "running_when_stopped"].includes(status_code)){
+    else if (["running", "waiting", "stopping", "running_when_stopped"].includes(status_code)){
         if     (mess_obj.if_started == "ignore") { mess_obj.result = "The Job is already running."} //just let keep running
         else if(mess_obj.if_started == "error")  {
             let error_message = "Messaging.start_job_receive tried to start job: " +
@@ -1067,7 +1067,7 @@ Messaging.stop_job_receive = function(mess_obj){
     let instr = Control.stop_job(undefined,
                                  "Stopped by Messaging.stop_job_receive from: " + mess_obj.from,
                                  mess_obj.perform_when_stopped)
-    if (["starting", "running", "waiting", "running_when_stopped"].includes(job_instance.status_code)){
+    if (["starting", "running", "waiting", "stopping", "running_when_stopped"].includes(job_instance.status_code)){
         job_instance.insert_single_instruction(instr, false) //not a sub-instruction
         mess_obj.result = "Stopping Job."
     }

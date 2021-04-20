@@ -1044,7 +1044,7 @@ Dexter = class Dexter extends Robot {
 
         this.angles     = [0, 0, 0, 0, 0, 0, 0] //used by move_to_relative, set by move_all_joints, move_to, and move_to_relative
         this.pid_angles = [0, 0, 0, 0, 0, 0, 0]
-        this.processing_flush = false //primarily used as a check. a_robot.send shouldn't get called while this var is true
+        //this.processing_flush = false //primarily used as a check. a_robot.send shouldn't get called while this var is true
         this.busy_job_array = []
         Robot.set_robot_name(this.name, this)
          //ensures the last name on the list is the latest with no redundancy
@@ -1086,7 +1086,7 @@ Dexter = class Dexter extends Robot {
                                )*/
           //new strategy: just let the socket interface test Dexter connectivity because ping fails on Linux
           //run same code for sim and real
-        if(job_instance.name == "set_link_lengths") { //don't attempt to set link lengths again!
+        if(job_instance.name === "set_link_lengths") { //don't attempt to set link lengths again!
             this.start_aux(job_instance)
         }
         else {
@@ -1106,7 +1106,7 @@ Dexter = class Dexter extends Robot {
     }
 
     start_aux(job_instance) { //fill in initial robot_status
-        this.processing_flush = false
+        //this.processing_flush = false
         let this_robot = this
         let this_job   = job_instance
         //give it a bit of time in case its in the process of initializing
@@ -1153,7 +1153,7 @@ Dexter = class Dexter extends Robot {
         }
         this_robot.connect_error_cb = connect_error_cb
         this_robot.instruction_to_send_on_connect = Dexter.get_robot_status()
-        this_robot.job_to_send_on_connect = this_job
+        this_robot.job_to_send_on_connect = job_instance //needed by Socket.init
         Socket.init(this.name)
     }
 
@@ -1190,7 +1190,29 @@ Dexter = class Dexter extends Robot {
             return ((this.robot_status[Dexter.END_EFFECTOR_IO_IN] & 1) === 1)
         }
     }
-    //called from Dexter.prototype.robot_done_with_instruction. Not to be called by users
+
+    waiting_for_flush_ack(){
+        let rob = this
+        let instr = rob.instruction_to_send_on_connect
+        if(instr) {
+            if(Array.isArray(instr)){
+                if(instr[Instruction.INSTRUCTION_TYPE] === "F"){
+                    return true }
+                else { return false }
+            }
+            else if (typeof(instr) === "string") { //we have a string, pull the "F" out of the string.
+               let str_parts = instr.split(" ")
+               let oplet = str_parts[4]
+               if(oplet.startsWith("F")) { //might have a semicolon in the oplet.
+                    return true
+               }
+               else { return false }
+            }
+            else { return false }
+        }
+        else { return false }
+    }
+
     set_robot_status(robot_status) {
         let old_robot_status_button_down = this.is_phui_button_down() //do this first before setting robot_status
         this.robot_status = robot_status //thus rob.robot_status always has the latest rs we got from Dexter.
@@ -1299,12 +1321,12 @@ Dexter = class Dexter extends Robot {
     //ins_array can be an oplet array or a raw string
     send(oplet_array_or_string){
         //var is_heartbeat = ins_array[Instruction.INSTRUCTION_TYPE] == "h"
-        let oplet = Instruction.extract_instruction_type(oplet_array_or_string)
-        if (oplet === "F") { this.processing_flush = true } //ok even if flush is already true. We can send 2 flushes in a row if we like, that's ok. essentially only 1 matters
+        //let oplet = Instruction.extract_instruction_type(oplet_array_or_string)
+        /*if (oplet === "F") { this.processing_flush = true } //ok even if flush is already true. We can send 2 flushes in a row if we like, that's ok. essentially only 1 matters
         if (this.processing_flush && (oplet !== "F")) {
             shouldnt(this.name + ".send called with oplet: " + oplet +
                      ", but " + this.name + ".processing_flush is true so send shouldn't have been called.")
-        }
+        }*/
         //note: we send F instructions through the below.
         Socket.send(this.name, oplet_array_or_string)
     }
@@ -1381,13 +1403,6 @@ Dexter = class Dexter extends Robot {
             rob.waiting_for_heartbeat = false
             return
         }
-        else if (oplet === "F"){
-            if (rob.processing_flush) { rob.processing_flush = false }
-            else { shouldnt("robot_done_with_instruction passed a returned instruction oplet of: F " +
-                            "but " + this.name + ".processing_flush is false. " +
-                            "It should be true if we get an F oplet.")
-            }
-        }
         let stop_time    = Date.now() //the DDE stop time for the instruction, NOT Dexter's stop time for the rs.
         job_instance.record_sent_instruction_stop_time(ins_id, stop_time)
         if (!rob.is_connected) {} //ignore any residual stuff coming back from dexter
@@ -1426,6 +1441,10 @@ Dexter = class Dexter extends Robot {
                 //    MiRecord.start_is_done_with_initial_g_and_paused(job_instance)
                 //}
                 job_instance.set_up_next_do(0)//we've just done the initial g instr, so now do the first real instr. PC is already pointing at it, so don't increment it.
+            }
+            else if ((job_instance.status_code === "stopping") && (oplet === "F")){
+                job_instance.stop_for_reason("interrupted", "Completed Dexter.empty_instruction_queue after user stopped the Job.")
+                rob.perform_instruction_callback(job_instance)
             }
             else { //the normal, no error, not initial case
                 if (job_instance.wait_until_instruction_id_has_run === ins_id){ //we've done it!
@@ -2404,7 +2423,7 @@ Dexter.LINK5_AVERAGE_DIAMETER =  0.030000 //meters
 //note that
 Dexter.prototype.set_link_lengths = function(job_to_start_when_done = null){
     let sim_actual = Robot.get_simulate_actual(this.simulate)
-    if(job_to_start_when_done.name === "set_link_lengths") {
+    if(job_to_start_when_done && (job_to_start_when_done.name === "set_link_lengths")) {
         this.start_aux(job_to_start_when_done)
     }
     else if(!this.Link1) { //no values set since dde launch
@@ -2414,8 +2433,9 @@ Dexter.prototype.set_link_lengths = function(job_to_start_when_done = null){
             }
             else {
                 warning("Dexter." + this.name + "'s node server is not responding.<br/>" +
-                    "Now attempting to get link lengths via Job.set_link_lengths")
-                this.set_link_lengths_using_job(job_to_start_when_done)
+                    "Setting link lengths via DDE's internal defaults.")
+                //this.set_link_lengths_using_job(job_to_start_when_done)
+                this.set_link_lengths_using_dde_db(job_to_start_when_done)
             }
         }
         else { //simulating
@@ -2430,8 +2450,9 @@ Dexter.prototype.set_link_lengths = function(job_to_start_when_done = null){
         }
         else {
             warning("Dexter." + this.name + "'s node server is not responding.<br/>" +
-                "Now attempting to get link lengths via Job.set_link_lengths")
-            this.set_link_lengths_using_job(job_to_start_when_done)
+                    "Setting link lengths via DDE's internal defaults.")
+            //this.set_link_lengths_using_job(job_to_start_when_done)
+            this.set_link_lengths_using_dde_db(job_to_start_when_done)
         }
     }
     else {//link lengths already set correctly
@@ -2471,7 +2492,7 @@ Dexter.prototype.set_link_lengths_using_node_server = function(job_to_start){
         warning("set_link_lengths_using_node_server with path: " + path +
                 " got error: " + content +
                 "<br/> so now setting link lengths using a DDE Job.")
-        this.set_link_lengths_using_job(job_to_start) //this will deal with link_lengths_set_from_dde_computer
+        this.set_link_lengths_using_dde_db(job_to_start) //this will deal with link_lengths_set_from_dde_computer
     }
     else {
         this.set_link_lengths_from_file_content(content)
@@ -2481,7 +2502,7 @@ Dexter.prototype.set_link_lengths_using_node_server = function(job_to_start){
         }
     }
 }
-
+/*
 Dexter.prototype.set_link_lengths_using_job = function(job_to_start){
     let the_robot = this
     let callback = function() {
@@ -2515,6 +2536,7 @@ Dexter.prototype.set_link_lengths_using_job = function(job_to_start){
                             ]})
     ssl_job.start()
 }
+*/
 
 Dexter.prototype.set_link_lengths_using_dde_db = function(job_to_start){
     let path = dde_apps_folder + "/dexter_file_systems/"  + this.name + "/Defaults.make_ins"

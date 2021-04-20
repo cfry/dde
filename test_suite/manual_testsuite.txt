@@ -340,3 +340,53 @@ new Job({
              Dexter.move_all_joints([ 99, 30,  3])
          ]
      })
+
+____testing the "stopping" Job status_code________
+eval:
+new Job({
+    name: "my_job",
+    do_list: [
+        Dexter.move_all_joints(0, 90),
+        Dexter.empty_instruction_queue(),
+        Dexter.move_all_joints(0, 0),
+        IO.out("end of my job")
+    ]
+})
+now under both sim and real do:
+- start to run straight through
+- do it again
+- start to run but click its stop button
+  while the button is bright green.
+  This should turn the button brown,
+  have the robot continue on its first move to 90 degrees,
+  then the job stops and robot does not move back to 0, 0.
+- start to run straight through, and should just
+   move back to home.
+- start to run straight through and verify robot moves down and up
+- start, click on job button to stop it at its very beginning
+  of being bright green, observe that it turns brown,
+    then while still brown, click the button again.
+  it should immediately turn orange.
+  The movement should continue to the 90 degrees and stop.
+
+Now define
+new Job({
+    name: "my_job1",
+    do_list: [
+        Dexter.move_all_joints(0, 0, 45),
+        Dexter.empty_instruction_queue(),
+        Dexter.move_all_joints(0, 20),
+        IO.out("end of my job")
+    ]
+})
+then start the first job (my_job) and while its button is
+bright green,
+click the my_job1 button to start it.
+mny_job1 button should immediately turn red,
+erroring with
+"Error: Attempt to start Job.my_job1 with Dexter.dexter0,
+ but that Dexter is already running Job.my_job,
+ so Job.my_job1 was automatically stopped."
+ Ie 2 jobs can't attempt to control the same Dexter.
+ _____________
+

@@ -11548,7 +11548,8 @@ def main():
          <code>Py.eval("main()")</code> //creates the file and sets its content to "Test47"<br/>
          This is one strategy for getting a large string from Python into DDE JavaScript
          via:<br/>
-         <code>read_file(dde_apps_folder + "/filename.txt")</code> => <samp>"Test47"</samp><br/>
+         <code>read_file(dde_apps_folder + "/filename.txt")</code> .
+         This call should return the content of the file, i.e. <code>"Test47"</code><br/>
          Note that our designation for the file is <i>the same</i> for both Python and JavaScript.
        </details>
 

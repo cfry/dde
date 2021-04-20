@@ -14,11 +14,12 @@ var DDE_NPM = class DDE_NPM {
     static uninstall(pkg_name){
         if(this.is_installed(pkg_name, "add_on")){
             npm_p.uninstall([pkg_name],
-                {cwd:dde_apps_folder + "/npm_packages",
-                    save:true
+                {cwd: dde_apps_folder + "/npm_packages/node_modules",
+                 global: false,
+                 save: true
                 })
                 .then(function(){
-                    out("npm package: " + pkg_name + " successfully uninstalled")
+                    out("npm package: " + pkg_name + " successfully uninstalled.")
                 })
                 .catch(function(err){
                     warning("npm package: " + pkg_name + " could not be uninstalled.<br/>" + err)
@@ -37,8 +38,8 @@ var DDE_NPM = class DDE_NPM {
             make_folder(this.wrapper_folder)
         }
         npm_p.install([pkg_name],
-                      {cwd:dde_apps_folder + "/npm_packages",
-                       save:true
+                      {cwd: dde_apps_folder + "/npm_packages",
+                       save: true
                       })
             .then(function(){
                 let pkg_name_underscores = replace_substrings(pkg_name, "-", "_")
