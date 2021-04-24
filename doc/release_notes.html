@@ -6,6 +6,19 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 3.7.12, Apr 23, 2021</summary>
+Highlights: zeromq npm package re-installed, serial port and Dexter UI dialog tweaks.
+<ul>
+    <li>npm zeromq package installed version 6.0.0-beta:</li>
+    <li>serial port: <code>old serial_path_to_info_map</code> is now defined to be same
+        as the new <code>serial_port_path_to_info_map</code>,
+        but <code>serial_path_to_info_map</code> is deprecated.</li>
+    <li>serial port: <code>serial_connect_low_level</code> has a new last arg: <code>close_callback</code>
+        that defaults to a callback fn that just prints out that the port has been closed.</li>
+    <li>Dexter UI dialog box: improvements to underlying layout html and css.</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.7.11, Apr 20, 2021</summary>
 Highlights: improvements to socket handling. New Job status: "stopping'.
 No longer using set_link_lengths_using_job.

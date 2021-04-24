@@ -193,21 +193,21 @@ var dui2 = class dui2 {
             job_name: this.name, //important to sync the correct job.
             callback: "dui2.dexter_user_interface_cb",
             content:
-            '<span style="margin-top:0px;padding:2px;">Move Dexter to:</span>' +
+            '<div style="margin-top:-10px;"><span style="margin-top:0px;padding:2px;">Move Dexter to:</span>' +
             `<input type="button" name="ready"  style="margin-left:10px;margin-top:0px;margin-bottom:3px; padding:2px;" value="ready"  title="Move Dexter to a neutal position.&#013;Good for 'elbow room'."/>` +
             `<input type="button" name="home"   style="margin-left:10px;margin-top:0px;margin-bottom:3px; padding:2px;" value="home"   title="Move Dexter straight up.&#013;This doesn't allow much freedom of motion."/>` +
             "<span name='step_arrow_buttons'>" + //needed by tutorial
-            `<span class="clickable" name="go_to_start"   style="font-size: 24px; margin-left: 5px; cursor: pointer; color: rgb(0, 200, 0); vertical-align:bottom;" title="Move cursor to before the first instruction&#013;of its containing do_list.">◀</span>` +
+            `<span class="clickable" name="go_to_start"   style="font-size: 24px; margin-left: 5px; cursor: pointer; color: rgb(0, 200, 0); vertical-align:-10%;" title="Move cursor to before the first instruction&#013;of its containing do_list.">◀</span>` +
             `<span class="clickable" name="step_backward" style="font-size: 18px; margin-left: 5px; cursor: pointer; color: rgb(0, 200, 0); vertical-align:-10%;"   title="Step and execute the instruction before the selection&#013;or, if none, the cursor&#013;in the Job defined in the editor.">◀</span>` +
             `<span class="clickable" name="step_forward"  style="font-size: 18px; margin-left: 5px; cursor: pointer; color: rgb(0, 200, 0); vertical-align:-10%;"   title="Step through the instruction after the selection&#013;or, if none, the cursor&#013;in the Job defined in the editor.">▶</span>` +
             `<span class="clickable" name="run_forward"   style="font-size: 24px; margin-left: 5px; cursor: pointer; color: rgb(0, 200, 0); vertical-align:-10%;"   title="Run the instructions &#013;from the cursor through the end.">▶</span>` +
-            '<div class="clickable"  name="help" style="display:inline-block; margin-left:15px;cursor: pointer;color:blue;font-size:20px;font-weight:bold;" title="Help"> ? </div>' +
-            "</span>" +
+            '<div class="clickable"  name="help"          style="display:inline-block; margin-left:15px;cursor: pointer;color:blue;font-size:20px;font-weight:bold;" title="Help"> ? </div>' +
+            "</span></div>" +
             dui_instance.make_xyz_sliders_html(xy_width_in_px,
                 min_x, max_x,
                 //min_y, max_y are same as min_x, max_x, so don't pass them.
                 min_z, max_z) +
-            "<br/>" +
+           // "<br/>" +
             dui_instance.make_joint_sliders_html() +
             dui_instance.make_direction_html() +
             "<hr style='height:1px; color:black; background-color:black; margin:0px; padding:0px;'/>" +
@@ -247,7 +247,7 @@ var dui2 = class dui2 {
             'style="stroke:black; stroke-width:1;"/>'
         let svg_html =
             //'<div style="display:inline-block;vertical-align:900%;">
-            '<br/><b style="margin-right:5px; vertical-align:850%;">Y</b>' +
+            '<b style="margin-right:5px; vertical-align:850%;">Y</b>' +
             //'</div>' +
             '<svg tabindex="0" onkeydown="dui2.keydown_on_xy_square_action(event)"  onkeyup="dui2.keyup_on_xy_square_action(event)"' +
             'style="display:inline-block; border:2px solid black;background-color:' + dui2.xy_background_color + ';margin-bottom:0px;" ' +
@@ -275,14 +275,14 @@ var dui2 = class dui2 {
         let xyz_num_html =
             'X: <input name="x_num" type="number" data-oninput="true" style="width:55px;margin-top:0px;" min="' + min_x + '" max="' + max_x + '" value="0" step="0.01" ' + '"/><span style="margin-right:15px;margin-top:0px;">m</span>' +
             'Y: <input name="y_num" type="number" data-oninput="true" style="width:55px;margin-top:0px;" min="' + min_x + '" max="' + max_x + '" value="0" step="0.01" ' + '"/><span style="margin-right:15px;margin-top:0px;">m</span>' +
-            'Z: <input name="z_num" type="number" data-oninput="true" style="width:55px;margin-top:0px;" min="' + min_z + '" max="' + max_z + '" value="0" step="0.01" ' + '"/>m'
+            'Z: <input name="z_num" type="number" data-oninput="true" style="width:55px;margin-top:0px;" min="' + min_z + '" max="' + max_z + '" value="0" step="0.01" ' + '"/>m<br/>'
 
         let z_slider_restriction_html = '<div style="position:absolute; top:60px; right:25px; width:20px; height:40px; background-color:' + dui2.xy_background_color + ';"></div>'
         let the_html =
             svg_html +
             "<b style='vertical-align:top;margin-left:15px;'>Z</b>" + z_slider_html +
             //z_slider_restriction_html +
-            '<div style="display:inline; position:absolute; margin-top:10px;margin-bottom:0px;left:10px;top:365px;"><b>X</b>' +
+            '<div style=" margin-top:-28px;margin-bottom:0px;left:10px;top:365px;"><b>X</b>' +
             //'<div margin-top:0px;margin-bottom:0px;left:20px;"><b>X</b>' +
 
             ' key inc:<select name="key_inc" title="When using keys to increment x, y, or z,&#013;this is the inc amount.&#013;auto means automatically increase inc&#013;the longer you hold down the key.">' +
@@ -293,7 +293,7 @@ var dui2 = class dui2 {
              '</select>mm ' +
             '<span style="margin-left:5px;">J6roll:</span><input name="J6_roll" data-oninput="true" type="number" min="-180" max="180" step="0.1" value="0" style="width:50px;"/>&deg;' +
             '<span style="margin-left:3px;" title="Fill in joint angles by moving your Dexter by hand.">FromDex:<input name="from_dexter" type="checkbox" data-oninput="true"/></span>' +
-            '</div><br/>' +
+            '</div>' +
                xyz_num_html
         return the_html
     }

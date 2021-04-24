@@ -47,6 +47,11 @@ module.exports.serial_port_init = serial_port_init
 var serial_port_path_to_info_map = {}
 module.exports.serial_port_path_to_info_map = serial_port_path_to_info_map
 
+//serial_path_to_info_map is old and depricated but easier to just
+//make it a synonym.
+var serial_path_to_info_map = serial_port_path_to_info_map
+
+
 //serial_path_to_info_map is deprecated in PatchDDE
 //var serial_path_to_info_map = serial_port_path_to_info_map
 //module.exports.serial_path_to_info_map = serial_path_to_info_map
@@ -129,7 +134,8 @@ function serial_connect_low_level(port_path,
                                   capture_extras=false,
                                   callback=onReceiveCallback_low_level,
                                   error_callback=onReceiveErrorCallback_low_level,
-                                  open_callback=onOpenCallback_low_level){
+                                  open_callback=onOpenCallback_low_level,
+                                  close_callback=onCloseCallback_low_level){
     const port = serial_get_or_make_port(port_path, port_options, open_callback) //new SerialPort(port_path, port_options)
     serial_port_path_to_info_map[port_path] =
             {port_path: port_path, //Needed because sometimes we get the info without having the path thru serial_path_to_connection_idsimulate: simulate,
@@ -146,6 +152,9 @@ function serial_connect_low_level(port_path,
        callback.call(port, data, port_path)
     })
     port.on('error', function(data) { error_callback.call(port, data, port_path)})
+    port.on('close', function ()    {
+        close_callback.call(port, port_path)
+    })
 }
 
 module.exports.serial_connect_low_level = serial_connect_low_level
@@ -158,6 +167,10 @@ function onOpenCallback_low_level(err, port_path){
     else {
         out("serial port opened with port_path: " + port_path)
     }
+}
+
+function onCloseCallback_low_level(port, port_path){
+    out("Closing serial port: " + port_path)
 }
 
 

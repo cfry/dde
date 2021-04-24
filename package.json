@@ -1,8 +1,8 @@
 {
   "name": "dexter_dev_env",
   "productName": "dexter_dev_env",
-  "version": "3.7.11",
-  "release_date": "Apr 20, 2021",
+  "version": "3.7.12",
+  "release_date": "Apr 23, 2021",
   "description": "Dexter Development Environment for programming the Dexter robot.",
   "author": "Fry",
   "license": "GPL-3.0",
@@ -59,7 +59,8 @@
     "three-orbitcontrols": "^2.110.3",
     "three-stl-loader": "^1.0.6",
     "three-text2d": "^0.6.0",
-    "webmidi": "^2.2.0"
+    "webmidi": "^2.2.0",
+    "zeromq": "^6.0.0-beta.6"
   },
   "devDependencies": {
     "electron": "^5.0.0",
