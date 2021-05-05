@@ -11,7 +11,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/setup-node@v2.1.2
+    - uses: actions/setup-node@v2
       with:
         node-version: ${{ env.NODE_VERSION }}
     - name: fix apt-get # https://github.com/actions/virtual-environments/issues/675#issuecomment-610483420
@@ -41,7 +41,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/setup-node@v2.1.2
+    - uses: actions/setup-node@v2
       with:
         node-version: ${{ env.NODE_VERSION }}
     - uses: little-core-labs/get-git-tag@v3.0.1
@@ -61,7 +61,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/setup-node@v2.1.2
+    - uses: actions/setup-node@v2
       with:
         node-version: ${{ env.NODE_VERSION }}
     - uses: little-core-labs/get-git-tag@v3.0.1
