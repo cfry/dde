@@ -101,6 +101,10 @@
         }
       ],
       "category": "Development;Education;Robotics"
+    },
+    "publish": {
+      "provider": "github",
+      "releaseType": "prerelease"
     }
   }
 }
