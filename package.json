@@ -6,6 +6,14 @@
   "description": "Dexter Development Environment for programming the Dexter robot.",
   "author": "Fry",
   "license": "GPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cfry/dde.git"
+  },
+  "bugs": {
+    "url": "https://github.com/cfry/dde/issues"
+  },
+  "homepage": "https://github.com/cfry/dde",
   "main": "main.js",
   "scripts": {
     "start": "electron main",
@@ -101,9 +109,6 @@
         }
       ],
       "category": "Development;Education;Robotics"
-    },
-    "publish": {
-      "releaseType": "prerelease"
     }
   }
 }
