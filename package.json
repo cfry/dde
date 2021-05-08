@@ -73,7 +73,8 @@
   "devDependencies": {
     "electron": "^5.0.0",
     "electron-builder": "^22.7.0",
-    "rimraf": "^2.6.1"
+    "rimraf": "^2.6.1",
+    "@types/mime": "^2.0.3"
   },
   "build": {
     "appId": "com.haddington.dde",
