@@ -1,7 +1,7 @@
 {
   "name": "dexter_dev_env",
   "productName": "dexter_dev_env",
-  "version": "3.7.14-beta.3",
+  "version": "3.7.14-beta.4",
   "release_date": "Apr 23, 2021",
   "description": "Dexter Development Environment for programming the Dexter robot.",
   "author": "Fry",
