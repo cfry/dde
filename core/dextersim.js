@@ -41,9 +41,9 @@ DexterSim = class DexterSim{
         else {
             sim_inst.sim_actual = sim_actual
         }
-        if (sim_actual === true) { //do not call new_socket_callback if simulate is "both" because we don't want to call it twice
-            Socket.new_socket_callback(robot_name)
-        }
+        //if (sim_actual === true) { //do not call new_socket_callback if simulate is "both" because we don't want to call it twice
+        //    Socket.new_socket_callback(robot_name)
+        //}
     }
 
     static init_all(){ //called once per DDE session (normally)
@@ -123,9 +123,16 @@ DexterSim = class DexterSim{
     //called from Socket.send
     //typically adds instruction to sim_inst.instruction_queue
     static send(robot_name, arr_buff){
+        let instruction_array = this.array_buffer_to_oplet_array(arr_buff) //instruction_array is in dexter_units
         //out("Sim.send passed instruction_array: " + instruction_array + " robot_name: " + robot_name)
         let sim_inst = DexterSim.robot_name_to_dextersim_instance_map[robot_name]
-        let instruction_array = this.array_buffer_to_oplet_array(arr_buff) //instruction_array is in dexter_units
+        /*if(!sim_inst) {
+            let rob = Dexter[robot_name]
+            rob.instruction_to_send_on_connect = instruction_array
+            const sim_actual = Robot.get_simulate_actual(rob.simulate)
+            this.create_or_just_init(robot_name, sim_actual)
+            return
+        }*/
         sim_inst.last_instruction_sent = instruction_array
         let ins_args = Instruction.args(instruction_array) //in dexter_units
         let oplet  = instruction_array[Dexter.INSTRUCTION_TYPE]
@@ -293,7 +300,7 @@ DexterSim = class DexterSim{
         if (this.sim_actual === true){
             let rob = this.robot
             setTimeout(function(){
-                        Socket.on_receive(robot_status_array, rob.name, payload_string_maybe)
+                        Socket.on_receive(robot_status_array, payload_string_maybe)
                         }, 1)
         }
     }
@@ -476,7 +483,7 @@ DexterSim = class DexterSim{
     
 }
 
-DexterSim.robot_name_to_dextersim_instance_map = null
+DexterSim.robot_name_to_dextersim_instance_map = {}
 DexterSim.set_interval_id      = null
 
 module.exports = DexterSim

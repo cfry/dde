@@ -6,90 +6,108 @@ const net = require("net")
 var Socket = class Socket{
     //when a job starts, it calls robot.start, which calls start_aux, which (for Dexter's)
     //calls Socket.init, which for sim, calls DexterSim.create_or_just_init
-    static init(robot_name){
-        //out("Creating Socket for ip_address: " + ip_address + " port: "   + port + " robot_name: " + robot_name)
+    static init(robot_name, job_instance, instruction_to_send_on_connect=null){
+       out(job_instance.name + " Socket.init passed: " + robot_name + " " + instruction_to_send_on_connect)
+       if(!job_instance.is_active()) {
+            warning(job_instance.name + " Attempt to Socket.init with inactive status: " + job_instance.status_code)
+            return
+        }
         let rob = Robot[robot_name]
         const sim_actual = Robot.get_simulate_actual(rob.simulate) //true, false, or "both"
         if ((sim_actual === true)  || (sim_actual == "both")){
             DexterSim.create_or_just_init(robot_name, sim_actual)
             out("socket for Robot." + robot_name + ". is_connected? " + Robot[robot_name].is_connected)
+            Socket.new_socket_callback(robot_name, job_instance, instruction_to_send_on_connect)
         }
         else if ((sim_actual === false) || (sim_actual == "both")) {
-            if(!Socket.robot_name_to_soc_instance_map[robot_name]){
+            let ws_inst = Socket.robot_name_to_soc_instance_map[robot_name]
+            if(!ws_inst){
+                out(job_instance.name + " Socket.init ws_init for " + robot_name + " doesn't yet exist.")
                 try {
-                    let ws_inst = new net.Socket()
+                    ws_inst = new net.Socket()
                     ws_inst.setKeepAlive(true)
-                    ws_inst.on("data", function(data) {
-                        Socket.on_receive(data, robot_name)
-                    })
+                    out(job_instance.name + " Just after created, ws_inst.readyState: " + ws_inst.readyState)
                     /* on error *could* be called, but its duration from a no-connection is
                        highly variable so I have below a setTimeout to kill the connection
                        after a second. But then both on error and the setTimeout method
                        *could* get called so I take pains to kill off the setTimeout
                        so that only one will get called.
 
-                    })*/
-                    let st_inst = setTimeout(function(){
-                        if(ws_inst.connecting) { //still trying to connect after 1 sec, so presume it never will. kill it
-                            out("Socket timeout while connecting to Dexter." + robot_name)
-                            Socket.close(robot_name, true)
-                            rob.connect_error_cb()  //stop the job that started this.
-                        }
-                    }, Socket.connect_timeout_seconds * 1000)
-                    ws_inst.on("error", function(err){
-                        console.log("Socket.init on error while waiting for ack from instruction: " + rob.instruction_to_send_on_connect  +
-                                     " with err: " + err.message)
-                        clearTimeout(st_inst)
-                        //Socket.close(robot_name, true) //true ,means force_close, needed if job is still active becuse that will remove the soc from the robot_name_to_soc_instance_map and get init to really work.
-                        if (rob.resend_count && (rob.resend_count >= 4)) {  //give up retrying and error
-                            rob.resend_count = 0
-                            job_instance.stop_for_reason("errored_from_dexter", "can't connect to Dexter")
-                            return
-                        }
-                        else { //keep trying
-                            if(!rob.resend_count) {
-                                rob.resend_count = 1
-                            }
-                            else { rob.resend_count += 1 }
-                            Socket.close(robot_name, true)
-                            let timeout_dur = Math.pow(10, rob.resend_count)
-                            setTimeout(function(){
-                                console.log("re-initing Socket to Dexter." + robot_name)
-                                Socket.init(robot_name)
-                            }, timeout_dur)
-                        }
-                    })
-                    out("Now attempting to connect to Dexter." + robot_name + " at ip_address: " + rob.ip_address + " port: " + rob.port + " ...", "brown")
-                    ws_inst.connect(rob.port, rob.ip_address, function(){
-                        console.log("just connected to Dexter." + robot_name)
-                        clearTimeout(st_inst)
-                        Socket.robot_name_to_soc_instance_map[robot_name] = ws_inst
-                        Socket.new_socket_callback(robot_name)
-                    })
+                    */
                 }
-                catch(e){
-                    console.log("Socket.init catch clause with err: " + e.message)
-                    dde_error("Error attempting to create socket to Dexter." + robot_name + " at ip_address: " + rob.ip_address + " port: " + rob.port + e.message)
+                catch(err){
+                    console.log(job_instance.name + " Socket.init catch clause with err: " + err.message)
+                    dde_error("Error attempting to create socket to Dexter." + robot_name + " at ip_address: " + rob.ip_address + " port: " + rob.port + err.message)
                     this.close(robot_name, true)
                 }
             }
-            else { //there is a ws_inst in the map, BUT it might have died since it was set.
-                   //none the less, pretend its good, and forge ahead
+            let st_inst = null
+            ws_inst.on("data", function(data) {
+                Socket.on_receive(data)
+            })
+            ws_inst.on("error", function(err){
+                console.log(job_instance.name + " Socket.init on error while waiting for ack from instruction: " + instruction_to_send_on_connect  +
+                             " with err: " + err.message)
+                if(st_inst){ clearTimeout(st_inst) }
+                //Socket.close(robot_name, true) //true ,means force_close, needed if job is still active becuse that will remove the soc from the robot_name_to_soc_instance_map and get init to really work.
+                if (rob.resend_count && (rob.resend_count >= 4)) {  //give up retrying and error
+                    rob.resend_count = 0
+                    job_instance.stop_for_reason("errored_from_dexter", "can't connect to Dexter." + rob.name)
+                    return
+                }
+                else { //keep trying
+                    if(!rob.resend_count) {
+                        rob.resend_count = 1
+                    }
+                    else { rob.resend_count += 1 }
+                    Socket.close(robot_name, true)
+                    let timeout_dur = Math.pow(10, rob.resend_count)
+                    setTimeout(function(){
+                        console.log("re-initing Socket to Dexter." + robot_name)
+                        Socket.init(robot_name, job_instance, instruction_to_send_on_connect)
+                    }, timeout_dur)
+                }
+            })
+            ws_inst.on("connect", function(){
+                out(job_instance.name + " Succeeded connection to Dexter: " + robot_name + " at ip_address: " + rob.ip_address + " port: " + rob.port, "green")
+                clearTimeout(st_inst)
+                Socket.robot_name_to_soc_instance_map[robot_name] = ws_inst
+                Socket.new_socket_callback(robot_name, job_instance, instruction_to_send_on_connect)
+            })
+            out(job_instance.name + "Socket.init before connect, ws_inst.readyState: " + ws_inst.readyState)
+            if (ws_inst.readyState === "closed") {
+                st_inst = setTimeout(function(){
+                    out(job_instance.name + " in Socket.init, setTimout of st_inst")
+                    if(ws_inst.connecting) { //still trying to connect after 1 sec, so presume it never will. kill it
+                        Socket.close(robot_name, true)
+                        rob.resend_count = 0
+                        job_instance.stop_for_reason("errored_from_dexter", "ocket timeout while connecting to Dexter." + rob.name)
+                    }
+                }, Socket.connect_timeout_seconds * 1000)
+                out(job_instance.name + "Now attempting to connect to Dexter." + robot_name + " at ip_address: " + rob.ip_address + " port: " + rob.port + " ...", "brown")
+                ws_inst.connect(rob.port, rob.ip_address)
+            }
+            else { //ws_inst is open
+                Socket.new_socket_callback(robot_name, job_instance, instruction_to_send_on_connect)
             }
         }
+        out(job_instance.name + " Socket.init, very bottom")
     }
 
     //called from both above socket code and from dexsim
-    static new_socket_callback(robot_name){
+    static new_socket_callback(robot_name, job_instance, instruction_to_send_on_connect){
         Dexter.set_a_robot_instance_socket_id(robot_name)
         let rob = Robot[robot_name]
-        if(rob.instruction_to_send_on_connect) { //usually this clause hits. happens for initial g oplet for a job
+        if(instruction_to_send_on_connect) { //usually this clause hits. happens for initial g oplet for a job
               //and when connection is dropped and we need to resetablish connection and resend.
-            if(rob.instruction_to_send_on_connect[0] === undefined) { //we have the initial "g" instr for a job, that has yet to get filled out by Job.prototype.send
-                rob.job_to_send_on_connect.send(rob.instruction_to_send_on_connect)
+              //ok to call this even if we were already connected.
+            let inst_id = instruction_to_send_on_connect[1]
+            if((inst_id === undefined) || (inst_id === -1)) { //we have the initial "g" instr for a job, that has yet to get filled out by Job.prototype.send
+                out("new_socket_callback with initial g instruction.")
+                job_instance.send(instruction_to_send_on_connect, rob)
             }
             else {
-                rob.send(rob.instruction_to_send_on_connect)
+                rob.send(instruction_to_send_on_connect)
             }
         }
         else {
@@ -276,22 +294,33 @@ var Socket = class Socket{
     }
 
     static send(robot_name, oplet_array_or_string){ //can't name a class method and instance method the same thing
-        console.log("Socket.send passed oplet_array_or_string: " + oplet_array_or_string)
         let rob = Robot[robot_name]
-        rob.instruction_to_send_on_connect = oplet_array_or_string //the one place this is set to an instruction DON'T store the _du version
         let oplet_array_or_string_du = Socket.instruction_array_degrees_to_arcseconds_maybe(oplet_array_or_string, rob)
-        let job_id = Instruction.extract_job_id(oplet_array_or_string_du)
+        let job_id = Instruction.extract_job_id(oplet_array_or_string)
         let job_instance = Job.job_id_to_job_instance(job_id)
+        out(job_instance.name + " " + robot_name + " Socket.send passed oplet_array_or_string: " + oplet_array_or_string)
+
         const str =  Socket.oplet_array_or_string_to_string(oplet_array_or_string_du)
+        if(Instruction.is_F_instruction_string(str)) {
+            rob.waiting_for_flush_ack = true
+        }
         if(job_instance.keep_history) {
             job_instance.sent_instructions_strings.push(str)
         }
         const arr_buff = Socket.string_to_array_buffer(str)
         const sim_actual = Robot.get_simulate_actual(rob.simulate)
         if((sim_actual === true) || (sim_actual === "both")){
-            setTimeout( function() { //eqiv to ws_inst.write(arr_buff) below.
-                DexterSim.send(robot_name, arr_buff)
-            }, 1)
+            let sim_inst = DexterSim.robot_name_to_dextersim_instance_map[robot_name]
+            if(sim_inst) {
+                setTimeout( function() { //eqiv to ws_inst.write(arr_buff) below.
+                    DexterSim.send(robot_name, arr_buff)
+                }, 1)}
+            else {
+                Socket.close(robot_name, true) //both are send args
+                setTimeout(function(){
+                    Socket.init(robot_name, job_instance, oplet_array_or_string)
+                }, 100)
+            }
         }
         if ((sim_actual === false) || (sim_actual === "both")) {
             let ws_inst = Socket.robot_name_to_soc_instance_map[robot_name]
@@ -313,15 +342,15 @@ var Socket = class Socket{
                         return
                     }
                     else { //keep trying
-                        if(!rob.resend_count) {
+                        /*if(!rob.resend_count) {
                             rob.resend_count = 1
                         }
-                        else { rob.resend_count += 1 }
+                        else { rob.resend_count += 1 }*/
                         Socket.close(robot_name, true)
                         let timeout_dur = Math.pow(10, rob.resend_count)
                         setTimeout(function(){
                             console.log("re-initing Socket to Dexter." + robot_name)
-                            Socket.init(robot_name)
+                            Socket.init(robot_name, job_instance, oplet_array_or_string)
                         }, timeout_dur)
                         return
                     }
@@ -330,9 +359,8 @@ var Socket = class Socket{
             else { //maybe never hits. it only hits if there is no ws_inst in Socket.robot_name_to_soc_instance_map
                 Socket.close(robot_name, true) //both are send args
                 setTimeout(function(){
-                    Socket.init(robot_name)
+                    Socket.init(robot_name, job_instance, oplet_array_or_string)
                 }, 100)
-                return
             }
         }
     } //end of send method
@@ -354,11 +382,9 @@ var Socket = class Socket{
     //and if called from sim and we have an "r" oplet, it is either a string (everything ok)
     //or an integer (1) when sim get file-not-found.
     //
-    static on_receive(data, robot_name, payload_string_maybe){
+    static on_receive(data, payload_string_maybe){
         //data.length == 240 data is of type: Uint8Array, all values between 0 and 255 inclusive
         //console.log("Socket.on_receive passed data:        " + data)
-        let rob = Dexter[robot_name]
-        rob.instruction_to_send_on_connect = null //no longer waiting for ack, we've got it.
         let robot_status
         let oplet
         if(Array.isArray(data)) {  //todo return from sim same data type as Dexter returns.   //a status array passed in from the simulator
@@ -375,7 +401,7 @@ var Socket = class Socket{
             let opcode = robot_status[Dexter.INSTRUCTION_TYPE]
             oplet  = String.fromCharCode(opcode)
         }
-        console.log("Socket.on_receive passed DU robot status: " + robot_status)
+        //console.log("Socket.on_receive passed DU robot status: " + robot_status)
         //the simulator automatically does this so we have to do it here in non-simulation
         //out("on_receive got back oplet of " + oplet)
         robot_status[Dexter.INSTRUCTION_TYPE] = oplet
@@ -402,8 +428,43 @@ var Socket = class Socket{
             Socket.convert_robot_status_to_degrees(robot_status)
         }
 
-        //Socket.robot_is_waiting_for_reply[robot_name] = false
+        let rob = this.find_dexter_instance_from_robot_status(robot_status) //= Dexter[robot_name]
+        if (oplet === "F") {
+            rob.waiting_for_flush_ack = false
+        }
+        let job_id = robot_status[Dexter.JOB_ID]
+        let job_instance = Job.job_id_to_job_instance(job_id)
+        out(job_instance.name + " " + rob.name + " bottom of Socket.on_recieve with: " + robot_status)
         rob.robot_done_with_instruction(robot_status) //robot_status ERROR_CODE *might* be 1
+    }
+
+    //this is needed bacause we might have an instruction like Dexter.dexter2.move_all_joints()
+    //the enclosing job might not have that dexter as its default robot,
+    //or might not even have a Dexter instance as the Job robot at all.
+    //so we want to first check the instruction to see if it has a robot.
+    //if so. use it, if not, go for the default robot for the job and if that is an instance
+    //of Dexter, use it, else error with shouldnt
+    static find_dexter_instance_from_robot_status(robot_status){
+        let job_id = robot_status[Dexter.JOB_ID]
+        let job_instance = Job.job_id_to_job_instance(job_id)
+        let instr_id = robot_status[Dexter.INSTRUCTION_ID]
+        let rob
+        if(instr_id === -1) { //the initial g instruction, only sent when a Job has as its robot, a dexter
+           rob = job_instance.robot
+        }
+        else {
+            let instr = job_instance.do_list[instr_id]
+            rob = instr.robot //this is the best we can do if there's a robot indincated in the instr
+            if(!rob) {
+                if(job_instance.robot instanceof Dexter) { //next best we can do
+                    rob = job_instance.robot
+                }
+                else {
+                    shouldnt("Socket.find_dexter_instance_from_robot_status couldnt find robot from: " + robot_status)
+                }
+            }
+        }
+        return rob
     }
 
     static r_payload_grab(data, robot_status, payload_string_maybe) {
@@ -477,15 +538,15 @@ var Socket = class Socket{
             //DexterSim.close(robot_name) //commented out mar 21, 20201 because DexterSim.close didn't actually do anything.
             //if we stop a job, the robot still plays out its queue so simulator should too.
         }
-        if ((sim_actual === false) || (sim_actual == "both")){
-            if((rob.active_jobs_using_this_robot().length == 0) || force_close){
+        if ((sim_actual === false) || (sim_actual === "both")){
+           /* if((rob.active_jobs_using_this_robot().length == 0) || force_close){
                 const soc_instance = Socket.robot_name_to_soc_instance_map[robot_name]
                 if(soc_instance){
                     soc_instance.removeAllListeners()
                     soc_instance.destroy()
                     delete Socket.robot_name_to_soc_instance_map[robot_name]
                 }
-            }
+            }*/
         }
     }
 

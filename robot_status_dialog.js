@@ -8,7 +8,7 @@
 var RobotStatusDialog = class RobotStatusDialog{
 //only called from the menu bar Jobs/show robot status item
 //makes a new window, but not if one is already up.
-    static show(robot){
+    static show(robot, default_status_mode=0){
         if(RobotStatusDialog.window_up()) { out("Robot Status is already shown.") }
         else {
             if(!(robot instanceof Dexter)) {
@@ -17,6 +17,11 @@ var RobotStatusDialog = class RobotStatusDialog{
             let content = RobotStatusDialog.make_html_table(robot)
             let cal = robot.is_calibrated()
             cal = ((cal === null) ? "unknown" : cal)
+            let sm_to_show
+            if(robot.rs) { sm_to_show = robot.rs.status_mode() }
+            else { sm_to_show = default_status_mode } //happens when there is no status mode, ie no job has run on this robot.
+               //BUT the user might have still changed the "g" input number spinner, and then clicked the update button,
+               //so we want to pass in that number from the prev dialog, which we do in the default_status_mode
             RobotStatusDialog.show_window_id =  //careful. "this" is the dom elt when this is first called, not the class.
               show_window({content: content,
                 title:  "<span style='font-size:16px;'>Robot Status of</span> " +
@@ -25,8 +30,9 @@ var RobotStatusDialog = class RobotStatusDialog{
                 "style='color:blue;cursor:pointer;font-weight:bold;font-size:14px;'> &#9432;</span>" +
                 "<span style='font-size:12px;margin-left:10px;'> Updated: <span id='robot_status_window_time_id'>" + RobotStatusDialog.update_time_string() + "</span></span>" +
                 " <button id='robot_status_run_update_job_button_id' title='Defines and starts a Job&#13; that continually gets the robot status&#13;of the selected robot.&#13;Click again to stop that Job.'" +
-                " onclick='RobotStatusDialog.run_update_job()'>run update job</button> " +
-                "<span style='font-size:14px;'> is_calibrated: <span id='robot_status_is_calibrated_id'>" + cal + "</span></span> " +
+                " onclick='RobotStatusDialog.run_update_job()'>run rs_update job</button> " +
+                `<span style='font-size:12px;' title='The status_mode to use&#013;when the "run rs_update job" button is clicked.'> sm: <input id='robot_status_status_mode_id' type='number' step='1' value='` + sm_to_show + "' style='width:27px;'/></span> " +
+                "<span style='font-size:14px;'> &nbsp;&nbsp;is_calibrated: <span id='robot_status_is_calibrated_id'>" + cal + "</span></span> " +
                 `<button title='Inspect the robot_status array.' onclick="RobotStatusDialog.inspect_array()"'>Inspect Array</button> ` +
                 `<button title="Browse the Dexter node server main page.&#013;For this to work, you must be connected&#013;to a Dexter that's running its server." onclick="RobotStatusDialog.browse()"'>Browse</button> `
                 ,
@@ -86,11 +92,13 @@ var RobotStatusDialog = class RobotStatusDialog{
     //doesn't know if this robot is currently being shown in a dialog.
     //If its not, then do nothing. But if it is, then update the displayed values in the table.
     static update_robot_status_table_maybe(robot){
-        let existing_shown_robot = this.selected_robot()
-        if(existing_shown_robot && (existing_shown_robot == robot)){
-            this.update_robot_status_table(robot)
+        if(this.window_up()){
+            let existing_shown_robot = this.selected_robot()
+            if(existing_shown_robot && (existing_shown_robot == robot)){
+                this.update_robot_status_table(robot)
+            }
+            else { } //do nothing.
         }
-        else { } //do nothing.
     }
 
     //called after the table is created, to update it dynamically.
@@ -109,9 +117,9 @@ var RobotStatusDialog = class RobotStatusDialog{
             }
             if(sm !== actual_sm_now_shown) {
                 this.close_window()
-                setTimeout(function() {
-                    RobotStatusDialog.show(robot)
-                    }, 100)
+                //setTimeout(function() {
+                    RobotStatusDialog.show(robot, actual_sm_now_shown)
+                //    }, 100)
             }
             else {
                 let labels = Dexter.robot_status_labels_sm(sm)
@@ -353,7 +361,7 @@ var RobotStatusDialog = class RobotStatusDialog{
         let job_name = ((typeof(val) === "number") ? Job.job_id_to_job_instance(val).name : null)
         let tooltip
         if(job_name){
-            tooltip = "Inspect Job." + job_name + " details."
+            tooltip = "Inspect: Job." + job_name + "&#013;details."
         }
         else {
             tooltip = "No Job indicted."
@@ -369,25 +377,31 @@ var RobotStatusDialog = class RobotStatusDialog{
     static run_update_job(){
         let existing_job = Job.rs_update
         if(existing_job && existing_job.is_active()){
-            robot_status_run_update_job_button_id.style.backgroundColor = "#93dfff"
+            //robot_status_run_update_job_button_id.style.backgroundColor = "#93dfff" //done in Job.color_job_button
             existing_job.stop_for_reason("interrupted", "user stopped job")
         }
         else {
             let rob = this.selected_robot()
-            let sm = (rob.rs ? rob.rs.status_mode() : 0)
-            robot_status_run_update_job_button_id.style.backgroundColor = "#AAFFAA"
+            //let sm = (rob.rs ? rob.rs.status_mode() : 0)
+            //robot_status_run_update_job_button_id.style.backgroundColor = "#AAFFAA"
             let the_job = new Job({name: "rs_update",
-                                     robot: rob,
-                                     do_list: [ Dexter.get_robot_status(sm),
-                                                Control.loop(true,
+                                     robot: new Brain({name: "rs_update_brain"}),
+                                     inter_do_item_dur: 0.5, //UI update doesn't need to be faster than this.
+                                                             //its even hard to read the numbers if they are faster.
+                                                             //and we don't want to slow down a monitored job unessessarily
+                                     do_list: [ Control.loop(true,
                                                    function() {
                                                       if(RobotStatusDialog.window_up()){
                                                           let cal = rob.is_calibrated()
                                                           if (cal == null) { cal = "unknown" }
                                                           robot_status_is_calibrated_id.innerHTML = cal
-                                                          return Dexter.get_robot_status()
+                                                          let sm = robot_status_status_mode_id.value
+                                                          sm = parseInt(sm)
+                                                          out("in rs_update_brain sending get_robot_status for: " + sm)
+                                                          return rob.get_robot_status(sm)
                                                       }
                                                       else {
+                                                          out("in rs_update_brain window down, ending loop.")
                                                           return Control.break()
                                                       }
                                                    })]})

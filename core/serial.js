@@ -78,8 +78,8 @@ function serial_get_or_make_port(port_path, port_options, open_callback){
            port.settings[key] = val
         }
         if(!port.isOpen){
-            //port.open()
-            open_callback.call(port)
+            port.open(open_callback)
+            //open_callback.call(port, null, port_path)
         }
     }
     return port
@@ -147,14 +147,18 @@ function serial_connect_low_level(port_path,
             parse_items:     parse_items,
             capture_extras:  capture_extras,
             pending_input:   ""}
-    port.on('open',  function(err)  { open_callback.call(port, err, port_path)})  //port.open_callback(err, port_path)
+    port.on('open',  function(err)  {
+                        open_callback.call(port, err, port_path)
+                    })  //port.open_callback(err, port_path)
     port.on('data',  function(data) {
-       callback.call(port, data, port_path)
-    })
-    port.on('error', function(data) { error_callback.call(port, data, port_path)})
-    port.on('close', function ()    {
-        close_callback.call(port, port_path)
-    })
+                        callback.call(port, data, port_path)
+                    })
+    port.on('error', function(data) {
+                        error_callback.call(port, data, port_path)
+                    })
+    port.on('close', function()     {
+                        close_callback.call(null, port, port_path)
+                    })
 }
 
 module.exports.serial_connect_low_level = serial_connect_low_level
@@ -170,7 +174,7 @@ function onOpenCallback_low_level(err, port_path){
 }
 
 function onCloseCallback_low_level(port, port_path){
-    out("Closing serial port: " + port_path)
+    out("Closed: serial port: " + port_path)
 }
 
 
@@ -533,10 +537,10 @@ function onReceiveErrorCallback_low_level(info_from_board, port_path) {
     //it wouldn't surprise me if "disconnected" was really error_code 1 instead of 0.
     //but this is what https://developer.chrome.com/apps/serial#event-onReceive sez.
     let info = serial_port_path_to_info_map[port_path]
-    let rs = info.robot_status
+    //let rs = info.robot_status
     out("onReceiveErrorCallback called with port_path: " + info.port_path, "red")
-    rs[Serial.ERROR_CODE] = error_codes[errnum]
-    serial_on_done_with_sending(rs, info.port_path)
+    //rs[Serial.ERROR_CODE] = error_codes[errnum]
+    //serial_on_done_with_sending(rs, info.port_path)
 }
 
 function onReceiveErrorCallback(info_from_board, port_path) {
@@ -617,11 +621,17 @@ function serial_disconnect(port_path){
             //info.port.close(function(err){out("closed"+err)})
             try {
               info.port.drain(function(err){
-                    try { info.port.close(function(err){out(port_path + " closed. " + err)}) }
-                    catch(err) { out("serial port error: " + err.message) }
+                    try { info.port.close(function(err){
+                                             out(port_path + " closed. " + err)
+                                          }) }
+                    catch(err) {
+                        out("Error closing serial port: " + err.message)
+                    }
                 })
             }
-            catch(err) { out ("serial port already closed.") }
+            catch(err) {
+                out ("serial port already closed.")
+            }
             out("closing: " + port_path)
         }
         delete serial_port_path_to_info_map[port_path]

@@ -109,6 +109,10 @@ function handle_run_instruction(vals){
         Editor.insert(src)
         return
     }
+    if(instr_src === "") {
+        warning("Please click on a non-blank mode in the Run Instruction dialog box.")
+        return
+    }
     var args_source = instr_src.substring(instr_src.indexOf("(") + 1, instr_src.length - 1)
     run_src_id.value = args_source
     var instr_name = instr_src.substring(0, instr_src.indexOf("("))
@@ -164,7 +168,7 @@ function make_robots_select_html(){
 function make_modes_select_html(){
   var result = "<select name='mode_name' title='Changing this will send a mode change instruction to Dexter.' " +
                        "style='font-size:14px;width:200px;margin:8px;' data-onchange='true'>" +
-                       " <option></option> " //needs to be blank when dialog first comes up.
+                       " <option title='Please select a non-blank mode'></option> " //needs to be blank when dialog first comes up.
   for(let name of ["set_open_loop", "set_follow_me", "set_force_protect", "set_keep_position"]){
     result += "<option>Dexter." + name + "()</option>"
   }

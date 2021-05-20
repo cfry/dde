@@ -713,7 +713,7 @@ Serial = class Serial extends Robot {
             job_instance.set_up_next_do(0)
         }
         else if (this.is_connected) { // || (sim_actual === true) || (sim_actual === "both"))  {
-            job_instance.wait_until_instruction_id_has_run = job_instance.program_counter //we don't wantto continue the job until this instr is done.
+            job_instance.wait_until_instruction_id_has_run = job_instance.program_counter //we don't want to continue the job until this instr is done.
             serial_send(ins_array, this.path, this.simulate, this.sim_fun) //ok time to finally run the instruction!
         }
         else {
@@ -1056,6 +1056,7 @@ Dexter = class Dexter extends Robot {
     }
 
     start(job_instance){
+        out("top of Dexter.start() for "+ job_instance.name)
         //let sim_actual = Robot.get_simulate_actual(this.simulate)
         //let this_robot = this
         //let this_job   = job_instance
@@ -1106,6 +1107,7 @@ Dexter = class Dexter extends Robot {
     }
 
     start_aux(job_instance) { //fill in initial robot_status
+        out("top of Dexter.start_aux() for "+ job_instance.name)
         //this.processing_flush = false
         let this_robot = this
         let this_job   = job_instance
@@ -1147,14 +1149,14 @@ Dexter = class Dexter extends Robot {
                             //this_job.send(Dexter.get_robot_status(), this_robot)
                         } //the initial g stareting off the job
         }*/
-        let connect_error_cb = function(){
+        /* not needed if pass job_instance into Socket.init
+             let connect_error_cb = function(){
              this_job.stop_for_reason("errored_from_dexter_connect",
                  "The job: " + this_job.name + " could not connect to Dexter." + this_robot.name)
         }
-        this_robot.connect_error_cb = connect_error_cb
-        this_robot.instruction_to_send_on_connect = Dexter.get_robot_status()
-        this_robot.job_to_send_on_connect = job_instance //needed by Socket.init
-        Socket.init(this.name)
+        this_robot.connect_error_cb = connect_error_cb*/
+        let instruction_to_send_on_connect = Dexter.get_robot_status() //the inital g instr
+        Socket.init(this.name, job_instance, instruction_to_send_on_connect)
     }
 
     static get_robot_with_ip_address_and_port(ip_address, port){
@@ -1191,6 +1193,7 @@ Dexter = class Dexter extends Robot {
         }
     }
 
+    /* changed to an instance variable on Dexter instances, may 18, 2021
     waiting_for_flush_ack(){
         let rob = this
         let instr = rob.instruction_to_send_on_connect
@@ -1211,7 +1214,7 @@ Dexter = class Dexter extends Robot {
             else { return false }
         }
         else { return false }
-    }
+    }*/
 
     set_robot_status(robot_status) {
         let old_robot_status_button_down = this.is_phui_button_down() //do this first before setting robot_status
@@ -1345,9 +1348,6 @@ Dexter = class Dexter extends Robot {
     static set_a_robot_instance_socket_id(robot_name){
         let rob          = Dexter[robot_name]
         //rob.socket_id    = socket_id
-        if ([false, "both"].includes(Robot.get_simulate_actual(rob.simulate))) {
-            out("Succeeded connection to Dexter: " + robot_name + " at ip_address: " + rob.ip_address + " port: " + rob.port, "green")
-        }
         rob.is_connected = true
         //out("bottom of set_a_robot_instance_socket_id with rob.name: " + rob.name + " rob.is_connected: " + rob.is_connected)
     }
@@ -1363,33 +1363,86 @@ Dexter = class Dexter extends Robot {
     //beware, robot_status could be an ack, can could be called by sim or real
     //but if sim is "both", will only be called by real (from socket)
     robot_done_with_instruction(robot_status){ //called from UI sockets
-        if (!(Array.isArray(robot_status))) { //note: we have to error here because we can't get the job
-            //so we can't call stop_for_reason
-            throw(TypeError("Dexter.robot_done_with_instruction recieved a robot_status array: " +
-                robot_status + " that is not an array."))
+        if(window.prev_rs === robot_status) {
+            out("robot_done_with_instruction got same robot_status as last time.")
         }
+        else {
+            out("robot_done_with_instruction got different robot_status as last time.")
+        }
+        window.prev_rs = robot_status
+
         let job_id       = robot_status[Dexter.JOB_ID]
         let job_instance = Job.job_id_to_job_instance(job_id)
-        let ins_id  = robot_status[Dexter.INSTRUCTION_ID] //-1 means the initiating status get, before the first od_list instruction
-        let oplet  = robot_status[Dexter.INSTRUCTION_TYPE]
-        let error_code = robot_status[Dexter.ERROR_CODE]
-        let rob     = this //job_instance.robot
-        if (job_instance == null){ //note: we have to error here because we can't get the job
-            //so we can't call stop_for_reason
-            throw new Error("Dexter.robot_done_with_instruction passed job_id: " + job_id +
-                            " but couldn't find a Job instance with that job_id.")
+        let ins_id       = robot_status[Dexter.INSTRUCTION_ID] //-1 means the initiating status get, before the first od_list instruction
+        let oplet        = robot_status[Dexter.INSTRUCTION_TYPE]
+        let error_code   = robot_status[Dexter.ERROR_CODE]
+        let rob          = this //job_instance.robot
+        if(oplet === "F") {
+            rob.waiting_for_flush_ack = false
         }
-        if(this instanceof Dexter) { this.remove_from_busy_job_array(job_instance) }
-        if (robot_status.length != Dexter.robot_status_labels.length){ //allows when_stopped action to run if any
-            job_instance.condition_when_stopped = "errored_from_dexter"
+        if (!(Array.isArray(robot_status))) { //note: we have to error here because we can't get the job
+            //so we can't call stop_for_reason
             job_instance.stop_for_reason("errored_from_dexter",
-               "Dexter.robot_done_with_instruction recieved a robot_status array: " +
-                robot_status + "<br/> of length: " + robot_status.length +
-                " that is not the proper length of: " + Dexter.robot_status_labels.length)
+                                 "Dexter.robot_done_with_instruction recieved a robot_status array: " +
+                                  robot_status + " that is not an array.")
+            job_instance.wait_until_instruction_id_has_run = null
             job_instance.set_up_next_do(0)
             return
         }
-        else if ((robot_status[Dexter.ERROR_CODE] !== 0) && (oplet === "r")){ //we have an error
+        else if (job_instance == null){
+            job_instance.stop_for_reason("errored_from_dexter",
+                            "Dexter.robot_done_with_instruction passed job_id: " + job_id +
+                            " but couldn't find a Job instance with that job_id.")
+            job_instance.wait_until_instruction_id_has_run = null
+            job_instance.set_up_next_do(0)
+            return
+        }
+        else if (robot_status.length < Dexter.robot_status_labels.length){ //allows when_stopped action to run if any
+            //if its longer than 60, ie 120, then we got 2 robot status's back.
+            //just use the first 60 from the array.
+            job_instance.condition_when_stopped = "errored_from_dexter"
+            job_instance.stop_for_reason("errored_from_dexter",
+                "Dexter.robot_done_with_instruction recieved a robot_status array: " +
+                robot_status + "<br/> of length: " + robot_status.length +
+                " that is not the proper length of: " + Dexter.robot_status_labels.length)
+            job_instance.wait_until_instruction_id_has_run = null
+            job_instance.set_up_next_do(0)
+            return
+        }
+        else if (job_instance.wait_until_instruction_id_has_run !== ins_id){
+            job_instance.stop_for_reason("errored_from_dexter",
+                "Dexter.robot_done_with_instruction recieved a robot_status array with an instruction_id of: " + ins_id +
+                "<br/> but expected: " + job_instance.wait_until_instruction_id_has_run)
+            job_instance.wait_until_instruction_id_has_run = null
+            job_instance.set_up_next_do(0)
+            return
+        }
+        else if((robot_status[Dexter.ERROR_CODE] !== 0) && (oplet !== "r")){ //we've got an error
+                //job_instance.stop_for_reason("errored", "Robot status got error: " + error_code)
+            job_instance.wait_until_instruction_id_has_run = null //but don't increment PC
+            let instruction_to_run_when_error = job_instance.if_robot_status_error.call(job_instance, robot_status)
+            if(instruction_to_run_when_error){
+                //note instruction_to_run_when_error can be a single instruction or an array
+                //of instructions. If its an array, we insert it as just one instruction,
+                //and that will cause all to be run.
+                job_instance.insert_single_instruction(instruction_to_run_when_error)
+            }
+            rob.perform_instruction_callback(job_instance) //job_instance.set_up_next_do()
+            return
+        }
+
+        job_instance.wait_until_instruction_id_has_run = null
+        let busy_job_array_copy = rob.busy_job_array.slice()
+        rob.clear_busy_job_array() //so that the other jobs that I call set_up_next_do, won't hang up because hteir busy,
+         //because they no longer should be busy, because we got back our ack from Dexter that was keeping them busy,
+        for(let busy_job of busy_job_array_copy){
+            if(busy_job === job_instance) {} //let this pass through to the below as the passed in robot_status is from this instrr and this job_instance
+            else {
+               busy_job.set_up_next_do(0) //now execute the instr at the PC in an OTHER job, without advancing it.
+               return
+            }
+        }
+        if ((robot_status[Dexter.ERROR_CODE] !== 0) && (oplet === "r")){ //we have an error but its "file not found" handled specially
              //Dexter.read_file errored, assuming its "file not found" so end the rfr loop and set the "content read" as null, meaning file not found
                 //the below setting of the user data already done by got_content_hunk
                 //let rfr_instance = Instruction.Dexter.read_file.find_read_file_instance_on_do_list(job_instance, ins_id)
@@ -1405,76 +1458,43 @@ Dexter = class Dexter extends Robot {
         }
         let stop_time    = Date.now() //the DDE stop time for the instruction, NOT Dexter's stop time for the rs.
         job_instance.record_sent_instruction_stop_time(ins_id, stop_time)
-        if (!rob.is_connected) {} //ignore any residual stuff coming back from dexter
+       // if (!rob.is_connected) {} //ignore any residual stuff coming back from dexter
         //we don't want to change robot_status for instance because that will confuse
         //debugging in the case that we've had an error and want to close.
         //on the other hand, we want accurate info. Hmm, maybe the "residual" is
         //only comming for simulation and not from read dexter.
         //else if (ins_id == -1) {}
+     // else {
+        rob.set_robot_status(robot_status) //makes RobotStatus updated too
+        if (job_instance.keep_history && (oplet == "g")){ //don't do it for oplet "G", get_robot_status_immediate
+                job_instance.rs_history.push(robot_status)
+        }
+        if(window.platform === "dde"){
+            RobotStatusDialog.update_robot_status_table_maybe(rob) //if the dialog isn't up, this does nothing
+        }
+
+        if (job_instance.status_code === "starting") { //at least usually ins_id is -1
+            job_instance.set_status_code("running")
+            //pass robot_status because we *might* not be keeping it in the history
+            //rob.perform_instruction_callback(job_instance)
+            //if(job_instance.dont_proceed_after_initial_g) {//used by MakeInstruction
+            //    MiRecord.start_is_done_with_initial_g_and_paused(job_instance)
+            //}
+            job_instance.set_up_next_do(0)//we've just done the initial g instr, so now do the first real instr. PC is already pointing at it, so don't increment it.
+        }
+        else if ((job_instance.status_code === "stopping") && (oplet === "F")){
+            job_instance.stop_for_reason("interrupted", "Completed Dexter.empty_instruction_queue after user stopped the Job.")
+            rob.perform_instruction_callback(job_instance)
+        }
+        else if (ins_id == job_instance.program_counter) { //the normal case.
+            rob.perform_instruction_callback(job_instance)// job_instance.set_up_next_do() //note before doing this, pc might be on last do_list item.
+                    //but that's ok. increment pc and call do_next_item.
+        }
         else {
-            rob.set_robot_status(robot_status) //makes RobotStatus updated too
-            if (job_instance.keep_history && (oplet == "g")){ //don't do it for oplet "G", get_robot_status_immediate
-                    job_instance.rs_history.push(robot_status)
-            }
-            if(window.platform === "dde"){
-                RobotStatusDialog.update_robot_status_table_maybe(rob) //if the dialog isn't up, this does nothing
-            }
-            if (error_code !== 0){ //we've got an error
-                //job_instance.stop_for_reason("errored", "Robot status got error: " + error_code)
-                if (job_instance.wait_until_instruction_id_has_run === ins_id){ //we've done it!
-                    job_instance.wait_until_instruction_id_has_run = null //but don't increment PC
-                }
-                let instruction_to_run_when_error = job_instance.if_robot_status_error.call(job_instance, robot_status)
-                if(instruction_to_run_when_error){
-                    //note instruction_to_run_when_error can be a single instruction or an array
-                    //of instructions. If its an array, we insert it as just one instruction,
-                    //and that will cause all to be run.
-                    job_instance.insert_single_instruction(instruction_to_run_when_error)
-                }
-                rob.perform_instruction_callback(job_instance) //job_instance.set_up_next_do()
-            }
-            else if (job_instance.status_code === "starting") { //at least usually ins_id is -1
-                job_instance.set_status_code("running")
-                //pass robot_status because we *might* not be keeping it in the history
-                //rob.perform_instruction_callback(job_instance)
-                //if(job_instance.dont_proceed_after_initial_g) {//used by MakeInstruction
-                //    MiRecord.start_is_done_with_initial_g_and_paused(job_instance)
-                //}
-                job_instance.set_up_next_do(0)//we've just done the initial g instr, so now do the first real instr. PC is already pointing at it, so don't increment it.
-            }
-            else if ((job_instance.status_code === "stopping") && (oplet === "F")){
-                job_instance.stop_for_reason("interrupted", "Completed Dexter.empty_instruction_queue after user stopped the Job.")
-                rob.perform_instruction_callback(job_instance)
-            }
-            else { //the normal, no error, not initial case
-                if (job_instance.wait_until_instruction_id_has_run === ins_id){ //we've done it!
-                    job_instance.wait_until_instruction_id_has_run = null
-                    if (ins_id == job_instance.program_counter) {
-                        rob.perform_instruction_callback(job_instance)// job_instance.set_up_next_do() //note before doing this, pc might be on last do_list item.
-                        //but that's ok. increment pc and call do_next_item.
-                    }
-                    else {
-                        shouldnt("In job: " + job_instance.name +
-                            " \n robot_done_with_instruction got ins_id: " + ins_id +
-                            " \n which matched wait_until_instruction_id_has_run " +
-                            " \n but the PC wasn't the same. Its: "  + job_instance.program_counter)
-                    }
-                }
-                else { //instr coming back is not a wait for,
-                    // so its just a non-last instr in a group, so we shouldn't call do_next_item for it
-                    //and don't even set robot_status from it. May 2016 decided to set robot status
-                    //and history ... see above. status and history should be consistent
-                    //but still status can get into a race condition with user code so
-                    //am not fond of setting it. ask kent.
-                    rob.perform_instruction_callback(job_instance) //job_instance.set_up_next_do() //calling this is mostly a no-op, because
-                    //job_instance.wait_until_instruction_id_has_run should be set to
-                    //something higher than this instr coming back.
-                    //BUT in case the user has stopped the job or another job does so,
-                    //then calling do_next_item here would actually stop the job.
-                    //so this call to do_next_item will at most get down to the
-                    //this.wait_until_instruction_id_has_run clause but never further.
-                }
-            }
+            shouldnt("In job: " + job_instance.name +
+                " \n robot_done_with_instruction got ins_id: " + ins_id +
+                " \n which matched wait_until_instruction_id_has_run " +
+                " \n but the PC wasn't the same. Its: "  + job_instance.program_counter)
         }
     }
 
@@ -1506,6 +1526,9 @@ Dexter = class Dexter extends Robot {
     remove_from_busy_job_array(a_job){
         let i = this.busy_job_array.indexOf(a_job)
         if(i >= 0) { this.busy_job_array.splice(i, 1) }
+    }
+    clear_busy_job_array(){
+        this.busy_job_array = []
     }
     //end robot_busy
 
@@ -1743,22 +1766,19 @@ Dexter.get_robot_status = function(status_mode = null){
                                 }
 }
 
-
+//must be different from Dexter.get_robot_status. See commment in Instruction.Dexter.get_robot_statu
 Dexter.prototype.get_robot_status = function(status_mode = null){
-                                        if(typeof(status_mode) === "number") {
-                                            //if((status_mode === 0) || (status_mode === 1)) {
-                                            return make_ins("g", status_mode, this) //this is the dexter instance.
-                                                // It is pulled out in Job.send and used to determine which robot to send the instruction to.
-                                        }
-                                        else if((status_mode === null) || (status_mode === undefined)) {
-                                            return make_ins("g", this)
+                                        if((typeof(status_mode) != "number") &&
+                                            (status_mode !== null)){
+                                            dde_error("Dexter.get_robot_status called with invalid status mode: " +
+                                                       status_mode +
+                                                       "<br/>The valid status_modes are null or non-negative integers, usually 0 or 1.")
                                         }
                                         else {
-                                            dde_error("Dexter.get_robot_status called with invalid status mode: " +
-                                                status_mode +
-                                                "<br/>The valid status_modes are null or non-negative integers, usually 0 or 1.")
+                                            return new Instruction.Dexter.get_robot_status(status_mode, this)
                                         }
 }
+
 
     //this forces do_next_item to wait until robot_status is
     //updated before it runs any more do list items.
@@ -2486,8 +2506,8 @@ Dexter.prototype.set_link_lengths_using_node_server = function(job_to_start){
     let ip = job_to_start.robot.ip_address
     let path = //"http://" + ip + "/edit?edit=/srv/samba/share/Defaults.make_ins"
                "http://192.168.1.142/edit?edit=/srv/samba/share/Defaults.make_ins"
-    let options = {uri: path} //, timeout: 1000}
-    let content = get_page(path)
+    let options = {uri: path, timeout: 1000}
+    let content = get_page(options)
     if(content.startsWith("Error: ")) {
         warning("set_link_lengths_using_node_server with path: " + path +
                 " got error: " + content +

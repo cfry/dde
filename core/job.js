@@ -379,6 +379,7 @@ class Job{
 
     //Called by user to start the job and "reinitialize" a stopped job
     start(options={}){  //sent_from_job = null
+        out("Top of Job." + this.name + ".start()")
         let the_active_job_with_robot_maybe = Job.active_job_with_robot(this.robot) //could be null.
             //must do this before setting status_code to "starting".
             //there can only be one Job trying to use a Dexter. (at least as the Job's main robot.)
@@ -430,6 +431,7 @@ class Job{
         }
         //init from orig_args
             this.set_status_code("starting") //before setting it here, it should be "not_started"
+            this.wait_until_instruction_id_has_run = null //needed the 2nd time we run this job, init it just in case it didn't get set to null from previous job run
             //this.init_do_list(options.do_list)
             this.do_list                 = this.orig_args.do_list
             this.callback_param          = this.orig_args.callback_param
@@ -536,6 +538,7 @@ class Job{
 
             this.show_progress_maybe()
             console.log('calling robot.start from job.start')
+            out("Bottom of Job." + this.name + ".start() calling " + this.robot.name + ".start()")
             this.robot.start(this) //the only call to robot.start
             return this
     }
@@ -761,7 +764,7 @@ class Job{
                 else if(job_instance.is_active()){
                     if (job_instance.robot instanceof Dexter) {
                          //job_instance.robot.empty_instruction_queue_now() //causes DexRun to error.
-                         if (job_instance.robot.waiting_for_flush_ack()) {
+                         if (job_instance.robot.waiting_for_flush_ack) {
                              if(job_instance.status_code === "stopping"){ //2nd time user clicked button while job was running
                                //allow to fall thru to "stop_for_reason" call below
                              }
@@ -796,7 +799,7 @@ class Job{
         return job_name
     }
     //called by httpd.js when keep_alive_value == true
-        static maybe_define_and_server_job_button_click(job_file_path){
+    static maybe_define_and_server_job_button_click(job_file_path){
         let job_name = Job.extract_job_name_from_file_path(job_file_path)
         let job_instance = Job[job_name]
         if(job_instance) {
@@ -929,6 +932,9 @@ class Job{
             if(!but_elt){ return }
             if (but_elt.style.backgroundColor !== bg_color) { //cut down the "jitter" in the culor, don't set unnecessarily
                 but_elt.style.backgroundColor = bg_color
+                if((this.name === "rs_update") && window.robot_status_run_update_job_button_id){
+                    robot_status_run_update_job_button_id.style.backgroundColor = bg_color
+                }
             }
             if(this.user_data.stop_job_running_on_dexter !== undefined) {
                 tooltip  += "\nThis job monitors a job running on Dexter."
@@ -1774,6 +1780,7 @@ Job.go = function(){
 //in the setTimeout so that when we do a insert "after_pc",
 //that inserted instruction is run next.
 Job.prototype.set_up_next_do = function(program_counter_increment = 1, allow_once=false){ //this was removed as it is never called in DDE, inter_do_item_dur=this.inter_do_item_dur){ //usual arg is 1 but a few control instructions that want to take a breath call it with 0
+    //out("set_up_next_do with job: " + this.name)
     var job_instance = this
     if (this.status_code == "suspended") { return } //don't call do_next_item
     else if (Job.go_button_state || allow_once){ //Job.go_button_state being true is the normal case
@@ -1867,6 +1874,7 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
     //this.program_counter += 1 now done in set_up_next_do
     //if (this.show_instructions){ onsole.log("Top of do_next_item in job: " + this.name + " with PC: " + this.program_counter)}
     //onsole.log("top of do_next_item with pc: " + this.program_counter)
+    out(this.name + " do_next_item top ")
     if(window["js_debugger_checkbox_id"] && js_debugger_checkbox_id.checked) {
         //the print help statements are here so that they get called both when
         //the user checks the checkbox, AND when Control.debugger instruction is run.
@@ -1964,7 +1972,7 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
       }
       let cur_do_item = this.current_instruction()
       try {
-        //onsole.log("do_next_item cur_do_item: " + cur_do_item)
+        out(this.name + " do_next_item cur_do_item: " + cur_do_item)
         this.show_progress_maybe()
         this.select_instruction_maybe(cur_do_item)
         if (this.program_counter >= this.added_items_count.length) { this.added_items_count.push(0)} //might be overwritten further down in this method
@@ -2259,11 +2267,19 @@ Job.prototype.send = function(oplet_array_or_string, robot){ //if remember is fa
         if (last(oplet_array_or_string) instanceof Robot) { robot = oplet_array_or_string.pop() }
         else if (!robot)                                  { robot = this.robot } //use the job's default robot
     }
-    if (robot.is_busy()){
-        this.instr_and_robot_to_send_when_robot_unbusy = [oplet_array_or_string, robot]
-        return
+    if(robot instanceof Dexter){
+        if (robot.is_busy()){
+        //    this.instr_and_robot_to_send_when_robot_unbusy = [oplet_array_or_string, robot]
+        //    return
+        //}
+         robot.add_to_busy_job_array(this) //the only place this is called.
+         return //we're not sending the instruction, leave the PC on the current instruction
+               //Dexter.prototype.robot_done_with_instruction will call set_up to execute it.
+        }
+        else {
+           robot.add_to_busy_job_array(this)  //keep sending this one inst to the dexter.
+        }
     }
-    robot.add_to_busy_job_array(this)
     let instruction_id
     const oplet = Instruction.extract_instruction_type(oplet_array_or_string)
     if(oplet == "h") { //op_let is first elt UNTIL we stick in the instruction id
@@ -2299,6 +2315,9 @@ Job.prototype.send = function(oplet_array_or_string, robot){ //if remember is fa
         //cur instruction is "z"
     }
     //if(oplet === "a") { out("snd J2: " + oplet_array_or_string[6]) } //debugging statement only
+    if(robot instanceof Dexter){
+        this.wait_until_instruction_id_has_run = instruction_id
+    }
     robot.send(oplet_array_or_string)
 }
 

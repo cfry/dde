@@ -7,7 +7,7 @@ var RobotStatus = class RobotStatus{
                                          //unchanged from what Dexter sends to DDE.
                                          //But methods like measured_angle return degrees.
     }
-    job_id()                        { return this.robot_status[Dexter.JOB_ID] }
+    job_id()                        { return this.robot_status[Dexter.JOB_ID]}
     instruction_id()                { return this.robot_status[Dexter.INSTRUCTION_ID]}
     start_time()                    { return this.robot_status[Dexter.START_TIME]}
     stop_time()                     { return this.robot_status[Dexter.STOP_TIME]}

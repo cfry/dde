@@ -272,14 +272,22 @@ module.exports.is_literal_object = is_literal_object
 
 
 function is_generator_function(obj){
-    return obj.constructor && obj.constructor.name == "GeneratorFunction"
+    if(obj && obj.constructor && (obj.constructor.name == "GeneratorFunction")){
+        return true
+    }
+    else { return false }
 }
 module.exports.is_generator_function = is_generator_function
 
 
 //Beware: this *might* only catch iterators made by generator functions.
 function is_iterator(obj){
-    return obj.constructor && is_generator_function(obj.constructor)
+    if(obj && obj.constructor && is_generator_function(obj.constructor)){
+        return true
+    }
+    else {
+        return false
+    }
 }
 module.exports.is_iterator = is_iterator
 

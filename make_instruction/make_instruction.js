@@ -1139,7 +1139,8 @@ var MakeInstruction = class MakeInstruction{
                        merge_in_pipeline()
         call_obj.args_obj.name = '"' + Job.generate_default_name() + '"'
         call_obj.args_obj.do_list = "[" + old_instr_src + "]"
-        MakeInstruction.update_instruction_name_and_args(call_obj)
+        MakeInstruction.update_instruction_name_and_args(call_obj, false) //false says don't scroll doc to Job because that distrupts us from the instuction we are insterting in the job and
+        //screws up the "tutorial" in the ref man for the job step.
     }
 
     static insert_instruction(){
@@ -1164,9 +1165,10 @@ var MakeInstruction = class MakeInstruction{
     static handle_insert_job_dialog(vals){
         if(vals.clicked_button_value == "Insert"){
             MakeInstruction.insert_jobs()
+            SW.close_window(vals.window_index)
         }
         else if (vals.clicked_button_value == "Preview..."){
-            MakeInstruction.insert_jobs_preview()
+            MakeInstruction.insert_jobs_preview(vals)
             //SW.close_window(vals.window_index) //don't close as we want to see the
             //main insert dialog after we close the preview dialog
         }
@@ -1327,7 +1329,7 @@ var MakeInstruction = class MakeInstruction{
             }
             else if (mi_job_instrs_wrapper_var_id.checked ||
                      (mi_job_instrs_wrapper_data_id.checked &&
-                      mi_job_instrs_where_file_id.checked)){
+                         mi_job_instrs_where_file_id.checked)){
                     ref= 'Control.include_job("' + do_list_ref_string + '"),\n'
             }
             else if (mi_job_instrs_wrapper_data_id.checked){

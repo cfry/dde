@@ -268,12 +268,22 @@
             and returns a string of the content of the file.<br/>
             <i>Parameters:</i><br/>
             <b>path</b> A string of a path to the file. Usually this will not start with a slash,
-            but rather tha first character of a file name inside of your dde_apps folder.
-            if the path starts with a slash, it should be a complete path from the root
-            of your file system, on through to dde_apps and the file below it.
+            but rather the first character of a file name inside of your <code>dde_apps_folder</code>.
+            If the path starts with a slash, it should be a complete path from the root
+            of your file system, on through to the file you want to read.
             <br/>
-            <b>encoding</b> A string indicating the encoding of the file. Default: "utf8".
+            <b>encoding</b> Default: <code>"utf8"</code> A string indicating the
+            type of file to be read.
             The default works fine for most plain text files, including .js files.
+            Some possible values:
+            <ul>
+                <li><code>"utf8"</code></li>
+                <li><code>"ascii"</code></li>
+                <li><code>"base64"</code></li>
+                <li><code>"hex"</code></li>
+            </ul>
+            <a href="#" onclick="browse_page('https://nodejs.org/api/buffer.html#buffer_buffers_and_character_encodings')"
+            >Encoding details</a>
             <p></p>
             <b>Example:</b> <code>read_file("dde_init.js")</code>
             <p></p>
@@ -308,22 +318,27 @@
         <code>write_file</code> is a function that takes an argument of a file path
         and a new content string. It sets the content of that file.<br/>
         Arguments:<br/>
-        <b>filepath</b> The location to save to. It will overwrite the current content.
+        <b>filepath</b> A string. The location to save to. It will overwrite the current content.
         Defaults to the file currently in the
-        editor.<br/>
+        editor. If this is a string, usually this will not start with a slash,
+         but rather the first character of a file name inside of your dde_apps folder.
+         (  <code>dde_apps_folder</code> ).
+         If the path starts with a slash, it should be a complete path from the root
+         of your file system, on through to the file you want to write.<br/>
         <b>content</b> A string of the content you wish to be in the written file.
         Defaults to the text currently in the editor.<br/>
         <b>encoding</b> Default: <code>"utf8"</code> A string indicating the
         type of file to be written.
-        Some possible values:
+         The default works fine for most plain text files, including .js files.
+         Some possible values:
         <ul>
             <li><code>"utf8"</code></li>
             <li><code>"ascii"</code></li>
             <li><code>"base64"</code></li>
             <li><code>"hex"</code></li>
         </ul>
-        <a href="https://nodejs.org/api/buffer.html#buffer_buffers_and_character_encodings"
-           target="_blank">Encoding details</a>
+        <a href="#" onclick="browse_page('https://nodejs.org/api/buffer.html#buffer_buffers_and_character_encodings')"
+           >Encoding details</a>
         <p></p>
         Examples: <br/>
         <code>write_file("no_exist.js", "stuff")</code> Creates the named file and gives it a content of "stuff".<br/>
@@ -11759,7 +11774,7 @@ def main():
              and hit return.</li>
         </ol>
         If you see something like a "not found" error message, node is not installed.
-        To install it, browse: <a href="#" onclick="browse_page("https://nodejs.org/")>nodejs.org</a>,
+        To install it, browse: <a href="#" onclick="browse_page('https://nodejs.org/')">nodejs.org</a>,
         click on the Download LTS (long term supported) button and follow the defaults.
         </details>
 

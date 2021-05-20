@@ -203,6 +203,10 @@ var Instruction = class Instruction {
                )
     }
 
+    static is_F_instruction_string(str){
+        return ((typeof(str) === "string") && str.endsWith(" F;"))
+    }
+
     static extract_job_id(oplet_array_or_string){
         if(typeof(oplet_array_or_string) == "string") { oplet_array_or_string = oplet_array_or_string.split(" ") }
         let str= oplet_array_or_string[Instruction.JOB_ID]
@@ -295,7 +299,11 @@ var Instruction = class Instruction {
             return "<span title='" + title + "'>" + text + "</span>"
         }
         else if(Instruction.is_oplet_array(ins)) {
-            let text = JSON.stringify(ins) //we want 1 line here, not the multi-lines that stringify_value(ins) puts out
+            let text
+            try { text  = JSON.stringify(ins) } //we want 1 line here, not the multi-lines that stringify_value(ins) puts out
+            catch(err) { //happens for instructions like Dexter.dexter0.sleep(2) where the dexeter instance is circular, so just do something cheaper.
+                text = ins.toString()
+            }
             return "<span title='" + Robot.instruction_type_to_function_name(ins[Instruction.INSTRUCTION_TYPE]) + "'>" + text + "</span>"
         }
         else if (ins instanceof Instruction) {
@@ -2075,26 +2083,6 @@ Instruction.include_job = class include_job extends Instruction{
         this.end_loc = end_loc
         this.inserting_instruction = true
         }
-
-    /*do_item (job_instance){
-        let name_of_job_to_include = this.job_name
-        if(!name_of_job_to_include.startsWith("Job.")) { name_of_job_to_include = "Job." + name_of_job_to_include }
-        let job_to_include = value_of_path(name_of_job_to_include)
-        if(!(job_to_include instanceof Job)) {
-           dde_error("Control.include_job passed a job_name: " + this.job_name +
-                     "<br/>that is not bound to a Job, but rather: " + job_to_include)
-        }
-        let the_start_loc = ((this.start_loc === null) ? job_to_include.orig_args.program_counter : this.start_loc)
-        let the_end_loc   = ((this.end_loc   === null) ? job_to_include.orig_args.ending_program_counter : this.end_loc)
-
-        let first_instr_id = job_to_include.instruction_location_to_id(
-                               the_start_loc, undefined, undefined, true) //use orig do_list
-        let one_beyond_last_id = job_to_include.instruction_location_to_id(
-                               the_end_loc,   undefined, undefined, true) //use orig do_list
-        let instrs_to_insert = job_to_include.orig_args.do_list.slice(first_instr_id, one_beyond_last_id)
-        job_instance.insert_instructions(instrs_to_insert)
-        job_instance.set_up_next_do(1)
-    }*/
     do_item (job_instance){
         let first_arg = this.job_name
         let resolved_first_arg //could be a job or an array of instructions

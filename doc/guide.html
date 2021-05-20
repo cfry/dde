@@ -846,15 +846,17 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
                <li><b>Real</b> Now that we're confident that our software works by itself,
                    click <span style="background-color:#bae5fe;">&nbsp;<input type="radio"/> real </span>&nbsp; in the the Misc pane header
                    and click the <button>Run</button> again to try it on Dexter.</li>
-               <li><b>Insert a Job</b></li> Once you're satisfied with the instruction,
-                   you can insert the source code for a job containing that one instruction
-                   into the editor by clicking <button>Insert Job</button>.</li>
-               <li><b>Insert Instruction</b> After you've tested another instruction for
-                   your inserted Job, you can insert that new instruction into the Job
+               <li><b>Wrap in Job</b></li> Once you're satisfied with the instruction,
+                   you can create a Job with that one instruction in it by
+                   clicking <button>Wrap in Job</button>.</li>
+               <li><b>Insert Instruction</b> You can insert the source code of the instruction
+                   that you're creating, into the editor
                    by clicking <button>Insert</button>. If there is a selection,
                    that selection will be replaced by the new instruction.
                    Otherwise, the instruction's source code will just be inserted
-                   at the editor's cursor.
+                   at the editor's cursor.<br/>
+                   If you are creating a Job, this inserts the whole Job's source code,
+                   including its do_list.
                    <p></p>
                    The Insert button tries to
                    insert a comma after an instruction to prepare the Job

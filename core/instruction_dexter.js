@@ -2,6 +2,39 @@ var {Instruction} = require("./instruction.js")
 
 Instruction.Dexter = class Dexter extends Instruction{}
 
+//only used for Dexter.dexter0.get_robot_status() like calls, not for Dexter.get_robot_status() calls.
+//this instance is needed because we need the instruction on the do_list to contain
+//the robot so that Socket.on_receive and its aux fn, find_dexter_instance_from_robot_status
+//know what robot that the on_recieved robot status belongs to.
+Instruction.Dexter.get_robot_status = class get_robot_status extends Instruction.Dexter{
+    constructor (status_mode, robot) {
+        super()
+        this.status_mode = status_mode //keep for orig 5 angles so to_source_code can use them. May contain nulls
+        this.robot = robot //if this is undefined, we will use the default robot of the job.
+    }
+    do_item (job_instance){
+        if(!this.robot) { //this.robot = job_instance.robot
+            this.set_instruction_robot_from_job(job_instance) //might error which is good
+        }
+        if(this.status_mode === null){
+            job_instance.send(make_ins("g"), this.robot)
+        }
+        else {
+            job_instance.send(make_ins("g", this.status_mode), this.robot)
+        }
+    }
+    toString(){
+        return "{instanceof: get_robot_status " + this.status_mode + "}"
+    }
+    to_source_code(args){
+        let arg_src
+        if(this.status_mode == null) { arg_src = "" }
+        else { arg_src = "" + this.status_mode }
+        args.indent = ""
+        return args.indent + "Dexter." + this.robot.name + ".get_robot_status(" + arg_src + ")"
+    }
+}
+
 Instruction.Dexter.move_all_joints = class move_all_joints extends Instruction.Dexter{
     constructor (array_of_angles, robot) {
         super()

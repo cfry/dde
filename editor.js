@@ -2156,7 +2156,7 @@ Editor.find_matching_close = function(full_src, cursor_pos=0){
                  (i < (full_src.length - 1)) &&
                  (full_src[i + 1] == "/")){
             var newline_pos = full_src.indexOf("\n", i)
-            if (newline_pos) { i = newline_pos }
+            if (newline_pos >= 0) { i = newline_pos }
             else return null //no chars after the // comment
         }
         else if ((char == "/") &&
@@ -2164,6 +2164,7 @@ Editor.find_matching_close = function(full_src, cursor_pos=0){
             (i < (full_src.length - 1)) &&
             (full_src[i + 1] == "*")){ //got /* beginning of comment. skip over the whole comment.
             var end_of_comment_pos = full_src.indexOf("*/", i)
+            if(end_of_comment_pos === -1) { return null }
             if (end_of_comment_pos) { i = end_of_comment_pos + 2 }
             else return null //there is no corresponding star-slash so give up and return null. Badly formed half comment.
         }
@@ -2186,7 +2187,7 @@ Editor.find_backwards_string = function(full_src, cursor_pos, string_to_find){
     else {
         var start_pos_maybe = cursor_pos - string_to_find.length
         var index = full_src.indexOf(string_to_find, start_pos_maybe)
-        if (index == start_pos_maybe) {return start_pos_maybe}
+        if (index === start_pos_maybe) {return start_pos_maybe}
         else { return null }
     }
 }
@@ -2284,7 +2285,7 @@ Editor.backup_over_whitespace = function(full_src, cursor_pos){
       if( !(/\s/.test(full_src[i]))){
           return i
       }
-      else if (i == 0) { //we found no whitespace all the way to the begin of doc,
+      else if (i === 0) { //we found no whitespace all the way to the begin of doc,
                          //so consider the begin of doc to be whitespace
          return 0
       }
@@ -2321,14 +2322,14 @@ Editor.function_params_and_locals = function(full_src, cursor_pos){
     var bounds = Editor.bounds_of_function_def(full_src, cursor_pos)
     if (!bounds) { return null } //not in a function
     var params_start_pos = full_src.indexOf("(", bounds[0])
-    if (params_start_pos == -1) { return null }
+    if (params_start_pos === -1) { return null }
     else { 
         var fn_name = full_src.substring(bounds[0] + 9, params_start_pos)
         fn_name.trim()    
         params_start_pos += 1 //skip over open paren
     } 
     var params_end_pos = full_src.indexOf("){", params_start_pos)
-    if (params_end_pos == -1) { return null }
+    if (params_end_pos === -1) { return null }
     var params_full_string = full_src.substring(params_start_pos, params_end_pos) //excludes parens
     var params_and_defaults_array = params_full_string.split(",")
     var param_names = []
@@ -2986,8 +2987,8 @@ Editor.move_to_instruction = function(){
         else { Robot.dexter0.run_instruction_fn(sel) }
     }
     else if ((sel === undefined) ||
-        (sel === null) ||
-        (typeof(sel) == "boolean")){
+             (sel === null) ||
+             (typeof(sel) == "boolean")){
         warning("The selection evals to undefined, null, or a boolean,<br/>" +
             "neither of which are valid Job instructions.")
     }

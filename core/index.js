@@ -117,7 +117,7 @@ function run_shell_cmd(cmd_string, options={}, cb=run_shell_cmd_default_cb){
 
 var {copy_file_async, copy_folder_async,
      dde_init_dot_js_initialize, file_content, //file_content is deprecated
-     folder_separator, load_files,
+     folder_listing, folder_separator, load_files,
      persistent_initialize, read_file, write_file} = require('./storage.js')
 
 var {Root} = require("./object_system.js")
@@ -205,10 +205,11 @@ global.atan2d   = atan2d
 
 global.copy_file_async = copy_file_async
 global.copy_folder_async = copy_folder_async
+global.file_content = file_content //deprecated
+global.folder_listing = folder_listing
 global.folder_separator = folder_separator
 global.load_files = load_files
 global.read_file = read_file
-global.file_content = file_content //deprecated
 global.write_file = write_file
 
 

@@ -1347,6 +1347,8 @@ foo      //eval to see the latest values</pre>`,
     }
     dexter_start_options_id.onclick = show_dexter_start_options
 
+    update_firmware_id.onclick = FileTransfer.show_dialog
+
     run_job_on_dexter_id.onclick = function() {
         let job_src = Editor.get_any_selection() //we want to be able to select a Job def in
             //the doc pane and send it to Dexter.
