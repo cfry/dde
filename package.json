@@ -1,8 +1,8 @@
 {
   "name": "dexter_dev_env",
   "productName": "dexter_dev_env",
-  "version": "3.7.14-beta.6",
-  "release_date": "Apr 23, 2021",
+  "version": "3.7.14",
+  "release_date": "May 20, 2021",
   "description": "Dexter Development Environment for programming the Dexter robot.",
   "author": "Fry",
   "license": "GPL-3.0",
@@ -21,7 +21,8 @@
     "test-build": "electron-builder build --publish never",
     "release": "electron-builder build --publish always",
     "clean": "rimraf dist",
-    "postinstall": "patch-package && electron-builder install-app-deps"
+    "postinstall": "patch-package && electron-builder install-app-deps",
+    "rebuild": "electron-builder install-app-deps"
   },
   "keywords": [
     "robot",
