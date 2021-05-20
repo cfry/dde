@@ -1,0 +1,13 @@
+diff --git a/node_modules/electron-publish/out/gitHubPublisher.js b/node_modules/electron-publish/out/gitHubPublisher.js
+index aa06657..b181748 100644
+--- a/node_modules/electron-publish/out/gitHubPublisher.js
++++ b/node_modules/electron-publish/out/gitHubPublisher.js
+@@ -137,7 +137,7 @@ class GitHubPublisher extends publisher_1.HttpPublisher {
+             method: "POST",
+             headers: {
+                 accept: "application/vnd.github.v3+json",
+-                "Content-Type": mime_1.default.getType(fileName) || "application/octet-stream",
++                "Content-Type": mime_1.getType(fileName) || "application/octet-stream",
+                 "Content-Length": dataLength,
+             },
+         }, this.token), this.context.cancellationToken, requestProcessor)

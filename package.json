@@ -1,11 +1,19 @@
 {
   "name": "dexter_dev_env",
   "productName": "dexter_dev_env",
-  "version": "3.7.12",
+  "version": "3.7.14-beta.6",
   "release_date": "Apr 23, 2021",
   "description": "Dexter Development Environment for programming the Dexter robot.",
   "author": "Fry",
   "license": "GPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cfry/dde.git"
+  },
+  "bugs": {
+    "url": "https://github.com/cfry/dde/issues"
+  },
+  "homepage": "https://github.com/cfry/dde",
   "main": "main.js",
   "scripts": {
     "start": "electron main",
@@ -13,7 +21,7 @@
     "test-build": "electron-builder build --publish never",
     "release": "electron-builder build --publish always",
     "clean": "rimraf dist",
-    "postinstall": "electron-builder install-app-deps"
+    "postinstall": "patch-package && electron-builder install-app-deps"
   },
   "keywords": [
     "robot",
@@ -68,6 +76,7 @@
   "devDependencies": {
     "electron": "^5.0.0",
     "electron-builder": "^22.7.0",
+    "patch-package": "^6.4.7",
     "rimraf": "^2.6.1"
   },
   "build": {

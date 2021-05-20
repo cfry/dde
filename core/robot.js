@@ -2504,10 +2504,10 @@ Dexter.prototype.set_link_lengths_using_node_server = function(job_to_start){
 
 Dexter.prototype.set_link_lengths_using_node_server = function(job_to_start){
     let ip = job_to_start.robot.ip_address
-    let path = //"http://" + ip + "/edit?edit=/srv/samba/share/Defaults.make_ins"
-               "http://192.168.1.142/edit?edit=/srv/samba/share/Defaults.make_ins"
-    let options = {uri: path, timeout: 1000}
-    let content = get_page(options)
+    let path = "http://" + ip + "/edit?edit=/srv/samba/share/Defaults.make_ins"
+               //"http://192.168.1.142/edit?edit=/srv/samba/share/Defaults.make_ins"
+    let options = {uri: path} //, timeout: 1000}
+    let content = get_page(path)
     if(content.startsWith("Error: ")) {
         warning("set_link_lengths_using_node_server with path: " + path +
                 " got error: " + content +

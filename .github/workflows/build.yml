@@ -11,7 +11,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/setup-node@v2.1.2
+    - uses: actions/setup-node@v2
       with:
         node-version: ${{ env.NODE_VERSION }}
     - name: fix apt-get # https://github.com/actions/virtual-environments/issues/675#issuecomment-610483420
@@ -25,7 +25,7 @@ jobs:
                              xz-utils        \
                              build-essential \
                              libudev-dev
-    - uses: little-core-labs/get-git-tag@v3.0.1
+    - uses: little-core-labs/get-git-tag@v3.0.2
       id: tag_name
     - run: npm install
     - run: npm run test-build
@@ -34,6 +34,7 @@ jobs:
       if: ${{ steps.tag_name.outputs.tag }}
       env:
         GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        EP_PRE_RELEASE: "true"
 
 
   build-macos:
@@ -41,10 +42,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/setup-node@v2.1.2
+    - uses: actions/setup-node@v2
       with:
         node-version: ${{ env.NODE_VERSION }}
-    - uses: little-core-labs/get-git-tag@v3.0.1
+    - uses: little-core-labs/get-git-tag@v3.0.2
       id: tag_name
     - run: npm install
     - run: npm run test-build
@@ -55,16 +56,17 @@ jobs:
         GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
         CSC_KEY_PASSWORD: "${{ secrets.CSC_KEY_PASSWORD }}"
         CSC_LINK: "${{ secrets.CSC_LINK }}"
+        EP_PRE_RELEASE: "true"
 
   build-windows:
     runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/setup-node@v2.1.2
+    - uses: actions/setup-node@v2
       with:
         node-version: ${{ env.NODE_VERSION }}
-    - uses: little-core-labs/get-git-tag@v3.0.1
+    - uses: little-core-labs/get-git-tag@v3.0.2
       id: tag_name
     - run: npm install
     - run: npm run test-build
@@ -73,4 +75,5 @@ jobs:
       if: ${{ steps.tag_name.outputs.tag }}
       env:
         GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        EP_PRE_RELEASE: "true"
 
