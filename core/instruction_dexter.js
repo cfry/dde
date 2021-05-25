@@ -5,7 +5,7 @@ Instruction.Dexter = class Dexter extends Instruction{}
 //only used for Dexter.dexter0.get_robot_status() like calls, not for Dexter.get_robot_status() calls.
 //this instance is needed because we need the instruction on the do_list to contain
 //the robot so that Socket.on_receive and its aux fn, find_dexter_instance_from_robot_status
-//know what robot that the on_recieved robot status belongs to.
+//know what robot that the on_received robot status belongs to.
 Instruction.Dexter.get_robot_status = class get_robot_status extends Instruction.Dexter{
     constructor (status_mode, robot) {
         super()

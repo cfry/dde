@@ -2558,7 +2558,7 @@ class Vector{
             out(x_data, "red")
             out("y_data:", "red")
             out(y_data, "red")
-        	dde_error("Vector.ellipse_fit() recieved bad data. ^ Data printed above ^")
+        	dde_error("Vector.ellipse_fit() received bad data. ^ Data printed above ^")
         }
         
         

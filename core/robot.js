@@ -333,7 +333,7 @@ var Brain = class Brain extends Robot { /*no associated hardware */
     send(inst_array_with_inst_id) {
         let job_id = inst_array_with_inst_id[Instruction.JOB_ID]
         var job_instance = Job.job_id_to_job_instance(job_id)
-        var reason = "An instruction intended for a physical robot: " + inst_array_with_inst_id + "<br/>was sent to a Robot.Human: " + this.name + ",<br/> which has no physical robot."
+        var reason = "An instruction intended for a physical robot: " + inst_array_with_inst_id + "<br/>was sent to a Robot.Brain: " + this.name + ",<br/> which has no physical robot."
         job_instance.stop_for_reason("errored", reason)
         out(reason, "red")
         throw new Error("send called on Robot.Brain, which has no physical robot.")
@@ -755,7 +755,7 @@ Serial = class Serial extends Robot {
         //else if (ins_id == -1) {}
         else if (!(Array.isArray(robot_status))) {
             job_instance.stop_for_reason("errored",
-                              "Serial.robot_done_with_instruction recieved a robot_status array: " +
+                              "Serial.robot_done_with_instruction received a robot_status array: " +
                                robot_status + " that is not an array.")
             if (job_instance.wait_until_instruction_id_has_run === ins_id){ //we've done it!
                 job_instance.wait_until_instruction_id_has_run = null //but don't increment PC
@@ -765,7 +765,7 @@ Serial = class Serial extends Robot {
         }
         else if (robot_status.length < Serial.DATA0){
             job_instance.stop_for_reason("errored",
-                "Serial.robot_done_with_instruction recieved a robot_status array: " +
+                "Serial.robot_done_with_instruction received a robot_status array: " +
                 robot_status + "<br/> of length: " + robot_status.length +
                 " that is less than the : " + (Serial.DATA0 - 1) + " required.<br/>" + stringify_value(robot_status))
             if (job_instance.wait_until_instruction_id_has_run === ins_id){ //we've done it!
@@ -1056,7 +1056,7 @@ Dexter = class Dexter extends Robot {
     }
 
     start(job_instance){
-        out("top of Dexter.start() for "+ job_instance.name)
+        //out("top of Dexter.start() for "+ job_instance.name)
         //let sim_actual = Robot.get_simulate_actual(this.simulate)
         //let this_robot = this
         //let this_job   = job_instance
@@ -1107,7 +1107,7 @@ Dexter = class Dexter extends Robot {
     }
 
     start_aux(job_instance) { //fill in initial robot_status
-        out("top of Dexter.start_aux() for "+ job_instance.name)
+        //out("top of Dexter.start_aux() for "+ job_instance.name)
         //this.processing_flush = false
         let this_robot = this
         let this_job   = job_instance
@@ -1271,7 +1271,7 @@ Dexter = class Dexter extends Robot {
                                         //If there are more jobs, finish_job does nothing except return false
             }
             else if (this_dex.waiting_for_heartbeat){ //stop recursive timeout
-                out("Dexter " + this_dex.name + " did not recieve a response to the heartbeat. Stopping Job.")
+                out("Dexter " + this_dex.name + " did not receive a response to the heartbeat. Stopping Job.")
                 //this_dex.is_connected      = false //should be done by stop_for_reaason and next item
                 //this_dex.socket_id         = null  //should be done by stop_for_reaason and next item
                 for (let job_instance of this.active_jobs_using_this_robot()){
@@ -1302,7 +1302,7 @@ Dexter = class Dexter extends Robot {
     }
 
     close_robot(){
-        out("top of Dexter.close_robot")
+        //out("top of Dexter.close_robot")
         //setTimeout(function(){
         //out("top of timeout fn Dexter.close_robot")
         clearTimeout(this.heartbeat_timeout_obj) //looks like not working
@@ -1363,14 +1363,6 @@ Dexter = class Dexter extends Robot {
     //beware, robot_status could be an ack, can could be called by sim or real
     //but if sim is "both", will only be called by real (from socket)
     robot_done_with_instruction(robot_status){ //called from UI sockets
-        if(window.prev_rs === robot_status) {
-            out("robot_done_with_instruction got same robot_status as last time.")
-        }
-        else {
-            out("robot_done_with_instruction got different robot_status as last time.")
-        }
-        window.prev_rs = robot_status
-
         let job_id       = robot_status[Dexter.JOB_ID]
         let job_instance = Job.job_id_to_job_instance(job_id)
         let ins_id       = robot_status[Dexter.INSTRUCTION_ID] //-1 means the initiating status get, before the first od_list instruction
@@ -1383,7 +1375,7 @@ Dexter = class Dexter extends Robot {
         if (!(Array.isArray(robot_status))) { //note: we have to error here because we can't get the job
             //so we can't call stop_for_reason
             job_instance.stop_for_reason("errored_from_dexter",
-                                 "Dexter.robot_done_with_instruction recieved a robot_status array: " +
+                                 "Dexter.robot_done_with_instruction received a robot_status array: " +
                                   robot_status + " that is not an array.")
             job_instance.wait_until_instruction_id_has_run = null
             job_instance.set_up_next_do(0)
@@ -1402,7 +1394,7 @@ Dexter = class Dexter extends Robot {
             //just use the first 60 from the array.
             job_instance.condition_when_stopped = "errored_from_dexter"
             job_instance.stop_for_reason("errored_from_dexter",
-                "Dexter.robot_done_with_instruction recieved a robot_status array: " +
+                "Dexter.robot_done_with_instruction received a robot_status array: " +
                 robot_status + "<br/> of length: " + robot_status.length +
                 " that is not the proper length of: " + Dexter.robot_status_labels.length)
             job_instance.wait_until_instruction_id_has_run = null
@@ -1411,7 +1403,7 @@ Dexter = class Dexter extends Robot {
         }
         else if (job_instance.wait_until_instruction_id_has_run !== ins_id){
             job_instance.stop_for_reason("errored_from_dexter",
-                "Dexter.robot_done_with_instruction recieved a robot_status array with an instruction_id of: " + ins_id +
+                "Dexter.robot_done_with_instruction received a robot_status array with an instruction_id of: " + ins_id +
                 "<br/> but expected: " + job_instance.wait_until_instruction_id_has_run)
             job_instance.wait_until_instruction_id_has_run = null
             job_instance.set_up_next_do(0)
@@ -1527,6 +1519,18 @@ Dexter = class Dexter extends Robot {
         let i = this.busy_job_array.indexOf(a_job)
         if(i >= 0) { this.busy_job_array.splice(i, 1) }
     }
+
+    //called when a job is finished. Note that we might have a
+    //job that has, say a brain default robout but has instructions that are sent to a Dexter,
+    //and Job.send still adds its Job to the busy_job_array of a Dexter,
+    //so we better remove it from all Dexters' busy_job_array
+    static remove_from_busy_job_arrays(a_job) {
+        for(let dex_name of Dexter.all_names){
+            let dex = Dexter[dex_name]
+            dex.remove_from_busy_job_array(a_job)
+        }
+    }
+
     clear_busy_job_array(){
         this.busy_job_array = []
     }

@@ -8,13 +8,14 @@ const client = require("scp2")
 
 var FileTransfer = class FileTransfer {
 
+    //create the zip file containing the update
     //path is the path to the folder that represents slash on Dexter
     //https://github.com/cthackers/adm-zip/wiki/ADM-ZIP-Introduction
-    //create the zip file containing the update
     static zip_folder(path_to_folder_to_zip){
         let zip = new AdmZip();
         zip.addLocalFolder(path_to_folder_to_zip)
         zip.writeZip(path_to_folder_to_zip + ".zip")
+        out(path_to_folder_to_zip + ".zip created.")
     }
 
     //called by both encrypt_file and decrypt_file
@@ -38,9 +39,12 @@ var FileTransfer = class FileTransfer {
         const write_stream = fs.createWriteStream(output_path);
         read_stream.pipe(encrypt)
                     .pipe(write_stream);
+        out(output_path + " created.")
     }
 
     //the top level fn to create the zipped and encryptied file to upload.
+    //path_to_folder_to_zip is the path to the folder that represents slash on Dexter
+    //update_passwd is the string of the password used to encrypt and decrypt the zip file
     static zip_and_encrypt(path_to_folder_to_zip, update_passwd){
         this.zip_folder(path_to_folder_to_zip)
         this.encrypt_file(path_to_folder_to_zip + ".zip", update_passwd)
@@ -48,14 +52,19 @@ var FileTransfer = class FileTransfer {
 
     static show_window_callback(vals){
         if(vals.clicked_button_value === "update"){
-            FileTransfer.update_firmware(vals.dexter_user_name, vals.dexter_pwd, vals.update_pwd)
+            vals.enable_file_transfer_to_dexter
+            FileTransfer.update_firmware(vals.dexter_user_name,
+                                         vals.dexter_pwd,
+                                         vals.update_pwd,
+                                         vals.enable_file_transfer_to_dexter)
         }
     }
 
+    //called by choosing the DDE menu item "update firmware"
     static show_dialog(){
         show_window({title: "Update Dexter Firmware",
                      width:  450,
-                     height: 415,
+                     height: 435,
                      x: 400,
                      y: 50,
                      callback: "FileTransfer.show_window_callback",
@@ -70,8 +79,12 @@ var FileTransfer = class FileTransfer {
        <li>Enter the Dexter password.<br/> 
            <input name="dexter_pwd"/></li>
        <li>Enter the update password to decrypt the software.<br/>
-           (Contact Haddington if you need the update password)<br/>
+           (Contact Haddington if you need the passwords.)<br/>
        <input name="update_pwd"/></li>
+       <li> <span title="If checked, files will be transfered to Dexter.&#13;If unchecked, folder names to be transfered will only be printed in the Output pane.&#13;This is now disabled for testing purposes.">
+            <input type="checkbox" name="enable_file_transfer_to_dexter" disabled />
+           Enable transfering files to Dexter.</span>
+       </li> 
        <li> Click: <input type="submit" name="update"/></li>
        <li> Be patient.<br/>
             There's many megabytes of code to move.<br/>
@@ -82,11 +95,11 @@ var FileTransfer = class FileTransfer {
  </ol>`
         })
     }
-    static update_firmware(dexter_user_name, dexter_pwd, update_pwd){
-        let releases_url = "https://github.com/HaddingtonDynamics/Dexter/releases"
-        get_page_async(releases_url, function(err, response, body){
-            debugger;
-            FileTransfer.get_releases_page_callback(err, response, body, dexter_user_name, dexter_pwd, update_pwd)
+    static url_containing_releases = "https://github.com/HaddingtonDynamics/Dexter/releases"
+
+    static update_firmware(dexter_user_name, dexter_pwd, update_pwd, enable_file_transfer_to_dexter=false){
+        get_page_async(this.url_containing_releases, function(err, response, body){
+            FileTransfer.get_releases_page_callback(err, response, body, dexter_user_name, dexter_pwd, update_pwd, enable_file_transfer_to_dexter)
             })
     }
      /*   this.web_to_to_dde(url, ddd_encripted_zip_path,
@@ -99,7 +112,7 @@ var FileTransfer = class FileTransfer {
             } )
     }*/
 
-    static get_releases_page_callback(err, response, body, dexter_user_name, dexter_pwd, update_pwd){
+    static get_releases_page_callback(err, response, body, dexter_user_name, dexter_pwd, update_pwd, enable_file_transfer_to_dexter=false){
         if(err) {
             dde_error("During update_firmware, could not get page:<br/>" +
                       " https://github.com/HaddingtonDynamics/Dexter/releases")
@@ -110,7 +123,7 @@ var FileTransfer = class FileTransfer {
             let ddd_decrypted_zip_path = dde_apps_folder + "/firmware_decrypted.zip"
             FileTransfer.web_to_dde(url, ddd_encrypted_zip_path,
                    function(){
-                       FileTransfer.decrypt_file(ddd_encrypted_zip_path, ddd_decrypted_zip_path, dexter_user_name, dexter_pwd, update_pwd)
+                       FileTransfer.decrypt_file(ddd_encrypted_zip_path, ddd_decrypted_zip_path, dexter_user_name, dexter_pwd, update_pwd, enable_file_transfer_to_dexter=false)
                        //FileTransfer.unzip(ddd_decrypted_zip_path) //todo comment in
                        //FileTransfer.copy_to_dexter(ddd_decrypted_zip_path, dexter_pwd) //todo comment in
                    })
@@ -168,7 +181,7 @@ var FileTransfer = class FileTransfer {
     //The crap Node doc at https://nodejs.org/api/crypto.html doesn't list the possible algorithms
     //but evaling crypto.getCiphers() gives you a list. The list does not include "aes-256"
     //but does includes aes_256-ctr so I guess picking that is the best we can do.
-    static decrypt_file(encrypted_dde_path, decrypted_zip_path, dexter_user_name, dexter_pwd, update_pwd){
+    static decrypt_file(encrypted_dde_path, decrypted_zip_path, dexter_user_name, dexter_pwd, update_pwd, enable_file_transfer_to_dexter=false){
         out("Decyrpting: " + encrypted_dde_path + " to: " + decrypted_zip_path)
         try{
             const readstream = fs.createReadStream(encrypted_dde_path);
@@ -185,7 +198,7 @@ var FileTransfer = class FileTransfer {
                 out("Finished decryption")
                 let unzip_to_folder = dde_apps_folder + "/firmware_unzipped"
                 FileTransfer.unzip(decrypted_zip_path, unzip_to_folder)
-                FileTransfer.copy_to_dexter(unzip_to_folder, dexter_user_name, dexter_pwd)
+                FileTransfer.copy_to_dexter(unzip_to_folder, dexter_user_name, dexter_pwd, enable_file_transfer_to_dexter)
             })
         }
         catch(err){
@@ -212,7 +225,21 @@ var FileTransfer = class FileTransfer {
         out("Unzipped: " + zip_file_path + " into: " + unzip_into_folder)
     }
 
-    static copy_to_dexter(from_dde_path, dexter_user_name, dexter_pwd){
+    //for normal operation, keep as "", but
+    //for testing to copy folders to a different place on dexter,
+    //set it to something like "test_update/",
+    //then all the copied folders will go under it instead
+    //of their real destinations so you can test copying
+    //without screwing up the file system on Dexter.
+
+    static destination_prefix = ""
+
+    //the top level folders under from_dde_path are copied over to Dexter one at a time.
+    //these will have names like: "srv", "etc", ...
+    //below the closure fn "copy_fn" is the guts of the callback fn for calls to client.scp,
+    // so that copy_fn will get called once for each folder in folders_to_copy.
+
+    static copy_to_dexter(from_dde_path, dexter_user_name, dexter_pwd, enable_file_transfer_to_dexter=false){
         out("Copying to Dexter from: " + from_dde_path)
         let ip_addr = Dexter.default.ip_address
         let folders_to_copy   = folder_listing(from_dde_path)
@@ -227,31 +254,41 @@ var FileTransfer = class FileTransfer {
             }
             else {
                 let from_dde_path_fold = from_dde_path + "/" + fold_name
-                let scp_path = dexter_user_name + ':' + dexter_pwd + '@' + ip_addr + ":/" + fold_name
-                out("Copying: " + from_dde_path_fold + " to Dexter: " + scp_path)
-                try {
-                    client.scp(from_dde_path_fold,
-                               scp_path,
-                               function(err){
-                                 if(err) {
-                                     dde_error("Failed to copy: " + fold_name + " to Dexter<br/>" + err.message)
-                                 }
-                                 else {
-                                     out("Copied: " + fold_name + " to Dexter." + Dexter.default.name)
-                                     if (cur_folder_index < (folders_to_copy.length - 1)){
-                                         cur_folder_index += 1
-                                         copy_fn()
+                let scp_path = dexter_user_name + ':' + dexter_pwd + '@' + ip_addr + ":/" + FileTransfer.destination_prefix + fold_name
+                if(enable_file_transfer_to_dexter){
+                    out("Copying: " + from_dde_path_fold + " to Dexter: " + scp_path)
+                    try {
+                        client.scp(from_dde_path_fold,
+                                   scp_path,
+                                   function(err){
+                                     if(err) {
+                                         dde_error("Failed to copy: " + fold_name + " to Dexter<br/>" + err.message)
                                      }
                                      else {
-                                         out("<b>Dexter firmware update completed.</b>")
+                                         out("Copied: " + fold_name + " to Dexter." + Dexter.default.name)
+                                         if (cur_folder_index < (folders_to_copy.length - 1)){
+                                             cur_folder_index += 1
+                                             copy_fn()
+                                         }
+                                         else {
+                                             out("<b>Dexter firmware update completed.</b>")
+                                         }
                                      }
-                                 }
-                              }
-                    )
+                                  }
+                        )
+                    }
+                    catch(err){
+                        dde_error("Failed to copy to Dexter: " + from_dde_path_fold +
+                                  "<br/>" + err.message)
+                    }
                 }
-                catch(err){
-                    dde_error("Failed to copy to Dexter: " + from_dde_path_fold +
-                              "<br/>" + err.message)
+                else {
+                    out("Transfering files to Dexter is not enabled.<br/>" +
+                        "If it were, " + from_dde_path_fold + "<br/>would be copied to Dexter's: " + scp_path)
+                    if(cur_folder_index < (folders_to_copy.length - 1)){
+                        cur_folder_index += 1
+                        copy_fn()
+                    }
                 }
             }
         }

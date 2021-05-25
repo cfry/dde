@@ -17,7 +17,7 @@ Inflow.get = function(path = "categories", callback = inspect){
             }
         },
         function(res){
-            out("Inflow.get system callback recieved res: " + res)
+            out("Inflow.get system callback received res: " + res)
             if(res.statusCode !== 200){
                 dde_error("inflow.get path: " + path + " errored with statusCode: " + res.statusCode +
                     "<br/>Message: " + res.statusMessage)
@@ -62,7 +62,7 @@ Inflow.put = function(path = "categories", put_data, callback = inspect){
             }
         },
         function(res){
-            out("Inflow.put system callback recieved res: " + res)
+            out("Inflow.put system callback received res: " + res)
             if(res.statusCode !== 200){
                 dde_error("inflow.put errored with statusCode: " + res.statusCode +
                     "<br/>Message: " + res.statusMessage)

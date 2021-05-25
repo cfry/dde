@@ -1372,7 +1372,7 @@ Messaging.permit = Messaging.permit_default
 
 
 Messaging.user_receive_callback = function(data_string, from){
-    Messaging.debug("Messaging.user_recieve_callback passed data_string: " + data_string)
+    Messaging.debug("Messaging.user_receive_callback passed data_string: " + data_string)
     Messaging.successful_last_send_to = Messaging.tentative_last_send_to
     if(data_string.length === 0 ) {
         warning("Messaging.user_receive_callback passed an empty data_string")

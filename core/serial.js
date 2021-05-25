@@ -344,7 +344,7 @@ function left_to_capture(info){
     return result
 }
 
-/* delimiter of empty string: just use whatever chunk size was passed to OnRecieveCallback and
+/* delimiter of empty string: just use whatever chunk size was passed to OnReceiveCallback and
 consider that "1 item".
 If other string. use it as a delim but might have multiple delims at begin, middle (multiple)
 and/or end. Still use between delims as an "item", If what's passed in
@@ -402,7 +402,7 @@ function serial_onReceiveCallback(info_from_board, port_path) { //if there's an 
         //has Serial.println("turned off1"); int foo = 2 + 3; Serial.println("turned off2");
         //then this is ONE call to serial_onReceiveCallback with a string "turned off1\r\nturned off2\t\n"
         //so that 1 string should count for 2 items from the board from the dde standpoint.
-        //maybe the board software batches up the 2 strings and maybe chrome recieve does.
+        //maybe the board software batches up the 2 strings and maybe chrome receive does.
         //whichever, I need to handle it.
         //Note 2: when simulating, often info_from_board.length will return undefined.
         //this is ok as convertArrayBufferToString will just go with the length of the
@@ -413,7 +413,7 @@ function serial_onReceiveCallback(info_from_board, port_path) { //if there's an 
            warning("serial_onReceiveCallback got port_path: " + port_path + " that's not a known DDE connected port_path which is possibly OK if you've got other serial devices sending in data.")
         }
         else {
-            info.robot_status[Serial.ERROR_CODE] = 0 //since onRecievedErrorCallback wasn't called in place of this, 
+            info.robot_status[Serial.ERROR_CODE] = 0 //since onReceivedErrorCallback wasn't called in place of this,
 	    //we know it didn't error. Can't rely on send callback getting called so do this here.
             //first process the returned string
             let delim = info.item_delimiter //can be multi_character.

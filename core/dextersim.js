@@ -464,7 +464,7 @@ DexterSim = class DexterSim{
                 write_file(full_path, this.write_file_file_content)
                 break;
             default:
-              dde_error('The "W" write_file instruction recieved<br/>' +
+              dde_error('The "W" write_file instruction received<br/>' +
                         'a "kind_of-write" letter of "' + kind_of_write + "<br/>" +
                         'but the only valid letters are "f", "m" and "e".')
         }

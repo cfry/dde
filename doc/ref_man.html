@@ -3959,7 +3959,7 @@ new Job({name: "my_job",
             (i.e. a non-zero error code.)
             <p></p>
             The value of this Job param is placed on the do_list immediately after the program_counter
-            when a robot_status error is recieved back from Dexter.
+            when a robot_status error is received back from Dexter.
             It can be any valid do_list item including an annoymous function.
             It behaves like a usual do_list item.
             If an instance of a <code>Control.stop_job</code> or <code>Control.error</code>
@@ -6025,7 +6025,7 @@ See also: <a href="#" onclick="open_doc(calibrate_dexter_doc_id, event)">Calibra
 <details id="Dexter.empty_instruction_queue_doc_id" class="doc_details"><summary>empty_instruction_queue</summary>
 <i>Parameters:</i> None.<br/>
 A Dexter robot has an <i>instruction queue</i> which contains instructions that have been sent from
-DDE but not yet executed. As soon as Dexter recieves an instruction from DDE, it typically acknowledges receipt
+DDE but not yet executed. As soon as Dexter receives an instruction from DDE, it typically acknowledges receipt
 to DDE,
 which causes DDE to send the next instruction in the Job's do_list.
 A <code>Dexter.empty_instruction_queue</code> instruction changes that behavior and causes all the instructions in the
@@ -6035,7 +6035,7 @@ queue to be executed before DDE attempts to run another instruction on the do_li
 <details id="Dexter.empty_instruction_queue_immediately_doc_id" class="doc_details"><summary>empty_instruction_queue_immediately</summary>
 <i>Parameters:</i> None.<br/>
 A Dexter robot has an <i>instruction queue</i> which contains instructions that have been sent from
-DDE but not yet executed. As soon as Dexter recieves an instruction from DDE, it typically acknowledges receipt
+DDE but not yet executed. As soon as Dexter receives an instruction from DDE, it typically acknowledges receipt
 to DDE,
 which causes DDE to send the next instruction in the Job's do_list.
 An <code>Dexter.empty_instruction_queue_immediately</code> instruction removes all the
@@ -7715,7 +7715,7 @@ Create an instance of Serial similar to the other robots. Example: <br/>
 <b>name</b> A string. Makes this instance of a Serial Robot accessible from Robot.the_name<br/>
 
 <b>simulate</b> <code>true</code>, <code>false</code> or <code>null</code>. Default <code>null</code>.
-If <code>true</code>, no data is sent or recieved over the actual serial port.<br/>
+If <code>true</code>, no data is sent or received over the actual serial port.<br/>
 If <code>null</code>, the actual value for simulate comes from the Misc pane header simulate radio buttons,
 just like for Dexter robots.<br/>
 
@@ -7752,7 +7752,7 @@ Example: <code>{baudRate: 9600}</code> <br/>
 <a target="_blank" href="https://www.npmjs.com/package/serialport#serialport-path-options-opencallback">https://www.npmjs.com/package/serialport#serialport-path-options-opencallback</a><br/>
 
 <b>capture_n_items</b> A non-negative integer. Default <code>1</code>.<br/>
-DDE waits until it has recieved capture_n_items from the device before calling the next instruction on
+DDE waits until it has received capture_n_items from the device before calling the next instruction on
 the job's do_list. The string returned by the serial device is cut up by
 <code title="unEVALable code fragment"> item_delimiter</code>,
 to determine the number of items returned by the serial device.

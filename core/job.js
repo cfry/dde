@@ -379,7 +379,7 @@ class Job{
 
     //Called by user to start the job and "reinitialize" a stopped job
     start(options={}){  //sent_from_job = null
-        out("Top of Job." + this.name + ".start()")
+        //out("Top of Job." + this.name + ".start()")
         let the_active_job_with_robot_maybe = Job.active_job_with_robot(this.robot) //could be null.
             //must do this before setting status_code to "starting".
             //there can only be one Job trying to use a Dexter. (at least as the Job's main robot.)
@@ -538,7 +538,7 @@ class Job{
 
             this.show_progress_maybe()
             console.log('calling robot.start from job.start')
-            out("Bottom of Job." + this.name + ".start() calling " + this.robot.name + ".start()")
+            //out("Bottom of Job." + this.name + ".start() calling " + this.robot.name + ".start()")
             this.robot.start(this) //the only call to robot.start
             return this
     }
@@ -961,7 +961,7 @@ class Job{
                 }
                 this.stop_reason = null
             }
-            else if (["errored", "interrupted", "completed"].includes(status_code)) {
+            else if (this.is_done()) {
                 if(reason !== undefined){
                     this.wait_reason = null
                     this.stop_reason = reason
@@ -987,6 +987,13 @@ class Job{
         }
     }
 
+    //the job has run at least once and is now done
+    //not quite the opposite of is_active because a job could be
+    //not_started and would not qualify as is_active OR is_done
+    is_done(){
+        return ["completed", "errored", "interrupted"].includes(this.status_code)
+    }
+
     is_active(){
         //return ((this.status_code != "not_started") && (this.stop_reason == null))
        return ["starting", "running", "stopping", "running_when_stopped", "suspended", "waiting"].includes(this.status_code)
@@ -1001,7 +1008,7 @@ class Job{
         return result
     }
 
-    //returns the active job that has robot as its robot OR null if none.
+    //returns the active job that has robot as its default robot OR null if none.
     static active_job_with_robot(robot){
         for(let a_job of Job.all_jobs()){
             if (a_job.is_active()){
@@ -1011,6 +1018,26 @@ class Job{
             }
         }
         return null
+    }
+
+    //returns an array of jobs that either have "robot" as their default robot,
+    //OR the job's PC is pointing at an instruction that is using "robot".
+    static active_jobs_using_robot(robot){
+        result = []
+        let active_jobs = this.active_jobs()
+        for(let job_instance of adctive_jobs){
+            if(job_instance.robot === robot) { result.push(job_instance) }
+            else {
+                let instr = job_instance.do_list[job_instance.program_counter]
+                if(instr){
+                    let rob = instr.robot //this is the best we can do if there's a robot indincated in the instr
+                    if(rob === robot) {
+                        result.push(job_instance)
+                    }
+                }
+            }
+        }
+        return result
     }
 
     //called in utils stringify_value    used for original_do_list
@@ -1662,7 +1689,8 @@ Job.prototype.finish_job = function(){
               this.status_code = this.final_status_code
           } //does not hit in the all defaults case
           this.robot.finish_job()
-          if(this.robot instanceof Dexter) { this.robot.remove_from_busy_job_array(this)} //sometimes a job might be busy and the user clicks its stop button. Let's clean up after that!
+          //if(this.robot instanceof Dexter) { this.robot.remove_from_busy_job_array(this)} //sometimes a job might be busy and the user clicks its stop button. Let's clean up after that!
+          Dexter.remove_from_busy_job_arrays(this) //remove from ALL Dexters' busy_job_arrays.
           this.color_job_button() //possibly redundant but maybe not and just called on finishing job so leave it in
           this.show_progress_maybe()
           out("Done with Job." + this.name + ", for reason: " + this.stop_reason)
@@ -1874,7 +1902,7 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
     //this.program_counter += 1 now done in set_up_next_do
     //if (this.show_instructions){ onsole.log("Top of do_next_item in job: " + this.name + " with PC: " + this.program_counter)}
     //onsole.log("top of do_next_item with pc: " + this.program_counter)
-    out(this.name + " do_next_item top ")
+    //out(this.name + " do_next_item top ")
     if(window["js_debugger_checkbox_id"] && js_debugger_checkbox_id.checked) {
         //the print help statements are here so that they get called both when
         //the user checks the checkbox, AND when Control.debugger instruction is run.
@@ -1972,7 +2000,7 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
       }
       let cur_do_item = this.current_instruction()
       try {
-        out(this.name + " do_next_item cur_do_item: " + cur_do_item)
+        //out(this.name + " do_next_item cur_do_item: " + cur_do_item)
         this.show_progress_maybe()
         this.select_instruction_maybe(cur_do_item)
         if (this.program_counter >= this.added_items_count.length) { this.added_items_count.push(0)} //might be overwritten further down in this method
@@ -2264,7 +2292,13 @@ Job.prototype.send = function(oplet_array_or_string, robot){ //if remember is fa
     else { //oplet_array_or_string is an oplet_array
         //if there's both a passed in robot, and one in the oplet_array, prefer
         //the one in the oplet array
-        if (last(oplet_array_or_string) instanceof Robot) { robot = oplet_array_or_string.pop() }
+        let last_elt = last(oplet_array_or_string)
+        if (last_elt instanceof Robot) {
+            robot = last_elt
+            oplet_array_or_string.slice(0, oplet_array_or_string.length - 1) //don't use "pop" because
+            //we need the orig do list item that contains the robot  because
+            //Socket.find_dexter_instance_from_robot_status needs it
+        }
         else if (!robot)                                  { robot = this.robot } //use the job's default robot
     }
     if(robot instanceof Dexter){

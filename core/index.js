@@ -1,5 +1,5 @@
-global.dde_version = "3.7.14" //require("../package.json").version
-global.dde_release_date = "May 20, 2021" //require("../package.json").release_date
+global.dde_version = "3.7.15" //require("../package.json").version
+global.dde_release_date = "May 25, 2021" //require("../package.json").release_date
 
 console.log("dde_version: " + global.dde_version + " dde_release_date: " + global.dde_release_date +
             "\nRead electron_dde/core/job_engine_doc.txt for how to use the Job Engine.\n")

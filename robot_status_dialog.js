@@ -8,7 +8,7 @@
 var RobotStatusDialog = class RobotStatusDialog{
 //only called from the menu bar Jobs/show robot status item
 //makes a new window, but not if one is already up.
-    static show(robot, default_status_mode=0){
+    static show(robot, default_status_mode=0, x=200, y=200){
         if(RobotStatusDialog.window_up()) { out("Robot Status is already shown.") }
         else {
             if(!(robot instanceof Dexter)) {
@@ -36,6 +36,8 @@ var RobotStatusDialog = class RobotStatusDialog{
                 `<button title='Inspect the robot_status array.' onclick="RobotStatusDialog.inspect_array()"'>Inspect Array</button> ` +
                 `<button title="Browse the Dexter node server main page.&#013;For this to work, you must be connected&#013;to a Dexter that's running its server." onclick="RobotStatusDialog.browse()"'>Browse</button> `
                 ,
+                x: x,
+                y: y,
                 width:  890,
                 height: 380
             })
@@ -116,9 +118,13 @@ var RobotStatusDialog = class RobotStatusDialog{
                 actual_sm_now_shown = 0
             }
             if(sm !== actual_sm_now_shown) {
+                this.show_window_id
+                let win = SW.get_window_of_index(this.show_window_id)
+                let win_x = win.offsetLeft
+                let win_y = win.offsetTop
                 this.close_window()
                 //setTimeout(function() {
-                    RobotStatusDialog.show(robot, actual_sm_now_shown)
+                    RobotStatusDialog.show(robot, actual_sm_now_shown, win_x, win_y)
                 //    }, 100)
             }
             else {
@@ -397,11 +403,11 @@ var RobotStatusDialog = class RobotStatusDialog{
                                                           robot_status_is_calibrated_id.innerHTML = cal
                                                           let sm = robot_status_status_mode_id.value
                                                           sm = parseInt(sm)
-                                                          out("in rs_update_brain sending get_robot_status for: " + sm)
+                                                          //out("in Job.rs_update,  sending get_robot_status of: " + sm)
                                                           return rob.get_robot_status(sm)
                                                       }
                                                       else {
-                                                          out("in rs_update_brain window down, ending loop.")
+                                                          //out("in rs_update_brain window down, ending loop.")
                                                           return Control.break()
                                                       }
                                                    })]})

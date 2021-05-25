@@ -6,6 +6,61 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 3.7.15, May 25, 2021</summary>
+Highlights: Improvements to Jobs sending instructions to Dexter, esp.
+            instructions that include a Dexter instance as their subject.
+            Robot Status dialog now allows you to select the status mode (g number)
+            displayed by "run rs_update job".
+            Serial port, Make Instruction, Editor, doc improvements.
+<ul>
+    <li>Socket on error fixed bug of it not stopping the job when it should.</li>
+    <li>Serial port: fixed numerous small problems including with serial_connect_low_level
+        and serial_disconnect.</li>
+    <li>Editor click-help Fixed infinite loop in some cases of clicking on the comment // .</li>
+    <li>Editor click-help Fixed testing for end of /* and */ comments.</li>
+    <li>Run Instruction dialog box: for the "mode" select box,
+         the blank item now has a tooltip telling you not to select it,
+         but if you do, you get a nice warning message instead of an error.</li>
+    <li>Improved Ref Man/IO/File Access/ <code>read_file</code> and <code>write_file</code> for "encoding" parameter.</li>
+    <li>Improved doc for <code>read_file</code> and <code>write_file</code>.</li>
+    <li>Fixed bug in util: <code>is_generator_function</code> to correctly handling args
+         passed of undefined, 0, null, false. This fixes a bug in the inspector when
+         inspecting Jobs.</li>
+    <li>Fixed similar bug in <code>is_iterator</code> .</li>
+    <li><code>Dexter.set_link_lengths_using_node_server</code>
+         now uses a timeout of 1 second so it will error quickly if there's no Dexter connected.</li>
+    <li>Make Instruction: Now, clicking on "wrap in Job" button no longer scrolls doc to Job so
+         that you don't lose doc on the inst you're wrapping,
+         and makes it possible to follow the ref man tutorial.</li>
+    <li>Make Instruction: updated User Guide for "Insert a Job" to "Wrap in Job."</li>
+    <li>Make Instructions Insert Job dialog box, clicking the "insert" button,
+         now closes the dialog box.</li>
+    <li>Fixed <code>Instruction.text_for_do_list_item</code> to protect against circular printing,
+          that happens sometimes in inspecting dl_list items.</li>
+    <li>Made <code>folder_listing</code> accessible in the Job Engine.</li>
+    <li>Now if there is an active job who's robot is a particular Dexter,
+        and you start a 2nd job who's robot is that same particular dexter,
+        the 2nd job will error.
+        We now don't allow more than one active job to have the same dexter as its Dexter.</li>
+    <li>Improvements to Dexter instructions that give a robot instance as their subject,
+      ie <code>Dexter.dexter0.move_all_joints(...)</code>,
+        <code>Dexter.dexter0.sleep(...)</code>.
+      Using this mechanism, you can send an instruction from a job that doesn't
+      have that Dexter instance as its job, to that dexter.</li>
+    <li>Robot status dialog now allows you to select the status mode to be retrieved and
+         shown when you click the "run update job' button, Other minor improvements to the dialog.</li>
+    <li>Inspector: when passed a 2D array, it only "auto-expands it"
+        if it has 10 pr fewer rows.
+        This works on nested object & arrays, making it easier to see the high level structure
+        of the data, but then click to see details of some part that you really care about.</li>
+    <li>Fixed spelling recieve => receive in numerous doc and error messages. </li>
+    <li><code>Job.prototype.send</code> now doesn't modify array instructions by popping off
+       the robot on the end of a sent array,
+       so that the do_list preserves the robot in it for use
+       by Socket.find_dexter_instance_from_robot_status.</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.7.12, Apr 23, 2021</summary>
 Highlights: zeromq npm package re-installed, serial port and Dexter UI dialog tweaks.
 <ul>
