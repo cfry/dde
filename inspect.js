@@ -659,7 +659,9 @@ function inspect_format_array_of_similar_objects(item, stack_number, in_stack_po
 
 //item has at least 1 item in it which is an array.
 function inspect_format_2D_array(item){
-    let opennness_html = ((item.length > 10) ? "" : " open ")
+    let rows_count = item.length
+    let cols_count = ((rows_count > 0) ? (item[0].length) : 0)
+    let opennness_html = (((item.length > 10) || (cols_count > 6)) ? "" : " open ")
     let result = "<details " + opennness_html + " style='display:inline-block;'><summary>2D Array " + item.length + "x" + item[0].length + "</summary>\n"
     result += "<table>\n"
     for(let i = -1; i < item.length; i++){

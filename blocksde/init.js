@@ -30,7 +30,7 @@ function blocks_init(){
                   "background-color": "#93dfff",
                   "vertical-align":"50%",
                   onchange:"change_code_view_kind(event)"},
-                  "<option value='JS'>JS</option><option value='Blocks'>Blocks</option><option value='DefEng'>DefEng</option>"
+                  "<option value='JS'>JS</option><option value='Blocks'>Blocks</option><option value='DefEng'>DefEng</option><option value='HCA'>HCA</option>"
                   )
    )
     blocks_category_init()
@@ -64,7 +64,7 @@ function make_blocksde_dom_elt(){
 // onmouseup="Workspace.toolkit_bar_mouseup(event)"
 var the_codemirror_elt = null
 var blocksde_dom_elt   = null
-
+var HCA_dom_elt       = null
 
 
 
@@ -72,25 +72,44 @@ function change_code_view_kind(event){
     let new_view_kind = code_view_kind_id.value
     console.log("new_view_kind: " + new_view_kind)
     if      (Editor.view == "JS"){ //old_view_kind
+            if(!the_codemirror_elt) {
+                the_codemirror_elt = document.getElementsByClassName("CodeMirror")[0]
+            }
             if      (new_view_kind == "Blocks"){ js_to_blocks() }
             else if (new_view_kind == "DefEng"){ js_to_defeng() }
+            else if (new_view_kind == "HCA")  { js_to_HCA() }
     }
     else if(Editor.view == "Blocks"){ //old_view_kind
-            if      (new_view_kind == "JS"){ blocks_to_js() }
+            if      (new_view_kind == "JS")    { blocks_to_js() }
             else if (new_view_kind == "DefEng"){ blocks_to_defeng() }
+            else if (new_view_kind == "HCA")  { blocks_to_HCA() }
     }
     else if(Editor.view == "DefEng") { //old_view_kind
             if      (new_view_kind == "JS")    { defeng_to_js() }
             else if (new_view_kind == "Blocks"){ defeng_to_blocks() }
+            else if (new_view_kind == "HCA")  {
+                code_view_kind_id.value = "DefEng"
+                warning("Sorry, can't convert from Definitive English to HCA yet.")
+            }
+    }
+    else if(Editor.view == "HCA") {
+            if      (new_view_kind == "JS")    { HCA_to_js() }
+            else if (new_view_kind == "Blocks"){ HCA_to_blocks() }
+            else if (new_view_kind == "DefEng"){
+                code_view_kind_id.value = "HCA"
+                warning("Sorry, can't convert from HCA to Definitive English yet.")
+            }
+
+
     }
 }
 
 function js_to_blocks(){
         out("installing blocks")
-        let src = Editor.get_javascript() //must do before the switch
+        let js = Editor.get_javascript() //must do before the switch
         let block_to_install
         try{
-            if (src.trim() != ""){block_to_install = JS2B.js_to_blocks(src.trim())} //do before switching views in case this errors, we want to stay in text view
+            if (js.trim() != ""){block_to_install = JS2B.js_to_blocks(js.trim())} //do before switching views in case this errors, we want to stay in text view
         }
         catch(err){
             warning("Could not convert JavaScript source to blocks due to error:<br/>" +
@@ -98,8 +117,7 @@ function js_to_blocks(){
                 "<br/> Make sure your JS text evals without errors before switching to blocks.")
             return
         }
-        if (!the_codemirror_elt) { //haven't used blocksde yet so initialize it
-            the_codemirror_elt = document.getElementsByClassName("CodeMirror")[0]
+        if (!blocksde_dom_elt) { //haven't used blocksde yet so initialize it
             blocksde_dom_elt = make_blocksde_dom_elt()
             let blocks_style_content = read_file(__dirname + "/blocksde/style2.css")
             let style_elt = make_dom_elt("style", {}, blocks_style_content) //"* { background-color:blue;}")
@@ -113,26 +131,121 @@ function js_to_blocks(){
         }
         else { replace_dom_elt(the_codemirror_elt, blocksde_dom_elt) }
         Workspace.inst.clear_blocks()
-        if (block_to_install){ //we've got non empty src code so turn it into blocks.
+        if (block_to_install){ //we've got non empty js code so turn it into blocks.
             install_top_left_block(block_to_install)
         }
         Editor.view = "Blocks"
 }
 
+function js_to_HCA(){
+    debugger;
+    let js = Editor.get_javascript()
+    let js_obj = null
+   /* if(js.length > 0) {
+        try { js_obj = JSON.parse(js) }
+        catch(err){
+            code_view_kind_id.value = "JS"
+            dde_error("Sorry, you've attempted to pass an invalid JSON string to HCA.<br/>You can use HCA if you start with an emppty editor buffer.")
+        }
+    }*/
+    HCA_dom_elt = HCA.make_HCA_dom_elt()
+    replace_dom_elt(the_codemirror_elt, HCA_dom_elt)
+    Editor.view = "HCA"
+    try {
+        HCA.init(js)
+    }
+    catch(err){
+        code_view_kind_id.value = "JS"
+        replace_dom_elt(HCA_dom_elt, the_codemirror_elt)
+        Editor.set_javascript(js)
+        Editor.view = "JS"
+        myCodeMirror.focus()
+        warning("Sorry, could not convert the JavaScript into a valid JSON object for HCA.")
+    }
+    HCA_dom_elt.focus()
+}
+
+function HCA_to_js(){
+    let js = HCA.get_javascript()
+    js = beautify.js(js)
+    replace_dom_elt(HCA_dom_elt, the_codemirror_elt)
+    Editor.set_javascript(js)
+    Editor.view = "JS"
+    myCodeMirror.focus()
+}
+
+function HCA_to_blocks(){
+    let js = HCA.get_javascript()
+    //the below mostly lifed from js_to_blocks
+    let block_to_install
+    try{
+        if (js.trim() != ""){block_to_install = JS2B.js_to_blocks(js.trim())} //do before switching views in case this errors, we want to stay in text view
+    }
+    catch(err){
+        warning("Could not convert JavaScript source to blocks due to error:<br/>" +
+            err.message +
+            "<br/> Make sure your JS text evals without errors before switching to blocks.")
+        HCA_to_js()
+        return
+    }
+    if (!blocksde_dom_elt) { //haven't used blocksde yet so initialize it
+        blocksde_dom_elt = make_blocksde_dom_elt()
+        let blocks_style_content = read_file(__dirname + "/blocksde/style2.css")
+        let style_elt = make_dom_elt("style", {}, blocks_style_content) //"* { background-color:blue;}")
+        blocksde_dom_elt.appendChild(style_elt)
+        replace_dom_elt(HCA_dom_elt, blocksde_dom_elt) //must occur before calling make_workspace_instance
+        //because that needs workspace_container_id to be installed in order to
+        //install workspace_id inside it
+        Workspace.make_workspace_instance()
+    }
+    else { replace_dom_elt(HCA_dom_elt, blocksde_dom_elt) }
+    Workspace.inst.clear_blocks()
+    if (block_to_install){ //we've got non empty js code so turn it into blocks.
+        install_top_left_block(block_to_install)
+    }
+    Editor.view = "Blocks"
+}
+
+function blocks_to_HCA(){
+    let js = Workspace.inst.to_js()
+    try { js_obj = JSON.parse(js) }
+    catch(err){
+        //code_view_kind_id.value = "JS"
+        warning("Sorry, you've attempted to pass an invalid JSON string to HCA.<br/>You can use HCA if you start with an emppty editor buffer.")
+        blocks_to_js()
+        return
+    }
+    HCA_dom_elt = HCA.make_HCA_dom_elt()
+    replace_dom_elt(the_codemirror_elt, HCA_dom_elt)
+    Editor.view = "HCA"
+    HCA.init(js_obj)
+    HCA_dom_elt.focus()
+}
+
 function blocks_to_js(){
     out("installing text")
     let js = Workspace.inst.to_js()
+    js = beautify.js(js)
     replace_dom_elt(blocksde_dom_elt, the_codemirror_elt)
     Editor.set_javascript(js)
     Editor.view = "JS"
     myCodeMirror.focus()
 }
 
+
+
 var old_source_defeng = "" //kludge to fake JS to defeng
 function js_to_defeng(){
-    let defeng = old_source_defeng //usualy wrong but ok for limited demos if you first do a defeng_to_js()
+    if(old_source_defeng === ""){
+        warning("Can't convert from JavaScript to Definitive English yet.<br/>Starting new Definitive English editor.")
+    }
+    else {
+        warning("Can't convert from JavaScript to Definitive English yet.<br/>Using previous Definitive English.")
+    }
+    let defeng = old_source_defeng //usually wrong but ok for limited demos if you first do a defeng_to_js()
     Editor.set_javascript(defeng)
     Editor.view = "DefEng"
+    out(DE.a_few_examples()) //show some doc to help with demoing
     myCodeMirror.focus()
 }
 
@@ -148,6 +261,7 @@ function defeng_to_js(){
         dde_error("The DefEng has an error so cannot change it to JS.")
         return
     }
+    js = beautify.js(js)
     Editor.set_javascript(js)
     Editor.view = "JS"
     myCodeMirror.focus()
@@ -165,6 +279,7 @@ function defeng_to_blocks(){
 }
 
 var {make_dom_elt} = require("./core/html_db.js")
+const beautify = require("js-beautify")
 
 
              

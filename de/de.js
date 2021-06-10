@@ -119,6 +119,9 @@ var DE = class DE {
         js_src += 'return loop_result})()'
         return js_src
     }
+    static a_few_examples(){
+      return "<h3>Definitive English Examples</h3>Math/PI<br/>foo means 2.<br/>foo<br/>make Array with 4 and 5.<br/>45 plus with 46.<br/>4 more than with 67.<br/>to double with num. do num plus with num.!<br/>double with 3.<br/>"
+    }
 } //end class DE
 
 DE.ops = {"less than": "<",
@@ -184,13 +187,28 @@ loop                 = "loop" ws times_to_loop_src:expr ws eb:exprs_block{
                           return DE.make_loop_js(times_to_loop_src, eb)
                        }
 empty_exprs_block    = "do!" { return "{}" }
-full_exprs_block     = "do" ws first_expr:expr? rest_exprs:(ws expr)* ws_or_not "!"{
+full_exprs_block     = "do" ws first_expr:expr? rest_exprs:(ws expr)* ws_or_not "!"{ //js code returns value of last expr
                          console.log("got exprs_block")
-                         let result = (first_expr? first_expr : "")
-                         for(let ex of rest_exprs) {
-                            result += "\\n" + ex[1]
+                         let result
+                         if(first_expr) {
+                           if(rest_exprs.length == 0) {
+                              result = "return " + first_expr
+                           }
+                           else { result = first_expr }
                          }
-                         return "{" + "result" + "}"
+                         else {
+                             result = ""
+                         }      
+                         for(let i = 0; i < rest_exprs.length; i++) {
+                             let ex = rest_exprs[i]
+                             if(i == (rest_exprs.length - 1)) {
+                                 result += "\\n" + "return " + ex[1]
+                             }
+                             else {
+                                 result += "\\n" + ex[1]
+                             }
+                         }
+                         return "{" + result + "}"
                        }
 exprs_block          = eb:(full_exprs_block / empty_exprs_block) { return eb }
 

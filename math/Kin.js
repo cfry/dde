@@ -1139,6 +1139,17 @@ class Kin{
         return result
     }
 
+    //if angles(the joint angles of a dexter) are
+    //pointing in the direction of "direction" within a
+    //tolerance of tolerance_in_deg, then return true.
+    static is_direction(angles,
+                        direction=[0, 0, -1], //down
+                        tolerance_in_deg=0.01){ //always non-negative
+        let cur_dir = Kin.J_angles_to_xyz(angles)[1]
+        let deg = Math.abs(Vector.angle(direction, cur_dir)) //angle between the cur dir and the arg direction
+        return deg <= tolerance_in_deg
+    }
+
     //Returns an array of an inner radius, an outer radius, and the center point
     //of the outer circle. All xyz locations between the two radii are valid "in-range"
     //locations including locations ON the returned inner and outer radii.

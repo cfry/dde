@@ -80,6 +80,26 @@ Editor.init_editor = function(){
     select_expr_id.onclick = function(){Editor.select_expr()}
     select_all_id.onclick  = function(){CodeMirror.commands.selectAll(myCodeMirror); myCodeMirror.focus()}
     indent_selection_id.onclick = function(){CodeMirror.commands.indentAuto(myCodeMirror)}
+    pretty_print_id.onclick = function(){
+        if(Editor.view === "JS") {
+            var beautify = require("js-beautify")
+            let js = Editor.get_javascript("auto")
+            js = beautify.js(js)
+            if(Editor.is_selection()){
+                Editor.replace_selection(js)
+            }
+            else {
+                Editor.set_javascript(js)
+            }
+        }
+        else if(Editor.view === "HCA"){
+           HCA.lgraph.arrange()
+        }
+        else{
+            warning("DDE can't pretty print the editor with view type: " + Editor.view)
+        }
+    }
+
     set_menu_string(select_all_id, "Select All", "a")
 
     myCodeMirror.on("mousedown", //"mousedown",
@@ -364,10 +384,14 @@ Editor.get_any_selection = function(){
     else if (Editor.view == "DefEng") {
         sel_text = myCodeMirror.doc.getValue().substring(Editor.selection_start(), Editor.selection_end())
     }
-    else { //Blocks view
-        sel_text = Workspace.inst.get_javascript(use_selection=true)
+    else if (Editor.view == "Blocks"){ //Blocks view
+        sel_text = Workspace.inst.get_javascript(true)
     }
-    return sel_text //wil be "" if no selection
+    else if (Editor.view == "HCA"){
+        sel_text = HCA.get_javascript(true) //gets JSON string
+    }
+    else { sel_text = "" }
+    return sel_text //will be "" if no selection
 }
 
 //return editor sel or if none, cmd input, or if none, ""
@@ -408,8 +432,13 @@ Editor.get_javascript = function(use_selection=false){
     else if (Editor.view == "Blocks"){
         return Workspace.inst.get_javascript(use_selection)
     }
-    else { shouldnt("Editor.get_javascript found invalid Editor.view of: " + Editor.view) }
-
+    else if (Editor.view == "HCA"){
+        return HCA.get_javascript(use_selection)
+    }
+    else {
+        return ""
+        //shouldnt("Editor.get_javascript found invalid Editor.view of: " + Editor.view)
+    }
 }
 
 Editor.set_javascript = function(text){

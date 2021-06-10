@@ -1,7 +1,0 @@
-new TestSuite("Dexter.joint_to_servo_number",
-    ["Dexter.joint_to_servo_number(6)", "3"],
-    ["Dexter.joint_to_servo_number(7)", "1"],
-    ["Dexter.joint_to_servo_number(-99)", "undefined"]
-)
-
-Dexter.servo_to_joint_number(1)

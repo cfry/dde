@@ -904,7 +904,7 @@ function clean_up_arg_names(block_elt){
                 let next_anv = arg_name_vals[i + 1]
                 let next_av  = dom_elt_child_of_class(next_anv, "arg_val")
                 let bt = dom_elt_block_type(next_av)
-                if(bt.isA(Root.jsdb.computed_path_element)){
+                if(bt && bt.isA(Root.jsdb.computed_path_element)){
                     if (comma_elt)  { remove_dom_elt(comma_elt) }
                 }
                 else if (comma_elt) { comma_elt.innerText = ". " }

@@ -99,7 +99,7 @@ new TestSuite("multiple expressions",
 
 new Testsuite("fn def",
     ['DE.de_to_js("to double with num. do num plus with num.!")', 
-     '"function double(num){(num + num)}"'],
+     '"function double(num){return (num + num)}"'],
     ['DE.de_to_js("double with 3.")', '"double(3)"'],
     ['DE.de_to_js("to double with num default 2. do num plus with num.!")', 
      '"function double(num=2){(num + num)}"'],

@@ -63,7 +63,12 @@ var Job  = require('./core/job.js')
 var {Messaging, MessStat} = require('./core/messaging.js')
 var {linux_error_message} = require('./core/linux_error_message.js')
 
-var {html_db, is_dom_elt, make_dom_elt, make_html} = require("./core/html_db.js")
+var {ancestors_of_class, closest_ancestor_of_class,
+     dom_elt_child_of_class, dom_elt_children_of_class, dom_elt_descendant_of_classes,
+     focus_on_descendant_with_tag, html_db, html_to_dom_elt,
+     is_dom_elt, is_dom_elt_ancestor, insert_elt_after, insert_elt_before,
+     make_dom_elt, make_html,
+    remove_dom_elt, replace_dom_elt} = require("./core/html_db.js")
 
 var {Py} = require('./core/py.js')
 

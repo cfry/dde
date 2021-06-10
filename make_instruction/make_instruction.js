@@ -1144,6 +1144,7 @@ var MakeInstruction = class MakeInstruction{
     }
 
     static insert_instruction(){
+        Metrics.increment_state("Make Instruction inserts")
         let instruction_name = this.get_instruction_name_from_ui()
         if(instruction_name == "new Job") {
             this.show_insert_job_dialog()

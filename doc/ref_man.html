@@ -6499,7 +6499,7 @@ proportional–integral–derivative controller</a>.<br/>
     <i>Parameters:</i><br/>
     <b>source</b> A string. Required. The path of a file on Dexter's file system who's
     contents you want to get.<br/>
-    If the file does not start with a slash, then, for example,<br/>
+    If the file starts with a letter (not a slash), then, for example,<br/>
     <code>"foo.txt"</code> resolves to:<br/>
     When not simulating: <code>"/srv/samba/share/foo.txt"</code><br/>
     When simulating: <code>"Documents/dde_apps/dexter_file_systems/{robot_name}/foo.txt"</code><br/>
@@ -7175,7 +7175,7 @@ values in degrees<br/>
 <code>Dexter.J7_ANGLE_MAX</code> => <samp> 296 </samp><br/>
 
 <code>Dexter.RIGHT_ANGLE</code> => <samp>90</samp><br/>
-<code>Dexter.HOME_ANGLES</code> => <samp>[0, 0, 0, 0, 0, 0, 0]</samp> degrees j2,3,4 straight up. link 5 horizontal pointing frontwards.<br/>
+<code>Dexter.HOME_ANGLES</code> => <samp>[0, 0, 0, 0, 0, 0, 50]</samp> degrees j2,3,4 straight up. link 5 horizontal pointing frontwards.<br/>
 <code>Dexter.NEUTRAL_ANGLES</code> => <samp>[0, 45, 90, -45, 0, 0, 0]</samp><br/>
 <code>Dexter.PARKED_ANGLES</code> => <samp>[0, 0, 135, 45, 0, 0, 0]</samp><br/>
 <p></p>

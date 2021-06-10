@@ -5,6 +5,46 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 3.7.16, Jun 10, 2021</summary>
+Highlights: Improvements to simulation and Dexter UI esp. for pid moves.
+ UpdateFirmware facility improved. Gameification for educational motivation added.
+<ul>
+    <li>Improved inspector for large 2D arrays:
+      if there is more than 6 columns (or 10 rows),
+      do not auto-expand the table in the inspector.</li>
+   <li>First easter egg added</li>
+    <li>New Misc pane sub-pane: Reward Board showing usage statistics and magic spells.</li>
+    <li>FileTransfer.get_releases_page_callback fixed bug in call to decrypt_file
+    that prevented sending files to Dexter.</li>
+    <li>Uninstalled npm f4st-crypt (not used, using node's cryto instead.)</li>
+    <li>Changed Jobs/Dexter Tools/Browse Dexter default to Jobs/Dexter Tools/Browse Dexter,
+        to make it shorter and fit on one line of menu.</li>
+    <li>Click help on a Job parameter now gives you an underlined blue link
+    in the Output pane that you can click on and see the doc for that particular param.</li>
+    <li>Dexter UI dialog box: new tooltips on the "donut" and the green dot to tell
+        you their meanings.</li>
+    <li>Uninstalled ml-classify-text.  Not used.</li>
+    <li>Uninstalled zeromq package. No longer used.</li>
+    <li>New Click help for <code>dexter</code> about Dexter and <code>Dexter.dexter0</code></li>
+    <li><code>Dexter.prototype.is_direction</code> and <code>Kin.is_direction</code>
+    methods added.</li>
+    <li><code>Dexter.HOME_ANGLES</code> changed from [0,0,0,0,0,0,0] to [0,0,0,0,0,0,50] .
+    If you move J7 to 0 it will likely overtorque when you have a parallel gripper on Dexter
+    but by setting J7 to 50 and it won't overtorque.</li>
+    <li>Reboot_joints job now uses brain robot so it can be used while Dexter UI job is running.</li>
+    <li>load_job_engine.js:  exported and included about 10 fns from html_db.js</li>
+    <li>Fixed bug in click help for <code>Js_info.get_info_string</code></li>
+    <li><code>Editor.get_javascript</code> and <code>Editor.get_any_selection</code> now return empty string if
+       the Editor.view is not  one of the standard types. Helps with experimentation.</li>
+    <li>Edit menu new item 'Pretty print'. works on selection, or if none, whole editor buffer.</li>
+    <li>Fixes to Dexter UI dialog, and simulator around pid moves.</li>
+    <li> Dexter instruction <code>read_file</code> now does not attempt to put ANY prefix on the front
+    of the path passed in. If its starts with a letter,
+     it will get a file in /srv/samba/share/</li>
+    <li>Robot status array for g0 for simulator now returns "angle" for J1 thru J5.</li>
+    <li>Fixed bug in click help for Date instance methods like <code>getHours</code>.</li>
+</ul>
+</details>
 
 <details class="doc_details"><summary>v 3.7.15, May 25, 2021</summary>
 Highlights: Improvements to Jobs sending instructions to Dexter, esp.

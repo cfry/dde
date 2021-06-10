@@ -729,7 +729,10 @@ Instruction.Dexter.read_file = class read_file extends Instruction.Dexter{
             dde_error("Dexter.read_file passed non-string for 'destination' of: " + destination)
         }
         super()
-        this.source = Instruction.Dexter.read_file.add_default_file_prefix_maybe(source)
+        this.source = source //Instruction.Dexter.read_file.add_default_file_prefix_maybe(source)
+              //add_default no longer used. We pass teh users path straight thru.
+              //if it starts with a letter (not slash or special char like *)
+              //it gets file from /srv/samba/share
         this.destination = destination
         this.first_do_item_call = true
         this.is_done = false
@@ -821,13 +824,14 @@ Instruction.Dexter.read_file = class read_file extends Instruction.Dexter{
     //because the path used for write_file defaults to "srv/samba/share/dde_apps",
     //whereas the path for make_ins("W" ...) defaults to srv/samba/share
     //see Dexter.srv_samba_share_default_to_absolute_path to do the opposite
-    static add_default_file_prefix_maybe(path){
+    //no longer used.
+    /*static add_default_file_prefix_maybe(path){
         if      (path.startsWith("/"))   { return path }
         else if (path.startsWith("#"))   { return path }
         else if (path.startsWith("./"))  { return "dde_apps/" + path.substring(2) }
         else if (path.startsWith("../")) { return path.substring(3) } //will go to dexrun's default folder, ie /srv/samba/share/
         else                             { return "dde_apps/" + path }
-    }
+    }*/
 
     to_source_code(args){
         let result = "Dexter."

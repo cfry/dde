@@ -200,6 +200,10 @@ function show_in_misc_pane(content, arg1 = "", arg2){
         sim_pane_content_id.innerHTML = content
         content_is_good = true
     }
+    else if (content === "Reward Board"){
+        sim_pane_content_id.innerHTML = Metrics.make_html()
+        content_is_good = true
+    }
     else if (content.startsWith("http")){ //Will work for https:// ...
             // Put before extension checking because of http://foo.jpg could be displayed if http checking before extension checking
         content = "<iframe src='" + content + "' width='100%' height='100%'/>" //no way to catch an error like 404 here due to security restrictions.

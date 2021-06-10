@@ -75,7 +75,21 @@ var dui2 = class dui2 {
         this.maj_angles = dui2.fix_angles(new_angles)
     }
 
-    static make_job(explicity_start_job=false){
+    make_move_instruction(slider_angles){
+      let dui_instance = this
+      let commanded_angles = dui_instance.dexter_instance.rs.angles(5) //there aren't 7 angles, only 5
+      if(slider_angles.length === 7){
+        commanded_angles.push(0) //because we need commanded_angles to be 7 long, and j6 and j7 don't do pid, they just treat a pid_maj for j6 and j7 as if it was a regular maj
+        commanded_angles.push(0)
+      }
+      let angles_to_use = Vector.subtract(slider_angles, commanded_angles)
+      let instr = Dexter.pid_move_all_joints(angles_to_use)
+      return instr
+    }
+
+    //this is the top level code in this file that is called when the user chooses Jobs menu, Dexter UI item.
+    static make_job(explicitly_start_job=false){
+        debugger;
         let dex = (window.default_robot ? Dexter.default : Dexter.dexter0)
         let name = ((platform === "dde") ? "dui2_for_" + dex.name : "dexter_user_interface2") //the job engine Job name must match the file name (sans .js")
         if (Job[name] && Job[name].is_active()) { //we're redefining the job so we want to make sure the
@@ -98,9 +112,10 @@ var dui2 = class dui2 {
                                       ]
                         })
            // dex.instruction_callback = this.dui_instruction_callback //used for "run_forward" , complicated to get this to work so now run_forward does something simpler
-            if(explicity_start_job) {
+            if(explicitly_start_job) {
                 new_job.start()
             }
+           // else {} //this job will get started anyway via define_and_start_job which is called by dui2_id.onclick
         }
     }
     static show_window_elt_id_to_dui_instance(sw_elt_id){
@@ -136,7 +151,36 @@ var dui2 = class dui2 {
         let dui_instance = new dui2()
         dui_instance.job_name = this.name
         dui_instance.dexter_instance = this.robot
-        dui_instance.should_point_down = true //the checkbox is in sync with this.
+        let initial_angles
+        let initial_move_instruction
+        debugger;
+        //set initial_angles
+        if(!dui_instance.dexter_instance.rs) {
+            initial_angles = Dexter.HOME_ANGLES
+        }
+        else {//the normal case
+            initial_angles = dui_instance.dexter_instance.rs.measured_angles(7)
+        }
+
+        //set should_point_down and initial_move_instruction
+        if(similar(initial_angles.slice(0, 3), [0,0,0], 0.02)) { //consider Dexter is HOME. Just look at
+                                                                 //first 3 joints as sometimes j4 is 90 or -90.
+            dui_instance.should_point_down = true //if its home, it should be set to point down,
+            //because otherwise we won't be able to move the z slider, and its not
+            //obvious what a user can do in the dialog box, but if we point it down,
+            //they can move the z slider. James W likes this approach,
+            //but, it means we have to move the dexter.
+            initial_angles = Kin.point_down([0,0,0,0,0, 0, 50]) //change our initial_angles,
+              //j7 needs to be 50 as it is in the new HOME, to avoid overtorque when its 0.
+            initial_move_instruction = //Dexter.pid_move_all_joints(initial_angles)
+                                       //dui_instance.make_move_instruction(initial_angles)
+                                       Dexter.move_all_joints(initial_angles)
+        }
+        else {
+            dui_instance.should_point_down = dui_instance.dexter_instance.is_direction() //the checkbox is in sync with this.
+            initial_move_instruction = null
+        }
+
         dui_instance.xy_width_in_px = xy_width_in_px
         dui_instance.dexter_mode = "keep_position" //always starts in keep position.
         //we want to map 0 to 300 into roughly -0.7 to 0.7   where 150 -> 0, 0 -> -0.7, 300 -> 0.7
@@ -217,13 +261,15 @@ var dui2 = class dui2 {
                 dui_instance.show_window_elt_id = "show_window_" + SW.window_index + "_id"
                 let sw_elt = window[dui_instance.show_window_elt_id]
                 sw_elt.classList.add("dui_dialog")
-                let RS_inst = dui_instance.dexter_instance.rs
-                let measured_angles = RS_inst.measured_angles(7).slice() //returns a copy of the array so safe to change it.
-                dui_instance.set_maj_angles(measured_angles)
+                //let RS_inst = dui_instance.dexter_instance.rs
+                //let measured_angles = RS_inst.measured_angles(7).slice() //returns a copy of the array so safe to change it.
+                dui_instance.set_maj_angles(initial_angles)
                 dui_instance.update_all(dui_instance.should_point_down) //true means IFF maj_angles is pointing down, set the checkbox to point down.
                 //dui2.init_is_mouse_over(dui_instance)
             },
             300)
+        return initial_move_instruction //this will be run as the first instr of the DUI job. Often it is null,
+          //but if we have to adjust the cur measured angles because their HOME, this could be a maj instr.
     }
 
 //does not attempt to set initial value. That's done in update_from_robot
@@ -240,9 +286,10 @@ var dui2 = class dui2 {
         //             '<input type="hidden" name="max_x" value="' + max_x + '"/>' //used to compute both x and y
         //warning: circle has no "name" property. If you pass one, it will be ignored. stupid design. So use "id", but beware, it may not be unique
         let xy_loc_circle_html = '<circle id="xy_2d_slider" cx="0" cy="0" r="5" fill="#0F0" class="draggable" data-oninput="true" ' +
-            'style="stroke:black; stroke-width:1;"/>'
+
+            'style="stroke:black; stroke-width:1;"><title>The draggable X,Y location of the Dexter end effector.</title></circle>'
         let outer_circle_html = '<circle id="outer_circle" cx="0" cy="0" r="100" fill="white" ' +
-            'style="stroke:black; stroke-width:1;"/>'
+            'style="stroke:black; stroke-width:1;"><title>This white donut represents the X,Y locations that the Dexter end effector can reach at the current Z location.</title></circle>'
         let inner_circle_html = '<circle id="inner_circle" cx="0" cy="0" r="100" fill="' + dui2.xy_background_color + '" ' +
             'style="stroke:black; stroke-width:1;"/>'
         let svg_html =
@@ -531,7 +578,8 @@ var dui2 = class dui2 {
         if(j_angles.length === 6) { j_angles.push(dui_instance.maj_angles[6]) } //joint 7 vals.j7_angle_num)   }
         dui_instance.set_maj_angles(j_angles)
         dui_instance.update_all(dui_instance.should_point_down) // do update_all before move_all_joints because update_all may modify ui2_instance.maj_angles if the direction_checkbox is checked
-        let instr = Dexter.pid_move_all_joints(dui_instance.maj_angles)
+        let instr = //Dexter.pid_move_all_joints(dui_instance.maj_angles)
+                    dui_instance.make_move_instruction(dui_instance.maj_angles)
         //Job.insert_instruction(instr, {job: dui_instance.job_name, offset: "end"}) //todo overwrite
         Job[dui_instance.job_name].insert_last_instruction_overwrite(instr)
     }
@@ -639,10 +687,13 @@ var dui2 = class dui2 {
         //dui2.update_range_and_angle_nums(vals.show_window_elt_id, maj_angles)
     }
     else if(vals.clicked_button_value == "ready"){
-        dui_instance.set_maj_angles([0, 0, 90, 0, 0, 0, 0])
+        dui_instance.set_maj_angles([0, 0, 90, 0, 0, 0, 50])
     }
     else if(vals.clicked_button_value == "home"){
-        dui_instance.set_maj_angles([0, 0, 0, 0, 0, 0, 0])
+        let instr = Dexter.move_all_joints(Dexter.HOME_ANGLES)
+        Job.insert_instruction(instr, {job: vals.job_name, offset: "end"}) //Jmaes W says HOME needs both a pidmaj and maj instructions.
+        //Job[dui_instance.job_name].insert_last_instruction_overwrite(instr)
+        dui_instance.set_maj_angles(Dexter.HOME_ANGLES) //ultimately causes a pid_move_all_joints insert
     }
     else if(vals.clicked_button_value == "go_to_start"){
             let continue_running = dui2.go_to_start_button_click_action(dui_instance)
@@ -665,7 +716,8 @@ var dui2 = class dui2 {
             }
             else { //got a move instruction, keep going to bottom of this method for the instruction selection and insertion
                 dui_instance.update_all(dui_instance.should_point_down) // do update_all before move_all_joints because update_all may modify ui2_instance.maj_angles if the direction_checkbox is checked
-                let instr = Dexter.pid_move_all_joints(dui_instance.maj_angles)
+                let instr = //Dexter.pid_move_all_joints(dui_instance.maj_angles)
+                            dui_instance.make_move_instruction(dui_instance.maj_angles)
                 Job.insert_instruction(instr, {job: vals.job_name, offset: "end"})
             }
         }
@@ -741,6 +793,7 @@ var dui2 = class dui2 {
         }
     }
     else if(vals.clicked_button_value.endsWith("_range")){ //a joint slider
+        debugger;
         dui_instance.set_maj_angles([vals.j1_range, vals.j2_range, vals.j3_range, vals.j4_range,
             vals.j5_range, vals.j6_range, vals.j7_range])
     }
@@ -803,8 +856,10 @@ var dui2 = class dui2 {
         return
     }
     dui_instance.update_all(dui_instance.should_point_down) // do update_all before move_all_joints because update_all may modify ui2_instance.maj_angles if the direction_checkbox is checked
-    let instr = Dexter.pid_move_all_joints(dui_instance.maj_angles)
+    let instr = //Dexter.pid_move_all_joints(dui_instance.maj_angles)
+                dui_instance.make_move_instruction(dui_instance.maj_angles)
     //Job.insert_instruction(instr, {job: vals.job_name, offset: "end"})
+
     Job[dui_instance.job_name].insert_last_instruction_overwrite(instr)
 }
    //called both from show_window handler insert_instruction, and by a phui button click
@@ -1203,8 +1258,8 @@ var dui2 = class dui2 {
         this.update_range_and_angle_nums()
         this.xyz = Kin.J_angles_to_xyz(this.maj_angles)[0]
         this.update_xyz_nums()
-        this.update_xyz_limits()
-        this.update_xyz_circle()
+        this.update_xyz_limits() //adjusts donut diameter
+        this.update_xyz_circle() //adjusts the green (x,y) dot and the z slider
         this.update_j6_roll() //must set this.xyz before calling update_j6_roll
         this.update_editor_maybe()
     }
@@ -1337,6 +1392,7 @@ var dui2 = class dui2 {
     }
 
     //x,y,z in meters
+    //moves the green dot in the circle and the z slider.
     update_xyz_circle(){
         let x_px = this.meters_to_x_px(this.xyz[0])
         let y_px = this.meters_to_y_px(this.xyz[1])

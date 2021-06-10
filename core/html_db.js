@@ -579,6 +579,8 @@ function html_to_dom_elt(html, use_first_top_level_elemment_only=true){
     else { return frag }
 }
 
+module.exports.html_to_dom_elt = html_to_dom_elt
+
 /* from stack overflow
 function htmlToElement(html) {
     var template = document.createElement('template');
@@ -606,16 +608,24 @@ function replace_dom_elt(old_elt, new_elt){
     old_elt.parentNode.replaceChild(new_elt, old_elt)
 }
 
+module.exports.replace_dom_elt = replace_dom_elt
+
 function insert_elt_before(new_elt, old_elt){
     old_elt.parentNode.insertBefore(new_elt, old_elt)
 }
+
+module.exports.insert_elt_before = insert_elt_before
 
 //works even when old_elt is the only elt in its parent.
 function insert_elt_after(new_elt, old_elt){
     old_elt.parentNode.insertBefore(new_elt, old_elt.nextSibling);
 }
 
+module.exports.insert_elt_after = insert_elt_after
+
 function remove_dom_elt(elt){ elt.parentNode.removeChild(elt) }
+
+module.exports.remove_dom_elt = remove_dom_elt
 
 function is_dom_elt(obj){
   return obj instanceof HTMLElement
@@ -628,6 +638,8 @@ function is_dom_elt_ancestor(possible_ancestor, starting_elt){
     else if(possible_ancestor == starting_elt) { return true }
     else { return is_dom_elt_ancestor(possible_ancestor.parentNode, starting_elt) }
 }
+
+module.exports.is_dom_elt_ancestor = is_dom_elt_ancestor
 //find the first child of elt that has class
 function dom_elt_child_of_class(elt, a_class){
    for(let kid of elt.children){
@@ -635,6 +647,7 @@ function dom_elt_child_of_class(elt, a_class){
    }
    return null
 }
+module.exports.dom_elt_child_of_class = dom_elt_child_of_class
 
 function dom_elt_children_of_class(elt, a_class){
     let result = []
@@ -643,6 +656,8 @@ function dom_elt_children_of_class(elt, a_class){
     }
     return result
 }
+module.exports.dom_elt_children_of_class = dom_elt_children_of_class
+
 
 //focuses on the first elt of a_tag name that it finds.
 //exludes elt in the returned results.
@@ -654,6 +669,8 @@ function focus_on_descendant_with_tag(elt, a_tag="input"){
       sub_elts[0].focus()
     }
 }
+
+module.exports.focus_on_descendant_with_tag = focus_on_descendant_with_tag
 
 function dom_elt_descendant_of_classes(elt, classes){
     if(classes.length == 0) { shouldnt("dom_elt_descendant_of_classes passed empty classes array.") }
@@ -668,7 +685,7 @@ function dom_elt_descendant_of_classes(elt, classes){
         else { return dom_elt_descendant_of_classes(result_maybe, classes.slice(1)) }
     }
 }
-
+module.exports.dom_elt_descendant_of_classes = dom_elt_descendant_of_classes
 
 
 //if elt has a_class. return the elt, else go up the parentNode until you find one
@@ -680,6 +697,8 @@ function closest_ancestor_of_class(elt, a_class){
     else return null
 }
 
+module.exports.closest_ancestor_of_class = closest_ancestor_of_class
+
 //possibly includes elt itself.
 function ancestors_of_class(elt, a_class){
     let result = []
@@ -690,4 +709,6 @@ function ancestors_of_class(elt, a_class){
     }
     return result
 }
+module.exports.ancestors_of_class = ancestors_of_class
+
 var {shouldnt, warning_or_error, intersection, replace_substrings} = require("./utils.js")

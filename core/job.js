@@ -537,7 +537,7 @@ class Job{
             this.condition_when_stopped = null
 
             this.show_progress_maybe()
-            console.log('calling robot.start from job.start')
+            //console.log('calling robot.start from job.start')
             //out("Bottom of Job." + this.name + ".start() calling " + this.robot.name + ".start()")
             this.robot.start(this) //the only call to robot.start
             return this
@@ -738,6 +738,7 @@ class Job{
 
             but_elt = window[the_id]
             but_elt.onclick = function(event){
+                if(window["Metrics"]) { Metrics.increment_state("Job button clicks") }
                 event.target.blur() //gets rid of dark border around button and because its
                 //not focused, pressing the space or ENTER key doesn't do something strange
                 //like an extra button click.

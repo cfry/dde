@@ -2,7 +2,7 @@ var SimBuild = class Simbuild{
     static j7_prev_angle = 0
     static j7_threshold = 20 //20 or below means gripper should be closed
     static is_gripper_open = false
-    static template_object = null
+    static template_object = null //if null, SimBuild is NOT inited. SimBuild.template_object is used in simutils.js
 
     static init(){
         if(SimX.objects) { SimX.remove_all() }

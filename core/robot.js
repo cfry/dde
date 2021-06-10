@@ -1185,6 +1185,32 @@ Dexter = class Dexter extends Robot {
         else { return null }
     }
 
+    //returns null if don't know (because no job yet run,
+    //otherwise gets the latest robot status run on this dexter,
+    //and sees if its pointing down and returns true or false.
+    //so null (don't know) is presumed to be false,
+    //which is good for Dexter UI's call to this fn.
+    /*is_pointing_down(){
+        if(!this.rs) { return null }
+        let measured_angles = this.rs.measured_angles(7)
+        let angles_to_make_dexter_point_down = Kin.point_down(measured_angles)
+        for(let j = 0; j < 5; j++){
+            if(measured_angles[j] !== angles_to_make_dexter_point_down[j]){
+                return false
+            }
+        }
+        return true
+    }*/
+
+    //returns null if don't know (because no job yet run,
+    //otherwise gets the latest robot status run on this dexter,
+    //and sees if its pointing in "direction" and returns true or false.
+    is_direction(direction=[0, 0, -1], //pointing down
+                 tolerance_in_deg=0.01){
+        if(!this.rs) { return null } //meaning we don't know what direction its pointing
+        else { return Kin.is_direction(this.rs.measured_angles(5)) }
+    }
+
     //______phui_button processing
     is_phui_button_down(){
         if(!this.robot_status) { return false }
@@ -1569,7 +1595,7 @@ Dexter = class Dexter extends Robot {
         if(set_default_speed_first) { do_list.push(make_ins("S", "MaxSpeed", 25)) }
         do_list.push(Dexter.move_all_joints(angle_array))
         if(is_home_angles) {
-            do_list.push(Dexter.pid_move_all_joints([0, 0, 0, 0, 0, 0, 0]))
+            do_list.push(Dexter.pid_move_all_joints([0, 0, 0, 0, 0])) //only do 5 joints here. let the angle_array's version of j6 and j7 dictate their movvement.
             do_list.push(Dexter.empty_instruction_queue())
         }
         new Job({name: "job_00", robot: this,
@@ -1849,7 +1875,7 @@ Dexter.prototype.reboot_joints = function(joint_number_array="all"){
 //the function
 Dexter.prototype.reboot_joints_fn = function (){
     new Job({name: "reboot_joints",
-        robot: this,
+        robot: new Brain({name: "brain_reboot_joints"}),
         do_list: [
             //Dexter.set_parameter("RebootServo", 1), //reset J7 SPAN
             //Dexter.sleep(1), //give the servo time to reset.
@@ -2180,7 +2206,6 @@ Dexter.socket_encode = function(char){
 }
 
 Dexter.write_file = function(file_name=null, content=""){
-    file_name = Instruction.Dexter.read_file.add_default_file_prefix_maybe(file_name)
     let max_content_chars = 62 //244 //252 //ie 256 - 4 for (instruction_id, oplet, suboplet, length
     //payload can be max_contect_chars + 2 long if last character is escaped
     let payload = ""
@@ -2206,7 +2231,6 @@ Dexter.write_to_robot = function(content="", file_name=null){
 }
 
 Dexter.prototype.write_file = function(file_name=null, content=""){
-    file_name = Instruction.Dexter.read_file.add_default_file_prefix_maybe(file_name)
     let max_content_chars = 62 //244 //252 //ie 256 - 4 for (instruction_id, oplet, suboplet, length
     //payload can be max_contect_chars + 2 long if last character is escaped
     let payload = ""
@@ -2683,7 +2707,7 @@ Dexter.START_SPEED  = 0.5 //degrees per second
 Dexter.ACCELERATION = 0.000129 //degrees/(second^2)
 
 Dexter.RIGHT_ANGLE    = 90 // 90 degrees
-Dexter.HOME_ANGLES    = [0, 0, 0, 0, 0, 0, 0]  //j2,j3,j4 straight up, link 5 horizontal pointing frontwards.
+Dexter.HOME_ANGLES    = [0, 0, 0, 0, 0, 0, 50]  //j2,j3,j4 straight up, link 5 horizontal pointing frontwards. If J7 is 0 it will overtorque, turning on the red light as it closes too tightly. James W likes 50 degrees.
 Dexter.NEUTRAL_ANGLES = [0, 45, 90, -45, 0, 0, 0] //lots of room for Dexter to move from here.
 Dexter.PARKED_ANGLES  = [0, 0, 135, 45, 0, 0, 0] //all folded up, compact.
 

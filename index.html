@@ -217,6 +217,11 @@
 
     <script type="text/javascript" src="plot.js"></script>
     <script type="text/javascript" src="DDE_NPM.js"></script>
+    <script type="text/javascript" src="metrics.js"></script>
+    <script type="text/javascript" src="tensorflow/tfjs.js"></script>
+    <script type="text/javascript" src="tensorflow/qna.js"></script>
+
+
     <script type="text/javascript" src="ready.js"></script>
     <link rel="stylesheet" href="styles.css" type="text/css"/>
 </head>
@@ -277,7 +282,8 @@
                                         <li id="unfold_all_id" title="Uncompress all compressed statements.">Unfold All</li>
                                         <li id="select_expr_id" title="Select the JS expression containing cursor and &#013;put it in the Make Instruction dialog box.&#013;Shortcut: Alt-click (on Mac: Option-click)&#013;on expression start, middle or end.">Select expr alt-click</li>
                                         <li id="select_all_id" title="Select all the text in the Editor.">Select All Ctrl/&#8984;A</li>
-                                        <li id="indent_selection_id" title="Indent the selected code in the Editor.">Indent Sel shift-tab</li>
+                                        <li id="indent_selection_id" title="Indent the selected code in the Editor by pressing shift-tab.">Indent Sel: shift-tab</li>
+                                        <li id="pretty_print_id" title="Format the code to be properly indented.&#013;If there's a selection, pretty print just that.&#013;Otherwise, pretty print the whole buffer.">Pretty Print</li>
 
                                         <li id="animate_ui_checkbox_wrapper_id" title="If checked, some user interface operations&#013will change the display incrementally.&#013Unchecked is faster.">
                                             <div style='float: left; margin-right: 5px;' id='animate_ui_checkbox_id'></div>
@@ -663,13 +669,13 @@
                                         <li id="init_dxf_drawing_id" title="Insert a call to DXF.init_drawing&#13;into the editor.&#13;Also scrolls Doc pane to doc.">DXF.init_drawing()</li>
                                         <li>Dexter Tools
                                            <ul>
-                                                <li id="browse_dexter_id"    title="Browse the web page of&#13;the default Dexter&#13;(selected in the Misc Pane header).">Browse Dexter.default</li>
+                                                <li id="browse_dexter_id"    title="Browse the web page of&#13;the default Dexter&#13;(selected in the Misc Pane header).">Browse Dexter</li>
                                                 <li id="calibrate_id"        title="Calibrate one or more Dexters.&#13;Needed each time you power on a Dexter.">Calibrate Dexter...</li>
                                                 <li id="ping_dexter_id"      title="Find out if a Dexter&#13;or other ip_address&#13;is connected to this computer.">Ping Dexter...</li>
                                                 <li id="reboot_joints_id"    title="Re-enable Joints 6 & 7&#13;when they have been disabled and red lights flash,&#13;Documentation will be shown when you choose this.">Reboot Joints</li>
                                                 <li id="show_errors_log_id"  title="Show the content of the file errors.log&#13;on the default Dexter.">Show errors.log</li>
                                                 <li id="dexter_start_options_id" title="View and set the operations run&#13;when the Dexter selected in the Misc Pane header&#13;is turned on.">Start Options</li>
-                                                <li id="update_firmware_id"  title="Update the software on a Dexter.">Update Firmware</li>
+                                                <li id="update_firmware_id"  title="Update the software on the default Dexter&#13;(selected in the Misc Pane header).">Update Firmware</li>
                                            </ul>
                                         </li>
                                         <li id="run_job_on_dexter_id" title="Run the Job defined in the selection,&#13;or, if none, the whole editor,&#13;on Dexter.">Run Job on Dexter</li>
@@ -865,7 +871,7 @@
                         <span title="If checked, it will cause stepping of the underlying JavaScript code.&#013;when running a job.">
                             <input style="display:inline-block; vertical-align:bottom; margin-left:15px;" id="js_debugger_checkbox_id" type="checkbox" title="If checked, it will cause stepping of the underlying JavaScript code.&#013;when running a job.">JS debugger</input>
                         </span>
-
+                        &nbsp; &nbsp; <span id="easter_egg_joke_id" title="Easter Egg!">&#x1f95a;</span>
 
                     </div>
                     <div id='sim_pane_content_id' contentEditable="false" style="background-color:#EEEEEE; width:97%; height:85%;padding:5px;overflow:scroll;">

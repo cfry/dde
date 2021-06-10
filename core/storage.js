@@ -530,7 +530,7 @@ function write_file_async_to_dexter_using_job(dex_instance, path, content, callb
 }
 
 //the callback takes 1 arg, err. IF it is passed non-null, there's an error.
-// opy_file_async("foo/bar.js", "Dexter.dexter0:bar_copy.js"
+// copy_file_async("foo/bar.js", "Dexter.dexter0:bar_copy.js"
 function copy_file_async(source_path, destination_path, callback=null){
     if(!callback) {
         callback = function(err){

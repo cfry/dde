@@ -233,11 +233,13 @@ var Socket = class Socket{
 
     static dexter_units_to_degrees(du, joint_number){
         if(joint_number == 6) {
-               return (du - Socket.J6_OFFSET_SERVO_UNITS ) *
+            let ang_deg = (du - Socket.J6_OFFSET_SERVO_UNITS ) *
                        Socket.DEGREES_PER_DYNAMIXEL_320_UNIT
+            return ang_deg
         }
         else if (joint_number == 7) {
-               return du * Socket.DEGREES_PER_DYNAMIXEL_320_UNIT
+              let ang_deg = du * Socket.DEGREES_PER_DYNAMIXEL_320_UNIT
+              return ang_deg
         }
         else { return du / 3600 }
     }

@@ -60,6 +60,8 @@ var FileTransfer = class FileTransfer {
         }
     }
 
+    static enable_copy_checkbox = false
+
     //called by choosing the DDE menu item "update firmware"
     static show_dialog(){
         show_window({title: "Update Dexter Firmware",
@@ -82,7 +84,9 @@ var FileTransfer = class FileTransfer {
            (Contact Haddington if you need the passwords.)<br/>
        <input name="update_pwd"/></li>
        <li> <span title="If checked, files will be transfered to Dexter.&#13;If unchecked, folder names to be transfered will only be printed in the Output pane.&#13;This is now disabled for testing purposes.">
-            <input type="checkbox" name="enable_file_transfer_to_dexter" disabled />
+            <input type="checkbox" name="enable_file_transfer_to_dexter" ` +
+              (FileTransfer.enable_copy_checkbox ? "" : "disabled") +
+            `/>
            Enable transfering files to Dexter.</span>
        </li> 
        <li> Click: <input type="submit" name="update"/></li>
@@ -123,7 +127,7 @@ var FileTransfer = class FileTransfer {
             let ddd_decrypted_zip_path = dde_apps_folder + "/firmware_decrypted.zip"
             FileTransfer.web_to_dde(url, ddd_encrypted_zip_path,
                    function(){
-                       FileTransfer.decrypt_file(ddd_encrypted_zip_path, ddd_decrypted_zip_path, dexter_user_name, dexter_pwd, update_pwd, enable_file_transfer_to_dexter=false)
+                       FileTransfer.decrypt_file(ddd_encrypted_zip_path, ddd_decrypted_zip_path, dexter_user_name, dexter_pwd, update_pwd, enable_file_transfer_to_dexter)
                        //FileTransfer.unzip(ddd_decrypted_zip_path) //todo comment in
                        //FileTransfer.copy_to_dexter(ddd_decrypted_zip_path, dexter_pwd) //todo comment in
                    })

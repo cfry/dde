@@ -714,6 +714,33 @@ function insert_color(){
 }
 window.insert_color = insert_color
 
+var prompt_async_cb
+function prompt_async({title = "DDE Prompt",
+                       doc = "Enter string.", //can be any HTML
+                       default_value = "",
+                       x=200, y=200, width=280, height=120,
+                       callback = out}={}){
+      prompt_async_cb = function(vals){
+      debugger;
+      if(vals.clicked_button_value === "OK"){
+          callback.call(null, vals.input)
+      }
+      else if(vals.clicked_button_value === "Cancel"){
+            callback.call(null, null)
+      }
+    }
+    show_window({title: title,
+                 content:
+doc + `<br/><input name="input" type="text" size="40" style="margin:5px;" value="` +
+       default_value + `"/><br/>
+       <input type="submit" name="Cancel" value="Cancel"/>
+       <input type="submit" name="OK"     value="OK"     style="margin-left: 20px;"/>`,
+                 x:x, y:y, width:width, height:height,
+                 trim_strings: false, //allow user to supply whitespace
+                 callback:  prompt_async_cb
+                 })
+}
+
 
 //fixes broken Electron prompt See main.js for more code and doc
 //ue to work.

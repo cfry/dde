@@ -42,6 +42,8 @@
     }
     //called by both the eval button and the step button
     function eval_button_action(step=false){ //used by both clicking on the eval button and Cmd-e
+        if(step) { Metrics.increment_state("Step button clicks") }
+        else     { Metrics.increment_state("Eval button clicks") }
         if(step instanceof CodeMirror) { step = false } //means Cmd E was typed in the editor and we don't want to step in this case
         if((Editor.current_file_path != "new buffer") && persistent_get("save_on_eval")) {
             Editor.save_current_file(function(err) {
@@ -417,17 +419,19 @@
             selected_text_when_eval_button_clicked = Editor.get_any_selection()
         };
 
-        js_debugger_checkbox_id.onclick = function(event) {
-            event.stopPropagation()
-            if(event.target.checked) {
-                open_dev_tools()
-            }
-            else {
-                close_dev_tools()
-            }
+    js_debugger_checkbox_id.onclick = function(event) {
+        event.stopPropagation()
+        if(event.target.checked) {
+            open_dev_tools()
         }
+        else {
+            close_dev_tools()
+        }
+    }
 
-        misc_pane_expand_checkbox_id.onclick=toggle_misc_pane_size
+    easter_egg_joke_id.onclick = Metrics.easter_egg_joke
+
+    misc_pane_expand_checkbox_id.onclick=toggle_misc_pane_size
 
     email_bug_report_id.onclick=email_bug_report
 
@@ -1474,8 +1478,9 @@ foo      //eval to see the latest values</pre>`,
                       'Haddington Website',
                       'Dexter Architecture',
                       'Reference Manual',
-                      'Choose File']
-    $("#misc_pane_menu_id").jqxComboBox({ source: misc_items, width: '85%', height: '20px',});
+                      'Choose File',
+                      'Reward Board']
+    $("#misc_pane_menu_id").jqxComboBox({ source: misc_items, width: '85%', height: '20px', dropDownHeight: '235px'});
     $('#misc_pane_menu_id').on('keypress', function (event) {
         if(event.code == "Enter"){
             var val = event.target.value
@@ -1521,7 +1526,7 @@ foo      //eval to see the latest values</pre>`,
     })
 
     persistent_initialize() //called before loading dde_init.js by design.
-
+    Metrics.init()
     //set_dde_window_size_to_persistent_values() //obsolete now that main.js does this
 
     let val = persistent_get("save_on_eval")

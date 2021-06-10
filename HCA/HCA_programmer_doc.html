@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>HCA 2 Programmer Doumentation</title>
+</head>
+<body>
+<h2>HCA UI Programmer Doumentation</h2>
+<i>Fry started June 7, 2021</i>
+
+<h3>Other libraries</h3>
+With a wide web search, I seriously considered 2 other JavaScript libraries
+before choosing LiteGraph.
+
+<h4>Node-Red</h4>
+node-red npm pacckage made by IBM for user friendly IOT "wiring".<br/>
+Lots of work into this project. <br/>
+Good video tutorials, etc, <br/>
+BUT only supports one input per node.<br/>
+(It does mave multiple outputs).<br/>
+node-red is, I'm guessing by far the biggest library.
+It probably has a lot we don't need in it.
+I'm not so concerned about app size, but rather,
+to understand the parts you need, you have to
+wade through a lot of code.
+
+<h4>Rete</h4>
+https://rete.js.org/  js, npm, better doc. JSON object storage.<br/>
+Support for a 'DOCK" (I GUESS PALLETE.)<br/>
+But DOESN'T LOOK LIKE IT SUPPORTS Nested nodes like litegraph.
+Has significantly more downloads than litegraph,
+but litegraph still has a significant amount.
+
+<h3>LiteGraph</h3>
+Litegraph is a library for interactively making boxes and arrows graphs.
+
+<h4>Litegraph Documentation</h4>
+Article: https://awesomeopensource.com/project/jagenjo/litegraph.js?categoryPage=11<br/>
+Examples: https://observablehq.com/@jerdak/litegraph-examplehttps://observablehq.com/@jerdak/litegraph-example
+<p/>
+    https://webglstudio.org/images/shadergraph.png
+<p/>
+Main Doc: https://github.com/jagenjo/litegraph.js/blob/master/guides/README.md
+ but is rather incomplete.
+<p/>
+ Auto generated doc: https://webglstudio.org/doc/litegraph/files/.._src_litegraph.js.html
+ Not great but a certain kind of summary.
+
+<p/>
+The main source code file is:<br/>
+https://github.com/jagenjo/litegraph.js/blob/master/src/litegraph.js,<br/>
+Fry's notes from reading that file:
+
+<h4>LiteGraph.Nodes</h4>
+<pre>
+A node is the graphical representation of a HCA object.
+LiteGraph.Nodes {} name-value pairs of the built in nodes. Excludes my designed nodes.
+LiteGraph.registered_node_types  {} name-value pairs of the built in  and custom nodes
+HCA.lgraph._nodes an array of all node instances installed in mny lgraph
+HCA.lgraph._nodes_in_order  an array of all the nodes
+HCA.lgraph._nodes_in_order[0] the first node
+HCA.lgraph._nodes_in_order[0].is_selected //true or false
+HCA.lgraph.remove(node)
+HCA.lgraph.clear() //remove all nodes
+HCA.lgraph.start()
+HCA.lgraph.stop()
+HCA.lgraph.runStep(number_of_steps_to_run)
+HCA.lgraph.arrange(margin_in_pixels) //I guess auto-layout!
+HCA.lgraph.getNodeById(id)
+HCA.lgraph.addGlobalInput(...)
+HCA.lgraph.addOutput(...) //global output
+HCA.lgraph.serialize() //makes a json object of all the data in this lgraph
+HCA.lgraph.configure(json_string, keep_old_boolean) //Configure a graph from a JSON string
+HCA.lgraph._groups  a array, initially empty.
+
+
+LiteGraph.NODE_sizes and colors for the box, fonts, etc.
+LiteGraph.NODE_DEFAULT_BGCOLOR = "#353535"
+
+LiteGraph.createNode(type, // "basic/const"
+title,
+options)
+new LiteGraph.Subgraph() //I guess
+LiteGraph.registered_node_types  {} key value pairs of the string type  a la "basic/const" and val of its constructor fn.
+about 200 of them including "basic/boolean" "basic/string" "basic/script" "events/delay"
+"graph/Subgraph" (can probably use this to make a subgraph.
+"input/gamepad"
+
+LiteGraph.wrapFunctionAsNode: ƒ ( name, func, param_types, return_type, properties )
+
+NODES:
+slot means a non-neg int that refers to a specific input or output in the node,
+i.e. an index into the array that represents inputs or outputs.
+
+properties are user-defined name-value pairs with some extra info.
+LGraphNode.prototype.addProperty = function(name, default_value, type, extra_info)
+Get a prop value with:
+LGraphNode.prototype.id LGraphNode.prototype.properities[name]
+Set a prop vslue with:
+LGraphNode.prototype.id LGraphNode.prototype.properities[name] = new_val
+
+LGraphNode.prototype.flags.collapsed   (boolean)
+LGraphNode.prototype.serialize() returns JSON obj.
+LGraphNode.prototype.clone = function()
+LGraphNode.prototype.addWidget = function( type, name, value, callback, options )
+LGraphNode.prototype.alignToGrid = function()
+
+LGraphNode.prototype.trace = function(msg)   Console output
+LGraphNode.prototype.loadImage = function(url) //umm could I make a real AND gate?
+//loads the image from LiteGraph.node_images_path but
+//doesn't look like it displays this image anywhere nor in the node itself.
+
+LGraphNode.prototype.collapse = function(force)
+</pre>
+<h4>Groups</h4>
+<pre>
+HCA.lgraph._groups  a array, initially empty.
+function LGraphGroup(title)
+new LiteGraph.LGraphGroup("mytitle")  //make a group.
+HCA.lgraph.add(new LiteGraph.LGraphGroup("mytit"))  //add new group to grpah, it shows with title
+you can drag the lower right cornder of the group rect to exand or contract it.
+You can drop a node in a group, then drag teh group and it keeps the node in the group.
+You can drag a node and drop it inside the group
+</pre>
+
+<h4>LGraphCanvas</h4>
+<pre>
+This is NOT the dom elt for the "canvas" tag, which I store in HCA_canvas_id
+But you can get all the canvases from HCA.lgraph.list_of_graphcanvas
+and to get the first one, HCA.lgraph.list_of_graphcanvas[0]
+HCA.lgraph.list_of_graphcanvas[0].canvas === HCA_canvas_id
+
+LGraphCanvas.link_type_colors
+LGraphCanvas.prototype.getTopGraph()
+LGraphCanvas.prototype.openSubgraph = function(graph)  // opens a graph contained inside a node in the current grap
+LGraphCanvas.prototype.closeSubgraph = function()
+LGraphCanvas.prototype.getCurrentGraph = function()
+LGraphCanvas.prototype.copyToClipboard
+LGraphCanvas.prototype.pasteFromClipboard = function()
+LGraphCanvas.prototype.selected_nodes   //an array.
+LGraphCanvas.prototype.processNodeDblClicked = function(n)
+LGraphCanvas.prototype.selectNode = function(node, add_to_current_selection)
+LGraphCanvas.prototype.deleteSelectedNodes = function()
+LGraphCanvas.prototype.setZoom = function(value=1, zooming_center)
+LGraphCanvas.prototype.drawNodeWidgets = function(node, posY, ctx,active_widget)
+doesn't draw an img but maybe shows the way to do it.
+LGraphCanvas.prototype.drawGroups = function(canvas, ctx)
+Lots of menu methods in here but no obvious create menu, show menu
+LGraphCanvas.onShowPropertyEditor = function(item, options, e, menu, node) //???properties editor?
+LGraphCanvas.prototype.prompt = function(title, value, callback, event, multiline) {
+LGraphCanvas.prototype.showSearchBox = function(event) {
+LGraphCanvas.prototype.createDialog = function(html, options)
+LGraphCanvas.prototype.createPanel = function(title, options)
+LGraphCanvas.prototype.showShowNodePanel = function( node ) //what's this ???
+LGraphCanvas.prototype.showSubgraphPropertiesDialog = function(node)
+
+LGraphCanvas.onMenuNodeToSubgraph = function(value, options, e, menu, node)
+LGraphCanvas.prototype.getCanvasMenuOptions = function()
+LGraphCanvas.prototype.getNodeMenuOptions = function(node)//called by processContextMenu to extract the menu list
+LGraphCanvas.prototype.getGroupMenuOptions = function(node)
+function ContextMenu(values, //(allows object { title: "Nice text", callback: function ... })
+options) {
+
+
+GraphCanvas.prototype.drawNode(node, ctx);
+which draws links, inputs, outputs,
+calls GraphCanvas.prototype.drawNodeShape(node, ctx,size,color,bgcolor,
+node.is_selected,node.mouseOver)
+extra stuff can be drawn if the user defines:
+LGraphNode.prototype.onDrawForeground
+with some help via node.onDrawCollapsed(ctx, this)
+node.onDrawForeground(ctx, this, this.canvas)  (and note that the default value
+for onDrawForeground is null, in which case this is not called.
+onDrawBackground: render the background area inside the node (only in edit mode)
+But most of the node is drawn by drawNodeShape(node, ...),
+unfortunate because I'd have to hack this monster fn to special case
+its node arg to, say draw an image in place of the other svg draw fns.
+</pre>
+
+<h4>Questions</h4>
+<pre>
+You can write any feedback to javi.agenjo@gmail.com
+???More complete doc somewhere?
+???example of an app using many features of this library?
+https://tamats.com/projects/litegraph/editor/
+https://tamats.com is Javi's website.
+???Cut/copy/paste keystrokes fail. Is there a way to interactively delete a node?
+???double click on graph background displays Search type-in but typing in "and"
+creates the node "Rand" not my node "and" which is registered.
+???click on group does not highlight/select it.
+???relationship of subgraph and group?
+??? how to create subgraphs, expand and shrink them.
+???How to bring up context menu on click right (on background, node, group)
+
+
+??? How to make a node be rendered as a small image, like and AND gate with input and output circles?
+From: https://github.com/jagenjo/litegraph.js/tree/master/guides
+ou can draw something inside a node using the callbacks onDrawForeground and onDrawBackground. The only difference is that onDrawForeground gets called in Live Mode and onDrawBackground not.
+Both functions receive the Canvas2D rendering context and the LGraphCanvas instance where the node is being rendered.
+You do not have to worry about the coordinates system, (0,0) is the top-left corner of the node content area (not the title).
+node.onDrawForeground = function(ctx, graphcanvas)
+{
+if(this.flags.collapsed)
+return;
+ctx.save();
+ctx.fillColor = "black";
+ctx.fillRect(0,0,10,this.size[1]);
+ctx.restore();
+}
+</pre>
+
+</body>
+</html>

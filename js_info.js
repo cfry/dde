@@ -29,7 +29,12 @@ Js_info = class Js_info {
                 }
             }
             let is_identifier = ((typeof(fn_name) == "string") && is_string_an_identifier(fn_name))
-            let bounds_of_identifier = (is_identifier ? Editor.bounds_of_identifier(full_src, pos) : null )
+            let bounds_of_identifier
+            if(!is_identifier)  { bounds_of_identifier = null }
+            else if (!full_src) { bounds_of_identifier = null }
+            else {
+               bounds_of_identifier = Editor.bounds_of_identifier(full_src, pos)
+            }
             let info_and_url = Js_info.fn_name_to_info_map[fn_name] //miscelaneous stuff
             if(fn_name == "Py.eval"){
                 //fn = value_of_path(fn_name)
@@ -111,7 +116,13 @@ Js_info = class Js_info {
             }
             //do this before series because we may have a keyword of "name:" and name is in the HTML series
             else if(bounds_of_identifier && (full_src[bounds_of_identifier[1]] == ":")) { //got keyword
-                return '<span style="color: blue;">' + fn_name + ":</span> looks like a keyword for making an object or a function call."
+                let possible_id = "job_param_" + fn_name + "_doc_id"
+                if(window[possible_id]){
+                    return '<a href="#" onclick="open_doc(' + possible_id + ')">' + fn_name + '</a> is an initialization parameter for Jobs.'
+                }
+                else {
+                    return '<span style="color: blue;">' + fn_name + ":</span> looks like a keyword for making an object or a function call."
+                }
             }
             else if(orig_input.startsWith("Messaging.")) { //because lots of erms like Messaging.eval
                 //have the "eval" part in another series. So before doing the series test,
@@ -215,8 +226,8 @@ Js_info = class Js_info {
                 return "Date." + Js_info.make_atag("Date", fn_name) + "(" + Js_info.get_param_string(fn) + ")"
             }
             else if (Date.prototype[fn_name]){
-                fn = Array.Date[fn_name]
-                return '["..."].' + Js_info.make_atag("Date", fn_name) + "(" + Js_info.get_param_string(fn) + ")"
+                fn = Date.prototype[fn_name]
+                return 'Date.prototype.' + Js_info.make_atag("Date", fn_name) + "(" + Js_info.get_param_string(fn) + ")"
             }
             /*else if (["isFinite", "isInteger", "isNaN", "parseInt", "parseFloat"].indexOf(fn_name) != -1){
                 fn = Number[fn_name]
@@ -320,6 +331,11 @@ Js_info = class Js_info {
                     return main_help + suffix
                 }
                 else {shouldnt("In Js_info.get_info_string, with fn_name: " + fn_name)}
+            }
+            else if(fn_name === "dexter") { //a common mistake that users will type in, so give them help!
+                return `<code>dexter</code> is undefined but <code style="color:blue;text-decoration: underline;">Dexter</code> is a class name.<br/>
+                        Click help on it tells you how to create a Dexter instance.<br/>
+                        The default Dexter instance is <code  style="color:blue;text-decoration: underline;">Dexter.dexter0</code> .`
             }
             else { //last ditch effort
                 val = value_of_path(fn_name)

@@ -95,7 +95,7 @@ SimUtils = class SimUtils{
             }
             //let prev_js = this.prev_joint_angles.slice(0)
             let rob = Dexter[robot_name]
-            let prev_js = ds_instance.measured_angles_dexter_units.slice() //must copy because render_multi is going to continuous update mesured_angels per frame and we want to capture the prev_js and keep it constant
+            let prev_js = ds_instance.angles_dexter_units.slice() //must copy because render_multi is going to continuous update mesured_angels per frame and we want to capture the prev_js and keep it constant
             //console.log("calling render_multi_frame first time with new_angles as: " + new_angles_dexter_units + " prev_js: " + prev_js + " js_inc_per_frame: " + js_inc_per_frame)
             SimUtils.render_multi_frame(ds_instance, new_angles_dexter_units, prev_js, js_inc_per_frame, total_frames, 0, rob) //beginning an all but last rendering
 
@@ -115,15 +115,15 @@ SimUtils = class SimUtils{
             ds_instance.queue_instance.done_with_instruction() //removes the cur instruction_array from queue and if there's more, starts the next instruction.
         }
         else{
-            let new_angles = [] //used only for computing xyz to set in sim pane header
-            let xyz = Kin.J_angles_to_xyz(new_angles, rob.pose)[0]
+            let new_angles = []
+            let xyz
             let prev_js_useful_len = Math.min(5, prev_js.length) //we do not handle j6 & 7 here. That's done with render_j6_plus
             for(let joint = 0; joint < prev_js_useful_len; joint++){
                 let prev_j = prev_js[joint]
                 let j_inc_per_frame = js_inc_per_frame[joint] //might be undefined for j6 and 7
                 let inc_to_prev_j = frame_number * j_inc_per_frame
                 let j_angle = prev_j + (Number.isNaN(inc_to_prev_j) ? 0 : inc_to_prev_j) //j_angle is in arcseconds
-                ds_instance.measured_angles_dexter_units[joint] = j_angle
+                ds_instance.angles_dexter_units[joint] = j_angle
                 //if(joint === 0) { out("J" + joint + ": inc_to_prev_j: " + Math.round(inc_to_prev_j) +
                 //                      " j_angle as: "  +  Math.round(j_angle) +
                 //                      " j_angle deg: " + (Math.round(j_angle) / 3600 ))
@@ -133,9 +133,10 @@ SimUtils = class SimUtils{
                     sim.hi_rez) {
                     angle_degrees *= -1
                 }
-                let rads = degrees_to_radians(angle_degrees)
                 new_angles.push(angle_degrees)
-                let j_angle_degrees_rounded = Math.round(angle_degrees)
+
+               /* let j_angle_degrees_rounded = Math.round(angle_degrees)
+                let rads = degrees_to_radians(angle_degrees)
 
                 switch(joint) {
                     case 0:
@@ -188,9 +189,9 @@ SimUtils = class SimUtils{
                              SimBuild.handle_j7_change(angle_degrees, xyz, rob)
                         }
                         break;
-                } //end switch
+                } */ //end switch
             } //end for loop
-            let str_length
+           /* let str_length
             let x = xyz[0]
             if(x < 0) { str_length = 6} //so we get the minus sign plus 3 digits after decimal point, ie MM
             else      { str_length = 5}
@@ -207,22 +208,84 @@ SimUtils = class SimUtils{
             sim_pane_z_id.innerHTML = ("" + z).substring(0, str_length)
 
             //ds_instance.queue_instance.update_show_queue_if_shown() //I *could* do this here and update
-            //the curreint intruction row based on ds_instance.measured_angles_dexter_units
+            //the current instruction row based on ds_instance.measured_angles_dexter_units
             //but update_show_queue_if_shown just uses the instruction_array's commanded angles and
             //besides, you can see J angles updated every frame in the Sim pane's header.
             //Best to just leave the queue sim alone until actual whole instructions in queue change.
-            sim.renderer.render(sim.scene, sim.camera)
+            sim.renderer.render(sim.scene, sim.camera) //tell the graphis to finally draw.
+            */
+            this.render_j1_thru_j5(ds_instance)
             setTimeout(function() {
                 SimUtils.render_multi_frame(ds_instance, new_angles_dexter_units, prev_js, js_inc_per_frame, total_frames, frame_number + 1, rob, false)
             }, SimUtils.ms_per_frame)
         }
     }
 
+    //angles_in_degrees array of len 5. first elt is J1.
+    //actually draws the graphics, but nothing else.
+    //called both by render_multi_frame and in dextersim for super cheap handling of "P" (pid_move_all_joints)
+    static render_j1_thru_j5(ds_instance, rob_pose){
+            let angles_in_degrees = ds_instance.compute_measured_angles_degrees()
+            let rob_pos = ds_instance.robot.pose
+
+            let angle_degrees, j_angle_degrees_rounded, rads
+
+            angle_degrees = angles_in_degrees[0] //Joint 1
+            j_angle_degrees_rounded = Math.round(angle_degrees)
+            rads = degrees_to_radians(angle_degrees)
+            sim.J1.rotation.y = rads * -1
+            sim_pane_j1_id.innerHTML = j_angle_degrees_rounded
+
+            angle_degrees = angles_in_degrees[1] //Joint 2
+            j_angle_degrees_rounded = Math.round(angle_degrees)
+            rads = degrees_to_radians(angle_degrees)
+            sim.J2.rotation.z = rads * -1
+            sim_pane_j2_id.innerHTML = j_angle_degrees_rounded
+
+            angle_degrees = angles_in_degrees[2] //Joint 3
+            j_angle_degrees_rounded = Math.round(angle_degrees)
+            rads = degrees_to_radians(angle_degrees)
+            sim.J3.rotation.z = rads * -1
+            sim_pane_j3_id.innerHTML = j_angle_degrees_rounded
+
+            angle_degrees = angles_in_degrees[3] //Joint 4
+            j_angle_degrees_rounded = Math.round(angle_degrees)
+            rads = degrees_to_radians(angle_degrees)
+            sim.J4.rotation.z = rads * -1
+            sim_pane_j4_id.innerHTML = j_angle_degrees_rounded
+
+            angle_degrees = angles_in_degrees[4] //Joint 5
+            j_angle_degrees_rounded = Math.round(angle_degrees)
+            rads = degrees_to_radians(angle_degrees)
+            sim.J5.rotation.y = rads * -1
+            sim_pane_j5_id.innerHTML = j_angle_degrees_rounded
+
+            let xyz = Kin.J_angles_to_xyz(angles_in_degrees, rob_pose)[0] //needed in case 6 and below
+
+            let str_length
+            let x = xyz[0]
+            if(x < 0) { str_length = 6} //so we get the minus sign plus 3 digits after decimal point, ie MM
+            else      { str_length = 5}
+            sim_pane_x_id.innerHTML = ("" + x).substring(0, str_length)
+
+            let y = xyz[1]
+            if(y < 0) { str_length = 6} //so we get the minus sign plus 3 digits after decimal point, ie MM
+            else      { str_length = 5}
+            sim_pane_y_id.innerHTML = ("" + y).substring(0, str_length)
+
+            let z = xyz[2]
+            if(z < 0) { str_length = 6} //so we get the minus sign plus 3 digits after decimal point, ie MM
+            else      { str_length = 5}
+            sim_pane_z_id.innerHTML = ("" + z).substring(0, str_length)
+
+            sim.renderer.render(sim.scene, sim.camera)
+    }
+
     //same level as render_multi but for one of j6 or j7.
     static render_j6_plus(ds_instance, new_angle_dexter_units, robot_name, dur_in_ms=0, joint_number=7){
         if (Dexter.default.name === robot_name){
             let total_frames = Math.ceil(dur_in_ms / SimUtils.ms_per_frame)
-            let prev_js = ds_instance.measured_angles_dexter_units[joint_number - 1]
+            let prev_js = ds_instance.angles_dexter_units[joint_number - 1]
             let j_diff = new_angle_dexter_units - prev_js //this.prev_joint_angles[joint]
             let js_inc_per_frame = ((total_frames === 0) ? 0 : (j_diff / total_frames))
              //let prev_js = this.prev_joint_angles.slice(0)
@@ -241,7 +304,6 @@ SimUtils = class SimUtils{
     //If there is an ongoing call to render_j6_plus_frame,
     // then that ongoing call to render_j6_plus_frame will stop it and call render_j6_plus_frame_call,
     //otherwise, no ongoing call to stop so just call render_j6_plus_frame_call,
-    //else just call render_j6_plus_frame_call
     static render_j6_plus_frame_outer(ds_instance, joint_number, render_j6_plus_frame_call){
         let call_map = ds_instance.queue_instance.joint_number_to_render_j6_plus_frame_call_map
         let the_call = call_map[joint_number]
@@ -262,6 +324,8 @@ SimUtils = class SimUtils{
             shouldnt("render_j6_plus_frame_outer found the_call of: " + the_call + " which is not undefined, not true and not a function.")
         }
     }
+
+
 
     static render_j6_plus_frame(ds_instance, new_angle_dexter_units, js_inc_per_frame,
                                 total_frames, frame_number=0, rob, joint_number){
@@ -289,7 +353,7 @@ SimUtils = class SimUtils{
             this.render_j6_plus_frame_outer(ds_instance, joint_number, render_j6_plus_frame_call)
         }
         else{
-            let ma_du   = ds_instance.measured_angles_dexter_units
+            let ma_du   = ds_instance.angles_dexter_units
             let prev_js = ma_du[joint_number - 1]     //grab the old
             let j_angle = prev_js + js_inc_per_frame  //compute the new
             ma_du[joint_number - 1] = j_angle         //set it for all to see
@@ -299,13 +363,15 @@ SimUtils = class SimUtils{
             let j_angle_degrees_rounded = Math.round(angle_degrees)
             switch(joint_number) {
                 case 6:
-                    if(sim.J6) {
+                    /*if(sim.J6) {
                         sim.J6.rotation.z = rads
                     }
                     sim_pane_j6_id.innerHTML = j_angle_degrees_rounded
+                    */
+                    this.render_j6(ds_instance)
                     break;
                 case 7:
-                    if(sim.J7) { //330 degrees = 0.05 meters
+                    /*if(sim.J7) { //330 degrees = 0.05 meters
                         let new_xpos = ((angle_degrees * 0.05424483315198377) / 296) * -1 //more precise version from James W aug 25.
                         new_xpos *= 10
                         //out("J7 angle_degrees: " + angle_degrees + " new xpos: " + new_xpos)
@@ -333,6 +399,14 @@ SimUtils = class SimUtils{
                         let xyz = Kin.J_angles_to_xyz(new_angles, rob.pose)[0]
                         SimBuild.handle_j7_change(angle_degrees, xyz, rob)
                     }
+                    */
+                    if(SimBuild.template_object) {
+                        let xyz = Kin.J_angles_to_xyz(new_angles, rob.pose)[0]
+                        this.render_j7(ds_instance, xyz)
+                    }
+                    else {
+                        this.render_j7(ds_instance)
+                    }
                     break;
             } //end switch
             //sim.renderer.render(sim.scene, sim.camera) //maybe not needed
@@ -347,6 +421,44 @@ SimUtils = class SimUtils{
                shouldnt("render_j6_plus_frame found render_j6_plus_frame_call of: " + render_j6_plus_frame_call +
                         "which is not true and not a function.")
             }
+        }
+    }
+
+    static render_j6(ds_instance){
+        let angle_degrees = ds_instance.compute_measured_angle_degrees(6)
+        let rads = degrees_to_radians(angle_degrees)
+        let j_angle_degrees_rounded = Math.round(angle_degrees)
+        if(sim.J6) {
+            sim.J6.rotation.z = rads
+        }
+        sim_pane_j6_id.innerHTML = j_angle_degrees_rounded
+    }
+
+    static render_j7(ds_instance, xyz){ //xyz only needs to be passed in if using SimBuild
+        let angle_degrees = ds_instance.compute_measured_angle_degrees(7)
+        let rads = degrees_to_radians(angle_degrees)
+        let j_angle_degrees_rounded = Math.round(angle_degrees)
+        if(sim.J7) { //330 degrees = 0.05 meters
+            let new_xpos = ((angle_degrees * 0.05424483315198377) / 296) * -1 //more precise version from James W aug 25.
+            new_xpos *= 10
+            //out("J7 angle_degrees: " + angle_degrees + " new xpos: " + new_xpos)
+            sim.J7.position.setX(new_xpos) //see https://threejs.org/docs/#api/en/math/Vector3
+            //all below fail to change render
+            //sim.J7.position.x = new_pos
+            //sim.J7.updateMatrix() //no effect
+            //sim.j7.updateWorldMatrix(true, true)
+            // prev new_pos value;
+            // ((angle_degrees * 0.05) / 330 ) * -1 //meters of new location
+            // but has the below problems
+            // x causes no movement, but at least inited correctly
+            // y sends the finger to move to outer space upon init, but still visible, however moving j7 doesn't move it
+            // z causes the finger to be somewhat dislocated upon dui init, however moving j7 doesn't move it
+            //sim.J7.rotation.y = rads
+        }
+        sim_pane_j7_id.innerHTML = j_angle_degrees_rounded
+        if(SimBuild.template_object) {
+            let rob_pose = ds_instance.robot.pose
+            SimBuild.handle_j7_change(angle_degrees, xyz, rob_pose)
         }
     }
 

@@ -61,8 +61,8 @@ var Simqueue = class Simqueue{
          //so we need this state var. J1 thru 5 make up the "SENT" robot_status row.
         this.instr_to_param_map = {} //keys are an instruction array. Values are an array of a set param name (string) and its new value
                                      //to be set in sim_inst.parameters whenever the instr is done executing (ie when removed from queue
-        this.joint_number_to_j6_plus_status_map = {6: "stopped at " + sim_instance.measured_angles_dexter_units[5],
-                                                   7: "stopped at " + sim_instance.measured_angles_dexter_units[6]
+        this.joint_number_to_j6_plus_status_map = {6: "stopped at " + sim_instance.angles_dexter_units[5],
+                                                   7: "stopped at " + sim_instance.angles_dexter_units[6]
                                                   }
         this.joint_number_to_render_j6_plus_frame_call_map = {}
         this.show_degrees = false
@@ -257,7 +257,7 @@ var Simqueue = class Simqueue{
 
     //just sets j6_plus status and updates
     done_with_j6_plus_instruction(joint_number){
-        let du = this.sim_instance.measured_angles_dexter_units[joint_number - 1]
+        let du = this.sim_instance.angles_dexter_units[joint_number - 1]
         let val_for_show = (this.show_degrees ? Socket.dexter_units_to_degrees(du, joint_number) : du)
         val_for_show = (Number.isInteger(val_for_show) ? val_for_show : val_for_show.toFixed(3))
         this.joint_number_to_j6_plus_status_map[joint_number] = "stopped at " + val_for_show
