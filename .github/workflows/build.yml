@@ -3,7 +3,7 @@ name: Build
 on: [push]
 
 env:
-  NODE_VERSION: 12
+  NODE_VERSION: 16
 
 jobs:
   build-linux:
