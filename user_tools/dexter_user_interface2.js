@@ -89,7 +89,6 @@ var dui2 = class dui2 {
 
     //this is the top level code in this file that is called when the user chooses Jobs menu, Dexter UI item.
     static make_job(explicitly_start_job=false){
-        debugger;
         let dex = (window.default_robot ? Dexter.default : Dexter.dexter0)
         let name = ((platform === "dde") ? "dui2_for_" + dex.name : "dexter_user_interface2") //the job engine Job name must match the file name (sans .js")
         if (Job[name] && Job[name].is_active()) { //we're redefining the job so we want to make sure the
@@ -153,7 +152,6 @@ var dui2 = class dui2 {
         dui_instance.dexter_instance = this.robot
         let initial_angles
         let initial_move_instruction
-        debugger;
         //set initial_angles
         if(!dui_instance.dexter_instance.rs) {
             initial_angles = Dexter.HOME_ANGLES
@@ -793,7 +791,6 @@ var dui2 = class dui2 {
         }
     }
     else if(vals.clicked_button_value.endsWith("_range")){ //a joint slider
-        debugger;
         dui_instance.set_maj_angles([vals.j1_range, vals.j2_range, vals.j3_range, vals.j4_range,
             vals.j5_range, vals.j6_range, vals.j7_range])
     }

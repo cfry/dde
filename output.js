@@ -721,7 +721,6 @@ function prompt_async({title = "DDE Prompt",
                        x=200, y=200, width=280, height=120,
                        callback = out}={}){
       prompt_async_cb = function(vals){
-      debugger;
       if(vals.clicked_button_value === "OK"){
           callback.call(null, vals.input)
       }

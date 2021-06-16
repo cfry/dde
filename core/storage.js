@@ -451,7 +451,7 @@ function write_file(path, content, encoding="utf8"){
 
 module.exports.write_file = write_file
 
-//path example" Dexter.dexter0:junk.js
+//path example: "Dexter.dexter0:junk.js"
 //callback takes one arg, err. If it is null, there's no error
 //from https://www.npmjs.com/package/request#requestoptions-callback,
 //encoding: at least in the http case, "if you expect binary data, you should set encoding: null",
@@ -513,7 +513,8 @@ function write_file_async_to_dexter_using_node_server(dex_instance, path, conten
     let ip = dex_instance.ip_address
     let r = request.post('http://' + ip + '/edit', callback)
     let form = r.form(); //tack on a form before the POST is done... Don't step through
-    form.append("data", content, {filepath: path});
+    form.append("data", content, {filepath: path}); //path could be "foo.txt" in which case the folder
+       //defaults to /srv/samba/share,  OR path can be /srv/samba/share/foo.txt
 }
 
 function write_file_async_to_dexter_using_job(dex_instance, path, content, callback){

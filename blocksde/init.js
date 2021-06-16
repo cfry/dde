@@ -138,7 +138,6 @@ function js_to_blocks(){
 }
 
 function js_to_HCA(){
-    debugger;
     let js = Editor.get_javascript()
     let js_obj = null
    /* if(js.length > 0) {

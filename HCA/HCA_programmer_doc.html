@@ -36,7 +36,8 @@ Litegraph is a library for interactively making boxes and arrows graphs.
 
 <h4>Litegraph Documentation</h4>
 Article: https://awesomeopensource.com/project/jagenjo/litegraph.js?categoryPage=11<br/>
-Examples: https://observablehq.com/@jerdak/litegraph-examplehttps://observablehq.com/@jerdak/litegraph-example
+Examples:
+https://observablehq.com/@jerdak/litegraph-examplehttps://observablehq.com/@jerdak/litegraph-example
 <p/>
     https://webglstudio.org/images/shadergraph.png
 <p/>
@@ -61,6 +62,7 @@ HCA.lgraph._nodes_in_order  an array of all the nodes
 HCA.lgraph._nodes_in_order[0] the first node
 HCA.lgraph._nodes_in_order[0].is_selected //true or false
 HCA.lgraph.remove(node)
+
 HCA.lgraph.clear() //remove all nodes
 HCA.lgraph.start()
 HCA.lgraph.stop()
@@ -132,15 +134,18 @@ HCA.lgraph.list_of_graphcanvas[0].canvas === HCA_canvas_id
 
 LGraphCanvas.link_type_colors
 LGraphCanvas.prototype.getTopGraph()
-LGraphCanvas.prototype.openSubgraph = function(graph)  // opens a graph contained inside a node in the current grap
+LGraphCanvas.prototype.openSubgraph = function(graph)  // opens a graph contained inside a node in the current graph
 LGraphCanvas.prototype.closeSubgraph = function()
 LGraphCanvas.prototype.getCurrentGraph = function()
-LGraphCanvas.prototype.copyToClipboard
-LGraphCanvas.prototype.pasteFromClipboard = function()
+
+LGraphCanvas.prototype.deleteSelectedNodes = function() //cut
+LGraphCanvas.prototype.copyToClipboard  //copy
+LGraphCanvas.prototype.pasteFromClipboard = function()  //paste
+
 LGraphCanvas.prototype.selected_nodes   //an array.
 LGraphCanvas.prototype.processNodeDblClicked = function(n)
 LGraphCanvas.prototype.selectNode = function(node, add_to_current_selection)
-LGraphCanvas.prototype.deleteSelectedNodes = function()
+
 LGraphCanvas.prototype.setZoom = function(value=1, zooming_center)
 LGraphCanvas.prototype.drawNodeWidgets = function(node, posY, ctx,active_widget)
 doesn't draw an img but maybe shows the way to do it.
@@ -158,13 +163,24 @@ LGraphCanvas.onMenuNodeToSubgraph = function(value, options, e, menu, node)
 LGraphCanvas.prototype.getCanvasMenuOptions = function()
 LGraphCanvas.prototype.getNodeMenuOptions = function(node)//called by processContextMenu to extract the menu list
 LGraphCanvas.prototype.getGroupMenuOptions = function(node)
+
+right click menu:
 function ContextMenu(values, //(allows object { title: "Nice text", callback: function ... })
 options) {
+LGraphCanvas.prototype.processMouseDown = function(e) {
+get e.which  of 3, and is not read_only but
+since this.onMouseDown  is undefined, does not call it. Presumably that's what pops up the menu.
+this is LGraphCanvas.prototype.
+The only onMouseDown def is for CurveEditor,
+but LGraphCanvas.prototype.bindEvents = function() binds mouseDown to
+LGraphCanvas.prototype.canvas
+Trying to get pop up menu on a node.
 
 
-GraphCanvas.prototype.drawNode(node, ctx);
+//drawing a node.
+LGraphCanvas.prototype.drawNode(node, ctx); c
 which draws links, inputs, outputs,
-calls GraphCanvas.prototype.drawNodeShape(node, ctx,size,color,bgcolor,
+and calls LGraphCanvas.prototype.drawNodeShape(node, ctx,size,color,bgcolor,
 node.is_selected,node.mouseOver)
 extra stuff can be drawn if the user defines:
 LGraphNode.prototype.onDrawForeground
@@ -175,6 +191,11 @@ onDrawBackground: render the background area inside the node (only in edit mode)
 But most of the node is drawn by drawNodeShape(node, ...),
 unfortunate because I'd have to hack this monster fn to special case
 its node arg to, say draw an image in place of the other svg draw fns.
+
+LGraphCanvas.prototype.drawNode(node, ctx) calls
+node.onDrawForeground(ctx, this, this.canvas); where this is
+an GraphCanvas.prototype, with a field mouse whose value is
+an array of 2 floats ie [234.4 125.6]
 </pre>
 
 <h4>Questions</h4>

@@ -1,5 +1,114 @@
 const LiteGraph = require("litegraph.js").LiteGraph; //needs to be at top of file
 
+//copied from https://github.com/jagenjo/litegraph.js/blob/master/src/litegraph.js
+var LGraphCanvas_prototype_processKey = function(e) { //used in init
+    if (!this.graph) {
+        return;
+    }
+
+    var block_default = false;
+    //console.log(e); //debug
+
+    if (e.target.localName == "input") {
+        return;
+    }
+
+    if (e.type == "keydown") { //fry: this event not triggered in dde on mac so must use keyup
+        if (e.keyCode == 32) {
+            //esc
+            this.dragging_canvas = true;
+            block_default = true;
+        }
+
+        //select all Control A
+        if (e.keyCode == 65 && e.ctrlKey) {
+            this.selectNodes();
+            block_default = true;
+        }
+
+        if (e.code == "KeyC" && (e.metaKey || e.ctrlKey) && !e.shiftKey) {
+            //copy
+            if (this.selected_nodes) {
+                this.copyToClipboard();
+                block_default = true;
+            }
+        }
+
+        if (e.code == "KeyV" && (e.metaKey || e.ctrlKey) && !e.shiftKey) {
+            //paste
+            this.pasteFromClipboard();
+        }
+
+        //delete or backspace
+        if (e.keyCode == 46 || e.keyCode == 8) {
+            if (
+                e.target.localName != "input" &&
+                e.target.localName != "textarea"
+            ) {
+                this.deleteSelectedNodes();
+                block_default = true;
+            }
+        }
+
+        //collapse
+        //...
+
+        //TODO
+        if (this.selected_nodes) {
+            for (var i in this.selected_nodes) {
+                if (this.selected_nodes[i].onKeyDown) {
+                    this.selected_nodes[i].onKeyDown(e);
+                }
+            }
+        }
+    } else if (e.type == "keyup") {
+        if (e.keyCode == 32) {
+            this.dragging_canvas = false;
+        }
+        //begin fry extension:
+        else if (e.key == "a" && e.ctrlKey) { //select all
+            this.selectNodes();
+            block_default = true;
+        }
+
+        else if (e.key == "x" && (e.metaKey || e.ctrlKey) && !e.shiftKey) { //cut note: metaKey is supposed to be mac cloverleaf but it fails, so just use cntrl key on mac, just like window.
+            if (this.selected_nodes) {
+                this.copyToClipboard();
+                this.deleteSelectedNodes();
+                block_default = true;
+            }
+        }
+
+        else if (e.key == "c" && (e.metaKey || e.ctrlKey) && !e.shiftKey) { //copy
+            if (this.selected_nodes) {
+                this.copyToClipboard();
+                block_default = true;
+            }
+        }
+
+        else if (e.key == "v" && (e.metaKey || e.ctrlKey) && !e.shiftKey) { //paste
+            this.pasteFromClipboard();
+        }
+
+        //end fry extension
+        else if (this.selected_nodes) { //fry added "else" before the "if" only
+            for (var i in this.selected_nodes) {
+                if (this.selected_nodes[i].onKeyUp) {
+                    this.selected_nodes[i].onKeyUp(e);
+                }
+            }
+        }
+    }
+
+    this.graph.change();
+
+    if (block_default) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        return false;
+    }
+};
+
 
 var HCA = class HCA {
     static make_HCA_dom_elt(){
@@ -44,7 +153,6 @@ var HCA = class HCA {
     }
 
     static init(json_string=""){ //json_string can also be a jason object or null
-        debugger;
         let json_obj = null
         if(typeof(json_string) === "string") {
             json_string = json_string.trim()
@@ -68,9 +176,12 @@ var HCA = class HCA {
             }
         }
         this.config_litegraph_class()
+        LiteGraph.LGraphCanvas.prototype.processKey = LGraphCanvas_prototype_processKey  //must be before creating new LiteGraph.LGraphCanvas or it won't go into effect
+
         this.lgraph = new LiteGraph.LGraph();
-        let LGcan = new LiteGraph.LGraphCanvas("#HCA_canvas_id", this.lgraph);
-        LGcan.background_image = null //get rid of dark grid and make it just white background
+        this.lgraphcanvas = new LiteGraph.LGraphCanvas("#HCA_canvas_id", this.lgraph);
+        this.lgraphcanvas.background_image = null //get rid of dark grid and make it just white background
+        // fails  this.lgraphcanvas.processKey = LGraphCanvas_prototype_processKey
         /*let can = HCA_canvas_id
         let context = can.getContext('2d');
         context.fillStyle = 'rgba(255, 255, 255)';
@@ -120,16 +231,49 @@ var HCA = class HCA {
         HCA_palette_id.append(but)
     }
 
+    static clipboard = null
+
+    //we only get keyup events from the keyboard, not keydown events.
+    static node_keyup_action(event, node){
+        out("got key up with: " + this)
+        if(event.ctrlKey) { //note the apple key (cloverleaf) meta key processing is all screwed up
+                            //so have to go with ctrl key even on a Mac.
+            if(event.key === "x"){ //cut
+                this.clipboard = node
+                this.lgraph.remove(node)
+            }
+            else if (event.key === "c"){ //copy
+                this.clipboard = node
+            }
+            else if(event.key === "v"){ //paste
+               if(this.clipboard) {
+                   this.clipboard.pos = [5,35]; //upper left of canvas, because cur mouse pos not available (defect of DOM design)
+                   this.lgraph.add(node);
+               }
+            }
+
+        }
+
+    }
+
     static make_and_add_node(type, button_name){
-        let node_const
+        let node
         if(button_name == "number") {
-            node_const = LiteGraph.createNode(type, button_name, {size: [150, 20]})
+            node = LiteGraph.createNode(type, button_name, {size: [150, 20]})
         }
         else {
-            node_const = LiteGraph.createNode(type, button_name)
+            node = LiteGraph.createNode(type, button_name)
+        }
+
+
+        function logKey(e) {
+            log.textContent += ` ${e.code}`;
         }
         //node_const.pos = [5,35];
-        this.lgraph.add(node_const);
+        this.lgraph.add(node);
+        node.onKeyUp = function(event) {
+            HCA.node_keyup_action.call(HCA, event, node)
+        }
         //node_const.setValue(4.5);
     }
 
@@ -142,7 +286,6 @@ var HCA = class HCA {
 
     //don't use "this" inside this method since its called with a timeout. Use HCA instead.
     static populate_palette(){
-        debugger;
         HCA.make_node_button(null,
             "make_group",
             function() {

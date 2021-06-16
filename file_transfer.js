@@ -299,6 +299,125 @@ var FileTransfer = class FileTransfer {
         copy_fn() //the first call
     }
 
+    //dh_matrix is an array of 5 arrays, each of which contain 4 floats.
+    static customize_defaults_make_ins(dh_matrix, orig_dm_content=null, enable_file_transfer_to_dexter=false){
+        if(!orig_dm_content){
+            this.get_default_make_ins_from_dexter(dh_matrix, enable_file_transfer_to_dexter)
+        }
+        else {
+            this.customize_defaults_make_ins_aux(dh_matrix, orig_dm_content)
+            if (enable_file_transfer_to_dexter) {
+                this.write_defaults_make_ins(new_dm_content)
+            }
+        }
+    }
+
+    static get_default_make_ins_from_dexter(dh_matrix, enable_file_transfer_to_dexter=false){
+        let dm_path = "Dexter." + Dexter.default.name + ":/srv/samba/share/Defaults.make_ins"
+        read_file_async(dm_path, undefined,
+            function(err, orig_dm_content){
+                if (err) {
+                    dde_error("While getting " + dm_path + "<br/>" + err.message)
+                }
+                else {
+                    let new_dm_content = FileTransfer.customize_defaults_make_ins_aux(dh_matrix, orig_dm_content)
+                    if (enable_file_transfer_to_dexter) {
+                        FileTransfer.write_defaults_make_ins(new_dm_content)
+                    }
+                }
+            })
+    }
+
+    static customize_defaults_make_ins_aux(dh_matrix, orig_dm_content){
+       let orig_lines = orig_dm_content.split("\n")
+       let orig_links_str = ""
+       let new_links_str = null //usually will be set but only if there is an orig links_str.
+       let new_lines = []
+       let line_index_for_links = null
+
+       let line_index_for_first_dh_row = null
+       for(let i = 0; i < orig_lines.length; i++){
+           let orig_line = orig_lines[i]
+           let orig_line_trimmed = orig_line.trim()
+           let new_line = orig_line
+           if(orig_line_trimmed.length === 0){} //blank line. keep it
+           else if(orig_line.startsWith(";")) {}  // comment. keep it
+           else if(orig_line.startsWith("S, LinkLengths")) { //record index and keep it
+               line_index_for_links = i
+               orig_links_str = orig_line
+           }
+           else if(orig_line.startsWith("S JointDH")) { //part of 2 D matrix. record it and keep it
+               if(line_index_for_first_dh_row === null){ //hits for first of 6 lines only.
+                   line_index_for_first_dh_row = i
+                   //let dh_row = orig_line.split(" ")
+                   //let dh_1d_array = dh_row.slice(3)
+                   //dh_matrix.push(dh_1d_array)
+               }
+           }
+           else {} //keep it
+           new_lines.push(new_line)
+       }
+       let new_array_for_links =  [dh_matrix[5][0],
+                                   dh_matrix[4][0],
+                                   dh_matrix[2][2],
+                                   dh_matrix[1][2],
+                                   dh_matrix[0][0]]
+       if(line_index_for_links !== null){ //only include new LinkLengths line if it was in the orig_dm_content
+           new_links_str = "S, LinkLengths, " + new_array_for_links.join(", ") + "; For Dexter HDI"
+           new_lines[line_index_for_links] = new_links_str
+       }
+       if(line_index_for_first_dh_row === null) { // insert brand new dh_matrix into the new make_ins file
+           let new_dh_matrix_lines = ["\n",
+                                      "; DenavitHartenberg parameters for each joint in microns and arcseconds",
+                                      "; ___ Joint,     Tz,     Rz,     Tx,     Rx"
+                                     ]
+           for(let i = 0; i < dh_matrix.length; i++){
+               let joint_number = i + 1
+               let new_line = "S JointDH " + joint_number + ", " + dh_matrix[i].join(", ") + ";"
+               new_dh_matrix_lines.push(new_line)
+           }
+           new_dh_matrix_lines.push("\n")
+           new_lines.splice(line_index_for_links + 1, 0, ...new_dh_matrix_lines)
+       }
+       else if(line_index_for_first_dh_row !== null) {
+           for(let i = 0; i < dh_matrix.length; i++){
+               let new_index = line_index_for_first_dh_row + i
+               let joint_number = i + 1
+               let new_line = "S JointDH " + joint_number + ", " + dh_matrix[i].join(", ") + ";"
+               new_lines[new_index] = new_line
+           }
+       }
+       let new_dm_content = new_lines.join("\n")
+       //just for the printout to output pane
+       let new_dh_matrix_html = ""
+       for(let row of dh_matrix) {
+           let row_str = row.join(", ")
+           new_dh_matrix_html += "[" + row_str + "]<br/>"
+       }
+       let new_dm_content_html = replace_substrings(new_dm_content, "\n", "<br/>")
+       out( "<b>customize_defaults_make_ins</b><br/>"    +
+            "Old LinkLengths:" + orig_links_str + "<br/>" +
+            "New Linklengths:" + new_links_str + "<br/>" +
+            "New dh matrix:[<br/>" + new_dh_matrix_html + "]<br/>" +
+            "<b>New Defaults.make_ins file content:</b></br/>" +
+            new_dm_content_html) //for debugging
+
+       return new_dm_content
+    }
+
+    static write_defaults_make_ins(new_dm_content){
+        let path = "Dexter."+ Dexter.default.name + ":/srv/samba/share/Defaults.make_ins"
+        let cb = function(err){
+            if(err){
+                dde_error("Writing " + path + " failed with: " + err.message)
+            }
+            else {
+                out("Writing " + path + " succeeded.")
+            }
+        }
+        write_file_async(path, new_dm_content, undefined, cb)
+    }
+
 
 } //end class
 

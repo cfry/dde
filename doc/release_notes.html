@@ -5,6 +5,22 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+
+<details class="doc_details"><summary>v 3.7.17, Jun 16, 2021</summary>
+<ul>
+    <li>Fixed 2 bugs in <code>Socket.instruction_array_degrees_to_arcseconds_maybe</code>
+    S params affecting calibration. one for "J*Boundary*"
+    and one for "CommandedAngles", "RawEncoderErrorLimits", "RawVelocityLimits".</li>
+    <li>Improved error message for <code>Job.prototype.if_robot_status_error_default</code>
+    when it can't get the errors.log file from Dexter.</li>
+    <li>New Function under <code>FileTransfer</code> extended for customize_defaults_make_ins.
+        This functionality not yet documented.</li>
+    <li>HCA: Added cut, copy, paste keystroke commands to the network editor.
+        This functionality is not yet documented or generally useful.
+    </li>
+    <li>Removed lots of <code>debugger;</code> statements.
+</ul>
+</details>
 <details class="doc_details"><summary>v 3.7.16, Jun 10, 2021</summary>
 Highlights: Improvements to simulation and Dexter UI esp. for pid moves.
  UpdateFirmware facility improved. Gameification for educational motivation added.

@@ -1506,7 +1506,7 @@ Job.prototype.if_robot_status_error_default = function(){
                         }
                  })
                }
-            catch(err) {shouldnt("In Job.prototype.if_robot_status_error_default, errored trying to get the errors.log file<br/>" +
+            catch(err) {warning("In Job.prototype.if_robot_status_error_default, could not get the errors.log file<br/>" +
                                   " for " + "Dexter." + rob.name) }
         }
     }

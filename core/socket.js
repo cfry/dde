@@ -273,17 +273,18 @@ var Socket = class Socket{
                 instruction_array_copy[Instruction.INSTRUCTION_ARG1] = Math.round(first_arg * _nbits_cf)
                 return instruction_array_copy
             }
-            else if (name.includes("Boundry")) { //the full name is something like J1Boundry thru J5Boundry
+            else if (name.includes("Boundry")) { //the full name is  J1BoundryHigh thru J5BoundryHigh, or J1BoundryLow thru J5BoundryLow
                 let instruction_array_copy = instruction_array.slice()
-                instruction_array_copy[Instruction.INSTRUCTION_ARG1] = this.degrees_to_dexter_units(arg_val, 1) //Math.round(first_arg * 3600) //deg to arcseconds
-                                            //only expecting j1 thru J5, and since they're all the same, just pass joint 1
+                let joint_number = parseInt(name[1])
+                instruction_array_copy[Instruction.INSTRUCTION_ARG1] = this.degrees_to_dexter_units(first_arg, joint_number) //Math.round(first_arg * 3600) //deg to arcseconds
+                                            //only expecting j1 thru J5, and since j1 thru j5 are to be converted the same, just pass joint 1
                 return instruction_array_copy
             }
             else if (["CommandedAngles", "RawEncoderErrorLimits", "RawVelocityLimits"].includes(name)){
                 let instruction_array_copy = instruction_array.slice()
                 for(let i = Instruction.INSTRUCTION_ARG1; i <  instruction_array.length; i++){
-                    let orig_arg = instruction_array_copy[1]
-                    instruction_array_copy[i] = this.degrees_to_dexter_units(arg_val, i + 1) // Math.round(orig_arg * 3600)
+                    let orig_arg = instruction_array_copy[i]
+                    instruction_array_copy[i] = this.degrees_to_dexter_units(orig_arg, i + 1) // Math.round(orig_arg * 3600)
                 }
                 return instruction_array_copy
             }
