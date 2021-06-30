@@ -103,7 +103,7 @@ var dui2 = class dui2 {
             let new_job = new Job({
                             name: name,
                             robot: dex,
-                            when_stopped: "wait",
+                            when_do_list_done: "wait",
                             do_list: [dui2.init,
                                       //Dexter.move_all_joints(0, 0, 0, 90, 0, 0, 0)
                                       //Dexter.move_all_joints([0, 0, 0, 0, 0]),

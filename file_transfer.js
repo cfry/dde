@@ -299,8 +299,14 @@ var FileTransfer = class FileTransfer {
         copy_fn() //the first call
     }
 
-    //dh_matrix is an array of 5 arrays, each of which contain 4 floats.
+
     static customize_defaults_make_ins(dh_matrix, orig_dm_content=null, enable_file_transfer_to_dexter=false){
+        //dh_matrix is an array of 5 arrays, each of which contain 4 floats.
+        //If orig_dm_content is null (the default) then the Defaults.make_ins to customize
+        //is in the default Dexter's /srv/samba/share/Defaults.make_ins
+        //If enable_file_transfer_to_dexter is false (the default) then
+        //the default Dexter's /srv/samba/share/Defaults.make_ins is not modified but
+        //the customized content is printing in the Output pane with change info.
         if(!orig_dm_content){
             this.get_default_make_ins_from_dexter(dh_matrix, enable_file_transfer_to_dexter)
         }

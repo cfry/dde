@@ -24,6 +24,7 @@ class Job{
                  if_robot_status_error   = Job.prototype.if_robot_status_error_default,
                  if_instruction_error    = Job.prototype.if_instruction_error_default,
                  if_dexter_connect_error = Job.prototype.if_dexter_connect_error_default,
+                 when_do_list_done = "run_when_stopped", //other possible value: "wait" (for another instruction)
                  when_stopped = "stop",
                  when_stopped_conditions = true, //{completed: true,
                                                 // errored: true,
@@ -35,6 +36,27 @@ class Job{
                                                 //interrupted_by_stop_button: true
                                                 //},
                  callback_param = "start_object_callback"} = {}){
+    if (Job[name] && Job[name].is_active()) { //we're redefining the job so we want to make sure the
+        /*//previous version is stopped.
+        //if (Job[name].robot instanceof Dexter) {Job[name].robot.empty_instruction_queue_now() }
+        Job[name].stop_for_reason("interrupted", "User is redefining this job.")
+        let orig_args = arguments[0]
+        setTimeout(function(){ new Job (orig_args) }, 200)
+        return ["While attempting to define Job." +  name + ", there already is a Job with that name running<br/>" +
+        "It is being stopped. Shortly the new Job will be defined."]
+        //note this string must be wrapped in an array, because if a non-object is returned
+        //from a JS constructor, it is ignored and an instance of the class is returned instead.
+        //horrible JS design. https://javascript.info/constructor-new
+        */
+        //new, don't stop job algorithm
+        warning("You have attempted to redefine the already running Job." + name +
+                "<br/>If you want to redefine it, you must first stop it.<br/>" +
+                "(click the Job's button)")
+        return null //returning null minimizes, but doesn't eliminate, the inspector view of the new job.
+                    //we want to minimze the inspector view because the warning ins printed in the out
+                    //pane before the inspect of the job and we don't want to "hide" that warning
+                    //fron the user.
+    }
 
     for(let key in arguments[0]){
         if(!Job.job_default_params.hasOwnProperty(key)) {
@@ -92,7 +114,7 @@ class Job{
     }
     if (!(robot instanceof Robot)){
         if (!Robot.dexter0){
-            dde_error("Attempt to create Job: " + this.name + " with no valid robot instance.<br/>" +
+            dde_error("Attempt to create Job." + name + " with no valid robot instance.<br/>" +
                 " Note that Robot.dexter0 is not defined<br/> " +
                 " but should be in your file: Documents/dde_apps/dde_init.js <br/>" +
                 " after setting the default ip_address and port.<br/> " +
@@ -100,22 +122,15 @@ class Job{
                 " rename your existing one and relaunch DDE.")
         }
         else {
-            dde_error("Attempt to create Job: " + this.name + " with no valid robot instance.<br/>" +
+            dde_error("Attempt to create Job." + name + " with no valid robot instance.<br/>" +
                 "You can let the robot param to new Job default, to get a correct Robot.dexter.0")
         }
     }
-    if (Job[name] && Job[name].is_active()) { //we're redefining the job so we want to make sure the
-                                              //previous version is stopped.
-        //if (Job[name].robot instanceof Dexter) {Job[name].robot.empty_instruction_queue_now() }
-        Job[name].stop_for_reason("interrupted", "User is redefining this job.")
-        let orig_args = arguments[0]
-        setTimeout(function(){ new Job (orig_args) }, 200)
-        return ["While attempting to define Job." +  name + ", there already is a Job with that name running<br/>" +
-               "It is being stopped. Shortly the new Job will be defined."]
-        //note this string must be wrapped in an array, because if a non-object is returned
-        //from a JS constructor, it is ignored and an instance of the class is returned instead.
-        //horrible JS design. https://javascript.info/constructor-new
+    else if(!["run_when_stopped", "wait"].includes(when_do_list_done)){
+        dde_error('Attempt to create Job.' + name + ' with invalid value for when_do_list_done of: "' + when_do_list_done +
+                 '"<br/>Valid values are: ' + '"run_when_stopped" and "wait".')
     }
+
     else {
         this.orig_args =   {do_list: do_list,
                             robot: robot,
@@ -132,6 +147,7 @@ class Job{
                             if_robot_status_error: if_robot_status_error,
                             if_instruction_error:  if_instruction_error,
                             if_dexter_connect_error: if_dexter_connect_error,
+                            when_do_list_done: when_do_list_done,
                             when_stopped: when_stopped,
                             when_stopped_conditions: when_stopped_conditions,
                             callback_param: callback_param}
@@ -196,7 +212,8 @@ class Job{
                 if_robot_status_error: Job.prototype.if_robot_status_error_default,
                 if_instruction_error: Job.prototype.if_instruction_error_default,
                 if_dexter_connect_error: Job.prototype.if_dexter_connect_error_default,
-                when_stopped: "stop", //also can be "wait" or a fn
+                when_do_list_done: "run_when_stopped",
+                when_stopped: "stop", //also can be any do_list item
                 when_stopped_conditions: true,
                 callback_param: "start_object_callback"}
     }
@@ -449,6 +466,7 @@ class Job{
             this.if_robot_status_error   = this.orig_args.if_robot_status_error
             this.if_instruction_error    = this.orig_args.if_instruction_error
             this.if_dexter_connect_error = this.orig_args.if_dexter_connect_error
+            this.when_do_list_done       = this.orig_args.when_do_list_done
             this.when_stopped            = this.orig_args.when_stopped
             this.when_stopped_conditions = ((typeof(this.orig_args.when_stopped_conditions) == "boolean") ?
                                              this.orig_args.when_stopped_conditions :
@@ -519,7 +537,7 @@ class Job{
             //must be after insert queue and init_instr processing
             if ((this.program_counter == 0) &&
                 (this.do_list.length  == 0) &&
-                ((this.when_stopped   == "wait") || (typeof(this.when_stopped) == "function"))) {} //special case to allow an empty do_list if we are waiting for an instruction or have a callback.
+                ((this.when_do_list_done == "wait") || (typeof(this.when_stopped) == "function"))) {} //special case to allow an empty do_list if we are waiting for an instruction or have a callback.
             else if (this.do_list.length == 0) {
                 warning("While starting job: " + this.name + ", the do_list is empty.<br/>" +
                          "The job still requests the status of Dexter, but does not cause it to move.")
@@ -848,10 +866,10 @@ class Job{
                 tooltip  = "This Job is in the process of starting.\nClick to stop it."
                 break;
             case "running":
-                if((this.when_stopped    == "wait") &&
+                if((this.when_do_list_done == "wait") &&
                    (this.program_counter == this.instruction_location_to_id(this.ending_program_counter))) {
                     bg_color = "rgb(255, 255, 102)"; //pale yellow
-                    tooltip  = 'This Job is waiting for a new last instruction\nbecause it has when_stopped="wait".\nClick to stop this job.'
+                    tooltip  = 'This Job is waiting for a new last instruction\nbecause it has when_do_list_done="wait".\nClick to stop this job.'
                 }
                 else if(this.user_data.stop_job_running_on_dexter === true) {
                     bg_color = "#ffcdb7" //pale orange
@@ -902,13 +920,13 @@ class Job{
             case "waiting":
                 bg_color = "rgb(255, 255, 102)"; //pale yellow
                 tooltip  = "This Job is at instruction " + this.program_counter +
-                            " waiting for:\n" + this.wait_reason + "\nClick to stop this job."
+                            ", waiting for:\n" + this.wait_reason + "\nClick to stop this job."
                 break; //yellow
             case "completed":
                 if((this.program_counter === this.do_list.length) &&
-                    (this.when_stopped === "wait")){
+                    (this.when_do_list_done === "wait")){
                     bg_color = "rgb(255, 255, 102)"; //pale yellow
-                    tooltip  = 'This Job is waiting for a new last instruction\nbecause it has when_stopped="wait".\nClick to stop this job.'
+                    tooltip  = 'This Job is waiting for a new last instruction\nbecause it has when_do_list_done="wait".\nClick to stop this job.'
                 }
                 else {
                     bg_color = "rgb(230, 179, 255)" // purple. blues best:"#66ccff"  "#33bbff" too dark  //"#99d3ff" too light
@@ -1520,7 +1538,7 @@ Job.prototype.if_instruction_error_default = function(){
     let instr_src = to_source_code(erroring_instruction)
     let msg = "Error in instruction of Job." + this.name + " at do_list program counter of: " + pc_of_error_instruction +
               "<br/>" + instr_src
-    warning(msg)
+    //warning(msg) //redundant. Let Control.error print the msg.
     return Control.error(msg)
     //this default method stops the job but allows the when_stopped instruction to run.
 }
@@ -1542,7 +1560,7 @@ Job.prototype.if_dexter_connect_error_default = function(robot_name){
 Job.prototype.rs_to_error_message = function(robot_status){
     let error_code = robot_status[Dexter.ERROR_CODE]
     let oplet_error_code = error_code & 0xFF //lower 8 bits
-    let msg = ""
+    let msg = "error_code: " + error_code
     let oplet = robot_status[Dexter.INSTRUCTION_TYPE]
     if (error_code > 0) {
         if((oplet == "r") || (oplet == "w")) {
@@ -1661,14 +1679,14 @@ Job.is_when_stopped_conditions_valid = function(when_stopped_conditions){
 
 Job.prototype.ok_to_run_when_stopped = function(){
     if(this.when_stopped == "stop") { return false }
-    else if(this.when_stopped == "wait") { return false }
-    else if (this.when_stopped_conditions === true) { return true }
+    //else if(this.when_do_list_done == "wait") { return false } //whether this val is "wait" or "run_when_stopped" its ok, so this prop isn't a factor in what ok_to_run_when_stopped returns
+    else if (this.when_stopped_conditions === true ) { return true }
     else if (this.when_stopped_conditions === false) { return false }
     else{
        let cond = this.when_stopped_conditions[this.condition_when_stopped]
        if(cond === undefined) { return true }
-       else if (this.condition_when_stopped == "errored_from_dexter_connect") { return false }
-       else { return cond } //better be true or false.
+       else if (this.condition_when_stopped == "errored_from_dexter_connect") { return true } //was false, as this usually happens at very beginnig of job  efore its really started, but new  jun 2021 idea is, try hard to always run the when_stopped instruction
+       else { return cond } //better be true or false. //this should never arrise as if this.when_stopped_conditions is a boolean, it will be caught above.
     }
 }
 
@@ -1721,13 +1739,13 @@ Job.prototype.finish_job = function(){
           //this.show_error_log_maybe() //I'm already doing this when
           //a robot_status comes back with a non-zero error code.
       }
-      else if((this.when_stopped === "wait") && (this.status_code === "running")){ //even if we somehow stopped in the middle of the do_list,
+      /*else if((this.when_do_list_done === "wait") && (this.status_code === "running")){ //even if we somehow stopped in the middle of the do_list,
         // we are going to wait for a new instruction to be added
         //beware, maybe race condition here with adding a new instruction.
         this.set_status_code("running")
         this.program_counter = this.do_list.length
         this.set_up_next_do(0)
-      }
+      }*/
       else{ //perform the when_stopped action
           this.already_started_when_stopped = true
           this.final_status_code = this.status_code
@@ -1739,6 +1757,9 @@ Job.prototype.finish_job = function(){
                  //one way that can happen is if Control.stop_job is run, which sets the ending_program_counter
                  //to get the job to stop at that instruction, but then, we add more instructions
                  //so we have to get rid of that early end and allow the new when_stopped instruction to run
+              this.when_do_list_done = "run_when_stopped" //before setting, this might be "wait", but when finish_job
+                 //is called, we are no longer going to wait for an instruction.
+              this.when_stopped = "stop" //ie we've already "used up" the when_stopped instruction, so stop when its done.
               this.set_up_next_do() //advance to the inserted instruction.
           }
           else if (Job.is_plausible_instruction_location(this.when_stopped)){ //obsolete
@@ -1746,7 +1767,7 @@ Job.prototype.finish_job = function(){
                                     "You have a job when_stopped value of a location:<br/>" +
                                     to_source_code(this.when_stopped) +
                                     "<br/>but 'when_stopped' can no longer be a location.<br/>" +
-                                    'It must be: "stop", "wait" or a valid do_list item like a function.')
+                                    'It must be: "stop", or a valid do_list item like a function.')
               this.set_up_next_do(0)
           }
           else {
@@ -1754,7 +1775,7 @@ Job.prototype.finish_job = function(){
                   "You have a job when_stopped value of:<br/>" +
                   to_source_code(this.when_stopped) +
                   "<br/>that is invalid<br/>" +
-                  'It must be: "stop", "wait" or a valid do_list item like a function.')
+                  'It must be: "stop", or a valid do_list item like a function.')
               this.set_up_next_do(0)
           }
     }
@@ -1942,7 +1963,7 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
         return
     }
     else if (this.hasOwnProperty("insert_last_instruction_index") &&
-            (this.when_stopped == "wait") &&
+            (this.when_do_list_done == "wait") &&
             (this.program_counter <= this.insert_last_instruction_index)){
         delete this.insert_last_instruction_index
         //allow this to fall through to the code after this if...else if
@@ -1951,7 +1972,7 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
 
     else if (this.program_counter >= ending_pc) {  //this.do_list.length
              //the normal stop case
-        if (this.when_stopped == "wait") { //we're in a loop waiting for the next instruction.
+        if (this.when_do_list_done == "wait") { //we're in a loop waiting for the next instruction.
             //this.color_job_button() //too expensive and unnecessary as color set elsewhere
             if((this.status_code === "waiting") &&
                (this.wait_reason === "more instructions.")) {}
@@ -2139,13 +2160,14 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
        //this.stop_for_reason("errored", err.message) //let do_next_item loop around and stop normally
        //this.set_up_next_do(0)
         warning("Error running instruction: " + this.program_counter +
-                " with source: " + to_source_code({value: cur_do_item}) +
-                " in Job." + this.name +
-                " of:<br/>" + err.message)
-        if(this.if_instruction_error){
-            //note instruction_to_run_when_error can be a single instruction or an array
+            " with source: " + to_source_code({value: cur_do_item}) +
+            " in Job." + this.name +
+            " of:<br/>" + err.message)
+        if(this.if_instruction_error){ //this will hut unless Job author explcitly set if_instruction_error to null or undefined.
+            //note if_instruction_error can be a single instruction or an array
             //of instructions. If its an array, we insert it as just one instruction,
             //and that will cause all to be run.
+            //it has a default that prints out a message.
             this.insert_single_instruction(this.if_instruction_error)
         }
         this.set_up_next_do()
@@ -2834,7 +2856,7 @@ Job.prototype.insert_single_instruction = function(instruction_array, is_sub_ins
     }
 }
 
-//expect to call when job is when_stopped: "wait" and
+//expect to call when job is when_do_list_done: "wait" and
 //the job is running and probably waiting for another instruction.
 //we want to replace the LAST instruction that we inserted using this fn,
 //and any follow on instructions it generated, with a new instruction.
@@ -2979,7 +3001,6 @@ Job.is_plausible_instruction_location = function(instruction_location){
 
 Job.is_plausible_when_stopped_value = function(val){
     return ((val === "stop") ||
-            (val === "wait") ||
             Instruction.is_do_list_item(val)
             )
 }

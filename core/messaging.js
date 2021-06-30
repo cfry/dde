@@ -658,11 +658,11 @@ Messaging.eval_receive = function(mess_obj){
 // The default value for job_name is "wait_for_message"
 //
 // if_no_job: can be
-// "define_start" which defines new Job({name: mess_obj.job_name , when_stopped: "wait"}
+// "define_start" which defines new Job({name: mess_obj.job_name , when_do_list_done: "wait"}
 // and starts it before inserting the instruction.
 // "error" which errors.
 // the default is "define_start"
-// If a job of job_name is defined but doesn't have when_stopped="wait", error.
+// If a job of job_name is defined but doesn't have when_do_list_done="wait", error.
 // otherwise start it and insert the instruction
 // If the job name is "default" but no such default exists,
 // check for a job named "wait_for_message".
@@ -741,7 +741,7 @@ Messaging.job_instruction_receive = function(mess_obj){
         let job_name = mess_obj.job_name
         //the job_name is not "default"
         if(Job[job_name]) { // the job is defined
-            //even if job_instance does not have when_stopped = "wait"
+            //even if job_instance does not have when_do_list_done = "wait"
             //then still do this. Job might have initial stuff to run,
             //job might be in a loop, and we just want this instr run after the loop is done.
             let job_instance = Job[job_name]
@@ -758,7 +758,7 @@ Messaging.job_instruction_receive = function(mess_obj){
         //job_name is not already defined
         else if(mess_obj.if_no_job == "define_start"){ //stop existing job, redefine it with a "wait" and start it off
             new Job({name: job_name,
-                when_stopped: "wait",
+                when_do_list_done: "wait",
                 do_list: []}) //do not put instr in here because we'll define this job, then if we stop it,
             // then call job_instructing again. we don't want to re-run that orig instr that came in
             //when we defined the job. So stick the instr in the start options for do_list,
@@ -1246,7 +1246,7 @@ Messaging.set_variable_receive = function(mess_obj){
 Messaging.default_jobs = function(){
     let result = []
     for(let job_instance of Job.active_jobs()){
-         if(job_instance.when_stopped === "wait") {
+         if(job_instance.when_do_list_done === "wait") {
              result.push(job_instance)
          }
     }

@@ -671,7 +671,7 @@ Instruction.step_instructions = class step_instructions extends Instruction{ //c
 }
 
 Instruction.error = class error extends Instruction{
-    constructor (reason="", perform_when_stopped=true) {
+    constructor (reason="Job stopped due to executing a Control.error instruction.", perform_when_stopped=true) {
         super()
         if(typeof(perform_when_stopped) !== "boolean") {
           dde_error("Instruction Control.error passed perform_when_stopped of: " + perform_when_stopped +
@@ -682,6 +682,10 @@ Instruction.error = class error extends Instruction{
     }
     do_item (job_instance){
         job_instance.when_stopped_conditions = this.perform_when_stopped
+        job_instance.when_do_list_done = "run_when_stopped"
+        if(!this.perform_when_stopped) {
+            job_instance.when_stopped = "stop"
+        }
         job_instance.stop_for_reason("errored",  "Instruction Control.error run with reason: " + this.reason)
         job_instance.set_up_next_do(0)
     }
@@ -2872,10 +2876,16 @@ Instruction.stop_job = class stop_job extends Instruction{
         //if(this.stop_reason) { the_stop_reason = this.stop_reason }
         //else { the_stop_reason = "Stopped by Job." + job_instance.name + "the  instruction: Control.stop_job."s when_stopped instruction
         //job_to_stop.stop_for_reason("completed", the_stop_reason) //don't do as we only want it to stop when it gets to location
+        let the_stop_msg = this.stop_reason
+        if(!the_stop_msg) {
+            the_stop_msg = "A Control.stop_job instruction was run."
+        }
+        warning("Stopping Job." + job_to_stop.name + " for reason: " + the_stop_msg)
         job_to_stop.when_stopped_conditions = this.perform_when_stopped //the stop_job instruction overrules the job def's when_stopped_conditions
         job_to_stop.ending_program_counter = this.instruction_location
-        if(job_to_stop.when_stopped === "wait") {
-            job_to_stop.when_stopped = "stop" //if I don't do this the job will wait forever.
+        job_to_stop.when_do_list_done = "run_when_stopped" //if I don't do this, and its value is "wait", the job will wait forever.
+        if(!this.perform_when_stopped) {
+            job_to_stop.when_stopped = "stop"
         }
         job_instance.set_up_next_do() //continue on with the current job.
             //if the current job is the same as the job_to_stop, fine, it will stop

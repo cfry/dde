@@ -82,9 +82,8 @@ Editor.init_editor = function(){
     indent_selection_id.onclick = function(){CodeMirror.commands.indentAuto(myCodeMirror)}
     pretty_print_id.onclick = function(){
         if(Editor.view === "JS") {
-            var beautify = require("js-beautify")
             let js = Editor.get_javascript("auto")
-            js = beautify.js(js)
+            js = Editor.pretty_print(js)
             if(Editor.is_selection()){
                 Editor.replace_selection(js)
             }
@@ -93,7 +92,7 @@ Editor.init_editor = function(){
             }
         }
         else if(Editor.view === "HCA"){
-           HCA.lgraph.arrange()
+           HCA.pretty_print()
         }
         else{
             warning("DDE can't pretty print the editor with view type: " + Editor.view)
@@ -137,6 +136,12 @@ Editor.init_editor = function(){
     //document.querySelector(".CodeMirror").addEventListener("mouseup", function(){
     //   out("got mouseup")
     //})
+}
+
+Editor.pretty_print = function(js){
+    var beautify = require("js-beautify")
+    js = beautify.js(js)
+    return js
 }
 
 Editor.current_buffer_needs_saving = false

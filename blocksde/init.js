@@ -139,19 +139,12 @@ function js_to_blocks(){
 
 function js_to_HCA(){
     let js = Editor.get_javascript()
-    let js_obj = null
-   /* if(js.length > 0) {
-        try { js_obj = JSON.parse(js) }
-        catch(err){
-            code_view_kind_id.value = "JS"
-            dde_error("Sorry, you've attempted to pass an invalid JSON string to HCA.<br/>You can use HCA if you start with an emppty editor buffer.")
-        }
-    }*/
     HCA_dom_elt = HCA.make_HCA_dom_elt()
     replace_dom_elt(the_codemirror_elt, HCA_dom_elt)
     Editor.view = "HCA"
     try {
         HCA.init(js)
+        HCA_dom_elt.focus()
     }
     catch(err){
         code_view_kind_id.value = "JS"
@@ -161,7 +154,6 @@ function js_to_HCA(){
         myCodeMirror.focus()
         warning("Sorry, could not convert the JavaScript into a valid JSON object for HCA.")
     }
-    HCA_dom_elt.focus()
 }
 
 function HCA_to_js(){

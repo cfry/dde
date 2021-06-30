@@ -1,5 +1,5 @@
-global.dde_version = "3.7.17" //require("../package.json").version
-global.dde_release_date = "Jun 16, 2021" //require("../package.json").release_date
+global.dde_version = "3.7.18" //require("../package.json").version
+global.dde_release_date = "Jun 30, 2021" //require("../package.json").release_date
 
 console.log("dde_version: " + global.dde_version + " dde_release_date: " + global.dde_release_date +
             "\nRead electron_dde/core/job_engine_doc.txt for how to use the Job Engine.\n")
@@ -117,7 +117,8 @@ function run_shell_cmd(cmd_string, options={}, cb=run_shell_cmd_default_cb){
 
 var {copy_file_async, copy_folder_async,
      dde_init_dot_js_initialize, file_content, //file_content is deprecated
-     folder_listing, folder_separator, load_files,
+     folder_listing, folder_separator, folder_name_version_extension,
+     get_latest_path, load_files, make_unique_path,
      persistent_initialize, read_file, write_file} = require('./storage.js')
 
 var {Root} = require("./object_system.js")
@@ -208,7 +209,10 @@ global.copy_folder_async = copy_folder_async
 global.file_content = file_content //deprecated
 global.folder_listing = folder_listing
 global.folder_separator = folder_separator
+global.folder_name_version_extension = folder_name_version_extension
+global.get_latest_path = get_latest_path
 global.load_files = load_files
+global.make_unique_path = make_unique_path
 global.read_file = read_file
 global.write_file = write_file
 

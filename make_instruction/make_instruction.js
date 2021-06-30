@@ -1069,7 +1069,10 @@ var MakeInstruction = class MakeInstruction{
                 show_in_misc_pane("Simulate Dexter")
                 //to give user time to adjust to the sim pane
                 let when_stopped_fn = function(){
-                    setTimeout(function() { MakeInstruction.show(call_obj, false) },
+                    setTimeout(function() {
+                           //MakeInstruction.show(call_obj, false)
+                            show_in_misc_pane("Make Instruction", call_obj) //preps, then calls MakeInstruction.show
+                        },
                         2000)
                 }
                 setTimeout(function() { the_inst.start({when_stopped: when_stopped_fn}) }, //doesn't work to just set when_stopped on the instance because that won't make it into the orig_args storage
@@ -1078,38 +1081,44 @@ var MakeInstruction = class MakeInstruction{
             else {  the_inst.start() }
         }
         else {
-            let robot_of_wrapper = Dexter.default
-            let job_00
-            if((this.get_instruction_name_from_ui() == "new Job") &&
-                robot_of_wrapper == the_inst.robot) {
-                warning("When using a Job as an instruction (to start it),<br/>" +
-                        "its robot must be different than the Job its in.<br/>" +
-                        "They are the same in this case so this use of the Run button<br/>" +
-                        "didn't wrap the new Job instruction you specified in another Job before running it.")
-                job_00 = the_inst
+            if(Job.job_00 && Job.job_00.is_active()){
+                Job.job_00.stop_for_reason("interrupted", "In make_instruction, user clicked 'Run' button while the default Job was running.")
             }
-            else {
-                job_00 = new Job({name: "job_00",
-                                  robot: robot_of_wrapper,
-                                  do_list: [the_inst],
-                                  when_stopped: function(){
-                                                   setTimeout(function() { MakeInstruction.show(call_obj, false) },
-                                                              2000)
-                                                }
-                         })
-            }
-            let true_or_error_mess = Instruction.can_instruction_run_on_robot(the_inst, robot_of_wrapper)
-            if(typeof(true_or_error_mess) == "string") {
-                dde_error(true_or_error_mess)
-            }
-            else if(Robot.simulate_or_both_selected()){
-                show_in_misc_pane("Simulate Dexter")
-                //to give user time to adjust to the sim pane
-                setTimeout(function() { job_00.start() },
-                           2000)
-            }
-            else {  job_00.start() } //don't switch to simulator if we're not simulating
+            setTimeout(function() {
+                         MakeInstruction.make_job_and_run_instruction_on_job_00(the_inst, call_obj)
+                       }, 200) //give stop_for_reason a chance to finish.
         }
+    }
+
+    static make_job_and_run_instruction_on_job_00(the_inst, call_obj){
+        new Job({name: "job_00",
+            robot: Dexter.default,
+            do_list: [the_inst],
+            when_stopped: function(){
+                setTimeout(function() {
+                                //MakeInstruction.show(call_obj, false)
+                                show_in_misc_pane("Make Instruction", call_obj)
+                },
+                    2000)
+            }
+        })
+        this.run_instruction_on_job_00(the_inst)
+    }
+
+    static run_instruction_on_job_00(the_inst){
+        let true_or_error_mess = Instruction.can_instruction_run_on_robot(the_inst, Dexter.default)
+        if(typeof(true_or_error_mess) == "string") {
+            dde_error(true_or_error_mess)
+        }
+        else if(Robot.simulate_or_both_selected()){
+            show_in_misc_pane("Simulate Dexter")
+            //to give user time to adjust to the sim pane
+            setTimeout(function() {
+                        Job.job_00.start()
+                        },
+                        2000)
+        }
+        else {  Job.job_00.start() } //don't switch to simulator if we're not simulating
     }
 
     static wrap_in_job(){

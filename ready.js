@@ -46,14 +46,21 @@
         else     { Metrics.increment_state("Eval button clicks") }
         if(step instanceof CodeMirror) { step = false } //means Cmd E was typed in the editor and we don't want to step in this case
         if((Editor.current_file_path != "new buffer") && persistent_get("save_on_eval")) {
-            Editor.save_current_file(function(err) {
-                if(err) {
-                    dde_error("In eval_button_action, got error while auto-saving file of: " + err.message)
-                }
-                else {
-                    eval_button_action_aux(step)
-                }
-            })
+            if (window.HCA && (Editor.view === "HCA")){
+                HCA.save_current_file()
+                eval_button_action_aux(step)
+                return
+            }
+            else {
+                Editor.save_current_file(function(err) {
+                    if(err) {
+                        dde_error("In eval_button_action, got error while auto-saving file of: " + err.message)
+                    }
+                    else {
+                        eval_button_action_aux(step)
+                    }
+                })
+            }
         }
         else { eval_button_action_aux(step) }
     }
@@ -437,16 +444,53 @@
 
     //File Menu
 
-    new_id.onclick = Editor.edit_new_file
+    new_id.onclick = function() {
+        if (window.HCA && (Editor.view === "HCA")){
+            HCA.clear()
+            Editor.add_path_to_files_menu("new buffer")
+        }
+        else {
+            Editor.edit_new_file()
+        }
+    }
     set_menu_string(new_id, "New", "n")
 
     file_name_id.onchange = function(e){ //similar to open
+        let orig_path = Editor.current_file_path
         const inner_path = e.target.value //could be "new buffer" or an actual file
         const path = Editor.files_menu_path_to_path(inner_path)
-        Editor.edit_file(path)
+        if (window.HCA && (Editor.view === "HCA")){
+            try{
+                HCA.edit_file(path)
+            }
+            catch(err){
+                Editor.add_path_to_files_menu(orig_path)
+                dde_error(path + " doesn't contain vaild HCA object(s).<br/>" + err.message)
+            }
+        }
+        else { //presume JS
+            Editor.edit_file(path)
+        }
     }
 
-    open_id.onclick = Editor.open_on_dde_computer //Editor.open
+    open_id.onclick = function(){
+        if (window.HCA && (Editor.view === "HCA")){
+            const path = choose_file({title: "Choose a file to edit", properties: ['openFile']})
+            if (path){
+                try{
+                    HCA.edit_file(path)
+                }
+                catch(err){
+                    dde_error(path + " doesn't contain vaild HCA object(s).<br/>" + err.message)
+                }
+                //Editor.add_path_to_files_menu(path) //now down in edit_file because edit_file is called
+                //from more places than ready.
+            }
+        }
+        else {
+            Editor.open_on_dde_computer() //Editor.open
+        }
+    }
     set_menu_string(open_id, "Open...", "o")
 
     open_from_dexter_id.onclick = Editor.open_from_dexter_computer
@@ -454,13 +498,18 @@
     open_system_file_id.onclick = Editor.open_system_file
 
     load_file_id.onclick=function(e) {
-        const path = choose_file({title: "Choose a file to load"})
-        if (path){
-            if(path.endsWith(".py")){
-               Py.load_file_ask_for_as_name(path)
-            }
-            else {
-                out(load_files(path))
+        if (window.HCA && (Editor.view === "HCA")){
+            HCA.load_node_definition()
+        }
+        else { //presume JS
+            const path = choose_file({title: "Choose a file to load"})
+            if (path){
+                if(path.endsWith(".py")){
+                   Py.load_file_ask_for_as_name(path)
+                }
+                else {
+                    out(load_files(path))
+                }
             }
         }
     }
@@ -488,10 +537,29 @@
     }
 }
 
-    save_id.onclick = Editor.save
+    save_id.onclick = function() {
+        if (window.HCA && (Editor.view === "HCA")){
+            if (Editor.current_file_path == "new buffer"){
+                HCA.save_as()
+            }
+            else {
+                HCA.save_current_file()
+            }
+        }
+        else {
+            Editor.save()
+        }
+    }
     set_menu_string(save_id, "Save", "s")
 
-    save_as_id.onclick = Editor.save_as //was: Editor.save_on_dde_computer //only for saving on dde computer
+    save_as_id.onclick = function(){
+        if (window.HCA && (Editor.view === "HCA")){
+            HCA.save_as()
+        }
+        else {
+            Editor.save_as()
+        }
+    } //was: Editor.save_on_dde_computer //only for saving on dde computer
 
     save_to_dexter_as_id.onclick = Editor.save_to_dexter_as
 

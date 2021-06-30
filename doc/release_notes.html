@@ -5,6 +5,42 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 3.7.18, Jun 30, 2021</summary>
+Highlights: New Job Param: when_do_list_done. Error system clean-up. Make Instrunction bugs fixed.
+ New programmatic interface to versioned files.
+<ul>
+    <li><code>FileTransfer.customize_defaults_make_ins</code> def extended to
+        have comments describing its inputs.</li>
+    <li>Ref Man <code>choose_file</code> has a new example for choosing a folder.</li>
+    <li><code>choose_file</code> doc improved.</li>
+    <li><code>Simqueue.render_instruction</code> fixed warning message for job name.</li>
+    <li><code>make_full_path</code> now documented in Ref Man/IO/File System/make_full_path</li>
+    <li>Now, if you attempt to redefine a job while it is running, you will get a warning
+        message telling you to explicitly stop the job before redefining it.
+        This should lead to less surprising behavior and put the user in control if
+        they accidentally attempt to re-define a job while its running.</li>
+    <li>Fixed error handling in simulator for oplets "e" and "r".</li>
+    <li>In <code>Dexter.robot_done_with_instruction</code> improved error handling for
+        invalid job_id.</li>
+    <li>In <code>Dexter.robot_done_with_instruction</code>, now set the robot's
+         robot_status property earlier so its available for error cases.</li>
+    <li>Improved <code>Job.prototype.rs_to_error_message</code> to show the error code if
+        there's a robot_status error.</li>
+    <li>In Make Instruction pane, fixed the "run" button for both simulator and real.</li>
+    <li>Job parameters: new: <code>when_do_list_done</code>
+         indicates action when the do_list as compeltely run.
+         The existing <code>when_stopped</code> can no longer take a "wait" value,
+         but you can obtain that effect by giving when_do_list_done a "wait" value.
+         This makes it possible to have some 'clean up' code when a Job is finished but
+         also allow a "wait" for additional instructions.</li>
+    <li>Error system cleanup improving instructions: <code>Control.stop_job</code>,
+         <code>Control.error</code>,
+         and Job params: <code>if_instruction_error</code>, <code>if_robot_status_error</code>,
+                 <code>if_dexter_connection_error</code>.</li>
+    <li><code>get_latest_path</code> and <code>make_unique_path</code> for programmatically
+      managing versioned files. See Ref man/IO/File Access/get_latest_path .</li>
+</ul>
+</details>
 
 <details class="doc_details"><summary>v 3.7.17, Jun 16, 2021</summary>
 <ul>

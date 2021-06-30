@@ -27,10 +27,11 @@ var {array_to_html_table, array_to_csv, csv_to_array,
     time_in_us, trim_comments_from_front,
     version_equal, version_less_than, version_more_than, dde_version_between} = require("./core/utils.js")
 
-var {choose_file, choose_save_file, choose_file_and_get_content,
+var {choose_file, choose_save_file, choose_file_and_get_content, choose_folder,
      copy_file_async, copy_folder_async,
-     file_exists, folder_listing, folder_separator, is_folder, load_files,
-     make_folder, make_full_path,
+     file_exists, folder_listing, folder_separator, folder_name_version_extension, get_latest_path,
+     is_folder, load_files,
+     make_folder, make_full_path, make_unique_path,
      persistent_get, persistent_remove, persistent_save,
      read_file, read_file_async, write_file, write_file_async} = require("./core/storage.js")
 

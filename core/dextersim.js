@@ -158,8 +158,8 @@ DexterSim = class DexterSim{
                 ds_instance.ack_reply_maybe(instruction_array)
                 break;
             case "e": //cause an error. Used for testing only
-                let the_error_code = instruction_array[Instruction.INSTRUCTION_ARG0]
-                ds_instance.ack_reply_maybe(instruction_array, the_error_code)
+                //not needed as ack_reply pulls the error_code out of instruction_array for "e" oplets. let the_error_code = instruction_array[Instruction.INSTRUCTION_ARG0]
+                ds_instance.ack_reply_maybe(instruction_array)
                 break;
             case "E": //not implemented on Dexter Mar 13, 2021 but should be. Requires FPGA programming
                 ds_instance.queue_instance.empty_instruction_queue() //this will call ack_reply IFF the queue is blocked (by a previous "F" cmd
@@ -303,18 +303,20 @@ DexterSim = class DexterSim{
     ack_reply(instruction_array, payload_string_maybe){
         let robot_status_array = Dexter.make_default_status_array_g_sm(this.status_mode)
         let rs_inst = new RobotStatus({robot_status: robot_status_array})
-
+        let opcode = instruction_array[Instruction.INSTRUCTION_TYPE]
         robot_status_array[Dexter.JOB_ID]            = instruction_array[Instruction.JOB_ID]
         robot_status_array[Dexter.INSTRUCTION_ID]    = instruction_array[Instruction.INSTRUCTION_ID]
         robot_status_array[Dexter.START_TIME]        = instruction_array[Instruction.START_TIME] //Date.now()
         robot_status_array[Dexter.STOP_TIME]         = Date.now()
-        robot_status_array[Dexter.INSTRUCTION_TYPE]  = instruction_array[Instruction.INSTRUCTION_TYPE] //leave this as a 1 char string for now. helpful for debugging
-        if((robot_status_array[Dexter.INSTRUCTION_TYPE] === "r")   &&
+        robot_status_array[Dexter.INSTRUCTION_TYPE]  = opcode //leave this as a 1 char string for now. helpful for debugging
+        if((opcode === "r")   &&
             (typeof(payload_string_maybe) == "number") &&
             (payload_string_maybe > 0)){
             robot_status_array[Dexter.ERROR_CODE] = payload_string_maybe
         }
-
+        else if(opcode === "e"){
+            robot_status_array[Dexter.ERROR_CODE] = instruction_array[Dexter.ERROR_CODE]
+        }
         if(rs_inst.supports_measured_angles()) {
             let ma_du = this.compute_measured_angles_dexter_units()
             rs_inst.set_measured_angles(ma_du, true) //we want to install arcseconds, as Socket is expected arcseconds and will convert to degrees

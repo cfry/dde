@@ -454,7 +454,7 @@ J7: <input type="range"  name="j7_range"  value="33"  min="0"    max="296" data-
 
 new Job({
     name: "dexter_simple_ui",
-    when_stopped: "wait",
+    when_do_list_done="wait",
     do_list: [dexter_simple_ui_init
 ]})
 `,
@@ -717,7 +717,7 @@ wait for another instruction, loop, or call a callback function.
 //______job_ws1_____Wait for a new instruction to be added
 //Click the Job's button in the Output pane header to stop it.
 new Job({name: "job_ws1", 
-         when_stopped: "wait",
+         when_do_list_done="wait",
          do_list: [IO.out("hey")]})
 Job.job_ws1.start()
 //Select and eval the below to add an instruction to the started job_ws1
@@ -729,7 +729,7 @@ Job.insert_instruction(Control.stop_job(), {job: "job_ws1", offset: "end"})
 //______job_ws2_____You can even avoid a do_list completely.
 new Job({
     name: "job_ws2", 
-    when_stopped: "wait"
+    when_do_list_done="wait"
 })
 Job.job_ws2.start()
 //Eval the below to add and run an instruction:

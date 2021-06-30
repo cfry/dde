@@ -169,7 +169,7 @@ var MiRecord = class MiRecord {
                  robot: rob,
                  show_instructions: false,
                  inter_do_item_dur: 0,
-                 when_stopped: "wait"}).start()
+                 when_do_list_done: "wait"}).start()
         this.run_one_instruction_job_ready(loc)
     }
 

@@ -95,8 +95,12 @@ function eval_js_part1(step=false){
             try {src = DE.de_to_js(src) }
             catch(e) { dde_error("Error parsing DefEng: " + e.message) }
             //out("<code>" + src + "</code>") //don't need this as JS is printed in Output pane after "Eval result of"
+        }   //must add "d ebugger" after converting DefEng to JS.
+        else if (window.HCA && (Editor.view === "HCA")){
+            HCA.eval_button_action(step)
+            return
         }
-        //must add "d ebugger" after converting DefEng to JS.
+
         if(html_db.string_looks_like_html(src)){
             render_html(src)
         }

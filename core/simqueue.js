@@ -301,7 +301,9 @@ var Simqueue = class Simqueue{
         }
         else {
             warning('To see a graphical simulation,<br/>choose from the Misc pane menu: "Simulate" then select: "Simulate."')
-            this.render_once_node(instruction_array, job_name, rob_name) //renders after dur, ie when the dexter move is completed.
+            let the_job = this.sim_instance.job_of_last_instruction_sent()
+
+            this.render_once_node(instruction_array, the_job.name, rob_name) //renders after dur, ie when the dexter move is completed.
         }
     }
     render_once_node(instruction_array, job_name, rob_name, dur_in_ms){

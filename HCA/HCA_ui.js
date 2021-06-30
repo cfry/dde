@@ -2,7 +2,10 @@ const LiteGraph = require("litegraph.js").LiteGraph; //needs to be at top of fil
 
 //copied from https://github.com/jagenjo/litegraph.js/blob/master/src/litegraph.js
 var LGraphCanvas_prototype_processKey = function(e) { //used in init
-    if (!this.graph) {
+    if(Editor.view !== "HCA"){
+        return
+    }
+    else if (!this.graph) {
         return;
     }
 
@@ -114,7 +117,7 @@ var HCA = class HCA {
     static make_HCA_dom_elt(){
         let big_div = make_dom_elt("div", {style: {display: "flex"}})
         let palette = make_dom_elt("div",
-                                   {id: "HCA_palette_id", style: {width:150, height: 400, "background-color": "#ffe0cd", display: "inline-block"}},
+                                   {id: "HCA_palette_id", style: {width:150, height:400, "background-color":"#ffe0cd"}}, //display:"inline-block" //"overflow-block": "hidden"
                                    )
         big_div.append(palette)
         //let but = make_dom_elt("button", {margin: "5px"}, "number")
@@ -153,28 +156,9 @@ var HCA = class HCA {
     }
 
     static init(json_string=""){ //json_string can also be a jason object or null
-        let json_obj = null
-        if(typeof(json_string) === "string") {
-            json_string = json_string.trim()
-            if(json_string.length > 0) {
-                try {
-                    json_obj = JSON.parse(json_string)
-                }
-                catch(err){
-                    if(json_string.startsWith("{") &&
-                        json_string.endsWith("}") &&
-                        json_string.includes("nodes:")) { //good chance ths is src for an obj that will work, even if the keys aren't double quoted strings
-                        try{ json_obj = eval("foo = " + json_string) } //the foo= is necessary because of js broken by design evaluator. oddy it returns the object not the normal undefined for settig a var
-                        catch(err){
-                            dde_error("Vivi.init passed an invalid JSON string<br/>You can switch to an empty editor buffer and start HCA.<br/>Invalid JSON:<br/>" + json_string) //don't start up HCA because going BACK to JS, will wipe out whatever JS is in that editor buffer. Better to let the user make an empty buffer and start HCA.
-                        }
-                    }
-                    else {
-                        dde_error("Vivi.init passed an invalid JSON string<br/>You can switch to an empty editor buffer and start HCA.<br/>Invalid JSON:<br/>" + json_string) //don't start up HCA because going BACK to JS, will wipe out whatever JS is in that editor buffer. Better to let the user make an empty buffer and start HCA.
-                    }
-                }
-            }
-        }
+        //this.edit_json_string(json_string)
+        let json_obj = this.string_to_json_obj(json_string) //errors if js is invalid
+        //if(!window.HCA_canvas_id) { this.make_HCA_dom_elt() }
         this.config_litegraph_class()
         LiteGraph.LGraphCanvas.prototype.processKey = LGraphCanvas_prototype_processKey  //must be before creating new LiteGraph.LGraphCanvas or it won't go into effect
 
@@ -199,18 +183,195 @@ var HCA = class HCA {
 
         inspect(this.lgraph.serialize())*/
 
+        this.lgraph.configure(json_obj)
+        for(let node of this.lgraph._nodes){
+            this.node_add_usual_actions(node)
+        }
+        //this.lgraph.start(100) //let user do this. //arg is number of milliseconds between steps, default 1. don't need this for pure graphics
+        if(!window.hca_ui_doc_id){
+            let html = read_file(__dirname + "/HCA/HCA_doc.html")
+            insert_html_into_doc_pane(html, "User Guide", "beforeend")
+            open_doc(hca_ui_doc_id)
+        }
+    }
+
+    static clear(){
+        this.lgraph.clear()
+    }
+
+    //returns a json_obj with a "node" property, or errors.
+    static path_to_json_obj(path){
+        let json_string = read_file(path)
+        let json_obj = this.string_to_json_obj(json_string, path)
+        return json_obj
+    }
+    static string_to_json_obj(json_string, path=null){ //path is for error messages only
+        if(typeof(json_string) === "string") {
+            json_string = json_string.trim()
+            if(json_string.length > 0) {
+                try {
+                    let json_obj = JSON.parse(json_string)
+                    if(json_obj.nodes) {
+                        return json_obj
+                    }
+                    else {
+                        dde_error(path + " contains a valid json object but it doesn't represent an HCA object.")
+                    }
+                }
+                catch(err){
+                    if(json_string.startsWith("{") &&
+                        json_string.endsWith("}") &&
+                        json_string.includes("nodes:")) { //good chance ths is src for an obj that will work, even if the keys aren't double quoted strings
+                        try{
+                             let json_obj = eval("foo = " + json_string)
+                             return json_obj
+                        } //the foo= is necessary because of js broken by design evaluator. oddy it returns the object not the normal undefined for settig a var
+                        catch(err){
+                            dde_error(path + " does not contain a vaild HCA object.")
+                        }
+                    }
+                    else {
+                        dde_error(path + " does not contain a vaild HCA object.")                    }
+                }
+            }
+        }
+        else {
+            dde_error(path + " isn't a valid path to an existing file.")
+        }
+    }
+
+    static edit_file(path){
+        let json_obj = HCA.path_to_json_obj(path) //errors if path is invalid
+        this.lgraph.configure(json_obj) //configure must take a JSON obj, not a JSON string (which is the say its documented in the LiteGraph code
+        Editor.add_path_to_files_menu(path) //this needs to be hear, not up in ready because
+    }
+    /* obsolete
+    //return a json obj (name-value pair that has a "node" prop) or
+    //errors. path is
+    static json_string_to_valid_node_jason_obj(json_string, path){
+        let json_obj
+        if(typeof(json_string) === "string") {
+            json_string = json_string.trim()
+            if(json_string.length > 0) {
+                try {
+                    json_obj = JSON.parse(json_string)
+                    return json_obj
+                }
+                catch(err){
+                    if(json_string.startsWith("{") &&
+                        json_string.endsWith("}") &&
+                        json_string.includes("nodes:")) { //good chance ths is src for an obj that will work, even if the keys aren't double quoted strings
+                        try{ json_obj = eval("foo = " + json_string) } //the foo= is necessary because of js broken by design evaluator. oddy it returns the object not the normal undefined for settig a var
+                        catch(err){
+                            return "HCA passed an invalid JSON string<br/>You can switch to an empty editor buffer and start HCA.<br/>Invalid JSON:<br/>" + json_string //don't start up HCA because going BACK to JS, will wipe out whatever JS is in that editor buffer. Better to let the user make an empty buffer and start HCA.
+                        }
+                    }
+                    else {
+                        return "HCA passed an invalid JSON string<br/>You can switch to an empty editor buffer and start HCA.<br/>Invalid JSON:<br/>" + json_string //don't start up HCA because going BACK to JS, will wipe out whatever JS is in that editor buffer. Better to let the user make an empty buffer and start HCA.
+                    }
+                }
+            }
+        }
+        else {
+            return "The string is not a valid JSON node object: " + json_string
+        }
+    }
+
+    //if json_string is "", it does nothing silently
+    static edit_json_string(json_string){
+        let json_obj = this.json_string_to_valid_node_jason_obj(json_string)
+        if(typeof(json_obj) == "string") {
+
+        }
+        if(typeof(json_string) === "string") {
+            json_string = json_string.trim()
+            if(json_string.length > 0) {
+                try {
+                    json_obj = JSON.parse(json_string)
+                }
+                catch(err){
+                    if(json_string.startsWith("{") &&
+                        json_string.endsWith("}") &&
+                        json_string.includes("nodes:")) { //good chance ths is src for an obj that will work, even if the keys aren't double quoted strings
+                        try{ json_obj = eval("foo = " + json_string) } //the foo= is necessary because of js broken by design evaluator. oddy it returns the object not the normal undefined for settig a var
+                        catch(err){
+                            dde_error("HCA.init passed an invalid JSON string<br/>You can switch to an empty editor buffer and start HCA.<br/>Invalid JSON:<br/>" + json_string) //don't start up HCA because going BACK to JS, will wipe out whatever JS is in that editor buffer. Better to let the user make an empty buffer and start HCA.
+                        }
+                    }
+                    else {
+                        dde_error("HCA.init passed an invalid JSON string<br/>You can switch to an empty editor buffer and start HCA.<br/>Invalid JSON:<br/>" + json_string) //don't start up HCA because going BACK to JS, will wipe out whatever JS is in that editor buffer. Better to let the user make an empty buffer and start HCA.
+                    }
+                }
+            }
+        }
         if(json_obj) {
             this.lgraph.configure(json_obj) //configure must take a JSON obj, not a JSON string (which is the say its documented in the LiteGraph code
         }
-        this.lgraph.start(100) //arg is number of milliseconds betweeen steps, default 1. don't need this for pure graphics
+    }
+    */
+    static save_current_file(){
+        let js = this.get_javascript()
+        js = Editor.pretty_print(js)
+        write_file(Editor.current_file_path, js)
+    }
+
+    static save_as(){
+        const title     = 'save "' + Editor.current_file_path + '" as'
+        const default_path = ((Editor.current_file_path == "new buffer") ? dde_apps_folder : Editor.current_file_path)
+        const path = choose_save_file({title: title, defaultPath: default_path}) //sychronous! good
+        if(path) { //path will be undefined IF user canceled the dialog
+            let js = HCA.get_javascript()
+            js = Editor.pretty_print(js)
+            write_file_async(path, js)
+            Editor.add_path_to_files_menu(path)
+            Editor.current_file_path = path
+            Editor.remove("new buffer") //if any
+        }
+    }
+
+    static pretty_print(){
+        HCA.lgraph.arrange()
+    }
+
+    static eval_button_action(step){
+        let sel_nodes = HCA.selected_nodes()
+        if(step){
+           HCA.lgraph.runStep()
+           HCA.lgraph.change()
+        }
+        else if(sel_nodes.length === 0) {
+            inspect(HCA)
+        }
+        else if(sel_nodes.length === 1){
+            inspect(sel_nodes[0])
+        }
+        else {
+            inspect(sel_nodes)
+        }
+    }
+
+    //unlike HCA.lgraphcanvas.selected_nodes, this fn returns an array of the selected nodes. Might be empty.
+    static selected_nodes(){
+        let sel_nodes = HCA.lgraphcanvas.selected_nodes //but this is not an array, rather an obj with keys of the node id, and values of the node objects
+        let keys = Object.keys(sel_nodes)
+        let result = []
+        for(let key of keys){
+            result.push(sel_nodes[key])
+        }
+        return result
     }
 
     static get_javascript(use_selection=false){
-        let json_string = JSON.stringify(HCA.lgraph.serialize())
+        let json_string = ""
+        if(HCA.lgraph._nodes.length > 0){
+            json_string = JSON.stringify(HCA.lgraph.serialize())
+        }
+        //else return the empty string, otherwise there's a bunch of junk and coverting back to a JS empty buffer will get that junk in it.
         return json_string
     }
 
     static make_node_button(type, button_name, action_function){
+        HCA.restore_palette() //expand the palette so we can add to it and so user can see the result
         if(!button_name) {
             let slash_pos = type.indexOf("/")
             if(slash_pos === -1){
@@ -221,21 +382,115 @@ var HCA = class HCA {
             }
         }
         //let action = "HCA.make_and_add_node('" + type + "')"
-        let but = make_dom_elt("button", {margin: "2px"}, button_name)
         if(!action_function) {
-            action_function = function() {
-                                HCA.make_and_add_node(type, button_name)
-                              }
+            action_function = 'function() { HCA.make_and_add_node("' + type + '", "' + button_name + '")}' //needs to be a string because if its a closure over button_name, that won't work with the toString below.
         }
-        but.onclick = action_function
-        HCA_palette_id.append(but)
+        let but
+        if(type) { //its a node making button
+            let category = type.split("/")[0]
+            let details_id = "hca_" + category + "_details_id"
+            if(!window[details_id]){
+                HCA_palette_id.insertAdjacentHTML("beforeend",
+                                                  "<details id='" + details_id + "'style='margin-left:5px;'><summary>" + category + "</summary></details>")
+            }
+            let cat_elt = window[details_id]
+            //but = make_dom_elt("div")
+            //but.style["margin-left"] = "15px"
+            //let a_elt = make_dom_elt("a", {href: "#"}, button_name)
+            //but.appendChild(a_elt)
+            //but.onclick = action_function
+            //cat_elt.append(but)
+
+            let fn_src = "(" + action_function.toString() + ")()"
+            //fn_src = replace_substrings(fn_src, "'", "\\'") //screws up html and doesn't help because if we have a type, we know just what the actin_fn is like and it won't have any extra  single_quotes in it.
+            let new_html = `<div style='margin-left:15px;'>` +
+                               `<a href='#' onclick='` + fn_src + `'>` + button_name + `</a>` +
+                           `</div>`
+            cat_elt.insertAdjacentHTML("beforeend", new_html)
+        }
+        else {
+           // but = make_dom_elt("button", {margin: "2px"}, button_name)
+           // but.onclick = action_function
+           // HCA_palette_id.append(but)
+            //the above fails due to my palette show and hide via setting innerHTML, because the dom programmatic
+            //manipulation doesn't change what innerHTML returns.
+            let fn_src = "(" + action_function.toString() + ")()"
+            fn_src = replace_substrings(fn_src, "'", "\\'")
+            let new_html = "<button style='margin:2px' onclick='" + fn_src + "'>" + button_name + "</button>"
+            HCA_palette_id.insertAdjacentHTML("beforeend", new_html)
+
+        }
+        HCA.save_palette() //save the changes
+    }
+
+    static load_def_choose_folder_or_file_cb(vals){
+        let path
+        if(vals.clicked_button_value == "file") {
+            let path = choose_file()
+            if(path) {
+                HCA.load_node_definition_file(path)
+            }
+        }
+        else if (vals.clicked_button_value == "folder"){
+            let path = choose_folder()
+            if(path){
+                HCA.load_node_definition_folder(path)
+            }
+        }
+        else { return } //cancel
+    }
+
+    static load_def_choose_folder_or_file(){
+        show_window({title: "DDE HCA Interface",
+                     height: 200,
+                     content:
+`<br/>To load a single object, click <input type='submit' value='file'/>.
+<p/>
+To load all the .hco object files in a folder, click <input type='submit' value='folder'/>.
+<p/>
+<input type='submit' value='cancel'/>
+`,
+                     callback: "HCA.load_def_choose_folder_or_file_cb"
+    })
+    }
+
+    static load_node_definition(path){
+        if(!path) {
+            //path = choose_file()
+            this.load_def_choose_folder_or_file()
+        }
+        else if (is_folder(path)){
+            this.load_node_definition_folder(path)
+        }
+        else {
+            this.load_node_definition_folder(path)
+        }
+    }
+    static load_node_definition_file(path){
+            let json_obj = this.path_to_json_obj(path)
+            this.nodes_json_obj_to_button(path, json_obj)
+    }
+
+    static load_node_definition_folder(path){
+        let files = folder_listing(path)
+        for(let folder_or_file of files){
+            if(is_folder(folder_or_file)){
+                this.load_node_definition_folder(folder_or_file)
+            }
+            else if(folder_or_file.endsWith(".hco")){
+                this.load_node_definition_file(folder_or_file)
+            }
+        }
     }
 
     static clipboard = null
 
     //we only get keyup events from the keyboard, not keydown events.
-    static node_keyup_action(event, node){
-        out("got key up with: " + this)
+    /*
+      Obsolete. now done more reliably by LGraphCanvas_prototype_processKey
+     static node_keyup_action(event, node){
+
+        out("got key up with node: " + node.title)
         if(event.ctrlKey) { //note the apple key (cloverleaf) meta key processing is all screwed up
                             //so have to go with ctrl key even on a Mac.
             if(event.key === "x"){ //cut
@@ -251,30 +506,56 @@ var HCA = class HCA {
                    this.lgraph.add(node);
                }
             }
-
         }
-
-    }
+    }*/
 
     static make_and_add_node(type, button_name){
+        out("making node of type: " + type)
         let node
         if(button_name == "number") {
             node = LiteGraph.createNode(type, button_name, {size: [150, 20]})
+        }
+        else if (type === "graph/subgraph") {
+            node = LiteGraph.createNode(type, button_name)
+
         }
         else {
             node = LiteGraph.createNode(type, button_name)
         }
 
-
-        function logKey(e) {
-            log.textContent += ` ${e.code}`;
-        }
         //node_const.pos = [5,35];
-        this.lgraph.add(node);
-        node.onKeyUp = function(event) {
-            HCA.node_keyup_action.call(HCA, event, node)
-        }
         //node_const.setValue(4.5);
+        this.lgraph.add(node);
+        this.node_add_usual_actions(node)
+        return node
+    }
+
+    static node_add_usual_actions(node){
+         /*causes intermittent problems. Let  LGraphCanvas_prototype_processKey handle cut,copy,paste.
+           if(!node.onKeyUp){
+             node.onKeyUp = function(event) {
+                 HCA.node_keyup_action.call(HCA, event, node)
+             }
+         }*/
+        if(!node.onDblClick){
+            node.onDblClick = function(event){
+                out("got double click for node: " + node.title)
+                let path = node.properties.composite_node_src_path
+                out(path)
+                if(path){
+                    HCA.edit_file(path)
+                }
+                else {
+                    warning("There is no source code file associated with this " + node.title + " node to edit.")
+                }
+            }
+        }
+        if(!node.title){
+             warning("A node is used but not defined. Define it via:<br/>" +
+                     "File menu/Load... and choose: " + node.properties.composite_node_src_path +
+                     "<br/>Then re-edit the file via:<br/>" +
+                     "File menu/Open ... and choose: " + Editor.current_file_path)
+        }
     }
 
     static make_group_cb(group_name){
@@ -282,10 +563,189 @@ var HCA = class HCA {
             HCA.lgraph.add(new LiteGraph.LGraphGroup(group_name))
         }
     }
+    //copied and modified from         LGraphCanvas.onMenuNodeToSubgraph = function(value, options, e, menu, node) {
+    /*static make_subgraph(button_name="new_subgraph", pos=[40, 40]){
+        var graphcanvas = this.lgraphcanvas //LitegGraph.LGraphCanvas.active_canvas;
+        var nodes_list = Object.values( graphcanvas.selected_nodes || {} );
+        if( !nodes_list.length )  {
+            //nodes_list = [ node ];
+            warning("No selected nodes to make a subgraph from.")
+            return
+        }
+        else {
+            let node = nodes_list[0]
+
+            var subgraph_node = //LiteGraph.createNode("graph/subgraph");
+                                this.make_and_add_node("graph/subgraph", button_name)
+            //subgraph_node.pos = pos.concat();
+            //graph.add(subgraph_node);
+
+            subgraph_node.buildFromNodes( nodes_list )
+
+            graphcanvas.deselectAllNodes();
+            node.setDirtyCanvas(true, true);
+        }
+    }*/
+
+    static define_node_type_from_canvas(path){
+        /*prompt_async({title: "Make Composite Node",
+                      doc: "Enter the name of the new node type.",
+                      default_value: "new_object",
+                      height: 140,
+                      callback: this.make_composite_node_type_aux
+                      */
+        if(!path) {
+            path = choose_save_file({title: "Enter object name. Don't include extension."}) //title does not display on mac.
+                   //on windows, you can't have the options specify that you want to choose a file OR a dir.
+                   //if you put in both options, it will only allow dir selection. GRR.
+                   //I have to have a prompt_async let the user choose dir or file first,
+                   //then pass the choose_save_file options accordingly.
+        }
+        if(path){
+            if(!path.includes(".")){
+                path += ".hco"
+            }
+            //out("making HCA object: " + path)
+            let js = HCA.get_javascript()
+            js = beautify.js(js)
+            //let path = HCA.current_folder + "/" + name + "." + HCA.object_file_extension
+            write_file(path, js)
+            out("New object stored in: " + path)
+            let nodes_json_obj = JSON.parse(js)
+            HCA.nodes_json_obj_to_button(path, nodes_json_obj) //"this" doesn't work here
+        }
+    }
+
+    static current_folder = dde_apps_folder
+
+    static object_file_extension = "hco" //like HCA but with "object" instead.
+
+    /*obsolete
+     static make_composite_node_type_aux(name){
+        out("making: " + name)
+        let js = HCA.get_javascript()
+        js = beautify.js(js)
+        let path = HCA.current_folder + "/" + name + "." + HCA.object_file_extension
+        write_file(path, js)
+        out("New object stored in: " + path)
+        let nodes_json_obj = JSON.parse(js)
+        HCA.nodes_json_obj_to_button(name, nodes_json_obj) //"this" doesn't work here
+    }*/
+
+    static nodes_json_obj_to_button(path, nodes_json_obj){
+         let path_parts = path.split("/")
+        let name = last(path_parts)
+        name = name.split(".")[0]
+        let category = path_parts[path_parts.length - 2]
+        let full_name = category + "/" + name
+        this.make_node_button(full_name, name)
+        let ins  = this.unconnnected_inputs(nodes_json_obj)
+        let outs = this.unconnnected_outputs(nodes_json_obj)
+        let node_maker_fn = function(){
+            for(let name_type_pair of ins){
+                this.addInput(name_type_pair[0], name_type_pair[1])
+            }
+            for(let name_type_pair of outs){
+                this.addOutput(name_type_pair[0], name_type_pair[1])
+            }
+            if(!this.properties) { this.properties = {} }
+            this.properties.composite_node_src_path = path
+            this.title = name
+            HCA.node_add_usual_actions(this)
+        }
+        //node_maker_fn.title = name; //name to show
+        LiteGraph.registerNodeType(full_name, node_maker_fn); //register in the system
+        HCA.palette_objects.push([full_name])
+    }
+
+    static unconnnected_inputs(node_json_obj){
+        let result = []
+        let name_count_obj = {}
+        for(let node of node_json_obj.nodes){
+            if(node.inputs) { //beware, if no inputs like "number" node.inputs will be undefined
+                for(let an_in of node.inputs){
+                    if(!an_in.link) {
+                        let in_name = an_in.name
+                        let count = name_count_obj[an_in.name]
+                        if(count === undefined) {
+                            name_count_obj[an_in.name] = 0
+                        }
+                        else {
+                            let new_count =  count + 1
+                            in_name = in_name + new_count
+                            name_count_obj[an_in.name] = new_count
+                        }
+                        result.push([in_name, an_in.type])
+                    }
+                }
+            }
+        }
+        return result
+    }
+    static unconnnected_outputs(node_json_obj){
+        let result = []
+        let name_count_obj = {}
+        for(let node of node_json_obj.nodes){
+            if(node.outputs) { //beware, node.outputs will be undefined if it has no outputs
+                for(let an_out of node.outputs){
+                    if(!an_out.links) {
+                        let out_name = an_out.name
+                        let count = name_count_obj[an_out.name]
+                        if(count === undefined) {
+                            name_count_obj[an_out.name] = 0
+                        }
+                        else {
+                            let new_count =  count + 1
+                            out_name = out_name + new_count
+                            name_count_obj[an_out.name] = new_count
+                        }
+                        result.push([out_name, an_out.type])
+                    }
+                }
+            }
+        }
+        return result
+    }
+
+
+
     static palette_objects = []
+
+    static toggle_stop_run(event){
+        let but_elt = event.target
+        if(but_elt.innerHTML === "stopped"){
+            //HCA.lgraph.setDirtyCanvas(true, true)
+            HCA.lgraph.start(100)
+            setTimeout(function(){ HCA.lgraph.change() }, //notify canvas to redraw
+                       120) //have to give the onExecute time to actually make a change.
+            but_elt.innerHTML = "running"
+            but_elt.style["background-color"] = "rgb(136, 255, 136)"
+        }
+        else {
+            HCA.lgraph.stop(100)
+            but_elt.innerHTML = "stopped"
+            but_elt.style["background-color"] = "rgb(255, 123, 0)"
+        }
+        HCA.save_palette()
+    }
 
     //don't use "this" inside this method since its called with a timeout. Use HCA instead.
     static populate_palette(){
+        HCA_palette_id.innerHTML =
+          "<button onclick='HCA.toggle_stop_run(event)' style='background-color:#ff7d8e;'>stopped</button><br/>" +
+          "<div style='white-space:nowrap;'>Links " +
+           "<input type='radio' checked name='link_type' onclick='HCA.lgraphcanvas.links_render_mode = 2; HCA.lgraphcanvas.dirty_bgcanvas = true;'>~</input>"   + //LiteGraph.SPLINE_LINK
+           "<input type='radio'         name='link_type' onclick='HCA.lgraphcanvas.links_render_mode = 0; HCA.lgraphcanvas.dirty_bgcanvas = true;'>-_</input>"  + //LiteGraph.STRAIGHT_LINK'
+           "<input type='radio'         name='link_type' onclick='HCA.lgraphcanvas.links_render_mode = 1; HCA.lgraphcanvas.dirty_bgcanvas = true;'>/</input>"   + //LiteGraph.LINEAR_LINK'
+           "</div>"
+        HCA.save_palette() //because make_node_button calls restore
+        HCA.make_node_button(null,
+            "define_object",
+            function() {
+                //HCA.make_subgraph()
+                HCA.define_node_type_from_canvas()
+            }
+        )
         HCA.make_node_button(null,
             "make_group",
             function() {
@@ -295,7 +755,7 @@ var HCA = class HCA {
             }
         )
         HCA.make_node_button(null,
-                              "inspect_net",
+                              "inspect_JSON",
                               function() {
                                 inspect(HCA.lgraph.serialize(), "HCA.lgraph.serialize()")
                               }
@@ -306,232 +766,41 @@ var HCA = class HCA {
         for(let palette_obj of HCA.palette_objects){
             HCA.make_node_button.apply(HCA, palette_obj)
         }
-        /*HCA.make_node_button("basic/const", "number") //can't use "this" for the subject, must uses HCA
-        HCA.make_node_button("basic/and")
-        HCA.make_node_button("basic/or")
-        HCA.make_node_button("basic/invert")
-        HCA.make_node_button("basic/watch")*/
+        let width = HCA_palette_id.offsetWidth
+
+        HCA_palette_id.onmouseenter = function(event){
+            //out("got onmouseenter" + event)
+            //HCA_palette_id.setAttribute("style","width:" + width + "px")
+            //HCA_palette_id.setAttribute("style", "overflow-x:visible")
+            //HCA_palette_id.style["overflow"] = "visible"
+           // HCA_palette_id.style.width = width + "px"
+            HCA.restore_palette()
+        }
+        HCA_palette_id.onmouseleave = function(event){
+            //out("got onmouseleave" + event)
+            //HCA_palette_id.setAttribute("style", "width:10px")
+            //HCA_palette_id.setAttribute("style", "min-width:10px")
+            //HCA_palette_id.setAttribute("style", "overflow-x:hidden")
+            //HCA_palette_id.style.width = 10 + "px"
+            //HCA_palette_id.style["overflow"] = "hidden"
+            HCA.minimize_palette()
+        }
+        HCA.save_palette()
     }
-}
 
+    static save_palette(){
+        HCA.palette_html = HCA_palette_id.innerHTML
+    }
 
-/* making new node types
-See examples https://www.javascripting.com/view/litegraph-js
-node constructor class
+    static restore_palette(){
+        HCA_palette_id.innerHTML = HCA.palette_html
+    }
 
-function MyAndNode() {
-    this.addInput("A","number");
-    this.addInput("B","number");
-    this.addOutput("A&B","number");
-    this.size = [80, 40] //width and height
-    this.properties = { precision: 1 };
-}
-MyAndNode.title = "and"; //name to show
-MyAndNode.prototype.onExecute = function() {
-    var A = this.getInputData(0);
-    if( A === undefined )
-        A = 0;
-    var B = this.getInputData(1);
-    if( B === undefined )
-        B = 0;
-    this.setOutputData( 0, A & B );
-}
-LiteGraph.registerNodeType("basic/and", MyAndNode ); //register in the system
-HCA.palette_objects.push(["basic/and"])
+    static minimize_palette(){
+        HCA_palette_id.innerHTML = "<br/>P<br/>u<br/>t<br/><br/>m<br/>o<br/>u<br/>s<br/>e<br/><br/>h<br/>e<br/>r<br/>e."
+    }
 
+} //end HCA class
 
-
-function MyOrNode() {
-    this.addInput("A","number");
-    this.addInput("B","number");
-    this.addOutput("A|B","number");
-    this.size = [80, 40] //width and height
-    this.properties = { precision: 1 };
-}
-MyOrNode.title = "or"; //name to show
-MyOrNode.prototype.onExecute = function() {
-    var A = this.getInputData(0);
-    if( A === undefined )
-        A = 0;
-    var B = this.getInputData(1);
-    if( B === undefined )
-        B = 0;
-    this.setOutputData( 0, A | B );
-}
-LiteGraph.registerNodeType("basic/or", MyOrNode ); //register in the system
-HCA.palette_objects.push(["basic/or"])
-
-
-function MyInvertNode() {
-    this.addInput("A","number");
-    this.addOutput("!A","number");
-    this.size = [80, 20] //width and height
-    this.properties = { precision: 1 };
-}
-MyInvertNode.title = "invert"; //name to show
-MyInvertNode.prototype.onExecute = function() {
-    var A = this.getInputData(0);
-    if( A === undefined )
-        A = 0;
-    let out = ((A === 1)  ? 0 : 1)
-    this.setOutputData(0, out);
-}
-LiteGraph.registerNodeType("basic/invert", MyInvertNode); //register in the system
-HCA.palette_objects.push(["basic/invert"])
-
-*/
-
-/*
-Notes from https://github.com/jagenjo/litegraph.js/blob/master/src/litegraph.js, most of the code.
-LiteGraph.Nodes {} name-value pairs of the built in nodes. Excludes my designed nodes.
-LiteGraph.registered_node_types  {} name-value pairs of the built in  and custom nodes
-HCA.lgraph._nodes an array of all node instances installed in mny lgraph
-HCA.lgraph._nodes_in_order  an array of all the nodes
-HCA.lgraph._nodes_in_order[0] the first node
-HCA.lgraph._nodes_in_order[0].is_selected //true or false
-HCA.lgraph.remove(node)
-HCA.lgraph.clear() //remove all nodes
-HCA.lgraph.start()
-HCA.lgraph.stop()
-HCA.lgraph.runStep(number_of_steps_to_run)
-HCA.lgraph.arrange(margin_in_pixels) //I guess auto-layout!
-HCA.lgraph.getNodeById(id)
-HCA.lgraph.addGlobalInput(...)
-HCA.lgraph.addOutput(...) //global output
-HCA.lgraph.serialize() //makes a json object of all the data in this lgraph
-HCA.lgraph.configure(json_string, keep_old_boolean) //Configure a graph from a JSON string
-HCA.lgraph._groups  a array, initially empty.
-
-
-LiteGraph.NODE_sizes and colors for the box, fonts, etc.
-LiteGraph.NODE_DEFAULT_BGCOLOR = "#353535"
-
-LiteGraph.createNode(type, // "basic/const"
-                     title,
-                     options)
-new LiteGraph.Subgraph() //I guess
-LiteGraph.registered_node_types  {} key value pairs of the string type  a la "basic/const" and val of its constructor fn.
-       about 200 of them including "basic/boolean" "basic/string" "basic/script" "events/delay"
-       "graph/Subgraph" (can probably use this to make a subgraph.
-       "input/gamepad"
-
-LiteGraph.wrapFunctionAsNode: ƒ ( name, func, param_types, return_type, properties )
-
-NODES:
-slot means a non-neg int that refers to a specific input or output in the node,
-  i.e. an index into the array that represents inputs or outputs.
-
-properties are user-defined name-value pairs with some extra info.
-LGraphNode.prototype.addProperty = function(name, default_value, type, extra_info)
-Get a prop value with:
-LGraphNode.prototype.id LGraphNode.prototype.properities[name]
-Set a prop vslue with:
-LGraphNode.prototype.id LGraphNode.prototype.properities[name] = new_val
-
-LGraphNode.prototype.flags.collapsed   (boolean)
-LGraphNode.prototype.serialize() returns JSON obj.
-LGraphNode.prototype.clone = function()
-LGraphNode.prototype.addWidget = function( type, name, value, callback, options )
- LGraphNode.prototype.alignToGrid = function()
-
-LGraphNode.prototype.trace = function(msg)   Console output
-LGraphNode.prototype.loadImage = function(url) //umm could I make a real AND gate?
-         //loads the image from LiteGraph.node_images_path but
-         //doesn't look like it displays this image anywhere nor in the node itself.
-
-LGraphNode.prototype.collapse = function(force)
-
-GROUPS
-HCA.lgraph._groups  a array, initially empty.
-function LGraphGroup(title)
-new LiteGraph.LGraphGroup("mytitle")  //make a group.
-HCA.lgraph.add(new LiteGraph.LGraphGroup("mytit"))  //add new group to grpah, it shows with title
-you can drag the lower right cornder of the group rect to exand or contract it.
-You can drop a node in a group, then drag teh group and it keeps the node in the group.
-You can drag a node and drop it inside the group
-
-_____LGraphCanvas______ this is NOT the dom elt for the "canvas" tag, which I store in HCA_canvas_id
-But you can get all the canvases from HCA.lgraph.list_of_graphcanvas
-and to get the first one, HCA.lgraph.list_of_graphcanvas[0]
-HCA.lgraph.list_of_graphcanvas[0].canvas === HCA_canvas_id
-
-LGraphCanvas.link_type_colors
-LGraphCanvas.prototype.getTopGraph()
-LGraphCanvas.prototype.openSubgraph = function(graph)  // opens a graph contained inside a node in the current grap
-LGraphCanvas.prototype.closeSubgraph = function()
- LGraphCanvas.prototype.getCurrentGraph = function()
- LGraphCanvas.prototype.copyToClipboard
- LGraphCanvas.prototype.pasteFromClipboard = function()
- LGraphCanvas.prototype.selected_nodes   //an array.
- LGraphCanvas.prototype.processNodeDblClicked = function(n)
- LGraphCanvas.prototype.selectNode = function(node, add_to_current_selection)
-  LGraphCanvas.prototype.deleteSelectedNodes = function()
-  LGraphCanvas.prototype.setZoom = function(value=1, zooming_center)
-  LGraphCanvas.prototype.drawNodeWidgets = function(node, posY, ctx,active_widget)
-     doesn't draw an img but maybe shows the way to do it.
- LGraphCanvas.prototype.drawGroups = function(canvas, ctx)
- Lots of menu methods in here but no obvious create menu, show menu
- LGraphCanvas.onShowPropertyEditor = function(item, options, e, menu, node) //???properties editor?
-  LGraphCanvas.prototype.prompt = function(title, value, callback, event, multiline) {
-LGraphCanvas.prototype.showSearchBox = function(event) {
- LGraphCanvas.prototype.createDialog = function(html, options)
- LGraphCanvas.prototype.createPanel = function(title, options)
- LGraphCanvas.prototype.showShowNodePanel = function( node ) //what's this ???
- LGraphCanvas.prototype.showSubgraphPropertiesDialog = function(node)
-
- LGraphCanvas.onMenuNodeToSubgraph = function(value, options, e, menu, node)
-LGraphCanvas.prototype.getCanvasMenuOptions = function()
-LGraphCanvas.prototype.getNodeMenuOptions = function(node)//called by processContextMenu to extract the menu list
- LGraphCanvas.prototype.getGroupMenuOptions = function(node)
- function ContextMenu(values, //(allows object { title: "Nice text", callback: function ... })
-                       options) {
-
-
-GraphCanvas.prototype.drawNode(node, ctx);
-  which draws links, inputs, outputs,
-  calls GraphCanvas.prototype.drawNodeShape(node, ctx,size,color,bgcolor,
-                                            node.is_selected,node.mouseOver)
-    extra stuff can be drawn if the user defines:
-     LGraphNode.prototype.onDrawForeground
-     with some help via node.onDrawCollapsed(ctx, this)
-     node.onDrawForeground(ctx, this, this.canvas)  (and note that the default value
-       for onDrawForeground is null, in which case this is not called.
-       onDrawBackground: render the background area inside the node (only in edit mode)
-    But most of the node is drawn by drawNodeShape(node, ...),
-    unfortunate because I'd have to hack this monster fn to special case
-    its node arg to, say draw an image in place of the other svg draw fns.
-
-
-questions
-You can write any feedback to javi.agenjo@gmail.com
-???More complete doc somewhere?
-???example of an app using many features of this library?
-   https://tamats.com/projects/litegraph/editor/
-   https://tamats.com is Javi's website.
-???Cut/copy/paste keystrokes fail. Is there a way to interactively delete a node?
-???double click on graph background displays Search type-in but typing in "and"
-  creates the node "Rand" not my node "and" which is registered.
-???click on group does not highlight/select it.
-???relationship of subgraph and group?
-???How to bring up context menu on click right (on background, node, group)
-??? how to create subgraphs, expand and shrink them.
-
-
-??? How to make a node be rendered as a small image, like and AND gate with input and output circles?
-From: https://github.com/jagenjo/litegraph.js/tree/master/guides
-ou can draw something inside a node using the callbacks onDrawForeground and onDrawBackground. The only difference is that onDrawForeground gets called in Live Mode and onDrawBackground not.
-Both functions receive the Canvas2D rendering context and the LGraphCanvas instance where the node is being rendered.
-You do not have to worry about the coordinates system, (0,0) is the top-left corner of the node content area (not the title).
-node.onDrawForeground = function(ctx, graphcanvas)
-{
-  if(this.flags.collapsed)
-    return;
-  ctx.save();
-  ctx.fillColor = "black";
-  ctx.fillRect(0,0,10,this.size[1]);
-  ctx.restore();
-}
-
-*/
 
 

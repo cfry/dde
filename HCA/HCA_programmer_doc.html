@@ -120,7 +120,7 @@ HCA.lgraph._groups  a array, initially empty.
 function LGraphGroup(title)
 new LiteGraph.LGraphGroup("mytitle")  //make a group.
 HCA.lgraph.add(new LiteGraph.LGraphGroup("mytit"))  //add new group to grpah, it shows with title
-you can drag the lower right cornder of the group rect to exand or contract it.
+you can drag the lower right corner of the group rect to exand or contract it.
 You can drop a node in a group, then drag teh group and it keeps the node in the group.
 You can drag a node and drop it inside the group
 </pre>
@@ -163,6 +163,7 @@ LGraphCanvas.onMenuNodeToSubgraph = function(value, options, e, menu, node)
 LGraphCanvas.prototype.getCanvasMenuOptions = function()
 LGraphCanvas.prototype.getNodeMenuOptions = function(node)//called by processContextMenu to extract the menu list
 LGraphCanvas.prototype.getGroupMenuOptions = function(node)
+subgraph_node.buildFromNodes( nodes_list )
 
 right click menu:
 function ContextMenu(values, //(allows object { title: "Nice text", callback: function ... })
@@ -176,6 +177,28 @@ but LGraphCanvas.prototype.bindEvents = function() binds mouseDown to
 LGraphCanvas.prototype.canvas
 Trying to get pop up menu on a node.
 
+Node: onDblClick
+
+Attribute for Node getExtraMenuOptions: //to add option to context menu
+LGraphCanvas.prototype.processMouseDown calls this.processContextMenu(node, e);
+  for a e.which of 3.
+  var menu = new LiteGraph.ContextMenu(text_values, {
+									scale: Math.max(1, this.ds.scale),
+									event: event,
+									className: "dark",
+									callback: inner_clicked.bind(w)
+								},
+								ref_window);
+    var menu = new LiteGraph.ContextMenu(
+            entries,
+            {
+                event: e,
+                callback: inner_clicked,
+                parentMenu: prev_menu,
+                node: node
+            },
+            ref_window
+        );
 
 //drawing a node.
 LGraphCanvas.prototype.drawNode(node, ctx); c
@@ -197,6 +220,12 @@ node.onDrawForeground(ctx, this, this.canvas); where this is
 an GraphCanvas.prototype, with a field mouse whose value is
 an array of 2 floats ie [234.4 125.6]
 </pre>
+
+Different link types:
+STRAIGHT_LINK: 0,
+LINEAR_LINK: 1,
+SPLINE_LINK: 2,
+LiteGraphCanavas  this.links_render_mode = LiteGraph.SPLINE_LINK;
 
 <h4>Questions</h4>
 <pre>

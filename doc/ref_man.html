@@ -80,7 +80,12 @@
             are optional. See the options under "showOpenDialog" in <a target="_blank" href="https://github.com/electron/electron/blob/master/docs/api/dialog.md">showOpenDialog</a>
             for details.<br/>
             <i>Example:</i><br/>
-            <code title="not in TestSuite"> choose_file({buttonLabel: "pick the best"})</code>
+            <code title="not in TestSuite"> choose_file({buttonLabel: "pick the best"})</code> Just lets you choose files.<br/>
+            If the user chooses "cancel" in the dialog box, this function returns <code>null</code>.
+            If the options indicate that the user can choose more than one path, and they do,
+            (using shift-click)
+            an array of paths is returned. Otherwise (the default) just one path (a string) is returned.<br/>
+            See also <a href="#" onclick="open_doc(choose_folder_doc_id)">choose_folder</a>
         </details>
 
         <details id="choose_save_file_doc_id" class="doc_details"><summary>choose_save_file</summary>
@@ -96,6 +101,23 @@
             for details.<br/>
             <i>Example:</i><br/>
             <code title="not in TestSuite"> choose_save_file({buttonLabel: "save the best"})</code>
+        </details>
+
+        <details id="choose_folder_doc_id" class="doc_details"><summary>choose_folder</summary>
+            Pops up a dialog box allowing you to navigate the file system to choose a folder.
+            Returns a string of the full path of the folder.
+            <br/>
+            <i>Parameter:</i><br/>
+            <b>show_dialog_options</b> A JS literal object of name-value pairs, all of which
+            are optional. See the options under "showOpenDialog" in <a target="_blank" href="https://github.com/electron/electron/blob/master/docs/api/dialog.md">showOpenDialog</a>
+            for details.<br/>
+            <i>Example:</i><br/>
+            <code title="not in TestSuite"> choose_folder()</code> Just lets you choose folders.<br/>
+            If the user chooses "cancel" in the dialog box, this function returns <code>null</code>.
+            If the options indicate that the user can choose more than one path, and they do,
+            (using shift-click)
+            an array of paths is returned. Otherwise (the default) just one path (a string) is returned.<br/>
+            See also <a href="#" onclick="open_doc(choose_file_doc_id)">choose_file</a>
         </details>
 
         <details id="copy_file_async_doc_id" class="doc_details"><summary>copy_file_async</summary>
@@ -189,6 +211,38 @@
             For Windows OS's this is "\\" (backslash).
             For others its "/" (forward slash).
         </details>
+        <details id="get_latest_path_doc_id"class="doc_details"><summary>get_latest_path</summary>
+           DDE has a file versioning convention. File pathames of the format
+           <code>"/foo/bar/baz_2.txt"</code> are considered to be "version 2" of
+           the file <code>"/foo/bar/baz.txt"</code>
+           Version numbers start at 0 and increment up.
+           <p></p>
+            get_latest_path returns the full path of a file in the designated folder
+            that has the highest version number. If there is no versioned file
+            (ie its file name doesn't end with an underscore followed by an integer)
+            with the designated folder, name, and extension, then <code>null</code> is returned.<br/>
+            <i>Parameter:</i><br/>
+            <b>path</b> Required string. If the path does not start with a slash,
+            it is expected to be under <code>dde_apps_folder</code>. The path
+            may or may not have a version number or file extension.
+            <p></p>
+            <i>Examples</i><br/>
+            <code>get_latest_path("foo")</code> If "foo" does not exist in <code>dde_apps_folder</code>, returns <code>null</code>.
+                               If "foo"  exists, but there is no "foo_0" or
+                               similar versioned foo, returns null.
+                               If foo_0 and foo_3 exists but no higher version numbers, returns
+                               <code>"/Users/Fry/Documents/dde_apps/foo9_3.txt"</code>
+                               (or wherever your <code>dde_apps_folder</code> is.
+            <p></p>
+            <code title="not in TestSuite">get_latest_path("/foo/bar/foo_3.txt")</code>
+              If no file in "/foo/bar/ with a name of "foo_*.txt
+              (where * means any non-negative integer) exists, then <code>null</code> is returned.
+              Otherwise, the file path with the highest version number is returned, such as:
+              <code>"/foo/bar/foo_5.txt"</code>
+            <p/>
+            Version numbers do not have to be contiguous.<p></p>
+            See also <a href="#" onclick="open_doc(make_unique_path_doc_id)">make_unique_path</a>
+        </details>
         <details id="is_folder_doc_id"class="doc_details"><summary>is_folder</summary>
              Returns <code>true</code> if the argument represents a folder, <code>false</code> otherwise.
              <i>Parameters:</i><br/>
@@ -263,6 +317,45 @@
         a folder named "bar", and inside of that is placed a folder "baz".
         </details>
 
+        <details id="make_full_path_doc_id" class="doc_details"><summary>make_full_path</summary>
+           Most DDE functions that take a path will accept a partial path
+           (that doesn't start with a slash) by defaulting the starting folder to
+           the value of <code>dde_apps_folder</code>. This conversion is done by calling
+            <code>make_full_path</code>. <br/>
+           <i>Parameter</i><br/>
+           <b>path</b> A string. required.
+           <ul>
+                <li>If path starts with slash, path is returned.</li>
+                <li>If path starts with ./ or a letter, a full path like:
+                    <code>"/Users/Fry/Documents/dde_apps/foo.js"</code> is returned.</li>
+                <li>If path starts with ../  a full path like:
+                   <code>"/Users/Fry/Documents/foo.js"</code> is returned.</li>
+           </ul>
+           <i>Example:</i><br/>
+           <code title="not in TestSuite">make_full_path("foo.js")</code> => <samp>"/Users/Fry/Documents/foo.js"</samp>
+           <br/>
+           Note that the file doesn't have to actually exist for make_full_path to work.
+        </details>
+        <details id="make_unique_path_doc_id"class="doc_details"><summary>make_unique_path</summary>
+            DDE has a file versioning convention.
+            See also <a href="#" onclick="open_doc(get_latest_path_doc_id)">get_latest_path</a>
+            for details.
+            <p></p>
+            <i>Parameter:</i><br/>
+            <b>path</b> Required string. If it doesn't start with slash, <code>dde_apps_folder</code>
+            will be prepended. Returns a path that is the next highest version number of the file
+            from all the other similar files in that folder.
+            If there are no versions of this file, return a path with version number 0.
+            <p></p>
+            <i>Examples:</i><br/>
+            <code>make_unique_path("foo.txt")</code> returns something like:
+                <code>"/foo/bar/foo_5.txt"</code> if <code>"/foo/bar/foo_4.txt"</code>
+                is the highest version of foo.txt in the folder.
+            <p></p>
+            <code title="not in TestSuite">write_file(make_unique_path("foo.txt"))</code>
+            for ensuring that each time you call the above code, it makes a new file
+            and does not overwrite, any existing version.
+        </details>
         <details id="read_file_doc_id" class="doc_details"><summary>read_file</summary>
             <code>read_file</code> is a function that takes an argument of a file path,
             and returns a string of the content of the file.<br/>
@@ -4034,14 +4127,17 @@ new Job({name: "my_job",
                  ]})  </code></pre>
          Note that a Dexter connect error takes several seconds to trigger, so be patient.
         </li>
+        <li id="job_param_when_do_list_done_doc_id"><b>when_do_list_done</b> controls what happens
+        when all the items on a do_list have been run. The default: <code>"run_when_stopped"</code>
+        performs the "when_stopped" action, after which the job is finished.<br/>
+         <code>"wait"</code>  pauses the job waiting to run new instructions that are added
+         to the end of the do_list by some other process. Call
+            <code><a href="#" onclick="open_doc('Job.insert_instruction_doc_id', event)">Job.insert_instruction</a></code>
+            from any JavaScript code to do this.</li>
         <li id="job_param_when_stopped_doc_id"><b>when_stopped</b> controls what happens
              when a job stops.<br/>
              <i>Possible Values</i>:<br/>
              <code>"stop"</code> The default. The job stops.<br/>
-             <code>"wait"</code> The job waits for another instruction to be added
-               at the end of the do_list. Call
-               <code><a href="#" onclick="open_doc('Job.insert_instruction_doc_id', event)">Job.insert_instruction</a></code>
-               from any JavaScript code to do this.<br/>
              <code title="unEVALable code fragment"> Any valid do_list item</code>
              When the job reaches its normal stopping point, the value of <i>when_stopped</i>
              is put on the do_list immediately after the program counter
@@ -5287,10 +5383,10 @@ new Job({name: "job2",
   See <a href="#" onclick="open_doc('Control.go_to_doc_id', event)">Control.go_to</a> for details
   on the <code title="unEVALable code fragment"> instruction_location</code> format.<br/>
   <b>reason</b> A string. The reason that the job is being told to stop.<br/>
-  <b>perform_when_stopped</b> A boolean. When <code>false</code> (the default)
-  the job will behave as if its 'when_stopped' parameter is <code>"stop"</code>,
-  i.e. the job will end. When <code>true</code>, the job's when_stopped action will
-  be performed.<br/>
+  <b>perform_when_stopped</b> A boolean. When <code>true</code> (the default)
+  the job will behave as if the do_list is completed normally,
+  i.e. the job's when_stopped action will be performed.<br/>
+  If it is false, the when_stopped action won't be run.
   Example:<code>Control.stop_job({job: "my_job", offset: "label1"})</code>
   <code title="unEVALable code fragment"> Job.my_job</code> will stop when it reaches the instruction named "label1".
 </details>
@@ -10437,11 +10533,11 @@ Messaging.permit_default = function(mess_obj){
        A Job such as:<pre><code title="not in TestSuite">
 new Job({
     name: "wait_for_message",
-    when_stopped: "wait",
+    when_do_list_done="wait",
     do_list: []
 }) </code></pre>
       starts off with no instructions. Rather than just quit, the
-      <code  title="unEVALable">when_stopped: "wait"</code> tells it to just wait
+      <code  title="unEVALable">when_do_list_done="wait"</code> tells it to just wait
       and if an instruction is added to the end of the do_list, run it and wait for
       the next one. You can use Messaging.job_instruction to add an instruction from
       another DDE into that Job.<br/>

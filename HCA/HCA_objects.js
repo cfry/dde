@@ -11,7 +11,6 @@ function MyAndNode() {
     this.size = [80, 40] //width and height
     this.properties = { precision: 1 };
 }
-MyAndNode.title = "and"; //name to show
 MyAndNode.prototype.onExecute = function() {
     var A = this.getInputData(0);
     if( A === undefined )
@@ -21,6 +20,7 @@ MyAndNode.prototype.onExecute = function() {
         B = 0;
     this.setOutputData( 0, A & B );
 }
+MyAndNode.title = "and"; //name to show
 LiteGraph.registerNodeType("basic/and", MyAndNode ); //register in the system
 HCA.palette_objects.push(["basic/and"])
 
@@ -33,7 +33,6 @@ function MyOrNode() {
     this.size = [80, 40] //width and height
     this.properties = { precision: 1 };
 }
-MyOrNode.title = "or"; //name to show
 MyOrNode.prototype.onExecute = function() {
     var A = this.getInputData(0);
     if( A === undefined )
@@ -43,6 +42,7 @@ MyOrNode.prototype.onExecute = function() {
         B = 0;
     this.setOutputData( 0, A | B );
 }
+MyOrNode.title = "or"; //name to show
 LiteGraph.registerNodeType("basic/or", MyOrNode ); //register in the system
 HCA.palette_objects.push(["basic/or"])
 
@@ -53,7 +53,6 @@ function MyInvertNode() {
     this.size = [80, 20] //width and height
     this.properties = { precision: 1 };
 }
-MyInvertNode.title = "invert"; //name to show
 MyInvertNode.prototype.onExecute = function() {
     var A = this.getInputData(0);
     if( A === undefined )
@@ -61,5 +60,6 @@ MyInvertNode.prototype.onExecute = function() {
     let out = ((A === 1)  ? 0 : 1)
     this.setOutputData(0, out);
 }
+MyInvertNode.title = "invert"; //name to show
 LiteGraph.registerNodeType("basic/invert", MyInvertNode); //register in the system
 HCA.palette_objects.push(["basic/invert"])

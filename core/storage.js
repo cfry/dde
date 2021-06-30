@@ -402,10 +402,25 @@ function choose_file(show_dialog_options={}) {
 
         }
     }
-    else { return paths }
+    else { return null }
 }
+
 module.exports.choose_file = choose_file
 
+function choose_folder(show_dialog_options={}) {
+    let props = show_dialog_options.properties
+    if(!props) {
+        props = ["openDirectory"]
+    }
+    else {
+        if (!props.includes("openDirectory")){
+            props.push("openDirectory")
+        }
+    }
+    show_dialog_options.properties = props
+    return choose_file(show_dialog_options)
+}
+module.exports.choose_folder = choose_folder
 
 function choose_file_and_get_content(show_dialog_options={}, encoding="utf8") {
     var path = choose_file(show_dialog_options)
@@ -1135,6 +1150,101 @@ function folder_listing_aux(str, include_folders=true, include_files=true){
     return result
 }
 */
+
+/*
+folder_name_version_extension("foo") =>  ["foo", null, null]
+folder_name_version_extension("foo_002") => ["foo", 2, null]
+folder_name_version_extension("foo_002.txt") => ["foo", 2, "txt"]
+*/
+
+function folder_name_version_extension(path){
+    path = make_full_path(path)
+    let folder_parts = path.split("/")
+    //folder_parts.shift() //takes off the initial ""
+    let names_ver_ext = folder_parts.pop()
+    let folder = folder_parts.join("/")
+    let names_ver, ext
+    if(names_ver_ext.startsWith(".")) { //its a special dot file. This first dot does not signify beginning of the extension
+       let last_dot_pos = names_ver_ext.lastIndexOf(".")
+       if(last_dot_pos === 0) { //there is no ext.
+           ext = null
+           names_ver = names_ver_ext
+       }
+       else { //name does not start with a dot, ie its normal there are 2 dots after the folder
+            ext = names_ver_ext.substring(last_dot_pos + 1)
+            names_ver = names_ver_ext.substring(0, last_dot_pos)
+       }
+    }
+    else {
+        [names_ver, ext] = names_ver_ext.split(".")
+        ext = (ext? ext : null)
+    }
+    let last_underscore_pos = names_ver.indexOf("_")
+    let name, ver
+    if(last_underscore_pos === -1){
+        name = names_ver
+        ver = null
+    }
+    else {
+        let ver_maybe = names_ver.substring(last_underscore_pos + 1)
+        if(is_string_a_integer(ver_maybe)) {
+            ver = parseInt(ver_maybe)
+            if(ver >= 0) {
+                name = names_ver.substring(0, last_underscore_pos)
+            }
+            else {
+                ver = null
+                name = names_var
+            }
+        }
+        else {
+            ver = null
+            name = names_ver
+        }
+    }
+    return [folder, name, ver, ext]
+}
+module.exports.folder_name_version_extension = folder_name_version_extension
+
+function get_latest_path(path){
+    let [orig_folder, orig_name, orig_ver, orig_ext] = folder_name_version_extension(path)
+    let max_ver = -1
+    let latest_path = null
+    for(let a_path of folder_listing(orig_folder, true, false, true)){
+        let [folder, name, ver, ext] =
+            folder_name_version_extension(a_path)
+        if((name === orig_name) && (ext === orig_ext) && (ver || (ver === 0)) && (ver > max_ver)){
+            max_ver = ver
+            latest_path = a_path
+        }
+    }
+    //let new_path = orig_folder + orig_name + "_" + max_num + "." + orig_ext
+    return latest_path
+}
+module.exports.get_latest_path = get_latest_path
+
+function make_unique_path(path){
+    let latest_path = get_latest_path(path)
+    let new_path
+    if(latest_path === null){
+        let [folder, name, ver, ext] = folder_name_version_extension(path)
+        //expect ver to be null since there is no latest_path.
+        ext = ((ext === null) ? "" : "." + ext)
+        new_path = folder + "/" + name + "_" + 0 + ext
+        return new_path
+    }
+    else {
+        let [folder, name, ver, ext] = folder_name_version_extension(latest_path)
+        if(ver == null) { ver = 0 }
+        else {
+            ver = ver + 1
+        }
+        ext = (ext ? "." + ext : "")
+        new_path = folder + "/" + name + "_" + ver + ext
+    }
+    return new_path
+}
+module.exports.make_unique_path = make_unique_path
 
 var fs        = require('fs'); //errors because require is undefined.
 var app       = require('electron').remote;  //in the electron book, "app" is spelled "remote"

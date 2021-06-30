@@ -128,7 +128,8 @@ var Robot = class Robot {
     static step_instructions(){
         return new Instruction.step_instructions()
     }
-    static error(reason="", perform_when_stopped=true){ //declare that an error happened. This will cause the job to stop.
+    static error(reason="Job stopped due to executing a Control.error instruction.",
+                 perform_when_stopped=true){ //declare that an error happened. This will cause the job to stop.
         return new Instruction.error(reason, perform_when_stopped)
     }
 
@@ -1407,13 +1408,12 @@ Dexter = class Dexter extends Robot {
             job_instance.set_up_next_do(0)
             return
         }
-        else if (job_instance == null){
-            job_instance.stop_for_reason("errored_from_dexter",
-                            "Dexter.robot_done_with_instruction passed job_id: " + job_id +
-                            " but couldn't find a Job instance with that job_id.")
-            job_instance.wait_until_instruction_id_has_run = null
-            job_instance.set_up_next_do(0)
-            return
+        //rob.robot_status = robot_status //beware, is possibly the wrong length, but if so we're going to error, so might as well have that bad robot_status accessible for debugging
+        rob.set_robot_status(robot_status) //makes RobotStatus updated too
+        if (job_instance == null){
+            shouldnt("In robot_done_with_instruction, got job_id: " + job_id +
+                     " which does not refer to a valid Job instance.<br/>" +
+                     "robot_status: " + robot_status)
         }
         else if (robot_status.length < Dexter.robot_status_labels.length){ //allows when_stopped action to run if any
             //if its longer than 60, ie 120, then we got 2 robot status's back.
@@ -1435,10 +1435,10 @@ Dexter = class Dexter extends Robot {
             job_instance.set_up_next_do(0)
             return
         }
-        else if((robot_status[Dexter.ERROR_CODE] !== 0) && (oplet !== "r")){ //we've got an error
+        else if((error_code !== 0) && (oplet !== "r")){ //we've got an error
                 //job_instance.stop_for_reason("errored", "Robot status got error: " + error_code)
             job_instance.wait_until_instruction_id_has_run = null //but don't increment PC
-            let instruction_to_run_when_error = job_instance.if_robot_status_error.call(job_instance, robot_status)
+            let instruction_to_run_when_error = job_instance.if_robot_status_error //.call(job_instance, robot_status)
             if(instruction_to_run_when_error){
                 //note instruction_to_run_when_error can be a single instruction or an array
                 //of instructions. If its an array, we insert it as just one instruction,
@@ -1483,7 +1483,6 @@ Dexter = class Dexter extends Robot {
         //only comming for simulation and not from read dexter.
         //else if (ins_id == -1) {}
      // else {
-        rob.set_robot_status(robot_status) //makes RobotStatus updated too
         if (job_instance.keep_history && (oplet == "g")){ //don't do it for oplet "G", get_robot_status_immediate
                 job_instance.rs_history.push(robot_status)
         }
@@ -1636,7 +1635,7 @@ Dexter = class Dexter extends Robot {
         if (!the_job) { //job has yet to be defined in this session of dde, so define it
             the_job = new Job({name: "job_00",
                                robot: this,
-                               when_stopped: "wait"})
+                               when_do_list_done: "wait"})
         }
         if (!the_job.is_active()) { //job is defined but is not running so start it. Might be brand new or might have just stopped
             the_job.start()

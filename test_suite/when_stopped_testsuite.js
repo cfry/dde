@@ -132,7 +132,7 @@ new TestSuite("when_stopped_jobs",
    ["Job.my_job.user_data.an_array", "[70,71,72]"],
    [`new Job({
     name: "my_job",
-    when_stopped: "wait",
+    when_do_list_done: "wait",
     do_list: [Control.stop_job(),
               IO.out("should not print")]})`],
     ["Job.my_job.status_code", "'completed'"]
