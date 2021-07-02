@@ -15,6 +15,7 @@ var THREE = require('three')
 var THREE_Text2D = require('three-text2d')
 var THREE_GLTFLoader = require('three-gltf-loader') //using the examples folder like this is depricated three/examples/js/loaders/GLTFLoader.js')
 
+var canSize;
 
 var sim = {} //used to store sim "global" vars
 sim.hi_rez = true
@@ -31,6 +32,12 @@ function init_simulation_maybe(){
     }
 }
 function init_simulation(){
+  canSize  = 
+  {
+    width: misc_pane_id.clientWidth-50,
+    height: persistent_get("dde_window_height")-persistent_get("top_right_panel_height") - 220
+  };
+
   try{
     init_mouse()
     sim.enable_rendering = false
@@ -54,15 +61,15 @@ function createCamera(){
     //https://discoverthreejs.com/book/first-steps/first-scene/
     sim.camera = new THREE.PerspectiveCamera(
           75, //field of view in degrees. determines ratio of far clipping region is to near clipping region
-          window.innerWidth / window.innerHeight, //aspect ratio, If not same as canvas width and height,
+          canSize.width/canSize.height, //aspect ratio, If not same as canvas width and height,
                                                   //the image will be distorted.
           0.1, //1, //0.1,   //distance between camera and near clipping plane. Must be > 0.
           4 //4      // 3 is too small and clips the table. was: 1000   //distance between camera an far clipping plane. Must be > near.
           );
     sim.camera.name = "camera"
     sim.camera.position.x = 0  //to the right of the screen.
-    sim.camera.position.y = 1  //up is positive
-    sim.camera.position.z = 2  //2; //toward the viewer (out of the screen) is positive. 2
+    sim.camera.position.y = 0  //up is positive
+    sim.camera.position.z = 1  //2; //toward the viewer (out of the screen) is positive. 2
     sim.camera.zoom = 1        //1 is the default.  0.79 //has no effect.
 
     //new(75, width/height, 0.1, 4) pos[0, 1, 2]
@@ -128,7 +135,7 @@ function createLights(){
 function createRenderer(){
     sim.renderer = new THREE.WebGLRenderer({ antialias:true });//antialias helps with drawing the table lines. //example: https://threejs.org/docs/#Manual/Introduction/Creating_a_scene
     sim.renderer.setSize( //sim.container.clientWidth, sim.container.clientHeight) //causes no canvas to appear
-                           window.innerWidth, window.innerHeight );
+    canSize.width,canSize.height);
     //renderer.setPixelRatio( window.devicePixelRatio );  //causes no canvas to appear
     //sim_graphics_pane_id.innerHTML = "" //done in video.js
     sim.renderer.shadowMap.enabled = true;
@@ -143,6 +150,8 @@ function createMeshGLTF(){
     sim.table_length = 0.6985,  //length was 2
     sim.table_height = 0.01905  //height (thickness of Dexcell surface). This is 3/4 of an inch. was:  0.1)
     sim.table = draw_table(sim.scene, sim.table_width, sim.table_length, sim.table_height)
+
+    sim.table.position.set(0,0,-1);
 
     sim.J0 = new THREE.Object3D(); //0,0,0 //does not move w.r.t table.
     sim.J0.rotation.y = Math.PI //radians for 180 degrees
@@ -270,6 +279,8 @@ function createMeshBoxes(){
     sim.table_length = 0.6985,  //length was 2
     sim.table_height = 0.01905  //height (thickness of Dexcell surface). This is 3/4 of an inch. was:  0.1)
     sim.table = draw_table(sim.scene, sim.table_width, sim.table_length, sim.table_height)
+
+    sim.table.position.set(0,0,-1);
 
     //draw_tool_rack(sim.table, 0.1, 0.3, 0.6) //gets in the way of >>> +Y text
     //draw_caption(sim.table, "Dexter 5-axis Robot Simulation")
@@ -434,14 +445,15 @@ function sim_handle_mouse_move(){
         sim.camera.zoom = sim.zoom_at_mouseDown + zoom_increment //(spdy * 0.1)
         sim.camera.updateProjectionMatrix()
     }
-    else if (sim.altDown){
+    else if (sim.button == 1){
         var panX_inc = mouseX_diff / 100
         var panY_inc = mouseY_diff / 100
         sim.table.position.x =  sim.tableX_at_mouseDown + panX_inc
         sim.table.position.y =  sim.tableY_at_mouseDown - panY_inc
     }
     else {
-        sim.table.rotation.x = sim.rotationX_at_mouseDown + (mouseY_diff / 100)
+        let newX = sim.rotationX_at_mouseDown + (mouseY_diff / 100);
+        if(newX<=Math.PI*0.5&&newX>=-Math.PI*0.5)sim.table.rotation.x = newX;
         sim.table.rotation.y = sim.rotationY_at_mouseDown + (mouseX_diff / 100)
     }
 }
@@ -468,6 +480,7 @@ function init_mouse(){
     sim.rotationY_at_mouseDown = 0
 
     sim_graphics_pane_id.addEventListener("mousedown", function(event) {
+        sim.button = event.button
         sim.mouseDown              = true
         sim.shiftDown              = event.shiftKey
         sim.altDown                = event.altKey
