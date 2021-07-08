@@ -15,7 +15,45 @@ var THREE = require('three')
 var THREE_Text2D = require('three-text2d')
 var THREE_GLTFLoader = require('three-gltf-loader') //using the examples folder like this is depricated three/examples/js/loaders/GLTFLoader.js')
 
+
+
+function make_sim_html()
+{
+    return `
+    <div style="white-space:nowrap;"> 
+    <b>Move Dur: </b><span id="sim_pane_move_dur_id"></span> s
+     <button onclick="SimBuild.init()">Load SimBuild</button>
+    <span title="Inspect simulator Details." 
+    onclick="SimUtils.inspect_dexter_sim_instance()" 
+    style="margin-left:15px;color:blue;cursor:pointer;font-weight:bold;"> &#9432; </span>       
+    Alignment: <button onclick="align_cam(0)">X-Side</button> 
+    <button onclick="align_cam(1)">Y-Side</button> 
+    <button onclick="align_cam(2)">Z-Top</button> 
+    <button onclick="align_cam(3)">Home</button> 
+    
+    </div>
+
+    <b title="X position of end effector in meters.">X: </b><span id="sim_pane_x_id" style="min-width:50px; text-align:left; display:inline-block"></span>
+    <b title="Y position of end effector in meters."> Y: </b><span id="sim_pane_y_id" style="min-width:50px; text-align:left; display:inline-block"></span>
+    <b title="Z position of end effector in meters."> Z: </b><span id="sim_pane_z_id" style="min-width:50px; text-align:left; display:inline-block"></span>
+
+    <div style="white-space:nowrap;">
+    <b title="Joint 1 angle in degrees."> J1: </b><span id="sim_pane_j1_id" style="min-width:30px; text-align:left; display:inline-block"></span>
+    <b title="Joint 2 angle in degrees."> J2: </b><span id="sim_pane_j2_id" style="min-width:30px; text-align:left; display:inline-block"></span>
+    <b title="Joint 3 angle in degrees."> J3: </b><span id="sim_pane_j3_id" style="min-width:30px; text-align:left; display:inline-block"></span>
+    <b title="Joint 4 angle in degrees."> J4: </b><span id="sim_pane_j4_id" style="min-width:30px; text-align:left; display:inline-block"></span>
+    <b title="Joint 5 angle in degrees."> J5: </b><span id="sim_pane_j5_id" style="min-width:30px; text-align:left; display:inline-block"></span>
+    <b title="Joint 6 angle in degrees."> J6: </b><span id="sim_pane_j6_id" style="min-width:30px; text-align:left; display:inline-block"></span>
+    <b title="Joint 7 angle in degrees."> J7: </b><span id="sim_pane_j7_id" style="min-width:30px; text-align:left; display:inline-block"></span></div>
+    <div id="sim_graphics_pane_id"></div>
+    `;
+}
+
 var canSize;
+var goalRotation = {x:Math.PI*0.25,y:Math.PI*0.25};
+var goalPosition = {x:0,y:0,z:-1};
+var pRotation = {x:Math.PI*0.25,y:Math.PI*0.25};
+var pPosition = {x:0,y:0,z:-1};
 
 var sim = {} //used to store sim "global" vars
 sim.hi_rez = true
@@ -151,7 +189,7 @@ function createMeshGLTF(){
     sim.table_height = 0.01905  //height (thickness of Dexcell surface). This is 3/4 of an inch. was:  0.1)
     sim.table = draw_table(sim.scene, sim.table_width, sim.table_length, sim.table_height)
 
-    sim.table.position.set(0,0,-1);
+    
 
     sim.J0 = new THREE.Object3D(); //0,0,0 //does not move w.r.t table.
     sim.J0.rotation.y = Math.PI //radians for 180 degrees
@@ -279,8 +317,6 @@ function createMeshBoxes(){
     sim.table_length = 0.6985,  //length was 2
     sim.table_height = 0.01905  //height (thickness of Dexcell surface). This is 3/4 of an inch. was:  0.1)
     sim.table = draw_table(sim.scene, sim.table_width, sim.table_length, sim.table_height)
-
-    sim.table.position.set(0,0,-1);
 
     //draw_tool_rack(sim.table, 0.1, 0.3, 0.6) //gets in the way of >>> +Y text
     //draw_caption(sim.table, "Dexter 5-axis Robot Simulation")
@@ -429,10 +465,10 @@ var render_demo = function () {
         sim.J5.rotation.x += 0.02 //5th axis end effector twist
 
         //rotate table when user clicks down and drags.
-        if (sim.mouseDown){
+        /*if (sim.mouseDown){
             sim_handle_mouse_move()
-        }
-        sim.renderer.render(sim.scene, sim.camera);
+        }*/
+        //sim.renderer.render(sim.scene, sim.camera);
     }
 };
 
@@ -515,12 +551,13 @@ function draw_table(parent, table_width, table_length, table_height){
     sim.table        = new THREE.Mesh(geometryt, materialt)
     sim.table.name = "table"
     sim.table.receiveShadow = true;
-    sim.table.position.x = -2.4 //-3.85
-    sim.table.position.y = 2 //2.47
+    
+    sim.table.position.x = 0 //-3.85
+    sim.table.position.y = 0 //2.47
     sim.table.position.z = -1 //0
 
-    sim.table.rotation.x = 1 //0 //0.53
-    sim.table.rotation.y = 5 //5 shows table with +x to right, and +y away from camera. 1.8 //0 //-0.44
+    sim.table.rotation.x = Math.PI*0.25 //0 //0.53
+    sim.table.rotation.y = Math.PI*0.25 //5 shows table with +x to right, and +y away from camera. 1.8 //0 //-0.44
     sim.table.rotation.z = 0
     parent.add(sim.table)
 
@@ -775,6 +812,8 @@ function gltf_render(){
 //  if (sim.mouseDown){
 //      stl_sim_handle_mouse_move()
 //  }
+    updateRotation();
+    updatePosition();
     sim.renderer.render(sim.scene, sim.camera);
     requestAnimationFrame(gltf_render)
 }
@@ -844,3 +883,60 @@ function stl_sim_handle_mouse_move(){
 }
 
 
+function align_cam(position)
+{
+    switch(position)
+    {
+        case(0):
+            goalRotation.x = 0;
+            goalRotation.y = Math.PI;
+        break;
+
+        case(1):
+            goalRotation.x = 0;
+            goalRotation.y = Math.PI*0.5;
+        break;
+
+        case(2):
+            goalRotation.x = Math.PI*0.5;
+            goalRotation.y = Math.PI*0.5;
+        break;
+
+        case(3):
+            goalRotation.x = Math.PI*0.25;
+            goalRotation.y = Math.PI*0.25;
+            goalPosition.x = 0;
+            goalPosition.y = 0;
+            goalPosition.z = -1;
+        break;
+    }
+}
+
+function updateRotation()
+{
+    if(pRotation.x != sim.table.rotation.x||pRotation.y != sim.table.rotation.y)
+    {
+        goalRotation.x = sim.table.rotation.x;
+        goalRotation.y = sim.table.rotation.y;
+    }
+    sim.table.rotation.x -= (sim.table.rotation.x-goalRotation.x)*0.04;
+    sim.table.rotation.y -= (sim.table.rotation.y-goalRotation.y)*0.04;
+    pRotation.x = sim.table.rotation.x;
+    pRotation.y = sim.table.rotation.y;
+}
+
+function updatePosition()
+{
+    if(pPosition.x != sim.table.position.x||pPosition.y != sim.table.position.y||pPosition.z != sim.table.position.z)
+    {
+        goalPosition.x = sim.table.position.x;
+        goalPosition.y = sim.table.position.y;
+        goalPosition.z = sim.table.position.z;
+    }
+    sim.table.position.x -= (sim.table.position.x-goalPosition.x)*0.04;
+    sim.table.position.y -= (sim.table.position.y-goalPosition.y)*0.04;
+    sim.table.position.z -= (sim.table.position.z-goalPosition.z)*0.04;
+    pPosition.x = sim.table.position.x;
+    pPosition.y = sim.table.position.y;
+    pPosition.z = sim.table.position.z;
+}
