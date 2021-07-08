@@ -127,28 +127,28 @@ function show_in_misc_pane(content, arg1 = "", arg2){
     try {
     if (content === "Simulate Dexter") {
             init_sim_in_process = true
-            sim_pane_content_id.innerHTML =
-               '<div style="white-space:nowrap;"> ' + //Simulate Job/Robot: <select id="job_or_robot_to_simulate_id">' +
-                '<b>Move Dur: </b><span id="sim_pane_move_dur_id"></span> s' +
-                ' <button onclick="SimBuild.init()">Load SimBuild</button> ' +
-                '<span title="Inspect simulator Details." ' +
-                'onclick="SimUtils.inspect_dexter_sim_instance()" ' +
-                'style="margin-left:15px;color:blue;cursor:pointer;font-weight:bold;"> &#9432; </span> ' +
-                '</div>' +
+            sim_pane_content_id.innerHTML = make_sim_html();
+            //    '<div style="white-space:nowrap;"> ' + //Simulate Job/Robot: <select id="job_or_robot_to_simulate_id">' +
+            //     '<b>Move Dur: </b><span id="sim_pane_move_dur_id"></span> s' +
+            //     ' <button onclick="SimBuild.init()">Load SimBuild</button> ' +
+            //     '<span title="Inspect simulator Details." ' +
+            //     'onclick="SimUtils.inspect_dexter_sim_instance()" ' +
+            //     'style="margin-left:15px;color:blue;cursor:pointer;font-weight:bold;"> &#9432; </span> ' +
+            //     '</div>' +
 
-                '<b title="X position of end effector in meters.">X: </b><span id="sim_pane_x_id" style="min-width:50px; text-align:left; display:inline-block"></span>' +  //"margin-left:5px;
-                '<b title="Y position of end effector in meters."> Y: </b><span id="sim_pane_y_id" style="min-width:50px; text-align:left; display:inline-block"></span>' +  //"margin-left:5px;
-                '<b title="Z position of end effector in meters."> Z: </b><span id="sim_pane_z_id" style="min-width:50px; text-align:left; display:inline-block"></span>' +  //"margin-left:5px;
+            //     '<b title="X position of end effector in meters.">X: </b><span id="sim_pane_x_id" style="min-width:50px; text-align:left; display:inline-block"></span>' +  //"margin-left:5px;
+            //     '<b title="Y position of end effector in meters."> Y: </b><span id="sim_pane_y_id" style="min-width:50px; text-align:left; display:inline-block"></span>' +  //"margin-left:5px;
+            //     '<b title="Z position of end effector in meters."> Z: </b><span id="sim_pane_z_id" style="min-width:50px; text-align:left; display:inline-block"></span>' +  //"margin-left:5px;
 
-                '<div style="white-space:nowrap;">' +
-                '<b title="Joint 1 angle in degrees."> J1: </b><span id="sim_pane_j1_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +  //"margin-left:5px;
-                '<b title="Joint 2 angle in degrees."> J2: </b><span id="sim_pane_j2_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +
-                '<b title="Joint 3 angle in degrees."> J3: </b><span id="sim_pane_j3_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +
-                '<b title="Joint 4 angle in degrees."> J4: </b><span id="sim_pane_j4_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +
-                '<b title="Joint 5 angle in degrees."> J5: </b><span id="sim_pane_j5_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +
-                '<b title="Joint 6 angle in degrees."> J6: </b><span id="sim_pane_j6_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +
-                '<b title="Joint 7 angle in degrees."> J7: </b><span id="sim_pane_j7_id" style="min-width:30px; text-align:left; display:inline-block"></span></div>' +
-                '<div id="sim_graphics_pane_id"></div>'
+            //     '<div style="white-space:nowrap;">' +
+            //     '<b title="Joint 1 angle in degrees."> J1: </b><span id="sim_pane_j1_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +  //"margin-left:5px;
+            //     '<b title="Joint 2 angle in degrees."> J2: </b><span id="sim_pane_j2_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +
+            //     '<b title="Joint 3 angle in degrees."> J3: </b><span id="sim_pane_j3_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +
+            //     '<b title="Joint 4 angle in degrees."> J4: </b><span id="sim_pane_j4_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +
+            //     '<b title="Joint 5 angle in degrees."> J5: </b><span id="sim_pane_j5_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +
+            //     '<b title="Joint 6 angle in degrees."> J6: </b><span id="sim_pane_j6_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +
+            //     '<b title="Joint 7 angle in degrees."> J7: </b><span id="sim_pane_j7_id" style="min-width:30px; text-align:left; display:inline-block"></span></div>' +
+            //     '<div id="sim_graphics_pane_id"></div>'
             open_doc(simulate_pane_doc_id)
             init_simulation()
             //sim.renderer.render(sim.scene, sim.camera);
