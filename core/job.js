@@ -340,7 +340,10 @@ class Job{
 
     static start_and_monitor_dexter_job(job_src){
         let base_id_before_new_def = Job.job_id_base
-        try { window.eval(job_src) }
+        try { 
+            //window.eval(job_src) 
+            eval(job_src) //evail into default namespace to allow require in source
+        }
         catch(err) {dde_error("While evaling the job definition to send to Dexter,<br/>" +
                               "got error: " + err.message)
         }
