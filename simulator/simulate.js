@@ -481,7 +481,7 @@ function sim_handle_mouse_move(){
         sim.camera.zoom = sim.zoom_at_mouseDown + zoom_increment //(spdy * 0.1)
         sim.camera.updateProjectionMatrix()
     }
-    else if (sim.button == 1){
+    else if (sim.altDown || (sim.button == 1)){
         var panX_inc = mouseX_diff / 100
         var panY_inc = mouseY_diff / 100
         sim.table.position.x =  sim.tableX_at_mouseDown + panX_inc
