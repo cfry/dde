@@ -514,6 +514,13 @@
         }
     }
 
+    load_and_start_job_id.onclick = function(){
+        const path = choose_file({title: "Choose a file to load"})
+        if (path){
+            Job.define_and_start_job(path)
+        }
+    }
+
     DDE_NPM.init()
     install_npm_pkg_id.onclick = DDE_NPM.show_ui
 
@@ -1313,7 +1320,7 @@ foo      //eval to see the latest values</pre>`,
         //RUN INSTRUCTION
     move_to_home_id.onclick    = function(){ Robot.dexter0.move_all_joints_fn() }
     move_to_neutral_id.onclick = function(){ Robot.dexter0.move_all_joints_fn(Dexter.NEUTRAL_ANGLES) }
-    move_to_parked_id.onclick  = function(){ Robot.dexter0.move_all_joints_fn(Dexter.PARKED_ANGLES) }
+    //move_to_parked_id.onclick  = function(){ Robot.dexter0.move_all_joints_fn(Dexter.PARKED_ANGLES) }  //not useful, sometimes Dexter runs into itself
     move_to_selection_id.onclick = Editor.move_to_instruction
     /*function(){
          var sel = Editor.get_any_selection().trim()
@@ -1708,16 +1715,16 @@ foo      //eval to see the latest values</pre>`,
 } //end of on_ready
 
 function set_left_panel_width(width=700){
-    $('#outer_splitter_id').jqxSplitter({ panels: [{ size: width }] })
+    $('#outer_splitter_id').jqxSplitter({ panels: [{ size: width }], splitBarSize: 8 }) //default splitbarsize is 5
 }
 
 function set_top_left_panel_height(height=600){
-    $('#left_splitter_id').jqxSplitter({ panels: [{ size: height }] })
+    $('#left_splitter_id').jqxSplitter({ panels: [{ size: height }], splitBarSize: 8 })
 }
 
 function set_top_right_panel_height(height=600){
     //out("set top right:" + height)
-    $('#right_splitter_id').jqxSplitter({ panels: [{ size: height }] })
+    $('#right_splitter_id').jqxSplitter({ panels: [{ size: height }], splitBarSize: 8  })
 }
 
 function check_for_latest_release(){
@@ -1815,4 +1822,32 @@ var {FPGA} = require("./core/fpga.js")
 var {Simqueue} = require("./core/simqueue.js")
 
 
+//packages for package sake.
+//pkg names that contain hyphens or dots have those chars converted to underscore
 
+//var fs = require("fs_path")  //already declared
+//the below boosts DDE memory usage on startup from 88MB to 237MB
+//mac activity monitor with this installed:
+// electron         49 +
+// electron helper  36 +
+// electron helper 315
+/*
+var fs_path = require("fs-path")
+var is_base64 = require("is-base64")
+var js_beautify = require("js-beautify")
+var mathjs = require("mathjs")
+var modbus_serial = require("modbus-serial")
+var multicast_dns = require("multicast-dns")
+var nano_time = require("nano-time")
+var opencv_js = require("opencv.js")
+// var ping = require("ping")  //already declared
+var plotly_js_dist = require("plotly.js-dist")
+//var pump = require("pump")  //already declared
+//var request = require("request")  //already declared
+var scp2 = require("scp2")
+var semver = require("semver")
+var serialport = require("serialport")
+var simple_get = require("simple-get")
+var ssh2_promise = require("ssh2-promise")
+*/
+//var three = require("three") doesn't increase mem usable, is UI

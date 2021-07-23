@@ -5,6 +5,106 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+
+<details class="doc_details"><summary>v 3.8.0, Jul 23, 2021</summary>
+Highlights: Recording Jobs more reliable, simpler UI.<br/>
+    Simulator improvements, including "both" option working.<br/>
+    Simplified Jobs Model documentation for deeper understanding of Jobs.<br/>
+    Jobs menu/Eval & Start Job improved.<br/>
+    File menu new item: Load and start Job.<br/>
+    Jobs menu item "Run Job on Dexter" improved.<br/>
+    Dexter.set_follow_me and friends now working for J6 & J7.<br/>
+    Job Engine extended with a bunch of DDE functions including require, get_page_async.
+<ul>
+    <li>Fixed 8 bugs in file_system_test_suite for folder_name_version_extension.</li>
+    <li>Changed <code>dex_inst.remove_from_busy_job_array</code>
+        to <code>Dexter.remove_from_busy_job_arrays</code>  in several places as this should
+        usually be called instead.</li>
+    <li>Now the simulator <b>both</b> option works.
+       The simulator is about 10% faster or so than the <b>real</b> Dexter.
+       Needs some work to get real dexter and sim in sync.</li>
+    <li>Dexter UI: fixed a problem when you:<br/>
+        1. launch DDE<br/>
+        2. start Dexter UI<br/>
+        3. uncheck the point down check box.<br/>
+        It use to move Dexter into a bad configuration.
+        Now it doesn't move Dexter at all (which is correct).</li>
+    <li>Removed <i>Jobs menu/Run Instruction/PARKED_ANGLES</i>
+        not useful and if Dexter is
+         uncalibrated, it may run into itself.</li>
+    <li>When you choose Jobs menu/<b>Dexter UI</b>,
+       a warning message is printed that Dexter
+        will move when you use this dialog box.</li>
+    <li> <b>Dexter UI</b> tutorial improved slightly with a warning that Dexter will move.</li>
+    <li>Fixed <code>Dexter.pid_move_to</code> to properly set up the passed in robot.</li>
+    <li>Fixed <code>Job.send</code> when an oplet array is passed in that has a
+        robot instance as its last element.</li>
+    <li>Fixed Dexter <b>simulator</b> such that when simulating a PID move,
+       and the simulator is not actually showing, it doesn't attempt to draw to it.</li>
+    <li><b>Make Instruction</b>: twisting down the "Recording" arrow automatically scrolls
+        the doc pane to documentation specific to Recording.</li>
+    <li>Improved the doc for <b>Make Instruction's record</b> facility.</li>
+    <li>Make Instruction record:
+        fixes to controls for play, stepping and dragging the "play head" circle.</li>
+    <li>Make Instruction record: insert now uses a new Brain robot for the high
+        level Job so that we don't have 2 Jobs with the same default robot.</li>
+    <li>Make Instruction record: clicking insert now does NOT pop up a dialog of
+       options. Smarter analysis and insertion plus easer-to-understand functionality
+       now make this unnecessary.</li>
+    <li>Make Instruction record: clicking "record button" sets visible form's do_list
+        to [] so user knows we're starting a new recording.</li>
+    <li>Make Instruction insertion of trailing commas improved.</li>
+    <li><code>Dexter.set_follow_me</code>, <code>force_protect</code>,
+        <code>open_loop</code> and <code>keep_position</code> instructions
+         now work for J6 and J7. Useful in Make Instruction record.</li>
+    <li>Now there's an explicit warning for user clicking on the <button>Eval</button> button
+          when only whitespace is selected.
+          This can occur when user inserts a recording with a high level Job.</li>
+    <li><b>Inspect</b> fixed for an edge case of inspecting 2D arrays.</li>
+    <li>Ref Man/Job/Definition Time vs Run Time tweaked and greatly extended with a
+          new sub-section: <b>Simplified Jobs Model</b>.
+          Recommended reading if you really want to understand what Jobs are all about.</li>
+    <li>Added to <b>Job engine</b> from regular DDE:<br/>
+        <code>file_exists</code>, <code>is_folder</code>, <code>persistent_get</code>,
+        <code>persistent_remove</code>, <code>persistent_save</code>,
+        <code>make_folder</code></li>
+    <li>new function: <code>append_to_file</code>
+         See Ref Man/IO/File Access/append_to_file.
+        Also in the Job Engine.</li>
+    <li><code>get_page_async</code> now available in the Job engine.
+        Doc improved at RefMan/IO/web/get_page_async</li>
+    <li>Job engine index.js, <code>run_node_command</code> improved eval call to make <code>require</code> calls work.</li>
+    <li>Fixed click help on a file name (path)</li>
+    <li>Fixed <code>read_file_async</code> when reading a file with a defaulting folder
+        name and we're reading from Dexter. This also fixes <code>copy_file_async</code>
+         when copying from Dexter to DDE.</li>
+    <li>Added an example to Ref Man/IO/File Access/copy_file_async for
+        copying to a Dexter.</li>
+    <li>DDE splitter-bar width increased from 5px to 8px to make dragging them easier.</li>
+    <li><b>Jobs menu/Eval & Start Job</b>: if you select instructions to run NOT in a Job definition,
+        a Job will be defined (as usual).
+        But now, such defined Jobs will use the Dexter.default
+        (selected in the Misc pane header.</li>
+    <li>Jobs menu/Eval & Start Job now functionality better matches
+        User Guide/User Interface/Editor Pane/Eval & Start Job menu item.</li>
+    <li>File menu new item: Load and start Job... that lets you choose a file.
+       It is loaded, and the first job in it (if any) is started.
+         Particularly useful for demos.</li>
+    <li><b>Simulator</b>: fixed to not attempt to display J6 & J7 movement if the simulator
+        is not showing.</li>
+    <li>Simulator controls for rotating Dexter improved.</li>
+    <li>Improved <code>Socket.on_receive</code> to take the Dexter instance as an argument
+        rather than compute it,
+       (somewhat heuristically) from a robot_status. More reliable, less code.</li>
+    <li>Ref Man/Robot/Robot Instructions/<code>Control/break</code> extended to include
+        an example of having an inner loop break out of an outer loop.</li>
+    <li>Jobs menu item <b>Run Job on Dexter</b> fixed to work not just when
+        you choose the menu item, but then click the Job button created to run the
+        Job a 2nd (or 3rd ...) time. Improved the tooltip for the menu item.</li>
+
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.7.18, Jun 30, 2021</summary>
 Highlights: New Job Param: when_do_list_done. Error system clean-up. Make Instrunction bugs fixed.
  New programmatic interface to versioned files.

@@ -334,7 +334,7 @@ function read_file_async_from_dexter_using_node_server(dex_instance, path, callb
         //path = path.substring(1) //because of crazy node server editor's code
     }
     else { //doesn't start with slash, meaning relative to server default
-        path = "/dde_apps/" + path //  on the node webserver, starting with / means ?srv/samba/share/
+        path = "dde_apps/" + path //  on the node webserver, starting with / means ?srv/samba/share/
                                     // so we add the dde_apps to be consistent with dde's default dir.
     }
     let url = "http://" + dex_instance.ip_address + "/edit?edit=" + path //example: "http://192.168.1.142/edit?edit=root/dde_apps/dde_init.js" whereby no beiginning slas actually means going from the server's top level of file system
@@ -544,6 +544,16 @@ function write_file_async_to_dexter_using_job(dex_instance, path, content, callb
     })
     the_job.start()
 }
+
+//https://stackoverflow.com/questions/3459476/how-to-append-to-a-file-in-node
+//https://nodejs.org/api/fs.html#fs_fs_createwritestream_path_options
+function append_to_file(path, content, encoding="utf8"){
+    path = make_full_path(path)
+    let stream = fs.createWriteStream(path, {flags:'as', encoding: encoding});
+    stream.write(content)
+    stream.end();
+}
+module.exports.append_to_file = append_to_file
 
 //the callback takes 1 arg, err. IF it is passed non-null, there's an error.
 // copy_file_async("foo/bar.js", "Dexter.dexter0:bar_copy.js"
@@ -1245,6 +1255,14 @@ function make_unique_path(path){
     return new_path
 }
 module.exports.make_unique_path = make_unique_path
+
+function get_page_async(url_or_options, callback){
+    //https://www.npmjs.com/package/request documents request
+    //as taking args of (options, cb) but the actual
+    //fn itself has params(uri, options, cb
+    request(url_or_options, callback)
+}
+module.exports.get_page_async = get_page_async
 
 var fs        = require('fs'); //errors because require is undefined.
 var app       = require('electron').remote;  //in the electron book, "app" is spelled "remote"

@@ -24,12 +24,15 @@ var Socket = class Socket{
         }
         let rob = Robot[robot_name]
         const sim_actual = Robot.get_simulate_actual(rob.simulate) //true, false, or "both"
-        if ((sim_actual === true)  || (sim_actual == "both")){
+        if (sim_actual === true){ //when we are ONLY simulating
             DexterSim.create_or_just_init(robot_name, sim_actual)
             //out("socket for Robot." + robot_name + ". is_connected? " + Robot[robot_name].is_connected)
             Socket.new_socket_callback(robot_name, job_instance, instruction_to_send_on_connect)
         }
         else if ((sim_actual === false) || (sim_actual == "both")) {
+            if(sim_actual == "both"){
+                DexterSim.create_or_just_init(robot_name, sim_actual) //harmless if done a 2nd time. returns without callbaack
+            }
             let net_soc_inst = Socket.robot_name_to_soc_instance_map[robot_name]
             if(net_soc_inst && (net_soc_inst.readyState === "closed")) { //we need to init all the "on" event handlers
                 this.close(robot_name, true)
@@ -59,7 +62,7 @@ var Socket = class Socket{
                 // net_soc_inst.on("data", function(data) {...} actually gives the socket 2 versions of the callback
                 // and so each will be called once, giving us a duplication that causes a difficult to find bug.
                 net_soc_inst.on("data", function(data) {
-                    Socket.on_receive(data)
+                    Socket.on_receive(data, undefined, rob)
                 })
                 net_soc_inst.on("connect", function(){
                     out(job_instance.name + " Succeeded connection to Dexter: " + robot_name + " at ip_address: " + rob.ip_address + " port: " + rob.port, "green")
@@ -438,9 +441,9 @@ var Socket = class Socket{
     //data should be a Buffer object. https://nodejs.org/api/buffer.html#buffer_buffer
     //payload_string_maybe is undefined when called from the robot,
     //and if called from sim and we have an "r" oplet, it is either a string (everything ok)
-    //or an integer (1) when sim get file-not-found.
+    //or a positive integer (1) when sim get file-not-found.
     //
-    static on_receive(data, payload_string_maybe){
+    static on_receive(data, payload_string_maybe, dexter_instance){
         //data.length == 240 data is of type: Uint8Array, all values between 0 and 255 inclusive
         //console.log("Socket.on_receive passed data:        " + data)
         let robot_status
@@ -486,14 +489,17 @@ var Socket = class Socket{
             Socket.convert_robot_status_to_degrees(robot_status)
         }
 
-        let rob = this.find_dexter_instance_from_robot_status(robot_status) //= Dexter[robot_name]
+        //the below line became unnecessary, and too complex, too hieruasic once we
+        //changed capturing the dexter_instance in the closure that is the wrapper
+        //for the call to on_received, in Socket.init
+        //let rob = this.find_dexter_instance_from_robot_status(robot_status) //= Dexter[robot_name]
         if (oplet === "F") {
-            rob.waiting_for_flush_ack = false
+            dexter_instance.waiting_for_flush_ack = false
         }
         let job_id = robot_status[Dexter.JOB_ID]
         let job_instance = Job.job_id_to_job_instance(job_id)
         //out(job_instance.name + " " + rob.name + " bottom of Socket.on_receive with: " + robot_status)
-        rob.robot_done_with_instruction(robot_status) //robot_status ERROR_CODE *might* be 1
+        dexter_instance.robot_done_with_instruction(robot_status) //robot_status ERROR_CODE *might* be 1
     }
 
     //this is needed bacause we might have an instruction like Dexter.dexter2.move_all_joints()
@@ -502,6 +508,11 @@ var Socket = class Socket{
     //so we want to first check the instruction to see if it has a robot.
     //if so. use it, if not, go for the default robot for the job and if that is an instance
     //of Dexter, use it, else error with shouldnt
+    //uPDATE JUl 18, 2021
+    //now unnecessary due to the Socket.init closure for on_receive capturiing the
+    //dexter intstnace and passing it to on_receive,
+    //BUT this code might come in handy some day
+    /*
     static find_dexter_instance_from_robot_status(robot_status){
         let job_id       = robot_status[Dexter.JOB_ID]
         let job_instance = Job.job_id_to_job_instance(job_id)
@@ -516,7 +527,7 @@ var Socket = class Socket{
         }
         else {
             let instr = job_instance.do_list[instr_id]
-            rob = instr.robot //this is the best we can do if there's a robot indincated in the instr
+            rob = instr.robot //this is the best we can do if there's a robot indicated in the instr
             if(!rob) {
                 if(Array.isArray(instr)) {
                     let last_elt = last(instr)
@@ -538,14 +549,14 @@ var Socket = class Socket{
             }
         }
         return rob
-    }
+    }*/
 
     static r_payload_grab(data, robot_status, payload_string_maybe) {
         if(payload_string_maybe === undefined) { //only in real, not in sim
             let payload_length = robot_status[Socket.PAYLOAD_LENGTH]
             let data_start = Socket.PAYLOAD_START
             let data_end = data_start + payload_length
-            payload_string_maybe = (data.slice(data_start, data_end).toString())
+            payload_string_maybe = data.slice(data_start, data_end).toString()
         }
         else if (payload_string_maybe instanceof Buffer) { //beware, sometimes payload_string_maybe is a buffer. This converts it to a string.
             payload_string_maybe = payload_string_maybe.toString()

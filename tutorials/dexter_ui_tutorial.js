@@ -56,9 +56,13 @@ dui_tour.addSteps([
           select <b>real</b> to move a real robot.`,
    popperOptions: {modifiers: [{ name: 'offset', options: { offset: [0, 20] } }]},
   },
-  {text: `The Dexter User Interface dialog box
-            is one easy way to accomplish these goals.<p></p>
-            Note: If you <b>didn't</b> see a new dialog box just pop up,
+  {attachTo: {element: '#warning_moving_dexter', on: 'top'},
+        text: `Using this dialog box with <b>real</b> selected will move Dexter.
+               Please clear its surrounding area and move Dexter slowly.`,
+        popperOptions: {modifiers: [{ name: 'offset', options: { offset: [0, 20] } }]},
+    },
+
+  {text: `If you <b>didn't</b> see the <i>Dexter User Interface</i> dialog box just pop up,
             check the lower right Output pane in DDE for warnings.
             Dexter may not be connected.<br/>
 

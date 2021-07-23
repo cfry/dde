@@ -201,12 +201,14 @@ DexterSim = class DexterSim{
                 //let angle_degrees_array = Socket.dexter_units_to_degrees_array(ds_instance.angles_dexter_units)
                 //let pid_angle_degrees_array = Socket.dexter_units_to_degrees_array(ds_instance.pid_angles_dexter_units)
                 //let sum_degrees_array = Vector.add(angle_degrees_array, pid_angle_degrees_array).slice(0, 5)
-                SimUtils.render_j1_thru_j5(ds_instance) //todo this just jumps to the new angles, not move smoothly as it should
-                if(pid_ang_du.length > 5) {
-                    SimUtils.render_j6(ds_instance)
-                }
-                if(pid_ang_du.length > 6) {
-                    SimUtils.render_j7(ds_instance) //don't bother to pass xyz and robot.pose as that's only used by simBuild.
+                if(SimUtils.is_simulator_showing()) {
+                    SimUtils.render_j1_thru_j5(ds_instance) //todo this just jumps to the new angles, not move smoothly as it should
+                    if(pid_ang_du.length > 5) {
+                        SimUtils.render_j6(ds_instance)
+                    }
+                    if(pid_ang_du.length > 6) {
+                        SimUtils.render_j7(ds_instance) //don't bother to pass xyz and robot.pose as that's only used by simBuild.
+                    }
                 }
                 ds_instance.ack_reply(instruction_array)
                 break;
@@ -348,9 +350,9 @@ DexterSim = class DexterSim{
         } 
          
         if (this.sim_actual === true){
-            let rob = this.robot
+            let dexter_instance = this.robot  //for closure variable
             setTimeout(function(){
-                        Socket.on_receive(robot_status_array, payload_string_maybe)
+                        Socket.on_receive(robot_status_array, payload_string_maybe, dexter_instance)
                         }, 1)
         }
     }

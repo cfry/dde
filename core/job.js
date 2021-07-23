@@ -375,6 +375,7 @@ class Job{
                                 else if ((this.user_data.stop_job_running_on_dexter) &&
                                          (!this.user_data.already_handled_stop_job))  { //set by clicking the job button
                                          this.user_data.already_handled_stop_job = true
+                                         this.user_data.stop_job_running_on_dexter = false
                                         return Dexter.write_file("job/run/killjobs", "")
                                         //now next time in this loop, the first clause should hit
                                 }
@@ -417,7 +418,8 @@ class Job{
         else if (["not_started", "completed", "errored", "interrupted"].includes(this.status_code)){
             let early_robot = this.orig_args.robot
             if(options.hasOwnProperty("robot")) { early_robot = options.early_robot }
-            if(early_robot instanceof Dexter)   { early_robot.remove_from_busy_job_array(this) }
+            //if(early_robot instanceof Dexter)   { early_robot.remove_from_busy_job_array(this) }
+            Dexter.remove_from_busy_job_arrays(this)
         }
         //active jobs & is_busy checking
         let early_start_if_robot_busy = this.orig_args.start_if_robot_busy
@@ -560,26 +562,34 @@ class Job{
             this.robot.start(this) //the only call to robot.start
             return this
     }
-    //action for the Start Job button
-    static start_job_menu_item_action () {
-        var full_src               = Editor.get_javascript()
-        var selected_src           = Editor.get_javascript(true)
-        var start_cursor_pos       = Editor.selection_start()
-        var end_cursor_pos         = Editor.selection_end()
-        var text_just_after_cursor = full_src.substring(start_cursor_pos, start_cursor_pos + 7)
-        var start_of_job = -1
-        if (text_just_after_cursor == "new Job") { start_of_job = start_cursor_pos }
-        else {
-            start_of_job = Editor.find_backwards(full_src, start_cursor_pos, "new Job")
-            let [start_job_pos, end_job_pos] = Editor.select_call(full_src, start_of_job)
-            if (end_job_pos < start_cursor_pos) { start_of_job = null } //because
-               //we found a new Job but the whole thing was before our start cursor,
-               //so the user is after the selection, not the preceding job.
+    //action for the Eval & start Job  menu item on Jobs menu.
+    static start_job_menu_item_action() {
+        let full_src               = Editor.get_javascript()
+        let selected_src           = Editor.get_javascript(true)
+        let sel_start_pos          = Editor.selection_start()
+        let sel_end_pos            = Editor.selection_end()
+        let start_of_job_maybe     = Editor.find_backwards(full_src, sel_start_pos, "new Job")
+        let start_of_job_pos
+        let end_of_job_pos
+        let job_src = null //if this is not null, we've got a valid job surrounds (or is) the selection.
+        let sel_is_instructions = false
+        if(start_of_job_maybe !== null){
+            [start_of_job_pos, end_of_job_pos] = Editor.select_call(full_src, start_of_job_maybe)
         }
-        if (start_of_job == null) {
+        if(end_of_job_pos && (end_of_job_pos > sel_start_pos)){ //sel is within a job, but we don't know if its
+            //instruction selection or just within the job yet.
+            job_src = full_src.substring(start_of_job_pos, end_of_job_pos)
+            let do_list_start_pos = full_src.indexOf("do_list:", start_of_job_pos)
+            if((do_list_start_pos === -1) || (do_list_start_pos > end_of_job_pos)) {} //weird, looks like Job has no do_list,
+              //but ok, we just have the whole Job to execute.
+            else if (do_list_start_pos < sel_start_pos) { //our selected_src should be instructions in the do_list
+                sel_is_instructions = true
+            }
+        }
+        if (job_src === null) { //no job def so we're going to make our own.
             //warning("There's no Job definition surrounding the cursor.")
             var selection = Editor.get_javascript(true).trim()
-            //if (selection.endsWith(",")) { selection = selection.substring(0, selection.length - 1) } //ok to have trailing commas in array new JS
+            if (selection.endsWith(",")) { selection = selection.substring(0, selection.length - 1) }
             if (selection.length > 0){
                 //if (selection.startsWith("[") && selection.endsWith("]")) {} //perhaps user selected the whole do_list. but
                 //bue we can also have a single instr that can be an array.
@@ -587,21 +597,25 @@ class Job{
                 //just go ahead and do it.
                 //else {
                 //plus
-                    selection = "[" + selection + "]"
-                    start_cursor_pos = start_cursor_pos - 1
+                selection = "[" + selection + "]"
+                sel_start_pos = sel_start_pos - 1
                 //}
                 var eval2_result = eval_js_part2(selection)
                 if (eval2_result.error_type) {} //got an error but error message should be displayed in output pane automatmically
-                else if (Array.isArray(eval2_result.value)){ //got a do_list!
+                else if (Array.isArray(eval2_result.value)){ //got an array, but is it a do_list of multiple instructions?
+                   let do_list
+                   if(!Instruction.is_instructions_array(eval2_result.value)){ //might never hit, but its an precaution
+                       do_list = [eval2_result.value]
+                   }
                    if (Job.j0 && Job.j0.is_active()) {
                         Job.j0.stop_for_reason("interrupted", "Start Job menu action stopped job.")
                         setTimeout(function() {
-                                       Job.init_show_instructions_for_insts_only_and_start(start_cursor_pos, end_cursor_pos,
-                                                                                           eval2_result.value, selection)},
+                                       Job.init_show_instructions_for_insts_only_and_start(sel_start_pos, sel_end_pos,
+                                                                                           do_list, selection)},
                                     (Job.j0.inter_do_item_dur * 1000 * 2) + 10) //convert from seconds to milliseconds
                     }
                     else {
-                        Job.init_show_instructions_for_insts_only_and_start(start_cursor_pos, end_cursor_pos,
+                        Job.init_show_instructions_for_insts_only_and_start(sel_start_pos, sel_end_pos,
                                                                             eval2_result.value, selection)
                     }
                 }
@@ -615,38 +629,85 @@ class Job{
                         "you must select exactly those instructions you want to run.")
             }
         }
-        else { //cursor is in a job def.
-            Editor.select_javascript(start_of_job)
-            let [job_start_pos, job_end_pos] = Editor.select_call()
-            if (job_end_pos){ //returns true if it manages to select the call.
-                //eval_button_action()
-                var job_src = full_src.substring(job_start_pos, job_end_pos)    //Editor.get_javascript(true)
-                const eval2_result = eval_js_part2(job_src)
-                if (eval2_result.error_type) { } //got an error but error message should be displayed in Output pane automatically
-                else {
-                    let job_instance    = eval2_result.value
-                    if(selected_src.length > 0) {
-                        let do_list = eval_js_part2("[" + selected_src + "]") //even if we only have one instr, this is still correct, esp if that one starts with "function().
+        //we have a job.
+        else {
+            const eval2_result = eval_js_part2(job_src)
+            if (eval2_result.error_type) { } //got an error but error message should be displayed in Output pane automatically
+            else {
+                let job_instance = eval2_result.value
+                if(!sel_is_instructions){
+                    job_instance.start()
+                }
+                else if (selected_src.length > 0){ //sel is instructions
+                    let do_list_result = eval_js_part2("[" + selected_src + "]") //even if we only have one instr, this is still correct, esp if that one starts with "function().
                            //if this wraps an extra layer of array around the selected_src, that will still work pretty well.
-                        if (eval2_result.error_type) { } //got an error but error message should already be displayed
-                        job_instance.start({do_list: do_list.value})
-                    }
-                    else { //no seletection, so just start job at do_lisrt item where the cursor is.
-                        const [pc, ending_pc]  = job_instance.init_show_instructions(start_cursor_pos, end_cursor_pos, start_of_job, job_src)
-                        job_instance.start({show_instructions: true, program_counter: pc, ending_program_counter: ending_pc})
+                    if (do_list_result.error_type) { } //got an error but error message should already be displayed
+                    else {
+                        job_instance.start({do_list: do_list_result.value})
                     }
                 }
+                else { //no selection, so just start job at do_list item where the cursor is.
+                    const [pc, ending_pc]  = job_instance.init_show_instructions(sel_start_pos, sel_end_pos, start_of_job_pos, job_src)
+                    job_instance.start({show_instructions: true, inter_do_item_dur: 0.5, program_counter: pc, ending_program_counter: ending_pc})
+                }
             }
-            else { warning("Ill-formed Job definition surrounding the cursor.") }
         }
     }
 
+    //all the below logic about whether to make a job with Dexter.default or a brain
+    //is heuristic, and not infallable, but likely to be OK.
     static init_show_instructions_for_insts_only_and_start(start_cursor_pos, end_cursor_pos, do_list_array, selection){
-        const job_instance = new Job({name: "j0", do_list: do_list_array})
-        const begin_job_src = 'new Job ({name: "j0", do_list: '
-        const job_src = begin_job_src + selection + "})"
-        const start_of_job = start_cursor_pos - begin_job_src.length//beware, could be < 0
-        job_instance.init_show_instructions(start_cursor_pos, end_cursor_pos, start_of_job, job_src)
+        let has_start_job_instruction = false
+        let start_job_job = null
+        let has_defaulting_dexter_instruction = false
+        for(let instr of do_list_array) {
+            if(instr instanceof Instruction.start_job) { //Control.start_job doesn't work here.
+                has_start_job_instruction = true //because its likely (but not guarenteed) that the job being started will have a default robot of a dexter (as in recordings, etc. and we can't have 2 active jobs both using the same dexter.
+                if(instr.job_name instanceof Job) {
+                    start_job_job = instr.job_name
+                }
+                else if(typeof(instr.job_name) == "string"){
+                    if(Job[instr.job_name] instanceof Job){
+                        start_job_job = Job[instr.job_name]
+                    }
+                }
+                else {
+                    dde_error("Control.start_job has a name that is not a Job or a string.")
+                }
+            }
+            else if ((instr instanceof Instruction.Dexter) &&
+                      !instr.robot) { //meaning use the Job's default robot
+                has_defaulting_dexter_instruction = true
+            }
+        }
+        let rob
+        if(has_start_job_instruction && has_defaulting_dexter_instruction){
+                if(start_job_job.robot &&
+                  (start_job_job.robot === Dexter.default)){
+                    dde_error("You've selected an instruction using the Job's default dexter robot and <br/>" +
+                              "a start_job instruction to a Job that uses Dexter.default.<br/>" +
+                              "This violates 2 active Jobs both having a robot of the same Dexter.<br/>" +
+                              "To separate these, wrap the selected instructions in a Job but<br/>" +
+                              "make the Dexter instructions have a subject of a Dexter instance,<br/>" +
+                              'such as Dexter.dexter0 and give the Job a <code>new Brain({name: "some_name"})</code> robot.'
+                    )
+                }
+                else { //has as start_job but its not to a job that is using Dexter.default so use Dexter.default
+                       //as its needed for the Dexter class instructions
+                    rob = Dexter.default
+                }
+        }
+        else if (has_start_job_instruction) { //does not have has_defaulting_dexter_instruction
+                rob = new Brain({name: "b0"})
+        }
+        else { //maybe has dexter instructions, maybe not, but doesn't have start_job so...
+            rob =  Dexter.default
+        }
+        const job_instance = new Job({name: "j0", robot: rob, do_list: do_list_array})
+        //const begin_job_src = 'new Job ({name: "j0", do_list: '
+        //const job_src = begin_job_src + selection + "})"
+        //const start_of_job = start_cursor_pos - begin_job_src.length//beware, could be < 0
+        //job_instance.init_show_instructions(start_cursor_pos, end_cursor_pos, start_of_job, job_src)
         job_instance.start({show_instructions: true})
     }
 
@@ -767,11 +828,11 @@ class Job{
                     else { job_instance.unsuspend() }
                 }
                 else if (job_instance.user_data.stop_job_running_on_dexter !== undefined) { //ie this job is MONITORING a job running on Dexter
-                    if (job_instance.user_data.stop_job_running_on_dexter === false){
-                        job_instance.user_data.stop_job_running_on_dexter = true
+                    //if (job_instance.user_data.stop_job_running_on_dexter === false){
+                    //    job_instance.user_data.stop_job_running_on_dexter = true
                         job_instance.color_job_button() //keep this call
-                    }
-                    else if(job_instance.is_active()){
+                    //}
+                    if(job_instance.is_active()){
                         //if (job_instance.robot instanceof Dexter) { job_instance.robot.empty_instruction_queue_now() }
                         job_instance.stop_for_reason("interrupted", "User stopped job", false)
                     }
@@ -1377,7 +1438,7 @@ Job.stop_all_jobs = function(){
 }
 
 Job.prototype.undefine_job = function(){
-    if(this.robot instanceof Dexter) { this.robot.remove_from_busy_job_array(this) }
+    if(this.robot instanceof Dexter) { Dexter.remove_from_busy_job_arrays(this) }
     delete Job[this.name]
     Job.forget_job_name(this.name)
     this.remove_job_button()
@@ -2318,9 +2379,10 @@ Job.prototype.send = function(oplet_array_or_string, robot){ //if remember is fa
         let last_elt = last(oplet_array_or_string)
         if (last_elt instanceof Robot) {
             robot = last_elt
-            oplet_array_or_string.slice(0, oplet_array_or_string.length - 1) //don't use "pop" because
+            oplet_array_or_string = oplet_array_or_string.slice(0, oplet_array_or_string.length - 1) //don't use "pop" because
             //we need the orig do list item that contains the robot  because
-            //Socket.find_dexter_instance_from_robot_status needs it
+            //Socket.find_dexter_instance_from_robot_status needs it. So make a COPY of the array,
+            //removing that last elt of a robot, as the socket code doesn't want a robot on the end of the array.
         }
         else if (!robot)                                  { robot = this.robot } //use the job's default robot
     }
@@ -2329,7 +2391,7 @@ Job.prototype.send = function(oplet_array_or_string, robot){ //if remember is fa
         //    this.instr_and_robot_to_send_when_robot_unbusy = [oplet_array_or_string, robot]
         //    return
         //}
-         robot.add_to_busy_job_array(this) //the only place this is called.
+         robot.add_to_busy_job_array(this) //the only place this is called (err besides 5 lines below)
          return //we're not sending the instruction, leave the PC on the current instruction
                //Dexter.prototype.robot_done_with_instruction will call set_up to execute it.
         }

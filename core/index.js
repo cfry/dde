@@ -1,5 +1,5 @@
-global.dde_version = "3.7.18" //require("../package.json").version
-global.dde_release_date = "Jun 30, 2021" //require("../package.json").release_date
+global.dde_version = "3.8.0" //require("../package.json").version
+global.dde_release_date = "Jul 23, 2021" //require("../package.json").release_date
 
 console.log("dde_version: " + global.dde_version + " dde_release_date: " + global.dde_release_date +
             "\nRead electron_dde/core/job_engine_doc.txt for how to use the Job Engine.\n")
@@ -54,10 +54,14 @@ function run_node_command(args){
     node_on_ready()
 
     let cmd_name = args[2]
-    let fn = eval(cmd_name)
+    //let fn = eval(cmd_name)
     let the_args = args.slice(3)
-    console.log("cmd_name: " + cmd_name + " args: " + the_args)
-    fn.apply(null, the_args)
+    //console.log("cmd_name: " + cmd_name + " args: " + the_args)
+    //fn.apply(null, the_args)
+
+    let cmd = cmd_name + "(\"" + the_args.join(", ") + "\");"
+    console.log(cmd)
+    eval(cmd)
 
 }
 
@@ -115,11 +119,16 @@ function run_shell_cmd(cmd_string, options={}, cb=run_shell_cmd_default_cb){
     exec(cmd_string, options, cb)
 }
 
-var {copy_file_async, copy_folder_async,
-     dde_init_dot_js_initialize, file_content, //file_content is deprecated
-     folder_listing, folder_separator, folder_name_version_extension,
-     get_latest_path, load_files, make_unique_path,
-     persistent_initialize, read_file, write_file} = require('./storage.js')
+var {append_to_file,
+    choose_file, choose_save_file, choose_file_and_get_content, choose_folder,
+    copy_file_async, copy_folder_async,
+    dde_init_dot_js_initialize, file_content, //file_content is deprecated
+    file_exists, folder_listing, folder_separator, folder_name_version_extension,
+    get_latest_path, get_page_async,
+    is_folder, load_files,
+    make_folder, make_full_path, make_unique_path,
+    persistent_get, persistent_initialize, persistent_remove, persistent_save,
+    read_file, read_file_async, write_file, write_file_async} = require('./storage.js')
 
 var {Root} = require("./object_system.js")
 var Coor   = require("../math/Coor.js")
@@ -204,15 +213,23 @@ global.acosd    = acosd
 global.atand    = atand
 global.atan2d   = atan2d
 
+global.append_to_file = append_to_file
 global.copy_file_async = copy_file_async
 global.copy_folder_async = copy_folder_async
 global.file_content = file_content //deprecated
+global.file_exists = file_exists
 global.folder_listing = folder_listing
 global.folder_separator = folder_separator
 global.folder_name_version_extension = folder_name_version_extension
 global.get_latest_path = get_latest_path
+global.get_page_async = get_page_async
+global.is_folder = is_folder
 global.load_files = load_files
 global.make_unique_path = make_unique_path
+global.make_folder = make_folder
+global.persistent_get = persistent_get
+global.persistent_remove = persistent_remove
+global.persistent_save = persistent_save
 global.read_file = read_file
 global.write_file = write_file
 

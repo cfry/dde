@@ -175,6 +175,19 @@ this is LGraphCanvas.prototype.
 The only onMouseDown def is for CurveEditor,
 but LGraphCanvas.prototype.bindEvents = function() binds mouseDown to
 LGraphCanvas.prototype.canvas
+canvas.addEventListener("contextmenu", this._doNothing);
+LGraphCanvas.prototype.processMouseDown = function(e) {
+LGraphCanvas.onMenuAdd = function (node, options, e, prev_menu, callback) {
+and friends near bottom of the file.
+LGraphCanvas.prototype.getCanvasMenuOptions = function() {
+ LGraphCanvas.prototype.getNodeMenuOptions = function(node) {
+ LGraphCanvas.prototype.processContextMenu = function(node, event) {
+Top level var:
+ var menu = new LiteGraph.ContextMenu(menu_info, options, ref_window);
+function ContextMenu(values, options) {
+
+
+
 Trying to get pop up menu on a node.
 
 Node: onDblClick
@@ -227,6 +240,16 @@ LINEAR_LINK: 1,
 SPLINE_LINK: 2,
 LiteGraphCanavas  this.links_render_mode = LiteGraph.SPLINE_LINK;
 
+Drawing animation of data flowing in links:
+LGraphCanvas.prototype.renderLink = function(...)
+takes an arg:  @param {boolean} flow ... show flow animation (for events)
+ (arg #6 starting at 1)
+See bottom of renderLink function for the "flow" code.
+There are 3 calls to renderLink().
+  For the sixth arg (flow) the values are: null, 0 and f where f is a local var
+  bound to: var f = 2.0 - (now - link._last_time) * 0.002;
+  So much for the "boolean" documentation.
+
 <h4>Questions</h4>
 <pre>
 You can write any feedback to javi.agenjo@gmail.com
@@ -241,6 +264,7 @@ creates the node "Rand" not my node "and" which is registered.
 ???relationship of subgraph and group?
 ??? how to create subgraphs, expand and shrink them.
 ???How to bring up context menu on click right (on background, node, group)
+??? How to turn on animation of data flowing through links.
 
 
 ??? How to make a node be rendered as a small image, like and AND gate with input and output circles?

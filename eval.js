@@ -87,8 +87,17 @@ function eval_js_part1(step=false){
     latest_eval_button_click_source = src
     if (src.trim() == ""){
         open_doc(learning_js_doc_id)
-        warning("There is no code to execute.<br/>See <span style='color:black;'>Learning JavaScript</span> " +
-            "in the Documentation pane for help.")
+        if(src.length > 0) {
+            warning("There is a selection in the editor but it has whitespace only<br/>" +
+                    "so there is no code to execute.<br/>" +
+                    "If you intended to eval the whole editor buffer,<br/>" +
+                    "click to eliminate the selection,<br/>" +
+                    "then click the Eval button again.")
+        }
+        else {
+            warning("There is no code to execute.<br/>See <span style='color:black;'>Learning JavaScript</span> " +
+                "in the Documentation pane for help.")
+        }
     }
     else{
         if (Editor.view == "DefEng") {

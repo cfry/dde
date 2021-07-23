@@ -71,7 +71,23 @@
             that folder).
             If you do not have a dde_apps folder under your Documents folder, please create one.
 
-        <details id="choose_file_doc_id" class="doc_details"><summary>choose_file</summary>
+
+
+        <details id="append_to_file_doc_id" class="doc_details"><summary>append_to_file</summary>
+            Append content to a file path. Leaves the existing content in place but
+            adds to the end of it. If the file does not exist, it is created.<br/>
+            <i>Parameters</i><br/>
+            <b>path</b> Usually a string of a file name, but can be a buffer or URL.
+              If a string arg does not start with a slash, and is not a url,
+              <code>dde_apps_folder</code> is prepended to it.<br/>
+            <b>content</b> a string, Buffer or Uint8Array to append to the file.<br/>
+            <b>encoding</b> Default: <code>"utf8"</code> See
+            <a href="#" onclick="open_doc(write_file_doc_id)">encoding details</a><br/>
+            <i>Example:</i><br/>
+            <code>append_to_file("log6.txt", "hey world")</code>
+        </details>
+
+            <details id="choose_file_doc_id" class="doc_details"><summary>choose_file</summary>
             Pops up a dialog box allowing you to navigate the file system to choose a file.
             Returns a string of the full path of the file.
             <br/>
@@ -127,14 +143,15 @@
         <b>source_path</b> Required. A string of a file path. The file can be of any type.<br/>
         <b>destination_path</b> Required. A string of a file path. Will create a new
         file if it doesn't exist, or overwrite an existing file if it does exist.<br/>
-        <b>callback</b> A function that takes one argument, an error object.
+        <b>callback</b> Default: a function that prints out success or failure in the output pane.
+          The function takes one argument, an error object.
         The function is called if the read operation of the source_path errors,
         such as when the source_path file doesn't exist.
         If no error on the read operation, the write operation is called
         with the callback passed as its callback. If the error object passed is
         <code>null</code>, that means the operation succeeded.
         <p></p>
-        <i>Example:</i><br/>
+        <i>Examples:</i><br/>
         <pre><code>copy_file_async(
     "dde_init.js",
     "dde_init_copy_for_testing.js",
@@ -142,6 +159,13 @@
         if(err) {warning("copying dde_init.js errored with: " + err.message)}
         else { out("dde_init.js copied successfully.")}
         })    </code></pre>
+
+        <code>copy_file_async("foo.js", "Dexter.dexter0:foo_copy.js")</code>
+        Copies the file "dde_apps/foo.js"<br/>
+        to the ip address in</br/>
+        Dexter.dexter0, and file: /srv/samba/share/dde_apps/foo_copy.js<br/>
+        The callback defaults to one that prints success or failure
+        to DDE's output pane.
         </details>
 
         <details id="copy_folder_async_doc_id" class="doc_details"><summary>copy_folder_async</summary>
@@ -1309,7 +1333,7 @@ For lower level, but broader capabilities, see
 
 <details id="Picture.init_doc_id" class="doc_details"><summary>init</summary>
 Before Picture methods can be used,<br/>
-<code>&nbsp;Picture.init() </code><br/> must be evaled.
+<code>Picture.init() </code><br/> must be evaled.
 It takes a few seconds because it loads in OpenCV.js and other libraries.
 The 2nd through nth times it is called, it does nothing and
 returns very quickly so no harm in calling it multiple times a session.
@@ -1476,7 +1500,7 @@ to be longer than 10 feet.
 The "default" webcam for the DDE software will be the one built-in to
 your computer (if any). But if you're attaching a webcam to a computer,
 you'll have to specify the ID of the camera you intend to use.<br/>
-<code> Picture.show_video_cameras() </code></br> prints out a list of the video cameras
+<code>Picture.show_video_cameras() </code></br> prints out a list of the video cameras
 that are currently connected to your computer. Each camera has a:
 <ul>
 <li><b>kind</b> Always "videoinput"</li>
@@ -3553,8 +3577,12 @@ This will not work for Jobs run on the Job Engine on Dexter.
         These include the HTTP methods of: GET (the default), POST, PUT, PATCH, DELETE, HEAD, OPTIONS,
         plus a zillion other options for authentication, etc.<br/>
         <b>callback</b> When the content of the web page is retrieved,
-        this callback is called, passing an error (or not), the response object,
-        and the string of the content of the page.
+        this callback is called, passing:
+        <ol>
+        <li>an error object (or null), if no error.</li>
+        <li>the response object</li>
+        <li>the body, i.e. a string of the content of the page, typically HTML.</li>
+        </ol>
         JavaScript on the page will not be evaled, but if the page is not found,
         there will be an error.
         <p></p>
@@ -3693,7 +3721,7 @@ Jobs either run to completion, error, or are stopped by the user via:
 </details>
 
 <details class="doc_details"><summary>Definition Time vs Run Time</summary>
-    To fully understand how a job operates, you must understand the difference
+    To fully understand how a Job operates, you must understand the difference
     between <i>Job Definition Time</i> and <i>Job Run Time</i>.
     <p></p>
     <b>Job Definition Time</b></br/>
@@ -3706,7 +3734,7 @@ Jobs either run to completion, error, or are stopped by the user via:
     class Job. Once done, you can access the Job instance via
     <code title="unEVALable">Job.my_job</code><br/>
     Many properties of the job are accessible via, for example,
-    <code>Job.my_job.name</code> , which returns the string of the Job's name.<br/>
+    <code>Job.my_job.robot</code> , which returns the default robot of the Job.<br/>
     Of particular import is the do_list. In the case of:
     <pre><code>var ang1 = 90
 new Job({name: "my_job",
@@ -3723,7 +3751,11 @@ new Job({name: "my_job",
     just one instance of the move_all_joints instruction.
     This instance will have its joint1 angle set to 90 because <code>ang1</code>
     is evaled when the Job definition is evaluated, and <code>ang1</code> evals
-    to 90. If you simply eval <code>Dexter.move_all_joints(90)</code>,
+    to 90. By using a global variable in multiple instructions or even multiple Jobs,
+    we can change lots of instructions to have a particular consitent value
+    with just one <code>var ang1 = 90</code> .
+    <p></p>
+    If you simply eval <code>Dexter.move_all_joints(90)</code>,
     you can inspect the returned object and see that it has an
     <i>array_of_angles</i> property storing where the Dexter's angles will
     be commanded to go when the Job is actually run.
@@ -3732,8 +3764,8 @@ new Job({name: "my_job",
     Now let's walk through <i>Job Run Time</i>. You run a Job
     by clicking its <button>job name</button> button or by calling
     <code title="unEVALable">Job.my_job.start()</code><br/>
-    One way to think of starting a job is that it is a <i>second</i> evaluation
-    of the Job. Only this time, it is not using JavaScript's eval, it is using
+    One way to think of starting a Job is that it is a <i>second</i> evaluation
+    of the Job. Only this time, it is not using JavaScript's <code>eval</code>, it is using
     Job's special evaluator. Instead of taking an input of JavaScript source code,
     its taking input of the items on the do_list (created via JS eval when defining the Job)
     which can be of many different types.
@@ -3746,8 +3778,8 @@ new Job({name: "my_job",
     degrees into arcseconds, and sent to the Job's default robot, which better be a Dexter.
     <p></p>
     <b>Re-Running a Job</b></br/>
-    After a job has finished, you can rerun it by clicking its
-    <button>job name</button> button or calling its start method again.
+    After a Job has finished, you can rerun it by clicking its
+    <button>job name</button> button or calling its <code title="not Evalable">start</code> method again.
     This does not redefine the job.
     So for instance, if between two runnings of a Job, we set our
     global variable of <code title="unEVALable">ang1</code> to 45,
@@ -3759,7 +3791,8 @@ new Job({name: "my_job",
     That Joint1 inside the instance of move_all_joints is still 90,
     so our 2nd running of my_job should behave the same, even
     if we modify the value of <code title="unEVALable">ang1</code>.
-    Actually if you do re_run my_job, it won't be exactly the same
+    Actually if you do re_run my_job, Dexter won't behave exactly the same
+    as it did the first time,
     because the Dexter robot will now be at a pose with Joint 1 equal to 90,
     so in our 2nd running, the robot won't move. But besides this initial
     "set up move", following moves would be the same between the two runnings.
@@ -3791,7 +3824,7 @@ new Job({name: "my_job",
     To run arbitrary JS code during the running of a Job, wrap that code
     in a function definition like so:
     <pre><code>new Job({name: "my_job1",
-        do_list: [function(){return Dexter.move_all_joints(30)}]
+         do_list: [function(){return Dexter.move_all_joints(30)}]
         })</code></pre>
     To achieve the same result, we could also do:
     <pre><code>function move_it_buddy(){return Dexter.move_all_joints(30)}
@@ -3813,17 +3846,12 @@ new Job({name: "my_job1",
     it sets local variables of the function's parameters to the values passed in,
     and evaluates the code in the body of the function.
     <p></p>
-    In the cases above, <code title="unEVALable">ang1</code> <i>will</i> be evaled at Job Run Time,
-    as will the code that creates the instance of move_all_joints.
     Anything returned by a function definition on the do_list will be
     dynamically added to the do_list right below the function definition.
     Our do_list started out with just one item, but after running
     that one item, our do_list is extended by an instance of move_all_joints.
     That instance of move_all_joints is inserted into the do_list immediately after
     the function that generated it, making it run immediately after the function.
-    So now, if we change the value of ang1 between two runnings of my_job,
-    we won't have to redefine the whole job in order to get the effect
-    of changing the value of ang1.
     <p></p>
     A function definition on a do_list doesn't
     have to return anything. It may just have side effects like calling <code>out</code>
@@ -3831,7 +3859,7 @@ new Job({name: "my_job1",
     the Job will error.
     <p></p>
     <b>Job Instance Access</b><br/>
-    If you want to access the running Job Instance at run time, use a
+    If you want to access the running Job instance at run time, use a
     function definition on the do_list, and reference <code>this</code> in
     the body of that function definition.<br/>
     <i>Example:</i><br/>
@@ -3842,7 +3870,8 @@ new Job({name: "my_job1",
                  ]})
     </code></pre>
     Note that using <code title="unEVALable">user_data</code> is a convenient way to pass values from one
-    instruction to another, without cluttering the global variable space.<br/>
+    instruction to another, without cluttering the global variable space.
+    <p></p>
     <b>Flexibility and Complexity</b><br/>
     Jobs have a great deal of flexibility. We can use the full power of
     a general purpose programming language (JS) plus DDE's libraries
@@ -3861,7 +3890,220 @@ new Job({name: "my_job1",
 
     For a more complete understanding of JavaScript <code>eval</code>, see the DDE article:
     <a href="#" onclick="open_doc('how_to_think_like_a_computer_doc_id', event)">How to Think like a Computer</a>
-</details>
+
+        <details class="doc_details"><summary>Simplified Jobs Model</summary>
+            Programmers know that you don't really understand
+            a process until you can code it.
+            But we also want the ability to effectively
+            use high level code without having to
+            understand the details.
+            These are contradictory until you realize that
+            there's a middle ground. We want to understand
+            a process just enough to know its behavior without
+            needing to understand all the details of its
+            implementation.
+            <p></p>
+            Authoring and running Jobs for a robot in DDE is a
+            complex process implemented with a huge amount of code.
+            A lot of that code simplifies the process by elevating the level
+            of coding a Job author must to. None the less,
+            to have an accurate-enough model of authoring and running
+            Jobs is not trivial. The advantage of this "non-trivial"
+            is a tremendous amount of flexibility.
+            <p></p>
+            You can grasp the essence of this process by
+            examining a simplified model of authoring Jobs and
+            their running. We've constructed one in a bare bones
+            JavaScript representation. It lacks the bells and whistles of
+            full blown DDE,
+            but hopefully is just enough for you to mentally model
+            the process of authoring and running Jobs to take advantage of DDE's power.
+            <p></p>
+            Select and <button>Eval</button> the below code as you read.
+            Examine the Output pane for the results of the evaluation.<br/>
+
+            <b>DDE model:</b>
+            <pre><code>function model_new_job(do_list_array){
+   return {do_list: do_list_array,
+           program_counter: 0}
+}</code></pre>
+
+<b>Job author model:</b><br/>
+<code>var my_job = model_new_job([[15, 30, 45], "abc" + "def"])</code>
+<p></p>
+<b>Explanation:</b></br>
+A Job is essentially a named do_list.
+So to make one, we pass in an array and
+set the resulting Job to a variable: <code>my_job </code>
+<p></p>
+The do_list is an array of instructions to be run
+when we start the Job.
+Here we're creating a Job with just two instructons.
+<ol>
+<li>an array of 3 integers</li>
+<li>a string of 6 letters</li>
+</ol>
+The <i>source code</i> for those instructions is
+a string of<br/>
+<code>'[[15, 30, 45], "abc" + "def"]' </code> <br/>
+Evaluating that string (select the above without the surrounding single quotes and
+click <button>Eval</button> ) returns a 2 element array.
+That array becomes the Job's do_list.
+<p></p>
+You can select and eval:
+<ol>
+<li>an individual argument to an instruction</li>
+<li>the whole instruction</li>
+<li>the whole do_list</li>
+<li>the entire Job definition</li>
+</ol>
+Do all of these. Examine the content of the result in
+the inspector that appears in DDE's Output pane
+after clicking the <button>Eval</button> button.
+For more complex real jobs, piece by piece evaluation and
+inspection aids understanding and debugging.
+When evaling <code>my_job </code> , notice that we initialize the Job's program counter
+to 0 to point at "the current instruction".
+<p></p>
+Now its time to run our Job.<br/>
+<b>DDE Model:</b>
+<pre><code>function model_start_job(a_job){
+     let pc = a_job.program_counter
+     if (pc >= a_job.do_list.length) {
+        out("Finished Job.")
+        a_job.program_counter = 0 //prepare for next start of Job.
+     }
+     else {
+     	let cur_inst = a_job.do_list[pc]
+        model_do_instruction(cur_inst)
+        model_set_up_next_instruction(a_job)
+     }
+}
+
+function model_do_instruction(a_inst){
+   if(Array.isArray(a_inst)) {
+      out("running array instruction: " + a_inst, "green")
+   }
+   else if(typeof(a_inst) == "string") {
+      out("running string instruction: " + a_inst, "green")
+   }
+}
+
+function model_set_up_next_instruction(a_job){
+    //sleep for inter_do_item_dur
+    a_job.program_counter = a_job.program_counter + 1
+    model_start_job(a_job)
+}</code></pre>
+
+<b>Job author model:</b><br/>
+<code> model_start_job(my_job) </code>
+<br/>
+<b>Explanation:</b><br/>
+<code>model_start_job</code> grabs the instruction in the do_list
+at the program counter, passes it to model_do_instruction
+which models running the instruction by printing it out in <span style="color:green;">green</span>.
+In real DDE, the instruction
+is sent to a robot (or the simulator) to run.
+<p></p>
+Then model_start_job calls <code>model_set_up_next_instruction </code> .
+In real DDE, this pauses or "sleeps" the Job running, for
+a fraction of a second, to give other active Jobs a chance
+to run <i>their</i> instructions.
+<p></p>
+Then model_set_up_next_instruction increments <code>my_job.program_counter</code> and
+calls <code>model_start_job</code>
+to start the process all over again.
+This keeps going until we run out of items
+in the do_list.
+<p></p>
+DDE has many different kinds of instructions,
+but we'll describe just one particularly versatile one here,
+a function definition.
+If you have a function call in the do_list source code,
+it will be called when the Job definition is evaled,
+just like all the other arguments. But you might
+want to have the call evaled during the <i>running</i> of a job instead.
+just like another instruction is run.
+Perhaps that call depends on something that happens
+when a previous instruction is run or another condition,
+only available at run-time.
+We can "protect" the call from being evaled at Job definition
+time, by wrapping it in a function definition.
+<p></p>
+Let's say we want to print the exact time
+when an instruction in the middle of the do_list is called.
+If we defined our Job like so:<br/>
+<b>Job author model:</b><br/>
+<pre><code>model_new_job([[15, 30, 45],
+               out(new Date(), "green")])</code></pre>
+then <code>out(new Date(), "green")</code>
+gets evaled at Job definition time, and returns a Date object
+(<code>out</code> returns its first argument)
+that goes into the do_list array.
+Since DDE doesn't know what to do with a Date on the do_list,
+DDE will error if you run such a Job.
+But, if we define our Job like this instead:<br/>
+<b>Job author model:</b><br/>
+<pre><code>var my_job = model_new_job([[15, 30, 45],
+                      function(){
+                          out(new Date(), "green")
+                      }
+]) </code></pre>
+Then extend the <b>DDE model:</b>
+<pre><code>function model_do_instruction(a_inst){
+   if(Array.isArray(a_inst)) {
+      out("running array instruction: " + a_inst, "green")
+   }
+   else if(typeof(a_inst) == "string") {
+      out("running string instruction: " + a_inst, "green")
+   }
+   else if (typeof(a_inst) == "function"){
+       a_inst.call()
+   }
+}</code></pre>
+Now when we call<br/>
+<b>Job author model:</b><br/>
+<pre><code>var my_job = model_new_job([[15, 30, 45],
+          function(){
+              out(new Date(), "green")
+          }
+]) </code></pre>
+the code <code>out(new Date(), "green")</code> is <i>not</i> evaled.<br/>
+
+<b>Job author model:</b><br/>
+<code> model_start_job(my_job) </code>,<br/>
+runs our Job as usual, but with our extension to
+<code>model_do_instruction</code>, the function on the do_list is
+called, our <code>new Date</code> code is evaled,
+and we get a printout of the time when the instruction is run,
+not when the Job is defined.
+<p></p>
+We can run this Job definition many times (without redefining it)
+and it will always print out the correct time.
+Having a function definition be an "instruction" means
+we can put <i>any</i> JavaScript on the do_list
+and have it run between any two other instructions.
+<p></p>
+Furthermore, if a function on a do_list has a return value,
+that value is <i>automatically</i> inserted into the do_list immediately after the function
+instruction (in real DDE).
+Thus, such return values are treated as an instruction. The instruction's arguments
+can be determined programmatically at Job run time by the function
+creating those instructions.
+<p></p>
+An array of instructions on the do_list is treated
+just as if all its instructions were at top level,
+so a function can return multiple instructions in an array.
+We can return a different number of instructions based on
+run-time conditions. Each can be a different kind of instruction.
+All this computation can happen
+<i>while</i> the Job is running, giving DDE controled robots the
+ability to respond to conditions not exiting
+at Job definition time.
+This "self-modifying code"
+makes Jobs exceedingly dynamic and powerful.
+</details> <!-- end Simplified Jobs Model -->
+</details> <!-- end Job Definition Time vs Run Time -->
 
 <details id="new_job_parameters_doc_id" class="doc_details"><summary>new Job parameters</summary>
 The parameters used to define a new Job all have defaults.<br/>
@@ -4758,9 +5000,9 @@ new Job({name: "my_job5",
 <details class="doc_details"><summary>Control</summary>
     Control instructions can be used in any Job regardless of its default robot.
 <details id="Control.break_doc_id" class="doc_details"><summary>break</summary>
-    The Control.break() instruction, when in the body of a
-    <a href="#" onclick="open_doc('Control.loop_doc_id', event)">Control.loop</a>,
-    instruction, ends the loop.
+    The Control.break() instruction, when returned from the body function of a
+    <a href="#" onclick="open_doc('Control.loop_doc_id', event)">Control.loop</a>
+    instruction, will end the loop.
     <p></p>
     <i>Parameters:</i> None.<br/>
     <i>Example:</i> <pre><code>new Job({name: "my_job6",
@@ -4774,10 +5016,35 @@ new Job({name: "my_job5",
                               else { return Control.break() } }),
                IO.out("end of job")
                ]})    </code></pre>
-    If you have nested loops, Control.break ends the inner loop only.
     If Control.break is not in a loop, a warning will be printed in the Output pane.
-    <p></p> Note that Javascript also uses the symbol <code title="unEVALable">break</code>
-    to end a JavaScript <code title="unEVALable">for</code> loop.
+    <p></p><p></p>
+    If you have nested loops, Control.break ends the inner loop only.
+    However, here's a technique to break from the outer loop based on a condition
+    set by an innner loop:
+<pre><code>new Job({
+    name: "my_job",
+    user_data: {break_outer_loop: false},
+    do_list: [
+        Control.loop(3, function(){
+            out("outer loop start")
+            if(this.user_data.break_outer_loop) {
+              return Control.break()
+            }
+            return Control.loop(3, function(){
+               out("inner loop")
+               this.user_data.break_outer_loop = true
+               return Control.break()
+            })
+         })
+    ]
+}) </code></pre>
+   Observe that the outer loop <i>starts</i> a 2nd iteration, but is
+   cut short when <code title="unEVALable">this.user_data.break_outer_loop</code> evaluates to <code>true</code>.
+   You can put the test for <code title="unEVALable">this.user_data.break_outer_loop</code>
+   at the very top of the outer loop's body function if you like.
+   <p></p>
+    Note that Javascript also uses the symbol (not a call) <code title="unEVALable">break</code>
+    to end JavaScript <code title="unEVALable">for</code> and <code title="unEVALable">while</code> loop.
 </details>
 
 <details id="Control.continue_doc_id" class="doc_details"><summary>continue</summary>
@@ -5282,9 +5549,12 @@ new Job({
  <b>job_name</b> Required. Can be:
  <ul><li>An instance of the Job to start.</li>
     <li>A string starting with "Job." followed by the Job's name.</li>
-    <li>A string of the Job's name.</li>
+    <li>A string of the Job's name (and, if none of those ...)</li>
     <li>A string of a path (file name) to a file that contains a definition of the
-        Job to start. The first Job definition in the file will be used.</li>
+        Job to start. The first Job definition in the file will be used.
+        If the string does not start with /, then the path is relative to
+        <code>dde_apps_folder</code>, as per DDE convention.
+    </li>
  </ul>
  <b>start_options</b> A literal object. Name-value pairs that can
  be passed when creating a new Job can also be passed to a job's <i>start</i> method and
@@ -5906,7 +6176,7 @@ Dexter's position as well as respond to forces on the arm and other sensor data.
 <p></p>
 An instance of Dexter is created like so:
 <pre><code title="not in TestSuite"> new Dexter({name: "my_dex",
-            simulate: true
+             simulate: true
            })</code></pre>
 <p></p>
 <!--Multiple jobs may use a given robot instance as their robot. It is up to the programmer

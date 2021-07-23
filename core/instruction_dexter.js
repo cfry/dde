@@ -388,6 +388,7 @@ Instruction.Dexter.pid_move_to = class pid_move_to extends Instruction.Dexter{
         this.workspace_pose = ((workspace_pose === null) ? undefined : workspace_pose)
         this.j6_angle       = j6_angle
         this.j7_angle       = j7_angle
+        this.robot          = robot
     }
     do_item (job_instance){
         if(!this.robot) { this.set_instruction_robot_from_job(job_instance) }

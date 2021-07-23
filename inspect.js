@@ -175,7 +175,7 @@ function inspect_aux(item, stack_number, in_stack_position, increase_max_display
                                       ' onchange="inspect_toggle_2d_checkbox(' + stack_number + ', ' + in_stack_position + ')" ' +
                                       (inspect_2d ? "checked" : "") +
                                       '/>2D'
-            if (inspect_2d && (item.length > 0) && is_array_of_same_lengthed_arrays(item)) { //2D arrays can't be "typed arrays"
+            if (inspect_2d && is_array_of_same_lengthed_arrays(item)) { //2D arrays can't be "typed arrays"
                   //all elts of item are arrays, but they might be of different lengths.
                 title = "A 2D Array of " + item.length + "x" + item[0].length
                 result = inspect_format_2D_array(item)
@@ -453,7 +453,7 @@ function inspect_one_liner(item, stack_number, in_stack_position, prop_name){
     }
 
     else if (Array.isArray(item))  {
-       if ((item.length > 0) && Array.isArray(item[0])) { return inspect_format_2D_array(item) }
+       if (is_array_of_same_lengthed_arrays(item)) { return inspect_format_2D_array(item) }
        else return inspect_clickable_path(item, stack_number, in_stack_position, prop_name) +
                     inspect_extra_info(item)
     }
@@ -520,6 +520,13 @@ function inspect_one_liner_existing_file_path(item){
         return '"' + item + '" is a folder.'
     }
     else { //item is an existing file (not a folder)
+       let the_file_content
+       try{
+           the_file_content = read_file(item)
+       }
+       catch(err){
+           return "Could not read content of: " + item
+       }
         the_file_content = replace_substrings(the_file_content, "<", "&lt;") //if I don't do this, fns with bodies containing tags
         let file_length = the_file_content.length
         let title_suffix = "&#013;This file has length: " + file_length

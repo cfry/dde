@@ -245,7 +245,7 @@ var Simqueue = class Simqueue{
         let ds_instance = this.sim_instance
         let dur_in_ms = ds_instance.predict_j6_plus_instruction_dur_in_ms(new_angle_in_dexter_units, joint_number)
         if(dur_in_ms === 0) {} //the joint is already at the commanded angle so nothing to do. This is a big optimization for a common case.
-        else {
+        else if (SimUtils.is_simulator_showing()){
             let val_for_show = (this.show_degrees ? Socket.dexter_units_to_degrees(new_angle_in_dexter_units, joint_number) : new_angle_in_dexter_units)
             val_for_show = (Number.isInteger(val_for_show) ? val_for_show : val_for_show.toFixed(3))
             this.joint_number_to_j6_plus_status_map[joint_number] = "moving to " + val_for_show

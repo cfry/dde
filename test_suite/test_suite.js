@@ -594,6 +594,8 @@ var TestSuite = class TestSuite{
         return this_suite.report
     }
 
+
+
     //when called normally, suspend_jobs defaults to true.
     //but when called when evaling just one test suite via user interaction,
     //this fn  should be call with suspend_jobs=true
@@ -1005,6 +1007,40 @@ var TestSuite = class TestSuite{
         }
     }
 
+    static globals = []
+
+    //beware, excludes methods that are documented, but are "not in Testsuite" due to
+    //problems running them non-interactively, like
+    // get_page, get_page_async, choose_file, choose_folder
+    // also lots of utils.js exported fns not in the list generated
+    // (but not documented either).
+    static compute_globals_array(){
+        this.globals = []
+        this.run_ts_in_file(__dirname + "/doc/guide.html")
+        this.run_ts_in_file(__dirname + "/doc/ref_man.html")
+        return this.globals
+    }
+
+    static collect_global(src){
+        let a_global = src
+        if(a_global.includes(".")){
+            a_global = a_global.substring(0, a_global.indexOf("."))
+        }
+        if(a_global.includes("(")){
+            a_global = a_global.substring(0, a_global.indexOf("("))
+        }
+        if(is_string_an_identifier(a_global) &&
+           !this.globals.includes(a_global)  && //not already recorded
+           !["undefined", "null", "true", "false", "eval", "console",
+                    "this", "confirm", "NaN", "constructor", "Object", "window",
+                    "Math", "math", "Number", "add",
+                    "foo", "bar", "baz", "ang1", "win"].includes(a_global) &&
+            (value_of_path(a_global) !== undefined)
+          ) {
+          this.globals.push(a_global)
+        }
+    }
+
     static make_test_suites_from_doc(html_elt=reference_manual_id){
         var doc_test_suites = []
         for(var dom_elt of [html_elt]){ //user_guide_id
@@ -1037,6 +1073,7 @@ var TestSuite = class TestSuite{
                     }
                     a_test_suite_tests.push(a_test)
                 }
+                this.collect_global(fixed_src) //we want to capture even tests that are "not in testsuite" or potentially unevalable
             }
             doc_test_suites.push(new TestSuite(dom_elt.id, ...a_test_suite_tests))
         }

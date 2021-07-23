@@ -1451,7 +1451,7 @@ Dexter = class Dexter extends Robot {
 
         job_instance.wait_until_instruction_id_has_run = null
         let busy_job_array_copy = rob.busy_job_array.slice()
-        rob.clear_busy_job_array() //so that the other jobs that I call set_up_next_do, won't hang up because hteir busy,
+        rob.clear_busy_job_array() //so that the other jobs that I call set_up_next_do, won't hang up because they are busy,
          //because they no longer should be busy, because we got back our ack from Dexter that was keeping them busy,
         for(let busy_job of busy_job_array_copy){
             if(busy_job === job_instance) {} //let this pass through to the below as the passed in robot_status is from this instrr and this job_instance
@@ -1546,7 +1546,7 @@ Dexter = class Dexter extends Robot {
     }
 
     //called when a job is finished. Note that we might have a
-    //job that has, say a brain default robout but has instructions that are sent to a Dexter,
+    //job that has, say a brain default robot but has instructions that are sent to a Dexter,
     //and Job.send still adds its Job to the busy_job_array of a Dexter,
     //so we better remove it from all Dexters' busy_job_array
     static remove_from_busy_job_arrays(a_job) {
@@ -2293,18 +2293,49 @@ Dexter.prototype.read_file = function (source, destination="read_file_content"){
 
 Dexter.prototype.read_from_robot = Dexter.prototype.read_file
 
+
+//See James N email Jul 14, 2021
+Dexter.turn_off_j6_and_j7_torque  = function(){
+    return [Dexter.set_parameter("ServoSet", 3, 24, 0), //J6, for XL-320 motors
+            Dexter.set_parameter("ServoSet", 1, 24, 0)] //J7, for XL-320 motors
+}
+
+Dexter.prototype.turn_off_j6_and_j7_torque  = function(){
+    return [this.set_parameter("ServoSet", 3, 24, 0), //J6, for XL-320 motors
+            this.set_parameter("ServoSet", 1, 24, 0)] //J7, for XL-320 motors
+}
+
+Dexter.turn_on_j6_and_j7_torque  = function(){
+    return [Dexter.set_parameter("ServoSet", 3, 24, 1), //J6, for XL-320 motors
+            Dexter.set_parameter("ServoSet", 1, 24, 1)] //J7, for XL-320 motors
+}
+
+Dexter.prototype.turn_on_j6_and_j7_torque  = function(){
+    return [this.set_parameter("ServoSet", 3, 24, 1), //J6, for XL-320 motors
+            this.set_parameter("ServoSet", 1, 24, 1)] //J7, for XL-320 motors
+}
+
+
 //from Dexter_Modes.js (these are instructions. The fns return an array of instructions
-Dexter.set_follow_me                = function(){ return make_ins("S", "RunFile", "setFollowMeMode.make_ins")} //function(){ return setFollowMe() }
-Dexter.prototype.set_follow_me      = function(){ return make_ins("S", "RunFile", "setFollowMeMode.make_ins", this)} //function(){ return setFollowMe(this) }
+Dexter.set_follow_me                = function(){ return [make_ins("S", "RunFile", "setFollowMeMode.make_ins"),
+                                                          Dexter.turn_off_j6_and_j7_torque()]}
+Dexter.prototype.set_follow_me      = function(){ return [make_ins("S", "RunFile", "setFollowMeMode.make_ins", this),
+                                                          this.turn_off_j6_and_j7_torque()]}
 
-Dexter.set_force_protect            = function(){ return make_ins("S", "RunFile", "setForceProtectMode.make_ins")} //function(){ return setForceProtect() }
-Dexter.prototype.set_force_protect  = function(){ return make_ins("S", "RunFile", "setForceProtectMode.make_ins", this)} //function(){ return set_force_protect(this) }
+Dexter.set_force_protect            = function(){ return [make_ins("S", "RunFile", "setForceProtectMode.make_ins"),
+                                                          Dexter.turn_on_j6_and_j7_torque()]}
+Dexter.prototype.set_force_protect  = function(){ return [make_ins("S", "RunFile", "setForceProtectMode.make_ins", this),
+                                                          this.turn_on_j6_and_j7_torque()]}
 
-Dexter.set_keep_position            = function(){ return make_ins("S", "RunFile", "setKeepPositionMode.make_ins")} //function(){ return setKeepPosition() }
-Dexter.prototype.set_keep_position  = function(){ return make_ins("S", "RunFile", "setKeepPositionMode.make_ins", this)} //function(){ return set_keep_position(this) }
+Dexter.set_keep_position            = function(){ return [make_ins("S", "RunFile", "setKeepPositionMode.make_ins"),
+                                                          Dexter.turn_on_j6_and_j7_torque()]}
+Dexter.prototype.set_keep_position  = function(){ return [make_ins("S", "RunFile", "setKeepPositionMode.make_ins", this),
+                                                          this.turn_on_j6_and_j7_torque()]}
 
-Dexter.set_open_loop                = function(){ return make_ins("S", "RunFile", "setOpenLoopMode.make_ins")} //function(){ return setOpenLoop() }
-Dexter.prototype.set_open_loop      = function(){ return make_ins("S", "RunFile", "setOpenLoopMode.make_ins", this)} //function(){ return set_open_loop(this) }
+Dexter.set_open_loop                = function(){ return [make_ins("S", "RunFile", "setOpenLoopMode.make_ins"),
+                                                          Dexter.turn_on_j6_and_j7_torque()]}
+Dexter.prototype.set_open_loop      = function(){ return [make_ins("S", "RunFile", "setOpenLoopMode.make_ins", this),
+                                                          this.turn_on_j6_and_j7_torque()]}
 
 
 //End Dexter Instructions

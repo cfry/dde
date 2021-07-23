@@ -8,8 +8,8 @@
 
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version: <span id="dde_version_id">3.7.18</span><br/>
-    released: <span id="dde_release_date_id">Jun 30, 2021</span>
+    version: <span id="dde_version_id">3.8.0</span><br/>
+    released: <span id="dde_release_date_id">Jul 23, 2021</span>
     <p></p>
     DDE helps you create, debug, and send software to a Dexter robot.
     You can use any JavaScript augmented with DDE-specific functions to help find out about,
@@ -767,14 +767,7 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
            If you want to always have click help off, stick the above
            code in your dde_init.js file.
        </details>
-    </details> <!-- end Editor pane -->
-    <details id="output_pane_doc_id" class="doc_details"><summary>Output Pane</summary>
-        DDE prints information in the Output pane that will be useful in your current context.
-        You can explicitly print in the output pane with a call to the JavaScript function <code>out</code>.
-        Example:<br/>
-        <code>out("hi <i>world</i>", "blue")</code><br/>
-        <code>out</code> accepts any valid HTML as its first argument. It will be rendered in the Output pane.
-        <details id="eval_and_start_job_doc_id" class="doc_details"><summary>Eval&Start Job menu item</summary>
+        <details id="eval_and_start_job_doc_id" class="doc_details"><summary>Eval & Start Job menu item</summary>
             This defines and starts a job with instructions determined by the
             selection or cursor position within the Editor.
             <p></p>
@@ -791,8 +784,16 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
             If you have selected the source code for one or more instructions
             (with comma's between them) and there is no <code  title="not in TestSuite"> new Job()</code> wrapper
             around the instructions, then a Job wrapper will be automatically made
-            behind the scenes, the job will be defined, and started.
+            behind the scenes, the Job will be defined, and started.
+            Such Jobs will use the Dexter.default robot, chosen in the Misc pane header.
         </details>
+    </details> <!-- end Editor pane -->
+    <details id="output_pane_doc_id" class="doc_details"><summary>Output Pane</summary>
+        DDE prints information in the Output pane that will be useful in your current context.
+        You can explicitly print in the output pane with a call to the JavaScript function <code>out</code>.
+        Example:<br/>
+        <code>out("hi <i>world</i>", "blue")</code><br/>
+        <code>out</code> accepts any valid HTML as its first argument. It will be rendered in the Output pane.
 
     </details>
     <details id="documentation_pane_doc_id" class="doc_details"><summary>Documentation Pane</summary>
@@ -889,7 +890,7 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
            display an error message in the Output pane.
         </details> <!-- end make instruction -->
 
-        <details  class="doc_details" id="recording_doc_id" class="doc_details"><summary>Recording</summary>
+        <details  id="make_instruction_recording_doc_id" class="doc_details" id="recording_doc_id" class="doc_details"><summary>Recording</summary>
         <i>Programming by example</i> is an end-user programming technique used to
         decrease the complexity and time of entering explicit instructions.
         The simplest kind of programming by example is making a "recording" (program)
@@ -914,13 +915,13 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
         or by splicing out a middle portion and keeping just the ends.
         <p></p>
         When you are satisfied with a recording, you can insert the definition
-        of a Job that, when run, will <i>play</i> your recording.
+        of a Job into the Editor that, when run, will <i>play</i> your recording.
         Inserting a job has lots of flexibility. After the Job is inserted into
         the editor buffer, you can edit and run it just like other Jobs.
         Inserting contains a special facility to make the building up
         of a higher level Job that concatenates lower level recording Jobs.
         This is analogous to piecing together a movie from snippets of film,
-        only in the context with all the programmatic control that Jobs have.
+        only in the context of all the programmatic control that Jobs have.
         <p></p>
         The user interface for recording provides a lot of flexibility
         in a small space with (hopefully) obvious controls.
@@ -935,6 +936,10 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
             <li>In the Misc Pane header, select <input type="radio" checked="checked"/>real .<br/>
                 You can record in <i>simulate</i> mode, but it just records a bunch of static positions.
             </li>
+            <li>At the very bottom of the dialog, twist down
+                <details><summary style="font-weight: 400; font_size:12px;">Recording</summary></details>
+                (You might have to expand the height of this pane to see it.)
+                </li>
             <li>Click the <input style='background-color:#ff8899;' type='button' value='Record'/> button.
                 If the Make Instruction being edited is <i>not</i> a Job, a new Job will be
                 inserted there. This is the Job that the recording will be recorded into.
@@ -950,10 +955,15 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
                  with gripper <i>twist</i> as Joint 6.
             </li>
             <li> Move the robot slowly and purposefully to one or more destinations.
-                 If you want Dexter to pick up an object, open the gripper, move the
-                 gripper over the object and close the gripper on the object then
-                 move the end effector (while holding the object in the gripper
-                 to the desired location and open the gripper to let the object go.
+                 If you want Dexter to pick up an object
+                 <ol>
+                     <li>Open the gripper</li>
+                     <li> move the gripper over the object</li>
+                     <li>close the gripper on the object</li>
+                     <li>move the end effector (while holding the object in the gripper)
+                     to the desired location</li>
+                     <li>open the gripper to let the object go.</li>
+                 </ol>
             </li>
             <li> While recording, you can pause the recording by clicking
                 <b style='font-size:28px;'>&#8545</b> , the pause button.
@@ -964,9 +974,7 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
             </li>
             <li> Click the pause button again to resume recording.
                  It will change back to <b style='font-size:28px;'>&#8545</b> .
-                 You can also click the
-                 <input style='background-color:rgb(136, 255, 136);' type='button' value='recording'/>
-                 to stop recording. Note that it will help to have a
+                 Note that it will help to have a
                  second person to start/pause/stop recording while
                  the first person is moving the robot.
             </li>
@@ -987,7 +995,7 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
             </li>
             <li> You can edit the values in the Make Instruction properties for the new Job,
                  including for do_list. You can tweak values, or even put
-                 in a computation such as <code>6 * _arcsec</code> for a joint value.
+                 in a computation such as <code>6 * 3.14</code> for a joint value.
             </li>
             <li>If your recording is beyond repair, just click
                 <input style='background-color:#ff8899;' type='button' value='Record'/>
@@ -1015,8 +1023,8 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
                  <span style='font-size:15px;'>&#9664;</span> single steps backwards.
             </li>
             <li> The two vertical black rectangles on the green horizontal bar indicate
-                 begin and end <i>marks</i> on your tape recording. These effectively
-                 divide your recording into a middle, and "ends".
+                 begin and end <i>marks</i> on your "tape" recording. These effectively
+                 divide your recording into a middle segment, and "ends".
                  Drag the left (begin) mark right. Drag the right (end) mark left.
                  Notice that only the portion of the bar between the two marks is green,
                  while the part of the bar outside the marks is gray.
@@ -1049,9 +1057,47 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
             <li> Once you have the recording the way you want it, its time to save it
                  for future use. For all types of instructions, the <button>Insert</button> button
                  inserts the JavaScript for the Make Instruction dialog's instruction
-                 into the editor pane. When you are editing a Job, there are lots of
-                 options so a dialog box pops up to let you choose them.
+                 into the editor pane.
+                 <p></p>
+                 When you are editing a Job made via recording,
+                 the  the <button>Insert</button> button has some special functionality.
+                 If the editor buffer is empty, or has no Job definitions,
+                 two Job definitions are inserted at the end of the buffer.<br/>
+                 1. A high level Job definition
+                 containing just one instruction, a <code>Control.start_job</code> instruction,
+                 that references<br/>
+                 2. A "low-level" Job that contains, in its do_list, the actual
+                 move instructions captured in the recording.
+                <p></p>
+                If there is already at least one Job in the editor, in place of the
+                above "high level" Job, a <code>Control.start_job</code> instruction
+                is inserted at the bottom of the do_list of the first Job in the editor.
+                Then, at the bottom of the editor, a new low-level Job is inserted
+                containing the recorded move instructions. This low-level Job
+                will have a unique name (for the editor buffer).
             </li>
+            <li> Click the <button>Eval</button> to define the Jobs in the editor.</li>
+            <li> Click the high level Job button to run the Jobs that it starts,
+                 or any of the low-leve Job buttons to run them individually.
+            </li>
+            <li>Edit the Jobs just like an ordinary Job. A high leverage thing
+               to do is reorder, and/or duplicate <code>Control.start_job</code> instructions
+               in the high level Job without touching the low level Jobs.
+            <li>When you're satisfied with your Job set, save the file</li>
+            <li>Now you can load and start that Job, (and others), perhaps after
+               shutting down and re-launching DDE,  by choosing from
+               DDE's File menu <b>Load and start Job...</b>.
+            </li>
+            <li>You can build ever higher hierarchies by creating Jobs such as:
+            <pre><code title="not in TestSuite.">new Job({
+    name: "my_job",
+    robot: new Brain({name: "b0"}),
+    do_list: [
+        Control.start_job("my_recording1.dde", undefined, undefined, true)
+        //...
+    ]})</code></pre></li>
+    </ol>
+    <!-- obsolete Insert Job dialog box description
             <li> Click the <button>Insert</button> button. If you just want your Job
                  inserted with nothing fancy, click this dialog's <button>Insert</button>
                  button and the source code for the Job will be inserted into the editor.
@@ -1152,6 +1198,7 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
                 </ul>
                 Please experiment with them!
             </li>
+            -->
         </ol>
         </details> <!-- end Recording -->
 
@@ -2287,7 +2334,7 @@ and see the results in DDE's Output pane.
     <a id="email_bug_report_id" href="#">cfry@hdrobotic.com</a><br/>
     If the above does not create an email or you want to send your bug report
     from a different computer, please Eval: <br/>
-    <code> make_dde_status_report() </code><br/>
+    <code>make_dde_status_report() </code><br/>
     then copy and paste the output text into your email.<br/>
     Take a look at the
     latest <a href="#" onclick="open_doc(release_notes_doc_id)">Release Notes</a><br/>
