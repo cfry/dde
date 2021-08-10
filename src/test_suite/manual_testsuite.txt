@@ -1,0 +1,406 @@
+- In DDE, choose: Test menu/Run all testsuites
+
+- hear speech output during the running of all testsuites,
+     or, eval speak("hello world")
+
+- After the run, veryfiy that the Output pane shows no bugs.
+
+- In the small dialog titled "Modify Window",
+  click the "click to colorize" button and verify that
+  a new line of text appears below the button
+  looking like: rgb(244,124,102) is inserted,
+  and that the button changes to that rgb color.
+
+- In the Window titled "Printer Config"
+  tweak the controls
+  then click the "show settings" button and verify that the values
+  printed in the Output pane, are what you set them to.
+
+- Look in Chrome Dev tools for any red-text errors.
+
+- click on Welcome Window/Move Dexter and take the steptorial.
+
+_____
+Messaging.eval({source: "2 + 3",
+callback: function(aa){out(aa)}
+, to: "kb",
+ resend: true})
+
+
+
+These tests can't be performed by the automatic test system.
+Each is ideosyncratic in how "success" is measured.
+See the comments.
+
+//causes a dom error when in the testsuite.
+//see webcam video show in small window.
+Picture.show_video() 
+_____
+//click stop button while waiting (job button yellow)
+new Job({
+    name: "my_job",
+    user_data: {array: [0]},
+    when_stopped: function() { Job.my_job.user_data.array.push(3)},
+    when_stopped_conditions: {interrupted_by_stop_button: false},
+    do_list: [
+        function() { Job.my_job.user_data.array.push(1)},
+         Control.wait_until(5),
+        function() { Job.my_job.user_data.array.push(2)}
+    ]
+}).start()
+
+similar(Job.my_job.user_data.array, [0, 1])
+________
+//click the stop button while its waiting.
+new Job({
+    name: "my_job",
+    user_data: {array: [10]},
+    when_stopped: function() { Job.my_job.user_data.array.push(13)},
+    when_stopped_conditions: {interrupted_by_stop_button: true},
+    do_list: [
+        function() { Job.my_job.user_data.array.push(11)},
+         Control.wait_until(5),
+        function() { Job.my_job.user_data.array.push(12)}
+    ]
+}).start()
+
+similar(Job.my_job.user_data.array, [10, 11, 13])
+___________
+
+//click the job button while its waiting.
+new Job({
+    name: "my_job",
+    user_data: {array: [20]},
+    when_stopped: function() { Job.my_job.user_data.array.push(23)},
+    when_stopped_conditions: {interrupted_by_stop_button: true},
+    do_list: [
+        function() { Job.my_job.user_data.array.push(21)},
+         Control.wait_until(5),
+        function() { Job.my_job.user_data.array.push(22)}
+    ]
+}).start()
+
+similar(Job.my_job.user_data.array, [20, 21, 23])
+
+_______
+//Job will pause for 10 seconds, then pop up a
+//confirm dialog box asking users to try a new ip_address.
+//teh ip address increments each time.
+//click cancel stops the job, job button turns red.
+new Job({name: "my_job",
+         robot: new Dexter({name: "disconnected_dex",
+                            ip_address: "111.111.1.111",
+                            simulate: false}),
+         if_dexter_connect_error: function(robot_name) {
+              out("Failed to connect " + this.robot.name + " at ip_address: " + this.robot.ip_address)
+              let orig_ip_address = this.robot.ip_address
+              let old_last_digit = parseInt(last(orig_ip_address))
+              let new_last_digit = old_last_digit + 1
+              let new_ip_address = orig_ip_address.substring(0, orig_ip_address.length - 1) +
+                                   new_last_digit
+              if(confirm("try again with ip_address: " + new_ip_address + "?")){
+                  this.robot.ip_address = new_ip_address
+                  this.start()
+              }
+         },
+         do_list:[IO.out("its working!")
+       ]}).start()
+
+_______
+Run the job, it should pause at Control.step_instructions(),
+then you can step through the instructions (not into them)
+by using the Misc pane header "Go" button.
+new Job({
+    name: "my_job",
+    do_list: [
+        IO.out("one"),
+        Control.step_instructions(),
+        IO.out("two"),
+        IO.out("three"),
+    ]
+})
+________
+Run the job, (with the Dev tools window closed)
+ it should open the dev tools window, and break
+ at top of  do_next_item, while starting to execute the
+ instruction AFTER the Control.debugger() instrudction, ie: out "two".length
+
+    then you can step through the instructions (not into them)
+by using the Misc pane header "Go" button.
+new Job({
+    name: "my_job",
+    do_list: [
+        IO.out("one"),
+        Control.debugger(),
+        IO.out("two"),
+        IO.out("three"),
+    ]
+})
+
+______
+new Job({
+    name: "my_job",
+    do_list: [
+        Dexter.move_all_joints(0, 0, 0),
+        Dexter.move_all_joints(10, 20, 30),
+        Dexter.sleep(3),
+        Dexter.empty_instruction_queue(),
+        Dexter.get_robot_status(1),
+        Dexter.move_all_joints(30, 40, 50)
+        //Dexter.move_all_joints(40, 50, 60)
+    ]
+})
+Notice that there's a 3 second pause in the middle of running te job.
+THen Choose Jobs menu/Show robot status.
+It should come up with the "g1" status, with Measured Angles being non-zero.
+Click the "Run Update Job" button to get no errors
+Click the "Inspect Array" button to see g1 array of 60 elements.
+___________
+Run the job, (with the Dev tools window closed).
+Click on the Misc Pane JS Debugging check
+when the job's button is yellow while paused at Control.wait_until(4).
+This should open the dev tools window and break
+at the top of do_next_item, while executing  the wait_until instruction.
+See the help about calling undebug_job() in the console and Out pane.
+ Job({
+    name: "my_job",
+    do_list: [
+        IO.out("one"),
+        Control.wait_until(4),
+        IO.out("two"),
+        IO.out("three"),
+    ]
+})
+
+var foo = {a: 11}
+delete foo.a
+
+Messaging____
+Messaging.login_test_trials = 10  //constant
+Messaging.login_test_trials_done = 0
+Messaging.login_test_start_ms = 0
+Messaging.login_durs = []
+
+Messaging.login_user_callback = function(res){
+   let dur = Date.now() - Messaging.login_test_start_ms
+   Messaging.login_durs.push(dur)
+   out("Messaging.login_user_callback got statusCode: " + res.statusCode + ", dur_ms: " + dur)
+   if(Messaging.login_test_trials_done >= Messaging.login_test_trials){ //all done
+       let total_dur = Messaging.login_durs.reduce(function(acc, cur) { return acc + cur })
+       let avg_dur = total_dur / Messaging.login_test_trials
+       out("Messaging.login_test completed: " +
+           Messaging.login_test_trials_done + " trials." +
+           ", avg round trip dur: " + avg_dur)
+       //prepare for next set of trials  
+       Messaging.login_test_trials_done = 0 
+       Messaging.login_durs = []
+   }
+   else { Messaging.login_test() }
+}
+
+Messaging.login_test = function(){
+    out("Messaging.login_test starting test: " + Messaging.login_test_trials_done)
+	Messaging.is_logged_in = false
+    Messaging.login_test_start_ms = Date.now()
+	Messaging.login({user: "kb", pass: "Argh666"}) 
+    Messaging.login_test_trials_done += 1
+}
+Messaging.login_test() //run the tests
+
+_____
+//HIDDEN SPLITTER BLINKING
+//eval this in editor and see "hey" after 4 seconds.
+//Then collapse the output pane by clickign on the center of its splitter bar,
+// and eval it again, Now the output pane center should blick green.
+setTimeout(function(){out("hey")}, 4000)
+
+1  collapse verical splitter, choose
+2. choose Jobs menu/Help
+3. observe blinking green vertical splitter.
+____________________________________
+PHUI_GUI Manual Test
+Fry Jan 13, 2021 (DDE 3.7.2)
+
+Create folder under dde_apps named SpectraPass
+
+Create folder under SpectraPass named Saved_Motions
+
+Connect and turn on Dexter
+  Wait for Dexter to finish boot calibration
+
+Launch DDE
+
+If you are using DDE 3.6.6 or later:
+    Eval: PatchDDE.load_dde_2_to_3()  (note: this might be at the first line in the file, if so,
+                                       no need to do this step.)
+    This will show the loading of a file.
+Else if you are using a DDE 3 that is less than 3.6.6. you can't run this program.
+
+Choose DDE's File menu/Open, and choose the file: SpectraPass_MotionSetup.dde
+
+This will will fill DDE's editor with a large file of code.
+
+Click in the editor pane but don't make a selection.
+
+Click the Eval button.
+    This pops up a large dialog box.
+    If you have nothing connected to the serial port, you
+    will get an error message in the output pane:
+    "Error: serial_connect_low_level errored..."
+        you can ignore this error.
+
+Select a Dexter from the dropdown menu.
+   Often there will be only one, "dexter0".
+   If so, just leave it.
+
+Click the "Add" button.
+    This will cause the selected dexter it disappear from
+    the dropdown menu and add a row of 5 checkboxes below.
+
+In the row of 5 checkboxes, check the 3rd from the left (the middle one).
+
+Place your hand on Dexter's handle to steady it.
+
+Click the "StartRobots" button.
+   This puts the selected Dexter in follow mode.
+   The robot will move just slightly when you do this.
+
+Manually move the dexter around. Dexter should let you move it.
+
+Click phui button on Dexter's tool interface.
+
+See in the Output pane:
+   Button on
+   Set Point
+   Button off
+
+Click the "Write Motion" button.
+   This should make a file, with the name of the file in the text entry in the dialog
+   labeled "FName".
+
+Click the "Done" button at the bottom of the dialog.
+   This will cause Dexter to move to home position (straight up)
+   and close the dialog box.
+
+In DDE, choose File menu/Oen, and open the file that
+   was written by clicking on "Write Motion", ie:
+    dde_apps/SpectraPass/Saved_Motions/fn_
+   In that file will be a function definition that
+   returns array of move_all_joints instructions.
+   It should look like this (with different values for the arguments to
+   move_all_joints based on the angles of the joints when you clicked the
+   phui button) :
+function fn_(){
+     out('fn_')
+ return [
+
+    Dexter.move_all_joints(1.0044, 0.9956, 1, 0.9539, 0.9956, -1.45, 82.65),
+    make_ins("F"),]
+}
+
+Done with PHU_GUI manual test.
+
+_____Job for testing queoe Simulation_____
+In DDE 3.7.8 or later.
+- IN Misc pane header, click "Show Q".
+- Run job
+- Observe that
+   - the queue blocks additional items after the  Dexter.empty_instruction_queue()
+   - comment out the Dexter.empty_instruction_queue() and the queue should block
+      when its full.
+   - Queue status goes from empty, blocked, sleep, full, accepting
+   - sleep should pause the simulation for 5 seconds
+   - after a run, click Params button to see changes (these are in dexter units!)
+   - after a run click "FPGA" button to see changes to fpga register 7
+
+new Job({
+         name: "my_job",
+         do_list: [
+             Dexter.move_all_joints([10, 20, 90]),
+             Dexter.move_all_joints([ 1, 10,  3]),
+             Dexter.move_all_joints([ 1, 50,  3]),
+             Dexter.sleep(5),
+             Dexter.move_all_joints([ 1,  0,  3]),
+             Dexter.set_parameter("J1Force", 0.44),
+             Dexter.write_fpga(7, 747),
+             Dexter.move_all_joints([-22, 20, 90]),
+             Dexter.empty_instruction_queue(),
+             Dexter.move_all_joints([ 1, 10,  3]),
+             Dexter.move_all_joints([ 1,  50,  3]),
+             Dexter.move_all_joints([ 1,  0,  3]),
+             Dexter.move_all_joints([10, 20, 90]),
+             Dexter.move_all_joints([ 1, 10,  3]),
+             Dexter.move_all_joints([ 1, 50,  3]),
+             Dexter.move_all_joints([ 1,  0,  3]),
+             Dexter.move_all_joints([10, 20, 90]),
+             Dexter.set_parameter("Acceleration", 0.2),
+             Dexter.move_all_joints([ 1, 10,  3]),
+             Dexter.move_all_joints([ 1, 50,  3]),
+             Dexter.move_all_joints([ 88,  0,  3]),
+             Dexter.move_all_joints([ 99, 30,  3])
+         ]
+     })
+
+____testing the "stopping" Job status_code________
+eval:
+new Job({
+    name: "my_job",
+    do_list: [
+        Dexter.move_all_joints(0, 90),
+        Dexter.empty_instruction_queue(),
+        Dexter.move_all_joints(0, 0),
+        IO.out("end of my job")
+    ]
+})
+now under both sim and real do:
+- start to run straight through
+- do it again
+- start to run but click its stop button
+  while the button is bright green.
+  This should turn the button brown,
+  have the robot continue on its first move to 90 degrees,
+  then the job stops and robot does not move back to 0, 0.
+- start to run straight through, and should just
+   move back to home.
+- start to run straight through and verify robot moves down and up
+- start, click on job button to stop it at its very beginning
+  of being bright green, observe that it turns brown,
+    then while still brown, click the button again.
+  it should immediately turn orange.
+  The movement should continue to the 90 degrees and stop.
+
+Now define
+new Job({
+    name: "my_job1",
+    do_list: [
+        Dexter.move_all_joints(0, 0, 45),
+        Dexter.empty_instruction_queue(),
+        Dexter.move_all_joints(0, 20),
+        IO.out("end of my job")
+    ]
+})
+then start the first job (my_job) and while its button is
+bright green,
+click the my_job1 button to start it.
+mny_job1 button should immediately turn red,
+erroring with
+"Error: Attempt to start Job.my_job1 with Dexter.dexter0,
+ but that Dexter is already running Job.my_job,
+ so Job.my_job1 was automatically stopped."
+ Ie 2 jobs can't attempt to control the same Dexter.
+ _____________
+Testing the button working on the tool interface
+new Job({
+	name: "Test_Button",
+    show_instructions: false,
+    do_list: [
+    	Robot.loop(true, function(){
+        	if((this.robot.robot_status[Dexter.END_EFFECTOR_IN] & 1) === 0){
+            	out("Button On", "blue", true)
+            }else{
+            	out("Button Off", "blue", true)
+            }
+            return Dexter.get_robot_status()
+        })
+    ]
+})

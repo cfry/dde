@@ -1,0 +1,42 @@
+{
+  "name": "dde4",
+  "version": "1.0.0",
+  "description": "test rollup",
+  "author": "Fry",
+  "license": "GPL-3.0",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch": "npm run build -- --watch",
+    "buildje": "rollup --config rollupje.config.js",
+    "build": "npm run buildje; rollup --config rollup.config.js",
+    "help": "rollup --help",
+    "dde_server": "node httpdde"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^17.0.0",
+    "@rollup/plugin-node-resolve": "^11.0.1",
+    "@rollup/plugin-replace": "^2.3.4",
+    "rollup": "^2.35.1"
+  },
+  "dependencies": {
+    "@rollup/plugin-json": "^4.1.0",
+    "asap": "^2.0.6",
+    "codemirror": "^5.62.2",
+    "dayjs": "^1.10.5",
+    "esprima": "^4.0.1",
+    "fs-path": "^0.0.25",
+    "is-base64": "^1.1.0",
+    "jqwidgets-scripts": "^12.1.2",
+    "js-beautify": "^1.14.0",
+    "mark.js": "^8.11.1",
+    "nano-time": "^1.0.0",
+    "npm-programmatic": "^0.0.12",
+    "request": "^2.88.2",
+    "semver": "^5.7.1",
+    "serialport": "^9.2.0",
+    "shepherd.js": "^8.3.1",
+    "stream": "^0.0.2",
+    "ws": "^7.5.1"
+  }
+}

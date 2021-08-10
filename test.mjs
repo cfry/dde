@@ -1,0 +1,1 @@
+console.log("just to test mjs in attachements")

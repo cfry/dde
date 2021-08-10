@@ -1,0 +1,183 @@
+/*the below sets the background color of the selected text
+in the non_editor of the DDE page.
+Without doing this, there's a warning printed in the
+electron Main processes console that
+is reputed to be harmless but still annoying,
+so I'm doing this.
+*/
+::selection { background: #9ac4ff; }
+
+/* clicking on a button puts a blue rec around it in Chrome,
+and its annoying because it remains after the click.
+The below is a new standard, but not yet in chrome.
+https://nelo.is/writing/styling-better-focus-states/
+*:focus:not(.focus-visible) {
+    outline: none;
+}
+*/
+
+
+html, body {  width: 100%;  height: 100%; font-family: sans-serif; overflow:hidden;}
+
+.window_frame { background-color: #b8bbff; } /*used for main window AND for show_window header background color */
+.menubar_menu { display:inline-block; padding-left:3px; padding-right:0px; }
+.dde_menu     { background-color: #93dfff; }
+
+.pane_header_wrapper {
+    padding:5px;
+    background-color: #bae5fe; /* for orig color, this was orange #ffbe3c;*/
+    min-height:30px;} /*the Editor pan header, files menu might go on right if dispay is wide enough
+                        but if not, it should go on 2nd row, thus the height of the header changes
+                        based on allwoable width */
+
+.pane_header {font-size:16px; vertical-align:top;}
+
+/* summary {font-weight: 600;} now in each page for better loading on Website doc page*/
+
+input[type=button] {background-color:#ddd3ff; font-size:14px;border-style:outset;border-width:2px;border-radius: 5px}
+input[type=submit] {background-color:#93dfff; font-size:14px;border-style:outset;border-width:2px;border-radius: 5px} /*background-color: #ffb6c0; pink */
+button             {background-color:#93dfff; font-size:14px;border-style:outset;border-width:2px;border-radius: 5px} /*same color as input-submit. see output.js set_button_background_color*/
+/*so input type submits and buttons are blue colored and input type button will be default white background
+  dde dialogs shouldn't use buttons, they should just use input type submit and  input type button.
+  which will then be the different colors signifying whether they are submits or not, ie whether
+  the dialog is going to close after they click or not.
+*/
+input[type=button]:hover {border-color:#0a0;}
+input[type=submit]:hover {border-color:#0a0;}
+button:hover {border-color:#0a0;}
+/* svg:focus { outline: 3px solid rgb(100,150,255); } */
+/* .jqx-menu-item {width:400px !important;} this forces menu items to be just 1 line but truncates it at about 150px regardless of the setting*/
+code { background-color:white; }
+samp { background-color: #cefff3; } /* pale green for results of code examples*/
+
+table, th, td, th { border: 1px solid black;  }
+table { border-collapse: collapse; }
+tr:nth-child(even) {background-color: #f2f2f2}
+td {padding:5px}
+th, td { text-align:left; }
+.jqx-grid-column-header {
+    background: #EEEEFF;
+    padding:0px;
+    margin:0px;
+    font-size:12px;
+}
+.jqx-fill-state-hover{ background: #EECCFF;}
+/* #mi_instruction_menu_id > .jqx-menu-item { padding:2px 4px 2px 4px;} doesn't work */
+
+.robot_status_table TD, .robot_status_table TH {
+    font-family:sans-serif;
+    font-size:9pt;
+}
+
+.doc_top_level_summary {
+    font-size:18px;
+    font-weight:400;
+    background-color: #b8bbff;
+}
+.doc_articles_level_summary {
+    font-size:16px;
+    font-weight:100;
+    background-color: #b8bbff;
+}
+#stop_all_jobs_id:active{ /*for button press effect */
+    height:25px;
+    width:30px;
+}
+
+/* needs to be here, not blocksde style sheet because that style sheet
+  is loaded under the blocksde_id only once its installed,
+  and removed when we go back to text
+ */
+
+
+/*Make Instruction Sliders */
+#mi_record_slider_id::-webkit-slider-runnable-track {
+    background-color: #b8bbff;/*purple */ /* #a8ff94 is green*/
+}
+
+/* fails to do anything. */
+#mi_record_slider_id::-webkit-slider-thumb {
+    background-color: #000000;
+}
+
+.dde_error_css_class {
+    color:red;
+}
+
+.warning_css_class {
+    color:#e50;  /*orange*/
+}
+
+/*this doesn't work in setting the dui2 vertical z slider thumb color but "should" according to web doc.*/
+input[name='z_slider']::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    background-color: #00ff00 !important;
+
+}
+
+.splash_screen_item:hover{ background: #EECCFF;}
+
+.simqueue_td{
+    font-size:12px;
+    padding:1px;
+}
+
+.CodeMirror {width:98%; height:84%; font-size:17px; font-weight:600} /* 500 and 550 are the same and both too light, but 600 is too dark */
+.CodeMirror-cursor {
+    border-left: 2px solid black;
+    border-right: none;
+    width: 0;
+}
+div.CodeMirror-cursors {
+    visibility: visible;
+}
+.cm-animate-fat-cursor {
+    animation: blink 0.56s steps(1) infinite;
+    -webkit-animation: blink 0.56s steps(1) infinite;
+}
+
+/*
+.vsplitbar {
+    width: 10px;
+    background: #aaa;
+}
+
+.hsplitbar {
+    width: 10px;
+    background: #aaa;
+}
+
+#outer_pane {
+    height: 600px;
+    width:  800px;
+    border: 5px solid #aaa;
+}
+#outer_pane div {
+    overflow: auto;
+}
+
+#left_pane {
+    border: 0px solid #aaa;
+}
+
+#left_pane div {
+    overflow: auto;
+}
+
+#right_pane {
+    border: 0px solid #aaa;
+}
+#right_pane div {
+    overflow: auto;
+}
+
+.jqx-grid-column-header {
+    background: #FF00FF;
+}
+
+//for mark.js used for highlighting found search terms in the doc. But this fails sep 5, 2016
+
+mark{
+    background: #74FFBC !important;
+}
+*/

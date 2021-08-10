@@ -1,0 +1,207 @@
+
+.categories {
+    animation-duration: 1s;
+    animation-name: slidein;
+}
+
+@keyframes slidein {
+    from { width: 0%;}
+    to   { width: 100%;}
+}
+
+
+.toolkit_category_name {
+    padding:5px;
+}
+
+.toolkit_category_name:hover {
+    background-color: #EEEEEE;
+}
+
+.toolkit_type_name {
+    padding:0px;
+    margin:0px;
+}
+
+/*names of blocks in the pallet. */
+.toolkit_type_name:hover {
+    /*background-color: #FFFFFF !important;*/
+    border-width:2px !important;
+    border-color:#000000 !important;
+    border-style:solid !important;
+}
+
+.block {
+    position:relative; /*relative;*/ /*with no top and left specified, they default to 0 so this is a no-op
+                        EXCEPT that it makes it so the resizer drag square can
+                        be absolute positioned against THIS block's container. */
+    display:inline-block;
+    /*box-sizing: border-box; includes padding and border in width & height.
+            Seems like a good idea but screws up dynamic resizing totally */
+    vertical-align: top; /* make sure that different height blocks on the same row will have their tops in the same vertical place.*/
+    margin-right:5px;
+    /*margin-bottom:6px;*/
+    /*padding-left: 3px; breaks display*/
+    overflow:hidden;
+    border: 1px solid black;
+    background-color:#AAAAAA;
+    border-radius: 5px;
+}
+/* a given block will always have class "block" and ONE of the below 2 classes */
+.block-absolute { /* top level "commented out" block not connected to top left. */
+    position:absolute;
+    display:block;
+}
+
+/* obsolete
+.block-relative { a block inside another block. Might be connected to top_left, might not
+    position:relative;
+    margin-left:8px;  needed for a nested block to be "indented"
+}*/
+
+/*all blocks always have their 2nd level in be an .block_always_relative div,
+which all other content is in. Necessary to get the resizer div to
+be posiitoned in lower right corner, even when the overall block
+is top_left, ie of position:static.
+So a block has its outermost block div which
+is either top-left and thus position: static, or
+position: absolute (as a top level comment or
+position: relative (is an inerior block within either top_left or absolute.
+
+ */
+.block_always_relative {
+    display:inline-block;
+    position:relative;
+    overflow:hidden;
+    margin:0px;
+    padding:0px;
+    /*min_height: 25px; doesn't work */
+}
+
+.block-top-left { /*top level, all the way left on screen.*/
+   display: inline-block;
+   position:static;
+   left: 0px;
+}
+
+
+.block:hover {
+    border-color:magenta;
+}
+
+.selected_block {
+    border-color:red;
+    border-width:3px;
+}
+
+
+.block-drop-zone { /*installed only DURING a drag */
+    background-color: #a945ff; /*deep purple, no good for text background but fine for drop zone*/
+}
+
+.drop_target { /*only installed during dragging when the dragged elt is over a valid drop zone */
+    background-color: black;
+}
+
+.block_name {
+    display:inline-block;
+    margin-top:0px; /*4px because I can't raise the end delimiter, but delmiters should be on the same horizontal line,
+                      so if you can't beat 'em, join 'em and bring the name down to
+                      match the close delim, and also looks better with
+                      bloc-valued args that need the vert space when all args on the top line.*/
+    margin-left:3px;
+}
+
+.block_args {
+    display:inline-block;
+    /* overflow:hidden; doesn't help get one-liner that you can shrink o=horiontally and makes one liner worse.*/
+    margin-top:2px;
+}
+
+/* Wraps around block args, ie one before and one after block_args.
+such as (,),[,], {, },  ({, }), single, double, and backquote
+// so a given one of the above will have classes of
+//block_args_delimiter as well as open or close
+ */
+.block_args_delimiter {
+   font-weight: bold;
+   padding: 0px; /*looks like this does nothing*/
+   margin:  0px; /*looks like this does nothing*/
+}
+
+/*open and close are especially important in the case for the string delimiters.*/
+.open{}
+.close{}
+
+.arg_name_val {
+    display:inline-block;
+    margin-left:3px;
+    margin-right:0px;
+    margin-top:2px;
+}
+
+/* a elt of arg_name_val should also always have one of arg_name_val_horiz or arg_name_val_vert */
+/*obsolete
+.arg_name_val_horiz {
+/*
+    display:inline; inline means horiz which it is by default, but make it "block" for vertical
+    marginLeft:0px;
+    marginRight:10px;
+}
+
+.arg_name_val_vert {
+    display:block; inline means horiz which it is by default, but make it "block" for vertical
+    marginLeft:10px;
+    marginRight:0px;
+}
+*/
+
+.arg_name {
+  padding:0px 3px 0px 0px; /*making the top have a non-zero value doesn't help in pushing the name down.
+  margin:0px;
+}
+
+.arg_val {
+    /*border: solid 1px black;*/
+}
+
+.arg_val:hover{
+    border-color: red;
+}
+
+.operators{ /*using operator doesn't change displayed font size */
+     font-size: 14px;
+     vertical-align: -15%;
+}
+
+.comma {
+    display:inline-block;
+    margin:0px;
+    padding:0px;
+    font-weight:bold;
+}
+
+.block_bottom_spacer{
+    display:block;
+    position:relative;
+    width:100%;
+    height:6px;
+    margin:0px;
+    padding:0px;
+}
+
+.resizer {
+    width:6px;
+    height:6px;
+    border:1px solid black;
+    display:inline-block;
+    position:absolute;
+    /*left:calc(100% - 5px);
+    top:calc(100% - 5px);*/
+    bottom:0;
+    right:0;
+}
+.resizer:hover{
+    background-color:black;
+}
+

@@ -1,0 +1,46 @@
+.noUi-connect {
+    background: #a8ff94; /*green*/ /*the default: dark green #3FB8AF; color of the "included" track*/
+}
+
+.noUi-connects {
+    background: #BBBBBB;  /*color of the "excluded" track*/
+}
+
+
+
+.noUi-horizontal .noUi-handle {
+    width:8px;
+    height:25px;
+    /*left: auto; -4px; 0px; */
+    right: -4px !important; /*  -4  must be (width / 2) * -1 */
+    top: -8px;
+    border: 0px solid #000000;
+    border-radius: 0px;
+    background: #000;
+    cursor: pointer;
+    box-shadow: none; /*inset 0 0 1px #FFF, inset 0 1px 7px #EBEBEB, 0 3px 6px -3px #BBB;*/
+}
+
+/*.noUi-handle {
+     left:-4px;
+}*/
+
+.noUi-active {
+    box-shadow: none /*inset 0 0 1px #FFF, inset 0 1px 7px #DDD, 0 3px 6px -3px #BBB;*/
+}
+
+.noUi-handle:before,
+.noUi-handle:after {
+    content: "";
+    display: block;
+    position: absolute;
+    height: 14px;
+    width: 0px;
+    background: #000000;
+    left: 14px;
+    top: 6px;
+}
+
+.noUi-handle:after {
+    left: 0px;
+}
