@@ -1,7 +1,7 @@
 //see doc: https://nodejs.org/api/readline.html
 import {Job} from "./job.js"
 
-import readline from '/readline'
+import readline from 'readline'
 
 const rl = readline.createInterface({
     input: process.stdin,

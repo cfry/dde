@@ -12,7 +12,7 @@ import {file_exists, node_server_supports_editor,
 import {Socket} from "./socket.js"
 import {serial_connect, serial_disconnect, serial_send}from "./serial.js"
 
-import {Vector} from "../math/Vector"
+import {Vector} from "../math/Vector.js"
 import {Kin} from "../math/Kin.js"
 
 

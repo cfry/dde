@@ -1,7 +1,7 @@
 
-import raw_is_base64_string from "/is-base64"
-import nano_time from "/nano-time"
-import semver from "/semver"
+import raw_is_base64_string from "is-base64"
+import nano_time from "nano-time"
+import semver from "semver"
 import {Instruction} from "./instruction.js"
 import {Robot, Brain, Dexter, Human, Serial} from './robot.js'
 

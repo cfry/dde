@@ -1,9 +1,9 @@
 /*Created by Fry on 7/4/16.*/
 
-import request from '/request' //needed by write_file_async for node server
-import fsPath from '/fs-path'
+import request from 'request' //needed by write_file_async for node server
+import fsPath from 'fs-path'
 
-import fs        from '/fs' //errors because require is undefined.
+import fs        from 'fs' //errors because require is undefined.
 import {Robot, Brain, Dexter, Human, Serial}  from "./robot.js"
 import {shouldnt, starts_with_one_of, replace_substrings} from "./utils"
 import {Job}     from "./job.js" //because loading a file with new Job in it needs this.

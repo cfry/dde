@@ -1,27 +1,29 @@
 debugger;
 console.log("top of ready.js")
 
-//import os from '/os' //todo causes "net" bug  //probably only useful in server code,  not browser code.
+//import os from 'os' //todo causes Failed to resolve module specifier "os". bug  //probably only useful in server code,  not browser code.
 
 //import $  from "jquery" //jqxwdigets tech suppport sez this is no longer necessary
 //and not having it still makes $ available.
-import "/jqwidgets-scripts/jqwidgets/jqxcore.js"
-import "/jqwidgets-scripts/jqwidgets/jqxmenu.js"
+import "jqwidgets-scripts/jqwidgets/jqxcore.js"
+import "jqwidgets-scripts/jqwidgets/jqxmenu.js"
 
-import {Coor} from "../job_engine/math/Coor.js" //causes stream bug
+//import {Coor} from "../job_engine/math/Coor.js" //causes stream bug
 //import DXF        from "../job_engine/math/DXF.js"
-/* stream bug above here
-import calibrate_build_tables from "../job_engine/low_level_dexter/calibrate_build_tables.js"
+// stream bug above here
+import {calibrate_build_tables} from "../job_engine/low_level_dexter/calibrate_build_tables.js"
 //stream bug above here
 import {convert_backslashes_to_slashes} from "../job_engine/core/storage.js"
-import {get_output} from "../job_engine/core/out.js"
+/*import {get_output} from "../job_engine/core/out.js"
 import Job          from "../job_engine/core/job.js"
 import Gcode        from "../job_engine/core/gcode.js"
 import {date_to_human_string, date_to_mmm_dd_yyyy, is_digit} from "../job_engine/core/utils.js"
 import {FPGA}       from "../job_engine/core/fpga.js"
 
 import {Simqueue}   from "../job_engine/core/simqueue.js"
+*/
 import {Dexter}     from "../job_engine/core/robot.js"
+/*
 //stream bug above here.
 //in the general folder, as is ready.js
 import {Editor}     from "./editor.js"
@@ -47,6 +49,8 @@ var selected_text_when_eval_button_clicked = ""
 
 var operating_system = "not inited" //"mac", "win" or "linux"(for Ubuntu)  bound in both ui and sandbox by ready
 var dde_apps_folder  = null
+
+var platform = "not inited"
 
 function open_dev_tools(){
     let dde_ipc    //todo  = require('electron').ipcRenderer
@@ -134,17 +138,18 @@ export function on_ready() {
         //open_dev_tools() //FAILS! dev_tools opens but too late. so that break points in on_ready calls will actually break
         //const os = require('os');
         console.log("top of on_ready")
-        console.log("__dirname:"  + __dirname)
+        //console.log("__dirname:"  + __dirname) //todo dde4 causes error
 
-        operating_system = os.platform().toLowerCase() //for Ubuntu, ths returns "linux"
+        /*operating_system = os.platform().toLowerCase() //for Ubuntu, ths returns "linux"
 
         if      (operating_system == "darwin")       { operating_system = "mac" }
         else if (operating_system.startsWith("win")) { operating_system = "win" }
+        */
         //const remote = require("electron").remote
         window.dde_apps_folder //todo = convert_backslashes_to_slashes(remote.getGlobal("dde_apps_folder"))
-        console.log("In renderer dde_apps_folder: " + window.dde_apps_folder)
-        console.log("In renderer appPath: "      + remote.app.getAppPath())
-        console.log("In renderer __dirname: "    + __dirname)
+        //console.log("In renderer dde_apps_folder: " + window.dde_apps_folder)
+        //console.log("In renderer appPath: "      + remote.app.getAppPath())//probably not in dde4
+        //console.log("In renderer __dirname: "    + __dirname)//dde4 todo
         //require('fs-lock')({
          //   'file_accessdir': [__dirname, dde_apps_folder], //for readFile, etc. but must include __dirname since Electron needs it.
         //    'open_basedir':   [__dirname ] //__direname is the folder this app is installed in. //valid folders to get require's from. /usr/local/share/node_modules',
@@ -160,7 +165,7 @@ export function on_ready() {
         //window.Root      = Root //should work but doesn't jan 13, 2019
 
 
-        Coor.init()
+        //Coor.init()//todo dde4 can't import Coor.js yet
         //see also ./core/index.js that has this same code
         Dexter.calibrate_build_tables = calibrate_build_tables
         window.calibrate_build_tables = undefined

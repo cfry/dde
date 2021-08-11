@@ -145,6 +145,9 @@ export function pluralize_full_unit_name(unit_name){
     else                              { return unit_name + "s" }
 }
 
+export var _nbits_cf = 7754.73550222 //(nbits*seconds/degree)
+export var _arcsec   = 1/3600
+export var _um       = 0.000001
 
 export function init_units(){
     for(let series_name_core in units_data) {
@@ -157,7 +160,6 @@ export function init_units(){
             }
         }
     }
-    define_global_constant("_nbits_cf", 7754.73550222) //(nbits*seconds/degree)
     //don't put _nbits_cf into a series. Not for use by users.
     //it is used for converting S params: MaxSpeec StartSpeed, Accelleration
     //before sending this to Dexter hardware.

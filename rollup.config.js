@@ -9,7 +9,8 @@ export default {
     plugins: [
         nodeResolve({
             browser: true,
-            jsnext: true
+            jsnext: true,
+            preferBuiltins: true
         }),
         commonjs({
             //include: [ "./src/main.js", "./node_modules/**" ]

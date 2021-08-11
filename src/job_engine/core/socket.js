@@ -1,6 +1,6 @@
 /* Created by Fry on 2/4/16. */
 //https://www.hacksparrow.com/tcp-socket-programming-in-node-js.html
-import net from "/net"
+//import net from "net" //dde4 todo  can't load the net pkg but don't need it on the browser side, only server side
 
 import {Robot} from "./robot.js"
 import {Instruction, make_ins} from "./instruction.js"

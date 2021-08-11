@@ -32,6 +32,7 @@
     "mark.js": "^8.11.1",
     "nano-time": "^1.0.0",
     "npm-programmatic": "^0.0.12",
+    "os": "^0.1.2",
     "request": "^2.88.2",
     "semver": "^5.7.1",
     "serialport": "^9.2.0",
