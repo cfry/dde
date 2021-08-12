@@ -9,7 +9,8 @@
  that get put in a table, with clickable elements.
  */
 //const { clipboard } = require('electron')
-import {Readable} from '/stream'
+import {Readable} from 'stream'
+import fs from "fs" // Use node filesystem
 
 export var SSH = class SSH {
     //not passing in a command will fundamentally default to ls -l, but there's a complex wrapper around it for the default case.
@@ -306,7 +307,6 @@ export var SSH = class SSH {
                }
                else {
                     try{
-                       let fs = require("fs"); // Use node filesystem
                        let readStream = fs.createReadStream(moveFrom);
                        let writeStream = sftp.createWriteStream(moveTo);
                        writeStream.on('close',function () {
@@ -350,7 +350,6 @@ export var SSH = class SSH {
                 }
                 else {
                     try{
-                        let fs = require("fs"); // Use node filesystem
                         let readStream = sftp.createReadStream(moveFrom);
                         let writeStream = fs.createWriteStream(moveTo);
                         writeStream.on('close',function () {

@@ -32,8 +32,14 @@
     //gets rid of innHTML and all the event listeners, needed when switching
     //between dexter sim and stl view
     //https://stackoverflow.com/questions/9251837/how-to-remove-all-listeners-in-an-element
-import THREE from '/three'
+import THREE from 'three'
 import THREE_GLTFLoader from 'three-gltf-loader'
+import OrbitControls from 'three-orbitcontrols'
+import STLLoader from 'three-stl-loader' //(THREE)
+import FBXLoader from 'three-fbx-loader'
+
+
+
 import {replace_substrings} from "../job_engine/core/utils.js"
 
 
@@ -232,7 +238,6 @@ function show_in_misc_pane(content, arg1 = "", arg2){
                 //createCamera() //sets sim.camera
                 //let the_camera = sim.camera
                 var the_camera = new THREE.PerspectiveCamera( 10, 2, 0.01, 100 );
-                var OrbitControls = require('three-orbitcontrols')
                 var the_controls = new OrbitControls( the_camera, the_renderer.domElement );
                 the_controls.target.set(0, 0, 0)  //orientation of cam. what its looking at.
                 the_camera.position.set( 2.5, 3.3, 5.2);
@@ -242,11 +247,10 @@ function show_in_misc_pane(content, arg1 = "", arg2){
             //stl_init_viewer()
             function animate() {
                 requestAnimationFrame( animate );
-                // required if controls.enableDamping or controls.autoRotate are set to true
+                // r equired if controls.enableDamping or controls.autoRotate are set to true
                 the_controls.update();
                 the_renderer.render( the_scene, the_camera );
             }
-            var STLLoader = require('three-stl-loader')(THREE)
             var loader = new STLLoader()
             loader.load(content, function (geometry) {
                 var material = new THREE.MeshNormalMaterial()
@@ -275,7 +279,6 @@ function show_in_misc_pane(content, arg1 = "", arg2){
         clear_out_sim_graphics_pane_id()
         stl_init_viewer()
         // from https://github.com/ckddbs/three-fbx-loader/commit/b3bc39bef2a4253abf2acc780870a03f5f9cd510
-        var FBXLoader = require('three-fbx-loader')
         var loader = new FBXLoader()
         //loader.load(content, function (object) { sim.scene.add(object)})
         loader.load(content,

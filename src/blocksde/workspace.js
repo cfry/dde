@@ -5,7 +5,12 @@ function on_load(){
     //init_block()
 }*/
 
-var Workspace = class Workspace{
+import {shouldnt, is_string_an_identifier, is_string_a_path, value_of_path}
+        from "../job_engine/core/utils.js"
+import {make_dom_elt, make_html} from "..//job_engine/core/html_db.js"
+
+
+export Workspace = class Workspace{
     constructor(width="100%", height="100%", html_wrapper_name="workspace_container_id"){
         //console.log("Workspace constructor top")
         this.width  = width
@@ -348,8 +353,4 @@ var Workspace = class Workspace{
 Workspace.suck_left_margin = 20 //if a block is dropped with its x of <= this, then x will be set to 0
 Workspace.floating_typein_x = 0
 Workspace.floating_typein_y = 0
-
-var {shouldnt, is_string_an_identifier, is_string_a_path, value_of_path} = require("../job_engine/core/utils.js")
-var {make_dom_elt, make_html} = require("./core/html_db.js")
-
 

@@ -36,7 +36,6 @@ import SerialPort from 'serialport' //"To use SerialPort, you must call serial_p
 //caled fron ready.js. Prevents error when loading job _engine (and this file)
 //on Dexter hardware
 export function serial_port_init() {
-    //SerialPort = require('serialport') //now this is always done.
     warning("Calling serial_port_init() is no longer necessary to use the serial port capability.<br>" +
             "It now does nothing.")
 

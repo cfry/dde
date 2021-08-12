@@ -1,3 +1,6 @@
+import {newObject, Root} from "../job_engine/core/object_system.js"
+import {make_html} from "../job_engine/core/html_db.js"
+
 function blocks_category_init() {
 newObject({name: "BlockCategory",
            color: "gray",
@@ -97,7 +100,6 @@ newObject({prototype: Root.BlockCategory,
             block_types: []
 })
 }
-var {newObject, Root} = require("./core/object_system.js")
-var {make_html} = require("./core/html_db.js")
+
 
 

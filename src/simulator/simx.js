@@ -1,4 +1,4 @@
-var SimX = class SimX{
+export var SimX = class SimX{
     static objects = []
     static array_to_Vector3(arr) { return new THREE.Vector3(arr[0], arr[1], arr[2])}
     static Vector3_to_array(vec3) { return [vec3.x, vec3.y, vec3.z] }

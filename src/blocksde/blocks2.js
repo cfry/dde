@@ -4,7 +4,8 @@
 
 // This file has dom manipulation code having to do with blocks
 
-
+import {shouldnt, function_param_names_and_defaults_lit_obj, is_string_a_integer, value_of_path} from "../job_engine/core/utils.js"
+import {make_dom_elt} from "../job_engine/core/html_db.js"
 
 var block_left_triangle  = "&#9664;" //used for open delimiter for path
 
@@ -954,7 +955,6 @@ function clean_up_top_lefts(){
     }
     workspace_id.appendChild(make_bottom_left_spacer())
 }
-var {shouldnt, function_param_names_and_defaults_lit_obj, is_string_a_integer, value_of_path} = require("../job_engine/core/utils.js")
-var {make_dom_elt} = require("./core/html_db.js")
+
 
 

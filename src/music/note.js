@@ -1,6 +1,8 @@
-WebMidi = require("webmidi")
+import WebMidi from "./webmidi"
+import {is_digit, limit_to_range} from "../job_engine/core/utils.js"
 
-Midi = class Midi {
+
+export var Midi = class Midi {
     static describe_midi_event(event){
         var in_or_out = event.target.constructor.name
         const str =
@@ -602,4 +604,3 @@ Note.pitch_class_names       = ["C", "C#", "D","D#","E","F","F#","G","G#","A","A
 Note.pitch_class_names_flat  = ["C", "Db", "D","Eb","E","F","Gb","G","Ab","A","Bb","B"]
 Note.diatonic_intervals      = [0, 2, 4, 5, 7, 9, 11]
 
-var {is_digit, limit_to_range} = require("../job_engine/core/utils.js")

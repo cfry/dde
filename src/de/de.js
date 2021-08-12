@@ -2,7 +2,7 @@
 npm install pegjs --save
 DE.make_verb_rule_expers()
 */
-var DE = class DE {
+export var DE = class DE {
   static de_to_js(de_src) {
      if(de_src.trim() == "") { return de_src } //convert whitespace to whitespace even if it isn't proper DE or JS for eval.
      let tracer_instance = new DE.PegTracer(de_src,{
@@ -143,8 +143,11 @@ DE.ops = {"less than": "<",
           "also": "&&",
           "or":   "||"
          }
-DE.peg       = require("pegjs")
-DE.PegTracer = require('pegjs-backtrace');
+import peg       from "pegjs"
+import PegTracer from 'pegjs-backtrace'
+
+DE.peg = peg
+DE.PegTracer = PegTracer
 
 DE.parser = DE.peg.generate(
 `start               = result:exprs { return result }

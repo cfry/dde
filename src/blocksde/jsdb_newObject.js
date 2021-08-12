@@ -6,6 +6,13 @@
    thatrepresents the block_type.
 */
 
+import {shouldnt, compute_string_size, function_param_names_and_defaults,
+    is_literal_object, is_string_an_identifier, is_string_a_number,
+    replace_substrings, value_of_path} from "../job_engine/core/utils.js"
+
+import {newObject, Root} from "../job_engine/core/object_system.js"
+import {make_dom_elt} from "../job_engine/core/html_db.js"
+
 function blocks_jsdb_init(){
 newObject({
     name: "jsdb",
@@ -2932,12 +2939,6 @@ newObject({prototype: Root.jsdb.method_call,
     params: {array_of_5_angles: Root.jsdb.literal.array.array5}
 })
 }
-var {shouldnt, compute_string_size, function_param_names_and_defaults,
-     is_literal_object, is_string_an_identifier, is_string_a_number,
-     replace_substrings, value_of_path} = require("../job_engine/core/utils.js")
-
-var {newObject, Root} = require("./core/object_system.js")
-var {make_dom_elt} = require("./core/html_db.js")
 
 
 

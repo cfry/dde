@@ -1,13 +1,14 @@
 global.dde_version = "3.8.0" //require("../package.json").version
 global.dde_release_date = "Jul 23, 2021" //require("../package.json").release_date
 
+// import os from 'os' //todo
+
 console.log("dde_version: " + global.dde_version + " dde_release_date: " + global.dde_release_date +
             "\nRead electron_dde/core/job_engine_doc.txt for how to use the Job Engine.\n")
 
 console.log("in file: " + module.filename)
 function node_on_ready() {
     console.log("top of node_on_ready\n")
-    const os = require('os');
     global.operating_system = os.platform().toLowerCase() //for Ubuntu, ths returns "linux"
 
     if      (operating_system == "darwin")       { operating_system = "mac" }
@@ -18,7 +19,6 @@ function node_on_ready() {
                                                              //+ "/Documents/dde_apps"
     }
     //not needed for node version
-    //var pckg         = require('../package.json');
     //global.dde_version      = pckg.version
     //global.dde_release_date = pckg.release_date
     global.platform  = "node" //"node" means we're in the job_engine, "dde" would mean we're not.

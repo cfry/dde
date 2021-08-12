@@ -392,16 +392,6 @@ function parseBoolean(str) {
 }
 
 
-//fry comment out   var log = require('loglevel');
-
-////log.setLevel('trace');
-////log.setLevel('debug');
-////log.setLevel('info');
-////log.setLevel('warn');
-//fry comment out   //log.setLevel('error');
-////log.setLevel('silent');
-
-
 export function DxfParser(stream) {}
 
 DxfParser.prototype.parse = function(source, done) {

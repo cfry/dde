@@ -2,6 +2,9 @@
  * Created by Fry on 8/6/17.
  */
 
+import {trim_all} from "../job_engine/core/utils.js"
+
+
 Phrase = class Phrase{
     constructor({notes="",
                 time=0, //in beats. used only for start time of first note if initializing notes from a string
@@ -377,7 +380,6 @@ Phrase.default_channel  = 1
 Phrase.default_velocity = 0.5
 Phrase.default_seconds_per_beat = 1
 
-var {trim_all} = require("../job_engine/core/utils.js")
 
 
 

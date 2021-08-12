@@ -645,4 +645,4 @@ MiIns.subclasses = [MiIns.array_family, MiIns.function_family, MiIns.human_famil
                     MiIns.move_all_joints_family, MiIns.move_to_family,
                     MiIns.new_family, MiIns.serial_family]
 
-var {ends_with_one_of, fn_is_keyword_fn, get_class_of_instance, replace_substrings, starts_with_one_of, trim_end} = require("../job_engine/core/utils.js")
+import {ends_with_one_of, fn_is_keyword_fn, get_class_of_instance, replace_substrings, starts_with_one_of, trim_end} from "../job_engine/core/utils.js"

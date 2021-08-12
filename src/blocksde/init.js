@@ -11,6 +11,9 @@
            )
 */
 
+import {make_dom_elt} from "../job_engine/core/html_db.js"
+import beautify from "js-beautify"
+
 //called from dde_init.js IFF we're in dde platform.
 function blocks_init(){
    javascript_pane_header_wrapper_id.appendChild(
@@ -269,8 +272,7 @@ function defeng_to_blocks(){
     js_to_blocks()
 }
 
-var {make_dom_elt} = require("./core/html_db.js")
-const beautify = require("js-beautify")
+
 
 
              

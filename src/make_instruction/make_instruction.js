@@ -1,5 +1,11 @@
+import Socket from "../job_engine/core/socket.js" //used for string instruction processing
+import esprima from 'esprima'
+import {ends_with_one_of, fn_is_keyword_fn, replace_substrings,
+        starts_with_one_of, trim_end} from "../job_engine/core/utils.js"
+import {to_source_code} from "../job_engine/core/to_source_code.js"
+import {file_exists, write_file, make_full_path} from "../job_engine/core/storage.js"
 
-var MakeInstruction = class MakeInstruction{
+export var MakeInstruction = class MakeInstruction{
    //utilities
 
 
@@ -1602,9 +1608,3 @@ MakeInstruction.menu_hierarchy = [
                     "new Array", "new Dexter", "new Job", "new Note", "new Phrase", "new Serial", "new TestSuite"
                    ]
 ]
-
-var Socket = require("./core/socket.js") //used for string instruction processing
-var esprima = require('esprima')
-var {ends_with_one_of, fn_is_keyword_fn, replace_substrings, starts_with_one_of, trim_end} = require("../job_engine/core/utils.js")
-var {to_source_code} = require("./core/to_source_code.js")
-var {file_exists, write_file, make_full_path} = require("../job_engine/core/storage.js")

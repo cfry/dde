@@ -9,13 +9,9 @@ from http://threejs.org/docs/index.html#Manual/Introduction/Creating_a_scene
 
 */
 
-//canvas { width: 100%; height: 100% }
-
-var THREE = require('three')
-var THREE_Text2D = require('three-text2d')
-var THREE_GLTFLoader = require('three-gltf-loader') //using the examples folder like this is depricated three/examples/js/loaders/GLTFLoader.js')
-
-
+import THREE from 'three'
+import THREE_Text2D from 'three-text2d'
+import THREE_GLTFLoader from 'three-gltf-loader' //using the examples folder like this is depricated three/examples/js/loaders/GLTFLoader.js')
 
 function make_sim_html()
 {

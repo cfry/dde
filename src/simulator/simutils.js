@@ -1,7 +1,7 @@
 /**
  * Created by Fry on 3/30/16.
  */
-SimUtils = class SimUtils{
+export var SimUtils = class SimUtils{
 /*from http://stackoverflow.com/questions/30271693/converting-between-cartesian-coordinates-and-spherical-coordinates
  this.radius = sqrt((x*x) + (y*y) + (z*z));
  this.inclination = arccos(z / this.radius);

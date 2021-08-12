@@ -22,6 +22,7 @@ import {dde_init_dot_js_initialize, file_exists, load_files,
         write_file} from "../job_engine/core/storage.js"
 import {decode_quotes, is_alphanumeric, is_comment, is_digit, is_letter,
         is_letter_or_underscore, is_whitespace, reverse_string} from "../job_engine/core/utils.js"
+import beautify from "js-beautify"
 
 export var myCodeMirror
 
@@ -145,7 +146,6 @@ Editor.init_editor = function(){
 }
 
 Editor.pretty_print = function(js){
-    var beautify = require("js-beautify")
     js = beautify.js(js)
     return js
 }

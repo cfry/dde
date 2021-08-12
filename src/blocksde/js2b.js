@@ -1,6 +1,9 @@
-var esprima = require('esprima')
+import esprima from 'esprima'
+import {shouldnt, function_param_names_and_defaults_array, value_of_path}
+       from "../job_engine/core/utils.js"
+import {make_dom_elt} from "../job_engine/core/html_db.js"
 
-var JS2B = class JS2B{
+export var JS2B = class JS2B{
   static string_to_ast(src){
       if (src[0] == "{") { //esprima doesn't like so hack it
            let new_src = "var foo947 = " + src
@@ -475,6 +478,5 @@ var JS2B = class JS2B{
       return lit_obj_block
   }
 }
-var {shouldnt, function_param_names_and_defaults_array, value_of_path} = require("../job_engine/core/utils.js")
-var {make_dom_elt} = require("./core/html_db.js")
+
 

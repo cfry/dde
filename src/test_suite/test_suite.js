@@ -1,4 +1,10 @@
-var TestSuite = class TestSuite{
+import {is_string_a_literal_array, is_string_a_literal_string, last,
+    replace_substrings, similar, string_to_literal,
+    stringify_value_sans_html, spaces, value_of_path}
+    from "../job_engine/core/utils.js"
+
+
+export var TestSuite = class TestSuite{
     constructor(name="rename_me", ...tests){
         this.name  = name
         this.report = ""
@@ -1101,9 +1107,6 @@ TestSuite.dont_care = {name:"used for an expected value when anything the source
 TestSuite.suites = []
 TestSuite.state  = null //used to hold state to implement resume.
 
-module.exports = TestSuite
-var {is_string_a_literal_array, is_string_a_literal_string, last,
-    replace_substrings, similar, string_to_literal, stringify_value_sans_html, spaces, value_of_path} = require("../job_engine/core/utils.js")
 
 //TestSuite.run("test_system")
 //TestSuite.show("test_system")
