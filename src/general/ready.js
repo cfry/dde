@@ -5,15 +5,15 @@ console.log("top of ready.js")
 
 //import $  from "jquery" //jqxwdigets tech suppport sez this is no longer necessary
 //and not having it still makes $ available.
-import "jqwidgets-scripts/jqwidgets/jqxcore.js"
-import "jqwidgets-scripts/jqwidgets/jqxmenu.js"
+import "../../node_modules/jqwidgets-scripts/jqwidgets/jqxcore.js"
+import "../../node_modules/jqwidgets-scripts/jqwidgets/jqxmenu.js"
 
 //import {Coor} from "../job_engine/math/Coor.js" //causes stream bug
 //import DXF        from "../job_engine/math/DXF.js"
 // stream bug above here
 ///import {calibrate_build_tables} from "../job_engine/low_level_dexter/calibrate_build_tables.js"
 //stream bug above here
-import {convert_backslashes_to_slashes} from "../job_engine/core/storage.js"
+//import {convert_backslashes_to_slashes} from "../job_engine/core/storage.js"
 /*import {get_output} from "../job_engine/core/out.js"
 import Job          from "../job_engine/core/job.js"
 import Gcode        from "../job_engine/core/gcode.js"

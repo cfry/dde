@@ -2,6 +2,8 @@ global.dde_version = "3.8.0" //require("../package.json").version
 global.dde_release_date = "Jul 23, 2021" //require("../package.json").release_date
 
 // import os from 'os' //todo
+//const {exec} = require('child_process') //todo //not an npm module.
+
 
 console.log("dde_version: " + global.dde_version + " dde_release_date: " + global.dde_release_date +
             "\nRead electron_dde/core/job_engine_doc.txt for how to use the Job Engine.\n")
@@ -104,7 +106,6 @@ function define_and_start_job(job_file_path){
 }
 
 //____________
-import {exec} from '/child_process'
 
 function run_shell_cmd_default_cb (error, stdout, stderr){
     if (error) {

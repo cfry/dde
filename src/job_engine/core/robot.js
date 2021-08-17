@@ -1,19 +1,19 @@
 /* Created by Fry on 3/29/16. */
 
-import {RobotStatus} from "./robot_status"
-import {Job} from "./job.js"
+import {RobotStatus} from "./robot_status.js"
+//import {Job} from "./job.js"
 import {Instruction, make_ins} from "./instruction.js"
-import {shouldnt, date_integer_to_long_string,
-        is_iterator, is_string_an_identifier, last,
-        return_first_arg, starts_with_one_of, stringify_value,
-        value_of_path} from "./utils"
-import {file_exists, node_server_supports_editor,
-        persistent_get, read_file} from "./storage"
-import {Socket} from "./socket.js"
-import {serial_connect, serial_disconnect, serial_send}from "./serial.js"
+//import {shouldnt, date_integer_to_long_string,
+//        is_iterator, is_string_an_identifier, last,
+//        return_first_arg, starts_with_one_of, stringify_value,
+//        value_of_path} from "./utils.js"
+//import {file_exists, node_server_supports_editor,
+//        persistent_get, read_file} from "./storage"
+//import {Socket} from "./socket.js"
+//import {serial_connect, serial_disconnect, serial_send}from "./serial.js"
 
-import {Vector} from "../math/Vector.js"
-import {Kin} from "../math/Kin.js"
+//import {Vector} from "../math/Vector.js"
+//import {Kin} from "../math/Kin.js"
 
 
 export var Robot = class Robot {

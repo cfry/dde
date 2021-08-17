@@ -1,6 +1,5 @@
 /** Created by Fry on 3/5/16. */
 
-import './instruction_dexter.js'
 import  {Robot, Brain, Dexter, Human, Serial} from './robot.js'
 import  {Job}     from './job.js'
 import  {Kin}     from "../math/Kin.js"
@@ -8,10 +7,10 @@ import  {to_source_code} from "./to_source_code.js" //for debugging only
 import  {shouldnt, copy_missing_fields, Duration, is_generator_function,
          is_iterator, is_non_neg_integer, last,
          return_first_arg, starts_with_one_of, stringify_value_aux, stringify_value_sans_html,
-         trim_comments_from_front, value_of_path} from "./utils"
+         trim_comments_from_front, value_of_path} from "./utils.js"
 
 
-export var Instruction = class Instruction {
+export class Instruction {
     init_instruction(){} //shadowed by at least wait_until and loop
 
     static to_string(instr){
@@ -1099,7 +1098,7 @@ Instruction.human_enter_choice = class human_enter_choice extends Instruction{
     }
 }
 
-var human_enter_choice_handler = function(vals){
+export var human_enter_choice_handler = function(vals){
     var job_instance = Job[vals.job_name]
     if(vals.clicked_button_value == "Continue Job") { //means the choices are in a menu, not individual buttons
         //job_instance.user_data[vals.user_data_variable_name] = vals.choice
@@ -1128,7 +1127,6 @@ var human_enter_choice_handler = function(vals){
     job_instance.set_up_next_do(1) //even for the case where we're stopping the job,
     //this lets the do_next_item handle finishing the job properly
 }
-module.exports.human_enter_choice_handler = human_enter_choice_handler
 
 
 var human_enter_choice_set_var = function (job_instance, choice_string, choices_string, user_data_variable_name){
@@ -1223,7 +1221,7 @@ Instruction.human_enter_filepath = class human_filepath extends Instruction{
     }
 }
 
-function human_enter_filepath_handler(vals){
+export function human_enter_filepath_handler(vals){
     var job_instance = Job[vals.job_name]
     if(vals.clicked_button_value == "Continue Job") { //means the choices are in a menu, not individual buttons
         job_instance.user_data[vals.user_data_variable_name] = vals.choice
@@ -1247,7 +1245,6 @@ function human_enter_filepath_handler(vals){
     job_instance.set_up_next_do(1) //even for the case where we're stopping the job,
     //this lets the do_next_item handle finishing the job properly
 }
-module.exports.human_enter_filepath_handler = human_enter_filepath_handler
 
 
 Instruction.human_enter_instruction = class human_enter_instruction extends Instruction{
@@ -1376,7 +1373,7 @@ Instruction.human_enter_instruction = class human_enter_instruction extends Inst
     }
 }
 
-var human_enter_instruction_handler = function(vals){
+export var human_enter_instruction_handler = function(vals){
     var job_instance = Job[vals.job_name]
     var hei_instance = job_instance.do_list[job_instance.program_counter]
     if(vals.clicked_button_value == "Stop Job"){
@@ -1484,7 +1481,6 @@ var human_enter_instruction_handler = function(vals){
     job_instance.set_up_next_do(1) //even for the case where we're stopping the job,
     //this lets the do_next_item handle finishing the job properly
 }
-module.exports.human_enter_instruction_handler = human_enter_instruction_handler
 
 
 var human_enter_instruction_job_source_to_save = function(job_instance){
@@ -1603,7 +1599,7 @@ Instruction.human_enter_number = class human_enter_number extends Instruction{
     }
 }
 
-var human_enter_number_handler = function(vals){
+export var human_enter_number_handler = function(vals){
     var job_instance = Job[vals.job_name]
     if (vals.clicked_button_value != "Continue Job"){
         job_instance.stop_for_reason("interrupted", "In human_enter_number, user stopped this job.")
@@ -1641,7 +1637,6 @@ var human_enter_number_handler = function(vals){
         }
     }
 }
-module.exports.human_enter_number_handler = human_enter_number_handler
 
 
 //beware: Human.enter_position returns an array of Dexter.follow_me AND an instance of this class.
@@ -1706,7 +1701,7 @@ Instruction.human_enter_position = class human_enter_position extends Instructio
     }
 }
 
-var human_enter_position_handler = function(vals){
+export var human_enter_position_handler = function(vals){
     var job_instance = Job[vals.job_name]
     if (vals.clicked_button_value != "Continue Job"){
         job_instance.stop_for_reason("interrupted", "In human_enter_position, user stopped this job.")
@@ -1738,7 +1733,6 @@ var human_enter_position_handler = function(vals){
         job_instance.set_up_next_do(1)
     }
 }
-module.exports.human_enter_position_handler = human_enter_position_handler
 
 
 Instruction.human_enter_text = class human_enter_text extends Instruction{
@@ -1820,7 +1814,7 @@ Instruction.human_enter_text = class human_enter_text extends Instruction{
     }
 }
 
-var human_enter_text_handler = function(vals){
+export var human_enter_text_handler = function(vals){
     var job_instance = Job[vals.job_name]
     if (vals.clicked_button_value != "Continue Job"){
         job_instance.stop_for_reason("interrupted", "In human_enter_text, user stopped this job.")
@@ -1844,7 +1838,6 @@ var human_enter_text_handler = function(vals){
     job_instance.set_up_next_do(1) //even for the case where we're stopping the job,
     //this lets the do_next_item handle finishing the job properly
 }
-module.exports.human_enter_text_handler = human_enter_text_handler
 
 
 Instruction.human_notify = class human_notify extends Instruction{
@@ -1944,7 +1937,7 @@ Instruction.human_notify = class human_notify extends Instruction{
     }
 }
 
-var human_notify_handler = function(vals){
+export var human_notify_handler = function(vals){
     let job_instance = Job[vals.job_name]
     if ((vals.clicked_button_value === "Stop Job") && job_instance.is_active()){
         job_instance.stop_for_reason("interrupted", "In human_notify, user stopped this job.")
@@ -1963,8 +1956,6 @@ var human_notify_handler = function(vals){
     }
 }
 
-
-module.exports.human_notify_handler = human_notify_handler
 
 Instruction.human_notify.window_x = 0
 Instruction.human_notify.window_y = 0
@@ -2002,7 +1993,7 @@ Instruction.human_show_window = class human_show_window extends Instruction{
     }
 }
 
-var human_show_window_handler = function(vals){
+export var human_show_window_handler = function(vals){
     console.log("top of human_show_window_handler with is_submit of: " + vals.is_submit)
     const job_instance  = Job[vals.job_name]
     //delete vals.the_job_name
@@ -2037,7 +2028,6 @@ var human_show_window_handler = function(vals){
         }
     }
 }
-module.exports.human_show_window_handler = human_show_window_handler
 
 
 Instruction.if_any_errors = class if_any_errors extends Instruction{

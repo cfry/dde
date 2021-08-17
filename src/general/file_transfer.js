@@ -1,9 +1,9 @@
-import fs     from 'fs'
-import get    from 'simple-get'
-import pump   from 'pump'
-import AdmZip from 'adm-zip'
-import crypto from 'crypto'
-import client from 'scp2'
+import fs     from "../../node_modules/fs"
+import get    from "../../node_modules/simple-get"
+import pump   from "../../node_modules/pump"
+import AdmZip from "../../node_modules/adm-zip"
+import crypto from "../../node_modules/crypto"
+import client from "../../node_modules/scp2"
 
 var FileTransfer = class FileTransfer {
 

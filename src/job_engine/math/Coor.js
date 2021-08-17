@@ -3,7 +3,7 @@
 //Started: 1_19_17
 //Updated: 1_26_19
 
-import {Vector} from "./Vector"
+import {Vector} from "./Vector.js"
 
 import {newObject, Root} from "../core/object_system.js"
 

@@ -6,7 +6,7 @@ https://ourcodeworld.com/articles/read/286/how-to-execute-a-python-script-and-re
 https://stackoverflow.com/questions/65876022/npm-python-shell-persistent-process-from-javascript
 */
 
-import {replace_substrings} from "./utils"
+import {replace_substrings} from "./utils.js"
 import {spawn} from '/child_process'
 
 export class Py{

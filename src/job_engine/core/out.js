@@ -1,9 +1,8 @@
 //__________out  and helper fns_______
 //out itself is now defined in je_and_browser_code as it is called in the browser
-import {persistent_get} from "./storage"
-import {replace_substrings, starts_with_one_of, stringify_value} from "./utils.js"
-import {exec} from "child_process"
-import {month_names} from "./utils"
+import {persistent_get} from "./storage.js"
+import {month_names, replace_substrings, starts_with_one_of, stringify_value}
+       from "./utils.js"
 //require("./je_and_browser_code.js") //don't set SW from this.
 export function format_text_for_code(text, code=null){
     if (code === null) {

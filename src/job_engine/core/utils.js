@@ -1,9 +1,59 @@
 
-import raw_is_base64_string from "is-base64"
-import nano_time from "nano-time"
-import semver from "semver"
+//import semver        from "../../../node_modules/semver/semver.js"
+//import {SemVer}        from "../../../node_modules/semver/index.js"
+import * as semver from "../../../node_modules/semver/index.js"
+ //const semverEq = require('semver/functions/eq')
+ //for semver 7, semver.Lt, semver.Gt, and maybe semverEq ???
+ //in DDE3, used semver verison "^5.7.1"
 import {Instruction} from "./instruction.js"
 import {Robot, Brain, Dexter, Human, Serial} from './robot.js'
+
+//import {isBase64} from "../../../node_modules/is-base64/is-base64.js"
+//importing from is_base64 npm module doesn't work, so code inlined below
+function isBase64(v, opts) {
+    if (v instanceof Boolean || typeof v === 'boolean') {
+        return false
+    }
+
+    if (!(opts instanceof Object)) {
+        opts = {}
+    }
+
+    if (opts.allowEmpty === false && v === '') {
+        return false
+    }
+
+    var regex = '(?:[A-Za-z0-9+\\/]{4})*(?:[A-Za-z0-9+\\/]{2}==|[A-Za-z0-9+\/]{3}=)?'
+    var mimeRegex = '(data:\\w+\\/[a-zA-Z\\+\\-\\.]+;base64,)'
+
+    if (opts.mimeRequired === true) {
+        regex =  mimeRegex + regex
+    } else if (opts.allowMime === true) {
+        regex = mimeRegex + '?' + regex
+    }
+
+    if (opts.paddingRequired === false) {
+        regex = '(?:[A-Za-z0-9+\\/]{4})*(?:[A-Za-z0-9+\\/]{2}(==)?|[A-Za-z0-9+\\/]{3}=?)?'
+    }
+
+    return (new RegExp('^' + regex + '$', 'gi')).test(v)
+}
+
+//import {microseconds}              from "../../../node_modules/nano-time/index.js"
+//importing microseconds from this module just doesn't work, so
+//I'm inlining the code from the nano-time npm module here:
+const loadNs = process.hrtime();
+const loadMs = new Date().getTime();
+
+function nanoseconds() {
+    let diffNs = process.hrtime(loadNs);
+    return BigInt(loadMs).times(1e6).add(BigInt(diffNs[0]).times(1e9).plus(diffNs[1])).toString();
+}
+
+function microseconds() {
+    return BigInt(nanoseconds()).divide(1e3).toString();
+}
+//_____done with defining microseconds, called below
 
 export function shouldnt(message){
     console.log(message)
@@ -200,18 +250,18 @@ export function is_string_a_literal_array(a_string){
 //trailing newline.
 export function is_string_base64(a_string, permit_trailing_newline=false) {
    if(typeof(a_string) === "string") {
-       if(raw_is_base64_string(a_string)) { return true }
+       if(isBase64(a_string)) { return true }
        else if(permit_trailing_newline  &&
                (last(a_string) == "\n") &&
                (is_integer(a_string.length - 1) / 4)) {
           //normal base64 length is a multiple of 4. since these strings can be long,
           //I don't want to unnecessarily make a long string
            a_string = a_string.substr(0, (a_string.length - 1))
-           return raw_is_base64_string(a_string)
+           return isBase64(a_string)
        }
        else { return false }
    }
-   else { return false } //raw_is_base64_string(null) => true which is bad, but
+   else { return false } //isBase64(null) => true which is bad, but
     // that's in the pkg I'm using, so I do the extra check to ensure non-strings return false
 }
 
@@ -1824,7 +1874,7 @@ export class Duration {
 export var month_names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September','October', 'November', 'December']
 
 /*
-nn = performance.now(); parseInt(nano_time.micro()); performance.now() - nn;
+nn = performance.now(); parseInt(microseconds()); performance.now() - nn;
 and
 nn = performance.now(); time_in_us(); performance.now() - nn;
 take very close to the same time, ie very clsoe to 0.1 ms normally,
@@ -1840,7 +1890,7 @@ so our JS integers are in good shape to handle this capacity.
 Conclusion: time_in_us gives us 0.1ms  or 0.2ms res, not consistently.
 */
 
-export function time_in_us() { return parseInt(nano_time.micro()) }
+export function time_in_us() { return parseInt(microseconds()) }
 
 //input -> output
 // 12       12

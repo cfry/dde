@@ -8,9 +8,9 @@
 //   in this case new Job().start() will ungracefully error.
 // 3. The new Job instance is returned.
 
-import esprima from 'esprima'
-import asap from "asap"
-import asapRaw from "asap/raw"
+import * as esprima from "../../../node_modules/esprima/dist/esprima.js"
+import * as asap    from "../../../node_modules/asap/asap.js"
+import * as asapRaw from "../../../node_modules/asap/raw.js"
 import {serial_disconnect_all} from "./serial.js"
 import {Robot, Brain, Dexter, Human, Serial} from './robot.js'
 import {Coor} from '../math/Coor.js'
@@ -19,7 +19,7 @@ import {load_files} from "./storage.js"
 import {is_iterator, is_string_an_identifier, last,
         milliseconds_to_human_string, replace_substrings,
         shallow_copy_lit_obj, shouldnt,
-        stringify_value_sans_html} from "./utils"
+        stringify_value_sans_html} from "./utils.js"
 import {speak} from "./out.js"
 import {_nbits_cf, _arcsec, _um} from "./units.js"
 import {linux_error_message} from "./linux_error_message.js"

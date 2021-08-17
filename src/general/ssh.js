@@ -9,8 +9,8 @@
  that get put in a table, with clickable elements.
  */
 //const { clipboard } = require('electron')
-import {Readable} from 'stream'
-import fs from "fs" // Use node filesystem
+import {Readable} from "../../node_modules/stream/index.js"
+//import fs from "../../node_modules/fs" // Use node filesystem
 
 export var SSH = class SSH {
     //not passing in a command will fundamentally default to ls -l, but there's a complex wrapper around it for the default case.

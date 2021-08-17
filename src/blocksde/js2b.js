@@ -1,4 +1,4 @@
-import esprima from 'esprima'
+import * as esprima from "../../node_modules/esprima/dist/esprima.js"
 import {shouldnt, function_param_names_and_defaults_array, value_of_path}
        from "../job_engine/core/utils.js"
 import {make_dom_elt} from "../job_engine/core/html_db.js"

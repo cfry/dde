@@ -1,6 +1,6 @@
-import {exec} from '/child_process'
 
 //https://www.npmjs.com/package/npm-programmatic
+
 import npm_p from "/npm-programmatic"
 
 export var DDE_NPM = class DDE_NPM {

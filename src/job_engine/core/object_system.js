@@ -9,7 +9,7 @@ Object.defineProperty(Object.prototype, 'name', {
 })
 */
 import {shouldnt, function_param_names, is_iterator, last,
-        starts_with_one_of, stringify_value_sans_html, value_of_path} from "./utils"
+        starts_with_one_of, stringify_value_sans_html, value_of_path} from "./utils.js"
 
 function ob_sys_is_class(obj){
     return ((typeof(obj) == "function") && obj.toString().startsWith("class "))

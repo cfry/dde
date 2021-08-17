@@ -34,6 +34,8 @@ var job
 
 //standard web server on port 80 to serve files
 http.createServer(function (req, res) {
+  let cur_dir = process.cwd()
+  console.log("server has cur_dir of: " + cur_dir)
   var q = url.parse(req.url, true)
   if ("/"==q.pathname) 
     q.pathname="index.html"
@@ -82,7 +84,7 @@ http.createServer(function (req, res) {
   else {
     let maybe_slash = (q.pathname.startsWith("/") ? "" : "/")
     var filename = //"/srv/samba/share/www/" + //dde4 commented "/srv/samba/share/www/" out
-                   "/Users/Fry/WebstormProjects/dde4" + maybe_slash +
+                   cur_dir + maybe_slash +
                    q.pathname
     console.log("serving " + filename) //dde4 q.pathname => filename
     fs.readFile(filename, function(err, data) {

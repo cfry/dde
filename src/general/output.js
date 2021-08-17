@@ -1,7 +1,7 @@
 /**
  * Created by Fry on 4/17/16.
  */
-import request from '/request'
+import request from '../../node_modules/request'
 import {persistent_get, persistent_set} from "../job_engine/core/storage"
 import {function_name, is_string_a_integer, is_string_a_number, starts_with_one_of,
         stringify_value, value_of_path} from "../job_engine/core/utils.js"

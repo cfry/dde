@@ -20,7 +20,7 @@ export default {
     output: {
         name: "dde4", //https://gist.github.com/Rich-Harris/d472c50732dab03efeb37472b08a3f32
         file: 'build/bundle.js',
-        format: 'es', //could also be 'iife' and 'umd'
+        format: 'es', //could also be 'es' 'iife' and 'umd'
         sourcemap: true
     }
 };
