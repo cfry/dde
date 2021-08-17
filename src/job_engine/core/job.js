@@ -8,7 +8,7 @@
 //   in this case new Job().start() will ungracefully error.
 // 3. The new Job instance is returned.
 
-import * as esprima from "../../../node_modules/esprima/dist/esprima.js"
+var esprima = require('esprima')
 import * as asap    from "../../../node_modules/asap/asap.js"
 import * as asapRaw from "../../../node_modules/asap/raw.js"
 import {serial_disconnect_all} from "./serial.js"
