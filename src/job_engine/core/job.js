@@ -8,9 +8,14 @@
 //   in this case new Job().start() will ungracefully error.
 // 3. The new Job instance is returned.
 
-var esprima = require('esprima')
-import * as asap    from "../../../node_modules/asap/asap.js"
-import * as asapRaw from "../../../node_modules/asap/raw.js"
+//var esprima = require('esprima') //can't get various configs of import to work on esprima
+      //todo switch to npm expree 2.0. Its input and output is compatiable with exprima,
+      //but can handle more up to date js, AND npm page shows using it with import.
+import * as espree from "../../../node_modules/espree/espree.js";
+//import * as asap    from "../../../node_modules/asap/asap.js" //todo has bug: "require is not defined" inside asap.js.
+         //try getting later version of asap. Its not commmonly used in DDE.
+//import * as asapRaw from "../../../node_modules/asap/raw.js" //todo bug "module is not defined"
+         //try getting later version of asapRaw. Its not commmonly used in DDE.
 import {serial_disconnect_all} from "./serial.js"
 import {Robot, Brain, Dexter, Human, Serial} from './robot.js'
 import {Coor} from '../math/Coor.js'
