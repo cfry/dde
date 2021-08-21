@@ -1,7 +1,10 @@
 /*Created by Fry on 7/4/16.*/
 
-import * as request from "../../../node_modules/request/index.js" //needed by write_file_async for node server
-import * as fsPath  from "../../../node_modules/fs-path/lib/index.js"
+//import * as request from "../../../node_modules/request/index.js" //needed by write_file_async for node server
+//but the request npm moduel is deprecated and doesn't work to import it,
+//so I switched below to window.fetch. which will fail if code run on a server.
+
+//import * as fsPath  from "../../../node_modules/fs-path/lib/index.js" //todo require is not defined
 //import fs      from "../../../node-modules/fs" //can't import this, can't even install it. when I insstall it I get a README of "this pkg name not in use."
 import {Robot, Brain, Dexter, Human, Serial}  from "./robot.js"
 import {shouldnt, starts_with_one_of, replace_substrings} from "./utils.js"
@@ -12,7 +15,7 @@ import {Job}     from "./job.js" //because loading a file with new Job in it nee
 //_______PERSISTENT: store name-value pairs in a file. Keep a copy of hte file in JS env, persistent_values
 //and write it out every time its changed.
 
-persistent_values = {}
+var persistent_values = {}
 
 //used by both persistent_initialize and dde_init_dot_js_initialize
 function get_persistent_values_defaults() {
@@ -501,7 +504,7 @@ function write_file_async_default_callback(err){
 }
 
 
-function write_file_async_to_dexter_using_node_server(dex_instance, path, content, callback){
+async function write_file_async_to_dexter_using_node_server(dex_instance, path, content, callback){
     //console.log("write_file_async_to_dexter_using_node_server with path: " + path + "  " + content)
     let colon_pos = path.indexOf(":")
     path = path.substring(colon_pos + 1) // path comes in as, for example,  "Dexter.dexter0:foo.txt
@@ -512,10 +515,24 @@ function write_file_async_to_dexter_using_node_server(dex_instance, path, conten
 
 //do not single step the below code. Must be done in one fell swoop.
     let ip = dex_instance.ip_address
-    let r = request.post('http://' + ip + '/edit', callback)
-    let form = r.form(); //tack on a form before the POST is done... Don't step through
-    form.append("data", content, {filepath: path}); //path could be "foo.txt" in which case the folder
+    //let r = request.post('http://' + ip + '/edit', callback)
+    //let form = r.form(); //tack on a form before the POST is done... Don't step through
+    //form.append("data", content, {filepath: path}); //path could be "foo.txt" in which case the folder
        //defaults to /srv/samba/share,  OR path can be /srv/samba/share/foo.txt
+
+    //see https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
+    let url = 'http://' + ip + '/edit/'
+    options = {
+        method: 'POST', // *GET, POST, PUT, DELETE, etc.
+        mode: 'cors', // no-cors, *cors, same-origin
+        cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+        credentials: 'include',
+        body: path
+    }
+    let response = await fetch(options)
+    let err = (response.ok ? null : "Network response was not ok")
+    let body = response.body
+    callback(err, response, body)
 }
 
 function write_file_async_to_dexter_using_job(dex_instance, path, content, callback){
@@ -1226,11 +1243,26 @@ export function make_unique_path(path){
     return new_path
 }
 
-export function get_page_async(url_or_options, callback){
+
+export async function get_page_async(url_or_options, callback){
     //https://www.npmjs.com/package/request documents request
     //as taking args of (options, cb) but the actual
     //fn itself has params(uri, options, cb
-    request(url_or_options, callback)
+    //request(url_or_options, callback)
+    let url, options, response, err, body
+    if(typeof(url_or_options) === "string") {
+        url = url_or_options
+        options = { credentials: 'include',
+                    mode: 'cors'} // no-cors, *cors, same-origin } //attempt to get cross domain urls. might not work
+                                  // see https://developer.mozilla.org/en-US/docs/Web/API/Request/mode
+        response = await fetch(url, options)
+    }
+    else {
+        response = await fetch(url_or_options)
+    }
+    err = (response.ok ? null : "Network response was not ok")
+    body = response.body
+    callback(err, response, body)
 }
 
 

@@ -1,7 +1,7 @@
 //see doc: https://nodejs.org/api/readline.html
 import {Job} from "./job.js"
 
-import * as readline from "../../../node_modules/readline/readline.js"
+import * as readline from "../../../node_modules/readline/readline.js" //todo but readline.js does require("fs") and require is undefined.
 
 const rl = readline.createInterface({
     input: process.stdin,

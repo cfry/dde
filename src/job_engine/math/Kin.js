@@ -1847,9 +1847,6 @@ export class Kin{
     } end of context_inverse_kinematics */
 }
 
-module.exports = Kin
-
-
 //Used in predict_move_dur
 //Computation based on James N reading of Dynamixel XL 320, 114RPM at 7.4 volts.
 //but we're running it at 5 volts so down to 77RPM, which is 1.28rps

@@ -11,6 +11,7 @@
 //const { clipboard } = require('electron')
 import {Readable} from "../../node_modules/stream/index.js"
 //import fs from "../../node_modules/fs" // Use node filesystem
+import * as ssh2_client from "../../node_modules/ssh2/lib/client.js"
 
 export var SSH = class SSH {
     //not passing in a command will fundamentally default to ls -l, but there's a complex wrapper around it for the default case.
@@ -102,7 +103,7 @@ export var SSH = class SSH {
     //either errors or connects
     static init_maybe_and_write(command, callback){
        if(!this.Client){
-            this.Client = require('ssh2').Client
+            this.Client = ssh2_client //require('ssh2').Client
        }
        if(!this.conn) {
            this.close_connection()

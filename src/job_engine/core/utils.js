@@ -1,10 +1,11 @@
 
 //import semver        from "../../../node_modules/semver/semver.js"
 //import {SemVer}        from "../../../node_modules/semver/index.js"
-import * as semver from "../../../node_modules/semver/index.js"
+//import * as semver from "../../../node_modules/semver/index.js" //todo  require is not defined
  //const semverEq = require('semver/functions/eq')
  //for semver 7, semver.Lt, semver.Gt, and maybe semverEq ???
  //in DDE3, used semver verison "^5.7.1"
+//import * as process from "../../../node_modules/process/index.js" //todo module is not defined
 import {Instruction} from "./instruction.js"
 import {Robot, Brain, Dexter, Human, Serial} from './robot.js'
 
@@ -42,10 +43,9 @@ function isBase64(v, opts) {
 //import {microseconds}              from "../../../node_modules/nano-time/index.js"
 //importing microseconds from this module just doesn't work, so
 //I'm inlining the code from the nano-time npm module here:
-const loadNs = process.hrtime();
-const loadMs = new Date().getTime();
-
 function nanoseconds() {
+    let loadNs = process.hrtime();
+    let loadMs = new Date().getTime();
     let diffNs = process.hrtime(loadNs);
     return BigInt(loadMs).times(1e6).add(BigInt(diffNs[0]).times(1e9).plus(diffNs[1])).toString();
 }

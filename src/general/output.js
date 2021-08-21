@@ -1,11 +1,11 @@
 /**
  * Created by Fry on 4/17/16.
  */
-import request from '../../node_modules/request'
+//import request from '../../node_modules/request' //todo needed only for non-working speech reco
 import {persistent_get, persistent_set} from "../job_engine/core/storage"
 import {function_name, is_string_a_integer, is_string_a_number, starts_with_one_of,
         stringify_value, value_of_path} from "../job_engine/core/utils.js"
-import {write_to_stdout} from "../job_engine/core/stdio.js"
+//import {write_to_stdout} from "../job_engine/core/stdio.js" //todo imports readline which requries fs which errors
 
 //since I can't actually change window width, height, x, y programmatically,
 //probably have to give up on this.

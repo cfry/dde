@@ -167,7 +167,7 @@ import {convertArrayBufferToString, convertStringToArrayBuffer,
      serial_port_path_to_info_map, serial_port_init, serial_send,
      serial_send_low_level} from "./serial.js"
 
-import {close_readline, set_keep_alive_value, write_to_stdout} from "./stdio.js"
+//import {close_readline, set_keep_alive_value, write_to_stdout} from "./stdio.js" //todo imports readline which requires fs which errors
 
 import {html_db, is_dom_elt, make_dom_elt, make_html} from "./html_db.js"
 
@@ -241,10 +241,11 @@ global.read_file = read_file
 global.write_file = write_file
 
 
+/* had to not import stdio.js see above.
 global.close_readline = close_readline
 global.set_keep_alive_value = set_keep_alive_value
 global.write_to_stdout = write_to_stdout
-
+*/
 
 global.convertArrayBufferToString = convertArrayBufferToString
 global.convertStringToArrayBuffer = convertStringToArrayBuffer

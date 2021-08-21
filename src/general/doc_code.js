@@ -1,4 +1,4 @@
-import Mark from '/mark.js'
+import * as Mark from '../../node_modules/mark.js/dist/mark.es6.js'
 import {read_file} from "../job_engine/core/storage.js"
 import {last, replace_substrings, value_of_path} from "../job_engine/core/utils.js"
 
@@ -105,7 +105,7 @@ export function open_doc(details_elt, record=true){
     myCodeMirror.focus()
 }
 
-function init_outer_splitter_expand_event(){
+export function init_outer_splitter_expand_event(){
     $('#outer_splitter_id').on('expanded',
         function (event) {
           if(open_doc_called_since_doc_pane_collapsed){

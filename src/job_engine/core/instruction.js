@@ -978,7 +978,7 @@ Instruction.human_task = class human_task extends Instruction{
     }
 }
 
-var human_task_handler = function(vals){
+export var human_task_handler = function(vals){
     var job_instance = Job[vals.job_name]
     if(vals.clicked_button_value == "Continue Job") { } //the dialog closes automatically
     else if (vals.clicked_button_value == "Stop Job"){
@@ -1001,7 +1001,6 @@ var human_task_handler = function(vals){
     job_instance.set_up_next_do(1) //even for the case where we're stopping the job,
      //this lets the do_next_item handle finishing the job properly
 }
-module.exports.human_task_handler = human_task_handler
 
 Instruction.human_enter_choice = class human_enter_choice extends Instruction{
     constructor ({task="",

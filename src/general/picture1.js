@@ -3,8 +3,10 @@ But looks like cv.imshow can only show to a canvas tag.
 */
 import {is_integer, number_similarity, value_of_path} from "../job_engine/core/utils.js"
 
-var cv = "cv is not initialized. Call Picture.init()"
-var RotatingCalipers = "RotatingCalipers is not initialized. Call Picture.init()"
+//var cv = "cv is not initialized. Call Picture.init()"
+//var RotatingCalipers = "RotatingCalipers is not initialized. Call Picture.init()"
+import * as cv from "../../node_modules/opencv.js/opencv.js"
+import * as RotatingCalipers from "rotating-calipers/rotating-calipers.js"
 
 var Picture = class Picture{
    //the width and height are for the show_window made (if any)
@@ -12,8 +14,7 @@ var Picture = class Picture{
    static init({width=320, height=240}={}){
        if(typeof(cv) == "string") { //calling init a 2nd time some times screws up do to timing,
                                     //probably due to the show_video call.
-            cv = require("./node_modules/opencv.js/opencv")
-            RotatingCalipers = require("rotating-calipers/rotating-calipers.js")
+
        //load_files(__dirname + "/node_modules/rotating-calipers/rotating-calipers.js")
        // Picture.show_video({width: width, height: height, callback: SW.close_window}) //immediately closes itself, but needs to open temporarily just to complete "initing".
       //Picture.take_picture({callback: null}) //the first time I call take_picture,

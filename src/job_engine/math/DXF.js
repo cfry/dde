@@ -2,18 +2,18 @@
 //James Wigglesworth
 //Started: 2_10_2017
 //Updated: 1_26_19
-import {txt} from "./txt.js"
+import {txt}       from "./txt.js"
 import {DxfParser} from "./dxf-parser.js"
 import {setKeepPosition, setOpenLoop} from "./Dexter_Modes.js"
-import Coor   from "./Coor.js"
-import Vector from "./Vector.js"
-import Kin    from "./Kin.js"
+import {Coor}      from "./Coor.js"
+import {Vector}    from "./Vector.js"
+import {Kin}       from "./Kin.js"
 
 import {point_object_to_array, scale_point} from "../core/utils.js"
 import {read_file} from "../core/storage.js"
 import {Instruction, make_ins} from "../core/instruction.js"
-import {Dexter} from "../core/robot.js"
-import Job from "../core/job.js"
+import {Dexter}    from "../core/robot.js"
+import {Job}       from "../core/job.js"
 
 
 export var DXF = new function(){

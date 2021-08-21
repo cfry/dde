@@ -7,27 +7,32 @@ console.log("top of ready.js")
 //and not having it still makes $ available.
 import "../../node_modules/jqwidgets-scripts/jqwidgets/jqxcore.js"
 import "../../node_modules/jqwidgets-scripts/jqwidgets/jqxmenu.js"
+import "../../node_modules/jqwidgets-scripts/jqwidgets/jqxsplitter.js"
+
+
 
 //import {Coor} from "../job_engine/math/Coor.js" //causes stream bug
-//import DXF        from "../job_engine/math/DXF.js"
+import {DXF}        from "../job_engine/math/DXF.js"
 // stream bug above here
-///import {calibrate_build_tables} from "../job_engine/low_level_dexter/calibrate_build_tables.js"
+import {calibrate_build_tables} from "../job_engine/low_level_dexter/calibrate_build_tables.js"
 //stream bug above here
 //import {convert_backslashes_to_slashes} from "../job_engine/core/storage.js"
-/*import {get_output} from "../job_engine/core/out.js"
-import Job          from "../job_engine/core/job.js"
-import Gcode        from "../job_engine/core/gcode.js"
-import {date_to_human_string, date_to_mmm_dd_yyyy, is_digit} from "../job_engine/core/utils.js"
-import {FPGA}       from "../job_engine/core/fpga.js"
+//import {get_output} from "../job_engine/core/out.js"
+import {Job}          from "../job_engine/core/job.js"
+//import Gcode        from "../job_engine/core/gcode.js"
+//import {date_to_human_string, date_to_mmm_dd_yyyy, is_digit} from "../job_engine/core/utils.js"
+//import {FPGA}       from "../job_engine/core/fpga.js"
 
-import {Simqueue}   from "../job_engine/core/simqueue.js"
-*/
+//import {Simqueue}   from "../job_engine/core/simqueue.js"
+
 import {Dexter}     from "../job_engine/core/robot.js"
+
+import {init_outer_splitter_expand_event} from "./doc_code.js"
 /*
 //stream bug above here.
 //in the general folder, as is ready.js
 import {Editor}     from "./editor.js"
-import {DDE_NPM}    from "./DDE_NPM.js"
+import {DDE_NPM}    from "./DDE_NPM.js" //todo big changes due to import???
 //import {SSH}        from "./ssh.js" //todo
 import {Series}     from "./series.js"
 import {open_doc}   from "./doc_code.js"
@@ -37,7 +42,7 @@ import {PatchDDE}   from "./patch_dde.js"
 //todo const {google} = require('googleapis');
 
 
-var dde_version      = "not inited"
+var dde_version      = 4 //todo needs work! "not inited"
 var dde_release_date = "not inited"
 var myCodeMirror //inited inside of ready
 
@@ -567,8 +572,8 @@ export function on_ready() {
         }
     }
 
-    DDE_NPM.init()
-    install_npm_pkg_id.onclick = DDE_NPM.show_ui
+    //DDE_NPM.init() //todo big changes due to import???
+    //install_npm_pkg_id.onclick = DDE_NPM.show_ui
 
     insert_file_content_id.onclick=function(e) {
         const path = choose_file({title: "Choose a file to insert into DDE's editor"})

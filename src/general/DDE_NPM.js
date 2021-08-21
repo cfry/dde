@@ -1,7 +1,7 @@
 
 //https://www.npmjs.com/package/npm-programmatic
 
-import npm_p from "/npm-programmatic"
+import * as npm_p from "../../node_modules/npm-programmatic/index.js"
 
 export var DDE_NPM = class DDE_NPM {
     static folder

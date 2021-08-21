@@ -31,7 +31,7 @@ temboo IOT js connectivity requires setting up a local js server to use.
 import {stringify_value} from "./utils.js"
 
 //import SerialPort from '../../../node_modules/serialport/lib/index.js' //"To use SerialPort, you must call serial_port_init() first."
-import * as SerialPort from '../../../node_modules/serialport/lib/index.js'
+//import * as SerialPort from '../../../node_modules/serialport/lib/index.js' //todo require is not defined
 
 //caled fron ready.js. Prevents error when loading job _engine (and this file)
 //on Dexter hardware

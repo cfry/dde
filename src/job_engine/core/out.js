@@ -181,7 +181,6 @@ export function show_window_values(vals){
         write_to_stdout(str)
     }
 }
-global.show_window_values = show_window_values
 
 export function show_window({content = `<input type="submit" value="Done"/>`,
                       title = "DDE Information",
