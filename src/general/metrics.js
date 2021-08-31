@@ -1,4 +1,4 @@
-var Metrics = class Metrics {
+export class Metrics {
     static state = {"Eval button clicks": 0,
                     "Step button clicks": 0,
                     "Job button clicks": 0,
@@ -16,8 +16,8 @@ var Metrics = class Metrics {
             this.state[key] = 1
         }
         this.save()
-        if(misc_pane_menu_selection === "Reward Board"){ //refresh
-            show_in_misc_pane("Reward Board")
+        if(DDEVideo.misc_pane_menu_selection === "Reward Board"){ //refresh
+            DDEVideo.show_in_misc_pane("Reward Board")
         }
     }
     static save(){

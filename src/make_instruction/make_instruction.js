@@ -106,7 +106,7 @@ export var MakeInstruction = class MakeInstruction{
     //first arg can be a string of js src, or a call obj (used by MakeInstruction.run
     static show(instruction_call_src=null, show_doc=true, set_misc_pane_menu_label=true){
         if(set_misc_pane_menu_label){
-            set_misc_pane_menu_selection("Make Instruction")
+            DDEVideo.set_misc_pane_menu_selection("Make Instruction")
         }
         let call_obj
         if(typeof(instruction_call_src) == "string"){ //don't use pipeline because we don't want to merge in prev_vals when coming from the editor, just instrudtion def defaults overlayed with src values
@@ -126,7 +126,7 @@ export var MakeInstruction = class MakeInstruction{
         sim_pane_content_id.innerHTML =
             "<div style='background-color:#EEEEEE;margin-bottom:10px;'>" +
                 "<div style='font-size:14px;font-weight:700;margin-left:50px;'>" +
-                  "<a href='#' onclick='open_doc(make_instruction_pane_doc_id)' style='color:black;'>" + "Make Instruction" +
+                  "<a href='#' onclick='DocCode.open_doc(make_instruction_pane_doc_id)' style='color:black;'>" + "Make Instruction" +
                   "</a></div>" +
                 //this.make_job_robots_select_html(selected_robot_full_name) +
                 "<div style='white-space:nowrap;'>" +  //white-space:nowrap;
@@ -409,7 +409,7 @@ export var MakeInstruction = class MakeInstruction{
                 instruction_name = instruction_name.substring(4)
             }
             let id = instruction_name + "_doc_id"
-            if(window[id]) { open_doc(id) }
+            if(window[id]) { DocCode.open_doc(id) }
         }
         if (instruction_name == "Job") {
             window[this.arg_name_to_dom_elt_id("robot")].value = default_dexter_full_name()
@@ -957,7 +957,7 @@ export var MakeInstruction = class MakeInstruction{
                                 "errored because it evaled to: " + do_list_item + "<br/>" +
                                 "and <span style='color:red;'> that is not a valid do_list item." +
                                 "</span><br/>Correct errors and try again.")
-                            open_doc(job_param_do_list_doc_id)
+                            DocCode.open_doc(job_param_do_list_doc_id)
                             return false
                         }
                     }
@@ -1083,12 +1083,12 @@ export var MakeInstruction = class MakeInstruction{
         let the_inst = eval(inst_src)
         if(the_inst instanceof Job){
             if(Robot.simulate_or_both_selected()){
-                show_in_misc_pane("Simulate Dexter")
+                DDEVideo.show_in_misc_pane("Simulate Dexter")
                 //to give user time to adjust to the sim pane
                 let when_stopped_fn = function(){
                     setTimeout(function() {
                            //MakeInstruction.show(call_obj, false)
-                            show_in_misc_pane("Make Instruction", call_obj) //preps, then calls MakeInstruction.show
+                            DDEVideo.show_in_misc_pane("Make Instruction", call_obj) //preps, then calls MakeInstruction.show
                         },
                         2000)
                 }
@@ -1114,7 +1114,7 @@ export var MakeInstruction = class MakeInstruction{
             when_stopped: function(){
                 setTimeout(function() {
                                 //MakeInstruction.show(call_obj, false)
-                                show_in_misc_pane("Make Instruction", call_obj)
+                        DDEVideo.show_in_misc_pane("Make Instruction", call_obj)
                 },
                     2000)
             }
@@ -1128,7 +1128,7 @@ export var MakeInstruction = class MakeInstruction{
             dde_error(true_or_error_mess)
         }
         else if(Robot.simulate_or_both_selected()){
-            show_in_misc_pane("Simulate Dexter")
+            DDEVideo.show_in_misc_pane("Simulate Dexter")
             //to give user time to adjust to the sim pane
             setTimeout(function() {
                         Job.job_00.start()

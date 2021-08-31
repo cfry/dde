@@ -1,8 +1,8 @@
 /* Created by Fry on 3/29/16. */
 
 import {RobotStatus} from "./robot_status.js"
-import {Job} from "./job.js"
-import {Instruction, make_ins} from "./instruction.js"
+//import {Job} from "./job.js" now global
+//import {Instruction, make_ins} from "./instruction.js" //now global
 //import {shouldnt, date_integer_to_long_string,
 //        is_iterator, is_string_an_identifier, last,
 //        return_first_arg, starts_with_one_of, stringify_value,
@@ -12,13 +12,13 @@ import {Instruction, make_ins} from "./instruction.js"
 //import {Socket} from "./socket.js"
 //import {serial_connect, serial_disconnect, serial_send}from "./serial.js"
 
-import {Vector} from "../math/Vector.js"
+//import {Vector} from "../math/Vector.js" //now global
 //import {Kin} from "../math/Kin.js"
 
 import {show_window_values} from "./out.js"
 
 
-export var Robot = class Robot {
+var Robot = class Robot {
     constructor (args){
        if(!is_string_an_identifier(args.name)) {
            dde_error('You have attempted to make a new Robot with an invalid name of: "' + args.name +
@@ -321,6 +321,7 @@ export var Robot = class Robot {
                                              callback: callback})
     }
 }
+globalThis.Robot = Robot
 Robot.all_names = []
 
 Robot.robot_status_labels = [] //overridden by Serial and Dexter, needed by Show robot status history button
@@ -374,6 +375,8 @@ export var Brain = class Brain extends Robot { /*no associated hardware */
             ]
     }
 }
+
+globalThis.Brain = Brain
 
 Brain.all_names = []
 
@@ -554,6 +557,7 @@ export var Human = class Human extends Brain { /*no associated hardware */
     })
     }
 }
+globalThis.Human = Human
 
 Human.all_names = []
 
@@ -869,6 +873,7 @@ export var Serial = class Serial extends Robot {
 
 
 } //end Serial class
+globalThis.Serial = Serial
 Serial.all_names = []
 Serial.last_name = null
 
@@ -1664,6 +1669,7 @@ export var Dexter = class Dexter extends Robot {
         //now job_00 is just waiting for another instruction to be passed to it.
     }*/
 }
+globalThis.Dexter = Dexter
 
 Dexter.all_names = []
 Dexter.last_robot = null //last Dexter defined.
@@ -1703,11 +1709,10 @@ Dexter.OUT             = [null, null, 1]
 
 
 //__________INSTRUCTIONS______________
-//called only for testing purposes. Goes all the way through to the simulate
-//or dexter, unlike Job.error
-Dexter.make_ins = make_ins
-Dexter.capture_ad     = function(...args){ return make_ins("c", ...args) }
-Dexter.prototype.capture_ad = function(...args){ args.push(this); return Dexter.capture_ad(...args) }
+
+//Dexter.make_ins = make_ins //now inited by on_ready
+Dexter.capture_ad               = function(...args){ return make_ins("c", ...args) }
+Dexter.prototype.capture_ad     = function(...args){ args.push(this); return Dexter.capture_ad(...args) }
 
 Dexter.capture_points           = function(...args){ return make_ins("i", ...args) }
 Dexter.prototype.capture_points = function(...args){ args.push(this); return Dexter.capture_points(...args) }

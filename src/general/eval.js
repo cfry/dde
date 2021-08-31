@@ -1,6 +1,8 @@
 import {out_eval_result} from "../job_engine/core/out.js"
 import {replace_substrings, starts_with_one_of, stringify_value} from "../job_engine/core/utils.js"
-import {Robot, Brain, Dexter, Human, Serial} from '../job_engine/core/robot.js'
+//import {Robot, Brain, Dexter, Human, Serial} from '../job_engine/core/robot.js' //now all globals
+
+import {inspect_is_primitive} from "./inspect.js"
 
 var prefix_to_evaled_src = "try{" //referenced in eval code AND in error handler way below
 
@@ -49,39 +51,39 @@ var latest_eval_button_click_source = null
 //when this is called, there is no selection, so either we're evaling the whole editor buffer
 //or the whole cmd line.
 //beware, the code *might* be HTML or python at this point
-function eval_js_part1(step=false){
+export function eval_js_part1(step=false){
     //tricky: when button is clicked, Editor.get_any_selection() doesn't work,
     //I guess because the button itself is now in focus,
     //so we grab the selection on mousedown of the the Eval button.
     //then use that here if its not "", otherwise, Editor.get_javascript("auto"), getting the whol editor buffer
     let src
     let src_comes_from_editor = false
-    if(previous_active_element &&
-       previous_active_element.parentNode &&
-       previous_active_element.parentNode.parentNode &&
-       previous_active_element.parentNode.parentNode.CodeMirror){
+    if(DocCode.previous_active_element &&
+        DocCode.previous_active_element.parentNode &&
+        DocCode.previous_active_element.parentNode.parentNode &&
+        DocCode.previous_active_element.parentNode.parentNode.CodeMirror){
         src = Editor.get_javascript("auto") //if sel in editor, get it, else get whole editor
         src_comes_from_editor = true
     }
     //let sel_obj = window.getSelection()
-    else if (selected_text_when_eval_button_clicked.length > 0) {
-        src = selected_text_when_eval_button_clicked
+    else if (DocCode.selected_text_when_eval_button_clicked.length > 0) {
+        src = DocCode.selected_text_when_eval_button_clicked
     }
-    else if (previous_active_element &&
-             previous_active_element.tagName == "TEXTAREA"){
-         let start = previous_active_element.selectionStart
-         let end  = previous_active_element.selectionEnd
-         if (start != end) { src = previous_active_element.value.substring(start, end) }
-         else              { src = previous_active_element.value }
+    else if (DocCode.previous_active_element &&
+             DocCode.previous_active_element.tagName == "TEXTAREA"){
+         let start = DocCode.previous_active_element.selectionStart
+         let end  = DocCode.previous_active_element.selectionEnd
+         if (start != end) { src = DocCode.previous_active_element.value.substring(start, end) }
+         else              { src = DocCode.previous_active_element.value }
     }
-    else if (previous_active_element &&
-             (previous_active_element.tagName == "INPUT") &&
-             (previous_active_element.type == "text")){
-        let start = previous_active_element.selectionStart
-        let end  = previous_active_element.selectionEnd
-        if (start != end) { src = previous_active_element.value.substring(start, end) }
-        else              { src = previous_active_element.value }
-        src = previous_active_element.value
+    else if (DocCode.previous_active_element &&
+             (DocCode.previous_active_element.tagName == "INPUT") &&
+             (DocCode.previous_active_element.type == "text")){
+        let start = DocCode.previous_active_element.selectionStart
+        let end  = DocCode.previous_active_element.selectionEnd
+        if (start != end) { src = DocCode.previous_active_element.value.substring(start, end) }
+        else              { src = DocCode.previous_active_element.value }
+        src = DocCode.previous_active_element.value
     }
     else {
         src = Editor.get_javascript("auto")
@@ -90,7 +92,7 @@ function eval_js_part1(step=false){
     //offsets into the editor buffer correct is important.
     latest_eval_button_click_source = src
     if (src.trim() == ""){
-        open_doc(learning_js_doc_id)
+        DocCode.open_doc(learning_js_doc_id)
         if(src.length > 0) {
             warning("There is a selection in the editor but it has whitespace only<br/>" +
                     "so there is no code to execute.<br/>" +
@@ -117,11 +119,11 @@ function eval_js_part1(step=false){
         if(html_db.string_looks_like_html(src)){
             render_html(src)
         }
-        else if(Editor.current_file_path.endsWith(".py") &&
-                src_comes_from_editor
-                ){
-            Py.eval_part2(src)
-        }
+        //else if(Editor.current_file_path.endsWith(".py") && //todo needs current_file_path and global def of Py
+        //        src_comes_from_editor
+        //       ){
+        //    Py.eval_part2(src)
+        //}
         else {
             eval_js_part2((step? "debugger; ": "") + src) //LEAVE THIS IN RELEASED CODE
         }
@@ -208,7 +210,7 @@ function eval_js_part3(result){
     if (result.error_type){
         string_to_print = result.error_type + ": " + result.error_message
         if (result.starting_index != undefined) { //beware, starting_index might == 0 which is false to IF
-            var cm_pos = myCodeMirror.doc.posFromIndex(start_of_selection + result.starting_index)
+            var cm_pos = Editor.myCodeMirror.doc.posFromIndex(start_of_selection + result.starting_index)
             string_to_print += "<br/>&nbsp;&nbsp;&nbsp;At line: " + (cm_pos.line + 1) + ", char: " + (cm_pos.ch + 1)
         }
         var stack_trace = result.full_error_message
@@ -279,7 +281,7 @@ function error_message_start_and_end_pos(err){
     }
 }
 //action for the Eval&Start button
-function eval_and_start(){
+export function eval_and_start(){
      let sel_text = Editor.get_any_selection()
      if (sel_text.length == 0) {
          sel_text = Editor.get_javascript()

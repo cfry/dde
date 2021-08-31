@@ -5,18 +5,18 @@
 import {txt}       from "./txt.js"
 import {DxfParser} from "./dxf-parser.js"
 import {setKeepPosition, setOpenLoop} from "./Dexter_Modes.js"
-import {Coor}      from "./Coor.js"
-import {Vector}    from "./Vector.js"
-import {Kin}       from "./Kin.js"
+//import {Coor}      from "./Coor.js"   //now global
+//import {Vector}    from "./Vector.js" //now global
+//import {Kin}       from "./Kin.js"    //now global
 
 import {point_object_to_array, scale_point} from "../core/utils.js"
 import {read_file} from "../core/storage.js"
-import {Instruction, make_ins} from "../core/instruction.js"
-import {Dexter}    from "../core/robot.js"
-import {Job}       from "../core/job.js"
+//import {Instruction, make_ins} from "../core/instruction.js"
+//import {Dexter}    from "../core/robot.js"
+//import {Job}       from "../core/job.js"
 
 
-export var DXF = new function(){
+var DXF = new function() {
 	
     this.content_to_entities = function(content){
     	let parser = new DxfParser()
@@ -1406,5 +1406,7 @@ this.dxf_to_instructions = function({
 } // closes DXF.init_drawing
     this.string_to_lines = txt.string_to_lines
 } // closes DXF class
+
+globalThis.DXF = DXF
 
 

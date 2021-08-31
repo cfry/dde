@@ -1,6 +1,6 @@
 import {Dexter} from "./robot.js"
 
-export class FPGA {
+class FPGA {
     static command_reg_val({
                 CapCalibrateBase = false,
                 CapCalibrateEnd = false,
@@ -37,98 +37,99 @@ export class FPGA {
     /* not used. We must use FPGA.BASE_POSITION = 0 from below
       and not the series, because FPGA is part of the job engine,
       and that does NOT have series in them.
-      So the below long list is redundant with
      */
+
     static init(){
         for(let i = 0; i < FPGA.w_oplet_address_names.length; i++){
             let name = FPGA.w_oplet_address_names[i]
-            eval(name + " = " + i)
+            //eval(name + " = " + i)
+            FPGA[name] = i
         }
     }
 }
 FPGA.w_oplet_address_names =[
-    "FPGA.BASE_POSITION",  // 0
-    "FPGA.END_POSITION",  // 1
-    "FPGA.PIVOT_POSITION",  // 2
-    "FPGA.ANGLE_POSITION",  // 3
-    "FPGA.ROT_POSITION",  // 4
-    "FPGA.ACCELERATION_MAXSPEED",  // 5
-    "FPGA.BASE_SIN_CENTER",  // 6
-    "FPGA.BASE_COS_CENTER",  // 7
-    "FPGA.END_SIN_CENTER",  // 8
-    "FPGA.END_COS_CENTER",  // 9
-    "FPGA.PIVOT_SIN_CENTER",  // 10
-    "FPGA.PIVOT_COS_CENTER",  // 11
-    "FPGA.ANGLE_SIN_CENTER",  // 12
-    "FPGA.ANGLE_COS_CENTER",  // 13
-    "FPGA.ROT_SIN_CENTER",  // 14
-    "FPGA.ROT_COS_CENTER",  // 15
-    "FPGA.PID_DELTATNOT",  // 16
-    "FPGA.PID_DELTAT",  // 17
-    "FPGA.PID_D",  // 18
-    "FPGA.PID_I",  // 19
-    "FPGA.PID_P",  // 20
-    "FPGA.PID_ADDRESS",  // 21
-    "FPGA.BOUNDRY_BASE",  // 22
-    "FPGA.BOUNDRY_END",  // 23
-    "FPGA.BOUNDRY_PIVOT",  // 24
-    "FPGA.BOUNDRY_ANGLE",  // 25
-    "FPGA.BOUNDRY_ROT",  // 26
-    "FPGA.SPEED_FACTORA",  // 27
-    "FPGA.SPEED_FACTORB",  // 28
-    "FPGA.FRICTION_BASE",  // 29
-    "FPGA.FRICTION_END",  // 30
-    "FPGA.FRICTION_PIVOT",  // 31
-    "FPGA.FRICTION_ANGLE",  // 32
-    "FPGA.FRICTION_ROT",  // 33
-    "FPGA.MOVE_TRHESHOLD",  // 34
-    "FPGA.F_FACTOR",  // 35
-    "FPGA.MAX_ERROR",  // 36
-    "FPGA.FORCE_BIAS_BASE",  // 37
-    "FPGA.FORCE_BIAS_END",  // 38
-    "FPGA.FORCE_BIAS_PIVOT",  // 39
-    "FPGA.FORCE_BIAS_ANGLE",  // 40
-    "FPGA.FORCE_BIAS_ROT",  // 41
-    "FPGA.COMMAND_REG",  // 42
-    "FPGA.DMA_CONTROL",  // 43
-    "FPGA.DMA_WRITE_DATA",  // 44
-    "FPGA.DMA_WRITE_PARAMS",  // 45
-    "FPGA.DMA_WRITE_ADDRESS",  // 46
-    "FPGA.DMA_READ_PARAMS",  // 47
-    "FPGA.DMA_READ_ADDRESS",  // 48
-    "FPGA.REC_PLAY_CMD",  // 49
-    "FPGA.REC_PLAY_TIMEBASE",  // 50
-    "FPGA.MAXSPEED_XYZ",  // 51
-    "FPGA.DIFF_FORCE_BETA",  // 52
-    "FPGA.DIFF_FORCE_MOVE_THRESHOLD",  // 53
-    "FPGA.DIFF_FORCE_MAX_SPEED",  // 54
-    "FPGA.DIFF_FORCE_SPEED_FACTOR_ANGLE",  // 55
-    "FPGA.DIFF_FORCE_SPEED_FACTOR_ROT",  // 56
-    "FPGA.DIFF_FORCE_ANGLE_COMPENSATE",  // 57
-    "FPGA.FINE_ADJUST_BASE",  // 58
-    "FPGA.FINE_ADJUST_END",  // 59
-    "FPGA.FINE_ADJUST_PIVOT",  // 60
-    "FPGA.FINE_ADJUST_ANGLE",  // 61
-    "FPGA.FINE_ADJUST_ROT",  // 62
-    "FPGA.RECORD_LENGTH",  // 63
-    "FPGA.END_EFFECTOR_IO",  // 64
-    "FPGA.SERVO_SETPOINT_A",  // 65
-    "FPGA.SERVO_SETPOINT_B",  // 66
-    "FPGA.BASE_FORCE_DECAY",  // 67
-    "FPGA.END_FORCE_DECAY",  // 68
-    "FPGA.PIVOT_FORCE_DECAY",  // 69
-    "FPGA.ANGLE_FORCE_DECAY",  // 70
-    "FPGA.ROTATE_FORCE_DECAY",  // 71
-    "FPGA.PID_SCHEDULE_INDEX",  // 72
-    "FPGA.GRIPPER_MOTOR_CONTROL",  // 73
-    "FPGA.GRIPPER_MOTOR_OFF_WIDTH",  // 74
-    "FPGA.GRIPPER_MOTOR_ON_WIDTH",  // 75
-    "FPGA.START_SPEED",  // 76
-    "FPGA.ANGLE_END_RATIO",  // 77
-    "FPGA.RESET_PID_AND_FLUSH_QUEUE",  // 78
-    "FPGA.XYZ_FORCE_TIMEBASE",  // 79
-    "FPGA.DIFFERENTIAL_FORCE_TIMEBASE",  // 80
-    "FPGA.PID_TIMEBASE"]
+    "BASE_POSITION",  // 0
+    "END_POSITION",  // 1
+    "PIVOT_POSITION",  // 2
+    "ANGLE_POSITION",  // 3
+    "ROT_POSITION",  // 4
+    "ACCELERATION_MAXSPEED",  // 5
+    "BASE_SIN_CENTER",  // 6
+    "BASE_COS_CENTER",  // 7
+    "END_SIN_CENTER",  // 8
+    "END_COS_CENTER",  // 9
+    "PIVOT_SIN_CENTER",  // 10
+    "PIVOT_COS_CENTER",  // 11
+    "ANGLE_SIN_CENTER",  // 12
+    "ANGLE_COS_CENTER",  // 13
+    "ROT_SIN_CENTER",  // 14
+    "ROT_COS_CENTER",  // 15
+    "PID_DELTATNOT",  // 16
+    "PID_DELTAT",  // 17
+    "PID_D",  // 18
+    "PID_I",  // 19
+    "PID_P",  // 20
+    "PID_ADDRESS",  // 21
+    "BOUNDRY_BASE",  // 22
+    "BOUNDRY_END",  // 23
+    "BOUNDRY_PIVOT",  // 24
+    "BOUNDRY_ANGLE",  // 25
+    "BOUNDRY_ROT",  // 26
+    "SPEED_FACTORA",  // 27
+    "SPEED_FACTORB",  // 28
+    "FRICTION_BASE",  // 29
+    "FRICTION_END",  // 30
+    "FRICTION_PIVOT",  // 31
+    "FRICTION_ANGLE",  // 32
+    "FRICTION_ROT",  // 33
+    "MOVE_TRHESHOLD",  // 34
+    "F_FACTOR",  // 35
+    "MAX_ERROR",  // 36
+    "FORCE_BIAS_BASE",  // 37
+    "FORCE_BIAS_END",  // 38
+    "FORCE_BIAS_PIVOT",  // 39
+    "FORCE_BIAS_ANGLE",  // 40
+    "FORCE_BIAS_ROT",  // 41
+    "COMMAND_REG",  // 42
+    "DMA_CONTROL",  // 43
+    "DMA_WRITE_DATA",  // 44
+    "DMA_WRITE_PARAMS",  // 45
+    "DMA_WRITE_ADDRESS",  // 46
+    "DMA_READ_PARAMS",  // 47
+    "DMA_READ_ADDRESS",  // 48
+    "REC_PLAY_CMD",  // 49
+    "REC_PLAY_TIMEBASE",  // 50
+    "MAXSPEED_XYZ",  // 51
+    "DIFF_FORCE_BETA",  // 52
+    "DIFF_FORCE_MOVE_THRESHOLD",  // 53
+    "DIFF_FORCE_MAX_SPEED",  // 54
+    "DIFF_FORCE_SPEED_FACTOR_ANGLE",  // 55
+    "DIFF_FORCE_SPEED_FACTOR_ROT",  // 56
+    "DIFF_FORCE_ANGLE_COMPENSATE",  // 57
+    "FINE_ADJUST_BASE",  // 58
+    "FINE_ADJUST_END",  // 59
+    "FINE_ADJUST_PIVOT",  // 60
+    "FINE_ADJUST_ANGLE",  // 61
+    "FINE_ADJUST_ROT",  // 62
+    "RECORD_LENGTH",  // 63
+    "END_EFFECTOR_IO",  // 64
+    "SERVO_SETPOINT_A",  // 65
+    "SERVO_SETPOINT_B",  // 66
+    "BASE_FORCE_DECAY",  // 67
+    "END_FORCE_DECAY",  // 68
+    "PIVOT_FORCE_DECAY",  // 69
+    "ANGLE_FORCE_DECAY",  // 70
+    "ROTATE_FORCE_DECAY",  // 71
+    "PID_SCHEDULE_INDEX",  // 72
+    "GRIPPER_MOTOR_CONTROL",  // 73
+    "GRIPPER_MOTOR_OFF_WIDTH",  // 74
+    "GRIPPER_MOTOR_ON_WIDTH",  // 75
+    "START_SPEED",  // 76
+    "ANGLE_END_RATIO",  // 77
+    "RESET_PID_AND_FLUSH_QUEUE",  // 78
+    "XYZ_FORCE_TIMEBASE",  // 79
+    "DIFFERENTIAL_FORCE_TIMEBASE",  // 80
+    "PID_TIMEBASE"]
 
 /* obsolete, now down by FPGA.init()
 FPGA.BASE_POSITION = 0
@@ -249,6 +250,7 @@ Dexter.set_fpga_command_reg = function({
         })
     return make_ins("w", FPGA.COMMAND_REG, val )
 }
+globalThis.FPGA = FPGA
 
 /*
 Example use:

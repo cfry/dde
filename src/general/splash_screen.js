@@ -85,7 +85,7 @@ var SplashScreen = class SplashScreen {
         <i>The</i> answer is 42, but for other answers,<br/> -->
 
     &bull; Click <b style='color:blue;font-size:24px;'>?</b> in the upper right of the outer window <b style='font-size:24px;'>&#x279A;</b> <i>or</i>,<br/>
-        <!--&bull; <button onclick="open_doc(help_system_doc_id)">Show Tutorial List</button> <i>or</i><br/>-->
+        <!--&bull; <button onclick="DocCode.open_doc(help_system_doc_id)">Show Tutorial List</button> <i>or</i><br/>-->
          <span style="vertical-align:top;">&bull; Select a tutorial from: </span><br/>*/
 
     static show_maybe(){
@@ -148,33 +148,33 @@ var SplashScreen = class SplashScreen {
         ["Move Dexter",               "Control Dexter or a simulation&#013;via an interactive dialog&#013;and learn Kinematics in the process.&#013;Also at: Jobs menu/Dexter UI",
                                       "SplashScreen.start_dui_tutorial()"],
         ["Configure Dexter",          "How to connect your Dexter robot,&#013;to your computer.",
-                                      "open_doc(configure_dexter_id)"],
+                                      "DocCode.open_doc(configure_dexter_id)"],
         //["Learning JavaScript",       "Learn JS by stepping through code.",
-        //    "open_doc(learning_js_doc_id)"],
+        //    "DocCode.open_doc(learning_js_doc_id)"],
         ["Learn JavaScript",           "The basics of entering, running and debugging JavaScript.",
-                                       "SplashScreen.close_window_with_help(); open_doc(learning_js_doc_id); load_files(__dirname + '/tutorials/learn_js_tour.dde')"],
+                                       "SplashScreen.close_window_with_help(); DocCode.open_doc(learning_js_doc_id); load_files(__dirname + '/tutorials/learn_js_tour.dde')"],
        // ["Tooltips",                  "Hover the mouse on a widget to learn about it.",
-        //                              "open_doc(tooltips_doc_id)"] ,
+        //                              "DocCode.open_doc(tooltips_doc_id)"] ,
         //["Run JavaScript",            "Use the Eval button to evaluate JavaScript.",
-        //                              "open_doc(eval_button_doc_id)"],
+        //                              "DocCode.open_doc(eval_button_doc_id)"],
         ["Code Examples",             "Insert code into the editor via menus.",
-                                      "open_doc(code_examples_doc_id)"],
+                                      "DocCode.open_doc(code_examples_doc_id)"],
 
        // ["Test Suite examples",       "The DDE diagnostic system doubles as code exammples.",
-       //                               "open_doc(TestSuite_for_help_doc_id)"],
+       //                               "DocCode.open_doc(TestSuite_for_help_doc_id)"],
         ["Doc Pane",                  "DDE documentation is contained in the right-hand documentation pane.",
                                       "close_all_details()"],
         ["Find Button",               "Search the documentation.",
-                                      "open_doc(find_button_doc_id)"],
+                                      "DocCode.open_doc(find_button_doc_id)"],
        // ["Click Help",                "Clicking anywhere in the editor shows help in the output pane.",
-       //                               "open_doc(click_help_doc_id)"],
+       //                               "DocCode.open_doc(click_help_doc_id)"],
 
         ["Make Instruction",          "Create instructions for a Job via a dialog box.",
-                                      "open_doc(make_instruction_pane_doc_id)"],
+                                      "DocCode.open_doc(make_instruction_pane_doc_id)"],
         ["Adding JavaScript",         "Extend DDE and create applications.",
-                                      "open_doc(adding_javascript_doc_id)"],
+                                      "DocCode.open_doc(adding_javascript_doc_id)"],
         ["Help System",               "How DDE helps you learn DDE.",
-                                      "open_doc(help_system_doc_id)"]
+                                      "DocCode.open_doc(help_system_doc_id)"]
        /* ["Dexter Features",           "Videos demonstrating Dexter capabilities&#013;plus an early look at DDE.",
                                       "window.open('https://www.hdrobotic.com/features')"],
         ["Haddington Videos",         "Haddington mission and hardware.",
@@ -182,7 +182,7 @@ var SplashScreen = class SplashScreen {
         ["Webinar Videos",            "DDE in depth. 45 to 60 minute videos of the core concepts and syntax.",
                                       "window.open('https://www.hdrobotic.com/blog/programming-in-dexter-development-environment-archive')"],
         ["JS for Python Programmers", "Instructions for DDE Jobs&#013;look a lot like Python.",
-                                      "open_doc(js_for_python_programmers_doc_id)"],
+                                      "DocCode.open_doc(js_for_python_programmers_doc_id)"],
         ["On-line Documentation",     "Full on-line doc, including&#013;release notes of the latest version.",
                                       "window.open('https://www.hdrobotic.com/software')"],
         ["DDE Source Code",           "DDE is open source software that is stored on GitHub.",

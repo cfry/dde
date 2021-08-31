@@ -65,7 +65,7 @@ function smLinex(run_backwards = false){
             cal_saved_points[J_num-1][0].push(x)
             cal_saved_points[J_num-1][1].push(y)
 
-            append_in_ui("svg_id", thehtml)
+            SW.append_in_ui("svg_id", thehtml)
 
             //James Code
             xydata.push([x*10, y*10])
@@ -89,10 +89,10 @@ function smLinex(run_backwards = false){
                 //debugger
                 
                 //thehtml = svg_circle({html_class:"cal_svg_circle_auto_center_min", cx: eye_center[0][0]/10, cy:flip_point_y(eye_center[0][1]/10), r: 3, color: "green"}) //replace thiswith colored dot (maybe yellow) that deletes the previous one
-                //append_in_ui("svg_id", thehtml)
+                //SW.append_in_ui("svg_id", thehtml)
                 
                 //thehtml = svg_circle({html_class:"cal_svg_circle_auto_center_ave", cx: eye_center[1][0]/10, cy:flip_point_y(eye_center[1][1]/10), r: 3, color: "blue"}) //replace thiswith colored dot (maybe yellow) that deletes the previous one
-                //append_in_ui("svg_id", thehtml)
+                //SW.append_in_ui("svg_id", thehtml)
                 //out(eye_center)
                 let suggestion_string = eye_suggestion_string(eye_suggest_result)
                 cal_instructions_id.innerHTML = eye_suggestion_string(eye_suggest_result) //replace this withsomething that changes the text in the show window
@@ -104,7 +104,7 @@ function smLinex(run_backwards = false){
     				let eye_center = find_perfect_center(xydata)
                     if (!Number.isNaN(eye_center[0][0]) && !Number.isNaN(eye_center[0][1])){
 						thehtml = svg_circle({html_class:"cal_svg_circle_auto_center_min", cx: eye_center[0][0]/10, cy:flip_point_y(eye_center[0][1]/10), r: 3, color: "green"})
-    					append_in_ui("svg_id", thehtml)
+    					SW.append_in_ui("svg_id", thehtml)
                         
                         /*
                         //Code for clockwise checking
@@ -123,7 +123,7 @@ function smLinex(run_backwards = false){
 						
 
                         if(!correct_direction){
-                            open_doc(dexter_positive_joint_direction_diagrams_id)
+                            DocCode.open_doc(dexter_positive_joint_direction_diagrams_id)
                             alert("The direction of the eye for J" + (J_num+1) + " (clockwise vs counterclockwise) does not appear to be correct. Look in the Doc pane for further instruction.", "Calibration Error")
 						}
                         //out("Correct Direction")
@@ -198,7 +198,7 @@ function display_center_guess(){
 	$(".cal_svg_circle_auto_center_min").remove()
     let eye_center = find_perfect_center(xydata)
 	thehtml = svg_circle({html_class:"cal_svg_circle_auto_center_min", cx: eye_center[0][0]/10, cy:flip_point_y(eye_center[0][1]/10), r: 3, color: "green"})
-    append_in_ui("svg_id", thehtml)
+    SW.append_in_ui("svg_id", thehtml)
 }
 
 function init_view_eye(){

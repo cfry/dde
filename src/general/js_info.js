@@ -1,7 +1,8 @@
 //Created by Fry on 3/22/16.
 
 import {function_name, function_params, function_params_for_keyword_call,
-    is_class, is_non_neg_integer, is_string_a_literal_string, is_whitespace,
+    is_class, is_non_neg_integer,
+    is_string_an_identifier, is_string_a_literal_string, is_whitespace,
     last, starts_with_one_of, stringify_value, value_of_path}
     from "../job_engine/core/utils.js"
 
@@ -9,10 +10,10 @@ import {pluralize_full_unit_name, series_name_to_unity_unit,
         unit_abbrev_to_full_name} from "../job_engine/core/units.js"
 
 import {file_exists} from "../job_engine/core/storage.js"
-import {make_html}   from "../job_engine/core/html_db.js"
 
-Js_info = class Js_info {
+export class Js_info {
     static get_info_string(fn_name, series=null, full_src=null, pos=null){
+            debugger;
             fn_name = this.depricated_to_new(fn_name) //we need "orig_input" to be the new, not
                 //the actual orig_input for processing of fn_name == "Robot.loop"
             if(fn_name === undefined) { return "" } //no click help on this deprecated, unsupported fn_name
@@ -89,7 +90,7 @@ Js_info = class Js_info {
                     else if (key == "if_instruction_error")    { src = "Job.prototype.if_instruction_error_default" }
                     else if (key == "if_dexter_connect_error") { src = "Job.prototype.if_dexter_connect_error_default"}
                     else { src = to_source_code({value: val, function_names: true, newObject_paths: true}) }
-                    let key_html = '<a href="#" onclick="open_doc(job_param_' + key + '_doc_id)">' + key + '</a>'
+                    let key_html = '<a href="#" onclick="DocCode.open_doc(job_param_' + key + '_doc_id)">' + key + '</a>'
                     result += key_html + ": " + src + ((key == "callback_param") ? "" : ", &nbsp;")
                     if(((arg_index % 2) == 0) && (arg_index !== 0)) {
                         result += "<br/> <span style='margin-left:83px;'> </span>"
@@ -108,7 +109,7 @@ Js_info = class Js_info {
                         let val = Dexter.dexter_default_params[key]
                         let src
                         src = ((key == "instruction_callback") ? "Job.prototype.set_up_next_do" : to_source_code({value: val, function_names: true, newObject_paths: true}))
-                        let key_html = '<a href="#" onclick="open_doc(dexter_param_' + key + '_doc_id)">' + key + '</a>'
+                        let key_html = '<a href="#" onclick="DocCode.open_doc(dexter_param_' + key + '_doc_id)">' + key + '</a>'
                         result += key_html + ": " + src + ", &nbsp;"
                         if(((arg_index % 3) == 0) && (arg_index !== 0)) {
                             result += "<br/> <span style='margin-left:110px;'> </span>"
@@ -127,7 +128,7 @@ Js_info = class Js_info {
             else if(bounds_of_identifier && (full_src[bounds_of_identifier[1]] == ":")) { //got keyword
                 let possible_id = "job_param_" + fn_name + "_doc_id"
                 if(window[possible_id]){
-                    return '<a href="#" onclick="open_doc(' + possible_id + ')">' + fn_name + '</a> is an initialization parameter for Jobs.'
+                    return '<a href="#" onclick="DocCode.open_doc(' + possible_id + ')">' + fn_name + '</a> is an initialization parameter for Jobs.'
                 }
                 else {
                     return '<span style="color: blue;">' + fn_name + ":</span> looks like a keyword for making an object or a function call."
@@ -273,7 +274,7 @@ Js_info = class Js_info {
     //else its replacement is returned (if there is one
     static depricated_to_new(fn_name){
         let new_fn_name = null
-        let dep_obj = PatchDDE.old_to_deprecate_object(fn_name)
+        let dep_obj = null //todo PatchDDE.old_to_deprecate_object(fn_name) //using patches in dde4?
         if(fn_name && (typeof(fn_name) == "string") && fn_name.startsWith("Robot.")) {
             let parts = fn_name.split(".")
             if(parts.length == 2){
@@ -365,15 +366,15 @@ Js_info = class Js_info {
                 else if (typeof(val) == "function"){
                     if (is_class(val)){
                             if(doc_id_elt) {
-                                   return `new <a href='#' onclick="open_doc('` + doc_id_string + `')">` + Js_info.wrap_fn_name(fn_name)  + "</a>" + function_params(val)
+                                   return `new <a href='#' onclick="DocCode.open_doc('` + doc_id_string + `')">` + Js_info.wrap_fn_name(fn_name)  + "</a>" + function_params(val)
                             }
                             else { return "new <span style='color:blue;'>" + Js_info.wrap_fn_name(fn_name)  + "</span>" + function_params(val) }
                     }
                     else {
-                        return `<a href='#' onclick="open_doc_show_fn_def('` + doc_id_string + "', '" + fn_name + `')">` + fn_name + "</a>" + function_params(val)
+                        return `<a href='#' onclick="DocCode.open_doc_show_fn_def('` + doc_id_string + "', '" + fn_name + `')">` + fn_name + "</a>" + function_params(val)
 
                         if(doc_id_elt) {
-                               return `function <a href='#' onclick="open_doc('` + doc_id_string + `')">` + fn_name + "</a>" + function_params(val)
+                               return `function <a href='#' onclick="DocCode.open_doc('` + doc_id_string + `')">` + fn_name + "</a>" + function_params(val)
                         }
                         else { return "function <span style='color:blue;'>" + fn_name  + "</span>" + function_params(val) }
 
@@ -381,7 +382,7 @@ Js_info = class Js_info {
                 }
                 else{
                     if(doc_id_elt) {
-                           return `<a href='#' onclick="open_doc('` + doc_id_string + `')">` + fn_name + "</a> = " + stringify_value(val)
+                           return `<a href='#' onclick="DocCode.open_doc('` + doc_id_string + `')">` + fn_name + "</a> = " + stringify_value(val)
                     }
                     else { return "<span style='color:blue;'>" + fn_name + "</span> = " + stringify_value(val) }
                 }
@@ -719,7 +720,7 @@ Js_info = class Js_info {
                     props_str += ((props_str == "") ? "" : ", ") +
                       "<a target='_blank' href='https://www.w3schools.com/tags/att_" + prop_name + ".asp'>" + prop_name + '</a>:""'
                 }
-                return '<a href="#" onclick="open_doc(make_html_doc_id)">make_html</a>' +
+                return '<a href="#" onclick="DocCode.open_doc(make_html_doc_id)">make_html</a>' +
                        '("' +
                        '<a title="HTML tag" target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/' +
                        fn_name +
@@ -746,7 +747,7 @@ Js_info = class Js_info {
                 return "<a target='_blank' href='https://developer.mozilla.org/en-US/docs/Web/CSS/" + fn_name + "'>" +
                         fn_name + "</a>"
             case "series_robot_config_id":
-                open_doc("Dexter.move_to.config_doc_id")
+                DocCode.open_doc("Dexter.move_to.config_doc_id")
                 return false //actual click help handled later on
         }
         if (["series_hours_minutes_seconds_id", "series_time_id", "series_3_letter_month_id",
@@ -772,7 +773,7 @@ Js_info = class Js_info {
         let result = fn_name
         if(!the_doc_id) { the_doc_id = fn_name + "_doc_id"}
         if (!window[the_doc_id]){ the_doc_id = "" } //no doc
-        let onclick_val = "open_doc_show_fn_def('" + the_doc_id + "', '" + fn_name + "')"
+        let onclick_val = "DocCode.open_doc_show_fn_def('" + the_doc_id + "', '" + fn_name + "')"
         let the_html = make_html("a", {href: "#", onclick: onclick_val, title: title}, fn_name)
         return the_html
     }
@@ -899,7 +900,7 @@ Js_info = class Js_info {
                    fn_name
         }
         if (!url) { return false }
-        else if (url.endsWith("_doc_id")) { open_doc(window[url]); return true; }
+        else if (url.endsWith("_doc_id")) { DocCode.open_doc(window[url]); return true; }
         else                              { show_page(url); return true; } //window.open(url, "js_doc")
     }
     static object_to_inspect_maybe(fn_name, series){

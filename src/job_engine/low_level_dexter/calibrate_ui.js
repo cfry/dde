@@ -184,7 +184,7 @@ function cal_redraw_points(){
     let num_points = points[0].length
     for(let i = 0; i < num_points; i++){
     	thehtml = (svg_circle({html_class: "cal_svg_circle", cx: points[0][i], cy: flip_point_y(points[1][i]), r: 1}))
-		append_in_ui("svg_id", thehtml)
+		SW.append_in_ui("svg_id", thehtml)
     }
 }
 
@@ -194,7 +194,7 @@ function cal_draw_saved_center(){
 	
     $(".cal_svg_circle_saved_center").remove()
 	thehtml = svg_circle({html_class:"cal_svg_circle_saved_center", cx: saved_x, cy:flip_point_y(saved_y), r: 3, color: "blue"})
-    append_in_ui("svg_id", thehtml)
+    SW.append_in_ui("svg_id", thehtml)
 }
 
 function handle_cal(vals){
@@ -306,7 +306,7 @@ function handle_cal(vals){
                 "0x" + ((y_val_to_save * 10) * 65536).toString(16))
             
             //$("." + "cal_svg_circle").css("fill", "#fdd715") // turns black dots yellow
-            append_in_ui("svg_id", svg_circle({html_class: "cal_svg_circle",
+            SW.append_in_ui("svg_id", svg_circle({html_class: "cal_svg_circle",
                 cx: vals.offsetX,
                 cy: vals.offsetY,
                 r: 3,
@@ -370,7 +370,7 @@ function handle_cal(vals){
         	}
         	else {
             	message_prefix = "<span style='color:red;'>Can't write file.</span> See Output and Doc panes,<br/>&nbsp;&nbsp;&nbsp;&nbsp;then click"
-            	open_doc(dexters_file_system_doc_id)
+            	DocCode.open_doc(dexters_file_system_doc_id)
         	}
         	cal_instructions_id.innerHTML = message_prefix + " <b>Calibrate Optical Encoders</b>"
             */
@@ -480,7 +480,7 @@ function init_calibrate(){
       
         callback: handle_cal
     })
-    open_doc(calibrate_doc_id)
+    DocCode.open_doc(calibrate_doc_id)
     setTimeout(cal_reset_ranges, 200)
     setTimeout(function(){
         try{
@@ -489,7 +489,7 @@ function init_calibrate(){
         	let sim_actual = Robot.get_simulate_actual(robot_sim)
         	if(sim_actual === true){
         		//show_window({content: "Don't Sim"})
-            	open_doc(dexter_param_simulate_doc_id)
+            	DocCode.open_doc(dexter_param_simulate_doc_id)
             	alert("Warning: Simulate is turned on so the calibration window will not work. \n" +
                         "To set to real, choose Misc pane radio button: 'real'.")
         	}

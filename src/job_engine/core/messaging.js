@@ -1696,7 +1696,7 @@ Messaging.show_dialog = function(){
 <input name="clear" type="button" value="clear" style="float:right;"
        title="Remove the content&#13;of the Sent &amp; Received Messages pane."/><br/>
 <div id="messaging_dialog_sent_messages_id" contentEditable="false" 
-     onclick="onclick_for_click_help(event)"
+     onclick="DocCode.onclick_for_click_help(event)"
      style="margin:5px; width:calc(100% - 20px); height:270px;background-color:white; padding:5px;overflow:auto;"></div>
 <i>New Message:</i><br/>
 type: <select id="messaging_dialog_type_id" style="font-size:14px;" data-onchange="true"
@@ -1726,7 +1726,7 @@ to: <input id="messaging_dialog_to_id" type="text" style="width:100px; margin-bo
   </div>
     <textarea id="messaging_dialog_message_id" style="width:290px;height:63px;font-size:14px;background-color:#ECC"
                placeholder="Enter a message to send."
-               onclick="onclick_for_click_help(event)"
+               onclick="DocCode.onclick_for_click_help(event)"
                ></textarea>
 </div>
 `
@@ -1773,7 +1773,7 @@ Messaging.show_dialog_cb = function(vals){
         //but if we are showing the main arg, we're
         //goiogn to have to change the NAME of the main arg.
         let type = vals.messaging_dialog_type_id
-        open_doc("Messaging." + type + "_doc_id")
+        DocCode.open_doc("Messaging." + type + "_doc_id")
         let message = messaging_dialog_message_id.value.trim()
         if(!message.startsWith("{"))  { //just leave the message alone,
            //maybe it will be useful as is in the new type
@@ -1808,7 +1808,7 @@ Messaging.show_dialog_cb = function(vals){
          //when they change the type
     }
     else if (vals.clicked_button_value == "get_result_id"){
-        open_doc("Messaging.get_result_doc_id")
+        DocCode.open_doc("Messaging.get_result_doc_id")
     }
     else if (vals.clicked_button_value == "messaging_dialog_main_arg_name_id") {
         let main_arg_name = messaging_dialog_main_arg_name_id.value

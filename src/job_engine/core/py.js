@@ -218,7 +218,7 @@ export class Py{
 
     //called from File menu item "Load..." when user choses a .py file.
     static load_file_ask_for_as_name(path){
-        open_doc(python_user_interface_doc_id)
+        DocCode.open_doc(python_user_interface_doc_id)
         let last_slash_pos = path.lastIndexOf("/")
         let file_name_sans_dir = path.substring(last_slash_pos + 1)
         if(file_name_sans_dir.endsWith(".py")){

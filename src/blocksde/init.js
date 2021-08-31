@@ -125,14 +125,14 @@ function js_to_blocks(){
             let blocks_style_content = read_file(__dirname + "/blocksde/style2.css")
             let style_elt = make_dom_elt("style", {}, blocks_style_content) //"* { background-color:blue;}")
             blocksde_dom_elt.appendChild(style_elt)
-            replace_dom_elt(the_codemirror_elt, blocksde_dom_elt) //must occur before calling make_workspace_instance
+            html_db.replace_dom_elt(the_codemirror_elt, blocksde_dom_elt) //must occur before calling make_workspace_instance
             //because that needs workspace_container_id to be installed in order to
             //install workspace_id inside it
             Workspace.make_workspace_instance(
                 //the_codemirror_elt.offsetWidth,  the_codemirror_elt.offsetHeight //this vals are always zero
             )
         }
-        else { replace_dom_elt(the_codemirror_elt, blocksde_dom_elt) }
+        else { html_db.replace_dom_elt(the_codemirror_elt, blocksde_dom_elt) }
         Workspace.inst.clear_blocks()
         if (block_to_install){ //we've got non empty js code so turn it into blocks.
             install_top_left_block(block_to_install)
@@ -143,7 +143,7 @@ function js_to_blocks(){
 function js_to_HCA(){
     let js = Editor.get_javascript()
     HCA_dom_elt = HCA.make_HCA_dom_elt()
-    replace_dom_elt(the_codemirror_elt, HCA_dom_elt)
+    html_db.replace_dom_elt(the_codemirror_elt, HCA_dom_elt)
     Editor.view = "HCA"
     try {
         HCA.init(js)
@@ -151,10 +151,10 @@ function js_to_HCA(){
     }
     catch(err){
         code_view_kind_id.value = "JS"
-        replace_dom_elt(HCA_dom_elt, the_codemirror_elt)
+        html_db.replace_dom_elt(HCA_dom_elt, the_codemirror_elt)
         Editor.set_javascript(js)
         Editor.view = "JS"
-        myCodeMirror.focus()
+        Editor.myCodeMirror.focus()
         warning("Sorry, could not convert the JavaScript into a valid JSON object for HCA.")
     }
 }
@@ -162,10 +162,10 @@ function js_to_HCA(){
 function HCA_to_js(){
     let js = HCA.get_javascript()
     js = beautify.js(js)
-    replace_dom_elt(HCA_dom_elt, the_codemirror_elt)
+    html_db.replace_dom_elt(HCA_dom_elt, the_codemirror_elt)
     Editor.set_javascript(js)
     Editor.view = "JS"
-    myCodeMirror.focus()
+    Editor.myCodeMirror.focus()
 }
 
 function HCA_to_blocks(){
@@ -187,12 +187,12 @@ function HCA_to_blocks(){
         let blocks_style_content = read_file(__dirname + "/blocksde/style2.css")
         let style_elt = make_dom_elt("style", {}, blocks_style_content) //"* { background-color:blue;}")
         blocksde_dom_elt.appendChild(style_elt)
-        replace_dom_elt(HCA_dom_elt, blocksde_dom_elt) //must occur before calling make_workspace_instance
+        html_db.replace_dom_elt(HCA_dom_elt, blocksde_dom_elt) //must occur before calling make_workspace_instance
         //because that needs workspace_container_id to be installed in order to
         //install workspace_id inside it
         Workspace.make_workspace_instance()
     }
-    else { replace_dom_elt(HCA_dom_elt, blocksde_dom_elt) }
+    else { html_db.replace_dom_elt(HCA_dom_elt, blocksde_dom_elt) }
     Workspace.inst.clear_blocks()
     if (block_to_install){ //we've got non empty js code so turn it into blocks.
         install_top_left_block(block_to_install)
@@ -210,7 +210,7 @@ function blocks_to_HCA(){
         return
     }
     HCA_dom_elt = HCA.make_HCA_dom_elt()
-    replace_dom_elt(the_codemirror_elt, HCA_dom_elt)
+    html_db.replace_dom_elt(the_codemirror_elt, HCA_dom_elt)
     Editor.view = "HCA"
     HCA.init(js_obj)
     HCA_dom_elt.focus()
@@ -220,10 +220,10 @@ function blocks_to_js(){
     out("installing text")
     let js = Workspace.inst.to_js()
     js = beautify.js(js)
-    replace_dom_elt(blocksde_dom_elt, the_codemirror_elt)
+    html_db.replace_dom_elt(blocksde_dom_elt, the_codemirror_elt)
     Editor.set_javascript(js)
     Editor.view = "JS"
-    myCodeMirror.focus()
+    Editor.myCodeMirror.focus()
 }
 
 
@@ -240,7 +240,7 @@ function js_to_defeng(){
     Editor.set_javascript(defeng)
     Editor.view = "DefEng"
     out(DE.a_few_examples()) //show some doc to help with demoing
-    myCodeMirror.focus()
+    Editor.myCodeMirror.focus()
 }
 
 function defeng_to_js(){
@@ -251,14 +251,14 @@ function defeng_to_js(){
     catch(e) { //backout
         code_view_kind_id.value = "DefEng"
         Editor.view = "DefEng"
-        myCodeMirror.focus()
+        Editor.myCodeMirror.focus()
         dde_error("The DefEng has an error so cannot change it to JS.")
         return
     }
     js = beautify.js(js)
     Editor.set_javascript(js)
     Editor.view = "JS"
-    myCodeMirror.focus()
+    Editor.myCodeMirror.focus()
 }
 
 function blocks_to_defeng(){

@@ -169,7 +169,7 @@ import {convertArrayBufferToString, convertStringToArrayBuffer,
 
 //import {close_readline, set_keep_alive_value, write_to_stdout} from "./stdio.js" //todo imports readline which requires fs which errors
 
-import {html_db, is_dom_elt, make_dom_elt, make_html} from "./html_db.js"
+//import {html_db, is_dom_elt, make_dom_elt, make_html} from "./html_db.js" //now all global
 
 import {Messaging, MessStat} from "./messaging.js"
 
@@ -264,10 +264,7 @@ global.serial_port_init = serial_port_init
 global.serial_send = serial_send
 global.serial_send_low_level = serial_send_low_level
 
-global.html_db = html_db
-global.is_dom_elt = is_dom_elt
-global.make_html = make_html
-global.make_dom_elt = make_dom_elt
+
 global.Py = Py
 
 

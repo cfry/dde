@@ -300,7 +300,7 @@ export var DDE_NPM = class DDE_NPM {
     }
 
     static show_ui(){
-        open_doc(DDE_NPM_doc_id)
+        DocCode.open_doc(DDE_NPM_doc_id)
         exec("npm list", {cwd: dde_apps_folder}, function(err, stdout, stderr){ //stderr will be a string. It is an empty string if our bash cmd succeeded.
             if(err || (stderr.length > 0)) {
                      warning("It appears that npm is not installed on your computer.<br/>" +

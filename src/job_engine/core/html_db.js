@@ -1,6 +1,6 @@
 import {shouldnt, warning_or_error, intersection, replace_substrings} from "./utils.js"
 
-export var html_db = class html_db{
+class html_db{
    static is_html_tag(tag){
        return html_db.tags.includes(tag)
    }
@@ -57,9 +57,7 @@ export var html_db = class html_db{
    static is_css_property(prop_name){
         return  html_db.css_properties.includes(prop_name)
    }
-}
-
-html_db.tags = [
+   static tags = [
     "a",
     "abbr",
     "acronym",
@@ -201,7 +199,7 @@ html_db.tags = [
     "xmp"]
 
     // adapted from https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes
-html_db.html_property_tag_map = {
+    static html_property_tag_map = {
     accept:["form", "input"],
     "accept-charset":["form"],
     accesskey:["all"],
@@ -391,11 +389,9 @@ html_db.html_property_tag_map = {
     value:["button", "option", "input", "li", "meter", "progress", "param"],
     width:["canvas", "embed", "iframe", "img", "input", "object", "video"],
     wrap:["textarea"]
-}
+    }
 
-html_db.html_properties = html_db.compute_html_properties()
-
-html_db.css_properties = [
+    static css_properties = [
     "all",
     "background", "background-attachment", "background-clip", "background-color",
     "background-image", "background-origin", "background-position", "background-repeat",
@@ -432,18 +428,125 @@ html_db.css_properties = [
     "unicode-bidi", "vertical-align", "visibility",
     "white-space", "widows", "width", "word-spacing",
     "z-index"
-]
+    ]
 
 
-export function make_html(tag, properties, innerHTML="", ending="auto", error=false){
+//from https://davidwalsh.name/convert-html-stings-dom-nodes
+//innerHTML can be a string, a Node (elt) or an array of Nodes
+
+//only uses the first top level element
+    static html_to_dom_elt(html, use_first_top_level_elemment_only=true){
+        let frag = document.createRange().createContextualFragment(html)
+        if (use_first_top_level_elemment_only) {
+            return frag.firstChild
+        }
+        else { return frag }
+    }
+
+    static replace_dom_elt(old_elt, new_elt){
+        old_elt.parentNode.replaceChild(new_elt, old_elt)
+    }
+
+
+    static insert_elt_before(new_elt, old_elt){
+        old_elt.parentNode.insertBefore(new_elt, old_elt)
+    }
+
+//works even when old_elt is the only elt in its parent.
+    static insert_elt_after(new_elt, old_elt){
+        old_elt.parentNode.insertBefore(new_elt, old_elt.nextSibling);
+    }
+
+    static remove_dom_elt(elt){ elt.parentNode.removeChild(elt) }
+
+    static is_dom_elt(obj){
+      return obj instanceof HTMLElement
+    }
+
+    static is_dom_elt_ancestor(possible_ancestor, starting_elt){
+        if (possible_ancestor == null) { return false}
+        else if(possible_ancestor == starting_elt) { return true }
+        else { return html_db.is_dom_elt_ancestor(possible_ancestor.parentNode, starting_elt) }
+    }
+
+    //find the first child of elt that has class
+    static dom_elt_child_of_class(elt, a_class){
+       for(let kid of elt.children){
+           if (kid.classList.contains(a_class)) { return kid }
+       }
+       return null
+    }
+
+    static dom_elt_children_of_class(elt, a_class){
+        let result = []
+        for(let kid of elt.children){
+            if (kid.classList.contains(a_class)) { result.push(kid) }
+        }
+        return result
+    }
+
+    //focuses on the first elt of a_tag name that it finds.
+    //exludes elt in the returned results.
+    //searchers all descendents of elt.
+    //casing of a_tag doesn't matter.
+    static focus_on_descendant_with_tag(elt, a_tag="input"){
+        let sub_elts = elt.getElementsByTagName(a_tag)
+        if(sub_elts.length > 0) {
+          sub_elts[0].focus()
+        }
+    }
+
+    static dom_elt_descendant_of_classes(elt, classes){
+        if(classes.length == 0) { shouldnt("html_db.dom_elt_descendant_of_classes passed empty classes array.") }
+        else {
+            let next_class = classes[0]
+            let result_maybe = html_db.dom_elt_child_of_class(elt, next_class)
+            if(!result_maybe) {
+                error("html_db.dom_elt_descendant_of_classes passed a class: " + next_class +
+                      "that is not present in elt: " + elt)
+            }
+            else if(classes.length == 1) { return result_maybe }
+            else { return html_db.dom_elt_descendant_of_classes(result_maybe, classes.slice(1)) }
+        }
+    }
+
+
+//if elt has a_class. return the elt, else go up the parentNode until you find one
+//or, if not, return null
+    static closest_ancestor_of_class(elt, a_class){
+        if (elt == null) { return null }
+        else if(elt.classList && elt.classList.contains(a_class)) { return elt }
+        else if (elt.parentNode) { return html_db.closest_ancestor_of_class(elt.parentNode, a_class) }
+        else return null
+    }
+
+
+//possibly includes elt itself.
+    static ancestors_of_class(elt, a_class){
+        let result = []
+        while(true) {
+            if (elt == null) { break }
+            else if(elt.classList && elt.classList.contains(a_class)) { result.push(elt) }
+            elt = elt.parentNode
+        }
+        return result
+    }
+} //end html_db class
+
+globalThis.html_db = html_db
+html_db.html_properties = html_db.compute_html_properties()
+
+
+//documented in dde3
+function make_html(tag, properties, innerHTML="", ending="auto", error=false){
     let tag_is_valid
     let has_css = false
     if(html_db.is_html_tag(tag)){ tag_is_valid = true }
     else {
         tag_is_valid = false
         warning_or_error("make_html called with tag: " + tag +
-                         "<br/> that's not in DDE's database.",
-                         error)
+            "<br/> that's not in DDE's database.",
+            error)
     }
     let html_props = {}
     let css_props  = {}
@@ -456,20 +559,20 @@ export function make_html(tag, properties, innerHTML="", ending="auto", error=fa
             if(html_db.is_html_property(prop_name)) { //this clause checks for css overlap
                 let tag_has_prop = html_db.tag_has_property(tag, prop_name)
                 if(html_db.is_css_property(prop_name)) { //uh-oh, valid html and css prop but ...
-                   if(tag_has_prop) { //double uh-oh, this prop is good for this tag
-                      warning_or_error("make_html called with tag: " + tag +
-                                       " and property: " + prop_name +
-                                       " which is valid HTML and css. ", error)
-                       //didn't error so:
-                       warning(prop_name + " being used as CSS property. " +
-                              "<br/> Stick it in 'html_properties' to force it to be HTML" +
-                              "<br/> or put it in 'style' property to get rid of this warning."
-                              )
-                       css_props[prop_name] = properties[prop_name]
-                   }
-                   else { //ok prop is not an html prop for this tag so css wins, no error
-                       css_props[prop_name] = properties[prop_name]
-                   }
+                    if(tag_has_prop) { //double uh-oh, this prop is good for this tag
+                        warning_or_error("make_html called with tag: " + tag +
+                            " and property: " + prop_name +
+                            " which is valid HTML and css. ", error)
+                        //didn't error so:
+                        warning(prop_name + " being used as CSS property. " +
+                            "<br/> Stick it in 'html_properties' to force it to be HTML" +
+                            "<br/> or put it in 'style' property to get rid of this warning."
+                        )
+                        css_props[prop_name] = properties[prop_name]
+                    }
+                    else { //ok prop is not an html prop for this tag so css wins, no error
+                        css_props[prop_name] = properties[prop_name]
+                    }
                 }
                 else { html_props[prop_name] = properties[prop_name] } //no conflict with css
             }
@@ -477,17 +580,17 @@ export function make_html(tag, properties, innerHTML="", ending="auto", error=fa
                 css_props[prop_name] = properties[prop_name]
             }
             else {
-               warning_or_error("make_html called with tag of: " + tag +
-                                " with a property of: " + prop_name +
-                                " that is not in DDE's database.", error)
-               warning(prop_name + " treated as HTML property." +
-                       "<br/> Stick it in the 'style' property to force it to be CSS." ) //if the above doesn't error, give more info
-               html_props[prop_name] = properties[prop_name]
+                warning_or_error("make_html called with tag of: " + tag +
+                    " with a property of: " + prop_name +
+                    " that is not in DDE's database.", error)
+                warning(prop_name + " treated as HTML property." +
+                    "<br/> Stick it in the 'style' property to force it to be CSS." ) //if the above doesn't error, give more info
+                html_props[prop_name] = properties[prop_name]
             }
         }
         else { //invalid html tag which either caused an error before here or has already been warned against
-               //so we're skating on thin ice. Prefer HTML here. User has already been warned that
-               //tag is unknown, so no fancy error messages.
+            //so we're skating on thin ice. Prefer HTML here. User has already been warned that
+            //tag is unknown, so no fancy error messages.
             if(html_db.is_css_property(prop_name))  { //if a prop is both a css and and html prop, make it to a css prop
                 css_props[prop_name] = properties[prop_name]
             }
@@ -497,7 +600,7 @@ export function make_html(tag, properties, innerHTML="", ending="auto", error=fa
                     " with a property of: " + prop_name +
                     " that is not in DDE's database.", error)
                 warning(prop_name + " treated as an HTML property." +
-                       "<br/> Stick it in the 'style' property to force it to be CSS.")
+                    "<br/> Stick it in the 'style' property to force it to be CSS.")
                 html_props[prop_name] = properties[prop_name]
             }
         }
@@ -567,30 +670,21 @@ export function make_html(tag, properties, innerHTML="", ending="auto", error=fa
     return result
 }
 
-//from https://davidwalsh.name/convert-html-stings-dom-nodes
-//innerHTML can be a string, a Node (elt) or an array of Nodes
+globalThis.make_html = make_html
 
-//only uses the first top level element
-export function html_to_dom_elt(html, use_first_top_level_elemment_only=true){
-    let frag = document.createRange().createContextualFragment(html)
-    if (use_first_top_level_elemment_only) {
-       return frag.firstChild
+
+    /* from stack overflow
+    function htmlToElement(html) {
+        var template = document.createElement('template');
+        html = html.trim(); // Never return a text node of whitespace as the result
+        template.innerHTML = html;
+        return template.content.firstChild;
     }
-    else { return frag }
-}
-
-/* from stack overflow
-function htmlToElement(html) {
-    var template = document.createElement('template');
-    html = html.trim(); // Never return a text node of whitespace as the result
-    template.innerHTML = html;
-    return template.content.firstChild;
-}
-*/
-
-export function make_dom_elt(tag, properties, innerHTML="", ending="auto", error=false){
+    */
+//documented in dde3
+function make_dom_elt(tag, properties, innerHTML="", ending="auto", error=false){
     let html_string = make_html(tag, properties, "", ending, error)
-    let result = html_to_dom_elt(html_string)
+    let result = html_db.html_to_dom_elt(html_string)
     if(typeof(innerHTML) == "string")   { result.innerHTML = innerHTML  }
     else if (innerHTML instanceof Node) { result.appendChild(innerHTML) }
     else if (Array.isArray(innerHTML)) {
@@ -600,93 +694,4 @@ export function make_dom_elt(tag, properties, innerHTML="", ending="auto", error
     }
     return result
 }
-
-export function replace_dom_elt(old_elt, new_elt){
-    old_elt.parentNode.replaceChild(new_elt, old_elt)
-}
-
-
-export function insert_elt_before(new_elt, old_elt){
-    old_elt.parentNode.insertBefore(new_elt, old_elt)
-}
-
-//works even when old_elt is the only elt in its parent.
-export function insert_elt_after(new_elt, old_elt){
-    old_elt.parentNode.insertBefore(new_elt, old_elt.nextSibling);
-}
-
-
-export function remove_dom_elt(elt){ elt.parentNode.removeChild(elt) }
-
-export function is_dom_elt(obj){
-  return obj instanceof HTMLElement
-}
-
-export function is_dom_elt_ancestor(possible_ancestor, starting_elt){
-    if (possible_ancestor == null) { return false}
-    else if(possible_ancestor == starting_elt) { return true }
-    else { return is_dom_elt_ancestor(possible_ancestor.parentNode, starting_elt) }
-}
-
-//find the first child of elt that has class
-export function dom_elt_child_of_class(elt, a_class){
-   for(let kid of elt.children){
-       if (kid.classList.contains(a_class)) { return kid }
-   }
-   return null
-}
-
-export function dom_elt_children_of_class(elt, a_class){
-    let result = []
-    for(let kid of elt.children){
-        if (kid.classList.contains(a_class)) { result.push(kid) }
-    }
-    return result
-}
-
-//focuses on the first elt of a_tag name that it finds.
-//exludes elt in the returned results.
-//searchers all descendents of elt.
-//casing of a_tag doesn't matter.
-export function focus_on_descendant_with_tag(elt, a_tag="input"){
-    let sub_elts = elt.getElementsByTagName(a_tag)
-    if(sub_elts.length > 0) {
-      sub_elts[0].focus()
-    }
-}
-
-export function dom_elt_descendant_of_classes(elt, classes){
-    if(classes.length == 0) { shouldnt("dom_elt_descendant_of_classes passed empty classes array.") }
-    else {
-        let next_class = classes[0]
-        let result_maybe = dom_elt_child_of_class(elt, next_class)
-        if(!result_maybe) {
-            error("dom_elt_descendant_of_classes passed a class: " + next_class +
-                  "that is not present in elt: " + elt)
-        }
-        else if(classes.length == 1) { return result_maybe }
-        else { return dom_elt_descendant_of_classes(result_maybe, classes.slice(1)) }
-    }
-}
-
-
-//if elt has a_class. return the elt, else go up the parentNode until you find one
-//or, if not, return null
-export function closest_ancestor_of_class(elt, a_class){
-    if (elt == null) { return null }
-    else if(elt.classList && elt.classList.contains(a_class)) { return elt }
-    else if (elt.parentNode) { return closest_ancestor_of_class(elt.parentNode, a_class) }
-    else return null
-}
-
-
-//possibly includes elt itself.
-export function ancestors_of_class(elt, a_class){
-    let result = []
-    while(true) {
-        if (elt == null) { break }
-        else if(elt.classList && elt.classList.contains(a_class)) { result.push(elt) }
-        elt = elt.parentNode
-    }
-    return result
-}
+globalThis.make_dom_elt = make_dom_elt

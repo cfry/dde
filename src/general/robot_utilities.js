@@ -5,7 +5,7 @@ import {last} from "../job_engine/core/utils.js"
 
 
 function output_is_not_connected_message(ip_address){
-    open_doc(data_connection_doc_id)
+    DocCode.open_doc(data_connection_doc_id)
     warning(ip_address + " is not connected.")
 }
 

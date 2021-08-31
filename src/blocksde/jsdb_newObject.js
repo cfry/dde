@@ -241,10 +241,10 @@ newObject({prototype: Root.jsdb.literal,
         return result
     },
     to_js: function(block_elt){ //the same as number.to_js
-        //let always_rel   = dom_elt_child_of_class(block_elt, "block_always_relative")
-        //let block_args   = dom_elt_child_of_class(always_rel, "block_args")
-        //let arg_val      = dom_elt_child_of_class(block_args, "arg_val")
-        let arg_val = dom_elt_descendant_of_classes(block_elt,
+        //let always_rel   = html_db.dom_elt_child_of_class(block_elt, "block_always_relative")
+        //let block_args   = html_db.dom_elt_child_of_class(always_rel, "block_args")
+        //let arg_val      = html_db.dom_elt_child_of_class(block_args, "arg_val")
+        let arg_val = html_db.dom_elt_descendant_of_classes(block_elt,
             ["block_always_relative", "block_args", "arg_name_val", "arg_val"])
         let val            = arg_val.checked
         return val.toString()
@@ -310,11 +310,11 @@ newObject({prototype: Root.jsdb.literal,
                  return ((val.length + 2) * 9) + "px" //just slightly bigger than necesary but making either constant 1 smaller makes it too small
                },
                to_js: function(block_elt){
-                    //let always_rel   = dom_elt_child_of_class(block_elt, "block_always_relative")
-                    //let block_args   = dom_elt_child_of_class(always_rel, "block_args")
-                    //let arg_val      = dom_elt_child_of_class(block_args, "arg_val")
+                    //let always_rel   = html_db.dom_elt_child_of_class(block_elt, "block_always_relative")
+                    //let block_args   = html_db.dom_elt_child_of_class(always_rel, "block_args")
+                    //let arg_val      = html_db.dom_elt_child_of_class(block_args, "arg_val")
                     //let val          = arg_val.value
-                    let arg_val = dom_elt_descendant_of_classes(block_elt,
+                    let arg_val = html_db.dom_elt_descendant_of_classes(block_elt,
                        ["block_always_relative", "block_args", "arg_name_val", "arg_val"])
                     let val          = arg_val.value
                     return val //its already a string
@@ -413,14 +413,14 @@ newObject({prototype: Root.jsdb.literal,
         return result
     },
     to_js: function(block_elt){
-        let always_rel   = dom_elt_child_of_class(block_elt, "block_always_relative")
-        //let block_args   = dom_elt_child_of_class(always_rel, "block_args")
-        //let arg_val      = dom_elt_child_of_class(block_args, "arg_val")
+        let always_rel   = html_db.dom_elt_child_of_class(block_elt, "block_always_relative")
+        //let block_args   = html_db.dom_elt_child_of_class(always_rel, "block_args")
+        //let arg_val      = html_db.dom_elt_child_of_class(block_args, "arg_val")
         //let val          = arg_val.value
-        let arg_val = dom_elt_descendant_of_classes(block_elt,
+        let arg_val = html_db.dom_elt_descendant_of_classes(block_elt,
             ["block_always_relative", "block_args", "arg_name_val", "arg_val"])
         let val          = arg_val.value
-        let block_args_delimiter = dom_elt_child_of_class(always_rel, "block_args_delimiter")
+        let block_args_delimiter = html_db.dom_elt_child_of_class(always_rel, "block_args_delimiter")
         let delim = block_args_delimiter.value
         return delim + val + delim
     },
@@ -495,13 +495,13 @@ newObject({prototype: Root.jsdb.literal,
         return result
     },
     to_js: function(block_elt){
-        let always_rel   = dom_elt_child_of_class(block_elt, "block_always_relative")
-        let block_args   = dom_elt_child_of_class(always_rel, "block_args")
-        let arg_name_vals = dom_elt_children_of_class(block_args, "arg_name_val")
+        let always_rel   = html_db.dom_elt_child_of_class(block_elt, "block_always_relative")
+        let block_args   = html_db.dom_elt_child_of_class(always_rel, "block_args")
+        let arg_name_vals = html_db.dom_elt_children_of_class(block_args, "arg_name_val")
         let result = "["
         let on_first = true
         for (let arg_name_val of arg_name_vals){
-            let arg_val  = dom_elt_child_of_class(arg_name_val, "arg_val")
+            let arg_val  = html_db.dom_elt_child_of_class(arg_name_val, "arg_val")
             let src = block_to_js(arg_val)
             if (!on_first) {
                 result += ","
@@ -607,16 +607,16 @@ newObject({prototype: Root.jsdb.literal,
         return result
     },
     to_js: function(block_elt, non_first_indent){
-        let always_rel   = dom_elt_child_of_class(block_elt, "block_always_relative")
-        let block_args   = dom_elt_child_of_class(always_rel, "block_args")
-        let arg_name_vals = dom_elt_children_of_class(block_args, "arg_name_val")
+        let always_rel   = html_db.dom_elt_child_of_class(block_elt, "block_always_relative")
+        let block_args   = html_db.dom_elt_child_of_class(always_rel, "block_args")
+        let arg_name_vals = html_db.dom_elt_children_of_class(block_args, "arg_name_val")
         let result = "{"
         let on_first = true
         for (let arg_name_val of arg_name_vals){
-            let arg_name  = dom_elt_child_of_class(arg_name_val, "arg_name") //this will be a lit string block
+            let arg_name  = html_db.dom_elt_child_of_class(arg_name_val, "arg_name") //this will be a lit string block
             let between_name_and_val = arg_name_val.childNodes[1].innerText //equal sign when we've got fn params with default vals, otherwise colon
             if (between_name_and_val == ":") { between_name_and_val = between_name_and_val + " " }
-            let arg_val   = dom_elt_child_of_class(arg_name_val, "arg_val")
+            let arg_val   = html_db.dom_elt_child_of_class(arg_name_val, "arg_val")
             let name_src  = block_to_js(arg_name)
             let val_src   = block_to_js(arg_val)
             if (!on_first) { result += ",\n " + non_first_indent}
@@ -686,12 +686,12 @@ newObject({prototype: Root.jsdb,
         return result
     },
     to_js: function(block_elt){
-        let always_rel   = dom_elt_child_of_class(block_elt, "block_always_relative")
-        let block_args   = dom_elt_child_of_class(always_rel, "block_args")
-        let arg_name_vals = dom_elt_children_of_class(block_args, "arg_name_val")
+        let always_rel   = html_db.dom_elt_child_of_class(block_elt, "block_always_relative")
+        let block_args   = html_db.dom_elt_child_of_class(always_rel, "block_args")
+        let arg_name_vals = html_db.dom_elt_children_of_class(block_args, "arg_name_val")
         let result = "{"
         for (let arg_name_val of arg_name_vals){
-            let arg_val   = dom_elt_child_of_class(arg_name_val, "arg_val")
+            let arg_val   = html_db.dom_elt_child_of_class(arg_name_val, "arg_val")
             let val_src   = block_to_js(arg_val)
             result += val_src + "\n"
         }
@@ -766,11 +766,11 @@ newObject({prototype: Root.jsdb,
         return result
     },
     to_js: function(block_elt){
-        //let always_rel   = dom_elt_child_of_class(block_elt, "block_always_relative")
-        //let block_args   = dom_elt_child_of_class(always_rel, "block_args")
-        //let arg_val      = dom_elt_child_of_class(block_args, "arg_val")
+        //let always_rel   = html_db.dom_elt_child_of_class(block_elt, "block_always_relative")
+        //let block_args   = html_db.dom_elt_child_of_class(always_rel, "block_args")
+        //let arg_val      = html_db.dom_elt_child_of_class(block_args, "arg_val")
         //let val          = arg_val.value
-        let arg_val = dom_elt_descendant_of_classes(block_elt,
+        let arg_val = html_db.dom_elt_descendant_of_classes(block_elt,
             ["block_always_relative", "block_args", "arg_name_val", "arg_val"])
         let val            = arg_val.value
         val = Root.jsdb.clean_select_value(val)
@@ -863,22 +863,22 @@ newObject({prototype: Root.jsdb,
     },
 
     push_block: function(path_block_elt, new_last_path_elt){
-        let always_rel   = dom_elt_child_of_class(path_block_elt, "block_always_relative")
-        let block_args   = dom_elt_child_of_class(always_rel, "block_args")
+        let always_rel   = html_db.dom_elt_child_of_class(path_block_elt, "block_always_relative")
+        let block_args   = html_db.dom_elt_child_of_class(always_rel, "block_args")
         let new_name_val = make_arg_name_val("", new_last_path_elt)
-        let close_delim  = dom_elt_child_of_class(block_args, "close")
-        insert_elt_before(new_name_val, close_delim)
+        let close_delim  = html_db.dom_elt_child_of_class(block_args, "close")
+        html_db.insert_elt_before(new_name_val, close_delim)
         clean_up_arg_names(path_block_elt)
     },
 
     to_js: function(block_elt){
-        let always_rel   = dom_elt_child_of_class(block_elt, "block_always_relative")
-        let block_args   = dom_elt_child_of_class(always_rel, "block_args")
-        let arg_name_vals = dom_elt_children_of_class(block_args, "arg_name_val")
+        let always_rel   = html_db.dom_elt_child_of_class(block_elt, "block_always_relative")
+        let block_args   = html_db.dom_elt_child_of_class(always_rel, "block_args")
+        let arg_name_vals = html_db.dom_elt_children_of_class(block_args, "arg_name_val")
         let array_of_sources = []
         for (let i = 0; i < arg_name_vals.length; i++){
             let arg_name_val = arg_name_vals[i]
-            let arg_val  = dom_elt_child_of_class(arg_name_val, "arg_val")
+            let arg_val  = html_db.dom_elt_child_of_class(arg_name_val, "arg_val")
             let src = block_to_js(arg_val)
             array_of_sources.push(src)
         }
@@ -956,10 +956,10 @@ newObject({prototype: Root.jsdb,
         return result
     },
     to_js: function(block_elt){
-        let always_rel   = dom_elt_child_of_class(block_elt, "block_always_relative")
-        let block_args   = dom_elt_child_of_class(always_rel, "block_args")
-        let arg_name_val = dom_elt_child_of_class(block_args, "arg_name_val")
-        let arg_val  = dom_elt_child_of_class(arg_name_val, "arg_val")
+        let always_rel   = html_db.dom_elt_child_of_class(block_elt, "block_always_relative")
+        let block_args   = html_db.dom_elt_child_of_class(always_rel, "block_args")
+        let arg_name_val = html_db.dom_elt_child_of_class(block_args, "arg_name_val")
+        let arg_val  = html_db.dom_elt_child_of_class(arg_name_val, "arg_val")
         let src = "[" + block_to_js(arg_val) + "]"
         return src
     }
@@ -1046,22 +1046,22 @@ newObject({prototype: Root.jsdb,
         return result
     },
     to_js: function(block_elt){
-        let always_rel     = dom_elt_child_of_class(block_elt, "block_always_relative")
-        let block_name_elt = dom_elt_child_of_class(always_rel, "block_name")
-        let block_args     = dom_elt_child_of_class(always_rel, "block_args")
-        let arg_name_vals  = dom_elt_children_of_class(block_args, "arg_name_val")
+        let always_rel     = html_db.dom_elt_child_of_class(block_elt, "block_always_relative")
+        let block_name_elt = html_db.dom_elt_child_of_class(always_rel, "block_name")
+        let block_args     = html_db.dom_elt_child_of_class(always_rel, "block_args")
+        let arg_name_vals  = html_db.dom_elt_children_of_class(block_args, "arg_name_val")
         let result = block_name_elt.firstChild.data + "("
         let indent = " ".repeat(result.length)
         for (let i = 0; i < arg_name_vals.length; i++){
             let indent_for_this_arg = ((i == 0) ? "" : indent)
 
             let arg_name_val_elt = arg_name_vals[i]
-            let arg_name_elt     = dom_elt_child_of_class(arg_name_val_elt, "arg_name")
+            let arg_name_elt     = html_db.dom_elt_child_of_class(arg_name_val_elt, "arg_name")
             let arg_name_string  = ""
             if(arg_name_elt) { arg_name_string = arg_name_elt.value }
 
             if (arg_name_string != "") { arg_name_string += ": " }
-            let arg_val_elt    = dom_elt_child_of_class(arg_name_val_elt, "arg_val")
+            let arg_val_elt    = html_db.dom_elt_child_of_class(arg_name_val_elt, "arg_val")
             let arg_val_string = block_to_js(arg_val_elt, indent)
 
             let src = indent_for_this_arg + arg_name_string + arg_val_string
@@ -1072,8 +1072,8 @@ newObject({prototype: Root.jsdb,
         return result + ")"
     },
     click_help_string(block_elt){
-        let always_rel     = dom_elt_child_of_class(block_elt, "block_always_relative")
-        let block_name_elt = dom_elt_child_of_class(always_rel, "block_name")
+        let always_rel     = html_db.dom_elt_child_of_class(block_elt, "block_always_relative")
+        let block_name_elt = html_db.dom_elt_child_of_class(always_rel, "block_name")
         let new_and_class_name = block_name_elt.firstChild.data
         let class_name = new_and_class_name.split(" ")[1]
         return ["<code>" + new_and_class_name + "</code> creates an instance of the <code>" + class_name + "</code> class."]
@@ -1137,7 +1137,7 @@ newObject({prototype: Root.jsdb,
         return compute_string_size(val, font_size, extra_width)[0]
     },
     to_js: function(block_elt){
-        let arg_val = dom_elt_descendant_of_classes(block_elt,
+        let arg_val = html_db.dom_elt_descendant_of_classes(block_elt,
                          ["block_always_relative", "block_args", "arg_name_val", "arg_val"])
         let val          = arg_val.value
         return val
@@ -1214,7 +1214,7 @@ newObject({prototype: Root.jsdb,
         Root.jsdb.identifier.identifiers.add_item_maybe(event.target.value)
     },
     to_js: function(block_elt){ //if this changes, change block.js clean_up_arg_names fn
-        let arg_val = dom_elt_descendant_of_classes(block_elt,
+        let arg_val = html_db.dom_elt_descendant_of_classes(block_elt,
             ["block_always_relative", "block_args", "arg_name_val", "arg_val"])
         let val          = arg_val.value
         return val
@@ -1336,10 +1336,10 @@ newObject({prototype: Root.jsdb.identifier,
             $(this).jqxComboBox({width: new_width}) // dropDownWidth: new_width + "px" }) // ,
             $(this).jqxComboBox({dropDownWidth: 200})
             var items = $(this).jqxComboBox('getItems')
-            let identifiers_elt = closest_ancestor_of_class(this, "block")
-            let path_elt        = closest_ancestor_of_class(identifiers_elt.parentNode, "block")
+            let identifiers_elt = html_db.closest_ancestor_of_class(this, "block")
+            let path_elt        = html_db.closest_ancestor_of_class(identifiers_elt.parentNode, "block")
             if (path_elt){
-                let meth_call_elt   = closest_ancestor_of_class(path_elt.parentNode, "block")
+                let meth_call_elt   = html_db.closest_ancestor_of_class(path_elt.parentNode, "block")
                 if (meth_call_elt && meth_call_elt.dataset.blockType == "Root.jsdb.method_call"){
                  clean_up_arg_names(meth_call_elt)
                 }
@@ -1414,7 +1414,7 @@ newObject({prototype: Root.jsdb.identifier,
         return compute_string_size(val, font_size, extra_width)[0]
     },
     to_js: function(block_elt){
-        let arg_val = dom_elt_descendant_of_classes(block_elt,
+        let arg_val = html_db.dom_elt_descendant_of_classes(block_elt,
             ["block_always_relative", "block_args", "arg_name_val", "arg_val"])
         let val     = $(arg_val).val()
         val = Root.jsdb.clean_select_value(val)
@@ -1481,7 +1481,7 @@ newObject({prototype: Root.jsdb.identifier,
         return compute_string_size(val, font_size, extra_width)[0]
     },
     to_js: function(block_elt){
-        let arg_val = dom_elt_descendant_of_classes(block_elt,
+        let arg_val = html_db.dom_elt_descendant_of_classes(block_elt,
             ["block_always_relative", "block_args", "arg_name_val", "arg_val"])
         let val     = $(arg_val).val()
         return val
@@ -1538,19 +1538,19 @@ newObject({prototype: Root.jsdb,
         return result
     },
     to_js: function(block_elt){
-        let always_rel     = dom_elt_child_of_class(block_elt, "block_always_relative")
-        let block_name_elt = dom_elt_child_of_class(always_rel, "block_name")
-        let block_args     = dom_elt_child_of_class(always_rel, "block_args")
-        let ident_elt      = dom_elt_child_of_class(block_args.childNodes[0], "arg_val")
-        let op_select_elt  = dom_elt_child_of_class(block_args.childNodes[1], "arg_val")
+        let always_rel     = html_db.dom_elt_child_of_class(block_elt, "block_always_relative")
+        let block_name_elt = html_db.dom_elt_child_of_class(always_rel, "block_name")
+        let block_args     = html_db.dom_elt_child_of_class(always_rel, "block_args")
+        let ident_elt      = html_db.dom_elt_child_of_class(block_args.childNodes[0], "arg_val")
+        let op_select_elt  = html_db.dom_elt_child_of_class(block_args.childNodes[1], "arg_val")
         let op_str         = block_to_js(op_select_elt)
         let result         = block_to_js(ident_elt) + op_str
         return result
     },
     click_help_string(block_elt){
-        let always_rel     = dom_elt_child_of_class(block_elt, "block_always_relative")
-        let block_args     = dom_elt_child_of_class(always_rel, "block_args")
-        let op_select_elt  = dom_elt_child_of_class(block_args.childNodes[1], "arg_val")
+        let always_rel     = html_db.dom_elt_child_of_class(block_elt, "block_always_relative")
+        let block_args     = html_db.dom_elt_child_of_class(always_rel, "block_args")
+        let op_select_elt  = html_db.dom_elt_child_of_class(block_args.childNodes[1], "arg_val")
         let op_str         = op_select_elt.value
         op_str             = Root.jsdb.clean_select_value(op_str)
         return op_str
@@ -1608,18 +1608,18 @@ newObject({prototype: Root.jsdb,
         return result
     },
     to_js: function(block_elt){
-        let always_rel     = dom_elt_child_of_class(block_elt,  "block_always_relative")
-        let block_name_elt = dom_elt_child_of_class(always_rel, "block_name")
-        let block_args     = dom_elt_child_of_class(always_rel, "block_args")
-        let ident_elt      = dom_elt_child_of_class(block_args.childNodes[1], "arg_val")
-        let op_select_elt  = dom_elt_child_of_class(block_args.childNodes[0], "arg_val")//op comes first in prefix
+        let always_rel     = html_db.dom_elt_child_of_class(block_elt,  "block_always_relative")
+        let block_name_elt = html_db.dom_elt_child_of_class(always_rel, "block_name")
+        let block_args     = html_db.dom_elt_child_of_class(always_rel, "block_args")
+        let ident_elt      = html_db.dom_elt_child_of_class(block_args.childNodes[1], "arg_val")
+        let op_select_elt  = html_db.dom_elt_child_of_class(block_args.childNodes[0], "arg_val")//op comes first in prefix
         let op_str         = block_to_js(op_select_elt)
         let result         = op_str + block_to_js(ident_elt)
         return result
     },
     click_help_string(block_elt){
-        let always_rel     = dom_elt_child_of_class(block_elt, "block_always_relative")
-        let block_args     = dom_elt_child_of_class(always_rel, "block_args")
+        let always_rel     = html_db.dom_elt_child_of_class(block_elt, "block_always_relative")
+        let block_args     = html_db.dom_elt_child_of_class(always_rel, "block_args")
         let op_select_elt  = block_args.childNodes[0].childNodes[1]
         let op_str         = op_select_elt.value
         op_str             = Root.jsdb.clean_select_value(op_str)
@@ -1687,15 +1687,15 @@ newObject({prototype: Root.jsdb,
         return result
     },
     remove_init_val: function(assigment_block_elt){
-        let block_args_elt = dom_elt_descendant_of_classes(assigment_block_elt, ["block_always_relative", "block_args"])
-        remove_dom_elt(last(block_args_elt.childNodes)) //init val
-        remove_dom_elt(last(block_args_elt.childNodes)) //the equl sign span
+        let block_args_elt = html_db.dom_elt_descendant_of_classes(assigment_block_elt, ["block_always_relative", "block_args"])
+        html_db.remove_dom_elt(last(block_args_elt.childNodes)) //init val
+        html_db.remove_dom_elt(last(block_args_elt.childNodes)) //the equl sign span
     },
 
     to_js: function(block_elt){
-        let block_args     = dom_elt_descendant_of_classes(block_elt,
+        let block_args     = html_db.dom_elt_descendant_of_classes(block_elt,
                                                            ["block_always_relative", "block_args"])
-        let arg_name_vals  = dom_elt_children_of_class(block_args, "arg_name_val")
+        let arg_name_vals  = html_db.dom_elt_children_of_class(block_args, "arg_name_val")
         let variable_kind  = arg_name_vals[0].children[0].value //one of "",let, var, const
         variable_kind = Root.jsdb.clean_select_value(variable_kind)
         let variable_name_block  = arg_name_vals[1].children[0]
@@ -1710,9 +1710,9 @@ newObject({prototype: Root.jsdb,
         return result
     },
     click_help_string(block_elt){
-        let block_args     = dom_elt_descendant_of_classes(block_elt,
+        let block_args     = html_db.dom_elt_descendant_of_classes(block_elt,
             ["block_always_relative", "block_args"])
-        let arg_name_vals  = dom_elt_children_of_class(block_args, "arg_name_val")
+        let arg_name_vals  = html_db.dom_elt_children_of_class(block_args, "arg_name_val")
         let variable_kind  = arg_name_vals[0].children[0].value //one of "",let, var, const
         variable_kind      = Root.jsdb.clean_select_value(variable_kind)
         if (variable_kind != "") { return variable_kind} //"let", "var", or "const"
@@ -1794,14 +1794,14 @@ newObject({prototype: Root.jsdb,
             return result
         },
         to_js: function(block_elt){
-            let block_args = dom_elt_descendant_of_classes(block_elt,
+            let block_args = html_db.dom_elt_descendant_of_classes(block_elt,
                 ["block_always_relative", "block_args"])
             let children = block_args.children
             let result = "("
             let on_first = true
             for (let child of children){
                 if(child.classList.contains("arg_name_val")){
-                    let arg_val_elt = dom_elt_child_of_class(child, "arg_val")
+                    let arg_val_elt = html_db.dom_elt_child_of_class(child, "arg_val")
                     let the_js = block_to_js(arg_val_elt)
                     if (!on_first) { result += " "}
                     result += the_js
@@ -1816,7 +1816,7 @@ newObject({prototype: Root.jsdb,
             return result
         },
     click_help_string(block_elt){
-        let block_args = dom_elt_descendant_of_classes(block_elt,
+        let block_args = html_db.dom_elt_descendant_of_classes(block_elt,
             ["block_always_relative", "block_args"])
         let children = block_args.children
         for (let child of children){
@@ -1961,9 +1961,9 @@ newObject({prototype: Root.jsdb,
         return result
     },
     to_js: function(block_elt){
-        let always_rel     = dom_elt_child_of_class(block_elt, "block_always_relative")
-        let block_name_elt = dom_elt_child_of_class(always_rel, "block_name")
-        let block_args     = dom_elt_child_of_class(always_rel, "block_args")
+        let always_rel     = html_db.dom_elt_child_of_class(block_elt, "block_always_relative")
+        let block_name_elt = html_db.dom_elt_child_of_class(always_rel, "block_name")
+        let block_args     = html_db.dom_elt_child_of_class(always_rel, "block_args")
         let name_string    = block_name_elt.innerText
         let code_body      = block_args.childNodes[0].childNodes[0]
         let code_body_src  = block_to_js(code_body)
@@ -1972,8 +1972,8 @@ newObject({prototype: Root.jsdb,
         return result
     },
     click_help_string(block_elt){
-        let always_rel     = dom_elt_child_of_class(block_elt, "block_always_relative")
-        let block_name_elt = dom_elt_child_of_class(always_rel, "block_name")
+        let always_rel     = html_db.dom_elt_child_of_class(block_elt, "block_always_relative")
+        let block_name_elt = html_db.dom_elt_child_of_class(always_rel, "block_name")
         let name_string    = block_name_elt.innerText
         return name_string
     }
@@ -2050,12 +2050,12 @@ newObject({prototype: Root.jsdb, //used for delete, yield, yield*. No parens aro
         return result
     },
     to_js: function(block_elt){
-        let always_rel     = dom_elt_child_of_class(block_elt, "block_always_relative")
-        let block_name_elt = dom_elt_child_of_class(always_rel, "block_name")
+        let always_rel     = html_db.dom_elt_child_of_class(block_elt, "block_always_relative")
+        let block_name_elt = html_db.dom_elt_child_of_class(always_rel, "block_name")
         let name_string    = block_to_js(block_name_elt) //block_name_elt.innerText
-        let block_args     = dom_elt_child_of_class(always_rel, "block_args")
+        let block_args     = html_db.dom_elt_child_of_class(always_rel, "block_args")
         let expr_name_val  = block_args.childNodes[0] //((block_args.childNodes.length == 2) ?  block_args.childNodes[0] :  block_args.childNodes[1])
-        let expr_val       = dom_elt_child_of_class(expr_name_val, "arg_val") //expr_name_val.childNodes[1]
+        let expr_val       = html_db.dom_elt_child_of_class(expr_name_val, "arg_val") //expr_name_val.childNodes[1]
         let expr_src       = block_to_js(expr_val)
         //let open_paren_maybe   = (expr_src.startsWith("(") ? "" : "(")
         //let close_paren_maybe  = (expr_src.endsWith(")")   ? "" : ")")
@@ -2063,8 +2063,8 @@ newObject({prototype: Root.jsdb, //used for delete, yield, yield*. No parens aro
         return result
     },
     click_help_string(block_elt){
-        let always_rel     = dom_elt_child_of_class(block_elt, "block_always_relative")
-        let block_name_elt = dom_elt_child_of_class(always_rel, "block_name")
+        let always_rel     = html_db.dom_elt_child_of_class(block_elt, "block_always_relative")
+        let block_name_elt = html_db.dom_elt_child_of_class(always_rel, "block_name")
         let name_string    = block_name_elt.innerText
         return name_string
     }
@@ -2117,9 +2117,9 @@ make_dom_elt: function(x, y, expr){
     return result
 },
 to_js: function(block_elt){
-    let always_rel     = dom_elt_child_of_class(block_elt, "block_always_relative")
-    let block_name_elt = dom_elt_child_of_class(always_rel, "block_name")
-    let block_args     = dom_elt_child_of_class(always_rel, "block_args")
+    let always_rel     = html_db.dom_elt_child_of_class(block_elt, "block_always_relative")
+    let block_name_elt = html_db.dom_elt_child_of_class(always_rel, "block_name")
+    let block_args     = html_db.dom_elt_child_of_class(always_rel, "block_args")
     let expr_elt       = block_args.childNodes[0].childNodes[1]
     let result         = "delete " + block_to_js(expr_elt)
     return result
@@ -2177,12 +2177,12 @@ newObject({prototype: Root.jsdb.rword_expr,
         return result
     },
     to_js: function(block_elt){
-        let always_rel     = dom_elt_child_of_class(block_elt, "block_always_relative")
-        let block_name_elt = dom_elt_child_of_class(always_rel, "block_name")
-        let block_args     = dom_elt_child_of_class(always_rel, "block_args")
+        let always_rel     = html_db.dom_elt_child_of_class(block_elt, "block_always_relative")
+        let block_name_elt = html_db.dom_elt_child_of_class(always_rel, "block_name")
+        let block_args     = html_db.dom_elt_child_of_class(always_rel, "block_args")
         let name_string    = block_name_elt.innerText
         let expr_name_val  = block_args.childNodes[0] //((block_args.childNodes.length == 2) ?  block_args.childNodes[0] :  block_args.childNodes[1])
-        let expr_val       = dom_elt_child_of_class(expr_name_val, "arg_val") //expr_name_val.childNodes[1]
+        let expr_val       = html_db.dom_elt_child_of_class(expr_name_val, "arg_val") //expr_name_val.childNodes[1]
         let expr_src       = block_to_js(expr_val)
         //let open_paren_maybe   = (expr_src.startsWith("(") ? "" : "(")
         //let close_paren_maybe  = (expr_src.endsWith(")")   ? "" : ")")
@@ -2270,7 +2270,7 @@ newObject({prototype: Root.jsdb,
         return result
     },
     to_js: function(block_elt){
-        let always_rel     = dom_elt_child_of_class(block_elt, "block_always_relative")
+        let always_rel     = html_db.dom_elt_child_of_class(block_elt, "block_always_relative")
         let block_name_elt = dom_elt_child_of_class(always_rel, "block_name")
         let name_string    = block_to_js(block_name_elt) //block_name_elt.innerText
         let block_args     = dom_elt_child_of_class(always_rel, "block_args")
@@ -2514,7 +2514,7 @@ newObject({prototype: Root.jsdb,
     to_js: function(block_elt){
         let always_rel    = dom_elt_child_of_class(block_elt, "block_always_relative")
         let block_args    = dom_elt_child_of_class(always_rel, "block_args")
-        let arg_name_vals = dom_elt_children_of_class(block_args, "arg_name_val")
+        let arg_name_vals = html_db.dom_elt_children_of_class(block_args, "arg_name_val")
         let result = "("
         let on_first = true
         for (let arg_name_val of arg_name_vals){
@@ -2601,7 +2601,7 @@ newObject({prototype: Root.jsdb,
     to_js: function(block_elt){
         let always_rel    = dom_elt_child_of_class(block_elt, "block_always_relative")
         let block_args    = dom_elt_child_of_class(always_rel, "block_args")
-        let arg_name_vals = dom_elt_children_of_class(block_args, "arg_name_val")
+        let arg_name_vals = html_db.dom_elt_children_of_class(block_args, "arg_name_val")
         let the_one_of_function_elt = always_rel.childNodes[0]
         let fn_or_gen_string = block_to_js(the_one_of_function_elt)
         let result = fn_or_gen_string
@@ -2759,7 +2759,7 @@ newObject({prototype: Root.jsdb,
         let always_rel     = dom_elt_child_of_class(block_elt, "block_always_relative")
         let block_name_elt = dom_elt_child_of_class(always_rel, "block_name") //a path elt
         let block_args     = dom_elt_child_of_class(always_rel, "block_args")
-        let arg_name_vals  = dom_elt_children_of_class(block_args, "arg_name_val")
+        let arg_name_vals  = html_db.dom_elt_children_of_class(block_args, "arg_name_val")
         let result = block_to_js(block_name_elt)  + "("//block_name_elt.firstChild.data + "("
 
         let on_first = true

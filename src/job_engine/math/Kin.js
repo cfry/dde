@@ -55,12 +55,12 @@ new Job({name: "move_all_joints",
 
 */
 import {sind, cosd, tand, asind, acosd, atand, atan2d} from "./Trig_in_Degrees.js"
-import {Vector}  from "./Vector.js"
-import {Convert} from "./Convert.js"
+//import {Vector}  from "./Vector.js" //now global
+//import {Convert} from "./Convert.js" //now global
 //import {dde_error} from "../core/utils.js" //now dde_error specially defined in je_and_browser_code.js
-import {Dexter}  from "../core/robot.js"
+//import {Dexter}  from "../core/robot.js" //now global
 
-export class Kin{
+class Kin{
     static inverse_kinematics(xyz, direction = [0, 0, -1], config = [1, 1, 1], dexter_inst_or_workspace_pose = Vector.make_pose()){
         if(xyz == undefined){
         	dde_error("xyz must be defined. To prevent unpredictable movement a default is not used.")
@@ -1846,6 +1846,7 @@ export class Kin{
     	return [J, U, P]
     } end of context_inverse_kinematics */
 }
+globalThis.Kin = Kin
 
 //Used in predict_move_dur
 //Computation based on James N reading of Dynamixel XL 320, 114RPM at 7.4 volts.

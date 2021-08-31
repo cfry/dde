@@ -1,7 +1,7 @@
-import Vector from "../math/Vector.js"
+//import Vector from "../math/Vector.js" //now global
 import {is_string_a_number} from "./utils.js"
 
-export class Gcode{
+class Gcode{
   static init(){ //called from ready.js
       Gcode.gcode_to_instructions_workspace_pose_default =
           Vector.make_pose([0, 0.5, 0.1], [0, 0, 0], _mm)
@@ -127,6 +127,8 @@ export class Gcode{
     else { return null } //happens when passing a string for gobj and its just a comment.
   }
 }
+
+globalThis.Gcode = Gcode
 
 //need this here because just putting a * at the end of a static method in a class errors.
 Gcode.gcode_to_instructions = function* ({gcode = "",

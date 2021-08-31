@@ -6,10 +6,10 @@ import {copy_missing_fields, is_string_a_integer, is_string_a_float, is_string_a
         is_string_a_color_rgb, rgb_string_to_integer_array} from "../job_engine/core/utils.js"
 
 import {init_units, unit_abbrev_to_full_name} from "../job_engine/core/units.js"
-import {Robot, Brain, Dexter, Human, Serial}  from '../job_engine/core/robot.js'
-import {html_db} from "../job_engine/core/html_db.js"
+//import {Robot, Brain, Dexter, Human, Serial}  from '../job_engine/core/robot.js' //now global
+//import {html_db} from "../job_engine/core/html_db.js" //now html_db is global
 
-export var Series = class Series {
+class Series {
     /*constructor(keyword_args={}){
         var defaults = {id:"required", array:null, in_series_fn:null, replace_sel_fn:null,
                         menu_insertion_string:"required", menu_sel_start:true, menu_sel_end:null,
@@ -26,7 +26,7 @@ export var Series = class Series {
 
     static init_series(){
         make_color_rgb_map()
-        series_help_id.onclick      = function(){ open_doc(series_doc_id) }
+        series_help_id.onclick      = function(){ DocCode.open_doc(series_doc_id) }
                                         
         series_next_item_id.onclick = Series.replace_series_right
         series_prev_item_id.onclick = Series.replace_series_left
@@ -48,7 +48,7 @@ export var Series = class Series {
         //    robots_doc_id.open = true;
         //    $("#robots_doc_id").animate({scrollTop: robots_doc_id.offsetTop}, 800);
         //}
-        robots_help_id.onclick = function(){ open_doc(robots_doc_id) }
+        robots_help_id.onclick = function(){ DocCode.open_doc(robots_doc_id) }
 
         Series.init_series_instances()
         init_units()
@@ -187,7 +187,6 @@ export var Series = class Series {
     //arg is 1 or -1
     static replace_sel(index_increment=1, run_item=true){
         if(!Editor.is_selection()){ return CodeMirror.Pass }
-        //else if (TestSuite.handle_by_test_suite("horizontal", index_increment, run_item)){} //left or right arrow. If index+inc == 1, its right arrow pressed
         else {
             var sel_text = Editor.get_javascript(true)
             var ser = this.find_series(sel_text)
@@ -200,7 +199,6 @@ export var Series = class Series {
     static replace_series_down(){ return Series.replace_series(1) }
     static replace_series(index_increment){ //index_increment=1 for next and -1 for prev
         if(!Editor.is_selection()){ return CodeMirror.Pass }
-        //else if (TestSuite.handle_by_test_suite("vertical", index_increment, false)){}
         else {
             var old_sel_text = Editor.get_javascript(true)
             var old_index = this.find_series_index(old_sel_text)
@@ -764,8 +762,8 @@ Series.instances = [
     new Series({id:"series_output_id",      array: ['beep', 'beeps', 'Editor.insert', 'get_page', 'get_page_async','make_url', 'out', 'show_page', 'speak'],
         menu_insertion_string: "beep({dur: 1, frequency: 440, volume: 1})",
         menu_sel_start:0, menu_sel_end:4, sample: "beep"}),
-    new Series({id:"series_window_id",      array: ['clear_output', 'SW.close_window', 'make_dom_elt', 'make_html', 'show_window',
-                                                    'append_in_ui', 'get_in_ui', 'remove_in_ui', 'replace_in_ui', 'set_in_ui',
+    new Series({id:"series_window_id",      array: ['SW.clear_output', 'SW.close_window', 'make_dom_elt', 'make_html', 'show_window',
+                                                    'SW.append_in_ui', 'get_in_ui', 'remove_in_ui', 'replace_in_ui', 'set_in_ui',
                                                     'set_window_frame_background_color', 'set_pane_header_background_color',
                                                     'set_menu_background_color', 'set_button_background_color',
                                                     'svg_svg', 'svg_circle', 'svg_ellipse', 'svg_html', 'svg_line',
@@ -925,8 +923,8 @@ Series.instances = [
     //get the next in the series, ie another test suite.
     //maybe shift_right_arrow to get next TS in series?
     new Series({id:"series_test_suite_id",
-                in_series_fn: TestSuite.is_string_test_suite,
-                array: TestSuite.get_ts_source_array,
+                in_series_fn: function(){ return false }, //TestSuite.is_string_test_suite, //todo dde4
+                array:        function(){ return []  },   //TestSuite.get_ts_source_array,  //todo dde4
                 menu_insertion_string: function(){return TestSuite.suites[0].to_source_code()},
                 menu_sel_start: true,
                 menu_sel_end:null,
@@ -955,4 +953,5 @@ Series.instances = [
     })
 ]
 }
+globalThis.Series = Series
 

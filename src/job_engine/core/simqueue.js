@@ -45,7 +45,7 @@
    separately.
 */
 
-export var Simqueue = class Simqueue{
+class Simqueue{
     static queue_max_length = 16
     constructor(sim_instance){
         this.sim_instance = sim_instance
@@ -358,8 +358,8 @@ export var Simqueue = class Simqueue{
     //top level show called from clicking the "Show Queue" button in Sim header.
     // Simqueue.show_queue_for_default_dexter()
     static show_queue_for_default_dexter(){
-        if(misc_pane_menu_selection !== "Simulate Dexter"){
-            show_in_misc_pane("Simulate Dexter") //if Simulate Dexter is not shown when queue is shown, we'll get an error
+        if(DDEVideo.misc_pane_menu_selection !== "Simulate Dexter"){
+            DDEVideo.show_in_misc_pane("Simulate Dexter") //if Simulate Dexter is not shown when queue is shown, we'll get an error
         }
         let rob_name = Dexter.default.name
         let sim_inst = (DexterSim.robot_name_to_dextersim_instance_map ?
@@ -649,3 +649,5 @@ export var Simqueue = class Simqueue{
         }
     }
 }
+
+globalThis.Simqueue

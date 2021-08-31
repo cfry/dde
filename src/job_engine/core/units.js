@@ -2,11 +2,7 @@
 //foo: [ 42 doesn't error. however
 //it doesn't set it either, just keeps the old value.
 import {replace_substrings} from "./utils.js"
-import {Instruction} from "./instruction.js"
-
-function define_global_constant(name, value) {
-    Object.defineProperty(global, name, { value: value})
-}
+//import {Instruction} from "./instruction.js" //now global
 
 var units_data = {
 length_units: {
@@ -156,7 +152,7 @@ export function init_units(){
         for(let a_unit_abrev of the_keys) {
             if(a_unit_abrev != "base") {
                 let val = one_series_units[a_unit_abrev][0]
-                define_global_constant(a_unit_abrev, val)
+                globalThis[a_unit_abrev] = val
             }
         }
     }

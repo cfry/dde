@@ -140,10 +140,10 @@ var dui2 = class dui2 {
     }
 
     static init(xy_width_in_px = 300){
-        open_doc(dexter_user_interface_doc_id)
+        DocCode.open_doc(dexter_user_interface_doc_id)
         if((platform == "dde") &&
             !window.sim_graphics_pane_id) {
-            show_in_misc_pane("Simulate Dexter") //changes Misc pane to sim. Preserves pose of Dexter.
+            DDEVideo.show_in_misc_pane("Simulate Dexter") //changes Misc pane to sim. Preserves pose of Dexter.
         }
         let dui_instance = new dui2()
         dui_instance.job_name = this.name
@@ -605,7 +605,7 @@ var dui2 = class dui2 {
         return
     }
     else if(vals.clicked_button_value === "help") {
-        open_doc(dexter_user_interface_doc_id)
+        DocCode.open_doc(dexter_user_interface_doc_id)
         return
     }
     else if(["xy_2d_slider", "z_slider", "J6_roll"].includes(vals.clicked_button_value)){
@@ -1291,7 +1291,7 @@ var dui2 = class dui2 {
     }
 
     update_editor_maybe(){
-        let full_src  = myCodeMirror.doc.getValue() //$("#js_textarea_id").val() //careful: js_textarea_id.value returns a string with an extra space on the end! A crhome bug that jquery fixes
+        let full_src  = Editor.myCodeMirror.doc.getValue() //$("#js_textarea_id").val() //careful: js_textarea_id.value returns a string with an extra space on the end! A crhome bug that jquery fixes
         let sel_start_pos = Editor.selection_start()
         let sel_end_pos   = Editor.selection_end()
         if(sel_start_pos !== sel_end_pos){ //we have a selection
@@ -1326,47 +1326,47 @@ var dui2 = class dui2 {
     update_range_and_angle_nums(){
         for(let joint_number = 1; joint_number <= 7; joint_number++){
             let angle = this.maj_angles[joint_number - 1] //j1 thru 5 are in index 0 thru 4
-            selector_set_in_ui("#" + this.show_window_elt_id + " [name=j" + joint_number + "_range] [value]",
+            SW.selector_set_in_ui("#" + this.show_window_elt_id + " [name=j" + joint_number + "_range] [value]",
                 angle)
-            selector_set_in_ui("#" + this.show_window_elt_id + " [name=j" + joint_number + "_angle_num] [value]",
+            SW.selector_set_in_ui("#" + this.show_window_elt_id + " [name=j" + joint_number + "_angle_num] [value]",
                 angle)
         }
         let j4_5_disabled_value = ((this.should_point_down || (this.dexter_mode === "follow_me")) ? "disabled" : null)
-        selector_set_in_ui("#" + this.show_window_elt_id + " [name=j4_range] [disabled]",
+        SW.selector_set_in_ui("#" + this.show_window_elt_id + " [name=j4_range] [disabled]",
             j4_5_disabled_value)
-        selector_set_in_ui("#" + this.show_window_elt_id + " [name=j5_range] [disabled]",
+        SW.selector_set_in_ui("#" + this.show_window_elt_id + " [name=j5_range] [disabled]",
             j4_5_disabled_value)
         let j4_5_title = ""
         if(j4_5_disabled_value !== null) {
             j4_5_title = "J4 & J5 sliders are disabled because\nthe Point Down checkbox is checked,\nwhich constrains the motion of J4 & J5."
         }
-        selector_set_in_ui("#" + this.show_window_elt_id + " [name=j4_range] [title]", j4_5_title)
-        selector_set_in_ui("#" + this.show_window_elt_id + " [name=j5_range] [title]", j4_5_title)
+        SW.selector_set_in_ui("#" + this.show_window_elt_id + " [name=j4_range] [title]", j4_5_title)
+        SW.selector_set_in_ui("#" + this.show_window_elt_id + " [name=j5_range] [title]", j4_5_title)
     }
 
     enable_range_and_angle_nums(is_yes=true){
         let disabled_value = (is_yes ? null : "disabled")
         for(let joint_number = 1; joint_number <= 7; joint_number++){
             let angle = this.maj_angles[joint_number - 1] //j1 thru 5 are in index 0 thru 4
-            selector_set_in_ui("#" + this.show_window_elt_id + " [name=j" + joint_number + "_range] [disabled]",
+            SW.selector_set_in_ui("#" + this.show_window_elt_id + " [name=j" + joint_number + "_range] [disabled]",
                 disabled_value)
-            selector_set_in_ui("#" + this.show_window_elt_id + " [name=j" + joint_number + "_angle_num] [disabled]",
+            SW.selector_set_in_ui("#" + this.show_window_elt_id + " [name=j" + joint_number + "_angle_num] [disabled]",
                 disabled_value)
         }
     }
 
     //x,y,z in meters
     update_xyz_nums(){
-        selector_set_in_ui("#" + this.show_window_elt_id + " [name=x_num] [value]", this.xyz[0])
-        selector_set_in_ui("#" + this.show_window_elt_id + " [name=y_num] [value]", this.xyz[1])
-        selector_set_in_ui("#" + this.show_window_elt_id + " [name=z_num] [value]", this.xyz[2])
+        SW.selector_set_in_ui("#" + this.show_window_elt_id + " [name=x_num] [value]", this.xyz[0])
+        SW.selector_set_in_ui("#" + this.show_window_elt_id + " [name=y_num] [value]", this.xyz[1])
+        SW.selector_set_in_ui("#" + this.show_window_elt_id + " [name=z_num] [value]", this.xyz[2])
     }
 
     enable_xyz_nums(is_yes=true){
         let disabled_value = (is_yes ? null : "disabled")
-        selector_set_in_ui("#" + this.show_window_elt_id + " [name=x_num] [disabled]", disabled_value)
-        selector_set_in_ui("#" + this.show_window_elt_id + " [name=y_num] [disabled]", disabled_value)
-        selector_set_in_ui("#" + this.show_window_elt_id + " [name=z_num] [disabled]", disabled_value)
+        SW.selector_set_in_ui("#" + this.show_window_elt_id + " [name=x_num] [disabled]", disabled_value)
+        SW.selector_set_in_ui("#" + this.show_window_elt_id + " [name=y_num] [disabled]", disabled_value)
+        SW.selector_set_in_ui("#" + this.show_window_elt_id + " [name=z_num] [disabled]", disabled_value)
     }
 
     //updates the LIMITs ,ie red areas in xy and the limits of the z slider.
@@ -1390,19 +1390,19 @@ var dui2 = class dui2 {
         let inner_x_px = this.meters_to_x_px(inner_xy[0])
         let inner_y_px = this.meters_to_y_px(inner_xy[1])
         //draw
-        selector_set_in_ui("#" + this.show_window_elt_id + " svg [style] [background-color]", dui2.xy_background_color)
+        SW.selector_set_in_ui("#" + this.show_window_elt_id + " svg [style] [background-color]", dui2.xy_background_color)
         //ebugger;
-        selector_set_in_ui("#" + this.show_window_elt_id + " svg [id=outer_circle] [r]",  outer_r_px)
-        selector_set_in_ui("#" + this.show_window_elt_id + " svg [id=outer_circle] [cx]", outer_x_px)
-        selector_set_in_ui("#" + this.show_window_elt_id + " svg [id=outer_circle] [cy]", outer_y_px)
+        SW.selector_set_in_ui("#" + this.show_window_elt_id + " svg [id=outer_circle] [r]",  outer_r_px)
+        SW.selector_set_in_ui("#" + this.show_window_elt_id + " svg [id=outer_circle] [cx]", outer_x_px)
+        SW.selector_set_in_ui("#" + this.show_window_elt_id + " svg [id=outer_circle] [cy]", outer_y_px)
 
-        selector_set_in_ui("#" + this.show_window_elt_id + " svg [id=inner_circle] [r]",  inner_r_px)
-        selector_set_in_ui("#" + this.show_window_elt_id + " svg [id=inner_circle] [cx]", inner_x_px)
-        selector_set_in_ui("#" + this.show_window_elt_id + " svg [id=inner_circle] [cy]", inner_y_px)
+        SW.selector_set_in_ui("#" + this.show_window_elt_id + " svg [id=inner_circle] [r]",  inner_r_px)
+        SW.selector_set_in_ui("#" + this.show_window_elt_id + " svg [id=inner_circle] [cx]", inner_x_px)
+        SW.selector_set_in_ui("#" + this.show_window_elt_id + " svg [id=inner_circle] [cy]", inner_y_px)
 
-        selector_set_in_ui("#" + this.show_window_elt_id + " [name=z_slider] [max]", current_max_z)
-        selector_set_in_ui("#" + this.show_window_elt_id + " [name=z_slider] [value]", z)
-        selector_set_in_ui("#" + this.show_window_elt_id + " [name=z_slider] [style] [width]", current_max_z_px)
+        SW.selector_set_in_ui("#" + this.show_window_elt_id + " [name=z_slider] [max]", current_max_z)
+        SW.selector_set_in_ui("#" + this.show_window_elt_id + " [name=z_slider] [value]", z)
+        SW.selector_set_in_ui("#" + this.show_window_elt_id + " [name=z_slider] [style] [width]", current_max_z_px)
 
 
     }
@@ -1413,32 +1413,32 @@ var dui2 = class dui2 {
         let x_px = this.meters_to_x_px(this.xyz[0])
         let y_px = this.meters_to_y_px(this.xyz[1])
         //let z_px = dui2.meters_to_x_px(xyz[2]) //don't do as range slider has its min and max
-        selector_set_in_ui("#" + this.show_window_elt_id + " [id=xy_2d_slider] [cx]", x_px)
-        selector_set_in_ui("#" + this.show_window_elt_id + " [id=xy_2d_slider] [cy]", y_px)
-        selector_set_in_ui("#" + this.show_window_elt_id + " [name=z_slider] [value]", this.xyz[2])
+        SW.selector_set_in_ui("#" + this.show_window_elt_id + " [id=xy_2d_slider] [cx]", x_px)
+        SW.selector_set_in_ui("#" + this.show_window_elt_id + " [id=xy_2d_slider] [cy]", y_px)
+        SW.selector_set_in_ui("#" + this.show_window_elt_id + " [name=z_slider] [value]", this.xyz[2])
     }
 
     enable_xyz_circle(is_yes=true){
         let disabled_value = (is_yes ? null : "disabled")
         let xy_2d_slider_color = (is_yes ? "rgb(0, 255, 0)" : "rgb(0, 150, 0)")
         let outer_circle_color = (is_yes ? "white" : "rgb(200, 200, 200)")
-        selector_set_in_ui("#" + this.show_window_elt_id + " [id=xy_2d_slider] [fill]", xy_2d_slider_color)
-        selector_set_in_ui("#" + this.show_window_elt_id + " [id=outer_circle] [fill]", outer_circle_color)
+        SW.selector_set_in_ui("#" + this.show_window_elt_id + " [id=xy_2d_slider] [fill]", xy_2d_slider_color)
+        SW.selector_set_in_ui("#" + this.show_window_elt_id + " [id=outer_circle] [fill]", outer_circle_color)
 
-        selector_set_in_ui("#" + this.show_window_elt_id + " [name=z_slider] [disabled]", disabled_value)
+        SW.selector_set_in_ui("#" + this.show_window_elt_id + " [name=z_slider] [disabled]", disabled_value)
     }
 
 
 
     update_j6_roll(){
         let j6_roll = Kin.J6_to_roll(this.xyz, this.maj_angles[5])
-        selector_set_in_ui("#" + this.show_window_elt_id + " [name=J6_roll] [value]", j6_roll)
+        SW.selector_set_in_ui("#" + this.show_window_elt_id + " [name=J6_roll] [value]", j6_roll)
     }
 
     enable_j6_roll(is_yes=true){
         let disabled_value = (is_yes ? null : "disabled")
         let j6_roll = Kin.J6_to_roll(this.xyz, this.maj_angles[5])
-        selector_set_in_ui("#" + this.show_window_elt_id + " [name=J6_roll] [disabled]", disabled_value)
+        SW.selector_set_in_ui("#" + this.show_window_elt_id + " [name=J6_roll] [disabled]", disabled_value)
     }
 
     update_direction(){
@@ -1463,13 +1463,13 @@ var dui2 = class dui2 {
             if (i < 2) { new_val_str += ", " }
         }
         new_val_str  += "]"
-        selector_set_in_ui("#" + this.show_window_elt_id + " [name=direction_checkbox] [checked]", this.should_point_down) //selector_set_in_ui fixes bad design of checkboxes by accepting "false" and false to mean unchecked.
-        selector_set_in_ui("#" + this.show_window_elt_id + " .direction [innerHTML]", new_val_str)
+        SW.selector_set_in_ui("#" + this.show_window_elt_id + " [name=direction_checkbox] [checked]", this.should_point_down) //SW.selector_set_in_ui fixes bad design of checkboxes by accepting "false" and false to mean unchecked.
+        SW.selector_set_in_ui("#" + this.show_window_elt_id + " .direction [innerHTML]", new_val_str)
     }
 
     enable_direction(is_yes=true){
         let disabled_value = (is_yes ? null : "disabled")
-        selector_set_in_ui("#" + this.show_window_elt_id + " [name=direction_checkbox] [disabled]", disabled_value) //selector_set_in_ui fixes bad design of checkboxes by accepting "false" and false to mean unchecked.
+        SW.selector_set_in_ui("#" + this.show_window_elt_id + " [name=direction_checkbox] [disabled]", disabled_value) //SW.selector_set_in_ui fixes bad design of checkboxes by accepting "false" and false to mean unchecked.
     }
 
 } //end of class dui2

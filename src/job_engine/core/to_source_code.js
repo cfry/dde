@@ -1,6 +1,6 @@
 import "./object_system.js"
 import {typed_array_name} from "./utils.js"
-import {Instruction} from "./instruction.js"
+//import {Instruction} from "./instruction.js" //now global
 import {function_name, replace_substrings} from "./utils.js"
 
 
@@ -165,4 +165,6 @@ function to_source_code_function(args){
         return replace_substrings(src, "\n", args.indent + "\n")
     }
 }
+
+globalThis.to_source_code = to_source_code
 

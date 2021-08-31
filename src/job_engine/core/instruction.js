@@ -1,16 +1,17 @@
 /** Created by Fry on 3/5/16. */
 
-import  {Robot, Brain, Dexter, Human, Serial} from './robot.js'
-import  {Job}     from './job.js'
-import  {Kin}     from "../math/Kin.js"
-import  {to_source_code} from "./to_source_code.js" //for debugging only
+//import  {Robot, Brain, Dexter, Human, Serial} from './robot.js' now global
+//import  {Job}     from './job.js' //now global
+//import  {Kin}     from "../math/Kin.js" //now global
+
+//import  {to_source_code} from "./to_source_code.js" //now to_source_code is global //for debugging only
 import  {shouldnt, copy_missing_fields, Duration, is_generator_function,
          is_iterator, is_non_neg_integer, last,
          return_first_arg, starts_with_one_of, stringify_value_aux, stringify_value_sans_html,
          trim_comments_from_front, value_of_path} from "./utils.js"
 
 
-export class Instruction {
+class Instruction {
     init_instruction(){} //shadowed by at least wait_until and loop
 
     static to_string(instr){
@@ -423,6 +424,8 @@ export class Instruction {
     }
 }
 
+globalThis.Instruction = Instruction
+
 Instruction.labels = [
 "JOB_ID",             // 0
 "INSTRUCTION_ID",     // 1
@@ -573,7 +576,7 @@ Instruction.w_address_name_to_number = function(name){
 //user might call this at top level in a do_list so make it's name short.
 //the last arg can be a Dexter robot, but if not, the robot comes from the
 //default robot for the job that this instruction is in.
-export function make_ins(instruction_type, ...args){
+function make_ins(instruction_type, ...args){
     /*if(!Dexter.instruction_type_to_function_name_map[instruction_type] &&
        !Serial.instruction_type_to_function_name_map[instruction_type]){
         warning("make_ins called with an invalid instruction_type: " + instruction_type +
@@ -590,6 +593,8 @@ export function make_ins(instruction_type, ...args){
     if (args.length === 0) { return result } //avoids generating the garbage that concat with an arg of an empty list would for this common case, ie for "g" ahd "h" instructions
     else                   { return result.concat(args) }
 }
+
+globalThis.make_ins = make_ins
 
 //to_source_code_insruction_array(isntr_array) //inplemented in to_source_code.js
 
@@ -3353,7 +3358,7 @@ Instruction.show_picture = class show_picture extends Instruction{
             this.first_time = false
             job_instance.set_up_next_do(0)
         }
-        else if (is_dom_elt(this.canvas_id)) {
+        else if (html_db.is_dom_elt(this.canvas_id)) {
             this.first_time = true //in case we're in a loop, initialize for next time around
             job_instance.set_up_next_do(1)
         }
@@ -3399,7 +3404,7 @@ Instruction.show_video = class show_video extends Instruction{
             this.first_time = false
             job_instance.set_up_next_do(0)
         }
-        else if (is_dom_elt(this.video_id)) {
+        else if (html_db.is_dom_elt(this.video_id)) {
             this.first_time = true //in case we're in a loop, initialize for next time around
             job_instance.set_up_next_do(1)
         }
@@ -3446,7 +3451,7 @@ Instruction.show_video = class show_video extends Instruction{
             job_instance.set_up_next_do(0)
         }
 
-        else if (is_dom_elt(this.video_id) ||value_of_path(this.video_id)) {
+        else if (html_db.is_dom_elt(this.video_id) ||value_of_path(this.video_id)) {
            this.clock_start_ms = Date.now() //start the timer
             job_instance.set_up_next_do(0)
         }

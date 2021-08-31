@@ -18,7 +18,7 @@ debugger
 Vector.add(txt.a(), [3, 0, 100])
 
 
-clear_output()
+SW.clear_output()
 var file_path = choose_file()
 var content = read_file(file_path)
 var entities = DXF.content_to_entities(content)

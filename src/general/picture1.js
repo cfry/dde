@@ -147,7 +147,7 @@ var Picture = class Picture{
           content = make_full_path(content)
       }
       let canvas_elt
-      if(is_dom_elt(canvas_id)) {
+      if(html_db.is_dom_elt(canvas_id)) {
          canvas_elt = canvas_id
          canvas_id  = canvas_elt.id
       }
@@ -351,7 +351,7 @@ var Picture = class Picture{
                         callback=undefined}={}
                        ){
       let video_elt 
-      if(is_dom_elt(video_id)){ 
+      if(html_db.is_dom_elt(video_id)){
       		video_elt = video_id
             video_id  = video_elt.id
       }
@@ -390,7 +390,7 @@ var Picture = class Picture{
                   sw_elt.style.visibility = "hidden"
               }
              if(content.includes("youtu.be")){ return }
-             //else { video_elt = html_to_dom_elt(the_html)}
+             //else { video_elt = html_db.html_to_dom_elt(the_html)}
          }             
       }
       else { dde_error("show_video passed invalid type of video_id: " + video_id +
@@ -403,7 +403,7 @@ var Picture = class Picture{
                        //but when the html for the video_tag is defined above
                        //the *should be* global var of video_id isn't bound yet
                        //remarkably, its in the window object. So this fixes the broken dom. 
-                    if(!is_dom_elt(video_elt) || (video_elt.tagName != "VIDEO")) {
+                    if(!html_db.is_dom_elt(video_elt) || (video_elt.tagName != "VIDEO")) {
                        dde_error("Picture.show_video doesn't have a proper VIDEO dom element to play the video in. <br/>" +
                                  video_elt)
                     }
@@ -455,7 +455,7 @@ var Picture = class Picture{
                          callback=Picture.show_picture_of_mat}={}){
         Picture.init(width, height) //first time called, pops up show_window with video from camera in it, 2nd thr nth does nothing
         let video_elt 
-        if(is_dom_elt(video_id)){ 
+        if(html_db.is_dom_elt(video_id)){
               video_elt = video_id
               video_id  = video_elt.id
         }
@@ -472,7 +472,7 @@ var Picture = class Picture{
                            '" width="'    + 320 + //width +
                            '" height="'   + 240 + //height +
                            '" controls/>'
-             video_elt = html_to_dom_elt(the_html) //hidden video_elt. but this fails in getting take_picture to return a mat with the actual picture in it. So to return a mat, you must have a video_elt alreaedy preseent before calling take_picture.
+             video_elt = html_db.html_to_dom_elt(the_html) //hidden video_elt. but this fails in getting take_picture to return a mat with the actual picture in it. So to return a mat, you must have a video_elt alreaedy preseent before calling take_picture.
              */
           }
         }

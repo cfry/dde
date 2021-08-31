@@ -902,7 +902,7 @@ var MiRecord = class MiRecord {
     //________buttons_________
     static on_record_twistdown(event){
         if(event.target.open){
-            open_doc(make_instruction_recording_doc_id)
+            DocCode.open_doc(make_instruction_recording_doc_id)
             this.record_dialog_open = true //used in insert recording to see if we should really insert the two jobs of a recording
         }
         else {

@@ -28,13 +28,15 @@ var inspect_stack_max_display_length = []  //a 2D array indexed by stack_number 
                                            //the inner array may be sparse. used for interactive display of
                                            //long arrays and objects with many properties
 
-function init_inspect(){
+//called by je_and_browser_code.js, but just once.
+export function init_inspect(){
     inspect_stacks             = []
     inspect_stacks_positions   = []
     inspect_stack_max_display_length = []
 }
 
-function inspect_is_primitive(item){
+//called outside of file
+export function inspect_is_primitive(item){
     const the_type = typeof(item)
     return ((item === undefined)    ||
             (item === null)         ||
@@ -49,6 +51,7 @@ function make_inspector_id_string(stack_number, in_stack_position){
            "_id"
 }
 
+//called outside of file
 function inspect(item, src){
     if(src === undefined) {
         try { src = to_source_code({value: item})  } //might get into an infinite loop
@@ -58,10 +61,13 @@ function inspect(item, src){
     return "dont_print"
 }
 
+globalThis.inspect = inspect
+
 //in_stack_position is the place where the ITEM will go.
 //if in_stack_position is null, then use the length of inspect_stacks[stack_number]
 //as the stack_postion of the new item, ie push it on the end.
-function inspect_out(item, stack_number, in_stack_position, html_elt_to_replace, collapse=false, increase_max_display_length=false, src){
+//called by job.js
+export function inspect_out(item, stack_number, in_stack_position, html_elt_to_replace, collapse=false, increase_max_display_length=false, src){
     if(!item && (item != 0) && (typeof(stack_number) == "number") && (typeof(in_stack_position) == "number")) {
           item = inspect_stacks[stack_number][in_stack_position]
     }

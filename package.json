@@ -1,6 +1,7 @@
 {
   "name": "dde4",
-  "version": "1.0.0",
+  "version": "4.0.0",
+  "release_date": "Aug 26, 2021",
   "description": "test rollup",
   "author": "Fry",
   "license": "GPL-3.0",
@@ -17,17 +18,20 @@
     "@rollup/plugin-commonjs": "^17.0.0",
     "@rollup/plugin-node-resolve": "^11.0.1",
     "@rollup/plugin-replace": "^2.3.4",
-    "rollup": "^2.35.1"
+    "rollup": "^2.35.1",
+    "rollup-plugin-import-css": "^3.0.0"
   },
   "dependencies": {
     "@rollup/plugin-json": "^4.1.0",
     "acorn": "^8.4.1",
     "adm-zip": "^0.5.5",
     "asap": "^2.0.6",
-    "codemirror": "^5.62.2",
+    "codemirror": "^5.62.3",
     "crypto": "^1.0.1",
     "dayjs": "^1.10.5",
+    "eslint": "^7.32.0",
     "espree": "^8.0.0",
+    "fs": "^0.0.1-security",
     "fs-path": "^0.0.25",
     "https": "^1.0.0",
     "jqwidgets-scripts": "^12.1.2",
@@ -54,6 +58,7 @@
     "three-fbx-loader": "^1.0.3",
     "three-gltf-loader": "^1.111.0",
     "three-orbitcontrols": "^2.110.3",
+    "three-stl-loader": "^1.0.6",
     "three-text2d": "^0.6.0",
     "ws": "^7.5.1"
   }

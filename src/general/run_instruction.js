@@ -150,7 +150,7 @@ function onchange_run_instruction_src_aux(instr_name){
     run_instruction_params_id.innerHTML = instr_params
     const details_elt_name = instr_name + "_doc_id"
     const details_elt = window[details_elt_name]
-    if (details_elt) { open_doc(details_elt) }
+    if (details_elt) { DocCode.open_doc(details_elt) }
 }
 
 function src_of_run_instruction(){
@@ -311,7 +311,7 @@ make_robots_select_html() +
  <div id="run_instruction_params_id" style="margin-left:218px;"></div>
  <input type="button" value="run" title="Eval this source to make an instruction,&#013;then run it." style="margin:5px;"/>` +
  make_dexter_instructions_html() +
- `(<input id="run_src_id" type="text" onclick="onclick_for_click_help(event)" style="width:255px;font-size:14px;"/>)
+ `(<input id="run_src_id" type="text" onclick="DocCode.onclick_for_click_help(event)" style="width:255px;font-size:14px;"/>)
  `,
  title: "Run an Instruction on a Dexter",
  x: 250,

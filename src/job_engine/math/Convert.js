@@ -2,7 +2,7 @@
 //James Wigglesworth
 //Started: 6_18_16
 //Updated: 1_26_17
-import {Vector} from "./Vector.js"
+//import {Vector} from "./Vector.js" //now global
 
 export class Convert{
 	//Private
@@ -122,3 +122,4 @@ export class Convert{
     }
     
 }
+globalThis.Convert = Convert

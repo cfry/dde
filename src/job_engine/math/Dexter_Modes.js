@@ -1,7 +1,7 @@
 //Kent Gilson
 //James Wigglesworth
 
-import {Instruction, make_ins} from "../core/instruction.js"
+//import {Instruction, make_ins} from "../core/instruction.js" //now gloal
 
 export function setFollowMe(robot){
 	let pidXYZ  = 0x3e4ecccc //not set in this file

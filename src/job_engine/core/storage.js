@@ -6,9 +6,9 @@
 
 //import * as fsPath  from "../../../node_modules/fs-path/lib/index.js" //todo require is not defined
 //import fs      from "../../../node-modules/fs" //can't import this, can't even install it. when I insstall it I get a README of "this pkg name not in use."
-import {Robot, Brain, Dexter, Human, Serial}  from "./robot.js"
+//import {Robot, Brain, Dexter, Human, Serial}  from "./robot.js" //now all global
 import {shouldnt, starts_with_one_of, replace_substrings} from "./utils.js"
-import {Job}     from "./job.js" //because loading a file with new Job in it needs this.
+//import {Job}     from "./job.js" //now global //because loading a file with new Job in it needs this.
 
 
 
@@ -221,7 +221,7 @@ export function dde_init_dot_js_initialize() {
           //after the address and that's bad because it needs the ip_address
           //but a fancier scheme of putting dextero always at the end of the file
           //is bad too since all the "system" code is not at the beginning, before user code.
-          //So in our "weird case" laoding dde_init will error. Not so terrimbe
+          //So in our "weird case" loading dde_init will error. Not so terrible
         if (add_to_dde_init_js != ""){
             var di_content = read_file("dde_init.js")
             di_content = add_to_dde_init_js + di_content

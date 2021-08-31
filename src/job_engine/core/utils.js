@@ -1,13 +1,15 @@
-
-//import semver        from "../../../node_modules/semver/semver.js"
+//import "../../../node_modules/semver/index.js" //error using rollup,  Cannot destructure property 'ANY' of 'require$$26' as it is undefined
+//import semver        from "../../../node_modules/semver/index.js"//error  Cannot destructure property 'ANY' of 'require$$26' as it is undefined
 //import {SemVer}        from "../../../node_modules/semver/index.js"
 //import * as semver from "../../../node_modules/semver/index.js" //todo  require is not defined
  //const semverEq = require('semver/functions/eq')
  //for semver 7, semver.Lt, semver.Gt, and maybe semverEq ???
- //in DDE3, used semver verison "^5.7.1"
+ //in DDE3, used semver verison "^5.7.1"  I should switch dde4 to using semver 7.
+
 //import * as process from "../../../node_modules/process/index.js" //todo module is not defined
-import {Instruction} from "./instruction.js"
-import {Robot, Brain, Dexter, Human, Serial} from './robot.js'
+//import {Instruction} from "./instruction.js" //now global
+//import {Robot, Brain, Dexter, Human, Serial} from './robot.js' //now global
+
 
 //import {isBase64} from "../../../node_modules/is-base64/is-base64.js"
 //importing from is_base64 npm module doesn't work, so code inlined below
@@ -55,10 +57,58 @@ function microseconds() {
 }
 //_____done with defining microseconds, called below
 
+export function prepend_file_message_maybe(message){
+    if (message.startsWith("while loading file:")) { return message }
+    else if (globalThis.loading_file) {
+        return "while loading file: " + globalThis.loading_file + "<br/>" + message
+    }
+    else { return message }
+}
+
+function dde_error(message){
+    let out_string = prepend_file_message_maybe(message)
+    console.log("dde_error: " + out_string)
+    var err = new Error();
+    var stack_trace = err.stack
+    out_string = "<details><summary><span class='dde_error_css_class'>Error: " + out_string +
+        "</span></summary>" + stack_trace + "</details>"
+    if(window["out"]) { //when in DDE
+        out(out_string)
+    }
+    else { //when in browser and Job Engine
+        SW.append_to_output(out_string)
+    }
+    throw new Error(message)
+}
+
+globalThis.dde_error = dde_error //not documented, but just used so many places in DDE.
+                                 //we should probably encourage advances dde users to use it.
+
+export function warning(message, temp=false){
+    if(message){
+        let out_string
+        let stack_trace = "Sorry, a stack trace is not available."
+        if(window["replace_substrings"]){
+            try{  //if I don't do this, apparently the new error is actually throw, but
+                //it really shouldn't be according to:
+                // https://stackoverflow.com/questions/41586293/how-can-i-get-a-js-stack-trace-without-halting-the-script
+                let err = new Error();
+                stack_trace = replace_substrings(err.stack, "\n", "<br/>")
+                //get rid of the "Error " at the beginning
+                stack_trace = stack_trace.substring(stack_trace.indexOf(" "))
+            }
+            catch(an_err) {}
+        }
+        out_string = "<details><summary><span class='warning_css_class'>Warning: " + prepend_file_message_maybe(message) +
+            "</span></summary>" + stack_trace + "</details>"
+        out(out_string, undefined, temp)
+    }
+}
+
 export function shouldnt(message){
     console.log(message)
     if(window.contact_doc_id) {
-        open_doc(contact_doc_id)
+        DocCode.open_doc(contact_doc_id)
     }
     dde_error("The function: shouldnt has been called.<br/>" +
                     "This means there is a bug in DDE.<br/>" +
@@ -190,7 +240,7 @@ export function is_NaN_null_or_undefined(arg) {
 
 export function is_string_a_integer(a_string){
     if(typeof(a_string) == "string") {
-        var pat = /^-?[0-9]+$/;
+        let pat = /^-?[0-9]+$/;
         if(a_string.match(pat)) {  return true; }
         else { return false; }
     }
@@ -198,9 +248,12 @@ export function is_string_a_integer(a_string){
 }
 
 export function is_string_a_float(a_string){
-    var pat = /^-?[0-9]+\.[0-9]+$/;
-    if(a_string.match(pat)) {  return true; }
-    else { return false; }
+    if(typeof(a_string) == "string") {
+        let pat = /^-?[0-9]+\.[0-9]+$/;
+        if(a_string.match(pat)) {  return true; }
+        else { return false; }
+    }
+    else { return false }
 }
 
 export function is_string_a_number(a_string){
@@ -1648,6 +1701,16 @@ export function stringify_value_sans_html(value){
     result = result.replace(/<br\/>/g,   "\n")
     result = result.replace(/&nbsp;/g,   " ")
     return result
+}
+
+export function stringify_value_cheap(val){
+    if(typeof(value) == "string") { return val }
+    try { val = JSON.stringify(val)
+        return val
+    }
+    catch(err) {
+        return "" + val
+    }
 }
 
 /////// CSV ///////

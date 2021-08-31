@@ -70,12 +70,7 @@ import Job  from "./core/job.js"
 import {Messaging, MessStat} from "./core/messaging.js"
 import {linux_error_message} from "./core/linux_error_message.js"
 
-import {ancestors_of_class, closest_ancestor_of_class,
-     dom_elt_child_of_class, dom_elt_children_of_class, dom_elt_descendant_of_classes,
-     focus_on_descendant_with_tag, html_db, html_to_dom_elt,
-     is_dom_elt, is_dom_elt_ancestor, insert_elt_after, insert_elt_before,
-     make_dom_elt, make_html,
-    remove_dom_elt, replace_dom_elt} from "./core/html_db.js"
+import "./core/html_db.js" //makes html_db, make_html, make_dom_elt,   global
 
 import {Py} from "./core/py.js"
 

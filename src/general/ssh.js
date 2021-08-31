@@ -819,13 +819,13 @@ export var SSH = class SSH {
        out(op)
         if     (op == "Change file permissions...")   { cmd_input_id.value = "chmod 777 " + path + ";stat " + path}
         else if(op == "Copy file: local to remote..."){
-            open_doc(ssh_copying_files_doc_id)
+            DocCode.open_doc(ssh_copying_files_doc_id)
             cmd_input_id.value = "copy_local_to_remote /[file to copy]" + " " + path
             cmd_input_id.setSelectionRange(21, 36)
             cmd_input_id.focus()
         }
         else if(op == "Copy file: remote to local..."){
-            open_doc(ssh_copying_files_doc_id)
+            DocCode.open_doc(ssh_copying_files_doc_id)
             cmd_input_id.value = "copy_remote_to_local " + path + " " + "/[new file name]"
             let val_len = cmd_input_id.value.length
             let sel_start = val_len - 16

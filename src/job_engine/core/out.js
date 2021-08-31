@@ -73,7 +73,7 @@ export function out_eval_result(text, color="#000000", src, src_label="The resul
         }
         //if (src_formatted == "") { console.log("_____out_eval_result passed src: " + src + " with empty string for src_formatted and text: " + text)}
         let the_html = "<fieldset><legend><i>" + src_label  + " </i>" + src_formatted + " <i>is...</i></legend>" +  text + "</fieldset>"
-        append_to_output(the_html)
+        SW.append_to_output(the_html)
     }
     //$('#js_textarea_id').focus() fails silently
     if(window["document"]){
@@ -89,7 +89,7 @@ export function out_eval_result(text, color="#000000", src, src_label="The resul
     //else { myCodeMirror.focus() }
 }
 
-export function get_output(){ //rather uncommon op, used only in append_to_output
+export function get_output(){ //rather uncommon op, used only in SW.append_to_output
     return output_div_id.innerHTML
 }
 

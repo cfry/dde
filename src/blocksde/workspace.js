@@ -10,7 +10,7 @@ import {shouldnt, is_string_an_identifier, is_string_a_path, value_of_path}
 import {make_dom_elt, make_html} from "..//job_engine/core/html_db.js"
 
 
-export Workspace = class Workspace{
+export class Workspace{
     constructor(width="100%", height="100%", html_wrapper_name="workspace_container_id"){
         //console.log("Workspace constructor top")
         this.width  = width
@@ -74,13 +74,13 @@ export Workspace = class Workspace{
                 console.log("toolkit_bar_mouseover")
                 uninstall_block_drop_zones()
                 remove_drop_target_class()
-                let arg_name_val_elt = closest_ancestor_of_class(block_being_dragged, "arg_name_val")
+                let arg_name_val_elt = html_db.closest_ancestor_of_class(block_being_dragged, "arg_name_val")
                 if (arg_name_val_elt) {
-                    let dropped_on_block = closest_ancestor_of_class(arg_name_val_elt, "block")
-                    remove_dom_elt(arg_name_val_elt)
+                    let dropped_on_block = html_db.closest_ancestor_of_class(arg_name_val_elt, "block")
+                    html_db.remove_dom_elt(arg_name_val_elt)
                     clean_up_arg_names(dropped_on_block)
                 }
-                else { remove_dom_elt(block_being_dragged) }
+                else { html_db.remove_dom_elt(block_being_dragged) }
                 block_being_dragged = null
                 toolkit_bar_id.style["background-color"] = "#DDDDDD"
                 clean_up_top_lefts()
@@ -118,7 +118,7 @@ export Workspace = class Workspace{
     }
     add_block_elt(elt){
         workspace_id.appendChild(elt)
-        focus_on_descendant_with_tag(elt) //defaults to "input"
+        html_db.focus_on_descendant_with_tag(elt) //defaults to "input"
     }
 
     spacer_elt_at(y){
@@ -148,12 +148,12 @@ export Workspace = class Workspace{
             block_elt.style.top  = y + "px" //event.clientX + "px" new_y + "px" //event.offsetY + "px"
             Workspace.inst.add_block_elt(block_elt)
         }
-        focus_on_descendant_with_tag(block_elt)
+        html_db.focus_on_descendant_with_tag(block_elt)
     }
     clear_blocks(){
         for(let node of Array.from(workspace_id.childNodes)){
-            if(is_block(node)) { remove_dom_elt(node) }
-            else if (node.classList.contains("top-left-spacer")) { remove_dom_elt(node) }
+            if(is_block(node)) { html_db.remove_dom_elt(node) }
+            else if (node.classList.contains("top-left-spacer")) { html_db.remove_dom_elt(node) }
         }
     }
     deselect_block(){

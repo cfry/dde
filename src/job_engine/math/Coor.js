@@ -3,12 +3,12 @@
 //Started: 1_19_17
 //Updated: 1_26_19
 
-import {Vector} from "./Vector.js"
+//import {Vector} from "./Vector.js" //now global
 
 import {newObject, Root} from "../core/object_system.js"
 
-export var Coor = newObject({prototype: Root, name: "Coor"}) //, pose: Vector.make_pose()})
-
+var Coor = newObject({prototype: Root, name: "Coor"}) //, pose: Vector.make_pose()})
+globalThis.Coor = Coor
 
 Coor.init = function(){
     Coor.pose = Vector.make_pose()

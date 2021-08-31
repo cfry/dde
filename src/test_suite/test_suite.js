@@ -4,7 +4,7 @@ import {is_string_a_literal_array, is_string_a_literal_string, last,
     from "../job_engine/core/utils.js"
 
 
-export var TestSuite = class TestSuite{
+class TestSuite{
     constructor(name="rename_me", ...tests){
         this.name  = name
         this.report = ""
@@ -251,7 +251,7 @@ export var TestSuite = class TestSuite{
     static run_all(){
         //just in case we previously called run_all in this session do:
         //this.suites = [] //bad: causes ref man tests not to run, //warning, wipes out any user defined test suites. Maybe not good.
-        console.log("Starting to load testsuite files.")
+        console.log("Starting to load testsuite files.") //todo dde4 needs work. dynamically import?
         load_files(__dirname + "/test_suite/math_testsuite.js")
         load_files(__dirname + "/test_suite/utils_testsuite.js")
         load_files(__dirname + "/test_suite/move_all_joints_testsuite.js")
@@ -744,7 +744,7 @@ export var TestSuite = class TestSuite{
                         let close_paren = Editor.find_matching_delimiter(sel_text, open_paren)
                         if (close_paren == null) { out("Syntactically incorrect test suite, no close paren: " + sel_text.subsring(ts_start, ts_start + 30)); return false}
                         Editor.select_javascript(sel_start + ts_start, sel_start + close_paren + 1)
-                        myCodeMirror.scrollTo(0)
+                        Editor.myCodeMirror.scrollTo(0)
                         return true
                     }
                 }
@@ -768,7 +768,7 @@ export var TestSuite = class TestSuite{
                             let close_paren = Editor.find_matching_delimiter(full_src, open_paren)
                             if (close_paren !== null) {
                                 Editor.select_javascript(ts_start, close_paren + 1)
-                                myCodeMirror.scrollTo(0)
+                                Editor.myCodeMirror.scrollTo(0)
                                 return true
                             }
                             else { out("Could not find closing paren for next test suite: "); return false; }
@@ -794,7 +794,7 @@ export var TestSuite = class TestSuite{
                         }
                         else {
                             Editor.select_javascript(ts_first_start, ts_last_end + 1)
-                            myCodeMirror.scrollTo(0)
+                            Editor.myCodeMirror.scrollTo(0)
                         }
                     }
                     else { //select DOWN
@@ -803,7 +803,7 @@ export var TestSuite = class TestSuite{
                         let t_end = Editor.find_matching_delimiter(full_src, t_start)
                         if(t_end == null) {out("No valid tests found. Look for proper ] at end of first test in suite."); return false}
                         Editor.select_javascript(t_start, t_end + 1)
-                        myCodeMirror.scrollTo(0)
+                        Editor.myCodeMirror.scrollTo(0)
                     }
                 }
                 break; //end of case test_suite
@@ -831,7 +831,7 @@ export var TestSuite = class TestSuite{
                         }
                     }
                     Editor.select_javascript(t_start, t_end + 1)
-                    myCodeMirror.scrollTo(0)
+                    Editor.myCodeMirror.scrollTo(0)
                     return true
                 }
                 else { //orientation vert
@@ -845,7 +845,7 @@ export var TestSuite = class TestSuite{
                         ts_end  = Editor.find_matching_delimiter(full_src, open_paren)
                         if (ts_end == null) { out("test suite does not have a close paren."); return false;}
                         Editor.select_javascript(ts_start, ts_end + 1)
-                        myCodeMirror.scrollTo(0)
+                        Editor.myCodeMirror.scrollTo(0)
                     }
                     else { //select DOWN
                         let src_start = Editor.find_forwards_any_kind_of_quote(full_src, sel_start)
@@ -853,7 +853,7 @@ export var TestSuite = class TestSuite{
                         let src_end   = Editor.find_forwards_matching_quote(full_src, src_start)
                         if(src_end == null) {out("No ending quote for test source found."); return false}
                         Editor.select_javascript(src_start, src_end + 1)
-                        myCodeMirror.scrollTo(0)
+                        Editor.myCodeMirror.scrollTo(0)
                     }
                 }
                 break; //end case: test
@@ -882,7 +882,7 @@ export var TestSuite = class TestSuite{
                         end_pos = Editor.find_matching_delimiter(full_src, start_pos)
                         if (start_pos == null) {return false;}
                         Editor.select_javascript(start_pos, end_pos + 1)
-                        myCodeMirror.scrollTo(0)
+                        Editor.myCodeMirror.scrollTo(0)
                     }
                     else { return false;} //DOWN but can't go down from a string
                 }
@@ -1099,13 +1099,15 @@ export var TestSuite = class TestSuite{
         }
     }
 
+    static error = {name:"used for an expected value of an error."}
+    static dont_care = {name:"used for an expected value when anything the source returns is ok, except if it errors."}
+    static suites = []
+    static state  = null //used to hold state to implement resume.
+
 } //end class TestSuite
 // make_test_suites_in_doc()
 
-TestSuite.error = {name:"used for an expected value of an error."}
-TestSuite.dont_care = {name:"used for an expected value when anything the source returns is ok, except if it errors."}
-TestSuite.suites = []
-TestSuite.state  = null //used to hold state to implement resume.
+globalThis.TestSuite = TestSuite
 
 
 //TestSuite.run("test_system")

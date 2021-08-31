@@ -79,6 +79,17 @@ th, td { text-align:left; }
     font-weight:100;
     background-color: #b8bbff;
 }
+
+.doc_details {
+    margin-left:20px;
+    font-size:16px;
+}
+.doc_details summary {
+    font-weight: 600;
+    font-size: 16px;
+}
+
+
 #stop_all_jobs_id:active{ /*for button press effect */
     height:25px;
     width:30px;

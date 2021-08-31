@@ -86,7 +86,7 @@ function ez_show_run_doc(){
 
 function Init_Create(){
 	// Initialize Game Controller
-    clear_output()
+    SW.clear_output()
 	let game_pads = navigator.getGamepads()
     let game_pad_idx
 	for(let i = 0; i < game_pads.length; i++){
@@ -592,7 +592,7 @@ new Job({name: "ezCreate",
 
 function Init_Run(){
 	let CMD = []
-    clear_output()
+    SW.clear_output()
 	
     // Load in saved points file
     if(points_filepath == "choose_file"){
@@ -633,7 +633,7 @@ function Init_Run(){
 
 function Init_Edit_Coors_Run(){
 	// Initialize Game Controller
-    clear_output()
+    SW.clear_output()
 	let game_pads = navigator.getGamepads()
     let game_pad_idx
 	for(let i = 0; i < game_pads.length; i++){
@@ -1113,7 +1113,7 @@ new Job({name: "ezRun",
                 Finish_Run
          ]})
 
-clear_output()
+SW.clear_output()
 
 
 } //End of ezTeach_init()

@@ -12,7 +12,7 @@ var Lesson = class Lesson{
     html_wrapper="details", //typically "details", "fieldset", "div" or null for  none.
     open = false,
     add_spinner=true,
-    default_method="show_in_misc_pane"}){ //for text & html "steps".
+    default_method="DDEVideo.show_in_misc_pane"}){ //for text & html "steps".
    */
     static make_button_column({name=null,
                                steps=[],
@@ -21,7 +21,7 @@ var Lesson = class Lesson{
                                html_wrapper="details",
                                open = false,
                                add_spinner=true,
-                               default_method="show_in_misc_pane"}){
+                               default_method="DDEVideo.show_in_misc_pane"}){
         let html = ""
         let html_suffix = ""
         let spinner_html = ""
@@ -96,7 +96,7 @@ var Lesson = class Lesson{
     static make_button_html({icon="right_triangle",
                              label="",
                              tooltip="",
-                             method="show_in_misc_pane",
+                             method="DDEVideo.show_in_misc_pane",
                              args=[],
                              start,
                              end,
@@ -212,7 +212,7 @@ var Lesson = class Lesson{
 
     //called indirectly from onclick for spinner, button, and outer-html onclicks.
     static do_inner_step_elt_action(inner_step_elt, method, args){
-        let meth = value_of_path(method) //usually "show_in_misc_pane"
+        let meth = value_of_path(method) //usually "DDEVideo.show_in_misc_pane"
         if(!Array.isArray(args)) { args = [] }
         if(inner_step_elt.tagName === "BUTTON"){
             if(args.length === 0) { //happens the first time around when we don't have the args.
@@ -384,7 +384,7 @@ var Lesson = class Lesson{
 Lesson.make_button_html({label: "Introduction", start: 15, end: "1:30", args: "https://www.youtube.com/embed/Al2NUrO4HAU"})
 
     <button style="margin-top:5px;margin-left:20px;"
-onclick='check_inner_html(event); show_in_misc_pane("https://www.youtube.com/embed/Al2NUrO4HAU?autoplay=1&start=0&end=11")'>
+onclick='check_inner_html(event); DDEVideo.show_in_misc_pane("https://www.youtube.com/embed/Al2NUrO4HAU?autoplay=1&start=0&end=11")'>
     &#9654; 0:00 - 0:11 Introduction</button><br/>
 
 

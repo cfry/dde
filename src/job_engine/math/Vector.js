@@ -4,13 +4,13 @@
 //Started: 6_18_16
 //Updated: 6_1_19
 
-import {Convert} from "./Convert.js"
+//import {Convert} from "./Convert.js" //now global
 import {sind, cosd, tand, asind, acosd, atand, atan2d} from "./Trig_in_Degrees.js"
 import {is_NaN_null_or_undefined} from "../core/utils.js"
 
 var dde_github_issues = "https://github.com/cfry/dde/issues"
 
-export class Vector{
+class Vector{
 //The Vector Class contains functions for manipulating the following:
 /*
 
@@ -2611,7 +2611,76 @@ export class Vector{
         
     	return results
 	}
+    static median(data){
+        let data_temp = data.slice()
+        data_temp.sort(function(a, b){return a > b})
+        let idx_0 = Math.floor(data_temp.length/2)
+        let idx_1 = Math.ceil(data_temp.length/2)
+        return 0.5*(data_temp[idx_0] + data_temp[idx_1])
+    }
+    /*Example:
+    var data = [0, 1, 2, 3, 1000]
+    out(Vector.average(data)) //201.2
+    out(median(data)) //2.5
+    */
+
+    static interpolate(data_0_x, data_1_x, data_1_y){
+        let y_temp = Vector.make_matrix(1, data_0_x.length)[0]
+        if(data_1_x[0] > data_0_x[0]){
+            data_1_x.unshift(data_0_x[0])
+            data_1_y.unshift(data_1_y[0])
+        }
+
+        let x1, i1, x0, x2, y0, y2, L, R, y1
+        for(let i = 0; i < data_0_x.length; i++){
+            x1 = data_0_x[i]
+            i1 = 0
+
+            while(data_1_x[i1+1] < x1 && i1 < data_1_x.length){i1++}
+            while(data_1_x[i1] >= x1 && i1 > 0){i1--}
+
+            x0 = data_1_x[i1]
+            x2 = data_1_x[i1+1]
+            y0 = data_1_y[i1]
+            y2 = data_1_y[i1+1]
+
+            L = y0 === 0
+            R = y2 === 0
+            if(L && R){
+                y1 = 0
+            }else if(!L && !R){
+                y1 = (x1 - x0)/(x2 - x0) * (y2 - y0) + y0
+            }else if(L && !R){
+                i1++
+                x0 = data_1_x[i1]
+                x2 = data_1_x[i1+1]
+                y0 = data_1_y[i1]
+                y2 = data_1_y[i1+1]
+                y1 = (x1 - x0)/(x2 - x0) * (y2 - y0) + y0
+            }else if(!L && R){
+                i1--
+                x0 = data_1_x[i1]
+                x2 = data_1_x[i1+1]
+                y0 = data_1_y[i1]
+                y2 = data_1_y[i1+1]
+                y1 = (x1 - x0)/(x2 - x0) * (y2 - y0) + y0
+            }
+            if(isNaN(y1)){y1 = 0}
+            y_temp[i] = JSON.parse(JSON.stringify(y1))
+        }
+        return y_temp.slice()
+    }
+    /* Example:
+    var data_0_x = [0, 1, 2]
+    var data_1_x = [0, 0.6, 1.4, 3.1]
+    var data_1_y = [0, 1.2, 2.8, 6.2]
+
+    var interpolated_y = interpolate(data_0_x, data_1_x, data_1_y)
+    out(interpolated_y) //[0, 2, 4]
+    */
 } //end class
+
+globalThis.Vector = Vector
 
 
 //Private

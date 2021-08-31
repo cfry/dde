@@ -12,14 +12,20 @@
       //todo switch to npm expree 2.0. Its input and output is compatiable with exprima,
       //but can handle more up to date js, AND npm page shows using it with import.
 //import * as espree from "../../../node_modules/espree/espree.js"; //todo has bug of: Failed to resolve module specifier "acorn"
-//import * as asap    from "../../../node_modules/asap/asap.js" //todo has bug: "require is not defined" inside asap.js.
-         //try getting later version of asap. Its not commmonly used in DDE.
+import asap from "../../../node_modules/asap/asap.js" //todo has bug: "require is not defined" inside asap.js. when NOT using rollup
+         //also using import * as asap from... gives me build warning of:
+         // Cannot call a namespace ('asap')
+         // but https://github.com/rollup/rollup/issues/1267 sez get rid of the "* as" and that in fact
+         // got rid of the build warning.
+         //note that asap calls, in its src, "process" which is a node.js built in
+         //so this probably can't work on the client, but at least I don't get
+         //build or runtime errors (without actualy calling asap, so I guess its ok.
 //import * as asapRaw from "../../../node_modules/asap/raw.js" //todo bug "module is not defined"
          //try getting later version of asapRaw. Its not commmonly used in DDE.
 import {serial_disconnect_all} from "./serial.js"
-import {Robot, Brain, Dexter, Human, Serial} from './robot.js'
-import {Coor} from '../math/Coor.js'
-import {Instruction, make_ins} from "./instruction.js"
+//import {Robot, Brain, Dexter, Human, Serial} from './robot.js' //now global
+//import {Coor} from '../math/Coor.js' //now global
+//import {Instruction, make_ins} from "./instruction.js" //now global
 import {load_files} from "./storage.js"
 import {is_iterator, is_string_an_identifier, last,
         milliseconds_to_human_string, replace_substrings,
@@ -30,7 +36,7 @@ import {_nbits_cf, _arcsec, _um} from "./units.js"
 import {linux_error_message} from "./linux_error_message.js"
 //import {write_to_stdout, close_readline} from "./stdio.js" //todo imports readline which requries fs which errors
 
-export class Job{
+class Job{
     constructor({name="",
                  robot=Robot.dexter0,
                  do_list=[],
@@ -104,7 +110,7 @@ export class Job{
           default_workspace_pose=Job.job_default_params.default_workspace_pose
     }
     if (!Array.isArray(do_list)){
-        open_doc(job_param_do_list_doc_id)
+        DocCode.open_doc(job_param_do_list_doc_id)
         dde_error("While defining <code style='color:black;'>Job." + name + "</code><br/>" +
                   "the <b style='color:black;'>do_list</b> must be an array, but instead is: <br/>" +
                   "<code style='color:black;'>" + do_list + "</code>")
@@ -112,7 +118,7 @@ export class Job{
     }
     try { do_list = Job.flatten_do_list_array(do_list) }
     catch(err){
-        open_doc(job_param_do_list_doc_id)
+        DocCode.open_doc(job_param_do_list_doc_id)
         dde_error("While defining Job." + name + "<br/>" + err.message)
         return
     }
@@ -3242,5 +3248,7 @@ Job.prototype.to_source_code = function(args={}){
     result += props_indent + "         " + "]\n" + args.indent + "})"
     return result
 }
+
+globalThis.Job = Job
 
 
