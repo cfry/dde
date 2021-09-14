@@ -1183,9 +1183,7 @@ var resolution = draw_res //(microns) Straight line movements are made up of int
 var global_inter_do_item_dur = 1*_ms
 
 var Adir = Vector.multiply(-1, plane_normal_guess)
-var J_angles_A = [Kin.xyz_to_J_angles(Apoint1, Adir), 
-			  	  Kin.xyz_to_J_angles(Apoint2, Adir), 
-              	  Kin.xyz_to_J_angles(Apoint3, Adir)]
+var J_angles_A = [Kin.xyz_to_J_angles(Apoint1, Adir), Kin.xyz_to_J_angles(Apoint2, Adir), Kin.xyz_to_J_angles(Apoint3, Adir)]
 
 function calc_dir_from_J_angles(J_angles){
 	let plane_pose = Kin.three_positions_to_pose(J_angles_A[0], J_angles_A[1], J_angles_A[2])

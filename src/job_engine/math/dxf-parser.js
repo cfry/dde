@@ -435,7 +435,10 @@ DxfParser.prototype.parseStream = function(stream, done) {
 };
 
 DxfParser.prototype._parse = function(dxfString) {
-   var scanner, curr, dxf = {}, lastHandle = 0;
+   var scanner
+   var curr
+   var dxf = {}
+   var lastHandle = 0;
    var dxfLinesArray = dxfString.split(/\r\n|\r|\n/g);
 
    scanner = new DxfArrayScanner(dxfLinesArray);
@@ -531,7 +534,8 @@ DxfParser.prototype._parse = function(dxfString) {
     *
     */
    var parseBlocks = function() {
-      var blocks = {}, block;
+      var blocks = {}
+      var block;
       
         curr = scanner.next();
       
@@ -665,10 +669,10 @@ DxfParser.prototype._parse = function(dxfString) {
    const END_OF_TABLE_VALUE = 'ENDTAB';
 
    var parseTable = function() {
-      var tableDefinition = tableDefinitions[curr.value],
-         table = {},
-         expectedCount = 0,
-         actualCount;
+      var tableDefinition = tableDefinitions[curr.value]
+      var table = {}
+      var expectedCount = 0
+      var actualCount
 
       curr = scanner.next();
       while(!groupIs(0, END_OF_TABLE_VALUE)) {
@@ -722,8 +726,8 @@ DxfParser.prototype._parse = function(dxfString) {
    };
 
    var parseViewPortRecords = function() {
-      var viewPorts = [], // Multiple table entries may have the same name indicating a multiple viewport configuration
-         viewPort = {};
+      var viewPorts = [] // Multiple table entries may have the same name indicating a multiple viewport configuration
+      var viewPort = {}
 
       //log.debug('ViewPort {');
       curr = scanner.next();
@@ -846,10 +850,10 @@ DxfParser.prototype._parse = function(dxfString) {
    };
 
    var parseLineTypes = function() {
-      var ltypes = {},
-         ltypeName,
-         ltype = {},
-         length;
+      var ltypes = {}
+      var ltypeName
+      var ltype = {}
+      var length
 
       //log.debug('LType {');
       curr = scanner.next();
@@ -897,9 +901,9 @@ DxfParser.prototype._parse = function(dxfString) {
    };
 
    var parseLayers = function() {
-      var layers = {},
-         layerName,
-         layer = {};
+      var layers = {}
+      var layerName
+      var layer = {}
 
       //log.debug('Layer {');
       curr = scanner.next();
@@ -971,7 +975,7 @@ DxfParser.prototype._parse = function(dxfString) {
    var parseEntities = function(forBlock) {
       var entities = [];
 
-      var endingOnValue = forBlock ? 'ENDBLK' : 'ENDSEC';
+      var endingOnValue = (forBlock ? 'ENDBLK' : 'ENDSEC');
 
       if (!forBlock) {
          curr = scanner.next();
@@ -1186,8 +1190,8 @@ DxfParser.prototype._parse = function(dxfString) {
     * @return {Object} The 2D or 3D point as an object with x, y[, z]
     */
    var parsePoint = function() {
-      var point = {},
-         code = curr.code;
+      var point = {}
+      var code = curr.code
 
       point.x = curr.value;
 
@@ -1433,8 +1437,8 @@ DxfParser.prototype._parse = function(dxfString) {
     * @return {Object} the entity parsed
     */
    var parseLWPOLYLINE = function() {
-      var entity = { type: curr.value, vertices: [] },
-         numberOfVertices = 0;
+      var entity = { type: curr.value, vertices: [] }
+      var numberOfVertices = 0
       curr = scanner.next();
       while(curr !== 'EOF') {
          if(curr.code === 0) break;

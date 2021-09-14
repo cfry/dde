@@ -3,6 +3,7 @@ import { nodeResolve } from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
 import json     from '@rollup/plugin-json'
 import css      from "rollup-plugin-import-css";
+//import sourcemaps from 'rollup-plugin-sourcemaps'; // https://github.com/maxdavidson/rollup-plugin-sourcemaps
 
 
 export default {
@@ -17,7 +18,8 @@ export default {
             //{include: [ "./src/main.js", "./node_modules/**" ] }
         ),
         json(),
-        css()
+        css(),
+        //sourcemaps()
     ],
     output: {
         name: "dde4", //https://gist.github.com/Rich-Harris/d472c50732dab03efeb37472b08a3f32

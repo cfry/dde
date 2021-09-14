@@ -100,7 +100,8 @@ class Vector{
     static dot (vector_A, vector_B){
     	var A_size = Vector.size(vector_A)
         var B_size = Vector.size(vector_B)
-        var point, plane
+        var point
+        var plane
         var product = 0
         if (A_size === B_size){
         	if(A_size == 1){
@@ -837,7 +838,10 @@ class Vector{
                 return Vector.normalize(Vector.cross(args[1], args[2]))
         	case 3:
             	//Assumes intersection between plane and line
-            	var line_vector, complete_point, alpha, intersection_point
+            	var line_vector
+            	var complete_point
+            	var alpha
+            	var intersection_point
             	
             	for(var i = 0; i < 3; i++){
                 	if (Vector.size(args[i]) === 4){

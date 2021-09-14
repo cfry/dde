@@ -83,9 +83,7 @@ http.createServer(function (req, res) {
     }
   else {
     let maybe_slash = (q.pathname.startsWith("/") ? "" : "/")
-    var filename = //"/srv/samba/share/www/" + //dde4 commented "/srv/samba/share/www/" out
-                   cur_dir + maybe_slash +
-                   q.pathname
+    var filename = cur_dir + maybe_slash +  q.pathname //"/srv/samba/share/www/" + //dde4 commented "/srv/samba/share/www/" out
     console.log("serving " + filename) //dde4 q.pathname => filename
     fs.readFile(filename, function(err, data) {
       console.log("top of fs.readFile with " + filename + " and err: " + err)

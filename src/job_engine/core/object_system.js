@@ -32,8 +32,8 @@ export var Root = {name: "Root"} //"root" is an old node,js global that's been d
      you can add an extra property_object to the end to
      ensure a win for a particular property. For instance
      var myboat = {prototype:boat, color:white}
-     var my_fav_colors = {prototype:color_pallette, color:blue, trim:green},
-     newObject(myboat, mycolors)
+     var my_fav_colors = {prototype:color_pallette, color:blue, trim:green}
+     var newObject(myboat, mycolors)
      Here we want to make an instance of myboat,
      BUT we want to over-ride the default color of "white" for a myboat,
      and use my_fav_colors to get the color from.

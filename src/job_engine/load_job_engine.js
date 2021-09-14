@@ -74,7 +74,7 @@ import "./core/html_db.js" //makes html_db, make_html, make_dom_elt,   global
 
 import {Py} from "./core/py.js"
 
-var keep_alive_value = true //only really used by node-browser,
+var keep_alive_value = true //only really used by node-browser
    //but effectively, dde, always has keep_alive_value true.
    //this should never actually be read by dde.
 

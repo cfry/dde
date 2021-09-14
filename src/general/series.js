@@ -10,14 +10,6 @@ import {init_units, unit_abbrev_to_full_name} from "../job_engine/core/units.js"
 //import {html_db} from "../job_engine/core/html_db.js" //now html_db is global
 
 class Series {
-    /*constructor(keyword_args={}){
-        var defaults = {id:"required", array:null, in_series_fn:null, replace_sel_fn:null,
-                        menu_insertion_string:"required", menu_sel_start:true, menu_sel_end:null,
-                        sample:"required"}
-        copy_missing_fields(defaults, keyword_args)
-        copy_missing_fields(keyword_args, this)
-    }*/
-
     constructor({id="required", array=null, in_series_fn=null, replace_sel_fn=null,
                  menu_insertion_string="required", menu_sel_start=true, menu_sel_end=null,
                  sample="required"}={}){

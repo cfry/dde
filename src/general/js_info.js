@@ -13,7 +13,6 @@ import {file_exists} from "../job_engine/core/storage.js"
 
 export class Js_info {
     static get_info_string(fn_name, series=null, full_src=null, pos=null){
-            debugger;
             fn_name = this.depricated_to_new(fn_name) //we need "orig_input" to be the new, not
                 //the actual orig_input for processing of fn_name == "Robot.loop"
             if(fn_name === undefined) { return "" } //no click help on this deprecated, unsupported fn_name
@@ -1003,6 +1002,6 @@ Js_info.makeins_w_info = function(fn_name, full_src=null, pos){
 //doing all of these is a lot of work. this is just a start.
 //we probably need another mechanism.
 /* hmm, decided not to do. it means exporting all those defs too.
-var {onReceiveCallback_low_level, onReceiveErrorCallback_low_level,
-     onOpenCallback_low_level} = require("./core/serial.js")
+var {onReceiveCallback_low_level, onReceiveErrorCallback_low_level, onOpenCallback_low_level} =
+    require("./core/serial.js")
 */
