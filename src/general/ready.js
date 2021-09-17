@@ -5,14 +5,14 @@ console.log("top of ready.js")
 
 //import $  from "jquery" //jqxwdigets tech suppport sez this is no longer necessary
 //and not having it still makes $ available.
-import "../../node_modules/jqwidgets-scripts/jqwidgets/jqxcore.js"
-import "../../node_modules/jqwidgets-scripts/jqwidgets/jqxmenu.js"
-import "../../node_modules/jqwidgets-scripts/jqwidgets/jqxsplitter.js"
-import "../../node_modules/jqwidgets-scripts/jqwidgets/jqxcombobox.js"
-import "../../node_modules/jqwidgets-scripts/jqwidgets/jqxlistbox.js"   //needed by combobox
-import "../../node_modules/jqwidgets-scripts/jqwidgets/jqxbuttons.js"   //needed by listbox
-import "../../node_modules/jqwidgets-scripts/jqwidgets/jqxscrollbar.js" //needed by listbox
-import "../../node_modules/jqwidgets-scripts/jqwidgets/jqxcheckbox.js"
+import "jqwidgets-scripts/jqwidgets/jqxcore.js"
+import "jqwidgets-scripts/jqwidgets/jqxmenu.js"
+import "jqwidgets-scripts/jqwidgets/jqxsplitter.js"
+import "jqwidgets-scripts/jqwidgets/jqxcombobox.js"
+import "jqwidgets-scripts/jqwidgets/jqxlistbox.js"   //needed by combobox
+import "jqwidgets-scripts/jqwidgets/jqxbuttons.js"   //needed by listbox
+import "jqwidgets-scripts/jqwidgets/jqxscrollbar.js" //needed by listbox
+import "jqwidgets-scripts/jqwidgets/jqxcheckbox.js"
 
 
 
