@@ -43,6 +43,7 @@
     "os": "^0.1.2",
     "pegjs": "^0.10.0",
     "pegjs-backtrace": "^0.2.1",
+    "ping": "^0.4.1",
     "process": "^0.11.10",
     "pump": "^3.0.0",
     "querystring": "^0.2.1",
@@ -60,6 +61,7 @@
     "three-orbitcontrols": "^2.110.3",
     "three-stl-loader": "^1.0.6",
     "three-text2d": "^0.6.0",
+    "webmidi": "^2.5.3",
     "ws": "^7.5.1"
   }
 }

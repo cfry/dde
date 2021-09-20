@@ -7,7 +7,7 @@
 
 import {to_fixed_smart, date_integer_to_long_string} from "../job_engine/core/utils.js"
 
-var RobotStatusDialog = class RobotStatusDialog{
+export class RobotStatusDialog{
 //only called from the menu bar Jobs/show robot status item
 //makes a new window, but not if one is already up.
     static show(robot, default_status_mode=0, x=200, y=200){

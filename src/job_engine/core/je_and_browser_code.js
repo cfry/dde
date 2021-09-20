@@ -1035,14 +1035,14 @@ globalThis.SW = SW //used a bunch in the ref man for SW.append_in_ui and other m
 // module.exports.SW = SW //"module" not available in browser
 //window.SW = SW
 
-try { //if window is defined, we're in DDE or the browser
-    window.SW = SW
+try { //if globalThis is defined, we're in DDE or the browser
+    globalThis.SW = SW
 
 
-    window.dde_error = dde_error
-    window.warning = warning
-    window.prepend_file_message_maybe = prepend_file_message_maybe
-    window.out = out
+    globalThis.dde_error = dde_error
+    globalThis.warning = warning
+    globalThis.prepend_file_message_maybe = prepend_file_message_maybe
+    globalThis.out = out
 
 }
 catch(e){ //else we're in the job engine

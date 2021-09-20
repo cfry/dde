@@ -1099,7 +1099,7 @@ Clear its content?
     }
 
     static save_to_dexter_as (){
-        let dexter_name = default_dexter_full_name()
+        let dexter_name = DexterUtils.default_dexter_full_name()
         Editor.save_on_dexter_computer(dexter_name)
     }
 

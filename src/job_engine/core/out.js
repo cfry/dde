@@ -375,3 +375,5 @@ export function beep({dur = 0.5, frequency = 440, volume = 1, waveform = "triang
         setTimeout(function(){oscillator.stop()}, dur * 1000);
     }
 }
+
+globalThis.show_window = show_window

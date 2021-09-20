@@ -15,7 +15,7 @@ import {shouldnt, starts_with_one_of, replace_substrings} from "./utils.js"
 //_______PERSISTENT: store name-value pairs in a file. Keep a copy of hte file in JS env, persistent_values
 //and write it out every time its changed.
 
-var persistent_values = {}
+export var persistent_values = {}
 
 //used by both persistent_initialize and dde_init_dot_js_initialize
 function get_persistent_values_defaults() {

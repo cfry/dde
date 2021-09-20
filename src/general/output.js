@@ -2,7 +2,7 @@
  * Created by Fry on 4/17/16.
  */
 //import request from '../../node_modules/request' //todo needed only for non-working speech reco
-import {persistent_get, persistent_set} from "../job_engine/core/storage"
+import {persistent_get, persistent_set, persistent_values} from "../job_engine/core/storage"
 import {function_name, is_string_a_integer, is_string_a_number, starts_with_one_of,
         stringify_value, value_of_path} from "../job_engine/core/utils.js"
 //import {write_to_stdout} from "../job_engine/core/stdio.js" //todo imports readline which requries fs which errors
@@ -460,7 +460,7 @@ bw1.focus()
 function show_page(url, window_name, options={x: 0, y: 0, width: 800, height: 600,
                                               menubar: false, location: false ,
                                               resizable: true,
-                                              scrollbars: false, status: false} = {}){
+                                              scrollbars: false, status: false}){
     if (url.indexOf("://") == -1){
         url = "http://" + url
     }
@@ -564,25 +564,25 @@ window.latest_release_version_and_date = function(callback){
                    callback)
 }
 
-function make_url(url, arguments) {
+function make_url(url, options) {
     let index_of_protocol = url.indexOf("://")
     if ((index_of_protocol == -1) || (index_of_protocol > 16)) {
         url = "http://" + url
     }
-    if (arguments){
+    if (options){
         let arg_string = ""
-        if (typeof(arguments) == "object") { //presume we've got a literal object of args
+        if (typeof(options) == "object") { //presume we've got a literal object of args
            var on_first = true
-           for (let key in arguments){
-               let val = arguments[key]
+           for (let key in options){
+               let val = options[key]
                arg_string += (on_first ? "" : "&") + key + "=" + val
                on_first = false
            }
         }
-        else if (typeof(arguments) == "string") { arg_string = arguments }
+        else if (typeof(options) == "string") { arg_string = optionsoptions }
         else {
             dde_error("The 2nd argument to make_url, if passed, should be a string or a literal object, " +
-                      "but it is neither: " + arguments)
+                      "but it is neither: " + options)
         }
         if (arg_string.length > 0){
             if (last(url) == "?"){ url = url.substring(0, url.length - 1) }
@@ -696,7 +696,7 @@ window.insert_color_cb = insert_color_cb
 window.insert_color_cb_remove_sharp_sign = false
 window.insert_color_cb_add_quotes         = false
 
-function insert_color(){
+export function insert_color(){
     let orig_color = Editor.get_javascript(true).trim()
     let hex_color_name_maybe = Series.color_name_to_hex(orig_color) //if orig_color == "green" then this wil return something like "#00FF00"
     if (hex_color_name_maybe) { orig_color = hex_color_name_maybe}

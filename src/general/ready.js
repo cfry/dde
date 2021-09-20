@@ -45,6 +45,8 @@ import "codemirror/addon/fold/brace-fold.js"
 import "codemirror/addon/fold/comment-fold.js"
 */
 
+import Midi from "webmidi";
+
 import {warning} from "../job_engine/core/utils.js" //defines dde_error as global
 import "../job_engine/core/je_and_browser_code.js" //defines SW and out globally
 
@@ -85,14 +87,22 @@ import "../test_suite/test_suite.js" //globally defines TestSuite class. Does no
 import "../job_engine/core/to_source_code.js" //defined to_source_code globally
 //const {google} = require('googleapis'); //todo  do I use this?
 
-import package_json from "../../package.json"
+import {insert_color}      from "./output.js" //todo sets lots of things in window. Should change to globalThis
+import {RobotStatusDialog} from "./robot_status_dialog.js"
+import {run_instruction}   from "./run_instruction.js"
+import {DexterUtils}       from "./dexter_utils.js" //makes global var for class: DexterUtils
+import {Metrics}           from "./metrics.js" //todo can't really work until file save and read.
+import {SplashScreen}      from "./splash_screen.js"
+
+import package_json        from "../../package.json"
 
 globalThis.dde_version      = "not inited"
 globalThis.dde_release_date = "not inited"
 
 globalThis.operating_system = "not inited" //"mac", "win" or "linux"(for Ubuntu)  bound in both ui and sandbox by ready
 var dde_apps_folder  = null
-var platform = "not inited"
+
+globalThis.platform = "not inited"
 
 var js_cmds_array = []
 var js_cmds_index = -1
@@ -464,13 +474,13 @@ export function on_ready() {
        }
    }
 
-  //easter_egg_joke_id.onclick = Metrics.easter_egg_joke //todo needs fifle system access to save persistent state
+  easter_egg_joke_id.onclick = Metrics.easter_egg_joke //todo needs file system access to save persistent state
 
   misc_pane_expand_checkbox_id.onclick = DDEVideo.toggle_misc_pane_size
 
   email_bug_report_id.onclick=email_bug_report
   Editor.init_editor()
-    /* todo dde4 comment in below
+
                      //File Menu
 
                      new_id.onclick = function() {
@@ -763,7 +773,7 @@ export function on_ready() {
                  submit: <input type="submit" value="OK"/>` + "`" +
                  ',\n     width:380, height:450, title:"Printer Config", x:100, y:100,\n     callback: show_vals})\n')}
 
-                 */ //todo dd4 uncomment
+                  //todo dd4 uncomment 1 above
 //______window_onchange_____________________
     var window_onchange_top_comments =
 `/* show_window   onchange calls
@@ -795,7 +805,7 @@ export function on_ready() {
     Carefully observe the values printed in the output pane.
  */
 `
-/* todo dde4 uncomment
+
      var window_onchange_content =
 `Text input with <samp>data-onchange='true'</samp> calls the callback<br/>
     when user clicks on another input.<br/>
@@ -826,848 +836,853 @@ export function on_ready() {
     <input type="radio" name="my_radio_group" value="pla"    data-onchange="true" checked="checked"/>PLA
 `
 
-    window_onchange_id.onclick = function(){Editor.insert(
-        window_onchange_top_comments +
-`function the_cb(vals){ //vals contains name-value pairs for each input
-     out(vals.clicked_button_value + " = " +
-         vals[vals.clicked_button_value])
-}
-show_window({content:
-`       + "`" +
-        window_onchange_content + "`" +
-`,           title: "show_window onchange & oninput",
-             width: 440, height: 440, x: 500, y: 100, 
-             callback: the_cb})
-` )}
-    window_svg_id.onclick=function(){Editor.insert(
-`//SVG Example 1: lots of shapes
-function handle1(arg) { 
-    if((arg.clicked_button_value === "background_id") ||
-       (arg.clicked_button_value === "svg_id")) {
-        SW.append_in_ui("svg_id", svg_circle({cx: arg.offsetX, cy: arg.offsetY, r: 7}))
+        window_onchange_id.onclick = function(){Editor.insert(
+            window_onchange_top_comments +
+    `function the_cb(vals){ //vals contains name-value pairs for each input
+         out(vals.clicked_button_value + " = " +
+             vals[vals.clicked_button_value])
     }
-    else if (arg.clicked_button_value === "circ_id") {
-        out("clicked on circ_id")
-    }
-    else if (arg.clicked_button_value === "ellip_id") {
-        out("The user clicked on ellip_id")
-    }
-}
-
-show_window({
-    title: "SVG Example 1: Lots of shapes. Click to interact",
-    content: svg_svg({id: "svg_id", height: 300, width: 500, html_class: "clickable", child_elements: 
-       [//svg_rect({id: "background_id", html_class: "clickable", style:"position: relative; top: 0; right: 0; x: 0, y: 0, width: 500, height: 500, color: "white", border_width: 3, border_color: "yellow"}),
-        svg_circle({id: "circ_id", html_class: "clickable", cx: 20, cy: 20, r: 30, color: "purple"}),  
-        svg_ellipse({id: "ellip_id", html_class: "clickable", cx: 270, cy: 50, rx: 60, ry: 30, color: "orange"}),
-        svg_line({x1: 30, y1: 30, x2: 100, y2: 200, color: "blue", width: 5}),
-        svg_rect({x: 50, y: 50, width: 40, height: 100, color: "green", border_width: 3, border_color: "yellow", rx: 20, ry: 5}),
-        svg_polygon({points: [[400, 10], [500, 10], [450, 100]], color: "lime", border_width: 3, border_color: "yellow"}),
-        svg_polyline({points: [[400, 100], [480, 100], [450, 200], [480, 250]], color: "brown", width: 10}),
-        svg_text({text: "this is a really long string", x: 50, y: 50, size: 30, color: "red", border_width: 2, border_color: "black", style: 'font-weight:bold;'}),
-        svg_html({html: "<i style='font-size:30px;'>yikes</i>", x: 60, y: 100})
-                      ]}),
-    width: 610,  // window width
-    height: 200, // window height
-    x: 0,        // Distance from left of DDE window to this window's left
-    y: 100,      // Distance from top  of DDE window to this window's top
-    callback: handle1
-})
-
-//SVG Example 2: draw circle then move it to clicked position.
-function handle2 (vals){ 
-    if(window.c_id) {
-        set_in_ui("c_id.cx", vals.offsetX)
-        set_in_ui("c_id.cy", vals.offsetY)
-    }
-    else {
-        SW.append_in_ui(
-            "s2_id", 
-            svg_circle({id: "c_id", cx: vals.offsetX, cy: vals.offsetY, 
-                        r: 15, color: "blue"}))
-  }
-}
-
-show_window({
-    title: "SVG Example 2: Click to draw and move circle",
-    content: svg_svg({id: "s2_id", width: 600, height: 200, html_class: "clickable"}),
-    x: 0,
-    y: 330,
-    width: 600,
-    height: 200,
-    callback: handle2
-})
-
-//SVG Example 3: draw line segments
-var linex = null
-var liney = null
-function handle3 (vals){ 
-    if(linex) {
-        SW.append_in_ui(
-            "s3_id", 
-            svg_line({x1: linex, y1: liney, x2: vals.offsetX, y2: vals.offsetY}))
-    }
-   else {
-       SW.append_in_ui(
-           "s3_id", 
-           svg_circle({cx: vals.offsetX, cy: vals.offsetY, 
-                       r: 5, color: "blue"})) 
-   }
-   linex = vals.offsetX
-   liney = vals.offsetY
-}
-
-show_window({
-    title: "SVG Example 3: Click to draw lines",
-    content: svg_svg({id: "s3_id", width: 400, height: 350, html_class: "clickable",
-                      child_elements: [
-                          svg_rect({x: 100, y: 100, width: 200, height: 50, color: "yellow"})
-           ]}),
-    width: 470, x: 620, y: 100,
-    callback: handle3
-})
-`)}
-
-    window_modify_id.onclick=function(){Editor.insert(
-`function modify_window_cb(vals){
-   let color = "rgb(" + Math.round(Math.random() * 255) + "," +
-                        Math.round(Math.random() * 255) + "," +
-                        Math.round(Math.random() * 255) + ")"
-   SW.selector_set_in_ui("#" + vals.show_window_elt_id + " [name=the_in] [style] [background]",
-                      color
-                      )
-   SW.selector_set_in_ui("#" + vals.show_window_elt_id + " [name=the_in] [afterend]",
-                      "<br/>" + color)
-}
-
-show_window({title: "Modify Window",
-             x:300, y:20, width:300, height:200, 
-             callback: modify_window_cb,
-             content: '<input type="button" name="the_in" value="click to colorize"/>'
-  })
-`
-    )}
-
-    build_window_id.onclick=ab.launch
-
-    opencv_gray_id.onclick=function(){
-        const code = read_file(__dirname + "/examples/opencv_gray.js")
-        Editor.insert(code)
-    }
-    opencv_blur_id.onclick=function(){
-        const code = read_file(__dirname + "/examples/opencv_blur.js")
-        Editor.insert(code)
-    }
-
-    opencv_in_range_id.onclick=function(){
-        const code = read_file(__dirname + "/examples/opencv_in_range.js")
-        Editor.insert(code)
-    }
-
-    opencv_blob_detector_id.onclick=function(){
-        const code = read_file(__dirname + "/examples/opencv_blob_detector.js")
-        Editor.insert(code)
-        DocCode.open_doc("Picture.detect_blobs_doc_id")
-    }
-
-    opencv_process_webcam_id.onclick=function(){
-        const code = read_file(__dirname + "/examples/opencv_process_webcam.js")
-        Editor.insert(code)
-    }
-
-    opencv_face_reco_id.onclick=function(){
-        const code = read_file(__dirname + "/examples/opencv_face_reco.js")
-        Editor.insert(code)
-    }
-
-    opencv_locate_object_id.onclick=function(){
-        const code = read_file(__dirname + "/examples/opencv_locate_object.js")
-        Editor.insert(code)
-        DocCode.open_doc("Picture.locate_object_doc_id")
-    }
-
-    opencv_picture_similarity_id.onclick=function(){
-        const code = read_file(__dirname + "/examples/opencv_picture_similarity.js")
-        Editor.insert(code)
-        DocCode.open_doc("Picture.mats_similarity_by_color_doc_id")
-    }
-
-    window_close_all_id.onclick=function(){ SW.close_all_show_windows() }
-
-    machine_vision_help_id.onclick = function(){DocCode.open_doc(machine_vision_doc_id)}
-
-    show_page_id.onclick=function(){
-        Editor.wrap_around_selection('show_page(', ')\n', '"hdrobotic.com"')
-        DocCode.open_doc(show_page_doc_id)}
-
-    get_page_id.onclick=function(){
-             DocCode.open_doc(get_page_doc_id)
-             Editor.insert('get_page("http://www.ibm.com")')
-    }
-
-    beep_id.onclick = function(){
-          Editor.insert("beep()\n")
-          DocCode.open_doc(beep_doc_id)}
-    beep_options_id.onclick = function(){Editor.insert(
-`beep({
-    dur: 0.5,  //the default,, 
-    frequency: 440, //the default, in Hertz. This is A above middle C.    
-    volume: 1,      //the default, 0 to 1
-    waveform: "triangle", //the default, other choices: "sine", "square", "sawtooth"
-    callback: function(){beep({frequency: 493.88})} //default=null, run at end of the beep
-    })
-`
-    )}
-    beeps_id.onclick = function(){
-        DocCode.open_doc(beeps_doc_id)
-       Editor.insert(
-`beeps(3, //default=1. number of times to beep using the default beep.
-      function(){speak({speak_data: "Third Floor, home robots"})}) //default=null. callback when done
-`)}
-    speak_id.onclick=function(){
-        DocCode.open_doc(speak_doc_id)
-        Editor.wrap_around_selection(
-        "speak({speak_data: ", "})\n", '"Hello Dexter"')}
-
-    speak_options_id.onclick=function(){Editor.wrap_around_selection(
-`speak({
-    speak_data: ` , //default="hello"  can be a string, number, boolean, date, array, etc.
-`,\n    volume: 1.0,   //default=1.0   0 to 1.0,
-    rate: 1.0,     //default=1.0   0.1 to 10,
-    pitch: 1.0,    //default=1.0   0 to 2,
-    lang: "en-US", //default="en-US"
-    voice: 0,      //default=0     0, 1, 2, or 3
-    callback: function(event) {out('Dur in nsecs: ' + event.elapsedTime)}  //default=null  called when speech is done.
-})\n`, '[true, "It is", new Date()]'
-        )
-        DocCode.open_doc(speak_doc_id)}
-    //recognize_speech_id.onclick = function(){Editor.insert(
-//`recognize_speech(
-//    {prompt: "Say something funny.", //Instructions shown to the speaker. Default "".
-//     click_to_talk: false,           //If false, speech recognition starts immediately. Default true.
-//     only_once: false,               //If false, more than one phrase (after pauses) can be recognized. Default true.
-//     phrase_callback: undefined,     //Passed text and confidence score when user pauses. Default (undefined) prints text and confidence. If only_once=true, only this callback is called.
-//     finish_phrase: "finish",        //Say this to end speech reco when only_once=false.
-//     finish_callback: out})          //Passed array of arrays of text and confidence when user says "finish". Default null.
-//`)}
-
-    music_help_id.onclick=function(){ DocCode.open_doc(music_with_midi_doc_id) }
-    phrase_examples_id.onclick=function(){
-        const code = read_file(__dirname + "/music/phrase_examples.js")
-        Editor.insert(code)
-    }
-    midi_init_id.onclick = Midi.init
-
-   //eval_and_start_button_id.onclick = eval_and_start
-
-    make_dictionary_id.onclick=function(){
-        const code = read_file(__dirname + "/examples/make_dictionary.js")
-        Editor.insert(code)
-    }
-    nat_lang_reasoning_id.onclick=function(){
-        const code = read_file(__dirname + "/examples/nat_lang_reasoning.js")
-        Editor.insert(code)
-    }
-
-
-    ez_teach_id.onclick=function(){
-        Editor.edit_new_file()
-        Editor.insert(read_file(__dirname + "/user_tools/ezTeach_template.js"))
-        DocCode.open_doc(ez_teach_doc_id)
-    }
-
-    jobs_help_id.onclick          = function(){ DocCode.open_doc(Job_doc_id) }
-    //start_job_id.onclick        = Job.start_job_menu_item_action
-    //start_job_help_id.onclick = function(){ DocCode.open_doc(start_job_help_doc_id) } //nw help is simply under theh Output pane help, and users see it by clicking on the "Output" pane title.
-
-    test_suites_help_id.onclick = function(){ DocCode.open_doc(TestSuite_doc_id) }
-
-    insert_all_test_suites_id.onclick  = function(){TestSuite.insert_all()}
-
-     run_all_test_suites_id.onclick     = function(){TestSuite.run_all()}
-    // show_all_test_suites_id.onclick  = function(){TestSuite.show_all()}  //functionality obtained with Find and no selection
-     run_test_suite_file_id.onclick     =  TestSuite.run_ts_in_file_ui
-
-    //obsoleted by increased functionality in doc pane Find button. find_test_suites_id.onclick        = function(){TestSuite.find_test_suites(Editor.get_any_selection())}
-    selection_to_test_id.onclick=function(){
-       TestSuite.selection_to_test(Editor.get_javascript(true), Editor.get_javascript(), Editor.selection_start())
-       }
-    show_suite_statistics_id.onclick=TestSuite.statistics
-    insert_test_suite_example_id.onclick=function(){
-                    Editor.insert( //below the same as the first test suite in the main test suites except that
-                                   //its name is different so that the "summary" doesn't subtract the
-                                   //usual 2 unknown failures and thus the summary of runnign this
-                                   //will be consistent with the errors it shows.
-`new TestSuite(
-    "example_test_suite",
-    ["2 + 3", "5", "1st elt (source) evals to same as 2nd elt (expected) and the test passes."],
-    ['similar(2.05, 2, 0.1)', "true", "tolerance of 0.1 permits 2.05 and 2 to be similar"],
-    ["var foo = 4 + 1"],
-    ["foo", "5", "The side effect of the above 'set up' test, sets foo. Foo's value is tested here."],
-    ['"hi" + " dexter"', '"hi dex"', "known failures are declared with this description string starting with 'known'."],
-    ['foo961', '123', "This is an 'unknown failure' for demo purposes"],
-    ['foo723', 'TestSuite.error', 'Tests with expected of TestSuite.error pass if the source errors.'],
-    ['out(TestSuite.run("similarX"))', 'TestSuite.dont_care', "Run another test suite. This one errors because its not defined."]
-)
-`, null, true)}
-    //TestSuite.make_suites_menu_items() //because the ones that are defined from TestSuite.js can't make their menu items until dom is ready
-
-    //Learn Javascript menu
-    learn_js_help_id.onclick = function (){DocCode.open_doc(learning_js_doc_id)}
-      // Debugging menu
-    dev_tools_id.onclick      = function(){show_window({content:
-         "To see the output of <code>console.log</code> calls,<br/>" +
-         "and for using the <code>debugger</code> breakpoint,<br/>" +
-         "you must first open <i>Chrome Dev Tools</i> by:<br/>" +
-         "clicking right anywhere and choosing <b>Inspect</b>.<p/>" +
-         "Note: The <b>out</b> call is more useful in most cases than <code>console.log</code>. " +
-         "It doesn't require <i>Chrome Dev Tools</i>.<br/>See <button>Insert&#9660;</button> <i>Print to output</i>.<br/><br/>" +
-         "There's more help in the Documentation pane under <b>Debugging</b>.",
-         title: "Debugging Help", width:430, height:270});
-         DocCode.open_doc(debugging_id)
-         //WORKS! 800 is milliseconds for the animation to take.
-         //$('#doc_contents_id').animate({scrollTop: $('#d ebugging_id').offset().top}, 800); //jquery solution that fails.
-         //d ebugging_id.scrollIntoView(true) //does so instantaneously but it at least works.
-         //However, it causes the DDE header to scroll off the top of the window
-         //and a user can't get it back. If the user has not expanded any triangles
-         //in the doc pane, then NOT calling scrollIntoView is fine, but if they have.
-         //they likely won't see the Debugging content. Probably an interaction between
-         //this new HTML5 stuff and jqwidgets
-         // the below fail.
-                                      //poitions the top of the elt at the top of the pane, which is good.
-        //d ebugging_id.scrollIntoView({behavior:"smooth"});//doesn't  smooth scroll in chrome
-        //$("#d ebugging_id").parent().animate({scrollTop: $("#debugging_id").offset().top}, 1000) //doesn't work
-         } //fails: window.open("chrome://inspect/#apps")
-    console_log_id.onclick     = function(){Editor.wrap_around_selection("console.log(", ")", '"Hello"')}
-
-    step_instructions_id.onclick = function(){
-        DocCode.open_doc("Control.step_instructions_doc_id")
-        let cursor_pos = Editor.selection_start()
-        let src = Editor.get_javascript()
-        let prev_char = ((cursor_pos == 0) ? null : src[cursor_pos - 1])
-        let prefix
-        if (Editor.selection_start() == 0)     {prefix = ""}
-        else if ("[, \n]".includes(prev_char)) {prefix = ""}
-        else                                   {prefix = ","}
-        Editor.insert(prefix + 'Control.step_instructions(),nnll') //ok if have comma after last list item in new JS.
-    }
-
-    debugger_id.onclick        = function(){Editor.insert("debugger;nnll")} ////LEAVE THIS IN RELEASED CODE
-
-    debugger_instruction_id.onclick = function(){
-         DocCode.open_doc("Control.debugger_doc_id")
-         let cursor_pos = Editor.selection_start()
-         let src = Editor.get_javascript()
-         let prev_char = ((cursor_pos == 0) ? null : src[cursor_pos - 1])
-         let prefix
-         if (Editor.selection_start() == 0)     {prefix = ""}
-         else if ("[, \n]".includes(prev_char)) {prefix = ""}
-         else                                   {prefix = ","}
-         Editor.insert(prefix + 'Control.debugger(),nnll') //ok if have comma after last list item in new JS.
-    }
-
-    comment_out_id.onclick     = function(){Editor.wrap_around_selection("/*", "*???/")} //todo dde4 get rid of ???
-    comment_eol_id.onclick     = function(){Editor.insert("//")}
-      //true & false menu
-    true_id.onclick          = function(){Editor.insert(" true ")}
-    false_id.onclick         = function(){Editor.insert(" false ")}
-    and_id.onclick           = function(){Editor.insert(" && ")}
-    or_id.onclick            = function(){Editor.insert(" || ")}
-    not_id.onclick           = function(){Editor.insert("!")}
-
-      //Math menu
-    math_example_id.onclick = function(){Editor.insert("(-1.75 + 3) * 2\n")}
-    plus_id.onclick         = function(){Editor.insert("+")}
-    minus_id.onclick        = function(){Editor.insert("-")}
-    times_id.onclick        = function(){Editor.insert("*")}
-    divide_id.onclick       = function(){Editor.insert("/")}
-    pi_id.onclick           = function(){Editor.insert("Math.PI")}
-    parens_id.onclick       = function(){Editor.wrap_around_selection("(", ")")}
-
-       //Compare Numbers menu
-    compare_example_id.onclick = function(){Editor.insert("Math.PI >= 3\n")}
-    less_id.onclick            = function(){Editor.insert("<")}
-    less_or_equal_id.onclick   = function(){Editor.insert("<=")}
-    equal_id.onclick           = function(){Editor.insert("==")}
-    more_or_equal_id.onclick   = function(){Editor.insert(">=")}
-    more_id.onclick            = function(){Editor.insert(">")}
-    not_equal_id.onclick       = function(){Editor.insert("!=")}
-
-       //Strings menu
-    double_quote_id.onclick   = function(){Editor.wrap_around_selection('"', '"')}
-    single_quote_id.onclick   = function(){Editor.wrap_around_selection("'", "'")}
-    back_quote_id.onclick     = function(){Editor.wrap_around_selection('`', '`')}
-    add_strings_id.onclick    = function(){Editor.insert("+")}
-
-    string_length_id.onclick  = function(){Editor.insert(".length")}
-    get_char_id.onclick       = function(){Editor.insert("[0]")}
-    slice_id.onclick          = function(){Editor.insert(".slice(0, 3)")}
-    split_id.onclick          = function(){Editor.insert('.split(" ")')}
-    string_equal_id.onclick   = function(){Editor.insert('==')}
-    starts_with_id.onclick    = function(){Editor.insert('.startsWith("ab")')}
-    ends_with_id.onclick      = function(){Editor.insert('.endsWith("yz")')}
-    replace_string_id.onclick = function(){Editor.insert('.replace(/ab/g, "AB")')}
-
-       //Arrays menu
-    make_array_id.onclick         = function(){Editor.insert('[5, "ab", 2 + 2]')}
-    array_length_id.onclick       = function(){Editor.insert('.length')}
-    get_array_element_id.onclick  = function(){Editor.insert('[0]')}
-    set_array_element_id.onclick  = function(){Editor.insert('[0] = 42')}
-    push_array_element_id.onclick = function(){Editor.insert('.push(9)')}
-
-    //DATE
-    new_date_day_id.onclick       = function(){Editor.insert('new Date("' + new Date().toString().slice(4, 15) + '")')}
-    new_date_time_id.onclick      = function(){Editor.insert('new Date("' + new Date().toString().slice(4, 24) + '")')}
-    new_date_ms_id.onclick        = function(){Editor.insert('new Date(3000)')}
-    date_now_id.onclick           = function(){Editor.insert('Date.now()')}
-    date_valueOf_id.onclick       = function(){Editor.insert('new Date().valueOf()')}
-    date_toString_id.onclick      = function(){Editor.insert('new Date().toString()')}
-    duration_hms_id.onclick       = function(){Editor.insert('new Duration("01:14:05")')}
-    duration_hmsms_id.onclick     = function(){Editor.insert('new Duration(1, 2, 5, 10)')}
-    duration_get_ms_id.onclick    = function(){Editor.insert('new Duration(0, 0, 1, 500).milliseconds')}
-      //Variables menu
-    variable_examples_id.onclick = function(){Editor.insert('var foo = 5 //initialize variable\nfoo //evals to 5\nfoo = "2nd" + " " + "val" ///set existing variable to new value\nfoo //now evals to "2nd val"\n')}
-    init_variable_id.onclick     = function(){Editor.insert('var foo = ')}
-    set_variable_id.onclick      = function(){Editor.insert('=')}
-
-     //JS Objects menu
-    js_object_example_id.onclick = function(){Editor.insert(
-`var foo = {sam: 2, joe: 5 + 1} //make a JS object
-foo      //evals to the new object
-foo.sam  //evals to 2
-foo.joe  //evals to 6
-foo.joe = 99 //within foo, sets the value of joe to 99
-foo.joe  //now evals to 99
-foo["jo" + "e"] //compute the name to lookup. evals to 99
-foo["jo" + "e"] = "jones" //set computed name to new value
-foo.joe  //NOW evals to "jones"
-foo.ted = 3 / 2  //adds a new name:value pair to foo.
-foo //eval to see the latest values\n`)}
-        js_object_cheat_sheet_id.onclick = function(){show_window({content:
-`<pre>var foo = {sam: 2, joe: 5 + 1} //make a JS object
-foo      //evals to the new object
-foo.sam  //evals to 2
-foo.joe  //evals to 6
-foo.joe = 99    //within foo, sets the value of joe to 99
-foo.joe  //now evals to 99
-foo["jo" + "e"] //compute the name to lookup. evals to 99
-foo["jo" + "e"] = "jones" //set computed name to new value
-foo.joe         //NOW evals to "jones"
-foo.ted = 3 / 2 //adds a new name:value pair to foo.
-foo      //eval to see the latest values</pre>`,
-            title: "JavaScript Object Cheat Sheet",
-            width:  550,
-            height: 280,
-            x:      440,
-            y:      370})}
-
-    // Control Flow menu
-    if_single_armed_id.onclick = function(){Editor.wrap_around_selection('if (1 + 1 == 2) {\n    ', '\n}')}
-    if_multi_armed_id.onclick  = function(){Editor.wrap_around_selection('if (1 + 1 == 2) {\n    ', '\n}\nelse if (2 + 2 == 4){\n    \n}\nelse {\n    \n}\n')}
-    for_number_of_times_id.onclick    = function(){Editor.wrap_around_selection('for(let i = 0; i < 10; i++){\n', '\n}\n')}
-    for_through_array_elts_id.onclick = function(){Editor.wrap_around_selection('for(let x of [7, 4, 6]){\n', '\n}\n')}
-    try_id.onclick             = function(){Editor.wrap_around_selection('try{\n', '\n} catch(err){handle errors here}')}
-    dde_error_id.onclick       = function(){Editor.wrap_around_selection('dde_error(', ')', '"busted!"')}
-    setTimeout_id.onclick=function(){Editor.insert('setTimeout(function(){console.log("waited 3 seconds")}, 3000)nnll')}
-
-    // Function menu
-    function_example_id.onclick   = function(){Editor.insert("function my_add(a, b){ // define the function 'my_add'\n    var sum = a + b\n    return sum\n}\nmy_add(2, 3) // run my_add's code with a=2 and b=3\n")}
-    named_function_id.onclick     = function(){Editor.wrap_around_selection('function foo(x, y) {\n', '\n}\n')}
-    anonymous_function_id.onclick = function(){Editor.wrap_around_selection('function(x, y) {\n', '\n}\n')}
-    return_id.onclick             = function(){Editor.insert("return ")}
-    //End of Learn JS menu
-
-    //series Menu
-     units_system_help_id.onclick = function(){ DocCode.open_doc(units_system_help_doc_id) }
-
-     //jobs menu
-    show_robot_status_id.onclick   = RobotStatusDialog.show
-    jobs_report_id.onclick         = function(){Job.report() }
-    stop_all_jobs_id.onclick       = function(){
-                                         Job.stop_all_jobs()
-                                         if(!TestSuite.status) {
-                                             TestSuite.immediate_stop = true
-                                         }
-                                     }
-    undefine_jobs_id.onclick       = function(event){
-        Job.clear_stopped_jobs()
-        event.target.blur()
-    } //use individual X (close) marks instead
-
-    insert_new_job_id.onclick = Editor.insert_new_job
-    Editor.set_menu_string(insert_new_job_id, "New Job", "j")
-
-    eval_and_start_job_id.onclick = function(){
-           DocCode.open_doc(eval_and_start_job_doc_id)
-           Job.start_job_menu_item_action()
-    }
-
-
-    insert_job_example0_id.onclick = function(){Editor.insert(job_examples[0])}
-    insert_job_example1_id.onclick = function(){Editor.insert(job_examples[1])}
-    insert_job_example2_id.onclick = function(){Editor.insert(job_examples[2])}
-    insert_job_example3_id.onclick = function(){Editor.insert(job_examples[3])}
-    insert_job_example4_id.onclick = function(){Editor.insert(job_examples[4])}
-    insert_job_example5_id.onclick = function(){Editor.insert(job_examples[5])}
-    insert_job_example6_id.onclick = function(){Editor.insert(job_examples[6])}
-    insert_job_example7_id.onclick = function(){Editor.insert(job_examples[7])}
-    insert_job_example8_id.onclick = function(){Editor.insert(job_examples[8])}
-    insert_job_example9_id.onclick = function(){Editor.insert(job_examples[9])}
-    insert_job_example10_id.onclick = function(){Editor.insert(job_examples[10])}
-    insert_job_example11_id.onclick = function(){Editor.insert(job_examples[11])}
-    insert_job_example12_id.onclick = function(){Editor.insert(job_examples[12])}
-    insert_job_example13_id.onclick = function(){Editor.insert(job_examples[13])
-                                                 DocCode.open_doc("Control.loop_doc_id")}
-    insert_job_example14_id.onclick = function(){Editor.insert(job_examples[14])}
-
-        //RUN INSTRUCTION
-    move_to_home_id.onclick    = function(){ Robot.dexter0.move_all_joints_fn() }
-    move_to_neutral_id.onclick = function(){ Robot.dexter0.move_all_joints_fn(Dexter.NEUTRAL_ANGLES) }
-    //move_to_parked_id.onclick  = function(){ Robot.dexter0.move_all_joints_fn(Dexter.PARKED_ANGLES) }  //not useful, sometimes Dexter runs into itself
-    move_to_selection_id.onclick = Editor.move_to_instruction
-
-    Editor.set_menu_string(move_to_selection_id, "selection", "r")
-
-    run_instruction_dialog_id.onclick = run_instruction
-
-    init_dxf_drawing_id.onclick = function(){
-        var content =
-`DXF.init_drawing({
-    dxf_filepath: "choose_file",    //image to draw
-    three_points: 
-        [[0,  .55, 0.05],  //Point1 locates the drawing plane
-         [0,   .4, 0.05],  //Point2
-         [.15, .4, 0.05]], //Point3
-    plane_normal_guess: [0, 0, 1],
-    calc_plane_normal: false,
-    tool_height: 5.08 * _cm,
-    tool_length: 8.255 * _cm,
-    DXF_units: undefined, //0.001 means each DXF distance unit is worth 1mm
-                          //undefined means scale drawing to fit the three_points
-    draw_speed:  1 * _cm/_s,
-    draw_res:  0.5 * _mm, //Max step size of straight line
-    lift_height: 1 * _cm, //distance above surface when pen is not drawing
-    tool_action: false,
-    tool_action_on_function: 
-        function(){
-		    return [make_ins("w", 64, 2),
-					Dexter.dummy_move()]
-		},
-        tool_action_off_function: 
-            function(){
-                return [make_ins("w", 64, 0),
-                        Dexter.dummy_move()]
-        }})
-`
-        Editor.insert(content)
-        DocCode.open_doc("DXF.init_drawing_doc_id")
-    }
-
-    //Jobs/Dexter Tools menu.
-    browse_dexter_id.onclick     = function() {
-        let url = "http://" + Dexter.default.ip_address
-        browse_page(url)
-    }
-    calibrate_id.onclick         = function() { init_calibrate() }//defines 2 jobs and brings up calibrate dialog box
-
-    dui2_id.onclick              = function() {
-        Job.define_and_start_job(__dirname + "/user_tools/dexter_user_interface2.js")
-    }
-    ping_dexter_id.onclick       = function() { ping_a_dexter(); DocCode.open_doc(ping_doc_id) }
-
-    reboot_joints_id.onclick  = function(){
-        DocCode.open_doc("Dexter.reboot_joints_doc_id")
-        Dexter.default.reboot_joints_fn() //not an instruction, a function that creates a job and starts it
-    }
-
-    show_errors_log_id.onclick = function(){
-        let path = "Dexter." + Dexter.default.name + ":/srv/samba/share/errors.log"
-        read_file_async(path, undefined, function(err, data){
-            if(err){
-                dde_error("While attempting to get the content of " + path + "<br>" + err.message)
-            }
-            else {
-                let content = data.toString()
-                out("The content of " + path + " is:<pre>" + content + "</pre>")
-            }
-        })
-    }
-    dexter_start_options_id.onclick = show_dexter_start_options
-
-    update_firmware_id.onclick = FileTransfer.show_dialog
-
-    run_job_on_dexter_id.onclick = function() {
-        let job_src = Editor.get_any_selection() //we want to be able to select a Job def in
-            //the doc pane and send it to Dexter.
-        if(job_src == "") {
-            job_src = Editor.get_javascript("auto") //the normal case, get the whole editor buffer
+    show_window({content:
+    `       + "`" +
+            window_onchange_content + "`" +
+    `,           title: "show_window onchange & oninput",
+                 width: 440, height: 440, x: 500, y: 100,
+                 callback: the_cb})
+    ` )}
+        window_svg_id.onclick=function(){Editor.insert(
+    `//SVG Example 1: lots of shapes
+    function handle1(arg) {
+        if((arg.clicked_button_value === "background_id") ||
+           (arg.clicked_button_value === "svg_id")) {
+            SW.append_in_ui("svg_id", svg_circle({cx: arg.offsetX, cy: arg.offsetY, r: 7}))
         }
-        Job.start_and_monitor_dexter_job(job_src)
+        else if (arg.clicked_button_value === "circ_id") {
+            out("clicked on circ_id")
+        }
+        else if (arg.clicked_button_value === "ellip_id") {
+            out("The user clicked on ellip_id")
+        }
     }
 
-    show_messaging_dialog_id.onclick = function(){
-        Messaging.show_dialog()
-        DocCode.open_doc("Messaging_id")
-    }
+    show_window({
+        title: "SVG Example 1: Lots of shapes. Click to interact",
+        content: svg_svg({id: "svg_id", height: 300, width: 500, html_class: "clickable", child_elements:
+           [//svg_rect({id: "background_id", html_class: "clickable", style:"position: relative; top: 0; right: 0; x: 0, y: 0, width: 500, height: 500, color: "white", border_width: 3, border_color: "yellow"}),
+            svg_circle({id: "circ_id", html_class: "clickable", cx: 20, cy: 20, r: 30, color: "purple"}),
+            svg_ellipse({id: "ellip_id", html_class: "clickable", cx: 270, cy: 50, rx: 60, ry: 30, color: "orange"}),
+            svg_line({x1: 30, y1: 30, x2: 100, y2: 200, color: "blue", width: 5}),
+            svg_rect({x: 50, y: 50, width: 40, height: 100, color: "green", border_width: 3, border_color: "yellow", rx: 20, ry: 5}),
+            svg_polygon({points: [[400, 10], [500, 10], [450, 100]], color: "lime", border_width: 3, border_color: "yellow"}),
+            svg_polyline({points: [[400, 100], [480, 100], [450, 200], [480, 250]], color: "brown", width: 10}),
+            svg_text({text: "this is a really long string", x: 50, y: 50, size: 30, color: "red", border_width: 2, border_color: "black", style: 'font-weight:bold;'}),
+            svg_html({html: "<i style='font-size:30px;'>yikes</i>", x: 60, y: 100})
+                          ]}),
+        width: 610,  // window width
+        height: 200, // window height
+        x: 0,        // Distance from left of DDE window to this window's left
+        y: 100,      // Distance from top  of DDE window to this window's top
+        callback: handle1
+    })
 
-    //cmd menu
-    cd_up_id.onclick = function(){
-        cmd_input_id.value = "cd .."
-        SSH.run_command({command:"cd ..;echo 'The new current directory is: ';pwd"})
-    }
-    date_id.onclick = function(){
-        cmd_input_id.value = "date"
-        SSH.run_command({command:"date"})
-    }
-    ssh_find_id.onclick = function(){
-        out("<i>SSH <b>find</b> from / takes about 10 seconds.<br/>" +
-            "The <b>-iname</b> option makes <b>find</b> case-insensitive,<br/>" +
-            "whereas <b>-name</b> makes it case-sensitive.</i>")
-        cmd_input_id.value = 'find / -iname "*partial_file_name_here*" -print'
-        cmd_input_id.focus()
-    }
-    make_directory_id.onclick = function(){
-        cmd_input_id.value = "mkdir " + SSH.dir_for_ls + "/[new dir name]"
-        cmd_input_id.focus()
-    }
-    make_file_id.onclick = function(){
-            cmd_input_id.value = "touch " + SSH.dir_for_ls + "/[new file name]"
-        cmd_input_id.focus()
-    }
-    man_id.onclick = function(){
-        cmd_input_id.value = "man -P cat [cmd name]"
-        cmd_input_id.focus()
-    }
-    pwd_id.onclick = function(){
-        cmd_input_id.value = "pwd"
-        SSH.run_command({command:"pwd"})
-    }
-    show_directory_id.onclick = function(){
-        cmd_input_id.value = SSH.show_dir_cmd
-        SSH.run_command({command:SSH.show_dir_cmd})
-    }
-    reboot_id.onclick = function() {
-        cmd_input_id.value = "shutdown -r now"
-        cmd_input_id.focus()
-    }
-    run_selected_cmd_id.onclick = function(){
-        let cmds = Editor.get_javascript("auto").trim()
-        if(cmds == ""){
-            warning("There are no commands selected.")
+    //SVG Example 2: draw circle then move it to clicked position.
+    function handle2 (vals){
+        if(window.c_id) {
+            set_in_ui("c_id.cx", vals.offsetX)
+            set_in_ui("c_id.cy", vals.offsetY)
         }
         else {
-            let end_pos = cmds.indexOf(";")
-            if (end_pos == -1) { end_pos = cmds.indexOf("\n") }
-            else { end_pos = cmds.length }
-            let cmd_to_show = cmds.substring(0, end_pos)
-            cmd_input_id.value = cmd_to_show
-            SSH.run_command({command:cmds})
+            SW.append_in_ui(
+                "s2_id",
+                svg_circle({id: "c_id", cx: vals.offsetX, cy: vals.offsetY,
+                            r: 15, color: "blue"}))
+      }
+    }
+
+    show_window({
+        title: "SVG Example 2: Click to draw and move circle",
+        content: svg_svg({id: "s2_id", width: 600, height: 200, html_class: "clickable"}),
+        x: 0,
+        y: 330,
+        width: 600,
+        height: 200,
+        callback: handle2
+    })
+
+    //SVG Example 3: draw line segments
+    var linex = null
+    var liney = null
+    function handle3 (vals){
+        if(linex) {
+            SW.append_in_ui(
+                "s3_id",
+                svg_line({x1: linex, y1: liney, x2: vals.offsetX, y2: vals.offsetY}))
         }
+       else {
+           SW.append_in_ui(
+               "s3_id",
+               svg_circle({cx: vals.offsetX, cy: vals.offsetY,
+                           r: 5, color: "blue"}))
+       }
+       linex = vals.offsetX
+       liney = vals.offsetY
     }
-    whoami_id.onclick = function(){
-        cmd_input_id.value = "whoami"
-        SSH.run_command({command:"whoami"})
+
+    show_window({
+        title: "SVG Example 3: Click to draw lines",
+        content: svg_svg({id: "s3_id", width: 400, height: 350, html_class: "clickable",
+                          child_elements: [
+                              svg_rect({x: 100, y: 100, width: 200, height: 50, color: "yellow"})
+               ]}),
+        width: 470, x: 620, y: 100,
+        callback: handle3
+    })
+    `)}
+
+        window_modify_id.onclick=function(){Editor.insert(
+    `function modify_window_cb(vals){
+       let color = "rgb(" + Math.round(Math.random() * 255) + "," +
+                            Math.round(Math.random() * 255) + "," +
+                            Math.round(Math.random() * 255) + ")"
+       SW.selector_set_in_ui("#" + vals.show_window_elt_id + " [name=the_in] [style] [background]",
+                          color
+                          )
+       SW.selector_set_in_ui("#" + vals.show_window_elt_id + " [name=the_in] [afterend]",
+                          "<br/>" + color)
     }
 
-    //ping_id.onclick          = function(){ rde.ping()}
-    //cat_etc_hosts_id.onclick = function(){ rde.shell('cat /etc/hosts')}
-    //rosversion_id.onclick    = function(){ rde.shell('rosversion -d')}
-    //roswtf_id.onclick        = function(){ rde.shell('roswtf')}
-    //printenv_id.onclick      = function(){ rde.shell('printenv | grep ROS')}
-    //rqt_graph_id.onclick     = function(){ rde.shell('rqt_graph')}
+    show_window({title: "Modify Window",
+                 x:300, y:20, width:300, height:200,
+                 callback: modify_window_cb,
+                 content: '<input type="button" name="the_in" value="click to colorize"/>'
+      })
+    `
+        )}
 
-    //rosmsg_id.onclick        = function(){rde.shell('rosmsg list')}
-    //rosnode_id.onclick       = function(){rde.shell('rosnode list')}
-    //rospack_id.onclick       = function(){rde.shell('rospack list')}
-    //rosparam_id.onclick      = function(){rde.shell('rosparam list')}
-    //rosservice_is.onclick    = function(){rde.shell('rosservice list')}
-    //rostopic_id.onclick      = function(){rde.shell('rostopic list')}
+       // build_window_id.onclick=ab.launch //todo dde4 revive this?
 
-    clear_output_id.onclick  = function(){SW.clear_output(); Editor.myCodeMirror.focus()}
+        opencv_gray_id.onclick=function(){
+            const code = read_file(__dirname + "/examples/opencv_gray.js")
+            Editor.insert(code)
+        }
+        opencv_blur_id.onclick=function(){
+            const code = read_file(__dirname + "/examples/opencv_blur.js")
+            Editor.insert(code)
+        }
 
-    javascript_pane_help_id.onclick    = function(){ DocCode.open_doc(javascript_pane_doc_id)  }
-    output_pane_help_id.onclick        = function(){ DocCode.open_doc(output_pane_doc_id)  }
-    documentation_pane_help_id.onclick = function(){ DocCode.open_doc(documentation_pane_doc_id)  }
-    misc_pane_help_id.onclick          = function(){ DocCode.open_doc(misc_pane_doc_id)  }
+        opencv_in_range_id.onclick=function(){
+            const code = read_file(__dirname + "/examples/opencv_in_range.js")
+            Editor.insert(code)
+        }
 
-    //simulate pane
-    demo_id.onclick          = function() {
-                                    if (demo_id.innerHTML == "Demo") {
-                                        demo_id.innerHTML = "Stop"
-                                        DDEVideo.show_in_misc_pane("Simulate Dexter")
-                                        play_simulation_demo()
-                                    }
-                                    else {
-                                          sim.enable_rendering = false;
-                                          demo_id.innerHTML = "Demo"
-                                    }
-                               }
-    inspect_dexter_details_id.onclick = function() { inspect(Dexter.default) }
+        opencv_blob_detector_id.onclick=function(){
+            const code = read_file(__dirname + "/examples/opencv_blob_detector.js")
+            Editor.insert(code)
+            DocCode.open_doc("Picture.detect_blobs_doc_id")
+        }
 
-    pause_id.onclick         = function (){
-                                    if (pause_id.checked) { //it just got checked
-                                           Job.go_button_state = false
-                                    }
-                                    else { Job.go_button_state = true }
+        opencv_process_webcam_id.onclick=function(){
+            const code = read_file(__dirname + "/examples/opencv_process_webcam.js")
+            Editor.insert(code)
+        }
+
+        opencv_face_reco_id.onclick=function(){
+            const code = read_file(__dirname + "/examples/opencv_face_reco.js")
+            Editor.insert(code)
+        }
+
+        opencv_locate_object_id.onclick=function(){
+            const code = read_file(__dirname + "/examples/opencv_locate_object.js")
+            Editor.insert(code)
+            DocCode.open_doc("Picture.locate_object_doc_id")
+        }
+
+        opencv_picture_similarity_id.onclick=function(){
+            const code = read_file(__dirname + "/examples/opencv_picture_similarity.js")
+            Editor.insert(code)
+            DocCode.open_doc("Picture.mats_similarity_by_color_doc_id")
+        }
+
+        window_close_all_id.onclick=function(){ SW.close_all_show_windows() }
+
+        machine_vision_help_id.onclick = function(){DocCode.open_doc(machine_vision_doc_id)}
+
+            show_page_id.onclick=function(){
+                Editor.wrap_around_selection('show_page(', ')\n', '"hdrobotic.com"')
+                DocCode.open_doc(show_page_doc_id)}
+
+            get_page_id.onclick=function(){
+                     DocCode.open_doc(get_page_doc_id)
+                     Editor.insert('get_page("http://www.ibm.com")')
+            }
+
+            beep_id.onclick = function(){
+                  Editor.insert("beep()\n")
+                  DocCode.open_doc(beep_doc_id)}
+            beep_options_id.onclick = function(){Editor.insert(
+        `beep({
+            dur: 0.5,  //the default,,
+            frequency: 440, //the default, in Hertz. This is A above middle C.
+            volume: 1,      //the default, 0 to 1
+            waveform: "triangle", //the default, other choices: "sine", "square", "sawtooth"
+            callback: function(){beep({frequency: 493.88})} //default=null, run at end of the beep
+            })
+        `
+            )}
+            beeps_id.onclick = function(){
+                DocCode.open_doc(beeps_doc_id)
+               Editor.insert(
+        `beeps(3, //default=1. number of times to beep using the default beep.
+              function(){speak({speak_data: "Third Floor, home robots"})}) //default=null. callback when done
+        `)}
+            speak_id.onclick=function(){
+                DocCode.open_doc(speak_doc_id)
+                Editor.wrap_around_selection(
+                "speak({speak_data: ", "})\n", '"Hello Dexter"')}
+
+            speak_options_id.onclick=function(){Editor.wrap_around_selection(
+        `speak({
+            speak_data: ` , //default="hello"  can be a string, number, boolean, date, array, etc.
+        `,\n    volume: 1.0,   //default=1.0   0 to 1.0,
+            rate: 1.0,     //default=1.0   0.1 to 10,
+            pitch: 1.0,    //default=1.0   0 to 2,
+            lang: "en-US", //default="en-US"
+            voice: 0,      //default=0     0, 1, 2, or 3
+            callback: function(event) {out('Dur in nsecs: ' + event.elapsedTime)}  //default=null  called when speech is done.
+        })\n`, '[true, "It is", new Date()]'
+                )
+                DocCode.open_doc(speak_doc_id)}
+            //recognize_speech_id.onclick = function(){Editor.insert(
+        //`recognize_speech(
+        //    {prompt: "Say something funny.", //Instructions shown to the speaker. Default "".
+        //     click_to_talk: false,           //If false, speech recognition starts immediately. Default true.
+        //     only_once: false,               //If false, more than one phrase (after pauses) can be recognized. Default true.
+        //     phrase_callback: undefined,     //Passed text and confidence score when user pauses. Default (undefined) prints text and confidence. If only_once=true, only this callback is called.
+        //     finish_phrase: "finish",        //Say this to end speech reco when only_once=false.
+        //     finish_callback: out})          //Passed array of arrays of text and confidence when user says "finish". Default null.
+        //`)}
+
+               music_help_id.onclick=function(){ DocCode.open_doc(music_with_midi_doc_id) }
+               phrase_examples_id.onclick=function(){
+                   const code = read_file(__dirname + "/music/phrase_examples.js")
+                   Editor.insert(code)
+               }
+               midi_init_id.onclick = Midi.init
+
+              //eval_and_start_button_id.onclick = eval_and_start
+
+               make_dictionary_id.onclick=function(){
+                   const code = read_file(__dirname + "/examples/make_dictionary.js")
+                   Editor.insert(code)
+               }
+               nat_lang_reasoning_id.onclick=function(){
+                   const code = read_file(__dirname + "/examples/nat_lang_reasoning.js")
+                   Editor.insert(code)
+               }
+
+
+               ez_teach_id.onclick=function(){
+                   Editor.edit_new_file()
+                   Editor.insert(read_file(__dirname + "/user_tools/ezTeach_template.js"))
+                   DocCode.open_doc(ez_teach_doc_id)
+               }
+
+               jobs_help_id.onclick          = function(){ DocCode.open_doc(Job_doc_id) }
+               //start_job_id.onclick        = Job.start_job_menu_item_action
+               //start_job_help_id.onclick = function(){ DocCode.open_doc(start_job_help_doc_id) } //nw help is simply under theh Output pane help, and users see it by clicking on the "Output" pane title.
+
+               test_suites_help_id.onclick = function(){ DocCode.open_doc(TestSuite_doc_id) }
+
+               insert_all_test_suites_id.onclick  = function(){TestSuite.insert_all()}
+
+                run_all_test_suites_id.onclick     = function(){TestSuite.run_all()}
+               // show_all_test_suites_id.onclick  = function(){TestSuite.show_all()}  //functionality obtained with Find and no selection
+                run_test_suite_file_id.onclick     =  TestSuite.run_ts_in_file_ui
+
+               //obsoleted by increased functionality in doc pane Find button. find_test_suites_id.onclick        = function(){TestSuite.find_test_suites(Editor.get_any_selection())}
+               selection_to_test_id.onclick=function(){
+                  TestSuite.selection_to_test(Editor.get_javascript(true), Editor.get_javascript(), Editor.selection_start())
+                  }
+               show_suite_statistics_id.onclick=TestSuite.statistics
+               insert_test_suite_example_id.onclick=function(){
+                               Editor.insert( //below the same as the first test suite in the main test suites except that
+                                              //its name is different so that the "summary" doesn't subtract the
+                                              //usual 2 unknown failures and thus the summary of runnign this
+                                              //will be consistent with the errors it shows.
+           `new TestSuite(
+               "example_test_suite",
+               ["2 + 3", "5", "1st elt (source) evals to same as 2nd elt (expected) and the test passes."],
+               ['similar(2.05, 2, 0.1)', "true", "tolerance of 0.1 permits 2.05 and 2 to be similar"],
+               ["var foo = 4 + 1"],
+               ["foo", "5", "The side effect of the above 'set up' test, sets foo. Foo's value is tested here."],
+               ['"hi" + " dexter"', '"hi dex"', "known failures are declared with this description string starting with 'known'."],
+               ['foo961', '123', "This is an 'unknown failure' for demo purposes"],
+               ['foo723', 'TestSuite.error', 'Tests with expected of TestSuite.error pass if the source errors.'],
+               ['out(TestSuite.run("similarX"))', 'TestSuite.dont_care', "Run another test suite. This one errors because its not defined."]
+           )
+           `, null, true)}
+               //TestSuite.make_suites_menu_items() //because the ones that are defined from TestSuite.js can't make their menu items until dom is ready
+
+               //Learn Javascript menu
+               learn_js_help_id.onclick = function (){DocCode.open_doc(learning_js_doc_id)}
+                 // Debugging menu
+               dev_tools_id.onclick      = function(){show_window({content:
+                    "To see the output of <code>console.log</code> calls,<br/>" +
+                    "and for using the <code>debugger</code> breakpoint,<br/>" +
+                    "you must first open <i>Chrome Dev Tools</i> by:<br/>" +
+                    "clicking right anywhere and choosing <b>Inspect</b>.<p/>" +
+                    "Note: The <b>out</b> call is more useful in most cases than <code>console.log</code>. " +
+                    "It doesn't require <i>Chrome Dev Tools</i>.<br/>See <button>Insert&#9660;</button> <i>Print to output</i>.<br/><br/>" +
+                    "There's more help in the Documentation pane under <b>Debugging</b>.",
+                    title: "Debugging Help", width:430, height:270});
+                    DocCode.open_doc(debugging_id)
+                    //WORKS! 800 is milliseconds for the animation to take.
+                    //$('#doc_contents_id').animate({scrollTop: $('#d ebugging_id').offset().top}, 800); //jquery solution that fails.
+                    //d ebugging_id.scrollIntoView(true) //does so instantaneously but it at least works.
+                    //However, it causes the DDE header to scroll off the top of the window
+                    //and a user can't get it back. If the user has not expanded any triangles
+                    //in the doc pane, then NOT calling scrollIntoView is fine, but if they have.
+                    //they likely won't see the Debugging content. Probably an interaction between
+                    //this new HTML5 stuff and jqwidgets
+                    // the below fail.
+                                                 //poitions the top of the elt at the top of the pane, which is good.
+                   //d ebugging_id.scrollIntoView({behavior:"smooth"});//doesn't  smooth scroll in chrome
+                   //$("#d ebugging_id").parent().animate({scrollTop: $("#debugging_id").offset().top}, 1000) //doesn't work
+                    } //fails: window.open("chrome://inspect/#apps")
+               console_log_id.onclick     = function(){Editor.wrap_around_selection("console.log(", ")", '"Hello"')}
+
+               step_instructions_id.onclick = function(){
+                   DocCode.open_doc("Control.step_instructions_doc_id")
+                   let cursor_pos = Editor.selection_start()
+                   let src = Editor.get_javascript()
+                   let prev_char = ((cursor_pos == 0) ? null : src[cursor_pos - 1])
+                   let prefix
+                   if (Editor.selection_start() == 0)     {prefix = ""}
+                   else if ("[, \n]".includes(prev_char)) {prefix = ""}
+                   else                                   {prefix = ","}
+                   Editor.insert(prefix + 'Control.step_instructions(),nnll') //ok if have comma after last list item in new JS.
+               }
+
+               debugger_id.onclick        = function(){Editor.insert("debugger;nnll")} ////LEAVE THIS IN RELEASED CODE
+
+               debugger_instruction_id.onclick = function(){
+                    DocCode.open_doc("Control.debugger_doc_id")
+                    let cursor_pos = Editor.selection_start()
+                    let src = Editor.get_javascript()
+                    let prev_char = ((cursor_pos == 0) ? null : src[cursor_pos - 1])
+                    let prefix
+                    if (Editor.selection_start() == 0)     {prefix = ""}
+                    else if ("[, \n]".includes(prev_char)) {prefix = ""}
+                    else                                   {prefix = ","}
+                    Editor.insert(prefix + 'Control.debugger(),nnll') //ok if have comma after last list item in new JS.
+               }
+
+               comment_out_id.onclick     = function(){Editor.wrap_around_selection("/*", "*???/")} //todo dde4 get rid of ???
+               comment_eol_id.onclick     = function(){Editor.insert("//")}
+                 //true & false menu
+               true_id.onclick          = function(){Editor.insert(" true ")}
+               false_id.onclick         = function(){Editor.insert(" false ")}
+               and_id.onclick           = function(){Editor.insert(" && ")}
+               or_id.onclick            = function(){Editor.insert(" || ")}
+               not_id.onclick           = function(){Editor.insert("!")}
+
+                 //Math menu
+               math_example_id.onclick = function(){Editor.insert("(-1.75 + 3) * 2\n")}
+               plus_id.onclick         = function(){Editor.insert("+")}
+               minus_id.onclick        = function(){Editor.insert("-")}
+               times_id.onclick        = function(){Editor.insert("*")}
+               divide_id.onclick       = function(){Editor.insert("/")}
+               pi_id.onclick           = function(){Editor.insert("Math.PI")}
+               parens_id.onclick       = function(){Editor.wrap_around_selection("(", ")")}
+
+                  //Compare Numbers menu
+               compare_example_id.onclick = function(){Editor.insert("Math.PI >= 3\n")}
+               less_id.onclick            = function(){Editor.insert("<")}
+               less_or_equal_id.onclick   = function(){Editor.insert("<=")}
+               equal_id.onclick           = function(){Editor.insert("==")}
+               more_or_equal_id.onclick   = function(){Editor.insert(">=")}
+               more_id.onclick            = function(){Editor.insert(">")}
+               not_equal_id.onclick       = function(){Editor.insert("!=")}
+
+                  //Strings menu
+               double_quote_id.onclick   = function(){Editor.wrap_around_selection('"', '"')}
+               single_quote_id.onclick   = function(){Editor.wrap_around_selection("'", "'")}
+               back_quote_id.onclick     = function(){Editor.wrap_around_selection('`', '`')}
+               add_strings_id.onclick    = function(){Editor.insert("+")}
+
+               string_length_id.onclick  = function(){Editor.insert(".length")}
+               get_char_id.onclick       = function(){Editor.insert("[0]")}
+               slice_id.onclick          = function(){Editor.insert(".slice(0, 3)")}
+               split_id.onclick          = function(){Editor.insert('.split(" ")')}
+               string_equal_id.onclick   = function(){Editor.insert('==')}
+               starts_with_id.onclick    = function(){Editor.insert('.startsWith("ab")')}
+               ends_with_id.onclick      = function(){Editor.insert('.endsWith("yz")')}
+               replace_string_id.onclick = function(){Editor.insert('.replace(/ab/g, "AB")')}
+
+                  //Arrays menu
+               make_array_id.onclick         = function(){Editor.insert('[5, "ab", 2 + 2]')}
+               array_length_id.onclick       = function(){Editor.insert('.length')}
+               get_array_element_id.onclick  = function(){Editor.insert('[0]')}
+               set_array_element_id.onclick  = function(){Editor.insert('[0] = 42')}
+               push_array_element_id.onclick = function(){Editor.insert('.push(9)')}
+
+               //DATE
+               new_date_day_id.onclick       = function(){Editor.insert('new Date("' + new Date().toString().slice(4, 15) + '")')}
+               new_date_time_id.onclick      = function(){Editor.insert('new Date("' + new Date().toString().slice(4, 24) + '")')}
+               new_date_ms_id.onclick        = function(){Editor.insert('new Date(3000)')}
+               date_now_id.onclick           = function(){Editor.insert('Date.now()')}
+               date_valueOf_id.onclick       = function(){Editor.insert('new Date().valueOf()')}
+               date_toString_id.onclick      = function(){Editor.insert('new Date().toString()')}
+               duration_hms_id.onclick       = function(){Editor.insert('new Duration("01:14:05")')}
+               duration_hmsms_id.onclick     = function(){Editor.insert('new Duration(1, 2, 5, 10)')}
+               duration_get_ms_id.onclick    = function(){Editor.insert('new Duration(0, 0, 1, 500).milliseconds')}
+                 //Variables menu
+               variable_examples_id.onclick = function(){Editor.insert('var foo = 5 //initialize variable\nfoo //evals to 5\nfoo = "2nd" + " " + "val" ///set existing variable to new value\nfoo //now evals to "2nd val"\n')}
+               init_variable_id.onclick     = function(){Editor.insert('var foo = ')}
+               set_variable_id.onclick      = function(){Editor.insert('=')}
+
+                   //JS Objects menu
+                  js_object_example_id.onclick = function(){Editor.insert(
+              `var foo = {sam: 2, joe: 5 + 1} //make a JS object
+              foo      //evals to the new object
+              foo.sam  //evals to 2
+              foo.joe  //evals to 6
+              foo.joe = 99 //within foo, sets the value of joe to 99
+              foo.joe  //now evals to 99
+              foo["jo" + "e"] //compute the name to lookup. evals to 99
+              foo["jo" + "e"] = "jones" //set computed name to new value
+              foo.joe  //NOW evals to "jones"
+              foo.ted = 3 / 2  //adds a new name:value pair to foo.
+              foo //eval to see the latest values\n`)}
+                      js_object_cheat_sheet_id.onclick = function(){show_window({content:
+              `<pre>var foo = {sam: 2, joe: 5 + 1} //make a JS object
+              foo      //evals to the new object
+              foo.sam  //evals to 2
+              foo.joe  //evals to 6
+              foo.joe = 99    //within foo, sets the value of joe to 99
+              foo.joe  //now evals to 99
+              foo["jo" + "e"] //compute the name to lookup. evals to 99
+              foo["jo" + "e"] = "jones" //set computed name to new value
+              foo.joe         //NOW evals to "jones"
+              foo.ted = 3 / 2 //adds a new name:value pair to foo.
+              foo      //eval to see the latest values</pre>`,
+                          title: "JavaScript Object Cheat Sheet",
+                          width:  550,
+                          height: 280,
+                          x:      440,
+                          y:      370})}
+
+                  // Control Flow menu
+                  if_single_armed_id.onclick = function(){Editor.wrap_around_selection('if (1 + 1 == 2) {\n    ', '\n}')}
+                  if_multi_armed_id.onclick  = function(){Editor.wrap_around_selection('if (1 + 1 == 2) {\n    ', '\n}\nelse if (2 + 2 == 4){\n    \n}\nelse {\n    \n}\n')}
+                  for_number_of_times_id.onclick    = function(){Editor.wrap_around_selection('for(let i = 0; i < 10; i++){\n', '\n}\n')}
+                  for_through_array_elts_id.onclick = function(){Editor.wrap_around_selection('for(let x of [7, 4, 6]){\n', '\n}\n')}
+                  try_id.onclick             = function(){Editor.wrap_around_selection('try{\n', '\n} catch(err){handle errors here}')}
+                  dde_error_id.onclick       = function(){Editor.wrap_around_selection('dde_error(', ')', '"busted!"')}
+                  setTimeout_id.onclick=function(){Editor.insert('setTimeout(function(){console.log("waited 3 seconds")}, 3000)nnll')}
+
+                  // Function menu
+                  function_example_id.onclick   = function(){Editor.insert("function my_add(a, b){ // define the function 'my_add'\n    var sum = a + b\n    return sum\n}\nmy_add(2, 3) // run my_add's code with a=2 and b=3\n")}
+                  named_function_id.onclick     = function(){Editor.wrap_around_selection('function foo(x, y) {\n', '\n}\n')}
+                  anonymous_function_id.onclick = function(){Editor.wrap_around_selection('function(x, y) {\n', '\n}\n')}
+                  return_id.onclick             = function(){Editor.insert("return ")}
+                  //End of Learn JS menu
+
+                  //series Menu
+                   units_system_help_id.onclick = function(){ DocCode.open_doc(units_system_help_doc_id) }
+
+                   //jobs menu
+                  show_robot_status_id.onclick   = RobotStatusDialog.show
+                  jobs_report_id.onclick         = function(){Job.report() }
+                  stop_all_jobs_id.onclick       = function(){
+                                                       Job.stop_all_jobs()
+                                                       if(!TestSuite.status) {
+                                                           TestSuite.immediate_stop = true
+                                                       }
+                                                   }
+                  undefine_jobs_id.onclick       = function(event){
+                      Job.clear_stopped_jobs()
+                      event.target.blur()
+                  } //use individual X (close) marks instead
+
+                  insert_new_job_id.onclick = Editor.insert_new_job
+                  Editor.set_menu_string(insert_new_job_id, "New Job", "j")
+
+                  eval_and_start_job_id.onclick = function(){
+                         DocCode.open_doc(eval_and_start_job_doc_id)
+                         Job.start_job_menu_item_action()
+                  }
+
+
+                  insert_job_example0_id.onclick = function(){Editor.insert(job_examples[0])}
+                  insert_job_example1_id.onclick = function(){Editor.insert(job_examples[1])}
+                  insert_job_example2_id.onclick = function(){Editor.insert(job_examples[2])}
+                  insert_job_example3_id.onclick = function(){Editor.insert(job_examples[3])}
+                  insert_job_example4_id.onclick = function(){Editor.insert(job_examples[4])}
+                  insert_job_example5_id.onclick = function(){Editor.insert(job_examples[5])}
+                  insert_job_example6_id.onclick = function(){Editor.insert(job_examples[6])}
+                  insert_job_example7_id.onclick = function(){Editor.insert(job_examples[7])}
+                  insert_job_example8_id.onclick = function(){Editor.insert(job_examples[8])}
+                  insert_job_example9_id.onclick = function(){Editor.insert(job_examples[9])}
+                  insert_job_example10_id.onclick = function(){Editor.insert(job_examples[10])}
+                  insert_job_example11_id.onclick = function(){Editor.insert(job_examples[11])}
+                  insert_job_example12_id.onclick = function(){Editor.insert(job_examples[12])}
+                  insert_job_example13_id.onclick = function(){Editor.insert(job_examples[13])
+                                                               DocCode.open_doc("Control.loop_doc_id")}
+                  insert_job_example14_id.onclick = function(){Editor.insert(job_examples[14])}
+
+                      //RUN INSTRUCTION
+                  move_to_home_id.onclick    = function(){ Robot.dexter0.move_all_joints_fn() }
+                  move_to_neutral_id.onclick = function(){ Robot.dexter0.move_all_joints_fn(Dexter.NEUTRAL_ANGLES) }
+                  //move_to_parked_id.onclick  = function(){ Robot.dexter0.move_all_joints_fn(Dexter.PARKED_ANGLES) }  //not useful, sometimes Dexter runs into itself
+                  move_to_selection_id.onclick = Editor.move_to_instruction
+
+                  Editor.set_menu_string(move_to_selection_id, "selection", "r")
+
+                  run_instruction_dialog_id.onclick = run_instruction
+
+                  init_dxf_drawing_id.onclick = function(){
+                          var content =
+                  `DXF.init_drawing({
+                      dxf_filepath: "choose_file",    //image to draw
+                      three_points:
+                          [[0,  .55, 0.05],  //Point1 locates the drawing plane
+                           [0,   .4, 0.05],  //Point2
+                           [.15, .4, 0.05]], //Point3
+                      plane_normal_guess: [0, 0, 1],
+                      calc_plane_normal: false,
+                      tool_height: 5.08 * _cm,
+                      tool_length: 8.255 * _cm,
+                      DXF_units: undefined, //0.001 means each DXF distance unit is worth 1mm
+                                            //undefined means scale drawing to fit the three_points
+                      draw_speed:  1 * _cm/_s,
+                      draw_res:  0.5 * _mm, //Max step size of straight line
+                      lift_height: 1 * _cm, //distance above surface when pen is not drawing
+                      tool_action: false,
+                      tool_action_on_function:
+                          function(){
+                              return [make_ins("w", 64, 2),
+                                      Dexter.dummy_move()]
+                          },
+                          tool_action_off_function:
+                              function(){
+                                  return [make_ins("w", 64, 0),
+                                          Dexter.dummy_move()]
+                          }})
+                  `
+                          Editor.insert(content)
+                          DocCode.open_doc("DXF.init_drawing_doc_id")
+                      }
+
+                      //Jobs/Dexter Tools menu.
+                      browse_dexter_id.onclick     = function() {
+                          let url = "http://" + Dexter.default.ip_address
+                          browse_page(url)
+                      }
+                      calibrate_id.onclick         = function() { init_calibrate() }//defines 2 jobs and brings up calibrate dialog box
+
+                      dui2_id.onclick              = function() {
+                          Job.define_and_start_job(__dirname + "/user_tools/dexter_user_interface2.js")
+                      }
+                      ping_dexter_id.onclick       = function() { ping_a_dexter(); DocCode.open_doc(ping_doc_id) }
+
+                      reboot_joints_id.onclick  = function(){
+                          DocCode.open_doc("Dexter.reboot_joints_doc_id")
+                          Dexter.default.reboot_joints_fn() //not an instruction, a function that creates a job and starts it
+                      }
+
+                      show_errors_log_id.onclick = function(){
+                          let path = "Dexter." + Dexter.default.name + ":/srv/samba/share/errors.log"
+                          read_file_async(path, undefined, function(err, data){
+                              if(err){
+                                  dde_error("While attempting to get the content of " + path + "<br>" + err.message)
+                              }
+                              else {
+                                  let content = data.toString()
+                                  out("The content of " + path + " is:<pre>" + content + "</pre>")
+                              }
+                          })
+                      }
+
+   dexter_start_options_id.onclick = DexterUtils.show_dexter_start_options
+
+      //update_firmware_id.onclick = FileTransfer.show_dialog //todo dde4 functionality needs to move to server
+
+      run_job_on_dexter_id.onclick = function() {
+          let job_src = Editor.get_any_selection() //we want to be able to select a Job def in
+              //the doc pane and send it to Dexter.
+          if(job_src == "") {
+              job_src = Editor.get_javascript("auto") //the normal case, get the whole editor buffer
+          }
+          Job.start_and_monitor_dexter_job(job_src)
+      }
+
+      show_messaging_dialog_id.onclick = function(){
+          Messaging.show_dialog()
+          DocCode.open_doc("Messaging_id")
+      }
+
+      //cmd menu
+      cd_up_id.onclick = function(){
+          cmd_input_id.value = "cd .."
+          SSH.run_command({command:"cd ..;echo 'The new current directory is: ';pwd"})
+      }
+      date_id.onclick = function(){
+          cmd_input_id.value = "date"
+          SSH.run_command({command:"date"})
+      }
+      ssh_find_id.onclick = function(){
+          out("<i>SSH <b>find</b> from / takes about 10 seconds.<br/>" +
+              "The <b>-iname</b> option makes <b>find</b> case-insensitive,<br/>" +
+              "whereas <b>-name</b> makes it case-sensitive.</i>")
+          cmd_input_id.value = 'find / -iname "*partial_file_name_here*" -print'
+          cmd_input_id.focus()
+      }
+      make_directory_id.onclick = function(){
+          cmd_input_id.value = "mkdir " + SSH.dir_for_ls + "/[new dir name]"
+          cmd_input_id.focus()
+      }
+      make_file_id.onclick = function(){
+              cmd_input_id.value = "touch " + SSH.dir_for_ls + "/[new file name]"
+          cmd_input_id.focus()
+      }
+      man_id.onclick = function(){
+          cmd_input_id.value = "man -P cat [cmd name]"
+          cmd_input_id.focus()
+      }
+      pwd_id.onclick = function(){
+          cmd_input_id.value = "pwd"
+          SSH.run_command({command:"pwd"})
+      }
+      show_directory_id.onclick = function(){
+          cmd_input_id.value = SSH.show_dir_cmd
+          SSH.run_command({command:SSH.show_dir_cmd})
+      }
+      reboot_id.onclick = function() {
+          cmd_input_id.value = "shutdown -r now"
+          cmd_input_id.focus()
+      }
+      run_selected_cmd_id.onclick = function(){
+          let cmds = Editor.get_javascript("auto").trim()
+          if(cmds == ""){
+              warning("There are no commands selected.")
+          }
+          else {
+              let end_pos = cmds.indexOf(";")
+              if (end_pos == -1) { end_pos = cmds.indexOf("\n") }
+              else { end_pos = cmds.length }
+              let cmd_to_show = cmds.substring(0, end_pos)
+              cmd_input_id.value = cmd_to_show
+              SSH.run_command({command:cmds})
+          }
+      }
+      whoami_id.onclick = function(){
+          cmd_input_id.value = "whoami"
+          SSH.run_command({command:"whoami"})
+      }
+
+      //ping_id.onclick          = function(){ rde.ping()}
+      //cat_etc_hosts_id.onclick = function(){ rde.shell('cat /etc/hosts')}
+      //rosversion_id.onclick    = function(){ rde.shell('rosversion -d')}
+      //roswtf_id.onclick        = function(){ rde.shell('roswtf')}
+      //printenv_id.onclick      = function(){ rde.shell('printenv | grep ROS')}
+      //rqt_graph_id.onclick     = function(){ rde.shell('rqt_graph')}
+
+      //rosmsg_id.onclick        = function(){rde.shell('rosmsg list')}
+      //rosnode_id.onclick       = function(){rde.shell('rosnode list')}
+      //rospack_id.onclick       = function(){rde.shell('rospack list')}
+      //rosparam_id.onclick      = function(){rde.shell('rosparam list')}
+      //rosservice_is.onclick    = function(){rde.shell('rosservice list')}
+      //rostopic_id.onclick      = function(){rde.shell('rostopic list')}
+
+      clear_output_id.onclick  = function(){SW.clear_output(); Editor.myCodeMirror.focus()}
+
+      javascript_pane_help_id.onclick    = function(){ DocCode.open_doc(javascript_pane_doc_id)  }
+      output_pane_help_id.onclick        = function(){ DocCode.open_doc(output_pane_doc_id)  }
+      documentation_pane_help_id.onclick = function(){ DocCode.open_doc(documentation_pane_doc_id)  }
+      misc_pane_help_id.onclick          = function(){ DocCode.open_doc(misc_pane_doc_id)  }
+
+      //simulate pane
+      demo_id.onclick          = function() {
+                                      if (demo_id.innerHTML == "Demo") {
+                                          demo_id.innerHTML = "Stop"
+                                          DDEVideo.show_in_misc_pane("Simulate Dexter")
+                                          play_simulation_demo()
+                                      }
+                                      else {
+                                            sim.enable_rendering = false;
+                                            demo_id.innerHTML = "Demo"
+                                      }
                                  }
-    go_id.onclick                 = Job.go
-    show_queue_id.onclick = Simqueue.show_queue_for_default_dexter
+      inspect_dexter_details_id.onclick = function() { inspect(Dexter.default) }
 
-    //misc_pane_menu_id.oninput            = DDEVideo.show_in_misc_pane
-    let misc_items = ['Simulate Dexter',
-                      'Make Instruction',
-                      'Dexter Photo',
-                      'Haddington Website',
-                      'Dexter Architecture',
-                      'Reference Manual',
-                      'Choose File',
-                      'Reward Board']
-    $("#misc_pane_menu_id").jqxComboBox({ source: misc_items, width: '85%', height: '20px', dropDownHeight: '235px'});
-    $('#misc_pane_menu_id').on('keypress', function (event) {
-        if(event.code == "Enter"){
-            var val = event.target.value
-            DDEVideo.show_in_misc_pane(val)
-        }
-    })
-    $('#misc_pane_menu_id').on('select', function (event) { //fired when user types a char, or chooses a menu item
-        let args = event.args;
-        if(args) {
-            let item = $('#misc_pane_menu_id').jqxComboBox('getItem', args.index)
-            if(item) {
-                let val = item.value
-                if(val && (val !== DDEVideo.misc_pane_menu_selection)) {
-                    setTimeout(function() {
-                        DDEVideo.show_in_misc_pane(val)
-                    }, 100)
-                }
-            }
-        }
-    })
+      pause_id.onclick         = function (){
+                                      if (pause_id.checked) { //it just got checked
+                                             Job.go_button_state = false
+                                      }
+                                      else { Job.go_button_state = true }
+                                   }
+      go_id.onclick                 = Job.go
 
-    font_size_id.onclick = function(){
-                             $(".CodeMirror").css("font-size", this.value + "px")
-                             persistent_set("editor_font_size", this.value)
-                           }
-    $("#font_size_id").keyup(function(event){
-            if(event.keyCode == 13){
-                $(".CodeMirror").css("font-size", this.value + "px")
-                persistent_set("editor_font_size", this.value)
-            }
-    })
+   show_queue_id.onclick = function() { Simqueue.show_queue_for_default_dexter() } //dde4 without the fn wrapper, errors when loading on Simqueue not defined, maybe due to the above import didn't complete before loading this code ???
 
-    persistent_initialize() //called before loading dde_init.js by design.
-    Metrics.init()
-    //set_dde_window_size_to_persistent_values() //obsolete now that main.js does this
+       //misc_pane_menu_id.oninput            = DDEVideo.show_in_misc_pane
+       let misc_items = ['Simulate Dexter',
+                         'Make Instruction',
+                         'Dexter Photo',
+                         'Haddington Website',
+                         'Dexter Architecture',
+                         'Reference Manual',
+                         'Choose File',
+                         'Reward Board']
+       $("#misc_pane_menu_id").jqxComboBox({ source: misc_items, width: '85%', height: '20px', dropDownHeight: '235px'});
+       $('#misc_pane_menu_id').on('keypress', function (event) {
+           if(event.code == "Enter"){
+               var val = event.target.value
+               DDEVideo.show_in_misc_pane(val)
+           }
+       })
+       $('#misc_pane_menu_id').on('select', function (event) { //fired when user types a char, or chooses a menu item
+           let args = event.args;
+           if(args) {
+               let item = $('#misc_pane_menu_id').jqxComboBox('getItem', args.index)
+               if(item) {
+                   let val = item.value
+                   if(val && (val !== DDEVideo.misc_pane_menu_selection)) {
+                       setTimeout(function() {
+                           DDEVideo.show_in_misc_pane(val)
+                       }, 100)
+                   }
+               }
+           }
+       })
 
-    let val = persistent_get("save_on_eval")
-    $("#save_on_eval_id").jqxCheckBox({ checked: val})
+      font_size_id.onclick = function(){
+                               $(".CodeMirror").css("font-size", this.value + "px")
+                               persistent_set("editor_font_size", this.value)
+                             }
+     // $("#font_size_id").keyup(function(event){ //in dde3
+      font_size_id.onkeyup = (function(event){ //for dde4 todo: dde4 test
+              if(event.keyCode == 13){
+                  $(".CodeMirror").css("font-size", this.value + "px")
+                  persistent_set("editor_font_size", this.value)
+              }
+      })
 
-    //if(val) { //have to do this because, unlike the DOM doc, chrome/electron checks the box if you set it to false.
-    //    save_on_eval_id.setAttribute("checked", val)
-    //}
-    //similar to animate ui
-    save_on_eval_id.onclick = function(event){
-        let val = $("#save_on_eval_id").val()
-        persistent_set("save_on_eval", val)
-        event.stopPropagation() //causes menu to not shrink up, so you can see the effect of your click
-    }
+         //persistent_initialize() //todo dde4  needs file system
+         //called before loading dde_init.js by design.
+         //Metrics.init() //todo dde4 needs file system
+         //set_dde_window_size_to_persistent_values() //obsolete now that main.js does this
 
-    save_on_eval_wrapper_id.onclick = function(event){
-        let old_val = $("#save_on_eval_id").val()
-        let new_val = !old_val
-        $("#save_on_eval_id").val(new_val)
-        persistent_set("save_on_eval", new_val)
-        event.stopPropagation()
-    }
+        // let val = persistent_get("save_on_eval") //todo dde4 needs file system
+        // $("#save_on_eval_id").jqxCheckBox({ checked: val}) //todo dde4 needs file system
 
-    val = persistent_get("default_out_code")
-    if(val) { //have to do this because, unlike the DOM doc, chrome/electron checks the box if you set it to false.
-        format_as_code_id.setAttribute("checked", val)
-    }
-    format_as_code_id.onclick = function(event) {
-                                    let val = format_as_code_id.checked
-                                    persistent_set("default_out_code", val)
-    }
+         //if(val) { //have to do this because, unlike the DOM doc, chrome/electron checks the box if you set it to false.
+         //    save_on_eval_id.setAttribute("checked", val)
+         //}
+         //similar to animate ui
+         save_on_eval_id.onclick = function(event){
+             let val = $("#save_on_eval_id").val()
+             persistent_set("save_on_eval", val)
+             event.stopPropagation() //causes menu to not shrink up, so you can see the effect of your click
+         }
 
-    //this must be before dde_init_dot_js_initialize() so that when a robot is defined, it can go on the menu
-    default_robot_name_menu_container_id.innerHTML = make_dexter_default_menu_html()
+         save_on_eval_wrapper_id.onclick = function(event){
+             let old_val = $("#save_on_eval_id").val()
+             let new_val = !old_val
+             $("#save_on_eval_id").val(new_val)
+             persistent_set("save_on_eval", new_val)
+             event.stopPropagation()
+         }
 
-    PatchDDE.init()
+         //val = persistent_get("default_out_code") //todo dde4 needs file system
+         //if(val) { //have to do this because, unlike the DOM doc, chrome/electron checks the box if you set it to false.
+         //    format_as_code_id.setAttribute("checked", val)
+         //}
+         format_as_code_id.onclick = function(event) {
+                                         let val = format_as_code_id.checked
+                                         persistent_set("default_out_code", val)
+         }
 
-    dde_init_dot_js_initialize()//must occcur after persistent_initialize
-    copy_file_async(__dirname + "/core/main_eval.py", "main_eval.py") //because using __dirname + "/core/main_eval.py"
-        // in 2nd arg to spawn fails because spawn can't get a file out of the asar "folder".
-        //So I need to call spawn with a normal path when the Python process is launched.
-        //do this here so it will be ready by the time Py.init needs it.
-    Dexter.default = (Dexter.dexter0 ?  Dexter.dexter0 : null )
-    //initialize the checkbox state
-    $("#animate_ui_checkbox_id").jqxCheckBox({ checked: persistent_get("animate_ui")})
+         //this must be before dde_init_dot_js_initialize() so that when a robot is defined, it can go on the menu
+         default_robot_name_menu_container_id.innerHTML = DexterUtils.make_dexter_default_menu_html()
 
-    animate_ui_checkbox_id.onclick = function(event) {
-        let val = $("#animate_ui_checkbox_id").val()
-        persistent_set("animate_ui", val)
-        event.stopPropagation() //causes menu to not shrink up, so you can see the effect of your click
-        //AND causes the onclick for simulate_id to NOT be run.
-        adjust_animation()
-    }
-    //so that you don't have to hit the checkbox, just anywhere in the menu item to check/uncheck it
-    animate_ui_checkbox_wrapper_id.onclick = function(event){
-        let old_val = $("#animate_ui_checkbox_id").val()
-        let new_val = !old_val
-        $("#animate_ui_checkbox_id").val(new_val)
-        persistent_set("animate_ui", new_val)
-
-        event.stopPropagation() //causes menu to not shrink up, so you can see the effect of your click
-        //AND causes the onclick for simulate_id to NOT be run.
-        adjust_animation()
-    }
-    adjust_animation() //to the peristent flag
+         //PatchDDE.init()  //todo dde4 needs file system
 
 
-    const editor_font_size = persistent_get("editor_font_size")
-    $(".CodeMirror").css("font-size", editor_font_size + "px")
-    font_size_id.value = editor_font_size
+         //dde_init_dot_js_initialize()//todo dde4 needs file system  //must occcur after persistent_initialize
+         // copy_file_async(__dirname + "/core/main_eval.py", "main_eval.py")//todo dde4 needs file system and python eval //because using __dirname + "/core/main_eval.py"
+             // in 2nd arg to spawn fails because spawn can't get a file out of the asar "folder".
+             //So I need to call spawn with a normal path when the Python process is launched.
+             //do this here so it will be ready by the time Py.init needs it.
+         Dexter.default = (Dexter.dexter0 ?  Dexter.dexter0 : null )
+         //initialize the checkbox state
+         //$("#animate_ui_checkbox_id").jqxCheckBox({ checked: persistent_get("animate_ui")}) //todo dde4 needs file system
+
+         animate_ui_checkbox_id.onclick = function(event) {
+             let val = $("#animate_ui_checkbox_id").val()
+             persistent_set("animate_ui", val)
+             event.stopPropagation() //causes menu to not shrink up, so you can see the effect of your click
+             //AND causes the onclick for simulate_id to NOT be run.
+             adjust_animation()
+         }
+         //so that you don't have to hit the checkbox, just anywhere in the menu item to check/uncheck it
+         animate_ui_checkbox_wrapper_id.onclick = function(event){
+             let old_val = $("#animate_ui_checkbox_id").val()
+             let new_val = !old_val
+             $("#animate_ui_checkbox_id").val(new_val)
+             persistent_set("animate_ui", new_val)
+
+             event.stopPropagation() //causes menu to not shrink up, so you can see the effect of your click
+             //AND causes the onclick for simulate_id to NOT be run.
+             adjust_animation()
+         }
+         // adjust_animation() //todo dde4 needs file system //to the peristent flag
 
 
-    //init_ros_id.onclick = function(){
-    //         init_ros_service_if_url_changed()
-    //} //must occur after dde_init_doc_js_initialize  init_ros_service($("#dexter_url").val())
-    // rde.ping() //rde.shell("date") //will show an error message
-    Editor.restore_files_menu_paths_and_last_file()
-     //simulate_help_id.onclick=function(){ DocCode.open_doc(simulate_doc_id) }
+         const editor_font_size = 17 ////todo dde4 needs file system  persistent_get("editor_font_size")
+         $(".CodeMirror").css("font-size", editor_font_size + "px")
+         font_size_id.value = editor_font_size
 
 
-
-    simulate_radio_true_id.onclick  = function(){
-          persistent_set("default_dexter_simulate", true);   event.stopPropagation()
-     }
-     simulate_radio_false_id.onclick = function(){ persistent_set("default_dexter_simulate", false);  event.stopPropagation()}
-     simulate_radio_both_id.onclick  = function(){ persistent_set("default_dexter_simulate", "both"); event.stopPropagation()}
-
-     const sim_val = persistent_get("default_dexter_simulate")
-     if      (sim_val === true)   { simulate_radio_true_id.checked  = true }
-     else if (sim_val === false)  { simulate_radio_false_id.checked = true }
-     else if (sim_val === "both") { simulate_radio_both_id.checked  = true }
-
-     set_left_panel_width(persistent_get("left_panel_width"))
-     set_top_left_panel_height(persistent_get("top_left_panel_height"))
-     set_top_right_panel_height(persistent_get("top_right_panel_height"))
+         //init_ros_id.onclick = function(){
+         //         init_ros_service_if_url_changed()
+         //} //must occur after dde_init_doc_js_initialize  init_ros_service($("#dexter_url").val())
+         // rde.ping() //rde.shell("date") //will show an error message
+         //Editor.restore_files_menu_paths_and_last_file() //todo dde4 needs file system
+          //simulate_help_id.onclick=function(){ DocCode.open_doc(simulate_doc_id) }
 
 
 
-     help_system_id.onclick = function(){
-        //DocCode.open_doc(help_system_doc_id)
-         SplashScreen.show()
-     }
-     setTimeout(check_for_latest_release, 200)
-     //setTimeout(function(){ out("For help on using DDE, click <b style='color:blue;font-size:20px;'>?</b> in the upper right <b style='font-size:24px;'>&#x279A;</b> .") }, 400)
+         //simulate_radio_true_id.onclick  = function(){ //todo dde4 needs file system
+         //      persistent_set("default_dexter_simulate", true);   event.stopPropagation()
+         // }
+          simulate_radio_false_id.onclick = function(){ persistent_set("default_dexter_simulate", false);  event.stopPropagation()}
+          simulate_radio_both_id.onclick  = function(){ persistent_set("default_dexter_simulate", "both"); event.stopPropagation()}
 
-     setTimeout(function() { SplashScreen.show_maybe() }, 400)
-     close_all_details() //doc pane just show top level items.
-     setTimeout(function(){
-         DDEVideo.show_in_misc_pane(persistent_get("misc_pane_content"))
-     }, 200)
-     */ //todo dde4 uncomment
+          const sim_val = true //todo dde4 needs file system  persistent_get("default_dexter_simulate")
+          if      (sim_val === true)   { simulate_radio_true_id.checked  = true }
+          else if (sim_val === false)  { simulate_radio_false_id.checked = true }
+          else if (sim_val === "both") { simulate_radio_both_id.checked  = true }
+
+          //set_left_panel_width(persistent_get("left_panel_width")) //todo dde4 needs file system
+          //set_top_left_panel_height(persistent_get("top_left_panel_height")) //todo dde4 needs file system
+          // set_top_right_panel_height(persistent_get("top_right_panel_height")) //todo dde4 needs file system
+
+
+
+          help_system_id.onclick = function(){
+             //DocCode.open_doc(help_system_doc_id)
+              SplashScreen.show()
+          }
+          //setTimeout(check_for_latest_release, 200) //todo dde4 this can *almost* work. but needs get_page_async, defined in storage, and nearly everything in that file needs the file system
+          //setTimeout(function(){ out("For help on using DDE, click <b style='color:blue;font-size:20px;'>?</b> in the upper right <b style='font-size:24px;'>&#x279A;</b> .") }, 400)
+
+          setTimeout(function() { SplashScreen.show_maybe() }, 400)
+          DocCode.close_all_details() //doc pane just show top level items.
+          //setTimeout(function(){ //dde4 todo needs file system
+          //    DDEVideo.show_in_misc_pane(persistent_get("misc_pane_content"))
+          //}, 200)
+
 } //end of on_ready
 
 function set_left_panel_width(width=700){

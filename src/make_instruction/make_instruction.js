@@ -167,7 +167,7 @@ export var MakeInstruction = class MakeInstruction{
          //So beware, changing the select widget from "dex2" to "brain1"
          //will also change Dexter.default to dexter0.
        if(this.get_instruction_name_from_ui() == "new Job"){
-           window[this.arg_name_to_dom_elt_id("robot")].value = default_dexter_full_name()
+           window[this.arg_name_to_dom_elt_id("robot")].value = DexterUtils.default_dexter_full_name()
        }
     }
     */
@@ -412,7 +412,7 @@ export var MakeInstruction = class MakeInstruction{
             if(window[id]) { DocCode.open_doc(id) }
         }
         if (instruction_name == "Job") {
-            window[this.arg_name_to_dom_elt_id("robot")].value = default_dexter_full_name()
+            window[this.arg_name_to_dom_elt_id("robot")].value = DexterUtils.default_dexter_full_name()
             mi_run_id.title = "Start the job defined by the above fields."
             MiRecord.init_with_job_in_dialog()
         }

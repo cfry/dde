@@ -236,7 +236,7 @@ function insert_dexter_def(dex_name){
                  '",\n            ip_address: "' + ip_addr + '"})')
 }
 
-function run_instruction(){
+export function run_instruction(){
 show_window({content:
 "Send instruction to: " +
 make_robots_select_html() +

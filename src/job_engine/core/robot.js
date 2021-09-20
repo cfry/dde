@@ -61,9 +61,9 @@ var Robot = class Robot {
         Robot.all_names.push(name)
         //for Make Instance dialog
         if ((i == -1) &&
-             window["add_dexter_to_dexter_default_menu"] &&
+             window["DexterUtils"] &&
             (robot_instance instanceof Dexter)) {
-            add_dexter_to_dexter_default_menu(robot_instance)
+            DexterUtils.add_dexter_to_dexter_default_menu(robot_instance)
         }
     }
 

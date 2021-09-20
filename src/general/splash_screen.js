@@ -1,4 +1,4 @@
-var SplashScreen = class SplashScreen {
+export class SplashScreen {
     static the_checkmark_char = "\u2713" //unicode check
 
     static splash_screen_tutorial_label_to_name(label){
@@ -89,7 +89,8 @@ var SplashScreen = class SplashScreen {
          <span style="vertical-align:top;">&bull; Select a tutorial from: </span><br/>*/
 
     static show_maybe(){
-        if(!persistent_get("dont_show_splash_screen_on_launch")){
+        if(true //!persistent_get("dont_show_splash_screen_on_launch") //todo dde4 needs file system
+           ){
             this.show()
         }
     }
@@ -105,16 +106,16 @@ var SplashScreen = class SplashScreen {
 //what with some staying the same and wanting to preserve their checkmarks
     static splash_screen_tutorial_options_html(){
         let result = ""
-        let labels = persistent_get("splash_screen_tutorial_labels") //might have checkmarks in them.
+        //let labels = persistent_get("splash_screen_tutorial_labels")//todo dde4 needs file system //might have checkmarks in them.
         for(let name_and_tooltip of this.splash_screen_tutorial_names_and_tooltips){
            let name = name_and_tooltip[0]
            let label = null
-           for(let a_label of labels) {
+           /*for(let a_label of labels) { //todo dde4 comment back in once we get the above persistent_get call working
                if(a_label.endsWith(name)){
                    label = a_label //might have a checkmark
                    break;
                }
-           }
+           }*/
            if(!label) { label = "&nbsp;&nbsp;&nbsp;" + name } //default is no checkmark
            result += "<option class='splash_screen_item' " +
                       "title='" + name_and_tooltip[1] +
@@ -163,7 +164,7 @@ var SplashScreen = class SplashScreen {
        // ["Test Suite examples",       "The DDE diagnostic system doubles as code exammples.",
        //                               "DocCode.open_doc(TestSuite_for_help_doc_id)"],
         ["Doc Pane",                  "DDE documentation is contained in the right-hand documentation pane.",
-                                      "close_all_details()"],
+                                      "DocCode.close_all_details()"],
         ["Find Button",               "Search the documentation.",
                                       "DocCode.open_doc(find_button_doc_id)"],
        // ["Click Help",                "Clicking anywhere in the editor shows help in the output pane.",
