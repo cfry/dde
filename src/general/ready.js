@@ -30,9 +30,9 @@ import "codemirror/addon/lint/lint.js"
 //which is required by eslint, which is required by eslint-lint
 //but with fs installed, it still errors. GRRRR.
 // Define CodeMirror first.
-/*
+
 import "codemirror/addon/dialog/dialog.css"
-import "codemirror/addon/dialog/dialog.js"
+/*import "codemirror/addon/dialog/dialog.js"
 import "codemirror/addon/search/searchcursor.js"
 import "codemirror/addon/search/search.js"
 import "codemirror/addon/edit/matchbrackets.js"
