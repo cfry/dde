@@ -6,7 +6,7 @@ import {init_inspect} from "../../general/inspect.js" //a bit weird as inspect i
 
 import {function_name, is_string_a_integer, is_string_a_number,
        function_param_names, prepend_file_message_maybe,
-       stringify_value_cheap, warning} from "./utils.js"
+       stringify_value_cheap, value_of_path, warning} from "./utils.js"
 
 function out(val="", color="black", temp=false, code=null){
     let text = val

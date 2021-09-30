@@ -1,4 +1,4 @@
-export class SplashScreen {
+class SplashScreen {
     static the_checkmark_char = "\u2713" //unicode check
 
     static splash_screen_tutorial_label_to_name(label){
@@ -200,3 +200,8 @@ export class SplashScreen {
         return result
     }
 }
+
+globalThis.SplashScreen = SplashScreen //I use to export this, but
+//hs problems because the callback to the show_window is "SplashScreen.show_splash_screen_cb"
+//so SplashScreen gets looked up in a global context in the show Window submit code.
+//so easier to make it global

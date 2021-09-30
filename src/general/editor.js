@@ -2826,7 +2826,7 @@ Editor.context_help_for_make_ins_oplet = function(full_src, cursor_pos, identifi
     static enable_click_help = true
 
     static show_identifier_info (full_src=Editor.get_javascript(), pos=Editor.selection_start(), html_elt){
-      debugger;
+
       if(Editor.enable_click_help){
         var identifier = Editor.identifier_or_operator(full_src, pos)
         if (identifier){

@@ -1,10 +1,11 @@
-debugger;
+
 console.log("top of ready.js")
 
 //import os from 'os' //todo causes Failed to resolve module specifier "os". bug  //probably only useful in server code,  not browser code.
 
 //import $  from "jquery" //jqxwdigets tech suppport sez this is no longer necessary
 //and not having it still makes $ available.
+import "jqwidgets-scripts/jqwidgets/styles/jqx.base.css"
 import "jqwidgets-scripts/jqwidgets/jqxcore.js"
 import "jqwidgets-scripts/jqwidgets/jqxmenu.js"
 import "jqwidgets-scripts/jqwidgets/jqxsplitter.js"
@@ -27,12 +28,13 @@ import "codemirror/addon/lint/lint.js"
 
 //see https://github.com/angelozerr/codemirror-lint-eslint/blob/master/index.html
 //import "./eslint-lint.js"  //todo errors even with module "fs" is installed
+//import eslint from "eslint"
 //which is required by eslint, which is required by eslint-lint
 //but with fs installed, it still errors. GRRRR.
 // Define CodeMirror first.
 
 import "codemirror/addon/dialog/dialog.css"
-/*import "codemirror/addon/dialog/dialog.js"
+import "codemirror/addon/dialog/dialog.js"
 import "codemirror/addon/search/searchcursor.js"
 import "codemirror/addon/search/search.js"
 import "codemirror/addon/edit/matchbrackets.js"
@@ -43,7 +45,7 @@ import "codemirror/addon/fold/foldcode.js"
 import "codemirror/addon/fold/foldgutter.js"
 import "codemirror/addon/fold/brace-fold.js"
 import "codemirror/addon/fold/comment-fold.js"
-*/
+
 
 import Midi from "webmidi";
 
@@ -92,7 +94,7 @@ import {RobotStatusDialog} from "./robot_status_dialog.js"
 import {run_instruction}   from "./run_instruction.js"
 import {DexterUtils}       from "./dexter_utils.js" //makes global var for class: DexterUtils
 import {Metrics}           from "./metrics.js" //todo can't really work until file save and read.
-import {SplashScreen}      from "./splash_screen.js"
+import "./splash_screen.js" //makes SplashScreen global
 
 import package_json        from "../../package.json"
 
@@ -157,7 +159,7 @@ function set_operating_system() {
 }
 
 export function on_ready() {
-        debugger;
+
         //const os = require('os');
         console.log("top of on_ready")
         //console.log("__dirname:"  + __dirname) //todo dde4 causes error
@@ -395,10 +397,10 @@ export function on_ready() {
 
     //init_simulation() now in video.js show_in_misc_pane
 
-    DocCode.init_doc() //todo this needs read_file to read in all the doc html files. It also relies now on __dirname which is undefined.
+   // DocCode.init_doc() //todo this needs read_file to read in all the doc html files. It also relies now on __dirname which is undefined.
 
-    dde_version_id.innerHTML      = dde_version
-    dde_release_date_id.innerHTML = dde_release_date
+    //dde_version_id.innerHTML      = dde_version //todo comment back in once doc is loaded
+    //dde_release_date_id.innerHTML = dde_release_date //todo comment back in once doc is loaded
 
     Series.init_series()
     FPGA.init() //does not depend on Series.
@@ -478,7 +480,7 @@ export function on_ready() {
 
   misc_pane_expand_checkbox_id.onclick = DDEVideo.toggle_misc_pane_size
 
-  email_bug_report_id.onclick=email_bug_report
+  //email_bug_report_id.onclick=email_bug_report //todo comment back in when doc is loaded
   Editor.init_editor()
 
                      //File Menu

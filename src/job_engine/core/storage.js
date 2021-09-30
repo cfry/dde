@@ -11,7 +11,6 @@ import {shouldnt, starts_with_one_of, replace_substrings} from "./utils.js"
 //import {Job}     from "./job.js" //now global //because loading a file with new Job in it needs this.
 
 
-
 //_______PERSISTENT: store name-value pairs in a file. Keep a copy of hte file in JS env, persistent_values
 //and write it out every time its changed.
 
@@ -21,7 +20,7 @@ export var persistent_values = {}
 function get_persistent_values_defaults() {
     return {"save_on_eval":     false,
             "default_out_code": false,
-            "files_menu_paths": [add_default_file_prefix_maybe("dde_init.js")],
+            "files_menu_paths": [], //todo [add_default_file_prefix_maybe("dde_init.js")],
             "misc_pane_content": "Simulate Dexter",
             "misc_pane_choose_file_path": "", //only used on dde init, and only if misc_pane_content is "choose_file"
             "default_dexter_simulate": true,
@@ -107,7 +106,7 @@ export function persistent_save(){
     persistent_values.dde_window_y      = Math.max(persistent_values.dde_window_y, 0)
     if(persistent_values.dde_window_width  <= 60)  { persistent_values.dde_window_width  = the_defaults.dde_window_width  }
     if(persistent_values.dde_window_height <= 20)  { persistent_values.dde_window_height = the_defaults.dde_window_height }
-    const path = add_default_file_prefix_maybe("dde_persistent.json")
+    //const path = add_default_file_prefix_maybe("dde_persistent.json") //todo needs file system
     var content = JSON.stringify(persistent_values)
     content = replace_substrings(content, ",", ",\n") //easier to read & edit
     content = content.replace('"files_menu_paths":[', '"files_menu_paths":[\n') //just insert newline to improve formatting of the file
@@ -118,12 +117,13 @@ export function persistent_save(){
               "//Within DDE, use persistent_get(key) and persistent_set(key, new_value)\n" +
               "//to access each of the below variables.\n\n"
               + content
-    write_file(path, content)
+    //write_file(path, content) //todo implement file system write
 }
 
 
 function persistent_load(){
     const path = add_default_file_prefix_maybe("dde_persistent.json")
+    /* //todo needs file system access
     if(file_exists(path)){
         var content = read_file(path)
         const start_of_content = content.indexOf("{")
@@ -143,7 +143,7 @@ function persistent_load(){
         let the_defaults = get_persistent_values_defaults()
         if(persistent_values.dde_window_width  <= 60)  { persistent_values.dde_window_width  = the_defaults.dde_window_width  }
         if(persistent_values.dde_window_height <= 20)  { persistent_values.dde_window_height = the_defaults.dde_window_height }
-    }
+    }*/
     persistent_load_fill_in_defaults() //this is needed when a new persistent var is added accross a release,
                                        //or the user deletes a var in the .json file
 }
