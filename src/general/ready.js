@@ -1,6 +1,8 @@
 
 console.log("top of ready.js")
 
+import "./styles.css"
+
 //import os from 'os' //todo causes Failed to resolve module specifier "os". bug  //probably only useful in server code,  not browser code.
 
 //import $  from "jquery" //jqxwdigets tech suppport sez this is no longer necessary
