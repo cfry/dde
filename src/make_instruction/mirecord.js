@@ -1,5 +1,6 @@
-//var noUiSlider = require('noUiSlider') //works but can't get the css
-//var noUiSlider = require('noUiSlider.css') //errors
+import "./nouislider.css"
+import "./nouislider_fry.css"
+import "./nouislider.js"
 
 var MiRecord = class MiRecord {
     static instruction_suffix_html(loc){
