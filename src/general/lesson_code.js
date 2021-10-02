@@ -1,3 +1,4 @@
+import "shepherd.js/dist/css/shepherd.css"
 import Shepherd from "/shepherd.js"
 
 set_css_properties(".shepherd_step {background-color:#ffcdb0; width:300px;}")
