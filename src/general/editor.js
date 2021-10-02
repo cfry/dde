@@ -76,7 +76,6 @@ class Editor {
                          }
                         )
         })
-        js_textarea_id.style.display = "" //this is set to "none" somewhere deep in CodeMirror. Setting it to "" undoes the "none"
         undo_id.onclick        = Editor.undo
         Editor.set_menu_string(undo_id, "Undo", "z")
         redo_id.onclick        = function(){Editor.myCodeMirror.getDoc().redo()}
