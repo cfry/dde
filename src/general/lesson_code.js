@@ -1,3 +1,4 @@
+// In DDE3, "shepherd.js/dist/css/shepherd.css", from the below line, is included before general "styles.css". We might want to make sure that this css inclusion order is maintained.
 import "shepherd.js/dist/css/shepherd.css"
 import Shepherd from "/shepherd.js"
 

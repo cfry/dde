@@ -1,7 +1,6 @@
 
 console.log("top of ready.js")
 
-import "./styles.css"
 
 //import os from 'os' //todo causes Failed to resolve module specifier "os". bug  //probably only useful in server code,  not browser code.
 
@@ -50,6 +49,8 @@ import "codemirror/addon/fold/comment-fold.js"
 
 
 import Midi from "webmidi";
+
+import "./styles.css"
 
 import {warning} from "../job_engine/core/utils.js" //defines dde_error as global
 import "../job_engine/core/je_and_browser_code.js" //defines SW and out globally

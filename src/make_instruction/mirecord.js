@@ -1,3 +1,4 @@
+// In DDE3, both "./nouislider.css" and "./nouislider_fry.css", from the below lines, are included before general "styles.css". We might want to make sure that this css inclusion order is maintained.
 import "./nouislider.css"
 import "./nouislider_fry.css"
 import "./nouislider.js"
