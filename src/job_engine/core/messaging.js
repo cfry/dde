@@ -2122,7 +2122,7 @@ MessStat.extract_property_value = function(res, property_name){
     let end_pos   = path.indexOf(",", start_pos)
     if(end_pos == -1) { end_pos = path.indexOf("}", start_pos) }
     let val_src = path.substring(start_pos, end_pos)
-    val = JSON.parse(val_src)
+    let val = JSON.parse(val_src)
     return val
 }
 

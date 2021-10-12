@@ -4,8 +4,8 @@
 import {init_inspect} from "../../general/inspect.js" //a bit weird as inspect is really a dde thing.
        //only used by SW.clear_output
 
-import {function_name, is_string_a_integer, is_string_a_number,
-       function_param_names, prepend_file_message_maybe,
+import {function_name, function_param_names, is_string_a_integer, is_string_a_number,
+       last, prepend_file_message_maybe, replace_substrings,
        stringify_value_cheap, value_of_path, warning} from "./utils.js"
 
 function out(val="", color="black", temp=false, code=null){

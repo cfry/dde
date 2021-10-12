@@ -23,6 +23,8 @@ html, body {  width: 100%;  height: 100%; font-family: sans-serif; overflow:hidd
 .menubar_menu { display:inline-block; padding-left:3px; padding-right:0px; }
 .dde_menu     { background-color: #93dfff; }
 
+#js_menubar_id {background-color: #93dfff;} /* seems redundant, but helps in dde4*/
+
 .pane_header_wrapper {
     padding:5px;
     background-color: #bae5fe; /* for orig color, this was orange #ffbe3c;*/

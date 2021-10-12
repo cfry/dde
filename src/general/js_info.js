@@ -51,6 +51,9 @@ export class Js_info {
                 //Js_info.make_atag("Py", "eval") + "(" + Js_info.get_param_string(fn) + ")"
 
             }
+            if(fn_name === ".") {
+
+            }
             fn_name = Js_info.strip_path_prefix_maybe(fn_name)
             if (!info_and_url) { info_and_url = Js_info.fn_name_to_info_map[fn_name] } //try again without prefix, for cases where orign fn_name is "fn.call", for instance
             if (!series && (orig_input !== "Control.loop")){ series = Series.find_series(fn_name) }
@@ -141,14 +144,13 @@ export class Js_info {
             else if(series){
                 let obj_to_inspect = this.object_to_inspect_maybe(fn_name, series)
                 if(typeof(obj_to_inspect) == "string"){
-                    if(file_exists(obj_to_inspect)) {
-                        inspect(obj_to_inspect)
-                        return null
-
-                    }
-                    else {
+                    //if(file_exists(obj_to_inspect)) { //todo dde4 comment in when file system works
+                    //    inspect(obj_to_inspect)
+                    //    return null
+                    //}
+                    //else {
                         return Js_info.add_series_wrapper_to_info(series, obj_to_inspect)
-                    }
+                    //}
                 }
                 else if(obj_to_inspect) {
                     inspect(obj_to_inspect)
@@ -442,6 +444,7 @@ export class Js_info {
     static get_lit_string_info_maybe(fn_name, full_src, pos){
         let prev_newline      = full_src.lastIndexOf("\n", pos)
         let next_newline      = full_src.indexOf("\n", pos)
+        if(next_newline === -1) { next_newline = full_src.length }
         full_src = full_src.substring(prev_newline + 1, next_newline)
         pos -= (prev_newline + 1)
         let start_search = 0
@@ -483,8 +486,7 @@ export class Js_info {
     }
 
     static strip_path_prefix_maybe(fn_name){
-        let lit_str_delimiters = ['"', "'", "`"]
-        let first_char = ((fn_name.length > 1) ? fn_name[0] : null)
+        if(fn_name === ".") { return fn_name } //its not really a prefix, is the operator between 2 path parts that says "get tvalue of the 2nd part from the first part.
         if(is_string_a_literal_string(fn_name)) { return fn_name }
         else if (!fn_name.includes(".")) { return fn_name }
         else if (starts_with_one_of(fn_name, ["Brain.", "Control.", "Dexter.", "FPGA.", "Human.", "IO.", "Job.", "Math.",
@@ -913,7 +915,7 @@ export class Js_info {
             else if(Robot[fn_name])  { return Robot[fn_name] }
             else if (Job[fn_name])   { return Job[fn_name] }
             else if(value_of_path(fn_name)) { return value_of_path(fn_name) }
-            else if(file_exists(fn_name))   { return fn_name }
+            //else if(file_exists(fn_name))   { return fn_name }//todo dde4 comment in when file system fixed.
             else {return null}
         }
         else { return null }

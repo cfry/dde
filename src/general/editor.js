@@ -20,8 +20,9 @@ require("codemirror/addon/fold/comment-fold.js")
 import {dde_init_dot_js_initialize, file_exists, load_files,
         persistent_initialize, persistent_get, persistent_set,
         write_file}    from "../job_engine/core/storage.js"
-import {decode_quotes, is_alphanumeric, is_comment, is_digit, is_letter,
-        is_letter_or_underscore, is_whitespace, reverse_string} from "../job_engine/core/utils.js"
+import {decode_quotes, function_param_names_and_defaults_lit_obj, is_alphanumeric, is_comment, is_digit, is_letter,
+        is_letter_or_underscore, is_whitespace,  ordinal_string, reverse_string,
+        value_of_path} from "../job_engine/core/utils.js"
 import beautify from "js-beautify"
 
 import {eval_js_part1} from "./eval.js"
@@ -112,7 +113,7 @@ class Editor {
 
         Editor.set_menu_string(select_all_id, "Select All", "a")
 
-        //Editor.myCodeMirror.on("mousedown", //"mousedown",  //"on" works only in node
+        //Editor.myCodeMirror.on("mousedown", //"mousedown",  //"on" works only in node (in DDE3 manybe,but works in dde4. Used below
         /*Editor.myCodeMirror.addEventListener('click',
                         function(mouse_event){
                               console.log('top of Editor.myCodeMirror.on("mousedown" with cm: ' + cb + " and mouse_event: " + mouse_event)
@@ -143,10 +144,13 @@ class Editor {
                             Editor.myCodeMirror.focus()
                             cmd_input_clicked_on_last = false
 
-         })*/ //todo errors (sometimes) with: addEventListener is not a function
+         })*/
         //see https://stackoverflow.com/questions/53021058/codemirror-mouseup-event
-        js_textarea_id.addEventListener("mousedown", Editor.handle_codemirror_mouse_click)
-        //js_textarea_id.onclick = function(mouse_event) { console.log("got CM onclick") }
+        //js_textarea_id.addEventListener("mousedown", Editor.handle_codemirror_mouse_click) //in force in DDE3 but apparently has no effect in DDE4 as the method isn't called.
+        //js_textarea_id.onclick = function(mouse_event) { console.log("got CM onclick") } //commented out in DDE 3
+        //Editor.myCodeMirror.addEventListener('click', Editor.handle_codemirror_mouse_click) //errors in dde4 because addEventListener is undefined.
+        //js_textarea_id.onclick = Editor.handle_codemirror_mouse_click //no effect in dde4
+        Editor.myCodeMirror.on("mousedown", Editor.handle_codemirror_mouse_click)
 
         Editor.myCodeMirror.getDoc().on("change", Editor.mark_as_changed)
 
@@ -1887,7 +1891,7 @@ Clear its content?
                     else { return null }
                 }
                 else if(open_char == "(") {
-                    temp_cur = Editor.find_call_start_from_open_paren(full_src, open_pos)
+                    let temp_cur = Editor.find_call_start_from_open_paren(full_src, open_pos)
                     if (temp_cur !== null) { //beware, if fn starts on first char of file, temp_cur will be 0
                         //ALSO: if we have src function foo(a){return 2} and user clicks on
                         //the close paran, we don't want to select the whole fn def because

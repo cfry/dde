@@ -154,7 +154,8 @@ import {Instruction, make_ins,
 import {Control} from "./instruction_control.js"
 import {IO}      from "./instruction_io.js"
 import "./je_and_browser_code.js" // must be before loading out.js as it defines SW used by out.js
-import {beep, beeps, format_text_for_code, speak, show_window}  from "./out.js"
+// import {beep, beeps, format_text_for_code, speak, show_window}  from "./out.js" //all these are made global in dde4 inside out.js
+import "./out.js"
 import calibrate_build_tables from "../low_level_dexter/calibrate_build_tables.js"
 import DXF    from "../math/DXF.js"
 import {init_units} from "./units.js"
@@ -185,12 +186,6 @@ global.RobotStatus = RobotStatus
 global.Serial   = Serial
 
 global.make_ins = Dexter.make_ins
-
-global.beep     = beep
-global.beeps    = beeps
-global.format_text_for_code = format_text_for_code
-global.speak    = speak
-global.show_window = show_window
 
 global.Instruction = Instruction
 global.human_task_handler = human_task_handler

@@ -2714,7 +2714,7 @@ Dexter.prototype.set_link_lengths_from_file_content = function(content){
                     }
                 }
                 else {
-                    val = line_elts.slice(2, line_elts.length - 1)
+                    let val = line_elts.slice(2, line_elts.length - 1)
                     this[param_name] = val
                 }
             }

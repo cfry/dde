@@ -1,8 +1,9 @@
 /** Created by Fry on 8/12/17*/
 
 import {out_eval_result} from "../job_engine/core/out.js"
-import {a_or_an, get_class_name, is_class, is_array_of_same_lengthed_arrays,
-        replace_substrings, shouldnt, typed_array_name}
+import {a_or_an, get_class_name,
+       is_array_of_same_lengthed_arrays, is_class, is_literal_object,
+       replace_substrings, shouldnt, typed_array_name}
         from "../job_engine/core/utils.js"
 import {file_exists, make_full_path, read_file} from "../job_engine/core/storage.js"
 
@@ -276,7 +277,7 @@ function inspect_aux(item, stack_number, in_stack_position, increase_max_display
             }
             else { title = "An Anonymous Function" }
         }
-        else if (cv.Mat && Picture.is_mat(item)) { //if cv is not inited, cv.Mat === undefined. We must check for this, otherwise calling Picture.is_mat will error
+        else if (globalThis.cv && cv.Mat && Picture.is_mat(item)) { //if cv is not inited, cv.Mat === undefined. We must check for this, otherwise calling Picture.is_mat will error
             title = "OpenCV.js Mat"
             let type
             if(Picture.is_mat(item, "gray"))       { type = '"gray"' }

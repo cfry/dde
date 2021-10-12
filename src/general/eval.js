@@ -142,7 +142,7 @@ function render_html(str){
 }
 
 //part 2 of 3 is in eval.js,  window.addEventListener('message'  under the message name of "eval"
-function eval_js_part2(command, call_eval_part3_if_no_error=true){ //2nd arg passed in as false for eval_and_play
+export function eval_js_part2(command, call_eval_part3_if_no_error=true){ //2nd arg passed in as false for eval_and_play
     command = fix_code_to_be_evaled(command)
     let suffix_to_evaled_src
     let prefix_to_evaled_src
@@ -280,6 +280,10 @@ function error_message_start_and_end_pos(err){
          //that I can't parse, so just bail.
     }
 }
+
+globalThis.error_message_start_and_end_pos = error_message_start_and_end_pos //need to make
+//this global as we're passing a fn call as a string to eval with this in it. (see below, this file)
+
 //action for the Eval&Start button
 export function eval_and_start(){
      let sel_text = Editor.get_any_selection()

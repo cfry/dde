@@ -64,7 +64,7 @@ import "../job_engine/math/DXF.js"     //now global
 import {calibrate_build_tables} from "../job_engine/low_level_dexter/calibrate_build_tables.js"
 
 import {convert_backslashes_to_slashes} from "../job_engine/core/storage.js"
-import {get_output} from "../job_engine/core/out.js"
+import "../job_engine/core/out.js" //makes get_output, show_window, beep, etc global
 import "../job_engine/core/job.js" //globally defines Job
 import "../job_engine/core/gcode.js" //Gcode now global
 import {date_to_human_string, date_to_mmm_dd_yyyy, is_digit} from "../job_engine/core/utils.js"
@@ -76,6 +76,8 @@ import "../job_engine/core/robot.js" //now global Robot, Brain, Serial, Human, D
 
 import "./doc_code.js" //makes DocCode global
 
+import {eval_js_part2} from "./eval.js" //needed for the cmd type in evaluation
+import "./svg.js" //defines svg_svg & friends as globals.
 
 //in the general folder, as is ready.js
 import "./editor.js" //Editor now global
@@ -131,7 +133,6 @@ function undebug_job() {
 
 function play_simulation_demo(){
     sim.enable_rendering = true;
-    render_demo();
     //out("Demo just moves Dexter randomly.")
 }
 
@@ -620,6 +621,25 @@ export function on_ready() {
                      //Edit menu  (see editor.js for the Edit menu items
                      //Editor.init_editor() I moved this up
 
+                //Insert menu
+                    js_example_1_id.onclick=function(){
+                        Editor.insert(
+`//Click the Eval button to define and call the function 'foo'.
+function foo(a, b){ //define function foo with 2 args
+    out("foo called with a=" + a) //print 1st arg to Output pane.
+    for(var item of b){ //loop over items in array b
+        if (item > 9.9){
+            out("got a big one: " + item)
+        }
+    }
+    return b.length //foo returns the length of its 2nd arg.
+                    //After calling, observe '4' in the Output pane.
+}
+
+foo("hello", [7, 10, 20, -3.2]) //call function foo with 2 args
+                                //a string and an array of numbers.
+`)}
+
                     alert_id.onclick   = function(){Editor.wrap_around_selection(  "alert(", ')', '"Hi."')}
                     confirm_id.onclick = function(){Editor.wrap_around_selection("confirm(", ')', '"Do it?"')}
                     prompt_id.onclick  = function(){Editor.wrap_around_selection( "prompt(", ')', '"Price?"')}
@@ -629,21 +649,19 @@ export function on_ready() {
                      out_brown_id.onclick =function(){Editor.wrap_around_selection("out(", ', "rgb(255, 100, 0)")', '"Hello"')}
 
                      editor_insert_id.onclick = function(){Editor.insert(
-                 `Editor.insert(
-                     "text to insert",
-                     "replace_selection", //insertion_pos.   "replace_selection" is the default. Other options: "start", "end", "selection_start", "selection_end", "whole", an integer
-                     false)               //select_new_text. false is the default.
+                 `Editor.insert("text to insert",
+              "replace_selection", //insertion_pos.   "replace_selection" is the default. Other options: "start", "end", "selection_start", "selection_end", "whole", an integer
+               false)              //select_new_text. false is the default.
                  `)}
 
 
                     show_window_help_id.onclick = function(){DocCode.open_doc(show_window_doc_id)}
 
                      window_simple_message_id.onclick=function(){Editor.insert(
-                 `//show_window simple message
-                 //Pop up a window with content of the given HTML.
-                 show_window("hi <i style='font-size:100px;'>wizard</i>")
-                 `
-                 )}
+`//show_window simple message
+//Pop up a window with content of the given HTML.
+show_window("hi <i style='font-size:100px;'>wizard</i>")
+` )}
                      insert_color_id.onclick = insert_color
                  window_options_id.onclick=function(){Editor.insert('//show_window  Window Options\n' +
                                                                       'show_window({\n' +
@@ -662,123 +680,126 @@ export function on_ready() {
                                                                                '    background_color: "ivory"   // Default is "rgb(238, 238, 238)" (light gray). White is "rgb(255, 255, 255)"\n' +
                                                                                '})\n')}
                      window_buttons_id.onclick=function(){Editor.insert(
-                 `//show_window  Buttons  Example
-                 //The below function is called when a button is clicked in the shown window.
-                 function count_up(vals){ //vals contains name-value pairs for each
-                                          //html elt in show_window's content with a name.
-                     if(vals.clicked_button_value == "Count"){ // Clicked button value holds the name of the clicked button.
-                         if(window.demo_counter == undefined) {
-                             window.demo_counter = 10           // Initialize the demo_counter global variable.
-                         }
-                         window.demo_counter = window.demo_counter + 1 // Increment demo_counter upon each button click.
-                         count_id.innerHTML = window.demo_counter
-                         count_id.style["font-size"] = demo_counter + "px"
-                     }
-                     else if (vals.clicked_button_value == "Done"){   // When a 'submit' button is clicked, its 'value' can be used as its name.
-                         out("outta here at: " + window.demo_counter) // Last thing printed to the Output pane.
-                     }
-                 }\n` +
-                 'show_window({\n' +
-                 '    content:\n' +
-                 '`<input type="button" value="Count"/> <!-- Regular button. Does not close window.-->\n' +
-                 ' <span  name="count_display" id="count_id">10</span><br/><br/>\n' +
-                 ' <input type="submit" value="Done"/>`, // submit button closes window\n' +
-                 '    callback: count_up})      // This function called when either button is clicked.\n'
-                 )} //done with window buttons
+`//show_window  Buttons  Example
+//The below function is called when a button is clicked in the shown window.
+function count_up(vals){ //vals contains name-value pairs for each
+                      //html elt in show_window's content with a name.
+ if(vals.clicked_button_value == "Count"){ // Clicked button value holds the name of the clicked button.
+     if(window.demo_counter == undefined) {
+         window.demo_counter = 10           // Initialize the demo_counter global variable.
+     }
+     window.demo_counter = window.demo_counter + 1 // Increment demo_counter upon each button click.
+     count_id.innerHTML = window.demo_counter
+     count_id.style["font-size"] = demo_counter + "px"
+ }
+ else if (vals.clicked_button_value == "Done"){   // When a 'submit' button is clicked, its 'value' can be used as its name.
+     out("outta here at: " + window.demo_counter) // Last thing printed to the Output pane.
+ }
+}\n` +
+'show_window({\n' +
+'    content:\n' +
+'`<input type="button" value="Count"/> <!-- Regular button. Does not close window.-->\n' +
+' <span  name="count_display" id="count_id">10</span><br/><br/>\n' +
+' <input type="submit" value="Done"/>`, // submit button closes window\n' +
+'    callback: count_up})      // This function called when either button is clicked.\n'
+)} //done with window buttons
 
                  window_sliders_id.onclick=function(){Editor.insert(
-                 `function handle_cb(vals){
-                     if(vals.clicked_button_value === "submit_slow") {
-                         out("slide_slow: " + vals.slide_slow)
-                     }
-                     else if(vals.clicked_button_value === "slide_fast"){
-                         out("slide_fast: " + vals.slide_fast, "green", true)
-                     }
-                 }
+ `function handle_cb(vals){
+     if(vals.clicked_button_value === "slide_fast"){
+         out("slide_fast: " + vals.slide_fast, "green", true)
+     }
+     else if(vals.clicked_button_value === "slide_medium"){
+         out("slide_medium: " + vals.slide_medium, "green", true)
+     }
+     else if(vals.clicked_button_value === "submit_slow") {
+         out("slide_slow: " + vals.slide_slow)
+     }
+ }
 
-                 show_window({title: "show_window sliders demo",
-                     content: "Fast: 0<input name='slide_fast' type='range' min='0', max='100' data-oninput='true'/>100<br/>" +
-                     "Slow: 0<input id='slide_slow' type='range' min='0', max='10' step='0.1' />10<br/>" +
-                     "<input type='button' value='submit_slow'> </input>",
-                     height: 130,
-                     callback: handle_cb})`
-                 )}
+ show_window({title: "show_window sliders demo",
+              content: "Fast:   0<input name='slide_fast'   type='range' min='0', max='100' data-oninput='true'/>100<br/>" +
+                       "Medium: 0<input name='slide_medium' type='range' min='0', max='100' data-onchange='true'/>100<br/>" +
+                       "Slow:   0<input name='slide_slow'   type='range' min='0', max='10'  step='0.1' />10<br/>" +
+                      "<input type='button' value='submit_slow'> </input>",
+              height: 130,
+              callback: handle_cb})`
+ )}
 
 
-                 let show_window_menu_body =
-                 `Choose:
-                 <div class="menu" style="display:inline-block;">
-                    <ul>
-                       <li>TopMenu&#9660;
-                         <ul>
-                           <li title="this is a tooltip">item1</li>
-                           <li data-name="ITEM two">item2</li> <!-- if there's a data-name, use it, otherwise use the innerHTML-->
-                           <li>SubMenu
-                             <ul>
-                               <li>sub1</li>
-                               <li>sub2</li>
-                             </ul>
-                           </li>
-                         </ul>
-                       </li>
-                     </ul>
-                 </div>
-                 <span  name="menu_choice">pick menu item</span><br/><br/>
-                 <input type="submit" value="Done"/>`
+ let show_window_menu_body =
+ `Choose:
+ <div class="menu" style="display:inline-block;">
+    <ul>
+       <li>TopMenu&#9660;
+         <ul>
+           <li title="this is a tooltip">item1</li>
+           <li data-name="ITEM two">item2</li> <!-- if there's a data-name, use it, otherwise use the innerHTML-->
+           <li>SubMenu
+             <ul>
+               <li>sub1</li>
+               <li>sub2</li>
+             </ul>
+           </li>
+         </ul>
+       </li>
+     </ul>
+ </div>
+ <span  name="menu_choice">pick menu item</span><br/><br/>
+ <input type="submit" value="Done"/>`
 
                      window_menu_id.onclick=function(){Editor.insert(
-                 `//show_winow   Menu example
-                 //Called whenever user chooses a menu item or clicks a button.
-                 function menu_choice_cb(vals){
-                         if (vals.clicked_button_value != "Done"){ // True when menu item chosen.
-                             var clicked_item = vals.clicked_button_value
-                             out("You picked: " + clicked_item)
-                         }
-                 }
+ `//show_window   Menu example
+ //Called whenever user chooses a menu item or clicks a button.
+ function menu_choice_cb(vals){
+         if (vals.clicked_button_value != "Done"){ // True when menu item chosen.
+             var clicked_item = vals.clicked_button_value
+             out("You picked: " + clicked_item)
+         }
+ }
 
-                 show_window({content: ` + "`" + show_window_menu_body + "`," +
-                 ` // submit closes window
-                         callback: menu_choice_cb // Called when menu item or button is clicked
-                         })
-                 `)}
+ show_window({content: ` + "`" + show_window_menu_body + "`," +
+ ` // submit closes window
+         callback: menu_choice_cb // Called when menu item or button is clicked
+         })
+ `)}
 
                      window_many_inputs_id.onclick=function(){Editor.insert(
-                 `//show_window   Many Inputs Example.
-                 //show_vals called only when a button is clicked.
-                 function show_vals(vals){ inspect(vals) }
+ `//show_window   Many Inputs Example.
+ //show_vals called only when a button is clicked.
+ function show_vals(vals){ inspect(vals) }
 
-                 show_window(
-                     {content:\n` +
-                 "`" +
-                 `text: <input type="text" name="my_text" value="Dexter"><br/><br/>
-                 textarea: <textarea name="my_textarea">Hi Rez</textarea><br/><br/>
-                 checkbox: <input name="my_checkbox" type="checkbox" checked="checked"/>heated bed?<br/><br/>
-                 <!-- you can add the checked="checked" attribute to make it initially checked. -->
-                 radio:
-                 <input type="radio" name="my_radio_group" value="abs" />ABS
-                 <input type="radio" name="my_radio_group" value="carbon"/>Carbon Fiber
-                 <input type="radio" name="my_radio_group" value="pla" checked="checked"/>PLA<br/><br/>
-                     <!-- At most, only 1 radio button can be checked. If none are checked,
-                          the return value for the group will be undefined . -->
-                 number: <input type="number" name="my_number" value="0.4" min="0" max="1" step="0.2"/><br/>
-                 range:  <input type="range"  name="my_range"  value="33"  min="0" max="100"/><br/>
-                 color:  <input type="color"  name="my_color"  value="#00FF88"/><br/>
-                 date:   <input type="date"   name="my_date"   value="2017-01-20"/><br/>
-                 select: <select name="size">
-                     <option>Gihugeic</option>
-                     <option selected="selected">Ginormace</option> <!--the inital value-->
-                     <option>Gilossal</option>
-                 </select><br/>
-                 combo_box: <div id="my_combo_box" class="combo_box" style="display:inline-block;vertical-align:middle;"> <!-- Can't use 'name' attribute. Must use 'id'. -->
-                         <option>one</option>
-                         <option selected="selected">two</option>
-                 </div><br/>
-                 file:   <input type="file" name="my_file"/><br/><br/>
-                 button: <input type="button" value="Show settings"/><br/><br/>
-                 submit: <input type="submit" value="OK"/>` + "`" +
-                 ',\n     width:380, height:450, title:"Printer Config", x:100, y:100,\n     callback: show_vals})\n')}
+ show_window(
+     {content:\n` +
+ "`" +
+ `text: <input type="text" name="my_text" value="Dexter"><br/><br/>
+ textarea: <textarea name="my_textarea">Hi Rez</textarea><br/><br/>
+ checkbox: <input name="my_checkbox" type="checkbox" checked="checked"/>heated bed?<br/><br/>
+ <!-- you can add the checked="checked" attribute to make it initially checked. -->
+ radio:
+ <input type="radio" name="my_radio_group" value="abs" />ABS
+ <input type="radio" name="my_radio_group" value="carbon"/>Carbon Fiber
+ <input type="radio" name="my_radio_group" value="pla" checked="checked"/>PLA<br/><br/>
+     <!-- At most, only 1 radio button can be checked. If none are checked,
+          the return value for the group will be undefined . -->
+ number: <input type="number" name="my_number" value="0.4" min="0" max="1" step="0.2"/><br/>
+ range:  <input type="range"  name="my_range"  value="33"  min="0" max="100"/><br/>
+ color:  <input type="color"  name="my_color"  value="#00FF88"/><br/>
+ date:   <input type="date"   name="my_date"   value="2017-01-20"/><br/>
+ select: <select name="size">
+     <option>Gihugeic</option>
+     <option selected="selected">Ginormace</option> <!--the inital value-->
+     <option>Gilossal</option>
+ </select><br/>
+ combo_box: <div id="my_combo_box" class="combo_box" style="display:inline-block;vertical-align:middle;"> <!-- Can't use 'name' attribute. Must use 'id'. -->
+         <option>one</option>
+         <option selected="selected">two</option>
+ </div><br/>
+ file:   <input type="file" name="my_file"/><br/><br/>
+ button: <input type="button" value="Show settings"/><br/><br/>
+ submit: <input type="submit" value="OK"/>` + "`" +
+ ',\n     width:380, height:450, title:"Printer Config", x:100, y:100,\n     callback: show_vals})\n')}
 
-                  //todo dd4 uncomment 1 above
 //______window_onchange_____________________
     var window_onchange_top_comments =
 `/* show_window   onchange calls
@@ -843,105 +864,105 @@ export function on_ready() {
 
         window_onchange_id.onclick = function(){Editor.insert(
             window_onchange_top_comments +
-    `function the_cb(vals){ //vals contains name-value pairs for each input
-         out(vals.clicked_button_value + " = " +
-             vals[vals.clicked_button_value])
-    }
-    show_window({content:
+`function the_cb(vals){ //vals contains name-value pairs for each input
+     out(vals.clicked_button_value + " = " +
+         vals[vals.clicked_button_value])
+}
+show_window({content:
     `       + "`" +
             window_onchange_content + "`" +
-    `,           title: "show_window onchange & oninput",
-                 width: 440, height: 440, x: 500, y: 100,
-                 callback: the_cb})
+`,           title: "show_window onchange & oninput",
+             width: 440, height: 440, x: 500, y: 100,
+             callback: the_cb})
     ` )}
         window_svg_id.onclick=function(){Editor.insert(
-    `//SVG Example 1: lots of shapes
-    function handle1(arg) {
-        if((arg.clicked_button_value === "background_id") ||
-           (arg.clicked_button_value === "svg_id")) {
-            SW.append_in_ui("svg_id", svg_circle({cx: arg.offsetX, cy: arg.offsetY, r: 7}))
-        }
-        else if (arg.clicked_button_value === "circ_id") {
-            out("clicked on circ_id")
-        }
-        else if (arg.clicked_button_value === "ellip_id") {
-            out("The user clicked on ellip_id")
-        }
+`//SVG Example 1: lots of shapes
+function handle1(arg) {
+    if((arg.clicked_button_value === "background_id") ||
+       (arg.clicked_button_value === "svg_id")) {
+        SW.append_in_ui("svg_id", svg_circle({cx: arg.offsetX, cy: arg.offsetY, r: 7}))
     }
-
-    show_window({
-        title: "SVG Example 1: Lots of shapes. Click to interact",
-        content: svg_svg({id: "svg_id", height: 300, width: 500, html_class: "clickable", child_elements:
-           [//svg_rect({id: "background_id", html_class: "clickable", style:"position: relative; top: 0; right: 0; x: 0, y: 0, width: 500, height: 500, color: "white", border_width: 3, border_color: "yellow"}),
-            svg_circle({id: "circ_id", html_class: "clickable", cx: 20, cy: 20, r: 30, color: "purple"}),
-            svg_ellipse({id: "ellip_id", html_class: "clickable", cx: 270, cy: 50, rx: 60, ry: 30, color: "orange"}),
-            svg_line({x1: 30, y1: 30, x2: 100, y2: 200, color: "blue", width: 5}),
-            svg_rect({x: 50, y: 50, width: 40, height: 100, color: "green", border_width: 3, border_color: "yellow", rx: 20, ry: 5}),
-            svg_polygon({points: [[400, 10], [500, 10], [450, 100]], color: "lime", border_width: 3, border_color: "yellow"}),
-            svg_polyline({points: [[400, 100], [480, 100], [450, 200], [480, 250]], color: "brown", width: 10}),
-            svg_text({text: "this is a really long string", x: 50, y: 50, size: 30, color: "red", border_width: 2, border_color: "black", style: 'font-weight:bold;'}),
-            svg_html({html: "<i style='font-size:30px;'>yikes</i>", x: 60, y: 100})
-                          ]}),
-        width: 610,  // window width
-        height: 200, // window height
-        x: 0,        // Distance from left of DDE window to this window's left
-        y: 100,      // Distance from top  of DDE window to this window's top
-        callback: handle1
-    })
-
-    //SVG Example 2: draw circle then move it to clicked position.
-    function handle2 (vals){
-        if(window.c_id) {
-            set_in_ui("c_id.cx", vals.offsetX)
-            set_in_ui("c_id.cy", vals.offsetY)
-        }
-        else {
-            SW.append_in_ui(
-                "s2_id",
-                svg_circle({id: "c_id", cx: vals.offsetX, cy: vals.offsetY,
-                            r: 15, color: "blue"}))
-      }
+    else if (arg.clicked_button_value === "circ_id") {
+        out("clicked on circ_id")
     }
-
-    show_window({
-        title: "SVG Example 2: Click to draw and move circle",
-        content: svg_svg({id: "s2_id", width: 600, height: 200, html_class: "clickable"}),
-        x: 0,
-        y: 330,
-        width: 600,
-        height: 200,
-        callback: handle2
-    })
-
-    //SVG Example 3: draw line segments
-    var linex = null
-    var liney = null
-    function handle3 (vals){
-        if(linex) {
-            SW.append_in_ui(
-                "s3_id",
-                svg_line({x1: linex, y1: liney, x2: vals.offsetX, y2: vals.offsetY}))
-        }
-       else {
-           SW.append_in_ui(
-               "s3_id",
-               svg_circle({cx: vals.offsetX, cy: vals.offsetY,
-                           r: 5, color: "blue"}))
-       }
-       linex = vals.offsetX
-       liney = vals.offsetY
+    else if (arg.clicked_button_value === "ellip_id") {
+        out("The user clicked on ellip_id")
     }
+}
 
-    show_window({
-        title: "SVG Example 3: Click to draw lines",
-        content: svg_svg({id: "s3_id", width: 400, height: 350, html_class: "clickable",
-                          child_elements: [
-                              svg_rect({x: 100, y: 100, width: 200, height: 50, color: "yellow"})
-               ]}),
-        width: 470, x: 620, y: 100,
-        callback: handle3
-    })
-    `)}
+show_window({
+    title: "SVG Example 1: Lots of shapes. Click to interact",
+    content: svg_svg({id: "svg_id", height: 300, width: 500, html_class: "clickable", child_elements:
+       [//svg_rect({id: "background_id", html_class: "clickable", style:"position: relative; top: 0; right: 0; x: 0, y: 0, width: 500, height: 500, color: "white", border_width: 3, border_color: "yellow"}),
+        svg_circle({id: "circ_id", html_class: "clickable", cx: 20, cy: 20, r: 30, color: "purple"}),
+        svg_ellipse({id: "ellip_id", html_class: "clickable", cx: 270, cy: 50, rx: 60, ry: 30, color: "orange"}),
+        svg_line({x1: 30, y1: 30, x2: 100, y2: 200, color: "blue", width: 5}),
+        svg_rect({x: 50, y: 50, width: 40, height: 100, color: "green", border_width: 3, border_color: "yellow", rx: 20, ry: 5}),
+        svg_polygon({points: [[400, 10], [500, 10], [450, 100]], color: "lime", border_width: 3, border_color: "yellow"}),
+        svg_polyline({points: [[400, 100], [480, 100], [450, 200], [480, 250]], color: "brown", width: 10}),
+        svg_text({text: "this is a really long string", x: 50, y: 50, size: 30, color: "red", border_width: 2, border_color: "black", style: 'font-weight:bold;'}),
+        svg_html({html: "<i style='font-size:30px;'>yikes</i>", x: 60, y: 100})
+                      ]}),
+    width: 610,  // window width
+    height: 200, // window height
+    x: 0,        // Distance from left of DDE window to this window's left
+    y: 100,      // Distance from top  of DDE window to this window's top
+    callback: handle1
+})
+
+//SVG Example 2: draw circle then move it to clicked position.
+function handle2 (vals){
+    if(window.c_id) {
+        set_in_ui("c_id.cx", vals.offsetX)
+        set_in_ui("c_id.cy", vals.offsetY)
+    }
+    else {
+        SW.append_in_ui(
+            "s2_id",
+            svg_circle({id: "c_id", cx: vals.offsetX, cy: vals.offsetY,
+                        r: 15, color: "blue"}))
+  }
+}
+
+show_window({
+    title: "SVG Example 2: Click to draw and move circle",
+    content: svg_svg({id: "s2_id", width: 600, height: 200, html_class: "clickable"}),
+    x: 0,
+    y: 330,
+    width: 600,
+    height: 200,
+    callback: handle2
+})
+
+//SVG Example 3: draw line segments
+var linex = null
+var liney = null
+function handle3 (vals){
+    if(linex) {
+        SW.append_in_ui(
+            "s3_id",
+            svg_line({x1: linex, y1: liney, x2: vals.offsetX, y2: vals.offsetY}))
+    }
+   else {
+       SW.append_in_ui(
+           "s3_id",
+           svg_circle({cx: vals.offsetX, cy: vals.offsetY,
+                       r: 5, color: "blue"}))
+   }
+   linex = vals.offsetX
+   liney = vals.offsetY
+}
+
+show_window({
+    title: "SVG Example 3: Click to draw lines",
+    content: svg_svg({id: "s3_id", width: 400, height: 350, html_class: "clickable",
+                      child_elements: [
+                          svg_rect({x: 100, y: 100, width: 200, height: 50, color: "yellow"})
+           ]}),
+    width: 470, x: 620, y: 100,
+    callback: handle3
+})
+`)}
 
         window_modify_id.onclick=function(){Editor.insert(
     `function modify_window_cb(vals){
@@ -1181,7 +1202,7 @@ export function on_ready() {
                     Editor.insert(prefix + 'Control.debugger(),nnll') //ok if have comma after last list item in new JS.
                }
 
-               comment_out_id.onclick     = function(){Editor.wrap_around_selection("/*", "*???/")} //todo dde4 get rid of ???
+               comment_out_id.onclick     = function(){Editor.wrap_around_selection("/*", "*/")}
                comment_eol_id.onclick     = function(){Editor.insert("//")}
                  //true & false menu
                true_id.onclick          = function(){Editor.insert(" true ")}
@@ -1246,7 +1267,8 @@ export function on_ready() {
                set_variable_id.onclick      = function(){Editor.insert('=')}
 
                    //JS Objects menu
-                  js_object_example_id.onclick = function(){Editor.insert(
+               js_object_example_id.onclick = function(){
+                    Editor.insert(
               `var foo = {sam: 2, joe: 5 + 1} //make a JS object
               foo      //evals to the new object
               foo.sam  //evals to 2

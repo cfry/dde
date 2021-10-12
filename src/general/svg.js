@@ -2,6 +2,8 @@
  * Created by Fry on 11/7/16.
  */
 
+ import {last} from "../job_engine/core/utils.js"
+
 function svg_svg({id="", html_class="", style="", width=500, height=500, viewBox="", child_elements=[]}={}){
     let result = '<svg' +
          ' id="'      + id  +
@@ -14,6 +16,7 @@ function svg_svg({id="", html_class="", style="", width=500, height=500, viewBox
         '\n</svg>'
     return result
 }
+globalThis.svg_svg = svg_svg
 
 
 function svg_circle({id="", name="", html_class="", style="", cx=0, cy=0, r=10, color="black", border_width=1, border_color="black", data_oninput="false"}={}){
@@ -35,6 +38,8 @@ function svg_circle({id="", name="", html_class="", style="", cx=0, cy=0, r=10, 
     return result
 }
 
+globalThis.svg_circle = svg_circle
+
 function svg_ellipse({id="", html_class="", style="", cx=0, cy=0, rx=20, ry=10, color="black", border_width=1, border_color="black"}={}){
     if (style.length > 0) { //ensure proper ending
         if (last(style) == ";") style += " "
@@ -52,6 +57,7 @@ function svg_ellipse({id="", html_class="", style="", cx=0, cy=0, rx=20, ry=10, 
         '"/>'
     return result
 }
+globalThis.svg_ellipse = svg_ellipse
 
 function svg_line({id="", html_class="", style="", x1=0, y1=0, x2=100, y2=100, color="black", width=1}={}){
     if (style.length > 0) { //ensure proper ending
@@ -69,7 +75,8 @@ function svg_line({id="", html_class="", style="", x1=0, y1=0, x2=100, y2=100, c
         '" y2="'    + y2 +
         '"/>'
 }
-//svg_line()
+globalThis.svg_line = svg_line
+
 function svg_rect({id="", html_class="", style="", x=0, y=0, width=100, height=100, rx=0, ry=0,
                   color="black", border_width=1, border_color="black"}={}){
     if (style.length > 0) { //ensure proper ending
@@ -89,7 +96,8 @@ function svg_rect({id="", html_class="", style="", x=0, y=0, width=100, height=1
         '" ry="'     + ry +
         '"/>'
 }
-// svg_rect()
+globalThis.svg_rect = svg_rect
+
 //'<text style="font-size:30px;" x="60" y="400" fill="#AA66AA" transform="rotate(0, 0, 0)">Flexibility/Power/Complexity</text> <!-- 2nd arg = x 3rd arg = y rotate point -->
 //points is of reasonable format [[2,3], [4,5]...] but svg requires "2,3  4,5"
 function svg_polygon({id="", html_class="", style="", points=[], color="black", border_width=1, border_color="black"}={}){
@@ -111,6 +119,7 @@ function svg_polygon({id="", html_class="", style="", points=[], color="black", 
         '" points="'    + points_string +
         '"/>'
 }
+globalThis.svg_polygon = svg_polygon
 
 function svg_polyline({id="", html_class="", style="", points=[], color="black", width=1}={}){
     if (style.length > 0) { //ensure proper ending
@@ -132,6 +141,7 @@ function svg_polyline({id="", html_class="", style="", points=[], color="black",
         '" fill="none' +
         '"/>'
 }
+globalThis.svg_polyline = svg_polyline
 
 function svg_text({id="", html_class="", style="", text="hi", x=20, y=20, size=16, color="black", border_width=0, border_color="black", transform="rotate(0, 0, 0)"}={}){
     if (style.length > 0) { //ensure proper ending
@@ -149,7 +159,7 @@ function svg_text({id="", html_class="", style="", text="hi", x=20, y=20, size=1
         '">' + text +
         '</text>'
 }
-// svg_text()
+globalThis.svg_text = svg_text
 
 //todo commented out below is code that attempts to get drag and drop working for svg_html
 //but it failed: the "drag" method never called.
@@ -172,3 +182,4 @@ function svg_html({html="<h1>hi</h1>", x=0, y=0, width=100, height=100, html_cla
                         '>' + html +
             '</foreignObject>'
 }
+globalThis.svg_html = svg_html

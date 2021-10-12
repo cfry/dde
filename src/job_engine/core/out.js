@@ -4,7 +4,7 @@ import {persistent_get} from "./storage.js"
 import {month_names, replace_substrings, starts_with_one_of, stringify_value}
        from "./utils.js"
 //require("./je_and_browser_code.js") //don't set SW from this.
-export function format_text_for_code(text, code=null){
+function format_text_for_code(text, code=null){
     if (code === null) {
         code = persistent_get("default_out_code")
         if ((code === undefined) || (code === null) || (code == false)) { code = false }
@@ -20,6 +20,8 @@ export function format_text_for_code(text, code=null){
     }
     return text
 }
+
+globalThis.format_text_for_code = format_text_for_code
 
 /*
  StackTrace.get(function(sf){
@@ -89,9 +91,11 @@ export function out_eval_result(text, color="#000000", src, src_label="The resul
     //else { myCodeMirror.focus() }
 }
 
-export function get_output(){ //rather uncommon op, used only in SW.append_to_output
+function get_output(){ //rather uncommon op, used only in SW.append_to_output
     return output_div_id.innerHTML
 }
+
+globalThis.get_output = get_output
 
 //value can either be some single random js type, or a literal object
 //with a field of speak_data, in which case we use that.
@@ -134,7 +138,7 @@ export function stringify_for_speak(value, recursing=false){
     return result
 }
 
-export function speak({speak_data = "hello", volume = 1.0, rate = 1.0, pitch = 1.0, lang = "en_US", voice = 0, callback = null, node_callback = null} = {}){
+function speak({speak_data = "hello", volume = 1.0, rate = 1.0, pitch = 1.0, lang = "en_US", voice = 0, callback = null, node_callback = null} = {}){
     if (arguments.length > 0){
         var speak_data = arguments[0] //, volume = 1.0, rate = 1.0, pitch = 1.0, lang = "en_US", voice = 0, callback = null
     }
@@ -170,6 +174,8 @@ export function speak({speak_data = "hello", volume = 1.0, rate = 1.0, pitch = 1
     return speak_data
 }
 
+globalThis.speak = speak
+
 //______show_window_____
 //output the "vals" to inspector or stdout.
 //this use to be the default show_window callback
@@ -182,7 +188,7 @@ export function show_window_values(vals){
     }
 }
 
-export function show_window({content = `<input type="submit" value="Done"/>`,
+function show_window({content = `<input type="submit" value="Done"/>`,
                       title = "DDE Information",
                       title_bar_height = 25,
                       title_bar_color = "#b8bbff",
@@ -308,6 +314,8 @@ export function show_window({content = `<input type="submit" value="Done"/>`,
     return SW.window_index
 }
 
+globalThis.show_window = show_window
+
 //can't get this to work well with shrinking the title bar below orig size.
 //function show_window_content_onresize(event){ }
 //module.exports.show_window_content_onresize = show_window_content_onresize
@@ -338,7 +346,7 @@ function sw_make_title_html(title, title_bar_width, title_bar_height,  title_bar
     }
 }
 
-export function beeps(times=1, callback){
+function beeps(times=1, callback){
     if (times == 0){
         if (callback){
             callback.call()
@@ -350,9 +358,11 @@ export function beeps(times=1, callback){
     }
 }
 
+globalThis.beeps = beeps
+
 var audioCtx
 
-export function beep({dur = 0.5, frequency = 440, volume = 1, waveform = "triangle", callback = null}={}){
+function beep({dur = 0.5, frequency = 440, volume = 1, waveform = "triangle", callback = null}={}){
     if(window.platform == "node"){
         exec("espeak \"" + "beep" + "\" -a "+ (volume*200) + " -p " + (frequency * 100) + " -s 300",
             callback );//this callback takes 2 args, an err object and a string of the shell output
@@ -376,4 +386,4 @@ export function beep({dur = 0.5, frequency = 440, volume = 1, waveform = "triang
     }
 }
 
-globalThis.show_window = show_window
+globalThis.beep = beep

@@ -178,7 +178,7 @@ function html_attributes_and_values(html){
       }
       else if (state == "in_string"){ //pretend no backslashed string delimiters.
           if (char == string_delim) {
-              val = attr_string.substring(start_token, i)
+              let val = attr_string.substring(start_token, i)
               if (val.length > 0) {
                 result.push([name, val])
               }
@@ -473,7 +473,7 @@ function show_page(url, window_name, options={x: 0, y: 0, width: 800, height: 60
         window_name = "_blank"
     }
     let window_features_str = ""
-    for(let key of options){
+    for(let key of Object.keys(options)){
         let val = options[key]
         if(val == true) { val = "yes"}
         else if (val == false) { val = "no" }

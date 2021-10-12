@@ -581,6 +581,8 @@ export function last(arg){
     else                              { dde_error("last passed unhandled type of arg: " + arg) }
 }
 
+globalThis.last = last //used a bunch of places that are hard to declare
+
 export function flatten(arr, result=[]){
     if (Array.isArray(arr)){
         for (let elt of arr){
@@ -1930,6 +1932,8 @@ export class Duration {
 
     to_seconds(){ return this.milliseconds / 1000 }
 }
+
+globalThis.Duration = Duration
 
 
 
